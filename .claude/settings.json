@@ -60,7 +60,11 @@
       "Bash(supabase db push*)",
       "Bash(supabase link*)",
       "Bash(pnpm supabase db push*)",
-      "Bash(pnpm supabase link*)"
+      "Bash(pnpm supabase link*)",
+      "Bash(pnpm release:*)",
+      "Bash(node scripts/release/promote*)",
+      "Bash(node scripts/release/tag*)",
+      "Bash(node scripts/release/env-check*)"
     ]
   },
   "worktree": {

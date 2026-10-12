@@ -28,3 +28,10 @@ jobs:
         run: node vault/tools/next_ticket.mjs --check
       - name: Gate
         run: node scripts/gate.mjs .
+      - name: Performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-results
+          path: perf-results/
+          if-no-files-found: ignore

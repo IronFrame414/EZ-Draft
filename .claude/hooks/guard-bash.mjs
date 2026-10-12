@@ -21,6 +21,7 @@ const always = [
   [/\bsupabase\b.*\b(db push|link)\b/, 'Remote database changes are Josh\'s. Use the local Supabase only.'],
   [/(cat|type|Get-Content|more|less)\s+[^|;&]*\.env(?!\.example)\b/i, 'Reading .env files is not allowed.'],
   [/\bgh\s+pr\s+merge\b/, 'Only Josh merges PRs.'],
+  [/\bpnpm\s+(run\s+)?release:|\bnode\s+\S*scripts[\\/]release[\\/]/, 'Release scripts are Josh\'s; agents never run them (EZD-023b).'],
 ];
 for (const [re, why] of always) if (re.test(why.startsWith('Reading .env') ? raw : c)) deny(why);
 
