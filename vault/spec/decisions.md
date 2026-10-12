@@ -184,3 +184,26 @@ Josh's answers are marked Josh; the rest were decided by Claude at Josh's direct
 - Bluetooth laser: none owned today. Keyboard-mode laser input is built in v1 anyway (Round 24 #47).
 - Visual direction: the Studio mockups are final and approved.
 - Who signs, and the GC load calc: decided in #42 and #43.
+
+## Build answers (Josh)
+
+Josh's answers during the build. Each overrides the spec text and any earlier row above. Source rows are in `vault/questions/QUESTIONS.md`.
+
+| Q-ID | Date | Answer |
+| --- | --- | --- |
+| Q-0001 | 2026-10-11 | No NEC book. Proceed with the current code rules; unverified rules keep their "not yet verified" tag in the app. |
+| Q-0003 | 2026-10-11 | Docker Desktop is installed on the build PC. Vercel, Supabase and Resend accounts exist, shared with EZ Binder for now. (GitHub repo, DNS, Claude API key, image-model API keys, Sentry and the backup bucket were not covered; still in `tickets/needs-from-josh.md`.) |
+| Q-0004 | 2026-10-11 | Fable uses existing usage credits with no auto-refill. Use Fable for phase audits; fall back to Opus if the credits run out. |
+| Q-0014 | 2026-10-11 | Round 26 R2 is done: two permissions, See company costs and See sell prices. |
+| Q-0015 | 2026-10-11 | Claude drafts the Terms of service in EZD-1707. Attorney review is recommended before the app takes paying customers. |
+| Q-0016 | 2026-10-11 | R21 provider choice: the render spike (EZD-031) runs the same 5 rooms through Gemini image, GPT Image 2 and Flux Kontext pro, records the cost per render and keeps the output images. Josh picks the provider from those images. |
+| Q-0017 | 2026-10-11 | Department items: the Broward stamp space is the default for all departments. No per-department file naming; users rename files locally. |
+| Q-0018 | 2026-10-11 | GPU: the build PC has Intel UHD Graphics only (no dedicated GPU memory). No local GPU rendering; all renders use cloud providers. (Whether Phase 11 still builds the local worker protocol is open as Q-0020.) |
+| Q-0019 | 2026-10-11 | Build PC has 16 GB RAM: keep parallel test workers low (Playwright workers = 2) and never run two gate checks at once. |
+| Q-0006 | 2026-10-11 | Each ticket's check runs the phase's tests plus a smoke set; the full suite runs at the phase gate. Rule 3 in `tickets/README.md` is updated; Josh applies the `scripts/gate.mjs` change specified in the EZD-001 plan. |
+| Q-0011 | 2026-10-11 | The duplicate first export at the repo root is moved to `vault/archive/original-export/`. Agents never read `vault/archive/`. |
+| Q-0025 | 2026-10-11 | The `.env` read deny is narrowed to `.env.local`, `.env.*.local`, `.env.production` and `.env.development`; `.env.example` is readable. |
+| Q-0034 | 2026-10-11 | S15 has 29 permission switches (the Permission list and the mockup). Every "28" in the S15 text is a counting error; use 29. |
+| — | 2026-10-11 | Mockups: 14 new Studio boards (S01b, S15a–S15h, S17c, S19–S22) and updated S02, S15, S16. Every screen now has a mockup; tickets README rule 6 ("built from the spec text") no longer applies to any screen. |
+
+Still pending from Josh as of 2026-10-11 (tickets that depend on these stay blocked; everything else continues): R23 vendor cabinet line, Supplier 2020 sample, architect DXFs, real per-render costs.
