@@ -6,7 +6,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Phase | Ticket | Title | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 34 |
+| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 35 |
 | 1 | Phase 1 · Foundation | [phase-01.md](phases/phase-01.md) | 37 |
 | 2 | Phase 2 · Geometry core + plan editor | [phase-02.md](phases/phase-02.md) | 38 |
 | 3 | Phase 3 · Imports | [phase-03.md](phases/phase-03.md) | 15 |
@@ -29,16 +29,16 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | EZD-001 | 0 | Repo and tooling | questions | EZD-000 |  |  |  |
 | EZD-002 | 0 | CI | questions | EZD-001 |  |  |  |
-| EZD-003 | 0 | Hosting and subdomain | todo | EZD-002 |  |  |  |
+| EZD-003 | 0 | Hosting and subdomain | questions | EZD-002 |  |  |  |
 | EZD-004 | 0 | Supabase project | questions | EZD-001 |  |  |  |
-| EZD-005 | 0 | Tenant, user, membership tables | todo | EZD-004 |  |  |  |
-| EZD-006 | 0 | Row-level security | todo | EZD-005 |  |  |  |
-| EZD-007 | 0 | Magic-link sign-in | todo | EZD-005 |  |  |  |
-| EZD-008 | 0 | Email provider | todo | EZD-004 |  |  |  |
+| EZD-005 | 0 | Tenant, user, membership tables | questions | EZD-004 |  |  |  |
+| EZD-006 | 0 | Row-level security | questions | EZD-005 |  |  |  |
+| EZD-007 | 0 | Magic-link sign-in | questions | EZD-005 |  |  |  |
+| EZD-008 | 0 | Email provider | questions | EZD-004 |  |  |  |
 | EZD-009 | 0 | Background job queue | todo | EZD-004, EZD-018 |  |  |  |
 | EZD-010 | 0 | Design tokens | questions | EZD-001 |  |  |  |
-| EZD-011 | 0 | Shell: header card | todo | EZD-010, EZD-026a |  |  |  |
-| EZD-012 | 0 | Shell: rail, panels, status bar | todo | EZD-010, EZD-026a |  |  |  |
+| EZD-011 | 0 | Shell: header card | planned | EZD-010, EZD-026a |  |  |  |
+| EZD-012 | 0 | Shell: rail, panels, status bar | questions | EZD-010, EZD-026a |  |  |  |
 | EZD-013 | 0 | PWA install | todo | EZD-012 |  |  |  |
 | EZD-014 | 0 | Device layouts | todo | EZD-012, EZD-026a |  |  |  |
 | EZD-015 | 0 | Shared state components | todo | EZD-010, EZD-026a |  |  |  |
@@ -51,11 +51,12 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-021 | 0 | AI client and stubs | todo | EZD-009, EZD-016 |  |  |  |
 | EZD-022 | 0 | Event registry | planned | EZD-001 |  |  |  |
 | EZD-000 | 0 | Architecture conventions | questions | — |  |  |  |
-| EZD-023 | 0 | Environments and release | todo | EZD-002, EZD-004 |  |  |  |
+| EZD-023a | 0 | Release safety: migration check | todo | EZD-002, EZD-004 |  |  | Split from EZD-023 (Q-0042) |
+| EZD-023b | 0 | Environments, promote and rollback | todo | EZD-023a, EZD-004, EZD-008 |  |  | Split from EZD-023 (Q-0042) |
 | EZD-024 | 0 | Error reporting | todo | EZD-008, EZD-009 |  |  |  |
 | EZD-025 | 0 | Off-site backups and restore script | todo | EZD-004, EZD-009 |  |  |  |
-| EZD-026a | 0 | Message helper: helper, catalogs, lint | todo | EZD-001, EZD-010 |  |  | Split from EZD-026 (Q-0028) |
-| EZD-026b | 0 | Message helper: language from the user record | todo | EZD-026a, EZD-005, EZD-006, EZD-007, EZD-016a |  |  | Split from EZD-026 (Q-0028) |
+| EZD-026a | 0 | Message helper: helper, catalogs, lint | questions | EZD-001, EZD-010 |  |  | Split from EZD-026 (Q-0028) |
+| EZD-026b | 0 | Message helper: language from the user record | questions | EZD-026a, EZD-005, EZD-006, EZD-007, EZD-016a |  |  | Split from EZD-026 (Q-0028) |
 | EZD-027 | 0 | Spike: plan canvas on the iPad | todo | EZD-012 |  |  |  |
 | EZD-028 | 0 | Spike: PDF from a drawing list | questions | EZD-001 |  |  |  |
 | EZD-029 | 0 | Spike: DXF parser | todo | EZD-016, EZD-000 |  |  |  |
