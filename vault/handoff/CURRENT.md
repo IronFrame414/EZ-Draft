@@ -20,6 +20,9 @@ Phase: 0 · Stage: 2 questions done; ready for 3 build · Session ended because:
   1. New `scripts/gate.mjs` applied by Josh (Q-0006 scope + one-gate lock). Done.
   2. Build-phase skill step 8 uses `--phase <N>`, applied by Josh. Done.
   3. Docker Desktop running; approve the Playwright browser install when the build reaches EZD-007/EZD-016a.
+  4. Account setup walked through on Oct 12 and verified: Supabase project (one, Q-0113), Vercel project `ezdraft` (root `app`, branch main, env vars), DNS CNAME at Spaceship (resolves, HTTPS valid), Resend keys and Supabase SMTP, GitHub secret SUPABASE_DEV_DB_URL, agent GitHub account `ironframe414-agent` (Write; this PC now signed in as it, Q-0108).
+  5. **Still Josh: G2 repo settings** (exact clicks in vault/plans/EZD-023b.md, "Josh's GitHub and account settings"): rulesets for main (PR + 1 approval of latest push), develop, phase-* tags; Actions settings; secret scanning + push protection; environments `dev` (develop only, holds SUPABASE_DEV_DB_URL; then delete the repository secret) and `release` (main only, no admin bypass, empty until launch). Agents cannot do these (security settings; no admin access). After he does them, verify from the agent account.
+  6. Everything production-only is in EZD-023b's "Before launch checklist" (Q-0113).
 - Josh to confirm his Surface model (Settings → System → About); tests use Surface Pro 1440 × 960 until then (Q-0088).
 
 ## Decisions made this session
