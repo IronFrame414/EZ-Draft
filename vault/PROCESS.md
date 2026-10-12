@@ -77,7 +77,7 @@ The orchestrator takes the ticket printed by `node vault/tools/next_ticket.mjs -
 6. **FAIL** → findings back to the builder (same worktree). After 3 failed loops the ticket is `blocked` with notes in STATUS and a question in QUESTIONS; the orchestrator moves on.
 7. **PASS** → squash the branch to one commit `feat(EZD-xxx): <title>` on `develop`, push `develop`, remove the worktree, STATUS → `done` with the commit hash.
 
-GitHub Actions runs the same gate on every push to `develop` and on every PR.
+CI is bundled to save usage: GitHub Actions runs the gate and ledger check once per phase, on the phase PR (`develop` → `main`), plus by hand from the Actions tab. `develop` is pushed once at the end of each build run, not after each ticket, so Vercel builds a preview only then. Per-ticket checks are local (`node scripts/gate.mjs`).
 
 Special tickets:
 - **Harness tickets** (EZD-006, EZD-008, EZD-016, EZD-019, EZD-021): the test-author builds the harness code itself (test configs, `test-utils/`, `test-harness/`, fixtures, stubs); the builder does any non-test part.

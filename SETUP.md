@@ -92,7 +92,7 @@ Pause Windows Update while a phase is building (Settings → Windows Update → 
 1. Claude desktop app → **Code** tab → **Local** → choose the `ezdraft` folder. Make sure the branch is `develop`.
 2. Accept the trust prompt for the folder. Hooks and project agents load only after trust.
 3. Check the setup in that session:
-   - Type `/hooks` → you should see SessionStart, PreToolUse (2) and SessionEnd.
+   - Ask: "What did the SessionStart hook add to your context?" → it should quote the handoff file and say Current phase: 0. (`/hooks` only works in the terminal version.)
    - Ask: "List the custom agents and their models." → planner, test-author, builder, code-reviewer, calc-auditor, ui-verifier, security-reviewer, phase-auditor, Explore.
    - Type `/` → the commands `/plan-phase`, `/questions`, `/build-phase`, `/phase-gate`, `/handoff` should appear.
 4. Fable (for phase audits): run `/model fable` once to see whether your plan asks to use usage credits, then switch back with `/model opus`. Answer Q-0004 based on that.
@@ -143,7 +143,7 @@ Open the PR link it gives you, click through the Vercel preview, and merge the P
 
 ## Notes
 
-- **Vercel and the subdomain** are set up as part of ticket EZD-003 (Needs from Josh). When it asks: Vercel → Add project → import `EZ-Draft` → production branch `main`. Production deploys therefore happen only when you merge a phase PR; `develop` and the phase PR get preview deploys. Confirm a preview deploy works by pushing any small commit to `develop`. Then Settings → Domains → add `ezdraft.ezcontractorbinder.com` and add the CNAME it shows at your DNS host. If your DNS is at Cloudflare, set the record to "DNS only" (gray cloud) until Vercel verifies it.
+- **Vercel and the subdomain** are set up as part of ticket EZD-003 (Needs from Josh). When it asks: Vercel → Add project → import `EZ-Draft` → production branch `main`. Production deploys therefore happen only when you merge a phase PR. `develop` is pushed once per build run, so preview builds are rare. To skip `develop` previews entirely, set Vercel → Project → Settings → Git → Ignored Build Step to `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1` (builds only `main` and PRs). Then Settings → Domains → add `ezdraft.ezcontractorbinder.com` and add the CNAME it shows at your DNS host. If your DNS is at Cloudflare, set the record to "DNS only" (gray cloud) until Vercel verifies it.
 - **Secrets** go in `.env.local` (never committed; agents cannot read it). The names go in `.env.example`.
 - **Changing the rules** (agents, hooks, settings, gate, CI) is yours: agents are blocked from editing `.claude\`, `.github\` and `scripts\gate.mjs`.
 - **If the spec changes**, re-export the changed tab into `vault\spec\` and commit it before the next `/plan-phase`.
