@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 401,
+ "count": 402,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -9,7 +9,7 @@
  "checks": {
   "cycles": 0,
   "depends_on_later_phase": 0,
-  "depends_on_later_number_same_phase": 29,
+  "depends_on_later_number_same_phase": 32,
   "unresolved_dependencies": 0
  },
  "build_order": [
@@ -23,24 +23,25 @@
   "EZD-007",
   "EZD-008",
   "EZD-010",
-  "EZD-011",
-  "EZD-012",
-  "EZD-013",
-  "EZD-014",
   "EZD-016a",
   "EZD-016b",
-  "EZD-017",
   "EZD-018",
   "EZD-009",
   "EZD-019",
-  "EZD-020",
   "EZD-021",
   "EZD-022",
   "EZD-023",
   "EZD-024",
   "EZD-025",
-  "EZD-026",
+  "EZD-026a",
+  "EZD-011",
+  "EZD-012",
+  "EZD-013",
+  "EZD-014",
   "EZD-015",
+  "EZD-017",
+  "EZD-020",
+  "EZD-026b",
   "EZD-027",
   "EZD-028",
   "EZD-029",
@@ -564,7 +565,7 @@
     "EZD-004",
     "EZD-018"
    ],
-   "build_position": 19
+   "build_position": 14
   },
   {
    "id": "EZD-010",
@@ -586,7 +587,7 @@
    "id": "EZD-011",
    "phase": 0,
    "title": "Shell: header card",
-   "depends_raw": "EZD-010",
+   "depends_raw": "EZD-010, EZD-026a",
    "spec_ref": "App shell · Header card",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md"
@@ -594,15 +595,16 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
-    "EZD-010"
+    "EZD-010",
+    "EZD-026a"
    ],
-   "build_position": 11
+   "build_position": 22
   },
   {
    "id": "EZD-012",
    "phase": 0,
    "title": "Shell: rail, panels, status bar",
-   "depends_raw": "EZD-010",
+   "depends_raw": "EZD-010, EZD-026a",
    "spec_ref": "App shell · Frame, Tool rail, Status bar",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md"
@@ -610,9 +612,10 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
-    "EZD-010"
+    "EZD-010",
+    "EZD-026a"
    ],
-   "build_position": 12
+   "build_position": 23
   },
   {
    "id": "EZD-013",
@@ -628,13 +631,13 @@
    "depends_on": [
     "EZD-012"
    ],
-   "build_position": 13
+   "build_position": 24
   },
   {
    "id": "EZD-014",
    "phase": 0,
    "title": "Device layouts",
-   "depends_raw": "EZD-012",
+   "depends_raw": "EZD-012, EZD-026a",
    "spec_ref": "Platform; Non-functional · Accessibility",
    "spec_files": [
     "spec/sections/02-product-overview.md",
@@ -643,15 +646,16 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
-    "EZD-012"
+    "EZD-012",
+    "EZD-026a"
    ],
-   "build_position": 14
+   "build_position": 25
   },
   {
    "id": "EZD-015",
    "phase": 0,
    "title": "Shared state components",
-   "depends_raw": "EZD-010, EZD-026",
+   "depends_raw": "EZD-010, EZD-026a",
    "spec_ref": "S01 States (pattern for all screens)",
    "spec_files": [
     "spec/sections/screens/S01-projects.md"
@@ -662,9 +666,9 @@
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
     "EZD-010",
-    "EZD-026"
+    "EZD-026a"
    ],
-   "build_position": 28
+   "build_position": 26
   },
   {
    "id": "EZD-016a",
@@ -682,7 +686,7 @@
     "EZD-007",
     "EZD-002"
    ],
-   "build_position": 15
+   "build_position": 11
   },
   {
    "id": "EZD-016b",
@@ -699,7 +703,7 @@
    "depends_on": [
     "EZD-016a"
    ],
-   "build_position": 16
+   "build_position": 12
   },
   {
    "id": "EZD-017",
@@ -717,7 +721,7 @@
     "EZD-016b",
     "EZD-012"
    ],
-   "build_position": 17
+   "build_position": 27
   },
   {
    "id": "EZD-018",
@@ -734,7 +738,7 @@
    "depends_on": [
     "EZD-006"
    ],
-   "build_position": 18
+   "build_position": 13
   },
   {
    "id": "EZD-019",
@@ -752,7 +756,7 @@
     "EZD-016a",
     "EZD-016b"
    ],
-   "build_position": 20
+   "build_position": 15
   },
   {
    "id": "EZD-020",
@@ -768,7 +772,7 @@
    "depends_on": [
     "EZD-017"
    ],
-   "build_position": 21
+   "build_position": 28
   },
   {
    "id": "EZD-021",
@@ -787,7 +791,7 @@
     "EZD-016a",
     "EZD-016b"
    ],
-   "build_position": 22
+   "build_position": 16
   },
   {
    "id": "EZD-022",
@@ -803,7 +807,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 23
+   "build_position": 17
   },
   {
    "id": "EZD-000",
@@ -837,7 +841,7 @@
     "EZD-002",
     "EZD-004"
    ],
-   "build_position": 24
+   "build_position": 18
   },
   {
    "id": "EZD-024",
@@ -855,7 +859,7 @@
     "EZD-008",
     "EZD-009"
    ],
-   "build_position": 25
+   "build_position": 19
   },
   {
    "id": "EZD-025",
@@ -873,13 +877,13 @@
     "EZD-004",
     "EZD-009"
    ],
-   "build_position": 26
+   "build_position": 20
   },
   {
-   "id": "EZD-026",
+   "id": "EZD-026a",
    "phase": 0,
-   "title": "Message helper",
-   "depends_raw": "EZD-001",
+   "title": "Message helper: helper, catalogs, lint",
+   "depends_raw": "EZD-001, EZD-010",
    "spec_ref": "R26 R17",
    "spec_files": [
     "spec/decisions.md"
@@ -887,9 +891,30 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
-    "EZD-001"
+    "EZD-001",
+    "EZD-010"
    ],
-   "build_position": 27
+   "build_position": 21
+  },
+  {
+   "id": "EZD-026b",
+   "phase": 0,
+   "title": "Message helper: language from the user record",
+   "depends_raw": "EZD-026a, EZD-005, EZD-006, EZD-007, EZD-016a",
+   "spec_ref": "R26 R17",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-026a",
+    "EZD-005",
+    "EZD-006",
+    "EZD-007",
+    "EZD-016a"
+   ],
+   "build_position": 29
   },
   {
    "id": "EZD-027",
@@ -906,7 +931,7 @@
    "depends_on": [
     "EZD-012"
    ],
-   "build_position": 29
+   "build_position": 30
   },
   {
    "id": "EZD-028",
@@ -923,7 +948,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 30
+   "build_position": 31
   },
   {
    "id": "EZD-029",
@@ -942,7 +967,7 @@
     "EZD-016b",
     "EZD-000"
    ],
-   "build_position": 31
+   "build_position": 32
   },
   {
    "id": "EZD-030",
@@ -959,7 +984,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 32
+   "build_position": 33
   },
   {
    "id": "EZD-031",
@@ -975,7 +1000,7 @@
    "depends_on": [
     "EZD-021"
    ],
-   "build_position": 33
+   "build_position": 34
   },
   {
    "id": "EZD-101",
@@ -995,7 +1020,7 @@
    "depends_on": [
     "EZD-005"
    ],
-   "build_position": 34
+   "build_position": 35
   },
   {
    "id": "EZD-102",
@@ -1013,7 +1038,7 @@
     "EZD-101",
     "EZD-006"
    ],
-   "build_position": 35
+   "build_position": 36
   },
   {
    "id": "EZD-103",
@@ -1032,7 +1057,7 @@
     "EZD-102",
     "EZD-012"
    ],
-   "build_position": 36
+   "build_position": 37
   },
   {
    "id": "EZD-104",
@@ -1050,7 +1075,7 @@
    "depends_on": [
     "EZD-103"
    ],
-   "build_position": 37
+   "build_position": 38
   },
   {
    "id": "EZD-105",
@@ -1070,7 +1095,7 @@
     "EZD-104",
     "EZD-008"
    ],
-   "build_position": 38
+   "build_position": 39
   },
   {
    "id": "EZD-106",
@@ -1088,7 +1113,7 @@
    "depends_on": [
     "EZD-104"
    ],
-   "build_position": 39
+   "build_position": 40
   },
   {
    "id": "EZD-107",
@@ -1107,7 +1132,7 @@
    "depends_on": [
     "EZD-106"
    ],
-   "build_position": 40
+   "build_position": 41
   },
   {
    "id": "EZD-108",
@@ -1127,7 +1152,7 @@
    "depends_on": [
     "EZD-103"
    ],
-   "build_position": 41
+   "build_position": 42
   },
   {
    "id": "EZD-109",
@@ -1145,7 +1170,7 @@
     "EZD-005",
     "EZD-106"
    ],
-   "build_position": 42
+   "build_position": 43
   },
   {
    "id": "EZD-110",
@@ -1165,7 +1190,7 @@
     "EZD-008",
     "EZD-018"
    ],
-   "build_position": 43
+   "build_position": 44
   },
   {
    "id": "EZD-111",
@@ -1184,7 +1209,7 @@
     "EZD-120a",
     "EZD-120b"
    ],
-   "build_position": 62
+   "build_position": 63
   },
   {
    "id": "EZD-112",
@@ -1195,13 +1220,15 @@
    "spec_files": [
     "spec/sections/screens/S15a-settings-company.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15aCompany.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103",
     "EZD-132"
    ],
-   "build_position": 52
+   "build_position": 53
   },
   {
    "id": "EZD-113",
@@ -1214,12 +1241,14 @@
     "spec/decisions.md",
     "spec/sections/screens/S15a-settings-company.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15aCompany.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-112"
    ],
-   "build_position": 53
+   "build_position": 54
   },
   {
    "id": "EZD-114",
@@ -1232,14 +1261,16 @@
     "spec/sections/07-hooks-events-and-integrations.md",
     "spec/sections/screens/S15a-settings-company.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15aCompany.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-112",
     "EZD-007",
     "EZD-019"
    ],
-   "build_position": 54
+   "build_position": 55
   },
   {
    "id": "EZD-115",
@@ -1252,13 +1283,15 @@
     "spec/sections/07-hooks-events-and-integrations.md",
     "spec/sections/screens/S15a-settings-company.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15aCompany.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-113",
     "EZD-114"
    ],
-   "build_position": 55
+   "build_position": 56
   },
   {
    "id": "EZD-116",
@@ -1270,12 +1303,14 @@
     "spec/decisions.md",
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15dDefaults.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103"
    ],
-   "build_position": 44
+   "build_position": 45
   },
   {
    "id": "EZD-117a",
@@ -1294,7 +1329,7 @@
     "EZD-102",
     "EZD-110"
    ],
-   "build_position": 45
+   "build_position": 46
   },
   {
    "id": "EZD-117b",
@@ -1313,7 +1348,7 @@
     "EZD-117a",
     "EZD-015"
    ],
-   "build_position": 46
+   "build_position": 47
   },
   {
    "id": "EZD-118",
@@ -1326,7 +1361,8 @@
     "spec/sections/06-workflows.md"
    ],
    "mockups": [
-    "mockups/S01Projects.png"
+    "mockups/S01Projects.png",
+    "mockups/S01bWizard.png"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -1334,7 +1370,7 @@
     "EZD-117b",
     "EZD-113"
    ],
-   "build_position": 56
+   "build_position": 57
   },
   {
    "id": "EZD-119",
@@ -1355,7 +1391,7 @@
     "EZD-118",
     "EZD-114"
    ],
-   "build_position": 57
+   "build_position": 58
   },
   {
    "id": "EZD-120a",
@@ -1372,7 +1408,7 @@
     "EZD-005",
     "EZD-133"
    ],
-   "build_position": 60
+   "build_position": 61
   },
   {
    "id": "EZD-120b",
@@ -1394,7 +1430,7 @@
     "EZD-117a",
     "EZD-117b"
    ],
-   "build_position": 61
+   "build_position": 62
   },
   {
    "id": "EZD-121",
@@ -1413,7 +1449,7 @@
     "EZD-120b",
     "EZD-111"
    ],
-   "build_position": 63
+   "build_position": 64
   },
   {
    "id": "EZD-122",
@@ -1426,13 +1462,14 @@
     "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S20Versions.png"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-121"
    ],
-   "build_position": 64
+   "build_position": 65
   },
   {
    "id": "EZD-123",
@@ -1445,14 +1482,16 @@
     "spec/decisions.md",
     "spec/sections/13-decisions-and-remaining-items.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S20Versions.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-122",
     "EZD-110",
     "EZD-116"
    ],
-   "build_position": 65
+   "build_position": 66
   },
   {
    "id": "EZD-124",
@@ -1472,7 +1511,7 @@
     "EZD-117b",
     "EZD-121"
    ],
-   "build_position": 66
+   "build_position": 67
   },
   {
    "id": "EZD-125",
@@ -1496,7 +1535,7 @@
     "EZD-116",
     "EZD-018"
    ],
-   "build_position": 67
+   "build_position": 68
   },
   {
    "id": "EZD-126",
@@ -1516,7 +1555,7 @@
     "EZD-125",
     "EZD-011"
    ],
-   "build_position": 68
+   "build_position": 69
   },
   {
    "id": "EZD-127",
@@ -1533,7 +1572,7 @@
     "EZD-117a",
     "EZD-117b"
    ],
-   "build_position": 47
+   "build_position": 48
   },
   {
    "id": "EZD-128",
@@ -1553,7 +1592,7 @@
     "EZD-117a",
     "EZD-117b"
    ],
-   "build_position": 48
+   "build_position": 49
   },
   {
    "id": "EZD-129",
@@ -1574,7 +1613,7 @@
     "EZD-106",
     "EZD-006"
    ],
-   "build_position": 49
+   "build_position": 50
   },
   {
    "id": "EZD-130",
@@ -1587,14 +1626,18 @@
     "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md",
     "spec/sections/screens/S15g-settings-code-edition.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15dDefaults.png",
+    "mockups/S15cSubmittal.png",
+    "mockups/S15gCode.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-118",
     "EZD-116",
     "EZD-128"
    ],
-   "build_position": 58
+   "build_position": 59
   },
   {
    "id": "EZD-131",
@@ -1605,12 +1648,14 @@
    "spec_files": [
     "spec/sections/screens/S15h-settings-libraries.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15hLibraries.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103"
    ],
-   "build_position": 50
+   "build_position": 51
   },
   {
    "id": "EZD-132",
@@ -1627,7 +1672,7 @@
    "depends_on": [
     "EZD-006"
    ],
-   "build_position": 51
+   "build_position": 52
   },
   {
    "id": "EZD-133",
@@ -1645,7 +1690,7 @@
     "EZD-102",
     "EZD-006"
    ],
-   "build_position": 59
+   "build_position": 60
   },
   {
    "id": "EZD-134",
@@ -1664,7 +1709,7 @@
     "EZD-120a",
     "EZD-120b"
    ],
-   "build_position": 69
+   "build_position": 70
   },
   {
    "id": "EZD-135",
@@ -1683,7 +1728,7 @@
     "EZD-024",
     "EZD-025"
    ],
-   "build_position": 70
+   "build_position": 71
   },
   {
    "id": "EZD-201",
@@ -1701,7 +1746,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 71
+   "build_position": 72
   },
   {
    "id": "EZD-202",
@@ -1718,7 +1763,7 @@
     "EZD-120a",
     "EZD-120b"
    ],
-   "build_position": 72
+   "build_position": 73
   },
   {
    "id": "EZD-203",
@@ -1735,7 +1780,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 73
+   "build_position": 74
   },
   {
    "id": "EZD-204",
@@ -1752,7 +1797,7 @@
    "depends_on": [
     "EZD-203"
    ],
-   "build_position": 74
+   "build_position": 75
   },
   {
    "id": "EZD-205",
@@ -1772,7 +1817,7 @@
    "depends_on": [
     "EZD-203"
    ],
-   "build_position": 75
+   "build_position": 76
   },
   {
    "id": "EZD-206",
@@ -1790,7 +1835,7 @@
    "depends_on": [
     "EZD-203"
    ],
-   "build_position": 76
+   "build_position": 77
   },
   {
    "id": "EZD-207",
@@ -1814,7 +1859,7 @@
     "EZD-236",
     "EZD-238"
    ],
-   "build_position": 83
+   "build_position": 84
   },
   {
    "id": "EZD-208",
@@ -1833,7 +1878,7 @@
    "depends_on": [
     "EZD-207"
    ],
-   "build_position": 84
+   "build_position": 85
   },
   {
    "id": "EZD-209",
@@ -1853,7 +1898,7 @@
     "EZD-201",
     "EZD-207"
    ],
-   "build_position": 85
+   "build_position": 86
   },
   {
    "id": "EZD-210",
@@ -1872,7 +1917,7 @@
     "EZD-205",
     "EZD-209"
    ],
-   "build_position": 86
+   "build_position": 87
   },
   {
    "id": "EZD-211",
@@ -1891,7 +1936,7 @@
     "EZD-204",
     "EZD-209"
    ],
-   "build_position": 87
+   "build_position": 88
   },
   {
    "id": "EZD-212",
@@ -1909,7 +1954,7 @@
    "depends_on": [
     "EZD-208"
    ],
-   "build_position": 88
+   "build_position": 89
   },
   {
    "id": "EZD-213",
@@ -1928,7 +1973,7 @@
    "depends_on": [
     "EZD-208"
    ],
-   "build_position": 89
+   "build_position": 90
   },
   {
    "id": "EZD-214",
@@ -1947,7 +1992,7 @@
    "depends_on": [
     "EZD-213"
    ],
-   "build_position": 90
+   "build_position": 91
   },
   {
    "id": "EZD-215",
@@ -1965,7 +2010,7 @@
     "EZD-213",
     "EZD-132"
    ],
-   "build_position": 91
+   "build_position": 92
   },
   {
    "id": "EZD-216",
@@ -1984,7 +2029,7 @@
     "EZD-207",
     "EZD-235"
    ],
-   "build_position": 106
+   "build_position": 107
   },
   {
    "id": "EZD-217",
@@ -2003,7 +2048,7 @@
    "depends_on": [
     "EZD-208"
    ],
-   "build_position": 92
+   "build_position": 93
   },
   {
    "id": "EZD-218",
@@ -2023,7 +2068,7 @@
     "EZD-214",
     "EZD-132"
    ],
-   "build_position": 93
+   "build_position": 94
   },
   {
    "id": "EZD-219",
@@ -2042,7 +2087,7 @@
    "depends_on": [
     "EZD-206"
    ],
-   "build_position": 77
+   "build_position": 78
   },
   {
    "id": "EZD-220",
@@ -2063,7 +2108,7 @@
     "EZD-213",
     "EZD-132"
    ],
-   "build_position": 94
+   "build_position": 95
   },
   {
    "id": "EZD-221",
@@ -2084,7 +2129,7 @@
     "EZD-210",
     "EZD-118"
    ],
-   "build_position": 95
+   "build_position": 96
   },
   {
    "id": "EZD-222",
@@ -2098,14 +2143,15 @@
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S15dDefaults.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-116",
     "EZD-012"
    ],
-   "build_position": 78
+   "build_position": 79
   },
   {
    "id": "EZD-223",
@@ -2119,14 +2165,15 @@
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S15dDefaults.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207",
     "EZD-108"
    ],
-   "build_position": 96
+   "build_position": 97
   },
   {
    "id": "EZD-224",
@@ -2145,7 +2192,7 @@
    "depends_on": [
     "EZD-207"
    ],
-   "build_position": 97
+   "build_position": 98
   },
   {
    "id": "EZD-225",
@@ -2164,7 +2211,7 @@
     "EZD-126",
     "EZD-204"
    ],
-   "build_position": 79
+   "build_position": 80
   },
   {
    "id": "EZD-226",
@@ -2184,7 +2231,7 @@
    "depends_on": [
     "EZD-234"
    ],
-   "build_position": 101
+   "build_position": 102
   },
   {
    "id": "EZD-227",
@@ -2200,7 +2247,7 @@
    "depends_on": [
     "EZD-234"
    ],
-   "build_position": 102
+   "build_position": 103
   },
   {
    "id": "EZD-228",
@@ -2212,13 +2259,15 @@
     "spec/sections/09-calculations-and-rules.md",
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15dDefaults.png"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-226",
     "EZD-116"
    ],
-   "build_position": 103
+   "build_position": 104
   },
   {
    "id": "EZD-229",
@@ -2234,7 +2283,7 @@
    "depends_on": [
     "EZD-220"
    ],
-   "build_position": 98
+   "build_position": 99
   },
   {
    "id": "EZD-230",
@@ -2246,12 +2295,14 @@
     "spec/sections/04-app-shell-and-global-ui.md",
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15dDefaults.png"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-222"
    ],
-   "build_position": 80
+   "build_position": 81
   },
   {
    "id": "EZD-231",
@@ -2271,7 +2322,7 @@
     "EZD-206",
     "EZD-207"
    ],
-   "build_position": 99
+   "build_position": 100
   },
   {
    "id": "EZD-232",
@@ -2290,7 +2341,7 @@
    "depends_on": [
     "EZD-216"
    ],
-   "build_position": 107
+   "build_position": 108
   },
   {
    "id": "EZD-233",
@@ -2311,7 +2362,7 @@
     "EZD-131",
     "EZD-234"
    ],
-   "build_position": 104
+   "build_position": 105
   },
   {
    "id": "EZD-234",
@@ -2331,7 +2382,7 @@
    "depends_on": [
     "EZD-213"
    ],
-   "build_position": 100
+   "build_position": 101
   },
   {
    "id": "EZD-235",
@@ -2348,7 +2399,7 @@
     "EZD-205",
     "EZD-207"
    ],
-   "build_position": 105
+   "build_position": 106
   },
   {
    "id": "EZD-236",
@@ -2367,7 +2418,7 @@
     "EZD-120a",
     "EZD-120b"
    ],
-   "build_position": 81
+   "build_position": 82
   },
   {
    "id": "EZD-237",
@@ -2386,7 +2437,7 @@
     "EZD-236",
     "EZD-135"
    ],
-   "build_position": 108
+   "build_position": 109
   },
   {
    "id": "EZD-238",
@@ -2403,7 +2454,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 82
+   "build_position": 83
   },
   {
    "id": "EZD-301",
@@ -2424,7 +2475,7 @@
     "EZD-009",
     "EZD-132"
    ],
-   "build_position": 109
+   "build_position": 110
   },
   {
    "id": "EZD-302",
@@ -2447,7 +2498,7 @@
     "EZD-016b",
     "EZD-029"
    ],
-   "build_position": 110
+   "build_position": 111
   },
   {
    "id": "EZD-303",
@@ -2466,7 +2517,7 @@
    "depends_on": [
     "EZD-301"
    ],
-   "build_position": 111
+   "build_position": 112
   },
   {
    "id": "EZD-304",
@@ -2485,7 +2536,7 @@
    "depends_on": [
     "EZD-301"
    ],
-   "build_position": 112
+   "build_position": 113
   },
   {
    "id": "EZD-305",
@@ -2505,7 +2556,7 @@
    "depends_on": [
     "EZD-304"
    ],
-   "build_position": 113
+   "build_position": 114
   },
   {
    "id": "EZD-306",
@@ -2526,7 +2577,7 @@
     "EZD-301",
     "EZD-302"
    ],
-   "build_position": 114
+   "build_position": 115
   },
   {
    "id": "EZD-307",
@@ -2546,7 +2597,7 @@
     "EZD-303",
     "EZD-012"
    ],
-   "build_position": 115
+   "build_position": 116
   },
   {
    "id": "EZD-308",
@@ -2566,7 +2617,7 @@
     "EZD-307",
     "EZD-116"
    ],
-   "build_position": 116
+   "build_position": 117
   },
   {
    "id": "EZD-309",
@@ -2584,7 +2635,7 @@
    "depends_on": [
     "EZD-307"
    ],
-   "build_position": 117
+   "build_position": 118
   },
   {
    "id": "EZD-310",
@@ -2605,7 +2656,7 @@
     "EZD-309",
     "EZD-201"
    ],
-   "build_position": 118
+   "build_position": 119
   },
   {
    "id": "EZD-311",
@@ -2625,7 +2676,7 @@
     "EZD-310",
     "EZD-205"
    ],
-   "build_position": 119
+   "build_position": 120
   },
   {
    "id": "EZD-312",
@@ -2644,7 +2695,7 @@
     "EZD-309",
     "EZD-303"
    ],
-   "build_position": 120
+   "build_position": 121
   },
   {
    "id": "EZD-313",
@@ -2666,7 +2717,7 @@
     "EZD-310",
     "EZD-311"
    ],
-   "build_position": 121
+   "build_position": 122
   },
   {
    "id": "EZD-314",
@@ -2687,7 +2738,7 @@
     "EZD-313",
     "EZD-126"
    ],
-   "build_position": 122
+   "build_position": 123
   },
   {
    "id": "EZD-315",
@@ -2706,7 +2757,7 @@
     "EZD-209",
     "EZD-310"
    ],
-   "build_position": 123
+   "build_position": 124
   },
   {
    "id": "EZD-401",
@@ -2725,7 +2776,7 @@
    "depends_on": [
     "EZD-006"
    ],
-   "build_position": 124
+   "build_position": 125
   },
   {
    "id": "EZD-402",
@@ -2744,7 +2795,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 125
+   "build_position": 126
   },
   {
    "id": "EZD-403",
@@ -2764,7 +2815,7 @@
     "EZD-401",
     "EZD-404"
    ],
-   "build_position": 127
+   "build_position": 128
   },
   {
    "id": "EZD-404",
@@ -2784,7 +2835,7 @@
     "EZD-402",
     "EZD-207"
    ],
-   "build_position": 126
+   "build_position": 127
   },
   {
    "id": "EZD-405",
@@ -2802,7 +2853,7 @@
    "depends_on": [
     "EZD-404"
    ],
-   "build_position": 128
+   "build_position": 129
   },
   {
    "id": "EZD-406",
@@ -2820,7 +2871,7 @@
    "depends_on": [
     "EZD-405"
    ],
-   "build_position": 129
+   "build_position": 130
   },
   {
    "id": "EZD-407",
@@ -2841,7 +2892,7 @@
     "EZD-404",
     "EZD-116"
    ],
-   "build_position": 130
+   "build_position": 131
   },
   {
    "id": "EZD-408",
@@ -2862,7 +2913,7 @@
     "EZD-407",
     "EZD-234"
    ],
-   "build_position": 131
+   "build_position": 132
   },
   {
    "id": "EZD-409",
@@ -2881,7 +2932,7 @@
    "depends_on": [
     "EZD-406"
    ],
-   "build_position": 132
+   "build_position": 133
   },
   {
    "id": "EZD-410",
@@ -2900,7 +2951,7 @@
     "EZD-402",
     "EZD-204"
    ],
-   "build_position": 133
+   "build_position": 134
   },
   {
    "id": "EZD-411",
@@ -2917,7 +2968,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 134
+   "build_position": 135
   },
   {
    "id": "EZD-412",
@@ -2938,7 +2989,7 @@
     "EZD-404",
     "EZD-116"
    ],
-   "build_position": 135
+   "build_position": 136
   },
   {
    "id": "EZD-413",
@@ -2956,7 +3007,7 @@
    "depends_on": [
     "EZD-412"
    ],
-   "build_position": 136
+   "build_position": 137
   },
   {
    "id": "EZD-414",
@@ -2969,14 +3020,15 @@
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
    "mockups": [
-    "mockups/S04bCountertops.png"
+    "mockups/S04bCountertops.png",
+    "mockups/S15dDefaults.png"
    ],
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
     "EZD-412",
     "EZD-116"
    ],
-   "build_position": 137
+   "build_position": 138
   },
   {
    "id": "EZD-415",
@@ -2996,7 +3048,7 @@
    "depends_on": [
     "EZD-414"
    ],
-   "build_position": 138
+   "build_position": 139
   },
   {
    "id": "EZD-416",
@@ -3015,7 +3067,7 @@
    "depends_on": [
     "EZD-412"
    ],
-   "build_position": 139
+   "build_position": 140
   },
   {
    "id": "EZD-417",
@@ -3034,7 +3086,7 @@
    "depends_on": [
     "EZD-414"
    ],
-   "build_position": 140
+   "build_position": 141
   },
   {
    "id": "EZD-418",
@@ -3054,7 +3106,7 @@
    "depends_on": [
     "EZD-416"
    ],
-   "build_position": 141
+   "build_position": 142
   },
   {
    "id": "EZD-419",
@@ -3073,7 +3125,7 @@
     "EZD-406",
     "EZD-409"
    ],
-   "build_position": 142
+   "build_position": 143
   },
   {
    "id": "EZD-501",
@@ -3092,7 +3144,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 143
+   "build_position": 144
   },
   {
    "id": "EZD-502",
@@ -3113,7 +3165,7 @@
     "EZD-501",
     "EZD-127"
    ],
-   "build_position": 144
+   "build_position": 145
   },
   {
    "id": "EZD-503",
@@ -3132,7 +3184,7 @@
     "EZD-501",
     "EZD-303"
    ],
-   "build_position": 145
+   "build_position": 146
   },
   {
    "id": "EZD-504",
@@ -3151,7 +3203,7 @@
    "depends_on": [
     "EZD-503"
    ],
-   "build_position": 146
+   "build_position": 147
   },
   {
    "id": "EZD-505",
@@ -3169,7 +3221,7 @@
    "depends_on": [
     "EZD-501"
    ],
-   "build_position": 147
+   "build_position": 148
   },
   {
    "id": "EZD-506",
@@ -3187,7 +3239,7 @@
    "depends_on": [
     "EZD-505"
    ],
-   "build_position": 148
+   "build_position": 149
   },
   {
    "id": "EZD-507",
@@ -3206,7 +3258,7 @@
    "depends_on": [
     "EZD-501"
    ],
-   "build_position": 149
+   "build_position": 150
   },
   {
    "id": "EZD-508",
@@ -3224,7 +3276,7 @@
    "depends_on": [
     "EZD-507"
    ],
-   "build_position": 150
+   "build_position": 151
   },
   {
    "id": "EZD-509",
@@ -3244,7 +3296,7 @@
     "EZD-507",
     "EZD-116"
    ],
-   "build_position": 151
+   "build_position": 152
   },
   {
    "id": "EZD-510",
@@ -3262,7 +3314,7 @@
    "depends_on": [
     "EZD-507"
    ],
-   "build_position": 152
+   "build_position": 153
   },
   {
    "id": "EZD-511",
@@ -3283,7 +3335,7 @@
     "EZD-501",
     "EZD-116"
    ],
-   "build_position": 153
+   "build_position": 154
   },
   {
    "id": "EZD-512",
@@ -3301,7 +3353,7 @@
    "depends_on": [
     "EZD-511"
    ],
-   "build_position": 154
+   "build_position": 155
   },
   {
    "id": "EZD-513",
@@ -3319,7 +3371,7 @@
    "depends_on": [
     "EZD-501"
    ],
-   "build_position": 155
+   "build_position": 156
   },
   {
    "id": "EZD-514",
@@ -3339,7 +3391,7 @@
    "depends_on": [
     "EZD-507"
    ],
-   "build_position": 156
+   "build_position": 157
   },
   {
    "id": "EZD-515",
@@ -3360,7 +3412,7 @@
     "EZD-505",
     "EZD-116"
    ],
-   "build_position": 157
+   "build_position": 158
   },
   {
    "id": "EZD-516",
@@ -3379,7 +3431,7 @@
     "EZD-505",
     "EZD-401"
    ],
-   "build_position": 158
+   "build_position": 159
   },
   {
    "id": "EZD-601",
@@ -3399,7 +3451,7 @@
     "EZD-207",
     "EZD-202"
    ],
-   "build_position": 159
+   "build_position": 160
   },
   {
    "id": "EZD-602",
@@ -3419,7 +3471,7 @@
     "EZD-601",
     "EZD-507"
    ],
-   "build_position": 160
+   "build_position": 161
   },
   {
    "id": "EZD-603",
@@ -3439,7 +3491,7 @@
     "EZD-602",
     "EZD-116"
    ],
-   "build_position": 161
+   "build_position": 162
   },
   {
    "id": "EZD-604",
@@ -3457,7 +3509,7 @@
    "depends_on": [
     "EZD-602"
    ],
-   "build_position": 162
+   "build_position": 163
   },
   {
    "id": "EZD-605",
@@ -3478,7 +3530,7 @@
     "EZD-604",
     "EZD-510"
    ],
-   "build_position": 163
+   "build_position": 164
   },
   {
    "id": "EZD-606",
@@ -3499,7 +3551,7 @@
     "EZD-604",
     "EZD-021"
    ],
-   "build_position": 164
+   "build_position": 165
   },
   {
    "id": "EZD-607",
@@ -3516,7 +3568,7 @@
    "depends_on": [
     "EZD-604"
    ],
-   "build_position": 165
+   "build_position": 166
   },
   {
    "id": "EZD-608",
@@ -3535,7 +3587,7 @@
     "EZD-607",
     "EZD-116"
    ],
-   "build_position": 166
+   "build_position": 167
   },
   {
    "id": "EZD-609",
@@ -3553,7 +3605,7 @@
    "depends_on": [
     "EZD-604"
    ],
-   "build_position": 167
+   "build_position": 168
   },
   {
    "id": "EZD-610",
@@ -3573,7 +3625,7 @@
     "EZD-604",
     "EZD-116"
    ],
-   "build_position": 168
+   "build_position": 169
   },
   {
    "id": "EZD-611a",
@@ -3592,7 +3644,7 @@
     "EZD-218",
     "EZD-613"
    ],
-   "build_position": 170
+   "build_position": 171
   },
   {
    "id": "EZD-611b",
@@ -3614,7 +3666,7 @@
     "EZD-501",
     "EZD-234"
    ],
-   "build_position": 175
+   "build_position": 176
   },
   {
    "id": "EZD-611c",
@@ -3636,7 +3688,7 @@
     "EZD-501",
     "EZD-234"
    ],
-   "build_position": 176
+   "build_position": 177
   },
   {
    "id": "EZD-612",
@@ -3657,7 +3709,7 @@
    "depends_on": [
     "EZD-611a"
    ],
-   "build_position": 171
+   "build_position": 172
   },
   {
    "id": "EZD-613",
@@ -3668,12 +3720,14 @@
    "spec_files": [
     "spec/sections/screens/S15g-settings-code-edition.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15gCode.png"
+   ],
    "phase_file": "tickets/phases/phase-06.md",
    "depends_on": [
     "EZD-116"
    ],
-   "build_position": 169
+   "build_position": 170
   },
   {
    "id": "EZD-614",
@@ -3686,7 +3740,8 @@
     "spec/sections/screens/S15e-settings-catalog.md"
    ],
    "mockups": [
-    "mockups/S09Catalog.png"
+    "mockups/S09Catalog.png",
+    "mockups/S15eCatalog.png"
    ],
    "phase_file": "tickets/phases/phase-06.md",
    "depends_on": [
@@ -3694,7 +3749,7 @@
     "EZD-401",
     "EZD-103"
    ],
-   "build_position": 172
+   "build_position": 173
   },
   {
    "id": "EZD-615",
@@ -3713,7 +3768,7 @@
     "EZD-606",
     "EZD-608"
    ],
-   "build_position": 173
+   "build_position": 174
   },
   {
    "id": "EZD-616",
@@ -3735,7 +3790,7 @@
     "EZD-501",
     "EZD-234"
    ],
-   "build_position": 177
+   "build_position": 178
   },
   {
    "id": "EZD-617",
@@ -3757,7 +3812,7 @@
     "EZD-501",
     "EZD-234"
    ],
-   "build_position": 178
+   "build_position": 179
   },
   {
    "id": "EZD-618",
@@ -3777,7 +3832,7 @@
     "EZD-611a",
     "EZD-620"
    ],
-   "build_position": 179
+   "build_position": 180
   },
   {
    "id": "EZD-620",
@@ -3798,7 +3853,7 @@
     "EZD-130",
     "EZD-213"
    ],
-   "build_position": 174
+   "build_position": 175
   },
   {
    "id": "EZD-621",
@@ -3819,7 +3874,7 @@
     "EZD-620",
     "EZD-501"
    ],
-   "build_position": 180
+   "build_position": 181
   },
   {
    "id": "EZD-622",
@@ -3840,7 +3895,7 @@
     "EZD-620",
     "EZD-501"
    ],
-   "build_position": 181
+   "build_position": 182
   },
   {
    "id": "EZD-623",
@@ -3861,7 +3916,7 @@
     "EZD-620",
     "EZD-507"
    ],
-   "build_position": 182
+   "build_position": 183
   },
   {
    "id": "EZD-624",
@@ -3882,7 +3937,7 @@
     "EZD-620",
     "EZD-234"
    ],
-   "build_position": 183
+   "build_position": 184
   },
   {
    "id": "EZD-625",
@@ -3903,7 +3958,7 @@
     "EZD-620",
     "EZD-234"
    ],
-   "build_position": 184
+   "build_position": 185
   },
   {
    "id": "EZD-626",
@@ -3924,7 +3979,7 @@
     "EZD-620",
     "EZD-234"
    ],
-   "build_position": 185
+   "build_position": 186
   },
   {
    "id": "EZD-627",
@@ -3946,7 +4001,7 @@
     "EZD-234",
     "EZD-226"
    ],
-   "build_position": 186
+   "build_position": 187
   },
   {
    "id": "EZD-628",
@@ -3968,7 +4023,7 @@
     "EZD-234",
     "EZD-226"
    ],
-   "build_position": 187
+   "build_position": 188
   },
   {
    "id": "EZD-629",
@@ -3990,7 +4045,7 @@
     "EZD-234",
     "EZD-226"
    ],
-   "build_position": 188
+   "build_position": 189
   },
   {
    "id": "EZD-630",
@@ -4012,7 +4067,7 @@
     "EZD-604",
     "EZD-411"
    ],
-   "build_position": 189
+   "build_position": 190
   },
   {
    "id": "EZD-631",
@@ -4034,7 +4089,7 @@
     "EZD-604",
     "EZD-411"
    ],
-   "build_position": 190
+   "build_position": 191
   },
   {
    "id": "EZD-632",
@@ -4056,7 +4111,7 @@
     "EZD-604",
     "EZD-411"
    ],
-   "build_position": 191
+   "build_position": 192
   },
   {
    "id": "EZD-633",
@@ -4078,7 +4133,7 @@
     "EZD-604",
     "EZD-411"
    ],
-   "build_position": 192
+   "build_position": 193
   },
   {
    "id": "EZD-634",
@@ -4100,7 +4155,7 @@
     "EZD-604",
     "EZD-610"
    ],
-   "build_position": 193
+   "build_position": 194
   },
   {
    "id": "EZD-635",
@@ -4122,7 +4177,7 @@
     "EZD-604",
     "EZD-610"
    ],
-   "build_position": 194
+   "build_position": 195
   },
   {
    "id": "EZD-636",
@@ -4144,7 +4199,7 @@
     "EZD-604",
     "EZD-610"
    ],
-   "build_position": 195
+   "build_position": 196
   },
   {
    "id": "EZD-637",
@@ -4166,7 +4221,7 @@
     "EZD-604",
     "EZD-610"
    ],
-   "build_position": 196
+   "build_position": 197
   },
   {
    "id": "EZD-638",
@@ -4188,7 +4243,7 @@
     "EZD-604",
     "EZD-234"
    ],
-   "build_position": 197
+   "build_position": 198
   },
   {
    "id": "EZD-639",
@@ -4210,7 +4265,7 @@
     "EZD-604",
     "EZD-234"
    ],
-   "build_position": 198
+   "build_position": 199
   },
   {
    "id": "EZD-701",
@@ -4229,7 +4284,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 199
+   "build_position": 200
   },
   {
    "id": "EZD-702a",
@@ -4248,7 +4303,7 @@
     "EZD-701",
     "EZD-726"
    ],
-   "build_position": 209
+   "build_position": 210
   },
   {
    "id": "EZD-702b",
@@ -4269,7 +4324,7 @@
     "EZD-235",
     "EZD-238"
    ],
-   "build_position": 210
+   "build_position": 211
   },
   {
    "id": "EZD-703",
@@ -4290,7 +4345,7 @@
     "EZD-702b",
     "EZD-214"
    ],
-   "build_position": 211
+   "build_position": 212
   },
   {
    "id": "EZD-704",
@@ -4309,7 +4364,7 @@
     "EZD-702a",
     "EZD-702b"
    ],
-   "build_position": 212
+   "build_position": 213
   },
   {
    "id": "EZD-705",
@@ -4329,7 +4384,7 @@
    "depends_on": [
     "EZD-703"
    ],
-   "build_position": 213
+   "build_position": 214
   },
   {
    "id": "EZD-706",
@@ -4343,14 +4398,15 @@
     "spec/sections/screens/S15h-settings-libraries.md"
    ],
    "mockups": [
-    "mockups/S13Sheets.png"
+    "mockups/S13Sheets.png",
+    "mockups/S15hLibraries.png"
    ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-702a",
     "EZD-702b"
    ],
-   "build_position": 214
+   "build_position": 215
   },
   {
    "id": "EZD-707",
@@ -4370,7 +4426,7 @@
     "EZD-703",
     "EZD-404"
    ],
-   "build_position": 215
+   "build_position": 216
   },
   {
    "id": "EZD-708a",
@@ -4390,7 +4446,7 @@
     "EZD-703",
     "EZD-508"
    ],
-   "build_position": 216
+   "build_position": 217
   },
   {
    "id": "EZD-708b",
@@ -4409,7 +4465,7 @@
     "EZD-604",
     "EZD-708a"
    ],
-   "build_position": 217
+   "build_position": 218
   },
   {
    "id": "EZD-708c",
@@ -4430,7 +4486,7 @@
     "EZD-609",
     "EZD-607"
    ],
-   "build_position": 218
+   "build_position": 219
   },
   {
    "id": "EZD-709",
@@ -4442,13 +4498,15 @@
     "spec/sections/screens/S15b-settings-title-block.md",
     "spec/decisions.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15bTitleBlock.png"
+   ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-112",
     "EZD-701"
    ],
-   "build_position": 200
+   "build_position": 201
   },
   {
    "id": "EZD-710",
@@ -4461,14 +4519,15 @@
     "spec/sections/screens/S15b-settings-title-block.md"
    ],
    "mockups": [
-    "mockups/S13Sheets.png"
+    "mockups/S13Sheets.png",
+    "mockups/S15bTitleBlock.png"
    ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-709",
     "EZD-130"
    ],
-   "build_position": 201
+   "build_position": 202
   },
   {
    "id": "EZD-711",
@@ -4493,7 +4552,7 @@
     "EZD-021",
     "EZD-118"
    ],
-   "build_position": 202
+   "build_position": 203
   },
   {
    "id": "EZD-712",
@@ -4505,12 +4564,14 @@
     "spec/sections/03-data-model.md",
     "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15cSubmittal.png"
+   ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-116"
    ],
-   "build_position": 203
+   "build_position": 204
   },
   {
    "id": "EZD-713",
@@ -4527,7 +4588,7 @@
    "depends_on": [
     "EZD-712"
    ],
-   "build_position": 204
+   "build_position": 205
   },
   {
    "id": "EZD-714",
@@ -4539,12 +4600,15 @@
     "spec/sections/screens/S15h-settings-libraries.md",
     "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15hLibraries.png",
+    "mockups/S15cSubmittal.png"
+   ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-712"
    ],
-   "build_position": 205
+   "build_position": 206
   },
   {
    "id": "EZD-715",
@@ -4566,7 +4630,7 @@
     "EZD-238",
     "EZD-028"
    ],
-   "build_position": 219
+   "build_position": 220
   },
   {
    "id": "EZD-716",
@@ -4586,7 +4650,7 @@
     "EZD-612",
     "EZD-710"
    ],
-   "build_position": 206
+   "build_position": 207
   },
   {
    "id": "EZD-717",
@@ -4608,7 +4672,7 @@
     "EZD-716",
     "EZD-121"
    ],
-   "build_position": 220
+   "build_position": 221
   },
   {
    "id": "EZD-718",
@@ -4628,7 +4692,7 @@
    "depends_on": [
     "EZD-717"
    ],
-   "build_position": 221
+   "build_position": 222
   },
   {
    "id": "EZD-719",
@@ -4650,7 +4714,7 @@
     "EZD-717",
     "EZD-111"
    ],
-   "build_position": 222
+   "build_position": 223
   },
   {
    "id": "EZD-720",
@@ -4671,7 +4735,7 @@
     "EZD-418",
     "EZD-726"
    ],
-   "build_position": 223
+   "build_position": 224
   },
   {
    "id": "EZD-721",
@@ -4688,7 +4752,7 @@
    "depends_on": [
     "EZD-715"
    ],
-   "build_position": 224
+   "build_position": 225
   },
   {
    "id": "EZD-722",
@@ -4706,7 +4770,7 @@
    "depends_on": [
     "EZD-717"
    ],
-   "build_position": 225
+   "build_position": 226
   },
   {
    "id": "EZD-723",
@@ -4727,7 +4791,7 @@
     "EZD-715",
     "EZD-713"
    ],
-   "build_position": 226
+   "build_position": 227
   },
   {
    "id": "EZD-724",
@@ -4746,7 +4810,7 @@
    "depends_on": [
     "EZD-716"
    ],
-   "build_position": 207
+   "build_position": 208
   },
   {
    "id": "EZD-725",
@@ -4766,7 +4830,7 @@
     "EZD-717",
     "EZD-612"
    ],
-   "build_position": 227
+   "build_position": 228
   },
   {
    "id": "EZD-726",
@@ -4785,7 +4849,7 @@
    "depends_on": [
     "EZD-701"
    ],
-   "build_position": 208
+   "build_position": 209
   },
   {
    "id": "EZD-727",
@@ -4797,14 +4861,16 @@
     "spec/sections/08-import-and-export.md",
     "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15cSubmittal.png"
+   ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-712",
     "EZD-713",
     "EZD-715"
    ],
-   "build_position": 228
+   "build_position": 229
   },
   {
    "id": "EZD-728",
@@ -4821,7 +4887,7 @@
     "EZD-706",
     "EZD-714"
    ],
-   "build_position": 229
+   "build_position": 230
   },
   {
    "id": "EZD-801",
@@ -4841,7 +4907,7 @@
     "EZD-202",
     "EZD-012"
    ],
-   "build_position": 230
+   "build_position": 231
   },
   {
    "id": "EZD-802",
@@ -4859,7 +4925,7 @@
    "depends_on": [
     "EZD-801"
    ],
-   "build_position": 231
+   "build_position": 232
   },
   {
    "id": "EZD-803",
@@ -4878,7 +4944,7 @@
     "EZD-801",
     "EZD-201"
    ],
-   "build_position": 232
+   "build_position": 233
   },
   {
    "id": "EZD-804",
@@ -4897,7 +4963,7 @@
    "depends_on": [
     "EZD-803"
    ],
-   "build_position": 233
+   "build_position": 234
   },
   {
    "id": "EZD-805",
@@ -4915,7 +4981,7 @@
    "depends_on": [
     "EZD-803"
    ],
-   "build_position": 234
+   "build_position": 235
   },
   {
    "id": "EZD-806",
@@ -4934,7 +5000,7 @@
     "EZD-801",
     "EZD-817"
    ],
-   "build_position": 245
+   "build_position": 246
   },
   {
    "id": "EZD-807",
@@ -4954,7 +5020,7 @@
     "EZD-805",
     "EZD-116"
    ],
-   "build_position": 235
+   "build_position": 236
   },
   {
    "id": "EZD-808",
@@ -4973,7 +5039,7 @@
    "depends_on": [
     "EZD-801"
    ],
-   "build_position": 236
+   "build_position": 237
   },
   {
    "id": "EZD-809",
@@ -4992,7 +5058,7 @@
    "depends_on": [
     "EZD-805"
    ],
-   "build_position": 237
+   "build_position": 238
   },
   {
    "id": "EZD-810",
@@ -5012,7 +5078,7 @@
     "EZD-702a",
     "EZD-702b"
    ],
-   "build_position": 238
+   "build_position": 239
   },
   {
    "id": "EZD-811",
@@ -5033,7 +5099,7 @@
     "EZD-802",
     "EZD-207"
    ],
-   "build_position": 239
+   "build_position": 240
   },
   {
    "id": "EZD-812",
@@ -5052,7 +5118,7 @@
     "EZD-802",
     "EZD-304"
    ],
-   "build_position": 240
+   "build_position": 241
   },
   {
    "id": "EZD-813",
@@ -5070,7 +5136,7 @@
    "depends_on": [
     "EZD-803"
    ],
-   "build_position": 241
+   "build_position": 242
   },
   {
    "id": "EZD-814",
@@ -5085,7 +5151,8 @@
    ],
    "mockups": [
     "mockups/S10Detail.png",
-    "mockups/S04bCountertops.png"
+    "mockups/S04bCountertops.png",
+    "mockups/S15hLibraries.png"
    ],
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
@@ -5093,7 +5160,7 @@
     "EZD-415",
     "EZD-817"
    ],
-   "build_position": 246
+   "build_position": 247
   },
   {
    "id": "EZD-815",
@@ -5113,7 +5180,7 @@
     "EZD-810",
     "EZD-721"
    ],
-   "build_position": 242
+   "build_position": 243
   },
   {
    "id": "EZD-816",
@@ -5132,7 +5199,7 @@
     "EZD-803",
     "EZD-223"
    ],
-   "build_position": 243
+   "build_position": 244
   },
   {
    "id": "EZD-817",
@@ -5143,13 +5210,15 @@
    "spec_files": [
     "spec/sections/screens/S15h-settings-libraries.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15hLibraries.png"
+   ],
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
     "EZD-801",
     "EZD-131"
    ],
-   "build_position": 244
+   "build_position": 245
   },
   {
    "id": "EZD-901a",
@@ -5172,7 +5241,7 @@
     "EZD-016b",
     "EZD-029"
    ],
-   "build_position": 247
+   "build_position": 248
   },
   {
    "id": "EZD-901b",
@@ -5194,7 +5263,7 @@
     "EZD-235",
     "EZD-017"
    ],
-   "build_position": 248
+   "build_position": 249
   },
   {
    "id": "EZD-902",
@@ -5215,7 +5284,7 @@
     "EZD-901a",
     "EZD-901b"
    ],
-   "build_position": 249
+   "build_position": 250
   },
   {
    "id": "EZD-903",
@@ -5235,7 +5304,7 @@
     "EZD-902",
     "EZD-904"
    ],
-   "build_position": 251
+   "build_position": 252
   },
   {
    "id": "EZD-904",
@@ -5255,7 +5324,7 @@
     "EZD-901a",
     "EZD-901b"
    ],
-   "build_position": 250
+   "build_position": 251
   },
   {
    "id": "EZD-905",
@@ -5275,7 +5344,7 @@
     "EZD-901a",
     "EZD-901b"
    ],
-   "build_position": 252
+   "build_position": 253
   },
   {
    "id": "EZD-906",
@@ -5295,7 +5364,7 @@
     "EZD-307",
     "EZD-306"
    ],
-   "build_position": 253
+   "build_position": 254
   },
   {
    "id": "EZD-907",
@@ -5316,7 +5385,7 @@
     "EZD-902",
     "EZD-904"
    ],
-   "build_position": 254
+   "build_position": 255
   },
   {
    "id": "EZD-908",
@@ -5336,7 +5405,7 @@
     "EZD-904",
     "EZD-921"
    ],
-   "build_position": 266
+   "build_position": 267
   },
   {
    "id": "EZD-909a",
@@ -5357,7 +5426,7 @@
     "EZD-907",
     "EZD-116"
    ],
-   "build_position": 267
+   "build_position": 268
   },
   {
    "id": "EZD-909b",
@@ -5376,7 +5445,7 @@
    "depends_on": [
     "EZD-909a"
    ],
-   "build_position": 268
+   "build_position": 269
   },
   {
    "id": "EZD-910",
@@ -5396,7 +5465,7 @@
     "EZD-909a",
     "EZD-909b"
    ],
-   "build_position": 269
+   "build_position": 270
   },
   {
    "id": "EZD-911",
@@ -5417,7 +5486,7 @@
     "EZD-913",
     "EZD-715"
    ],
-   "build_position": 257
+   "build_position": 258
   },
   {
    "id": "EZD-912",
@@ -5436,7 +5505,7 @@
     "EZD-902",
     "EZD-811"
    ],
-   "build_position": 255
+   "build_position": 256
   },
   {
    "id": "EZD-913",
@@ -5454,7 +5523,7 @@
     "EZD-901b",
     "EZD-721"
    ],
-   "build_position": 256
+   "build_position": 257
   },
   {
    "id": "EZD-914",
@@ -5473,7 +5542,7 @@
    "depends_on": [
     "EZD-301"
    ],
-   "build_position": 258
+   "build_position": 259
   },
   {
    "id": "EZD-915",
@@ -5494,7 +5563,7 @@
     "EZD-914",
     "EZD-305"
    ],
-   "build_position": 259
+   "build_position": 260
   },
   {
    "id": "EZD-916",
@@ -5515,7 +5584,7 @@
     "EZD-307",
     "EZD-021"
    ],
-   "build_position": 260
+   "build_position": 261
   },
   {
    "id": "EZD-917",
@@ -5535,7 +5604,7 @@
     "EZD-404",
     "EZD-907"
    ],
-   "build_position": 261
+   "build_position": 262
   },
   {
    "id": "EZD-918",
@@ -5556,7 +5625,7 @@
     "EZD-916",
     "EZD-021"
    ],
-   "build_position": 262
+   "build_position": 263
   },
   {
    "id": "EZD-919",
@@ -5577,7 +5646,7 @@
     "EZD-407",
     "EZD-111"
    ],
-   "build_position": 263
+   "build_position": 264
   },
   {
    "id": "EZD-920",
@@ -5598,7 +5667,7 @@
     "EZD-401",
     "EZD-021"
    ],
-   "build_position": 264
+   "build_position": 265
   },
   {
    "id": "EZD-921",
@@ -5617,7 +5686,7 @@
    "depends_on": [
     "EZD-904"
    ],
-   "build_position": 265
+   "build_position": 266
   },
   {
    "id": "EZD-922a",
@@ -5636,7 +5705,7 @@
    "depends_on": [
     "EZD-911"
    ],
-   "build_position": 270
+   "build_position": 271
   },
   {
    "id": "EZD-922b",
@@ -5654,7 +5723,7 @@
    "depends_on": [
     "EZD-919"
    ],
-   "build_position": 271
+   "build_position": 272
   },
   {
    "id": "EZD-1001a",
@@ -5676,7 +5745,7 @@
     "EZD-235",
     "EZD-030"
    ],
-   "build_position": 272
+   "build_position": 273
   },
   {
    "id": "EZD-1001b",
@@ -5696,7 +5765,7 @@
     "EZD-504",
     "EZD-505"
    ],
-   "build_position": 273
+   "build_position": 274
   },
   {
    "id": "EZD-1001c",
@@ -5720,7 +5789,7 @@
     "EZD-602",
     "EZD-401"
    ],
-   "build_position": 274
+   "build_position": 275
   },
   {
    "id": "EZD-1002",
@@ -5740,7 +5809,7 @@
     "EZD-1001b",
     "EZD-1001c"
    ],
-   "build_position": 275
+   "build_position": 276
   },
   {
    "id": "EZD-1003",
@@ -5760,7 +5829,7 @@
     "EZD-1002",
     "EZD-116"
    ],
-   "build_position": 276
+   "build_position": 277
   },
   {
    "id": "EZD-1004",
@@ -5779,7 +5848,7 @@
    "depends_on": [
     "EZD-1002"
    ],
-   "build_position": 277
+   "build_position": 278
   },
   {
    "id": "EZD-1005",
@@ -5801,7 +5870,7 @@
     "EZD-1001c",
     "EZD-303"
    ],
-   "build_position": 278
+   "build_position": 279
   },
   {
    "id": "EZD-1006",
@@ -5820,7 +5889,7 @@
    "depends_on": [
     "EZD-1002"
    ],
-   "build_position": 279
+   "build_position": 280
   },
   {
    "id": "EZD-1007",
@@ -5842,7 +5911,7 @@
     "EZD-401",
     "EZD-505"
    ],
-   "build_position": 280
+   "build_position": 281
   },
   {
    "id": "EZD-1008",
@@ -5862,7 +5931,7 @@
     "EZD-1002",
     "EZD-612"
    ],
-   "build_position": 281
+   "build_position": 282
   },
   {
    "id": "EZD-1009",
@@ -5881,7 +5950,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 282
+   "build_position": 283
   },
   {
    "id": "EZD-1010",
@@ -5902,7 +5971,7 @@
     "EZD-1001b",
     "EZD-1001c"
    ],
-   "build_position": 283
+   "build_position": 284
   },
   {
    "id": "EZD-1011",
@@ -5921,7 +5990,7 @@
     "EZD-1010",
     "EZD-505"
    ],
-   "build_position": 284
+   "build_position": 285
   },
   {
    "id": "EZD-1012",
@@ -5939,7 +6008,7 @@
    "depends_on": [
     "EZD-1002"
    ],
-   "build_position": 285
+   "build_position": 286
   },
   {
    "id": "EZD-1013",
@@ -5952,14 +6021,15 @@
     "spec/decisions.md"
    ],
    "mockups": [
-    "mockups/S07ThreeD.png"
+    "mockups/S07ThreeD.png",
+    "mockups/S17c3DPhone.png"
    ],
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
     "EZD-1012",
     "EZD-014"
    ],
-   "build_position": 286
+   "build_position": 287
   },
   {
    "id": "EZD-1014",
@@ -5978,7 +6048,7 @@
     "EZD-1001c",
     "EZD-721"
    ],
-   "build_position": 287
+   "build_position": 288
   },
   {
    "id": "EZD-1015",
@@ -5999,7 +6069,7 @@
     "EZD-1001b",
     "EZD-1001c"
    ],
-   "build_position": 288
+   "build_position": 289
   },
   {
    "id": "EZD-1017",
@@ -6019,7 +6089,7 @@
     "EZD-1001b",
     "EZD-1001c"
    ],
-   "build_position": 289
+   "build_position": 290
   },
   {
    "id": "EZD-1101",
@@ -6039,7 +6109,7 @@
     "EZD-009",
     "EZD-1006"
    ],
-   "build_position": 290
+   "build_position": 291
   },
   {
    "id": "EZD-1102",
@@ -6051,12 +6121,14 @@
     "spec/decisions.md",
     "spec/sections/screens/S15f-settings-render-models.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15fRender.png"
+   ],
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-116"
    ],
-   "build_position": 291
+   "build_position": 292
   },
   {
    "id": "EZD-1103",
@@ -6077,7 +6149,7 @@
     "EZD-1102",
     "EZD-021"
    ],
-   "build_position": 292
+   "build_position": 293
   },
   {
    "id": "EZD-1104a",
@@ -6090,13 +6162,15 @@
     "spec/sections/02-product-overview.md",
     "spec/sections/screens/S15f-settings-render-models.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15fRender.png"
+   ],
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1103",
     "EZD-116"
    ],
-   "build_position": 293
+   "build_position": 294
   },
   {
    "id": "EZD-1104b",
@@ -6108,12 +6182,14 @@
     "spec/decisions.md",
     "spec/sections/screens/S15f-settings-render-models.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15fRender.png"
+   ],
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1104a"
    ],
-   "build_position": 294
+   "build_position": 295
   },
   {
    "id": "EZD-1105",
@@ -6133,7 +6209,7 @@
     "EZD-1001c",
     "EZD-1109"
    ],
-   "build_position": 299
+   "build_position": 300
   },
   {
    "id": "EZD-1106",
@@ -6153,7 +6229,7 @@
     "EZD-1006",
     "EZD-1101"
    ],
-   "build_position": 295
+   "build_position": 296
   },
   {
    "id": "EZD-1107",
@@ -6172,7 +6248,7 @@
    "depends_on": [
     "EZD-1106"
    ],
-   "build_position": 296
+   "build_position": 297
   },
   {
    "id": "EZD-1108",
@@ -6192,7 +6268,7 @@
     "EZD-1107",
     "EZD-401"
    ],
-   "build_position": 297
+   "build_position": 298
   },
   {
    "id": "EZD-1109",
@@ -6212,7 +6288,7 @@
     "EZD-1108",
     "EZD-1103"
    ],
-   "build_position": 298
+   "build_position": 299
   },
   {
    "id": "EZD-1110",
@@ -6232,7 +6308,7 @@
     "EZD-110",
     "EZD-127"
    ],
-   "build_position": 300
+   "build_position": 301
   },
   {
    "id": "EZD-1111",
@@ -6251,7 +6327,7 @@
    "depends_on": [
     "EZD-1110"
    ],
-   "build_position": 301
+   "build_position": 302
   },
   {
    "id": "EZD-1112",
@@ -6269,7 +6345,7 @@
    "depends_on": [
     "EZD-1111"
    ],
-   "build_position": 302
+   "build_position": 303
   },
   {
    "id": "EZD-1113",
@@ -6289,7 +6365,7 @@
    "depends_on": [
     "EZD-1111"
    ],
-   "build_position": 303
+   "build_position": 304
   },
   {
    "id": "EZD-1114",
@@ -6308,7 +6384,7 @@
    "depends_on": [
     "EZD-1111"
    ],
-   "build_position": 304
+   "build_position": 305
   },
   {
    "id": "EZD-1115",
@@ -6333,7 +6409,7 @@
     "EZD-1109",
     "EZD-127"
    ],
-   "build_position": 305
+   "build_position": 306
   },
   {
    "id": "EZD-1116",
@@ -6352,7 +6428,7 @@
    "depends_on": [
     "EZD-1111"
    ],
-   "build_position": 306
+   "build_position": 307
   },
   {
    "id": "EZD-1117",
@@ -6373,7 +6449,7 @@
     "EZD-1102",
     "EZD-110"
    ],
-   "build_position": 307
+   "build_position": 308
   },
   {
    "id": "EZD-1118",
@@ -6392,7 +6468,7 @@
     "EZD-1109",
     "EZD-1010"
    ],
-   "build_position": 308
+   "build_position": 309
   },
   {
    "id": "EZD-1119",
@@ -6413,7 +6489,7 @@
     "EZD-716",
     "EZD-401"
    ],
-   "build_position": 309
+   "build_position": 310
   },
   {
    "id": "EZD-1120",
@@ -6429,7 +6505,7 @@
    "depends_on": [
     "EZD-1104b"
    ],
-   "build_position": 310
+   "build_position": 311
   },
   {
    "id": "EZD-1121",
@@ -6445,7 +6521,7 @@
    "depends_on": [
     "EZD-1103"
    ],
-   "build_position": 311
+   "build_position": 312
   },
   {
    "id": "EZD-1201",
@@ -6467,7 +6543,7 @@
     "EZD-111",
     "EZD-116"
    ],
-   "build_position": 312
+   "build_position": 313
   },
   {
    "id": "EZD-1202",
@@ -6487,7 +6563,7 @@
     "EZD-1201",
     "EZD-020"
    ],
-   "build_position": 313
+   "build_position": 314
   },
   {
    "id": "EZD-1203",
@@ -6507,7 +6583,7 @@
     "EZD-1202",
     "EZD-1114"
    ],
-   "build_position": 314
+   "build_position": 315
   },
   {
    "id": "EZD-1204",
@@ -6528,7 +6604,7 @@
     "EZD-1203",
     "EZD-1112"
    ],
-   "build_position": 315
+   "build_position": 316
   },
   {
    "id": "EZD-1205",
@@ -6550,7 +6626,7 @@
     "EZD-702b",
     "EZD-1215"
    ],
-   "build_position": 325
+   "build_position": 326
   },
   {
    "id": "EZD-1206",
@@ -6571,7 +6647,7 @@
     "EZD-1201",
     "EZD-121"
    ],
-   "build_position": 316
+   "build_position": 317
   },
   {
    "id": "EZD-1207",
@@ -6591,7 +6667,7 @@
     "EZD-1206",
     "EZD-1215"
    ],
-   "build_position": 326
+   "build_position": 327
   },
   {
    "id": "EZD-1208",
@@ -6613,7 +6689,7 @@
     "EZD-1202",
     "EZD-417"
    ],
-   "build_position": 317
+   "build_position": 318
   },
   {
    "id": "EZD-1209",
@@ -6633,7 +6709,7 @@
     "EZD-1208",
     "EZD-417"
    ],
-   "build_position": 318
+   "build_position": 319
   },
   {
    "id": "EZD-1210",
@@ -6653,7 +6729,7 @@
     "EZD-1208",
     "EZD-113"
    ],
-   "build_position": 319
+   "build_position": 320
   },
   {
    "id": "EZD-1211",
@@ -6672,7 +6748,7 @@
    "depends_on": [
     "EZD-1210"
    ],
-   "build_position": 320
+   "build_position": 321
   },
   {
    "id": "EZD-1212",
@@ -6689,7 +6765,7 @@
    "depends_on": [
     "EZD-1211"
    ],
-   "build_position": 321
+   "build_position": 322
   },
   {
    "id": "EZD-1213",
@@ -6708,7 +6784,7 @@
     "EZD-1114",
     "EZD-111"
    ],
-   "build_position": 322
+   "build_position": 323
   },
   {
    "id": "EZD-1214",
@@ -6730,7 +6806,7 @@
     "EZD-1009",
     "EZD-1211"
    ],
-   "build_position": 323
+   "build_position": 324
   },
   {
    "id": "EZD-1215",
@@ -6753,7 +6829,7 @@
     "EZD-1208",
     "EZD-401"
    ],
-   "build_position": 324
+   "build_position": 325
   },
   {
    "id": "EZD-1301",
@@ -6775,7 +6851,7 @@
     "EZD-009",
     "EZD-019"
    ],
-   "build_position": 327
+   "build_position": 328
   },
   {
    "id": "EZD-1302",
@@ -6791,7 +6867,7 @@
    "depends_on": [
     "EZD-1301"
    ],
-   "build_position": 328
+   "build_position": 329
   },
   {
    "id": "EZD-1303",
@@ -6809,7 +6885,7 @@
     "EZD-114",
     "EZD-019"
    ],
-   "build_position": 329
+   "build_position": 330
   },
   {
    "id": "EZD-1304",
@@ -6826,7 +6902,7 @@
     "EZD-1303",
     "EZD-119"
    ],
-   "build_position": 330
+   "build_position": 331
   },
   {
    "id": "EZD-1305",
@@ -6843,7 +6919,7 @@
    "depends_on": [
     "EZD-1303"
    ],
-   "build_position": 331
+   "build_position": 332
   },
   {
    "id": "EZD-1306",
@@ -6862,7 +6938,7 @@
     "EZD-717",
     "EZD-1114"
    ],
-   "build_position": 332
+   "build_position": 333
   },
   {
    "id": "EZD-1307",
@@ -6882,7 +6958,7 @@
     "EZD-1303",
     "EZD-1308"
    ],
-   "build_position": 334
+   "build_position": 335
   },
   {
    "id": "EZD-1308",
@@ -6904,7 +6980,7 @@
     "EZD-717",
     "EZD-122"
    ],
-   "build_position": 333
+   "build_position": 334
   },
   {
    "id": "EZD-1309",
@@ -6924,7 +7000,7 @@
     "EZD-1308",
     "EZD-1114"
    ],
-   "build_position": 335
+   "build_position": 336
   },
   {
    "id": "EZD-1310",
@@ -6944,7 +7020,7 @@
     "EZD-009",
     "EZD-021"
    ],
-   "build_position": 336
+   "build_position": 337
   },
   {
    "id": "EZD-1311",
@@ -6963,7 +7039,7 @@
    "depends_on": [
     "EZD-1308"
    ],
-   "build_position": 337
+   "build_position": 338
   },
   {
    "id": "EZD-1312",
@@ -6984,7 +7060,7 @@
     "EZD-1311",
     "EZD-1302"
    ],
-   "build_position": 338
+   "build_position": 339
   },
   {
    "id": "EZD-1314",
@@ -7001,7 +7077,7 @@
     "EZD-1301",
     "EZD-022"
    ],
-   "build_position": 339
+   "build_position": 340
   },
   {
    "id": "EZD-1401",
@@ -7020,7 +7096,7 @@
    "depends_on": [
     "EZD-134"
    ],
-   "build_position": 340
+   "build_position": 341
   },
   {
    "id": "EZD-1402",
@@ -7039,7 +7115,7 @@
     "EZD-120a",
     "EZD-120b"
    ],
-   "build_position": 341
+   "build_position": 342
   },
   {
    "id": "EZD-1403",
@@ -7060,7 +7136,7 @@
     "EZD-1402",
     "EZD-125"
    ],
-   "build_position": 342
+   "build_position": 343
   },
   {
    "id": "EZD-1404",
@@ -7079,7 +7155,7 @@
     "EZD-1401",
     "EZD-1305"
    ],
-   "build_position": 343
+   "build_position": 344
   },
   {
    "id": "EZD-1405",
@@ -7098,7 +7174,7 @@
     "EZD-1404",
     "EZD-1013"
    ],
-   "build_position": 344
+   "build_position": 345
   },
   {
    "id": "EZD-1406",
@@ -7118,7 +7194,7 @@
     "EZD-1405",
     "EZD-315"
    ],
-   "build_position": 345
+   "build_position": 346
   },
   {
    "id": "EZD-1407",
@@ -7139,7 +7215,7 @@
     "EZD-1406",
     "EZD-1402"
    ],
-   "build_position": 346
+   "build_position": 347
   },
   {
    "id": "EZD-1408",
@@ -7152,13 +7228,15 @@
     "spec/sections/02-product-overview.md",
     "spec/sections/screens/S15h-settings-libraries.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15hLibraries.png"
+   ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-131",
     "EZD-021"
    ],
-   "build_position": 347
+   "build_position": 348
   },
   {
    "id": "EZD-1409",
@@ -7178,7 +7256,7 @@
     "EZD-1402",
     "EZD-1404"
    ],
-   "build_position": 348
+   "build_position": 349
   },
   {
    "id": "EZD-1410",
@@ -7198,7 +7276,7 @@
     "EZD-1402",
     "EZD-1407"
    ],
-   "build_position": 349
+   "build_position": 350
   },
   {
    "id": "EZD-1411",
@@ -7220,7 +7298,7 @@
     "EZD-1421",
     "EZD-715"
    ],
-   "build_position": 360
+   "build_position": 361
   },
   {
    "id": "EZD-1412",
@@ -7240,7 +7318,7 @@
     "EZD-1402",
     "EZD-717"
    ],
-   "build_position": 350
+   "build_position": 351
   },
   {
    "id": "EZD-1413",
@@ -7252,7 +7330,9 @@
     "spec/sections/screens/X-field-measurements-review-not-in-mockup.md",
     "spec/decisions.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S21FieldMeasReview.png"
+   ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1407",
@@ -7260,7 +7340,7 @@
     "EZD-127",
     "EZD-125"
    ],
-   "build_position": 351
+   "build_position": 352
   },
   {
    "id": "EZD-1414",
@@ -7280,7 +7360,7 @@
     "EZD-1407",
     "EZD-127"
    ],
-   "build_position": 352
+   "build_position": 353
   },
   {
    "id": "EZD-1415",
@@ -7298,7 +7378,7 @@
    "depends_on": [
     "EZD-1401"
    ],
-   "build_position": 353
+   "build_position": 354
   },
   {
    "id": "EZD-1416",
@@ -7316,7 +7396,7 @@
    "depends_on": [
     "EZD-1415"
    ],
-   "build_position": 354
+   "build_position": 355
   },
   {
    "id": "EZD-1417",
@@ -7337,7 +7417,7 @@
     "EZD-1402",
     "EZD-110"
    ],
-   "build_position": 355
+   "build_position": 356
   },
   {
    "id": "EZD-1418",
@@ -7358,7 +7438,7 @@
     "EZD-1417",
     "EZD-307"
    ],
-   "build_position": 356
+   "build_position": 357
   },
   {
    "id": "EZD-1419",
@@ -7380,7 +7460,7 @@
     "EZD-1305",
     "EZD-1406"
    ],
-   "build_position": 357
+   "build_position": 358
   },
   {
    "id": "EZD-1420",
@@ -7391,13 +7471,15 @@
    "spec_files": [
     "spec/sections/screens/X-field-tasks-not-in-mockup.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S22FieldTasks.png"
+   ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1408",
     "EZD-1409"
    ],
-   "build_position": 358
+   "build_position": 359
   },
   {
    "id": "EZD-1421",
@@ -7409,14 +7491,16 @@
     "spec/sections/screens/X-field-tasks-not-in-mockup.md",
     "spec/sections/07-hooks-events-and-integrations.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S22FieldTasks.png"
+   ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1420",
     "EZD-129",
     "EZD-1404"
    ],
-   "build_position": 359
+   "build_position": 360
   },
   {
    "id": "EZD-1422",
@@ -7431,14 +7515,15 @@
    ],
    "mockups": [
     "mockups/S01Projects.png",
-    "mockups/S17Field.png"
+    "mockups/S17Field.png",
+    "mockups/S01bWizard.png"
    ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-118",
     "EZD-1419"
    ],
-   "build_position": 361
+   "build_position": 362
   },
   {
    "id": "EZD-1501",
@@ -7457,7 +7542,7 @@
    "depends_on": [
     "EZD-006"
    ],
-   "build_position": 362
+   "build_position": 363
   },
   {
    "id": "EZD-1502",
@@ -7480,7 +7565,7 @@
     "EZD-021",
     "EZD-110"
    ],
-   "build_position": 363
+   "build_position": 364
   },
   {
    "id": "EZD-1503",
@@ -7499,9 +7584,10 @@
    "depends_on": [
     "EZD-1501",
     "EZD-1404",
-    "EZD-026"
+    "EZD-026a",
+    "EZD-026b"
    ],
-   "build_position": 364
+   "build_position": 365
   },
   {
    "id": "EZD-1504",
@@ -7520,7 +7606,7 @@
     "EZD-1501",
     "EZD-103"
    ],
-   "build_position": 365
+   "build_position": 366
   },
   {
    "id": "EZD-1505",
@@ -7539,7 +7625,7 @@
    "depends_on": [
     "EZD-1504"
    ],
-   "build_position": 366
+   "build_position": 367
   },
   {
    "id": "EZD-1506",
@@ -7558,7 +7644,7 @@
    "depends_on": [
     "EZD-1504"
    ],
-   "build_position": 367
+   "build_position": 368
   },
   {
    "id": "EZD-1507",
@@ -7576,7 +7662,7 @@
    "depends_on": [
     "EZD-1504"
    ],
-   "build_position": 368
+   "build_position": 369
   },
   {
    "id": "EZD-1508",
@@ -7594,7 +7680,7 @@
    "depends_on": [
     "EZD-1506"
    ],
-   "build_position": 369
+   "build_position": 370
   },
   {
    "id": "EZD-1509",
@@ -7613,7 +7699,7 @@
    "depends_on": [
     "EZD-1505"
    ],
-   "build_position": 370
+   "build_position": 371
   },
   {
    "id": "EZD-1510",
@@ -7633,7 +7719,7 @@
     "EZD-1504",
     "EZD-716"
    ],
-   "build_position": 371
+   "build_position": 372
   },
   {
    "id": "EZD-1601",
@@ -7652,7 +7738,7 @@
    "depends_on": [
     "EZD-401"
    ],
-   "build_position": 372
+   "build_position": 373
   },
   {
    "id": "EZD-1602",
@@ -7671,7 +7757,7 @@
     "EZD-1601",
     "EZD-234"
    ],
-   "build_position": 373
+   "build_position": 374
   },
   {
    "id": "EZD-1603",
@@ -7691,7 +7777,7 @@
     "EZD-009",
     "EZD-021"
    ],
-   "build_position": 374
+   "build_position": 375
   },
   {
    "id": "EZD-1604",
@@ -7711,7 +7797,7 @@
     "EZD-1603",
     "EZD-021"
    ],
-   "build_position": 375
+   "build_position": 376
   },
   {
    "id": "EZD-1605",
@@ -7730,7 +7816,7 @@
    "depends_on": [
     "EZD-1603"
    ],
-   "build_position": 376
+   "build_position": 377
   },
   {
    "id": "EZD-1606",
@@ -7748,7 +7834,7 @@
    "depends_on": [
     "EZD-1605"
    ],
-   "build_position": 377
+   "build_position": 378
   },
   {
    "id": "EZD-1607",
@@ -7766,7 +7852,7 @@
    "depends_on": [
     "EZD-1606"
    ],
-   "build_position": 378
+   "build_position": 379
   },
   {
    "id": "EZD-1608",
@@ -7785,7 +7871,7 @@
    "depends_on": [
     "EZD-1607"
    ],
-   "build_position": 379
+   "build_position": 380
   },
   {
    "id": "EZD-1609",
@@ -7796,13 +7882,15 @@
    "spec_files": [
     "spec/sections/screens/S15e-settings-catalog.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15eCatalog.png"
+   ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-103",
     "EZD-1212"
    ],
-   "build_position": 380
+   "build_position": 381
   },
   {
    "id": "EZD-1610",
@@ -7820,7 +7908,7 @@
    "depends_on": [
     "EZD-1601"
    ],
-   "build_position": 381
+   "build_position": 382
   },
   {
    "id": "EZD-1611a",
@@ -7832,14 +7920,16 @@
     "spec/sections/09-calculations-and-rules.md",
     "spec/sections/screens/X-takeoff-not-in-mockup.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S19Takeoff.png"
+   ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-235",
     "EZD-226",
     "EZD-116"
    ],
-   "build_position": 382
+   "build_position": 383
   },
   {
    "id": "EZD-1611b",
@@ -7857,7 +7947,7 @@
     "EZD-418",
     "EZD-604"
    ],
-   "build_position": 383
+   "build_position": 384
   },
   {
    "id": "EZD-1611c",
@@ -7869,7 +7959,9 @@
     "spec/sections/09-calculations-and-rules.md",
     "spec/sections/screens/X-takeoff-not-in-mockup.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S19Takeoff.png"
+   ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-1611b",
@@ -7877,7 +7969,7 @@
     "EZD-1010",
     "EZD-121"
    ],
-   "build_position": 384
+   "build_position": 385
   },
   {
    "id": "EZD-1612",
@@ -7890,7 +7982,10 @@
     "spec/sections/screens/X-takeoff-not-in-mockup.md",
     "spec/sections/screens/S15d-settings-defaults.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S19Takeoff.png",
+    "mockups/S15dDefaults.png"
+   ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-1611a",
@@ -7898,7 +7993,7 @@
     "EZD-1611c",
     "EZD-116"
    ],
-   "build_position": 385
+   "build_position": 386
   },
   {
    "id": "EZD-1613",
@@ -7910,14 +8005,16 @@
     "spec/sections/screens/X-takeoff-not-in-mockup.md",
     "spec/decisions.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S19Takeoff.png"
+   ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-1611a",
     "EZD-1611b",
     "EZD-1611c"
    ],
-   "build_position": 386
+   "build_position": 387
   },
   {
    "id": "EZD-1614",
@@ -7936,7 +8033,7 @@
     "EZD-1001b",
     "EZD-1001c"
    ],
-   "build_position": 387
+   "build_position": 388
   },
   {
    "id": "EZD-1615",
@@ -7949,12 +8046,14 @@
     "spec/sections/12-build-phases-and-acceptance-tests.md",
     "spec/sections/screens/X-takeoff-not-in-mockup.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S19Takeoff.png"
+   ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-1613"
    ],
-   "build_position": 388
+   "build_position": 389
   },
   {
    "id": "EZD-1616",
@@ -7974,7 +8073,7 @@
     "EZD-1601",
     "EZD-230"
    ],
-   "build_position": 389
+   "build_position": 390
   },
   {
    "id": "EZD-1617",
@@ -7987,14 +8086,15 @@
     "spec/sections/screens/S15e-settings-catalog.md"
    ],
    "mockups": [
-    "mockups/S09Catalog.png"
+    "mockups/S09Catalog.png",
+    "mockups/S15eCatalog.png"
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-1601",
     "EZD-1609"
    ],
-   "build_position": 390
+   "build_position": 391
   },
   {
    "id": "EZD-1701",
@@ -8014,7 +8114,7 @@
     "EZD-901a",
     "EZD-901b"
    ],
-   "build_position": 391
+   "build_position": 392
   },
   {
    "id": "EZD-1702",
@@ -8031,7 +8131,7 @@
    "depends_on": [
     "EZD-1701"
    ],
-   "build_position": 392
+   "build_position": 393
   },
   {
    "id": "EZD-1704",
@@ -8047,7 +8147,7 @@
    "depends_on": [
     "EZD-025"
    ],
-   "build_position": 393
+   "build_position": 394
   },
   {
    "id": "EZD-1705",
@@ -8064,7 +8164,7 @@
     "EZD-1302",
     "EZD-1211"
    ],
-   "build_position": 394
+   "build_position": 395
   },
   {
    "id": "EZD-1706",
@@ -8080,7 +8180,7 @@
    "depends_on": [
     "EZD-109"
    ],
-   "build_position": 395
+   "build_position": 396
   },
   {
    "id": "EZD-1707",
@@ -8097,7 +8197,7 @@
    "depends_on": [
     "EZD-007"
    ],
-   "build_position": 396
+   "build_position": 397
   },
   {
    "id": "EZD-1708",
@@ -8113,7 +8213,7 @@
    "depends_on": [
     "EZD-222"
    ],
-   "build_position": 397
+   "build_position": 398
   },
   {
    "id": "EZD-1709a",
@@ -8130,7 +8230,7 @@
     "EZD-016a",
     "EZD-016b"
    ],
-   "build_position": 398
+   "build_position": 399
   },
   {
    "id": "EZD-1709b",
@@ -8147,7 +8247,7 @@
     "EZD-1709a",
     "EZD-1613"
    ],
-   "build_position": 399
+   "build_position": 400
   },
   {
    "id": "EZD-1709c",
@@ -8163,7 +8263,7 @@
    "depends_on": [
     "EZD-1709b"
    ],
-   "build_position": 400
+   "build_position": 401
   },
   {
    "id": "EZD-1710",
@@ -8176,7 +8276,9 @@
     "spec/decisions.md",
     "spec/sections/screens/S15g-settings-code-edition.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S15gCode.png"
+   ],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
     "EZD-611a",
@@ -8185,7 +8287,7 @@
     "EZD-613",
     "EZD-620"
    ],
-   "build_position": 401
+   "build_position": 402
   }
  ]
 }
