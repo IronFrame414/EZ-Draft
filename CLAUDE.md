@@ -20,7 +20,7 @@ Owner and only human on the project: Josh Bishop. Josh is a general contractor, 
 | Per-ticket plans | `vault/plans/EZD-xxx.md` |
 | Questions ledger | `vault/questions/QUESTIONS.md` |
 | Handoff between sessions | `vault/handoff/CURRENT.md` (previous ones in `vault/handoff/log/`) |
-| Mockups (22 Studio boards) | `vault/mockups/INDEX.md` (PNG + HTML). Sample data on boards is not a decision |
+| Mockups (36 Studio boards) | `vault/mockups/INDEX.md` (PNG + HTML). Sample data on boards is not a decision |
 | Code rule catalog | `vault/spec/code-rules.json` (1,248 rules) |
 | Architecture conventions | `docs/architecture.md` — written by ticket EZD-000 |
 

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft render models</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'Instrument Sans',sans-serif;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#3b424d;text-decoration:none}
+.nv:hover{background:#f2f4f7;color:#14171c}
+.nv .ms{font-size:19px;color:#7a828e}
+.nvon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.nvon .ms{color:oklch(0.5 0.17 262)}
+.nvs{margin-left:auto;font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.th{font-size:12px;font-weight:600;color:#5e6672;text-align:left;padding:10px 12px;border-bottom:1px solid #dfe2e6;background:#fbfbfc}
+.td{padding:12px;border-bottom:1px solid #eef0f3;font-size:14px;vertical-align:middle}
+.tr:hover .td{background:#f8f9fb}
+.pill{font:600 12px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.sw{width:34px;height:20px;border-radius:999px;background:#dfe2e6;position:relative;flex:none;border:0;padding:0;cursor:pointer}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(20,30,50,.25)}
+.swon{background:oklch(0.55 0.17 262)}
+.swon::after{left:16px}
+.sh{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:#5e6672}
+.sel{display:flex;align-items:center;gap:8px;height:36px;box-sizing:border-box;border:1px solid #dfe2e6;border-radius:8px;padding:0 10px;font-size:14px;background:#fff;width:100%}
+.sel .ms{margin-left:auto;font-size:18px;color:#7a828e}
+.din{display:flex;align-items:center;height:38px;box-sizing:border-box;border:1px solid #dfe2e6;border-radius:8px;padding:0 10px;font:500 15px 'DM Mono',monospace;background:#fff;gap:2px}
+.din .u{color:#9aa3af}
+.tier{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;flex:none}
+.box{border:1px solid #dfe2e6;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #eef0f3}
+.kv:last-child{border-bottom:0}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Settings</span>
+<a href="#" style="font-size: 13px; color: #5e6672; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">arrow_back</span>Projects</a>
+<div style="flex: 1"></div>
+<span style="font-size: 13px; color: #5e6672">Worth Properties</span>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px">
+<nav class="card" aria-label="Settings sections" style="width: 248px; flex: none; display: flex; flex-direction: column; overflow: hidden">
+<span class="lbl" style="padding-top: 16px">Company settings</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 8px">
+<a href="#" class="nv"><span class="ms">domain</span>Company</a>
+<a href="#" class="nv"><span class="ms">group</span>Users + permissions<span class="nvs">4</span></a>
+<a href="#" class="nv"><span class="ms">view_quilt</span>Title block</a>
+<a href="#" class="nv"><span class="ms">description</span>Sheet presets</a>
+<a href="#" class="nv"><span class="ms">tune</span>Defaults<span class="nvs">ft-in</span></a>
+<a href="#" class="nv"><span class="ms">inventory_2</span>Catalog<span class="nvs">426</span></a>
+<a href="#" class="nv nvon" aria-current="page"><span class="ms">auto_awesome</span>Render models</a>
+<a href="#" class="nv"><span class="ms">gavel</span>Code edition</a>
+<a href="#" class="nv"><span class="ms">library_books</span>Libraries</a>
+<a href="#" class="nv"><span class="ms">translate</span>Translations<span class="nvs" style="color: oklch(0.48 0.13 65)">12</span></a>
+</div>
+<span style="flex: 1"></span>
+<div style="margin: 12px; padding: 12px; border-radius: 10px; background: #f6f7f9; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #5e6672">
+<span style="display: flex; justify-content: space-between"><span>User sync with EZ Binder</span><span style="color: #14171c; font-weight: 600">On</span></span>
+<span>Optional · users are invited here</span>
+</div>
+</nav>
+<main class="card" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 22px 16px; display: flex; align-items: flex-end; gap: 16px; border-bottom: 1px solid #eef0f3">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Render models</h1>
+<span style="font-size: 13px; color: #5e6672">Pick the model behind each tier, set the company render allowance, and connect the office GPU worker. All costs in dollars.</span>
+</div>
+</div>
+<div role="status" style="margin: 14px 22px 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150); font-size: 13px">
+<span class="ms" style="font-size: 18px">autorenew</span><span style="flex: 1"><span style="font-weight: 600">Allowance refilled Oct 9, 2026</span> · <span class="mono">+$50.00</span> added when the balance reached <span class="mono">$0.00</span>. Josh Bishop notified in app and by email.</span><span class="ms" style="font-size: 18px">close</span>
+</div>
+<div style="padding: 16px 22px 0; display: flex; flex-direction: column; gap: 10px">
+<div class="sh"><span>Tiers</span><span style="font-weight: 400; color: #5e6672">Who can run each tier is set per role in Users + permissions</span></div>
+<div style="border: 1px solid #dfe2e6; border-radius: 10px; overflow: hidden">
+<table style="width: 100%; border-collapse: collapse">
+<thead><tr><th class="th" style="padding-left: 16px; width: 210px">Tier</th><th class="th" style="width: 290px">Model</th><th class="th">Output</th><th class="th" style="text-align: right">Cost per render</th><th class="th">Runs on</th><th class="th" style="text-align: right; padding-right: 16px">This period</th></tr></thead>
+<tbody>
+<tr class="tr"><td class="td" style="padding-left: 16px"><span style="display: flex; align-items: center; gap: 10px"><span class="tier" style="background: #f2f4f7; color: #5e6672"><span class="ms" style="font-size: 18px">bolt</span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Fast</span><span style="font-size: 12px; color: #5e6672">Run fast renders</span></span></span></td><td class="td"><span class="sel">Gemini 3.1 Flash Lite Image<span class="ms">expand_more</span></span></td><td class="td mono" style="font-size: 13px; color: #5e6672">1K · ~30 s</td><td class="td mono" style="text-align: right; font-size: 14px">$0.03</td><td class="td"><span class="pill" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Local first</span></td><td class="td mono" style="text-align: right; padding-right: 16px; font-size: 13px; color: #5e6672">41 · $0.42</td></tr>
+<tr class="tr"><td class="td" style="padding-left: 16px"><span style="display: flex; align-items: center; gap: 10px"><span class="tier" style="background: #eef1ff; color: oklch(0.45 0.17 262)"><span class="ms" style="font-size: 18px">image</span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Standard</span><span style="font-size: 12px; color: #5e6672">Run standard renders</span></span></span></td><td class="td"><span class="sel" style="border-color: oklch(0.55 0.17 262); box-shadow: 0 0 0 3px #eef1ff">Gemini 3.1 Flash Image 1K<span class="ms">expand_more</span></span></td><td class="td mono" style="font-size: 13px; color: #5e6672">2K · ~2 min</td><td class="td mono" style="text-align: right; font-size: 14px">$0.06</td><td class="td"><span class="pill" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Local first</span></td><td class="td mono" style="text-align: right; padding-right: 16px; font-size: 13px; color: #5e6672">95 · $3.72</td></tr>
+<tr class="tr"><td class="td" style="padding-left: 16px"><span style="display: flex; align-items: center; gap: 10px"><span class="tier" style="background: #14171c; color: #fff"><span class="ms" style="font-size: 18px">photo_camera</span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Photoreal</span><span style="font-size: 12px; color: #5e6672">Run photoreal renders</span></span></span></td><td class="td"><span class="sel">Flux Kontext max<span class="ms">expand_more</span></span></td><td class="td mono" style="font-size: 13px; color: #5e6672">4K · ~6 min</td><td class="td mono" style="text-align: right; font-size: 14px">$0.14</td><td class="td"><span class="pill" style="background: #f2f4f7; color: #5e6672">Cloud</span></td><td class="td mono" style="text-align: right; padding-right: 16px; font-size: 13px; color: #5e6672">24 · $3.36</td></tr>
+</tbody>
+</table>
+</div>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: oklch(0.96 0.04 80); color: oklch(0.42 0.12 65); font-size: 13px; line-height: 1.4"><span class="ms" style="font-size: 18px">science</span><span>Default models per tier are pending the render test (3 past jobs through 3 to 4 models). Target under <span class="mono">$0.25</span> per render on every tier.</span></div>
+</div>
+<div style="flex: 1; min-height: 0; padding: 16px 22px">
+<section class="box" aria-label="Render allowance" style="flex-direction: row; gap: 24px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 20px; color: #7a828e">account_balance_wallet</span><span style="font-size: 15px; font-weight: 600; flex: 1">Render allowance</span><span style="font-size: 12px; color: #5e6672">No hard limit</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; color: #5e6672">Used since refill on Oct 9</span><span class="mono" style="font-size: 15px"><span style="font-weight: 500">$7.50</span><span style="color: #9aa3af"> / $50.00</span></span></div>
+<div style="height: 8px; border-radius: 999px; background: #eef0f3; overflow: hidden"><div style="width: 15%; height: 100%; background: oklch(0.55 0.17 262); border-radius: 999px"></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #5e6672"><span><span class="mono" style="color: #14171c">$42.50</span> left</span><span>160 renders · <span class="mono">$7.50</span></span></div>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<div class="fl">Allowance amount<span class="din"><span class="u">$</span>50.00</span></div>
+<div class="fl">Auto-refill amount<span class="din"><span class="u">$</span>50.00</span></div>
+</div>
+</div>
+<div style="width: 300px; flex: none; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #f6f7f9; color: #3b424d; font-size: 13px; line-height: 1.4"><span class="ms" style="font-size: 18px; color: #7a828e">notifications</span><span>Renders never stop. When used up, the allowance refills by the amount set and the owner is notified in app and by email.</span></div>
+<div style="display: flex; flex-direction: column">
+<span style="font-size: 11px; font-weight: 600; color: #9aa3af; text-transform: uppercase; letter-spacing: .04em; padding-bottom: 2px">Refill history</span>
+<div class="kv"><span>Oct 9, 2026</span><span class="mono">+$50.00</span></div>
+<div class="kv"><span>Sep 22, 2026</span><span class="mono">+$50.00</span></div>
+</div>
+</div>
+</section>
+</div>
+<div style="padding: 12px 22px; border-top: 1px solid #eef0f3; display: flex; align-items: center; gap: 12px">
+<span style="font-size: 12px; color: oklch(0.48 0.13 65); display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>Unsaved: Standard tier model changed</span>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; color: #5e6672">Dollar figures shown with See company costs only</span>
+<button class="b">Discard</button><button class="b bp">Save</button>
+</div>
+</main>
+<aside class="card" aria-label="Local render worker" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 18px; box-sizing: border-box; font-size: 14px">
+<div style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 20px; color: #7a828e">memory</span><span style="font-size: 16px; font-weight: 600; flex: 1">Local render worker</span><span class="pill" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150); display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.6 0.14 150)"></span>Connected</span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid #eef0f3; border-radius: 8px; background: #fbfbfc">
+<span style="width: 40px; height: 40px; border-radius: 8px; background: #14171c; color: #fff; display: flex; align-items: center; justify-content: center"><span class="ms" style="font-size: 22px">dns</span></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Office workstation</span><span class="mono" style="font-size: 12px; color: #5e6672">[GPU model] · 24 GB · worker v1.0</span></span>
+</div>
+<div style="display: flex; flex-direction: column">
+<div class="kv"><span style="color: #5e6672">Last job</span><span>4 min ago · Standard</span></div>
+<div class="kv"><span style="color: #5e6672">Queue</span><span class="mono">1 waiting</span></div>
+<div class="kv"><span style="color: #5e6672">Local jobs this period</span><span class="mono">60 of 160</span></div>
+<div class="kv"><span style="color: #5e6672">Cloud fallback this period</span><span class="mono">100 · $7.50</span></div>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 4px 0">
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 500; font-size: 14px">Use local worker first</span><span style="font-size: 12px; color: #5e6672">Jobs go to the worker; cloud API runs them when it is offline or busy</span></span>
+<button class="sw swon" role="switch" aria-checked="true" aria-label="Use local worker first"></button>
+</div>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #f6f7f9; color: #3b424d; font-size: 13px; line-height: 1.4"><span class="ms" style="font-size: 18px; color: #7a828e">cloud_sync</span><span>If the worker goes offline, renders switch to cloud automatically and a note shows on the Render screen.</span></div>
+<div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center"><span class="ms" style="font-size: 18px">key</span>Connect worker</button><button class="b" style="flex: 1; justify-content: center"><span class="ms" style="font-size: 18px">content_copy</span>Copy token</button></div>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; color: #5e6672; line-height: 1.4">The token is shown once. Paste it into the worker app on the office PC to link it to Worth Properties.</span>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Company</span><span class="sv">Worth Properties</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Allowance</span><span class="sv">$42.50 left of $50.00</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Auto-refill</span><span class="sv">$50.00 · notify owner</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Worker</span><span class="sv">Connected · local first</span></div>
+<span style="flex: 1"></span>
+<span class="sv">Settings · Render models</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

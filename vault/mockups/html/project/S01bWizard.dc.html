@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft new project</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ft{border:0;background:transparent;padding:7px 12px;border-radius:7px;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672}
+.fton{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.pc{display:flex;flex-direction:column;color:#14171c;overflow:hidden}
+.th{height:168px;background-color:#f6f7f9;background-image:linear-gradient(#e6e9ed 1px,transparent 1px),linear-gradient(90deg,#e6e9ed 1px,transparent 1px);background-size:16px 16px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;justify-content:center}
+.wl{fill:none;stroke:#3b424d;stroke-width:6}
+.cb{fill:#fff;stroke:#7a828e;stroke-width:1.2}
+.nw{fill:oklch(0.95 0.03 262);stroke:oklch(0.55 0.17 262);stroke-width:1.4}
+.pill{font:600 12px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:7px;border-radius:6px;cursor:pointer}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12);font-weight:600}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672;font-weight:500}
+.in{font:400 14px 'Instrument Sans',sans-serif;color:#14171c;padding:8px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff;display:flex;align-items:center;gap:8px;min-height:38px}
+.inm{font-family:'DM Mono',monospace;font-size:13px}
+.sec{font-size:12px;font-weight:600;color:#5e6672;letter-spacing:.02em;text-transform:uppercase}
+.src{position:relative;display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid #dfe2e6;border-radius:10px;background:#fff;text-align:left;cursor:pointer;font-family:'Instrument Sans',sans-serif;color:#14171c}
+.srcon{border-color:oklch(0.55 0.17 262);box-shadow:0 0 0 3px #eef1ff}
+.si{width:34px;height:34px;border-radius:8px;background:#f2f4f7;color:#3b424d;display:flex;align-items:center;justify-content:center;font-size:20px}
+.tag{font-family:'DM Mono',monospace;font-size:10px;color:#5e6672;border:1px solid #dfe2e6;border-radius:4px;padding:1px 5px}
+.cf{display:grid;grid-template-columns:20px 112px 1fr;gap:8px;align-items:center;padding:7px 0;border-top:1px solid #eef0f3;font-size:13px}
+.ck{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;border:1.5px solid #c9ced5;box-sizing:border-box;color:#fff}
+.ckon{background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262)}
+.tp{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #dfe2e6;border-radius:10px;background:#fff;font-size:13px;font-weight:500;cursor:pointer;text-align:left;font-family:'Instrument Sans',sans-serif;color:#14171c}
+.tpon{border-color:oklch(0.55 0.17 262);background:#f7f8ff}
+.tpi{height:74px;border-radius:6px;background:#f6f7f9;display:flex;align-items:center;justify-content:center}
+.st{display:flex;align-items:center;gap:8px;font-size:13px;color:#5e6672}
+.sn{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:500 12px 'DM Mono',monospace}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 0}
+.kv .k{color:#7a828e}.kv .v{color:#14171c;text-align:right}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Projects</span>
+<span style="font-size: 13px; color: #5e6672; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">arrow_back</span>EZ Contractor Binder</span>
+<div style="flex: 1"></div>
+<div style="display: flex; align-items: center; gap: 8px; width: 340px; height: 38px; box-sizing: border-box; border: 1px solid #dfe2e6; border-radius: 8px; padding: 0 12px; color: #5e6672"><span class="ms" style="font-size: 20px">search</span><span style="flex: 1; font-size: 14px; color: #9aa3af">Search client, address or project</span></div>
+<span class="b" style="padding: 9px 10px"><span class="ms" style="font-size: 20px">notifications</span></span>
+<span class="b" style="padding: 9px 10px"><span class="ms" style="font-size: 20px">settings</span></span>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<main style="flex: 1; min-height: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; gap: 16px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Projects</h1>
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: none"><span class="ft fton">All <span class="mono">6</span></span><span class="ft">Draft <span class="mono">0</span></span><span class="ft">Client review <span class="mono">2</span></span><span class="ft">Permit submitted <span class="mono">2</span></span><span class="ft">Approved <span class="mono">1</span></span><span class="ft">In build <span class="mono">1</span></span></div>
+<div style="flex: 1"></div>
+<span class="b"><span class="ms" style="font-size: 18px">sort</span>Last edited</span>
+<span class="b bp"><span class="ms" style="font-size: 18px">add</span>New project<span class="ms" style="font-size: 18px">expand_more</span></span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+<sc-for list="{{projects}}" as="p" hint-placeholder-count="6">
+<div class="card pc">
+<div class="th"><svg width="220" height="128" viewBox="0 0 220 128" aria-hidden="true"><path class="wl" d="M70 118 H210 V10 H10 V118 H40"></path><rect class="cb" x="96" y="13" width="26" height="22"></rect><rect class="cb" x="122" y="13" width="40" height="22"></rect><rect class="cb" x="162" y="13" width="45" height="22"></rect><rect class="nw" x="74" y="62" width="40" height="34"></rect><rect class="nw" x="114" y="62" width="40" height="34"></rect></svg></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="font-size: 15px; font-weight: 600">{{p.name}}</span><span class="pill" style="{{p.statusStyle}}">{{p.status}}</span></div>
+<span style="font-size: 13px; color: #5e6672">{{p.client}} · [Address]</span>
+<span class="mono" style="font-size: 12px; color: #5e6672">{{p.version}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</main>
+
+<!-- dim -->
+<div style="position: absolute; inset: 0; background: rgba(20,23,28,.46)"></div>
+
+<!-- wizard modal -->
+<section class="card" role="dialog" aria-modal="true" aria-label="New project" style="position: absolute; left: 96px; top: 40px; width: 1408px; height: 920px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 64px rgba(10,15,30,.28)">
+<div style="height: 72px; flex: none; display: flex; align-items: center; gap: 24px; padding: 0 24px; border-bottom: 1px solid #dfe2e6">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600">New project</span><span style="font-size: 12px; color: #5e6672">Draft until the first send · nothing is saved until Create</span></div>
+<div style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 14px">
+<div class="st"><span class="sn" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)"><span class="ms" style="font-size: 15px">check</span></span><span style="color: #14171c; font-weight: 500">Project details</span></div>
+<span style="width: 48px; height: 1px; background: #c9ced5"></span>
+<div class="st"><span class="sn" style="background: oklch(0.55 0.17 262); color: #fff">2</span><span style="color: oklch(0.45 0.17 262); font-weight: 600">Input source + settings</span></div>
+</div>
+<button class="b ms" aria-label="Close" style="padding: 7px; font-size: 20px">close</button>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex">
+<!-- column 1: step 1 recap -->
+<div style="width: 420px; flex: none; border-right: 1px solid #dfe2e6; padding: 20px 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; background: #fbfbfc; overflow: hidden">
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="sec">1 · Project details</span><a href="#" style="font-size: 13px; text-decoration: none">Edit</a></div>
+<div class="tg" role="group" aria-label="Start from"><button class="tgi tgon"><span class="ms" style="font-size: 17px">link</span>From an EZ Binder job</button><button class="tgi"><span class="ms" style="font-size: 17px">edit_square</span>Standalone</button></div>
+<label class="fl">EZ Binder job<span class="in" style="border-color: oklch(0.55 0.17 262)"><span class="ms" style="font-size: 18px; color: oklch(0.5 0.17 262)">work</span><span style="flex: 1">Hendricks kitchen</span><span class="mono" style="font-size: 12px; color: #5e6672">Job [####]</span><span class="ms" style="font-size: 18px; color: #7a828e">expand_more</span></span><span style="font-size: 11px; color: #7a828e">Client, address and job number filled from the job. Only jobs you can see in EZ Binder.</span></label>
+<label class="fl"><span style="display: flex; justify-content: space-between">Customer<span style="display: flex; align-items: center; gap: 4px; color: oklch(0.42 0.12 150); font-weight: 500"><span class="ms" style="font-size: 14px">sync</span>Customer list synced with EZ Binder</span></span>
+<span class="in"><span style="width: 26px; height: 26px; border-radius: 50%; background: #eef1ff; color: oklch(0.45 0.17 262); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center">H</span><span style="flex: 1; display: flex; flex-direction: column; line-height: 1.25"><span style="font-weight: 500">[First name] Hendricks</span><span style="font-size: 12px; color: #5e6672">[client@email.com] · [561-000-0000]</span></span><span class="ms" style="font-size: 18px; color: #7a828e">expand_more</span></span>
+<span style="font-size: 11px; color: #7a828e">Pick from the customer list or <a href="#" style="text-decoration: none">add new</a>. Optional now; required (with email) before the first send.</span></label>
+<div style="display: grid; grid-template-columns: 1fr 150px; gap: 10px">
+<label class="fl">Project name<span class="in">Kitchen remodel</span></label>
+<label class="fl">Type<span class="in" style="justify-content: space-between">Kitchen<span class="ms" style="font-size: 18px; color: #7a828e">expand_more</span></span></label>
+</div>
+<label class="fl">Address<span class="in">[Street address], [City], FL [ZIP]</span></label>
+<div style="border: 1px solid #dfe2e6; border-radius: 10px; background: #fff; padding: 12px 14px 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px"><span style="font-size: 13px; font-weight: 600">Property appraiser link</span><span class="pill" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65); font-size: 11px; padding: 3px 8px">3 of 5 confirmed</span></div>
+<span class="in inm" style="font-size: 12px; min-height: 34px; padding: 6px 10px"><span class="ms" style="font-size: 16px; color: #7a828e">link</span><span style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">pbcpao.gov/Property/Details?parcelId=[PCN]</span><span class="ms" style="font-size: 16px; color: oklch(0.42 0.12 150)">check_circle</span></span>
+<div style="font-size: 11px; color: #7a828e; margin: 6px 0 4px">Read from the page. Tick each field to confirm. <a href="#" style="text-decoration: none">Paste page text or screenshot</a></div>
+<div class="cf"><span class="ck ckon ms">check</span><span style="color: #5e6672">Parcel (PCN)</span><span class="mono" style="font-size: 12px">[00-00-00-00-00-000-0000]</span></div>
+<div class="cf"><span class="ck ckon ms">check</span><span style="color: #5e6672">Owner</span><span>[Owner name] Hendricks</span></div>
+<div class="cf"><span class="ck"></span><span style="color: #5e6672">Legal description</span><span style="color: #3b424d">[Subdivision] Lot [ ] Blk [ ]</span></div>
+<div class="cf"><span class="ck ckon ms">check</span><span style="color: #5e6672">Year built</span><span><span class="mono" style="font-size: 12px">1986</span><span style="font-size: 11px; color: #7a828e"> · no lead flag (pre-1978 only)</span></span></div>
+<div class="cf"><span class="ck"></span><span style="color: #5e6672">Living area</span><span class="mono" style="font-size: 12px">2,140 SF</span></div>
+</div>
+</div>
+
+<!-- column 2: input source -->
+<div style="flex: 1; min-width: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span class="sec">2 · Input source</span><span style="font-size: 12px; color: #7a828e">Pick one. More files can be added later from Import.</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<button class="src"><span style="display: flex; justify-content: space-between"><span class="si ms">view_in_ar</span><span style="display: flex; gap: 4px"><span class="tag">polycam_dxf</span><span class="tag">glb</span></span></span><span style="font-weight: 600; font-size: 14px">Polycam scan</span><span style="font-size: 12px; color: #5e6672">DXF floor plan plus GLB/GLTF mesh. Walls and openings detected.</span></button>
+<button class="src"><span style="display: flex; justify-content: space-between"><span class="si ms">picture_as_pdf</span><span class="tag">pdf</span></span><span style="font-weight: 600; font-size: 14px">PDF</span><span style="font-size: 12px; color: #5e6672">Vector: walls auto-detected. Scanned: trace only. Scale calibrated by two points.</span></button>
+<button class="src"><span style="display: flex; justify-content: space-between"><span class="si ms">architecture</span><span class="tag">dxf</span></span><span style="font-weight: 600; font-size: 14px">DXF</span><span style="font-size: 12px; color: #5e6672">Architect or supplier drawing. Convert all, some layers, or keep as reference. DWG: save as DXF first.</span></button>
+<button class="src"><span style="display: flex; justify-content: space-between"><span class="si ms">kitchen</span><span class="tag">supplier_pdf</span></span><span style="font-weight: 600; font-size: 14px">Supplier kitchen PDF</span><span style="font-size: 12px; color: #5e6672">Cabinet codes read from the supplier's drawing. Renderings kept as finish reference only.</span></button>
+<button class="src"><span style="display: flex; justify-content: space-between"><span class="si ms">phone_iphone</span><span class="tag">17b</span></span><span style="font-weight: 600; font-size: 14px">Field measure</span><span style="font-size: 12px; color: #5e6672">Foreman measures rooms on the phone. Project opens on Import review when rooms arrive.</span></button>
+<button class="src srcon"><span style="display: flex; justify-content: space-between"><span class="si ms" style="background: oklch(0.55 0.17 262); color: #fff">dashboard</span><span class="ms" style="font-size: 20px; color: oklch(0.55 0.17 262)">radio_button_checked</span></span><span style="font-weight: 600; font-size: 14px">Blank (template)</span><span style="font-size: 12px; color: #5e6672">Start from a room shape and type the sizes. Opens the Plan editor.</span></button>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px dashed #c9ced5; border-radius: 10px; color: #5e6672; font-size: 12px"><span class="ms" style="font-size: 20px">upload_file</span><span style="flex: 1">File sources show a drop zone here: tag per file, Remove, then <b style="color: #3b424d; font-weight: 600">Continue to review</b></span></div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px dashed #c9ced5; border-radius: 10px; color: #5e6672; font-size: 12px"><span class="ms" style="font-size: 20px">person</span><span style="flex: 1">Field measure asks which Foreman gets the link (email + <b style="color: #3b424d; font-weight: 600">Copy link</b>)</span></div>
+</div>
+
+<div style="border: 1px solid #dfe2e6; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 14px; font-weight: 600">Template</span><span style="font-size: 12px; color: #7a828e">Sizes editable now and later</span></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<button class="tp"><span class="tpi"><svg width="120" height="60" viewBox="0 0 120 60" aria-hidden="true"><rect x="10" y="6" width="100" height="48" style="fill: none; stroke: #3b424d; stroke-width: 3"></rect><rect x="12" y="8" width="96" height="10" style="fill: #fff; stroke: #9aa3af"></rect><rect x="12" y="42" width="96" height="10" style="fill: #fff; stroke: #9aa3af"></rect></svg></span><span>Galley kitchen</span><span class="mono" style="font-size: 11px; color: #7a828e">8' 0" x 14' 0"</span></button>
+<button class="tp tpon"><span class="tpi" style="background: #eef1ff"><svg width="120" height="60" viewBox="0 0 120 60" aria-hidden="true"><rect x="18" y="4" width="84" height="52" style="fill: none; stroke: #3b424d; stroke-width: 3"></rect><rect x="20" y="6" width="80" height="10" style="fill: #fff; stroke: oklch(0.55 0.17 262)"></rect><rect x="20" y="16" width="10" height="26" style="fill: #fff; stroke: oklch(0.55 0.17 262)"></rect><rect x="46" y="30" width="34" height="12" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262)"></rect></svg></span><span style="display: flex; justify-content: space-between">L-kitchen<span class="ms" style="font-size: 16px; color: oklch(0.55 0.17 262)">check_circle</span></span><span class="mono" style="font-size: 11px; color: #7a828e">11' 9 1/2" x 14' 0"</span></button>
+<button class="tp"><span class="tpi"><svg width="120" height="60" viewBox="0 0 120 60" aria-hidden="true"><rect x="36" y="4" width="48" height="52" style="fill: none; stroke: #3b424d; stroke-width: 3"></rect><rect x="38" y="6" width="44" height="16" rx="3" style="fill: #fff; stroke: #9aa3af"></rect><circle cx="74" cy="44" r="6" style="fill: #fff; stroke: #9aa3af"></circle></svg></span><span>5x8 bath</span><span class="mono" style="font-size: 11px; color: #7a828e">5' 0" x 8' 0"</span></button>
+<button class="tp"><span class="tpi"><svg width="120" height="60" viewBox="0 0 120 60" aria-hidden="true"><rect x="16" y="4" width="88" height="52" style="fill: none; stroke: #3b424d; stroke-width: 3"></rect><path d="M18 6 H48 V26 L38 36 H18 Z" style="fill: #fff; stroke: #9aa3af"></path><rect x="60" y="6" width="42" height="10" style="fill: #fff; stroke: #9aa3af"></rect></svg></span><span>Primary bath</span><span class="mono" style="font-size: 11px; color: #7a828e">10' 0" x 12' 0"</span></button>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 150px; gap: 10px; align-items: end">
+<label class="fl">Width<span class="in inm" style="border-color: oklch(0.55 0.17 262); box-shadow: 0 0 0 3px #eef1ff">11' 9 1/2"</span></label>
+<label class="fl">Length<span class="in inm">14' 0"</span></label>
+<label class="fl">Ceiling height<span class="in inm">8' 0"</span></label>
+<div style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #5e6672; font-weight: 500">Area<span class="mono" style="font-size: 18px; color: #14171c; padding: 7px 0">165 SF</span></div>
+</div>
+<span style="font-size: 12px; color: #7a828e">Accepts <span class="mono" style="color: #3b424d">12'6"</span>, <span class="mono" style="color: #3b424d">12' 6 1/2"</span>, <span class="mono" style="color: #3b424d">150"</span> or <span class="mono" style="color: #3b424d">12.5'</span>. Fractions to 1/16".</span>
+</div>
+</div>
+
+<!-- column 3: settings -->
+<div style="width: 340px; flex: none; border-left: 1px solid #dfe2e6; padding: 20px 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<span class="sec">Project settings</span>
+<label class="fl">Units<span class="in" style="background: #f6f7f9; color: #5e6672; justify-content: space-between">Imperial<span class="mono" style="font-size: 12px">1/16"</span></span><span style="font-size: 11px; color: #7a828e">Display only. v1 is imperial.</span></label>
+<label class="fl">Code edition<span class="in" style="justify-content: space-between"><span>FBC 9th ed. · NEC 2023</span><span class="ms" style="font-size: 18px; color: #7a828e">expand_more</span></span><span style="font-size: 11px; color: #7a828e">Company default. Permits applied after Dec 31, 2026 use FBC 9th ed.</span></label>
+<label class="fl"><span style="display: flex; justify-content: space-between">Submittal profile<span style="color: #9aa3af; font-weight: 400">Optional · set later</span></span><span class="in" style="justify-content: space-between"><span>Palm Beach County Building</span><span class="ms" style="font-size: 18px; color: #7a828e">expand_more</span></span></label>
+<div style="border: 1px solid #eef0f3; border-radius: 10px; padding: 8px 12px; background: #fbfbfc">
+<div class="kv"><span class="k">File split</span><span class="v">One PDF per set</span></div>
+<div class="kv"><span class="k">Naming</span><span class="v mono" style="font-size: 11px">[ADDRESS]_PERMIT_REV0.pdf</span></div>
+<div class="kv"><span class="k">Sheet size</span><span class="v mono" style="font-size: 11px">24 x 36 ARCH D</span></div>
+<div class="kv"><span class="k">Flatten</span><span class="v">Yes</span></div>
+<div class="kv"><span class="k">Stamp box</span><span class="v mono" style="font-size: 11px">3" x 3" + dept. stamp</span></div>
+<div class="kv"><span class="k">Resubmittal</span><span class="v">Changed sheets only</span></div>
+<div class="kv"><span class="k">Min-scale check</span><span class="v mono" style="font-size: 11px">1/4" = 1'-0"</span></div>
+<div class="kv"><span class="k">Export unsigned</span><span class="v">Allowed</span></div>
+</div>
+<div style="flex: 1"></div>
+<div style="border-radius: 10px; background: #eef1ff; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+<span style="font-weight: 600; color: oklch(0.45 0.17 262)">Create will</span>
+<span style="display: flex; gap: 6px; color: #3b424d"><span class="ms" style="font-size: 16px">check</span>Make "Kitchen remodel" as Draft</span>
+<span style="display: flex; gap: 6px; color: #3b424d"><span class="ms" style="font-size: 16px">check</span>Link Hendricks kitchen in EZ Binder</span>
+<span style="display: flex; gap: 6px; color: #3b424d"><span class="ms" style="font-size: 16px">check</span>Open the Plan editor with the L-kitchen</span>
+</div>
+</div>
+</div>
+
+<div style="height: 68px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 24px; border-top: 1px solid #dfe2e6; background: #fff">
+<span class="mono" style="font-size: 12px; color: #5e6672">Step 2 of 2</span>
+<span style="font-size: 12px; color: #7a828e; display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px; color: oklch(0.62 0.13 150)">check_circle</span>Name, address and type complete</span>
+<div style="flex: 1"></div>
+<button class="b">Cancel</button>
+<button class="b"><span class="ms" style="font-size: 18px">arrow_back</span>Back</button>
+<button class="b bp" style="padding: 10px 20px">Create project<span class="ms" style="font-size: 18px">arrow_forward</span></button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = {
+'Client review': 'background: #eef1ff; color: oklch(0.45 0.17 262)',
+'Permit submitted': 'background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)',
+'Approved': 'background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)',
+'In build': 'background: #14171c; color: #ffffff'
+};
+const rows = [
+['Kitchen remodel', 'Hendricks residence', 'Permit submitted', 'Rev 0'],
+['Primary bath', '[Client B]', 'Client review', 'Version 2 sent'],
+['Family room vault + beams', '[Client C]', 'Client review', 'Version 3 sent'],
+['Whole-home interior', '[Client D]', 'Permit submitted', 'Rev 0'],
+['Guest bath', '[Client E]', 'Approved', 'Rev 1'],
+['Kitchen + laundry', '[Client F]', 'In build', 'Rev 2']
+];
+return { projects: rows.map(r => ({ name: r[0], client: r[1], status: r[2], version: r[3], statusStyle: st[r[2]] })) };
+}
+}
+</script>
+</body>
+</html>

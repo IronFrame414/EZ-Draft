@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft field tasks</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none;white-space:nowrap}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;cursor:pointer;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rb:hover{background:#f2f4f7}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px 2px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.sl{color:#9aa3af}
+.sv{color:#14171c}
+.room{display:flex;align-items:center;gap:8px;padding:8px;border-radius:7px;font-weight:600}
+.ph{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 30px;border-radius:7px;font-size:13px;color:#3b424d;cursor:pointer}
+.ph:hover{background:#f2f4f7}
+.phon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.phon:hover{background:#eef1ff}
+.cnt{font:400 12px 'DM Mono',monospace;color:#7a828e}
+.step{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:13px;color:#5e6672;border:1px solid #dfe2e6;background:#fff;white-space:nowrap}
+.stepon{border-color:oklch(0.55 0.17 262);background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.arr{color:#c4cad2;font-size:16px}
+.th{font-size:12px;font-weight:600;color:#5e6672;padding:8px 8px;text-align:left;border-bottom:1px solid #dfe2e6;background:#fafbfc}
+.td{padding:10px 8px;border-bottom:1px solid #eef0f3;vertical-align:top;font-size:13px;line-height:1.4}
+.trd .td{color:#5e6672}
+.tron .td{background:#f7f8ff}
+.ts{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tsa{background:oklch(0.95 0.05 150);color:oklch(0.42 0.12 150)}
+.tsu{background:oklch(0.96 0.04 80);color:oklch(0.48 0.13 65)}
+.tsg{background:#f2f4f7;color:#5e6672}
+.st{font-size:12px;font-weight:500;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.cbx{width:16px;height:16px;border:1.5px solid #c4cad2;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;background:#fff}
+.cbxon{background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.oc{display:inline-flex;align-items:center;gap:5px;font:500 12px 'DM Mono',monospace;padding:3px 8px;border-radius:6px;background:#eef1ff;color:oklch(0.45 0.17 262)}
+.ta{font:400 13px 'Instrument Sans',sans-serif;color:#14171c;padding:8px 10px;border:1px solid #dfe2e6;border-radius:8px;resize:none;width:100%;box-sizing:border-box;line-height:1.4}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<span class="mono" title="Last field pack issue" style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: #3b424d; border: 1px solid #dfe2e6; border-radius: 999px; padding: 4px 10px"><span class="ms" style="font-size: 15px; color: #5e6672">smartphone</span>Field pack · Oct 8 · Rev 0</span>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<button class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</button>
+<button class="b">Share<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></button>
+<button class="b">Export</button>
+<button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb rbon ms" aria-label="Select (V)" aria-pressed="true">arrow_selector_tool</button>
+<button class="rb ms" aria-label="Move (M)">open_with</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button>
+<button class="rb ms" aria-label="Door (D)">door_front</button>
+<button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button>
+<button class="rb ms" aria-label="Fixtures">countertops</button>
+<button class="rb ms" aria-label="Electrical (E)">bolt</button>
+<button class="rb ms" aria-label="Ceiling">roofing</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button>
+<button class="rb ms" aria-label="Text (T)">title</button>
+<button class="rb ms" aria-label="Sketch">draw</button>
+<button class="rb ms" aria-label="Detail callout">zoom_in</button>
+<span style="flex: 1"></span>
+<button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Tasks" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 2px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg">Layers</button><button class="seg">Rooms</button><button class="seg">Versions</button><button class="seg segon">Tasks</button></div>
+<div style="padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 6px">
+<button class="b" style="justify-content: center; font-weight: 600; color: oklch(0.45 0.17 262); border-color: oklch(0.82 0.07 262); background: #f7f8ff"><span class="ms" style="font-size: 18px">auto_awesome</span>Draft tasks with AI</button>
+<span style="font-size: 12px; color: #7a828e; text-align: center">From Demo + New objects and room templates</span>
+</div>
+<span class="lbl">Rooms</span>
+<div style="display: flex; flex-direction: column; gap: 1px; padding: 0 6px">
+<div class="room"><span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span><span style="flex: 1">Kitchen</span><span class="cnt">22</span></div>
+<div class="ph"><span style="flex: 1">1 · Demo</span><span class="ms" style="font-size: 15px; color: oklch(0.6 0.13 65)" title="1 task tied to a deleted object">warning</span><span class="cnt">4</span></div>
+<div class="ph phon"><span style="flex: 1">2 · Rough-in</span><span class="cnt" style="color: oklch(0.45 0.17 262)">6</span></div>
+<div class="ph"><span style="flex: 1">3 · Inspection</span><span class="cnt">2</span></div>
+<div class="ph"><span style="flex: 1">4 · Drywall</span><span class="cnt">3</span></div>
+<div class="ph"><span style="flex: 1">5 · Finish</span><span class="cnt">7</span></div>
+<div class="room" style="margin-top: 4px"><span class="ms" style="font-size: 18px; color: #5e6672">chevron_right</span><span style="flex: 1">Laundry</span><span class="cnt">9</span></div>
+<div class="room" style="font-weight: 500; color: #7a828e"><span class="ms" style="font-size: 18px">chevron_right</span><span style="flex: 1">Family room</span><span style="font-size: 12px">No tasks</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="margin: 0 12px 12px; padding: 10px 12px; border-radius: 9px; background: #f6f7f9; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5e6672">
+<span style="display: flex; justify-content: space-between"><span>Published</span><span class="mono" style="color: #14171c">22</span></span>
+<span style="display: flex; justify-content: space-between"><span>Drafts</span><span class="mono" style="color: #14171c">9</span></span>
+<span style="display: flex; justify-content: space-between"><span>Done on site</span><span class="mono" style="color: #14171c">6</span></span>
+<a href="#" style="margin-top: 4px; font-size: 12px">Kitchen template in Libraries</a>
+</div>
+</aside>
+<div style="flex: 1; align-self: stretch; display: flex; flex-direction: column; gap: 16px; min-width: 0">
+<div class="card" style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px 18px 12px; display: flex; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 18px; font-weight: 600">Kitchen · Rough-in</span><span style="font-size: 13px; color: #5e6672">6 tasks · 3 AI drafts to review · Spanish shown to Spanish users</span></div>
+<button class="b" style="padding: 7px 12px; font-size: 13px"><span class="ms" style="font-size: 17px">add</span>Add task</button>
+<button class="b" style="padding: 7px 12px; font-size: 13px; color: oklch(0.45 0.17 262); border-color: oklch(0.82 0.07 262)"><span class="ms" style="font-size: 17px">publish</span>Publish all drafts <span class="mono">3</span></button>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; padding: 0 18px 14px" aria-label="Trade sequence">
+<span class="step">Demo <span class="mono" style="font-size: 12px">4</span></span><span class="ms arr">chevron_right</span>
+<span class="step stepon">Rough-in <span class="mono" style="font-size: 12px">6</span></span><span class="ms arr">chevron_right</span>
+<span class="step">Inspection <span class="mono" style="font-size: 12px">2</span></span><span class="ms arr">chevron_right</span>
+<span class="step">Drywall <span class="mono" style="font-size: 12px">3</span></span><span class="ms arr">chevron_right</span>
+<span class="step">Finish <span class="mono" style="font-size: 12px">7</span></span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; border-top: 1px solid #dfe2e6">
+<table style="width: 100%; border-collapse: collapse; table-layout: fixed">
+<colgroup><col style="width: 30px"><col style="width: 30px"><col><col><col style="width: 112px"><col style="width: 104px"></colgroup>
+<thead><tr><th class="th"></th><th class="th"></th><th class="th">English</th><th class="th">Español</th><th class="th">Translation</th><th class="th">State</th></tr></thead>
+<tbody>
+<tr><td class="td"><span class="ms" style="font-size: 18px; color: #c4cad2">drag_indicator</span></td><td class="td"><span class="cbx"></span></td><td class="td">Move sink drain and supplies 3" right to center on <span class="mono">SB36</span>.</td><td class="td">Mover el desagüe y las tuberías del fregadero 3" a la derecha para centrar en <span class="mono">SB36</span>.</td><td class="td"><span class="ts tsa"><span class="ms" style="font-size: 14px">check</span>Approved</span></td><td class="td"><span style="display: flex; flex-direction: column; gap: 3px"><span class="st" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150); align-self: flex-start">Done</span><span style="font-size: 11px; color: #7a828e">[Name] · Oct 10</span></span></td></tr>
+<tr><td class="td"><span class="ms" style="font-size: 18px; color: #c4cad2">drag_indicator</span></td><td class="td"><span class="cbx"></span></td><td class="td">Run dedicated 20A GFCI circuit to dishwasher <span class="mono">DW24</span>.</td><td class="td">Instalar circuito dedicado de 20A con GFCI para el lavavajillas <span class="mono">DW24</span>.</td><td class="td"><span class="ts tsa"><span class="ms" style="font-size: 14px">check</span>Approved</span></td><td class="td"><span class="st" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Published</span></td></tr>
+<tr><td class="td"><span class="ms" style="font-size: 18px; color: #c4cad2">drag_indicator</span></td><td class="td"><span class="cbx"></span></td><td class="td">Add blocking for wall cabinets at <span class="mono">54"</span> AFF along back wall.</td><td class="td">Colocar refuerzos para gabinetes de pared a <span class="mono">54"</span> sobre el piso en el muro trasero.</td><td class="td"><span class="ts tsa"><span class="ms" style="font-size: 14px">edit</span>Edited</span></td><td class="td"><span class="st" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Published</span></td></tr>
+<tr class="trd tron"><td class="td"><span class="ms" style="font-size: 18px; color: #c4cad2">drag_indicator</span></td><td class="td"><span class="cbx cbxon"><span class="ms" style="font-size: 13px">check</span></span></td><td class="td" style="color: #14171c">Run two 20A small-appliance circuits to island receptacles at <span class="mono">B24</span> ends.</td><td class="td">Instalar dos circuitos de 20A para los tomacorrientes de la isla en los extremos de <span class="mono">B24</span>.</td><td class="td"><span class="ts tsu">Unreviewed</span></td><td class="td"><span style="display: flex; align-items: center; gap: 4px"><span class="st" style="background: #f2f4f7; color: #5e6672">Draft</span><span class="ms" style="font-size: 15px; color: oklch(0.55 0.17 262)" title="AI drafted">auto_awesome</span></span></td></tr>
+<tr class="trd"><td class="td"><span class="ms" style="font-size: 18px; color: #c4cad2">drag_indicator</span></td><td class="td"><span class="cbx"></span></td><td class="td">Run 50A range circuit to <span class="mono">RNG30</span> location on left wall.</td><td class="td">Instalar circuito de 50A para la estufa en <span class="mono">RNG30</span>, muro izquierdo.</td><td class="td"><span class="ts tsu">Unreviewed</span></td><td class="td"><span style="display: flex; align-items: center; gap: 4px"><span class="st" style="background: #f2f4f7; color: #5e6672">Draft</span><span class="ms" style="font-size: 15px; color: oklch(0.55 0.17 262)" title="AI drafted">auto_awesome</span></span></td></tr>
+<tr class="trd"><td class="td"><span class="ms" style="font-size: 18px; color: #c4cad2">drag_indicator</span></td><td class="td"><span class="cbx"></span></td><td class="td">Set 4 can light housings per <span class="mono">A6.0</span> RCP; keep 2' from wall cabinets.</td><td class="td" style="color: #9aa3af; font-style: italic">Translating…</td><td class="td"><span class="ts tsg"><span class="ms" style="font-size: 14px">progress_activity</span>Drafting</span></td><td class="td"><span style="display: flex; align-items: center; gap: 4px"><span class="st" style="background: #f2f4f7; color: #5e6672">Draft</span><span class="ms" style="font-size: 15px; color: oklch(0.55 0.17 262)" title="AI drafted">auto_awesome</span></span></td></tr>
+</tbody>
+</table>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 13px; color: #5e6672; border-bottom: 1px solid #eef0f3; background: #fafbfc"><span class="ms" style="font-size: 18px">chevron_right</span><span style="font-weight: 600; color: #3b424d">3 · Inspection</span><span>Rough electrical and plumbing inspection · 2 tasks</span></div>
+</div>
+</div>
+<div class="card" style="flex: none; display: flex; align-items: center; gap: 14px; padding: 12px 14px 12px 18px">
+<span class="ms" style="font-size: 22px; color: #5e6672">smartphone</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 14px; font-weight: 600">Field pack</span><span style="font-size: 12px; color: #5e6672">Last issued <span class="mono">Oct 8</span> · Rev 0 · Josh Bishop · crews see changes only after the next issue</span></div>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: oklch(0.48 0.13 65); background: oklch(0.96 0.04 80); padding: 5px 10px; border-radius: 999px"><span class="ms" style="font-size: 15px">info</span>9 drafts not published</span>
+<button class="b bp"><span class="ms" style="font-size: 18px">send_to_mobile</span>Issue field pack</button>
+</div>
+</div>
+<aside class="card" aria-label="Task detail" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 16px 18px 10px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 17px; font-weight: 600">Island receptacle circuits</span><span style="font-size: 13px; color: #5e6672">Kitchen · Rough-in · task 4 of 6</span></div><span style="display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #f2f4f7; color: #5e6672"><span class="ms" style="font-size: 14px; color: oklch(0.55 0.17 262)">auto_awesome</span>Draft</span></div>
+<div style="margin: 0 18px; border: 1px solid #dfe2e6; border-radius: 10px; overflow: hidden; background: #fbfbfc; position: relative">
+<svg viewBox="280 60 500 450" role="img" aria-label="Kitchen plan with the island run B24, DB24, B24 and two island receptacles highlighted as linked objects" style="width: 100%; height: 200px; display: block; font-family: 'DM Mono', monospace">
+<path d="M293 464 V73 H759.8 V500" style="fill: none; stroke: #3b424d; stroke-width: 10"></path>
+<rect x="300" y="80" width="76.8" height="134.4" style="fill: #fff; stroke: #c4cad2"></rect><rect x="300" y="214.4" width="76.8" height="96" style="fill: #f6f7f9; stroke: #c4cad2"></rect><rect x="300" y="310.4" width="76.8" height="48" style="fill: #fff; stroke: #c4cad2"></rect>
+<rect x="386.4" y="80" width="48" height="76.8" style="fill: #fff; stroke: #c4cad2"></rect><rect x="434.4" y="80" width="76.8" height="76.8" style="fill: #fff; stroke: #c4cad2"></rect><rect x="511.2" y="80" width="115.2" height="76.8" style="fill: #fff; stroke: #c4cad2"></rect><rect x="626.4" y="80" width="57.6" height="76.8" style="fill: #fff; stroke: #c4cad2"></rect><rect x="684" y="80" width="67.2" height="76.8" style="fill: #fff; stroke: #c4cad2"></rect>
+<rect x="656.8" y="176" width="96" height="115.2" style="fill: #fff; stroke: #c4cad2; stroke-dasharray: 5 3"></rect>
+<rect x="444" y="387.2" width="76.8" height="76.8" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect><rect x="520.8" y="387.2" width="76.8" height="76.8" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect><rect x="597.6" y="387.2" width="76.8" height="76.8" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect>
+<text x="482.4" y="431" style="font-size: 14px; fill: oklch(0.42 0.17 262); text-anchor: middle">B24</text><text x="559.2" y="431" style="font-size: 14px; fill: oklch(0.42 0.17 262); text-anchor: middle">DB24</text><text x="636" y="431" style="font-size: 14px; fill: oklch(0.42 0.17 262); text-anchor: middle">B24</text>
+<circle cx="430" cy="425" r="11" style="fill: #fff; stroke: oklch(0.55 0.17 262); stroke-width: 2"></circle><line x1="425" y1="419" x2="425" y2="431" style="stroke: oklch(0.55 0.17 262); stroke-width: 2"></line><line x1="435" y1="419" x2="435" y2="431" style="stroke: oklch(0.55 0.17 262); stroke-width: 2"></line>
+<circle cx="688" cy="425" r="11" style="fill: #fff; stroke: oklch(0.55 0.17 262); stroke-width: 2"></circle><line x1="683" y1="419" x2="683" y2="431" style="stroke: oklch(0.55 0.17 262); stroke-width: 2"></line><line x1="693" y1="419" x2="693" y2="431" style="stroke: oklch(0.55 0.17 262); stroke-width: 2"></line>
+</svg>
+<span class="mono" style="position: absolute; left: 8px; bottom: 6px; font-size: 11px; color: #5e6672; background: #fff; padding: 2px 6px; border-radius: 4px">Plan · linked objects</span>
+</div>
+<div style="padding: 14px 18px 0; display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #5e6672"><span>English</span><span class="mono" style="font-weight: 400; color: #9aa3af">EN</span></span>
+<textarea class="ta" rows="3">Run two 20A small-appliance circuits to island receptacles at B24 ends. GFCI protect both.</textarea>
+</div>
+<div style="padding: 12px 18px 0; display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: #5e6672"><span>Español</span><span class="ts tsu">Unreviewed</span></span>
+<textarea class="ta" rows="3" style="background: #fafbfc">Instalar dos circuitos de 20A para los tomacorrientes de la isla en los extremos de B24. Protección GFCI en ambos.</textarea>
+<span style="font-size: 12px; color: #7a828e">Editing the Spanish approves it. <a href="#">Open in Translations</a></span>
+</div>
+<div style="padding: 12px 18px 0; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Linked objects</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><span class="oc">Island run</span><span class="oc">2 receptacles</span><button class="b" style="padding: 3px 8px; font-size: 12px"><span class="ms" style="font-size: 15px">add</span>Pick on plan</button></div>
+</div>
+<div style="padding: 12px 18px 0; display: flex; align-items: center; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672; flex: 1">Photos</span>
+<button class="b" style="padding: 5px 10px; font-size: 12px"><span class="ms" style="font-size: 16px">add_a_photo</span>Add</button>
+</div>
+<span style="flex: 1"></span>
+<div style="border-top: 1px solid #eef0f3; padding: 12px 18px 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #5e6672">Published tasks reach phones with the next field pack issue.</span>
+<div style="display: flex; gap: 8px">
+<button class="b ms" aria-label="Delete task" style="width: 42px; justify-content: center; padding: 0; font-size: 19px; color: #5e6672">delete</button>
+<button class="b" style="flex: 1; justify-content: center; font-weight: 600; color: oklch(0.45 0.17 262); border-color: oklch(0.55 0.17 262); background: #eef1ff"><span class="ms" style="font-size: 18px">groups</span>Publish to crew</button>
+</div>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Room</span><span class="sv">Kitchen</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Phase</span><span class="sv">Rough-in</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Tasks</span><span class="sv">31</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Spanish unreviewed</span><span class="sv">5</span></div>
+<span style="flex: 1"></span>
+<div style="display: flex; gap: 6px"><span class="sl">Crew</span><span class="sv">[Name] Foreman · 2 Crew</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Revision</span><span class="sv">Rev 1 draft</span></div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
