@@ -39,5 +39,5 @@ Phase: 0 · Stage: 2 questions done; ready for 3 build · Session ended because:
 - Build PC: WSL installed for Docker Desktop, memory capped at 6 GB in C:UsersJSBis.wslconfig until Josh installs more RAM (ordered Oct 12). Reminder task `ezdraft-remove-wsl-memory-cap` fires Oct 15, 9:00. After the upgrade, revisit Q-0019 (workers = 2, one gate at a time).
 
 ## Next
-1. Setup is complete. Josh starts Docker Desktop.
+1. Setup is complete. Docker Desktop is installed (WSL, capped at 6 GB / 4 CPUs, verified) but this app session started before Docker existed, so `docker` is not on its PATH. After EZ Binder's build finishes: Josh restarts Windows, opens Docker Desktop (Engine running), reopens this app. First action of /build-phase 0: run `docker info`; if not found, stop and ask Josh (do not start EZD-000).
 2. When EZ Binder's build on this PC is finished: `/build-phase 0` (first ticket EZD-000).
