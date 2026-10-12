@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft catalog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'DM Mono',monospace;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:6px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.ssg{display:flex;padding:2px;gap:2px;background:#f2f4f7;border-radius:6px}
+.ssi{border:0;background:transparent;font:400 12px 'DM Mono',monospace;color:#5e6672;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ssion{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.cat{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:14px;color:#3b424d;cursor:pointer}
+.cat .ms{font-size:18px;color:#7a828e}
+.cat .n{margin-left:auto;font:400 12px 'DM Mono',monospace;color:#9aa3af}
+.caton{background:#eef1ff;color:oklch(0.42 0.17 262);font-weight:600}
+.caton .ms,.caton .n{color:oklch(0.45 0.17 262)}
+.pd{border:1px solid #dfe2e6;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:#fff;cursor:grab}
+.pd svg{display:block;background:#f6f7f9;border-bottom:1px solid #eef0f3}
+.pdb{padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px}
+.pdn{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pds{font:400 11px 'DM Mono',monospace;color:#5e6672;white-space:nowrap}
+.th{fill:none;stroke:#3b424d;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.thf{fill:#fff;stroke:#3b424d;stroke-width:1.4;stroke-linejoin:round}
+.af{display:grid;grid-template-columns:96px 1fr 14px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eef0f3;font-size:13px}
+.af .k{color:#5e6672}
+.af .v{font:400 13px 'DM Mono',monospace;color:#14171c;padding:6px 9px;border:1px solid #dfe2e6;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.af .vt{font-family:'Instrument Sans',sans-serif;font-size:14px}
+.dot{width:8px;height:8px;border-radius:50%;justify-self:center}
+.dh{background:oklch(0.62 0.13 150)}
+.dm{background:oklch(0.72 0.16 65)}
+.dl{background:oklch(0.6 0.19 28)}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Fixtures">wash</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb rbon ms" aria-label="Catalog (P)" aria-pressed="true">inventory_2</button><button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Detail">frame_inspect</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+
+<section class="card" aria-label="Catalog" style="width: 620px; flex: none; align-self: stretch; overflow: hidden; display: flex; flex-direction: column; position: relative; z-index: 2">
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #eef0f3">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600">Catalog</span><span style="font-size: 12px; color: #5e6672">Worth Properties library · shared with 4 users</span></div>
+<span style="flex: 1"></span>
+<button class="b" style="padding: 7px 12px; font-size: 13px; background: #eef1ff; border-color: oklch(0.55 0.17 262); color: oklch(0.42 0.17 262); font-weight: 600"><span class="ms" style="font-size: 18px">add_link</span>Add product</button>
+<button class="b ms" aria-label="Close catalog" style="padding: 7px; font-size: 18px; color: #5e6672">close</button>
+</div>
+<div style="flex: 1; display: flex; min-height: 0">
+<nav aria-label="Categories" style="width: 186px; flex: none; border-right: 1px solid #eef0f3; padding: 10px 8px; display: flex; flex-direction: column; gap: 1px; box-sizing: border-box">
+<div class="cat"><span class="ms">kitchen</span>Cabinets<span class="n">214</span></div>
+<div class="cat caton"><span class="ms">faucet</span>Plumbing fixtures<span class="n">38</span></div>
+<div class="cat"><span class="ms">light</span>Lighting<span class="n">52</span></div>
+<div class="cat"><span class="ms">microwave</span>Appliances<span class="n">17</span></div>
+<div class="cat"><span class="ms">grid_view</span>Tile<span class="n">64</span></div>
+<div class="cat"><span class="ms">drag_handle</span>Hardware<span class="n">41</span></div>
+<span style="height: 1px; background: #eef0f3; margin: 10px 4px"></span>
+<span style="font-size: 12px; font-weight: 600; color: #5e6672; padding: 0 10px 6px">Collections</span>
+<div class="cat"><span class="ms">home_work</span>In this project<span class="n">23</span></div>
+<div class="cat"><span class="ms">schedule</span>Recently added<span class="n">9</span></div>
+<div class="cat"><span class="ms">star</span>Standard spec<span class="n">46</span></div>
+<span style="flex: 1"></span>
+<div style="margin: 0 4px; padding: 10px; border-radius: 8px; background: #f6f7f9; font-size: 12px; color: #5e6672; line-height: 1.45">Drag a product onto the plan to place it. Sizes snap to the nearest cabinet or wall.</div>
+</nav>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<div style="padding: 12px 14px 0; display: flex; flex-direction: column; gap: 10px">
+<label style="display: flex; align-items: center; gap: 8px; border: 1px solid #dfe2e6; border-radius: 8px; padding: 0 10px; height: 36px; color: #5e6672"><span class="ms" style="font-size: 18px">search</span><input aria-label="Search catalog" value="sink" style="border: 0; outline: none; flex: 1; font: 400 13px 'Instrument Sans', sans-serif; color: #14171c"><span class="mono" style="font-size: 11px; color: #9aa3af">8 results</span></label>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><button class="chip chipon">All</button><button class="chip">Sinks</button><button class="chip">Faucets</button><button class="chip">Disposals</button><button class="chip">Lead time under 2 wk</button></div>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 12px 14px 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: min-content; gap: 10px">
+
+<div class="pd" style="border: 2px solid oklch(0.55 0.17 262)">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><rect class="thf" x="26" y="16" width="108" height="60" rx="10"></rect><rect class="th" x="34" y="23" width="92" height="46" rx="7"></rect><circle class="th" cx="104" cy="58" r="5"></circle><circle cx="104" cy="58" r="1.5" style="fill: #3b424d"></circle></svg>
+<div class="pdb"><span class="pdn">Undermount sink, single</span><span style="font-size: 12px; color: #5e6672">[Brand] · stainless 16 ga</span><div style="display: flex; justify-content: space-between; align-items: center"><span class="pds">32 × 19 × 10</span><span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; background: #eef1ff; color: oklch(0.45 0.17 262)">In plan</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><path class="th" d="M66 80 H94"></path><rect class="thf" x="74" y="54" width="12" height="26" rx="2"></rect><path class="th" d="M80 54 V26 Q80 12 96 12 Q112 12 112 28 V40"></path><rect class="thf" x="107" y="40" width="10" height="12" rx="2"></rect><path class="th" d="M86 62 H98"></path></svg>
+<div class="pdb"><span class="pdn">Pull-down faucet</span><span style="font-size: 12px; color: #5e6672">[Brand] · brushed nickel</span><div style="display: flex; justify-content: space-between"><span class="pds">9 3/4 reach · 17 1/2 h</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><rect class="thf" x="30" y="20" width="8" height="18" rx="2"></rect><path class="th" d="M38 29 H76"></path><circle class="thf" cx="78" cy="29" r="4"></circle><path class="th" d="M82 29 H118 V44"></path><circle class="thf" cx="60" cy="29" r="3"></circle><rect class="thf" x="114" y="44" width="8" height="10" rx="2"></rect><path class="th" d="M20 80 H140" style="stroke: #9aa3af; stroke-dasharray: 3 3"></path></svg>
+<div class="pdb"><span class="pdn">Pot filler, wall mount</span><span style="font-size: 12px; color: #5e6672">[Brand] · matte black</span><div style="display: flex; justify-content: space-between"><span class="pds">24 ext · 1/2 NPT</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><rect class="thf" x="50" y="18" width="60" height="56" rx="8"></rect><rect class="th" x="57" y="25" width="46" height="42" rx="5"></rect><circle class="th" cx="80" cy="52" r="4.5"></circle></svg>
+<div class="pdb"><span class="pdn">Prep sink, bar</span><span style="font-size: 12px; color: #5e6672">[Brand] · stainless 18 ga</span><div style="display: flex; justify-content: space-between"><span class="pds">15 × 15 × 8</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><rect class="thf" x="18" y="14" width="124" height="64" rx="9"></rect><path class="th" d="M18 26 H142"></path><path class="th" d="M26 14 V26 M134 14 V26" style="stroke: #9aa3af"></path><rect class="th" x="26" y="32" width="108" height="40" rx="6"></rect><circle class="th" cx="112" cy="60" r="4.5"></circle><rect class="thf" x="40" y="20" width="40" height="5" rx="1"></rect></svg>
+<div class="pdb"><span class="pdn">Workstation sink, ledge</span><span style="font-size: 12px; color: #5e6672">[Brand] · stainless 16 ga</span><div style="display: flex; justify-content: space-between"><span class="pds">36 × 19 × 10</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><path class="th" d="M70 10 H90 V20"></path><path class="thf" d="M62 20 H98 V30 Q106 34 106 44 V70 Q106 80 96 80 H64 Q54 80 54 70 V44 Q54 34 62 30 Z"></path><path class="th" d="M106 50 H122 V58"></path><path class="th" d="M60 46 H100" style="stroke: #9aa3af"></path></svg>
+<div class="pdb"><span class="pdn">Disposal, 3/4 hp</span><span style="font-size: 12px; color: #5e6672">[Brand] · batch feed</span><div style="display: flex; justify-content: space-between"><span class="pds">7 1/2 dia × 13 1/2</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><path class="th" d="M64 80 H96"></path><rect class="thf" x="74" y="58" width="12" height="22" rx="2"></rect><path class="th" d="M80 58 V22 Q80 14 90 14 H100 V26"></path><path class="th" d="M86 66 L96 62"></path></svg>
+<div class="pdb"><span class="pdn">Filtered water tap</span><span style="font-size: 12px; color: #5e6672">[Brand] · matte black</span><div style="display: flex; justify-content: space-between"><span class="pds">7 reach · 12 h</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd">
+<svg viewBox="0 0 160 92" height="92" aria-hidden="true"><path class="th" d="M60 80 H100"></path><rect class="thf" x="72" y="52" width="16" height="28" rx="3"></rect><rect class="thf" x="76" y="22" width="8" height="30" rx="2"></rect><path class="th" d="M80 22 V14 H94"></path></svg>
+<div class="pdb"><span class="pdn">Soap dispenser, deck</span><span style="font-size: 12px; color: #5e6672">[Brand] · matches faucet</span><div style="display: flex; justify-content: space-between"><span class="pds">1 3/8 hole</span><span class="pds">$[ ]</span></div></div>
+</div>
+
+<div class="pd" style="border: 1.5px dashed oklch(0.7 0.08 262); background: #f7f8ff; cursor: pointer; justify-content: center; align-items: center; gap: 8px; min-height: 172px; color: oklch(0.45 0.17 262)">
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid oklch(0.85 0.05 262); display: flex; align-items: center; justify-content: center"><span class="ms" style="font-size: 22px">progress_activity</span></span>
+<span style="font-size: 13px; font-weight: 600">Reading [supplier] page</span>
+<span class="mono" style="font-size: 11px; color: #5e6672">Pull-down faucet · matte black</span>
+</div>
+
+</div>
+<div style="padding: 10px 14px; border-top: 1px solid #eef0f3; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5e6672"><span>Plumbing fixtures · 8 of 38 shown</span><span class="mono">Prices internal · contractor only</span></div>
+</div>
+</div>
+</section>
+
+<div style="flex: 1; align-self: stretch; position: relative">
+<div style="position: absolute; inset: 0; opacity: 0.32">
+<svg viewBox="0 0 860 846" role="img" aria-label="Kitchen plan behind the catalog drawer, dimmed" style="width: 100%; height: 100%; font-family: 'DM Mono', monospace">
+<path d="M60 760 H600 V120 H60 V600" style="fill: none; stroke: #3b424d; stroke-width: 14"></path>
+<rect x="230" y="114" width="140" height="12" style="fill: #fff; stroke: #3b424d; stroke-width: 1.5"></rect>
+<rect x="68" y="128" width="70" height="80" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="138" y="128" width="80" height="80" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="218" y="128" width="160" height="80" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="378" y="128" width="100" height="80" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="478" y="128" width="114" height="80" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="250" y="146" width="96" height="46" rx="8" style="fill: none; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="68" y="208" width="80" height="120" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="68" y="328" width="80" height="120" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="210" y="380" width="260" height="130" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<line x1="340" y1="380" x2="340" y2="510" style="stroke: #7a828e"></line>
+<text x="298" y="176" style="font-size: 13px; fill: #5e6672; text-anchor: middle">SB36</text>
+<text x="340" y="452" style="font-size: 13px; fill: #5e6672; text-anchor: middle">ISLAND</text>
+<line x1="60" y1="80" x2="600" y2="80" style="stroke: #7a828e"></line><text x="330" y="72" style="font-size: 14px; fill: #14171c; text-anchor: middle">14' 0"</text>
+</svg>
+</div>
+<div style="position: absolute; inset: 0; background: rgba(246,247,249,0.45); border-radius: 12px"></div>
+
+<section class="card" aria-label="Add product" style="position: absolute; right: 0; top: 0; bottom: 0; width: 452px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 2px rgba(20,30,50,.06), 0 18px 48px rgba(20,30,50,.16)">
+<div style="padding: 16px 18px 12px; display: flex; align-items: flex-start; gap: 10px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Add product</span><span style="font-size: 13px; color: #5e6672">Paste a product page. We read the specs for you.</span></div>
+<button class="b ms" aria-label="Close" style="padding: 6px; font-size: 18px; color: #5e6672">close</button>
+</div>
+<div style="padding: 0 18px 12px"><div class="tg"><button class="tgi tgon"><span class="ms" style="font-size: 16px">link</span>Link</button><button class="tgi"><span class="ms" style="font-size: 16px">content_paste</span>Paste text</button><button class="tgi"><span class="ms" style="font-size: 16px">screenshot_region</span>Screenshot</button></div></div>
+<div style="padding: 0 18px; display: flex; flex-direction: column; gap: 8px">
+<label class="fl">Product page URL<span style="display: flex; align-items: center; gap: 8px; padding: 0 10px; height: 38px; border: 1px solid oklch(0.55 0.17 262); border-radius: 8px; box-shadow: 0 0 0 3px #eef1ff"><span class="ms" style="font-size: 18px; color: #7a828e">link</span><span class="mono" style="flex: 1; font-size: 12px; color: #14171c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">https://www.[supplier].com/kitchen/faucets/pull-down-1h-matte-black-7594</span></span></label>
+<div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150); font-size: 13px"><span class="ms" style="font-size: 18px">check_circle</span><span style="font-weight: 600">Reading page... done</span><span style="opacity: 0.85">8 fields filled</span><span class="mono" style="margin-left: auto; font-size: 11px">2.4 s</span></div>
+</div>
+<div style="padding: 12px 18px 0; display: flex; gap: 12px; align-items: center">
+<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true" style="flex: none; border: 1px solid #dfe2e6; border-radius: 8px; background: #f6f7f9"><path d="M24 62 H48" style="stroke: #14171c; stroke-width: 1.6; stroke-linecap: round"></path><rect x="32" y="44" width="8" height="18" rx="1.5" style="fill: #14171c"></rect><path d="M36 44 V20 Q36 10 46 10 Q56 10 56 20 V28" style="fill: none; stroke: #14171c; stroke-width: 3; stroke-linecap: round"></path><rect x="52" y="28" width="8" height="9" rx="1.5" style="fill: #14171c"></rect><path d="M40 50 H48" style="stroke: #14171c; stroke-width: 2; stroke-linecap: round"></path></svg>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #5e6672"><span style="font-size: 14px; font-weight: 600; color: #14171c">Image found on page</span><span>Used as the catalog thumbnail. 3D uses a generic faucet at these dimensions.</span></div>
+</div>
+<div style="padding: 8px 18px 0; display: flex; flex-direction: column">
+<div class="af"><span class="k">Name</span><span class="v vt">Pull-down kitchen faucet, 1 handle</span><span class="dot dh" title="High confidence"></span></div>
+<div class="af"><span class="k">Brand</span><span class="v vt">[Brand]</span><span class="dot dh" title="High confidence"></span></div>
+<div class="af"><span class="k">Model</span><span class="v">7594-MB</span><span class="dot dh" title="High confidence"></span></div>
+<div class="af"><span class="k">W × D × H</span><span class="v" style="border-color: oklch(0.8 0.1 70); background: oklch(0.98 0.02 80)">2 1/4 × 9 3/4 × 17 1/2</span><span class="dot dm" title="Check: depth read as spout reach"></span></div>
+<div class="af"><span class="k">Finish</span><span class="v vt">Matte black</span><span class="dot dh" title="High confidence"></span></div>
+<div class="af"><span class="k">Price</span><span class="v">$[ ] · list</span><span class="dot dh" title="High confidence"></span></div>
+<div class="af"><span class="k">Lead time</span><span class="v vt" style="border-color: oklch(0.82 0.08 28); background: oklch(0.98 0.015 28)">Ships in 2–4 days</span><span class="dot dl" title="Low confidence: from banner, not spec table"></span></div>
+<div class="af" style="border-bottom: 0"><span class="k">Category</span><span class="v vt">Plumbing fixtures › Faucets</span><span class="dot dh" title="High confidence"></span></div>
+</div>
+<div style="padding: 6px 18px 0; display: flex; gap: 14px; font-size: 11px; color: #5e6672">
+<span style="display: flex; align-items: center; gap: 5px"><span class="dot dh"></span>Read from spec table</span>
+<span style="display: flex; align-items: center; gap: 5px"><span class="dot dm"></span>Check</span>
+<span style="display: flex; align-items: center; gap: 5px"><span class="dot dl"></span>Guess</span>
+</div>
+<div style="margin: 12px 18px 0; padding: 10px 12px; border: 1px solid #eef0f3; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5e6672">
+<span style="flex: 1">Page didn't read right?</span>
+<button class="chip" style="display: inline-flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 15px">content_paste</span>Paste text</button>
+<button class="chip" style="display: inline-flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 15px">upload</span>Upload screenshot</button>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 14px 18px 16px; border-top: 1px solid #eef0f3; display: flex; gap: 8px; align-items: center">
+<label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5e6672; flex: 1"><span style="width: 16px; height: 16px; border-radius: 4px; background: oklch(0.55 0.17 262); color: #fff; display: flex; align-items: center; justify-content: center"><span class="ms" style="font-size: 14px">check</span></span>Save to company library</label>
+<button class="b" style="font-weight: 600">Add to catalog</button>
+<button class="b bp"><span class="ms" style="font-size: 18px">add_location_alt</span>Add and place</button>
+</div>
+</section>
+</div>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">View</span><div class="ssg" role="group" aria-label="Phase view"><button class="ssi">Existing</button><button class="ssi ssion">Proposed</button></div></div>
+<div style="display: flex; gap: 6px"><span class="sl">Catalog</span><span class="sv">426 products</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">In project</span><span class="sv">23 placed</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Scale</span><span class="sv">1/2" = 1'-0"</span></div>
+<span style="flex: 1"></span>
+<span class="sv">100%</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

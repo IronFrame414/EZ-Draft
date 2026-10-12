@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft change order</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.lib{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;font-size:14px}
+.code{font-family:'DM Mono',monospace;font-size:12px;color:#5e6672;width:52px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'DM Mono',monospace;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.tb{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;padding:7px 11px;border-radius:7px;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer}
+.tbon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.ml{font-size:12px;font-weight:600;color:#5e6672}
+.img{border:1px solid #dfe2e6;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+.li{display:grid;grid-template-columns:1fr 44px 40px 84px;gap:8px;align-items:center;padding:7px 0;font-size:13px;border-top:1px solid #eef0f3}
+.li .n{font-family:'DM Mono',monospace;font-size:12.5px;text-align:right}
+.pl{font-family:'DM Mono',monospace;font-size:12.5px;text-align:right}
+.ci{font:400 12.5px 'DM Mono',monospace;color:#14171c;text-align:right;padding:5px 7px;border:1px solid #dfe2e6;border-radius:6px;width:100%;box-sizing:border-box;background:#fff}
+.ctx{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #dfe2e6;border-radius:8px;font-size:13px}
+.sl{color:#9aa3af}.sv{color:#14171c}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 1 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb rbon ms" aria-label="Cabinets (C)" aria-pressed="true">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Detail">frame_inspect</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Cabinet library" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg">Boxes</button><button class="seg segon">Runs</button><button class="seg">Saved</button></div>
+<span class="lbl">Runs</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px">
+<div class="lib"><span class="code">RUN A</span><span style="flex: 1">Back wall</span><span class="mono" style="font-size: 12px; color: #5e6672">117"</span></div>
+<div class="lib"><span class="code">RUN B</span><span style="flex: 1">Left wall</span><span class="mono" style="font-size: 12px; color: #5e6672">87"</span></div>
+<div class="lib" style="background: #eef1ff"><span class="code" style="color: oklch(0.42 0.17 262)">RUN C</span><span style="flex: 1; font-weight: 600">Island</span><span class="mono" style="font-size: 12px; color: oklch(0.42 0.17 262)">85 1/2"</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Island boxes</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px">
+<div class="lib"><span class="code">B24</span><span style="flex: 1">Base, 1 door</span></div>
+<div class="lib"><span class="code">DB36</span><span style="flex: 1">Drawer base</span></div>
+<div class="lib"><span class="code">B24</span><span style="flex: 1">Base, 1 door</span></div>
+</div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<button class="tb tbon"><span class="ms" style="font-size: 18px">kitchen</span>Boxes</button>
+<button class="tb"><span class="ms" style="font-size: 18px">auto_awesome</span>Auto-fill run</button>
+</div>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: oklch(0.45 0.17 262); background: #eef1ff; border-radius: 999px; padding: 6px 12px"><span class="ms" style="font-size: 16px">difference</span>Changed since Rev 1</span>
+</div>
+<svg viewBox="0 0 720 640" role="img" aria-label="Plan in the editor behind the dialog: island widened to 7 ft 1 1/2 in and moved 12 inches toward the sink wall, old position shown red dashed" style="width: 100%; flex: 1; font-family: 'DM Mono', monospace">
+<rect x="96.0" y="36.0" width="460.5" height="24.0" style="fill: #3b424d"></rect>
+<rect x="96.0" y="60.0" width="24.0" height="504.0" style="fill: #3b424d"></rect>
+<rect x="318.0" y="36.0" width="108.0" height="24.0" style="fill: #fff; stroke: #3b424d; stroke-width: .8"></rect>
+<rect x="544.5" y="60.0" width="12.0" height="252.0" style="fill: #3b424d"></rect>
+<rect x="544.5" y="510.0" width="12.0" height="54.0" style="fill: #3b424d"></rect>
+<rect x="192.0" y="60.0" width="9.0" height="72.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="201.0" y="60.0" width="45.0" height="72.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="223.5" y="105.0" style="font-size: 9px; fill: #5e6672; text-anchor: middle">B15</text>
+<rect x="246.0" y="60.0" width="72.0" height="72.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="282.0" y="105.0" style="font-size: 9px; fill: #5e6672; text-anchor: middle">DW24</text>
+<rect x="318.0" y="60.0" width="108.0" height="72.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="372.0" y="105.0" style="font-size: 9px; fill: #5e6672; text-anchor: middle">SB36</text>
+<rect x="426.0" y="60.0" width="54.0" height="72.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="453.0" y="105.0" style="font-size: 9px; fill: #5e6672; text-anchor: middle">B18</text>
+<rect x="480.0" y="60.0" width="63.0" height="72.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="511.5" y="105.0" style="font-size: 9px; fill: #5e6672; text-anchor: middle">B21</text>
+<rect x="120.0" y="60.0" width="72.0" height="126.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="120.0" y="186.0" width="75.0" height="90.0" style="fill: #f2f4f7; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="120.0" y="276.0" width="72.0" height="45.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<path d="M196.5 325.5 V136.5 H544.5" style="fill: none; stroke: #3b424d; stroke-width: 1.2"></path>
+<line x1="120.0" y1="325.5" x2="196.5" y2="325.5" style="stroke: #3b424d; stroke-width: 1.2"></line>
+<rect x="333.0" y="72.0" width="78.0" height="48.0" rx="3" style="fill: none; stroke: #7a828e; stroke-width: .8"></rect>
+<rect x="454.5" y="150.0" width="90.0" height="108.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="499.5" y="213.0" style="font-size: 8px; fill: #9aa3af; text-anchor: middle">REF</text>
+<rect x="250.5" y="343.5" width="225.0" height="112.5" style="fill: none; stroke: oklch(0.6 0.19 28); stroke-width: 1.2; stroke-dasharray: 5 3"></rect>
+<rect x="237.0" y="312.0" width="72.0" height="72.0" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<text x="273.0" y="357.0" style="font-size: 9px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">B24</text>
+<rect x="309.0" y="312.0" width="108.0" height="72.0" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<text x="363.0" y="357.0" style="font-size: 9px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">DB36</text>
+<rect x="417.0" y="312.0" width="72.0" height="72.0" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<text x="453.0" y="357.0" style="font-size: 9px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">B24</text>
+<rect x="232.5" y="307.5" width="261.0" height="112.5" style="fill: none; stroke: oklch(0.45 0.17 262); stroke-width: 2"></rect>
+<circle cx="285.0" cy="444.0" r="18.0" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<circle cx="363.0" cy="444.0" r="18.0" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<circle cx="441.0" cy="444.0" r="18.0" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<line x1="237.0" y1="286.5" x2="489.0" y2="286.5" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="234.5" y1="289.0" x2="239.5" y2="284.0" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="486.5" y1="289.0" x2="491.5" y2="284.0" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="363.0" y="279.0" style="font-size: 9px; fill: #14171c; text-anchor: middle; font-weight: 500; fill: oklch(0.42 0.17 262)">7'-1 1/2"</text>
+<line x1="580.5" y1="136.5" x2="580.5" y2="307.5" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="578.0" y1="139.0" x2="583.0" y2="134.0" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="578.0" y1="310.0" x2="583.0" y2="305.0" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="584.5" y="225.0" style="font-size: 9px; fill: #14171c; text-anchor: middle; text-anchor: start; font-weight: 500; fill: oklch(0.42 0.17 262)">4'-9"</text>
+<line x1="580.5" y1="420.0" x2="580.5" y2="564.0" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="578.0" y1="422.5" x2="583.0" y2="417.5" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="578.0" y1="566.5" x2="583.0" y2="561.5" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="584.5" y="495.0" style="font-size: 9px; fill: #14171c; text-anchor: middle; text-anchor: start; font-weight: 500; fill: oklch(0.42 0.17 262)">4'-0"</text>
+<path d="M210.0 396.0 V360.0" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.4; fill: none"></path><path d="M206.5 364.0 L210.0 358.0 L213.5 364.0" style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1.4"></path>
+<text x="210.0" y="416.0" style="font-size: 8px; fill: oklch(0.42 0.17 262); text-anchor: middle">12"</text>
+<line x1="210.0" y1="567.0" x2="544.5" y2="567.0" style="stroke: #c9ced5; stroke-width: .8; stroke-dasharray: 6 3"></line>
+</svg>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 18px 18px 14px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Island run</span><span style="font-size: 13px; color: #5e6672">Run C · 3 boxes · moved 12"</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #eef1ff; color: oklch(0.45 0.17 262)">Rev 2</span></div>
+<div style="padding: 0 18px 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<label class="fl">Length<input value="85 1/2&quot;"></label><label class="fl">Depth<input value="24&quot;"></label><label class="fl">To run A<input value="57&quot;"></label>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">View</span><span class="sv">Plan</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Phase</span><span class="sv">Proposed</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Scale</span><span class="sv">1/2" = 1'-0"</span></div>
+<span style="flex: 1"></span>
+<span class="sv">100%</span>
+</footer>
+<div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(20,23,28,.42)"></div>
+<section class="card" role="dialog" aria-label="Change order to EZ Binder" style="position: absolute; left: 230px; top: 112px; width: 1140px; height: 776px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 14px; box-shadow: 0 2px 6px rgba(20,30,50,.08), 0 24px 64px rgba(20,30,50,.24)">
+<div style="display: flex; align-items: center; gap: 14px; padding: 18px 22px; border-bottom: 1px solid #eef0f3">
+<span class="ms" style="width: 38px; height: 38px; border-radius: 10px; background: #eef1ff; color: oklch(0.5 0.17 262); display: flex; align-items: center; justify-content: center; font-size: 22px">request_quote</span>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em">Change order to EZ Binder</span><span style="font-size: 13px; color: #5e6672">CO draft · drafted <span class="mono">10/11/26</span> · Rev 2 changes · costs typed by you</span></div>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #f2f4f7; color: #5e6672">Draft</span>
+<button class="b ms" aria-label="Close" style="padding: 7px; font-size: 20px; border: 0">close</button>
+</div>
+<div style="flex: 1; min-height: 0; display: flex; gap: 24px; padding: 20px 22px">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px"><span class="ml">Before and after</span><span style="flex: 1"></span><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: oklch(0.48 0.13 65); background: oklch(0.96 0.04 80); padding: 5px 10px; border-radius: 999px"><span class="ms" style="font-size: 15px">schedule</span>Needs your approval</span></div>
+<div style="display: flex; gap: 12px">
+<div class="img" style="flex: 1">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #eef0f3; font-size: 13px"><span style="font-weight: 600">Before <span class="mono" style="font-weight: 400; color: #5e6672">· Rev 1</span></span><span class="mono" style="font-size: 11px; color: #5e6672">Issued 10/11/26</span></div>
+<div style="position: relative; background: #fbfbfa">
+<svg viewBox="0 0 290 280" role="img" aria-label="Before, Rev 1: island 6 ft 1 1/2 in long with B24, DB24, B24, 5 foot 9 inch aisle to the sink run and 3 feet behind the stools" style="width: 100%; height: 248px; display: block; font-family: 'DM Mono', monospace">
+<rect x="22.8" y="14.8" width="214.9" height="11.2" style="fill: #3b424d"></rect>
+<rect x="22.8" y="26.0" width="11.2" height="235.2" style="fill: #3b424d"></rect>
+<rect x="126.4" y="14.8" width="50.4" height="11.2" style="fill: #fff; stroke: #3b424d; stroke-width: .8"></rect>
+<rect x="232.1" y="26.0" width="5.6" height="117.6" style="fill: #3b424d"></rect>
+<rect x="232.1" y="236.0" width="5.6" height="25.2" style="fill: #3b424d"></rect>
+<rect x="67.6" y="26.0" width="4.2" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="71.8" y="26.0" width="21.0" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="92.8" y="26.0" width="33.6" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="126.4" y="26.0" width="50.4" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="176.8" y="26.0" width="25.2" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="202.0" y="26.0" width="29.4" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="34.0" y="26.0" width="33.6" height="58.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="34.0" y="84.8" width="35.0" height="42.0" style="fill: #f2f4f7; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="34.0" y="126.8" width="33.6" height="21.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<path d="M69.7 149.9 V61.7 H232.1" style="fill: none; stroke: #3b424d; stroke-width: 1.2"></path>
+<line x1="34.0" y1="149.9" x2="69.7" y2="149.9" style="stroke: #3b424d; stroke-width: 1.2"></line>
+<rect x="133.4" y="31.6" width="36.4" height="22.4" rx="3" style="fill: none; stroke: #7a828e; stroke-width: .8"></rect>
+<rect x="190.1" y="68.0" width="42.0" height="50.4" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="211.1" y="97.4" style="font-size: 6px; fill: #9aa3af; text-anchor: middle">REF</text>
+<rect x="97.0" y="160.4" width="33.6" height="33.6" style="fill: #fff; stroke: #3b424d; stroke-width: 1.2"></rect>
+<text x="113.8" y="181.4" style="font-size: 7px; fill: #3b424d; text-anchor: middle; font-weight: 500">B24</text>
+<rect x="130.6" y="160.4" width="33.6" height="33.6" style="fill: #fff; stroke: #3b424d; stroke-width: 1.2"></rect>
+<text x="147.4" y="181.4" style="font-size: 7px; fill: #3b424d; text-anchor: middle; font-weight: 500">DB24</text>
+<rect x="164.2" y="160.4" width="33.6" height="33.6" style="fill: #fff; stroke: #3b424d; stroke-width: 1.2"></rect>
+<text x="181.0" y="181.4" style="font-size: 7px; fill: #3b424d; text-anchor: middle; font-weight: 500">B24</text>
+<rect x="94.9" y="158.3" width="105.0" height="52.5" style="fill: none; stroke: #14171c; stroke-width: 1.6"></rect>
+<circle cx="113.8" cy="222.0" r="8.4" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<circle cx="147.4" cy="222.0" r="8.4" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<circle cx="181.0" cy="222.0" r="8.4" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<line x1="97.0" y1="148.5" x2="197.8" y2="148.5" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="94.5" y1="151.0" x2="99.5" y2="146.0" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="195.3" y1="151.0" x2="200.3" y2="146.0" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="147.4" y="145.0" style="font-size: 7px; fill: #14171c; text-anchor: middle">6'-1 1/2"</text>
+<line x1="244.0" y1="61.7" x2="244.0" y2="158.3" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="241.5" y1="64.2" x2="246.5" y2="59.2" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="241.5" y1="160.8" x2="246.5" y2="155.8" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="248.0" y="113.0" style="font-size: 7px; fill: #14171c; text-anchor: middle; text-anchor: start">5'-9"</text>
+<line x1="244.0" y1="210.8" x2="244.0" y2="261.2" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="241.5" y1="213.3" x2="246.5" y2="208.3" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="241.5" y1="263.7" x2="246.5" y2="258.7" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="248.0" y="239.0" style="font-size: 7px; fill: #14171c; text-anchor: middle; text-anchor: start">3'-0"</text>
+<line x1="76.0" y1="262.6" x2="232.1" y2="262.6" style="stroke: #c9ced5; stroke-width: .8; stroke-dasharray: 6 3"></line>
+</svg>
+<span style="position: absolute; left: 10px; bottom: 10px; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: oklch(0.48 0.13 65); background: oklch(0.96 0.04 80); border: 1px solid oklch(0.88 0.07 75); padding: 3px 8px; border-radius: 999px"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>Needs approval</span>
+</div>
+</div>
+<div class="img" style="flex: 1; border-color: oklch(0.55 0.17 262)">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #eef0f3; font-size: 13px"><span style="font-weight: 600; color: oklch(0.42 0.17 262)">After <span class="mono" style="font-weight: 400">· Rev 2</span></span><span class="mono" style="font-size: 11px; color: #5e6672">Draft</span></div>
+<div style="position: relative; background: #fbfbfa">
+<svg viewBox="0 0 290 280" role="img" aria-label="After, Rev 2: island widened to 7 ft 1 1/2 in with B24, DB36, B24 and moved 12 inches toward the sink wall; old island shown red dashed; aisle 4 foot 9 inches, 4 feet behind the stools" style="width: 100%; height: 248px; display: block; font-family: 'DM Mono', monospace">
+<rect x="22.8" y="14.8" width="214.9" height="11.2" style="fill: #3b424d"></rect>
+<rect x="22.8" y="26.0" width="11.2" height="235.2" style="fill: #3b424d"></rect>
+<rect x="126.4" y="14.8" width="50.4" height="11.2" style="fill: #fff; stroke: #3b424d; stroke-width: .8"></rect>
+<rect x="232.1" y="26.0" width="5.6" height="117.6" style="fill: #3b424d"></rect>
+<rect x="232.1" y="236.0" width="5.6" height="25.2" style="fill: #3b424d"></rect>
+<rect x="67.6" y="26.0" width="4.2" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="71.8" y="26.0" width="21.0" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="92.8" y="26.0" width="33.6" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="126.4" y="26.0" width="50.4" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="176.8" y="26.0" width="25.2" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="202.0" y="26.0" width="29.4" height="33.6" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="34.0" y="26.0" width="33.6" height="58.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="34.0" y="84.8" width="35.0" height="42.0" style="fill: #f2f4f7; stroke: #7a828e; stroke-width: 1"></rect>
+<rect x="34.0" y="126.8" width="33.6" height="21.0" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<path d="M69.7 149.9 V61.7 H232.1" style="fill: none; stroke: #3b424d; stroke-width: 1.2"></path>
+<line x1="34.0" y1="149.9" x2="69.7" y2="149.9" style="stroke: #3b424d; stroke-width: 1.2"></line>
+<rect x="133.4" y="31.6" width="36.4" height="22.4" rx="3" style="fill: none; stroke: #7a828e; stroke-width: .8"></rect>
+<rect x="190.1" y="68.0" width="42.0" height="50.4" style="fill: #fff; stroke: #7a828e; stroke-width: 1"></rect>
+<text x="211.1" y="97.4" style="font-size: 6px; fill: #9aa3af; text-anchor: middle">REF</text>
+<rect x="94.9" y="158.3" width="105.0" height="52.5" style="fill: none; stroke: oklch(0.6 0.19 28); stroke-width: 1.2; stroke-dasharray: 5 3"></rect>
+<rect x="88.6" y="143.6" width="33.6" height="33.6" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<text x="105.4" y="164.6" style="font-size: 7px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">B24</text>
+<rect x="122.2" y="143.6" width="50.4" height="33.6" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<text x="147.4" y="164.6" style="font-size: 7px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">DB36</text>
+<rect x="172.6" y="143.6" width="33.6" height="33.6" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<text x="189.4" y="164.6" style="font-size: 7px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">B24</text>
+<rect x="86.5" y="141.5" width="121.8" height="52.5" style="fill: none; stroke: oklch(0.45 0.17 262); stroke-width: 2"></rect>
+<circle cx="111.0" cy="205.2" r="8.4" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<circle cx="147.4" cy="205.2" r="8.4" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<circle cx="183.8" cy="205.2" r="8.4" style="fill: none; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 2"></circle>
+<line x1="88.6" y1="131.7" x2="206.2" y2="131.7" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="86.1" y1="134.2" x2="91.1" y2="129.2" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="203.7" y1="134.2" x2="208.7" y2="129.2" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="147.4" y="128.2" style="font-size: 7px; fill: #14171c; text-anchor: middle; font-weight: 500; fill: oklch(0.42 0.17 262)">7'-1 1/2"</text>
+<line x1="244.0" y1="61.7" x2="244.0" y2="141.5" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="241.5" y1="64.2" x2="246.5" y2="59.2" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="241.5" y1="144.0" x2="246.5" y2="139.0" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="248.0" y="104.6" style="font-size: 7px; fill: #14171c; text-anchor: middle; text-anchor: start; font-weight: 500; fill: oklch(0.42 0.17 262)">4'-9"</text>
+<line x1="244.0" y1="194.0" x2="244.0" y2="261.2" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="241.5" y1="196.5" x2="246.5" y2="191.5" style="stroke: #14171c; stroke-width: 1"></line>
+<line x1="241.5" y1="263.7" x2="246.5" y2="258.7" style="stroke: #14171c; stroke-width: 1"></line>
+<text x="248.0" y="230.6" style="font-size: 7px; fill: #14171c; text-anchor: middle; text-anchor: start; font-weight: 500; fill: oklch(0.42 0.17 262)">4'-0"</text>
+<path d="M76.0 182.8 V166.0" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.4; fill: none"></path><path d="M72.5 170.0 L76.0 164.0 L79.5 170.0" style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1.4"></path>
+<text x="76.0" y="193.2" style="font-size: 6px; fill: oklch(0.42 0.17 262); text-anchor: middle">12"</text>
+<line x1="76.0" y1="262.6" x2="232.1" y2="262.6" style="stroke: #c9ced5; stroke-width: .8; stroke-dasharray: 6 3"></line>
+</svg>
+<span style="position: absolute; left: 10px; bottom: 10px; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: oklch(0.48 0.13 65); background: oklch(0.96 0.04 80); border: 1px solid oklch(0.88 0.07 75); padding: 3px 8px; border-radius: 999px"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>Needs approval</span>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #5e6672"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 0; border-top: 1.5px dashed oklch(0.6 0.19 28)"></span>Removed</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 9px; background: oklch(0.96 0.025 262); border: 1.2px solid oklch(0.55 0.17 262)"></span>New position</span><span style="flex: 1"></span><a href="#" style="font-weight: 600; text-decoration: none">Use a render instead</a><button class="b" style="padding: 6px 12px; font-size: 13px"><span class="ms" style="font-size: 17px">check</span>Approve images</button></div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0">
+<div style="display: flex; align-items: center; justify-content: space-between"><span class="ml">Scope of change</span><span style="font-size: 12px; color: #9aa3af">Client sees this text in EZ Binder</span></div>
+<textarea aria-label="Scope of change" style="flex: 1; min-height: 0; resize: none; font: 400 14px/1.55 'Instrument Sans', sans-serif; color: #14171c; padding: 12px 14px; border: 1px solid #dfe2e6; border-radius: 8px; box-sizing: border-box; outline: none">Widen the kitchen island from 6'-1 1/2" to 7'-1 1/2" by replacing the center DB24 drawer base with a DB36. Move the island 12" toward the sink wall so the walkway behind the stools grows from 3'-0" to 4'-0". New quartz island top to match, with one added seating bracket. Relocate the island receptacle and floor box to the new position. Aisle at the sink run becomes 4'-9".</textarea>
+</div>
+</div>
+<div style="width: 420px; flex: none; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px"><span class="ml">Line items</span><a href="#" style="font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 17px">add</span>Add line</a></div>
+<div class="li" style="border-top: 0; font-size: 11px; font-weight: 600; color: #9aa3af; padding: 0 0 6px"><span>Item</span><span style="text-align: right">Qty</span><span>Unit</span><span style="text-align: right">Cost delta</span></div>
+<div class="li"><span>DB36 drawer base, island</span><span class="n">1</span><span class="mono" style="font-size: 12px; color: #5e6672">ea</span><input class="ci" value="" placeholder="+$0.00" aria-label="Cost delta"></div>
+<div class="li"><span>DB24 return to [Supplier]</span><span class="n">1</span><span class="mono" style="font-size: 12px; color: #5e6672">ea</span><input class="ci" value="" placeholder="−$0.00" aria-label="Cost delta"></div>
+<div class="li"><span>Quartz island top, added area</span><span class="n">3.1</span><span class="mono" style="font-size: 12px; color: #5e6672">sf</span><input class="ci" value="" placeholder="+$0.00" aria-label="Cost delta"></div>
+<div class="li"><span>Steel seating bracket</span><span class="n">1</span><span class="mono" style="font-size: 12px; color: #5e6672">ea</span><input class="ci" value="" placeholder="+$0.00" aria-label="Cost delta"></div>
+<div class="li"><span>Relocate receptacle + floor box</span><span class="n">1</span><span class="mono" style="font-size: 12px; color: #5e6672">ls</span><input class="ci" value="" placeholder="+$0.00" aria-label="Cost delta"></div>
+<div class="li"><span>Labor, reset island + scribe</span><span class="n">6</span><span class="mono" style="font-size: 12px; color: #5e6672">hr</span><input class="ci" value="" placeholder="+$0.00" aria-label="Cost delta"></div>
+<div class="li"><span style="color: #5e6672">Overhead + profit</span><span class="n" style="color: #5e6672">15</span><span class="mono" style="font-size: 12px; color: #5e6672">%</span><input class="ci" value="" placeholder="+$0.00" aria-label="Cost delta"></div>
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 12px; margin-top: 4px; border-radius: 8px; background: #f6f7f9"><span style="font-weight: 600">Total change</span><span class="mono" style="font-size: 17px; font-weight: 500">+$[ ]</span></div>
+</div>
+<div style="display: flex; gap: 14px; align-items: center; padding: 14px; border: 1px solid #dfe2e6; border-radius: 10px">
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 76px; height: 64px; border-radius: 8px; background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)"><span class="mono" style="font-size: 22px; font-weight: 500">+3</span><span style="font-size: 11px; font-weight: 600">days</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Schedule impact</span><span style="font-size: 13px; color: #5e6672; line-height: 1.4">DB36 lead time and top re-template. Completion <span class="mono">11/20/26</span> → <span class="mono">11/25/26</span></span></div>
+<span class="ms" style="font-size: 20px; color: #9aa3af">edit</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="ctx"><span class="ms" style="font-size: 19px; color: oklch(0.5 0.17 262)">link</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 12px; color: #5e6672">Linked job</span><span style="font-weight: 600">Hendricks residence · Job [#]</span></span><span class="ms" style="font-size: 18px; color: #9aa3af">open_in_new</span></div>
+<div class="ctx"><span class="ms" style="font-size: 19px; color: oklch(0.5 0.17 262)">compare_arrows</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 12px; color: #5e6672">Triggered by revision</span><span style="font-weight: 600"><span class="mono">Rev 1</span> → <span class="mono">Rev 2</span> · A3.0, A4.0, A6.0, E1.0</span></span><span class="ms" style="font-size: 18px; color: #9aa3af">chevron_right</span></div>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 22px; border-top: 1px solid #eef0f3">
+<span class="ms" style="font-size: 18px; color: #5e6672">info</span>
+<span style="font-size: 13px; color: #5e6672">Reaches EZ Binder only when you press Send. Client signs there.</span>
+<span style="flex: 1"></span>
+<label style="display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500"><input type="checkbox" checked style="width: 16px; height: 16px; accent-color: oklch(0.55 0.17 262)">Send with Rev 2</label>
+<button class="b" style="font-weight: 600">Save draft</button>
+<button class="b" style="font-weight: 600"><span class="ms" style="font-size: 18px">link</span>Copy link</button>
+<button class="b bp"><span class="ms" style="font-size: 18px">send</span>Send to EZ Binder</button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

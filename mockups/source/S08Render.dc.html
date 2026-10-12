@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft render</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.st{display:flex;align-items:center;gap:8px;font-size:13px;color:#5e6672;font-weight:500}
+.sn{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:500 12px 'DM Mono',monospace;border:1px solid #dfe2e6;background:#fff;color:#5e6672;flex:none}
+.stdone .sn{background:oklch(0.95 0.05 150);border-color:oklch(0.95 0.05 150);color:oklch(0.42 0.12 150)}
+.ston{color:#14171c;font-weight:600}
+.ston .sn{background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.sbar{flex:1;height:1px;background:#dfe2e6;min-width:24px}
+.vt{border:1px solid #dfe2e6;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;font-size:12px;background:#fff}
+.vton{border:2px solid oklch(0.55 0.17 262)}
+.vt span.n{padding:5px 7px;color:#3b424d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.src{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;font-size:13px}
+.sty{border:1px solid #dfe2e6;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;font-size:12px;font-weight:500;background:#fff}
+.styon{border:2px solid oklch(0.55 0.17 262);color:oklch(0.42 0.17 262)}
+.sty span.sp{height:34px}
+.sty span.n{padding:5px 8px}
+.qt{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #dfe2e6;border-radius:8px;font-size:13px}
+.qton{border:2px solid oklch(0.55 0.17 262);padding:7px 9px;background:#fbfcff}
+.rd{width:14px;height:14px;border-radius:50%;border:1.5px solid #9aa3af;box-sizing:border-box;flex:none}
+.qton .rd{border:4px solid oklch(0.55 0.17 262)}
+.si{display:flex;flex-direction:column;gap:1px;padding:7px 0;border-top:1px solid #f0ebe0;font-size:13px}
+.si:first-of-type{border-top:0}
+.rl{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid #dfe2e6;font-size:13px}
+.pill{font:600 11px 'Instrument Sans',sans-serif;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.ssg{display:flex;padding:2px;gap:2px;background:#f2f4f7;border-radius:6px}
+.ssi{border:0;background:transparent;font:400 12px 'DM Mono',monospace;color:#5e6672;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ssion{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht hton" aria-current="page">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Fixtures">wash</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Detail">frame_inspect</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Angle sources" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 14px 14px 4px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Angle</span><span style="font-size: 12px; color: #5e6672">Pick the camera first</span></div>
+<span class="lbl">Saved views</span>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 14px">
+<div class="vt vton"><svg viewBox="0 0 104 62" style="display: block; width: 100%; height: 56px" aria-hidden="true"><rect width="104" height="62" style="fill: #ede9e2"></rect><polygon points="30,14 74,14 74,44 30,44" style="fill: #f7f5f1"></polygon><polygon points="0,62 30,44 74,44 104,62" style="fill: #d9cfbf"></polygon><rect x="45" y="18" width="14" height="12" style="fill: #dfe9f2"></rect><rect x="30" y="34" width="44" height="10" style="fill: #fff; stroke: #c9ced5"></rect><rect x="38" y="48" width="28" height="12" style="fill: #fff; stroke: #c9ced5"></rect></svg><span class="n" style="font-weight: 600; color: oklch(0.42 0.17 262); display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 14px">check_circle</span>Kitchen, fam rm</span></div>
+<div class="vt"><svg viewBox="0 0 104 62" style="display: block; width: 100%; height: 56px" aria-hidden="true"><rect width="104" height="62" style="fill: #efe7da"></rect><path d="M0 62 L52 8 L104 62 Z" style="fill: #f1eee8"></path><path d="M20 62 L52 22 L84 62 M6 52 L52 8 M98 52 L52 8" style="fill: none; stroke: #8e6440; stroke-width: 3"></path></svg><span class="n">Vault, look up</span></div>
+<div class="vt"><svg viewBox="0 0 104 62" style="display: block; width: 100%; height: 56px" aria-hidden="true"><rect width="104" height="62" style="fill: #eef0f3"></rect><rect x="16" y="36" width="72" height="20" style="fill: #fff; stroke: #c9ced5"></rect><path d="M32 0 V22 M52 0 V22 M72 0 V22" style="stroke: #3b424d"></path><ellipse cx="32" cy="24" rx="7" ry="4" style="fill: #3b424d"></ellipse><ellipse cx="52" cy="24" rx="7" ry="4" style="fill: #3b424d"></ellipse><ellipse cx="72" cy="24" rx="7" ry="4" style="fill: #3b424d"></ellipse></svg><span class="n">Island close</span></div>
+<div class="vt"><svg viewBox="0 0 104 62" style="display: block; width: 100%; height: 56px" aria-hidden="true"><rect width="104" height="62" style="fill: #f7f5f1"></rect><rect x="8" y="8" width="88" height="14" style="fill: #fff; stroke: #c9ced5"></rect><rect x="8" y="34" width="88" height="22" style="fill: #fff; stroke: #c9ced5"></rect><rect x="44" y="10" width="16" height="10" style="fill: #dfe9f2"></rect></svg><span class="n">Elev A, straight</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 14px">Or use</span>
+<div style="padding: 0 14px; display: flex; flex-direction: column; gap: 8px">
+<div class="src"><span class="ms" style="font-size: 20px; color: #3b424d">3d_rotation</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Current 3D camera<span class="mono" style="font-size: 11px; color: #5e6672">orbit · 60° · fam rm</span></span><button class="chip">Use</button></div>
+<div style="border: 1.5px dashed #c9ced5; border-radius: 8px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: #fafbfc"><span class="ms" style="font-size: 22px; color: #5e6672">add_photo_alternate</span><span style="font-size: 13px; font-weight: 500">Site photo</span><span style="font-size: 12px; color: #5e6672">Drop a photo or <a href="#" style="text-decoration: none">browse</a> · JPG, HEIC</span></div>
+<div class="src" style="padding: 7px 10px"><svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true" style="border-radius: 4px; flex: none"><rect width="40" height="28" style="fill: #cfc6b5"></rect><rect x="10" y="6" width="20" height="12" style="fill: #b49a74"></rect><rect x="10" y="18" width="20" height="8" style="fill: #9a7c55"></rect></svg><span style="flex: 1; display: flex; flex-direction: column; gap: 1px; font-size: 12px">IMG_2041.HEIC<span style="color: #5e6672">Oct 2 · used as Before</span></span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 14px; border-top: 1px solid #eef0f3; display: flex; justify-content: space-between; font-size: 12px; color: #5e6672"><span>Allowance left</span><span class="mono" style="color: #14171c">$42.50 · auto-refills</span></div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<div class="card" style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<div class="st stdone"><span class="sn"><span class="ms" style="font-size: 15px">check</span></span>Angle<span style="font-weight: 400; color: #9aa3af">· Kitchen, fam rm</span></div>
+<span class="sbar" style="background: oklch(0.8 0.08 150)"></span>
+<div class="st ston"><span class="sn">2</span>Style</div>
+<span class="sbar"></span>
+<div class="st"><span class="sn">3</span>Generate</div>
+</div>
+<div style="flex: 1; min-height: 0; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #dfe2e6; background: #e9e5de; box-shadow: 0 1px 2px rgba(20,30,50,.05), 0 8px 24px rgba(20,30,50,.07)">
+<svg viewBox="0 0 880 540" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Render preview of the kitchen from the family room, split before and after. Left: existing oak cabinets and fluorescent fixture from the site photo. Right: proposed white shaker cabinets, quartz tops, island with three pendants, soft daylight from the window." style="position: absolute; inset: 0; width: 100%; height: 100%; font-family: 'DM Mono', monospace">
+<defs>
+<linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #f6f3ee"></stop><stop offset="1" style="stop-color: #ebe6de"></stop></linearGradient>
+<linearGradient id="gLW" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color: #ddd7cd"></stop><stop offset="1" style="stop-color: #ece8e1"></stop></linearGradient>
+<linearGradient id="gRW" x1="1" y1="0" x2="0" y2="0"><stop offset="0" style="stop-color: #d9d3c9"></stop><stop offset="1" style="stop-color: #ebe7e0"></stop></linearGradient>
+<linearGradient id="gCeil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #e4e0d9"></stop><stop offset="1" style="stop-color: #f3f1ec"></stop></linearGradient>
+<linearGradient id="gFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #cdb894"></stop><stop offset="1" style="stop-color: #b39a72"></stop></linearGradient>
+<linearGradient id="gCab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #fbfbfa"></stop><stop offset="1" style="stop-color: #e8e9ea"></stop></linearGradient>
+<linearGradient id="gIsl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #5d6b78"></stop><stop offset="1" style="stop-color: #44505c"></stop></linearGradient>
+<linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: #f7f6f3"></stop><stop offset=".5" style="stop-color: #ebe8e2"></stop><stop offset="1" style="stop-color: #f4f2ee"></stop></linearGradient>
+<linearGradient id="gUnder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: rgba(60,50,40,.18)"></stop><stop offset="1" style="stop-color: rgba(60,50,40,0)"></stop></linearGradient>
+<radialGradient id="gSun" cx=".5" cy=".5" r=".5"><stop offset="0" style="stop-color: rgba(255,248,230,.75)"></stop><stop offset="1" style="stop-color: rgba(255,248,230,0)"></stop></radialGradient>
+<linearGradient id="gOak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #b8925f"></stop><stop offset="1" style="stop-color: #9a7748"></stop></linearGradient>
+<filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="8"></feGaussianBlur></filter>
+<clipPath id="before"><rect x="0" y="0" width="360" height="540"></rect></clipPath>
+</defs>
+<!-- AFTER (full) -->
+<g>
+<polygon points="0,-36 880,-36 640,120 240,120" style="fill: url(#gCeil)"></polygon>
+<polygon points="0,-36 240,120 240,380 0,536" style="fill: url(#gLW)"></polygon>
+<polygon points="880,-36 640,120 640,380 880,536" style="fill: url(#gRW)"></polygon>
+<polygon points="240,380 640,380 880,536 0,536" style="fill: url(#gFloor)"></polygon>
+<g style="stroke: rgba(120,95,60,.18); stroke-width: 1"><line x1="300" y1="380" x2="150" y2="536"></line><line x1="360" y1="380" x2="300" y2="536"></line><line x1="420" y1="380" x2="410" y2="536"></line><line x1="480" y1="380" x2="520" y2="536"></line><line x1="540" y1="380" x2="640" y2="536"></line><line x1="600" y1="380" x2="770" y2="536"></line></g>
+<rect x="240" y="120" width="400" height="260" style="fill: url(#gWall)"></rect>
+<!-- recessed cans -->
+<g style="fill: #fffdf6; stroke: #d6d1c7"><ellipse cx="330" cy="70" rx="14" ry="4"></ellipse><ellipse cx="550" cy="70" rx="14" ry="4"></ellipse><ellipse cx="300" cy="100" rx="10" ry="3"></ellipse><ellipse cx="580" cy="100" rx="10" ry="3"></ellipse></g>
+<!-- window -->
+<rect x="380" y="165" width="120" height="100" style="fill: #dbe8f1; stroke: #fff; stroke-width: 6"></rect>
+<line x1="440" y1="165" x2="440" y2="265" style="stroke: #fff; stroke-width: 4"></line>
+<path d="M386 171 L430 171 L386 230 Z" style="fill: rgba(255,255,255,.45)"></path>
+<!-- uppers -->
+<rect x="246" y="149" width="126" height="101" style="fill: url(#gCab); stroke: #d4d6d9"></rect>
+<rect x="508" y="149" width="126" height="101" style="fill: url(#gCab); stroke: #d4d6d9"></rect>
+<g style="fill: none; stroke: #dcdedf"><rect x="252" y="155" width="54" height="89"></rect><rect x="312" y="155" width="54" height="89"></rect><rect x="514" y="155" width="54" height="89"></rect><rect x="574" y="155" width="54" height="89"></rect></g>
+<rect x="240" y="250" width="400" height="34" style="fill: url(#gUnder)"></rect>
+<!-- backsplash tile hint -->
+<g style="stroke: rgba(150,140,125,.18)"><line x1="246" y1="262" x2="380" y2="262"></line><line x1="246" y1="274" x2="380" y2="274"></line><line x1="500" y1="262" x2="634" y2="262"></line><line x1="500" y1="274" x2="634" y2="274"></line></g>
+<!-- base run back wall -->
+<rect x="240" y="289" width="400" height="6" style="fill: url(#gTop); stroke: #d6d3cc"></rect>
+<rect x="244" y="295" width="392" height="78" style="fill: url(#gCab); stroke: #d4d6d9"></rect>
+<g style="fill: none; stroke: #dcdedf"><rect x="250" y="300" width="58" height="68"></rect><rect x="314" y="300" width="58" height="68"></rect><rect x="378" y="300" width="58" height="68"></rect><rect x="444" y="300" width="58" height="68"></rect><rect x="508" y="300" width="58" height="68"></rect><rect x="572" y="300" width="58" height="68"></rect></g>
+<g style="stroke: #b39468; stroke-width: 2.5; stroke-linecap: round"><line x1="300" y1="312" x2="300" y2="330"></line><line x1="322" y1="312" x2="322" y2="330"></line><line x1="428" y1="312" x2="428" y2="330"></line><line x1="452" y1="312" x2="452" y2="330"></line><line x1="558" y1="312" x2="558" y2="330"></line><line x1="580" y1="312" x2="580" y2="330"></line></g>
+<rect x="244" y="373" width="392" height="7" style="fill: #cfcfcc"></rect>
+<rect x="408" y="286" width="64" height="5" rx="2" style="fill: #c9cbcd"></rect>
+<path d="M440 286 V270 Q440 262 448 262 H452" style="fill: none; stroke: #9aa0a6; stroke-width: 3"></path>
+<!-- fridge on left wall -->
+<polygon points="240,140 150,90 150,438 240,380" style="fill: #dfe1e3; stroke: #c3c6ca"></polygon>
+<line x1="196" y1="115" x2="196" y2="410" style="stroke: #c3c6ca"></line>
+<line x1="186" y1="200" x2="186" y2="250" style="stroke: #a9adb2; stroke-width: 3; stroke-linecap: round"></line><line x1="206" y1="205" x2="206" y2="250" style="stroke: #a9adb2; stroke-width: 3; stroke-linecap: round"></line>
+<!-- right wall run with range -->
+<polygon points="640,289 760,312 760,320 640,295" style="fill: #eeece7; stroke: #d6d3cc"></polygon>
+<polygon points="640,295 760,320 760,458 640,380" style="fill: url(#gCab); stroke: #d4d6d9"></polygon>
+<polygon points="672,302 724,312 724,402 672,382" style="fill: #3d434a"></polygon>
+<polygon points="660,170 744,150 744,214 660,232" style="fill: #d6d9dc; stroke: #c3c6ca"></polygon>
+<!-- sun patch on floor -->
+<ellipse cx="460" cy="430" rx="150" ry="36" style="fill: url(#gSun)"></ellipse>
+<!-- island -->
+<ellipse cx="440" cy="512" rx="170" ry="16" style="fill: rgba(40,30,20,.35)" filter="url(#blur)"></ellipse>
+<polygon points="300,400 580,400 545,362 335,362" style="fill: url(#gTop); stroke: #dad6ce"></polygon>
+<path d="M300 400 H580 V406 Q580 409 577 409 H303 Q300 409 300 406 Z" style="fill: #f2f0eb; stroke: #d0ccc3"></path>
+<rect x="304" y="409" width="272" height="91" style="fill: url(#gIsl)"></rect>
+<g style="fill: none; stroke: rgba(255,255,255,.14)"><rect x="312" y="416" width="80" height="78"></rect><rect x="400" y="416" width="80" height="78"></rect><rect x="488" y="416" width="80" height="78"></rect></g>
+<!-- pendants -->
+<g style="stroke: #3b424d; stroke-width: 1"><line x1="370" y1="40" x2="370" y2="208"></line><line x1="440" y1="44" x2="440" y2="204"></line><line x1="510" y1="40" x2="510" y2="208"></line></g>
+<g style="fill: #2d3238"><path d="M354 222 Q354 206 370 206 Q386 206 386 222 Z"></path><path d="M426 218 Q426 202 440 202 Q454 202 454 218 Z"></path><path d="M494 222 Q494 206 510 206 Q526 206 526 222 Z"></path></g>
+<g style="fill: #ffe9b8"><ellipse cx="370" cy="222" rx="14" ry="2.5"></ellipse><ellipse cx="440" cy="218" rx="12" ry="2.2"></ellipse><ellipse cx="510" cy="222" rx="14" ry="2.5"></ellipse></g>
+<g style="fill: rgba(255,240,205,.35)" filter="url(#blur)"><ellipse cx="370" cy="378" rx="36" ry="9"></ellipse><ellipse cx="440" cy="376" rx="32" ry="8"></ellipse><ellipse cx="510" cy="378" rx="36" ry="9"></ellipse></g>
+<!-- stool backs -->
+<g style="fill: #a07a54"><rect x="336" y="470" width="44" height="7" rx="3"></rect><rect x="418" y="470" width="44" height="7" rx="3"></rect><rect x="500" y="470" width="44" height="7" rx="3"></rect></g>
+<g style="stroke: #2d3238; stroke-width: 2"><line x1="342" y1="477" x2="340" y2="540"></line><line x1="374" y1="477" x2="376" y2="540"></line><line x1="424" y1="477" x2="422" y2="540"></line><line x1="456" y1="477" x2="458" y2="540"></line><line x1="506" y1="477" x2="504" y2="540"></line><line x1="538" y1="477" x2="540" y2="540"></line></g>
+</g>
+<!-- BEFORE (clipped left of handle) -->
+<g clip-path="url(#before)">
+<polygon points="0,-36 880,-36 640,120 240,120" style="fill: #ddd8cf"></polygon>
+<polygon points="0,-36 240,120 240,380 0,536" style="fill: #d3cdc2"></polygon>
+<polygon points="240,380 640,380 880,536 0,536" style="fill: #c9c2b4"></polygon>
+<g style="stroke: rgba(90,80,65,.22)"><line x1="0" y1="430" x2="360" y2="430"></line><line x1="0" y1="470" x2="360" y2="470"></line><line x1="0" y1="510" x2="360" y2="510"></line><line x1="300" y1="380" x2="150" y2="536"></line><line x1="200" y1="380" x2="60" y2="536"></line></g>
+<rect x="240" y="120" width="400" height="260" style="fill: #e3ddd2"></rect>
+<rect x="210" y="40" width="130" height="22" style="fill: #f1f0ea; stroke: #bdb6a8"></rect><line x1="275" y1="40" x2="275" y2="62" style="stroke: #cfc8ba"></line>
+<rect x="246" y="140" width="126" height="110" style="fill: url(#gOak); stroke: #7d5f37"></rect>
+<g style="fill: none; stroke: #7d5f37"><path d="M254 150 h50 v90 h-50 z M262 162 q17 -10 34 0 v70 h-34 z"></path><path d="M314 150 h50 v90 h-50 z M322 162 q17 -10 34 0 v70 h-34 z"></path></g>
+<rect x="240" y="287" width="400" height="8" style="fill: #d8cfb8; stroke: #a99e85"></rect>
+<rect x="244" y="295" width="392" height="80" style="fill: url(#gOak); stroke: #7d5f37"></rect>
+<g style="fill: none; stroke: #7d5f37"><rect x="252" y="304" width="52" height="64"></rect><rect x="312" y="304" width="52" height="64"></rect></g>
+<polygon points="240,140 150,90 150,438 240,380" style="fill: #f0efe9; stroke: #c4c1b8"></polygon>
+<line x1="150" y1="250" x2="240" y2="262" style="stroke: #c4c1b8"></line>
+<polygon points="0,-36 240,120 240,140 0,10" style="fill: rgba(0,0,0,.04)"></polygon>
+</g>
+<!-- split handle -->
+<line x1="360" y1="0" x2="360" y2="540" style="stroke: #fff; stroke-width: 3"></line>
+<circle cx="360" cy="300" r="18" style="fill: #fff; stroke: rgba(20,30,50,.15)"></circle>
+<path d="M352 300 l5 -6 v12 z M368 300 l-5 -6 v12 z" style="fill: #3b424d"></path>
+</svg>
+<span style="position: absolute; left: 14px; top: 14px; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: rgba(20,23,28,.72); color: #fff">Before · site photo, Oct 2</span>
+<span style="position: absolute; right: 14px; top: 14px; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: #fff; color: #14171c; border: 1px solid #dfe2e6; display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.55 0.17 262)"></span>After · style preview</span>
+<span class="mono" style="position: absolute; right: 14px; bottom: 14px; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.85); color: #5e6672">For illustration; drawings govern</span>
+</div>
+<div style="display: flex; gap: 10px; align-items: center">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672; width: 54px">Renders</span>
+<div class="rl"><svg width="52" height="34" viewBox="0 0 52 34" aria-hidden="true" style="border-radius: 5px; flex: none"><rect width="52" height="34" style="fill: #ede9e2"></rect><rect x="14" y="8" width="24" height="16" style="fill: #f7f5f1"></rect><rect x="16" y="24" width="20" height="8" style="fill: #4d5965"></rect></svg><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Render 1 · Daylight</span><span class="mono" style="font-size: 11px; color: #5e6672">Standard · Oct 8</span></span><span class="pill" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">Approved</span></div>
+<div class="rl"><svg width="52" height="34" viewBox="0 0 52 34" aria-hidden="true" style="border-radius: 5px; flex: none"><rect width="52" height="34" style="fill: #e4dccd"></rect><rect x="14" y="8" width="24" height="16" style="fill: #f2ede4"></rect><rect x="16" y="24" width="20" height="8" style="fill: #4d5965"></rect></svg><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Render 2 · Golden hour</span><span class="mono" style="font-size: 11px; color: #5e6672">Standard · Oct 10</span></span><span class="pill" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)">Needs review</span></div>
+<div class="rl" style="border-style: dashed; color: #5e6672"><span class="ms" style="font-size: 20px">add</span><span>Render 3 · in setup</span></div>
+</div>
+</div>
+<aside class="card" aria-label="Render settings" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 16px 18px 10px; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Style</span><span style="font-size: 13px; color: #5e6672">Step 2 of 3 · Kitchen, fam rm</span></div>
+<div style="padding: 0 18px 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px">
+<div class="sty styon"><span class="sp" style="background: linear-gradient(160deg, #fdf8ec, #e7e2d7 60%, #c9b590)"></span><span class="n">Daylight</span></div>
+<div class="sty"><span class="sp" style="background: linear-gradient(160deg, #ffe0b0, #e4c9a1 55%, #a98458)"></span><span class="n">Golden</span></div>
+<div class="sty"><span class="sp" style="background: linear-gradient(160deg, #ffffff, #f2f3f4 60%, #dcdfe2)"></span><span class="n">Airy</span></div>
+<div class="sty"><span class="sp" style="background: linear-gradient(160deg, #3b3f4a, #5c5348 55%, #f2c98a)"></span><span class="n">Evening</span></div>
+</div>
+<div style="padding: 0 18px 12px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Direct the render</span>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px"><button class="chip chipon" style="display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px">touch_app</span>Tap a surface</button><button class="chip" style="display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px">edit_note</span>Type an instruction</button><button class="chip" style="display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px">brush</span>Paint a mask</button><button class="chip" style="display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px">deployed_code</span>From model</button></div>
+</div>
+<div style="padding: 0 18px 12px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Quality</span>
+<div class="qt"><span class="rd"></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Fast<span style="font-size: 12px; color: #5e6672">Quick check · ~30 s</span></span><span class="mono" style="font-size: 12px; color: #5e6672">$0.03</span></div>
+<div class="qt qton"><span class="rd"></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px; font-weight: 600">Standard<span style="font-size: 12px; color: #5e6672; font-weight: 400">Client review · 2K · ~2 min</span></span><span class="mono" style="font-size: 12px; color: oklch(0.45 0.17 262)">$0.06</span></div>
+<div class="qt"><span class="rd"></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Photoreal<span style="font-size: 12px; color: #5e6672">Sheets R1.0 · 4K · ~6 min</span></span><span class="mono" style="font-size: 12px; color: #5e6672">$0.14</span></div>
+</div>
+<div style="margin: 0 18px; padding: 10px 12px; border-radius: 10px; background: #fbf8f2; border: 1px solid #ece4d3">
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px"><span style="font-size: 12px; font-weight: 600; color: #3b424d; display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px">checklist</span>Selections</span><span style="font-size: 11px; color: #7a828e">Not visible in render</span></div>
+<div class="si"><span style="color: #5e6672; font-size: 12px">Countertop edge</span><span style="font-weight: 500">Half bullnose <span style="font-weight: 400; color: oklch(0.48 0.13 65)">· leaning, pending client</span></span></div>
+<div class="si"><span style="color: #5e6672; font-size: 12px">Cabinet finish</span><span style="font-weight: 500">Shaker, Midnight</span></div>
+<div class="si"><span style="color: #5e6672; font-size: 12px">Hardware</span><span style="font-weight: 500">[Brand] 5" pull, satin brass</span></div>
+<div class="si"><span style="color: #5e6672; font-size: 12px">Grout color</span><span style="font-weight: 500">Warm white</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 18px 16px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #eef0f3; margin-top: 12px">
+<div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.4; color: #3b424d"><span class="ms" style="font-size: 18px; color: oklch(0.48 0.13 65)">verified_user</span><span>Two steps before the client page: <span style="font-weight: 600">Approve</span>, then <span style="font-weight: 600">Mark client-ready</span>. Set per role.</span></div>
+<button class="b bp" style="justify-content: center; padding: 11px"><span class="ms" style="font-size: 18px">auto_awesome</span>Generate · <span class="mono" style="font-weight: 500">$0.06</span></button>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">View</span><div class="ssg" role="group" aria-label="Phase view"><button class="ssi">Existing</button><button class="ssi ssion">Proposed</button></div></div>
+<div style="display: flex; gap: 6px"><span class="sl">Angle</span><span class="sv">Kitchen, fam rm · 35mm</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Style</span><span class="sv">Daylight</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Tier</span><span class="sv">Standard · 2K</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Model</span><span class="sv">Working copy · option B</span></div>
+<span style="flex: 1"></span>
+<span class="sv">$42.50 allowance</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

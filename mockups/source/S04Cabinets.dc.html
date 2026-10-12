@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft cabinet run</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.lib{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;font-size:14px;cursor:grab}
+.lib:hover{background:#f2f4f7}
+.code{font-family:'DM Mono',monospace;font-size:12px;color:#5e6672;width:52px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'DM Mono',monospace;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:6px;border-radius:6px;cursor:pointer}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb rbon ms" aria-label="Cabinets (C)" aria-pressed="true">kitchen</button><button class="rb ms" aria-label="Fixtures">countertops</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Sketch">draw</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Cabinet library" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg segon">Boxes</button><button class="seg">Runs</button><button class="seg">Saved</button></div>
+<div style="padding: 10px 10px 0"><label style="display: flex; align-items: center; gap: 6px; border: 1px solid #dfe2e6; border-radius: 8px; padding: 0 10px; height: 36px; color: #5e6672"><span class="ms" style="font-size: 18px">search</span><input aria-label="Search cabinets" placeholder="Code or size, e.g. B24" style="border: 0; outline: none; flex: 1; font: 400 13px 'Instrument Sans', sans-serif"></label></div>
+<span class="lbl">Line: [Supplier] Shaker</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px">
+<div class="lib"><span class="code">B9–B24</span><span style="flex: 1">Base, 1 door</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+<div class="lib"><span class="code">B27–B36</span><span style="flex: 1">Base, 2 doors</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+<div class="lib"><span class="code">DB12–36</span><span style="flex: 1">Drawer base</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+<div class="lib"><span class="code">SB30–36</span><span style="flex: 1">Sink base</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+<div class="lib"><span class="code">BBC42</span><span style="flex: 1">Blind corner</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+<div class="lib"><span class="code">W1230+</span><span style="flex: 1">Wall, 30" tall</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+<div class="lib"><span class="code">T1884</span><span style="flex: 1">Tall pantry</span><span class="ms" style="font-size: 18px; color: #9aa3af">drag_indicator</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Fillers, panels, trim</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px 12px">
+<div class="lib"><span class="code">F3</span><span style="flex: 1">Filler, scribe</span></div>
+<div class="lib"><span class="code">EP</span><span style="flex: 1">End panel 3/4"</span></div>
+<div class="lib"><span class="code">DWP</span><span style="flex: 1">Dishwasher panel</span></div>
+<div class="lib"><span class="code">TK / LR / CM</span><span style="flex: 1">Toe kick, light rail, crown</span></div>
+</div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px"><span style="font-size: 15px; font-weight: 600">Back wall run</span><span class="mono" style="font-size: 13px; color: #5e6672">5 boxes · 2 fillers</span><span style="flex: 1"></span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: oklch(0.42 0.12 150); background: oklch(0.95 0.05 150); border-radius: 999px; padding: 6px 12px"><span class="ms" style="font-size: 16px">check</span>Run <span class="mono">117"</span> fits wall <span class="mono">117 1/2"</span> · <span class="mono">1/2"</span> scribe</span><button class="b"><span class="ms" style="font-size: 18px">auto_awesome</span>Auto-fill run</button></div>
+<svg viewBox="0 0 900 660" role="img" aria-label="Plan strip and elevation of the back wall run: individual boxes with codes, doors and drawers, uppers, window, chain dimensions" style="width: 100%; flex: 1; font-family: 'DM Mono', monospace">
+<text x="140" y="24" style="font-family: 'Instrument Sans', sans-serif; font-size: 12px; font-weight: 600; fill: #9aa3af; letter-spacing: 1px">PLAN</text>
+<line x1="132" y1="36" x2="733" y2="36" style="stroke: #3b424d; stroke-width: 10"></line>
+<rect x="140" y="41" width="15" height="60" style="fill: #fff; stroke: #7a828e; stroke-dasharray: 3 2"></rect>
+<rect x="155" y="41" width="75" height="60" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="230" y="41" width="120" height="60" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="350" y="41" width="180" height="60" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect>
+<rect x="530" y="41" width="90" height="60" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="620" y="41" width="105" height="60" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="725" y="41" width="3" height="60" style="fill: #fff; stroke: #7a828e; stroke-dasharray: 2 2"></rect>
+<text x="192" y="76" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B15</text><text x="290" y="76" style="font-size: 12px; fill: #5e6672; text-anchor: middle">DW24</text><text x="440" y="76" style="font-size: 13px; font-weight: 500; fill: oklch(0.42 0.17 262); text-anchor: middle">SB36</text><text x="575" y="76" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B18</text><text x="672" y="76" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B21</text>
+<text x="140" y="146" style="font-family: 'Instrument Sans', sans-serif; font-size: 12px; font-weight: 600; fill: #9aa3af; letter-spacing: 1px">ELEVATION A</text>
+<line x1="120" y1="540" x2="760" y2="540" style="stroke: #3b424d; stroke-width: 2"></line>
+<rect x="370" y="168" width="140" height="150" style="fill: #fff; stroke: #3b424d; stroke-width: 1.5"></rect><line x1="440" y1="168" x2="440" y2="318" style="stroke: #3b424d"></line>
+<rect x="155" y="160" width="75" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="161" y="166" width="63" height="138" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="230" y="160" width="120" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="236" y="166" width="51" height="138" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect><rect x="293" y="166" width="51" height="138" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="530" y="160" width="90" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="536" y="166" width="78" height="138" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="620" y="160" width="105" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="626" y="166" width="93" height="138" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="140" y="160" width="15" height="150" style="fill: #fff; stroke: #7a828e; stroke-dasharray: 3 2"></rect>
+<rect x="136" y="360" width="594" height="8" style="fill: #ebe8e1; stroke: #3b424d"></rect>
+<rect x="140" y="368" width="15" height="150" style="fill: #fff; stroke: #7a828e; stroke-dasharray: 3 2"></rect>
+<rect x="155" y="368" width="75" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="161" y="374" width="63" height="20" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect><rect x="161" y="398" width="63" height="114" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="230" y="368" width="120" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="236" y="374" width="108" height="138" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect><text x="290" y="448" style="font-size: 12px; fill: #9aa3af; text-anchor: middle">DW panel</text>
+<rect x="350" y="368" width="180" height="150" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect><rect x="356" y="374" width="168" height="20" rx="2" style="fill: #fff; stroke: oklch(0.55 0.17 262)"></rect><rect x="356" y="398" width="82" height="114" rx="2" style="fill: #fff; stroke: oklch(0.55 0.17 262)"></rect><rect x="442" y="398" width="82" height="114" rx="2" style="fill: #fff; stroke: oklch(0.55 0.17 262)"></rect>
+<rect x="530" y="368" width="90" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="536" y="374" width="78" height="20" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect><rect x="536" y="398" width="78" height="114" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="620" y="368" width="105" height="150" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><rect x="626" y="374" width="93" height="20" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect><rect x="626" y="398" width="93" height="114" rx="2" style="fill: #f6f7f9; stroke: #9aa3af"></rect>
+<rect x="140" y="518" width="585" height="22" style="fill: #dfe2e6"></rect>
+<line x1="140" y1="580" x2="725" y2="580" style="stroke: #7a828e"></line>
+<line x1="140" y1="572" x2="140" y2="588" style="stroke: #7a828e"></line><line x1="155" y1="572" x2="155" y2="588" style="stroke: #7a828e"></line><line x1="230" y1="572" x2="230" y2="588" style="stroke: #7a828e"></line><line x1="350" y1="572" x2="350" y2="588" style="stroke: #7a828e"></line><line x1="530" y1="572" x2="530" y2="588" style="stroke: #7a828e"></line><line x1="620" y1="572" x2="620" y2="588" style="stroke: #7a828e"></line><line x1="725" y1="572" x2="725" y2="588" style="stroke: #7a828e"></line>
+<text x="147" y="604" style="font-size: 11px; fill: #14171c; text-anchor: middle">3</text><text x="192" y="604" style="font-size: 12px; fill: #14171c; text-anchor: middle">15"</text><text x="290" y="604" style="font-size: 12px; fill: #14171c; text-anchor: middle">24"</text><text x="440" y="604" style="font-size: 12px; fill: #14171c; text-anchor: middle">36"</text><text x="575" y="604" style="font-size: 12px; fill: #14171c; text-anchor: middle">18"</text><text x="672" y="604" style="font-size: 12px; fill: #14171c; text-anchor: middle">21"</text>
+<line x1="790" y1="160" x2="790" y2="540" style="stroke: #7a828e"></line>
+<line x1="782" y1="310" x2="798" y2="310" style="stroke: #7a828e"></line><line x1="782" y1="368" x2="798" y2="368" style="stroke: #7a828e"></line><line x1="782" y1="540" x2="798" y2="540" style="stroke: #7a828e"></line><line x1="782" y1="160" x2="798" y2="160" style="stroke: #7a828e"></line>
+<text x="806" y="240" style="font-size: 12px; fill: #14171c">30"</text><text x="806" y="343" style="font-size: 12px; fill: #14171c">18"</text><text x="806" y="458" style="font-size: 12px; fill: #14171c">36"</text>
+</svg>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 18px 18px 14px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">SB36 · Sink base</span><span style="font-size: 13px; color: #5e6672">Box 3 of 5 in back wall run</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #eef1ff; color: oklch(0.45 0.17 262)">New</span></div>
+<div style="padding: 0 18px 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<label class="fl">Width<input value="36&quot;"></label><label class="fl">Depth<input value="24&quot;"></label><label class="fl">Height<input value="34 1/2&quot;"></label>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Face</span>
+<label class="fl">Layout<select><option>False drawer + 2 doors</option><option>2 doors</option><option>Drawer + 2 doors</option></select></label>
+<div class="fl">Hinges<div class="tg"><button class="tgi">Left</button><button class="tgi tgon">Pair</button><button class="tgi">Right</button></div></div>
+<div class="fl">Finished ends<div class="tg"><button class="tgi tgon">None</button><button class="tgi">Left</button><button class="tgi">Right</button><button class="tgi">Both</button></div></div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Catalog</span>
+<div style="display: flex; justify-content: space-between"><span>Item</span><span class="mono" style="color: #5e6672">[Supplier] SB36-SH</span></div>
+<div style="display: flex; justify-content: space-between"><span>Finish</span><span style="color: #5e6672">Shaker, Midnight</span></div>
+<div style="display: flex; justify-content: space-between"><span>Cost</span><span class="mono" style="color: #5e6672">$[ ] · internal</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 16px 18px; display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 10px">Swap box</button><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 10px">Cabinet schedule</button></div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">View</span><span class="sv">Plan + elevation A</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Scale</span><span class="sv">1/2" = 1'-0"</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Increment</span><span class="sv">3"</span></div>
+<span style="flex: 1"></span>
+<span class="sv">100%</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

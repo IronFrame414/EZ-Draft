@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft architect reference</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'DM Mono',monospace;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.tb{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;padding:7px 11px;border-radius:7px;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer}
+.tbon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:6px;border-radius:6px;cursor:pointer}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.ssg{display:flex;padding:2px;gap:2px;background:#f2f4f7;border-radius:6px}
+.ssi{border:0;background:transparent;font:400 12px 'DM Mono',monospace;color:#5e6672;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ssion{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.ly{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;font-size:12px}
+.ly .ms{font-size:17px;color:#5e6672}
+.ly .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.ly .nm{font-family:'DM Mono',monospace;color:#14171c;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ly .ct{font-family:'DM Mono',monospace;font-size:11px;color:#9aa3af}
+.lyoff .nm{color:#9aa3af}.lyoff .ms{color:#9aa3af}
+.lyon{background:#eef1ff}
+.cv{font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;background:oklch(0.95 0.05 150);color:oklch(0.42 0.12 150);white-space:nowrap}
+.chg{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid #eef0f3;font-size:13px;line-height:1.35}
+.mk{width:18px;height:18px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;font:600 12px 'DM Mono',monospace;margin-top:1px}
+.mka{background:oklch(0.95 0.05 150);color:oklch(0.42 0.12 150)}
+.mkr{background:oklch(0.95 0.04 28);color:oklch(0.5 0.17 28)}
+.mkm{background:oklch(0.96 0.04 80);color:oklch(0.48 0.13 65)}
+.tag{font-size:11px;font-weight:600;padding:1px 6px;border-radius:999px;white-space:nowrap}
+.dx{fill:none;stroke:#aab0b9;stroke-width:1}
+.dxt{fill:#8d95a0;font-family:'DM Mono',monospace}
+.dxd{stroke:#b4bac3;stroke-width:0.8;fill:none}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Fixtures">wash</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb rbon ms" aria-label="Reference (R)" aria-pressed="true">layers</button><button class="rb ms" aria-label="Markup">ink_highlighter</button><button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Detail">frame_inspect</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+
+<aside class="card" aria-label="Reference layers" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg segon">Layers</button><button class="seg">Markup</button><button class="seg">Files</button></div>
+<span class="lbl">This project</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: #14171c"></span><span class="nm" style="font-family: 'Instrument Sans', sans-serif; font-size: 13px">EZ model</span><span class="ct">62</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: oklch(0.6 0.19 28)"></span><span class="nm" style="font-family: 'Instrument Sans', sans-serif; font-size: 13px">Markup</span><span class="ct">2 clouds · 3 pins</span></div>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 14px 14px 6px; border-top: 1px solid #eef0f3; margin-top: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e6672">DXF layers</span><span class="mono" style="font-size: 11px; color: #9aa3af">24 · 10 shown</span></div>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: #c7cbd1; border: 1px solid #9aa3af"></span><span class="nm">A-WALL</span><span class="cv">Converted</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: #8d95a0"></span><span class="nm">A-WALL-PATT</span><span class="ct">212</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: oklch(0.7 0.15 150)"></span><span class="nm">A-DOOR</span><span class="cv">Converted</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: oklch(0.72 0.12 210)"></span><span class="nm">A-GLAZ</span><span class="cv">Converted</span></div>
+<div class="ly lyon"><span class="ms" style="color: oklch(0.45 0.17 262)">visibility</span><span class="sw" style="background: oklch(0.72 0.15 300)"></span><span class="nm" style="color: oklch(0.42 0.17 262); font-weight: 500">A-FURN</span><span class="ct" style="color: oklch(0.45 0.17 262)">38</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: oklch(0.75 0.14 90)"></span><span class="nm">A-ANNO-DIMS</span><span class="ct">46</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: #ffffff; border: 1px solid #9aa3af"></span><span class="nm">A-ANNO-TEXT</span><span class="ct">71</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: oklch(0.65 0.18 28)"></span><span class="nm">A-GRID</span><span class="ct">6</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: oklch(0.7 0.13 250)"></span><span class="nm">I-CASE</span><span class="cv">Converted</span></div>
+<div class="ly lyoff"><span class="ms">visibility_off</span><span class="sw" style="background: oklch(0.8 0.14 95)"></span><span class="nm">E-LITE</span><span class="ct">18</span></div>
+<div class="ly lyoff"><span class="ms">visibility_off</span><span class="sw" style="background: oklch(0.7 0.16 40)"></span><span class="nm">E-POWR</span><span class="ct">27</span></div>
+<div class="ly lyoff"><span class="ms">visibility_off</span><span class="sw" style="background: oklch(0.7 0.12 200)"></span><span class="nm">P-FIXT</span><span class="ct">9</span></div>
+<div class="ly"><span class="ms">visibility</span><span class="sw" style="background: #5e6672"></span><span class="nm">A-TTLB</span><span class="ct">1</span></div>
+<div class="ly lyoff"><span class="ms">visibility_off</span><span class="sw" style="background: #c7cbd1"></span><span class="nm">A-FLOR-PATT</span><span class="ct">4</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 14px; border-top: 1px solid #eef0f3; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #5e6672"><span style="font-size: 13px; font-weight: 600; color: #14171c">A-FURN · 38 objects</span><span>Converts to furniture blocks. Original layer stays as reference.</span></div>
+<div style="display: flex; gap: 8px"><button class="b bp" style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 13px"><span class="ms" style="font-size: 17px">transform</span>Convert layer</button><button class="b ms" aria-label="Layer options" style="padding: 8px; font-size: 18px">more_horiz</button></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5e6672"><span>Reference</span><span style="flex: 1; height: 4px; border-radius: 999px; background: linear-gradient(90deg, oklch(0.55 0.17 262) 60%, #dfe2e6 60%); position: relative"><span style="position: absolute; left: 60%; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 1.5px solid oklch(0.55 0.17 262); transform: translateX(-7px); box-sizing: border-box"></span></span><span class="mono" style="color: #14171c">60%</span></div>
+</div>
+</aside>
+
+<div style="flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 10px">
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<button class="tb"><span class="ms" style="font-size: 18px">arrow_selector_tool</span>Pick</button>
+<button class="tb tbon" style="color: oklch(0.5 0.19 28); background: oklch(0.96 0.03 28)"><span class="ms" style="font-size: 18px">cloud</span>Cloud</button>
+<button class="tb"><span class="ms" style="font-size: 18px">add_comment</span>Comment</button>
+<button class="tb"><span class="ms" style="font-size: 18px">transform</span>Convert</button>
+</div>
+<button class="chip chipon" style="display: inline-flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 15px">difference</span>Show Rev C changes</button>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; color: #5e6672">Reference is read only. Convert a layer to edit it.</span>
+</div>
+<svg viewBox="0 0 900 760" role="img" aria-label="Architect DXF floor plan shown as gray reference: hatched walls, doors with swings, windows, furniture, room tags, dimension strings, grid bubbles and title block edge. EZ Draft converted kitchen walls drawn in ink and new cabinets in cobalt on top. Red revision clouds around the island and pantry door, and three comment pins." style="width: 100%; flex: 1; min-height: 0; font-family: 'DM Mono', monospace; background: #fff; border: 1px solid #dfe2e6; border-radius: 12px">
+<defs>
+<pattern id="wh" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" style="stroke: #c3c8cf; stroke-width: 1"></line></pattern>
+</defs>
+
+<g class="dxd" style="stroke-dasharray: 14 4 2 4">
+<line x1="60" y1="28" x2="60" y2="740"></line><line x1="464" y1="28" x2="464" y2="740"></line><line x1="820" y1="28" x2="820" y2="740"></line>
+<line x1="26" y1="70" x2="836" y2="70"></line><line x1="26" y1="384" x2="836" y2="384"></line><line x1="26" y1="720" x2="836" y2="720"></line>
+</g>
+<g style="fill: #fff; stroke: #aab0b9; stroke-width: 1">
+<circle cx="60" cy="16" r="10"></circle><circle cx="464" cy="16" r="10"></circle><circle cx="820" cy="16" r="10"></circle>
+<circle cx="14" cy="70" r="10"></circle><circle cx="14" cy="384" r="10"></circle><circle cx="14" cy="720" r="10"></circle>
+</g>
+<g class="dxt" style="font-size: 10px; text-anchor: middle">
+<text x="60" y="20">A</text><text x="464" y="20">B</text><text x="820" y="20">C</text>
+<text x="14" y="74">1</text><text x="14" y="388">2</text><text x="14" y="724">3</text>
+</g>
+
+<g>
+<line x1="60" y1="46" x2="820" y2="46" class="dxd"></line>
+<g class="dxd"><line x1="60" y1="40" x2="60" y2="52"></line><line x1="200" y1="40" x2="200" y2="52"></line><line x1="300" y1="40" x2="300" y2="52"></line><line x1="464" y1="40" x2="464" y2="52"></line><line x1="560" y1="40" x2="560" y2="52"></line><line x1="720" y1="40" x2="720" y2="52"></line><line x1="820" y1="40" x2="820" y2="52"></line></g>
+<g class="dxt" style="font-size: 9px; text-anchor: middle"><text x="130" y="42">5'-10"</text><text x="250" y="42">4'-2"</text><text x="382" y="42">6'-10"</text><text x="512" y="42">4'-0"</text><text x="640" y="42">6'-8"</text><text x="770" y="42">4'-2"</text></g>
+<line x1="38" y1="70" x2="38" y2="720" class="dxd"></line>
+<g class="dxd"><line x1="32" y1="70" x2="44" y2="70"></line><line x1="32" y1="384" x2="44" y2="384"></line><line x1="32" y1="720" x2="44" y2="720"></line><line x1="32" y1="540" x2="44" y2="540"></line></g>
+<g class="dxt" style="font-size: 9px; text-anchor: middle"><text x="34" y="228" transform="rotate(-90 34 228)">13'-1"</text><text x="34" y="462" transform="rotate(-90 34 462)">6'-6"</text><text x="34" y="630" transform="rotate(-90 34 630)">7'-6"</text></g>
+</g>
+
+<path d="M60 70 H820 V720 H60 Z M72 82 V708 H808 V82 Z" style="fill: url(#wh); fill-rule: evenodd"></path>
+<path d="M60 70 H820 V720 H60 Z M72 82 H808 V708 H72 Z" class="dx"></path>
+<g style="fill: url(#wh)">
+<rect x="72" y="380" width="128" height="8"></rect><rect x="360" y="380" width="448" height="8"></rect>
+<rect x="620" y="388" width="8" height="52"></rect><rect x="620" y="476" width="8" height="124"></rect><rect x="620" y="636" width="8" height="72"></rect>
+<rect x="628" y="540" width="180" height="8"></rect><rect x="460" y="82" width="8" height="138"></rect>
+</g>
+<g class="dx">
+<rect x="72" y="380" width="128" height="8"></rect><rect x="360" y="380" width="448" height="8"></rect>
+<rect x="620" y="388" width="8" height="52"></rect><rect x="620" y="476" width="8" height="124"></rect><rect x="620" y="636" width="8" height="72"></rect>
+<rect x="628" y="540" width="180" height="8"></rect><rect x="460" y="82" width="8" height="138"></rect>
+</g>
+
+<g>
+<rect x="560" y="69" width="160" height="14" style="fill: #fff"></rect><path d="M560 70 V82 M720 70 V82 M560 74 H720 M560 76 H720 M560 78 H720" class="dx"></path>
+<rect x="59" y="480" width="14" height="120" style="fill: #fff"></rect><path d="M60 480 H72 M60 600 H72 M64 480 V600 M66 480 V600 M68 480 V600" class="dx"></path>
+<rect x="120" y="707" width="120" height="14" style="fill: #fff"></rect><path d="M120 708 V720 M240 708 V720 M120 712 H240 M120 714 H240 M120 716 H240" class="dx"></path>
+<rect x="520" y="707" width="72" height="14" style="fill: #fff"></rect>
+<path d="M520 708 V720 M592 708 V720" class="dx"></path>
+<path d="M520 708 V636" class="dx" style="stroke-width: 1.4"></path><path d="M520 636 A72 72 0 0 1 592 708" class="dxd" style="stroke-dasharray: 3 3"></path>
+<path d="M628 440 H664" class="dx" style="stroke-width: 1.4"></path><path d="M664 440 A36 36 0 0 1 628 476" class="dxd" style="stroke-dasharray: 3 3"></path>
+<path d="M628 600 H660" class="dx" style="stroke-width: 1.4"></path><path d="M660 600 A32 32 0 0 1 628 632" class="dxd" style="stroke-dasharray: 3 3"></path>
+</g>
+
+<g class="dx" style="stroke: #b4bac3">
+<rect x="570" y="190" width="140" height="70" rx="4"></rect>
+<rect x="584" y="172" width="28" height="14" rx="3"></rect><rect x="626" y="172" width="28" height="14" rx="3"></rect><rect x="668" y="172" width="28" height="14" rx="3"></rect>
+<rect x="584" y="264" width="28" height="14" rx="3"></rect><rect x="626" y="264" width="28" height="14" rx="3"></rect><rect x="668" y="264" width="28" height="14" rx="3"></rect>
+<rect x="552" y="211" width="14" height="28" rx="3"></rect><rect x="714" y="211" width="14" height="28" rx="3"></rect>
+<rect x="740" y="96" width="60" height="18"></rect>
+<rect x="160" y="466" width="250" height="196" style="stroke-dasharray: 5 4"></rect>
+<path d="M100 640 V470 H140 V600 H310 V640 Z"></path><path d="M100 640 H310 V652 H100 Z"></path>
+<rect x="190" y="516" width="90" height="48" rx="4"></rect>
+<rect x="420" y="688" width="150" height="14"></rect>
+<rect x="420" y="410" width="44" height="44" rx="4"></rect><circle cx="442" cy="432" r="12"></circle>
+<rect x="640" y="398" width="160" height="16"></rect><rect x="784" y="414" width="16" height="118"></rect><rect x="640" y="516" width="144" height="16"></rect>
+<rect x="770" y="652" width="30" height="12" rx="2"></rect><ellipse cx="785" cy="682" rx="13" ry="18"></ellipse>
+<rect x="680" y="684" width="64" height="24"></rect><ellipse cx="712" cy="696" rx="18" ry="7"></ellipse>
+</g>
+
+<g class="dx" style="stroke: #c3c8cf">
+<rect x="84" y="94" width="356" height="44"></rect><rect x="84" y="138" width="44" height="194"></rect>
+<path d="M124 94 V138 M180 94 V138 M240 94 V138 M310 94 V138 M370 94 V138 M84 196 H128 M84 262 H128"></path>
+<rect x="228" y="226" width="140" height="66"></rect>
+</g>
+
+<g class="dxt" style="font-size: 10px; text-anchor: middle; letter-spacing: 0.5px">
+<text x="200" y="356">KITCHEN</text><text x="200" y="368" style="font-size: 8px">101</text>
+<text x="640" y="320">DINING</text><text x="640" y="332" style="font-size: 8px">102</text>
+<text x="470" y="560">FAMILY</text><text x="470" y="572" style="font-size: 8px">103</text>
+<text x="712" y="470">PANTRY</text><text x="712" y="482" style="font-size: 8px">104</text>
+<text x="712" y="626">PWDR</text><text x="712" y="638" style="font-size: 8px">105</text>
+</g>
+<g class="dxt" style="font-size: 8px">
+<text x="476" y="160">(E) WALL TO REMAIN</text>
+<text x="96" y="458">PROVIDE BLOCKING AT</text><text x="96" y="468">SHELF, SEE 3/A5.0</text>
+<text x="538" y="676">MAIN ENTRY</text>
+<text x="728" y="130">BUFFET BY OWNER</text>
+<text x="480" y="400">CLG HT 9'-0" TYP.</text>
+</g>
+<g style="fill: #fff; stroke: #aab0b9">
+<path d="M560 120 l8 -8 l8 8 l-8 8 z"></path><path d="M266 210 l8 -8 l8 8 l-8 8 z"></path>
+</g>
+<g class="dxt" style="font-size: 7px; text-anchor: middle"><text x="568" y="123">W4</text><text x="274" y="213">K2</text></g>
+
+<g>
+<line x1="848" y1="0" x2="848" y2="760" style="stroke: #aab0b9; stroke-width: 1.4"></line>
+<line x1="852" y1="0" x2="852" y2="760" class="dxd"></line>
+<g class="dxd"><line x1="852" y1="560" x2="900" y2="560"></line><line x1="852" y1="640" x2="900" y2="640"></line><line x1="852" y1="700" x2="900" y2="700"></line><line x1="852" y1="200" x2="900" y2="200"></line></g>
+<g class="dxt" style="font-size: 9px">
+<text x="872" y="470" transform="rotate(-90 872 470)" style="text-anchor: middle; font-size: 10px">[ARCHITECT] · HENDRICKS RESIDENCE</text>
+<text x="872" y="600" transform="rotate(-90 872 600)" style="text-anchor: middle">FLOOR PLAN</text>
+<text x="872" y="670" transform="rotate(-90 872 670)" style="text-anchor: middle">A-101</text>
+<text x="872" y="730" transform="rotate(-90 872 730)" style="text-anchor: middle">REV C</text>
+<text x="872" y="100" transform="rotate(-90 872 100)" style="text-anchor: middle">NOT FOR CONSTRUCTION</text>
+</g>
+</g>
+
+<path d="M468 76 H66 V384 H200" style="fill: none; stroke: #14171c; stroke-width: 12; stroke-linejoin: miter"></path>
+<path d="M464 76 V220" style="fill: none; stroke: #14171c; stroke-width: 8"></path>
+<path d="M360 384 H468" style="fill: none; stroke: #14171c; stroke-width: 8"></path>
+<rect x="200" y="70" width="100" height="12" style="fill: #fff; stroke: #14171c; stroke-width: 1.2"></rect><line x1="200" y1="76" x2="300" y2="76" style="stroke: #14171c; stroke-width: 1"></line>
+
+<g style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.6">
+<rect x="84" y="94" width="40" height="48"></rect><rect x="124" y="94" width="56" height="48"></rect><rect x="180" y="94" width="60" height="48"></rect><rect x="240" y="94" width="72" height="48"></rect><rect x="312" y="94" width="58" height="48"></rect><rect x="370" y="94" width="70" height="48"></rect>
+<rect x="84" y="142" width="48" height="56"></rect><rect x="84" y="198" width="48" height="66"></rect><rect x="84" y="264" width="48" height="68"></rect>
+<rect x="228" y="228" width="72" height="62"></rect><rect x="300" y="228" width="72" height="62"></rect>
+</g>
+<rect x="244" y="104" width="64" height="28" rx="6" style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></rect>
+<g style="font-size: 9px; fill: oklch(0.42 0.17 262); text-anchor: middle; font-weight: 500">
+<text x="104" y="122">B15</text><text x="152" y="122">DW</text><text x="210" y="122">B30</text><text x="276" y="150">SB36</text><text x="341" y="122">B21</text><text x="405" y="122">DB36</text>
+<text x="108" y="174">B21</text><text x="108" y="234">RNG</text><text x="108" y="302">B24</text>
+<text x="264" y="263">B36</text><text x="336" y="263">DB36</text>
+</g>
+
+<g style="fill: none; stroke: oklch(0.6 0.19 28); stroke-width: 1.6; stroke-linejoin: round">
+<path d="M208 212 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 0 -20 a10 10 0 0 1 0 -20 a10 10 0 0 1 0 -20 a10 10 0 0 1 0 -20 Z"></path>
+<path d="M604 418 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 -20 0 a10 10 0 0 1 0 -20 a10 10 0 0 1 0 -20 a10 10 0 0 1 0 -20 Z"></path>
+</g>
+<path d="M388 196 L398 178 L408 196 Z" style="fill: #fff; stroke: oklch(0.6 0.19 28); stroke-width: 1.4"></path>
+<text x="398" y="193" style="font-size: 9px; fill: oklch(0.55 0.19 28); text-anchor: middle; font-weight: 500">C</text>
+
+<g>
+<path d="M0 0 C-7 -9 -11 -13 -11 -19 A11 11 0 1 1 11 -19 C11 -13 7 -9 0 0 Z" transform="translate(384 228)" style="fill: oklch(0.6 0.19 28)"></path>
+<text x="384" y="213" style="font-size: 10px; fill: #fff; text-anchor: middle; font-weight: 500">1</text>
+<path d="M0 0 C-7 -9 -11 -13 -11 -19 A11 11 0 1 1 11 -19 C11 -13 7 -9 0 0 Z" transform="translate(686 436)" style="fill: oklch(0.6 0.19 28)"></path>
+<text x="686" y="421" style="font-size: 10px; fill: #fff; text-anchor: middle; font-weight: 500">2</text>
+<path d="M0 0 C-7 -9 -11 -13 -11 -19 A11 11 0 1 1 11 -19 C11 -13 7 -9 0 0 Z" transform="translate(150 470)" style="fill: oklch(0.6 0.19 28)"></path>
+<text x="150" y="455" style="font-size: 10px; fill: #fff; text-anchor: middle; font-weight: 500">3</text>
+</g>
+<g>
+<rect x="404" y="232" width="176" height="44" rx="8" style="fill: #fff; stroke: oklch(0.85 0.06 28)"></rect>
+<text x="414" y="250" style="font-family: 'Instrument Sans', sans-serif; font-size: 11px; font-weight: 600; fill: oklch(0.5 0.17 28)">Josh · 1</text>
+<text x="414" y="266" style="font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #3b424d">Hold 42" aisle to range run</text>
+</g>
+
+<g style="font-size: 9px; font-weight: 500">
+<rect x="140" y="374" width="70" height="20" rx="10" style="fill: oklch(0.96 0.04 80); stroke: oklch(0.72 0.16 65)"></rect><text x="175" y="388" style="fill: oklch(0.45 0.13 65); text-anchor: middle">MOVED 2"</text>
+<rect x="604" y="86" width="72" height="20" rx="10" style="fill: oklch(0.95 0.05 150); stroke: oklch(0.65 0.12 150)"></rect><text x="640" y="100" style="fill: oklch(0.42 0.12 150); text-anchor: middle">+ W4 ADDED</text>
+<rect x="660" y="660" width="66" height="20" rx="10" style="fill: oklch(0.95 0.04 28); stroke: oklch(0.7 0.15 28)"></rect><text x="693" y="674" style="fill: oklch(0.5 0.17 28); text-anchor: middle">− LAV</text>
+</g>
+</svg>
+</div>
+
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-size: 18px; font-weight: 600">Reference version</span><span style="font-size: 13px; color: #5e6672">From [Architect] · received today 8:14 AM</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65); white-space: nowrap">New rev</span></div>
+<div style="padding: 0 18px 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: 1fr 22px 1fr; gap: 6px; align-items: end">
+<label class="fl">Current<select><option>Rev C · Oct 11</option></select></label>
+<span class="ms" style="font-size: 18px; color: #9aa3af; padding-bottom: 10px">compare_arrows</span>
+<label class="fl">Compared to<select><option>Rev B · Sep 22</option></select></label>
+</div>
+<div style="padding: 12px; border-radius: 8px; background: #f6f7f9; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600; line-height: 1.35"><span class="mono">14</span> changes · <span class="mono" style="color: oklch(0.5 0.17 28)">2</span> touch your markups · <span class="mono" style="color: oklch(0.45 0.17 262)">1</span> touches a cabinet</span>
+<div style="display: flex; gap: 6px"><span class="tag" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">5 added</span><span class="tag" style="background: oklch(0.95 0.04 28); color: oklch(0.5 0.17 28)">3 removed</span><span class="tag" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)">6 changed</span></div>
+</div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 10px 18px 4px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2px"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Changes</span><span style="font-size: 12px; color: #5e6672">Affects you first</span></div>
+<div class="chg"><span class="mk mkm">~</span><span style="flex: 1">Kitchen / family wall moved <span class="mono">2"</span> north<br><span class="tag" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Cabinet run B21–B24</span></span></div>
+<div class="chg"><span class="mk mkm">~</span><span style="flex: 1">Island clearance noted <span class="mono">40"</span>, was <span class="mono">42"</span><br><span class="tag" style="background: oklch(0.95 0.04 28); color: oklch(0.5 0.17 28)">Markup 1</span></span></div>
+<div class="chg"><span class="mk mkm">~</span><span style="flex: 1">Pantry door swing reversed<br><span class="tag" style="background: oklch(0.95 0.04 28); color: oklch(0.5 0.17 28)">Markup 2</span></span></div>
+<div class="chg"><span class="mk mka">+</span><span style="flex: 1">Window W4 added, dining north wall</span></div>
+<div class="chg"><span class="mk mkr">−</span><span style="flex: 1">Powder lavatory removed, vanity added</span></div>
+<div class="chg"><span class="mk mka">+</span><span style="flex: 1">Blocking note at range wall, <span class="mono">3/A5.0</span></span></div>
+<div class="chg" style="border-bottom: 0"><span class="mk mkr">−</span><span style="flex: 1">Dimension string at pantry removed</span></div>
+<a href="#" style="font-size: 12px; text-decoration: none; padding: 2px 0 6px">Show 7 more (text and dims)</a>
+</div>
+<div style="padding: 4px 18px 12px; display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; padding: 8px; font-size: 13px">Keep Rev B</button><button class="b" style="flex: 1; justify-content: center; padding: 8px; font-size: 13px; font-weight: 600">Accept Rev C</button></div>
+<div style="border-top: 1px solid #eef0f3; padding: 12px 18px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Send markup back</span>
+<div class="tg"><button class="tgi tgon">PDF overlay</button><button class="tgi">DXF layer</button></div>
+<span style="font-size: 12px; color: #5e6672; line-height: 1.4">2 clouds and 3 comments over Rev C, red, with a revision legend. DXF exports to layer <span class="mono" style="color: #14171c">Z-MARKUP-WP</span>.</span>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 0 18px 16px; display: flex; gap: 8px"><button class="b bp" style="flex: 1; justify-content: center; padding: 10px"><span class="ms" style="font-size: 18px">ios_share</span>Export markup</button></div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">View</span><div class="ssg" role="group" aria-label="Phase view"><button class="ssi">Existing</button><button class="ssi ssion">Proposed</button></div></div>
+<div style="display: flex; gap: 6px"><span class="sl">File</span><span class="sv">A-101_FloorPlan_RevC.dxf</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Units</span><span class="sv">inches · 1 unit = 1"</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Layers</span><span class="sv">24 · 10 shown · 4 converted</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Not drawn</span><button class="sv" style="background: none; border: 0; padding: 0; font: inherit; color: #9a5b00; cursor: pointer; text-decoration: underline">3 entities · 1 type</button></div>
+<span style="flex: 1"></span>
+<div style="display: flex; gap: 6px"><span class="sl">Aligned</span><span style="color: oklch(0.42 0.12 150)">grid A1 · 0" offset</span></div>
+<span class="sv">100%</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

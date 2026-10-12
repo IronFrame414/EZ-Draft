@@ -1,0 +1,407 @@
+{
+ "v": 3,
+ "attachments": {},
+ "boards": {
+  "Catalog.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "6 \u00b7 Catalog + add product",
+   "w": 1440,
+   "x": 3040,
+   "y": 1020
+  },
+  "CeilingPlan.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "3 \u00b7 Plan: ceiling + vault beams",
+   "w": 1440,
+   "x": 3040,
+   "y": 0
+  },
+  "ClientView.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "11 \u00b7 Client view (phone)",
+   "w": 390,
+   "x": 470,
+   "y": 3060
+  },
+  "Electrical.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "7 \u00b7 Electrical check (view-only lock)",
+   "w": 1440,
+   "x": 0,
+   "y": 2040
+  },
+  "FieldPack.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "10 \u00b7 Field pack (phone)",
+   "w": 390,
+   "x": 0,
+   "y": 3060
+  },
+  "ImportReview.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "2 \u00b7 Import review",
+   "w": 1440,
+   "x": 1520,
+   "y": 0
+  },
+  "PolishedEditor.dc.html": {
+   "h": 900,
+   "page": "polished",
+   "title": "Polished \u00b7 Plan editor",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "Projects.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "1 \u00b7 Projects",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "RefinedDetail.dc.html": {
+   "h": 900,
+   "page": "refined",
+   "title": "Refined \u00b7 Custom detail editor",
+   "w": 1440,
+   "x": 0,
+   "y": 1020
+  },
+  "RefinedEditor.dc.html": {
+   "h": 900,
+   "page": "refined",
+   "title": "Refined \u00b7 Plan editor",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "RefinedField.dc.html": {
+   "h": 844,
+   "page": "refined",
+   "title": "Refined \u00b7 Field pack: measure + 3D",
+   "w": 390,
+   "x": 3040,
+   "y": 0
+  },
+  "RefinedRender.dc.html": {
+   "h": 900,
+   "page": "refined",
+   "title": "Refined \u00b7 Render: choose angle first",
+   "w": 1440,
+   "x": 1520,
+   "y": 0
+  },
+  "RenderStudio.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "5 \u00b7 Render studio",
+   "w": 1440,
+   "x": 1520,
+   "y": 1020
+  },
+  "S01Projects.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "01 \u00b7 Projects",
+   "w": 1600,
+   "x": 0,
+   "y": 0
+  },
+  "S02Import.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "02 \u00b7 Import review",
+   "w": 1600,
+   "x": 1680,
+   "y": 0
+  },
+  "S03Plan.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "03 \u00b7 Plan",
+   "w": 1600,
+   "x": 3360,
+   "y": 0
+  },
+  "S04Cabinets.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "04 \u00b7 Cabinet run + elevation",
+   "w": 1600,
+   "x": 0,
+   "y": 1120
+  },
+  "S04bCountertops.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "04b \u00b7 Countertops: overhangs + edge",
+   "w": 1600,
+   "x": 1680,
+   "y": 1120
+  },
+  "S05Ceiling.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "05 \u00b7 Ceiling plan (RCP)",
+   "w": 1600,
+   "x": 3360,
+   "y": 1120
+  },
+  "S06Electrical.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "06 \u00b7 Electrical + edit lock",
+   "w": 1600,
+   "x": 0,
+   "y": 2240
+  },
+  "S07ThreeD.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "07 \u00b7 3D",
+   "w": 1600,
+   "x": 1680,
+   "y": 2240
+  },
+  "S08Render.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "08 \u00b7 Render setup",
+   "w": 1600,
+   "x": 3360,
+   "y": 2240
+  },
+  "S09Catalog.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "09 \u00b7 Catalog + add product",
+   "w": 1600,
+   "x": 1680,
+   "y": 3360
+  },
+  "S10Detail.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "10 \u00b7 Detail editor",
+   "w": 1600,
+   "x": 3360,
+   "y": 3360
+  },
+  "S11Reference.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "11 \u00b7 Architect DXF + markup",
+   "w": 1600,
+   "x": 0,
+   "y": 4480
+  },
+  "S12RenderMarkup.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "12 \u00b7 Supplier rendering markup",
+   "w": 1600,
+   "x": 1680,
+   "y": 4480
+  },
+  "S13Sheets.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "13 \u00b7 Sheets, key + issue",
+   "w": 1600,
+   "x": 3360,
+   "y": 4480
+  },
+  "S14ChangeOrder.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "14 \u00b7 Change order hand-off",
+   "w": 1600,
+   "x": 0,
+   "y": 5600
+  },
+  "S15Settings.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "15 \u00b7 Settings: users + permissions",
+   "w": 1600,
+   "x": 1680,
+   "y": 5600
+  },
+  "S16Translations.dc.html": {
+   "h": 1000,
+   "page": "studio",
+   "title": "16 \u00b7 Settings: translation review",
+   "w": 1600,
+   "x": 3360,
+   "y": 5600
+  },
+  "S17Field.dc.html": {
+   "h": 844,
+   "page": "studio",
+   "title": "17 \u00b7 Field pack (phone, EN user)",
+   "w": 390,
+   "x": 0,
+   "y": 6720
+  },
+  "S18Client.dc.html": {
+   "h": 844,
+   "page": "studio",
+   "title": "18 \u00b7 Client approval (phone)",
+   "w": 390,
+   "x": 940,
+   "y": 6720
+  },
+  "S18bClientEdge.dc.html": {
+   "h": 844,
+   "page": "studio",
+   "title": "18b \u00b7 Client edge choice (phone)",
+   "w": 390,
+   "x": 1410,
+   "y": 6720
+  },
+  "Settings.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "9 \u00b7 Settings: user permissions",
+   "w": 1440,
+   "x": 3040,
+   "y": 2040
+  },
+  "Sheets.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "8 \u00b7 Sheets + issue",
+   "w": 1440,
+   "x": 1520,
+   "y": 2040
+  },
+  "ThreeD.dc.html": {
+   "h": 900,
+   "page": "screens",
+   "title": "4 \u00b7 3D with options A/B/C",
+   "w": 1440,
+   "x": 0,
+   "y": 1020
+  },
+  "S08bRenderView.dc.html": {
+   "x": 0,
+   "y": 3360,
+   "w": 1600,
+   "h": 1000,
+   "title": "08b \u00b7 Photoreal render view",
+   "page": "studio"
+  },
+  "S17bFieldMeasure.dc.html": {
+   "x": 470,
+   "y": 6720,
+   "w": 390,
+   "h": 844,
+   "title": "17b \u00b7 Field measure (phone)",
+   "page": "studio"
+  }
+ },
+ "createdOnFiles": {
+  "at": "2026-10-11T12:30:00Z",
+  "v": 1
+ },
+ "designSystems": [],
+ "launch": {
+  "page": "studio",
+  "view": "canvas"
+ },
+ "notes": {
+  "refinedHeading": {
+   "kind": "title1",
+   "maxW": 3430,
+   "page": "refined",
+   "text": "Refined visual direction",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "screensHeading": {
+   "kind": "title1",
+   "maxW": 4480,
+   "page": "screens",
+   "text": "Layout C: first pass (old style; Refined direction replaces it)",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "studioHeading": {
+   "kind": "title1",
+   "maxW": 4960,
+   "page": "studio",
+   "text": "EZ Draft: every screen in the Studio style",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  }
+ },
+ "order": [
+  "Projects.dc.html",
+  "ImportReview.dc.html",
+  "CeilingPlan.dc.html",
+  "ThreeD.dc.html",
+  "RenderStudio.dc.html",
+  "Catalog.dc.html",
+  "Electrical.dc.html",
+  "Sheets.dc.html",
+  "Settings.dc.html",
+  "FieldPack.dc.html",
+  "ClientView.dc.html",
+  "RefinedEditor.dc.html",
+  "RefinedRender.dc.html",
+  "RefinedField.dc.html",
+  "RefinedDetail.dc.html",
+  "PolishedEditor.dc.html",
+  "S01Projects.dc.html",
+  "S02Import.dc.html",
+  "S03Plan.dc.html",
+  "S04Cabinets.dc.html",
+  "S04bCountertops.dc.html",
+  "S05Ceiling.dc.html",
+  "S06Electrical.dc.html",
+  "S07ThreeD.dc.html",
+  "S08Render.dc.html",
+  "S08bRenderView.dc.html",
+  "S09Catalog.dc.html",
+  "S10Detail.dc.html",
+  "S11Reference.dc.html",
+  "S12RenderMarkup.dc.html",
+  "S13Sheets.dc.html",
+  "S14ChangeOrder.dc.html",
+  "S15Settings.dc.html",
+  "S16Translations.dc.html",
+  "S17Field.dc.html",
+  "S17bFieldMeasure.dc.html",
+  "S18Client.dc.html",
+  "S18bClientEdge.dc.html"
+ ],
+ "pages": [
+  {
+   "id": "studio",
+   "name": "EZ Draft \u00b7 Studio (final style)"
+  },
+  {
+   "id": "polished",
+   "name": "Polished direction"
+  },
+  {
+   "id": "refined",
+   "name": "Refined direction"
+  },
+  {
+   "id": "screens",
+   "name": "Layout C screens"
+  }
+ ],
+ "title": "EZ Draft \u2014 Screen mockups"
+}

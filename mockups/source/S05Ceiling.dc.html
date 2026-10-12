@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft ceiling plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;font-size:14px}
+.row:hover{background:#f2f4f7}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'DM Mono',monospace;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.zb{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:20px}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Family room vault + beams<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">[Client C] · Working copy · Version 3 sent · Saved 1 min ago</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Ceiling tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><span class="rs"></span>
+<button class="rb ms" aria-label="Ceiling type">roofing</button>
+<button class="rb rbon ms" aria-label="Beam" aria-pressed="true">view_week</button>
+<button class="rb ms" aria-label="Recessed light">light</button>
+<button class="rb ms" aria-label="Ceiling fan">mode_fan</button>
+<button class="rb ms" aria-label="Acoustical grid">grid_on</button>
+<button class="rb ms" aria-label="HVAC diffuser or return">hvac</button>
+<button class="rb ms" aria-label="Smoke or CO detector">detector_smoke</button>
+<button class="rb ms" aria-label="Speaker or low voltage">speaker</button>
+<button class="rb ms" aria-label="Access panel">crop_square</button>
+<button class="rb ms" aria-label="Soffit, tray, coffer">layers</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Height and material tag">sell</button>
+<span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Ceiling" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg">Floor</button><button class="seg segon">Ceiling</button><button class="seg">Both</button></div>
+<span class="lbl">Family room ceiling</span>
+<div style="padding: 0 14px; display: flex; flex-direction: column; gap: 4px; font-size: 14px"><span>Vaulted, ridge east–west</span><span class="mono" style="font-size: 12px; color: #5e6672">walls 8' 0" · ridge 13' 0" · 9.4/12</span><button class="b" style="margin-top: 6px; justify-content: center">Change ceiling</button></div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 14px">Lighting</span>
+<div style="padding: 0 10px; display: flex; flex-direction: column; gap: 6px"><button class="b" style="justify-content: flex-start"><span class="ms" style="font-size: 18px">auto_awesome</span>Auto-layout cans</button><button class="b" style="justify-content: flex-start"><span class="ms" style="font-size: 18px">toggle_on</span>Switching zones</button></div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 14px">Fixture schedule</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px 12px">
+<div class="row"><span class="mono" style="width: 22px; font-weight: 500">A</span><span style="flex: 1">4" can, 3000K</span><span class="mono" style="font-size: 13px; color: #5e6672">×8</span></div>
+<div class="row"><span class="mono" style="width: 22px; font-weight: 500">F</span><span style="flex: 1">Fan, 52"</span><span class="mono" style="font-size: 13px; color: #5e6672">×1</span></div>
+<div class="row"><span class="mono" style="width: 22px; font-weight: 500">S</span><span style="flex: 1">Speaker, in-ceiling</span><span class="mono" style="font-size: 13px; color: #5e6672">×2</span></div>
+<div class="row"><span class="mono" style="width: 22px; font-weight: 500">T</span><span style="flex: 1">2x2 LED troffer</span><span class="mono" style="font-size: 13px; color: #5e6672">×2</span></div>
+</div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative">
+<svg viewBox="0 0 760 560" role="img" aria-label="Reflected ceiling plan: vaulted family room with ridge, five level beams, eight cans, fan, detector, speakers and diffusers; laundry with a balanced 2x2 acoustical grid" style="position: absolute; left: 10px; top: 20px; width: 860px; height: 634px; font-family: 'DM Mono', monospace">
+<path d="M60 80 H700 V300 H520 V448 H60 Z" style="fill: none; stroke: #3b424d; stroke-width: 10; stroke-linejoin: miter"></path>
+<line x1="520" y1="80" x2="520" y2="300" style="stroke: #3b424d; stroke-width: 6"></line>
+<line x1="65" y1="264" x2="515" y2="264" style="stroke: #7a828e; stroke-width: 1.2; stroke-dasharray: 14 5 3 5"></line>
+<text x="70" y="256" style="font-size: 11px; fill: #5e6672">RIDGE 13' 0"</text>
+<rect x="100" y="85" width="12" height="358" style="fill: #c9a27a; stroke: #7a5534"></rect>
+<rect x="192" y="85" width="12" height="358" style="fill: #c9a27a; stroke: #7a5534"></rect>
+<rect x="284" y="85" width="12" height="358" style="fill: #c9a27a; stroke: oklch(0.55 0.17 262); stroke-width: 2.5"></rect>
+<rect x="376" y="85" width="12" height="358" style="fill: #c9a27a; stroke: #7a5534"></rect>
+<rect x="468" y="85" width="12" height="358" style="fill: #c9a27a; stroke: #7a5534"></rect>
+<path d="M152 172 L244 172 L244 356 L152 356 Z M336 172 L428 172 L428 356 L336 356" style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1; stroke-dasharray: 4 3"></path>
+<circle cx="152" cy="172" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><circle cx="244" cy="172" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><circle cx="336" cy="172" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><circle cx="428" cy="172" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle>
+<circle cx="152" cy="356" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><circle cx="244" cy="356" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><circle cx="336" cy="356" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><circle cx="428" cy="356" r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle>
+<text x="164" y="168" style="font-size: 11px; fill: #5e6672">A</text>
+<circle cx="244" cy="264" r="22" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><path d="M244 264 L244 246 M244 264 L260 274 M244 264 L228 274" style="stroke: #14171c; stroke-width: 1.5"></path><text x="270" y="290" style="font-size: 11px; fill: #5e6672">F</text>
+<circle cx="428" cy="264" r="11" style="fill: #fff; stroke: #14171c; stroke-width: 1.5"></circle><text x="428" y="268" style="font-size: 9px; fill: #14171c; text-anchor: middle">SD</text>
+<circle cx="152" cy="264" r="9" style="fill: #fff; stroke: #14171c"></circle><circle cx="152" cy="264" r="4" style="fill: none; stroke: #14171c"></circle>
+<circle cx="336" cy="264" r="9" style="fill: #fff; stroke: #14171c"></circle><circle cx="336" cy="264" r="4" style="fill: none; stroke: #14171c"></circle>
+<rect x="72" y="92" width="18" height="18" style="fill: #fff; stroke: #14171c"></rect><path d="M72 92 L90 110 M90 92 L72 110" style="stroke: #14171c"></path>
+<rect x="72" y="418" width="18" height="18" style="fill: #fff; stroke: #14171c"></rect><path d="M72 418 L90 436 M90 418 L72 436" style="stroke: #14171c"></path>
+<path d="M541 85 V295 M587 85 V295 M633 85 V295 M679 85 V295 M525 103 H695 M525 149 H695 M525 195 H695 M525 241 H695 M525 287 H695" style="stroke: #b9c0c9; stroke-width: 1"></path>
+<rect x="587" y="149" width="46" height="46" style="fill: #eef1ff; stroke: #14171c"></rect><rect x="587" y="195" width="46" height="46" style="fill: #fff; stroke: #14171c"></rect><path d="M587 195 L633 241 M633 195 L587 241" style="stroke: #14171c"></path>
+<rect x="160" y="404" width="208" height="28" rx="14" style="fill: #fff; stroke: #dfe2e6"></rect><text x="264" y="422" style="font-size: 12px; fill: #14171c; text-anchor: middle">CLG 8' to 13' · drywall</text>
+<rect x="540" y="312" width="150" height="28" rx="14" style="fill: #fff; stroke: #dfe2e6"></rect><text x="615" y="330" style="font-size: 12px; fill: #14171c; text-anchor: middle">CLG 8' 0" · ACT 2x2</text>
+<text x="230" y="508" style="font-family: 'Instrument Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; fill: #9aa3af">FAMILY ROOM · 320 SF</text>
+<text x="548" y="380" style="font-family: 'Instrument Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; fill: #9aa3af">LAUNDRY</text>
+<rect x="404" y="40" width="96" height="26" rx="13" style="fill: oklch(0.55 0.17 262)"></rect><text x="452" y="58" style="font-size: 13px; fill: #fff; text-anchor: middle">4' 0" o.c.</text>
+<line x1="290" y1="70" x2="382" y2="70" style="stroke: oklch(0.55 0.17 262); stroke-dasharray: 4 4"></line>
+</svg>
+<div style="position: absolute; left: 20px; bottom: 20px; display: flex; gap: 14px; font-size: 12px; color: #5e6672; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px; padding: 8px 12px"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 18px; height: 1px; border-top: 1px dashed oklch(0.55 0.17 262)"></span>Switch zone</span><span>Grid balanced: borders <span class="mono" style="color: #14171c">11"</span> and <span class="mono" style="color: #14171c">9 1/2"</span></span></div>
+<div style="position: absolute; right: 16px; top: 16px; display: flex; flex-direction: column; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px"><button class="zb ms" aria-label="Zoom in" style="border-bottom: 1px solid #eef0f3">add</button><button class="zb ms" aria-label="Zoom out" style="border-bottom: 1px solid #eef0f3">remove</button><button class="zb ms" aria-label="Fit to screen">fit_screen</button></div>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 18px 18px 14px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Faux beams</span><span style="font-size: 13px; color: #5e6672">5 beams · family room</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #eef1ff; color: oklch(0.45 0.17 262)">New</span></div>
+<div style="padding: 0 18px 16px; display: flex; flex-direction: column; gap: 10px">
+<label class="fl">Placement<select><option>Level beams in vault</option><option>Follow slope</option><option>On flat ceiling</option></select></label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<label class="fl">Height AFF<input value="9' 0&quot;"></label><label class="fl">Match<select><option>Adjoining room</option><option>Custom</option></select></label>
+<label class="fl">Size W × H<input value="6&quot; × 8&quot;"></label><label class="fl">Spacing<input value="4' 0&quot; o.c."></label>
+<label class="fl">Direction<select><option>Across ridge</option><option>With ridge</option></select></label><label class="fl">End detail<select><option>Square to slope</option><option>Corbel</option></select></label>
+</div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Section A-A</span>
+<svg width="300" height="120" viewBox="0 0 330 140" role="img" aria-label="Section: vault rises above beams set level at the adjoining 9 foot ceiling">
+<line x1="0" y1="75" x2="60" y2="75" style="stroke: #9aa3af; stroke-width: 2; stroke-dasharray: 5 4"></line>
+<path d="M60 128 V90 L165 20 L270 90 V128" style="fill: none; stroke: #3b424d; stroke-width: 3"></path>
+<rect x="83" y="70" width="164" height="10" style="fill: #c9a27a; stroke: oklch(0.55 0.17 262); stroke-width: 1.5"></rect>
+<line x1="0" y1="128" x2="330" y2="128" style="stroke: #3b424d; stroke-width: 2"></line>
+<text x="0" y="66" style="font: 400 11px 'DM Mono', monospace; fill: #5e6672">adj. 9' 0"</text><text x="130" y="100" style="font: 400 11px 'DM Mono', monospace; fill: #5e6672">beams 9' 0"</text><text x="180" y="22" style="font: 400 11px 'DM Mono', monospace; fill: #5e6672">ridge 13' 0"</text>
+</svg>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Client selections</span>
+<button style="display: flex; align-items: center; gap: 10px; border: 1px solid #dfe2e6; border-radius: 10px; padding: 8px; background: #fff; cursor: pointer; text-align: left; font-family: 'Instrument Sans', sans-serif"><span style="width: 44px; height: 44px; border-radius: 7px; background: #6e4a2c"></span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 500; color: #14171c">Beam finish</span><span style="font-size: 12px; color: #5e6672">Faux walnut, hand-hewn</span></span></button>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 16px 18px; display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 10px">Make options A / B / C</button><button class="b ms" aria-label="More" style="width: 42px; justify-content: center; padding: 0; font-size: 20px">more_horiz</button></div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">View</span><span class="sv">Reflected ceiling plan</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Scale</span><span class="sv">1/4" = 1'-0"</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Joists</span><span class="sv">unknown · beam clash checks off</span></div>
+<span style="flex: 1"></span><span class="sv">100%</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

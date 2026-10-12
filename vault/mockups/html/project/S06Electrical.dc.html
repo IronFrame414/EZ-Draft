@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft electrical</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.tb{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;padding:7px 11px;border-radius:7px;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer}
+.tbon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.cr{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;font-size:13px}
+.cron{background:#eef1ff}
+.cn{font:500 12px 'DM Mono',monospace;width:30px;height:22px;border-radius:5px;background:#f2f4f7;color:#3b424d;display:flex;align-items:center;justify-content:center;flex:none}
+.cron .cn{background:oklch(0.55 0.17 262);color:#fff}
+.lc{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:3px 0}
+.lc .mono{color:#14171c}
+.ck{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.35}
+.ssg{display:flex;padding:2px;gap:2px;background:#f2f4f7;border-radius:6px}
+.ssi{border:0;background:transparent;font:400 12px 'DM Mono',monospace;color:#5e6672;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ssion{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<div style="display: flex; align-items: center"><span style="width: 30px; height: 30px; border-radius: 50%; background: oklch(0.72 0.16 65); color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 0 0 1px oklch(0.72 0.16 65)">MR</span><span style="width: 30px; height: 30px; border-radius: 50%; background: #14171c; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -8px">JB</span></div>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Fixtures">wash</button><button class="rb rbon ms" aria-label="Electrical (E)" aria-pressed="true">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Detail">frame_inspect</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Circuits" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg segon">Circuits</button><button class="seg">Devices</button><button class="seg">Panel</button></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 6px"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Panel A · 200A main</span><span class="mono" style="font-size: 11px; color: #9aa3af">AMPS · VA</span></div>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="cr"><span class="cn">12</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Small appl. 1<span class="mono" style="font-size: 11px; color: #5e6672">20A · GFCI · 4 rcpt</span></span><span class="mono" style="font-size: 12px; color: #5e6672">1500</span></div>
+<div class="cr cron"><span class="cn">14</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px; font-weight: 600">Small appl. 2<span class="mono" style="font-size: 11px; color: oklch(0.45 0.17 262); font-weight: 400">20A · GFCI · 4 rcpt</span></span><span class="mono" style="font-size: 12px; color: oklch(0.45 0.17 262)">1500</span></div>
+<div class="cr"><span class="cn">16</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Refrigerator<span class="mono" style="font-size: 11px; color: #5e6672">20A · dedicated</span></span><span class="mono" style="font-size: 12px; color: #5e6672">720</span></div>
+<div class="cr"><span class="cn">18</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Dishwasher<span class="mono" style="font-size: 11px; color: #5e6672">20A · GFCI · ded.</span></span><span class="mono" style="font-size: 12px; color: #5e6672">1200</span></div>
+<div class="cr"><span class="cn">20</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Disposal<span class="mono" style="font-size: 11px; color: #5e6672">20A · GFCI · ded.</span></span><span class="mono" style="font-size: 12px; color: #5e6672">960</span></div>
+<div class="cr"><span class="cn">22</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Microwave, OTR<span class="mono" style="font-size: 11px; color: #5e6672">20A · dedicated</span></span><span class="mono" style="font-size: 12px; color: #5e6672">1500</span></div>
+<div class="cr"><span class="cn" style="font-size: 11px">1-3</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Range<span class="mono" style="font-size: 11px; color: #5e6672">50A · 2-pole · 6/3</span></span><span class="mono" style="font-size: 12px; color: #5e6672">12000</span></div>
+<div class="cr"><span class="cn">24</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Kitchen lighting<span class="mono" style="font-size: 11px; color: #5e6672">15A · AFCI · 9 fix.</span></span><span class="mono" style="font-size: 12px; color: #5e6672">171</span></div>
+</div>
+<button class="b" style="margin: 10px 14px 0; justify-content: center; font-size: 13px; padding: 7px 10px; color: #9aa3af" disabled><span class="ms" style="font-size: 18px">add</span>New circuit</button>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 14px">Show</span>
+<div style="padding: 0 14px; display: flex; flex-wrap: wrap; gap: 6px"><button class="chip chipon">Receptacles</button><button class="chip chipon">Switch legs</button><button class="chip chipon">Lighting</button><button class="chip">Home runs</button><button class="chip">Low voltage</button></div>
+<div style="padding: 10px 14px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px"><span>Height notes</span><div class="ssg" role="group" aria-label="Device height notes"><button class="ssi">Off</button><button class="ssi ssion" aria-pressed="true">On</button></div></div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 14px; border-top: 1px solid #eef0f3; display: flex; justify-content: space-between; font-size: 12px; color: #5e6672"><span>8 circuits · 9 spaces</span><span class="mono" style="color: #14171c">19,551 VA</span></div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<div role="status" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-radius: 10px; background: oklch(0.96 0.04 80); border: 1px solid oklch(0.88 0.08 75); color: oklch(0.42 0.12 65); font-size: 14px">
+<span class="ms" style="font-size: 20px">lock</span>
+<span style="flex: 1"><span style="font-weight: 600">[Name] is editing since 9:42 AM</span> · view only</span>
+<span style="font-size: 12px; color: oklch(0.48 0.13 65)">You can pan, zoom and measure</span>
+<button class="b" style="padding: 6px 12px; font-size: 13px; font-weight: 600; border-color: oklch(0.8 0.1 70); color: oklch(0.42 0.12 65)"><span class="ms" style="font-size: 17px">front_hand</span>Request edit</button>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: 0 6px 20px rgba(20,30,50,.08); opacity: .55">
+<button class="tb tbon"><span class="ms" style="font-size: 18px">outlet</span>Receptacle</button>
+<button class="tb"><span class="ms" style="font-size: 18px">toggle_on</span>Switch</button>
+<button class="tb"><span class="ms" style="font-size: 18px">light</span>Light</button>
+<button class="tb"><span class="ms" style="font-size: 18px">conversion_path</span>Switch leg</button>
+<button class="tb"><span class="ms" style="font-size: 18px">electric_bolt</span>Circuit</button>
+</div>
+<span style="font-size: 13px; color: #9aa3af">Editing tools paused while view only</span>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65); display: flex; align-items: center; gap: 5px"><span class="ms" style="font-size: 16px">rule</span>Last check 10:41 AM · 1 warning</span>
+</div>
+<svg viewBox="0 0 880 650" role="img" aria-label="Electrical kitchen plan: countertop GFCI receptacles on circuits 12 and 14, dedicated circuits for refrigerator, dishwasher, disposal, microwave and 50 amp range, recessed cans and island pendants with dashed switch legs to switches at the door. Circuit 14 is selected." style="width: 100%; flex: 1; min-height: 0; font-family: 'DM Mono', monospace">
+<defs>
+<g id="rcp" style="stroke: currentColor; stroke-width: 1.4"><circle r="7" style="fill: #fff"></circle><line x1="-3" y1="-11" x2="-3" y2="11"></line><line x1="3" y1="-11" x2="3" y2="11"></line></g>
+<g id="can"><circle r="9" style="fill: #fff; stroke: #3b424d; stroke-width: 1.3"></circle><circle r="4" style="fill: none; stroke: #3b424d; stroke-width: 1"></circle></g>
+<g id="pen"><circle r="9" style="fill: #fff; stroke: #3b424d; stroke-width: 1.3"></circle><line x1="-6" y1="-6" x2="6" y2="6" style="stroke: #3b424d"></line><line x1="6" y1="-6" x2="-6" y2="6" style="stroke: #3b424d"></line></g>
+<pattern id="ctr" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" style="stroke: #eceae4; stroke-width: 2"></line></pattern>
+</defs>
+<!-- walls -->
+<path d="M140 80 H360 M460 80 H700 V270 M700 440 V580 H660 M580 580 H140 V80" style="fill: none; stroke: #3b424d; stroke-width: 12; stroke-linecap: square"></path>
+<line x1="360" y1="80" x2="460" y2="80" style="stroke: #9aa3af; stroke-width: 4"></line><line x1="360" y1="76" x2="460" y2="76" style="stroke: #9aa3af; stroke-width: 1"></line><line x1="360" y1="84" x2="460" y2="84" style="stroke: #9aa3af; stroke-width: 1"></line>
+<path d="M580 580 A80 80 0 0 1 660 500" style="fill: none; stroke: #9aa3af; stroke-dasharray: 3 3"></path><line x1="660" y1="580" x2="660" y2="500" style="stroke: #7a828e"></line>
+<text x="720" y="360" style="font-size: 11px; fill: #9aa3af">TO FAMILY RM</text>
+<!-- counters and appliances -->
+<path d="M146 86 H580 V160 H220 V500 H146 Z" style="fill: #f8f7f4; stroke: #9aa3af"></path>
+<rect x="146" y="86" width="434" height="74" style="fill: url(#ctr)"></rect>
+<rect x="584" y="86" width="110" height="88" style="fill: #fff; stroke: #9aa3af"></rect><text x="639" y="140" style="font-size: 11px; fill: #7a828e; text-anchor: middle">REF</text>
+<rect x="364" y="96" width="76" height="52" rx="10" style="fill: #fff; stroke: #7a828e"></rect><text x="402" y="126" style="font-size: 10px; fill: #7a828e; text-anchor: middle">SINK</text>
+<rect x="284" y="88" width="78" height="70" style="fill: none; stroke: #9aa3af; stroke-dasharray: 4 3"></rect><text x="323" y="128" style="font-size: 10px; fill: #9aa3af; text-anchor: middle">DW</text>
+<rect x="148" y="300" width="70" height="100" style="fill: #fff; stroke: #7a828e"></rect>
+<circle cx="168" cy="325" r="10" style="fill: none; stroke: #9aa3af"></circle><circle cx="198" cy="325" r="10" style="fill: none; stroke: #9aa3af"></circle><circle cx="168" cy="375" r="10" style="fill: none; stroke: #9aa3af"></circle><circle cx="198" cy="375" r="10" style="fill: none; stroke: #9aa3af"></circle>
+<text x="245" y="355" style="font-size: 10px; fill: #7a828e">RANGE + MW ABOVE</text>
+<rect x="340" y="290" width="240" height="110" style="fill: oklch(0.97 0.015 262); stroke: oklch(0.7 0.08 262)"></rect>
+<text x="460" y="388" style="font-size: 10px; fill: oklch(0.55 0.08 262); text-anchor: middle">ISLAND</text>
+<!-- switch legs -->
+<g style="fill: none; stroke: #7a828e; stroke-width: 1.2; stroke-dasharray: 5 4">
+<path d="M548 560 Q580 520 580 479"></path>
+<path d="M571 470 Q510 440 449 470"></path><path d="M431 470 Q370 440 309 470"></path>
+<path d="M300 461 Q260 340 300 224"></path>
+<path d="M309 215 Q370 185 431 215"></path><path d="M449 215 Q510 185 571 215"></path>
+<path d="M520 560 Q500 470 520 354"></path>
+<path d="M511 345 Q490 320 469 345"></path><path d="M451 345 Q430 320 409 345"></path>
+<path d="M332 112 Q360 160 395 150"></path>
+</g>
+<!-- lights -->
+<use href="#can" x="300" y="215"></use><use href="#can" x="440" y="215"></use><use href="#can" x="580" y="215"></use>
+<use href="#can" x="300" y="470"></use><use href="#can" x="440" y="470"></use><use href="#can" x="580" y="470"></use>
+<use href="#pen" x="400" y="345"></use><use href="#pen" x="460" y="345"></use><use href="#pen" x="520" y="345"></use>
+<!-- switches -->
+<g style="font-size: 11px; fill: #14171c; font-weight: 500">
+<text x="540" y="572">S3</text><text x="512" y="572">S</text>
+<text x="324" y="114">S</text><text x="333" y="117" style="font-size: 8px">D</text>
+</g>
+<line x1="506" y1="574" x2="560" y2="574" style="stroke: #14171c; stroke-width: 1"></line>
+<!-- disposal and DW junctions -->
+<g style="font-size: 9px; fill: #3b424d; text-anchor: middle">
+<rect x="388" y="143" width="14" height="14" style="fill: #fff; stroke: #3b424d"></rect><text x="395" y="153">J</text>
+<rect x="316" y="143" width="14" height="14" style="fill: #fff; stroke: #3b424d"></rect><text x="323" y="153">J</text>
+</g>
+<!-- receptacles circuit 12 (top run) -->
+<g style="color: #14171c">
+<use href="#rcp" transform="translate(200 96) rotate(0)"></use><use href="#rcp" transform="translate(320 96)"></use><use href="#rcp" transform="translate(470 96)"></use><use href="#rcp" transform="translate(560 96)"></use>
+</g>
+<g style="font-size: 8px; fill: #5e6672; text-anchor: middle"><text x="200" y="119">GFI</text><text x="320" y="119">GFI</text><text x="470" y="119">GFI</text><text x="560" y="119">GFI</text></g>
+<!-- fridge, micro, range -->
+<g style="color: #14171c"><use href="#rcp" transform="translate(660 96)"></use><use href="#rcp" transform="translate(148 316) rotate(90)"></use></g>
+<g transform="translate(148 382)"><circle r="8" style="fill: #fff; stroke: #14171c; stroke-width: 1.4"></circle><path d="M0 -8 A8 8 0 0 1 0 8 Z" style="fill: #14171c"></path></g>
+<text x="104" y="320" style="font-size: 9px; fill: #5e6672; text-anchor: end">MW +66"</text><text x="104" y="386" style="font-size: 9px; fill: #5e6672; text-anchor: end">50A</text>
+<!-- receptacles circuit 14 (selected) -->
+<g style="color: oklch(0.5 0.17 262)">
+<use href="#rcp" transform="translate(148 200) rotate(90)"></use><use href="#rcp" transform="translate(148 262) rotate(90)"></use><use href="#rcp" transform="translate(148 450) rotate(90)"></use>
+<use href="#rcp" transform="translate(574 345) rotate(90)"></use>
+</g>
+<g style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1.6">
+<path d="M159 200 Q186 231 159 262"></path><path d="M159 262 Q250 270 290 300 Q330 330 563 345"></path><path d="M159 450 Q260 470 330 420 Q420 380 563 349"></path>
+<path d="M137 450 Q110 470 112 520" style="stroke-dasharray: 0"></path>
+</g>
+<path d="M106 512 L112 526 L118 512 Z" style="fill: oklch(0.55 0.17 262)"></path>
+<rect x="76" y="530" width="72" height="20" rx="10" style="fill: oklch(0.55 0.17 262)"></rect><text x="112" y="544" style="font-size: 11px; fill: #fff; text-anchor: middle; font-weight: 500">A-14</text>
+<g style="font-size: 8px; fill: oklch(0.45 0.17 262); text-anchor: middle"><text x="124" y="204">GFI</text><text x="124" y="266">GFI</text><text x="124" y="454">GFI</text><text x="598" y="349">GFI</text></g>
+<!-- circuit tags -->
+<g style="font-size: 10px; font-weight: 500; text-anchor: middle">
+<rect x="186" y="58" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="200" y="69" style="fill: #3b424d">12</text>
+<rect x="306" y="58" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="320" y="69" style="fill: #3b424d">12</text>
+<rect x="456" y="58" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="470" y="69" style="fill: #3b424d">12</text>
+<rect x="546" y="58" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="560" y="69" style="fill: #3b424d">12</text>
+<rect x="646" y="58" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="660" y="69" style="fill: #3b424d">16</text>
+<rect x="381" y="162" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="395" y="173" style="fill: #3b424d">20</text>
+<rect x="309" y="162" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="323" y="173" style="fill: #3b424d">18</text>
+<rect x="44" y="309" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="58" y="320" style="fill: #3b424d">22</text>
+<rect x="40" y="375" width="36" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="58" y="386" style="fill: #3b424d">1-3</text>
+<rect x="44" y="193" width="28" height="15" rx="4" style="fill: oklch(0.55 0.17 262)"></rect><text x="58" y="204" style="fill: #fff">14</text>
+<rect x="44" y="255" width="28" height="15" rx="4" style="fill: oklch(0.55 0.17 262)"></rect><text x="58" y="266" style="fill: #fff">14</text>
+<rect x="44" y="443" width="28" height="15" rx="4" style="fill: oklch(0.55 0.17 262)"></rect><text x="58" y="454" style="fill: #fff">14</text>
+<rect x="608" y="337" width="28" height="15" rx="4" style="fill: oklch(0.55 0.17 262)"></rect><text x="622" y="348" style="fill: #fff">14</text>
+<rect x="596" y="196" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="610" y="207" style="fill: #3b424d">24</text>
+<rect x="536" y="326" width="28" height="15" rx="4" style="fill: #fff; stroke: #9aa3af"></rect><text x="550" y="337" style="fill: #3b424d">24</text>
+</g>
+<!-- spacing callout on selected run -->
+<g style="stroke: oklch(0.55 0.17 262)"><line x1="236" y1="200" x2="236" y2="262"></line><line x1="231" y1="200" x2="241" y2="200"></line><line x1="231" y1="262" x2="241" y2="262"></line></g>
+<text x="246" y="235" style="font-size: 10px; fill: oklch(0.45 0.17 262)">1'-7"</text>
+<!-- dimensions -->
+<g style="stroke: #7a828e"><line x1="140" y1="32" x2="700" y2="32"></line><line x1="140" y1="26" x2="140" y2="38"></line><line x1="700" y1="26" x2="700" y2="38"></line>
+<line x1="790" y1="80" x2="790" y2="580"></line><line x1="784" y1="80" x2="796" y2="80"></line><line x1="784" y1="580" x2="796" y2="580"></line></g>
+<rect x="380" y="24" width="80" height="16" style="fill: #f6f7f9"></rect><text x="420" y="36" style="font-size: 12px; fill: #14171c; text-anchor: middle">11'-9 1/2"</text>
+<rect x="770" y="322" width="40" height="16" style="fill: #f6f7f9"></rect><text x="790" y="334" style="font-size: 12px; fill: #14171c; text-anchor: middle">14'-0"</text>
+<!-- legend -->
+<g style="font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #5e6672">
+<use href="#rcp" x="150" y="622" style="color: #14171c"></use><text x="166" y="626">Duplex · GFI = GFCI</text>
+<g transform="translate(300 622)"><circle r="7" style="fill: #fff; stroke: #14171c; stroke-width: 1.4"></circle><path d="M0 -7 A7 7 0 0 1 0 7 Z" style="fill: #14171c"></path></g><text x="314" y="626">240V range</text>
+<use href="#can" x="408" y="622"></use><text x="424" y="626">Recessed 4"</text>
+<use href="#pen" x="524" y="622"></use><text x="540" y="626">Pendant</text>
+<line x1="610" y1="622" x2="640" y2="622" style="stroke: #7a828e; stroke-dasharray: 5 4"></line><text x="648" y="626">Switch leg</text>
+<line x1="726" y1="622" x2="756" y2="622" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.6"></line><text x="764" y="626">Selected</text>
+</g>
+</svg>
+<div class="card" role="status" style="position: absolute; right: 14px; bottom: 76px; display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 12px; border-radius: 10px; background: oklch(0.95 0.05 150); border-color: oklch(0.85 0.08 150); color: oklch(0.42 0.12 150); font-size: 13px">
+<span class="ms" style="font-size: 18px">lock_open</span><span><span style="font-weight: 600">Available to edit</span> · [Name] left the plan</span>
+<button class="b" style="padding: 5px 10px; font-size: 12px; font-weight: 600; color: oklch(0.42 0.12 150); border-color: oklch(0.82 0.08 150)">Start editing</button>
+</div>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Panel load calc</span><span style="font-size: 12px; color: #5e6672">NEC 2023 · Art. 220 standard method</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">200A OK</span></div>
+<div style="padding: 0 18px 12px; display: flex; flex-direction: column">
+<div class="lc"><span style="color: #5e6672">General lighting <span class="mono" style="font-size: 11px; color: #9aa3af">2,450 sf × 3</span></span><span class="mono">7,350</span></div>
+<div class="lc"><span style="color: #5e6672">Small appliance <span class="mono" style="font-size: 11px; color: #9aa3af">2 × 1,500</span></span><span class="mono">3,000</span></div>
+<div class="lc"><span style="color: #5e6672">Laundry</span><span class="mono">1,500</span></div>
+<div class="lc" style="border-top: 1px dashed #dfe2e6; margin-top: 3px; padding-top: 6px"><span style="color: #5e6672">Demand <span class="mono" style="font-size: 11px; color: #9aa3af">3k @100% + 35%</span></span><span class="mono">6,098</span></div>
+<div class="lc"><span style="color: #5e6672">Fixed appl. <span class="mono" style="font-size: 11px; color: #9aa3af">8,160 × 75%</span></span><span class="mono">6,120</span></div>
+<div class="lc"><span style="color: #5e6672">Dryer <span class="mono" style="font-size: 11px; color: #9aa3af">220.54</span></span><span class="mono">5,000</span></div>
+<div class="lc"><span style="color: #5e6672">Range 12 kW <span class="mono" style="font-size: 11px; color: #9aa3af">T220.55 col C</span></span><span class="mono">8,000</span></div>
+<div class="lc"><span style="color: #5e6672">HVAC, larger of <span class="mono" style="font-size: 11px; color: #9aa3af">220.60</span></span><span class="mono">9,600</span></div>
+<div class="lc"><span style="color: #5e6672">Largest motor 25%</span><span class="mono">1,050</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #dfe2e6; margin-top: 6px; padding-top: 8px"><span style="font-weight: 600">Total</span><span class="mono" style="font-size: 15px; font-weight: 500">35,868 VA</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 4px"><span style="color: #5e6672; font-size: 13px">÷ 240V</span><span class="mono" style="font-size: 15px; font-weight: 500">149.5 A</span></div>
+<div style="height: 6px; border-radius: 999px; background: #eef0f3; margin-top: 10px; overflow: hidden"><div style="width: 75%; height: 100%; background: oklch(0.6 0.13 150)"></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #5e6672; margin-top: 5px"><span>75% of 200A service</span><span class="mono">50.5 A spare</span></div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 14px 18px; display: flex; flex-direction: column; gap: 9px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Selected circuit</span><span class="mono" style="font-size: 12px; padding: 2px 7px; border-radius: 5px; background: oklch(0.55 0.17 262); color: #fff">A-14</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Small appliance 2</span><span style="font-size: 12px; color: #5e6672">Left run + island · 4 receptacles</span></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 13px">
+<span style="color: #5e6672">Breaker</span><span class="mono">20A 1P · DF</span>
+<span style="color: #5e6672">Wire</span><span class="mono">12/2 NM-B</span>
+<span style="color: #5e6672">Run</span><span class="mono">58 ft</span>
+<span style="color: #5e6672">V-drop @16A</span><span class="mono" style="color: oklch(0.48 0.13 65)">3.1%</span>
+</div>
+<div class="ck"><span class="ms" style="font-size: 17px; color: oklch(0.6 0.15 65)">warning</span><span>V-drop 3.1% is over the 3% limit (Defaults). Use 10/2 or shorten the run.</span></div>
+<div class="ck"><span class="ms" style="font-size: 17px; color: oklch(0.5 0.12 150)">check_circle</span><span>Counter spacing ≤ 48", ≤ 24" from ends · 210.52(C)</span></div>
+<div class="ck"><span class="ms" style="font-size: 17px; color: oklch(0.5 0.12 150)">check_circle</span><span>GFCI + AFCI, dual function breaker · 210.8, 210.12</span></div>
+<div class="ck"><span class="ms" style="font-size: 17px; color: oklch(0.5 0.12 150)">check_circle</span><span>2 small-appliance circuits min · 210.11(C)(1)</span></div>
+<div style="display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; background: #f6f7f9; color: #5e6672; font-size: 12px; line-height: 1.4"><span class="ms" style="font-size: 16px">info</span><span>Permits applied after Dec 31, 2026 use FBC 9th ed. Load calc only; no structural calcs.</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 14px 18px; display: flex; gap: 8px; border-top: 1px solid #eef0f3"><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 10px">Panel schedule</button><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 10px">Add to E2.0</button></div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">View</span><div class="ssg" role="group" aria-label="Phase view"><button class="ssi">Existing</button><button class="ssi ssion">Proposed</button></div></div>
+<div style="display: flex; gap: 6px"><span class="sl">Layer</span><span class="sv">Power + lighting</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Scale</span><span class="sv">1/2" = 1'-0"</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Service</span><span class="sv">200A · 149.5A calc</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Code</span><span class="sv">NEC 2023 · FBC 9th ed.</span></div>
+<div style="display: flex; gap: 6px; color: oklch(0.48 0.13 65)"><span class="ms" style="font-size: 14px">lock</span><span>View only</span></div>
+<span style="flex: 1"></span>
+<span class="sv">100%</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

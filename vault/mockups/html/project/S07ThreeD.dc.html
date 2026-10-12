@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft 3D</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.tb{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;padding:7px 11px;border-radius:7px;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer}
+.tbon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.sv1{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;font-size:13px}
+.sv1on{background:#eef1ff}
+.thm{width:52px;height:36px;border-radius:6px;border:1px solid #dfe2e6;background:#f6f7f9;flex:none;overflow:hidden}
+.ly{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:7px;font-size:13px}
+.ly .ms{font-size:18px;color:#7a828e}
+.sw{width:10px;height:10px;border-radius:3px;flex:none}
+.op{border:1px solid #dfe2e6;border-radius:10px;padding:10px 12px;display:flex;gap:12px;align-items:flex-start;background:#fff}
+.opon{border:2px solid oklch(0.55 0.17 262);padding:9px 11px;background:#fbfcff}
+.ol{font:600 12px 'DM Mono',monospace;width:24px;height:24px;border-radius:6px;background:#f2f4f7;color:#3b424d;display:flex;align-items:center;justify-content:center;flex:none}
+.opon .ol{background:oklch(0.55 0.17 262);color:#fff}
+.int{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#7a828e}
+.ssg{display:flex;padding:2px;gap:2px;background:#f2f4f7;border-radius:6px}
+.ssi{border:0;background:transparent;font:400 12px 'DM Mono',monospace;color:#5e6672;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ssion{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht">Plan</a><a href="#" class="ht hton" aria-current="page">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb rbon ms" aria-label="Select (V)" aria-pressed="true">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Fixtures">wash</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Detail">frame_inspect</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Views and layers" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 6px"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Saved views</span><span class="mono" style="font-size: 11px; color: #9aa3af">4</span></div>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 2px">
+<div class="sv1 sv1on"><span class="thm"><svg width="52" height="36" viewBox="0 0 52 36" aria-hidden="true"><path d="M4 30 L26 34 L48 26 L48 14 L26 4 L4 14 Z" style="fill: #efe7da; stroke: #9aa3af"></path><path d="M10 14 L26 6 L42 14 M14 15 L30 7 M18 16 L34 8 M22 17 L38 9" style="fill: none; stroke: #8e6440; stroke-width: 1.5"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px; font-weight: 600">Family room, overview<span class="mono" style="font-size: 11px; color: oklch(0.45 0.17 262); font-weight: 400">orbit · 60°</span></span></div>
+<div class="sv1"><span class="thm"><svg width="52" height="36" viewBox="0 0 52 36" aria-hidden="true"><path d="M0 36 L26 4 L52 36 Z" style="fill: #f1eee8; stroke: #9aa3af"></path><path d="M10 36 L26 12 L42 36 M2 30 L26 4 M50 30 L26 4" style="fill: none; stroke: #8e6440; stroke-width: 1.5"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Vault, look up<span class="mono" style="font-size: 11px; color: #5e6672">walk · eye 5'-6"</span></span></div>
+<div class="sv1"><span class="thm"><svg width="52" height="36" viewBox="0 0 52 36" aria-hidden="true"><rect x="8" y="20" width="36" height="10" style="fill: #e9ebee; stroke: #9aa3af"></rect><path d="M16 0 V12 M26 0 V12 M36 0 V12" style="stroke: #3b424d"></path><ellipse cx="16" cy="13" rx="4" ry="2.5" style="fill: #3b424d"></ellipse><ellipse cx="26" cy="13" rx="4" ry="2.5" style="fill: #3b424d"></ellipse><ellipse cx="36" cy="13" rx="4" ry="2.5" style="fill: #3b424d"></ellipse></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Island from family rm<span class="mono" style="font-size: 11px; color: #5e6672">walk · eye 5'-6"</span></span></div>
+<div class="sv1"><span class="thm"><svg width="52" height="36" viewBox="0 0 52 36" aria-hidden="true"><rect x="4" y="6" width="44" height="26" style="fill: #f7f5f1; stroke: #9aa3af"></rect><rect x="8" y="10" width="36" height="7" style="fill: #f4f5f7; stroke: #9aa3af"></rect><rect x="8" y="22" width="36" height="10" style="fill: #f4f5f7; stroke: #9aa3af"></rect></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px">Kitchen wall, straight<span class="mono" style="font-size: 11px; color: #5e6672">ortho · elev A</span></span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 10px">Layers</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="ly"><span class="sw" style="background: #9aa3af"></span><span style="flex: 1">Walls + openings</span><span class="ms">visibility</span></div>
+<div class="ly"><span class="sw" style="background: #e4ddd0"></span><span style="flex: 1">Ceiling</span><span class="mono" style="font-size: 11px; color: #5e6672">50%</span><span class="ms">visibility</span></div>
+<div class="ly" style="background: #f6f7f9"><span class="sw" style="background: #a87c55"></span><span style="flex: 1; font-weight: 500">Faux beams · option B</span><span class="ms" style="color: #3b424d">visibility</span></div>
+<div class="ly"><span class="sw" style="background: #e9ebee; border: 1px solid #9aa3af; box-sizing: border-box"></span><span style="flex: 1">Cabinets + tops</span><span class="ms">visibility</span></div>
+<div class="ly"><span class="sw" style="background: #bfc4cc"></span><span style="flex: 1">Furniture</span><span class="ms">visibility</span></div>
+<div class="ly"><span class="sw" style="background: #3b424d"></span><span style="flex: 1">Lighting</span><span class="ms">visibility</span></div>
+<div class="ly" style="color: #9aa3af"><span class="sw" style="background: oklch(0.6 0.19 28)"></span><span style="flex: 1">Demo</span><span class="ms" style="color: #c4c9d0">visibility_off</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 14px; border-top: 1px solid #eef0f3; display: flex; justify-content: space-between; font-size: 12px; color: #5e6672"><span>Model synced with plan</span><span class="mono" style="color: #14171c">Working copy</span></div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 10px">
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<button class="tb tbon"><span class="ms" style="font-size: 18px">3d_rotation</span>Orbit</button>
+<button class="tb"><span class="ms" style="font-size: 18px">directions_walk</span>Walk</button>
+<button class="tb"><span class="ms" style="font-size: 18px">north</span>Look up</button>
+<button class="tb"><span class="ms" style="font-size: 18px">splitscreen_left</span>Section</button>
+<span style="width: 1px; background: #dfe2e6; margin: 4px 2px"></span>
+<button class="tb"><span class="ms" style="font-size: 18px">bookmark_add</span>Save view</button>
+</div>
+<span style="flex: 1"></span>
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: none"><button class="tb tbon">Shaded</button><button class="tb">Lines</button><button class="tb">X-ray</button></div>
+</div>
+<svg viewBox="0 20 880 700" role="img" aria-label="Isometric cutaway of a vaulted family room with a 14 foot ridge and three level faux beams at 4 feet 6 inches on center, opening to a kitchen with wall cabinets, range hood, island with three pendants and stools. Beam B2 is selected." style="width: 100%; flex: 1; min-height: 0; font-family: 'DM Mono', monospace">
+<polygon points="330.0,250.0 823.6,535.0 560.4,687.0 66.7,402.0" style="fill: #efe7da; stroke: #b9ad9a; stroke-width: 1"></polygon>
+<line x1="313.5" y1="259.5" x2="807.2" y2="544.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="297.1" y1="269.0" x2="790.7" y2="554.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="280.6" y1="278.5" x2="774.3" y2="563.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="264.2" y1="288.0" x2="757.8" y2="573.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="247.7" y1="297.5" x2="741.4" y2="582.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="231.3" y1="307.0" x2="724.9" y2="592.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="214.8" y1="316.5" x2="708.5" y2="601.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="198.4" y1="326.0" x2="692.0" y2="611.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="181.9" y1="335.5" x2="675.5" y2="620.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="165.5" y1="345.0" x2="659.1" y2="630.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="149.0" y1="354.5" x2="642.6" y2="639.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="132.5" y1="364.0" x2="626.2" y2="649.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="116.1" y1="373.5" x2="609.7" y2="658.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="99.6" y1="383.0" x2="593.3" y2="668.0" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<line x1="83.2" y1="392.5" x2="576.8" y2="677.5" style="stroke: #e2d7c4; stroke-width: 0.8"></line>
+<polygon points="626.2,421.0 823.6,535.0 560.4,687.0 362.9,573.0" style="fill: #eceef0; stroke: none"></polygon>
+<line x1="659.1" y1="440.0" x2="395.8" y2="592.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="692.0" y1="459.0" x2="428.7" y2="611.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="724.9" y1="478.0" x2="461.6" y2="630.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="757.8" y1="497.0" x2="494.5" y2="649.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="790.7" y1="516.0" x2="527.5" y2="668.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="593.3" y1="440.0" x2="790.7" y2="554.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="560.4" y1="459.0" x2="757.8" y2="573.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="527.5" y1="478.0" x2="724.9" y2="592.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="494.5" y1="497.0" x2="692.0" y2="611.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="461.6" y1="516.0" x2="659.1" y2="630.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="428.7" y1="535.0" x2="626.2" y2="649.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<line x1="395.8" y1="554.0" x2="593.3" y2="668.0" style="stroke: #dde0e4; stroke-width: 0.8"></line>
+<polygon points="330.0,250.0 823.6,535.0 823.6,364.0 330.0,79.0" style="fill: #f7f5f1; stroke: #9aa3af; stroke-width: 1"></polygon>
+<polygon points="330.0,250.0 66.7,402.0 66.7,231.0 198.4,60.0 330.0,79.0" style="fill: #f1eee8; stroke: #9aa3af; stroke-width: 1"></polygon>
+<polygon points="379.4,231.0 428.7,259.5 428.7,164.5 379.4,136.0" style="fill: #dfe9f2; stroke: #7a828e; stroke-width: 1"></polygon>
+<line x1="404.0" y1="245.2" x2="404.0" y2="150.2" style="stroke: #7a828e; stroke-width: 0.8"></line>
+<polygon points="461.6,278.5 511.0,307.0 511.0,212.0 461.6,183.5" style="fill: #dfe9f2; stroke: #7a828e; stroke-width: 1"></polygon>
+<line x1="486.3" y1="292.8" x2="486.3" y2="197.8" style="stroke: #7a828e; stroke-width: 0.8"></line>
+<polygon points="543.9,326.0 593.3,354.5 593.3,259.5 543.9,231.0" style="fill: #dfe9f2; stroke: #7a828e; stroke-width: 1"></polygon>
+<line x1="568.6" y1="340.2" x2="568.6" y2="245.2" style="stroke: #7a828e; stroke-width: 0.8"></line>
+<polygon points="231.3,113.2 165.5,151.2 198.4,94.2" style="fill: #dfe9f2; stroke: #7a828e; stroke-width: 1"></polygon>
+<polygon points="247.7,297.5 149.0,354.5 149.0,269.0 247.7,212.0" style="fill: #d8d3ca; stroke: #7a828e; stroke-width: 1"></polygon>
+<polygon points="223.0,300.4 173.7,328.9 173.7,287.1 223.0,258.6" style="fill: #3b424d; stroke: none"></polygon>
+<polygon points="254.3,208.2 264.2,213.9 152.3,278.5 142.4,272.8" style="fill: #a87c55; stroke: #7d5a3a; stroke-width: 0.8"></polygon>
+<polygon points="624.5,355.5 789.1,450.5 789.1,393.5 624.5,298.5" style="fill: #f4f5f7; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="807.2,440.0 789.1,450.5 789.1,393.5 807.2,383.0" style="fill: #e3e6ea; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="642.6,288.0 807.2,383.0 789.1,393.5 624.5,298.5" style="fill: #e9ecef; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<line x1="657.4" y1="372.6" x2="657.4" y2="319.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="690.4" y1="391.6" x2="690.4" y2="338.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="723.3" y1="410.6" x2="723.3" y2="357.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="756.2" y1="429.6" x2="756.2" y2="376.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<polygon points="609.7,449.5 774.3,544.5 774.3,487.5 609.7,392.5" style="fill: #f4f5f7; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="807.2,525.5 774.3,544.5 774.3,487.5 807.2,468.5" style="fill: #e3e6ea; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="642.6,373.5 807.2,468.5 774.3,487.5 609.7,392.5" style="fill: #ece9e3; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="642.6,373.5 807.2,468.5 772.6,488.5 608.1,393.5" style="fill: #f2f0eb; stroke: #9aa3af; stroke-width: 0.8"></polygon>
+<line x1="642.6" y1="462.8" x2="642.6" y2="413.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="675.5" y1="481.8" x2="675.5" y2="432.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="708.5" y1="500.8" x2="708.5" y2="451.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="741.4" y1="519.8" x2="741.4" y2="470.4" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<polygon points="682.1,369.7 723.3,393.4 723.3,364.9 682.1,341.2" style="fill: #cfd4da; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="749.6,378.2 723.3,393.4 723.3,364.9 749.6,349.8" style="fill: #c4c9d0; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="708.5,326.0 749.6,349.8 723.3,364.9 682.1,341.2" style="fill: #d8dce1; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="313.5,316.1 511.0,430.1 362.9,515.6 165.5,401.6" style="fill: #e4dccd; stroke: #cfc4b0; stroke-width: 1"></polygon>
+<polygon points="206.6,416.2 338.2,492.2 338.2,463.8 206.6,387.8" style="fill: #bfc4cc; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="387.6,463.8 338.2,492.2 338.2,463.8 387.6,435.2" style="fill: #b3b9c2; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="256.0,359.2 387.6,435.2 338.2,463.8 206.6,387.8" style="fill: #c9cdd4; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="190.1,425.8 321.8,501.8 321.8,448.6 190.1,372.6" style="fill: #b6bcc5; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="338.2,492.2 321.8,501.8 321.8,448.6 338.2,439.1" style="fill: #aab1bb; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="206.6,363.1 338.2,439.1 321.8,448.6 190.1,372.6" style="fill: #c9cdd4; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="313.5,392.5 379.4,430.5 379.4,405.8 313.5,367.8" style="fill: #a07a54; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="412.3,411.5 379.4,430.5 379.4,405.8 412.3,386.8" style="fill: #94704c; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="346.5,348.8 412.3,386.8 379.4,405.8 313.5,367.8" style="fill: #b48a62; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="511.0,525.5 626.2,592.0 626.2,535.0 511.0,468.5" style="fill: #e9ebee; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="675.5,563.5 626.2,592.0 626.2,535.0 675.5,506.5" style="fill: #dfe2e6; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="560.4,440.0 675.5,506.5 626.2,535.0 511.0,468.5" style="fill: #f2f0eb; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="560.4,436.2 682.1,506.5 619.6,542.6 497.8,472.3" style="fill: #f6f4ef; stroke: #9aa3af; stroke-width: 0.8"></polygon>
+<polygon points="481.4,554.0 501.1,565.4 501.1,519.8 481.4,508.4" style="fill: #5e6672; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="520.9,554.0 501.1,565.4 501.1,519.8 520.9,508.4" style="fill: #4f5662; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="501.1,497.0 520.9,508.4 501.1,519.8 481.4,508.4" style="fill: #7a828e; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="519.2,575.8 539.0,587.2 539.0,541.6 519.2,530.2" style="fill: #5e6672; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="558.7,575.8 539.0,587.2 539.0,541.6 558.7,530.2" style="fill: #4f5662; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="539.0,518.8 558.7,530.2 539.0,541.6 519.2,530.2" style="fill: #7a828e; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="557.1,597.7 576.8,609.1 576.8,563.5 557.1,552.1" style="fill: #5e6672; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="596.6,597.7 576.8,609.1 576.8,563.5 596.6,552.1" style="fill: #4f5662; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="576.8,540.7 596.6,552.1 576.8,563.5 557.1,552.1" style="fill: #7a828e; stroke: #7a828e; stroke-width: 0.8"></polygon>
+<polygon points="330.0,79.0 626.2,250.0 494.5,231.0 198.4,60.0" style="fill: rgba(238,233,224,0.75); stroke: #9aa3af; stroke-width: 1"></polygon>
+<polyline points="66.7,231.0 362.9,402.0 494.5,231.0" style="fill: none; stroke: #9aa3af; stroke-width: 1; stroke-dasharray: 5 4"></polyline>
+<line x1="626.2" y1="250.0" x2="362.9" y2="402.0" style="stroke: #9aa3af; stroke-width: 1; stroke-dasharray: 5 4"></line>
+<line x1="558.7" y1="365.0" x2="558.7" y2="420.1" style="stroke: #3b424d; stroke-width: 1"></line>
+<ellipse cx="558.7" cy="425.8" rx="7" ry="4.5" style="fill: #3b424d"></ellipse>
+<line x1="591.6" y1="384.0" x2="591.6" y2="439.1" style="stroke: #3b424d; stroke-width: 1"></line>
+<ellipse cx="591.6" cy="444.8" rx="7" ry="4.5" style="fill: #3b424d"></ellipse>
+<line x1="624.5" y1="403.0" x2="624.5" y2="458.1" style="stroke: #3b424d; stroke-width: 1"></line>
+<ellipse cx="624.5" cy="463.8" rx="7" ry="4.5" style="fill: #3b424d"></ellipse>
+<polygon points="355.9,114.8 364.1,119.5 197.2,215.9 189.0,211.2" style="fill: #8e6440; stroke: #6f4d30; stroke-width: 0.8"></polygon>
+<polygon points="346.5,117.0 214.8,193.0 197.2,215.9 364.1,119.5" style="fill: #a87c55; stroke: #6f4d30; stroke-width: 0.8"></polygon>
+<polygon points="429.9,157.5 438.1,162.3 271.2,258.7 263.0,253.9" style="fill: #8e6440; stroke: #6f4d30; stroke-width: 0.8"></polygon>
+<polygon points="420.5,159.8 288.9,235.8 271.2,258.7 438.1,162.3" style="fill: #a87c55; stroke: #6f4d30; stroke-width: 0.8"></polygon>
+<polygon points="504.0,200.3 512.2,205.0 345.3,301.4 337.0,296.7" style="fill: #8e6440; stroke: #6f4d30; stroke-width: 0.8"></polygon>
+<polygon points="494.5,202.5 362.9,278.5 345.3,301.4 512.2,205.0" style="fill: #a87c55; stroke: #6f4d30; stroke-width: 0.8"></polygon>
+<polygon points="420.5,159.8 288.9,235.8 271.2,258.7 263.0,253.9 429.9,157.5 438.1,162.3" style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 2.5; stroke-linejoin: round"></polygon>
+<line x1="354.7" y1="197.8" x2="376.7" y2="137.8" style="stroke: oklch(0.55 0.17 262); stroke-width: 1"></line>
+<g><rect x="376.7" y="126.8" width="150" height="22" rx="11" style="fill: oklch(0.55 0.17 262)"></rect><text x="451.7" y="141.8" style="font-size: 11px; fill: #fff; text-anchor: middle; font-weight: 500">B2 · 6x8 · 11'-6" AFF</text></g>
+<g><line x1="125.1" y1="458.5" x2="199.2" y2="501.3" style="stroke: #7a828e"></line><text x="172.2" y="497.9" style="font-size: 11px; fill: #14171c; text-anchor: middle">4'-6" o.c.</text></g>
+<g><line x1="840.1" y1="544.5" x2="576.8" y2="696.5" style="stroke: #7a828e"></line><text x="736.5" y="626.5" style="font-size: 11px; fill: #14171c; text-anchor: middle">16'-0"</text></g>
+<g><line x1="47.0" y1="413.4" x2="343.2" y2="584.4" style="stroke: #7a828e"></line><text x="195.1" y="498.9" style="font-size: 11px; fill: #14171c; text-anchor: middle"></text></g>
+<text x="155.1" y="532.9" style="font-size: 11px; fill: #14171c; text-anchor: middle">18'-0" family room</text>
+<text x="198.4" y="50.0" style="font-size: 11px; fill: #5e6672; text-anchor: middle">14'-0" ridge</text>
+<text x="58.7" y="235.0" style="font-size: 11px; fill: #5e6672; text-anchor: end">9'-0" plate</text>
+</svg>
+<div class="card" aria-label="View cube" style="position: absolute; right: 14px; top: 62px; width: 112px; height: 124px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<svg width="84" height="84" viewBox="0 0 84 84" style="font-family: 'DM Mono', monospace" aria-hidden="true">
+<polygon points="42,8 76,26 42,44 8,26" style="fill: #eef1ff; stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></polygon>
+<polygon points="8,26 42,44 42,80 8,62" style="fill: #fff; stroke: #9aa3af"></polygon>
+<polygon points="42,44 76,26 76,62 42,80" style="fill: #f2f4f7; stroke: #9aa3af"></polygon>
+<text x="42" y="30" style="font-size: 9px; fill: oklch(0.45 0.17 262); text-anchor: middle; font-weight: 500">TOP</text>
+<text x="25" y="58" style="font-size: 9px; fill: #3b424d; text-anchor: middle">FRONT</text>
+<text x="59" y="58" style="font-size: 9px; fill: #3b424d; text-anchor: middle">RIGHT</text>
+<circle cx="42" cy="44" r="3" style="fill: oklch(0.55 0.17 262)"></circle>
+</svg>
+<span style="display: flex; gap: 10px; color: #7a828e"><span class="ms" style="font-size: 17px">home</span><span class="ms" style="font-size: 17px">fit_screen</span></span>
+</div>
+<div style="position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: rgba(20,23,28,.86); color: #fff; font-size: 13px; white-space: nowrap">
+<span class="ms" style="font-size: 18px">drag_pan</span><span>Drag to orbit any direction · Shift-drag to pan · Look up</span><span class="mono" style="font-size: 11px; color: #9aa3af; border: 1px solid #5e6672; border-radius: 5px; padding: 1px 6px">U</span>
+</div>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 18px 18px 12px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Design options</span><span style="font-size: 13px; color: #5e6672">Family room vault · faux beams</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #f2f4f7; color: #5e6672">Draft</span></div>
+<div style="padding: 0 18px 14px; display: flex; flex-direction: column; gap: 8px">
+<div class="op"><span class="ol">A</span><div style="flex: 1; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-weight: 600">Ridge only</span><span class="mono" style="font-size: 12px; color: #5e6672">6x10 · 18'-0"</span></div><svg width="220" height="34" viewBox="0 0 220 34" aria-hidden="true"><path d="M2 32 L110 4 L218 32" style="fill: none; stroke: #9aa3af"></path><rect x="102" y="3" width="16" height="10" rx="1" style="fill: #a87c55"></rect></svg><div style="display: flex; justify-content: space-between; align-items: center"><span class="int"><span class="ms" style="font-size: 14px">lock</span>Internal · not shown to client</span><span class="mono" style="font-size: 13px">Base</span></div></div></div>
+<div class="op opon"><span class="ol">B</span><div style="flex: 1; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-weight: 600">Three beams</span><span class="mono" style="font-size: 12px; color: oklch(0.45 0.17 262)">6x8 · level · 4'-6" o.c.</span></div><svg width="220" height="34" viewBox="0 0 220 34" aria-hidden="true"><path d="M2 32 L110 4 L218 32" style="fill: none; stroke: #9aa3af"></path><rect x="61" y="12" width="98" height="7" rx="1" style="fill: #a87c55"></rect><text x="110" y="31" style="font: 400 9px 'DM Mono', monospace; fill: #5e6672; text-anchor: middle">3 level beams, side view</text></svg><div style="display: flex; justify-content: space-between; align-items: center"><span class="int"><span class="ms" style="font-size: 14px">lock</span>Internal · not shown to client</span><span class="mono" style="font-size: 13px; color: oklch(0.45 0.17 262); font-weight: 500">+$[ ]</span></div></div></div>
+<div class="op"><span class="ol">C</span><div style="flex: 1; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-weight: 600">Coffered</span><span class="mono" style="font-size: 12px; color: #5e6672">4x6 grid · 4'</span></div><svg width="220" height="34" viewBox="0 0 220 34" aria-hidden="true"><rect x="2" y="2" width="216" height="30" style="fill: none; stroke: #9aa3af"></rect><path d="M38 2 V32 M74 2 V32 M110 2 V32 M146 2 V32 M182 2 V32 M2 12 H218 M2 22 H218" style="stroke: #a87c55; stroke-width: 3"></path></svg><div style="display: flex; justify-content: space-between; align-items: center"><span class="int"><span class="ms" style="font-size: 14px">lock</span>Internal · not shown to client</span><span class="mono" style="font-size: 13px">+$[ ]</span></div></div></div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Option B · selected beam B2</span><span class="mono" style="font-size: 12px; color: #5e6672">2 of 3</span></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px">
+<span style="color: #5e6672">Section</span><span class="mono">6x8 box, 3-sided</span>
+<span style="color: #5e6672">Height, bottom</span><span class="mono">10'-10" AFF</span><span style="color: #5e6672">Span</span><span class="mono">10'-2" slope to slope</span>
+<span style="color: #5e6672">Spacing</span><span class="mono">4'-6" o.c.</span>
+<span style="color: #5e6672">Finish</span><span>[Brand] stain, walnut</span>
+<span style="color: #5e6672">Attachment</span><span>Cleat to rafters</span>
+</div>
+<div style="display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; background: #f6f7f9; color: #5e6672; font-size: 12px; line-height: 1.4"><span class="ms" style="font-size: 16px">info</span><span>Decorative, non-structural. Client sees layouts and renders only; cost deltas stay in your view.</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #eef0f3">
+<div style="display: flex; gap: 8px"><button class="b bp" style="flex: 1; justify-content: center; padding: 11px"><span class="ms" style="font-size: 18px">send</span>Send options to client</button><button class="b" style="justify-content: center; padding: 11px; font-weight: 600"><span class="ms" style="font-size: 18px">link</span>Copy link</button></div>
+<div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 9px">Duplicate option</button><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 9px">Render A/B/C</button></div>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">View</span><div class="ssg" role="group" aria-label="Phase view"><button class="ssi">Existing</button><button class="ssi ssion">Proposed</button></div></div>
+<div style="display: flex; gap: 6px"><span class="sl">Camera</span><span class="sv">Orbit · perspective · 60°</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Target</span><span class="sv">Family room center</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Option</span><span class="sv">B of 3</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Ridge</span><span class="sv">14'-0" · plate 9'-0"</span></div>
+<span style="flex: 1"></span>
+<span class="sv">60 fps</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

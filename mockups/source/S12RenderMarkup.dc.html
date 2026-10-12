@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft supplier rendering markup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'DM Mono',monospace;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.tb{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;padding:7px 11px;border-radius:7px;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer}
+.tbon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.fi{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:8px;font-size:13px}
+.fion{background:#eef1ff}
+.fic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.tr{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;font-size:13px}
+.tron{background:#eef1ff}
+.tc{font-family:'DM Mono',monospace;font-size:12px;width:50px;color:#14171c}
+.cmp{display:grid;grid-template-columns:72px 1fr 1fr 18px;gap:6px;align-items:center;font-size:13px;padding:5px 0}
+.mm{display:flex;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #dfe2e6;font-size:13px;line-height:1.4}
+.mmon{border-color:oklch(0.72 0.16 65);background:oklch(0.985 0.015 80)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<span class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</span>
+<button class="b">Share</button><button class="b">Export</button><button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button><button class="rb ms" aria-label="Move (M)">open_with</button><span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button><button class="rb ms" aria-label="Door (D)">door_front</button><button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button><button class="rb ms" aria-label="Countertops (K)">countertops</button><button class="rb ms" aria-label="Electrical (E)">bolt</button><button class="rb ms" aria-label="Ceiling">roofing</button><span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button><button class="rb ms" aria-label="Text (T)">title</button><button class="rb ms" aria-label="Detail">frame_inspect</button><button class="rb rbon ms" aria-label="Supplier markup" aria-pressed="true">photo_library</button><span style="flex: 1"></span><button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Supplier files and tags" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 4px"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Supplier files</span><button class="b" style="padding: 4px 8px; font-size: 12px; gap: 4px"><span class="ms" style="font-size: 16px">upload</span>Upload</button></div>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 2px">
+<div class="fi fion"><span class="fic ms" style="background: #fff; color: oklch(0.5 0.17 262); border: 1px solid oklch(0.85 0.06 262)">image</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span class="mono" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: oklch(0.42 0.17 262); font-weight: 500">2020_persp_02.png</span><span style="font-size: 11px; color: #5e6672">2020 rendering · 15 tags</span></span></div>
+<div class="fi"><span class="fic ms" style="background: #f6f7f9; color: oklch(0.55 0.19 28)">picture_as_pdf</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span class="mono" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">2020_order_report.pdf</span><span style="font-size: 11px; color: #5e6672">Order report · 22 lines read</span></span></div>
+<div class="fi"><span class="fic ms" style="background: #f6f7f9; color: #3b424d">architecture</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span class="mono" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">2020_elevations.dxf</span><span style="font-size: 11px; color: #5e6672">Elevations A–D · 4 layers</span></span></div>
+</div>
+<div style="margin: 8px 14px 0; padding: 8px 10px; border-radius: 8px; background: #f6f7f9; font-size: 12px; color: #5e6672; display: flex; gap: 8px; align-items: flex-start; line-height: 1.4"><span class="ms" style="font-size: 16px">info</span><span>[Supplier] · received <span class="mono">10/08/26</span>. Codes read from the order report, positions from the rendering.</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 14px 6px; border-top: 1px solid #eef0f3; margin-top: 12px"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Tags <span class="mono" style="font-weight: 400">15</span></span><span style="display: flex; gap: 4px"><button class="chip chipon" style="padding: 3px 8px">All</button><button class="chip" style="padding: 3px 8px">Flagged <span class="mono">2</span></button></span></div>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<sc-for list="{{tags}}" as="t" hint-placeholder-count="15">
+<div class="tr" style="{{t.rowStyle}}"><span class="tc" style="{{t.codeStyle}}">{{t.code}}</span><span style="flex: 1; font-size: 12px; color: #5e6672; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.where}}</span><span class="ms" style="font-size: 16px; color: {{t.color}}">{{t.icon}}</span></div>
+</sc-for>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 14px; border-top: 1px solid #eef0f3; display: flex; justify-content: space-between; font-size: 12px; color: #5e6672"><span style="display: flex; align-items: center; gap: 5px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.55 0.17 262)"></span>13 linked</span><span style="display: flex; align-items: center; gap: 5px; color: oklch(0.48 0.13 65)"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 flagged</span></div>
+</aside>
+<div style="flex: 1; min-width: 0; align-self: stretch; position: relative; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<div class="card" style="display: flex; gap: 2px; padding: 4px; border-radius: 10px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<button class="tb tbon"><span class="ms" style="font-size: 18px">sell</span>Tag</button>
+<button class="tb"><span class="ms" style="font-size: 18px">link</span>Link</button>
+<button class="tb"><span class="ms" style="font-size: 18px">auto_awesome</span>Read codes</button>
+<button class="tb"><span class="ms" style="font-size: 18px">compare</span>Compare</button>
+</div>
+<span style="font-size: 13px; color: #5e6672">Click a cabinet, type its code, then click its box in the plan</span>
+<span style="flex: 1"></span>
+</div>
+<div style="flex: 1; min-height: 0; display: flex; gap: 12px">
+<section class="card" aria-label="Supplier 2020 rendering" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; border-bottom: 1px solid #eef0f3">
+<span class="ms" style="font-size: 18px; color: oklch(0.5 0.17 262)">image</span>
+<span class="mono" style="font-size: 13px">2020_persp_02.png</span>
+<span style="font-size: 12px; color: #5e6672">[Supplier] 2020 Design · 2400 × 2400</span>
+<span style="flex: 1"></span>
+<div style="display: flex; padding: 3px; gap: 2px; background: #f2f4f7; border-radius: 8px"><button class="tb" style="padding: 4px 9px; background: #fff; color: #14171c; box-shadow: 0 1px 2px rgba(20,30,50,.12)">Tags on</button><button class="tb" style="padding: 4px 9px">Off</button></div>
+<span class="mono" style="font-size: 12px; color: #5e6672">Fit</span>
+</div>
+<div style="flex: 1; min-height: 0; background: #eef0f3; display: flex; padding: 10px">
+<svg viewBox="0 130 600 590" role="img" aria-label="Supplier 2020 perspective rendering of the kitchen: back wall base and wall cabinets with a window over the sink, left wall range with hood and wall cabinet, navy island in the foreground; cobalt code tags on each cabinet and an amber tag over the left upper reading Not in plan W1530" style="width: 100%; height: 100%; font-family: 'DM Mono', monospace">
+<defs>
+<linearGradient id="flr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #e6d7ba"></stop><stop offset="1" style="stop-color: #d5c09b"></stop></linearGradient>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: #cddff0"></stop><stop offset="1" style="stop-color: #eef4f9"></stop></linearGradient>
+</defs>
+<rect x="0" y="130" width="600" height="590" style="fill: #fbfaf7"></rect>
+<polygon points="140.0,420.0 519.5,420.0 1051.2,1520.0 -593.3,1520.0" style="fill: url(#flr)"></polygon>
+<line x1="140.0" y1="420.0" x2="-593.3" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="156.5" y1="420.0" x2="-521.8" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="173.0" y1="420.0" x2="-450.3" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="189.5" y1="420.0" x2="-378.8" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="206.0" y1="420.0" x2="-307.3" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="222.5" y1="420.0" x2="-235.8" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="239.0" y1="420.0" x2="-164.3" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="255.5" y1="420.0" x2="-92.8" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="272.0" y1="420.0" x2="-21.3" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="288.5" y1="420.0" x2="50.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="305.0" y1="420.0" x2="121.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="321.5" y1="420.0" x2="193.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="338.0" y1="420.0" x2="264.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="354.5" y1="420.0" x2="336.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="371.0" y1="420.0" x2="407.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="387.5" y1="420.0" x2="479.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="404.0" y1="420.0" x2="550.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="420.5" y1="420.0" x2="622.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="437.0" y1="420.0" x2="693.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="453.5" y1="420.0" x2="765.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="470.0" y1="420.0" x2="836.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="486.5" y1="420.0" x2="908.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="503.0" y1="420.0" x2="979.7" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<line x1="519.5" y1="420.0" x2="1051.2" y2="1520.0" style="stroke: #c8b48f; stroke-width: 0.6; opacity: .7"></line>
+<polygon points="140.0,420.0 519.5,420.0 519.5,156.0 140.0,156.0" style="fill: #ece9e3"></polygon>
+<polygon points="140.0,420.0 -593.3,1520.0 -593.3,376.0 140.0,156.0" style="fill: #e4e0d8"></polygon>
+<line x1="140.0" y1="420.0" x2="140.0" y2="156.0" style="stroke: #cfcac0; stroke-width: 1"></line>
+<polygon points="130.7,154.8 516.5,154.8 519.5,156.0 140.0,156.0 -593.3,376.0 -652.9,376.0" style="fill: #3b424d"></polygon>
+<line x1="519.5" y1="420.0" x2="519.5" y2="156.0" style="stroke: #cfcac0; stroke-width: 1"></line>
+<polygon points="316.0,288.0 409.5,288.0 409.5,172.5 316.0,172.5" style="fill: #fff; stroke: #9aa3af; stroke-width: 1.2"></polygon>
+<polygon points="321.5,282.5 404.0,282.5 404.0,178.0 321.5,178.0" style="fill: url(#sky)"></polygon>
+<line x1="362.8" y1="282.5" x2="362.8" y2="178.0" style="stroke: #fff; stroke-width: 2"></line>
+<line x1="321.5" y1="230.2" x2="404.0" y2="230.2" style="stroke: #fff; stroke-width: 2"></line>
+<polygon points="206.0,321.0 519.5,321.0 519.5,271.5 206.0,271.5" style="fill: #f1efea"></polygon>
+<line x1="206.0" y1="310.0" x2="316.0" y2="310.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="409.5" y1="310.0" x2="519.5" y2="310.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="206.0" y1="299.0" x2="316.0" y2="299.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="409.5" y1="299.0" x2="519.5" y2="299.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="206.0" y1="288.0" x2="316.0" y2="288.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="409.5" y1="288.0" x2="519.5" y2="288.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="206.0" y1="277.0" x2="316.0" y2="277.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<line x1="409.5" y1="277.0" x2="519.5" y2="277.0" style="stroke: #e2ded5; stroke-width: .6"></line>
+<polygon points="198.5,280.3 241.8,280.3 241.8,193.8 198.5,193.8" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="201.1,278.6 239.2,278.6 239.2,195.5 201.1,195.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="206.3,271.6 234.0,271.6 234.0,202.4 206.3,202.4" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="236.0" y1="274.5" x2="236.0" y2="263.0" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="241.8,280.3 311.0,280.3 311.0,193.8 241.8,193.8" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="244.4,278.6 275.2,278.6 275.2,195.5 244.4,195.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="249.6,271.6 270.0,271.6 270.0,202.4 249.6,202.4" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<polygon points="277.5,278.6 308.4,278.6 308.4,195.5 277.5,195.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="282.7,271.6 303.2,271.6 303.2,202.4 282.7,202.4" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="271.8" y1="274.5" x2="271.8" y2="263.0" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<line x1="281.0" y1="274.5" x2="281.0" y2="263.0" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="414.8,280.3 466.7,280.3 466.7,193.8 414.8,193.8" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="417.4,278.6 464.1,278.6 464.1,195.5 417.4,195.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="422.6,271.6 458.9,271.6 458.9,202.4 422.6,202.4" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="460.9" y1="274.5" x2="460.9" y2="263.0" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="466.7,280.3 527.2,280.3 527.2,193.8 466.7,193.8" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="469.3,278.6 524.6,278.6 524.6,195.5 469.3,195.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="474.5,271.6 519.4,271.6 519.4,202.4 474.5,202.4" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="521.5" y1="274.5" x2="521.5" y2="263.0" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="198.5,280.3 241.8,280.3 241.8,193.8 198.5,193.8" style="fill: oklch(0.85 0.09 70); fill-opacity: .28; stroke: oklch(0.72 0.16 65); stroke-width: 1.6; stroke-dasharray: 4 3"></polygon>
+<polygon points="206.0,189.0 519.5,189.0 527.2,193.8 198.5,193.8" style="fill: #e3e0d9; stroke: #8b929c; stroke-width: .8"></polygon>
+<polygon points="198.2,194.0 527.6,194.0 527.6,185.4 198.2,185.4" style="fill: #eceae5; stroke: #8b929c; stroke-width: .8"></polygon>
+<polygon points="140.0,189.0 173.0,189.0 148.6,201.9 111.3,201.9" style="fill: #e3e0d9; stroke: #8b929c; stroke-width: .8"></polygon>
+<polygon points="173.0,271.5 148.6,295.2 148.6,201.9 173.0,189.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="172.6,270.2 161.9,280.6 161.9,196.6 172.6,190.8" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="161.2,281.2 149.1,292.9 149.1,203.5 161.2,197.0" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="171.2,264.9 163.5,272.1 163.5,202.7 171.2,198.3" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<polygon points="159.6,275.7 150.9,283.7 150.9,209.9 159.6,204.9" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="162.8" y1="275.6" x2="162.8" y2="264.0" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<line x1="160.2" y1="278.0" x2="160.2" y2="266.3" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="117.1,254.2 102.3,264.2 102.3,177.1 117.1,172.1" style="fill: #c9ccd1; stroke: #7a828e; stroke-width: 1"></polygon>
+<polygon points="117.1,254.2 102.3,264.2 134.2,300.7 161.4,275.4" style="fill: #b9bdc4; stroke: #6b7280; stroke-width: 1"></polygon>
+<polygon points="161.4,282.0 134.2,308.3 134.2,300.7 161.4,275.4" style="fill: #9aa0a8; stroke: #6b7280; stroke-width: .8"></polygon>
+<polygon points="192.5,449.0 533.5,449.0 533.5,437.0 192.5,437.0" style="fill: #3b424d"></polygon>
+<polygon points="190.3,441.4 235.8,441.4 235.8,349.0 190.3,349.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="191.9,368.7 234.3,368.7 234.3,350.6 191.9,350.6" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="191.9,439.9 234.3,439.9 234.3,370.5 191.9,370.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="198.2,432.4 227.9,432.4 227.9,377.8 198.2,377.8" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="207.0" y1="359.6" x2="219.1" y2="359.6" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<line x1="229.1" y1="386.9" x2="229.1" y2="376.3" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="235.8,441.4 308.5,441.4 308.5,349.0 235.8,349.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="237.3,439.9 307.0,439.9 307.0,350.6 237.3,350.6" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="244.9,432.4 299.4,432.4 299.4,374.8 244.9,374.8" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="250.9" y1="359.6" x2="293.3" y2="359.6" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="308.5,441.4 417.6,441.4 417.6,349.0 308.5,349.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="310.0,368.7 416.0,368.7 416.0,350.6 310.0,350.6" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="310.0,439.9 362.1,439.9 362.1,370.5 310.0,370.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="363.9,439.9 416.0,439.9 416.0,370.5 363.9,370.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="316.4,432.4 355.8,432.4 355.8,377.8 316.4,377.8" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<polygon points="370.3,432.4 409.7,432.4 409.7,377.8 370.3,377.8" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="358.2" y1="386.9" x2="358.2" y2="376.3" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<line x1="367.9" y1="386.9" x2="367.9" y2="376.3" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="308.5,441.4 417.6,441.4 417.6,349.0 308.5,349.0" style="fill: oklch(0.7 0.12 262); fill-opacity: .16; stroke: oklch(0.55 0.17 262); stroke-width: 2.2"></polygon>
+<polygon points="417.6,441.4 472.1,441.4 472.1,349.0 417.6,349.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="419.1,368.7 470.6,368.7 470.6,350.6 419.1,350.6" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="419.1,439.9 470.6,439.9 470.6,370.5 419.1,370.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="425.4,432.4 464.2,432.4 464.2,377.8 425.4,377.8" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="438.8" y1="359.6" x2="450.9" y2="359.6" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<line x1="465.4" y1="386.9" x2="465.4" y2="376.3" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="472.1,441.4 535.7,441.4 535.7,349.0 472.1,349.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="473.6,368.7 534.2,368.7 534.2,350.6 473.6,350.6" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="473.6,439.9 534.2,439.9 534.2,370.5 473.6,370.5" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="480.0,432.4 527.8,432.4 527.8,377.8 480.0,377.8" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="497.8" y1="359.6" x2="510.0" y2="359.6" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<line x1="529.1" y1="386.9" x2="529.1" y2="376.3" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="181.2,453.6 116.2,586.0 116.2,569.4 181.2,441.4" style="fill: #3b424d"></polygon>
+<polygon points="190.3,441.4 176.3,470.5 176.3,370.4 190.3,349.0" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="190.0,369.3 176.8,391.1 176.8,371.4 190.0,351.1" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="190.0,440.7 176.8,468.0 176.8,393.0 190.0,371.1" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="188.4,436.2 178.5,456.3 178.5,397.9 188.4,381.0" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<line x1="178.3" y1="407.9" x2="178.3" y2="396.6" style="stroke: #6b7280; stroke-width: 1.6; stroke-linecap: round"></line>
+<polygon points="176.3,470.5 147.0,531.2 147.0,409.5 176.3,365.5" style="fill: #d5d8dd; stroke: #6b7280; stroke-width: 1"></polygon>
+<polygon points="174.6,460.7 149.3,511.5 149.3,443.7 174.6,401.2" style="fill: #2a2f37; stroke: #6b7280; stroke-width: .8"></polygon>
+<polygon points="172.9,454.2 151.5,495.9 151.5,451.2 172.9,414.1" style="fill: #3c434e"></polygon>
+<line x1="173.8" y1="396.0" x2="150.4" y2="434.4" style="stroke: #9aa0a8; stroke-width: 2.2; stroke-linecap: round"></line>
+<circle cx="172.0" cy="385.4" r="2.2" style="fill: #6b7280"></circle>
+<circle cx="167.5" cy="392.5" r="2.2" style="fill: #6b7280"></circle>
+<circle cx="162.8" cy="400.0" r="2.2" style="fill: #6b7280"></circle>
+<circle cx="157.8" cy="407.8" r="2.2" style="fill: #6b7280"></circle>
+<circle cx="152.5" cy="416.0" r="2.2" style="fill: #6b7280"></circle>
+<polygon points="147.0,531.2 128.6,569.4 128.6,443.4 147.0,415.2" style="fill: #f7f6f2; stroke: #8b929c; stroke-width: 1"></polygon>
+<polygon points="146.5,440.8 129.2,469.1 129.2,444.4 146.5,417.9" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="146.5,530.4 129.2,566.0 129.2,471.6 146.5,443.1" style="fill: #fbfaf7; stroke: #a3aab4; stroke-width: 0.9"></polygon>
+<polygon points="144.0,525.8 132.0,550.1 132.0,476.8 144.0,456.4" style="fill: none; stroke: #c3c8cf; stroke-width: 0.8"></polygon>
+<polygon points="128.6,586.0 127.5,588.1 127.5,444.9 128.6,443.4" style="fill: #eceae5; stroke: #8b929c; stroke-width: .8"></polygon>
+<polygon points="140.0,321.0 519.5,321.0 536.8,346.1 193.8,346.1 181.2,365.5 97.6,365.5" style="fill: #f6f4ef; stroke: #b9b4aa; stroke-width: .8"></polygon>
+<polygon points="55.7,409.5 152.7,409.5 132.8,440.2 26.5,440.2" style="fill: #f6f4ef; stroke: #b9b4aa; stroke-width: .8"></polygon>
+<polygon points="97.6,365.5 176.3,365.5 147.0,409.5 55.7,409.5" style="fill: #1f242b; stroke: #6b7280; stroke-width: .8"></polygon>
+<ellipse cx="112.6" cy="374.6" rx="7" ry="2.4" style="fill: none; stroke: #555c66; stroke-width: 1.2"></ellipse>
+<ellipse cx="146.5" cy="374.6" rx="7" ry="2.4" style="fill: none; stroke: #555c66; stroke-width: 1.2"></ellipse>
+<ellipse cx="92.3" cy="398.0" rx="7" ry="2.4" style="fill: none; stroke: #555c66; stroke-width: 1.2"></ellipse>
+<ellipse cx="129.0" cy="398.0" rx="7" ry="2.4" style="fill: none; stroke: #555c66; stroke-width: 1.2"></ellipse>
+<polygon points="193.8,350.7 536.8,350.7 536.8,346.1 193.8,346.1" style="fill: #e8e5de; stroke: #b9b4aa; stroke-width: .8"></polygon>
+<polygon points="193.8,350.7 181.2,370.4 181.2,365.5 193.8,346.1" style="fill: #e8e5de; stroke: #b9b4aa; stroke-width: .6"></polygon>
+<polygon points="152.7,415.2 132.8,446.5 132.8,440.2 152.7,409.5" style="fill: #e8e5de; stroke: #b9b4aa; stroke-width: .6"></polygon>
+<polygon points="26.5,446.5 132.8,446.5 132.8,440.2 26.5,440.2" style="fill: #e8e5de; stroke: #b9b4aa; stroke-width: .6"></polygon>
+<polygon points="326.4,325.5 399.3,325.5 401.7,340.2 324.2,340.2" style="fill: #c9cdd3; stroke: #8b929c; stroke-width: 1"></polygon>
+<line x1="362.8" y1="323.7" x2="362.8" y2="295.9" style="stroke: #6b7280; stroke-width: 2.4; stroke-linecap: round"></line>
+<line x1="362.8" y1="295.9" x2="362.8" y2="303.6" style="stroke: #6b7280; stroke-width: 2.4; stroke-linecap: round"></line>
+<polygon points="181.2,702.9 549.0,702.9 549.0,526.7 181.2,526.7" style="fill: #2f3d57; stroke: #1f2a3d; stroke-width: 1"></polygon>
+<polygon points="187.4,687.5 297.7,687.5 297.7,539.4 187.4,539.4" style="fill: #354560; stroke: #25324a; stroke-width: 0.9"></polygon>
+<polygon points="198.6,674.8 286.5,674.8 286.5,552.2 198.6,552.2" style="fill: none; stroke: #4a5b79; stroke-width: 0.9"></polygon>
+<polygon points="310.0,687.5 420.3,687.5 420.3,539.4 310.0,539.4" style="fill: #354560; stroke: #25324a; stroke-width: 0.9"></polygon>
+<polygon points="321.2,674.8 409.0,674.8 409.0,552.2 321.2,552.2" style="fill: none; stroke: #4a5b79; stroke-width: 0.9"></polygon>
+<polygon points="432.5,687.5 542.8,687.5 542.8,539.4 432.5,539.4" style="fill: #354560; stroke: #25324a; stroke-width: 0.9"></polygon>
+<polygon points="443.8,674.8 531.6,674.8 531.6,552.2 443.8,552.2" style="fill: none; stroke: #4a5b79; stroke-width: 0.9"></polygon>
+<polygon points="181.2,702.9 549.0,702.9 556.0,725.6 174.6,725.6" style="fill: #000; opacity: .10"></polygon>
+<polygon points="202.3,452.9 526.3,452.9 575.1,559.2 156.1,559.2" style="fill: #f6f4ef; stroke: #b9b4aa; stroke-width: .9"></polygon>
+<polygon points="156.1,567.6 575.1,567.6 575.1,559.2 156.1,559.2" style="fill: #e8e5de; stroke: #b9b4aa; stroke-width: .9"></polygon>
+
+<rect x="193.0" y="383" width="40" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="213" y="397" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">B15</text>
+<rect x="248.0" y="383" width="48" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="272" y="397" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">DW24</text>
+<circle cx="363" cy="427" r="4" style="fill: #fff; stroke: oklch(0.55 0.17 262); stroke-width: 2"></circle>
+<line x1="363" y1="417" x2="363" y2="423" style="stroke: oklch(0.55 0.17 262); stroke-width: 2"></line>
+<rect x="331.0" y="389" width="64" height="32" rx="16" style="fill: oklch(0.55 0.17 262 / .22)"></rect>
+<rect x="335.0" y="393" width="56" height="24" rx="12" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 2"></rect>
+<text x="363" y="409.5" style="font-size: 13px; font-weight: 500; fill: #fff; text-anchor: middle">SB36</text>
+<rect x="425.0" y="383" width="40" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="445" y="397" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">B18</text>
+<rect x="484.0" y="383" width="40" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="504" y="397" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">B18</text>
+<circle cx="522.0" cy="385" r="5" style="fill: oklch(0.72 0.16 65); stroke: #fff; stroke-width: 1.5"></circle>
+<rect x="248.5" y="227" width="55" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="276" y="241" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">W2430</text>
+<rect x="413.5" y="227" width="55" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="441" y="241" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">W1830</text>
+<rect x="469.5" y="227" width="55" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="497" y="241" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">W2130</text>
+<rect x="134.5" y="229" width="55" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="162" y="243" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">W3030</text>
+<rect x="125.0" y="270" width="48" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="149" y="284" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">HD30</text>
+<line x1="184" y1="411" x2="176" y2="422" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.4"></line><circle cx="184" cy="411" r="3" style="fill: #fff; stroke: oklch(0.55 0.17 262); stroke-width: 1.6"></circle>
+<rect x="148.5" y="422" width="55" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="176" y="436" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">BBC42</text>
+<rect x="223.0" y="601" width="40" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="243" y="615" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">B24</text>
+<rect x="341.0" y="601" width="48" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="365" y="615" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">DB24</text>
+<rect x="468.0" y="601" width="40" height="20" rx="10" style="fill: oklch(0.55 0.17 262); stroke: #fff; stroke-width: 1.5"></rect>
+<text x="488" y="615" style="font-size: 11.5px; font-weight: 500; fill: #fff; text-anchor: middle">B24</text>
+<circle cx="220" cy="237" r="3.5" style="fill: #fff; stroke: oklch(0.72 0.16 65); stroke-width: 2"></circle>
+<path d="M220 233 V180" style="stroke: oklch(0.72 0.16 65); stroke-width: 1.6"></path>
+<rect x="152" y="158" width="136" height="24" rx="12" style="fill: oklch(0.96 0.04 80); stroke: oklch(0.72 0.16 65); stroke-width: 1.6"></rect>
+<text x="220" y="174" style="font-size: 12px; font-weight: 500; fill: oklch(0.48 0.13 65); text-anchor: middle"><tspan style="font-family: 'Instrument Sans', sans-serif">Not in plan:</tspan> W1530</text>
+<text x="584" y="708" style="font-size: 10px; fill: #9aa3af; text-anchor: end">2020 Design · persp 2 of 3</text>
+</svg>
+</div>
+<div style="display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #eef0f3; align-items: center">
+<span style="font-size: 12px; color: #5e6672; margin-right: 4px">Views in file</span>
+<span class="mono" style="font-size: 11px; padding: 5px 9px; border: 1px solid #dfe2e6; border-radius: 7px; color: #5e6672">Persp 1</span>
+<span class="mono" style="font-size: 11px; padding: 5px 9px; border: 1px solid oklch(0.55 0.17 262); background: #eef1ff; border-radius: 7px; color: oklch(0.42 0.17 262)">Persp 2</span>
+<span class="mono" style="font-size: 11px; padding: 5px 9px; border: 1px solid #dfe2e6; border-radius: 7px; color: #5e6672">Persp 3</span>
+<span class="mono" style="font-size: 11px; padding: 5px 9px; border: 1px solid #dfe2e6; border-radius: 7px; color: #5e6672">Elev A</span>
+<span class="mono" style="font-size: 11px; padding: 5px 9px; border: 1px solid #dfe2e6; border-radius: 7px; color: #5e6672">Elev B</span>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; color: #5e6672">Opacity</span><span class="mono" style="font-size: 12px">100%</span>
+</div>
+</section>
+<section class="card" aria-label="Plan with linked boxes" style="width: 284px; flex: none; display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #eef0f3"><span class="ms" style="font-size: 18px; color: #3b424d">grid_view</span><span style="font-size: 13px; font-weight: 600">Plan</span><span style="font-size: 12px; color: #5e6672">Linked boxes</span><span style="flex: 1"></span><span class="mono" style="font-size: 11px; color: #5e6672">Working copy</span></div>
+<div style="flex: 1; min-height: 0; padding: 8px 6px 0">
+<svg viewBox="0 0 300 380" role="img" aria-label="Kitchen plan: back wall run 3 inch filler, B15, DW24, SB36, B18, B21 with 1/2 inch scribe; left run blind corner, range, B15; island with three boxes. Linked boxes tinted cobalt, SB36 selected, the right end of the back run flagged amber, and a dashed amber ghost where W1530 would go" style="width: 100%; height: 100%; font-family: 'DM Mono', monospace">
+<defs>
+<pattern id="ph" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" style="stroke: oklch(0.72 0.16 65); stroke-width: 1.2"></line></pattern>
+</defs>
+<path d="M10 330 V36 H298" style="fill: none; stroke: #3b424d; stroke-width: 8"></path>
+<line x1="146" y1="36" x2="218" y2="36" style="stroke: #fff; stroke-width: 4"></line>
+<line x1="146" y1="32" x2="218" y2="32" style="stroke: #7a828e; stroke-width: 1"></line><line x1="146" y1="40" x2="218" y2="40" style="stroke: #7a828e; stroke-width: 1"></line>
+<g style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.2">
+<rect x="14" y="40" width="48" height="84"></rect>
+<rect x="14" y="184" width="48" height="30"></rect>
+<rect x="62" y="40" width="6" height="48"></rect>
+<rect x="68" y="40" width="30" height="48"></rect>
+<rect x="98" y="40" width="48" height="48"></rect>
+<rect x="218" y="40" width="36" height="48"></rect>
+<rect x="104" y="232" width="48" height="48"></rect><rect x="152" y="232" width="48" height="48"></rect><rect x="200" y="232" width="48" height="48"></rect>
+</g>
+<rect x="14" y="124" width="48" height="60" style="fill: #fff; stroke: #7a828e; stroke-width: 1.2"></rect>
+<circle cx="30" cy="140" r="6" style="fill: none; stroke: #9aa3af"></circle><circle cx="30" cy="168" r="6" style="fill: none; stroke: #9aa3af"></circle><circle cx="48" cy="140" r="6" style="fill: none; stroke: #9aa3af"></circle><circle cx="48" cy="168" r="6" style="fill: none; stroke: #9aa3af"></circle>
+<rect x="146" y="40" width="72" height="48" style="fill: oklch(0.88 0.07 262); stroke: oklch(0.45 0.17 262); stroke-width: 2.6"></rect>
+<rect x="158" y="49" width="48" height="30" rx="7" style="fill: #fff; stroke: oklch(0.55 0.17 262); stroke-dasharray: 4 2"></rect>
+<rect x="254" y="40" width="42" height="48" style="fill: url(#ph); stroke: oklch(0.72 0.16 65); stroke-width: 1.8"></rect>
+
+<g style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1; stroke-dasharray: 3 2">
+<rect x="98" y="40" width="48" height="24"></rect><rect x="218" y="40" width="36" height="24"></rect><rect x="254" y="40" width="42" height="24"></rect><rect x="14" y="40" width="24" height="60"></rect><rect x="14" y="128" width="40" height="52"></rect>
+</g>
+<rect x="68" y="40" width="30" height="24" style="fill: oklch(0.96 0.04 80); fill-opacity: .7; stroke: oklch(0.72 0.16 65); stroke-width: 1.6; stroke-dasharray: 4 2"></rect>
+<text x="83" y="56" style="font-size: 11px; font-weight: 500; fill: oklch(0.48 0.13 65); text-anchor: middle">?</text>
+<rect x="101" y="229" width="150" height="75" style="fill: none; stroke: #3b424d; stroke-width: 1.4"></rect>
+<g style="font-size: 9.5px; fill: oklch(0.42 0.17 262); text-anchor: middle">
+<text x="83" y="80">B15</text><text x="122" y="80">DW24</text><text x="236" y="80">B18</text>
+<text x="38" y="112">BBC42</text><text x="38" y="203">B15</text>
+<text x="128" y="260">B24</text><text x="176" y="260">DB24</text><text x="224" y="260">B24</text>
+</g>
+<text x="275" y="80" style="font-size: 9.5px; font-weight: 500; fill: oklch(0.48 0.13 65); text-anchor: middle">B21</text>
+<text x="38" y="157" style="font-size: 9px; fill: #7a828e; text-anchor: middle">RANGE</text>
+<g>
+<rect x="154" y="96" width="56" height="20" rx="10" style="fill: oklch(0.55 0.17 262)"></rect>
+<text x="182" y="110" style="font-size: 11px; font-weight: 500; fill: #fff; text-anchor: middle">SB36</text>
+<rect x="208" y="120" width="86" height="34" rx="7" style="fill: oklch(0.96 0.04 80); stroke: oklch(0.72 0.16 65)"></rect>
+<text x="251" y="134" style="font-size: 10px; fill: oklch(0.48 0.13 65); text-anchor: middle">2020: B18 + F3</text>
+<text x="251" y="147" style="font-size: 10px; fill: oklch(0.48 0.13 65); text-anchor: middle">plan: B21</text>
+<path d="M275 120 V90" style="fill: none; stroke: oklch(0.72 0.16 65); stroke-width: 1.2"></path>
+</g>
+<line x1="62" y1="350" x2="296" y2="350" style="stroke: #7a828e"></line>
+<line x1="62" y1="344" x2="62" y2="356" style="stroke: #7a828e"></line><line x1="296" y1="344" x2="296" y2="356" style="stroke: #7a828e"></line>
+<text x="179" y="368" style="font-size: 11px; fill: #14171c; text-anchor: middle">9'-9" · 117"</text>
+<line x1="104" y1="318" x2="248" y2="318" style="stroke: #7a828e"></line>
+<line x1="104" y1="312" x2="104" y2="324" style="stroke: #7a828e"></line><line x1="248" y1="312" x2="248" y2="324" style="stroke: #7a828e"></line>
+<text x="176" y="334" style="font-size: 10.5px; fill: #14171c; text-anchor: middle">6'-0"</text>
+</svg>
+</div>
+<div style="padding: 10px 14px 12px; border-top: 1px solid #eef0f3; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #5e6672">
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 18px; height: 11px; background: oklch(0.96 0.025 262); border: 1.2px solid oklch(0.55 0.17 262)"></span>Linked to a tag</div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 18px; height: 11px; background: oklch(0.96 0.04 80); border: 1.2px solid oklch(0.72 0.16 65)"></span>Mismatch or missing</div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 18px; height: 11px; border: 1.2px dashed oklch(0.55 0.17 262)"></span>Wall cabinet above</div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 18px; height: 11px; background: #fff; border: 1.2px solid #7a828e"></span>Appliance, not tagged</div>
+</div>
+</section>
+</div>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 18px 18px 14px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Tag <span class="mono" style="font-weight: 500">SB36</span></span><span style="font-size: 13px; color: #5e6672">Sink base · tag 3 of 15 · persp 2</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150); display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 14px">link</span>Linked</span></div>
+<div style="padding: 0 18px 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid oklch(0.55 0.17 262); background: #f7f8ff; border-radius: 8px">
+<svg width="44" height="30" viewBox="0 0 44 30" aria-hidden="true"><rect x="1" y="1" width="42" height="28" style="fill: oklch(0.88 0.07 262); stroke: oklch(0.45 0.17 262); stroke-width: 1.6"></rect><rect x="8" y="6" width="28" height="18" rx="4" style="fill: #fff; stroke: oklch(0.55 0.17 262); stroke-dasharray: 3 2"></rect></svg>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Back wall run · box 3</span><span class="mono" style="font-size: 12px; color: #5e6672">SB36 · 36 × 24 × 34 1/2</span></div>
+<span class="ms" style="font-size: 20px; color: #5e6672">open_in_new</span>
+</div>
+<div style="display: flex; flex-direction: column">
+<div class="cmp" style="font-size: 11px; color: #9aa3af; font-weight: 600; padding-bottom: 2px"><span></span><span>2020 report</span><span>Plan</span><span></span></div>
+<div class="cmp"><span style="color: #5e6672">Code</span><span class="mono">SB36</span><span class="mono">SB36</span><span class="ms" style="font-size: 16px; color: oklch(0.42 0.12 150)">check</span></div>
+<div class="cmp"><span style="color: #5e6672">Width</span><span class="mono">36"</span><span class="mono">36"</span><span class="ms" style="font-size: 16px; color: oklch(0.42 0.12 150)">check</span></div>
+<div class="cmp"><span style="color: #5e6672">Face</span><span>FD + 2 doors</span><span>FD + 2 doors</span><span class="ms" style="font-size: 16px; color: oklch(0.42 0.12 150)">check</span></div>
+<div class="cmp"><span style="color: #5e6672">Finish</span><span>Shaker, White</span><span>Shaker, White</span><span class="ms" style="font-size: 16px; color: oklch(0.42 0.12 150)">check</span></div>
+<div class="cmp"><span style="color: #5e6672">Order line</span><span class="mono">#7</span><span class="mono" style="color: #9aa3af">—</span><span></span></div>
+</div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Mismatches in this file</span><span class="mono" style="font-size: 12px; color: oklch(0.48 0.13 65)">2</span></div>
+<div class="mm mmon"><span class="ms" style="font-size: 18px; color: oklch(0.6 0.15 65)">difference</span><span style="display: flex; flex-direction: column; gap: 3px"><span style="font-weight: 500">2020 report says <span class="mono">B18</span> + <span class="mono">3"</span> filler, plan has <span class="mono">B21</span></span><span style="font-size: 12px; color: #5e6672">Back wall, right end · order line <span class="mono">#9</span> · same <span class="mono">21"</span> overall</span></span></div>
+<div class="mm"><span class="ms" style="font-size: 18px; color: oklch(0.6 0.15 65)">help</span><span style="display: flex; flex-direction: column; gap: 3px"><span style="font-weight: 500">Not in plan: <span class="mono">W1530</span></span><span style="font-size: 12px; color: #5e6672">Above <span class="mono">B15</span>, left of window · order line <span class="mono">#14</span></span></span></div>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #f6f7f9; color: #5e6672; font-size: 12px; line-height: 1.4"><span class="ms" style="font-size: 16px">info</span><span>Plan keeps the <span class="mono">3"</span> filler at the <span class="mono">BBC42</span> end and a <span class="mono">1/2"</span> scribe at the right wall (field measure <span class="mono">117 1/2"</span>). The report moves the filler to the right end.</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #eef0f3">
+<span style="font-size: 12px; color: #5e6672">For the selected mismatch</span>
+<button class="b bp" style="justify-content: center; padding: 10px"><span class="ms" style="font-size: 18px">sync_alt</span>Update plan to match</button><div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; font-weight: 600; padding: 10px"><span class="ms" style="font-size: 18px">flag</span>Keep plan, flag</button><button class="b" style="justify-content: center; font-weight: 600; padding: 10px"><span class="ms" style="font-size: 18px">link</span>Copy link</button></div>
+<span style="font-size: 12px; color: #5e6672">Flag emails [Supplier] the plan box and field measure; Copy link gives the same note as a link.</span>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">View</span><span class="sv">Supplier markup · split</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Source</span><span class="sv">2020 · rev 10/08/26</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Tags</span><span class="sv">15 · 13 linked · 2 flagged</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Phase</span><span class="sv">Proposed</span></div>
+<span style="flex: 1"></span>
+<span class="sv">Fit</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const ok = { icon: 'link', color: 'oklch(0.55 0.17 262)', codeStyle: '', rowStyle: '' };
+const flag = { icon: 'error', color: 'oklch(0.6 0.15 65)', codeStyle: 'color: oklch(0.48 0.13 65); font-weight: 500', rowStyle: '' };
+const rows = [
+['B15', 'Back wall, base 1', ok],
+['DW24', 'Back wall, DW panel', ok],
+['SB36', 'Back wall, sink', ok],
+['B18', 'Back wall, base 4', ok],
+['B18', 'Back wall, right end + F3', flag],
+['W1530', 'Not in plan', flag],
+['W2430', 'Back wall, upper', ok],
+['W1830', 'Back wall, upper', ok],
+['W2130', 'Back wall, upper', ok],
+['BBC42', 'Left wall, corner', ok],
+['W3030', 'Left wall, upper', ok],
+['HD30', 'Left wall, hood', ok],
+['B24', 'Island, left', ok],
+['DB24', 'Island, center', ok],
+['B24', 'Island, right', ok]
+];
+return {
+tags: rows.map(r => ({
+code: r[0], where: r[1], icon: r[2].icon, color: r[2].color,
+codeStyle: r[0] === 'SB36' ? 'color: oklch(0.42 0.17 262); font-weight: 500' : r[2].codeStyle,
+rowStyle: r[0] === 'SB36' ? 'background: #eef1ff' : r[2].rowStyle
+}))
+};
+}
+}
+</script>
+</body>
+</html>

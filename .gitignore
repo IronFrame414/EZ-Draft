@@ -1,0 +1,16 @@
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+.claude/worktrees/
+.claude/settings.local.json
+.claude/agent-memory-local/
+vault/reference/
+*.log
+.DS_Store
+Thumbs.db

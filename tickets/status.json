@@ -1,0 +1,2010 @@
+{
+ "note": "Status ledger. status is one of: not started, in progress, passed, blocked. passed needs commit. blocked needs note. Written by the coordinator only.",
+ "tickets": {
+  "EZD-000": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-001": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-002": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-003": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-004": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-005": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-006": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-007": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-008": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-010": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-011": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-012": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-013": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-014": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-016a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-016b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-017": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-018": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-009": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-019": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-020": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-021": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-022": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-023": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-024": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-025": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-026": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-015": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-027": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-028": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-029": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-030": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-031": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-101": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-102": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-103": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-104": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-105": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-106": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-107": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-108": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-109": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-110": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-116": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-117a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-117b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-127": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-128": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-129": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-131": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-132": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-112": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-113": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-114": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-115": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-118": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-119": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-130": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-133": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-120a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-120b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-111": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-121": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-122": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-123": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-124": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-125": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-126": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-134": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-135": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-201": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-202": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-203": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-204": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-205": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-206": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-219": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-222": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-225": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-230": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-236": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-238": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-207": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-208": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-209": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-210": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-211": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-212": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-213": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-214": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-215": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-217": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-218": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-220": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-221": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-223": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-224": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-229": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-231": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-234": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-226": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-227": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-228": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-233": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-235": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-216": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-232": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-237": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-301": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-302": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-303": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-304": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-305": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-306": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-307": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-308": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-309": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-310": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-311": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-312": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-313": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-314": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-315": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-401": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-402": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-404": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-403": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-405": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-406": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-407": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-408": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-409": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-410": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-411": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-412": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-413": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-414": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-415": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-416": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-417": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-418": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-419": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-501": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-502": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-503": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-504": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-505": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-506": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-507": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-508": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-509": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-510": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-511": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-512": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-513": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-514": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-515": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-516": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-601": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-602": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-603": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-604": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-605": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-606": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-607": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-608": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-609": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-610": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-613": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-611a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-612": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-614": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-615": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-620": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-611b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-611c": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-616": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-617": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-618": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-621": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-622": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-623": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-624": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-625": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-626": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-627": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-628": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-629": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-630": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-631": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-632": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-633": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-634": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-635": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-636": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-637": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-638": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-639": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-701": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-709": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-710": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-711": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-712": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-713": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-714": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-716": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-724": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-726": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-702a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-702b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-703": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-704": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-705": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-706": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-707": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-708a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-708b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-708c": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-715": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-717": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-718": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-719": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-720": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-721": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-722": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-723": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-725": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-727": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-728": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-801": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-802": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-803": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-804": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-805": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-807": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-808": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-809": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-810": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-811": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-812": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-813": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-815": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-816": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-817": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-806": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-814": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-901a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-901b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-902": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-904": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-903": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-905": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-906": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-907": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-912": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-913": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-911": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-914": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-915": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-916": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-917": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-918": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-919": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-920": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-921": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-908": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-909a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-909b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-910": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-922a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-922b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1001a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1001b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1001c": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1002": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1003": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1004": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1005": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1006": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1007": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1008": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1009": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1010": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1011": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1012": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1013": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1014": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1015": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1017": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1101": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1102": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1103": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1104a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1104b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1106": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1107": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1108": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1109": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1105": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1110": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1111": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1112": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1113": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1114": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1115": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1116": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1117": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1118": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1119": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1120": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1121": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1201": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1202": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1203": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1204": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1206": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1208": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1209": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1210": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1211": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1212": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1213": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1214": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1215": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1205": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1207": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1301": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1302": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1303": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1304": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1305": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1306": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1308": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1307": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1309": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1310": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1311": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1312": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1314": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1401": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1402": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1403": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1404": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1405": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1406": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1407": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1408": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1409": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1410": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1412": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1413": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1414": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1415": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1416": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1417": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1418": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1419": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1420": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1421": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1411": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1422": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1501": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1502": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1503": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1504": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1505": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1506": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1507": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1508": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1509": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1510": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1601": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1602": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1603": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1604": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1605": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1606": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1607": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1608": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1609": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1610": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1611a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1611b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1611c": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1612": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1613": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1614": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1615": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1616": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1617": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1701": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1702": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1704": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1705": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1706": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1707": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1708": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1709a": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1709b": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1709c": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  },
+  "EZD-1710": {
+   "status": "not started",
+   "commit": null,
+   "note": ""
+  }
+ }
+}

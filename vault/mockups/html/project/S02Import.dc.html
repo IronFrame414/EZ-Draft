@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft import review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;font-size:14px}
+.row:hover{background:#f2f4f7}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.zb{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:20px}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600">Family room vault + beams</span><span style="font-size: 12px; color: #5e6672">Importing Polycam scan · family-room.dxf + mesh.glb</span></div>
+<div style="flex: 1; display: flex; justify-content: center"><div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #5e6672"><span style="display: flex; align-items: center; gap: 6px; color: oklch(0.42 0.12 150); font-weight: 500"><span class="ms" style="font-size: 18px">check_circle</span>Upload</span><span style="width: 24px; height: 1px; background: #dfe2e6"></span><span style="display: flex; align-items: center; gap: 6px; color: oklch(0.45 0.17 262); font-weight: 600"><span style="width: 18px; height: 18px; border-radius: 50%; background: oklch(0.55 0.17 262); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center">2</span>Review</span><span style="width: 24px; height: 1px; background: #dfe2e6"></span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid #c9ced5; font-size: 11px; display: flex; align-items: center; justify-content: center">3</span>Finish</span></div></div>
+<button class="b">Cancel import</button>
+<button class="b bp">Finish import</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<aside class="card" aria-label="Detected items" style="width: 320px; flex: none; overflow: hidden; display: flex; flex-direction: column; align-self: stretch">
+<div style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">Review detected items</span><span style="font-size: 13px; color: #5e6672"><span class="mono">42</span> found · <span class="mono">36</span> high confidence · <span class="mono">6</span> to check</span></div>
+<div style="display: flex; gap: 4px; padding: 0 10px 10px; border-bottom: 1px solid #dfe2e6"><button class="seg">One by one</button><button class="seg segon">Accept + fix</button><button class="seg">By room</button></div>
+<span class="lbl">To check</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 6px">
+<div class="row" style="background: #eef1ff"><span class="dot" style="background: oklch(0.55 0.17 262)"></span><span style="flex: 1; font-weight: 500">North wall, east half</span><span class="mono" style="font-size: 12px; color: #5e6672">62%</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.72 0.16 65)"></span><span style="flex: 1">South wall</span><span class="mono" style="font-size: 12px; color: #5e6672">58%</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.72 0.16 65)"></span><span style="flex: 1">Partition at kitchen</span><span class="mono" style="font-size: 12px; color: #5e6672">55%</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.72 0.16 65)"></span><span style="flex: 1">Window W3 size</span><span class="mono" style="font-size: 12px; color: #5e6672">49%</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.72 0.16 65)"></span><span style="flex: 1">Ceiling slope, east</span><span class="mono" style="font-size: 12px; color: #5e6672">47%</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.72 0.16 65)"></span><span style="flex: 1">Door D2 swing</span><span class="mono" style="font-size: 12px; color: #5e6672">41%</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Accepted</span>
+<div style="padding: 0 14px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5e6672"><span><span class="mono" style="color: #14171c">11</span> walls · <span class="mono" style="color: #14171c">4</span> windows · <span class="mono" style="color: #14171c">2</span> doors</span><span><span class="mono" style="color: #14171c">3</span> rooms · <span class="mono" style="color: #14171c">16</span> fixtures + cabinets</span></div>
+<span style="flex: 1"></span>
+<div style="padding: 14px 16px; border-top: 1px solid #eef0f3; display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center">Fix selected</button><button class="b" style="justify-content: center">Delete</button><button class="b bp" style="flex: 1; justify-content: center">Accept 36</button></div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative">
+<svg viewBox="0 0 820 640" role="img" aria-label="Scan underlay with detected walls: green accepted, amber to check, blue selected; red gap where the room does not close" style="position: absolute; left: 20px; top: 30px; width: 820px; height: 640px; font-family: 'DM Mono', monospace">
+<path d="M60 60 L740 64 L742 600 L58 596 Z M380 64 L382 330" style="fill: none; stroke: #e1e4e8; stroke-width: 26; stroke-linejoin: round"></path>
+<path d="M60 60 L740 64 L742 600 L58 596 Z" style="fill: rgba(225,228,232,.35)"></path>
+<line x1="60" y1="60" x2="380" y2="60" style="stroke: oklch(0.6 0.13 150); stroke-width: 6"></line>
+<line x1="380" y1="60" x2="740" y2="64" style="stroke: oklch(0.55 0.17 262); stroke-width: 8"></line>
+<line x1="740" y1="64" x2="742" y2="600" style="stroke: oklch(0.6 0.13 150); stroke-width: 6"></line>
+<line x1="742" y1="600" x2="66" y2="596" style="stroke: oklch(0.72 0.16 65); stroke-width: 6; stroke-dasharray: 10 6"></line>
+<line x1="58" y1="596" x2="60" y2="60" style="stroke: oklch(0.6 0.13 150); stroke-width: 6"></line>
+<line x1="380" y1="64" x2="382" y2="330" style="stroke: oklch(0.72 0.16 65); stroke-width: 6; stroke-dasharray: 10 6"></line>
+<line x1="480" y1="62" x2="620" y2="63" style="stroke: #fff; stroke-width: 10"></line><line x1="480" y1="59" x2="620" y2="60" style="stroke: #3b424d; stroke-width: 1.2"></line><line x1="480" y1="65" x2="620" y2="66" style="stroke: #3b424d; stroke-width: 1.2"></line>
+<rect x="52" y="584" width="16" height="22" rx="3" style="fill: oklch(0.96 0.05 28); stroke: oklch(0.6 0.19 28); stroke-width: 1.5"></rect>
+<rect x="74" y="560" width="64" height="22" rx="11" style="fill: oklch(0.6 0.19 28)"></rect><text x="106" y="575" style="font-size: 12px; fill: #fff; text-anchor: middle">5/8" gap</text>
+<rect x="470" y="22" width="200" height="26" rx="13" style="fill: oklch(0.55 0.17 262)"></rect><text x="570" y="40" style="font-size: 12px; fill: #fff; text-anchor: middle">typed 18' 2" · scan 18' 2 3/4"</text>
+</svg>
+<div style="position: absolute; left: 20px; bottom: 20px; display: flex; gap: 14px; font-size: 12px; color: #5e6672; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px; padding: 8px 12px">
+<span style="display: flex; align-items: center; gap: 6px"><span class="dot" style="background: oklch(0.6 0.13 150)"></span>Accepted</span>
+<span style="display: flex; align-items: center; gap: 6px"><span class="dot" style="background: oklch(0.72 0.16 65)"></span>To check</span>
+<span style="display: flex; align-items: center; gap: 6px"><span class="dot" style="background: oklch(0.55 0.17 262)"></span>Selected</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 6px; border-radius: 3px; background: #e1e4e8"></span>Scan</span>
+</div>
+<div style="position: absolute; right: 16px; top: 16px; display: flex; flex-direction: column; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px">
+<button class="zb ms" aria-label="Zoom in" style="border-bottom: 1px solid #eef0f3">add</button>
+<button class="zb ms" aria-label="Zoom out" style="border-bottom: 1px solid #eef0f3">remove</button>
+<button class="zb ms" aria-label="Show 3D mesh">view_in_ar</button>
+</div>
+</div>
+<aside class="card" aria-label="Conflicts" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; align-self: stretch; font-size: 14px">
+<div style="padding: 18px 18px 14px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">North wall, east half</span><span style="font-size: 13px; color: #5e6672">Wall · existing · 62% confidence</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)">Conflict</span></div>
+<div style="padding: 0 18px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #5e6672">Typed or laser<input value="18' 2&quot;" style="font: 400 14px 'DM Mono', monospace; color: #14171c; padding: 9px 10px; border: 2px solid oklch(0.55 0.17 262); border-radius: 8px"></label>
+<div style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #5e6672">Scan reads<span class="mono" style="font-size: 14px; color: #5e6672; padding: 10px; border: 1px solid #dfe2e6; border-radius: 8px; background: #f6f7f9">18' 2 3/4"</span></div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Typed wins. This creates</span>
+<div style="display: flex; gap: 10px; align-items: flex-start"><span class="ms" style="font-size: 18px; color: oklch(0.6 0.19 28)">error</span><span>Room no longer closes: <span class="mono">5/8"</span> gap at the southwest corner</span></div>
+<div style="display: flex; gap: 10px; align-items: flex-start"><span class="ms" style="font-size: 18px; color: oklch(0.72 0.16 65)">warning</span><span>Window W2 offset from corner changes by <span class="mono">3/4"</span></span></div>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Resolve the gap</span>
+<button class="b" style="justify-content: flex-start"><span class="ms" style="font-size: 18px">ads_click</span>Pick the wall that absorbs it</button>
+<button class="b" style="justify-content: flex-start"><span class="ms" style="font-size: 18px">rotate_right</span>Keep the room out of square</button>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 14px 18px; border-top: 1px solid #eef0f3; font-size: 12px; color: #5e6672">Conflict threshold <span class="mono" style="color: #14171c">1/2"</span> · change in settings</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Source</span><span class="sv">Polycam Space · DXF + GLB</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Scan accuracy</span><span class="sv">±1/2"</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Input</span><span class="sv">type or laser (keyboard mode)</span></div>
+<span style="flex: 1"></span>
+<span class="sv">100%</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

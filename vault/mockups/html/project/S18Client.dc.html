@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft client approval</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.sel{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;padding:6px 0;border-top:1px solid #eef0f3}
+.sel span:first-child{color:#5e6672}
+.op{flex:1;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;border:1px solid #dfe2e6;border-radius:10px;background:#fff;font:500 13px 'Instrument Sans',sans-serif;color:#14171c;text-align:left;cursor:pointer;position:relative}
+.opon{border:2px solid oklch(0.55 0.17 262);background:#f7f8ff;padding:7px}
+.op svg{width:100%;height:46px;display:block;border-radius:6px;background:#f6f7f9}
+.ok{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:oklch(0.55 0.17 262);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+.cab{fill:#26324a;stroke:#1a2336;stroke-width:.6}
+.oak{fill:#c9a46a;stroke:#9c7c48;stroke-width:.6}
+.pin{fill:oklch(0.55 0.17 262);stroke:#fff;stroke-width:2}
+.pnt{font:600 11px 'Instrument Sans',sans-serif;fill:#fff;text-anchor:middle}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header style="flex: none; padding: 14px 18px 12px; background: #fff; border-bottom: 1px solid #dfe2e6; display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: #7a828e">WORTH PROPERTIES</span><span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em">Hendricks kitchen</span></div>
+<span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 12px; color: #5e6672"><span>Design approval</span><span class="mono" style="color: #14171c">Version 3 · sent Sep 26</span></span>
+</header>
+<main style="flex: 1; min-height: 0; padding: 12px 16px 0; display: flex; flex-direction: column; gap: 10px">
+<section class="card" aria-label="Rendering" style="overflow: hidden; display: flex; flex-direction: column">
+<svg viewBox="0 0 358 206" role="img" aria-label="Kitchen rendering with a before and after slider: left half shows the existing oak kitchen with a soffit, right half the new navy Shaker cabinets, island, pendants and three ceiling beams; two comment pins" style="width: 100%; display: block">
+<defs>
+<clipPath id="bf"><rect x="0" y="0" width="172" height="206"></rect></clipPath>
+<pattern id="pl" width="358" height="10" patternUnits="userSpaceOnUse"><rect width="358" height="10" style="fill: #dcc6a2"></rect><line x1="0" y1="9.5" x2="358" y2="9.5" style="stroke: #cbb38c; stroke-width: 0.8"></line></pattern>
+<pattern id="tl" width="8" height="4" patternUnits="userSpaceOnUse"><rect width="8" height="4" style="fill: #f7f6f2"></rect><path d="M0 3.7 H8 M4 0 V3.7" style="stroke: #e2e0da; stroke-width: 0.5"></path></pattern>
+<pattern id="vt" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" style="fill: #d3cdc1"></rect><path d="M0 13.5 H14 M13.5 0 V14" style="stroke: #bfb8aa; stroke-width: 0.8"></path></pattern>
+</defs>
+<polygon points="0,0 358,0 274,40 84,40" style="fill: #f3f2ee"></polygon>
+<polygon points="0,0 84,40 84,150 0,206" style="fill: #e6e3dc"></polygon>
+<polygon points="358,0 274,40 274,150 358,206" style="fill: #e1ded6"></polygon>
+<rect x="84" y="40" width="190" height="110" style="fill: #ecebe6"></rect>
+<polygon points="0,206 358,206 274,150 84,150" style="fill: url(#pl)"></polygon>
+<g style="fill: #9c7c55">
+<polygon points="72,0 88,0 130.8,40 122.3,40"></polygon>
+<polygon points="171,0 187,0 183.2,40 174.8,40"></polygon>
+<polygon points="270,0 286,0 235.7,40 227.2,40"></polygon>
+</g>
+<rect x="141" y="56" width="76" height="34" style="fill: #cfe0ea; stroke: #fff; stroke-width: 2"></rect><line x1="179" y1="56" x2="179" y2="90" style="stroke: #fff; stroke-width: 1.5"></line>
+<rect x="92" y="44" width="46" height="44" class="cab"></rect><line x1="115" y1="44" x2="115" y2="88" style="stroke: #1a2336; stroke-width: .6"></line><rect x="95" y="47" width="17" height="38" style="fill: none; stroke: #3a4763; stroke-width: .6"></rect><rect x="118" y="47" width="17" height="38" style="fill: none; stroke: #3a4763; stroke-width: .6"></rect>
+<rect x="220" y="44" width="46" height="44" class="cab"></rect><line x1="243" y1="44" x2="243" y2="88" style="stroke: #1a2336; stroke-width: .6"></line><rect x="223" y="47" width="17" height="38" style="fill: none; stroke: #3a4763; stroke-width: .6"></rect><rect x="246" y="47" width="17" height="38" style="fill: none; stroke: #3a4763; stroke-width: .6"></rect>
+<rect x="88" y="90" width="182" height="26" style="fill: url(#tl)"></rect>
+<rect x="88" y="116" width="182" height="4" style="fill: #f4f2ee; stroke: #d9d6cf; stroke-width: .5"></rect>
+<rect x="90" y="120" width="178" height="30" class="cab"></rect>
+<g style="fill: none; stroke: #3a4763; stroke-width: .6"><rect x="93" y="123" width="26" height="24"></rect><rect x="122" y="123" width="26" height="24"></rect><rect x="151" y="123" width="56" height="24"></rect><rect x="210" y="123" width="26" height="24"></rect><rect x="239" y="123" width="26" height="24"></rect></g>
+<g style="stroke: #c9ccd2; stroke-width: 1.2"><line x1="104" y1="126" x2="104" y2="132"></line><line x1="133" y1="126" x2="133" y2="132"></line><line x1="221" y1="126" x2="221" y2="132"></line><line x1="250" y1="126" x2="250" y2="132"></line></g>
+<g style="stroke: #3b424d; stroke-width: .7"><line x1="150" y1="22" x2="150" y2="104"></line><line x1="179" y1="18" x2="179" y2="104"></line><line x1="208" y1="22" x2="208" y2="104"></line></g>
+<g style="fill: #2b2f36"><path d="M143 112 Q150 102 157 112 Z"></path><path d="M172 112 Q179 102 186 112 Z"></path><path d="M201 112 Q208 102 215 112 Z"></path></g>
+<polygon points="114,160 244,160 256,172 102,172" style="fill: #f6f4f0; stroke: #d6d2ca; stroke-width: .6"></polygon>
+<rect x="102" y="172" width="154" height="5" style="fill: #ebe8e2"></rect>
+<rect x="106" y="177" width="146" height="27" class="cab"></rect>
+<g style="fill: none; stroke: #3a4763; stroke-width: .6"><rect x="109" y="180" width="44" height="21"></rect><rect x="157" y="180" width="44" height="21"></rect><rect x="205" y="180" width="44" height="21"></rect></g>
+<g clip-path="url(#bf)">
+<polygon points="0,0 358,0 274,40 84,40" style="fill: #efece4"></polygon>
+<polygon points="0,0 84,40 84,150 0,206" style="fill: #e2ddd1"></polygon>
+<rect x="84" y="40" width="190" height="110" style="fill: #e8e4da"></rect>
+<polygon points="0,206 358,206 274,150 84,150" style="fill: url(#vt)"></polygon>
+<rect x="84" y="40" width="190" height="12" style="fill: #e2ddd2; stroke: #cfc8b9; stroke-width: .6"></rect>
+<rect x="128" y="16" width="44" height="8" style="fill: #fbfaf6; stroke: #cfc8b9; stroke-width: .6"></rect>
+<rect x="148" y="60" width="62" height="28" style="fill: #cfe0ea; stroke: #fff; stroke-width: 2"></rect>
+<rect x="92" y="52" width="50" height="38" class="oak"></rect><line x1="117" y1="52" x2="117" y2="90" style="stroke: #9c7c48; stroke-width: .6"></line><rect x="95" y="55" width="19" height="32" style="fill: none; stroke: #a8874f; stroke-width: .6"></rect><rect x="120" y="55" width="19" height="32" style="fill: none; stroke: #a8874f; stroke-width: .6"></rect>
+<rect x="88" y="90" width="182" height="26" style="fill: #e7e1d3"></rect>
+<rect x="88" y="116" width="182" height="4" style="fill: #d8ccb3; stroke: #bfb196; stroke-width: .5"></rect>
+<rect x="90" y="120" width="178" height="30" class="oak"></rect>
+<g style="fill: none; stroke: #a8874f; stroke-width: .6"><rect x="93" y="123" width="26" height="24"></rect><rect x="122" y="123" width="26" height="24"></rect><rect x="151" y="123" width="56" height="24"></rect></g>
+</g>
+<rect x="5" y="6" width="44" height="17" rx="8.5" style="fill: rgba(20,23,28,.62)"></rect><text x="27" y="18" style="font: 600 10px 'Instrument Sans', sans-serif; fill: #fff; text-anchor: middle">Before</text>
+<rect x="315" y="6" width="38" height="17" rx="8.5" style="fill: rgba(20,23,28,.62)"></rect><text x="334" y="18" style="font: 600 10px 'Instrument Sans', sans-serif; fill: #fff; text-anchor: middle">After</text>
+<line x1="172" y1="0" x2="172" y2="206" style="stroke: #fff; stroke-width: 2"></line>
+<circle cx="172" cy="103" r="13" style="fill: #fff; stroke: rgba(20,30,50,.15)"></circle>
+<path d="M166 103 l4 -4 v8 z M178 103 l-4 -4 v8 z" style="fill: #3b424d"></path>
+<circle cx="232" cy="188" r="10" class="pin"></circle><text x="232" y="192" class="pnt">1</text>
+<circle cx="264" cy="18" r="10" class="pin"></circle><text x="264" y="22" class="pnt">2</text>
+</svg>
+<div style="display: flex; flex-direction: column; gap: 5px; padding: 9px 12px 10px; border-top: 1px solid #eef0f3; font-size: 12px; line-height: 1.35">
+<div style="display: flex; gap: 8px"><span style="flex: none; width: 16px; height: 16px; border-radius: 50%; background: oklch(0.55 0.17 262); color: #fff; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center">1</span><span style="color: #3b424d"><span style="font-weight: 600; color: #14171c">You</span> Can the island be 6" longer?</span></div>
+<div style="display: flex; gap: 8px"><span style="flex: none; width: 16px; height: 16px; border-radius: 50%; background: oklch(0.55 0.17 262); color: #fff; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center">2</span><span style="color: #3b424d"><span style="font-weight: 600; color: #14171c">Josh</span> Beams stained to match the floor.</span></div>
+</div>
+</section>
+<section class="card" aria-label="Selections" style="padding: 10px 14px 4px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px"><span style="font-size: 13px; font-weight: 600">Selections</span><span style="font-size: 11px; color: #7a828e">Not all shown in render</span></div>
+<div class="sel"><span>Countertop edge</span><span style="font-weight: 500">Half bullnose</span></div>
+<div class="sel"><span>Cabinet</span><span style="font-weight: 500; display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #26324a"></span>Shaker Midnight</span></div>
+<div class="sel"><span>Hardware</span><span style="font-weight: 500">[Brand] 5" pull · satin brass</span></div>
+</section>
+<section style="display: flex; flex-direction: column; gap: 7px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; font-weight: 600">Ceiling beams</span><span style="font-size: 12px; color: #5e6672">Choose one</span></div>
+<div style="display: flex; gap: 8px">
+<button class="op"><svg viewBox="0 0 100 46" aria-hidden="true"><rect x="6" y="5" width="88" height="36" style="fill: #fff; stroke: #9aa3af"></rect><rect x="6" y="21" width="88" height="4" style="fill: #9c7c55"></rect></svg><span style="display: flex; gap: 6px"><span class="mono" style="color: #7a828e">A</span>Ridge only</span></button>
+<button class="op opon" aria-pressed="true"><span class="ok ms">check</span><svg viewBox="0 0 100 46" aria-hidden="true"><rect x="6" y="5" width="88" height="36" style="fill: #fff; stroke: oklch(0.55 0.17 262)"></rect><rect x="22" y="5" width="4" height="36" style="fill: #9c7c55"></rect><rect x="48" y="5" width="4" height="36" style="fill: #9c7c55"></rect><rect x="74" y="5" width="4" height="36" style="fill: #9c7c55"></rect></svg><span style="display: flex; gap: 6px; font-weight: 600"><span class="mono" style="color: oklch(0.45 0.17 262)">B</span>Three beams</span></button>
+<button class="op"><svg viewBox="0 0 100 46" aria-hidden="true"><rect x="6" y="5" width="88" height="36" style="fill: #fff; stroke: #9aa3af"></rect><g style="fill: #9c7c55"><rect x="34" y="5" width="3" height="36"></rect><rect x="63" y="5" width="3" height="36"></rect><rect x="6" y="21.5" width="88" height="3"></rect></g></svg><span style="display: flex; gap: 6px"><span class="mono" style="color: #7a828e">C</span>Coffered</span></button>
+</div>
+</section>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5e6672"><span class="ms" style="font-size: 16px">info</span>For illustration; drawings govern.</span>
+<section class="card" aria-label="Signature" style="padding: 10px 14px 10px; display: flex; flex-direction: column; gap: 4px; box-shadow: none">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; font-weight: 600">Sign to approve</span><span style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: oklch(0.42 0.12 150)"><span class="ms" style="font-size: 14px">verified</span>Verified: j••••@email.com</span></div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5e6672">Printed name<input value="[Client name]" aria-label="Printed name" style="flex: 1; min-width: 0; font: 500 13px 'Instrument Sans', sans-serif; color: #14171c; padding: 6px 8px; border: 1px solid #dfe2e6; border-radius: 7px"></label>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11px; color: #7a828e">Signature</span><a href="#" style="font-size: 12px; color: oklch(0.5 0.17 262); text-decoration: none">Clear</a></div>
+<svg viewBox="0 0 330 62" role="img" aria-label="Finger signature on the line" style="width: 100%; height: 44px; display: block">
+<text x="4" y="52" style="font: 400 14px 'DM Mono', monospace; fill: #9aa3af">x</text>
+<line x1="18" y1="52" x2="326" y2="52" style="stroke: #dfe2e6"></line>
+<path d="M30 40 C36 18 44 10 48 16 C52 24 38 46 42 48 C48 50 56 22 62 24 C66 26 60 44 66 44 C72 44 74 30 80 30 C86 30 82 44 90 42 C98 40 102 20 110 22 C116 24 108 46 116 44 C124 42 128 32 136 32 C146 32 140 44 152 40 C166 35 178 26 192 30 C200 32 196 40 206 38 M218 34 C240 28 266 30 292 26" style="fill: none; stroke: #14171c; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"></path>
+</svg>
+<span style="font-size: 11px; color: #7a828e">[Client name] · Oct 11, 2026 · approving Version 3 with option B</span>
+</section>
+</main>
+<footer style="flex: none; padding: 12px 16px 26px; display: flex; gap: 8px; background: #fff; border-top: 1px solid #dfe2e6">
+<button style="flex: none; display: flex; align-items: center; gap: 6px; padding: 12px 14px; border: 1px solid #dfe2e6; border-radius: 10px; background: #fff; font: 500 15px 'Instrument Sans', sans-serif; color: #14171c"><span class="ms" style="font-size: 18px">add_comment</span>Comment</button>
+<button style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border: 0; border-radius: 10px; background: oklch(0.55 0.17 262); font: 600 15px 'Instrument Sans', sans-serif; color: #fff"><span class="ms" style="font-size: 19px">check</span>Approve</button>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

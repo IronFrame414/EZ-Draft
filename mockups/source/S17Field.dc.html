@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft field measure</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:6px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;white-space:nowrap}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font:500 11px 'Instrument Sans',sans-serif;color:#7a828e;padding:8px 0 0;cursor:pointer}
+.tab .ms{font-size:23px}
+.tabon{color:oklch(0.45 0.17 262);font-weight:600}
+.tabon .ms{font-variation-settings:'FILL' 1}
+.fb{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 12px;border-radius:10px;font:600 15px 'Instrument Sans',sans-serif;cursor:pointer}
+.cb{fill:#fff;stroke:#7a828e;stroke-width:1.1}
+.cbx{fill:#f6f7f9;stroke:#9aa3af;stroke-width:1;stroke-dasharray:2 2}
+.cd{font:500 8.5px 'DM Mono',monospace;fill:#3b424d;text-anchor:middle}
+.dm{font:400 8.5px 'DM Mono',monospace;fill:#5e6672;text-anchor:middle}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header style="flex: none; padding: 12px 16px 12px; background: #fff; border-bottom: 1px solid #dfe2e6; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px">
+<a href="#" style="display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; color: oklch(0.5 0.17 262); text-decoration: none"><span class="ms" style="font-size: 20px">arrow_back</span>EZ Binder</a>
+<span style="flex: 1"></span>
+<span class="ms" style="font-size: 20px; color: oklch(0.42 0.12 150)" aria-label="Available offline">offline_pin</span>
+<span class="mono" style="font-size: 12px; font-weight: 500; padding: 4px 9px; border-radius: 999px; background: #14171c; color: #fff">Rev 0</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em">Kitchen remodel · Hendricks</span><span style="font-size: 12px; color: #5e6672">Field pack · issued Oct 8 · A3.0 proposed plan</span></div>
+</header>
+<main style="flex: 1; min-height: 0; position: relative; background-color: #fbfbfc; background-image: linear-gradient(#eceef1 1px, transparent 1px), linear-gradient(90deg, #eceef1 1px, transparent 1px); background-size: 16px 16px">
+<svg viewBox="0 0 390 470" role="img" aria-label="Kitchen plan with individual cabinet boxes and codes; the sink base opening is being measured between two laser points at 36 1/4 inches against 36 inches drawn" style="position: absolute; inset: 0; width: 100%; height: 100%">
+<g transform="translate(18 40)">
+<path d="M-4 252 V-4 H301.2 V356.8" style="fill: none; stroke: #3b424d; stroke-width: 6; stroke-linejoin: miter"></path>
+<path d="M-4 327.6 V356.8 H82" style="fill: none; stroke: #3b424d; stroke-width: 6"></path>
+<line x1="82" y1="352.8" x2="297.2" y2="352.8" style="stroke: #9aa3af; stroke-dasharray: 6 4"></line>
+<path d="M-1 252 A 75.6 75.6 0 0 1 74.6 327.6" style="fill: none; stroke: #9aa3af; stroke-width: 1"></path><line x1="-1" y1="327.6" x2="74.6" y2="327.6" style="stroke: #7a828e; stroke-width: 1.4"></line>
+<rect x="146.4" y="-7" width="60" height="6" style="fill: #fff; stroke: #3b424d"></rect><line x1="146.4" y1="-4" x2="206.4" y2="-4" style="stroke: #9aa3af"></line>
+<rect x="0" y="0" width="50.4" height="88.2" class="cb"></rect><line x1="0" y1="0" x2="50.4" y2="50.4" style="stroke: #dfe2e6"></line><line x1="50.4" y1="0" x2="0" y2="50.4" style="stroke: #dfe2e6"></line>
+<rect x="50.4" y="0" width="6.3" height="50.4" class="cbx"></rect>
+<rect x="56.7" y="0" width="31.5" height="50.4" class="cb"></rect>
+<rect x="88.2" y="0" width="50.4" height="50.4" class="cb"></rect>
+<rect x="138.6" y="0" width="75.6" height="50.4" style="fill: oklch(0.96 0.025 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.4; stroke-dasharray: 4 2"></rect>
+<rect x="214.2" y="0" width="37.8" height="50.4" class="cb"></rect>
+<rect x="252" y="0" width="44.1" height="50.4" class="cb"></rect>
+<rect x="234.2" y="63" width="63" height="75.6" style="fill: none; stroke: #9aa3af; stroke-dasharray: 4 3"></rect>
+<line x1="234.2" y1="63" x2="297.2" y2="138.6" style="stroke: #dfe2e6"></line><line x1="297.2" y1="63" x2="234.2" y2="138.6" style="stroke: #dfe2e6"></line>
+<text x="53.5" y="62" class="cd" style="font-size: 7px; fill: #9aa3af">F3</text><text x="72.5" y="30" class="cd">B15</text><text x="113.4" y="30" class="cd">DW24</text><text x="176.4" y="44" class="cd" style="fill: oklch(0.42 0.17 262)">SB36</text><text x="233.1" y="30" class="cd">B18</text><text x="274" y="30" class="cd">B21</text><text x="265.7" y="104" class="cd" style="fill: #7a828e">REF</text>
+<rect x="0" y="88.2" width="50.4" height="63" style="fill: #fff; stroke: #5e6672; stroke-width: 1.1"></rect>
+<circle cx="14" cy="104" r="6" style="fill: none; stroke: #9aa3af"></circle><circle cx="36" cy="104" r="6" style="fill: none; stroke: #9aa3af"></circle><circle cx="14" cy="135" r="6" style="fill: none; stroke: #9aa3af"></circle><circle cx="36" cy="135" r="6" style="fill: none; stroke: #9aa3af"></circle>
+<rect x="0" y="151.2" width="50.4" height="31.5" class="cb"></rect>
+<text x="25.2" y="74" class="cd">BBC42</text><text x="25.2" y="122" class="cd" style="fill: #5e6672">RNG30</text><text x="25.2" y="170" class="cd">B15</text>
+<rect x="94.5" y="201.6" width="50.4" height="50.4" class="cb"></rect><rect x="144.9" y="201.6" width="50.4" height="50.4" class="cb"></rect><rect x="195.3" y="201.6" width="50.4" height="50.4" class="cb"></rect>
+<path d="M89.8 198.5 H250.4 V277.2 H89.8 Z" style="fill: none; stroke: #9aa3af; stroke-width: 1"></path>
+<text x="119.7" y="230" class="cd">B24</text><text x="170.1" y="230" class="cd">DB24</text><text x="220.5" y="230" class="cd">B24</text>
+<text x="170.1" y="268" class="dm" style="font-family: 'Instrument Sans', sans-serif; fill: #9aa3af">ISLAND · SEATING</text>
+<line x1="138.6" y1="25" x2="214.7" y2="25" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.6"></line>
+<line x1="138.6" y1="25" x2="138.6" y2="88" style="stroke: oklch(0.55 0.17 262); stroke-width: 1; stroke-dasharray: 2 2"></line>
+<line x1="214.7" y1="25" x2="214.7" y2="88" style="stroke: oklch(0.55 0.17 262); stroke-width: 1; stroke-dasharray: 2 2"></line>
+<circle cx="138.6" cy="25" r="9" style="fill: oklch(0.55 0.17 262); fill-opacity: 0.14; stroke: oklch(0.55 0.17 262); stroke-width: 1.4"></circle><circle cx="138.6" cy="25" r="2.6" style="fill: oklch(0.55 0.17 262)"></circle>
+<circle cx="214.7" cy="25" r="9" style="fill: oklch(0.55 0.17 262); fill-opacity: 0.14; stroke: oklch(0.55 0.17 262); stroke-width: 1.4"></circle><circle cx="214.7" cy="25" r="2.6" style="fill: oklch(0.55 0.17 262)"></circle>
+<text x="138.6" y="11" style="font: 600 8px 'Instrument Sans', sans-serif; fill: oklch(0.45 0.17 262); text-anchor: middle">A</text><text x="214.7" y="11" style="font: 600 8px 'Instrument Sans', sans-serif; fill: oklch(0.45 0.17 262); text-anchor: middle">B</text>
+<line x1="138.6" y1="80" x2="214.7" y2="80" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.2"></line>
+<rect x="146.4" y="70" width="60" height="20" rx="10" style="fill: oklch(0.55 0.17 262)"></rect><text x="176.4" y="84" style="font: 500 11px 'DM Mono', monospace; fill: #fff; text-anchor: middle">36 1/4"</text>
+<rect x="154.4" y="94" width="44" height="15" rx="7.5" style="fill: #fff; stroke: #dfe2e6"></rect><text x="176.4" y="104.5" style="font: 400 8.5px 'DM Mono', monospace; fill: #5e6672; text-anchor: middle">dwg 36"</text>
+<line x1="0" y1="370" x2="297.2" y2="370" style="stroke: #9aa3af"></line><line x1="0" y1="365" x2="0" y2="375" style="stroke: #9aa3af"></line><line x1="297.2" y1="365" x2="297.2" y2="375" style="stroke: #9aa3af"></line>
+<rect x="118" y="363" width="62" height="14" style="fill: #fbfbfc"></rect><text x="148.6" y="373.5" class="dm" style="fill: #14171c">11'-9 1/2"</text>
+<line x1="314" y1="0" x2="314" y2="352.8" style="stroke: #9aa3af"></line><line x1="309" y1="0" x2="319" y2="0" style="stroke: #9aa3af"></line><line x1="309" y1="352.8" x2="319" y2="352.8" style="stroke: #9aa3af"></line>
+<text x="326" y="176" class="dm" style="fill: #14171c" transform="rotate(-90 326 176)">14'-0"</text>
+</g>
+</svg>
+<div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; align-items: center; gap: 6px">
+<span style="flex: 1"></span>
+<span class="chip" style="padding: 6px 8px"><span class="ms" style="font-size: 17px">layers</span></span>
+</div>
+<div style="position: absolute; right: 12px; bottom: 14px; display: flex; flex-direction: column; border: 1px solid #dfe2e6; border-radius: 10px; background: #fff; overflow: hidden; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<span class="ms" style="font-size: 20px; padding: 8px; color: #3b424d; border-bottom: 1px solid #eef0f3">add</span><span class="ms" style="font-size: 20px; padding: 8px; color: #3b424d">remove</span>
+</div>
+<span class="mono" style="position: absolute; left: 14px; bottom: 16px; font-size: 11px; color: #7a828e">Tap two points or fire laser</span>
+</main>
+<section aria-label="Measurement" style="flex: none; background: #fff; border-top: 1px solid #dfe2e6; border-radius: 16px 16px 0 0; box-shadow: 0 -6px 20px rgba(20,30,50,.08); padding: 8px 16px 14px; display: flex; flex-direction: column; gap: 12px; margin-top: -10px; position: relative">
+<span style="width: 36px; height: 4px; border-radius: 999px; background: #dfe2e6; align-self: center"></span>
+<div style="display: flex; align-items: flex-end; gap: 12px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #5e6672">Sink base opening · <span class="mono">SB36</span> · A to B</span><span class="mono" style="font-size: 32px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1">36 1/4"</span></div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px"><span style="font-size: 12px; color: #5e6672">Drawing <span class="mono" style="color: #14171c">36"</span></span><span class="mono" style="font-size: 13px; font-weight: 500; padding: 4px 9px; border-radius: 999px; background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)">+1/4"</span></div>
+</div>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 9px 11px; border-radius: 8px; background: oklch(0.96 0.04 80); color: oklch(0.42 0.12 65); font-size: 12px; line-height: 1.4"><span class="ms" style="font-size: 17px">info</span><span>Over the <span class="mono">1/8"</span> tolerance. Add a filler or confirm with office before ordering.</span></div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="fb" style="flex: none; border: 1px solid #dfe2e6; background: #fff; color: #14171c; font-weight: 500; padding-left: 10px; padding-right: 10px"><span class="ms" style="font-size: 19px">picture_as_pdf</span>Save PDF</button>
+<button class="fb" style="flex: 1; border: 1px solid oklch(0.8 0.1 70); background: oklch(0.96 0.04 80); color: oklch(0.42 0.12 65)"><span class="ms" style="font-size: 19px">flag</span>Flag conflict</button>
+<button class="fb" style="flex: 1 1 100%; border: 0; background: oklch(0.55 0.17 262); color: #fff"><span class="ms" style="font-size: 19px">send</span>Send measurement</button>
+</div>
+</section>
+<nav aria-label="Field pack" style="flex: none; height: 74px; box-sizing: border-box; display: flex; background: #fff; border-top: 1px solid #eef0f3; padding-bottom: 18px">
+<button class="tab"><span class="ms">map</span>Plan</button>
+<button class="tab"><span class="ms">view_in_ar</span>3D</button>
+<button class="tab tabon" aria-current="page"><span class="ms">straighten</span>Measure</button>
+<button class="tab"><span class="ms">checklist</span>Tasks</button>
+<button class="tab"><span class="ms">photo_camera</span>Photo</button>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

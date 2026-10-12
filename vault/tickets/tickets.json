@@ -1,0 +1,8191 @@
+{
+ "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
+ "count": 401,
+ "notes": [
+  "depends_on has base IDs expanded to every lettered part.",
+  "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
+  "build_order is one valid full order: phases in order, lowest-numbered ready ticket first."
+ ],
+ "checks": {
+  "cycles": 0,
+  "depends_on_later_phase": 0,
+  "depends_on_later_number_same_phase": 29,
+  "unresolved_dependencies": 0
+ },
+ "build_order": [
+  "EZD-000",
+  "EZD-001",
+  "EZD-002",
+  "EZD-003",
+  "EZD-004",
+  "EZD-005",
+  "EZD-006",
+  "EZD-007",
+  "EZD-008",
+  "EZD-010",
+  "EZD-011",
+  "EZD-012",
+  "EZD-013",
+  "EZD-014",
+  "EZD-016a",
+  "EZD-016b",
+  "EZD-017",
+  "EZD-018",
+  "EZD-009",
+  "EZD-019",
+  "EZD-020",
+  "EZD-021",
+  "EZD-022",
+  "EZD-023",
+  "EZD-024",
+  "EZD-025",
+  "EZD-026",
+  "EZD-015",
+  "EZD-027",
+  "EZD-028",
+  "EZD-029",
+  "EZD-030",
+  "EZD-031",
+  "EZD-101",
+  "EZD-102",
+  "EZD-103",
+  "EZD-104",
+  "EZD-105",
+  "EZD-106",
+  "EZD-107",
+  "EZD-108",
+  "EZD-109",
+  "EZD-110",
+  "EZD-116",
+  "EZD-117a",
+  "EZD-117b",
+  "EZD-127",
+  "EZD-128",
+  "EZD-129",
+  "EZD-131",
+  "EZD-132",
+  "EZD-112",
+  "EZD-113",
+  "EZD-114",
+  "EZD-115",
+  "EZD-118",
+  "EZD-119",
+  "EZD-130",
+  "EZD-133",
+  "EZD-120a",
+  "EZD-120b",
+  "EZD-111",
+  "EZD-121",
+  "EZD-122",
+  "EZD-123",
+  "EZD-124",
+  "EZD-125",
+  "EZD-126",
+  "EZD-134",
+  "EZD-135",
+  "EZD-201",
+  "EZD-202",
+  "EZD-203",
+  "EZD-204",
+  "EZD-205",
+  "EZD-206",
+  "EZD-219",
+  "EZD-222",
+  "EZD-225",
+  "EZD-230",
+  "EZD-236",
+  "EZD-238",
+  "EZD-207",
+  "EZD-208",
+  "EZD-209",
+  "EZD-210",
+  "EZD-211",
+  "EZD-212",
+  "EZD-213",
+  "EZD-214",
+  "EZD-215",
+  "EZD-217",
+  "EZD-218",
+  "EZD-220",
+  "EZD-221",
+  "EZD-223",
+  "EZD-224",
+  "EZD-229",
+  "EZD-231",
+  "EZD-234",
+  "EZD-226",
+  "EZD-227",
+  "EZD-228",
+  "EZD-233",
+  "EZD-235",
+  "EZD-216",
+  "EZD-232",
+  "EZD-237",
+  "EZD-301",
+  "EZD-302",
+  "EZD-303",
+  "EZD-304",
+  "EZD-305",
+  "EZD-306",
+  "EZD-307",
+  "EZD-308",
+  "EZD-309",
+  "EZD-310",
+  "EZD-311",
+  "EZD-312",
+  "EZD-313",
+  "EZD-314",
+  "EZD-315",
+  "EZD-401",
+  "EZD-402",
+  "EZD-404",
+  "EZD-403",
+  "EZD-405",
+  "EZD-406",
+  "EZD-407",
+  "EZD-408",
+  "EZD-409",
+  "EZD-410",
+  "EZD-411",
+  "EZD-412",
+  "EZD-413",
+  "EZD-414",
+  "EZD-415",
+  "EZD-416",
+  "EZD-417",
+  "EZD-418",
+  "EZD-419",
+  "EZD-501",
+  "EZD-502",
+  "EZD-503",
+  "EZD-504",
+  "EZD-505",
+  "EZD-506",
+  "EZD-507",
+  "EZD-508",
+  "EZD-509",
+  "EZD-510",
+  "EZD-511",
+  "EZD-512",
+  "EZD-513",
+  "EZD-514",
+  "EZD-515",
+  "EZD-516",
+  "EZD-601",
+  "EZD-602",
+  "EZD-603",
+  "EZD-604",
+  "EZD-605",
+  "EZD-606",
+  "EZD-607",
+  "EZD-608",
+  "EZD-609",
+  "EZD-610",
+  "EZD-613",
+  "EZD-611a",
+  "EZD-612",
+  "EZD-614",
+  "EZD-615",
+  "EZD-620",
+  "EZD-611b",
+  "EZD-611c",
+  "EZD-616",
+  "EZD-617",
+  "EZD-618",
+  "EZD-621",
+  "EZD-622",
+  "EZD-623",
+  "EZD-624",
+  "EZD-625",
+  "EZD-626",
+  "EZD-627",
+  "EZD-628",
+  "EZD-629",
+  "EZD-630",
+  "EZD-631",
+  "EZD-632",
+  "EZD-633",
+  "EZD-634",
+  "EZD-635",
+  "EZD-636",
+  "EZD-637",
+  "EZD-638",
+  "EZD-639",
+  "EZD-701",
+  "EZD-709",
+  "EZD-710",
+  "EZD-711",
+  "EZD-712",
+  "EZD-713",
+  "EZD-714",
+  "EZD-716",
+  "EZD-724",
+  "EZD-726",
+  "EZD-702a",
+  "EZD-702b",
+  "EZD-703",
+  "EZD-704",
+  "EZD-705",
+  "EZD-706",
+  "EZD-707",
+  "EZD-708a",
+  "EZD-708b",
+  "EZD-708c",
+  "EZD-715",
+  "EZD-717",
+  "EZD-718",
+  "EZD-719",
+  "EZD-720",
+  "EZD-721",
+  "EZD-722",
+  "EZD-723",
+  "EZD-725",
+  "EZD-727",
+  "EZD-728",
+  "EZD-801",
+  "EZD-802",
+  "EZD-803",
+  "EZD-804",
+  "EZD-805",
+  "EZD-807",
+  "EZD-808",
+  "EZD-809",
+  "EZD-810",
+  "EZD-811",
+  "EZD-812",
+  "EZD-813",
+  "EZD-815",
+  "EZD-816",
+  "EZD-817",
+  "EZD-806",
+  "EZD-814",
+  "EZD-901a",
+  "EZD-901b",
+  "EZD-902",
+  "EZD-904",
+  "EZD-903",
+  "EZD-905",
+  "EZD-906",
+  "EZD-907",
+  "EZD-912",
+  "EZD-913",
+  "EZD-911",
+  "EZD-914",
+  "EZD-915",
+  "EZD-916",
+  "EZD-917",
+  "EZD-918",
+  "EZD-919",
+  "EZD-920",
+  "EZD-921",
+  "EZD-908",
+  "EZD-909a",
+  "EZD-909b",
+  "EZD-910",
+  "EZD-922a",
+  "EZD-922b",
+  "EZD-1001a",
+  "EZD-1001b",
+  "EZD-1001c",
+  "EZD-1002",
+  "EZD-1003",
+  "EZD-1004",
+  "EZD-1005",
+  "EZD-1006",
+  "EZD-1007",
+  "EZD-1008",
+  "EZD-1009",
+  "EZD-1010",
+  "EZD-1011",
+  "EZD-1012",
+  "EZD-1013",
+  "EZD-1014",
+  "EZD-1015",
+  "EZD-1017",
+  "EZD-1101",
+  "EZD-1102",
+  "EZD-1103",
+  "EZD-1104a",
+  "EZD-1104b",
+  "EZD-1106",
+  "EZD-1107",
+  "EZD-1108",
+  "EZD-1109",
+  "EZD-1105",
+  "EZD-1110",
+  "EZD-1111",
+  "EZD-1112",
+  "EZD-1113",
+  "EZD-1114",
+  "EZD-1115",
+  "EZD-1116",
+  "EZD-1117",
+  "EZD-1118",
+  "EZD-1119",
+  "EZD-1120",
+  "EZD-1121",
+  "EZD-1201",
+  "EZD-1202",
+  "EZD-1203",
+  "EZD-1204",
+  "EZD-1206",
+  "EZD-1208",
+  "EZD-1209",
+  "EZD-1210",
+  "EZD-1211",
+  "EZD-1212",
+  "EZD-1213",
+  "EZD-1214",
+  "EZD-1215",
+  "EZD-1205",
+  "EZD-1207",
+  "EZD-1301",
+  "EZD-1302",
+  "EZD-1303",
+  "EZD-1304",
+  "EZD-1305",
+  "EZD-1306",
+  "EZD-1308",
+  "EZD-1307",
+  "EZD-1309",
+  "EZD-1310",
+  "EZD-1311",
+  "EZD-1312",
+  "EZD-1314",
+  "EZD-1401",
+  "EZD-1402",
+  "EZD-1403",
+  "EZD-1404",
+  "EZD-1405",
+  "EZD-1406",
+  "EZD-1407",
+  "EZD-1408",
+  "EZD-1409",
+  "EZD-1410",
+  "EZD-1412",
+  "EZD-1413",
+  "EZD-1414",
+  "EZD-1415",
+  "EZD-1416",
+  "EZD-1417",
+  "EZD-1418",
+  "EZD-1419",
+  "EZD-1420",
+  "EZD-1421",
+  "EZD-1411",
+  "EZD-1422",
+  "EZD-1501",
+  "EZD-1502",
+  "EZD-1503",
+  "EZD-1504",
+  "EZD-1505",
+  "EZD-1506",
+  "EZD-1507",
+  "EZD-1508",
+  "EZD-1509",
+  "EZD-1510",
+  "EZD-1601",
+  "EZD-1602",
+  "EZD-1603",
+  "EZD-1604",
+  "EZD-1605",
+  "EZD-1606",
+  "EZD-1607",
+  "EZD-1608",
+  "EZD-1609",
+  "EZD-1610",
+  "EZD-1611a",
+  "EZD-1611b",
+  "EZD-1611c",
+  "EZD-1612",
+  "EZD-1613",
+  "EZD-1614",
+  "EZD-1615",
+  "EZD-1616",
+  "EZD-1617",
+  "EZD-1701",
+  "EZD-1702",
+  "EZD-1704",
+  "EZD-1705",
+  "EZD-1706",
+  "EZD-1707",
+  "EZD-1708",
+  "EZD-1709a",
+  "EZD-1709b",
+  "EZD-1709c",
+  "EZD-1710"
+ ],
+ "tickets": [
+  {
+   "id": "EZD-001",
+   "phase": 0,
+   "title": "Repo and tooling",
+   "depends_raw": "EZD-000",
+   "spec_ref": "Product overview · Stack",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-000"
+   ],
+   "build_position": 2
+  },
+  {
+   "id": "EZD-002",
+   "phase": 0,
+   "title": "CI",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Stack",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 3
+  },
+  {
+   "id": "EZD-003",
+   "phase": 0,
+   "title": "Hosting and subdomain",
+   "depends_raw": "EZD-002",
+   "spec_ref": "R24 #1; Stack · Hosting",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-002"
+   ],
+   "build_position": 4
+  },
+  {
+   "id": "EZD-004",
+   "phase": 0,
+   "title": "Supabase project",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Stack · Database, auth, files",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 5
+  },
+  {
+   "id": "EZD-005",
+   "phase": 0,
+   "title": "Tenant, user, membership tables",
+   "depends_raw": "EZD-004",
+   "spec_ref": "Data model · Tables",
+   "spec_files": [
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-004"
+   ],
+   "build_position": 6
+  },
+  {
+   "id": "EZD-006",
+   "phase": 0,
+   "title": "Row-level security",
+   "depends_raw": "EZD-005",
+   "spec_ref": "Data model; Non-functional · Security",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-005"
+   ],
+   "build_position": 7
+  },
+  {
+   "id": "EZD-007",
+   "phase": 0,
+   "title": "Magic-link sign-in",
+   "depends_raw": "EZD-005",
+   "spec_ref": "Users and role presets; Non-functional · Security",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-005"
+   ],
+   "build_position": 8
+  },
+  {
+   "id": "EZD-008",
+   "phase": 0,
+   "title": "Email provider",
+   "depends_raw": "EZD-004",
+   "spec_ref": "External services; R24 #15",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-004"
+   ],
+   "build_position": 9
+  },
+  {
+   "id": "EZD-009",
+   "phase": 0,
+   "title": "Background job queue",
+   "depends_raw": "EZD-004, EZD-018",
+   "spec_ref": "Stack · Background jobs; Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-004",
+    "EZD-018"
+   ],
+   "build_position": 19
+  },
+  {
+   "id": "EZD-010",
+   "phase": 0,
+   "title": "Design tokens",
+   "depends_raw": "EZD-001",
+   "spec_ref": "App shell · Frame and visual system",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 10
+  },
+  {
+   "id": "EZD-011",
+   "phase": 0,
+   "title": "Shell: header card",
+   "depends_raw": "EZD-010",
+   "spec_ref": "App shell · Header card",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-010"
+   ],
+   "build_position": 11
+  },
+  {
+   "id": "EZD-012",
+   "phase": 0,
+   "title": "Shell: rail, panels, status bar",
+   "depends_raw": "EZD-010",
+   "spec_ref": "App shell · Frame, Tool rail, Status bar",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-010"
+   ],
+   "build_position": 12
+  },
+  {
+   "id": "EZD-013",
+   "phase": 0,
+   "title": "PWA install",
+   "depends_raw": "EZD-012",
+   "spec_ref": "Product overview · Platform",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-012"
+   ],
+   "build_position": 13
+  },
+  {
+   "id": "EZD-014",
+   "phase": 0,
+   "title": "Device layouts",
+   "depends_raw": "EZD-012",
+   "spec_ref": "Platform; Non-functional · Accessibility",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-012"
+   ],
+   "build_position": 14
+  },
+  {
+   "id": "EZD-015",
+   "phase": 0,
+   "title": "Shared state components",
+   "depends_raw": "EZD-010, EZD-026",
+   "spec_ref": "S01 States (pattern for all screens)",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-010",
+    "EZD-026"
+   ],
+   "build_position": 28
+  },
+  {
+   "id": "EZD-016a",
+   "phase": 0,
+   "title": "Test harness",
+   "depends_raw": "EZD-007, EZD-002",
+   "spec_ref": "Build phases and acceptance tests; Import and export · Imports",
+   "spec_files": [
+    "spec/sections/12-build-phases-and-acceptance-tests.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-007",
+    "EZD-002"
+   ],
+   "build_position": 15
+  },
+  {
+   "id": "EZD-016b",
+   "phase": 0,
+   "title": "Fixtures",
+   "depends_raw": "EZD-016a",
+   "spec_ref": "Build phases and acceptance tests; Import and export · Imports",
+   "spec_files": [
+    "spec/sections/12-build-phases-and-acceptance-tests.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-016a"
+   ],
+   "build_position": 16
+  },
+  {
+   "id": "EZD-017",
+   "phase": 0,
+   "title": "Performance budgets and benchmark",
+   "depends_raw": "EZD-016, EZD-012",
+   "spec_ref": "Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-016a",
+    "EZD-016b",
+    "EZD-012"
+   ],
+   "build_position": 17
+  },
+  {
+   "id": "EZD-018",
+   "phase": 0,
+   "title": "Realtime channels",
+   "depends_raw": "EZD-006",
+   "spec_ref": "Stack · Database; Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-006"
+   ],
+   "build_position": 18
+  },
+  {
+   "id": "EZD-019",
+   "phase": 0,
+   "title": "EZ Binder contract and stub",
+   "depends_raw": "EZD-016",
+   "spec_ref": "Hooks, events and integrations; Relationship to EZ Binder",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-016a",
+    "EZD-016b"
+   ],
+   "build_position": 20
+  },
+  {
+   "id": "EZD-020",
+   "phase": 0,
+   "title": "Entry points and lazy chunks",
+   "depends_raw": "EZD-017",
+   "spec_ref": "Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-017"
+   ],
+   "build_position": 21
+  },
+  {
+   "id": "EZD-021",
+   "phase": 0,
+   "title": "AI client and stubs",
+   "depends_raw": "EZD-009, EZD-016",
+   "spec_ref": "Stack · AI; External services",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-009",
+    "EZD-016a",
+    "EZD-016b"
+   ],
+   "build_position": 22
+  },
+  {
+   "id": "EZD-022",
+   "phase": 0,
+   "title": "Event registry",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Hooks · Internal app events (Canonical names)",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 23
+  },
+  {
+   "id": "EZD-000",
+   "phase": 0,
+   "title": "Architecture conventions",
+   "depends_raw": "—",
+   "spec_ref": "Stack · Named tools; Data model · Architecture rules; R26 R11",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/03-data-model.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [],
+   "build_position": 1
+  },
+  {
+   "id": "EZD-023",
+   "phase": 0,
+   "title": "Environments and release",
+   "depends_raw": "EZD-002, EZD-004",
+   "spec_ref": "Non-functional · Operations; R26 R12",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-002",
+    "EZD-004"
+   ],
+   "build_position": 24
+  },
+  {
+   "id": "EZD-024",
+   "phase": 0,
+   "title": "Error reporting",
+   "depends_raw": "EZD-008, EZD-009",
+   "spec_ref": "Non-functional · Operations; R26 R12",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-008",
+    "EZD-009"
+   ],
+   "build_position": 25
+  },
+  {
+   "id": "EZD-025",
+   "phase": 0,
+   "title": "Off-site backups and restore script",
+   "depends_raw": "EZD-004, EZD-009",
+   "spec_ref": "Non-functional · Data retention; R26 R13",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-004",
+    "EZD-009"
+   ],
+   "build_position": 26
+  },
+  {
+   "id": "EZD-026",
+   "phase": 0,
+   "title": "Message helper",
+   "depends_raw": "EZD-001",
+   "spec_ref": "R26 R17",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 27
+  },
+  {
+   "id": "EZD-027",
+   "phase": 0,
+   "title": "Spike: plan canvas on the iPad",
+   "depends_raw": "EZD-012",
+   "spec_ref": "Non-functional · Performance; R26 R9",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-012"
+   ],
+   "build_position": 29
+  },
+  {
+   "id": "EZD-028",
+   "phase": 0,
+   "title": "Spike: PDF from a drawing list",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Stack · PDF out; R26 R7",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 30
+  },
+  {
+   "id": "EZD-029",
+   "phase": 0,
+   "title": "Spike: DXF parser",
+   "depends_raw": "EZD-016, EZD-000",
+   "spec_ref": "Stack · DXF in/out; R26 R16",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-016a",
+    "EZD-016b",
+    "EZD-000"
+   ],
+   "build_position": 31
+  },
+  {
+   "id": "EZD-030",
+   "phase": 0,
+   "title": "Spike: wall openings and sloped ceiling",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Performance rule 6; R26 R9",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 32
+  },
+  {
+   "id": "EZD-031",
+   "phase": 0,
+   "title": "Spike: render trial",
+   "depends_raw": "EZD-021",
+   "spec_ref": "R26 R9, R21",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-021"
+   ],
+   "build_position": 33
+  },
+  {
+   "id": "EZD-101",
+   "phase": 1,
+   "title": "Permission and role tables",
+   "depends_raw": "EZD-005",
+   "spec_ref": "Permissions and settings; S15 Permission list; R24 #11–13",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md",
+    "spec/sections/screens/S15-settings-users-permissions.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-005"
+   ],
+   "build_position": 34
+  },
+  {
+   "id": "EZD-102",
+   "phase": 1,
+   "title": "Permission enforcement",
+   "depends_raw": "EZD-101, EZD-006",
+   "spec_ref": "Permissions and settings; R24 “controls are hidden”",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-101",
+    "EZD-006"
+   ],
+   "build_position": 35
+  },
+  {
+   "id": "EZD-103",
+   "phase": 1,
+   "title": "Settings shell",
+   "depends_raw": "EZD-102, EZD-012",
+   "spec_ref": "S15 Layout, Entry points",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-012"
+   ],
+   "build_position": 36
+  },
+  {
+   "id": "EZD-104",
+   "phase": 1,
+   "title": "Users table",
+   "depends_raw": "EZD-103",
+   "spec_ref": "S15 Controls",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103"
+   ],
+   "build_position": 37
+  },
+  {
+   "id": "EZD-105",
+   "phase": 1,
+   "title": "Invite user",
+   "depends_raw": "EZD-104, EZD-008",
+   "spec_ref": "S15 Invite user; R24 #14, #15",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-104",
+    "EZD-008"
+   ],
+   "build_position": 38
+  },
+  {
+   "id": "EZD-106",
+   "phase": 1,
+   "title": "User inspector",
+   "depends_raw": "EZD-104",
+   "spec_ref": "S15 Controls, Validation",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-104"
+   ],
+   "build_position": 39
+  },
+  {
+   "id": "EZD-107",
+   "phase": 1,
+   "title": "Custom roles",
+   "depends_raw": "EZD-106",
+   "spec_ref": "S15 Role card, New role; R24 Permissions and users",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-106"
+   ],
+   "build_position": 40
+  },
+  {
+   "id": "EZD-108",
+   "phase": 1,
+   "title": "Avatar menu and My profile",
+   "depends_raw": "EZD-103",
+   "spec_ref": "S15 Avatar; S01 User avatar",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png",
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103"
+   ],
+   "build_position": 41
+  },
+  {
+   "id": "EZD-109",
+   "phase": 1,
+   "title": "Event log",
+   "depends_raw": "EZD-005, EZD-106",
+   "spec_ref": "Data model · event_log; Non-functional · Security",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-005",
+    "EZD-106"
+   ],
+   "build_position": 42
+  },
+  {
+   "id": "EZD-110",
+   "phase": 1,
+   "title": "Notifications",
+   "depends_raw": "EZD-008, EZD-018",
+   "spec_ref": "App shell · Notifications; S01 Notifications button",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-008",
+    "EZD-018"
+   ],
+   "build_position": 43
+  },
+  {
+   "id": "EZD-111",
+   "phase": 1,
+   "title": "Send dialog with Copy link",
+   "depends_raw": "EZD-110, EZD-120",
+   "spec_ref": "R24 #15; Data model · sent_package",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110",
+    "EZD-120a",
+    "EZD-120b"
+   ],
+   "build_position": 62
+  },
+  {
+   "id": "EZD-112",
+   "phase": 1,
+   "title": "Company settings: identity",
+   "depends_raw": "EZD-103, EZD-132",
+   "spec_ref": "S15a",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103",
+    "EZD-132"
+   ],
+   "build_position": 52
+  },
+  {
+   "id": "EZD-113",
+   "phase": 1,
+   "title": "Customers",
+   "depends_raw": "EZD-112",
+   "spec_ref": "S15a Customers; Data model · customer; R24 #32",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/decisions.md",
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-112"
+   ],
+   "build_position": 53
+  },
+  {
+   "id": "EZD-114",
+   "phase": 1,
+   "title": "EZ Binder connection and shared sign-on",
+   "depends_raw": "EZD-112, EZD-007, EZD-019",
+   "spec_ref": "S15a; Relationship to EZ Binder; Hooks · Inbound API",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-112",
+    "EZD-007",
+    "EZD-019"
+   ],
+   "build_position": 54
+  },
+  {
+   "id": "EZD-115",
+   "phase": 1,
+   "title": "Customer and user sync",
+   "depends_raw": "EZD-113, EZD-114",
+   "spec_ref": "S15a; R24 #14, #32; Hooks · customer.synced, user.synced",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-113",
+    "EZD-114"
+   ],
+   "build_position": 55
+  },
+  {
+   "id": "EZD-116",
+   "phase": 1,
+   "title": "Defaults framework",
+   "depends_raw": "EZD-103",
+   "spec_ref": "S15d; R24 “Values”",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103"
+   ],
+   "build_position": 44
+  },
+  {
+   "id": "EZD-117a",
+   "phase": 1,
+   "title": "Projects page: query and cards",
+   "depends_raw": "EZD-102, EZD-110",
+   "spec_ref": "S01 Controls, Data shown, States",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-110"
+   ],
+   "build_position": 45
+  },
+  {
+   "id": "EZD-117b",
+   "phase": 1,
+   "title": "Projects page: header, search and states",
+   "depends_raw": "EZD-117a, EZD-015",
+   "spec_ref": "S01 Controls, States",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-015"
+   ],
+   "build_position": 46
+  },
+  {
+   "id": "EZD-118",
+   "phase": 1,
+   "title": "New project wizard",
+   "depends_raw": "EZD-117, EZD-113",
+   "spec_ref": "S01 New project wizard; W1",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/06-workflows.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-117b",
+    "EZD-113"
+   ],
+   "build_position": 56
+  },
+  {
+   "id": "EZD-119",
+   "phase": 1,
+   "title": "EZ Binder job picker",
+   "depends_raw": "EZD-118, EZD-114",
+   "spec_ref": "S01; W1; Hooks · Create design project from job",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-114"
+   ],
+   "build_position": 57
+  },
+  {
+   "id": "EZD-120a",
+   "phase": 1,
+   "title": "Model tables, save function and checkpoints",
+   "depends_raw": "EZD-005, EZD-133",
+   "spec_ref": "Data model · Working copy and saves, Architecture rules, model_version",
+   "spec_files": [
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-005",
+    "EZD-133"
+   ],
+   "build_position": 60
+  },
+  {
+   "id": "EZD-120b",
+   "phase": 1,
+   "title": "Model store, outbox and editor route",
+   "depends_raw": "EZD-120a, EZD-012, EZD-117",
+   "spec_ref": "Data model · Working copy and saves, Architecture rules; S03 States",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-012",
+    "EZD-117a",
+    "EZD-117b"
+   ],
+   "build_position": 61
+  },
+  {
+   "id": "EZD-121",
+   "phase": 1,
+   "title": "Sent versions and numbering",
+   "depends_raw": "EZD-120, EZD-111",
+   "spec_ref": "R24 #4a, #16, #26; Revisions · Version rules",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/13-decisions-and-remaining-items.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-120b",
+    "EZD-111"
+   ],
+   "build_position": 63
+  },
+  {
+   "id": "EZD-122",
+   "phase": 1,
+   "title": "Versions panel",
+   "depends_raw": "EZD-121",
+   "spec_ref": "Revisions / version history; S03 Tab: Versions",
+   "spec_files": [
+    "spec/sections/screens/X-revisions-version-history-not-in-mockup.md",
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-121"
+   ],
+   "build_position": 64
+  },
+  {
+   "id": "EZD-123",
+   "phase": 1,
+   "title": "Version cleanup",
+   "depends_raw": "EZD-122, EZD-110, EZD-116",
+   "spec_ref": "W15; R24 #4; Revisions · Cleanup sheet",
+   "spec_files": [
+    "spec/sections/06-workflows.md",
+    "spec/decisions.md",
+    "spec/sections/13-decisions-and-remaining-items.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-122",
+    "EZD-110",
+    "EZD-116"
+   ],
+   "build_position": 65
+  },
+  {
+   "id": "EZD-124",
+   "phase": 1,
+   "title": "Project card menu",
+   "depends_raw": "EZD-117, EZD-121",
+   "spec_ref": "S01 Card overflow menu; S01 Decisions",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-117b",
+    "EZD-121"
+   ],
+   "build_position": 66
+  },
+  {
+   "id": "EZD-125",
+   "phase": 1,
+   "title": "Edit lock service",
+   "depends_raw": "EZD-120, EZD-109, EZD-110, EZD-116, EZD-018",
+   "spec_ref": "S06 Edit lock; R24 #16, #17",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-120b",
+    "EZD-109",
+    "EZD-110",
+    "EZD-116",
+    "EZD-018"
+   ],
+   "build_position": 67
+  },
+  {
+   "id": "EZD-126",
+   "phase": 1,
+   "title": "Edit lock UI",
+   "depends_raw": "EZD-125, EZD-011",
+   "spec_ref": "S06 Controls; Acceptance tests · Edit lock",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-125",
+    "EZD-011"
+   ],
+   "build_position": 68
+  },
+  {
+   "id": "EZD-127",
+   "phase": 1,
+   "title": "Review pill",
+   "depends_raw": "EZD-117",
+   "spec_ref": "App shell · Header card",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-117b"
+   ],
+   "build_position": 47
+  },
+  {
+   "id": "EZD-128",
+   "phase": 1,
+   "title": "Project switcher",
+   "depends_raw": "EZD-117",
+   "spec_ref": "App shell · Header card; S01 Entry points",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-117b"
+   ],
+   "build_position": 48
+  },
+  {
+   "id": "EZD-129",
+   "phase": 1,
+   "title": "User project scope",
+   "depends_raw": "EZD-106, EZD-006",
+   "spec_ref": "Permissions and settings · Company settings (Users + permissions); Data model · membership; S01 Permissions",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md",
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-106",
+    "EZD-006"
+   ],
+   "build_position": 49
+  },
+  {
+   "id": "EZD-130",
+   "phase": 1,
+   "title": "Project settings dialog",
+   "depends_raw": "EZD-118, EZD-116, EZD-128",
+   "spec_ref": "S15d Decisions; S15c Decisions; S15g Decisions",
+   "spec_files": [
+    "spec/sections/screens/S15d-settings-defaults.md",
+    "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md",
+    "spec/sections/screens/S15g-settings-code-edition.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-116",
+    "EZD-128"
+   ],
+   "build_position": 58
+  },
+  {
+   "id": "EZD-131",
+   "phase": 1,
+   "title": "Libraries shell",
+   "depends_raw": "EZD-103",
+   "spec_ref": "S15h",
+   "spec_files": [
+    "spec/sections/screens/S15h-settings-libraries.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103"
+   ],
+   "build_position": 50
+  },
+  {
+   "id": "EZD-132",
+   "phase": 1,
+   "title": "File storage",
+   "depends_raw": "EZD-006",
+   "spec_ref": "Data model · source_file; Non-functional · Operations",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006"
+   ],
+   "build_position": 51
+  },
+  {
+   "id": "EZD-133",
+   "phase": 1,
+   "title": "Access and money-field harness",
+   "depends_raw": "EZD-102, EZD-006",
+   "spec_ref": "Data model · Architecture rules 1 and 2; R26 R1",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-006"
+   ],
+   "build_position": 59
+  },
+  {
+   "id": "EZD-134",
+   "phase": 1,
+   "title": "App-shell cache and device storage",
+   "depends_raw": "EZD-013, EZD-120",
+   "spec_ref": "Data model · Architecture rules 10 and 12; Non-functional · Offline",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-013",
+    "EZD-120a",
+    "EZD-120b"
+   ],
+   "build_position": 69
+  },
+  {
+   "id": "EZD-135",
+   "phase": 1,
+   "title": "System status page",
+   "depends_raw": "EZD-103, EZD-024, EZD-025",
+   "spec_ref": "Non-functional · Operations; R26 R12",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103",
+    "EZD-024",
+    "EZD-025"
+   ],
+   "build_position": 70
+  },
+  {
+   "id": "EZD-201",
+   "phase": 2,
+   "title": "Length parse and format",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Conventions; App shell · Measurement entry; Acceptance · Measurement entry",
+   "spec_files": [
+    "spec/sections/01-how-to-use-this-spec.md",
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 71
+  },
+  {
+   "id": "EZD-202",
+   "phase": 2,
+   "title": "Model document schema",
+   "depends_raw": "EZD-120",
+   "spec_ref": "Data model · Objects inside model_json",
+   "spec_files": [
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-120b"
+   ],
+   "build_position": 72
+  },
+  {
+   "id": "EZD-203",
+   "phase": 2,
+   "title": "Walls core",
+   "depends_raw": "EZD-202",
+   "spec_ref": "Geometry and drafting rules; Acceptance · Wall move",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 73
+  },
+  {
+   "id": "EZD-204",
+   "phase": 2,
+   "title": "Openings core",
+   "depends_raw": "EZD-203",
+   "spec_ref": "Objects; App shell · Selection, undo and flags",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-203"
+   ],
+   "build_position": 74
+  },
+  {
+   "id": "EZD-205",
+   "phase": 2,
+   "title": "Rooms and closure",
+   "depends_raw": "EZD-203",
+   "spec_ref": "Geometry rules; S02 Decisions; Acceptance · Room closure",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-203"
+   ],
+   "build_position": 75
+  },
+  {
+   "id": "EZD-206",
+   "phase": 2,
+   "title": "Snapping",
+   "depends_raw": "EZD-203",
+   "spec_ref": "S03 Snap",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-203"
+   ],
+   "build_position": 76
+  },
+  {
+   "id": "EZD-207",
+   "phase": 2,
+   "title": "Plan canvas",
+   "depends_raw": "EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238",
+   "spec_ref": "S03 Layout; Stack · 2D + 3D",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-012",
+    "EZD-202",
+    "EZD-017",
+    "EZD-020",
+    "EZD-236",
+    "EZD-238"
+   ],
+   "build_position": 83
+  },
+  {
+   "id": "EZD-208",
+   "phase": 2,
+   "title": "Selection",
+   "depends_raw": "EZD-207",
+   "spec_ref": "S03 Canvas interactions; Acceptance · Selection",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207"
+   ],
+   "build_position": 84
+  },
+  {
+   "id": "EZD-209",
+   "phase": 2,
+   "title": "Typed dimension bar",
+   "depends_raw": "EZD-201, EZD-207",
+   "spec_ref": "S03 Typed dimension bar; App shell · Measurement entry",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-201",
+    "EZD-207"
+   ],
+   "build_position": 85
+  },
+  {
+   "id": "EZD-210",
+   "phase": 2,
+   "title": "Wall and Room rectangle tools",
+   "depends_raw": "EZD-205, EZD-209",
+   "spec_ref": "S03 Wall, Room rectangle",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-205",
+    "EZD-209"
+   ],
+   "build_position": 86
+  },
+  {
+   "id": "EZD-211",
+   "phase": 2,
+   "title": "Door and window tools",
+   "depends_raw": "EZD-204, EZD-209",
+   "spec_ref": "S03 Door, Window",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204",
+    "EZD-209"
+   ],
+   "build_position": 87
+  },
+  {
+   "id": "EZD-212",
+   "phase": 2,
+   "title": "Move, handles, distance chips",
+   "depends_raw": "EZD-208",
+   "spec_ref": "S03 Move; Live distance chips",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208"
+   ],
+   "build_position": 88
+  },
+  {
+   "id": "EZD-213",
+   "phase": 2,
+   "title": "Inspector fields",
+   "depends_raw": "EZD-208",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208"
+   ],
+   "build_position": 89
+  },
+  {
+   "id": "EZD-214",
+   "phase": 2,
+   "title": "Status and phase switch",
+   "depends_raw": "EZD-213",
+   "spec_ref": "S03 Status bar; S03 Decisions; Glossary · Phase switch",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/01-how-to-use-this-spec.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213"
+   ],
+   "build_position": 90
+  },
+  {
+   "id": "EZD-215",
+   "phase": 2,
+   "title": "Bearing wall rule",
+   "depends_raw": "EZD-213, EZD-132",
+   "spec_ref": "Geometry rules; W3",
+   "spec_files": [
+    "spec/sections/06-workflows.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213",
+    "EZD-132"
+   ],
+   "build_position": 91
+  },
+  {
+   "id": "EZD-216",
+   "phase": 2,
+   "title": "Dimensions and text",
+   "depends_raw": "EZD-207, EZD-235",
+   "spec_ref": "S03 Dimension, Text",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207",
+    "EZD-235"
+   ],
+   "build_position": 106
+  },
+  {
+   "id": "EZD-217",
+   "phase": 2,
+   "title": "Undo, redo and clipboard",
+   "depends_raw": "EZD-208",
+   "spec_ref": "S03 Context menu, Decisions; App shell · Selection, undo and flags",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208"
+   ],
+   "build_position": 92
+  },
+  {
+   "id": "EZD-218",
+   "phase": 2,
+   "title": "Left panel: Layers and Rooms",
+   "depends_raw": "EZD-214, EZD-132",
+   "spec_ref": "S03 Controls — left panel; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-214",
+    "EZD-132"
+   ],
+   "build_position": 93
+  },
+  {
+   "id": "EZD-219",
+   "phase": 2,
+   "title": "Status bar popovers",
+   "depends_raw": "EZD-206",
+   "spec_ref": "S03 Controls — status bar; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-206"
+   ],
+   "build_position": 77
+  },
+  {
+   "id": "EZD-220",
+   "phase": 2,
+   "title": "Existing-condition pins",
+   "depends_raw": "EZD-213, EZD-132",
+   "spec_ref": "Objects inside model_json; S03 Fixtures, Validation; W3",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213",
+    "EZD-132"
+   ],
+   "build_position": 94
+  },
+  {
+   "id": "EZD-221",
+   "phase": 2,
+   "title": "Blank templates",
+   "depends_raw": "EZD-210, EZD-118",
+   "spec_ref": "S01 Template picker; S03 States",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-210",
+    "EZD-118"
+   ],
+   "build_position": 95
+  },
+  {
+   "id": "EZD-222",
+   "phase": 2,
+   "title": "Keyboard shortcuts and Help",
+   "depends_raw": "EZD-116, EZD-012",
+   "spec_ref": "S15d Keyboard shortcuts; R24 Values; S03 Help",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-116",
+    "EZD-012"
+   ],
+   "build_position": 78
+  },
+  {
+   "id": "EZD-223",
+   "phase": 2,
+   "title": "Sketch tool",
+   "depends_raw": "EZD-207, EZD-108",
+   "spec_ref": "S03 Sketch; Platform; S15d iPad input mode",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/02-product-overview.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207",
+    "EZD-108"
+   ],
+   "build_position": 96
+  },
+  {
+   "id": "EZD-224",
+   "phase": 2,
+   "title": "Plan thumbnail",
+   "depends_raw": "EZD-207",
+   "spec_ref": "S01 Card thumbnail; R24 #4",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207"
+   ],
+   "build_position": 97
+  },
+  {
+   "id": "EZD-225",
+   "phase": 2,
+   "title": "Editor states",
+   "depends_raw": "EZD-126, EZD-204",
+   "spec_ref": "S03 States",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-126",
+    "EZD-204"
+   ],
+   "build_position": 79
+  },
+  {
+   "id": "EZD-226",
+   "phase": 2,
+   "title": "Custom tile shower objects",
+   "depends_raw": "EZD-234",
+   "spec_ref": "Data model · Objects (Fixtures); S03 Fixtures; Calculations · Geometry and drafting rules",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-234"
+   ],
+   "build_position": 101
+  },
+  {
+   "id": "EZD-227",
+   "phase": 2,
+   "title": "Grab-bar blocking",
+   "depends_raw": "EZD-234",
+   "spec_ref": "Data model · Objects (Fixtures)",
+   "spec_files": [
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-234"
+   ],
+   "build_position": 102
+  },
+  {
+   "id": "EZD-228",
+   "phase": 2,
+   "title": "Bath clearance check",
+   "depends_raw": "EZD-226, EZD-116",
+   "spec_ref": "Calculations · Geometry and drafting rules; S15d Bath clearances",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-226",
+    "EZD-116"
+   ],
+   "build_position": 103
+  },
+  {
+   "id": "EZD-229",
+   "phase": 2,
+   "title": "Existing-condition details",
+   "depends_raw": "EZD-220",
+   "spec_ref": "Data model · Existing-condition pins (Rounds 1–2)",
+   "spec_files": [
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-220"
+   ],
+   "build_position": 98
+  },
+  {
+   "id": "EZD-230",
+   "phase": 2,
+   "title": "Default key map and full rail",
+   "depends_raw": "EZD-222",
+   "spec_ref": "App shell · Tool rail; S15d Keyboard shortcuts",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-222"
+   ],
+   "build_position": 80
+  },
+  {
+   "id": "EZD-231",
+   "phase": 2,
+   "title": "Measure tool (plan)",
+   "depends_raw": "EZD-206, EZD-207",
+   "spec_ref": "App shell · Tool rail; S06 Measure",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-206",
+    "EZD-207"
+   ],
+   "build_position": 99
+  },
+  {
+   "id": "EZD-232",
+   "phase": 2,
+   "title": "Manual revision cloud (plan)",
+   "depends_raw": "EZD-216",
+   "spec_ref": "S03 Revision cloud; App shell · Tool rail",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-216"
+   ],
+   "build_position": 107
+  },
+  {
+   "id": "EZD-233",
+   "phase": 2,
+   "title": "Context menu, mirror, align, groups",
+   "depends_raw": "EZD-217, EZD-131, EZD-234",
+   "spec_ref": "S03 Context menu, Decisions; App shell · Selection, undo and flags",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-217",
+    "EZD-131",
+    "EZD-234"
+   ],
+   "build_position": 104
+  },
+  {
+   "id": "EZD-234",
+   "phase": 2,
+   "title": "Fixtures tool and utility points",
+   "depends_raw": "EZD-213",
+   "spec_ref": "Objects inside model_json; S03 Fixtures, Validation; W3",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213"
+   ],
+   "build_position": 100
+  },
+  {
+   "id": "EZD-235",
+   "phase": 2,
+   "title": "Derived values and workers",
+   "depends_raw": "EZD-205, EZD-207",
+   "spec_ref": "Non-functional · Performance (rules 2 and 3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-205",
+    "EZD-207"
+   ],
+   "build_position": 105
+  },
+  {
+   "id": "EZD-236",
+   "phase": 2,
+   "title": "Benchmark project generator",
+   "depends_raw": "EZD-202, EZD-017, EZD-120",
+   "spec_ref": "Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-202",
+    "EZD-017",
+    "EZD-120a",
+    "EZD-120b"
+   ],
+   "build_position": 81
+  },
+  {
+   "id": "EZD-237",
+   "phase": 2,
+   "title": "Benchmark page",
+   "depends_raw": "EZD-207, EZD-236, EZD-135",
+   "spec_ref": "Non-functional · Performance; R26 R10",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207",
+    "EZD-236",
+    "EZD-135"
+   ],
+   "build_position": 108
+  },
+  {
+   "id": "EZD-238",
+   "phase": 2,
+   "title": "Drawing list",
+   "depends_raw": "EZD-202",
+   "spec_ref": "Stack · PDF out; R26 R7",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 82
+  },
+  {
+   "id": "EZD-301",
+   "phase": 3,
+   "title": "Upload step",
+   "depends_raw": "EZD-118, EZD-009, EZD-132",
+   "spec_ref": "S01 Start from a file flow; Import and export · Imports",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-009",
+    "EZD-132"
+   ],
+   "build_position": 109
+  },
+  {
+   "id": "EZD-302",
+   "phase": 3,
+   "title": "Polycam DXF detection",
+   "depends_raw": "EZD-301, EZD-202, EZD-016, EZD-029",
+   "spec_ref": "Imports · Polycam Space scan; S02",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-301",
+    "EZD-202",
+    "EZD-016a",
+    "EZD-016b",
+    "EZD-029"
+   ],
+   "build_position": 110
+  },
+  {
+   "id": "EZD-303",
+   "phase": 3,
+   "title": "Polycam GLB mesh",
+   "depends_raw": "EZD-301",
+   "spec_ref": "Imports · Polycam mesh; S02 Show 3D mesh",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-301"
+   ],
+   "build_position": 111
+  },
+  {
+   "id": "EZD-304",
+   "phase": 3,
+   "title": "PDF underlay and scale",
+   "depends_raw": "EZD-301",
+   "spec_ref": "S01 PDF: scale calibration; W2",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/06-workflows.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-301"
+   ],
+   "build_position": 112
+  },
+  {
+   "id": "EZD-305",
+   "phase": 3,
+   "title": "Vector PDF wall detection",
+   "depends_raw": "EZD-304",
+   "spec_ref": "S01 PDF: detect type; S02 States",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-304"
+   ],
+   "build_position": 113
+  },
+  {
+   "id": "EZD-306",
+   "phase": 3,
+   "title": "DXF conversion choice",
+   "depends_raw": "EZD-301, EZD-302",
+   "spec_ref": "S01 DXF: conversion choice; S02 Decisions",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-301",
+    "EZD-302"
+   ],
+   "build_position": 114
+  },
+  {
+   "id": "EZD-307",
+   "phase": 3,
+   "title": "Import review screen",
+   "depends_raw": "EZD-302, EZD-303, EZD-012",
+   "spec_ref": "S02 Layout, Controls, Data shown",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-302",
+    "EZD-303",
+    "EZD-012"
+   ],
+   "build_position": 115
+  },
+  {
+   "id": "EZD-308",
+   "phase": 3,
+   "title": "Review modes",
+   "depends_raw": "EZD-307, EZD-116",
+   "spec_ref": "S02 Modes; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-307",
+    "EZD-116"
+   ],
+   "build_position": 116
+  },
+  {
+   "id": "EZD-309",
+   "phase": 3,
+   "title": "Fix and delete",
+   "depends_raw": "EZD-307",
+   "spec_ref": "S02 Controls",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-307"
+   ],
+   "build_position": 117
+  },
+  {
+   "id": "EZD-310",
+   "phase": 3,
+   "title": "Typed vs scan conflicts",
+   "depends_raw": "EZD-309, EZD-201",
+   "spec_ref": "S02 Conflict list, Validation; R24 #30; Acceptance · Import",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md",
+    "spec/decisions.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-309",
+    "EZD-201"
+   ],
+   "build_position": 118
+  },
+  {
+   "id": "EZD-311",
+   "phase": 3,
+   "title": "Resolve the gap",
+   "depends_raw": "EZD-310, EZD-205",
+   "spec_ref": "S02 Resolve the gap; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-310",
+    "EZD-205"
+   ],
+   "build_position": 119
+  },
+  {
+   "id": "EZD-312",
+   "phase": 3,
+   "title": "Ceiling slope in review",
+   "depends_raw": "EZD-309, EZD-303",
+   "spec_ref": "S02 Decisions",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-309",
+    "EZD-303"
+   ],
+   "build_position": 120
+  },
+  {
+   "id": "EZD-313",
+   "phase": 3,
+   "title": "Finish and cancel",
+   "depends_raw": "EZD-308, EZD-310, EZD-311",
+   "spec_ref": "S02 Finish import; W2; Hooks · import.completed",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-308",
+    "EZD-310",
+    "EZD-311"
+   ],
+   "build_position": 121
+  },
+  {
+   "id": "EZD-314",
+   "phase": 3,
+   "title": "Import states",
+   "depends_raw": "EZD-313, EZD-126",
+   "spec_ref": "S02 States, Validation; S01 States",
+   "spec_files": [
+    "spec/sections/screens/S02-import-review.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S02Import.png",
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-313",
+    "EZD-126"
+   ],
+   "build_position": 122
+  },
+  {
+   "id": "EZD-315",
+   "phase": 3,
+   "title": "Laser keyboard input",
+   "depends_raw": "EZD-209, EZD-310",
+   "spec_ref": "R24 #27, #47; Imports · Laser; Platform",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-03.md",
+   "depends_on": [
+    "EZD-209",
+    "EZD-310"
+   ],
+   "build_position": 123
+  },
+  {
+   "id": "EZD-401",
+   "phase": 4,
+   "title": "Catalog items (minimal)",
+   "depends_raw": "EZD-006",
+   "spec_ref": "Data model · catalog_item; S09",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-006"
+   ],
+   "build_position": 124
+  },
+  {
+   "id": "EZD-402",
+   "phase": 4,
+   "title": "Cabinet object model",
+   "depends_raw": "EZD-202",
+   "spec_ref": "Objects inside model_json; S04 Data shown",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 125
+  },
+  {
+   "id": "EZD-403",
+   "phase": 4,
+   "title": "Cabinet library panel",
+   "depends_raw": "EZD-402, EZD-401, EZD-404",
+   "spec_ref": "S04 Controls (left panel)",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-402",
+    "EZD-401",
+    "EZD-404"
+   ],
+   "build_position": 127
+  },
+  {
+   "id": "EZD-404",
+   "phase": 4,
+   "title": "Plan strip and elevation",
+   "depends_raw": "EZD-402, EZD-207",
+   "spec_ref": "S04 Layout; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-402",
+    "EZD-207"
+   ],
+   "build_position": 126
+  },
+  {
+   "id": "EZD-405",
+   "phase": 4,
+   "title": "Box editing on canvas",
+   "depends_raw": "EZD-404",
+   "spec_ref": "S04 Controls (canvas)",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-404"
+   ],
+   "build_position": 128
+  },
+  {
+   "id": "EZD-406",
+   "phase": 4,
+   "title": "Box inspector",
+   "depends_raw": "EZD-405",
+   "spec_ref": "S04 Controls (inspector)",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-405"
+   ],
+   "build_position": 129
+  },
+  {
+   "id": "EZD-407",
+   "phase": 4,
+   "title": "Fit chip",
+   "depends_raw": "EZD-404, EZD-116",
+   "spec_ref": "S04 Fit chip; Decisions; Calculations · Cabinet rules",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md",
+    "spec/decisions.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-404",
+    "EZD-116"
+   ],
+   "build_position": 130
+  },
+  {
+   "id": "EZD-408",
+   "phase": 4,
+   "title": "Auto-fill run",
+   "depends_raw": "EZD-407, EZD-234",
+   "spec_ref": "S04 Auto-fill run; W4; Acceptance · Cabinets",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-407",
+    "EZD-234"
+   ],
+   "build_position": 131
+  },
+  {
+   "id": "EZD-409",
+   "phase": 4,
+   "title": "Cabinet schedule",
+   "depends_raw": "EZD-406",
+   "spec_ref": "S04 Cabinet schedule; Exports · Cabinet schedule",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-406"
+   ],
+   "build_position": 132
+  },
+  {
+   "id": "EZD-410",
+   "phase": 4,
+   "title": "Cabinet flags and states",
+   "depends_raw": "EZD-402, EZD-204",
+   "spec_ref": "S04 States, Validation",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-402",
+    "EZD-204"
+   ],
+   "build_position": 133
+  },
+  {
+   "id": "EZD-411",
+   "phase": 4,
+   "title": "Countertop object model",
+   "depends_raw": "EZD-202",
+   "spec_ref": "Data model · countertop_piece, countertop_edge; Countertop rules",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 134
+  },
+  {
+   "id": "EZD-412",
+   "phase": 4,
+   "title": "Trace and Draw outline",
+   "depends_raw": "EZD-411, EZD-404, EZD-116",
+   "spec_ref": "S04b Controls; W5",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/sections/06-workflows.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-411",
+    "EZD-404",
+    "EZD-116"
+   ],
+   "build_position": 135
+  },
+  {
+   "id": "EZD-413",
+   "phase": 4,
+   "title": "Seams and cutouts",
+   "depends_raw": "EZD-412",
+   "spec_ref": "S04b Seam, Cutout",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-412"
+   ],
+   "build_position": 136
+  },
+  {
+   "id": "EZD-414",
+   "phase": 4,
+   "title": "Edges and overhangs",
+   "depends_raw": "EZD-412, EZD-116",
+   "spec_ref": "S04b Overhang, Preset chips; S15d Countertops",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-412",
+    "EZD-116"
+   ],
+   "build_position": 137
+  },
+  {
+   "id": "EZD-415",
+   "phase": 4,
+   "title": "Seating support check",
+   "depends_raw": "EZD-414",
+   "spec_ref": "S04b Support notice; R24 Values; Acceptance · Countertops",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/decisions.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-414"
+   ],
+   "build_position": 138
+  },
+  {
+   "id": "EZD-416",
+   "phase": 4,
+   "title": "Left panel and status bar",
+   "depends_raw": "EZD-412",
+   "spec_ref": "S04b Controls (left panel); Decisions",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-412"
+   ],
+   "build_position": 139
+  },
+  {
+   "id": "EZD-417",
+   "phase": 4,
+   "title": "Edge profiles",
+   "depends_raw": "EZD-414",
+   "spec_ref": "S04b Edge profile; R24 #33",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-414"
+   ],
+   "build_position": 140
+  },
+  {
+   "id": "EZD-418",
+   "phase": 4,
+   "title": "Top schedule",
+   "depends_raw": "EZD-416",
+   "spec_ref": "S04b Top schedule; Exports · Countertop schedule; R24 #5",
+   "spec_files": [
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/sections/08-import-and-export.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-416"
+   ],
+   "build_position": 141
+  },
+  {
+   "id": "EZD-419",
+   "phase": 4,
+   "title": "Plan inspector: run selection",
+   "depends_raw": "EZD-406, EZD-409",
+   "spec_ref": "S03 Controls — inspector",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-406",
+    "EZD-409"
+   ],
+   "build_position": 142
+  },
+  {
+   "id": "EZD-501",
+   "phase": 5,
+   "title": "Ceiling data per room",
+   "depends_raw": "EZD-202",
+   "spec_ref": "S05 Data shown; Objects inside model_json",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 143
+  },
+  {
+   "id": "EZD-502",
+   "phase": 5,
+   "title": "RCP view and ceiling rail",
+   "depends_raw": "EZD-207, EZD-501, EZD-127",
+   "spec_ref": "S05 Layout, Entry points; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-207",
+    "EZD-501",
+    "EZD-127"
+   ],
+   "build_position": 144
+  },
+  {
+   "id": "EZD-503",
+   "phase": 5,
+   "title": "Ceiling type editor",
+   "depends_raw": "EZD-501, EZD-303",
+   "spec_ref": "S05 Change ceiling, Room ceiling summary",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-501",
+    "EZD-303"
+   ],
+   "build_position": 145
+  },
+  {
+   "id": "EZD-504",
+   "phase": 5,
+   "title": "Walls cut under slopes",
+   "depends_raw": "EZD-503",
+   "spec_ref": "S05 States; Geometry rules",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-503"
+   ],
+   "build_position": 146
+  },
+  {
+   "id": "EZD-505",
+   "phase": 5,
+   "title": "Beams",
+   "depends_raw": "EZD-501",
+   "spec_ref": "S05 Controls (beams), Validation",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-501"
+   ],
+   "build_position": 147
+  },
+  {
+   "id": "EZD-506",
+   "phase": 5,
+   "title": "Section A-A preview",
+   "depends_raw": "EZD-505",
+   "spec_ref": "S05 Section A-A preview",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-505"
+   ],
+   "build_position": 148
+  },
+  {
+   "id": "EZD-507",
+   "phase": 5,
+   "title": "Ceiling devices",
+   "depends_raw": "EZD-501",
+   "spec_ref": "S05 Controls; Objects inside model_json",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-501"
+   ],
+   "build_position": 149
+  },
+  {
+   "id": "EZD-508",
+   "phase": 5,
+   "title": "Fixture schedule panel",
+   "depends_raw": "EZD-507",
+   "spec_ref": "S05 Fixture schedule rows",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-507"
+   ],
+   "build_position": 150
+  },
+  {
+   "id": "EZD-509",
+   "phase": 5,
+   "title": "Auto-layout cans",
+   "depends_raw": "EZD-507, EZD-116",
+   "spec_ref": "S05 Auto-layout cans; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-507",
+    "EZD-116"
+   ],
+   "build_position": 151
+  },
+  {
+   "id": "EZD-510",
+   "phase": 5,
+   "title": "Switching zones",
+   "depends_raw": "EZD-507",
+   "spec_ref": "S05 Switching zones",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-507"
+   ],
+   "build_position": 152
+  },
+  {
+   "id": "EZD-511",
+   "phase": 5,
+   "title": "ACT grid",
+   "depends_raw": "EZD-501, EZD-116",
+   "spec_ref": "S05 Acoustical grid, Validation; Ceiling rules; Acceptance · RCP",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-501",
+    "EZD-116"
+   ],
+   "build_position": 153
+  },
+  {
+   "id": "EZD-512",
+   "phase": 5,
+   "title": "HVAC objects",
+   "depends_raw": "EZD-511",
+   "spec_ref": "S05 HVAC diffuser or return",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-511"
+   ],
+   "build_position": 154
+  },
+  {
+   "id": "EZD-513",
+   "phase": 5,
+   "title": "Soffits, trays, coffers, crown, tags",
+   "depends_raw": "EZD-501",
+   "spec_ref": "S05 Soffit, tray, coffer; Height and material tag",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-501"
+   ],
+   "build_position": 155
+  },
+  {
+   "id": "EZD-514",
+   "phase": 5,
+   "title": "Framing known and keep-clear",
+   "depends_raw": "EZD-507",
+   "spec_ref": "S05 Framing known; Validation; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/screens/S01-projects.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-507"
+   ],
+   "build_position": 156
+  },
+  {
+   "id": "EZD-515",
+   "phase": 5,
+   "title": "Fan clearance and hosted flags",
+   "depends_raw": "EZD-507, EZD-505, EZD-116",
+   "spec_ref": "S05 Validation; R24 Values",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-507",
+    "EZD-505",
+    "EZD-116"
+   ],
+   "build_position": 157
+  },
+  {
+   "id": "EZD-516",
+   "phase": 5,
+   "title": "Beam finish, More menu, canvas",
+   "depends_raw": "EZD-505, EZD-401",
+   "spec_ref": "S05 Beam finish, More, Keyboard shortcuts, States",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-05.md",
+   "depends_on": [
+    "EZD-505",
+    "EZD-401"
+   ],
+   "build_position": 158
+  },
+  {
+   "id": "EZD-601",
+   "phase": 6,
+   "title": "Electrical mode and left panel",
+   "depends_raw": "EZD-207, EZD-202",
+   "spec_ref": "S06 Layout, Controls; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-207",
+    "EZD-202"
+   ],
+   "build_position": 159
+  },
+  {
+   "id": "EZD-602",
+   "phase": 6,
+   "title": "Device toolbar",
+   "depends_raw": "EZD-601, EZD-507",
+   "spec_ref": "S06 Device toolbar; Objects inside model_json",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-601",
+    "EZD-507"
+   ],
+   "build_position": 160
+  },
+  {
+   "id": "EZD-603",
+   "phase": 6,
+   "title": "Device height notes",
+   "depends_raw": "EZD-602, EZD-116",
+   "spec_ref": "R24 #36; S06 Device height note toggle",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-602",
+    "EZD-116"
+   ],
+   "build_position": 161
+  },
+  {
+   "id": "EZD-604",
+   "phase": 6,
+   "title": "Circuits",
+   "depends_raw": "EZD-602",
+   "spec_ref": "S06 Circuits, New circuit, Circuit row",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-602"
+   ],
+   "build_position": 162
+  },
+  {
+   "id": "EZD-605",
+   "phase": 6,
+   "title": "Switch legs",
+   "depends_raw": "EZD-604, EZD-510",
+   "spec_ref": "S06 Switch leg; S05 Switching zones",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png",
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-604",
+    "EZD-510"
+   ],
+   "build_position": 163
+  },
+  {
+   "id": "EZD-606",
+   "phase": 6,
+   "title": "Panel and existing panel dialog",
+   "depends_raw": "EZD-604, EZD-021",
+   "spec_ref": "S06 Existing panel; W7; Data model · panel",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-604",
+    "EZD-021"
+   ],
+   "build_position": 164
+  },
+  {
+   "id": "EZD-607",
+   "phase": 6,
+   "title": "Load calc engine",
+   "depends_raw": "EZD-604",
+   "spec_ref": "Calculations · Electrical load calculation; R24 #38",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-604"
+   ],
+   "build_position": 165
+  },
+  {
+   "id": "EZD-608",
+   "phase": 6,
+   "title": "Load calc inspector",
+   "depends_raw": "EZD-607, EZD-116",
+   "spec_ref": "S06 Load calc rows, Service bar, Code info note",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-607",
+    "EZD-116"
+   ],
+   "build_position": 166
+  },
+  {
+   "id": "EZD-609",
+   "phase": 6,
+   "title": "Panel schedule",
+   "depends_raw": "EZD-604",
+   "spec_ref": "S06 Panel schedule, Panel tab",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-604"
+   ],
+   "build_position": 167
+  },
+  {
+   "id": "EZD-610",
+   "phase": 6,
+   "title": "Selected circuit and voltage drop",
+   "depends_raw": "EZD-604, EZD-116",
+   "spec_ref": "S06 Selected circuit block; R24 #37",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-604",
+    "EZD-116"
+   ],
+   "build_position": 168
+  },
+  {
+   "id": "EZD-611a",
+   "phase": 6,
+   "title": "Code check engine and rule registry",
+   "depends_raw": "EZD-604, EZD-218, EZD-613",
+   "spec_ref": "Calculations · Code check engine; R26 R19",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-604",
+    "EZD-218",
+    "EZD-613"
+   ],
+   "build_position": 170
+  },
+  {
+   "id": "EZD-611b",
+   "phase": 6,
+   "title": "Code rules: Florida Residential Ch. 3 (1 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-501, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-501",
+    "EZD-234"
+   ],
+   "build_position": 175
+  },
+  {
+   "id": "EZD-611c",
+   "phase": 6,
+   "title": "Code rules: Florida Residential Ch. 3 (2 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-501, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-501",
+    "EZD-234"
+   ],
+   "build_position": 176
+  },
+  {
+   "id": "EZD-612",
+   "phase": 6,
+   "title": "Check button and results",
+   "depends_raw": "EZD-611a",
+   "spec_ref": "R24 #35; S03 Check; S06 Check, Check status pill",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a"
+   ],
+   "build_position": 171
+  },
+  {
+   "id": "EZD-613",
+   "phase": 6,
+   "title": "Code edition settings",
+   "depends_raw": "EZD-116",
+   "spec_ref": "S15g",
+   "spec_files": [
+    "spec/sections/screens/S15g-settings-code-edition.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-116"
+   ],
+   "build_position": 169
+  },
+  {
+   "id": "EZD-614",
+   "phase": 6,
+   "title": "Appliance rating defaults",
+   "depends_raw": "EZD-607, EZD-401, EZD-103",
+   "spec_ref": "S15e Appliance rating defaults; S09 Field rows for appliances",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md",
+    "spec/sections/screens/S15e-settings-catalog.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-607",
+    "EZD-401",
+    "EZD-103"
+   ],
+   "build_position": 172
+  },
+  {
+   "id": "EZD-615",
+   "phase": 6,
+   "title": "Load calc: optional method and cases",
+   "depends_raw": "EZD-607, EZD-606, EZD-608",
+   "spec_ref": "Calculations · Electrical load calculation; R24 #38",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-607",
+    "EZD-606",
+    "EZD-608"
+   ],
+   "build_position": 173
+  },
+  {
+   "id": "EZD-616",
+   "phase": 6,
+   "title": "Code rules: Florida Residential Ch. 3 (3 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-501, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-501",
+    "EZD-234"
+   ],
+   "build_position": 177
+  },
+  {
+   "id": "EZD-617",
+   "phase": 6,
+   "title": "Code rules: Florida Residential Ch. 3 (4 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-501, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-501",
+    "EZD-234"
+   ],
+   "build_position": 178
+  },
+  {
+   "id": "EZD-618",
+   "phase": 6,
+   "title": "Code rules: Existing Building",
+   "depends_raw": "EZD-611a, EZD-620",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620"
+   ],
+   "build_position": 179
+  },
+  {
+   "id": "EZD-620",
+   "phase": 6,
+   "title": "Code data fields",
+   "depends_raw": "EZD-611a, EZD-130, EZD-213",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-130",
+    "EZD-213"
+   ],
+   "build_position": 174
+  },
+  {
+   "id": "EZD-621",
+   "phase": 6,
+   "title": "Code rules: Florida construction chapters (1 of 2)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-501",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-501"
+   ],
+   "build_position": 180
+  },
+  {
+   "id": "EZD-622",
+   "phase": 6,
+   "title": "Code rules: Florida construction chapters (2 of 2)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-501",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-501"
+   ],
+   "build_position": 181
+  },
+  {
+   "id": "EZD-623",
+   "phase": 6,
+   "title": "Code rules: Energy Conservation",
+   "depends_raw": "EZD-611a, EZD-620, EZD-507",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-507"
+   ],
+   "build_position": 182
+  },
+  {
+   "id": "EZD-624",
+   "phase": 6,
+   "title": "Code rules: Mechanical (1 of 2)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-234"
+   ],
+   "build_position": 183
+  },
+  {
+   "id": "EZD-625",
+   "phase": 6,
+   "title": "Code rules: Mechanical (2 of 2)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-234"
+   ],
+   "build_position": 184
+  },
+  {
+   "id": "EZD-626",
+   "phase": 6,
+   "title": "Code rules: Fuel gas",
+   "depends_raw": "EZD-611a, EZD-620, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-234"
+   ],
+   "build_position": 185
+  },
+  {
+   "id": "EZD-627",
+   "phase": 6,
+   "title": "Code rules: Plumbing (1 of 3)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-234, EZD-226",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-234",
+    "EZD-226"
+   ],
+   "build_position": 186
+  },
+  {
+   "id": "EZD-628",
+   "phase": 6,
+   "title": "Code rules: Plumbing (2 of 3)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-234, EZD-226",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-234",
+    "EZD-226"
+   ],
+   "build_position": 187
+  },
+  {
+   "id": "EZD-629",
+   "phase": 6,
+   "title": "Code rules: Plumbing (3 of 3)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-234, EZD-226",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-234",
+    "EZD-226"
+   ],
+   "build_position": 188
+  },
+  {
+   "id": "EZD-630",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 100-230 (1 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-411",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-411"
+   ],
+   "build_position": 189
+  },
+  {
+   "id": "EZD-631",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 100-230 (2 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-411",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-411"
+   ],
+   "build_position": 190
+  },
+  {
+   "id": "EZD-632",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 100-230 (3 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-411",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-411"
+   ],
+   "build_position": 191
+  },
+  {
+   "id": "EZD-633",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 100-230 (4 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-411",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-411"
+   ],
+   "build_position": 192
+  },
+  {
+   "id": "EZD-634",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 240-410 (1 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-610",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-610"
+   ],
+   "build_position": 193
+  },
+  {
+   "id": "EZD-635",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 240-410 (2 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-610",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-610"
+   ],
+   "build_position": 194
+  },
+  {
+   "id": "EZD-636",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 240-410 (3 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-610",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-610"
+   ],
+   "build_position": 195
+  },
+  {
+   "id": "EZD-637",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 240-410 (4 of 4)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-610",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-610"
+   ],
+   "build_position": 196
+  },
+  {
+   "id": "EZD-638",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 422-820 (1 of 2)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-234"
+   ],
+   "build_position": 197
+  },
+  {
+   "id": "EZD-639",
+   "phase": 6,
+   "title": "Code rules: NEC Art. 422-820 (2 of 2)",
+   "depends_raw": "EZD-611a, EZD-620, EZD-604, EZD-234",
+   "spec_ref": "Calculations · Code check engine; Code rules catalog; R26 R34",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-620",
+    "EZD-604",
+    "EZD-234"
+   ],
+   "build_position": 198
+  },
+  {
+   "id": "EZD-701",
+   "phase": 7,
+   "title": "Sheet model and default set",
+   "depends_raw": "EZD-202",
+   "spec_ref": "S13 Decisions; Calculations · Sheet set rules",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 199
+  },
+  {
+   "id": "EZD-702a",
+   "phase": 7,
+   "title": "Sheets screen",
+   "depends_raw": "EZD-701, EZD-726",
+   "spec_ref": "S13 Layout, Controls",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-701",
+    "EZD-726"
+   ],
+   "build_position": 209
+  },
+  {
+   "id": "EZD-702b",
+   "phase": 7,
+   "title": "Sheet renderer",
+   "depends_raw": "EZD-702a, EZD-235, EZD-238",
+   "spec_ref": "S13 Layout; Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-702a",
+    "EZD-235",
+    "EZD-238"
+   ],
+   "build_position": 210
+  },
+  {
+   "id": "EZD-703",
+   "phase": 7,
+   "title": "Viewports and scales",
+   "depends_raw": "EZD-702, EZD-214",
+   "spec_ref": "S13 Rail: Viewport; Sheet set rules",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-702a",
+    "EZD-702b",
+    "EZD-214"
+   ],
+   "build_position": 211
+  },
+  {
+   "id": "EZD-704",
+   "phase": 7,
+   "title": "Sheet annotation tools",
+   "depends_raw": "EZD-702",
+   "spec_ref": "S13 Rail controls",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-702a",
+    "EZD-702b"
+   ],
+   "build_position": 212
+  },
+  {
+   "id": "EZD-705",
+   "phase": 7,
+   "title": "Print rules",
+   "depends_raw": "EZD-703",
+   "spec_ref": "Sheet set rules; S13 Validation; Acceptance · Sheets",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-703"
+   ],
+   "build_position": 213
+  },
+  {
+   "id": "EZD-706",
+   "phase": 7,
+   "title": "Symbol key",
+   "depends_raw": "EZD-702",
+   "spec_ref": "S13 Symbol key; R24 #8; S15h Symbols",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/decisions.md",
+    "spec/sections/screens/S15h-settings-libraries.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-702a",
+    "EZD-702b"
+   ],
+   "build_position": 214
+  },
+  {
+   "id": "EZD-707",
+   "phase": 7,
+   "title": "Elevations sheet",
+   "depends_raw": "EZD-703, EZD-404",
+   "spec_ref": "Sheet set rules; S04",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "mockups": [
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-703",
+    "EZD-404"
+   ],
+   "build_position": 215
+  },
+  {
+   "id": "EZD-708a",
+   "phase": 7,
+   "title": "A6.0 RCP sheet",
+   "depends_raw": "EZD-703, EZD-508",
+   "spec_ref": "S05; Sheet set rules",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-703",
+    "EZD-508"
+   ],
+   "build_position": 216
+  },
+  {
+   "id": "EZD-708b",
+   "phase": 7,
+   "title": "E1.0 electrical plan",
+   "depends_raw": "EZD-703, EZD-604, EZD-708a",
+   "spec_ref": "Acceptance · RCP; R24 #43",
+   "spec_files": [
+    "spec/sections/12-build-phases-and-acceptance-tests.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-703",
+    "EZD-604",
+    "EZD-708a"
+   ],
+   "build_position": 217
+  },
+  {
+   "id": "EZD-708c",
+   "phase": 7,
+   "title": "E2.0 panel schedule and load calc",
+   "depends_raw": "EZD-708b, EZD-609, EZD-607",
+   "spec_ref": "S06 Add to E2.0; R24 #43",
+   "spec_files": [
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-708b",
+    "EZD-609",
+    "EZD-607"
+   ],
+   "build_position": 218
+  },
+  {
+   "id": "EZD-709",
+   "phase": 7,
+   "title": "Title block settings",
+   "depends_raw": "EZD-112, EZD-701",
+   "spec_ref": "S15b; R24 #7",
+   "spec_files": [
+    "spec/sections/screens/S15b-settings-title-block.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-112",
+    "EZD-701"
+   ],
+   "build_position": 200
+  },
+  {
+   "id": "EZD-710",
+   "phase": 7,
+   "title": "Title block on sheets",
+   "depends_raw": "EZD-709, EZD-130",
+   "spec_ref": "S13 Data shown; S15b Decisions",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/screens/S15b-settings-title-block.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-709",
+    "EZD-130"
+   ],
+   "build_position": 201
+  },
+  {
+   "id": "EZD-711",
+   "phase": 7,
+   "title": "Property appraiser import",
+   "depends_raw": "EZD-710, EZD-009, EZD-021, EZD-118",
+   "spec_ref": "S01 Property appraiser link; S13; W1; Data model · property_record",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-710",
+    "EZD-009",
+    "EZD-021",
+    "EZD-118"
+   ],
+   "build_position": 202
+  },
+  {
+   "id": "EZD-712",
+   "phase": 7,
+   "title": "Submittal profiles",
+   "depends_raw": "EZD-116",
+   "spec_ref": "S15c; Data model · submittal_profile",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-116"
+   ],
+   "build_position": 203
+  },
+  {
+   "id": "EZD-713",
+   "phase": 7,
+   "title": "Department profile settings",
+   "depends_raw": "EZD-712",
+   "spec_ref": "Import and export · Department submittal rules; R24 #48",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-712"
+   ],
+   "build_position": 204
+  },
+  {
+   "id": "EZD-714",
+   "phase": 7,
+   "title": "Notes library",
+   "depends_raw": "EZD-712",
+   "spec_ref": "S15h Notes; S15c Required notes",
+   "spec_files": [
+    "spec/sections/screens/S15h-settings-libraries.md",
+    "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-712"
+   ],
+   "build_position": 205
+  },
+  {
+   "id": "EZD-715",
+   "phase": 7,
+   "title": "PDF export job",
+   "depends_raw": "EZD-705, EZD-713, EZD-238, EZD-028",
+   "spec_ref": "Exports · Permit set, File name; S13 Validation",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-705",
+    "EZD-713",
+    "EZD-238",
+    "EZD-028"
+   ],
+   "build_position": 219
+  },
+  {
+   "id": "EZD-716",
+   "phase": 7,
+   "title": "Issue checklist",
+   "depends_raw": "EZD-612, EZD-710",
+   "spec_ref": "S13 Issue checklist, Validation; R24 #10",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-612",
+    "EZD-710"
+   ],
+   "build_position": 206
+  },
+  {
+   "id": "EZD-717",
+   "phase": 7,
+   "title": "Issue Rev 0 and Rev N",
+   "depends_raw": "EZD-715, EZD-716, EZD-121",
+   "spec_ref": "S13 Issue Rev n; W11; Revision rules",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/06-workflows.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-715",
+    "EZD-716",
+    "EZD-121"
+   ],
+   "build_position": 220
+  },
+  {
+   "id": "EZD-718",
+   "phase": 7,
+   "title": "Revision clouds and log",
+   "depends_raw": "EZD-717",
+   "spec_ref": "Revision rules; S13 Revision log; Acceptance · Revisions",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-717"
+   ],
+   "build_position": 221
+  },
+  {
+   "id": "EZD-719",
+   "phase": 7,
+   "title": "Send set to client",
+   "depends_raw": "EZD-717, EZD-111",
+   "spec_ref": "S13 Send to client; R24 #26; S01 Decisions",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/decisions.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png",
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-717",
+    "EZD-111"
+   ],
+   "build_position": 222
+  },
+  {
+   "id": "EZD-720",
+   "phase": 7,
+   "title": "Client set content",
+   "depends_raw": "EZD-701, EZD-418, EZD-726",
+   "spec_ref": "R24 #5; S13 Decisions",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-701",
+    "EZD-418",
+    "EZD-726"
+   ],
+   "build_position": 223
+  },
+  {
+   "id": "EZD-721",
+   "phase": 7,
+   "title": "Export menu",
+   "depends_raw": "EZD-715",
+   "spec_ref": "App shell · Header card; Import and export · Exports",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-715"
+   ],
+   "build_position": 224
+  },
+  {
+   "id": "EZD-722",
+   "phase": 7,
+   "title": "Sheets states",
+   "depends_raw": "EZD-717",
+   "spec_ref": "S13 States",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-717"
+   ],
+   "build_position": 225
+  },
+  {
+   "id": "EZD-723",
+   "phase": 7,
+   "title": "Download one page at a time",
+   "depends_raw": "EZD-715, EZD-713",
+   "spec_ref": "Import and export; R24 #48; S13",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/decisions.md",
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-715",
+    "EZD-713"
+   ],
+   "build_position": 226
+  },
+  {
+   "id": "EZD-724",
+   "phase": 7,
+   "title": "Dismissible dimension warning",
+   "depends_raw": "EZD-716",
+   "spec_ref": "S13 Issue checklist; R24 #10",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-716"
+   ],
+   "build_position": 207
+  },
+  {
+   "id": "EZD-725",
+   "phase": 7,
+   "title": "Accepted warnings in the issue log",
+   "depends_raw": "EZD-717, EZD-612",
+   "spec_ref": "Calculations · Electrical code warnings; S13 Issue checklist",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-717",
+    "EZD-612"
+   ],
+   "build_position": 227
+  },
+  {
+   "id": "EZD-726",
+   "phase": 7,
+   "title": "Sheet sets",
+   "depends_raw": "EZD-701",
+   "spec_ref": "Data model · sheet_set; S13 Set selector",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-701"
+   ],
+   "build_position": 208
+  },
+  {
+   "id": "EZD-727",
+   "phase": 7,
+   "title": "Submittal profile enforcement at issue",
+   "depends_raw": "EZD-712, EZD-713, EZD-715",
+   "spec_ref": "S15c; Import and export · Department submittal rules",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-712",
+    "EZD-713",
+    "EZD-715"
+   ],
+   "build_position": 228
+  },
+  {
+   "id": "EZD-728",
+   "phase": 7,
+   "title": "Cover sheet A0.0",
+   "depends_raw": "EZD-706, EZD-714",
+   "spec_ref": "Calculations · Sheet set rules",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-706",
+    "EZD-714"
+   ],
+   "build_position": 229
+  },
+  {
+   "id": "EZD-801",
+   "phase": 8,
+   "title": "Detail data and editor shell",
+   "depends_raw": "EZD-202, EZD-012",
+   "spec_ref": "S10 Layout; Data model · detail",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-202",
+    "EZD-012"
+   ],
+   "build_position": 230
+  },
+  {
+   "id": "EZD-802",
+   "phase": 8,
+   "title": "New detail dialog",
+   "depends_raw": "EZD-801",
+   "spec_ref": "S10 Decisions",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-801"
+   ],
+   "build_position": 231
+  },
+  {
+   "id": "EZD-803",
+   "phase": 8,
+   "title": "Drawing tools",
+   "depends_raw": "EZD-801, EZD-201",
+   "spec_ref": "S10 Controls",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-801",
+    "EZD-201"
+   ],
+   "build_position": 232
+  },
+  {
+   "id": "EZD-804",
+   "phase": 8,
+   "title": "Line roles and hatches",
+   "depends_raw": "EZD-803",
+   "spec_ref": "S10 Line role row, Hatch; Sheet set rules",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-803"
+   ],
+   "build_position": 233
+  },
+  {
+   "id": "EZD-805",
+   "phase": 8,
+   "title": "Annotation tools",
+   "depends_raw": "EZD-803",
+   "spec_ref": "S10 Controls",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-803"
+   ],
+   "build_position": 234
+  },
+  {
+   "id": "EZD-806",
+   "phase": 8,
+   "title": "Parts",
+   "depends_raw": "EZD-801, EZD-817",
+   "spec_ref": "S10 Part row, Add part",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-801",
+    "EZD-817"
+   ],
+   "build_position": 245
+  },
+  {
+   "id": "EZD-807",
+   "phase": 8,
+   "title": "Scale and NTS",
+   "depends_raw": "EZD-805, EZD-116",
+   "spec_ref": "S10 Scale toggle; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-805",
+    "EZD-116"
+   ],
+   "build_position": 235
+  },
+  {
+   "id": "EZD-808",
+   "phase": 8,
+   "title": "Steps and layers",
+   "depends_raw": "EZD-801",
+   "spec_ref": "S10 Steps; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-801"
+   ],
+   "build_position": 236
+  },
+  {
+   "id": "EZD-809",
+   "phase": 8,
+   "title": "Legibility warnings",
+   "depends_raw": "EZD-805",
+   "spec_ref": "S10 Validation; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-805"
+   ],
+   "build_position": 237
+  },
+  {
+   "id": "EZD-810",
+   "phase": 8,
+   "title": "Place on sheet",
+   "depends_raw": "EZD-809, EZD-702",
+   "spec_ref": "S10 Place on sheet, Callout bubble",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-809",
+    "EZD-702a",
+    "EZD-702b"
+   ],
+   "build_position": 238
+  },
+  {
+   "id": "EZD-811",
+   "phase": 8,
+   "title": "Cut from model and callouts",
+   "depends_raw": "EZD-802, EZD-207",
+   "spec_ref": "S03 Detail callout; S10 Entry points",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-802",
+    "EZD-207"
+   ],
+   "build_position": 239
+  },
+  {
+   "id": "EZD-812",
+   "phase": 8,
+   "title": "Underlay start",
+   "depends_raw": "EZD-802, EZD-304",
+   "spec_ref": "S10 Entry points",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-802",
+    "EZD-304"
+   ],
+   "build_position": 240
+  },
+  {
+   "id": "EZD-813",
+   "phase": 8,
+   "title": "Extrude to 3D",
+   "depends_raw": "EZD-803",
+   "spec_ref": "S10 Extrude to 3D",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-803"
+   ],
+   "build_position": 241
+  },
+  {
+   "id": "EZD-814",
+   "phase": 8,
+   "title": "Detail library and countertop link",
+   "depends_raw": "EZD-801, EZD-415, EZD-817",
+   "spec_ref": "S10 Library; S15h; S04b Support notice",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md",
+    "spec/sections/screens/S04b-countertops.md",
+    "spec/sections/screens/S15h-settings-libraries.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png",
+    "mockups/S04bCountertops.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-801",
+    "EZD-415",
+    "EZD-817"
+   ],
+   "build_position": 246
+  },
+  {
+   "id": "EZD-815",
+   "phase": 8,
+   "title": "Detail PDF export",
+   "depends_raw": "EZD-810, EZD-721",
+   "spec_ref": "Import and export · Exports (Detail); S10 Place on sheet",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-810",
+    "EZD-721"
+   ],
+   "build_position": 242
+  },
+  {
+   "id": "EZD-816",
+   "phase": 8,
+   "title": "Freehand pen",
+   "depends_raw": "EZD-803, EZD-223",
+   "spec_ref": "S10 Tool: Freehand pen",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-803",
+    "EZD-223"
+   ],
+   "build_position": 243
+  },
+  {
+   "id": "EZD-817",
+   "phase": 8,
+   "title": "Detail libraries in Settings",
+   "depends_raw": "EZD-801, EZD-131",
+   "spec_ref": "S15h",
+   "spec_files": [
+    "spec/sections/screens/S15h-settings-libraries.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-801",
+    "EZD-131"
+   ],
+   "build_position": 244
+  },
+  {
+   "id": "EZD-901a",
+   "phase": 9,
+   "title": "Reference conversion job",
+   "depends_raw": "EZD-306, EZD-009, EZD-016, EZD-029",
+   "spec_ref": "S11; Imports · Architect drawings",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-306",
+    "EZD-009",
+    "EZD-016a",
+    "EZD-016b",
+    "EZD-029"
+   ],
+   "build_position": 247
+  },
+  {
+   "id": "EZD-901b",
+   "phase": 9,
+   "title": "Reference drawing in Plan",
+   "depends_raw": "EZD-901a, EZD-207, EZD-235, EZD-017",
+   "spec_ref": "S11; Imports · Architect drawings",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-901a",
+    "EZD-207",
+    "EZD-235",
+    "EZD-017"
+   ],
+   "build_position": 248
+  },
+  {
+   "id": "EZD-902",
+   "phase": 9,
+   "title": "Reference under the model",
+   "depends_raw": "EZD-901",
+   "spec_ref": "S11 Snap to reference, Place objects on top; S03 Overlay: Architect DXF",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png",
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-901a",
+    "EZD-901b"
+   ],
+   "build_position": 249
+  },
+  {
+   "id": "EZD-903",
+   "phase": 9,
+   "title": "Alignment",
+   "depends_raw": "EZD-902, EZD-904",
+   "spec_ref": "S11 Aligned readout; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-902",
+    "EZD-904"
+   ],
+   "build_position": 251
+  },
+  {
+   "id": "EZD-904",
+   "phase": 9,
+   "title": "Reference layers panel",
+   "depends_raw": "EZD-901",
+   "spec_ref": "S11 Controls (left panel); Decisions",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-901a",
+    "EZD-901b"
+   ],
+   "build_position": 250
+  },
+  {
+   "id": "EZD-905",
+   "phase": 9,
+   "title": "Paper-space layouts",
+   "depends_raw": "EZD-901",
+   "spec_ref": "S11 Paper-space layout selector; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-901a",
+    "EZD-901b"
+   ],
+   "build_position": 252
+  },
+  {
+   "id": "EZD-906",
+   "phase": 9,
+   "title": "Convert layers",
+   "depends_raw": "EZD-904, EZD-307, EZD-306",
+   "spec_ref": "S11 Convert layer, Tool: Convert",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-904",
+    "EZD-307",
+    "EZD-306"
+   ],
+   "build_position": 253
+  },
+  {
+   "id": "EZD-907",
+   "phase": 9,
+   "title": "Markup layer",
+   "depends_raw": "EZD-902, EZD-904",
+   "spec_ref": "S11 Markup tools; Data model · markup; R24 #16",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/03-data-model.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-902",
+    "EZD-904"
+   ],
+   "build_position": 254
+  },
+  {
+   "id": "EZD-908",
+   "phase": 9,
+   "title": "Reference versions",
+   "depends_raw": "EZD-904, EZD-921",
+   "spec_ref": "S11 Upload new version; States",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-904",
+    "EZD-921"
+   ],
+   "build_position": 266
+  },
+  {
+   "id": "EZD-909a",
+   "phase": 9,
+   "title": "Reference diff job",
+   "depends_raw": "EZD-908, EZD-907, EZD-116",
+   "spec_ref": "S11 Change summary, Changes list; Decisions; R24 #3",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-908",
+    "EZD-907",
+    "EZD-116"
+   ],
+   "build_position": 267
+  },
+  {
+   "id": "EZD-909b",
+   "phase": 9,
+   "title": "Reference diff view",
+   "depends_raw": "EZD-909a",
+   "spec_ref": "S11 Change summary, Changes list; R24 #3",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-909a"
+   ],
+   "build_position": 268
+  },
+  {
+   "id": "EZD-910",
+   "phase": 9,
+   "title": "Keep or accept a revision",
+   "depends_raw": "EZD-909",
+   "spec_ref": "S11 Keep / Accept; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-909a",
+    "EZD-909b"
+   ],
+   "build_position": 269
+  },
+  {
+   "id": "EZD-911",
+   "phase": 9,
+   "title": "Export markup",
+   "depends_raw": "EZD-907, EZD-913, EZD-715",
+   "spec_ref": "S11 Send markup back, Export markup; Exports",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-907",
+    "EZD-913",
+    "EZD-715"
+   ],
+   "build_position": 257
+  },
+  {
+   "id": "EZD-912",
+   "phase": 9,
+   "title": "Section or callout from reference",
+   "depends_raw": "EZD-902, EZD-811",
+   "spec_ref": "S11 Cut section / callout from reference",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-902",
+    "EZD-811"
+   ],
+   "build_position": 255
+  },
+  {
+   "id": "EZD-913",
+   "phase": 9,
+   "title": "DXF export",
+   "depends_raw": "EZD-901, EZD-721",
+   "spec_ref": "Exports · CAD",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-901a",
+    "EZD-901b",
+    "EZD-721"
+   ],
+   "build_position": 256
+  },
+  {
+   "id": "EZD-914",
+   "phase": 9,
+   "title": "Supplier files panel",
+   "depends_raw": "EZD-301",
+   "spec_ref": "S12 Upload, File row; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-301"
+   ],
+   "build_position": 258
+  },
+  {
+   "id": "EZD-915",
+   "phase": 9,
+   "title": "Supplier vector PDF import",
+   "depends_raw": "EZD-914, EZD-305",
+   "spec_ref": "S12 Supplier PDF import; S02 States",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md",
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png",
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-914",
+    "EZD-305"
+   ],
+   "build_position": 259
+  },
+  {
+   "id": "EZD-916",
+   "phase": 9,
+   "title": "2020 order report import",
+   "depends_raw": "EZD-914, EZD-307, EZD-021",
+   "spec_ref": "S12 Order report import; Decisions; R24 Still open",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-914",
+    "EZD-307",
+    "EZD-021"
+   ],
+   "build_position": 260
+  },
+  {
+   "id": "EZD-917",
+   "phase": 9,
+   "title": "Tag and link tools",
+   "depends_raw": "EZD-914, EZD-404, EZD-907",
+   "spec_ref": "S12 Controls",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-914",
+    "EZD-404",
+    "EZD-907"
+   ],
+   "build_position": 261
+  },
+  {
+   "id": "EZD-918",
+   "phase": 9,
+   "title": "Read codes",
+   "depends_raw": "EZD-917, EZD-916, EZD-021",
+   "spec_ref": "S12 Read codes; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-917",
+    "EZD-916",
+    "EZD-021"
+   ],
+   "build_position": 262
+  },
+  {
+   "id": "EZD-919",
+   "phase": 9,
+   "title": "Compare and resolve mismatches",
+   "depends_raw": "EZD-917, EZD-407, EZD-111",
+   "spec_ref": "S12 Comparison table, mismatch actions; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-917",
+    "EZD-407",
+    "EZD-111"
+   ],
+   "build_position": 263
+  },
+  {
+   "id": "EZD-920",
+   "phase": 9,
+   "title": "Suggested finishes",
+   "depends_raw": "EZD-917, EZD-401, EZD-021",
+   "spec_ref": "S12 Suggested catalog matches; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-917",
+    "EZD-401",
+    "EZD-021"
+   ],
+   "build_position": 264
+  },
+  {
+   "id": "EZD-921",
+   "phase": 9,
+   "title": "Architect revision labels",
+   "depends_raw": "EZD-904",
+   "spec_ref": "S11 Decisions (9); Data model · reference_drawing",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-904"
+   ],
+   "build_position": 265
+  },
+  {
+   "id": "EZD-922a",
+   "phase": 9,
+   "title": "Reference states (screen 11)",
+   "depends_raw": "EZD-911",
+   "spec_ref": "S11 States; R26 R16",
+   "spec_files": [
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S11Reference.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-911"
+   ],
+   "build_position": 270
+  },
+  {
+   "id": "EZD-922b",
+   "phase": 9,
+   "title": "Supplier markup states (screen 12)",
+   "depends_raw": "EZD-919",
+   "spec_ref": "S12 States, Validation",
+   "spec_files": [
+    "spec/sections/screens/S12-supplier-rendering-markup.md"
+   ],
+   "mockups": [
+    "mockups/S12RenderMarkup.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-919"
+   ],
+   "build_position": 271
+  },
+  {
+   "id": "EZD-1001a",
+   "phase": 10,
+   "title": "3D scene core",
+   "depends_raw": "EZD-207, EZD-020, EZD-235, EZD-030",
+   "spec_ref": "S07 Data shown, States; Stack",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-207",
+    "EZD-020",
+    "EZD-235",
+    "EZD-030"
+   ],
+   "build_position": 272
+  },
+  {
+   "id": "EZD-1001b",
+   "phase": 10,
+   "title": "3D ceilings and beams",
+   "depends_raw": "EZD-1001a, EZD-504, EZD-505",
+   "spec_ref": "S07 Data shown",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-504",
+    "EZD-505"
+   ],
+   "build_position": 273
+  },
+  {
+   "id": "EZD-1001c",
+   "phase": 10,
+   "title": "3D cabinets, fixtures, devices and finishes",
+   "depends_raw": "EZD-1001b, EZD-402, EZD-414, EZD-234, EZD-226, EZD-602, EZD-401",
+   "spec_ref": "S07 Data shown, States",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001b",
+    "EZD-402",
+    "EZD-414",
+    "EZD-234",
+    "EZD-226",
+    "EZD-602",
+    "EZD-401"
+   ],
+   "build_position": 274
+  },
+  {
+   "id": "EZD-1002",
+   "phase": 10,
+   "title": "Navigation",
+   "depends_raw": "EZD-1001",
+   "spec_ref": "S07 Controls",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c"
+   ],
+   "build_position": 275
+  },
+  {
+   "id": "EZD-1003",
+   "phase": 10,
+   "title": "Walk and Look up",
+   "depends_raw": "EZD-1002, EZD-116",
+   "spec_ref": "S07 Walk, Look up; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1002",
+    "EZD-116"
+   ],
+   "build_position": 276
+  },
+  {
+   "id": "EZD-1004",
+   "phase": 10,
+   "title": "Section and display modes",
+   "depends_raw": "EZD-1002",
+   "spec_ref": "S07 Section; Shaded / Lines / X-ray; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1002"
+   ],
+   "build_position": 277
+  },
+  {
+   "id": "EZD-1005",
+   "phase": 10,
+   "title": "3D layers",
+   "depends_raw": "EZD-1001, EZD-303",
+   "spec_ref": "S07 Layer row; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-303"
+   ],
+   "build_position": 278
+  },
+  {
+   "id": "EZD-1006",
+   "phase": 10,
+   "title": "Saved views",
+   "depends_raw": "EZD-1002",
+   "spec_ref": "S07 Save view, Saved view row; Data model · camera_view",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1002"
+   ],
+   "build_position": 279
+  },
+  {
+   "id": "EZD-1007",
+   "phase": 10,
+   "title": "Select and apply finish",
+   "depends_raw": "EZD-1001, EZD-401, EZD-505",
+   "spec_ref": "S07 Click object, Apply finish, Selected object details",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-401",
+    "EZD-505"
+   ],
+   "build_position": 280
+  },
+  {
+   "id": "EZD-1008",
+   "phase": 10,
+   "title": "Rail on the 3D tab",
+   "depends_raw": "EZD-1002, EZD-612",
+   "spec_ref": "S07 Rail drawing tools; Layout",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1002",
+    "EZD-612"
+   ],
+   "build_position": 281
+  },
+  {
+   "id": "EZD-1009",
+   "phase": 10,
+   "title": "Design options data",
+   "depends_raw": "EZD-202",
+   "spec_ref": "Data model · design_option; S07 Validation",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-202"
+   ],
+   "build_position": 282
+  },
+  {
+   "id": "EZD-1010",
+   "phase": 10,
+   "title": "Options inspector",
+   "depends_raw": "EZD-1009, EZD-1001",
+   "spec_ref": "S07 Option card, Duplicate option, Option cost detail",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1009",
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c"
+   ],
+   "build_position": 283
+  },
+  {
+   "id": "EZD-1011",
+   "phase": 10,
+   "title": "Make options from the RCP",
+   "depends_raw": "EZD-1010, EZD-505",
+   "spec_ref": "S05 Make options A/B/C",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1010",
+    "EZD-505"
+   ],
+   "build_position": 284
+  },
+  {
+   "id": "EZD-1012",
+   "phase": 10,
+   "title": "Measure in 3D",
+   "depends_raw": "EZD-1002",
+   "spec_ref": "S07 Measure",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1002"
+   ],
+   "build_position": 285
+  },
+  {
+   "id": "EZD-1013",
+   "phase": 10,
+   "title": "Phone 3D viewer",
+   "depends_raw": "EZD-1012, EZD-014",
+   "spec_ref": "S07 Layout (phone); Decisions",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1012",
+    "EZD-014"
+   ],
+   "build_position": 286
+  },
+  {
+   "id": "EZD-1014",
+   "phase": 10,
+   "title": "GLB and USDZ export",
+   "depends_raw": "EZD-1001, EZD-721",
+   "spec_ref": "Exports · 3D for EZ Binder, iPhone AR",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-721"
+   ],
+   "build_position": 287
+  },
+  {
+   "id": "EZD-1015",
+   "phase": 10,
+   "title": "iPad memory guard and states",
+   "depends_raw": "EZD-1001",
+   "spec_ref": "S07 States, Validation; Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c"
+   ],
+   "build_position": 288
+  },
+  {
+   "id": "EZD-1017",
+   "phase": 10,
+   "title": "Inspector 3D preview",
+   "depends_raw": "EZD-1001",
+   "spec_ref": "S03 Live 3D preview, Open 3D",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c"
+   ],
+   "build_position": 289
+  },
+  {
+   "id": "EZD-1101",
+   "phase": 11,
+   "title": "Render records and jobs",
+   "depends_raw": "EZD-009, EZD-1006",
+   "spec_ref": "Data model · render; S08 States",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S08-render-setup.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-009",
+    "EZD-1006"
+   ],
+   "build_position": 290
+  },
+  {
+   "id": "EZD-1102",
+   "phase": 11,
+   "title": "Render models settings",
+   "depends_raw": "EZD-116",
+   "spec_ref": "S15f; R24 #18, #50",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S15f-settings-render-models.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-116"
+   ],
+   "build_position": 291
+  },
+  {
+   "id": "EZD-1103",
+   "phase": 11,
+   "title": "Provider adapters",
+   "depends_raw": "EZD-1101, EZD-1102, EZD-021",
+   "spec_ref": "Stack · AI; S08 Generate",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/screens/S08-render-setup.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1101",
+    "EZD-1102",
+    "EZD-021"
+   ],
+   "build_position": 292
+  },
+  {
+   "id": "EZD-1104a",
+   "phase": 11,
+   "title": "Local worker protocol",
+   "depends_raw": "EZD-1103, EZD-116",
+   "spec_ref": "R24 #50; Stack · Hosting; S15f Local render worker",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/02-product-overview.md",
+    "spec/sections/screens/S15f-settings-render-models.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1103",
+    "EZD-116"
+   ],
+   "build_position": 293
+  },
+  {
+   "id": "EZD-1104b",
+   "phase": 11,
+   "title": "Local worker program",
+   "depends_raw": "EZD-1104a",
+   "spec_ref": "R24 #50; S15f Local render worker",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S15f-settings-render-models.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1104a"
+   ],
+   "build_position": 294
+  },
+  {
+   "id": "EZD-1105",
+   "phase": 11,
+   "title": "Browser path tracer",
+   "depends_raw": "EZD-1001, EZD-1109",
+   "spec_ref": "Stack · Browser path tracing; External services",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-1109"
+   ],
+   "build_position": 299
+  },
+  {
+   "id": "EZD-1106",
+   "phase": 11,
+   "title": "Step 1: angle",
+   "depends_raw": "EZD-1006, EZD-1101",
+   "spec_ref": "S08 Controls; Acceptance · Render",
+   "spec_files": [
+    "spec/sections/screens/S08-render-setup.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1006",
+    "EZD-1101"
+   ],
+   "build_position": 295
+  },
+  {
+   "id": "EZD-1107",
+   "phase": 11,
+   "title": "Preview and optional alignment",
+   "depends_raw": "EZD-1106",
+   "spec_ref": "S08 Split handle, Align to model, Validation; R24 #23",
+   "spec_files": [
+    "spec/sections/screens/S08-render-setup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1106"
+   ],
+   "build_position": 296
+  },
+  {
+   "id": "EZD-1108",
+   "phase": 11,
+   "title": "Step 2: style and direction",
+   "depends_raw": "EZD-1107, EZD-401",
+   "spec_ref": "S08 Style presets, Direct; R24 #21",
+   "spec_files": [
+    "spec/sections/screens/S08-render-setup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1107",
+    "EZD-401"
+   ],
+   "build_position": 297
+  },
+  {
+   "id": "EZD-1109",
+   "phase": 11,
+   "title": "Tiers and Generate",
+   "depends_raw": "EZD-1108, EZD-1103",
+   "spec_ref": "S08 Quality, Generate; R24 #19",
+   "spec_files": [
+    "spec/sections/screens/S08-render-setup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1108",
+    "EZD-1103"
+   ],
+   "build_position": 298
+  },
+  {
+   "id": "EZD-1110",
+   "phase": 11,
+   "title": "Renders list and notifications",
+   "depends_raw": "EZD-1109, EZD-110, EZD-127",
+   "spec_ref": "S08 Renders list row, States",
+   "spec_files": [
+    "spec/sections/screens/S08-render-setup.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1109",
+    "EZD-110",
+    "EZD-127"
+   ],
+   "build_position": 300
+  },
+  {
+   "id": "EZD-1111",
+   "phase": 11,
+   "title": "Render view",
+   "depends_raw": "EZD-1110",
+   "spec_ref": "S08b Controls, Data shown; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S08b-photoreal-render-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1110"
+   ],
+   "build_position": 301
+  },
+  {
+   "id": "EZD-1112",
+   "phase": 11,
+   "title": "Comment pins",
+   "depends_raw": "EZD-1111",
+   "spec_ref": "S08b Add comment pin, Comment pin",
+   "spec_files": [
+    "spec/sections/screens/S08b-photoreal-render-view.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1111"
+   ],
+   "build_position": 302
+  },
+  {
+   "id": "EZD-1113",
+   "phase": 11,
+   "title": "Fix and regenerate",
+   "depends_raw": "EZD-1111",
+   "spec_ref": "S08b Mark area, Fix, Regenerate; S08 Compare, Rerun",
+   "spec_files": [
+    "spec/sections/screens/S08b-photoreal-render-view.md",
+    "spec/sections/screens/S08-render-setup.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png",
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1111"
+   ],
+   "build_position": 303
+  },
+  {
+   "id": "EZD-1114",
+   "phase": 11,
+   "title": "Two-step approval",
+   "depends_raw": "EZD-1111",
+   "spec_ref": "S08b Approve, Mark client-ready; R24 #20",
+   "spec_files": [
+    "spec/sections/screens/S08b-photoreal-render-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1111"
+   ],
+   "build_position": 304
+  },
+  {
+   "id": "EZD-1115",
+   "phase": 11,
+   "title": "Model changed detection",
+   "depends_raw": "EZD-1114, EZD-1001, EZD-1109, EZD-127",
+   "spec_ref": "R24 #22; S08b Model changed choice; Hooks · model.saved",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S08b-photoreal-render-view.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1114",
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-1109",
+    "EZD-127"
+   ],
+   "build_position": 305
+  },
+  {
+   "id": "EZD-1116",
+   "phase": 11,
+   "title": "Download",
+   "depends_raw": "EZD-1111",
+   "spec_ref": "S08b Download; Exports · Single render",
+   "spec_files": [
+    "spec/sections/screens/S08b-photoreal-render-view.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1111"
+   ],
+   "build_position": 306
+  },
+  {
+   "id": "EZD-1117",
+   "phase": 11,
+   "title": "Render allowance",
+   "depends_raw": "EZD-1102, EZD-110",
+   "spec_ref": "R24 #18; S08 Render spend; Data model · render_allowance",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S08-render-setup.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S08Render.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1102",
+    "EZD-110"
+   ],
+   "build_position": 307
+  },
+  {
+   "id": "EZD-1118",
+   "phase": 11,
+   "title": "Render A/B/C from 3D",
+   "depends_raw": "EZD-1109, EZD-1010",
+   "spec_ref": "S07 Render A/B/C",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1109",
+    "EZD-1010"
+   ],
+   "build_position": 308
+  },
+  {
+   "id": "EZD-1119",
+   "phase": 11,
+   "title": "R1.0 finish schedule + renders",
+   "depends_raw": "EZD-1114, EZD-716, EZD-401",
+   "spec_ref": "S13 Decisions; S13 Validation; Calculations · Sheet set rules",
+   "spec_files": [
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1114",
+    "EZD-716",
+    "EZD-401"
+   ],
+   "build_position": 309
+  },
+  {
+   "id": "EZD-1120",
+   "phase": 11,
+   "title": "Local worker: real runner",
+   "depends_raw": "EZD-1104b",
+   "spec_ref": "R24 #50; R26 R18",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1104b"
+   ],
+   "build_position": 310
+  },
+  {
+   "id": "EZD-1121",
+   "phase": 11,
+   "title": "Second provider adapter",
+   "depends_raw": "EZD-1103",
+   "spec_ref": "R26 R21",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1103"
+   ],
+   "build_position": 311
+  },
+  {
+   "id": "EZD-1201",
+   "phase": 12,
+   "title": "Share links",
+   "depends_raw": "EZD-111, EZD-116",
+   "spec_ref": "S18; Data model · share_link; Non-functional · Security; Hooks · share_link.expiring",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/03-data-model.md",
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-111",
+    "EZD-116"
+   ],
+   "build_position": 312
+  },
+  {
+   "id": "EZD-1202",
+   "phase": 12,
+   "title": "Client page shell",
+   "depends_raw": "EZD-1201, EZD-020",
+   "spec_ref": "S18 Layout, States; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1201",
+    "EZD-020"
+   ],
+   "build_position": 313
+  },
+  {
+   "id": "EZD-1203",
+   "phase": 12,
+   "title": "Render gallery",
+   "depends_raw": "EZD-1202, EZD-1114",
+   "spec_ref": "S18 Render gallery; Acceptance · Render",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1202",
+    "EZD-1114"
+   ],
+   "build_position": 314
+  },
+  {
+   "id": "EZD-1204",
+   "phase": 12,
+   "title": "Client comments",
+   "depends_raw": "EZD-1203, EZD-1112",
+   "spec_ref": "S18 Comment, Comment list item; S08b Decisions",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/screens/S08b-photoreal-render-view.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png",
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1203",
+    "EZD-1112"
+   ],
+   "build_position": 315
+  },
+  {
+   "id": "EZD-1205",
+   "phase": 12,
+   "title": "Plans tab",
+   "depends_raw": "EZD-1202, EZD-702, EZD-1215",
+   "spec_ref": "S18 Page tab: Plans; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1202",
+    "EZD-702a",
+    "EZD-702b",
+    "EZD-1215"
+   ],
+   "build_position": 325
+  },
+  {
+   "id": "EZD-1206",
+   "phase": 12,
+   "title": "Send options to client",
+   "depends_raw": "EZD-1010, EZD-1201, EZD-121",
+   "spec_ref": "S07 Send options to client; R24",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1010",
+    "EZD-1201",
+    "EZD-121"
+   ],
+   "build_position": 316
+  },
+  {
+   "id": "EZD-1207",
+   "phase": 12,
+   "title": "Option choice",
+   "depends_raw": "EZD-1206, EZD-1215",
+   "spec_ref": "S18 Option card, Compare; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1206",
+    "EZD-1215"
+   ],
+   "build_position": 326
+  },
+  {
+   "id": "EZD-1208",
+   "phase": 12,
+   "title": "Selection offers and choice pages",
+   "depends_raw": "EZD-1202, EZD-417",
+   "spec_ref": "S18 Selections rows; S18b Step indicator; Data model · selection_offer, selection",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/screens/S18b-client-edge-choice-phone.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png",
+    "mockups/S18bClientEdge.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1202",
+    "EZD-417"
+   ],
+   "build_position": 317
+  },
+  {
+   "id": "EZD-1209",
+   "phase": 12,
+   "title": "Edge choice",
+   "depends_raw": "EZD-1208, EZD-417",
+   "spec_ref": "S18b; R24 #33",
+   "spec_files": [
+    "spec/sections/screens/S18b-client-edge-choice-phone.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S18bClientEdge.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1208",
+    "EZD-417"
+   ],
+   "build_position": 318
+  },
+  {
+   "id": "EZD-1210",
+   "phase": 12,
+   "title": "Verify and sign",
+   "depends_raw": "EZD-1208, EZD-113",
+   "spec_ref": "S18 Signature card; R24 #32, #34",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1208",
+    "EZD-113"
+   ],
+   "build_position": 319
+  },
+  {
+   "id": "EZD-1211",
+   "phase": 12,
+   "title": "Approve",
+   "depends_raw": "EZD-1210",
+   "spec_ref": "S18 Approve, States; Acceptance · Client",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1210"
+   ],
+   "build_position": 320
+  },
+  {
+   "id": "EZD-1212",
+   "phase": 12,
+   "title": "Selections PDF",
+   "depends_raw": "EZD-1211",
+   "spec_ref": "W10; Exports · Selections PDF",
+   "spec_files": [
+    "spec/sections/06-workflows.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1211"
+   ],
+   "build_position": 321
+  },
+  {
+   "id": "EZD-1213",
+   "phase": 12,
+   "title": "Send image",
+   "depends_raw": "EZD-1114, EZD-111",
+   "spec_ref": "S08b Send image, Copy link",
+   "spec_files": [
+    "spec/sections/screens/S08b-photoreal-render-view.md"
+   ],
+   "mockups": [
+    "mockups/S08bRenderView.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1114",
+    "EZD-111"
+   ],
+   "build_position": 322
+  },
+  {
+   "id": "EZD-1214",
+   "phase": 12,
+   "title": "Archive options on signing",
+   "depends_raw": "EZD-1009, EZD-1211",
+   "spec_ref": "S07 Decisions (9); S18 Option card; Data model · design_option",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png",
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1009",
+    "EZD-1211"
+   ],
+   "build_position": 323
+  },
+  {
+   "id": "EZD-1215",
+   "phase": 12,
+   "title": "Send to client composer",
+   "depends_raw": "EZD-1201, EZD-1208, EZD-401",
+   "spec_ref": "S18 Data shown; S18b Step indicator; Data model · selection_offer",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md",
+    "spec/sections/screens/S18b-client-edge-choice-phone.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S18Client.png",
+    "mockups/S18bClientEdge.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1201",
+    "EZD-1208",
+    "EZD-401"
+   ],
+   "build_position": 324
+  },
+  {
+   "id": "EZD-1301",
+   "phase": 13,
+   "title": "Webhook delivery",
+   "depends_raw": "EZD-114, EZD-109, EZD-116, EZD-022, EZD-009, EZD-019",
+   "spec_ref": "Hooks · Delivery rules; Acceptance · Webhooks",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-114",
+    "EZD-109",
+    "EZD-116",
+    "EZD-022",
+    "EZD-009",
+    "EZD-019"
+   ],
+   "build_position": 327
+  },
+  {
+   "id": "EZD-1302",
+   "phase": 13,
+   "title": "Outbound event payloads",
+   "depends_raw": "EZD-1301",
+   "spec_ref": "Hooks · Outbound webhooks to EZ Binder",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1301"
+   ],
+   "build_position": 328
+  },
+  {
+   "id": "EZD-1303",
+   "phase": 13,
+   "title": "Inbound API authentication",
+   "depends_raw": "EZD-114, EZD-019",
+   "spec_ref": "Hooks · Inbound API; Non-functional · Security",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-114",
+    "EZD-019"
+   ],
+   "build_position": 329
+  },
+  {
+   "id": "EZD-1304",
+   "phase": 13,
+   "title": "Inbound: create project from job",
+   "depends_raw": "EZD-1303, EZD-119",
+   "spec_ref": "Hooks · Inbound API",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1303",
+    "EZD-119"
+   ],
+   "build_position": 330
+  },
+  {
+   "id": "EZD-1305",
+   "phase": 13,
+   "title": "Inbound: open with shared sign-on",
+   "depends_raw": "EZD-1303",
+   "spec_ref": "Hooks · Inbound API; W13",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/06-workflows.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1303"
+   ],
+   "build_position": 331
+  },
+  {
+   "id": "EZD-1306",
+   "phase": 13,
+   "title": "Inbound: read approved data",
+   "depends_raw": "EZD-1303, EZD-1211, EZD-717, EZD-1114",
+   "spec_ref": "Hooks · Inbound API",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1303",
+    "EZD-1211",
+    "EZD-717",
+    "EZD-1114"
+   ],
+   "build_position": 332
+  },
+  {
+   "id": "EZD-1307",
+   "phase": 13,
+   "title": "Inbound: mark CO approved",
+   "depends_raw": "EZD-1303, EZD-1308",
+   "spec_ref": "Hooks · Inbound API; S14 States",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md",
+    "spec/sections/screens/S14-change-order-hand-off.md"
+   ],
+   "mockups": [
+    "mockups/S14ChangeOrder.png"
+   ],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1303",
+    "EZD-1308"
+   ],
+   "build_position": 334
+  },
+  {
+   "id": "EZD-1308",
+   "phase": 13,
+   "title": "CO draft data and entry points",
+   "depends_raw": "EZD-717, EZD-122",
+   "spec_ref": "S14 Entry points; S13 Draft change order; R24 #24",
+   "spec_files": [
+    "spec/sections/screens/S14-change-order-hand-off.md",
+    "spec/sections/screens/S13-sheets-key-issue.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S14ChangeOrder.png",
+    "mockups/S13Sheets.png"
+   ],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-717",
+    "EZD-122"
+   ],
+   "build_position": 333
+  },
+  {
+   "id": "EZD-1309",
+   "phase": 13,
+   "title": "Before and after images",
+   "depends_raw": "EZD-1308, EZD-1114",
+   "spec_ref": "S14 Before/after image, Approve images; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S14-change-order-hand-off.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S14ChangeOrder.png"
+   ],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1308",
+    "EZD-1114"
+   ],
+   "build_position": 335
+  },
+  {
+   "id": "EZD-1310",
+   "phase": 13,
+   "title": "Scope text",
+   "depends_raw": "EZD-1308, EZD-009, EZD-021",
+   "spec_ref": "S14 Scope of change",
+   "spec_files": [
+    "spec/sections/screens/S14-change-order-hand-off.md"
+   ],
+   "mockups": [
+    "mockups/S14ChangeOrder.png"
+   ],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1308",
+    "EZD-009",
+    "EZD-021"
+   ],
+   "build_position": 336
+  },
+  {
+   "id": "EZD-1311",
+   "phase": 13,
+   "title": "Line items and schedule impact",
+   "depends_raw": "EZD-1308",
+   "spec_ref": "S14 Line items, Schedule impact; R24 #25",
+   "spec_files": [
+    "spec/sections/screens/S14-change-order-hand-off.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S14ChangeOrder.png"
+   ],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1308"
+   ],
+   "build_position": 337
+  },
+  {
+   "id": "EZD-1312",
+   "phase": 13,
+   "title": "Save draft and Send to EZ Binder",
+   "depends_raw": "EZD-1309, EZD-1311, EZD-1302",
+   "spec_ref": "S14 Save draft, Send to EZ Binder; R24 #25",
+   "spec_files": [
+    "spec/sections/screens/S14-change-order-hand-off.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S14ChangeOrder.png"
+   ],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1309",
+    "EZD-1311",
+    "EZD-1302"
+   ],
+   "build_position": 338
+  },
+  {
+   "id": "EZD-1314",
+   "phase": 13,
+   "title": "Canonical event registry",
+   "depends_raw": "EZD-1301, EZD-022",
+   "spec_ref": "Hooks · Internal app events (Canonical names)",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-13.md",
+   "depends_on": [
+    "EZD-1301",
+    "EZD-022"
+   ],
+   "build_position": 339
+  },
+  {
+   "id": "EZD-1401",
+   "phase": 14,
+   "title": "Service worker cache",
+   "depends_raw": "EZD-134",
+   "spec_ref": "Non-functional · Offline; S17 Offline status icon",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-134"
+   ],
+   "build_position": 340
+  },
+  {
+   "id": "EZD-1402",
+   "phase": 14,
+   "title": "Offline change queue",
+   "depends_raw": "EZD-1401, EZD-120",
+   "spec_ref": "Data model · offline_change; Acceptance · Offline",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1401",
+    "EZD-120a",
+    "EZD-120b"
+   ],
+   "build_position": 341
+  },
+  {
+   "id": "EZD-1403",
+   "phase": 14,
+   "title": "Offline editing and conflicts",
+   "depends_raw": "EZD-1402, EZD-125",
+   "spec_ref": "R24 #17; S06 States; Non-functional · Offline",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1402",
+    "EZD-125"
+   ],
+   "build_position": 342
+  },
+  {
+   "id": "EZD-1404",
+   "phase": 14,
+   "title": "Field pack shell",
+   "depends_raw": "EZD-1401, EZD-1305",
+   "spec_ref": "S17 Layout, Controls, States",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1401",
+    "EZD-1305"
+   ],
+   "build_position": 343
+  },
+  {
+   "id": "EZD-1405",
+   "phase": 14,
+   "title": "Plan and 3D tabs",
+   "depends_raw": "EZD-1404, EZD-1013",
+   "spec_ref": "S17 Tab: Plan, Tab: 3D, Layers button",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1404",
+    "EZD-1013"
+   ],
+   "build_position": 344
+  },
+  {
+   "id": "EZD-1406",
+   "phase": 14,
+   "title": "Measure tab",
+   "depends_raw": "EZD-1405, EZD-315",
+   "spec_ref": "S17 Measure; R24 #27, #30, #47",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1405",
+    "EZD-315"
+   ],
+   "build_position": 345
+  },
+  {
+   "id": "EZD-1407",
+   "phase": 14,
+   "title": "Send measurement and Flag conflict",
+   "depends_raw": "EZD-1406, EZD-1402",
+   "spec_ref": "S17; R24 #28; Data model · field_pin, field_measurement",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md",
+    "spec/decisions.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1406",
+    "EZD-1402"
+   ],
+   "build_position": 346
+  },
+  {
+   "id": "EZD-1408",
+   "phase": 14,
+   "title": "Field task templates and publishing",
+   "depends_raw": "EZD-131, EZD-021",
+   "spec_ref": "S15h Field task templates; Data model · field_task; Stack · AI",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/02-product-overview.md",
+    "spec/sections/screens/S15h-settings-libraries.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-131",
+    "EZD-021"
+   ],
+   "build_position": 347
+  },
+  {
+   "id": "EZD-1409",
+   "phase": 14,
+   "title": "Tasks tab",
+   "depends_raw": "EZD-1408, EZD-1402, EZD-1404",
+   "spec_ref": "S17 Tab: Tasks, Task row",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1408",
+    "EZD-1402",
+    "EZD-1404"
+   ],
+   "build_position": 348
+  },
+  {
+   "id": "EZD-1410",
+   "phase": 14,
+   "title": "Photo tab and pins",
+   "depends_raw": "EZD-1405, EZD-1402, EZD-1407",
+   "spec_ref": "S17 Tab: Photo, Photo pin",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1405",
+    "EZD-1402",
+    "EZD-1407"
+   ],
+   "build_position": 349
+  },
+  {
+   "id": "EZD-1411",
+   "phase": 14,
+   "title": "Field pack PDF",
+   "depends_raw": "EZD-1405, EZD-1421, EZD-715",
+   "spec_ref": "S17 Save PDF; Exports · Field pack; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S17-field-pack-phone.md",
+    "spec/sections/08-import-and-export.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1405",
+    "EZD-1421",
+    "EZD-715"
+   ],
+   "build_position": 360
+  },
+  {
+   "id": "EZD-1412",
+   "phase": 14,
+   "title": "Stale actions on reconnect",
+   "depends_raw": "EZD-1402, EZD-717",
+   "spec_ref": "R24 #31; S17 States",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1402",
+    "EZD-717"
+   ],
+   "build_position": 350
+  },
+  {
+   "id": "EZD-1413",
+   "phase": 14,
+   "title": "Field measurements review",
+   "depends_raw": "EZD-1407, EZD-310, EZD-127, EZD-125",
+   "spec_ref": "Field measurements review; R24 #29",
+   "spec_files": [
+    "spec/sections/screens/X-field-measurements-review-not-in-mockup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1407",
+    "EZD-310",
+    "EZD-127",
+    "EZD-125"
+   ],
+   "build_position": 351
+  },
+  {
+   "id": "EZD-1414",
+   "phase": 14,
+   "title": "Field conflicts list",
+   "depends_raw": "EZD-1407, EZD-127",
+   "spec_ref": "App shell · Header card; S17 Flag conflict",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S17-field-pack-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1407",
+    "EZD-127"
+   ],
+   "build_position": 352
+  },
+  {
+   "id": "EZD-1415",
+   "phase": 14,
+   "title": "Field measure: shapes and walls",
+   "depends_raw": "EZD-1401",
+   "spec_ref": "S17b Field measure",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1401"
+   ],
+   "build_position": 353
+  },
+  {
+   "id": "EZD-1416",
+   "phase": 14,
+   "title": "Field measure: keypad and closure",
+   "depends_raw": "EZD-1415",
+   "spec_ref": "S17b Field measure",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1415"
+   ],
+   "build_position": 354
+  },
+  {
+   "id": "EZD-1417",
+   "phase": 14,
+   "title": "Field measure: offline save and send",
+   "depends_raw": "EZD-1416, EZD-1402, EZD-110",
+   "spec_ref": "S17b Field measure; Hooks",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1416",
+    "EZD-1402",
+    "EZD-110"
+   ],
+   "build_position": 355
+  },
+  {
+   "id": "EZD-1418",
+   "phase": 14,
+   "title": "Field measure into Import review",
+   "depends_raw": "EZD-1417, EZD-307",
+   "spec_ref": "S17b Field measure; S02 Import review",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md",
+    "spec/sections/screens/S02-import-review.md"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png",
+    "mockups/S02Import.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1417",
+    "EZD-307"
+   ],
+   "build_position": 356
+  },
+  {
+   "id": "EZD-1419",
+   "phase": 14,
+   "title": "Field measure entry points and states",
+   "depends_raw": "EZD-1415, EZD-1404, EZD-118, EZD-1305, EZD-1406",
+   "spec_ref": "S17b Entry points, States, Validation",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1415",
+    "EZD-1404",
+    "EZD-118",
+    "EZD-1305",
+    "EZD-1406"
+   ],
+   "build_position": 357
+  },
+  {
+   "id": "EZD-1420",
+   "phase": 14,
+   "title": "Field tasks screen",
+   "depends_raw": "EZD-1408, EZD-1409",
+   "spec_ref": "Field tasks (not in mockup)",
+   "spec_files": [
+    "spec/sections/screens/X-field-tasks-not-in-mockup.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1408",
+    "EZD-1409"
+   ],
+   "build_position": 358
+  },
+  {
+   "id": "EZD-1421",
+   "phase": 14,
+   "title": "Issue field pack",
+   "depends_raw": "EZD-1420, EZD-129, EZD-1404",
+   "spec_ref": "Field tasks (not in mockup) · Decisions; Hooks · field_pack.issued",
+   "spec_files": [
+    "spec/sections/screens/X-field-tasks-not-in-mockup.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-1420",
+    "EZD-129",
+    "EZD-1404"
+   ],
+   "build_position": 359
+  },
+  {
+   "id": "EZD-1422",
+   "phase": 14,
+   "title": "Field measure as wizard input",
+   "depends_raw": "EZD-118, EZD-1419",
+   "spec_ref": "S01 Input source; S17 Tab: Measure; W1",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/screens/S17-field-pack-phone.md",
+    "spec/sections/06-workflows.md"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S17Field.png"
+   ],
+   "phase_file": "tickets/phases/phase-14.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-1419"
+   ],
+   "build_position": 361
+  },
+  {
+   "id": "EZD-1501",
+   "phase": 15,
+   "title": "Translation store",
+   "depends_raw": "EZD-006",
+   "spec_ref": "Data model · translation; S16 Data shown",
+   "spec_files": [
+    "spec/sections/03-data-model.md",
+    "spec/sections/screens/S16-translation-review.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-006"
+   ],
+   "build_position": 362
+  },
+  {
+   "id": "EZD-1502",
+   "phase": 15,
+   "title": "AI drafting",
+   "depends_raw": "EZD-1501, EZD-009, EZD-021, EZD-110",
+   "spec_ref": "W14; S16 Entry points; Stack · AI",
+   "spec_files": [
+    "spec/sections/06-workflows.md",
+    "spec/sections/screens/S16-translation-review.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1501",
+    "EZD-009",
+    "EZD-021",
+    "EZD-110"
+   ],
+   "build_position": 363
+  },
+  {
+   "id": "EZD-1503",
+   "phase": 15,
+   "title": "Spanish display",
+   "depends_raw": "EZD-1501, EZD-1404, EZD-026",
+   "spec_ref": "R24 #9, #40; S15 Language toggle",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S15-settings-users-permissions.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1501",
+    "EZD-1404",
+    "EZD-026"
+   ],
+   "build_position": 364
+  },
+  {
+   "id": "EZD-1504",
+   "phase": 15,
+   "title": "Review table",
+   "depends_raw": "EZD-1501, EZD-103",
+   "spec_ref": "S16 Controls",
+   "spec_files": [
+    "spec/sections/screens/S16-translation-review.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1501",
+    "EZD-103"
+   ],
+   "build_position": 365
+  },
+  {
+   "id": "EZD-1505",
+   "phase": 15,
+   "title": "Review card actions",
+   "depends_raw": "EZD-1504",
+   "spec_ref": "S16 Card controls; R24 #39, #41",
+   "spec_files": [
+    "spec/sections/screens/S16-translation-review.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1504"
+   ],
+   "build_position": 366
+  },
+  {
+   "id": "EZD-1506",
+   "phase": 15,
+   "title": "Draft warnings",
+   "depends_raw": "EZD-1504",
+   "spec_ref": "S16 Row warnings; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S16-translation-review.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1504"
+   ],
+   "build_position": 367
+  },
+  {
+   "id": "EZD-1507",
+   "phase": 15,
+   "title": "Glossary",
+   "depends_raw": "EZD-1504",
+   "spec_ref": "S16 Glossary button",
+   "spec_files": [
+    "spec/sections/screens/S16-translation-review.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1504"
+   ],
+   "build_position": 368
+  },
+  {
+   "id": "EZD-1508",
+   "phase": 15,
+   "title": "Bulk approve",
+   "depends_raw": "EZD-1506",
+   "spec_ref": "S16 Approve all with no warnings",
+   "spec_files": [
+    "spec/sections/screens/S16-translation-review.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1506"
+   ],
+   "build_position": 369
+  },
+  {
+   "id": "EZD-1509",
+   "phase": 15,
+   "title": "Propagation",
+   "depends_raw": "EZD-1505",
+   "spec_ref": "R24 #41; S16 Decisions",
+   "spec_files": [
+    "spec/decisions.md",
+    "spec/sections/screens/S16-translation-review.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1505"
+   ],
+   "build_position": 370
+  },
+  {
+   "id": "EZD-1510",
+   "phase": 15,
+   "title": "Translation settings",
+   "depends_raw": "EZD-1504, EZD-716",
+   "spec_ref": "S16 Settings card; R24 #40",
+   "spec_files": [
+    "spec/sections/screens/S16-translation-review.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S16Translations.png"
+   ],
+   "phase_file": "tickets/phases/phase-15.md",
+   "depends_on": [
+    "EZD-1504",
+    "EZD-716"
+   ],
+   "build_position": 371
+  },
+  {
+   "id": "EZD-1601",
+   "phase": 16,
+   "title": "Catalog drawer",
+   "depends_raw": "EZD-401",
+   "spec_ref": "S09 Controls; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-401"
+   ],
+   "build_position": 372
+  },
+  {
+   "id": "EZD-1602",
+   "phase": 16,
+   "title": "Place from catalog",
+   "depends_raw": "EZD-1601, EZD-234",
+   "spec_ref": "S09 Product card drag",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1601",
+    "EZD-234"
+   ],
+   "build_position": 373
+  },
+  {
+   "id": "EZD-1603",
+   "phase": 16,
+   "title": "Add product: link",
+   "depends_raw": "EZD-1601, EZD-009, EZD-021",
+   "spec_ref": "S09 Add product, Product page URL",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1601",
+    "EZD-009",
+    "EZD-021"
+   ],
+   "build_position": 374
+  },
+  {
+   "id": "EZD-1604",
+   "phase": 16,
+   "title": "Add product: paste text and screenshot",
+   "depends_raw": "EZD-1603, EZD-021",
+   "spec_ref": "S09 Mode toggle, Chips; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1603",
+    "EZD-021"
+   ],
+   "build_position": 375
+  },
+  {
+   "id": "EZD-1605",
+   "phase": 16,
+   "title": "Field confirmation",
+   "depends_raw": "EZD-1603",
+   "spec_ref": "S09 Field rows, Confidence dot; Decisions",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1603"
+   ],
+   "build_position": 376
+  },
+  {
+   "id": "EZD-1606",
+   "phase": 16,
+   "title": "Save and place",
+   "depends_raw": "EZD-1605",
+   "spec_ref": "S09 Save to company library, Add and place",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1605"
+   ],
+   "build_position": 377
+  },
+  {
+   "id": "EZD-1607",
+   "phase": 16,
+   "title": "Item detail",
+   "depends_raw": "EZD-1606",
+   "spec_ref": "S09 Decisions; Price snapshot indicator",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1606"
+   ],
+   "build_position": 378
+  },
+  {
+   "id": "EZD-1608",
+   "phase": 16,
+   "title": "Price snapshots and refresh",
+   "depends_raw": "EZD-1607",
+   "spec_ref": "S09 Refresh prices; Data model · project_price_snapshot",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md",
+    "spec/sections/03-data-model.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1607"
+   ],
+   "build_position": 379
+  },
+  {
+   "id": "EZD-1609",
+   "phase": 16,
+   "title": "Catalog settings",
+   "depends_raw": "EZD-103, EZD-1212",
+   "spec_ref": "S15e",
+   "spec_files": [
+    "spec/sections/screens/S15e-settings-catalog.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-103",
+    "EZD-1212"
+   ],
+   "build_position": 380
+  },
+  {
+   "id": "EZD-1610",
+   "phase": 16,
+   "title": "Catalog states",
+   "depends_raw": "EZD-1601",
+   "spec_ref": "S09 States",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1601"
+   ],
+   "build_position": 381
+  },
+  {
+   "id": "EZD-1611a",
+   "phase": 16,
+   "title": "Takeoff framework and room finishes",
+   "depends_raw": "EZD-235, EZD-226, EZD-116",
+   "spec_ref": "Calculations · Takeoff rules; Takeoff Decisions",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/X-takeoff-not-in-mockup.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-235",
+    "EZD-226",
+    "EZD-116"
+   ],
+   "build_position": 382
+  },
+  {
+   "id": "EZD-1611b",
+   "phase": 16,
+   "title": "Takeoff: cabinets, tops, fixtures and electrical",
+   "depends_raw": "EZD-1611a, EZD-418, EZD-604",
+   "spec_ref": "Calculations · Takeoff rules",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1611a",
+    "EZD-418",
+    "EZD-604"
+   ],
+   "build_position": 383
+  },
+  {
+   "id": "EZD-1611c",
+   "phase": 16,
+   "title": "Takeoff: ACT, option costs and snapshot",
+   "depends_raw": "EZD-1611b, EZD-511, EZD-1010, EZD-121",
+   "spec_ref": "Calculations · Takeoff rules; Takeoff Decisions",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/X-takeoff-not-in-mockup.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1611b",
+    "EZD-511",
+    "EZD-1010",
+    "EZD-121"
+   ],
+   "build_position": 384
+  },
+  {
+   "id": "EZD-1612",
+   "phase": 16,
+   "title": "Waste factors",
+   "depends_raw": "EZD-1611, EZD-116",
+   "spec_ref": "S15d Waste factors; Takeoff · Waste factor input",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/sections/screens/X-takeoff-not-in-mockup.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1611a",
+    "EZD-1611b",
+    "EZD-1611c",
+    "EZD-116"
+   ],
+   "build_position": 385
+  },
+  {
+   "id": "EZD-1613",
+   "phase": 16,
+   "title": "Takeoff screen",
+   "depends_raw": "EZD-1611",
+   "spec_ref": "Takeoff (not in mockup); Decisions",
+   "spec_files": [
+    "spec/sections/screens/X-takeoff-not-in-mockup.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1611a",
+    "EZD-1611b",
+    "EZD-1611c"
+   ],
+   "build_position": 386
+  },
+  {
+   "id": "EZD-1614",
+   "phase": 16,
+   "title": "Tile layout preview",
+   "depends_raw": "EZD-1612, EZD-1001",
+   "spec_ref": "Calculations · Takeoff rules",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1612",
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c"
+   ],
+   "build_position": 387
+  },
+  {
+   "id": "EZD-1615",
+   "phase": 16,
+   "title": "Takeoff CSV",
+   "depends_raw": "EZD-1613",
+   "spec_ref": "Exports · Takeoff; Takeoff Decisions; Acceptance · Permissions",
+   "spec_files": [
+    "spec/sections/08-import-and-export.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md",
+    "spec/sections/screens/X-takeoff-not-in-mockup.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1613"
+   ],
+   "build_position": 388
+  },
+  {
+   "id": "EZD-1616",
+   "phase": 16,
+   "title": "Catalog on the standard rail",
+   "depends_raw": "EZD-1601, EZD-230",
+   "spec_ref": "App shell · Tool rail; S09 Entry points",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S09-catalog-add-product.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1601",
+    "EZD-230"
+   ],
+   "build_position": 389
+  },
+  {
+   "id": "EZD-1617",
+   "phase": 16,
+   "title": "Catalog settings: markup per category and edge library",
+   "depends_raw": "EZD-1601, EZD-1609",
+   "spec_ref": "S15e Decisions (4–5); S09 Decisions (4)",
+   "spec_files": [
+    "spec/sections/screens/S09-catalog-add-product.md",
+    "spec/sections/screens/S15e-settings-catalog.md"
+   ],
+   "mockups": [
+    "mockups/S09Catalog.png"
+   ],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1601",
+    "EZD-1609"
+   ],
+   "build_position": 390
+  },
+  {
+   "id": "EZD-1701",
+   "phase": 17,
+   "title": "Performance targets",
+   "depends_raw": "EZD-1001, EZD-901",
+   "spec_ref": "Non-functional · Performance",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-901a",
+    "EZD-901b"
+   ],
+   "build_position": 391
+  },
+  {
+   "id": "EZD-1702",
+   "phase": 17,
+   "title": "DXF size limits",
+   "depends_raw": "EZD-1701",
+   "spec_ref": "Non-functional · Performance; R24 Still open",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1701"
+   ],
+   "build_position": 392
+  },
+  {
+   "id": "EZD-1704",
+   "phase": 17,
+   "title": "Backups",
+   "depends_raw": "EZD-025",
+   "spec_ref": "Non-functional · Data retention",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-025"
+   ],
+   "build_position": 393
+  },
+  {
+   "id": "EZD-1705",
+   "phase": 17,
+   "title": "Security review",
+   "depends_raw": "EZD-1302, EZD-1211",
+   "spec_ref": "Non-functional · Security and audit",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1302",
+    "EZD-1211"
+   ],
+   "build_position": 394
+  },
+  {
+   "id": "EZD-1706",
+   "phase": 17,
+   "title": "Event log coverage",
+   "depends_raw": "EZD-109",
+   "spec_ref": "Non-functional · Security and audit",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-109"
+   ],
+   "build_position": 395
+  },
+  {
+   "id": "EZD-1707",
+   "phase": 17,
+   "title": "Terms of service",
+   "depends_raw": "EZD-007",
+   "spec_ref": "Non-functional · Security; R24 #42",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-007"
+   ],
+   "build_position": 396
+  },
+  {
+   "id": "EZD-1708",
+   "phase": 17,
+   "title": "Accessibility pass",
+   "depends_raw": "EZD-222",
+   "spec_ref": "Non-functional · Accessibility and input",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-222"
+   ],
+   "build_position": 397
+  },
+  {
+   "id": "EZD-1709a",
+   "phase": 17,
+   "title": "Screen states: Projects and Settings",
+   "depends_raw": "EZD-016",
+   "spec_ref": "Screen-by-screen spec · States",
+   "spec_files": [
+    "spec/sections/05-screen-by-screen-spec.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-016a",
+    "EZD-016b"
+   ],
+   "build_position": 398
+  },
+  {
+   "id": "EZD-1709b",
+   "phase": 17,
+   "title": "Screen states: editor tabs",
+   "depends_raw": "EZD-1709a, EZD-1613",
+   "spec_ref": "Screen-by-screen spec · States",
+   "spec_files": [
+    "spec/sections/05-screen-by-screen-spec.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1709a",
+    "EZD-1613"
+   ],
+   "build_position": 399
+  },
+  {
+   "id": "EZD-1709c",
+   "phase": 17,
+   "title": "Screen states: phone and client screens",
+   "depends_raw": "EZD-1709b",
+   "spec_ref": "Screen-by-screen spec · States",
+   "spec_files": [
+    "spec/sections/05-screen-by-screen-spec.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1709b"
+   ],
+   "build_position": 400
+  },
+  {
+   "id": "EZD-1710",
+   "phase": 17,
+   "title": "Code rule list and verification",
+   "depends_raw": "EZD-611, EZD-613, EZD-620",
+   "spec_ref": "Calculations · Code check engine; S15g; R26 R19",
+   "spec_files": [
+    "spec/sections/09-calculations-and-rules.md",
+    "spec/decisions.md",
+    "spec/sections/screens/S15g-settings-code-edition.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-611b",
+    "EZD-611c",
+    "EZD-613",
+    "EZD-620"
+   ],
+   "build_position": 401
+  }
+ ]
+}
