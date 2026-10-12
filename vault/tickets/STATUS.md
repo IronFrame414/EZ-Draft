@@ -6,7 +6,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Phase | Ticket | Title | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 36 |
+| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 37 |
 | 1 | Phase 1 · Foundation | [phase-01.md](phases/phase-01.md) | 37 |
 | 2 | Phase 2 · Geometry core + plan editor | [phase-02.md](phases/phase-02.md) | 38 |
 | 3 | Phase 3 · Imports | [phase-03.md](phases/phase-03.md) | 15 |
@@ -27,42 +27,43 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Ticket | Phase | Title | Status | Depends on | Commit | Tests | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| EZD-001 | 0 | Repo and tooling | questions | EZD-000 |  |  |  |
-| EZD-002 | 0 | CI | planned | EZD-001 |  |  |  |
-| EZD-003 | 0 | Hosting and subdomain | questions | EZD-002 |  |  |  |
-| EZD-004 | 0 | Supabase project | questions | EZD-001 |  |  |  |
-| EZD-005 | 0 | Tenant, user, membership tables | questions | EZD-004 |  |  |  |
-| EZD-006 | 0 | Row-level security | questions | EZD-005 |  |  |  |
-| EZD-007 | 0 | Magic-link sign-in | questions | EZD-005, EZD-026a, EZD-010, EZD-006 |  |  |  |
-| EZD-008 | 0 | Email provider | questions | EZD-004 |  |  |  |
-| EZD-009 | 0 | Background job queue | questions | EZD-004, EZD-018, EZD-007, EZD-016a |  |  |  |
-| EZD-010 | 0 | Design tokens | questions | EZD-001 |  |  |  |
-| EZD-011 | 0 | Shell: header card | planned | EZD-010, EZD-026a, EZD-016a |  |  |  |
-| EZD-012 | 0 | Shell: rail, panels, status bar | questions | EZD-010, EZD-026a, EZD-016a, EZD-011 |  |  |  |
-| EZD-013 | 0 | PWA install | questions | EZD-012, EZD-016a, EZD-024 |  |  |  |
-| EZD-014 | 0 | Device layouts | questions | EZD-012, EZD-026a, EZD-011, EZD-016a |  |  |  |
-| EZD-015 | 0 | Shared state components | questions | EZD-010, EZD-026a, EZD-016a, EZD-014, EZD-011 |  |  |  |
-| EZD-016a | 0 | Test harness | questions | EZD-007, EZD-002, EZD-006 |  |  |  |
-| EZD-016b | 0 | Fixtures | questions | EZD-016a |  |  |  |
-| EZD-017 | 0 | Performance budgets and benchmark | planned | EZD-016, EZD-012 |  |  |  |
-| EZD-018 | 0 | Realtime channels | planned | EZD-006, EZD-007, EZD-016a |  |  |  |
-| EZD-019 | 0 | EZ Binder contract and stub | questions | EZD-016, EZD-022 |  |  |  |
-| EZD-020 | 0 | Entry points and lazy chunks | planned | EZD-017, EZD-014, EZD-015 |  |  |  |
-| EZD-021 | 0 | AI client and stubs | questions | EZD-009, EZD-016, EZD-023b |  |  |  |
-| EZD-022 | 0 | Event registry | planned | EZD-001 |  |  |  |
-| EZD-000 | 0 | Architecture conventions | planned | — |  |  |  |
-| EZD-023a | 0 | Release safety: migration check | planned | EZD-002, EZD-004 |  |  | Split from EZD-023 (Q-0042) |
-| EZD-023b | 0 | Environments, promote and rollback | questions | EZD-023a, EZD-004, EZD-008 |  |  | Split from EZD-023 (Q-0042) |
-| EZD-024 | 0 | Error reporting | questions | EZD-008, EZD-009, EZD-026a, EZD-016a, EZD-022 |  |  |  |
-| EZD-025 | 0 | Off-site backups and restore script | questions | EZD-004, EZD-009, EZD-023b, EZD-005, EZD-006 |  |  |  |
-| EZD-026a | 0 | Message helper: helper, catalogs, lint | questions | EZD-001, EZD-010 |  |  | Split from EZD-026 (Q-0028) |
-| EZD-026b | 0 | Message helper: language from the user record | questions | EZD-026a, EZD-005, EZD-006, EZD-007, EZD-016a |  |  | Split from EZD-026 (Q-0028) |
-| EZD-027 | 0 | Spike: plan canvas on the iPad | planned | EZD-012, EZD-016a |  |  |  |
-| EZD-028 | 0 | Spike: PDF from a drawing list | questions | EZD-001, EZD-010 |  |  |  |
-| EZD-029 | 0 | Spike: DXF parser | questions | EZD-016, EZD-000 |  |  |  |
-| EZD-030 | 0 | Spike: wall openings and sloped ceiling | planned | EZD-001 |  |  |  |
-| EZD-031 | 0 | Spike: render trial | questions | EZD-021 |  |  |  |
-| EZD-032 | 0 | Phase 0 build-gate test | questions | EZD-007, EZD-011, EZD-012, EZD-014, EZD-016a, EZD-017 |  |  | Added at plan review (Q-0085) |
+| EZD-001 | 0 | Repo and tooling | ready | EZD-000 |  |  |  |
+| EZD-002 | 0 | CI | ready | EZD-001 |  |  |  |
+| EZD-003 | 0 | Hosting and subdomain | ready | EZD-002 |  |  |  |
+| EZD-004 | 0 | Supabase project | ready | EZD-001 |  |  |  |
+| EZD-005 | 0 | Tenant, user, membership tables | ready | EZD-004 |  |  |  |
+| EZD-006 | 0 | Row-level security | ready | EZD-005 |  |  |  |
+| EZD-007 | 0 | Magic-link sign-in | ready | EZD-005, EZD-026a, EZD-010, EZD-006, EZD-022 |  |  |  |
+| EZD-008 | 0 | Email provider | ready | EZD-004 |  |  |  |
+| EZD-009 | 0 | Background job queue | ready | EZD-004, EZD-018, EZD-007, EZD-016a |  |  |  |
+| EZD-010 | 0 | Design tokens | ready | EZD-001 |  |  |  |
+| EZD-011 | 0 | Shell: header card | ready | EZD-010, EZD-026a, EZD-016a |  |  |  |
+| EZD-012 | 0 | Shell: rail, panels, status bar | ready | EZD-010, EZD-026a, EZD-016a, EZD-011 |  |  |  |
+| EZD-013 | 0 | PWA install | ready | EZD-012, EZD-016a, EZD-024 |  |  |  |
+| EZD-014 | 0 | Device layouts | ready | EZD-012, EZD-026a, EZD-011, EZD-016a |  |  |  |
+| EZD-015 | 0 | Shared state components | ready | EZD-010, EZD-026a, EZD-016a, EZD-014, EZD-011 |  |  |  |
+| EZD-016a | 0 | Test harness | ready | EZD-007, EZD-002, EZD-006 |  |  |  |
+| EZD-016b | 0 | Fixtures | ready | EZD-016a |  |  |  |
+| EZD-017 | 0 | Performance budgets and benchmark | ready | EZD-016, EZD-012 |  |  |  |
+| EZD-018 | 0 | Realtime channels | ready | EZD-006, EZD-007, EZD-016a |  |  |  |
+| EZD-019 | 0 | EZ Binder contract and stub | ready | EZD-016, EZD-022 |  |  |  |
+| EZD-020 | 0 | Entry points and lazy chunks | ready | EZD-017, EZD-014, EZD-015 |  |  |  |
+| EZD-021 | 0 | AI client and stubs | ready | EZD-009, EZD-016, EZD-023b |  |  |  |
+| EZD-022 | 0 | Event registry | ready | EZD-001 |  |  |  |
+| EZD-000 | 0 | Architecture conventions | ready | — |  |  |  |
+| EZD-023a | 0 | Release safety: migration check | ready | EZD-002, EZD-004 |  |  | Split from EZD-023 (Q-0042) |
+| EZD-023b | 0 | Environments, promote and rollback | ready | EZD-023a, EZD-004, EZD-008 |  |  | Split from EZD-023 (Q-0042) |
+| EZD-024 | 0 | Error reporting | ready | EZD-008, EZD-009, EZD-026a, EZD-016a, EZD-022 |  |  |  |
+| EZD-025 | 0 | Off-site backups and restore script | ready | EZD-004, EZD-009, EZD-023b, EZD-005, EZD-006 |  |  |  |
+| EZD-026a | 0 | Message helper: helper, catalogs, lint | ready | EZD-001, EZD-010 |  |  | Split from EZD-026 (Q-0028) |
+| EZD-026b | 0 | Message helper: language from the user record | ready | EZD-026a, EZD-005, EZD-006, EZD-007, EZD-016a |  |  | Split from EZD-026 (Q-0028) |
+| EZD-027 | 0 | Spike: plan canvas on the iPad | ready | EZD-012, EZD-016a |  |  |  |
+| EZD-028 | 0 | Spike: PDF from a drawing list | ready | EZD-001, EZD-010 |  |  |  |
+| EZD-029 | 0 | Spike: DXF parser | ready | EZD-016, EZD-000 |  |  |  |
+| EZD-030 | 0 | Spike: wall openings and sloped ceiling | ready | EZD-001 |  |  |  |
+| EZD-031 | 0 | Spike: render trial | ready | EZD-021 |  |  |  |
+| EZD-032 | 0 | Phase 0 build-gate test | ready | EZD-007, EZD-011, EZD-012, EZD-014, EZD-016a, EZD-017 |  |  | Added at plan review (Q-0085) |
+| EZD-033 | 0 | Password sign-in | ready | EZD-007, EZD-006, EZD-016a, EZD-024 |  |  | Added at Stage 2 (Q-0095) |
 | EZD-101 | 1 | Permission and role tables | todo | EZD-005 |  |  |  |
 | EZD-102 | 1 | Permission enforcement | todo | EZD-101, EZD-006 |  |  |  |
 | EZD-103 | 1 | Settings shell | todo | EZD-102, EZD-012 |  |  |  |

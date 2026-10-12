@@ -1,6 +1,6 @@
 # EZD-016b · Fixtures
 
-Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: questions (Q-0065)
+Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: planned (Q-0065 answered-josh (b), 2026-10-12, applied; Q-0066 answered-agent; Q-0002 deferred, does not block). Revised 2026-10-12: the `.gitignore` / T12 branch for Q-0065 (c) is removed
 
 ## Ticket (copied from the phase file)
 Scope: Fixtures folder with a README saying which files are real and which are generated: Polycam DXF + GLB, vector PDF, scanned PDF, supplier PDF, architect DXF and its revised version, order report, photos; a script that writes synthetic fixtures (a layered DXF and a vector PDF of a 12' × 10' room with one door and one window, a GLB of the same room with a sloped ceiling of known heights, and a one-page scanned image-only PDF) with expected-result JSON.
@@ -24,7 +24,7 @@ Depends on: EZD-016a (`tickets.json` `depends_on: ["EZD-016a"]`). Also, not in t
 - **For the orchestrator (Level 2, not questions):**
   - `vault/tickets/needs-from-josh.md` has no row for **photos**, which this ticket's row lists as a fixture.
   - needs-from-josh.md asks for "2–3 architect DXFs" but does not ask for a **revised version of one of them**, which this row and 08 ("Revised architect DXF") need.
-  - Add both rows to needs-from-josh.md. Their privacy handling waits on Q-0065.
+  - Add both rows to needs-from-josh.md. Their privacy handling is Q-0065 (b): Josh removes names, addresses and photo location data before they are committed.
 - Earlier plans this plan extends and does not replace:
   - vault/plans/EZD-000.md: Dependencies table, Folder layout, Tests, Machine checks.
   - vault/plans/EZD-001.md: root `test` script, Step 6 test scope.
@@ -58,7 +58,7 @@ Spec ref: Build phases and acceptance tests; Import and export · Imports (`spec
   - `.gitattributes`: `* text=auto eol=lf`, `*.pdf binary`.
   - `.github/workflows/ci.yml`: Node 22, runs `node scripts/gate.mjs .`.
   - `scripts/gate.mjs`.
-  - The GitHub repository `IronFrame414/EZ-Draft` is **public** (`gh repo view --json visibility`, Oct 11), which is the reason for Q-0065.
+  - The GitHub repository `IronFrame414/EZ-Draft` is **public** (`gh repo view --json visibility`, Oct 11), which was the reason for Q-0065. Josh's answer (b): real fixtures are committed only after he removes names, addresses and photo location data, and the README says so; the repository stays public for now (free tooling) and will be made private after the app is built (decisions.md · Build answers (Josh), Q-0065).
 - Mockup: none (`tickets.json` `mockups: []`). No screen is built.
 
 ## Approach
@@ -73,7 +73,7 @@ This is a harness ticket (PROCESS.md Special tickets):
   - `fixtures/README.md`
   - `fixtures/manifest.json`
   - `fixtures/synthetic/`: the 4 generated files and their 4 `*.expected.json` files.
-  - `fixtures/real/<id>/`: Josh's files, once supplied and as Q-0065 decides. No such folder is created now.
+  - `fixtures/real/<id>/`: Josh's files, once supplied and only after he has removed names, addresses and photo location data (Q-0065 (b)). No such folder is created now.
 - `scripts/fixtures/` holds the generator, which is plain Node ESM `.mjs` with JSDoc types, like EZD-028. Its tests are in `scripts/fixtures/__tests__/` (`node:test`). EZD-000's root glob `scripts/**/*.test.mjs` already runs them in every gate run and in CI, unfiltered (EZD-001 Step 6.1). That is what the Done-when needs: "runs in CI".
 - **The generator has no package dependencies.** It uses only `node:` built-ins (`fs`, `path`, `zlib`, `crypto`). It writes the DXF (text), both PDFs and the GLB itself. Reasons:
   1. A fixture must not be made by the code that will later read or write the same format. The app's PDF writer (PDFKit, 02 Named tools) and DXF writer (EZD-029) are code under test.
@@ -162,7 +162,7 @@ This is a harness ticket (PROCESS.md Special tickets):
 Every file has `fixture` (the file name), `generatedBy` (`scripts/fixtures/generate-synthetic.mjs`), `sources` (a short list of citations) and the tolerances. The values are in the Tests table (T2–T5) and in Fixture values. All of them derive from Step 2 and are listed so the calc-auditor can check each one.
 
 ### Step 6: Manifest and README (`fixtures/manifest.json`, `fixtures/README.md`, test-author)
-`manifest.json` is an array. Each entry has: `id`, `origin` (`generated` | `real`), `kind` (03 `source_file` kind), `status` (`present` | `not yet supplied`, plus `supplied locally (not in git)` for real entries under Q-0065 (c), item 5 below), `path` (a file for generated entries; a folder `fixtures/real/<id>/` for real ones), `expected` (generated entries), `neededBy` (from needs-from-josh.md), `withoutIt` (from needs-from-josh.md), `standIn` (the later ticket that commits a generated stand-in, if any) and `source`.
+`manifest.json` is an array. Each entry has: `id`, `origin` (`generated` | `real`), `kind` (03 `source_file` kind), `status` (`present` | `not yet supplied`), `path` (a file for generated entries; a folder `fixtures/real/<id>/` for real ones), `expected` (generated entries), `neededBy` (from needs-from-josh.md), `withoutIt` (from needs-from-josh.md), `standIn` (the later ticket that commits a generated stand-in, if any) and `source`.
 
 | id | origin | kind | status | needed by / note | source |
 | --- | --- | --- | --- | --- | --- |
@@ -185,11 +185,12 @@ Every file has `fixture` (the file name), `generatedBy` (`scripts/fixtures/gener
 1. one table row per manifest entry, with the same id, origin and status words;
 2. the synthetic room in words, with every value and its source (Fixture values);
 3. how to regenerate (`pnpm fixtures:generate`), and that generated files are never edited by hand;
-4. the rule that real files are stored unchanged (08 "Originals are always stored unchanged");
-5. how a real file is added. This is the Q-0065 answer (open, Josh): where it goes, what is removed before commit, and that the same commit updates `manifest.json` and README. The two branches, so the test-author writes whichever Josh picks:
-   - **(c) real files out of git** (planner's recommendation; the security-reviewer also recommends it): the builder appends `fixtures/real/` to `.gitignore`; Josh copies the files onto the build PC under `fixtures/real/<id>/`; the manifest entry keeps `origin` `real`, and its `status` becomes `supplied locally (not in git)` once Josh has copied the file (*planner's choice*; the repo cannot see the file, so `present` would be false on CI); README says the files are not in the repo; T12 fails if any file under `fixtures/real/` is tracked by git; tests that need a real file report "real fixture not supplied" visibly when it is absent, and CI runs only the synthetic fixtures.
-   - **(a), (b) or (d) real files committed** (as-is, after Josh removes names, addresses and photo location data, or in a private repository): files go in `fixtures/real/<id>/` in the commit that flips the entry to `present`; under (b) README states what was removed. No `.gitignore` line, and T12 is not written.
-   - Until Josh answers, no real file is committed (Risks), and none exists yet, so this ticket's build is the same under every branch except the `.gitignore` line and T12.
+4. the rule that real files are stored unchanged once Josh has prepared them (08 "Originals are always stored unchanged"; the only change made is Josh's removal in item 5);
+5. how a real file is added (Q-0065 answered-josh (b)):
+   - a real file is committed only after Josh has removed names, addresses and photo location data from it. The README states this rule in so many words (Q-0065 (b): "the README says so");
+   - the file goes in `fixtures/real/<id>/` in the commit that flips the manifest entry to `present`, and the same commit updates the README row, which says what Josh removed from that file;
+   - the repository is public for now and will be made private after the app is built (Q-0065), so the rule applies to every real file committed before then.
+   - No `.gitignore` line is added for `fixtures/real/`, and no real file exists yet, so this ticket commits none.
 
 ### Step 7: Wiring and docs (builder, same commit)
 - **Root `package.json`:**
@@ -199,7 +200,6 @@ Every file has `fixture` (the file name), `generatedBy` (`scripts/fixtures/gener
 - **`.gitattributes`:** append `*.glb binary` and `*.dxf text eol=lf`.
   - These are explicit, because the test compares bytes. The existing `* text=auto eol=lf` would already keep the DXF LF.
   - Also `*.heic binary` and `*.jpg binary`, for the photos still to come.
-- **`.gitignore`, only if Q-0065 is answered (c):** append `fixtures/real/` (Step 6 item 5; T12).
 - **`docs/architecture.md`**, existing `##` headings only (EZD-000 T5):
   - `## Tests` → `### Fixtures (EZD-016b)`:
     - the folder layout;
@@ -245,16 +245,15 @@ Every file has `fixture` (the file name), `generatedBy` (`scripts/fixtures/gener
 | `scripts/fixtures/write-dxf.mjs`, `write-pdf.mjs`, `raster.mjs`, `write-glb.mjs` | New | test-author | Step 4 |
 | `scripts/fixtures/generate-synthetic.mjs` | New | test-author | Step 4.6 (the script in the Done when) |
 | `scripts/fixtures/__tests__/synthetic.test.mjs` | New | test-author | T1–T6, T9 |
-| `scripts/fixtures/__tests__/manifest.test.mjs` | New | test-author | T7, and T12 under Q-0065 (c) |
+| `scripts/fixtures/__tests__/manifest.test.mjs` | New | test-author | T7 |
 | `scripts/fixtures/__tests__/wiring.test.mjs` | New | test-author | T8 |
 | `fixtures/synthetic/room-12x10.dxf`, `room-12x10-vector.pdf`, `room-12x10-scanned.pdf`, `room-12x10-sloped.glb` | New (generated, committed) | test-author (runs the CLI) | The fixtures |
 | `fixtures/synthetic/*.expected.json` (4) | New | test-author | Step 5 |
 | `fixtures/manifest.json`, `fixtures/README.md` | New | test-author | Step 6 |
 | `package.json` (root), `pnpm-lock.yaml` | Change | builder | Step 7 |
 | `.gitattributes` | Change (append) | builder | Step 7 |
-| `.gitignore` | Change (append `fixtures/real/`), **only under Q-0065 (c)** | builder | Step 6 item 5; T12 |
 | `docs/architecture.md` | Change | builder | Step 7 |
-| `scripts/gate.mjs`, `.github/workflows/ci.yml`, `app/**`, `packages/**`, `supabase/**`, `spikes/**`, `vault/**`, `CLAUDE.md` | Not touched | — | No change is needed. Gate and CI already run root `node:test` |
+| `.gitignore`, `scripts/gate.mjs`, `.github/workflows/ci.yml`, `app/**`, `packages/**`, `supabase/**`, `spikes/**`, `vault/**`, `CLAUDE.md` | Not touched | — | No change is needed. Gate and CI already run root `node:test` |
 
 ## Data
 None. There are no tables, columns, migrations, RLS policies, Storage paths, `schema_version` changes or money fields. Fixture files are repository test data and never reach Storage in this ticket.
@@ -275,15 +274,14 @@ None. There are no tables, columns, migrations, RLS policies, Storage paths, `sc
 | T4 Scanned PDF matches expected JSON (**Done when**) | unit | pdfjs as T3; raw bytes; `rasterizePlan(room)` | 1 page; `view` [0,0,1224,792]; 0 text items. Operator list: exactly 1 image paint operator and no path-construct, stroke or fill operator; the image transform is [1224,0,0,792,0,0]. Raw dictionary: `/Width 2550`, `/Height 1650`, `/ColorSpace /DeviceGray`, `/BitsPerComponent 8`; exactly 1 `/Subtype /Image`. The inflated stream equals `rasterizePlan(room)` (length 4,207,500 = 2550 × 1650). Probes (±1 px): interior corners (1050,1025), (1500,1025), (1500,650), (1050,650) are 0. The west face midpoint (1050, 837) is 0. Room centre (1275, 837): every pixel within 3 px is 255. Door gap on the interior face (1144, 1025): every pixel within 1 px is 255. Pixel (0,0) is 255 | Step 4.4. Column = X × 25/12 and row = (792 − Y) × 25/12: 504→1050, 720→1500, Y 480→650, Y 300→1025. Door gap: x = 30 → X 549 → 1143.75. EZD-305 Done when: "the fixture scanned PDF returns zero items" |
 | T5 GLB matches expected JSON (**Done when**) | unit | Raw bytes; `GLTFLoader.parse` from `three` (or the Step 7 fallback) | Header magic `glTF`, version 2, length = file size; chunk 0 JSON and chunk 1 BIN, each length a multiple of 4; `asset.version` `2.0`. Loads with no error. 1 mesh, 1 primitive, mode 4. Attributes exactly POSITION and NORMAL. 44 vertices; 66 indices = 22 triangles. POSITION `min` [0, 0, −3.048] and `max` [3.6576, 3.6576, 0] (±0.000396875 m). Triangles grouped by surface, area in sq in (÷ 0.0254²), each ±0.5: floor 17,280; ceiling 18,214.7193; west 11,520; east 17,280; north 17,280; south 12,240; total 93,814.7193. Each triangle's geometric normal (counter-clockwise) agrees with its NORMAL attribute (dot ≥ 0.999) and points into the room. Ceiling: every ceiling vertex has h = 96 + x/3 (±1/64 in). Corner heights SW 96, NW 96, SE 144, NE 144 in. Low wall W, 96; high wall E, 144. Pitch (144 − 96) / 144 × 12 = 4 (±0.001) per 12; slope 18.4349° (±0.0001). Height at room centre (72, 60) is 120. South-wall holes: a 5 × 5 grid inset 1/64 in inside door (x 12–48, h 0–80) and window (x 84–120, h 42–102) is covered by no south-wall triangle. Points 1/64 in outside each opening edge, except the door's floor edge, are covered | Step 2; Step 4.5. 18,214.7193 = 120 × √(144² + 48²) = 120 × 151.78933. Walls: 120 × 96, 120 × 144, 144 × (96 + 144)/2, 17,280 − 2,880 − 2,160 (as EZD-030 T2). atan(1/3) = 18.43495°. 3.6576 = 144 × 0.0254; 3.048 = 120 × 0.0254. S02 "heights at points (low/high wall), pitch, or the value read from the mesh"; EZD-303 Done when |
 | T6 Expected JSON files are complete | unit | The 4 `*.expected.json` | Each parses, has `fixture` equal to its fixture's file name, `generatedBy`, `sources` and tolerances, and holds every value T2–T5 read (no test value is hard-coded only in the test) | Step 5 |
-| T7 Manifest, README and files agree | unit | `fixtures/manifest.json`, `fixtures/README.md`, a walk of `fixtures/` (under Q-0065 (c): the git-tracked files, `git ls-files fixtures`, so local real files are not walked) | The 14 ids of Step 6 are all present, each with that origin, kind and status value; ids are unique. More entries are allowed: later tickets add rows (for example EZD-302's unjoined variant, Q-0066 (b); EZD-901a, EZD-915, EZD-916, EZD-1702), so no total count is asserted (phase 0 plan review, finding 32). For every entry, whatever ticket added it: every `present` path exists and has its `expected` file (generated entries); no `real` folder of a `not yet supplied` entry holds a tracked file. Every walked file is `README.md`, `manifest.json`, an `*.expected.json`, or a manifest path. README has exactly one table row per manifest id with the same origin and status, and no row without a manifest id. The `architect-dxf`, `architect-dxf-revised`, `supplier-2020-dxf` and `order-report` rows say "still pending" and cite decisions.md · Build answers (Josh) | Ticket Scope "README saying which files are real and which are generated"; decisions.md "Still pending from Josh as of 2026-10-11 … Supplier 2020 sample, architect DXFs"; needs-from-josh.md; Q-0066 (b); finding 32 |
+| T7 Manifest, README and files agree | unit | `fixtures/manifest.json`, `fixtures/README.md`, a walk of `fixtures/` | The 14 ids of Step 6 are all present, each with that origin, kind and status value; ids are unique. More entries are allowed: later tickets add rows (for example EZD-302's unjoined variant, Q-0066 (b); EZD-901a, EZD-915, EZD-916, EZD-1702), so no total count is asserted (phase 0 plan review, finding 32). For every entry, whatever ticket added it: every `present` path exists and has its `expected` file (generated entries); no `real` folder of a `not yet supplied` entry holds a tracked file. Every walked file is `README.md`, `manifest.json`, an `*.expected.json`, or a manifest path. README has exactly one table row per manifest id with the same origin and status, and no row without a manifest id. The `architect-dxf`, `architect-dxf-revised`, `supplier-2020-dxf` and `order-report` rows say "still pending" and cite decisions.md · Build answers (Josh). README states the real-file rule of Step 6 item 5: it contains `names`, `addresses` and `photo location data` and cites `Q-0065` | Ticket Scope "README saying which files are real and which are generated"; decisions.md "Still pending from Josh as of 2026-10-11 … Supplier 2020 sample, architect DXFs"; needs-from-josh.md; Q-0065 (b) ("the README says so"); Q-0066 (b); finding 32 |
 | T8 Wiring | unit | Repo files | Root `devDependencies` `dxf-parser`, `pdfjs-dist` and `three` equal their Dependencies rows' Version, and each row's `Used in` contains `root` (`three` is left out under the Step 7 fallback). Root script `fixtures:generate` = `node scripts/fixtures/generate-synthetic.mjs`. `.gitattributes` has `*.glb binary` and `*.dxf text eol=lf`. `docs/architecture.md` has `### Fixtures (EZD-016b)` under `## Tests`, naming `fixtures/manifest.json`, `fixtures/synthetic/` and `fixtures:generate`; `## Folder layout` names `fixtures/` and `scripts/fixtures/`. `node scripts/conventions/check.mjs .` exits 0 | Step 7; EZD-000 C1, T5; CLAUDE.md rule 11 |
 | T9 Generator stays independent | unit | Source text of `scripts/fixtures/*.mjs` (not `__tests__`) | The only imports are `node:` built-ins and relative files under `scripts/fixtures/`. No `pdfkit`, `dxf-parser`, `pdfjs-dist`, `three`, `app/` or `packages/` | Step 1 (fixture independent of code under test) |
-| T12 Real files stay out of git (**only if Q-0065 is answered (c)**) | unit | `.gitignore`; `git ls-files fixtures/real` run at the repo root | `.gitignore` has the line `fixtures/real/`. `git ls-files fixtures/real` prints nothing (0 tracked files); the failure message names each tracked file | Q-0065 (c) (planner's and security-reviewer's recommendation; Josh to answer); CLAUDE.md rule 12 |
-| T10 Gate (orchestrator) | gate | `node scripts/gate.mjs .claude/worktrees/EZD-016b` | Exit 0, with T1–T9 (and T12 under Q-0065 (c)) in the `test` step output | CLAUDE.md rule 9; Q-0006 |
+| T10 Gate (orchestrator) | gate | `node scripts/gate.mjs .claude/worktrees/EZD-016b` | Exit 0, with T1–T9 in the `test` step output | CLAUDE.md rule 9; Q-0006 |
 | T11 In CI (orchestrator) | CI | The Phase 0 PR's `gate` check | `test` passes on Ubuntu with Node 22, including T1's scanned-PDF content comparison | Ticket Done when "runs in CI"; ci.yml; Q-0021, Q-0022 (CI runs on the phase PR only) |
 
 ## Reviewers needed
-code-reviewer always · calc-auditor **yes** (scale, paper and pixel mapping, inch-to-metre conversion, areas, slope and pitch, Bézier constant, all expected JSON values) · ui-verifier no (no screen) · security-reviewer no (no tables, auth, money, share links or API; the privacy of real client files in the public repo is a product decision for Josh, Q-0065)
+code-reviewer always · calc-auditor **yes** (scale, paper and pixel mapping, inch-to-metre conversion, areas, slope and pitch, Bézier constant, all expected JSON values) · ui-verifier no (no screen) · security-reviewer no (no tables, auth, money, share links or API; the privacy of real client files in the public repo is Josh's decision, answered Q-0065 (b), and this ticket commits no real file)
 
 ## Risks
 - **Invented encoding.** Layer names, R12, double-line walls, the paper layout and the GLB orientation are fixture choices. Polycam and real PDFs will differ, and needs-from-josh.md already accepts that for detection. EZD-302, EZD-303 and EZD-305 planners must not read these choices as a spec of the real formats. The README says so.
@@ -296,12 +294,12 @@ code-reviewer always · calc-auditor **yes** (scale, paper and pixel mapping, in
 - **Hand-written PDFs.** pdfjs is lenient. T3 checks the xref offsets so that a stricter viewer (Acrobat, Bluebeam) can also open the files. Josh can open them as a spot check.
 - **Root install weight.** `three` and `pdfjs-dist` at the root add install time to every gate run. Both packages are already planned for the workspace.
 - **dxf-parser is provisional** until EZD-029 (02 Stack). If EZD-029 picks another parser, that ticket switches T2's reader in the same commit. The fixture does not change.
-- **Public repository (Q-0065).** Real fixtures are copies of client homes, plans with names and addresses, and photos that may carry GPS data. Until Q-0065 is answered, no real file may be committed.
+- **Public repository (Q-0065 (b)).** Real fixtures are copies of client homes, plans with names and addresses, and photos that may carry GPS data. They are committed only after Josh removes names, addresses and photo location data. No test can check a PDF or DXF for names, so the rule rests on Josh's removal and on the review of the commit that adds a real file (the orchestrator checks that the README row says what was removed). The repository is made private after the app is built (Q-0065).
 - **Later fixture tickets** (EZD-302 under Q-0066 (b), EZD-901a, EZD-915, EZD-916, EZD-1702) must add manifest and README rows, or T7 fails. That is intended. T7 asserts the 14 ids of this ticket, not a total, so those rows need no edit to T7 (finding 32).
 
 ## Open questions
-Q-0065: The GitHub repository is public, so real fixtures from Josh (a Polycam scan of a client's home, plan PDFs, architect and supplier drawings with names and addresses, job photos with possible GPS data) would be readable by anyone. Options: (a) commit them as-is; (b) commit them only after Josh removes names, addresses and photo location data, with the README saying so; (c) keep real files out of git (`fixtures/real/` in `.gitignore`), with Josh copying them onto the build PC; tests that need a real file then report "real fixture not supplied" visibly, and CI runs only the synthetic fixtures (planner's recommendation); or (d) make the repository private (GitHub Actions minutes then count against the plan's quota).
+None.
 
-Q-0065 stays open for Josh. The security-reviewer recommends (c), as the planner did. Step 6 item 5 plans both branches; only the `.gitignore` line and T12 depend on the answer.
+Answered and applied: Q-0065 (answered-josh (b), 2026-10-12): real fixtures are committed only after Josh removes names, addresses and photo location data; the README says so; the repository will be made private after the app is built (Steps 1, 6 item 5; T7; Risks). The `.gitignore` line and T12 of the (c) branch are removed.
 
-Referenced, not re-asked: Q-0066 (answered-agent (b), code-reviewer at plan review; Josh can override): EZD-302 writes the unjoined variant using this ticket's exported `room`, `planDrawing` and `writeDxf`, and picks the gap against its scoring and the Defaults tolerance (R24 #30); applied in Depends on and Step 4.6; Q-0006 and Q-0019 (root `node:test` runs unfiltered with concurrency 2); Q-0021 and Q-0022 (CI runs only on the phase PR, so T11 is proven at the Phase 0 PR); decisions.md · Build answers (Josh), "Still pending" (architect DXFs and the Supplier 2020 sample, marked not yet supplied).
+Referenced, not re-asked: Q-0002 (deferred; does not block); Q-0066 (answered-agent (b), code-reviewer at plan review; Josh can override): EZD-302 writes the unjoined variant using this ticket's exported `room`, `planDrawing` and `writeDxf`, and picks the gap against its scoring and the Defaults tolerance (R24 #30); applied in Depends on and Step 4.6; Q-0006 and Q-0019 (root `node:test` runs unfiltered with concurrency 2); Q-0021 and Q-0022 (CI runs only on the phase PR, so T11 is proven at the Phase 0 PR); decisions.md · Build answers (Josh), "Still pending" (architect DXFs and the Supplier 2020 sample, marked not yet supplied).

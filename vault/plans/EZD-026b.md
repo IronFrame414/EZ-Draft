@@ -1,6 +1,6 @@
 # EZD-026b · Message helper: language from the user record
 
-Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: questions (Q-0029)
+Phase: 0 · Planned by: planner · Date: 2026-10-11 (revised 2026-10-12 for Josh's answer to Q-0029) · Status: planned (Q-0029 answered-josh (a); Q-0002 is deferred and does not block: R17 stands)
 
 ## Ticket (copied from the phase file)
 Scope: The language comes from the signed-in user's record (read per request); dev test page wired to it. Split from EZD-026 (Q-0028); plan Part B.
@@ -18,8 +18,9 @@ Also, not in the row:
 - **EZD-004**: the server db client in `app/src/server/db/` (vault/plans/EZD-004.md, Step 6). It comes in transitively through EZD-005.
 - **EZD-010**: the dev-page convention, a 404 when `VERCEL_ENV === 'production'` (vault/plans/EZD-010.md, Step 5). It comes in transitively through EZD-026a.
 - **EZD-000**: the server-only data access rule (the secret key is never used on request paths) and the `### Messages and language (t())` docs section that EZD-026a creates.
-- **Q-0029** (open, belongs to this ticket; restated after the phase 0 plan review, finding 26): the default language of a new user when the inviter doesn't pick one. EZD-005 currently defaults to `en`.
-- **Q-0002** (escalated, not re-asked): Josh may still change R26 R17.
+- **Q-0029** (answered-josh (a), 2026-10-12): "new users default to English; the inviter or the user switches to Spanish in settings". This matches EZD-005's column default `not null default 'en'`, so EZD-005 does not change and B7's expected value is `en`.
+- **Q-0002** (escalated, deferred; does not block): R26 R17 stands as written.
+- **EZD-026a is no longer held by questions**: Q-0030 (a) and Q-0086 (a) are answered (decisions.md · Build answers (Josh)).
 
 Spec ref: R26 R17 (`tickets.json` `spec_files: ["spec/decisions.md"]`).
 
@@ -28,9 +29,9 @@ Spec ref: R26 R17 (`tickets.json` `spec_files: ["spec/decisions.md"]`).
   - R26 R17: Spanish for the field pack and crew phone screens; the office editor and client link are English.
   - R26 R1: server-only data access.
   - R24 #40: Spanish users always see Spanish.
-  - Build answers (Josh): none touches language. Q-0019 sets Playwright workers to 2.
+  - Build answers (Josh): Q-0029 (a) (new users default to English), Q-0030 (a) (builder writes the Spanish; EZD-026a), Q-0047 (a) (EZD-007's sign-in page has its own device-remembered English / Español switch; see Risks). Q-0019 sets Playwright workers to 2.
 - Questions: the whole of `vault/questions/QUESTIONS.md`.
-  - Q-0028 (split applied) and Q-0029 (open, restated) belong here.
+  - Q-0028 (split applied) and Q-0029 (answered-josh (a)) belong here.
   - Q-0087 (answered-agent (ii)): server requests carry the gate header; the browser path is refused.
   - Q-0002 is escalated.
   - Q-0021 and commit aad5540: proof comes from the local gate.
@@ -62,6 +63,7 @@ Choices that no source makes are marked *planner's choice (CLAUDE.md rule 4)*.
   3. Return `languageFor(surface, row)` from EZD-026a. `row.language` is never null: EZD-005 makes the column `not null default 'en'` (finding 26), and EZD-026a's `languageFor` has no null branch. `language.ts` is not changed by this ticket.
 - **No session**: throw `NotSignedInError` (exported). The caller decides what to do.
 - **Where the language is not stored**: the user's language is never put in a token claim, a cookie or a cross-request cache. A change therefore applies on the next request (S15 Save).
+- **The sign-in page's language cookie is not read here.** EZD-007 remembers the sign-in page's English / Español choice on the device (Q-0047 (a)); that choice is for the signed-out pages only and never changes or replaces `app_user.language` (Q-0029 (a): "the inviter or the user switches to Spanish in settings"). `getRequestLanguage` never reads that cookie.
 
 ### Step 2: Test page route `app/src/app/dev/messages/page.tsx` (EZD-010 convention)
 - When `process.env.VERCEL_ENV === 'production'`, call `notFound()` (EZD-010 Step 5).
@@ -75,7 +77,7 @@ Add these points:
 - Office and client cost no query.
 - Field reads `app_user.language` for `session.appUserId` once per request through `createSessionClient()` (gated server path, Q-0087).
 - There is no claim or cookie.
-- A user record always has a language; a new user gets the column default (EZD-005; `en` unless Q-0029 changes it).
+- A user record always has a language; a new user gets the column default `en` (EZD-005; Q-0029 (a)), and the inviter or the user switches it to Spanish in settings.
 
 Add one line to Machine checks: "language read per request, session client only: `request-language.test.ts` + review".
 
@@ -94,7 +96,7 @@ Add one line to Machine checks: "language read per request, session client only:
 ## Data
 - No new table, column, migration, policy or `schema_version`.
 - Reads `app_user.language` (EZD-005) for the signed-in user's own row (`session.appUserId`, EZD-007) only, through `createSessionClient()` with the gate header (Q-0087) under RLS (EZD-006).
-- The column is already required (`not null default 'en'`, EZD-005 Data). If Josh's answer to Q-0029 is a non-English default, EZD-005 changes its column default before it is built; this ticket changes nothing but B7's expected value.
+- The column is already required (`not null default 'en'`, EZD-005 Data), and Q-0029 (a) keeps English as the default, so EZD-005 does not change.
 - No money fields.
 
 ## Tests (written by test-author before any code)
@@ -111,7 +113,7 @@ Add one line to Machine checks: "language read per request, session client only:
 | B4 Test page hidden in production | unit | `vi.stubEnv('VERCEL_ENV','production')`, call `Page()` | Throws Next's not-found error (matched as in EZD-010 T4); `getRequestLanguage` not called | EZD-010 Step 5 |
 | B5 Office and client read nothing | unit | `getRequestLanguage('office')` and `('client')` with no session | Each resolves `'en'`. The session helper and db client are called 0 times | R26 R17; 11 Performance |
 | B6 Field reads the user record | unit | `getRequestLanguage('field')`, `getSession` mocked to `{ authUserId: 'a1', appUserId: 'u1', email: 'x@example.com' }`, `createSessionClient` mock whose query returns `{ data: { language: 'es' }, error: null }`; then with `getSession` returning `null`; then with the query returning an error | Resolves `'es'`. `createSessionClient` is called once; the query targets table `app_user`, column `language`, filter `id` = `u1` (the session's `appUserId`, not `authUserId`); the secret-key client is called 0 times. No session → rejects with `NotSignedInError`. Query error → rejects (no fallback language) | 03 rule 1; EZD-000 Server-only data access; EZD-005 Data (table `app_user`); EZD-007 Session (`appUserId`); Q-0087 (server path is the gated session client); finding 24 |
-| B7 New user gets the default language | browser (phone) | Member made with `createMember` without setting `language`; signed in with `signInAs`; open `/dev/messages`. Title ends `@phone` | The member's `app_user.language` read with `adminDb()` = `en`. `[data-testid=field-sample]` has `lang="en"` and `sample` = `Sample message`. If Q-0029's answer is a non-English default, EZD-005's default changes first and this expected value follows it | EZD-005 Data (`language` `not null default 'en'`, R26 R17); Q-0029 (restated: the default for a new user); EZD-026a Step 2 table |
+| B7 New user gets the default language | browser (phone) | Member made with `createMember` without setting `language`; signed in with `signInAs`; open `/dev/messages`. Title ends `@phone` | The member's `app_user.language` read with `adminDb()` = `en`. `[data-testid=field-sample]` has `lang="en"` and `sample` = `Sample message` | Q-0029 (a) ("new users default to English"); EZD-005 Data (`language` `not null default 'en'`); EZD-026a Step 2 table |
 | Gate | gate (orchestrator) | `node scripts/gate.mjs .claude/worktrees/EZD-026b` | Exit 0: `typecheck`, `lint`, `test`, `build` and `test:e2e` pass. This is the per-ticket proof (CI runs only on the phase PR, aad5540) | CLAUDE.md rule 9; `vault/PROCESS.md` |
 
 ## Reviewers needed
@@ -125,10 +127,12 @@ Add one line to Machine checks: "language read per request, session client only:
 - **Interfaces of other tickets.** This plan relies on EZD-007's `getSession()` / `Session.appUserId` / `createSessionClient()` and EZD-005's `app_user` table, as their plans now state. If the merged code differs from those plans, the builder stops and asks rather than guessing.
 - **Gate header on the server path (Q-0087).** If `createSessionClient()` did not send the header, the `app_user` read would be refused by EZD-006's gate and every field page would fail. B1–B3 catch that in the browser; B6 checks that `createSessionClient()` is the only client used.
 - **Harness user creation.** B1–B3 and B7 make their own members with EZD-006's `createMember` and set the language with EZD-016a's `adminDb()` (seeded rows are never changed, EZD-016a Step 6 seed rule). Local stack only.
-- **Sign-in page language.** A crew member who is not signed in has no user record, so the sign-in screen cannot follow it. EZD-007's planner should note that. By R17 it is not a field-pack screen.
+- **Sign-in page language.** A crew member who is not signed in has no user record, so the sign-in screen cannot follow it. Settled by Q-0047 (a): EZD-007's sign-in page has an English / Español switch remembered on the device, separate from `app_user.language` (Step 1).
 - **Blocked dependencies.** If EZD-005, 006, 007 or 016a is blocked, this ticket waits, and so does EZD-1503. EZD-011 to EZD-015 depend only on EZD-026a and are not affected.
 
 ## Open questions
-Q-0029 (open, belongs to this ticket). Restated by the orchestrator after the phase 0 plan review (finding 26): the default language of a new user when the inviter doesn't pick one (EZD-005 currently defaults to `en`). A user record with no language cannot occur, because EZD-005 makes `app_user.language` `not null default 'en'` (vault/plans/EZD-005.md Data). This plan has no null branch. If Josh picks a non-English default, EZD-005 changes its column default before it is built, and only B7's expected value here follows it.
+None open.
 
-Referenced, not re-asked: Q-0028 (answered-agent; split applied), Q-0030 and Q-0086 (EZD-026a; they hold EZD-026a, which this ticket depends on), Q-0087 (answered-agent (ii); gated server path), Q-0002 (escalated; R26 R17 may change), Q-0021.
+Answered, applied above: Q-0029 (answered-josh (a), 2026-10-12): "new users default to English; the inviter or the user switches to Spanish in settings". Applied in Depends on, Step 3, Data and B7 (expected `en`); EZD-005's `not null default 'en'` stands unchanged.
+
+Referenced, not re-asked: Q-0028 (answered-agent; split applied), Q-0030 (a) and Q-0086 (a) (answered-josh; they no longer hold EZD-026a), Q-0047 (a) (EZD-007's sign-in page language switch), Q-0087 (answered-agent (ii); gated server path), Q-0002 (escalated, deferred; does not block, R26 R17 stands), Q-0021.

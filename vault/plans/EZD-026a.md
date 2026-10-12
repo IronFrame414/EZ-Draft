@@ -1,6 +1,6 @@
 # EZD-026a · Message helper: helper, catalogs, lint
 
-Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: questions (Q-0030, Q-0086)
+Phase: 0 · Planned by: planner · Date: 2026-10-11 (revised 2026-10-12 for Josh's answers to Q-0030 and Q-0086) · Status: planned (Q-0030 and Q-0086 answered-josh (a); Q-0002 is deferred and does not block: R17 stands)
 
 ## Ticket (copied from the phase file)
 Scope: One t() helper with English and Spanish message catalogs; a lint rule refuses a literal interface string in components of the field pack and phone entry points; the office editor uses the helper with English only. Split from EZD-026 (Q-0028); plan Part A.
@@ -13,9 +13,9 @@ Depends on: EZD-001, EZD-010 (`tickets.json` `depends_on: ["EZD-001","EZD-010"]`
 - **EZD-004: missing from the row (ordering dependency).** Its health route returns `{ "error": { "code": "db_unavailable", "message_key": "error.db_unavailable" } }` (vault/plans/EZD-004.md Step 6, T3). This ticket adds that key to the catalogs (Step 2) and A11 finds the route's literal. The phase 0 build order (orchestrator, plan-review revision) puts EZD-004 before this ticket, so the row needs no change for the build to work; the orchestrator may add it to `depends_on`.
 - **EZD-001**: `eslint.config.mjs` (extended here), `app/vitest.config.ts`, and `scripts/tooling/__tests__/` (node:test, run by the root `test` glob) (vault/plans/EZD-001.md Steps 2–3).
 - **EZD-010**: the JSX transform for `.test.tsx` files (vault/plans/EZD-010.md, Files row `app/vitest.config.ts`) and the dev test-page folder `app/src/app/dev/<name>/` (EZD-010 Step 5). The route page that uses it is EZD-026b's.
-- **Q-0030** (open). It decides who writes the Spanish catalog text. Since the phase 0 plan review (finding 7) this ticket ships one real user-facing key, `error.db_unavailable`, in the `error` namespace, which needs Spanish (Step 1). So this ticket can no longer be built before Q-0030 is answered (Risks).
-- **Q-0086** (open). It gives the English wording of route error keys, including `error.db_unavailable`. This ticket cannot be built before it is answered.
-- **Q-0002** (escalated, not re-asked). Josh may still change R26 R17, which this ticket implements.
+- **Q-0030** (answered-josh (a), 2026-10-12): "each ticket's builder writes the Spanish in the same commit; a Spanish-speaking crew member checks it at the field checks (and in Phase 15)". This ticket's builder therefore writes the Spanish of `error.db_unavailable` (Step 2).
+- **Q-0086** (answered-josh (a), 2026-10-12): the English of `error.db_unavailable` is "Can't reach the database. Try again in a minute." (Step 2).
+- **Q-0002** (escalated, deferred; does not block). R26 R17, which this ticket implements, stands as written.
 - Tickets that now depend on this one (Q-0028, split applied): EZD-007, EZD-011, EZD-012, EZD-014, EZD-015, EZD-026b, EZD-1503 (`tickets.json`). EZD-020 has to align its folders with this ticket (Step 4).
 
 Spec ref: R26 R17 (`tickets.json` `spec_files: ["spec/decisions.md"]`).
@@ -25,10 +25,10 @@ Spec ref: R26 R17 (`tickets.json` `spec_files: ["spec/decisions.md"]`).
   - R26 R17: "the field pack and the other phone screens for crew are available in Spanish, buttons and messages included; the office editor and the client link are English in v1. Every interface string goes through one message helper from Phase 0".
   - R24 #40: "Spanish users always see Spanish, reviewed or not; never English or blanks".
   - R24 #9 (permit sheets English only); R26 R1.
-  - Build answers (Josh): Q-0001, Q-0003, Q-0004, Q-0014 to Q-0019. None touches language.
+  - Build answers (Josh): Q-0030 (a) (who writes the Spanish), Q-0086 (a) (English of the route error keys), Q-0029 (a) (new users default to English; EZD-026b), Q-0047 (a) (sign-in page language switch; EZD-007, see Risks). Q-0001, Q-0003, Q-0004, Q-0014 to Q-0019 do not touch language.
 - Questions: the whole of `vault/questions/QUESTIONS.md`.
-  - Q-0028 (split applied), Q-0030 (open) and Q-0086 (open, shared with EZD-004 and EZD-009) belong to this ticket.
-  - Q-0002 is escalated.
+  - Q-0028 (split applied), Q-0030 (answered-josh (a)) and Q-0086 (answered-josh (a), shared with EZD-004 and EZD-009) belong to this ticket.
+  - Q-0002 is escalated and deferred; it does not block.
   - Q-0013 (browser floor): `Intl.PluralRules` is supported throughout it.
   - Q-0021 and commit aad5540: CI runs only on the phase PR and by hand, so this ticket's proof is the local gate (`vault/PROCESS.md`, CI paragraph).
 - Spec:
@@ -65,7 +65,7 @@ Choices that no source makes are marked *planner's choice (CLAUDE.md rule 4)*. T
   - **`languageFor(surface, user: { language: Language }): Language`.**
     - `office` and `client` return `'en'` (R17).
     - `field` and `dev` return `user.language`.
-    - There is no null branch. EZD-005 makes `app_user.language` `not null default 'en'` with `check (language in ('en','es'))` (vault/plans/EZD-005.md Data), so a user record always has a language (phase 0 plan review, finding 26). Q-0029 is now only about which default a new user gets; if Josh picks a non-English default, EZD-005 changes its column default before it is built, and nothing here changes.
+    - There is no null branch. EZD-005 makes `app_user.language` `not null default 'en'` with `check (language in ('en','es'))` (vault/plans/EZD-005.md Data), so a user record always has a language (phase 0 plan review, finding 26). New users default to English (Q-0029 (a)), which is that column default.
   - **`NAMESPACES: Record<Surface, readonly string[] | 'all-but-dev'>`**:
 
     | Surface | Namespaces |
@@ -103,7 +103,7 @@ They sit in the server-only folder so they never enter a client bundle. 11 Budge
 - **`catalogs/es.ts`**: `export const es = { … } as const satisfies Record<SpanishKey, Message>`, where `SpanishKey = Extract<MessageKey, \`${'common' | 'field' | 'error' | 'dev'}.${string}\`>`. Because of `satisfies`, a missing or extra Spanish key fails `typecheck`.
 - **Content in this ticket** is four keys:
   - Three dev keys of developer text for a dev page. They are not wording users see; they stand on the same footing as EZD-010's specimen text (KNOWN-LIMITS 5).
-  - `error.db_unavailable`, the `message_key` of EZD-004's health route (vault/plans/EZD-004.md Step 6). EZD-004 builds before this ticket (phase 0 build order), and a route that returns a `message_key` must find it in the catalog (Step 5 rule; A11; phase 0 plan review, finding 7). This is wording users see, so its English is Q-0086's answer and its Spanish is written as Q-0030 decides.
+  - `error.db_unavailable`, the `message_key` of EZD-004's health route (vault/plans/EZD-004.md Step 6). EZD-004 builds before this ticket (phase 0 build order), and a route that returns a `message_key` must find it in the catalog (Step 5 rule; A11; phase 0 plan review, finding 7). This is wording users see: its English is Q-0086 (a) verbatim, and its Spanish is written by this ticket's builder in the same commit (Q-0030 (a)).
   - Other real strings arrive with the tickets that show them: EZD-011, EZD-012 and EZD-014 depend on this ticket (Q-0028), and EZD-015 does too. EZD-009 adds `error.not_authorized` and `error.job_not_found` under the same rule (Q-0086).
 
 | Key | en | es |
@@ -111,7 +111,7 @@ They sit in the server-only folder so they never enter a client bundle. 11 Budge
 | `dev.messages.sample` | `Sample message` | `Mensaje de ejemplo` |
 | `dev.messages.greeting` | `Hello, {name}` | `Hola, {name}` |
 | `dev.messages.items` | `{ one: '{count} item', other: '{count} items' }` | `{ one: '{count} elemento', other: '{count} elementos' }` |
-| `error.db_unavailable` | Q-0086's answer, verbatim (open; option (a) is the orchestrator's draft "Can't reach the database. Try again in a minute.") | Written as Q-0030 decides (open); non-empty, never English (R24 #40) |
+| `error.db_unavailable` | `Can't reach the database. Try again in a minute.` (Q-0086 (a), verbatim) | Written by this ticket's builder in the same commit (Q-0030 (a)); non-empty, never English (R24 #40); checked by a Spanish-speaking crew member at the field checks and in Phase 15 (Q-0030 (a)) |
 
 - **`catalog.ts`**:
   - `catalogFor(surface, language)` returns a new frozen object with only that surface's namespaces, taken from `en` or `es`.
@@ -175,7 +175,7 @@ They sit in the server-only folder so they never enter a client bundle. 11 Budge
     - placeholder and plural syntax, and that numbers are not locale-formatted;
     - catalogs are server-only and passed through `catalogFor`;
     - the hook result is named `t`;
-    - **adding a string**: add the `en` entry, plus the `es` entry in the same commit for Spanish-required namespaces. Who writes the Spanish text follows Q-0030's answer;
+    - **adding a string**: add the `en` entry, plus the `es` entry in the same commit for Spanish-required namespaces. The ticket's builder writes the Spanish text in that commit, and a Spanish-speaking crew member checks it at the field checks and in Phase 15 (Q-0030 (a));
     - **route error keys**: "a route that returns a `message_key` adds it to `en`, and to `es` when its namespace needs Spanish, in the same commit" (phase 0 plan review, finding 7). A11 checks every literal `message_key` in `app/src`; a key built at run time is checked by review;
     - the phone-surface folders of Step 4;
     - route error `message_key` values live in `error`;
@@ -229,7 +229,7 @@ None. No tables, columns, migrations, RLS policies or `schema_version`. No money
 | A8 Types | unit + gate typecheck | `expectTypeOf<keyof typeof es>().toEqualTypeOf<SpanishKey>()`; a `T<MessageKey>` with `// @ts-expect-error` on `t('dev.messages.nope')` inside `expect(() => …).toThrow()` | Compiles; the gate `typecheck` passes (an unused `@ts-expect-error` would fail it) | Step 2 `satisfies`; Scope "One t() helper" |
 | A9 Provider and hook | unit | `renderToStaticMarkup(<MessagesProvider language="es" messages={catalogFor('dev','es')}><SampleText /></MessagesProvider>)`, then the same with `en`; `<SampleText />` with no provider | es: contains `lang="es"`, `Mensaje de ejemplo`, `1 elemento`, `2 elementos`. en: contains `lang="en"`, `Sample message`, `1 item`, `2 items`. No provider: throws an Error whose message contains `MessagesProvider` | Step 2 table; Step 1; 11 Accessibility |
 | A10 Test-page component (Done when) | unit | `renderToStaticMarkup(<MessagesSample user={{ language: 'es' }} />)`, then with `'en'`. Title `EZD-026a done when: test-page component renders the field section in Spanish and the office section in English for a user record with language es` | es user: the `data-testid="field-sample"` section has `lang="es"`, `Mensaje de ejemplo`, `1 elemento`, `2 elementos`; the `data-testid="office-sample"` section has `lang="en"`, `Sample message`, `1 item`, `2 items`. en user: both sections have `lang="en"` and `Sample message` | Ticket Done when; R26 R17; Step 2 table |
-| A11 Route message keys are in the catalog | unit | Every `.ts` / `.tsx` file under `app/src`, excluding `*.test.*` and `*.spec.*`, scanned with `/["']?message_key["']?\s*:\s*(['"\x60])([^'"\x60$]+)\1/g` (a literal key; a key built at run time is not matched and is left to review, Step 5) | At least 1 match, and the matches include `error.db_unavailable` (EZD-004's health route), so the scan is not empty. Every matched key is an own key of `en` (`Object.hasOwn`); the failure message names the file and the key. `en['error.db_unavailable']` equals Q-0086's answer verbatim (open) | Step 5 rule (phase 0 plan review, finding 7); vault/plans/EZD-004.md Step 6 and T3 (`message_key: 'error.db_unavailable'`); Q-0086 |
+| A11 Route message keys are in the catalog | unit | Every `.ts` / `.tsx` file under `app/src`, excluding `*.test.*` and `*.spec.*`, scanned with `/["']?message_key["']?\s*:\s*(['"\x60])([^'"\x60$]+)\1/g` (a literal key; a key built at run time is not matched and is left to review, Step 5) | At least 1 match, and the matches include `error.db_unavailable` (EZD-004's health route), so the scan is not empty. Every matched key is an own key of `en` (`Object.hasOwn`); the failure message names the file and the key. `en['error.db_unavailable']` equals `Can't reach the database. Try again in a minute.` exactly. `es['error.db_unavailable']` is non-empty after trim and differs from the English text | Step 5 rule (phase 0 plan review, finding 7); vault/plans/EZD-004.md Step 6 and T3 (`message_key: 'error.db_unavailable'`); Q-0086 (a) (English, verbatim); Q-0030 (a) and R24 #40 (Spanish written, never English) |
 | L1 Literal in a phone component fails (Done when) | unit (node:test) | `export default function P(){ return <button>Save</button>; }` linted as `app/src/app/(field)/x/page.tsx`, `app/src/components/field/X.tsx`, `app/src/components/phone/X.tsx`, `app/src/app/(client)/x/page.tsx`, `app/src/components/client/X.tsx`. Title `EZD-026a done when: lint fails on a literal string in a phone-screen component` | Each has ≥ 1 message with `ruleId === 'ezdraft/no-literal-ui-string'` and `severity === 2` | Ticket Done when; 11 rule 7; Step 4 globs |
 | L2 Office not in scope | unit | Same code as `app/src/components/shell/Header.tsx` and `app/src/app/page.tsx` | 0 messages from the rule | Ticket Scope (lint covers field pack and phone entry points) |
 | L3 Allowed forms | unit | Field file: `<button>{t('field.x')}</button>`; `<span>{' · '}</span>`; `<span>12</span>`; `<div className="a" data-x="Yes" role="dialog" id="b" />`; `<Button variant="primary" type="button" />`; `<a href="/x" />` | 0 messages from the rule | Step 4 |
@@ -247,11 +247,9 @@ None. No tables, columns, migrations, RLS policies or `schema_version`. No money
 - **security-reviewer: no.** No tables, auth, permissions, money, share links or API. Catalogs are server-only by folder.
 
 ## Risks
-- **Q-0030 and Q-0086 block this ticket, and through it much of phase 0.**
-  - Since `error.db_unavailable` joined this ticket (finding 7), its typecheck (`satisfies`) and A4 fail without Spanish text, and A11 needs Q-0086's English. Both must be answered before this ticket is built.
-  - EZD-026a is at build position 13 and EZD-007, EZD-011, EZD-012, EZD-014, EZD-015 and EZD-026b depend on it (phase 0 build order; `tickets.json`), so a late answer holds them all.
-  - EZD-014 (the phone layout falls under the `components/phone/` lint) and EZD-015 (state components on phone screens) also add real `field.`/`common.`/`error.` strings, so they need Q-0030 too.
+- **Spanish quality (Q-0030 (a)).** The builder writes the Spanish; nobody checks it before the field checks and Phase 15, where a Spanish-speaking crew member reviews it. Until then a clumsy phrase can reach a crew phone. Every later ticket that adds `common.`, `field.` or `error.` keys (EZD-007 under Q-0047 (a), EZD-009, EZD-014, EZD-015) follows the same rule.
   - EZD-011 and EZD-012 add only `office.` keys, which are English only.
+- **EZD-007 extends this ticket's types (Q-0047 (a)).** The sign-in and link-confirm pages are bilingual with a device-remembered switch, so EZD-007 adds a `sign_in` surface (namespaces `common`, `error`) and a lint block for its pages (vault/plans/EZD-007.md Step 6). A1, A2 and A3 list their surface pairs explicitly, so they do not change; the Level-1 rule "never … a cookie" (Step 1) still holds for signed-in surfaces.
 - **Folder alignment.**
   - EZD-020 must use `(field)` and `(client)`, or change the lint globs in its commit.
   - EZD-015 adds its folder to the field block.
@@ -260,19 +258,16 @@ None. No tables, columns, migrations, RLS policies or `schema_version`. No money
   - Not caught: strings built outside JSX, `.ts` helpers, and `t` under another name.
   - An `eslint-disable` comment for this rule is a review fail.
   - These are listed as "review" in Machine checks.
-- **Server error keys.** This ticket adds EZD-004's `error.db_unavailable`. Every later route adds its own keys in the same commit (Step 5 rule), and A11 fails that ticket's gate if a literal key is missing from `en` (for example EZD-009's `error.not_authorized` and `error.job_not_found`, Q-0086). Keys built at run time escape A11 and are a review item.
+- **Server error keys.** This ticket adds EZD-004's `error.db_unavailable`. Every later route adds its own keys in the same commit (Step 5 rule), and A11 fails that ticket's gate if a literal key is missing from `en` (for example EZD-009's `error.not_authorized` and `error.job_not_found`, whose English is Q-0086 (a)). Keys built at run time escape A11 and are a review item.
 - **Type import from `src/server/`.** EZD-133's future "no server code in browser code" lint must allow `import type`. Otherwise `MessageKey` moves to a generated type file in `src/lib/`.
 - **Offline field pack.** The catalog subset travels in the page payload. Phase 14's service-worker cache must keep it with the page.
-- **Default language of a new user (Q-0029).** No null case exists (EZD-005 `not null default 'en'`). If Josh picks a non-English default, the change is EZD-005's column default, made before EZD-005 is built.
+- **Default language of a new user (Q-0029 (a)).** English, which is EZD-005's existing `not null default 'en'`; no null case exists and nothing changes here.
 
 ## Open questions
-Q-0030 (open, belongs to this ticket): No source says who writes and checks the Spanish text of interface strings (buttons, messages, errors) on the field pack and crew phone screens, because the S16 Translations queue covers only sheet notes, keynotes and field tasks. The options are:
-- (a) each ticket's builder drafts the Spanish in the same commit, and a Spanish-speaking crew member checks it at the field checks (Phase 15 field check);
-- (b) interface strings also enter the S16 Translations queue as Unreviewed phrases;
-- (c) Josh or a translator supplies the Spanish before each ticket that adds a field string is built.
+None open.
 
-This ticket now ships `error.db_unavailable`, which needs Spanish, so it cannot be built before the answer; nor can EZD-014 and EZD-015.
+Answered, applied above:
+- Q-0030 (answered-josh (a), 2026-10-12): "each ticket's builder writes the Spanish in the same commit; a Spanish-speaking crew member checks it at the field checks (and in Phase 15)". Applied in Depends on, the Step 2 table (`error.db_unavailable` Spanish), the Step 5 "adding a string" rule, A11 and Risks.
+- Q-0086 (answered-josh (a), 2026-10-12): "Can't reach the database. Try again in a minute." / "You don't have permission to do that." / "That job no longer exists." This ticket uses the first, for `error.db_unavailable` (Step 2 table; A11). The other two are EZD-009's.
 
-Q-0086 (open, shared with EZD-004 and EZD-009): routes return message keys for errors (`error.db_unavailable` from EZD-004; `error.not_authorized` and `error.job_not_found` from EZD-009), but no source gives the English wording users see. Options: (a) the orchestrator's draft "Can't reach the database. Try again in a minute." / "You don't have permission to do that." / "That job no longer exists."; (b) Josh's own wording. The Spanish follows Q-0030. This ticket needs the `error.db_unavailable` wording before it is built (Step 2; A11).
-
-Referenced, not re-asked: Q-0028 (answered-agent; split applied), Q-0029 (EZD-026b; restated as the default language of a new user), Q-0002 (escalated; R26 R17 may change), Q-0013, Q-0021.
+Referenced, not re-asked: Q-0028 (answered-agent; split applied), Q-0029 (answered-josh (a); EZD-026b), Q-0047 (answered-josh (a); EZD-007 extends the surfaces, Risks), Q-0002 (escalated, deferred; does not block, R26 R17 stands), Q-0013, Q-0021.

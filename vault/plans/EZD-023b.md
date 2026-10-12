@@ -1,6 +1,6 @@
 # EZD-023b · Environments, promote and rollback
 
-Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: questions
+Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: planned
 
 ## Ticket (copied from the phase file)
 Scope: Local, dev and production environments; preview deploys use the dev database; production is updated only by a promote script run by Josh on a tagged build, which first takes a database dump; rollback steps in the runbook. Split from EZD-023 (Q-0042); plan Part B.
@@ -14,7 +14,7 @@ Depends on: EZD-023a, EZD-004, EZD-008. Also, not in the ticket row:
   - the `### Environment variables` table and `.env.example`;
   - `docs/runbook.md`;
   - the plan's line "Prod receives migrations only through EZD-023's promote script" (vault/plans/EZD-004.md Steps 2, 5, 6, 7).
-- **EZD-008** (row). Its email names in `.env.example` and its hand-off "Preview values are left to EZD-023" (vault/plans/EZD-008.md Step 6 part B item 4, Risks). See Q-0041.
+- **EZD-008** (row). Its email names in `.env.example` and its hand-off "Preview values are left to EZD-023" (vault/plans/EZD-008.md Step 6 part B item 4, Risks). EZD-008 builds both transports, selectable per environment (its Step 4); this ticket sets and checks the Preview value per Q-0041 (Step 8).
 - **EZD-003 (deliberately not a formal dependency, Q-0042).** This ticket needs only its merged files:
   - the Vercel project with production branch `main`;
   - `app/vercel.json`;
@@ -24,13 +24,14 @@ Depends on: EZD-023a, EZD-004, EZD-008. Also, not in the ticket row:
 
   The orchestrator starts this ticket only after EZD-003's commit is on `develop`, even if EZD-003 itself stays blocked on its live check (Q-0032).
 - **EZD-000 and EZD-001** (transitive, used directly): the "no new `##` heading" rule (EZD-000 T5), C1, and root node tests running in full on every ticket (EZD-001 Step 6.1; Q-0006).
-- **EZD-005**, only if Q-0033 is answered (b). This ticket then uses its fixed seed ids and the `app_user` table name (vault/plans/EZD-005.md Step 1).
-- **Open questions referenced, not re-asked:**
-  - **Q-0023** (how migrations reach cloud dev). Under (c) this ticket adds `release:migrate-dev` (Step 9).
-  - **Q-0024** (Supabase organization and billing). The prod project must exist before the first promote.
-  - **Q-0031** (Vercel team and plan). The Vercel features this ticket relies on depend on the plan (Risks). The token's reach also depends on it.
-  - **Q-0032** (when the subdomain check runs). With promote-only production, the subdomain check runs after the first `release:promote phase-0`.
-  - **Q-0033** (tenant 1 bootstrap into the cloud databases). Under (b) this ticket adds the bootstrap file (Step 10).
+- **EZD-005: not a dependency (missing from the row on purpose).** Under Q-0033 (a), EZD-005 owns `supabase/bootstrap/tenant-1.sql` and its runbook section `## Tenant 1 setup (EZD-005)` (vault/plans/EZD-005.md Step 7). This ticket's runbook only orders that step after the first promote (Step 10). EZD-005 builds at position 6, before this ticket (12) (`tickets.json` `build_position`), so the file exists when this runbook names it; no code is shared.
+- **Answered questions this plan applies:**
+  - **Q-0023 (a)** (answered-agent): cloud dev migrations run only through EZD-004's `supabase-dev.yml` when Josh clicks Run workflow. This ticket adds no `release:migrate-dev` (Step 9).
+  - **Q-0024 (a)** (Josh 2026-10-12): EZ Draft's own `ezdraft-dev` and `ezdraft-prod` projects inside EZ Binder's existing Supabase organization, which is on Pro. The prod project must exist before the first promote.
+  - **Q-0031 (a)** (Josh 2026-10-12): the `ezdraft` Vercel project sits inside EZ Binder's existing Vercel team, which is on Pro. The Vercel features this ticket relies on are Pro features (Risks); the release token is a token for that shared team (Reviewers).
+  - **Q-0032 (a)** (Josh 2026-10-12): EZD-003's live HTTPS check runs right after the Phase 0 merge, as part of the field check. With promote-only production, "right after" means right after the first `release:promote phase-0` (Risks).
+  - **Q-0033 (a)** (Josh 2026-10-12): a one-time SQL setup file Josh pastes into each cloud project's SQL editor, typing his own email there; a runbook step. EZD-005 builds it; it runs on prod after the first promote (Step 10).
+  - **Q-0041** (Josh 2026-10-12): both email transports, chosen per environment; Preview defaults to `stub` now; a setting can switch a preview to live sending later (Step 8). EZD-021 adds the same shape for `AI_MODE` (Q-0077; vault/plans/EZD-021.md Step 6).
 - **Facts that decide who runs what (Level 1, not questions):**
   - Production changes only at a phase gate or on Josh's approval (11 Operations "Releases"; Q-0007).
   - Remote database changes and production deploys are Josh's: `.claude/hooks/guard-bash.mjs` ("Remote database changes are Josh's"; "Production deploys are Josh's"), and `.claude/settings.json` denies `supabase db push`, `supabase link`, `vercel --prod` and `vercel promote`.
@@ -49,7 +50,7 @@ Spec ref: Non-functional · Operations; R26 R12
   - `02-product-overview.md`: Stack (Hosting; Database, auth, files); Named tools.
   - `03-data-model.md`: Architecture rules 1, 12.
   - `04-app-shell-and-global-ui.md`: read; no screen here.
-- Decisions: R24 #1; R26 R12, R13; R33. Build answers (Josh): Q-0003, Q-0006, Q-0019, Q-0025. QUESTIONS.md: Q-0007, Q-0023, Q-0024, Q-0031, Q-0032, Q-0033, Q-0041, Q-0042.
+- Decisions: R24 #1; R26 R12, R13; R33. Build answers (Josh): Q-0003, Q-0006, Q-0019, Q-0025; 2026-10-12: Q-0024 (a), Q-0031 (a), Q-0032 (a), Q-0033 (a), Q-0041, Q-0077. QUESTIONS.md: Q-0007, Q-0023 (answered-agent (a)), Q-0042.
 - Process and kit:
   - `vault/PROCESS.md`, `vault/KNOWN-LIMITS.md`, `vault/tickets/README.md` (rules 4, 8; Needs from Josh), `vault/tickets/needs-from-josh.md`, `CLAUDE.md` (rules 4, 10, 11, 12).
   - `SETUP.md` (Notes: "production branch `main`. Production deploys therefore happen only when you merge a phase PR").
@@ -70,8 +71,8 @@ Facts about Vercel, the Supabase CLI and Claude Code come from the planner's kno
 | Environment | Database | App | Env values | Changed by |
 | --- | --- | --- | --- | --- |
 | local | Local Supabase in Docker (`pnpm db:up`; each gate run wipes it, EZD-004) | `next dev` and tests | `pnpm db:env`; email stub (EZD-008) | Agents and tests |
-| dev | Supabase project `ezdraft-dev` (EZD-004 runbook; Q-0024) | Vercel **Preview** deployments from `develop` pushes and the phase PR (Q-0007; EZD-003) | Vercel Preview values = the dev project's values (preview email per Q-0041) | Migrations per Q-0023 |
-| production | Supabase project `ezdraft-prod` | Vercel **Production** at `ezdraft.ezcontractorbinder.com` (R24 #1) | Vercel Production values = the prod project's values | Josh only, with `pnpm release:promote <tag>` |
+| dev | Supabase project `ezdraft-dev` in EZ Binder's Supabase organization (EZD-004 runbook; Q-0024 (a)) | Vercel **Preview** deployments from `develop` pushes and the phase PR (Q-0007; EZD-003) | Vercel Preview values = the dev project's values; `EMAIL_TRANSPORT=stub` and `AI_MODE=stub` by default, `resend` / `live` only when Josh sets them (Q-0041; Q-0077) | Migrations through EZD-004's `supabase-dev.yml`, run when Josh clicks Run workflow (Q-0023 (a)) |
+| production | Supabase project `ezdraft-prod` in the same organization (Q-0024 (a)) | Vercel **Production** at `ezdraft.ezcontractorbinder.com` (R24 #1) | Vercel Production values = the prod project's values | Josh only, with `pnpm release:promote <tag>` |
 
 ### Step 2: Promote-only production (Josh's Vercel setting; *builder confirms the name*)
 - EZD-003 keeps Production Branch = `main`. Each phase merge therefore builds a production-target deployment.
@@ -82,7 +83,7 @@ Facts about Vercel, the Supabase CLI and Claude Code come from the planner's kno
 ### Step 3: Guards (`scripts/release/guards.mjs`)
 Agents must never run these scripts (guard-bash: production and the remote database are Josh's). The scripts start `git push`, `supabase db push` and Vercel calls themselves, so the Bash hooks never see those commands.
 
-Every release script (`tag`, `promote`, `check-env`, and `migrate-dev` if built) refuses on its own. The guards run after the script's read-only git checks and before it reads any secret, in this order:
+Every release script (`tag`, `promote`, `check-env`) refuses on its own. The guards run after the script's read-only git checks and before it reads any secret, in this order:
 1. **`agent_refused`** when `CLAUDECODE` is set. Claude Code sets it for commands its agents run *(builder confirms with `node -e "console.log(process.env.CLAUDECODE)"` in an agent shell)*.
 2. **`ci_refused`** when `CI` or `GITHUB_ACTIONS` is set. `scripts/gate.mjs` sets `CI=1` for every step.
 3. **`tty_required`** when stdin or stdout is not a terminal (TTY), except with `--dry-run`. Agent shells have no TTY.
@@ -95,7 +96,6 @@ The CLI has no `--yes` flag. A real run always asks Josh to type the tag name.
   - `Bash(node scripts/release/promote*)`
   - `Bash(node scripts/release/tag*)`
   - `Bash(node scripts/release/env-check*)`
-  - `Bash(node scripts/release/migrate-dev*)`
 - Add a matching pattern to the `always` list in `.claude/hooks/guard-bash.mjs`.
 
 ### Step 4: Release secrets (Josh's PC only; `scripts/release/release-env.mjs`)
@@ -109,7 +109,7 @@ The CLI has no `--yes` flag. A real run always asks Josh to type the tag name.
   - `VERCEL_PROJECT_ID`.
   - `VERCEL_TEAM_ID` (optional).
   - `RELEASE_DUMP_DIR` (optional; default `<home>/ezdraft-release-dumps`).
-  - `SUPABASE_DEV_DB_URL`, only under Q-0023 (c).
+  - No dev database URL: dev migrations go through EZD-004's workflow (Q-0023 (a)).
 - **Where the names are listed:**
   - In `docs/architecture.md` (`### Environment variables`, marked "Josh's PC only, `.env.release.local`").
   - In the runbook.
@@ -187,9 +187,11 @@ Rules:
 - **`production_not_prod`**: the production `NEXT_PUBLIC_SUPABASE_URL` ref is not `prodRef`.
 - **`preview_uses_prod`**: the preview `NEXT_PUBLIC_SUPABASE_URL` ref equals `prodRef`.
 - **`unreadable`**: the API returns no value for one of those URLs (for example, a variable marked Sensitive).
-- **Preview email**, per Q-0041:
-  - Under (a), preview `EMAIL_TRANSPORT` must be `stub` (`preview_email`).
-  - Under (b), preview `EMAIL_TRANSPORT` must be `resend` and `RESEND_API_KEY` must exist for `preview` (`preview_email`).
+- **Preview email**, per Q-0041 (both transports, chosen per environment; Preview defaults to `stub` now; a setting can switch a preview to live sending later):
+  - the preview `EMAIL_TRANSPORT` must be set explicitly to `stub` or `resend`; missing, empty or any other value → `{ code: 'preview_email', name: 'EMAIL_TRANSPORT', target: 'preview' }`;
+  - `resend` is accepted when Josh sets it, and then `RESEND_API_KEY` must exist for `preview`, otherwise `{ code: 'preview_email', name: 'RESEND_API_KEY', target: 'preview' }` (*planner's choice*: EZD-008 Step 4 fails every send with `email_key_not_set` without it, and `RESEND_API_KEY` is a required name there);
+  - Production `EMAIL_TRANSPORT` is covered by the `missing` rule, and a Production `stub` is refused at run time (EZD-008 Step 4, `email_stub_not_allowed`).
+- **Preview AI mode** (`preview_ai_mode`): added by EZD-021 with the same shape (Q-0077; vault/plans/EZD-021.md Step 6). Not built here.
 
 Ref helpers:
 - `supabaseRefFromApiUrl('https://<ref>.supabase.co')`.
@@ -197,23 +199,11 @@ Ref helpers:
 
 **CLI `pnpm release:check-env`** is read-only. It uses the same guards (Step 3), because it reads the token. Promote step 8 calls the same function.
 
-### Step 9: Dev migrations (Q-0023)
-- **Under (a) or (b):** nothing is added. EZD-004's `supabase-dev.yml` applies dev migrations, and Step 1 documents it.
-- **Under (c):** add `scripts/release/migrate-dev.mjs` (`pnpm release:migrate-dev`), run by Josh. It:
-  1. runs the guards;
-  2. runs the EZD-023a check (base = latest tag, head = `origin/develop`);
-  3. runs `supabase db push --db-url <SUPABASE_DEV_DB_URL>` from a temporary worktree of `origin/develop`.
+### Step 9: Dev migrations (Q-0023 (a))
+Nothing is added. EZD-004's `supabase-dev.yml` applies dev migrations when Josh clicks Run workflow, and Step 1 documents it.
 
-  Its tests mirror T11 and T12.
-
-### Step 10: Tenant 1 in the cloud (Q-0033)
-- **Only under (b):** add `supabase/bootstrap/tenant-1.sql`.
-  - It inserts tenant 1, Josh's `app_user` and his `membership`, using EZD-005's fixed ids.
-  - It uses `on conflict do nothing`, so it can be run twice.
-  - Josh's email is a placeholder, `<JOSH_EMAIL>`, which Josh replaces in the Supabase SQL editor. No real address is committed.
-  - Runbook order: run it on dev, and on prod after the first promote (the tables exist only once migrations run).
-- **Under (a):** the runbook only orders EZD-005's file after the first promote.
-- **Under (c):** nothing is added.
+### Step 10: Tenant 1 in the cloud (Q-0033 (a))
+Nothing is built here. EZD-005 builds `supabase/bootstrap/tenant-1.sql` and its runbook section `## Tenant 1 setup (EZD-005)` (vault/plans/EZD-005.md Step 7). This ticket's runbook orders it: on prod, Josh runs it once **after the first `release:promote phase-0`**, because the tables exist only once the promote has applied the migrations (Step 6 step 12). On dev, it runs after EZD-004's workflow has applied the migrations (EZD-005's runbook section).
 
 ### Step 11: Docs (under existing headings only)
 **`docs/architecture.md`:**
@@ -232,8 +222,8 @@ Ref helpers:
 **`docs/runbook.md`** (the file exists; add a section, never rewrite): `## Environments and releases (EZD-023)`, written for a non-engineer.
 - **One-time setup:**
   1. Turn off Vercel auto-assign (Step 2).
-  2. Enter the Preview values (dev project) and Production values (prod project) for every name in `### Environment variables`.
-  3. Create a Vercel token with an expiry date, for the team Q-0031 names.
+  2. Enter the Preview values (dev project) and Production values (prod project) for every name in `### Environment variables`. Preview `EMAIL_TRANSPORT` = `stub` (Q-0041: no email leaves a preview; links show through Copy link). To let a preview send real email later, change Preview `EMAIL_TRANSPORT` to `resend` and add a Preview `RESEND_API_KEY`; `release:check-env` accepts either.
+  3. Create a Vercel token with an expiry date, for EZ Binder's existing Vercel team, which holds the `ezdraft` project (Q-0031 (a)).
   4. Copy the prod Session pooler connection string.
   5. Create `.env.release.local`.
   6. Add the settings.json deny lines (Step 3).
@@ -244,10 +234,10 @@ Ref helpers:
   4. `pnpm release:promote phase-N`
   5. The Field check.
 - **First release (Phase 0):**
-  1. The prod project must exist (Q-0024).
+  1. The `ezdraft-prod` project must exist in EZ Binder's Supabase organization (Q-0024 (a)).
   2. Run the promote.
-  3. Run the tenant 1 bootstrap (Q-0033).
-  4. Run EZD-003's subdomain check (Q-0032).
+  3. Run the tenant 1 setup file `supabase/bootstrap/tenant-1.sql` on prod, as `## Tenant 1 setup (EZD-005)` says (Q-0033 (a)).
+  4. The orchestrator runs EZD-003's subdomain check, part of the Phase 0 field check (Q-0032 (a)).
 - **Rollback:** Step 7.
 - **Dumps:** where they are, that they hold client data, and that they stay until Josh deletes them.
 
@@ -262,9 +252,8 @@ The orchestrator copies the one-time setup into `vault/tickets/needs-from-josh.m
 | `scripts/release/env-check.mjs` | New | builder | Step 8 |
 | `scripts/release/tag.mjs` | New | builder | Step 5 |
 | `scripts/release/promote.mjs` | New | builder | Step 6 |
-| `scripts/release/migrate-dev.mjs` | New, only if Q-0023 = (c) | builder | Step 9 |
-| `supabase/bootstrap/tenant-1.sql` | New, only if Q-0033 = (b) | builder | Step 10 |
-| `package.json` (root) | Change (extend) | builder | Scripts `release:tag`, `release:promote`, `release:check-env` (plus `release:migrate-dev` under Q-0023 (c)) |
+| `package.json` (root) | Change (extend) | builder | Scripts `release:tag`, `release:promote`, `release:check-env` |
+| `supabase/bootstrap/tenant-1.sql` | Not touched | — | EZD-005's file (Q-0033 (a); Step 10) |
 | `.env.example` | Change (comment lines only) | builder | Step 4 |
 | `docs/architecture.md`, `docs/runbook.md` | Change | builder | Step 11 |
 | `scripts/release/__tests__/promote.test.mjs`, `tag.test.mjs`, `env-check.test.mjs`, `release-docs.test.mjs` | New | test-author | Tests below; they reuse EZD-023a's `git-fixture.mjs` |
@@ -275,8 +264,7 @@ The orchestrator copies the one-time setup into `vault/tickets/needs-from-josh.m
 No new dependency. The scripts use Node 22 built-ins only. The `supabase` CLI is already a root devDependency (EZD-004). There is no Vercel package: the scripts call Vercel's REST API with `fetch`.
 
 ## Data
-- No migrations. No table, column, policy or schema_version change.
-- Under Q-0033 (b), one bootstrap SQL file, outside `supabase/migrations/` and the seed.
+- No migrations. No table, column, policy or schema_version change. No bootstrap file (EZD-005 owns it, Q-0033 (a)).
 - Dumps are written outside the repo only.
 - No money fields.
 
@@ -322,32 +310,33 @@ No new dependency. The scripts use Node 22 built-ins only. The `supabase` CLI is
 | T11 Dump failure stops the release | unit (git) | (a) `dump(schema)` writes a 0-byte file; (b) `dump(data)` exits 1 | Both cases: `dump_failed`; `supabase.push` and `vercel.promote` have 0 calls | 11 Operations (dump first); Step 6 step 11 |
 | T12 Migrate and promote failures | unit (git) | (a) `supabase.push` exits 1; (b) `vercel.promote` rejects | (a) `migrate_failed`; `vercel.promote` has 0 calls; output contains the dump folder path. (b) `promote_failed` | Step 6 steps 12 and 13 |
 | T13 Verify window | unit (git) | Fake clock: `sleep(ms)` advances `now` by `ms`. Health always returns `schema_version: '20261101000000'`, but the tag's newest migration is `20261102000000` (tag `phase-1` on C2, the only higher tag) | `verify_failed` after exactly **25** health polls (t = 0, 5, …, 120 s); output contains `Instant Rollback` | Step 6 step 14 (5 s and 120 s, planner's choice); Step 7 |
-| T14 Vercel env rules | unit | `evaluateVercelEnv` with `requiredNames` = EZD-004's three names and `prodRef: 'prodref123'`. Cases: (a) Production and Preview both complete; prod URL `https://prodref123.supabase.co`, preview URL `https://devref456.supabase.co`. (b) Preview URL `https://prodref123.supabase.co`. (c) Production URL `https://devref456.supabase.co`. (d) Production lacks `SUPABASE_SECRET_KEY`. (e) Preview lacks `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. (f) The preview URL entry has no `value`. (g) Once Q-0041 is answered: (a) as given but preview `EMAIL_TRANSPORT` is the value Q-0041 does **not** choose | (a) `ok === true`. (b) `preview_uses_prod`. (c) `production_not_prod`. (d) `missing` / `SUPABASE_SECRET_KEY` / `production`. (e) `missing` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` / `preview`. (f) `unreadable`. (g) `preview_email` | 11 Operations ("Preview deploys use the dev database"); Step 8; Q-0041 |
+| T14 Vercel env rules | unit | `evaluateVercelEnv` with `requiredNames` = EZD-004's three names and `prodRef: 'prodref123'`. Cases: (a) Production and Preview both complete; prod URL `https://prodref123.supabase.co`, preview URL `https://devref456.supabase.co`; Preview `EMAIL_TRANSPORT` = `stub`, no Preview `RESEND_API_KEY`. (b) Preview URL `https://prodref123.supabase.co`. (c) Production URL `https://devref456.supabase.co`. (d) Production lacks `SUPABASE_SECRET_KEY`. (e) Preview lacks `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. (f) The preview URL entry has no `value`. (g) (a) without a Preview `EMAIL_TRANSPORT`. (h) (a) with Preview `EMAIL_TRANSPORT` = `resend` and a Preview `RESEND_API_KEY`. (i) (a) with Preview `EMAIL_TRANSPORT` = `resend` and no Preview `RESEND_API_KEY`. (j) (a) with Preview `EMAIL_TRANSPORT` = `smtp` | (a) `ok === true`. (b) `preview_uses_prod`. (c) `production_not_prod`. (d) `missing` / `SUPABASE_SECRET_KEY` / `production`. (e) `missing` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` / `preview`. (f) `unreadable`. (g), (j) exactly one problem `preview_email` / `EMAIL_TRANSPORT` / `preview`. (h) `ok === true`. (i) exactly one problem `preview_email` / `RESEND_API_KEY` / `preview` | 11 Operations ("Preview deploys use the dev database"); Step 8; Q-0041 (both transports per environment; Preview `stub` by default, `resend` when set); EZD-008 Step 4 (`stub` / `resend`; key needed for `resend`) |
 | T15 Ref parsing and redaction | unit | `supabaseRefFromApiUrl('https://abcd1234.supabase.co')`; `supabaseRefFromDbUrl('postgresql://postgres.abcd1234:p%40ss@aws-0-us-east-1.pooler.supabase.com:5432/postgres')`; `supabaseRefFromDbUrl('postgresql://postgres:secret@db.abcd1234.supabase.co:5432/postgres')`; `supabaseRefFromDbUrl('not a url')`; `redactUrl` of the third URL | `abcd1234`, `abcd1234`, `abcd1234`, `null`. The redacted string contains `***` and does not contain `secret` | Steps 4 and 8 |
 | T16 release:tag | unit (git) | On `R`, with fakes for `confirm` and `processEnv`: (a) name `v2`; (b) `phase-0` (exists); (c) `phase-0.1` while `phase-1` exists; (d) `phase-1` where `origin/main` adds `DROP`; (e) `phase-1` on an additive `origin/main` with `CLAUDECODE=1`; (f) `phase-1`, clean | (a) `bad_name`. (b) `tag_exists`. (c) `not_newer`. (d) `migration_check_failed`. (e) `agent_refused`, and no tag is created. (f) `ok`; `git ls-remote --tags origin` lists `refs/tags/phase-1`; `git cat-file -t phase-1` = `tag` (annotated); the tag points to `origin/main` | Step 5 |
 | T17 Scripts stay out of the gate | unit | Root `package.json` | `release:tag`, `release:promote` and `release:check-env` run `node scripts/release/tag.mjs`, `promote.mjs` and `env-check.mjs`. None of `typecheck`, `lint`, `test`, `build` contains `release:` or `promote` | Step 3 (agents and the gate never run releases) |
-| T18 Docs, runbook, env names | unit | `docs/architecture.md`, `docs/runbook.md`, `.env.example` (read by the test) | Architecture: `### Environments and releases (EZD-023b)` sits under `## Runtime` and contains `ezdraft-dev`, `ezdraft-prod`, `Preview`, `Production`, `ezdraft.ezcontractorbinder.com`, `release:promote`, `release:tag`, `Instant Rollback`, `.env.release.local`. Two Machine checks rows end in `EZD-023b`. `node scripts/conventions/check.mjs .` exits 0. Runbook: `## Environments and releases (EZD-023)` contains `Auto-assign Custom Production Domains`, `release:tag`, `release:check-env`, `release:promote`, `--dry-run`, `Instant Rollback`, `Session pooler`, `SUPABASE_PROD_DB_URL`, `VERCEL_TOKEN`, `Docker`, `Q-0033`. `.env.example` has the comment lines `# SUPABASE_PROD_DB_URL=`, `# VERCEL_TOKEN=`, `# VERCEL_PROJECT_ID=`, and its non-comment lines are unchanged by this ticket | Steps 4, 7, 11; EZD-000 T5, C1; EZD-004 T7, T8 |
-| T19 Bootstrap file (only if Q-0033 = (b)) | unit | `supabase/bootstrap/tenant-1.sql` | Contains `00000000-0000-4000-8000-000000000001`, `00000000-0000-4000-8000-000000001001`, `Worth Properties`, `<JOSH_EMAIL>` and `on conflict`. Contains no `@` except inside `<JOSH_EMAIL>`. The file is not under `supabase/migrations/` | Step 10; vault/plans/EZD-005.md Step 1.2 (fixed ids, `app_user`) |
+| T18 Docs, runbook, env names | unit | `docs/architecture.md`, `docs/runbook.md`, `.env.example` (read by the test) | Architecture: `### Environments and releases (EZD-023b)` sits under `## Runtime` and contains `ezdraft-dev`, `ezdraft-prod`, `Preview`, `Production`, `ezdraft.ezcontractorbinder.com`, `release:promote`, `release:tag`, `Instant Rollback`, `.env.release.local`. Two Machine checks rows end in `EZD-023b`. `node scripts/conventions/check.mjs .` exits 0. Runbook: `## Environments and releases (EZD-023)` contains `Auto-assign Custom Production Domains`, `release:tag`, `release:check-env`, `release:promote`, `--dry-run`, `Instant Rollback`, `Session pooler`, `SUPABASE_PROD_DB_URL`, `VERCEL_TOKEN`, `Docker`, `supabase/bootstrap/tenant-1.sql`, `EMAIL_TRANSPORT`. `.env.example` has the comment lines `# SUPABASE_PROD_DB_URL=`, `# VERCEL_TOKEN=`, `# VERCEL_PROJECT_ID=`, and its non-comment lines are unchanged by this ticket | Steps 4, 7, 10, 11; Q-0033 (a); Q-0041; EZD-000 T5, C1; EZD-004 T7, T8 |
+| T19 (removed) | — | — | Not used: under Q-0033 (a) the bootstrap file is EZD-005's and its T17 tests it (vault/plans/EZD-005.md) | Q-0033 (a) |
 | T20 Gate (orchestrator) | gate | `node scripts/gate.mjs <worktree>` | Exit 0 | CLAUDE.md rule 9 |
 | Josh's live step (not in the gate; no agent runs it) | manual | After the Phase 0 merge and Josh's one-time setup: `pnpm release:tag phase-0`, then `pnpm release:promote phase-0` | Exit 0. The orchestrator then runs EZD-003's T8 (`check-live.mjs`, read-only) | 11 Operations; Q-0032 |
 
 ## Reviewers needed
 code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (no screen) · security-reviewer **yes**, for these points (CLAUDE.md rule 12; 11 Security and audit):
-- Production database credentials and a Vercel token sit on Josh's PC. The token can reach EZ Binder's projects if the Vercel team is shared (Q-0031, Q-0003).
+- Production database credentials and a Vercel token sit on Josh's PC. The Vercel team is shared with EZ Binder (Q-0031 (a)), so the token can reach EZ Binder's projects too; the runbook says to give it an expiry date and keep it only in `.env.release.local` (Q-0003).
+- The Supabase organization is shared with EZ Binder (Q-0024 (a)); the release scripts use only the `ezdraft-prod` connection string, never an organization-wide credential.
 - Database dumps hold client data. They are kept outside the public repo.
 - The agent, CI and TTY guards.
 - The separation of the Preview and Production databases.
 - Redaction in logs and in `release.json`.
 
 ## Risks
-- **Vercel features depend on Q-0031.** These are the planner's knowledge, not vault facts:
+- **Vercel features on Pro (Q-0031 (a): EZ Binder's team, on Pro).** These are the planner's knowledge, not vault facts, and the builder confirms them for a Pro team:
   - the auto-assign switch;
   - staged production builds of `main`;
   - Instant Rollback, which on lower plans may reach only the deployment just before;
   - the REST endpoints.
 
-  If Josh's plan has no auto-assign switch, "production only by promote" needs another mechanism (for example an Ignored Build Step on `main` plus a deploy hook), and this plan changes.
-- **First release ordering.** With auto-assign off, the subdomain shows nothing until the first `release:promote phase-0`. EZD-003's T8 (Q-0032 (a): "right after the merge") must move to right after that promote. The orchestrator should note this on EZD-003's row.
+  If the Pro team has no auto-assign switch, "production only by promote" needs another mechanism (for example an Ignored Build Step on `main` plus a deploy hook), and this plan changes.
+- **First release ordering.** With auto-assign off, the subdomain shows nothing until the first `release:promote phase-0`. EZD-003's T8 (Q-0032 (a), answered by Josh: "right after the Phase 0 merge, as part of the field check") therefore runs right after that promote. The orchestrator should note this on EZD-003's row.
 - **The agent guard is a speed bump, not a lock.** `CLAUDECODE` and the TTY check stop an agent that runs a release script by accident. Something that runs a process with a pseudo-terminal and can use Josh's `.env.release.local` could get past them. Josh's settings.json deny lines (Step 3) close the normal path; until he adds them, `Bash(pnpm *)` is allowed.
 - **Supabase CLI and Docker.** `db dump` runs pg_dump in Docker, so Docker Desktop must be running when Josh releases. `db push` may prompt for confirmation; the builder uses the pinned CLI's non-interactive flag.
 - **Dumps on Josh's PC** hold client personal data with no automatic expiry. EZD-025 adds the off-site copies. Deleting old local dumps is Josh's job.
@@ -355,5 +344,13 @@ code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (no 
 - **Newer app than server after a rollback.** After a rollback, some devices may run a newer app than the server. EZD-134 (old app versions, 03 rule 12) should handle "newer than server" as well as "older".
 - **Test time.** Root node tests run on every ticket (EZD-001 Step 6.1). This ticket's git fixtures must stay small so the run takes seconds on the 16 GB PC (Q-0019).
 
+- **A live preview sends real email (Q-0041).** Previews default to `stub`. If Josh switches a preview to `resend`, it emails whatever addresses are in the dev data; the runbook says so.
+
 ## Open questions
-Q-0041: EZD-008 left the Vercel Preview email values to EZD-023 (vault/plans/EZD-008.md Step 6 part B item 4), and no source says whether preview deployments, which use the dev database, send real email. Options: (a) `EMAIL_TRANSPORT=stub` on Preview, so no email ever leaves a preview and links appear only through Copy link, while Supabase's own sign-in emails from the dev project still arrive (planner's recommendation; previews hold test data); or (b) `EMAIL_TRANSPORT=resend` on Preview with the production From and key, so previews email whatever addresses are entered in the dev data.
+None.
+
+Answered since the first draft (2026-10-12):
+- Q-0041 (answered-josh): build both modes, chosen per environment; previews default to the stub transport now; a setting can switch a preview to live sending later. Applied in Step 1, Step 8 (`preview_email` accepts `stub` or `resend` set explicitly; `resend` needs a Preview key), Step 11 runbook, T14 (g)–(j), Risks. The earlier "(a) must be stub / (b) must be resend" branches are removed.
+- Q-0032 (a), Q-0024 (a), Q-0031 (a) (answered-josh): applied in Depends on, Step 1, Step 11 runbook, Reviewers and Risks.
+- Q-0033 (a) (answered-josh): EZD-005 builds the tenant-1 setup file (vault/plans/EZD-005.md Step 7); this ticket's runbook runs it on prod after the first promote (Step 10). The (b) bootstrap file, its Files row and T19 are removed.
+- Q-0023 (a) (answered-agent): dev migrations by manual workflow; the (c) `release:migrate-dev` script, `SUPABASE_DEV_DB_URL` and its deny line are removed (Steps 3, 4, 9).

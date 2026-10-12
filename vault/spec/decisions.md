@@ -205,5 +205,62 @@ Josh's answers during the build. Each overrides the spec text and any earlier ro
 | Q-0025 | 2026-10-11 | The `.env` read deny is narrowed to `.env.local`, `.env.*.local`, `.env.production` and `.env.development`; `.env.example` is readable. |
 | Q-0034 | 2026-10-11 | S15 has 29 permission switches (the Permission list and the mockup). Every "28" in the S15 text is a counting error; use 29. |
 | — | 2026-10-11 | Mockups: 14 new Studio boards (S01b, S15a–S15h, S17c, S19–S22) and updated S02, S15, S16. Every screen now has a mockup; tickets README rule 6 ("built from the spec text") no longer applies to any screen. |
+| Q-0013 | 2026-10-12 | (a): the framework default browser floor: Safari/iOS 16.4+, Chrome/Edge 111+, Firefox 113+. |
+| Q-0026 | 2026-10-12 | (a): spec oklch() values only, no sRGB fallback (follows Q-0013 (a), which sets Firefox 113+). |
+| Q-0024 | 2026-10-12 | (a): EZ Draft's own ezdraft-dev and ezdraft-prod projects inside EZ Binder's existing Supabase organization, which is on Pro. |
+| Q-0027 | 2026-10-12 | (a): Vercel Pro default function limits (300 s, 2 GB). The account is on Pro. |
+| Q-0029 | 2026-10-12 | (a): new users default to English; the inviter or the user switches to Spanish in settings. |
+| Q-0030 | 2026-10-12 | (a): each ticket's builder writes the Spanish in the same commit; a Spanish-speaking crew member checks it at the field checks (and in Phase 15). |
+| Q-0031 | 2026-10-12 | (a): the ezdraft project goes inside EZ Binder's existing Vercel team, which is on Pro. |
+| Q-0032 | 2026-10-12 | (a): EZD-003's repo work merges to develop in Stage 3; the ticket stays blocked (waiting on Josh: Vercel, DNS, Phase 0 merge) and the live HTTPS check runs right after the Phase 0 merge, as part of the field check. |
+| Q-0033 | 2026-10-12 | (a): a one-time SQL setup file Josh pastes into each cloud project's SQL editor, typing his own email there; runbook step. No personal data committed. |
+| Q-0035 | 2026-10-12 | (b): send from EZ Binder's verified ezcontractorbinder.com for now. Also: everything that sends an email must also generate and show the sender a link they can copy and paste, because emails still land in spam. Exception (orchestrator note, for security): sign-in emails cannot show their link on screen, since anyone who typed an email would get in; the sign-in page tells the user to check spam and accepts the 6-digit code. [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0036 | 2026-10-12 | (b) with a change: the sender shows as "<Company> via EZ Draft"; replies go to a company email address set in company settings (where all responses to the company are received), not to the individual sender. [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0037 | 2026-10-12 | (b): the review pill text uses the mockups' darker amber (new token, about oklch(0.48 0.13 65)); the spec amber stays for the dot. |
+| Q-0039 | 2026-10-12 | (c): no extra page or notice. Production shows whatever sign-in provides until Phase 1; the build-gate test signs in and opens /dev/shell. Josh is the only user and does not need an "under construction" screen. |
+| Q-0040 | 2026-10-12 | (c): tooltip radius 6 px, as the approved mockups (board-cited exception token). [Josh answered with the batch file's letter (a); this is option (c) in the question above.] |
+| Q-0041 | 2026-10-12 | Build both modes, chosen per environment: previews default to the stub transport now (no paid accounts); a setting can switch a preview to live sending later if Josh allows small tests. |
+| Q-0043 | 2026-10-12 | (a): one active company per person in v1; inviting someone already active elsewhere is refused. |
+| Q-0046 | 2026-10-12 | (a): the planner's draft wording in vault/plans/EZD-007.md. |
+| Q-0047 | 2026-10-12 | (b): English / Español switch on the sign-in page, remembered on the device; the sign-in email carries both languages, English first. [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0048 | 2026-10-12 | (a): stay signed in until sign-out, deactivation, or 400 days unused. |
+| Q-0049 | 2026-10-12 | (b): emailed sign-in link and code valid 15 minutes. [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0050 | 2026-10-12 | (b): a person with a valid (unexpired, not cancelled) pending invite may sign in from the sign-in page; that accepts the invite. [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0051 | 2026-10-12 | (a): white lowercase "ez" on a cobalt square now; Josh may supply artwork later. |
+| Q-0053 | 2026-10-12 | Josh has no iPad: he uses an iPhone in the field and sometimes a Surface (believed to be a Surface Pro, to be confirmed). The full editor is built and tested for both the Surface and iPad landscape (Q-0088). iPad size: iPad Air 11-inch default, 1180 × 820. Surface Pro: about 1440 × 960 until confirmed. |
+| Q-0054 | 2026-10-12 | (a): full editor from 1024 px wide; below that the phone layout. |
+| Q-0055 | 2026-10-12 | (a): on screens narrower than the desktop reference, Share, Export and Stop editing show only their icon (name as tooltip and for screen readers). |
+| Q-0056 | 2026-10-12 | (a): "Editing is done on an iPad or a computer. Open this project there." (Spanish per Q-0030). |
+| Q-0057 | 2026-10-12 | (b): dialog radius 14 px, as the approved mockups (board-cited exception token). [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0058 | 2026-10-12 | (a): toasts clear after 5 seconds; toasts that need an answer stay until used or closed. |
+| Q-0059 | 2026-10-12 | (a): up to 5 tries per job step, waiting 1, 2, 4 and 8 minutes; paid kinds may set fewer in their own tickets. |
+| Q-0065 | 2026-10-12 | (b): real fixtures are committed only after Josh removes names, addresses and photo location data; the README says so. The repository will be made private after the app is built (public for now for the free tooling). |
+| Q-0067 | 2026-10-12 | (b): failed-job and failed-webhook emails also go to the Owner(s) of that job's company; errors with no company go to the single ALERT_EMAIL_TO address. |
+| Q-0068 | 2026-10-12 | (a): one email per failed job and per failed webhook delivery, at most 20 alert emails per rolling hour. |
+| Q-0069 | 2026-10-12 | (a): the planner's draft in vault/plans/EZD-024.md Approach Step 8. |
+| Q-0070 | 2026-10-12 | (a): a new free Sentry organization with one ezdraft project; Sentry's own new-issue emails turned off. |
+| Q-0074 | 2026-10-12 | (a): Backblaze B2. Also: the system limits how much storage each company can use (Q-0089). |
+| Q-0075 | 2026-10-12 | (c), Josh's own rule: replaced or deleted file versions kept 90 days off-site, weekly database dumps kept 13 weeks. Users are regularly prompted to delete older data, and each company has a storage limit (Q-0089). |
+| Q-0076 | 2026-10-12 | Deferred: Josh decides which accounts serve Gemini and Flux after testing the top options; the live render trial moves to after Phase 10 (Q-0082). EZD-021 builds the adapters with the endpoint configurable. |
+| Q-0077 | 2026-10-12 | Build both modes, chosen per environment: previews default to AI_MODE=stub now (no paid accounts); a setting can switch a preview to live later if Josh allows small tests. |
+| Q-0078 | 2026-10-12 | (a): EZ Binder keeps each EZ Draft project id and opens that project; with only a job id, EZ Draft shows that job's projects. |
+| Q-0080 | 2026-10-12 | (b): the version the client signed off (selection set approval), with client-ready renders. [Josh answered with the batch file's letter (a); this is option (b) in the question above.] |
+| Q-0081 | 2026-10-12 | (a): EZ Binder asks for the project type and sends it; type is required in the contract. |
+| Q-0082 | 2026-10-12 | Deferred: the live render trial runs after Phase 10, using the app's real 3D views. EZD-031 closes in Phase 0 on its stub run; the provider pick (R21) is needed before Phase 11. |
+| Q-0083 | 2026-10-12 | (a): fixed opening sentence plus one or two sentences from Josh per room on finishes. |
+| Q-0084 | 2026-10-12 | Deferred: Josh chooses models and settings when he runs the trial (after Phase 10); the script lets him pick at run time. |
+| Q-0086 | 2026-10-12 | (a): "Can't reach the database. Try again in a minute." / "You don't have permission to do that." / "That job no longer exists." |
+| Q-0020 | 2026-10-12 | Build it: Phase 11 still builds the local render worker protocol (R18 stands), for a future GPU machine. |
+| Q-0088 | 2026-10-12 | Tablet targets: the full editor is built and tested for the Surface (Surface Pro, about 1440 × 960, model to be confirmed) and iPad landscape (1180 × 820). Josh uses an iPhone in the field and sometimes a Surface; the EZD-027 drawing-speed field run is on the Surface. |
+| Q-0090 | 2026-10-12 | Passwords too: people can sign in with email and password as well as by emailed link or 6-digit code. The owner (Manage users) can set a password for a crew member and hand it over, like EZ Binder. Overrides "no passwords" in the EZD-007 row. Invites still generate a copy link for the inviter. |
+| Q-0091 | 2026-10-12 | Sign-in page is password first: email and password boxes with "Sign in"; "Email me a sign-in link instead" underneath; "Forgot password? Email me a code". Wrong password: "Email or password is wrong." |
+| Q-0092 | 2026-10-12 | Reset-requested email (no link): "Someone asked to reset your EZ Draft password. Open EZ Draft and choose 'Email me a code' to sign in. If this wasn't you, ignore this email." |
+| Q-0093 | 2026-10-12 | No bot check on sign-in for now; revisit before other companies join. |
+| Q-0097 | 2026-10-12 | The Surface drawing-speed run (EZD-027) is judged as a tablet: 30 fps, 95th-percentile frame ≤ 34.33 ms, no frame over 100 ms. |
+| Q-0098 | 2026-10-12 | Icon-only header buttons: Share uses `share`, Export uses `download`. |
+| Q-0099 | 2026-10-12 | A person with valid invites from several companies who signs in gets the most recent invite accepted; the others stay pending. |
+| Q-0100 | 2026-10-12 | "You're signed out. Sign in again to continue." and the sign-in spam hint "Not in your inbox? Check your spam or junk folder." |
+| Q-0101 | 2026-10-12 | Sign-in throttle messages: "Too many wrong passwords. Use 'Forgot password? Email me a code', or try again in 15 minutes." / "Too many wrong codes. Try again in 15 minutes." / "Too many sign-in emails. Try again in an hour." / "Too many sign-in tries from this network. Try again in 15 minutes." |
+| Q-0102 | 2026-10-12 | Recovery email subject "EZ Draft password reset requested"; confirmation-code email subject "Your EZ Draft confirmation code", body "Type this code in EZ Draft to confirm it's you: {code}. If you didn't ask for this, ignore this email." |
 
 Still pending from Josh as of 2026-10-11 (tickets that depend on these stay blocked; everything else continues): R23 vendor cabinet line, Supplier 2020 sample, architect DXFs, real per-render costs.

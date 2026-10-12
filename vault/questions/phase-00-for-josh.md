@@ -1,5 +1,7 @@
 # Phase 0 · Questions for Josh
 
+> **Answered by Josh on 2026-10-12** (in chat), plus follow-ups Q-0088 to Q-0105. Answers are recorded in `QUESTIONS.md` and `spec/decisions.md` · Build answers (Josh). Josh answered with this file's letters (recommended option first); where that differs from the question's own letter the ledger row says so. Still open after this round: Q-0002 (deferred until tested), Q-0038 (Phase 2), Q-0089 (storage limit, later phase), Q-0096 (Phase 1 password choices).
+
 Written Oct 11, 2026 (night run, unattended). Each question: what it is about, the options, and a recommendation first with the reason. Answer in any form ("Q-0030: a", "all recommended except Q-0047: a"); the orchestrator records your answers in `QUESTIONS.md` and `spec/decisions.md`. Full question text: `vault/questions/QUESTIONS.md`. Plans: `vault/plans/EZD-xxx.md`.
 
 **Fastest path:** reply "all recommended" and name only the ones you want different. The first two unblock most of Phase 0.
