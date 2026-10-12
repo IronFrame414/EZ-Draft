@@ -873,7 +873,7 @@
    "id": "EZD-023b",
    "phase": 0,
    "title": "Environments, promote and rollback",
-   "depends_raw": "EZD-023a, EZD-004, EZD-008",
+   "depends_raw": "EZD-023a, EZD-004, EZD-008, EZD-005",
    "spec_ref": "Non-functional · Operations; R26 R12",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md",
@@ -884,7 +884,8 @@
    "depends_on": [
     "EZD-023a",
     "EZD-004",
-    "EZD-008"
+    "EZD-008",
+    "EZD-005"
    ],
    "build_position": 12
   },

@@ -262,5 +262,12 @@ Josh's answers during the build. Each overrides the spec text and any earlier ro
 | Q-0100 | 2026-10-12 | "You're signed out. Sign in again to continue." and the sign-in spam hint "Not in your inbox? Check your spam or junk folder." |
 | Q-0101 | 2026-10-12 | Sign-in throttle messages: "Too many wrong passwords. Use 'Forgot password? Email me a code', or try again in 15 minutes." / "Too many wrong codes. Try again in 15 minutes." / "Too many sign-in emails. Try again in an hour." / "Too many sign-in tries from this network. Try again in 15 minutes." |
 | Q-0102 | 2026-10-12 | Recovery email subject "EZ Draft password reset requested"; confirmation-code email subject "Your EZ Draft confirmation code", body "Type this code in EZ Draft to confirm it's you: {code}. If you didn't ask for this, ignore this email." |
+| Q-0106 | 2026-10-12 | Releases are automatic when Josh merges the phase PR into main: a GitHub Actions workflow backs up the production database, applies migrations and makes the build live, stopping with the live site unchanged on any failure. Production secrets live only in a GitHub environment limited to main; agents never see them. Josh's merge is the only approval. |
+| Q-0107 | 2026-10-12 | Migrations reach the cloud dev database automatically on every push to develop that changes them (overrides Q-0023). |
+| Q-0108 | 2026-10-12 | Agents use a separate GitHub account with Write access only; they push develop and open PRs; only Josh approves and merges into main (branch protection requires his approval of the latest push). |
+| Q-0109 | 2026-10-12 | Shared Vercel team with EZ Binder; the release token is scoped to that team and expires every 90 days; all secret variables marked Sensitive. |
+| Q-0110 | 2026-10-12 | The cloud dev database holds made-up test data only. |
+| Q-0111 | 2026-10-12 | Backups and release dumps are locked against deletion for at least 91 days (B2 Object Lock, Governance mode). |
+| Q-0113 | 2026-10-12 | One Supabase project for now (dev/test). Nothing goes live until the app is mostly finished; the production project, production secrets, Sentry, Backblaze and release keys are set up from a "Before launch" checklist. Until then a merge to main releases nothing, and field checks use the develop preview. |
 
 Still pending from Josh as of 2026-10-11 (tickets that depend on these stay blocked; everything else continues): R23 vendor cabinet line, Supplier 2020 sample, architect DXFs, real per-render costs.

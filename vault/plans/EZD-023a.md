@@ -1,13 +1,13 @@
 # EZD-023a · Release safety: migration check
 
-Phase: 0 · Planned by: planner · Date: 2026-10-11 · Status: planned
+Phase: 0 · Planned by: planner · Date: 2026-10-11 (revised 2026-10-12 for Q-0106: release tags are created by EZD-023b's release workflow through the GitHub API, so the check fetches the release tags from `origin` locally as well as in CI; revised 2026-10-12 for Q-0112 (tag ruleset) and Q-0113 (no tag until launch)) · Status: planned
 
 ## Ticket (copied from the phase file)
 Scope: A CI check (run through the gate's lint step) that refuses a migration which drops or renames something the previous tag still reads, plus edited or deleted released migrations. Split from EZD-023 (Q-0042); plan Part A.
 Done when: CI fails a fixture migration that drops a column the previous tag reads.
 Depends on: EZD-002, EZD-004. Also, not in the ticket row:
 - **EZD-002** (the row). Its rule for later tickets: add a CI check by putting it in a script the gate already runs, never by editing `.github/workflows/ci.yml` (vault/plans/EZD-002.md Step 4). CI runs only on the phase PR to `main` and by manual dispatch (commit aad5540; ci.yml `on:`). Only Josh edits `ci.yml` and `scripts/gate.mjs` (`.claude/hooks/guard-paths.mjs`).
-- **EZD-004** (the row). `supabase/migrations/` and its timestamp naming, and the `supabase` CLI (vault/plans/EZD-004.md Steps 1–2). EZD-004's plan also says "Prod receives migrations only through EZD-023's promote script". That promote script is EZD-023b, which re-runs this check.
+- **EZD-004** (the row). `supabase/migrations/` and its timestamp naming, and the `supabase` CLI (vault/plans/EZD-004.md Steps 1–2). EZD-004's plan says production is migrated only by EZD-023b's release workflow, whose secrets sit in the GitHub environment `release` (vault/plans/EZD-004.md Sources; Q-0106; named `release` because the repo's `Production` environment belongs to Vercel, vault/plans/EZD-023b.md Depends on). That workflow re-runs this check with `--base <highest tag below the new name> --head <sha>` before it changes anything (vault/plans/EZD-023b.md Step 6 step 8).
 - **EZD-000 and EZD-001** (transitive, used directly):
   - the root `lint` script that this ticket extends (EZD-000 Step 1);
   - the `## Migrations` rule "Add before remove … check by EZD-023";
@@ -16,6 +16,7 @@ Depends on: EZD-002, EZD-004. Also, not in the ticket row:
   - EZD-001 Step 6: root `scripts/**/*.test.mjs` tests always run in full on every ticket (Q-0006);
   - EZD-001 Step 6.4: Josh's gate change adds a one-gate-at-a-time lock (Q-0019).
 - **EZD-023b depends on this ticket.** It reads `scripts/release/tags.mjs`, the `--base`/`--head` mode of the check, and `scripts/release/__tests__/git-fixture.mjs`.
+- **Q-0106** (answered-josh 2026-10-12; decisions.md · Build answers (Josh)): releases are a GitHub Actions workflow on Josh's merge into `main`; the Josh-run `release:tag`, `release:promote` and `release:check-env` scripts are removed (vault/plans/EZD-023b.md "Answered since the first draft"). The workflow creates each `phase-N` / `phase-N.k` tag on GitHub through the API (vault/plans/EZD-023b.md Step 6 step 16), so a PC sees a new tag only after a fetch from `origin`. Applied in Step 1, Step 4 (tag fetch), T15, T16 and Risks.
 Spec ref: Non-functional · Operations; R26 R12
 
 ## Sources read
@@ -24,11 +25,12 @@ Spec ref: Non-functional · Operations; R26 R12
   - `02-product-overview.md`. Named tools: "Database migrations: Supabase CLI migrations, timestamp-named"; "CI and repository: GitHub with GitHub Actions".
   - `03-data-model.md`: intro and Architecture rule 5.
   - `04-app-shell-and-global-ui.md`: read; no screen here.
-- Decisions: R26 R11, R12; R33. Q-0006, Q-0019 (decisions.md · Build answers (Josh)). Q-0007, Q-0010, Q-0042 (QUESTIONS.md).
+- Decisions: R26 R11, R12; R33. Q-0006, Q-0019, Q-0106 (decisions.md · Build answers (Josh)). Q-0007, Q-0010, Q-0042 (QUESTIONS.md).
 - Process and kit: `vault/PROCESS.md`, `vault/KNOWN-LIMITS.md`, `vault/tickets/README.md`, `CLAUDE.md`, `scripts/gate.mjs` (`required` includes `lint`; sets `CI=1`), `.github/workflows/ci.yml` (`actions/checkout@v4` with defaults, then `node scripts/gate.mjs .`), `.claude/hooks/guard-paths.mjs`, `.gitattributes` (`eol=lf`).
 - Earlier plans:
   - `vault/plans/EZD-000.md`, `EZD-001.md`, `EZD-002.md`, `EZD-004.md`.
   - `EZD-005.md`. Its Risks ask that a widened check constraint be treated as non-destructive.
+  - `EZD-023b.md` (re-planned 2026-10-12 for Q-0106): Step 3 (checkout `fetch-depth: 0`), Step 6 steps 4, 8 and 16 (`git fetch origin main --tags`; this check; tag creation through the GitHub API).
   - This plan extends their files and replaces nothing.
 - Mockup: none (no screen; `tickets.json` `mockups: []`).
 
@@ -49,7 +51,8 @@ Technical choices that no source makes are marked *planner's choice (CLAUDE.md r
   - `listReleaseTags(git)`: every local tag that parses, sorted ascending (`git tag --list 'phase-*'`);
   - `previousReleaseTag(tags, below?)`: the highest tag, or the highest tag lower than `below`.
 - **No ancestry check.** Release tags sit on `main`'s merge commits, and those are not ancestors of `develop` (Q-0007 flow). So "previous tag" means the highest release tag that exists.
-- Tags are created only by Josh, through EZD-023b's `release:tag`.
+- **Who creates tags.** Only EZD-023b's release workflow, on `main`, through the GitHub API (`github.createTag`, an annotated tag object plus its ref), after the migrations are applied to production and before the build goes live (vault/plans/EZD-023b.md Step 6 step 16; Q-0106). No local command creates a release tag, and agents are denied the release commands (`.claude/settings.json`, commit 8d9553d). So a tag exists on `origin` first and reaches a PC only by a fetch (Step 4, "Tag fetch").
+- **Tags cannot be moved or deleted** (Q-0112: "tag ruleset phase-*"). Josh sets a GitHub tag ruleset on the pattern `phase-*` that blocks updates and deletions (vault/plans/EZD-023b.md "Josh's GitHub and account settings" item 5). So once the release workflow has tagged a commit, nobody (an agent with the Write role, Q-0108, included) can point that tag at another commit or remove it, and "the previous tag" this check compares against stays what production received. This is also why the tag fetch may use `+` to overwrite a local tag (Step 4): `origin`'s tags are the fixed record. Creation stays allowed so the workflow can tag.
 
 ### Step 2: What "still reads" means (*planner's choice*; the code-reviewer confirms)
 A static check cannot see what the app reads. The rule is:
@@ -106,34 +109,36 @@ A static check cannot see what the app reads. The rule is:
 
 | ID | Fails when |
 | --- | --- |
-| M0 | In CI, the release tags cannot be fetched (the check fails closed) |
+| M0 | In GitHub Actions (CI on the phase PR, or the release workflow), the release tags cannot be fetched from `origin` (the check fails closed). Locally a failed fetch is the warning `tags_not_fetched`, not M0 |
 | M1 | A new migration drops or renames an object, and that object is (1) not created by a new migration with a version ≤ its own and (2) not retired in the **base tag's** `retired.json`, nor inside a retired table there |
 | M2 | A released migration is changed at the head (text compared after normalizing line endings to LF) or removed |
 | M3 | A new migration's 14-digit version is ≤ the newest released version. `supabase db push` refuses out-of-order files without `--include-all` *(builder confirms)* |
 | M4 | `findUnverifiable` matches in a new migration |
 | M5 | The head's `supabase/retired.json` is missing, is not JSON, or has a wrong shape, kind or segment count. This is checked even when no tag exists |
 
-- **No release tag yet.** The check prints `no release tag yet: nothing is released` and checks M5 only. This is the state through Phase 0 until Josh's first `release:tag` (EZD-023b).
-- **CLI:** `node scripts/release/check-migrations.mjs [--root <dir>] [--base <tag>] [--head <git ref>]`.
+- **No release tag yet.** The check prints `no release tag yet: nothing is released` and checks M5 only. This is the state until the release workflow tags the first real release before launch (vault/plans/EZD-023b.md Step 6 step 16; Q-0106). Under Q-0113 nothing is live until the app is mostly finished, and until then every merge into `main` ends `not_configured` without a tag, so through those phases the check only enforces M5, which is correct: nothing is released, so nothing can break a released build.
+- **CLI:** `node scripts/release/check-migrations.mjs [--root <dir>] [--base <tag>] [--head <git ref>] [--no-fetch]`.
   - `--root` defaults to the current folder.
   - `--base` defaults to `previousReleaseTag(listReleaseTags())`.
   - `--head` defaults to the working tree: `<root>/supabase/migrations/*.sql` and `<root>/supabase/retired.json`.
-  - With a ref, `--head` reads the files with `git ls-tree` and `git show <ref>:<path>`. EZD-023b uses this to compare a tag being promoted with the tag before it.
+  - With a ref, `--head` reads the files with `git ls-tree` and `git show <ref>:<path>`. EZD-023b's release workflow uses this with `--head <sha>`, the merge commit it is about to tag, and `--base` the highest tag below the new name (vault/plans/EZD-023b.md Step 6 step 8).
   - Base files are always read from git.
   - Output: one line per violation, `[Mn] <file>: <object> <detail>`, then a summary naming the base tag.
   - Exit code 1 if there is any violation, otherwise 0.
-- **CI tag fetch.**
-  - `actions/checkout@v4` fetches with depth 1 and no tags by default *(builder confirms)*, and ci.yml uses those defaults.
-  - So when `GITHUB_ACTIONS === 'true'`, the CLI first runs `git fetch --no-tags --depth=1 origin "+refs/tags/phase-*:refs/tags/phase-*"`. A failed fetch gives M0.
-  - Locally the CLI fetches nothing. The build PC is the checkout where Josh tags, and worktrees share its tags.
+- **Tag fetch (every run, locally and in CI).** Release tags are made on GitHub by the release workflow (Step 1), so the local tags of a PC or a CI checkout can be missing the newest one. Before it lists tags, the CLI fetches exactly the release tags from `origin`:
+  - Command: `git fetch --no-tags origin "+refs/tags/phase-*:refs/tags/phase-*"`. The `+` lets `origin` overwrite a local tag of the same name, because `origin` is now where tags are made. Run with `GIT_TERMINAL_PROMPT=0` and a 30 s timeout (*planner's choice*), so an offline PC never waits on a prompt.
+  - Depth: `--depth=1` is added only when `git rev-parse --is-shallow-repository` prints `true`. A shallow checkout (ci.yml: `actions/checkout@v4` defaults, depth 1 and no tags *(builder confirms)*) then gets each tag's commit only. A full checkout (EZD-023b's release job: `fetch-depth: 0`, vault/plans/EZD-023b.md Step 3) is never made shallow by this fetch (T15 (f)).
+  - In GitHub Actions (`GITHUB_ACTIONS === 'true'`): a failed fetch gives **M0** (fails closed), and `--no-fetch` is ignored. This covers CI on the phase PR and the release workflow, which has already run `git fetch origin main --tags` in its own step 4 (vault/plans/EZD-023b.md Step 6 step 4), so there the fetch only confirms the same tags.
+  - Locally (no `GITHUB_ACTIONS`): the gate's `lint` runs the check, so every gate run on the build PC fetches the newest tags first. Worktrees share the main checkout's tags, so one fetch serves all of them. A failed fetch (offline PC, `origin` unreachable) prints the code `tags_not_fetched` and the check goes on with the local tags (*planner's choice*: a local run with fewer tags is less strict, and CI on the phase PR, which fails closed, is the real gate; Risks).
+  - `--no-fetch` (local runs only) skips the fetch and prints `tags_not_fetched (--no-fetch)`. Only tests use it, so no test reaches GitHub (T16).
   - Tests use a local bare repository as `origin` and never touch the network.
 
 ### Step 5: Wiring and docs
 - **Root `package.json` `lint`** (extend; do not replace). Insert `node scripts/release/check-migrations.mjs` right after EZD-000's `node scripts/conventions/check.mjs` and before the fan-out.
-- **Chain of failure:** `scripts/gate.mjs` runs `lint` (gate.mjs `required`), and `.github/workflows/ci.yml` runs `node scripts/gate.mjs .`. So a destructive migration fails the phase PR. No ci.yml edit is needed (EZD-002 Step 4).
+- **Chain of failure:** `scripts/gate.mjs` runs `lint` (gate.mjs `required`), and `.github/workflows/ci.yml` runs `node scripts/gate.mjs .`. So a destructive migration fails the phase PR. No ci.yml edit is needed (EZD-002 Step 4). The release workflow runs the same check once more on the merge commit before it changes production (vault/plans/EZD-023b.md Step 6 step 8, `migration_check_failed`).
 - **`supabase/retired.json`:** new, `{ "retired": [] }`.
 - **`docs/architecture.md`**, under existing headings only (EZD-000 T5):
-  - `## Migrations` gets a new `### Release safety (EZD-023a)`. It covers the tag format, "reads" as defined in Step 2, the two-step removal, M0–M5, what is not checked (indexes, triggers, policies, constraints, `truncate`, column type changes), and "never edit a released migration".
+  - `## Migrations` gets a new `### Release safety (EZD-023a)`. It covers the tag format, "tags are made only by the release workflow on GitHub (EZD-023b)", the tag fetch (every run; fails closed in GitHub Actions, warns `tags_not_fetched` locally), "reads" as defined in Step 2, the two-step removal, M0–M5, what is not checked (indexes, triggers, policies, constraints, `truncate`, column type changes), and "never edit a released migration".
   - Fill in EZD-000's Machine checks row "destructive migrations" with `scripts/release/check-migrations.mjs (root lint) | EZD-023a`.
 - No new dependency (CLAUDE.md rule 11).
 
@@ -182,13 +187,13 @@ None. No table, column, policy or schema_version change. `supabase/retired.json`
 | T8 Released migrations are frozen | unit | (a) The head changes one character in `20261101000000_create_fixture.sql`. (b) The head removes it. (c) The head has the same text with CRLF line endings | (a) and (b): `M2` naming that file. (c) ok | Step 4 M2; `.gitattributes` `eol=lf` |
 | T9 Out-of-order version | unit | New migration `20261031000000_late.sql` with additive SQL | `M3` naming that file | Step 4 M3 |
 | T10 Unverifiable | unit | (a) `create table public.tmp_y (a int); drop table tmp_y cascade;`; (b) `do $$ begin execute 'drop table fixture_item'; end $$;`; (c) `create function f() returns void language plpgsql as $$ begin alter table fixture_item drop column legacy_note; end $$;` | Each: `ok === false` with an `M4` violation for that file | Step 3 `findUnverifiable` |
-| T11 No tag yet | unit (git) | A fixture repo with no tags. The working tree adds a migration that drops `legacy_note` | Exit 0. Output contains `no release tag yet` | Step 4 (state until the first release) |
+| T11 No tag yet | unit (git) | A fixture repo with a bare `origin`, and no tags on either. The working tree adds a migration that drops `legacy_note` | Exit 0. Output contains `no release tag yet` | Step 4 (state until the first release) |
 | T12 retired.json shape | unit (git, no tags) | The head's `supabase/retired.json`, one case at a time: `not json`; `{"retired":[{"kind":"index","name":"public.x"}]}`; `{"retired":[{"kind":"column","name":"public.fixture_item"}]}`; file deleted | Each: exit 1 with `[M5]` | Step 2 format; Step 4 M5 |
 | T13 Tag order | unit | Tags `phase-0`, `phase-1`, `phase-1.2`, `phase-10`, `phase-2`, `v3`, `phase-01`, `phase-1.0` | `listReleaseTags` gives `phase-0, phase-1, phase-1.2, phase-2, phase-10`, ignoring `v3`, `phase-01` and `phase-1.0`. `previousReleaseTag(tags, 'phase-2')` = `phase-1.2`. `previousReleaseTag(tags)` = `phase-10` | Step 1 |
 | T14 Ref mode (used by EZD-023b) | unit (git) | Tag `phase-0` = `FIX`. Tag `phase-1` adds T1's drop migration. Working tree is clean at `phase-0` | `--base phase-0 --head phase-1`: exit 1 with `[M1]`. `--base phase-0 --head phase-0`: exit 0 | Step 4 CLI |
-| T15 CI fetch fails closed; local run does not fetch | unit (git) | A clone whose `origin` URL points to a missing path, with no local tags: (a) `GITHUB_ACTIONS=true`; (b) no `GITHUB_ACTIONS` | (a) Exit 1 with `[M0]`. (b) Exit 0 with `no release tag yet`; no fetch is attempted | Step 4 CI tag fetch |
-| T16 Real repo passes | unit | `node scripts/release/check-migrations.mjs` at the repo root | Exit 0 | Step 5 (the check must not fail the clean repo) |
-| T17 Docs | unit | `docs/architecture.md`; `supabase/retired.json` | A `### Release safety (EZD-023a)` heading sits under `## Migrations` and contains `supabase/retired.json`, `phase-`, `M1`, `M2`, `M3`, `M4`, `M5`. A Machine checks row ends in `EZD-023a` and contains `scripts/release/check-migrations.mjs`. `retired.json` passes the M5 shape rules. `node scripts/conventions/check.mjs .` exits 0 | Step 5; EZD-000 T5, C1 |
+| T15 Tag fetch: CI fails closed, local run fetches new tags | unit (git) | (a)–(c), (e): a clone whose `origin` URL points to a missing path, with no local tags. (a) `GITHUB_ACTIONS=true`; (b) no `GITHUB_ACTIONS`; (c) no `GITHUB_ACTIONS`, with `--no-fetch`; (e) `GITHUB_ACTIONS=true`, with `--no-fetch`. (d): a bare `origin` with `FIX` on `main`; a full clone (`git clone --no-tags`) made before `phase-0` exists; then `phase-0` is created and pushed **in `origin` only** (as the release workflow does on GitHub); the clone's working tree adds T1's drop migration; no `GITHUB_ACTIONS`. (f): (d)'s setup with a full clone (not shallow) and `GITHUB_ACTIONS=true`, then `git rev-parse --is-shallow-repository` in the clone | (a) Exit 1 with `[M0]`. (b) Exit 0; output contains `tags_not_fetched` and `no release tag yet`. (c) Exit 0; output contains `tags_not_fetched (--no-fetch)` and `no release tag yet`. (d) Exit 1 with `[M1]` naming `public.fixture_item.legacy_note` and `phase-0`; afterwards `git tag --list phase-0` in the clone prints `phase-0`. (e) Exit 1 with `[M0]` (`--no-fetch` is ignored in Actions). (f) Exit 1 with `[M1]`; the shallow check prints `false` | Step 1 (tags are made on GitHub, Q-0106); Step 4 tag fetch; vault/plans/EZD-023b.md Step 3 (`fetch-depth: 0`) |
+| T16 Real repo passes | unit | `node scripts/release/check-migrations.mjs --no-fetch` at the repo root (no `GITHUB_ACTIONS`; the test never reaches GitHub) | Exit 0 | Step 5 (the check must not fail the clean repo); Step 4 (`--no-fetch`) |
+| T17 Docs | unit | `docs/architecture.md`; `supabase/retired.json` | A `### Release safety (EZD-023a)` heading sits under `## Migrations` and contains `supabase/retired.json`, `phase-`, `tags_not_fetched`, `M0`, `M1`, `M2`, `M3`, `M4`, `M5`. A Machine checks row ends in `EZD-023a` and contains `scripts/release/check-migrations.mjs`. `retired.json` passes the M5 shape rules. `node scripts/conventions/check.mjs .` exits 0 | Step 5; EZD-000 T5, C1 |
 | T18 Gate (orchestrator) | gate | `node scripts/gate.mjs <worktree>` | Exit 0: `typecheck`, `lint`, `test`, `build` pass | CLAUDE.md rule 9 |
 
 ## Reviewers needed
@@ -197,11 +202,13 @@ code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (no 
 ## Risks
 - **Static SQL scan limits.** The scan covers drops and renames of tables, columns, views, functions, types and schemas. It does not cover column **type** changes, `truncate`, or view and function changes that alter the result shape. The ticket covers only "drops or renames", so the code-reviewer watches for the rest.
 - **The retired list is a claim.** That nothing at the tag still reads a retired object is checked by the code-reviewer, not by a machine.
-- **Local tags.** The local gate sees only local tags. The build PC is where Josh tags (EZD-023b), so they match. A clone without tags passes locally and is stricter in CI, which fetches tags. That is the safe direction.
-- **Tagged but never promoted.** A tag that was never promoted only makes the check stricter.
+- **Local tags.** Tags are made on GitHub by the release workflow (Q-0106), never on the build PC, so the local gate fetches them from `origin` on every run (Step 4). If the PC is offline, the run warns `tags_not_fetched` and checks against the tags it already has: less strict, never stricter. CI on the phase PR fetches and fails closed (M0), and the release workflow re-runs the check on the merge commit (vault/plans/EZD-023b.md Step 6 step 8). That is the safe direction.
+- **The gate now talks to GitHub.** Each local gate run makes one `git fetch` of the `phase-*` tags from the public repo (a few KB). It never pushes, needs no credentials (public repo, `GIT_TERMINAL_PROMPT=0`) and is bounded by the 30 s timeout. Tests never reach it (bare fixture `origin`s; T16 uses `--no-fetch`).
+- **Tag whose build never went live.** The workflow tags after the migrations are in production and before the build goes live, so a run ending in `promote_failed` or `verify_failed` still leaves a tag (vault/plans/EZD-023b.md Step 6 step 16, Risks "Tag but no live build"). Treating its migrations as released is correct, because production has them.
 - **Gate inside a gate.** Josh's gate lock (EZD-001 Step 6.4) refuses a gate started inside another gate. EZD-002's T3 runs `scripts/gate.mjs` on fixtures from inside a test that itself runs under the gate, so it would fail once the lock is applied. For the orchestrator (Level 2): this is EZD-002's issue, and T3 here avoids it.
 - **Every ticket runs these tests.** Root node tests run on every ticket (EZD-001 Step 6.1). This ticket spawns about 30 short git processes. The test-author keeps each fixture small so the run stays within seconds on the 16 GB PC (Q-0019).
-- **First real use.** No tag exists until the Phase 0 release, so in Phase 0 the check only validates `retired.json`. Its first real comparison happens in Phase 1.
+- **First real use.** No tag exists until the first real release before launch (Q-0113), so until then the check only validates `retired.json`. Its first real comparison happens on the first change after launch. Migrations written before launch are all "unreleased", so they may drop and rename freely; that is correct, because no live build reads them.
+- **Tag creation is not restricted.** The tag ruleset blocks updating and deleting `phase-*` tags, not creating them (the release workflow must create them). An agent with the Write role (Q-0108) could therefore push a new `phase-*` tag. A tag newer than every real one would make the next release stop at `not_newer` (vault/plans/EZD-023b.md Step 6 step 7) and would change this check's base: the fail-safe direction for releases, but it can make this check less strict. The code-reviewer and the security-reviewer's "Production-sensitive changes" section (vault/PROCESS.md Phase gate) watch for tag pushes; a ruleset that also restricts creation, with the release workflow allowed to bypass it, is possible if GitHub allows that bypass for Actions *(orchestrator confirms; not proposed here)*.
 
 ## Open questions
-None.
+None. Applied 2026-10-12: Q-0112 (tag ruleset `phase-*` blocks updates and deletions, set by Josh; Step 1 "Tags cannot be moved or deleted", Risks) and Q-0113 (no release tag until the first real release before launch; Step 4 "No release tag yet", Risks).

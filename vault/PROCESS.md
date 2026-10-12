@@ -90,10 +90,10 @@ Special tickets:
 
 0. `node vault/tools/next_ticket.mjs --check` must pass.
 1. Full gate on `develop`, plus the phase's "Build gate" test from its phase file.
-2. security-reviewer over the whole phase diff.
+2. security-reviewer over the whole phase diff. It also reviews every change to production-sensitive paths (`.github/workflows/**`, `scripts/release/**`, `scripts/backup/**`, `scripts/hosting/**`, `supabase/migrations/**`, `supabase/bootstrap/**`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.npmrc`) and writes a plain-language "Production-sensitive changes: PASS / FAIL" section for the PR (Q-0112). A FAIL blocks the PR.
 3. phase-auditor (Fable) over the whole phase against the spec.
-4. Orchestrator opens a PR `develop` → `main` titled `Phase N: <name>` with: tickets done, tickets blocked and why, questions answered by agents (for Josh to confirm), and the phase's Field check.
-5. Josh clicks through the Vercel preview, merges the PR, and starts the next phase.
+4. Orchestrator opens a PR `develop` → `main` titled `Phase N: <name>` (from the agents' GitHub account, Q-0108) with: tickets done, tickets blocked and why, questions answered by agents (for Josh to confirm), the "Production-sensitive changes" section, and the phase's Field check.
+5. Josh clicks through the Vercel preview, approves and merges the PR. Merging releases automatically (Q-0106): the release workflow backs up production, applies migrations and makes the build live, or stops with the live site unchanged. Then he starts the next phase.
 
 ## Ledgers
 

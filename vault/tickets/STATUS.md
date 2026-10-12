@@ -52,7 +52,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-022 | 0 | Event registry | ready | EZD-001 |  |  |  |
 | EZD-000 | 0 | Architecture conventions | ready | — |  |  |  |
 | EZD-023a | 0 | Release safety: migration check | ready | EZD-002, EZD-004 |  |  | Split from EZD-023 (Q-0042) |
-| EZD-023b | 0 | Environments, promote and rollback | ready | EZD-023a, EZD-004, EZD-008 |  |  | Split from EZD-023 (Q-0042) |
+| EZD-023b | 0 | Environments, promote and rollback | ready | EZD-023a, EZD-004, EZD-008, EZD-005 |  |  | Split from EZD-023 (Q-0042) |
 | EZD-024 | 0 | Error reporting | ready | EZD-008, EZD-009, EZD-026a, EZD-016a, EZD-022 |  |  |  |
 | EZD-025 | 0 | Off-site backups and restore script | ready | EZD-004, EZD-009, EZD-023b, EZD-005, EZD-006 |  |  |  |
 | EZD-026a | 0 | Message helper: helper, catalogs, lint | ready | EZD-001, EZD-010 |  |  | Split from EZD-026 (Q-0028) |
