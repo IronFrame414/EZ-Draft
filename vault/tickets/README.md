@@ -19,7 +19,7 @@ There is no schedule. Work the phases in order; within a phase, work the tickets
 
 1. Read before building: the ticket row, the sections its Spec ref names, Data model, App shell, and Non-functional requirements (Performance) in the main tab. Also read the Architecture rules in Data model and the conventions file from EZD-000. Do not load the whole spec.
 2. The performance rules apply to every ticket. A ticket does not pass if the performance check from EZD-017 fails or a download-size budget is exceeded.
-3. The QA agent runs the whole test suite, not only the new test, and checks the ticket against its Spec ref and mockup.
+3. Each ticket's check runs the current phase's tests plus a smoke set, not only the new test; the full suite runs at the phase gate (Q-0006, Josh, Oct 11, 2026). The QA agent checks the ticket against its Spec ref and mockup.
 4. Tests never call a live AI model, email provider, render provider or EZ Binder. They use the recorded fixtures and stubs from EZD-008, EZD-016, EZD-019 and EZD-021. Timers such as the 5-minute lock release are read from Defaults so tests can shorten them.
 5. If the spec does not decide something, write the question to the handoff file and go on to the next ticket that does not depend on the answer. Do not guess. A layout detail with no rule follows the nearest Studio mockup. The mockup for screen Snn is the Studio board with the same number; boards on the Polished, Refined and Layout C pages of the design canvas are superseded and are never used.
 6. A screen marked "needs a mockup before build" is built from its Layout and Controls text with the Studio shell components unless Josh supplies a mockup first.

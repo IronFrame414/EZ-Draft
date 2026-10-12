@@ -23,3 +23,15 @@ Phase 0 passes on the local Supabase and the stub email provider. Only EZD-003 a
 | Terms of service text | EZD-1707 | The page ships with placeholder text |
 | A real vendor cabinet line | EZD-401, EZD-408 | The generic seed line is used |
 | Mockup exports of the 36 Studio boards in the vault | Every screen ticket | Done |
+
+**Added at Phase 0 planning (Oct 11, 2026).** Status of the account row above: Docker Desktop installed; Vercel, Supabase and Resend accounts exist, shared with EZ Binder (Q-0003). Still to come: DNS record for the subdomain, Claude API key, image-model API keys, Sentry, backup bucket at a second provider. The GitHub repository exists (`IronFrame414/EZ-Draft`, public).
+
+| Item | Needed by | Without it |
+| --- | --- | --- |
+| A few job photos (how they are handled in a public repo: Q-0065) | EZD-016b | Photo tests use synthetic images |
+| A revised version of one of the architect DXFs (same drawing, a later revision) | EZD-016b, 08 Import and export (revised architect DXF) | Revision compare is tested on a synthetic pair |
+| Render trial live run: 5 room images and instructions (Q-0082, Q-0083), keys for the three image providers (Q-0076), a spending cap typed at the run, and the next-day billed totals | EZD-031 field check, R21 provider pick (Q-0016) | The spike closes on the stub run; the provider pick waits |
+| iPad drawing-speed run on Josh's iPad over the office network (EZD-027) | EZD-027 note, architecture checkpoint before Phase 2 | Phase 2 cannot start (Q-0064) |
+| One-time install on the build PC: Playwright browsers `pnpm exec playwright install chromium webkit` (agents can run it once Josh approves) | EZD-007, EZD-016a | Browser tests cannot run |
+| Docker Desktop running whenever a build session runs | EZD-004 onward | Every check fails at the database step |
+| Database API gate secret (Q-0087): generate one secret and store it in each cloud Supabase project and in Vercel, per the EZD-006 runbook step | EZD-006 cloud setup, first release | The cloud app refuses all data requests (fails closed) |
