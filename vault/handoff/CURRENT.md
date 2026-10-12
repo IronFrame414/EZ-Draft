@@ -17,9 +17,8 @@ Phase: 0 · Stage: 2 questions done; ready for 3 build · Session ended because:
 ## Blocked / questions for Josh
 - Not blocking Phase 0: Q-0002 (deferred until tested; R14, R17, R18, R21, R24 stand), Q-0038 (Phase 2), Q-0089 (per-company storage limit, later phase), Q-0096 (Phase 1 password choices: ask at Phase 1 Stage 2).
 - **Josh steps before Stage 3** (from `vault/questions/phase-00-for-josh.md` section 8, walked through in chat):
-  1. `cp vault/handoff/gate.mjs.new scripts/gate.mjs` (Q-0006 scope + one-gate lock; EZD-001 T13 needs it). Not yet done.
-  2. `cp vault/handoff/build-phase-SKILL.md.new .claude/skills/build-phase/SKILL.md` (optional, recommended). Not yet done.
-  After he runs them: verify the files match, commit as Josh's change, delete the two `.new` files.
+  1. New `scripts/gate.mjs` applied by Josh (Q-0006 scope + one-gate lock). Done.
+  2. Build-phase skill step 8 uses `--phase <N>`, applied by Josh. Done.
   3. Docker Desktop running; approve the Playwright browser install when the build reaches EZD-007/EZD-016a.
 - Josh to confirm his Surface model (Settings → System → About); tests use Surface Pro 1440 × 960 until then (Q-0088).
 
@@ -35,5 +34,5 @@ Phase: 0 · Stage: 2 questions done; ready for 3 build · Session ended because:
 - Phase 0 ticket rows still say iPad for EZD-013's field check; plans use Josh's iPhone and Surface (Q-0088).
 
 ## Next
-1. Josh runs the two copy commands above (and starts Docker Desktop).
+1. Josh starts Docker Desktop.
 2. When EZ Binder's build on this PC is finished: `/build-phase 0` (first ticket EZD-000).
