@@ -36,6 +36,8 @@ Phase: 0 · Stage: 2 questions done; ready for 3 build · Session ended because:
 - Phase 1 planning: EZD-105b (owner sets a member's password) needs a row; EZD-108 gains "change password"; Q-0096; EZD-101 must switch EZD-024's Owner lookup; EZD-102/133, EZD-129, EZD-132, EZD-114/119/1305 notes in the plans.
 - Phase 0 ticket rows still say iPad for EZD-013's field check; plans use Josh's iPhone and Surface (Q-0088).
 
+- Build PC: WSL installed for Docker Desktop, memory capped at 6 GB in C:UsersJSBis.wslconfig until Josh installs more RAM (ordered Oct 12). Reminder task `ezdraft-remove-wsl-memory-cap` fires Oct 15, 9:00. After the upgrade, revisit Q-0019 (workers = 2, one gate at a time).
+
 ## Next
 1. Setup is complete. Josh starts Docker Desktop.
 2. When EZ Binder's build on this PC is finished: `/build-phase 0` (first ticket EZD-000).
