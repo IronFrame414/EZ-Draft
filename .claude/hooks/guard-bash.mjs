@@ -32,7 +32,7 @@ if (readOnly.includes(agent)) {
   if (/(^|[^>2&])>{1,2}(?!&)|\b(Set-Content|Out-File|Add-Content|New-Item|Move-Item|Copy-Item|mv|cp|rm|del|mkdir|touch|sed -i)\b/.test(c))
     deny(`${agent} is read-only: commands that write files are not allowed.`);
 }
-if (agent === 'builder' || agent === 'test-author') {
+if (agent === 'builder' || agent === 'builder-senior' || agent === 'test-author') {
   if (/\bgit\b[^;&|]*\b(push|merge|rebase|checkout|switch|branch)\b/.test(c))
     deny(`${agent} commits in its worktree only; the orchestrator handles branches, merges and pushes.`);
 }

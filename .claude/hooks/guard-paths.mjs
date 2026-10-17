@@ -45,6 +45,7 @@ const rules = {
 };
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) deny(`${agent} is read-only.`);
+rules['builder-senior'] = rules.builder; // same agent file with model: opus (vault/PROCESS.md, Agents)
 const reason = rules[agent]?.();
 if (reason) deny(reason);
 process.exit(0);

@@ -6,6 +6,10 @@
 // Runners read EZD_TEST_SCOPE, EZD_PHASE and EZD_TEST_GREP (see docs/architecture.md, Test scope).
 // Only one gate runs at a time on this machine (Q-0019).
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
+// It also prints the paths the branch touched (git diff --name-only develop...HEAD) and a
+// "SECURITY FLAG: <path>" line for each one matching SECURITY_PATHS. Flags never fail the gate;
+// they trigger the security review (vault/PROCESS.md, Stage 3 steps 6-7). Edit the list per project.
+const SECURITY_PATHS = ['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing'];
 import { existsSync, readFileSync, readdirSync, statSync, openSync, writeSync, closeSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
@@ -34,6 +38,20 @@ function scopeFor() {
 }
 const scope = scopeFor();
 const scopeText = scope.mode === 'full' ? 'full suite' : `phase ${scope.phase} tests + @smoke`;
+
+// Touched paths and security flags. Printed first so they appear even when a check fails.
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const securityRes = SECURITY_PATHS.map((p) => new RegExp(`(^|/)${escapeRe(p)}`, 'i'));
+function printTouched() {
+  const r = spawnSync('git', ['-C', dir, 'diff', '--name-only', 'develop...HEAD'], { encoding: 'utf8' });
+  if (r.status !== 0) { console.log(`TOUCHED PATHS: unavailable (${(r.stderr || '').trim().split('\n')[0] || 'git diff failed'})`); return []; }
+  const files = r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  console.log(`TOUCHED PATHS (develop...HEAD): ${files.length}`);
+  for (const f of files) console.log(`  ${f}`);
+  const flagged = files.filter((f) => securityRes.some((re) => re.test(f)));
+  for (const f of flagged) console.log(`SECURITY FLAG: ${f}`);
+  return flagged;
+}
 
 if (args.includes('--print-scope')) {
   console.log(JSON.stringify({ dir, ...scope }));
@@ -80,6 +98,8 @@ function hasTests(d, depth = 0) {
   return false;
 }
 
+const securityFlags = printTouched();
+
 if (!existsSync(pkgPath)) {
   if (hasTests(dir)) { console.error('GATE FAIL: test files exist but there is no package.json.'); process.exit(1); }
   console.log('GATE: no app yet (no package.json, no tests). Nothing to check.');
@@ -114,6 +134,7 @@ for (const name of checks) {
 console.log('\n=== GATE SUMMARY ===');
 console.log(`scope      ${scopeText}`);
 for (const [n, r] of results) console.log(`${n.padEnd(10)} ${r}`);
+console.log(`security   ${securityFlags.length ? `${securityFlags.length} flagged path(s): security review required` : 'no flagged paths'}`);
 const failed = results.filter(([, r]) => r === 'FAIL' || r === 'MISSING');
 if (failed.length) { console.error(`GATE FAIL: ${failed.map(([n]) => n).join(', ')}`); process.exit(1); }
 console.log('GATE PASS');

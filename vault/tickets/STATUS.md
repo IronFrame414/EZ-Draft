@@ -2,7 +2,7 @@
 
 Status values: `todo`, `planned`, `questions`, `ready`, `in-progress`, `review`, `done`, `blocked`.
 Only the orchestrator edits this file (enforced by hook). It records each stage's result: planner → `planned`/`questions`; Stage 2 → `ready`; build → `in-progress`, `review`; reviewers' verdict → `done` (with commit) or back to `in-progress`; three failed reviews or a question for Josh → `blocked`.
-A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, base IDs already expanded) is `done`. The Depends on column here is the original text, for reading only. Pick tickets with `node vault/tools/next_ticket.mjs`; validate with `--check` (done needs a commit hash, blocked needs a note, statuses must be known, STATUS.md and tickets.json must list the same tickets).
+A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, base IDs already expanded) is `done`. The Depends on column here is the original text, for reading only. Notes holds plan deviations (what the merged code does differently from its plan; dependents' plans are re-validated against it) and `needs-josh-confirm` wording (user-visible text no plan covered, listed in the phase PR for Josh). Pick tickets with `node vault/tools/next_ticket.mjs`; validate with `--check` (done needs a commit hash, blocked needs a note, statuses must be known, STATUS.md and tickets.json must list the same tickets).
 
 | Phase | Ticket | Title | Tickets |
 | --- | --- | --- | --- |

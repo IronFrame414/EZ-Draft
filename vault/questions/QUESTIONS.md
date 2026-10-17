@@ -2,7 +2,7 @@
 
 Chain of command: asking agent → orchestrator → specialist (calc-auditor / security-reviewer / code-reviewer) → Josh. No citation, no answer. Business and product decisions always go to Josh. Full rules: `vault/PROCESS.md`, Stage 2.
 
-Statuses: `open`, `answered-agent`, `escalated` (waiting on Josh), `answered-josh`.
+Statuses: `open`, `answered-agent`, `escalated` (waiting on Josh), `answered-josh`, `confirmed-josh` (an agent answer Josh confirmed). Agent answers not yet confirmed when Stage 3 starts stand as written.
 IDs never change or get reused. Josh's answers are also appended to `vault/spec/decisions.md` under "Build answers (Josh)".
 
 | ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |
