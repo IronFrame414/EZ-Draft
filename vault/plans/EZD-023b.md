@@ -1,5 +1,10 @@
 # EZD-023b · Environments, release and rollback
 
+- **ACs:** AC-EZD-023b-1 (generated from Done-when, `vault/spec/acceptance-criteria.md`)
+- **Complexity:** high (rated by orchestrator 2026-10-18 from this plan; the planner re-rates on re-validation)
+- **User-visible result:** see the ticket's Done when below (v1 plan; the planner adds the one-line result on re-validation)
+- Process v2 note: this plan keeps the v1 section layout; the v2 template (`vault/plans/TEMPLATE.md`) applies to plans written or re-validated after 2026-10-18. Mentions of `.claude/skills/build-phase` and `phase-gate` read as the v2 units `build-ticket` and `gate-phase`; `vault/spec/decisions.md` citations resolve through `vault/spec/decisions/INDEX.md`; Q-0019 worker counts read as 4 (Q-0114).
+
 Phase: 0 · Planned by: planner · Date: 2026-10-11 (re-planned 2026-10-12 for Josh's answers Q-0106 and Q-0107: the release is a GitHub Actions workflow on merge to `main`, not a script Josh runs; revised 2026-10-12 for the security review of the release, Q-0108 to Q-0112, and for Q-0113: nothing is live until launch, and the secrets environment is named `release`) · Status: planned
 
 ## Ticket (copied from the phase file)

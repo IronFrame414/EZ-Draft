@@ -1,0 +1,858 @@
+{
+ "slices": [
+  {
+   "n": 1,
+   "name": "Company settings and customers",
+   "from_phases": [
+    1
+   ],
+   "tickets": [
+    "EZD-101",
+    "EZD-102",
+    "EZD-103",
+    "EZD-132",
+    "EZD-112",
+    "EZD-113"
+   ]
+  },
+  {
+   "n": 2,
+   "name": "Projects list and new project",
+   "from_phases": [
+    1
+   ],
+   "tickets": [
+    "EZD-108",
+    "EZD-110",
+    "EZD-117a",
+    "EZD-117b",
+    "EZD-118"
+   ]
+  },
+  {
+   "n": 3,
+   "name": "Model store and editor route",
+   "from_phases": [
+    1,
+    2
+   ],
+   "tickets": [
+    "EZD-133",
+    "EZD-120a",
+    "EZD-120b",
+    "EZD-202",
+    "EZD-238"
+   ]
+  },
+  {
+   "n": 4,
+   "name": "Plan canvas and first walls",
+   "from_phases": [
+    2
+   ],
+   "tickets": [
+    "EZD-201",
+    "EZD-203",
+    "EZD-205",
+    "EZD-236",
+    "EZD-207",
+    "EZD-209",
+    "EZD-210",
+    "EZD-221"
+   ]
+  },
+  {
+   "n": 5,
+   "name": "Openings, selection, move, inspector, undo",
+   "from_phases": [
+    2
+   ],
+   "tickets": [
+    "EZD-204",
+    "EZD-206",
+    "EZD-208",
+    "EZD-211",
+    "EZD-212",
+    "EZD-213",
+    "EZD-217"
+   ]
+  },
+  {
+   "n": 6,
+   "name": "Phase switch, layers, dimensions, thumbnails, benchmark page",
+   "from_phases": [
+    1,
+    2
+   ],
+   "tickets": [
+    "EZD-135",
+    "EZD-219",
+    "EZD-214",
+    "EZD-218",
+    "EZD-224",
+    "EZD-235",
+    "EZD-216",
+    "EZD-237"
+   ]
+  },
+  {
+   "n": 7,
+   "name": "Users, roles, project scope, event log",
+   "from_phases": [
+    1
+   ],
+   "tickets": [
+    "EZD-104",
+    "EZD-105",
+    "EZD-106",
+    "EZD-107",
+    "EZD-109",
+    "EZD-129"
+   ]
+  },
+  {
+   "n": 8,
+   "name": "Defaults, edit lock, project settings",
+   "from_phases": [
+    1,
+    2
+   ],
+   "tickets": [
+    "EZD-116",
+    "EZD-128",
+    "EZD-130",
+    "EZD-125",
+    "EZD-126",
+    "EZD-225"
+   ]
+  },
+  {
+   "n": 9,
+   "name": "Versions, sends and the project card menu",
+   "from_phases": [
+    1
+   ],
+   "tickets": [
+    "EZD-111",
+    "EZD-121",
+    "EZD-122",
+    "EZD-123",
+    "EZD-124"
+   ]
+  },
+  {
+   "n": 10,
+   "name": "Fixtures, existing conditions, showers, bearing walls",
+   "from_phases": [
+    2
+   ],
+   "tickets": [
+    "EZD-215",
+    "EZD-220",
+    "EZD-229",
+    "EZD-234",
+    "EZD-226",
+    "EZD-227"
+   ]
+  },
+  {
+   "n": 11,
+   "name": "Editing tools, groups, libraries, shortcuts",
+   "from_phases": [
+    1,
+    2
+   ],
+   "tickets": [
+    "EZD-131",
+    "EZD-222",
+    "EZD-230",
+    "EZD-223",
+    "EZD-231",
+    "EZD-233",
+    "EZD-232"
+   ]
+  },
+  {
+   "n": 12,
+   "name": "Polycam scan import",
+   "from_phases": [
+    3
+   ],
+   "tickets": [
+    "EZD-301",
+    "EZD-302",
+    "EZD-303",
+    "EZD-307",
+    "EZD-308",
+    "EZD-309",
+    "EZD-310",
+    "EZD-311",
+    "EZD-313"
+   ]
+  },
+  {
+   "n": 13,
+   "name": "PDF and DXF imports, import states, laser input",
+   "from_phases": [
+    3
+   ],
+   "tickets": [
+    "EZD-304",
+    "EZD-305",
+    "EZD-306",
+    "EZD-312",
+    "EZD-314",
+    "EZD-315"
+   ]
+  },
+  {
+   "n": 14,
+   "name": "Cabinet runs",
+   "from_phases": [
+    4
+   ],
+   "tickets": [
+    "EZD-401",
+    "EZD-402",
+    "EZD-404",
+    "EZD-403",
+    "EZD-405",
+    "EZD-406",
+    "EZD-407",
+    "EZD-408",
+    "EZD-409",
+    "EZD-410"
+   ]
+  },
+  {
+   "n": 15,
+   "name": "Countertops",
+   "from_phases": [
+    4
+   ],
+   "tickets": [
+    "EZD-411",
+    "EZD-412",
+    "EZD-413",
+    "EZD-414",
+    "EZD-415",
+    "EZD-416",
+    "EZD-417",
+    "EZD-418",
+    "EZD-419"
+   ]
+  },
+  {
+   "n": 16,
+   "name": "Ceilings and the RCP",
+   "from_phases": [
+    1,
+    5
+   ],
+   "tickets": [
+    "EZD-127",
+    "EZD-501",
+    "EZD-502",
+    "EZD-503",
+    "EZD-504",
+    "EZD-507",
+    "EZD-508",
+    "EZD-513"
+   ]
+  },
+  {
+   "n": 17,
+   "name": "Beams, lights, ACT and ceiling checks",
+   "from_phases": [
+    5
+   ],
+   "tickets": [
+    "EZD-505",
+    "EZD-506",
+    "EZD-509",
+    "EZD-510",
+    "EZD-511",
+    "EZD-512",
+    "EZD-514",
+    "EZD-515",
+    "EZD-516"
+   ]
+  },
+  {
+   "n": 18,
+   "name": "Electrical devices and circuits",
+   "from_phases": [
+    6
+   ],
+   "tickets": [
+    "EZD-601",
+    "EZD-602",
+    "EZD-603",
+    "EZD-604",
+    "EZD-605",
+    "EZD-606",
+    "EZD-609",
+    "EZD-610"
+   ]
+  },
+  {
+   "n": 19,
+   "name": "Load calculation",
+   "from_phases": [
+    6
+   ],
+   "tickets": [
+    "EZD-607",
+    "EZD-608",
+    "EZD-614",
+    "EZD-615"
+   ]
+  },
+  {
+   "n": 20,
+   "name": "Code check engine and first rule sets",
+   "from_phases": [
+    2,
+    6
+   ],
+   "tickets": [
+    "EZD-228",
+    "EZD-613",
+    "EZD-611a",
+    "EZD-612",
+    "EZD-620",
+    "EZD-611b",
+    "EZD-611c"
+   ]
+  },
+  {
+   "n": 21,
+   "name": "Sheet set and sheet viewer",
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-701",
+    "EZD-726",
+    "EZD-702a",
+    "EZD-702b",
+    "EZD-703",
+    "EZD-704",
+    "EZD-705",
+    "EZD-706"
+   ]
+  },
+  {
+   "n": 22,
+   "name": "Elevations, RCP and electrical sheets, title block",
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-709",
+    "EZD-710",
+    "EZD-711",
+    "EZD-707",
+    "EZD-708a",
+    "EZD-708b",
+    "EZD-708c"
+   ]
+  },
+  {
+   "n": 23,
+   "name": "PDF export, issue checklist and Rev 0",
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-712",
+    "EZD-713",
+    "EZD-714",
+    "EZD-716",
+    "EZD-715",
+    "EZD-717",
+    "EZD-721",
+    "EZD-722",
+    "EZD-728"
+   ]
+  },
+  {
+   "n": 24,
+   "name": "Revisions, client send and export options",
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-724",
+    "EZD-718",
+    "EZD-719",
+    "EZD-720",
+    "EZD-723",
+    "EZD-725",
+    "EZD-727"
+   ]
+  },
+  {
+   "n": 25,
+   "name": "Detail editor",
+   "from_phases": [
+    8
+   ],
+   "tickets": [
+    "EZD-801",
+    "EZD-802",
+    "EZD-803",
+    "EZD-804",
+    "EZD-805",
+    "EZD-807",
+    "EZD-808",
+    "EZD-817",
+    "EZD-806"
+   ]
+  },
+  {
+   "n": 26,
+   "name": "Details on sheets, cut from model, library, export",
+   "from_phases": [
+    8
+   ],
+   "tickets": [
+    "EZD-809",
+    "EZD-810",
+    "EZD-811",
+    "EZD-812",
+    "EZD-813",
+    "EZD-815",
+    "EZD-816",
+    "EZD-814"
+   ]
+  },
+  {
+   "n": 27,
+   "name": "3D scene, navigation and saved views",
+   "from_phases": [
+    10
+   ],
+   "tickets": [
+    "EZD-1001a",
+    "EZD-1001b",
+    "EZD-1001c",
+    "EZD-1002",
+    "EZD-1004",
+    "EZD-1005",
+    "EZD-1006",
+    "EZD-1015"
+   ]
+  },
+  {
+   "n": 28,
+   "name": "3D walk, finishes, measure and the rail",
+   "from_phases": [
+    10
+   ],
+   "tickets": [
+    "EZD-1003",
+    "EZD-1007",
+    "EZD-1008",
+    "EZD-1012",
+    "EZD-1017"
+   ]
+  },
+  {
+   "n": 29,
+   "name": "Design options, phone 3D viewer, 3D exports",
+   "from_phases": [
+    10
+   ],
+   "tickets": [
+    "EZD-1009",
+    "EZD-1010",
+    "EZD-1011",
+    "EZD-1013",
+    "EZD-1014"
+   ]
+  },
+  {
+   "n": 30,
+   "name": "Render setup and generate",
+   "from_phases": [
+    11
+   ],
+   "tickets": [
+    "EZD-1101",
+    "EZD-1102",
+    "EZD-1103",
+    "EZD-1106",
+    "EZD-1107",
+    "EZD-1108",
+    "EZD-1109",
+    "EZD-1110"
+   ]
+  },
+  {
+   "n": 31,
+   "name": "Render review and approval",
+   "from_phases": [
+    11
+   ],
+   "tickets": [
+    "EZD-1111",
+    "EZD-1112",
+    "EZD-1113",
+    "EZD-1114",
+    "EZD-1115",
+    "EZD-1116",
+    "EZD-1117"
+   ]
+  },
+  {
+   "n": 32,
+   "name": "Render workers, extra adapters, path tracer and R1.0",
+   "from_phases": [
+    11
+   ],
+   "tickets": [
+    "EZD-1104a",
+    "EZD-1104b",
+    "EZD-1105",
+    "EZD-1118",
+    "EZD-1119",
+    "EZD-1121"
+   ]
+  },
+  {
+   "n": 33,
+   "name": "Client approval page",
+   "from_phases": [
+    12
+   ],
+   "tickets": [
+    "EZD-1201",
+    "EZD-1202",
+    "EZD-1208",
+    "EZD-1209",
+    "EZD-1210",
+    "EZD-1211",
+    "EZD-1212",
+    "EZD-1215",
+    "EZD-1205"
+   ]
+  },
+  {
+   "n": 34,
+   "name": "Client renders, comments and option choice",
+   "from_phases": [
+    12
+   ],
+   "tickets": [
+    "EZD-1203",
+    "EZD-1204",
+    "EZD-1206",
+    "EZD-1213",
+    "EZD-1214",
+    "EZD-1207"
+   ]
+  },
+  {
+   "n": 35,
+   "name": "EZ Binder connection, inbound API and webhooks",
+   "from_phases": [
+    1,
+    13
+   ],
+   "tickets": [
+    "EZD-114",
+    "EZD-115",
+    "EZD-119",
+    "EZD-1301",
+    "EZD-1302",
+    "EZD-1303",
+    "EZD-1304",
+    "EZD-1305"
+   ]
+  },
+  {
+   "n": 36,
+   "name": "Change orders and inbound reads",
+   "from_phases": [
+    13
+   ],
+   "tickets": [
+    "EZD-1306",
+    "EZD-1308",
+    "EZD-1307",
+    "EZD-1309",
+    "EZD-1310",
+    "EZD-1311",
+    "EZD-1312",
+    "EZD-1314"
+   ]
+  },
+  {
+   "n": 37,
+   "name": "Architect DXF reference",
+   "from_phases": [
+    9
+   ],
+   "tickets": [
+    "EZD-901a",
+    "EZD-901b",
+    "EZD-902",
+    "EZD-904",
+    "EZD-903",
+    "EZD-905",
+    "EZD-913",
+    "EZD-921"
+   ]
+  },
+  {
+   "n": 38,
+   "name": "Reference markup, revisions and diff",
+   "from_phases": [
+    9
+   ],
+   "tickets": [
+    "EZD-906",
+    "EZD-907",
+    "EZD-912",
+    "EZD-911",
+    "EZD-908",
+    "EZD-909a",
+    "EZD-909b",
+    "EZD-910",
+    "EZD-922a"
+   ]
+  },
+  {
+   "n": 39,
+   "name": "Supplier files and rendering markup",
+   "from_phases": [
+    9
+   ],
+   "tickets": [
+    "EZD-914",
+    "EZD-915",
+    "EZD-916",
+    "EZD-917",
+    "EZD-918",
+    "EZD-919",
+    "EZD-920",
+    "EZD-922b"
+   ]
+  },
+  {
+   "n": 40,
+   "name": "Offline editing and the app-shell cache",
+   "from_phases": [
+    1,
+    14
+   ],
+   "tickets": [
+    "EZD-134",
+    "EZD-1401",
+    "EZD-1402",
+    "EZD-1403",
+    "EZD-1412"
+   ]
+  },
+  {
+   "n": 41,
+   "name": "Field pack on the phone",
+   "from_phases": [
+    14
+   ],
+   "tickets": [
+    "EZD-1404",
+    "EZD-1405",
+    "EZD-1406",
+    "EZD-1407",
+    "EZD-1408",
+    "EZD-1409",
+    "EZD-1410",
+    "EZD-1420",
+    "EZD-1421"
+   ]
+  },
+  {
+   "n": 42,
+   "name": "Field measure and office review",
+   "from_phases": [
+    14
+   ],
+   "tickets": [
+    "EZD-1413",
+    "EZD-1414",
+    "EZD-1415",
+    "EZD-1416",
+    "EZD-1417",
+    "EZD-1418",
+    "EZD-1419",
+    "EZD-1411",
+    "EZD-1422"
+   ]
+  },
+  {
+   "n": 43,
+   "name": "Code rules: Florida Residential, Existing Building, construction chapters",
+   "from_phases": [
+    6
+   ],
+   "tickets": [
+    "EZD-616",
+    "EZD-617",
+    "EZD-618",
+    "EZD-621",
+    "EZD-622"
+   ]
+  },
+  {
+   "n": 44,
+   "name": "Code rules: Energy, Mechanical, Fuel gas, Plumbing",
+   "from_phases": [
+    6
+   ],
+   "tickets": [
+    "EZD-623",
+    "EZD-624",
+    "EZD-625",
+    "EZD-626",
+    "EZD-627",
+    "EZD-628",
+    "EZD-629"
+   ]
+  },
+  {
+   "n": 45,
+   "name": "Code rules: NEC articles 100 to 230 and 240 (1 of 2)",
+   "from_phases": [
+    6
+   ],
+   "tickets": [
+    "EZD-630",
+    "EZD-631",
+    "EZD-632",
+    "EZD-633",
+    "EZD-634"
+   ]
+  },
+  {
+   "n": 46,
+   "name": "Code rules: NEC 240 to 410 (2 of 2) and 422 to 820",
+   "from_phases": [
+    6
+   ],
+   "tickets": [
+    "EZD-635",
+    "EZD-636",
+    "EZD-637",
+    "EZD-638",
+    "EZD-639"
+   ]
+  },
+  {
+   "n": 47,
+   "name": "Translation queue",
+   "from_phases": [
+    15
+   ],
+   "tickets": [
+    "EZD-1501",
+    "EZD-1502",
+    "EZD-1504",
+    "EZD-1505",
+    "EZD-1506",
+    "EZD-1507"
+   ]
+  },
+  {
+   "n": 48,
+   "name": "Translations: approve in bulk, propagate, Spanish display",
+   "from_phases": [
+    15
+   ],
+   "tickets": [
+    "EZD-1503",
+    "EZD-1508",
+    "EZD-1509",
+    "EZD-1510"
+   ]
+  },
+  {
+   "n": 49,
+   "name": "Catalog drawer and add product",
+   "from_phases": [
+    16
+   ],
+   "tickets": [
+    "EZD-1601",
+    "EZD-1602",
+    "EZD-1603",
+    "EZD-1604",
+    "EZD-1605",
+    "EZD-1606",
+    "EZD-1610",
+    "EZD-1616"
+   ]
+  },
+  {
+   "n": 50,
+   "name": "Catalog detail, price snapshots and settings",
+   "from_phases": [
+    16
+   ],
+   "tickets": [
+    "EZD-1607",
+    "EZD-1608",
+    "EZD-1609",
+    "EZD-1617"
+   ]
+  },
+  {
+   "n": 51,
+   "name": "Takeoff",
+   "from_phases": [
+    16
+   ],
+   "tickets": [
+    "EZD-1611a",
+    "EZD-1611b",
+    "EZD-1611c",
+    "EZD-1612",
+    "EZD-1613",
+    "EZD-1614",
+    "EZD-1615"
+   ]
+  },
+  {
+   "n": 52,
+   "name": "Hardening: security, backups, terms, event log, rule verification",
+   "from_phases": [
+    11,
+    17
+   ],
+   "tickets": [
+    "EZD-1120",
+    "EZD-1704",
+    "EZD-1705",
+    "EZD-1706",
+    "EZD-1707",
+    "EZD-1710"
+   ]
+  },
+  {
+   "n": 53,
+   "name": "Hardening: performance, accessibility, screen states",
+   "from_phases": [
+    17
+   ],
+   "tickets": [
+    "EZD-1701",
+    "EZD-1702",
+    "EZD-1708",
+    "EZD-1709a",
+    "EZD-1709b",
+    "EZD-1709c"
+   ]
+  }
+ ]
+}

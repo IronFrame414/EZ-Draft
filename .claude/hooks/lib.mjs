@@ -1,4 +1,4 @@
-// Shared helpers for EZ Draft hooks. Node 20+, no dependencies, Windows-safe.
+// Shared helpers for EZ Draft hooks. Node 22, no dependencies.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 

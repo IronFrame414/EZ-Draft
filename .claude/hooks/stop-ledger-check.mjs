@@ -1,4 +1,4 @@
-// Stop hook (main session only): the orchestrator may not end a turn with an invalid ledger.
+// Stop hook stop-ledger-check (main session only): the orchestrator may not end a turn with an invalid ledger (vault/PROCESS.md section 14).
 // Exit 2 sends the problems back to Claude to fix. Claude Code caps repeated blocks, so this cannot loop forever.
 // Escape (only when the check itself is broken): if vault/handoff/FORCE_STOP exists, the failure is appended to
 // vault/handoff/CURRENT.md, FORCE_STOP is deleted and the stop is allowed. The next session fixes the check first.

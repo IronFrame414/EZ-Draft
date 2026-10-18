@@ -1,22 +1,20 @@
 ---
 name: questions
-description: Stage 2 for one phase - run every open question through the chain of command, then batch the rest for Josh. Usage /questions <phase number>.
-disable-model-invocation: true
+description: Unit `questions <N>` - Stage 2 for one phase: run every open question through the chain of command, write the file for Josh (decisions, agent answers to confirm, proposed wording), record his answers, set tickets ready. Usage /questions <phase number>.
 ---
 
-Run Stage 2 of `vault/PROCESS.md` for phase $ARGUMENTS. You are the orchestrator.
+Run Stage 2 of `vault/PROCESS.md` (section 7) for phase $ARGUMENTS. You are the orchestrator. No app code, no tests.
 
-1. Collect every `open` row in `vault/questions/QUESTIONS.md` for this phase.
-2. For each, climb the chain until someone answers **with a citation**:
-   - Level 2 (you): answer from other tickets' plans, phase context, dependencies. Cite the file.
-   - Level 3: route NEC / FBC / calculation questions to `calc-auditor`; permissions, roles, money visibility, data access to `security-reviewer`; technical conventions and architecture to `code-reviewer`. Accept only answers with a citation.
-   - Business or product decisions (scope, pricing, what a screen shows, workflow, cost) skip straight to Josh. User-visible wording is not a question: it goes in section 3 (Proposed wording) of the batch file.
+1. Collect every `open` row in `vault/questions/QUESTIONS.md` for this phase, and every QP-n still in the phase's plans (give those Q-IDs first: next free number, `open`, asked by planner, ticket ID; replace the QP number in the plan).
+2. For each, climb the chain until someone answers **with a citation** (spec section, decision ID, Q-ID or file path):
+   - Level 2 (you): from other plans, the phase context, a dependency. Cite the file.
+   - Level 3: NEC / FBC / calculation questions → `calc-auditor`; permissions, roles, money visibility, data access → `security-reviewer`; technical conventions and architecture → `code-reviewer`. One dispatch per specialist with all of its questions (dispatch template in `.claude/skills/build-ticket/dispatch.md`). Accept only answers with a citation.
+   - Business or product decisions (scope, what a screen shows, workflow, cost, money) skip straight to Josh. User-visible wording is not a question: it goes in section 3 of the file.
    Record answers as `answered-agent` with the source. Everything else becomes `escalated`.
-3. Write `vault/questions/phase-$ARGUMENTS-for-josh.md` (two-digit phase) with three sections:
-   1. **Decisions needed** - for each escalated question: ID, ticket, the context in two sentences, the options, your recommended answer first with the reason.
-   2. **Agent answers to confirm** - every `answered-agent` row for the phase: ID, ticket, the answer, its source, and "confirm or override".
-   3. **Proposed wording** - every plan's Proposed wording section, grouped by ticket, as one list Josh approves or edits in bulk.
-4. If Josh is present, ask the escalated questions with AskUserQuestion (up to 4 per call, recommended option first and labeled "(Recommended)"). Record each answer as `answered-josh` in QUESTIONS.md and append it to `vault/spec/decisions.md` under the heading `**Build answers (Josh)**` as `- Q-nnnn (EZD-xxx): <answer> (Josh, <date>)`. Apply any overrides Josh gives on agent answers the same way (status `answered-josh`). Agent answers he confirms become `confirmed-josh` (no decisions.md entry needed). Approved or edited wording is appended to `decisions.md` as `- Wording (EZD-xxx): <text> (Josh, <date>)`, and the plan's Proposed wording is updated to match.
-5. Update the affected plans (dispatch `planner` for a revised plan where an answer changes it). Then set to `ready` every ticket in the phase that is `planned` or `questions` and has no unanswered question. Tickets still waiting on an answer stay `questions`. Agent answers Josh has not confirmed when Stage 3 starts stand as written; if he overrides one later, every ticket already built on it gets a fix ticket (next free number in its phase, title `Fix: …`).
-6. Write the handoff, commit `vault/` on `develop`: `docs(vault): questions phase $ARGUMENTS`.
-7. Report: answered by agents, answered by Josh, still waiting. If none are waiting, next command: `/build-phase $ARGUMENTS`.
+3. Write `vault/questions/phase-NN-for-josh.md` (two-digit phase; overwrite if it exists, keeping answered items out) with three sections:
+   1. **Decisions needed** - each escalated question: ID, ticket, two sentences of context, the options, your recommended answer first with the reason.
+   2. **Agent answers to confirm** - every `answered-agent` row for the phase not yet `confirmed-josh`: ID, ticket, answer, source, "confirm or override".
+   3. **Proposed wording** - every plan's Proposed wording, grouped by ticket, one list.
+4. If Josh is at the computer, ask him the same content in chat as plain-text numbered lists, recommendation first, and take his answers by number (PROCESS.md section 1; never multiple-choice prompts). Unattended: stop after step 3; the launcher notifies him. Record each answer: `answered-josh` in QUESTIONS.md and a row in the decisions file for the spec area (`vault/spec/decisions/<area>.md`, Q-ID, date, answer); overrides of agent answers the same way; confirmed agent answers → `confirmed-josh`. Approved or edited wording → the decisions file for the area as `Wording (EZD-xxx): <text>` and the plan's Proposed wording updated to match.
+5. Dispatch `planner` for any plan an answer changes. Then set to `ready` every ticket in the phase that is `planned` or `questions` and has no unanswered question; tickets still waiting stay `questions`.
+6. `node vault/tools/next_ticket.mjs --check`; handoff (`vault/handoff/TEMPLATE.md`); commit `vault/` (`docs(vault): questions phase $ARGUMENTS`); end the session. Report: answered by agents, escalated to Josh, tickets ready.

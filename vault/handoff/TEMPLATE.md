@@ -1,21 +1,12 @@
-# Handoff — YYYY-MM-DD HH:MM
+# Handoff · <date time> · <unit>
 
-Phase: N · Stage: 1 plan | 2 questions | 3 build | gate · Session ended because: goal met | usage limit | blocked | stopped by Josh
+30 lines at most. Overwritten at the end of every session; the previous file moves to `vault/handoff/log/`.
 
-## Completed
-| Ticket | Commit | Note |
-| --- | --- | --- |
-
-## In progress
-| Ticket | Done so far | Left to do | Worktree |
-| --- | --- | --- | --- |
-
-## Blocked / questions for Josh
-- Q-nnnn (EZD-xxx): one line. Batch file: `vault/questions/phase-NN-for-josh.md`
-
-## Decisions made this session
-- Q-nnnn answered by <agent>: <answer> (source). Josh to confirm.
-
-## Next
-1. The exact command to run next, e.g. `/build-phase 2`
-2. Next ticket(s) to start
+- Phase and stage:
+- Why the session ended: (unit complete | blocked | limit | budget hold | error)
+- Completed this session:
+- In progress: (ticket, worktree, last commit)
+- Blocked: (ticket, reason, what unblocks it)
+- Questions for Josh: (Q-IDs, or none)
+- Decisions made: (Q-IDs answered, lessons added)
+- Next unit: (output of `next_ticket.mjs --next-unit`)

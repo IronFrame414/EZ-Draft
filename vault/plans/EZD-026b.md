@@ -1,5 +1,10 @@
 # EZD-026b · Message helper: language from the user record
 
+- **ACs:** AC-EZD-026b-1 (generated from Done-when, `vault/spec/acceptance-criteria.md`)
+- **Complexity:** medium (rated by orchestrator 2026-10-18 from this plan; the planner re-rates on re-validation)
+- **User-visible result:** see the ticket's Done when below (v1 plan; the planner adds the one-line result on re-validation)
+- Process v2 note: this plan keeps the v1 section layout; the v2 template (`vault/plans/TEMPLATE.md`) applies to plans written or re-validated after 2026-10-18. Mentions of `.claude/skills/build-phase` and `phase-gate` read as the v2 units `build-ticket` and `gate-phase`; `vault/spec/decisions.md` citations resolve through `vault/spec/decisions/INDEX.md`; Q-0019 worker counts read as 4 (Q-0114).
+
 Phase: 0 · Planned by: planner · Date: 2026-10-11 (revised 2026-10-12 for Josh's answer to Q-0029) · Status: planned (Q-0029 answered-josh (a); Q-0002 is deferred and does not block: R17 stands)
 
 ## Ticket (copied from the phase file)

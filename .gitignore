@@ -11,6 +11,9 @@ test-results/
 .claude/settings.local.json
 .claude/agent-memory-local/
 vault/reference/
+scripts/launcher.config.json
+vault/handoff/.budget-warned-*
+vault/handoff/last-failure.json
 *.log
 .DS_Store
 Thumbs.db

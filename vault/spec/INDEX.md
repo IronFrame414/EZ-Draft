@@ -1,7 +1,7 @@
 # Spec index
 
 The full spec is `spec.md`; do not load it whole. Read only the sections a ticket's Spec ref names (S01–S18b = screen files below).
-Authority order: answered questions in `../questions/QUESTIONS.md` and `decisions.md` (Round 26 > Round 25 > Round 24) override everything else.
+Authority order: Josh's build answers in `decisions/<area>.md` (index: `decisions/INDEX.md`), then the spec's rounds (`decisions/13b-round-26.md` > Round 25 > Round 24 in `decisions/13a-rounds-24-25.md`) override everything else. Companions: `acceptance-criteria.md`, `glossary.md`, `non-goals.md`, `READINESS.md`, `SIGNOFF.md`.
 Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_rule seed) and `code-check-rules.md`.
 
 - [How to use this spec](sections/01-how-to-use-this-spec.md)

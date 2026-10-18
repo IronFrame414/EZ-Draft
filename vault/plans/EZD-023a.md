@@ -1,5 +1,10 @@
 # EZD-023a · Release safety: migration check
 
+- **ACs:** AC-EZD-023a-1 (generated from Done-when, `vault/spec/acceptance-criteria.md`)
+- **Complexity:** medium (rated by orchestrator 2026-10-18 from this plan; the planner re-rates on re-validation)
+- **User-visible result:** see the ticket's Done when below (v1 plan; the planner adds the one-line result on re-validation)
+- Process v2 note: this plan keeps the v1 section layout; the v2 template (`vault/plans/TEMPLATE.md`) applies to plans written or re-validated after 2026-10-18. Mentions of `.claude/skills/build-phase` and `phase-gate` read as the v2 units `build-ticket` and `gate-phase`; `vault/spec/decisions.md` citations resolve through `vault/spec/decisions/INDEX.md`; Q-0019 worker counts read as 4 (Q-0114).
+
 Phase: 0 · Planned by: planner · Date: 2026-10-11 (revised 2026-10-12 for Q-0106: release tags are created by EZD-023b's release workflow through the GitHub API, so the check fetches the release tags from `origin` locally as well as in CI; revised 2026-10-12 for Q-0112 (tag ruleset) and Q-0113 (no tag until launch)) · Status: planned
 
 ## Ticket (copied from the phase file)

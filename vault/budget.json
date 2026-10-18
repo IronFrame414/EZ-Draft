@@ -1,0 +1,11 @@
+{
+  "weekly_ceiling_usd_est": null,
+  "week_resets": "Monday 02:00 America/New_York",
+  "fable_ceiling_usd_est": null,
+  "fable_fallback_fraction": 0.9,
+  "warn_at_fraction": 0.7,
+  "hold_at_fraction": 0.8,
+  "per_unit_cap_usd_est": null,
+  "override": "",
+  "_note": "null ceilings: the launcher refuses to run unattended until Josh sets weekly_ceiling_usd_est (PROCESS.md section 11, Calibration). Set per_unit_cap_usd_est after the pilot ticket, about three times the median unit. Only Josh or scripts/budget.mjs edit this file."
+}

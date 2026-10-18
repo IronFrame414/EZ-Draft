@@ -1,7 +1,8 @@
-> **Build-process overrides (setup, Oct 11, 2026).** Where this file and `vault/PROCESS.md` differ, PROCESS.md wins:
-> - The "Done when" test is written by the **test-author** before the builder starts, not by the builder (rule "Done when" below).
+> **Build-process overrides (Oct 11, 2026; process v2 Oct 18).** Where this file and `vault/PROCESS.md` or `vault/PROCESS-EZDRAFT.md` differ, those win:
+> - The "Done when" test is written by the **test-author** before the builder starts, not by the builder (rule "Done when" below). Each Done-when sentence is an acceptance criterion `AC-<ticket>-<n>` (`vault/spec/acceptance-criteria.md`).
 > - Questions go to `vault/questions/QUESTIONS.md` through the chain of command, not to the handoff file (rules 5 and 8).
-> - "Coordinator" in this file means the orchestrator (the main session).
+> - "Coordinator" in this file means the orchestrator (the main session). "QA agent" means code-reviewer (plus ui-verifier, security-reviewer and calc-auditor as the plan says).
+> - Phases: the spec's phases 1 to 17 are re-cut into slices in `vault/tickets/PHASES.md` (Josh approves); the tables in `phases/` stay the source of each ticket's text.
 
 # EZ Draft: Phases and tickets
 

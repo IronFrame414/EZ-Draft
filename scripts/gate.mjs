@@ -8,9 +8,13 @@
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
 // It also prints the paths the branch touched (git diff --name-only develop...HEAD) and a
 // "SECURITY FLAG: <path>" line for each one matching SECURITY_PATHS. Flags never fail the gate;
-// they trigger the security review (vault/PROCESS.md, Stage 3 steps 6-7). Edit the list per project.
-const SECURITY_PATHS = ['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing'];
-import { existsSync, readFileSync, readdirSync, statSync, openSync, writeSync, closeSync, unlinkSync } from 'node:fs';
+// they trigger the security review (vault/PROCESS.md section 8 steps 7-8). The list is the process default plus
+// EZ Draft's production-sensitive paths (Q-0112; vault/PROCESS-EZDRAFT.md section 7).
+// Full output of every check goes to <dir>/gate.log (gitignored); the console gets the summary (PROCESS.md section 8 step 7).
+const SECURITY_PATHS = ['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing',
+  '.github/workflows/', 'scripts/release/', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/',
+  'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'];
+import { existsSync, readFileSync, readdirSync, statSync, openSync, writeSync, closeSync, unlinkSync, writeFileSync, appendFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -21,6 +25,10 @@ const positional = args.filter((a, i) => !a.startsWith('--') && !(phaseIdx >= 0 
 const dir = path.resolve(positional[0] || '.');
 const pkgPath = path.join(dir, 'package.json');
 const shell = process.platform === 'win32';
+const logPath = path.join(dir, 'gate.log');
+try { writeFileSync(logPath, `GATE ${new Date().toISOString()} ${dir}\n`); } catch {}
+const log = (text) => { try { appendFileSync(logPath, text.endsWith('\n') ? text : text + '\n'); } catch {} };
+const say = (text) => { console.log(text); log(text); };
 
 function scopeFor() {
   if (args.includes('--full')) return { mode: 'full' };
@@ -101,8 +109,8 @@ function hasTests(d, depth = 0) {
 const securityFlags = printTouched();
 
 if (!existsSync(pkgPath)) {
-  if (hasTests(dir)) { console.error('GATE FAIL: test files exist but there is no package.json.'); process.exit(1); }
-  console.log('GATE: no app yet (no package.json, no tests). Nothing to check.');
+  if (hasTests(dir)) { say('GATE FAIL: test files exist but there is no package.json.'); process.exit(1); }
+  say('GATE: no app yet (no package.json, no tests). Nothing to check.');
   process.exit(0);
 }
 
@@ -112,10 +120,27 @@ console.log(`GATE: ${dir} · scope: ${scopeText}`);
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 const scripts = pkg.scripts || {};
 const pm = existsSync(path.join(dir, 'pnpm-lock.yaml')) || pkg.packageManager?.startsWith('pnpm') ? 'pnpm' : 'npm';
+const failures = [];
 const run = (cmdArgs, label) => {
-  console.log(`\n=== ${label}: ${pm} ${cmdArgs.join(' ')} ===`);
-  const r = spawnSync(pm, cmdArgs, { cwd: dir, stdio: 'inherit', shell, env });
-  return r.status === 0;
+  say(`\n=== ${label}: ${pm} ${cmdArgs.join(' ')} ===`);
+  const r = spawnSync(pm, cmdArgs, { cwd: dir, encoding: 'utf8', shell, env, maxBuffer: 64 * 1024 * 1024 });
+  const out = `${r.stdout || ''}${r.stderr || ''}`;
+  log(out);
+  const ok = r.status === 0;
+  if (ok) {
+    const lines = out.trim().split('\n');
+    console.log(lines.slice(-3).join('\n'));
+  } else {
+    // Summary for reviewers: failing test names and the first error line; the rest is in gate.log.
+    const lines = out.split('\n');
+    const failing = lines.filter((l) => /(^|\s)(FAIL|✗|✘|×|✖)\s/.test(l) || /^\s+\d+\)\s/.test(l)).slice(0, 12);
+    const firstError = lines.find((l) => /error/i.test(l) && !/0 errors?/i.test(l) && !/^\s*>/.test(l));
+    for (const l of failing) console.log(l);
+    if (firstError) console.log(`first error: ${firstError.trim()}`);
+    if (!failing.length && !firstError) console.log(lines.filter(Boolean).slice(-8).join('\n'));
+    failures.push({ label, failing, firstError });
+  }
+  return ok;
 };
 
 if (!existsSync(path.join(dir, 'node_modules'))) {
@@ -131,10 +156,11 @@ for (const name of checks) {
   results.push([name, run(['run', name], name) ? 'pass' : 'FAIL']);
 }
 
-console.log('\n=== GATE SUMMARY ===');
-console.log(`scope      ${scopeText}`);
-for (const [n, r] of results) console.log(`${n.padEnd(10)} ${r}`);
-console.log(`security   ${securityFlags.length ? `${securityFlags.length} flagged path(s): security review required` : 'no flagged paths'}`);
+say('\n=== GATE SUMMARY ===');
+say(`scope      ${scopeText}`);
+for (const [n, r] of results) say(`${n.padEnd(10)} ${r}`);
+say(`security   ${securityFlags.length ? `${securityFlags.length} flagged path(s): security review required` : 'no flagged paths'}`);
+say(`log        ${logPath}`);
 const failed = results.filter(([, r]) => r === 'FAIL' || r === 'MISSING');
-if (failed.length) { console.error(`GATE FAIL: ${failed.map(([n]) => n).join(', ')}`); process.exit(1); }
-console.log('GATE PASS');
+if (failed.length) { say(`GATE FAIL: ${failed.map(([n]) => n).join(', ')}`); process.exit(1); }
+say('GATE PASS');

@@ -1,4 +1,4 @@
-// SessionEnd: archive the handoff and commit vault/ changes on develop, so nothing from the session is lost.
+// SessionEnd (timeout 30 s): archive the handoff, add any ledger problems to it, and commit vault/ on develop (vault/PROCESS.md section 14).
 import { execFileSync, spawnSync } from 'node:child_process';
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { projectDir } from './lib.mjs';

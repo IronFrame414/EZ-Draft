@@ -1,5 +1,7 @@
-// PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md, Agents table).
-import { readInput, repoRelative, deny } from './lib.mjs';
+// PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
+// project write limits in vault/PROCESS-EZDRAFT.md section 3).
+import { existsSync, readFileSync } from 'node:fs';
+import { readInput, repoRelative, deny, projectDir } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator'; // main session = orchestrator
@@ -18,26 +20,42 @@ const isEnv = /(^|\/)\.env(\.|$)/.test(rel) && !rel.endsWith('.env.example');
 
 if (isEnv) deny('No agent writes .env files. Put variable names in .env.example; Josh sets values.');
 
+// Josh-only files (PROCESS.md sections 5, 11 and 14): sign-offs, budget, hold.
+const joshOnly = ['vault/spec/SIGNOFF.md', 'vault/budget.json', 'vault/handoff/BUDGET_HOLD.md'];
+if (joshOnly.includes(rel)) deny(`${rel} is written only by Josh (or scripts/budget.mjs). Agents never edit it.`);
+
+// Spec files the orchestrator may still write: decisions, the shared spec companions, and a section file that does not exist yet
+// (a Stage 0 gap filled from Josh's answer). Existing section and screen files are read-only (rule 4).
+const specWritable = ['vault/spec/glossary.md', 'vault/spec/non-goals.md', 'vault/spec/acceptance-criteria.md', 'vault/spec/READINESS.md', 'vault/spec/INDEX.md'];
+function orchestratorSpecOk() {
+  if (rel.startsWith('vault/spec/decisions/')) return true;
+  if (specWritable.includes(rel)) return true;
+  if (/^vault\/spec\/sections\/.+\.md$/.test(rel) && !existsSync(`${projectDir()}/${rel}`)) return true;
+  return false;
+}
+
 const rules = {
   orchestrator: () => {
-    if (isSpec && rel !== 'vault/spec/decisions.md') return 'The spec is read-only. Only vault/spec/decisions.md may be appended (Josh\'s answers).';
+    if (isSpec && !orchestratorSpecOk()) return 'The spec is read-only after sign-off. Record a change in vault/spec/decisions/<area>.md; a new section file is allowed only when it does not exist yet.';
     if (rel.startsWith('.claude/') || rel.startsWith('.github/') || rel.startsWith('scripts/') || rel.startsWith('vault/tools/'))
-      return 'Agent config, hooks, CI and the gate script are changed only by Josh.';
+      return 'Agent config, hooks, skills, CI, the gate script, the launcher and the ledger tool are changed only by Josh (propose the change in the handoff).';
+    if (rel === 'vault/PROCESS.md' || rel === 'vault/PROCESS-EZDRAFT.md') return 'The process files change only with Josh\'s yes in chat; propose the change, do not edit.';
+    if (rel === 'vault/PROGRESS.md' || rel === 'vault/tickets/TRACE.md') return 'Generated file: run node vault/tools/next_ticket.mjs --report instead of editing it.';
     if (!isVault && rel !== 'CLAUDE.md' && rel !== 'docs/architecture.md')
       return 'The orchestrator does not write app code or tests. Dispatch test-author or builder.';
   },
   planner: () => {
-    if (!rel.startsWith('vault/plans/'))
-      return 'The planner writes only vault/plans/. Put questions in the plan\'s Open questions section; the orchestrator assigns Q-IDs.';
+    if (!rel.startsWith('vault/plans/') || rel.startsWith('vault/plans/shots/'))
+      return 'The planner writes only vault/plans/<ticket>.md. Put questions in the plan\'s Open questions section; the orchestrator assigns Q-IDs.';
   },
   'test-author': () => {
-    if (!isTest) return 'test-author writes only test files and fixtures.';
+    if (!isTest) return 'test-author writes only test files, fixtures, test configs, test-utils/ and test-harness/.';
   },
   builder: () => {
     if (isTest) return 'The builder may not change tests or fixtures. If a test looks wrong, report it as a question.';
     if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
-    if (rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel === 'scripts/gate.mjs' || rel === '.github/workflows/ci.yml')
-      return 'The builder may not change agent config, hooks, CLAUDE.md, the gate script or the gate workflow (.github/workflows/ci.yml). New workflow files are allowed.';
+    if (rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml')
+      return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget) or ci.yml. New workflow files under .github/workflows/ are allowed.';
   },
   'ui-verifier': () => {
     if (!rel.startsWith('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
@@ -45,7 +63,7 @@ const rules = {
 };
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) deny(`${agent} is read-only.`);
-rules['builder-senior'] = rules.builder; // same agent file with model: opus (vault/PROCESS.md, Agents)
 const reason = rules[agent]?.();
 if (reason) deny(reason);
+if (!rules[agent]) deny(`${agent} is not in the roster (vault/PROCESS.md section 4); it may not write files.`);
 process.exit(0);

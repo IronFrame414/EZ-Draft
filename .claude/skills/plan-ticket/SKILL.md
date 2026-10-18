@@ -1,0 +1,16 @@
+---
+name: plan-ticket
+description: Unit `plan <T>` - Stage 1 plan for one ticket, written by the planner from vault/plans/TEMPLATE.md. The launcher runs it as the planner agent; interactively the orchestrator dispatches the planner. Usage /plan-ticket EZD-xxx.
+---
+
+Plan ticket $ARGUMENTS (PROCESS.md section 6). No app code, no tests.
+
+**If you are the planner agent** (launcher run with `--agent planner`): do the work below yourself. **If you are the orchestrator** (interactive): first check `node vault/tools/next_ticket.mjs --check` passes, the ticket is `todo`, and its phase has a row in `vault/spec/SIGNOFF.md`; then dispatch `planner` with the dispatch template in `.claude/skills/build-ticket/dispatch.md` (role planner, the ticket's `spec_files`, the decisions files for those areas, lessons `--lessons planner <areas>`), and when it returns do the ledger step at the end.
+
+Planner's work:
+1. Read only: the ticket's `tickets.json` entry (`depends_on`, `spec_files`, `mockups`, `acs`) and its row in `vault/tickets/phases/phase-NN.md`; the spec files named (via `vault/spec/INDEX.md`; the Spec ref text governs over `spec_files`); the decision files for those areas (`vault/spec/decisions/INDEX.md`); `vault/spec/non-goals.md`, `glossary.md`, `acceptance-criteria.md` (the ticket's ACs); `docs/architecture.md` if it exists; the plans this ticket depends on (their interface contracts); the mockup for any screen touched; `vault/KNOWN-LIMITS.md` once; the lessons the dispatch carries.
+2. Write `vault/plans/$ARGUMENTS.md` from `vault/plans/TEMPLATE.md`: header (ACs, Complexity, user-visible result) and the ten sections. Every statement cites a source; every test value cites its source; the interface contract matches the contracts of the plans it depends on; a visual checklist (one viewport) when a screen changes, and then EZD-016a is a dependency; Proposed wording for text not on a mockup; `security-review: yes|no`; complexity and model recommendation; open questions as QP-n (try Level 1 first: if a cited source answers it, write the answer and source in the plan instead).
+3. **Size.** If the plan would touch more than about 8 files or need more than about 10 tests, write a split proposal instead (lettered parts, each with scope, Done-when and ACs) under a heading `## Split proposal` at the top, and stop.
+4. Return: the plan path, the complexity, the QP questions verbatim, one line on risks (20 lines max).
+
+Ledger step (orchestrator, or the launcher for an agent-run unit): STATUS row → `planned` (no QP questions) or `questions`; Complexity column from the plan header. If the plan is a split proposal: apply it (phase file, `tickets.json` with `acs` from `node vault/tools/gen_acs.mjs`, `STATUS.md`, one commit), then plan each part as its own unit. Give each QP question the next free Q-ID in `vault/questions/QUESTIONS.md` (`open`, asked by planner) and replace the QP number in the plan with the Q-ID. `node vault/tools/next_ticket.mjs --check`; handoff; commit `vault/` (`docs(vault): plan $ARGUMENTS`); end the session.
