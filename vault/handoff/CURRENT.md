@@ -1,10 +1,11 @@
-# Handoff · 2026-10-19 · build EZD-008b
+# Handoff · 2026-10-19 · build EZD-010
 
-- Phase and stage: phase 0, Stage 3 (build); see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: EZD-008b Email setup: names, docs, runbook and live check done (e77273a; 294 tests on develop phase 0). Q-0153 (a) builder exception for scripts/email/ added to guard-paths.mjs in fix mode (26571bb, fix mode off 73e1cb8). Test review round 1 FAIL (T12 import cached, so entry-guard check proved nothing) → fixed → PASS; build round 1 gate PASS; code-reviewer PASS; security-reviewer PASS with 1 minor follow-up.
-- In progress: none
-- Blocked: none new (EZD-003 still waits on Josh)
-- Questions for Josh: none new. For Josh's review: proposed runbook addition from security review (step 4: a separate preview Sending access key, e.g. ezdraft-preview; never put ezdraft-production in Vercel Preview), in STATUS Notes EZD-008b. Field check AC-EZD-008b-1: runbook ## Email (EZD-008) steps 1, 3, 4, 5, then node scripts/email/send-test.mjs --to <your address>. Still to confirm: Q-0154, wording 1–55, L-008, L-009 in vault/questions/phase-00-for-josh.md
-- Decisions made: none; lesson L-011 added (test-author, candidate: import-side-effect tests need a fresh module instance)
-- Next unit: build EZD-010
+- Phase and stage: phase 0, Stage 3 (build)
+- Why the session ended: unit complete (ticket split at build step 1; nothing to build under the old ID)
+- Completed this session: pre-flight passed; step 1 planner re-validation (Opus 5.5; deviating dependency EZD-001; EZD-004a/b, EZD-006, EZD-008a changed the shared app test setup) rewrote vault/plans/EZD-010.md (b5adda3: Split proposal, findings V1–V14, no QP questions) and found it over the size rule (about 30 files, 12 tests). Split applied (Q-0155): EZD-010a Token files and check C10; EZD-010b Icon sprite and Icon component (depends 010a); EZD-010c Fonts, root layout and token test page (depends 010a, 010b; carries the Done-when page test). All medium, status todo. Phase file, tickets.json (ACs from gen_acs.mjs: 010a-1..2, 010b-1, 010c-1..2), STATUS.md, acceptance criteria, TRACE and PROGRESS updated; every dependent of EZD-010 (007, 011, 012, 015, 026a, 028) depends on all three.
+- In progress: none (no worktree or branch created)
+- Blocked: EZD-003 (unchanged)
+- Questions for Josh: none new. To confirm or revert: Q-0155 (EZD-010 split). Still to confirm from earlier: Q-0154, wording 1–55, L-008, L-009 in vault/questions/phase-00-for-josh.md
+- Decisions made: Q-0155 answered by the orchestrator (level 2). No lessons added.
+- Follow-ups for planners: plan each part from vault/plans/EZD-010.md "Split proposal" and "Re-validation findings"; keep every interface name listed there (tokens.css, TOKENS, --ez-* names, Icon, IconName, ICON_NAMES, icons.json, icons:build, sprite path, C10, /dev/<name>/ page pattern) and test numbers T1–T13. V12: no visual checklist or ui-verifier for any part (first screen check is EZD-011/012). V3: a .tsx test needs the JSX transform set under Vite 8's Oxc key (part b).
+- Next unit: plan EZD-010a
