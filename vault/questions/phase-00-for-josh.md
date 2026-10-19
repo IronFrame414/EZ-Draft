@@ -110,9 +110,4 @@ No new screen text for clients or users. Items 1 to 55 carry over unanswered; EZ
 
 ## 4. Rule candidates
 
-Josh ratified L-001 to L-007 in chat on 2026-10-19. Still open:
-
-1. **L-008** (test-author; from EZD-005a): a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides. **Recommend: ratify.** A line-start match missed four of five table names in the generated types file because the Supabase CLI puts a key after the previous closing brace on the same line, which cost a structural repair.
-2. **L-009** (planner; from EZD-006): SQL that a plan fixes as contract text (policy templates, function signatures a test copies) is run once on the pinned local database by the planner, or marked "confirm on pinned version" for the test-author to check. **Recommend: ratify.** The EZD-006 policy template was written from memory, did not run on the pinned PostgreSQL, failed the builder's first migration and needed a structural repair.
-3. **L-010** (builder; from EZD-008a): when a plan says a value "must be assignable" to a contract type, the builder assigns it to a variable of that type with no `as` cast, and reports a type error instead of casting it away. **Recommend: ratify.** The builder's `as unknown as` cast switched off the only check that the real Resend library fits the email helper's contract.
-4. **L-011** (test-author; from EZD-008b): a test that checks what happens when a file is loaded loads a fresh copy of it (a unique import name or a separate process), never one an earlier test in the same file already loaded. **Recommend: ratify.** The "importing the live email check sends nothing" test reused a cached copy, so it would have passed even with the safety guard removed; the test review caught it.
+None. Josh ratified L-001 to L-007 and L-008 in chat on 2026-10-19.

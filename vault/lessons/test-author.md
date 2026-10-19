@@ -9,7 +9,7 @@ Cause: the tests depended on live repo state (ledger size, checkout location) in
 Rule: a repo-script test derives expected values from its own fixture or copy (e.g. next ID = highest in the copy + 1) and feeds path-sensitive tools a fixed fake root, never the checkout it runs in.
 Check: the test passes both in the main checkout and in a `.claude/worktrees/EZD-000b` worktree, and after one row is added to the copied ledger (Q-0136).
 
-## L-008  areas: data-model, migrations, tooling  seen: 1  status: candidate
+## L-008  areas: data-model, migrations, tooling  seen: 1  status: ratified
 Ticket EZD-005a, 2026-10-19
 Mistake: T15a checked table keys in the generated `database.types.ts` with a line-start-anchored regex; the Supabase CLI writes `},"tenant": {` on the previous closing brace's line, so four of five keys never matched and a structural repair was needed.
 Cause: the test assumed one key per line in generated output instead of reading the real file's layout.
