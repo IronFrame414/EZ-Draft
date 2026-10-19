@@ -1,9 +1,9 @@
 # EZD-000i · OAuth usage fallback (Item 1b)
 
-- **ACs:** AC-EZD-000i-1 to AC-EZD-000i-5 (`vault/spec/acceptance-criteria.md` lines 116–120). They were generated from the Done-when text and match it clause by clause. AC-5 is a report plus the gate, not a test (KNOWN-LIMITS.md, Phase 0 ACs).
+- **ACs:** AC-EZD-000i-1 to AC-EZD-000i-5 (`vault/spec/acceptance-criteria.md` lines 115–119). They were generated from the Done-when text and match it clause by clause. AC-5 is a report plus the gate, not a test (KNOWN-LIMITS.md, Phase 0 ACs).
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** when the status line has not refreshed for 20 minutes (headless runs), the launcher reads Josh's real usage percentages from Claude's usage endpoint instead of falling back to estimated dollars. It asks at most every 15 minutes, backs off when it is told to slow down, stops for an hour and pings Josh's phone if the sign-in is refused, and never writes the sign-in token anywhere. Agents' shell commands that would print the token are blocked.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 (re-validated after Q-0133, Q-0134, Q-0135) · Status: ready
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 (re-validated after Q-0133, Q-0134, Q-0135; re-validated 2026-10-19 against EZD-000h as merged, 4296a46, develop d4aefef: references only, QP-1 raised and answered as Q-0137 (a)) · Status: ready
 
 This is Part H of the EZD-000b split, the last part. The proposal is archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` (Part H; "Reviewers and models"). It plugs into the `fallback` slot that EZD-000h leaves in `readMeters` (`vault/plans/EZD-000h.md` C5, step 3 "Source order" item 2).
 
@@ -15,7 +15,7 @@ Ticket row (`vault/tickets/phases/phase-00.md` line 40):
 - **Depends on:** EZD-000h · **Spec ref:** PA3-MECHANISMS.md Item 1b, rule 8 and Findings; PROCESS.md v2.3 section 11 · security-review: yes
 
 Steps:
-1. **New module `scripts/oauth-usage.mjs`** (H1–H8). Plain Node 22: `node:fs`, `node:path`, `node:url`, `node:os`, `node:child_process` and the global `fetch` only (PA3 rule 4: scripts are Node `.mjs`). Importing it runs nothing; the CLI runs only when it is the entry script (the `isMain` test of `vault/tools/next_ticket.mjs` line 381, as EZD-000h C10 does).
+1. **New module `scripts/oauth-usage.mjs`** (H1–H8). Plain Node 22: `node:fs`, `node:path`, `node:url`, `node:os`, `node:child_process` and the global `fetch` only (PA3 rule 4: scripts are Node `.mjs`). Importing it runs nothing; the CLI runs only when it is the entry script (the `isMain` test of `vault/tools/next_ticket.mjs` line 410, as EZD-000h C10 does in `scripts/budget.mjs` line 172).
 2. **Token reading** (H3). Sources, in order (PA3 Item 1b; PROCESS.md section 11 source 2; Findings row 1b):
    1. `<home>/.claude/.credentials.json`, field `claudeAiOauth.accessToken`, on every platform.
    2. Only on macOS (`platform === 'darwin'`) and only when step 1 gave no token: the Keychain, through `security find-generic-password -s <KEYCHAIN_SERVICE> -w`, run with `spawnSync` so the value goes into the script's memory and is never printed (Findings row 1b: "then reads it only inside the script"). The value is parsed as the same JSON as the file (`claudeAiOauth.accessToken`); a value that is not that JSON gives no token. That is a fail-safe choice, because no source says what the Keychain value looks like; the probe (step 7) reports which form it found.
@@ -31,7 +31,7 @@ Steps:
    - The fallback never throws. Anything unexpected is caught and logged with the error's `name` only, never its message, and returns `null`. `readMeters` then goes on to the dollar proxy (EZD-000h C5 step 3), and the launcher is never blocked (PA3 rule 5).
 4. **Response to meters** (H4, H7). `parseUsage` maps the body to the EZD-000h C2 windows. The field names, units and any needed request header are not in any source (Findings row 1b: "Behaviour … not testable without the token"). Per Q-0134 (a), `parseUsage` uses the statusline names of Findings row 1a: `five_hour` and `seven_day`, each with `used_percentage` and `resets_at`, and no Fable window. A numeric `resets_at` is Unix seconds and a string goes to `Date.parse`, exactly as EZD-000h C2. If either window is missing or its pct is not a number, the result is `null`, so a wrong guess about the shape falls back to the proxy and never produces a false reading. On success the module writes `<root>/vault/cost/usage.json` in the C2 shape with `source: "oauth"` (EZD-000h C2: "Part H (EZD-000i) writes the same shape with `source: "oauth"`"), using a temp file and rename like the statusline does. It returns the same object as `Meters` with `warning: null` (EZD-000h C5 (2): "a non-null result is returned as is").
 5. **No token found** (H5). Return `null` with no request. Log the section 6 line once for each fallback instance, so the log says so without repeating every pass. That leaves the proxy as the trigger, as the Scope asks ("If neither credential source works … leave the proxy as the trigger").
-6. **Launcher wiring** (H9). `scripts/run.mjs` creates one fallback at start-up with `createOAuthFallback({ notify, log })`, using its existing `notify` (run.mjs lines 55–60, which posts through `launcher.config.json` `notify_cmd`) and `log` (line 54). It passes the fallback as `fallback` in the `readMeters` call that EZD-000h adds (EZD-000h step 4.4 and C12). Nothing else in `run.mjs` changes. `meter_source` `statusline` already skips the fallback and `oauth` skips the statusline (EZD-000h C5). The `budget.mjs` no-flag report does not pass a fallback: Josh's report must not spend a poll, and a fresh OAuth reading is already in `usage.json` for it (EZD-000h C5 (1)).
+6. **Launcher wiring** (H9). `scripts/run.mjs` creates one fallback at start-up with `createOAuthFallback({ notify, log })`, using its existing `notify` (run.mjs lines 56–61, which posts through `launcher.config.json` `notify_cmd`) and `log` (line 55). It passes the fallback as `fallback` in the per-pass `readMeters` call that EZD-000h adds (EZD-000h step 4.4 and C12; `run.mjs` line 284, `const meters = await readMeters({ budget: b })`). The `--status` call (`run.mjs` line 255) is not the step 4.4 call and stays without a fallback. Nothing else in `run.mjs` changes. `meter_source` `statusline` already skips the fallback and `oauth` skips the statusline (EZD-000h C5). The `budget.mjs` no-flag report does not pass a fallback: Josh's report must not spend a poll, and a fresh OAuth reading is already in `usage.json` for it (EZD-000h C5 (1)).
 7. **Probe CLI** (H8). Findings row 1b says "the builder tests it at run time and reports". `node scripts/oauth-usage.mjs --probe` makes one real request and prints the section 6 lines, with exactly one request per run:
    - the credential source (`file`, `keychain` or `none`) and, on macOS, the Keychain service name and whether its value was the credentials JSON;
    - the HTTP status;
@@ -43,8 +43,8 @@ Steps:
 9. **Shell guard for the token** (H12, H13; Q-0135 (a) as narrowed by the security-reviewer). Printed, the token would land in the session transcript, which is a file (PA3 rule 8). The guard is an accident guard, not a hard wall (Q-0135).
    - **`.claude/hooks/guard-bash.mjs`:** add the three deny rules of H12. They apply to every agent, the main session included, and are matched on the raw command (`raw`, guard-bash line 7: whitespace collapsed, quotes kept), not on the quote-stripped `c`. That is how the `.env` rule already works (line 27), so a quoted path cannot slip past. They go after the `always` loop (line 27) and before the agent-specific checks (line 29). Nothing else in the file changes.
    - **`.claude/settings.json`:** append the five entries of H13 to `permissions.deny`. Nothing else in the file changes.
-   - Both files are inside the builder's grant (`pa3Grant()`: `.claude/`, guard-paths.mjs lines 43–51; Q-0128 (a); `scripts/hooks/guard-paths.test.mjs` line 24 allows `.claude/settings.json` in the EZD-000i worktree).
-   - **Earlier tests:** no existing or planned test pins `permissions.deny` or guard-bash decisions, so the test-author updates no earlier test. Checked: `scripts/hooks/guard-paths.test.mjs` (guard-paths only); EZD-000b T1–T2 (top-level switches and env); EZD-000c T8 (guard-reads, not guard-bash) and T10 (PreToolUse entries, env, top-level keys); EZD-000f T7 (env and the guard-agents entry); EZD-000h T8 (`statusLine`). None of those values changes here.
+   - Both files are inside the builder's grant (`pa3Grant()`: `.claude/`, guard-paths.mjs lines 43–51; Q-0128 (a); `scripts/hooks/guard-paths.test.mjs` line 26 allows `.claude/settings.json` in the EZD-000i worktree).
+   - **Earlier tests:** no existing or planned test pins `permissions.deny` or guard-bash decisions, so the test-author updates no earlier test. Checked: `scripts/hooks/guard-paths.test.mjs` (guard-paths only); EZD-000b T1–T2 (top-level switches and env); EZD-000c T8 (guard-reads, not guard-bash) and T10 (PreToolUse entries, env, top-level keys); EZD-000f T7 (env and the guard-agents entry); EZD-000h T8 (`statusLine`). None of those values changes here. Re-checked on develop d4aefef against the merged files `scripts/hooks/guard-reads.test.mjs` (T10), `scripts/hooks/spawn-limits.test.mjs` (T7), `scripts/budget/statusline.test.mjs` (T8) and `scripts/process/hidden-token-honesty.test.mjs`: none reads `permissions.deny` or a guard-bash decision.
 10. **Tests** (section 4): `scripts/budget/oauth.test.mjs` (T1–T10) and `scripts/hooks/guard-bash.test.mjs` (T11), both run by the root `test` script (`node --test "scripts/**/*.test.mjs"`, root `package.json` line 11).
 11. **Verification report** (AC-5; PA3 rule 6; Q-0126 (c)):
     - **Item 5 (no token in any file):** verified if T5 passes and the live probe's scan line reads `none`. With no live probe, T5 alone: report "verified with a fixture token; live scan not testable here".
@@ -61,10 +61,10 @@ Steps:
 | --- | --- | --- | --- |
 | `scripts/oauth-usage.mjs` | new | Steps 1–5, 7 | builder: `pa3Grant()` (`scripts/`, not `gate.mjs`; worktree matches `EZD-000[b-i]`; guard-paths.mjs lines 43–51) |
 | `scripts/run.mjs` | change | Step 6 | builder: `pa3Grant()` |
-| `.gitignore` | change | Step 8 | builder: allowed by default (not test, vault, `.claude/`, `CLAUDE.md`, `scripts/` or `ci.yml`; guard-paths.mjs lines 72–78) |
+| `.gitignore` | change | Step 8 | builder: allowed by default (not test, vault, `.claude/`, `CLAUDE.md`, `scripts/` or `ci.yml`; guard-paths.mjs lines 77–83) |
 | `scripts/budget/oauth.test.mjs` | new | T1–T10 | test-author: `isTest` (`.test.mjs`, guard-paths.mjs line 16) |
 | `.claude/hooks/guard-bash.mjs` | change | Step 9, H12 (Q-0135 (a)) | builder: `pa3Grant()` (`.claude/`) |
-| `.claude/settings.json` | change | Step 9, H13 (Q-0135 (a)) | builder: `pa3Grant()` (`.claude/`; guard-paths.test.mjs line 24) |
+| `.claude/settings.json` | change | Step 9, H13 (Q-0135 (a)) | builder: `pa3Grant()` (`.claude/`; guard-paths.test.mjs line 26) |
 | `scripts/hooks/guard-bash.test.mjs` | new | T11 | test-author: `isTest` (pattern: `scripts/hooks/guard-paths.test.mjs`) |
 
 Runtime files the module writes (not agent edits): `vault/cost/oauth-poll.json` (gitignored, step 8) and `vault/cost/usage.json` (gitignored by EZD-000h step 6).
@@ -76,7 +76,7 @@ Not touched:
 - `vault/PROCESS.md`, `vault/spec/`, tests: PA3 rule 7.
 - `vault/cost/README.md`: not in `pa3Vault`. The orchestrator may add an `oauth-poll.json` line after the merge.
 
-`run.mjs` (22,713 characters) is over the whole-read threshold, so the builder reads it by range (split note 7). This ticket is the last of the EZD-000b–EZD-000i grant. The orchestrator removes the `pa3Grant` exception when it merges (Q-0128 (a); guard-paths.mjs lines 43–51).
+`run.mjs` (21,101 characters) is over the whole-read threshold, so the builder reads it by range (split note 7). This ticket is the last of the EZD-000b–EZD-000i grant. The orchestrator removes the `pa3Grant` exception when it merges (Q-0128 (a); guard-paths.mjs lines 43–51).
 
 Data: none. No tables, migrations, money or `schema_version`.
 
@@ -108,18 +108,18 @@ Data: none. No tables, migrations, money or `schema_version`.
   - Q-0125 (a); Q-0119.
   - `vault/spec/decisions/process.md` holds Q-0119, Q-0124 and Q-0125.
 - Split proposal: Part H; "Reviewers and models" (security-reviewer on Part H only; code-reviewer checks the launcher-gate failure mode for G and H); note 7 (range reads).
-- Code at develop `289f6c7`:
-  - `scripts/run.mjs` lines 1–60 (config, `log`, `notify`) and 300–330 (loop);
-  - `scripts/budget.mjs` (whole);
+- Code at develop `d4aefef` (EZD-000h merged as 4296a46; first planned at `289f6c7`):
+  - `scripts/run.mjs` lines 1–61 (config, `log`, `notify`) and 253–342 (`main`: `--status` `readMeters` at line 255, per-pass `readMeters` at line 284);
+  - `scripts/budget.mjs` (whole; `readMeters` lines 33–58, the no-flag report's `readMeters` without a fallback at line 177);
   - `.claude/hooks/guard-paths.mjs` lines 1–100;
   - `.claude/hooks/guard-bash.mjs` (whole) and `.claude/hooks/lib.mjs` (`deny` output shape);
   - `.claude/settings.json` (whole);
   - `scripts/hooks/guard-paths.test.mjs` (spawn-the-hook pattern);
   - `.gitignore`;
   - root `package.json`;
-  - `vault/tools/next_ticket.mjs` line 381.
+  - `vault/tools/next_ticket.mjs` line 410.
 - RFC 9110 section 10.2.3 (`Retry-After` is delay-seconds or an HTTP-date). Used only to parse the header.
-- `vault/tickets/phases/phase-00.md` line 40. `vault/spec/acceptance-criteria.md` lines 116–120.
+- `vault/tickets/phases/phase-00.md` line 40. `vault/spec/acceptance-criteria.md` lines 115–119.
 - Not applicable: product spec sections 03, 04 and 11 (Performance), non-goals, glossary, product decisions and mockups. This is process tooling only (PA3 header). Research reports: none.
 
 **Differences between the handoff and PROCESS.md** (handoff rule 1; the builder repeats them in its report):
@@ -139,12 +139,12 @@ Data: none. No tables, migrations, money or `schema_version`.
 | H6 | file | `vault/cost/oauth-poll.json` | `{ "next_allowed_at": "<ISO>", "last_result": 200 \| 401 \| 403 \| 429 \| <number> \| "error" \| "unreadable" \| "no-token", "updated_at": "<ISO>" }`. 2-space JSON with a trailing newline, written by temp file + rename; creates `vault/cost/` if missing. Never holds the token or any response value. Gitignored. |
 | H7 | file | `vault/cost/usage.json` | EZD-000h C2 exactly, with `source: "oauth"` and `read_at` = `now.toISOString()`. Temp file + rename. |
 | H8 | export / CLI | `probe({ root = ROOT, fetch, readToken, platform = process.platform, exec = spawnSync } = {}) → Promise<string[]>`; `node scripts/oauth-usage.mjs --probe` | Makes at most one `fetch` (none when there is no token). It ignores H6 and writes no file. Returns the section 6 probe lines in order. Response keys are listed by name only. The token scan reads every file under `<root>/vault/`, `<root>/scripts/` and `<root>/.run/` (those that exist) and lists the relative paths of files containing the token, or `none`.<br>The CLI prints the lines to stdout and exits 0; the CLI branch runs only when the module is the entry script. No line contains the token or any response value. |
-| H9 | run.mjs wiring | `scripts/run.mjs` | `import { createOAuthFallback } from './oauth-usage.mjs'`. One instance, created once with `{ notify, log }`, passed as `fallback` to the EZD-000h `readMeters` call. No other change (code review only; `run.mjs` runs `main()` on import, as EZD-000h section 4 notes). |
+| H9 | run.mjs wiring | `scripts/run.mjs` | `import { createOAuthFallback } from './oauth-usage.mjs'`. One instance, created once with `{ notify, log }`, passed as `fallback` to the EZD-000h per-pass `readMeters` call (`run.mjs` line 284); the `--status` call (line 255) gets none. A `--dry-run` pass goes through the same per-pass call and polls like a real pass, paced by `oauth-poll.json` (Q-0137 (a)). No other change (code review only; `run.mjs` runs `main()` on import, as EZD-000h section 4 notes). |
 | H10 | file | `.gitignore` | Gains the line `vault/cost/oauth-poll.json`. |
 | H11 | test file | `scripts/budget/oauth.test.mjs` | **Imports:** only `node:test`, `node:assert/strict`, `node:fs`, `node:os`, `node:path`, `node:url`, plus `../oauth-usage.mjs` and `../budget.mjs` (T7 only).<br>**Temp roots:** `realpathSync(mkdtempSync(...))`. The fake home (`<tmp>/home`) is outside the scanned root (`<tmp>/root`).<br>**Network:** `fetch` is always a stub returning `new Response(...)`. No test reaches the network (CLAUDE.md rule 6), and `exec` is always a stub.<br>**Fixture token:** `ezd000i-fixture-token-7f3a9c41`. It deliberately does not start with `sk-ant-`, so GitHub push protection on the public repo (PA3 rule 8) cannot match it.<br>**Clock:** `NOW = new Date('2026-10-19T12:00:00Z')`, passed as `now`.<br>**Titles:** every test title starts `EZD-000i`. |
 | H12 | hook rules | `.claude/hooks/guard-bash.mjs` | Q-0135 (a), narrowed. Three new deny rules, checked for **every** agent (main session included), matched on `raw` (line 7), placed after line 27 and before line 29. A "word" is a run of non-space characters; a "segment" is text with no `;`, `&` or `\|` in it.<br>**K1 Keychain read:** in one segment, `security find-generic-password` or `security find-internet-password` followed by an option word: `-` then only ASCII letters, at least one of them lowercase `w` or `g` (`-w`, `-g`, `-gw`, `-wg`). → deny with the section 6 Keychain reason.<br>**K2 Keychain dump:** in one segment, `security dump-keychain` followed by an option word (`-` then only ASCII letters) containing `d`. → deny with the same Keychain reason.<br>**K3 credentials file:** take `raw` and remove every `test -f <T>` (with `test` at the start of a word) and every `[ -f <T> ]`, where `<T>` is one double-quoted string, one single-quoted string or one word. If what remains contains `.credentials.json` or `.claude/.cred`, deny with the section 6 credentials reason. So a `test -f` or `[ -f … ]` check passes, but any other use of the path in the same command is still denied.<br>Still allowed (Q-0135): `security find-generic-password -s <name>` without `-w` or `-g`, and `node scripts/oauth-usage.mjs --probe`.<br>Nothing else in the file changes: existing rules, their order, the quote stripping for them, and the agent-specific checks stay as they are. |
 | H13 | settings | `.claude/settings.json` | Q-0135 (a). `permissions.deny` gains five strings, appended after `"Bash(claude *)"` in this order:<br>`"Read(~/.claude/.credentials.json)"`<br>`"Bash(security find-generic-password *-w*)"`<br>`"Bash(security find-generic-password *-g*)"`<br>`"Bash(security find-internet-password *-w*)"`<br>`"Bash(security find-internet-password *-g*)"`<br>A grouped flag such as `-gw` or `-wg` matches one of the patterns. Every existing entry, key, value and hook stays as it is (so EZD-000b, c and f's settings contracts still hold). |
-| H14 | test file | `scripts/hooks/guard-bash.test.mjs` | **Imports:** only `node:test`, `node:assert/strict`, `node:child_process`, `node:fs`, `node:path`, `node:url`.<br>**Harness:** spawns `node .claude/hooks/guard-bash.mjs` with stdin `JSON.stringify({ agent_type, tool_input: { command } })` (no `agent_type` key for the main session) and `CLAUDE_PROJECT_DIR` = repo root, as `decide` in `scripts/hooks/guard-paths.test.mjs` does. Denied = stdout contains `"deny"`. The reason is `hookSpecificOutput.permissionDecisionReason` from the parsed stdout (`.claude/hooks/lib.mjs` `deny`).<br>**No real secret:** commands are only passed as text to the hook; nothing is run, and no real credentials file or Keychain item is touched.<br>**Titles:** start `EZD-000i`. |
+| H14 | test file | `scripts/hooks/guard-bash.test.mjs` | **Imports:** only `node:test`, `node:assert/strict`, `node:child_process`, `node:fs`, `node:path`, `node:url`.<br>**Harness:** spawns `node .claude/hooks/guard-bash.mjs` with stdin `JSON.stringify({ agent_type, tool_input: { command } })` (no `agent_type` key for the main session) and `CLAUDE_PROJECT_DIR` = repo root, in the spawn pattern of `decide` in `scripts/hooks/guard-paths.test.mjs` (that file now passes a fixed fake root; guard-bash reads no project directory, so the value does not change a decision). Denied = stdout contains `"deny"`. The reason is `hookSpecificOutput.permissionDecisionReason` from the parsed stdout (`.claude/hooks/lib.mjs` `deny`).<br>**No real secret:** commands are only passed as text to the hook; nothing is run, and no real credentials file or Keychain item is touched.<br>**Titles:** start `EZD-000i`. |
 
 ## 4. Tests
 
@@ -175,7 +175,7 @@ None (no screen changes).
 
 ## 6. Proposed wording
 
-No app text. These are the texts Josh sees from the tooling: terminal, ntfy and the builder's report. They follow the style of the EZD-000h texts (EZD-000h section 6) and `run.mjs`. `run.mjs` `notify` adds the `EZ Draft: ` prefix (line 58). Josh approves them at Stage 2.
+No app text. These are the texts Josh sees from the tooling: terminal, ntfy and the builder's report. They follow the style of the EZD-000h texts (EZD-000h section 6) and `run.mjs`. `run.mjs` `notify` adds the `EZ Draft: ` prefix (line 59). Josh approves them at Stage 2.
 
 | Where | Text |
 | --- | --- |
@@ -228,11 +228,11 @@ Medium. The logic is small and fully specified pacing arithmetic and three text-
 ## 9. Dependencies
 
 From the ticket row:
-- **EZD-000h** (planned, not merged). This plan uses its C2 (`usage.json` shape), C5 (`readMeters` `fallback`) and C12 (the `readMeters` call in `run.mjs`). If EZD-000h's STATUS note records a deviation from those, this plan is re-validated at Stage 3.
+- **EZD-000h** (done, 4296a46). This plan uses its C2 (`usage.json` shape), C5 (`readMeters` `fallback`) and C12 (the per-pass `readMeters` call in `run.mjs`). Re-validated 2026-10-19 against its STATUS note (`vault/tickets/STATUS.md` line 60) and the merged code: C2 matches `scripts/statusline.mjs` (keys, Unix seconds × 1000, `fable_seven_day: null`, temp file + rename); C5 matches `scripts/budget.mjs` lines 33–58 (`fallback({ root, now, budget })`, non-null returned as is, `statusline` skips it, `oauth` skips `usage.json`); the T8 fixture values match `scripts/budget/statusline.test.mjs` lines 18 and 32–33. Deviations (1), (2) and (4) do not touch this plan (T7 passes `spend`, so (2) does not apply). Deviation (3) raised QP-1, answered as Q-0137 (a).
 
 Not in the ticket row, reached through the chain:
-- **EZD-000c** (planned): range reads of `run.mjs` (a working constraint, not a contract).
-- **EZD-000b–EZD-000g** (planned or questions) and **EZD-000** (done): the chain order (PA3 "Order of work and commits": Item 1 last).
+- **EZD-000c** (done, 3b7c7c1): range reads of `run.mjs` (a working constraint, not a contract).
+- **EZD-000b–EZD-000g** (all done) and **EZD-000** (done): the chain order (PA3 "Order of work and commits": Item 1 last).
 
 No missing dependency. There is no screen, so EZD-016a is not needed.
 
@@ -248,7 +248,7 @@ Risks:
 
 ## 10. Open questions
 
-None open.
+- **Q-0137 (was QP-1): answered (a)** by the orchestrator: keep H9 as written; a dry run polls like a real pass, paced by `oauth-poll.json` (H9). Question as raised: EZD-000h deviation (3) means `run.mjs --dry-run` goes through the per-pass `readMeters` call (line 284) before it stops at line 219, so with H9 as written a dry run makes one real OAuth request when one is due and writes `vault/cost/usage.json` and `oauth-poll.json`; no source says whether a dry run may do that. Options: (a) keep H9 as written (a dry run polls like a real pass, paced by `oauth-poll.json`); (b) pass no fallback when `--dry-run` is set, so a dry run makes no request and writes no OAuth file. No test value changes either way (H9 is code-review only).
 
 - **Q-0133 (was QP-1): answered (a)** by the orchestrator: after a 429 the retry waits `max(Retry-After, 120) + 30` seconds and the 15-minute spacing governs every other request (step 3, H5, T3).
 - **Q-0134 (was QP-2): answered (a)** by the orchestrator: `parseUsage` uses the statusline names, and the live probe reports the real names, with a mismatch reported as failed for a follow-up ticket (step 4, step 11, H4, T7, risks).
