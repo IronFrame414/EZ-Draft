@@ -1,6 +1,6 @@
 # Phase 0 · Questions for Josh
 
-Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 7071a05). New since then: one agent answer to confirm (Q-0154, section 2), EZD-008b's wording (items 43 to 55) and one rule candidate (L-009). Answer by number, in any form ("section 2 confirmed", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Everything in sections 2 to 4 stands as written until you change it.
+Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 9cd2ae1). New since then: one agent answer to confirm (Q-0155, section 2), the three EZD-010 parts in section 3 (no wording) and two rule candidates (L-010, L-011). Answer by number, in any form ("section 2 confirmed", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Everything in sections 2 to 4 stands as written until you change it.
 
 Q-0089 (storage limit) stays open for a later phase and is not asked here.
 
@@ -11,12 +11,13 @@ None. No Phase 0 question is waiting on you.
 ## 2. Agent answers to confirm
 
 1. **Q-0154** (EZD-008a): how the sender name is written into the email's From line when a company name has a comma, period or similar mark (e.g. "Smith, Jones LLC"). Answer (code-reviewer): put quote marks around the name in that case, as the email standard requires, so mail apps do not misread it as two addresses; names without those marks, like "Worth Properties via EZ Draft", go out exactly as before, and mail apps never show the quote marks. Source: RFC 5322 sections 3.2.3 and 3.2.4; your Q-0036 answer. **Confirm or override.**
+2. **Q-0155** (EZD-010, design tokens): the planner found the design-tokens ticket too big for one ticket (about 30 files, 12 tests). Answer (orchestrator): split it into three tickets built in order: EZD-010a (the color, corner and size values in one file, plus a gate check that refuses a color written anywhere else), EZD-010b (the icons as one small picture file plus an icon component) and EZD-010c (the two fonts served from our own server, and a developer page showing every value, which is "not found" on the live address). Nothing about what the app looks like changes; every ticket that waited on EZD-010 now waits on all three. Source: PROCESS.md section 6 Ticket size; vault/plans/EZD-010.md Split proposal; same flow as Q-0152. **Confirm or override.**
 
 ## 3. Proposed wording
 
 Not answered yet: Josh was on mobile on 2026-10-19; raise again when he is at the desktop.
 
-No new screen text for clients or users. Items 43 to 55 (EZD-008b) are new since the last file; items 1 to 42 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
+No new screen text for clients or users. Items 1 to 55 carry over unanswered; EZD-010a, 010b and 010c add none. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
 
 **EZD-001 · Repo and tooling** (already built; the product name from spec section 02)
 1. Browser tab title: `EZ Draft`
@@ -98,9 +99,20 @@ No new screen text for clients or users. Items 43 to 55 (EZD-008b) are new since
 **EZD-008a · Send helper and transports**
 - No wording of its own. Company emails show `<Company> via EZ Draft` (your Q-0036 answer); recipients' text comes from later tickets.
 
+**EZD-010a · Token files and check C10**
+- No wording (nothing on screen; the gate message is developer text). Plan section 6.
+
+**EZD-010b · Icon sprite and Icon component**
+- No wording (the icon component shows no text). Plan section 6.
+
+**EZD-010c · Fonts, root layout and token test page**
+- No wording. The `/dev/tokens` page shows token names and values for developers and is "not found" on the live address. Plan section 6.
+
 ## 4. Rule candidates
 
 Josh ratified L-001 to L-007 in chat on 2026-10-19. Still open:
 
 1. **L-008** (test-author; from EZD-005a): a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides. **Recommend: ratify.** A line-start match missed four of five table names in the generated types file because the Supabase CLI puts a key after the previous closing brace on the same line, which cost a structural repair.
 2. **L-009** (planner; from EZD-006): SQL that a plan fixes as contract text (policy templates, function signatures a test copies) is run once on the pinned local database by the planner, or marked "confirm on pinned version" for the test-author to check. **Recommend: ratify.** The EZD-006 policy template was written from memory, did not run on the pinned PostgreSQL, failed the builder's first migration and needed a structural repair.
+3. **L-010** (builder; from EZD-008a): when a plan says a value "must be assignable" to a contract type, the builder assigns it to a variable of that type with no `as` cast, and reports a type error instead of casting it away. **Recommend: ratify.** The builder's `as unknown as` cast switched off the only check that the real Resend library fits the email helper's contract.
+4. **L-011** (test-author; from EZD-008b): a test that checks what happens when a file is loaded loads a fresh copy of it (a unique import name or a separate process), never one an earlier test in the same file already loaded. **Recommend: ratify.** The "importing the live email check sends nothing" test reused a cached copy, so it would have passed even with the safety guard removed; the test review caught it.
