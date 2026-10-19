@@ -7,6 +7,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
+import ezdraft from './eslint-rules/index.mjs';
 
 const APP = ['app/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'];
 // Absolute so the Next plugin finds app/ whether ESLint runs from the root (T7, T8) or from app/ (the app lint script).
@@ -34,5 +35,43 @@ export default tseslint.config(
   {
     files: APP,
     settings: { next: { rootDir: APP_DIR } },
+  },
+  // EZD-026a · phone screens never carry literal interface text (vault/plans/EZD-026a.md Step 4; R26 R17).
+  {
+    files: [
+      'app/src/app/(field)/**/*.{tsx,jsx}',
+      'app/src/components/field/**/*.{tsx,jsx}',
+      'app/src/components/phone/**/*.{tsx,jsx}',
+    ],
+    ignores: ['**/*.test.*', '**/*.spec.*'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/no-literal-ui-string': [
+        'error',
+        { allowedKeyPrefixes: ['common.', 'field.', 'error.'] },
+      ],
+    },
+  },
+  {
+    files: ['app/src/app/(client)/**/*.{tsx,jsx}', 'app/src/components/client/**/*.{tsx,jsx}'],
+    ignores: ['**/*.test.*', '**/*.spec.*'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/no-literal-ui-string': [
+        'error',
+        { allowedKeyPrefixes: ['common.', 'client.', 'error.'] },
+      ],
+    },
+  },
+  {
+    files: ['app/src/app/dev/messages/**/*.{tsx,jsx}'],
+    ignores: ['**/*.test.*', '**/*.spec.*'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/no-literal-ui-string': [
+        'error',
+        { allowedKeyPrefixes: ['common.', 'field.', 'error.', 'dev.'] },
+      ],
+    },
   },
 );

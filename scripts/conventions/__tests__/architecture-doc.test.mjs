@@ -315,3 +315,27 @@ test('EZD-010c T12 (d): the conventions check exits 0 on the repository root', (
   const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
   assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
 });
+
+test('EZD-026a D1: docs describe the message helper, the catalogs and the lint', () => {
+  const md = readArch();
+  const headings = md.split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => /^## /.test(l));
+  assert.deepEqual(headings, REQUIRED_HEADINGS);
+  assert.ok(md.split(/\r?\n/).some((l) => l.trimEnd() === '### Messages and language (t())'), 'heading ### Messages and language (t())');
+  for (const s of [
+    'ezdraft/no-literal-ui-string', 'eslint-rules/', '(field)', '(client)', 'components/phone',
+    'app/src/lib/messages/', 'app/src/server/messages/', 'createT', 'useT', 'catalogFor', 'SPANISH_NAMESPACES', 'Q-0030',
+  ]) {
+    assert.ok(md.includes(s), `docs/architecture.md must contain ${s}`);
+  }
+  const t = tableWithHeader(md, ['ID', 'Rule', 'Check', 'Built by']);
+  for (const [file, by] of [['messages-lint.test.mjs', 'EZD-026a'], ['catalog.test.ts', 'EZD-026d'], ['message-keys.test.ts', 'EZD-026d']]) {
+    assert.ok(
+      t.rows.some((r) => (r[2] || '').includes(file) && strip(r[3] || '') === by),
+      `a Machine checks row whose Check contains ${file} and Built by is ${by}`,
+    );
+  }
+  const deps = tableWithHeader(md, ['Package', 'Version', 'Used in', 'Why', 'Added by']);
+  assert.ok(!deps.rows.some((r) => strip(r[4] || '') === 'EZD-026a'), 'no Dependencies row added by EZD-026a');
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});
