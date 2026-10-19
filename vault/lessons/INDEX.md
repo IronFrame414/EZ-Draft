@@ -4,9 +4,9 @@ One file per role. Format and rules: PROCESS.md section 13. Only the orchestrato
 
 | File | Role | Areas with entries |
 | --- | --- | --- |
-| orchestrator.md | dispatch, model choice, ledgers, merges | (none yet) |
+| orchestrator.md | dispatch, model choice, ledgers, merges | tooling, scripts, process (L-003, candidate) |
 | planner.md | plans, contracts, citations, ticket size | tooling, scripts, process (L-002, candidate) |
-| test-author.md | tests, fixtures, expected values | (none yet) |
+| test-author.md | tests, fixtures, expected values | tooling, scripts, process (L-003, candidate) |
 | builder.md | implementation, scope discipline, structural repair | (none yet) |
 | reviewer.md | code-reviewer and security-reviewer | auth, security (L-001, candidate) |
 | ui.md | ui-verifier: screenshots and mockups | (none yet) |

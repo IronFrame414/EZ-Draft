@@ -15,5 +15,6 @@ EZD-001 is the pilot ticket: the orchestrator runs it through every step of sect
 | 9 | `plan` and `review-plans` run as the agent with no orchestrator, and the launcher's ledger line is correct | First `plan <T>` unit of Phase 1 (or a throwaway plan on a copy) | |
 | 10 | The warning at 70%, the hold at 80% letting the in-progress ticket finish, and `--api-until-reset` switching auth | Small ceiling with two units; `log.jsonl` `auth` field reads `api` after the override | |
 | 11 | Resuming a subagent (step-8 reviewer, same-tier builder retry) works from a `-p` session | The deliberate failure: the resumed reviewer and builder keep their context (their reports reference the earlier round) | |
+| 12 | No task-list widget and no prompt suggestions in an interactive session (PA3-MECHANISMS.md verification item 6; EZD-000b, Q-0126 (c)) | Start an interactive session in the repo; no task list or prompt suggestion appears; token reminders and goal check-ins stay off | |
 
 CLI facts recorded on 2026-10-18 (Claude Code 2.1.302): `--max-budget-usd`, `--permission-prompts none`, `--effort`, `--agent`, `--permission-mode auto`, `--output-format json` are listed by `claude --help`; `--max-turns` is not (the launcher drops it; Q-0120).
