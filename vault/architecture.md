@@ -20,6 +20,20 @@ R24 #1; 02 Stack Hosting; Q-0113; Q-0116 (a); Q-0123 (b); Q-0106; EZD-003.
 - The live check `scripts/hosting/check-live.mjs` is never run by the gate. EZD-023b's release workflow runs its checks after every release; anyone may run it by hand (read-only).
 - Agents never change Vercel or DNS settings; those steps are in `docs/runbook.md` for Josh.
 
+### Environment variables
+
+R24 #1; Q-0106; Q-0113; 11 Operations; EZD-004b.
+
+Values never go in the repo; names go in `.env.example`; the app reads them per call, so `next build` needs none.
+
+| Name | Reaches the browser | Local value | Dev / prod value | Used by |
+| --- | --- | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes (Realtime and signed uploads later, 03 rule 1) | `pnpm db:env` | that project's API URL | `app/src/server/db/env.ts` now; EZD-018, EZD-132 later |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes (RLS applies) | `pnpm db:env` | that project's publishable key | `app/src/server/db/env.ts` now; EZD-018, EZD-132 later |
+| `SUPABASE_SECRET_KEY` | never | `pnpm db:env` | that project's secret key | job handlers, migrations, seeds and admin scripts only; nothing reads it yet |
+
+Which project's values go where: local is the local stack; preview is the dev project; production is the production project once Josh sets it up from the Before-launch checklist (11 Operations: preview deploys use the dev database; Q-0113). Entering values in Vercel is EZD-023b's (Q-0106).
+
 ## Named tools
 
 One choice per job (02 Named tools; R26 R11). The `Packages` cell holds only npm package names, each in backticks; `—` means the choice is not an npm package.
