@@ -78,8 +78,9 @@ const rules = {
     if (pa3Grant()) return;
     if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
     // Q-0124 (a), Josh 2026-10-19: scripts/conventions/ is the builder's (the conventions check, EZD-000 and later).
-    if ((rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml') && !rel.startsWith('scripts/conventions/'))
-      return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget; scripts/conventions/ is allowed) or ci.yml. New workflow files under .github/workflows/ are allowed.';
+    // Q-0148 / Q-0125 (a), orchestrator 2026-10-19: scripts/db/ is the builder's (local Supabase and types scripts, EZD-004a and later).
+    if ((rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml') && !rel.startsWith('scripts/conventions/') && !rel.startsWith('scripts/db/'))
+      return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget; scripts/conventions/ and scripts/db/ are allowed) or ci.yml. New workflow files under .github/workflows/ are allowed.';
   },
   'ui-verifier': () => {
     if (!rel.startsWith('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
