@@ -8,6 +8,18 @@ Written by EZD-000 (vault/plans/EZD-000.md). Every build session reads this file
 - Browser floor: Safari and iOS Safari 16.4+, Chrome and Edge 111+, Firefox 113+ (Q-0013 (a), vault/spec/decisions/02-product-overview.md; EZD-010 relies on Firefox 113 for `oklch()`, Q-0026 (a)). No polyfills and no `browserslist` override.
 - pnpm: the version in the `pnpm` row of Dependencies, pinned again in the root `package.json` `packageManager` field (check C1 keeps the two equal). pnpm reads that field and runs the pinned version, so the machine's installed pnpm (CI: `npm install -g pnpm`) does not matter.
 
+### Hosting
+
+R24 #1; 02 Stack Hosting; Q-0113; Q-0116 (a); Q-0123 (b); Q-0106; EZD-003.
+
+- Vercel project `ezdraft`, Root Directory `app`. Config is `app/vercel.json` (framework `nextjs`, function region `iad1`). Node `22.x` comes from `app/package.json` `engines`. pnpm runs through Corepack (`ENABLE_EXPERIMENTAL_COREPACK=1`) and the root `packageManager` pin.
+- Production branch `main`: production changes only after Josh merges a phase PR. A build goes live only when EZD-023b's release workflow promotes it.
+- Previews only for the phase PR (develop to main), through the Ignored Build Step in the Vercel project. A plain `develop` push builds no preview; the gate's empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the dev database once EZD-023b enters its values.
+- Domain `ezdraft.ezcontractorbinder.com`. DNS is at Spaceship; Vercel provides the HTTPS certificate and the HTTP to HTTPS redirect. "Auto-assign Custom Production Domains" is off and stays off, so the address shows only a build the release workflow promotes.
+- Rollback is Vercel's previous deployment.
+- The live check `scripts/hosting/check-live.mjs` is never run by the gate. EZD-023b's release workflow runs its checks after every release; anyone may run it by hand (read-only).
+- Agents never change Vercel or DNS settings; those steps are in `docs/runbook.md` for Josh.
+
 ## Named tools
 
 One choice per job (02 Named tools; R26 R11). The `Packages` cell holds only npm package names, each in backticks; `—` means the choice is not an npm package.
@@ -233,6 +245,8 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | A stored sample of every schema version loads | CI test | the ticket that adds the schema (03 rule 5) |
 | — | One Zod file per object type; Clipper only in a worker; error body shape; log redaction | review | — |
 | — | CI fails when any gate check fails | scripts/gate.mjs exit code; proved by scripts/ci/__tests__/ci.test.mjs | EZD-002 |
+| — | Vercel config pinned (region, Node major, framework) | scripts/hosting/__tests__/hosting.test.mjs | EZD-003 |
+| — | Subdomain serves the app over HTTPS (after each release and by hand, not gated) | node scripts/hosting/check-live.mjs | EZD-003 |
 
 ### CI
 
