@@ -207,6 +207,15 @@ EZD-010a (vault/plans/EZD-010a.md Step 4); 04 Frame and visual system (Studio); 
 - Latin subset only (11 rule 8): it covers ASCII, Spanish accents and punctuation, and the measurement marks `'` `"` `×` `°` `…`.
 - Loaded with `next/font/local` in `app/src/styles/fonts.ts` as `--ez-font-sans` and `--ez-font-mono`, set on `<html>` by the root layout. Never load Google Fonts (`next/font/google`, `fonts.googleapis.com`, `fonts.gstatic.com`) or the icon font.
 
+### Events
+
+EZD-022 (vault/plans/EZD-022.md Step 4); 07 Hooks, events and integrations.
+
+- The registry is `app/src/lib/events/registry.ts` (`EVENTS`, `EventName`, `EventPayloads`); `emit` is in `app/src/server/events/`. Call `emit` by its bare name through a relative import, never aliased (no app file uses the `@/*` alias yet and `app/vitest.config.ts` sets no alias).
+- A new name goes into `EVENTS` in the same commit as its first emitter; screen events not named in 07 are added as `log_only`.
+- Payload types are narrowed in `EventPayloads` by the emitting ticket.
+- Sinks are added to `defaultSinks` in `app/src/server/events/index.ts` (EZD-109 event log, EZD-1301 webhooks).
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-133 (helper, server-route pattern, browser-query lint rule) and EZD-102 (enforcement, UI hook).
@@ -352,7 +361,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |
 | — | Static imports of heavy libraries; bundle report | lint rule and build report | EZD-020 |
 | — | Literal interface strings in phone components | lint rule | EZD-026 |
-| — | Unknown event names | CI test | EZD-022 |
+| — | Unknown event names | `app/src/lib/events/registry-usage.test.ts` (static scan, `@smoke`), typecheck (`EventName`) and runtime `UnknownEventError` | EZD-022 |
 | — | Destructive migrations (drop or rename) | CI check | EZD-023 |
 | — | Performance counts and download size | perf script | EZD-017 |
 | — | A test reaching a live provider fails | test harness | EZD-021 |
