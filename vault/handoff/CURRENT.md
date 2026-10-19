@@ -1,16 +1,17 @@
-# Handoff · 2026-10-19 · build EZD-000i
+# Handoff · 2026-10-19 · build EZD-001
 
-- Phase and stage: Phase 0, Stage 3 (build); EZD-000, EZD-000b to EZD-000i done
+- Phase and stage: Phase 0, Stage 3 (build); EZD-000, EZD-000b to EZD-000i, EZD-001 done
 - Why the session ended: unit complete
-- Completed this session: EZD-000i done, 883a54f (125 repo tests). New scripts/oauth-usage.mjs is the readMeters fallback: when usage.json is over 20 minutes old it asks Claude's usage endpoint at most every 15 minutes, waits max(Retry-After,120)+30 s after a 429, stops an hour and notifies on 401/403, never writes the token; run.mjs passes it to the per-pass readMeters only; guard-bash K1-K3 and five settings.json deny entries block shell commands that would print the token; .gitignore oauth-poll.json.
-- Step 1: plan re-validated after EZD-000h deviations; QP-1 → Q-0137 answered-agent (a) (a dry run polls like a real pass).
-- Models: test-author Sonnet 5.5 medium; builder Sonnet 5.5 medium (1 round); code-reviewer Opus 5.5 high (mode 2 PASS, mode 3 PASS, same agent); security-reviewer Opus 5.5 high PASS. Gate PASS on worktree and on develop phase 0 (125/125).
-- Live probe (builder report): HTTP 200 via Keychain `Claude Code-credentials`; real fields use `utilization`, not `used_percentage`, so readings still fall back to the dollar proxy (safe, per Q-0134 (a)).
-- Deviations: step 11 `test -f` skipped (my dispatch was stricter than the plan; lesson L-005); run.mjs uses await import.
+- Completed this session: EZD-001 done, 3b1037c (develop phase 0 gate PASS, 138 node:test + 1 Vitest). The app (Next.js 16.4.2) builds; geometry package with T1 @smoke; ESLint 9 flat config, Prettier, strict tsconfig base, root Vitest projects (maxWorkers 4, EZD_TEST_GREP scope); check C9 (every test file carries a ticket describe); pnpm-workspace.yaml workspaceConcurrency 1 and allowBuilds denying unrs-resolver.
+- Step 1: plan re-validated (024ca47, 74888bc), v1 → v2 layout, complexity medium → high. QP-1 → Q-0139 answered-agent (a) (orchestrator); QP-2 → Q-0140 answered-agent (a) (security-reviewer).
+- Gate fault: develop was red before the ticket (scripts/ledger/questions-flow.test.mjs, since 3e85263: live Q-0138 escalation leaked into the fixture). Fixed in place b6e82e0 under rule 19 (Q-0141); fixture only, no assertion changed.
+- Build: builder r1 question C9 vs EZD-000 fixtures → Q-0142 answered-agent (a) (code-reviewer): four EZD-000 fixtures gained an EZD-000 describe (0a0e2cc). Structural repair aa75701 (T12 prettier default export).
+- Models: planner Opus 5.5; test-author, builder, code-reviewer (mode 2, mode 3), security-reviewer Fable 5.1, all PASS. Mode 3 used a fresh reviewer, not the resumed step-5 one (orchestrator slip).
+- T3 clean-tree gate ran on a fresh temp worktree because the guard hook blocks forced git cleaning; PASS.
+- Deviations: eslint 9.39.5 (registry-deprecated; eslint-config-next peers stop at 9), @types/node 22.20.5, no tsconfig.test.json (EZD-201 should type-check geometry tests), absolute next rootDir, app `@/*` paths alias, Q-0142 fixture change.
 - In progress: none
 - Blocked: none
-- Questions for Josh: Q-0138 (new, escalated: follow-up ticket to read `utilization`); Q-0136 still to confirm; Q-0137 to confirm. needs-josh-confirm wording: the two guard-bash deny reasons (plan s6).
-- Proposals for Josh (orchestrator may not edit .claude/ or tests): remove the pa3Grant exception in .claude/hooks/guard-paths.mjs and its three Q-0128 tests in scripts/hooks/guard-paths.test.mjs (Q-0128 (a), now due); add the token rules to PROCESS.md s14; add the real usage-endpoint reading to PILOT.md once Q-0138 is settled. Security minors (accident guard, Q-0135): K1 splits inside quotes; K3 `test -f` match swallows space-free chains; probe prints nested key names.
-- Note: guard-bash now denies any Bash command naming the sign-in file, commit messages included.
-- Decisions made: Q-0137 answered-agent. Lesson added: L-005 (orchestrator, candidate).
-- Next unit: build EZD-001
+- Questions for Josh: Q-0138 (escalated); to confirm: Q-0136, Q-0137, Q-0139, Q-0140, Q-0141, Q-0142. needs-josh-confirm wording: tab title `EZ Draft`.
+- Proposals for Josh: T10 should also reject a pnpm `permissions` build key (security minor); EZD-004 and EZD-023b plans list `onlyBuiltDependencies` as `- ` lines, which break EZD-000 T26, so re-validate them; earlier proposals from the EZD-000i handoff still stand (pa3Grant removal, token rules in PROCESS.md s14).
+- Decisions made: Q-0139, Q-0140, Q-0141, Q-0142 answered-agent. Lesson L-003 seen 2.
+- Next unit: build EZD-002
