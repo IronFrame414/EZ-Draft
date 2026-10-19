@@ -127,7 +127,7 @@ function buildCommand(unitName, arg) {
     '--output-format', 'json',
     '--model', u.model,
     '--effort', u.effort,
-    '--permission-mode', 'auto',
+    '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,
   ];
   const b = budget();
