@@ -1,692 +1,267 @@
-# EZD-023b · Environments, release and rollback
+# EZD-023b · Release guards and naming
 
-- **ACs:** AC-EZD-023b-1 (generated from Done-when, `vault/spec/acceptance-criteria.md` line 76). After the split the orchestrator generates the ACs of the new parts EZD-023c, EZD-023d and EZD-023e with `node vault/tools/gen_acs.mjs` from the Done-when texts below; AC-EZD-023b-1 stays with part EZD-023b, whose T1 is the Done-when test (Done when as decided by Q-0106, below).
-- **Complexity:** high for the whole ticket (about 23 files and 20 tests plus the gate). Parts: EZD-023b high, EZD-023c medium, EZD-023d high, EZD-023e high (each part's Complexity line below). Re-rated 2026-10-19 on re-validation: unchanged.
-- **User-visible result:** when Josh merges a pull request into `main`, the release runs by itself on GitHub; until launch it shows green with "production not configured — nothing released" and changes nothing (Q-0106, Q-0113). Nothing runs until part EZD-023e adds the workflow file.
-- Process v2 note: the text from "Re-validated plan text" down keeps the v1 section layout; the v2 template (`vault/plans/TEMPLATE.md`) applies to each part's plan. Mentions of `.claude/skills/build-phase` and `phase-gate` read as the v2 units `build-ticket` and `gate-phase`; `vault/spec/decisions.md` citations resolve through `vault/spec/decisions/INDEX.md`; Q-0019 worker counts read as 4 (Q-0114).
+- **ACs:** AC-EZD-023b-1, AC-EZD-023b-2, AC-EZD-023b-3 (`vault/spec/acceptance-criteria.md` lines 76–78, generated from Done-when).
+- **Complexity:** high (reasoning in section 8).
+- **User-visible result:** nothing Josh can see yet. The release script exists and refuses every unsafe start, but no workflow runs it until EZD-023e adds `.github/workflows/release.yml`.
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
 
-Phase: 0 · Planned by: planner · Date: 2026-10-11 (history in the original Phase line below); re-validated 2026-10-19 (Stage 3 step 1, after EZD-002 562313f, EZD-003 dc6e8e6, EZD-004a 78b3103, EZD-004b 22b6f0a, EZD-004c ea665d3, EZD-005a f5aed49, EZD-005b 92e848d, EZD-006 0ff28b9, EZD-008a fce41c2, EZD-008b e77273a, EZD-023a b8b5913; findings V1–V15 below) · Status: questions (split proposal; QP-1 to QP-3)
+Part 1 of 4 of the EZD-023b split (Q-0157). The split proposal, re-validation findings V1–V15 and the full re-validated release design were in this file. They are kept at commit `70cf5a5` (`git show 70cf5a5:vault/plans/EZD-023b.md`), and this plan calls that text **"the archived plan"**. Parts EZD-023c, EZD-023d and EZD-023e are planned from it. The orchestrator may archive it under `vault/handoff/log/` as it did for EZD-000b; the planner writes only this file. The findings that apply to this part are V2, V12, V13, V14 and V15.
 
-## Split proposal
+## 1. What to build
 
-The re-validated plan below touches about 23 files (11 modules under `scripts/release/`, `.github/workflows/release.yml`, root `package.json`, `pnpm-lock.yaml`, `docs/architecture.md`, `docs/runbook.md`, 7 test files) and has 20 tests plus the gate (T1–T18, T20, T21; T19 is the gate). That is over the size rule (vault/PROCESS.md section 6 "Ticket size": about 8 files, about 10 tests; same step and flow as EZD-004 (Q-0148), EZD-005 (Q-0150), EZD-008 (Q-0152) and EZD-010 (Q-0155)). The plan's own Risks line "Ticket size" named a two-way split, but its first half alone has 11 tests, so this proposes four parts.
+Ticket row (vault/tickets/phases/phase-00.md line 49):
+- **Scope:** Release script guards and naming (plan Step 5; Step 6 steps 1–8): context guards; the presence check with `not_configured` / `env_missing` and the masking of derived values; `not_latest`; `no_merged_pr`; `environment_unprotected`; the release name; EZD-023a's migration check. The CLI wrapper: exit code, the `release <code>` last line, the job summary. `createGitHubApi` (`mergedPullsFor`, `environmentBranchRule`, `createTag`; part e makes the first `createTag` call) and the pure `evaluateEnvironmentRule`. Split from EZD-023b (Q-0157); plan Part EZD-023b.
+- **Done when:** The release script refuses anything but the newest merged pull request on `main`: another branch or event, a direct push with no merged pull request, a commit that is no longer the tip of `main`, or a run outside GitHub Actions. It refuses before it uses any secret. It ends green with "production not configured — nothing released" when the `release` environment holds no release secret.
+- **Depends on:** EZD-023a, EZD-001.
+- **Spec ref:** Non-functional · Operations; R26 R12.
 
-- **IDs.** EZD-023b is already a lettered part of EZD-023 (Q-0042). The new parts take the next free letters: EZD-023c, EZD-023d and EZD-023e (none exists in `vault/tickets/tickets.json`, read 2026-10-19). EZD-023b keeps its ID, its AC and its Done-when test T1.
-- **Order.** The parts follow Step 6's step order, so no part builds a later step before an earlier one: EZD-023b steps 1–8, EZD-023c steps 9–10, EZD-023d steps 11–15, EZD-023e steps 16–18 plus the workflow and the docs.
-- **Interim (*planner's choice*, CLAUDE.md rule 3; the code-reviewer confirms at plan review).** `runRelease` is built in four stages. Until part e, `runRelease` returns `{ ok: false, code: 'not_built', notices }` after the last step its part builds. Nothing calls it, because `.github/workflows/release.yml` arrives only in part e, and part e removes `not_built`. No test asserts `not_built`: every test in parts b, c and d either stops at a refusal code or is pure.
-- **Names kept.** Every interface name and file path stays as written, because later plans cite them:
-  - EZD-021: `evaluateVercelEnv` in `scripts/release/env-check.mjs` (vault/plans/EZD-021.md lines 18, 173–175).
-  - EZD-025: `evaluateEnvironmentRule`, `environmentBranchRule`, `redactUrl`, `safeLines`, `supabaseRefFromDbUrl`, `dumpDatabase`, the `manifest.json` format, the `@aws-sdk/client-s3` row, and the `release` environment with its four shared secrets (vault/plans/EZD-025.md lines 28–38).
-- **Tests.** Test IDs and expected values are unchanged; tests move into the parts' files and `describe` titles. The one exception follows from the split itself: T18's "Built by" / "Added by" cells name the part that builds each item (docs/architecture.md Dependencies and Machine checks columns): the `@aws-sdk/client-s3` row ends in `EZD-023d`, the `release.test.mjs` Machine checks row in `EZD-023b` and the `workflow.test.mjs` row in `EZD-023e` [applied, Step 11 and T18].
-  - T11 is split by case: (a), (b) and (e) go to part d; (c), (d) and the new (f) go to part e.
-  - New cases from the findings: T5 (g) (V15), two pure T9 cases (V6) and T11 (f) (V6).
-- **Dependents.** `tickets.json` has EZD-021 and EZD-025 depending on `EZD-023b`. Once split, that would mean part b only: vault/tickets/README.md line 14 covers a base number, and EZD-023b is itself a part. The orchestrator therefore sets:
-  - EZD-021 → EZD-023c (it extends `env-check.mjs`);
-  - EZD-025 → EZD-023b, EZD-023c, EZD-023d and EZD-023e (it uses something from each, and the `release` environment docs come from part e). EZD-025's install form follows QP-1's answer.
+### Steps
 
-### Part EZD-023b · Release guards and naming
-- **Scope:**
-  - Step 5.
-  - Step 6 steps 1–8: context guards; the presence check with `not_configured` / `env_missing` and the masking of derived values; `not_latest`; `no_merged_pr`; `environment_unprotected`; the release name; EZD-023a's migration check.
-  - The CLI wrapper: exit code, the `release <code>` last line, the job summary.
-  - `createGitHubApi` (`mergedPullsFor`, `environmentBranchRule`, `createTag`; part e makes the first `createTag` call) and the pure `evaluateEnvironmentRule`.
-- **Done when:** The release script refuses anything but the newest merged pull request on `main`: another branch or event, a direct push with no merged pull request, a commit that is no longer the tip of `main`, or a run outside GitHub Actions. It refuses before it uses any secret. It ends green with "production not configured — nothing released" when the `release` environment holds no release secret (AC-EZD-023b-1, read through Q-0106: T1, T5).
-- **Depends on:**
-  - EZD-023a: `scripts/release/tags.mjs`, the `main` export of `check-migrations.mjs`, and `__tests__/git-fixture.mjs` (finding V2).
-  - EZD-001: root node tests.
-  - The builder exception for `scripts/release/` is already in place (`.claude/hooks/guard-paths.mjs` line 84; Q-0125 (a), fc09da6).
-- **Files (4 builder + 2 test-author):**
-  - Builder: `scripts/release/context.mjs`, `release-name.mjs`, `github-api.mjs`, `release.mjs`.
-  - Test-author: `scripts/release/__tests__/release.test.mjs` (T1, T3, T4, T5) and `release-name.test.mjs` (T2).
-- **Tests (5 + gate):** T1 (title `EZD-023b done when: the release refuses anything but the newest merged pull request on main`), T2, T3, T4, and T5 with its new case (g). T19 is the gate.
-- **Complexity:** high. It is a new pattern: the release orchestrator runs over real git fixtures, and its guards stand in front of production secrets (PROCESS.md section 4). test-author and builder Fable 5.1 (Opus 5.5 when Fable is past its fallback fraction); code-reviewer and security-reviewer Fable 5.1.
-- **security-review: yes.** API: the GitHub token and the environment-rule check; the presence check and masking of production secrets.
-- **Visual checklist:** none (no screen; `tickets.json` `mockups: []`).
-- **Proposed wording:** the job summary line `production not configured — nothing released` (Step 6 step 2; Q-0113). No other user-visible text.
-- **User-visible result:** nothing yet; no workflow runs the script until part e.
+**Step 1. `scripts/release/context.mjs`: guards, presence, masking (all pure).**
+- `checkReleaseContext(env)` runs first. It reads only `CLAUDECODE`, `GITHUB_ACTIONS`, `GITHUB_EVENT_NAME` and `GITHUB_REF`, and refuses in this order (archived plan Step 5):
+  1. `agent_refused` when `CLAUDECODE` is defined, whatever its value. Claude Code sets `CLAUDECODE=1` in the shells it starts (R-004 item 6).
+  2. `not_in_actions` when `GITHUB_ACTIONS !== 'true'`. Nobody releases from a PC (Q-0106).
+  3. `wrong_event` when `GITHUB_EVENT_NAME !== 'push'`. Josh's merge is the only approval (Q-0106).
+  4. `not_main` when `GITHUB_REF !== 'refs/heads/main'` (Q-0106: production only from `main`; non-goals "No production deploy except from `main`").
+- `RELEASE_SECRET_NAMES`: the 10 release names, in the archived plan's Step 4 order. They are `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `TENANT1_OWNER_EMAIL`, `BACKUP_SOURCE_DB_URL`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY`.
+- `ENV_REQUIRED_NAMES`: `GITHUB_TOKEN` plus the 9 release names other than `TENANT1_OWNER_EMAIL`, in the archived plan's Step 6 step 2 order. They are `GITHUB_TOKEN`, `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `BACKUP_SOURCE_DB_URL`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY`. Part d checks `TENANT1_OWNER_EMAIL` only when it is needed.
+- `checkPresence(env)` looks only at whether each name is empty (Q-0113; archived plan Step 6 step 2). A name counts as missing when it is undefined or its trimmed value is `''` (*planner's choice*: whitespace counts as empty, which fails closed).
+  - If every `RELEASE_SECRET_NAMES` entry is missing, the result is `not_configured`.
+  - Otherwise, if any `ENV_REQUIRED_NAMES` entry is missing, the result is `missing` with those names in list order. The backup key `BACKUP_S3_*_KEY*` never stands in for the release key (Q-0112 finding 10).
+  - Otherwise the result is `complete`.
+- `valuesToMask(env)` returns the derived values GitHub cannot mask, because it masks secrets only exactly as entered (Q-0112 finding 7; archived plan Step 4 "Masking"). There are up to three, deduplicated and never empty:
+  - the password of `BACKUP_SOURCE_DB_URL` as written (WHATWG `URL.password`, which keeps percent-encoding);
+  - the same password after `decodeURIComponent`. If decoding throws, only the raw form is returned;
+  - `TENANT1_OWNER_EMAIL.trim()` when it is non-empty.
 
-### Part EZD-023c · Vercel build and environment checks
-- **Scope:**
-  - Step 6 steps 9–10: `vercel_auto_assign_on`; `deployment_protection_off`; the token expiry notices; waiting for this commit's `READY` production build; the previous deployment; `env_mismatch`.
-  - Step 8: `evaluateVercelEnv` and the ref helpers.
-  - `scripts/release/redact.mjs` (`redactUrl`, `safeLines`).
-  - `createVercelApi`.
-- **Done when:** The release accepts only this commit's own `READY` production build on Vercel, and only with automatic domain assignment off and deployment protection on. It refuses Vercel values whose Preview points at the production database or whose Preview email mode is not set.
-- **Depends on:**
-  - EZD-023b.
-  - EZD-004b: `.env.example`.
-  - EZD-008a: `email_key_not_set`, `email_stub_not_allowed` (finding V8).
-  - EZD-008b: the email names in `.env.example`; runbook `## Email (EZD-008)` step 4.
-  - EZD-003: the Vercel settings Josh made (finding V10). Not a build dependency.
-  - Waits on QP-2 and QP-3 (T14 cases).
-- **Files (4 builder + 2 test-author):**
-  - Builder: `scripts/release/vercel-api.mjs`, `env-check.mjs`, `redact.mjs`, and `release.mjs` (extend).
-  - Test-author: `scripts/release/__tests__/release.test.mjs` (T6, extend) and `env-check.test.mjs` (T14, T15).
-- **Tests (3 + gate):** T6, T14, T15.
-  - This part builds the token notices; T20 tests them in part e, because T20 expects `released`.
-  - Part d's T9 (e)–(g) is the first test of `safeLines`.
-- **Complexity:** medium. An HTTP client and pure rules in part b's pattern; no database, and nothing goes live (PROCESS.md section 4). test-author and builder Sonnet 5.5; code-reviewer and security-reviewer Opus 5.5.
-- **security-review: yes.** API: the team-scoped Vercel token and decrypted values; the separation of the Preview and Production databases.
-- **Visual checklist:** none.
-- **Proposed wording:** none (result codes only).
-- **User-visible result:** nothing yet.
+  If the URL does not parse, no password is returned (*planner's choice*). GitHub still masks the whole value, and nothing in this part prints any part of the URL.
+- `maskCommands(value)` returns one `::add-mask::<line>` string for each non-empty line of `value`, splitting on `\r?\n` (*planner's choice*). Without the split, a value with a line break would print everything after the break in clear text.
 
-### Part EZD-023d · Dump, migrations and tenant 1
-- **Scope:**
-  - Step 6 steps 11–15: pending migrations from the commit's worktree; the tenant 1 check and the owner email; the dump with the auth exclusions and the role-password guard; the off-site upload with `manifest.json`; the migrations with timeouts; the tenant 1 bootstrap.
-  - Step 9.
-  - The child-process output rule (Step 6 "Other rules").
-  - The `@aws-sdk/client-s3` dependency and its row.
-- **Done when:** Before any migration runs, the release writes a database dump off-site under `releases/`, using the release key only, without auth session tables or role passwords. A failed dump, upload, migration or tenant 1 setup stops it before anything goes live. No secret or owner email appears in its output.
-- **Depends on:**
-  - EZD-023c.
-  - EZD-004a: the `supabase` CLI 2.121.0.
-  - EZD-005a: `public.tenant`.
-  - EZD-005b: `supabase/bootstrap/tenant-1.sql` (finding V6).
-- **Files (8 builder + 3 test-author):**
-  - Builder: `scripts/release/dump.mjs`, `push.mjs`, `offsite-upload.mjs`, `bootstrap.mjs`, `release.mjs` (extend), root `package.json`, `pnpm-lock.yaml`, and `docs/architecture.md` (the Dependencies row only).
-  - Test-author: `scripts/release/__tests__/release.test.mjs` (extend), `bootstrap.test.mjs` (T9 pure cases) and `invocations.test.mjs` (T21).
-  - This is over the 8-file rule only by the two install files, which `pnpm add` writes.
-- **Tests (4 + gate):** T9 (with the two new pure cases), T10, T11 (a), (b), (e), and T21.
-- **Complexity:** high. A production database dump of client data, migrations, and secret masking (PROCESS.md section 4). test-author and builder Fable 5.1; code-reviewer and security-reviewer Fable 5.1.
-- **security-review: yes.** Data access: the production dump; migrations; the owner email going into SQL; the B2 release key; a new dependency.
-- **Visual checklist:** none.
-- **Proposed wording:** none (result codes only).
-- **User-visible result:** nothing yet.
+**Step 2. `scripts/release/release-name.mjs`: `releaseTagFor` (pure).** It uses EZD-023a's tag format and order (`scripts/release/tags.mjs`: `parseReleaseTag`, `compareReleaseTags`) and the phase PR title `Phase N: <name>` (vault/PROCESS.md line 264). Rules (archived plan Step 6 step 7):
+- First, ignore every name in `tags` and `tagsOnSha` that `parseReleaseTag` rejects. `compareReleaseTags` throws on such names (finding V2).
+- If `tagsOnSha` holds a release tag, return the highest one with `resume: true`. This is a re-run.
+- Else, if `prTitle` matches `^Phase (0|[1-9]\d*):` and `phase-N` is not in `tags`:
+  - return `phase-N` when it is newer than every tag;
+  - otherwise return the code `not_newer`.
+- Else, if any release tag exists, return the next patch of the highest tag: `phase-M` → `phase-M.1`, `phase-M.k` → `phase-M.(k+1)`.
+- Else return the code `no_release_name`: the first release must come from a `Phase N:` pull request.
 
-### Part EZD-023e · Go live, rollback, workflow and docs
-- **Scope:**
-  - Step 6 steps 16–18: tag, promote, verify with EZD-003's checks, automatic rollback, `release.json`.
-  - Step 3: `.github/workflows/release.yml`.
-  - Step 7: rollback.
-  - Step 11: the `docs/architecture.md` and `docs/runbook.md` sections, the env rows and the Machine checks rows.
-  - The two lists at the end of this plan, written into the runbook.
-- **Done when:** The release makes live only the build of the commit it tags, after the dump and the migrations. It puts the previous build back when the checks after going live fail. It runs only from `.github/workflows/release.yml`, on a push to `main`, in the `release` environment. The runbook holds Josh's settings and the Before-launch checklist.
-- **Depends on:**
-  - EZD-023d.
-  - EZD-003: `scripts/hosting/check-live.mjs` (`HOST`, `observe`, `evaluate`) and its runbook section (finding V10).
-  - EZD-004b: `/api/health` (finding V7).
-  - EZD-002: T2's rules for `release.yml` (finding V3).
-  - EZD-004c: the pinned action SHAs and the pnpm line of `supabase-dev.yml` (finding V4); its runbook section.
-  - EZD-006: runbook steps 9–10 (finding V9).
-  - EZD-005b: runbook `## Tenant 1 setup (EZD-005)`.
-  - Waits on QP-1 (T16, T17).
-- **Files (4 builder + 3 test-author):**
-  - Builder: `scripts/release/release.mjs` (extend), `.github/workflows/release.yml`, `docs/architecture.md`, `docs/runbook.md`.
-  - Test-author: `scripts/release/__tests__/release.test.mjs` (T7, T8, T11 (c), (d), (f), T12, T13, T20), `workflow.test.mjs` (T16, T17) and `release-docs.test.mjs` (T18).
-- **Tests (9 + gate):** T7, T8, T11 (c), (d), (f), T12, T13, T16, T17, T18, T20.
-- **Complexity:** high. Production secrets in a public repo's workflow, going live, and rollback (PROCESS.md section 4). test-author and builder Fable 5.1; code-reviewer and security-reviewer Fable 5.1.
-- **security-review: yes.** API and auth: production secrets in the workflow; the job token's `contents: write` and the tag; going live and rollback; Josh's GitHub settings list.
-- **Visual checklist:** none.
-- **Proposed wording:**
-  - The runbook section `## Environments and releases (EZD-023)` (Step 11 and the two lists at the end; Josh approves at Stage 2).
-  - One runbook line from the EZD-008b security follow-up: "If you switch a preview to `resend`, make a separate Resend key for it (for example `ezdraft-preview`, Sending access); never put `ezdraft-production` in Vercel Preview."
-- **User-visible result:** when Josh merges into `main`, Actions → Release runs; until launch it ends green with "production not configured — nothing released".
+**Step 3. `scripts/release/github-api.mjs`: `createGitHubApi` and `evaluateEnvironmentRule`.** Endpoints and headers come from GitHub's REST docs (R-004 items 1–5). The rule's field shape matches a read-only `gh api` of this repo's environments on 2026-10-19:
+  - `release` had `deployment_branch_policy {custom_branch_policies: true, protected_branches: false}`, `can_admins_bypass: false` and one policy `{name: 'main', type: 'branch'}`;
+  - `Production` and `Preview` had `deployment_branch_policy: null` and `can_admins_bypass: true`.
 
-### Reviewers (all parts)
-code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (no screen) · security-reviewer **yes** on every part. Each point in "Reviewers needed" below goes to the part that builds it.
+  So `can_admins_bypass` is returned and can be false with a branch rule alone, even though R-004 did not find it in the docs.
+- `createGitHubApi({ token, repo, fetch })`. Every request:
+  - goes to `https://api.github.com/repos/${repo}/…`;
+  - sends `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28` and `Authorization: Bearer ${token}`;
+  - throws on a non-2xx status. The error message names the method, path and status and never the token (Q-0112 finding 7).
 
-## Re-validation findings (2026-10-19; apply in every part's plan)
+  The methods:
+  - `mergedPullsFor(sha)` sends GET `/commits/{sha}/pulls` and returns the parsed array as GitHub sends it.
+  - `environmentBranchRule(name)` sends GET `/environments/{name}`. When `deployment_branch_policy?.custom_branch_policies === true`, it also sends GET `/environments/{name}/deployment-branch-policies?per_page=100`. It returns `{ deployment_branch_policy, can_admins_bypass, branch_policies }`, where `branch_policies` is `[{ name, type }]` and is `[]` when the second call is not made. A second page is never fetched, because a rule with more than 100 entries fails the one-policy rule anyway.
+  - `createTag(name, sha, message)` sends POST `/git/tags` with `{ tag: name, message, object: sha, type: 'commit' }`, then POST `/git/refs` with `{ ref: 'refs/tags/' + name, sha: <the tag object's sha> }`. GitHub needs both calls: "creating a tag object does not create the reference" (R-004 item 4). Nothing calls it until EZD-023e.
+- `evaluateEnvironmentRule(rule)` returns `{ ok, reason }` and fails closed (Q-0106: limited to `main`; Q-0112 finding 2: no admin bypass). It checks in this order and stops at the first failure:
+  1. `no_rule` when `rule` is null or undefined.
+  2. `all_branches` when `deployment_branch_policy === null`.
+  3. `not_selected_branches` when `protected_branches !== false` or `custom_branch_policies !== true`.
+  4. `not_main_only` unless `branch_policies` is exactly one entry with `name === 'main'` and `type === 'branch'`.
+  5. `admin_bypass` unless `can_admins_bypass === false`. A missing field counts as bypass allowed.
 
-"[Applied]" marks a finding already written into the plan text below. The other findings apply in the part plans.
+  When every check passes, it returns `{ ok: true, reason: null }`. The reason strings are *planner's choice*. EZD-025 reuses this function (vault/plans/EZD-025.md lines 30, 184).
 
-- **V1 Split dependencies.** `tickets.json` `depends_on` lists EZD-004a/b/c, EZD-005a/b and EZD-008a/b. Read the plan's citations as follows.
-  - `vault/plans/EZD-004.md` Step 7, `supabase-dev.yml` and the cloud runbook → EZD-004c (`docs/runbook.md` `## Supabase cloud projects (EZD-004)`).
-  - `/api/health`, `.env.example` and its name tests → EZD-004b (`scripts/db/__tests__/env.test.mjs`).
-  - The `supabase` CLI and `pnpm db:up` → EZD-004a.
-  - `vault/plans/EZD-005.md` Step 7 and T18 → EZD-005b Step 2 and T18. `public.tenant` → EZD-005a.
-  - `vault/plans/EZD-008.md` Step 4 → EZD-008a Step 4 (`app/src/server/email/transport.ts`). Its Step 6 part B → EZD-008b.
-  - EZD-004a's deviations (stdout-only inheritance, Docker wording) and its follow-up (`db:env` prints the local secret key) touch nothing here: the release never runs `db:env` or `local.mjs`.
-- **V2 EZD-023a interface (b8b5913).**
-  - `tags.mjs` exports what Step 6 step 7 uses.
-  - `compareReleaseTags` throws on a non-tag. So `releaseTagFor` and step 8 use only names from `listReleaseTags` (which filters with `parseReleaseTag`), or filter themselves. T2's inputs are all release tags, so its values are unchanged.
-  - Step 8's `--base` is `previousReleaseTag(tags, <new name>)`.
-  - Step 8 calls the exported `main(argv, out)` of `check-migrations.mjs` in-process with `['--root', <repo root>, '--head', sha]`, plus `['--base', tag]` when one exists (*planner's choice*: `out` collects the lines for the release log).
-  - `main` returning 1 → `migration_check_failed`. A throw (git error, unknown argument) → `migration_check_failed` too, so the step fails closed.
-  - `--head` must be 7–40 lower-case hex or a release tag, else `invalid_ref` and 1 (Q-0156 (a)). `GITHUB_SHA` is 40 lower-case hex.
-  - `main` reads `process.env.GITHUB_ACTIONS` itself, not the injected `processEnv`. In the workflow a failed tag fetch is M0, so it fails closed. In tests the fixture's `origin` is a `file://` bare repo, so the fetch succeeds either way.
-  - Expected log lines (the lines `main` prints): T8's "EZD-023a ran with `--base phase-0`" is observed as `migration check passed against phase-0`; T7's run as `no release tag yet: nothing is released`.
-  - `validateRetired` requires `ticket` and `reason` per entry; fixture `R`'s `{"retired":[]}` is valid.
-  - `git-fixture.mjs` exports `REPO_ROOT`, `git`, `makeRepo`, `commitFiles`, `tagAnnotated`, `cloneFrom`, `runCheck`, `FIX_NAME`, `FIX`, `RETIRED_EMPTY`, `migrationPath`, `RETIRED_PATH`, `DROP_NAME`, `DROP_SQL`. `tagAnnotated(dir, name)` tags `HEAD`.
-  - Fixture `R` keeps its own C2 `20261102000000_add_note.sql` and its own `DROP` `20261103000000_drop_legacy_note.sql`. It must not use the helper's `DROP_NAME`, which is `20261102000000_drop_legacy_note.sql`, the same version as C2.
-- **V3 EZD-002 T2 rules on `release.yml` (562313f; Q-0146).** T16's expected values are unchanged.
-  - (g) fails the brace form `environment: { … }`, so Step 3's environment is written in block form [applied, Step 3].
-  - (h) counts every `secrets` word on a non-comment line. One not followed by `.NAME` or `["NAME"]` fails, even inside a step `name:` or an end-of-line comment. The set must equal `EXPECTED_SECRETS['release.yml']` (`scripts/ci/__tests__/ci.test.mjs` lines 142–145), which is Step 4's 10 release names.
-  - (c), (d): `push:` in block form, `branches` exactly `[main]`, and no `tags`, `tags-ignore`, `paths` or `paths-ignore`.
-  - (i): no `actions/cache*`, and no `cache:` on `actions/setup-node`.
-- **V4 Pinned actions and pnpm (EZD-004c ea665d3).** `.github/workflows/supabase-dev.yml` pins `actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0` and `actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0`; both reviewers checked the SHAs (STATUS.md row EZD-004c). It installs pnpm with `npm install -g pnpm@12.14.0`, the root `packageManager` version. `release.yml` uses the same pins and the same pnpm line (Step 3 steps 1–3). Its install line is QP-1.
-- **V5 Install scripts (Q-0140 (a), answered after this plan).**
-  - pnpm 12.14.0 settles build scripts in `pnpm-workspace.yaml` `allowBuilds`. Every reported script is denied (today only `unrs-resolver: false`), with no allow entry and no allow-all (docs/architecture.md "Adding a dependency"; EZD-004a T10).
-  - `supabase` 2.121.0 has no install script: its lockfile entry has no `requiresBuild`, and the binary comes from the optional package `@supabase/cli-linux-x64@2.121.0` (`pnpm-lock.yaml`; EZD-004a T10).
-  - So Step 3 step 4 form (i)'s `pnpm rebuild supabase` runs nothing, and form (ii)'s `onlyBuiltDependencies` exactly `["supabase"]` contradicts Q-0140 (a). T16's and T17's accepted forms would change → QP-1.
-- **V6 Bootstrap file (EZD-005b 92e848d).**
-  - Placeholder: `supabase/bootstrap/tenant-1.sql` holds `PASTE-YOUR-EMAIL-HERE` once, in that case (line 5). Its guard compares `lower(btrim(owner_email))` with `'paste-your-email-here'` (line 9). So `renderBootstrap` counts the placeholder case-sensitively; a case-insensitive count would find two and refuse the real file [applied, Step 9].
-  - Result codes: `ezd_bootstrap_email_missing` and `ezd_bootstrap_already_done` are `raise exception`, so psql exits non-zero under `ON_ERROR_STOP=1`. `ezd_bootstrap_done` is `raise notice`, which psql writes to stderr. So the `sql` wrapper reads stdout and stderr, and an error whose text contains `ezd_bootstrap_already_done` counts as done [applied, Step 6 step 15].
-  - Email pattern: the file's own check (`^[^@\s]+@[^@\s]+\.[^@\s]+$`) allows a quote. The release's pattern (Step 6 step 12; EZD-005b T18's pattern, anchored) allows none, and `renderBootstrap` applies it itself. STATUS.md row EZD-005b: "EZD-023b review must verify renderBootstrap forbids quotes".
-  - New cases with sourced values [applied, Tests]: T9 pure (h) and (i); T11 (f).
-- **V7 Health and the live check.**
-  - `app/src/app/api/health/route.ts` (EZD-004b) returns 200 `{ status: 'ok', schema_version }` with `Cache-Control: no-store`, or 500 `{ error: { code: 'db_unavailable', … } }`. `schema_version` is the newest applied migration version from `public.health()`. Step 6 step 17 is unchanged.
-  - The route reads through anon `/rpc/health`. EZD-006's request gate lets that through before it looks for a stored digest (`supabase/migrations/20261019170002_create_api_request_gate.sql`), so the verify step works on a fresh prod before Josh stores the gate hash (V9).
-  - `scripts/hosting/check-live.mjs` exports `HOST`, `observe(host)` and `evaluate(obs)` → `{ ok, results: [{ id, pass, detail }] }`, with the 8 ids `dns`, `tls`, `status`, `host`, `vercel`, `title`, `hsts`, `redirect`, as the plan says.
-  - STATUS.md row EZD-004b notes that `/api/health` has no database timeout. So each verify request carries its own timeout, shorter than the 5 s interval (*planner's choice*). The tests use a fake `fetch`, so T12's counts are unchanged.
-- **V8 Email (EZD-008a fce41c2, EZD-008b e77273a).**
-  - `app/src/server/email/transport.ts` has `email_transport_not_set`, `email_from_not_set`, `email_stub_not_allowed` (when `VERCEL_ENV` is `production`) and `email_key_not_set`.
-  - `.env.example` now holds 6 names: the 3 Supabase names, `EMAIL_TRANSPORT`, `EMAIL_FROM` and `RESEND_API_KEY`. So the production `missing` rule requires all 6. T14's `requiredNames` input and fixture `R`'s `.env.example` are test inputs and stay as written.
-  - A Preview without `EMAIL_FROM` fails every send, and Step 8 does not require it → QP-2. The stub outbox kept in memory on previews → QP-3.
-  - Runbook `## Email (EZD-008)` step 4 leaves the Preview email values to this ticket; Before-launch item 4 sets them. EZD-008b's security follow-up (1), a separate Preview Resend key, is part e's Proposed wording.
-- **V9 Gate secret and token hook on production (EZD-006 0ff28b9).**
-  - `docs/runbook.md` `## Supabase cloud projects (EZD-004)` steps 9–10: after the migrations reach a cloud project, Josh enables the token hook and stores the gate hash (`node scripts/db/api-gate.mjs generate`). He also puts the matching secret into Vercel as `SUPABASE_API_GATE_SECRET` (Production = prod project).
-  - On prod the migrations arrive only with the first real release. So the Before-launch checklist enters the Production secret with the other values (item 4), and does steps 9–10 for `ezdraft-prod` right after the first release (new item 10). Until then signed-in requests on prod are refused (the gate fails closed), while health still passes (V7) [applied, Before-launch checklist].
-  - `SUPABASE_API_GATE_SECRET` is not in `.env.example` yet; EZD-007 adds it (vault/plans/EZD-007.md line 123). Once it is there, the production `missing` rule covers it. Whether the Preview list needs it → QP-2.
-- **V10 Vercel dashboard paths (EZD-003 dc6e8e6; `docs/runbook.md` `## Vercel and the subdomain (EZD-003)` steps 2–4).**
-  - Auto-assign Custom Production Domains is under Settings, Environments, Production, Branch Tracking. Git Fork Protection is under Settings, Security.
-  - Josh set EZD-003 Steps 5.2–5.4 on 2026-10-19: auto-assign off; Standard Protection with Vercel Authentication; Git Fork Protection on [applied, Before-launch items 2–3].
-  - The Ignored Build Step builds a preview for any pull request, not only the phase PR (STATUS.md row EZD-003, security follow-up; a Q-0116 wording point for Josh). Part e's docs follow Josh's answer; no T18 string depends on it.
-- **V11 Docs format.**
-  - `### Environment variables` has five columns: `Name | Reaches the browser | Local value | Dev / prod value | Used by`. The 10 release rows read `never` | `none` | "GitHub environment `release` only; never Vercel, never `.env*`, never a repository or organization secret", plus the value | `scripts/release/release.mjs`. The `SUPABASE_DEV_DB_URL` row is the model.
-  - Machine checks rows have four cells: `| — | <rule> | <check> | EZD-023e |` [applied, Step 11].
-  - `## Runtime` holds `### Hosting`, `### Environment variables` and `### Email (EZD-008)`; `### Environments and releases (EZD-023b)` goes after them. No new `##` heading (EZD-000 T5).
-  - The runbook has the sections for EZD-003, EZD-004, EZD-005 and EZD-008; part e appends `## Environments and releases (EZD-023)`. EZD-003 step 8 and EZD-004 steps 7–8 already point there.
-- **V12 CLAUDE.md rule numbers.** The plan text cites the 2026-10-11 numbering. Meanings are unchanged; the current numbers are:
-  - old rule 4 (agents decide how) → 3;
-  - old 9 (the gate) → 12;
-  - old 10 (tests never call live services) → 6;
-  - old 11 (dependency row in the same commit) → 7;
-  - old 12 (no secrets; agents never hold production secrets) → 8.
-- **V13 Write paths.** `.claude/hooks/guard-paths.mjs` line 84 lets the builder write `scripts/release/` and new files under `.github/workflows/`, never `ci.yml`. The test-author writes `scripts/release/__tests__/`. `.claude/hooks/guard-bash.mjs` still denies agents `node scripts/release/…`; tests start node through `process.execPath`, as EZD-023a's `runCheck` does.
-- **V14 Test naming.** Node tests under `scripts/` are never filtered by scope. Each part's titles start with its part ID. T1 keeps `EZD-023b done when: …`; each other part's Done-when test is titled `EZD-023x done when: …` (docs/architecture.md Test scope). The phase 0 grep matches `EZD-023c` to `EZD-023e`.
-- **V15 Masking in part b.** Step 6 step 2 belongs to part b, but the plan first asserts masking in T7 and T9 (parts d, e). New case T5 (g), with values from Step 4 "Masking" and step 2; T9 (g) asserts the same values later [applied, Tests].
+**Step 4. `scripts/release/release.mjs`: `runRelease` steps 1–8, `createGit`, CLI.** Steps follow the archived plan's Step 6 steps 1–8.
+- `runRelease(opts, deps)` reads `processEnv` one name at a time. It reads no release name and not `GITHUB_TOKEN` before `checkReleaseContext` passes, and it never spreads or enumerates `processEnv` (AC-EZD-023b-2).
+- It writes no `log` line before step 2's masking, except the refusal lines of steps 1–2. So the first log line of any run that gets past step 2 comes after every `mask` call (archived plan Step 4 "Masking"; finding V15).
 
-## Open questions
+The steps:
+1. **Context.** On failure, return `{ ok: false, code }`.
+2. **Presence.**
+   - `not_configured`: return `{ ok: true, code: 'not_configured' }` and write the summary line `production not configured — nothing released` (AC-EZD-023b-3). It makes 0 `git`, `github`, `mask` or other external calls.
+   - `missing`: return `{ ok: false, code: 'env_missing', missing }`, log `env_missing: <names joined by ', '>`, and write the summary lines from section 6. It makes 0 `mask` calls: no value is used.
+   - `complete`: call `deps.mask(v)` for each value from `valuesToMask(processEnv)`.
+3. **`sha` = `GITHUB_SHA`.**
+4. **`not_latest`.** Run `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/tags/phase-*:refs/tags/phase-*` (*planner's choice*: EZD-023a's tag refspec plus `main`), then compare `git rev-parse refs/remotes/origin/main` with `sha`. They must be equal. If git throws, the result is `not_latest` too (fail closed, the same pattern as finding V2) and the log says `git fetch failed`. An old run re-run after a newer merge is refused, because going back is a rollback, not a release (archived plan Step 7).
+5. **`no_merged_pr`.** Look for an item of `github.mergedPullsFor(sha)` with `merged_at` set, `base.ref === 'main'` and `merge_commit_sha === sha` (Q-0106: a direct push is refused). If none matches, or the call throws, the result is `no_merged_pr`, and the log line carries the HTTP status only. The matched item gives `prNumber` and `prTitle`.
+6. **`environment_unprotected`.** Refuse when `evaluateEnvironmentRule(await github.environmentBranchRule('release'))` returns `ok: false`, or when the call throws. The log line holds the `reason`.
+7. **Release name.** Call `releaseTagFor({ sha, prTitle, tags: listReleaseTags(git), tagsOnSha })`, where `tagsOnSha` comes from `git tag --points-at <sha>`. A refusal returns its code (`not_newer`, `no_release_name`).
+8. **`migration_check_failed`.** Call EZD-023a's `main(argv, out)` from `scripts/release/check-migrations.mjs` in-process, with `out` writing to `deps.log` unchanged (finding V2).
+   - `argv` is `['--root', opts.root, '--head', sha]`, plus `['--base', previousReleaseTag(tags, tag)]` when that is not null.
+   - A return of 1, or a throw, gives `migration_check_failed`.
+   - With no `--base`, `main` picks the highest tag itself (check-migrations.mjs line 314). That is "no release tag yet" on a first release; on a re-run of the lowest tag it compares the commit with itself, which passes.
+9. **Interim until EZD-023e** (Q-0157; *planner's choice*, which the code-reviewer confirms at plan review). After step 8, return `{ ok: false, code: 'not_built', prNumber, tag, resume, notices: [] }`. No test asserts it, and nothing runs the script until part e adds the workflow (archived plan "Split proposal"). Parts c and d move this return past their own steps, and part e removes it.
 
-- **QP-1 (Q-0158; answered: (a)):** Q-0140 (a) now denies every dependency build script through `allowBuilds`, and `supabase` 2.121.0 has no install script (finding V5), so Step 3 step 4's two install forms no longer fit. Which form do T16 and T17 accept? In every option, `pnpm rebuild supabase` and the `onlyBuiltDependencies` check are dropped. EZD-025's backup workflows follow the same answer.
-  - (a) Only `pnpm install --frozen-lockfile`, as `supabase-dev.yml` does. T17 checks that `allowBuilds` holds only `false` entries and that no allow-all setting exists.
-  - (b) Only `pnpm install --frozen-lockfile --ignore-scripts`, with no rebuild step. T17 as in (a).
-  - (c) Both (a) and (b).
-- **QP-2 (Q-0159):** Which Preview names must the release require (Step 8 `missing` rule, T14)? Today it requires only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, plus the `EMAIL_TRANSPORT` rule. Without `SUPABASE_API_GATE_SECRET`, a preview refuses every signed-in request (EZD-006 runbook step 10; EZD-007 adds the name to `.env.example`). Without `EMAIL_FROM`, every send fails (`email_from_not_set`).
-  - (a) Add both to the Preview list, `SUPABASE_API_GATE_SECRET` only when it is in `requiredNames`. New T14 cases each expect one problem `missing` / name / `preview`.
-  - (b) Keep the list as it is, and only name both in Before-launch item 4.
-- **QP-3 (Q-0160):** With Preview `EMAIL_TRANSPORT=stub`, the email stub keeps every message and its link in server memory (`app/src/server/email/test-harness/stub-transport.ts`). STATUS.md rows EZD-008a and EZD-008b say "the first ticket that emails a token link, or EZD-023b, settles it". Who settles it, and how?
-  - (a) Accept it for previews (short-lived instances; nothing reads the outbox over HTTP). The release's env check also refuses any Preview or Production `EMAIL_STUB_DIR` (docs/architecture.md: "never set on Vercel"), with a new T14 case.
-  - (b) Accept it, with no new check.
-  - (c) Leave it to the first ticket that emails a token link (EZD-105 invites), which changes EZD-008a's stub. EZD-023b changes nothing.
+Every result carries `notices: []`; part c adds the token notices. For every code other than `not_configured`, write the summary line `release stopped: <code> — nothing changed` (section 6). In this part every refusal happens before any write outside the runner, so the line is true for all of them.
 
-## Re-validated plan text (2026-10-11, revised 2026-10-12, 2026-10-18 and 2026-10-19; the parts are planned from it)
+**CLI.** The CLI runs only when the file is started directly, with the same `import.meta.url` check as check-migrations.mjs line 345. It calls `runRelease({ root: process.cwd() }, deps)` with these deps:
+- `processEnv: process.env`;
+- `git: createGit(process.cwd())`;
+- `github: createGitHubApi({ token: process.env.GITHUB_TOKEN, repo: process.env.GITHUB_REPOSITORY, fetch: globalThis.fetch })`. Building the client sends nothing;
+- `log` writes the line to stdout;
+- `summary` appends the line plus `\n` to the file named by `GITHUB_STEP_SUMMARY` when it is set, and does nothing when it is not;
+- `mask(v)` writes each `maskCommands(v)` line to stdout.
 
-Original Phase line (history):
-Phase: 0 · Planned by: planner · Date: 2026-10-11 (re-planned 2026-10-12 for Josh's answers Q-0106 and Q-0107: the release is a GitHub Actions workflow on merge to `main`, not a script Josh runs; revised 2026-10-12 for the security review of the release, Q-0108 to Q-0112, and for Q-0113: nothing is live until launch, and the secrets environment is named `release`; re-validated 2026-10-18 for Q-0116 (a): previews come only from the phase PR, so phase field checks use the phase PR preview, not a `develop` preview; PROCESS.md section 12; re-validated 2026-10-18 for Q-0123 (b): the domain is already connected and "Auto-assign Custom Production Domains" is off from EZD-003 Step 5.2, before the Phase 0 merge, so the Before-launch checklist only checks it (Step 2, Step 11 runbook, Risks, Before-launch item 2)) · Status: planned
+Its last stdout line is `release <code>`. It exits 0 only when `ok` is true. If `runRelease` throws, it prints `release internal_error`, without the error text (Q-0112 finding 7: no raw error output), and exits 1. `createGit(root)` returns `(args) => stdout`: it runs `git -C <root> …` with `GIT_TERMINAL_PROMPT=0`, works synchronously, and throws on a non-zero exit. This is the `git(args)` shape that `tags.mjs` `listReleaseTags` takes.
 
-## Ticket (copied from the phase file)
-Scope: Local, dev and production environments; preview deploys use the dev database; production is updated only by a promote script run by Josh on a tagged build, which first takes a database dump; rollback steps in the runbook. Split from EZD-023 (Q-0042); plan Part B.
-Done when: The promote script refuses an untagged build.
+### Files
 
-**Scope and Done when as decided by Q-0106** (answered-josh 2026-10-12; decisions.md · Build answers (Josh)): "releases are automatic when Josh merges the phase PR into main. A GitHub Actions workflow takes the database backup, applies migrations and makes the build live; any failure stops it and the live site stays on the previous version. Production secrets live only in a GitHub environment restricted to main; agents never see them. Josh's merge is the only approval. Replaces EZD-023b's Josh-run promote script." The phase-file row above is unchanged (only the orchestrator edits rows); this plan builds and tests to:
-- **Scope:** local, dev and production environments; preview deploys use the dev database; production is updated only by the release workflow `.github/workflows/release.yml`, which runs when Josh merges a pull request into `main`, tags the release, writes a database dump off-site first, applies migrations, then makes that commit's own build live; rollback steps in the runbook.
-- **Done when:** the release workflow refuses to release anything but the newest merged pull request on `main` (another branch or event, a direct push with no merged pull request, a commit that is no longer the tip of `main`, or a run outside GitHub Actions), before it uses any secret and with the live site unchanged; and it makes live only the build of the commit it tags. Proved offline by T1, T6 and T16.
-- **Until launch (Q-0113, Josh 2026-10-12):** "One Supabase project for now, used as the dev/test project; nothing is live or in real use until the app is mostly finished. The production project, production secrets, Sentry, Backblaze backups and the release keys are set up before launch (a 'Before launch' checklist). Until then the release workflow on a main merge must do nothing harmful: with the production environment unconfigured it ends without changing anything (no failed-looking run if avoidable), and phase field checks use the Vercel preview of develop instead of the live address." **Q-0116 (a) (Josh 2026-10-18) replaces "the Vercel preview of develop" with the phase PR preview:** the Vercel Ignored Build Step is set per PROCESS.md section 12, so a plain `develop` push no longer builds a preview; the only preview is the one for the phase PR (`develop` → `main`), which the gate gets by pushing an empty `chore: preview` commit after opening the PR (PROCESS.md section 9 Gate step 5). The rest of Q-0113 is unchanged. So a merge into `main` whose `release` environment holds none of the release secrets ends green with `not_configured` and the summary `production not configured — nothing released`, before any GitHub, Vercel, database or bucket call (Step 6 step 2; T5). A partly configured environment still fails loudly (`env_missing`). The Before-launch checklist is the last section of this plan.
-
-The ticket row's "untagged build refused" meaning is kept: the only build that can go live is the one whose commit the workflow has just tagged (Step 6 steps 9 and 16; T6 (d), (e)).
-
-Depends on: EZD-023a, EZD-004, EZD-008 (`tickets.json` `depends_on`). Also, not in the ticket row:
-- **EZD-023a** (row). This ticket reads its `scripts/release/tags.mjs` (`RELEASE_TAG_RE`, `parseReleaseTag`, `compareReleaseTags`, `listReleaseTags`, `previousReleaseTag`) and `check-migrations.mjs --base <tag> --head <ref>`. Its tests reuse `scripts/release/__tests__/git-fixture.mjs` (vault/plans/EZD-023a.md).
-- **EZD-004** (row). This ticket uses:
-  - the `supabase` CLI devDependency (`db push --db-url`, `db dump --db-url`);
-  - `supabase/migrations/`;
-  - the `/api/health` route, which returns `schema_version` (the newest applied migration);
-  - the `### Environment variables` table and `.env.example`;
-  - `docs/runbook.md`;
-  - `.github/workflows/supabase-dev.yml`, which now runs on each push to `develop` that changes `supabase/migrations/**` plus manual runs (Q-0107; vault/plans/EZD-004.md Step 7).
-- **EZD-008** (row). Its email names in `.env.example` and its hand-off "Preview values are left to EZD-023" (vault/plans/EZD-008.md Step 6 part B item 4, Risks). EZD-008 builds both transports, selectable per environment (its Step 4); this ticket checks the Preview value per Q-0041 (Step 8).
-- **EZD-005: now a dependency, missing from the ticket row and from `tickets.json`** (the orchestrator may add it; build position 6, before this ticket's 12, so no reordering is needed). The release workflow runs EZD-005's `supabase/bootstrap/tenant-1.sql` on the production database on the first release (Step 9). It relies on that file's placeholder `PASTE-YOUR-EMAIL-HERE`, its all-or-nothing `do $$ … $$` block and its codes `ezd_bootstrap_done` / `ezd_bootstrap_already_done` / `ezd_bootstrap_email_missing` (vault/plans/EZD-005.md Step 7).
-- **EZD-003 (deliberately not a formal dependency, Q-0042).** This ticket needs only its merged files:
-  - the Vercel project with production branch `main`;
-  - `app/vercel.json`;
-  - `HOST`, `observe` and `evaluate` from `scripts/hosting/check-live.mjs`, which the workflow's verify step runs (Step 6 step 17);
-  - `### Hosting`;
-  - its `docs/runbook.md` section (vault/plans/EZD-003.md Steps 1, 2, 4, 5).
-
-  The orchestrator starts this ticket only after EZD-003's commit is on `develop`, even if EZD-003 itself stays blocked on its live check (Q-0032).
-- **EZD-025 (later, position 29; depends on this ticket).** It takes from this ticket: the `release` GitHub environment and the four shared secrets `BACKUP_SOURCE_DB_URL`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET` (Step 4), `evaluateEnvironmentRule` and `environmentBranchRule` (Step 6 step 6), the `@aws-sdk/client-s3` Dependencies row, `redactUrl`, `safeLines` and `supabaseRefFromDbUrl`, the dump helper with its auth-table exclusions and role-password check (Step 6 step 13), the off-site `manifest.json` format, and the `releases/` prefix in the same B2 bucket. The B2 bucket, its Object Lock, its keys (including this ticket's release key) and its lifecycle rules are set up in EZD-025's runbook (Q-0074 (a), Q-0075, Q-0111), from the Before-launch checklist (Q-0113).
-- **EZD-000 and EZD-001** (transitive, used directly): the "no new `##` heading" rule (EZD-000 T5), C1 (every dependency listed), and root node tests running in full on every ticket (EZD-001 Step 6.1; Q-0006).
-- **EZD-002** (transitive, not in the row): its T2 (g)–(i) now pin which workflows may name the `release` environment, which `secrets.` each may read (for `release.yml`, exactly Step 4's 10 release names) and that no deploy workflow uses a `setup-node` cache (vault/plans/EZD-002.md T2). This ticket's workflow must pass them.
-- **Answered questions this plan applies:**
-  - **Q-0106** (Josh 2026-10-12): the release workflow above; production secrets only in a GitHub environment restricted to `main`; Josh's merge is the only approval; the agent deny rules on local release commands stay as a safety net (commit 8d9553d, `.claude/settings.json`).
-  - **Q-0107** (Josh 2026-10-12): cloud dev migrations run automatically on each push to `develop` that changes `supabase/migrations`, manual run still available; overrides Q-0023 (a) (Step 1, Step 10).
-  - **Q-0024 (a)** (Josh 2026-10-12): EZ Draft's own `ezdraft-dev` and `ezdraft-prod` projects inside EZ Binder's existing Supabase organization, which is on Pro.
-  - **Q-0031 (a)** (Josh 2026-10-12): the `ezdraft` Vercel project sits inside EZ Binder's existing Vercel team, on Pro. The workflow's Vercel token is a token for that shared team (Reviewers).
-  - **Q-0032 (a)** (Josh 2026-10-12): EZD-003's live HTTPS check runs right after the Phase 0 merge, as part of the field check. Under Q-0106 it runs inside the release workflow's verify step right after the first release (Step 6 step 17), and under Q-0113 that is the first real release before launch, not the Phase 0 merge.
-  - **Q-0033 (a)** (Josh 2026-10-12): the one-time SQL setup file with no personal data committed. On production the release workflow now runs it, with the owner email from a GitHub environment secret (Step 9; Q-0106 automation). Dev keeps the paste step (vault/plans/EZD-005.md Step 7).
-  - **Q-0041** (Josh 2026-10-12): both email transports, chosen per environment; Preview defaults to `stub` (Step 8). EZD-021 adds the same shape for `AI_MODE` (Q-0077; vault/plans/EZD-021.md Step 6).
-  - **Q-0074 (a)** and **Q-0075** (Josh 2026-10-12): Backblaze B2 is the off-site provider; database dumps are kept 13 weeks (applied to release dumps in Step 6 step 13).
-  - **Q-0108** (Josh 2026-10-12): agents use a separate GitHub account with the Write role only; branch protection on `main` requires Josh's approval of the most recent push; Josh does all GitHub admin in the browser under his own account (last section, "Josh's GitHub and account settings").
-  - **Q-0109** (Josh 2026-10-12): shared Vercel team; the release's Vercel token is scoped to that team and expires every 90 days; every secret variable in both Vercel projects is marked Sensitive (Steps 4, 8; Step 6 step 9 warnings).
-  - **Q-0110** (Josh 2026-10-12): the cloud dev database holds made-up test data only; its password is used nowhere else (Step 1; EZD-004).
-  - **Q-0111** (Josh 2026-10-12): B2 Object Lock in Governance mode, at least 91 days, on the backup bucket, which also holds the release dumps under `releases/`; no key gets `bypassGovernance` (Step 4 release key; EZD-025 runbook).
-  - **Q-0112** (answered-agent, security-reviewer; Josh can override): findings 2–16 of the security review of this release, applied here as: the `release` environment locked before any secret is added and checked for admin bypass (finding 2; Step 4, Step 6 step 6); masked derived values and no raw child-process stderr (finding 7; Step 4, "Other rules"); a team-scoped 90-day Vercel token with an expiry warning and Sensitive variables (finding 8); Vercel Deployment Protection and Git Fork Protection (finding 9; Step 6 step 9); a separate release key limited to `releases/` (finding 10; Step 4); auth session tables left out of dumps and no role passwords (finding 11; Step 6 step 13); lock and statement timeouts on migrations (finding 13; Step 6 step 14); dependency install scripts limited (finding 14; Step 3); `TENANT1_OWNER_EMAIL` deleted after the first release (finding 16; Step 6 step 12, Step 9). The GitHub-side findings (rulesets, Actions settings, secret scanning) are Josh's settings in the last section. PROCESS.md's phase gate now has the security-reviewer's "Production-sensitive changes" section on every phase PR.
-  - **Q-0113** (Josh 2026-10-12): one Supabase project for now (dev/test); production, its secrets, Sentry, Backblaze and the release keys come from the Before-launch checklist (last section); until then a merge into `main` releases nothing (`not_configured`, green) and phase field checks use the phase PR preview (originally "the Vercel preview of develop"; changed by Q-0116 (a), PROCESS.md section 12).
-  - **Q-0116 (a)** (Josh 2026-10-18; vault/spec/decisions/process.md): the Vercel Ignored Build Step `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1` is set (PROCESS.md section 12). Production builds only from `main`; previews build only for the phase PR; a plain `develop` push builds nothing. Setting it is EZD-003's Vercel setup (its Step 3, re-validated under Q-0116), not this ticket's; this ticket neither checks nor documents the setting. Applied here in Steps 1, 2, 11, the Risks and the Before-launch checklist.
-  - **Q-0123 (b)** (Josh 2026-10-18; vault/spec/decisions/02-product-overview.md): the domain `ezdraft.ezcontractorbinder.com` is already connected to the Vercel project `ezdraft` with a valid certificate (EZD-003 Steps 5.5–5.7 are done). Josh turns "Auto-assign Custom Production Domains" off in EZD-003 Step 5.2, before the Phase 0 PR is merged into `main`, so no merge before launch goes live on the subdomain; the switch is never turned back on; EZD-003 T10 checks `scripts/hosting/check-live.mjs` exits 1 after each pre-launch `main` merge (vault/plans/EZD-003.md Step 5.2, T10). Applied here in Step 2, Step 11 runbook, the Risks and Before-launch item 2. No test, expected value, interface or code changes.
-- **Environment name `release`, not `production` (planner's choice, from a read-only check on 2026-10-12, relayed by the orchestrator, confirmed with `gh api repos/IronFrame414/EZ-Draft/environments`).** The repo already has an environment `Production`, created by the Vercel GitHub integration for its deployment statuses, with no branch rule and `can_admins_bypass: true`. GitHub environment names are case-insensitive, so a `production` environment would be that same one. Reasons for a distinct name:
-  - Vercel's integration writes a deployment record into `Production` for every production build; mixing those with the release secrets means a change Vercel makes (or a re-install of the integration) touches the environment that guards production credentials, and Vercel's records would be subject to our branch rule;
-  - the release's runtime check (Step 6 step 6) must see exactly one rule, `main`, and admin bypass off; an environment that another integration also uses is harder to keep in that state;
-  - a separate name makes the rule "no workflow names `Production`" checkable (EZD-002 T2 (g)), so no secret ever lands in Vercel's environment.
-  
-  Nothing was found that a shared environment does better: Vercel needs no secrets from GitHub. So every "GitHub environment" in this plan is `release`; "Production" below means Vercel's production target only.
-- **Facts that decide who runs what (Level 1):**
-  - Production changes only at a phase gate or on Josh's approval (11 Operations "Releases"; Q-0007). Under Q-0106 that approval is Josh's merge into `main`.
-  - Agents never hold production secrets (CLAUDE.md rule 12; Q-0106). `.claude/settings.json` (commit 8d9553d) denies agents `supabase db push`, `supabase link`, `vercel --prod`, `vercel promote`, `pnpm release:*` and `node scripts/release/promote|tag|env-check*`; `.claude/hooks/guard-bash.mjs` denies every `node …scripts/release/…` command. Those stay.
-  - The builder may write new workflow files but not `ci.yml` (vault/PROCESS.md Agents table; `.claude/hooks/guard-paths.mjs`).
-- **Scope boundaries (not dependencies):** Sentry is EZD-024. The System status page is EZD-135. The nightly and weekly off-site backups and the restore drill are EZD-025 (R26 R13). Old app versions are EZD-134 (03 rule 12).
-Spec ref: Non-functional · Operations; R26 R12
-
-## Sources read
-- Spec:
-  - `vault/spec/sections/11-non-functional-requirements.md`:
-    - Operations: "Environments: local (agents and tests), dev (cloud, preview deploys) and production. Preview deploys use the dev database."; "production is updated only by promoting a tagged build at a phase gate or on Josh's approval. A script takes a database dump before each promotion."; "Migrations add before they remove … so the previous deploy can be restored at any time"; "Rollback is Vercel's previous deployment".
-    - Data retention: Supabase Pro daily backups; EZD-025.
-    - Security and audit; Performance.
-    - Running cost: a second Supabase project for development.
-  - `02-product-overview.md`: Stack (Hosting; Database, auth, files); Named tools ("CI and repository: GitHub with GitHub Actions").
-  - `03-data-model.md`: Architecture rules 1, 12.
-  - `04-app-shell-and-global-ui.md`: read; no screen here.
-- Decisions: R24 #1; R26 R12, R13; R33. Build answers (Josh): Q-0003, Q-0006, Q-0019, Q-0025; 2026-10-12: Q-0024 (a), Q-0031 (a), Q-0032 (a), Q-0033 (a), Q-0041, Q-0074 (a), Q-0075, Q-0077, **Q-0106**, **Q-0107**, **Q-0108**, **Q-0109**, **Q-0110**, **Q-0111**, **Q-0113**; 2026-10-18 (vault/spec/decisions/process.md): **Q-0116 (a)**, Q-0117; 2026-10-18 (vault/spec/decisions/02-product-overview.md): **Q-0123 (b)**, with vault/plans/EZD-003.md Step 5.2 and T10 as re-validated for it. QUESTIONS.md: Q-0007, Q-0023 (superseded by Q-0107), Q-0042, Q-0112 (security-reviewer findings 2–16). `vault/PROCESS.md` Phase gate step 2 ("Production-sensitive changes" section). `vault/PROCESS.md` section 12 (CI and deploys: Ignored Build Step; a `develop` push triggers no CI or preview build) and section 9 Gate step 5 (the empty `chore: preview` commit after the phase PR opens), read 2026-10-18 for Q-0116. Read-only `gh api repos/IronFrame414/EZ-Draft/environments` (2026-10-12): one environment, `Production`, made by Vercel, no branch rule, `can_admins_bypass: true`.
-- Process and kit:
-  - `vault/PROCESS.md` (Agents table: the builder writes new CI workflows; Phase gate step 4: the phase PR is titled `Phase N: <name>`), `vault/KNOWN-LIMITS.md`, `vault/tickets/README.md` (rules 4, 8; Needs from Josh), `vault/tickets/needs-from-josh.md`, `CLAUDE.md` (rules 4, 7, 10, 11, 12).
-  - `SETUP.md` (Notes: "production branch `main`. Production deploys therefore happen only when you merge a phase PR").
-  - `scripts/gate.mjs` (sets `CI=1`), `.github/workflows/ci.yml`, `.claude/settings.json` (commit 8d9553d), `.claude/hooks/guard-bash.mjs`, `.claude/hooks/guard-paths.mjs`.
-  - `.gitignore` (`.env.*` is ignored; `.env.example` is kept).
-- Earlier plans: `vault/plans/EZD-000.md`, `EZD-001.md`, `EZD-002.md`, `EZD-003.md`, `EZD-004.md`, `EZD-005.md`, `EZD-008.md`, `EZD-010.md` (`VERCEL_ENV === 'production'` rule), `EZD-021.md`, `EZD-023a.md`, `EZD-025.md`. This plan extends their files and replaces nothing of theirs.
-- Mockup: none (no screen; `tickets.json` `mockups: []`).
-
-Technical choices that no source makes are marked *planner's choice (CLAUDE.md rule 4)*. The code-reviewer confirms them at plan review.
-
-Facts about Vercel, GitHub Actions, the Supabase CLI and Backblaze B2 come from the planner's knowledge as of Oct 2026, not from vault sources. They are marked *(builder confirms)*: the builder checks each against the pinned tool or the provider's docs on the build date. If one is wrong, the builder stops and raises a question; the tests do not change.
-
-## Approach
-
-### Design in one paragraph
-Josh merges a pull request into `main` (Q-0106). Vercel builds that commit as a **staged** production deployment, because automatic domain assignment is off (Step 2). In parallel, `.github/workflows/release.yml` starts on the push to `main`, in the GitHub environment `release`, which only `main` may use, which administrators cannot bypass, and which holds every production secret (Step 4). Its one script, `scripts/release/release.mjs`, first ends green with `not_configured` when that environment holds no release secret yet (Q-0113: nothing is live until launch). Otherwise it refuses anything but the newest merged pull request on `main`, names the release (`phase-N` or `phase-N.k`), runs EZD-023a's migration check, waits for Vercel's build of that commit, checks the Vercel environment values, writes a database dump to the off-site B2 bucket under `releases/`, applies the migrations, sets up tenant 1 on the first release, tags the commit, makes that build live through the Vercel API, and checks health and the subdomain. Any failure before the build goes live leaves the previous build live; a failed check after it goes live rolls the app back to the previous build. The database is never rolled back (add before remove, R26 R12).
-
-### Step 1: The three environments
-`docs/architecture.md` → `## Runtime` gets a new `### Environments and releases (EZD-023b)`. It holds this table, plus the rules from Steps 2–9:
-
-| Environment | Database | App | Env values | Changed by |
-| --- | --- | --- | --- | --- |
-| local | Local Supabase in Docker (`pnpm db:up`; each gate run wipes it, EZD-004) | `next dev` and tests | `pnpm db:env`; email stub (EZD-008) | Agents and tests |
-| dev | Supabase project `ezdraft-dev` in EZ Binder's Supabase organization (EZD-004 runbook; Q-0024 (a)); the one Supabase project that exists now (Q-0113); made-up test data only, its password used nowhere else (Q-0110) | Vercel **Preview** deployment of the phase PR (`develop` → `main`) only; a plain `develop` push builds no preview (Q-0116 (a); PROCESS.md section 12, Ignored Build Step; the gate's empty `chore: preview` commit, PROCESS.md section 9 Gate step 5); phase field checks use the phase PR preview until launch (Q-0113 as changed by Q-0116) | Vercel Preview values = the dev project's values; `EMAIL_TRANSPORT=stub` and `AI_MODE=stub` by default, `resend` / `live` only when Josh sets them (Q-0041; Q-0077) | Migrations through EZD-004's `supabase-dev.yml`, automatically on each push to `develop` that changes `supabase/migrations/**`, or by Run workflow (Q-0107), with its secret in the GitHub environment `dev` (EZD-004 Step 7) |
-| production | Supabase project `ezdraft-prod` in the same organization (Q-0024 (a)), created from the Before-launch checklist (Q-0113) | Vercel **Production** at `ezdraft.ezcontractorbinder.com` (R24 #1), first made live by the first real release (Q-0113) | Vercel Production values = the prod project's values | Only `.github/workflows/release.yml`, when Josh merges a pull request into `main` (Q-0106); before launch that run ends `not_configured` and changes nothing (Q-0113) |
-
-### Step 2: How the build goes live (Vercel; *planner's choice*, Josh's one-time setting; *builder confirms the names*)
-**Chosen: turn off "Auto-assign Custom Production Domains" and promote through the Vercel API after migrations.** EZD-003 keeps Production Branch = `main`, so each merge still builds a production-target deployment, but the domain does not move to it until the workflow promotes it (Step 6 step 16). **The Ignored Build Step does not change this** (Q-0116 (a); PROCESS.md section 12): for a commit on `main` its first test (`VERCEL_GIT_COMMIT_REF != main`) is false, so the command exits 1 and Vercel builds; it skips only pushes to other branches that have no pull request. Every commit on `main`, including each merge, still gets a production build, so Step 6 step 9's wait for a `READY` production deployment of the `main` tip, and T6's cases and expected values, are unaffected *(builder confirms Vercel's exit-code meaning: 1 = build, 0 = skip)*. **Josh sets the switch in EZD-003 Step 5.2, before the Phase 0 PR is merged into `main`, and never turns it back on** (Q-0123 (b): the domain is already connected, so with the switch on that merge would go live on the subdomain before launch; vault/plans/EZD-003.md Step 5.2). This ticket's Before-launch checklist only checks it (item 2), and step 9's `vercel_auto_assign_on` refuses a release if it is ever on.
-
-Why not keep Vercel's automatic production deploy of `main` and order the migrations first:
-- With auto-assign on, Vercel moves the domain as soon as its build is ready, in parallel with the workflow. The workflow cannot hold it back. New code could then serve before its migrations exist. Add-before-remove (R26 R12; 11 Operations) only protects **old** code on a **new** schema, not new code on an old one.
-- A failed dump or migration would leave the new build live, against Q-0106 ("any failure stops it and the live site stays on the previous version").
-- 11 Operations says "production is updated only by promoting a tagged build".
-
-Why not build in Actions with the Vercel CLI (`vercel build` + `vercel deploy --prebuilt --prod`): it adds the `vercel` package, a second build path different from previews, and the Vercel token inside the build step. Vercel's own Git build stays as it is today.
-
-This replaces SETUP.md's note "Production deploys therefore happen only when you merge a phase PR": production now changes when the release workflow finishes after that merge. SETUP.md is Josh's file, so the orchestrator tells Josh rather than editing it.
-
-### Step 3: The workflow file (`.github/workflows/release.yml`; builder)
-- `name: Release`.
-- **Trigger:** `on: push: branches: [main]` only. No `workflow_dispatch`, `pull_request`, `pull_request_target`, `schedule`, `workflow_run`, `tags` or `paths` (Q-0106: Josh's merge is the only approval). A failed run is retried with GitHub's **Re-run jobs** button on that run, which Josh clicks (Step 11 runbook).
-- Top-level `permissions: {}`. Job permissions exactly: `contents: write` (create the release tag), `pull-requests: read` (find the merged pull request), `actions: read` (read the environment's branch rule, Step 6 step 6) *(builder confirms the last one is the permission that endpoint needs)*.
-- `concurrency: { group: release-production, cancel-in-progress: false }`: two releases never run at once. If a third merge arrives while one runs and one waits, GitHub drops the waiting one and the newest merge releases everything (Step 6 step 4 refuses an old commit anyway).
-- One job `release`:
-  - `if: github.ref == 'refs/heads/main' && github.event_name == 'push'`;
-  - `runs-on: ubuntu-latest` (Docker is running there, which `supabase db dump` needs *(builder confirms)*);
-  - `timeout-minutes: 45` (*planner's choice*: up to 15 minutes waiting for Vercel's build, Step 6 step 9, plus dump, migrations and the 2-minute verify);
-  - `environment:` in block form, `name: release` and `url: https://ezdraft.ezcontractorbinder.com` on their own lines (the name `release`, not Vercel's `Production`: Depends on, "Environment name"). Not the brace form `environment: { … }`, which EZD-002 T2 (g) fails (Q-0146; finding V3; changed 2026-10-19).
-- **Steps:**
-  1. `actions/checkout` with `fetch-depth: 0` (all history and tags, for EZD-023a's check and the tag list) and `persist-credentials: false` (no token is left in `.git/config`).
-  2. `actions/setup-node` with `node-version: 22` (as ci.yml) and **no `cache:` key** (no dependency cache shared with other workflows in a job that holds production secrets; Q-0112 finding 14).
-  3. Install pnpm at exactly the version in the root `packageManager` field (*planner's choice*: not the unpinned `npm install -g pnpm` of ci.yml, because this job holds production secrets).
-  4. **Install scripts limited** (Q-0112 finding 14). **Open: QP-1 (2026-10-19, finding V5)**: Q-0140 (a) denies every dependency build script in `allowBuilds`, and `supabase` 2.121.0 has no install script, so both forms below are to be replaced by QP-1's answer; the text is kept until then. *Planner's choice of form (i)*: `pnpm install --frozen-lockfile --ignore-scripts`, then a separate step `pnpm rebuild supabase`, so the only dependency script that runs is the Supabase CLI's, which fetches its binary (EZD-004 Sources: "The npm package downloads its binary in a postinstall script") *(builder confirms that `pnpm rebuild supabase` runs exactly that package's script under the pinned pnpm)*. If it does not, the builder uses form (ii) instead: plain `pnpm install --frozen-lockfile`, with the workspace build-script allow-list (`onlyBuiltDependencies` in `pnpm-workspace.yaml`, EZD-004 Sources, or the pinned pnpm's equivalent) exactly `["supabase"]` and no setting that allows all builds. T16 and T17 accept either form and nothing else. No secret is in the environment of steps 1–4.
-  5. `node scripts/release/release.mjs`, with a step-level `env:` that is the only place the workflow names secrets: `GITHUB_TOKEN: ${{ github.token }}` and `secrets.` for each release name in Step 4.
-- **Public repo rules** (Q-0106; the repo is public, EZD-002 evidence):
-  - every `uses:` is pinned to a full 40-character commit SHA, with the version as a comment *(builder looks up the SHAs of the current v4 releases)*;
-  - no `${{ secrets.… }}` inside a `run:` line, no `set -x`, no `actions/upload-artifact`, no cache action, no `cache:` under `actions/setup-node`;
-  - no trigger that runs code from a fork with secrets (no `pull_request_target`, no `workflow_run`); fork pull requests never get environment secrets.
-
-### Step 4: The `release` GitHub environment (Josh's setup; Q-0106, Q-0112, Q-0113)
-One environment, `release`, holds every production secret. Josh creates it **now**, locked and empty (last section, "Josh's GitHub and account settings"), and adds the secrets only from the Before-launch checklist (Q-0113). EZD-025's backup workflows use the same environment (vault/plans/EZD-025.md Step 3), so the values the release and the backups share are entered and rotated once.
-
-| Secret | Value | Used by |
-| --- | --- | --- |
-| `VERCEL_TOKEN` | a Vercel token **scoped to EZ Binder's team** (Q-0031 (a)) with a **90-day expiry** (Q-0109) | release |
-| `VERCEL_PROJECT_ID` | the `ezdraft` project's id | release |
-| `VERCEL_TEAM_ID` | EZ Binder's Vercel team id (required: the project is a team project, Q-0031 (a)) | release |
-| `TENANT1_OWNER_EMAIL` | the email Josh signs in with; **deleted after the first release** (Q-0112 finding 16; Step 9) | release, first release only (Step 9) |
-| `BACKUP_SOURCE_DB_URL` | the prod project's **Session pooler** connection string (GitHub runners have no IPv6 *(builder confirms)*) | release (dump, migrations, tenant 1) and EZD-025 |
-| `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET` | the B2 bucket's endpoint, region and name (not credentials) | release (dump upload) and EZD-025 |
-| `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY` | the B2 **release key** (Q-0112 finding 10): limited to this bucket and to file names starting `releases/`, capability `writeFiles` only, plus `listBuckets` only if the S3 API refuses a key without it *(builder confirms)*; no `readFiles`, `listFiles`, `deleteFiles`, and no `bypassGovernance` (Q-0111) | release only |
-| `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY` | the B2 **backup** key (EZD-025 runbook) | EZD-025 only; the release step no longer receives them (Q-0112 finding 10) |
-| `BACKUP_SOURCE_SUPABASE_URL`, `BACKUP_SOURCE_SECRET_KEY` | added by EZD-025 | EZD-025 only |
-
-- **Release names** (the set the release step receives, T5 and T16): `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `TENANT1_OWNER_EMAIL`, `BACKUP_SOURCE_DB_URL`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY` (10).
-- The names of the shared values are EZD-025's names (vault/plans/EZD-025.md Step 4 `config.mjs`), so the two tickets read one set of secrets (*planner's choice*). Release dumps need no read access, so the release key cannot read, list or replace the weekly dumps or file copies, and Object Lock (Q-0111) keeps every uploaded version for at least 91 days whatever any key does.
-- **Environment protection, in this order** (Josh; Q-0112 finding 2): Settings → Environments → **New environment** `release` → **Deployment branches and tags** → **Selected branches and tags** → **Add deployment branch or tag rule** → branch `main` only → turn **off** "Allow administrators to bypass configured protection rules" if GitHub shows it → **Save protection rules** → only then add the secrets *(builder/orchestrator confirms the GitHub UI names)*. No required reviewers: Josh's merge is the only approval (Q-0106). **Never put a production value in a repository secret or an organization secret** (any workflow on any branch can read those), and never in Vercel's `Production` environment. This rule is what stops a workflow on `develop` or a pull request (which agents can write) from reading production secrets; the release checks it on every run, and refuses with `environment_unprotected` unless the rule is `main` only **and** administrators cannot bypass it (Step 6 step 6; the API field, for example `can_admins_bypass`, *builder confirms*).
-- **Where the names are listed:** `docs/architecture.md` `### Environment variables`, marked "GitHub environment `release` only; never Vercel, never `.env*`, never a repository or organization secret". Not in `.env.example`: nothing on a PC reads them, and agents never see them (CLAUDE.md rule 12; Q-0106). EZD-025 later adds its own comment lines there for the restore key file outside the repo on Josh's PC.
-- **Masking** (Q-0112 finding 7): GitHub masks secret values in logs, but only as entered. Right after the presence check (Step 6 step 2) and before any other output, the script masks with `::add-mask::` (through an injected `mask(value)`) every value GitHub cannot know: the **trimmed** `TENANT1_OWNER_EMAIL` when set, and the database password both **URL-encoded** (as in `BACKUP_SOURCE_DB_URL`) and **decoded**. The script never prints a secret, a connection string, a Vercel value or the owner email (T7, T9, T16), and never passes a child process's stderr through raw ("Other rules" in Step 6).
-
-### Step 5: Guards, now for a workflow (`scripts/release/context.mjs`)
-`checkReleaseContext(env)` runs first, before git, network or secrets, in this order:
-1. **`agent_refused`** when `CLAUDECODE` is set (Claude Code sets it for commands its agents run *(builder confirms)*).
-2. **`not_in_actions`** when `GITHUB_ACTIONS !== 'true'`. Nobody releases from a PC (Q-0106).
-3. **`wrong_event`** when `GITHUB_EVENT_NAME !== 'push'`.
-4. **`not_main`** when `GITHUB_REF !== 'refs/heads/main'`.
-
-These are speed bumps. The real lock is that production secrets exist only in the GitHub environment `release`, limited to `main` with no admin bypass (Q-0106; Q-0112 finding 2), and that only Josh, under his own account, can approve and merge into `main`, while agents push with a separate account that has the Write role only (Q-0108). The local deny rules (commit 8d9553d) and guard-bash's `scripts/release/` rule stay as a safety net. The old `ci_refused` and `tty_required` guards and the `.env.release.local` loader are not built here: no release step runs on a PC any more. EZD-025 builds its own local guards for its restore script (vault/plans/EZD-025.md Step 6).
-
-### Step 6: `scripts/release/release.mjs`
-- **CLI plus `runRelease(opts, deps)`**, so tests swap in fakes. `deps` injects:
-  - `git`: real in tests, run against fixture repos;
-  - `github`: `createGitHubApi({ token, repo, fetch })` in `scripts/release/github-api.mjs` (`mergedPullsFor(sha)`, `environmentBranchRule('release')`, `createTag(name, sha, message)`) *(builder confirms endpoints: `GET /repos/{repo}/commits/{sha}/pulls`, `GET /repos/{repo}/environments/{name}` (its `deployment_branch_policy` and `can_admins_bypass`) and its `deployment-branch-policies`, `POST /repos/{repo}/git/tags` + `POST /repos/{repo}/git/refs`)*. The same file exports the pure `evaluateEnvironmentRule(rule)` → `{ ok, reason }`, which EZD-025 reuses;
-  - `vercel`: `createVercelApi({ token, projectId, teamId, fetch })` in `scripts/release/vercel-api.mjs` (`getProject`, `tokenInfo()`, `findProductionDeployment(sha)`, `currentProductionDeployment()`, `listEnv()`, `readEnvValue(id)`, `promote(deploymentId)`) *(builder confirms endpoints and fields: `GET /v9/projects/{id}` (auto-assign setting, Vercel Authentication (`ssoProtection`), Git Fork Protection (`gitForkProtection`), current production deployment), `GET /v5/user/tokens/current` (the token's `expiresAt`), `GET /v6/deployments?projectId=…&target=production` matched on `meta.githubCommitSha`, `GET /v10/projects/{id}/env`, `GET /v1/projects/{id}/env/{envId}` for one decrypted value, `POST /v10/projects/{id}/promote/{deploymentId}`)*;
-  - `supabase`: starts the pinned `supabase` CLI (`pushDryRun`, `push`, `dump`); the argument lists come from the pure `buildDumpInvocation(kind, { dbUrl | local })` and `buildPushInvocation({ dbUrl, workdir, dryRun })` in `scripts/release/dump.mjs` and `scripts/release/push.mjs` (T21);
-  - `sql`: runs SQL on the production database with `psql -v ON_ERROR_STOP=1 -X -q -t -A` and the SQL on stdin, never in an argument or a file *(builder confirms `psql` is on `ubuntu-latest`; otherwise it runs it from the Postgres image the Supabase CLI already pulls)*;
-  - `offsite`: `createOffsiteUploader(cfg)` in `scripts/release/offsite-upload.mjs` over `@aws-sdk/client-s3` (`putFile(key, path, { contentType })`, `putJson(key, value)`; no delete method of any kind), with the client settings EZD-025 also uses (`forcePathStyle: true`; checksums "when required" for S3-compatible providers *(builder confirms the option name)*). `cfg` takes the bucket from `BACKUP_S3_ENDPOINT` / `BACKUP_S3_REGION` / `BACKUP_S3_BUCKET` and the credentials from `RELEASE_S3_ACCESS_KEY_ID` / `RELEASE_S3_SECRET_ACCESS_KEY` only (Q-0112 finding 10);
-  - `processEnv`, `fetch`, `sleep`, `now`, `checkLive` (EZD-003's `observe` + `evaluate`), `log`, `summary` (appends to `$GITHUB_STEP_SUMMARY`; also carries the non-blocking notices of steps 9 and 12), `mask(value)` (writes `::add-mask::<value>`; Step 4 "Masking").
-- **Result:** `{ ok, code, tag?, dumpPrefix?, deploymentId?, rolledBack?, notices: [] }`. `notices` holds the non-blocking codes `vercel_token_expiring`, `vercel_token_no_expiry`, `vercel_token_expiry_unknown` (step 9) and `owner_email_secret_unused` (step 12); they never change `ok` or `code`. The CLI exits 0 only if `ok` (`released` or `not_configured`). It prints one line per step and a final `release <code>` line, and writes the same short summary (tag, pull request number, codes, dump prefix; no values) to the job summary.
-
-**Steps, in order.** Steps 1–7 read only (git and GitHub reads). Steps 8–12 also read Vercel and the database. Nothing outside the runner changes before step 13.
-1. **Context** (Step 5): `agent_refused`, `not_in_actions`, `wrong_event`, `not_main`.
-2. **Presence check** (emptiness only; no value is used yet):
-   - **`not_configured`** (Q-0113): every one of the 10 release names of Step 4 (the nine besides `GITHUB_TOKEN`, plus `TENANT1_OWNER_EMAIL`) is missing or empty. The result is `ok: true`; the run ends green, prints `release not_configured` and writes the job summary line `production not configured — nothing released`, with 0 calls to `git` fetch, `github.*`, `vercel.*`, `supabase.*`, `sql.*`, `offsite.*` and `checkLive`. This is the state of every merge into `main` until the Before-launch checklist is done. (GitHub Actions has no "neutral" end for a workflow job; a green run with this summary is the closest to Q-0113's "no failed-looking run".)
-   - **`env_missing`** (a partly configured environment still fails loudly): lists, in this order, whichever of these is missing or empty: `GITHUB_TOKEN`, `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `BACKUP_SOURCE_DB_URL`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY` (10 names). `TENANT1_OWNER_EMAIL` is checked only when needed (step 12).
-   - Then, before any other output, `mask()` for the database password URL-encoded and decoded, and for the trimmed `TENANT1_OWNER_EMAIL` when it is set (Step 4 "Masking"; Q-0112 finding 7).
-3. **`sha`** = `GITHUB_SHA`.
-4. **`not_latest`**: after `git fetch origin main --tags`, `sha` is not `origin/main`'s tip. An old run re-run after a newer merge is refused; going back to an older build is a rollback (Step 7), not a release.
-5. **`no_merged_pr`**: `github.mergedPullsFor(sha)` has no pull request with `merged_at` set, `base.ref === 'main'` and `merge_commit_sha === sha`. A direct push to `main` is refused (Q-0106: Josh's merge of a pull request is the approval).
-6. **`environment_unprotected`**: `evaluateEnvironmentRule(github.environmentBranchRule('release'))` fails, that is, unless **both** hold (Step 4; Q-0112 finding 2): the branch rule is exactly "selected branches" (custom branch policies, not "protected branches") with one policy, of type branch, named `main`; **and** administrators cannot bypass it (`can_admins_bypass === false`; a missing field counts as bypass allowed, so the check fails closed) *(builder confirms the field name and that the job token can read it; if it cannot, the builder stops and raises a question rather than dropping the check)*.
-7. **Release name** with `releaseTagFor({ sha, prTitle, tags, tagsOnSha })` in `scripts/release/release-name.mjs` (pure), using EZD-023a's tag format (`phase-N` at a phase gate, `phase-N.k` for a release Josh approves between gates; vault/plans/EZD-023a.md Step 1) and the phase PR title `Phase N: <name>` (vault/PROCESS.md Phase gate step 4):
-   - `sha` already carries a release tag → that tag, `resume: true` (a re-run).
-   - Else the title matches `^Phase (0|[1-9]\d*):` and `phase-N` does not exist:
-     - `phase-N` is newer than every tag → `phase-N`;
-     - otherwise → **`not_newer`**.
-   - Else, when at least one release tag exists → the next patch of the highest tag: `phase-M` → `phase-M.1`, `phase-M.k` → `phase-M.(k+1)`. This covers a fix merged between phase gates and a phase title whose tag already exists.
-   - Else → **`no_release_name`** (the first release must be a `Phase N:` pull request).
-8. **`migration_check_failed`**: EZD-023a's check fails with `--base <highest tag below the new name> --head <sha>` (no `--base` when there is none: the check then reports "no release tag yet", vault/plans/EZD-023a.md Step 4).
-9. **Vercel build of this commit.**
-   - **`vercel_auto_assign_on`**: the project still auto-assigns the production domain (Step 2).
-   - **`deployment_protection_off`** (Q-0112 finding 9; *planner's choice* to refuse rather than only document it, since `getProject` already returns both settings): Vercel Authentication is off (no `ssoProtection`; Standard Protection, which protects previews and leaves the production address public, is the expected setting, as in vault/plans/EZD-003.md Step 5.4), or Git Fork Protection is off (`gitForkProtection === false`) *(builder confirms the field names and values on the pinned API; if they cannot be read, the builder raises a question rather than dropping the check)*.
-   - **Token expiry notices** (non-blocking; Q-0109: 90-day team-scoped token; Q-0112 finding 8): `vercel.tokenInfo()`; `expiresAt − now` under **14 days** → notice `vercel_token_expiring` (with the date, never the token); no `expiresAt` → notice `vercel_token_no_expiry`; the lookup fails → notice `vercel_token_expiry_unknown`. None of them stops the release. (14 days: the orchestrator's brief applying finding 8, 2026-10-12; *builder confirms the endpoint*.)
-   - Poll `findProductionDeployment(sha)` every **10 s** for up to **900 s** (*planner's choice*: a Next.js build on Vercel normally takes a few minutes). `READY` → go on. `ERROR` or `CANCELED` → **`build_failed`** at once. Nothing `READY` at the end → **`no_build`**.
-   - Only a production-target deployment whose `meta.githubCommitSha` equals `sha` counts. This is the "tagged build": the commit the workflow tags in step 15 is the only one it can promote.
-   - `previous` = `currentProductionDeployment()` (null on the very first release).
-   - If `previous` is this same deployment (a re-run after the build already went live), skip steps 10–16 and go to step 17.
-10. **`env_mismatch`**: `evaluateVercelEnv` (Step 8) fails. Values are read decrypted only for the three entries the rules compare (the Preview and Production `NEXT_PUBLIC_SUPABASE_URL` and the Preview `EMAIL_TRANSPORT`); the rest are checked by name and target only (*planner's choice*: fewer secret values in memory).
-11. **Pending migrations.** `git worktree add --detach <tmp> <sha>`; `supabase db push --dry-run --db-url <prod> --workdir <tmp>`. Migrations always come **from the commit**, never from a working tree. The pending list is printed (file names only).
-12. **Tenant 1 check** (read-only SQL): does `public.tenant` exist (`to_regclass`) and hold id `00000000-0000-4000-8000-000000000001` (vault/plans/EZD-005.md Step 1.2)? If not, `TENANT1_OWNER_EMAIL` must be set and, after trimming, match `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$` (the email pattern of vault/plans/EZD-005.md T18; it allows no quote, space or newline); otherwise **`owner_email_missing`**. Checked here so a missing secret stops the release before anything changes. When tenant 1 **exists** and `TENANT1_OWNER_EMAIL` is still set, the notice **`owner_email_secret_unused`** goes into the summary ("delete `TENANT1_OWNER_EMAIL` from the `release` environment"; Q-0112 finding 16); it does not stop the release.
-13. **Database dump, off-site** (11 Operations: "A script takes a database dump before each promotion"; Q-0106).
-    - `dumpDatabase({ dbUrl, outDir })` in `scripts/release/dump.mjs`: three `supabase db dump --db-url` runs into a temporary folder: `roles.sql` (`--role-only`), `schema.sql`, `data.sql` (`--data-only --use-copy`), following Supabase's backup guide *(builder confirms flags)*. It also accepts `{ local: true }` for EZD-025 (vault/plans/EZD-025.md Step 4 `dump.mjs`). **`dump_failed`**: any run exits non-zero, or any file is missing or 0 bytes.
-    - **Auth session data is left out** (Q-0112 finding 11): the `data.sql` run excludes the data of exactly `auth.sessions`, `auth.refresh_tokens`, `auth.one_time_tokens` and `auth.flow_state` (the CLI's data-only exclude option, `-x` / `--exclude` *(builder confirms the flag on the pinned CLI)*), so a dump never holds live sign-in tokens. A restore therefore signs everyone out, which is expected.
-    - **No role passwords** (Q-0112 finding 11): the builder confirms that the pinned CLI's `--role-only` dump writes no passwords; as a guard, `dumpDatabase` also fails with `dump_failed` (detail `role_passwords`) when `roles.sql` matches `/\bPASSWORD\s+'|SCRAM-SHA-256\$|\bmd5[0-9a-f]{32}\b/i` (*planner's choice of pattern*), before anything is uploaded.
-    - **Target: the off-site B2 bucket of EZD-025 under `releases/`** (Q-0074 (a)), written with the release key, which can only write under `releases/` (Step 4; Q-0112 finding 10). Object Lock keeps each uploaded version at least 91 days (Q-0111). Prefix `releases/<tag>-<UTC yyyyMMdd'T'HHmmss'Z'>/`. Upload `roles.sql`, `schema.sql`, `data.sql`, then **last** `manifest.json` in EZD-025's format `{ format: 1, created_at, source_ref, newest_migration, files: [{ name, size, sha256 }] }` (vault/plans/EZD-025.md Step 4 `db.mjs`), so EZD-025's restore reads a release dump with `--dump releases/<…>/` unchanged. `source_ref` = `supabaseRefFromDbUrl(BACKUP_SOURCE_DB_URL)`. **`dump_upload_failed`**: any upload fails.
-    - Why not a workflow artifact: the repo is public, and artifacts of a public repo can be downloaded by anyone who can see the run; dumps hold client data. Why not the runner disk: it is gone when the job ends. Why not the prod Supabase project's own Storage: a backup of a project should not live inside that project.
-    - Retention: the `releases/` prefix gets the same B2 lifecycle rule as EZD-025's `db/` dumps, 13 weeks (Q-0075: "weekly database dumps kept 13 weeks"; set in EZD-025's runbook, vault/plans/EZD-025.md Step 7). A release dump is an off-site database dump, so this plan reads Q-0075's dump period as covering it; Josh can override. The 91-day Object Lock (Q-0111) ends before that rule deletes the file (day 92), so the two agree.
-    - The temporary folder is removed in `finally`. Nothing is uploaded as an artifact or printed.
-14. **`migrate_failed`**: `supabase db push --db-url <prod> --workdir <tmp>` fails (the pinned CLI's non-interactive flag). The message names the dump prefix.
-    - **Timeouts** (Q-0112 finding 13): the push runs with `lock_timeout=5s` (from the finding) and `statement_timeout=300s` (*planner's choice*: long enough for an index on today's small tables, short enough that a stuck statement ends well inside the 45-minute job). `buildPushInvocation` sets them either as connection options on the URL (`options=-c lock_timeout=5s -c statement_timeout=300s`, URL-encoded) or through `PGOPTIONS` in the child's environment, whichever the pinned CLI honours, including through the Session pooler *(builder confirms; if neither reaches the server, the builder raises a question)*. A migration that waits more than 5 s for a lock (for example behind live traffic) or runs more than 300 s is cancelled and ends `migrate_failed`, with the previous build still live; Josh re-runs later. The previous build is still live, and add-before-remove keeps it working with whatever applied (R26 R12).
-15. **Tenant 1 on the first release** (Step 9): when step 12 found tenant 1 missing, run the bootstrap. Any SQL error, or output without `ezd_bootstrap_done` → **`bootstrap_failed`**; `ezd_bootstrap_already_done` counts as done. In EZD-005b's file `ezd_bootstrap_already_done` and `ezd_bootstrap_email_missing` are raised as exceptions (psql exits non-zero) and `ezd_bootstrap_done` is a notice that psql writes to stderr, so the `sql` wrapper reads stdout and stderr, and a failed call whose text contains `ezd_bootstrap_already_done` counts as done (finding V6; T11 (f); added 2026-10-19).
-16. **Tag, then go live.**
-    - Unless `resume`, `github.createTag(<tag>, sha, 'Release <tag> (#<pr number>)')` (annotated tag object + ref) → **`tag_failed`** on error. The tag is created after the migrations are in production and before the build goes live, so a tag always marks migrations that production has (EZD-023a's "released" means exactly that, vault/plans/EZD-023a.md Step 2).
-    - `vercel.promote(deploymentId)` → **`promote_failed`** on error (the previous build stays live).
-17. **Verify.** Poll `https://<HOST>/api/health` every **5 s** for up to **120 s** (*planner's choice*). `HOST` comes from EZD-003; the route from EZD-004.
-    - Health passes when `schema_version` equals the newest 14-digit migration prefix at `sha`.
-    - Then `checkLive` (EZD-003's 8 checks: dns, tls, status, host, vercel, title, hsts, redirect) must pass. This is EZD-003's subdomain check, run on every release (Q-0032 (a)); its first real run is the first real release, before launch (Q-0113).
-    - **`verify_failed`** if either fails. Then **automatic rollback**: if `previous` exists, `vercel.promote(previous.id)` (11 Operations: "Rollback is Vercel's previous deployment") *(builder confirms that promoting an earlier production deployment does not rebuild it; otherwise it uses Vercel's rollback endpoint)*, then poll health for a `200` for up to 120 s. The result carries `rolledBack: true`. With no `previous` (first release), nothing was live before, so nothing is rolled back (`rolledBack: false`). The database is never rolled back (Step 7).
-18. **Record.** Upload `release.json` to the same prefix: `tag`, `sha`, `previous_tag`, `pr_number`, `deployment_id`, `previous_deployment_id`, `started_at`, `finished_at`, `result` (the final code), `rolled_back`, and each dump file's size and SHA-256. It never holds a URL, a token, a Vercel value or the owner email. A failed record upload is logged as `record_failed` but does not change a successful result.
-
-**Other rules:**
-- Re-running a failed run (Josh's Re-run jobs click) is safe: a commit already tagged resumes under its tag; a new dump is taken; `db push` applies nothing new; tenant 1 is not inserted twice; a build already live goes straight to verify.
-- The temporary worktree and dump folder are removed in `finally`.
-- **Child-process output** (Q-0112 finding 7): the `supabase` and `sql` wrappers capture stdout and stderr and never pass them through raw. A failure maps to its result code (`dump_failed`, `migrate_failed`, `bootstrap_failed`, …). The log may then show at most 20 lines of the child's stderr (*planner's choice*), each first passed through `redactUrl` and dropped entirely when it still contains any masked value (`safeLines(lines, maskedValues)` in `scripts/release/redact.mjs`). The same applies to error messages thrown by the fakes in tests (T9 (e), (f)).
-- GitHub emails the person whose push started a failed run (Josh, who merged) *(builder confirms)*; the job summary names the failing code.
-
-### Step 7: Rollback (runbook; 11 Operations: "Rollback is Vercel's previous deployment")
-1. **Automatic.** When the checks after going live fail, the workflow has already put the previous build back (Step 6 step 17). The run is red; its summary says `verify_failed` and `rolled back`.
-2. **By hand** (a problem found later). In Vercel → Deployments, open the previous production deployment (its commit carries the previous `phase-…` tag) and use **Instant Rollback** *(builder confirms the name)*.
-3. **Leave the database alone.** Do **not** revert, edit or delete migrations. Add-before-remove (EZD-023a) means the previous deployment still works with the current database (11 Operations).
-4. **Check.** Run `node scripts/hosting/check-live.mjs` (EZD-003; read-only, any agent or Josh). `/api/health` will still show the newer `schema_version`; that is expected.
-5. **Fix forward.** Fix on `develop` → pull request to `main` → Josh merges → the workflow releases `phase-N.k`.
-6. **If data was damaged, stop.** Never load a dump into production by hand. The run's summary names the pre-release dump prefix in B2 (`releases/<tag>-<time>/`). The restore procedure is EZD-025's restore runbook (R26 R13), which reads it with `--dump`.
-
-### Step 8: Preview uses the dev database (`scripts/release/env-check.mjs`)
-**`evaluateVercelEnv({ envs, requiredNames, prodRef })`** is a pure function. It returns `{ ok, problems: [{ code, name, target }] }`. EZD-021 extends it (vault/plans/EZD-021.md Step 6).
-- `requiredNames` = the non-comment names in `.env.example` at `sha`.
-- `prodRef` = the project ref parsed from `BACKUP_SOURCE_DB_URL`.
-
-Rules:
-- **`missing`**: a required name is absent for target `production`.
-- **`missing`**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` or `SUPABASE_SECRET_KEY` is absent for target `preview`.
-- **`production_not_prod`**: the production `NEXT_PUBLIC_SUPABASE_URL` ref is not `prodRef`.
-- **`preview_uses_prod`**: the preview `NEXT_PUBLIC_SUPABASE_URL` ref equals `prodRef`.
-- **`unreadable`**: the API returns no value for one of those URLs (for example, a variable marked Sensitive).
-- **Sensitive variables** (Q-0109: "all secret variables in both projects marked Sensitive"; Q-0112 finding 8): every secret value in Vercel (for both the `ezdraft` project and EZ Binder's project in the shared team) is marked **Sensitive**, so neither the dashboard nor this token can read it back. The three values the release decrypts, Preview and Production `NEXT_PUBLIC_SUPABASE_URL` and Preview `EMAIL_TRANSPORT`, are not secrets (a public URL and a mode word) and stay plain; marking them Sensitive makes this check fail with `unreadable`. This is a runbook rule (Before-launch checklist), not a check: no source lists which names are secret, so the release cannot test it.
-- **Preview email**, per Q-0041 (both transports, chosen per environment; Preview defaults to `stub` now; a setting can switch a preview to live sending later):
-  - the preview `EMAIL_TRANSPORT` must be set explicitly to `stub` or `resend`; missing, empty or any other value → `{ code: 'preview_email', name: 'EMAIL_TRANSPORT', target: 'preview' }`;
-  - `resend` is accepted when Josh sets it, and then `RESEND_API_KEY` must exist for `preview`, otherwise `{ code: 'preview_email', name: 'RESEND_API_KEY', target: 'preview' }` (*planner's choice*: EZD-008 Step 4 fails every send with `email_key_not_set` without it, and `RESEND_API_KEY` is a required name there);
-  - Production `EMAIL_TRANSPORT` is covered by the `missing` rule, and a Production `stub` is refused at run time (EZD-008 Step 4, `email_stub_not_allowed`).
-- **Preview AI mode** (`preview_ai_mode`): added by EZD-021 with the same shape (Q-0077; vault/plans/EZD-021.md Step 6). Not built here.
-
-Ref helpers (also used by EZD-025):
-- `supabaseRefFromApiUrl('https://<ref>.supabase.co')`.
-- `supabaseRefFromDbUrl(…)`, which reads both the pooler form (`postgres.<ref>@…pooler.supabase.com`) and the direct form (`@db.<ref>.supabase.co`).
-- `redactUrl()` (in `scripts/release/redact.mjs`) replaces a password with `***`.
-
-There is no local `release:check-env` command any more: the check needs the Vercel token, which only the `release` environment holds (Q-0106). It runs as step 10 of every release.
-
-### Step 9: Tenant 1 on production, automated (Q-0106 automation; Q-0033 (a) "no personal data committed")
-Decision: **automate it in the release workflow on the first release**, instead of Josh pasting the file into the prod SQL editor. Source: Q-0106 (Josh: automation wherever possible; releases need no Josh step besides the merge) together with Q-0033 (a)'s rule that no personal data is committed.
-- `renderBootstrap(fileText, email)` in `scripts/release/bootstrap.mjs` (pure): trims the email, checks it against the Step 6 step 12 pattern, and replaces the single `PASTE-YOUR-EMAIL-HERE` in EZD-005's file. The placeholder is counted case-sensitively: the merged file also holds the lower-case `'paste-your-email-here'` in its own guard (supabase/bootstrap/tenant-1.sql line 9), which stays as it is (finding V6; added 2026-10-19). A file with the placeholder missing or present more than once → **`bootstrap_file_invalid`**. An email that fails the pattern → `owner_email_missing` (the step 12 code). Because the pattern allows no quote, the result cannot break out of the SQL string.
-- The file is read from the commit's worktree (`<tmp>/supabase/bootstrap/tenant-1.sql`), never from a working tree.
-- The rendered SQL goes to `psql` on stdin only. It is never written to disk, printed, uploaded or put in `release.json`. The email lives only in the GitHub environment secret `TENANT1_OWNER_EMAIL` (masked by GitHub as entered, and by the script trimmed, Step 4 "Masking").
-- It runs only when tenant 1 is missing (step 12), after the migrations created the tables (step 14) and before the build goes live (step 16), so Josh can sign in as soon as the site is up. Under Q-0113 that is the **first real release**, before launch, not the Phase 0 merge. Later releases skip it.
-- **Delete the secret after the first release** (Q-0112 finding 16): the runbook tells Josh to delete `TENANT1_OWNER_EMAIL` from the `release` environment once the first release is green; until he does, every release summary carries the notice `owner_email_secret_unused` (Step 6 step 12).
-- If Josh has already pasted the file by hand, tenant 1 exists and nothing runs.
-- **Dev** (the one Supabase project that exists now, Q-0113) keeps EZD-005's paste step (vault/plans/EZD-005.md Step 7): the dev database is migrated by EZD-004's workflow, which builds before EZD-005's file exists. Automating dev the same way is possible later; it is not in this ticket's scope.
-
-### Step 10: Dev migrations (Q-0107)
-Nothing is added here. EZD-004's `supabase-dev.yml` applies dev migrations on each push to `develop` that changes `supabase/migrations/**` and on Run workflow (Q-0107; vault/plans/EZD-004.md Step 7). Step 1 documents it.
-
-### Step 11: Docs (under existing headings only)
-**`docs/architecture.md`:**
-- `## Runtime` → `### Environments and releases (EZD-023b)`. It holds:
-  - the Step 1 table;
-  - the go-live choice (Step 2) and its reasons;
-  - the workflow, its trigger, permissions, the install-script rule and the `release` environment, with why it is not Vercel's `Production` environment (Steps 3–4);
-  - "until launch a merge releases nothing: `not_configured`" (Q-0113);
-  - the tag format (with a link to `### Release safety (EZD-023a)`) and the naming rule (Step 6 step 7);
-  - the step order and every result code (Step 6);
-  - where dumps go (`releases/` in the B2 bucket, 13 weeks) and why not an artifact;
-  - the tenant 1 automation (Step 9);
-  - "rollback = automatic on a failed check, or Vercel Instant Rollback by hand; the database is never rolled back".
-- `### Environment variables`: one row per release name of Step 4 (10), marked "GitHub environment `release` only; never a repository or organization secret". (`BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY` and the two `BACKUP_SOURCE_SUPABASE_*` names are EZD-025's rows.)
-- `## Dependencies`: new row `@aws-sdk/client-s3` | exact version | `root` | "Off-site bucket, S3-compatible API (release dumps EZD-023d; backups EZD-025)" | `EZD-023d` (part d adds it; changed 2026-10-19 by the split) (CLAUDE.md rule 7; EZD-000 C1).
-- Two Machine checks rows, in the table's four-cell form (finding V11; changed 2026-10-19; after the split each row names the part that builds its test):
-  - `| — | Release refuses anything but the newest merged PR on main | scripts/release/__tests__/release.test.mjs | EZD-023b |`
-  - `| — | Release workflow is main-only, pinned and secret-safe | scripts/release/__tests__/workflow.test.mjs | EZD-023e |`
-
-**`docs/runbook.md`** (add a section, never rewrite): `## Environments and releases (EZD-023)`, written for a non-engineer.
-- **Now (before Stage 3 pushes):** the list "Josh's GitHub and account settings (Q-0108, Q-0112)" at the end of this plan, written out as a numbered list.
-- **Until launch** (Q-0113): merging into `main` releases nothing. Actions → **Release** is green with the summary `production not configured — nothing released`. Phase field checks use the Vercel preview of the phase pull request (Q-0116 (a); PROCESS.md section 12: a plain `develop` push builds no preview).
-- **Go-live switch:** "Auto-assign Custom Production Domains" has been off since EZD-003 (its runbook step 5.2, set before the Phase 0 merge; Q-0123 (b); vault/plans/EZD-003.md Step 5.2). Never turn it back on: with it on, a merge would go live on the address before its migrations, and the release refuses to run (`vercel_auto_assign_on`, Step 6 step 9).
-- **Before launch:** the "Before launch checklist (Q-0113)" at the end of this plan, written out as a numbered list, in that order.
-- **Each release (after launch):** merge the pull request into `main`. That is all. Watch Actions → **Release**: green means live. Red means the live site did not change (or was put back); the summary names the step. Fix the cause (for example a missing secret), then press **Re-run jobs** on that run. Read the summary's notices: `vercel_token_expiring` (make a new 90-day token and replace `VERCEL_TOKEN`), `owner_email_secret_unused` (delete `TENANT1_OWNER_EMAIL`).
-- **First real release:** the `ezdraft-prod` project must exist (Q-0024 (a); Q-0113); tenant 1 and your owner account are created by the release (Step 9), so do not paste `supabase/bootstrap/tenant-1.sql` into prod. The subdomain check of EZD-003 runs inside the release. Afterwards delete `TENANT1_OWNER_EMAIL` from the `release` environment.
-- **Rollback:** Step 7.
-- **Dumps:** in B2 under `releases/`, one folder per release; they hold client data; Object Lock keeps them at least 91 days (Q-0111) and B2 deletes them after 13 weeks (Q-0075).
-- **Safety net:** agents cannot run release commands (`.claude/settings.json`, commit 8d9553d). Optional extra lines for Josh's settings: `Bash(node scripts/release/release*)`, `Bash(gh run rerun*)` (re-running a release is Josh's click; the agents' Write account could otherwise press it, Risks).
-
-The orchestrator copies the "now" list into `vault/tickets/needs-from-josh.md` at once (items 1–2 must be done before the next Stage 3 push, Q-0108), and the Before-launch checklist there as a separate list; the builder may not write `vault/`.
-
-## Files
 | Path | New / change | Written by | Why |
 | --- | --- | --- | --- |
-| `.github/workflows/release.yml` | New | builder | Step 3 (new workflow files are allowed, guard-paths.mjs) |
-| `scripts/release/release.mjs` | New | builder | Step 6 |
-| `scripts/release/context.mjs` | New | builder | Step 5 |
-| `scripts/release/release-name.mjs` | New | builder | Step 6 step 7 |
-| `scripts/release/github-api.mjs` | New | builder | Step 6 steps 5, 6, 16 (`evaluateEnvironmentRule`; EZD-025 imports it) |
-| `scripts/release/vercel-api.mjs` | New | builder | Step 6 steps 9, 10, 16, 17 (`tokenInfo`, protection fields) |
-| `scripts/release/env-check.mjs` | New | builder | Step 8 (EZD-021 extends it) |
-| `scripts/release/redact.mjs` | New | builder | Step 8 (`redactUrl`), Step 4 masking helpers, `safeLines` (Step 6 "Other rules"); EZD-025 imports it |
-| `scripts/release/dump.mjs` | New | builder | Step 6 step 13 (`buildDumpInvocation`, auth exclusions, role-password guard; EZD-025 imports it) |
-| `scripts/release/push.mjs` | New | builder | Step 6 steps 11, 14 (`buildPushInvocation` with the timeouts) |
-| `scripts/release/offsite-upload.mjs` | New | builder | Step 6 step 13 |
-| `scripts/release/bootstrap.mjs` | New | builder | Step 9 |
-| `package.json` (root) | Change (extend) | builder | devDependency `@aws-sdk/client-s3`; **no** `release:*` scripts |
-| `pnpm-lock.yaml` | Change | builder | the gate installs with `--frozen-lockfile` |
-| `docs/architecture.md`, `docs/runbook.md` | Change | builder | Step 11 |
-| `scripts/release/__tests__/release.test.mjs`, `release-name.test.mjs`, `env-check.test.mjs`, `bootstrap.test.mjs`, `workflow.test.mjs`, `release-docs.test.mjs`, `invocations.test.mjs` | New | test-author | Tests below; they reuse EZD-023a's `git-fixture.mjs` |
-| `pnpm-workspace.yaml` | Not changed, unless the builder needs form (ii) of Step 3 step 4 | builder | Its `onlyBuiltDependencies` (EZD-004) is then exactly `["supabase"]` |
-| `.env.example` | Not changed | — | The release names are GitHub secrets, not app env (Step 4); EZD-004 T7 is untouched |
-| `supabase/bootstrap/tenant-1.sql` | Not touched | — | EZD-005's file; read at the commit (Step 9) |
-| `.claude/settings.json`, `.claude/hooks/guard-bash.mjs`, `SETUP.md` | Not touched (Josh's) | — | Deny rules already committed (8d9553d); SETUP note told to Josh (Step 2) |
-| `scripts/gate.mjs`, `.github/workflows/ci.yml`, `CLAUDE.md`, `vault/**` | Not touched | — | Owned by Josh or the orchestrator |
+| `scripts/release/context.mjs` | New | builder | Step 1 |
+| `scripts/release/release-name.mjs` | New | builder | Step 2 |
+| `scripts/release/github-api.mjs` | New | builder | Step 3 (EZD-025 imports it) |
+| `scripts/release/release.mjs` | New | builder | Step 4 |
+| `scripts/release/__tests__/release.test.mjs` | New | test-author | T1, T3, T4 (git cases), T5. Holds fixture `R` and the `CLEAN` fakes, which parts c–e extend in this file (archived plan "Split proposal") |
+| `scripts/release/__tests__/release-name.test.mjs` | New | test-author | T2 |
+| `scripts/release/__tests__/github-api.test.mjs` | New | test-author | T4 pure cases, T22 |
 
-One new dependency, `@aws-sdk/client-s3` (root devDependency), with its `docs/architecture.md` row in the same commit (CLAUDE.md rule 11). Everything else uses Node 22 built-ins; Vercel and GitHub are called with `fetch`. The workflow uses only `actions/checkout` and `actions/setup-node`, pinned by SHA.
+The builder may write `scripts/release/` (`.claude/hooks/guard-paths.mjs` line 84; Q-0125 (a)), and the test-author writes `__tests__/` (finding V13). This part does not touch the following:
+- `scripts/release/check-migrations.mjs`, `tags.mjs` and `__tests__/git-fixture.mjs`: imported only, never edited;
+- `docs/architecture.md` and `docs/runbook.md`: part e writes the docs and the Machine checks row for `release.test.mjs` (archived plan T18);
+- `package.json`, the lockfile and `.github/`.
 
-## Data
-- No migrations. No table, column, policy or schema_version change.
-- On the first release only, the workflow inserts tenant 1, Josh's `app_user` and his membership into production through EZD-005's file (Step 9).
-- Release dumps (client data, without the four auth session tables, Step 6 step 13) go only to the private, SSE-B2-encrypted B2 bucket under `releases/`, locked at least 91 days (Q-0111) and kept 13 weeks (Q-0075). Never to the repo, an artifact or a log.
-- Before launch (Q-0113) no release touches any database or bucket (`not_configured`).
-- No money fields.
+There is no new dependency: Node 22 built-ins and global `fetch` only (CLAUDE.md rule 7).
 
-## Tests (written by test-author before any code)
-- All tests are `node:test` with a top-level `describe('EZD-023b …')`.
-- No test reaches the network (CLAUDE.md rule 10):
-  - `github`, `vercel`, `supabase`, `sql`, `offsite` (and the factory that creates it, which records its `cfg`), `fetch`, `checkLive`, `sleep`, `now` and `mask` are fakes that record their calls;
-  - "**output**" means every `log` line, every `summary` line, `release.json` and `manifest.json`; the values given to `mask` are checked separately (in GitHub, `::add-mask::` lines are not shown);
-  - `git` is real, run against fixture repos with a local bare `origin` (EZD-023a's `git-fixture.mjs`).
-- **Fixture `R`:**
-  - `main` commit C1 adds:
-    - `supabase/migrations/20261101000000_create_fixture.sql` = `create table public.fixture_item (id uuid primary key, legacy_note text);`
-    - `supabase/retired.json` = `{"retired":[]}`
-    - `.env.example` with EZD-004's three names;
-    - `supabase/bootstrap/tenant-1.sql` = `do $$ declare owner_email text := 'PASTE-YOUR-EMAIL-HERE'; begin raise notice 'ezd_bootstrap_done'; end $$;`
-  - `main` commit C2 adds `20261102000000_add_note.sql` = `alter table public.fixture_item add column new_note text;`. C2 is `origin/main`'s tip.
-  - **`DROP`** is a migration `20261103000000_drop_legacy_note.sql` = `alter table public.fixture_item drop column legacy_note;`.
-- **Clean fakes** (`CLEAN`):
-  - `processEnv`: `GITHUB_ACTIONS: 'true'`, `GITHUB_EVENT_NAME: 'push'`, `GITHUB_REF: 'refs/heads/main'`, `GITHUB_SHA` = the tip, `GITHUB_TOKEN: 'ghs_TEST'`, `VERCEL_TOKEN: 'tok_TEST'`, `VERCEL_PROJECT_ID: 'prj_TEST'`, `VERCEL_TEAM_ID: 'team_TEST'`, `BACKUP_SOURCE_DB_URL: 'postgresql://postgres.prodref123:S3cret@aws-0-us-east-1.pooler.supabase.com:5432/postgres'`, `BACKUP_S3_ENDPOINT: 'https://s3.us-west-004.backblazeb2.com'`, `BACKUP_S3_REGION: 'us-west-004'`, `BACKUP_S3_BUCKET: 'ezd-test'`, `RELEASE_S3_ACCESS_KEY_ID: 'relkey_TEST'`, `RELEASE_S3_SECRET_ACCESS_KEY: 'rel-secret-TEST'`, `TENANT1_OWNER_EMAIL: 'owner.test@example.com'`; no `CLAUDECODE`, no `BACKUP_S3_ACCESS_KEY_ID`, no `BACKUP_S3_SECRET_ACCESS_KEY`.
-  - `github`: one merged pull request #7 for the tip (`base.ref` `main`, `merge_commit_sha` = tip, title `Phase 0: Setup`); environment rule = selected branches with exactly one branch policy `main` and `can_admins_bypass: false`.
-  - `vercel`: auto-assign off; Vercel Authentication on (Standard Protection) and Git Fork Protection on; `tokenInfo` with `expiresAt` = `now` + 60 days; a `READY` production deployment `dpl_NEW` for the tip; current production deployment `null`; a passing env list.
-  - `sql`: tenant check returns "missing"; bootstrap output contains `ezd_bootstrap_done`.
-  - `supabase.dump` writes a non-empty file; `offsite.put*` resolve.
-  - Health returns the tip's newest migration; `checkLive` passes.
-- **No external effect** means: 0 calls to `vercel.*`, `supabase.*`, `sql.*`, `offsite.*`, `github.createTag` and `checkLive`.
+**Data:** none. No migration, table, policy, `schema_version` or money field.
 
-| Test | Type | Input | Expected value | Source of the expected value |
-| --- | --- | --- | --- | --- |
-| T1 **Done when** `EZD-023b done when: the release refuses anything but the newest merged pull request on main` | unit (git) | `runRelease` on `R` with `CLEAN` except, one case each: (a) `GITHUB_REF: 'refs/heads/develop'`; (b) `GITHUB_EVENT_NAME: 'workflow_dispatch'`; (c) `GITHUB_EVENT_NAME: 'pull_request'`; (d) `GITHUB_ACTIONS` removed; (e) `CLAUDECODE: '1'`; (f) `GITHUB_SHA` = C1 while the tip is C2; (g) `github` returns no pull request (direct push); (h) the only pull request has `merged_at: null`; (i) the only pull request has `base.ref: 'develop'`. Then the CLI `node <repo>/scripts/release/release.mjs` with cwd = `R` and every `GITHUB_*`, `CI` and `CLAUDECODE` removed from its env | Codes: (a) `not_main`; (b), (c) `wrong_event`; (d) `not_in_actions`; (e) `agent_refused`; (f) `not_latest`; (g), (h), (i) `no_merged_pr`. Every case: `ok === false` and no external effect; in (a)–(e) `github.*` also has 0 calls. CLI: exit 1; output contains `not_in_actions` | Done when as decided by Q-0106; Steps 5, 6 (steps 1–5) |
-| T2 Release names | unit (pure) | `releaseTagFor` with: (a) title `Phase 0: Setup`, tags `[]`; (b) `Phase 1: Projects`, `[phase-0]`; (c) `Fix sign-in`, `[phase-0, phase-1]`; (d) `Fix again`, `[phase-1, phase-1.1]`; (e) `Phase 1: Projects`, `[phase-0, phase-1]`; (f) `Phase 1: x`, `[phase-2]`; (g) `Fix`, `[]`; (h) `Phase 2: x`, `[phase-0]`; (i) `Phase 1: x`, `[phase-0, phase-1]`, with `phase-1` on this `sha`; (j) `phase 1: lower case`, `[phase-0]` | (a) `phase-0`; (b) `phase-1`; (c) `phase-1.1`; (d) `phase-1.2`; (e) `phase-1.1`; (f) `not_newer`; (g) `no_release_name`; (h) `phase-2`; (i) `phase-1` with `resume: true`; (j) `phase-0.1` | Step 6 step 7; vault/plans/EZD-023a.md Step 1 (format and order); vault/PROCESS.md Phase gate step 4 (`Phase N: <name>`) |
-| T3 Unsafe migrations | unit (git) | Tag `phase-0` on C1; the tip adds `DROP`; title `Phase 1: x` | `code === 'migration_check_failed'`; no external effect | Step 6 step 8; vault/plans/EZD-023a.md T14 |
-| T4 Environment rule | unit (git + pure) | `CLEAN` except the environment rule: (a) none (all branches); (b) protected branches only; (c) selected branches `main` and `develop`; (d) selected branches with a tag rule `phase-*` besides `main`; (e) selected branches, exactly `main`, with `can_admins_bypass: true`; (f) selected branches, exactly `main`, with no `can_admins_bypass` field. Pure: `evaluateEnvironmentRule` on the `CLEAN` rule | (a)–(f) each: `environment_unprotected`; no external effect. Pure: `ok === true` | Steps 4, 6 step 6 (Q-0106: restricted to main; Q-0112 finding 2: no admin bypass, fail closed) |
-| T5 Not configured, then missing secrets | unit (git) | (a) `CLEAN` with all 10 release names of Step 4 removed (`GITHUB_TOKEN` kept); (b) the same with each set to `''`; (c) `CLEAN` with `VERCEL_TEAM_ID: ''`; (d) `CLEAN` with every release name removed except `TENANT1_OWNER_EMAIL`; (e) `CLEAN` with `BACKUP_S3_ACCESS_KEY_ID: 'key_TEST'` and `BACKUP_S3_SECRET_ACCESS_KEY: 'b2-secret-TEST'` **instead of** the two `RELEASE_S3_*` names; (f) (a) through the CLI with `GITHUB_ACTIONS`, `GITHUB_EVENT_NAME`, `GITHUB_REF`, `GITHUB_SHA`, `GITHUB_TOKEN` set as in `CLEAN` and a temporary `GITHUB_STEP_SUMMARY` file | (a), (b) `ok === true`, `code === 'not_configured'`; the summary contains `production not configured — nothing released`; 0 calls to `github.*`, `git` fetch and every external fake. (c) `env_missing` listing only `VERCEL_TEAM_ID`. (d) `env_missing` listing exactly the 9 names of the Step 6 step 2 list other than `GITHUB_TOKEN` (which is set), in that order, and not `TENANT1_OWNER_EMAIL`. (e) `env_missing` listing exactly `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY` (the backup key is never accepted instead). (c)–(e): `ok === false`, no external effect, `github.*` 0 calls. (f) exit 0; the last line is `release not_configured`; the summary file contains `production not configured — nothing released` | Step 6 step 2; Q-0113 (unconfigured: end without changing anything, no failed-looking run); Q-0112 finding 10 (release key only) |
-| T5 (g) Masking before any output (added 2026-10-19, finding V15; part b) | unit (git) | `CLEAN` with `BACKUP_SOURCE_DB_URL` = `postgresql://postgres.prodref123:p%40ss%2Fx@aws-0-us-east-1.pooler.supabase.com:5432/postgres` (as T9 (g)) and the environment rule of T4 (a) | `environment_unprotected`; `mask` was called with exactly the set `{'p%40ss%2Fx', 'p@ss/x', 'owner.test@example.com'}` before the first `log` line; no output contains any of the three | Step 4 "Masking"; Step 6 step 2; Q-0112 finding 7 (the same values T7 and T9 (g) assert) |
-| T6 Only this commit's ready build, protected | unit (git) | Fake clock (`sleep(ms)` advances `now`). Vercel fake, one case each: (a) auto-assign on; (b) no deployment ever; (c) the tip's deployment `ERROR`; (d) only a `READY` **preview** deployment for the tip; (e) only a `READY` production deployment for C1; (f) Vercel Authentication off; (g) Git Fork Protection off | (a) `vercel_auto_assign_on`; (b) `no_build` after exactly **91** `findProductionDeployment` calls (t = 0, 10, …, 900 s); (c) `build_failed` after 1 call; (d), (e) `no_build`; (f), (g) `deployment_protection_off` with 0 `findProductionDeployment` calls. Every case: 0 `supabase.*`, `sql.*`, `offsite.*`, `createTag`, `promote` calls | Step 2; Step 6 step 9 (10 s and 900 s, planner's choice; "tagged build"; Q-0112 finding 9) |
-| T7 First release, full order | unit (git) | `CLEAN`. `R`'s working tree also holds an **uncommitted** migration `20261201000000_wip.sql` | `ok === true`, tag `phase-0`. Recorded order: `github.mergedPullsFor`, `github.environmentBranchRule` (called with `'release'`), `vercel.getProject`, `vercel.tokenInfo`, `vercel.findProductionDeployment`, `vercel.currentProductionDeployment`, `vercel.listEnv` (with its `readEnvValue` calls), `sql` tenant check, `supabase.pushDryRun`, `supabase.dump(roles)`, `dump(schema)`, `dump(data)`, `offsite` puts of `roles.sql`, `schema.sql`, `data.sql`, then `manifest.json`, `supabase.push`, `sql` bootstrap, `github.createTag('phase-0', <C2 sha>, …)`, `vercel.promote('dpl_NEW')`, health poll(s), `checkLive`, `offsite` put of `release.json`. Every `offsite` key starts with one prefix matching `^releases/phase-0-\d{8}T\d{6}Z/$`. `manifest.json`: `format: 1`, `newest_migration: '20261102000000'`, `source_ref: 'prodref123'`, 3 `files` with `size > 0` and 64-hex `sha256`. `release.json`: `tag: 'phase-0'`, the tip SHA, `previous_tag: null`, `pr_number: 7`, `deployment_id: 'dpl_NEW'`, `previous_deployment_id: null`, `result: 'released'`, `rolled_back: false`. The `workdir` given to both pushes lists exactly the commit's 2 migration files, without `…wip.sql`. The bootstrap SQL sent to `sql` contains `owner.test@example.com` exactly once and no `PASTE-YOUR-EMAIL-HERE`. `dump(data)` is called with `exclude` deep-equal to `['auth.sessions', 'auth.refresh_tokens', 'auth.one_time_tokens', 'auth.flow_state']`; `supabase.push` (not the dry run) is called with `lockTimeout: '5s'` and `statementTimeout: '300s'`. The `offsite` factory is called once, with `accessKeyId: 'relkey_TEST'`, `secretAccessKey: 'rel-secret-TEST'`, bucket `ezd-test`. `mask` was called with exactly the set `{'S3cret', 'owner.test@example.com'}` before the first `log` line. `notices` is `[]`. No output contains `S3cret`, `tok_TEST`, `rel-secret-TEST`, `ghs_TEST` or `owner.test@example.com`. The temporary worktree and dump folder no longer exist | 11 Operations ("takes a database dump before each promotion"); Q-0106 (backup, migrations, live, in that order); Steps 4, 6 (steps 2, 9–18), 9; EZD-025 manifest format; CLAUDE.md rule 12; Q-0112 findings 7, 10, 11, 13 (5 s from the finding; 300 s planner's choice) |
-| T8 Later release | unit (git) | Tag `phase-0` on C1; tip C2 with title `Phase 1: Projects`; current production deployment `dpl_OLD`; tenant check returns "present". (a) `TENANT1_OWNER_EMAIL` removed; (b) `TENANT1_OWNER_EMAIL` still set | Both: `ok`, tag `phase-1`; 0 bootstrap calls; EZD-023a ran with `--base phase-0`; `release.json` `previous_tag: 'phase-0'`, `previous_deployment_id: 'dpl_OLD'`. (a) `notices` is `[]`. (b) `notices` deep-equals `['owner_email_secret_unused']` and a summary line contains `owner_email_secret_unused` | Step 6 steps 7, 8, 12, 15; Step 9; Q-0112 finding 16 |
-| T9 Owner email and no leaks | unit (git + pure) | Tenant missing and `TENANT1_OWNER_EMAIL`: (a) removed; (b) `josh'@example.com`; (c) `not-an-email`; (d) `a@b.com\nselect 1`. (e) `CLEAN` with `TENANT1_OWNER_EMAIL: ' owner.test@example.com '`; the `sql` bootstrap call rejects with an error whose message and `stderr` are `ERROR: duplicate key for owner.test@example.com at postgresql://postgres.prodref123:S3cret@aws-0-us-east-1.pooler.supabase.com:5432/postgres`. (f) `CLEAN`; `supabase.push` rejects with that same text. (g) `CLEAN` with `BACKUP_SOURCE_DB_URL` = `postgresql://postgres.prodref123:p%40ss%2Fx@aws-0-us-east-1.pooler.supabase.com:5432/postgres` and `supabase.push` rejecting with a text that contains `p%40ss%2Fx` on one line and `p@ss/x` on another. Pure: `renderBootstrap` of the fixture file with `' Owner@Example.com '`; of a file with no placeholder; of a file with the placeholder twice | (a)–(d) `owner_email_missing`; 0 `supabase.dump`, `supabase.push`, `createTag`, `promote` calls. (e) `bootstrap_failed`; `mask` was called with `owner.test@example.com` (trimmed) and `S3cret` before the first `log` line. (f) `migrate_failed`. (g) `migrate_failed`; `mask` was called with both `p%40ss%2Fx` and `p@ss/x`. (e)–(g): no output contains `owner.test@example.com`, `S3cret`, `p%40ss%2Fx` or `p@ss/x`. Pure: the result contains `'Owner@Example.com'` (trimmed) exactly once and no placeholder; the other two throw `bootstrap_file_invalid` | Step 6 steps 2, 12 and "Other rules"; Step 4 "Masking"; Step 9; vault/plans/EZD-005.md T18 (email pattern), Step 7; Q-0112 finding 7 |
-| T9 (h), (i) Pure bootstrap cases (added 2026-10-19, finding V6; part d) | unit (pure) | (h) `renderBootstrap` of the committed `supabase/bootstrap/tenant-1.sql` (read from the repo) with `'owner.test@example.com'`; (i) `renderBootstrap` of fixture `R`'s file with `"josh'@example.com"` | (h) the result contains `owner.test@example.com` exactly once, no `PASTE-YOUR-EMAIL-HERE`, and still contains `'paste-your-email-here'`; (i) throws `owner_email_missing` | Step 9 (case-sensitive count; pattern check with the step 12 code); supabase/bootstrap/tenant-1.sql lines 5, 9 (EZD-005b); STATUS.md row EZD-005b (quotes refused) |
-| T10 Dump failures stop the release | unit (git) | (a) `dump(schema)` writes a 0-byte file; (b) `dump(data)` exits 1; (c) the `offsite` put of `data.sql` rejects; (d) `dump(roles)` writes `ALTER ROLE "x" WITH LOGIN PASSWORD 'SCRAM-SHA-256$4096:abc';` | (a), (b), (d) `dump_failed`; (d) also 0 `offsite` puts. (c) `dump_upload_failed`. All: 0 `manifest.json` puts, 0 `supabase.push`, bootstrap, `createTag`, `promote` calls | 11 Operations (dump first); Q-0106 (any failure stops it); Step 6 step 13 (role-password guard, Q-0112 finding 11) |
-| T11 Later failures keep the old build live | unit (git) | (a) `supabase.push` exits 1; (b) bootstrap output has `ezd_bootstrap_email_missing`; (c) `createTag` rejects; (d) `vercel.promote` rejects; (e) `supabase.push` rejects with `ERROR: canceling statement due to lock timeout` | (a), (e) `migrate_failed`, output contains the dump prefix, 0 bootstrap, `createTag`, `promote` calls; (b) `bootstrap_failed`, 0 `createTag`, `promote`; (c) `tag_failed`, 0 `promote`; (d) `promote_failed`, exactly 1 `promote` call | Q-0106 ("the live site stays on the previous version"); Step 6 steps 14–16; Q-0112 finding 13 (timeout → `migrate_failed`) |
-| T11 (f) Already done counts as done (added 2026-10-19, finding V6; part e) | unit (git) | `CLEAN`; the `sql` bootstrap call rejects with an error whose `stderr` is `ERROR:  ezd_bootstrap_already_done` | `ok === true`, `code === 'released'`; 1 `createTag` call, 1 `promote` call | Step 6 step 15 ("`ezd_bootstrap_already_done` counts as done"); supabase/bootstrap/tenant-1.sql (raised as an exception, EZD-005b) |
-| T12 Verify and automatic rollback | unit (git) | Fake clock. (a) The T8 setup, but health always returns `schema_version: '20261101000000'`; (b) the T7 setup (no previous), health always fails; (c) the T8 setup, health passes, `checkLive` fails on `dns` | (a) `verify_failed`, `rolledBack: true`, exactly **25** health polls before the rollback (t = 0, 5, …, 120 s), then `vercel.promote('dpl_OLD')`; `release.json` `result: 'verify_failed'`, `rolled_back: true`; output contains `Instant Rollback`. (b) `verify_failed`, `rolledBack: false`, exactly 1 `promote` call. (c) `verify_failed`, `rolledBack: true`, `promote('dpl_OLD')` called | Step 6 step 17 (5 s and 120 s, planner's choice); 11 Operations ("Rollback is Vercel's previous deployment"); Q-0106 |
-| T13 Re-run is safe | unit (git) | (a) Tag `phase-0` already on the tip and the current production deployment is `dpl_NEW` (the tip's); (b) tag `phase-0` already on the tip, current production `null`, tenant present | (a) `ok`; 0 `supabase.dump`, `supabase.push`, `sql` bootstrap, `createTag`, `promote` calls; health and `checkLive` ran. (b) `ok`, tag `phase-0`; 0 `createTag` calls; 1 `promote` call | Step 6 steps 7, 9 and "Other rules" |
-| T14 Vercel env rules | unit | `evaluateVercelEnv` with `requiredNames` = EZD-004's three names and `prodRef: 'prodref123'`. Cases: (a) Production and Preview both complete; prod URL `https://prodref123.supabase.co`, preview URL `https://devref456.supabase.co`; Preview `EMAIL_TRANSPORT` = `stub`, no Preview `RESEND_API_KEY`. (b) Preview URL `https://prodref123.supabase.co`. (c) Production URL `https://devref456.supabase.co`. (d) Production lacks `SUPABASE_SECRET_KEY`. (e) Preview lacks `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. (f) The preview URL entry has no `value`. (g) (a) without a Preview `EMAIL_TRANSPORT`. (h) (a) with Preview `EMAIL_TRANSPORT` = `resend` and a Preview `RESEND_API_KEY`. (i) (a) with Preview `EMAIL_TRANSPORT` = `resend` and no Preview `RESEND_API_KEY`. (j) (a) with Preview `EMAIL_TRANSPORT` = `smtp` | (a) `ok === true`. (b) `preview_uses_prod`. (c) `production_not_prod`. (d) `missing` / `SUPABASE_SECRET_KEY` / `production`. (e) `missing` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` / `preview`. (f) `unreadable`. (g), (j) exactly one problem `preview_email` / `EMAIL_TRANSPORT` / `preview`. (h) `ok === true`. (i) exactly one problem `preview_email` / `RESEND_API_KEY` / `preview` | 11 Operations ("Preview deploys use the dev database"); Step 8; Q-0041; EZD-008 Step 4 |
-| T15 Ref parsing and redaction | unit | `supabaseRefFromApiUrl('https://abcd1234.supabase.co')`; `supabaseRefFromDbUrl('postgresql://postgres.abcd1234:p%40ss@aws-0-us-east-1.pooler.supabase.com:5432/postgres')`; `supabaseRefFromDbUrl('postgresql://postgres:secret@db.abcd1234.supabase.co:5432/postgres')`; `supabaseRefFromDbUrl('not a url')`; `redactUrl` of the third URL | `abcd1234`, `abcd1234`, `abcd1234`, `null`. The redacted string contains `***` and does not contain `secret` | Step 8 |
-| T16 Workflow file | unit (text of `.github/workflows/release.yml`) | The file, read as lines (no YAML package) | The `on:` block holds only `push:` whose `branches` is exactly `main` (flow `[main]` or one `- main`); no `workflow_dispatch`, `pull_request`, `pull_request_target`, `schedule`, `workflow_run`, `tags`, `paths`, `branches-ignore`. Top-level `permissions: {}`. The job: `environment` name `release` (compared case-insensitively; never `production`); permissions exactly `contents: write`, `pull-requests: read`, `actions: read`; `if:` contains `refs/heads/main`; `timeout-minutes: 45`; `concurrency` group `release-production` with `cancel-in-progress: false`. Every `uses:` ends in `@` + 40 hex characters. The checkout step has `fetch-depth: 0` and `persist-credentials: false`. The `actions/setup-node` step has no `cache:` key. A step installs pnpm at the root `packageManager` version. **Install form**, exactly one of: (i) a step runs `pnpm install --frozen-lockfile --ignore-scripts` and the only other step that runs a `pnpm` command before the release step is `pnpm rebuild supabase`; or (ii) a step runs `pnpm install --frozen-lockfile` without `--ignore-scripts` and T17's allow-list check (ii) holds. Exactly one step runs `node scripts/release/release.mjs`, and it is the only step with `secrets.` in its `env:`; there is no job- or workflow-level `env:` with `secrets.`. The set of `secrets.` names equals exactly the 10 release names of Step 4 (`VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `TENANT1_OWNER_EMAIL`, `BACKUP_SOURCE_DB_URL`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY`); `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`, `BACKUP_SOURCE_SUPABASE_URL` and `BACKUP_SOURCE_SECRET_KEY` are not referenced. `GITHUB_TOKEN` comes from `github.token`. No `run:` line contains `${{ secrets.`; no `set -x`; no `upload-artifact`; no `actions/cache`. EZD-002 T2 still passes | Q-0106 (main only, secrets in a main-only environment, merge is the approval); Step 3; public repo rules (pinned actions, no secrets in logs, no fork triggers); Q-0112 findings 10, 14; Depends on, "Environment name" |
-| T17 Nothing local, nothing in the gate, install scripts limited | unit | Root `package.json`; `pnpm-workspace.yaml`; `.npmrc` if present; every non-test file under `scripts/release/` | No script name starts with `release:`; none of `typecheck`, `lint`, `test`, `build` contains `release.mjs`. No file contains `DeleteObject`, `DeleteObjects`, `.env.release.local` or `process.stdin.setRawMode`. When T16 found install form (ii): the build-script allow-list (`onlyBuiltDependencies` in `pnpm-workspace.yaml`, or `pnpm.onlyBuiltDependencies` in the root `package.json`) deep-equals `['supabase']`, and no file sets `dangerouslyAllowAllBuilds` or an equivalent allow-all setting of the pinned pnpm | Q-0106 (no Josh-run script); Step 6 (`offsite` has no delete); Step 3 step 4; Q-0112 finding 14 |
-| T18 Docs and runbook | unit | `docs/architecture.md`, `docs/runbook.md`, `.env.example` | Architecture: `### Environments and releases (EZD-023b)` sits under `## Runtime` and contains `ezdraft-dev`, `ezdraft-prod`, `Preview`, `Production`, `ezdraft.ezcontractorbinder.com`, `.github/workflows/release.yml`, `release` (environment), `not_configured`, `releases/`, `Instant Rollback`, `TENANT1_OWNER_EMAIL`, `Auto-assign`. The env table has a row for each of the 10 Step 4 release names. A Dependencies row `@aws-sdk/client-s3` ends in `EZD-023d`. Two Machine checks rows: the `release.test.mjs` row ends in `EZD-023b`, the `workflow.test.mjs` row in `EZD-023e` (changed 2026-10-19 by the split: the part that builds each). `node scripts/conventions/check.mjs .` exits 0. Runbook: `## Environments and releases (EZD-023)` contains `Auto-assign Custom Production Domains`, `New environment`, `Selected branches`, `main`, `administrators`, `repository secret`, `Re-run jobs`, `Instant Rollback`, `Session pooler`, `BACKUP_SOURCE_DB_URL`, `VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `90 days`, `Sensitive`, `Vercel Authentication`, `Standard Protection`, `Git Fork Protection`, `RELEASE_S3_ACCESS_KEY_ID`, `TENANT1_OWNER_EMAIL`, `owner_email_secret_unused`, `vercel_token_expiring`, `releases/`, `EMAIL_TRANSPORT`, `Before launch`, `production not configured`, `Write`, `phase-*`. `.env.example` non-comment lines are unchanged by this ticket | Steps 4, 7, 8, 9, 11; the last two sections of this plan; Q-0106; Q-0041; Q-0108; Q-0109; Q-0112; Q-0113; EZD-000 T5, C1; EZD-004 T7, T8 |
-| T19 Gate (orchestrator) | gate | `node scripts/gate.mjs <worktree>` | Exit 0 | CLAUDE.md rule 9 |
-| T20 Token expiry notices | unit (git) | `CLEAN` (fake clock) with `tokenInfo` returning, one case each: (a) `expiresAt` = `now` + 13 days; (b) `now` + 15 days; (c) no `expiresAt`; (d) the call rejects | All four: `ok === true`, `code === 'released'`. `notices`: (a) `['vercel_token_expiring']` and a summary line containing `vercel_token_expiring`; (b) `[]`; (c) `['vercel_token_no_expiry']`; (d) `['vercel_token_expiry_unknown']`. No output contains `tok_TEST` | Step 6 step 9 (14 days: orchestrator's brief applying Q-0112 finding 8; 90-day token, Q-0109) |
-| T21 Child-process invocations | unit (pure) | `buildDumpInvocation('data', { dbUrl: U })`, `buildDumpInvocation('roles', { dbUrl: U })`, `buildPushInvocation({ dbUrl: U, workdir: '/tmp/w', dryRun: false })`, `buildPushInvocation({ …, dryRun: true })`, with U = `CLEAN`'s `BACKUP_SOURCE_DB_URL` | Data: args contain `--data-only` and `--use-copy`, and for each of `auth.sessions`, `auth.refresh_tokens`, `auth.one_time_tokens`, `auth.flow_state` the exclude flag the builder records as `DUMP_EXCLUDE_FLAG` (`-x` or `--exclude`) followed by that name. Roles: args contain `--role-only`. Push (not dry run): `lock_timeout=5s` and `statement_timeout=300s` both appear, either in the decoded query of the `--db-url` value or in the returned `env.PGOPTIONS`. Dry run: args contain `--dry-run` | Step 6 steps 11, 13, 14; Q-0112 findings 11, 13 |
-| Josh's live step (not in the gate; no agent runs it) | manual | (a) Until launch: Josh merges a phase PR. (b) After the Before-launch checklist: Josh merges the first real release PR (`Phase N: …`) | (a) Actions → Release is green; its summary says `production not configured — nothing released` (Q-0113). (b) Actions → Release is green; its summary shows `phase-N` and `released`. The orchestrator then reads it with `gh run list --workflow release.yml --branch main` (read-only) and may run `node scripts/hosting/check-live.mjs` (EZD-003 T8) | Q-0106; Q-0032 (a); Q-0113 |
+## 2. Sources
 
-## Reviewers needed
-code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (no screen) · security-reviewer **yes**, for these points (CLAUDE.md rule 12; 11 Security and audit; Q-0106):
-- Production database credentials, a Vercel token and the B2 release key in the GitHub environment `release` of a **public** repo: the main-only, no-admin-bypass rule and its runtime check (Step 6 step 6; Q-0112 finding 2), secrets only on one step, masking of derived values and no raw child stderr (finding 7), no artifacts, pinned actions, no dependency cache, install scripts limited (finding 14), no fork-reachable trigger.
-- The choice of the environment name `release` over Vercel's existing `Production` environment (Depends on).
-- The `not_configured` path (Q-0113): it must use no value and call nothing, and a partly configured environment must still fail.
-- The Vercel token reaches EZ Binder's projects too (Q-0031 (a)); it is team-scoped with a 90-day expiry, the release warns 14 days ahead, and every secret Vercel variable is Sensitive (Q-0109; finding 8). Vercel Authentication and Git Fork Protection are enforced (finding 9).
-- The Supabase organization is shared with EZ Binder (Q-0024 (a)); the workflow uses only the `ezdraft-prod` connection string, never an organization-wide credential.
-- The job token's `contents: write` (tag creation) in a job that runs after an install of the locked dependency tree with only the Supabase CLI's script.
-- Release dumps of client data in B2 under `releases/` (private bucket, SSE-B2, Object Lock 91 days (Q-0111), 13 weeks), without auth session tables or role passwords (finding 11), written by a key that can only write there (finding 10).
-- Migration timeouts (finding 13).
-- The owner email: only in the environment secret, validated so it cannot inject SQL, masked trimmed, sent on stdin, never logged or stored in `release.json` (Q-0033 (a)), and deleted after the first release (finding 16).
-- The separation of the Preview and Production databases (Step 8).
-- Josh's GitHub settings list (last sections): the security-reviewer confirms it covers Q-0108 and the GitHub-side items of Q-0112 before the orchestrator gives it to Josh.
+- `vault/spec/sections/11-non-functional-requirements.md` Operations: "production is updated only by promoting a tagged build at a phase gate or on Josh's approval"; "Migrations add before they remove". Read with Performance: no effect, because nothing here runs in the app or the browser.
+- `03-data-model.md` Architecture rules and `04-app-shell-and-global-ui.md`: read, not affected (no table, no screen).
+- `vault/spec/non-goals.md`: "No production deploy except from `main`, which only Josh merges". Glossary: no entry for release terms.
+- Decisions:
+  - R26 R12 (`decisions/13b-round-26.md`);
+  - Q-0106 (`decisions/11-non-functional-requirements.md`: automatic release on Josh's merge into `main`, secrets only in a main-only GitHub environment, his merge the only approval);
+  - Q-0113 (`decisions/02-product-overview.md`: nothing live until launch; a merge releases nothing until then);
+  - Q-0112 findings 2, 7 and 10 (QUESTIONS.md row, confirmed by Josh 2026-10-18);
+  - Q-0157 (the split; the interim `not_built` return is a planner's choice for plan review);
+  - Q-0125 (a) (the builder writes `scripts/release/`).
+- The archived plan (`70cf5a5:vault/plans/EZD-023b.md`):
+  - Step 4 (release names, masking);
+  - Step 5 (guards);
+  - Step 6 steps 1–8 and the result shape;
+  - findings V2, V12, V13, V14, V15;
+  - tests T1–T5 with their values;
+  - the "Environment name" note: `release`, not Vercel's `Production`.
+- Code:
+  - `scripts/release/tags.mjs` (`parseReleaseTag`, `compareReleaseTags`, `listReleaseTags(git)`, `previousReleaseTag(tags, below)`);
+  - `scripts/release/check-migrations.mjs` (`main(argv, out)` lines 287–343, its output lines, its own tag fetch);
+  - `scripts/release/__tests__/git-fixture.mjs` (exports listed in finding V2);
+  - root `package.json` `test` (`node --test … "scripts/**/*.test.mjs"`, EZD-001);
+  - `.claude/hooks/guard-bash.mjs` line 23 (agents never run `node scripts/release/…`; tests start node through `process.execPath`).
+- `vault/PROCESS.md` line 264 (phase PR title `Phase N: <name>`); section 3a (wording); section 4 (models).
+- Research: **R-004** (GitHub REST endpoints, fields and headers; `actions: read` and `pull-requests: read` categories; `CLAUDECODE=1`). Live read on 2026-10-19 (`gh api repos/IronFrame414/EZ-Draft/environments` and `…/environments/release/deployment-branch-policies`): the values quoted in Step 3. Gap: R-004 did not find `merge_commit_sha` in the commit-pulls schema (section 9 Risks).
+- Mockup: none (`tickets.json` `mockups: []`).
 
-## Risks
-- **Agents with admin credentials were the main risk; closed by Q-0108.** Agents used Josh's own GitHub login (repo admin), so an agent could have merged into `main`, loosened the `release` environment's branch rule, or added a secret where any branch can read it, and every other protection in this plan would then fail. Under Q-0108 the agents push with a separate account that has the Write role only, `main` requires Josh's approval of the most recent push, and Josh does all GitHub admin in the browser under his own account ("Josh's GitHub and account settings" below). What remains depends on Josh keeping his own admin login off the build PC (item 2 of that list); the release cannot check that.
-- **Vercel features on Pro (Q-0031 (a)).** The planner's knowledge, confirmed by the builder for a Pro team: the auto-assign switch and its project field; staged production builds of `main`; promoting an older production deployment without a rebuild; Instant Rollback; the REST endpoints. If the Pro team has no auto-assign switch, Step 2's choice fails and this plan changes (fallback: an Ignored Build Step that also skips `main`, which would change PROCESS.md section 12's command set under Q-0116 and so needs Josh, plus a CLI deploy from the workflow, which would add the `vercel` package).
-- **First release ordering.** With auto-assign off (since EZD-003 Step 5.2, before the Phase 0 merge; Q-0123 (b)), the subdomain shows Vercel's "deployment could not be found" page until the first release goes live. DNS and the certificate already work (EZD-003 Steps 5.5–5.7 are done; Q-0123 (b); vault/plans/EZD-003.md Sources). If the domain stopped being valid before the first real release, that run would end `verify_failed`; nothing was live before, so it stays on the new build, and Josh re-runs it once the domain is valid again (Step 6 step 9 skips straight to verify). Before-launch item 2 checks the Domains page first.
-- **Until launch every merge is `not_configured` (Q-0113).** The release never runs its real path on GitHub until launch, so the first real release is also the first test of the Vercel, B2 and GitHub API calls against the live services. The offline tests cover the logic; the Before-launch checklist ends with that first release, watched by Josh. A partly filled `release` environment fails loudly (`env_missing`), so a half-done checklist cannot release.
-- **GitHub may create an environment by itself.** If the workflow names `release` before Josh creates it, GitHub creates it with no branch rule *(builder confirms)*; with no secrets the run is `not_configured`, and once secrets exist the branch-rule check refuses that state. Josh creates `release` locked and empty now (settings list item 9), so this should not arise.
-- **Admin-bypass field.** GitHub may show "Allow administrators to bypass configured protection rules" only when the environment has protection rules, or may report `can_admins_bypass: true` for a branch-only rule *(builder confirms)*. If the field cannot be set to false with a branch rule alone, the check refuses every release; the builder then raises a question (for example, adding Josh as a required reviewer would make the field settable, but adds a second approval Q-0106 did not ask for).
-- **EZD-024 values.** The env check requires every non-comment `.env.example` name for Production, so the first real release waits for Josh's Sentry and alert values in Vercel (vault/plans/EZD-024.md Risks; Before-launch checklist).
-- **The guard is not the lock.** `CLAUDECODE` and `not_in_actions` stop an accidental local run; the real lock is the `release` environment plus Josh's approval on `main` (Q-0106, Q-0108). The agents' Write account can still press "re-run" on a failed release (`gh run rerun`); that repeats Josh's merge, not a new change, and `not_latest` refuses an older commit. The runbook offers Josh a deny line for it.
-- **Object Lock (Q-0111).** A release dump cannot be deleted early by anyone, including Josh, for 91 days; a client's request to delete data leaves the release dumps only when the lock and the 13-week rule expire (the trade-off Josh accepted in Q-0111).
-- **Vercel Sensitive values are a runbook rule.** No source lists which Vercel names are secrets, so the release cannot check that each is Sensitive (Step 8); the security-reviewer's phase PR section is where a new secret name gets checked.
-- **Timeouts and the pooler.** Whether `lock_timeout` and `statement_timeout` reach the server through the Session pooler is *builder confirms* (Step 6 step 14); a cancelled migration ends `migrate_failed` with nothing live changed.
-- **Partial migrations.** If `db push` fails after applying some files, production holds part of the release's schema. The old build keeps working (add-before-remove), and a re-run applies the rest.
-- **Tag but no live build.** A run that ends in `promote_failed` or `verify_failed` has already created the tag, but the build is not live. EZD-023a then treats those migrations as released, which is correct: production has them.
-- **Supabase CLI and Docker on the runner.** `db dump` runs pg_dump in Docker *(builder confirms on `ubuntu-latest`)*; `db push` may prompt, so the builder uses the pinned CLI's non-interactive flag.
-- **Preview sign-in.** The phase PR preview, the only preview under Q-0116 (a) (PROCESS.md section 12), uses the dev project's Auth, so its redirect allow list must include that preview's Vercel URL. That is EZD-007's runbook item; noted for the orchestrator.
-- **Newer app than server after a rollback.** After a rollback, some devices may run a newer app than the server. EZD-134 (old app versions, 03 rule 12) should handle "newer than server" as well as "older".
-- **Test time.** Root node tests run on every ticket (EZD-001 Step 6.1). The git fixtures stay small so the run takes seconds on the 16 GB PC (Q-0019).
-- **A live preview sends real email (Q-0041).** Previews default to `stub`. If Josh switches the Preview value to `resend`, the phase PR preview (the only preview, Q-0116 (a); PROCESS.md section 12) emails whatever addresses are in the dev data; the runbook says so.
-- **Ticket size.** One release script plus seven small modules, a workflow and 20 tests. The security findings added checks to existing steps, not new stages, so it is still planned as one session. If it overruns, the natural split is EZD-023b-1 (Steps 3–8 without the off-site upload and bootstrap: T1–T6, T14–T17, T20) and EZD-023b-2 (dump upload, bootstrap, verify and rollback, docs: T7–T13, T18, T21). This plan does not propose that split.
+## 3. Interface contract
 
-## Open questions
+| Kind | Name or path | Details |
+| --- | --- | --- |
+| file / export | `scripts/release/context.mjs` `checkReleaseContext(env)` | → `{ ok: true }` or `{ ok: false, code }`, with `code` one of `agent_refused`, `not_in_actions`, `wrong_event`, `not_main` (checked in that order). Reads only `CLAUDECODE`, `GITHUB_ACTIONS`, `GITHUB_EVENT_NAME`, `GITHUB_REF` |
+| export | `RELEASE_SECRET_NAMES` | frozen array of the 10 names, in Step 1 order (part e's T16 compares its workflow secrets with it) |
+| export | `ENV_REQUIRED_NAMES` | frozen array of the 10 names, in Step 1 order |
+| export | `checkPresence(env)` | → `{ state: 'not_configured' }`, `{ state: 'missing', missing: string[] }` or `{ state: 'complete' }` |
+| export | `valuesToMask(env)` | → `string[]` (deduplicated, never empty strings) |
+| export | `maskCommands(value)` | → `string[]`: one `::add-mask::<line>` for each non-empty line |
+| file / export | `scripts/release/release-name.mjs` `releaseTagFor({ sha, prTitle, tags, tagsOnSha })` | → `{ tag, resume }` or `{ code: 'not_newer' \| 'no_release_name' }` |
+| file / export | `scripts/release/github-api.mjs` `createGitHubApi({ token, repo, fetch })` | → `{ mergedPullsFor(sha), environmentBranchRule(name), createTag(name, sha, message) }`, all async. `fetch(url, init)` is called with `init.method` (`GET` by default), `init.headers` (plain object holding the 3 headers of Step 3) and, for POST, `init.body` (JSON string) |
+| export | `evaluateEnvironmentRule(rule)` | → `{ ok: true, reason: null }` or `{ ok: false, reason }`, with `reason` one of `no_rule`, `all_branches`, `not_selected_branches`, `not_main_only`, `admin_bypass` |
+| type | environment rule | `{ deployment_branch_policy: null \| { protected_branches: boolean, custom_branch_policies: boolean }, can_admins_bypass?: boolean, branch_policies: { name: string, type?: string }[] }` |
+| type | pull item (from `mergedPullsFor`) | GitHub's shape: `{ number, title, merged_at: string \| null, base: { ref }, merge_commit_sha }` |
+| file / export | `scripts/release/release.mjs` `runRelease(opts, deps)` | async. `opts = { root }` (repo root; the CLI passes `process.cwd()`) |
+| deps (read in this part) | `processEnv`, `git`, `github`, `log(line)`, `summary(line)`, `mask(value)` | `git(args: string[]) → string` (sync stdout, throws on a non-zero exit). `github` is a `createGitHubApi` object or a fake |
+| deps (later parts) | `vercel`, `supabase`, `sql`, `offsite`, `fetch`, `sleep`, `now`, `checkLive` | named by the archived plan Step 6; parts c–e define them. This part neither requires nor calls them. Tests pass call-recording fakes to prove 0 calls |
+| result | `runRelease` resolves to | `{ ok, code, notices: string[], missing?, prNumber?, tag?, resume? }`. Codes in this part: `not_configured` (`ok: true`), `agent_refused`, `not_in_actions`, `wrong_event`, `not_main`, `env_missing`, `not_latest`, `no_merged_pr`, `environment_unprotected`, `not_newer`, `no_release_name`, `migration_check_failed`, `not_built` (interim) |
+| export | `createGit(root)` | → `git(args)` as above |
+| CLI | `node scripts/release/release.mjs` | last stdout line `release <code>`; exit 0 only when `ok`; summary lines appended to `$GITHUB_STEP_SUMMARY` when set; mask lines on stdout |
+| log line | presence | `env_missing: <A>, <B>` |
+| summary lines | section 6 | exact texts tests check: `production not configured — nothing released`; `release stopped: <code> — nothing changed`; `missing in the release environment: <A>, <B>` |
+
+## 4. Tests
+
+All tests use `node:test`. Each file has a top-level `describe` whose title starts with `EZD-023b` (finding V14; docs/architecture.md Test scope). No test reaches the network (CLAUDE.md rule 6). `git` is real, run against fixture repos with a bare `origin` over `file://` (EZD-023a `git-fixture.mjs`). The CLI is started with `process.execPath` (finding V13).
+
+**Fixture `R`** (the archived plan's fixture, unchanged so parts c–e can reuse it), made with `makeRepo` and `commitFiles`, then pushed to `origin main`:
+- **C1** adds:
+  - `supabase/migrations/20261101000000_create_fixture.sql` = `create table public.fixture_item (id uuid primary key, legacy_note text);`;
+  - `supabase/retired.json` = `{"retired":[]}`;
+  - `.env.example` with `NEXT_PUBLIC_SUPABASE_URL=`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=` and `SUPABASE_SECRET_KEY=`, one per line;
+  - `supabase/bootstrap/tenant-1.sql` = `do $$ declare owner_email text := 'PASTE-YOUR-EMAIL-HERE'; begin raise notice 'ezd_bootstrap_done'; end $$;`.
+- **C2** adds `supabase/migrations/20261102000000_add_note.sql` = `alter table public.fixture_item add column new_note text;`. C2 is the tip of `origin/main`.
+- **`DROP`** = `supabase/migrations/20261103000000_drop_legacy_note.sql` = `alter table public.fixture_item drop column legacy_note;`. Do not use the helper's `DROP_NAME`, which has C2's version (finding V2).
+
+**`CLEAN`:**
+- `processEnv`:
+  - GitHub context: `GITHUB_ACTIONS: 'true'`, `GITHUB_EVENT_NAME: 'push'`, `GITHUB_REF: 'refs/heads/main'`, `GITHUB_SHA` = the tip, `GITHUB_TOKEN: 'ghs_TEST'`;
+  - Vercel: `VERCEL_TOKEN: 'tok_TEST'`, `VERCEL_PROJECT_ID: 'prj_TEST'`, `VERCEL_TEAM_ID: 'team_TEST'`;
+  - database: `BACKUP_SOURCE_DB_URL: 'postgresql://postgres.prodref123:S3cret@aws-0-us-east-1.pooler.supabase.com:5432/postgres'`;
+  - bucket: `BACKUP_S3_ENDPOINT: 'https://s3.us-west-004.backblazeb2.com'`, `BACKUP_S3_REGION: 'us-west-004'`, `BACKUP_S3_BUCKET: 'ezd-test'`, `RELEASE_S3_ACCESS_KEY_ID: 'relkey_TEST'`, `RELEASE_S3_SECRET_ACCESS_KEY: 'rel-secret-TEST'`;
+  - `TENANT1_OWNER_EMAIL: 'owner.test@example.com'`;
+  - not set: `CLAUDECODE`, `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`.
+- `github`:
+  - `mergedPullsFor` → `[{ number: 7, title: 'Phase 0: Setup', merged_at: '2026-10-19T12:00:00Z', base: { ref: 'main' }, merge_commit_sha: <tip> }]`;
+  - `environmentBranchRule` → `{ deployment_branch_policy: { protected_branches: false, custom_branch_policies: true }, can_admins_bypass: false, branch_policies: [{ name: 'main', type: 'branch' }] }`, the live `release` rule (section 2);
+  - `createTag` records its calls.
+- `git` = `createGit(<R work dir>)`, wrapped to record calls.
+- `vercel`, `supabase`, `sql`, `offsite`, `checkLive`, `fetch`: recorders whose every method or call is logged.
+- `log`, `summary` and `mask` write into one shared, ordered journal, so tests can check "before the first log line".
+- "**Output**" means every `log` and `summary` line. "**No external effect**" means 0 calls to `vercel`, `supabase`, `sql`, `offsite`, `checkLive`, `fetch` and `github.createTag`.
+
+| Test | AC | Type | Input | Expected value | Source of the expected value |
+| --- | --- | --- | --- | --- | --- |
+| T1 **`EZD-023b done when: the release refuses anything but the newest merged pull request on main`** (release.test.mjs) | AC-EZD-023b-1, AC-EZD-023b-2 | unit (git) | `runRelease({ root: R }, CLEAN)` with one change per case:<br>(a) `GITHUB_REF: 'refs/heads/develop'`<br>(b) `GITHUB_EVENT_NAME: 'workflow_dispatch'`<br>(c) `GITHUB_EVENT_NAME: 'pull_request'`<br>(d) `GITHUB_ACTIONS` removed<br>(e) `CLAUDECODE: '1'`<br>(f) `GITHUB_SHA` = C1 while the tip is C2<br>(g) `mergedPullsFor` returns `[]` (direct push)<br>(h) the only pull request has `merged_at: null`<br>(i) the only pull request has `base.ref: 'develop'`<br>(j) `mergedPullsFor` rejects with `Error('GET /commits/x/pulls failed: 502')`<br>(k) `origin` set to a missing `file://` path<br>In (a)–(e), `processEnv` is a Proxy that records every key read through `get`, `has` and `getOwnPropertyDescriptor`; any `ownKeys` call counts as reading every key.<br>Then the CLI: `node <REPO_ROOT>/scripts/release/release.mjs` with cwd `R` and every `GITHUB_*`, `CI` and `CLAUDECODE` removed from its env | Codes:<br>(a) `not_main`<br>(b), (c) `wrong_event`<br>(d) `not_in_actions`<br>(e) `agent_refused`<br>(f), (k) `not_latest`<br>(g)–(j) `no_merged_pr`<br>Every case: `ok === false` and no external effect.<br>(a)–(e): 0 `git`, `github` and `mask` calls; the recorded keys hold none of the 10 `RELEASE_SECRET_NAMES` and not `GITHUB_TOKEN`; `ownKeys` was never called.<br>(f), (k): 0 `github` calls.<br>(a): the summary holds exactly `release stopped: not_main — nothing changed`.<br>CLI: exit 1; the last stdout line is `release not_in_actions` | Ticket Done when (AC-EZD-023b-1, -2); Q-0106; archived plan Steps 5 and 6 (steps 1–5) and T1; Step 4 (fail closed on a git or GitHub error, *planner's choice*); section 6 wording |
+| T2 Release names (release-name.test.mjs) | AC-EZD-023b-1 (support) | unit (pure) | `releaseTagFor` with (title, tags):<br>(a) `Phase 0: Setup`, `[]`<br>(b) `Phase 1: Projects`, `[phase-0]`<br>(c) `Fix sign-in`, `[phase-0, phase-1]`<br>(d) `Fix again`, `[phase-1, phase-1.1]`<br>(e) `Phase 1: Projects`, `[phase-0, phase-1]`<br>(f) `Phase 1: x`, `[phase-2]`<br>(g) `Fix`, `[]`<br>(h) `Phase 2: x`, `[phase-0]`<br>(i) `Phase 1: x`, `[phase-0, phase-1]` with `tagsOnSha: ['phase-1']`<br>(j) `phase 1: lower case`, `[phase-0]`<br>(k) `Fix`, `['v1', 'phase-0']`<br>`tagsOnSha` is `[]` unless stated | (a) `phase-0`<br>(b) `phase-1`<br>(c) `phase-1.1`<br>(d) `phase-1.2`<br>(e) `phase-1.1`<br>(f) `{ code: 'not_newer' }`<br>(g) `{ code: 'no_release_name' }`<br>(h) `phase-2`<br>(i) `phase-1` with `resume: true`<br>(j) `phase-0.1`<br>(k) `phase-0.1`<br>(a)–(e), (h), (j), (k) have `resume: false` | Step 2; archived plan T2 (a)–(j); finding V2 (non-release names ignored) for (k); tags.mjs (format and order); PROCESS.md line 264 |
+| T3 Unsafe migration (release.test.mjs) | AC-EZD-023b-1 (support) | unit (git) | Tag `phase-0` (annotated) on C1, pushed to `origin`. A new tip C3 adds `DROP` and is pushed. The pull request for C3 has title `Phase 1: x` | `code === 'migration_check_failed'`; no external effect; a log line starts with `[M1]` and one equals `migration check failed against phase-0: 1 violation(s)` | Step 4 step 8; finding V2; check-migrations.mjs lines 284, 338 (output lines; printViolations at 283); archived plan T3 |
+| T4 Environment rule (git cases in release.test.mjs, pure cases in github-api.test.mjs) | AC-EZD-023b-1 (support) | unit (git + pure) | Rules:<br>(a) `deployment_branch_policy: null`<br>(b) `{ protected_branches: true, custom_branch_policies: false }`, no policies<br>(c) selected branches `main` and `develop`<br>(d) selected `main` plus `{ name: 'phase-*', type: 'tag' }`<br>(e) exactly `main`, `can_admins_bypass: true`<br>(f) exactly `main`, no `can_admins_bypass` field<br>Git cases: `CLEAN` with each rule (a)–(f), and (g) `environmentBranchRule` rejects. Pure: `evaluateEnvironmentRule` on (a)–(f), on `null`, and on the `CLEAN` rule | Git: (a)–(g) each `environment_unprotected`, no external effect.<br>Pure reasons:<br>(a) `all_branches`<br>(b) `not_selected_branches`<br>(c), (d) `not_main_only`<br>(e), (f) `admin_bypass`<br>`null` → `no_rule`<br>`CLEAN` → `{ ok: true, reason: null }` | Step 3; Q-0106 (main only); Q-0112 finding 2 (no admin bypass, fail closed); live `release` rule (section 2); reason strings *planner's choice* |
+| T5 Not configured, missing secrets, masking (release.test.mjs) | AC-EZD-023b-2, AC-EZD-023b-3 | unit (git) | (a) `CLEAN` with all 10 `RELEASE_SECRET_NAMES` removed (`GITHUB_TOKEN` kept)<br>(b) the same names set to `''`<br>(c) `CLEAN` with `VERCEL_TEAM_ID: ''`<br>(d) `CLEAN` with every release name removed except `TENANT1_OWNER_EMAIL`<br>(e) `CLEAN` with `BACKUP_S3_ACCESS_KEY_ID: 'key_TEST'` and `BACKUP_S3_SECRET_ACCESS_KEY: 'b2-secret-TEST'` instead of the two `RELEASE_S3_*` names<br>(f) case (a) through the CLI, with `GITHUB_ACTIONS`, `GITHUB_EVENT_NAME`, `GITHUB_REF`, `GITHUB_SHA` and `GITHUB_TOKEN` as in `CLEAN`, `CLAUDECODE` and `CI` removed, and a temporary `GITHUB_STEP_SUMMARY` file<br>(g) `CLEAN` with `BACKUP_SOURCE_DB_URL` = `postgresql://postgres.prodref123:p%40ss%2Fx@aws-0-us-east-1.pooler.supabase.com:5432/postgres` and the rule of T4 (a)<br>(h) pure: `maskCommands('a@b.com\nselect 1')` | (a), (b): `ok === true`, `code === 'not_configured'`; the summary holds exactly `production not configured — nothing released`; 0 `git`, `github` and `mask` calls; no external effect.<br>(c): `env_missing`, `missing` deep-equals `['VERCEL_TEAM_ID']`.<br>(d): `missing` deep-equals the 9 `ENV_REQUIRED_NAMES` after `GITHUB_TOKEN`, in order, without `TENANT1_OWNER_EMAIL`.<br>(e): `missing` deep-equals `['RELEASE_S3_ACCESS_KEY_ID', 'RELEASE_S3_SECRET_ACCESS_KEY']`.<br>(c)–(e): `ok === false`; 0 `git`, `github` and `mask` calls; no external effect.<br>(c): the summary also holds `missing in the release environment: VERCEL_TEAM_ID`.<br>(f): exit 0; the last stdout line is `release not_configured`; the summary file holds `production not configured — nothing released`.<br>(g): `environment_unprotected`; `mask` was called with exactly the set `{'p%40ss%2Fx', 'p@ss/x', 'owner.test@example.com'}`, all before the first `log` entry in the journal; no output contains any of the three.<br>(h): `['::add-mask::a@b.com', '::add-mask::select 1']` | Ticket Done when (AC-EZD-023b-2, -3); Q-0113; Q-0112 findings 7, 10; archived plan T5 (a)–(g) and Step 4 "Masking"; finding V15; Step 1 (`maskCommands`, *planner's choice*); section 6 wording |
+| T22 GitHub client requests (github-api.test.mjs) | AC-EZD-023b-1 (support) | unit (pure, fake `fetch`) | `createGitHubApi({ token: 'ghs_TEST', repo: 'IronFrame414/EZ-Draft', fetch })`, with sha `S` = 40 × `a`:<br>(a) `mergedPullsFor(S)`<br>(b) `environmentBranchRule('release')`; the fake answers the environment with `{ name: 'release', can_admins_bypass: false, deployment_branch_policy: { protected_branches: false, custom_branch_policies: true } }` and the policies with `{ total_count: 1, branch_policies: [{ id: 1, name: 'main', type: 'branch' }] }`<br>(c) the same with `deployment_branch_policy: null`, `can_admins_bypass: true`<br>(d) `createTag('phase-0', S, 'Release phase-0 (#7)')`; the fake answers the first POST with `{ sha: 'b'.repeat(40) }`<br>(e) each of (a), (b), (d) with a fake that answers status 403 | (a) one GET `https://api.github.com/repos/IronFrame414/EZ-Draft/commits/<S>/pulls` with headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Authorization: Bearer ghs_TEST`.<br>(b) GETs, in order, `…/environments/release` and `…/environments/release/deployment-branch-policies?per_page=100`; the result deep-equals `{ deployment_branch_policy: { protected_branches: false, custom_branch_policies: true }, can_admins_bypass: false, branch_policies: [{ name: 'main', type: 'branch' }] }`, and `evaluateEnvironmentRule` of it is `ok: true`.<br>(c) exactly 1 fetch; `branch_policies` deep-equals `[]`; `evaluateEnvironmentRule` gives `all_branches`.<br>(d) POST `…/git/tags` with JSON body `{ tag: 'phase-0', message: 'Release phase-0 (#7)', object: S, type: 'commit' }`, then POST `…/git/refs` with `{ ref: 'refs/tags/phase-0', sha: 'b'.repeat(40) }`.<br>(e) each rejects; the message contains `403` and not `ghs_TEST` | R-004 items 1–5 (paths, fields, headers, two-step tag); live `release` rule (section 2); Q-0112 finding 7 (no token in output) |
+| T19 Gate (orchestrator) | all | gate | `node scripts/gate.mjs .claude/worktrees/EZD-023b` | exit 0 | CLAUDE.md rule 12 |
+
+AC map: AC-EZD-023b-1 → T1 (T2–T4 and T22 support it); AC-EZD-023b-2 → T1 (a)–(e) and T5 (c)–(e); AC-EZD-023b-3 → T5 (a), (b), (f). Smoke: none (node tests under `scripts/` always run, docs/architecture.md Test scope).
+
+## 5. Visual checklist
+
+None. No screen changes (`tickets.json` `mockups: []`).
+
+## 6. Proposed wording
+
+These are GitHub Actions job summary lines Josh can read on the run page. Josh approves them at Stage 2.
+
+| Where | Text |
+| --- | --- |
+| Job summary, `not_configured` | `production not configured — nothing released` (already in the Done-when, AC-EZD-023b-3) |
+| Job summary, any other refusal in steps 1–8 | `release stopped: <code> — nothing changed` |
+| Job summary, `env_missing` (second line) | `missing in the release environment: <NAME>, <NAME>` |
+
+## 7. Security review
+
+**security-review: yes.** Areas: API and auth.
+- The GitHub job token: `createGitHubApi`, its error text, and the environment-rule check that stands in front of every production secret (Q-0106; Q-0112 finding 2).
+- The presence check and `not_configured`: no value is used, nothing is called, and a partly configured environment fails.
+- Refusing before any secret is read, proved by the Proxy in T1.
+- Masking of derived values, including line-split mask commands (Q-0112 finding 7).
+- The release key never replaced by the backup key (finding 10).
+
+Reviewers needed: code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (section 5 is empty) · security-reviewer **yes**.
+
+The code-reviewer confirms these *planner's choices*: the interim `not_built`; whitespace counting as empty; `not_latest` and `no_merged_pr` on a git or GitHub error; `maskCommands`; the reason strings; and the step-4 fetch refspec.
+
+## 8. Complexity and model recommendation
+
+**High.** This is a new pattern: a release orchestrator run against real git fixtures, whose guards stand in front of production secrets in a public repo (PROCESS.md section 4 row "high": new pattern, auth). Test-author and builder: Fable 5.1, or Opus 5.5 when Fable is past its fallback share. Code-reviewer and security-reviewer: Fable 5.1 (PROCESS.md section 4).
+
+## 9. Dependencies
+
+- **EZD-023a** (row, done): `scripts/release/tags.mjs`, `check-migrations.mjs` `main(argv, out)` and `__tests__/git-fixture.mjs`, as merged (finding V2).
+- **EZD-001** (row, done): the root `node --test "scripts/**/*.test.mjs"` run.
+- Missing from the row: none. The `scripts/release/` builder exception is already in place (Q-0125 (a)).
+- **Dependents:** EZD-023c, EZD-023d and EZD-023e extend `release.mjs` and `release.test.mjs`. EZD-025 imports `createGitHubApi`, `environmentBranchRule` and `evaluateEnvironmentRule` (vault/plans/EZD-025.md lines 30, 184; it calls `environmentBranchRule`, which is async, so it must `await` it).
+
+Risks:
+- **`merge_commit_sha`.** R-004 did not find `merge_commit_sha` in the documented commit-pulls item; GitHub's pull-request objects normally carry it. If it is missing, step 5 refuses every real release with `no_merged_pr`, which is safe. Until launch every run ends `not_configured` before step 5 (Q-0113). The first chance to check it is a read-only `gh api repos/IronFrame414/EZ-Draft/commits/<sha>/pulls` after the Phase 0 merge (no merged pull request existed on 2026-10-19). The orchestrator runs it, and if the field is absent, raises a question before EZD-023e.
+- **check-migrations reads `process.env.GITHUB_ACTIONS` itself** (finding V2). In tests the fixture's `origin` is a `file://` repo, so its tag fetch succeeds either way.
+- **The interim `not_built`** has no runtime effect: nothing calls the script before EZD-023e. If part e were dropped, the script would stay unreachable.
+- **Test time:** small fixtures (two or three commits); root node tests run on every gate (EZD-001).
+
+## 10. Open questions
+
 None.
-
-Answered since the first draft:
-- **Q-0106** (answered-josh 2026-10-12): the Josh-run `release:tag`, `release:promote` and `release:check-env` scripts, `.env.release.local`, the TTY and CI guards and the local dump folder are removed; the release is `.github/workflows/release.yml` in a main-only GitHub environment, now named `release` (Steps 2–9, 11; T1–T18 rewritten; Done when restated).
-- **Q-0108–Q-0112** (security review of the release, 2026-10-12): Depends on; Steps 3, 4, 5, 6 (steps 2, 6, 9, 12, 13, 14, "Other rules"), 8, 9, 11; T4–T11, T16–T18, T20, T21; Reviewers; Risks; the two lists below.
-- **Q-0113** (answered-josh 2026-10-12): `not_configured` (Step 6 step 2, T5), field checks on a preview instead of the live address (now the phase PR preview, Q-0116), first real release before launch (Steps 1, 9, 11), the Before-launch checklist below.
-- **Q-0116 (a)** (answered-josh 2026-10-18; PROCESS.md section 12): previews only for the phase PR; field checks use the phase PR preview. Changed: header, Depends on (Until launch, Q-0113 note, new Q-0116 note), Step 1 dev row, Step 2 (production builds of `main` unaffected, so Step 6 step 9 and T6 are unchanged), Step 11 runbook "Until launch", Risks (Vercel fallback, preview sign-in, live preview email), Before-launch checklist intro. No test, expected value, interface or code changes.
-- **Q-0123 (b)** (answered-josh 2026-10-18; vault/spec/decisions/02-product-overview.md): the domain is already connected; "Auto-assign Custom Production Domains" is off from EZD-003 Step 5.2, before the Phase 0 merge, and never turned back on. Changed: header, Phase line, Depends on (new Q-0123 note), Sources, Step 2 (who sets the switch and when), Step 11 runbook ("Go-live switch" line; T18's `Auto-assign Custom Production Domains` string is still there, so its expected value is unchanged), Risks ("First release ordering"), Before-launch item 2 (a check, not "turn off, then connect"). No test, expected value, interface or code changes; Q-0116 (a) and Q-0113 stand as re-validated.
-- **Environment name** (orchestrator's relayed fact, 2026-10-12): `release`, not `production` (Depends on).
-- **Q-0107** (answered-josh 2026-10-12): dev migrations run on push to `develop` (Step 1, Step 10); supersedes Q-0023 (a).
-- Q-0041 (answered-josh): Step 8 and T14, unchanged.
-- Q-0032 (a), Q-0024 (a), Q-0031 (a) (answered-josh): applied in Depends on, Steps 1, 4, 6 step 17, Reviewers and Risks.
-- Q-0033 (a) (answered-josh): EZD-005's file; on prod it now runs inside the release (Step 9), with no personal data committed.
-
-## Josh's GitHub and account settings (Q-0108, Q-0112)
-For **now**: items 1–2 before the next Stage 3 push, the rest before the Phase 0 PR. **Status 2026-10-12 (orchestrator):** items 1 and 2 are done: the build PC is signed in to GitHub as `ironframe414-agent`, which has the Write role (verified). Items 3–11 remain. Josh does every item in the browser under his own GitHub account, except where it says "as the agent account" (Q-0108: "Josh does all GitHub admin in the browser under his own account"). Names marked *(builder/orchestrator confirms)* are GitHub UI names that may differ on the day; the orchestrator checks them against GitHub's current pages before giving the list to Josh, and copies it into `vault/tickets/needs-from-josh.md`. The builder writes the same list into the runbook (Step 11).
-
-1. **Agent account** (Q-0108 (a)). In a private browser window, create a new free GitHub account for the agents (a name and email of your choice, not your main login). Then, signed in as yourself: `IronFrame414/EZ-Draft` → **Settings** → **Collaborators** (under Access) → **Add people** → the agent account → role **Write** *(builder/orchestrator confirms)*. Sign in as the agent account and accept the invitation.
-2. **Build PC uses the agent account.** In your own terminal on the build PC (not through an agent): `gh auth logout` for github.com, then `gh auth login` → GitHub.com → HTTPS → "Login with a web browser", finishing in a browser signed in as the **agent account**; `gh auth status` must then name the agent account. For Git: Windows → **Credential Manager** → **Windows Credentials** → remove every `git:https://github.com` entry; at the next `git push`, Git Credential Manager asks you to sign in → sign in as the agent account *(builder/orchestrator confirms)*. Afterwards no login of your own account is stored on the build PC. The commit author name and email stay as configured; only the push login changes.
-3. **`main` ruleset.** Settings → **Rules** → **Rulesets** → **New ruleset** → **New branch ruleset**: name `main`; Enforcement status **Active**; Bypass list **empty**; Target branches → **Add target** → **Include default branch** (`main`). Rules: **Restrict deletions**; **Require a pull request before merging** with Required approvals **1**, **Dismiss stale pull request approvals when new commits are pushed** and **Require approval of the most recent reviewable push**; **Require status checks to pass** with the check `gate` (the check `main` already requires, EZD-002); **Block force pushes**. Save *(builder/orchestrator confirms)*. Keep the existing branch protection rule under Settings → Branches; GitHub applies both. Agents open the pull requests from the agent account; you approve and merge. Do not push to a pull request branch yourself, or your own push needs someone else's approval.
-4. **`develop` ruleset.** New branch ruleset `develop`, Active, target branch `develop`, rules **Restrict deletions** and **Block force pushes**. Agents still push to `develop` normally.
-5. **Tag ruleset.** New ruleset → **New tag ruleset** `release tags`, Active, target pattern `phase-*`, rules **Restrict updates** and **Restrict deletions**. Creation stays allowed, so the release workflow can tag (vault/plans/EZD-023a.md Step 1).
-6. **Actions settings.** Settings → **Actions** → **General** *(builder/orchestrator confirms the names)*:
-   - Actions permissions: **Allow IronFrame414, and select non-IronFrame414, actions and reusable workflows** → tick **Allow actions created by GitHub** (covers `actions/checkout`, `actions/setup-node`, `actions/upload-artifact`) → under "Allow specified actions" add `pnpm/action-setup@*` only if a workflow uses it (the builder says so in its hand-off). If GitHub offers **Require actions to be pinned to a full-length commit SHA**, tick it.
-   - Fork pull request workflows: **Require approval for all external contributors** (the wording may be "all outside collaborators").
-   - Workflow permissions: **Read repository contents and packages permissions**; untick **Allow GitHub Actions to create and approve pull requests**. Save. The release job asks for its own `contents: write` in its file *(builder confirms a job-level permission still works with this default)*.
-7. **Secret scanning.** Settings → **Code security** (or "Advanced Security") → **Secret scanning** → Enable; **Push protection** → Enable.
-8. **Environment `dev`** (vault/plans/EZD-004.md Step 7; Q-0110; Q-0112). Settings → **Environments** → **New environment** `dev` → **Deployment branches and tags** → **Selected branches and tags** → add branch `develop` only → turn off "Allow administrators to bypass configured protection rules" if shown → **Save protection rules** → only then **Add environment secret** `SUPABASE_DEV_DB_URL` (the dev project's connection string). If you earlier made a repository secret with that name (Settings → Secrets and variables → Actions → Repository secrets), delete it. The dev database password is used nowhere else, and dev holds made-up test data only (Q-0110).
-9. **Environment `release`** (Step 4). New environment `release` → Selected branches and tags → branch `main` only → admin bypass off → Save. **Add no secrets now**; they come from the Before-launch checklist (Q-0113). Until then every merge into `main` ends green with "production not configured — nothing released".
-10. **Leave Vercel's `Production` environment alone.** GitHub already lists an environment `Production`, made by Vercel for its deployment records. Never add a secret to it, and never put a production value in a repository or organization secret.
-11. Optional: the deny lines in Step 11 "Safety net" for your own Claude settings.
-
-## Before launch checklist (Q-0113)
-Josh's checklist for when the app is mostly finished and about to go live (Q-0113: "The production project, production secrets, Sentry, Backblaze backups and the release keys are set up before launch"). Do the items in this order; the release refuses a partly finished list (`env_missing`, `environment_unprotected`, `vercel_auto_assign_on`, `deployment_protection_off`, `env_mismatch`). Until launch, phase field checks use the Vercel preview of the phase PR (Q-0116 (a); PROCESS.md section 12). The builder writes this list into the runbook (Step 11); the orchestrator copies it into `vault/tickets/needs-from-josh.md` as a separate "Before launch" list.
-
-1. **Production database.** Create `ezdraft-prod` in EZ Binder's Supabase organization (`docs/runbook.md` `## Supabase cloud projects (EZD-004)` steps 1–3, EZD-004c; vault/plans/EZD-004.md Step 7 runbook items 1–3; Q-0024 (a)).
-2. **Check the Vercel go-live switch and the address.** Check that "Auto-assign Custom Production Domains" is still **off** (Step 2), under Settings → Environments → Production → Branch Tracking (`docs/runbook.md` EZD-003 step 2; finding V10, 2026-10-19): you turned it off in EZD-003 Step 5.2, before the Phase 0 merge, and it never goes back on (Q-0123 (b); vault/plans/EZD-003.md Step 5.2). Then check that Vercel's Domains page shows `ezdraft.ezcontractorbinder.com` as valid with a certificate (it was connected Oct 12, EZD-003 Steps 5.5–5.7; Q-0123 (b)). Nothing to connect: the address already works and shows no build until the first release makes one live.
-3. **Vercel protection** (Q-0112 finding 9). Settings → **Deployment Protection** → **Vercel Authentication** enabled, **Standard Protection**; Settings → Security → **Git Fork Protection** on (`docs/runbook.md` EZD-003 step 4; finding V10, 2026-10-19: both already set by Josh on 2026-10-19, so this is a check).
-4. **Vercel values.** Production values from `ezdraft-prod`, Preview values from `ezdraft-dev`, for every name in `### Environment variables` that Vercel holds; Preview `EMAIL_TRANSPORT` = `stub` (Q-0041). This includes `SUPABASE_API_GATE_SECRET`, a different secret per project, from `node scripts/db/api-gate.mjs generate` (`docs/runbook.md` EZD-004 step 10; finding V9, 2026-10-19); keep the `select private.set_api_gate_hash(…)` line printed in the same run for item 10 (Vercel uses a value only in builds made after it is set, so the secret goes in before the first release; *builder confirms on Vercel docs*). Mark **every secret value Sensitive**, in the `ezdraft` project and in EZ Binder's project in the same team (Q-0109); leave `NEXT_PUBLIC_SUPABASE_URL` and `EMAIL_TRANSPORT` plain, because the release reads them (Step 8).
-5. **Vercel token** (Q-0109). Account Settings → **Tokens** → Create: scope **EZ Binder's team** only, expiration **90 days**. Note the `ezdraft` project id and the team id.
-6. **Sentry.** vault/plans/EZD-024.md runbook steps 1–4.
-7. **Backblaze B2.** vault/plans/EZD-025.md runbook one-time setup: private bucket, SSE-B2 encryption, Object Lock in Governance mode for 91 days (Q-0111), the lifecycle rules, and three keys: the backup key, the **release key** (this bucket, file names starting `releases/`, `writeFiles` only; Step 4) and the restore key (saved only to the file outside the repo). No key gets `bypassGovernance`.
-8. **GitHub `release` environment.** Open it (settings list item 9) and check: Deployment branches = `main` only, administrators cannot bypass. **Only then** add its secrets: `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `TENANT1_OWNER_EMAIL` (the email you sign in with), `BACKUP_SOURCE_DB_URL` (Session pooler string of `ezdraft-prod`), `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY`, and EZD-025's `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`, `BACKUP_SOURCE_SUPABASE_URL`, `BACKUP_SOURCE_SECRET_KEY`. Never as repository or organization secrets, never in Vercel's `Production` environment.
-9. **First real release.** Merge the release pull request (title `Phase N: …`). Actions → **Release** must end green with `phase-N` and `released`; it created tenant 1 and your owner account and ran EZD-003's address checks. Then run EZD-024's live check (`node scripts/errors/live-check.mjs`) and EZD-025's two backup workflows by hand, and do EZD-025's restore drill before the first real job is entered.
-10. **Token hook and gate hash on `ezdraft-prod`** (added 2026-10-19, finding V9). Right after the first release has put the migrations on prod, do `docs/runbook.md` `## Supabase cloud projects (EZD-004)` steps 9–10 for `ezdraft-prod`: enable the Custom Access Token hook `private.custom_access_token_hook`, and run the `select private.set_api_gate_hash(…)` line printed with the Production secret of item 4. Until then the site is up and health passes, but every signed-in request on prod is refused.
-11. **Delete `TENANT1_OWNER_EMAIL`** from the `release` environment (Q-0112 finding 16). Each release summary shows `owner_email_secret_unused` until you do.
-12. **Every 90 days:** make a new Vercel token and replace `VERCEL_TOKEN`; the release summary shows `vercel_token_expiring` 14 days before the old one ends.
