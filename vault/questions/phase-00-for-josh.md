@@ -1,19 +1,16 @@
 # Phase 0 · Questions for Josh
 
-Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 2773e48); nothing in it was answered yet, so its items carry over. Answer by number, in any form ("section 2 all confirmed except 4: …", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Only item 1.1 is waiting on you; everything in sections 2 to 4 stands as written until you change it.
+Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 41c4540). Your Q-0138 answer (a) is recorded (EZD-000j added and now ready), so section 1 is empty; nothing else in it was answered yet, so sections 2 to 4 carry over, plus one new wording line (42) and one new rule candidate (8). Answer by number, in any form ("section 2 all confirmed except 4: …", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Everything in sections 2 to 4 stands as written until you change it.
 
 Q-0089 (storage limit) stays open for a later phase and is not asked here.
 
 ## 1. Decisions needed
 
-1. **Q-0138** · EZD-000i follow-up · escalated (adds a ticket, so it is a scope decision)
-   - Context: the launcher pauses and holds work based on your Claude usage meters. The live usage reply from Anthropic names its numbers `utilization`, but the reader EZD-000i built looks for `used_percentage` (the status line's name, Q-0134 (a)), so whenever the status line is stale the launcher falls back to the dollar estimate instead of the real percentages.
-   - Options: (a) add one small Phase 0 tooling ticket that reads `utilization` and checks from one live probe whether it is 0–1 or 0–100; (b) add it later, after Phase 0; (c) no ticket, keep the dollar fallback.
-   - **Recommend (a)**: unattended runs then pause and hold on the real percentages, and the work is one function plus its test. EZD-001, which the original question named as the deadline, is already done, so the ticket would go in before the Phase 0 gate instead.
+None. No Phase 0 question is waiting on you.
 
 ## 2. Agent answers to confirm
 
-Every `answered-agent` row for Phase 0 not yet confirmed (24; items 22 to 24 are new). Each stands as written unless you override it. Reply "section 2: all confirmed" and name only the ones to change.
+Every `answered-agent` row for Phase 0 not yet confirmed (24; none new since the last file). Each stands as written unless you override it. Reply "section 2: all confirmed" and name only the ones to change.
 
 1. **Q-0126** · EZD-000b to EZD-000i, EZD-001 · orchestrator
    - Answer: (c) PILOT.md gains only the verification items a part reports as "not testable here"; items a part verified are not re-run.
@@ -92,7 +89,7 @@ Every `answered-agent` row for Phase 0 not yet confirmed (24; items 22 to 24 are
 
 ## 3. Proposed wording
 
-No new screen text for clients or users. Items 30 to 41 are new since the last file; items 1 to 29 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
+No new screen text for clients or users. Item 42 is new since the last file; items 1 to 41 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
 
 **EZD-001 · Repo and tooling** (already built; the product name from spec section 02)
 1. Browser tab title: `EZ Draft`
@@ -136,6 +133,9 @@ No new screen text for clients or users. Items 30 to 41 are new since the last f
 28. Shell guard, Keychain: `Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).`
 29. Shell guard, sign-in file: `The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).`
 
+**EZD-000j · OAuth usage fallback reads `utilization`** (the probe's terminal output)
+42. New probe line: `utilization: five_hour <v>, seven_day <v>` (`<v>` is a number or `none`). All other EZD-000i text is unchanged.
+
 **EZD-005a · Tenancy tables**
 - No wording (no user-visible text).
 
@@ -164,3 +164,4 @@ Lessons with status `candidate` (PROCESS.md section 13). Nothing is applied unti
 5. **L-005** (orchestrator; from EZD-000i): a dispatch adds no restriction the plan does not state; a caution taken from the plan's Risks section is quoted with the plan's exceptions. **Recommend: ratify.** The extra restriction made the builder skip a check the plan required, which became a deviation.
 6. **L-006** (planner; from EZD-002): a check that allows only listed values in config text fails every way of writing it that it cannot read (brace form, inherit, expressions), and the plan proves each one. **Recommend: ratify.** The gap cost a plan amendment and two extra test rounds (Q-0146).
 7. **L-007** (reviewer; from EZD-004a): a claim about how a third-party tool behaves cites the source of the exact package and version the lockfile installs, or a run of that binary. **Recommend: ratify.** A review failed a correct test from reading a different program's source (the Supabase CLI's Go repo, not the npm `supabase` 2.121.0 the repo runs). The rule makes a reviewer check the installed program before failing a test on it.
+8. **L-008** (test-author; from EZD-005a): a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides. **Recommend: ratify.** A line-start match missed four of five table names in the generated types file because the Supabase CLI puts a key after the previous closing brace on the same line, which cost a structural repair.
