@@ -1102,7 +1102,7 @@
    "id": "EZD-021",
    "phase": 0,
    "title": "AI client and stubs",
-   "depends_raw": "EZD-009, EZD-016, EZD-023c",
+   "depends_raw": "EZD-009, EZD-016, EZD-023c, EZD-023e",
    "spec_ref": "Stack · AI; External services",
    "spec_files": [
     "spec/sections/02-product-overview.md",
@@ -1114,7 +1114,8 @@
     "EZD-009",
     "EZD-016a",
     "EZD-016b",
-    "EZD-023c"
+    "EZD-023c",
+    "EZD-023e"
    ],
    "build_position": 43,
    "acs": [
