@@ -5,7 +5,113 @@ export type Database = {
   
   "public": {
           Tables: {
-            [_ in never]: never
+            "app_user": {
+                  Row: {
+                    "auth_user_id": string | null,"created_at": string,"email": string,"id": string,"ipad_input_mode": string | null,"language": string,"name": string | null,"role_preset": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth_user_id"?: string | null,"created_at"?: string,"email": string,"id"?: string,"ipad_input_mode"?: string | null,"language"?: string,"name"?: string | null,"role_preset"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "auth_user_id"?: string | null,"created_at"?: string,"email"?: string,"id"?: string,"ipad_input_mode"?: string | null,"language"?: string,"name"?: string | null,"role_preset"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"membership": {
+                  Row: {
+                    "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"scope": string,"status": string,"tenant_id": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"scope"?: string,"status"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "membership_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "membership_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"membership_project": {
+                  Row: {
+                    "created_at": string,"membership_id": string,"project_id": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"membership_id": string,"project_id": string,"tenant_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"membership_id"?: string,"project_id"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "membership_project_membership_id_tenant_id_fkey"
+      columns: ["membership_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "membership"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "membership_project_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "membership_project_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project": {
+                  Row: {
+                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"name": string,"open_items_count": number,"phase_default": string | null,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name": string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name"?: string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tenant": {
+                  Row: {
+                    "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code_edition"?: string | null,"contact"?: NonNullable<Json>,"created_at"?: string,"defaults"?: NonNullable<Json>,"id"?: string,"license_no"?: string | null,"logo_path"?: string | null,"name": string,"title_block"?: NonNullable<Json>,"updated_at"?: string
+                  }
+                  Update: {
+                    "code_edition"?: string | null,"contact"?: NonNullable<Json>,"created_at"?: string,"defaults"?: NonNullable<Json>,"id"?: string,"license_no"?: string | null,"logo_path"?: string | null,"name"?: string,"title_block"?: NonNullable<Json>,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Views: {
             [_ in never]: never
