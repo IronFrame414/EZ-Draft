@@ -6,7 +6,7 @@ One file per role. Format and rules: PROCESS.md section 13. Only the orchestrato
 | --- | --- | --- |
 | orchestrator.md | dispatch, model choice, ledgers, merges | tooling, scripts, process (L-003, candidate); tooling, process (L-005, candidate) |
 | planner.md | plans, contracts, citations, ticket size | tooling, scripts, process (L-002, L-004, candidate); ci, tooling, security (L-006, candidate) |
-| test-author.md | tests, fixtures, expected values | tooling, scripts, process (L-003, candidate) |
+| test-author.md | tests, fixtures, expected values | tooling, scripts, process (L-003, candidate); data-model, migrations, tooling (L-008, candidate) |
 | builder.md | implementation, scope discipline, structural repair | (none yet) |
 | reviewer.md | code-reviewer and security-reviewer | auth, security (L-001, candidate); tooling, dependencies (L-007, candidate) |
 | ui.md | ui-verifier: screenshots and mockups | (none yet) |

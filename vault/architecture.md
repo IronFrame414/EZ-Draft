@@ -197,6 +197,20 @@ EZD-004a (vault/plans/EZD-004a.md Steps 2–6); 02 Named tools; 11 Operations "l
 
 Cloud dev: `.github/workflows/supabase-dev.yml` applies `supabase/migrations/` to the cloud project `ezdraft-dev` with `supabase db push --db-url` on each develop push that changes them and by Run workflow (Q-0107); without the `SUPABASE_DEV_DB_URL` secret it ends green and pushes nothing. Agents never run `db push` or `link` themselves (`.claude/hooks/guard-bash.mjs`). Josh's setup: `docs/runbook.md`, Supabase cloud projects.
 
+### Tenancy tables (EZD-005)
+
+EZD-005a (vault/plans/EZD-005a.md Steps 1, 5); 03 Tables tenant, user, membership, project; 03 intro; 11 rule 10; 11 Security and audit. Six migrations after the health migration: `create_set_updated_at`, `create_tenant`, `create_app_user`, `create_project`, `create_membership`, `create_membership_project`. RLS is enabled on every table with no policy; EZD-006 adds the policies, the token hook and the grants.
+
+- The Data model `user` entity is table `public.app_user`: `user` is a reserved word in PostgreSQL.
+- Tenant-less tables, the list EZD-006's CI test starts from (every later exemption needs its own reason here): `tenant` (it is the tenant; key `id`) and `app_user` (one person across tenants, linked to each company by `membership (user_id, tenant_id)`).
+- A tenant-owned row that points at another tenant-owned row uses a composite foreign key carrying `tenant_id`: `membership` and `project` have `unique (id, tenant_id)`, and `membership_project` references `(membership_id, tenant_id)` and `(project_id, tenant_id)`, both `on delete cascade`, so a listed project can never belong to another company.
+- Enumerated values are `text` columns with a `check` constraint, lower snake case (widening is add before remove, 11 Operations). `updated_at` on `tenant`, `app_user`, `project` and `membership` is kept by the `before update` trigger function `public.set_updated_at()` (`security invoker`, `search_path = ''`); `membership_project` has no `updated_at`.
+- `tenant.contact` is JSON with keys `phone`, `email`, `website`, `address` (S15a Contact); `contact.email` is the company email replies go to (Q-0036; EZD-008). There is no separate reply-email column.
+- `app_user.language` defaults to `en`; the inviter or the user switches it to `es` (Q-0029 (a); Q-0121 (a)).
+- `app_user.auth_user_id` (unique, `references auth.users(id) on delete set null`) is filled at first sign-in by EZD-007.
+- Indexes: `project_tenant_id_idx`, `membership_user_id_idx` (the EZD-006 token hook), `membership_project_tenant_id_idx`, `membership_project_project_id_idx`; `membership unique (tenant_id, user_id)` leads with `tenant_id` (11 rule 10).
+- Not in this part: seed ids and `supabase/bootstrap/tenant-1.sql` (EZD-005b).
+
 ## Errors and logging
 
 11 Operations, Security and audit; R26 R12, R16, R17; EZD-015, EZD-024, EZD-026, EZD-120b.
