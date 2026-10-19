@@ -1,0 +1,2 @@
+-- EZD-004a: seed placeholder so [db.seed] sql_paths resolves (vault/plans/EZD-004a.md Step 2).
+-- EZD-005 fills this file.

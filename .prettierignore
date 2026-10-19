@@ -20,3 +20,5 @@ scripts/*
 !scripts/conventions/
 scripts/conventions/*
 !scripts/conventions/check.mjs
+# EZD-004a: machine-written by scripts/db/gen-types.mjs (vault/plans/EZD-004a.md Step 7).
+app/src/server/db/database.types.ts

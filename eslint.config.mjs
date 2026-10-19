@@ -25,6 +25,7 @@ export default tseslint.config(
       '.claude/**',
       'vault/**',
       'spikes/**',
+      'app/src/server/db/database.types.ts',
     ],
   },
   js.configs.recommended,
