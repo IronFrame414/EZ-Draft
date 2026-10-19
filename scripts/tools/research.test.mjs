@@ -126,12 +126,18 @@ test('EZD-000d T7 wrong arguments exit 2 with the usage line', () => {
 
 test('EZD-000d T8 the research store files exist as the contract says', () => {
   const rdir = path.join(root, 'vault/research');
-  assert.equal(read(path.join(rdir, 'INDEX.md')),
-    '# Research reports\n\nOne line per report: `R-NNN | date | title | scope | ticket`, appended by `node vault/tools/research.mjs adopt`. Read only the reports your plan or dispatch names (PROCESS.md section 13).\n\n');
-  assert.ok(!read(path.join(rdir, 'INDEX.md')).split('\n').some((l) => /^R-\d+ \|/.test(l)));
+  // Q-0149 (orchestrator, rule 19, 2026-10-19): the store is live once a report is adopted, so T8 checks the contract
+  // (header, one well-formed line per adopted report, each backed by its file) instead of an empty store.
+  const header = '# Research reports\n\nOne line per report: `R-NNN | date | title | scope | ticket`, appended by `node vault/tools/research.mjs adopt`. Read only the reports your plan or dispatch names (PROCESS.md section 13).\n\n';
+  const index = read(path.join(rdir, 'INDEX.md'));
+  assert.ok(index.startsWith(header));
+  const rows = index.slice(header.length).split('\n').filter((l) => l !== '');
+  for (const l of rows) assert.match(l, /^R-\d{3,} \| \d{4}-\d{2}-\d{2} \| [^|]+ \| [^|]+ \| EZD-\S+$/);
+  const ids = rows.map((l) => l.split(' | ')[0]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual(ls(rdir).filter((n) => /^R-.*\.md$/.test(n)).sort(), ids.map((id) => `${id}.md`).sort());
   assert.equal(fs.statSync(path.join(rdir, 'pending/.gitkeep')).size, 0);
   assert.ok(!ls(path.join(rdir, 'pending')).some((n) => n.endsWith('.md')));
-  assert.ok(!ls(rdir).some((n) => /^R-.*\.md$/.test(n)));
 });
 
 test('EZD-000d T9 done when: CLAUDE.md has the research row in place and is at most 60 lines', () => {
