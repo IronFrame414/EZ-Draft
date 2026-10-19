@@ -1,13 +1,12 @@
-# Handoff · 2026-10-19 · build EZD-000
+# Handoff · 2026-10-19 · build EZD-000b
 
-- Phase and stage: Phase 0 · Stage 3 · EZD-000 (first build).
-- Why the session ended: unit complete.
-- Completed this session: resumed at step 6 after Q-0124 (a). Builder r1 (Fable 5.1) wrote scripts/conventions/check.mjs (C1–C8); gate PASS, 42/42 tests. code-reviewer mode 3 PASS, security-reviewer PASS (both Fable 5.1). Squash-merged as 1739318 `feat(EZD-000): Architecture conventions`; phase 0 gate on develop PASS. Worktree and branch removed. `See @docs/architecture.md` appended to CLAUDE.md; docs/architecture.md copied to vault/architecture.md. DONE.md, PROGRESS.md, TRACE.md updated.
+- Phase and stage: Phase 0 · Stage 1 (EZD-000b back to planning).
+- Why the session ended: blocked at pre-flight (no plan).
+- Completed this session: pre-flight for build EZD-000b. Git clean on develop, ledger OK, no BUDGET_HOLD. `vault/plans/EZD-000b.md` does not exist. The ticket went into STATUS as `ready` on 2026-10-18 without a plan, but PA3-MECHANISMS.md says the plan settles the guard-paths write exception and the PROCESS-EZDRAFT vs v2.3 differences as questions. Under CLAUDE.md rule 1 nothing was built. No worktree, no agents dispatched.
+- Ledger fix: EZD-000b STATUS `ready` → `todo` with a note, so `--next-unit` gives `plan EZD-000b` and the launcher no longer loops on a build it can't start.
 - In progress: none.
-- Blocked: none.
-- Questions for Josh: none new. Q-0124 and Q-0125 answered earlier today.
-- Decisions made: none. No new lesson (L-002, planner, candidate already covers the guard-paths path issue).
-- Deviations and minor follow-ups: in the EZD-000 STATUS notes (T6 heading, saveExact, typescript 5.9.3, v2 rule numbers; architecture.md:54 wrong typescript 7.0.2 date; security notes on the Money and client-link bullets for the planner).
-- Next unit: build EZD-000b (next_ticket.mjs --next-unit).
-- Earlier open items unchanged: launcher-fix proposal and pilot checks (`vault/handoff/log/2026-10-19-01-53.md`); auto mode cannot edit hooks in fix mode until Josh adds a permission rule.
-- **06:55 EDT, orchestrator (fix mode, rule 19):** the launcher misread EZD-000's successful report as `limit-weekly` and wrote BUDGET_HOLD.md; fixed (a limit is classified only on a failed run), hold removed, launcher restarted on EZD-000b. Pilot check 8 still open: no real limit message seen yet.
+- Blocked: none (EZD-000b is waiting for its plan, not for Josh).
+- Questions for Josh: none new. The plan unit is expected to raise the PROCESS-EZDRAFT vs v2.3 differences (gate scope, budget, agent roster) as questions (PA3-MECHANISMS.md rule 1).
+- Decisions made: none. No lesson recorded (orchestrator note: a ticket added mid-stream should go in as `todo`, not `ready`).
+- Next unit: plan EZD-000b (next_ticket.mjs --next-unit).
+- Earlier open items unchanged: launcher-fix proposal and pilot checks (`vault/handoff/log/2026-10-19-01-53.md`); pilot check 8 (real limit message) still open.
