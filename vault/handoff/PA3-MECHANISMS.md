@@ -4,7 +4,7 @@ To: the EZ Draft orchestrator (Opus 5.5), as one tooling ticket. Companion to `v
 
 ## Rules for this ticket
 
-1. `vault/PROCESS.md` v2.3 already describes all seven items (sections 3, 4, 10, 11, 13, 14, 15). Replace the repo's copy with the v2.3 file Josh provides before starting. Where this handoff and PROCESS.md differ, PROCESS.md wins; note the difference in your report. (Not yet in the repo as of 2026-10-18: Josh still has to provide the v2.3 file.)
+1. `vault/PROCESS.md` v2.3 already describes all seven items (sections 3, 4, 10, 11, 13, 14, 15). Replace the repo's copy with the v2.3 file Josh provides before starting. Where this handoff and PROCESS.md differ, PROCESS.md wins; note the difference in your report. (In the repo since 2026-10-18 evening, commit "docs(vault): PROCESS.md v2.3".) `vault/PROCESS-EZDRAFT.md` was written against v2 and still wins where it differs; the plan lists every place it now disagrees with v2.3 (gate scope, budget, agent roster) as questions for Josh rather than guessing.
 2. Everything else in PROCESS.md applies: tests first, the gate, code review by code-reviewer, one commit, no extras.
 3. Build each item as its own worktree commit, in the order under "Order of work and commits" (Item 1 last, because it changes the launcher), so a failure in one does not block the others.
 4. Scripts are Node (`.mjs`), matching the existing `scripts/` and `vault/tools/`. Hooks follow the existing hook layout in `.claude/hooks/`.
