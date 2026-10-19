@@ -10,4 +10,4 @@
 - Deviations to carry to the merge notes (in STATUS): T6 accepts the v2 CLAUDE.md heading; pnpm-workspace.yaml `saveExact: true` (pnpm 12 ignores .npmrc); typescript 5.9.3, not 7.0.2.
 - Gate not run by the orchestrator yet (step 7 waits for the check script). Security review still due (plan: security-review yes).
 - Next unit: after Josh answers, `/build-ticket EZD-000` (resume). Under (a) Josh edits the hook first; under (b) the planner re-validates EZD-000 first.
-- Earlier open items unchanged: the launcher-fix proposal (a/b) and pilot checks from the 2026-10-19 01:40 handoff (`vault/handoff/log/2026-10-19-0140-questions-0.md`).
+- Earlier open items unchanged: the launcher-fix proposal (a/b) and pilot checks from the 2026-10-19 01:40 handoff (`vault/handoff/log/2026-10-19-01-53.md`).
