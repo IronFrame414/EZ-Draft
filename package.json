@@ -8,7 +8,18 @@
   "scripts": {
     "typecheck": "pnpm -r --if-present --filter \"!./spikes/**\" run typecheck",
     "lint": "node scripts/conventions/check.mjs && pnpm -r --if-present --filter \"!./spikes/**\" run lint",
-    "test": "node --test \"scripts/**/*.test.mjs\" && pnpm -r --if-present --filter \"!./spikes/**\" run test",
-    "build": "pnpm -r --if-present --filter \"!./spikes/**\" run build"
+    "test": "node --test --test-concurrency=4 \"scripts/**/*.test.mjs\" && pnpm -r --if-present --filter \"!./spikes/**\" run test",
+    "build": "pnpm -r --if-present --filter \"!./spikes/**\" run build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.2",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.5"
   }
 }

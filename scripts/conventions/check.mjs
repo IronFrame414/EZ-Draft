@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // EZD-000 · Conventions check C1–C8 (vault/plans/EZD-000.md, Step 3; docs/architecture.md, Machine checks).
+// EZD-001 · C9 test files carry a ticket ID (vault/plans/EZD-001.md, Step 6.1; Q-0006).
 // Plain Node 22, no dependencies. Usage: node scripts/conventions/check.mjs [rootDir]
 // Prints one line per violation, `[Cn] <repo-relative path>: <problem>`, and exits 1 if any; else prints a pass line and exits 0.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -384,6 +385,25 @@ function checkC8() {
   }
 }
 
+// ---------- C9 Test files carry a ticket ID (EZD-001 Step 6.1; Q-0006) ----------
+
+// Every Vitest or Playwright test file has a top-level describe (test.describe in Playwright) whose title starts with the
+// owning ticket ID, so the gate's phase scope (EZD_TEST_GREP) can find it. Files under test-utils/ and test-harness/ and
+// config files are exempt, as in C7. The walk already skips __tests__/, fixtures/, .claude/ and vault/; spikes/ is not scanned.
+const C9_FILE = /\.(test\.tsx?|spec\.ts)$/;
+const C9_EXEMPT = /(^|\/)(test-utils|test-harness)\//;
+const C9_CONFIG = /^(vitest|playwright)\.(config|workspace)\./;
+const TICKET_DESCRIBE = /\bdescribe(?:\.\w+)*\(\s*['"`]EZD-\d{3,4}[a-z]?\b/;
+
+function checkC9() {
+  for (const file of sourceFiles) {
+    if (!C9_FILE.test(file) || C9_EXEMPT.test(file) || C9_CONFIG.test(path.posix.basename(file))) continue;
+    if (!TICKET_DESCRIBE.test(sourceText.get(file))) {
+      fail('C9', file, "no top-level describe whose title starts with the owning ticket ID, e.g. describe('EZD-001 …', …)");
+    }
+  }
+}
+
 // ---------- run ----------
 
 checkC1();
@@ -394,10 +414,11 @@ checkC5();
 checkC6();
 checkC7();
 checkC8();
+checkC9();
 
 if (problems.length) {
   for (const line of problems) console.log(line);
   console.log(`conventions check: ${problems.length} violation${problems.length === 1 ? '' : 's'} (see docs/architecture.md, Machine checks)`);
   process.exit(1);
 }
-console.log(`conventions check: C1–C8 pass (${rel(root) || '.'})`);
+console.log(`conventions check: C1–C9 pass (${rel(root) || '.'})`);

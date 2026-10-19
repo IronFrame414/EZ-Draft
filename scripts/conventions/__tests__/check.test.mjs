@@ -234,7 +234,7 @@ test('EZD-000 T20: app depending on an @ezdraft/spike-* package fails', () => {
 });
 
 test('EZD-000 T20: a test file importing from spikes/ passes', () => {
-  const dir = makeRepo({ 'app/e2e/s.spec.ts': "import { x } from '../../spikes/EZD-027-canvas/x';\nexport { x };\n" });
+  const dir = makeRepo({ 'app/e2e/s.spec.ts': "import { x } from '../../spikes/EZD-027-canvas/x';\nexport { x };\ndescribe('EZD-000 spike import fixture', () => { x; });\n" });
   expectPass(dir, 'T20c');
 });
 
@@ -280,8 +280,9 @@ test('EZD-000 T22: pdfkit imported in packages/geometry fails', () => {
 
 // ---------- T23: C7 test file naming ----------
 
-const VITEST_IMPORT = "import { test } from 'vitest';\ntest('a', () => {});\n";
-const PLAYWRIGHT_IMPORT = "import { test } from '@playwright/test';\ntest('b', async () => {});\n";
+// Fixture bodies carry an EZD-000 describe so C9 (EZD-001) passes on them; C7 still judges the file name (Q-0142 (a)).
+const VITEST_IMPORT = "import { test } from 'vitest';\ndescribe('EZD-000 vitest fixture', () => { test('a', () => {}); });\n";
+const PLAYWRIGHT_IMPORT = "import { test } from '@playwright/test';\ntest.describe('EZD-000 playwright fixture', () => { test('b', async () => {}); });\n";
 
 test('EZD-000 T23: a vitest file named *.test.ts passes', () => {
   expectPass(makeRepo({ 'packages/geometry/src/a.test.ts': VITEST_IMPORT }), 'T23a');
@@ -312,7 +313,7 @@ test('EZD-000 T24: console in a component fails', () => {
 });
 
 test('EZD-000 T24: console in a test file passes', () => {
-  expectPass(makeRepo({ 'app/src/components/x.test.tsx': CONSOLE_CALL }), 'T24c');
+  expectPass(makeRepo({ 'app/src/components/x.test.tsx': `describe('EZD-000 console fixture', () => { ${CONSOLE_CALL.trim()} });\n` }), 'T24c');
 });
 
 // ---------- T25: the real repository ----------

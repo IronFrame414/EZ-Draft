@@ -20,3 +20,5 @@ vault/cost/usage-raw-sample.json
 *.log
 .DS_Store
 Thumbs.db
+*.tsbuildinfo
+next-env.d.ts

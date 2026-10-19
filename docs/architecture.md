@@ -5,6 +5,7 @@ Written by EZD-000 (vault/plans/EZD-000.md). Every build session reads this file
 ## Runtime
 
 - Node.js 22, the major `.github/workflows/ci.yml` installs (ci.yml is changed only by Josh). Vercel Functions use the same major (EZD-003 sets it). The root `package.json` `engines.node` is `22.x`.
+- Browser floor: Safari and iOS Safari 16.4+, Chrome and Edge 111+, Firefox 113+ (Q-0013 (a), vault/spec/decisions/02-product-overview.md; EZD-010 relies on Firefox 113 for `oklch()`, Q-0026 (a)). No polyfills and no `browserslist` override.
 - pnpm: the version in the `pnpm` row of Dependencies, pinned again in the root `package.json` `packageManager` field (check C1 keeps the two equal). pnpm reads that field and runs the pinned version, so the machine's installed pnpm (CI: `npm install -g pnpm`) does not matter.
 
 ## Named tools
@@ -51,7 +52,7 @@ One row per layer of 02 Stack. Same cell format as Named tools.
 
 ## Dependencies
 
-Machine-read by check C1. One row per npm package; `Version` is one exact version, no range. `Used in` is one or more of `root`, `app`, `geometry`, `worker`, `spikes`. Versions are the newest stable releases on 2026-10-19 whose peer ranges fit each other, read from the npm registry: `react` 19.3.1 satisfies `next` (`^19.0.0`) and `@react-three/fiber` (`>=19 <19.4`); `three` 0.186.1 satisfies `@react-three/fiber` (`>=0.156`), `three-bvh-csg` (`>=0.179.0`) and `three-gpu-pathtracer` (`>=0.185.0`); `@sentry/nextjs` 11.x accepts `next` `^16`; `@supabase/ssr` 0.12.7 needs `@supabase/supabase-js` `^2.114.0`. `typescript` stays on the 5.x line: 7.0.2 shipped on 2026-10-18 with a new compiler and no registry evidence that `next` 16.4.2 builds with it; the ticket that moves to 7 edits this row. Most rows are installed by later tickets (EZD-001 and on); they are pinned here first (02 Named tools).
+Machine-read by check C1. One row per npm package; `Version` is one exact version, no range. `Used in` is one or more of `root`, `app`, `geometry`, `worker`, `spikes`. Versions are the newest stable releases on 2026-10-19 whose peer ranges fit each other, read from the npm registry: `react` 19.3.1 satisfies `next` (`^19.0.0`) and `@react-three/fiber` (`>=19 <19.4`); `three` 0.186.1 satisfies `@react-three/fiber` (`>=0.156`), `three-bvh-csg` (`>=0.179.0`) and `three-gpu-pathtracer` (`>=0.185.0`); `@sentry/nextjs` 11.x accepts `next` `^16`; `@supabase/ssr` 0.12.7 needs `@supabase/supabase-js` `^2.114.0`. `typescript` stays on the 5.x line: 7.0.2 shipped on 2026-10-18 with a new compiler and no registry evidence that `next` 16.4.2 builds with it; the ticket that moves to 7 edits this row. Most rows are installed by later tickets (EZD-001 and on); they are pinned here first (02 Named tools). EZD-001 (2026-10-19): `eslint` stays on 9.x because `eslint-config-next` 16.4.2 depends on `eslint-plugin-import`, `eslint-plugin-react` and `eslint-plugin-jsx-a11y`, whose peer ranges end at ESLint 9; `@eslint/js` matches the `eslint` major; `@types/node` is the newest 22.x so the types match the Node 22 runtime above (vitest 5.0.5 peers `^22.0.0 || >=24.0.0`).
 
 | Package | Version | Used in | Why | Added by |
 | --- | --- | --- | --- | --- |
@@ -62,7 +63,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `typescript` | `5.9.3` | root, app, geometry, worker | Stack: App shell | EZD-000 |
 | `zustand` | `5.0.15` | app | Named tools: State store for the open model | EZD-000 |
 | `zod` | `4.6.7` | geometry, app, worker | Named tools: Schema and validation | EZD-000 |
-| `vitest` | `5.0.5` | app, geometry, worker | Named tools: Unit tests | EZD-000 |
+| `vitest` | `5.0.5` | root, app, geometry, worker | Named tools: Unit tests | EZD-000 |
 | `@playwright/test` | `1.64.1` | app | Named tools: browser tests | EZD-000 |
 | `radix-ui` | `1.8.1` | app | Named tools: Styling and UI primitives | EZD-000 |
 | `idb` | `8.0.4` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
@@ -86,10 +87,20 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@react-three/fiber` | `9.8.2` | app | Stack: 2D + 3D | EZD-000 |
 | `three-gpu-pathtracer` | `0.0.27` | app | Stack: Browser path tracing | EZD-000 |
 | `pdfjs-dist` | `6.4.299` | app | Stack: PDF in | EZD-000 |
+| `eslint` | `9.39.5` | root, app, geometry | Machine checks: lint runner for the root flat config (EZD-020, EZD-026a and EZD-133 add rules) | EZD-001 |
+| `@eslint/js` | `9.39.5` | root | Machine checks: ESLint recommended rules for all TS/JS | EZD-001 |
+| `typescript-eslint` | `8.71.2` | root | Machine checks: TypeScript parser and recommended rules | EZD-001 |
+| `eslint-config-next` | `16.4.2` | root, app | Machine checks: Next.js lint rules for `app/**` only | EZD-001 |
+| `prettier` | `3.9.10` | root | Formatting (review, not gated): `format`, `format:check` | EZD-001 |
+| `@types/node` | `22.20.5` | app | Stack: App shell (Node types for `next.config.ts` and route handlers) | EZD-001 |
+| `@types/react` | `19.3.0` | app | Stack: App shell | EZD-001 |
+| `@types/react-dom` | `19.3.0` | app | Stack: App shell | EZD-001 |
 
 ## Adding a dependency
 
 CLAUDE.md rule 7 and 02 Named tools. A commit that adds or upgrades a package in any workspace `package.json` adds or edits its Dependencies row in the same commit. One version per package across the repo. Use an already listed package for a job before adding another. Internal packages are referenced as `workspace:*` and are not listed. Install with `pnpm add` (the workspace file sets `saveExact`, so the specifier is written exact). Check C1 enforces the row and the exact version; the code-reviewer fails a ticket without the row (CLAUDE.md rule 7).
+
+Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any dependency's install script is unsettled. Every reported script is denied in `pnpm-workspace.yaml` `allowBuilds` (map form, `<package>: false`); no entry is set to allow and no allow-all setting is used. Denied so far: `unrs-resolver` (pulled in by `eslint-config-next` through `eslint-import-resolver-typescript`; added by EZD-001). A new build script a ticket's install reports is denied the same way; if the build or tests need it, the builder stops and raises a question naming the package, what the script does, what fails without it and the effect on EZD-023b T17. No agent allows one on its own.
 
 ## Folder layout
 
@@ -111,7 +122,19 @@ supabase/                 Supabase CLI folder (CLI default): migrations/, seed, 
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
 ```
 
-Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` (`app`, `geometry`, `worker`, `spike-<dir>` in lowercase). The root scripts `typecheck`, `lint`, `test` and `build` fan out to every workspace package except `spikes/*` with `pnpm -r --if-present --filter "!./spikes/**"`; `lint` runs check C1–C8 first and `test` runs the repo scripts' `node:test` files first. EZD-001 extends these files; it does not replace them. The geometry package runs in the browser, in Web Workers and in Node (02 Geometry core; 11 Where each output is produced), so it uses no DOM or React.
+Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` (`app`, `geometry`, `worker`, `spike-<dir>` in lowercase). The root scripts `typecheck`, `lint`, `test` and `build` fan out to every workspace package except `spikes/*` with `pnpm -r --if-present --filter "!./spikes/**"`; `lint` runs check C1–C9 first and `test` runs the repo scripts' `node:test` files first. EZD-001 extends these files; it does not replace them. The geometry package runs in the browser, in Web Workers and in Node (02 Geometry core; 11 Where each output is produced), so it uses no DOM or React.
+
+### Root config files
+
+EZD-001 (vault/plans/EZD-001.md Step 3). There is no root `tsconfig.json`, so a root `tsc` compiles nothing under `vault/`, `spikes/` or `.claude/worktrees/`; every package sets `types` explicitly because default `@types` discovery walks up into the main checkout from a worktree.
+
+- `tsconfig.base.json`: shared compiler options only (`strict`, `target` ES2022, `module` ESNext, `moduleResolution` Bundler, `isolatedModules`, `skipLibCheck`, `noEmit`, `esModuleInterop`, `resolveJsonModule`); no `include` or `files`. `app/tsconfig.json` and `packages/geometry/tsconfig.json` extend it. The geometry config has `lib: ["ES2023"]` and `types: []`: no DOM, no Node.
+- `eslint.config.mjs`: one flat config. Ignores `node_modules`, `.next`, `dist`, `coverage`, Playwright output, `app/next-env.d.ts`, `.claude/**`, `vault/**`, `spikes/**`. All TS/JS gets `@eslint/js` recommended and `typescript-eslint` recommended (not type-checked); `app/**` alone adds the `eslint-config-next` flat configs (core-web-vitals, typescript). Each package's `lint` script is `eslint .`.
+- `.prettierrc.json` (`singleQuote`, `printWidth` 100) and `.prettierignore` (`vault/`, `spikes/`, `.claude/`, `.github/`, `CLAUDE.md`, `docs/`, every `*.md`, `pnpm-lock.yaml`, build outputs, and all of `scripts/` except `scripts/conventions/check.mjs`). Root scripts `format` and `format:check`.
+- `vitest.config.ts` (root): `test.projects` = `app/vitest.config.ts` and `packages/*/vitest.config.ts`, so a root `vitest` run reaches only the package projects.
+- `pnpm-workspace.yaml`: `packages`, `saveExact: true`, `workspaceConcurrency: 1` (Q-0139 (a); pnpm 12 ignores `.npmrc` for these) and the `allowBuilds` map (Adding a dependency). Added keys are scalars or maps, never `- ` list lines (EZD-000 T26 reads every `- ` line as a package glob).
+
+Internal packages are TypeScript source with no build step: `packages/geometry/package.json` has `"type": "module"` and `exports["."] = "./src/index.ts"`, and consumers compile it. The first ticket that imports it adds `"@ezdraft/geometry": "workspace:*"` to its `package.json` and, in the app, `transpilePackages: ['@ezdraft/geometry']` in `app/next.config.ts`. `app/next.config.ts` pins `outputFileTracingRoot` and `turbopack.root` to the workspace root because worktrees sit inside the main checkout and Next.js otherwise infers the root from the nearest lockfile upward.
 
 ## Server-only data access and can()
 
@@ -156,7 +179,8 @@ Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` 
 
 02 Named tools; CLAUDE.md rules 5–6; vault/tickets/README.md rule 4.
 
-- Unit tests: Vitest, `*.test.ts` / `*.test.tsx`, next to the code they test.
+- Unit tests: Vitest, `*.test.ts` / `*.test.tsx`, next to the code they test. Commands: `pnpm test` (the root `node:test` files, then every package's `test`); `pnpm --filter @ezdraft/geometry test` for one package; root `pnpm exec vitest` runs the projects of the root `vitest.config.ts`. Every package project uses `environment: 'node'` until a component ticket adds a DOM environment.
+- Run Prettier on the files you write (`pnpm exec prettier --write <files>`); formatting is review, not gated (EZD-001).
 - Browser tests: Playwright, `*.spec.ts`, in the folder EZD-016a creates.
 - Repo scripts: `node:test`, `scripts/**/*.test.mjs`, run by the root `test` script.
 - Shared helpers live in `test-utils/` or `test-harness/` folders (`.claude/hooks/guard-paths.mjs`).
@@ -165,13 +189,24 @@ Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` 
 - Spike tests live with the spike under `spikes/` and are not run by the root gate (vault/spikes/TEMPLATE.md; PROCESS.md).
 - Check C7 enforces the file names.
 
+### Test scope (Q-0006)
+
+Phase tests plus a smoke set per ticket; the full suite at the phase gate (EZD-001 Step 6).
+
+- Naming: every Vitest or Playwright test file wraps its tests in at least one top-level `describe` (`test.describe` in Playwright) whose title starts with the owning ticket ID, e.g. `describe('EZD-001 geometry package', …)`. A later ticket adding tests to a file adds its own top-level `describe`. Check C9 enforces this; the reviewer checks the ID is the right one.
+- Phase = floor(number / 100) of the ticket ID: EZD-001 and EZD-026a are phase 0, EZD-133 phase 1, EZD-1710 phase 17.
+- Smoke set: a test whose full name contains `@smoke` (Vitest title; Playwright title or `{ tag: '@smoke' }`): each phase's Build gate browser test, and any test a plan marks "smoke: yes". EZD-001 T1 is the first.
+- Root `scripts/**/*.test.mjs` (`node:test`) are never filtered; `perf` (EZD-017) is not filtered; `typecheck`, `lint` and `build` are always whole-repo.
+- How scope reaches the runners: `scripts/gate.mjs` sets `EZD_TEST_SCOPE` (`phase` or `full`) for every step and, in phase scope only, `EZD_PHASE` and `EZD_TEST_GREP` = `(?:EZD-<N>\d{2}[a-z]?(?![0-9]))|@smoke`; in full scope it deletes both. Each package `vitest.config.ts` sets `test.testNamePattern` from `EZD_TEST_GREP` when present and `test.maxWorkers: 4` (Q-0019 read as 4, Q-0114). EZD-016a's `playwright.config.ts` sets `workers: 4` and `grep` from `EZD_TEST_GREP` the same way. A test that spawns a runner sets the child's `EZD_TEST_GREP` itself and deletes it when the case has none.
+- What runs where: a ticket check `node scripts/gate.mjs .claude/worktrees/EZD-xxx` runs the phase from the folder name plus `@smoke`; after merge on develop `node scripts/gate.mjs . --phase <N>` runs phase N plus `@smoke`; the phase gate `node scripts/gate.mjs . --full` and CI `node scripts/gate.mjs .` (folder not named `EZD-xxx`) run the full suite.
+
 ## Handoff
 
 Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten at session end; previous ones in `vault/handoff/log/` (CLAUDE.md Directory; PROCESS.md Ledgers).
 
 ## Machine checks
 
-`node scripts/conventions/check.mjs [rootDir]` runs C1–C8 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/gate.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
+`node scripts/conventions/check.mjs [rootDir]` runs C1–C9 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/gate.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
 
 | ID | Rule | Check | Built by |
 | --- | --- | --- | --- |
@@ -183,6 +218,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | C6 | `pdfkit` is imported only under `app/src/server/jobs/` | same | EZD-000 |
 | C7 | A file importing `vitest` is `*.test.ts(x)`; a file importing `@playwright/test` is `*.spec.ts` (config, setup, `test-utils/`, `test-harness/`, `fixtures/` exempt) | same | EZD-000 |
 | C8 | No `console.*` in non-test files under `app/src/`, `packages/*/src/`, `worker/src/` except `logger.ts` | same | EZD-000 |
+| C9 | Every `*.test.ts`, `*.test.tsx`, `*.spec.ts` under `app/`, `packages/`, `worker/` has a top-level `describe` / `test.describe` whose title starts with a ticket ID (`test-utils/`, `test-harness/` and config files exempt) | same | EZD-001 |
 | — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
 | — | RLS policy and tenant/project index on every table | CI test | EZD-006 |
 | — | Static imports of heavy libraries; bundle report | lint rule and build report | EZD-020 |
@@ -191,6 +227,8 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Destructive migrations (drop or rename) | CI check | EZD-023 |
 | — | Performance counts and download size | perf script | EZD-017 |
 | — | A test reaching a live provider fails | test harness | EZD-021 |
-| — | TypeScript, lint and test discovery exclude `.claude/worktrees/`, `vault/`, `spikes/` | tool configs | EZD-001 (PROCESS.md) |
+| — | TypeScript, lint and test discovery exclude `.claude/worktrees/`, `vault/`, `spikes/` | `scripts/tooling/__tests__/tooling.test.mjs` (T6, T7, T9) | EZD-001 (PROCESS.md) |
+| — | `packages/geometry` has no DOM or Node types | `scripts/tooling/__tests__/tooling.test.mjs` (T4) | EZD-001 |
+| — | Formatting (Prettier) | review, not gated | EZD-001 |
 | — | A stored sample of every schema version loads | CI test | the ticket that adds the schema (03 rule 5) |
 | — | One Zod file per object type; Clipper only in a worker; error body shape; log redaction | review | — |
