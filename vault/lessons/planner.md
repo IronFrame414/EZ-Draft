@@ -36,3 +36,10 @@ Mistake: plan Step 2 said an unknown flag or a flag with no value fails, but no 
 Cause: a rule written in the Approach prose had no matching Tests row, so the gate could not catch it and the builder worked to the tests.
 Rule: every "fails"/"refuses" rule in a plan's Approach has a Tests row with a failing input (planner), and the builder implements every Approach rule, not only those the tests check.
 Check: the plan review lists each refuse/fail rule in the Approach and the test case that covers it; the code-reviewer runs any uncovered rule by hand.
+
+## L-013  areas: ui, tokens  seen: 1  status: candidate
+Ticket EZD-010c, 2026-10-19
+Mistake: plan Step 4 said `page.module.css` uses `var(--ez-*)` only, but the token set has no spacing tokens for the 8, 12 and 40 px the page needs; the builder used plain px and the code-reviewer logged it as a plan deviation.
+Cause: the plan required tokens without checking that a token existed for every value the file would need.
+Rule: a plan that says "tokens only" names the token for each property kind it covers (color, radius, shadow, spacing) or limits the rule to the kinds that have tokens.
+Check: the plan review confirms each "tokens only" rule against the token list in `app/src/styles/tokens.css`.
