@@ -29,6 +29,11 @@ Recorded this session from your chat answers of 2026-10-18 (no action needed): Q
    - **(a) Recommended if true:** the domain is not connected yet; it waits for the Before-launch checklist. The plan stands.
    - (b) It is connected now. EZD-003 Step 5 and the Before-launch order get another re-validation so nothing goes live early.
 
+5. **Q-0124 · Where the conventions check may be written** (EZD-000, blocking the build now)
+   The plan and the reviewed tests put the dependency check that makes CI fail at `scripts/conventions/check.mjs`. The path guard (`.claude/hooks/guard-paths.mjs` line 57) stops the builder from writing anything in `scripts/`, which is meant for the gate, launcher and budget. The builder stopped instead of working around the guard. Everything else in EZD-000 is built (commit 628d1dc on `t/EZD-000`).
+   - **(a) Recommended:** you let the builder write `scripts/conventions/` only (one exception in the guard; gate.mjs, run.mjs and budget.mjs stay protected). Reason: the plan, tests and test review stand as written, and later tickets add to this check in place.
+   - (b) The check moves out of `scripts/` (for example `tools/conventions/check.mjs`). The planner revises EZD-000 and the tests change the path. That costs one more plan and test round.
+
 ## 2. Agent answers to confirm
 
 Every `answered-agent` row in the ledger not yet confirmed (34). Each stands as written unless you override it. Reply "section 2: all confirmed" and name only the ones to change.
