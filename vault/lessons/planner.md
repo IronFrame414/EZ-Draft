@@ -22,3 +22,10 @@ Mistake: T2's per-workflow allow-lists (Q-0112) checked only the `secrets.NAME`,
 Cause: the plan specified what a valid line looks like, not what to do with text the checker cannot parse.
 Rule: an allow-list check over config text fails every form it does not parse (brace form, wildcard, inherit, expression), and the plan proves each rejection on an in-memory sample plus a clean control.
 Check: the plan review lists, for each allow-list test, the other syntaxes the format permits for the same key and where the test rejects them.
+
+## L-009  areas: data-model, migrations, security  seen: 1  status: candidate
+Ticket EZD-006, 2026-10-19
+Mistake: the plan's Step 5 policy template `project_id = any ((select private.listed_project_ids()))` does not parse on the pinned PostgreSQL 17.11 (42883 `uuid = uuid[]`); the builder's first migration failed and T16 needed a structural repair to add `::uuid[]`.
+Cause: SQL contract text in the plan was written from memory and never run against the pinned local stack.
+Rule: SQL that a plan fixes as contract text (policy templates, function signatures a test types in) is run once on the pinned local stack by the planner, or marked "confirm on pinned version" so the test-author verifies it before committing.
+Check: the plan review lists every SQL fragment a test copies verbatim and names where it was run or marked.

@@ -1,10 +1,12 @@
-# Handoff · 2026-10-19 · build EZD-005b
+# Handoff · 2026-10-19 · build EZD-006
 
 - Phase and stage: Phase 0, Stage 3 (building tickets)
 - Why the session ended: unit complete
-- Completed this session: EZD-005b done (92e848d). Local seed creates Worth Properties (tenant 1) with Josh as owner; `supabase/bootstrap/tenant-1.sql` is the one-time cloud setup file (no email in the repo); `scripts/db/sql.mjs` `runLocalSql` for EZD-006; runbook "Tenant 1 setup (EZD-005)". Gate PASS on worktree (round 1) and on develop phase 0 (206 tests). code-reviewer (mode 2 and 3) and security-reviewer PASS, all Fable 5.1.
+- Completed this session: EZD-006 done (0ff28b9). Tenant and listed-project RLS policies, token hook (active tenant claim), session ending on deactivation / scope narrowing, explicit table grants, PostgREST request gate (Q-0087 (ii)), RLS audit test and harness under app/test-harness/rls/. Gate PASS on worktree (round 1) and on develop phase 0 (255 tests). code-reviewer (mode 2, structural repair, mode 3) and security-reviewer PASS, all Fable 5.1.
 - In progress: none
 - Blocked: EZD-003 (unchanged)
-- Questions for Josh: none new. Q-0089 (later phase) stays escalated. Runbook steps 1–8 for tenant 1 cloud setup added to vault/tickets/needs-from-josh.md (dev setup after the dev project and secret exist). Earlier proposal stands: remove the pa3Grant exception in .claude/hooks/guard-paths.mjs (Q-0128 (a)).
-- Decisions made: none; no lessons added. Security follow-up for EZD-023b review: renderBootstrap must forbid quotes in the owner email (EZD-023b.md line 274).
-- Next unit: build EZD-006
+- Questions for Josh: none new. Q-0089 stays escalated. Cloud steps for Josh: docs/runbook.md steps 9–11 (hook switch, per-project API gate secret, project settings) once the dev project exists.
+- Decisions made: no Q-IDs. Lesson L-009 (planner, candidate): run plan SQL contract text on the pinned stack. Structural repair T16 (`::uuid[]` cast).
+- Operational: the local auth hook loads only at `supabase start`; any stack started before 0ff28b9 needs `pnpm db:stop` once (done on develop).
+- Follow-ups for later plans: EZD-105/106/129 add `membership.user_id`/`tenant_id` to the end-sessions trigger if they update them; the first ticket adding a sequence or `public` function grants explicitly and adds it to GATED_RPC_CALLS; table tickets copy the `::uuid[]` policy form.
+- Next unit: build EZD-008
