@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-000b-1, AC-EZD-000b-2, AC-EZD-000b-3, AC-EZD-000b-4, AC-EZD-000b-5 (`vault/spec/acceptance-criteria.md` lines 55–59, generated from Done-when).
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** Claude sessions in this repo stop spending Josh's usage on the task list, prompt suggestions, token reminders and goal check-ins, and every agent plus the three reviewers carry the three honesty rules.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Part A of the EZD-000b split. The split proposal that was in this file is archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md`. Its notes 1–9 are for the later parts; none changes this part.
 

@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-000c-1 to AC-EZD-000c-6 (`vault/spec/acceptance-criteria.md` lines 83–88, generated from Done-when).
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** any Claude session in this repo that tries to load a file over 20,000 characters in one go gets the file's outline back instead and reads only the parts it needs. This saves Josh's usage.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Part B of the EZD-000b split (proposal archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md`).
 

@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-000h-1 to AC-EZD-000h-6 (`vault/spec/acceptance-criteria.md` lines 110–115). They were generated from the Done-when text and match it clause by clause. AC-6 is a report plus the gate, not a test (KNOWN-LIMITS.md, Phase 0 ACs).
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** the launcher pauses and holds on Josh's real Claude usage percentages instead of estimated dollars. It waits out a full five-hour window by itself, warns him once at 70% of the week, holds at 80% after the current ticket finishes, and the status line and `PROGRESS.md` show the percentages and reset times.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 This is Part G of the EZD-000b split. The proposal is archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` (Part G, notes 3–5, 7).
 

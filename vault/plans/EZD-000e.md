@@ -1,9 +1,9 @@
 # EZD-000e · Retriever agents and dispatch brief (Item 4, agent files)
 
-- **ACs:** AC-EZD-000e-1 to AC-EZD-000e-4 (`vault/spec/acceptance-criteria.md` lines 95–98). Like EZD-000d (Q-0130), these IDs were generated from the Scope text, not the Done-when: the escaped `\|` in "REPORT yes\|no" shifted the split, so AC-1 starts mid-sentence at "no · KNOWN". Section 4 maps every test to a Done-when clause DW-1 to DW-5 and, where one fits, to a current AC ID (QP-1).
+- **ACs:** AC-EZD-000e-1 to AC-EZD-000e-5 (`vault/spec/acceptance-criteria.md` lines 93–97), regenerated from the Done-when: AC-EZD-000e-1 to -5 = DW-1 to DW-5 (Q-0131 (a)). Section 4 cites the AC ID for every test.
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** the planner and the three reviewers can hand a big lookup (a long log, the whole spec, a web search) to a cheap Haiku "retriever" and get back a short answer with pointers instead of loading the pages, and the builder, test-author and other agents cannot start other agents.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: questions
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Part D of the EZD-000b split (proposal archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md`, Part D).
 
@@ -21,7 +21,7 @@ Steps:
 2. **Four dispatching agents** (contract C4, C5). Add `Agent` as the last entry of the `tools:` line of `planner.md`, `code-reviewer.md`, `security-reviewer.md` and `phase-auditor.md`. It is a plain `Agent`, not `Agent(retriever-digest, retriever-web)`: the names inside `Agent(...)` are ignored in subagent files (PA3-MECHANISMS.md Findings, Item 4 row; the ticket row "get an `Agent` tool"). Append a `## Retrievers` section with the retriever rule (Item 4 "Rule for the dispatching agents"; PROCESS.md section 4 "Retrievers"; section 3 rule 15). It is appended after EZD-000b's `## Honesty` section, so that section (which runs to the next `## ` line, EZD-000b plan contract) keeps exactly its three rules. No other frontmatter or body line changes.
 3. **No Agent tool elsewhere** (DW-3). `builder.md`, `test-author.md`, `ui-verifier.md`, `calc-auditor.md` and `Explore.md` are not edited; at develop `2d8e927` none of their `tools:` lines names `Agent` (read this session). The test pins it so a later edit cannot add one. calc-auditor is not a dispatcher in PROCESS.md rule 15 (split proposal note 2).
 4. **Brief format in dispatch.md** (contract C6). Append a "Retriever brief" paragraph and a fill-in block (PA3-MECHANISMS.md Item 4 "Brief format … added to `.claude/skills/build-ticket/dispatch.md`"; PROCESS.md section 4 gives the one-line format verbatim). The existing template block and its role list are unchanged.
-5. **Settings unchanged** (AC-EZD-000e-2). `.claude/settings.json` env `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` stays `"1"` (read this session); this ticket does not touch the file. Depth 2 is EZD-000f's (phase-00.md line 37). This is a review check on the diff, not a test, because EZD-000f changes the value to `"2"` and a test pinning `"1"` would have to be rewritten by the next ticket.
+5. **Settings unchanged** (Scope: "Spawn depth stays at 1 in this part"; no AC ID). `.claude/settings.json` env `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` stays `"1"` (read this session); this ticket does not touch the file. Depth 2 is EZD-000f's (phase-00.md line 37). This is a review check on the diff, not a test, because EZD-000f changes the value to `"2"` and a test pinning `"1"` would have to be rewritten by the next ticket.
 6. **Gate** (DW-5). `node scripts/gate.mjs <worktree>` (CLAUDE.md rule 12). Verification item 8 ("builder cannot dispatch; planner can dispatch retriever-digest and the chain stops") and item 9 (adopt end to end from a retriever's pending file) need EZD-000f's depth 2 and the retrievers' write limit in `guard-paths.mjs`, so they are EZD-000f's (phase-00.md line 37 Done-when "Verification items 8 and 9"). This ticket reports neither.
 
 | Path | New / change | Why | Writer (L-002 check against guard-paths.mjs) |
@@ -44,8 +44,8 @@ Data: none. No tables, migrations, money or `schema_version`.
 
 - `vault/handoff/PA3-MECHANISMS.md`: rules 1, 4, 5, 7; Item 4 (files, models, tools, contract, brief format, dispatchers, rule for dispatching agents, tests); Item 6 (pending file name, `REPORT:` first line, never read a report body); Findings row "Item 4 `Agent(...)`" (plain `Agent`; names ignored in subagent files); verification items 8, 9.
 - `vault/PROCESS.md`: section 3 rule 15 (who may dispatch; retrievers dispatch nothing); section 4 roster rows retriever-digest and retriever-web (Haiku 5.5, medium, maxTurns 15, write `vault/research/pending/` only), "Models" (full IDs), "Retrievers" paragraph (rule text, brief format); section 10 "Dispatch rule" (reviewers get more only through a retriever; whole-read guard); section 14 Hooks (guard-reads denial carries the outline).
-- `vault/tickets/phases/phase-00.md` lines 36–37. `vault/spec/acceptance-criteria.md` lines 95–98. `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` Part D, Part E, notes 2, 6, 8, 9.
-- Questions: Q-0128 (a) builder grant; Q-0130 (open; same AC defect for EZD-000d); Q-0126 (c) ("not testable here" items go to PILOT.md; none expected here).
+- `vault/tickets/phases/phase-00.md` lines 36–37. `vault/spec/acceptance-criteria.md` lines 93–97 (AC-EZD-000e-1 to -5 = DW-1 to DW-5, Q-0131 (a)). `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` Part D, Part E, notes 2, 6, 8, 9.
+- Questions: Q-0128 (a) builder grant; Q-0130 (a) and Q-0131 (a) (ACs regenerated from the Done-when); Q-0126 (c) ("not testable here" items go to PILOT.md; none expected here).
 - Plans: `vault/plans/EZD-000d.md` C2 (pending front matter), step 2 (`FOR` → ticket, `SCOPE` → scope); `vault/plans/EZD-000b.md` step 4 and contract (`## Honesty` appended last in the three reviewer files; test folder `scripts/process/`); `vault/plans/EZD-000c.md` (guard-reads; no agent-file changes).
 - Code at develop `2d8e927`: `.claude/agents/*.md` frontmatter (tools lines quoted in C4, C7); `.claude/skills/build-ticket/dispatch.md` (20 lines); `.claude/settings.json` env (depth `"1"`, concurrency `"3"`); `.claude/hooks/guard-paths.mjs` lines 8, 46–50, 83–87 (agent_type; PA3 grant; unknown agents may not write); root `package.json`.
 - Lessons: L-002 (Files table checked against guard-paths.mjs; see section 1 Writer column).
@@ -138,17 +138,17 @@ All in `scripts/process/retrievers.test.mjs` (C8). Each reads repo files; no fix
 
 | Test | AC | Type | Input | Expected value | Source of the expected value |
 | --- | --- | --- | --- | --- | --- |
-| T1 | DW-1 | unit (repo files) | frontmatter of `.claude/agents/retriever-digest.md` | keys in order `name, description, tools, model, effort, maxTurns`; `name` `retriever-digest`; `description` = D1; `tools` = `['Read','Grep','Glob','Write']`; `model` `claude-haiku-5-5`; `effort` `medium`; `maxTurns` `15` | Done-when DW-1; Item 4; PROCESS.md section 4 roster (maxTurns 15) and "Models"; C1 |
-| T2 | DW-1 | unit (repo files) | frontmatter of `.claude/agents/retriever-web.md` | as T1 with `name` `retriever-web`, `description` = D2, `tools` = `['WebSearch','WebFetch','Write']` | Done-when DW-1; Item 4; C2 |
-| T3 | DW-1 (contract) | unit (repo files) | body of each retriever | equals its C3 body text exactly. For each `<a>` in the two names, the body contains `never more than 40`, `vault/research/pending/<a>-<slug>.md`, `REPORT: pending/<a>-<slug>.md` and the five-line front-matter block (`---`, `title: …`, `scope: …`, `ticket: …`, `---`); retriever-digest's contains `path:line` | Item 4 contract (answer only, 40 lines, pointers); Item 6 (pending name, `REPORT:` first line); EZD-000d C2 (keys `title`, `scope`, `ticket`); C3 |
-| T4 | DW-2 | unit (repo files) | frontmatter of the four dispatchers | `tools` lists equal C4 exactly (each holds `Agent` once, as its last entry); `name`, `model`, `effort`, `maxTurns` equal C4's values | Done-when DW-2; Findings row Item 4 (plain `Agent`); PROCESS.md rule 15; `2d8e927` frontmatter |
-| T5 | DW-2 | unit (repo files) | body of the four dispatchers | exactly one line `## Retrievers`; the next non-empty line equals R | Done-when DW-2 "the retriever rule"; Item 4 "Rule for the dispatching agents"; PROCESS.md section 4 "Retrievers"; C5 |
-| T6 | DW-3 | unit (repo files) | every `.claude/agents/*.md` except the four dispatchers | the checked set includes `builder`, `test-author`, `ui-verifier`, `calc-auditor`, `Explore`, `retriever-digest`, `retriever-web` (by file name, so the test cannot pass on an empty set); each has a `tools:` line; no entry is `Agent`, starts with `Agent(` or is `Task`; on failure, names the file | Done-when DW-3; Item 4 "Tests: a dispatch from the builder agent file has no `Agent` tool (inspect the frontmatter)"; PROCESS.md rule 15; C7 |
-| T7 | AC-EZD-000e-1; DW-4 | unit (repo files) | `.claude/skills/build-ticket/dispatch.md` | lines 1–20 equal the `2d8e927` text (the test holds them); then a blank line, B1, a blank line, and B2's eight lines in order | Done-when DW-4; Scope (AC-1 clause "… is added to dispatch.md"); Item 4 brief format; PROCESS.md section 4 (B1's quoted format verbatim); C6 |
+| T1 | AC-EZD-000e-1 | unit (repo files) | frontmatter of `.claude/agents/retriever-digest.md` | keys in order `name, description, tools, model, effort, maxTurns`; `name` `retriever-digest`; `description` = D1; `tools` = `['Read','Grep','Glob','Write']`; `model` `claude-haiku-5-5`; `effort` `medium`; `maxTurns` `15` | Done-when DW-1; Item 4; PROCESS.md section 4 roster (maxTurns 15) and "Models"; C1 |
+| T2 | AC-EZD-000e-1 | unit (repo files) | frontmatter of `.claude/agents/retriever-web.md` | as T1 with `name` `retriever-web`, `description` = D2, `tools` = `['WebSearch','WebFetch','Write']` | Done-when DW-1; Item 4; C2 |
+| T3 | AC-EZD-000e-1 (contract) | unit (repo files) | body of each retriever | equals its C3 body text exactly. For each `<a>` in the two names, the body contains `never more than 40`, `vault/research/pending/<a>-<slug>.md`, `REPORT: pending/<a>-<slug>.md` and the five-line front-matter block (`---`, `title: …`, `scope: …`, `ticket: …`, `---`); retriever-digest's contains `path:line` | Item 4 contract (answer only, 40 lines, pointers); Item 6 (pending name, `REPORT:` first line); EZD-000d C2 (keys `title`, `scope`, `ticket`); C3 |
+| T4 | AC-EZD-000e-2 | unit (repo files) | frontmatter of the four dispatchers | `tools` lists equal C4 exactly (each holds `Agent` once, as its last entry); `name`, `model`, `effort`, `maxTurns` equal C4's values | Done-when DW-2; Findings row Item 4 (plain `Agent`); PROCESS.md rule 15; `2d8e927` frontmatter |
+| T5 | AC-EZD-000e-2 | unit (repo files) | body of the four dispatchers | exactly one line `## Retrievers`; the next non-empty line equals R | Done-when DW-2 "the retriever rule"; Item 4 "Rule for the dispatching agents"; PROCESS.md section 4 "Retrievers"; C5 |
+| T6 | AC-EZD-000e-3 | unit (repo files) | every `.claude/agents/*.md` except the four dispatchers | the checked set includes `builder`, `test-author`, `ui-verifier`, `calc-auditor`, `Explore`, `retriever-digest`, `retriever-web` (by file name, so the test cannot pass on an empty set); each has a `tools:` line; no entry is `Agent`, starts with `Agent(` or is `Task`; on failure, names the file | Done-when DW-3; Item 4 "Tests: a dispatch from the builder agent file has no `Agent` tool (inspect the frontmatter)"; PROCESS.md rule 15; C7 |
+| T7 | AC-EZD-000e-4 | unit (repo files) | `.claude/skills/build-ticket/dispatch.md` | lines 1–20 equal the `2d8e927` text (the test holds them); then a blank line, B1, a blank line, and B2's eight lines in order | Done-when DW-4; Scope ("… is added to dispatch.md"); Item 4 brief format; PROCESS.md section 4 (B1's quoted format verbatim); C6 |
 
 Notes:
 - **Before the build,** T1–T7 fail for the right reason: the retriever files, the `Agent` entries, the `## Retrievers` sections and the brief are missing. T6 fails only because the two retriever files are missing (the other five already pass).
-- **Not tested, checked by review:** AC-EZD-000e-2 (spawn depth stays at 1): the code-reviewer confirms `git diff develop...HEAD -- .claude/settings.json` is empty (step 5). AC-EZD-000e-3 and -4 are notes (split origin; write grant), not checks (KNOWN-LIMITS.md, Phase 0 ACs); the test-author maps them to this plan's header and the section 1 Writer column. DW-5 is the gate itself.
+- **Not tested, checked by review:** the Scope clause "Spawn depth stays at 1 in this part" (no AC ID): the code-reviewer confirms `git diff develop...HEAD -- .claude/settings.json` is empty (step 5). AC-EZD-000e-5 (DW-5) is the gate itself.
 - **Earlier tests stay green:** EZD-000b's T4 (no TaskCreate/TaskUpdate/TaskList under `.claude/agents/`) holds, since neither body names them; EZD-000b's T7 (`## Honesty` section holds the three rules up to the next `## ` line) holds, since `## Retrievers` is appended after it. `scripts/hooks/guard-paths.test.mjs` is unchanged.
 
 ## 5. Visual checklist
@@ -161,7 +161,7 @@ None. No app or user-interface text is added. The agent bodies, descriptions, th
 security-review: no. Agent configuration only: no auth, permissions on data, data access, money, API or migrations, and no secrets read (split proposal Part D).
 
 Reviewers needed:
-- **code-reviewer:** yes, Opus 5.5 high (PA3-MECHANISMS.md rule 5). Check that no agent outside the four gained `Agent`, that the depth setting is untouched (AC-2), that the reviewers' frontmatter and `## Honesty` sections are otherwise unchanged, and that retriever-web's body forbids secrets in queries (CLAUDE.md rule 8).
+- **code-reviewer:** yes, Opus 5.5 high (PA3-MECHANISMS.md rule 5). Check that no agent outside the four gained `Agent`, that the depth setting is untouched (step 5), that the reviewers' frontmatter and `## Honesty` sections are otherwise unchanged, and that retriever-web's body forbids secrets in queries (CLAUDE.md rule 8).
 - **calc-auditor:** no.
 - **ui-verifier:** no.
 - **security-reviewer:** no.
@@ -170,7 +170,7 @@ Reviewers needed:
 Medium. The edits are text with a complete contract, but they change the tools and prompts of agents every unit dispatches, and a wrong `tools` line either blocks a reviewer or lets the builder spawn agents. Test-author: Sonnet 5.5, medium effort. Builder: Sonnet 5.5, medium effort (PA3-MECHANISMS.md rule 5; STATUS.md row notes).
 
 ## 9. Dependencies
-- **EZD-000d** (questions, Q-0130). Defines the pending report format (C2) and `vault/research/pending/`; the retriever bodies match it.
+- **EZD-000d** (ready; Q-0130 answered (a)). Defines the pending report format (C2) and `vault/research/pending/`; the retriever bodies match it.
 - **EZD-000c** (planned), through EZD-000d. Its guard-reads denial carries the outline that retriever-digest relies on (step 1).
 - **EZD-000b** (planned), through EZD-000c. Adds `## Honesty` at the end of the three reviewer files; C5 appends after it.
 - **EZD-000** (done).
@@ -182,4 +182,6 @@ Risks:
 - **Web content.** retriever-web brings page text into a pending report that later plans cite; reviewers read the report ID only (R), not its body.
 
 ## 10. Open questions
-- **Q-0131 (was QP-1):** The ACs for EZD-000e (`acceptance-criteria.md` lines 95–98) have the same defect as Q-0130 for EZD-000d: they were generated from the Scope (split at the escaped `\|` in "REPORT yes\|no"), so no AC ID covers the retriever files, the Agent tools or the "no Agent tool" check (DW-1 to DW-3). Options: (a) apply Q-0130's answer to EZD-000e too, regenerating AC-EZD-000e-1 to -5 from DW-1 to DW-5 so the test-author uses those IDs in section 4; (b) keep the four IDs and add AC-EZD-000e-5 to -9 for DW-1 to DW-5; (c) keep the IDs and track the DW clauses through this plan only.
+- **Q-0131 (answered-agent, orchestrator):** (a) same `gen_acs.mjs` fault and fix as Q-0130; regenerated, EZD-000e now has AC-EZD-000e-1 to -5 = DW-1 to DW-5, and section 4 cites those IDs.
+
+No open questions remain.

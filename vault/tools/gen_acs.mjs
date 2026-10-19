@@ -24,7 +24,7 @@ for (const f of readdirSync(phaseDir).filter((n) => /^phase-\d\d\.md$/.test(n)).
   for (const line of readFileSync(path.join(phaseDir, f), 'utf8').split(/\r?\n/)) {
     const m = line.match(/^\|\s*(EZD-\d+[a-z]?)\s*\|(.*)\|\s*$/);
     if (!m) continue;
-    const cells = m[2].split('|').map((s) => s.trim());
+    const cells = m[2].split(/(?<!\\)\|/).map((s) => s.trim()); // an escaped \| stays inside its cell (Q-0130)
     // columns: Ticket | Scope | Done when | Depends on | Spec ref
     if (cells.length < 3) continue;
     titles.set(m[1], cells[0]);

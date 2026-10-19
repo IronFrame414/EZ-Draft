@@ -1,9 +1,9 @@
 # EZD-000d · Research report store (Item 6)
 
-- **ACs:** AC-EZD-000d-1 to AC-EZD-000d-6 (`vault/spec/acceptance-criteria.md` lines 89–94). These IDs were generated from the wrong column of the ticket row and cover the Scope text, not the Done-when (see QP-1). Section 4 maps every test to a Done-when clause DW-1 to DW-4 and, where one fits, to a current AC ID.
+- **ACs:** AC-EZD-000d-1 to AC-EZD-000d-4 (`vault/spec/acceptance-criteria.md` lines 89–92), regenerated from the Done-when: AC-EZD-000d-1 to -4 = DW-1 to DW-4 (Q-0130 (a)). Section 4 cites the AC ID for every test that has one.
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** when an agent looks something up for a ticket, the findings are saved once as a numbered report (R-001, R-002 …) with a one-line index entry. Later plans can cite the report instead of paying for the same lookup again.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: questions
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Part C of the EZD-000b split (proposal archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md`, Part C).
 
@@ -54,9 +54,10 @@ Data: none. No tables, migrations, money or `schema_version`.
   - Section 6 (planner runs adopt and cites IDs; plan section 2 item).
   - Section 13 (`vault/tools/research.mjs`; `vault/research/`).
   - Section 14 (repo tree `vault/research/ INDEX.md, R-NNN.md, pending/`; CLAUDE.md template Directory row and its position).
-- `vault/tickets/phases/phase-00.md` lines 35–36. `vault/spec/acceptance-criteria.md` lines 89–94. `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` Part C and note 9.
+- `vault/tickets/phases/phase-00.md` lines 35–36. `vault/spec/acceptance-criteria.md` lines 89–92 (AC-EZD-000d-1 to -4 = DW-1 to DW-4, Q-0130 (a)). `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` Part C and note 9.
 - Questions:
   - Q-0128 (a): builder grant.
+  - Q-0130 (a): ACs regenerated from the Done-when.
   - Q-0126 (c): "not testable here" items go to PILOT.md. None are expected here.
 - Plans: `vault/plans/EZD-000b.md` (CLAUDE.md contract and line count 52), `vault/plans/EZD-000c.md` (CLAUDE.md line count unchanged; test-file layout `scripts/tools/*.test.mjs`; CLI usage and exit-code style C3).
 - Code at develop `1f680bf`:
@@ -111,22 +112,22 @@ All tests are in `scripts/tools/research.test.mjs`. "today" is `localDate()` as 
 
 | Test | AC | Type | Input | Expected value | Source of the expected value |
 | --- | --- | --- | --- | --- | --- |
-| T1 | DW-1 (no AC ID; QP-1) | unit (CLI) | tmp tree: index `H`; `pending/` = `.gitkeep`, `retriever-digest-b.md`, `retriever-web-a.md`; run `adopt` | exit 0; stdout `R-001\nR-002\n`. `R-001.md` is byte-equal to the original `retriever-digest-b.md` and `R-002.md` to `retriever-web-a.md` (`d` sorts before `w`). `pending/` lists exactly `['.gitkeep']`. INDEX = `H` + `R-001 \| <today> \| Title B \| app/src \| EZD-101\nR-002 \| <today> \| Title A \| example.com \| EZD-102\n` | Done-when DW-1 (two files, next two free numbers, two lines in that order of fields, prints the IDs, pending empty); Item 6; C1–C4. `001` is the first free number with no reports; the width comes from `R-NNN` |
-| T2 | DW-2 (no AC ID; QP-1) | unit (CLI) | after T1's run, run `adopt` again | exit 0; stdout `''`; stderr `''`. INDEX bytes and the sorted listings of `vault/research/` and `pending/` are equal to those before the second run | Done-when DW-2 "prints nothing and changes nothing"; Item 6 tests |
-| T3 | DW-1 | unit (`adopt()`) | (a) dir with `R-007.md` and index `H` + `R-007 \| 2026-10-01 \| x \| y \| z\n`, two valid pending files, date `'2026-10-19'`. (b) index `H` + `R-010 \| …` line with no `R-010.md` file, one valid pending file | (a) `ids` `['R-008','R-009']`, and the last index line starts `R-009 \| 2026-10-19 \|`. (b) `ids` `['R-011']` | Done-when "next two free `R-NNN.md` numbers"; C1 next-number rule |
-| T4 | DW-1 | unit (`adopt()`) | pending `pipe.md` plus `retriever-web-a.md`; index `H` without a trailing `\n` (`'# Research reports\n\nHeader line.'`) | index = `'# Research reports\n\nHeader line.\nR-001 \| 2026-10-19 \| a / b \| x \| EZD-1\nR-002 \| 2026-10-19 \| Title A \| example.com \| EZD-102\n'` | C1 append rule; C2 (trim, `\|` → `/`, extra key ignored) |
-| T5 | DW-1 | unit (CLI) | pending `bad-nofm.md`, `bad-noscope.md`, `retriever-digest-b.md` | exit 1; stdout `R-001\n`. stderr has the lines `research: skipped pending/bad-nofm.md: no front matter` and `research: skipped pending/bad-noscope.md: missing scope`. Both bad files are still in `pending/`, and the index gained exactly one line | C2 reasons; C4; architecture.md "Nothing fails silently" |
-| T6 | DW-2 | unit (CLI) | (a) tmp tree with index `H` and no `pending/` folder. (b) `pending/` holding only `notes.txt` and `.gitkeep` | (a) and (b): exit 0, stdout `''`, index unchanged. In (b) `notes.txt` is still there | C1 candidates rule; DW-2 |
+| T1 | AC-EZD-000d-1 | unit (CLI) | tmp tree: index `H`; `pending/` = `.gitkeep`, `retriever-digest-b.md`, `retriever-web-a.md`; run `adopt` | exit 0; stdout `R-001\nR-002\n`. `R-001.md` is byte-equal to the original `retriever-digest-b.md` and `R-002.md` to `retriever-web-a.md` (`d` sorts before `w`). `pending/` lists exactly `['.gitkeep']`. INDEX = `H` + `R-001 \| <today> \| Title B \| app/src \| EZD-101\nR-002 \| <today> \| Title A \| example.com \| EZD-102\n` | Done-when DW-1 (two files, next two free numbers, two lines in that order of fields, prints the IDs, pending empty); Item 6; C1–C4. `001` is the first free number with no reports; the width comes from `R-NNN` |
+| T2 | AC-EZD-000d-2 | unit (CLI) | after T1's run, run `adopt` again | exit 0; stdout `''`; stderr `''`. INDEX bytes and the sorted listings of `vault/research/` and `pending/` are equal to those before the second run | Done-when DW-2 "prints nothing and changes nothing"; Item 6 tests |
+| T3 | AC-EZD-000d-1 | unit (`adopt()`) | (a) dir with `R-007.md` and index `H` + `R-007 \| 2026-10-01 \| x \| y \| z\n`, two valid pending files, date `'2026-10-19'`. (b) index `H` + `R-010 \| …` line with no `R-010.md` file, one valid pending file | (a) `ids` `['R-008','R-009']`, and the last index line starts `R-009 \| 2026-10-19 \|`. (b) `ids` `['R-011']` | Done-when "next two free `R-NNN.md` numbers"; C1 next-number rule |
+| T4 | AC-EZD-000d-1 | unit (`adopt()`) | pending `pipe.md` plus `retriever-web-a.md`; index `H` without a trailing `\n` (`'# Research reports\n\nHeader line.'`) | index = `'# Research reports\n\nHeader line.\nR-001 \| 2026-10-19 \| a / b \| x \| EZD-1\nR-002 \| 2026-10-19 \| Title A \| example.com \| EZD-102\n'` | C1 append rule; C2 (trim, `\|` → `/`, extra key ignored) |
+| T5 | AC-EZD-000d-1 | unit (CLI) | pending `bad-nofm.md`, `bad-noscope.md`, `retriever-digest-b.md` | exit 1; stdout `R-001\n`. stderr has the lines `research: skipped pending/bad-nofm.md: no front matter` and `research: skipped pending/bad-noscope.md: missing scope`. Both bad files are still in `pending/`, and the index gained exactly one line | C2 reasons; C4; architecture.md "Nothing fails silently" |
+| T6 | AC-EZD-000d-2 | unit (CLI) | (a) tmp tree with index `H` and no `pending/` folder. (b) `pending/` holding only `notes.txt` and `.gitkeep` | (a) and (b): exit 0, stdout `''`, index unchanged. In (b) `notes.txt` is still there | C1 candidates rule; DW-2 |
 | T7 | — (contract) | unit (CLI) | args `[]`; `['foo']`; `['adopt', 'x']` | each: exit 2; stderr starts `usage: node vault/tools/research.mjs adopt` | C4 (same style as EZD-000c C3) |
-| T8 | AC-EZD-000d-1 (scope); DW-1 | unit (repo files) | read `<root>/vault/research/INDEX.md`; list `<root>/vault/research/pending/` | INDEX equals the C6 text exactly; no line matches `^R-\d+ \|`; `pending/` contains `.gitkeep` (size 0) and no `.md`; no `R-*.md` in `vault/research/` | Scope (new INDEX.md and pending/); C6 |
-| T9 | AC-EZD-000d-1; DW-3; DW-4 (item 11) | unit (repo files) | read `<root>/CLAUDE.md` | C7 holds: one exact row, between the Models row and the Gate row, inside `## Directory`; line count ≤ 60 | Scope (row text); PROCESS.md section 14 template (text and position); Done-when "at most 60 lines"; verification item 11 |
-| T10 | AC-EZD-000d-2 | unit (repo files) | read both skill files | plan-ticket's step 2 line ends with S1; build-ticket has a line equal to S2 directly after the blank line that follows the `**Load only:**` line; the numbered step lines (`^\d+\. `) of both files are the same as before the build: plan-ticket `1.`–`4.`, build-ticket `0.`–`11.` | Scope; Item 6; PROCESS.md sections 6, 13; C8; `1f680bf` step numbering |
+| T8 | AC-EZD-000d-1 (store files) | unit (repo files) | read `<root>/vault/research/INDEX.md`; list `<root>/vault/research/pending/` | INDEX equals the C6 text exactly; no line matches `^R-\d+ \|`; `pending/` contains `.gitkeep` (size 0) and no `.md`; no `R-*.md` in `vault/research/` | Scope (new INDEX.md and pending/); C6 |
+| T9 | AC-EZD-000d-3; AC-EZD-000d-4 (item 11) | unit (repo files) | read `<root>/CLAUDE.md` | C7 holds: one exact row, between the Models row and the Gate row, inside `## Directory`; line count ≤ 60 | Scope (row text); PROCESS.md section 14 template (text and position); Done-when "at most 60 lines"; verification item 11 |
+| T10 | — (Scope; contract C8) | unit (repo files) | read both skill files | plan-ticket's step 2 line ends with S1; build-ticket has a line equal to S2 directly after the blank line that follows the `**Load only:**` line; the numbered step lines (`^\d+\. `) of both files are the same as before the build: plan-ticket `1.`–`4.`, build-ticket `0.`–`11.` | Scope; Item 6; PROCESS.md sections 6, 13; C8; `1f680bf` step numbering |
 
 Notes:
 - **Before the build,** T1–T10 fail for the right reason: the module, the store files, the row and the sentences are missing.
 - **Not tested:**
-  - AC-EZD-000d-3 and -4 (template, step 6) are done by the orchestrator at merge, after the gate. The orchestrator checks them with grep.
-  - AC-EZD-000d-5 and -6 are notes (the split origin and the write grant), not checks (KNOWN-LIMITS.md, Phase 0 ACs). The test-author maps them to this section's step 6 and the section 1 Writer column.
+  - The template sentence (step 6, C9) is Scope with no AC ID. The orchestrator adds it at merge, after the gate, and checks it with grep.
+  - AC-EZD-000d-4's "gate is green" is the gate itself.
 - **Earlier tests stay green:**
   - EZD-000b's CLAUDE.md test (rules 1–16 numbering, ≤ 60 lines) is not affected by a Directory row.
   - EZD-000c's T10 checks the rule 10 line and ≤ 60, which still hold.
@@ -162,7 +163,6 @@ Risks:
 - **Hand-edited index.** Adopt takes the next number from both files and index lines, so a hand-edited index cannot cause a reused ID.
 
 ## 10. Open questions
-- **Q-0130 (was QP-1):** The ACs for EZD-000d (`acceptance-criteria.md` lines 89–94) were generated from the Scope text, not the Done-when. The escaped `\|` in the Scope's CLAUDE.md row appears to have shifted the columns. So no AC ID covers the adopt behaviour (DW-1, DW-2) or verification item 11. Options:
-  - (a) Regenerate EZD-000d's ACs from the Done-when, giving AC-EZD-000d-1 to -4 = DW-1 to DW-4, and the test-author uses those IDs in place of the DW labels in section 4.
-  - (b) Keep the current six IDs and add AC-EZD-000d-7 to -10 for DW-1 to DW-4.
-  - (c) Keep the IDs as they are and track the DW clauses through this plan only.
+- **Q-0130 (answered-agent, orchestrator):** (a) the six rows were a `gen_acs.mjs` fault (split on escaped `\|`), fixed and regenerated; EZD-000d now has AC-EZD-000d-1 to -4 = DW-1 to DW-4, and section 4 cites those IDs.
+
+No open questions remain.

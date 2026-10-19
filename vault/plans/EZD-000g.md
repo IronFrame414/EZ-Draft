@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-000g-1 to AC-EZD-000g-4 (`vault/spec/acceptance-criteria.md` lines 106–109). They were generated from the Done-when text and match it clause by clause, so the Q-0130 / Q-0131 defect does not apply. The wrap-skill sentence of the Scope has no AC ID; T7 covers it and maps to the Scope.
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** a lesson's rule reaches an agent only after Josh says yes. The questions file for each phase gets a fourth list, "Rule candidates", where he ratifies or rejects each proposed rule by number. The ledger check fails if a lesson has no status.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 This is Part F of the EZD-000b split. The proposal is archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` (Part F).
 

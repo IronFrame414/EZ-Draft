@@ -1,9 +1,9 @@
 # EZD-000f · Retriever spawn limits (Item 4, enforcement)
 
-- **ACs:** AC-EZD-000f-1 to AC-EZD-000f-7 (`vault/spec/acceptance-criteria.md` lines 99–105). They were generated from the Done-when text and match it clause by clause, so there is no AC defect of the Q-0130 / Q-0131 kind here.
+- **ACs:** AC-EZD-000f-1 to AC-EZD-000f-7 (`vault/spec/acceptance-criteria.md` lines 98–104). They were generated from the Done-when text and match it clause by clause, so there is no AC defect of the Q-0130 / Q-0131 kind here.
 - **Complexity:** medium (reasoning in section 8).
 - **User-visible result:** only the planner and the three reviewers can start a helper agent, and only one of the two cheap Haiku "retrievers". The builder and the other agents cannot start any agent, and retrievers can write only their report files. The main session can still start every agent.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: questions
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 This is Part E of the EZD-000b split. The proposal is archived at `vault/handoff/log/EZD-000b-split-proposal-2026-10-19.md` (Part E and note 6).
 
@@ -79,11 +79,12 @@ Data: none. No tables, migrations, money or `schema_version`.
   - section 4: roster rows for retriever-digest and retriever-web ("`vault/research/pending/` only"), the "Retrievers" paragraph;
   - section 11 Spend discipline (concurrency 3, depth 2);
   - section 14 Settings (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2`) and Hooks.
-- `vault/tickets/phases/phase-00.md` line 37. `vault/spec/acceptance-criteria.md` lines 99–105. Split proposal Part E and notes 2 and 6.
+- `vault/tickets/phases/phase-00.md` line 37. `vault/spec/acceptance-criteria.md` lines 98–104. Split proposal Part E and notes 2 and 6.
 - Questions:
   - Q-0126 (c): items that are "not testable here" go to PILOT.md.
   - Q-0128 (a): the builder grant.
   - Q-0125 (a): fix mode, not used here.
+  - Q-0132 (a): PROCESS.md edit naming guard-agents, proposed to Josh by the orchestrator.
 - Plans:
   - `vault/plans/EZD-000e.md`: C1, C2 (retrievers have no `Agent`), C4 (plain `Agent` on the four dispatchers), C7 (`Task` as the earlier tool name), step 5 (depth left at 1 for this ticket), risk "Window before EZD-000f".
   - `vault/plans/EZD-000d.md`: C1 `adopt(researchDir, date)`, C2 (pending format), C6 (`INDEX.md` header).
@@ -101,7 +102,7 @@ Data: none. No tables, migrations, money or `schema_version`.
 - Research reports: none exist (`vault/research/` is absent at `0055b60`), so no R-NNN covers this ticket. Split proposal note 6 expected a `retriever-web` lookup; retrievers do not exist until EZD-000e merges, so the binary check above replaced it.
 
 **Differences between the handoff and PROCESS.md** (handoff rule 1; the builder repeats them in its report):
-1. Item 4 and PROCESS.md section 4 say the `tools` lines enforce who may dispatch. In subagent files they can only grant or withhold `Agent` (Findings), so the "only retrievers" half is enforced by guard-agents.mjs (QP-1).
+1. Item 4 and PROCESS.md section 4 say the `tools` lines enforce who may dispatch. In subagent files they can only grant or withhold `Agent` (Findings), so the "only retrievers" half is enforced by guard-agents.mjs (Q-0132 (a): the orchestrator proposes the PROCESS.md edit to Josh).
 2. The Findings propose settings deny rules. This plan uses a hook instead, because deny rules would also block the main session (AC-4).
 
 ## 3. Interface contract
@@ -169,10 +170,10 @@ Medium. The code is small and the contract is complete. But the hook runs on eve
 ## 9. Dependencies
 
 From the ticket row:
-- **EZD-000e** (questions, Q-0131). It creates the retriever agent files and the plain `Agent` tool on the four dispatchers. The names in C2 match its C1, C2 and C4.
+- **EZD-000e** (ready; Q-0131 answered (a)). It creates the retriever agent files and the plain `Agent` tool on the four dispatchers. The names in C2 match its C1, C2 and C4.
 
 Not in the ticket row, reached through the chain:
-- **EZD-000d** (questions, Q-0130). It provides `adopt()` and the pending format used by T8.
+- **EZD-000d** (ready; Q-0130 answered (a)). It provides `adopt()` and the pending format used by T8.
 - **EZD-000c** (planned). It adds the guard-reads entry and env that C4 keeps, and owns T10, edited in C7.
 - **EZD-000b** (planned). It adds the switches and env that C4 keeps, and owns T3, edited in C7.
 - **EZD-000** (done).
@@ -188,4 +189,6 @@ Risks:
 - **Reports written in a worktree.** A retriever dispatched by a reviewer can write to a worktree's `vault/research/pending/`, and the guard allows this by the `repoRelative` design. The squash merge then brings the file to develop, where the next `adopt` run picks it up. Nothing is lost, but the report rides in the ticket's commit.
 
 ## 10. Open questions
-- **Q-0132 (was QP-1):** PROCESS.md section 4 ("enforced by each agent file's `tools` line") and section 14 Hooks (no `guard-agents` entry) will not describe the mechanism this ticket adds: the `tools` lines cannot name targets (Findings, Item 4 row), so a new hook does that part. Options: (a) at Stage 2 the orchestrator proposes to Josh a one-line PROCESS.md edit naming `guard-agents` (before Agent: only the four dispatchers, only retrievers; main session unrestricted) in section 14 Hooks and pointing section 4 to it; (b) leave PROCESS.md as is and let this plan and the hook's header comment record it.
+- **Q-0132 (answered-agent, orchestrator):** (a) the orchestrator proposes to Josh, in phase-00-for-josh.md section 2, the two-line PROCESS.md edit (section 14 Hooks names `guard-agents`; section 4 points to it), applied when he confirms. EZD-000f builds the same either way, so the plan does not change.
+
+No open questions remain.
