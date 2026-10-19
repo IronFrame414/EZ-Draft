@@ -15,3 +15,5 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0058 | 2026-10-12 | (a): toasts clear after 5 seconds; toasts that need an answer stay until used or closed. |
 | Q-0086 | 2026-10-12 | (a): "Can't reach the database. Try again in a minute." / "You don't have permission to do that." / "That job no longer exists." |
 | Q-0098 | 2026-10-12 | Icon-only header buttons: Share uses `share`, Export uses `download`. |
+| Q-0038 | 2026-10-18 | (b): a "More tools" button at the end of the rail opens a flyout with the tools that do not fit. New requirement: each user can set the order of the tools on the rail (placement: Q-0122). Grouping tools into categories is an idea only (BACKLOG.md). |
+| Q-0122 | 2026-10-18 | (a): per-user tool order on the rail is built in Phase 2 inside EZD-230. |

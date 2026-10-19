@@ -24,7 +24,7 @@ Phase 0 passes on the local Supabase and the stub email provider. Only EZD-003 a
 | A real vendor cabinet line | EZD-401, EZD-408 | The generic seed line is used |
 | Mockup exports of the 36 Studio boards in the vault | Every screen ticket | Done |
 
-**Added at Phase 0 planning (Oct 11, 2026).** Status of the account row above: Docker Desktop installed; Vercel, Supabase and Resend accounts exist, shared with EZ Binder (Q-0003). Still to come: DNS record for the subdomain, Claude API key, image-model API keys, Sentry, backup bucket at a second provider. The GitHub repository exists (`IronFrame414/EZ-Draft`, public).
+**Added at Phase 0 planning (Oct 11, 2026).** Status of the account row above: Docker Desktop installed; Vercel, Supabase and Resend accounts exist, shared with EZ Binder (Q-0003). Still to come: Claude API key, image-model API keys, Sentry, backup bucket at a second provider. The GitHub repository exists (`IronFrame414/EZ-Draft`, public). DNS record and Vercel domain: done (Q-0123, Oct 18, 2026).
 
 | Item | Needed by | Without it |
 | --- | --- | --- |
@@ -34,4 +34,6 @@ Phase 0 passes on the local Supabase and the stub email provider. Only EZD-003 a
 | iPad drawing-speed run on Josh's iPad over the office network (EZD-027) | EZD-027 note, architecture checkpoint before Phase 2 | Phase 2 cannot start (Q-0064) |
 | One-time install on the build PC: Playwright browsers `pnpm exec playwright install chromium webkit` (agents can run it once Josh approves) | EZD-007, EZD-016a | Browser tests cannot run |
 | Docker Desktop running whenever a build session runs | EZD-004 onward | Every check fails at the database step |
+| Vercel, Settings → Git: Ignored Build Step set to the PROCESS.md section 12 command (Q-0116 (a)); confirm it is set, since GitHub still shows Vercel preview records for `develop` pushes on Oct 18 | Before the Phase 0 gate (the PR preview relies on it) | Previews build on every develop push, and the phase PR may show none |
+| Vercel, Settings → Domains: turn off "Auto-assign Custom Production Domains" (EZD-003 Step 5.2; Q-0123); never turn it back on | Before merging the Phase 0 PR into `main` | The Phase 0 merge goes live at ezdraft.ezcontractorbinder.com before launch (Q-0113) |
 | Database API gate secret (Q-0087): generate one secret and store it in each cloud Supabase project and in Vercel, per the EZD-006 runbook step | EZD-006 cloud setup, first release | The cloud app refuses all data requests (fails closed) |

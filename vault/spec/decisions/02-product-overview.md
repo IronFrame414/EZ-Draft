@@ -17,3 +17,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0109 | 2026-10-12 | Shared Vercel team with EZ Binder; the release token is scoped to that team and expires every 90 days; all secret variables marked Sensitive. |
 | Q-0110 | 2026-10-12 | The cloud dev database holds made-up test data only. |
 | Q-0113 | 2026-10-12 | One Supabase project for now (dev/test). Nothing goes live until the app is mostly finished; the production project, production secrets, Sentry, Backblaze and release keys are set up from a "Before launch" checklist. Until then a merge to main releases nothing, and field checks use the develop preview. |
+| Q-0123 | 2026-10-18 | (b): the domain ezdraft.ezcontractorbinder.com is already connected to the Vercel project `ezdraft` (confirmed by Josh in Vercel). Until launch a merge into `main` must not go live on it; EZD-003 Step 5 and the Before-launch order are re-validated for that. |

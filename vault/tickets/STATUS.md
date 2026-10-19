@@ -6,7 +6,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Phase | Ticket | Title | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 37 |
+| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 38 |
 | 1 | Phase 1 · Foundation | [phase-01.md](phases/phase-01.md) | 37 |
 | 2 | Phase 2 · Geometry core + plan editor | [phase-02.md](phases/phase-02.md) | 38 |
 | 3 | Phase 3 · Imports | [phase-03.md](phases/phase-03.md) | 15 |
@@ -27,9 +27,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| EZD-001 | 0 | Repo and tooling | ready | medium | EZD-000 |  |  |  |
+| EZD-001 | 0 | Repo and tooling | ready | medium | EZD-000, EZD-000b |  |  |  |
 | EZD-002 | 0 | CI | ready | medium | EZD-001 |  |  |  |
-| EZD-003 | 0 | Hosting and subdomain | questions | medium | EZD-002 |  |  | Q-0116 (Vercel Ignored Build Step) pending; was ready. Plan Step 3 is re-validated on (a). |
+| EZD-003 | 0 | Hosting and subdomain | ready | medium | EZD-002 |  |  | Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: previews only on the phase PR. Q-0123 (b) (domain already connected): re-validated again the same day; Josh turns off Auto-assign Custom Production Domains before the Phase 0 merge (Step 5.2). |
 | EZD-004 | 0 | Supabase project | ready | high | EZD-001 |  |  |  |
 | EZD-005 | 0 | Tenant, user, membership tables | ready | high | EZD-004 |  |  |  |
 | EZD-006 | 0 | Row-level security | ready | high | EZD-005 |  |  |  |
@@ -51,8 +51,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-021 | 0 | AI client and stubs | ready | high | EZD-009, EZD-016, EZD-023b |  |  |  |
 | EZD-022 | 0 | Event registry | ready | medium | EZD-001 |  |  |  |
 | EZD-000 | 0 | Architecture conventions | ready | high | — |  |  |  |
+| EZD-000b | 0 | PA3 mechanisms (process tooling) | ready | medium | EZD-000 |  |  | Added 2026-10-18 (questions 0). Source: vault/handoff/PA3-MECHANISMS.md (Josh, 2026-10-18); runs after EZD-000, before EZD-001. Builder may edit .claude/, CLAUDE.md, scripts/, vault/tools/ for this ticket only. Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high; security-reviewer on Item 1b. |
 | EZD-023a | 0 | Release safety: migration check | ready | medium | EZD-002, EZD-004 |  |  | Split from EZD-023 (Q-0042) |
-| EZD-023b | 0 | Environments, promote and rollback | questions | high | EZD-023a, EZD-004, EZD-008, EZD-005 |  |  | Split from EZD-023 (Q-0042) · Q-0116 pending; was ready. The develop-preview text (plan lines 298, 431) is re-validated on (a). |
+| EZD-023b | 0 | Environments, promote and rollback | ready | high | EZD-023a, EZD-004, EZD-008, EZD-005 |  |  | Split from EZD-023 (Q-0042) · Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: phase PR preview; release step unaffected. Q-0123 (b): Before-launch checklist aligned the same day. |
 | EZD-024 | 0 | Error reporting | ready | high | EZD-008, EZD-009, EZD-026a, EZD-016a, EZD-022 |  |  |  |
 | EZD-025 | 0 | Off-site backups and restore script | ready | high | EZD-004, EZD-009, EZD-023b, EZD-005, EZD-006 |  |  |  |
 | EZD-026a | 0 | Message helper: helper, catalogs, lint | ready | medium | EZD-001, EZD-010 |  |  | Split from EZD-026 (Q-0028) |
@@ -63,7 +64,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-030 | 0 | Spike: wall openings and sloped ceiling | ready | high | EZD-001 |  |  |  |
 | EZD-031 | 0 | Spike: render trial | ready | medium | EZD-021 |  |  |  |
 | EZD-032 | 0 | Phase 0 build-gate test | ready | medium | EZD-007, EZD-011, EZD-012, EZD-014, EZD-016a, EZD-017 |  |  | Added at plan review (Q-0085) |
-| EZD-033 | 0 | Password sign-in | ready | high | EZD-007, EZD-006, EZD-016a, EZD-024 |  |  | Added at Stage 2 (Q-0095) |
+| EZD-033 | 0 | Password sign-in | ready | high | EZD-007, EZD-006, EZD-016a, EZD-024 |  |  | Added at Stage 2 (Q-0095) · Q-0094 overridden by Josh 2026-10-18 (minimum 8 characters); plan re-validated by the planner (Opus 5.5 high) the same day. |
 | EZD-101 | 1 | Permission and role tables | todo |  | EZD-005 |  |  |  |
 | EZD-102 | 1 | Permission enforcement | todo |  | EZD-101, EZD-006 |  |  |  |
 | EZD-103 | 1 | Settings shell | todo |  | EZD-102, EZD-012 |  |  |  |

@@ -1,17 +1,11 @@
-# Handoff · 2026-10-18 evening · Mac setup audit, PROCESS.md v2.3, PA3 handoff (interactive, Josh present)
+# Handoff · 2026-10-19 01:40 · questions 0 (interactive, Josh present)
 
-- Phase and stage: Phase 0 · Stage 3 not started (35 `ready`, EZD-003 and EZD-023b in `questions` on Q-0116). Process is now **v2.3** (`vault/PROCESS.md`, commit eea4fd7). `vault/PROCESS-EZDRAFT.md` is still the v2 text and wins where it differs; its disagreements with v2.3 are questions, not guesses.
-- Why the session ended: Josh is clearing to run `/questions 0`.
-- Completed this session: Mac setup audit (node 22, pnpm, Docker, `gh` as `ironframe414-agent` all pass; user settings `defaultMode auto`, ntfy hook, no `autoContinueAtUsageLimit`); new ntfy topic and `scripts/launcher.config.json` (gitignored, notify set); `develop` pushed and equal to origin; `vault/handoff/PA3-MECHANISMS.md` (the EZD-000b handoff, with Josh's answers and the setting checks); `vault/PROCESS.md` v2.3.
+- Phase and stage: Phase 0 · Stage 2 complete; Stage 3 not started. 38 tickets in phase 0 (EZD-000b added), all `ready`. Process v2.3.
+- Why the session ended: unit complete.
+- Completed this session: recorded Josh's 2026-10-18 chat answers (Q-0116 a, Q-0002, Q-0038 b, Q-0096, Q-0118 a, Q-0119); asked and recorded Q-0121 (a: Spanish switch covers crew phone screens only), Q-0118 b (a: Josh reviews the re-cut before Phase 1), Q-0122 (a: per-user tool order in EZD-230), Q-0123 (b: the domain is already connected to Vercel); all 34 `answered-agent` rows now `confirmed-josh` except Q-0094, overridden (minimum password 8 characters, not 15); EZD-000b added to tickets.json, STATUS.md and phase-00.md (depends on EZD-000; EZD-001 now depends on it); planner re-validated EZD-003 (Q-0116, Q-0123), EZD-023b (Q-0116, Q-0123) and EZD-033 (Q-0094 override), all PASS; `vault/questions/phase-00-for-josh.md` rewritten; lesson L-001 (reviewer, candidate: policy numbers go to Josh); BACKLOG rows for tool order and tool categories; needs-from-josh updated.
 - In progress: none. No worktrees.
-- Blocked: EZD-003, EZD-023b until Q-0116 is recorded (Josh answered: a).
-- **Josh's answers given in chat on 2026-10-18, not yet recorded in QUESTIONS.md** (the `/questions 0` unit records them):
-  - Q-0116: (a) set the Vercel Ignored Build Step per PROCESS.md section 12. Re-validate EZD-003 Step 3 and EZD-023b, then set both `ready`.
-  - Q-0002: keep R14, R18, R24 as written. R21 settled by Q-0016. **R17 changed:** Spanish is not the default; each user can switch their own interface language to Spanish, and the owner can switch it for another user. Open: whether that switch covers the whole app or only the crew phone screens (R17 kept the office editor and client link English in v1). Ask Josh.
-  - Q-0038: (b) a "More tools" button at the end of the rail opens the tools that do not fit. **New requirement:** each user can set the order of the tools. Josh may group tools into categories later (idea, not a decision; BACKLOG).
-  - Q-0089: stays open for a later phase (storage cost not explored yet).
-  - Q-0096: agree with every recommendation; P7 stands as decided.
-  - Q-0118: (a) Phase 0 approved as written. (b) the 53-slice re-cut: Josh has seen slices 1 to 3 only; ask whether he approves the whole re-cut now or reviews it before Phase 1. Not needed before Phase 0 builds.
-  - Q-0119: superseded for the ceilings by PROCESS.md v2.3 section 11 (real usage meters, built by EZD-000b). ntfy topic done. Nothing left for Josh unless the meters fail (then proxy mode needs a ceiling).
-- Decisions made this session: EZD-000b (PA3 mechanisms, complexity medium) runs after EZD-000 and before EZD-001; handoff `vault/handoff/PA3-MECHANISMS.md`. Builder may edit `.claude/`, `CLAUDE.md`, `scripts/`, `vault/tools/` for EZD-000b only. Honesty rules become CLAUDE.md 14 to 16. `Agent(name, …)` in agent `tools:` does not restrict spawning; use `permissions.deny` `Agent(<name>)` instead (see the handoff's Findings table).
-- Next unit: `questions 0` (`/questions 0`): record the answers above, ask the two open items (R17 scope, re-cut approval), add EZD-000b to `tickets.json` and `STATUS.md` (depends on EZD-000, complexity medium, handoff as its source), set EZD-003 and EZD-023b `ready`. Then `build EZD-000`.
+- Blocked: none.
+- Questions for Josh: none open for phase 0. Q-0089 (storage limit) waits for a later phase. Q-0118 (b) re-cut review before Phase 1.
+- Steps only Josh can do (vault/tickets/needs-from-josh.md): confirm the Vercel Ignored Build Step is set (GitHub still showed preview records for develop pushes on Oct 18); turn off "Auto-assign Custom Production Domains" before the Phase 0 PR is merged (EZD-003 Step 5.2), never back on.
+- Decisions made: Q-0121, Q-0122, Q-0123 answered-josh; Q-0094 overridden; Q-0005 to Q-0120 agent answers confirmed; L-001 candidate (ratify at the next Stage 2). PROCESS-EZDRAFT.md Vercel line updated to record Q-0116's answer (factual update only).
+- Next unit: build EZD-000 (`/build-ticket EZD-000`), then EZD-000b, then EZD-001 (the pilot).
