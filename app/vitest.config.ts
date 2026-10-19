@@ -12,5 +12,7 @@ export default defineConfig({
     // EZD-004b: local Supabase values into process.env; testTimeout for database calls.
     globalSetup: ['test-harness/supabase-env.global-setup.ts'],
     testTimeout: 15000,
+    // EZD-008a: tests send through the stub transport, never a live provider (CLAUDE.md rule 6).
+    env: { EMAIL_TRANSPORT: 'stub', EMAIL_FROM: 'EZ Draft Test <test@example.test>' },
   },
 });
