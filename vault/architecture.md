@@ -139,6 +139,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@types/react` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `@types/react-dom` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `postgres` | `3.4.9` | app | Test harness: catalog queries and SQL-as-user for RLS tests (EZD-006); dev dependency, never imported by app code; ships its own types | EZD-006 |
+| `@aws-sdk/client-s3` | `3.1153.0` | root | Off-site bucket, S3-compatible API (release dumps EZD-023d; backups EZD-025) | EZD-023d |
 
 ## Adding a dependency
 
@@ -151,7 +152,7 @@ Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any depe
 Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/README.md.
 
 ```
-/                         workspace root: package.json (fan-out scripts), pnpm-workspace.yaml, .npmrc, docs/, scripts/, supabase/ (EZD-004a), .github/
+/                         workspace root: package.json (fan-out scripts), pnpm-workspace.yaml, .npmrc, docs/, scripts/, supabase/ (EZD-004a), eslint-rules/ (the repo's own lint rules, plugin `ezdraft`; EZD-026a), .github/
 app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/app/                routes; entry points per EZD-020; route handlers under src/app/api/**
   src/app/dev/<name>/      developer test pages; notFound() when VERCEL_ENV is production (EZD-010c)
@@ -159,7 +160,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/server/jobs/        background job handlers (EZD-009); the only place PDFKit is imported
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
-  src/lib/                code used by browser and server (fetch helper, t() from EZD-026)
+  src/lib/                code used by browser and server (fetch helper, t() from EZD-026c)
   src/workers/            Web Workers, files named *.worker.ts (11 rule 3)
   src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b)
   public/icons/sprite.svg the generated icon sprite, served at /icons/sprite.svg (EZD-010b)
@@ -215,6 +216,20 @@ EZD-022 (vault/plans/EZD-022.md Step 4); 07 Hooks, events and integrations.
 - A new name goes into `EVENTS` in the same commit as its first emitter; screen events not named in 07 are added as `log_only`.
 - Payload types are narrowed in `EventPayloads` by the emitting ticket.
 - Sinks are added to `defaultSinks` in `app/src/server/events/index.ts` (EZD-109 event log, EZD-1301 webhooks).
+
+### Messages and language (t())
+
+EZD-026c, EZD-026d, EZD-026a (vault/plans/EZD-026a.md Steps 1-5); R26 R17; R24 #40; 03 Tables user; Q-0028; Q-0030 (a); Q-0163.
+
+- **Files.** `app/src/lib/messages/` (browser and server): `types.ts` (`Language`, `Surface`, `Message`, `MessageParams`), `language.ts` (`languageFor`, `NAMESPACES`, `SPANISH_NAMESPACES`, `KEY_PATTERN`), `t.ts` (`createT`, `T`, `MissingMessageError`, `MissingMessageParamError`), `MessagesProvider.tsx` (`MessagesProvider`, `useT`), `index.ts` re-exporting them. `app/src/server/messages/` (server-only, never in a client bundle): `catalogs/en.ts` (`en`, `MessageKey`), `catalogs/es.ts` (`es`, `SpanishKey`), `catalog.ts` (`catalogFor`), `get-t.ts` (`getT`, for server components). `app/src/app/dev/messages/` holds the test-page components `SampleText` and `MessagesSample`.
+- **Surfaces and language.** Surfaces are `office`, `field`, `client` and `dev`. The office editor and the client link are English in v1; the field pack and the other crew phone screens show the user's language (`app_user.language`, `en` or `es`), never a browser locale or a cookie (R26 R17; 03 user). `languageFor(surface, user)` returns it. Spanish users always see Spanish, never English or blanks (R24 #40), so there is no English fallback on a Spanish surface.
+- **Namespaces per surface.** `office`: every namespace except `dev`. `field`: `common`, `field`, `error`. `client`: `common`, `client`, `error`. `dev`: `common`, `field`, `error`, `dev`. `SPANISH_NAMESPACES` (`common`, `field`, `error`, `dev`) need Spanish text for every key; `client` and `office` are English only. `catalogFor('office' | 'client', 'es')` throws.
+- **Key format.** `KEY_PATTERN`: `<namespace>.<lower_snake>[.<lower_snake>...]`, for example `error.db_unavailable`.
+- **Text syntax.** `{name}` placeholders (a missing param throws `MissingMessageParamError`); a plural message is `{ one, other }` and needs a numeric `count`, chosen with `Intl.PluralRules` for the language. Numbers are inserted as given, with no locale grouping or decimal comma.
+- **Use.** A server layout or page resolves the language, calls `catalogFor(surface, language)` and passes the result to `MessagesProvider` unchanged (no cast of its own); client components call `useT()`. The hook result is always named `t`, because the lint relies on that name. `useT()` and `getT` are typed over every `MessageKey`, but the provider holds only the surface's namespaces, so typecheck does not catch a key from another surface; such a key throws `MissingMessageError` at run time (`app/src/lib/messages/t.ts`), the lint's `keyNamespace` check catches a literal one in the phone and test-page folders, and office components are checked by review.
+- **Adding a string.** Add the `en` entry; for a Spanish namespace add the `es` entry in the same commit. The ticket's builder writes the Spanish text in that commit, and a Spanish-speaking crew member checks it at the field checks and in Phase 15 (Q-0030 (a)). Shell and office strings use `office.` keys, English only.
+- **Route error keys.** A route that returns a `message_key` adds it to `en`, and to `es` when its namespace needs Spanish, in the same commit. Route error `message_key` values live in the `error` namespace. `message-keys.test.ts` checks every literal `message_key` in `app/src`; a key built at run time is checked by review.
+- **Lint.** `ezdraft/no-literal-ui-string` (`eslint-rules/no-literal-ui-string.mjs`, registered by `eslint-rules/index.mjs`; blocks in `eslint.config.mjs`) reports JSX text with a letter, a text expression as a JSX child, a text attribute (`alt`, `title`, `placeholder`, `label`, `aria-label`, names ending in `Label`, `Title`, `Text`, `Message` and similar) and, with `allowedKeyPrefixes`, a `t('<literal>')` key outside the folder's namespaces. Test files are exempt. Folders: field and crew phone `app/src/app/(field)/`, `app/src/components/field/`, `app/src/components/phone/` (prefixes `common.`, `field.`, `error.`); client link `app/src/app/(client)/`, `app/src/components/client/` (`common.`, `client.`, `error.`); test page `app/src/app/dev/messages/` (adds `dev.`). `(field)` and `(client)` are App Router route groups and add no URL segment. A ticket that adds a phone folder (EZD-015's states, EZD-020's entry points, EZD-007's sign-in) changes the block's `files` in its own commit. Office components are not linted by the rule.
 
 ## Server-only data access and can()
 
@@ -372,7 +387,11 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |
 | — | Static imports of heavy libraries; bundle report | lint rule and build report | EZD-020 |
-| — | Literal interface strings in phone components | lint rule | EZD-026 |
+| — | Literal interface strings in phone components | `ezdraft/no-literal-ui-string`, `scripts/tooling/__tests__/messages-lint.test.mjs` | EZD-026a |
+| — | Spanish catalog complete | typecheck (`satisfies`) and `app/src/server/messages/catalog.test.ts` | EZD-026d |
+| — | Every literal route `message_key` in `app/src` is in `en`; keys built at run time are checked by review | `app/src/server/messages/message-keys.test.ts` | EZD-026d |
+| — | Office components use t() (English only) | review | EZD-026a |
+| — | Strings built outside JSX, `.ts` helpers in phone folders, `t` under another name, run-time keys, `eslint-disable` for the rule | review | EZD-026a |
 | — | Unknown event names | `app/src/lib/events/registry-usage.test.ts` (static scan, `@smoke`), typecheck (`EventName`) and runtime `UnknownEventError` | EZD-022 |
 | — | Destructive migrations (drop or rename) | `scripts/release/check-migrations.mjs` (root `lint`) | EZD-023a |
 | — | Performance counts and download size | perf script | EZD-017 |
