@@ -226,12 +226,12 @@ Risks:
 
 ## 10. Open questions
 
-- **QP-1:** No source says whether a 429 retry may come sooner than the 15-minute spacing. Options:
+- **Q-0133 (was QP-1):** No source says whether a 429 retry may come sooner than the 15-minute spacing. Options:
   - (a) the 15 minutes count after a successful or failed non-429 request, and after a 429 the next attempt is allowed after `max(Retry-After, 120) + 30` seconds, so AC-2's 150- and 330-second waits are observable; the plan and T3 are written to (a);
   - (b) every request starts a 15-minute spacing and the 429 wait only applies when it is longer, so AC-2's waits would never show and T3 would expect the retry at 900 seconds.
-- **QP-2:** No source gives the usage endpoint's response field names, their units or any required request header (Findings row 1b: not testable without the token). Options:
+- **Q-0134 (was QP-2):** No source gives the usage endpoint's response field names, their units or any required request header (Findings row 1b: not testable without the token). Options:
   - (a) build `parseUsage` to the statusline names of Findings row 1a (`five_hour` and `seven_day`, each with `used_percentage` 0–100 and `resets_at`), with the builder's live probe reporting the real names and any mismatch reported as failed for a follow-up ticket; the plan, T7 and `OK_BODY` are written to (a);
   - (b) before tests are written, the orchestrator finds how the installed Claude Code reads `/api/oauth/usage` by searching its binary, as the Findings did, and the plan is re-validated with those names.
-- **QP-3:** Nothing stops an agent's shell from printing the token, with `security find-generic-password … -w` or `-g`, or with `cat`/`head`/`grep` of `.credentials.json`. Printed, it would land in the session transcript, a file (PA3 rule 8). Options:
+- **Q-0135 (was QP-3):** Nothing stops an agent's shell from printing the token, with `security find-generic-password … -w` or `-g`, or with `cat`/`head`/`grep` of `.credentials.json`. Printed, it would land in the session transcript, a file (PA3 rule 8). Options:
   - (a) add deny rules for those commands to `.claude/hooks/guard-bash.mjs` in this ticket (within the PA3 grant; +1 file, +1 test, T11);
   - (b) rely on the plan's step 10 instruction and the security review only.
