@@ -38,7 +38,7 @@ const holdFile = path.join(vault, 'handoff/BUDGET_HOLD.md');
 const stopFile = path.join(vault, 'handoff/STOP');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
 const claudeBin = config.claude_bin || 'claude';
-const { weekSpend, weekStart } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const { weekSpend, weekStart, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 
 const MODELS = { orchestrator: 'claude-opus-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
 const UNITS = {
@@ -195,10 +195,11 @@ function afterAgentUnit(unitName, arg, res) {
     if (i < 0) return `no STATUS.md row for ${arg}`;
     const c = lines[i].split('|');
     // | '' | id | phase | title | status | complexity | depends | commit | tests | notes | ''
+    const ids = hasQ ? assignQuestionIds(arg) : [];
     c[4] = ` ${hasQ ? 'questions' : 'planned'} `; c[5] = ` ${complexity} `;
     lines[i] = c.join('|');
     writeFileSync(statusPath, lines.join('\n'));
-    writeHandoff(`plan ${arg}`, `Planned ${arg}: status ${hasQ ? 'questions' : 'planned'}, complexity ${complexity || '(none in plan header)'}.`);
+    writeHandoff(`plan ${arg}`, `Planned ${arg}: status ${hasQ ? 'questions' : 'planned'}, complexity ${complexity || '(none in plan header)'}${ids.length ? `; open questions ${ids.join(', ')}` : ''}.`);
     return null;
   }
   if (unitName === 'review-plans') {
@@ -209,6 +210,16 @@ function afterAgentUnit(unitName, arg, res) {
   }
   return null;
 }
+// Escalated rows, for one notification per new escalation after a questions unit (Q-0129).
+function escalatedRows() {
+  const out = new Map();
+  for (const l of readFileSync(path.join(vault, 'questions/QUESTIONS.md'), 'utf8').split('\n')) {
+    const c = l.split('|').map((x) => x.trim());
+    if (/^Q-\d{4}$/.test(c[1] || '') && c[5] === 'escalated') out.set(c[1], `${c[2]}: ${c[4]}`);
+  }
+  return out;
+}
+
 function writeHandoff(unit, line) {
   const cur = path.join(vault, 'handoff/CURRENT.md');
   if (existsSync(cur)) {
@@ -242,6 +253,7 @@ async function runUnit(unitName, arg) {
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
+  const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
   const res = await new Promise((resolve) => {
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '', err = '';
@@ -263,6 +275,11 @@ async function runUnit(unitName, arg) {
   if (outcome === 'ok' && UNITS[unitName].as) {
     const problem = afterAgentUnit(unitName, arg, parsed);
     if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
+  }
+  if (qBefore) {
+    // Q-0129: one notification per newly escalated question; the fingerprints feed the loop guard in next_ticket.mjs.
+    for (const [id, text] of escalatedRows()) if (!qBefore.esc.has(id)) notify(`question for Josh: ${id} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
+    writeFileSync(path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
   }
   commitVault(`docs(vault): ${unitName} ${arg}`);
   return { outcome, limit, parsed };

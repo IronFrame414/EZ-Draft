@@ -1,7 +1,8 @@
 // PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
 // project write limits in vault/PROCESS-EZDRAFT.md section 3).
 import { existsSync, readFileSync } from 'node:fs';
-import { readInput, repoRelative, deny, projectDir } from './lib.mjs';
+import path from 'node:path';
+import { readInput, repoRelative, deny, projectDir, norm } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator'; // main session = orchestrator
@@ -39,6 +40,16 @@ function orchestratorSpecOk() {
   return false;
 }
 
+// PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000i worktrees the builder may
+// edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
+// and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000i merges.
+const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-i]\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
+const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
+function pa3Grant() {
+  if (!pa3Worktree || isTest || isSpec || rel === 'vault/PROCESS.md' || rel === 'scripts/gate.mjs') return false;
+  return rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || pa3Vault.some((p) => rel === p || (p.endsWith('/') && rel.startsWith(p)));
+}
+
 const rules = {
   orchestrator: () => {
     if (isSpec && !orchestratorSpecOk()) return 'The spec is read-only after sign-off. Record a change in vault/spec/decisions/<area>.md; a new section file is allowed only when it does not exist yet.';
@@ -59,6 +70,7 @@ const rules = {
   },
   builder: () => {
     if (isTest) return 'The builder may not change tests or fixtures. If a test looks wrong, report it as a question.';
+    if (pa3Grant()) return;
     if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
     // Q-0124 (a), Josh 2026-10-19: scripts/conventions/ is the builder's (the conventions check, EZD-000 and later).
     if ((rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml') && !rel.startsWith('scripts/conventions/'))

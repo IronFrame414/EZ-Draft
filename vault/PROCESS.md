@@ -221,6 +221,8 @@ Each question climbs this chain until someone can answer it with a citation:
 
 After Stage 2, every ticket with no open questions is `ready`.
 
+Questions are answered automatically and at once (Q-0129, Josh 2026-10-19): when a plan unit leaves open Q-IDs, the next unit is `questions <phase>`, before any build; unattended it runs levels 1 to 3, records `answered-agent` with citations, sets tickets ready, escalates only uncitable or business and product questions (one ntfy message each), and ends so the launcher continues with other ready work. A questions unit that changed nothing is not run again until the ledger changes.
+
 ---
 
 ## 8. Stage 3: build (one ticket per unit)

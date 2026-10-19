@@ -243,6 +243,12 @@ Every `answered-agent` row in the ledger not yet confirmed (34). Each stands as 
    - Source: scripts/run.mjs --status; PROCESS.md sections 10, 11, 15
    - Confirm or override.
 
+### Added 2026-10-19 (EZD-000b split), to confirm or override
+
+35. **Q-0126** · EZD-000b parts, EZD-001 · (c): PILOT.md gains only the verification items a part reports as not testable; verified items are not re-run.
+36. **Q-0127** · EZD-000h · (a): the PROCESS-EZDRAFT.md budget line now records Q-0119 and the values you set (300 / 40; proxy mode until EZD-000h).
+37. **Q-0128** · EZD-000b to EZD-000i · (a): your PA3 write grant for the builder covers all eight parts through one hook exception, removed after the last part merges.
+
 ## 3. Proposed wording
 
 None new. Phase 0's plans predate the plan template's "Proposed wording" section; all user-visible wording in them went through questions you already answered (Q-0056, Q-0086, Q-0091, Q-0092, Q-0100, Q-0101, Q-0102 in `vault/spec/decisions/`).

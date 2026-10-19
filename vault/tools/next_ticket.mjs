@@ -13,6 +13,7 @@
 // Stage 1 of a phase needs a sign-off row in vault/spec/SIGNOFF.md (PROCESS.md section 5).
 import { readFileSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -76,6 +77,70 @@ function questionsForPhase(phase) {
   return out;
 }
 
+// Q-0129 (Josh, 2026-10-19): questions are answered automatically; only uncitable or product questions wait on Josh.
+// Rows naming a ticket, with letter ranges such as "EZD-000b–EZD-000i" expanded.
+function rowTickets(cell) {
+  const ids = new Set(cell.match(/EZD-\d{3,4}[a-z]?/g) || []);
+  for (const m of cell.matchAll(/EZD-(\d{3,4})([a-z])\s*[–-]\s*EZD-\1([a-z])/g))
+    for (let c = m[2].charCodeAt(0); c <= m[3].charCodeAt(0); c++) ids.add(`EZD-${m[1]}${String.fromCharCode(c)}`);
+  return ids;
+}
+function questionRows() {
+  const out = [];
+  for (const line of read(path.join(vault, 'questions/QUESTIONS.md')).split(/\r?\n/)) {
+    const m = line.match(/^\|\s*(Q-\d{4})\s*\|\s*([^|]*)\|\s*[^|]*\|\s*[^|]*\|\s*(open|answered-agent|escalated|answered-josh|confirmed-josh)\s*\|/);
+    if (m) out.push({ id: m[1], tickets: rowTickets(m[2]), status: m[3] });
+  }
+  return out;
+}
+// A questions unit has work when the phase has an open row, or a `planned` or `questions` ticket none of whose questions
+// is escalated (its QPs still need Q-IDs, or its answers are in and it can go ready). A ticket with an escalated question
+// waits on Josh while the rest of the phase builds.
+function questionsWork(p) {
+  if (questionsForPhase(p).open) return true;
+  const rows = questionRows();
+  return phaseTickets(p).filter((t) => ['planned', 'questions'].includes(status(t.id)))
+    .some((t) => !rows.some((r) => r.tickets.has(t.id) && r.status === 'escalated'));
+}
+// Loop guard (Q-0129): the launcher records the ledger fingerprint before and after each questions unit in
+// vault/handoff/.questions-last-run.json. A run that changed nothing is not repeated until the ledger changes.
+export function questionsFingerprint() {
+  return createHash('sha256').update(read(path.join(vault, 'questions/QUESTIONS.md'))).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+}
+function questionsGuarded(p) {
+  let last; try { last = JSON.parse(read(path.join(vault, 'handoff/.questions-last-run.json'))); } catch { return false; }
+  return last?.phase === p && last.before === last.after && last.after === questionsFingerprint();
+}
+const questionsDue = (p) => questionsWork(p) && !questionsGuarded(p);
+
+// Q-0129 (Josh, 2026-10-19): the plan unit turns the plan's QP-n questions into `open` Q-IDs as it finishes, so the
+// questions unit answers them at once (plan-ticket skill, ledger step). Only lines that open with QP-n are new questions.
+const QP_LINE = /^(\s*(?:[-*]|\d+\.)?\s*\**\s*)(QP-\d+)\b(\**\s*[:.)]?\s*\**\s*)(.*)$/;
+export function assignQuestionIds(ticket) {
+  const planPath = path.join(vault, 'plans', `${ticket}.md`);
+  const qPath = path.join(vault, 'questions/QUESTIONS.md');
+  const qLines = readFileSync(qPath, 'utf8').split('\n');
+  let max = 0, last = -1;
+  qLines.forEach((l, i) => { const m = l.match(/^\|\s*Q-(\d{4})\s*\|/); if (m) { max = Math.max(max, Number(m[1])); last = i; } });
+  const phase = tickets.get(ticket)?.phase ?? '?';
+  const plan = readFileSync(planPath, 'utf8').split('\n');
+  const start = plan.findIndex((l) => /^## (?:10\. )?Open questions/.test(l));
+  const ids = [], rows = [];
+  for (let i = start + 1; start >= 0 && i < plan.length && !/^## /.test(plan[i]); i++) {
+    const m = plan[i].match(QP_LINE);
+    if (!m) continue;
+    const id = `Q-${String(++max).padStart(4, '0')}`;
+    const text = m[4].replace(/\|/g, '\\|').trim();
+    rows.push(`| ${id} | ${phase} / ${ticket} (plan ${m[2]}) | planner (${new Date().toISOString().slice(0, 10)}) | ${text} | open |  |  |  |`);
+    plan[i] = `${m[1]}${id} (was ${m[2]})${m[3]}${m[4]}`;
+    ids.push(id);
+  }
+  if (!ids.length) return ids;
+  qLines.splice(last + 1, 0, ...rows);
+  writeFileSync(qPath, qLines.join('\n'));
+  writeFileSync(planPath, plan.join('\n'));
+  return ids;
+}
 function check() {
   const problems = [];
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
@@ -174,11 +239,12 @@ function nextUnit() {
   const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(p)}.md`);
   const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
   if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile)) return `review-plans ${p}`;
-  // Stage 2 (before any ticket of the phase is ready)
+  // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
+  if (questionsDue(p)) return `questions ${p}`;
   if (!inStage3 && (st('planned').length || st('questions').length)) {
     const q = questionsForPhase(p);
     if (q.escalated) return `none: waiting on Josh (${q.escalated} escalated question${q.escalated === 1 ? '' : 's'} for phase ${p}; vault/questions/phase-${pad2(p)}-for-josh.md)`;
-    return `questions ${p}`;
+    return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); see vault/handoff/CURRENT.md`;
   }
   // Stage 3; tickets still in `questions` wait on their own answer while ready tickets build
   if (ticketNumber(ts[0].id) >= CHECKPOINT_FROM || ts.some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM)) {
@@ -189,8 +255,7 @@ function nextUnit() {
   if (ready.length) return `build ${ready[0].id}`;
   const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
   if (waiting.length) {
-    const q = questionsForPhase(p);
-    if (q.open && !q.escalated) return `questions ${p}`;
+    if (questionsGuarded(p)) return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
     return `none: waiting on Josh (tickets with open questions: ${waiting.join(', ')}); nothing else is ready in phase ${p}`;
   }
   const blocked = st('blocked').map((t) => t.id);
