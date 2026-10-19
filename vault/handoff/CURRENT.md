@@ -10,3 +10,4 @@
 - Deviations and minor follow-ups: in the EZD-000 STATUS notes (T6 heading, saveExact, typescript 5.9.3, v2 rule numbers; architecture.md:54 wrong typescript 7.0.2 date; security notes on the Money and client-link bullets for the planner).
 - Next unit: build EZD-000b (next_ticket.mjs --next-unit).
 - Earlier open items unchanged: launcher-fix proposal and pilot checks (`vault/handoff/log/2026-10-19-01-53.md`); auto mode cannot edit hooks in fix mode until Josh adds a permission rule.
+- **06:55 EDT, orchestrator (fix mode, rule 19):** the launcher misread EZD-000's successful report as `limit-weekly` and wrote BUDGET_HOLD.md; fixed (a limit is classified only on a failed run), hold removed, launcher restarted on EZD-000b. Pilot check 8 still open: no real limit message seen yet.

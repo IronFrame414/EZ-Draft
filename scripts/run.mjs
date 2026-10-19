@@ -253,7 +253,9 @@ async function runUnit(unitName, arg) {
   const parsed = parseResult(res.out);
   const { total, fable, models } = costOf(parsed);
   const text = `${parsed?.result || ''}\n${res.err}`;
-  const limit = classifyLimit(text);
+  // A limit is only looked for in a failed run (2026-10-19: a successful report that mentioned "usage limit" was
+  // misread as limit-weekly and wrote a hold after EZD-000 had merged).
+  const limit = (res.code !== 0 || parsed?.is_error) ? classifyLimit(text) : null;
   const outcome = limit ? `limit-${limit.kind}` : (res.code === 0 && !parsed?.is_error ? 'ok' : `error${parsed?.subtype ? `:${parsed.subtype}` : ''}`);
   appendCost({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, est_usd: total, fable_est_usd: fable, outcome, session_id: parsed?.session_id, num_turns: parsed?.num_turns, duration_ms: parsed?.duration_ms ?? Date.now() - started, auth: authMode() });
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
