@@ -44,7 +44,7 @@ Steps:
    - EZD-000b T3 in `scripts/process/hidden-token-honesty.test.mjs`;
    - EZD-000c T10 in `scripts/hooks/guard-reads.test.mjs`.
 
-   The test-author changes only that expected value to `"2"`. The source of the new value is this ticket row and PROCESS.md sections 11 and 14. If either file pins the number of `PreToolUse` entries, that count also goes up by one (C4 adds one). No other assertion, input or test count changes; the code-reviewer confirms this from the diff. EZD-000e deliberately did not pin depth (EZD-000e plan step 5), so its tests are untouched.
+   The test-author changes only that expected value to `"2"` (hidden-token-honesty.test.mjs line 39; guard-reads.test.mjs line 107, develop `539b6cd`). The source of the new value is this ticket row and PROCESS.md sections 11 and 14. EZD-000c T10 also pins the other `PreToolUse` entries as an exact list (guard-reads.test.mjs lines 99–102: the guard-paths and guard-bash entries); that list gains the C4 guard-agents entry, verbatim from C4, as its last element. No other assertion, input or test count changes; the code-reviewer confirms this from the diff. EZD-000e deliberately did not pin depth (EZD-000e plan step 5), and `scripts/process/retrievers.test.mjs` reads neither settings nor hooks, so its tests are untouched.
 6. **New test file** `scripts/hooks/spawn-limits.test.mjs` (T1–T8). It uses the spawn-the-hook pattern of `scripts/hooks/guard-paths.test.mjs`.
 7. **Verification items 8 and 9** (AC-7; PA3-MECHANISMS.md rule 6). The builder reports each one in two halves.
    - **Decision logic: verified by the tests.**
@@ -62,7 +62,7 @@ Steps:
 | `.claude/hooks/guard-paths.mjs` | change | Step 4 | builder: same |
 | `scripts/hooks/spawn-limits.test.mjs` | new | T1–T8 | test-author: `isTest` (`.test.mjs`, line 16) |
 | `scripts/process/hidden-token-honesty.test.mjs` | change (one expected value) | Step 5 | test-author: `isTest` |
-| `scripts/hooks/guard-reads.test.mjs` | change (one expected value, plus an entry count if pinned) | Step 5 | test-author: `isTest` |
+| `scripts/hooks/guard-reads.test.mjs` | change (one expected value, plus the C4 entry in T10's list of other `PreToolUse` entries) | Step 5 | test-author: `isTest` |
 
 Data: none. No tables, migrations, money or `schema_version`.
 
@@ -90,16 +90,18 @@ Data: none. No tables, migrations, money or `schema_version`.
   - `vault/plans/EZD-000d.md`: C1 `adopt(researchDir, date)`, C2 (pending format), C6 (`INDEX.md` header).
   - `vault/plans/EZD-000c.md`: C4 (fail-open hook), C10 and T10 (settings; depth pinned at `"1"`), step 3 (live session not testable).
   - `vault/plans/EZD-000b.md`: contract and T3 (depth pinned at `"1"`), test folder `scripts/process/`.
-- Code at develop `0055b60`:
+- Code at develop `539b6cd` (re-validated after EZD-000c, EZD-000d and EZD-000e merged; the line numbers below were re-read there):
   - `.claude/hooks/guard-paths.mjs` lines 8, 43–51, 53–87;
   - `.claude/hooks/lib.mjs` (`readInput`, `repoRelative`, `deny`);
-  - `.claude/settings.json` (env depth `"1"`, concurrency `"3"`; `PreToolUse` entries; `Bash(claude *)` deny);
-  - `scripts/hooks/guard-paths.test.mjs` (test pattern);
+  - `.claude/settings.json` (env depth `"1"` line 84, concurrency `"3"` line 83; three `PreToolUse` entries, guard-paths, guard-bash, guard-reads, lines 99–118; `Bash(claude *)` deny line 75);
+  - `scripts/hooks/guard-paths.test.mjs` lines 8–20 (test pattern; fixed fake root `/ezd-guard-paths-test-root`);
+  - `scripts/process/hidden-token-honesty.test.mjs` line 39 and `scripts/hooks/guard-reads.test.mjs` lines 99–102, 107 (the pins C7 edits);
+  - `vault/tools/research.mjs` line 26 (`adopt(researchDir, date)`);
   - `scripts/run.mjs` line 135 (`--agent`).
 - Installed binary `~/.local/share/claude/versions/2.1.303`: the hook input builder (`agent_type: s?.agentType ?? pk()`, `pk()` = `mainThreadAgentType`), the tool name `Agent`, and `tool_input.subagent_type` (section 1, Mechanism).
 - Lessons: L-002 (Files table checked against guard-paths.mjs; see the Writer column).
 - Product spec sections 03, 04 and 11, non-goals, glossary, decisions and mockups: not applicable. This is process tooling only ("No app code. No change to the product spec", PA3-MECHANISMS.md header).
-- Research reports: none exist (`vault/research/` is absent at `0055b60`), so no R-NNN covers this ticket. Split proposal note 6 expected a `retriever-web` lookup; retrievers do not exist until EZD-000e merges, so the binary check above replaced it.
+- Research reports: none exist (`vault/research/INDEX.md` at `539b6cd` has no report line), so no R-NNN covers this ticket. Split proposal note 6 expected a `retriever-web` lookup; retrievers do not exist until EZD-000e merges, so the binary check above replaced it.
 
 **Differences between the handoff and PROCESS.md** (handoff rule 1; the builder repeats them in its report):
 1. Item 4 and PROCESS.md section 4 say the `tools` lines enforce who may dispatch. In subagent files they can only grant or withhold `Agent` (Findings), so the "only retrievers" half is enforced by guard-agents.mjs (Q-0132 (a): the orchestrator proposes the PROCESS.md edit to Josh).
@@ -114,8 +116,8 @@ Data: none. No tables, migrations, money or `schema_version`.
 | C3 | text | deny reasons | **D1:** `` `${caller} may not start other agents. Only the planner, code-reviewer, security-reviewer and phase-auditor may, and only retriever-digest or retriever-web (vault/PROCESS.md section 3 rule 15).` `` **D2:** `` `${caller} may start only retriever-digest or retriever-web, not ${target \|\| 'an agent with no subagent_type'} (vault/PROCESS.md section 3 rule 15).` `` where `caller` = `agent_type`, `target` = `tool_input?.subagent_type`. |
 | C4 | file | `.claude/settings.json` | Valid JSON. `env.CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH === "2"`; `env.CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS === "3"`. `hooks.PreToolUse` has exactly one entry whose `hooks[].args` contains a string ending `/.claude/hooks/guard-agents.mjs`; it is the last entry and equals `{ "matcher": "Agent\|Task", "hooks": [{ "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-agents.mjs"] }] }`. Every other key, value and hook entry is unchanged from EZD-000e's merge (including EZD-000b's switches and env, EZD-000c's guard-reads entry and env). |
 | C5 | logic | `.claude/hooks/guard-paths.mjs` | One function `retriever` added and registered as `rules['retriever-digest']` and `rules['retriever-web']`: returns D3 unless `rel.startsWith('vault/research/pending/')`. D3: `Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).` One comment line above it citing PROCESS.md section 4 and EZD-000f. No other line changes; the `readOnly` list, the PA3 grant and the unknown-agent deny (line 87) stay. |
-| C6 | test file | `scripts/hooks/spawn-limits.test.mjs` | Uses only `node:test`, `node:assert/strict`, `node:child_process`, `node:fs`, `node:os`, `node:path`, `node:url`. Root is `path.resolve(dirname(fileURLToPath(import.meta.url)), '../..')`. Hooks run with `spawnSync('node', [hook], { input: JSON.stringify(...), env: { ...process.env, CLAUDE_PROJECT_DIR: root }, encoding: 'utf8' })`; a result is `deny` when stdout contains `"deny"`, else `allow` (as `guard-paths.test.mjs`). Spawn input: `{ tool_name: 'Agent', agent_type: <caller>, tool_input: { subagent_type: <target>, description: 't', prompt: 't' }, cwd: root }`; "main session" omits the `agent_type` key; "no target" omits `subagent_type`. Write input as `guard-paths.test.mjs` `decide()`. Every test title starts `EZD-000f`. |
-| C7 | test edits | `scripts/process/hidden-token-honesty.test.mjs` (EZD-000b T3), `scripts/hooks/guard-reads.test.mjs` (EZD-000c T10) | The `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` expected value `"1"` becomes `"2"`; a pinned `PreToolUse` entry count, if any, rises by 1. Nothing else changes. |
+| C6 | test file | `scripts/hooks/spawn-limits.test.mjs` | Uses only `node:test`, `node:assert/strict`, `node:child_process`, `node:fs`, `node:os`, `node:path`, `node:url`. Root is `path.resolve(dirname(fileURLToPath(import.meta.url)), '../..')`. Hooks run with `spawnSync('node', [hook], { input: JSON.stringify(...), env: { ...process.env, CLAUDE_PROJECT_DIR: root }, encoding: 'utf8' })`; a result is `deny` when stdout contains `"deny"`, else `allow` (as `guard-paths.test.mjs`). Spawn input: `{ tool_name: 'Agent', agent_type: <caller>, tool_input: { subagent_type: <target>, description: 't', prompt: 't' }, cwd: root }`; "main session" omits the `agent_type` key; "no target" omits `subagent_type`. Write decisions (T6, T8 (1)) use `guard-paths.test.mjs` `decide()` as merged (lines 8–20): the fixed fake root `/ezd-guard-paths-test-root` as `CLAUDE_PROJECT_DIR`, `cwd` and path prefix, not the real root. Reason: with the real root inside the `EZD-000f` worktree, `repoRelative` matches the first `/.claude/worktrees/<name>/` segment, so T6 (b)'s nested `.claude/worktrees/EZD-001/…` path would map to `.claude/worktrees/EZD-001/vault/…` and be denied. `adopt` is still imported from the real root. Every test title starts `EZD-000f`. |
+| C7 | test edits | `scripts/process/hidden-token-honesty.test.mjs` (EZD-000b T3), `scripts/hooks/guard-reads.test.mjs` (EZD-000c T10) | The `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` expected value `"1"` becomes `"2"` (hidden-token-honesty line 39; guard-reads line 107). In guard-reads T10, the `deepEqual` list of the other `PreToolUse` entries (lines 99–102) gains the C4 entry as its third and last element, exactly as C4 gives it. Nothing else changes. |
 
 ## 4. Tests
 
@@ -143,7 +145,7 @@ Notes:
 - **Earlier tests:**
   - EZD-000b T3 and EZD-000c T10 change as C7 says.
   - `scripts/hooks/guard-paths.test.mjs` is unchanged and stays green: no rule for builder or test-author changes.
-  - EZD-000e's T1–T7 do not read settings or hooks.
+  - EZD-000e's T1–T7 (`scripts/process/retrievers.test.mjs`) do not read settings or hooks. Its T7 pins `.claude/skills/build-ticket/dispatch.md` lines 1–20 as a SHA-256 hash (EZD-000e STATUS deviation (a)); this ticket edits neither that file nor any agent file, so the deviation does not touch this plan.
 
 ## 5. Visual checklist
 None (no screen changes).
@@ -159,7 +161,7 @@ Reviewers needed:
   - **Failure-mode check (split proposal, reviewers note).** The hook must never block the main session: no `agent_type` → allow, and unreadable input → allow.
   - **The launcher's runs as agents.** The `plan` unit runs as `planner` and the `review-plans` unit as `code-reviewer`. They may still spawn retrievers, and they never need any other agent.
   - **guard-paths.mjs diff.** It only adds the retriever rule.
-  - **The two earlier test edits.** They change only the depth value (and an entry count if pinned).
+  - **The two earlier test edits.** They change only the depth value and, in guard-reads T10, add the C4 entry to the list of other `PreToolUse` entries (C7).
 - **calc-auditor:** no.
 - **ui-verifier:** no.
 - **security-reviewer:** no.
@@ -170,12 +172,12 @@ Medium. The code is small and the contract is complete. But the hook runs on eve
 ## 9. Dependencies
 
 From the ticket row:
-- **EZD-000e** (ready; Q-0131 answered (a)). It creates the retriever agent files and the plain `Agent` tool on the four dispatchers. The names in C2 match its C1, C2 and C4.
+- **EZD-000e** (done, `89d95e9`). It creates the retriever agent files and the plain `Agent` tool on the four dispatchers. The names in C2 match its C1, C2 and C4. Its one deviation (T7 hash) does not touch this plan (section 4 notes).
 
 Not in the ticket row, reached through the chain:
-- **EZD-000d** (ready; Q-0130 answered (a)). It provides `adopt()` and the pending format used by T8.
-- **EZD-000c** (planned). It adds the guard-reads entry and env that C4 keeps, and owns T10, edited in C7.
-- **EZD-000b** (planned). It adds the switches and env that C4 keeps, and owns T3, edited in C7.
+- **EZD-000d** (done, `ffa76d7`). It provides `adopt()` and the pending format used by T8.
+- **EZD-000c** (done, `3b7c7c1`). It adds the guard-reads entry and env that C4 keeps, and owns T10, edited in C7 (its STATUS note: "EZD-000f must update it").
+- **EZD-000b** (done, `2929564`). It adds the switches and env that C4 keeps, and owns T3, edited in C7.
 - **EZD-000** (done).
 
 No missing dependency: all of the above are already in the chain. There is no screen, so EZD-016a is not needed.
