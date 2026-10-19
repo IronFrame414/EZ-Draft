@@ -1,12 +1,11 @@
-# Handoff · 2026-10-19 · build EZD-023a
+# Handoff · 2026-10-19 · build EZD-023b
 
-- Phase and stage: phase 0, Stage 3 (see vault/PROGRESS.md)
-- Why the session ended: unit complete
-- Completed this session: EZD-023a Release safety: migration check done, b8b5913 on develop (385 tests on develop phase 0 gate: 249 node:test, 135 app Vitest, 1 geometry). Step 1: plan re-validated (0806316, planner Opus 5.5): v2 template, medium → high, security-review yes. Precondition: builder exception scripts/release/ in guard-paths.mjs (fc09da6, Q-0125 (a), fix mode on/off).
-- Models: test-author, builder, code-reviewer, security-reviewer all Fable 5.1; planner Opus 5.5 (re-validation and amendment).
-- Review: round 1 FAIL (code + security): re-declared base objects escaped the drop check; view/type renames unflagged; refs unvalidated → Q-0156 (a) answered-agent, plan amended (fbd2465), tests T19–T21 (546d327), fix (84c5e59); round 2 PASS both.
-- In progress: none
-- Blocked: none new (EZD-003 still waits on Josh)
-- Questions for Josh: none new; Q-0156 (a) is answered-agent (Josh can override). needs-josh-confirm wording: four developer-facing check messages (STATUS Notes).
-- Decisions made: Q-0156 (a). Lesson L-014 (planner, candidate). Follow-up minor: duplicated phrase in docs/architecture.md Release safety 'Still reads' bullet.
-- Next unit: build EZD-023b
+- Phase and stage: phase 0, Stage 3 (build)
+- Why the session ended: unit complete (ticket split at build step 1; nothing to build under the old plan)
+- Completed this session: pre-flight passed; step 1 planner re-validation (Opus 5.5; deviating dependencies EZD-004a, 004b, 005b, 008a, 008b, 023a) rewrote vault/plans/EZD-023b.md (9f5172e: Split proposal, findings V1–V15, QP-1 to QP-3) and found it over the size rule (about 23 files, 20 tests). Split applied (Q-0157, 70cf5a5): EZD-023b Release guards and naming (high; keeps T1); EZD-023c Vercel build and environment checks (medium); EZD-023d Dump, migrations and tenant 1 (high); EZD-023e Go live, rollback, workflow and docs (high). All todo, security-review yes on every part. EZD-021 now depends on EZD-023c; EZD-025 on EZD-023b–e. ACs from gen_acs.mjs (AC-EZD-023b-1..3 and the new parts' ACs); TRACE and PROGRESS regenerated.
+- In progress: none (no worktree or branch created)
+- Blocked: EZD-003 (unchanged)
+- Questions for Josh: none new. To confirm or revert: Q-0157 (split), Q-0158 (a) (release install form `pnpm install --frozen-lockfile` only, as supabase-dev.yml). Open for the questions 0 unit: Q-0159 (Preview check also requires SUPABASE_API_GATE_SECRET and EMAIL_FROM?), Q-0160 (email stub outbox on previews: who settles it). Both gate EZD-023c only.
+- Decisions made: Q-0157 and Q-0158 answered by the orchestrator (level 2). No lessons added.
+- Follow-ups for planners: plan each part from vault/plans/EZD-023b.md "Split proposal" and "Re-validation findings"; keep every interface name listed there (evaluateVercelEnv for EZD-021; evaluateEnvironmentRule, environmentBranchRule, redactUrl, safeLines, supabaseRefFromDbUrl, dumpDatabase, manifest.json, @aws-sdk/client-s3 row for EZD-025). Interim `runRelease` → `not_built` until part e is a planner's choice for plan review. Split-agent choice to check: the EZD-023b Done-when dropped the trailing "(AC-EZD-023b-1, read through Q-0106: T1, T5)" citation, so gen_acs made three ACs for 023b; EZD-023c omits EZD-003 from depends_on ("not a build dependency"). EZD-005b review note (renderBootstrap refuses quotes) now belongs to EZD-023d.
+- Next unit: questions 0 (Q-0159, Q-0160 open, Q-0129), then plan EZD-023b
