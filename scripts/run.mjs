@@ -19,6 +19,7 @@
 //   prompt_style    "slash" (default: the prompt is `/<skill> <arg>`) or "ask" (plain sentence naming the skill)
 import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, unlinkSync, copyFileSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -227,9 +228,13 @@ function commitVault(msg) {
 
 async function runUnit(unitName, arg) {
   const cmd = buildCommand(unitName, arg);
-  const env = { ...process.env, CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1' };
+  // The scrub is set in api mode only (PROCESS.md section 11, Auth mode). Claude Code 2.1.303 forces the permission
+  // mode to default whenever it is set, and with --permission-prompts none every write is then denied (2026-10-19 loop).
+  const env = { ...process.env };
+  delete env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB;
   if (authMode() === 'api') {
     if (!config.api_key) return { outcome: 'error', note: 'auth_mode api but no api_key in launcher.config.json' };
+    env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = '1';
     env.ANTHROPIC_API_KEY = config.api_key;
   } else {
     delete env.ANTHROPIC_API_KEY; // plan auth: a stray key in the shell would silently move the spend
@@ -276,6 +281,8 @@ async function main() {
     try { const c = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }); c.unref(); } catch {}
   }
   let checkFailures = 0;
+  let noProgress = 0;
+  const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   for (;;) {
     if (existsSync(stopFile)) { log('vault/handoff/STOP exists; stopping.'); return; }
     const next = tool('--next-unit').stdout.trim();
@@ -296,6 +303,7 @@ async function main() {
     // Fable fallback flag for the orchestrator (section 4): exported so the skill can read it.
     const b = budget(); const spend = weekSpend(b);
     process.env.EZD_FABLE_ALLOWED = fableAllowed(b, spend) ? '1' : '0';
+    const statusBefore = statusHash();
     const r = await runUnit(unitName, arg);
     if (dryRun) return;
     if (r.outcome.startsWith('limit-')) {
@@ -315,6 +323,13 @@ async function main() {
       log(`ledger check failed (${checkFailures}):\n${chk.stdout}`);
       if (checkFailures >= 2) { notify('ledger check failed twice in a row; launcher stopped. See vault/handoff/CURRENT.md.'); return; }
     } else checkFailures = 0;
+    // No-progress guard (2026-10-19): a unit that ends ok but leaves STATUS.md and the next unit unchanged is not
+    // retried forever; two in a row stop the launcher.
+    if (r.outcome === 'ok' && statusHash() === statusBefore && tool('--next-unit').stdout.trim() === next) {
+      noProgress++;
+      log(`${next} ended ok but changed nothing in STATUS.md (${noProgress} in a row)`);
+      if (noProgress >= 2) { notify(`unit ${next} ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.`); return; }
+    } else noProgress = 0;
     if (r.outcome !== 'ok') {
       const info = { ts: new Date().toISOString(), unit: next, outcome: r.outcome, note: r.note || r.parsed?.result?.slice?.(0, 500) };
       writeFileSync(failureFile, JSON.stringify(info, null, 2));
