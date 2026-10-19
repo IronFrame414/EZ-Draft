@@ -48,9 +48,10 @@ Data: none. No tables, migrations, money or `schema_version`.
 - Questions: Q-0128 (a) builder grant; Q-0130 (a) and Q-0131 (a) (ACs regenerated from the Done-when); Q-0126 (c) ("not testable here" items go to PILOT.md; none expected here).
 - Plans: `vault/plans/EZD-000d.md` C2 (pending front matter), step 2 (`FOR` → ticket, `SCOPE` → scope); `vault/plans/EZD-000b.md` step 4 and contract (`## Honesty` appended last in the three reviewer files; test folder `scripts/process/`); `vault/plans/EZD-000c.md` (guard-reads; no agent-file changes).
 - Code at develop `2d8e927`: `.claude/agents/*.md` frontmatter (tools lines quoted in C4, C7); `.claude/skills/build-ticket/dispatch.md` (20 lines); `.claude/settings.json` env (depth `"1"`, concurrency `"3"`); `.claude/hooks/guard-paths.mjs` lines 8, 46–50, 83–87 (agent_type; PA3 grant; unknown agents may not write); root `package.json`.
+- Re-validated at develop `e379241` (Stage 3 step 1, 2026-10-19). `git diff 2d8e927 e379241` is empty for every `.claude/agents/*.md` frontmatter, `dispatch.md` and `guard-paths.mjs`, so the `2d8e927` cites in C4, C6, C7, T4 and T7 still hold. The only agent-file change is EZD-000b's `## Honesty` section, appended last in `code-reviewer.md` (line 31), `security-reviewer.md` (line 26) and `phase-auditor.md` (line 25). `scripts/process/hidden-token-honesty.test.mjs` T7 ends that section at the next `## ` line (line 70), so C5 still fits. `settings.json` line 84 is still depth `"1"`. `.claude/hooks/guard-reads.mjs` (EZD-000c) denies an unranged Read of a file over `GUARD_WHOLE_READ_CHARS` and puts the outline in the denial, which step 1 relies on. `vault/tools/research.mjs` `parse()` (lines 10–24) requires `---` on line 1 and non-empty `title`, `scope`, `ticket`, which matches the C3 front matter.
 - Lessons: L-002 (Files table checked against guard-paths.mjs; see section 1 Writer column).
 - Product spec sections 03, 04, 11, non-goals, glossary, decisions and mockups: not applicable. Process tooling only: "No app code. No change to the product spec" (PA3-MECHANISMS.md header).
-- Research reports: none exist (`vault/research/` is absent at `2d8e927`), so no R-NNN covers this ticket.
+- Research reports: none exist. At `e379241`, `vault/research/` holds only `INDEX.md` (no `R-` lines) and an empty `pending/`, so no R-NNN covers this ticket.
 
 **Differences between the handoff and PROCESS.md** (handoff rule 1; the builder repeats them in its report):
 1. **maxTurns 15** comes from the PROCESS.md section 4 roster; Item 4 gives none (split proposal note 8).
@@ -170,9 +171,9 @@ Reviewers needed:
 Medium. The edits are text with a complete contract, but they change the tools and prompts of agents every unit dispatches, and a wrong `tools` line either blocks a reviewer or lets the builder spawn agents. Test-author: Sonnet 5.5, medium effort. Builder: Sonnet 5.5, medium effort (PA3-MECHANISMS.md rule 5; STATUS.md row notes).
 
 ## 9. Dependencies
-- **EZD-000d** (ready; Q-0130 answered (a)). Defines the pending report format (C2) and `vault/research/pending/`; the retriever bodies match it.
-- **EZD-000c** (planned), through EZD-000d. Its guard-reads denial carries the outline that retriever-digest relies on (step 1).
-- **EZD-000b** (planned), through EZD-000c. Adds `## Honesty` at the end of the three reviewer files; C5 appends after it.
+- **EZD-000d** (done, `ffa76d7`; Q-0130 answered (a)). Defines the pending report format (C2) and `vault/research/pending/`; the retriever bodies match it. Its recorded deviations do not touch this plan: (a) the `realpathSync` CLI entry check (`research.mjs` line 72) changes only how the CLI detects that it is being run directly, not the pending format; (b) the CLAUDE.md row wording is in a file this ticket does not edit.
+- **EZD-000c** (done), through EZD-000d. Its guard-reads denial carries the outline that retriever-digest relies on (step 1).
+- **EZD-000b** (done), through EZD-000c. Adds `## Honesty` at the end of the three reviewer files; C5 appends after it.
 - **EZD-000** (done).
 - No missing dependency. No screen, so EZD-016a is not needed. The builder grant already covers `.claude/` (`guard-paths.mjs` `pa3Grant`).
 - **Dependent:** EZD-000f sets depth 2, limits nested spawns to the retrievers, and gives the retrievers their `vault/research/pending/` write limit; it reports verification items 8 and 9.

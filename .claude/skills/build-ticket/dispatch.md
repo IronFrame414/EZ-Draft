@@ -18,3 +18,14 @@ Report format: 20 lines max. First line PASS, FAIL or STATUS: <one line>. Then f
 Model and effort go on the dispatch call itself (`model`, `effort`), chosen from the plan's Complexity (PROCESS.md section 4), never set by the agent.
 
 Reviewers get the plan, the diff (they run `git -C <worktree> diff develop...HEAD` themselves) and the gate summary, not the whole repository. phase-auditor (gate-phase unit) gets the phase diff range, the plan paths, `vault/tickets/TRACE.md` and the phase's spec files.
+
+**Retriever brief** (PROCESS.md section 4): `QUESTION · FOR (agent and ticket) · SCOPE (paths or sites) · CAP (max lines) · REPORT yes|no · KNOWN (what the asker already has)`. Only the orchestrator, planner, code-reviewer, security-reviewer and phase-auditor dispatch `retriever-digest` (documents in this repository) or `retriever-web` (the outside world), with only these lines:
+
+```
+QUESTION: <one question>
+FOR: <asking agent> · EZD-xxx
+SCOPE: <paths or sites>
+CAP: <max lines, 40 at most>
+REPORT: yes | no
+KNOWN: <what the asker already has>
+```
