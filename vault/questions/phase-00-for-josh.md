@@ -1,6 +1,6 @@
 # Phase 0 · Questions for Josh
 
-Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 41c4540). Your Q-0138 answer (a) is recorded (EZD-000j added and now ready), so section 1 is empty; nothing else in it was answered yet, so sections 2 to 4 carry over, plus one new wording line (42) and one new rule candidate (8). Answer by number, in any form ("section 2 all confirmed except 4: …", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Everything in sections 2 to 4 stands as written until you change it.
+Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 7071a05). New since then: one agent answer to confirm (Q-0154, section 2), EZD-008b's wording (items 43 to 55) and one rule candidate (L-009). Answer by number, in any form ("section 2 confirmed", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Everything in sections 2 to 4 stands as written until you change it.
 
 Q-0089 (storage limit) stays open for a later phase and is not asked here.
 
@@ -10,13 +10,13 @@ None. No Phase 0 question is waiting on you.
 
 ## 2. Agent answers to confirm
 
-None. Josh confirmed all 24 (Q-0126 to Q-0151) in chat on 2026-10-19 (decisions/process.md).
+1. **Q-0154** (EZD-008a): how the sender name is written into the email's From line when a company name has a comma, period or similar mark (e.g. "Smith, Jones LLC"). Answer (code-reviewer): put quote marks around the name in that case, as the email standard requires, so mail apps do not misread it as two addresses; names without those marks, like "Worth Properties via EZ Draft", go out exactly as before, and mail apps never show the quote marks. Source: RFC 5322 sections 3.2.3 and 3.2.4; your Q-0036 answer. **Confirm or override.**
 
 ## 3. Proposed wording
 
 Not answered yet: Josh was on mobile on 2026-10-19; raise again when he is at the desktop.
 
-No new screen text for clients or users. Item 42 is new since the last file; items 1 to 41 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
+No new screen text for clients or users. Items 43 to 55 (EZD-008b) are new since the last file; items 1 to 42 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
 
 **EZD-001 · Repo and tooling** (already built; the product name from spec section 02)
 1. Browser tab title: `EZ Draft`
@@ -80,8 +80,27 @@ No new screen text for clients or users. Item 42 is new since the last file; ite
 40. Production heading and step 7: **Production (`ezdraft-prod`): nothing to paste.** Production does not exist until launch. When you set it up from the Before-launch checklist, add the email you sign in with as the secret `TENANT1_OWNER_EMAIL` in the GitHub environment `release`. The first real release then creates Worth Properties and your owner account. If company 1 is already there, the release skips this. Do not paste the file into production.
 41. Step 8: After that first release, delete `TENANT1_OWNER_EMAIL` from the `release` environment. Until you do, every release summary shows the notice `owner_email_secret_unused`.
 
+**EZD-008b · Email setup** (your `docs/runbook.md` steps and the live check's terminal text; the check email goes only to the address you type)
+43. Runbook section "Email (EZD-008)": your seven steps (check that `ezcontractorbinder.com` shows Verified in Resend; no DNS change at Spaceship; create the `ezdraft-production` sending key; Vercel Production values `EMAIL_TRANSPORT` = `resend`, `EMAIL_FROM` = `EZ Draft <no-reply@ezcontractorbinder.com>`, `RESEND_API_KEY`; the live check from a terminal; Supabase sign-in emails through Resend SMTP with sender name `EZ Draft`; company reply address from Settings, Company, Contact). Full text: vault/plans/EZD-008b.md section 6.
+44. Check email subject: `EZ Draft email check`
+45. Check email text: `This is a test email from EZ Draft. If it is in your inbox and not in spam, email is set up.` then the link
+46. Check email link label: `Open EZ Draft`
+47. Success: `Sent. Resend message id: <id>. Check your inbox (docs/runbook.md, Email, step 5).`
+48. In CI: `send-test.mjs does not run in CI or the gate. Run it by hand (docs/runbook.md, Email, step 5).`
+49. No or unknown argument: `Usage: node scripts/email/send-test.mjs --to <your email address>`
+50. Bad address: `--to must be one email address.`
+51. No key: `RESEND_API_KEY is not set in this terminal (docs/runbook.md, Email, step 5).`
+52. No sender: `EMAIL_FROM is not set in this terminal (docs/runbook.md, Email, step 5).`
+53. Network failure: `Could not reach Resend: <error name>.`
+54. Refused: `Resend refused the email: HTTP <status> <error name if given>.`
+55. No id: `Resend answered without a message id (HTTP <status>).`
+
+**EZD-008a · Send helper and transports**
+- No wording of its own. Company emails show `<Company> via EZ Draft` (your Q-0036 answer); recipients' text comes from later tickets.
+
 ## 4. Rule candidates
 
 Josh ratified L-001 to L-007 in chat on 2026-10-19. Still open:
 
 1. **L-008** (test-author; from EZD-005a): a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides. **Recommend: ratify.** A line-start match missed four of five table names in the generated types file because the Supabase CLI puts a key after the previous closing brace on the same line, which cost a structural repair.
+2. **L-009** (planner; from EZD-006): SQL that a plan fixes as contract text (policy templates, function signatures a test copies) is run once on the pinned local database by the planner, or marked "confirm on pinned version" for the test-author to check. **Recommend: ratify.** The EZD-006 policy template was written from memory, did not run on the pinned PostgreSQL, failed the builder's first migration and needed a structural repair.
