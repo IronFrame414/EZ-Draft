@@ -32,8 +32,24 @@ Values never go in the repo; names go in `.env.example`; the app reads them per 
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes (RLS applies) | `pnpm db:env` | that project's publishable key | `app/src/server/db/env.ts` now; EZD-018, EZD-132 later |
 | `SUPABASE_SECRET_KEY` | never | `pnpm db:env` | that project's secret key | job handlers, migrations, seeds and admin scripts only; nothing reads it yet |
 | `SUPABASE_DEV_DB_URL` | never | none (the local stack needs none) | the dev project's Session pooler connection string, an environment secret of the GitHub environment `dev` (`develop` only); production has no counterpart (EZD-023b's `release` environment) | `.github/workflows/supabase-dev.yml` only |
+| `EMAIL_TRANSPORT` | never | `stub` in unit tests (`app/vitest.config.ts`) and browser tests (EZD-016a's web server); empty in `.env.example`, so a plain `pnpm dev` fails every send with `email_transport_not_set` and still returns the link | Preview `stub` by default, `resend` allowed (Q-0041; EZD-023b enters it); Production `resend` (the stub is refused when `VERCEL_ENV` is `production`) | `app/src/server/email/transport.ts` |
+| `EMAIL_FROM` | never | `EZ Draft Test <test@example.test>` in tests | `EZ Draft <no-reply@ezcontractorbinder.com>` (Q-0035; Q-0036); company emails keep its address and show "<Company> via EZ Draft" | `app/src/server/email/transport.ts`, `send.ts`; `scripts/email/send-test.mjs` |
+| `RESEND_API_KEY` | never | none (tests never send, CLAUDE.md rule 6) | Production: the sending-only key `ezdraft-production` (runbook `## Email (EZD-008)` step 3); Preview only if Josh switches a preview to `resend` (Q-0041) | `app/src/server/email/resend-transport.ts` through `transport.ts`; `scripts/email/send-test.mjs` |
+| `EMAIL_STUB_DIR` | never | browser tests only (EZD-016a); not in `.env.example` | never set on Vercel | `app/src/server/email/transport.ts` |
 
 Which project's values go where: local is the local stack; preview is the dev project; production is the production project once Josh sets it up from the Before-launch checklist (11 Operations: preview deploys use the dev database; Q-0113). Entering values in Vercel is EZD-023b's (Q-0106).
+
+### Email (EZD-008)
+
+Q-0035; Q-0036; Q-0041; R24 #15; EZD-008a; EZD-008b.
+
+- Resend through `app/src/server/email/` (`sendEmail`, EZD-008a); one recipient per call; server-only, never imported by browser code (11 Budgets, 200 KB; Server-only data access and can()).
+- Transport by `EMAIL_TRANSPORT` (`stub` or `resend`), no default; both selectable per environment (Q-0041); the stub is refused in production; unit tests read `readStubOutbox()`, browser tests read `EMAIL_STUB_DIR` (EZD-008a).
+- **Sender (Q-0036):** emails sent for a company pass `company: { name: tenant.name, replyTo: tenant.contact.email ?? null }`; the From shows "<Company> via EZ Draft" and replies go to the company email from company settings (S15a Contact), never to the person who pressed Send. Emails no company sends omit `company` and show `EMAIL_FROM` as is.
+- **Copy link (Q-0035; R24 #15):** every feature that sends an email shows the person who sent it the link from `SendEmailResult.link`, with a Copy link button, whether the send succeeded or failed, because emails land in spam. Each sending ticket's plan names where its Copy link appears and tests it. **Exception: sign-in emails** (EZD-007) never show their link on screen, since anyone who typed an email address would get in; the sign-in page tells the user to check spam and accepts the 6-digit code (Q-0035 orchestrator note; R26 R15). Emails no person sends from a screen (EZD-024's alert emails, Q-0067 (b)) have no sender screen; EZD-024's plan records how it meets the rule.
+- Sign-in emails are sent by Supabase Auth through Resend SMTP (runbook `## Email (EZD-008)` step 6), not through `sendEmail`.
+- Live check `scripts/email/send-test.mjs`, run by Josh by hand only, refused under `CI`, never by the gate (Q-0153).
+- Agents never change Resend, DNS, Vercel or Supabase settings; those steps are in `docs/runbook.md` (CLAUDE.md rule 3; Q-0003: the Resend account is shared with EZ Binder).
 
 ## Named tools
 
@@ -147,6 +163,7 @@ packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model sc
 worker/                   @ezdraft/worker — the local GPU render worker (02 Named tools; EZD-1104). Not Web Workers, not job handlers
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
 scripts/db/               local stack and types scripts: local.mjs (`db:up`, `db:env`), gen-types.mjs (`db:types`) (EZD-004a)
+scripts/email/            send-test.mjs: the live email check Josh runs by hand; never run by the gate (EZD-008b)
 supabase/                 Supabase CLI folder: config.toml, seed.sql, migrations/ (EZD-004a)
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
 ```
@@ -259,6 +276,7 @@ EZD-006 (vault/plans/EZD-006.md Steps 1–5, 8); 03 intro; 03 rule 1; 11 rule 10
 - Tests never call live AI, email, render providers or EZ Binder; they use the stubs of EZD-008, EZD-016, EZD-019 and EZD-021.
 - Spike tests live with the spike under `spikes/` and are not run by the root gate (vault/spikes/TEMPLATE.md; PROCESS.md).
 - Check C7 enforces the file names.
+- Email: unit tests read readStubOutbox() (app/src/server/email/test-harness/stub-transport.ts); browser tests set EMAIL_STUB_DIR and read it with readStubOutboxDir from app/test-harness/email-outbox.ts (EZD-008a).
 
 ### Test scope (Q-0006)
 
@@ -321,6 +339,8 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Committed `database.types.ts` matches the local database | scripts/db/__tests__/db.test.mjs (T9), `node scripts/db/gen-types.mjs --check` | EZD-004a |
 | — | Supabase CLI pinned, runnable, Linux x64 binary in the lockfile | scripts/db/__tests__/db.test.mjs (T10) | EZD-004a |
 | — | Cloud dev migrations workflow: pinned, dev-only, pushes nothing without its secret | scripts/db/__tests__/supabase-dev.test.mjs | EZD-004c |
+| — | Unit tests never reach Resend: without an injected client the Resend transport returns email_live_blocked_in_tests | `app/src/server/email/email.test.ts` | EZD-008a |
+| — | The live email check stays out of the gate, refuses to run under CI and sends nothing without RESEND_API_KEY | `scripts/email/__tests__/email-docs.test.mjs` | EZD-008b |
 
 ### CI
 

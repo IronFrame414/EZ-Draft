@@ -13,6 +13,9 @@ const NAMES = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_SECRET_KEY',
+  'EMAIL_TRANSPORT',
+  'EMAIL_FROM',
+  'RESEND_API_KEY',
 ];
 
 function namesFileLines() {
@@ -22,7 +25,7 @@ function namesFileLines() {
     .filter((l) => l !== '' && !l.startsWith('#'));
 }
 
-test('EZD-004b T7 names file holds exactly the three names with empty values', () => {
+test('EZD-004b T7 names file holds exactly the six names with empty values', () => {
   assert.deepEqual(
     namesFileLines(),
     NAMES.map((n) => `${n}=`),
