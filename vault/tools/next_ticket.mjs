@@ -5,7 +5,7 @@
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
-//   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the lessons a dispatch carries
+//   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
@@ -141,6 +141,27 @@ export function assignQuestionIds(ticket) {
   writeFileSync(planPath, plan.join('\n'));
   return ids;
 }
+const LESSON_STATUSES = ['candidate', 'ratified', 'rejected'];
+function entryStatus(head) {
+  const m = head.match(/\sstatus:\s*(\S+)/);
+  return m ? m[1] : null;
+}
+function lessonProblems() {
+  const dir = path.join(vault, 'lessons');
+  if (!existsSync(dir)) return [];
+  const out = [];
+  for (const f of readdirSync(dir).filter((n) => n.endsWith('.md') && n !== 'INDEX.md').sort()) {
+    const entries = readFileSync(path.join(dir, f), 'utf8').split(/^(?=## L-\d+)/m).filter((e) => e.startsWith('## L-'));
+    for (const e of entries) {
+      const head = e.split('\n')[0];
+      const id = head.match(/^## (L-\d+)/)[1];
+      const st = entryStatus(head);
+      if (st === null) out.push(`vault/lessons/${f}: ${id} has no status (candidate, ratified or rejected; PROCESS.md section 13)`);
+      else if (!LESSON_STATUSES.includes(st)) out.push(`vault/lessons/${f}: ${id} has unknown status "${st}" (candidate, ratified or rejected; PROCESS.md section 13)`);
+    }
+  }
+  return out;
+}
 function check() {
   const problems = [];
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
@@ -164,6 +185,7 @@ function check() {
   if (existsSync(path.join(vault, 'tickets/PHASES.md')) === false) problems.push('vault/tickets/PHASES.md is missing');
   const ac = spawnSync(process.execPath, [path.join(vault, 'tools/gen_acs.mjs'), '--check'], { encoding: 'utf8' });
   if (ac.status !== 0) problems.push((ac.stdout || ac.stderr).trim().split('\n')[0]);
+  problems.push(...lessonProblems());
   return problems;
 }
 
@@ -273,6 +295,7 @@ function lessons(role, areas) {
   const out = [];
   for (const e of entries) {
     const head = e.split('\n')[0];
+    if (entryStatus(head) !== 'ratified') continue;
     const m = head.match(/areas:\s*([^]*?)\s+seen:/);
     const its = (m ? m[1] : '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     if (want.has('all') || !its.length || its.some((a) => want.has(a))) out.push(e.trim());
