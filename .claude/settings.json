@@ -83,7 +83,9 @@
     "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "3",
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1",
     "CLAUDE_CODE_TOTAL_TOKENS_REMINDER": "off",
-    "CLAUDE_CODE_GOAL_CHECKIN_MINUTES": "0"
+    "CLAUDE_CODE_GOAL_CHECKIN_MINUTES": "0",
+    "GUARD_WHOLE_READ_CHARS": "20000",
+    "GUARD_WHOLE_READ_EXEMPT": ""
   },
   "hooks": {
     "SessionStart": [
@@ -105,6 +107,12 @@
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.mjs"] }
+        ]
+      },
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-reads.mjs"] }
         ]
       }
     ],

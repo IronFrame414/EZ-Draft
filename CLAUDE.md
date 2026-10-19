@@ -12,7 +12,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 7. No new dependency without a line in docs/architecture.md in the same commit.
 8. No secrets. Never read .env files.
 9. Final report: 20 lines max, PASS/FAIL or status first, then file paths. No code.
-10. Read only what your dispatch names plus what this directory points you to. Never read vault/ wholesale; never load vault/spec/spec.md.
+10. Read only what your dispatch names plus what this directory points you to. Never read vault/ wholesale; never load vault/spec/spec.md. A file over 20,000 characters is read by range after `node vault/tools/outline.mjs <path>`.
 11. One ticket = one branch t/EZD-xxx in its own worktree = one commit on develop. Nobody commits to main; only Josh merges develop → main. The orchestrator's checkout stays on develop.
 12. The gate is a script, not an opinion: node scripts/gate.mjs <worktree>. A ticket cannot be done with a red gate.
 13. Rule tickets take their numbers only from the catalog's check text (vault/spec/code-rules.json); never look up or copy code text. Mockup sample data is not a decision.
