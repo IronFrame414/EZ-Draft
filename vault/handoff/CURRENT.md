@@ -1,12 +1,12 @@
-# Handoff · 2026-10-19 · build EZD-006
+# Handoff · 2026-10-19 · build EZD-008
 
 - Phase and stage: Phase 0, Stage 3 (building tickets)
-- Why the session ended: unit complete
-- Completed this session: EZD-006 done (0ff28b9). Tenant and listed-project RLS policies, token hook (active tenant claim), session ending on deactivation / scope narrowing, explicit table grants, PostgREST request gate (Q-0087 (ii)), RLS audit test and harness under app/test-harness/rls/. Gate PASS on worktree (round 1) and on develop phase 0 (255 tests). code-reviewer (mode 2, structural repair, mode 3) and security-reviewer PASS, all Fable 5.1.
-- In progress: none
+- Why the session ended: unit complete (ticket split at build step 1; nothing to build under the old ID)
+- Completed this session: pre-flight passed; step 1 planner re-validation (Opus 5.5; deviating dependencies EZD-004a, 004b, 004c; EZD-006 changed the shared Vitest setup) updated vault/plans/EZD-008.md (343ed46: EZD-004 refs → 004a/b/c, merged paths, findings V1–V12, user-visible results) and found it over the size rule (18 files, 13 tests). Split applied (998560c): EZD-008a Send helper and transports (depends EZD-004a, 004b, 006; medium) and EZD-008b Email setup: names, docs, runbook and live check (depends EZD-008a, 004b, 004c; medium). Phase file, tickets.json (ACs from gen_acs.mjs: 008a-1..2, 008b-1..2), STATUS.md (both todo), acceptance criteria, TRACE and PROGRESS updated; every dependent of EZD-008 (023b, 024, 105, 110) depends on both parts.
+- In progress: none (no worktree or branch created)
 - Blocked: EZD-003 (unchanged)
-- Questions for Josh: none new. Q-0089 stays escalated. Cloud steps for Josh: docs/runbook.md steps 9–11 (hook switch, per-project API gate secret, project settings) once the dev project exists.
-- Decisions made: no Q-IDs. Lesson L-009 (planner, candidate): run plan SQL contract text on the pinned stack. Structural repair T16 (`::uuid[]` cast).
-- Operational: the local auth hook loads only at `supabase start`; any stack started before 0ff28b9 needs `pnpm db:stop` once (done on develop).
-- Follow-ups for later plans: EZD-105/106/129 add `membership.user_id`/`tenant_id` to the end-sessions trigger if they update them; the first ticket adding a sequence or `public` function grants explicitly and adds it to GATED_RPC_CALLS; table tickets copy the `::uuid[]` policy form.
-- Next unit: build EZD-008
+- Questions for Josh: Q-0089 escalated (unchanged). To confirm or revert: Q-0152 (EZD-008 split), Q-0153 (a) (builder write exception for scripts/email/, added at EZD-008b build start).
+- Decisions made: Q-0152 and Q-0153 answered by the orchestrator (level 2). No lessons added.
+- Follow-ups for planners: plan each part from vault/plans/EZD-008.md "Split proposal" and "Re-validation findings"; keep every interface name listed there (sendEmail, SendEmailResult, getEmailTransport, stub outbox readers, error codes, env names, runbook `## Email (EZD-008)` step 6). Planner risk notes: EZD-008b's `.env.example` list depends on what has merged by then (EZD-007 may add SUPABASE_API_GATE_SECRET); the email unit tests need the local Supabase stack because of the shared global setup.
+- Follow-up for the orchestrator: at EZD-008b build start add the scripts/email/ builder exception to guard-paths.mjs (fix mode, LAUNCHER_FIX.md), as was done for scripts/db/.
+- Next unit: plan EZD-008a
