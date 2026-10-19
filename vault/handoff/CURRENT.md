@@ -1,15 +1,16 @@
-# Handoff · 2026-10-19 · build EZD-000h
+# Handoff · 2026-10-19 · build EZD-000i
 
-- Phase and stage: Phase 0, Stage 3 (build); EZD-000, EZD-000b to EZD-000h done
+- Phase and stage: Phase 0, Stage 3 (build); EZD-000, EZD-000b to EZD-000i done
 - Why the session ended: unit complete
-- Completed this session: EZD-000h done, 4296a46 (111 repo tests). New scripts/statusline.mjs writes vault/cost/usage.json from the status line's rate_limits; scripts/budget.mjs exports readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive (CLI only as entry script); run.mjs pauses on the five-hour window (WINDOW_PAUSE.md), warns once at 70% weekly, holds at 80% letting the in-progress build finish; --raise replaced by --hold-at <pct>; PROGRESS.md gets a Usage table; settings.json statusLine; .gitignore usage files. Tests scripts/budget/{gates,statusline,cli}.test.mjs (T1-T10).
-- Models: test-author Sonnet 5.5 medium; builder r1 Sonnet 5.5 medium, r2 Opus 5.5 (one tier up after a behavior finding); code-reviewer Opus 5.5 high (mode 2 PASS; mode 3 r1 FAIL, r2 PASS, same agent). Gate PASS r1, r2 and on develop phase 0 (111/111).
-- Review FAIL r1: an active override let units start past an existing BUDGET_HOLD.md (plan C7 step order). Resolved by PROCESS.md s10 step 1: an existing hold blocks all but the in-progress build, override or not.
-- Deviations: see STATUS notes (override/hold order; budget.mjs reads spend from its own repo copy; --dry-run waits through a pause; unreadable times show —).
-- Pilot: PILOT.md row 16 added (status line fields live and under claude -p, verification items 1-2); row 6 now names --hold-at.
-- Effect now: proxy mode (300 / 40, Q-0127 (a)) applies only while no usage reading is fresher than 20 minutes.
+- Completed this session: EZD-000i done, 883a54f (125 repo tests). New scripts/oauth-usage.mjs is the readMeters fallback: when usage.json is over 20 minutes old it asks Claude's usage endpoint at most every 15 minutes, waits max(Retry-After,120)+30 s after a 429, stops an hour and notifies on 401/403, never writes the token; run.mjs passes it to the per-pass readMeters only; guard-bash K1-K3 and five settings.json deny entries block shell commands that would print the token; .gitignore oauth-poll.json.
+- Step 1: plan re-validated after EZD-000h deviations; QP-1 → Q-0137 answered-agent (a) (a dry run polls like a real pass).
+- Models: test-author Sonnet 5.5 medium; builder Sonnet 5.5 medium (1 round); code-reviewer Opus 5.5 high (mode 2 PASS, mode 3 PASS, same agent); security-reviewer Opus 5.5 high PASS. Gate PASS on worktree and on develop phase 0 (125/125).
+- Live probe (builder report): HTTP 200 via Keychain `Claude Code-credentials`; real fields use `utilization`, not `used_percentage`, so readings still fall back to the dollar proxy (safe, per Q-0134 (a)).
+- Deviations: step 11 `test -f` skipped (my dispatch was stricter than the plan; lesson L-005); run.mjs uses await import.
 - In progress: none
 - Blocked: none
-- Questions for Josh: none new; Q-0136 still to confirm; needs-josh-confirm wording: budget.mjs report "Warning: <text>" line on proxy fallback, and the run.mjs --status meter line format.
-- Decisions made: none. Lesson added: L-004 (planner, candidate). Next questions 0 unit lists L-001 to L-004 under Rule candidates.
-- Next unit: build EZD-000i
+- Questions for Josh: Q-0138 (new, escalated: follow-up ticket to read `utilization`); Q-0136 still to confirm; Q-0137 to confirm. needs-josh-confirm wording: the two guard-bash deny reasons (plan s6).
+- Proposals for Josh (orchestrator may not edit .claude/ or tests): remove the pa3Grant exception in .claude/hooks/guard-paths.mjs and its three Q-0128 tests in scripts/hooks/guard-paths.test.mjs (Q-0128 (a), now due); add the token rules to PROCESS.md s14; add the real usage-endpoint reading to PILOT.md once Q-0138 is settled. Security minors (accident guard, Q-0135): K1 splits inside quotes; K3 `test -f` match swallows space-free chains; probe prints nested key names.
+- Note: guard-bash now denies any Bash command naming the sign-in file, commit messages included.
+- Decisions made: Q-0137 answered-agent. Lesson added: L-005 (orchestrator, candidate).
+- Next unit: build EZD-001
