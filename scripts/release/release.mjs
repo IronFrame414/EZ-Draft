@@ -8,13 +8,25 @@
 // release name and not GITHUB_TOKEN before the context guards pass (AC-EZD-023b-2). No log line is written
 // before step 2's masking except the refusal lines of steps 1–2 (archived plan Step 4 "Masking").
 import { spawnSync } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { checkPresence, checkReleaseContext, maskCommands, valuesToMask } from './context.mjs';
+import { BOOTSTRAP_PATH, createSql, renderBootstrap, TENANT_CHECK_SQL } from './bootstrap.mjs';
+import {
+  checkPresence,
+  checkReleaseContext,
+  maskCommands,
+  RELEASE_SECRET_NAMES,
+  valuesToMask,
+} from './context.mjs';
+import { createSupabaseCli, dumpDatabase, runChild } from './dump.mjs';
 import { DECRYPTED_ENTRIES, envExampleNames, evaluateVercelEnv, supabaseRefFromDbUrl } from './env-check.mjs';
 import { createGitHubApi, evaluateEnvironmentRule } from './github-api.mjs';
 import { main as checkMigrations } from './check-migrations.mjs';
+import { createOffsiteUploader } from './offsite-upload.mjs';
+import { MIGRATION_TIMEOUTS, parsePendingMigrations, withTimeouts } from './push.mjs';
+import { safeLines } from './redact.mjs';
 import { releaseTagFor } from './release-name.mjs';
 import { listReleaseTags, parseReleaseTag, previousReleaseTag } from './tags.mjs';
 import { createVercelApi, evaluateVercelProject } from './vercel-api.mjs';
@@ -25,6 +37,13 @@ const stoppedLine = (code) => `release stopped: ${code} — nothing changed`;
 const missingLine = (names) => `missing in the release environment: ${names.join(', ')}`;
 const problemLine = ({ code, name, target }) =>
   `Vercel value problem: ${code} ${name}${target ? ` (${target})` : ''}`;
+// EZD-023d section 6: lines for the codes after which something outside the runner may have changed.
+const DUMP_SAVED_LINE = (prefix) => `database dump saved: ${prefix}`;
+const UPLOAD_FAILED_LINE = (prefix) =>
+  `release stopped: dump_upload_failed — the database and the live site are unchanged; an incomplete dump may be in ${prefix}`;
+const PARTLY_UPDATED_LINE = (code, prefix) =>
+  `release stopped: ${code} — the live site is unchanged; the database may be partly updated; the dump from before this release is in ${prefix}`;
+const NOT_BUILT_RAN_LINE = 'release stopped: not_built — the dump and migrations ran; nothing went live';
 const NOTICE_LINES = {
   vercel_token_expiring: (date) =>
     `notice vercel_token_expiring: the Vercel token expires on ${date}; make a new one and replace VERCEL_TOKEN in the release environment`,
@@ -32,10 +51,34 @@ const NOTICE_LINES = {
     'notice vercel_token_no_expiry: the Vercel token never expires; make one that expires in 90 days',
   vercel_token_expiry_unknown: () =>
     'notice vercel_token_expiry_unknown: could not read when the Vercel token expires',
+  owner_email_secret_unused: () =>
+    'notice owner_email_secret_unused: tenant 1 already exists; delete TENANT1_OWNER_EMAIL from the release environment',
 };
 const TOKEN_WARN_MS = 14 * 86_400_000;
 const BUILD_WAIT_MS = 900_000;
 const BUILD_POLL_MS = 10_000;
+const TENANT_CHECK_RE = /^([01]) (\d+) (\d+)$/;
+const MIGRATION_FILE_RE = /^(\d{14})_[a-z0-9_]+\.sql$/;
+const CHILD_LINES_MAX = 20;
+
+/** `yyyyMMddTHHmmssZ` of a clock value (the off-site prefix). */
+const stampOf = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+
+/** The largest 14-digit prefix among the worktree's migration files (C5's pattern), or null. */
+function newestMigrationIn(worktree) {
+  let names;
+  try {
+    names = readdirSync(path.join(worktree, 'supabase', 'migrations'));
+  } catch {
+    return null;
+  }
+  let newest = null;
+  for (const name of names) {
+    const m = MIGRATION_FILE_RE.exec(name);
+    if (m && (newest === null || m[1] > newest)) newest = m[1];
+  }
+  return newest;
+}
 
 const FETCH_ARGS = [
   'fetch',
@@ -86,7 +129,7 @@ function lazyVercel() {
 }
 
 export async function runRelease(opts, deps) {
-  const { processEnv, git, github, vercel, sleep, now, log, summary, mask } = deps;
+  const { processEnv, git, github, vercel, supabase, sql, offsite, sleep, now, log, summary, mask } = deps;
   const stop = (code, extra = {}) => {
     summary(stoppedLine(code));
     return { ok: false, code, notices: [], ...extra };
@@ -304,9 +347,168 @@ export async function runRelease(opts, deps) {
     }
   }
 
+  // 11–15 (EZD-023d Step 5 A–F), skipped when this build is already live (archived step 9). Child output
+  // reaches the log only through `safeLines` over the mask list; no error message of a child is printed.
+  let dumpPrefix;
+  let dumpFiles;
+  if (!alreadyLive) {
+    const dbUrl = processEnv.BACKUP_SOURCE_DB_URL;
+    const masked = [...valuesToMask(processEnv), ...rawSecrets(processEnv)];
+    const childLines = (err) => {
+      const text = typeof err?.stderr === 'string' ? err.stderr.replace(/\r?\n$/, '') : '';
+      if (text === '') return;
+      for (const line of safeLines(text.split(/\r?\n/), masked).slice(-CHILD_LINES_MAX)) log(`  | ${line}`);
+    };
+    const fail = (code, err) => {
+      log(code);
+      childLines(err);
+      return stopV(code, built);
+    };
+    const partlyUpdated = (code, err) => {
+      log(code);
+      childLines(err);
+      summary(PARTLY_UPDATED_LINE(code, dumpPrefix));
+      return { ok: false, code, prNumber, tag, resume, notices, ...built, dumpPrefix, dumpFiles };
+    };
+
+    let tmp = null;
+    const worktree = () => path.join(tmp, 'wt');
+    try {
+      // A. The commit's worktree: migrations and the bootstrap file come from the commit only.
+      try {
+        tmp = mkdtempSync(path.join(os.tmpdir(), 'ezd-release-'));
+        git(['worktree', 'add', '--detach', worktree(), sha]);
+      } catch {
+        return fail('pending_check_failed');
+      }
+
+      // B. Tenant 1 and the timeout probe on the same URL the migrations use.
+      let tenantPresent;
+      try {
+        const { stdout } = await sql(TENANT_CHECK_SQL, { dbUrl: withTimeouts(dbUrl) });
+        const m = TENANT_CHECK_RE.exec(String(stdout).trim());
+        if (!m) return fail('tenant_check_failed');
+        tenantPresent = m[1] === '1';
+        if (m[2] !== '5000' || m[3] !== '300000') return fail('migrate_timeouts_not_applied');
+      } catch (err) {
+        return fail('tenant_check_failed', err);
+      }
+      let bootstrapSql = null;
+      const ownerEmail = processEnv.TENANT1_OWNER_EMAIL;
+      if (!tenantPresent) {
+        let fileText = '';
+        try {
+          fileText = readFileSync(path.join(worktree(), BOOTSTRAP_PATH), 'utf8');
+        } catch {
+          fileText = '';
+        }
+        try {
+          bootstrapSql = renderBootstrap(fileText, ownerEmail);
+        } catch (err) {
+          return fail(err?.code === 'owner_email_missing' ? 'owner_email_missing' : 'bootstrap_file_invalid');
+        }
+      } else if (typeof ownerEmail === 'string' && ownerEmail.trim() !== '') {
+        notice('owner_email_secret_unused');
+      }
+
+      // C. The pending migrations, file names only.
+      try {
+        const out = await supabase.pushDryRun({ dbUrl, workdir: worktree() });
+        const pending = parsePendingMigrations(out);
+        if (pending.length === 0) log('pending migrations: none');
+        for (const name of pending) log(`pending migration: ${name}`);
+      } catch (err) {
+        return fail('pending_check_failed', err);
+      }
+
+      // D. The dump, off-site under releases/ with the release key, before any migration.
+      dumpPrefix = `releases/${tag}-${stampOf(Number(now()))}/`;
+      let files;
+      try {
+        ({ files } = await dumpDatabase({ dbUrl, outDir: path.join(tmp, 'dump'), supabase }));
+      } catch (err) {
+        log(`dump_failed: ${err?.detail ?? 'unknown'}`);
+        childLines(err);
+        return stopV('dump_failed', built);
+      }
+      dumpFiles = files.map(({ name, size, sha256 }) => ({ name, size, sha256 }));
+      try {
+        const uploader = offsite({
+          endpoint: processEnv.BACKUP_S3_ENDPOINT,
+          region: processEnv.BACKUP_S3_REGION,
+          bucket: processEnv.BACKUP_S3_BUCKET,
+          accessKeyId: processEnv.RELEASE_S3_ACCESS_KEY_ID,
+          secretAccessKey: processEnv.RELEASE_S3_SECRET_ACCESS_KEY,
+        });
+        for (const f of files) {
+          await uploader.putFile(dumpPrefix + f.name, f.path, { contentType: 'application/sql' });
+        }
+        await uploader.putJson(`${dumpPrefix}manifest.json`, {
+          format: 1,
+          created_at: new Date(Number(now())).toISOString(),
+          source_ref: supabaseRefFromDbUrl(dbUrl),
+          newest_migration: newestMigrationIn(worktree()),
+          files: dumpFiles,
+        });
+      } catch {
+        log('dump_upload_failed');
+        summary(UPLOAD_FAILED_LINE(dumpPrefix));
+        return { ok: false, code: 'dump_upload_failed', prNumber, tag, resume, notices, ...built, dumpPrefix, dumpFiles };
+      }
+      summary(DUMP_SAVED_LINE(dumpPrefix));
+
+      // E. The migrations, with the lock and statement timeouts.
+      try {
+        await supabase.push({ dbUrl, workdir: worktree(), ...MIGRATION_TIMEOUTS });
+      } catch (err) {
+        return partlyUpdated('migrate_failed', err);
+      }
+
+      // F. Tenant 1, on the first release only. The rendered SQL goes on stdin and nowhere else.
+      if (bootstrapSql !== null) {
+        let done = false;
+        let err = null;
+        try {
+          const r = await sql(bootstrapSql, { dbUrl });
+          done = `${r?.stdout ?? ''}${r?.stderr ?? ''}`.includes('ezd_bootstrap_done');
+        } catch (e) {
+          err = e;
+          done = `${e?.message ?? ''}${e?.stdout ?? ''}${e?.stderr ?? ''}`.includes('ezd_bootstrap_already_done');
+        }
+        if (!done) return partlyUpdated('bootstrap_failed', err);
+      }
+    } finally {
+      if (tmp !== null) {
+        try {
+          git(['worktree', 'remove', '--force', worktree()]);
+        } catch {
+          // The worktree may not exist; the folder is removed below either way.
+        }
+        try {
+          git(['worktree', 'prune']);
+        } catch {
+          // Ignored: cleanup never changes the outcome.
+        }
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    }
+  }
+
   // Interim until EZD-023e (Q-0157): the steps after this one are not built yet.
   log('not_built: the release steps after the migration check are added by EZD-023c, EZD-023d and EZD-023e');
-  return stopV('not_built', built);
+  if (alreadyLive) return stopV('not_built', built);
+  summary(NOT_BUILT_RAN_LINE);
+  return { ok: false, code: 'not_built', prNumber, tag, resume, notices, ...built, dumpPrefix, dumpFiles };
+}
+
+/** Every non-empty release secret and GITHUB_TOKEN, for the child-output mask list (Step 5). */
+function rawSecrets(env) {
+  const out = [];
+  for (const name of [...RELEASE_SECRET_NAMES, 'GITHUB_TOKEN']) {
+    const v = env[name];
+    if (typeof v === 'string' && v !== '') out.push(v);
+  }
+  return out;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
@@ -321,6 +523,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       fetch: globalThis.fetch,
     }),
     vercel: lazyVercel(),
+    // None of these reads process.env until it is called (part c's lazy-dep rule).
+    supabase: createSupabaseCli({ root: process.cwd() }),
+    sql: createSql({ run: runChild }),
+    offsite: createOffsiteUploader,
     now: () => Date.now(),
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     log: out,

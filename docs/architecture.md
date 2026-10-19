@@ -139,6 +139,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@types/react` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `@types/react-dom` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `postgres` | `3.4.9` | app | Test harness: catalog queries and SQL-as-user for RLS tests (EZD-006); dev dependency, never imported by app code; ships its own types | EZD-006 |
+| `@aws-sdk/client-s3` | `3.1153.0` | root | Off-site bucket, S3-compatible API (release dumps EZD-023d; backups EZD-025) | EZD-023d |
 
 ## Adding a dependency
 

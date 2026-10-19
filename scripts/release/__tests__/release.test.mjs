@@ -5,7 +5,17 @@
 // the plan's Tests table (Step 1, Step 4, section 6) and the ticket's Done when (AC-EZD-023b-1, -2, -3).
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { appendFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -793,5 +803,568 @@ describe('EZD-023c Vercel build and environment checks', () => {
     assert.deepEqual(ctx.maskCommands('p%40ss%2Fx'), ['::add-mask::p%2540ss%252Fx']);
     assert.deepEqual(ctx.maskCommands('100%\nx%25'), ['::add-mask::100%25', '::add-mask::x%2525']);
     assert.deepEqual(ctx.maskCommands('a@b.com\nselect 1'), ['::add-mask::a@b.com', '::add-mask::select 1']);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-023d (vault/plans/EZD-023d.md section 4): T25, T10, T11, T9, T27. The part d fakes replace part b's
+// recording Proxies for `supabase`, `sql` and `offsite` and push into `h.external`. Expected values come from
+// the plan's Tests table (Steps 1–5, section 6), the ticket's Done when (AC-EZD-023d-1, -2, -3) and part c's
+// fake clock T0 (prefix `releases/phase-0-20261019T120000Z/`).
+// ---------------------------------------------------------------------------------------------------------------
+const loadBootstrap = () => import('../bootstrap.mjs');
+const DUMP_PREFIX = 'releases/phase-0-20261019T120000Z/';
+const OPTIONS_QUERY = 'options=-c%20lock_timeout%3D5s%20-c%20statement_timeout%3D300s';
+const AUTH_DATA_EXCLUDES_EXPECTED = [
+  'auth.sessions',
+  'auth.refresh_tokens',
+  'auth.one_time_tokens',
+  'auth.flow_state',
+];
+const DRY_RUN_TEXT =
+  'Would push these migrations:\n • 20261101000000_create_fixture.sql\n • 20261102000000_add_note.sql\n';
+const FIXTURE_MIGRATIONS = ['20261101000000_create_fixture.sql', '20261102000000_add_note.sql'];
+const NO_PLACEHOLDER_BOOTSTRAP = "do $$ begin raise notice 'ezd_bootstrap_done'; end $$;\n";
+const BOOTSTRAP_REL = path.join('supabase', 'bootstrap', 'tenant-1.sql');
+const sha256Hex = (text) => createHash('sha256').update(text).digest('hex');
+const sqlFile = (kind) => `-- ${kind}\n`;
+
+// Section 6 wording.
+const DUMP_SAVED_LINE = (prefix) => `database dump saved: ${prefix}`;
+const UPLOAD_FAILED_LINE = (prefix) =>
+  `release stopped: dump_upload_failed — the database and the live site are unchanged; an incomplete dump may be in ${prefix}`;
+const MIGRATE_FAILED_LINE = (prefix) =>
+  `release stopped: migrate_failed — the live site is unchanged; the database may be partly updated; the dump from before this release is in ${prefix}`;
+const BOOTSTRAP_FAILED_LINE = (prefix) =>
+  `release stopped: bootstrap_failed — the live site is unchanged; the database may be partly updated; the dump from before this release is in ${prefix}`;
+const OWNER_EMAIL_UNUSED_LINE =
+  'notice owner_email_secret_unused: tenant 1 already exists; delete TENANT1_OWNER_EMAIL from the release environment';
+
+/** A rejection shaped like the CLI and psql wrappers' (Step 1, Step 4). */
+const childError = (message, stderr, extra = {}) =>
+  Object.assign(new Error(message), { exitCode: 1, stdout: '', stderr, ...extra });
+
+/**
+ * CLEAN (makeC) plus the part d fakes. `o.tenantCheck`, `o.bootstrap`, `o.pushDryRun`, `o.push`, `o.putFile`,
+ * `o.putJson` and `o.dump.<kind>` replace one fake's behaviour (a function; throwing rejects).
+ */
+function makeD(mod, bs, R, o = {}) {
+  const { h, f } = makeC(mod, R, o);
+  const ext = h.external;
+  const sql = async (text, opts) => {
+    ext.push({ target: 'sql', args: [text, opts] });
+    if (text === bs.TENANT_CHECK_SQL) {
+      return o.tenantCheck ? o.tenantCheck() : { stdout: '0 5000 300000\n', stderr: '' };
+    }
+    return o.bootstrap ? o.bootstrap() : { stdout: '', stderr: 'NOTICE:  ezd_bootstrap_done\n' };
+  };
+  const migrationsIn = (workdir) => {
+    const dir = path.join(String(workdir), 'supabase', 'migrations');
+    return existsSync(dir) ? readdirSync(dir).sort() : null;
+  };
+  const supabase = {
+    async dump(kind, opts) {
+      ext.push({ target: 'supabase.dump', args: [kind, { ...opts }] });
+      const custom = o.dump?.[kind];
+      if (custom) return custom(opts);
+      mkdirSync(path.dirname(opts.file), { recursive: true });
+      writeFileSync(opts.file, sqlFile(kind));
+    },
+    async pushDryRun(opts) {
+      ext.push({ target: 'supabase.pushDryRun', args: [{ ...opts }, migrationsIn(opts.workdir)] });
+      return o.pushDryRun ? o.pushDryRun(opts) : DRY_RUN_TEXT;
+    },
+    async push(opts) {
+      ext.push({ target: 'supabase.push', args: [{ ...opts }, migrationsIn(opts.workdir)] });
+      return o.push ? o.push(opts) : '';
+    },
+  };
+  const offsite = (cfg) => {
+    ext.push({ target: 'offsite', args: [{ ...cfg }] });
+    return {
+      async putFile(key, p, opts) {
+        const bytes = existsSync(p) ? readFileSync(p) : null;
+        ext.push({ target: 'offsite.putFile', args: [key, p, { ...opts }, bytes] });
+        if (o.putFile) return o.putFile(key, p, opts);
+      },
+      async putJson(key, value) {
+        ext.push({ target: 'offsite.putJson', args: [key, structuredClone(value)] });
+        if (o.putJson) return o.putJson(key, value);
+      },
+    };
+  };
+  h.deps.sql = sql;
+  h.deps.supabase = supabase;
+  h.deps.offsite = offsite;
+  h.calls = (target) => ext.filter((c) => c.target === target);
+  h.bootstrapCalls = () => h.calls('sql').filter((c) => c.args[0] !== bs.TENANT_CHECK_SQL);
+  h.dumpCalls = (kind) => h.calls('supabase.dump').filter((c) => kind === undefined || c.args[0] === kind);
+  h.puts = () => ext.filter((c) => c.target === 'offsite.putFile' || c.target === 'offsite.putJson');
+  return { h, f };
+}
+
+/** The ordered targets of `sql`, `supabase.*` and the off-site puts (the factory call is checked apart). */
+const journalOrder = (h) =>
+  h.external
+    .filter((c) => c.target === 'sql' || c.target.startsWith('supabase.') || c.target.startsWith('offsite.'))
+    .map((c) => (c.target === 'supabase.dump' ? `supabase.dump(${c.args[0]})` : c.target));
+
+function assertNothingLive(h, id) {
+  const live = h.external
+    .map((c) => c.target)
+    .filter((tg) => tg === 'github.createTag' || tg === 'vercel.promote' || tg.startsWith('checkLive'));
+  assert.deepEqual(live, [], `(${id}) nothing live: no createTag, promote or checkLive`);
+}
+
+/** The dump folder(s) the fake was asked to write into no longer exist. */
+function assertDumpFolderGone(h, id) {
+  const dirs = new Set(h.dumpCalls().map((c) => path.dirname(c.args[1].file)));
+  assert.ok(dirs.size > 0, `(${id}) at least one dump call records a file`);
+  for (const d of dirs) assert.ok(!existsSync(d), `(${id}) dump folder ${d} no longer exists`);
+}
+
+const worktreeCount = (R) =>
+  git(R.work, 'worktree', 'list', '--porcelain')
+    .split(/\r?\n/)
+    .filter((l) => l.startsWith('worktree ')).length;
+
+describe('EZD-023d dump, migrations and tenant 1', () => {
+  // T25 --------------------------------------------------------------------------------------------------------
+  test('EZD-023d done when: the release writes the dump off-site under releases/ with the release key before any migration', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    // An uncommitted migration in R's working tree must never reach the release (archived step 11).
+    writeFileSync(path.join(R.work, 'supabase', 'migrations', '20261201000000_wip.sql'), 'select 1;\n');
+
+    const { h } = makeD(mod, bs, R);
+    h.deps.processEnv.BACKUP_S3_ACCESS_KEY_ID = 'key_TEST';
+    h.deps.processEnv.BACKUP_S3_SECRET_ACCESS_KEY = 'b2-secret-TEST';
+    const result = await h.run();
+
+    assert.deepEqual(
+      journalOrder(h),
+      [
+        'sql',
+        'supabase.pushDryRun',
+        'supabase.dump(roles)',
+        'supabase.dump(schema)',
+        'supabase.dump(data)',
+        'offsite.putFile',
+        'offsite.putFile',
+        'offsite.putFile',
+        'offsite.putJson',
+        'supabase.push',
+        'sql',
+      ],
+      `journal order; logs: ${JSON.stringify(h.logs())}`,
+    );
+    assert.equal(h.calls('sql')[0].args[0], bs.TENANT_CHECK_SQL, 'the first sql call is the tenant check');
+
+    // The release key only, never BACKUP_S3_*_KEY*.
+    const factory = h.calls('offsite');
+    assert.equal(factory.length, 1, 'offsite called once');
+    assert.deepEqual(factory[0].args[0], {
+      endpoint: 'https://s3.us-west-004.backblazeb2.com',
+      region: 'us-west-004',
+      bucket: 'ezd-test',
+      accessKeyId: 'relkey_TEST',
+      secretAccessKey: 'rel-secret-TEST',
+    });
+
+    // Keys, content types, prefix.
+    const puts = h.puts();
+    assert.deepEqual(
+      puts.map((c) => c.args[0]),
+      ['roles.sql', 'schema.sql', 'data.sql', 'manifest.json'].map((n) => DUMP_PREFIX + n),
+      'the 4 keys',
+    );
+    for (const c of puts.slice(0, 3)) {
+      assert.deepEqual(c.args[2], { contentType: 'application/sql' }, `${c.args[0]} content type`);
+    }
+    assert.equal(result.dumpPrefix, DUMP_PREFIX, 'result.dumpPrefix');
+
+    // Manifest (EZD-025 format), uploaded last.
+    const files = [
+      { name: 'roles.sql', size: 9, sha256: sha256Hex(sqlFile('roles')) },
+      { name: 'schema.sql', size: 10, sha256: sha256Hex(sqlFile('schema')) },
+      { name: 'data.sql', size: 8, sha256: sha256Hex(sqlFile('data')) },
+    ];
+    assert.deepEqual(
+      puts[3].args[1],
+      {
+        format: 1,
+        created_at: '2026-10-19T12:00:00.000Z',
+        source_ref: 'prodref123',
+        newest_migration: '20261102000000',
+        files,
+      },
+      'manifest',
+    );
+    assert.deepEqual(result.dumpFiles, files, 'result.dumpFiles');
+    for (const [i, kind] of ['roles', 'schema', 'data'].entries()) {
+      assert.deepEqual(puts[i].args[3], Buffer.from(sqlFile(kind)), `${kind}.sql bytes uploaded`);
+    }
+
+    // Dump options: the auth exclusions on data only; CLEAN's URL unchanged.
+    const dumps = h.dumpCalls();
+    assert.deepEqual(dumps[2].args[1].exclude, AUTH_DATA_EXCLUDES_EXPECTED, 'data exclude');
+    assert.equal(dumps[0].args[1].exclude, undefined, 'roles has no exclude');
+    assert.equal(dumps[1].args[1].exclude, undefined, 'schema has no exclude');
+    for (const c of dumps) assert.equal(c.args[1].dbUrl, CLEAN_DB_URL, `${c.args[0]} dump dbUrl unchanged`);
+
+    // URLs and timeouts.
+    const [tenantCheck, bootstrap] = h.calls('sql');
+    assert.equal(tenantCheck.args[1].dbUrl, `${CLEAN_DB_URL}?${OPTIONS_QUERY}`, 'tenant check URL carries the timeouts');
+    assert.equal(bootstrap.args[1].dbUrl, CLEAN_DB_URL, 'bootstrap dbUrl unchanged');
+    const [dry] = h.calls('supabase.pushDryRun');
+    const [push] = h.calls('supabase.push');
+    assert.equal(dry.args[0].dbUrl, CLEAN_DB_URL, 'pushDryRun dbUrl unchanged');
+    assert.equal(push.args[0].dbUrl, CLEAN_DB_URL, 'push dbUrl unchanged');
+    assert.equal(push.args[0].lockTimeout, '5s', 'push lockTimeout');
+    assert.equal(push.args[0].statementTimeout, '300s', 'push statementTimeout');
+
+    // One workdir from the commit: the committed migrations only, never the uncommitted one.
+    assert.equal(typeof dry.args[0].workdir, 'string', 'pushDryRun has a workdir');
+    assert.equal(push.args[0].workdir, dry.args[0].workdir, 'pushDryRun and push share one workdir');
+    assert.deepEqual(dry.args[1], FIXTURE_MIGRATIONS, 'workdir migrations at the dry run');
+    assert.deepEqual(push.args[1], FIXTURE_MIGRATIONS, 'workdir migrations at the push');
+
+    // Log and summary lines.
+    const logs = h.logs();
+    for (const name of FIXTURE_MIGRATIONS) {
+      assert.ok(logs.includes(`pending migration: ${name}`), `log holds pending migration: ${name}`);
+    }
+    assert.ok(h.summaries().includes(DUMP_SAVED_LINE(DUMP_PREFIX)), `summary holds the dump saved line: ${JSON.stringify(h.summaries())}`);
+
+    // The bootstrap text.
+    const text = bootstrap.args[0];
+    assert.equal(text.split('owner.test@example.com').length - 1, 1, 'bootstrap text holds the email once');
+    assert.ok(!text.includes('PASTE-YOUR-EMAIL-HERE'), 'bootstrap text holds no placeholder');
+
+    assertNothingLive(h, 'T25');
+    assert.deepEqual(result.notices, [], 'notices');
+
+    // Cleanup: the worktree and the dump folder are gone; R lists one worktree.
+    assert.ok(!existsSync(dry.args[0].workdir), 'the workdir no longer exists');
+    assertDumpFolderGone(h, 'T25');
+    assert.equal(worktreeCount(R), 1, 'git worktree list shows one worktree');
+
+    assertNoText(
+      h,
+      ['S3cret', 'rel-secret-TEST', 'relkey_TEST', 'b2-secret-TEST', 'key_TEST', 'owner.test@example.com'],
+      'T25',
+    );
+  });
+
+  // T10 --------------------------------------------------------------------------------------------------------
+  test('EZD-023d done when: a failed dump or upload stops the release before anything goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const writes = (text) => (opts) => {
+      mkdirSync(path.dirname(opts.file), { recursive: true });
+      writeFileSync(opts.file, text);
+    };
+    const cases = [
+      ['a', { dump: { schema: writes('') } }, 'dump_failed', 'schema_empty'],
+      [
+        'b',
+        {
+          dump: {
+            data: () => {
+              throw childError('supabase db dump exited 1', 'pg_dump: error: x');
+            },
+          },
+        },
+        'dump_failed',
+        'data_failed',
+      ],
+      [
+        'c',
+        {
+          putFile: (key) => {
+            if (key.endsWith('data.sql')) throw new Error(`offsite put failed: ${key} (403)`);
+          },
+        },
+        'dump_upload_failed',
+        null,
+      ],
+      [
+        'd',
+        { dump: { roles: writes('ALTER ROLE "x" WITH LOGIN PASSWORD \'SCRAM-SHA-256$4096:abc\';\n') } },
+        'dump_failed',
+        'role_passwords',
+      ],
+      ['e', { dump: { roles: () => {} } }, 'dump_failed', 'roles_empty'],
+    ];
+    for (const [id, o, code, detail] of cases) {
+      const { h } = makeD(mod, bs, R, o);
+      const result = await h.run();
+      assert.equal(result.ok, false, `(${id}) ok false`);
+      assert.equal(result.code, code, `(${id}) code; logs: ${JSON.stringify(h.logs())}`);
+      if (code === 'dump_failed') {
+        assert.ok(h.logs().includes(`dump_failed: ${detail}`), `(${id}) log dump_failed: ${detail}`);
+        assert.ok(h.summaries().includes(stoppedLine('dump_failed')), `(${id}) summary stopped line`);
+      } else {
+        assert.ok(
+          h.summaries().includes(UPLOAD_FAILED_LINE(DUMP_PREFIX)),
+          `(${id}) summary: ${JSON.stringify(h.summaries())}`,
+        );
+      }
+      if (id === 'd' || id === 'e') {
+        assert.equal(h.dumpCalls('schema').length, 0, `(${id}) 0 schema dumps after the roles guard`);
+        assert.equal(h.puts().length, 0, `(${id}) 0 offsite puts`);
+      }
+      assert.equal(h.calls('offsite.putJson').length, 0, `(${id}) 0 putJson`);
+      assert.equal(h.calls('supabase.push').length, 0, `(${id}) 0 push`);
+      assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
+      assertNothingLive(h, id);
+      assertDumpFolderGone(h, id);
+    }
+  });
+
+  // T11 --------------------------------------------------------------------------------------------------------
+  test('EZD-023d done when: a failed migration or tenant 1 setup stops the release before anything goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const pushRejects = (stderr) => () => {
+      throw childError('supabase db push exited 1', stderr);
+    };
+    const cases = [
+      ['a', { push: pushRejects('ERROR: x') }, 'migrate_failed'],
+      ['b', { bootstrap: () => ({ stdout: '', stderr: 'ERROR:  ezd_bootstrap_email_missing' }) }, 'bootstrap_failed'],
+      ['e', { push: pushRejects('ERROR: canceling statement due to lock timeout') }, 'migrate_failed'],
+      ['g', { bootstrap: () => ({ stdout: '', stderr: '' }) }, 'bootstrap_failed'],
+    ];
+    for (const [id, o, code] of cases) {
+      const { h } = makeD(mod, bs, R, o);
+      const result = await h.run();
+      assert.equal(result.ok, false, `(${id}) ok false`);
+      assert.equal(result.code, code, `(${id}) code; logs: ${JSON.stringify(h.logs())}`);
+      const line = code === 'migrate_failed' ? MIGRATE_FAILED_LINE(DUMP_PREFIX) : BOOTSTRAP_FAILED_LINE(DUMP_PREFIX);
+      assert.ok(h.summaries().includes(line), `(${id}) summary: ${JSON.stringify(h.summaries())}`);
+      if (code === 'migrate_failed') {
+        assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
+      }
+      if (id === 'e') {
+        assert.ok(
+          h.logs().some((l) => l.includes('canceling statement due to lock timeout')),
+          `(e) a log line names the lock timeout: ${JSON.stringify(h.logs())}`,
+        );
+      }
+      assertNothingLive(h, id);
+    }
+
+    // (h) already done counts as done (finding V6).
+    {
+      const { h } = makeD(mod, bs, R, {
+        bootstrap: () => {
+          throw childError('psql exited 3', 'ERROR:  ezd_bootstrap_already_done');
+        },
+      });
+      const result = await h.run();
+      assert.notEqual(result.code, 'bootstrap_failed', '(h) not bootstrap_failed');
+      assert.ok(
+        !h.summaries().some((l) => l.startsWith('release stopped: bootstrap_failed')),
+        '(h) no bootstrap_failed summary line',
+      );
+      assertNothingLive(h, 'h');
+    }
+  });
+
+  // T9 ---------------------------------------------------------------------------------------------------------
+  test('EZD-023d done when: no secret or owner email appears in the output', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+
+    // (a)–(d): tenant missing and no usable owner email: stopped before the dry run and the dump.
+    const emailCases = [
+      ['a', null],
+      ['b', "josh'@example.com"],
+      ['c', 'not-an-email'],
+      ['d', 'a@b.com\nselect 1'],
+    ];
+    for (const [id, email] of emailCases) {
+      const { h } = makeD(mod, bs, R);
+      if (email === null) delete h.deps.processEnv.TENANT1_OWNER_EMAIL;
+      else h.deps.processEnv.TENANT1_OWNER_EMAIL = email;
+      const result = await h.run();
+      assert.equal(result.ok, false, `(${id}) ok false`);
+      assert.equal(result.code, 'owner_email_missing', `(${id}) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(h.calls('supabase.pushDryRun').length, 0, `(${id}) 0 pushDryRun`);
+      assert.equal(h.dumpCalls().length, 0, `(${id}) 0 dump`);
+      assert.equal(h.calls('supabase.push').length, 0, `(${id}) 0 push`);
+      assertNothingLive(h, id);
+    }
+
+    const LEAK = `ERROR: duplicate key for owner.test@example.com at ${CLEAN_DB_URL}`;
+    const NO_TEXT = ['owner.test@example.com', 'S3cret', 'p%40ss%2Fx', 'p@ss/x'];
+    const masksBeforeFirstLog = (h, values, id) => {
+      const masks = h.masks();
+      for (const v of values) assert.ok(masks.includes(v), `(${id}) mask received ${JSON.stringify(v)}`);
+      const firstLog = h.journal.findIndex((e) => e.kind === 'log');
+      for (const v of values) {
+        const at = h.journal.findIndex((e) => e.kind === 'mask' && e.value === v);
+        assert.ok(firstLog === -1 || at < firstLog, `(${id}) ${JSON.stringify(v)} masked before the first log line`);
+      }
+    };
+
+    // (e) the bootstrap fails with a message naming the email and the URL.
+    {
+      const { h } = makeD(mod, bs, R, {
+        bootstrap: () => {
+          throw childError(LEAK, LEAK, { exitCode: 3 });
+        },
+      });
+      h.deps.processEnv.TENANT1_OWNER_EMAIL = ' owner.test@example.com ';
+      const result = await h.run();
+      assert.equal(result.code, 'bootstrap_failed', `(e) code; logs: ${JSON.stringify(h.logs())}`);
+      masksBeforeFirstLog(h, ['owner.test@example.com', 'S3cret'], 'e');
+      const [call] = h.bootstrapCalls();
+      assert.ok(call, '(e) one bootstrap sql call');
+      assert.equal(call.args[0].split('owner.test@example.com').length - 1, 1, '(e) email once in the SQL');
+      assertNoText(h, NO_TEXT, 'e');
+    }
+
+    // (f) the push fails with that same text.
+    {
+      const { h } = makeD(mod, bs, R, {
+        push: () => {
+          throw childError(LEAK, LEAK);
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.code, 'migrate_failed', `(f) code; logs: ${JSON.stringify(h.logs())}`);
+      assertNoText(h, NO_TEXT, 'f');
+    }
+
+    // (g) an encoded password: both forms masked, the safe line still logged.
+    {
+      const encodedUrl =
+        'postgresql://postgres.prodref123:p%40ss%2Fx@aws-0-us-east-1.pooler.supabase.com:5432/postgres';
+      const { h } = makeD(mod, bs, R, {
+        push: () => {
+          throw childError('supabase db push exited 1', 'auth p%40ss%2Fx\nauth p@ss/x\nERROR: y');
+        },
+      });
+      h.deps.processEnv.BACKUP_SOURCE_DB_URL = encodedUrl;
+      const result = await h.run();
+      assert.equal(result.code, 'migrate_failed', `(g) code; logs: ${JSON.stringify(h.logs())}`);
+      masksBeforeFirstLog(h, ['p%40ss%2Fx', 'p@ss/x'], 'g');
+      assert.ok(h.logs().includes('  | ERROR: y'), `(g) log holds "  | ERROR: y": ${JSON.stringify(h.logs())}`);
+      assertNoText(h, NO_TEXT, 'g');
+    }
+  });
+
+  // T27 --------------------------------------------------------------------------------------------------------
+  test('EZD-023d T27 checks before the dump: worktree, tenant check, timeouts, pending list, bootstrap file', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+
+    const refusedBeforeDump = (h, result, code, id) => {
+      assert.equal(result.ok, false, `(${id}) ok false`);
+      assert.equal(result.code, code, `(${id}) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(h.dumpCalls().length, 0, `(${id}) 0 dump calls`);
+      assert.equal(h.calls('supabase.push').length, 0, `(${id}) 0 push calls`);
+      assert.ok(h.summaries().includes(stoppedLine(code)), `(${id}) summary: ${JSON.stringify(h.summaries())}`);
+      assertNothingLive(h, id);
+    };
+
+    // (a) the worktree cannot be added.
+    {
+      const { h } = makeD(mod, bs, R);
+      const inner = h.deps.git;
+      h.deps.git = (args) => {
+        if (args[0] === 'worktree' && args[1] === 'add') throw new Error('git worktree add exited 128');
+        return inner(args);
+      };
+      const result = await h.run();
+      refusedBeforeDump(h, result, 'pending_check_failed', 'a');
+      assert.equal(h.calls('sql').length, 0, '(a) 0 sql calls');
+    }
+
+    // (b), (c) the tenant check fails or answers in another form; (d) the timeouts are not applied.
+    for (const [id, tenantCheck, code] of [
+      [
+        'b',
+        () => {
+          throw childError('psql exited 2', 'psql: error: connection refused');
+        },
+        'tenant_check_failed',
+      ],
+      ['c', () => ({ stdout: 'tenant ok', stderr: '' }), 'tenant_check_failed'],
+      ['d', () => ({ stdout: '0 0 0', stderr: '' }), 'migrate_timeouts_not_applied'],
+    ]) {
+      const { h } = makeD(mod, bs, R, { tenantCheck });
+      const result = await h.run();
+      refusedBeforeDump(h, result, code, id);
+    }
+
+    // (e) tenant present with the secret still set: notice, no bootstrap, migrations still run.
+    {
+      const { h } = makeD(mod, bs, R, { tenantCheck: () => ({ stdout: '1 5000 300000', stderr: '' }) });
+      const result = await h.run();
+      assert.deepEqual(result.notices, ['owner_email_secret_unused'], `(e) notices; logs: ${JSON.stringify(h.logs())}`);
+      assert.deepEqual(
+        h.summaries().filter((l) => l.startsWith('notice ')),
+        [OWNER_EMAIL_UNUSED_LINE],
+        '(e) exactly the notice line',
+      );
+      assert.equal(h.bootstrapCalls().length, 0, '(e) 0 bootstrap sql calls');
+      assert.equal(h.calls('supabase.push').length, 1, '(e) 1 push call');
+    }
+
+    // (f) tenant present and the secret already deleted: no notice.
+    {
+      const { h } = makeD(mod, bs, R, { tenantCheck: () => ({ stdout: '1 5000 300000', stderr: '' }) });
+      delete h.deps.processEnv.TENANT1_OWNER_EMAIL;
+      const result = await h.run();
+      assert.deepEqual(result.notices, [], `(f) notices; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(h.bootstrapCalls().length, 0, '(f) 0 bootstrap sql calls');
+      assert.equal(h.calls('supabase.push').length, 1, '(f) 1 push call');
+    }
+
+    // (g) the dry run fails with the URL in its stderr: redacted, never raw.
+    {
+      const { h } = makeD(mod, bs, R, {
+        pushDryRun: () => {
+          throw childError('supabase db push exited 1', `at ${CLEAN_DB_URL}`);
+        },
+      });
+      const result = await h.run();
+      refusedBeforeDump(h, result, 'pending_check_failed', 'g');
+      assert.ok(
+        h.logs().includes('  | at postgresql://postgres.prodref123:***@aws-0-us-east-1.pooler.supabase.com:5432/postgres'),
+        `(g) redacted child line logged: ${JSON.stringify(h.logs())}`,
+      );
+      assertNoText(h, ['S3cret'], 'g');
+    }
+
+    // (h) the committed bootstrap file has no placeholder: refused before the dump.
+    {
+      const R2 = makeR(t);
+      const c3 = commitFiles(R2.work, { 'supabase/bootstrap/tenant-1.sql': NO_PLACEHOLDER_BOOTSTRAP }, 'C3 bootstrap');
+      git(R2.work, 'push', '-q', 'origin', 'main');
+      R2.tip = c3;
+      const { h } = makeD(mod, bs, R2);
+      const result = await h.run();
+      refusedBeforeDump(h, result, 'bootstrap_file_invalid', 'h');
+    }
+
+    // (i) the same change uncommitted in the working tree changes nothing: the commit's file is used.
+    {
+      const R3 = makeR(t);
+      writeFileSync(path.join(R3.work, BOOTSTRAP_REL), NO_PLACEHOLDER_BOOTSTRAP);
+      const { h } = makeD(mod, bs, R3);
+      await h.run();
+      const calls = h.bootstrapCalls();
+      assert.equal(calls.length, 1, `(i) 1 bootstrap sql call; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(calls[0].args[0].split('owner.test@example.com').length - 1, 1, '(i) email once');
+      assert.ok(!calls[0].args[0].includes('PASTE-YOUR-EMAIL-HERE'), '(i) no placeholder');
+    }
   });
 });
