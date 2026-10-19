@@ -199,14 +199,14 @@ code-reviewer always · calc-auditor no (no calculations) · ui-verifier no (no 
 
 ## Open questions
 
-- **QP-1:** Q-0140 (a) now denies every dependency build script through `allowBuilds`, and `supabase` 2.121.0 has no install script (finding V5), so Step 3 step 4's two install forms no longer fit. Which form do T16 and T17 accept? In every option, `pnpm rebuild supabase` and the `onlyBuiltDependencies` check are dropped. EZD-025's backup workflows follow the same answer.
+- **QP-1 (Q-0158; answered: (a)):** Q-0140 (a) now denies every dependency build script through `allowBuilds`, and `supabase` 2.121.0 has no install script (finding V5), so Step 3 step 4's two install forms no longer fit. Which form do T16 and T17 accept? In every option, `pnpm rebuild supabase` and the `onlyBuiltDependencies` check are dropped. EZD-025's backup workflows follow the same answer.
   - (a) Only `pnpm install --frozen-lockfile`, as `supabase-dev.yml` does. T17 checks that `allowBuilds` holds only `false` entries and that no allow-all setting exists.
   - (b) Only `pnpm install --frozen-lockfile --ignore-scripts`, with no rebuild step. T17 as in (a).
   - (c) Both (a) and (b).
-- **QP-2:** Which Preview names must the release require (Step 8 `missing` rule, T14)? Today it requires only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, plus the `EMAIL_TRANSPORT` rule. Without `SUPABASE_API_GATE_SECRET`, a preview refuses every signed-in request (EZD-006 runbook step 10; EZD-007 adds the name to `.env.example`). Without `EMAIL_FROM`, every send fails (`email_from_not_set`).
+- **QP-2 (Q-0159):** Which Preview names must the release require (Step 8 `missing` rule, T14)? Today it requires only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, plus the `EMAIL_TRANSPORT` rule. Without `SUPABASE_API_GATE_SECRET`, a preview refuses every signed-in request (EZD-006 runbook step 10; EZD-007 adds the name to `.env.example`). Without `EMAIL_FROM`, every send fails (`email_from_not_set`).
   - (a) Add both to the Preview list, `SUPABASE_API_GATE_SECRET` only when it is in `requiredNames`. New T14 cases each expect one problem `missing` / name / `preview`.
   - (b) Keep the list as it is, and only name both in Before-launch item 4.
-- **QP-3:** With Preview `EMAIL_TRANSPORT=stub`, the email stub keeps every message and its link in server memory (`app/src/server/email/test-harness/stub-transport.ts`). STATUS.md rows EZD-008a and EZD-008b say "the first ticket that emails a token link, or EZD-023b, settles it". Who settles it, and how?
+- **QP-3 (Q-0160):** With Preview `EMAIL_TRANSPORT=stub`, the email stub keeps every message and its link in server memory (`app/src/server/email/test-harness/stub-transport.ts`). STATUS.md rows EZD-008a and EZD-008b say "the first ticket that emails a token link, or EZD-023b, settles it". Who settles it, and how?
   - (a) Accept it for previews (short-lived instances; nothing reads the outbox over HTTP). The release's env check also refuses any Preview or Production `EMAIL_STUB_DIR` (docs/architecture.md: "never set on Vercel"), with a new T14 case.
   - (b) Accept it, with no new check.
   - (c) Leave it to the first ticket that emails a token link (EZD-105 invites), which changes EZD-008a's stub. EZD-023b changes nothing.
