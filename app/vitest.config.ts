@@ -9,5 +9,8 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     testNamePattern: process.env.EZD_TEST_GREP ? new RegExp(process.env.EZD_TEST_GREP) : undefined,
     maxWorkers: 4,
+    // EZD-004b: local Supabase values into process.env; testTimeout for database calls.
+    globalSetup: ['test-harness/supabase-env.global-setup.ts'],
+    testTimeout: 15000,
   },
 });
