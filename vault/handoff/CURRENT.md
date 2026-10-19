@@ -1,10 +1,15 @@
-# Handoff · 2026-10-19 22:00 · questions 0
+# Handoff · 2026-10-19 23:59 · build EZD-023b
 
 - Phase and stage: Phase 0, Stage 3 (builds); see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: questions 0. Q-0159 (code-reviewer) and Q-0160 (security-reviewer) answered-agent, both (a); planner re-validated EZD-023c (Step 2 rules 3, 7; T14 (r)–(x); CLEAN gains env_V_FROM), EZD-021 (T21 fixtures from EZD-023c) and EZD-023e (stale notes only). EZD-023e added to EZD-021 depends_on (tickets.json, phase-00.md, STATUS.md), since T21 (g) needs the full release run. EZD-023b, 023c, 023d, 023e set ready. vault/questions/phase-00-for-josh.md rewritten.
+- Completed this session: EZD-023b done (238bd8c, 392 tests on develop phase 0). One round: tests 5e91b1f, test review PASS, build c6a95f2, worktree gate PASS, code-reviewer mode 3 PASS, security-reviewer PASS (Production-sensitive changes PASS). Models: Fable 5.1 for all four roles (high).
 - In progress: none
 - Blocked: EZD-003 (unchanged); EZD-023e waits on it through depends_on
-- Questions for Josh: none needing a decision. To confirm: Q-0154 to Q-0160 (section 2); wording items 1–88 (section 3); rule candidates L-009 to L-014 (section 4), all in vault/questions/phase-00-for-josh.md
-- Decisions made: Q-0159 (a), Q-0160 (a) (answered-agent); no lessons added
-- Next unit: build EZD-023b
+- Questions for Josh: none needing a decision. New needs-josh-confirm wording: EZD-023b Actions log lines (STATUS Notes)
+- Decisions made: none; no lessons added
+- Follow-ups for the next release parts:
+  - maskCommands should escape % as %25 (security, minor); fix with a test in EZD-023c or EZD-023e
+  - PR title echoed unescaped to stdout (minor)
+  - EZD-005b renderBootstrap quote check belongs to EZD-023d (plan lines 76–78, T9 (i))
+  - after the Phase 0 merge, check merge_commit_sha in commits/<sha>/pulls before EZD-023e
+- Next unit: build EZD-023c
