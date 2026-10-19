@@ -22,3 +22,5 @@ scripts/conventions/*
 !scripts/conventions/check.mjs
 # EZD-004a: machine-written by scripts/db/gen-types.mjs (vault/plans/EZD-004a.md Step 7).
 app/src/server/db/database.types.ts
+# EZD-010a: token values are the spec text verbatim; Prettier would rewrite the shadow values (vault/plans/EZD-010a.md finding P1).
+app/src/styles/tokens.css

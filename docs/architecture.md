@@ -157,6 +157,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/server/             server-only code: db clients, can(), route helpers, money serializers
   src/server/jobs/        background job handlers (EZD-009); the only place PDFKit is imported
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
+  src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026)
   src/workers/            Web Workers, files named *.worker.ts (11 rule 3)
 packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model schema in src/schema/<object-type>.ts (03 rule 5); drawing list (02 PDF out); calculations re-run on the server (11 Where each output is produced)
@@ -168,7 +169,7 @@ supabase/                 Supabase CLI folder: config.toml, seed.sql, migrations
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
 ```
 
-Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` (`app`, `geometry`, `worker`, `spike-<dir>` in lowercase). The root scripts `typecheck`, `lint`, `test` and `build` fan out to every workspace package except `spikes/*` with `pnpm -r --if-present --filter "!./spikes/**"`; `lint` runs check C1–C9 first and `test` runs the repo scripts' `node:test` files first. EZD-001 extends these files; it does not replace them. The geometry package runs in the browser, in Web Workers and in Node (02 Geometry core; 11 Where each output is produced), so it uses no DOM or React.
+Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` (`app`, `geometry`, `worker`, `spike-<dir>` in lowercase). The root scripts `typecheck`, `lint`, `test` and `build` fan out to every workspace package except `spikes/*` with `pnpm -r --if-present --filter "!./spikes/**"`; `lint` runs check C1–C10 first and `test` runs the repo scripts' `node:test` files first. EZD-001 extends these files; it does not replace them. The geometry package runs in the browser, in Web Workers and in Node (02 Geometry core; 11 Where each output is produced), so it uses no DOM or React.
 
 ### Root config files
 
@@ -181,6 +182,18 @@ EZD-001 (vault/plans/EZD-001.md Step 3). There is no root `tsconfig.json`, so a 
 - `pnpm-workspace.yaml`: `packages`, `saveExact: true`, `workspaceConcurrency: 1` (Q-0139 (a); pnpm 12 ignores `.npmrc` for these) and the `allowBuilds` map (Adding a dependency). Added keys are scalars or maps, never `- ` list lines (EZD-000 T26 reads every `- ` line as a package glob).
 
 Internal packages are TypeScript source with no build step: `packages/geometry/package.json` has `"type": "module"` and `exports["."] = "./src/index.ts"`, and consumers compile it. The first ticket that imports it adds `"@ezdraft/geometry": "workspace:*"` to its `package.json` and, in the app, `transpilePackages: ['@ezdraft/geometry']` in `app/next.config.ts`. `app/next.config.ts` pins `outputFileTracingRoot` and `turbopack.root` to the workspace root because worktrees sit inside the main checkout and Next.js otherwise infers the root from the nearest lockfile upward.
+
+
+### Design tokens, fonts and icons
+
+EZD-010a (vault/plans/EZD-010a.md Step 4); 04 Frame and visual system (Studio); Q-0026 (a); Q-0040 (c); Q-0057 (b); Q-0013 (a).
+
+- Names use the `--ez-` prefix; radii are named by value.
+- `app/src/styles/tokens.css` holds every literal color and shadow, `tokens.ts` (`TOKENS`) mirrors it entry for entry. Values come from 04 Frame and visual system or a cited Studio board (vault/tickets/README.md rule 5). A ticket that adds a token appends it to both files with its board and Q-ID in a comment. Components use `var(--ez-*)` only (check C10).
+- Measurements, code and numbers use DM Mono (`var(--ez-font-mono)`, EZD-010c) (04 Type).
+- Colors: the spec's `oklch()` values ship as written with no sRGB fallback; browser floor Firefox 113+, Safari/iOS 16.4+, Chrome/Edge 111+ (Q-0026 (a); Q-0013 (a)).
+- Board-cited exception radii approved by Josh: `--ez-radius-6` for tooltips (Q-0040 (c), added by EZD-012) and `--ez-radius-14` for dialogs (Q-0057 (b), added by EZD-015). Any other radius that conflicts with 04's list becomes a question.
+- `tokens.css` is excluded from Prettier, because Prettier rewrites `rgba(20,30,50,.05)` to `rgba(20, 30, 50, 0.05)` and the values must stay the spec text (`.prettierignore`).
 
 ## Server-only data access and can()
 
@@ -305,7 +318,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 
 ## Machine checks
 
-`node scripts/conventions/check.mjs [rootDir]` runs C1–C9 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/gate.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
+`node scripts/conventions/check.mjs [rootDir]` runs C1–C10 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/gate.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
 
 | ID | Rule | Check | Built by |
 | --- | --- | --- | --- |
@@ -318,6 +331,8 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | C7 | A file importing `vitest` is `*.test.ts(x)`; a file importing `@playwright/test` is `*.spec.ts` (config, setup, `test-utils/`, `test-harness/`, `fixtures/` exempt) | same | EZD-000 |
 | C8 | No `console.*` in non-test files under `app/src/`, `packages/*/src/`, `worker/src/` except `logger.ts` | same | EZD-000 |
 | C9 | Every `*.test.ts`, `*.test.tsx`, `*.spec.ts` under `app/`, `packages/`, `worker/` has a top-level `describe` / `test.describe` whose title starts with a ticket ID (`test-utils/`, `test-harness/` and config files exempt) | same | EZD-001 |
+| C10 | No literal color (hex or color function) in a declaration of a CSS file under app/src/ other than app/src/styles/tokens.css | same | EZD-010a |
+| — | Named colors in CSS and colors in TSX style props | review | EZD-010a |
 | — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |

@@ -323,3 +323,37 @@ test('EZD-000 T25: the real repository passes the conventions check', () => {
   const r = runCheck(root);
   assert.equal(r.code, 0, `check must exit 0 on the clean repo\n${r.out}`);
 });
+
+// ---------- EZD-010a T11: C10 colors only in tokens.css ----------
+// Sources: vault/plans/EZD-010a.md (Step 3 rule, Tests T11); 02 Named tools "CSS modules on the design tokens".
+
+const C10_MAIN = 'EZD-010a T11 (AC-EZD-010a-2) done when: C10 fails a CSS file under app/src/ that writes a literal color';
+
+const C10_FAIL_CASES = [
+  ['a', 'app/src/x.module.css', 'a{color:#fff}'],
+  ['b', 'app/src/x.module.css', 'a{box-shadow:0 1px 2px rgba(0,0,0,.1)}'],
+  ['c', 'app/src/x.module.css', 'a{color:oklch(0.5 0.1 20)}'],
+  ['d', 'app/src/x.module.css', 'a{--local:#123456}'],
+  ['i', 'app/src/styles/globals.css', 'body{background:#ABCDEF}'],
+  ['j', 'app/src/x.module.css', '@media (min-width:600px){a{color:HSL(0 0% 0%)}}'],
+];
+
+const C10_PASS_CASES = [
+  ['e', 'app/src/styles/tokens.css', ':root{--ez-x:#fff;--ez-y:rgba(0,0,0,.1)}'],
+  ['f', 'app/src/x.module.css', '#main{color:var(--ez-ink)}'],
+  ['g', 'app/src/x.module.css', '/* #fff */ a{color:var(--ez-ink)}'],
+  ['h', 'app/src/x.module.css', '#fade{color:var(--ez-ink)}'],
+  ['k', 'app/src/__fixtures__/y.css', 'a{color:#fff}'],
+];
+
+for (const [id, file, css] of C10_FAIL_CASES) {
+  test(`${C10_MAIN} (${id})`, () => {
+    expectFail(makeRepo({ [file]: css }), 'C10', [file], `T11${id}`);
+  });
+}
+
+for (const [id, file, css] of C10_PASS_CASES) {
+  test(`EZD-010a T11 (${id}): C10 passes ${file} with ${css}`, () => {
+    expectPass(makeRepo({ [file]: css }), `T11${id}`);
+  });
+}

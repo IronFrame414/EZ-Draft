@@ -4,6 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -206,4 +207,41 @@ test('EZD-000 T26: root package.json has the gate scripts, pnpm pin and the four
     .filter(Boolean)
     .map((m) => m[1].replace(/^['"]|['"]$/g, ''));
   assert.deepEqual(sorted(globs), sorted(['app', 'packages/*', 'worker', 'spikes/*']));
+});
+
+// ---------- EZD-010a T12 part a: docs updated ----------
+// Sources: vault/plans/EZD-010a.md (Step 4, Tests T12); EZD-000 T5; Q-0026 (a), Q-0040 (c), Q-0057 (b).
+
+test('EZD-010a T12 (a): the ## headings are exactly the 13 required, in order', () => {
+  const headings = readArch().split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => /^## /.test(l));
+  assert.deepEqual(headings, REQUIRED_HEADINGS);
+});
+
+test('EZD-010a T12 (b): the Design tokens, fonts and icons subsection exists', () => {
+  const lines = readArch().split(/\r?\n/).map((l) => l.trimEnd());
+  assert.ok(lines.includes('### Design tokens, fonts and icons'), 'missing ### Design tokens, fonts and icons');
+});
+
+test('EZD-010a T12 (c): Machine checks table has a C10 row', () => {
+  const t = tableWithHeader(readArch(), ['ID', 'Rule', 'Check', 'Built by']);
+  assert.ok(t.rows.some((r) => strip(r[0]) === 'C10'), 'Machine checks table needs a row with ID C10');
+});
+
+test('EZD-010a T12 (d): the doc names --ez-, Q-0026, --ez-radius-6 and --ez-radius-14', () => {
+  const md = readArch();
+  for (const s of ['--ez-', 'Q-0026', '--ez-radius-6', '--ez-radius-14']) {
+    assert.ok(md.includes(s), `docs/architecture.md must contain ${s}`);
+  }
+});
+
+test('EZD-010a T12 (e): the conventions check exits 0 on the repository root', () => {
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});
+
+test('EZD-010a T12 (f): .prettierignore has the line app/src/styles/tokens.css', () => {
+  const p = path.join(root, '.prettierignore');
+  assert.ok(existsSync(p), '.prettierignore must exist');
+  const lines = readFileSync(p, 'utf8').split(/\r?\n/).map((l) => l.trimEnd());
+  assert.ok(lines.includes('app/src/styles/tokens.css'), '.prettierignore needs the line app/src/styles/tokens.css');
 });

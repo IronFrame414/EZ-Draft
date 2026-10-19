@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // EZD-000 · Conventions check C1–C8 (vault/plans/EZD-000.md, Step 3; docs/architecture.md, Machine checks).
 // EZD-001 · C9 test files carry a ticket ID (vault/plans/EZD-001.md, Step 6.1; Q-0006).
+// EZD-010a · C10 colors only in app/src/styles/tokens.css (vault/plans/EZD-010a.md, Step 3).
 // Plain Node 22, no dependencies. Usage: node scripts/conventions/check.mjs [rootDir]
 // Prints one line per violation, `[Cn] <repo-relative path>: <problem>`, and exits 1 if any; else prints a pass line and exits 0.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -404,6 +405,33 @@ function checkC9() {
   }
 }
 
+// ---------- C10 Colors only in the token file (EZD-010a Step 3; 02 Named tools) ----------
+
+// Every CSS file under app/src/ except app/src/styles/tokens.css: no declaration value holds a hex color or a color function.
+// Comments are stripped; a segment ending at "{" is a selector or at-rule prelude and is not checked. Named colors and TSX
+// style props are not covered (review).
+const C10_TOKENS = 'app/src/styles/tokens.css';
+const C10_HEX = /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?!\w)/i;
+const C10_FUNC = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
+
+function checkC10() {
+  for (const file of walk('app/src')) {
+    if (!file.endsWith('.css') || file === C10_TOKENS) continue;
+    const text = readFileSync(abs(file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const re = /([^{};]*)([{};])/g;
+    let m;
+    while ((m = re.exec(text))) {
+      if (m[2] === '{') continue;
+      const colon = m[1].indexOf(':');
+      if (colon < 0) continue;
+      const value = m[1].slice(colon + 1);
+      if (C10_HEX.test(value) || C10_FUNC.test(value)) {
+        fail('C10', file, `literal color in "${m[1].trim().replace(/\s+/g, ' ')}"; use var(--ez-*) from app/src/styles/tokens.css`);
+      }
+    }
+  }
+}
+
 // ---------- run ----------
 
 checkC1();
@@ -415,10 +443,11 @@ checkC6();
 checkC7();
 checkC8();
 checkC9();
+checkC10();
 
 if (problems.length) {
   for (const line of problems) console.log(line);
   console.log(`conventions check: ${problems.length} violation${problems.length === 1 ? '' : 's'} (see docs/architecture.md, Machine checks)`);
   process.exit(1);
 }
-console.log(`conventions check: C1–C9 pass (${rel(root) || '.'})`);
+console.log(`conventions check: C1–C10 pass (${rel(root) || '.'})`);
