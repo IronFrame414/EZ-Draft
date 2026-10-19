@@ -27,7 +27,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| EZD-001 | 0 | Repo and tooling | ready | medium | EZD-000, EZD-000b, EZD-000c, EZD-000d, EZD-000e, EZD-000f, EZD-000g, EZD-000h, EZD-000i |  |  |  |
+| EZD-001 | 0 | Repo and tooling | in-progress | high | EZD-000, EZD-000b, EZD-000c, EZD-000d, EZD-000e, EZD-000f, EZD-000g, EZD-000h, EZD-000i |  |  | Step 1: plan re-validated (024ca47, 74888bc) after EZD-000/000d/000e/000h/000i deviations; complexity medium → high; QP-1 → Q-0139 answered-agent (a) (orchestrator), QP-2 → Q-0140 answered-agent (a) (security-reviewer). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): planner Opus 5.5; test-author Fable 5.1; builder Fable 5.1; reviewers Fable 5.1. |
 | EZD-002 | 0 | CI | ready | medium | EZD-001 |  |  |  |
 | EZD-003 | 0 | Hosting and subdomain | ready | medium | EZD-002 |  |  | Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: previews only on the phase PR. Q-0123 (b) (domain already connected): re-validated again the same day; Josh turns off Auto-assign Custom Production Domains before the Phase 0 merge (Step 5.2). Josh did Steps 5.2–5.4 on 2026-10-19. Dashboard paths differ from the plan: Ignored Build Step is Settings → Build and Deployment (option Custom); Auto-assign Custom Production Domains is Settings → Environments → Production → Branch Tracking; Git Fork Protection is Settings → Security. The Stage 3 re-validation fixes the runbook paths. |
 | EZD-004 | 0 | Supabase project | ready | high | EZD-001 |  |  |  |

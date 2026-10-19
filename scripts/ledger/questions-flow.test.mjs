@@ -32,6 +32,10 @@ before(() => {
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/.questions-last-run.json']) if (existsSync(file(f))) spawnSync('rm', [file(f)]);
   for (const id of ['EZD-000b', 'EZD-000c', 'EZD-000d', 'EZD-000e', 'EZD-000f', 'EZD-000g', 'EZD-000h']) setStatus(id, 'ready');
   setStatus('EZD-000i', 'questions');
+  // A live in-flight ticket (e.g. EZD-001 in-progress) depends on the tickets reset above and fails the ledger check.
+  edit('tickets/STATUS.md', (s) => s.replace(/^(\| EZD-\w+ \|[^|]*\|[^|]*\| )(?:in-progress|review)( \|)/gm, '$1ready$2'));
+  // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
+  edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
   const top = Math.max(...[...readFileSync(file('questions/QUESTIONS.md'), 'utf8').matchAll(/^\| Q-(\d{4}) \|/gm)].map((m) => Number(m[1])));
   [qa, qb, qc] = [qid(top + 1), qid(top + 2), qid(top + 3)];
 });
