@@ -154,10 +154,11 @@ Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/R
 /                         workspace root: package.json (fan-out scripts), pnpm-workspace.yaml, .npmrc, docs/, scripts/, supabase/ (EZD-004a), .github/
 app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/app/                routes; entry points per EZD-020; route handlers under src/app/api/**
+  src/app/dev/<name>/      developer test pages; notFound() when VERCEL_ENV is production (EZD-010c)
   src/server/             server-only code: db clients, can(), route helpers, money serializers
   src/server/jobs/        background job handlers (EZD-009); the only place PDFKit is imported
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
-  src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a)
+  src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026)
   src/workers/            Web Workers, files named *.worker.ts (11 rule 3)
   src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b)
@@ -202,6 +203,9 @@ EZD-010a (vault/plans/EZD-010a.md Step 4); 04 Frame and visual system (Studio); 
 - To add an icon: run `pnpm --filter @ezdraft/app icons:fetch <name>`, add the name to `icons.json` in sorted order, run `pnpm --filter @ezdraft/app icons:build`, then commit the SVG, the sprite and the names file. `icons.test.ts` (T8) fails otherwise.
 - `Icon` is decorative, so the button around it carries the label and tooltip (11 Accessibility).
 - Never load the icon font, and never write the words "Material Symbols" in `app/src/` or `app/public/` (EZD-010c T7).
+- Fonts (EZD-010c; vault/plans/EZD-010c.md): the files in `app/src/styles/fonts/` are copied unchanged from `@fontsource/instrument-sans` and `@fontsource/dm-mono` 5.3.0 (not installed as packages), OFL-1.1, licences next to them. Instrument Sans 400/500/600 for UI; DM Mono 400/500 for measurements, code and numbers.
+- Latin subset only (11 rule 8): it covers ASCII, Spanish accents and punctuation, and the measurement marks `'` `"` `×` `°` `…`.
+- Loaded with `next/font/local` in `app/src/styles/fonts.ts` as `--ez-font-sans` and `--ez-font-mono`, set on `<html>` by the root layout. Never load Google Fonts (`next/font/google`, `fonts.googleapis.com`, `fonts.gstatic.com`) or the icon font.
 
 ## Server-only data access and can()
 
@@ -342,6 +346,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | C10 | No literal color (hex or color function) in a declaration of a CSS file under app/src/ other than app/src/styles/tokens.css | same | EZD-010a |
 | — | Named colors in CSS and colors in TSX style props | review | EZD-010a |
 | — | Icon sprite and names file match icons.json; icons:build is byte-stable and refuses missing, repeated or unsorted names | app/src/components/icon/icons.test.ts (T8, T9) | EZD-010b |
+| — | No icon font, no Google Fonts reference; woff2 files only in app/src/styles/fonts/ | app/src/styles/no-icon-font.test.ts (T7) | EZD-010c |
 | — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |

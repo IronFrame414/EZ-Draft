@@ -290,3 +290,28 @@ test('EZD-010b T12 (f): the conventions check exits 0 on the repository root', (
   const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
   assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
 });
+
+test('EZD-010c T12 (a): the ## headings equal REQUIRED_HEADINGS', () => {
+  const heads = readArch().split(/\r?\n/).filter((l) => /^## /.test(l)).map((l) => l.trimEnd());
+  assert.deepEqual(heads, REQUIRED_HEADINGS);
+});
+
+test('EZD-010c T12 (b): the font text is in architecture.md', () => {
+  const md = readArch();
+  for (const s of ['fonts.ts', '@fontsource/instrument-sans', '@fontsource/dm-mono', 'OFL-1.1', 'next/font/local', 'src/app/dev/<name>/']) {
+    assert.ok(md.includes(s), `docs/architecture.md must contain ${s}`);
+  }
+});
+
+test('EZD-010c T12 (c): Machine checks row for no-icon-font.test.ts built by EZD-010c', () => {
+  const t = tableWithHeader(readArch(), ['ID', 'Rule', 'Check', 'Built by']);
+  assert.ok(
+    t.rows.some((r) => (r[2] || '').includes('no-icon-font.test.ts') && strip(r[3] || '') === 'EZD-010c'),
+    'a row whose Check contains no-icon-font.test.ts and whose Built by is EZD-010c',
+  );
+});
+
+test('EZD-010c T12 (d): the conventions check exits 0 on the repository root', () => {
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});
