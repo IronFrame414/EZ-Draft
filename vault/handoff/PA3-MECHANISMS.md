@@ -1,15 +1,17 @@
 # Handoff: adopt seven PA3 mechanisms into the EZ Draft build tooling
 
-To: the EZ Draft orchestrator (Opus 5.5), as one tooling ticket. From: Josh, 2026-10-18. Where this fits: run it as the next unit after ticket 000, before the pilot ticket T-001. If ticket 000 is already done, run it before any build unit. Give it the next ticket ID in the `000` series (for example `T-000b`) and add it to `STATUS.md` with complexity `medium`. What it is: seven additions to the process tooling, taken from Project Architect 3.0 (https://github.com/Druthulu/ProjectArchitect). They are tooling and configuration only. No app code. No change to the product spec.
+To: the EZ Draft orchestrator (Opus 5.5), as one tooling ticket. Companion to `vault/PROCESS.md` v2.3. From: Josh, 2026-10-18 (revised the same day with Josh's answers; see "Josh's answers"). Where this fits: run it as the next unit after ticket 000, before the pilot ticket T-001. If ticket 000 is already done, run it before any build unit. Give it the ticket ID `EZD-000b` (the ledger uses `EZD-`, not `T-`) and add it to `STATUS.md` with complexity `medium`. What it is: seven additions to the process tooling, taken from Project Architect 3.0 (https://github.com/Druthulu/ProjectArchitect). They are tooling and configuration only. No app code. No change to the product spec.
 
 ## Rules for this ticket
 
-1. Do not edit `vault/PROCESS.md`. Josh will revise it himself later. Where an item below deviates from PROCESS.md as written, implement the item and record the deviation in a new file, `vault/handoff/PROCESS-DEVIATIONS.md`, one line per deviation: the PROCESS.md section, what it says, what the tooling now does. Josh folds these into the next PROCESS.md revision.
+1. `vault/PROCESS.md` v2.3 already describes all seven items (sections 3, 4, 10, 11, 13, 14, 15). Replace the repo's copy with the v2.3 file Josh provides before starting. Where this handoff and PROCESS.md differ, PROCESS.md wins; note the difference in your report. (Not yet in the repo as of 2026-10-18: Josh still has to provide the v2.3 file.)
 2. Everything else in PROCESS.md applies: tests first, the gate, code review by code-reviewer, one commit, no extras.
-3. Build each item as its own worktree commit, in the order below, so a failure in one does not block the others. Item 1 is the largest; do it first.
+3. Build each item as its own worktree commit, in the order under "Order of work and commits" (Item 1 last, because it changes the launcher), so a failure in one does not block the others.
 4. Scripts are Node (`.mjs`), matching the existing `scripts/` and `vault/tools/`. Hooks follow the existing hook layout in `.claude/hooks/`.
 5. Model choice: test-author and builder on Sonnet 5.5 medium; code-reviewer on Opus 5.5 high. Items 1 and 3 touch the launcher and a hook that denies reads, so code-reviewer checks both for a failure mode where the tooling blocks a legitimate run.
 6. Report back in the normal 20-line format, plus the verification list at the end of this file with each item marked verified, failed, or not testable here (with the reason).
+7. Write limits for this ticket only (Josh, 2026-10-18): the builder may edit `.claude/`, `CLAUDE.md`, `scripts/`, `vault/tools/` and the vault files each item names. This is an exception to CLAUDE.md rule 5; the plan says how `guard-paths.mjs` grants it for `EZD-000b` and nothing else. Tests, `vault/PROCESS.md` and `vault/spec/` stay off limits.
+8. Secrets (Josh, 2026-10-18): the sign-in token is read at run time only, from the Keychain or the credentials file, held in memory, and never written to any file, log, output, commit or report. Nothing secret enters this repository: it is public on GitHub. `scripts/launcher.config.json` stays gitignored. The security-reviewer reviews Item 1b.
 
 ## Item 1: real usage meters and a five-hour gate
 
@@ -32,7 +34,6 @@ Gates in `scripts/budget.mjs`, read from `vault/cost/usage.json` when it is fres
 
 `PROGRESS.md` shows the three percentages and their reset times instead of estimated spend against the ceiling.
 
-Deviation to record: PROCESS.md §11 "The budget", "Calibration", and §15 pilot item 1 and pilot item 10.
 
 Tests: gate decisions from a fixture `usage.json` at 69/70/79/80/89/90% for each window; staleness fallback; the 429 backoff arithmetic; the token never appearing in any written file (grep the output directory for the fixture token after a run).
 
@@ -52,7 +53,7 @@ In the project's `.claude/settings.json`, add:
 }
 ```
 
-Merge into the existing `env` block; do not replace it. Before adding `todoFeatureEnabled: false`, grep `.claude/skills/` and `.claude/agents/` for `TaskCreate`, `TaskUpdate` or `TaskList`; if any skill relies on them, remove that reliance first (the ledgers are files, so nothing should). `autoCompactEnabled: false` means a unit whose context fills ends instead of compacting; the per-unit design keeps that rare, and the builder's work-in-progress commits let the next unit resume. Note this in `PROCESS-DEVIATIONS.md` against §14 Settings.
+Merge into the existing `env` block; do not replace it. Before adding `todoFeatureEnabled: false`, grep `.claude/skills/` and `.claude/agents/` for `TaskCreate`, `TaskUpdate` or `TaskList`; if any skill relies on them, remove that reliance first (the ledgers are files, so nothing should). `autoCompactEnabled: false` means a unit whose context fills ends instead of compacting; the per-unit design keeps that rare, and the builder's work-in-progress commits let the next unit resume. PROCESS.md §14 Settings says the same.
 
 Verify: start one interactive session, confirm no task-list widget appears and no prompt suggestion fires after a reply.
 
@@ -65,7 +66,6 @@ A `PreToolUse` hook, `.claude/hooks/guard-reads`, on `Read` and `Bash`:
 - Threshold in `.claude/settings.json` env `GUARD_WHOLE_READ_CHARS` (default `20000`). Exempt list in the same place, default empty; `gate.log` is not exempt (reviewers read its ranges).
 - Put the outline generator in `vault/tools/outline.mjs` so agents can call it directly.
 
-Deviation to record: none; PROCESS.md §10 "Dispatch rule" already says agents read only what their dispatch names. Add a line to `CLAUDE.md` rule 10: "A file over 20,000 characters is read by range after `node vault/tools/outline.mjs <path>`."
 
 Tests: a 25,000-character fixture is denied whole and allowed with a range; a 5,000-character file passes; `grep` on the large file passes; the outline for a sample `.mjs` and a sample `.md` matches expected output.
 
@@ -80,7 +80,7 @@ Brief format for both, added to `.claude/skills/build-ticket/dispatch.md`: `QUES
 
 Who may dispatch them: the orchestrator, the planner, code-reviewer, security-reviewer and phase-auditor. Not the builder, test-author or ui-verifier. Enforce it with each agent file's `tools` line: those five get `Agent(retriever-digest, retriever-web)`; the others get no `Agent` tool. The retrievers themselves have no `Agent` tool, so the chain ends there.
 
-Spawn depth: this needs `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` in the project settings (orchestrator → planner → retriever). PROCESS.md rule 15 and §14 say depth 1 and "no nested subagents". Record this in `PROCESS-DEVIATIONS.md` as: retrievers are the one permitted nesting; everything else stays at depth 1 by the `tools` restriction. `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` stays at 3.
+Spawn depth: `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` in the project settings (orchestrator → planner → retriever). as PROCESS.md rule 15 and §14 now say. Everything else stays at depth 1 by the `tools` restriction. `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` stays at 3.
 
 Rule for the dispatching agents (add to the planner and reviewer agent files): a lookup that would pull more than about 30,000 tokens into your context, or needs sifting (a long log, the whole spec, a web search), goes to a retriever. One grep or one small file is fine inline. Never read a research report's body; cite its ID.
 
@@ -91,14 +91,15 @@ Tests: a dispatch from the builder agent file has no `Agent` tool (inspect the f
 Append to `CLAUDE.md` under `## Rules (every agent)`:
 
 ```
-11. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.
-12. Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim until checked against the primary artifact (the file, the diff, the output).
-13. A result that looks too good is a bug until proven otherwise. Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
+14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.
+15. Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim until checked against the primary artifact (the file, the diff, the output).
+16. A result that looks too good is a bug until proven otherwise. Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
 ```
+
+(Numbered 14 to 16 because `CLAUDE.md` already has rules 11 to 13; Josh, 2026-10-18: the existing numbers win.)
 
 Add the same three to the body of `code-reviewer.md`, `security-reviewer.md` and `phase-auditor.md` under a heading `## Honesty`. Keep `CLAUDE.md` under about 60 lines; if it goes over, shorten the directory table's wording, not the rules.
 
-Deviation to record: PROCESS.md §14 CLAUDE.md template (rules 11–13 added).
 
 ## Item 6: research reports
 
@@ -109,7 +110,6 @@ Deviation to record: PROCESS.md §14 CLAUDE.md template (rules 11–13 added).
 - Agents never read a report body unless their plan or dispatch names that ID. The whole-read guard (Item 3) applies to reports.
 - Add `vault/research/` to the repo tree in `CLAUDE.md`'s directory table: "Findings from earlier lookups | vault/research/INDEX.md (read only the reports your plan names)".
 
-Deviation to record: PROCESS.md §6 plan section 2, §13 (new store), §14 tree.
 
 Tests: adopt renumbers two pending files, appends two index lines, leaves `pending/` empty; a second run with nothing pending prints nothing and changes nothing.
 
@@ -124,7 +124,6 @@ Lessons that carry a `Rule:` line are proposals until Josh says yes.
 - The wrap step's "seen ≥ 2 becomes a gate check" rule applies only to ratified entries.
 - `next_ticket.mjs --check` fails if any lessons entry lacks a `status:` field.
 
-Deviation to record: PROCESS.md §13 lessons ("Josh sees the lessons … and can veto" becomes ratification before use), §7 (fourth section), §16.
 
 Tests: `--lessons` with a mixed fixture returns only ratified entries; `--check` fails on a missing status.
 
@@ -135,7 +134,6 @@ Tests: `--lessons` with a mixed fixture returns only ratified entries; `--check`
 3. Item 6 (research store) then Item 4 (retrievers), since the retrievers write reports.
 4. Item 7 (ratification).
 5. Item 1 (meters and gates), last, because it changes the launcher.
-6. `vault/handoff/PROCESS-DEVIATIONS.md` is written as you go, committed with each item.
 
 ## Verification list (report each as verified / failed / not testable here)
 
@@ -150,4 +148,20 @@ Tests: `--lessons` with a mixed fixture returns only ratified entries; `--check`
 9. `research.mjs adopt` works end to end from a retriever's pending file.
 10. `--lessons` excludes candidates; `--check` rejects an entry without `status:`.
 11. `CLAUDE.md` is at or under about 60 lines after Items 3, 5 and 6.
-12. `vault/PROCESS.md` is unchanged (`git diff` shows nothing for it).
+12. `vault/PROCESS.md` in the repo is the v2.3 file (its section 11 starts "The launcher gates on the plan's real usage percentages").
+
+## Findings before the build (orchestrator, 2026-10-18, Claude Code 2.1.303 on the Mac)
+
+Checked by searching the installed binary (`~/.local/share/claude/versions/2.1.303`) for each name. Confirmed means the name is present and used; it does not prove the behaviour, which the verification list covers.
+
+| Item | Name | Result |
+| --- | --- | --- |
+| 2 | `todoFeatureEnabled`, `promptSuggestionEnabled`, `autoCompactEnabled` | Confirmed as settings keys. |
+| 2 | `CLAUDE_CODE_TOTAL_TOKENS_REMINDER` | Confirmed. Valid values: `off`, `infinite`, `fixed`, `countdown`, `padded-countdown`. `off` is valid. |
+| 2 | `CLAUDE_CODE_GOAL_CHECKIN_MINUTES` | Confirmed; `0` turns the check-in off. |
+| 4 | `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` | Confirmed (already in the project settings). |
+| 1a | statusline `rate_limits` | Confirmed. The payload documents exactly three windows: `five_hour`, `seven_day` and `spend_limit` (gateway only), each with `used_percentage` (0 to 100) and `resets_at` (Unix seconds, not ISO). **No per-model window**: the statusline cannot supply `fable_seven_day`. The API's own rate-limit types include `seven_day_opus` and `seven_day_sonnet`, so a model-scoped window may come from the OAuth endpoint (Item 1b) or not at all; the builder reports which. Until then the Fable fallback uses the dollar proxy. |
+| 1b | `api/oauth/usage` | The path is present in the binary. Behaviour, rate limit and whether it returns a Fable window: not testable without the token; the builder tests it at run time and reports. |
+| 1b | Keychain item | The literal `Claude Code-credentials` does not appear; the service name is built at run time (`<prefix>-credentials`, account = the Mac user name). `~/.claude/.credentials.json` is referenced. The builder confirms the service name with `security find-generic-password -s "<name>"` **without** `-w` (so the secret is never printed), then reads it only inside the script. |
+| 4 | `Agent(retriever-digest, retriever-web)` in `tools:` | **Does not work as written** (docs: code.claude.com/docs/en/sub-agents). In a `.claude/agents/` file the names inside `Agent(...)` are ignored; `Agent` there only lets the agent spawn any subagent, limited by depth. The names are honoured only for a main-thread agent started with `claude --agent`. Only deny rules are documented: `"permissions": { "deny": ["Agent(builder)", ...] }` in settings, or `--disallowedTools "Agent(name)"` on the launcher's command line. **Change for the plan:** the five dispatching agents get a plain `Agent` tool; the builder, test-author, ui-verifier and both retrievers get no `Agent` tool (that part works); and the project settings deny `Agent(<name>)` for every agent except the two retrievers, so a nested spawn can reach only a retriever. The verification list item 8 stays. |
+| 1a | statusline under `claude -p` | Not documented either way (code.claude.com/docs/en/statusline, headless). The docs list when it refreshes (session start, new assistant message, `/compact`, permission-mode change, `refreshInterval`), not whether print mode runs it. Verification item 2 settles it on this Mac. |
