@@ -351,7 +351,13 @@ function report() {
   }
   md += `\n## Last ten merges\n\n${done.slice(-10).reverse().map((l) => (l.startsWith('- ') ? l : `- ${l}`)).join('\n') || '(none yet)'}\n\n`;
   md += `## Questions\n\nOpen: ${openQ} · Escalated to Josh: ${escQ} (\`vault/questions/QUESTIONS.md\`)\n\n`;
-  md += `## This week's estimated spend\n\n${spend.text}\n`;
+  let usage = null;
+  try { usage = JSON.parse(read(path.join(vault, 'cost/usage.json'))); } catch {}
+  if (usage && usage.seven_day && Date.now() - Date.parse(usage.read_at) < 1_200_000) {
+    const utc = (iso) => (Number.isNaN(Date.parse(iso)) ? '—' : `${new Date(iso).toISOString().slice(0, 16).replace('T', ' ')} UTC`);
+    const row = (name, w) => (w ? `| ${name} | ${Math.round(w.pct)}% | ${utc(w.resets_at)} |\n` : `| ${name} | no meter | — |\n`);
+    md += `## Usage\n\nSource: ${usage.source}, read ${utc(usage.read_at)}.\n\n| Window | Used | Resets |\n| --- | --- | --- |\n${row('Five-hour', usage.five_hour)}${row('Weekly', usage.seven_day)}${row('Fable weekly', usage.fable_seven_day)}`;
+  } else md += `## This week's estimated spend\n\n${spend.text}\n`;
   writeFileSync(path.join(vault, 'PROGRESS.md'), md);
   console.log('wrote vault/PROGRESS.md and vault/tickets/TRACE.md');
 }

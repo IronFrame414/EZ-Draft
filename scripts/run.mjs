@@ -38,7 +38,8 @@ const holdFile = path.join(vault, 'handoff/BUDGET_HOLD.md');
 const stopFile = path.join(vault, 'handoff/STOP');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
 const claudeBin = config.claude_bin || 'claude';
-const { weekSpend, weekStart, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 
 const MODELS = { orchestrator: 'claude-opus-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
 const UNITS = {
@@ -75,46 +76,10 @@ function flagSupported(flag) {
 const OPTIONAL_FLAGS = [['--permission-prompts', 'none']]; // sessions are persisted so a failed unit can be inspected with --resume
 
 function budget() { return readJson(budgetPath, {}); }
-function overrideActive(b) {
-  const o = b.override;
-  if (!o || typeof o !== 'object') return null;
-  const ws = weekStart(b).toISOString();
-  return o.week_start === ws ? o : null;
-}
 function authMode() {
   const o = overrideActive(budget());
   if (o?.type === 'api-until-reset') return 'api';
   return config.auth_mode === 'api' ? 'api' : 'plan';
-}
-
-function writeHold(reason, spend, b, nextUnit) {
-  const txt = `# Budget hold\n\nWritten by scripts/run.mjs on ${new Date().toISOString()}.\n\n- Reason: ${reason}\n- This week's estimated spend: $${spend.main.toFixed(2)} of $${b.weekly_ceiling_usd_est ?? 'unset'} (Fable $${spend.fable.toFixed(2)} of $${b.fable_ceiling_usd_est ?? 'unset'})\n- Week started: ${spend.start.toISOString()}\n- Next unit when released: ${nextUnit}\n\nNo new ticket starts while this file exists; a ticket already in progress finishes. To continue (PROCESS.md section 11):\n- \`node scripts/budget.mjs --raise <new-ceiling>\`\n- \`node scripts/budget.mjs --until-reset\`\n- \`node scripts/budget.mjs --api-until-reset\`\nEach removes this file. Then start \`node scripts/run.mjs\` again.\n`;
-  writeFileSync(holdFile, txt);
-}
-
-// Returns { ok: true } or { ok: false, reason } after applying warn / hold rules.
-function budgetGate(nextUnit) {
-  const b = budget();
-  const spend = weekSpend(b);
-  if (!b.weekly_ceiling_usd_est) return { ok: false, reason: 'weekly_ceiling_usd_est is not set in vault/budget.json; the launcher does not run unattended until Josh sets it (PROCESS.md section 11). Run units interactively meanwhile.' };
-  const o = overrideActive(b);
-  if (o?.type === 'until-reset' || o?.type === 'api-until-reset') return { ok: true, spend, override: o.type };
-  const warnAt = (b.warn_at_fraction ?? 0.7) * b.weekly_ceiling_usd_est;
-  const holdAt = (b.hold_at_fraction ?? 0.8) * b.weekly_ceiling_usd_est;
-  const warnMarker = path.join(vault, 'handoff', `.budget-warned-${spend.start.toISOString().slice(0, 10)}`);
-  if (spend.main >= warnAt && !existsSync(warnMarker)) {
-    writeFileSync(warnMarker, new Date().toISOString());
-    notify(`build spend at ${spend.pct}% of the weekly ceiling ($${spend.main.toFixed(2)} of $${b.weekly_ceiling_usd_est}); hold at ${Math.round((b.hold_at_fraction ?? 0.8) * 100)}%.`);
-  }
-  if (spend.main >= holdAt) {
-    if (!existsSync(holdFile)) { writeHold(`weekly spend reached the hold fraction (${spend.pct}%)`, spend, b, nextUnit); notify(`budget hold: $${spend.main.toFixed(2)} of $${b.weekly_ceiling_usd_est} this week. In-progress ticket finishes; nothing new starts. See vault/handoff/BUDGET_HOLD.md.`); }
-    return { ok: false, reason: 'budget hold', hold: true, spend };
-  }
-  return { ok: true, spend };
-}
-function fableAllowed(b, spend) {
-  if (!b.fable_ceiling_usd_est) return true;
-  return spend.fable < (b.fable_fallback_fraction ?? 0.9) * b.fable_ceiling_usd_est;
 }
 
 function buildCommand(unitName, arg) {
@@ -287,9 +252,10 @@ async function runUnit(unitName, arg) {
 
 async function main() {
   if (statusOnly) {
-    const b = budget(); const s = weekSpend(b);
+    const b = budget(); const s = weekSpend(b); const m = await readMeters({ budget: b });
     console.log(`Config: ${existsSync(path.join(root, 'scripts/launcher.config.json')) ? 'scripts/launcher.config.json found' : 'no launcher config (notify off, plan auth)'}; auth ${authMode()}; notify ${config.notify_cmd ? 'set' : 'not set'}`);
     console.log(`Budget: ${s.text}`);
+    console.log(`Meters (${m.source}): five-hour ${m.five_hour ? Math.round(m.five_hour.pct) + '%' : 'no meter'} · weekly ${m.seven_day ? Math.round(m.seven_day.pct) + '%' : 'no meter'} · Fable ${m.fable_seven_day ? Math.round(m.fable_seven_day.pct) + '%' : 'no meter'}`);
     console.log(`Hold file: ${existsSync(holdFile) ? 'present' : 'none'}; STOP: ${existsSync(stopFile) ? 'present' : 'none'}`);
     console.log(`Next unit: ${tool('--next-unit').stdout.trim()}`);
     for (const f of [...OPTIONAL_FLAGS, ['--max-turns'], ['--max-budget-usd'], ['--effort'], ['--agent'], ['--permission-mode']]) console.log(`flag ${f[0]}: ${flagSupported(f[0]) ? 'supported' : 'not in claude --help (dropped)'}`);
@@ -304,6 +270,7 @@ async function main() {
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   for (;;) {
     if (existsSync(stopFile)) { log('vault/handoff/STOP exists; stopping.'); return; }
+    if (await waitForWindow({ now: new Date(), sleep })) continue;
     const next = tool('--next-unit').stdout.trim();
     const [unitName, arg] = next.split(/\s+/, 2);
     if (unitName === 'none:' || !UNITS[unitName]) {
@@ -313,15 +280,25 @@ async function main() {
       return;
     }
     const inProgressBuild = unitName === 'build' && /\b(in-progress|review)\b/.test(spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs')], { encoding: 'utf8', cwd: root }).stdout);
-    const gate = budgetGate(next);
-    if (!gate.ok) {
-      if (gate.hold && inProgressBuild) log('budget hold: finishing the in-progress ticket');
-      else { log(gate.reason); if (!gate.hold) notify(`launcher stopped: ${gate.reason}`); return; }
+    const b = budget();
+    const meters = await readMeters({ budget: b });
+    if (meters.warning) log(meters.warning);
+    const decision = gateDecision(meters, b);
+    if (decision.pause) {
+      log(`five-hour window at ${decision.pause.pct}%; paused until ${decision.pause.resume_at} (vault/handoff/WINDOW_PAUSE.md)`);
+      await waitForWindow({ pause: decision.pause, sleep });
+      continue;
     }
-    if (existsSync(holdFile) && !inProgressBuild) { log('budget hold in place; nothing new starts.'); return; }
+    const gate = await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify });
+    if (!gate.start) {
+      log(gate.reason);
+      if (/weekly_ceiling_usd_est/.test(gate.reason)) notify(`launcher stopped: ${gate.reason}`);
+      return;
+    }
+    if (decision.hold && inProgressBuild) log('budget hold: finishing the in-progress ticket');
     // Fable fallback flag for the orchestrator (section 4): exported so the skill can read it.
-    const b = budget(); const spend = weekSpend(b);
-    process.env.EZD_FABLE_ALLOWED = fableAllowed(b, spend) ? '1' : '0';
+    if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
+    process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
     const statusBefore = statusHash();
     const r = await runUnit(unitName, arg);
     if (dryRun) return;
@@ -332,7 +309,7 @@ async function main() {
         await sleep(Math.max(60000, until.getTime() - Date.now() + 60000));
         continue;
       }
-      writeHold(`plan limit error (${r.limit.note || 'weekly'})`, spend, b, next);
+      writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters, budget: b, nextUnit: next });
       notify(`plan limit reached during ${next}. Hold written; override with budget.mjs or wait for the weekly reset.`);
       return;
     }

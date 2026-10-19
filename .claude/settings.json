@@ -75,6 +75,7 @@
       "Bash(claude *)"
     ]
   },
+  "statusLine": { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR:-.}/scripts/statusline.mjs\"" },
   "worktree": {
     "baseRef": "head"
   },
