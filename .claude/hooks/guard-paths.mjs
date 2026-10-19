@@ -40,10 +40,10 @@ function orchestratorSpecOk() {
   return false;
 }
 
-// PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000i worktrees the builder may
+// PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000j worktrees (EZD-000j added by Q-0138 (a)) the builder may
 // edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
-// and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000i merges.
-const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-i]\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
+// and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000j merges.
+const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-j]\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
 const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
 function pa3Grant() {
   if (!pa3Worktree || isTest || isSpec || rel === 'vault/PROCESS.md' || rel === 'scripts/gate.mjs') return false;

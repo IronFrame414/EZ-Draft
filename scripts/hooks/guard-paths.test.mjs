@@ -21,8 +21,8 @@ function decide(agent, file) {
 
 const wt = (t, f) => `.claude/worktrees/${t}/${f}`;
 
-test('Q-0128 grant: builder in EZD-000b..EZD-000i worktrees may edit tooling', () => {
-  for (const t of ['EZD-000b', 'EZD-000e', 'EZD-000i']) {
+test('Q-0128 grant: builder in EZD-000b..EZD-000j worktrees may edit tooling', () => {
+  for (const t of ['EZD-000b', 'EZD-000e', 'EZD-000i', 'EZD-000j']) {
     for (const f of ['.claude/settings.json', '.claude/hooks/guard-reads.mjs', 'CLAUDE.md', 'scripts/statusline.mjs',
       'vault/tools/outline.mjs', 'vault/research/INDEX.md', 'vault/research/pending/.gitkeep', 'vault/cost/usage.json']) {
       assert.equal(decide('builder', wt(t, f)), 'allow', `${t} ${f}`);
@@ -38,7 +38,7 @@ test('Q-0128 grant: tests, gate, PROCESS.md, spec and other vault files stay den
 });
 
 test('Q-0128 grant: no other worktree or agent gets it', () => {
-  for (const t of ['EZD-000', 'EZD-000j', 'EZD-001', 'EZD-000ba']) {
+  for (const t of ['EZD-000', 'EZD-000k', 'EZD-001', 'EZD-000ba']) {
     assert.equal(decide('builder', wt(t, '.claude/settings.json')), 'deny', t);
   }
   assert.equal(decide('builder', '.claude/settings.json'), 'deny', 'main checkout');

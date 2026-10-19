@@ -30,8 +30,18 @@ before(() => {
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/.questions-last-run.json']) if (existsSync(file(f))) spawnSync('rm', [file(f)]);
-  for (const id of ['EZD-000b', 'EZD-000c', 'EZD-000d', 'EZD-000e', 'EZD-000f', 'EZD-000g', 'EZD-000h']) setStatus(id, 'ready');
-  setStatus('EZD-000i', 'questions');
+  // Fixed fixture, independent of where the live ledger stands (lesson L-003): every phase 0 ticket but EZD-000 is ready,
+  // EZD-000i is in questions, and no phase 0 question is open or escalated.
+  edit('tickets/STATUS.md', (s) => s.split('\n').map((l) => {
+    const c = l.split('|');
+    if (c.length < 10 || c[2].trim() !== '0' || !/^ EZD-/.test(c[1]) || c[1].trim() === 'EZD-000') return l;
+    c[4] = c[1].trim() === 'EZD-000i' ? ' questions ' : ' ready '; c[5] = ' medium '; c[7] = ' '; return c.join('|');
+  }).join('\n'));
+  edit('questions/QUESTIONS.md', (s) => s.split('\n').map((l) => {
+    const c = l.split('|');
+    if (c.length < 10 || !/^ Q-\d{4} $/.test(c[1]) || !/^\s*0\s*\//.test(c[2]) || !/^ (open|escalated) $/.test(c[5])) return l;
+    c[5] = ' answered-agent '; return c.join('|');
+  }).join('\n'));
   // A live in-flight ticket (e.g. EZD-001 in-progress) depends on the tickets reset above and fails the ledger check.
   edit('tickets/STATUS.md', (s) => s.replace(/^(\| EZD-\w+ \|[^|]*\|[^|]*\| )(?:in-progress|review)( \|)/gm, '$1ready$2'));
   // A live done ticket that depends, directly or through other done tickets, on the tickets reset above
