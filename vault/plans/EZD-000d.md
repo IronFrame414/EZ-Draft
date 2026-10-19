@@ -162,7 +162,7 @@ Risks:
 - **Hand-edited index.** Adopt takes the next number from both files and index lines, so a hand-edited index cannot cause a reused ID.
 
 ## 10. Open questions
-- **QP-1:** The ACs for EZD-000d (`acceptance-criteria.md` lines 89–94) were generated from the Scope text, not the Done-when. The escaped `\|` in the Scope's CLAUDE.md row appears to have shifted the columns. So no AC ID covers the adopt behaviour (DW-1, DW-2) or verification item 11. Options:
+- **Q-0130 (was QP-1):** The ACs for EZD-000d (`acceptance-criteria.md` lines 89–94) were generated from the Scope text, not the Done-when. The escaped `\|` in the Scope's CLAUDE.md row appears to have shifted the columns. So no AC ID covers the adopt behaviour (DW-1, DW-2) or verification item 11. Options:
   - (a) Regenerate EZD-000d's ACs from the Done-when, giving AC-EZD-000d-1 to -4 = DW-1 to DW-4, and the test-author uses those IDs in place of the DW labels in section 4.
   - (b) Keep the current six IDs and add AC-EZD-000d-7 to -10 for DW-1 to DW-4.
   - (c) Keep the IDs as they are and track the DW clauses through this plan only.
