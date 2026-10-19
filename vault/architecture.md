@@ -119,7 +119,7 @@ Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any depe
 Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/README.md.
 
 ```
-/                         workspace root: package.json (fan-out scripts), pnpm-workspace.yaml, .npmrc, docs/, scripts/, supabase/ (EZD-004), .github/
+/                         workspace root: package.json (fan-out scripts), pnpm-workspace.yaml, .npmrc, docs/, scripts/, supabase/ (EZD-004a), .github/
 app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/app/                routes; entry points per EZD-020; route handlers under src/app/api/**
   src/server/             server-only code: db clients, can(), route helpers, money serializers
@@ -130,7 +130,8 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
 packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model schema in src/schema/<object-type>.ts (03 rule 5); drawing list (02 PDF out); calculations re-run on the server (11 Where each output is produced)
 worker/                   @ezdraft/worker — the local GPU render worker (02 Named tools; EZD-1104). Not Web Workers, not job handlers
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
-supabase/                 Supabase CLI folder (CLI default): migrations/, seed, config (EZD-004)
+scripts/db/               local stack and types scripts: local.mjs (`db:up`, `db:env`), gen-types.mjs (`db:types`) (EZD-004a)
+supabase/                 Supabase CLI folder: config.toml, seed.sql, migrations/ (EZD-004a)
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
 ```
 
@@ -167,7 +168,17 @@ Internal packages are TypeScript source with no build step: `packages/geometry/p
 - One concern per file.
 - Add before remove: never drop or rename what the previous release reads (11 Operations; check by EZD-023).
 - A migration that creates a table also adds `tenant_id`, its RLS policy, the `tenant_id` and `project_id` indexes and the tenant-isolation test (tickets README; 11 rule 10; EZD-006).
-- TypeScript types are generated from the local database by the Supabase CLI into `app/src/server/db/database.types.ts` and committed (02 Named tools; EZD-004 adds the script).
+- TypeScript types are generated from the local database by the Supabase CLI into `app/src/server/db/database.types.ts` and committed (02 Named tools; EZD-004a adds the script).
+
+### Local database
+
+EZD-004a (vault/plans/EZD-004a.md Steps 2–6); 02 Named tools; 11 Operations "local (agents and tests)". The CLI is the root `supabase` devDependency, run through the root `db:*` scripts.
+
+- `pnpm db:up`: `supabase status`, `supabase start` if the stack is not running, then `supabase db reset --local` every time, so every run applies every migration to a fresh database and wipes local data. The root `test` script runs it first, so every gate run (and CI) starts from a reset stack. Without Docker it exits 1 with `Local Supabase needs Docker running (start Docker Desktop).` on stderr.
+- `pnpm db:env`: prints one JSON object with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` from `supabase status` (the CLI's published local defaults, not secrets); exit 1 when the stack is down. `pnpm db:reset` and `pnpm db:stop` call the CLI directly.
+- `pnpm supabase migration new <name>` writes the next migration file. After every migration run `pnpm db:types` and commit the result; `node scripts/db/gen-types.mjs --check` (test T9) fails the gate when the committed file differs from the local database.
+- `supabase/config.toml`: `project_id = "ezdraft"` (one shared local stack for every worktree; one gate at a time, Q-0114), `[analytics] enabled = false`, `[edge_runtime] enabled = false` (jobs are Vercel Functions, P4); everything else at the CLI default. `supabase/seed.sql` is comment-only until EZD-005.
+- The first migration creates `public.health()`: `security definer`, `search_path = ''`, execute granted to `anon` and `authenticated` only; it returns one row `('ok', <newest applied migration version>)`, read through `POST /rest/v1/rpc/health`. It is a function, not a table, so EZD-006's table checks do not cover it.
 
 ## Errors and logging
 
@@ -247,6 +258,9 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | CI fails when any gate check fails | scripts/gate.mjs exit code; proved by scripts/ci/__tests__/ci.test.mjs | EZD-002 |
 | — | Vercel config pinned (region, Node major, framework) | scripts/hosting/__tests__/hosting.test.mjs | EZD-003 |
 | — | Subdomain serves the app over HTTPS (after each release and by hand, not gated) | node scripts/hosting/check-live.mjs | EZD-003 |
+| — | Migrations applied to the local database equal the files in `supabase/migrations/` | scripts/db/__tests__/db.test.mjs (T1) | EZD-004a |
+| — | Committed `database.types.ts` matches the local database | scripts/db/__tests__/db.test.mjs (T9), `node scripts/db/gen-types.mjs --check` | EZD-004a |
+| — | Supabase CLI pinned, runnable, Linux x64 binary in the lockfile | scripts/db/__tests__/db.test.mjs (T10) | EZD-004a |
 
 ### CI
 

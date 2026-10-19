@@ -8,6 +8,6 @@ One file per role. Format and rules: PROCESS.md section 13. Only the orchestrato
 | planner.md | plans, contracts, citations, ticket size | tooling, scripts, process (L-002, L-004, candidate); ci, tooling, security (L-006, candidate) |
 | test-author.md | tests, fixtures, expected values | tooling, scripts, process (L-003, candidate) |
 | builder.md | implementation, scope discipline, structural repair | (none yet) |
-| reviewer.md | code-reviewer and security-reviewer | auth, security (L-001, candidate) |
+| reviewer.md | code-reviewer and security-reviewer | auth, security (L-001, candidate); tooling, dependencies (L-007, candidate) |
 | ui.md | ui-verifier: screenshots and mockups | (none yet) |
 | spec.md | Stage 0 gaps found late | (none yet) |
