@@ -43,3 +43,10 @@ Mistake: plan Step 4 said `page.module.css` uses `var(--ez-*)` only, but the tok
 Cause: the plan required tokens without checking that a token existed for every value the file would need.
 Rule: a plan that says "tokens only" names the token for each property kind it covers (color, radius, shadow, spacing) or limits the rule to the kinds that have tokens.
 Check: the plan review confirms each "tokens only" rule against the token list in `app/src/styles/tokens.css`.
+
+## L-014  areas: migrations, release, security  seen: 1  status: candidate
+Ticket EZD-023a, 2026-10-19
+Mistake: plan Step 2 exempted objects "created after the tag" from the drop check, and Step 4 counted any `create` in a new migration as such, so `create or replace` or `if not exists` of a released object made it droppable; both reviewers failed round 1 (Q-0156 (a)).
+Cause: the exemption was defined by the statements in the new migrations, not by what the base release already had.
+Rule: an exemption for "new" objects is defined as absent at the base (by kind and name), never as "a create statement exists"; re-declarations do not count.
+Check: the plan review probes every exemption with a re-declaration of a base object followed by the forbidden change.
