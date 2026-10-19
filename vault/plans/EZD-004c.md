@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-004c-1, AC-EZD-004c-2, AC-EZD-004c-3 (`vault/spec/acceptance-criteria.md` lines 19–21, generated from Done-when). AC-3 is a note ("waits for Josh's keys"), mapped in section 4 (vault/KNOWN-LIMITS.md, Phase 0 ACs).
 - **Complexity:** medium (section 8)
 - **User-visible result:** once Josh adds the dev database secret, every `develop` push that adds a migration updates the cloud dev database by itself; until then the workflow runs green and changes nothing, and Josh has written steps in `docs/runbook.md`.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Split from EZD-004 (Q-0148). This plan is part "EZD-004c" of the split proposal in `vault/plans/EZD-004.md` (lines 32–40), with re-validation findings F1–F12 there applied (F7, F8, F9, F10, F11 bear on this part). Technical detail comes from the v1 plan text (`git show de5030c:vault/plans/EZD-004.md`, "v1" below), Step 7 and test T13. Names kept from v1 because later plans cite them: `.github/workflows/supabase-dev.yml`, secret `SUPABASE_DEV_DB_URL`, GitHub environment `dev`, runbook heading `## Supabase cloud projects (EZD-004)` (vault/plans/EZD-023b.md lines 29, 107, 283, 461; `scripts/ci/__tests__/ci.test.mjs` line 151).
 

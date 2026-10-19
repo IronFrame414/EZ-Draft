@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-004a-1, AC-EZD-004a-2, AC-EZD-004a-3 (`vault/spec/acceptance-criteria.md` lines 15–17, generated from Done-when)
 - **Complexity:** high (section 8)
 - **User-visible result:** every gate run (and the Phase 0 CI run) starts a fresh local database, applies every migration and checks that the database answers "ok" with its newest migration number.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Split from EZD-004 (Q-0148). This plan is the part "EZD-004a" of the split proposal in `vault/plans/EZD-004.md` (lines 12–20), with the re-validation findings F1–F12 there (lines 42–55) applied. Technical detail is taken from the v1 plan text (`git show de5030c:vault/plans/EZD-004.md`, "v1" below), Steps 1–4 and 8. Every interface name is kept from v1 because EZD-005, EZD-006, EZD-007, EZD-009, EZD-016a, EZD-018 and EZD-023b already cite them (grep of `vault/plans/*.md`, 2026-10-19). Test IDs keep v1's numbers (EZD-007's plan line 21 cites "EZD-004's T6"); the two new tests are T17 and T18.
 

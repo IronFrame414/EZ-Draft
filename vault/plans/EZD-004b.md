@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-004b-1 (`vault/spec/acceptance-criteria.md` line 18, generated from Done-when)
 - **Complexity:** medium (section 8)
 - **User-visible result:** the app's address `/api/health` answers "ok" with the database's newest migration number, or a clear "database unavailable" error, so a deploy can be checked in one request.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready
 
 Split from EZD-004 (Q-0148). This plan is part "EZD-004b" of the split proposal in `vault/plans/EZD-004.md` (lines 22–30), with re-validation findings F1–F12 there (lines 42–55) applied. Technical detail comes from the v1 plan text (`git show de5030c:vault/plans/EZD-004.md`, "v1" below), Steps 5, 6 and 8, and tests T2, T3, T5, T7, T8. Interface names and test numbers are kept from v1 because later plans already cite them: `createPublicDbClient()` and "env read per call" (EZD-024 line 19, EZD-018 line 18), `app/src/server/db/env.ts` (EZD-007 line 122 adds `serverGateSecret()` to it), the Vitest global setup `app/test-harness/supabase-env.global-setup.ts` (EZD-006 lines 15, 185, 225 extend it; EZD-016a line 73 relies on it copying values into `process.env`), `.env.example` and "T7" (EZD-006 line 186, EZD-008 line 16, EZD-021 line 17), the `### Environment variables` table and "T8" (EZD-008 line 16), the health route body and `error.db_unavailable` (EZD-026a lines 18, 84, 237; EZD-015 line 429), `/api/health` as the web-server ready URL (EZD-016a lines 139, 188). The one new test is T19.
 

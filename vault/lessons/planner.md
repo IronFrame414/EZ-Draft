@@ -16,7 +16,7 @@ Cause: the step list was written separately from the prose rules and not checked
 Rule: when a contract lists ordered steps with early returns, check each early return against every rule in the plan and its sources that a later step enforces, and order the steps so no rule is bypassed.
 Check: the plan review walks each early-return step and names the later rules it skips; each skip cites a source that allows it.
 
-## L-005  areas: ci, tooling, security  seen: 1  status: candidate
+## L-006  areas: ci, tooling, security  seen: 1  status: candidate
 Ticket EZD-002, 2026-10-19
 Mistake: T2's per-workflow allow-lists (Q-0112) checked only the `secrets.NAME`, block-form `environment:` and line-start `uses:` shapes, so `secrets: inherit`, `toJSON(secrets)`, brace-form `environment:`/`on:` and `actions/cache/restore` passed unseen. Caught by the security-reviewer at build review; cost a plan amendment (Q-0146) and two more test rounds.
 Cause: the plan specified what a valid line looks like, not what to do with text the checker cannot parse.
