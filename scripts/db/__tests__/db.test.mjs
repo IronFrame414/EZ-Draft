@@ -275,10 +275,7 @@ test('EZD-004a T11 Config', () => {
 
   const seedPath = path.join(repo, 'supabase', 'seed.sql');
   assert.ok(existsSync(seedPath), 'supabase/seed.sql exists');
-  const lines = readFileSync(seedPath, 'utf8')
-    .split(/\r?\n/)
-    .filter((l) => l.trim() !== '');
-  for (const l of lines) assert.ok(l.trimStart().startsWith('--'), `seed line is a comment: ${l}`);
+  // EZD-005b Step 4 (Q-0151 (a)): the comment-only check is gone; the seed now holds tenant 1 and Josh.
 });
 
 // ---------- T14 ----------

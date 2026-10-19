@@ -28,3 +28,21 @@ Josh's steps in Supabase and GitHub. Agents never connect to a cloud database. T
 6. **First run.** From then on the workflow runs by itself whenever `develop` is pushed with new migrations. To apply what is already there, after the Phase 0 merge: Actions, Supabase dev migrations, Run workflow, branch `develop`. A green run with the note "SUPABASE_DEV_DB_URL not set" means step 5 is not done yet.
 7. **App keys.** Each project's URL, publishable key and secret key go into Vercel in EZD-023b's setup, never into the repo.
 8. **Production** gets migrations only from the release workflow when you merge into `main` (EZD-023b).
+
+## Tenant 1 setup (EZD-005)
+
+Worth Properties is company 1 in EZ Draft and you are its owner. On the local test database this happens by itself every time it is reset. Each cloud database gets it once from the file `supabase/bootstrap/tenant-1.sql`. The file holds no email; you type yours in only where it runs.
+
+**Dev (`ezdraft-dev`), once:**
+
+1. **Wait for the migrations.** The "Supabase dev migrations" workflow (section "Supabase cloud projects", step 6) must have run green on `develop` after this setup reached `develop`. If it has not, open Actions, Supabase dev migrations, Run workflow, branch `develop`.
+2. **Copy the file.** Open `supabase/bootstrap/tenant-1.sql` on GitHub and copy all of it.
+3. **Paste it.** In Supabase open the `ezdraft-dev` project, then SQL Editor, New query, and paste.
+4. **Type your email.** Replace `PASTE-YOUR-EMAIL-HERE` with the email you sign in with. Keep the quote marks around it.
+5. **Run it.** Press Run. "Success" or `ezd_bootstrap_done` means Worth Properties and your owner account now exist. `ezd_bootstrap_email_missing` means the email was not typed in correctly; fix it and run again. `ezd_bootstrap_already_done` means this project is already set up, and nothing changed.
+6. **Keep the email out of the repo.** Never paste the edited text into chat, a ticket or the repo.
+
+**Production (`ezdraft-prod`): nothing to paste.**
+
+7. Production does not exist until launch. When you set it up from the Before-launch checklist, add the email you sign in with as the secret `TENANT1_OWNER_EMAIL` in the GitHub environment `release`. The first real release then creates Worth Properties and your owner account. If company 1 is already there, the release skips this. Do not paste the file into production.
+8. After that first release, delete `TENANT1_OWNER_EMAIL` from the `release` environment. Until you do, every release summary shows the notice `owner_email_secret_unused`.
