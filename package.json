@@ -1,0 +1,14 @@
+{
+  "name": "ezdraft",
+  "private": true,
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present --filter \"!./spikes/**\" run typecheck",
+    "lint": "node scripts/conventions/check.mjs && pnpm -r --if-present --filter \"!./spikes/**\" run lint",
+    "test": "node --test \"scripts/**/*.test.mjs\" && pnpm -r --if-present --filter \"!./spikes/**\" run test",
+    "build": "pnpm -r --if-present --filter \"!./spikes/**\" run build"
+  }
+}
