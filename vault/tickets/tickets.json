@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 423,
+ "count": 425,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -12,7 +12,8 @@
   "EZD-000j added 2026-10-19 by the orchestrator from Josh's Q-0138 (a): the OAuth usage fallback reads `utilization`; Phase 0 tooling, before the Phase 0 gate.",
   "EZD-008 split into EZD-008a, EZD-008b on 2026-10-19 (planner re-validation proposal, orchestrator applied, Q-0152); every dependent of EZD-008 depends on both.",
   "EZD-010 split into EZD-010a, EZD-010b, EZD-010c on 2026-10-19 (planner re-validation proposal, orchestrator applied, Q-0155); every dependent of EZD-010 depends on all three.",
-  "EZD-023b split into EZD-023b, EZD-023c, EZD-023d, EZD-023e on 2026-10-19 (planner re-validation proposal, orchestrator applied, Q-0157); EZD-023b is itself a part, so dependents were set by hand: EZD-021 depends on EZD-023c, EZD-025 on all four."
+  "EZD-023b split into EZD-023b, EZD-023c, EZD-023d, EZD-023e on 2026-10-19 (planner re-validation proposal, orchestrator applied, Q-0157); EZD-023b is itself a part, so dependents were set by hand: EZD-021 depends on EZD-023c, EZD-025 on all four.",
+  "EZD-026a split into EZD-026c, EZD-026d, EZD-026a on 2026-10-19 (planner re-validation proposal, orchestrator applied, Q-0163); EZD-026a is itself the last part and depends on both, so its dependents keep depends_on; EZD-1503 (base EZD-026) gains EZD-026c and EZD-026d."
  ],
  "checks": {
   "cycles": 0,
@@ -50,6 +51,8 @@
   "EZD-023c",
   "EZD-023d",
   "EZD-023e",
+  "EZD-026c",
+  "EZD-026d",
   "EZD-026a",
   "EZD-007",
   "EZD-016a",
@@ -676,7 +679,7 @@
     "EZD-006",
     "EZD-022"
    ],
-   "build_position": 31,
+   "build_position": 33,
    "acs": [
     "AC-EZD-007-1",
     "AC-EZD-007-2",
@@ -752,7 +755,7 @@
     "EZD-007",
     "EZD-016a"
    ],
-   "build_position": 40,
+   "build_position": 42,
    "acs": [
     "AC-EZD-009-1",
     "AC-EZD-009-2",
@@ -850,7 +853,7 @@
     "EZD-026a",
     "EZD-016a"
    ],
-   "build_position": 33,
+   "build_position": 35,
    "acs": [
     "AC-EZD-011-1",
     "AC-EZD-011-2"
@@ -876,7 +879,7 @@
     "EZD-016a",
     "EZD-011"
    ],
-   "build_position": 34,
+   "build_position": 36,
    "acs": [
     "AC-EZD-012-1"
    ],
@@ -898,7 +901,7 @@
     "EZD-016a",
     "EZD-024"
    ],
-   "build_position": 45,
+   "build_position": 47,
    "acs": [
     "AC-EZD-013-1",
     "AC-EZD-013-2"
@@ -923,7 +926,7 @@
     "EZD-011",
     "EZD-016a"
    ],
-   "build_position": 35,
+   "build_position": 37,
    "acs": [
     "AC-EZD-014-1",
     "AC-EZD-014-2"
@@ -952,7 +955,7 @@
     "EZD-014",
     "EZD-011"
    ],
-   "build_position": 36,
+   "build_position": 38,
    "acs": [
     "AC-EZD-015-1",
     "AC-EZD-015-2",
@@ -979,7 +982,7 @@
     "EZD-002",
     "EZD-006"
    ],
-   "build_position": 32,
+   "build_position": 34,
    "acs": [
     "AC-EZD-016a-1"
    ],
@@ -1000,7 +1003,7 @@
    "depends_on": [
     "EZD-016a"
    ],
-   "build_position": 37,
+   "build_position": 39,
    "acs": [
     "AC-EZD-016b-1"
    ],
@@ -1022,7 +1025,7 @@
     "EZD-016b",
     "EZD-012"
    ],
-   "build_position": 38,
+   "build_position": 40,
    "acs": [
     "AC-EZD-017-1"
    ],
@@ -1045,7 +1048,7 @@
     "EZD-007",
     "EZD-016a"
    ],
-   "build_position": 39,
+   "build_position": 41,
    "acs": [
     "AC-EZD-018-1",
     "AC-EZD-018-2"
@@ -1069,7 +1072,7 @@
     "EZD-016b",
     "EZD-022"
    ],
-   "build_position": 41,
+   "build_position": 43,
    "acs": [
     "AC-EZD-019-1"
    ],
@@ -1091,7 +1094,7 @@
     "EZD-014",
     "EZD-015"
    ],
-   "build_position": 42,
+   "build_position": 44,
    "acs": [
     "AC-EZD-020-1",
     "AC-EZD-020-2"
@@ -1117,7 +1120,7 @@
     "EZD-023c",
     "EZD-023e"
    ],
-   "build_position": 43,
+   "build_position": 45,
    "acs": [
     "AC-EZD-021-1",
     "AC-EZD-021-2"
@@ -1339,7 +1342,7 @@
     "EZD-016a",
     "EZD-022"
    ],
-   "build_position": 44,
+   "build_position": 46,
    "acs": [
     "AC-EZD-024-1",
     "AC-EZD-024-2"
@@ -1371,7 +1374,7 @@
     "EZD-005b",
     "EZD-006"
    ],
-   "build_position": 46,
+   "build_position": 48,
    "acs": [
     "AC-EZD-025-1",
     "AC-EZD-025-2"
@@ -1379,10 +1382,10 @@
    "acs_source": "done-when"
   },
   {
-   "id": "EZD-026a",
+   "id": "EZD-026c",
    "phase": 0,
-   "title": "Message helper: helper, catalogs, lint",
-   "depends_raw": "EZD-001, EZD-010",
+   "title": "Message helper: t() core",
+   "depends_raw": "EZD-001, EZD-004a, EZD-004b, EZD-005a",
    "spec_ref": "R26 R17",
    "spec_files": [
     "spec/decisions.md"
@@ -1391,11 +1394,61 @@
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
     "EZD-001",
-    "EZD-010a",
+    "EZD-004a",
+    "EZD-004b",
+    "EZD-005a"
+   ],
+   "build_position": 30,
+   "acs": [
+    "AC-EZD-026c-1",
+    "AC-EZD-026c-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-026d",
+   "phase": 0,
+   "title": "Message helper: catalogs and test-page component",
+   "depends_raw": "EZD-026c, EZD-004a, EZD-004b, EZD-005a, EZD-010b, EZD-010c",
+   "spec_ref": "R26 R17",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-026c",
+    "EZD-004a",
+    "EZD-004b",
+    "EZD-005a",
     "EZD-010b",
     "EZD-010c"
    ],
-   "build_position": 30,
+   "build_position": 31,
+   "acs": [
+    "AC-EZD-026d-1",
+    "AC-EZD-026d-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-026a",
+   "phase": 0,
+   "title": "Message helper: phone-screen lint and docs",
+   "depends_raw": "EZD-026c, EZD-026d, EZD-001, EZD-000",
+   "spec_ref": "R26 R17",
+   "spec_files": [
+    "spec/decisions.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-026c",
+    "EZD-026d",
+    "EZD-001",
+    "EZD-000"
+   ],
+   "build_position": 32,
    "acs": [
     "AC-EZD-026a-1",
     "AC-EZD-026a-2"
@@ -1421,7 +1474,7 @@
     "EZD-007",
     "EZD-016a"
    ],
-   "build_position": 47,
+   "build_position": 49,
    "acs": [
     "AC-EZD-026b-1"
    ],
@@ -1443,7 +1496,7 @@
     "EZD-012",
     "EZD-016a"
    ],
-   "build_position": 48,
+   "build_position": 50,
    "acs": [
     "AC-EZD-027-1",
     "AC-EZD-027-2",
@@ -1470,7 +1523,7 @@
     "EZD-010b",
     "EZD-010c"
    ],
-   "build_position": 49,
+   "build_position": 51,
    "acs": [
     "AC-EZD-028-1",
     "AC-EZD-028-2"
@@ -1494,7 +1547,7 @@
     "EZD-016b",
     "EZD-000"
    ],
-   "build_position": 50,
+   "build_position": 52,
    "acs": [
     "AC-EZD-029-1"
    ],
@@ -1515,7 +1568,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 51,
+   "build_position": 53,
    "acs": [
     "AC-EZD-030-1"
    ],
@@ -1535,7 +1588,7 @@
    "depends_on": [
     "EZD-021"
    ],
-   "build_position": 52,
+   "build_position": 54,
    "acs": [
     "AC-EZD-031-1",
     "AC-EZD-031-2"
@@ -1561,7 +1614,7 @@
     "EZD-016a",
     "EZD-017"
    ],
-   "build_position": 53,
+   "build_position": 55,
    "acs": [
     "AC-EZD-032-1"
    ],
@@ -1585,7 +1638,7 @@
     "EZD-016a",
     "EZD-024"
    ],
-   "build_position": 54,
+   "build_position": 56,
    "acs": [
     "AC-EZD-033-1",
     "AC-EZD-033-2",
@@ -9754,7 +9807,9 @@
     "EZD-1501",
     "EZD-1404",
     "EZD-026a",
-    "EZD-026b"
+    "EZD-026b",
+    "EZD-026c",
+    "EZD-026d"
    ],
    "build_position": 380,
    "acs": [
@@ -10815,7 +10870,7 @@
    "depends_on": [
     "EZD-000i"
    ],
-   "build_position": 55,
+   "build_position": 57,
    "acs": [
     "AC-EZD-000j-1",
     "AC-EZD-000j-2",
