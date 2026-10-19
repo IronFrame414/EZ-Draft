@@ -5,8 +5,10 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const hook = path.join(root, '.claude/hooks/guard-paths.mjs');
+const hook = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), '.claude/hooks/guard-paths.mjs');
+// The hook sees a fixed root outside any worktree, so the result does not depend on where the tests run (a ticket worktree
+// named EZD-000[b-i] would otherwise match the grant for every sample path) or on fix mode in the real checkout.
+const root = '/ezd-guard-paths-test-root';
 
 function decide(agent, file) {
   const r = spawnSync('node', [hook], {
