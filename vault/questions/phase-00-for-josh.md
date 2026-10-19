@@ -1,5 +1,6 @@
 # Phase 0 · Questions for Josh
 
+> **Item 5 (Q-0124) answered by Josh on 2026-10-19: (a), with the recurrence concern answered by Q-0125 (a).**
 > **Answered by Josh on 2026-10-18** (in chat): section 1 items 1 to 3 (a), item 4 (b); section 2 all confirmed except 27 (Q-0094: minimum password length 8, not 15) and a note on 33 (the local render foundation stays in scope). Recorded in `QUESTIONS.md` and `vault/spec/decisions/`.
 
 Written 2026-10-18 by the orchestrator (`questions 0` unit, PROCESS.md section 7). Overwrites the Oct 11 file; everything answered since then is out (answers live in `vault/questions/QUESTIONS.md` and `vault/spec/decisions/`). Answer by number, in any form ("1: a", "section 2 all confirmed except 12: …"). Recommendation first in every item.

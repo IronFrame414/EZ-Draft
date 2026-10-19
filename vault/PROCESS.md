@@ -75,6 +75,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 16. **Report only what a tool result in this session backs.** A claim about our code is verified by reading it in the same action.
 17. **Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim** until checked against the primary artifact: the file, the diff, the output.
 18. **A result that looks too good is a bug until proven otherwise.** Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
+19. **Tooling faults are fixed in place (Q-0125 (a), Josh 2026-10-19).** When a run is broken or looping, or a plan names a path a guard denies, the orchestrator may fix and commit the launcher, a hook, a skill, a ledger tool or these process files: it writes `vault/handoff/LAUNCHER_FIX.md` naming the fault (guard-paths.mjs fix mode), makes the change, records it in the handoff and the questions ledger, commits, and removes the file. Josh confirms or reverts at his next sit-down.
 
 ### 3a. Wording rule (user-visible text)
 
