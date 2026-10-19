@@ -10,84 +10,11 @@ None. No Phase 0 question is waiting on you.
 
 ## 2. Agent answers to confirm
 
-Every `answered-agent` row for Phase 0 not yet confirmed (24; none new since the last file). Each stands as written unless you override it. Reply "section 2: all confirmed" and name only the ones to change.
-
-1. **Q-0126** · EZD-000b to EZD-000i, EZD-001 · orchestrator
-   - Answer: (c) PILOT.md gains only the verification items a part reports as "not testable here"; items a part verified are not re-run.
-   - Source: PA3-MECHANISMS.md rule 6; PROCESS.md section 15; PROCESS-EZDRAFT.md section 5.
-2. **Q-0127** · EZD-000h · orchestrator
-   - Answer: (a) the PROCESS-EZDRAFT.md budget line records your Q-0119 answer and the values you set (ceiling 300, cap 40; dollar proxy until EZD-000h).
-   - Source: Q-0119; PROCESS.md section 11; PROCESS-EZDRAFT.md section 8.
-3. **Q-0128** · EZD-000b to EZD-000i · orchestrator
-   - Answer: (a) your PA3 write grant for the builder covers all eight parts through one exception in the path guard, removed after the last part merges.
-   - Source: PA3-MECHANISMS.md rule 7; Q-0010; Q-0125.
-4. **Q-0130** · EZD-000d · orchestrator
-   - Answer: (a) the acceptance criteria come from the "Done when" text. The AC tool (`vault/tools/gen_acs.mjs`) had split the row at a `|` inside the text; it was fixed under the tooling-fix rule and re-run. EZD-000d has four ACs matching its "Done when"; no other ticket's ACs changed.
-   - Source: vault/spec/acceptance-criteria.md header; vault/tools/gen_acs.mjs; PROCESS.md section 3 rule 19. Confirming also confirms the tool fix.
-5. **Q-0131** · EZD-000e · orchestrator
-   - Answer: (a) same fault and fix as item 4; EZD-000e has five ACs matching its "Done when".
-   - Source: Q-0130.
-6. **Q-0132** · EZD-000f · orchestrator
-   - Answer: (a) PROCESS.md should name the hook that limits which agents may start helper agents. Process files change only with your yes, so the two edits below are made only if you confirm.
-   - Proposed edit, section 14 Hooks, new line after guard-reads: "**guard-agents** (before Agent): the main session may start any agent; the planner, code-reviewer, security-reviewer and phase-auditor may start only retriever-digest and retriever-web; every other agent, the retrievers included, starts none."
-   - Proposed edit, section 4 Retrievers: "enforced by each agent file's `tools` line" becomes "enforced by each agent file's `tools` line and, for which agent they may start, by the guard-agents hook (section 14)".
-   - Source: PROCESS.md sections 4 and 14; .claude/hooks/guard-paths.mjs line 58; Q-0127.
-7. **Q-0133** · EZD-000i · orchestrator
-   - Answer: (a) the usage check waits 15 minutes between requests; after a "too many requests" (429) reply it retries after the wait the reply asks for (counted as at least 120 seconds) plus 30 seconds.
-   - Source: AC-EZD-000i-1, AC-EZD-000i-2; PA3-MECHANISMS.md Item 1b.
-8. **Q-0134** · EZD-000i · orchestrator
-   - Answer: (a) the usage reader uses the status line's field names; the builder's probe reports the real names, and a mismatch goes to a follow-up ticket. The probe found a mismatch: that follow-up is item 1.1 (Q-0138).
-   - Source: PA3-MECHANISMS.md Item 1b and Findings row 1b; vault/plans/EZD-000i.md H4.
-9. **Q-0135** · EZD-000i · security-reviewer
-   - Answer: (a) EZD-000i blocks the shell commands that would print your Claude sign-in token (Keychain reads with `-w` or `-g`, and any command naming `.credentials.json` other than a plain "does the file exist" test); the Read tool is blocked from that file too. It guards against accidents, not a determined agent.
-   - Source: PA3-MECHANISMS.md rule 8 and Findings row 1b; .claude/hooks/guard-bash.mjs; PROCESS.md section 14 Settings; Q-0128.
-10. **Q-0136** · EZD-000b (gate) · orchestrator
-    - Answer: two repo-script tests fixed in place: the expected question IDs are the next three after the copied ledger's highest, and the hook test uses a fixed fake folder. Nothing removed or weakened; both pass in the main checkout and in a ticket worktree.
-    - Source: PROCESS.md section 3 rule 19; Q-0125 (a); Q-0128 (a); Q-0129. Confirm or revert.
-11. **Q-0137** · EZD-000i · orchestrator
-    - Answer: (a) a dry run of the launcher reads the usage meters the same way a real run does; the 15-minute spacing and the 429 wait limit the requests either way.
-    - Source: scripts/run.mjs lines 7, 219, 284; STATUS.md EZD-000h Notes deviation (3); vault/plans/EZD-000i.md H5, H9; Q-0133.
-12. **Q-0139** · EZD-001 · orchestrator
-    - Answer: (a) the "one package at a time" install setting moves to `pnpm-workspace.yaml`, because pnpm 12 ignores it in `.npmrc` (same fix EZD-000 used for exact versions).
-    - Source: vault/plans/EZD-001.md; pnpm-workspace.yaml; Q-0019; Q-0114.
-13. **Q-0140** · EZD-001 · security-reviewer
-    - Answer: (a) every install script a package wants to run is denied; a test checks none is allowed. If one turns out to be needed, the builder stops and asks.
-    - Source: Q-0112; vault/plans/EZD-023b.md; scripts/conventions/__tests__/architecture-doc.test.mjs lines 203–208.
-14. **Q-0141** · EZD-001 (gate) · orchestrator
-    - Answer: one ledger test's copied data fixed in place so live escalations and in-progress tickets no longer break it. No check, expected value or test count changed.
-    - Source: PROCESS.md section 3 rule 19; Q-0125 (a); Q-0136. Confirm or revert.
-15. **Q-0142** · EZD-001 (build) · code-reviewer
-    - Answer: (a) four sample test files inside EZD-000's tests were wrapped in a ticket-labelled block so the new "every test names its ticket" check (C9) applies to them; what each test checks is unchanged. Recorded as a plan deviation.
-    - Source: vault/plans/EZD-001.md lines 76, 169; scripts/conventions/__tests__/check.test.mjs; PROCESS.md section 8.
-16. **Q-0143** · EZD-002 · orchestrator
-    - Answer: (a) the CI test reads the gate's final `GATE FAIL: test` line from normal output, where your gate script now prints it.
-    - Source: scripts/gate.mjs lines 31, 165; vault/plans/EZD-002.md.
-17. **Q-0144** · EZD-002 · orchestrator
-    - Answer: (a) `main` should require the `gate` check to pass before a merge, as PROCESS.md section 12 says. It is your GitHub step, listed in needs-from-josh.md; it did not block EZD-002.
-    - Source: PROCESS.md section 12; Q-0022 (b).
-18. **Q-0145** · EZD-002 (gate) · orchestrator
-    - Answer: the same ledger test fixed again, data only, after EZD-001 went done. No check changed.
-    - Source: PROCESS.md section 3 rule 19; Q-0125 (a); Q-0141. Confirm or revert.
-19. **Q-0146** · EZD-002 (review) · security-reviewer
-    - Answer: yes, the CI-workflow check was tightened: it now fails other ways of writing secrets, environments, triggers and the cache action that could slip past it. Stricter only; the allowed lists (Q-0112) are unchanged.
-    - Source: Q-0112; vault/plans/EZD-002.md sections 4 and 7; scripts/ci/__tests__/ci.test.mjs.
-20. **Q-0147** · EZD-003 (gate) · orchestrator
-    - Answer: the same ledger test fixed a third time, data only, so it handles any chain of finished tickets. No check changed.
-    - Source: PROCESS.md section 3 rule 19; Q-0145. Confirm or revert.
-21. **Q-0148** · EZD-004 · orchestrator
-    - Answer: EZD-004 was too big for one ticket and was split into EZD-004a (local database in the gate), EZD-004b (app reads the health row) and EZD-004c (cloud dev database workflow and runbook). Everything that depended on EZD-004 now depends on all three.
-    - Source: PROCESS.md section 6 Ticket size; vault/plans/EZD-004.md Split proposal (dbf4985); Q-0042; Q-0125.
-22. **Q-0149** · EZD-004a (gate) · orchestrator
-    - Answer: the research-store test (EZD-000d T8) was fixed in place: it checked that the store was empty, which stopped being true once the first research report was adopted; it now checks the store's format (header, one line per report, files match the list, nothing left pending). A stray report file still fails it. This one changes what the test checks, unlike items 14, 18 and 20.
-    - Source: PROCESS.md section 3 rule 19; Q-0125 (a); Q-0141. Confirm or revert.
-23. **Q-0150** · EZD-005 · orchestrator
-    - Answer: EZD-005 was too big for one ticket and was split into EZD-005a (the company, user, membership and project tables) and EZD-005b (Worth Properties as company 1 with you as owner: the seed and the one-time cloud setup file). Everything that depended on EZD-005 now depends on both.
-    - Source: PROCESS.md section 6 Ticket size; vault/plans/EZD-005.md Split proposal; Q-0148.
-24. **Q-0151** · EZD-005b · orchestrator
-    - Answer: (a) an EZD-004a test required the seed file to hold only comments; EZD-005b's test-author narrows it to "the seed file exists", and EZD-005b's own test checks what the seed creates. The comment-only state was always meant to end with EZD-005. A change to a merged test.
-    - Source: vault/plans/EZD-004a.md line 26; supabase/seed.sql; docs/architecture.md Local database; vault/plans/EZD-005.md V5. Confirm or revert.
+None. Josh confirmed all 24 (Q-0126 to Q-0151) in chat on 2026-10-19 (decisions/process.md).
 
 ## 3. Proposed wording
+
+Not answered yet: Josh was on mobile on 2026-10-19; raise again when he is at the desktop.
 
 No new screen text for clients or users. Item 42 is new since the last file; items 1 to 41 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
 
@@ -155,13 +82,6 @@ No new screen text for clients or users. Item 42 is new since the last file; ite
 
 ## 4. Rule candidates
 
-Lessons with status `candidate` (PROCESS.md section 13). Nothing is applied until you answer. Ledger note: two different lessons had both been numbered L-005; the later one (planner, from EZD-002) is now L-006.
+Josh ratified L-001 to L-007 in chat on 2026-10-19. Still open:
 
-1. **L-001** (reviewer; from EZD-033): a policy number users run into (password length, retention period, a limit) goes to you with a recommendation; a reviewer does not set it. **Recommend: ratify.** Your password-length override (Q-0094) is the case it comes from, and it keeps product numbers yours (CLAUDE.md rule 3).
-2. **L-002** (planner; from EZD-000): for every path in a plan's Files table, check that the path guard lets the writing role write it; if not, choose an allowed path or raise a question before Stage 2. **Recommend: ratify.** It would have prevented the EZD-000 block (Q-0124); EZD-004a's plan already applies it (finding F3).
-3. **L-003** (orchestrator and test-author; from EZD-000b, seen again EZD-001): a repo-script test takes its expected values from its own copied data and uses a fixed fake folder, never the live ledger or the checkout it runs in. **Recommend: ratify.** The same test broke three more times for this reason (Q-0141, Q-0145, Q-0147).
-4. **L-004** (planner; from EZD-000h): when a plan lists ordered steps that can stop early, check each early stop against every rule a later step enforces. **Recommend: ratify.** It caught a real bypass (an override could have started work past a budget hold) that the plan review missed.
-5. **L-005** (orchestrator; from EZD-000i): a dispatch adds no restriction the plan does not state; a caution taken from the plan's Risks section is quoted with the plan's exceptions. **Recommend: ratify.** The extra restriction made the builder skip a check the plan required, which became a deviation.
-6. **L-006** (planner; from EZD-002): a check that allows only listed values in config text fails every way of writing it that it cannot read (brace form, inherit, expressions), and the plan proves each one. **Recommend: ratify.** The gap cost a plan amendment and two extra test rounds (Q-0146).
-7. **L-007** (reviewer; from EZD-004a): a claim about how a third-party tool behaves cites the source of the exact package and version the lockfile installs, or a run of that binary. **Recommend: ratify.** A review failed a correct test from reading a different program's source (the Supabase CLI's Go repo, not the npm `supabase` 2.121.0 the repo runs). The rule makes a reviewer check the installed program before failing a test on it.
-8. **L-008** (test-author; from EZD-005a): a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides. **Recommend: ratify.** A line-start match missed four of five table names in the generated types file because the Supabase CLI puts a key after the previous closing brace on the same line, which cost a structural repair.
+1. **L-008** (test-author; from EZD-005a): a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides. **Recommend: ratify.** A line-start match missed four of five table names in the generated types file because the Supabase CLI puts a key after the previous closing brace on the same line, which cost a structural repair.

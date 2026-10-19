@@ -113,7 +113,7 @@ maxTurns values are starting points; tune them from the cost report (section 9).
 
 Write limits are enforced by hooks, not only by instructions (section 14).
 
-**Retrievers.** A lookup that would pull more than about 30,000 tokens into an agent's context, or that needs sifting (a long log, the whole spec, a web search), goes to a retriever; the asking agent gets the answer, never the pages. One grep or one small file is fine inline. Only the orchestrator, planner, code-reviewer, security-reviewer and phase-auditor may dispatch retrievers, enforced by each agent file's `tools` line (the builder, test-author and ui-verifier have no `Agent` tool); retrievers have no `Agent` tool, so the chain stops with them. Retriever brief: `QUESTION · FOR (agent and ticket) · SCOPE (paths or sites) · CAP (max lines) · REPORT yes|no · KNOWN (what the asker already has)`. Never read a research report's body; cite its ID.
+**Retrievers.** A lookup that would pull more than about 30,000 tokens into an agent's context, or that needs sifting (a long log, the whole spec, a web search), goes to a retriever; the asking agent gets the answer, never the pages. One grep or one small file is fine inline. Only the orchestrator, planner, code-reviewer, security-reviewer and phase-auditor may dispatch retrievers, enforced by each agent file's `tools` line and, for which agent they may start, by the guard-agents hook (section 14) (the builder, test-author and ui-verifier have no `Agent` tool); retrievers have no `Agent` tool, so the chain stops with them. Retriever brief: `QUESTION · FOR (agent and ticket) · SCOPE (paths or sites) · CAP (max lines) · REPORT yes|no · KNOWN (what the asker already has)`. Never read a research report's body; cite its ID.
 
 ### How the orchestrator picks models
 
@@ -496,7 +496,7 @@ scripts/statusline.mjs    prints the status line; writes the rate-limit windows 
 .claude/agents/*.md       one file per agent, including Explore.md, retriever-digest.md and retriever-web.md
                           (name, description, tools, model, effort, maxTurns)
 .claude/skills/           spec-check, plan-ticket, review-plans, questions, build-ticket (with dispatch.md), gate-phase, wrap
-.claude/hooks/            guard-paths, guard-bash, guard-reads, session-start, stop-ledger-check, stop-failure, session-end
+.claude/hooks/            guard-paths, guard-bash, guard-reads, guard-agents, session-start, stop-ledger-check, stop-failure, session-end
 .claude/settings.json     env, allow/ask/deny lists, hooks, statusLine, worktree.baseRef "head", the hidden-token switches
 vault/PROCESS.md          this file
 vault/budget.json         budget settings (section 11)
@@ -576,6 +576,7 @@ Process: vault/PROCESS.md (the orchestrator and Josh read it; other agents read 
 - **session-start** (matchers `startup`, `resume`, `clear`, `compact`): injects the handoff summary, the ledger check result, the next unit and the open question count. Output is plain text on stdout.
 - **stop-ledger-check** (Stop): refuses to end the main session's turn while `next_ticket.mjs --check` fails. Escape: if `vault/handoff/FORCE_STOP` exists, the hook writes the failure into the handoff, deletes the file, and lets the session end. Use this only when the check itself is broken; fixing it is the next unit's first job.
 - **guard-reads** (before Read and Bash): denies a `Read` with no `offset`/`limit` on a file over `GUARD_WHOLE_READ_CHARS` (20,000 by default), and `cat`, `head`, `tail`, `sed -n` or `less` on such a file without a narrowing range; `grep`, `wc` and ranged `sed -n 'a,bp'` pass. The denial carries the file's outline (`vault/tools/outline.mjs`) and ends "Read the ranges you need with offset and limit." Exempt list in settings, empty by default; `gate.log` is not exempt.
+- **guard-agents** (before Agent): the main session may start any agent; the planner, code-reviewer, security-reviewer and phase-auditor may start only retriever-digest and retriever-web; every other agent, the retrievers included, starts none (Q-0132).
 - **stop-failure** (StopFailure): records the error type and time in `vault/handoff/last-failure.json` for the launcher.
 - **session-end** (timeout 30 s): archives the handoff, adds any ledger problems to it, and commits `vault/` on `develop`.
 - Deny rules in settings: reading `.env`, `.env.local`, `.env.*.local`, `.env.production`, plus the same git and deploy commands as guard-bash.
