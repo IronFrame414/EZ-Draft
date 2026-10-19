@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  USAGE_URL, KEYCHAIN_SERVICE, STATE_FILE, retryWaitMs, readToken, createOAuthFallback, probe,
+  USAGE_URL, KEYCHAIN_SERVICE, STATE_FILE, UTILIZATION_MAX, retryWaitMs, readToken, parseUsage, createOAuthFallback, probe,
 } from '../oauth-usage.mjs';
 import { readMeters } from '../budget.mjs';
 
@@ -14,7 +14,13 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const TOKEN = 'ezd000i-fixture-token-7f3a9c41';
 const NOW = new Date('2026-10-19T12:00:00Z');
 const at = (ms) => new Date(NOW.getTime() + ms);
-const OK_BODY = '{"five_hour":{"used_percentage":42,"resets_at":1893999600},"seven_day":{"used_percentage":63,"resets_at":1894255200}}';
+const OK_BODY = JSON.stringify({
+  five_hour: { utilization: 42 * UTILIZATION_MAX / 100, resets_at: '2030-01-07T07:00:00+00:00' },
+  seven_day: { utilization: 63 * UTILIZATION_MAX / 100, resets_at: '2030-01-10T06:00:00+00:00' },
+  seven_day_opus: null,
+  seven_day_sonnet: null,
+  extra_usage: { is_enabled: false, monthly_limit: null, used_credits: null, utilization: null },
+});
 const tmp = () => fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ezd000i-')));
 const okTok = () => ({ token: TOKEN, source: 'file' });
 
@@ -200,7 +206,7 @@ test('EZD-000i T8: failures return null, never reject, and wait 15 minutes', asy
     stubFetch([res(500)]),
     stubFetch([new TypeError('fetch failed')]),
     stubFetch([res(200, 'not json')]),
-    stubFetch([res(200, '{"five_hour":{"used_percentage":"x","resets_at":1}}')]),
+    stubFetch([res(200, '{"five_hour":{"utilization":"x","resets_at":1}}')]),
   ];
   for (const f of cases) {
     const root = tmp();
@@ -246,6 +252,7 @@ test('EZD-000i T10: probe lists names only, writes no file, and .gitignore holds
     'response keys: five_hour, seven_day, seven_day_opus, email',
     'window keys: five_hour{used_percentage, resets_at}; seven_day{}; seven_day_opus{used_percentage}',
     'model-scoped weekly window: seven_day_opus',
+    'utilization: five_hour none, seven_day none',
     'token found in files under vault/, scripts/, .run/: none',
   ]);
   for (const l of lines) for (const bad of ['x@y', ': 1', TOKEN]) assert.ok(!l.includes(bad), l);
@@ -253,4 +260,54 @@ test('EZD-000i T10: probe lists names only, writes no file, and .gitignore holds
   assert.deepEqual(walk(root), []);
   const gi = fs.readFileSync(path.join(repo, '.gitignore'), 'utf8').split(/\r?\n/);
   assert.ok(gi.includes('vault/cost/oauth-poll.json'));
+});
+
+const win = (u, r = '2030-01-07T07:00:00+00:00') => ({ utilization: u, resets_at: r });
+const bodyOf = (a, b) => ({ five_hour: a, seven_day: b });
+
+test('EZD-000j T1 AC-1 done when: a fixture usage reply gives the expected five-hour and seven-day percentages', () => {
+  assert.deepEqual(parseUsage(JSON.parse(OK_BODY)), {
+    five_hour: { pct: 42, resets_at: '2030-01-07T07:00:00.000Z' },
+    seven_day: { pct: 63, resets_at: '2030-01-10T06:00:00.000Z' },
+    fable_seven_day: null,
+  });
+});
+
+test('EZD-000j T2 AC-1: utilization converts to a percent on either scale, rounded to two decimals', () => {
+  assert.ok([1, 100].includes(UTILIZATION_MAX));
+  const b = parseUsage(bodyOf(win(0.29), win(0.9)), 1);
+  assert.equal(b.five_hour.pct, 29);
+  assert.equal(b.seven_day.pct, 90);
+  const c = parseUsage(bodyOf(win(33), win(89.99)), 100);
+  assert.equal(c.five_hour.pct, 33);
+  assert.equal(c.seven_day.pct, 89.99);
+  const d = parseUsage(bodyOf(win(0.5, 1893999600), win(0)), 100);
+  assert.equal(d.five_hour.pct, 0.5);
+  assert.equal(d.seven_day.pct, 0);
+  assert.equal(d.five_hour.resets_at, '2030-01-07T07:00:00.000Z');
+});
+
+test('EZD-000j T3 AC-1: a reply without readable utilization or resets_at gives null', () => {
+  const ok = () => JSON.parse(OK_BODY);
+  const cases = [
+    { five_hour: { used_percentage: 42, resets_at: 1893999600 }, seven_day: { used_percentage: 63, resets_at: 1894255200 } },
+    (() => { const x = ok(); delete x.seven_day.utilization; return x; })(),
+    (() => { const x = ok(); x.five_hour.utilization = 'x'; return x; })(),
+    (() => { const x = ok(); x.seven_day.resets_at = null; return x; })(),
+    (() => { const x = ok(); x.five_hour = null; return x; })(),
+    null,
+  ];
+  for (const c of cases) assert.equal(parseUsage(c), null);
+});
+
+test('EZD-000j T4 AC-2: probe prints the two window values and nothing else numeric', async () => {
+  const root = tmp();
+  const body = '{"five_hour":{"utilization":33,"resets_at":"2030-01-07T07:00:00+00:00"},"seven_day":{"utilization":13,"resets_at":"2030-01-10T06:00:00+00:00"},"extra_usage":{"utilization":5,"monthly_limit":999},"email":"x@y"}';
+  const f = stubFetch([res(200, body)]);
+  const lines = await probe({ root, platform: 'linux', fetch: f, readToken: okTok });
+  assert.equal(lines[lines.length - 2], 'utilization: five_hour 33, seven_day 13');
+  assert.equal(lines[lines.length - 1], 'token found in files under vault/, scripts/, .run/: none');
+  for (const l of lines) for (const bad of ['999', 'x@y', ': 5', TOKEN]) assert.ok(!l.includes(bad), l);
+  assert.equal(f.calls.length, 1);
+  assert.deepEqual(walk(root), []);
 });

@@ -13,6 +13,7 @@ export const POLL_INTERVAL_MS = 900_000;
 export const AUTH_STOP_MS = 3_600_000;
 export const RETRY_FLOOR_S = 120;
 export const RETRY_PAD_S = 30;
+export const UTILIZATION_MAX = 100;
 export const KEYCHAIN_SERVICE = 'Claude Code-credentials';
 export const STATE_FILE = 'vault/cost/oauth-poll.json';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -56,17 +57,17 @@ export function readToken({ home = os.homedir(), platform = process.platform, ex
   return { token: null, source: null };
 }
 
-function win(w) {
-  if (!w || typeof w !== 'object' || typeof w.used_percentage !== 'number' || !Number.isFinite(w.used_percentage)) return null;
+function win(w, max) {
+  if (!w || typeof w !== 'object' || typeof w.utilization !== 'number' || !Number.isFinite(w.utilization)) return null;
   const r = w.resets_at;
   const ms = typeof r === 'number' ? r * 1000 : typeof r === 'string' ? Date.parse(r) : NaN;
   if (!Number.isFinite(ms)) return null;
-  return { pct: w.used_percentage, resets_at: new Date(ms).toISOString() };
+  return { pct: Math.round(w.utilization * 100 / max * 100) / 100, resets_at: new Date(ms).toISOString() };
 }
 
-export function parseUsage(body) {
+export function parseUsage(body, max = UTILIZATION_MAX) {
   if (!body || typeof body !== 'object') return null;
-  const five_hour = win(body.five_hour), seven_day = win(body.seven_day);
+  const five_hour = win(body.five_hour, max), seven_day = win(body.seven_day, max);
   if (!five_hour || !seven_day) return null;
   return { five_hour, seven_day, fable_seven_day: null };
 }
@@ -186,6 +187,8 @@ export async function probe({ root = ROOT, fetch = globalThis.fetch, readToken: 
         lines.push(`window keys: ${objs.map((k) => `${k}{${Object.keys(body[k]).join(', ')}}`).join('; ')}`);
         const model = keys.filter((k) => k.startsWith('seven_day_'));
         lines.push(`model-scoped weekly window: ${model.length ? model.join(', ') : 'none found'}`);
+        const u = (k) => (Number.isFinite(body[k]?.utilization) && typeof body[k].utilization === 'number' ? String(body[k].utilization) : 'none');
+        lines.push(`utilization: five_hour ${u('five_hour')}, seven_day ${u('seven_day')}`);
       }
     }
   }
