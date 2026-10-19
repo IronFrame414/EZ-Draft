@@ -232,3 +232,17 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Formatting (Prettier) | review, not gated | EZD-001 |
 | — | A stored sample of every schema version loads | CI test | the ticket that adds the schema (03 rule 5) |
 | — | One Zod file per object type; Clipper only in a worker; error body shape; log redaction | review | — |
+| — | CI fails when any gate check fails | scripts/gate.mjs exit code; proved by scripts/ci/__tests__/ci.test.mjs | EZD-002 |
+
+### CI
+
+EZD-002 (vault/plans/EZD-002.md Step 4). Sources in short form as above; `PROCESS` = vault/PROCESS.md.
+
+- **When CI runs:** on the phase PR to `main` and by hand from the Actions tab (`workflow_dispatch`), never on push (PROCESS section 12; `.github/workflows/ci.yml`; Q-0021 (a); vault/spec/non-goals.md). Per-ticket checks are the local `node scripts/gate.mjs <worktree>` (PROCESS section 8 step 7).
+- **What CI runs:** `node vault/tools/next_ticket.mjs --check`, then `scripts/gate.mjs` in full scope on Node 22 under `ubuntu-latest` (ci.yml; Test scope above). The job is named `gate`; it is the required check on `main` (Q-0144 (a); PROCESS section 12; Josh adds the rule, vault/tickets/needs-from-josh.md).
+- **How a later ticket adds a CI check:** put it in a script the gate already runs (`typecheck`, `lint`, `test`, `build`, or `test:e2e` / `perf` once EZD-016a / EZD-017 add them); it then runs locally and in CI with no workflow edit. Never edit `.github/workflows/ci.yml`; it is Josh-owned (`.claude/hooks/guard-paths.mjs`; PROCESS section 4).
+- **Checks that need a service the runner does not start** (for example Docker for EZD-004): the ticket's planner raises a question; the options are a new workflow file (the builder may write one) or a ci.yml change by Josh. A new workflow does not trigger on `push`, except `release.yml` on `main` (Q-0106) and `supabase-dev.yml` on `develop` for `supabase/migrations/**` (Q-0107); any other push trigger needs Josh's answer first (`scripts/ci/__tests__/ci.test.mjs` T2 fails it).
+- **Workflows on a public repo** (Q-0106; Q-0112): no `pull_request_target` or `workflow_run` trigger; secrets are named only in a step's `env:`; new workflow files pin each `uses:` to a full commit SHA. T2 checks triggers, environments and secret lists for every file; each workflow's own ticket checks the rest (EZD-004 T13, EZD-023b T16, EZD-025 T11).
+- **Environments and secrets** (Q-0112): production secrets only in the GitHub environment `release` (main only, no admin bypass), the dev database URL only in `dev` (develop only). Only `release.yml`, `backup-files.yml` and `backup-db.yml` may name `release`; only `supabase-dev.yml` may name `dev`; nothing names `production`; no environment is chosen by an expression. Each workflow reads an exact list of secrets (T2 (h)); `ci.yml` reads none. A later ticket that needs another secret changes its own plan and T2 (h) together.
+- **Previews:** Vercel's Git integration, set up in EZD-003, not a workflow (Q-0007; Q-0116 (a)).
+- **Tests stay offline:** no live AI, email, render providers or EZ Binder (vault/tickets/README.md rule 4), so CI needs no API keys; EZD-002 adds no secret (CLAUDE.md rule 8).
