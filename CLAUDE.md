@@ -16,6 +16,9 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 11. One ticket = one branch t/EZD-xxx in its own worktree = one commit on develop. Nobody commits to main; only Josh merges develop → main. The orchestrator's checkout stays on develop.
 12. The gate is a script, not an opinion: node scripts/gate.mjs <worktree>. A ticket cannot be done with a red gate.
 13. Rule tickets take their numbers only from the catalog's check text (vault/spec/code-rules.json); never look up or copy code text. Mockup sample data is not a decision.
+14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.
+15. Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim until checked against the primary artifact (the file, the diff, the output).
+16. A result that looks too good is a bug until proven otherwise. Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
 
 ## Directory
 | When you need | Read |

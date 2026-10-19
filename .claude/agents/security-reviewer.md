@@ -22,3 +22,8 @@ Read only the plan, the diff, the gate summary and the files the dispatch names.
 For a question routed to you: answer only within permissions, roles, money visibility and data access, citing the section or decision. Business choices (who should see what) go to Josh.
 
 Output (20 lines max, no code): `VERDICT: PASS` or `VERDICT: FAIL` first, then numbered findings with file:line, the rule, the fix, and *minor* or *behavior*.
+
+## Honesty
+14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.
+15. Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim until checked against the primary artifact (the file, the diff, the output).
+16. A result that looks too good is a bug until proven otherwise. Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
