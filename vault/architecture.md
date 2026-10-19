@@ -160,6 +160,9 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026)
   src/workers/            Web Workers, files named *.worker.ts (11 rule 3)
+  src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b)
+  public/icons/sprite.svg the generated icon sprite, served at /icons/sprite.svg (EZD-010b)
+  scripts/                icons-build.mjs, icons-fetch.mjs: the icon pipeline, run by hand (EZD-010b; not the root scripts/)
 packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model schema in src/schema/<object-type>.ts (03 rule 5); drawing list (02 PDF out); calculations re-run on the server (11 Where each output is produced)
 worker/                   @ezdraft/worker — the local GPU render worker (02 Named tools; EZD-1104). Not Web Workers, not job handlers
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
@@ -194,6 +197,11 @@ EZD-010a (vault/plans/EZD-010a.md Step 4); 04 Frame and visual system (Studio); 
 - Colors: the spec's `oklch()` values ship as written with no sRGB fallback; browser floor Firefox 113+, Safari/iOS 16.4+, Chrome/Edge 111+ (Q-0026 (a); Q-0013 (a)).
 - Board-cited exception radii approved by Josh: `--ez-radius-6` for tooltips (Q-0040 (c), added by EZD-012) and `--ez-radius-14` for dialogs (Q-0057 (b), added by EZD-015). Any other radius that conflicts with 04's list becomes a question.
 - `tokens.css` is excluded from Prettier, because Prettier rewrites `rgba(20,30,50,.05)` to `rgba(20, 30, 50, 0.05)` and the values must stay the spec text (`.prettierignore`).
+- Icons (EZD-010b; vault/plans/EZD-010b.md): source `github.com/google/material-design-icons`, folder `symbols/web/<name>/materialsymbolsoutlined/`, pinned commit `49d4db35df873165d6bd6ba09b063c7dafbac2f4` (`ICON_COMMIT` in `app/scripts/icons-fetch.mjs`), Apache-2.0.
+- Icon style: Outlined, weight 400, grade 0, optical size 20; FILL 0, with `<name>-fill` for FILL 1.
+- To add an icon: run `pnpm --filter @ezdraft/app icons:fetch <name>`, add the name to `icons.json` in sorted order, run `pnpm --filter @ezdraft/app icons:build`, then commit the SVG, the sprite and the names file. `icons.test.ts` (T8) fails otherwise.
+- `Icon` is decorative, so the button around it carries the label and tooltip (11 Accessibility).
+- Never load the icon font, and never write the words "Material Symbols" in `app/src/` or `app/public/` (EZD-010c T7).
 
 ## Server-only data access and can()
 
@@ -333,6 +341,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | C9 | Every `*.test.ts`, `*.test.tsx`, `*.spec.ts` under `app/`, `packages/`, `worker/` has a top-level `describe` / `test.describe` whose title starts with a ticket ID (`test-utils/`, `test-harness/` and config files exempt) | same | EZD-001 |
 | C10 | No literal color (hex or color function) in a declaration of a CSS file under app/src/ other than app/src/styles/tokens.css | same | EZD-010a |
 | — | Named colors in CSS and colors in TSX style props | review | EZD-010a |
+| — | Icon sprite and names file match icons.json; icons:build is byte-stable and refuses missing, repeated or unsorted names | app/src/components/icon/icons.test.ts (T8, T9) | EZD-010b |
 | — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |

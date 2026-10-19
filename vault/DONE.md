@@ -22,3 +22,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-19 · EZD-008a · Send helper and transports · nothing on screen yet: the server can send an email (to a test outbox until the Resend key is in), and every send returns its link for Copy link · fce41c2
 2026-10-19 · EZD-008b · Email setup: names, docs, runbook and live check · Josh has plain steps to turn on real email and a one-command check (node scripts/email/send-test.mjs --to <address>) that a test email reaches his inbox · e77273a
 2026-10-19 · EZD-010a · Token files and check C10 · nothing on screen yet: the Studio colors, radii, shadows and frame sizes now live in one file, and the gate refuses a color written anywhere else · 485a54c
+2026-10-19 · EZD-010b · Icon sprite and Icon component · nothing on screen yet: the app has an icon component drawing from one small cached sprite file, and adding a Google icon takes one command (icons:fetch, then icons:build) · 69443f9

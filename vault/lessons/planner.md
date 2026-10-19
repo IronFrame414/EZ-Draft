@@ -29,3 +29,10 @@ Mistake: the plan's Step 5 policy template `project_id = any ((select private.li
 Cause: SQL contract text in the plan was written from memory and never run against the pinned local stack.
 Rule: SQL that a plan fixes as contract text (policy templates, function signatures a test types in) is run once on the pinned local stack by the planner, or marked "confirm on pinned version" so the test-author verifies it before committing.
 Check: the plan review lists every SQL fragment a test copies verbatim and names where it was run or marked.
+
+## L-012  areas: tooling, scripts  seen: 1  status: candidate
+Ticket EZD-010b, 2026-10-19
+Mistake: plan Step 2 said an unknown flag or a flag with no value fails, but no test in section 4 checked it; builder round 1 accepted `--names --list` and `--constructor x` with exit 0, and the code-reviewer failed it (one extra round, builder tier up).
+Cause: a rule written in the Approach prose had no matching Tests row, so the gate could not catch it and the builder worked to the tests.
+Rule: every "fails"/"refuses" rule in a plan's Approach has a Tests row with a failing input (planner), and the builder implements every Approach rule, not only those the tests check.
+Check: the plan review lists each refuse/fail rule in the Approach and the test case that covers it; the code-reviewer runs any uncovered rule by hand.
