@@ -31,6 +31,7 @@ Values never go in the repo; names go in `.env.example`; the app reads them per 
 | `NEXT_PUBLIC_SUPABASE_URL` | yes (Realtime and signed uploads later, 03 rule 1) | `pnpm db:env` | that project's API URL | `app/src/server/db/env.ts` now; EZD-018, EZD-132 later |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes (RLS applies) | `pnpm db:env` | that project's publishable key | `app/src/server/db/env.ts` now; EZD-018, EZD-132 later |
 | `SUPABASE_SECRET_KEY` | never | `pnpm db:env` | that project's secret key | job handlers, migrations, seeds and admin scripts only; nothing reads it yet |
+| `SUPABASE_DEV_DB_URL` | never | none (the local stack needs none) | the dev project's Session pooler connection string, an environment secret of the GitHub environment `dev` (`develop` only); production has no counterpart (EZD-023b's `release` environment) | `.github/workflows/supabase-dev.yml` only |
 
 Which project's values go where: local is the local stack; preview is the dev project; production is the production project once Josh sets it up from the Before-launch checklist (11 Operations: preview deploys use the dev database; Q-0113). Entering values in Vercel is EZD-023b's (Q-0106).
 
@@ -194,6 +195,8 @@ EZD-004a (vault/plans/EZD-004a.md Steps 2–6); 02 Named tools; 11 Operations "l
 - `supabase/config.toml`: `project_id = "ezdraft"` (one shared local stack for every worktree; one gate at a time, Q-0114), `[analytics] enabled = false`, `[edge_runtime] enabled = false` (jobs are Vercel Functions, P4); everything else at the CLI default. `supabase/seed.sql` is comment-only until EZD-005.
 - The first migration creates `public.health()`: `security definer`, `search_path = ''`, execute granted to `anon` and `authenticated` only; it returns one row `('ok', <newest applied migration version>)`, read through `POST /rest/v1/rpc/health`. It is a function, not a table, so EZD-006's table checks do not cover it.
 
+Cloud dev: `.github/workflows/supabase-dev.yml` applies `supabase/migrations/` to the cloud project `ezdraft-dev` with `supabase db push --db-url` on each develop push that changes them and by Run workflow (Q-0107); without the `SUPABASE_DEV_DB_URL` secret it ends green and pushes nothing. Agents never run `db push` or `link` themselves (`.claude/hooks/guard-bash.mjs`). Josh's setup: `docs/runbook.md`, Supabase cloud projects.
+
 ## Errors and logging
 
 11 Operations, Security and audit; R26 R12, R16, R17; EZD-015, EZD-024, EZD-026, EZD-120b.
@@ -275,6 +278,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Migrations applied to the local database equal the files in `supabase/migrations/` | scripts/db/__tests__/db.test.mjs (T1) | EZD-004a |
 | — | Committed `database.types.ts` matches the local database | scripts/db/__tests__/db.test.mjs (T9), `node scripts/db/gen-types.mjs --check` | EZD-004a |
 | — | Supabase CLI pinned, runnable, Linux x64 binary in the lockfile | scripts/db/__tests__/db.test.mjs (T10) | EZD-004a |
+| — | Cloud dev migrations workflow: pinned, dev-only, pushes nothing without its secret | scripts/db/__tests__/supabase-dev.test.mjs | EZD-004c |
 
 ### CI
 
@@ -284,7 +288,7 @@ EZD-002 (vault/plans/EZD-002.md Step 4). Sources in short form as above; `PROCES
 - **What CI runs:** `node vault/tools/next_ticket.mjs --check`, then `scripts/gate.mjs` in full scope on Node 22 under `ubuntu-latest` (ci.yml; Test scope above). The job is named `gate`; it is the required check on `main` (Q-0144 (a); PROCESS section 12; Josh adds the rule, vault/tickets/needs-from-josh.md).
 - **How a later ticket adds a CI check:** put it in a script the gate already runs (`typecheck`, `lint`, `test`, `build`, or `test:e2e` / `perf` once EZD-016a / EZD-017 add them); it then runs locally and in CI with no workflow edit. Never edit `.github/workflows/ci.yml`; it is Josh-owned (`.claude/hooks/guard-paths.mjs`; PROCESS section 4).
 - **Checks that need a service the runner does not start** (for example Docker for EZD-004): the ticket's planner raises a question; the options are a new workflow file (the builder may write one) or a ci.yml change by Josh. A new workflow does not trigger on `push`, except `release.yml` on `main` (Q-0106) and `supabase-dev.yml` on `develop` for `supabase/migrations/**` (Q-0107); any other push trigger needs Josh's answer first (`scripts/ci/__tests__/ci.test.mjs` T2 fails it).
-- **Workflows on a public repo** (Q-0106; Q-0112): no `pull_request_target` or `workflow_run` trigger; secrets are named only in a step's `env:`; new workflow files pin each `uses:` to a full commit SHA. T2 checks triggers, environments and secret lists for every file; each workflow's own ticket checks the rest (EZD-004 T13, EZD-023b T16, EZD-025 T11).
+- **Workflows on a public repo** (Q-0106; Q-0112): no `pull_request_target` or `workflow_run` trigger; secrets are named only in a step's `env:`; new workflow files pin each `uses:` to a full commit SHA. T2 checks triggers, environments and secret lists for every file; each workflow's own ticket checks the rest (EZD-004c T1, EZD-023b T16, EZD-025 T11).
 - **Environments and secrets** (Q-0112): production secrets only in the GitHub environment `release` (main only, no admin bypass), the dev database URL only in `dev` (develop only). Only `release.yml`, `backup-files.yml` and `backup-db.yml` may name `release`; only `supabase-dev.yml` may name `dev`; nothing names `production`; no environment is chosen by an expression. Each workflow reads an exact list of secrets (T2 (h)); `ci.yml` reads none. A later ticket that needs another secret changes its own plan and T2 (h) together.
 - **Previews:** Vercel's Git integration, set up in EZD-003, not a workflow (Q-0007; Q-0116 (a)).
 - **Tests stay offline:** no live AI, email, render providers or EZ Binder (vault/tickets/README.md rule 4), so CI needs no API keys; EZD-002 adds no secret (CLAUDE.md rule 8).

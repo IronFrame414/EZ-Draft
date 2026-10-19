@@ -1,0 +1,41 @@
+name: Supabase dev migrations
+# Applies supabase/migrations to the cloud dev project ezdraft-dev (EZD-004c; Q-0107).
+# Runs on a develop push that changes supabase/migrations, and by hand from the Actions tab.
+# The secret lives in the GitHub environment dev, which only develop may use (Q-0112).
+on:
+  push:
+    branches: [develop]
+    paths: ['supabase/migrations/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: supabase-dev
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: dev
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Install pnpm
+        run: npm install -g pnpm@12.14.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Push migrations to ezdraft-dev
+        shell: bash
+        env:
+          SUPABASE_DEV_DB_URL: ${{ secrets.SUPABASE_DEV_DB_URL }}
+        run: |
+          if [ -z "${SUPABASE_DEV_DB_URL:-}" ]; then
+            echo "::notice::SUPABASE_DEV_DB_URL not set: cloud dev migrations wait for Josh"
+            exit 0
+          fi
+          pnpm supabase db push --db-url "$SUPABASE_DEV_DB_URL"

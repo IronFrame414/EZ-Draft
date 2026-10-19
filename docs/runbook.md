@@ -15,3 +15,16 @@ Josh's steps in Vercel and at the DNS host. All are done; this is the record. Ag
 6. **DNS record at Spaceship** (done). Host `ezdraft`, a `CNAME` with the value exactly as Vercel shows; add a `_vercel` TXT record too if Vercel asks. Never change the existing `ezcontractorbinder.com` record (EZ Binder).
 7. **Certificate** (done). HTTPS is automatic.
 8. **Before the first real release:** check Vercel's Domains page still shows the domain valid with a certificate. The release workflow checks the subdomain right after it makes the build live.
+
+## Supabase cloud projects (EZD-004)
+
+Josh's steps in Supabase and GitHub. Agents never connect to a cloud database. The workflow `.github/workflows/supabase-dev.yml` is the only thing that changes `ezdraft-dev`.
+
+1. **Create the dev project.** In EZ Binder's Supabase organization (it is on Pro): New project, name `ezdraft-dev`, region East US (North Virginia), next to the app's Vercel functions. Never use one of EZ Binder's own projects: EZ Draft never writes to EZ Binder's database. Do not create `ezdraft-prod` yet; it comes from the Before-launch checklist.
+2. **Database password.** A new password of letters and digits only (no symbols), at least 20 characters, used nowhere else. Keep only made-up test data in this project, never real client data.
+3. **Postgres version.** Tell the orchestrator the Postgres version the new project shows (Project Settings, Infrastructure). It checks it against `supabase/config.toml`.
+4. **Lock the GitHub environment first.** In the GitHub repository: Settings, Environments, New environment `dev`. Deployment branches and tags: Selected branches and tags, add branch `develop` only. Turn off "Allow administrators to bypass configured protection rules" if GitHub shows it. Save protection rules.
+5. **Then add the secret.** In the Supabase project: Connect, Session pooler, copy the connection string and put your password where the string shows the password placeholder. In the `dev` environment: Add environment secret, name `SUPABASE_DEV_DB_URL`, value that string. Never as a repository secret; if a repository secret with that name exists, delete it. GitHub's machines cannot reach the direct connection, so it must be the Session pooler string.
+6. **First run.** From then on the workflow runs by itself whenever `develop` is pushed with new migrations. To apply what is already there, after the Phase 0 merge: Actions, Supabase dev migrations, Run workflow, branch `develop`. A green run with the note "SUPABASE_DEV_DB_URL not set" means step 5 is not done yet.
+7. **App keys.** Each project's URL, publishable key and secret key go into Vercel in EZD-023b's setup, never into the repo.
+8. **Production** gets migrations only from the release workflow when you merge into `main` (EZD-023b).
