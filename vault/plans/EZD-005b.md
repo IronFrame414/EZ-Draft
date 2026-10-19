@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-005b-1, AC-EZD-005b-2 (`vault/spec/acceptance-criteria.md` lines 25–26; generated from Done-when, KNOWN-LIMITS "Acceptance criteria for Phase 0")
 - **Complexity:** high (section 8)
 - **User-visible result:** after every local database reset Worth Properties is company 1 with Josh as its owner, and Josh has a one-time file and plain steps to create the same in the cloud dev database (nothing on screen yet).
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready (Stage 2, 2026-10-19: no open questions)
 
 Planned from `vault/plans/EZD-005.md` "Split proposal · Part EZD-005b", its "Re-validation findings" V1–V8 and its "Re-validated plan text" (Approach Steps 3, 6 seed lines, 7; Tests T1, T12, T15, T17, T18; Risks), per Q-0150 (answered-agent: each part is planned from that text; every interface name other plans cite is kept). Choices no source makes are marked *planner's choice*; they were made in EZD-005.md and stand unless noted "new in 005b".
 

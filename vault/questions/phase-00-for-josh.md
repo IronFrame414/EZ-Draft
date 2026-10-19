@@ -1,6 +1,6 @@
 # Phase 0 · Questions for Josh
 
-Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the 08:22 file of the same day; nothing in that file was answered yet, so its items carry over. Answer by number, in any form ("section 2 all confirmed except 4: …", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Only item 1.1 is waiting on you; everything in sections 2 to 4 stands as written until you change it.
+Written 2026-10-19 by the orchestrator (`questions 0` unit, PROCESS.md section 7; unattended launcher run, Q-0129). Overwrites the earlier file of the same day (commit 2773e48); nothing in it was answered yet, so its items carry over. Answer by number, in any form ("section 2 all confirmed except 4: …", "section 3 approved", "section 4: 1 ratify, 2 reject"). Recommendation first in every item. Only item 1.1 is waiting on you; everything in sections 2 to 4 stands as written until you change it.
 
 Q-0089 (storage limit) stays open for a later phase and is not asked here.
 
@@ -13,7 +13,7 @@ Q-0089 (storage limit) stays open for a later phase and is not asked here.
 
 ## 2. Agent answers to confirm
 
-Every `answered-agent` row for Phase 0 not yet confirmed (21). Each stands as written unless you override it. Reply "section 2: all confirmed" and name only the ones to change.
+Every `answered-agent` row for Phase 0 not yet confirmed (24; items 22 to 24 are new). Each stands as written unless you override it. Reply "section 2: all confirmed" and name only the ones to change.
 
 1. **Q-0126** · EZD-000b to EZD-000i, EZD-001 · orchestrator
    - Answer: (c) PILOT.md gains only the verification items a part reports as "not testable here"; items a part verified are not re-run.
@@ -80,10 +80,19 @@ Every `answered-agent` row for Phase 0 not yet confirmed (21). Each stands as wr
 21. **Q-0148** · EZD-004 · orchestrator
     - Answer: EZD-004 was too big for one ticket and was split into EZD-004a (local database in the gate), EZD-004b (app reads the health row) and EZD-004c (cloud dev database workflow and runbook). Everything that depended on EZD-004 now depends on all three.
     - Source: PROCESS.md section 6 Ticket size; vault/plans/EZD-004.md Split proposal (dbf4985); Q-0042; Q-0125.
+22. **Q-0149** · EZD-004a (gate) · orchestrator
+    - Answer: the research-store test (EZD-000d T8) was fixed in place: it checked that the store was empty, which stopped being true once the first research report was adopted; it now checks the store's format (header, one line per report, files match the list, nothing left pending). A stray report file still fails it. This one changes what the test checks, unlike items 14, 18 and 20.
+    - Source: PROCESS.md section 3 rule 19; Q-0125 (a); Q-0141. Confirm or revert.
+23. **Q-0150** · EZD-005 · orchestrator
+    - Answer: EZD-005 was too big for one ticket and was split into EZD-005a (the company, user, membership and project tables) and EZD-005b (Worth Properties as company 1 with you as owner: the seed and the one-time cloud setup file). Everything that depended on EZD-005 now depends on both.
+    - Source: PROCESS.md section 6 Ticket size; vault/plans/EZD-005.md Split proposal; Q-0148.
+24. **Q-0151** · EZD-005b · orchestrator
+    - Answer: (a) an EZD-004a test required the seed file to hold only comments; EZD-005b's test-author narrows it to "the seed file exists", and EZD-005b's own test checks what the seed creates. The comment-only state was always meant to end with EZD-005. A change to a merged test.
+    - Source: vault/plans/EZD-004a.md line 26; supabase/seed.sql; docs/architecture.md Local database; vault/plans/EZD-005.md V5. Confirm or revert.
 
 ## 3. Proposed wording
 
-No new screen text for clients or users. Items 1 to 4 are new since the last file; items 5 to 29 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
+No new screen text for clients or users. Items 30 to 41 are new since the last file; items 1 to 29 carry over unanswered. `<…>` is filled in at run time. Reply "section 3 approved" or edit any line.
 
 **EZD-001 · Repo and tooling** (already built; the product name from spec section 02)
 1. Browser tab title: `EZ Draft`
@@ -127,6 +136,23 @@ No new screen text for clients or users. Items 1 to 4 are new since the last fil
 28. Shell guard, Keychain: `Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).`
 29. Shell guard, sign-in file: `The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).`
 
+**EZD-005a · Tenancy tables**
+- No wording (no user-visible text).
+
+**EZD-005b · Tenant 1 and Josh: seed and cloud setup file** (the setup file's comments and your `docs/runbook.md` steps, section "Tenant 1 setup"; the `ezd_bootstrap_*` codes are not wording)
+30. `supabase/bootstrap/tenant-1.sql` comment line 1: `-- One-time setup of Worth Properties (company 1) and its owner account in a cloud project. Steps: docs/runbook.md, "Tenant 1 setup".`
+31. Same file, comment line 2: `-- Replace only the placeholder text on the owner_email line below with the email you sign in with. Keep the quote marks.`
+32. Runbook intro: Worth Properties is company 1 in EZ Draft and you are its owner. On the local test database this happens by itself every time it is reset. Each cloud database gets it once from the file `supabase/bootstrap/tenant-1.sql`. The file holds no email; you type yours in only where it runs.
+33. Dev heading: **Dev (`ezdraft-dev`), once:**
+34. Step 1: **Wait for the migrations.** The "Supabase dev migrations" workflow (section "Supabase cloud projects", step 6) must have run green on `develop` after this setup reached `develop`. If it has not, open Actions, Supabase dev migrations, Run workflow, branch `develop`.
+35. Step 2: **Copy the file.** Open `supabase/bootstrap/tenant-1.sql` on GitHub and copy all of it.
+36. Step 3: **Paste it.** In Supabase open the `ezdraft-dev` project, then SQL Editor, New query, and paste.
+37. Step 4: **Type your email.** Replace `PASTE-YOUR-EMAIL-HERE` with the email you sign in with. Keep the quote marks around it.
+38. Step 5: **Run it.** Press Run. "Success" or `ezd_bootstrap_done` means Worth Properties and your owner account now exist. `ezd_bootstrap_email_missing` means the email was not typed in correctly; fix it and run again. `ezd_bootstrap_already_done` means this project is already set up, and nothing changed.
+39. Step 6: **Keep the email out of the repo.** Never paste the edited text into chat, a ticket or the repo.
+40. Production heading and step 7: **Production (`ezdraft-prod`): nothing to paste.** Production does not exist until launch. When you set it up from the Before-launch checklist, add the email you sign in with as the secret `TENANT1_OWNER_EMAIL` in the GitHub environment `release`. The first real release then creates Worth Properties and your owner account. If company 1 is already there, the release skips this. Do not paste the file into production.
+41. Step 8: After that first release, delete `TENANT1_OWNER_EMAIL` from the `release` environment. Until you do, every release summary shows the notice `owner_email_secret_unused`.
+
 ## 4. Rule candidates
 
 Lessons with status `candidate` (PROCESS.md section 13). Nothing is applied until you answer. Ledger note: two different lessons had both been numbered L-005; the later one (planner, from EZD-002) is now L-006.
@@ -137,3 +163,4 @@ Lessons with status `candidate` (PROCESS.md section 13). Nothing is applied unti
 4. **L-004** (planner; from EZD-000h): when a plan lists ordered steps that can stop early, check each early stop against every rule a later step enforces. **Recommend: ratify.** It caught a real bypass (an override could have started work past a budget hold) that the plan review missed.
 5. **L-005** (orchestrator; from EZD-000i): a dispatch adds no restriction the plan does not state; a caution taken from the plan's Risks section is quoted with the plan's exceptions. **Recommend: ratify.** The extra restriction made the builder skip a check the plan required, which became a deviation.
 6. **L-006** (planner; from EZD-002): a check that allows only listed values in config text fails every way of writing it that it cannot read (brace form, inherit, expressions), and the plan proves each one. **Recommend: ratify.** The gap cost a plan amendment and two extra test rounds (Q-0146).
+7. **L-007** (reviewer; from EZD-004a): a claim about how a third-party tool behaves cites the source of the exact package and version the lockfile installs, or a run of that binary. **Recommend: ratify.** A review failed a correct test from reading a different program's source (the Supabase CLI's Go repo, not the npm `supabase` 2.121.0 the repo runs). The rule makes a reviewer check the installed program before failing a test on it.

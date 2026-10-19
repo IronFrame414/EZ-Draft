@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-005a-1, AC-EZD-005a-2, AC-EZD-005a-3 (`vault/spec/acceptance-criteria.md` lines 22–24; generated from Done-when, KNOWN-LIMITS "Acceptance criteria for Phase 0")
 - **Complexity:** high (section 8)
 - **User-visible result:** nothing on screen yet; the database now has the company, user, membership and project tables that sign-in and the project list will use.
-- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: ready (Stage 2, 2026-10-19: no open questions)
 
 Planned from `vault/plans/EZD-005.md` "Split proposal · Part EZD-005a", its "Re-validation findings" V1–V8 and its "Re-validated plan text" (Q-0150, answered-agent: each part is planned from that text; every interface name other plans cite is kept). Choices the sources do not make are marked *planner's choice* there and were confirmed by EZD-006's planner (vault/plans/EZD-006.md "EZD-005 choices: confirmed or challenged", lines 33–41); the security-reviewer confirms them at plan review.
 
