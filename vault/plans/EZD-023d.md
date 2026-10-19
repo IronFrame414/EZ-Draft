@@ -5,7 +5,7 @@
 - **User-visible result:** nothing Josh can see yet. The release script now backs up the production database off-site, applies the migrations and sets up tenant 1 on the first release, but no workflow runs it until EZD-023e adds `.github/workflows/release.yml`.
 - Phase: 0 · Planned by: planner · Date: 2026-10-19 · Status: planned
 
-Part 3 of 4 of the EZD-023b split (Q-0157). It is planned from the archived plan, `git show 70cf5a5:vault/plans/EZD-023b.md` (called **"the archived plan"**, as in vault/plans/EZD-023b.md line 8): its "Part EZD-023d" (lines 74–94), Step 4 (release key, masking), Step 6 steps 11–15 and "Other rules", Step 9, and tests T7 (call order, values), T9, T10, T11 (a), (b), (e), T21. Findings V1, V2, V6, V12, V13, V14 apply. Parts EZD-023b and EZD-023c are planned, not built; this plan is written to their interface contracts (vault/plans/EZD-023b.md section 3; vault/plans/EZD-023c.md section 3).
+Part 3 of 4 of the EZD-023b split (Q-0157). It is planned from the archived plan, `git show 70cf5a5:vault/plans/EZD-023b.md` (called **"the archived plan"**, as in vault/plans/EZD-023b.md line 8): its "Part EZD-023d" (lines 74–94), Step 4 (release key, masking), Step 6 steps 11–15 and "Other rules", Step 9, and tests T7 (call order, values), T9, T10, T11 (a), (b), (e), T21. Findings V1, V2, V6, V12, V13, V14 apply. Parts EZD-023b (238bd8c) and EZD-023c (bc1d307) are built; this plan was re-validated against their merged code in `scripts/release/` and `scripts/release/__tests__/release.test.mjs` on 2026-10-19 (structure-only edits; STATUS.md rows EZD-023b, EZD-023c).
 
 ## 1. What to build
 
@@ -96,11 +96,11 @@ Ticket row (vault/tickets/phases/phase-00.md line 51):
   - **Tenant present (`1`).** If `TENANT1_OWNER_EMAIL` is still set, the step adds the notice `owner_email_secret_unused` and its summary line (section 6). The run goes on, and F is skipped (archived step 12; Q-0112: "delete TENANT1_OWNER_EMAIL after the first release").
 - **C. Pending migrations** (archived step 11). `out = await supabase.pushDryRun({ dbUrl, workdir: <tmp>/wt })`. The step logs `pending migration: <name>` for each `parsePendingMigrations(out)` name, or `pending migrations: none`. A rejection gives **`pending_check_failed`**.
 - **D. Dump, off-site** (archived step 13; 11 Operations: "A script takes a database dump before each promotion"; Q-0106; Q-0074 (a) B2).
-  1. `prefix = 'releases/' + tag + '-' + <now() as UTC yyyyMMdd'T'HHmmss'Z'> + '/'`.
+  1. `prefix = 'releases/' + tag + '-' + <new Date(Number(now())) as UTC yyyyMMdd'T'HHmmss'Z'> + '/'` (`Number(now())` is the built runner's clock form: part b's test default `now` returns a `Date`, part c's `makeC` a number; `release.mjs` step 9).
   2. `dumpDatabase({ dbUrl, outDir: <tmp>/dump, supabase })`. A rejection gives **`dump_failed`**, with the log line `dump_failed: <detail>`.
   3. `uploader = offsite({ endpoint: BACKUP_S3_ENDPOINT, region: BACKUP_S3_REGION, bucket: BACKUP_S3_BUCKET, accessKeyId: RELEASE_S3_ACCESS_KEY_ID, secretAccessKey: RELEASE_S3_SECRET_ACCESS_KEY })`, using the release key only and never `BACKUP_S3_*_KEY*` (Q-0112 finding 10; Done when).
   4. `putFile(prefix + name, path, { contentType: 'application/sql' })` for `roles.sql`, `schema.sql`, `data.sql`, in that order.
-  5. **Last**, `putJson(prefix + 'manifest.json', manifest)` with `manifest = { format: 1, created_at: new Date(now()).toISOString(), source_ref: supabaseRefFromDbUrl(dbUrl), newest_migration, files: [{ name, size, sha256 }] }`. This is EZD-025's format (vault/plans/EZD-025.md line 260). `newest_migration` is the largest 14-digit prefix among `<tmp>/wt/supabase/migrations/` names matching `^\d{14}_[a-z0-9_]+\.sql$` (C5's pattern), or `null` when there is none.
+  5. **Last**, `putJson(prefix + 'manifest.json', manifest)` with `manifest = { format: 1, created_at: new Date(Number(now())).toISOString(), source_ref: supabaseRefFromDbUrl(dbUrl), newest_migration, files: [{ name, size, sha256 }] }`. This is EZD-025's format (vault/plans/EZD-025.md line 260). `newest_migration` is the largest 14-digit prefix among `<tmp>/wt/supabase/migrations/` names matching `^\d{14}_[a-z0-9_]+\.sql$` (C5's pattern), or `null` when there is none.
   6. Any put that rejects gives **`dump_upload_failed`**. After the manifest, the step writes the summary line `database dump saved: <prefix>` (section 6). The result carries `dumpPrefix` and `dumpFiles` (`[{ name, size, sha256 }]`, for part e's `release.json`, archived step 18).
 - **E. Migrations** (archived step 14). `supabase.push({ dbUrl, workdir: <tmp>/wt, lockTimeout: '5s', statementTimeout: '300s' })`. A rejection, a lock timeout included, gives **`migrate_failed`** (Q-0112 finding 13; Q-0106: the live site stays on the previous version).
 - **F. Tenant 1** (archived step 15; Step 9). This runs only when B found tenant 1 missing: `sql(<rendered SQL>, { dbUrl })`.
@@ -111,8 +111,8 @@ Ticket row (vault/tickets/phases/phase-00.md line 51):
   The rendered SQL is never logged, written to disk, uploaded or returned.
 - **Child output** (archived "Other rules"). For a failure in A–F that carries `stderr`, the release logs at most 20 lines of `safeLines(stderr.split(/\r?\n/), masked)`, each as `  | <line>`. It logs no other child text and no `error.message`, so a message that names the URL or the email is never printed.
 - **Cleanup.** `finally` runs `git(['worktree', 'remove', '--force', <tmp>/wt])` and `git(['worktree', 'prune'])`, ignoring their errors, then `rmSync(tmp, { recursive: true, force: true })` (archived "Other rules").
-- **Summary lines.** Part b writes `release stopped: <code> — nothing changed` for every code other than `not_configured`. That line is still true for every code of A–D2. `dump_upload_failed`, `migrate_failed` and `bootstrap_failed` get the section 6 lines instead, because something outside the runner may have changed.
-- **Interim return** (Q-0157; vault/plans/EZD-023b.md Step 4 step 9: "Parts c and d move this return past their own steps"). After F, or after E when F is skipped, the step returns `{ ok: false, code: 'not_built', prNumber, tag, resume, deploymentId, previousDeploymentId, alreadyLive, dumpPrefix, dumpFiles, notices }`. No test asserts it, and nothing runs the script until part e. Its summary line is `release stopped: not_built — the dump and migrations ran; nothing went live` (section 6).
+- **Summary lines.** Part b writes `release stopped: <code> — nothing changed` for every code other than `not_configured`. That line is still true for every code of A–D2. `dump_upload_failed`, `migrate_failed` and `bootstrap_failed` get the section 6 lines instead, because something outside the runner may have changed. In the built runner the `stop(code, extra)` closure always writes the "nothing changed" line and `stopV` adds `prNumber`, `tag`, `resume`, `notices` (`release.mjs`); so A–D2 refusals return through `stopV(code, { ...built, … })`, and these three codes write their section 6 line instead of `stop`'s (how is the builder's; each case has exactly one `release stopped:` line). The notice is added through the runner's `notice(code)` helper, with `owner_email_secret_unused` added to `NOTICE_LINES`.
+- **Interim return** (Q-0157; vault/plans/EZD-023b.md Step 4 step 9: "Parts c and d move this return past their own steps"). After F, or after E when F is skipped, the step returns `{ ok: false, code: 'not_built', prNumber, tag, resume, deploymentId, previousDeploymentId, alreadyLive, dumpPrefix, dumpFiles, notices }`. No test asserts it, and nothing runs the script until part e. When A–F ran, its summary line is `release stopped: not_built — the dump and migrations ran; nothing went live` (section 6); when `alreadyLive` skipped A–F, it keeps part c's built line `release stopped: not_built — nothing changed` (Q-0162 (a)). The log line stays as built. Built form today (part c, `release.mjs` end of `runRelease`): the log line `not_built: the release steps after the migration check are added by EZD-023c, EZD-023d and EZD-023e`, then `stopV('not_built', built)` with `built = { deploymentId, previousDeploymentId, alreadyLive }`; this part moves it past F and adds `dumpPrefix`, `dumpFiles`. The `alreadyLive` path's summary line is settled by Q-0162 (a) above.
 - **CLI.** It adds the deps `supabase: createSupabaseCli({ root: process.cwd() })`, `sql: createSql({ run: runChild })` and `offsite: createOffsiteUploader`. None of them reads `process.env` until it is called (part c's lazy-dep rule).
 
 **Step 6. Dependency `@aws-sdk/client-s3`.**
@@ -170,6 +170,7 @@ This part does not touch:
   - `.claude/hooks/guard-paths.mjs` lines 15–17, 77–84;
   - `.claude/hooks/guard-bash.mjs` line 20 (agents never run `supabase … db push`), line 23 (never `node scripts/release/…`);
   - root `package.json` `test`;
+  - built parts b and c (re-validation 2026-10-19): `scripts/release/context.mjs` (`RELEASE_SECRET_NAMES`, `valuesToMask`, `maskCommands` with the Q-0161 `%25` escape, used only by the CLI's `mask`), `redact.mjs` (`redactUrl`, `safeLines`), `env-check.mjs` (`supabaseRefFromDbUrl`), `release.mjs` (`runRelease`, `stop`, `stopV`, `notice`, `NOTICE_LINES`, `alreadyLive`, the interim `not_built`, `createGit`, the CLI deps), `__tests__/release.test.mjs` (fixtures, section 4);
   - `docs/architecture.md` `## Dependencies`, "Adding a dependency", `### Tenancy tables (EZD-005)`.
 - Planner's checks on 2026-10-19: `supabase db dump --help` and `--dry-run` scripts on the pinned CLI 2.121.0 (no connection made); the SQL of Step 4 on the local stack (PostgreSQL 17.11, read-only queries); `npm view @aws-sdk/client-s3` (version 3.1153.0, engines).
 - Lessons: L-002, L-004, L-006, L-009, L-012 (vault/lessons/planner.md).
@@ -205,15 +206,25 @@ The contracts of part b (vault/plans/EZD-023b.md section 3) and part c (vault/pl
 
 ## 4. Tests
 
-All tests use `node:test`. Each file's top-level `describe` title starts with `EZD-023d` (finding V14); in `release.test.mjs` this is a new top-level `describe`. No test reaches the network or a database (CLAUDE.md rule 6): `supabase`, `sql` and `offsite` are fakes, and `git` is real on part b's fixture `R` (C1, C2; tip C2). Part c's `CLEAN` and fake clock (`T0` = 2026-10-19T12:00:00Z) are extended, not replaced:
+All tests use `node:test`. Each file's top-level `describe` title starts with `EZD-023d` (finding V14); in `release.test.mjs` this is a new top-level `describe`. No test reaches the network or a database (CLAUDE.md rule 6): `supabase`, `sql` and `offsite` are fakes, and `git` is real on part b's fixture `R` (C1, C2; tip C2). Part c's `CLEAN` and fake clock (`T0` = 2026-10-19T12:00:00Z) are extended, not replaced.
+
+Built fixture names (`scripts/release/__tests__/release.test.mjs`, re-validated 2026-10-19):
+- `makeR(t)` → `R = { work, c1, c2, tip, … }`; `C1_FILES`, `C2_FILES`, `CLEAN_DB_URL`, `cleanEnv(tip)`, `cleanPull(tip)` (title `Phase 0: Setup`, tag `phase-0`).
+- `makeClean(mod, R, opts)` (part b) → `h` with `deps`, `journal` (`{ kind: 'log' | 'summary' | 'mask', value }`), `external` (the shared ordered list of `{ target, args }` for `vercel.promote`, `supabase`, `sql`, `offsite`, `checkLive`, `fetch`, `github.createTag`), `logs()`, `summaries()`, `masks()`, `output()` (log and summary lines), `run()`; helpers `assertNoExternalEffect(h)`, `assertNoText(h, texts, id)`.
+- `makeC(mod, R, o)` (part c) → `{ h, f }`: `makeClean(mod, R)` plus the passing Vercel fake (`currentProductionDeployment` → `null`, so `alreadyLive` is false) and `now()` = `T0` as a number. It passes no `env` to `makeClean`, so a case changes `h.deps.processEnv` (the plain `cleanEnv(R.tip)` object) after `makeC` and before `h.run()`.
+- Part d's tests start from `makeC` and replace `h.deps.supabase`, `h.deps.sql`, `h.deps.offsite` (part b's defaults are recording Proxies that resolve `undefined`) with the fakes below, which push into `h.external` with targets `sql`, `supabase.dump`, `supabase.pushDryRun`, `supabase.push`, `offsite`, `offsite.putFile`, `offsite.putJson`. T27 (a) replaces `h.deps.git` with a wrapper over the recorded one. T27 (h) commits C3 with `commitFiles(R.work, …)`, pushes `origin main` and sets `R.tip = c3` before `makeC` (`cleanEnv` and `cleanPull` read `repo.tip`).
+- `bootstrap.test.mjs` keeps its own copy of `C1_FILES['supabase/bootstrap/tenant-1.sql']` for "fixture `R`'s file" (importing `release.test.mjs` would run its tests).
+- The existing part b and c cases all stop before A, so their `assertNoExternalEffect` checks and expected codes are unchanged by this part.
+
+The part d fakes:
 - **`sql`** records `{ text, dbUrl }`. For `text === TENANT_CHECK_SQL` it resolves `{ stdout: '0 5000 300000\n', stderr: '' }` (tenant missing). For any other text it resolves `{ stdout: '', stderr: 'NOTICE:  ezd_bootstrap_done\n' }`.
 - **`supabase`**:
   - `dump(kind, opts)` records `opts` and writes `-- <kind>\n` to `opts.file` (9, 10 and 8 bytes for `roles`, `schema`, `data`);
   - `pushDryRun(opts)` and `push(opts)` record `opts` plus the sorted `readdirSync(<workdir>/supabase/migrations)` at call time;
   - `pushDryRun` resolves `'Would push these migrations:\n • 20261101000000_create_fixture.sql\n • 20261102000000_add_note.sql\n'`; `push` resolves `''`.
 - **`offsite`** is a factory that records each `cfg`. Its uploader records `putFile(key, path, opts)` with the file's bytes read at call time, and `putJson(key, value)`.
-- `sql`, `supabase.*` and `offsite` puts go into part b's shared ordered journal.
-- "No external effect" (parts b, c) keeps its meaning for refusals before D. "**Nothing live**" means 0 `github.createTag`, 0 `vercel.promote` and 0 `checkLive` calls.
+- `sql`, `supabase.*`, the `offsite` factory and its puts go into part b's shared ordered list `h.external`.
+- "No external effect" (parts b, c) keeps its meaning for their cases, which all stop before A; part d's refusals in A–C call `sql` or `supabase.pushDryRun` and are checked with the call counts below instead. "**Nothing live**" means no `h.external` entry with target `github.createTag`, `vercel.promote` or `checkLive`.
 - "**Output**" is every `log` and `summary` line (part b).
 
 | Test | AC | Type | Input | Expected value | Source of the expected value |
@@ -266,7 +277,8 @@ GitHub Actions job summary lines Josh reads on the run page, in the style of par
 | Job summary, `migrate_failed` | `release stopped: migrate_failed — the live site is unchanged; the database may be partly updated; the dump from before this release is in <prefix>` |
 | Job summary, `bootstrap_failed` | `release stopped: bootstrap_failed — the live site is unchanged; the database may be partly updated; the dump from before this release is in <prefix>` |
 | Job summary, notice | `notice owner_email_secret_unused: tenant 1 already exists; delete TENANT1_OWNER_EMAIL from the release environment` |
-| Job summary, interim `not_built` (unreachable until part e removes it) | `release stopped: not_built — the dump and migrations ran; nothing went live` |
+| Job summary, interim `not_built` after A–F ran (unreachable until part e removes it) | `release stopped: not_built — the dump and migrations ran; nothing went live` |
+| Job summary, interim `not_built` when `alreadyLive` skipped A–F | `release stopped: not_built — nothing changed` (part c's built line, unchanged; Q-0162 (a)) |
 
 Every other refusal in this part (`pending_check_failed`, `tenant_check_failed`, `migrate_timeouts_not_applied`, `owner_email_missing`, `bootstrap_file_invalid`, `dump_failed`) uses part b's `release stopped: <code> — nothing changed`, which is true for them. The log lines (`pending migration: …`, `dump_failed: <detail>`) are codes and file names, not prose.
 
@@ -303,13 +315,13 @@ The code-reviewer confirms these *planner's choices*:
 ## 9. Dependencies
 
 **From the row:**
-- **EZD-023c** (planned, status `questions`, not built): `safeLines`, `redactUrl`, `supabaseRefFromDbUrl`, the fake clock, `alreadyLive`, the interim return this part moves (vault/plans/EZD-023c.md sections 1, 3, 4). Q-0159 and Q-0160 change only part c's env rules, not this plan. If part c's STATUS note records a deviation, this plan is re-validated at build step 1.
+- **EZD-023c** (done, bc1d307): `safeLines`, `redactUrl`, `supabaseRefFromDbUrl`, the fake clock, `alreadyLive`, the interim return this part moves (vault/plans/EZD-023c.md sections 1, 3, 4). Q-0159 and Q-0160 change only part c's env rules, not this plan. Its recorded deviations (vercel-api.mjs error endings, non-JSON 2xx as null) and Q-0161 (`maskCommands` `%25`) change nothing here; re-validated 2026-10-19.
 - **EZD-004a** (done): the pinned `supabase` CLI 2.121.0 at `node_modules/.bin/supabase`.
 - **EZD-005a** (done): `public.tenant`.
 - **EZD-005b** (done): `supabase/bootstrap/tenant-1.sql` and its result codes (finding V6).
 
 **Missing from the row** (used directly):
-- **EZD-023b** (planned, not built): `RELEASE_SECRET_NAMES`, `valuesToMask`, the deps and summary rules, fixture `R`, `CLEAN`, the journal. It is transitive through EZD-023c.
+- **EZD-023b** (done, 238bd8c): `RELEASE_SECRET_NAMES`, `valuesToMask`, the deps and summary rules, fixture `R`, `CLEAN` (`makeClean`), the journal and `external` list. It is transitive through EZD-023c. Its recorded deviations (github-api null policy, any non-zero migration check) change nothing here; its EZD-005b follow-up (quotes in the owner email) is met by Step 4 `OWNER_EMAIL_RE` and T9 (b), (i).
 - **EZD-023a** (done): `__tests__/git-fixture.mjs` (`REPO_ROOT`, `makeRepo`, `commitFiles`). Transitive.
 - **EZD-001** (done): the root `node --test "scripts/**/*.test.mjs"` run.
 
@@ -333,7 +345,12 @@ The code-reviewer confirms these *planner's choices*:
 - **Partial migrations.** `migrate_failed` after some files applied leaves production with part of the schema. The old build keeps working (add-before-remove, EZD-023a), and the summary says the database may be partly updated (archived Risks).
 - **Docker on the runner.** `db dump` runs pg_dump in Docker (the CLI's script). `ubuntu-latest` has Docker; the archived plan's "builder confirms" stays, and part e's workflow is where it runs.
 - **Test time.** Fixtures are small; T27 (h) adds one commit to `R`.
+- **`redactUrl` and an un-encoded `@` (EZD-023c security follow-up 1).** It stops the password at the first `@`. A child line holding the URL as passed is percent-encoded (a valid URL cannot hold a raw `@` in its password), and a line holding the decoded password is dropped by the mask list, so this part's output is covered; the fix stays with EZD-025.
 
 ## 10. Open questions
 
-None. The points no source settled are decided as how-to-build choices with sources (Steps 2–5) or listed under Risks; Q-0159 and Q-0160 belong to EZD-023c.
+The points no source settled are decided as how-to-build choices with sources (Steps 2–5) or listed under Risks; Q-0159 and Q-0160 belong to EZD-023c.
+
+- **Q-0162 (a)** (was QP-1; answered by the orchestrator, level 2, 2026-10-19): the interim `not_built` summary is `release stopped: not_built — the dump and migrations ran; nothing went live` only when A–F ran; the `alreadyLive` path keeps part c's built `release stopped: not_built — nothing changed`; the log line stays as built (part e removes all of it). Applied in Step 5 and section 6. No test value changes (Q-0157).
+
+No open question remains.
