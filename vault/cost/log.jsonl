@@ -1,1 +1,2 @@
 {"ts":"2026-10-19T01:40:55.689Z","unit":"build","ticket":"EZD-000","models":["claude-opus-5-5"],"est_usd":0.33360300000000004,"fable_est_usd":0,"outcome":"ok","session_id":"840183d3-3111-409f-a0b9-dca5d2383fdc","num_turns":6,"duration_ms":34509,"auth":"plan"}
+{"ts":"2026-10-19T01:41:39.950Z","unit":"build","ticket":"EZD-000","models":["claude-opus-5-5"],"est_usd":0.49807619999999997,"fable_est_usd":0,"outcome":"ok","session_id":"2033a157-dbc3-4578-9a8b-8f8ff3c737da","num_turns":14,"duration_ms":43463,"auth":"plan"}
