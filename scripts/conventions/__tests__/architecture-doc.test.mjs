@@ -245,3 +245,48 @@ test('EZD-010a T12 (f): .prettierignore has the line app/src/styles/tokens.css',
   const lines = readFileSync(p, 'utf8').split(/\r?\n/).map((l) => l.trimEnd());
   assert.ok(lines.includes('app/src/styles/tokens.css'), '.prettierignore needs the line app/src/styles/tokens.css');
 });
+
+// EZD-010b · T12 part b (vault/plans/EZD-010b.md section 4).
+test('EZD-010b T12 (a): the 13 required ## headings still equal REQUIRED_HEADINGS in order', () => {
+  const headings = readArch().split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => /^## /.test(l));
+  assert.deepEqual(headings, REQUIRED_HEADINGS);
+});
+
+test('EZD-010b T12 (b): architecture.md names icons.json, icons:build and icons:fetch', () => {
+  const md = readArch();
+  for (const s of ['icons.json', 'icons:build', 'icons:fetch']) {
+    assert.ok(md.includes(s), `docs/architecture.md must contain ${s}`);
+  }
+});
+
+test('EZD-010b T12 (c): Machine checks has an icons.test.ts row built by EZD-010b', () => {
+  const t = tableWithHeader(readArch(), ['ID', 'Rule', 'Check', 'Built by']);
+  assert.ok(
+    t.rows.some((r) => (r[2] || '').includes('icons.test.ts') && strip(r[3] || '') === 'EZD-010b'),
+    'a row whose Check contains icons.test.ts and whose Built by is EZD-010b',
+  );
+});
+
+test('EZD-010b T12 (d): the ICON_COMMIT in icons-fetch.mjs appears in architecture.md', () => {
+  const p = path.join(root, 'app', 'scripts', 'icons-fetch.mjs');
+  assert.ok(existsSync(p), 'app/scripts/icons-fetch.mjs must exist');
+  const lines = readFileSync(p, 'utf8').split(/\r?\n/).filter((l) => /^export const ICON_COMMIT = /.test(l));
+  assert.equal(lines.length, 1, 'exactly one ICON_COMMIT line');
+  const m = lines[0].match(/^export const ICON_COMMIT = '([0-9a-f]{40})';/);
+  assert.ok(m, 'ICON_COMMIT is 40 lower-case hex');
+  assert.ok(readArch().includes(m[1]), 'docs/architecture.md must name the ICON_COMMIT value');
+});
+
+test('EZD-010b T12 (e): .prettierignore has the generated icon lines', () => {
+  const p = path.join(root, '.prettierignore');
+  assert.ok(existsSync(p), '.prettierignore must exist');
+  const lines = readFileSync(p, 'utf8').split(/\r?\n/).map((l) => l.trimEnd());
+  for (const l of ['app/src/components/icon/icon-names.generated.ts', 'app/public/icons/']) {
+    assert.ok(lines.includes(l), `.prettierignore needs the line ${l}`);
+  }
+});
+
+test('EZD-010b T12 (f): the conventions check exits 0 on the repository root', () => {
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});

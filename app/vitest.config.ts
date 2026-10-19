@@ -4,6 +4,8 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // EZD-010b Step 6: first .tsx test; tsconfig jsx is preserve for Next.js, so Vite needs the automatic runtime.
+  oxc: { jsx: { runtime: 'automatic' } },
   test: {
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}'],

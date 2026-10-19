@@ -11,7 +11,9 @@
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "icons:build": "node scripts/icons-build.mjs",
+    "icons:fetch": "node scripts/icons-fetch.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",
