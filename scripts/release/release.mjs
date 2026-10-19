@@ -12,15 +12,30 @@ import { appendFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { checkPresence, checkReleaseContext, maskCommands, valuesToMask } from './context.mjs';
+import { DECRYPTED_ENTRIES, envExampleNames, evaluateVercelEnv, supabaseRefFromDbUrl } from './env-check.mjs';
 import { createGitHubApi, evaluateEnvironmentRule } from './github-api.mjs';
 import { main as checkMigrations } from './check-migrations.mjs';
 import { releaseTagFor } from './release-name.mjs';
 import { listReleaseTags, parseReleaseTag, previousReleaseTag } from './tags.mjs';
+import { createVercelApi, evaluateVercelProject } from './vercel-api.mjs';
 
 // Section 6 wording (job summary lines).
 const NOT_CONFIGURED_LINE = 'production not configured — nothing released';
 const stoppedLine = (code) => `release stopped: ${code} — nothing changed`;
 const missingLine = (names) => `missing in the release environment: ${names.join(', ')}`;
+const problemLine = ({ code, name, target }) =>
+  `Vercel value problem: ${code} ${name}${target ? ` (${target})` : ''}`;
+const NOTICE_LINES = {
+  vercel_token_expiring: (date) =>
+    `notice vercel_token_expiring: the Vercel token expires on ${date}; make a new one and replace VERCEL_TOKEN in the release environment`,
+  vercel_token_no_expiry: () =>
+    'notice vercel_token_no_expiry: the Vercel token never expires; make one that expires in 90 days',
+  vercel_token_expiry_unknown: () =>
+    'notice vercel_token_expiry_unknown: could not read when the Vercel token expires',
+};
+const TOKEN_WARN_MS = 14 * 86_400_000;
+const BUILD_WAIT_MS = 900_000;
+const BUILD_POLL_MS = 10_000;
 
 const FETCH_ARGS = [
   'fetch',
@@ -47,8 +62,31 @@ export function createGit(root) {
   };
 }
 
+const VERCEL_METHODS = [
+  'getProject',
+  'tokenInfo',
+  'findProductionDeployment',
+  'currentProductionDeployment',
+  'listEnv',
+  'readEnvValue',
+  'promote',
+];
+
+/** Builds the Vercel client on first use, so no VERCEL_* name is read before step 9. */
+function lazyVercel() {
+  let api = null;
+  const get = () =>
+    (api ??= createVercelApi({
+      token: process.env.VERCEL_TOKEN,
+      projectId: process.env.VERCEL_PROJECT_ID,
+      teamId: process.env.VERCEL_TEAM_ID,
+      fetch: globalThis.fetch,
+    }));
+  return Object.fromEntries(VERCEL_METHODS.map((m) => [m, (...args) => get()[m](...args)]));
+}
+
 export async function runRelease(opts, deps) {
-  const { processEnv, git, github, log, summary, mask } = deps;
+  const { processEnv, git, github, vercel, sleep, now, log, summary, mask } = deps;
   const stop = (code, extra = {}) => {
     summary(stoppedLine(code));
     return { ok: false, code, notices: [], ...extra };
@@ -160,9 +198,115 @@ export async function runRelease(opts, deps) {
     return stop('migration_check_failed', { prNumber, tag, resume });
   }
 
-  // 9. Interim until EZD-023e (Q-0157): the steps after the migration check are not built yet.
+  // 9. The Vercel build of this commit.
+  const notices = [];
+  const stopV = (code, extra = {}) => stop(code, { prNumber, tag, resume, notices, ...extra });
+  let project;
+  try {
+    project = await vercel.getProject();
+  } catch (err) {
+    log(`vercel_api_failed: ${err instanceof Error ? err.message : 'request failed'}`);
+    return stopV('vercel_api_failed');
+  }
+  const projectVerdict = evaluateVercelProject(project);
+  if (!projectVerdict.ok) {
+    log(`${projectVerdict.code}: the Vercel project settings are not as the release needs`);
+    return stopV(projectVerdict.code);
+  }
+
+  const notice = (code, date) => {
+    notices.push(code);
+    summary(NOTICE_LINES[code](date));
+  };
+  try {
+    const { expiresAt } = await vercel.tokenInfo();
+    if (expiresAt === null) notice('vercel_token_no_expiry');
+    else if (expiresAt - Number(now()) < TOKEN_WARN_MS) {
+      notice('vercel_token_expiring', new Date(expiresAt).toISOString().slice(0, 10));
+    }
+  } catch {
+    notice('vercel_token_expiry_unknown');
+  }
+
+  const start = Number(now());
+  let deploymentId = null;
+  for (;;) {
+    let found = null;
+    try {
+      found = await vercel.findProductionDeployment(sha);
+    } catch (err) {
+      log(`waiting for the build: ${err instanceof Error ? err.message : 'request failed'}`);
+    }
+    if (found && found.state === 'READY') {
+      deploymentId = found.id;
+      break;
+    }
+    if (found && !['BUILDING', 'QUEUED', 'INITIALIZING'].includes(found.state)) {
+      log(`build_failed: the build of ${sha} ended ${found.state}`);
+      return stopV('build_failed');
+    }
+    if (Number(now()) - start >= BUILD_WAIT_MS) {
+      log(`no_build: no READY production build of ${sha} within 900 seconds`);
+      return stopV('no_build');
+    }
+    await sleep(BUILD_POLL_MS);
+  }
+
+  let previous;
+  try {
+    previous = await vercel.currentProductionDeployment();
+  } catch (err) {
+    log(`vercel_api_failed: ${err instanceof Error ? err.message : 'request failed'}`);
+    return stopV('vercel_api_failed', { deploymentId });
+  }
+  const previousDeploymentId = previous?.id ?? null;
+  const alreadyLive = previous?.id === deploymentId;
+  const built = { deploymentId, previousDeploymentId, alreadyLive };
+
+  // 10. Vercel values (skipped when this build is already live).
+  if (!alreadyLive) {
+    let requiredNames;
+    try {
+      requiredNames = envExampleNames(git(['show', `${sha}:.env.example`]));
+    } catch {
+      const problems = [{ code: 'env_example_invalid', name: '.env.example', target: null }];
+      log('env_mismatch: env_example_invalid .env.example');
+      summary(problemLine(problems[0]));
+      return stopV('env_mismatch', { problems, ...built });
+    }
+    const prodRef = supabaseRefFromDbUrl(processEnv.BACKUP_SOURCE_DB_URL);
+    let entries;
+    try {
+      entries = await vercel.listEnv();
+    } catch (err) {
+      log(`vercel_api_failed: ${err instanceof Error ? err.message : 'request failed'}`);
+      return stopV('vercel_api_failed', built);
+    }
+    const envs = [];
+    for (const entry of entries) {
+      const item = { key: entry.key, target: entry.target };
+      const targets = Array.isArray(entry.target) ? entry.target : [entry.target];
+      const wanted = DECRYPTED_ENTRIES.some((d) => d.key === entry.key && targets.includes(d.target));
+      if (wanted) {
+        try {
+          item.value = await vercel.readEnvValue(entry.id);
+        } catch {
+          item.value = null;
+        }
+      }
+      envs.push(item);
+    }
+    const verdict = evaluateVercelEnv({ envs, requiredNames, prodRef });
+    if (!verdict.ok) {
+      log(`env_mismatch: ${verdict.problems.map((p) => `${p.code} ${p.name} ${p.target ?? ''}`.trim()).join('; ')}`);
+      for (const p of verdict.problems) summary(problemLine(p));
+      return stopV('env_mismatch', { problems: verdict.problems, ...built });
+    }
+  }
+
+  // Interim until EZD-023e (Q-0157): the steps after this one are not built yet.
   log('not_built: the release steps after the migration check are added by EZD-023c, EZD-023d and EZD-023e');
-  return stop('not_built', { prNumber, tag, resume });
+  return stopV('not_built', built);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
@@ -176,6 +320,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       repo: process.env.GITHUB_REPOSITORY,
       fetch: globalThis.fetch,
     }),
+    vercel: lazyVercel(),
+    now: () => Date.now(),
+    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     log: out,
     summary: (line) => {
       const file = process.env.GITHUB_STEP_SUMMARY;

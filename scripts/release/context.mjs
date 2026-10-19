@@ -95,5 +95,5 @@ export function maskCommands(value) {
   return String(value)
     .split(/\r?\n/)
     .filter((line) => line !== '')
-    .map((line) => `::add-mask::${line}`);
+    .map((line) => `::add-mask::${line.replaceAll('%', '%25')}`);
 }
