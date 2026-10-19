@@ -34,8 +34,15 @@ before(() => {
   setStatus('EZD-000i', 'questions');
   // A live in-flight ticket (e.g. EZD-001 in-progress) depends on the tickets reset above and fails the ledger check.
   edit('tickets/STATUS.md', (s) => s.replace(/^(\| EZD-\w+ \|[^|]*\|[^|]*\| )(?:in-progress|review)( \|)/gm, '$1ready$2'));
-  // A live done ticket that depends on the tickets reset above (e.g. EZD-001) also fails the ledger check.
-  edit('tickets/STATUS.md', (s) => s.replace(/^(\| EZD-\w+ \|[^|]*\|[^|]*\| )done( \|[^|]*\|[^|]*EZD-000[b-i][^|]*\|)/gm, '$1ready$2'));
+  // A live done ticket that depends, directly or through other done tickets, on the tickets reset above
+  // (e.g. EZD-001, then EZD-002) also fails the ledger check, so reset done dependents until none is left.
+  for (let changed = true; changed; ) {
+    const rows = readFileSync(file('tickets/STATUS.md'), 'utf8').split('\n').filter((l) => /^\| EZD-\w+ \|/.test(l)).map((l) => l.split('|').map((c) => c.trim()));
+    const notDone = new Set(rows.filter((c) => c[4] !== 'done').map((c) => c[1]));
+    const reset = new Set(rows.filter((c) => c[4] === 'done' && (c[6].match(/EZD-\w+/g) ?? []).some((d) => notDone.has(d))).map((c) => c[1]));
+    changed = reset.size > 0;
+    for (const id of reset) edit('tickets/STATUS.md', (s) => s.replace(new RegExp(`^(\\| ${id} \\|[^|]*\\|[^|]*\\| )done( \\|)`, 'm'), '$1ready$2'));
+  }
   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
   const top = Math.max(...[...readFileSync(file('questions/QUESTIONS.md'), 'utf8').matchAll(/^\| Q-(\d{4}) \|/gm)].map((m) => Number(m[1])));
