@@ -28,6 +28,9 @@ Josh's steps in Supabase and GitHub. Agents never connect to a cloud database. T
 6. **First run.** From then on the workflow runs by itself whenever `develop` is pushed with new migrations. To apply what is already there, after the Phase 0 merge: Actions, Supabase dev migrations, Run workflow, branch `develop`. A green run with the note "SUPABASE_DEV_DB_URL not set" means step 5 is not done yet.
 7. **App keys.** Each project's URL, publishable key and secret key go into Vercel in EZD-023b's setup, never into the repo.
 8. **Production** gets migrations only from the release workflow when you merge into `main` (EZD-023b).
+9. **Token hook (EZD-006).** After the migrations reach a cloud project, open Authentication, Hooks, Custom Access Token, choose the Postgres function `private.custom_access_token_hook`, and enable it. Until then, users of that project read no rows.
+10. **API gate secret (EZD-006; Q-0087).** For each cloud project (dev, prod) run `node scripts/db/api-gate.mjs generate` on this PC. Paste the printed `select private.set_api_gate_hash('…');` line into that project's SQL editor and run it. Put the printed secret into Vercel as `SUPABASE_API_GATE_SECRET` for the matching environment (Preview = dev project, Production = prod project). Use a different secret per project; never paste a secret into chat, a ticket or the repo. Until this is done, the gate refuses every signed-in request on that project (it fails closed).
+11. **Project settings (EZD-006).** Leave "Automatically expose new tables" and "Enable automatic RLS" as they were set when the projects were created (on and off). The app grants table access and turns on RLS in its own migrations, so it works either way; changing them later could alter access on tables that already exist.
 
 ## Tenant 1 setup (EZD-005)
 
