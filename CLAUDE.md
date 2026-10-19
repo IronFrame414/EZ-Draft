@@ -46,3 +46,4 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 
 ## Conventions file
 EZD-000 creates docs/architecture.md (pinned versions, folder layout, naming) and must not rewrite this file. After EZD-000 merges, the orchestrator appends one line here: `See @docs/architecture.md`. Until then, use the Stack and Named tools tables in vault/spec/sections/02-product-overview.md.
+See @docs/architecture.md
