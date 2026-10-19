@@ -99,12 +99,13 @@ test('EZD-000c T10 settings register the hook and env; CLAUDE.md rule 10 has the
   assert.deepEqual(pre.filter((e) => e !== mine[0]), [
     { matcher: 'Edit|Write|NotebookEdit', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-paths.mjs'] }] },
     { matcher: 'Bash', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.mjs'] }] },
+    { matcher: 'Agent|Task', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-agents.mjs'] }] },
   ]);
   assert.equal(s.env.GUARD_WHOLE_READ_CHARS, '20000');
   assert.equal(s.env.GUARD_WHOLE_READ_EXEMPT, '');
   assert.equal(s.env.CLAUDE_CODE_SUBAGENT_MODEL, 'claude-sonnet-5-5');
   assert.equal(s.env.CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS, '3');
-  assert.equal(s.env.CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH, '1');
+  assert.equal(s.env.CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH, '2');
   assert.equal(s.env.CLAUDE_CODE_TOTAL_TOKENS_REMINDER, 'off');
   assert.equal(s.env.CLAUDE_CODE_GOAL_CHECKIN_MINUTES, '0');
   for (const k of ['todoFeatureEnabled', 'promptSuggestionEnabled', 'autoCompactEnabled']) assert.equal(s[k], false, k);

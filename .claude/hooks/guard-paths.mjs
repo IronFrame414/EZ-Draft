@@ -50,6 +50,11 @@ function pa3Grant() {
   return rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || pa3Vault.some((p) => rel === p || (p.endsWith('/') && rel.startsWith(p)));
 }
 
+// Retrievers write only their report files (vault/PROCESS.md section 4 roster; EZD-000f).
+function retriever() {
+  if (!rel.startsWith('vault/research/pending/')) return 'Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).';
+}
+
 const rules = {
   orchestrator: () => {
     if (isSpec && !orchestratorSpecOk()) return 'The spec is read-only after sign-off. Record a change in vault/spec/decisions/<area>.md; a new section file is allowed only when it does not exist yet.';
@@ -80,6 +85,8 @@ const rules = {
     if (!rel.startsWith('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
   },
 };
+rules['retriever-digest'] = retriever;
+rules['retriever-web'] = retriever;
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) deny(`${agent} is read-only.`);
 const reason = rules[agent]?.();

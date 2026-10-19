@@ -36,7 +36,7 @@ test('EZD-000b T3: existing env values are unchanged', () => {
   const env = settings().env;
   assert.strictEqual(env.CLAUDE_CODE_SUBAGENT_MODEL, 'claude-sonnet-5-5');
   assert.strictEqual(env.CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS, '3');
-  assert.strictEqual(env.CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH, '1');
+  assert.strictEqual(env.CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH, '2');
 });
 
 test('EZD-000b T4: no skill or agent file names the task-list tools', () => {
