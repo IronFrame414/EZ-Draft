@@ -39,6 +39,7 @@ const stopFile = path.join(vault, 'handoff/STOP');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
 const claudeBin = config.claude_bin || 'claude';
 const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 
 const MODELS = { orchestrator: 'claude-opus-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
@@ -59,6 +60,7 @@ function notify(msg) {
   const r = spawnSync('/bin/sh', ['-c', config.notify_cmd], { env: { ...process.env, MSG: `EZ Draft: ${msg}` }, encoding: 'utf8', timeout: 20000 });
   if (r.status !== 0) log(`notify command failed: ${(r.stderr || '').trim()}`);
 }
+const oauthFallback = createOAuthFallback({ notify, log });
 const tool = (...a) => spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), ...a], { encoding: 'utf8', cwd: root });
 const git = (...a) => spawnSync('git', ['-C', root, ...a], { encoding: 'utf8' });
 
@@ -281,7 +283,7 @@ async function main() {
     }
     const inProgressBuild = unitName === 'build' && /\b(in-progress|review)\b/.test(spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs')], { encoding: 'utf8', cwd: root }).stdout);
     const b = budget();
-    const meters = await readMeters({ budget: b });
+    const meters = await readMeters({ budget: b, fallback: oauthFallback });
     if (meters.warning) log(meters.warning);
     const decision = gateDecision(meters, b);
     if (decision.pause) {

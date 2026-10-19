@@ -15,6 +15,7 @@ scripts/launcher.config.json
 vault/handoff/.budget-warned-*
 vault/handoff/last-failure.json
 vault/cost/usage.json
+vault/cost/oauth-poll.json
 vault/cost/usage-raw-sample.json
 *.log
 .DS_Store

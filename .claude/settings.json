@@ -72,7 +72,12 @@
       "Bash(node scripts/release/env-check*)",
       "Bash(node scripts/run.mjs*)",
       "Bash(node scripts/budget.mjs*)",
-      "Bash(claude *)"
+      "Bash(claude *)",
+      "Read(~/.claude/.credentials.json)",
+      "Bash(security find-generic-password *-w*)",
+      "Bash(security find-generic-password *-g*)",
+      "Bash(security find-internet-password *-w*)",
+      "Bash(security find-internet-password *-g*)"
     ]
   },
   "statusLine": { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR:-.}/scripts/statusline.mjs\"" },

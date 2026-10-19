@@ -26,6 +26,17 @@ const always = [
 ];
 for (const [re, why] of always) if (re.test(why.startsWith('Reading .env') ? raw : c)) deny(why);
 
+// Token guard (Q-0135 (a), PA3 rule 8): an accident guard so a sign-in token is not printed into a transcript.
+const KEYCHAIN_WHY = 'Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).';
+for (const seg of raw.split(/[;&|]/)) {
+  if (/\bsecurity\s+find-(generic|internet)-password\b[^;&|]*\s-(?=[A-Za-z]*[wg])[A-Za-z]+(\s|$)/.test(seg)) deny(KEYCHAIN_WHY);
+  if (/\bsecurity\s+dump-keychain\b[^;&|]*\s-(?=[A-Za-z]*d)[A-Za-z]+(\s|$)/.test(seg)) deny(KEYCHAIN_WHY);
+}
+const noTests = raw
+  .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)/g, '$1')
+  .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)\s+\]/g, '');
+if (/\.credentials\.json|\.claude\/\.cred/.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
+
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) {
   if (/\bgit\b[^;&|]*\b(commit|merge|rebase|cherry-pick|push|checkout|switch|stash|add|rm|mv|restore|branch -[dD]|worktree)\b/.test(c))
