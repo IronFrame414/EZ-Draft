@@ -29,7 +29,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | EZD-001 | 0 | Repo and tooling | ready | medium | EZD-000, EZD-000b |  |  |  |
 | EZD-002 | 0 | CI | ready | medium | EZD-001 |  |  |  |
-| EZD-003 | 0 | Hosting and subdomain | ready | medium | EZD-002 |  |  | Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: previews only on the phase PR. Q-0123 (b) (domain already connected): re-validated again the same day; Josh turns off Auto-assign Custom Production Domains before the Phase 0 merge (Step 5.2). |
+| EZD-003 | 0 | Hosting and subdomain | ready | medium | EZD-002 |  |  | Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: previews only on the phase PR. Q-0123 (b) (domain already connected): re-validated again the same day; Josh turns off Auto-assign Custom Production Domains before the Phase 0 merge (Step 5.2). Josh did Steps 5.2–5.4 on 2026-10-19. Dashboard paths differ from the plan: Ignored Build Step is Settings → Build and Deployment (option Custom); Auto-assign Custom Production Domains is Settings → Environments → Production → Branch Tracking; Git Fork Protection is Settings → Security. The Stage 3 re-validation fixes the runbook paths. |
 | EZD-004 | 0 | Supabase project | ready | high | EZD-001 |  |  |  |
 | EZD-005 | 0 | Tenant, user, membership tables | ready | high | EZD-004 |  |  |  |
 | EZD-006 | 0 | Row-level security | ready | high | EZD-005 |  |  |  |

@@ -6,6 +6,6 @@
 - In progress: none. No worktrees.
 - Blocked: none.
 - Questions for Josh: none open for phase 0. Q-0089 (storage limit) waits for a later phase. Q-0118 (b) re-cut review before Phase 1.
-- Steps only Josh can do (vault/tickets/needs-from-josh.md): confirm the Vercel Ignored Build Step is set (GitHub still showed preview records for develop pushes on Oct 18); turn off "Auto-assign Custom Production Domains" before the Phase 0 PR is merged (EZD-003 Step 5.2), never back on.
+- Vercel steps done by Josh 2026-10-19 (Ignored Build Step, Auto-assign off, Corepack variable); dashboard paths recorded in STATUS.md EZD-003 notes for the Stage 3 re-validation.
 - Decisions made: Q-0121, Q-0122, Q-0123 answered-josh; Q-0094 overridden; Q-0005 to Q-0120 agent answers confirmed; L-001 candidate (ratify at the next Stage 2). PROCESS-EZDRAFT.md Vercel line updated to record Q-0116's answer (factual update only).
 - Next unit: build EZD-000 (`/build-ticket EZD-000`), then EZD-000b, then EZD-001 (the pilot).
