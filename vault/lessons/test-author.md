@@ -16,7 +16,7 @@ Cause: the test assumed one key per line in generated output instead of reading 
 Rule: a test that matches text in generated output (types, lockfiles, CLI output) does not anchor on line starts or assume formatting; it bounds the key on both sides (e.g. preceded by start, `{`, `}`, `,` or space; followed by the quote or colon).
 Check: the match finds every expected key in the actual generated file and rejects substring keys (`membership` vs `membership_project`).
 
-## L-011  areas: tooling, scripts  seen: 1  status: candidate
+## L-011  areas: tooling, scripts  seen: 1  status: ratified
 Ticket EZD-008b, 2026-10-19
 Mistake: T12 checked "importing the script sends nothing" with the same import specifier earlier tests had already loaded, so the module was cached, its top level never ran again, and the check passed even with no entry guard (test review FAIL, finding 1).
 Cause: ESM modules run once per specifier per process; node:test runs a file's tests in one process, in order.
