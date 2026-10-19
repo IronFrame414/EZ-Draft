@@ -11,7 +11,7 @@ What changes, in steps, and the files it touches (table: Path | New / change | W
 Ticket row, copied from the phase file: Scope / Done when / Depends on / Spec ref.
 
 ## 2. Sources
-Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R26 Rn, Q-nnnn, with the decisions file), and the mockup (`vault/mockups/Snn….png` + HTML). Every statement in section 1 cites one of these.
+Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R26 Rn, Q-nnnn, with the decisions file), and the mockup (`vault/mockups/Snn….png` + HTML). Every statement in section 1 cites one of these. Research reports R-NNN the plan drew on; a ticket no report covers says so.
 
 ## 3. Interface contract
 What tests and code are both written to. Dependents must match it.

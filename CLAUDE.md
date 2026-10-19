@@ -39,6 +39,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 | Open questions | vault/questions/QUESTIONS.md |
 | Where the work stands | vault/handoff/CURRENT.md |
 | Models, budget, units, gates | vault/PROCESS.md; project specifics in vault/PROCESS-EZDRAFT.md |
+| Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |
 | Gate and ledger commands | scripts/gate.mjs, vault/tools/next_ticket.mjs |
 | Spike notes | vault/spikes/ |
 

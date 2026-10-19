@@ -7,6 +7,8 @@ You are the orchestrator for one unit: build ticket $ARGUMENTS (PROCESS.md secti
 
 **Load only:** `vault/plans/$ARGUMENTS.md`, the ticket's row in `vault/tickets/STATUS.md`, its `tickets.json` entry (`depends_on`, `spec_files`, `acs`), and `.claude/skills/build-ticket/dispatch.md` (the dispatch template). Read spec or decision files only when a step below needs them.
 
+**Research reports.** After any dispatch that returned a `REPORT:` line, run `node vault/tools/research.mjs adopt`; it moves each pending report to `vault/research/R-NNN.md` and prints the IDs to cite (PROCESS.md section 13).
+
 0. **Pre-flight.** `git status` clean on `develop`; `node vault/tools/next_ticket.mjs --check` passes; the ticket is `ready`, `in-progress` or `review` with all dependencies `done` (if not, stop and say why). If `vault/handoff/BUDGET_HOLD.md` exists and the ticket is not already `in-progress` or `review`, stop: nothing new starts under a hold.
 1. **Re-validate the plan** if any dependency's STATUS notes record a plan deviation: dispatch `planner` in re-validation mode (dispatch.md) with the deviating dependencies. A changed test value or behavior comes back as a QP question: give it a Q-ID in `QUESTIONS.md`, run it up the chain (section 7); if it needs Josh, STATUS → `blocked` with the Q-ID, handoff, end. Skip when no dependency deviated.
 2. **Worktree.** If `.claude/worktrees/$ARGUMENTS` or branch `t/$ARGUMENTS` exists, resume: `git -C .claude/worktrees/$ARGUMENTS log --oneline develop..HEAD` shows how far it got (`test(...)` commit = tests written; `wip(...)` commits = build started) and you continue from that step. Otherwise `git worktree add .claude/worktrees/$ARGUMENTS -b t/$ARGUMENTS develop`. STATUS → `in-progress`.
