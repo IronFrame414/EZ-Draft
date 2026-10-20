@@ -1,6 +1,6 @@
 # Phase 0 · Questions for Josh
 
-Written 2026-10-20 by the orchestrator (`questions 0` unit, PROCESS.md section 7). This replaces the earlier file (commit 4aba7cc). New since then: Q-0175 (one decision), five agent answers from the sign-in and test-harness work (Q-0173, Q-0174, Q-0176, Q-0197, Q-0198), rule candidates L-016 and L-017. Items carried over unanswered: Q-0158, Q-0163 to Q-0170, wording 89 to 93, rule candidate L-015. Answer by number, in any form ("section 2 confirmed", "section 3 approved", "section 4 ratify"). Every item gives the recommendation first. Everything in sections 2 to 4 stands as written until you change it.
+Written 2026-10-20 by the orchestrator (`questions 0` unit, PROCESS.md section 7). This replaces the earlier file (commit 6ee7942). New since then: two agent answers (Q-0221 how the gate picks a phase's tests, Q-0238 the split of the header ticket), wording 94 to 97 (EZD-011c), rule candidates L-018 and L-019. Items carried over unanswered: Q-0175, Q-0158 to Q-0198 in section 2, wording 89 to 93, rule candidates L-015 to L-017. Answer by number, in any form ("section 2 confirmed", "section 3 approved", "section 4 ratify"). Every item gives the recommendation first. Everything in sections 2 to 4 stands as written until you change it.
 
 Q-0089 (storage limit) stays open for a later phase and is not asked here.
 
@@ -27,10 +27,12 @@ Q-0089 (storage limit) stays open for a later phase and is not asked here.
 12. **Q-0176** (EZD-007d): if the sign-in service itself fails (outage, network error) when a code is requested, the person sees an error rather than "check your email", so nobody waits for an email that was never sent. Source (security-reviewer): docs/architecture.md Errors and logging; Q-0174. It ties to decision 1 (Q-0175) above; your answer there may change it. **Confirm or override.**
 13. **Q-0197** (EZD-007f): a test-setup file failed to load in the browser test runner; it was fixed inside the test files (no test changed what it checks) rather than by changing how the whole app package loads. Source (code-reviewer): vault/plans/EZD-007f.md section 3; app/next.config.ts; docs/architecture.md Root config files. **Confirm or override.**
 14. **Q-0198** (EZD-016a): the browser-test helpers ticket was too big for one build, so it is split into three parts built in order: EZD-016c (a second test company and 200 test projects in the local database), EZD-016d (the four device sizes for browser tests), then EZD-016a (sign-in, two-person and offline helpers). Nothing it delivers changes. Source: vault/PROCESS.md section 6 Ticket size; vault/plans/EZD-016a.md (commit 548a74e); Q-0164. **Confirm or override.**
+15. **Q-0221** (every phase; the gate script): after the phases were re-cut, a phase no longer holds only tickets whose numbers start with that phase number, so the per-ticket check now picks a phase's tests from the ticket list (each ticket's phase in tickets.json) instead of from the number. Phase 0 runs the same tests as before. Source (orchestrator): scripts/gate.mjs; docs/architecture.md Test scope; vault/tickets/tickets.json; proved by scripts/tooling/__tests__/tooling.test.mjs T13. **Confirm or override.**
+16. **Q-0238** (EZD-011): the editor header ticket was too big for one build, so it is split into three parts built in order: EZD-011a (the header card and its buttons), EZD-011b (the header's content: wordmark, project name, view tabs, Share, Export, Issue set), then EZD-011c (a developer test page and the browser test that proves it). Nothing it delivers changes. Source: vault/PROCESS.md section 6 Ticket size; vault/plans/EZD-011.md Split proposal; Q-0198. **Confirm or override.**
 
 ## 3. Proposed wording
 
-Items 1 to 88 approved by you in chat on 2026-10-19 (decisions/process.md). No new wording since the last file: the plans for EZD-016a, EZD-016c and EZD-016d have none (section 6 of each).
+Items 1 to 88 approved by you in chat on 2026-10-19 (decisions/process.md). The plans for EZD-016a, EZD-016c, EZD-016d and EZD-011a have none (section 6 of each).
 
 From EZD-026d (vault/plans/EZD-026d.md section 6). These show only on the developer test page, which is not found in production (same footing as EZD-010c's "Sample text"):
 
@@ -46,8 +48,19 @@ From EZD-007f (Q-0170; vault/plans/EZD-007f.md section 6). Shown on the sign-in 
 
 93. `error.sign_in_failed`: English "Something went wrong. Try again in a minute."
 
+From EZD-011c (vault/plans/EZD-011c.md section 6). Sample data on the developer header test page, which is not found in production (same footing as items 89 to 91):
+
+94. Project name: "Sample project"
+95. Subtitle, client part: "Sample client"
+96. Subtitle, version part: "Working copy" (04 Header card; S03 board)
+97. Subtitle, save-state part: "Saved just now" (04 Header card subtitle example)
+
+EZD-011a has no wording. EZD-011b's header labels (ez/draft wordmark, Views, Plan, 3D, Sheets, Render, Share, Export, Issue set) are the spec's and the approved S03 board's text, so they are not asked again (vault/plans/EZD-011b.md section 6).
+
 ## 4. Rule candidates
 
 1. **L-015** (from EZD-023d; builder and test-author): a test fake for an outside tool does only what the real tool does, and never creates folders or files the real tool expects to already exist; the code makes those itself. **Recommend ratify:** the fake created its own output folder, so every test passed while every real release would have failed at the database dump (caught only at code review).
 2. **L-016** (from EZD-007a; planner): every plan step that creates a database function says to take away public access first and then grant access by name, never relying on the database's defaults. **Recommend ratify:** the plan trusted a docs sentence about defaults, the real database gave everyone access to the new function, and only an existing security test caught it.
 3. **L-017** (from EZD-007f; test-author): test code that the browser test runner loads uses no feature that works under only one of the two ways Node loads files, and test-author loads the runner's settings once before handing tests to the builder. **Recommend ratify:** a helper that worked under the unit-test runner broke the browser-test runner, so no browser test ran until the builder stopped and asked (Q-0197).
+4. **L-018** (from EZD-016d; test-author): a test compares a secret only as a yes/no (or by comparing hashes), never with a check that prints both values when it fails. **Recommend ratify:** a failing check would have printed the database gate secret into the gate log (security-reviewer finding).
+5. **L-019** (from EZD-016a; test-author): a test that proves something "never appears" counts what it could not look at and requires that count to be 0. **Recommend ratify:** the secret-never-in-a-page test treated any page it could not read as empty, so it could pass without checking anything (code-reviewer FAIL, round 1).
