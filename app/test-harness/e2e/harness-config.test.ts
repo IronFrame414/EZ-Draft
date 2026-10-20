@@ -99,11 +99,11 @@ describe('EZD-016d harness config', () => {
       expect(norm(env.EMAIL_STUB_DIR).endsWith('app/.e2e/email-outbox')).toBe(true);
       expect(typeof env.SUPABASE_API_GATE_SECRET).toBe('string');
       expect(env.SUPABASE_API_GATE_SECRET.length).toBeGreaterThan(0);
-      expect(env.SUPABASE_API_GATE_SECRET).toBe(secretAfterImport);
+      expect(env.SUPABASE_API_GATE_SECRET === secretAfterImport).toBe(true);
       expect(env.SUPABASE_SECRET_KEY).toBe('');
       expect(env.EZD_TEST_DB_URL).toBe('');
       for (const [k, v] of Object.entries(env)) {
-        if (k.startsWith('NEXT_PUBLIC_')) expect(v).not.toBe(env.SUPABASE_API_GATE_SECRET);
+        if (k.startsWith('NEXT_PUBLIC_')) expect(v === env.SUPABASE_API_GATE_SECRET).toBe(false);
       }
 
       // (e) no browser headers
