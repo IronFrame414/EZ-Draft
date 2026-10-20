@@ -11,6 +11,6 @@
 - Notes for the next builds: (1) EZD-007d: sign-in route must give one uniform response for allowed and refused emails (security condition); T26 part d must prove a code sign-in works for a user whose encrypted_password the guard set to null. (2) docs/architecture.md Row-level security "default privileges grant execute to nobody" is inaccurate for schema private (no pg_default_acl row); fix at the next touch; EZD-006 audit checks anon-callable functions only. (3) Minor: comment line 5 of supabase/migrations/20261020101101_create_unconfirmed_password_guard.sql is wrong (stack stores a bcrypt hash, not null); a released migration must not be edited after the first release tag, so fix only before then or leave. (4) Admin createUser bypasses the hook (builder-observed, in docs).
 - Next unit: none: vault/handoff/STOP exists
 
-## Fix mode, 2026-10-20 (Usage and Planning session)
-- LAUNCHER_FIX.md open for optimize plan C1 and C2; launcher held by vault/handoff/STOP until both merge.
-- C1 merged: 8aad025 (Q-0171). C2 (vault/tools/usage-by-agent.mjs) in progress in its own session.
+## Fix mode, 2026-10-20 (Usage and Planning session), closed
+- Optimize plan C1–C4 merged on develop (8aad025, 6c833f0, 5fc9ee1, 6541822, 5ccbaab; Q-0171); full gate PASS at 5ccbaab. LAUNCHER_FIX.md and STOP removed.
+- Left: C5 (lean build orchestrator), C6 (smaller spec files, with Josh's spec interviews), C7 (models, Josh), C8 (compare the next 3–5 builds with `node vault/tools/usage-by-agent.mjs --rev <process_rev>` against vault/cost/baseline-2026-10-19.md).
