@@ -22,3 +22,4 @@ vault/cost/usage-raw-sample.json
 Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
+app/.e2e/

@@ -4,10 +4,15 @@
 // frame, 1600 x 1000. At load it reads the local stack's four `local.mjs env` values and EZD_TEST_DB_URL
 // (DB_URL of `supabase status -o json`) into process.env, so the specs' harness and the web server use the
 // same values. It never stores a gate hash (F6): the secret is the one `pnpm db:up` stored.
+// EZD-016d Step 2 (vault/plans/EZD-016d.md): the four device projects of DEVICE_PROJECTS, each with a grep that
+// repeats the gate scope (Q-0006); absolute paths so the root re-export works from either folder (PS V5);
+// web server env with the secret key and test DB URL blanked (PS V4) and the stub outbox (EZD-008a); no
+// extraHTTPHeaders, so the gate secret never reaches the browser (Q-0087).
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
+import { DEVICE_PROJECTS, projectGrep } from './test-harness/e2e/devices';
 
 const NAMES = [
   'NEXT_PUBLIC_SUPABASE_URL',
@@ -59,21 +64,46 @@ const dbUrl = (JSON.parse(status.stdout.trim()) as Record<string, string>).DB_UR
 if (!dbUrl) throw new Error('supabase status -o json has no DB_URL');
 process.env.EZD_TEST_DB_URL = dbUrl;
 
+const app = path.join(repo, 'app');
+const outbox = path.join(app, '.e2e', 'email-outbox');
+process.env.EMAIL_STUB_DIR = outbox;
+
 export default defineConfig({
-  testDir: 'e2e',
+  testDir: path.join(app, 'e2e'),
+  outputDir: path.join(app, 'test-results'),
+  globalSetup: path.join(app, 'test-harness', 'e2e', 'global-setup.ts'),
   workers: 4,
+  timeout: 60000,
+  retries: 0,
   grep: process.env.EZD_TEST_GREP ? new RegExp(process.env.EZD_TEST_GREP) : undefined,
-  use: { baseURL: 'http://127.0.0.1:3000' },
-  projects: [
-    {
-      name: 'desktop',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1600, height: 1000 } },
-    },
+  reporter: [
+    ['list'],
+    ['html', { open: 'never', outputFolder: path.join(app, 'playwright-report') }],
   ],
+  use: {
+    baseURL: 'http://127.0.0.1:3000',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+  },
+  projects: DEVICE_PROJECTS.map(({ name, use }) => ({
+    name,
+    use,
+    grep: projectGrep(name, process.env.EZD_TEST_GREP),
+  })),
   webServer: {
     command: 'pnpm start -p 3000',
     url: 'http://127.0.0.1:3000/api/health',
+    cwd: app,
     reuseExistingServer: !process.env.CI,
-    env: serverEnv,
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: serverEnv.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: serverEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_API_GATE_SECRET: serverEnv.SUPABASE_API_GATE_SECRET,
+      SUPABASE_SECRET_KEY: '',
+      EZD_TEST_DB_URL: '',
+      EMAIL_TRANSPORT: 'stub',
+      EMAIL_FROM: 'EZ Draft Test <test@example.test>',
+      EMAIL_STUB_DIR: outbox,
+    },
   },
 });
