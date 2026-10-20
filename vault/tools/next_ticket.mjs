@@ -7,6 +7,8 @@
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
+//   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
+//                                                    lines (Sections from the table in .claude/skills/build-ticket/SKILL.md; Q-0218)
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
@@ -164,6 +166,81 @@ function lessonProblems() {
   }
   return out;
 }
+
+// Reading map (Q-0218): tickets.json spec_files, decisions and mockups are vault-relative paths; a spec or decisions path may
+// end in #<anchor>, text the file must contain. Every Markdown file under vault/spec/sections/ stays at 20,000 characters or
+// fewer (the whole-read limit, PROCESS.md section 10).
+const SPEC_MAX = 20000;
+const splitRef = (ref) => { const i = ref.indexOf('#'); return i < 0 ? [ref, null] : [ref.slice(0, i), ref.slice(i + 1)]; };
+const norm = (s) => s.replace(/\\([_*|])/g, '$1').toLowerCase();
+function mdFiles(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? mdFiles(path.join(dir, e.name)) : e.name.endsWith('.md') ? [path.join(dir, e.name)] : []));
+}
+function readingProblems() {
+  const out = [];
+  const texts = new Map();
+  const textOf = (rel) => { if (!texts.has(rel)) texts.set(rel, norm(readFileSync(path.join(vault, rel), 'utf8'))); return texts.get(rel); };
+  const mockupsPresent = existsSync(path.join(vault, 'mockups')); // test copies of vault/ may leave the mockups out
+  for (const t of data.tickets) {
+    if (!Array.isArray(t.spec_files) || !t.spec_files.length) out.push(`${t.id}: no spec_files (reading map, Q-0218)`);
+    if (!Array.isArray(t.decisions)) out.push(`${t.id}: no decisions list (reading map, Q-0218)`);
+    for (const [kind, list] of [['spec file', t.spec_files || []], ['decisions file', t.decisions || []]]) {
+      for (const ref of list) {
+        const [rel, anchor] = splitRef(ref);
+        if (!existsSync(path.join(vault, rel))) { out.push(`${t.id}: ${kind} ${rel} does not exist`); continue; }
+        if (anchor && !textOf(rel).includes(norm(anchor))) out.push(`${t.id}: anchor "${anchor}" not found in ${rel}`);
+      }
+    }
+    if (mockupsPresent) for (const m of t.mockups || []) if (!existsSync(path.join(vault, m))) out.push(`${t.id}: mockup ${m} does not exist`);
+  }
+  for (const f of mdFiles(path.join(vault, 'spec/sections'))) {
+    const n = readFileSync(f, 'utf8').length;
+    if (n > SPEC_MAX) out.push(`${path.relative(vault, f)} is ${n} characters (over 20,000)`);
+  }
+  return out;
+}
+// The plan sections each role reads, from the table in .claude/skills/build-ticket/SKILL.md (optimize plan C3).
+const roleKey = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function roleSections() {
+  const text = read(path.join(root, '.claude/skills/build-ticket/SKILL.md'));
+  const out = new Map();
+  let inTable = false;
+  for (const line of text.split('\n')) {
+    if (/^\|\s*Role\s*\|\s*Sections\s*\|/.test(line)) { inTable = true; continue; }
+    if (!inTable) continue;
+    if (!line.startsWith('|')) break;
+    const c = line.split('|').map((x) => x.trim());
+    if (/^-+$/.test(c[1])) continue;
+    out.set(roleKey(c[1]), { name: c[1], sections: c[2] });
+  }
+  return out;
+}
+function readsLines(id, role) {
+  const t = tickets.get(id);
+  if (!t) throw new Error(`unknown ticket ${id}`);
+  const roles = roleSections();
+  const key = roleKey(role);
+  if (key !== 'planner' && !roles.has(key)) throw new Error(`unknown role "${role}"; roles: planner, ${[...roles.values()].map((r) => r.name).join(', ')}`);
+  const group = (list, prefix) => {
+    const order = [];
+    const anchors = new Map();
+    for (const ref of list) {
+      const [rel, anchor] = splitRef(ref);
+      if (!anchors.has(rel)) { anchors.set(rel, []); order.push(rel); }
+      if (anchor) anchors.get(rel).push(anchor);
+    }
+    return order.map((rel) => `${prefix}${rel}${anchors.get(rel).length ? ` (${anchors.get(rel).join('; ')})` : ''}`).join(', ');
+  };
+  const lines = [
+    `Spec files: ${group(t.spec_files || [], 'vault/') || '(none)'}`,
+    `Decisions: ${group(t.decisions || [], 'vault/') || '(none)'}`,
+  ];
+  if ((t.mockups || []).length) lines.push(`Mockups: ${t.mockups.map((m) => `vault/${m}`).join(', ')}`);
+  if (key === 'planner') lines.push(`Plan: vault/plans/${id}.md (to write)`);
+  else lines.push(`Plan: vault/plans/${id}.md`, `Sections: ${roles.get(key).sections}`);
+  return lines;
+}
 function check() {
   const problems = [];
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
@@ -188,6 +265,7 @@ function check() {
   const ac = spawnSync(process.execPath, [path.join(vault, 'tools/gen_acs.mjs'), '--check'], { encoding: 'utf8' });
   if (ac.status !== 0) problems.push((ac.stdout || ac.stderr).trim().split('\n')[0]);
   problems.push(...lessonProblems());
+  problems.push(...readingProblems());
   return problems;
 }
 
@@ -418,6 +496,13 @@ if (isMain) {
     process.exit(0);
   }
   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
+  if (args.includes('--reads')) {
+    const i = args.indexOf('--reads');
+    const [id, ...role] = args.slice(i + 1);
+    if (!id || !role.length) { console.error('usage: --reads <ticket> <role>'); process.exit(1); }
+    try { console.log(readsLines(id, role.join(' ')).join('\n')); } catch (e) { console.error(e.message); process.exit(1); }
+    process.exit(0);
+  }
   if (args.includes('--report')) { report(); process.exit(0); }
   if (args.includes('--lessons')) {
     const i = args.indexOf('--lessons');
