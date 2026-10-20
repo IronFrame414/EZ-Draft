@@ -10,3 +10,4 @@
 - Decisions made: none; no lesson added.
 - Notes for the next builds: (1) EZD-007c: database.types.ts types current_app_user_id as string, but it returns null for an ended or unlinked session; getSession() must treat it as nullable. (2) EZD-033/EZD-105b: link_app_user raises 23505 when the caller is linked to app_user Y and an unlinked app_user X carries the caller's current auth email (fails closed). (3) docs/architecture.md wording on default privileges for schema private is still inaccurate (carried from EZD-007a); the next ticket adding a private function revokes from public explicitly. (4) EZD-007d security conditions from the previous handoff still stand (uniform response; T26 part d).
 - Next unit: build EZD-007c
+- Models (Q-0172, Josh 2026-10-20): Opus by default for high tickets; Fable for test-author and builder only on a retry after an Opus FAIL; security-reviewer Fable on high; code-reviewer Opus. Gate PASS.
