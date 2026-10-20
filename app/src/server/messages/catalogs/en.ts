@@ -5,6 +5,7 @@ export const en = {
   'dev.messages.greeting': 'Hello, {name}',
   'dev.messages.items': { one: '{count} item', other: '{count} items' },
   'error.db_unavailable': "Can't reach the database. Try again in a minute.",
+  'error.not_signed_in': "You're signed out. Sign in again to continue.",
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

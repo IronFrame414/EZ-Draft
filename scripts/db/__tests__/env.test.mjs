@@ -1,4 +1,5 @@
 // EZD-004b T7, T8, T19 (vault/plans/EZD-004b.md sections 3 and 4). node:test, Node 22 built-ins only.
+// EZD-007c (vault/plans/EZD-007c.md section 4, EZD-004b T7 edit): SUPABASE_API_GATE_SECRET after SUPABASE_SECRET_KEY.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -13,6 +14,7 @@ const NAMES = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_SECRET_KEY',
+  'SUPABASE_API_GATE_SECRET',
   'EMAIL_TRANSPORT',
   'EMAIL_FROM',
   'RESEND_API_KEY',
@@ -25,7 +27,7 @@ function namesFileLines() {
     .filter((l) => l !== '' && !l.startsWith('#'));
 }
 
-test('EZD-004b T7 names file holds exactly the six names with empty values', () => {
+test('EZD-004b T7 names file holds exactly the seven names with empty values', () => {
   assert.deepEqual(
     namesFileLines(),
     NAMES.map((n) => `${n}=`),

@@ -10,4 +10,5 @@ export const es = {
   'dev.messages.items': { one: '{count} elemento', other: '{count} elementos' },
   'error.db_unavailable':
     'No se puede conectar con la base de datos. Inténtalo de nuevo en un minuto.',
+  'error.not_signed_in': 'Se cerró tu sesión. Vuelve a iniciar sesión para continuar.',
 } as const satisfies Record<SpanishKey, Message>;

@@ -1,12 +1,13 @@
 // EZD-004a Step 4 (vault/plans/EZD-004a.md): local Supabase stack helper. Node 22 built-ins only.
 //   node scripts/db/local.mjs up   status -> start if not running -> db reset --local (always); exit 0 / 1
-//   node scripts/db/local.mjs env  one JSON object with the app's local variable names; exit 1 when down
+//   node scripts/db/local.mjs env  one JSON object with the app's local variable names, SUPABASE_API_GATE_SECRET
+//                                  included; exit 1 when down or when the gate secret file is missing or blank
 // Runs the pinned CLI from the repo root's node_modules/.bin so it works under plain `node` and `pnpm run`.
 // EZD-006 Step 1b (vault/plans/EZD-006.md; Q-0087 (ii)): `up` ends by storing a fresh PostgREST gate
 // secret's hash in the local database and writing the secret to the gitignored
-// supabase/.temp/ezd-api-gate-secret (EZD-007 makes `env` print it as SUPABASE_API_GATE_SECRET).
+// supabase/.temp/ezd-api-gate-secret; `env` prints it as SUPABASE_API_GATE_SECRET (EZD-007c Step 7).
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gateHash, newGateSecret, setHashSql } from './api-gate.mjs';
@@ -61,7 +62,22 @@ async function storeLocalGateSecret() {
   writeFileSync(gateSecretFile, `${secret}\n`, { mode: 0o600 });
 }
 
+function readGateSecret() {
+  let secret = '';
+  try {
+    secret = readFileSync(gateSecretFile, 'utf8').trim();
+  } catch {
+    secret = '';
+  }
+  if (!secret) {
+    process.stderr.write('supabase/.temp/ezd-api-gate-secret is missing: run pnpm db:up\n');
+    process.exit(1);
+  }
+  return secret;
+}
+
 function env() {
+  const gateSecret = readGateSecret();
   const status = cli(['status', '-o', 'json']);
   if (!status.ok) fail('status', status);
   let json;
@@ -83,6 +99,7 @@ function env() {
       NEXT_PUBLIC_SUPABASE_URL: url,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publishable,
       SUPABASE_SECRET_KEY: secret,
+      SUPABASE_API_GATE_SECRET: gateSecret,
     })}\n`,
   );
   process.exit(0);

@@ -180,8 +180,13 @@ test('EZD-004a T6 Local env output', () => {
   const env = localEnv();
   assert.deepEqual(
     Object.keys(env).sort(),
-    ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_SECRET_KEY'],
-    'exactly the three keys of plan section 3',
+    [
+      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'SUPABASE_API_GATE_SECRET',
+      'SUPABASE_SECRET_KEY',
+    ],
+    'the three keys of plan section 3 plus SUPABASE_API_GATE_SECRET (EZD-007c section 3)',
   );
   const url = new URL(env.NEXT_PUBLIC_SUPABASE_URL);
   assert.ok(['127.0.0.1', 'localhost'].includes(url.hostname), `local hostname, got ${url.hostname}`);
@@ -193,6 +198,14 @@ test('EZD-004a T6 Local env output', () => {
   assert.ok(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.length > 0, 'publishable key non-empty');
   assert.ok(env.SUPABASE_SECRET_KEY.length > 0, 'secret key non-empty');
   assert.notEqual(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, env.SUPABASE_SECRET_KEY, 'keys differ');
+  // EZD-007c (vault/plans/EZD-007c.md section 4, EZD-004a T6 edit): the gate secret `up` wrote.
+  assert.equal(typeof env.SUPABASE_API_GATE_SECRET, 'string');
+  assert.ok(env.SUPABASE_API_GATE_SECRET.length >= 43, 'gate secret at least 43 characters');
+  assert.equal(
+    env.SUPABASE_API_GATE_SECRET,
+    read('supabase', '.temp', 'ezd-api-gate-secret').trim(),
+    'gate secret equals the trimmed supabase/.temp/ezd-api-gate-secret',
+  );
 });
 
 // ---------- T9 ----------

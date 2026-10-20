@@ -3,10 +3,23 @@
 // and the runbook section (Step 3). Values: R26 R15 (6-digit code), Q-0049 (900 s, 15 minutes),
 // Q-0048 (a) (9600 h), Q-0052 (c) (3600 s), Q-0047 (a) (English first, then Spanish), Q-0046 (a),
 // Q-0165 (a) (hook in schema private). Keys are read table-scoped and bounded on both sides (L-008).
+// EZD-007c T17 part c, T33 (vault/plans/EZD-007c.md section 4): the docs rows and auth-file redaction, and
+// `local.mjs env` printing the gate secret (Step 7; section 3 CLI output; scripts/db/api-gate.mjs 43 characters).
 // node:test, Node 22 built-ins only.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -172,4 +185,155 @@ test('EZD-007a T17 (e) the conventions check passes', () => {
     env: childEnv(),
   });
   assert.equal(check.status, 0, `conventions check: ${check.stderr}${check.stdout}`);
+});
+
+// ---------- EZD-007c ----------
+
+const cells = (line) =>
+  line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((c) => c.trim());
+
+// Text under a `### heading` up to the next `## ` or `### ` heading, or '' when missing.
+function subsection(md, heading) {
+  const lines = md.split('\n');
+  const i = lines.findIndex((l) => l.trim() === heading);
+  if (i < 0) return '';
+  const out = [];
+  for (let j = i + 1; j < lines.length; j++) {
+    if (/^#{2,3} /.test(lines[j])) break;
+    out.push(lines[j]);
+  }
+  return out.join('\n');
+}
+
+function walkFiles(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const full = path.join(dir, name);
+    if (statSync(full).isDirectory()) out.push(...walkFiles(full));
+    else out.push(full);
+  }
+  return out;
+}
+
+test('EZD-007c T17 (c) docs name the gate secret and session helpers; auth files never log or read the secret key', () => {
+  const arch = read('docs', 'architecture.md');
+
+  const envRows = subsection(arch, '### Environment variables')
+    .split('\n')
+    .filter((l) => l.trim().startsWith('|'))
+    .map(cells);
+  const row = envRows.find((c) => c[0] === '`SUPABASE_API_GATE_SECRET`');
+  assert.ok(row, 'Environment variables row for `SUPABASE_API_GATE_SECRET`');
+  assert.equal(row[1], 'never', 'SUPABASE_API_GATE_SECRET never reaches the browser');
+
+  const appPkg = JSON.parse(read('app', 'package.json'));
+  const pinned = appPkg.dependencies?.['@supabase/ssr'];
+  assert.equal(pinned, '0.12.7', 'app/package.json dependencies @supabase/ssr');
+  const depRow = section(arch, '## Dependencies')
+    .split('\n')
+    .filter((l) => l.trim().startsWith('|'))
+    .map(cells)
+    .find((c) => c[0] === '`@supabase/ssr`');
+  assert.ok(depRow, 'Dependencies row for `@supabase/ssr`');
+  assert.equal(depRow[1], `\`${pinned}\``, 'Dependencies Version equals app/package.json');
+
+  const auth = subsection(arch, '### Auth and session (EZD-007)');
+  assert.ok(auth, '### Auth and session (EZD-007) exists');
+  for (const name of [
+    'createSessionClient',
+    'getSession',
+    'requireSession',
+    'requireApiSession',
+    'appUserId',
+    'SUPABASE_API_GATE_SECRET',
+  ]) {
+    assert.ok(auth.includes(name), `Auth and session section names ${name}`);
+  }
+
+  const authDir = path.join(repo, 'app', 'src', 'server', 'auth');
+  const files = walkFiles(authDir).filter((f) => !/\.(test|spec)\.[cm]?[jt]sx?$/.test(f));
+  const names = files.map((f) => path.relative(authDir, f).split(path.sep).join('/'));
+  for (const expected of ['supabase-server.ts', 'session.ts']) {
+    assert.ok(names.includes(expected), `app/src/server/auth/${expected} exists`);
+  }
+  for (const f of files) {
+    const text = readFileSync(f, 'utf8');
+    assert.ok(!text.includes('console.'), `${f} has no console.`);
+    assert.ok(!text.includes('SUPABASE_SECRET_KEY'), `${f} does not read SUPABASE_SECRET_KEY`);
+  }
+
+  const check = spawnSync(process.execPath, [path.join(repo, 'scripts', 'conventions', 'check.mjs'), '.'], {
+    cwd: repo,
+    encoding: 'utf8',
+    env: childEnv(),
+  });
+  assert.equal(check.status, 0, `conventions check: ${check.stderr}${check.stdout}`);
+});
+
+test('EZD-007c T33 local.mjs env prints the gate secret and refuses without it', () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), 'ezd-007c-env-'));
+  try {
+    const dbDir = path.join(tmp, 'scripts', 'db');
+    mkdirSync(dbDir, { recursive: true });
+    const srcDir = path.join(repo, 'scripts', 'db');
+    for (const f of readdirSync(srcDir).filter((n) => n.endsWith('.mjs'))) {
+      if (statSync(path.join(srcDir, f)).isFile()) copyFileSync(path.join(srcDir, f), path.join(dbDir, f));
+    }
+    const binDir = path.join(tmp, 'node_modules', '.bin');
+    mkdirSync(binDir, { recursive: true });
+    const fake = path.join(binDir, 'supabase');
+    const status = '{"API_URL":"http://127.0.0.1:54321","PUBLISHABLE_KEY":"pk-test","SECRET_KEY":"sk-test"}';
+    writeFileSync(
+      fake,
+      `#!${process.execPath}\n` +
+        `const a = process.argv.slice(2).join(' ');\n` +
+        `if (a === 'status -o json') { process.stdout.write(${JSON.stringify(status)} + '\\n'); process.exit(0); }\n` +
+        `process.exit(1);\n`,
+    );
+    chmodSync(fake, 0o755);
+    const secretFile = path.join(tmp, 'supabase', '.temp', 'ezd-api-gate-secret');
+    const runEnv = () =>
+      spawnSync(process.execPath, [path.join(dbDir, 'local.mjs'), 'env'], {
+        cwd: tmp,
+        encoding: 'utf8',
+        env: childEnv(),
+      });
+
+    // (a) no secret file
+    const a = runEnv();
+    assert.equal(a.status, 1, `(a) exit 1: ${a.stdout}${a.stderr}`);
+    assert.equal(a.stdout, '', '(a) stdout empty');
+    assert.ok(a.stderr.includes('pnpm db:up'), `(a) stderr names pnpm db:up: ${a.stderr}`);
+
+    // (b) secret file with a 43-character secret and a newline
+    mkdirSync(path.dirname(secretFile), { recursive: true });
+    writeFileSync(secretFile, `${'b'.repeat(43)}\n`);
+    const b = runEnv();
+    assert.equal(b.status, 0, `(b) exit 0: ${b.stdout}${b.stderr}`);
+    const json = JSON.parse(b.stdout.trim());
+    assert.deepEqual(Object.keys(json).sort(), [
+      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'SUPABASE_API_GATE_SECRET',
+      'SUPABASE_SECRET_KEY',
+    ]);
+    assert.equal(json.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, 'pk-test');
+    assert.equal(json.NEXT_PUBLIC_SUPABASE_URL, 'http://127.0.0.1:54321');
+    assert.equal(json.SUPABASE_API_GATE_SECRET, 'b'.repeat(43));
+    assert.equal(json.SUPABASE_SECRET_KEY, 'sk-test');
+
+    // (c) blank secret file
+    writeFileSync(secretFile, '  \n');
+    const c = runEnv();
+    assert.equal(c.status, 1, `(c) exit 1: ${c.stdout}${c.stderr}`);
+    assert.equal(c.stdout, '', '(c) stdout empty');
+    assert.ok(c.stderr.includes('pnpm db:up'), `(c) stderr names pnpm db:up: ${c.stderr}`);
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 });
