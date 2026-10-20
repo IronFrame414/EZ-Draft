@@ -246,6 +246,7 @@ describe('EZD-001 repo tooling', () => {
   });
 
   // ---------- T13 ----------
+  // Phase scope follows tickets.json `phase` since the re-cut (Q-0194, Q-0218; fix Q-0221), not floor(number / 100).
   test('EZD-001 T13: gate scope selection', () => {
     const base = tmpDir('ezd001-t13-');
     const scope = (name, extra = []) => {
@@ -254,22 +255,20 @@ describe('EZD-001 repo tooling', () => {
       const r = run('node', [gateScript, d, ...extra, '--print-scope']);
       return { r, json: r.status === 0 ? JSON.parse(r.stdout.trim().split(/\r?\n/).find((l) => l.startsWith('{'))) : null };
     };
-    const grepFor = (n) => `(?:EZD-${n}\\d{2}[a-z]?(?![0-9]))|@smoke`;
+    const tickets = readJson(path.join(root, 'vault', 'tickets', 'tickets.json')).tickets;
+    const phaseOf = new Map(tickets.map((t) => [t.id, t.phase]));
     const cases = [
-      ['EZD-001', [], 0],
-      ['EZD-133', [], 1],
-      ['EZD-1710', [], 17],
-      ['EZD-026a', [], 0],
-      ['develop', ['--phase', '3'], 3],
+      ['EZD-001', []],
+      ['EZD-133', []],
+      ['EZD-1710', []],
+      ['EZD-1401', []],
+      ['EZD-026a', []],
     ];
-    let grepB;
-    for (const [name, extra, phase] of cases) {
+    for (const [name, extra] of cases) {
       const { r, json } = scope(name, extra);
-      assert.equal(r.status, 0, `${name} ${extra.join(' ')} exits 0: ${r.stderr}`);
+      assert.equal(r.status, 0, `${name} exits 0: ${r.stderr}`);
       assert.equal(json.mode, 'phase', `${name}: mode`);
-      assert.equal(json.phase, phase, `${name}: phase`);
-      assert.equal(json.grep, grepFor(phase), `${name}: grep`);
-      if (name === 'EZD-133') grepB = json.grep;
+      assert.equal(json.phase, phaseOf.get(name), `${name}: phase from tickets.json`);
     }
     const e = scope('develop');
     assert.equal(e.r.status, 0);
@@ -279,10 +278,36 @@ describe('EZD-001 repo tooling', () => {
     assert.equal(f.json.mode, 'full', '(f) --full overrides the folder name');
     const h = scope('develop', ['--phase', 'x']);
     assert.notEqual(h.r.status, 0, '(h) a bad --phase exits non-zero');
+    assert.ok(!phaseOf.has('EZD-9999'));
+    assert.notEqual(scope('EZD-9999').r.status, 0, '(i) a worktree ticket missing from tickets.json exits non-zero');
+    const phases = [...new Set(tickets.map((t) => t.phase))].sort((a, b) => a - b);
+    const empty = phases[phases.length - 1] + 1;
+    assert.notEqual(scope('develop', ['--phase', String(empty)]).r.status, 0, '(j) a phase with no tickets exits non-zero');
 
-    const re = new RegExp(grepB);
-    for (const s of ['EZD-133 x', 'EZD-101a x', 'EZD-001 y @smoke']) assert.ok(re.test(s), `grep matches "${s}"`);
-    for (const s of ['EZD-1001 x', 'EZD-001 x']) assert.ok(!re.test(s), `grep does not match "${s}"`);
+    // (k) for every phase, the grep matches exactly that phase's tickets from tickets.json, plus @smoke.
+    for (const n of phases) {
+      const { r, json } = scope('develop', ['--phase', String(n)]);
+      assert.equal(r.status, 0, `phase ${n} exits 0: ${r.stderr}`);
+      assert.equal(json.mode, 'phase');
+      assert.equal(json.phase, n);
+      const re = new RegExp(json.grep);
+      assert.ok(re.test('EZD-000 y @smoke'), `phase ${n} grep matches @smoke`);
+      const mine = new Set(tickets.filter((t) => t.phase === n).map((t) => t.id));
+      for (const t of tickets) {
+        assert.equal(re.test(`describe ${t.id} x`), mine.has(t.id), `phase ${n} grep vs ${t.id} (phase ${t.phase})`);
+        assert.equal(re.test(`${t.id}: done when`), mine.has(t.id), `phase ${n} grep vs "${t.id}:"`);
+      }
+      for (const id of mine) {
+        for (const s of [`${id}9 x`, `${id}z x`]) {
+          if (!mine.has(s.split(' ')[0])) assert.ok(!re.test(s), `phase ${n} grep does not match "${s}"`);
+        }
+      }
+    }
+
+    // (l) Phase 0 keeps its old selection: the same tickets.json IDs the number grep EZD-0\d{2} picked.
+    const old0 = new RegExp('(?:EZD-0\\d{2}[a-z]?(?![0-9]))');
+    const new0 = new RegExp(scope('EZD-001').json.grep);
+    for (const t of tickets) assert.equal(new0.test(`${t.id} x`), old0.test(`${t.id} x`), `phase 0 selection unchanged for ${t.id}`);
   });
 
   // ---------- T14 ----------

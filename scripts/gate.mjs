@@ -3,6 +3,7 @@
 //   dir = repo root or a ticket worktree; default ".".
 // Test scope (Q-0006): a ticket worktree (folder named EZD-xxx) runs the phase's tests plus the @smoke set;
 // any other folder, or --full, runs the full suite (phase gate, CI). --phase N forces phase scope.
+// A phase is the tickets whose vault/tickets/tickets.json `phase` is N (re-cut, Q-0194, Q-0218; Q-0221).
 // Runners read EZD_TEST_SCOPE, EZD_PHASE and EZD_TEST_GREP (see docs/architecture.md, Test scope).
 // Only one gate runs at a time on this machine (Q-0019).
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
@@ -18,6 +19,7 @@ import { existsSync, readFileSync, readdirSync, statSync, openSync, writeSync, c
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2);
 const phaseIdx = args.indexOf('--phase');
@@ -30,19 +32,29 @@ try { writeFileSync(logPath, `GATE ${new Date().toISOString()} ${dir}\n`); } cat
 const log = (text) => { try { appendFileSync(logPath, text.endsWith('\n') ? text : text + '\n'); } catch {} };
 const say = (text) => { console.log(text); log(text); };
 
+// tickets.json is read from this script's own checkout (develop when run as node scripts/gate.mjs <worktree>).
+const ticketsPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vault', 'tickets', 'tickets.json');
 function scopeFor() {
   if (args.includes('--full')) return { mode: 'full' };
+  let tickets;
+  try { tickets = JSON.parse(readFileSync(ticketsPath, 'utf8')).tickets; } catch (e) {
+    console.error(`GATE FAIL: cannot read ${ticketsPath} for the phase scope (${e.message}).`); process.exit(1);
+  }
   let phase;
   if (phaseIdx >= 0) {
     const v = args[phaseIdx + 1];
     if (!/^\d{1,2}$/.test(v || '')) { console.error(`GATE FAIL: --phase needs a phase number, got "${v || ''}".`); process.exit(1); }
     phase = Number(v);
   } else {
-    const m = /^EZD-(\d{3,4})[a-z]?$/.exec(path.basename(dir));
-    if (!m) return { mode: 'full' };
-    phase = Math.floor(Number(m[1]) / 100);
+    const name = path.basename(dir);
+    if (!/^EZD-\d{3,4}[a-z]?$/.test(name)) return { mode: 'full' };
+    const t = tickets.find((x) => x.id === name);
+    if (!t || !Number.isInteger(t.phase)) { console.error(`GATE FAIL: ${name} has no phase in vault/tickets/tickets.json.`); process.exit(1); }
+    phase = t.phase;
   }
-  return { mode: 'phase', phase, grep: `(?:EZD-${phase}\\d{2}[a-z]?(?![0-9]))|@smoke` };
+  const ids = tickets.filter((x) => x.phase === phase).map((x) => x.id.slice('EZD-'.length)).sort();
+  if (!ids.length) { console.error(`GATE FAIL: phase ${phase} has no tickets in vault/tickets/tickets.json.`); process.exit(1); }
+  return { mode: 'phase', phase, grep: `(?:EZD-(?:${ids.join('|')})(?![0-9a-z]))|@smoke` };
 }
 const scope = scopeFor();
 const scopeText = scope.mode === 'full' ? 'full suite' : `phase ${scope.phase} tests + @smoke`;

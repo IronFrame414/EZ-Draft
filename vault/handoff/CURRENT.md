@@ -7,8 +7,8 @@
 - Blocked: none new
 - Questions for Josh: Q-0219 (field-pack measurement review placement, applied as (a)), Q-0220 (not-in-v1.md vs Q-0177) escalated; Q-0175, Q-0089 still escalated. Josh confirms or reverts Q-0218's fix-mode changes at his next sit-down.
 - Decisions made: none by Josh this session (Q-0218 records his earlier OK)
-- Follow-ups: `scripts/gate.mjs --phase N` still selects tests by ticket number (EZD-<N>xx), which no longer matches the re-cut phase numbers; fix before Phase 1 builds.
-- Gate: `node scripts/gate.mjs .` full suite PASS (typecheck, lint, test 356, build, test:e2e) after the restructure.
+- Follow-ups: done 2026-10-20 (Q-0221, fix mode, rule 19): `scripts/gate.mjs` phase scope now greps the IDs of the tickets whose tickets.json `phase` is N (plus @smoke), not EZD-<N>xx; EZD-001 T13 proves it for every phase; docs/architecture.md Test scope updated. Josh confirms or reverts Q-0221.
+- Gate: `node scripts/gate.mjs .` full suite PASS (typecheck, lint, test 356, build, test:e2e) after the restructure, and again after Q-0221's gate fix.
 - Next unit: build EZD-016c
 
 Ledger: LEDGER OK: 433 tickets
