@@ -61,3 +61,5 @@ Note for the field check: in Phase 1 Settings opens only by typing its address (
 **10 (Q-0235). Should Foreman and Crew see company costs by default?** The main permission table ticks "See company costs" for Foreman and Crew; the Settings screen's own preset list and the EZD-101 ticket leave it off. No answer from you settles it, and it is money.
 - Recommended (a): off by default for Foreman and Crew; you tick it for anyone who should see costs. (b) on, as the table says.
 - Effect on counts: (a) Foreman 11, Crew 4 switches; (b) Foreman 12, Crew 5.
+
+Answer (2026-10-20): (a), "dont show company cost by default. give option in settings". Recorded as Q-0235; AC-EZD-101-3 now Foreman 11, Crew 4. Re-audit round 2 found no other gaps.
