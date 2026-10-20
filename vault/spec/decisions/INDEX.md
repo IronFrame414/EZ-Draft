@@ -7,7 +7,7 @@ One file per spec area, mirroring `vault/spec/sections/`. A dispatch hands an ag
 | 13a-rounds-24-25.md | Spec decisions Round 24 and 25, by area: scope and hosting, sheets and issue, permissions and users, edit lock and versions, render, revisions and change orders, field, client, electrical, translations, values, performance and build method (P1–P6) | R24 #n, R25, P1–P6 |
 | 13b-round-26.md | Round 26 build-readiness audit decisions R1–R34 (override Round 24 where they differ) | R26 R1–R34 |
 | 13c-open-and-resolved.md | Items still open outside the software, and items resolved from the plan doc (Oct 11) | — |
-| 02-product-overview.md | Product overview: stack, platform, hosting, accounts, devices | Q-0003 Q-0013 Q-0015 Q-0024 Q-0027 Q-0031 Q-0033 Q-0053 Q-0054 Q-0088 Q-0109 Q-0110 Q-0113 Q-0123 Q-0177 Q-0196 |
+| 02-product-overview.md | Product overview: stack, platform, hosting, accounts, devices | Q-0003 Q-0013 Q-0015 Q-0024 Q-0027 Q-0031 Q-0033 Q-0053 Q-0054 Q-0088 Q-0109 Q-0110 Q-0113 Q-0123 Q-0177 Q-0196 Q-0220 |
 | 04-app-shell-and-global-ui.md | App shell and global UI: tokens, radii, header, states, shared wording | Q-0026 Q-0037 Q-0039 Q-0040 Q-0051 Q-0055 Q-0056 Q-0057 Q-0058 Q-0086 Q-0098 Q-0038 Q-0122 Q-0183 Q-0206 Q-0208 Q-0213 Q-0214 |
 | 05-screens.md | Screens and mockups | Q-0034 — Q-0080 Q-0185 Q-0186 Q-0191 Q-0192 Q-0199 Q-0200 Q-0201 Q-0203 Q-0204 Q-0217 |
 | 07-hooks-events-and-integrations.md | Hooks, events, jobs and outside services: email, jobs, EZ Binder, AI and render providers | Q-0035 Q-0036 Q-0041 Q-0059 Q-0067 Q-0068 Q-0077 Q-0078 Q-0081 Q-0016 Q-0076 Q-0082 Q-0083 Q-0084 Q-0190 Q-0222 |

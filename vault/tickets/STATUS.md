@@ -8,14 +8,14 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | --- | --- | --- | --- |
 | 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 63 |
 | 1 | Company settings and customers | 1 | 9 |
-| 2 | Projects list and new project | 1 | 6 |
+| 2 | Projects list and new project | 1 | 7 |
 | 3 | Model store and editor route | 1, 2 | 5 |
 | 4 | Plan canvas and first walls | 2 | 8 |
 | 5 | Openings, selection, move, inspector, undo | 2 | 7 |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 1, 2 | 8 |
 | 7 | Users, roles, project scope, event log | 1 | 7 |
 | 8 | Defaults, edit lock, project settings | 1, 2 | 6 |
-| 9 | Versions, sends and the project card menu | 1 | 5 |
+| 9 | Versions, sends and the project card menu | 1 | 6 |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 2 | 6 |
 | 11 | Editing tools, groups, libraries, shortcuts | 1, 2 | 7 |
 | 12 | Polycam scan import | 3 | 9 |
@@ -26,8 +26,8 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | 17 | Ceilings and the RCP | 1, 5 | 8 |
 | 18 | Beams, lights, ACT and ceiling checks | 5 | 9 |
 | 19 | Electrical devices and circuits | 6 | 8 |
-| 20 | Load calculation | 6 | 5 |
-| 21 | Code check engine and first rule sets | 2, 6 | 8 |
+| 20 | Load calculation | 6 | 6 |
+| 21 | Code check engine and first rule sets | 2, 6 | 9 |
 | 22 | Plumbing | 7 | 2 |
 | 23 | Mechanical | 7 | 2 |
 | 24 | Tile layout | 7 | 1 |
@@ -41,7 +41,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | 32 | Catalog detail and price snapshots | 16 | 2 |
 | 33 | 3D scene, navigation and saved views | 10 | 8 |
 | 34 | 3D walk, finishes, measure and the rail | 10 | 5 |
-| 35 | Design options, phone 3D viewer, 3D exports | 10 | 5 |
+| 35 | Design options, phone 3D viewer, 3D exports | 10 | 9 |
 | 36 | Render setup and generate | 11 | 8 |
 | 37 | Render review and approval | 11 | 8 |
 | 38 | Render workers, extra adapters, path tracer and R1.0 | 11 | 6 |
@@ -59,8 +59,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | 50 | Translation queue | 15 | 6 |
 | 51 | Translations: approve in bulk, propagate, Spanish display | 15 | 4 |
 | 52 | Takeoff and catalog settings | 16 | 9 |
-| 53 | Hardening: security, backups, terms, event log, rule verification | 11, 17 | 5 |
-| 54 | Hardening: performance, accessibility, screen states | 17 | 6 |
+| 53 | Billing and onboarding for other companies | 17 | 3 |
+| 54 | Hardening: security, backups, terms, event log, rule verification | 11, 17 | 5 |
+| 55 | Hardening: performance, accessibility, screen states | 17 | 6 |
 
 | Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -400,7 +401,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1117 | 37 | Render allowance | todo |  | EZD-1102, EZD-110 |  |  |  |
 | EZD-1118 | 38 | Render A/B/C from 3D | todo |  | EZD-1109, EZD-1010 |  |  |  |
 | EZD-1119 | 38 | R1.0 finish schedule + renders | todo |  | EZD-1114, EZD-716, EZD-401 |  |  |  |
-| EZD-1120 | 53 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
+| EZD-1120 | 54 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
 | EZD-1121 | 38 | Second provider adapter | todo |  | EZD-1103 |  |  |  |
 | EZD-1201 | 39 | Share links | todo |  | EZD-111, EZD-116 |  |  |  |
 | EZD-1202 | 39 | Client page shell | todo |  | EZD-1201, EZD-020 |  |  |  |
@@ -417,7 +418,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1213 | 40 | Send image | todo |  | EZD-1114, EZD-111 |  |  |  |
 | EZD-1214 | 40 | Archive options on signing | todo |  | EZD-1009, EZD-1211 |  |  |  |
 | EZD-1215 | 39 | Send to client composer | todo |  | EZD-1201, EZD-1208, EZD-401 |  |  |  |
-| EZD-1314 | 53 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
+| EZD-1314 | 54 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
 | EZD-1401 | 14 | Service worker cache | todo |  | EZD-134 |  |  |  |
 | EZD-1402 | 14 | Offline change queue | todo |  | EZD-1401, EZD-120 |  |  |  |
 | EZD-1403 | 44 | Offline editing and conflicts | todo |  | EZD-1402, EZD-125 |  |  |  |
@@ -469,17 +470,17 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1615 | 52 | Takeoff CSV | todo |  | EZD-1613 |  |  |  |
 | EZD-1616 | 31 | Catalog on the standard rail | todo |  | EZD-1601, EZD-230 |  |  |  |
 | EZD-1617 | 52 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
-| EZD-1701 | 54 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
-| EZD-1702 | 54 | DXF size limits | todo |  | EZD-1701 |  |  |  |
+| EZD-1701 | 55 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
+| EZD-1702 | 55 | DXF size limits | todo |  | EZD-1701 |  |  |  |
 | EZD-1704 | 1 | Backups | todo |  | EZD-025 |  |  |  |
-| EZD-1705 | 53 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
-| EZD-1706 | 53 | Event log coverage | todo |  | EZD-109 |  |  |  |
+| EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
+| EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
 | EZD-1707 | 1 | Terms of service | todo |  | EZD-007 |  |  |  |
-| EZD-1708 | 54 | Accessibility pass | todo |  | EZD-222 |  |  |  |
-| EZD-1709a | 54 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
-| EZD-1709b | 54 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
-| EZD-1709c | 54 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
-| EZD-1710 | 53 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
+| EZD-1708 | 55 | Accessibility pass | todo |  | EZD-222 |  |  |  |
+| EZD-1709a | 55 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
+| EZD-1709b | 55 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
+| EZD-1709c | 55 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
+| EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
 | EZD-136 | 1 | On-screen disclaimer | todo |  | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
@@ -496,3 +497,14 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-737 | 37 | Scope PDF with renders | todo |  | EZD-735, EZD-1114 |  |  | Added 2026-10-20 in the re-cut for Q-0190 (Q-0218). |
 | EZD-738 | 28 | Plumbing, mechanical and tile sheets | todo |  | EZD-701, EZD-715, EZD-730, EZD-732, EZD-733 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
 | EZD-1424 | 45 | Field measure from the field pack | todo |  | EZD-1419, EZD-1404, EZD-1406 |  |  | Added 2026-10-20 in the re-cut for S17b Entry points (Q-0218). |
+| EZD-1018 | 35 | Spike: AR on iPhone and iPad | todo |  | EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1019 | 35 | AR viewing | todo |  | EZD-1018, EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1020 | 35 | AR editing | todo |  | EZD-1019, EZD-120b |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1021 | 35 | IFC export | todo |  | EZD-1001c, EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-642 | 20 | Commercial load calculation | todo |  | EZD-607, EZD-615 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-643 | 21 | Other code editions | todo |  | EZD-611a, EZD-613 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-139 | 9 | Visual diff of an old version | todo |  | EZD-122, EZD-121 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-140 | 2 | Notification settings per user | todo |  | EZD-110 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1711 | 53 | Billing and paywall for other companies | todo |  | EZD-103, EZD-102 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |

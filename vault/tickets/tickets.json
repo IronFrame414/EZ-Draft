@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 432,
+ "count": 443,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -19,7 +19,8 @@
   "2026-10-20 re-cut (Q-0194, Q-0218): EZ Binder tickets EZD-114, 115, 119, 1301 to 1312 removed from v1 (Q-0190; text kept in phases/, BACKLOG.md); new tickets EZD-136 to 138, 640, 641, 729 to 738, 1424 for Round 1 and 2 decisions; EZD-1404, 1419, 1705, 1314, 1614 dependencies edited (see their phase-file rows).",
   "phase is the slice number from vault/tickets/recut.json (PHASES.md); spec_phase is the spec's original phase and names the ticket file under phases/.",
   "spec_files, decisions and mockups are the reading map (Q-0218): vault-relative paths, #<anchor> = text the file contains; print a dispatch's lines with node vault/tools/next_ticket.mjs --reads <ticket> <role>.",
-  "2026-10-20: EZD-019 (EZ Binder contract and stub) removed from v1 by Josh (Q-0222; Q-0190); row kept in phases/phase-00.md, BACKLOG.md."
+  "2026-10-20: EZD-019 (EZ Binder contract and stub) removed from v1 by Josh (Q-0222; Q-0190); row kept in phases/phase-00.md, BACKLOG.md.",
+  "2026-10-20 Q-0220: not-in-v1 items brought into v1 (EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713); new phase 53 Billing and onboarding; old phases 53 and 54 are now 54 and 55."
  ],
  "checks": {
   "cycles": 0,
@@ -10201,7 +10202,7 @@
   },
   {
    "id": "EZD-1120",
-   "phase": 53,
+   "phase": 54,
    "title": "Local worker: real runner",
    "depends_raw": "EZD-1104b",
    "spec_ref": "R24 #50; R26 R18",
@@ -10706,7 +10707,7 @@
   },
   {
    "id": "EZD-1314",
-   "phase": 53,
+   "phase": 54,
    "title": "Canonical event registry",
    "depends_raw": "EZD-022",
    "spec_ref": "Hooks · Internal app events (Canonical names)",
@@ -12227,7 +12228,7 @@
   },
   {
    "id": "EZD-1701",
-   "phase": 54,
+   "phase": 55,
    "title": "Performance targets",
    "depends_raw": "EZD-1001, EZD-901",
    "spec_ref": "Non-functional · Performance",
@@ -12256,7 +12257,7 @@
   },
   {
    "id": "EZD-1702",
-   "phase": 54,
+   "phase": 55,
    "title": "DXF size limits",
    "depends_raw": "EZD-1701",
    "spec_ref": "Non-functional · Performance; R24 Still open",
@@ -12307,7 +12308,7 @@
   },
   {
    "id": "EZD-1705",
-   "phase": 53,
+   "phase": 54,
    "title": "Security review",
    "depends_raw": "EZD-1211",
    "spec_ref": "Non-functional · Security and audit",
@@ -12334,7 +12335,7 @@
   },
   {
    "id": "EZD-1706",
-   "phase": 53,
+   "phase": 54,
    "title": "Event log coverage",
    "depends_raw": "EZD-109",
    "spec_ref": "Non-functional · Security and audit",
@@ -12391,7 +12392,7 @@
   },
   {
    "id": "EZD-1708",
-   "phase": 54,
+   "phase": 55,
    "title": "Accessibility pass",
    "depends_raw": "EZD-222",
    "spec_ref": "Non-functional · Accessibility and input",
@@ -12415,7 +12416,7 @@
   },
   {
    "id": "EZD-1709a",
-   "phase": 54,
+   "phase": 55,
    "title": "Screen states: Projects and Settings",
    "depends_raw": "EZD-016",
    "spec_ref": "Screen-by-screen spec · States",
@@ -12440,7 +12441,7 @@
   },
   {
    "id": "EZD-1709b",
-   "phase": 54,
+   "phase": 55,
    "title": "Screen states: editor tabs",
    "depends_raw": "EZD-1709a, EZD-1613",
    "spec_ref": "Screen-by-screen spec · States",
@@ -12465,7 +12466,7 @@
   },
   {
    "id": "EZD-1709c",
-   "phase": 54,
+   "phase": 55,
    "title": "Screen states: phone and client screens",
    "depends_raw": "EZD-1709b",
    "spec_ref": "Screen-by-screen spec · States",
@@ -12489,7 +12490,7 @@
   },
   {
    "id": "EZD-1710",
-   "phase": 53,
+   "phase": 54,
    "title": "Code rule list and verification",
    "depends_raw": "EZD-611, EZD-613, EZD-620",
    "spec_ref": "Calculations · Code check engine; S15g; R26 R19",
@@ -13192,6 +13193,282 @@
    "decisions": [
     "spec/decisions/05-screens.md"
    ]
+  },
+  {
+   "id": "EZD-1018",
+   "phase": 35,
+   "spec_phase": 10,
+   "title": "Spike: AR on iPhone and iPad",
+   "depends_raw": "EZD-1014",
+   "spec_ref": "Q-0220; Product overview · 3D",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1014"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1018-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-1019",
+   "phase": 35,
+   "spec_phase": 10,
+   "title": "AR viewing",
+   "depends_raw": "EZD-1018, EZD-1014",
+   "spec_ref": "Q-0220; Product overview · 3D",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1018",
+    "EZD-1014"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1019-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-1020",
+   "phase": 35,
+   "spec_phase": 10,
+   "title": "AR editing",
+   "depends_raw": "EZD-1019, EZD-120b",
+   "spec_ref": "Q-0220; Product overview · 3D",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1019",
+    "EZD-120b"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1020-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-1021",
+   "phase": 35,
+   "spec_phase": 10,
+   "title": "IFC export",
+   "depends_raw": "EZD-1001c, EZD-1014",
+   "spec_ref": "Q-0220; Product overview · Exports",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1001c",
+    "EZD-1014"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1021-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-642",
+   "phase": 20,
+   "spec_phase": 6,
+   "title": "Commercial load calculation",
+   "depends_raw": "EZD-607, EZD-615",
+   "spec_ref": "Q-0220; Calculations · Electrical load calculation",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-607",
+    "EZD-615"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-642-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-643",
+   "phase": 21,
+   "spec_phase": 6,
+   "title": "Other code editions",
+   "depends_raw": "EZD-611a, EZD-613",
+   "spec_ref": "Q-0220; Calculations · Code check engine; S15g",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-613"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-643-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-139",
+   "phase": 9,
+   "spec_phase": 1,
+   "title": "Visual diff of an old version",
+   "depends_raw": "EZD-122, EZD-121",
+   "spec_ref": "Q-0220; S20 Revisions / version history",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-122",
+    "EZD-121"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-139-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-140",
+   "phase": 2,
+   "spec_phase": 1,
+   "title": "Notification settings per user",
+   "depends_raw": "EZD-110",
+   "spec_ref": "Q-0220; App shell",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-140-1",
+    "AC-EZD-140-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-1711",
+   "phase": 53,
+   "spec_phase": 17,
+   "title": "Billing and paywall for other companies",
+   "depends_raw": "EZD-103, EZD-102",
+   "spec_ref": "Q-0220; Product overview",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-103",
+    "EZD-102"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1711-1",
+    "AC-EZD-1711-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-1712",
+   "phase": 53,
+   "spec_phase": 17,
+   "title": "Seats meter",
+   "depends_raw": "EZD-1711, EZD-105",
+   "spec_ref": "Q-0220; Product overview",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1711",
+    "EZD-105"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1712-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-1713",
+   "phase": 53,
+   "spec_phase": 17,
+   "title": "Onboarding a new company",
+   "depends_raw": "EZD-1711, EZD-105, EZD-112",
+   "spec_ref": "Q-0220; Product overview",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/02-product-overview.md#Q-0220"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-17.md",
+   "depends_on": [
+    "EZD-1711",
+    "EZD-105",
+    "EZD-112"
+   ],
+   "build_position": 0,
+   "acs": [
+    "AC-EZD-1713-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
