@@ -122,7 +122,9 @@ export function assignQuestionIds(ticket) {
   const qLines = readFileSync(qPath, 'utf8').split('\n');
   let max = 0, last = -1;
   qLines.forEach((l, i) => { const m = l.match(/^\|\s*Q-(\d{4})\s*\|/); if (m) { max = Math.max(max, Number(m[1])); last = i; } });
-  const phase = tickets.get(ticket)?.phase ?? '?';
+  // Read fresh: the launcher imports this module once, and a split may have added the ticket since (Q-0168 to Q-0170).
+  const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
+  const phase = fresh?.phase ?? tickets.get(ticket)?.phase ?? '?';
   const plan = readFileSync(planPath, 'utf8').split('\n');
   const start = plan.findIndex((l) => /^## (?:10\. )?Open questions/.test(l));
   const ids = [], rows = [];
