@@ -2070,9 +2070,14 @@
    ],
    "build_position": 64,
    "acs": [
-    "AC-EZD-101-1"
+    "AC-EZD-101-1",
+    "AC-EZD-101-2",
+    "AC-EZD-101-3",
+    "AC-EZD-101-4",
+    "AC-EZD-101-5",
+    "AC-EZD-101-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/10-permissions-and-settings.md",
@@ -2099,9 +2104,14 @@
    ],
    "build_position": 65,
    "acs": [
-    "AC-EZD-102-1"
+    "AC-EZD-102-1",
+    "AC-EZD-102-2",
+    "AC-EZD-102-3",
+    "AC-EZD-102-4",
+    "AC-EZD-102-5",
+    "AC-EZD-102-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/10-permissions-and-settings.md",
@@ -2131,9 +2141,12 @@
    "build_position": 66,
    "acs": [
     "AC-EZD-103-1",
-    "AC-EZD-103-2"
+    "AC-EZD-103-2",
+    "AC-EZD-103-3",
+    "AC-EZD-103-4",
+    "AC-EZD-103-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -2390,9 +2403,14 @@
    "build_position": 68,
    "acs": [
     "AC-EZD-112-1",
-    "AC-EZD-112-2"
+    "AC-EZD-112-2",
+    "AC-EZD-112-3",
+    "AC-EZD-112-4",
+    "AC-EZD-112-5",
+    "AC-EZD-112-6",
+    "AC-EZD-112-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md"
@@ -2417,9 +2435,14 @@
    ],
    "build_position": 69,
    "acs": [
-    "AC-EZD-113-1"
+    "AC-EZD-113-1",
+    "AC-EZD-113-2",
+    "AC-EZD-113-3",
+    "AC-EZD-113-4",
+    "AC-EZD-113-5",
+    "AC-EZD-113-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -2972,9 +2995,11 @@
    "acs": [
     "AC-EZD-132-1",
     "AC-EZD-132-2",
-    "AC-EZD-132-3"
+    "AC-EZD-132-3",
+    "AC-EZD-132-4",
+    "AC-EZD-132-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md"
@@ -12296,9 +12321,10 @@
    "build_position": 71,
    "acs": [
     "AC-EZD-1704-1",
-    "AC-EZD-1704-2"
+    "AC-EZD-1704-2",
+    "AC-EZD-1704-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 17,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
@@ -12377,9 +12403,10 @@
    ],
    "build_position": 72,
    "acs": [
-    "AC-EZD-1707-1"
+    "AC-EZD-1707-1",
+    "AC-EZD-1707-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 17,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
@@ -12769,7 +12796,7 @@
     "AC-EZD-136-1",
     "AC-EZD-136-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md#Q-0183",

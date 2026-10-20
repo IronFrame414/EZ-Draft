@@ -59,20 +59,36 @@ function sentences(text) {
   return parts.map((s) => s.replace(/\u0000/g, '.').replace(/;$/, '').trim()).filter(Boolean);
 }
 
+// Stage 0 rows already in the file: AC id -> criterion cell, unescaped for re-escaping below.
+const handRows = new Map();
+try {
+  for (const line of readFileSync(acPath, 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\| (AC-EZD-\d+[a-z]?-\d+) \| [^|]* \| (.*) \|$/);
+    if (m) handRows.set(m[1], m[2].replace(/\\\|/g, '|'));
+  }
+} catch {}
+
 const perPhase = new Map();
 let changed = false;
 const acsById = new Map();
 for (const t of data.tickets) {
   const dw = doneWhen.get(t.id);
   if (dw === undefined) { console.error(`gen_acs: ${t.id} has no row in a phase file`); process.exit(1); }
-  if (t.acs_source === 'stage-0' && Array.isArray(t.acs) && t.acs.length) { acsById.set(t.id, t.acs.map((id, i) => ({ id, text: '(Stage 0 AC; see acceptance-criteria.md)', field: false }))); continue; }
+  if (!perPhase.has(t.phase)) perPhase.set(t.phase, []);
+  perPhase.get(t.phase).push(t);
+  if (t.acs_source === 'stage-0' && Array.isArray(t.acs) && t.acs.length) {
+    // Hand-written Stage 0 rows are kept word for word from the current file.
+    acsById.set(t.id, t.acs.map((id) => {
+      if (!handRows.has(id)) { console.error(`gen_acs: ${id} (${t.id}, stage-0) has no row in acceptance-criteria.md`); process.exit(1); }
+      return { id, text: handRows.get(id), field: false, raw: true };
+    }));
+    continue;
+  }
   const list = sentences(dw).map((text, i) => ({ id: `AC-${t.id}-${i + 1}`, text, field: /^field check/i.test(text) }));
   if (!list.length) list.push({ id: `AC-${t.id}-1`, text: dw.trim(), field: false });
   acsById.set(t.id, list);
   const ids = list.map((a) => a.id);
   if (JSON.stringify(t.acs || []) !== JSON.stringify(ids)) { changed = true; t.acs = ids; t.acs_source = 'done-when'; }
-  if (!perPhase.has(t.phase)) perPhase.set(t.phase, []);
-  perPhase.get(t.phase).push(t);
 }
 
 let md = '# Acceptance criteria\n\n';
