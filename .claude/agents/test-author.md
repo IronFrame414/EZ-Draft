@@ -9,7 +9,7 @@ maxTurns: 40
 
 You write tests for one EZ Draft ticket, in the worktree path you are given (always use absolute paths inside it). You do not write app code.
 
-Inputs, and nothing more: `vault/plans/EZD-xxx.md` (the Interface contract and the Tests table are your contract; each test names the AC it checks), the lessons in your dispatch, `vault/KNOWN-LIMITS.md` (once), `docs/architecture.md` for test tools and folders (Vitest for unit, Playwright for browser; Playwright workers = 4 on the Mac, Q-0114), and the fixtures named in `vault/tickets/README.md` rule 4.
+Inputs, and nothing more: `vault/plans/EZD-xxx.md` (the Interface contract and the Tests table are your contract; each test names the AC it checks; Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan.), the lessons in your dispatch, `vault/KNOWN-LIMITS.md` (once), `docs/architecture.md` for test tools and folders (Vitest for unit, Playwright for browser; Playwright workers = 4 on the Mac, Q-0114), and the fixtures named in `vault/tickets/README.md` rule 4.
 
 Rules:
 - Write tests to the plan's interface contract: import from the file paths and exported names it lists, call the signatures it gives, hit the routes it names, select by the `data-testid` values it names. Never invent a structure the contract does not give; if it is missing, report it as a question.

@@ -5,9 +5,22 @@ description: Unit `build <T>` - Stage 3 for one ticket (re-validate, worktree, t
 
 You are the orchestrator for one unit: build ticket $ARGUMENTS (PROCESS.md section 8; project additions in `vault/PROCESS-EZDRAFT.md`). You write no app code and no tests. Your checkout stays on `develop`. When the ticket is `done` or `blocked`, write the handoff and end the session; do not start another ticket.
 
-**Load only:** `vault/plans/$ARGUMENTS.md`, the ticket's row in `vault/tickets/STATUS.md`, its `tickets.json` entry (`depends_on`, `spec_files`, `acs`), and `.claude/skills/build-ticket/dispatch.md` (the dispatch template). Read spec or decision files only when a step below needs them.
+**Load only:** of `vault/plans/$ARGUMENTS.md` its header and sections 5, 7, 8, 9, once (`node vault/tools/outline.mjs vault/plans/$ARGUMENTS.md --section header --section 5 --section 7 --section 8 --section 9`; the whole plan only if it has no numbered sections), the ticket's row in `vault/tickets/STATUS.md`, its `tickets.json` entry (`depends_on`, `spec_files`, `acs`), and `.claude/skills/build-ticket/dispatch.md` (the dispatch template, once). Read spec or decision files only when a step below needs them.
 
 **Research reports.** After any dispatch that returned a `REPORT:` line, run `node vault/tools/research.mjs adopt`; it moves each pending report to `vault/research/R-NNN.md` and prints the IDs to cite (PROCESS.md section 13).
+
+**Plan sections per role** (optimize plan C3, Josh 2026-10-20; numbers from `vault/plans/TEMPLATE.md`). Every dispatch adds one line under `Plan:`, `Sections: <list>`, from this table; the agent prints them with `node vault/tools/outline.mjs <plan> --section <n>` (a plan without numbered sections prints whole).
+
+| Role | Sections |
+| --- | --- |
+| test-author | header, 3, 4 |
+| builder | header, 1, 3, 4, 6 |
+| code-reviewer mode 2 | header, 3, 4 |
+| code-reviewer mode 3 | header, 1, 3, 4, 6 |
+| security-reviewer | header, 1, 3, 7 |
+| ui-verifier | header, 5 |
+| calc-auditor | header, 4 |
+| planner (re-validation) | header, 2, 3, 4, 9 |
 
 0. **Pre-flight.** `git status` clean on `develop`; `node vault/tools/next_ticket.mjs --check` passes; the ticket is `ready`, `in-progress` or `review` with all dependencies `done` (if not, stop and say why). If `vault/handoff/BUDGET_HOLD.md` exists and the ticket is not already `in-progress` or `review`, stop: nothing new starts under a hold.
 1. **Re-validate the plan** if any dependency's STATUS notes record a plan deviation: dispatch `planner` in re-validation mode (dispatch.md) with the deviating dependencies. A changed test value or behavior comes back as a QP question: give it a Q-ID in `QUESTIONS.md`, run it up the chain (section 7); if it needs Josh, STATUS → `blocked` with the Q-ID, handoff, end. Skip when no dependency deviated.

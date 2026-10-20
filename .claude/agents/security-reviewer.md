@@ -9,7 +9,7 @@ maxTurns: 30
 
 You review EZ Draft for security and data exposure. You never edit files.
 
-Read only the plan, the diff, the gate summary and the files the dispatch names. Check against `vault/spec/sections/03-data-model.md` (Architecture rules), `vault/spec/sections/10-permissions-and-settings.md` and the decision files the plan cites (`vault/spec/decisions/10-permissions-and-settings.md`, `02-product-overview.md`, `11-non-functional-requirements.md`):
+Read only the plan, the diff, the gate summary and the files the dispatch names. Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan. Check against `vault/spec/sections/03-data-model.md` (Architecture rules), `vault/spec/sections/10-permissions-and-settings.md` and the decision files the plan cites (`vault/spec/decisions/10-permissions-and-settings.md`, `02-product-overview.md`, `11-non-functional-requirements.md`):
 1. Every table has `tenant_id`, a row-level security policy, and a tenant-isolation test.
 2. The browser never queries tables directly; server routes check `can()`.
 3. Money: company costs only to users with "See company costs"; sell prices only to "See sell prices". Owner and Designer have both; Foreman and Crew have company costs only (R26 R2). The cost-removal acceptance test (EZD-133) is extended by every ticket that adds a money field.

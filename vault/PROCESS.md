@@ -322,7 +322,7 @@ Only these: `CLAUDE.md` (automatic), the hook-injected state (the handoff summar
 
 Every subagent dispatch contains only: the ticket ID and role; the path to the plan; the spec files and decision IDs the plan cites; the lessons for that role filtered to the plan's areas (`node vault/tools/next_ticket.mjs --lessons <role> <areas>` prints them, so the orchestrator never reads the lessons files itself); and the report format. Subagent final reports are 20 lines at most: PASS, FAIL or status first, then file paths and findings, no code. The dispatch template lives in `.claude/skills/build-ticket/dispatch.md`.
 
-Reviewers receive the plan, the diff and the gate summary, not the whole repository or the whole spec. phase-auditor receives the phase diff, the plans, `TRACE.md` and the phase's spec files. Anything beyond that comes through a retriever (section 4). The whole-read guard (section 14) stops any agent from loading a file over 20,000 characters without a range.
+Each role reads only its plan sections, named on a `Sections:` line the orchestrator adds under the dispatch's `Plan:` line from the table in `.claude/skills/build-ticket/SKILL.md` and printed with `node vault/tools/outline.mjs <plan> --section <n>`; the orchestrator reads the plan's header and sections 5, 7, 8 and 9 once per unit (optimize plan C3, Josh 2026-10-20). Reviewers receive their plan sections, the diff and the gate summary, not the whole repository or the whole spec. phase-auditor receives the phase diff, the plans, `TRACE.md` and the phase's spec files. Anything beyond that comes through a retriever (section 4). The whole-read guard (section 14) stops any agent from loading a file over 20,000 characters without a range.
 
 ### Keeping the machine running
 

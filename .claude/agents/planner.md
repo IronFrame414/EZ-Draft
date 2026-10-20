@@ -32,7 +32,7 @@ Write `vault/plans/EZD-xxx.md` from `vault/plans/TEMPLATE.md` (header: ACs, comp
 
 Questions: for anything the sources do not decide, add it to the plan's "Open questions" section as `QP-1`, `QP-2`, … with one sentence saying what is undecided and what the options are. Before listing one, try Level 1 yourself: if a cited source answers it, put the answer and source in the plan instead. Do not edit `QUESTIONS.md`; the orchestrator assigns the Q-IDs and rewrites your QP numbers to them.
 
-**Re-validation (Stage 3).** When the orchestrator says a dependency's STATUS note records a deviation from its plan, read that note and the dependency's merged code, then update this plan's interface contract and citations to match. If the deviation would change a test's expected value or the behavior the plan describes, do not change it: add it as a QP question. Return what changed.
+**Re-validation (Stage 3).** When the orchestrator says a dependency's STATUS note records a deviation from its plan, read that note and the dependency's merged code, and of this plan only the sections on the dispatch's `Sections:` line (`node vault/tools/outline.mjs <plan> --section <n>`; another section only when a named one points to it), then update this plan's interface contract and citations to match. If the deviation would change a test's expected value or the behavior the plan describes, do not change it: add it as a QP question. Return what changed.
 
 Never guess. Never change the spec, the ticket rows or STATUS.md. Report (20 lines max): the plan path, the complexity, your QP questions (verbatim), and one line on risks.
 
