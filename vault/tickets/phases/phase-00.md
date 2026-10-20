@@ -4,6 +4,8 @@ Goal: a deployed, empty, multi-tenant app with sign-in and the Studio shell comp
 
 **Build gate:** the app deploys to a preview URL; in the browser test a signed-in tenant 1 user sees the empty editor shell at desktop and iPad landscape sizes; a test user of a second tenant reads zero tenant 1 rows; the performance check (EZD-017) runs in CI and passes on the empty shell. **Field check (Josh):** open ezdraft.ezcontractorbinder.com on the desktop and the iPad.
 
+**Removed from v1 (Q-0222, Josh 2026-10-20):** EZD-019 (EZ Binder contract and stub), since the EZ Binder connection is out of v1 (Q-0190). The row stays below for the later connector (BACKLOG.md); it is not in tickets.json or STATUS.md.
+
 | ID | Ticket | Scope (what to build, concrete) | Done when (testable) | Depends on | Spec ref |
 | --- | --- | --- | --- | --- | --- |
 | EZD-001 | Repo and tooling | Next.js + React + TypeScript app; lint, format, type check, unit test runner; empty geometry-core package with no UI code. Uses the tools named in the conventions file (pnpm workspace, Vitest). | App builds; a sample unit test in the geometry package passes. | EZD-000 | Product overview · Stack |

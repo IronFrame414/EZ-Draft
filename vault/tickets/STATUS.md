@@ -6,7 +6,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Phase (slice) | Name | From spec phase(s) | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 64 |
+| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 63 |
 | 1 | Company settings and customers | 1 | 9 |
 | 2 | Projects list and new project | 1 | 6 |
 | 3 | Model store and editor route | 1, 2 | 5 |
@@ -96,7 +96,6 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-016b | 0 | Fixtures | ready | high | EZD-016a |  |  |  |
 | EZD-017 | 0 | Performance budgets and benchmark | ready | high | EZD-016, EZD-012 |  |  |  |
 | EZD-018 | 0 | Realtime channels | ready | high | EZD-006, EZD-007, EZD-016a |  |  |  |
-| EZD-019 | 0 | EZ Binder contract and stub | ready | high | EZD-016, EZD-022 |  |  |  |
 | EZD-020 | 0 | Entry points and lazy chunks | ready | high | EZD-017, EZD-014, EZD-015 |  |  |  |
 | EZD-021 | 0 | AI client and stubs | ready | high | EZD-009, EZD-016, EZD-023c, EZD-023e |  |  | Stage 2 (questions 0, 2026-10-19): planner re-validation for Q-0157, Q-0159 (a), Q-0160 (a): T21 fixtures now from EZD-023c T14 base (a) and CLEAN; T21 (g) needs the full release run, so EZD-023e added to depends_on (orchestrator). |
 | EZD-022 | 0 | Event registry | done | medium | EZD-001 | ffbd8d0 | 360 | Done 2026-10-19 (360 = 224 repo node:test + 135 app Vitest (11 new EZD-022) + 1 geometry on develop phase 0). Step 1: plan re-validated (24b857f; planner Opus 5.5; v2 template, EZD-001 deviations; no QP; T1, T2, T8 now @smoke; findUnregisteredEmits gains options.onFile; defaultSinks in index.ts, no sinks.ts; T4b folded into T4 (b)). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer Opus 5.5 mode 2 PASS, mode 3 PASS (same resumed agent); builder r1 Sonnet 5.5. No security review (plan no; gate no flagged paths). Worktree gate PASS round 1; develop phase 0 PASS. Deviations: (1) T7 scans temp root `.` not `src` so the node_modules skip is exercised (expected value unchanged); (2) known scan limit: literals containing a backslash or `$` are skipped by the static scan (typecheck EventName still catches them). Developer-only text (not UI): "Unknown event name: <name>", AggregateError "N event sink(s) failed for <name>". needs-josh-confirm wording: none. |
