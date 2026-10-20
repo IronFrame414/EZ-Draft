@@ -37,14 +37,14 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | Phase | Name | Draft slice | Tickets | Change |
 | --- | --- | --- | --- | --- |
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
-| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 137 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
+| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 137, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
 | 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 238 |  |
 | 4 | Plan canvas and first walls | 4 | 201, 203, 205, 236, 207, 209, 210, 221 |  |
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 206, 208, 211, 212, 213, 217 |  |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
-| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124 |  |
+| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139 |  |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 10 | 215, 220, 229, 234, 226, 227 |  |
 | 11 | Editing tools, groups, libraries, shortcuts | 11 | 131, 222, 230, 223, 231, 233, 232 |  |
 | 12 | Polycam scan import | 12 | 301, 302, 303, 307, 308, 309, 310, 311, 313 |  |
@@ -55,8 +55,8 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 17 | Ceilings and the RCP | 16 | 127, 501, 502, 503, 504, 507, 508, 513 |  |
 | 18 | Beams, lights, ACT and ceiling checks | 17 | 505, 506, 509, 510, 511, 512, 514, 515, 516 |  |
 | 19 | Electrical devices and circuits | 18 | 601, 602, 603, 604, 605, 606, 609, 610 |  |
-| 20 | Load calculation | 19 | 607, 608, 614, 615, 640 | Adds common-load presets (Q-0181). |
-| 21 | Code check engine and first rule sets | 20 | 228, 613, 611a, 612, 620, 611b, 611c, 641 | Adds the scope match check (Q-0180). |
+| 20 | Load calculation | 19 | 607, 608, 614, 615, 640, 642 | Adds common-load presets (Q-0181). |
+| 21 | Code check engine and first rule sets | 20 | 228, 613, 611a, 612, 620, 611b, 611c, 641, 643 | Adds the scope match check (Q-0180). |
 | 22 | Plumbing | new | 729, 730 | New (Q-0179). |
 | 23 | Mechanical | new | 731, 732 | New (Q-0179). |
 | 24 | Tile layout | new | 733 | New (Q-0179); the tile sheet is EZD-738 and client sign-off EZD-734 (both need later phases). |
@@ -70,7 +70,7 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 32 | Catalog detail and price snapshots | 50 | 1607, 1608 |  |
 | 33 | 3D scene, navigation and saved views | 27 | 1001a, 1001b, 1001c, 1002, 1004, 1005, 1006, 1015 |  |
 | 34 | 3D walk, finishes, measure and the rail | 28 | 1003, 1007, 1008, 1012, 1017 |  |
-| 35 | Design options, phone 3D viewer, 3D exports | 29 | 1009, 1010, 1011, 1013, 1014 |  |
+| 35 | Design options, phone 3D viewer, 3D exports | 29 | 1009, 1010, 1011, 1013, 1014, 1018, 1019, 1020, 1021 |  |
 | 36 | Render setup and generate | 30 | 1101, 1102, 1103, 1106, 1107, 1108, 1109, 1110 |  |
 | 37 | Render review and approval | 31 | 1111, 1112, 1113, 1114, 1115, 1116, 1117, 737 |  |
 | 38 | Render workers, extra adapters, path tracer and R1.0 | 32 | 1104a, 1104b, 1105, 1118, 1119, 1121 |  |
@@ -88,8 +88,11 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 50 | Translation queue | 47 | 1501, 1502, 1504, 1505, 1506, 1507 |  |
 | 51 | Translations: approve in bulk, propagate, Spanish display | 48 | 1503, 1508, 1509, 1510 |  |
 | 52 | Takeoff and catalog settings | 51 | 1611a, 1611b, 1611c, 1612, 1613, 1614, 1615, 1609, 1617 | Takes catalog settings EZD-1609, 1617 from draft slice 50 (EZD-1609 needs the Selections PDF, EZD-1212). |
-| 53 | Hardening: security, backups, terms, event log, rule verification | 52 | 1120, 1705, 1706, 1710, 1314 | Final whole-app checks (Q-0184); backups and terms moved to slice 1; EZD-1314 from draft slice 36. |
-| 54 | Hardening: performance, accessibility, screen states | 53 | 1701, 1702, 1708, 1709a, 1709b, 1709c |  |
+| 53 | Billing and onboarding for other companies | new | 1711, 1712, 1713 | New (Q-0220). |
+| 54 | Hardening: security, backups, terms, event log, rule verification | 52 | 1120, 1705, 1706, 1710, 1314 | Final whole-app checks (Q-0184); backups and terms moved to slice 1; EZD-1314 from draft slice 36. |
+| 55 | Hardening: performance, accessibility, screen states | 53 | 1701, 1702, 1708, 1709a, 1709b, 1709c |  |
+
+Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are phases 54 and 55. Q-0222: EZD-019 removed.
 
 ## Phase 0 · Setup
 

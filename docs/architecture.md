@@ -33,10 +33,10 @@ Values never go in the repo; names go in `.env.example`; the app reads them per 
 | `SUPABASE_SECRET_KEY` | never | `pnpm db:env` | that project's secret key | job handlers, migrations, seeds and admin scripts only; nothing reads it yet |
 | `SUPABASE_API_GATE_SECRET` | never | `pnpm db:env` | a different secret per cloud project, made with `node scripts/db/api-gate.mjs generate` and entered in Vercel by Josh (`docs/runbook.md` Supabase cloud projects step 10; EZD-023b for the release environment) | `app/src/server/db/env.ts` (`serverGateSecret()`), `app/src/server/auth/supabase-server.ts` |
 | `SUPABASE_DEV_DB_URL` | never | none (the local stack needs none) | the dev project's Session pooler connection string, an environment secret of the GitHub environment `dev` (`develop` only); production has no counterpart (EZD-023b's `release` environment) | `.github/workflows/supabase-dev.yml` only |
-| `EMAIL_TRANSPORT` | never | `stub` in unit tests (`app/vitest.config.ts`) and browser tests (EZD-016a's web server); empty in `.env.example`, so a plain `pnpm dev` fails every send with `email_transport_not_set` and still returns the link | Preview `stub` by default, `resend` allowed (Q-0041; EZD-023b enters it); Production `resend` (the stub is refused when `VERCEL_ENV` is `production`) | `app/src/server/email/transport.ts` |
+| `EMAIL_TRANSPORT` | never | `stub` in unit tests (`app/vitest.config.ts`) and browser tests (EZD-016d's web server); empty in `.env.example`, so a plain `pnpm dev` fails every send with `email_transport_not_set` and still returns the link | Preview `stub` by default, `resend` allowed (Q-0041; EZD-023b enters it); Production `resend` (the stub is refused when `VERCEL_ENV` is `production`) | `app/src/server/email/transport.ts` |
 | `EMAIL_FROM` | never | `EZ Draft Test <test@example.test>` in tests | `EZ Draft <no-reply@ezcontractorbinder.com>` (Q-0035; Q-0036); company emails keep its address and show "<Company> via EZ Draft" | `app/src/server/email/transport.ts`, `send.ts`; `scripts/email/send-test.mjs` |
 | `RESEND_API_KEY` | never | none (tests never send, CLAUDE.md rule 6) | Production: the sending-only key `ezdraft-production` (runbook `## Email (EZD-008)` step 3); Preview only if Josh switches a preview to `resend` (Q-0041) | `app/src/server/email/resend-transport.ts` through `transport.ts`; `scripts/email/send-test.mjs` |
-| `EMAIL_STUB_DIR` | never | browser tests only (EZD-016a); not in `.env.example` | never set on Vercel | `app/src/server/email/transport.ts` |
+| `EMAIL_STUB_DIR` | never | browser tests only (EZD-016d); not in `.env.example` | never set on Vercel | `app/src/server/email/transport.ts` |
 
 Which project's values go where: local is the local stack; preview is the dev project; production is the production project once Josh sets it up from the Before-launch checklist (11 Operations: preview deploys use the dev database; Q-0113). Entering values in Vercel is EZD-023b's (Q-0106).
 
@@ -108,7 +108,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `zustand` | `5.0.15` | app | Named tools: State store for the open model | EZD-000 |
 | `zod` | `4.6.7` | geometry, app, worker | Named tools: Schema and validation | EZD-000 |
 | `vitest` | `5.0.5` | root, app, geometry, worker | Named tools: Unit tests | EZD-000 |
-| `@playwright/test` | `1.64.1` | app | Named tools: browser tests | EZD-000 |
+| `@playwright/test` | `1.64.1` | root, app | Named tools: browser tests | EZD-000 |
 | `radix-ui` | `1.8.1` | app | Named tools: Styling and UI primitives | EZD-000 |
 | `idb` | `8.0.4` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
 | `workbox-build` | `7.4.1` | app | Named tools: Device storage (builds the service worker) | EZD-000 |
@@ -154,6 +154,7 @@ Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/R
 
 ```
 /                         workspace root: package.json (fan-out scripts), pnpm-workspace.yaml, .npmrc, docs/, scripts/, supabase/ (EZD-004a), eslint-rules/ (the repo's own lint rules, plugin `ezdraft`; EZD-026a), .github/
+playwright.config.ts      root re-export of app/playwright.config.ts, so CI's browser install finds a root config (EZD-016d)
 app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/app/                routes; entry points per EZD-020; route handlers under src/app/api/**
   src/app/dev/<name>/      developer test pages; notFound() when VERCEL_ENV is production (EZD-010c)
@@ -167,7 +168,8 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   public/icons/sprite.svg the generated icon sprite, served at /icons/sprite.svg (EZD-010b)
   scripts/                icons-build.mjs, icons-fetch.mjs: the icon pipeline, run by hand (EZD-010b; not the root scripts/)
   e2e/                    Playwright browser specs, *.spec.ts (EZD-007f)
-  playwright.config.ts    the Playwright config (EZD-007f; EZD-016a extends it)
+  test-harness/e2e/       browser test harness: devices.ts (DEVICE_PROJECTS, projectGrep), global-setup.ts (EZD-016d)
+  playwright.config.ts    the Playwright config (EZD-007f; EZD-016d extends it)
 packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model schema in src/schema/<object-type>.ts (03 rule 5); drawing list (02 PDF out); calculations re-run on the server (11 Where each output is produced)
 worker/                   @ezdraft/worker — the local GPU render worker (02 Named tools; EZD-1104). Not Web Workers, not job handlers
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
@@ -360,7 +362,7 @@ EZD-023a (vault/plans/EZD-023a.md Steps 1–5); 11 Operations ("add before they 
 
 - Unit tests: Vitest, `*.test.ts` / `*.test.tsx`, next to the code they test. Commands: `pnpm test` (the root `node:test` files, then every package's `test`); `pnpm --filter @ezdraft/geometry test` for one package; root `pnpm exec vitest` runs the projects of the root `vitest.config.ts`. Every package project uses `environment: 'node'` until a component ticket adds a DOM environment.
 - Run Prettier on the files you write (`pnpm exec prettier --write <files>`); formatting is review, not gated (EZD-001).
-- Browser tests (EZD-007f; Q-0045 (a)): Playwright, `*.spec.ts`, in `app/e2e/`. Config `app/playwright.config.ts`: `testDir` `e2e`, `workers: 4` (Q-0114), `grep` from `EZD_TEST_GREP` only when set, `baseURL` `http://127.0.0.1:3000` (the local `site_url`; cookies are per host, so never `localhost`), one project `desktop` (Chromium, 1600 × 1000), web server `pnpm start -p 3000` checked at `/api/health` with `reuseExistingServer` off in CI. At load it reads the four `local.mjs env` values and `EZD_TEST_DB_URL` into `process.env` and never stores a gate hash (the secret is the one `pnpm db:up` stored). Run `pnpm build`, then `pnpm test:e2e` (the root script runs `db:up` first). Chromium is installed once (`pnpm --filter @ezdraft/app exec playwright install chromium`). Helpers: `signInWithCode(page, email)` (`app/test-harness/sign-in.ts`) and `waitForAuthEmail` / `countAuthEmails` / `clearAuthEmails` (`app/test-harness/mail-catcher.ts`, EZD-007d). EZD-016a extends the config.
+- Browser tests (EZD-007f; Q-0045 (a)): Playwright, `*.spec.ts`, in `app/e2e/`. Config `app/playwright.config.ts`: `testDir` `e2e`, `workers: 4` (Q-0114), `grep` from `EZD_TEST_GREP` only when set, `baseURL` `http://127.0.0.1:3000` (the local `site_url`; cookies are per host, so never `localhost`), the device projects of `### Browser tests (EZD-016a)`, web server `pnpm start -p 3000` checked at `/api/health` with `reuseExistingServer` off in CI. At load it reads the four `local.mjs env` values and `EZD_TEST_DB_URL` into `process.env` and never stores a gate hash (the secret is the one `pnpm db:up` stored). Run `pnpm build`, then `pnpm test:e2e` (the root script runs `db:up` first). Chromium is installed once (`pnpm --filter @ezdraft/app exec playwright install chromium`). Helpers: `signInWithCode(page, email)` (`app/test-harness/sign-in.ts`) and `waitForAuthEmail` / `countAuthEmails` / `clearAuthEmails` (`app/test-harness/mail-catcher.ts`, EZD-007d). EZD-016d extends the config: `### Browser tests (EZD-016a)`.
 - Repo scripts: `node:test`, `scripts/**/*.test.mjs`, run by the root `test` script.
 - Shared helpers live in `test-utils/` or `test-harness/` folders (`.claude/hooks/guard-paths.mjs`).
 - The test that closes a ticket has the ticket id in its title, e.g. `EZD-005 done when: seed creates Worth Properties as tenant 1`, so reviewers can find it.
@@ -368,6 +370,24 @@ EZD-023a (vault/plans/EZD-023a.md Steps 1–5); 11 Operations ("add before they 
 - Spike tests live with the spike under `spikes/` and are not run by the root gate (vault/spikes/TEMPLATE.md; PROCESS.md).
 - Check C7 enforces the file names.
 - Email: unit tests read readStubOutbox() (app/src/server/email/test-harness/stub-transport.ts); browser tests set EMAIL_STUB_DIR and read it with readStubOutboxDir from app/test-harness/email-outbox.ts (EZD-008a).
+
+### Browser tests (EZD-016a)
+
+EZD-016d (vault/plans/EZD-016d.md Steps 1–3); Q-0053; Q-0088; Q-0087; Q-0006; Q-0045 (a). EZD-016a appends to this subsection.
+
+- **Device projects** (`DEVICE_PROJECTS` in `app/test-harness/e2e/devices.ts`, from the pinned `@playwright/test` 1.64.1 `devices`):
+  - `desktop`: Chromium, `Desktop Chrome`, 1600 × 1000, scale 1, no touch, not mobile (04 Frame).
+  - `ipad-landscape`: WebKit, `iPad Pro 11 landscape`, 1180 × 820, scale 2, touch, mobile (Q-0053; every iPad browser is WebKit).
+  - `surface`: Chromium, `Desktop Chrome`, 1440 × 960, scale 2, touch, not mobile, no `channel` (Q-0088; Edge is Chromium).
+  - `phone`: WebKit, `iPhone 13`, 390 × 844 (the descriptor's own viewport is overridden), touch, mobile (S17/S18 Layout).
+  - No Firefox project: `ci.yml` installs only `chromium webkit`.
+- **Routing by tags** `@desktop`, `@ipad`, `@surface`, `@phone`: a test with none of them runs in `desktop` only; a tagged test runs in exactly its tagged projects. `projectGrep(device, scope?)` builds each project's `grep`; a project `grep` replaces the config-level one, so it repeats the gate scope (`EZD_TEST_GREP`, `### Test scope (Q-0006)`) as a lookahead; an empty scope counts as unset.
+- **Config** (`app/playwright.config.ts`): paths are absolute under `app/` (`testDir` `e2e`, `outputDir` `test-results`, `globalSetup`, `webServer.cwd`, html report `playwright-report`); `timeout` 60000, `retries` 0, `trace` `retain-on-failure`, `screenshot` `only-on-failure`; reporters `list` and `html` (never opened). No `extraHTTPHeaders`, so the gate secret never reaches the browser (Q-0087).
+- **Global setup** (`app/test-harness/e2e/global-setup.ts`), in order: `SUPABASE_API_GATE_SECRET` set, else `Gate secret missing: run pnpm db:up`; `EMAIL_STUB_DIR` set, else `EMAIL_STUB_DIR missing`; tenant 1, Josh, tenant 2 and exactly `SEED_PROJECT_COUNT` tenant 1 projects present (`seedMissing`), else `Seed missing: run pnpm db:up`; then it creates and empties the outbox with `clearStubOutboxDir`. It never logs a secret.
+- **Web server env**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_API_GATE_SECRET` from `local.mjs env`; `SUPABASE_SECRET_KEY` and `EZD_TEST_DB_URL` set to `''`, because Playwright passes `process.env` through to the server; `EMAIL_TRANSPORT` `stub`, `EMAIL_FROM` `EZ Draft Test <test@example.test>`, `EMAIL_STUB_DIR` `app/.e2e/email-outbox` (git-ignored). The config also sets `process.env.EMAIL_STUB_DIR` to that folder at load, so specs and the global setup read what the server writes.
+- **Run**: `pnpm build`, then `pnpm test:e2e` (root; runs `db:up` first). Browsers are installed once: `pnpm --filter @ezdraft/app exec playwright install chromium` and `pnpm --filter @ezdraft/app exec playwright install webkit`.
+- **Root config**: `playwright.config.ts` at the repo root is exactly `export { default } from './app/playwright.config';`, because `ci.yml` "Install browsers" runs only when `hashFiles('playwright.config.*')` matches at the root and runs `pnpm exec playwright` from the root (so the root also lists `@playwright/test`). `ci.yml` is not edited.
+- **Helpers** (EZD-016a, vault/plans/EZD-016a.md Steps 1–6; Q-0087 (ii); Q-0198): `signInAs(email)` / `signInAsOwner(page)` sign in a seeded or fixture user with an active membership through `/auth/confirm` (no email sent), under a per-email lock (`withEmailLock`, `app/test-harness/e2e/email-lock.ts`) because a new link replaces the earlier one; `sessions.open(emails)` opens one signed-in context per email at the current project's size and closes them at teardown (edit-lock and presence tests); `network.set(target, 'off' | 'on')` switches a context's network and waits for `navigator.onLine`; each signed-in result carries `serverDb` (gated, sends `x-ezd-api-gate`, as a server route does) and `browserDb` (no header, refused by PostgREST), which stay in the Node test process and never reach the page. Specs import only from `app/test-harness/e2e/test.ts`: `import { test, expect } from '../test-harness/e2e/test'`.
 
 ### Test scope (Q-0006)
 
@@ -377,7 +397,7 @@ Phase tests plus a smoke set per ticket; the full suite at the phase gate (EZD-0
 - Phase = the ticket's `phase` in `vault/tickets/tickets.json`, set by the re-cut (Q-0194, Q-0218; Q-0221), not the ticket number: EZD-001 and EZD-026a are phase 0, EZD-133 phase 3, EZD-134 and EZD-1401 phase 14. A ticket ID missing from tickets.json, or a phase with no tickets, fails the gate.
 - Smoke set: a test whose full name contains `@smoke` (Vitest title; Playwright title or `{ tag: '@smoke' }`): each phase's Build gate browser test, and any test a plan marks "smoke: yes". EZD-001 T1 is the first.
 - Root `scripts/**/*.test.mjs` (`node:test`) are never filtered; `perf` (EZD-017) is not filtered; `typecheck`, `lint` and `build` are always whole-repo.
-- How scope reaches the runners: `scripts/gate.mjs` sets `EZD_TEST_SCOPE` (`phase` or `full`) for every step and, in phase scope only, `EZD_PHASE` and `EZD_TEST_GREP` = `(?:EZD-(?:<id>|<id>|…)(?![0-9a-z]))|@smoke`, listing the number part of every ticket of that phase (for phase 14: `134|1401|1402|…`), read from the gate script's own checkout; in full scope it deletes both. Each package `vitest.config.ts` sets `test.testNamePattern` from `EZD_TEST_GREP` when present and `test.maxWorkers: 4` (Q-0019 read as 4, Q-0114). EZD-016a's `playwright.config.ts` sets `workers: 4` and `grep` from `EZD_TEST_GREP` the same way. A test that spawns a runner sets the child's `EZD_TEST_GREP` itself and deletes it when the case has none.
+- How scope reaches the runners: `scripts/gate.mjs` sets `EZD_TEST_SCOPE` (`phase` or `full`) for every step and, in phase scope only, `EZD_PHASE` and `EZD_TEST_GREP` = `(?:EZD-(?:<id>|<id>|…)(?![0-9a-z]))|@smoke`, listing the number part of every ticket of that phase (for phase 14: `134|1401|1402|…`), read from the gate script's own checkout; in full scope it deletes both. Each package `vitest.config.ts` sets `test.testNamePattern` from `EZD_TEST_GREP` when present and `test.maxWorkers: 4` (Q-0019 read as 4, Q-0114). `app/playwright.config.ts` (EZD-007f, EZD-016d) sets `workers: 4` and `grep` from `EZD_TEST_GREP` the same way; each Playwright project's `grep` repeats the scope (`projectGrep`, `### Browser tests (EZD-016a)`), because a project `grep` replaces the config-level one. A test that spawns a runner sets the child's `EZD_TEST_GREP` itself and deletes it when the case has none.
 - What runs where: a ticket check `node scripts/gate.mjs .claude/worktrees/EZD-xxx` runs the folder-name ticket's tickets.json phase plus `@smoke`; after merge on develop `node scripts/gate.mjs . --phase <N>` runs phase N plus `@smoke`; the phase gate `node scripts/gate.mjs . --full` and CI `node scripts/gate.mjs .` (folder not named `EZD-xxx`) run the full suite.
 
 ### Policy test harness (EZD-006)
@@ -445,6 +465,10 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | The sign-in page never shows the emailed link or code | `app/e2e/sign-in.spec.ts` (T23) | EZD-007f |
 | — | The API gate secret never reaches the browser | `app/e2e/gate-secret.spec.ts` (T21) | EZD-007f |
 | — | Sign-in folders lint block (literal text, key prefixes, folders lint clean) | `scripts/tooling/__tests__/sign-in-lint.test.mjs` (T24) | EZD-007e, EZD-007f |
+| — | Browser device projects, sizes and tag routing inside the gate scope | `app/test-harness/e2e/harness-config.test.ts` (T5, T6), `scripts/e2e/__tests__/harness-wiring.test.mjs` (T15) | EZD-016d |
+| — | Browser web server env: gate secret only in the server env and Node; secret key and test DB URL empty; no browser headers | `harness-config.test.ts` (T5; Q-0087) | EZD-016d |
+| — | CI's browser install finds a root Playwright config | `harness-wiring.test.mjs` (T9) | EZD-016d |
+| — | Harness sign-in never sends the gate secret to the browser; server path gated, browser path refused | `app/e2e/harness.spec.ts` (T12; Q-0087) | EZD-016a |
 
 ### CI
 
@@ -452,7 +476,7 @@ EZD-002 (vault/plans/EZD-002.md Step 4). Sources in short form as above; `PROCES
 
 - **When CI runs:** on the phase PR to `main` and by hand from the Actions tab (`workflow_dispatch`), never on push (PROCESS section 12; `.github/workflows/ci.yml`; Q-0021 (a); vault/spec/non-goals.md). Per-ticket checks are the local `node scripts/gate.mjs <worktree>` (PROCESS section 8 step 7).
 - **What CI runs:** `node vault/tools/next_ticket.mjs --check`, then `scripts/gate.mjs` in full scope on Node 22 under `ubuntu-latest` (ci.yml; Test scope above). The job is named `gate`; it is the required check on `main` (Q-0144 (a); PROCESS section 12; Josh adds the rule, vault/tickets/needs-from-josh.md).
-- **How a later ticket adds a CI check:** put it in a script the gate already runs (`typecheck`, `lint`, `test`, `build`, or `test:e2e` / `perf` once EZD-016a / EZD-017 add them); it then runs locally and in CI with no workflow edit. Never edit `.github/workflows/ci.yml`; it is Josh-owned (`.claude/hooks/guard-paths.mjs`; PROCESS section 4).
+- **How a later ticket adds a CI check:** put it in a script the gate already runs (`typecheck`, `lint`, `test`, `build`, `test:e2e` (EZD-007f, root `package.json` line 13), or `perf` once EZD-017 adds it); it then runs locally and in CI with no workflow edit. Never edit `.github/workflows/ci.yml`; it is Josh-owned (`.claude/hooks/guard-paths.mjs`; PROCESS section 4).
 - **Checks that need a service the runner does not start** (for example Docker for EZD-004): the ticket's planner raises a question; the options are a new workflow file (the builder may write one) or a ci.yml change by Josh. A new workflow does not trigger on `push`, except `release.yml` on `main` (Q-0106) and `supabase-dev.yml` on `develop` for `supabase/migrations/**` (Q-0107); any other push trigger needs Josh's answer first (`scripts/ci/__tests__/ci.test.mjs` T2 fails it).
 - **Workflows on a public repo** (Q-0106; Q-0112): no `pull_request_target` or `workflow_run` trigger; secrets are named only in a step's `env:`; new workflow files pin each `uses:` to a full commit SHA. T2 checks triggers, environments and secret lists for every file; each workflow's own ticket checks the rest (EZD-004c T1, EZD-023b T16, EZD-025 T11).
 - **Environments and secrets** (Q-0112): production secrets only in the GitHub environment `release` (main only, no admin bypass), the dev database URL only in `dev` (develop only). Only `release.yml`, `backup-files.yml` and `backup-db.yml` may name `release`; only `supabase-dev.yml` may name `dev`; nothing names `production`; no environment is chosen by an expression. Each workflow reads an exact list of secrets (T2 (h)); `ci.yml` reads none. A later ticket that needs another secret changes its own plan and T2 (h) together.

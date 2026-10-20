@@ -41,7 +41,8 @@
     "EZD-117a",
     "EZD-117b",
     "EZD-118",
-    "EZD-137"
+    "EZD-137",
+    "EZD-140"
    ],
    "note": "Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202)."
   },
@@ -161,7 +162,8 @@
     "EZD-121",
     "EZD-122",
     "EZD-123",
-    "EZD-124"
+    "EZD-124",
+    "EZD-139"
    ]
   },
   {
@@ -360,7 +362,8 @@
     "EZD-608",
     "EZD-614",
     "EZD-615",
-    "EZD-640"
+    "EZD-640",
+    "EZD-642"
    ],
    "note": "Adds common-load presets (Q-0181)."
   },
@@ -380,7 +383,8 @@
     "EZD-620",
     "EZD-611b",
     "EZD-611c",
-    "EZD-641"
+    "EZD-641",
+    "EZD-643"
    ],
    "note": "Adds the scope match check (Q-0180)."
   },
@@ -608,7 +612,11 @@
     "EZD-1010",
     "EZD-1011",
     "EZD-1013",
-    "EZD-1014"
+    "EZD-1014",
+    "EZD-1018",
+    "EZD-1019",
+    "EZD-1020",
+    "EZD-1021"
    ]
   },
   {
@@ -904,6 +912,20 @@
   },
   {
    "n": 53,
+   "name": "Billing and onboarding for other companies",
+   "draft_slice": null,
+   "from_phases": [
+    17
+   ],
+   "tickets": [
+    "EZD-1711",
+    "EZD-1712",
+    "EZD-1713"
+   ],
+   "note": "New (Q-0220)."
+  },
+  {
+   "n": 54,
    "name": "Hardening: security, backups, terms, event log, rule verification",
    "draft_slice": 52,
    "from_phases": [
@@ -920,7 +942,7 @@
    "note": "Final whole-app checks (Q-0184); backups and terms moved to slice 1; EZD-1314 from draft slice 36."
   },
   {
-   "n": 54,
+   "n": 55,
    "name": "Hardening: performance, accessibility, screen states",
    "draft_slice": 53,
    "from_phases": [

@@ -8,14 +8,14 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | --- | --- | --- | --- |
 | 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 63 |
 | 1 | Company settings and customers | 1 | 9 |
-| 2 | Projects list and new project | 1 | 6 |
+| 2 | Projects list and new project | 1 | 7 |
 | 3 | Model store and editor route | 1, 2 | 5 |
 | 4 | Plan canvas and first walls | 2 | 8 |
 | 5 | Openings, selection, move, inspector, undo | 2 | 7 |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 1, 2 | 8 |
 | 7 | Users, roles, project scope, event log | 1 | 7 |
 | 8 | Defaults, edit lock, project settings | 1, 2 | 6 |
-| 9 | Versions, sends and the project card menu | 1 | 5 |
+| 9 | Versions, sends and the project card menu | 1 | 6 |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 2 | 6 |
 | 11 | Editing tools, groups, libraries, shortcuts | 1, 2 | 7 |
 | 12 | Polycam scan import | 3 | 9 |
@@ -26,8 +26,8 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | 17 | Ceilings and the RCP | 1, 5 | 8 |
 | 18 | Beams, lights, ACT and ceiling checks | 5 | 9 |
 | 19 | Electrical devices and circuits | 6 | 8 |
-| 20 | Load calculation | 6 | 5 |
-| 21 | Code check engine and first rule sets | 2, 6 | 8 |
+| 20 | Load calculation | 6 | 6 |
+| 21 | Code check engine and first rule sets | 2, 6 | 9 |
 | 22 | Plumbing | 7 | 2 |
 | 23 | Mechanical | 7 | 2 |
 | 24 | Tile layout | 7 | 1 |
@@ -41,7 +41,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | 32 | Catalog detail and price snapshots | 16 | 2 |
 | 33 | 3D scene, navigation and saved views | 10 | 8 |
 | 34 | 3D walk, finishes, measure and the rail | 10 | 5 |
-| 35 | Design options, phone 3D viewer, 3D exports | 10 | 5 |
+| 35 | Design options, phone 3D viewer, 3D exports | 10 | 9 |
 | 36 | Render setup and generate | 11 | 8 |
 | 37 | Render review and approval | 11 | 8 |
 | 38 | Render workers, extra adapters, path tracer and R1.0 | 11 | 6 |
@@ -59,8 +59,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | 50 | Translation queue | 15 | 6 |
 | 51 | Translations: approve in bulk, propagate, Spanish display | 15 | 4 |
 | 52 | Takeoff and catalog settings | 16 | 9 |
-| 53 | Hardening: security, backups, terms, event log, rule verification | 11, 17 | 5 |
-| 54 | Hardening: performance, accessibility, screen states | 17 | 6 |
+| 53 | Billing and onboarding for other companies | 17 | 3 |
+| 54 | Hardening: security, backups, terms, event log, rule verification | 11, 17 | 5 |
+| 55 | Hardening: performance, accessibility, screen states | 17 | 6 |
 
 | Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -91,8 +92,8 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-014 | 0 | Device layouts | ready | medium | EZD-012, EZD-026a, EZD-011, EZD-016a |  |  |  |
 | EZD-015 | 0 | Shared state components | ready | medium | EZD-010, EZD-026a, EZD-016a, EZD-014, EZD-011 |  |  |  |
 | EZD-016c | 0 | Test harness: seed rows for browser tests | done | medium | EZD-005b, EZD-004a, EZD-004b | 67d1ec8 | 3 | Build started 2026-10-20. Step 1 skipped (plan written 2026-10-20 after the split, after EZD-004a/004b/005b were done; their deviations predate it). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5, security-reviewer Opus 5.5 (plan s7 yes). Paused 2026-10-20 at step 10 by vault/handoff/STOP (restructure session); resumed and merged 2026-10-20 (67d1ec8; 3 EZD-016c tests; develop phase 0 gate PASS: node:test 356, vitest 223 + 1, e2e 10; auto-merged docs/architecture.md with Q-0221 Test scope change, no conflict). Done so far: test-author Sonnet 5.5 (02c41ea); code-reviewer mode 2 Opus 5.5 PASS; builder r1 Sonnet 5.5; worktree gate PASS round 1 (1 security flag); code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Opus 5.5 PASS. Squash 7cd2aae was made, then removed from develop (not pushed): develop phase 0 gate red only on EZD-000d T8 because of the restructure session's reports in vault/research/pending/ (ca461c6 plus untracked files). Deviations (minor, accepted by code-reviewer): docs/architecture.md line 292 reference reworded so T4 (b)'s unanchored indexOf finds the real heading; tenancy docs in a new "Local test rows" bullet instead of extending "Seed rows". needs-josh-confirm wording: none. Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
-| EZD-016d | 0 | Test harness: device projects and runner config | ready | high | EZD-016c, EZD-007f, EZD-002, EZD-006, EZD-008a |  |  | Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
-| EZD-016a | 0 | Test harness: sign-in, session and network helpers | ready | high | EZD-016c, EZD-016d, EZD-006, EZD-007 |  |  | Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016d | 0 | Test harness: device projects and runner config | done | high | EZD-016c, EZD-007f, EZD-002, EZD-006, EZD-008a | 76b7557 | 11 | Done 2026-10-20 (76b7557; 11 EZD-016d tests: 8 node:test T9, T15 + 3 Vitest T5, T6, T14; develop phase 0 gate PASS: node:test 364, vitest 226 + 1, build, e2e 10 all [desktop]). Build started 2026-10-20. Step 1 skipped (plan written 2026-10-20 after the split; EZD-007f, EZD-002, EZD-006, EZD-008a deviations predate it; EZD-016c deviations are docs wording only, no interface change). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (plan s7/s8 yes, high). Done so far: test-author Opus 5.5 (9b74d37; harness ticket, built app/test-harness/e2e helpers); code-reviewer mode 2 Opus 5.5 FAIL r1 (T12 unread bodies passed silently), test-author fix 540f6af, PASS r2; builder r1 Opus 5.5 (0e9346d, docs Step 7 only); worktree gate PASS round 1 (no security flags). WebKit installed (plan s9). Done so far: test-author Opus 5.5 (e96ae0b; harness ticket, wrote Steps 1-4); code-reviewer mode 2 Opus 5.5 PASS (T6 scope (c) reading confirmed: no assertion under (c), plan Step 1); builder r1 Opus 5.5; worktree gate PASS round 1 (2 security flags: package.json, pnpm-lock.yaml); code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (production-sensitive PASS). Deviations: none. Open minor (security-reviewer, not blocking): harness-config.test.ts T5 lines 108, 112 compare the gate secret with toBe, so a failing T5 would print the local per-run secret into git-ignored gate.log; fix by comparing a boolean or hash at the next edit (EZD-016a). Doc leftovers (code-reviewer, minor): arch CI bullet "once EZD-016a / EZD-017" and Test scope bullet "EZD-016a playwright.config.ts" name EZD-016a; fix when EZD-016a edits arch. Side effect: root playwright.config.ts makes ci.yml Install browsers step install chromium and webkit (plan Step 2.7). needs-josh-confirm wording: none. Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016a | 0 | Test harness: sign-in, session and network helpers | done | high | EZD-016c, EZD-016d, EZD-006, EZD-007 | 3ab81ab | 18 | Done 2026-10-20 (3ab81ab; 18 EZD-016a test runs: 11 Playwright (T1 x4 projects, T2 x3, T3 x2, T12, T13) + 5 Vitest T7 + 2 node:test T8, T9b; T14 edits EZD-016d T5; develop phase 0 gate PASS: node:test 366, vitest 231 + 1, build, e2e 21). code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (production-sensitive PASS; minor observation: consumed token_hash may sit in git-ignored retain-on-failure traces, same as real link, no change). Deviations (accepted by code-reviewer): test.ts also re-exports createTenant, createMember, cleanup, closeHarness (section 4 needs them); T14 changed harness-config.test.ts lines 102, 106 (plan said 108, 112; same meaning). needs-josh-confirm wording: none. Build started 2026-10-20. Reading map fixed in tickets.json (was 08 Imports, EZD-016b's; now plan section 2 files; 74f713e). Step 1: planner re-validation (Opus 5.5) REVISED a2b00f8: names unchanged; added Step 8 / T14 (EZD-016d T5 secret compare as boolean, L-018) and Step 7 / T9b doc rewording (EZD-016d open minors); no QP. Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (plan s7/s8 yes, high). Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
 | EZD-016b | 0 | Fixtures | ready | high | EZD-016a |  |  |  |
 | EZD-017 | 0 | Performance budgets and benchmark | ready | high | EZD-016, EZD-012 |  |  |  |
 | EZD-018 | 0 | Realtime channels | ready | high | EZD-006, EZD-007, EZD-016a |  |  |  |
@@ -400,7 +401,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1117 | 37 | Render allowance | todo |  | EZD-1102, EZD-110 |  |  |  |
 | EZD-1118 | 38 | Render A/B/C from 3D | todo |  | EZD-1109, EZD-1010 |  |  |  |
 | EZD-1119 | 38 | R1.0 finish schedule + renders | todo |  | EZD-1114, EZD-716, EZD-401 |  |  |  |
-| EZD-1120 | 53 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
+| EZD-1120 | 54 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
 | EZD-1121 | 38 | Second provider adapter | todo |  | EZD-1103 |  |  |  |
 | EZD-1201 | 39 | Share links | todo |  | EZD-111, EZD-116 |  |  |  |
 | EZD-1202 | 39 | Client page shell | todo |  | EZD-1201, EZD-020 |  |  |  |
@@ -417,7 +418,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1213 | 40 | Send image | todo |  | EZD-1114, EZD-111 |  |  |  |
 | EZD-1214 | 40 | Archive options on signing | todo |  | EZD-1009, EZD-1211 |  |  |  |
 | EZD-1215 | 39 | Send to client composer | todo |  | EZD-1201, EZD-1208, EZD-401 |  |  |  |
-| EZD-1314 | 53 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
+| EZD-1314 | 54 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
 | EZD-1401 | 14 | Service worker cache | todo |  | EZD-134 |  |  |  |
 | EZD-1402 | 14 | Offline change queue | todo |  | EZD-1401, EZD-120 |  |  |  |
 | EZD-1403 | 44 | Offline editing and conflicts | todo |  | EZD-1402, EZD-125 |  |  |  |
@@ -469,17 +470,17 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1615 | 52 | Takeoff CSV | todo |  | EZD-1613 |  |  |  |
 | EZD-1616 | 31 | Catalog on the standard rail | todo |  | EZD-1601, EZD-230 |  |  |  |
 | EZD-1617 | 52 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
-| EZD-1701 | 54 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
-| EZD-1702 | 54 | DXF size limits | todo |  | EZD-1701 |  |  |  |
+| EZD-1701 | 55 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
+| EZD-1702 | 55 | DXF size limits | todo |  | EZD-1701 |  |  |  |
 | EZD-1704 | 1 | Backups | todo |  | EZD-025 |  |  |  |
-| EZD-1705 | 53 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
-| EZD-1706 | 53 | Event log coverage | todo |  | EZD-109 |  |  |  |
+| EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
+| EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
 | EZD-1707 | 1 | Terms of service | todo |  | EZD-007 |  |  |  |
-| EZD-1708 | 54 | Accessibility pass | todo |  | EZD-222 |  |  |  |
-| EZD-1709a | 54 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
-| EZD-1709b | 54 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
-| EZD-1709c | 54 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
-| EZD-1710 | 53 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
+| EZD-1708 | 55 | Accessibility pass | todo |  | EZD-222 |  |  |  |
+| EZD-1709a | 55 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
+| EZD-1709b | 55 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
+| EZD-1709c | 55 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
+| EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
 | EZD-136 | 1 | On-screen disclaimer | todo |  | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
@@ -496,3 +497,14 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-737 | 37 | Scope PDF with renders | todo |  | EZD-735, EZD-1114 |  |  | Added 2026-10-20 in the re-cut for Q-0190 (Q-0218). |
 | EZD-738 | 28 | Plumbing, mechanical and tile sheets | todo |  | EZD-701, EZD-715, EZD-730, EZD-732, EZD-733 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
 | EZD-1424 | 45 | Field measure from the field pack | todo |  | EZD-1419, EZD-1404, EZD-1406 |  |  | Added 2026-10-20 in the re-cut for S17b Entry points (Q-0218). |
+| EZD-1018 | 35 | Spike: AR on iPhone and iPad | todo |  | EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1019 | 35 | AR viewing | todo |  | EZD-1018, EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1020 | 35 | AR editing | todo |  | EZD-1019, EZD-120b |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1021 | 35 | IFC export | todo |  | EZD-1001c, EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-642 | 20 | Commercial load calculation | todo |  | EZD-607, EZD-615 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-643 | 21 | Other code editions | todo |  | EZD-611a, EZD-613 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-139 | 9 | Visual diff of an old version | todo |  | EZD-122, EZD-121 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-140 | 2 | Notification settings per user | todo |  | EZD-110 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1711 | 53 | Billing and paywall for other companies | todo |  | EZD-103, EZD-102 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |

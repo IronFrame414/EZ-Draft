@@ -8,7 +8,8 @@ export default defineConfig({
   oxc: { jsx: { runtime: 'automatic' } },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}'],
+    // EZD-016d Step 4: harness tests (T5, T6, T14) run in the app project.
+    include: ['src/**/*.test.{ts,tsx}', 'test-harness/**/*.test.ts'],
     testNamePattern: process.env.EZD_TEST_GREP ? new RegExp(process.env.EZD_TEST_GREP) : undefined,
     maxWorkers: 4,
     // EZD-004b: local Supabase values into process.env; testTimeout for database calls.
