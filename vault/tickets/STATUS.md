@@ -6,7 +6,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Phase | Ticket | Title | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 45 |
+| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 47 |
 | 1 | Phase 1 · Foundation | [phase-01.md](phases/phase-01.md) | 37 |
 | 2 | Phase 2 · Geometry core + plan editor | [phase-02.md](phases/phase-02.md) | 38 |
 | 3 | Phase 3 · Imports | [phase-03.md](phases/phase-03.md) | 15 |
@@ -53,7 +53,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-013 | 0 | PWA install | ready | medium | EZD-012, EZD-016a, EZD-024 |  |  |  |
 | EZD-014 | 0 | Device layouts | ready | medium | EZD-012, EZD-026a, EZD-011, EZD-016a |  |  |  |
 | EZD-015 | 0 | Shared state components | ready | medium | EZD-010, EZD-026a, EZD-016a, EZD-014, EZD-011 |  |  |  |
-| EZD-016a | 0 | Test harness | ready | high | EZD-007, EZD-002, EZD-006 |  |  |  |
+| EZD-016c | 0 | Test harness: seed rows for browser tests | todo | medium | EZD-005b, EZD-004a, EZD-004b |  |  | Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016d | 0 | Test harness: device projects and runner config | todo | high | EZD-016c, EZD-007f, EZD-002, EZD-006, EZD-008a |  |  | Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016a | 0 | Test harness: sign-in, session and network helpers | todo | high | EZD-016c, EZD-016d, EZD-006, EZD-007 |  |  | Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
 | EZD-016b | 0 | Fixtures | ready | high | EZD-016a |  |  |  |
 | EZD-017 | 0 | Performance budgets and benchmark | ready | high | EZD-016, EZD-012 |  |  |  |
 | EZD-018 | 0 | Realtime channels | ready | high | EZD-006, EZD-007, EZD-016a |  |  |  |
