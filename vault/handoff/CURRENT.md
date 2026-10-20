@@ -1,16 +1,12 @@
-# Handoff · 2026-10-20 · build EZD-007a
+# Handoff · 2026-10-20 · build EZD-007b
 
 - Phase and stage: phase 0, Stage 3 (builds); see vault/PROGRESS.md
-- Why the session ended: unit complete (and vault/handoff/STOP, Josh 2026-10-20: stop after EZD-007a for optimize-usage chunks C1, C2)
-- Completed this session: EZD-007a done, 805167a (account gate hook, unconfirmed-password guard, invite_is_valid, local Auth config, bilingual sign-in email template, docs and runbook "Sign-in (EZD-007)"). Gate on develop phase 0 + @smoke PASS: 292 node:test, 179 app Vitest, 1 geometry.
-- Process: test review PASS first round; one structural repair (T28 (h) jsonb binding, 323961c) confirmed; builder round 1; code-reviewer and security-reviewer PASS. Models all Fable 5.1 (high).
+- Why the session ended: unit complete
+- Completed this session: EZD-007b done, bdcf29f (public.link_app_user(), public.current_app_user_id(), end-sessions trigger skips invited → active, function grants convention in docs/architecture.md). Gate on develop phase 0 + @smoke PASS: 315 node:test, 199 app Vitest, 1 geometry.
+- Process: step 1 planner re-validation (Opus 5.5) PASS for EZD-007a deviations, non-behavior plan edits e03a00f; test review PASS round 1; builder round 1; code-reviewer and security-reviewer PASS (B4 confirmed). Models: Fable 5.1 for test-author, builder, reviewers (high).
 - In progress: none (worktree and branch removed)
 - Blocked: none new
-- Questions for Josh: none new. needs-josh-confirm: Spanish email subject and template text (Q-0030 (a)); runbook step 3 dashboard field names. New row in vault/tickets/needs-from-josh.md: cloud Sign-in setup, step 5 (Before User Created hook) before any real data.
-- Decisions made: none; lesson L-016 (planner, candidate): plans revoke from public explicitly on every new function.
-- Notes for the next builds: (1) EZD-007d: sign-in route must give one uniform response for allowed and refused emails (security condition); T26 part d must prove a code sign-in works for a user whose encrypted_password the guard set to null. (2) docs/architecture.md Row-level security "default privileges grant execute to nobody" is inaccurate for schema private (no pg_default_acl row); fix at the next touch; EZD-006 audit checks anon-callable functions only. (3) Minor: comment line 5 of supabase/migrations/20261020101101_create_unconfirmed_password_guard.sql is wrong (stack stores a bcrypt hash, not null); a released migration must not be edited after the first release tag, so fix only before then or leave. (4) Admin createUser bypasses the hook (builder-observed, in docs).
-- Next unit: none: vault/handoff/STOP exists
-
-## Fix mode, 2026-10-20 (Usage and Planning session), closed
-- Optimize plan C1–C4 merged on develop (8aad025, 6c833f0, 5fc9ee1, 6541822, 5ccbaab; Q-0171); full gate PASS at 5ccbaab. LAUNCHER_FIX.md and STOP removed.
-- Left: C5 (lean build orchestrator), C6 (smaller spec files, with Josh's spec interviews), C7 (models, Josh), C8 (compare the next 3–5 builds with `node vault/tools/usage-by-agent.mjs --rev <process_rev>` against vault/cost/baseline-2026-10-19.md).
+- Questions for Josh: none new. needs-josh-confirm: none.
+- Decisions made: none; no lesson added.
+- Notes for the next builds: (1) EZD-007c: database.types.ts types current_app_user_id as string, but it returns null for an ended or unlinked session; getSession() must treat it as nullable. (2) EZD-033/EZD-105b: link_app_user raises 23505 when the caller is linked to app_user Y and an unlinked app_user X carries the caller's current auth email (fails closed). (3) docs/architecture.md wording on default privileges for schema private is still inaccurate (carried from EZD-007a); the next ticket adding a private function revokes from public explicitly. (4) EZD-007d security conditions from the previous handoff still stand (uniform response; T26 part d).
+- Next unit: build EZD-007c
