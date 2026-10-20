@@ -1,11 +1,11 @@
-# Handoff · 2026-10-20 · spec-check 1
+# Handoff · 2026-10-20 · build EZD-011
 
-- Phase and stage: Phase 1 (Company settings and customers) Stage 0 done except Josh's sign-off row; Phase 0 build continues (see vault/PROGRESS.md)
-- Why the session ended: unit complete (waiting on Josh's SIGNOFF.md row)
-- Completed this session: Phase 1 real ACs (47, `acs_source: "stage-0"` on EZD-101, 102, 103, 112, 113, 132, 1704, 1707, 136); `vault/tools/gen_acs.mjs` now keeps hand-written stage-0 rows (it dropped them before). Phase-auditor round 1: 14 gaps → vault/questions/phase-01-spec-gaps-for-josh.md. Josh answered (relayed by session "Spec restructure and reading map"): Q-0223 to Q-0231, Q-0234 (no Translations page or switch; Approve translations removed as a consequence), Q-0235 (company costs off by default for Foreman and Crew); Q-0219 confirmed (a). Agent answers Q-0232. Glossary addendum vault/spec/sections/00b-glossary-phase-01.md (Q-0231). Round 2 audit: all 14 closed; its two new items settled (Q-0235 by Josh; customer-name wording by PROCESS.md 3a, noted in Q-0232). Final count change (Q-0235) checked by hand, not by a third audit run.
-- In progress: none
-- Blocked: Phase 1 Stage 1 waits only on Josh adding the Phase 1 row to vault/spec/SIGNOFF.md (agents cannot write it).
-- Questions for Josh: Phase 1 sign-off row; Q-0175, Q-0089 still escalated; Q-0236, Q-0237 per their rows.
-- Decisions made: Q-0219, Q-0223 to Q-0231, Q-0234, Q-0235 (Josh); Q-0232 (agent). No lesson.
-- Notes for Phase 1 planners: page-switch inspector group is the planner's (cite Q-0210); 00b glossary "Page switch" row mentions Translations, but Q-0234 says there is none; a Foreman who creates a project must be listed on it (Projects phase, Q-0202, Q-0224).
-- Next unit: `next_ticket.mjs --next-unit` → build EZD-011 (Phase 0 continues; Phase 1 planning starts once the sign-off row exists)
+- Phase and stage: phase 0, Stage 3 (builds) returned to Stage 1 for the EZD-011 parts; see vault/PROGRESS.md
+- Why the session ended: unit complete (the plan is a split proposal; the build cannot start until the parts are planned)
+- Completed this session: pre-flight passed (dependencies done). Step 1 skipped: the plan was already re-validated on 2026-10-20 (ab531d3) after every dependency merged, and its findings V1–V14 recorded the proposal to split it (19 builder files, 15 tests, over the size rule). The orchestrator applied the split as Q-0238 answered-agent (level 2, same flow as Q-0198): EZD-011a card surface, HeaderCard, HeaderButton (low); EZD-011b Wordmark, EditorHeader, office.header keys (medium); EZD-011c /dev/header page and Done-when browser test (medium; keeps AC-EZD-011c-1/-2, ui-verifier). All three `todo`; phase file, tickets.json (ACs from gen_acs.mjs; 011c reading map adds mockups/S03Plan.png), STATUS.md, TRACE and PROGRESS in one commit. Dependents EZD-012, 014, 015, 032, 126, 136 now depend on all three.
+- In progress: none (no worktree or branch was made; nothing was built)
+- Blocked: none new
+- Questions for Josh: Q-0175, Q-0089 still escalated; Q-0236, Q-0237 per their rows; Phase 1 sign-off row (unchanged). Q-0238 (split) is answered-agent; Josh can override.
+- Decisions made: Q-0238. No lesson.
+- Notes for the next units: (1) Each part is planned as its own unit from vault/plans/EZD-011.md: Split proposal, findings V1–V14 and the re-validated plan text; build order a → b → c. (2) The unrelated worktree .claude/worktrees/brave-burnell-e43b42 (branch claude/nice-albattani-4e293e, at 988fcd9) was left alone.
+- Next unit: plan EZD-011a
