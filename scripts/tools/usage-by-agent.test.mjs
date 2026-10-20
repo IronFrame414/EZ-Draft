@@ -7,9 +7,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { priceUsage, readTranscript, loadRows, analyze, render, projectsDirFor, MissingRateError } from './usage-by-agent.mjs';
+import { priceUsage, readTranscript, loadRows, analyze, render, projectsDirFor, MissingRateError } from '../../vault/tools/usage-by-agent.mjs';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'usage-by-agent.mjs');
+const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../vault/tools/usage-by-agent.mjs');
 
 function usage(o = {}) {
   return {
