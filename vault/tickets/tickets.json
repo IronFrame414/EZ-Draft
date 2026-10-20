@@ -1274,7 +1274,12 @@
    "spec_ref": "Build phases and acceptance tests; Import and export · Imports",
    "spec_files": [
     "spec/sections/12-build-phases-and-acceptance-tests.md",
-    "spec/sections/08-import-and-export.md#Imports"
+    "spec/sections/02-product-overview.md#Platform",
+    "spec/sections/03b-architecture-rules.md#Architecture rules",
+    "spec/sections/04-app-shell-and-global-ui.md#Frame",
+    "spec/sections/11-non-functional-requirements.md#Security and audit",
+    "spec/sections/screens/S17-field-pack-phone.md",
+    "spec/sections/screens/S18-client-approval-phone.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-00.md",
@@ -1295,7 +1300,7 @@
    ],
    "acs_source": "done-when",
    "decisions": [
-    "spec/decisions/08-import-and-export.md"
+    "spec/decisions/02-product-overview.md"
    ]
   },
   {
