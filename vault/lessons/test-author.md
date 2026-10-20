@@ -36,3 +36,10 @@ Mistake: `app/playwright.config.ts` and EZD-007d's `app/test-harness/mail-catche
 Cause: a helper written and checked under one runner was reused under a runner with a different module system.
 Rule: test code that Playwright loads in `app/` uses no ESM-only (`import.meta`) or CommonJS-only (`__dirname`) feature; find the repo root by walking up from `process.cwd()` to `pnpm-workspace.yaml` (Q-0197 (b)).
 Check: run the Playwright config once (`playwright test --list`) before handing tests to the builder; it must load.
+
+## L-018  areas: testing, security  seen: 1  status: candidate
+Ticket EZD-016d, 2026-10-20
+Mistake: T5 checked the gate secret with `expect(x).toBe(secret)` and `not.toBe(secret)`; on failure the runner prints expected and received, so the secret would land in gate.log (security-reviewer, minor).
+Cause: a value assertion was used on a secret, and matchers print both sides when they fail.
+Rule: compare a secret only through a boolean (`expect(a === b).toBe(true)`) or a hash of both sides, never by value matchers.
+Check: grep test files for `toBe(`/`toEqual(` on variables holding secrets, keys or tokens.
