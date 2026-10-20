@@ -302,8 +302,8 @@ Each unit has a skill in `.claude/skills/`. The names match the unit, except tha
 ### The launcher
 
 `scripts/run.mjs` runs the loop. Each pass:
-1. Stop if `vault/handoff/STOP` exists. If `vault/handoff/WINDOW_PAUSE.md` exists, wait until its resume time (section 11). If `vault/handoff/BUDGET_HOLD.md` exists, run only a `build <T>` unit for a ticket already `in-progress` (so it reaches `done` or `blocked`); start nothing else (section 11).
-2. Ask `next_ticket.mjs --next-unit`. If `none`, stop and notify Josh with the reason.
+1. If `vault/handoff/STOP` exists, wait and re-check every minute; it resumes when the file is removed (fix mode, rule 19; Q-0233). If `vault/handoff/WINDOW_PAUSE.md` exists, wait until its resume time (section 11). If `vault/handoff/BUDGET_HOLD.md` exists, run only a `build <T>` unit for a ticket already `in-progress` (so it reaches `done` or `blocked`); start nothing else (section 11).
+2. Ask `next_ticket.mjs --next-unit`. If `none`, notify Josh once with the reason and re-check every 5 minutes, so his answer is picked up without a restart; only a budget hold ends the run (Josh, 2026-10-20, Q-0233: the build never stops unless it hits a usage limit or truly nothing can be done until he answers).
 3. Start a fresh `claude -p` for that unit with the unit's skill as the prompt, a session name such as `T-012 build`, a `--max-turns` limit, and a `--max-budget-usd` cap (section 11). Orchestrator units run `claude-opus-5-5`; effort is `medium` for `build` and `wrap` (dispatching and ledger work) and `high` for `questions` and `gate-phase` (judgment). `plan` and `review-plans` run as the agent at that agent's model and effort. Effort is set per run, never changed within one.
 4. Record the run's estimated cost in `vault/cost/log.jsonl`.
 5. Run `next_ticket.mjs --check`. If it fails twice in a row, stop and notify.

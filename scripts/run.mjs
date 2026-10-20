@@ -2,7 +2,7 @@
 // The launcher (vault/PROCESS.md section 10 and 11). Runs one unit of work per fresh `claude -p` session, in a loop,
 // until nothing can run without Josh. No dependencies; Node 22; macOS or Linux.
 //
-//   node scripts/run.mjs              run units until `next_ticket.mjs --next-unit` says `none`, a hold, STOP, or an error
+//   node scripts/run.mjs              run units until a budget hold or a repeated error; STOP and `none` wait and re-check (Q-0233)
 //   node scripts/run.mjs --once       run one unit and exit
 //   node scripts/run.mjs --dry-run    print what would run (unit, command line) and exit
 //   node scripts/run.mjs --status     budget, next unit, config check
@@ -42,6 +42,7 @@ const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
+const { idleAction } = await import('./launcher-idle.mjs');
 
 const MODELS = { orchestrator: 'claude-opus-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
 const UNITS = {
@@ -272,17 +273,20 @@ async function main() {
   let checkFailures = 0;
   let noProgress = 0;
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+  let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   for (;;) {
-    if (existsSync(stopFile)) { log('vault/handoff/STOP exists; stopping.'); return; }
-    if (await waitForWindow({ now: new Date(), sleep })) continue;
-    const next = tool('--next-unit').stdout.trim();
+    const stopExists = existsSync(stopFile);
+    if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
+    const next = stopExists ? '' : tool('--next-unit').stdout.trim();
     const [unitName, arg] = next.split(/\s+/, 2);
-    if (unitName === 'none:' || !UNITS[unitName]) {
-      const reason = next.replace(/^none:\s*/, '');
-      if (/budget hold/.test(reason)) { log(reason); return; }
-      notify(`launcher stopped: ${reason}`);
-      return;
+    const idle = idleAction({ stopExists, next: stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`, once: once || dryRun });
+    if (idle.action === 'stop') { log(stopExists ? 'vault/handoff/STOP exists; stopping.' : next); if (!stopExists && !/budget hold/.test(next)) notify(`launcher stopped: ${next.replace(/^none:\s*/, '')}`); return; }
+    if (idle.action === 'wait') {
+      if (waiting !== idle.why) { log(idle.why); if (idle.notify) notify(idle.notify); waiting = idle.why; }
+      await sleep(idle.ms);
+      continue;
     }
+    if (waiting) { log('resuming'); waiting = null; }
     const inProgressBuild = unitName === 'build' && /\b(in-progress|review)\b/.test(spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs')], { encoding: 'utf8', cwd: root }).stdout);
     const b = budget();
     const meters = await readMeters({ budget: b, fallback: oauthFallback });
