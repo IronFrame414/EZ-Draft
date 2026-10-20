@@ -121,3 +121,8 @@ export async function setSignInLanguage(formData: FormData): Promise<void> {
   const lang = formData.get('lang') === 'es' ? 'es' : 'en';
   (await cookies()).set('ezd_sign_in_lang', lang, await cookieOptions(34560000));
 }
+
+// EZD-007f Step 3 (vault/plans/EZD-007f.md F2): "Use a different email" deletes the email cookie.
+export async function clearSignInEmail(): Promise<void> {
+  (await cookies()).delete('ezd_sign_in_email');
+}

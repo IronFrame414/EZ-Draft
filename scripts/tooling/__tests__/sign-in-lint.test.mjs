@@ -45,3 +45,20 @@ describe('EZD-007e sign-in pages lint', () => {
     assert.equal((await lint(comp("<p>{t('error.code_invalid')}</p>"), f)).length, 0);
   });
 });
+
+// EZD-007f T24 (c) (vault/plans/EZD-007f.md section 4; P-T24 (c); EZD-007e E4; R26 R17): the real
+// sign-in folders lint clean on the real flat config, as EZD-026a L7.
+describe('EZD-007f sign-in folders lint', () => {
+  test('EZD-007f T24 (c) the sign-in folders lint clean', async () => {
+    const { ESLint } = await importFromRoot('eslint');
+    const eslint = new ESLint({ cwd: root });
+    const results = await eslint.lintFiles([
+      'app/src/app/sign-in/',
+      'app/src/app/auth/confirm/',
+      'app/src/components/auth/',
+    ]);
+    assert.ok(results.length >= 1, 'the folders hold files');
+    const errors = results.reduce((s, r) => s + r.errorCount, 0);
+    assert.equal(errors, 0, JSON.stringify(results.flatMap((r) => r.messages)));
+  });
+});

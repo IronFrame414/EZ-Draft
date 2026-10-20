@@ -6,7 +6,7 @@
 // DELETE /api/v1/search?query=. A message's `Created` (milliseconds) is the time it was received.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 
 export type AuthEmail = { subject: string; text: string; html: string; link: string; code: string };
 
@@ -15,6 +15,18 @@ type Detail = { Subject: string; Text: string; HTML: string };
 
 let base: string | undefined;
 
+// Repo root: the nearest folder upward from the working directory holding pnpm-workspace.yaml. Not
+// import.meta.url: Playwright loads this file as CommonJS (app/package.json has no "type": "module").
+function findRepoRoot(): string {
+  let dir = process.cwd();
+  for (;;) {
+    if (existsSync(path.join(dir, 'pnpm-workspace.yaml'))) return dir;
+    const up = path.dirname(dir);
+    if (up === dir) throw new Error('no pnpm-workspace.yaml above ' + process.cwd());
+    dir = up;
+  }
+}
+
 function mailUrl(): string {
   if (base) return base;
   const fromEnv = process.env.SUPABASE_MAIL_URL?.trim();
@@ -22,7 +34,7 @@ function mailUrl(): string {
     base = fromEnv.replace(/\/+$/, '');
     return base;
   }
-  const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const repo = findRepoRoot();
   const r = spawnSync(
     path.join(repo, 'node_modules', '.bin', 'supabase'),
     ['status', '-o', 'json'],

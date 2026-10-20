@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: workspaceRoot,
   },
+  // EZD-007f Step 9 (vault/plans/EZD-007f.md F3): the confirm page's token_hash never leaves in a Referer.
+  async headers() {
+    return [
+      { source: '/auth/confirm', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
+    ];
+  },
 };
 
 export default nextConfig;

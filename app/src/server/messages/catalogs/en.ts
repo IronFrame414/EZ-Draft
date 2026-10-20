@@ -25,6 +25,7 @@ export const en = {
   'error.code_invalid': 'That code is wrong or has expired.',
   'error.link_invalid': 'This sign-in link has expired or was already used.',
   'error.no_access': "This account does not have access to EZ Draft. Ask your company's owner.",
+  'error.sign_in_failed': 'Something went wrong. Try again in a minute.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

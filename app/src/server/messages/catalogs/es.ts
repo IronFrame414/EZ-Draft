@@ -31,4 +31,5 @@ export const es = {
   'error.code_invalid': 'Ese código es incorrecto o ya venció.',
   'error.link_invalid': 'Este enlace de acceso venció o ya se usó.',
   'error.no_access': 'Esta cuenta no tiene acceso a EZ Draft. Pregunta al dueño de tu empresa.',
+  'error.sign_in_failed': 'Algo salió mal. Inténtalo de nuevo en un minuto.',
 } as const satisfies Record<SpanishKey, Message>;
