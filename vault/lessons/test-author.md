@@ -29,3 +29,10 @@ Mistake: the `supabase.dump` test fake created its output folder itself, so `dum
 Cause: the fake did more than the real tool does, hiding a precondition the code under test must meet.
 Rule: a fake for an external tool does only what the real tool does (no creating folders, files or state the tool expects to exist); the builder makes every precondition the real tool needs (folders, files) itself rather than relying on the fake.
 Check: the fake writes into a path it did not create and fails like the real tool when the path is missing.
+
+## L-017  areas: testing, tooling, ui  seen: 1  status: candidate
+Ticket EZD-007f, 2026-10-20
+Mistake: `app/playwright.config.ts` and EZD-007d's `app/test-harness/mail-catcher.ts` used `import.meta.url`; Playwright loads `.ts` files in a package without `"type": "module"` (the `app` package) as CommonJS, so the config threw `Cannot use 'import.meta' outside a module` and no browser test ran (builder stop, Q-0197). Vitest had hidden it, since it loads every file as ESM.
+Cause: a helper written and checked under one runner was reused under a runner with a different module system.
+Rule: test code that Playwright loads in `app/` uses no ESM-only (`import.meta`) or CommonJS-only (`__dirname`) feature; find the repo root by walking up from `process.cwd()` to `pnpm-workspace.yaml` (Q-0197 (b)).
+Check: run the Playwright config once (`playwright test --list`) before handing tests to the builder; it must load.
