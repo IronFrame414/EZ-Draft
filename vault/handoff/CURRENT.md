@@ -1,12 +1,12 @@
-# Handoff · 2026-10-20 · build EZD-007d
+# Handoff · 2026-10-20 · build EZD-007e
 
 - Phase and stage: phase 0, Stage 3 (builds); see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: EZD-007d done, 276a86a (requestSignIn/verifySignInCode actions, completeSignIn with invite acceptance and user.joined, PUBLIC_PATHS, app/src/proxy.ts request gate with token refresh before render and Cache-Control: private, no-store on cookie writes, local Auth rate limits raised). Gate on develop phase 0 + @smoke PASS: 318 node:test, 217 app Vitest, 1 geometry.
-- Process: step 1 planner re-validation (8a2c463: Q-0173 applied as Step 6 + T37; T26 (d) guard precondition); QP-1 → Q-0174 answered-agent (a) by security-reviewer, applied f067a92. Test review PASS round 1; builder round 1; code-reviewer mode 3 PASS; security-reviewer PASS. Models (Q-0172): Opus 5.5 planner, test-author, builder, code-reviewer; Fable 5.1 security-reviewer.
+- Completed this session: EZD-007e done, 718cb53 (sign_in surface with namespaces common + error; languageFor refuses sign_in; 18 sign-in keys in en and es; ezdraft/no-literal-ui-string block for the three sign-in folders; architecture Messages bullets; vault/architecture.md re-made). Gate on develop phase 0 + @smoke PASS: 320 node:test, 219 app Vitest, 1 geometry.
+- Process: step 1 skipped (no dependency deviation). Test review PASS round 1; builder round 1; code-reviewer mode 3 PASS; security-reviewer PASS (dispatched on the gate SECURITY FLAG for the test file under app/src/server/auth/). Models: Sonnet 5.5 test-author and builder (complexity medium), Opus 5.5 code-reviewer and security-reviewer.
 - In progress: none (worktree and branch removed)
 - Blocked: none new
-- Questions for Josh: Q-0175 escalated (public Auth API answers 403 for unknown emails: accept as known v1 risk (recommended) or add a sign-in captcha). Not blocking. needs-josh-confirm: none.
-- Decisions made: Q-0174 answered-agent (security-reviewer): only per-IP 429 says too_many_requests; other 429s and the hook 403 answer { step: 'code' }. Q-0176 answered-agent (security-reviewer): other Auth errors stay a 500 sign_in_request_failed. No lesson added.
-- Notes for the next builds: (1) EZD-007f tests getSignInLanguage and signOut (no row in EZD-007d). (2) EZD-102: requireSession() on every page (proxy matcher skips dotted paths), requireApiSession() on every route (/api passes the gate). (3) Local Auth was restarted (db:stop + db:up) with the EZD-007a template and new limits. (4) Carried: first route ticket maps a getSession() RPC error to error.db_unavailable; link_app_user 23505 case (EZD-033/EZD-105b); architecture wording on schema private default privileges.
-- Next unit: build EZD-007e
+- Questions for Josh: Q-0175 still escalated (unchanged). needs-josh-confirm: the builder-written Spanish of the 16 sign-in keys in app/src/server/messages/catalogs/es.ts (Q-0030 (a); checked by a Spanish-speaking crew member at the field checks).
+- Decisions made: none new. No lesson added.
+- Notes for the next builds: (1) Local Auth must be restarted (pnpm db:stop, then pnpm db:up) from a checkout that still exists: the stack started from the removed EZD-007d worktree lost the sign-in template and 3 EZD-007d email tests failed until the restart. After the merge the stack was restarted from the main checkout (db:stop + db:up). (2) Security-reviewer minor note: every common. key now reaches the signed-out sign-in pages; reviewers check new common. keys for project, company or money text. (3) EZD-007f carries P-T24 (c) and the Machine checks row for T24 (plan EZD-007e section 9). (4) Carried from EZD-007d: requireSession()/requireApiSession() on every page and route (EZD-102); getSession() RPC error → error.db_unavailable in the first route ticket; link_app_user 23505 case (EZD-033/EZD-105b).
+- Next unit: build EZD-007f
