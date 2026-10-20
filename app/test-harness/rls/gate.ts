@@ -4,4 +4,9 @@
 // adds it here in its own commit (EZD-007: current_app_user_id, link_app_user; EZD-009: enqueue_job).
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
-export const GATED_RPC_CALLS: GatedRpcCall[] = [{ fn: 'health', args: {} }];
+export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  { fn: 'health', args: {} },
+  // EZD-007b (vault/plans/EZD-007b.md section 3): the linking and access functions, authenticated only.
+  { fn: 'current_app_user_id', args: {} },
+  { fn: 'link_app_user', args: {} },
+];

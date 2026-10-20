@@ -117,9 +117,17 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "health":
+            "current_app_user_id":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"health":
 { Args: Record<PropertyKey, never>; Returns: {
               "schema_version": string,"status": string
+            }[]
+                           },
+"link_app_user":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "accepted_membership_id": string,"accepted_tenant_id": string,"app_user_id": string,"has_access": boolean
             }[]
                            }
           }
