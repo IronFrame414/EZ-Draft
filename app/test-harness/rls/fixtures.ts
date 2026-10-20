@@ -94,18 +94,48 @@ export async function createProjects(tenantId: string, n: number): Promise<strin
   return ids;
 }
 
+// EZD-007a finding A3 (vault/plans/EZD-007a.md): every admin createUser goes through a temporary active
+// membership, so it passes the before-user-created hook whether or not the hook covers admin calls.
+// The temporary tenant, app_user and membership are removed in a finally; the auth user id is returned.
+export async function createAuthUserPastGate(email: string): Promise<string> {
+  const tenant = await insertOne('tenant', {
+    name: `EZD-007a gate ${runSuffix} ${randomUUID().slice(0, 8)}`,
+  });
+  const tenantId = tenant.id as string;
+  let appUserId: string | undefined;
+  let membershipId: string | undefined;
+  try {
+    const person = await insertOne('app_user', { email, auth_user_id: null });
+    appUserId = person.id as string;
+    const membership = await insertOne('membership', {
+      tenant_id: tenantId,
+      user_id: appUserId,
+      status: 'active',
+      scope: 'all',
+    });
+    membershipId = membership.id as string;
+    const { data, error } = await adminDb().auth.admin.createUser({ email, email_confirm: true });
+    if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
+    return data.user.id;
+  } finally {
+    const s = harnessSql();
+    if (membershipId) await s`delete from public.membership where id = ${membershipId}::uuid`;
+    if (appUserId) await s`delete from public.app_user where id = ${appUserId}::uuid`;
+    await s`delete from public.tenant where id = ${tenantId}::uuid`;
+  }
+}
+
 export async function createAppUser(): Promise<{
   appUserId: string;
   authUserId: string;
   email: string;
 }> {
   const email = nextEmail();
-  const { data, error } = await adminDb().auth.admin.createUser({ email, email_confirm: true });
-  if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
-  created.authUserIds.push(data.user.id);
-  const row = await insertOne('app_user', { email, auth_user_id: data.user.id });
+  const authUserId = await createAuthUserPastGate(email);
+  created.authUserIds.push(authUserId);
+  const row = await insertOne('app_user', { email, auth_user_id: authUserId });
   created.appUserIds.push(row.id as string);
-  return { appUserId: row.id as string, authUserId: data.user.id, email };
+  return { appUserId: row.id as string, authUserId, email };
 }
 
 export async function createMember(opts: {
@@ -136,10 +166,9 @@ export async function createMember(opts: {
 // An auth user with no app_user row (T8 (a)).
 export async function createUnlinkedAuthUser(): Promise<{ authUserId: string; email: string }> {
   const email = nextEmail();
-  const { data, error } = await adminDb().auth.admin.createUser({ email, email_confirm: true });
-  if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
-  created.authUserIds.push(data.user.id);
-  return { authUserId: data.user.id, email };
+  const authUserId = await createAuthUserPastGate(email);
+  created.authUserIds.push(authUserId);
+  return { authUserId, email };
 }
 
 export async function signIn(email: string): Promise<Session> {

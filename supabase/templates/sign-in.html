@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+  EZD-007a Step 1b (vault/plans/EZD-007a.md): the sign-in email Supabase Auth sends for "confirmation"
+  (first sign-in) and "magic link" (after that). English first, then Spanish (Q-0047 (a)); the English
+  lines are Q-0046 (a) with "15 minutes" from Q-0049; the Spanish is the builder's (Q-0030 (a)).
+  The link carries the token hash, so it opens on any device (R26 R15); the 6-digit code is the same
+  sign-in typed in the app. No image, no tracking, no web font.
+-->
+<html>
+  <body
+    style="
+      margin: 0;
+      padding: 24px;
+      background: #ffffff;
+      color: #1a1f2b;
+      font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    "
+  >
+    <div lang="en">
+      <p style="margin: 0 0 16px">Tap the button to sign in to EZ Draft.</p>
+      <p style="margin: 0 0 16px">
+        <a
+          href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+          style="
+            display: inline-block;
+            padding: 12px 20px;
+            background: #1a1f2b;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+          "
+          >Sign in</a
+        >
+      </p>
+      <p style="margin: 0 0 16px; word-break: break-all">
+        {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+      </p>
+      <p style="margin: 0 0 4px">Or type this code in the app:</p>
+      <p
+        style="
+          margin: 0 0 16px;
+          font-family: ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+          font-size: 24px;
+          letter-spacing: 4px;
+        "
+      >
+        {{ .Token }}
+      </p>
+      <p style="margin: 0 0 8px">The link and code work once and expire in 15 minutes.</p>
+      <p style="margin: 0">If you did not ask to sign in, ignore this email.</p>
+    </div>
+    <hr style="margin: 24px 0; border: 0; border-top: 1px solid #d6dae2" />
+    <div lang="es">
+      <p style="margin: 0 0 16px">Toca el botón para entrar en EZ Draft.</p>
+      <p style="margin: 0 0 16px">
+        <a
+          href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+          style="
+            display: inline-block;
+            padding: 12px 20px;
+            background: #1a1f2b;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+          "
+          >Entrar</a
+        >
+      </p>
+      <p style="margin: 0 0 16px; word-break: break-all">
+        {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+      </p>
+      <p style="margin: 0 0 4px">O escribe este código en la app:</p>
+      <p
+        style="
+          margin: 0 0 16px;
+          font-family: ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+          font-size: 24px;
+          letter-spacing: 4px;
+        "
+      >
+        {{ .Token }}
+      </p>
+      <p style="margin: 0 0 8px">
+        El enlace y el código funcionan una sola vez y caducan en 15 minutos.
+      </p>
+      <p style="margin: 0">Si no pediste entrar, ignora este correo.</p>
+    </div>
+  </body>
+</html>

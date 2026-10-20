@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { closeHarness, createAuthUserPastGate } from '../../../test-harness/rls/fixtures';
 
 const url = () => process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const publishable = () => process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as string;
@@ -105,6 +106,7 @@ describe('EZD-005a tenancy tables', () => {
     await admin.from('app_user').delete().like('email', `ezd005a-${suffix}-%`);
     await admin.from('tenant').delete().like('name', `EZD-005a test ${suffix}%`);
     for (const id of authIds) await admin.auth.admin.deleteUser(id);
+    await closeHarness();
   });
 
   // Insert one row and return it; fails the test on any error so later steps read a real row.
@@ -141,13 +143,10 @@ describe('EZD-005a tenancy tables', () => {
     return error ? error.code : null;
   }
 
+  // EZD-007a finding A3: the admin createUser goes through a temporary active membership so it passes
+  // the before-user-created hook (vault/plans/EZD-007a.md); the expected values of T2, T7, T8 are unchanged.
   async function createAuthUser(): Promise<string> {
-    const { data, error } = await admin.auth.admin.createUser({
-      email: email(),
-      email_confirm: true,
-    });
-    expect(error).toBeNull();
-    const id = data.user!.id;
+    const id = await createAuthUserPastGate(email());
     authIds.push(id);
     return id;
   }
