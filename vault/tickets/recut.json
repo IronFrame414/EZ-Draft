@@ -1,8 +1,17 @@
 {
+ "approved": "2026-10-20 (Q-0194; PHASES.md \"Josh's approval of the re-cut\")",
+ "removed_from_v1": {
+  "slices": [
+   35,
+   36
+  ],
+  "tickets": "EZD-114, 115, 119, 1301 to 1312 (Q-0190; BACKLOG.md)"
+ },
  "slices": [
   {
    "n": 1,
    "name": "Company settings and customers",
+   "draft_slice": 1,
    "from_phases": [
     1
    ],
@@ -12,12 +21,17 @@
     "EZD-103",
     "EZD-132",
     "EZD-112",
-    "EZD-113"
-   ]
+    "EZD-113",
+    "EZD-1704",
+    "EZD-1707",
+    "EZD-136"
+   ],
+   "note": "Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184)."
   },
   {
    "n": 2,
    "name": "Projects list and new project",
+   "draft_slice": 2,
    "from_phases": [
     1
    ],
@@ -26,12 +40,15 @@
     "EZD-110",
     "EZD-117a",
     "EZD-117b",
-    "EZD-118"
-   ]
+    "EZD-118",
+    "EZD-137"
+   ],
+   "note": "Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202)."
   },
   {
    "n": 3,
    "name": "Model store and editor route",
+   "draft_slice": 3,
    "from_phases": [
     1,
     2
@@ -47,6 +64,7 @@
   {
    "n": 4,
    "name": "Plan canvas and first walls",
+   "draft_slice": 4,
    "from_phases": [
     2
    ],
@@ -64,6 +82,7 @@
   {
    "n": 5,
    "name": "Openings, selection, move, inspector, undo",
+   "draft_slice": 5,
    "from_phases": [
     2
    ],
@@ -80,6 +99,7 @@
   {
    "n": 6,
    "name": "Phase switch, layers, dimensions, thumbnails, benchmark page",
+   "draft_slice": 6,
    "from_phases": [
     1,
     2
@@ -98,6 +118,7 @@
   {
    "n": 7,
    "name": "Users, roles, project scope, event log",
+   "draft_slice": 7,
    "from_phases": [
     1
    ],
@@ -107,12 +128,14 @@
     "EZD-106",
     "EZD-107",
     "EZD-109",
-    "EZD-129"
+    "EZD-129",
+    "EZD-138"
    ]
   },
   {
    "n": 8,
    "name": "Defaults, edit lock, project settings",
+   "draft_slice": 8,
    "from_phases": [
     1,
     2
@@ -129,6 +152,7 @@
   {
    "n": 9,
    "name": "Versions, sends and the project card menu",
+   "draft_slice": 9,
    "from_phases": [
     1
    ],
@@ -143,6 +167,7 @@
   {
    "n": 10,
    "name": "Fixtures, existing conditions, showers, bearing walls",
+   "draft_slice": 10,
    "from_phases": [
     2
    ],
@@ -158,6 +183,7 @@
   {
    "n": 11,
    "name": "Editing tools, groups, libraries, shortcuts",
+   "draft_slice": 11,
    "from_phases": [
     1,
     2
@@ -175,6 +201,7 @@
   {
    "n": 12,
    "name": "Polycam scan import",
+   "draft_slice": 12,
    "from_phases": [
     3
    ],
@@ -193,6 +220,7 @@
   {
    "n": 13,
    "name": "PDF and DXF imports, import states, laser input",
+   "draft_slice": 13,
    "from_phases": [
     3
    ],
@@ -207,7 +235,28 @@
   },
   {
    "n": 14,
+   "name": "Field measure and office review",
+   "draft_slice": 42,
+   "from_phases": [
+    14
+   ],
+   "tickets": [
+    "EZD-134",
+    "EZD-1401",
+    "EZD-1402",
+    "EZD-1415",
+    "EZD-1416",
+    "EZD-1417",
+    "EZD-1418",
+    "EZD-1419",
+    "EZD-1422"
+   ],
+   "note": "Moved up (Q-0194). Brings the app-shell cache and offline queue (EZD-134, 1401, 1402) from draft slice 40; the field-pack parts (EZD-1411, 1413, 1414, 1424) stay with the field pack (Q-0219)."
+  },
+  {
+   "n": 15,
    "name": "Cabinet runs",
+   "draft_slice": 14,
    "from_phases": [
     4
    ],
@@ -225,8 +274,9 @@
    ]
   },
   {
-   "n": 15,
+   "n": 16,
    "name": "Countertops",
+   "draft_slice": 15,
    "from_phases": [
     4
    ],
@@ -243,8 +293,9 @@
    ]
   },
   {
-   "n": 16,
+   "n": 17,
    "name": "Ceilings and the RCP",
+   "draft_slice": 16,
    "from_phases": [
     1,
     5
@@ -261,8 +312,9 @@
    ]
   },
   {
-   "n": 17,
+   "n": 18,
    "name": "Beams, lights, ACT and ceiling checks",
+   "draft_slice": 17,
    "from_phases": [
     5
    ],
@@ -279,8 +331,9 @@
    ]
   },
   {
-   "n": 18,
+   "n": 19,
    "name": "Electrical devices and circuits",
+   "draft_slice": 18,
    "from_phases": [
     6
    ],
@@ -296,8 +349,9 @@
    ]
   },
   {
-   "n": 19,
+   "n": 20,
    "name": "Load calculation",
+   "draft_slice": 19,
    "from_phases": [
     6
    ],
@@ -305,12 +359,15 @@
     "EZD-607",
     "EZD-608",
     "EZD-614",
-    "EZD-615"
-   ]
+    "EZD-615",
+    "EZD-640"
+   ],
+   "note": "Adds common-load presets (Q-0181)."
   },
   {
-   "n": 20,
+   "n": 21,
    "name": "Code check engine and first rule sets",
+   "draft_slice": 20,
    "from_phases": [
     2,
     6
@@ -322,12 +379,53 @@
     "EZD-612",
     "EZD-620",
     "EZD-611b",
-    "EZD-611c"
-   ]
+    "EZD-611c",
+    "EZD-641"
+   ],
+   "note": "Adds the scope match check (Q-0180)."
   },
   {
-   "n": 21,
+   "n": 22,
+   "name": "Plumbing",
+   "draft_slice": null,
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-729",
+    "EZD-730"
+   ],
+   "note": "New (Q-0179)."
+  },
+  {
+   "n": 23,
+   "name": "Mechanical",
+   "draft_slice": null,
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-731",
+    "EZD-732"
+   ],
+   "note": "New (Q-0179)."
+  },
+  {
+   "n": 24,
+   "name": "Tile layout",
+   "draft_slice": null,
+   "from_phases": [
+    7
+   ],
+   "tickets": [
+    "EZD-733"
+   ],
+   "note": "New (Q-0179); the tile sheet is EZD-738 and client sign-off EZD-734 (both need later phases)."
+  },
+  {
+   "n": 25,
    "name": "Sheet set and sheet viewer",
+   "draft_slice": 21,
    "from_phases": [
     7
    ],
@@ -343,8 +441,9 @@
    ]
   },
   {
-   "n": 22,
+   "n": 26,
    "name": "Elevations, RCP and electrical sheets, title block",
+   "draft_slice": 22,
    "from_phases": [
     7
    ],
@@ -359,8 +458,9 @@
    ]
   },
   {
-   "n": 23,
+   "n": 27,
    "name": "PDF export, issue checklist and Rev 0",
+   "draft_slice": 23,
    "from_phases": [
     7
    ],
@@ -377,8 +477,9 @@
    ]
   },
   {
-   "n": 24,
+   "n": 28,
    "name": "Revisions, client send and export options",
+   "draft_slice": 24,
    "from_phases": [
     7
    ],
@@ -389,12 +490,16 @@
     "EZD-720",
     "EZD-723",
     "EZD-725",
-    "EZD-727"
+    "EZD-727",
+    "EZD-735",
+    "EZD-736",
+    "EZD-738"
    ]
   },
   {
-   "n": 25,
+   "n": 29,
    "name": "Detail editor",
+   "draft_slice": 25,
    "from_phases": [
     8
    ],
@@ -411,8 +516,9 @@
    ]
   },
   {
-   "n": 26,
+   "n": 30,
    "name": "Details on sheets, cut from model, library, export",
+   "draft_slice": 26,
    "from_phases": [
     8
    ],
@@ -428,8 +534,39 @@
    ]
   },
   {
-   "n": 27,
+   "n": 31,
+   "name": "Catalog drawer and add product",
+   "draft_slice": 49,
+   "from_phases": [
+    16
+   ],
+   "tickets": [
+    "EZD-1601",
+    "EZD-1602",
+    "EZD-1603",
+    "EZD-1604",
+    "EZD-1605",
+    "EZD-1606",
+    "EZD-1610",
+    "EZD-1616"
+   ]
+  },
+  {
+   "n": 32,
+   "name": "Catalog detail and price snapshots",
+   "draft_slice": 50,
+   "from_phases": [
+    16
+   ],
+   "tickets": [
+    "EZD-1607",
+    "EZD-1608"
+   ]
+  },
+  {
+   "n": 33,
    "name": "3D scene, navigation and saved views",
+   "draft_slice": 27,
    "from_phases": [
     10
    ],
@@ -445,8 +582,9 @@
    ]
   },
   {
-   "n": 28,
+   "n": 34,
    "name": "3D walk, finishes, measure and the rail",
+   "draft_slice": 28,
    "from_phases": [
     10
    ],
@@ -459,8 +597,9 @@
    ]
   },
   {
-   "n": 29,
+   "n": 35,
    "name": "Design options, phone 3D viewer, 3D exports",
+   "draft_slice": 29,
    "from_phases": [
     10
    ],
@@ -473,8 +612,9 @@
    ]
   },
   {
-   "n": 30,
+   "n": 36,
    "name": "Render setup and generate",
+   "draft_slice": 30,
    "from_phases": [
     11
    ],
@@ -490,8 +630,9 @@
    ]
   },
   {
-   "n": 31,
+   "n": 37,
    "name": "Render review and approval",
+   "draft_slice": 31,
    "from_phases": [
     11
    ],
@@ -502,12 +643,14 @@
     "EZD-1114",
     "EZD-1115",
     "EZD-1116",
-    "EZD-1117"
+    "EZD-1117",
+    "EZD-737"
    ]
   },
   {
-   "n": 32,
+   "n": 38,
    "name": "Render workers, extra adapters, path tracer and R1.0",
+   "draft_slice": 32,
    "from_phases": [
     11
    ],
@@ -521,8 +664,9 @@
    ]
   },
   {
-   "n": 33,
+   "n": 39,
    "name": "Client approval page",
+   "draft_slice": 33,
    "from_phases": [
     12
    ],
@@ -535,12 +679,14 @@
     "EZD-1211",
     "EZD-1212",
     "EZD-1215",
-    "EZD-1205"
+    "EZD-1205",
+    "EZD-734"
    ]
   },
   {
-   "n": 34,
+   "n": 40,
    "name": "Client renders, comments and option choice",
+   "draft_slice": 34,
    "from_phases": [
     12
    ],
@@ -554,43 +700,9 @@
    ]
   },
   {
-   "n": 35,
-   "name": "EZ Binder connection, inbound API and webhooks",
-   "from_phases": [
-    1,
-    13
-   ],
-   "tickets": [
-    "EZD-114",
-    "EZD-115",
-    "EZD-119",
-    "EZD-1301",
-    "EZD-1302",
-    "EZD-1303",
-    "EZD-1304",
-    "EZD-1305"
-   ]
-  },
-  {
-   "n": 36,
-   "name": "Change orders and inbound reads",
-   "from_phases": [
-    13
-   ],
-   "tickets": [
-    "EZD-1306",
-    "EZD-1308",
-    "EZD-1307",
-    "EZD-1309",
-    "EZD-1310",
-    "EZD-1311",
-    "EZD-1312",
-    "EZD-1314"
-   ]
-  },
-  {
-   "n": 37,
+   "n": 41,
    "name": "Architect DXF reference",
+   "draft_slice": 37,
    "from_phases": [
     9
    ],
@@ -606,8 +718,9 @@
    ]
   },
   {
-   "n": 38,
+   "n": 42,
    "name": "Reference markup, revisions and diff",
+   "draft_slice": 38,
    "from_phases": [
     9
    ],
@@ -624,8 +737,9 @@
    ]
   },
   {
-   "n": 39,
+   "n": 43,
    "name": "Supplier files and rendering markup",
+   "draft_slice": 39,
    "from_phases": [
     9
    ],
@@ -641,23 +755,22 @@
    ]
   },
   {
-   "n": 40,
-   "name": "Offline editing and the app-shell cache",
+   "n": 44,
+   "name": "Offline editing",
+   "draft_slice": 40,
    "from_phases": [
     1,
     14
    ],
    "tickets": [
-    "EZD-134",
-    "EZD-1401",
-    "EZD-1402",
     "EZD-1403",
     "EZD-1412"
    ]
   },
   {
-   "n": 41,
+   "n": 45,
    "name": "Field pack on the phone",
+   "draft_slice": 41,
    "from_phases": [
     14
    ],
@@ -670,30 +783,17 @@
     "EZD-1409",
     "EZD-1410",
     "EZD-1420",
-    "EZD-1421"
-   ]
-  },
-  {
-   "n": 42,
-   "name": "Field measure and office review",
-   "from_phases": [
-    14
-   ],
-   "tickets": [
+    "EZD-1421",
+    "EZD-1411",
     "EZD-1413",
     "EZD-1414",
-    "EZD-1415",
-    "EZD-1416",
-    "EZD-1417",
-    "EZD-1418",
-    "EZD-1419",
-    "EZD-1411",
-    "EZD-1422"
+    "EZD-1424"
    ]
   },
   {
-   "n": 43,
+   "n": 46,
    "name": "Code rules: Florida Residential, Existing Building, construction chapters",
+   "draft_slice": 43,
    "from_phases": [
     6
    ],
@@ -706,8 +806,9 @@
    ]
   },
   {
-   "n": 44,
+   "n": 47,
    "name": "Code rules: Energy, Mechanical, Fuel gas, Plumbing",
+   "draft_slice": 44,
    "from_phases": [
     6
    ],
@@ -722,8 +823,9 @@
    ]
   },
   {
-   "n": 45,
+   "n": 48,
    "name": "Code rules: NEC articles 100 to 230 and 240 (1 of 2)",
+   "draft_slice": 45,
    "from_phases": [
     6
    ],
@@ -736,8 +838,9 @@
    ]
   },
   {
-   "n": 46,
+   "n": 49,
    "name": "Code rules: NEC 240 to 410 (2 of 2) and 422 to 820",
+   "draft_slice": 46,
    "from_phases": [
     6
    ],
@@ -750,8 +853,9 @@
    ]
   },
   {
-   "n": 47,
+   "n": 50,
    "name": "Translation queue",
+   "draft_slice": 47,
    "from_phases": [
     15
    ],
@@ -765,8 +869,9 @@
    ]
   },
   {
-   "n": 48,
+   "n": 51,
    "name": "Translations: approve in bulk, propagate, Spanish display",
+   "draft_slice": 48,
    "from_phases": [
     15
    ],
@@ -778,38 +883,9 @@
    ]
   },
   {
-   "n": 49,
-   "name": "Catalog drawer and add product",
-   "from_phases": [
-    16
-   ],
-   "tickets": [
-    "EZD-1601",
-    "EZD-1602",
-    "EZD-1603",
-    "EZD-1604",
-    "EZD-1605",
-    "EZD-1606",
-    "EZD-1610",
-    "EZD-1616"
-   ]
-  },
-  {
-   "n": 50,
-   "name": "Catalog detail, price snapshots and settings",
-   "from_phases": [
-    16
-   ],
-   "tickets": [
-    "EZD-1607",
-    "EZD-1608",
-    "EZD-1609",
-    "EZD-1617"
-   ]
-  },
-  {
-   "n": 51,
-   "name": "Takeoff",
+   "n": 52,
+   "name": "Takeoff and catalog settings",
+   "draft_slice": 51,
    "from_phases": [
     16
    ],
@@ -820,28 +896,33 @@
     "EZD-1612",
     "EZD-1613",
     "EZD-1614",
-    "EZD-1615"
-   ]
+    "EZD-1615",
+    "EZD-1609",
+    "EZD-1617"
+   ],
+   "note": "Takes catalog settings EZD-1609, 1617 from draft slice 50 (EZD-1609 needs the Selections PDF, EZD-1212)."
   },
   {
-   "n": 52,
+   "n": 53,
    "name": "Hardening: security, backups, terms, event log, rule verification",
+   "draft_slice": 52,
    "from_phases": [
     11,
     17
    ],
    "tickets": [
     "EZD-1120",
-    "EZD-1704",
     "EZD-1705",
     "EZD-1706",
-    "EZD-1707",
-    "EZD-1710"
-   ]
+    "EZD-1710",
+    "EZD-1314"
+   ],
+   "note": "Final whole-app checks (Q-0184); backups and terms moved to slice 1; EZD-1314 from draft slice 36."
   },
   {
-   "n": 53,
+   "n": 54,
    "name": "Hardening: performance, accessibility, screen states",
+   "draft_slice": 53,
    "from_phases": [
     17
    ],

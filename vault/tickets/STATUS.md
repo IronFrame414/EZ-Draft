@@ -4,26 +4,63 @@ Status values: `todo` → `planned` or `questions` → `ready` → `in-progress`
 Only the orchestrator edits this file (enforced by hook). It records each stage's result: planner → `planned`/`questions`; Stage 2 → `ready`; build → `in-progress`, `review`; reviewers' verdict → `done` (with commit) or back to `in-progress`; three failed reviews or a question for Josh → `blocked`.
 A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, base IDs already expanded) is `done`. The Depends on column here is the original text, for reading only. Notes also records the models used for each dispatch and why (PROCESS.md section 4). Notes holds plan deviations (what the merged code does differently from its plan; dependents' plans are re-validated against it) and `needs-josh-confirm` wording (user-visible text no plan covered, listed in the phase PR for Josh). Pick tickets with `node vault/tools/next_ticket.mjs`; validate with `--check` (done needs a commit hash, blocked needs a note, statuses must be known, STATUS.md and tickets.json must list the same tickets).
 
-| Phase | Ticket | Title | Tickets |
+| Phase (slice) | Name | From spec phase(s) | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 47 |
-| 1 | Phase 1 · Foundation | [phase-01.md](phases/phase-01.md) | 37 |
-| 2 | Phase 2 · Geometry core + plan editor | [phase-02.md](phases/phase-02.md) | 38 |
-| 3 | Phase 3 · Imports | [phase-03.md](phases/phase-03.md) | 15 |
-| 4 | Phase 4 · Cabinets + countertops | [phase-04.md](phases/phase-04.md) | 19 |
-| 5 | Phase 5 · Ceilings / RCP | [phase-05.md](phases/phase-05.md) | 16 |
-| 6 | Phase 6 · Electrical + code check | [phase-06.md](phases/phase-06.md) | 40 |
-| 7 | Phase 7 · Sheets, issue, submittal profiles, revisions, property appraiser import | [phase-07.md](phases/phase-07.md) | 31 |
-| 8 | Phase 8 · Detail editor | [phase-08.md](phases/phase-08.md) | 17 |
-| 9 | Phase 9 · Reference DXF + supplier imports + rendering markup | [phase-09.md](phases/phase-09.md) | 25 |
-| 10 | Phase 10 · 3D + design options | [phase-10.md](phases/phase-10.md) | 18 |
-| 11 | Phase 11 · Render pipeline + allowance + local GPU worker | [phase-11.md](phases/phase-11.md) | 22 |
-| 12 | Phase 12 · Client link | [phase-12.md](phases/phase-12.md) | 15 |
-| 13 | Phase 13 · Change orders + EZ Binder webhooks and inbound API | [phase-13.md](phases/phase-13.md) | 13 |
-| 14 | Phase 14 · Field pack + offline + field measurements review | [phase-14.md](phases/phase-14.md) | 22 |
-| 15 | Phase 15 · Translations | [phase-15.md](phases/phase-15.md) | 10 |
-| 16 | Phase 16 · Catalog + takeoff | [phase-16.md](phases/phase-16.md) | 19 |
-| 17 | Phase 17 · Hardening | [phase-17.md](phases/phase-17.md) | 11 |
+| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 64 |
+| 1 | Company settings and customers | 1 | 9 |
+| 2 | Projects list and new project | 1 | 6 |
+| 3 | Model store and editor route | 1, 2 | 5 |
+| 4 | Plan canvas and first walls | 2 | 8 |
+| 5 | Openings, selection, move, inspector, undo | 2 | 7 |
+| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 1, 2 | 8 |
+| 7 | Users, roles, project scope, event log | 1 | 7 |
+| 8 | Defaults, edit lock, project settings | 1, 2 | 6 |
+| 9 | Versions, sends and the project card menu | 1 | 5 |
+| 10 | Fixtures, existing conditions, showers, bearing walls | 2 | 6 |
+| 11 | Editing tools, groups, libraries, shortcuts | 1, 2 | 7 |
+| 12 | Polycam scan import | 3 | 9 |
+| 13 | PDF and DXF imports, import states, laser input | 3 | 6 |
+| 14 | Field measure and office review | 14 | 9 |
+| 15 | Cabinet runs | 4 | 10 |
+| 16 | Countertops | 4 | 9 |
+| 17 | Ceilings and the RCP | 1, 5 | 8 |
+| 18 | Beams, lights, ACT and ceiling checks | 5 | 9 |
+| 19 | Electrical devices and circuits | 6 | 8 |
+| 20 | Load calculation | 6 | 5 |
+| 21 | Code check engine and first rule sets | 2, 6 | 8 |
+| 22 | Plumbing | 7 | 2 |
+| 23 | Mechanical | 7 | 2 |
+| 24 | Tile layout | 7 | 1 |
+| 25 | Sheet set and sheet viewer | 7 | 8 |
+| 26 | Elevations, RCP and electrical sheets, title block | 7 | 7 |
+| 27 | PDF export, issue checklist and Rev 0 | 7 | 9 |
+| 28 | Revisions, client send and export options | 7 | 10 |
+| 29 | Detail editor | 8 | 9 |
+| 30 | Details on sheets, cut from model, library, export | 8 | 8 |
+| 31 | Catalog drawer and add product | 16 | 8 |
+| 32 | Catalog detail and price snapshots | 16 | 2 |
+| 33 | 3D scene, navigation and saved views | 10 | 8 |
+| 34 | 3D walk, finishes, measure and the rail | 10 | 5 |
+| 35 | Design options, phone 3D viewer, 3D exports | 10 | 5 |
+| 36 | Render setup and generate | 11 | 8 |
+| 37 | Render review and approval | 11 | 8 |
+| 38 | Render workers, extra adapters, path tracer and R1.0 | 11 | 6 |
+| 39 | Client approval page | 12 | 10 |
+| 40 | Client renders, comments and option choice | 12 | 6 |
+| 41 | Architect DXF reference | 9 | 8 |
+| 42 | Reference markup, revisions and diff | 9 | 9 |
+| 43 | Supplier files and rendering markup | 9 | 8 |
+| 44 | Offline editing | 1, 14 | 2 |
+| 45 | Field pack on the phone | 14 | 13 |
+| 46 | Code rules: Florida Residential, Existing Building, construction chapters | 6 | 5 |
+| 47 | Code rules: Energy, Mechanical, Fuel gas, Plumbing | 6 | 7 |
+| 48 | Code rules: NEC articles 100 to 230 and 240 (1 of 2) | 6 | 5 |
+| 49 | Code rules: NEC 240 to 410 (2 of 2) and 422 to 820 | 6 | 5 |
+| 50 | Translation queue | 15 | 6 |
+| 51 | Translations: approve in bulk, propagate, Spanish display | 15 | 4 |
+| 52 | Takeoff and catalog settings | 16 | 9 |
+| 53 | Hardening: security, backups, terms, event log, rule verification | 11, 17 | 5 |
+| 54 | Hardening: performance, accessibility, screen states | 17 | 6 |
 
 | Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -94,368 +131,369 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-101 | 1 | Permission and role tables | todo |  | EZD-005 |  |  |  |
 | EZD-102 | 1 | Permission enforcement | todo |  | EZD-101, EZD-006 |  |  |  |
 | EZD-103 | 1 | Settings shell | todo |  | EZD-102, EZD-012 |  |  |  |
-| EZD-104 | 1 | Users table | todo |  | EZD-103 |  |  |  |
-| EZD-105 | 1 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
-| EZD-106 | 1 | User inspector | todo |  | EZD-104 |  |  |  |
-| EZD-107 | 1 | Custom roles | todo |  | EZD-106 |  |  |  |
-| EZD-108 | 1 | Avatar menu and My profile | todo |  | EZD-103 |  |  |  |
-| EZD-109 | 1 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
-| EZD-110 | 1 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
-| EZD-111 | 1 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
+| EZD-104 | 7 | Users table | todo |  | EZD-103 |  |  |  |
+| EZD-105 | 7 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
+| EZD-106 | 7 | User inspector | todo |  | EZD-104 |  |  |  |
+| EZD-107 | 7 | Custom roles | todo |  | EZD-106 |  |  |  |
+| EZD-108 | 2 | Avatar menu and My profile | todo |  | EZD-103 |  |  |  |
+| EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
+| EZD-110 | 2 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
+| EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
 | EZD-112 | 1 | Company settings: identity | todo |  | EZD-103, EZD-132 |  |  |  |
 | EZD-113 | 1 | Customers | todo |  | EZD-112 |  |  |  |
-| EZD-114 | 1 | EZ Binder connection and shared sign-on | todo |  | EZD-112, EZD-007, EZD-019 |  |  |  |
-| EZD-115 | 1 | Customer and user sync | todo |  | EZD-113, EZD-114 |  |  |  |
-| EZD-116 | 1 | Defaults framework | todo |  | EZD-103 |  |  |  |
-| EZD-117a | 1 | Projects page: query and cards | todo |  | EZD-102, EZD-110 |  |  |  |
-| EZD-117b | 1 | Projects page: header, search and states | todo |  | EZD-117a, EZD-015 |  |  |  |
-| EZD-118 | 1 | New project wizard | todo |  | EZD-117, EZD-113 |  |  |  |
-| EZD-119 | 1 | EZ Binder job picker | todo |  | EZD-118, EZD-114 |  |  |  |
-| EZD-120a | 1 | Model tables, save function and checkpoints | todo |  | EZD-005, EZD-133 |  |  |  |
-| EZD-120b | 1 | Model store, outbox and editor route | todo |  | EZD-120a, EZD-012, EZD-117 |  |  |  |
-| EZD-121 | 1 | Sent versions and numbering | todo |  | EZD-120, EZD-111 |  |  |  |
-| EZD-122 | 1 | Versions panel | todo |  | EZD-121 |  |  |  |
-| EZD-123 | 1 | Version cleanup | todo |  | EZD-122, EZD-110, EZD-116 |  |  |  |
-| EZD-124 | 1 | Project card menu | todo |  | EZD-117, EZD-121 |  |  |  |
-| EZD-125 | 1 | Edit lock service | todo |  | EZD-120, EZD-109, EZD-110, EZD-116, EZD-018 |  |  |  |
-| EZD-126 | 1 | Edit lock UI | todo |  | EZD-125, EZD-011 |  |  |  |
-| EZD-127 | 1 | Review pill | todo |  | EZD-117 |  |  |  |
-| EZD-128 | 1 | Project switcher | todo |  | EZD-117 |  |  |  |
-| EZD-129 | 1 | User project scope | todo |  | EZD-106, EZD-006 |  |  |  |
-| EZD-130 | 1 | Project settings dialog | todo |  | EZD-118, EZD-116, EZD-128 |  |  |  |
-| EZD-131 | 1 | Libraries shell | todo |  | EZD-103 |  |  |  |
+| EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
+| EZD-117a | 2 | Projects page: query and cards | todo |  | EZD-102, EZD-110 |  |  |  |
+| EZD-117b | 2 | Projects page: header, search and states | todo |  | EZD-117a, EZD-015 |  |  |  |
+| EZD-118 | 2 | New project wizard | todo |  | EZD-117, EZD-113 |  |  |  |
+| EZD-120a | 3 | Model tables, save function and checkpoints | todo |  | EZD-005, EZD-133 |  |  |  |
+| EZD-120b | 3 | Model store, outbox and editor route | todo |  | EZD-120a, EZD-012, EZD-117 |  |  |  |
+| EZD-121 | 9 | Sent versions and numbering | todo |  | EZD-120, EZD-111 |  |  |  |
+| EZD-122 | 9 | Versions panel | todo |  | EZD-121 |  |  |  |
+| EZD-123 | 9 | Version cleanup | todo |  | EZD-122, EZD-110, EZD-116 |  |  |  |
+| EZD-124 | 9 | Project card menu | todo |  | EZD-117, EZD-121 |  |  |  |
+| EZD-125 | 8 | Edit lock service | todo |  | EZD-120, EZD-109, EZD-110, EZD-116, EZD-018 |  |  |  |
+| EZD-126 | 8 | Edit lock UI | todo |  | EZD-125, EZD-011 |  |  |  |
+| EZD-127 | 17 | Review pill | todo |  | EZD-117 |  |  |  |
+| EZD-128 | 8 | Project switcher | todo |  | EZD-117 |  |  |  |
+| EZD-129 | 7 | User project scope | todo |  | EZD-106, EZD-006 |  |  |  |
+| EZD-130 | 8 | Project settings dialog | todo |  | EZD-118, EZD-116, EZD-128 |  |  |  |
+| EZD-131 | 11 | Libraries shell | todo |  | EZD-103 |  |  |  |
 | EZD-132 | 1 | File storage | todo |  | EZD-006 |  |  |  |
-| EZD-133 | 1 | Access and money-field harness | todo |  | EZD-102, EZD-006 |  |  |  |
-| EZD-134 | 1 | App-shell cache and device storage | todo |  | EZD-013, EZD-120 |  |  |  |
-| EZD-135 | 1 | System status page | todo |  | EZD-103, EZD-024, EZD-025 |  |  |  |
-| EZD-201 | 2 | Length parse and format | todo |  | EZD-001 |  |  |  |
-| EZD-202 | 2 | Model document schema | todo |  | EZD-120 |  |  |  |
-| EZD-203 | 2 | Walls core | todo |  | EZD-202 |  |  |  |
-| EZD-204 | 2 | Openings core | todo |  | EZD-203 |  |  |  |
-| EZD-205 | 2 | Rooms and closure | todo |  | EZD-203 |  |  |  |
-| EZD-206 | 2 | Snapping | todo |  | EZD-203 |  |  |  |
-| EZD-207 | 2 | Plan canvas | todo |  | EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238 |  |  |  |
-| EZD-208 | 2 | Selection | todo |  | EZD-207 |  |  |  |
-| EZD-209 | 2 | Typed dimension bar | todo |  | EZD-201, EZD-207 |  |  |  |
-| EZD-210 | 2 | Wall and Room rectangle tools | todo |  | EZD-205, EZD-209 |  |  |  |
-| EZD-211 | 2 | Door and window tools | todo |  | EZD-204, EZD-209 |  |  |  |
-| EZD-212 | 2 | Move, handles, distance chips | todo |  | EZD-208 |  |  |  |
-| EZD-213 | 2 | Inspector fields | todo |  | EZD-208 |  |  |  |
-| EZD-214 | 2 | Status and phase switch | todo |  | EZD-213 |  |  |  |
-| EZD-215 | 2 | Bearing wall rule | todo |  | EZD-213, EZD-132 |  |  |  |
-| EZD-216 | 2 | Dimensions and text | todo |  | EZD-207, EZD-235 |  |  |  |
-| EZD-217 | 2 | Undo, redo and clipboard | todo |  | EZD-208 |  |  |  |
-| EZD-218 | 2 | Left panel: Layers and Rooms | todo |  | EZD-214, EZD-132 |  |  |  |
-| EZD-219 | 2 | Status bar popovers | todo |  | EZD-206 |  |  |  |
-| EZD-220 | 2 | Existing-condition pins | todo |  | EZD-213, EZD-132 |  |  |  |
-| EZD-221 | 2 | Blank templates | todo |  | EZD-210, EZD-118 |  |  |  |
-| EZD-222 | 2 | Keyboard shortcuts and Help | todo |  | EZD-116, EZD-012 |  |  |  |
-| EZD-223 | 2 | Sketch tool | todo |  | EZD-207, EZD-108 |  |  |  |
-| EZD-224 | 2 | Plan thumbnail | todo |  | EZD-207 |  |  |  |
-| EZD-225 | 2 | Editor states | todo |  | EZD-126, EZD-204 |  |  |  |
-| EZD-226 | 2 | Custom tile shower objects | todo |  | EZD-234 |  |  |  |
-| EZD-227 | 2 | Grab-bar blocking | todo |  | EZD-234 |  |  |  |
-| EZD-228 | 2 | Bath clearance check | todo |  | EZD-226, EZD-116 |  |  |  |
-| EZD-229 | 2 | Existing-condition details | todo |  | EZD-220 |  |  |  |
-| EZD-230 | 2 | Default key map and full rail | todo |  | EZD-222 |  |  |  |
-| EZD-231 | 2 | Measure tool (plan) | todo |  | EZD-206, EZD-207 |  |  |  |
-| EZD-232 | 2 | Manual revision cloud (plan) | todo |  | EZD-216 |  |  |  |
-| EZD-233 | 2 | Context menu, mirror, align, groups | todo |  | EZD-217, EZD-131, EZD-234 |  |  |  |
-| EZD-234 | 2 | Fixtures tool and utility points | todo |  | EZD-213 |  |  |  |
-| EZD-235 | 2 | Derived values and workers | todo |  | EZD-205, EZD-207 |  |  |  |
-| EZD-236 | 2 | Benchmark project generator | todo |  | EZD-202, EZD-017, EZD-120 |  |  |  |
-| EZD-237 | 2 | Benchmark page | todo |  | EZD-207, EZD-236, EZD-135 |  |  |  |
-| EZD-238 | 2 | Drawing list | todo |  | EZD-202 |  |  |  |
-| EZD-301 | 3 | Upload step | todo |  | EZD-118, EZD-009, EZD-132 |  |  |  |
-| EZD-302 | 3 | Polycam DXF detection | todo |  | EZD-301, EZD-202, EZD-016, EZD-029 |  |  |  |
-| EZD-303 | 3 | Polycam GLB mesh | todo |  | EZD-301 |  |  |  |
-| EZD-304 | 3 | PDF underlay and scale | todo |  | EZD-301 |  |  |  |
-| EZD-305 | 3 | Vector PDF wall detection | todo |  | EZD-304 |  |  |  |
-| EZD-306 | 3 | DXF conversion choice | todo |  | EZD-301, EZD-302 |  |  |  |
-| EZD-307 | 3 | Import review screen | todo |  | EZD-302, EZD-303, EZD-012 |  |  |  |
-| EZD-308 | 3 | Review modes | todo |  | EZD-307, EZD-116 |  |  |  |
-| EZD-309 | 3 | Fix and delete | todo |  | EZD-307 |  |  |  |
-| EZD-310 | 3 | Typed vs scan conflicts | todo |  | EZD-309, EZD-201 |  |  |  |
-| EZD-311 | 3 | Resolve the gap | todo |  | EZD-310, EZD-205 |  |  |  |
-| EZD-312 | 3 | Ceiling slope in review | todo |  | EZD-309, EZD-303 |  |  |  |
-| EZD-313 | 3 | Finish and cancel | todo |  | EZD-308, EZD-310, EZD-311 |  |  |  |
-| EZD-314 | 3 | Import states | todo |  | EZD-313, EZD-126 |  |  |  |
-| EZD-315 | 3 | Laser keyboard input | todo |  | EZD-209, EZD-310 |  |  |  |
-| EZD-401 | 4 | Catalog items (minimal) | todo |  | EZD-006 |  |  |  |
-| EZD-402 | 4 | Cabinet object model | todo |  | EZD-202 |  |  |  |
-| EZD-403 | 4 | Cabinet library panel | todo |  | EZD-402, EZD-401, EZD-404 |  |  |  |
-| EZD-404 | 4 | Plan strip and elevation | todo |  | EZD-402, EZD-207 |  |  |  |
-| EZD-405 | 4 | Box editing on canvas | todo |  | EZD-404 |  |  |  |
-| EZD-406 | 4 | Box inspector | todo |  | EZD-405 |  |  |  |
-| EZD-407 | 4 | Fit chip | todo |  | EZD-404, EZD-116 |  |  |  |
-| EZD-408 | 4 | Auto-fill run | todo |  | EZD-407, EZD-234 |  |  |  |
-| EZD-409 | 4 | Cabinet schedule | todo |  | EZD-406 |  |  |  |
-| EZD-410 | 4 | Cabinet flags and states | todo |  | EZD-402, EZD-204 |  |  |  |
-| EZD-411 | 4 | Countertop object model | todo |  | EZD-202 |  |  |  |
-| EZD-412 | 4 | Trace and Draw outline | todo |  | EZD-411, EZD-404, EZD-116 |  |  |  |
-| EZD-413 | 4 | Seams and cutouts | todo |  | EZD-412 |  |  |  |
-| EZD-414 | 4 | Edges and overhangs | todo |  | EZD-412, EZD-116 |  |  |  |
-| EZD-415 | 4 | Seating support check | todo |  | EZD-414 |  |  |  |
-| EZD-416 | 4 | Left panel and status bar | todo |  | EZD-412 |  |  |  |
-| EZD-417 | 4 | Edge profiles | todo |  | EZD-414 |  |  |  |
-| EZD-418 | 4 | Top schedule | todo |  | EZD-416 |  |  |  |
-| EZD-419 | 4 | Plan inspector: run selection | todo |  | EZD-406, EZD-409 |  |  |  |
-| EZD-501 | 5 | Ceiling data per room | todo |  | EZD-202 |  |  |  |
-| EZD-502 | 5 | RCP view and ceiling rail | todo |  | EZD-207, EZD-501, EZD-127 |  |  |  |
-| EZD-503 | 5 | Ceiling type editor | todo |  | EZD-501, EZD-303 |  |  |  |
-| EZD-504 | 5 | Walls cut under slopes | todo |  | EZD-503 |  |  |  |
-| EZD-505 | 5 | Beams | todo |  | EZD-501 |  |  |  |
-| EZD-506 | 5 | Section A-A preview | todo |  | EZD-505 |  |  |  |
-| EZD-507 | 5 | Ceiling devices | todo |  | EZD-501 |  |  |  |
-| EZD-508 | 5 | Fixture schedule panel | todo |  | EZD-507 |  |  |  |
-| EZD-509 | 5 | Auto-layout cans | todo |  | EZD-507, EZD-116 |  |  |  |
-| EZD-510 | 5 | Switching zones | todo |  | EZD-507 |  |  |  |
-| EZD-511 | 5 | ACT grid | todo |  | EZD-501, EZD-116 |  |  |  |
-| EZD-512 | 5 | HVAC objects | todo |  | EZD-511 |  |  |  |
-| EZD-513 | 5 | Soffits, trays, coffers, crown, tags | todo |  | EZD-501 |  |  |  |
-| EZD-514 | 5 | Framing known and keep-clear | todo |  | EZD-507 |  |  |  |
-| EZD-515 | 5 | Fan clearance and hosted flags | todo |  | EZD-507, EZD-505, EZD-116 |  |  |  |
-| EZD-516 | 5 | Beam finish, More menu, canvas | todo |  | EZD-505, EZD-401 |  |  |  |
-| EZD-601 | 6 | Electrical mode and left panel | todo |  | EZD-207, EZD-202 |  |  |  |
-| EZD-602 | 6 | Device toolbar | todo |  | EZD-601, EZD-507 |  |  |  |
-| EZD-603 | 6 | Device height notes | todo |  | EZD-602, EZD-116 |  |  |  |
-| EZD-604 | 6 | Circuits | todo |  | EZD-602 |  |  |  |
-| EZD-605 | 6 | Switch legs | todo |  | EZD-604, EZD-510 |  |  |  |
-| EZD-606 | 6 | Panel and existing panel dialog | todo |  | EZD-604, EZD-021 |  |  |  |
-| EZD-607 | 6 | Load calc engine | todo |  | EZD-604 |  |  |  |
-| EZD-608 | 6 | Load calc inspector | todo |  | EZD-607, EZD-116 |  |  |  |
-| EZD-609 | 6 | Panel schedule | todo |  | EZD-604 |  |  |  |
-| EZD-610 | 6 | Selected circuit and voltage drop | todo |  | EZD-604, EZD-116 |  |  |  |
-| EZD-611a | 6 | Code check engine and rule registry | todo |  | EZD-604, EZD-218, EZD-613 |  |  |  |
-| EZD-611b | 6 | Code rules: Florida Residential Ch. 3 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-611c | 6 | Code rules: Florida Residential Ch. 3 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-612 | 6 | Check button and results | todo |  | EZD-611a |  |  |  |
-| EZD-613 | 6 | Code edition settings | todo |  | EZD-116 |  |  |  |
-| EZD-614 | 6 | Appliance rating defaults | todo |  | EZD-607, EZD-401, EZD-103 |  |  |  |
-| EZD-615 | 6 | Load calc: optional method and cases | todo |  | EZD-607, EZD-606, EZD-608 |  |  |  |
-| EZD-616 | 6 | Code rules: Florida Residential Ch. 3 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-617 | 6 | Code rules: Florida Residential Ch. 3 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-618 | 6 | Code rules: Existing Building | todo |  | EZD-611a, EZD-620 |  |  |  |
-| EZD-620 | 6 | Code data fields | todo |  | EZD-611a, EZD-130, EZD-213 |  |  |  |
-| EZD-621 | 6 | Code rules: Florida construction chapters (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-501 |  |  |  |
-| EZD-622 | 6 | Code rules: Florida construction chapters (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-501 |  |  |  |
-| EZD-623 | 6 | Code rules: Energy Conservation | todo |  | EZD-611a, EZD-620, EZD-507 |  |  |  |
-| EZD-624 | 6 | Code rules: Mechanical (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
-| EZD-625 | 6 | Code rules: Mechanical (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
-| EZD-626 | 6 | Code rules: Fuel gas | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
-| EZD-627 | 6 | Code rules: Plumbing (1 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
-| EZD-628 | 6 | Code rules: Plumbing (2 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
-| EZD-629 | 6 | Code rules: Plumbing (3 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
-| EZD-630 | 6 | Code rules: NEC Art. 100-230 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-631 | 6 | Code rules: NEC Art. 100-230 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-632 | 6 | Code rules: NEC Art. 100-230 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-633 | 6 | Code rules: NEC Art. 100-230 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-634 | 6 | Code rules: NEC Art. 240-410 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-635 | 6 | Code rules: NEC Art. 240-410 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-636 | 6 | Code rules: NEC Art. 240-410 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-637 | 6 | Code rules: NEC Art. 240-410 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-638 | 6 | Code rules: NEC Art. 422-820 (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
-| EZD-639 | 6 | Code rules: NEC Art. 422-820 (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
-| EZD-701 | 7 | Sheet model and default set | todo |  | EZD-202 |  |  |  |
-| EZD-702a | 7 | Sheets screen | todo |  | EZD-701, EZD-726 |  |  |  |
-| EZD-702b | 7 | Sheet renderer | todo |  | EZD-702a, EZD-235, EZD-238 |  |  |  |
-| EZD-703 | 7 | Viewports and scales | todo |  | EZD-702, EZD-214 |  |  |  |
-| EZD-704 | 7 | Sheet annotation tools | todo |  | EZD-702 |  |  |  |
-| EZD-705 | 7 | Print rules | todo |  | EZD-703 |  |  |  |
-| EZD-706 | 7 | Symbol key | todo |  | EZD-702 |  |  |  |
-| EZD-707 | 7 | Elevations sheet | todo |  | EZD-703, EZD-404 |  |  |  |
-| EZD-708a | 7 | A6.0 RCP sheet | todo |  | EZD-703, EZD-508 |  |  |  |
-| EZD-708b | 7 | E1.0 electrical plan | todo |  | EZD-703, EZD-604, EZD-708a |  |  |  |
-| EZD-708c | 7 | E2.0 panel schedule and load calc | todo |  | EZD-708b, EZD-609, EZD-607 |  |  |  |
-| EZD-709 | 7 | Title block settings | todo |  | EZD-112, EZD-701 |  |  |  |
-| EZD-710 | 7 | Title block on sheets | todo |  | EZD-709, EZD-130 |  |  |  |
-| EZD-711 | 7 | Property appraiser import | todo |  | EZD-710, EZD-009, EZD-021, EZD-118 |  |  |  |
-| EZD-712 | 7 | Submittal profiles | todo |  | EZD-116 |  |  |  |
-| EZD-713 | 7 | Department profile settings | todo |  | EZD-712 |  |  |  |
-| EZD-714 | 7 | Notes library | todo |  | EZD-712 |  |  |  |
-| EZD-715 | 7 | PDF export job | todo |  | EZD-705, EZD-713, EZD-238, EZD-028 |  |  |  |
-| EZD-716 | 7 | Issue checklist | todo |  | EZD-612, EZD-710 |  |  |  |
-| EZD-717 | 7 | Issue Rev 0 and Rev N | todo |  | EZD-715, EZD-716, EZD-121 |  |  |  |
-| EZD-718 | 7 | Revision clouds and log | todo |  | EZD-717 |  |  |  |
-| EZD-719 | 7 | Send set to client | todo |  | EZD-717, EZD-111 |  |  |  |
-| EZD-720 | 7 | Client set content | todo |  | EZD-701, EZD-418, EZD-726 |  |  |  |
-| EZD-721 | 7 | Export menu | todo |  | EZD-715 |  |  |  |
-| EZD-722 | 7 | Sheets states | todo |  | EZD-717 |  |  |  |
-| EZD-723 | 7 | Download one page at a time | todo |  | EZD-715, EZD-713 |  |  |  |
-| EZD-724 | 7 | Dismissible dimension warning | todo |  | EZD-716 |  |  |  |
-| EZD-725 | 7 | Accepted warnings in the issue log | todo |  | EZD-717, EZD-612 |  |  |  |
-| EZD-726 | 7 | Sheet sets | todo |  | EZD-701 |  |  |  |
-| EZD-727 | 7 | Submittal profile enforcement at issue | todo |  | EZD-712, EZD-713, EZD-715 |  |  |  |
-| EZD-728 | 7 | Cover sheet A0.0 | todo |  | EZD-706, EZD-714 |  |  |  |
-| EZD-801 | 8 | Detail data and editor shell | todo |  | EZD-202, EZD-012 |  |  |  |
-| EZD-802 | 8 | New detail dialog | todo |  | EZD-801 |  |  |  |
-| EZD-803 | 8 | Drawing tools | todo |  | EZD-801, EZD-201 |  |  |  |
-| EZD-804 | 8 | Line roles and hatches | todo |  | EZD-803 |  |  |  |
-| EZD-805 | 8 | Annotation tools | todo |  | EZD-803 |  |  |  |
-| EZD-806 | 8 | Parts | todo |  | EZD-801, EZD-817 |  |  |  |
-| EZD-807 | 8 | Scale and NTS | todo |  | EZD-805, EZD-116 |  |  |  |
-| EZD-808 | 8 | Steps and layers | todo |  | EZD-801 |  |  |  |
-| EZD-809 | 8 | Legibility warnings | todo |  | EZD-805 |  |  |  |
-| EZD-810 | 8 | Place on sheet | todo |  | EZD-809, EZD-702 |  |  |  |
-| EZD-811 | 8 | Cut from model and callouts | todo |  | EZD-802, EZD-207 |  |  |  |
-| EZD-812 | 8 | Underlay start | todo |  | EZD-802, EZD-304 |  |  |  |
-| EZD-813 | 8 | Extrude to 3D | todo |  | EZD-803 |  |  |  |
-| EZD-814 | 8 | Detail library and countertop link | todo |  | EZD-801, EZD-415, EZD-817 |  |  |  |
-| EZD-815 | 8 | Detail PDF export | todo |  | EZD-810, EZD-721 |  |  |  |
-| EZD-816 | 8 | Freehand pen | todo |  | EZD-803, EZD-223 |  |  |  |
-| EZD-817 | 8 | Detail libraries in Settings | todo |  | EZD-801, EZD-131 |  |  |  |
-| EZD-901a | 9 | Reference conversion job | todo |  | EZD-306, EZD-009, EZD-016, EZD-029 |  |  |  |
-| EZD-901b | 9 | Reference drawing in Plan | todo |  | EZD-901a, EZD-207, EZD-235, EZD-017 |  |  |  |
-| EZD-902 | 9 | Reference under the model | todo |  | EZD-901 |  |  |  |
-| EZD-903 | 9 | Alignment | todo |  | EZD-902, EZD-904 |  |  |  |
-| EZD-904 | 9 | Reference layers panel | todo |  | EZD-901 |  |  |  |
-| EZD-905 | 9 | Paper-space layouts | todo |  | EZD-901 |  |  |  |
-| EZD-906 | 9 | Convert layers | todo |  | EZD-904, EZD-307, EZD-306 |  |  |  |
-| EZD-907 | 9 | Markup layer | todo |  | EZD-902, EZD-904 |  |  |  |
-| EZD-908 | 9 | Reference versions | todo |  | EZD-904, EZD-921 |  |  |  |
-| EZD-909a | 9 | Reference diff job | todo |  | EZD-908, EZD-907, EZD-116 |  |  |  |
-| EZD-909b | 9 | Reference diff view | todo |  | EZD-909a |  |  |  |
-| EZD-910 | 9 | Keep or accept a revision | todo |  | EZD-909 |  |  |  |
-| EZD-911 | 9 | Export markup | todo |  | EZD-907, EZD-913, EZD-715 |  |  |  |
-| EZD-912 | 9 | Section or callout from reference | todo |  | EZD-902, EZD-811 |  |  |  |
-| EZD-913 | 9 | DXF export | todo |  | EZD-901, EZD-721 |  |  |  |
-| EZD-914 | 9 | Supplier files panel | todo |  | EZD-301 |  |  |  |
-| EZD-915 | 9 | Supplier vector PDF import | todo |  | EZD-914, EZD-305 |  |  |  |
-| EZD-916 | 9 | 2020 order report import | todo |  | EZD-914, EZD-307, EZD-021 |  |  |  |
-| EZD-917 | 9 | Tag and link tools | todo |  | EZD-914, EZD-404, EZD-907 |  |  |  |
-| EZD-918 | 9 | Read codes | todo |  | EZD-917, EZD-916, EZD-021 |  |  |  |
-| EZD-919 | 9 | Compare and resolve mismatches | todo |  | EZD-917, EZD-407, EZD-111 |  |  |  |
-| EZD-920 | 9 | Suggested finishes | todo |  | EZD-917, EZD-401, EZD-021 |  |  |  |
-| EZD-921 | 9 | Architect revision labels | todo |  | EZD-904 |  |  |  |
-| EZD-922a | 9 | Reference states (screen 11) | todo |  | EZD-911 |  |  |  |
-| EZD-922b | 9 | Supplier markup states (screen 12) | todo |  | EZD-919 |  |  |  |
-| EZD-1001a | 10 | 3D scene core | todo |  | EZD-207, EZD-020, EZD-235, EZD-030 |  |  |  |
-| EZD-1001b | 10 | 3D ceilings and beams | todo |  | EZD-1001a, EZD-504, EZD-505 |  |  |  |
-| EZD-1001c | 10 | 3D cabinets, fixtures, devices and finishes | todo |  | EZD-1001b, EZD-402, EZD-414, EZD-234, EZD-226, EZD-602, EZD-401 |  |  |  |
-| EZD-1002 | 10 | Navigation | todo |  | EZD-1001 |  |  |  |
-| EZD-1003 | 10 | Walk and Look up | todo |  | EZD-1002, EZD-116 |  |  |  |
-| EZD-1004 | 10 | Section and display modes | todo |  | EZD-1002 |  |  |  |
-| EZD-1005 | 10 | 3D layers | todo |  | EZD-1001, EZD-303 |  |  |  |
-| EZD-1006 | 10 | Saved views | todo |  | EZD-1002 |  |  |  |
-| EZD-1007 | 10 | Select and apply finish | todo |  | EZD-1001, EZD-401, EZD-505 |  |  |  |
-| EZD-1008 | 10 | Rail on the 3D tab | todo |  | EZD-1002, EZD-612 |  |  |  |
-| EZD-1009 | 10 | Design options data | todo |  | EZD-202 |  |  |  |
-| EZD-1010 | 10 | Options inspector | todo |  | EZD-1009, EZD-1001 |  |  |  |
-| EZD-1011 | 10 | Make options from the RCP | todo |  | EZD-1010, EZD-505 |  |  |  |
-| EZD-1012 | 10 | Measure in 3D | todo |  | EZD-1002 |  |  |  |
-| EZD-1013 | 10 | Phone 3D viewer | todo |  | EZD-1012, EZD-014 |  |  |  |
-| EZD-1014 | 10 | GLB and USDZ export | todo |  | EZD-1001, EZD-721 |  |  |  |
-| EZD-1015 | 10 | iPad memory guard and states | todo |  | EZD-1001 |  |  |  |
-| EZD-1017 | 10 | Inspector 3D preview | todo |  | EZD-1001 |  |  |  |
-| EZD-1101 | 11 | Render records and jobs | todo |  | EZD-009, EZD-1006 |  |  |  |
-| EZD-1102 | 11 | Render models settings | todo |  | EZD-116 |  |  |  |
-| EZD-1103 | 11 | Provider adapters | todo |  | EZD-1101, EZD-1102, EZD-021 |  |  |  |
-| EZD-1104a | 11 | Local worker protocol | todo |  | EZD-1103, EZD-116 |  |  |  |
-| EZD-1104b | 11 | Local worker program | todo |  | EZD-1104a |  |  |  |
-| EZD-1105 | 11 | Browser path tracer | todo |  | EZD-1001, EZD-1109 |  |  |  |
-| EZD-1106 | 11 | Step 1: angle | todo |  | EZD-1006, EZD-1101 |  |  |  |
-| EZD-1107 | 11 | Preview and optional alignment | todo |  | EZD-1106 |  |  |  |
-| EZD-1108 | 11 | Step 2: style and direction | todo |  | EZD-1107, EZD-401 |  |  |  |
-| EZD-1109 | 11 | Tiers and Generate | todo |  | EZD-1108, EZD-1103 |  |  |  |
-| EZD-1110 | 11 | Renders list and notifications | todo |  | EZD-1109, EZD-110, EZD-127 |  |  |  |
-| EZD-1111 | 11 | Render view | todo |  | EZD-1110 |  |  |  |
-| EZD-1112 | 11 | Comment pins | todo |  | EZD-1111 |  |  |  |
-| EZD-1113 | 11 | Fix and regenerate | todo |  | EZD-1111 |  |  |  |
-| EZD-1114 | 11 | Two-step approval | todo |  | EZD-1111 |  |  |  |
-| EZD-1115 | 11 | Model changed detection | todo |  | EZD-1114, EZD-1001, EZD-1109, EZD-127 |  |  |  |
-| EZD-1116 | 11 | Download | todo |  | EZD-1111 |  |  |  |
-| EZD-1117 | 11 | Render allowance | todo |  | EZD-1102, EZD-110 |  |  |  |
-| EZD-1118 | 11 | Render A/B/C from 3D | todo |  | EZD-1109, EZD-1010 |  |  |  |
-| EZD-1119 | 11 | R1.0 finish schedule + renders | todo |  | EZD-1114, EZD-716, EZD-401 |  |  |  |
-| EZD-1120 | 11 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
-| EZD-1121 | 11 | Second provider adapter | todo |  | EZD-1103 |  |  |  |
-| EZD-1201 | 12 | Share links | todo |  | EZD-111, EZD-116 |  |  |  |
-| EZD-1202 | 12 | Client page shell | todo |  | EZD-1201, EZD-020 |  |  |  |
-| EZD-1203 | 12 | Render gallery | todo |  | EZD-1202, EZD-1114 |  |  |  |
-| EZD-1204 | 12 | Client comments | todo |  | EZD-1203, EZD-1112 |  |  |  |
-| EZD-1205 | 12 | Plans tab | todo |  | EZD-1202, EZD-702, EZD-1215 |  |  |  |
-| EZD-1206 | 12 | Send options to client | todo |  | EZD-1010, EZD-1201, EZD-121 |  |  |  |
-| EZD-1207 | 12 | Option choice | todo |  | EZD-1206, EZD-1215 |  |  |  |
-| EZD-1208 | 12 | Selection offers and choice pages | todo |  | EZD-1202, EZD-417 |  |  |  |
-| EZD-1209 | 12 | Edge choice | todo |  | EZD-1208, EZD-417 |  |  |  |
-| EZD-1210 | 12 | Verify and sign | todo |  | EZD-1208, EZD-113 |  |  |  |
-| EZD-1211 | 12 | Approve | todo |  | EZD-1210 |  |  |  |
-| EZD-1212 | 12 | Selections PDF | todo |  | EZD-1211 |  |  |  |
-| EZD-1213 | 12 | Send image | todo |  | EZD-1114, EZD-111 |  |  |  |
-| EZD-1214 | 12 | Archive options on signing | todo |  | EZD-1009, EZD-1211 |  |  |  |
-| EZD-1215 | 12 | Send to client composer | todo |  | EZD-1201, EZD-1208, EZD-401 |  |  |  |
-| EZD-1301 | 13 | Webhook delivery | todo |  | EZD-114, EZD-109, EZD-116, EZD-022, EZD-009, EZD-019 |  |  |  |
-| EZD-1302 | 13 | Outbound event payloads | todo |  | EZD-1301 |  |  |  |
-| EZD-1303 | 13 | Inbound API authentication | todo |  | EZD-114, EZD-019 |  |  |  |
-| EZD-1304 | 13 | Inbound: create project from job | todo |  | EZD-1303, EZD-119 |  |  |  |
-| EZD-1305 | 13 | Inbound: open with shared sign-on | todo |  | EZD-1303 |  |  |  |
-| EZD-1306 | 13 | Inbound: read approved data | todo |  | EZD-1303, EZD-1211, EZD-717, EZD-1114 |  |  |  |
-| EZD-1307 | 13 | Inbound: mark CO approved | todo |  | EZD-1303, EZD-1308 |  |  |  |
-| EZD-1308 | 13 | CO draft data and entry points | todo |  | EZD-717, EZD-122 |  |  |  |
-| EZD-1309 | 13 | Before and after images | todo |  | EZD-1308, EZD-1114 |  |  |  |
-| EZD-1310 | 13 | Scope text | todo |  | EZD-1308, EZD-009, EZD-021 |  |  |  |
-| EZD-1311 | 13 | Line items and schedule impact | todo |  | EZD-1308 |  |  |  |
-| EZD-1312 | 13 | Save draft and Send to EZ Binder | todo |  | EZD-1309, EZD-1311, EZD-1302 |  |  |  |
-| EZD-1314 | 13 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
+| EZD-133 | 3 | Access and money-field harness | todo |  | EZD-102, EZD-006 |  |  |  |
+| EZD-134 | 14 | App-shell cache and device storage | todo |  | EZD-013, EZD-120 |  |  |  |
+| EZD-135 | 6 | System status page | todo |  | EZD-103, EZD-024, EZD-025 |  |  |  |
+| EZD-201 | 4 | Length parse and format | todo |  | EZD-001 |  |  |  |
+| EZD-202 | 3 | Model document schema | todo |  | EZD-120 |  |  |  |
+| EZD-203 | 4 | Walls core | todo |  | EZD-202 |  |  |  |
+| EZD-204 | 5 | Openings core | todo |  | EZD-203 |  |  |  |
+| EZD-205 | 4 | Rooms and closure | todo |  | EZD-203 |  |  |  |
+| EZD-206 | 5 | Snapping | todo |  | EZD-203 |  |  |  |
+| EZD-207 | 4 | Plan canvas | todo |  | EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238 |  |  |  |
+| EZD-208 | 5 | Selection | todo |  | EZD-207 |  |  |  |
+| EZD-209 | 4 | Typed dimension bar | todo |  | EZD-201, EZD-207 |  |  |  |
+| EZD-210 | 4 | Wall and Room rectangle tools | todo |  | EZD-205, EZD-209 |  |  |  |
+| EZD-211 | 5 | Door and window tools | todo |  | EZD-204, EZD-209 |  |  |  |
+| EZD-212 | 5 | Move, handles, distance chips | todo |  | EZD-208 |  |  |  |
+| EZD-213 | 5 | Inspector fields | todo |  | EZD-208 |  |  |  |
+| EZD-214 | 6 | Status and phase switch | todo |  | EZD-213 |  |  |  |
+| EZD-215 | 10 | Bearing wall rule | todo |  | EZD-213, EZD-132 |  |  |  |
+| EZD-216 | 6 | Dimensions and text | todo |  | EZD-207, EZD-235 |  |  |  |
+| EZD-217 | 5 | Undo, redo and clipboard | todo |  | EZD-208 |  |  |  |
+| EZD-218 | 6 | Left panel: Layers and Rooms | todo |  | EZD-214, EZD-132 |  |  |  |
+| EZD-219 | 6 | Status bar popovers | todo |  | EZD-206 |  |  |  |
+| EZD-220 | 10 | Existing-condition pins | todo |  | EZD-213, EZD-132 |  |  |  |
+| EZD-221 | 4 | Blank templates | todo |  | EZD-210, EZD-118 |  |  |  |
+| EZD-222 | 11 | Keyboard shortcuts and Help | todo |  | EZD-116, EZD-012 |  |  |  |
+| EZD-223 | 11 | Sketch tool | todo |  | EZD-207, EZD-108 |  |  |  |
+| EZD-224 | 6 | Plan thumbnail | todo |  | EZD-207 |  |  |  |
+| EZD-225 | 8 | Editor states | todo |  | EZD-126, EZD-204 |  |  |  |
+| EZD-226 | 10 | Custom tile shower objects | todo |  | EZD-234 |  |  |  |
+| EZD-227 | 10 | Grab-bar blocking | todo |  | EZD-234 |  |  |  |
+| EZD-228 | 21 | Bath clearance check | todo |  | EZD-226, EZD-116 |  |  |  |
+| EZD-229 | 10 | Existing-condition details | todo |  | EZD-220 |  |  |  |
+| EZD-230 | 11 | Default key map and full rail | todo |  | EZD-222 |  |  |  |
+| EZD-231 | 11 | Measure tool (plan) | todo |  | EZD-206, EZD-207 |  |  |  |
+| EZD-232 | 11 | Manual revision cloud (plan) | todo |  | EZD-216 |  |  |  |
+| EZD-233 | 11 | Context menu, mirror, align, groups | todo |  | EZD-217, EZD-131, EZD-234 |  |  |  |
+| EZD-234 | 10 | Fixtures tool and utility points | todo |  | EZD-213 |  |  |  |
+| EZD-235 | 6 | Derived values and workers | todo |  | EZD-205, EZD-207 |  |  |  |
+| EZD-236 | 4 | Benchmark project generator | todo |  | EZD-202, EZD-017, EZD-120 |  |  |  |
+| EZD-237 | 6 | Benchmark page | todo |  | EZD-207, EZD-236, EZD-135 |  |  |  |
+| EZD-238 | 3 | Drawing list | todo |  | EZD-202 |  |  |  |
+| EZD-301 | 12 | Upload step | todo |  | EZD-118, EZD-009, EZD-132 |  |  |  |
+| EZD-302 | 12 | Polycam DXF detection | todo |  | EZD-301, EZD-202, EZD-016, EZD-029 |  |  |  |
+| EZD-303 | 12 | Polycam GLB mesh | todo |  | EZD-301 |  |  |  |
+| EZD-304 | 13 | PDF underlay and scale | todo |  | EZD-301 |  |  |  |
+| EZD-305 | 13 | Vector PDF wall detection | todo |  | EZD-304 |  |  |  |
+| EZD-306 | 13 | DXF conversion choice | todo |  | EZD-301, EZD-302 |  |  |  |
+| EZD-307 | 12 | Import review screen | todo |  | EZD-302, EZD-303, EZD-012 |  |  |  |
+| EZD-308 | 12 | Review modes | todo |  | EZD-307, EZD-116 |  |  |  |
+| EZD-309 | 12 | Fix and delete | todo |  | EZD-307 |  |  |  |
+| EZD-310 | 12 | Typed vs scan conflicts | todo |  | EZD-309, EZD-201 |  |  |  |
+| EZD-311 | 12 | Resolve the gap | todo |  | EZD-310, EZD-205 |  |  |  |
+| EZD-312 | 13 | Ceiling slope in review | todo |  | EZD-309, EZD-303 |  |  |  |
+| EZD-313 | 12 | Finish and cancel | todo |  | EZD-308, EZD-310, EZD-311 |  |  |  |
+| EZD-314 | 13 | Import states | todo |  | EZD-313, EZD-126 |  |  |  |
+| EZD-315 | 13 | Laser keyboard input | todo |  | EZD-209, EZD-310 |  |  |  |
+| EZD-401 | 15 | Catalog items (minimal) | todo |  | EZD-006 |  |  |  |
+| EZD-402 | 15 | Cabinet object model | todo |  | EZD-202 |  |  |  |
+| EZD-403 | 15 | Cabinet library panel | todo |  | EZD-402, EZD-401, EZD-404 |  |  |  |
+| EZD-404 | 15 | Plan strip and elevation | todo |  | EZD-402, EZD-207 |  |  |  |
+| EZD-405 | 15 | Box editing on canvas | todo |  | EZD-404 |  |  |  |
+| EZD-406 | 15 | Box inspector | todo |  | EZD-405 |  |  |  |
+| EZD-407 | 15 | Fit chip | todo |  | EZD-404, EZD-116 |  |  |  |
+| EZD-408 | 15 | Auto-fill run | todo |  | EZD-407, EZD-234 |  |  |  |
+| EZD-409 | 15 | Cabinet schedule | todo |  | EZD-406 |  |  |  |
+| EZD-410 | 15 | Cabinet flags and states | todo |  | EZD-402, EZD-204 |  |  |  |
+| EZD-411 | 16 | Countertop object model | todo |  | EZD-202 |  |  |  |
+| EZD-412 | 16 | Trace and Draw outline | todo |  | EZD-411, EZD-404, EZD-116 |  |  |  |
+| EZD-413 | 16 | Seams and cutouts | todo |  | EZD-412 |  |  |  |
+| EZD-414 | 16 | Edges and overhangs | todo |  | EZD-412, EZD-116 |  |  |  |
+| EZD-415 | 16 | Seating support check | todo |  | EZD-414 |  |  |  |
+| EZD-416 | 16 | Left panel and status bar | todo |  | EZD-412 |  |  |  |
+| EZD-417 | 16 | Edge profiles | todo |  | EZD-414 |  |  |  |
+| EZD-418 | 16 | Top schedule | todo |  | EZD-416 |  |  |  |
+| EZD-419 | 16 | Plan inspector: run selection | todo |  | EZD-406, EZD-409 |  |  |  |
+| EZD-501 | 17 | Ceiling data per room | todo |  | EZD-202 |  |  |  |
+| EZD-502 | 17 | RCP view and ceiling rail | todo |  | EZD-207, EZD-501, EZD-127 |  |  |  |
+| EZD-503 | 17 | Ceiling type editor | todo |  | EZD-501, EZD-303 |  |  |  |
+| EZD-504 | 17 | Walls cut under slopes | todo |  | EZD-503 |  |  |  |
+| EZD-505 | 18 | Beams | todo |  | EZD-501 |  |  |  |
+| EZD-506 | 18 | Section A-A preview | todo |  | EZD-505 |  |  |  |
+| EZD-507 | 17 | Ceiling devices | todo |  | EZD-501 |  |  |  |
+| EZD-508 | 17 | Fixture schedule panel | todo |  | EZD-507 |  |  |  |
+| EZD-509 | 18 | Auto-layout cans | todo |  | EZD-507, EZD-116 |  |  |  |
+| EZD-510 | 18 | Switching zones | todo |  | EZD-507 |  |  |  |
+| EZD-511 | 18 | ACT grid | todo |  | EZD-501, EZD-116 |  |  |  |
+| EZD-512 | 18 | HVAC objects | todo |  | EZD-511 |  |  |  |
+| EZD-513 | 17 | Soffits, trays, coffers, crown, tags | todo |  | EZD-501 |  |  |  |
+| EZD-514 | 18 | Framing known and keep-clear | todo |  | EZD-507 |  |  |  |
+| EZD-515 | 18 | Fan clearance and hosted flags | todo |  | EZD-507, EZD-505, EZD-116 |  |  |  |
+| EZD-516 | 18 | Beam finish, More menu, canvas | todo |  | EZD-505, EZD-401 |  |  |  |
+| EZD-601 | 19 | Electrical mode and left panel | todo |  | EZD-207, EZD-202 |  |  |  |
+| EZD-602 | 19 | Device toolbar | todo |  | EZD-601, EZD-507 |  |  |  |
+| EZD-603 | 19 | Device height notes | todo |  | EZD-602, EZD-116 |  |  |  |
+| EZD-604 | 19 | Circuits | todo |  | EZD-602 |  |  |  |
+| EZD-605 | 19 | Switch legs | todo |  | EZD-604, EZD-510 |  |  |  |
+| EZD-606 | 19 | Panel and existing panel dialog | todo |  | EZD-604, EZD-021 |  |  |  |
+| EZD-607 | 20 | Load calc engine | todo |  | EZD-604 |  |  |  |
+| EZD-608 | 20 | Load calc inspector | todo |  | EZD-607, EZD-116 |  |  |  |
+| EZD-609 | 19 | Panel schedule | todo |  | EZD-604 |  |  |  |
+| EZD-610 | 19 | Selected circuit and voltage drop | todo |  | EZD-604, EZD-116 |  |  |  |
+| EZD-611a | 21 | Code check engine and rule registry | todo |  | EZD-604, EZD-218, EZD-613 |  |  |  |
+| EZD-611b | 21 | Code rules: Florida Residential Ch. 3 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-611c | 21 | Code rules: Florida Residential Ch. 3 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-612 | 21 | Check button and results | todo |  | EZD-611a |  |  |  |
+| EZD-613 | 21 | Code edition settings | todo |  | EZD-116 |  |  |  |
+| EZD-614 | 20 | Appliance rating defaults | todo |  | EZD-607, EZD-401, EZD-103 |  |  |  |
+| EZD-615 | 20 | Load calc: optional method and cases | todo |  | EZD-607, EZD-606, EZD-608 |  |  |  |
+| EZD-616 | 46 | Code rules: Florida Residential Ch. 3 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-617 | 46 | Code rules: Florida Residential Ch. 3 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-618 | 46 | Code rules: Existing Building | todo |  | EZD-611a, EZD-620 |  |  |  |
+| EZD-620 | 21 | Code data fields | todo |  | EZD-611a, EZD-130, EZD-213 |  |  |  |
+| EZD-621 | 46 | Code rules: Florida construction chapters (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-501 |  |  |  |
+| EZD-622 | 46 | Code rules: Florida construction chapters (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-501 |  |  |  |
+| EZD-623 | 47 | Code rules: Energy Conservation | todo |  | EZD-611a, EZD-620, EZD-507 |  |  |  |
+| EZD-624 | 47 | Code rules: Mechanical (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
+| EZD-625 | 47 | Code rules: Mechanical (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
+| EZD-626 | 47 | Code rules: Fuel gas | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
+| EZD-627 | 47 | Code rules: Plumbing (1 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
+| EZD-628 | 47 | Code rules: Plumbing (2 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
+| EZD-629 | 47 | Code rules: Plumbing (3 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
+| EZD-630 | 48 | Code rules: NEC Art. 100-230 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-631 | 48 | Code rules: NEC Art. 100-230 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-632 | 48 | Code rules: NEC Art. 100-230 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-633 | 48 | Code rules: NEC Art. 100-230 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-634 | 48 | Code rules: NEC Art. 240-410 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-635 | 49 | Code rules: NEC Art. 240-410 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-636 | 49 | Code rules: NEC Art. 240-410 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-637 | 49 | Code rules: NEC Art. 240-410 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-638 | 49 | Code rules: NEC Art. 422-820 (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
+| EZD-639 | 49 | Code rules: NEC Art. 422-820 (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
+| EZD-701 | 25 | Sheet model and default set | todo |  | EZD-202 |  |  |  |
+| EZD-702a | 25 | Sheets screen | todo |  | EZD-701, EZD-726 |  |  |  |
+| EZD-702b | 25 | Sheet renderer | todo |  | EZD-702a, EZD-235, EZD-238 |  |  |  |
+| EZD-703 | 25 | Viewports and scales | todo |  | EZD-702, EZD-214 |  |  |  |
+| EZD-704 | 25 | Sheet annotation tools | todo |  | EZD-702 |  |  |  |
+| EZD-705 | 25 | Print rules | todo |  | EZD-703 |  |  |  |
+| EZD-706 | 25 | Symbol key | todo |  | EZD-702 |  |  |  |
+| EZD-707 | 26 | Elevations sheet | todo |  | EZD-703, EZD-404 |  |  |  |
+| EZD-708a | 26 | A6.0 RCP sheet | todo |  | EZD-703, EZD-508 |  |  |  |
+| EZD-708b | 26 | E1.0 electrical plan | todo |  | EZD-703, EZD-604, EZD-708a |  |  |  |
+| EZD-708c | 26 | E2.0 panel schedule and load calc | todo |  | EZD-708b, EZD-609, EZD-607 |  |  |  |
+| EZD-709 | 26 | Title block settings | todo |  | EZD-112, EZD-701 |  |  |  |
+| EZD-710 | 26 | Title block on sheets | todo |  | EZD-709, EZD-130 |  |  |  |
+| EZD-711 | 26 | Property appraiser import | todo |  | EZD-710, EZD-009, EZD-021, EZD-118 |  |  |  |
+| EZD-712 | 27 | Submittal profiles | todo |  | EZD-116 |  |  |  |
+| EZD-713 | 27 | Department profile settings | todo |  | EZD-712 |  |  |  |
+| EZD-714 | 27 | Notes library | todo |  | EZD-712 |  |  |  |
+| EZD-715 | 27 | PDF export job | todo |  | EZD-705, EZD-713, EZD-238, EZD-028 |  |  |  |
+| EZD-716 | 27 | Issue checklist | todo |  | EZD-612, EZD-710 |  |  |  |
+| EZD-717 | 27 | Issue Rev 0 and Rev N | todo |  | EZD-715, EZD-716, EZD-121 |  |  |  |
+| EZD-718 | 28 | Revision clouds and log | todo |  | EZD-717 |  |  |  |
+| EZD-719 | 28 | Send set to client | todo |  | EZD-717, EZD-111 |  |  |  |
+| EZD-720 | 28 | Client set content | todo |  | EZD-701, EZD-418, EZD-726 |  |  |  |
+| EZD-721 | 27 | Export menu | todo |  | EZD-715 |  |  |  |
+| EZD-722 | 27 | Sheets states | todo |  | EZD-717 |  |  |  |
+| EZD-723 | 28 | Download one page at a time | todo |  | EZD-715, EZD-713 |  |  |  |
+| EZD-724 | 28 | Dismissible dimension warning | todo |  | EZD-716 |  |  |  |
+| EZD-725 | 28 | Accepted warnings in the issue log | todo |  | EZD-717, EZD-612 |  |  |  |
+| EZD-726 | 25 | Sheet sets | todo |  | EZD-701 |  |  |  |
+| EZD-727 | 28 | Submittal profile enforcement at issue | todo |  | EZD-712, EZD-713, EZD-715 |  |  |  |
+| EZD-728 | 27 | Cover sheet A0.0 | todo |  | EZD-706, EZD-714 |  |  |  |
+| EZD-801 | 29 | Detail data and editor shell | todo |  | EZD-202, EZD-012 |  |  |  |
+| EZD-802 | 29 | New detail dialog | todo |  | EZD-801 |  |  |  |
+| EZD-803 | 29 | Drawing tools | todo |  | EZD-801, EZD-201 |  |  |  |
+| EZD-804 | 29 | Line roles and hatches | todo |  | EZD-803 |  |  |  |
+| EZD-805 | 29 | Annotation tools | todo |  | EZD-803 |  |  |  |
+| EZD-806 | 29 | Parts | todo |  | EZD-801, EZD-817 |  |  |  |
+| EZD-807 | 29 | Scale and NTS | todo |  | EZD-805, EZD-116 |  |  |  |
+| EZD-808 | 29 | Steps and layers | todo |  | EZD-801 |  |  |  |
+| EZD-809 | 30 | Legibility warnings | todo |  | EZD-805 |  |  |  |
+| EZD-810 | 30 | Place on sheet | todo |  | EZD-809, EZD-702 |  |  |  |
+| EZD-811 | 30 | Cut from model and callouts | todo |  | EZD-802, EZD-207 |  |  |  |
+| EZD-812 | 30 | Underlay start | todo |  | EZD-802, EZD-304 |  |  |  |
+| EZD-813 | 30 | Extrude to 3D | todo |  | EZD-803 |  |  |  |
+| EZD-814 | 30 | Detail library and countertop link | todo |  | EZD-801, EZD-415, EZD-817 |  |  |  |
+| EZD-815 | 30 | Detail PDF export | todo |  | EZD-810, EZD-721 |  |  |  |
+| EZD-816 | 30 | Freehand pen | todo |  | EZD-803, EZD-223 |  |  |  |
+| EZD-817 | 29 | Detail libraries in Settings | todo |  | EZD-801, EZD-131 |  |  |  |
+| EZD-901a | 41 | Reference conversion job | todo |  | EZD-306, EZD-009, EZD-016, EZD-029 |  |  |  |
+| EZD-901b | 41 | Reference drawing in Plan | todo |  | EZD-901a, EZD-207, EZD-235, EZD-017 |  |  |  |
+| EZD-902 | 41 | Reference under the model | todo |  | EZD-901 |  |  |  |
+| EZD-903 | 41 | Alignment | todo |  | EZD-902, EZD-904 |  |  |  |
+| EZD-904 | 41 | Reference layers panel | todo |  | EZD-901 |  |  |  |
+| EZD-905 | 41 | Paper-space layouts | todo |  | EZD-901 |  |  |  |
+| EZD-906 | 42 | Convert layers | todo |  | EZD-904, EZD-307, EZD-306 |  |  |  |
+| EZD-907 | 42 | Markup layer | todo |  | EZD-902, EZD-904 |  |  |  |
+| EZD-908 | 42 | Reference versions | todo |  | EZD-904, EZD-921 |  |  |  |
+| EZD-909a | 42 | Reference diff job | todo |  | EZD-908, EZD-907, EZD-116 |  |  |  |
+| EZD-909b | 42 | Reference diff view | todo |  | EZD-909a |  |  |  |
+| EZD-910 | 42 | Keep or accept a revision | todo |  | EZD-909 |  |  |  |
+| EZD-911 | 42 | Export markup | todo |  | EZD-907, EZD-913, EZD-715 |  |  |  |
+| EZD-912 | 42 | Section or callout from reference | todo |  | EZD-902, EZD-811 |  |  |  |
+| EZD-913 | 41 | DXF export | todo |  | EZD-901, EZD-721 |  |  |  |
+| EZD-914 | 43 | Supplier files panel | todo |  | EZD-301 |  |  |  |
+| EZD-915 | 43 | Supplier vector PDF import | todo |  | EZD-914, EZD-305 |  |  |  |
+| EZD-916 | 43 | 2020 order report import | todo |  | EZD-914, EZD-307, EZD-021 |  |  |  |
+| EZD-917 | 43 | Tag and link tools | todo |  | EZD-914, EZD-404, EZD-907 |  |  |  |
+| EZD-918 | 43 | Read codes | todo |  | EZD-917, EZD-916, EZD-021 |  |  |  |
+| EZD-919 | 43 | Compare and resolve mismatches | todo |  | EZD-917, EZD-407, EZD-111 |  |  |  |
+| EZD-920 | 43 | Suggested finishes | todo |  | EZD-917, EZD-401, EZD-021 |  |  |  |
+| EZD-921 | 41 | Architect revision labels | todo |  | EZD-904 |  |  |  |
+| EZD-922a | 42 | Reference states (screen 11) | todo |  | EZD-911 |  |  |  |
+| EZD-922b | 43 | Supplier markup states (screen 12) | todo |  | EZD-919 |  |  |  |
+| EZD-1001a | 33 | 3D scene core | todo |  | EZD-207, EZD-020, EZD-235, EZD-030 |  |  |  |
+| EZD-1001b | 33 | 3D ceilings and beams | todo |  | EZD-1001a, EZD-504, EZD-505 |  |  |  |
+| EZD-1001c | 33 | 3D cabinets, fixtures, devices and finishes | todo |  | EZD-1001b, EZD-402, EZD-414, EZD-234, EZD-226, EZD-602, EZD-401 |  |  |  |
+| EZD-1002 | 33 | Navigation | todo |  | EZD-1001 |  |  |  |
+| EZD-1003 | 34 | Walk and Look up | todo |  | EZD-1002, EZD-116 |  |  |  |
+| EZD-1004 | 33 | Section and display modes | todo |  | EZD-1002 |  |  |  |
+| EZD-1005 | 33 | 3D layers | todo |  | EZD-1001, EZD-303 |  |  |  |
+| EZD-1006 | 33 | Saved views | todo |  | EZD-1002 |  |  |  |
+| EZD-1007 | 34 | Select and apply finish | todo |  | EZD-1001, EZD-401, EZD-505 |  |  |  |
+| EZD-1008 | 34 | Rail on the 3D tab | todo |  | EZD-1002, EZD-612 |  |  |  |
+| EZD-1009 | 35 | Design options data | todo |  | EZD-202 |  |  |  |
+| EZD-1010 | 35 | Options inspector | todo |  | EZD-1009, EZD-1001 |  |  |  |
+| EZD-1011 | 35 | Make options from the RCP | todo |  | EZD-1010, EZD-505 |  |  |  |
+| EZD-1012 | 34 | Measure in 3D | todo |  | EZD-1002 |  |  |  |
+| EZD-1013 | 35 | Phone 3D viewer | todo |  | EZD-1012, EZD-014 |  |  |  |
+| EZD-1014 | 35 | GLB and USDZ export | todo |  | EZD-1001, EZD-721 |  |  |  |
+| EZD-1015 | 33 | iPad memory guard and states | todo |  | EZD-1001 |  |  |  |
+| EZD-1017 | 34 | Inspector 3D preview | todo |  | EZD-1001 |  |  |  |
+| EZD-1101 | 36 | Render records and jobs | todo |  | EZD-009, EZD-1006 |  |  |  |
+| EZD-1102 | 36 | Render models settings | todo |  | EZD-116 |  |  |  |
+| EZD-1103 | 36 | Provider adapters | todo |  | EZD-1101, EZD-1102, EZD-021 |  |  |  |
+| EZD-1104a | 38 | Local worker protocol | todo |  | EZD-1103, EZD-116 |  |  |  |
+| EZD-1104b | 38 | Local worker program | todo |  | EZD-1104a |  |  |  |
+| EZD-1105 | 38 | Browser path tracer | todo |  | EZD-1001, EZD-1109 |  |  |  |
+| EZD-1106 | 36 | Step 1: angle | todo |  | EZD-1006, EZD-1101 |  |  |  |
+| EZD-1107 | 36 | Preview and optional alignment | todo |  | EZD-1106 |  |  |  |
+| EZD-1108 | 36 | Step 2: style and direction | todo |  | EZD-1107, EZD-401 |  |  |  |
+| EZD-1109 | 36 | Tiers and Generate | todo |  | EZD-1108, EZD-1103 |  |  |  |
+| EZD-1110 | 36 | Renders list and notifications | todo |  | EZD-1109, EZD-110, EZD-127 |  |  |  |
+| EZD-1111 | 37 | Render view | todo |  | EZD-1110 |  |  |  |
+| EZD-1112 | 37 | Comment pins | todo |  | EZD-1111 |  |  |  |
+| EZD-1113 | 37 | Fix and regenerate | todo |  | EZD-1111 |  |  |  |
+| EZD-1114 | 37 | Two-step approval | todo |  | EZD-1111 |  |  |  |
+| EZD-1115 | 37 | Model changed detection | todo |  | EZD-1114, EZD-1001, EZD-1109, EZD-127 |  |  |  |
+| EZD-1116 | 37 | Download | todo |  | EZD-1111 |  |  |  |
+| EZD-1117 | 37 | Render allowance | todo |  | EZD-1102, EZD-110 |  |  |  |
+| EZD-1118 | 38 | Render A/B/C from 3D | todo |  | EZD-1109, EZD-1010 |  |  |  |
+| EZD-1119 | 38 | R1.0 finish schedule + renders | todo |  | EZD-1114, EZD-716, EZD-401 |  |  |  |
+| EZD-1120 | 53 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
+| EZD-1121 | 38 | Second provider adapter | todo |  | EZD-1103 |  |  |  |
+| EZD-1201 | 39 | Share links | todo |  | EZD-111, EZD-116 |  |  |  |
+| EZD-1202 | 39 | Client page shell | todo |  | EZD-1201, EZD-020 |  |  |  |
+| EZD-1203 | 40 | Render gallery | todo |  | EZD-1202, EZD-1114 |  |  |  |
+| EZD-1204 | 40 | Client comments | todo |  | EZD-1203, EZD-1112 |  |  |  |
+| EZD-1205 | 39 | Plans tab | todo |  | EZD-1202, EZD-702, EZD-1215 |  |  |  |
+| EZD-1206 | 40 | Send options to client | todo |  | EZD-1010, EZD-1201, EZD-121 |  |  |  |
+| EZD-1207 | 40 | Option choice | todo |  | EZD-1206, EZD-1215 |  |  |  |
+| EZD-1208 | 39 | Selection offers and choice pages | todo |  | EZD-1202, EZD-417 |  |  |  |
+| EZD-1209 | 39 | Edge choice | todo |  | EZD-1208, EZD-417 |  |  |  |
+| EZD-1210 | 39 | Verify and sign | todo |  | EZD-1208, EZD-113 |  |  |  |
+| EZD-1211 | 39 | Approve | todo |  | EZD-1210 |  |  |  |
+| EZD-1212 | 39 | Selections PDF | todo |  | EZD-1211 |  |  |  |
+| EZD-1213 | 40 | Send image | todo |  | EZD-1114, EZD-111 |  |  |  |
+| EZD-1214 | 40 | Archive options on signing | todo |  | EZD-1009, EZD-1211 |  |  |  |
+| EZD-1215 | 39 | Send to client composer | todo |  | EZD-1201, EZD-1208, EZD-401 |  |  |  |
+| EZD-1314 | 53 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
 | EZD-1401 | 14 | Service worker cache | todo |  | EZD-134 |  |  |  |
 | EZD-1402 | 14 | Offline change queue | todo |  | EZD-1401, EZD-120 |  |  |  |
-| EZD-1403 | 14 | Offline editing and conflicts | todo |  | EZD-1402, EZD-125 |  |  |  |
-| EZD-1404 | 14 | Field pack shell | todo |  | EZD-1401, EZD-1305 |  |  |  |
-| EZD-1405 | 14 | Plan and 3D tabs | todo |  | EZD-1404, EZD-1013 |  |  |  |
-| EZD-1406 | 14 | Measure tab | todo |  | EZD-1405, EZD-315 |  |  |  |
-| EZD-1407 | 14 | Send measurement and Flag conflict | todo |  | EZD-1406, EZD-1402 |  |  |  |
-| EZD-1408 | 14 | Field task templates and publishing | todo |  | EZD-131, EZD-021 |  |  |  |
-| EZD-1409 | 14 | Tasks tab | todo |  | EZD-1408, EZD-1402, EZD-1404 |  |  |  |
-| EZD-1410 | 14 | Photo tab and pins | todo |  | EZD-1405, EZD-1402, EZD-1407 |  |  |  |
-| EZD-1411 | 14 | Field pack PDF | todo |  | EZD-1405, EZD-1421, EZD-715 |  |  |  |
-| EZD-1412 | 14 | Stale actions on reconnect | todo |  | EZD-1402, EZD-717 |  |  |  |
-| EZD-1413 | 14 | Field measurements review | todo |  | EZD-1407, EZD-310, EZD-127, EZD-125 |  |  |  |
-| EZD-1414 | 14 | Field conflicts list | todo |  | EZD-1407, EZD-127 |  |  |  |
+| EZD-1403 | 44 | Offline editing and conflicts | todo |  | EZD-1402, EZD-125 |  |  |  |
+| EZD-1404 | 45 | Field pack shell | todo |  | EZD-1401, EZD-1305 |  |  |  |
+| EZD-1405 | 45 | Plan and 3D tabs | todo |  | EZD-1404, EZD-1013 |  |  |  |
+| EZD-1406 | 45 | Measure tab | todo |  | EZD-1405, EZD-315 |  |  |  |
+| EZD-1407 | 45 | Send measurement and Flag conflict | todo |  | EZD-1406, EZD-1402 |  |  |  |
+| EZD-1408 | 45 | Field task templates and publishing | todo |  | EZD-131, EZD-021 |  |  |  |
+| EZD-1409 | 45 | Tasks tab | todo |  | EZD-1408, EZD-1402, EZD-1404 |  |  |  |
+| EZD-1410 | 45 | Photo tab and pins | todo |  | EZD-1405, EZD-1402, EZD-1407 |  |  |  |
+| EZD-1411 | 45 | Field pack PDF | todo |  | EZD-1405, EZD-1421, EZD-715 |  |  |  |
+| EZD-1412 | 44 | Stale actions on reconnect | todo |  | EZD-1402, EZD-717 |  |  |  |
+| EZD-1413 | 45 | Field measurements review | todo |  | EZD-1407, EZD-310, EZD-127, EZD-125 |  |  |  |
+| EZD-1414 | 45 | Field conflicts list | todo |  | EZD-1407, EZD-127 |  |  |  |
 | EZD-1415 | 14 | Field measure: shapes and walls | todo |  | EZD-1401 |  |  |  |
 | EZD-1416 | 14 | Field measure: keypad and closure | todo |  | EZD-1415 |  |  |  |
 | EZD-1417 | 14 | Field measure: offline save and send | todo |  | EZD-1416, EZD-1402, EZD-110 |  |  |  |
 | EZD-1418 | 14 | Field measure into Import review | todo |  | EZD-1417, EZD-307 |  |  |  |
 | EZD-1419 | 14 | Field measure entry points and states | todo |  | EZD-1415, EZD-1404, EZD-118, EZD-1305, EZD-1406 |  |  |  |
-| EZD-1420 | 14 | Field tasks screen | todo |  | EZD-1408, EZD-1409 |  |  |  |
-| EZD-1421 | 14 | Issue field pack | todo |  | EZD-1420, EZD-129, EZD-1404 |  |  |  |
+| EZD-1420 | 45 | Field tasks screen | todo |  | EZD-1408, EZD-1409 |  |  |  |
+| EZD-1421 | 45 | Issue field pack | todo |  | EZD-1420, EZD-129, EZD-1404 |  |  |  |
 | EZD-1422 | 14 | Field measure as wizard input | todo |  | EZD-118, EZD-1419 |  |  |  |
-| EZD-1501 | 15 | Translation store | todo |  | EZD-006 |  |  |  |
-| EZD-1502 | 15 | AI drafting | todo |  | EZD-1501, EZD-009, EZD-021, EZD-110 |  |  |  |
-| EZD-1503 | 15 | Spanish display | todo |  | EZD-1501, EZD-1404, EZD-026 |  |  |  |
-| EZD-1504 | 15 | Review table | todo |  | EZD-1501, EZD-103 |  |  |  |
-| EZD-1505 | 15 | Review card actions | todo |  | EZD-1504 |  |  |  |
-| EZD-1506 | 15 | Draft warnings | todo |  | EZD-1504 |  |  |  |
-| EZD-1507 | 15 | Glossary | todo |  | EZD-1504 |  |  |  |
-| EZD-1508 | 15 | Bulk approve | todo |  | EZD-1506 |  |  |  |
-| EZD-1509 | 15 | Propagation | todo |  | EZD-1505 |  |  |  |
-| EZD-1510 | 15 | Translation settings | todo |  | EZD-1504, EZD-716 |  |  |  |
-| EZD-1601 | 16 | Catalog drawer | todo |  | EZD-401 |  |  |  |
-| EZD-1602 | 16 | Place from catalog | todo |  | EZD-1601, EZD-234 |  |  |  |
-| EZD-1603 | 16 | Add product: link | todo |  | EZD-1601, EZD-009, EZD-021 |  |  |  |
-| EZD-1604 | 16 | Add product: paste text and screenshot | todo |  | EZD-1603, EZD-021 |  |  |  |
-| EZD-1605 | 16 | Field confirmation | todo |  | EZD-1603 |  |  |  |
-| EZD-1606 | 16 | Save and place | todo |  | EZD-1605 |  |  |  |
-| EZD-1607 | 16 | Item detail | todo |  | EZD-1606 |  |  |  |
-| EZD-1608 | 16 | Price snapshots and refresh | todo |  | EZD-1607 |  |  |  |
-| EZD-1609 | 16 | Catalog settings | todo |  | EZD-103, EZD-1212 |  |  |  |
-| EZD-1610 | 16 | Catalog states | todo |  | EZD-1601 |  |  |  |
-| EZD-1611a | 16 | Takeoff framework and room finishes | todo |  | EZD-235, EZD-226, EZD-116 |  |  |  |
-| EZD-1611b | 16 | Takeoff: cabinets, tops, fixtures and electrical | todo |  | EZD-1611a, EZD-418, EZD-604 |  |  |  |
-| EZD-1611c | 16 | Takeoff: ACT, option costs and snapshot | todo |  | EZD-1611b, EZD-511, EZD-1010, EZD-121 |  |  |  |
-| EZD-1612 | 16 | Waste factors | todo |  | EZD-1611, EZD-116 |  |  |  |
-| EZD-1613 | 16 | Takeoff screen | todo |  | EZD-1611 |  |  |  |
-| EZD-1614 | 16 | Tile layout preview | todo |  | EZD-1612, EZD-1001 |  |  |  |
-| EZD-1615 | 16 | Takeoff CSV | todo |  | EZD-1613 |  |  |  |
-| EZD-1616 | 16 | Catalog on the standard rail | todo |  | EZD-1601, EZD-230 |  |  |  |
-| EZD-1617 | 16 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
-| EZD-1701 | 17 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
-| EZD-1702 | 17 | DXF size limits | todo |  | EZD-1701 |  |  |  |
-| EZD-1704 | 17 | Backups | todo |  | EZD-025 |  |  |  |
-| EZD-1705 | 17 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
-| EZD-1706 | 17 | Event log coverage | todo |  | EZD-109 |  |  |  |
-| EZD-1707 | 17 | Terms of service | todo |  | EZD-007 |  |  |  |
-| EZD-1708 | 17 | Accessibility pass | todo |  | EZD-222 |  |  |  |
-| EZD-1709a | 17 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
-| EZD-1709b | 17 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
-| EZD-1709c | 17 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
-| EZD-1710 | 17 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
+| EZD-1501 | 50 | Translation store | todo |  | EZD-006 |  |  |  |
+| EZD-1502 | 50 | AI drafting | todo |  | EZD-1501, EZD-009, EZD-021, EZD-110 |  |  |  |
+| EZD-1503 | 51 | Spanish display | todo |  | EZD-1501, EZD-1404, EZD-026 |  |  |  |
+| EZD-1504 | 50 | Review table | todo |  | EZD-1501, EZD-103 |  |  |  |
+| EZD-1505 | 50 | Review card actions | todo |  | EZD-1504 |  |  |  |
+| EZD-1506 | 50 | Draft warnings | todo |  | EZD-1504 |  |  |  |
+| EZD-1507 | 50 | Glossary | todo |  | EZD-1504 |  |  |  |
+| EZD-1508 | 51 | Bulk approve | todo |  | EZD-1506 |  |  |  |
+| EZD-1509 | 51 | Propagation | todo |  | EZD-1505 |  |  |  |
+| EZD-1510 | 51 | Translation settings | todo |  | EZD-1504, EZD-716 |  |  |  |
+| EZD-1601 | 31 | Catalog drawer | todo |  | EZD-401 |  |  |  |
+| EZD-1602 | 31 | Place from catalog | todo |  | EZD-1601, EZD-234 |  |  |  |
+| EZD-1603 | 31 | Add product: link | todo |  | EZD-1601, EZD-009, EZD-021 |  |  |  |
+| EZD-1604 | 31 | Add product: paste text and screenshot | todo |  | EZD-1603, EZD-021 |  |  |  |
+| EZD-1605 | 31 | Field confirmation | todo |  | EZD-1603 |  |  |  |
+| EZD-1606 | 31 | Save and place | todo |  | EZD-1605 |  |  |  |
+| EZD-1607 | 32 | Item detail | todo |  | EZD-1606 |  |  |  |
+| EZD-1608 | 32 | Price snapshots and refresh | todo |  | EZD-1607 |  |  |  |
+| EZD-1609 | 52 | Catalog settings | todo |  | EZD-103, EZD-1212 |  |  |  |
+| EZD-1610 | 31 | Catalog states | todo |  | EZD-1601 |  |  |  |
+| EZD-1611a | 52 | Takeoff framework and room finishes | todo |  | EZD-235, EZD-226, EZD-116 |  |  |  |
+| EZD-1611b | 52 | Takeoff: cabinets, tops, fixtures and electrical | todo |  | EZD-1611a, EZD-418, EZD-604 |  |  |  |
+| EZD-1611c | 52 | Takeoff: ACT, option costs and snapshot | todo |  | EZD-1611b, EZD-511, EZD-1010, EZD-121 |  |  |  |
+| EZD-1612 | 52 | Waste factors | todo |  | EZD-1611, EZD-116 |  |  |  |
+| EZD-1613 | 52 | Takeoff screen | todo |  | EZD-1611 |  |  |  |
+| EZD-1614 | 52 | Tile layout preview | todo |  | EZD-1612, EZD-1001 |  |  |  |
+| EZD-1615 | 52 | Takeoff CSV | todo |  | EZD-1613 |  |  |  |
+| EZD-1616 | 31 | Catalog on the standard rail | todo |  | EZD-1601, EZD-230 |  |  |  |
+| EZD-1617 | 52 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
+| EZD-1701 | 54 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
+| EZD-1702 | 54 | DXF size limits | todo |  | EZD-1701 |  |  |  |
+| EZD-1704 | 1 | Backups | todo |  | EZD-025 |  |  |  |
+| EZD-1705 | 53 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
+| EZD-1706 | 53 | Event log coverage | todo |  | EZD-109 |  |  |  |
+| EZD-1707 | 1 | Terms of service | todo |  | EZD-007 |  |  |  |
+| EZD-1708 | 54 | Accessibility pass | todo |  | EZD-222 |  |  |  |
+| EZD-1709a | 54 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
+| EZD-1709b | 54 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
+| EZD-1709c | 54 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
+| EZD-1710 | 53 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
+| EZD-136 | 1 | On-screen disclaimer | todo |  | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
+| EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
+| EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
+| EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
+| EZD-641 | 21 | Scope of work match check | todo |  | EZD-611a, EZD-118 |  |  | Added 2026-10-20 in the re-cut for Q-0180 (Q-0218). |
+| EZD-729 | 22 | Plumbing locations | todo |  | EZD-234, EZD-218 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-730 | 22 | Plumbing diagram and calculations | todo |  | EZD-729 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-731 | 23 | Mechanical layout | todo |  | EZD-234, EZD-218 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-732 | 23 | Mechanical calculations | todo |  | EZD-731 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-733 | 24 | Tile layout | todo |  | EZD-404, EZD-218 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-734 | 39 | Tile layout client sign-off | todo |  | EZD-738, EZD-1210 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-735 | 28 | Scope PDF | todo |  | EZD-715, EZD-118 |  |  | Added 2026-10-20 in the re-cut for Q-0190 (Q-0218). |
+| EZD-736 | 28 | Export and issue acknowledgement | todo |  | EZD-715, EZD-717 |  |  | Added 2026-10-20 in the re-cut for Q-0209 (Q-0218). |
+| EZD-737 | 37 | Scope PDF with renders | todo |  | EZD-735, EZD-1114 |  |  | Added 2026-10-20 in the re-cut for Q-0190 (Q-0218). |
+| EZD-738 | 28 | Plumbing, mechanical and tile sheets | todo |  | EZD-701, EZD-715, EZD-730, EZD-732, EZD-733 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-1424 | 45 | Field measure from the field pack | todo |  | EZD-1419, EZD-1404, EZD-1406 |  |  | Added 2026-10-20 in the re-cut for S17b Entry points (Q-0218). |

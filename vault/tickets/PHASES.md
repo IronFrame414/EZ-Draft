@@ -2,7 +2,7 @@
 
 PROCESS.md section 2a. Josh approves this file before Phase 1's Stage 0; after that only Josh changes it. New requests go to `BACKLOG.md`.
 
-Status of this file: **re-cut approved by Josh with changes on 2026-10-20 (Q-0194; section below); ticket-level re-cut pending the spec restructure.** Phase 0 is written out below. The spec's phases 1 to 17 (368 tickets) were layers of 10 to 40 tickets, not vertical slices of 4 to 10, so on Oct 18, 2026 they were re-cut into 53 slices (second section), keeping every ticket ID and every dependency. Josh approves Phase 0 and the re-cut separately. Once he approves the re-cut, `node vault/tools/apply_recut.mjs` renumbers the ledger (`STATUS.md` Phase column and `tickets.json` `phase`) to the slice numbers; the per-spec-phase ticket files under `phases/` stay as the source of each ticket's text. Until then nothing after Phase 0 is scheduled and `next_ticket.mjs` works on the spec phases.
+Status of this file: **re-cut approved by Josh with changes on 2026-10-20 (Q-0194) and applied the same day (Q-0218): the phase list is the table "Phases after the re-cut" below; `tickets.json` `phase` is the phase number and `spec_phase` names the ticket file under `phases/`.** The slice sections further down keep their draft numbers and Oct 18 text (they cite the old `spec/decisions.md`; a ticket's reading list is `node vault/tools/next_ticket.mjs --reads <ticket> <role>`). Phase 0 is written out below. The spec's phases 1 to 17 (368 tickets) were layers of 10 to 40 tickets, not vertical slices of 4 to 10, so on Oct 18, 2026 they were re-cut into 53 slices (second section), keeping every ticket ID and every dependency. Josh approves Phase 0 and the re-cut separately. Once he approves the re-cut, `node vault/tools/apply_recut.mjs` renumbers the ledger (`STATUS.md` Phase column and `tickets.json` `phase`) to the slice numbers; the per-spec-phase ticket files under `phases/` stay as the source of each ticket's text. Until then nothing after Phase 0 is scheduled and `next_ticket.mjs` works on the spec phases.
 
 ## Josh's approval of the re-cut (Round 1, 2026-10-20)
 
@@ -29,6 +29,67 @@ Josh approved the 53 slices as the phase list with the moves below (Q-0194; vaul
 | 17 | 52 to 53 | Final whole-app checks and code-rule verification | Hardening work moves into every slice (Q-0184) |
 
 Department presets built and tested first: unincorporated Palm Beach County, Boca Raton, West Palm Beach (Q-0193).
+
+## Phases after the re-cut (applied 2026-10-20, Q-0218)
+
+Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs --check`). Ticket numbers are EZD- numbers. Removed from v1: draft slices 35 and 36 (EZ Binder connector and change-order hand-off, EZD-114, 115, 119, 1301 to 1312; Q-0190; BACKLOG.md); EZD-1314 (event registry audit) moved to phase 53. New tickets for Round 1 and 2 decisions: EZD-136 to 138, 640, 641, 729 to 738, 1424. Every other Round 1 and 2 decision changes an existing ticket through its decisions file, which overrides the ticket text (PROCESS.md rule 4). The architecture checkpoint (spikes EZD-027 to 031) still gates every ticket numbered 200 or higher, which now starts in phase 3. Phases over 10 tickets: 45 (field pack, 13); phases under 4: 22 to 24 (new plumbing, mechanical, tile, waiting on Round 3), 32 (catalog detail, after catalog settings moved to phase 52), 44 (offline editing, after the cache and queue moved to phase 14). Q-0219 asks Josh about the field-pack measurement review.
+
+| Phase | Name | Draft slice | Tickets | Change |
+| --- | --- | --- | --- | --- |
+| 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
+| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 137 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
+| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 238 |  |
+| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 236, 207, 209, 210, 221 |  |
+| 5 | Openings, selection, move, inspector, undo | 5 | 204, 206, 208, 211, 212, 213, 217 |  |
+| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
+| 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
+| 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
+| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124 |  |
+| 10 | Fixtures, existing conditions, showers, bearing walls | 10 | 215, 220, 229, 234, 226, 227 |  |
+| 11 | Editing tools, groups, libraries, shortcuts | 11 | 131, 222, 230, 223, 231, 233, 232 |  |
+| 12 | Polycam scan import | 12 | 301, 302, 303, 307, 308, 309, 310, 311, 313 |  |
+| 13 | PDF and DXF imports, import states, laser input | 13 | 304, 305, 306, 312, 314, 315 |  |
+| 14 | Field measure and office review | 42 | 134, 1401, 1402, 1415, 1416, 1417, 1418, 1419, 1422 | Moved up (Q-0194). Brings the app-shell cache and offline queue (EZD-134, 1401, 1402) from draft slice 40; the field-pack parts (EZD-1411, 1413, 1414, 1424) stay with the field pack (Q-0219). |
+| 15 | Cabinet runs | 14 | 401, 402, 404, 403, 405, 406, 407, 408, 409, 410 |  |
+| 16 | Countertops | 15 | 411, 412, 413, 414, 415, 416, 417, 418, 419 |  |
+| 17 | Ceilings and the RCP | 16 | 127, 501, 502, 503, 504, 507, 508, 513 |  |
+| 18 | Beams, lights, ACT and ceiling checks | 17 | 505, 506, 509, 510, 511, 512, 514, 515, 516 |  |
+| 19 | Electrical devices and circuits | 18 | 601, 602, 603, 604, 605, 606, 609, 610 |  |
+| 20 | Load calculation | 19 | 607, 608, 614, 615, 640 | Adds common-load presets (Q-0181). |
+| 21 | Code check engine and first rule sets | 20 | 228, 613, 611a, 612, 620, 611b, 611c, 641 | Adds the scope match check (Q-0180). |
+| 22 | Plumbing | new | 729, 730 | New (Q-0179). |
+| 23 | Mechanical | new | 731, 732 | New (Q-0179). |
+| 24 | Tile layout | new | 733 | New (Q-0179); the tile sheet is EZD-738 and client sign-off EZD-734 (both need later phases). |
+| 25 | Sheet set and sheet viewer | 21 | 701, 726, 702a, 702b, 703, 704, 705, 706 |  |
+| 26 | Elevations, RCP and electrical sheets, title block | 22 | 709, 710, 711, 707, 708a, 708b, 708c |  |
+| 27 | PDF export, issue checklist and Rev 0 | 23 | 712, 713, 714, 716, 715, 717, 721, 722, 728 |  |
+| 28 | Revisions, client send and export options | 24 | 724, 718, 719, 720, 723, 725, 727, 735, 736, 738 |  |
+| 29 | Detail editor | 25 | 801, 802, 803, 804, 805, 807, 808, 817, 806 |  |
+| 30 | Details on sheets, cut from model, library, export | 26 | 809, 810, 811, 812, 813, 815, 816, 814 |  |
+| 31 | Catalog drawer and add product | 49 | 1601, 1602, 1603, 1604, 1605, 1606, 1610, 1616 |  |
+| 32 | Catalog detail and price snapshots | 50 | 1607, 1608 |  |
+| 33 | 3D scene, navigation and saved views | 27 | 1001a, 1001b, 1001c, 1002, 1004, 1005, 1006, 1015 |  |
+| 34 | 3D walk, finishes, measure and the rail | 28 | 1003, 1007, 1008, 1012, 1017 |  |
+| 35 | Design options, phone 3D viewer, 3D exports | 29 | 1009, 1010, 1011, 1013, 1014 |  |
+| 36 | Render setup and generate | 30 | 1101, 1102, 1103, 1106, 1107, 1108, 1109, 1110 |  |
+| 37 | Render review and approval | 31 | 1111, 1112, 1113, 1114, 1115, 1116, 1117, 737 |  |
+| 38 | Render workers, extra adapters, path tracer and R1.0 | 32 | 1104a, 1104b, 1105, 1118, 1119, 1121 |  |
+| 39 | Client approval page | 33 | 1201, 1202, 1208, 1209, 1210, 1211, 1212, 1215, 1205, 734 |  |
+| 40 | Client renders, comments and option choice | 34 | 1203, 1204, 1206, 1213, 1214, 1207 |  |
+| 41 | Architect DXF reference | 37 | 901a, 901b, 902, 904, 903, 905, 913, 921 |  |
+| 42 | Reference markup, revisions and diff | 38 | 906, 907, 912, 911, 908, 909a, 909b, 910, 922a |  |
+| 43 | Supplier files and rendering markup | 39 | 914, 915, 916, 917, 918, 919, 920, 922b |  |
+| 44 | Offline editing | 40 | 1403, 1412 |  |
+| 45 | Field pack on the phone | 41 | 1404, 1405, 1406, 1407, 1408, 1409, 1410, 1420, 1421, 1411, 1413, 1414, 1424 |  |
+| 46 | Code rules: Florida Residential, Existing Building, construction chapters | 43 | 616, 617, 618, 621, 622 |  |
+| 47 | Code rules: Energy, Mechanical, Fuel gas, Plumbing | 44 | 623, 624, 625, 626, 627, 628, 629 |  |
+| 48 | Code rules: NEC articles 100 to 230 and 240 (1 of 2) | 45 | 630, 631, 632, 633, 634 |  |
+| 49 | Code rules: NEC 240 to 410 (2 of 2) and 422 to 820 | 46 | 635, 636, 637, 638, 639 |  |
+| 50 | Translation queue | 47 | 1501, 1502, 1504, 1505, 1506, 1507 |  |
+| 51 | Translations: approve in bulk, propagate, Spanish display | 48 | 1503, 1508, 1509, 1510 |  |
+| 52 | Takeoff and catalog settings | 51 | 1611a, 1611b, 1611c, 1612, 1613, 1614, 1615, 1609, 1617 | Takes catalog settings EZD-1609, 1617 from draft slice 50 (EZD-1609 needs the Selections PDF, EZD-1212). |
+| 53 | Hardening: security, backups, terms, event log, rule verification | 52 | 1120, 1705, 1706, 1710, 1314 | Final whole-app checks (Q-0184); backups and terms moved to slice 1; EZD-1314 from draft slice 36. |
+| 54 | Hardening: performance, accessibility, screen states | 53 | 1701, 1702, 1708, 1709a, 1709b, 1709c |  |
 
 ## Phase 0 · Setup
 

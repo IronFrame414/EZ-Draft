@@ -63,7 +63,7 @@ for (const line of lines) {
     inPhasesTable = true;
     out.push('| Phase (slice) | Name | From spec phase(s) | Tickets |');
     out.push('| --- | --- | --- | --- |');
-    out.push('| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 37 |');
+    out.push(`| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | ${data.tickets.filter((t) => t.phase === 0).length} |`);
     for (const s of recut.slices) out.push(`| ${s.n} | ${s.name} | ${s.from_phases.join(', ')} | ${s.tickets.length} |`);
     continue;
   }
