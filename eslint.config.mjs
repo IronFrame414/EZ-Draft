@@ -74,4 +74,17 @@ export default tseslint.config(
       ],
     },
   },
+  // EZD-007e: the sign-in pages have a Spanish mode, so a literal would show English to a Spanish user (R26 R17; R24 #40).
+  {
+    files: [
+      'app/src/app/sign-in/**/*.{tsx,jsx}',
+      'app/src/app/auth/confirm/**/*.{tsx,jsx}',
+      'app/src/components/auth/**/*.{tsx,jsx}',
+    ],
+    ignores: ['**/*.test.*', '**/*.spec.*'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/no-literal-ui-string': ['error', { allowedKeyPrefixes: ['common.', 'error.'] }],
+    },
+  },
 );
