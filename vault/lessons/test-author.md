@@ -43,3 +43,10 @@ Mistake: T5 checked the gate secret with `expect(x).toBe(secret)` and `not.toBe(
 Cause: a value assertion was used on a secret, and matchers print both sides when they fail.
 Rule: compare a secret only through a boolean (`expect(a === b).toBe(true)`) or a hash of both sides, never by value matchers.
 Check: grep test files for `toBe(`/`toEqual(` on variables holding secrets, keys or tokens.
+
+## L-019  areas: testing, security  seen: 1  status: candidate
+Ticket EZD-016a, 2026-10-20
+Mistake: T12 (secret never in a response body) turned every failed body read into an empty string, so a body it could not read was never searched and the test could pass on nothing (code-reviewer mode 2, FAIL round 1).
+Cause: a catch meant for redirects swallowed every read error.
+Rule: a "never appears" scan counts what it could not inspect and asserts that count is 0; it excuses only the cases it names (here 3xx).
+Check: in negative scans, look for `catch` that returns an empty value; prove the count by forcing reads to fail once.
