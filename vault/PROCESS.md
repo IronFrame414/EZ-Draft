@@ -93,9 +93,9 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 | --- | --- | --- | --- | --- | --- | --- |
 | orchestrator (main session) | Opus 5.5 | fixed | medium or high, per unit (section 10) | set by launcher | Runs one unit: picks models, dispatches agents, routes questions, merges, keeps ledgers and lessons | `vault/` only |
 | planner | Opus 5.5 | fixed | high | 40 | Stage 1 plans; re-validates a plan when a dependency deviated | `vault/plans/` |
-| test-author | Sonnet 5.5 | Haiku 5.5 to Fable 5.1 | medium | 40 | Failing tests and fixtures from the plan; structural repairs only after that | test files, fixtures, test configs |
-| builder | Sonnet 5.5 | Haiku 5.5 to Fable 5.1 | medium | 80 | Code until the gate passes | app code; never tests, `vault/`, `.claude/`, `CLAUDE.md` or the gate script |
-| code-reviewer | Opus 5.5 | Opus 5.5; Fable 5.1 on high-complexity tickets | high | 30 | Reviews plans together, tests against the plan, and each finished ticket; returns PASS or FAIL | nothing |
+| test-author | Sonnet 5.5 | Haiku 5.5 to Opus 5.5 | medium | 40 | Failing tests and fixtures from the plan; structural repairs only after that | test files, fixtures, test configs |
+| builder | Sonnet 5.5 | Haiku 5.5 to Opus 5.5 | medium | 80 | Code until the gate passes | app code; never tests, `vault/`, `.claude/`, `CLAUDE.md` or the gate script |
+| code-reviewer | Opus 5.5 | fixed | high | 30 | Reviews plans together, tests against the plan, and each finished ticket; returns PASS or FAIL | nothing |
 | ui-verifier | Sonnet 5.5 | fixed | low | 20 | Runs the app, takes screenshots, checks them against the plan's visual checklist and the mockup | screenshots only |
 | security-reviewer | Opus 5.5 | Opus 5.5; Fable 5.1 on high-complexity tickets | high | 30 | Auth, permissions, data isolation, money visibility, the API | nothing |
 | phase-auditor | Fable 5.1 (falls back to Opus 5.5) | fixed | high | 40 | Audits spec readiness (Stage 0) and the whole phase against the spec (gate) | nothing |
@@ -125,12 +125,12 @@ The planner rates each ticket's complexity in its plan (section 6). The orchestr
 | --- | --- | --- | --- |
 | low | The plan's interface contract is complete; the change follows an existing pattern; few files; no calculations, permissions, money, data-model or auth work | Haiku 5.5 | Haiku 5.5 |
 | medium (default) | Anything not clearly low or high | Sonnet 5.5 | Sonnet 5.5 |
-| high | New pattern, calculations, permissions, data model, auth or money, or many files | Fable 5.1 | Fable 5.1 |
+| high | New pattern, calculations, permissions, data model, auth or money, or many files | Opus 5.5 | Opus 5.5 |
 
 Floors and ceilings:
 - planner, code-reviewer, security-reviewer and phase-auditor never run below Opus 5.5. ui-verifier never runs below Sonnet 5.5.
-- On a high-complexity ticket, code-reviewer and security-reviewer run Fable 5.1; those two never run a lower tier than the builder they review. ui-verifier is exempt and stays on Sonnet 5.5: it checks screenshots against the mockup, which doesn't depend on the builder's tier.
-- **Retry and escalation on FAIL:** the orchestrator classifies the findings. *Minor* (naming, style, a fix confined to one file, nothing about behavior or a requirement): resume the same builder at the same tier with the findings, once per ticket; a resumed agent keeps its context and warm cache instead of re-reading everything. *Behavior, requirement or test failures:* a fresh builder (and test-author, if the test review failed) one tier up: Haiku → Sonnet → Opus → Fable. Fable is the ceiling; at the ceiling the retry resumes the same agent with the findings. Three failed rounds of either kind → `blocked`.
+- Josh, 2026-10-20 (from the C2 cost baseline, `vault/cost/baseline-2026-10-19.md`): test-author, builder and code-reviewer never run Fable. On a high-complexity ticket, security-reviewer runs Fable 5.1. Neither reviewer runs a lower tier than the builder it reviews. ui-verifier is exempt and stays on Sonnet 5.5: it checks screenshots against the mockup, which doesn't depend on the builder's tier.
+- **Retry and escalation on FAIL:** the orchestrator classifies the findings. *Minor* (naming, style, a fix confined to one file, nothing about behavior or a requirement): resume the same builder at the same tier with the findings, once per ticket; a resumed agent keeps its context and warm cache instead of re-reading everything. *Behavior, requirement or test failures:* a fresh builder (and test-author, if the test review failed) one tier up: Haiku → Sonnet → Opus. Opus is the ceiling; at the ceiling the retry resumes the same agent with the findings. Three failed rounds of either kind → `blocked`.
 - **Fable fallback:** Fable has its own weekly limit, separate from the main one (section 11). Every place this process says Fable, the orchestrator uses Opus 5.5 instead when Fable is past its fallback fraction (section 11), when a Fable run ends on a limit error, or, unlikely, when Fable declines a task (its extra safeguards cover biology, cybersecurity and model research, not ordinary app work). With Fable out, Opus is the ceiling. The fallback is logged in STATUS notes with the reason.
 - The gate script and the reviews are identical whatever model wrote the code. A cheaper model never means a lighter check.
 - The model chosen for every dispatch, with its reason, is logged in STATUS notes. The wrap step uses this log to adjust the table above.
@@ -596,7 +596,7 @@ Process: vault/PROCESS.md (the orchestrator and Josh read it; other agents read 
 3. The notification channel for the launcher. Decided: ntfy.
 4. Approval of `PHASES.md`.
 
-Josh's standing decisions on models: the orchestrator is Opus; high-complexity work goes to Fable 5.1, which runs on its own usage meter, and falls back to Opus when Fable's weekly limit is reached (section 4). Josh does three things per phase (section 16).
+Josh's standing decisions on models: the orchestrator is Opus; Fable 5.1 is used only by the phase-auditor and by the security-reviewer on high-complexity tickets (Josh, 2026-10-20); it runs on its own usage meter and falls back to Opus when Fable's weekly limit is reached (section 4). Josh does three things per phase (section 16).
 
 **Ticket 000** writes `docs/architecture.md` (pinned versions, folder layout, naming), the one line in `CLAUDE.md` (`See @docs/architecture.md`) beside the template in section 14, and the process tooling:
 - `scripts/gate.mjs` with the summary, `gate.log` and security-path flags;
