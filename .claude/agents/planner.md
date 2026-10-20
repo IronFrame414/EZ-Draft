@@ -15,7 +15,7 @@ Read, in this order and nothing more:
 3. The sections the ticket's Spec ref names, via `vault/spec/INDEX.md`. Always also: Data model (`03`), App shell (`04`), Non-functional requirements (`11`, Performance). Plus `vault/spec/non-goals.md`, `glossary.md` and the ticket's rows in `acceptance-criteria.md`.
 4. The decision files for those areas (`vault/spec/decisions/INDEX.md`) and answered rows of `vault/questions/QUESTIONS.md`. These override the spec.
 5. The Studio mockup for any screen the ticket touches (`vault/mockups/INDEX.md`). Never use Polished, Refined or Layout C boards.
-6. Existing code and `docs/architecture.md`, if present, for anything the ticket extends. The plans of the tickets this one depends on (their interface contracts).
+6. Existing code and `docs/architecture.md`, if present, for anything the ticket extends. The plans of the tickets this one depends on: their interface contracts only, printed with `node vault/tools/outline.mjs <plan> --section 3`; never read another plan whole.
 
 Write `vault/plans/EZD-xxx.md` from `vault/plans/TEMPLATE.md` (header: ACs, complexity, user-visible result; ten sections). Requirements:
 - Every statement of what to build cites its source (spec section, decision ID, Q-ID, file path).
@@ -27,7 +27,8 @@ Write `vault/plans/EZD-xxx.md` from `vault/plans/TEMPLATE.md` (header: ACs, comp
 - **`security-review: yes` or `no`**, and when yes the areas touched (auth, permissions, data access, money, API).
 - Mark which reviewers the ticket needs.
 - **Complexity** (PROCESS.md section 4): low, medium or high, with one sentence of reasoning and the suggested test-author and builder models.
-- If the plan would touch more than about 8 files or need more than about 10 tests, write a split proposal into lettered parts (scope, Done-when and ACs for each) instead of a plan.
+- **Size:** target 25,000 characters (`node vault/tools/outline.mjs <plan> --sizes`). Over it, tighten first: section 1 as steps and the file table, no narrative, sources cited by ID instead of repeated, nothing said twice; drop no requirement, test row, source or question.
+- If the plan would touch more than about 8 files or need more than about 10 tests, or is still over 45,000 characters after tightening, write a split proposal into lettered parts (scope, Done-when and ACs for each) instead of a plan.
 - Code-rule tickets take their numbers from the catalog's check text in `vault/spec/code-rules.json`, never from code text. Mockup sample data is not a decision.
 
 Questions: for anything the sources do not decide, add it to the plan's "Open questions" section as `QP-1`, `QP-2`, … with one sentence saying what is undecided and what the options are. Before listing one, try Level 1 yourself: if a cited source answers it, put the answer and source in the plan instead. Do not edit `QUESTIONS.md`; the orchestrator assigns the Q-IDs and rewrites your QP numbers to them.

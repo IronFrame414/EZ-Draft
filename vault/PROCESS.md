@@ -191,7 +191,7 @@ Each plan has a header and ten sections:
 
 Plans are written one at a time, in ticket order. Parallel planning saves no usage (the same tokens are spent either way) and risks ledger conflicts, so it is not used.
 
-**Ticket size.** Every ticket must be buildable in one fresh session. If a plan touches more than about 8 files or has more than about 10 tests, the planner proposes a split into lettered parts (T-012a, T-012b). The orchestrator updates the phase file, ticket data and ledger in one commit. These numbers are starting values; adjust them from the cost report.
+**Ticket size.** Every ticket must be buildable in one fresh session. A plan targets 25,000 characters: over it, the planner tightens the wording first (section 1 as steps and the file table, sources cited by ID, nothing repeated) without dropping any requirement, test, source or question (optimize plan C4, Josh 2026-10-20: tighten, don't split). If a plan touches more than about 8 files, has more than about 10 tests, or is still over 45,000 characters after tightening, the planner proposes a split into lettered parts (T-012a, T-012b). The orchestrator updates the phase file, ticket data and ledger in one commit. These numbers are starting values; adjust them from the cost report.
 
 **Plan review unit.** The code-reviewer reads all the phase's plans together, looking for missed requirements, conflicts between tickets, and interface contracts that don't line up between a ticket and its dependents. `next_ticket.mjs --report` also writes `vault/tickets/TRACE.md` (each AC → the ticket and tests that cover it). Every AC in the phase must appear at least once. An uncovered AC is a gap and goes back to the planner.
 

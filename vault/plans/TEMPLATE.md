@@ -6,7 +6,7 @@
 - Phase: N · Planned by: planner · Date: YYYY-MM-DD · Status: planned | questions
 
 ## 1. What to build
-What changes, in steps, and the files it touches (table: Path | New / change | Why). Data: tables, columns, migrations, RLS policies, `schema_version` changes; money fields and which permission reads them.
+What changes, in steps, and the files it touches (table: Path | New / change | Why). Steps and the table only: no narrative, and no text copied from the sources (cite them by ID). Whole plan: target 25,000 characters (`node vault/tools/outline.mjs <plan> --sizes`; PROCESS.md section 6, Ticket size). Data: tables, columns, migrations, RLS policies, `schema_version` changes; money fields and which permission reads them.
 
 Ticket row, copied from the phase file: Scope / Done when / Depends on / Spec ref.
 
