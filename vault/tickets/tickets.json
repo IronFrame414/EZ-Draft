@@ -2144,7 +2144,8 @@
     "AC-EZD-103-2",
     "AC-EZD-103-3",
     "AC-EZD-103-4",
-    "AC-EZD-103-5"
+    "AC-EZD-103-5",
+    "AC-EZD-103-6"
    ],
    "acs_source": "stage-0",
    "spec_phase": 1,
@@ -2408,7 +2409,9 @@
     "AC-EZD-112-4",
     "AC-EZD-112-5",
     "AC-EZD-112-6",
-    "AC-EZD-112-7"
+    "AC-EZD-112-7",
+    "AC-EZD-112-8",
+    "AC-EZD-112-9"
    ],
    "acs_source": "stage-0",
    "spec_phase": 1,

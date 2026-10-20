@@ -49,3 +49,9 @@ Stage 0 (spec-check 1), 2026-10-20. Phase-auditor run 1 found 14 gaps against `v
 - Testability: the "not on PDFs" check (AC-EZD-136-2) runs fully in Phase 25, when sheets exist; Phase 1 checks the disclaimer message is outside every print/export message group.
 
 Note for the field check: in Phase 1 Settings opens only by typing its address (/settings); the avatar menu link is EZD-108 in Phase 2.
+
+## Josh's answers (2026-10-20, relayed by session "Spec restructure and reading map")
+
+1 approved except Translations (now Q-0234, open); 2 Foreman yes, Crew no; 3 agree; 4 not the recommendation: keep every nav item visible, unbuilt pages get no placeholder or holding text, non-working buttons are fine; 5 to 9 agree. Q-0219 ok (confirmed (a)); Q-0089 still tabled; Q-0220 being clarified. Recorded as decision rows Q-0219, Q-0223 to Q-0231; ACs updated.
+
+**Still open: Q-0234.** Josh: Spanish is for field staff on the mobile pages only, switched per user; "that isn't a separate translation page". Open question: is there a Translations Settings page and switch at all, and what happens to the translation review screen (S16) and the Approve translations permission?

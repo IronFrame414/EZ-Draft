@@ -7,6 +7,7 @@ Authority order: Josh's build answers in `decisions/<area>.md` (index: `decision
 Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_rule seed) and `code-check-rules.md`.
 
 - [Job stories (Round 1, Josh)](sections/00-job-stories.md) — how a job runs and what EZ Draft is for; Q-0177 to Q-0196
+- [Glossary addendum, Phase 1](sections/00b-glossary-phase-01.md) — Phase 1 terms added to glossary.md; Q-0231
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
