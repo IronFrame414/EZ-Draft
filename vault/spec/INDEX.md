@@ -4,6 +4,7 @@ The full spec is `spec.md`; do not load it whole. Read only the sections a ticke
 Authority order: Josh's build answers in `decisions/<area>.md` (index: `decisions/INDEX.md`), then the spec's rounds (`decisions/13b-round-26.md` > Round 25 > Round 24 in `decisions/13a-rounds-24-25.md`) override everything else. Companions: `acceptance-criteria.md`, `glossary.md`, `non-goals.md`, `READINESS.md`, `SIGNOFF.md`.
 Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_rule seed) and `code-check-rules.md`.
 
+- [Job stories (Round 1, Josh)](sections/00-job-stories.md) — how a job runs and what EZ Draft is for; Q-0177 to Q-0196
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md)

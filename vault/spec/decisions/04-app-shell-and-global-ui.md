@@ -17,3 +17,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0098 | 2026-10-12 | Icon-only header buttons: Share uses `share`, Export uses `download`. |
 | Q-0038 | 2026-10-18 | (b): a "More tools" button at the end of the rail opens a flyout with the tools that do not fit. New requirement: each user can set the order of the tools on the rail (placement: Q-0122). Grouping tools into categories is an idea only (BACKLOG.md). |
 | Q-0122 | 2026-10-18 | (a): per-user tool order on the rail is built in Phase 2 inside EZD-230. |
+| Q-0183 | 2026-10-20 | On screen as well as in the terms, on basically every page, along the lines of: "This is for design and planning purposes. These calculations and codes must be confirmed by the user and a licensed person within the jurisdiction." Exact wording and placement in Round 2. (Round 1; vault/spec/sections/00-job-stories.md) |

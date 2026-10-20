@@ -2,7 +2,33 @@
 
 PROCESS.md section 2a. Josh approves this file before Phase 1's Stage 0; after that only Josh changes it. New requests go to `BACKLOG.md`.
 
-Status of this file: **draft for Josh's approval.** Phase 0 is written out below. The spec's phases 1 to 17 (368 tickets) were layers of 10 to 40 tickets, not vertical slices of 4 to 10, so on Oct 18, 2026 they were re-cut into 53 slices (second section), keeping every ticket ID and every dependency. Josh approves Phase 0 and the re-cut separately. Once he approves the re-cut, `node vault/tools/apply_recut.mjs` renumbers the ledger (`STATUS.md` Phase column and `tickets.json` `phase`) to the slice numbers; the per-spec-phase ticket files under `phases/` stay as the source of each ticket's text. Until then nothing after Phase 0 is scheduled and `next_ticket.mjs` works on the spec phases.
+Status of this file: **re-cut approved by Josh with changes on 2026-10-20 (Q-0194; section below); ticket-level re-cut pending the spec restructure.** Phase 0 is written out below. The spec's phases 1 to 17 (368 tickets) were layers of 10 to 40 tickets, not vertical slices of 4 to 10, so on Oct 18, 2026 they were re-cut into 53 slices (second section), keeping every ticket ID and every dependency. Josh approves Phase 0 and the re-cut separately. Once he approves the re-cut, `node vault/tools/apply_recut.mjs` renumbers the ledger (`STATUS.md` Phase column and `tickets.json` `phase`) to the slice numbers; the per-spec-phase ticket files under `phases/` stay as the source of each ticket's text. Until then nothing after Phase 0 is scheduled and `next_ticket.mjs` works on the spec phases.
+
+## Josh's approval of the re-cut (Round 1, 2026-10-20)
+
+Josh approved the 53 slices as the phase list with the moves below (Q-0194; vault/spec/sections/00-job-stories.md). The ticket-level re-cut (`recut.json`, new tickets for the new slices, `apply_recut.mjs`) is done in the spec restructure that follows Round 1; until then the slice text below is the Oct 18 draft. Every slice also meets and tests the security, performance, accessibility and screen-state rules for what it builds (Q-0184).
+
+| Order | Slices | Goal (one line) | Change from the draft |
+| --- | --- | --- | --- |
+| 1 | 1 Company settings and customers | Company set up, customers entered, terms page, on-screen disclaimer and backups in place | Adds terms, disclaimer (Q-0183) and backups from 52 (Q-0184) |
+| 2 | 2 Projects list and new project | Anyone permitted starts a project from the wizard dialog, with scope of work and foreman, and can mark it complete or reopen it | Adds Scope of work, Foreman (Q-0186), Mark complete (Q-0191) |
+| 3 | 3 to 11 | Draw and edit a measured plan with fixtures, users and permissions, versions | None |
+| 4 | 12 to 13 | Start from a Polycam scan, PDF, DXF or supplier kitchen PDF | None (six sources, Q-0189) |
+| 5 | 42 Field measure and office review | Any staff member re-measures or adds measurements and the office reviews them | Moves up from after 41 |
+| 6 | 14 to 18 | Cabinets, countertops, ceilings, lights, electrical devices and circuits | None |
+| 7 | 19 Load calculation | Load calc with a default common-load set the user can add to and edit | Adds common-load presets (Q-0181) |
+| 8 | 20 Code check engine | Code warnings, including the scope-of-work match check | Adds scope match (Q-0180) |
+| 9 | New: plumbing sheets | Plumbing locations, diagrams and calculations on a permit sheet | New (Q-0179) |
+| 10 | New: mechanical sheets | Mechanical layout and calculations on a permit sheet | New (Q-0179) |
+| 11 | New: tile layout | Tile layout sheet with client sign-off | New (Q-0179) |
+| 12 | 21 to 26 | Sheet set, permit PDF with seal box, revisions, details; Scope PDF download | Adds Scope PDF (Q-0190); seal box always (Q-0182) |
+| 13 | 49 to 50 Catalog | Products with photos, specs and prices; a product can skip the catalog | Moves before 3D and renders; adds skip-catalog (Q-0192) |
+| 14 | 27 to 34 | 3D, AI renders of the exact selections, client approval link | None |
+| 15 | 35 to 36 EZ Binder and change orders | — | Removed from v1, to BACKLOG.md (Q-0190) |
+| 16 | 37 to 39, 40 to 41, 43 to 48, 51 | Architect DXF, supplier files, offline and field pack, rule packs, Spanish, takeoff | None |
+| 17 | 52 to 53 | Final whole-app checks and code-rule verification | Hardening work moves into every slice (Q-0184) |
+
+Department presets built and tested first: unincorporated Palm Beach County, Boca Raton, West Palm Beach (Q-0193).
 
 ## Phase 0 · Setup
 

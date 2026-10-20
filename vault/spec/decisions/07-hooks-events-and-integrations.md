@@ -18,3 +18,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0082 | 2026-10-12 | Deferred: the live render trial runs after Phase 10, using the app's real 3D views. EZD-031 closes in Phase 0 on its stub run; the provider pick (R21) is needed before Phase 11. |
 | Q-0083 | 2026-10-12 | (a): fixed opening sentence plus one or two sentences from Josh per room on finishes. |
 | Q-0084 | 2026-10-12 | Deferred: Josh chooses models and settings when he runs the trial (after Phase 10); the script lets him pick at run time. |
+| Q-0190 | 2026-10-20 | No EZ Binder connection in v1; the connector is built later together with the EZ Binder side (BACKLOG.md). Projects and clients are entered in EZ Draft. EZ Draft offers a downloadable "Scope PDF" (written scope plus before/after drawings or renders, from any revision or design option) that Josh attaches to an estimate or change order in EZ Binder. (Round 1; vault/spec/sections/00-job-stories.md) |
