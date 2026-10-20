@@ -52,6 +52,7 @@ export const EVENTS = {
   // Canonical names: screen events that write the event log only (07 Hooks)
   'catalog_item.created': { kind: 'log_only' },
   'detail.placed': { kind: 'log_only' },
+  'user.joined': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -110,4 +111,5 @@ export interface EventPayloads {
   'cleanup.deleted': Record<string, unknown>;
   'catalog_item.created': Record<string, unknown>;
   'detail.placed': Record<string, unknown>;
+  'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };
 }

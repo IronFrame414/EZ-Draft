@@ -50,6 +50,28 @@ export async function createTestMember(opts: {
   return { appUserId: person.id, membershipId: membership.id, email };
 }
 
+// EZD-007d section 3 (vault/plans/EZD-007d.md; P-Step 7): a second membership for a person made by
+// createTestMember (scope all; invitedAt default as createTestMember). Removed by cleanupTestMembers().
+export async function addMembership(opts: {
+  appUserId: string;
+  tenantId: string;
+  status: TestMemberStatus;
+  invitedAt?: Date | null;
+}): Promise<{ membershipId: string }> {
+  const { appUserId, tenantId, status } = opts;
+  const invitedAt =
+    opts.invitedAt === undefined ? (status === 'invited' ? new Date() : null) : opts.invitedAt;
+  const membership = await insertOne('membership', {
+    tenant_id: tenantId,
+    user_id: appUserId,
+    status,
+    scope: 'all',
+    invited_at: invitedAt ? invitedAt.toISOString() : null,
+  });
+  membershipIds.push(membership.id);
+  return { membershipId: membership.id };
+}
+
 export async function cleanupTestMembers(): Promise<void> {
   const s = harnessSql();
   if (emails.length) {

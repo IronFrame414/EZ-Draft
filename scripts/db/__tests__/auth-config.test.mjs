@@ -5,6 +5,7 @@
 // Q-0165 (a) (hook in schema private). Keys are read table-scoped and bounded on both sides (L-008).
 // EZD-007c T17 part c, T33 (vault/plans/EZD-007c.md section 4): the docs rows and auth-file redaction, and
 // `local.mjs env` printing the gate secret (Step 7; section 3 CLI output; scripts/db/api-gate.mjs 43 characters).
+// EZD-007d T17 part d (vault/plans/EZD-007d.md section 4): docs names, local rate limits (D1), user.joined, redaction.
 // node:test, Node 22 built-ins only.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -336,4 +337,60 @@ test('EZD-007c T33 local.mjs env prints the gate secret and refuses without it',
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
+});
+
+// ---------- EZD-007d ----------
+// T17 part d (vault/plans/EZD-007d.md section 4; Steps 1, 7, 8; D1; check C8).
+
+test('EZD-007d T17 part d docs, config, registry and redaction', () => {
+  const arch = read('docs', 'architecture.md');
+  const auth = subsection(arch, '### Auth and session (EZD-007)');
+  assert.ok(auth, '### Auth and session (EZD-007) exists');
+  for (const name of [
+    'completeSignIn',
+    'requestSignIn',
+    'verifySignInCode',
+    'confirmSignInLink',
+    'signOut',
+    'setSignInLanguage',
+    'getSignInLanguage',
+    'isPublicPath',
+    'PUBLIC_PATHS',
+    'app/src/proxy.ts',
+    'ezd_sign_in_email',
+    'ezd_sign_in_lang',
+    'user.joined',
+  ]) {
+    assert.ok(auth.includes(name), `Auth and session section names ${name}`);
+  }
+
+  const toml = read('supabase', 'config.toml');
+  const limits = tomlTable(toml, '[auth.rate_limit]');
+  assert.ok(limits, 'config.toml has [auth.rate_limit]');
+  assert.ok(keyLine(limits, 'sign_in_sign_ups', '1000'), 'sign_in_sign_ups = 1000 (D1)');
+  assert.ok(keyLine(limits, 'token_verifications', '1000'), 'token_verifications = 1000 (D1)');
+
+  const registry = read('app', 'src', 'lib', 'events', 'registry.ts');
+  assert.ok(registry.includes("'user.joined': { kind: 'log_only' }"), "registry has 'user.joined' log_only");
+
+  const authDir = path.join(repo, 'app', 'src', 'server', 'auth');
+  const files = walkFiles(authDir).filter((f) => !/\.(test|spec)\.[cm]?[jt]sx?$/.test(f));
+  const names = files.map((f) => path.relative(authDir, f).split(path.sep).join('/'));
+  for (const expected of ['complete-sign-in.ts', 'actions.ts', 'sign-in-language.ts', 'public-paths.ts']) {
+    assert.ok(names.includes(expected), `app/src/server/auth/${expected} exists`);
+  }
+  const proxyFile = path.join(repo, 'app', 'src', 'proxy.ts');
+  assert.ok(statSync(proxyFile, { throwIfNoEntry: false })?.isFile(), 'app/src/proxy.ts exists');
+  for (const f of [...files, proxyFile]) {
+    const text = readFileSync(f, 'utf8');
+    assert.ok(!text.includes('console.'), `${f} has no console.`);
+    assert.ok(!text.includes('SUPABASE_SECRET_KEY'), `${f} does not read SUPABASE_SECRET_KEY`);
+  }
+
+  const check = spawnSync(process.execPath, [path.join(repo, 'scripts', 'conventions', 'check.mjs'), '.'], {
+    cwd: repo,
+    encoding: 'utf8',
+    env: childEnv(),
+  });
+  assert.equal(check.status, 0, `conventions check: ${check.stderr}${check.stdout}`);
 });
