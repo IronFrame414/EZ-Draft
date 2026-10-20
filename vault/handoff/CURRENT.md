@@ -8,3 +8,4 @@
 - Questions for Josh: Q-0219, Q-0220, Q-0175, Q-0089 still escalated; Q-0218, Q-0221 fix-mode changes await his confirm; Q-0233 is the other session's.
 - Decisions made: none; no new lesson
 - Next unit: `next_ticket.mjs --next-unit` prints "none: vault/handoff/STOP exists". After STOP is removed: EZD-016d (depends on EZD-016c, now done).
+- Fix mode 2026-10-20 (Q-0233): the launcher no longer exits on STOP or on `none`; it waits and re-checks (scripts/launcher-idle.mjs, scripts/launcher/idle.test.mjs 6 pass); only a budget hold or repeated failures end it. Full gate PASS after the change. Josh restarts `node scripts/run.mjs` once to load it.
