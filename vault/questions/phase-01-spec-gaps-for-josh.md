@@ -55,3 +55,9 @@ Note for the field check: in Phase 1 Settings opens only by typing its address (
 1 approved except Translations (now Q-0234, open); 2 Foreman yes, Crew no; 3 agree; 4 not the recommendation: keep every nav item visible, unbuilt pages get no placeholder or holding text, non-working buttons are fine; 5 to 9 agree. Q-0219 ok (confirmed (a)); Q-0089 still tabled; Q-0220 being clarified. Recorded as decision rows Q-0219, Q-0223 to Q-0231; ACs updated.
 
 **Still open: Q-0234.** Josh: Spanish is for field staff on the mobile pages only, switched per user; "that isn't a separate translation page". Open question: is there a Translations Settings page and switch at all, and what happens to the translation review screen (S16) and the Approve translations permission?
+
+## Round 2 (re-audit after the answers): one question
+
+**10 (Q-0235). Should Foreman and Crew see company costs by default?** The main permission table ticks "See company costs" for Foreman and Crew; the Settings screen's own preset list and the EZD-101 ticket leave it off. No answer from you settles it, and it is money.
+- Recommended (a): off by default for Foreman and Crew; you tick it for anyone who should see costs. (b) on, as the table says.
+- Effect on counts: (a) Foreman 11, Crew 4 switches; (b) Foreman 12, Crew 5.
