@@ -1,5 +1,5 @@
 {
-  "weekly_ceiling_usd_est": 1100,
+  "weekly_ceiling_usd_est": 1400,
   "week_resets": "Monday 02:00 America/New_York",
   "fable_ceiling_usd_est": null,
   "fable_fallback_fraction": 0.9,
@@ -13,6 +13,18 @@
       "date": "2026-10-20",
       "set": "weekly_ceiling_usd_est",
       "value": 1100
+    },
+    {
+      "date": "2026-10-20",
+      "hold_at": {
+        "from": 80,
+        "to": 80
+      }
+    },
+    {
+      "date": "2026-10-20",
+      "set": "weekly_ceiling_usd_est",
+      "value": 1400
     },
     {
       "date": "2026-10-20",
