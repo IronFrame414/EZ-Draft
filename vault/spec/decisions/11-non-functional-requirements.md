@@ -15,3 +15,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0107 | 2026-10-12 | Migrations reach the cloud dev database automatically on every push to develop that changes them (overrides Q-0023). |
 | Q-0111 | 2026-10-12 | Backups and release dumps are locked against deletion for at least 91 days (B2 Object Lock, Governance mode). |
 | Q-0211 | 2026-10-20 | Owner only. Shows the last backup, failed background jobs and render usage. (Round 2) |
+| Q-0035 (prep C11) | 2026-10-20 | Applies Q-0035 to `11-non-functional-requirements.md:77`: crew sign-in links and codes have no Copy link fallback; sign-in emails never show their link on screen. The one exception is the invite: the sender and the owner see the invite link and its 6-digit code (Q-0187, Q-0216). |
