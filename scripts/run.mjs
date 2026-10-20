@@ -41,6 +41,7 @@ const claudeBin = config.claude_bin || 'claude';
 const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
+const { costEntry } = await import('./cost-log.mjs');
 
 const MODELS = { orchestrator: 'claude-opus-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
 const UNITS = {
@@ -204,7 +205,7 @@ function commitVault(msg) {
   git('add', '--', 'vault'); git('commit', '-m', msg, '--', 'vault');
 }
 
-async function runUnit(unitName, arg) {
+async function runUnit(unitName, arg, meterSource = null) {
   const cmd = buildCommand(unitName, arg);
   // The scrub is set in api mode only (PROCESS.md section 11, Auth mode). Claude Code 2.1.303 forces the permission
   // mode to default whenever it is set, and with --permission-prompts none every write is then denied (2026-10-19 loop).
@@ -220,6 +221,7 @@ async function runUnit(unitName, arg) {
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
+  const processRev = git('rev-parse', '--short', 'HEAD').stdout.trim() || null;
   const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
   const res = await new Promise((resolve) => {
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -236,7 +238,7 @@ async function runUnit(unitName, arg) {
   // misread as limit-weekly and wrote a hold after EZD-000 had merged).
   const limit = (res.code !== 0 || parsed?.is_error) ? classifyLimit(text) : null;
   const outcome = limit ? `limit-${limit.kind}` : (res.code === 0 && !parsed?.is_error ? 'ok' : `error${parsed?.subtype ? `:${parsed.subtype}` : ''}`);
-  appendCost({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, est_usd: total, fable_est_usd: fable, outcome, session_id: parsed?.session_id, num_turns: parsed?.num_turns, duration_ms: parsed?.duration_ms ?? Date.now() - started, auth: authMode() });
+  appendCost(costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }));
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
   if (outcome === 'ok' && UNITS[unitName].as) {
@@ -302,7 +304,7 @@ async function main() {
     if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
     process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
     const statusBefore = statusHash();
-    const r = await runUnit(unitName, arg);
+    const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
     if (r.outcome.startsWith('limit-')) {
       if (r.limit.kind === 'five-hour') {

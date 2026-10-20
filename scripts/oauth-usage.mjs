@@ -31,30 +31,48 @@ export function retryWaitMs(retryAfter, now = new Date()) {
   return (Math.max(s, RETRY_FLOOR_S) + RETRY_PAD_S) * 1000;
 }
 
-function tokenFrom(text) {
+function oauthFrom(text) {
   try {
-    const t = JSON.parse(text)?.claudeAiOauth?.accessToken;
-    return typeof t === 'string' && t ? t : null;
+    const o = JSON.parse(text)?.claudeAiOauth;
+    return typeof o?.accessToken === 'string' && o.accessToken ? o : null;
   } catch {
     return null;
   }
 }
+const tokenFrom = (text) => oauthFrom(text)?.accessToken ?? null;
 
-export function readToken({ home = os.homedir(), platform = process.platform, exec = spawnSync } = {}) {
+// The credentials object from the first source that has a token: the file, then (macOS) the Keychain.
+function readOAuth({ home = os.homedir(), platform = process.platform, exec = spawnSync } = {}) {
   try {
-    const t = tokenFrom(readFileSync(path.join(home, '.claude', '.credentials.json'), 'utf8'));
-    if (t) return { token: t, source: 'file' };
+    const o = oauthFrom(readFileSync(path.join(home, '.claude', '.credentials.json'), 'utf8'));
+    if (o) return { oauth: o, source: 'file' };
   } catch {}
   if (platform === 'darwin') {
     try {
       const r = exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], { encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'] });
       if (r && r.status === 0) {
-        const t = tokenFrom(String(r.stdout ?? '').trim());
-        if (t) return { token: t, source: 'keychain' };
+        const o = oauthFrom(String(r.stdout ?? '').trim());
+        if (o) return { oauth: o, source: 'keychain' };
       }
     } catch {}
   }
-  return { token: null, source: null };
+  return { oauth: null, source: null };
+}
+
+export function readToken(opts = {}) {
+  const { oauth, source } = readOAuth(opts);
+  return oauth ? { token: oauth.accessToken, source } : { token: null, source: null };
+}
+
+// One probe line: when the stored sign-in token expires (optimize plan C1). Prints the time only, never the token.
+export function tokenExpiry({ now = new Date(), ...opts } = {}) {
+  const { oauth } = readOAuth(opts);
+  if (!oauth) return 'token expiry: no credentials';
+  const v = oauth.expiresAt;
+  if (v === undefined || v === null) return 'token expiry: not in credentials';
+  const t = typeof v === 'number' ? v : typeof v === 'string' ? Date.parse(v) : NaN;
+  if (!Number.isFinite(t)) return 'token expiry: not readable';
+  return `token expiry: ${new Date(t).toISOString()} (${t <= now.getTime() ? 'expired' : 'valid'})`;
 }
 
 function win(w, max) {
@@ -209,4 +227,5 @@ export async function probe({ root = ROOT, fetch = globalThis.fetch, readToken: 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain && process.argv.includes('--probe')) {
   for (const l of await probe()) console.log(l);
+  console.log(tokenExpiry());
 }

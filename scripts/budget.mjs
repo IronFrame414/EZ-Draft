@@ -78,7 +78,17 @@ const pctOf = (w) => (w ? `${Math.round(w.pct)}%` : 'no meter');
 export function writeHold({ root = ROOT, now = new Date(), reason, meters, budget = {}, nextUnit }) {
   const t = thresholds(budget);
   const w = meters?.seven_day;
-  const txt = `# Budget hold\n\nWritten by scripts/run.mjs on ${now.toISOString()}.\n\n- Reason: ${reason}\n- Weekly window: ${pctOf(w)} used (hold at ${t.hold_at_pct}%), resets ${w ? w.resets_at : '—'}; source: ${meters?.source ?? 'none'}\n- Five-hour window: ${pctOf(meters?.five_hour)} · Fable weekly: ${pctOf(meters?.fable_seven_day)}\n- Next unit when released: ${nextUnit}\n\nNo new ticket starts while this file exists; a ticket already in progress finishes. To continue (PROCESS.md section 11):\n- \`node scripts/budget.mjs --hold-at <pct>\`\n- \`node scripts/budget.mjs --until-reset\`\n- \`node scripts/budget.mjs --api-until-reset\`\nEach removes this file. Then start \`node scripts/run.mjs\` again.\n`;
+  // Optimize plan C1: a proxy-sourced hold says it is an estimate and gives the last real reading on file.
+  let estimate = '';
+  if (meters?.source === 'proxy') {
+    const u = readJson(path.join(root, 'vault/cost/usage.json'), null);
+    const at = u ? Date.parse(u.read_at) : NaN;
+    const last = u && typeof u.seven_day?.pct === 'number' && !Number.isNaN(at)
+      ? `weekly ${Math.round(u.seven_day.pct)}% at ${fmt(u.read_at)} (${u.source ?? 'unknown'}), ${((now.getTime() - at) / 3_600_000).toFixed(1)} hours before this hold.`
+      : 'none on file.';
+    estimate = `- Estimated: this percent is the cost log against weekly_ceiling_usd_est, not the plan's usage meter. Check Settings → Usage before acting.\n- Last real reading: ${last}\n`;
+  }
+  const txt = `# Budget hold\n\nWritten by scripts/run.mjs on ${now.toISOString()}.\n\n- Reason: ${reason}\n- Weekly window: ${pctOf(w)} used (hold at ${t.hold_at_pct}%), resets ${w ? w.resets_at : '—'}; source: ${meters?.source ?? 'none'}\n${estimate}- Five-hour window: ${pctOf(meters?.five_hour)} · Fable weekly: ${pctOf(meters?.fable_seven_day)}\n- Next unit when released: ${nextUnit}\n\nNo new ticket starts while this file exists; a ticket already in progress finishes. To continue (PROCESS.md section 11):\n- \`node scripts/budget.mjs --hold-at <pct>\`\n- \`node scripts/budget.mjs --until-reset\`\n- \`node scripts/budget.mjs --api-until-reset\`\nEach removes this file. Then start \`node scripts/run.mjs\` again.\n`;
   mkdirSync(path.join(root, 'vault/handoff'), { recursive: true });
   writeFileSync(handoff(root, 'BUDGET_HOLD.md'), txt);
 }
