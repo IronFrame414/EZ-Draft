@@ -9,7 +9,7 @@ Phase 0 passes on the local Supabase and the stub email provider. Only EZD-003 a
 Every session that tells Josh he must do something adds it here, and ticks it off when he confirms it is done. The tables below are the full record.
 
 **Before the Phase 0 gate (the preview sign-in needs these)**
-- [ ] Say yes or no to the install fix: the GitHub Actions package install fails (pnpm minimum-release-age policy), so the dev migrations workflow never ran and CI will likely fail on the Phase 0 PR.
+- [x] Say yes or no to the install fix (yes, 2026-10-20): the GitHub Actions package install fails (pnpm minimum-release-age policy), so the dev migrations workflow never ran and CI will likely fail on the Phase 0 PR.
 - [ ] GitHub: Settings → Rules → Rulesets → `main` → add "Require status checks to pass" with the check `gate` (checked 2026-10-20: missing).
 - [ ] Supabase: confirm `ezdraft-dev` exists in EZ Binder's organization and that the GitHub `dev` secret `SUPABASE_DEV_DB_URL` (added 2026-10-12) points to it; if unsure, recreate per docs/runbook.md "Supabase cloud projects" steps 1–5.
 - [ ] After the install fix: Actions → Supabase dev migrations → Run workflow on `develop`.
@@ -17,7 +17,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [ ] Tenant 1: paste supabase/bootstrap/tenant-1.sql into the `ezdraft-dev` SQL Editor with your email (runbook "Tenant 1 setup").
 - [ ] Vercel Preview keys for the dev project (EZD-023b's setup).
 - [ ] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md.
-- [ ] Confirm or revert the fix-mode changes Q-0218 (spec restructure, re-cut, reading map), Q-0221 (gate phase tests), Q-0233 (launcher waits instead of stopping).
+- [x] Confirm or revert the fix-mode changes (confirmed 2026-10-20) Q-0218 (spec restructure, re-cut, reading map), Q-0221 (gate phase tests), Q-0233 (launcher waits instead of stopping).
 
 **Before Phase 3**
 - [ ] iPad drawing-speed run on your iPad over the office network (EZD-027 spike; architecture checkpoint).
