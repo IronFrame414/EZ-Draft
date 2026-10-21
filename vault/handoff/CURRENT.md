@@ -1,10 +1,10 @@
-# Handoff · 2026-10-21 00:52 · plan EZD-012c
+# Handoff · 2026-10-21 00:57 · plan EZD-034
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: Planned EZD-012c: status planned, complexity medium.
+- Completed this session: Planned EZD-034: status questions, complexity high; open questions Q-0242, Q-0243.
 - In progress: none
 - Blocked: none new
 - Questions for Josh: see vault/questions/QUESTIONS.md
 - Decisions made: none
-- Next unit: plan EZD-034
+- Next unit: questions 0
