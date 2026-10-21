@@ -13,7 +13,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [x] GitHub: `main` ruleset requires the check `gate` (done and verified 2026-10-20).
 - [x] (Josh 2026-10-20: set up with another session's walkthrough; assumed right) Supabase: confirm `ezdraft-dev` exists in EZ Binder's organization and that the GitHub `dev` secret `SUPABASE_DEV_DB_URL` (added 2026-10-12) points to it; if unsure, recreate per docs/runbook.md "Supabase cloud projects" steps 1–5.
 - [x] Dev migrations ran on `develop` (2026-10-21, run 39524122587, 20 migrations).
-- [ ] Supabase `ezdraft-dev`: Custom Access Token hook and Before User Created hook on (runbook steps 9 and Sign-in 5); API gate secret (runbook step 10; the orchestrator runs the generate command, you paste); sign-in settings (runbook Sign-in steps 1–4, 6).
+- [ ] (2026-10-21: hooks, sign-in settings and templates done; still open: the API gate secret, runbook step 10) Supabase `ezdraft-dev` (real name `ez-draft`, org Iron Frame): Custom Access Token hook and Before User Created hook on (runbook steps 9 and Sign-in 5); API gate secret (runbook step 10; the orchestrator runs the generate command, you paste); sign-in settings (runbook Sign-in steps 1–4, 6).
 - [ ] Tenant 1: paste supabase/bootstrap/tenant-1.sql into the `ezdraft-dev` SQL Editor with your email (runbook "Tenant 1 setup").
 - [ ] Vercel Preview keys for the dev project (EZD-023b's setup).
 - [x] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md (2026-10-20: Q-0175 (b), rest confirmed).
