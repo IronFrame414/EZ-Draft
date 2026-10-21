@@ -15,7 +15,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [x] Dev migrations ran on `develop` (2026-10-21, run 39524122587, 20 migrations).
 - [x] (2026-10-21: hooks, sign-in settings and templates done; API gate secret done 2026-10-21; all of this item done) Supabase `ezdraft-dev` (real name `ez-draft`, org Iron Frame): Custom Access Token hook and Before User Created hook on (runbook steps 9 and Sign-in 5); API gate secret (runbook step 10; the orchestrator runs the generate command, you paste); sign-in settings (runbook Sign-in steps 1–4, 6).
 - [x] (done 2026-10-21) Tenant 1: paste supabase/bootstrap/tenant-1.sql into the `ezdraft-dev` SQL Editor with your email (runbook "Tenant 1 setup").
-- [ ] Vercel Preview keys for the dev project (EZD-023b's setup).
+- [x] (done 2026-10-21: six Preview variables) Vercel Preview keys for the dev project (EZD-023b's setup).
 - [x] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md (2026-10-20: Q-0175 (b), rest confirmed).
 - [x] Q-0241: captcha service = Cloudflare Turnstile (2026-10-21).
 - [ ] Before launch: create a Cloudflare Turnstile widget for ezdraft.ezcontractorbinder.com (a free Cloudflare account; the domain stays at Spaceship, no DNS move) and give the site key and secret (EZD-034; they go in Vercel and Supabase, never in chat or the repo).
