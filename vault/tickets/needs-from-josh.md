@@ -11,7 +11,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 **Before the Phase 0 gate (the preview sign-in needs these)**
 - [x] Say yes or no to the install fix (yes, 2026-10-20): the GitHub Actions package install fails (pnpm minimum-release-age policy), so the dev migrations workflow never ran and CI will likely fail on the Phase 0 PR.
 - [x] GitHub: `main` ruleset requires the check `gate` (done and verified 2026-10-20).
-- [ ] Supabase: confirm `ezdraft-dev` exists in EZ Binder's organization and that the GitHub `dev` secret `SUPABASE_DEV_DB_URL` (added 2026-10-12) points to it; if unsure, recreate per docs/runbook.md "Supabase cloud projects" steps 1–5.
+- [x] (Josh 2026-10-20: set up with another session's walkthrough; assumed right) Supabase: confirm `ezdraft-dev` exists in EZ Binder's organization and that the GitHub `dev` secret `SUPABASE_DEV_DB_URL` (added 2026-10-12) points to it; if unsure, recreate per docs/runbook.md "Supabase cloud projects" steps 1–5.
 - [ ] After the install fix: Actions → Supabase dev migrations → Run workflow on `develop`.
 - [ ] Supabase `ezdraft-dev`: Custom Access Token hook and Before User Created hook on (runbook steps 9 and Sign-in 5); API gate secret (runbook step 10; the orchestrator runs the generate command, you paste); sign-in settings (runbook Sign-in steps 1–4, 6).
 - [ ] Tenant 1: paste supabase/bootstrap/tenant-1.sql into the `ezdraft-dev` SQL Editor with your email (runbook "Tenant 1 setup").
