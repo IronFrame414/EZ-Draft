@@ -35,7 +35,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [ ] A hand load calc for one house and a hand material count for one kitchen; a past kitchen's cabinet order; a real vendor cabinet line.
 - [ ] Render trial live run (5 room images, provider keys, spending cap); the GPU machine and model for the local render worker.
 - [ ] Each code rule checked against the adopted code text (Q-0001, EZD-1710).
-- [ ] Before-launch checklist (EZD-003 stays blocked until then).
+- [ ] Before-launch checklist (EZD-003 stays blocked until then). Josh 2026-10-21: "should be complete"; to verify at the next run (EZD-003 Step 6: T8 needs the first real release).
 
 | Item | Needed by | Without it |
 | --- | --- | --- |
