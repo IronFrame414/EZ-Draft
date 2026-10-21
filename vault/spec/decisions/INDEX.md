@@ -13,7 +13,7 @@ One file per spec area, mirroring `vault/spec/sections/`. A dispatch hands an ag
 | 07-hooks-events-and-integrations.md | Hooks, events, jobs and outside services: email, jobs, EZ Binder, AI and render providers | Q-0035 Q-0036 Q-0041 Q-0059 Q-0067 Q-0068 Q-0077 Q-0078 Q-0081 Q-0016 Q-0076 Q-0082 Q-0083 Q-0084 Q-0190 Q-0222 |
 | 08-import-and-export.md | Import and export: department submittals | Q-0017 Q-0189 Q-0193 Q-0209 Q-0215 |
 | 09-calculations-and-rules.md | Calculations and code rules | Q-0001 Q-0179 Q-0180 Q-0181 Q-0182 Q-0205 Q-0207 |
-| 10-permissions-and-settings.md | Permissions, users, sign-in and language | Q-0014 Q-0029 Q-0030 Q-0043 Q-0046 Q-0047 Q-0048 Q-0049 Q-0050 Q-0090 Q-0091 Q-0092 Q-0093 Q-0099 Q-0100 Q-0101 Q-0102 Q-0002 Q-0096 Q-0121 Q-0094 Q-0178 Q-0187 Q-0188 Q-0202 Q-0210 Q-0212 Q-0216 |
+| 10-permissions-and-settings.md | Permissions, users, sign-in and language | Q-0014 Q-0029 Q-0030 Q-0043 Q-0046 Q-0047 Q-0048 Q-0049 Q-0050 Q-0090 Q-0091 Q-0092 Q-0093 Q-0099 Q-0100 Q-0101 Q-0102 Q-0002 Q-0096 Q-0121 Q-0094 Q-0178 Q-0187 Q-0188 Q-0202 Q-0210 Q-0212 Q-0216 Q-0175 Q-0241 |
 | 11-non-functional-requirements.md | Non-functional: performance targets, operations, releases, backups, error reporting, GPU | Q-0018 Q-0020 Q-0069 Q-0070 Q-0074 Q-0075 Q-0097 Q-0106 Q-0107 Q-0111 Q-0211 Q-0035 |
 | process.md | Build process and repository (answers that shape how the build runs rather than the product) | Q-0004 Q-0006 Q-0011 Q-0171 Q-0019 Q-0025 Q-0032 Q-0065 Q-0108 Q-0114 Q-0116 Q-0117 Q-0118 Q-0119 Q-0124 Q-0125 Q-0129 Q-0138 Q-0184 Q-0194 Q-0195 |
 
