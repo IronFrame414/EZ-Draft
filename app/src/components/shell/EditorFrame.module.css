@@ -1,0 +1,51 @@
+.frame {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ez-ink);
+  background-color: var(--ez-canvas);
+  background-image:
+    linear-gradient(var(--ez-canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ez-canvas-grid) 1px, transparent 1px);
+  background-size: var(--ez-grid-size) var(--ez-grid-size);
+}
+
+.body {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  padding: var(--ez-body-padding);
+  gap: var(--ez-body-gap);
+}
+
+.leftPanel {
+  composes: card from './card.module.css';
+  box-sizing: border-box;
+  flex: none;
+  width: var(--ez-left-panel-width);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.inspector {
+  composes: card from './card.module.css';
+  box-sizing: border-box;
+  flex: none;
+  width: var(--ez-inspector-width);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}

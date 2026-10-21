@@ -37,6 +37,8 @@ export const en = {
   'office.header.export': 'Export',
   'office.header.issue_set': 'Issue set',
   'office.shell.tools': 'Tools',
+  'office.shell.left_panel': 'Left panel',
+  'office.shell.inspector': 'Inspector',
   'office.tool.select': 'Select',
   'office.tool.cabinets': 'Cabinets',
   'office.tool.help': 'Help',

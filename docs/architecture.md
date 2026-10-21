@@ -255,6 +255,19 @@ EZD-011b (vault/plans/EZD-011b.md Step 6); 04 Header card.
 - Header strings are `office.header.*` keys in `en` only (office is English in v1).
 - `EditorHeader` is `memo`, so callers pass stable callbacks (`useCallback`) and no per-frame props.
 
+### Editor shell (EZD-012)
+
+EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system (Studio), Tool rail, Status bar.
+
+- Files in `app/src/components/shell/`: `EditorFrame` (`EditorFrame.tsx`, `EditorFrame.module.css`, type `EditorFrameProps`), `StatusBar` and `StatusItem` (`StatusBar.tsx`), `EmptyEditor` (`EmptyEditor.tsx`), and EZD-012a's `ToolRail` (`ToolRail.tsx`) with its entry types in `rail-types.ts`. All are client components that read text through `useT()` with `office.` keys (English only).
+- `EditorFrame` renders, in order: the header slot, the body (rail, left panel, canvas, inspector), the status bar. Regions carry `data-shell-region`: `frame`, `body`, `rail`, `left-panel`, `canvas`, `inspector`, `status-bar`. Status bar parts carry `data-status` (`start`, `end`), `data-status-item`, `data-status-label`, `data-status-value`. Do not rename them; EZD-012c, EZD-014 and EZD-032 select on them.
+- The header slot is unwrapped: `HeaderCard` owns its height and margin, so the frame adds none.
+- Sizes are the 04 sizes, border-box, taken from the frame tokens in `tokens.css` (left panel 248, inspector 336, status bar 30, grid 32, body padding and gap 16).
+- The grid is CSS on the frame root until EZD-207 decides how its WebGL grid meets it.
+- Rail entries are props. EZD-230 owns the tool list, the "More tools" flyout and the per-user order (Q-0038 (b), Q-0122 (a)); a tool appears only when its feature exists. The tooltip is CSS only (EZD-012a).
+- Status bar readouts that change per pointer move write through a ref, never React state (11 rule 4). The disclaimer line goes in the status bar (EZD-136, Q-0229).
+- The shell adds no pointer, scroll or resize listener.
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-133 (helper, server-route pattern, browser-query lint rule) and EZD-102 (enforcement, UI hook).
@@ -487,6 +500,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Browser web server env: gate secret only in the server env and Node; secret key and test DB URL empty; no browser headers | `harness-config.test.ts` (T5; Q-0087) | EZD-016d |
 | — | CI's browser install finds a root Playwright config | `harness-wiring.test.mjs` (T9) | EZD-016d |
 | — | Harness sign-in never sends the gate secret to the browser; server path gated, browser path refused | `app/e2e/harness.spec.ts` (T12; Q-0087) | EZD-016a |
+| — | Shell CSS takes the 04 frame sizes and the tooltip radius from tokens | app/src/components/shell/frame-css.test.ts (S1, U7) | EZD-012a, EZD-012b |
 
 ### CI
 

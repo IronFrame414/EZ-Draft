@@ -401,3 +401,45 @@ test('EZD-011b H15 (c): the conventions check exits 0 on the repository root', (
   const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
   assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
 });
+
+// EZD-012b · D1: docs/architecture.md gets the Editor shell (EZD-012) subsection and a Machine checks row.
+// Sources: vault/plans/EZD-012b.md Step 6, Section 3 docs rows; EZD-000 T5; EZD-011a H15 pattern.
+test('EZD-012b D1 (a): the ## headings are still exactly the 13 required, in order', () => {
+  const headings = readArch().split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => /^## /.test(l));
+  assert.deepEqual(headings, REQUIRED_HEADINGS);
+});
+
+test('EZD-012b D1 (b): ### Editor shell (EZD-012) sits after ### Shell header (EZD-011) and before ## Server-only data access and can()', () => {
+  const lines = readArch().split(/\r?\n/).map((l) => l.trimEnd());
+  const editor = lines.indexOf('### Editor shell (EZD-012)');
+  const header = lines.indexOf('### Shell header (EZD-011)');
+  const server = lines.indexOf('## Server-only data access and can()');
+  assert.ok(editor >= 0, 'a line exactly "### Editor shell (EZD-012)"');
+  assert.ok(header >= 0 && header < editor, 'after "### Shell header (EZD-011)"');
+  assert.ok(editor < server, 'before "## Server-only data access and can()"');
+});
+
+test('EZD-012b D1 (c): the Editor shell subsection names the components, data-shell-region and EZD-230', () => {
+  const lines = readArch().split(/\r?\n/).map((l) => l.trimEnd());
+  const start = lines.indexOf('### Editor shell (EZD-012)');
+  assert.ok(start >= 0, 'the Editor shell (EZD-012) heading exists');
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^#{2,3} /.test(lines[i])) { end = i; break; }
+  }
+  const section = lines.slice(start + 1, end).join('\n');
+  for (const s of ['EditorFrame', 'StatusBar', 'StatusItem', 'EmptyEditor', 'data-shell-region', 'EZD-230']) {
+    assert.ok(section.includes(s), `Editor shell subsection must name ${s}`);
+  }
+});
+
+test('EZD-012b D1 (d): a Machine checks row names frame-css.test.ts and is built by EZD-012b', () => {
+  const t = tableWithHeader(readArch(), ['ID', 'Rule', 'Check', 'Built by']);
+  const row = t.rows.find((r) => (r[2] || '').includes('frame-css.test.ts') && (r[3] || '').includes('EZD-012b'));
+  assert.ok(row, 'a Machine checks row with Check containing frame-css.test.ts and Built by containing EZD-012b');
+});
+
+test('EZD-012b D1 (e): the conventions check exits 0 on the repository root', () => {
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});

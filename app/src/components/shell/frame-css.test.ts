@@ -59,3 +59,36 @@ describe('EZD-012a frame CSS', () => {
     expect(hits[0]).toEqual({ name: '--ez-radius-6', value: '6px', group: 'radius' });
   });
 });
+
+describe('EZD-012b frame CSS', () => {
+  it('S1 part b: frame CSS uses the tokens and passes check C10', () => {
+    const frame = squash(readFileSync(path.join(here, 'EditorFrame.module.css'), 'utf8'));
+    const bar = squash(readFileSync(path.join(here, 'StatusBar.module.css'), 'utf8'));
+    for (const v of [
+      'var(--ez-body-padding)',
+      'var(--ez-body-gap)',
+      'var(--ez-left-panel-width)',
+      'var(--ez-inspector-width)',
+      'var(--ez-canvas)',
+      'var(--ez-canvas-grid)',
+      'var(--ez-grid-size)',
+    ]) {
+      expect(frame).toContain(v);
+    }
+    expect(frame).toMatch(/composes:\s*card from ['"]\.\/card\.module\.css['"]/);
+    expect(frame).not.toContain('--ez-header-height');
+    expect(frame).not.toContain('--ez-header-margin');
+    expect(bar).toContain('var(--ez-status-bar-height)');
+    expect(bar).toContain('var(--ez-font-mono)');
+    for (const css of [frame, bar]) {
+      for (const bad of ['56px', '248px', '336px', '30px', '60px']) {
+        expect(css).not.toContain(bad);
+      }
+    }
+    const r = spawnSync('node', ['scripts/conventions/check.mjs', '.'], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    expect(r.status, r.stdout + r.stderr).toBe(0);
+  });
+});
