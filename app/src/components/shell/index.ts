@@ -6,3 +6,5 @@ export type { EditorHeaderProps } from './EditorHeader';
 export { Wordmark } from './Wordmark';
 export { EDITOR_VIEWS, VIEW_LABEL_KEYS } from './editor-views';
 export type { EditorView } from './editor-views';
+export { ToolRail } from './ToolRail';
+export type { RailTool, RailSeparator, RailEntry } from './rail-types';

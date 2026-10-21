@@ -1,0 +1,90 @@
+.rail {
+  composes: card from './card.module.css';
+  box-sizing: border-box;
+  flex: none;
+  align-self: stretch;
+  width: var(--ez-rail-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.top {
+  flex: 1;
+  min-height: 0;
+}
+
+.slot {
+  position: relative;
+}
+
+.tool {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--ez-slate-700);
+  cursor: pointer;
+}
+
+.tool:hover {
+  background: var(--ez-hover);
+}
+
+.tool[aria-pressed='true'],
+.tool[aria-pressed='true']:hover {
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.tool:focus-visible {
+  outline: 2px solid var(--ez-cobalt);
+  outline-offset: 2px;
+}
+
+.separator {
+  width: 24px;
+  height: 1px;
+  margin: 6px 0;
+  background: var(--ez-border);
+}
+
+.tip {
+  display: none;
+  position: absolute;
+  left: 52px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  white-space: nowrap;
+  gap: 8px;
+  padding: 5px 9px;
+  font-size: 12px;
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  border-radius: var(--ez-radius-6);
+}
+
+.slot:hover .tip,
+.tool:focus-visible + .tip {
+  display: flex;
+}
+
+.key {
+  font-family: var(--ez-font-mono);
+  font-size: inherit;
+  color: var(--ez-slate-300);
+}

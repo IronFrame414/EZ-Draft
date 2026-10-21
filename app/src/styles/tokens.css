@@ -38,4 +38,6 @@
   --ez-grid-size: 32px;
   /* S03 .b:hover; vault/tickets/README.md rule 5; EZD-011a */
   --ez-border-hover: #c9ced5;
+  /* S03 .tip; Q-0040 (c); EZD-012a */
+  --ez-radius-6: 6px;
 }

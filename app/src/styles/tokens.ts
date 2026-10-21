@@ -41,4 +41,5 @@ export const TOKENS: readonly {
   { name: '--ez-status-bar-height', value: '30px', group: 'frame' },
   { name: '--ez-grid-size', value: '32px', group: 'frame' },
   { name: '--ez-border-hover', value: '#c9ced5', group: 'color' },
+  { name: '--ez-radius-6', value: '6px', group: 'radius' },
 ];

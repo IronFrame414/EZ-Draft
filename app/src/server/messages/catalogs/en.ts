@@ -36,6 +36,10 @@ export const en = {
   'office.header.share': 'Share',
   'office.header.export': 'Export',
   'office.header.issue_set': 'Issue set',
+  'office.shell.tools': 'Tools',
+  'office.tool.select': 'Select',
+  'office.tool.cabinets': 'Cabinets',
+  'office.tool.help': 'Help',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
