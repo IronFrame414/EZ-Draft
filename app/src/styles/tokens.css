@@ -36,4 +36,6 @@
   --ez-inspector-width: 336px;
   --ez-status-bar-height: 30px;
   --ez-grid-size: 32px;
+  /* S03 .b:hover; vault/tickets/README.md rule 5; EZD-011a */
+  --ez-border-hover: #c9ced5;
 }

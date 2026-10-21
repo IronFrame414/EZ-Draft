@@ -339,3 +339,39 @@ test('EZD-026a D1: docs describe the message helper, the catalogs and the lint',
   const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
   assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
 });
+
+// EZD-011a · H15 part a: docs/architecture.md gets the Shell header (EZD-011) subsection.
+// Sources: vault/plans/EZD-011a.md Step 7 (Step 8 part a), Section 4; EZD-000 T5; C1, C8, C10.
+test('EZD-011a H15 (a): the ## headings are still exactly the 13 required, in order', () => {
+  const headings = readArch().split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => /^## /.test(l));
+  assert.deepEqual(headings, REQUIRED_HEADINGS);
+});
+
+test('EZD-011a H15 (b): ### Shell header (EZD-011) sits after Messages and language (t()) and before ## Server-only data access and can()', () => {
+  const lines = readArch().split(/\r?\n/).map((l) => l.trimEnd());
+  const shell = lines.indexOf('### Shell header (EZD-011)');
+  const messages = lines.indexOf('### Messages and language (t())');
+  const server = lines.indexOf('## Server-only data access and can()');
+  assert.ok(shell >= 0, 'a line exactly "### Shell header (EZD-011)"');
+  assert.ok(messages >= 0 && messages < shell, 'after "### Messages and language (t())"');
+  assert.ok(shell < server, 'before "## Server-only data access and can()"');
+});
+
+test('EZD-011a H15 (c): the Shell header subsection names HeaderCard, HeaderButton, card.module.css and globals.css', () => {
+  const lines = readArch().split(/\r?\n/).map((l) => l.trimEnd());
+  const start = lines.indexOf('### Shell header (EZD-011)');
+  assert.ok(start >= 0, 'the Shell header (EZD-011) heading exists');
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^#{2,3} /.test(lines[i])) { end = i; break; }
+  }
+  const section = lines.slice(start + 1, end).join('\n');
+  for (const s of ['HeaderCard', 'HeaderButton', 'card.module.css', 'globals.css']) {
+    assert.ok(section.includes(s), `Shell header subsection must name ${s}`);
+  }
+});
+
+test('EZD-011a H15 (d): the conventions check exits 0 on the repository root', () => {
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});

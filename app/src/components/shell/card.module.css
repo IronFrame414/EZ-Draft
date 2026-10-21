@@ -1,0 +1,7 @@
+/* The one card surface (04 Frame; S03 .card; EZD-011a). Other shell parts compose it, never copy it. */
+.card {
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}

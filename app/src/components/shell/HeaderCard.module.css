@@ -1,0 +1,13 @@
+/* Header card, 60 px tall with a 16 px margin on top and both sides (04 Frame; S03 header; EZD-011a). */
+.header {
+  composes: card from './card.module.css';
+  box-sizing: border-box;
+  height: var(--ez-header-height);
+  margin: var(--ez-header-margin) var(--ez-header-margin) 0;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  overflow: hidden;
+}

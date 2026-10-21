@@ -1,0 +1,25 @@
+/* Header buttons: secondary and primary (S03 .b, .b:hover, .bp; 04 Frame; EZD-011a). */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  font: 500 14px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--ez-border-hover);
+}
+
+.primary {
+  padding: 9px 16px;
+  font-weight: 600;
+  background: var(--ez-cobalt);
+  border-color: var(--ez-cobalt);
+  color: var(--ez-surface);
+}

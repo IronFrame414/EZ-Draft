@@ -237,6 +237,16 @@ EZD-026c, EZD-026d, EZD-026a (vault/plans/EZD-026a.md Steps 1-5); R26 R17; R24 #
 - **Route error keys.** A route that returns a `message_key` adds it to `en`, and to `es` when its namespace needs Spanish, in the same commit. Route error `message_key` values live in the `error` namespace. `message-keys.test.ts` checks every literal `message_key` in `app/src`; a key built at run time is checked by review.
 - **Lint.** `ezdraft/no-literal-ui-string` (`eslint-rules/no-literal-ui-string.mjs`, registered by `eslint-rules/index.mjs`; blocks in `eslint.config.mjs`) reports JSX text with a letter, a text expression as a JSX child, a text attribute (`alt`, `title`, `placeholder`, `label`, `aria-label`, names ending in `Label`, `Title`, `Text`, `Message` and similar) and, with `allowedKeyPrefixes`, a `t('<literal>')` key outside the folder's namespaces. Test files are exempt. Folders: field and crew phone `app/src/app/(field)/`, `app/src/components/field/`, `app/src/components/phone/` (prefixes `common.`, `field.`, `error.`); client link `app/src/app/(client)/`, `app/src/components/client/` (`common.`, `client.`, `error.`); test page `app/src/app/dev/messages/` (adds `dev.`); sign-in pages `app/src/app/sign-in/`, `app/src/app/auth/confirm/`, `app/src/components/auth/` (`common.`, `error.`; EZD-007e). `(field)` and `(client)` are App Router route groups and add no URL segment. A ticket that adds a phone folder (EZD-015's states, EZD-020's entry points, EZD-007's sign-in) changes the block's `files` in its own commit. Office components are not linted by the rule.
 
+### Shell header (EZD-011)
+
+EZD-011a (vault/plans/EZD-011a.md Step 7); 04 Frame and visual system (Studio); S03 `.card`, `.b`, `.bp`.
+
+- `app/src/components/shell/` holds the shell parts. `card.module.css` is the one card surface (background, border, radius 12, card shadow); other parts compose it with `composes`, never copy it.
+- `HeaderCard` (`HeaderCard.tsx`, `HeaderCard.module.css`) is the 60 px header card. It owns its height and its 16 px top and side margin, so the frame adds none. It is server-safe and renders one `<header>`.
+- `HeaderButton` (`HeaderButton.tsx`, `HeaderButton.module.css`) is the secondary and primary header button: `variant` is `secondary` (default) or `primary`; every other prop, including `ref`, passes through to the `<button>`.
+- `index.ts` re-exports the shell parts.
+- The body margin reset lives in `app/src/styles/globals.css`.
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-133 (helper, server-route pattern, browser-query lint rule) and EZD-102 (enforcement, UI hook).
