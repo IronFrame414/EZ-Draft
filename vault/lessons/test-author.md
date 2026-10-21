@@ -50,3 +50,10 @@ Mistake: T12 (secret never in a response body) turned every failed body read int
 Cause: a catch meant for redirects swallowed every read error.
 Rule: a "never appears" scan counts what it could not inspect and asserts that count is 0; it excuses only the cases it names (here 3xx).
 Check: in negative scans, look for `catch` that returns an empty value; prove the count by forcing reads to fail once.
+
+## L-020  areas: testing, ui  seen: 1  status: candidate
+Ticket EZD-012b, 2026-10-20
+Mistake: U3 (a) anchored the frame markup at `^` and U3 (b) read the last `</div>` as the frame's close, but the test's own `MessagesProvider` wrapper adds a leading `<div lang="en" style="display:contents">` (`app/src/lib/messages/MessagesProvider.tsx`), so the build failed U3 (a) and U3 (b) silently weakened (two structural repairs).
+Cause: markup position checks were written without rendering the test's own harness wrapper once.
+Rule: when a test renders through `MessagesProvider`, position checks name the wrapper exactly (or anchor on the component's own tag), never `^` / `$` / the last closing tag.
+Check: render the wrapper alone with `renderToStaticMarkup` and look at the first and last tags before writing order assertions.
