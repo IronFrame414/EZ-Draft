@@ -6,7 +6,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 
 | Phase (slice) | Name | From spec phase(s) | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 67 |
+| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 68 |
 | 1 | Company settings and customers | 1 | 9 |
 | 2 | Projects list and new project | 1 | 7 |
 | 3 | Model store and editor route | 1, 2 | 5 |
@@ -512,3 +512,4 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1711 | 53 | Billing and paywall for other companies | todo |  | EZD-103, EZD-102 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-034 | 0 | Captcha on sign-in | todo |  | EZD-007d, EZD-007f |  |  | Added 2026-10-20 for Q-0175 (b). |

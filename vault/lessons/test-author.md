@@ -23,28 +23,28 @@ Cause: ESM modules run once per specifier per process; node:test runs a file's t
 Rule: a test of import-time side effects loads a fresh instance (a unique query specifier such as `../mod.mjs?tN`, or a child process), never a specifier another test in the same file already imported.
 Check: delete the entry guard locally; the import-side-effect test must go red.
 
-## L-015  areas: tooling, scripts, release  seen: 1  status: candidate
+## L-015  areas: tooling, scripts, release  seen: 1  status: ratified
 Ticket EZD-023d, 2026-10-19
 Mistake: the `supabase.dump` test fake created its output folder itself, so `dumpDatabase` passed every test without creating `<tmp>/dump`; the real CLI 2.121.0 fails `DbDumpOpenFileError … NotFound` on a missing folder, so every real release would have stopped at `dump_failed` (code-reviewer mode 3 FAIL, behavior).
 Cause: the fake did more than the real tool does, hiding a precondition the code under test must meet.
 Rule: a fake for an external tool does only what the real tool does (no creating folders, files or state the tool expects to exist); the builder makes every precondition the real tool needs (folders, files) itself rather than relying on the fake.
 Check: the fake writes into a path it did not create and fails like the real tool when the path is missing.
 
-## L-017  areas: testing, tooling, ui  seen: 1  status: candidate
+## L-017  areas: testing, tooling, ui  seen: 1  status: ratified
 Ticket EZD-007f, 2026-10-20
 Mistake: `app/playwright.config.ts` and EZD-007d's `app/test-harness/mail-catcher.ts` used `import.meta.url`; Playwright loads `.ts` files in a package without `"type": "module"` (the `app` package) as CommonJS, so the config threw `Cannot use 'import.meta' outside a module` and no browser test ran (builder stop, Q-0197). Vitest had hidden it, since it loads every file as ESM.
 Cause: a helper written and checked under one runner was reused under a runner with a different module system.
 Rule: test code that Playwright loads in `app/` uses no ESM-only (`import.meta`) or CommonJS-only (`__dirname`) feature; find the repo root by walking up from `process.cwd()` to `pnpm-workspace.yaml` (Q-0197 (b)).
 Check: run the Playwright config once (`playwright test --list`) before handing tests to the builder; it must load.
 
-## L-018  areas: testing, security  seen: 1  status: candidate
+## L-018  areas: testing, security  seen: 1  status: ratified
 Ticket EZD-016d, 2026-10-20
 Mistake: T5 checked the gate secret with `expect(x).toBe(secret)` and `not.toBe(secret)`; on failure the runner prints expected and received, so the secret would land in gate.log (security-reviewer, minor).
 Cause: a value assertion was used on a secret, and matchers print both sides when they fail.
 Rule: compare a secret only through a boolean (`expect(a === b).toBe(true)`) or a hash of both sides, never by value matchers.
 Check: grep test files for `toBe(`/`toEqual(` on variables holding secrets, keys or tokens.
 
-## L-019  areas: testing, security  seen: 1  status: candidate
+## L-019  areas: testing, security  seen: 1  status: ratified
 Ticket EZD-016a, 2026-10-20
 Mistake: T12 (secret never in a response body) turned every failed body read into an empty string, so a body it could not read was never searched and the test could pass on nothing (code-reviewer mode 2, FAIL round 1).
 Cause: a catch meant for redirects swallowed every read error.

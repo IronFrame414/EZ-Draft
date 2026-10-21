@@ -547,3 +547,18 @@ describe('EZD-023a release safety: migration check', () => {
     }
   });
 });
+
+describe('Q-0240 release tag fetch in a shallow CI clone', () => {
+  test('Q-0240 T1: a depth-1 CI clone of an origin with no phase-* tag is a successful fetch (no M0)', (t) => {
+    // CI run 39522218868: `git fetch --depth=1 origin +refs/tags/phase-*:…` exits 1 when nothing matches, which the
+    // check read as a failed fetch (M0). A reachable origin with no phase-* tag is a successful fetch (docs/architecture.md).
+    const repo = releasedRepo();
+    t.after(repo.cleanup);
+    const clone = cloneFrom(repo.origin, { depth: 1, noTags: true });
+    assert.equal(git(clone, 'rev-parse', '--is-shallow-repository'), 'true');
+    const r = runCheck(clone, [], { GITHUB_ACTIONS: 'true', CI: '1' });
+    assert.equal(r.status, 0, `exit 0\n${r.stdout}${r.stderr}`);
+    assert.ok(!r.stdout.includes('[M0]'), `no [M0]:\n${r.stdout}`);
+    assert.ok(r.stdout.includes('no release tag yet'), `no release tag yet:\n${r.stdout}`);
+  });
+});

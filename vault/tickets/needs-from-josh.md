@@ -16,7 +16,10 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [ ] Supabase `ezdraft-dev`: Custom Access Token hook and Before User Created hook on (runbook steps 9 and Sign-in 5); API gate secret (runbook step 10; the orchestrator runs the generate command, you paste); sign-in settings (runbook Sign-in steps 1–4, 6).
 - [ ] Tenant 1: paste supabase/bootstrap/tenant-1.sql into the `ezdraft-dev` SQL Editor with your email (runbook "Tenant 1 setup").
 - [ ] Vercel Preview keys for the dev project (EZD-023b's setup).
-- [ ] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md.
+- [x] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md (2026-10-20: Q-0175 (b), rest confirmed).
+- [ ] Q-0241: pick the captcha service (Cloudflare Turnstile recommended, or hCaptcha), create the account, and give the site key and secret before launch (EZD-034).
+- [ ] Fix the GitHub `dev` secret `SUPABASE_DEV_DB_URL`: the dev migrations run (39523407556) failed with "failed to parse connection string"; paste the Session pooler string with the password filled in and no brackets, then tell the orchestrator to re-run it.
+- [ ] Supabase `ezdraft-dev` Site URL and redirect list (runbook Sign-in step 1), once the Phase 0 PR has a preview address.
 - [x] Confirm or revert the fix-mode changes (confirmed 2026-10-20) Q-0218 (spec restructure, re-cut, reading map), Q-0221 (gate phase tests), Q-0233 (launcher waits instead of stopping).
 
 **Before Phase 3**

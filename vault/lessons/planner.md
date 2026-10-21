@@ -51,7 +51,7 @@ Cause: the exemption was defined by the statements in the new migrations, not by
 Rule: an exemption for "new" objects is defined as absent at the base (by kind and name), never as "a create statement exists"; re-declarations do not count.
 Check: the plan review probes every exemption with a re-declaration of a base object followed by the forbidden change.
 
-## L-016  areas: migrations, auth, security  seen: 1  status: candidate
+## L-016  areas: migrations, auth, security  seen: 1  status: ratified
 Ticket EZD-007a, 2026-10-20
 Mistake: Step 2.0 said a new `private` function needed "no grant", relying on docs/architecture.md "default privileges grant execute to nobody"; on the pinned stack `pg_default_acl` has no row for schema `private`, so the function got PUBLIC execute and EZD-006 T10 failed until the builder added a revoke.
 Cause: a security property was taken from a docs sentence instead of the live catalog.

@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 447,
+ "count": 448,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -22,7 +22,8 @@
   "phase is the slice number from vault/tickets/recut.json (PHASES.md); spec_phase is the spec's original phase and names the ticket file under phases/.",
   "spec_files, decisions and mockups are the reading map (Q-0218): vault-relative paths, #<anchor> = text the file contains; print a dispatch's lines with node vault/tools/next_ticket.mjs --reads <ticket> <role>.",
   "2026-10-20: EZD-019 (EZ Binder contract and stub) removed from v1 by Josh (Q-0222; Q-0190); row kept in phases/phase-00.md, BACKLOG.md.",
-  "2026-10-20 Q-0220: not-in-v1 items brought into v1 (EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713); new phase 53 Billing and onboarding; old phases 53 and 54 are now 54 and 55."
+  "2026-10-20 Q-0220: not-in-v1 items brought into v1 (EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713); new phase 53 Billing and onboarding; old phases 53 and 54 are now 54 and 55.",
+  "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh)."
  ],
  "checks": {
   "cycles": 0,
@@ -466,7 +467,8 @@
   "EZD-1708",
   "EZD-1709a",
   "EZD-1709b",
-  "EZD-1709c"
+  "EZD-1709c",
+  "EZD-034"
  ],
  "tickets": [
   {
@@ -13679,6 +13681,32 @@
    "build_position": 0,
    "acs": [
     "AC-EZD-1713-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-034",
+   "phase": 0,
+   "title": "Captcha on sign-in",
+   "depends_raw": "EZD-007d, EZD-007f",
+   "spec_ref": "Q-0175; Q-0241; Non-functional · Security and audit",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md#Q-0175",
+    "spec/decisions/10-permissions-and-settings.md#Q-0049"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-007d",
+    "EZD-007f"
+   ],
+   "build_position": 437,
+   "acs": [
+    "AC-EZD-034-1",
+    "AC-EZD-034-2"
    ],
    "acs_source": "done-when"
   }

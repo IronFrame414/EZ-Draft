@@ -16,7 +16,7 @@ Cause: a rule written in the Approach prose had no matching Tests row, so the ga
 Rule: every "fails"/"refuses" rule in a plan's Approach has a Tests row with a failing input (planner), and the builder implements every Approach rule, not only those the tests check.
 Check: the plan review lists each refuse/fail rule in the Approach and the test case that covers it; the code-reviewer runs any uncovered rule by hand.
 
-## L-015  areas: tooling, scripts, release  seen: 1  status: candidate
+## L-015  areas: tooling, scripts, release  seen: 1  status: ratified
 Ticket EZD-023d, 2026-10-19
 Mistake: the `supabase.dump` test fake created its output folder itself, so `dumpDatabase` passed every test without creating `<tmp>/dump`; the real CLI 2.121.0 fails `DbDumpOpenFileError … NotFound` on a missing folder, so every real release would have stopped at `dump_failed` (code-reviewer mode 3 FAIL, behavior).
 Cause: the fake did more than the real tool does, hiding a precondition the code under test must meet.

@@ -266,9 +266,13 @@ function readWorkingTree(root) {
   return { migrations, retired };
 }
 
-/** Fetches `phase-*` tags from origin; returns true on success. Never pushes, never prompts, 30 s timeout. */
+/** Fetches `phase-*` tags from origin; returns true on success. Never pushes, never prompts, 30 s timeout.
+ * Lists origin's `phase-*` tags first: a reachable origin with none is a successful fetch, and a depth-1 fetch of a
+ * pattern that matches nothing exits 1 in a shallow clone (CI run 39522218868; Q-0240). */
 function fetchTags(git) {
   try {
+    const remote = git(['ls-remote', '--tags', 'origin', 'refs/tags/phase-*'], { timeout: 30_000 }).trim();
+    if (!remote) return true;
     const shallow = git(['rev-parse', '--is-shallow-repository']).trim() === 'true';
     const args = ['fetch', '--no-tags'];
     if (shallow) args.push('--depth=1');
