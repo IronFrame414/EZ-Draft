@@ -90,3 +90,17 @@ describe('EZD-011a done when', () => {
     expect(TOKENS.some((t) => t.name === '--ez-border-hover' && t.value === '#c9ced5')).toBe(true);
   });
 });
+
+// EZD-011b · H7 part b: EditorHeader.module.css (vault/plans/EZD-011b.md Section 4).
+// Sources: 04 Header card ("cobalt text and a 2 px inset bottom border"); P11 Level-1 table; S03 .hton weight 600, .ht slate 500.
+describe('EZD-011b shell CSS', () => {
+  it('H7 part b: .active and .tab declarations, and no color literal in EditorHeader.module.css', () => {
+    const css = read('EditorHeader.module.css');
+    const active = block(css, '.active');
+    expect(active).toContain('color: var(--ez-cobalt-text)');
+    expect(active).toContain('box-shadow: inset 0 -2px 0 var(--ez-cobalt)');
+    expect(active).toContain('font-weight: 600');
+    expect(block(css, '.tab')).toContain('color: var(--ez-slate-500)');
+    expect(squash(css)).not.toMatch(COLOR_LITERAL);
+  });
+});

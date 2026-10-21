@@ -247,6 +247,14 @@ EZD-011a (vault/plans/EZD-011a.md Step 7); 04 Frame and visual system (Studio); 
 - `index.ts` re-exports the shell parts.
 - The body margin reset lives in `app/src/styles/globals.css`.
 
+EZD-011b (vault/plans/EZD-011b.md Step 6); 04 Header card.
+
+- `EditorHeader` (`EditorHeader.tsx`) is the editor header content inside `HeaderCard`. `EditorHeaderProps` slots render in this order after the view tabs: `reviewPill`, `share`, `export`, `issueSet`. An empty slot renders nothing; slot owners hide their own control with `can()`.
+- Board positions reserved for later tickets, each added as its own optional prop: presence avatars before the review pill (S06), Stop editing between the pill and Share (S21), the field-pack chip between the title block and the tabs (S22).
+- `EditorView` and `EDITOR_VIEWS` (`editor-views.ts`) are the one view type; EZD-120b imports them.
+- Header strings are `office.header.*` keys in `en` only (office is English in v1).
+- `EditorHeader` is `memo`, so callers pass stable callbacks (`useCallback`) and no per-frame props.
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-133 (helper, server-route pattern, browser-query lint rule) and EZD-102 (enforcement, UI hook).
