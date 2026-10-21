@@ -1,1 +1,0 @@
-Josh paused the build on 2026-10-21 to save weekly usage ("stop build after the current work is done"). Only Josh removes this file (rm vault/handoff/STOP); no session removes it.
