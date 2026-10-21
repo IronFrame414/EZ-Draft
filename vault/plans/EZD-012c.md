@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-012c-1, AC-EZD-012c-2, AC-EZD-012c-3 (`vault/spec/acceptance-criteria.md` lines 75–77)
 - **Complexity:** medium (section 8)
 - **User-visible result:** on a preview build, `/dev/shell` shows the empty Studio editor frame (header, rail, left panel, grid canvas, inspector, status bar) at the spec sizes, and `/dev/shell/rail` shows three sample tools with the cobalt active tool and a dark tooltip with name and shortcut on hover or keyboard focus. Neither page exists in production.
-- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: ready
 
 Source short forms: `P12` = vault/plans/EZD-012.md (Split proposal Part EZD-012c, Re-validation findings V1–V14, Step 1 frame-box table, Step 6, Tests B1–B7, U5, U6); `P12a` / `P12b` = vault/plans/EZD-012a.md / EZD-012b.md section 3; `04` = vault/spec/sections/04-app-shell-and-global-ui.md; `D04` = vault/spec/decisions/04-app-shell-and-global-ui.md; `S03` = vault/mockups/S03Plan.png + html/project/S03Plan.dc.html; `arch` = docs/architecture.md.
 

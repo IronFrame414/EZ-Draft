@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-012b-1, AC-EZD-012b-2, AC-EZD-012b-3, AC-EZD-012b-4 (`vault/spec/acceptance-criteria.md` lines 71–74)
 - **Complexity:** medium (section 8)
 - **User-visible result:** nothing on screen yet; the empty Studio editor (frame, empty rail, empty left panel and inspector cards, grid canvas, empty status bar) exists as one component that EZD-012c's `/dev/shell` and EZD-032's build-gate test show.
-- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: ready
 
 ## 1. What to build
 

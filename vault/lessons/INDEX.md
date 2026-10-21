@@ -5,9 +5,9 @@ One file per role. Format and rules: PROCESS.md section 13. Only the orchestrato
 | File | Role | Areas with entries |
 | --- | --- | --- |
 | orchestrator.md | dispatch, model choice, ledgers, merges | tooling, scripts, process (L-003, ratified); tooling, process (L-005, ratified) |
-| planner.md | plans, contracts, citations, ticket size | tooling, scripts, process (L-002, L-004, ratified); ci, tooling, security (L-006, ratified); data-model, migrations, security (L-009, ratified); tooling, scripts (L-012, ratified); ui, tokens (L-013, ratified); migrations, release, security (L-014, ratified); migrations, auth, security (L-016, candidate) |
-| test-author.md | tests, fixtures, expected values | tooling, scripts, process (L-003, ratified); data-model, migrations, tooling (L-008, ratified); tooling, scripts (L-011, ratified); tooling, scripts, release (L-015, candidate); testing, tooling, ui (L-017, candidate) |
-| builder.md | implementation, scope discipline, structural repair | tooling, dependencies (L-010, ratified); tooling, scripts (L-012, ratified); tooling, scripts, release (L-015, candidate) |
+| planner.md | plans, contracts, citations, ticket size | tooling, scripts, process (L-002, L-004, ratified); ci, tooling, security (L-006, ratified); data-model, migrations, security (L-009, ratified); tooling, scripts (L-012, ratified); ui, tokens (L-013, ratified); migrations, release, security (L-014, ratified); migrations, auth, security (L-016, ratified) |
+| test-author.md | tests, fixtures, expected values | tooling, scripts, process (L-003, ratified); data-model, migrations, tooling (L-008, ratified); tooling, scripts (L-011, ratified); tooling, scripts, release (L-015, ratified); testing, tooling, ui (L-017, ratified); testing, security (L-018, L-019, ratified) |
+| builder.md | implementation, scope discipline, structural repair | tooling, dependencies (L-010, ratified); tooling, scripts (L-012, ratified); tooling, scripts, release (L-015, ratified) |
 | reviewer.md | code-reviewer and security-reviewer | auth, security (L-001, ratified); tooling, dependencies (L-007, ratified) |
 | ui.md | ui-verifier: screenshots and mockups | (none yet) |
 | spec.md | Stage 0 gaps found late | (none yet) |

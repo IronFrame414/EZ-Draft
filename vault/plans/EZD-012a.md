@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-012a-1, AC-EZD-012a-2 (`vault/spec/acceptance-criteria.md` lines 69–70)
 - **Complexity:** medium (reasoning in section 8)
 - **User-visible result:** nothing on screen yet; the editor's tool rail (40 px tool buttons, cobalt active tool, dark tooltip with name and shortcut) exists as one component that EZD-012b and EZD-012c put on screen.
-- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: ready
 
 ## 1. What to build
 
