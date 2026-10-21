@@ -4,6 +4,35 @@ Things no agent can produce. Copied from `tickets/README.md`; when an item arriv
 
 Phase 0 passes on the local Supabase and the stub email provider. Only EZD-003 and the cloud steps of EZD-004 and EZD-008 wait for accounts and keys.
 
+## Josh's to-do list (kept current by the orchestrator; newest status 2026-10-20)
+
+Every session that tells Josh he must do something adds it here, and ticks it off when he confirms it is done. The tables below are the full record.
+
+**Before the Phase 0 gate (the preview sign-in needs these)**
+- [ ] Say yes or no to the install fix: the GitHub Actions package install fails (pnpm minimum-release-age policy), so the dev migrations workflow never ran and CI will likely fail on the Phase 0 PR.
+- [ ] GitHub: Settings → Rules → Rulesets → `main` → add "Require status checks to pass" with the check `gate` (checked 2026-10-20: missing).
+- [ ] Supabase: confirm `ezdraft-dev` exists in EZ Binder's organization and that the GitHub `dev` secret `SUPABASE_DEV_DB_URL` (added 2026-10-12) points to it; if unsure, recreate per docs/runbook.md "Supabase cloud projects" steps 1–5.
+- [ ] After the install fix: Actions → Supabase dev migrations → Run workflow on `develop`.
+- [ ] Supabase `ezdraft-dev`: Custom Access Token hook and Before User Created hook on (runbook steps 9 and Sign-in 5); API gate secret (runbook step 10; the orchestrator runs the generate command, you paste); sign-in settings (runbook Sign-in steps 1–4, 6).
+- [ ] Tenant 1: paste supabase/bootstrap/tenant-1.sql into the `ezdraft-dev` SQL Editor with your email (runbook "Tenant 1 setup").
+- [ ] Vercel Preview keys for the dev project (EZD-023b's setup).
+- [ ] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md.
+- [ ] Confirm or revert the fix-mode changes Q-0218 (spec restructure, re-cut, reading map), Q-0221 (gate phase tests), Q-0233 (launcher waits instead of stopping).
+
+**Before Phase 3**
+- [ ] iPad drawing-speed run on your iPad over the office network (EZD-027 spike; architecture checkpoint).
+
+**Later (not blocking now)**
+- [ ] Q-0237: payment provider, plans and prices for charging other companies (before phase 53).
+- [ ] Q-0089: storage limits (tabled).
+- [ ] Accounts and keys: Claude API key, image-model API keys, Sentry, backup bucket at a second provider.
+- [ ] Terms of service text (EZD-1707 ships placeholder text until then).
+- [ ] Sample files: a real Polycam export (DXF + GLB), a vector PDF plan, a scanned PDF plan, a supplier kitchen PDF, 2–3 architect DXFs plus a later revision of one, a supplier 2020 sample, a few job photos.
+- [ ] A hand load calc for one house and a hand material count for one kitchen; a past kitchen's cabinet order; a real vendor cabinet line.
+- [ ] Render trial live run (5 room images, provider keys, spending cap); the GPU machine and model for the local render worker.
+- [ ] Each code rule checked against the adopted code text (Q-0001, EZD-1710).
+- [ ] Before-launch checklist (EZD-003 stays blocked until then).
+
 | Item | Needed by | Without it |
 | --- | --- | --- |
 | Accounts and keys: GitHub repository with Actions for CI, Vercel, Supabase (dev and prod), DNS for the subdomain, email provider, Claude API key, image-model API keys, Sentry, a storage bucket at a second provider for backups | EZD-002, EZD-003, EZD-004, EZD-008, EZD-1103 | EZD-003, the cloud part of EZD-004 and live email in EZD-008 wait. EZD-1103 and every AI ticket do not wait: they are built and tested on the stub providers from EZD-021 |
