@@ -3,7 +3,7 @@
 - **ACs:** AC-EZD-011b-1, AC-EZD-011b-2, AC-EZD-011b-3, AC-EZD-011b-4 (`vault/spec/acceptance-criteria.md` lines 62–65)
 - **Complexity:** medium (section 8)
 - **User-visible result:** nothing on screen yet; the editor header (wordmark, project name, view tabs and the places for Share, Export and Issue set) exists as one component, shown on `/dev/header` by EZD-011c.
-- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: planned
+- Phase: 0 · Planned by: planner · Date: 2026-10-20 · Status: planned; re-validated vs EZD-011a 529269c
 
 Short forms: **P11** = `vault/plans/EZD-011.md` (base plan; its Split proposal Part EZD-011b, findings V1–V14 and Steps 3, 4, 6, 8 are this part's source, Q-0238); **04** = `vault/spec/sections/04-app-shell-and-global-ui.md`; **S03** = `vault/mockups/html/project/S03Plan.dc.html` `<header>` (nearest Studio board, tickets README rule 5); **11A** = EZD-011a plan section 3.
 
@@ -54,11 +54,11 @@ Data: none. No table, column, migration, RLS, `schema_version` or money field (P
 - 04 opening paragraph: Plan, 3D, Sheets, Render "are tabs of it, not separate pages" (tabs are buttons, P11 Step 4).
 - Decisions `vault/spec/decisions/04-app-shell-and-global-ui.md`: Q-0214 (controls hidden, not greyed: empty slots), Q-0026 (a) (oklch tokens as written), Q-0055 (a) and Q-0098 (icon-only header buttons: EZD-014, not here), Q-0037 (b) (pill amber: EZD-127, not here). R26 R17 (`13b-round-26.md`: one message helper; office English only). R24 "Controls a user lacks are hidden" (`13a-rounds-24-25.md`). Q-0238 (this split; QUESTIONS.md line 247).
 - 11 Performance: Budgets "Switch Plan / 3D / Sheets / Render within 150 ms"; rule 4 (no React render per pointer move); rule 11 (counts over Realtime, not here).
-- Mockup: S03 (`vault/mockups/S03Plan.png`, `html/project/S03Plan.dc.html` `<header>`, classes `.ht`, `.hton`, `.ms`); `tickets.json` lists none, nearest board per tickets README rule 5; sample text is not a decision (KNOWN-LIMITS 5). No Polished, Refined or Layout C board.
+- Mockup: S03 (`vault/mockups/S03Plan.png`, classes `.ht`, `.hton`, `.ms`); `tickets.json` lists none, nearest board per tickets README rule 5; sample text is not a decision (KNOWN-LIMITS 5). No Polished, Refined or Layout C board.
 - P11 Split proposal Part EZD-011b, findings V2, V4, V9, V10, V11, V13, V14; Steps 3, 4, 6, 8; Tests table H1–H7, H9, H15.
 - Dependency contracts: 11A (EZD-011a section 3), EZD-010b section 3 (`Icon`, `expand_more` in `icons.json`), EZD-026c section 3 (`KEY_PATTERN`, `SPANISH_NAMESPACES`), EZD-026d section 3 (`MessagesProvider`, `useT`, `catalogFor`, `en`, `MessageKey`).
-- Code read on develop at 7fac268: `app/src/server/messages/catalogs/en.ts` (no `office.` key yet), `app/src/styles/tokens.css` (lines 3–11, 30–31), `app/src/components/icon/Icon.tsx`, `app/src/lib/messages/MessagesProvider.tsx` and `.test.tsx`, `app/vitest.config.ts` (`environment: 'node'`, `oxc` JSX), `scripts/conventions/__tests__/architecture-doc.test.mjs` (`REQUIRED_HEADINGS`).
-- Research reports: none cover this ticket.
+- Code read on develop at 7fac268: `app/src/server/messages/catalogs/en.ts` (no `office.` key; none at 529269c either), `app/src/styles/tokens.css` (lines 3–11, 30–31), `app/src/components/icon/Icon.tsx`, `app/src/lib/messages/MessagesProvider.tsx` and `.test.tsx`, `app/vitest.config.ts` (`environment: 'node'`, `oxc` JSX), `scripts/conventions/__tests__/architecture-doc.test.mjs` (`REQUIRED_HEADINGS`; EZD-011a H15 (a)–(d)). At 529269c: `app/src/components/shell/` (`HeaderCard.tsx`, `index.ts`, `shell-css.test.ts`), docs `### Shell header (EZD-011)`; match 11A.
+- Research reports: none.
 
 ## 3. Interface contract
 
@@ -83,7 +83,7 @@ Data: none. No table, column, migration, RLS, `schema_version` or money field (P
 No route and no `data-testid` (EZD-011c's page adds `data-project-menu-count` on its own frame).
 
 ## 4. Tests
-Vitest in `@ezdraft/app`, `environment: 'node'`; markup via `renderToStaticMarkup` (pattern `app/src/lib/messages/MessagesProvider.test.tsx`), wrapped in `<MessagesProvider language="en" messages={catalogFor('office', 'en')}>` unless the row says otherwise; `next/link` needs no mock (V10). Class checks compare `class` tokens against the imported CSS module's names; CSS text checks strip comments, collapse whitespace and read the named single-class rule block (11A section 4). "Text" means the markup with tags removed. Common props **HP**: `projectsHref="/" projectName="P1" onProjectMenu={fn} subtitle={['A','B','C']} activeView="plan" onViewChange={fn} reviewPill={<i data-slot="pill"/>} share={<i data-slot="share"/>} export={<i data-slot="export"/>} issueSet={<i data-slot="issue"/>}` (P1, A–C and slot markers are test data). Smoke: no.
+Vitest in `@ezdraft/app`, `environment: 'node'`; markup via `renderToStaticMarkup` (pattern `app/src/lib/messages/MessagesProvider.test.tsx`), wrapped in `<MessagesProvider language="en" messages={catalogFor('office', 'en')}>` unless the row says otherwise; `next/link` needs no mock (V10). Class checks compare `class` tokens against the imported CSS module's names; CSS text checks strip comments, collapse whitespace and read the named single-class rule block (`squash`, `block` in `shell-css.test.ts`, 529269c). "Text" means the markup with tags removed. Common props **HP**: `projectsHref="/" projectName="P1" onProjectMenu={fn} subtitle={['A','B','C']} activeView="plan" onViewChange={fn} reviewPill={<i data-slot="pill"/>} share={<i data-slot="share"/>} export={<i data-slot="export"/>} issueSet={<i data-slot="issue"/>}` (P1, A–C and slot markers are test data). Smoke: no.
 
 | Test | AC | Type | Input | Expected value | Source of the expected value |
 | --- | --- | --- | --- | --- | --- |
@@ -122,8 +122,8 @@ Reviewers needed: code-reviewer always · calc-auditor no (no calculations, dime
 medium: a memoized client component with ordered slots and typed props that eleven later tickets extend, plus message keys and 10 tests, on existing patterns; no data, permissions, money or auth (PROCESS.md section 4; P11 Part EZD-011b). test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5.
 
 ## 9. Dependencies
-- From the row: EZD-011a (`HeaderCard`, `index.ts`, `shell-css.test.ts`, the docs subsection; **planned, not built**: build after it merges), EZD-010b (`Icon`, `expand_more`, sprite), EZD-026c (`KEY_PATTERN`, `SPANISH_NAMESPACES`, `createT`), EZD-026d (`MessagesProvider`, `useT`, `catalogFor`, `en`, `MessageKey`), EZD-004a, EZD-004b (the gate's `db:up`; the app Vitest global setup needs the local stack) (V14). All done except EZD-011a.
-- Missing from the row (all done): EZD-010a (`--ez-ink`, `--ez-cobalt`, `--ez-cobalt-text`, `--ez-slate-500`, `--ez-border`; C10), EZD-000 (`architecture-doc.test.mjs`, `REQUIRED_HEADINGS`), EZD-001 (Vitest and ESLint configs), EZD-010c (`--ez-font-sans` for `.name`). Each is reached through EZD-011a or EZD-026d already.
+- From the row: EZD-011a (`HeaderCard`, `index.ts`, `shell-css.test.ts`, the docs subsection; done, 529269c; its deviation (`globals.css` `body` order) touches nothing here; Step 6 keeps its H15 (c) names), EZD-010b (`Icon`, `expand_more`, sprite), EZD-026c (`KEY_PATTERN`, `SPANISH_NAMESPACES`, `createT`), EZD-026d (`MessagesProvider`, `useT`, `catalogFor`, `en`, `MessageKey`), EZD-004a, EZD-004b (the gate's `db:up`; the app Vitest global setup needs the local stack) (V14). All done.
+- Missing from the row (all done): EZD-010a (`--ez-ink`, `--ez-cobalt`, `--ez-cobalt-text`, `--ez-slate-500`, `--ez-border`; C10), EZD-000 (`architecture-doc.test.mjs`, `REQUIRED_HEADINGS`), EZD-001 (Vitest and ESLint configs), EZD-010c (`--ez-font-sans` for `.name`). Reached via EZD-011a or EZD-026d.
 - Dependents: EZD-011c (dev page, browser tests H12–H14), EZD-012, 014, 015, 032, 126, 136; EZD-014 passes `export` and adds the icon-only button form (Q-0055 (a), Q-0098).
 - Risks:
   - Prop growth: EZD-121, 122, 126, 127, 128, 130, 716, 721, 1201, 1401, 1402 each add one optional prop at the board position in docs; none restructures the component (P11 Risks).
