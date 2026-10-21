@@ -30,5 +30,6 @@ Josh's words for things, and the names the code uses. The first table is the spe
 | See company costs / See sell prices | permissions `see_company_costs`, `see_sell_prices` | EZD-1xx |
 | Field pack | phone routes under `/field` | EZD-14xx |
 | Client link | routes under `/c/<token>` | EZD-12xx |
+| Plan / 3D / Sheets / Render tabs | `EditorView` (`EDITOR_VIEWS` in `app/src/components/shell/editor-views.ts`: `plan`, `3d`, `sheets`, `render`) | EZD-011b |
 
 Rows above the line are the terms the spec defines; the code-name column is a starting proposal and is overwritten by whatever EZD-000 and the owning ticket record. Do not cite this table as a source for a name until that ticket is `done`.
