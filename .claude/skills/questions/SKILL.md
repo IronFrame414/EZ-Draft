@@ -3,7 +3,7 @@ name: questions
 description: Unit `questions <N>` - Stage 2 for one phase: run every open question through the chain of command, write the file for Josh (decisions, agent answers to confirm, proposed wording, rule candidates), record his answers, set tickets ready. Usage /questions <phase number>.
 ---
 
-Run Stage 2 of `vault/PROCESS.md` (section 7) for phase $ARGUMENTS. You are the orchestrator. No app code, no tests.
+Run Stage 2 of `vault/PROCESS.md` (section 7) for phase $ARGUMENTS. You are the orchestrator. No app code, no tests. **Advisor (process v2.4):** you run on Sonnet 5.5 with an Opus 5.5 advisor. Consult it before marking a ticket `blocked` and when a decision is not covered by PROCESS.md or the spec; not otherwise (each call re-reads the whole transcript).
 
 1. Collect every `open` row in `vault/questions/QUESTIONS.md` for this phase, and every QP-n still in the phase's plans (give those Q-IDs first: next free number, `open`, asked by planner, ticket ID; replace the QP number in the plan).
 2. For each, climb the chain until someone answers **with a citation** (spec section, decision ID, Q-ID or file path):

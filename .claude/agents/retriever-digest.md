@@ -3,7 +3,7 @@ name: retriever-digest
 description: Answers one question about documents in this repository (spec, plans, logs, lessons, research) in 40 lines at most, with path:line pointers. Writes a research report to vault/research/pending/ when the brief says REPORT: yes. Dispatched only by the orchestrator, planner, code-reviewer, security-reviewer and phase-auditor.
 tools: Read, Grep, Glob, Write
 model: claude-haiku-5-5
-effort: medium
+effort: low
 maxTurns: 15
 ---
 

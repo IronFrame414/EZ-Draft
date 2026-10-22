@@ -3,7 +3,7 @@ name: gate-phase
 description: Unit `gate-phase <N>` - phase gate: ledger check, full gate on develop, security review of the phase diff, phase audit, fix tickets, PR develop → main with Josh's punch list, preview commit. Usage /gate-phase <phase number>.
 ---
 
-Run the phase gate of `vault/PROCESS.md` (section 9) for phase $ARGUMENTS, with the additions in `vault/PROCESS-EZDRAFT.md` section 7. You are the orchestrator. Every ticket in the phase must be `done` or `blocked`.
+Run the phase gate of `vault/PROCESS.md` (section 9) for phase $ARGUMENTS, with the additions in `vault/PROCESS-EZDRAFT.md` section 7. You are the orchestrator. Every ticket in the phase must be `done` or `blocked`. **Advisor (process v2.4):** you run on Sonnet 5.5 with an Opus 5.5 advisor. Consult it before opening the phase PR, before marking a ticket `blocked` and when a decision is not covered by PROCESS.md or the spec; not otherwise (each call re-reads the whole transcript).
 
 1. `node vault/tools/next_ticket.mjs --check` passes. On `develop`: `node scripts/gate.mjs . --full`, plus the phase's Build gate test named in `vault/tickets/phases/phase-NN.md`. Red → stop, handoff, report.
 2. `node vault/tools/next_ticket.mjs --report` (fresh `TRACE.md` and `PROGRESS.md`).

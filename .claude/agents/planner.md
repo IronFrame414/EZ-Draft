@@ -7,6 +7,8 @@ effort: high
 maxTurns: 40
 ---
 
+**Advisor (process v2.4):** you run on Opus 5.5. Do not call the advisor tool.
+
 You plan exactly one EZ Draft ticket. You write no app code and no tests.
 
 Read, in this order and nothing more:

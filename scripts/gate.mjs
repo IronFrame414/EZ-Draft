@@ -28,7 +28,11 @@ const dir = path.resolve(positional[0] || '.');
 const pkgPath = path.join(dir, 'package.json');
 const shell = process.platform === 'win32';
 const logPath = path.join(dir, 'gate.log');
+// Process v2.4 (Change 7): agents read gate-failures.log (each failing test and its first error, 100 lines at most), never gate.log.
+const failuresPath = path.join(dir, 'gate-failures.log');
+const FAILURES_CAP = 100;
 try { writeFileSync(logPath, `GATE ${new Date().toISOString()} ${dir}\n`); } catch {}
+try { writeFileSync(failuresPath, ''); } catch {}
 const log = (text) => { try { appendFileSync(logPath, text.endsWith('\n') ? text : text + '\n'); } catch {} };
 const say = (text) => { console.log(text); log(text); };
 
@@ -145,12 +149,28 @@ const run = (cmdArgs, label) => {
   } else {
     // Summary for reviewers: failing test names and the first error line; the rest is in gate.log.
     const lines = out.split('\n');
-    const failing = lines.filter((l) => /(^|\s)(FAIL|✗|✘|×|✖)\s/.test(l) || /^\s+\d+\)\s/.test(l)).slice(0, 12);
-    const firstError = lines.find((l) => /error/i.test(l) && !/0 errors?/i.test(l) && !/^\s*>/.test(l));
+    const isFailing = (l) => /(^|\s)(FAIL|✗|✘|×|✖)\s/.test(l) || /^\s+\d+\)\s/.test(l);
+    const isError = (l) => /error/i.test(l) && !/0 errors?/i.test(l) && !/^\s*>/.test(l);
+    const allFailing = lines.filter(isFailing);
+    const failing = allFailing.slice(0, 12);
+    const firstError = lines.find(isError);
     for (const l of failing) console.log(l);
     if (firstError) console.log(`first error: ${firstError.trim()}`);
     if (!failing.length && !firstError) console.log(lines.filter(Boolean).slice(-8).join('\n'));
     failures.push({ label, failing, firstError });
+    // gate-failures.log: each failing line with the first error line after it (within 30 lines), then the step's first error.
+    const entries = [`=== ${label} ===`];
+    for (const l of allFailing) {
+      const at = lines.indexOf(l);
+      const err = lines.slice(at + 1, at + 31).find(isError);
+      entries.push(l.trim(), ...(err ? [`  ${err.trim()}`] : []));
+    }
+    if (!allFailing.length) entries.push(firstError ? `first error: ${firstError.trim()}` : lines.filter(Boolean).slice(-8).join('\n'));
+    try {
+      const have = readFileSync(failuresPath, 'utf8').split('\n').filter(Boolean).length;
+      const room = FAILURES_CAP - have;
+      if (room > 0) appendFileSync(failuresPath, entries.join('\n').split('\n').slice(0, room).join('\n') + '\n');
+    } catch {}
   }
   return ok;
 };
@@ -173,6 +193,7 @@ say(`scope      ${scopeText}`);
 for (const [n, r] of results) say(`${n.padEnd(10)} ${r}`);
 say(`security   ${securityFlags.length ? `${securityFlags.length} flagged path(s): security review required` : 'no flagged paths'}`);
 say(`log        ${logPath}`);
+say(`failures   ${failuresPath}`);
 const failed = results.filter(([, r]) => r === 'FAIL' || r === 'MISSING');
 if (failed.length) { say(`GATE FAIL: ${failed.map(([n]) => n).join(', ')}`); process.exit(1); }
 say('GATE PASS');

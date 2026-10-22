@@ -3,7 +3,7 @@ name: retriever-web
 description: Answers one question about the outside world with WebSearch and WebFetch in 40 lines at most, with a URL for every statement. Writes a research report to vault/research/pending/ when the brief says REPORT: yes. Dispatched only by the orchestrator, planner, code-reviewer, security-reviewer and phase-auditor.
 tools: WebSearch, WebFetch, Write
 model: claude-haiku-5-5
-effort: medium
+effort: low
 maxTurns: 15
 ---
 

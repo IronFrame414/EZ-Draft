@@ -99,6 +99,8 @@ export function readTranscript(file) {
   const planTools = new Set();
   let planChars = 0;
   let planReads = 0;
+  let advisorCalls = 0; // process v2.4: advisor tool uses in this transcript
+  const dispatches = []; // process v2.4: Agent dispatches with the model and effort passed on them
   for (const j of readJsonl(file)) {
     const content = j.message?.content;
     if (j.type === 'assistant') {
@@ -106,7 +108,9 @@ export function readTranscript(file) {
       if (m?.id && m.usage && m.model !== '<synthetic>') byId.set(m.id, { model: m.model, usage: m.usage });
       if (Array.isArray(content)) {
         for (const c of content) {
+          if ((c?.type === 'tool_use' || c?.type === 'server_tool_use') && /advisor/i.test(c.name || '')) advisorCalls += 1;
           if (c?.type !== 'tool_use') continue;
+          if (c.name === 'Agent' || c.name === 'Task') dispatches.push({ agent: c.input?.subagent_type || '?', model: c.input?.model || 'default', effort: c.input?.effort || 'default' });
           if (c.name === 'Read' && PLAN_READ.test(c.input?.file_path || '')) planTools.add(c.id);
           if (c.name === 'Bash' && PLAN_BASH.test(c.input?.command || '')) planTools.add(c.id);
         }
@@ -121,7 +125,7 @@ export function readTranscript(file) {
       }
     }
   }
-  return { messages: [...byId.values()], planChars, planReads };
+  return { messages: [...byId.values()], planChars, planReads, advisorCalls, dispatches };
 }
 
 // All transcripts of one launcher run, or null when the main transcript is missing.
@@ -163,12 +167,13 @@ export function analyze(rows, projectsDir) {
   const cells = new Map(); // unit|role|model
   const tickets = new Map();
   const plan = new Map(); // unit|role
+  const advisor = new Map(); // role -> advisor calls (v2.4)
   const missing = [];
   let estUsd = 0;
   for (const r of rows) {
     estUsd += r.est_usd || 0;
     const ticket = r.ticket ?? '';
-    const tk = add(tickets, ticket, () => ({ ticket, usd: 0, byUnit: {}, runs: 0 }));
+    const tk = add(tickets, ticket, () => ({ ticket, usd: 0, byUnit: {}, runs: 0, tokens: 0, advisor: 0, dispatches: [] }));
     tk.runs += 1;
     const files = sessionFiles(projectsDir, r.session_id);
     if (!files) {
@@ -180,6 +185,10 @@ export function analyze(rows, projectsDir) {
       const p = add(plan, `${r.unit}|${role}`, () => ({ unit: r.unit, role, chars: 0, reads: 0 }));
       p.chars += t.planChars;
       p.reads += t.planReads;
+      tk.advisor += t.advisorCalls;
+      tk.dispatches.push(...t.dispatches);
+      const adv = add(advisor, role, () => ({ role, calls: 0 }));
+      adv.calls += t.advisorCalls;
       for (const m of t.messages) {
         const { usd, tokens } = priceUsage(m.model, m.usage);
         const c = add(cells, `${r.unit}|${role}|${m.model}`, () => ({ unit: r.unit, role, model: m.model, usd: 0, messages: 0, tokens: zeroTokens() }));
@@ -188,10 +197,11 @@ export function analyze(rows, projectsDir) {
         for (const k of Object.keys(tokens)) c.tokens[k] += tokens[k];
         tk.usd += usd;
         tk.byUnit[r.unit] = (tk.byUnit[r.unit] || 0) + usd;
+        tk.tokens += Object.values(tokens).reduce((n, v) => n + v, 0);
       }
     }
   }
-  return { cells: [...cells.values()], tickets: [...tickets.values()], plan: [...plan.values()], missing, estUsd, rows: rows.length };
+  return { cells: [...cells.values()], tickets: [...tickets.values()], plan: [...plan.values()], advisor: [...advisor.values()], missing, estUsd, rows: rows.length };
 }
 
 const weighted = (t) => Object.keys(TOKEN_WEIGHTS).reduce((n, k) => n + t[k] * TOKEN_WEIGHTS[k], 0);
@@ -252,6 +262,16 @@ export function render(a, { title = 'Cost by agent', scope = '' } = {}) {
     L.push(`| ${t.ticket} | ${t.runs} | ${units.map((u) => (t.byUnit[u] ? usd(t.byUnit[u]) : '-')).join(' | ')} | ${usd(t.usd)} |`);
   }
   L.push('');
+
+  L.push('## Tokens, advisor calls and dispatches per ticket (process v2.4)', '');
+  L.push('Tokens are all token types summed, in millions. Advisor calls are advisor tool uses in the run transcripts. Dispatches list each Agent call as agent model/effort ("default" when the dispatch passed none).', '');
+  L.push('| Ticket | Tokens (M) | Advisor calls | Dispatches |', '|---|---:|---:|---|');
+  for (const t of [...a.tickets].sort((x, y) => y.usd - x.usd)) {
+    const d = t.dispatches.map((x) => `${x.agent} ${x.model.replace(/^claude-/, '')}/${x.effort}`).join('; ') || '-';
+    L.push(`| ${t.ticket} | ${mtok(t.tokens)} | ${t.advisor} | ${d} |`);
+  }
+  L.push('');
+  L.push('Advisor calls by role: ' + ((a.advisor || []).filter((x) => x.calls).map((x) => `${x.role} ${x.calls}`).join(', ') || 'none') + '.', '');
 
   L.push('## Plan characters read per role', '');
   L.push('Characters of `vault/plans/*.md` returned to Read or Bash tool results (a Bash result counts whole when its command names a plan file).', '');

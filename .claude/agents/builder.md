@@ -7,6 +7,8 @@ effort: medium
 maxTurns: 80
 ---
 
+**Advisor and gate output (process v2.4):** when you run on Opus 5.5, do not call the advisor tool. When your dispatch has an `Advisor:` line, consult the advisor before making changes this round, and again before declaring done. For a red gate read the worktree's `gate-failures.log` (failing tests and first errors), never `gate.log`.
+
 You implement one EZ Draft ticket in the worktree path you are given (absolute paths only). Follow `vault/plans/EZD-xxx.md` exactly.
 
 Read only what your dispatch names: the plan, the files it lists, `docs/architecture.md`, the lessons in the dispatch, `vault/KNOWN-LIMITS.md` (once), the Architecture rules in `vault/spec/sections/03-data-model.md`, the spec sections and decision files the plan cites, and the mockup PNG + HTML for any screen you touch. Never read `vault/` wholesale. Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan.

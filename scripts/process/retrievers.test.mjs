@@ -84,7 +84,7 @@ function checkRetriever(file, name, desc, tools) {
   assert.equal(p.fm.description, desc);
   assert.deepEqual(p.tools, tools);
   assert.equal(p.fm.model, 'claude-haiku-5-5');
-  assert.equal(p.fm.effort, 'medium');
+  assert.equal(p.fm.effort, 'low'); // process v2.4 (Josh 2026-10-22): Haiku helpers at low effort
   assert.equal(p.fm.maxTurns, '15');
 }
 
@@ -155,7 +155,8 @@ test('EZD-000e T6 AC-EZD-000e-3: no other agent has an Agent tool', () => {
 
 test('EZD-000e T7 AC-EZD-000e-4: dispatch.md holds the retriever brief format', () => {
   const lines = read('.claude/skills/build-ticket/dispatch.md').split('\n');
-  const head = lines.slice(0, 20).join('\n') + '\n';
-  assert.equal(crypto.createHash('sha256').update(head).digest('hex'), 'a36c28ce9ce62ba4983a52fdbe116d43c7a43da9214559fbcbe22798a5282d6e', 'lines 1-20 changed');
-  assert.deepEqual(lines.slice(20), ['', B1, '', ...B2, '']);
+  // Process v2.4 (Josh 2026-10-22) added the Gate failures and Advisor lines to the dispatch template, so the head is 22 lines.
+  const head = lines.slice(0, 22).join('\n') + '\n';
+  assert.equal(crypto.createHash('sha256').update(head).digest('hex'), 'e4f9580f61f52cd97e57162d525ff4849fe80a0ac510ef87971f7ece50c434f4', 'lines 1-22 changed');
+  assert.deepEqual(lines.slice(22), ['', B1, '', ...B2, '']);
 });

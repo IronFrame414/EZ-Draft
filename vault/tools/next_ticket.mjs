@@ -9,6 +9,9 @@
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
 //   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
 //                                                    lines (Sections from the table in .claude/skills/build-ticket/SKILL.md; Q-0218)
+//   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, consultAdvisor}
+//                                                    from the PROCESS.md section 4 table (v2.4)
+//   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch (v2.4)
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
@@ -241,6 +244,77 @@ function readsLines(id, role) {
   else lines.push(`Plan: vault/plans/${id}.md`, `Sections: ${roles.get(key).sections}`);
   return lines;
 }
+
+// Dispatch routing (process v2.4, PROCESS.md section 4 table). Returns { agent, model, effort, consultAdvisor } for one
+// dispatch from the STATUS Complexity, the role and the round; the orchestrator passes model and effort on the dispatch.
+const M = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' };
+const fableOr = () => (process.env.EZD_FABLE_ALLOWED === '0' ? M.opus : M.fable);
+const route = (agent, model, effort, consultAdvisor = false, extra = {}) =>
+  ({ agent, model, effort, consultAdvisor: consultAdvisor && model !== M.opus && model !== M.fable, ...extra });
+// Calculation-heavy = the plan's Reviewers line says calc-auditor yes ("calc-auditor yes", "**calc-auditor:** yes").
+const planNamesCalc = (id) => /calc-auditor[*:\s]*\**yes/i.test(read(path.join(vault, 'plans', `${id}.md`)));
+export function dispatchFor(id, role, round = 1) {
+  const r = rows.get(id);
+  if (!r) throw new Error(`unknown ticket ${id}`);
+  const c = r.complexity;
+  if (!COMPLEXITY.includes(c)) throw new Error(`${id} has no complexity in STATUS.md`);
+  if (!Number.isInteger(round) || round < 1 || round > 3) throw new Error(`--round must be 1, 2 or 3, got ${round}`);
+  const key = roleKey(role);
+  // r1 = [model, effort] for round 1. Round 2: same model with the advisor (high: Opus at high effort). Round 3: one tier
+  // up with the advisor (high: the orchestrator's blocked review with the advisor).
+  const ladder = (agent, r1) => {
+    if (round === 1) return route(agent, r1[0], r1[1]);
+    if (c === 'high') return round === 2 ? route(agent, M.opus, 'high')
+      : route('orchestrator', M.sonnet, 'medium', true, { action: 'blocked review with the advisor, then blocked' });
+    if (round === 2) return route(agent, r1[0], r1[1], true);
+    return c === 'low' ? route(agent, M.sonnet, 'medium', true) : route(agent, M.opus, 'medium');
+  };
+  switch (key) {
+    case 'test-author':
+      return ladder('test-author', c === 'low' ? [M.haiku, 'high'] : c === 'high' && planNamesCalc(id) ? [M.opus, 'medium'] : [M.sonnet, 'medium']);
+    case 'builder':
+      return ladder('builder', c === 'low' ? [M.haiku, 'high'] : c === 'medium' ? [M.sonnet, 'medium'] : [M.opus, 'medium']);
+    case 'code-reviewer-mode-1': case 'plan-review': return route('code-reviewer', M.opus, 'high');
+    case 'code-reviewer-mode-2': case 'test-review':
+      if (c !== 'high') throw new Error(`${id} is ${c}: no standalone test review on low or medium tickets (v2.4); the final review checks the tests`);
+      return route('code-reviewer', M.opus, 'high');
+    case 'code-reviewer': case 'code-reviewer-mode-3': case 'final-review':
+      return route('code-reviewer', M.opus, c === 'low' ? 'medium' : 'high');
+    case 'security-reviewer': return route('security-reviewer', c === 'high' ? fableOr() : M.opus, 'high');
+    case 'calc-auditor': return route('calc-auditor', M.opus, 'high');
+    case 'planner': case 'planner-re-validation': return route('planner', M.opus, 'high');
+    case 'phase-auditor': return route('phase-auditor', fableOr(), 'high');
+    case 'ui-verifier': return route('ui-verifier', M.sonnet, 'low');
+    case 'plan-checker': return route('plan-checker', M.sonnet, 'low');
+    case 'explore': case 'retriever-digest': case 'retriever-web': case 'log-summarizer':
+      return route(key === 'explore' ? 'Explore' : key, M.haiku, 'low');
+    default: throw new Error(`unknown role "${role}"`);
+  }
+}
+
+// Batches (v2.4, PROCESS.md section 4): 2 or 3 ready low tickets of one phase whose plans name overlapping files and that
+// depend on nothing unfinished outside the batch. A batch in flight is marked `batch: EZD-a+EZD-b` in each member's Notes.
+const planFiles = (id) => new Set((read(path.join(vault, 'plans', `${id}.md`)).match(/`(?:app|packages|scripts|worker|supabase|docs|eslint-rules|fixtures)\/[^`\s]+`/g) || []).map((s) => s.slice(1, -1)));
+export function batchFor(id) {
+  const t = tickets.get(id);
+  const r = rows.get(id);
+  if (!t || !r) throw new Error(`unknown ticket ${id}`);
+  if (r.complexity !== 'low') return [id];
+  const mine = planFiles(id);
+  const peers = phaseTickets(t.phase)
+    .filter((x) => x.id !== id && rows.get(x.id)?.status === 'ready' && rows.get(x.id)?.complexity === 'low')
+    .filter((x) => [...planFiles(x.id)].some((f) => mine.has(f)))
+    .sort((a, b) => num(a.id) - num(b.id));
+  const batch = [id];
+  for (const p of peers) {
+    if (batch.length === 3) break;
+    const members = new Set([...batch, p.id]);
+    if ([...members].every((m) => tickets.get(m).depends_on.every((d) => status(d) === 'done' || members.has(d)))) batch.push(p.id);
+  }
+  return batch;
+}
+const batchOf = (id) => (rows.get(id)?.notes.match(/batch:\s*(EZD-\d+[a-z]?(?:\+EZD-\d+[a-z]?)+)/) || [])[1]?.split('+') || null;
+
 function check() {
   const problems = [];
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
@@ -260,7 +334,13 @@ function check() {
       problems.push(`${id} is ${r.status} but the architecture checkpoint is not met`);
   }
   const busy = [...rows].filter(([, r]) => r.status === 'in-progress' || r.status === 'review').map(([id]) => id);
-  if (busy.length > LIMIT_IN_PROGRESS) problems.push(`more than ${LIMIT_IN_PROGRESS} ticket in progress: ${busy.join(', ')} (PROCESS-EZDRAFT.md section 8)`);
+  // A batch of 2 or 3 low tickets counts as one ticket in progress (v2.4); every member must name the same batch.
+  const units = new Set(busy.map((id) => {
+    const b = batchOf(id);
+    const valid = b && b.length <= 3 && b.includes(id) && b.every((m) => rows.get(m)?.complexity === 'low' && batchOf(m)?.join('+') === b.join('+'));
+    return valid ? b.join('+') : id;
+  }));
+  if (units.size > LIMIT_IN_PROGRESS) problems.push(`more than ${LIMIT_IN_PROGRESS} ticket in progress: ${busy.join(', ')} (PROCESS-EZDRAFT.md section 8)`);
   if (existsSync(path.join(vault, 'tickets/PHASES.md')) === false) problems.push('vault/tickets/PHASES.md is missing');
   const ac = spawnSync(process.execPath, [path.join(vault, 'tools/gen_acs.mjs'), '--check'], { encoding: 'utf8' });
   if (ac.status !== 0) problems.push((ac.stdout || ac.stderr).trim().split('\n')[0]);
@@ -501,6 +581,20 @@ if (isMain) {
     const [id, ...role] = args.slice(i + 1);
     if (!id || !role.length) { console.error('usage: --reads <ticket> <role>'); process.exit(1); }
     try { console.log(readsLines(id, role.join(' ')).join('\n')); } catch (e) { console.error(e.message); process.exit(1); }
+    process.exit(0);
+  }
+  if (args.includes('--dispatch')) {
+    const i = args.indexOf('--dispatch');
+    const ri = args.indexOf('--round');
+    const [id, ...role] = args.slice(i + 1, ri > i ? ri : args.length);
+    if (!id || !role.length) { console.error('usage: --dispatch <ticket> <role> [--round N]'); process.exit(1); }
+    try { console.log(JSON.stringify(dispatchFor(id, role.join(' '), ri > 0 ? Number(args[ri + 1]) : 1))); } catch (e) { console.error(e.message); process.exit(1); }
+    process.exit(0);
+  }
+  if (args.includes('--batch')) {
+    const id = args[args.indexOf('--batch') + 1];
+    if (!id) { console.error('usage: --batch <ticket>'); process.exit(1); }
+    try { console.log(batchFor(id).join(' ')); } catch (e) { console.error(e.message); process.exit(1); }
     process.exit(0);
   }
   if (args.includes('--report')) { report(); process.exit(0); }

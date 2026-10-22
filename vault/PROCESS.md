@@ -1,5 +1,7 @@
 # Build process
 
+Version 2.4. Changelog: v2.4 (Oct 22 2026): usage efficiency; 8 changes approved by Josh (merged test review on low and medium tickets, advisor-first escalation, Haiku low tier and helpers, Sonnet orchestrators with an Opus advisor and routing from `next_ticket.mjs --dispatch`, medium review effort on low tickets, code-intelligence plugins, `gate-failures.log`, batched low tickets). Deviations: `vault/handoff/PROCESS-DEVIATIONS.md`.
+
 How Josh wants software built with Claude Code. This file is the complete process for any new project. It contains nothing about what the product is; the product's spec comes separately.
 
 Project-specific additions live in `vault/PROCESS-<PROJECT>.md` (for EZ Draft: `vault/PROCESS-EZDRAFT.md`). Where that file adds to this one, both apply; where the two differ, the project file records Josh's decision for that project and wins there, with the Q-ID that decided it.
@@ -91,7 +93,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 
 | Agent | Default model | Range | Effort | maxTurns | Job | Can write |
 | --- | --- | --- | --- | --- | --- | --- |
-| orchestrator (main session) | Opus 5.5 | fixed | medium or high, per unit (section 10) | set by launcher | Runs one unit: picks models, dispatches agents, routes questions, merges, keeps ledgers and lessons | `vault/` only |
+| orchestrator (main session) | Sonnet 5.5 with an Opus 5.5 advisor (v2.4) | fixed | medium (section 10) | set by launcher | Runs one unit: takes model routing from `next_ticket.mjs --dispatch`, dispatches agents, routes questions, merges, keeps ledgers and lessons | `vault/` only |
 | planner | Opus 5.5 | fixed | high | 40 | Stage 1 plans; re-validates a plan when a dependency deviated | `vault/plans/` |
 | test-author | Sonnet 5.5 | Haiku 5.5 to Opus 5.5; Fable 5.1 only on a retry after an Opus FAIL | medium | 40 | Failing tests and fixtures from the plan; structural repairs only after that | test files, fixtures, test configs |
 | builder | Sonnet 5.5 | Haiku 5.5 to Opus 5.5; Fable 5.1 only on a retry after an Opus FAIL | medium | 80 | Code until the gate passes | app code; never tests, `vault/`, `.claude/`, `CLAUDE.md` or the gate script |
@@ -101,12 +103,13 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 | security-reviewer | Opus 5.5 | Opus 5.5; Fable 5.1 on high-complexity tickets | high | 30 | Auth, permissions, data isolation, money visibility, the API | nothing |
 | phase-auditor | Fable 5.1 (falls back to Opus 5.5) | fixed | high | 40 | Audits spec readiness (Stage 0) and the whole phase against the spec (gate) | nothing |
 | Explore | Haiku 5.5 | fixed | low | none | Codebase search | nothing |
-| retriever-digest | Haiku 5.5 | fixed | medium | 15 | Answers one question about documents in the repo (spec, plans, logs, lessons, research) in 40 lines at most, with `path:line` pointers; writes a research report when asked (section 13) | `vault/research/pending/` only |
-| retriever-web | Haiku 5.5 | fixed | medium | 15 | The same for the outside world, with WebSearch and WebFetch | `vault/research/pending/` only |
+| log-summarizer | Haiku 5.5 | fixed | low | 10 | Reads `gate.log` when `gate-failures.log` is unclear; returns failing test names, the first error for each and one line on the likely cause; never proposes fixes (v2.4) | nothing |
+| retriever-digest | Haiku 5.5 | fixed | low | 15 | Answers one question about documents in the repo (spec, plans, logs, lessons, research) in 40 lines at most, with `path:line` pointers; writes a research report when asked (section 13) | `vault/research/pending/` only |
+| retriever-web | Haiku 5.5 | fixed | low | 15 | The same for the outside world, with WebSearch and WebFetch | `vault/research/pending/` only |
 
 maxTurns values are starting points; tune them from the cost report (section 9).
 
-**Models.** Use the current release of each family and name it by full ID in agent files and dispatches so versions don't drift: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`. The orchestrator itself stays on Opus (a `build` unit's orchestrator runs Sonnet, section 10); Fable is used only for subagent dispatches. Any agent file, setting or script that names Haiku names Haiku 5.5. When a newer release ships, change this paragraph and the agent files in one commit.
+**Models.** Use the current release of each family and name it by full ID in agent files and dispatches so versions don't drift: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`. Orchestrator units run Sonnet 5.5 at medium effort with an Opus 5.5 advisor (v2.4; `plan` and `review-plans` run as the Opus agent, section 10); Fable is used only for subagent dispatches. Any agent file, setting or script that names Haiku names Haiku 5.5. When a newer release ships, change this paragraph and the agent files in one commit.
 
 **Which agents to use.** For a small project, start with orchestrator, planner, test-author, builder and code-reviewer. Add ui-verifier when there are screens. Add security-reviewer when there are logins, user data or money. Add a domain specialist (such as a calculation auditor) only when the product has rules worth checking against known values. When a database exists, migrations are forward-only and count as a security-review trigger.
 
@@ -120,20 +123,37 @@ Write limits are enforced by hooks, not only by instructions (section 14).
 
 The orchestrator passes a `model` (and, where useful, an `effort`) on each dispatch. A per-invocation value beats the agent file's `model` field, which beats the `CLAUDE_CODE_SUBAGENT_MODEL` environment variable, which beats the orchestrator's own model. The agent file's model is therefore the default, and the orchestrator overrides it per ticket.
 
-The planner rates each ticket's complexity in its plan (section 6). The orchestrator maps it like this and may deviate with a one-line reason recorded in STATUS notes:
+The planner rates each ticket's complexity in its plan (section 6): **low**: the plan's interface contract is complete, the change follows an existing pattern, few files, no calculations, permissions, money, data-model or auth work; **medium** (default): anything not clearly low or high; **high**: a new pattern, calculations, permissions, data model, auth or money, or many files.
 
-| Complexity | Meaning | test-author | builder, round 1 |
+**Routing is mechanical (v2.4).** `node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]` prints `{agent, model, effort, consultAdvisor}` from the table below, the STATUS Complexity, the round and the role. The orchestrator uses those values and deviates only with a one-line reason in STATUS notes.
+
+| Agent | low | medium | high |
 | --- | --- | --- | --- |
-| low | The plan's interface contract is complete; the change follows an existing pattern; few files; no calculations, permissions, money, data-model or auth work | Haiku 5.5 | Haiku 5.5 |
-| medium (default) | Anything not clearly low or high | Sonnet 5.5 | Sonnet 5.5 |
-| high | New pattern, calculations, permissions, data model, auth or money, or many files | Opus 5.5 | Opus 5.5 |
+| orchestrator | Sonnet 5.5 / medium + Opus advisor | same | same |
+| planner | Opus 5.5 / high | Opus 5.5 / high | Opus 5.5 / high |
+| plan review (code-reviewer, Stage 1) | Opus 5.5 / high | Opus 5.5 / high | Opus 5.5 / high |
+| test-author | Haiku 5.5 / high | Sonnet 5.5 / medium | Sonnet 5.5 / medium; Opus 5.5 for calculation-heavy tests |
+| standalone test review | none (merged into the final review) | none (merged into the final review) | Opus 5.5 / high |
+| builder round 1 | Haiku 5.5 / high | Sonnet 5.5 / medium | Opus 5.5 / medium |
+| builder round 2 | same model + advisor consult | same model + advisor consult | Opus 5.5 / high |
+| builder round 3 | Sonnet 5.5 + advisor | Opus 5.5 | blocked review by the orchestrator + advisor, then blocked |
+| final review (code-reviewer) | Opus 5.5 / medium | Opus 5.5 / high | Opus 5.5 / high |
+| security-reviewer | Opus 5.5 / high | Opus 5.5 / high | Opus 5.5 / high (Fable 5.1 per the rule below) |
+| ui-verifier | Sonnet 5.5 / low | same | same |
+| phase-auditor | Fable 5.1 → Opus 5.5 / high | same | same |
+| Explore, retrievers, log-summarizer | Haiku 5.5 / low | same | same |
+
+**Advisor (v2.4).** Project settings set `advisorModel` to `claude-opus-5-5`; subagents inherit it. Every Opus-model agent file says "Do not call the advisor tool" (no second Opus reviewing the first); Fable takes no Opus advisor. Advisor calls count toward plan limits and re-read the whole transcript uncached, so consult only where named: the round-2 and round-3 builder or test-author ("Consult the advisor before making changes this round, and again before declaring done."), and the orchestrator before accepting a complexity rating it doubts, before marking a ticket `blocked`, before opening a phase PR, and when a decision is not covered by this file or the spec.
+
+**Haiku price cliff.** Haiku 5.5 costs five times as much per token once a prompt passes 100,000 tokens. Haiku dispatches carry only the plan, the contract and the files they touch; if one would clearly pass 100,000 tokens, use Sonnet 5.5 and log why.
 
 Floors and ceilings:
 - planner, code-reviewer, security-reviewer and phase-auditor never run below Opus 5.5. ui-verifier never runs below Sonnet 5.5.
-- Josh, 2026-10-20 (from the C2 cost baseline, `vault/cost/baseline-2026-10-19.md`): Opus 5.5 is the default for high-complexity work, and Fable 5.1 is an upgrade on retry (Josh, in chat: "most of the higher agents are good on opus with the option to upgrade to fable if the task is complex"). test-author and builder start no higher than Opus 5.5 and reach Fable 5.1 only as the escalation step after a behavior, requirement or test FAIL on Opus. code-reviewer always runs Opus 5.5, also when it reviews a Fable retry; that is the one exception to the next rule. On a high-complexity ticket, security-reviewer runs Fable 5.1. Otherwise neither reviewer runs a lower tier than the builder it reviews. ui-verifier is exempt and stays on Sonnet 5.5: it checks screenshots against the mockup, which doesn't depend on the builder's tier.
-- **Retry and escalation on FAIL:** the orchestrator classifies the findings. *Minor* (naming, style, a fix confined to one file, nothing about behavior or a requirement): resume the same builder at the same tier with the findings, once per ticket; a resumed agent keeps its context and warm cache instead of re-reading everything. *Behavior, requirement or test failures:* a fresh builder (and test-author, if the test review failed) one tier up: Haiku → Sonnet → Opus → Fable. Fable is the ceiling and is reached only this way; at the ceiling the retry resumes the same agent with the findings. Three failed rounds of either kind → `blocked`.
+- Josh, 2026-10-20 (from the C2 cost baseline, `vault/cost/baseline-2026-10-19.md`): Opus 5.5 is the default for high-complexity work, and Fable 5.1 is an upgrade on retry (Josh, in chat: "most of the higher agents are good on opus with the option to upgrade to fable if the task is complex"). test-author and builder follow the v2.4 ladder above and are never dispatched on Fable 5.1. code-reviewer always runs Opus 5.5, also when it reviews a Fable retry; that is the one exception to the next rule. On a high-complexity ticket, security-reviewer runs Fable 5.1. Otherwise neither reviewer runs a lower tier than the builder it reviews. ui-verifier is exempt and stays on Sonnet 5.5: it checks screenshots against the mockup, which doesn't depend on the builder's tier.
+- **Retry and escalation on FAIL (v2.4, advisor first):** round 1 is the tier's model. Round 2 is the same model again, resumed when the findings are *minor* (naming, style, a fix confined to one file, nothing about behavior or a requirement) and fresh otherwise, with the advisor-consult sentence in the dispatch. Round 3 is one tier up (Haiku → Sonnet → Opus) with the advisor, except on a high ticket, where round 2 is Opus at high effort and round 3 is the orchestrator's blocked review with the advisor. After 3 failed rounds the ticket is `blocked`. A FAIL caused by a test defect goes to the test-author first, then the builder, and counts as one round. Opus-model agents never call the advisor. If the advisor is not working, the old ladder applies (one tier up per failed round) until it is fixed.
 - **Fable fallback:** Fable has its own weekly limit, separate from the main one (section 11). Every place this process says Fable, the orchestrator uses Opus 5.5 instead when Fable is past its fallback fraction (section 11), when a Fable run ends on a limit error, or, unlikely, when Fable declines a task (its extra safeguards cover biology, cybersecurity and model research, not ordinary app work). With Fable out, Opus is the ceiling. The fallback is logged in STATUS notes with the reason.
 - The gate script and the reviews are identical whatever model wrote the code. A cheaper model never means a lighter check.
+- **Batches (v2.4).** The orchestrator may group 2 or 3 low tickets into one unit when they are in the same phase, their plans touch overlapping files, none depends on an unfinished ticket outside the batch, and every plan rated them low (`next_ticket.mjs --batch <ticket>` lists them). One test-author dispatch writes all their tests, one builder dispatch builds them, the gate runs once, and the code-reviewer reviews each ticket's diff separately with a PASS or FAIL per ticket. Each ticket is its own commit. A FAIL on one ticket sends only that ticket into the round-2 ladder; the others merge.
 - The model chosen for every dispatch, with its reason, is logged in STATUS notes. The wrap step uses this log to adjust the table above.
 
 Never set `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`: it ignores per-dispatch choices. Set `CLAUDE_CODE_SUBAGENT_MODEL` to `claude-sonnet-5-5` in project settings only as a backstop so an unlisted agent never silently inherits Opus.
@@ -232,19 +252,19 @@ Each ticket is built in its own fresh orchestrator session (section 10). The orc
 
 1. **Re-validate the plan** if any dependency's STATUS notes record a deviation from its plan. The planner updates the interface contract and citations; a changed test value or behavior is a question. Skip if no dependency deviated.
 2. **Worktree:** `git worktree add .claude/worktrees/<T> -b t/<T> develop`. Status → `in-progress`. A worktree that already exists with commits means a previous run was interrupted: resume from it instead of starting over.
-3. **Pick models** from the plan's complexity (section 4) and log them in STATUS notes.
+3. **Pick models** with `next_ticket.mjs --dispatch` (section 4) and log them in STATUS notes.
 4. **test-author** writes failing tests in that worktree from the plan's interface contract. Commit `test(<T>): …`.
-5. **Test review:** code-reviewer checks the tests against the plan: every AC covered, every expected value matches the plan and its cited source, structure matches the interface contract. FAIL → back to test-author. PASS → continue.
-   - On a **low**-complexity ticket this step is skipped and the tests are reviewed together with the code in step 8: one Opus pass instead of two. The risk is a builder building against a wrong test; on low tickets the contract is complete, so the risk is small, and the combined review still fails the ticket if a test is wrong.
+5. **Test review (high tickets only, v2.4):** code-reviewer checks the tests against the plan: every AC covered, every expected value matches the plan and its cited source, structure matches the interface contract. FAIL → back to test-author. PASS → continue.
+   - On **low and medium** tickets this step is skipped. The Stage 1 plan review checks each plan's Tests section (known correct values, a cited source for each, coverage of the interface contract), and the final review in step 8 checks the tests against the contract and the cited values, then the code, in one pass with one verdict. A final-review FAIL caused by a test defect goes to the test-author first, then the builder, as one round.
 6. **builder** implements the plan exactly, committing work in progress on the ticket branch as it goes. Anything the plan doesn't cover becomes a question and the ticket goes to `blocked` while other tickets continue, except wording, which follows rule 3a.
    - **Structural test repair:** if a test fails only because the code's structure differs from the test and the plan's contract didn't settle it, the builder reports the mismatch; test-author fixes only the structure; code-reviewer confirms the diff touched no assertions or expected values. A dispute about behavior is a question.
-7. **Gate:** the orchestrator runs `node scripts/gate.mjs .claude/worktrees/<T>` once (typecheck, lint, tests, build, browser tests). It prints a short summary (pass or fail per step, failing test names, the first error line) and writes full logs to `gate.log` in the worktree. It also lists touched paths and flags any under `auth/`, `api/`, `db/`, `middleware`, migrations or billing. Reviewers read the summary and open `gate.log` only when they need it.
+7. **Gate:** the orchestrator runs `node scripts/gate.mjs .claude/worktrees/<T>` once (typecheck, lint, tests, build, browser tests). It prints a short summary (pass or fail per step, failing test names, the first error line) and writes two files in the worktree: `gate.log` (the full output, for humans and the cost report) and `gate-failures.log` (each failing test name and its first error, 100 lines at most). It also lists touched paths and flags any under `auth/`, `api/`, `db/`, `middleware`, migrations or billing. Builders, test-authors and reviewers get the summary and `gate-failures.log`, never `gate.log` (v2.4). When `gate-failures.log` is unclear, the orchestrator dispatches `log-summarizer` on `gate.log`; no other agent reads it.
 8. **Review:**
-   - code-reviewer reviews every ticket against its plan, the spec files the plan cites, decisions and mockup. It confirms the implementation handles the general case, not only the test inputs, and that nothing in the diff goes beyond the plan (rule 13). On a low ticket it reviews the tests here too. On medium and high tickets the step-5 reviewer is **resumed** for this step rather than started fresh: it keeps the tests it approved and its warm cache. *Revisit flag:* a fresh reviewer brings no assumptions from the test review; if the cost report shows the resumed reviewer missing defects that the phase-auditor or Josh then catch, go back to a fresh dispatch for step 8;
+   - code-reviewer reviews every ticket against its plan, the spec files the plan cites, decisions and mockup. It confirms the implementation handles the general case, not only the test inputs, and that nothing in the diff goes beyond the plan (rule 13). On low and medium tickets it reviews the tests here too (v2.4), at medium effort on low tickets and high effort otherwise. On high tickets the step-5 reviewer is **resumed** for this step rather than started fresh: it keeps the tests it approved and its warm cache. *Revisit flag:* a fresh reviewer brings no assumptions from the test review; if the cost report shows the resumed reviewer missing defects that the phase-auditor or Josh then catch, go back to a fresh dispatch for step 8;
    - ui-verifier reviews when the plan has a visual checklist: only the states on the checklist, at one viewport, with screenshots downscaled before the agent reads them (screenshots are image tokens);
    - security-reviewer reviews when the plan says `security review: yes` **or** the gate flagged a path. Either trigger is enough;
    - a reviewer that needs more than the plan, the diff and the gate summary asks a retriever (section 4) rather than reading the spec or the logs itself.
-9. **FAIL** → findings go back to the builder in the same worktree: resumed at the same tier for minor findings, fresh and one tier up otherwise (section 4). Only the reviewers whose findings are open review again. After 3 failed rounds the ticket goes to `blocked` with notes and the orchestrator ends the unit.
+9. **FAIL** → findings go back to the builder in the same worktree, following the v2.4 ladder in section 4 (round 2 same model with the advisor, round 3 one tier up); a test defect goes to the test-author first. Only the reviewers whose findings are open review again. After 3 failed rounds the ticket goes to `blocked` with notes and the orchestrator ends the unit.
 10. **PASS** → squash the branch into one commit `feat(<T>): <title>` on `develop`, remove the worktree, mark the status `done` with the commit hash, record any deviation from the plan in STATUS notes, append a line to `vault/DONE.md`, regenerate `PROGRESS.md` (`next_ticket.mjs --report`), push `develop`, record any lesson (section 13), update the handoff, and end the session.
 
 Pushing is free: CI doesn't run on pushes and hosting skips `develop` (section 12), and it protects the work.
@@ -305,7 +325,7 @@ Each unit has a skill in `.claude/skills/`. The names match the unit, except tha
 `scripts/run.mjs` runs the loop. Each pass:
 1. If `vault/handoff/STOP` exists, wait and re-check every minute; it resumes when the file is removed (fix mode, rule 19; Q-0233). If `vault/handoff/WINDOW_PAUSE.md` exists, wait until its resume time (section 11). If `vault/handoff/BUDGET_HOLD.md` exists, run only a `build <T>` unit for a ticket already `in-progress` (so it reaches `done` or `blocked`); start nothing else (section 11).
 2. Ask `next_ticket.mjs --next-unit`. If `none`, notify Josh once with the reason and re-check every 5 minutes, so his answer is picked up without a restart; only a budget hold ends the run (Josh, 2026-10-20, Q-0233: the build never stops unless it hits a usage limit or truly nothing can be done until he answers).
-3. Start a fresh `claude -p` for that unit with the unit's skill as the prompt, a session name such as `T-012 build`, a `--max-turns` limit, and a `--max-budget-usd` cap (section 11). Orchestrator units run `claude-opus-5-5`, except `build`, which runs `claude-sonnet-5-5` because its mechanical steps are in `scripts/unit-steps.mjs` and it only dispatches (Josh, 2026-10-22); effort is `medium` for `build` and `wrap` (dispatching and ledger work) and `high` for `questions` and `gate-phase` (judgment). `plan` and `review-plans` run as the agent at that agent's model and effort. Effort is set per run, never changed within one.
+3. Start a fresh `claude -p` for that unit with the unit's skill as the prompt, a session name such as `T-012 build`, a `--max-turns` limit, and a `--max-budget-usd` cap (section 11). Orchestrator units (`build`, `questions`, `gate-phase`, `wrap`) run `claude-sonnet-5-5` at `medium` effort with the Opus 5.5 advisor from project settings (v2.4; the judgment calls go to the advisor at the moments section 4 names). `plan` and `review-plans` run as the agent at that agent's model and effort. Effort is set per run, never changed within one.
 4. Record the run's estimated cost in `vault/cost/log.jsonl`.
 5. Run `next_ticket.mjs --check`. If it fails twice in a row, stop and notify.
 
@@ -329,7 +349,7 @@ Each role reads only its plan sections, named on a `Sections:` line the orchestr
 
 - Keep the machine awake and pause OS updates during a run. A restart kills the session; the builder's work-in-progress commits on the ticket branch let the next unit resume the ticket.
 - One build per machine at a time. Two parallel builds can run out of memory, and failed tests then waste usage on retries.
-- One ticket in progress at a time. Raise the limit only when Josh says so and the plans touch no shared files.
+- One ticket in progress at a time. Raise the limit only when Josh says so and the plans touch no shared files. Exception (v2.4): a batch of 2 or 3 low tickets (section 4) counts as one ticket in progress.
 - Never change the orchestrator's model or effort in the middle of a session; that invalidates the prompt cache for the whole context.
 
 ---
@@ -410,7 +430,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 - Agent teams, dynamic workflows and nested subagents are off (rule 15), except retrievers and the planner's `plan-checker`. In project settings, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` is 3 and `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` is 2 (orchestrator → planner or reviewer → retriever); the agent files' `tools` lines keep everything else at depth 1.
 - Hidden tokens are turned off in project settings (section 14): no task-list tool, no prompt suggestions, no total-tokens reminder, no goal check-ins, no auto-compaction.
 - No agent reads a file over 20,000 characters without a range (section 14, guard-reads).
-- No MCP servers in the build repo. CLI tools only.
+- No MCP servers in the build repo. CLI tools only. Code-intelligence plugins (language-server plugins such as the TypeScript one) are allowed (v2.4); builders and reviewers use go-to-definition and find-references instead of grep followed by reading candidate files.
 - `CLAUDE.md` stays small (section 14).
 - The wrap unit reviews the cost report each phase. `/usage` shows which subagents and tools drew the most, and its breakdown names behaviors (long context, cache misses) that account for 10% or more of recent usage; `/insights` summarizes patterns across sessions. Use both to tune the next phase.
 

@@ -44,15 +44,16 @@ const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, override
 const { costEntry } = await import('./cost-log.mjs');
 const { idleAction } = await import('./launcher-idle.mjs');
 
-const MODELS = { orchestrator: 'claude-opus-5-5', 'build-orchestrator': 'claude-sonnet-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
+// Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
+// .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
+const MODELS = { orchestrator: 'claude-sonnet-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
 const UNITS = {
   // unit: how it runs. `as` = the session runs as that agent (no orchestrator in front); effort per section 10.
-  // build: the orchestrator only dispatches and runs scripts/unit-steps.mjs, so it runs on Sonnet (token diet, Josh 2026-10-22).
-  build: { skill: 'build-ticket', effort: 'medium', model: MODELS['build-orchestrator'], turns: 150 },
+  build: { skill: 'build-ticket', effort: 'medium', model: MODELS.orchestrator, turns: 150 },
   plan: { skill: 'plan-ticket', effort: 'high', model: MODELS.planner, turns: 60, as: 'planner' },
   'review-plans': { skill: 'review-plans', effort: 'high', model: MODELS['code-reviewer'], turns: 60, as: 'code-reviewer' },
-  questions: { skill: 'questions', effort: 'high', model: MODELS.orchestrator, turns: 80 },
-  'gate-phase': { skill: 'gate-phase', effort: 'high', model: MODELS.orchestrator, turns: 150 },
+  questions: { skill: 'questions', effort: 'medium', model: MODELS.orchestrator, turns: 80 },
+  'gate-phase': { skill: 'gate-phase', effort: 'medium', model: MODELS.orchestrator, turns: 150 },
   wrap: { skill: 'wrap', effort: 'medium', model: MODELS.orchestrator, turns: 60 },
 };
 
@@ -213,6 +214,9 @@ async function runUnit(unitName, arg, meterSource = null) {
   // mode to default whenever it is set, and with --permission-prompts none every write is then denied (2026-10-19 loop).
   const env = { ...process.env };
   delete env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB;
+  // A -p session stops background subagents 10 minutes after its last turn ("Background tasks still running 10m after the
+  // last turn"), which killed the EZD-017 and EZD-018 builders on 2026-10-22. 0 = wait for them indefinitely.
+  env.CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS = '0';
   if (authMode() === 'api') {
     if (!config.api_key) return { outcome: 'error', note: 'auth_mode api but no api_key in launcher.config.json' };
     env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = '1';
