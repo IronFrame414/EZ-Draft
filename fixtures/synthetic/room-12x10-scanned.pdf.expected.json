@@ -1,0 +1,43 @@
+{
+  "fixture": "room-12x10-scanned.pdf",
+  "generatedBy": "scripts/fixtures/generate-synthetic.mjs",
+  "sources": [
+    "vault/plans/EZD-016b.md Step 4.4 (scanned page and raster), Tests T4, Fixture values",
+    "Pixel mapping: column = X x 150 / 72, row from the top = (792 - Y) x 150 / 72",
+    "08 Imports: scanned PDF is underlay for tracing / trace only",
+    "EZD-305 Done when: the fixture scanned PDF returns zero items"
+  ],
+  "tolerances": {
+    "rasterPx": 1
+  },
+  "pageCount": 1,
+  "view": [0, 0, 1224, 792],
+  "textItems": 0,
+  "imagePaintOps": 1,
+  "pathOps": 0,
+  "imageTransform": [1224, 0, 0, 792, 0, 0],
+  "image": {
+    "width": 2550,
+    "height": 1650,
+    "colorSpace": "DeviceGray",
+    "bitsPerComponent": 8,
+    "filter": "FlateDecode",
+    "subtypeImageCount": 1,
+    "inflatedLength": 4207500,
+    "pxPerInch": 150
+  },
+  "black": 0,
+  "white": 255,
+  "blackProbes": [
+    { "name": "south-west interior corner", "px": [1050, 1025] },
+    { "name": "south-east interior corner", "px": [1500, 1025] },
+    { "name": "north-east interior corner", "px": [1500, 650] },
+    { "name": "north-west interior corner", "px": [1050, 650] },
+    { "name": "west interior face midpoint", "px": [1050, 837] }
+  ],
+  "whiteProbes": [
+    { "name": "room centre", "px": [1275, 837], "radiusPx": 3 },
+    { "name": "door gap on the interior face", "px": [1144, 1025], "radiusPx": 1 },
+    { "name": "page corner", "px": [0, 0], "radiusPx": 0 }
+  ]
+}

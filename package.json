@@ -16,6 +16,7 @@
     "db:reset": "supabase db reset --local",
     "db:stop": "supabase stop",
     "db:types": "node scripts/db/gen-types.mjs",
+    "fixtures:generate": "node scripts/fixtures/generate-synthetic.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -23,10 +24,13 @@
     "@aws-sdk/client-s3": "3.1153.0",
     "@eslint/js": "9.39.5",
     "@playwright/test": "1.64.1",
+    "dxf-parser": "1.1.2",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.2",
+    "pdfjs-dist": "6.4.299",
     "prettier": "3.9.10",
     "supabase": "2.121.0",
+    "three": "0.186.1",
     "typescript": "5.9.3",
     "typescript-eslint": "8.71.2",
     "vitest": "5.0.5"

@@ -1,0 +1,70 @@
+{
+  "fixture": "room-12x10-sloped.glb",
+  "generatedBy": "scripts/fixtures/generate-synthetic.mjs",
+  "sources": [
+    "vault/plans/EZD-016b.md Step 2 (room and ceiling), Step 4.5 (GLB writer), Tests T5, Fixture values",
+    "Khronos glTF 2.0 specification, Coordinate system and units: metres, +Y up",
+    "International inch: 0.0254 m exactly",
+    "EZD-030 W1: ceiling 96 at the start, rise 4 per 12; EZD-030 Tests: area tolerance 0.5 sq in",
+    "S02: heights at points (low/high wall), pitch, or the value read from the mesh; EZD-303 Done when"
+  ],
+  "tolerances": {
+    "metres": 0.000396875,
+    "inches": 0.015625,
+    "areaSqIn": 0.5,
+    "pitchPer12": 0.001,
+    "slopeDeg": 0.0001,
+    "normalDot": 0.999
+  },
+  "metresPerInch": 0.0254,
+  "header": {
+    "magic": "glTF",
+    "version": 2
+  },
+  "chunkTypes": ["JSON", "BIN"],
+  "assetVersion": "2.0",
+  "meshCount": 1,
+  "primitiveCount": 1,
+  "mode": 4,
+  "attributes": ["NORMAL", "POSITION"],
+  "vertexCount": 44,
+  "indexCount": 66,
+  "triangleCount": 22,
+  "positionMin": [0, 0, -3.048],
+  "positionMax": [3.6576, 3.6576, 0],
+  "interior": {
+    "widthIn": 144,
+    "depthIn": 120
+  },
+  "surfaceAreasSqIn": {
+    "floor": 17280,
+    "ceiling": 18214.7193,
+    "west": 11520,
+    "east": 17280,
+    "north": 17280,
+    "south": 12240
+  },
+  "totalAreaSqIn": 93814.7193,
+  "ceiling": {
+    "heightAtWestIn": 96,
+    "rise": 4,
+    "run": 12,
+    "cornerHeightsIn": {
+      "SW": { "at": [0, 0], "heightIn": 96 },
+      "NW": { "at": [0, 120], "heightIn": 96 },
+      "SE": { "at": [144, 0], "heightIn": 144 },
+      "NE": { "at": [144, 120], "heightIn": 144 }
+    },
+    "lowWall": { "side": "W", "heightIn": 96 },
+    "highWall": { "side": "E", "heightIn": 144 },
+    "pitchPer12": 4,
+    "slopeDeg": 18.4349,
+    "centre": { "at": [72, 60], "heightIn": 120 }
+  },
+  "southWallOpenings": [
+    { "name": "door", "xIn": [12, 48], "hIn": [0, 80], "checkFloorEdge": false },
+    { "name": "window", "xIn": [84, 120], "hIn": [42, 102], "checkFloorEdge": true }
+  ],
+  "holeGrid": 5,
+  "holeInsetIn": 0.015625
+}

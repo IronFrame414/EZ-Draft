@@ -119,7 +119,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `clipper2-wasm` | `0.4.0` | geometry, app | Named tools: Polygon math (Clipper2 WebAssembly build) | EZD-000 |
 | `three-bvh-csg` | `0.0.18` | app | Stack: Polygon math | EZD-000 |
 | `pdfkit` | `0.20.2` | app | Named tools: PDF writer; Stack: PDF out | EZD-000 |
-| `dxf-parser` | `1.1.2` | app | Named tools: DXF (read); provisional until EZD-029 | EZD-000 |
+| `dxf-parser` | `1.1.2` | root, app | Named tools: DXF (read); provisional until EZD-029 | EZD-000 |
 | `@tarikjabiri/dxf` | `2.9.0` | app | Named tools: DXF (write); provisional until EZD-029 | EZD-000 |
 | `resend` | `6.34.1` | app | Named tools: Email | EZD-000 |
 | `@sentry/nextjs` | `11.8.0` | app | Named tools: Error reporting (browser and functions) | EZD-000 |
@@ -127,10 +127,10 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `supabase` | `2.121.0` | root | Named tools: Database migrations (CLI); Stack: Database, auth, files | EZD-000 |
 | `@supabase/supabase-js` | `2.118.0` | app, worker | Stack: Database, auth, files | EZD-000 |
 | `@supabase/ssr` | `0.12.7` | app | Stack: Database, auth, files (server client per request) | EZD-000 |
-| `three` | `0.186.1` | app | Stack: 2D + 3D; GLB / USDZ | EZD-000 |
+| `three` | `0.186.1` | root, app | Stack: 2D + 3D; GLB / USDZ | EZD-000 |
 | `@react-three/fiber` | `9.8.2` | app | Stack: 2D + 3D | EZD-000 |
 | `three-gpu-pathtracer` | `0.0.27` | app | Stack: Browser path tracing | EZD-000 |
-| `pdfjs-dist` | `6.4.299` | app | Stack: PDF in | EZD-000 |
+| `pdfjs-dist` | `6.4.299` | root, app | Stack: PDF in | EZD-000 |
 | `eslint` | `9.39.5` | root, app, geometry | Machine checks: lint runner for the root flat config (EZD-020, EZD-026a and EZD-133 add rules) | EZD-001 |
 | `@eslint/js` | `9.39.5` | root | Machine checks: ESLint recommended rules for all TS/JS | EZD-001 |
 | `typescript-eslint` | `8.71.2` | root | Machine checks: TypeScript parser and recommended rules | EZD-001 |
@@ -175,6 +175,8 @@ worker/                   @ezdraft/worker — the local GPU render worker (02 Na
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
 scripts/db/               local stack and types scripts: local.mjs (`db:up`, `db:env`), gen-types.mjs (`db:types`) (EZD-004a)
 scripts/email/            send-test.mjs: the live email check Josh runs by hand; never run by the gate (EZD-008b)
+scripts/fixtures/         generate-synthetic.mjs (`fixtures:generate`) and its writers, Node built-ins only; tests in __tests__/ (EZD-016b)
+fixtures/                 shared test data: README.md, manifest.json, synthetic/ (generated files + *.expected.json), real/<id>/ (Josh's files, once supplied) (EZD-016b)
 supabase/                 Supabase CLI folder: config.toml, seed.sql, migrations/ (EZD-004a)
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
 ```
@@ -448,6 +450,18 @@ EZD-016d (vault/plans/EZD-016d.md Steps 1–3); Q-0053; Q-0088; Q-0087; Q-0006; 
 - **Root config**: `playwright.config.ts` at the repo root is exactly `export { default } from './app/playwright.config';`, because `ci.yml` "Install browsers" runs only when `hashFiles('playwright.config.*')` matches at the root and runs `pnpm exec playwright` from the root (so the root also lists `@playwright/test`). `ci.yml` is not edited.
 - **Helpers** (EZD-016a, vault/plans/EZD-016a.md Steps 1–6; Q-0087 (ii); Q-0198): `signInAs(email)` / `signInAsOwner(page)` sign in a seeded or fixture user with an active membership through `/auth/confirm` (no email sent), under a per-email lock (`withEmailLock`, `app/test-harness/e2e/email-lock.ts`) because a new link replaces the earlier one; `sessions.open(emails)` opens one signed-in context per email at the current project's size and closes them at teardown (edit-lock and presence tests); `network.set(target, 'off' | 'on')` switches a context's network and waits for `navigator.onLine`; each signed-in result carries `serverDb` (gated, sends `x-ezd-api-gate`, as a server route does) and `browserDb` (no header, refused by PostgREST), which stay in the Node test process and never reach the page. Specs import only from `app/test-harness/e2e/test.ts`: `import { test, expect } from '../test-harness/e2e/test'`.
 
+### Fixtures (EZD-016b)
+
+EZD-016b (vault/plans/EZD-016b.md Steps 1, 6, 7); 08 Imports; 03 rule 5; Q-0065 (b); Q-0066 (b).
+
+- **Layout.** `fixtures/` at the repo root holds the test data shared by `app/`, `packages/geometry` and `spikes/`: `fixtures/README.md`, `fixtures/manifest.json`, `fixtures/synthetic/` (the generated files, each with its `*.expected.json`) and `fixtures/real/<id>/` (Josh's files, once supplied). The generator is `scripts/fixtures/` (plain Node ESM, `node:` built-ins only, so a fixture is never made by the code that later reads or writes its format); its tests are `scripts/fixtures/__tests__/` (`node:test`, run unfiltered by the root `test` script).
+- **Manifest and README.** `fixtures/manifest.json` lists every fixture (`id`, `origin` `generated` or `real`, `kind`, `status`, `path`, `expected`, `neededBy`, `withoutIt`, `standIn`, `source`); `fixtures/README.md` has one row per manifest id with the same origin and status and states which files are real and which are generated. A real file is committed only after Josh has removed names, addresses and photo location data (Q-0065 (b)), and is then stored unchanged.
+- **Generated files** are rebuilt with `pnpm fixtures:generate` (default output `fixtures/synthetic/`) and never edited by hand.
+- **Expected JSON** (`*.expected.json`) is written by hand from the plan's values, never by the generator.
+- **Readers** are the app's own stack: `dxf-parser` for the DXF, `pdfjs-dist` (legacy build) for both PDFs and `three`'s `GLTFLoader` for the GLB, installed as root devDependencies.
+- **A later ticket that adds a fixture** adds its manifest entry and README row in the same commit (T7 in `scripts/fixtures/__tests__/manifest.test.mjs` enforces it).
+- **Variants** are written with the exported `room`, `planDrawing` and writers of `scripts/fixtures/` (EZD-302's unjoined wall, Q-0066 (b)), never by copying code.
+
 ### Test scope (Q-0006)
 
 Phase tests plus a smoke set per ticket; the full suite at the phase gate (EZD-001 Step 6).
@@ -535,6 +549,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | State components import no shell, phone, device or 3D code | app/src/components/states/states-imports.test.ts | EZD-015a |
 | — | State components folder in the field lint block | scripts/tooling/__tests__/messages-lint.test.mjs (L1) | EZD-015a |
 | — | State components on /dev/states: Retry, toast close and dialog buttons 44 px on iPad, Surface and phone; Spanish on a phone | app/e2e/states.spec.ts | EZD-015c |
+| — | Synthetic fixtures match their expected JSON; manifest matches README and files | `scripts/fixtures/__tests__/` | EZD-016b |
 
 ### CI
 

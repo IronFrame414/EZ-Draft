@@ -1,0 +1,97 @@
+{
+  "fixture": "room-12x10.dxf",
+  "generatedBy": "scripts/fixtures/generate-synthetic.mjs",
+  "sources": [
+    "vault/plans/EZD-016b.md Step 2 (room), Step 3 (plan drawing), Step 4.1 (DXF writer), Tests T2, Fixture values",
+    "Ticket EZD-016b Scope: 12' x 10' room with one door and one window",
+    "03 rule 5: decimal inches, 1/64 in tolerance",
+    "EZD-028 Step 1 and EZD-030 W1 (door, window, wall thickness)"
+  ],
+  "units": "in",
+  "tolerances": {
+    "lengthIn": 0.015625,
+    "areaSqIn": 0.5,
+    "wallsTotalLengthIn": 0.25
+  },
+  "header": {
+    "$ACADVER": "AC1009",
+    "$INSUNITS": 1
+  },
+  "layers": ["0", "WALLS", "DOORS", "WINDOWS", "ROOMS"],
+  "entityCount": 22,
+  "entitiesByLayer": {
+    "WALLS": { "LINE": 16 },
+    "DOORS": { "LINE": 1, "ARC": 1 },
+    "WINDOWS": { "LINE": 3 },
+    "ROOMS": { "POLYLINE": 1 }
+  },
+  "lines": {
+    "WALLS": [
+      [[0, 0], [12, 0]],
+      [[48, 0], [84, 0]],
+      [[120, 0], [144, 0]],
+      [[-4.5, -4.5], [12, -4.5]],
+      [[48, -4.5], [84, -4.5]],
+      [[120, -4.5], [148.5, -4.5]],
+      [[12, -4.5], [12, 0]],
+      [[48, -4.5], [48, 0]],
+      [[84, -4.5], [84, 0]],
+      [[120, -4.5], [120, 0]],
+      [[0, 120], [144, 120]],
+      [[-4.5, 124.5], [148.5, 124.5]],
+      [[0, 0], [0, 120]],
+      [[-4.5, -4.5], [-4.5, 124.5]],
+      [[144, 0], [144, 120]],
+      [[148.5, -4.5], [148.5, 124.5]]
+    ],
+    "DOORS": [
+      [[12, 0], [12, 36]]
+    ],
+    "WINDOWS": [
+      [[84, 0], [120, 0]],
+      [[84, -2.25], [120, -2.25]],
+      [[84, -4.5], [120, -4.5]]
+    ]
+  },
+  "arc": {
+    "layer": "DOORS",
+    "center": [12, 0],
+    "radius": 36,
+    "startAngleDeg": 0,
+    "endAngleDeg": 90
+  },
+  "roomPolygon": {
+    "layer": "ROOMS",
+    "closed": true,
+    "vertices": [[0, 0], [144, 0], [144, 120], [0, 120]],
+    "areaSqIn": 17280,
+    "areaSqFt": 120,
+    "perimeterIn": 528
+  },
+  "wallsTotalLineLengthIn": 966,
+  "extents": {
+    "min": [-4.5, -4.5],
+    "max": [148.5, 124.5]
+  },
+  "semantic": {
+    "walls": [
+      { "side": "S", "interiorLengthIn": 144, "thicknessIn": 4.5 },
+      { "side": "E", "interiorLengthIn": 120, "thicknessIn": 4.5 },
+      { "side": "N", "interiorLengthIn": 144, "thicknessIn": 4.5 },
+      { "side": "W", "interiorLengthIn": 120, "thicknessIn": 4.5 }
+    ],
+    "door": {
+      "wall": "S",
+      "offsetIn": 12,
+      "widthIn": 36,
+      "hinge": [12, 0],
+      "swingDeg": 90,
+      "swingsInto": "room"
+    },
+    "window": {
+      "wall": "S",
+      "offsetIn": 84,
+      "widthIn": 36
+    }
+  }
+}
