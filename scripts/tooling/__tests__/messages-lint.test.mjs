@@ -154,3 +154,37 @@ describe('EZD-014a phone folder lint', () => {
     assert.equal(results.reduce((s, r) => s + r.errorCount, 0), 0, JSON.stringify(msgs));
   });
 });
+
+describe('EZD-015a states folder lint', () => {
+  const STATES = 'app/src/components/states/X.tsx';
+
+  test('EZD-015a L1 literal text and a foreign key prefix are reported, a common key is not', async () => {
+    const a = await lint('export default function X(){ return <p>Retry</p>; }\n', STATES);
+    assert.ok(a.length >= 1, 'literal text reported');
+    assert.ok(a.every((m) => m.severity === 2));
+    const b = await lint(comp("<p>{t('office.header.share')}</p>"), STATES);
+    assert.ok(b.length >= 1, 'office key reported');
+    assert.ok(b.every((m) => m.severity === 2));
+    const c = await lint(comp("<p>{t('common.retry')}</p>"), STATES);
+    assert.equal(c.length, 0);
+  });
+
+  test('EZD-015a L1 the states folder lints clean', async () => {
+    const { ESLint } = await importFromRoot('eslint');
+    const eslint = new ESLint({ cwd: root });
+    const results = await eslint.lintFiles(['app/src/components/states']);
+    const names = results.map((r) => path.basename(r.filePath));
+    for (const f of [
+      'Skeleton.tsx',
+      'StateButton.tsx',
+      'InlineError.tsx',
+      'OfflineBanner.tsx',
+      'AsyncView.tsx',
+    ]) {
+      assert.ok(names.includes(f), `${f} is linted`);
+    }
+    const msgs = results.flatMap((r) => r.messages);
+    assert.equal(msgs.filter((m) => m.ruleId === RULE).length, 0, JSON.stringify(msgs));
+    assert.equal(results.reduce((s, r) => s + r.errorCount, 0), 0, JSON.stringify(msgs));
+  });
+});

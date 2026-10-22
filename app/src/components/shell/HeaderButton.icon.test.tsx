@@ -15,7 +15,9 @@ const classTokens = (html: string) =>
 const count = (html: string, needle: string) => html.split(needle).length - 1;
 const EXPECTED_ICONS = [
   'arrow_selector_tool',
+  'cloud_off',
   'download',
+  'error',
   'expand_more',
   'help',
   'kitchen',

@@ -36,12 +36,13 @@ export default tseslint.config(
     files: APP,
     settings: { next: { rootDir: APP_DIR } },
   },
-  // EZD-026a · phone screens never carry literal interface text (vault/plans/EZD-026a.md Step 4; R26 R17).
+  // EZD-026a · phone screens never carry literal interface text (vault/plans/EZD-026a.md Step 4; R26 R17). EZD-015a adds the states folder.
   {
     files: [
       'app/src/app/(field)/**/*.{tsx,jsx}',
       'app/src/components/field/**/*.{tsx,jsx}',
       'app/src/components/phone/**/*.{tsx,jsx}',
+      'app/src/components/states/**/*.{tsx,jsx}',
     ],
     ignores: ['**/*.test.*', '**/*.spec.*'],
     plugins: { ezdraft },

@@ -1,0 +1,16 @@
+.skeleton {
+  display: block;
+  background: var(--ez-divider);
+}
+
+.sm {
+  border-radius: var(--ez-radius-5);
+}
+
+.md {
+  border-radius: var(--ez-radius-8);
+}
+
+.lg {
+  border-radius: var(--ez-radius-12);
+}

@@ -1,0 +1,38 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border-radius: var(--ez-radius-10);
+  border: 1px solid;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.error {
+  background: var(--ez-surface);
+  border-color: var(--ez-red);
+}
+
+.error .icon {
+  color: var(--ez-red);
+}
+
+.offline {
+  background: var(--ez-hover);
+  border-color: var(--ez-border);
+}
+
+.offline .icon {
+  color: var(--ez-slate-500);
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
