@@ -40,4 +40,6 @@
   --ez-border-hover: #c9ced5;
   /* S03 .tip; Q-0040 (c); EZD-012a */
   --ez-radius-6: 6px;
+  /* 11 Accessibility "at least 44 px"; EZD-014b */
+  --ez-touch-target: 44px;
 }

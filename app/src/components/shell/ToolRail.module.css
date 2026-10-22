@@ -40,8 +40,10 @@
   cursor: pointer;
 }
 
-.tool:hover {
-  background: var(--ez-hover);
+@media (hover: hover) {
+  .tool:hover {
+    background: var(--ez-hover);
+  }
 }
 
 .tool[aria-pressed='true'],
@@ -78,7 +80,12 @@
   border-radius: var(--ez-radius-6);
 }
 
-.slot:hover .tip,
+@media (hover: hover) {
+  .slot:hover .tip {
+    display: flex;
+  }
+}
+
 .tool:focus-visible + .tip {
   display: flex;
 }
@@ -87,4 +94,11 @@
   font-family: var(--ez-font-mono);
   font-size: inherit;
   color: var(--ez-slate-300);
+}
+
+@media (any-pointer: coarse) {
+  .tool {
+    width: var(--ez-touch-target);
+    height: var(--ez-touch-target);
+  }
 }

@@ -29,7 +29,11 @@ export const TOKENS: readonly {
   { name: '--ez-radius-10', value: '10px', group: 'radius' },
   { name: '--ez-radius-12', value: '12px', group: 'radius' },
   { name: '--ez-radius-999', value: '999px', group: 'radius' },
-  { name: '--ez-shadow-card', value: '0 1px 2px rgba(20,30,50,.05), 0 8px 24px rgba(20,30,50,.07)', group: 'shadow' },
+  {
+    name: '--ez-shadow-card',
+    value: '0 1px 2px rgba(20,30,50,.05), 0 8px 24px rgba(20,30,50,.07)',
+    group: 'shadow',
+  },
   { name: '--ez-shadow-floating', value: '0 6px 20px rgba(20,30,50,.08)', group: 'shadow' },
   { name: '--ez-header-height', value: '60px', group: 'frame' },
   { name: '--ez-header-margin', value: '16px', group: 'frame' },
@@ -42,4 +46,5 @@ export const TOKENS: readonly {
   { name: '--ez-grid-size', value: '32px', group: 'frame' },
   { name: '--ez-border-hover', value: '#c9ced5', group: 'color' },
   { name: '--ez-radius-6', value: '6px', group: 'radius' },
+  { name: '--ez-touch-target', value: '44px', group: 'frame' },
 ];

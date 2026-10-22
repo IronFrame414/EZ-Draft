@@ -166,8 +166,10 @@ describe('EZD-012a ToolRail CSS', () => {
       expect(tip).toContain(d);
     }
     expect(tip.join(';')).not.toContain('pointer-events');
-    expect(block('.slot:hover .tip, .tool:focus-visible + .tip')).toContain('display: flex');
-    expect(rules.filter((r) => r.sel.includes('.tip'))).toHaveLength(2);
+    // Q-0245 (b): hover half inside @media (hover: hover), focus rule outside (EZD-014b).
+    expect(block('.slot:hover .tip')).toContain('display: flex');
+    expect(block('.tool:focus-visible + .tip')).toContain('display: flex');
+    expect(rules.filter((r) => r.sel.includes('.tip'))).toHaveLength(3);
     const key = block('.key');
     expect(key).toContain('font-family: var(--ez-font-mono)');
     expect(key).toContain('color: var(--ez-slate-300)');

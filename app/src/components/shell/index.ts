@@ -1,6 +1,7 @@
 // Shell barrel (vault/plans/EZD-011a.md Step 6). EZD-011b appends its exports.
 export { HeaderCard } from './HeaderCard';
 export { HeaderButton } from './HeaderButton';
+export type { HeaderButtonProps } from './HeaderButton';
 export { EditorHeader } from './EditorHeader';
 export type { EditorHeaderProps } from './EditorHeader';
 export { Wordmark } from './Wordmark';
