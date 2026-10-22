@@ -26,6 +26,8 @@ export const en = {
   'error.link_invalid': 'This sign-in link has expired or was already used.',
   'error.no_access': "This account does not have access to EZ Draft. Ask your company's owner.",
   'error.sign_in_failed': 'Something went wrong. Try again in a minute.',
+  'field.device.editor_on_phone':
+    'Editing is done on an iPad or a computer. Open this project there.',
   'office.header.wordmark_ez': 'ez',
   'office.header.wordmark_draft': 'draft',
   'office.header.views': 'Views',

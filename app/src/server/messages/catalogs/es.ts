@@ -32,4 +32,6 @@ export const es = {
   'error.link_invalid': 'Este enlace de acceso venció o ya se usó.',
   'error.no_access': 'Esta cuenta no tiene acceso a EZ Draft. Pregunta al dueño de tu empresa.',
   'error.sign_in_failed': 'Algo salió mal. Inténtalo de nuevo en un minuto.',
+  'field.device.editor_on_phone':
+    'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

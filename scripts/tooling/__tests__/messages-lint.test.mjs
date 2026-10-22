@@ -139,3 +139,18 @@ describe('EZD-026a phone-screen lint', () => {
     assert.equal(errors, 0, JSON.stringify(results.flatMap((r) => r.messages)));
   });
 });
+
+describe('EZD-014a phone folder lint', () => {
+  test('EZD-014a done when: the phone folder passes the phone lint', async () => {
+    const { ESLint } = await importFromRoot('eslint');
+    const eslint = new ESLint({ cwd: root });
+    const results = await eslint.lintFiles(['app/src/components/phone']);
+    const names = results.map((r) => path.basename(r.filePath));
+    for (const f of ['PhoneFrame.tsx', 'PhoneHeader.tsx', 'EditorPhoneNotice.tsx']) {
+      assert.ok(names.includes(f), `${f} is linted`);
+    }
+    const msgs = results.flatMap((r) => r.messages);
+    assert.equal(msgs.filter((m) => m.ruleId === RULE).length, 0, JSON.stringify(msgs));
+    assert.equal(results.reduce((s, r) => s + r.errorCount, 0), 0, JSON.stringify(msgs));
+  });
+});
