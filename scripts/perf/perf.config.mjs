@@ -1,0 +1,23 @@
+// EZD-017 Step 2 (vault/plans/EZD-017.md section 3 C-row): the default perf check config and the browser
+// profiles. Imports nothing. PROFILES.desktop equals the browser harness's desktop project (EZD-016d; T13).
+// The editor entry is /dev/shell until the editor route ticket (EZD-120b) repoints it (G11).
+
+export const PROFILES = {
+  desktop: {
+    browser: 'chromium',
+    viewport: { width: 1600, height: 1000 },
+    deviceScaleFactor: 1,
+    hasTouch: false,
+    isMobile: false,
+  },
+};
+
+export default {
+  profile: 'desktop',
+  panUrl: '/dev/shell',
+  measurements: [
+    { id: 'js-size:editor', url: '/dev/shell' },
+    { id: 'js-size:sign-in', url: '/sign-in' },
+    { id: 'js-size:auth-confirm', url: '/auth/confirm' },
+  ],
+};

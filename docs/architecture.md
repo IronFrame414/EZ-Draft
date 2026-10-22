@@ -158,6 +158,7 @@ playwright.config.ts      root re-export of app/playwright.config.ts, so CI's br
 app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/app/                routes; entry points per EZD-020; route handlers under src/app/api/**
   src/app/dev/<name>/      developer test pages; notFound() when VERCEL_ENV is production (EZD-010c)
+  src/app/dev/perf-probe/  perf check probe page: ?inject=pan-commit adds one React commit per canvas pointer move (EZD-017)
   src/server/             server-only code: db clients, can(), route helpers, money serializers
   src/server/jobs/        background job handlers (EZD-009); the only place PDFKit is imported
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
@@ -176,6 +177,8 @@ spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/T
 scripts/db/               local stack and types scripts: local.mjs (`db:up`, `db:env`), gen-types.mjs (`db:types`) (EZD-004a)
 scripts/email/            send-test.mjs: the live email check Josh runs by hand; never run by the gate (EZD-008b)
 scripts/fixtures/         generate-synthetic.mjs (`fixtures:generate`) and its writers, Node built-ins only; tests in __tests__/ (EZD-016b)
+scripts/perf/             performance check: run.mjs (`pnpm perf`), budgets, registry, config, collectors; tests in __tests__/ (EZD-017)
+perf-results/             git-ignored perf check results: latest.json, history.jsonl (EZD-017)
 fixtures/                 shared test data: README.md, manifest.json, synthetic/ (generated files + *.expected.json), real/<id>/ (Josh's files, once supplied) (EZD-016b)
 supabase/                 Supabase CLI folder: config.toml, seed.sql, migrations/ (EZD-004a)
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
@@ -483,6 +486,21 @@ EZD-006 (vault/plans/EZD-006.md Steps 6, 7); PROCESS.md Special tickets. Files u
 - A ticket that creates a table calls `describeTenantIsolation('<table>', { makeRow })` inside its own top-level `describe` (the audit's `no_isolation_test` code); a tenant-less table adds a `TENANTLESS_TABLES` entry with a reason; a narrower `authenticated` grant set adds a `TABLE_GRANTS` entry with a reason.
 - The audit test `app/src/server/db/rls.audit.test.ts` (`auditRls`) and the gate test `rls.api-gate.test.ts` are `@smoke`, so every later ticket's gate runs them.
 
+### Performance check (EZD-017)
+
+EZD-017 (vault/plans/EZD-017.md Steps 1-13); 11 Performance (opening paragraph, Budgets, Rules); R26 R10; Q-0061 (a); Q-0071 (a); Q-0072 (a); Q-0073 (a).
+
+- **Gate and trend** (G1): countable things gate (bytes, React commits, long tasks in the pan, rows, buffers, draw calls); frame, open, tab, tool-pick, Projects-page and autosave times are `trend` rows that are recorded and never fail.
+- **Budgets.** `scripts/perf/budgets.mjs` (`BUDGETS`, `KB_BYTES`, `compressedSize`) is the only place budget numbers live, each with its source. Download size is gzip at zlib level 6 of the decoded body; 1 KB = 1,000 bytes (Q-0071 (a)); `/sign-in` and `/auth/confirm` are each held to 200 KB (Q-0072 (a)).
+- **Run.** `pnpm build && pnpm perf` (`node scripts/perf/run.mjs`; flags `--base-url`, `--config`, `--pan-url`, `--only`, `--out`). Without `--base-url` it starts `next start` on 127.0.0.1:3200 with no Supabase env. The gate runs it as step `perf`. Exit 0 pass, 1 any fail or error, 2 usage error.
+- **Results.** Every run that passes validation writes `perf-results/latest.json` (overwritten) and appends the same object as one line to `perf-results/history.jsonl` (git-ignored).
+- **React commits (H1).** `scripts/perf/page-hooks.browser.js` installs a React devtools hook before any page script and counts `onCommitFiberRoot` calls between the `pan-start` and `pan-end` marks; a pan page with no React renderer is an `error` (`react_not_detected`), never 0. The probe page `/dev/perf-probe?inject=pan-commit` adds one commit per canvas pointer move, so the check's failure can be shown on purpose.
+- **Long tasks (G5).** A main-thread task over 50 ms; 0 during the scripted pan is a gate, tasks before `pan-start` are a trend.
+- **What JavaScript counts (G7, S1, S2).** Only what the page downloads with no user action (no click, key or scroll), each URL once: responses with status 200-299 whose resource type is `script` or whose content type is JavaScript (worker scripts included). Service worker scripts and what they fetch are summed apart in `excludedServiceWorkerBytes`; inline `<script>` text is not counted.
+- **Phase 0** measures the empty shell (`/dev/shell` stands in for the editor until EZD-120b); the benchmark project arrives with EZD-236. Every measurement that needs a project, canvas, save or tab is `pending` with its owner in `scripts/perf/registry.mjs`.
+- **Adding a measurement.** Write its collector in `scripts/perf/`, switch its `registry.mjs` row from `pending` to `active`, add or confirm its `budgets.mjs` row with a source, add a test that fails on a deliberate regression, and repoint the config `url`s when the real routes exist.
+- Per-pointer-move values go through refs, never React state (11 rule 4); the pan row fails otherwise.
+
 ## Handoff
 
 Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten at session end; previous ones in `vault/handoff/log/` (CLAUDE.md Directory; PROCESS.md Ledgers).
@@ -517,7 +535,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Strings built outside JSX, `.ts` helpers in phone folders, `t` under another name, run-time keys, `eslint-disable` for the rule | review | EZD-026a |
 | — | Unknown event names | `app/src/lib/events/registry-usage.test.ts` (static scan, `@smoke`), typecheck (`EventName`) and runtime `UnknownEventError` | EZD-022 |
 | — | Destructive migrations (drop or rename) | `scripts/release/check-migrations.mjs` (root `lint`) | EZD-023a |
-| — | Performance counts and download size | perf script | EZD-017 |
+| — | Performance counts and download size | scripts/perf/run.mjs (gate step perf); scripts/perf/__tests__/, app/e2e/perf-check.spec.ts | EZD-017 |
 | — | A test reaching a live provider fails | test harness | EZD-021 |
 | — | TypeScript, lint and test discovery exclude `.claude/worktrees/`, `vault/`, `spikes/` | `scripts/tooling/__tests__/tooling.test.mjs` (T6, T7, T9) | EZD-001 (PROCESS.md) |
 | — | `packages/geometry` has no DOM or Node types | `scripts/tooling/__tests__/tooling.test.mjs` (T4) | EZD-001 |
@@ -557,7 +575,7 @@ EZD-002 (vault/plans/EZD-002.md Step 4). Sources in short form as above; `PROCES
 
 - **When CI runs:** on the phase PR to `main` and by hand from the Actions tab (`workflow_dispatch`), never on push (PROCESS section 12; `.github/workflows/ci.yml`; Q-0021 (a); vault/spec/non-goals.md). Per-ticket checks are the local `node scripts/gate.mjs <worktree>` (PROCESS section 8 step 7).
 - **What CI runs:** `node vault/tools/next_ticket.mjs --check`, then `scripts/gate.mjs` in full scope on Node 22 under `ubuntu-latest` (ci.yml; Test scope above). The job is named `gate`; it is the required check on `main` (Q-0144 (a); PROCESS section 12; Josh adds the rule, vault/tickets/needs-from-josh.md).
-- **How a later ticket adds a CI check:** put it in a script the gate already runs (`typecheck`, `lint`, `test`, `build`, `test:e2e` (EZD-007f, root `package.json` line 13), or `perf` once EZD-017 adds it); it then runs locally and in CI with no workflow edit. Never edit `.github/workflows/ci.yml`; it is Josh-owned (`.claude/hooks/guard-paths.mjs`; PROCESS section 4).
+- **How a later ticket adds a CI check:** put it in a script the gate already runs (`typecheck`, `lint`, `test`, `build`, `test:e2e` (EZD-007f, root `package.json` line 13), or `perf` (EZD-017)); it then runs locally and in CI with no workflow edit. Never edit `.github/workflows/ci.yml`; it is Josh-owned (`.claude/hooks/guard-paths.mjs`; PROCESS section 4).
 - **Checks that need a service the runner does not start** (for example Docker for EZD-004): the ticket's planner raises a question; the options are a new workflow file (the builder may write one) or a ci.yml change by Josh. A new workflow does not trigger on `push`, except `release.yml` on `main` (Q-0106) and `supabase-dev.yml` on `develop` for `supabase/migrations/**` (Q-0107); any other push trigger needs Josh's answer first (`scripts/ci/__tests__/ci.test.mjs` T2 fails it).
 - **Workflows on a public repo** (Q-0106; Q-0112): no `pull_request_target` or `workflow_run` trigger; secrets are named only in a step's `env:`; new workflow files pin each `uses:` to a full commit SHA. T2 checks triggers, environments and secret lists for every file; each workflow's own ticket checks the rest (EZD-004c T1, EZD-023b T16, EZD-025 T11).
 - **Environments and secrets** (Q-0112): production secrets only in the GitHub environment `release` (main only, no admin bypass), the dev database URL only in `dev` (develop only). Only `release.yml`, `backup-files.yml` and `backup-db.yml` may name `release`; only `supabase-dev.yml` may name `dev`; nothing names `production`; no environment is chosen by an expression. Each workflow reads an exact list of secrets (T2 (h)); `ci.yml` reads none. A later ticket that needs another secret changes its own plan and T2 (h) together.
