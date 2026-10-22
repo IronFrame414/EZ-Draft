@@ -57,3 +57,10 @@ Mistake: Step 2.0 said a new `private` function needed "no grant", relying on do
 Cause: a security property was taken from a docs sentence instead of the live catalog.
 Rule: every plan step that creates a function says `revoke all on function … from public` and then grants by name; it never relies on default privileges.
 Check: plan review greps each `create function` step for an explicit revoke from public.
+
+## L-021  areas: ui, testing  seen: 1  status: candidate
+Ticket EZD-012c, 2026-10-22
+Mistake: plan B2 expected computed `background-size` `32px 32px` on the frame root; the merged CSS draws the grid with two background layers, so Chromium returns `32px 32px, 32px 32px` and the gate failed (PLAN-GAP).
+Cause: the expected computed style was written from the spec, not from the CSS rule of the existing element.
+Rule: when a plan expects a computed style on an element that exists in merged code, read that rule and write the computed value, one entry per layer for multi-layer properties.
+Check: the plan review compares each computed-style expectation with the element's CSS rule.
