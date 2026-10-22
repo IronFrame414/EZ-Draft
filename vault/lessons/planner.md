@@ -86,3 +86,7 @@ Rule: when a node:test case starts an in-process server and runs a child process
 ## EZD-018 re-validation (2026-10-22)
 Mistake: the v1 plan redefined `end_user_sessions` without stating its language (EZD-006's is sql, so `perform` fails) or the null a cascaded delete passes, and expected broadcast payloads without knowing `realtime.send` adds an `id` key.
 Rule: when a plan redefines a function it states the language and checks every caller's arguments, including null from a cascade; a plan that broadcasts through `realtime.send` states that it adds `id` to the payload.
+
+## EZD-018 plan-gap (2026-10-22)
+Mistake: Step 5 put Realtime behind an adapter and listed method names but not the channel's typed interface or what a counted "join attempt" is; the test-author could not write the fake adapter.
+Rule: a plan that puts a library behind an adapter writes out the adapter's full typed interface, defines each counted event in terms of it, and checks the library's re-call limits (e.g. `subscribe` only once) before choosing how a retry works.
