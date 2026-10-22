@@ -39,6 +39,7 @@ export {
 } from './session-claims';
 export type { OpenSession, Sessions } from './sessions';
 export type { Network } from './network';
+export { expectTouchTargets } from '../touch-targets';
 export { adminDb } from '../rls/fixtures';
 // Section 4: fresh tenants and users come from EZD-006 createTenant / createMember and are removed with
 // cleanup() and closeHarness(); re-exported so specs still import only from this file.

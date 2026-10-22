@@ -268,6 +268,18 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - Status bar readouts that change per pointer move write through a ref, never React state (11 rule 4). The disclaimer line goes in the status bar (EZD-136, Q-0229).
 - The shell adds no pointer, scroll or resize listener.
 
+### Device layouts (EZD-014)
+
+EZD-014a, EZD-014b, EZD-014c (vault/plans/EZD-014a.md, EZD-014b.md, EZD-014c.md); 02 Platform; 11 Accessibility and input; Q-0053; Q-0054 (a); Q-0055 (a); Q-0056 (a); Q-0088; Q-0098 (a); Q-0245.
+
+- Desktop, Surface and iPad landscape show the full editor; a phone shows the simple layout. Browser tests route by the tags `@ipad`, `@surface` and `@phone` (see `### Browser tests (EZD-016a)`).
+- `app/src/lib/device/device-layout.ts` holds `FULL_SHELL_MIN_WIDTH` (1024), `DESKTOP_REFERENCE_WIDTH` (1600), `PHONE_LAYOUT_QUERY`, `COMPACT_HEADER_QUERY` and `COARSE_POINTER_QUERY`. The CSS files that repeat 1024 and 1600 have tests that keep them equal.
+- `DeviceLayout` renders one tree at a time with one `change` listener and no resize listener; the server markup is the full shell. `EmptyEditor` takes a `phone` default.
+- `app/src/components/phone/` holds three phone components, covered by the lint, importing nothing from `components/shell/` or `components/device/`. EZD-1404, EZD-1013 and EZD-1202 fill them. Pages pass the field catalog (`/dev/device` uses `?lang=es` until EZD-026b).
+- 44 px targets: `--ez-touch-target` applies under `@media (any-pointer: coarse)`; `touch.module.css` `.target` and `.hitArea` serve later controls; `:hover` styles sit only under `@media (hover: hover)`, except the rail pressed rule; the rail tooltip also shows on focus (Q-0245). `expectTouchTargets(page, root)` in `app/test-harness/touch-targets.ts` measures them.
+- Header: only the title block shrinks. Below 1600 px `HeaderButton` with `icon` shows the icon (Share `share`, Export `download`, EZD-126 `edit`); Issue set keeps its text.
+- The test page is `/dev/device` (`?lang=es` shows the phone notice in Spanish; not found in production).
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-133 (helper, server-route pattern, browser-query lint rule) and EZD-102 (enforcement, UI hook).
@@ -501,6 +513,9 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | CI's browser install finds a root Playwright config | `harness-wiring.test.mjs` (T9) | EZD-016d |
 | — | Harness sign-in never sends the gate secret to the browser; server path gated, browser path refused | `app/e2e/harness.spec.ts` (T12; Q-0087) | EZD-016a |
 | — | Shell CSS takes the 04 frame sizes and the tooltip radius from tokens | app/src/components/shell/frame-css.test.ts (S1, U7) | EZD-012a, EZD-012b |
+| — | Touch targets at least 44 px on iPad and Surface; phone simple layout; layout switch at 1024 px | app/e2e/device-layouts.spec.ts (helper app/test-harness/touch-targets.ts) | EZD-014c |
+| — | Phone components import no shell or device code | app/src/components/phone/phone-imports.test.ts | EZD-014a |
+| — | Coarse-pointer 44 px rules, :hover only under (hover: hover), icon-only header below 1600 px | app/src/styles/touch-css.test.ts | EZD-014b |
 
 ### CI
 
