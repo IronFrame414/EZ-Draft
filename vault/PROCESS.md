@@ -13,7 +13,7 @@ Model names (section 4) and billing rules (section 11) change over time. Re-chec
 ## 1. Who is who
 
 - **Josh** is the owner and the only human on the project. He is a general contractor, not a programmer. Ask him **what** to build, never **how**. Questions go to him in plain text as a numbered list; each gives the options and a recommendation first, and he answers in a list by number. There is no limit on rounds: an answer may raise new questions or contradict an earlier answer, and those go back as the next list. Never use multiple-choice prompts. Tone: factual and direct, with no compliments.
-- **Orchestrator:** the main Claude Code session, running Opus 5.5 at high effort. It picks the work, chooses the model for every subagent dispatch, routes questions, merges finished tickets, and keeps the ledgers and lessons. It does not write app code. An orchestrator session handles one unit of work (section 10) and holds no state of its own: everything it needs is in the vault.
+- **Orchestrator:** the main Claude Code session, running Opus 5.5 at high effort (Sonnet 5.5 for `build` units, section 10). It picks the work, chooses the model for every subagent dispatch, routes questions, merges finished tickets, and keeps the ledgers and lessons. It does not write app code. An orchestrator session handles one unit of work (section 10) and holds no state of its own: everything it needs is in the vault.
 - **Subagents** do the work (section 4). They are plain subagents, not agent teams.
 - **This file** changes only with Josh's approval: propose the change in chat, get a yes, then edit. That applies to the orchestrator and to any assistant working on the process.
 
@@ -105,7 +105,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 
 maxTurns values are starting points; tune them from the cost report (section 9).
 
-**Models.** Use the current release of each family and name it by full ID in agent files and dispatches so versions don't drift: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`. The orchestrator itself stays on Opus; Fable is used only for subagent dispatches. Any agent file, setting or script that names Haiku names Haiku 5.5. When a newer release ships, change this paragraph and the agent files in one commit.
+**Models.** Use the current release of each family and name it by full ID in agent files and dispatches so versions don't drift: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`. The orchestrator itself stays on Opus (a `build` unit's orchestrator runs Sonnet, section 10); Fable is used only for subagent dispatches. Any agent file, setting or script that names Haiku names Haiku 5.5. When a newer release ships, change this paragraph and the agent files in one commit.
 
 **Which agents to use.** For a small project, start with orchestrator, planner, test-author, builder and code-reviewer. Add ui-verifier when there are screens. Add security-reviewer when there are logins, user data or money. Add a domain specialist (such as a calculation auditor) only when the product has rules worth checking against known values. When a database exists, migrations are forward-only and count as a security-review trigger.
 
@@ -304,7 +304,7 @@ Each unit has a skill in `.claude/skills/`. The names match the unit, except tha
 `scripts/run.mjs` runs the loop. Each pass:
 1. If `vault/handoff/STOP` exists, wait and re-check every minute; it resumes when the file is removed (fix mode, rule 19; Q-0233). If `vault/handoff/WINDOW_PAUSE.md` exists, wait until its resume time (section 11). If `vault/handoff/BUDGET_HOLD.md` exists, run only a `build <T>` unit for a ticket already `in-progress` (so it reaches `done` or `blocked`); start nothing else (section 11).
 2. Ask `next_ticket.mjs --next-unit`. If `none`, notify Josh once with the reason and re-check every 5 minutes, so his answer is picked up without a restart; only a budget hold ends the run (Josh, 2026-10-20, Q-0233: the build never stops unless it hits a usage limit or truly nothing can be done until he answers).
-3. Start a fresh `claude -p` for that unit with the unit's skill as the prompt, a session name such as `T-012 build`, a `--max-turns` limit, and a `--max-budget-usd` cap (section 11). Orchestrator units run `claude-opus-5-5`; effort is `medium` for `build` and `wrap` (dispatching and ledger work) and `high` for `questions` and `gate-phase` (judgment). `plan` and `review-plans` run as the agent at that agent's model and effort. Effort is set per run, never changed within one.
+3. Start a fresh `claude -p` for that unit with the unit's skill as the prompt, a session name such as `T-012 build`, a `--max-turns` limit, and a `--max-budget-usd` cap (section 11). Orchestrator units run `claude-opus-5-5`, except `build`, which runs `claude-sonnet-5-5` because its mechanical steps are in `scripts/unit-steps.mjs` and it only dispatches (Josh, 2026-10-22); effort is `medium` for `build` and `wrap` (dispatching and ledger work) and `high` for `questions` and `gate-phase` (judgment). `plan` and `review-plans` run as the agent at that agent's model and effort. Effort is set per run, never changed within one.
 4. Record the run's estimated cost in `vault/cost/log.jsonl`.
 5. Run `next_ticket.mjs --check`. If it fails twice in a row, stop and notify.
 

@@ -44,10 +44,11 @@ const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, override
 const { costEntry } = await import('./cost-log.mjs');
 const { idleAction } = await import('./launcher-idle.mjs');
 
-const MODELS = { orchestrator: 'claude-opus-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
+const MODELS = { orchestrator: 'claude-opus-5-5', 'build-orchestrator': 'claude-sonnet-5-5', planner: 'claude-opus-5-5', 'code-reviewer': 'claude-opus-5-5' };
 const UNITS = {
   // unit: how it runs. `as` = the session runs as that agent (no orchestrator in front); effort per section 10.
-  build: { skill: 'build-ticket', effort: 'medium', model: MODELS.orchestrator, turns: 150 },
+  // build: the orchestrator only dispatches and runs scripts/unit-steps.mjs, so it runs on Sonnet (token diet, Josh 2026-10-22).
+  build: { skill: 'build-ticket', effort: 'medium', model: MODELS['build-orchestrator'], turns: 150 },
   plan: { skill: 'plan-ticket', effort: 'high', model: MODELS.planner, turns: 60, as: 'planner' },
   'review-plans': { skill: 'review-plans', effort: 'high', model: MODELS['code-reviewer'], turns: 60, as: 'code-reviewer' },
   questions: { skill: 'questions', effort: 'high', model: MODELS.orchestrator, turns: 80 },
