@@ -64,3 +64,9 @@ Mistake: plan B2 expected computed `background-size` `32px 32px` on the frame ro
 Cause: the expected computed style was written from the spec, not from the CSS rule of the existing element.
 Rule: when a plan expects a computed style on an element that exists in merged code, read that rule and write the computed value, one entry per layer for multi-layer properties.
 Check: the plan review compares each computed-style expectation with the element's CSS rule.
+
+Ticket EZD-015a, 2026-10-22
+Mistake: the plan added icons and wrote "the builder edits no existing test", but EZD-014b's HeaderButton.icon.test.tsx hardcodes the full icon list, so the gate failed (PLAN-GAP).
+Cause: the plan checked tests that derive from icons.json, not tests that copy the list.
+Rule: when a ticket adds to an inventory (icons, catalog keys, tokens), grep existing tests for exact copies of that list and name each one in the plan as a test-author edit with its new value.
+Check: the plan review greps the inventory's names in test files.
