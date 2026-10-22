@@ -383,7 +383,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1010 | 35 | Options inspector | todo |  | EZD-1009, EZD-1001 |  |  |  |
 | EZD-1011 | 35 | Make options from the RCP | todo |  | EZD-1010, EZD-505 |  |  |  |
 | EZD-1012 | 34 | Measure in 3D | todo |  | EZD-1002 |  |  |  |
-| EZD-1013 | 35 | Phone 3D viewer | todo |  | EZD-1012, EZD-014 |  |  |  |
+| EZD-1013 | 35 | Phone 3D viewer | todo |  | EZD-1012, EZD-014a, EZD-014b, EZD-014c |  |  |  |
 | EZD-1014 | 35 | GLB and USDZ export | todo |  | EZD-1001, EZD-721 |  |  |  |
 | EZD-1015 | 33 | iPad memory guard and states | todo |  | EZD-1001 |  |  |  |
 | EZD-1017 | 34 | Inspector 3D preview | todo |  | EZD-1001 |  |  |  |
