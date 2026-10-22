@@ -8,6 +8,12 @@ export const es = {
   'dev.messages.sample': 'Mensaje de ejemplo',
   'dev.messages.greeting': 'Hola, {name}',
   'dev.messages.items': { one: '{count} elemento', other: '{count} elementos' },
+  'dev.states.loaded': 'Cargado',
+  'dev.states.sample_error': 'Error de ejemplo',
+  'dev.states.sample_toast': 'Aviso de ejemplo',
+  'dev.states.confirm_title': 'Confirmación de ejemplo',
+  'dev.states.confirm_message': 'Pregunta de ejemplo',
+  'dev.states.confirm_ok': 'Acción de ejemplo',
   'error.db_unavailable':
     'No se puede conectar con la base de datos. Inténtalo de nuevo en un minuto.',
   'error.not_signed_in': 'Se cerró tu sesión. Vuelve a iniciar sesión para continuar.',

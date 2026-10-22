@@ -235,7 +235,7 @@ EZD-026c, EZD-026d, EZD-026a (vault/plans/EZD-026a.md Steps 1-5); R26 R17; R24 #
 - **Use.** A server layout or page resolves the language, calls `catalogFor(surface, language)` and passes the result to `MessagesProvider` unchanged (no cast of its own); client components call `useT()`. The hook result is always named `t`, because the lint relies on that name. `useT()` and `getT` are typed over every `MessageKey`, but the provider holds only the surface's namespaces, so typecheck does not catch a key from another surface; such a key throws `MissingMessageError` at run time (`app/src/lib/messages/t.ts`), the lint's `keyNamespace` check catches a literal one in the phone and test-page folders, and office components are checked by review.
 - **Adding a string.** Add the `en` entry; for a Spanish namespace add the `es` entry in the same commit. The ticket's builder writes the Spanish text in that commit, and a Spanish-speaking crew member checks it at the field checks and in Phase 15 (Q-0030 (a)). Shell and office strings use `office.` keys, English only.
 - **Route error keys.** A route that returns a `message_key` adds it to `en`, and to `es` when its namespace needs Spanish, in the same commit. Route error `message_key` values live in the `error` namespace. `message-keys.test.ts` checks every literal `message_key` in `app/src`; a key built at run time is checked by review.
-- **Lint.** `ezdraft/no-literal-ui-string` (`eslint-rules/no-literal-ui-string.mjs`, registered by `eslint-rules/index.mjs`; blocks in `eslint.config.mjs`) reports JSX text with a letter, a text expression as a JSX child, a text attribute (`alt`, `title`, `placeholder`, `label`, `aria-label`, names ending in `Label`, `Title`, `Text`, `Message` and similar) and, with `allowedKeyPrefixes`, a `t('<literal>')` key outside the folder's namespaces. Test files are exempt. Folders: field and crew phone `app/src/app/(field)/`, `app/src/components/field/`, `app/src/components/phone/` (prefixes `common.`, `field.`, `error.`); client link `app/src/app/(client)/`, `app/src/components/client/` (`common.`, `client.`, `error.`); test page `app/src/app/dev/messages/` (adds `dev.`); sign-in pages `app/src/app/sign-in/`, `app/src/app/auth/confirm/`, `app/src/components/auth/` (`common.`, `error.`; EZD-007e). `(field)` and `(client)` are App Router route groups and add no URL segment. A ticket that adds a phone folder (EZD-015's states, EZD-020's entry points, EZD-007's sign-in) changes the block's `files` in its own commit. Office components are not linted by the rule.
+- **Lint.** `ezdraft/no-literal-ui-string` (`eslint-rules/no-literal-ui-string.mjs`, registered by `eslint-rules/index.mjs`; blocks in `eslint.config.mjs`) reports JSX text with a letter, a text expression as a JSX child, a text attribute (`alt`, `title`, `placeholder`, `label`, `aria-label`, names ending in `Label`, `Title`, `Text`, `Message` and similar) and, with `allowedKeyPrefixes`, a `t('<literal>')` key outside the folder's namespaces. Test files are exempt. Folders: field and crew phone `app/src/app/(field)/`, `app/src/components/field/`, `app/src/components/phone/`, `app/src/components/states/` (prefixes `common.`, `field.`, `error.`); client link `app/src/app/(client)/`, `app/src/components/client/` (`common.`, `client.`, `error.`); test page `app/src/app/dev/messages/` (adds `dev.`); sign-in pages `app/src/app/sign-in/`, `app/src/app/auth/confirm/`, `app/src/components/auth/` (`common.`, `error.`; EZD-007e). `(field)` and `(client)` are App Router route groups and add no URL segment. A ticket that adds a phone folder (EZD-015's states, EZD-020's entry points, EZD-007's sign-in) changes the block's `files` in its own commit. Office components are not linted by the rule.
 
 ### Shell header (EZD-011)
 
@@ -279,6 +279,22 @@ EZD-014a, EZD-014b, EZD-014c (vault/plans/EZD-014a.md, EZD-014b.md, EZD-014c.md)
 - 44 px targets: `--ez-touch-target` applies under `@media (any-pointer: coarse)`; `touch.module.css` `.target` and `.hitArea` serve later controls; `:hover` styles sit only under `@media (hover: hover)`, except the rail pressed rule; the rail tooltip also shows on focus (Q-0245). `expectTouchTargets(page, root)` in `app/test-harness/touch-targets.ts` measures them.
 - Header: only the title block shrinks. Below 1600 px `HeaderButton` with `icon` shows the icon (Share `share`, Export `download`, EZD-126 `edit`); Issue set keeps its text.
 - The test page is `/dev/device` (`?lang=es` shows the phone notice in Spanish; not found in production).
+
+### State components (EZD-015)
+
+EZD-015a, EZD-015b, EZD-015c (vault/plans/EZD-015a.md, EZD-015b.md, EZD-015c.md); S01 States; 11 Accessibility and input; Q-0030 (a); Q-0057 (b); Q-0058 (a).
+
+- `app/src/components/states/` exports `Skeleton`, `SkeletonGroup`, `AsyncView`, `useAsync`, `InlineError`, `OfflineBanner`, `OfflineBannerView`, `StateHost`, `ToastProvider`, `useToast`, `ConfirmProvider`, `useConfirm`, `TOAST_DEFAULT_MS`; `app/src/lib/network/` exports `createOnlineSource`, `useOnline`.
+- S01 States pattern: loading is `AsyncView` with a `SkeletonGroup`; an error is `InlineError` with the screen's own key and Retry; offline is `OfflineBanner` (default `common.offline`); toasts go through `useToast().show`; confirmations go through `useConfirm()`, which answers `'confirm'` or `'cancel'`, and the caller supplies `confirmLabel`.
+- `StateHost` is mounted once per entry point, inside `MessagesProvider`.
+- `AsyncView`'s `load` is stable (`useCallback`); a new identity starts a new load.
+- Offline means `navigator.onLine` is false; read it with `useOnline` and add no `online` or `offline` listener.
+- Plain toasts clear after `TOAST_DEFAULT_MS` (5000 ms) or their own duration; action toasts stay until used or closed; one one-shot `setTimeout` per toast.
+- The confirm dialog is Radix `AlertDialog` from `radix-ui`, imported only in `ConfirmDialog.tsx`; Esc is Cancel, focus starts on Cancel, and the content carries the provider's `lang`; z-index: overlay 100, dialog 101, toast viewport 102.
+- Strings `common.retry`, `common.offline`, `common.cancel` and `common.close` exist in `en` and `es`; buttons are `StateButton` with `touch.target` (44 px on coarse pointers).
+- The folder imports nothing from `components/shell/`, `components/phone/`, `components/device/` or 3D code, and is in the field lint block.
+- EZD-126 extends the toast `tone`.
+- The test page is `/dev/states` (`?lang=es` shows Spanish; not found in production).
 
 ## Server-only data access and can()
 
@@ -516,6 +532,9 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Touch targets at least 44 px on iPad and Surface; phone simple layout; layout switch at 1024 px | app/e2e/device-layouts.spec.ts (helper app/test-harness/touch-targets.ts) | EZD-014c |
 | — | Phone components import no shell or device code | app/src/components/phone/phone-imports.test.ts | EZD-014a |
 | — | Coarse-pointer 44 px rules, :hover only under (hover: hover), icon-only header below 1600 px | app/src/styles/touch-css.test.ts | EZD-014b |
+| — | State components import no shell, phone, device or 3D code | app/src/components/states/states-imports.test.ts | EZD-015a |
+| — | State components folder in the field lint block | scripts/tooling/__tests__/messages-lint.test.mjs (L1) | EZD-015a |
+| — | State components on /dev/states: Retry, toast close and dialog buttons 44 px on iPad, Surface and phone; Spanish on a phone | app/e2e/states.spec.ts | EZD-015c |
 
 ### CI
 
