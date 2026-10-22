@@ -6,7 +6,22 @@
 - Phase: N · Planned by: planner · Date: YYYY-MM-DD · Status: planned | questions
 
 ## 1. What to build
-What changes, in steps, and the files it touches (table: Path | New / change | Why). Steps and the table only: no narrative, and no text copied from the sources (cite them by ID). Whole plan: target 25,000 characters (`node vault/tools/outline.mjs <plan> --sizes`; PROCESS.md section 6, Ticket size). Data: tables, columns, migrations, RLS policies, `schema_version` changes; money fields and which permission reads them.
+Execution-grade (token diet, Josh 2026-10-22): a Sonnet test-author and builder carry this out without making design choices; anything they would have to decide is decided here or is a QP question. No narrative, and no text copied from the sources (cite them by ID). `node vault/tools/plan_lint.mjs <plan> --allow-questions` checks the three blocks below. Whole plan: target 25,000 characters (`node vault/tools/outline.mjs <plan> --sizes`; PROCESS.md section 6, Ticket size).
+
+Data (when the ticket has any): tables, columns, migrations, RLS policies, `schema_version` changes; money fields and which permission reads them.
+
+### Build steps
+In build order. One row per file. "Exports and signatures": the exact exported names and TypeScript signatures (or `none`). "Copy the pattern from": an existing file in the repo the builder mirrors (or `none (first of its kind)` plus the pattern in one line). "Verify with": the command that proves the step (a test name, `pnpm run typecheck`).
+| # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |
+| --- | --- | --- | --- | --- | --- |
+
+### Decided for the builder
+Every choice a builder could otherwise make: library, file location, naming, state handling, error handling, edge cases, empty or invalid input, ordering, defaults. "None" only when there is truly no choice.
+| Choice | Decision | Source |
+| --- | --- | --- |
+
+### Do not touch
+Files, exports and behaviors the builder must leave as they are. "None" when nothing is at risk.
 
 Ticket row, copied from the phase file: Scope / Done when / Depends on / Spec ref.
 
