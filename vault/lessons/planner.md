@@ -70,3 +70,11 @@ Mistake: the plan added icons and wrote "the builder edits no existing test", bu
 Cause: the plan checked tests that derive from icons.json, not tests that copy the list.
 Rule: when a ticket adds to an inventory (icons, catalog keys, tokens), grep existing tests for exact copies of that list and name each one in the plan as a test-author edit with its new value.
 Check: the plan review greps the inventory's names in test files.
+
+## EZD-017 plan-gap (2026-10-22)
+Mistake: a test row named fixture files without sizes, config id or `--only` flag, and a helper returned a field (`requests`) the contract omitted.
+Rule: for every fixture file a test row names, give its size, its config entry (id, budget, url) and its `--only` flag in that row; record in the interface contract any field a test helper returns that a test reads.
+
+## EZD-017 plan-gaps round 2 (2026-10-22)
+Mistake: the contract gave a result type but not how each failure case is reported, and a pan setup move sat after the start mark so it was counted.
+Rule: when a result type is in the contract, say up front how each failure case is reported; put every setup step that can trigger a counted event before the start mark.
