@@ -42,4 +42,10 @@
   --ez-radius-6: 6px;
   /* 11 Accessibility "at least 44 px"; EZD-014b */
   --ez-touch-target: 44px;
+  /* S01b dim over S01; vault/tickets/README.md rule 5; EZD-015b */
+  --ez-overlay: rgba(20,23,28,.46);
+  /* S01b, S20 dialog box-shadow; EZD-015b */
+  --ez-shadow-dialog: 0 24px 64px rgba(10,15,30,.28);
+  /* S01b, S14, S20 dialogs border-radius:14px; Q-0057 (b); EZD-015b */
+  --ez-radius-14: 14px;
 }

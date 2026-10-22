@@ -1,0 +1,29 @@
+.viewport {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 102;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-card);
+  color: var(--ez-ink);
+  font-size: 13px;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}

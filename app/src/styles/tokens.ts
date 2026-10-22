@@ -47,4 +47,7 @@ export const TOKENS: readonly {
   { name: '--ez-border-hover', value: '#c9ced5', group: 'color' },
   { name: '--ez-radius-6', value: '6px', group: 'radius' },
   { name: '--ez-touch-target', value: '44px', group: 'frame' },
+  { name: '--ez-overlay', value: 'rgba(20,23,28,.46)', group: 'color' },
+  { name: '--ez-shadow-dialog', value: '0 24px 64px rgba(10,15,30,.28)', group: 'shadow' },
+  { name: '--ez-radius-14', value: '14px', group: 'radius' },
 ];

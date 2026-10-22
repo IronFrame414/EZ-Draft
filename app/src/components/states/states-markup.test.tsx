@@ -15,6 +15,12 @@ import { StateButton } from './StateButton';
 import { InlineError } from './InlineError';
 import { OfflineBanner, OfflineBannerView } from './OfflineBanner';
 import { AsyncView } from './AsyncView';
+import { ToastList } from './ToastList';
+import toastStyles from './Toast.module.css';
+import { StateHost } from './StateHost';
+import { ToastProvider, useToast } from './ToastProvider';
+import { ConfirmProvider, useConfirm } from './ConfirmProvider';
+import type { Toast } from './toast-store';
 
 const decode = (s: string) =>
   s
@@ -160,5 +166,97 @@ describe('EZD-015a state components markup', () => {
     );
     expect(three).toContain('aria-label="z"');
     expect(three).not.toContain('compact=');
+  });
+});
+
+describe('EZD-015b toast and confirm markup', () => {
+  const noop = () => {};
+  const plain: Toast = {
+    id: '1',
+    message: 'dev.messages.greeting',
+    params: { name: 'Ana' },
+    tone: 'neutral',
+    action: null,
+    duration: 5000,
+  };
+  const withAction: Toast = {
+    id: '2',
+    message: 'dev.messages.sample',
+    tone: 'neutral',
+    action: { label: 'common.retry', onPress: noop },
+    duration: null,
+  };
+  const toastTags = (html: string) => html.split('data-toast=""').slice(1);
+
+  it('U8b toast strings go through t()', () => {
+    const messages = { ...dev, 'common.close': 'CLOSE-T', 'common.retry': 'RETRY-T' };
+    const html = text(
+      wrap(<ToastList toasts={[withAction]} onDismiss={noop} onAction={noop} />, messages),
+    );
+    expect(html).toContain('aria-label="CLOSE-T"');
+    expect(html).toContain('title="CLOSE-T"');
+    expect(html).toContain('>RETRY-T</button>');
+    expect(html).not.toContain('Close');
+    expect(html).not.toContain('Retry');
+  });
+
+  it('U19 ToastList markup', () => {
+    const empty = text(wrap(<ToastList toasts={[]} onDismiss={noop} onAction={noop} />));
+    expect(count(empty, 'data-toast-viewport=""')).toBe(1);
+    expect(empty).toContain('role="status"');
+    expect(empty).toContain('aria-live="polite"');
+    expect(count(empty, 'data-toast=""')).toBe(0);
+    const html = text(
+      wrap(<ToastList toasts={[plain, withAction]} onDismiss={noop} onAction={noop} />),
+    );
+    expect(classes(/<div[^>]*data-toast-viewport=""[^>]*>/.exec(html)?.[0] ?? '')).toContain(
+      toastStyles.viewport,
+    );
+    const parts = toastTags(html);
+    expect(parts.length).toBe(2);
+    expect(parts[0]).toContain('Hello, Ana');
+    expect(count(parts[0], '<button')).toBe(1);
+    expect(count(parts[1], '<button')).toBe(2);
+    const btns = parts[1].match(/<button[^>]*>/g) ?? [];
+    expect(parts[1]).toContain('>Retry</button>');
+    expect(classes(btns[0] ?? '').join(' ')).toBe(
+      `${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.compact} ${touch.target}`,
+    );
+    expect(classes(btns[1] ?? '').join(' ')).toBe(
+      `${buttonStyles.button} ${buttonStyles.icon} ${touch.target}`,
+    );
+    expect(btns[1]).toContain('aria-label="Close"');
+    expect(btns[1]).toContain('title="Close"');
+    expect(parts[1]).toContain('<use href="/icons/sprite.svg#close"');
+  });
+
+  it('U21 providers', () => {
+    const ToastProbe = () => {
+      useToast();
+      return null;
+    };
+    const ConfirmProbe = () => {
+      useConfirm();
+      return null;
+    };
+    expect(() => renderToStaticMarkup(<ToastProbe />)).toThrow(/ToastProvider/);
+    expect(() => renderToStaticMarkup(<ConfirmProbe />)).toThrow(/ConfirmProvider/);
+    const Probe = () => {
+      useToast();
+      useConfirm();
+      return <i data-probe="" />;
+    };
+    const html = wrap(
+      <StateHost>
+        <Probe />
+      </StateHost>,
+    );
+    expect(html).toContain('data-probe');
+    expect(count(html, 'data-toast-viewport=""')).toBe(1);
+    expect(html).not.toContain('data-toast=""');
+    expect(html).not.toContain('data-confirm');
+    // the separate providers are exported too
+    expect(typeof ToastProvider).toBe('function');
+    expect(typeof ConfirmProvider).toBe('function');
   });
 });
