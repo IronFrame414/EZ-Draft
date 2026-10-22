@@ -78,3 +78,7 @@ Rule: for every fixture file a test row names, give its size, its config entry (
 ## EZD-017 plan-gaps round 2 (2026-10-22)
 Mistake: the contract gave a result type but not how each failure case is reported, and a pan setup move sat after the start mark so it was counted.
 Rule: when a result type is in the contract, say up front how each failure case is reported; put every setup step that can trigger a counted event before the start mark.
+
+## EZD-017 plan-gap round 3 (2026-10-22)
+Mistake: a test row asked for `spawnSync` and an in-process fixture server together; spawnSync blocks the event loop, so the server never answered and five tests hung to the 170 s kill.
+Rule: when a node:test case starts an in-process server and runs a child process against it, the plan says async `spawn` with `await`, never `spawnSync`.
