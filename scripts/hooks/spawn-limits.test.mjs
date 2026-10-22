@@ -125,3 +125,9 @@ test('EZD-000f T8: retriever pending file is writable and adopt() adopts it (ver
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('token diet 2026-10-22: only the planner may spawn plan-checker, and plan-checker spawns nothing', () => {
+  assert.equal(spawnDecision('planner', 'plan-checker').decision, 'allow');
+  assertAllDeny(['code-reviewer', 'security-reviewer', 'phase-auditor', 'builder', 'test-author'], ['plan-checker']);
+  assertAllDeny(['plan-checker'], ['retriever-digest', 'retriever-web', 'plan-checker', 'builder']);
+});

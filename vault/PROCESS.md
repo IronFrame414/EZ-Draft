@@ -71,7 +71,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 12. **Before a session ends,** update the ticket ledger, the questions ledger and the handoff file.
 13. **No extras.** The builder implements exactly the plan. Behavior, features, refactors, files or text that the plan doesn't call for are defects, and review fails them.
 14. **Read the lessons.** Every agent applies the entries in its role's file under `vault/lessons/`, filtered to its areas. The orchestrator records new lessons (section 13).
-15. **No agent teams, no dynamic workflows, no nested subagents,** with one exception: the planner, code-reviewer, security-reviewer and phase-auditor may dispatch a retriever (section 4), and retrievers dispatch nothing. Everything else fans out only from the orchestrator. Agent teams and nesting multiply token use.
+15. **No agent teams, no dynamic workflows, no nested subagents,** with one exception: the planner, code-reviewer, security-reviewer and phase-auditor may dispatch a retriever (section 4), the planner may also dispatch `plan-checker` (Josh, 2026-10-22), and retrievers and `plan-checker` dispatch nothing. Everything else fans out only from the orchestrator. Agent teams and nesting multiply token use.
 16. **Report only what a tool result in this session backs.** A claim about our code is verified by reading it in the same action.
 17. **Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim** until checked against the primary artifact: the file, the diff, the output.
 18. **A result that looks too good is a bug until proven otherwise.** Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
@@ -95,6 +95,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 | planner | Opus 5.5 | fixed | high | 40 | Stage 1 plans; re-validates a plan when a dependency deviated | `vault/plans/` |
 | test-author | Sonnet 5.5 | Haiku 5.5 to Opus 5.5; Fable 5.1 only on a retry after an Opus FAIL | medium | 40 | Failing tests and fixtures from the plan; structural repairs only after that | test files, fixtures, test configs |
 | builder | Sonnet 5.5 | Haiku 5.5 to Opus 5.5; Fable 5.1 only on a retry after an Opus FAIL | medium | 80 | Code until the gate passes | app code; never tests, `vault/`, `.claude/`, `CLAUDE.md` or the gate script |
+| plan-checker | Sonnet 5.5 | fixed | low | 12 | Dry-reads a plan as the builder would and lists every decision it leaves open; dispatched by the planner before a plan is returned (Josh, 2026-10-22) | nothing |
 | code-reviewer | Opus 5.5 | fixed | high | 30 | Reviews plans together, tests against the plan, and each finished ticket; returns PASS or FAIL | nothing |
 | ui-verifier | Sonnet 5.5 | fixed | low | 20 | Runs the app, takes screenshots, checks them against the plan's visual checklist and the mockup | screenshots only |
 | security-reviewer | Opus 5.5 | Opus 5.5; Fable 5.1 on high-complexity tickets | high | 30 | Auth, permissions, data isolation, money visibility, the API | nothing |
@@ -178,7 +179,7 @@ Each plan has a header and ten sections:
 
 **Header:** ticket ID, title, the AC IDs it covers, complexity (low, medium or high), and a one-line plain-words **user-visible result** (what now works for Josh).
 
-1. **What to build** and which files it touches.
+1. **What to build**, execution-grade (Josh, 2026-10-22: Opus thinks, Sonnet executes): the **Build steps** table (one row per file in build order: path, exact exports and signatures, an existing file to copy the pattern from, a verify command), **Decided for the builder** (every choice a builder could otherwise make, with its source) and **Do not touch**. `vault/tools/plan_lint.mjs` checks the form and bans vague words in sections 1, 3 and 4; the planner then dispatches `plan-checker` (Sonnet) to list any decision still open, and closes each gap in the plan or as a QP question. A plan must pass `plan_lint.mjs` (strict) before its ticket becomes `ready`. In Stage 3 a builder or test-author that meets an undecided point stops with `PLAN-GAP`; the planner patches the plan and records a planner lesson, and the builder resumes at the same tier.
 2. **Sources:** the spec sections, decisions and mockup it relies on, cited, and the research reports (`R-NNN`, section 13) the plan drew on. A ticket no report covers says so.
 3. **Interface contract:** file paths, exported names and signatures, route paths, component props, and `data-testid` values. Tests and code are both written to this contract.
 4. **Tests:** each test with the AC it checks, known correct values for every number, and a cited source for each value.
@@ -191,7 +192,7 @@ Each plan has a header and ten sections:
 
 Plans are written one at a time, in ticket order. Parallel planning saves no usage (the same tokens are spent either way) and risks ledger conflicts, so it is not used.
 
-**Ticket size.** Every ticket must be buildable in one fresh session. A plan targets 25,000 characters: over it, the planner tightens the wording first (section 1 as steps and the file table, sources cited by ID, nothing repeated) without dropping any requirement, test, source or question (optimize plan C4, Josh 2026-10-20: tighten, don't split). If a plan touches more than about 8 files, has more than about 10 tests, or is still over 45,000 characters after tightening, the planner proposes a split into lettered parts (T-012a, T-012b). The orchestrator updates the phase file, ticket data and ledger in one commit. These numbers are starting values; adjust them from the cost report.
+**Ticket size.** Every ticket must be buildable in one fresh session. A plan targets 25,000 characters: over it, the planner tightens the wording first (section 1 as steps and the file table, sources cited by ID, nothing repeated) without dropping any requirement, test, source or question (optimize plan C4, Josh 2026-10-20: tighten, don't split). If a plan is still over 45,000 characters after tightening, or touches more than about 20 files or has more than about 25 tests (raised from 8 and 10 by Josh, 2026-10-22: every part pays the whole per-ticket overhead again), the planner proposes a split into lettered parts (T-012a, T-012b). The orchestrator updates the phase file, ticket data and ledger in one commit. These numbers are starting values; adjust them from the cost report.
 
 **Plan review unit.** The code-reviewer reads all the phase's plans together, looking for missed requirements, conflicts between tickets, and interface contracts that don't line up between a ticket and its dependents. `next_ticket.mjs --report` also writes `vault/tickets/TRACE.md` (each AC → the ticket and tests that cover it). Every AC in the phase must appear at least once. An uncovered AC is a gap and goes back to the planner.
 
@@ -406,7 +407,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 
 ### Spend discipline
 
-- Agent teams, dynamic workflows and nested subagents are off (rule 15), except retrievers. In project settings, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` is 3 and `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` is 2 (orchestrator → planner or reviewer → retriever); the agent files' `tools` lines keep everything else at depth 1.
+- Agent teams, dynamic workflows and nested subagents are off (rule 15), except retrievers and the planner's `plan-checker`. In project settings, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` is 3 and `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` is 2 (orchestrator → planner or reviewer → retriever); the agent files' `tools` lines keep everything else at depth 1.
 - Hidden tokens are turned off in project settings (section 14): no task-list tool, no prompt suggestions, no total-tokens reminder, no goal check-ins, no auto-compaction.
 - No agent reads a file over 20,000 characters without a range (section 14, guard-reads).
 - No MCP servers in the build repo. CLI tools only.
@@ -622,7 +623,7 @@ Before relying on a flag or message format, ticket 000 confirms it against `clau
 12. Resuming a subagent (step-8 reviewer, same-tier builder retry) works from a `-p` session.
 13. The five-hour pause writes `WINDOW_PAUSE.md`, the launcher waits, and it resumes after the reset (fixture with a short reset).
 14. guard-reads denies a whole read of a 25,000-character file, allows the ranged read, and leaves `grep` alone.
-15. The builder cannot dispatch any agent; the planner can dispatch `retriever-digest` and the chain stops there.
+15. The builder cannot dispatch any agent; the planner can dispatch `retriever-digest` and `plan-checker`, and the chain stops there.
 16. `research.mjs adopt` works end to end from a retriever's pending file; `--lessons` excludes candidates; `--check` rejects an entry without `status:`.
 17. No task-list widget and no prompt suggestions in an interactive session.
 
