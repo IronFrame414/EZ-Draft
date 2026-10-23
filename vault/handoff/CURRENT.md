@@ -1,7 +1,6 @@
-# Handoff · 2026-10-23 · build EZD-037
+# Handoff · 2026-10-23 · questions 0
 
-- Completed: EZD-037 done (096079b, 1030 tests). EZD-002 Done-when and AC-EZD-002-1/-2 now follow Q-0021 (a).
-- Orchestrator-direct per Q-0260 (a); code-reviewer PASS; no deviations.
-- Follow-up (optional): EZD-002 Scope cell in phase-00.md still says "on every push; preview deploy per branch".
-- Escalated to Josh: Q-0258 (EZD-025), Q-0259 (EZD-034): guard-paths.mjs patches only Josh applies.
-- Next unit: rebuild EZD-025 / EZD-034 once Josh applies the patches; then gate-phase 0.
+- Completed: `questions 0` unit. No open questions and no QP left in phase 0 plans; no rule candidates. `vault/questions/phase-00-for-josh.md` is current (nothing new to add).
+- Answered by agents: 0. Escalated to Josh: 0 new. Still escalated: Q-0258 (EZD-025), Q-0259 (EZD-034), both `guard-paths.mjs` patches only Josh applies; Q-0089 and Q-0237 belong to later phases.
+- Tickets set ready: EZD-036 (plan lint OK).
+- Next unit: build EZD-036. After Josh applies the patches: rebuild EZD-025 / EZD-034, then gate-phase 0.
