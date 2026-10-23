@@ -5,7 +5,7 @@ import { dsnFromString } from '@sentry/core';
 import * as Sentry from '@sentry/nextjs';
 import { PLACEHOLDER_DSN } from '../../lib/errors/browser-options';
 import { scrubEvent } from '../../lib/errors/scrub';
-import { createSentryStubTransport } from './test-harness/sentry-stub-transport';
+import type { createSentryStubTransport } from './test-harness/sentry-stub-transport';
 
 export { PLACEHOLDER_DSN };
 
@@ -39,6 +39,32 @@ function validDsn(value: string | undefined): value is string {
   }
 }
 
+// EZD-036: the stub module (node:fs) loads on the first send of a transport instance.
+function lazySentryStubTransport(
+  dir: string | undefined,
+): ReturnType<typeof createSentryStubTransport> {
+  return () => {
+    let inner:
+      | Promise<{
+          send(envelope: unknown): Promise<{ statusCode: number }>;
+          flush(): Promise<boolean>;
+        }>
+      | undefined;
+    const load = () =>
+      (inner ??= import('./test-harness/sentry-stub-transport').then((m) =>
+        m.createSentryStubTransport({ dir })(),
+      ));
+    return {
+      async send(envelope: unknown) {
+        return (await load()).send(envelope);
+      },
+      async flush() {
+        return true;
+      },
+    };
+  };
+}
+
 export function getSentryOptions(env: Env): SentryOptions {
   const kind = env.SENTRY_TRANSPORT;
   if (!kind) return { enabled: false, code: 'sentry_off' };
@@ -55,7 +81,7 @@ export function getSentryOptions(env: Env): SentryOptions {
     return {
       enabled: true,
       dsn: PLACEHOLDER_DSN,
-      transport: createSentryStubTransport({ dir: env.SENTRY_STUB_DIR || undefined }),
+      transport: lazySentryStubTransport(env.SENTRY_STUB_DIR || undefined),
       ...common,
     };
   }
@@ -76,6 +102,7 @@ export function initErrorReporting(env: Env, runtimeTag: string): 'ok' | SentryO
     ...sdkOptions,
     defaultIntegrations: false,
     integrations: [Sentry.linkedErrorsIntegration()],
+    enableRuntimeChannelInjection: false,
   });
   Sentry.getGlobalScope().setTag('ezd.source', runtimeTag);
   return 'ok';

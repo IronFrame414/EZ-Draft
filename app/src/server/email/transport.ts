@@ -1,7 +1,6 @@
 // EZD-008a Step 4 · transport choice. Reads env per call, never at module load.
 import { z } from 'zod';
 import { createResendTransport } from './resend-transport';
-import { createStubTransport } from './test-harness/stub-transport';
 import type { EmailErrorCode, EmailTransport } from './types';
 
 const emailSchema = z.email();
@@ -15,6 +14,17 @@ function isValidSender(from: string | undefined): from is string {
   return emailSchema.safeParse(m[2].trim()).success;
 }
 
+// EZD-036: the stub module (node:fs) loads only when the stub transport sends.
+function lazyStubTransport(dir: string | undefined): EmailTransport {
+  return {
+    name: 'stub',
+    async send(message, sendOpts) {
+      const { createStubTransport } = await import('./test-harness/stub-transport');
+      return createStubTransport({ dir }).send(message, sendOpts);
+    },
+  };
+}
+
 export function getEmailTransport(
   env: Record<string, string | undefined>,
 ): { ok: true; transport: EmailTransport; from: string } | { ok: false; code: EmailErrorCode } {
@@ -26,7 +36,7 @@ export function getEmailTransport(
     if (env.VERCEL_ENV === 'production') return { ok: false, code: 'email_stub_not_allowed' };
     return {
       ok: true,
-      transport: createStubTransport({ dir: env.EMAIL_STUB_DIR || undefined }),
+      transport: lazyStubTransport(env.EMAIL_STUB_DIR || undefined),
       from,
     };
   }
