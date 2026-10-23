@@ -67,3 +67,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-030 · Spike: wall openings and sloped ceiling · nothing on a product screen; a throwaway script extrudes a wall with a door, a window and a 4:12 top with no CSG library; verdict go · c29ffae
 2026-10-23 · EZD-035 · Fix: job progress browser test misses the queued event under load · nothing on a product screen; pnpm db:up now waits for local Realtime, so the background-jobs browser test stops failing at random · a8de11a
 2026-10-23 · EZD-033 · Password sign-in · a member with a password signs in with email and password; wrong password, unknown email and unconfirmed account all show the same error · 489640a
+2026-10-23 · EZD-032 · Phase 0 build-gate test · nothing on a product screen; one browser test signs in and opens the empty editor at desktop and iPad, and a second-tenant user reads zero tenant 1 rows · 127fc3f
