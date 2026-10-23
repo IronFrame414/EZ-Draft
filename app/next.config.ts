@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/auth/confirm', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
+      // EZD-013 Step 8 (vault/plans/EZD-013.md D11): the worker script is never cached, so updates arrive at once.
+      {
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+      },
     ];
   },
 };

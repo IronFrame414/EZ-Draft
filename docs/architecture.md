@@ -198,6 +198,11 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/lib/realtime/       browser Realtime hub; adapter.ts is the only importer of @supabase/realtime-js (EZD-018)
   src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b)
   public/icons/sprite.svg the generated icon sprite, served at /icons/sprite.svg (EZD-010b)
+  src/lib/pwa/            app name and colour, service worker registration (EZD-013)
+  src/components/pwa/     the registration component (EZD-013)
+  src/pwa/                icon master page app-icon.html (EZD-013)
+  public/sw.js            the service worker (EZD-013)
+  public/app-icons/       manifest icons (EZD-013)
   scripts/                icons-build.mjs, icons-fetch.mjs: the icon pipeline, run by hand (EZD-010b; not the root scripts/)
   e2e/                    Playwright browser specs, *.spec.ts (EZD-007f)
   test-harness/jobs/      job queue test helpers: fake-clock.ts, run-twice.ts, queue-lock.ts (EZD-009)
@@ -372,6 +377,18 @@ EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download siz
 - `app/src/lazy/dev-sample/` is the dev-only proof module, loaded by `/dev/lazy` on first press.
 - **One list.** `eslint-rules/boundaries.mjs` (`LAZY_ROOT`, `LAZY_PLACES`, `EDITOR_CODE`, `EDITOR_CODE_IMPORTERS`, `HEAVY_PACKAGES`, `ENTRY_RULES`, `WATCH_PACKAGES`) is the single list read by the lint rule `ezdraft/import-boundaries` and by the contents check; EZD-029's replace path edits the DXF names there, and a test fails when that list and the Named tools `DXF` row drift apart.
 - The lint rule (`eslint-rules/import-boundaries.mjs`, block in `eslint.config.mjs` for `app/src/**` and `packages/*/src/**`, test files ignored) reports `heavyPackage`, `lazyStatic` (a static import into `app/src/lazy/<name>/` from outside it) and `editorOnly` (editor code imported outside `EDITOR_CODE_IMPORTERS`). It resolves relative paths only; a ticket that adds a tsconfig path alias teaches the rule to resolve it. Transitive imports through shared code are caught by the contents check, not the lint.
+
+### PWA (EZD-013)
+
+EZD-013 (vault/plans/EZD-013.md Steps 1-12); 02 Platform; R24 #1; Q-0051 (a); Q-0053; Q-0088.
+
+- Files: `app/src/lib/pwa/app-meta.ts` (`APP_NAME` `EZ Draft`, `THEME_COLOR` read from the `--ez-canvas` entry of `TOKENS`), `app/src/app/manifest.ts` (served at `/manifest.webmanifest`), `app/src/lib/pwa/register-sw.ts` (`registerServiceWorker`), `app/src/components/pwa/ServiceWorkerRegistration.tsx` (mounted last in `<body>` of the root layout), `app/public/sw.js`, `app/next.config.ts` (the `/sw.js` header), `app/src/app/layout.tsx` (`appleWebApp`, `viewport`), `app/src/pwa/app-icon.html` and `app/scripts/app-icons.mjs`.
+- Manifest values: name and short name `EZ Draft` (R24 #1), `display` `standalone`, `start_url` and `scope` `/`, `id` `/`, `lang` `en`, `background_color` and `theme_color` `#f6f7f9` (`--ez-canvas`, 04 Frame and visual system), three icons (192 `any`, 512 `any`, 512 `maskable`). No description and no orientation.
+- `/sw.js` with scope `/` is fixed: EZD-134 builds the Workbox worker at the same URL or unregisters this one.
+- No fetch handler and no cache until EZD-134; the worker only calls `skipWaiting` and `clients.claim`.
+- `registerServiceWorker` registers after the window `load` event, only in a secure context with service worker support, and reports a failed registration with `captureBrowserError(error, 'pwa.register')`, loaded with `import()`, and never throws.
+- Re-render the icons: edit `app/src/pwa/app-icon.html`, run `pnpm --filter @ezdraft/app app-icons:render`, commit the five PNGs.
+- Public static files keep a file extension, so the request gate (`app/src/proxy.ts` matcher) never sees them.
 
 ## Server-only data access and can()
 
@@ -689,6 +706,9 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | State components import no shell, phone, device or 3D code | app/src/components/states/states-imports.test.ts | EZD-015a |
 | — | State components folder in the field lint block | scripts/tooling/__tests__/messages-lint.test.mjs (L1) | EZD-015a |
 | — | State components on /dev/states: Retry, toast close and dialog buttons 44 px on iPad, Surface and phone; Spanish on a phone | app/e2e/states.spec.ts | EZD-015c |
+| — | PWA icon files are PNGs of the manifest sizes | app/src/pwa/app-icons.test.ts (U4) | EZD-013 |
+| — | Service worker has no fetch handler or cache before EZD-134 | app/src/lib/pwa/sw-file.test.ts (U5) | EZD-013 |
+| — | Manifest, worker and icons reachable with no session | app/e2e/pwa.spec.ts (B2) | EZD-013 |
 | — | Synthetic fixtures match their expected JSON; manifest matches README and files | `scripts/fixtures/__tests__/` | EZD-016b |
 | — | Every registered job handler has a run-twice test | `app/src/server/jobs/handlers.test.ts` (T19) | EZD-009 |
 | — | Secret key named in `app/src` only by `app/src/server/jobs/db.ts`; job kinds in code equal the database check | `scripts/db/__tests__/jobs-static.test.mjs`, `app/src/server/jobs/queue.db.test.ts` (T20) | EZD-009 |
