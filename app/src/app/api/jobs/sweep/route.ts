@@ -3,6 +3,7 @@
 // so the runner's secret key is allowed here. maxDuration is the function time limit (Q-0027 (a)), written
 // as a literal; config.test.ts (T9) keeps it equal to JOB_FUNCTION_MAX_SECONDS.
 import { timingSafeEqual } from 'node:crypto';
+import { defaultJobHooks } from '../../../../server/jobs/default-hooks';
 import { runJobs } from '../../../../server/jobs/runner';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,6 @@ export async function GET(request: Request): Promise<Response> {
       { status: 401, headers },
     );
   }
-  const summary = await runJobs();
+  const summary = await runJobs({ ...defaultJobHooks() });
   return Response.json({ ran: summary.claimed }, { status: 200, headers });
 }

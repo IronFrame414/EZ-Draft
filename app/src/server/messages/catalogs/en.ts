@@ -39,6 +39,8 @@ export const en = {
   'error.link_invalid': 'This sign-in link has expired or was already used.',
   'error.no_access': "This account does not have access to EZ Draft. Ask your company's owner.",
   'error.sign_in_failed': 'Something went wrong. Try again in a minute.',
+  'error.envelope_too_large': 'That error report is too large to send.',
+  'error.invalid_envelope': "That error report couldn't be read.",
   'field.device.editor_on_phone':
     'Editing is done on an iPad or a computer. Open this project there.',
   'office.header.wordmark_ez': 'ez',
@@ -57,6 +59,18 @@ export const en = {
   'office.tool.select': 'Select',
   'office.tool.cabinets': 'Cabinets',
   'office.tool.help': 'Help',
+  'office.alert.error.subject': 'New EZ Draft error: {title}',
+  'office.alert.error.body':
+    'A new error was reported in EZ Draft ({source}, {location}). You get one email per new error; repeats are counted but not emailed.',
+  'office.alert.error.event': 'Sentry event: {eventId}',
+  'office.alert.error.link': 'Open in Sentry',
+  'office.alert.job.subject': 'EZ Draft background job failed: {kind}',
+  'office.alert.job.body':
+    'A {kind} job stopped after {attempts} tries with error {error}. Job {jobId}, project {projectId}.',
+  'office.alert.webhook.subject': 'EZ Draft could not deliver {event} to EZ Binder',
+  'office.alert.webhook.body':
+    'Delivery of {event} (event {eventId}) failed after {attempts} tries. Last response: {status}.',
+  'office.alert.open_app': 'Open EZ Draft',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

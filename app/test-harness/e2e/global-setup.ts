@@ -4,6 +4,7 @@
 import { mkdirSync } from 'node:fs';
 import { adminDb } from '../rls/fixtures';
 import { clearStubOutboxDir } from '../email-outbox';
+import { clearSentryStubOutboxDir } from '../sentry-outbox';
 import {
   JOSH_USER_ID,
   SEED_PROJECT_COUNT,
@@ -50,7 +51,12 @@ export default async function globalSetup(): Promise<void> {
   }
   const outbox = process.env.EMAIL_STUB_DIR;
   if (!outbox) throw new Error('EMAIL_STUB_DIR missing');
+  // EZD-024 Re-validation V8: the Sentry stub folder, checked next to the email outbox.
+  const sentryOutbox = process.env.SENTRY_STUB_DIR;
+  if (!sentryOutbox) throw new Error('SENTRY_STUB_DIR missing');
   if (seedMissing(await readSeed())) throw new Error('Seed missing: run pnpm db:up');
   mkdirSync(outbox, { recursive: true });
   clearStubOutboxDir(outbox);
+  mkdirSync(sentryOutbox, { recursive: true });
+  clearSentryStubOutboxDir(sentryOutbox);
 }

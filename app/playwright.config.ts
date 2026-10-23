@@ -67,6 +67,9 @@ process.env.EZD_TEST_DB_URL = dbUrl;
 const app = path.join(repo, 'app');
 const outbox = path.join(app, '.e2e', 'email-outbox');
 process.env.EMAIL_STUB_DIR = outbox;
+// EZD-024 Re-validation V8: the Sentry stub folder the web server writes and specs read.
+const sentryOutbox = path.join(app, '.e2e', 'sentry-outbox');
+process.env.SENTRY_STUB_DIR = sentryOutbox;
 
 export default defineConfig({
   testDir: path.join(app, 'e2e'),
@@ -104,6 +107,9 @@ export default defineConfig({
       EMAIL_TRANSPORT: 'stub',
       EMAIL_FROM: 'EZ Draft Test <test@example.test>',
       EMAIL_STUB_DIR: outbox,
+      SENTRY_TRANSPORT: 'stub',
+      SENTRY_STUB_DIR: sentryOutbox,
+      ALERT_EMAIL_TO: 'owner@example.test',
     },
   },
 });

@@ -46,3 +46,6 @@ export { adminDb } from '../rls/fixtures';
 export { cleanup, closeHarness, createMember, createTenant } from '../rls/fixtures';
 // EZD-018 Step 9 item 3: projects and the admin SQL client for the Realtime spec's database broadcast.
 export { createProjects, harnessSql } from '../rls/fixtures';
+// EZD-024 Re-validation V8: the email and Sentry stub readers for the error-reporting spec.
+export { linksIn, readStubOutboxDir } from '../email-outbox';
+export { eventsIn, readSentryStubOutboxDir } from '../sentry-outbox';

@@ -203,6 +203,9 @@ describe('EZD-016d harness config', () => {
       delete process.env.EMAIL_STUB_DIR;
       await expect(globalSetup()).rejects.toThrow('EMAIL_STUB_DIR missing');
 
+      // EZD-024 V8: global setup also needs the Sentry stub folder (input only; no assertion changed)
+      process.env.SENTRY_STUB_DIR = path.join(tmp, 'sentry-outbox');
+
       // (c) existing outbox: .json removed, other files kept
       const outbox = path.join(tmp, 'outbox');
       mkdirSync(outbox);

@@ -1,5 +1,6 @@
 // EZD-008a Step 6 · send helper. The link is in every result, sent or failed. Nothing is logged.
 import { z } from 'zod';
+import { captureToSentry } from '../errors/sentry';
 import { buildEmailBody } from './body';
 import { getEmailTransport } from './transport';
 import type { EmailMessage, SendEmailInput, SendEmailResult } from './types';
@@ -45,6 +46,12 @@ const inputSchema = z.object({
   idempotencyKey: z.string().optional(),
 });
 
+// EZD-024 Step 9: every failed send goes to Sentry with its code only, never the recipient or the link
+// (docs/architecture.md Errors and logging). No alert row: the email path itself failed.
+function reportSendFailure(code: string): void {
+  captureToSentry(new Error(code), { source: 'function', location: 'email.send' });
+}
+
 export async function sendEmail(
   input: SendEmailInput,
   options: { env?: Record<string, string | undefined> } = {},
@@ -56,6 +63,7 @@ export async function sendEmail(
 
   const chosen = getEmailTransport(env);
   if (!chosen.ok) {
+    reportSendFailure(chosen.code);
     return { link, status: 'failed', transport: null, messageId: null, errorCode: chosen.code };
   }
 
@@ -89,6 +97,7 @@ export async function sendEmail(
     input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined,
   );
   if (!res.ok) {
+    reportSendFailure(res.code);
     return {
       link,
       status: 'failed',

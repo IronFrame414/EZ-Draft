@@ -26,6 +26,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: ['SELECT'],
     reason: 'Listed projects decide access; a member must not change their own (Step 5; EZD-129).',
   },
+  error_alert: {
+    privileges: ['SELECT'],
+    reason:
+      "Written only through record_error_alert / release_error_alert_email (EZD-024); members read their company's failure rows",
+  },
   job: {
     privileges: ['SELECT'],
     reason:

@@ -38,6 +38,11 @@ Values never go in the repo; names go in `.env.example`; the app reads them per 
 | `RESEND_API_KEY` | never | none (tests never send, CLAUDE.md rule 6) | Production: the sending-only key `ezdraft-production` (runbook `## Email (EZD-008)` step 3); Preview only if Josh switches a preview to `resend` (Q-0041) | `app/src/server/email/resend-transport.ts` through `transport.ts`; `scripts/email/send-test.mjs` |
 | `EMAIL_STUB_DIR` | never | browser tests only (EZD-016d); not in `.env.example` | never set on Vercel | `app/src/server/email/transport.ts` |
 | `CRON_SECRET` | never | none (tests stub it) | Production only, entered by Josh (`docs/runbook.md` `## Background jobs (EZD-009)`); Vercel sends it as `Authorization: Bearer <CRON_SECRET>` on cron requests | `app/src/app/api/jobs/sweep/route.ts` |
+| `SENTRY_TRANSPORT` | never | unset (Sentry off); `stub` in unit tests (`app/vitest.config.ts`) and browser tests (EZD-016d's web server) | `sentry` for Preview and Production, entered by Josh (`docs/runbook.md` `## Error reporting (EZD-024)`); unset or empty turns Sentry off, `stub` is refused when `VERCEL_ENV` is `production` | `app/src/server/errors/sentry-options.ts` |
+| `SENTRY_DSN` | never | none | the DSN of Josh's Sentry project `ezdraft` (Q-0070 (a)), Preview and Production | `app/src/server/errors/sentry-options.ts` |
+| `SENTRY_STUB_DIR` | never | browser tests only (`app/.e2e/sentry-outbox`, EZD-016d's web server); not in `.env.example` | never set on Vercel | `app/src/server/errors/sentry-options.ts` (the stub transport's file sink) |
+| `ALERT_EMAIL_TO` | never | `owner@example.test` in unit and browser tests | Josh's operator address, which gets every alert of every company (Q-0067 (b)); Preview and Production; never in the repo (Q-0033 (a)) | `app/src/server/errors/alert-recipients.ts` |
+| `SENTRY_ISSUES_URL` | never | none | optional: the Issues page of the Sentry project; error alert emails link there with `?query=<event id>` (Q-0069 (a)) | `app/src/server/errors/alert-email.ts` |
 
 Which project's values go where: local is the local stack; preview is the dev project; production is the production project once Josh sets it up from the Before-launch checklist (11 Operations: preview deploys use the dev database; Q-0113). Entering values in Vercel is EZD-023b's (Q-0106).
 
@@ -141,6 +146,8 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@tarikjabiri/dxf` | `2.9.0` | app | Named tools: DXF (write); provisional until EZD-029 | EZD-000 |
 | `resend` | `6.34.1` | app | Named tools: Email | EZD-000 |
 | `@sentry/nextjs` | `11.8.0` | app | Named tools: Error reporting (browser and functions) | EZD-000 |
+| `@sentry/core` | `11.8.0` | app | Named tools: Error reporting (envelope parse for the tunnel route; not exported by `@sentry/nextjs`) | EZD-024 |
+| `@sentry/browser` | `11.8.0` | app | Named tools: Error reporting (browser init and integrations; `@sentry/nextjs` on Node does not export the browser integrations) | EZD-024 |
 | `@sentry/node` | `11.8.0` | worker | Named tools: Error reporting (render worker) | EZD-000 |
 | `supabase` | `2.121.0` | root | Named tools: Database migrations (CLI); Stack: Database, auth, files | EZD-000 |
 | `@supabase/supabase-js` | `2.118.0` | app, worker | Stack: Database, auth, files | EZD-000 |
@@ -181,7 +188,9 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/server/             server-only code: db clients, can(), route helpers, money serializers
   src/server/jobs/        background job handlers (EZD-009); the only place PDFKit is imported
   src/server/jobs/handlers/  one file per job kind's handler, registered in handlers.ts (EZD-009)
+  src/server/errors/       error reporting: Sentry options, capture, fingerprints, alert store and emails (EZD-024)
   src/lib/jobs/           job kinds and statuses, watchJob (browser and server; EZD-009)
+  src/lib/errors/         scrubbing, browser Sentry options, captureBrowserError (EZD-024)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026c)
@@ -199,6 +208,7 @@ worker/                   @ezdraft/worker — the local GPU render worker (02 Na
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
 scripts/db/               local stack and types scripts: local.mjs (`db:up`, `db:env`), gen-types.mjs (`db:types`) (EZD-004a)
 scripts/email/            send-test.mjs: the live email check Josh runs by hand; never run by the gate (EZD-008b)
+scripts/errors/           live-check.mjs: the live Sentry and alert check Josh runs by hand; never run by the gate (EZD-024)
 scripts/fixtures/         generate-synthetic.mjs (`fixtures:generate`) and its writers, Node built-ins only; tests in __tests__/ (EZD-016b)
 scripts/perf/             performance check: run.mjs (`pnpm perf`), budgets, registry, config, collectors; tests in __tests__/ (EZD-017)
 perf-results/             git-ignored perf check results: latest.json, history.jsonl (EZD-017)
@@ -488,6 +498,24 @@ EZD-023a (vault/plans/EZD-023a.md Steps 1–5); 11 Operations ("add before they 
 - Jobs: a failure writes `job.error` and `attempts` (03 job table); retry with backoff (EZD-009); a final failure goes to Sentry and the owner email (11 Operations; EZD-024).
 - Logging: one structured JSON line per event from one logger module (`logger.ts`) on the server and in the worker: level, message, route or job kind, tenant_id, project_id, request or job id, duration. Never logged: tokens (share-link, magic-link, 6-digit code, EZ Binder sign-on code), keys and secrets, request bodies, email addresses, money values (03 rules 2, 11; CLAUDE.md rule 8). No `console.*` outside `logger.ts` and tests (check C8). Unexpected errors go to Sentry (EZD-024).
 
+### Error reporting (EZD-024)
+
+EZD-024 (vault/plans/EZD-024.md Steps 1-12); 11 Operations; R26 R12; Q-0067 (b); Q-0068 (a); Q-0069 (a); Q-0070 (a); Q-0035.
+
+- **Flow.** Every error ends in `app/src/server/errors/`. Server errors arrive through `onRequestError` in `app/src/instrumentation.ts` and explicit `reportError()` calls (job runner, the `after()` kick, email failures). Browser errors are sent by the Sentry browser SDK (`app/src/instrumentation-client.ts`) to the app's own tunnel `POST /api/monitoring`, never straight to Sentry. The module scrubs the event, hands it to Sentry through the server client, and records its fingerprint in `error_alert` through `record_error_alert`; only when that hands out a claim does it email the alert with `sendEmail`.
+- **`SENTRY_TRANSPORT`:** unset or empty is off (`sentry_off`; reporting never breaks the app, and the owner email does not depend on Sentry); `stub` uses the stub transport (`app/src/server/errors/test-harness/sentry-stub-transport.ts`, file sink `SENTRY_STUB_DIR`), refused in production; `sentry` needs a valid `SENTRY_DSN` and is refused under Vitest (`sentry_live_blocked_in_tests`). No tracing, profiling, replay or default integrations. `register()` starts the server client and tags events `ezd.source=function`.
+- **Placeholder DSN and tunnel.** The browser always uses `https://public@ezdraft.invalid/1` (`PLACEHOLDER_DSN`, `app/src/lib/errors/browser-options.ts`) with `tunnel: '/api/monitoring'`, so no real DSN or build-time value reaches the browser. The tunnel is public, refuses a body over 262,144 bytes (413 `envelope_too_large`) and an envelope that does not parse or whose header `dsn` is not the placeholder (400 `invalid_envelope`), keeps `event` items only, scrubs them again, forwards them with the server's DSN in `after()` and records each one. The browser SDK packages are `@sentry/browser` (integrations global handlers, linked errors, dedupe); the server uses `@sentry/nextjs`, with `@sentry/core`'s envelope helpers in the tunnel.
+- **Scrub rule** (`app/src/lib/errors/scrub.ts`): URL query and hash dropped; email addresses, UUIDs, tokens (24+ letters, digits, `_` or `-` with a letter and a digit) and 6-digit codes replaced; `request` keeps only `url` and the `User-Agent` header; `user` keeps only `id`; `extra` and `breadcrumbs` removed. Owner emails carry only scrubbed titles, ids and codes.
+- **Fingerprint rule** (`app/src/server/errors/fingerprint.ts`): SHA-256 of source, error name, normalized message (scrubbed, hex runs and numbers replaced) and location (browser URL path with ids replaced, the route pattern, the job kind, or `worker`); no stack frames. A failed job is `job_failed`, tenant and job id; a failed webhook delivery `webhook_failed`, tenant and event id (one email each, Q-0068 (a)).
+- **`error_alert`** (nullable `tenant_id`, null only for kind `error`, so error rows are visible to no member; members read their company's failure rows) is written only by `public.record_error_alert` and `public.release_error_alert_email` (`security definer`, executable by `anon`, `authenticated`, `service_role`, both in `GATED_RPC_CALLS`). A caller other than `service_role` may record only kind `error` from `browser`, `function` or `worker`, with tenant and project forced to null, and at most 100 new error rows per hour. The email cap is 20 alerts per rolling hour for all companies (Q-0068 (a)). A failed send releases the claim so a later occurrence can email. The request path reaches the store as `anon` through `createSessionClient` with an empty cookie jar (`alertStoreClient()`), never with the secret key.
+- **Who gets alerts** (Q-0067 (b)): new errors go to `ALERT_EMAIL_TO` only; failed jobs and webhooks go to `ALERT_EMAIL_TO` plus the company's Owners (holders of Manage users and settings; `role_preset = 'owner'` until EZD-101 switches `ownerAlertRecipients` to the permission key), one message each, duplicate addresses merged; wording `office.alert.*` (English, Q-0069 (a)).
+- **Copy link.** System alerts have no sender, so the copy-link rule of Q-0035 does not apply to them; Sentry (and `SENTRY_ISSUES_URL`) and the System status page (EZD-135) are the non-email path.
+- **Convention:** a `catch` that turns an unexpected error into a 500 calls `reportError`. Handler throws in the job runner go to Sentry with `alert: false` (`onHandlerError`); the owner email for a job comes only from its final failure (`onJobFailed`, `defaultJobHooks()` in `app/src/server/jobs/default-hooks.ts`, used by the kick and the sweep). Email send failures go to Sentry with `ezd.location` `email.send` and the code only.
+- **Webhooks:** EZD-1301 calls `reportWebhookFailure({ db, tenantId, projectId, eventName, eventId, attempts, lastStatus })` with the runner's client when a delivery has used up its retries; `eventName` must be a registered `webhook` event, else it throws `TypeError`.
+- **Render worker contract** (EZD-1104b): the worker initialises the Node Sentry SDK at the same `@sentry/*` version with `dsn` = the placeholder DSN, `tunnel` = `<app origin>/api/monitoring`, the tag `ezd.source=worker` and the same `scrubEvent`, so it holds no Sentry secret and no new key, and its errors get the same dedupe and owner email.
+- **Live check** `scripts/errors/live-check.mjs`, run by Josh by hand after the first release, refused under `CI`, never by the gate.
+- Agents never sign in to Sentry; account steps are in `docs/runbook.md` `## Error reporting (EZD-024)`.
+
 ## Storage buckets and paths
 
 03 rules 1, 11; 03 source_file, render, catalog_item, job; 11 rule 12, Operations, Data retention; EZD-025, EZD-132. Rules from the sources: every bucket is private; files are served through short-lived signed links; browser uploads go straight to Storage with resumable signed uploads; job inputs and outputs are Storage paths; originals are never changed; renders are stored full size plus 400 px and 1600 px copies; deletes of sent-package files are soft deletes. Layout (EZD-132 creates the buckets):
@@ -664,6 +692,9 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Synthetic fixtures match their expected JSON; manifest matches README and files | `scripts/fixtures/__tests__/` | EZD-016b |
 | — | Every registered job handler has a run-twice test | `app/src/server/jobs/handlers.test.ts` (T19) | EZD-009 |
 | — | Secret key named in `app/src` only by `app/src/server/jobs/db.ts`; job kinds in code equal the database check | `scripts/db/__tests__/jobs-static.test.mjs`, `app/src/server/jobs/queue.db.test.ts` (T20) | EZD-009 |
+| — | Live Sentry is refused in tests; Sentry off when `SENTRY_TRANSPORT` is unset | `app/src/server/errors/sentry-options.test.ts` (T2) | EZD-024 |
+| — | Events and alert emails are scrubbed (emails, ids, tokens, codes, request data) | `app/src/server/errors/scrub-fingerprint.test.ts` (T4) | EZD-024 |
+| — | No secret key in `app/src/server/errors/` or the tunnel route; error reporting docs, env names and `@sentry/*` rows | `scripts/errors/__tests__/errors-static.test.mjs` (T19) | EZD-024 |
 
 ### CI
 

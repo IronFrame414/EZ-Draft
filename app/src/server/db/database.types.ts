@@ -19,6 +19,32 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"error_alert": {
+                  Row: {
+                    "email_claim": string | null,"emailed_at": string | null,"fingerprint": string,"first_seen_at": string,"id": string,"kind": string,"last_seen_at": string,"occurrences": number,"project_id": string | null,"ref": string | null,"source": string,"tenant_id": string | null,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email_claim"?: string | null,"emailed_at"?: string | null,"fingerprint": string,"first_seen_at"?: string,"id"?: string,"kind": string,"last_seen_at"?: string,"occurrences"?: number,"project_id"?: string | null,"ref"?: string | null,"source": string,"tenant_id"?: string | null,"title": string
+                  }
+                  Update: {
+                    "email_claim"?: string | null,"emailed_at"?: string | null,"fingerprint"?: string,"first_seen_at"?: string,"id"?: string,"kind"?: string,"last_seen_at"?: string,"occurrences"?: number,"project_id"?: string | null,"ref"?: string | null,"source"?: string,"tenant_id"?: string | null,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "error_alert_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "error_alert_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"job": {
                   Row: {
                     "attempts": number,"created_at": string,"created_by": string | null,"error": string | null,"finished_at": string | null,"id": string,"kind": string,"lease_expires_at": string | null,"max_attempts": number,"payload": NonNullable<Json>,"progress": number,"project_id": string | null,"result": Json | null,"run_after": string,"run_id": string | null,"started_at": string | null,"state": Json | null,"status": string,"tenant_id": string,"updated_at": string
@@ -234,6 +260,14 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "accepted_membership_id": string,"accepted_tenant_id": string,"app_user_id": string,"has_access": boolean
             }[]
+                           },
+"record_error_alert":
+{ Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {
+              "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
+            }[]
+                           },
+"release_error_alert_email":
+{ Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            }
           }
           Enums: {

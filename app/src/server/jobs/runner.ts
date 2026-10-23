@@ -20,6 +20,8 @@ export type RunJobsOptions = {
   clock?: Clock;
   onlyTenantId?: string;
   onJobFailed?: (job: JobRow) => void | Promise<void>;
+  // EZD-024 Step 9: called when a handler throws, before the retry-or-fail decision (not on a lost lease).
+  onHandlerError?: (job: JobRow, error: unknown) => void | Promise<void>;
 };
 
 export type RunSummary = {
@@ -164,6 +166,11 @@ export async function runJobs(options: RunJobsOptions = {}): Promise<RunSummary>
       if (controller.signal.aborted) {
         summary.leaseLost += 1;
         return;
+      }
+      try {
+        await options.onHandlerError?.(job, e);
+      } catch {
+        // A failing report never stops the run.
       }
       if (e instanceof JobError) return failJob(e.code, e.retry);
       return failJob('handler_failed', true);

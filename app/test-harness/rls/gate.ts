@@ -14,4 +14,25 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'enqueue_job',
     args: { p_kind: 'test', p_project_id: null, p_payload: {}, p_max_attempts: 5 },
   },
+  // EZD-024 Re-validation V3 (vault/plans/EZD-024.md): the error alert functions, executable by anon,
+  // authenticated and service_role.
+  {
+    fn: 'record_error_alert',
+    args: {
+      p_kind: 'error',
+      p_source: 'browser',
+      p_fingerprint: '0'.repeat(64),
+      p_title: 'Error: gate',
+      p_ref: null,
+      p_tenant_id: null,
+      p_project_id: null,
+    },
+  },
+  {
+    fn: 'release_error_alert_email',
+    args: {
+      p_alert_id: '00000000-0000-4000-8000-000000000000',
+      p_claim: '00000000-0000-4000-8000-000000000000',
+    },
+  },
 ];

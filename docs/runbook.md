@@ -83,3 +83,14 @@ Josh's steps in Vercel. The once-a-minute sweep picks up jobs that are waiting t
 
 1. **Cron secret.** In Vercel, open the `ezdraft` project, then Settings, Environment Variables. Add `CRON_SECRET` for Production only, marked Sensitive. The value is a random string of at least 32 characters (for example from a password manager's generator). Vercel sends it with every cron request, and the sweep refuses any request without it.
 2. **Check the cron (after the Phase 0 merge).** In the `ezdraft` project, open Settings, Cron Jobs. It lists `/api/jobs/sweep` with the schedule `* * * * *` (every minute). If it is missing, or Vercel says the plan does not allow it, tell the orchestrator before changing anything.
+
+## Error reporting (EZD-024)
+
+Josh's steps in Sentry and Vercel. Steps 1 to 4 are part of the Before-launch checklist. Until then `SENTRY_TRANSPORT` is not set, so Sentry is off; new errors still email `ALERT_EMAIL_TO` once that is set. Agents never sign in to Sentry or change Vercel settings. Never paste the DSN or an address into chat, a ticket or the repo.
+
+1. **Sentry account.** Create a new Sentry organization on the free plan, with one project named `ezdraft`, platform Next.js.
+2. **DSN.** In the project, open Settings, Client Keys (DSN), and copy the DSN. It goes straight into step 4.
+3. **Turn off Sentry's own emails.** In the project, open Alerts and turn off the default "new issue" email alert. EZ Draft emails each new error once itself.
+4. **Vercel values (Production and Preview).** In the `ezdraft` project: Settings, Environment Variables. `SENTRY_TRANSPORT` = `sentry`; `SENTRY_DSN` = the DSN from step 2; `ALERT_EMAIL_TO` = your own address. Optional: `SENTRY_ISSUES_URL` = the address of the project's Issues page, so error emails link straight to the issue. Previews use the stub email transport by default, so preview alerts are recorded but not emailed unless you switch that preview to live sending.
+5. **Who gets what.** New errors go only to `ALERT_EMAIL_TO`. Failed background jobs and failed EZ Binder deliveries go to `ALERT_EMAIL_TO` and to every Owner of that company, one email each; if your address is both, you get one. At most 20 alerts are emailed per hour.
+6. **Live check (field check).** After the first real release before launch (Actions, Release is green with `released`), open a terminal in the EZ Draft folder and run `node scripts/errors/live-check.mjs`. It prints a code of 12 letters. Within a few minutes you should see one new issue in Sentry and one alert email, both with that code. Running it again with the same code (`node scripts/errors/live-check.mjs <code>`) sends no second email. Tell the orchestrator what you saw.

@@ -16,6 +16,12 @@ export default defineConfig({
     globalSetup: ['test-harness/supabase-env.global-setup.ts'],
     testTimeout: 15000,
     // EZD-008a: tests send through the stub transport, never a live provider (CLAUDE.md rule 6).
-    env: { EMAIL_TRANSPORT: 'stub', EMAIL_FROM: 'EZ Draft Test <test@example.test>' },
+    env: {
+      EMAIL_TRANSPORT: 'stub',
+      EMAIL_FROM: 'EZ Draft Test <test@example.test>',
+      // EZD-024 Step 13: Sentry stub transport and the operator alert address (reserved test domain).
+      SENTRY_TRANSPORT: 'stub',
+      ALERT_EMAIL_TO: 'owner@example.test',
+    },
   },
 });
