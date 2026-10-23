@@ -82,8 +82,9 @@ const rules = {
     // Q-0153 / Q-0125 (a), orchestrator 2026-10-19: scripts/email/ is the builder's (the live email check, EZD-008b and later).
     // Q-0125 (a), orchestrator 2026-10-19: scripts/release/ is the builder's (the migration release check, EZD-023a and later).
     // Q-0247 / Q-0125 (a), orchestrator 2026-10-22: scripts/perf/ is the builder's (the performance check, EZD-017 and later).
-    if ((rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml') && !rel.startsWith('scripts/conventions/') && !rel.startsWith('scripts/db/') && !rel.startsWith('scripts/email/') && !rel.startsWith('scripts/release/') && !rel.startsWith('scripts/perf/'))
-      return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget; scripts/conventions/, scripts/db/, scripts/email/ and scripts/release/ and scripts/perf/ are allowed) or ci.yml. New workflow files under .github/workflows/ are allowed.';
+    // Q-0258, Josh 2026-10-23: scripts/backup/ is the builder's (backups, EZD-025). Q-0259, Josh 2026-10-23: scripts/auth/ is the builder's (captcha hand check, EZD-034).
+    if ((rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml') && !rel.startsWith('scripts/conventions/') && !rel.startsWith('scripts/db/') && !rel.startsWith('scripts/email/') && !rel.startsWith('scripts/release/') && !rel.startsWith('scripts/perf/') && !rel.startsWith('scripts/backup/') && !rel.startsWith('scripts/auth/'))
+      return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget; scripts/conventions/, scripts/db/, scripts/email/ and scripts/release/, scripts/perf/, scripts/backup/ and scripts/auth/ are allowed) or ci.yml. New workflow files under .github/workflows/ are allowed.';
   },
   'ui-verifier': () => {
     if (!rel.startsWith('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
