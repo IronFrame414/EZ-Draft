@@ -1,6 +1,6 @@
 # Phase 0 · Questions for Josh
 
-Written 2026-10-22 by the orchestrator (`questions 0` unit, PROCESS.md section 7). This replaces the earlier 2026-10-22 file. Nothing was answered since then. New since then: the split of EZD-015 into three parts (answered by the orchestrator) and the Spanish for four common buttons from EZD-015a. EZD-015a, EZD-015b and EZD-015c are now ready to build. Answer by number, in any form ("1 a", "section 2 confirmed", "section 3 approved", "section 4 ratify both"). Every item gives the recommendation first. Everything in sections 2 and 3 stands as written until you change it.
+Updated 2026-10-23 (Q-0248, EZD-035 wording). Written 2026-10-22 by the orchestrator (`questions 0` unit, PROCESS.md section 7). This replaces the earlier 2026-10-22 file. Nothing was answered since then. New since then: the split of EZD-015 into three parts (answered by the orchestrator) and the Spanish for four common buttons from EZD-015a. EZD-015a, EZD-015b and EZD-015c are now ready to build. Answer by number, in any form ("1 a", "section 2 confirmed", "section 3 approved", "section 4 ratify both"). Every item gives the recommendation first. Everything in sections 2 and 3 stands as written until you change it.
 
 Q-0089 (storage limit) and Q-0237 (charging other companies) belong to later phases and are not asked here.
 
@@ -20,6 +20,8 @@ Q-0089 (storage limit) and Q-0237 (charging other companies) belong to later pha
 4. **Q-0244** (EZD-014): the device layouts ticket (phone layout, touch-size buttons, iPad and Surface checks) was too big for one build, so it is split into three parts built in order: EZD-014a (switching between desktop, iPad and phone layouts, and the phone layout itself), EZD-014b (finger-size buttons and icon-only header buttons on touch screens), then EZD-014c (the developer test page and the browser tests that prove it). Nothing it delivers changes. Source: vault/PROCESS.md section 6 Ticket size; vault/plans/EZD-014.md Split proposal; Q-0239. **Confirm or override.**
 5. **Q-0245** (EZD-014b): on touch screens, hover effects are turned off so they don't stick after a tap. The tool rail's tooltips still show when someone moves through the buttons with a keyboard (for example an iPad with a keyboard), on every device. To allow that, EZD-014b changes one earlier test that expected the tooltip style as a single block. Source: vault/plans/EZD-014.md QP-1 and its Level-1 answers (EZD-012 Step 2: hover does not stick on touch, keyboard focus still shows the tooltip). **Confirm or override.**
 6. **Q-0246** (EZD-015): the shared screen states ticket (online status, loading placeholders, error with Retry, offline banner, toasts, confirm dialog) was too big for one build, so it is split into three parts built in order: EZD-015a (online status, loading placeholders, error and offline banners), EZD-015b (toasts and the confirm dialog), then EZD-015c (the developer test page and the browser tests that prove it). Nothing it delivers changes. Source: vault/PROCESS.md section 6 Ticket size; vault/plans/EZD-015.md Split proposal; Q-0244. **Confirm or override.**
+
+7. **Q-0248** (EZD-029, EZD-035): the background-jobs browser test sometimes misses its first event, which failed EZD-029's check three runs of three while the same check passes on develop. The repair ticket you added (EZD-035) is the fix, so EZD-029 now waits for EZD-035 to merge, and nobody accepts the failure meanwhile. Source: vault/plans/EZD-035.md; phase-00.md EZD-035 row. **Confirm or override.**
 
 ## 3. Proposed wording
 
@@ -44,6 +46,11 @@ From EZD-015a (vault/plans/EZD-015a.md section 6). The English is on the spec an
 103. `common.offline` (offline banner), Spanish: "Sin conexión"
 104. `common.cancel` (dialog Cancel), Spanish: "Cancelar"
 105. `common.close` (close button on a notice), Spanish: "Cerrar"
+
+From EZD-035 (vault/plans/EZD-035.md section 6). Developer terminal lines of `pnpm db:up`, not seen by users; listed for your look only:
+
+106. `Realtime broadcast stream ready` (success)
+107. `Local Realtime is not ready (<code>): run pnpm db:stop, then pnpm db:up.` (warm-up failed)
 
 ## 4. Rule candidates
 
