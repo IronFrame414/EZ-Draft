@@ -90,3 +90,7 @@ Rule: when a plan redefines a function it states the language and checks every c
 ## EZD-018 plan-gap (2026-10-22)
 Mistake: Step 5 put Realtime behind an adapter and listed method names but not the channel's typed interface or what a counted "join attempt" is; the test-author could not write the fake adapter.
 Rule: a plan that puts a library behind an adapter writes out the adapter's full typed interface, defines each counted event in terms of it, and checks the library's re-call limits (e.g. `subscribe` only once) before choosing how a retry works.
+
+## EZD-018 plan-gap round 2 (2026-10-22)
+Mistake: the plan added a non-test `@supabase/*` importer without naming the EZD-007c T34 allow-list edit, gave a dev-page attribute (`rt-self`) no value source, and prescribed a postgres.js payload as a JSON string cast to `jsonb` (double-encoded to a jsonb string).
+Rule: when a plan adds a file a guard test restricts (allow-lists, import scans), it names that test's edit and its approver; every `data-testid` value names its source; SQL parameters for `jsonb` are bound as JS objects; at most one expected-refused Realtime join per connection.
