@@ -1,6 +1,10 @@
-# Handoff · 2026-10-23 · questions 0
+# Handoff · 2026-10-23 · build EZD-036
 
-- Completed: `questions 0` unit. No open questions and no QP left in phase 0 plans; no rule candidates. `vault/questions/phase-00-for-josh.md` is current (nothing new to add).
-- Answered by agents: 0. Escalated to Josh: 0 new. Still escalated: Q-0258 (EZD-025), Q-0259 (EZD-034), both `guard-paths.mjs` patches only Josh applies; Q-0089 and Q-0237 belong to later phases.
-- Tickets set ready: EZD-036 (plan lint OK).
-- Next unit: build EZD-036. After Josh applies the patches: rebuild EZD-025 / EZD-034, then gate-phase 0.
+- Phase and stage: 0, Stage 3
+- Why the session ended: unit complete
+- Completed this session: EZD-036 merged to develop (c992937, 1036 tests). Gate green, code-reviewer PASS round 1.
+- In progress: none
+- Blocked: EZD-025 (Q-0258), EZD-034 (Q-0259): guard-paths.mjs patches only Josh applies
+- Questions for Josh: none new
+- Decisions made: plan-gap on EZD-036 B2 control fixed by planner; lesson added to vault/lessons/planner.md
+- Next unit: after Josh applies the patches, rebuild EZD-025 / EZD-034, then gate-phase 0
