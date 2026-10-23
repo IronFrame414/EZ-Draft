@@ -205,6 +205,9 @@ describe('EZD-016d harness config', () => {
 
       // EZD-024 V8: global setup also needs the Sentry stub folder (input only; no assertion changed)
       process.env.SENTRY_STUB_DIR = path.join(tmp, 'sentry-outbox');
+      // EZD-021 V4: global setup also needs the AI stub folder and the guard log (input only; no assertion changed)
+      process.env.AI_STUB_DIR = path.join(tmp, 'ai-stub');
+      process.env.EZD_NET_GUARD_LOG = path.join(tmp, 'net-guard.log');
 
       // (c) existing outbox: .json removed, other files kept
       const outbox = path.join(tmp, 'outbox');

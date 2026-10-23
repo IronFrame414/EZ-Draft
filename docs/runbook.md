@@ -106,6 +106,18 @@ Josh's steps in Sentry and Vercel. Steps 1 to 4 are part of the Before-launch ch
 5. **Who gets what.** New errors go only to `ALERT_EMAIL_TO`. Failed background jobs and failed EZ Binder deliveries go to `ALERT_EMAIL_TO` and to every Owner of that company, one email each; if your address is both, you get one. At most 20 alerts are emailed per hour.
 6. **Live check (field check).** After the first real release before launch (Actions, Release is green with `released`), open a terminal in the EZ Draft folder and run `node scripts/errors/live-check.mjs`. It prints a code of 12 letters. Within a few minutes you should see one new issue in Sentry and one alert email, both with that code. Running it again with the same code (`node scripts/errors/live-check.mjs <code>`) sends no second email. Tell the orchestrator what you saw.
 
+## AI providers (EZD-021)
+
+Josh's steps with the AI providers and in Vercel. Set them before launch, as part of the Before launch checklist item 4 "Vercel values". Until then nothing is blocked: tests and previews run on the stub providers, and until launch a merge releases nothing. Agents never sign in to a provider or change Vercel settings. Never paste a key into chat, a ticket or a file in the repo.
+
+1. **Pick the accounts.** Which accounts serve Gemini and Flux is your choice after your tests (Q-0076). Claude is served by Anthropic's own API and GPT Image 2 by OpenAI's.
+2. **Keys.** On each chosen account, create one API key for EZ Draft, named `ezdraft-production`: Anthropic (`ANTHROPIC_API_KEY`), Google Gemini (`GEMINI_API_KEY`), OpenAI (`OPENAI_API_KEY`) and Black Forest Labs (`BFL_API_KEY`).
+3. **Other address (only if needed).** If the account you picked for Gemini or Flux serves the same API at another address, you will set `GEMINI_BASE_URL` or `BFL_BASE_URL` (an `https://` address) in step 5. Otherwise leave them unset; EZ Draft then uses Google's and Black Forest Labs' own addresses.
+4. **Spending limit.** In each provider's console, set a monthly spending limit.
+5. **Vercel, Production.** In the `ezdraft` project: Settings, Environment Variables. For Production set `AI_MODE` = `live` and the four keys from step 2, each marked Sensitive (plus the address from step 3, if any). A missing key makes only the AI jobs that need it fail, with "AI key not set".
+6. **Vercel, Preview.** For Preview set `AI_MODE` = `stub`. That is the default for now (no paid accounts yet), so previews never make paid calls. To let a preview make real, paid AI calls later, change Preview `AI_MODE` to `live` and add the Preview keys; every AI action tried on that preview then costs money (Q-0077).
+7. **If a release stops on it.** After launch, the release workflow's step "Check the Vercel environment values" accepts Preview `AI_MODE` = `stub` or `live` and refuses a missing or other value (and Production needs an `AI_MODE` value). If it refuses, the release stops before anything changes and the live site stays as it was: fix the value in Vercel, then press **Re-run jobs** on that run.
+
 ## Environments and releases (EZD-023)
 
 How production changes. Merging a pull request into `main` starts Actions → **Release** (`.github/workflows/release.yml`). It saves a copy of the production database to Backblaze under `releases/`, applies the migrations, sets up Worth Properties and your owner account on the first release, tags the commit (`phase-N` or `phase-N.k`), makes that commit's own build live and checks the site. If anything fails before the build goes live, the live site does not change. If the checks after going live fail, it puts the previous build back. Agents never see the production secrets; they live only in the GitHub environment `release`.

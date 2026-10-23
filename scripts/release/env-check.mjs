@@ -6,6 +6,7 @@ export const DECRYPTED_ENTRIES = Object.freeze([
   Object.freeze({ key: 'NEXT_PUBLIC_SUPABASE_URL', target: 'production' }),
   Object.freeze({ key: 'NEXT_PUBLIC_SUPABASE_URL', target: 'preview' }),
   Object.freeze({ key: 'EMAIL_TRANSPORT', target: 'preview' }),
+  Object.freeze({ key: 'AI_MODE', target: 'preview' }),
 ]);
 
 function parse(url) {
@@ -110,6 +111,15 @@ export function evaluateVercelEnv({ envs, requiredNames, prodRef }) {
   }
   if (transports.some((e) => e.value === 'resend') && of('RESEND_API_KEY', 'preview').length === 0) {
     add('preview_email', 'RESEND_API_KEY', 'preview');
+  }
+  // 6b (EZD-021 Step 6; Q-0077): when AI_MODE is a required name, the Preview value is set explicitly to
+  // stub or live.
+  if (required.includes('AI_MODE')) {
+    const aiModes = of('AI_MODE', 'preview');
+    const okAi = (v) => v === 'stub' || v === 'live';
+    if (aiModes.length === 0 || aiModes.some((e) => !okAi(e.value))) {
+      add('preview_ai_mode', 'AI_MODE', 'preview');
+    }
   }
   // 7
   const stub = list.filter((e) => e?.key === 'EMAIL_STUB_DIR');

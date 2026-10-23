@@ -53,6 +53,15 @@ Values never go in the repo; names go in `.env.example`; the app reads them per 
 | `BACKUP_S3_BUCKET` | never | none | GitHub environment `release` only; never Vercel, never `.env*`, never a repository or organization secret. The B2 bucket's name (not a credential) | `scripts/release/release.mjs` (dump upload); EZD-025 backups |
 | `RELEASE_S3_ACCESS_KEY_ID` | never | none | GitHub environment `release` only; never Vercel, never `.env*`, never a repository or organization secret. The B2 release key's id: this bucket and file names starting `releases/` only, `writeFiles` and `listAllBucketNames`, no `bypassGovernance` (Q-0112 finding 10; Q-0111) | `scripts/release/release.mjs` |
 | `RELEASE_S3_SECRET_ACCESS_KEY` | never | none | GitHub environment `release` only; never Vercel, never `.env*`, never a repository or organization secret. The B2 release key's secret (same key as `RELEASE_S3_ACCESS_KEY_ID`) | `scripts/release/release.mjs` |
+| `AI_MODE` | never | `stub` in unit tests (`app/vitest.config.ts`) and browser tests (`app/playwright.config.ts` web server); empty in `.env.example`, so a plain `pnpm dev` fails every AI job with `ai_mode_not_set` | Preview `stub` by default, `live` allowed when Josh sets it (Q-0077); Production `live` (the stub is refused when `VERCEL_ENV` is `production`, `ai_stub_not_allowed`); the release's env check requires a Preview value of `stub` or `live` (`preview_ai_mode`) | `app/src/server/ai/config.ts` |
+| `ANTHROPIC_API_KEY` | never (never `NEXT_PUBLIC_`) | none (tests run on the stub) | Production; Preview only if Josh switches a preview to `live`. Optional name: a missing key fails only the AI jobs that need it, with `ai_key_not_set` ("AI key not set") | `app/src/server/ai/config.ts` |
+| `GEMINI_API_KEY` | never (never `NEXT_PUBLIC_`) | none | as `ANTHROPIC_API_KEY` | `app/src/server/ai/config.ts` |
+| `OPENAI_API_KEY` | never (never `NEXT_PUBLIC_`) | none | as `ANTHROPIC_API_KEY` | `app/src/server/ai/config.ts` |
+| `BFL_API_KEY` | never (never `NEXT_PUBLIC_`) | none | as `ANTHROPIC_API_KEY` | `app/src/server/ai/config.ts` |
+| `GEMINI_BASE_URL` | never | none | optional; unset means `https://generativelanguage.googleapis.com`; set only when the account Josh picks serves the same API at another address; `https:` only, no user name or password, no query or fragment, else `ai_base_url_invalid` (Q-0076) | `app/src/server/ai/config.ts` |
+| `BFL_BASE_URL` | never | none | optional; unset means `https://api.bfl.ai`; same rules as `GEMINI_BASE_URL` (Q-0076) | `app/src/server/ai/config.ts` |
+| `AI_STUB_DIR` | never | browser tests only (`app/.e2e/ai-stub`, set by `app/playwright.config.ts`); not in `.env.example` | never set on Vercel | `app/src/server/ai/test-harness/stub.ts` |
+| `EZD_NET_GUARD_LOG` | never | browser tests only (`app/.e2e/net-guard.log`, set by `app/playwright.config.ts`); not in `.env.example` | never set on Vercel | `app/test-harness/net-guard/preload.mjs` |
 
 Which project's values go where: local is the local stack; preview is the dev project; production is the production project once Josh sets it up from the Before-launch checklist (11 Operations: preview deploys use the dev database; Q-0113). Entering values in Vercel is EZD-023b's (Q-0106).
 
@@ -84,6 +93,37 @@ EZD-009 (vault/plans/EZD-009.md Steps 1-9); 02 Stack Background jobs; 03 Tables 
 - **Progress:** the trigger `job_broadcast` pushes `job.progress` `{ jobId, kind, status, progress, attempts }` on `project:<project_id>` on each insert and each status or progress change (a failed send never rolls back the job write); tenant-level jobs push nothing. In the browser, `watchJob({ channel, jobId, fetchJob, onChange })` (`app/src/lib/jobs/watch-job.ts`) passes on every event for the job and fetches `GET /api/jobs/<id>` once when the job first finishes and once per resync; no timers, no polling (11 rule 11).
 - **Read route:** `GET /api/jobs/<id>` returns `{ job: { id, projectId, kind, status, progress, attempts, error, result, createdAt, updatedAt, finishedAt } }` through the session client; not a UUID or not visible is `404 job_not_found`.
 - **Tests:** every test that calls `runJobs` against the database passes `onlyTenantId` = its own fresh tenant. Every test file that inserts or enqueues `job` rows holds `holdJobQueueShared()` (`app/test-harness/jobs/queue-lock.ts`) from the start of its `beforeAll` to the end of its `afterAll`, after deleting its jobs; the unscoped sweep tests hold `holdJobQueueExclusive()`. The test page is `/dev/jobs` (not found in production).
+
+### AI (EZD-021)
+
+EZD-021 (vault/plans/EZD-021.md Steps 1-6); 02 Stack AI, Background jobs; 07 External services; 03 rule 2; R24 #18; Q-0016; Q-0059 (a); Q-0076; Q-0077; Q-0027 (a).
+
+- **AI only inside jobs.** `app/src/server/ai/` (`index.ts`) exports `callClaude(ctx, req, opts?)`, `callClaudeJson(ctx, req, schema, opts?)` and `editImage(ctx, req, opts?)`; each takes the job context (`AiJobContext`: `job`, `signal`, `timeLeft`, `sleep`). Only `app/src/server/jobs/**` (and tests) import it; never a `'use client'` file (T19, `scripts/ai/__tests__/ai-static.test.mjs`). Claude purposes run in `ai_read` jobs; image edits for renders will run in `render` jobs (EZD-1101, EZD-1103).
+- **Claude** through `@anthropic-ai/sdk` (`providers/anthropic.ts`, the only file that imports it), with the key, the address `https://api.anthropic.com`, `maxRetries: 0` (the queue retries) and the call's time budget always passed, and the key sent in the `x-api-key` header. Model aliases (`CLAUDE_MODELS`, `config.ts`): `opus` = `claude-opus-5-5`, `sonnet` = `claude-sonnet-5-5`, `haiku` = `claude-haiku-5-5`; each purpose ticket picks its alias. `callClaudeJson` strips one surrounding Markdown code fence, parses JSON and checks it with the given schema; any failure is `ai_bad_response`.
+- **Image edits** over plain HTTP, one input image and an instruction (Q-0016: Gemini image, GPT Image 2, Flux Kontext pro): `gemini` (`POST <base>/v1beta/models/<model>:generateContent`, `x-goog-api-key`), `openai` (`POST https://api.openai.com/v1/images/edits`, multipart, `Authorization: Bearer`), `bfl` (`POST <base>/v1/<model>` with `x-key`, then the returned `polling_url` every 1,000 ms through `ctx.sleep` until `Ready`, then the `sample` without the key). The caller passes the provider model id. EZD-1103 builds the render adapter interface and the model registry on top.
+- **Mode** (`getAiMode`, read per call; no default): `AI_MODE` unset or not `stub` / `live` is `ai_mode_not_set`; `stub` with `VERCEL_ENV=production` is `ai_stub_not_allowed`; `stub` runs the real adapter with the key `stub-key` and a recorded fetch (real keys are never read); `live` reads the provider's key (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`, `BFL_API_KEY`) and the global `fetch` at call time; a missing or blank key is `ai_key_not_set`, message "AI key not set", and fails only the jobs that need that provider. Local and tests `stub`; Preview `stub` by default, `live` when Josh sets it (Q-0077); Production `live`. Keys and base URLs are named in `app/src` only in `app/src/server/ai/config.ts`.
+- **Configurable addresses (Q-0076).** `GEMINI_BASE_URL` and `BFL_BASE_URL` (`getProviderBaseUrl`, read per call in both modes): unset or blank is the default (`https://generativelanguage.googleapis.com`, `https://api.bfl.ai`); otherwise `https:` with no user name, password, query or fragment, one trailing `/` removed; anything else is `ai_base_url_invalid` and nothing is sent. Anthropic and OpenAI keep fixed addresses.
+- **BFL host rule.** `polling_url` and `sample` come from the provider's answer, so they must be `https:` on `bfl.ai` or a subdomain of it, or on exactly the host of the BFL base URL; else `ai_bad_response` and no request goes to that URL (the key never leaves for a host a response names). Polling stops with `ai_provider_timeout` when `ctx.timeLeft()` is 1,000 ms or less.
+- **Time.** Each call's budget is `min(ctx.timeLeft(), JOB_RUN_BUDGET_MS)`; its signal is the job's signal combined with a timeout of that budget, so no provider call outlives the job slice; running out is `ai_provider_timeout`.
+- **Errors** (`AiError extends JobError`, `errors.ts`; `job.error` holds the code only; `message` is a fixed English text per code, never a provider body, prompt, image or key):
+
+| Code | Retry | When |
+| --- | --- | --- |
+| `ai_mode_not_set`, `ai_stub_not_allowed`, `ai_key_not_set`, `ai_base_url_invalid` | no | configuration |
+| `ai_invalid_request` | no | the request fails its schema (`validate.ts`); nothing is sent |
+| `ai_key_rejected` | no | HTTP 401 or 403 |
+| `ai_provider_rejected` | no | any other 4xx except 429 |
+| `ai_rate_limited` | yes | 429 |
+| `ai_provider_unavailable` | yes | 5xx (Anthropic 529 included), network error, BFL `Error` / `Failed` |
+| `ai_provider_timeout` | yes | the call's time ran out |
+| `ai_no_output` | no | no text or image in the answer (refusal, Gemini with no image part, BFL `Request Moderated` / `Content Moderated`) |
+| `ai_bad_response` | no | malformed body, JSON helper failure, BFL URL refused by the host rule |
+| `ai_stub_no_recording`, `ai_stub_mismatch` | no | stub mode: no recording, or a request the recording does not expect |
+
+- **No dollar cost and no money in job rows.** The client returns provider usage only (tokens, images); callers turn it into dollars (EZD-1101, EZD-1103; EZD-031 for the trial). Prices are entered by the owner (S15f, EZD-1102).
+- **Reruns cost money.** Stub results are the same on every run; in live mode a rerun of a handler repeats the provider call and may pay twice. Handlers that store outputs (EZD-1101, EZD-1103) check for an existing output by job id before calling.
+- **`ai_read` jobs** (`app/src/server/jobs/handlers/ai-read.ts`, registered in `getHandlers()` in production too): payload `{ purpose, input }`, checked against the purpose's input schema, so `enqueueJob` refuses an unknown purpose or bad input (`invalid_payload`); result `{ purpose, output }`, checked against the purpose's output schema (`invalid_result`). EZD-009's default tries apply (Q-0059 (a): up to 5, waiting 1, 2, 4 and 8 minutes); `AiError.retry` stops every failure a later try cannot fix. Results must fit 16,384 bytes; large outputs go to Storage.
+- **Adding a purpose.** Write `app/src/server/jobs/ai-purposes/<name>.ts` (`AiPurpose`: `purpose`, `input`, `output`, `run(ctx, input)`), add it to `getAiPurposes()` (`ai-purposes/index.ts`; test purposes only outside production, as `test.echo`), add its recording `"<provider>/<purpose>"` under `app/src/server/ai/test-harness/recordings/`, and test it on the stub (an `expectSafeToRunTwice('ai_read', …)` call covers the kind).
 
 ### Environments and releases (EZD-023b)
 
@@ -143,7 +183,7 @@ One row per layer of 02 Stack. Same cell format as Named tools.
 | GLB / USDZ | Three.js exporters (`three/examples/jsm/exporters`), no extra package (02) | `three` |
 | Database, auth, files | Supabase: Postgres with RLS, Auth, Storage, Realtime (02). `@supabase/supabase-js` is the client; `@supabase/ssr` builds the per-request server client from the session cookie; `supabase` is the CLI | `@supabase/supabase-js`, `@supabase/ssr`, `supabase` |
 | Background jobs | Postgres `job` table; workers are Vercel Functions started on enqueue and by a once-a-minute sweep (02; P4; EZD-009) | — |
-| AI | Claude for text and image reading; Google Gemini image-editing API as the first image adapter, OpenAI image edits later (02; R26 R21). Model ids, and whether an SDK or plain HTTP is used, are recorded here by EZD-021 and EZD-1103 | — |
+| AI | Claude for text and image reading through `@anthropic-ai/sdk`; image edits for Gemini image, GPT Image 2 and Flux Kontext pro through plain HTTP (02; R26 R21; Q-0016; EZD-021, see `### AI (EZD-021)`). Claude model ids are in `### AI (EZD-021)`; image model ids are chosen by EZD-031 and EZD-1103 | `@anthropic-ai/sdk` |
 | Offline | Service worker cache (Workbox) + local change queue; working copy in IndexedDB (`idb`) (02; 03 rules 9–10) | `workbox-build`, `workbox-window`, `workbox-precaching`, `workbox-routing`, `workbox-strategies`, `idb` |
 | Hosting | Vercel (app at ezdraft.ezcontractorbinder.com) + Supabase; local GPU render worker preferred, paid API fallback (02; R24 #1, #50; R26 R18) | — |
 
@@ -224,6 +264,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `fontkit` | `2.0.4` | spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
 | `pdf-lib` | `1.17.1` | spikes | EZD-028 tests: PDF structure checks | EZD-028 |
 | `@types/three` | `0.186.0` | spikes | Types for three (EZD-030 spike) | EZD-030 |
+| `@anthropic-ai/sdk` | `1.1.0` | app | Stack · AI | EZD-021 |
 
 ## Adding a dependency
 
@@ -245,6 +286,9 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/server/             server-only code: db clients, can(), route helpers, money serializers
   src/server/jobs/        background job handlers (EZD-009); the only place PDFKit is imported
   src/server/jobs/handlers/  one file per job kind's handler, registered in handlers.ts (EZD-009)
+  src/server/jobs/ai-purposes/  the ai_read purposes, getAiPurposes() (EZD-021)
+  src/server/ai/          the AI client and provider adapters; imported only by job code (EZD-021)
+  src/server/ai/test-harness/  stub providers: recorded fetch, stub lookup, recordings/ (EZD-021)
   src/server/errors/       error reporting: Sentry options, capture, fingerprints, alert store and emails (EZD-024)
   src/lib/jobs/           job kinds and statuses, watchJob (browser and server; EZD-009)
   src/lib/errors/         scrubbing, browser Sentry options, captureBrowserError (EZD-024)
@@ -263,6 +307,8 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   scripts/                icons-build.mjs, icons-fetch.mjs: the icon pipeline, run by hand (EZD-010b; not the root scripts/)
   e2e/                    Playwright browser specs, *.spec.ts (EZD-007f)
   test-harness/jobs/      job queue test helpers: fake-clock.ts, run-twice.ts, queue-lock.ts (EZD-009)
+  test-harness/net-guard/ the live-network guard: net-guard.mjs, preload.mjs, vitest.setup.ts, probes (EZD-021)
+  test-harness/ai/        makeAiTestContext (EZD-021)
   test-harness/e2e/       browser test harness: devices.ts (DEVICE_PROJECTS, projectGrep), global-setup.ts (EZD-016d)
   playwright.config.ts    the Playwright config (EZD-007f; EZD-016d extends it)
 packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model schema in src/schema/<object-type>.ts (03 rule 5); drawing list (02 PDF out); calculations re-run on the server (11 Where each output is produced)
@@ -730,6 +776,13 @@ EZD-020 (vault/plans/EZD-020.md Steps 5-6); 11 Budgets Download size, rule 7; Q-
 - **Watch list** `WATCH_PACKAGES`: `@sentry/`, `@supabase/realtime-js`, `@radix-ui/`, `radix-ui`, shown on every report with their bytes or `absent` (EZD-024, EZD-018, EZD-015).
 - **Repointing or adding an entry.** The owner ticket changes the measurement's URL in `perf.config.mjs` (and its owner text in `registry.mjs`); a new entry adds a registry row and, if new, a `contents.*` budget with its source and an `ENTRY_RULES` entry.
 
+### AI stubs and the network guard (EZD-021)
+
+EZD-021 (vault/plans/EZD-021.md Steps 2-3); CLAUDE.md rule 6; tickets README rule 4.
+
+- **Stub providers.** Vitest sets `AI_MODE=stub` (`app/vitest.config.ts`). In stub mode the real adapter runs with a recorded fetch (`app/src/server/ai/test-harness/recorded-fetch.ts`), so request building and response parsing are what tests exercise. A recording is looked up by `"<provider>/<purpose>"`: an override from `setStubRecording(provider, purpose, recording)` (cleared by `clearStubRecordings()`), then `<AI_STUB_DIR>/<provider>/<purpose>.json` (browser tests of later tickets), then the built-in recordings (`recordings/`). `lastStubRequests(provider)` returns the requests of the last stub call. Unit tests of the client outside the runner use `makeAiTestContext()` (`app/test-harness/ai/context.ts`).
+- **Network guard** (`app/test-harness/net-guard/net-guard.mjs`): only `localhost`, `127.0.0.1` and `::1` are allowed; any other host is blocked and fails the test, even when the calling code catches the error. Four entry points: Vitest `setupFiles` (`vitest.setup.ts`, fails the test after it); the Node preload `preload.mjs` (root `node:test` run through `--import`, and the app server under Playwright through `NODE_OPTIONS`, which logs to `EZD_NET_GUARD_LOG`); the Playwright auto fixture (`app/test-harness/e2e/net-guard-fixture.ts`, browser requests, the server log and the runner's own attempts); the Playwright global teardown (`global-teardown.ts`, the backstop for specs that import `@playwright/test` directly). Specs import the harness `test`.
+
 ## Handoff
 
 Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten at session end; previous ones in `vault/handoff/log/` (CLAUDE.md Directory; PROCESS.md Ledgers).
@@ -770,7 +823,8 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Release refuses anything but the newest merged PR on main | scripts/release/__tests__/release.test.mjs | EZD-023b |
 | — | Release workflow is main-only, pinned and secret-safe | scripts/release/__tests__/workflow.test.mjs | EZD-023e |
 | — | Performance counts and download size | scripts/perf/run.mjs (gate step perf); scripts/perf/__tests__/, app/e2e/perf-check.spec.ts | EZD-017 |
-| — | A test reaching a live provider fails | test harness | EZD-021 |
+| — | A test reaching a live provider fails | `app/test-harness/net-guard/net-guard.test.ts` (T12, T13), `app/e2e/net-guard.spec.ts` (T14) | EZD-021 |
+| — | AI imported only from jobs; keys and base URLs read only in `config.ts`; SDK imported only in `providers/anthropic.ts` | `scripts/ai/__tests__/ai-static.test.mjs` (T19) | EZD-021 |
 | — | TypeScript, lint and test discovery exclude `.claude/worktrees/`, `vault/`, `spikes/` | `scripts/tooling/__tests__/tooling.test.mjs` (T6, T7, T9) | EZD-001 (PROCESS.md) |
 | — | `packages/geometry` has no DOM or Node types | `scripts/tooling/__tests__/tooling.test.mjs` (T4) | EZD-001 |
 | — | Formatting (Prettier) | review, not gated | EZD-001 |

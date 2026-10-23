@@ -191,7 +191,7 @@ describe('EZD-023c Vercel env rules, refs and redaction', () => {
     assert.deepEqual(safeLines(['abc'], ['']), ['abc'], '(i)');
   });
 
-  test('EZD-023c DECRYPTED_ENTRIES lists only the three values the release reads', async () => {
+  test('EZD-023c DECRYPTED_ENTRIES lists only the four values the release reads', async () => {
     const { DECRYPTED_ENTRIES } = await loadEnv();
     assert.ok(Object.isFrozen(DECRYPTED_ENTRIES));
     assert.deepEqual(
@@ -200,6 +200,7 @@ describe('EZD-023c Vercel env rules, refs and redaction', () => {
         { key: 'NEXT_PUBLIC_SUPABASE_URL', target: 'production' },
         { key: 'NEXT_PUBLIC_SUPABASE_URL', target: 'preview' },
         { key: 'EMAIL_TRANSPORT', target: 'preview' },
+        { key: 'AI_MODE', target: 'preview' },
       ],
     );
   });

@@ -1943,3 +1943,31 @@ describe('EZD-023e go live, verify, rollback and record', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-021 T21 (g) (vault/plans/EZD-021.md section 4, V9): the whole release reads the Preview AI_MODE value
+// decrypted, with EZD-023e T7's setup. The released commit's .env.example holds AI_MODE, so the rule applies.
+// ---------------------------------------------------------------------------------------------------------------
+describe('EZD-021 release reads the Preview AI_MODE value', () => {
+  test('EZD-021 T21 (g) a release with AI_MODE in .env.example reads the Preview value and goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    R.tip = commitFiles(R.work, { '.env.example': C1_FILES['.env.example'] + 'AI_MODE=\n' }, 'C3 AI_MODE');
+    git(R.work, 'push', '-q', 'origin', 'main');
+    const { h, f } = makeE(mod, bs, R, {
+      listEnv: () => [
+        ...ENV_LIST(),
+        { id: 'env_P_AI', key: 'AI_MODE', target: ['production'], gitBranch: null },
+        { id: 'env_AI_PREVIEW', key: 'AI_MODE', target: ['preview'], gitBranch: null },
+      ],
+      values: { env_AI_PREVIEW: 'stub' },
+    });
+    const result = await h.run();
+
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.notEqual(result.code, 'env_mismatch');
+    const reads = f.calls.filter((c) => c.name === 'readEnvValue').map((c) => c.args[0]);
+    assert.ok(reads.includes('env_AI_PREVIEW'), `readEnvValue('env_AI_PREVIEW') was called; reads: ${reads}`);
+  });
+});

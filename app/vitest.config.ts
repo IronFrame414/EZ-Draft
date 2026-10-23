@@ -15,6 +15,8 @@ export default defineConfig({
     // EZD-004b: local Supabase values into process.env; testTimeout for database calls.
     globalSetup: ['test-harness/supabase-env.global-setup.ts'],
     testTimeout: 15000,
+    // EZD-021 Step 2: the live-network guard in every test file; a blocked attempt fails the test.
+    setupFiles: ['test-harness/net-guard/vitest.setup.ts'],
     // EZD-008a: tests send through the stub transport, never a live provider (CLAUDE.md rule 6).
     env: {
       EMAIL_TRANSPORT: 'stub',
@@ -22,6 +24,8 @@ export default defineConfig({
       // EZD-024 Step 13: Sentry stub transport and the operator alert address (reserved test domain).
       SENTRY_TRANSPORT: 'stub',
       ALERT_EMAIL_TO: 'owner@example.test',
+      // EZD-021 Step 3: tests run AI on the stub providers (CLAUDE.md rule 6).
+      AI_MODE: 'stub',
     },
   },
 });

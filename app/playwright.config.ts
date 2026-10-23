@@ -9,10 +9,12 @@
 // web server env with the secret key and test DB URL blanked (PS V4) and the stub outbox (EZD-008a); no
 // extraHTTPHeaders, so the gate secret never reaches the browser (Q-0087).
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
 import { DEVICE_PROJECTS, projectGrep } from './test-harness/e2e/devices';
+import { installNetGuard } from './test-harness/net-guard/net-guard.mjs';
 
 const NAMES = [
   'NEXT_PUBLIC_SUPABASE_URL',
@@ -71,10 +73,21 @@ process.env.EMAIL_STUB_DIR = outbox;
 const sentryOutbox = path.join(app, '.e2e', 'sentry-outbox');
 process.env.SENTRY_STUB_DIR = sentryOutbox;
 
+// EZD-021 Step 2 and V4: the AI stub folder and the app server's guard log, set at load like the outboxes, and
+// the guard in the runner's own processes (spec code). The server gets the preload through NODE_OPTIONS as a
+// file URL; no import.meta (this file is loaded as CommonJS).
+const aiStub = path.join(app, '.e2e', 'ai-stub');
+process.env.AI_STUB_DIR = aiStub;
+const guardLog = path.join(app, '.e2e', 'net-guard.log');
+process.env.EZD_NET_GUARD_LOG = guardLog;
+const preloadUrl = pathToFileURL(path.join(app, 'test-harness', 'net-guard', 'preload.mjs')).href;
+installNetGuard();
+
 export default defineConfig({
   testDir: path.join(app, 'e2e'),
   outputDir: path.join(app, 'test-results'),
   globalSetup: path.join(app, 'test-harness', 'e2e', 'global-setup.ts'),
+  globalTeardown: path.join(app, 'test-harness', 'e2e', 'global-teardown.ts'),
   workers: 4,
   timeout: 60000,
   retries: 0,
@@ -110,6 +123,13 @@ export default defineConfig({
       SENTRY_TRANSPORT: 'stub',
       SENTRY_STUB_DIR: sentryOutbox,
       ALERT_EMAIL_TO: 'owner@example.test',
+      // EZD-021 Step 2: AI stub mode, the guard preload and the settings that keep harmless calls quiet.
+      AI_MODE: 'stub',
+      AI_STUB_DIR: aiStub,
+      EZD_NET_GUARD_LOG: guardLog,
+      NODE_OPTIONS: `--import ${preloadUrl}`,
+      NEXT_TELEMETRY_DISABLED: '1',
+      npm_config_update_notifier: 'false',
     },
   },
 });

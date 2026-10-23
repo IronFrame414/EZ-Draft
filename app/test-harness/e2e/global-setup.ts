@@ -1,7 +1,8 @@
 // EZD-016d Step 3 (vault/plans/EZD-016d.md): Playwright global setup. Checks, in order, the gate secret
 // (PS V3), the stub outbox folder (EZD-008a), the seed rows (PS Step 6; EZD-016c), then empties the outbox.
 // It never prints or logs a secret. No import.meta (Q-0197 (b)).
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { adminDb } from '../rls/fixtures';
 import { clearStubOutboxDir } from '../email-outbox';
 import { clearSentryStubOutboxDir } from '../sentry-outbox';
@@ -54,9 +55,19 @@ export default async function globalSetup(): Promise<void> {
   // EZD-024 Re-validation V8: the Sentry stub folder, checked next to the email outbox.
   const sentryOutbox = process.env.SENTRY_STUB_DIR;
   if (!sentryOutbox) throw new Error('SENTRY_STUB_DIR missing');
+  // EZD-021 Step 2: the AI stub folder and the app server's guard log, checked right after the Sentry folder.
+  const aiStub = process.env.AI_STUB_DIR;
+  if (!aiStub) throw new Error('AI_STUB_DIR missing');
+  const guardLog = process.env.EZD_NET_GUARD_LOG;
+  if (!guardLog) throw new Error('EZD_NET_GUARD_LOG missing');
   if (seedMissing(await readSeed())) throw new Error('Seed missing: run pnpm db:up');
   mkdirSync(outbox, { recursive: true });
   clearStubOutboxDir(outbox);
   mkdirSync(sentryOutbox, { recursive: true });
   clearSentryStubOutboxDir(sentryOutbox);
+  // EZD-021 Step 2: an empty AI stub folder and an empty guard log.
+  rmSync(aiStub, { recursive: true, force: true });
+  mkdirSync(aiStub, { recursive: true });
+  mkdirSync(path.dirname(guardLog), { recursive: true });
+  writeFileSync(guardLog, '');
 }

@@ -3,6 +3,7 @@
 // signInAsOwner, the session readers and EZD-006's adminDb.
 import { test as base, expect } from '@playwright/test';
 import { createNetwork, type Network } from './network';
+import { NET_GUARD_LOG_DEFAULT, netGuardFixture } from './net-guard-fixture';
 import { createSessions, type Sessions } from './sessions';
 import { signInAs as signInAsPage, type SignedIn } from './sign-in-as';
 
@@ -10,7 +11,13 @@ export const test = base.extend<{
   signInAs: (email: string) => Promise<SignedIn>;
   sessions: Sessions;
   network: Network;
+  // EZD-021 Step 2: auto fixture; netGuardLog is the server guard log it watches (an option, so a spec can point
+  // a test at its own file).
+  netGuard: void;
+  netGuardLog: string;
 }>({
+  netGuardLog: [NET_GUARD_LOG_DEFAULT, { option: true }],
+  netGuard: netGuardFixture,
   // The fixture callback is named `provide`, not `use`, so the React hooks lint does not read it as a hook.
   signInAs: async ({ page }, provide) => {
     await provide((email: string) => signInAsPage(page, email));

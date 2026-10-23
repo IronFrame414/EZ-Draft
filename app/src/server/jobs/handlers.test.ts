@@ -36,7 +36,7 @@ describe('EZD-009 job handlers', () => {
   it('EZD-009 T19 every registered handler has a run-twice test', () => {
     delete process.env.VERCEL_ENV;
     const kinds = Object.keys(getHandlers()).sort();
-    expect(kinds).toEqual(['test']);
+    expect(kinds).toEqual(['ai_read', 'test']);
     const text = testFiles(appSrc)
       .map((f) => readFileSync(f, 'utf8'))
       .join('\n');
