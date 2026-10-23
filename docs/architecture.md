@@ -131,7 +131,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `zustand` | `5.0.15` | app | Named tools: State store for the open model | EZD-000 |
 | `zod` | `4.6.7` | geometry, app, worker | Named tools: Schema and validation | EZD-000 |
 | `vitest` | `5.0.5` | root, app, geometry, worker | Named tools: Unit tests | EZD-000 |
-| `@playwright/test` | `1.64.1` | root, app | Named tools: browser tests | EZD-000 |
+| `@playwright/test` | `1.64.1` | root, app, spikes | Named tools: browser tests | EZD-000 |
 | `radix-ui` | `1.8.1` | app | Named tools: Styling and UI primitives | EZD-000 |
 | `idb` | `8.0.4` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
 | `workbox-build` | `7.4.1` | app | Named tools: Device storage (builds the service worker) | EZD-000 |
@@ -152,7 +152,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `supabase` | `2.121.0` | root | Named tools: Database migrations (CLI); Stack: Database, auth, files | EZD-000 |
 | `@supabase/supabase-js` | `2.118.0` | app, worker | Stack: Database, auth, files | EZD-000 |
 | `@supabase/ssr` | `0.12.7` | app | Stack: Database, auth, files (server client per request) | EZD-000 |
-| `three` | `0.186.1` | root, app | Stack: 2D + 3D; GLB / USDZ | EZD-000 |
+| `three` | `0.186.1` | root, app, spikes | Stack: 2D + 3D; GLB / USDZ | EZD-000 |
 | `@react-three/fiber` | `9.8.2` | app | Stack: 2D + 3D | EZD-000 |
 | `three-gpu-pathtracer` | `0.0.27` | app | Stack: Browser path tracing | EZD-000 |
 | `pdfjs-dist` | `6.4.299` | root, app | Stack: PDF in | EZD-000 |
