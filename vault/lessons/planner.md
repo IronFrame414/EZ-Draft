@@ -94,3 +94,9 @@ Rule: a plan that puts a library behind an adapter writes out the adapter's full
 ## EZD-018 plan-gap round 2 (2026-10-22)
 Mistake: the plan added a non-test `@supabase/*` importer without naming the EZD-007c T34 allow-list edit, gave a dev-page attribute (`rt-self`) no value source, and prescribed a postgres.js payload as a JSON string cast to `jsonb` (double-encoded to a jsonb string).
 Rule: when a plan adds a file a guard test restricts (allow-lists, import scans), it names that test's edit and its approver; every `data-testid` value names its source; SQL parameters for `jsonb` are bound as JS objects; at most one expected-refused Realtime join per connection.
+
+## EZD-009 plan-gap (2026-10-22)
+Mistake: the plan named modules ("typed wrappers behind JobQueue", "one static map read per call", runner config) without the factory name, method signatures, the lease key or how env-dependent maps are read; it also missed the EZD-007c T34 allow-list edit for the new secret-key client file.
+Rule: every module a test injects or imports gets its exported name and full typed signature (factories, option objects with every key and default, error shapes); anything read per call is a function, not a constant; any new value import of a guarded package names the guard test's edit.
+Follow-up rule (EZD-009 round 2): a test of an unscoped shared resource (a queue sweep, a global count) must be isolated across files, not only ordered within one; the plan names the cross-file mechanism (an advisory lock, a separate run) because Vitest runs files in parallel.
+Follow-up rule (EZD-009 round 3): when a ticket adds the first reader of an environment name, the plan checks every harness that blanks or pins that name (e.g. EZD-016d T5 SUPABASE_SECRET_KEY) and names the edit; every route that parses a body states its 400 code and message_key up front.

@@ -56,3 +56,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-22 · EZD-016b · Fixtures · nothing on a screen; a script writes synthetic test files (12' x 10' room DXF, PDFs, sloped-ceiling GLB) with expected numbers, run in CI · e006b76
 2026-10-22 · EZD-017 · Performance budgets and benchmark · nothing on a screen; every gate run and CI measures page JavaScript download size and pan re-renders, fails when a budget is broken and writes a results file · 453e9f9
 2026-10-22 · EZD-018 · Realtime channels · nothing on a product screen; /dev/realtime shows two signed-in people in a presence list and a test event arriving without refresh, and a person outside the project list refused · da0db65
+2026-10-22 · EZD-009 · Background job queue · nothing on a product screen; /dev/jobs enqueues a test job, shows progress and result arriving live, two workers run it once and a dead run is picked up after its lease expires · 0c5e8c3

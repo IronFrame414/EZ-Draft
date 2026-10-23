@@ -1,12 +1,12 @@
-# Handoff · 2026-10-22 · build EZD-018
+# Handoff · 2026-10-22 · build EZD-009
 
 - Phase and stage: phase 0, Stage 3
 - Why the session ended: unit complete
-- Completed this session: EZD-018 done, commit da0db65, 802 tests, develop phase 0 gate PASS. Code-reviewer (Opus 5.5) and security-reviewer (Fable 5.1) PASS; reviewer approved adding app/src/lib/realtime/adapter.ts to the EZD-007c T34 list.
+- Completed this session: EZD-009 done, commit 0c5e8c3, 840 tests, develop phase 0 gate PASS. Code-reviewer and security-reviewer PASS (second code-review round fixed the 500 error bodies on the job routes).
 - In progress: none
 - Blocked: EZD-034 (Q-0243 escalated), EZD-003 (Before-launch checklist)
-- Questions for Josh: none new; earlier escalations unchanged (vault/questions/phase-00-for-josh.md)
-- Decisions made: none; planner lesson added (guard-test edits named in the plan, jsonb bound as objects, one expected-refused Realtime join per connection)
-- Plan deviations: plan-gap patch (rt-self dropped; T34 entry; jsonb object; T6 per-topic connection); three structural test repairs (370f2f5, 2c13c09, 3902b57)
-- Watch: presence is display-only, never lock authority (EZD-125/126); realtime token fetch sends no app version until EZD-134; hub.ts project key could collide with USER_KEY (minor). Running Vitest replaces the stored API-gate hash: run `pnpm db:up` before browser tests.
-- Next unit: build EZD-009
+- Questions for Josh: none new; needs-josh-confirm wording listed in STATUS Notes for EZD-009 (en error.invalid_input, three es error lines)
+- Decisions made: none; planner lessons added (named module signatures, cross-file isolation of shared-resource tests, harness that pins an env name)
+- Plan deviations: 3 plan-gap patches; browser-test web server now gets the local default SUPABASE_SECRET_KEY (EZD-016d T5(d) changed, security-reviewer approved); EZD-007c T34 list gained jobs/db.ts
+- Watch: job.result is readable by project members, so money kinds (EZD-11xx, 16xx) must keep money out of job rows; onJobFailed receives the claimed row marked failed (EZD-024); later job-writing test files must take the shared queue lock (app/test-harness/jobs/queue-lock.ts); run `pnpm db:up` before browser tests; Vercel cron needs CRON_SECRET entered by Josh (EZD-023b)
+- Next unit: see next_ticket.mjs --next-unit
