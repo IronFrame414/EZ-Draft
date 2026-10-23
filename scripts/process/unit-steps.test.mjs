@@ -95,6 +95,54 @@ test('merge squashes, runs the develop gate, cleans up and marks done with hash 
   rmSync(dir, { recursive: true, force: true });
 });
 
+// An interrupted unit (EZD-020, 2026-10-23: the launcher was killed after the squash commit) leaves the feat commit on
+// develop, a vault commit on top and the branch and worktree in place.
+function interrupted(gateExit = 0) {
+  const dir = fixture({ gateExit });
+  run(dir, 'worktree', 'EZD-002');
+  git(dir, 'commit', '-qam', 'docs(vault): EZD-002 in-progress');
+  const wt = path.join(dir, '.claude/worktrees/EZD-002');
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  git(dir, 'merge', '--squash', 't/EZD-002');
+  git(dir, 'commit', '-qm', 'feat(EZD-002): Thing two');
+  const feat = git(dir, 'rev-parse', '--short', 'HEAD');
+  commitIn(dir, 'vault/handoff/CURRENT.md', 'session end\n', 'docs(vault): session end');
+  return { dir, wt, feat };
+}
+
+test('worktree reports merged=yes when an interrupted unit already squashed the ticket onto develop', () => {
+  const { dir, feat } = interrupted();
+  const r = run(dir, 'worktree', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, new RegExp(`WORKTREE RESUME merged=yes commit=${feat}`));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('merge resumes an interrupted merge without a second squash and marks done with the feat hash', () => {
+  const { dir, wt, feat } = interrupted();
+  const before = git(dir, 'rev-list', '--count', 'HEAD');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /MERGE RESUME EZD-002/);
+  assert.match(r.stdout, /MERGE OK/);
+  assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), before);
+  assert.equal(git(dir, 'log', '-F', '--grep=feat(EZD-002): ', '--format=%h').split('\n').length, 1);
+  assert.ok(!existsSync(wt));
+  assert.match(row(dir, 'EZD-002'), new RegExp(`\\| done \\| medium \\| EZD-001 \\| ${feat} \\| 42 \\|`));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('a resumed merge on a red develop gate reverts the feat commit and keeps the worktree', () => {
+  const { dir, wt } = interrupted(1);
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /MERGE RED/);
+  assert.ok(!existsSync(path.join(dir, 'feature.mjs')));
+  assert.match(git(dir, 'log', '-1', '--format=%s'), /^Revert "feat\(EZD-002\): Thing two"$/);
+  assert.ok(existsSync(wt));
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test('merge on a red develop gate restores develop and keeps the worktree', () => {
   const dir = fixture({ gateExit: 1 });
   run(dir, 'worktree', 'EZD-002');

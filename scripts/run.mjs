@@ -17,9 +17,12 @@
 //   limit_formats_confirmed   true once the pilot (section 15) confirmed the limit-error message formats; until then every
 //                   limit error is treated as the weekly case (section 11)
 //   prompt_style    "slash" (default: the prompt is `/<skill> <arg>`) or "ask" (plain sentence naming the skill)
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, unlinkSync, copyFileSync } from 'node:fs';
+//   log_dir         where the launcher keeps inflight.json and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
+//                   .launcher/ in the checkout elsewhere); scripts/launchd/install.mjs and scripts/watchdog.mjs use the same
+import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, unlinkSync, copyFileSync, readdirSync, statSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,6 +40,10 @@ const costLog = path.join(vault, 'cost/log.jsonl');
 const holdFile = path.join(vault, 'handoff/BUDGET_HOLD.md');
 const stopFile = path.join(vault, 'handoff/STOP');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
+// The unit in flight, written before each `claude -p` and removed after its cost row, so a launcher killed mid-unit
+// (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start.
+export const logDir = config.log_dir || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library/Logs/ezdraft') : path.join(root, '.launcher'));
+const inflightFile = path.join(logDir, 'inflight.json');
 const claudeBin = config.claude_bin || 'claude';
 const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
@@ -224,10 +231,13 @@ async function runUnit(unitName, arg, meterSource = null) {
   } else {
     delete env.ANTHROPIC_API_KEY; // plan auth: a stray key in the shell would silently move the spend
   }
+  const sessionId = flagSupported('--session-id') ? randomUUID() : null;
+  if (sessionId) cmd.push('--session-id', sessionId);
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
   const processRev = git('rev-parse', '--short', 'HEAD').stdout.trim() || null;
+  try { mkdirSync(logDir, { recursive: true }); writeFileSync(inflightFile, JSON.stringify({ unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }) + '\n'); } catch {}
   const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
   const res = await new Promise((resolve) => {
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -245,6 +255,7 @@ async function runUnit(unitName, arg, meterSource = null) {
   const limit = (res.code !== 0 || parsed?.is_error) ? classifyLimit(text) : null;
   const outcome = limit ? `limit-${limit.kind}` : (res.code === 0 && !parsed?.is_error ? 'ok' : `error${parsed?.subtype ? `:${parsed.subtype}` : ''}`);
   appendCost(costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }));
+  try { unlinkSync(inflightFile); } catch {}
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
   if (outcome === 'ok' && UNITS[unitName].as) {
@@ -258,6 +269,41 @@ async function runUnit(unitName, arg, meterSource = null) {
   }
   commitVault(`docs(vault): ${unitName} ${arg}`);
   return { outcome, limit, parsed };
+}
+
+// A unit whose launcher died before its cost row (inflight.json still there): price its transcripts with the cost
+// tool's rates and append one row with outcome "interrupted", then tell Josh. The unit itself is picked up again by the
+// next --next-unit (an in-progress build resumes; unit-steps.mjs finishes an interrupted merge).
+async function recoverInflight() {
+  if (!existsSync(inflightFile)) return;
+  let f;
+  try { f = JSON.parse(readFileSync(inflightFile, 'utf8')); } catch { try { unlinkSync(inflightFile); } catch {} return; }
+  let est = 0, fable = 0, models = new Set(), sessionId = f.session_id, last = f.startedMs;
+  try {
+    const u = await import(path.join(vault, 'tools/usage-by-agent.mjs'));
+    const dir = u.projectsDirFor(root);
+    if (!sessionId && existsSync(dir)) {
+      // No --session-id on this CLI: the newest transcript started after the unit whose opening prompt names it.
+      const want = `/${f.skill} ${f.ticket}`;
+      const hit = readdirSync(dir).filter((n) => n.endsWith('.jsonl')).map((n) => path.join(dir, n))
+        .filter((p) => statSync(p).mtimeMs >= f.startedMs && readFileSync(p, 'utf8').slice(0, 20000).includes(want))
+        .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
+      if (hit) sessionId = path.basename(hit, '.jsonl');
+    }
+    for (const { file } of (sessionId && u.sessionFiles(dir, sessionId)) || []) {
+      last = Math.max(last, statSync(file).mtimeMs);
+      for (const m of u.readTranscript(file).messages) {
+        const { usd } = u.priceUsage(m.model, m.usage);
+        est += usd; models.add(m.model);
+        if (/fable/i.test(m.model)) fable += usd;
+      }
+    }
+  } catch (e) { log(`interrupted unit: could not price its transcripts (${e.message})`); }
+  appendCost({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev });
+  try { unlinkSync(inflightFile); } catch {}
+  commitVault(`docs(vault): cost row for interrupted ${f.unit} ${f.ticket}`);
+  log(`previous launcher stopped during ${f.unit} ${f.ticket}; cost row written (est ${est.toFixed(2)}); resuming`);
+  notify(`launcher restarted after it stopped during ${f.unit} ${f.ticket}; resuming`);
 }
 
 async function main() {
@@ -275,6 +321,7 @@ async function main() {
     // Keep the Mac awake for the life of the launcher (PROCESS.md section 10, "Keeping the machine running").
     try { const c = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }); c.unref(); } catch {}
   }
+  if (!dryRun) await recoverInflight();
   let checkFailures = 0;
   let noProgress = 0;
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');

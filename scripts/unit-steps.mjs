@@ -4,8 +4,10 @@
 // 5 lines or fewer. Exit 0 = go on, 1 = failed (red gate), 3 = stop the unit (reason printed), 2 = usage.
 //
 //   node scripts/unit-steps.mjs preflight <T>          step 0: develop clean, ledger valid, ticket startable, no hold
-//   node scripts/unit-steps.mjs worktree <T>           step 2: create or resume .claude/worktrees/<T> on t/<T>; STATUS → in-progress
-//   node scripts/unit-steps.mjs merge <T>              step 10: squash, commit, develop gate, clean up; STATUS → done (hash, tests)
+//   node scripts/unit-steps.mjs worktree <T>           step 2: create or resume .claude/worktrees/<T> on t/<T>; STATUS → in-progress;
+//                                                     `RESUME merged=yes` when an interrupted unit already squashed it (go to step 10)
+//   node scripts/unit-steps.mjs merge <T>              step 10: squash, commit, develop gate, clean up; STATUS → done (hash, tests);
+//                                                     resumes after an interrupted unit (feat commit already on develop)
 //   node scripts/unit-steps.mjs finish <T> <outcome>   step 11: ledger check, report, commit vault/, push develop
 //
 // Env (tests only): EZD_ROOT (checkout), EZD_GATE_CMD (gate command), EZD_NO_PUSH=1.
@@ -76,10 +78,26 @@ function preflight() {
   console.log(`PREFLIGHT OK ${ticket} status=${row.status} complexity=${row.complexity} phase=${row.phase}`);
 }
 
+// A unit killed after the squash commit (EZD-020, 2026-10-23: a Claude app restart) leaves `feat(<T>): …` on develop
+// with the branch still present. Returns that commit's hash when its code (everything outside vault/) equals the
+// branch tip, else null, so the next unit finishes the merge instead of building or squashing again.
+function mergedCommit() {
+  if (out(git('branch', '--list', `t/${ticket}`)) === '') return null;
+  const base = out(git('merge-base', 'develop', `t/${ticket}`));
+  const sha = out(git('log', '-F', `--grep=feat(${ticket}): `, '-n', '1', '--format=%H', `${base}..develop`));
+  if (!sha) return null;
+  return git('diff', '--quiet', sha, `t/${ticket}`, '--', '.', ':(exclude)vault').status === 0 ? sha : null;
+}
+
 function worktree() {
   const rel = `.claude/worktrees/${ticket}`;
   const wt = path.join(root, rel);
   const branchExists = out(git('branch', '--list', `t/${ticket}`)) !== '';
+  const merged = mergedCommit();
+  if (merged) {
+    console.log(`WORKTREE RESUME merged=yes commit=${merged.slice(0, 7)}: go to step 10 (merge resumes: develop gate, clean up, done)`);
+    return;
+  }
   if (existsSync(wt) || branchExists) {
     if (!existsSync(wt)) { const r = git('worktree', 'add', rel, `t/${ticket}`); if (r.status) stop(`WORKTREE STOP: ${out(r)}`); }
     const log = out(sh('git', ['-C', wt, 'log', '--format=%s', `develop..HEAD`]));
@@ -98,10 +116,14 @@ function worktree() {
 
 function merge() {
   const row = rowOf(ticket);
-  const sq = git('merge', '--squash', `t/${ticket}`);
-  if (sq.status) { git('merge', '--abort'); git('reset', '--merge'); stop(`MERGE STOP: squash failed: ${out(sq).split('\n')[0]}`); }
-  const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
-  if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);
+  const resumed = mergedCommit();
+  if (resumed) console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`);
+  else {
+    const sq = git('merge', '--squash', `t/${ticket}`);
+    if (sq.status) { git('merge', '--abort'); git('reset', '--merge'); stop(`MERGE STOP: squash failed: ${out(sq).split('\n')[0]}`); }
+    const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
+    if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);
+  }
   const gateCmd = process.env.EZD_GATE_CMD;
   const gate = gateCmd
     ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), '.', '--phase', row.phase])
@@ -109,12 +131,14 @@ function merge() {
   const gateLog = existsSync(path.join(root, 'gate.log')) ? readFileSync(path.join(root, 'gate.log'), 'utf8') : '';
   const summary = out(gate).split('\n').filter((l) => /^(GATE|typecheck|lint|test|build|perf|first error)/.test(l)).slice(-3);
   if (gate.status !== 0) {
-    git('reset', '--keep', 'HEAD~1');
+    // A resumed merge may have vault commits on top of the feat commit, so it is reverted rather than reset away.
+    if (resumed) git('revert', '--no-edit', resumed);
+    else git('reset', '--keep', 'HEAD~1');
     console.log(`MERGE RED ${ticket}: develop gate failed; develop restored, worktree kept. Treat as a review FAIL.`);
     for (const l of summary) console.log(l);
     process.exit(1);
   }
-  const hash = out(git('rev-parse', '--short', 'HEAD'));
+  const hash = resumed ? resumed.slice(0, 7) : out(git('rev-parse', '--short', 'HEAD'));
   const tests = testCount(`${out(gate)}\n${gateLog}`);
   git('worktree', 'remove', `.claude/worktrees/${ticket}`);
   git('branch', '-D', `t/${ticket}`);
