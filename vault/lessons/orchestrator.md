@@ -15,3 +15,9 @@ Mistake: the builder dispatch said no command may name the sign-in file, stricte
 Cause: the orchestrator added a safety note to the dispatch from the plan's Risks section without checking it against the plan's steps and allow lists.
 Rule: a dispatch adds no restriction the plan does not state; a caution from the plan's Risks section is quoted with its plan exceptions.
 Check: before dispatch, each extra note in the dispatch cites the plan line it comes from.
+
+## 2026-10-23 · EZD-027 · a recurring e2e flake costs gate runs
+Symptom: e2e/jobs.spec.ts (EZD-009) failed 3 of 4 full gate runs (missing 'queued' event) and passed alone 3 of 3; the merge's develop gate failed once the same way.
+Cause: the test races the first job status event under four parallel workers.
+Rule: run the failing spec alone before blaming the branch, retry the gate, and record the flake in STATUS Notes; a repair to the EZD-009 test goes to the test-author as its own ticket, not into the unit at hand.
+Check: STATUS Notes name the spec and the failure counts.
