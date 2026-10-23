@@ -1,11 +1,10 @@
-# Handoff · 2026-10-23 · build EZD-028
+# Handoff · 2026-10-23 · build EZD-029
 
 - Phase and stage: phase 0, Stage 3
-- Why the session ended: unit complete
-- Completed this session: EZD-028 merged, commit f47bc2d, 934 tests, develop gate PASS (second run). Spike verdict go (vault/spikes/EZD-028.md). code-reviewer, calc-auditor, security-reviewer PASS.
-- In progress: none
-- Blocked: EZD-027 (Josh's Surface run), EZD-034 (Q-0243), EZD-003 (Before-launch checklist)
-- Questions for Josh: none new. Needs from Josh: open spikes/EZD-028-pdf/out/EZD-028-room.pdf; check dimension should measure 3.00 in (does not block next phase). Still pending: EZD-027 Surface run.
-- Decisions made: none. Planner lesson added (data shapes name every field).
-- Watch: e2e/jobs.spec.ts (EZD-009) flaked on the first develop gate again; needs a repair ticket or question. Vercel 300 s/2 GB limits not re-checked online.
-- Next unit: run `node vault/tools/next_ticket.mjs --next-unit`
+- Why the session ended: blocked
+- Completed this session: EZD-029 plan-gap patched (HATCH own handler, createParser; lesson added to planner.md); tests written and reviewed PASS (mode 2); builder done, 17 spike tests pass (commits c2152f3, db0747d on t/EZD-029). docs/architecture.md updated by builder.
+- In progress: EZD-029, worktree .claude/worktrees/EZD-029. Not yet run: step 8 reviews (code-reviewer mode 3, security-reviewer: gate flagged 2 paths, calc-auditor if plan says), merge, go/no-go note vault/spikes/EZD-029.md, DONE.md line.
+- Blocked: EZD-029 gate red only on app/e2e/jobs.spec.ts:115 (EZD-009), 3 of 3 runs in the worktree; same gate passes on develop. Race: job runs before page sees 'queued'. Unblocks with Q-0248 answer (repair ticket for the EZD-009 test, or accept).
+- Questions for Josh: Q-0248 (open). Earlier: EZD-027 Surface run, EZD-034 (Q-0243), EZD-003 checklist.
+- Decisions made: none. Builder deviations to record: default import of dxf-parser (named import undefined in Node); "provisional" changed to "confirmed" in two Dependencies Why cells.
+- Next unit: after Q-0248 is settled, rerun /build-ticket EZD-029 (RESUME, goes to step 7).
