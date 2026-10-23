@@ -265,12 +265,13 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `pdf-lib` | `1.17.1` | spikes | EZD-028 tests: PDF structure checks | EZD-028 |
 | `@types/three` | `0.186.0` | spikes | Types for three (EZD-030 spike) | EZD-030 |
 | `@anthropic-ai/sdk` | `1.1.0` | app | Stack · AI | EZD-021 |
+| `tsx` | `4.23.15` | spikes | EZD-031: run the spike's TypeScript, which imports EZD-021's adapters | EZD-031 |
 
 ## Adding a dependency
 
 CLAUDE.md rule 7 and 02 Named tools. A commit that adds or upgrades a package in any workspace `package.json` adds or edits its Dependencies row in the same commit. One version per package across the repo. Use an already listed package for a job before adding another. Internal packages are referenced as `workspace:*` and are not listed. Install with `pnpm add` (the workspace file sets `saveExact`, so the specifier is written exact). Check C1 enforces the row and the exact version; the code-reviewer fails a ticket without the row (CLAUDE.md rule 7).
 
-Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any dependency's install script is unsettled. Every reported script is denied in `pnpm-workspace.yaml` `allowBuilds` (map form, `<package>: false`); no entry is set to allow and no allow-all setting is used. Denied so far: `unrs-resolver` (pulled in by `eslint-config-next` through `eslint-import-resolver-typescript`; added by EZD-001). A new build script a ticket's install reports is denied the same way; if the build or tests need it, the builder stops and raises a question naming the package, what the script does, what fails without it and the effect on EZD-023b T17. No agent allows one on its own.
+Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any dependency's install script is unsettled. Every reported script is denied in `pnpm-workspace.yaml` `allowBuilds` (map form, `<package>: false`); no entry is set to allow and no allow-all setting is used. Denied so far: `unrs-resolver` (pulled in by `eslint-config-next` through `eslint-import-resolver-typescript`; added by EZD-001), `esbuild` (pulled in by `tsx`; its install script only checks the platform binary that `optionalDependencies` already install; added by EZD-031). A new build script a ticket's install reports is denied the same way; if the build or tests need it, the builder stops and raises a question naming the package, what the script does, what fails without it and the effect on EZD-023b T17. No agent allows one on its own.
 
 ## Folder layout
 

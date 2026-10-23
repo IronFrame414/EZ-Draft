@@ -1,0 +1,10 @@
+{
+  "rooms": [
+    {
+      "id": "stub-room",
+      "label": "Stub room",
+      "image": "stub-room.png",
+      "finishes": "EZD-031 stub finishes."
+    }
+  ]
+}

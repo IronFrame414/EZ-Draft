@@ -1,0 +1,50 @@
+[
+  {
+    "method": "POST",
+    "url": "https://api.bfl.ai/v1/flux-kontext-pro",
+    "status": 200,
+    "requestId": null,
+    "json": {
+      "id": "bfl_stub_1",
+      "polling_url": "https://api.bfl.ai/v1/get_result?id=bfl_stub_1"
+    },
+    "contentType": null,
+    "bytes": null
+  },
+  {
+    "method": "GET",
+    "url": "https://api.bfl.ai/v1/get_result?id=bfl_stub_1",
+    "status": 200,
+    "requestId": null,
+    "json": {
+      "id": "bfl_stub_1",
+      "status": "Pending"
+    },
+    "contentType": null,
+    "bytes": null
+  },
+  {
+    "method": "GET",
+    "url": "https://api.bfl.ai/v1/get_result?id=bfl_stub_1",
+    "status": 200,
+    "requestId": null,
+    "json": {
+      "id": "bfl_stub_1",
+      "status": "Ready",
+      "result": {
+        "sample": "https://delivery.bfl.ai/stub/sample.png"
+      }
+    },
+    "contentType": null,
+    "bytes": null
+  },
+  {
+    "method": "GET",
+    "url": "https://delivery.bfl.ai/stub/sample.png",
+    "status": 200,
+    "requestId": null,
+    "json": null,
+    "contentType": "image/png",
+    "bytes": 77
+  }
+]

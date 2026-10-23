@@ -1,0 +1,14 @@
+[
+  {
+    "provider": "gemini",
+    "model": "gemini-test-model"
+  },
+  {
+    "provider": "openai",
+    "model": "gpt-image-test"
+  },
+  {
+    "provider": "bfl",
+    "model": "flux-kontext-pro"
+  }
+]

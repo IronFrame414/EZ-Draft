@@ -1,0 +1,27 @@
+{
+  "models": {
+    "gemini-test-model": {
+      "provider": "gemini",
+      "unit": "per_token",
+      "inputPerMTok": 1,
+      "outputPerMTok": 30,
+      "sourceUrl": "https://example.test/prices",
+      "retrieved": "2026-10-11"
+    },
+    "gpt-image-test": {
+      "provider": "openai",
+      "unit": "per_token",
+      "inputPerMTok": 10,
+      "outputPerMTok": 40,
+      "sourceUrl": "https://example.test/prices",
+      "retrieved": "2026-10-11"
+    },
+    "flux-kontext-pro": {
+      "provider": "bfl",
+      "unit": "per_image",
+      "perImage": 0.04,
+      "sourceUrl": "https://example.test/prices",
+      "retrieved": "2026-10-11"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+room,provider,model,status,error_code,cost_usd,ms,width,height,output
+stub-room,gemini,gemini-test-model,ok,,0.039,1,2,2,stub-room/gemini--gemini-test-model.png
+stub-room,openai,gpt-image-test,ok,,0.04524,0,2,2,stub-room/openai--gpt-image-test.png
+stub-room,bfl,flux-kontext-pro,ok,,0.04,1007,2,2,stub-room/bfl--flux-kontext-pro.png
