@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 453,
+ "count": 455,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -475,7 +475,9 @@
   "EZD-1709a",
   "EZD-1709b",
   "EZD-1709c",
-  "EZD-034"
+  "EZD-034",
+  "EZD-036",
+  "EZD-037"
  ],
  "tickets": [
   {
@@ -13901,6 +13903,53 @@
    "build_position": 442,
    "acs": [
     "AC-EZD-035-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-036",
+   "phase": 0,
+   "title": "Fix: test-harness stubs and Sentry diagnostics warnings in the production build",
+   "depends_raw": "EZD-008a, EZD-024",
+   "spec_ref": "Non-functional · Operations; EZD-024",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-008a",
+    "EZD-024"
+   ],
+   "build_position": 443,
+   "acs": [
+    "AC-EZD-036-1",
+    "AC-EZD-036-2",
+    "AC-EZD-036-3",
+    "AC-EZD-036-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-037",
+   "phase": 0,
+   "title": "Fix: EZD-002 done-when text still says every push",
+   "depends_raw": "EZD-002",
+   "spec_ref": "CI; Q-0021",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-002"
+   ],
+   "build_position": 444,
+   "acs": [
+    "AC-EZD-037-1",
+    "AC-EZD-037-2"
    ],
    "acs_source": "done-when"
   }
