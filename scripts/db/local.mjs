@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gateHash, newGateSecret, setHashSql } from './api-gate.mjs';
 import { runLocalSql } from './sql.mjs';
+import { ensureRealtimeBroadcastStream } from './realtime-warmup.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const supabaseBin = path.join(repo, 'node_modules', '.bin', 'supabase');
@@ -47,6 +48,14 @@ async function up() {
   const reset = cli(['db', 'reset', '--local'], { inherit: true });
   if (!reset.ok) fail('db reset --local', reset);
   await storeLocalGateSecret();
+  const s = readStatus();
+  try {
+    await ensureRealtimeBroadcastStream({ apiUrl: s.url, apiKey: s.publishable });
+  } catch (error) {
+    process.stderr.write(`Local Realtime is not ready (${error.message}): run pnpm db:stop, then pnpm db:up.\n`);
+    process.exit(1);
+  }
+  process.stdout.write('Realtime broadcast stream ready\n');
   process.exit(0);
 }
 
@@ -76,8 +85,7 @@ function readGateSecret() {
   return secret;
 }
 
-function env() {
-  const gateSecret = readGateSecret();
+function readStatus() {
   const status = cli(['status', '-o', 'json']);
   if (!status.ok) fail('status', status);
   let json;
@@ -94,6 +102,12 @@ function env() {
     process.stderr.write('supabase status -o json is missing API_URL, a publishable/anon key or a secret/service-role key\n');
     process.exit(1);
   }
+  return { url, publishable, secret };
+}
+
+function env() {
+  const gateSecret = readGateSecret();
+  const { url, publishable, secret } = readStatus();
   process.stdout.write(
     `${JSON.stringify({
       NEXT_PUBLIC_SUPABASE_URL: url,
