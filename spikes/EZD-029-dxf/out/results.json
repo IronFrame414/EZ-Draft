@@ -1,0 +1,275 @@
+{
+  "writer": {
+    "name": "@tarikjabiri/dxf",
+    "version": "2.9.0",
+    "fill": "HATCH",
+    "text": "TEXT",
+    "acadVer": "AC1021",
+    "handles": true,
+    "blockAndInsert": true,
+    "dimension": true,
+    "patternHatches": 82,
+    "colour": true,
+    "lineweight": false,
+    "paperSpace": true
+  },
+  "nodeBuiltins": {
+    "dxf-parser": [],
+    "@tarikjabiri/dxf": []
+  },
+  "runs": {
+    "synthetic": {
+      "schema": 1,
+      "ticket": "EZD-029",
+      "label": "synthetic",
+      "file": {
+        "name": "room-12x10.dxf",
+        "bytes": 1729,
+        "sha256": "85ddd0655d9843b1dd1eed703925d7b1aeb21caea011d99ec5a020701b32f242"
+      },
+      "runtime": {
+        "node": "v22.23.3",
+        "platform": "darwin",
+        "parser": {
+          "name": "dxf-parser",
+          "version": "1.1.2"
+        },
+        "decoding": "latin1",
+        "limits": {
+          "seconds": 300,
+          "memoryMb": 2048
+        }
+      },
+      "header": {
+        "acadVer": "AC1009",
+        "insUnits": 1,
+        "dwgCodePage": null
+      },
+      "binary": false,
+      "raw": {
+        "total": 22,
+        "byType": {
+          "LINE": 20,
+          "ARC": 1,
+          "POLYLINE": 1
+        },
+        "byLayer": {
+          "WALLS": 16,
+          "DOORS": 2,
+          "WINDOWS": 3,
+          "ROOMS": 1
+        },
+        "paperSpace": 0,
+        "subRecords": {
+          "VERTEX": 4,
+          "SEQEND": 1
+        },
+        "blocks": {
+          "count": 0,
+          "entities": 0,
+          "byBlock": {},
+          "byType": {}
+        }
+      },
+      "parsed": {
+        "total": 22,
+        "byType": {
+          "LINE": 20,
+          "ARC": 1,
+          "POLYLINE": 1
+        },
+        "byLayer": {
+          "WALLS": 16,
+          "DOORS": 2,
+          "WINDOWS": 3,
+          "ROOMS": 1
+        },
+        "paperSpace": 0,
+        "blocks": {
+          "count": 0,
+          "entities": 0,
+          "byBlock": {},
+          "byType": {}
+        },
+        "handles": false
+      },
+      "notRead": {},
+      "notReadBySection": {
+        "entities": {},
+        "blocks": {}
+      },
+      "extra": {},
+      "timing": {
+        "readMs": 0.228542,
+        "parseMs": 0.545416,
+        "reportMs": 0.44608400000000004,
+        "ms": 1.374417
+      },
+      "memory": {
+        "maxRssMb": 49.796875,
+        "heapUsedAfterMb": 4.73992919921875
+      },
+      "fitsOneSlice": true,
+      "pass": true
+    },
+    "standin-1500": {
+      "schema": 1,
+      "ticket": "EZD-029",
+      "label": "standin-1500",
+      "file": {
+        "name": "standin-1500.dxf",
+        "bytes": 16402210,
+        "sha256": "e2578744820d63f5588b7de5a4a078231d3a5cebeb828901d6061d551f55f508"
+      },
+      "runtime": {
+        "node": "v22.23.3",
+        "platform": "darwin",
+        "parser": {
+          "name": "dxf-parser",
+          "version": "1.1.2"
+        },
+        "decoding": "latin1",
+        "limits": {
+          "seconds": 300,
+          "memoryMb": 2048
+        }
+      },
+      "header": {
+        "acadVer": "AC1015",
+        "insUnits": 1,
+        "dwgCodePage": "ANSI_1252"
+      },
+      "binary": false,
+      "raw": {
+        "total": 150000,
+        "byType": {
+          "LINE": 81000,
+          "ARC": 15000,
+          "CIRCLE": 7500,
+          "LWPOLYLINE": 15000,
+          "ELLIPSE": 3000,
+          "SPLINE": 3000,
+          "TEXT": 7500,
+          "MTEXT": 4500,
+          "INSERT": 7500,
+          "HATCH": 3000,
+          "DIMENSION": 3000
+        },
+        "byLayer": {
+          "EZD-L0": 15000,
+          "EZD-L1": 15000,
+          "EZD-L2": 15000,
+          "EZD-L3": 15000,
+          "EZD-L4": 15000,
+          "EZD-L5": 15000,
+          "EZD-L6": 15000,
+          "EZD-L7": 15000,
+          "EZD-L8": 15000,
+          "EZD-L9": 15000
+        },
+        "paperSpace": 3000,
+        "subRecords": {},
+        "blocks": {
+          "count": 13,
+          "entities": 43,
+          "byBlock": {
+            "*Model_Space": 0,
+            "*Paper_Space": 0,
+            "EZD_B0": 4,
+            "EZD_B1": 4,
+            "EZD_B2": 4,
+            "EZD_B3": 4,
+            "EZD_B4": 4,
+            "EZD_B5": 4,
+            "EZD_B6": 4,
+            "EZD_B7": 4,
+            "EZD_B8": 4,
+            "EZD_B9": 4,
+            "*D1": 3
+          },
+          "byType": {
+            "LINE": 43
+          }
+        }
+      },
+      "parsed": {
+        "total": 150000,
+        "byType": {
+          "LINE": 81000,
+          "ARC": 15000,
+          "CIRCLE": 7500,
+          "LWPOLYLINE": 15000,
+          "ELLIPSE": 3000,
+          "SPLINE": 3000,
+          "TEXT": 7500,
+          "MTEXT": 4500,
+          "INSERT": 7500,
+          "HATCH": 3000,
+          "DIMENSION": 3000
+        },
+        "byLayer": {
+          "EZD-L0": 15000,
+          "EZD-L1": 15000,
+          "EZD-L2": 15000,
+          "EZD-L3": 15000,
+          "EZD-L4": 15000,
+          "EZD-L5": 15000,
+          "EZD-L6": 15000,
+          "EZD-L7": 15000,
+          "EZD-L8": 15000,
+          "EZD-L9": 15000
+        },
+        "paperSpace": 3000,
+        "blocks": {
+          "count": 13,
+          "entities": 43,
+          "byBlock": {
+            "*Model_Space": 0,
+            "*Paper_Space": 0,
+            "EZD_B0": 4,
+            "EZD_B1": 4,
+            "EZD_B2": 4,
+            "EZD_B3": 4,
+            "EZD_B4": 4,
+            "EZD_B5": 4,
+            "EZD_B6": 4,
+            "EZD_B7": 4,
+            "EZD_B8": 4,
+            "EZD_B9": 4,
+            "*D1": 3
+          },
+          "byType": {
+            "LINE": 43
+          }
+        },
+        "handles": true
+      },
+      "notRead": {},
+      "notReadBySection": {
+        "entities": {},
+        "blocks": {}
+      },
+      "extra": {},
+      "timing": {
+        "readMs": 7.048417,
+        "parseMs": 280.515,
+        "reportMs": 148.588584,
+        "ms": 436.370834
+      },
+      "memory": {
+        "maxRssMb": 401.328125,
+        "heapUsedAfterMb": 181.2991180419922
+      },
+      "fitsOneSlice": true,
+      "pass": true
+    }
+  },
+  "standins": {
+    "standin-1500": {
+      "units": 1500,
+      "entities": 150000,
+      "bytes": 16402210,
+      "generateMs": 92.357458
+    }
+  }
+}

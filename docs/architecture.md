@@ -90,7 +90,7 @@ One choice per job (02 Named tools; R26 R11). The `Packages` cell holds only npm
 | Device storage | IndexedDB through `idb`; service worker built with Workbox: `workbox-build` generates the worker, `workbox-window` registers it, `workbox-precaching`, `workbox-routing` and `workbox-strategies` run inside it, all at one version (02) | `idb`, `workbox-build`, `workbox-window`, `workbox-precaching`, `workbox-routing`, `workbox-strategies` |
 | Polygon math | Clipper2, WebAssembly build (`clipper2-wasm`), run in a Web Worker (02; 11 rule 3) | `clipper2-wasm` |
 | PDF writer | PDFKit, in the job only (02; R26 R7) | `pdfkit` |
-| DXF | `dxf-parser` to read; `@tarikjabiri/dxf` to write; both provisional until EZD-029 confirms or replaces them (02 Stack DXF in/out; EZD-029) | `dxf-parser`, `@tarikjabiri/dxf` |
+| DXF | `dxf-parser` to read, plus own handler for HATCH, `@tarikjabiri/dxf` to write; confirmed by EZD-029 (see `### DXF (EZD-029)`) (02 Stack DXF in/out; R26 R16) | `dxf-parser`, `@tarikjabiri/dxf` |
 | Email | Resend (02; R24 #15: every email also has a Copy link button, EZD-008) | `resend` |
 | CI and repository | GitHub with GitHub Actions; workflow `.github/workflows/ci.yml` uses `actions/checkout@v4`, `actions/setup-node@v4`, Node 22 (02; ci.yml) | — |
 | Error reporting | Sentry in browser and functions (`@sentry/nextjs`) and in the render worker (`@sentry/node`), both at one version, emailing the owner on new errors (02; 11 Operations; EZD-024) | `@sentry/nextjs`, `@sentry/node` |
@@ -117,6 +117,30 @@ One row per layer of 02 Stack. Same cell format as Named tools.
 | Offline | Service worker cache (Workbox) + local change queue; working copy in IndexedDB (`idb`) (02; 03 rules 9–10) | `workbox-build`, `workbox-window`, `workbox-precaching`, `workbox-routing`, `workbox-strategies`, `idb` |
 | Hosting | Vercel (app at ezdraft.ezcontractorbinder.com) + Supabase; local GPU render worker preferred, paid API fallback (02; R24 #1, #50; R26 R18) | — |
 
+### DXF (EZD-029)
+
+EZD-029 (vault/plans/EZD-029.md Steps 2-8); 02 Stack DXF in/out; 08 Imports, Architect drawings; 11 Budgets, rules 3 and 7; R26 R16; Q-0027 (a). Results: `spikes/EZD-029-dxf/out/results.json` (written DXF: `spikes/EZD-029-dxf/out/room-written.dxf`).
+
+- **Packages.** Parser `dxf-parser` 1.1.2, with the spike's own HATCH handler (1.1.2 ships none) registered through `registerEntityHandler` (`spikes/EZD-029-dxf/src/hatch-handler.mjs`; EZD-901a carries it). Writer `@tarikjabiri/dxf` 2.9.0. In Node ESM the parser class is the default import (the package's UMD bundle sets `module.exports`; the named `DxfParser` import is undefined at run time).
+- **Counting method** (R26 R16): an own raw scanner counts the entity records of the file by type, layer, space and block, with no parser; not read = raw count - parsed count, per type, for ENTITIES and BLOCKS separately and then combined. `VERTEX`, `ATTRIB` and `SEQEND` are sub-records of the record before them.
+- **Required types** (08 Architect drawings) and whether the parser reads them, on the generated stand-in:
+
+| 08 term | DXF entity types | Read |
+| --- | --- | --- |
+| linework | LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE, ELLIPSE, SPLINE | yes (POLYLINE on the synthetic fixture) |
+| blocks | INSERT, plus the entities inside BLOCKS definitions | yes |
+| hatches | HATCH | yes, through the own handler |
+| text | TEXT, MTEXT | yes |
+| dims | DIMENSION | yes |
+| model and paper space, layouts | the paper-space flag (group 67) on entities | yes (`inPaperSpace`) |
+| layers | the LAYER table, and group 8 on every entity | yes |
+
+- **Time and memory** against the Q-0027 (a) limits (300 s, 2048 MB), each parse in a child Node process with `--max-old-space-size=2048`, killed after 300 s (Node v22.23.3, darwin; not the platform, EZD-901a proves the real run): synthetic fixture 22 of 22 entities read, 1.4 ms, peak 49.8 MB; the 150,000-entity stand-in (16.4 MB, plus 43 block entities) all read, 436 ms (parse 281 ms), peak 401 MB. Both `fitsOneSlice` (within the EZD-009 run budget, (300 - 30) x 1000 ms); a parse is one synchronous unit and cannot be split across slices.
+- **Where parsing runs:** background jobs only (EZD-302; EZD-901a "the browser never parses DXF text"; 11 rule 3).
+- **Decoding rule:** the file is read as latin1 to find `$ACADVER`; `AC1021` (R2007) and later are decoded as UTF-8, earlier versions stay latin1. Other code pages are EZD-901a's. A file starting `AutoCAD Binary DXF` is reported as binary and not parsed (S11 States "Unreadable file").
+- **Node built-ins** (for EZD-020 and EZD-913): neither installed package imports a Node built-in (`require` or `import` of any `module.builtinModules` name, scanned in the installed files).
+- **Writer** (for EZD-913 and EZD-911): writes `$ACADVER` `AC1021`, `$INSUNITS` 1, named layers, LINE, ARC, closed LWPOLYLINE, TEXT and a SOLID HATCH, read back in full by the parser, including the layer `Z-MARKUP-WP`. Recorded only: entities carry handles; it has BLOCK and INSERT, DIMENSION, pattern hatches, colour (group 62) and paper space; no line weight (group 370) was written.
+
 ## Dependencies
 
 Machine-read by check C1. One row per npm package; `Version` is one exact version, no range. `Used in` is one or more of `root`, `app`, `geometry`, `worker`, `spikes`. Versions are the newest stable releases on 2026-10-19 whose peer ranges fit each other, read from the npm registry: `react` 19.3.1 satisfies `next` (`^19.0.0`) and `@react-three/fiber` (`>=19 <19.4`); `three` 0.186.1 satisfies `@react-three/fiber` (`>=0.156`), `three-bvh-csg` (`>=0.179.0`) and `three-gpu-pathtracer` (`>=0.185.0`); `@sentry/nextjs` 11.x accepts `next` `^16`; `@supabase/ssr` 0.12.7 needs `@supabase/supabase-js` `^2.114.0`. `typescript` stays on the 5.x line: 7.0.2 shipped on 2026-10-18 with a new compiler and no registry evidence that `next` 16.4.2 builds with it; the ticket that moves to 7 edits this row. Most rows are installed by later tickets (EZD-001 and on); they are pinned here first (02 Named tools). EZD-001 (2026-10-19): `eslint` stays on 9.x because `eslint-config-next` 16.4.2 depends on `eslint-plugin-import`, `eslint-plugin-react` and `eslint-plugin-jsx-a11y`, whose peer ranges end at ESLint 9; `@eslint/js` matches the `eslint` major; `@types/node` is the newest 22.x so the types match the Node 22 runtime above (vitest 5.0.5 peers `^22.0.0 || >=24.0.0`).
@@ -142,8 +166,8 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `clipper2-wasm` | `0.4.0` | geometry, app | Named tools: Polygon math (Clipper2 WebAssembly build) | EZD-000 |
 | `three-bvh-csg` | `0.0.18` | app | Stack: Polygon math | EZD-000 |
 | `pdfkit` | `0.20.2` | app, spikes | Named tools: PDF writer; Stack: PDF out | EZD-000 |
-| `dxf-parser` | `1.1.2` | root, app | Named tools: DXF (read); provisional until EZD-029 | EZD-000 |
-| `@tarikjabiri/dxf` | `2.9.0` | app | Named tools: DXF (write); provisional until EZD-029 | EZD-000 |
+| `dxf-parser` | `1.1.2` | root, app, spikes | Named tools: DXF (read); confirmed by EZD-029 | EZD-000 |
+| `@tarikjabiri/dxf` | `2.9.0` | app, spikes | Named tools: DXF (write); confirmed by EZD-029 | EZD-000 |
 | `resend` | `6.34.1` | app | Named tools: Email | EZD-000 |
 | `@sentry/nextjs` | `11.8.0` | app | Named tools: Error reporting (browser and functions) | EZD-000 |
 | `@sentry/core` | `11.8.0` | app | Named tools: Error reporting (envelope parse for the tunnel route; not exported by `@sentry/nextjs`) | EZD-024 |
