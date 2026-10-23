@@ -151,7 +151,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `next` | `16.4.2` | app | Named tools: Next.js mode; Stack: App shell | EZD-000 |
 | `react` | `19.3.1` | app | Stack: App shell | EZD-000 |
 | `react-dom` | `19.3.1` | app | Stack: App shell | EZD-000 |
-| `typescript` | `5.9.3` | root, app, geometry, worker | Stack: App shell | EZD-000 |
+| `typescript` | `5.9.3` | root, app, geometry, worker, spikes | Stack: App shell | EZD-000 |
 | `zustand` | `5.0.15` | app | Named tools: State store for the open model | EZD-000 |
 | `zod` | `4.6.7` | geometry, app, worker | Named tools: Schema and validation | EZD-000 |
 | `vitest` | `5.0.5` | root, app, geometry, worker, spikes | Named tools: Unit tests | EZD-000 |
@@ -193,6 +193,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@supabase/realtime-js` | `2.118.0` | app | Browser Realtime client (EZD-018); no table-query API in the browser | EZD-018 |
 | `fontkit` | `2.0.4` | spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
 | `pdf-lib` | `1.17.1` | spikes | EZD-028 tests: PDF structure checks | EZD-028 |
+| `@types/three` | `0.186.0` | spikes | Types for three (EZD-030 spike) | EZD-030 |
 
 ## Adding a dependency
 
