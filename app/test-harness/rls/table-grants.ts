@@ -26,6 +26,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: ['SELECT'],
     reason: 'Listed projects decide access; a member must not change their own (Step 5; EZD-129).',
   },
+  job: {
+    privileges: ['SELECT'],
+    reason:
+      'Members enqueue only through enqueue_job; the runner writes with the secret key (EZD-009)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

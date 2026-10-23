@@ -17,6 +17,9 @@ export const es = {
   'error.db_unavailable':
     'No se puede conectar con la base de datos. Inténtalo de nuevo en un minuto.',
   'error.not_signed_in': 'Se cerró tu sesión. Vuelve a iniciar sesión para continuar.',
+  'error.not_authorized': 'No tienes permiso para hacer eso.',
+  'error.job_not_found': 'Esa tarea ya no existe.',
+  'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
   'common.sign_in.title': 'Inicia sesión en EZ Draft',
   'common.sign_in.email_label': 'Correo electrónico',
   'common.sign_in.send': 'Envíame un enlace de acceso por correo',

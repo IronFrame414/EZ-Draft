@@ -27,6 +27,7 @@ describe('EZD-016d harness config', () => {
       const devicesMod = await import('./devices');
       const config = (await import('../../playwright.config')).default as unknown as AnyRecord;
       const secretAfterImport = process.env.SUPABASE_API_GATE_SECRET;
+      const secretKeyAfterImport = process.env.SUPABASE_SECRET_KEY;
 
       // (a) projects
       const projects = config.projects as AnyRecord[];
@@ -100,10 +101,16 @@ describe('EZD-016d harness config', () => {
       expect(typeof env.SUPABASE_API_GATE_SECRET).toBe('string');
       expect(env.SUPABASE_API_GATE_SECRET.length).toBeGreaterThan(0);
       expect(env.SUPABASE_API_GATE_SECRET === secretAfterImport).toBe(true);
-      expect(env.SUPABASE_SECRET_KEY).toBe('');
+      // EZD-009 (plan Step 6, plan-gap round 3): the job run started on enqueue reads the secret key in the
+      // web server, so it is the local stack's published key from `local.mjs env`, never in a NEXT_PUBLIC_ value.
+      expect(env.SUPABASE_SECRET_KEY.length).toBeGreaterThan(0);
+      expect(env.SUPABASE_SECRET_KEY === secretKeyAfterImport).toBe(true);
       expect(env.EZD_TEST_DB_URL).toBe('');
       for (const [k, v] of Object.entries(env)) {
-        if (k.startsWith('NEXT_PUBLIC_')) expect(v === env.SUPABASE_API_GATE_SECRET).toBe(false);
+        if (k.startsWith('NEXT_PUBLIC_')) {
+          expect(v === env.SUPABASE_API_GATE_SECRET).toBe(false);
+          expect(v === env.SUPABASE_SECRET_KEY).toBe(false);
+        }
       }
 
       // (e) no browser headers

@@ -197,6 +197,7 @@ describe('EZD-006 RLS audit', () => {
 
     expect(Object.keys(TABLE_GRANTS).sort()).toEqual([
       'app_user',
+      'job',
       'membership',
       'membership_project',
       'tenant',

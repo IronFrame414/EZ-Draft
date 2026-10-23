@@ -322,6 +322,7 @@ describe('EZD-007c session client and API gate secret', () => {
       'app/src/lib/realtime/adapter.ts',
       'app/src/server/auth/supabase-server.ts',
       'app/src/server/db/client.ts',
+      'app/src/server/jobs/db.ts',
     ]);
 
     const ssr = [...text].filter(([, body]) => body.includes('@supabase/ssr')).map(([f]) => f);

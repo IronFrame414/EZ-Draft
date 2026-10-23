@@ -76,3 +76,10 @@ Josh's steps in Supabase, once per cloud project: `ezdraft-dev` now, `ezdraft-pr
 4. **Email templates.** Authentication, Emails (Email Templates). For both "Confirm signup" and "Magic Link": subject exactly `Your EZ Draft sign-in link and code / Tu enlace y código para entrar en EZ Draft`; body = the whole text of `supabase/templates/sign-in.html` from GitHub (open the file, Raw, select all, copy, paste over the template's body). Save each. Do not change "Invite user", "Change email address" or "Reset password"; later tickets set those.
 5. **Account gate hook.** Authentication, Hooks, "Before User Created": Postgres function, schema `private`, function `auth_before_user_created`, enable it. Until this is on, anyone with the project's public key could create an account for any email on that project. This is the same place as the Custom Access Token hook (section "Supabase cloud projects", step 9).
 6. **Sending through Resend.** Section "Email (EZD-008)", step 6 (custom SMTP). Leave Authentication, Rate Limits, "Rate limit for sending emails" at the default Supabase shows for custom SMTP.
+
+## Background jobs (EZD-009)
+
+Josh's steps in Vercel. The once-a-minute sweep picks up jobs that are waiting to retry or whose run died. Vercel runs cron jobs on production deployments only, so previews get no sweep. The `ezdraft` project sits in EZ Binder's Vercel team, which is on Pro, so a cron every minute is allowed. Agents never change Vercel settings. Never paste the secret into chat, a ticket or the repo.
+
+1. **Cron secret.** In Vercel, open the `ezdraft` project, then Settings, Environment Variables. Add `CRON_SECRET` for Production only, marked Sensitive. The value is a random string of at least 32 characters (for example from a password manager's generator). Vercel sends it with every cron request, and the sweep refuses any request without it.
+2. **Check the cron (after the Phase 0 merge).** In the `ezdraft` project, open Settings, Cron Jobs. It lists `/api/jobs/sweep` with the schedule `* * * * *` (every minute). If it is missing, or Vercel says the plan does not allow it, tell the orchestrator before changing anything.

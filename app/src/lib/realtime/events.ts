@@ -1,8 +1,18 @@
 // EZD-018 Step 5 (vault/plans/EZD-018.md): typed event maps for the project and user channels. A later
 // ticket adds its event name here in the same commit as the trigger that sends it (T19 checks the
 // migrations). Payloads carry ids, statuses, counters and timestamps only (Step 3 payload rule).
+import type { JobKind, JobStatus } from '../jobs/kinds';
+
 export interface ProjectChannelEvents {
   'dev.ping': { n: number };
+  // EZD-009 Step 3: pushed by the job_broadcast trigger on each insert and status or progress change.
+  'job.progress': {
+    jobId: string;
+    kind: JobKind;
+    status: JobStatus;
+    progress: number;
+    attempts: number;
+  };
 }
 
 export interface UserChannelEvents {

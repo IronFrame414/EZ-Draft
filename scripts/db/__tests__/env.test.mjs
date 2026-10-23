@@ -18,6 +18,7 @@ const NAMES = [
   'EMAIL_TRANSPORT',
   'EMAIL_FROM',
   'RESEND_API_KEY',
+  'CRON_SECRET',
 ];
 
 function namesFileLines() {
@@ -27,7 +28,7 @@ function namesFileLines() {
     .filter((l) => l !== '' && !l.startsWith('#'));
 }
 
-test('EZD-004b T7 names file holds exactly the seven names with empty values', () => {
+test('EZD-004b T7 names file holds exactly the eight names with empty values', () => {
   assert.deepEqual(
     namesFileLines(),
     NAMES.map((n) => `${n}=`),

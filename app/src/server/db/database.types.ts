@@ -19,6 +19,38 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"job": {
+                  Row: {
+                    "attempts": number,"created_at": string,"created_by": string | null,"error": string | null,"finished_at": string | null,"id": string,"kind": string,"lease_expires_at": string | null,"max_attempts": number,"payload": NonNullable<Json>,"progress": number,"project_id": string | null,"result": Json | null,"run_after": string,"run_id": string | null,"started_at": string | null,"state": Json | null,"status": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"created_at"?: string,"created_by"?: string | null,"error"?: string | null,"finished_at"?: string | null,"id"?: string,"kind": string,"lease_expires_at"?: string | null,"max_attempts": number,"payload"?: NonNullable<Json>,"progress"?: number,"project_id"?: string | null,"result"?: Json | null,"run_after"?: string,"run_id"?: string | null,"started_at"?: string | null,"state"?: Json | null,"status"?: string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "attempts"?: number,"created_at"?: string,"created_by"?: string | null,"error"?: string | null,"finished_at"?: string | null,"id"?: string,"kind"?: string,"lease_expires_at"?: string | null,"max_attempts"?: number,"payload"?: NonNullable<Json>,"progress"?: number,"project_id"?: string | null,"result"?: Json | null,"run_after"?: string,"run_id"?: string | null,"started_at"?: string | null,"state"?: Json | null,"status"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "job_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "job_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "job_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"membership": {
                   Row: {
                     "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string
@@ -120,10 +152,83 @@ isOneToOne: false
             "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"enqueue_job":
+{ Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
+                           },
 "health":
 { Args: Record<PropertyKey, never>; Returns: {
               "schema_version": string,"status": string
             }[]
+                           },
+"job_claim":
+{ Args: { "p_lease_seconds": number,"p_only_tenant"?: string,"p_run_id": string }; Returns: {
+              "attempts": number,
+"created_at": string,
+"created_by": string | null,
+"error": string | null,
+"finished_at": string | null,
+"id": string,
+"kind": string,
+"lease_expires_at": string | null,
+"max_attempts": number,
+"payload": NonNullable<Json>,
+"progress": number,
+"project_id": string | null,
+"result": Json | null,
+"run_after": string,
+"run_id": string | null,
+"started_at": string | null,
+"state": Json | null,
+"status": string,
+"tenant_id": string,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "job"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"job_complete":
+{ Args: { "p_job_id": string,"p_result": Json,"p_run_id": string }; Returns: boolean
+                           },
+"job_continue":
+{ Args: { "p_job_id": string,"p_run_id": string,"p_state": Json }; Returns: boolean
+                           },
+"job_fail":
+{ Args: { "p_error": string,"p_job_id": string,"p_retry_after_ms": number,"p_run_id": string }; Returns: boolean
+                           },
+"job_fail_expired":
+{ Args: { "p_only_tenant"?: string }; Returns: {
+              "attempts": number,
+"created_at": string,
+"created_by": string | null,
+"error": string | null,
+"finished_at": string | null,
+"id": string,
+"kind": string,
+"lease_expires_at": string | null,
+"max_attempts": number,
+"payload": NonNullable<Json>,
+"progress": number,
+"project_id": string | null,
+"result": Json | null,
+"run_after": string,
+"run_id": string | null,
+"started_at": string | null,
+"state": Json | null,
+"status": string,
+"tenant_id": string,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "job"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"job_progress":
+{ Args: { "p_job_id": string,"p_progress": number,"p_run_id": string }; Returns: boolean
                            },
 "link_app_user":
 { Args: Record<PropertyKey, never>; Returns: {

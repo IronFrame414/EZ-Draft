@@ -9,4 +9,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-007b (vault/plans/EZD-007b.md section 3): the linking and access functions, authenticated only.
   { fn: 'current_app_user_id', args: {} },
   { fn: 'link_app_user', args: {} },
+  // EZD-009 Step 2 (vault/plans/EZD-009.md): enqueue_job, authenticated only.
+  {
+    fn: 'enqueue_job',
+    args: { p_kind: 'test', p_project_id: null, p_payload: {}, p_max_attempts: 5 },
+  },
 ];
