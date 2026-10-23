@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 452,
+ "count": 453,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -13880,6 +13880,27 @@
    "acs": [
     "AC-EZD-034-1",
     "AC-EZD-034-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-035",
+   "phase": 0,
+   "title": "Fix: job progress browser test misses the queued event under load",
+   "depends_raw": "EZD-009",
+   "spec_ref": "Non-functional · Operations rule 11; EZD-009",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-009"
+   ],
+   "build_position": 442,
+   "acs": [
+    "AC-EZD-035-1"
    ],
    "acs_source": "done-when"
   }

@@ -517,3 +517,4 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-034 | 0 | Captcha on sign-in | questions | high | EZD-007d, EZD-007f |  |  | Added 2026-10-20 for Q-0175 (b). |
+| EZD-035 | 0 | Fix: job progress browser test misses the queued event under load | todo |  | EZD-009 |  |  | Added 2026-10-23 by Josh's request: flaky in the EZD-027 gate (see the EZD-027 notes). |
