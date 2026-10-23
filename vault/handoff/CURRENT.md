@@ -1,10 +1,10 @@
-# Handoff · 2026-10-23 · build EZD-032
+# Handoff · 2026-10-23 · build EZD-033
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: blocked
-- Completed this session: EZD-032 tests (2ad3144) and docs subsection built in worktree; ticket gate GATE PASS once; code-reviewer PASS, security-reviewer PASS.
-- In progress: EZD-032 worktree .claude/worktrees/EZD-032 (kept, reviewed, green except below).
-- Blocked: EZD-032. `unit-steps.mjs merge` gave MERGE RED: develop gate test:e2e fails at app/e2e/jobs.spec.ts:32 (EZD-009, missing first queued event) whenever EZD-032's smoke spec runs. Same cause as Q-0248. Unblocks when EZD-035 merges.
-- Questions for Josh: none new (Q-0248 answered-agent: EZD-035).
-- Decisions made: none.
-- Next unit: build EZD-035, then re-run `node scripts/unit-steps.mjs merge EZD-032` (a /build-ticket EZD-032 resume goes to step 7 gate, then merge).
+- Completed this session: EZD-033 re-validated, tests, build, reviews. code-reviewer (only for red gate), security-reviewer and ui-verifier PASS.
+- In progress: EZD-033 worktree .claude/worktrees/EZD-033 (kept, reviewed; last code commits b82b3a3, 750381a, 6603187; test repairs 2a147e5, de02c97, T17 (d)).
+- Blocked: EZD-033. Worktree gate fails only test:e2e at app/e2e/jobs.spec.ts:32 (EZD-009 flake, Q-0248). Unblocks when EZD-035 merges.
+- Questions for Josh: none new. Spanish text by the builder needs a Spanish speaker (see STATUS notes).
+- Decisions made: none new; lesson for planner: name settle-failure paths and report codes up front (add to vault/lessons/planner.md).
+- Next unit: build EZD-035, then /build-ticket EZD-033 (resume at step 7 gate, then merge). EZD-032 is also waiting on EZD-035.
