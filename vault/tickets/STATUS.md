@@ -523,4 +523,4 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-038 | 0 | Fix: EZD-002 Scope cell still says every push | planned | low | EZD-037 | | | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). |
 | EZD-039 | 0 | Fix: TRACE report misreads the test tables of EZD-000b to EZD-000j and EZD-010c | planned | low | EZD-038 | | | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). |
 | EZD-040 | 0 | Fix: error tunnel scrubs tags and contexts | planned | medium | EZD-024, EZD-036 | | | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). |
-| EZD-041 | 0 | Fix: release bootstrap passes the production database URL on the psql command line | todo | medium | EZD-023b | | | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). |
+| EZD-041 | 0 | Fix: release bootstrap passes the production database URL on the psql command line | questions | medium | EZD-023b | | | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). |
