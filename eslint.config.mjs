@@ -12,6 +12,8 @@ import ezdraft from './eslint-rules/index.mjs';
 const APP = ['app/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'];
 // Absolute so the Next plugin finds app/ whether ESLint runs from the root (T7, T8) or from app/ (the app lint script).
 const APP_DIR = path.join(import.meta.dirname, 'app');
+const NO_POLLING =
+  'No polling (11 Performance rule 11; EZD-018). Push over Realtime. A display-only timer needs an eslint-disable comment with the reason.';
 
 export default tseslint.config(
   {
@@ -86,6 +88,21 @@ export default tseslint.config(
     plugins: { ezdraft },
     rules: {
       'ezdraft/no-literal-ui-string': ['error', { allowedKeyPrefixes: ['common.', 'error.'] }],
+    },
+  },
+  // EZD-018 Step 7 · no polling loops anywhere in the app (11 Performance rule 11). A later block that sets
+  // no-restricted-globals or no-restricted-properties for these files must repeat these entries.
+  {
+    files: ['app/src/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.*', '**/*.spec.*', '**/test-utils/**', '**/test-harness/**'],
+    rules: {
+      'no-restricted-globals': ['error', { name: 'setInterval', message: NO_POLLING }],
+      'no-restricted-properties': [
+        'error',
+        { object: 'window', property: 'setInterval', message: NO_POLLING },
+        { object: 'globalThis', property: 'setInterval', message: NO_POLLING },
+        { object: 'self', property: 'setInterval', message: NO_POLLING },
+      ],
     },
   },
 );

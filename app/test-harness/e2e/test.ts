@@ -44,3 +44,5 @@ export { adminDb } from '../rls/fixtures';
 // Section 4: fresh tenants and users come from EZD-006 createTenant / createMember and are removed with
 // cleanup() and closeHarness(); re-exported so specs still import only from this file.
 export { cleanup, closeHarness, createMember, createTenant } from '../rls/fixtures';
+// EZD-018 Step 9 item 3: projects and the admin SQL client for the Realtime spec's database broadcast.
+export { createProjects, harnessSql } from '../rls/fixtures';
