@@ -641,6 +641,15 @@ EZD-016b (vault/plans/EZD-016b.md Steps 1, 6, 7); 08 Imports; 03 rule 5; Q-0065 
 - **A later ticket that adds a fixture** adds its manifest entry and README row in the same commit (T7 in `scripts/fixtures/__tests__/manifest.test.mjs` enforces it).
 - **Variants** are written with the exported `room`, `planDrawing` and writers of `scripts/fixtures/` (EZD-302's unjoined wall, Q-0066 (b)), never by copying code.
 
+### Build-gate tests (EZD-032)
+
+EZD-032 (vault/plans/EZD-032.md Step 5); Q-0039 (c); Q-0087; Q-0088; Q-0006.
+
+- One file per phase: `app/e2e/build-gate-phase-NN.spec.ts`; Phase 0 is `build-gate-phase-00.spec.ts`.
+- Its top-level describe is `EZD-<ticket> phase N build gate @smoke`, plus the device tags the phase's Build gate names, and `@surface` wherever it names the iPad (Q-0088).
+- Tenant-isolation reads go through the gated server-path client (`serverDb`) with the user's own access token, never the secret key. Each zero-row check has a positive control through the same client.
+- The Phase 0 file opens `SHELL_PATH = '/dev/shell'` (Q-0039 (c)) and runs in `desktop`, `ipad-landscape` and `surface`. EZD-120b's ticket may move B1 to the editor route once it exists.
+
 ### Test scope (Q-0006)
 
 Phase tests plus a smoke set per ticket; the full suite at the phase gate (EZD-001 Step 6).
