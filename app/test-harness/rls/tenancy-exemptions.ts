@@ -12,6 +12,11 @@ export const TENANTLESS_TABLES: TenantlessTable[] = [
       'One person across tenants, linked to each company by membership (user_id, tenant_id) (03 Tables; EZD-005a).',
   },
   {
+    table: 'sign_in_throttle',
+    reason:
+      'Sign-in throttle: rows are written before sign-in and belong to no company; they hold only keyed hashes and times (Q-0094).',
+  },
+  {
     table: 'tenant',
     reason: 'It is the tenant; its key is id (03 Tables; EZD-005a).',
   },

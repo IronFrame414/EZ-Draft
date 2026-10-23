@@ -72,6 +72,62 @@ export async function addMembership(opts: {
   return { membershipId: membership.id };
 }
 
+// EZD-033 Step 8 (vault/plans/EZD-033.md): a member with a confirmed Auth account and a password, made
+// through the Auth admin API (allowed in tests; no screen sets a password in Phase 0, Q-0095). The password
+// is 20 random lowercase letters, checked with validateNewPassword (regenerated if it has a problem). The
+// rules module is loaded inside the function, so a missing module fails only the tests that call this.
+export type PasswordMember = TestMember & { password: string; authUserId: string };
+
+const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+const randomLetters = (n: number) =>
+  Array.from({ length: n }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]).join('');
+
+export async function randomPassword(email: string): Promise<string> {
+  const { validateNewPassword } = await import('../src/lib/auth/password-rules');
+  for (;;) {
+    const candidate = randomLetters(20);
+    if (validateNewPassword(candidate, email).length === 0) return candidate;
+  }
+}
+
+export async function createPasswordMember(opts: {
+  tenantId: string;
+  status?: TestMemberStatus;
+  invitedAt?: Date | null;
+}): Promise<PasswordMember> {
+  const { tenantId, status = 'active' } = opts;
+  const member = await createTestMember({ tenantId, status, invitedAt: opts.invitedAt });
+  const password = await randomPassword(member.email);
+  const { data, error } = await adminDb().auth.admin.createUser({
+    email: member.email,
+    email_confirm: true,
+  });
+  if (error || !data.user) {
+    throw new Error(`auth-users createUser failed: ${error?.code} ${error?.message}`);
+  }
+  // The EZD-007a guard nulls a password written while the row is created unconfirmed, so set it after.
+  const set = await adminDb().auth.admin.updateUserById(data.user.id, { password });
+  if (set.error) throw new Error(`auth-users set password failed: ${set.error.code}`);
+  return { ...member, password, authUserId: data.user.id };
+}
+
+// An Auth account whose email is not confirmed. The caller passes the email of a member made by
+// createTestMember; cleanupTestMembers() deletes the auth user by that email.
+export async function createUnconfirmedPasswordUser(
+  email: string,
+  password: string,
+): Promise<{ authUserId: string }> {
+  const { data, error } = await adminDb().auth.admin.createUser({
+    email,
+    password,
+    email_confirm: false,
+  });
+  if (error || !data.user) {
+    throw new Error(`auth-users createUser failed: ${error?.code} ${error?.message}`);
+  }
+  return { authUserId: data.user.id };
+}
+
 export async function cleanupTestMembers(): Promise<void> {
   const s = harnessSql();
   if (emails.length) {

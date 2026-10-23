@@ -1,0 +1,28 @@
+<!doctype html>
+<!--
+  EZD-033 Step 2 (vault/plans/EZD-033.md): the one-time confirmation code a signed-in person needs to change
+  a password (secure_password_change). English first, then Spanish (Q-0047 (a)); the English is Q-0102, the
+  Spanish is the builder's (Q-0030 (a)). Link-less (Q-0094): the code only, no link. No image, no tracking,
+  no web font.
+-->
+<html>
+  <body
+    style="
+      margin: 0;
+      padding: 24px;
+      background: #ffffff;
+      color: #1a1f2b;
+      font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    "
+  >
+    <div lang="en">
+      <p style="margin: 0">Type this code in EZ Draft to confirm it's you: {{ .Token }}. If you didn't ask for this, ignore this email.</p>
+    </div>
+    <hr style="margin: 24px 0; border: 0; border-top: 1px solid #d6dae2" />
+    <div lang="es">
+      <p style="margin: 0">Escribe este código en EZ Draft para confirmar que eres tú: {{ .Token }}. Si no lo pediste, ignora este correo.</p>
+    </div>
+  </body>
+</html>

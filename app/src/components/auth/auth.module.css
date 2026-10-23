@@ -115,7 +115,8 @@
 .primary:focus-visible,
 .secondary:focus-visible,
 .language:focus-visible,
-.link:focus-visible {
+.link:focus-visible,
+.textButton:focus-visible {
   outline: 2px solid var(--ez-cobalt);
   outline-offset: 2px;
 }
@@ -137,4 +138,17 @@
   align-items: center;
   min-height: 44px;
   color: var(--ez-cobalt);
+}
+
+/* EZD-033 Step 6 (vault/plans/EZD-033.md): "Forgot password? Email me a code", a text-style button: the
+   .link declarations plus a button reset, at least 44 px high (11 Accessibility). */
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ez-cobalt);
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }

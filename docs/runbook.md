@@ -77,6 +77,17 @@ Josh's steps in Supabase, once per cloud project: `ezdraft-dev` now, `ezdraft-pr
 5. **Account gate hook.** Authentication, Hooks, "Before User Created": Postgres function, schema `private`, function `auth_before_user_created`, enable it. Until this is on, anyone with the project's public key could create an account for any email on that project. This is the same place as the Custom Access Token hook (section "Supabase cloud projects", step 9).
 6. **Sending through Resend.** Section "Email (EZD-008)", step 6 (custom SMTP). Leave Authentication, Rate Limits, "Rate limit for sending emails" at the default Supabase shows for custom SMTP.
 
+## Password sign-in (EZD-033)
+
+Josh's steps in Supabase, once per cloud project (`ezdraft-dev` now, `ezdraft-prod` when the Before-launch checklist creates it). The local test stack gets the length, the rules and the templates from `supabase/config.toml`. The throttle needs nothing here: its key comes from the API gate secret already entered for EZD-006. Agents never change Supabase settings. If a box is not where this says, look for the same words and tell the orchestrator where you found it.
+
+1. **Minimum password length: 8 characters (required).** Authentication, Providers (or Sign In / Providers), Email, "Minimum password length": `8`. Required: direct calls to Supabase Auth rely on it (Q-0094 override, 2026-10-18; Q-0105).
+2. **No required character types.** Same page, "Password requirements": "No required characters" (Q-0094).
+3. **Leaked-password protection on (required).** Same page, "Prevent use of leaked passwords" (a Pro plan feature): on. Required (Q-0094; Q-0105).
+4. **Reset-password email.** Authentication, Emails (Email Templates), "Reset password": subject exactly `EZ Draft password reset requested / Se pidió restablecer tu contraseña de EZ Draft`; body = the whole text of `supabase/templates/recovery.html` from GitHub (open the file, Raw, select all, copy, paste over the template's body). Save. It has no link and no code on purpose.
+5. **Reauthentication email.** Same place, "Reauthentication": subject exactly `Your EZ Draft confirmation code / Tu código de confirmación de EZ Draft`; body = the whole text of `supabase/templates/reauthentication.html`, copied the same way. Save.
+6. **Rate limits.** Leave Authentication, Rate Limits at Supabase's defaults (Q-0105).
+
 ## Background jobs (EZD-009)
 
 Josh's steps in Vercel. The once-a-minute sweep picks up jobs that are waiting to retry or whose run died. Vercel runs cron jobs on production deployments only, so previews get no sweep. The `ezdraft` project sits in EZ Binder's Vercel team, which is on Pro, so a cron every minute is allowed. Agents never change Vercel settings. Never paste the secret into chat, a ticket or the repo.

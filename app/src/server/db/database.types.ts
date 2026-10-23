@@ -155,6 +155,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"sign_in_throttle": {
+                  Row: {
+                    "at": string,"failed": boolean,"id": string,"key_hash": string,"kind": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "at"?: string,"failed"?: boolean,"id"?: string,"key_hash": string,"kind": string
+                  }
+                  Update: {
+                    "at"?: string,"failed"?: boolean,"id"?: string,"key_hash"?: string,"kind"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"tenant": {
                   Row: {
                     "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
@@ -268,6 +282,14 @@ isOneToOne: false
                            },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
+                           },
+"sign_in_throttle_settle":
+{ Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
+                           },
+"sign_in_throttle_take":
+{ Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
+              "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
+            }[]
                            }
           }
           Enums: {

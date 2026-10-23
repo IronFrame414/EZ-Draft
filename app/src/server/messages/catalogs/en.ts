@@ -29,6 +29,10 @@ export const en = {
   'common.sign_in.sign_out': 'Sign out',
   'common.sign_in.lang_en': 'English',
   'common.sign_in.lang_es': 'Español',
+  'common.sign_in.password_label': 'Password',
+  'common.sign_in.password_submit': 'Sign in',
+  'common.sign_in.send_instead': 'Email me a sign-in link instead',
+  'common.sign_in.forgot': 'Forgot password? Email me a code',
   'common.retry': 'Retry',
   'common.offline': 'Offline',
   'common.cancel': 'Cancel',
@@ -39,6 +43,12 @@ export const en = {
   'error.link_invalid': 'This sign-in link has expired or was already used.',
   'error.no_access': "This account does not have access to EZ Draft. Ask your company's owner.",
   'error.sign_in_failed': 'Something went wrong. Try again in a minute.',
+  'error.password_wrong': 'Email or password is wrong.',
+  'error.password_throttled':
+    "Too many wrong passwords. Use 'Forgot password? Email me a code', or try again in 15 minutes.",
+  'error.code_throttled': 'Too many wrong codes. Try again in 15 minutes.',
+  'error.email_throttled': 'Too many sign-in emails. Try again in an hour.',
+  'error.ip_throttled': 'Too many sign-in tries from this network. Try again in 15 minutes.',
   'error.envelope_too_large': 'That error report is too large to send.',
   'error.invalid_envelope': "That error report couldn't be read.",
   'field.device.editor_on_phone':

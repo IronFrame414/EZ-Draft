@@ -31,6 +31,10 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       "Written only through record_error_alert / release_error_alert_email (EZD-024); members read their company's failure rows",
   },
+  sign_in_throttle: {
+    privileges: [],
+    reason: 'Read and written only by the security definer throttle functions (EZD-033, Q-0094)',
+  },
   job: {
     privileges: ['SELECT'],
     reason:

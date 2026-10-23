@@ -145,10 +145,12 @@ test.describe('EZD-007f sign-in pages', () => {
     });
   });
 
-  // T14 (AC-4): P-T14; 11 Accessibility; EZD-003 T8; F1.
-  test('EZD-007f T14 no password field, 44 px touch targets, page title', async ({ page }) => {
+  // T14 (AC-4): P-T14; 11 Accessibility; EZD-003 T8; F1. EZD-033 edit: Q-0091 (one password box).
+  test('EZD-007f T14 one password field on step 1 and none on the code step, 44 px touch targets, page title', async ({
+    page,
+  }) => {
     await page.goto('/sign-in');
-    await expect(page.locator('input[type=password]')).toHaveCount(0);
+    await expect(page.locator('input[type=password]')).toHaveCount(1);
     for (const id of ['sign-in-email', 'sign-in-submit']) {
       const box = await page.getByTestId(id).boundingBox();
       expect(box, id).not.toBeNull();
@@ -158,6 +160,7 @@ test.describe('EZD-007f sign-in pages', () => {
 
     const m = await activeMember();
     await requestCode(page, m.email);
+    await expect(page.locator('input[type=password]')).toHaveCount(0);
     for (const id of ['sign-in-code', 'sign-in-code-submit']) {
       const box = await page.getByTestId(id).boundingBox();
       expect(box, id).not.toBeNull();

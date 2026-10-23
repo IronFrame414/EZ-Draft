@@ -10,7 +10,12 @@ import { existsSync } from 'node:fs';
 
 export type AuthEmail = { subject: string; text: string; html: string; link: string; code: string };
 
-type Summary = { ID: string; To: { Address: string }[] | null; Created: string };
+type Summary = {
+  ID: string;
+  To: { Address: string }[] | null;
+  Created: string;
+  Subject?: string;
+};
 type Detail = { Subject: string; Text: string; HTML: string };
 
 let base: string | undefined;
@@ -126,4 +131,46 @@ export async function countAuthEmails(to: string, opts: { after?: Date } = {}): 
 export async function clearAuthEmails(to: string): Promise<void> {
   const res = await fetch(`${mailUrl()}/api/v1/search?query=${query(to)}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`mail-catcher: delete answered ${res.status}`);
+}
+
+// EZD-033 Step 8 (vault/plans/EZD-033.md T6, T7): emails that carry no link and no 6-digit code (the
+// recovery email, Q-0094) cannot go through parse(), which needs both. waitForRawEmail returns the newest
+// message to an address as sent (subject, text, html) without that check; emailSubjects lists the
+// subjects of every message to an address (newest first), so a test can prove a message did not arrive.
+export type RawEmail = { subject: string; text: string; html: string };
+
+export async function waitForRawEmail(
+  to: string,
+  opts: { after?: Date; timeoutMs?: number } = {},
+): Promise<RawEmail> {
+  const timeoutMs = opts.timeoutMs ?? 10000;
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const [newest] = await messagesTo(to, opts.after);
+    if (newest) {
+      const res = await fetch(`${mailUrl()}/api/v1/message/${newest.ID}`);
+      if (!res.ok) throw new Error(`mail-catcher: message answered ${res.status}`);
+      const detail = (await res.json()) as Detail;
+      return { subject: detail.Subject ?? '', text: detail.Text ?? '', html: detail.HTML ?? '' };
+    }
+    if (Date.now() >= deadline) {
+      throw new Error(`mail-catcher: no email within ${timeoutMs} ms`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+}
+
+export async function emailSubjects(to: string, opts: { after?: Date } = {}): Promise<string[]> {
+  const found = await messagesTo(to, opts.after);
+  const subjects: string[] = [];
+  for (const m of found) {
+    if (typeof m.Subject === 'string') {
+      subjects.push(m.Subject);
+      continue;
+    }
+    const res = await fetch(`${mailUrl()}/api/v1/message/${m.ID}`);
+    if (!res.ok) throw new Error(`mail-catcher: message answered ${res.status}`);
+    subjects.push(((await res.json()) as Detail).Subject ?? '');
+  }
+  return subjects;
 }

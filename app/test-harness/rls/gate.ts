@@ -35,4 +35,14 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_claim: '00000000-0000-4000-8000-000000000000',
     },
   },
+  // EZD-033 Step 5 (vault/plans/EZD-033.md): the sign-in throttle functions, executable by anon and
+  // authenticated.
+  {
+    fn: 'sign_in_throttle_take',
+    args: { p_kind: 'link', p_email_key: null, p_ip_key: '0'.repeat(64) },
+  },
+  {
+    fn: 'sign_in_throttle_settle',
+    args: { p_attempt_id: '00000000-0000-4000-8000-000000000000', p_ip_attempt_id: null },
+  },
 ];

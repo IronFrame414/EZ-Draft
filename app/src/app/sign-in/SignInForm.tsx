@@ -6,31 +6,57 @@ import { useActionState } from 'react';
 import { unstable_rethrow } from 'next/navigation';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
-import { clearSignInEmail, requestSignIn, verifySignInCode } from '../../server/auth/actions';
+import {
+  clearSignInEmail,
+  requestSignIn,
+  signInWithPassword,
+  verifySignInCode,
+} from '../../server/auth/actions';
 import styles from '../../components/auth/auth.module.css';
 
+// EZD-033 Step 6 (vault/plans/EZD-033.md; Q-0091; Q-0101): step 1 is email and password first, then
+// "Email me a sign-in link instead" and "Forgot password? Email me a code" (both send the normal sign-in
+// email through requestSignIn). The email box keeps what was typed; the password box is never refilled.
 type SignInError =
-  'invalid_email' | 'too_many_requests' | 'code_invalid' | 'no_access' | 'sign_in_failed';
+  | 'invalid_email'
+  | 'too_many_requests'
+  | 'code_invalid'
+  | 'no_access'
+  | 'sign_in_failed'
+  | 'password_wrong'
+  | 'password_throttled'
+  | 'code_throttled'
+  | 'email_throttled'
+  | 'ip_throttled'
+  | 'unavailable';
 
-type State = { email: string | null; error: SignInError | null };
+type State = { email: string | null; error: SignInError | null; typedEmail: string | null };
 
 async function run(prev: State, formData: FormData): Promise<State> {
+  const field = formData.get('email');
+  // Step 1 results keep the email box as typed; the code step keeps the earlier value.
+  const typedEmail =
+    prev.email === null ? (typeof field === 'string' ? field : '') : prev.typedEmail;
   try {
     if (prev.email === null) {
-      const result = await requestSignIn(formData);
-      if ('error' in result) return { email: null, error: result.error };
-      const email = formData.get('email');
-      return { email: typeof email === 'string' ? email.trim().toLowerCase() : '', error: null };
+      const intent = formData.get('intent');
+      if (intent === 'send' || intent === 'forgot') {
+        const result = await requestSignIn(formData);
+        if ('error' in result) return { email: null, error: result.error, typedEmail };
+        return { email: (typedEmail ?? '').trim().toLowerCase(), error: null, typedEmail };
+      }
+      const result = await signInWithPassword(formData);
+      return { email: null, error: result.error, typedEmail };
     }
     if (formData.get('intent') === 'change_email') {
       await clearSignInEmail();
-      return { email: null, error: null };
+      return { email: null, error: null, typedEmail: null };
     }
     const result = await verifySignInCode(formData);
-    return { email: prev.email, error: result.error };
+    return { email: prev.email, error: result.error, typedEmail };
   } catch (error) {
     unstable_rethrow(error);
-    return { email: prev.email, error: 'sign_in_failed' };
+    return { email: prev.email, error: 'sign_in_failed', typedEmail };
   }
 }
 
@@ -45,11 +71,16 @@ export function SignInForm({
   const [state, action, pending] = useActionState(run, {
     email: initialEmail,
     error: initialError,
+    typedEmail: null,
   });
 
   const error = state.error ? (
     <p className={styles.error} role="alert" data-testid="sign-in-error">
-      {t(`error.${state.error}` as MessageKey)}
+      {t(
+        state.error === 'unavailable'
+          ? 'error.db_unavailable'
+          : (`error.${state.error}` as MessageKey),
+      )}
     </p>
   ) : null;
 
@@ -67,16 +98,53 @@ export function SignInForm({
           autoComplete="email"
           inputMode="email"
           required
+          defaultValue={state.typedEmail ?? ''}
           data-testid="sign-in-email"
+        />
+        <label className={styles.label} htmlFor="sign-in-password">
+          {t('common.sign_in.password_label')}
+        </label>
+        <input
+          id="sign-in-password"
+          className={styles.input}
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          required
+          data-testid="sign-in-password"
         />
         {error}
         <button
           type="submit"
+          name="intent"
+          value="password"
           className={styles.primary}
+          disabled={pending}
+          data-testid="sign-in-password-submit"
+        >
+          {t('common.sign_in.password_submit')}
+        </button>
+        <button
+          type="submit"
+          name="intent"
+          value="send"
+          formNoValidate
+          className={styles.secondary}
           disabled={pending}
           data-testid="sign-in-submit"
         >
-          {t('common.sign_in.send')}
+          {t('common.sign_in.send_instead')}
+        </button>
+        <button
+          type="submit"
+          name="intent"
+          value="forgot"
+          formNoValidate
+          className={styles.textButton}
+          disabled={pending}
+          data-testid="sign-in-forgot"
+        >
+          {t('common.sign_in.forgot')}
         </button>
       </form>
     );

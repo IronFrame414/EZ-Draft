@@ -128,7 +128,7 @@ test('EZD-006 T20 (a) docs/architecture.md: Row-level security section, harness 
   }
   const exemptions = read('app', 'test-harness', 'rls', 'tenancy-exemptions.ts');
   const listed = [...exemptions.matchAll(/table:\s*'([a-z_]+)'/g)].map((m) => m[1]).sort();
-  assert.deepEqual(listed, ['app_user', 'tenant']);
+  assert.deepEqual(listed, ['app_user', 'sign_in_throttle', 'tenant']);
   for (const t of listed) {
     assert.match(rls, new RegExp(`\\b${t}\\b`), `Row-level security section names ${t}`);
   }

@@ -35,6 +35,10 @@ export const es = {
   'common.sign_in.sign_out': 'Cerrar sesión',
   'common.sign_in.lang_en': 'English',
   'common.sign_in.lang_es': 'Español',
+  'common.sign_in.password_label': 'Contraseña',
+  'common.sign_in.password_submit': 'Iniciar sesión',
+  'common.sign_in.send_instead': 'Mejor envíame un enlace de acceso por correo',
+  'common.sign_in.forgot': '¿Olvidaste tu contraseña? Envíame un código por correo',
   'common.retry': 'Reintentar',
   'common.offline': 'Sin conexión',
   'common.cancel': 'Cancelar',
@@ -45,6 +49,13 @@ export const es = {
   'error.link_invalid': 'Este enlace de acceso venció o ya se usó.',
   'error.no_access': 'Esta cuenta no tiene acceso a EZ Draft. Pregunta al dueño de tu empresa.',
   'error.sign_in_failed': 'Algo salió mal. Inténtalo de nuevo en un minuto.',
+  'error.password_wrong': 'El correo o la contraseña son incorrectos.',
+  'error.password_throttled':
+    "Demasiadas contraseñas incorrectas. Usa '¿Olvidaste tu contraseña? Envíame un código por correo' o inténtalo de nuevo en 15 minutos.",
+  'error.code_throttled': 'Demasiados códigos incorrectos. Inténtalo de nuevo en 15 minutos.',
+  'error.email_throttled': 'Demasiados correos de acceso. Inténtalo de nuevo en una hora.',
+  'error.ip_throttled':
+    'Demasiados intentos de acceso desde esta red. Inténtalo de nuevo en 15 minutos.',
   'error.envelope_too_large': 'Ese informe de error es demasiado grande para enviarlo.',
   'error.invalid_envelope': 'No se pudo leer ese informe de error.',
   'field.device.editor_on_phone':

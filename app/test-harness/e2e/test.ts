@@ -49,3 +49,14 @@ export { createProjects, harnessSql } from '../rls/fixtures';
 // EZD-024 Re-validation V8: the email and Sentry stub readers for the error-reporting spec.
 export { linksIn, readStubOutboxDir } from '../email-outbox';
 export { eventsIn, readSentryStubOutboxDir } from '../sentry-outbox';
+// EZD-033 Step 8: members with passwords, the code sign-in helper and the mail catcher readers, so specs
+// still import only from this file.
+export {
+  cleanupTestMembers,
+  createPasswordMember,
+  createTestMember,
+  createUnconfirmedPasswordUser,
+  randomPassword,
+} from '../auth-users';
+export { signInWithCode } from '../sign-in';
+export { countAuthEmails, emailSubjects, waitForAuthEmail, waitForRawEmail } from '../mail-catcher';

@@ -9,7 +9,14 @@ import type { MessageKey } from '../../../server/messages/catalog';
 import { confirmSignInLink } from '../../../server/auth/actions';
 import styles from '../../../components/auth/auth.module.css';
 
-type ConfirmError = 'link_invalid' | 'no_access' | 'too_many_requests' | 'sign_in_failed';
+// EZD-033 Step 6: ip_throttled and unavailable (shown as error.db_unavailable, Q-0086 (a)).
+type ConfirmError =
+  | 'link_invalid'
+  | 'no_access'
+  | 'too_many_requests'
+  | 'sign_in_failed'
+  | 'ip_throttled'
+  | 'unavailable';
 
 async function run(_prev: ConfirmError | null, formData: FormData): Promise<ConfirmError | null> {
   try {
@@ -30,7 +37,7 @@ export function ConfirmForm({ tokenHash, type }: { tokenHash: string; type: stri
       <input type="hidden" name="type" value={type} />
       {error ? (
         <p className={styles.error} role="alert" data-testid="confirm-error">
-          {t(`error.${error}` as MessageKey)}
+          {t(error === 'unavailable' ? 'error.db_unavailable' : (`error.${error}` as MessageKey))}
         </p>
       ) : null}
       <button
