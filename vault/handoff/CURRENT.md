@@ -1,11 +1,10 @@
-# Handoff · 2026-10-23 · build EZD-025
+# Handoff · 2026-10-23 · build EZD-031
 
 - Phase and stage: phase 0, Stage 3.
-- Why the session ended: blocked (needs Josh).
-- Completed this session: plan re-validated (Q-0257 (a): fix redactUrl in this ticket); plan-gap interface contract added; tests written and reviewed (mode 2 PASS after one fix round, commits on t/EZD-025); builder round 1 did migrations, db types, redactUrl fix, root scripts/deps (T10, T18, T20 pass).
-- In progress: EZD-025, worktree .claude/worktrees/EZD-025, branch t/EZD-025, last commit 69c13ba. Builder agent a4d29761f3531b8e8.
-- Blocked: EZD-025. The builder may not write scripts/backup/ (.claude/hooks/guard-paths.mjs). Unblock: Josh runs `git apply vault/handoff/EZD-025-guard-paths.patch` (2 lines, adds scripts/backup/ to the builder's folders, like scripts/perf/ in Q-0247), commits it, then re-run /build-ticket EZD-025 (it resumes at step 6).
-- Questions for Josh: Q-0258 (above).
-- Decisions made: Q-0257 (a) answered-agent (security-reviewer).
-- Remaining build: scripts/backup/** modules, scratch config.toml, backup-files.yml and backup-db.yml, .env.example comments, docs/architecture.md sections, runbook.
-- Next unit: after Q-0258, build EZD-025 again; otherwise run next_ticket.mjs --next-unit (EZD-031, EZD-034 candidates).
+- Why the session ended: unit complete.
+- Completed this session: EZD-031 done, commit 4cbf838, 1030 tests on develop. Plan re-validated (EZD-021 deviations), interface contract and round-1 gaps patched, tests T1-T17, builder r1+r2, code-reviewer PASS after one FAIL round, security PASS. Spike note vault/spikes/EZD-031.md (Verdict: go, stub run only). Research R-014 adopted.
+- In progress: none.
+- Blocked: EZD-025 still waits on Josh applying vault/handoff/EZD-025-guard-paths.patch (Q-0258).
+- Questions for Josh: Q-0258 (above). Live render trial (keys, rooms, provider pick) after Phase 10 (Q-0082).
+- Decisions made: none new. Lesson added to vault/lessons/planner.md.
+- Next unit: build EZD-034.
