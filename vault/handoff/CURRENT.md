@@ -1,8 +1,10 @@
-# Handoff · 2026-10-23 · questions 0
+# Handoff · 2026-10-23 · build EZD-029
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (unattended; Josh not asked)
-- Completed this session: Q-0248 answered-agent (a) by the orchestrator (EZD-035 is the repair). EZD-035 set ready; EZD-029 unblocked to ready, to build after EZD-035 merges. vault/questions/phase-00-for-josh.md updated (item 7 in section 2, wording 106-107).
-- Still escalated to Josh: Q-0243 (EZD-034, stays `questions`), Q-0089 and Q-0237 (later phases). Rule candidates L-020, L-021 stay candidate.
+- Why the session ended: unit complete
+- Completed this session: EZD-029 merged (cf0d50d, 934 tests). Verdict go (vault/spikes/EZD-029.md). Reviews: code PASS, security PASS, calc PASS.
+- In progress: none
 - Blocked: EZD-003 and EZD-027 wait on Josh (unchanged).
-- Next unit: build EZD-035, then EZD-029.
+- Questions for Josh: none new. Real architect DXF still to supply; then run spike-real (spikes/EZD-029-dxf/README.md) and record in the note.
+- Decisions made: none. First gate hit the EZD-009 jobs.spec.ts flake; unchanged rerun green. EZD-035 (ready) repairs it and has not been built yet.
+- Next unit: node vault/tools/next_ticket.mjs --next-unit
