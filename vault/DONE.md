@@ -66,3 +66,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-029 · Spike: DXF parser · nothing on a product screen; a throwaway script reads the room DXF and a 150,000-entity stand-in inside the limits and writes a DXF back; verdict go, real architect file still to supply · cf0d50d
 2026-10-23 · EZD-030 · Spike: wall openings and sloped ceiling · nothing on a product screen; a throwaway script extrudes a wall with a door, a window and a 4:12 top with no CSG library; verdict go · c29ffae
 2026-10-23 · EZD-035 · Fix: job progress browser test misses the queued event under load · nothing on a product screen; pnpm db:up now waits for local Realtime, so the background-jobs browser test stops failing at random · a8de11a
+2026-10-23 · EZD-033 · Password sign-in · a member with a password signs in with email and password; wrong password, unknown email and unconfirmed account all show the same error · 489640a

@@ -1,10 +1,11 @@
-# Handoff · 2026-10-23 · build EZD-035
+# Handoff · 2026-10-23 · build EZD-033
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: EZD-035 merged (a8de11a, 947 tests). db:up waits for Realtime; 10 of 10 e2e runs passed on the re-run.
-- In progress: none.
-- Blocked: none from this unit. EZD-029, EZD-032 (worktree kept) and EZD-033 (worktree kept) were waiting on EZD-035 and can resume.
-- Questions for Josh: none new. Spanish text by the EZD-033 builder still needs a Spanish speaker.
-- Decisions made: none. Watch: harness.spec.ts T12 failed once with 'Worker closed' (1.0m) in one V1 run; passed in the 10-run re-run.
-- Next unit: /build-ticket EZD-033 (resume at gate), then EZD-032, EZD-029.
+- Completed this session: EZD-033 merged (489640a, 994 tests). Password sign-in with enumeration-safe throttle.
+- In progress: none. EZD-032 worktree kept (ready to merge); EZD-029 waiting.
+- Blocked: none.
+- Questions for Josh: none new. Builder-written Spanish (9 es.ts keys, recovery/reauthentication template blocks, config.toml subjects, runbook) needs a Spanish speaker.
+- Decisions made: none. Note: after an [auth] config.toml change, run pnpm db:stop before the gate (stale stack failed T7 once).
+- Minor open: docs/architecture.md Password sign-in (vi) lacks the Vercel request-headers URL.
+- Next unit: /build-ticket EZD-032 (re-run merge), then EZD-029.
