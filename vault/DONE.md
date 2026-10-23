@@ -69,3 +69,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-033 · Password sign-in · a member with a password signs in with email and password; wrong password, unknown email and unconfirmed account all show the same error · 489640a
 2026-10-23 · EZD-032 · Phase 0 build-gate test · nothing on a product screen; one browser test signs in and opens the empty editor at desktop and iPad, and a second-tenant user reads zero tenant 1 rows · 127fc3f
 2026-10-23 · EZD-023e · Go live, rollback, workflow and docs · merging into main now starts the Release workflow: until launch it ends green with nothing released; after launch it backs up, migrates, tags, goes live, checks the site and rolls back on failure · ea9274b
+2026-10-23 · EZD-021 · AI client and stubs · nothing on screen; a queued test job returns the stub response and a live job with no key fails with "AI key not set"; any test reaching a live provider fails · a82762c
