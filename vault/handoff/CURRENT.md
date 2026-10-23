@@ -1,10 +1,12 @@
-# Handoff · 2026-10-23 evening · questions 0 (Josh's answers)
+# Handoff · 2026-10-23 · build EZD-023e
 
 - Phase and stage: phase 0, Stage 3 (see vault/PROGRESS.md).
 - Why the session ended: unit complete.
-- Completed this session: Josh's answers recorded: Q-0243 (c) answered-josh; Q-0239, Q-0240, Q-0242, Q-0244, Q-0245, Q-0246, Q-0248 confirmed-josh; wording 98-107 approved (decisions/process.md, commit 0f88f76); L-020, L-021 ratified (Q-0249, Q-0250). EZD-034 re-planned by the planner as one ticket (19 files, 21 tests; PROCESS.md section 6 limits of 2026-10-22), plan_lint OK, now ready. EZD-023e no longer depends on EZD-003 (Q-0253; tickets.json note). STATUS.md EZD-032 row repaired (a stale EZD-033 row was glued onto it). needs-from-josh.md: EZD-027 run is on the Surface; Turnstile hand check added.
+- Completed this session: EZD-023e done (ea9274b, 1007 tests): release steps G-I (tag, go live, health and live checks, rollback, release.json), `.github/workflows/release.yml`, runbook settings list and Before-launch checklist, architecture section. Plan re-validated first (Q-0254, Q-0255, Q-0256 answered-agent).
 - In progress: none.
-- Blocked: EZD-003 (first real release, by design); EZD-027 (Josh's Surface drawing-speed run).
-- Questions for Josh: none blocking. phase-00-for-josh.md section 2: Q-0247, Q-0251, Q-0252, Q-0253 to confirm; section 3: wording 108-113 (EZD-034 hand-check lines).
-- Decisions made: Q-0251 (a) security-reviewer; Q-0252, Q-0253 orchestrator (answered-agent).
-- Next unit: build EZD-023e / EZD-034 (ready, dependencies done); then EZD-021, EZD-025, EZD-031.
+- Blocked: EZD-003 (first real release, by design); EZD-027 (Josh's Surface run).
+- Questions for Josh: none blocking. To confirm: Q-0254, Q-0255, Q-0256 (agent answers); runbook wording (Before-launch item 8 percent-encoded password); GitHub/Vercel menu names not checked in a browser.
+- For Josh: production now changes when Release finishes after a phase PR merge; SETUP.md line "Production deploys therefore happen only when you merge a phase PR" is yours to update. Settings list and Before-launch checklist are in docs/runbook.md.
+- Open follow-ups: merge_commit_sha read-only check after the Phase 0 merge (plan section 9); release.mjs:304, :326 print Vercel client error text (023c).
+- Decisions made: Q-0254 (a), Q-0255 (a), Q-0256 (a). No lessons added.
+- Next unit: build EZD-021, EZD-025, EZD-034 or EZD-031 (run next_ticket.mjs --next-unit).
