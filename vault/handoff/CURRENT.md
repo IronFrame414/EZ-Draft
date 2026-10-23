@@ -1,12 +1,11 @@
-# Handoff · 2026-10-23 · build EZD-021
+# Handoff · 2026-10-23 · build EZD-025
 
-- Phase and stage: phase 0, Stage 3 (see vault/PROGRESS.md).
-- Why the session ended: unit complete.
-- Completed this session: EZD-021 done (a82762c, 1030 tests): AI client, four provider adapters, `ai_read` job, stub providers with recorded responses, network guard (live calls fail tests), `preview_ai_mode` release rule, runbook AI section. Plan re-validated first (V1-V14, no QP).
-- In progress: none.
-- Blocked: EZD-003 (first real release, by design); EZD-027 (Josh's Surface run).
-- Questions for Josh: none blocking. To confirm: 13 fixed AI error texts (app/src/server/ai/errors.ts:7-22; only "AI key not set" is from the ticket); runbook `## AI providers (EZD-021)`.
-- For Josh: when you enter AI keys in Vercel, mark the keys Sensitive but leave Preview `AI_MODE` not Sensitive (the release must read it).
-- Open follow-ups: keep ANTHROPIC_CUSTOM_HEADERS, ANTHROPIC_LOG, OpenTelemetry env names unset on Vercel; @anthropic-ai/sdk pinned 1.1.0 (1.2.0 needs a pnpm-workspace list entry that EZD-000 T26 forbids); net guard covers fetch/http/https only.
-- Decisions made: none new. Lesson added to vault/lessons/planner.md.
-- Next unit: run next_ticket.mjs --next-unit (candidates EZD-025, EZD-031, EZD-034).
+- Phase and stage: phase 0, Stage 3.
+- Why the session ended: blocked (needs Josh).
+- Completed this session: plan re-validated (Q-0257 (a): fix redactUrl in this ticket); plan-gap interface contract added; tests written and reviewed (mode 2 PASS after one fix round, commits on t/EZD-025); builder round 1 did migrations, db types, redactUrl fix, root scripts/deps (T10, T18, T20 pass).
+- In progress: EZD-025, worktree .claude/worktrees/EZD-025, branch t/EZD-025, last commit 69c13ba. Builder agent a4d29761f3531b8e8.
+- Blocked: EZD-025. The builder may not write scripts/backup/ (.claude/hooks/guard-paths.mjs). Unblock: Josh runs `git apply vault/handoff/EZD-025-guard-paths.patch` (2 lines, adds scripts/backup/ to the builder's folders, like scripts/perf/ in Q-0247), commits it, then re-run /build-ticket EZD-025 (it resumes at step 6).
+- Questions for Josh: Q-0258 (above).
+- Decisions made: Q-0257 (a) answered-agent (security-reviewer).
+- Remaining build: scripts/backup/** modules, scratch config.toml, backup-files.yml and backup-db.yml, .env.example comments, docs/architecture.md sections, runbook.
+- Next unit: after Q-0258, build EZD-025 again; otherwise run next_ticket.mjs --next-unit (EZD-031, EZD-034 candidates).
