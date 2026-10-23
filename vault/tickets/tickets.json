@@ -13952,6 +13952,95 @@
     "AC-EZD-037-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-038",
+   "phase": 0,
+   "title": "Fix: EZD-002 Scope cell still says every push",
+   "depends_raw": "EZD-037",
+   "spec_ref": "CI; Q-0021",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-037"
+   ],
+   "build_position": 445,
+   "acs": [
+    "AC-EZD-038-1",
+    "AC-EZD-038-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-039",
+   "phase": 0,
+   "title": "Fix: TRACE report misreads the test tables of EZD-000b to EZD-000j and EZD-010c",
+   "depends_raw": "EZD-038",
+   "spec_ref": "Operations",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-038"
+   ],
+   "build_position": 446,
+   "acs": [
+    "AC-EZD-039-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-040",
+   "phase": 0,
+   "title": "Fix: error tunnel scrubs tags and contexts",
+   "depends_raw": "EZD-024, EZD-036",
+   "spec_ref": "Operations; EZD-024",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-036"
+   ],
+   "build_position": 447,
+   "acs": [
+    "AC-EZD-040-1",
+    "AC-EZD-040-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-041",
+   "phase": 0,
+   "title": "Fix: release bootstrap passes the production database URL on the psql command line",
+   "depends_raw": "EZD-023b",
+   "spec_ref": "Operations; Q-0106",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-023b"
+   ],
+   "build_position": 448,
+   "acs": [
+    "AC-EZD-041-1",
+    "AC-EZD-041-2",
+    "AC-EZD-041-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
