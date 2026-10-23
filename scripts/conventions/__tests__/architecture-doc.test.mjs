@@ -443,3 +443,46 @@ test('EZD-012b D1 (e): the conventions check exits 0 on the repository root', ()
   const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
   assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
 });
+
+// EZD-020 D1 (vault/plans/EZD-020.md section 4; Step 8): entry points, lazy modules, contents check docs.
+test('EZD-020 D1 (a): the 13 ## headings are unchanged and the two subsections exist', () => {
+  const lines = readArch().split(/\r?\n/).map((l) => l.trimEnd());
+  assert.deepEqual(lines.filter((l) => /^## /.test(l)), REQUIRED_HEADINGS);
+  assert.ok(lines.includes('### Entry points and lazy modules (EZD-020)'), 'Entry points subsection');
+  assert.ok(lines.includes('### Entry contents and bundle report (EZD-020)'), 'Entry contents subsection');
+});
+
+test('EZD-020 D1 (b): the docs name the groups, folders, rule, measurements and options', () => {
+  const md = readArch();
+  for (const s of [
+    '(office)',
+    '(editor)',
+    '(field)',
+    '(client)',
+    'app/src/lazy/',
+    'app/src/editor/',
+    'ezdraft/import-boundaries',
+    'entry-contents:',
+    'productionBrowserSourceMaps',
+    'prefetch={false}',
+  ]) {
+    assert.ok(md.includes(s), `docs/architecture.md must contain ${s}`);
+  }
+});
+
+test('EZD-020 D1 (c): a Machine checks row names import-boundaries and js-contents.mjs', () => {
+  const t = tableWithHeader(readArch(), ['ID', 'Rule', 'Check', 'Built by']);
+  const row = t.rows.find((r) => (r[2] || '').includes('import-boundaries') && (r[2] || '').includes('js-contents.mjs'));
+  assert.ok(row, 'a Machine checks row whose Check names import-boundaries and js-contents.mjs');
+});
+
+test('EZD-020 D1 (d): no Dependencies row is added by EZD-020', () => {
+  const t = tableWithHeader(readArch(), ['Package', 'Version', 'Used in', 'Why', 'Added by']);
+  const added = t.rows.filter((r) => strip(r[4] || '') === 'EZD-020');
+  assert.equal(added.length, 0, 'EZD-020 adds no dependency');
+});
+
+test('EZD-020 D1 (e): the conventions check exits 0 on the repository root', () => {
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'conventions', 'check.mjs'), root], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `${r.stdout || ''}${r.stderr || ''}`);
+});

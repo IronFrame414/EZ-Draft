@@ -19,5 +19,14 @@ export default {
     { id: 'js-size:editor', url: '/dev/shell' },
     { id: 'js-size:sign-in', url: '/sign-in' },
     { id: 'js-size:auth-confirm', url: '/auth/confirm' },
+    // EZD-020 Step 6: placeholder entry pages until the owner tickets repoint them.
+    { id: 'js-size:projects-settings', url: '/dev/entry/office' },
+    { id: 'js-size:field-pack', url: '/dev/entry/field' },
+    { id: 'js-size:client-link', url: '/dev/entry/client' },
+    { id: 'entry-contents:office', url: '/dev/entry/office' },
+    { id: 'entry-contents:editor', url: '/dev/entry/editor' },
+    { id: 'entry-contents:field-pack', url: '/dev/entry/field' },
+    { id: 'entry-contents:client-link', url: '/dev/entry/client' },
+    { id: 'entry-contents:sign-in', url: '/sign-in' },
   ],
 };

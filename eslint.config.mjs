@@ -3,11 +3,18 @@
 // All TS/JS: @eslint/js recommended + typescript-eslint recommended (not type-checked).
 // app/** only: the flat configs of eslint-config-next (core-web-vitals, typescript); packages/geometry gets no Next or React config.
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
 import ezdraft from './eslint-rules/index.mjs';
+import {
+  EDITOR_CODE,
+  EDITOR_CODE_IMPORTERS,
+  HEAVY_PACKAGES,
+  LAZY_ROOT,
+} from './eslint-rules/boundaries.mjs';
 
 const APP = ['app/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'];
 // Absolute so the Next plugin finds app/ whether ESLint runs from the root (T7, T8) or from app/ (the app lint script).
@@ -102,6 +109,25 @@ export default tseslint.config(
         { object: 'window', property: 'setInterval', message: NO_POLLING },
         { object: 'globalThis', property: 'setInterval', message: NO_POLLING },
         { object: 'self', property: 'setInterval', message: NO_POLLING },
+      ],
+    },
+  },
+  // EZD-020 Step 4 · heavy libraries only in their lazy places, lazy modules only by import(), editor code only in
+  // the editor (11 Performance rule 7). Paths are relative to this file's folder, whatever the cwd.
+  {
+    files: ['app/src/**/*.{ts,tsx,js,jsx,mjs,cjs}', 'packages/*/src/**/*.{ts,tsx,js,mjs}'],
+    ignores: ['**/*.test.*', '**/*.spec.*', '**/test-utils/**', '**/test-harness/**', '**/e2e/**'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/import-boundaries': [
+        'error',
+        {
+          rootDir: path.dirname(fileURLToPath(import.meta.url)),
+          packages: HEAVY_PACKAGES,
+          lazyRoot: LAZY_ROOT,
+          editorCode: EDITOR_CODE,
+          editorCodeImporters: EDITOR_CODE_IMPORTERS,
+        },
       ],
     },
   },

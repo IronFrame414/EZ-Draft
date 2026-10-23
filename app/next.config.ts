@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: workspaceRoot,
   },
+  // EZD-020 Step 5 (vault/plans/EZD-020.md): browser source maps for the entry contents check in the gate and CI
+  // builds; Vercel builds (VERCEL=1) emit none, so no source map is published on a deploy.
+  productionBrowserSourceMaps: process.env.VERCEL !== '1',
   // EZD-007f Step 9 (vault/plans/EZD-007f.md F3): the confirm page's token_hash never leaves in a Referer.
   async headers() {
     return [

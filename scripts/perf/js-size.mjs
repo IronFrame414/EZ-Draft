@@ -57,17 +57,16 @@ function displayUrl(url, baseOrigin) {
 }
 
 /**
- * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>} details = SizeDetails
+ * The scripts a page downloads with no user action (S1-S4), shared by the size and contents collectors (EZD-020
+ * Step 5). `ctx` = { browser, profile, baseUrl }.
+ * @returns {Promise<{ error?: string; details: object; scripts: { url: string; displayUrl: string; body: Buffer;
+ *   serviceWorker: boolean }[] }>} details = { url, status, idleTimeout }
  */
-export async function measureJsSize(browser, profile, baseUrl, url) {
+export async function collectScripts(ctx, url) {
+  const { browser, profile, baseUrl } = ctx;
   const baseOrigin = new URL(baseUrl).origin;
-  const details = {
-    url,
-    status: null,
-    files: [],
-    excludedServiceWorkerBytes: 0,
-    idleTimeout: false,
-  };
+  const details = { url, status: null, idleTimeout: false };
+  const scripts = [];
   const context = await browser.newContext(contextOptions(profile));
   try {
     await context.addInitScript({ path: HOOKS_PATH });
@@ -93,30 +92,54 @@ export async function measureJsSize(browser, profile, baseUrl, url) {
     try {
       response = await page.goto(baseUrl + url, { waitUntil: 'load' });
     } catch {
-      return { error: 'navigation_failed', details };
+      return { error: 'navigation_failed', details, scripts };
     }
-    if (!response) return { error: 'navigation_failed', details };
+    if (!response) return { error: 'navigation_failed', details, scripts };
     details.status = response.status();
-    if (details.status !== 200) return { error: `http_${details.status}`, details };
+    if (details.status !== 200) return { error: `http_${details.status}`, details, scripts };
 
     const { idleTimeout } = await settlePage(page);
     details.idleTimeout = idleTimeout;
     const swUrls = new Set(await page.evaluate(() => window.__EZD_PERF__.swUrls));
 
-    let value = 0;
     for (const c of collected) {
       const body = await c.body;
-      const compressedBytes = compressedSize(body);
-      // S2 (a): service worker scripts and what they fetch are not page JavaScript.
-      if (c.fromWorker || swUrls.has(c.url)) {
-        details.excludedServiceWorkerBytes += compressedBytes;
-        continue;
-      }
-      value += compressedBytes;
-      details.files.push({ url: displayUrl(c.url, baseOrigin), rawBytes: body.length, compressedBytes });
+      scripts.push({
+        url: c.url,
+        displayUrl: displayUrl(c.url, baseOrigin),
+        body,
+        // S2 (a): service worker scripts and what they fetch are not page JavaScript.
+        serviceWorker: c.fromWorker || swUrls.has(c.url),
+      });
     }
-    return { value, details };
+    return { details, scripts };
   } finally {
     await context.close();
   }
+}
+
+/**
+ * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>} details = SizeDetails
+ */
+export async function measureJsSize(browser, profile, baseUrl, url) {
+  const collected = await collectScripts({ browser, profile, baseUrl }, url);
+  const details = {
+    url,
+    status: collected.details.status,
+    files: [],
+    excludedServiceWorkerBytes: 0,
+    idleTimeout: collected.details.idleTimeout,
+  };
+  if (collected.error !== undefined) return { error: collected.error, details };
+  let value = 0;
+  for (const s of collected.scripts) {
+    const compressedBytes = compressedSize(s.body);
+    if (s.serviceWorker) {
+      details.excludedServiceWorkerBytes += compressedBytes;
+      continue;
+    }
+    value += compressedBytes;
+    details.files.push({ url: s.displayUrl, rawBytes: s.body.length, compressedBytes });
+  }
+  return { value, details };
 }

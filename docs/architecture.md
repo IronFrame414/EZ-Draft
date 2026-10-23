@@ -324,6 +324,45 @@ EZD-015a, EZD-015b, EZD-015c (vault/plans/EZD-015a.md, EZD-015b.md, EZD-015c.md)
 - EZD-126 extends the toast `tone`.
 - The test page is `/dev/states` (`?lang=es` shows Spanish; not found in production).
 
+### Entry points and lazy modules (EZD-020)
+
+EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download size, rules 3 and 7); 04 ("the only separate pages are Projects, Settings, the phone field pack and the client link").
+
+- **Entry points are route groups**, each with its own `layout.tsx` (a server component rendering `<div data-entry="<name>" style={{ display: 'contents' }}>`); code imported only by one group's layout and pages reaches only that group's pages.
+
+| Group | `data-entry` | Entry (11 Budgets) | Placeholder (404 in production) | Real pages from |
+| --- | --- | --- | --- | --- |
+| `app/src/app/(office)/` | `office` | Projects and Settings, 200 KB | `/dev/entry/office` | EZD-117a (`/`), EZD-103 (`/settings/...`) |
+| `app/src/app/(editor)/` | `editor` | Editor before its lazy parts, 500 KB | `/dev/entry/editor` | EZD-120b |
+| `app/src/app/(field)/` | `field` | Field pack, 200 KB | `/dev/entry/field` | EZD-1404 |
+| `app/src/app/(client)/` | `client` | Client link, 200 KB | `/dev/entry/client` | EZD-1202 |
+
+- The placeholders carry what every page of the entry will carry (`MessagesProvider`, `StateHost`, and `EmptyEditor` or `PhoneFrame`), so the perf check measures something now; each owner ticket adds its real pages in the group and repoints the measurements (`### Entry contents and bundle report (EZD-020)`).
+- **One root layout.** `app/src/app/layout.tsx` stays the only root layout and carries only what every entry needs; anything else goes in a group layout.
+- `/` stays EZD-007's `app/src/app/page.tsx` until EZD-117a creates `(office)/page.tsx` for Projects and deletes the old file in the same commit (two pages cannot both resolve to `/`).
+- The client link adds its path to `isPublicPath` (EZD-007 Step 4; EZD-1202).
+- **`app/src/editor/`** is reserved for editor-only code that is not a shell component (store, canvas, tools; EZD-120b, EZD-207). `three` and `@react-three/*` may be imported statically there (the plan canvas, 02 Stack 2D + 3D), never in Projects, Settings, the field pack, the client link or shared code.
+- **Lazy modules.** A lazy module is a folder `app/src/lazy/<name>/` with an `index.ts` or `index.tsx`; only files inside it import its heavy library statically. Code outside the folder reaches it only by `import()`: plain modules through `lazyModule(() => import('.../lazy/<name>'))` (`app/src/lib/lazy/lazy-module.ts`: `load()`, `preload()`, `peek()`; one promise in flight, a rejected load is tried again on the next `load()`); React components through `next/dynamic(() => import('.../lazy/<name>'), { ssr: false })`, rendered only when the user opens the feature (a dynamic component mounted at load downloads at load). `import type` from a lazy module is allowed (types are erased).
+- Lazy-only libraries: the GLB and USDZ exporters (`three/examples/jsm/exporters/`, `three/addons/exporters/`), `three-bvh-csg`, `three-gpu-pathtracer`, `pdfjs-dist`, `dxf-parser` and the DXF writer. Allowed statically only in `app/src/lazy/`, Web Workers (`app/src/workers/`) and, for pdf.js and the DXF libraries, job handlers (`app/src/server/jobs/`).
+- `<Link>`s from the office, field and client entries into the editor use `prefetch={false}`; the contents check reports editor code that a prefetch pulls in.
+- Reserved lazy-module names (each folder is created by its owner ticket):
+
+| Folder | Holds | Owner |
+| --- | --- | --- |
+| `scene-3d/` | perspective 3D scene and meshes | EZD-1001a; EZD-1013 (phone viewer) reuses it or adds `phone-3d/` |
+| `pathtracer/` | three-gpu-pathtracer | EZD-1105 |
+| `pdf/` | pdf.js underlay | EZD-304 |
+| `dxf-writer/` | DXF writer (browser use only, if any) | EZD-913 |
+| `exporters/` | GLB and USDZ (or a worker in `app/src/workers/`) | EZD-1014 |
+| `sheets/` | sheet renderer | EZD-702b |
+| `detail-editor/` | Detail editor | EZD-801 |
+| `catalog-drawer/` | catalog drawer | EZD-1601 |
+| `reference/` | reference drawing in Plan | EZD-901b |
+
+- `app/src/lazy/dev-sample/` is the dev-only proof module, loaded by `/dev/lazy` on first press.
+- **One list.** `eslint-rules/boundaries.mjs` (`LAZY_ROOT`, `LAZY_PLACES`, `EDITOR_CODE`, `EDITOR_CODE_IMPORTERS`, `HEAVY_PACKAGES`, `ENTRY_RULES`, `WATCH_PACKAGES`) is the single list read by the lint rule `ezdraft/import-boundaries` and by the contents check; EZD-029's replace path edits the DXF names there, and a test fails when that list and the Named tools `DXF` row drift apart.
+- The lint rule (`eslint-rules/import-boundaries.mjs`, block in `eslint.config.mjs` for `app/src/**` and `packages/*/src/**`, test files ignored) reports `heavyPackage`, `lazyStatic` (a static import into `app/src/lazy/<name>/` from outside it) and `editorOnly` (editor code imported outside `EDITOR_CODE_IMPORTERS`). It resolves relative paths only; a ticket that adds a tsconfig path alias teaches the rule to resolve it. Transitive imports through shared code are caught by the contents check, not the lint.
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-133 (helper, server-route pattern, browser-query lint rule) and EZD-102 (enforcement, UI hook).
@@ -540,6 +579,20 @@ EZD-017 (vault/plans/EZD-017.md Steps 1-13); 11 Performance (opening paragraph, 
 - **Adding a measurement.** Write its collector in `scripts/perf/`, switch its `registry.mjs` row from `pending` to `active`, add or confirm its `budgets.mjs` row with a source, add a test that fails on a deliberate regression, and repoint the config `url`s when the real routes exist.
 - Per-pointer-move values go through refs, never React state (11 rule 4); the pan row fails otherwise.
 
+### Entry contents and bundle report (EZD-020)
+
+EZD-020 (vault/plans/EZD-020.md Steps 5-6); 11 Budgets Download size, rule 7; Q-0071 (a).
+
+- **Measurements** (`scripts/perf/registry.mjs`, URLs in `perf.config.mjs`): `entry-contents:office` (`/dev/entry/office`), `entry-contents:editor` (`/dev/entry/editor`), `entry-contents:field-pack` (`/dev/entry/field`), `entry-contents:client-link` (`/dev/entry/client`), `entry-contents:sign-in` (`/sign-in`), collector `scripts/perf/js-contents.mjs`, gate budgets `contents.<entry>` (unit `count`, value 0, rule = the entry's forbidden categories from `ENTRY_RULES`). The size rows `js-size:projects-settings`, `js-size:field-pack` and `js-size:client-link` are active on the same placeholder URLs; `js-size:editor` stays on `/dev/shell` until EZD-120b.
+- **Forbidden categories** per entry: office, field pack, client link and sign-in: `editor`, `three`, `heavy`, `lazy`; editor: `heavy`, `lazy`. `editor` = app sources under `EDITOR_CODE`; `lazy` = app sources under `app/src/lazy/`; `three` and `heavy` = the `HEAVY_PACKAGES` categories. The value is the number of distinct (category, key) findings.
+- **Source maps.** `app/next.config.ts` sets `productionBrowserSourceMaps: process.env.VERCEL !== '1'`: the gate and CI builds emit `.js.map` files; Vercel builds emit none, so no source map is published.
+- **Method.** The collector loads the entry exactly as the `js-size` rows do (`collectScripts` in `js-size.mjs`), then for each counted file reads the last `//# sourceMappingURL=` (inline base64 or fetched with Node `fetch`, never counted as a page download) and attributes the file's UTF-8 bytes to sources (`scripts/perf/sourcemap.mjs`, Source Map v3 / ECMA-426, index maps with `sections` included). Bytes before the first segment, after a 1-field segment and newlines are unmapped. Bytes are minified bytes; the compressed totals stay the `js-size:*` rows.
+- **Normalization.** The text after the last `node_modules/` gives `pkg:<name>` (two segments for a scoped name); Next.js's own copies under `next/dist/compiled/<name>/` count as `pkg:<name>`. Otherwise the prefixes `webpack://_N_E/`, `webpack:///`, `turbopack:///[project]/`, `[project]/` and leading `./` or `../` are stripped: `app/src/<p>` or `src/<p>` gives `app:<p>`, `packages/geometry/src/<p>` gives `geometry:<p>`, anything else `other:<s>`. Groups keep at most two folder segments (`app:components/shell`).
+- **Error, never pass.** A counted file without a map is `error` (`missing_source_map`, `details.missingMaps`); an entry with no `app:` source is `error` (`no_app_sources`, `details.reason`).
+- **Bundle report.** Whenever an `entry-contents:*` row was measured, the CLI prints `BUNDLE REPORT (...)` after the per-measurement lines and before `PERF PASS` or `PERF FAIL`, and writes `<out>/bundle-report.md` (one `## <measurement id>` section per entry: URL, the compressed total of a `js-size` row measured on the same URL, file count, top 15 groups plus `(rest)`, the watch list, findings). It runs in the gate's `perf` step, so it is in the CI log.
+- **Watch list** `WATCH_PACKAGES`: `@sentry/`, `@supabase/realtime-js`, `@radix-ui/`, `radix-ui`, shown on every report with their bytes or `absent` (EZD-024, EZD-018, EZD-015).
+- **Repointing or adding an entry.** The owner ticket changes the measurement's URL in `perf.config.mjs` (and its owner text in `registry.mjs`); a new entry adds a registry row and, if new, a `contents.*` budget with its source and an `ENTRY_RULES` entry.
+
 ## Handoff
 
 Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten at session end; previous ones in `vault/handoff/log/` (CLAUDE.md Directory; PROCESS.md Ledgers).
@@ -566,7 +619,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |
-| — | Static imports of heavy libraries; bundle report | lint rule and build report | EZD-020 |
+| — | Static imports of heavy libraries; bundle report | `ezdraft/import-boundaries` (`eslint-rules/import-boundaries.mjs`); `scripts/perf/js-contents.mjs` (gate step `perf`); `scripts/tooling/__tests__/import-boundaries-lint.test.mjs`, `scripts/perf/__tests__/sourcemap.test.mjs`, `scripts/perf/__tests__/js-contents.test.mjs`, `app/e2e/entries.spec.ts` | EZD-020 |
 | — | No polling: `setInterval` refused in `app/src` | `eslint.config.mjs` (`no-restricted-globals`, `no-restricted-properties`); `scripts/tooling/__tests__/no-polling-lint.test.mjs` (T18) | EZD-018 |
 | — | Realtime event names used in migrations are in `events.ts` | `scripts/db/__tests__/realtime-sql.test.mjs` (T19) | EZD-018 |
 | — | Literal interface strings in phone components | `ezdraft/no-literal-ui-string`, `scripts/tooling/__tests__/messages-lint.test.mjs` | EZD-026a |

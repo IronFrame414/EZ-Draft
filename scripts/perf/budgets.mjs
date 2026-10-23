@@ -2,6 +2,7 @@
 // numbers live, each with its source. Node built-ins only. `11` = vault/spec/sections/11-non-functional-requirements.md.
 // Gate rows fail the check; trend rows are recorded and never fail (G1; 11 opening paragraph; R26 R10).
 import zlib from 'node:zlib';
+import { ENTRY_RULES } from '../../eslint-rules/boundaries.mjs';
 
 /** 1 KB = 1,000 bytes (Q-0071 (a)). */
 export const KB_BYTES = 1000;
@@ -13,6 +14,11 @@ export function compressedSize(body) {
 
 const SIZE_SOURCE = '11 Budgets Download size; Q-0071 (a)';
 const FRAME_SOURCE = '11 Budgets Pan row; Q-0061 (a)';
+
+/** EZD-020 Step 6: a `contents.<entry>` gate row, value 0, rule = the entry's forbidden categories. */
+function contents(entry, source) {
+  return { id: `contents.${entry}`, kind: 'gate', unit: 'count', value: 0, rule: ENTRY_RULES[entry], source };
+}
 
 /**
  * Budget: { id; kind: 'gate' | 'trend'; unit: 'bytes' | 'count' | 'ms' | 'relative'; value: number | null;
@@ -90,6 +96,18 @@ const ROWS = [
     source: '11 rules 2, 4; EZD-1001a/c rows',
   },
   { id: 'draw-calls.frame', kind: 'gate', unit: 'count', value: null, source: '11 rule 4; EZD-901b row' },
+  // EZD-020 Step 6: forbidden categories found in an entry's bundle (eslint-rules/boundaries.mjs ENTRY_RULES).
+  contents('office', '11 rule 7; EZD-117a row ("loads no editor code")'),
+  contents(
+    'editor',
+    '11 rule 7 (3D scene, path tracer, pdf.js, DXF, Detail editor, Sheets, catalog drawer are separate chunks); 11 Budgets "editor before its lazy parts"',
+  ),
+  contents('field-pack', '11 Budgets "with no editor or 3D code in them"; 11 rule 7; EZD-020 Done when'),
+  contents(
+    'client-link',
+    '11 Budgets "with no editor or 3D code in them"; 11 rule 7; EZD-1202 row "no editor or 3D code on this page"',
+  ),
+  contents('sign-in', "11 rule 7; applied to the sign-in pages by EZD-020's plan; Q-0072 is about their size only"),
 ];
 
 export const BUDGETS = Object.freeze(Object.fromEntries(ROWS.map((r) => [r.id, Object.freeze(r)])));

@@ -10,6 +10,8 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
 import { BUDGETS } from './budgets.mjs';
+import { bundleReport, writeBundleReport } from './bundle-report.mjs';
+import { measureJsContents } from './js-contents.mjs';
 import { measureJsSize } from './js-size.mjs';
 import { frameStats, runPan } from './pan-script.mjs';
 import { PROFILES } from './perf.config.mjs';
@@ -119,7 +121,8 @@ function planRows(cfg, only) {
       budget: entry.budget,
       status: 'active',
       owner: 'config',
-      collector: 'js-size',
+      // EZD-020 Step 5: entry-contents rows go to js-contents.mjs; any other config-only row is a size row.
+      collector: entry.id.startsWith('entry-contents:') ? 'js-contents' : 'js-size',
       url: entry.url,
     };
     rows.push(row);
@@ -200,6 +203,19 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
       }
       try {
         inputs.push({ ...base, ...(await measureJsSize(browser, profile, baseUrl, r.url)) });
+      } catch (e) {
+        logStack(e);
+        inputs.push({ ...base, error: 'unexpected_error' });
+      }
+    } else if (r.collector === 'js-contents') {
+      if (!r.url) {
+        inputs.push({ ...base, error: 'no_url' });
+        continue;
+      }
+      try {
+        const entry = r.budget.slice('contents.'.length);
+        const ctx = { browser, profile, baseUrl };
+        inputs.push({ ...base, ...(await measureJsContents(ctx, r.url, entry)) });
       } catch (e) {
         logStack(e);
         inputs.push({ ...base, error: 'unexpected_error' });
@@ -310,7 +326,7 @@ export function writeResults(outDir, results) {
 
 /**
  * Validates the config (UsageError, K4), then measures, evaluates and writes the results (K3).
- * @returns {Promise<{ exitCode: 0 | 1; results: object }>}
+ * @returns {Promise<{ exitCode: 0 | 1; results: object; bundleReport: string | null }>}
  */
 export async function runCheck(options) {
   const { repoRoot, cwd } = options;
@@ -371,5 +387,8 @@ export async function runCheck(options) {
   }
 
   writeResults(outDir, results);
-  return { exitCode: results.pass ? 0 : 1, results };
+  // EZD-020 Step 6: the bundle report, whenever at least one entry-contents row was measured.
+  const report = bundleReport(results);
+  if (report !== null) writeBundleReport(outDir, report);
+  return { exitCode: results.pass ? 0 : 1, results, bundleReport: report };
 }

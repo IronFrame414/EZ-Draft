@@ -29,9 +29,10 @@ async function main() {
   const repoRoot = path.resolve(import.meta.dirname, '..', '..');
   let exitCode;
   let results;
+  let report;
   try {
     const opts = parseArgs(process.argv.slice(2));
-    ({ exitCode, results } = await runCheck({ repoRoot, cwd: process.cwd(), ...opts }));
+    ({ exitCode, results, bundleReport: report } = await runCheck({ repoRoot, cwd: process.cwd(), ...opts }));
   } catch (e) {
     if (e instanceof UsageError) {
       process.stderr.write(`perf: ${e.message}\n`);
@@ -42,6 +43,8 @@ async function main() {
   for (const r of results.measurements) {
     process.stdout.write(`${r.id}  ${r.status}  ${r.value}  ${r.budget}\n`);
   }
+  // EZD-020 Step 6: the bundle report, after the per-measurement lines and before PERF PASS or PERF FAIL.
+  if (report) process.stdout.write(`\n${report}\n`);
   if (results.error) {
     process.stdout.write(`PERF FAIL: ${results.error}\n`);
   } else if (results.pass) {

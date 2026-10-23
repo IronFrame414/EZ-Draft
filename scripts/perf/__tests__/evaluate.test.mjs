@@ -10,7 +10,7 @@ const budgets = () => import('../budgets.mjs');
 const pan = () => import('../pan-script.mjs');
 const check = () => import('../check.mjs');
 
-// Section 3 table B, row for row.
+// Section 3 table B, row for row. EZD-020 Step 7: plus the five contents.* rows (EZD-020 Step 2 ENTRY_RULES, Step 6).
 const TABLE_B = {
   'download.projects-settings': { kind: 'gate', unit: 'bytes', value: 200000 },
   'download.editor': { kind: 'gate', unit: 'bytes', value: 500000 },
@@ -33,6 +33,11 @@ const TABLE_B = {
   'rows-per-save': { kind: 'gate', unit: 'relative', value: null, rule: 'value <= changed' },
   'buffers-per-edit': { kind: 'gate', unit: 'relative', value: null, rule: 'value <= changed' },
   'draw-calls.frame': { kind: 'gate', unit: 'count', value: null },
+  'contents.office': { kind: 'gate', unit: 'count', value: 0, rule: ['editor', 'three', 'heavy', 'lazy'] },
+  'contents.editor': { kind: 'gate', unit: 'count', value: 0, rule: ['heavy', 'lazy'] },
+  'contents.field-pack': { kind: 'gate', unit: 'count', value: 0, rule: ['editor', 'three', 'heavy', 'lazy'] },
+  'contents.client-link': { kind: 'gate', unit: 'count', value: 0, rule: ['editor', 'three', 'heavy', 'lazy'] },
+  'contents.sign-in': { kind: 'gate', unit: 'count', value: 0, rule: ['editor', 'three', 'heavy', 'lazy'] },
 };
 
 describe('EZD-017 budgets, frame statistics and evaluate', () => {
@@ -44,7 +49,7 @@ describe('EZD-017 budgets, frame statistics and evaluate', () => {
     assert.equal(buf.length, 10000);
     assert.equal(compressedSize(buf), zlib.gzipSync(buf, { level: 6 }).length);
 
-    assert.equal(Object.keys(BUDGETS).length, 21);
+    assert.equal(Object.keys(BUDGETS).length, 26);
     assert.deepEqual(Object.keys(BUDGETS).sort(), Object.keys(TABLE_B).sort());
     for (const [id, want] of Object.entries(TABLE_B)) {
       const b = BUDGETS[id];
@@ -58,7 +63,7 @@ describe('EZD-017 budgets, frame statistics and evaluate', () => {
       else assert.equal(b.value, want.value, `${id} value`);
       assert.equal(b.statistic, want.statistic, `${id} statistic`);
       assert.equal(b.toleranceMs, want.toleranceMs, `${id} toleranceMs`);
-      assert.equal(b.rule, want.rule, `${id} rule`);
+      assert.deepEqual(b.rule, want.rule, `${id} rule`);
       assert.equal(typeof b.source, 'string', `${id} source`);
       assert.ok(b.source.trim().length > 0, `${id} source non-empty`);
     }

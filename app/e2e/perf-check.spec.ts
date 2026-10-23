@@ -61,9 +61,6 @@ function rowOf(res: Results, id: string): Row {
 }
 
 const PENDING = [
-  'js-size:projects-settings',
-  'js-size:field-pack',
-  'js-size:client-link',
   'draw-calls-per-frame',
   'buffers-rebuilt-per-edit',
   'rows-written-per-save',
