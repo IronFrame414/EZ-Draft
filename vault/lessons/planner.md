@@ -58,7 +58,7 @@ Cause: a security property was taken from a docs sentence instead of the live ca
 Rule: every plan step that creates a function says `revoke all on function … from public` and then grants by name; it never relies on default privileges.
 Check: plan review greps each `create function` step for an explicit revoke from public.
 
-## L-021  areas: ui, testing  seen: 1  status: candidate
+## L-021  areas: ui, testing  seen: 1  status: ratified
 Ticket EZD-012c, 2026-10-22
 Mistake: plan B2 expected computed `background-size` `32px 32px` on the frame root; the merged CSS draws the grid with two background layers, so Chromium returns `32px 32px, 32px 32px` and the gate failed (PLAN-GAP).
 Cause: the expected computed style was written from the spec, not from the CSS rule of the existing element.

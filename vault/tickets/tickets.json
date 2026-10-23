@@ -20,6 +20,7 @@
   "EZD-012 split into EZD-012a, EZD-012b, EZD-012c on 2026-10-20 (planner re-validation proposal, orchestrator applied, Q-0239); every dependent of EZD-012 depends on all three.",
   "EZD-014 split into EZD-014a, EZD-014b, EZD-014c on 2026-10-22 (planner re-validation proposal, orchestrator applied, Q-0244); every dependent of EZD-014 depends on all three.",
   "EZD-015 split into EZD-015a, EZD-015b, EZD-015c on 2026-10-22 (planner re-validation proposal, orchestrator applied, Q-0246); every dependent of EZD-015 depends on all three.",
+  "EZD-023e no longer depends on EZD-003 (2026-10-23, Q-0253): it needs only EZD-003's merged check-live.mjs; EZD-003 stays blocked until the first real release.",
   "2026-10-20 re-cut (Q-0194, Q-0218): EZ Binder tickets EZD-114, 115, 119, 1301 to 1312 removed from v1 (Q-0190; text kept in phases/, BACKLOG.md); new tickets EZD-136 to 138, 640, 641, 729 to 738, 1424 for Round 1 and 2 decisions; EZD-1404, 1419, 1705, 1314, 1614 dependencies edited (see their phase-file rows).",
   "phase is the slice number from vault/tickets/recut.json (PHASES.md); spec_phase is the spec's original phase and names the ticket file under phases/.",
   "spec_files, decisions and mockups are the reading map (Q-0218): vault-relative paths, #<anchor> = text the file contains; print a dispatch's lines with node vault/tools/next_ticket.mjs --reads <ticket> <role>.",
@@ -1969,7 +1970,6 @@
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
     "EZD-023d",
-    "EZD-003",
     "EZD-004b",
     "EZD-002",
     "EZD-004c",
