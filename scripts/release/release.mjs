@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // EZD-023b Step 4 (vault/plans/EZD-023b.md): the release runner, steps 1–8 (context, presence and masking, tip,
 // merged pull request, environment rule, release name, EZD-023a's migration check) and its CLI. Node 22
-// built-ins only. Parts EZD-023c–e add the steps after the migration check; until then every run that gets
-// past step 8 ends `not_built`. Nothing runs this file before EZD-023e adds the workflow (Q-0157).
+// built-ins only. Parts EZD-023c–e add the steps after the migration check: the Vercel checks (c), the dump,
+// migrations and tenant 1 (d), then tag, go live, verify, rollback and record (e). Started only by
+// .github/workflows/release.yml (EZD-023e; Q-0157).
 //
 // `runRelease(opts, deps)` reads `deps.processEnv` one name at a time, never enumerating it, and reads no
 // release name and not GITHUB_TOKEN before the context guards pass (AC-EZD-023b-2). No log line is written
@@ -30,6 +31,13 @@ import { safeLines } from './redact.mjs';
 import { releaseTagFor } from './release-name.mjs';
 import { listReleaseTags, parseReleaseTag, previousReleaseTag } from './tags.mjs';
 import { createVercelApi, evaluateVercelProject } from './vercel-api.mjs';
+import { evaluate, HOST, observe } from '../hosting/check-live.mjs';
+
+// EZD-023e Step 1 H: the checks after going live.
+export const VERIFY_INTERVAL_MS = 5000;
+export const VERIFY_LIMIT_MS = 120000;
+export const HEALTH_REQUEST_TIMEOUT_MS = 4000;
+export const HEALTH_URL = 'https://' + HOST + '/api/health';
 
 // Section 6 wording (job summary lines).
 const NOT_CONFIGURED_LINE = 'production not configured — nothing released';
@@ -43,8 +51,21 @@ const UPLOAD_FAILED_LINE = (prefix) =>
   `release stopped: dump_upload_failed — the database and the live site are unchanged; an incomplete dump may be in ${prefix}`;
 const PARTLY_UPDATED_LINE = (code, prefix) =>
   `release stopped: ${code} — the live site is unchanged; the database may be partly updated; the dump from before this release is in ${prefix}`;
-const NOT_BUILT_RAN_LINE = 'release stopped: not_built — the dump and migrations ran; nothing went live';
+// EZD-023e section 6: lines from step G on.
+const RELEASED_LINE = (tag, n) => `released ${tag} from pull request #${n}`;
+const TAG_FAILED_LINE = (prefix) =>
+  `release stopped: tag_failed — the live site is unchanged; the database has this release's migrations; the dump from before this release is in ${prefix}`;
+const PROMOTE_FAILED_LINE = (tag) =>
+  `release stopped: promote_failed — the live site is unchanged; the database has this release's migrations and the tag ${tag} was made; press Re-run jobs to try again`;
+const VERIFY_ROLLED_BACK_LINE =
+  "release failed: verify_failed — the checks after going live failed, so the previous build was put back; the database keeps this release's migrations; to go back further, use Instant Rollback (docs/runbook.md, Rollback)";
+const VERIFY_NO_EARLIER_LINE =
+  'release failed: verify_failed — the checks after going live failed and there was no earlier build to put back, so this build stays live; see docs/runbook.md, Rollback';
+const VERIFY_ROLLBACK_FAILED_LINE =
+  'release failed: verify_failed — the checks after going live failed and putting the previous build back also failed; use Instant Rollback in Vercel now (docs/runbook.md, Rollback)';
 const NOTICE_LINES = {
+  previous_deployment_unknown: () =>
+    'notice previous_deployment_unknown: Vercel did not report the build that was live before this release, so an automatic rollback would have nothing to put back; tell the orchestrator, and use Instant Rollback by hand if this release has a problem',
   vercel_token_expiring: (date) =>
     `notice vercel_token_expiring: the Vercel token expires on ${date}; make a new one and replace VERCEL_TOKEN in the release environment`,
   vercel_token_no_expiry: () =>
@@ -60,6 +81,7 @@ const BUILD_POLL_MS = 10_000;
 const TENANT_CHECK_RE = /^([01]) (\d+) (\d+)$/;
 const MIGRATION_FILE_RE = /^(\d{14})_[a-z0-9_]+\.sql$/;
 const CHILD_LINES_MAX = 20;
+const BUILD_STATE_RE = /^[A-Z_]{1,20}$/;
 
 /** `yyyyMMddTHHmmssZ` of a clock value (the off-site prefix). */
 const stampOf = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -129,7 +151,8 @@ function lazyVercel() {
 }
 
 export async function runRelease(opts, deps) {
-  const { processEnv, git, github, vercel, supabase, sql, offsite, sleep, now, log, summary, mask } = deps;
+  const { processEnv, git, github, vercel, supabase, sql, offsite, fetch, checkLive, sleep, now, log, summary, mask } =
+    deps;
   const stop = (code, extra = {}) => {
     summary(stoppedLine(code));
     return { ok: false, code, notices: [], ...extra };
@@ -220,7 +243,7 @@ export async function runRelease(opts, deps) {
     .filter((l) => parseReleaseTag(l) !== null);
   const named = releaseTagFor({ sha, prTitle, tags, tagsOnSha });
   if (named.code) {
-    log(`${named.code}: pull request #${prNumber} "${prTitle}" gives no release name`);
+    log(`${named.code}: pull request #${prNumber} ${JSON.stringify(prTitle)} gives no release name`);
     return stop(named.code, { prNumber });
   }
   const { tag, resume } = named;
@@ -285,7 +308,8 @@ export async function runRelease(opts, deps) {
       break;
     }
     if (found && !['BUILDING', 'QUEUED', 'INITIALIZING'].includes(found.state)) {
-      log(`build_failed: the build of ${sha} ended ${found.state}`);
+      const state = typeof found.state === 'string' && BUILD_STATE_RE.test(found.state) ? found.state : 'unknown';
+      log(`build_failed: the build of ${sha} ended ${state}`);
       return stopV('build_failed');
     }
     if (Number(now()) - start >= BUILD_WAIT_MS) {
@@ -351,6 +375,8 @@ export async function runRelease(opts, deps) {
   // reaches the log only through `safeLines` over the mask list; no error message of a child is printed.
   let dumpPrefix;
   let dumpFiles;
+  let uploader = null;
+  let startedAt = null;
   if (!alreadyLive) {
     const dbUrl = processEnv.BACKUP_SOURCE_DB_URL;
     const masked = [...valuesToMask(processEnv), ...rawSecrets(processEnv)];
@@ -422,7 +448,8 @@ export async function runRelease(opts, deps) {
       }
 
       // D. The dump, off-site under releases/ with the release key, before any migration.
-      dumpPrefix = `releases/${tag}-${stampOf(Number(now()))}/`;
+      startedAt = Number(now());
+      dumpPrefix = `releases/${tag}-${stampOf(startedAt)}/`;
       let files;
       try {
         ({ files } = await dumpDatabase({ dbUrl, outDir: path.join(tmp, 'dump'), supabase }));
@@ -433,7 +460,7 @@ export async function runRelease(opts, deps) {
       }
       dumpFiles = files.map(({ name, size, sha256 }) => ({ name, size, sha256 }));
       try {
-        const uploader = offsite({
+        uploader = offsite({
           endpoint: processEnv.BACKUP_S3_ENDPOINT,
           region: processEnv.BACKUP_S3_REGION,
           bucket: processEnv.BACKUP_S3_BUCKET,
@@ -445,7 +472,7 @@ export async function runRelease(opts, deps) {
         }
         await uploader.putJson(`${dumpPrefix}manifest.json`, {
           format: 1,
-          created_at: new Date(Number(now())).toISOString(),
+          created_at: new Date(startedAt).toISOString(),
           source_ref: supabaseRefFromDbUrl(dbUrl),
           newest_migration: newestMigrationIn(worktree()),
           files: dumpFiles,
@@ -494,11 +521,142 @@ export async function runRelease(opts, deps) {
     }
   }
 
-  // Interim until EZD-023e (Q-0157): the steps after this one are not built yet.
-  log('not_built: the release steps after the migration check are added by EZD-023c, EZD-023d and EZD-023e');
-  if (alreadyLive) return stopV('not_built', built);
-  summary(NOT_BUILT_RAN_LINE);
-  return { ok: false, code: 'not_built', prNumber, tag, resume, notices, ...built, dumpPrefix, dumpFiles };
+  // EZD-023e Step 1 G–I. No error text of github, vercel, fetch, checkLive or the uploader is printed.
+  let rolledBack = false;
+  const resultOf = (ok, code) => ({
+    ok,
+    code,
+    tag,
+    prNumber,
+    resume,
+    ...built,
+    ...(dumpPrefix !== undefined ? { dumpPrefix, dumpFiles } : {}),
+    rolledBack,
+    notices,
+  });
+  const finish = async (ok, code) => {
+    // I. Record, through D's uploader, only when this run made a dump.
+    if (dumpPrefix !== undefined && uploader !== null) {
+      const record = {
+        tag,
+        sha,
+        previous_tag: base,
+        pr_number: prNumber,
+        deployment_id: deploymentId,
+        previous_deployment_id: previousDeploymentId,
+        started_at: new Date(startedAt).toISOString(),
+        finished_at: new Date(Number(now())).toISOString(),
+        result: code,
+        rolled_back: rolledBack,
+        dump_files: dumpFiles,
+      };
+      try {
+        await uploader.putJson(`${dumpPrefix}release.json`, record);
+      } catch {
+        log('record_failed');
+      }
+    } else {
+      log('record skipped: no dump in this run');
+    }
+    return resultOf(ok, code);
+  };
+
+  // G. Tag, then go live (skipped when this build is already live).
+  if (!alreadyLive) {
+    if (base !== null && previousDeploymentId === null) notice('previous_deployment_unknown');
+    if (!resume) {
+      try {
+        await github.createTag(tag, sha, `Release ${tag} (#${prNumber})`);
+      } catch {
+        log('tag_failed');
+        const result = await finish(false, 'tag_failed');
+        summary(TAG_FAILED_LINE(dumpPrefix));
+        return result;
+      }
+    }
+    try {
+      await vercel.promote(deploymentId);
+    } catch {
+      log('promote_failed');
+      const result = await finish(false, 'promote_failed');
+      summary(PROMOTE_FAILED_LINE(tag));
+      return result;
+    }
+  }
+
+  // H. Verify: health with this commit's newest migration, then EZD-003's live check.
+  let expected = null;
+  try {
+    for (const line of git(['ls-tree', '--name-only', sha, 'supabase/migrations/']).split(/\r?\n/)) {
+      const m = MIGRATION_FILE_RE.exec(path.posix.basename(line.trim()));
+      if (m && (expected === null || m[1] > expected)) expected = m[1];
+    }
+  } catch {
+    expected = null;
+  }
+  const pollHealth = async (passes) => {
+    const start = Number(now());
+    let tries = 0;
+    for (;;) {
+      tries += 1;
+      let ok = false;
+      try {
+        const res = await fetch(HEALTH_URL, { method: 'GET', signal: AbortSignal.timeout(HEALTH_REQUEST_TIMEOUT_MS) });
+        ok = await passes(res);
+      } catch {
+        ok = false;
+      }
+      if (ok) return { ok: true, tries };
+      if (Number(now()) - start >= VERIFY_LIMIT_MS) return { ok: false, tries };
+      await sleep(VERIFY_INTERVAL_MS);
+    }
+  };
+  const health = await pollHealth(async (res) => res.status === 200 && (await res.json()).schema_version === expected);
+  let verified = health.ok;
+  if (health.ok) {
+    log('health ok');
+    let live = null;
+    try {
+      live = await checkLive();
+      verified = live.ok === true;
+    } catch {
+      verified = false;
+    }
+    if (!verified) {
+      const results = Array.isArray(live?.results) ? live.results : [];
+      const ids = results.filter((r) => r?.pass === false).map((r) => r.id);
+      log(`live check failed: ${ids.join(', ')}`);
+    }
+  } else {
+    log(`health not ok after ${health.tries} tries`);
+  }
+
+  if (!verified) {
+    log('verify_failed');
+    let line = VERIFY_NO_EARLIER_LINE;
+    if (previousDeploymentId !== null && previousDeploymentId !== deploymentId) {
+      try {
+        await vercel.promote(previousDeploymentId);
+        rolledBack = true;
+      } catch {
+        rolledBack = false;
+      }
+      if (rolledBack) {
+        line = VERIFY_ROLLED_BACK_LINE;
+        const back = await pollHealth(async (res) => res.status === 200);
+        log(back.ok ? 'rollback health ok' : 'rollback health not ok');
+      } else {
+        line = VERIFY_ROLLBACK_FAILED_LINE;
+      }
+    }
+    const result = await finish(false, 'verify_failed');
+    summary(line);
+    return result;
+  }
+
+  const result = await finish(true, 'released');
+  summary(RELEASED_LINE(tag, prNumber));
+  return result;
 }
 
 /** Every non-empty release secret and GITHUB_TOKEN, for the child-output mask list (Step 5). */
@@ -527,6 +685,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     supabase: createSupabaseCli({ root: process.cwd() }),
     sql: createSql({ run: runChild }),
     offsite: createOffsiteUploader,
+    fetch: globalThis.fetch,
+    checkLive: async () => evaluate(await observe(HOST)),
     now: () => Date.now(),
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     log: out,

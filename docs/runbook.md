@@ -105,3 +105,63 @@ Josh's steps in Sentry and Vercel. Steps 1 to 4 are part of the Before-launch ch
 4. **Vercel values (Production and Preview).** In the `ezdraft` project: Settings, Environment Variables. `SENTRY_TRANSPORT` = `sentry`; `SENTRY_DSN` = the DSN from step 2; `ALERT_EMAIL_TO` = your own address. Optional: `SENTRY_ISSUES_URL` = the address of the project's Issues page, so error emails link straight to the issue. Previews use the stub email transport by default, so preview alerts are recorded but not emailed unless you switch that preview to live sending.
 5. **Who gets what.** New errors go only to `ALERT_EMAIL_TO`. Failed background jobs and failed EZ Binder deliveries go to `ALERT_EMAIL_TO` and to every Owner of that company, one email each; if your address is both, you get one. At most 20 alerts are emailed per hour.
 6. **Live check (field check).** After the first real release before launch (Actions, Release is green with `released`), open a terminal in the EZ Draft folder and run `node scripts/errors/live-check.mjs`. It prints a code of 12 letters. Within a few minutes you should see one new issue in Sentry and one alert email, both with that code. Running it again with the same code (`node scripts/errors/live-check.mjs <code>`) sends no second email. Tell the orchestrator what you saw.
+
+## Environments and releases (EZD-023)
+
+How production changes. Merging a pull request into `main` starts Actions → **Release** (`.github/workflows/release.yml`). It saves a copy of the production database to Backblaze under `releases/`, applies the migrations, sets up Worth Properties and your owner account on the first release, tags the commit (`phase-N` or `phase-N.k`), makes that commit's own build live and checks the site. If anything fails before the build goes live, the live site does not change. If the checks after going live fail, it puts the previous build back. Agents never see the production secrets; they live only in the GitHub environment `release`.
+
+### Until launch
+- Merging into `main` releases nothing. Actions → **Release** ends green with the summary `production not configured — nothing released`, because `release` holds no secrets yet.
+- Phase field checks use the Vercel preview of the phase pull request.
+
+### Go-live switch
+**Auto-assign Custom Production Domains** has been off since the Vercel setup (Vercel and the subdomain, step 2: Settings, Environments, Production, Branch Tracking). Never turn it back on. With it on, a merge would go live on the address before its migrations, and the release refuses to run (`vercel_auto_assign_on`).
+
+### Josh's GitHub and account settings
+Do these in the browser under your own GitHub account.
+1. **Agent account** (done 2026-10-12). The agents push as `ironframe414-agent`, a collaborator on `IronFrame414/EZ-Draft` with the **Write** role. Never give it Maintain or Admin.
+2. **Build computer** (done 2026-10-12). `gh` and Git on the build computer are signed in as the agent account. Never sign your own GitHub account in there. On a new build computer, sign in as the agent account only.
+3. **`main` ruleset.** Settings → **Rules** → **Rulesets** → **New ruleset** → **New branch ruleset**: name `main`; Enforcement status **Active**; Bypass list empty; Target branches → **Add target** → **Include default branch**. Rules: **Restrict deletions**; **Require a pull request before merging** with Required approvals **1**, **Dismiss stale pull request approvals when new commits are pushed** and **Require approval of the most recent reviewable push**; **Require status checks to pass** with the check `gate`; **Block force pushes**. Save. Agents open the pull requests; you approve and merge. Do not push to a pull request branch yourself.
+4. **`develop` ruleset.** New branch ruleset `develop`, Active, target branch `develop`, rules **Restrict deletions** and **Block force pushes**.
+5. **Tag ruleset.** New ruleset → **New tag ruleset** `release tags`, Active, target pattern `phase-*`, rules **Restrict updates** and **Restrict deletions**. Creating tags stays allowed, so the release can tag.
+6. **Actions settings.** Settings → **Actions** → **General**. Actions permissions: allow IronFrame414's actions and selected others, with **Allow actions created by GitHub** ticked; if GitHub offers **Require actions to be pinned to a full-length commit SHA**, tick it. Fork pull request workflows: **Require approval for all external contributors**. Workflow permissions: **Read repository contents and packages permissions**, and untick **Allow GitHub Actions to create and approve pull requests**. Save. The release job asks for its own right to create the tag.
+7. **Secret scanning.** Settings → **Code security** → **Secret scanning**: Enable; **Push protection**: Enable.
+8. **Environment `dev`.** Settings → **Environments** → **New environment** `dev` → **Deployment branches and tags** → **Selected branches and tags** → add branch `develop` only → turn off "Allow administrators to bypass configured protection rules" if shown → **Save protection rules** → only then add the secret `SUPABASE_DEV_DB_URL` (Supabase cloud projects). If an older **repository secret** has that name, delete it.
+9. **Environment `release`.** **New environment** `release` → **Selected branches and tags** → branch `main` only → administrators cannot bypass → **Save protection rules**. Add no secrets until the Before launch checklist.
+10. **Leave Vercel's `Production` environment alone.** GitHub lists an environment `Production` that Vercel made for its deployment records. Never add a secret to it, and never put a production value in a repository secret or an organization secret.
+11. Optional: add the lines under "Safety net" to your own Claude settings.
+
+### Before launch checklist
+Do these in order when the app is about to go live. The release refuses a half-finished list (`env_missing`, `environment_unprotected`, `vercel_auto_assign_on`, `deployment_protection_off`, `env_mismatch`).
+1. **Production database.** Create `ezdraft-prod` in EZ Binder's Supabase organization (Supabase cloud projects, steps 1–3).
+2. **Go-live switch and address.** Check that **Auto-assign Custom Production Domains** is still off, and that Vercel's Domains page shows `ezdraft.ezcontractorbinder.com` valid with a certificate.
+3. **Vercel protection.** Check Settings → **Deployment Protection**: **Vercel Authentication** on with **Standard Protection**; Settings → Security: **Git Fork Protection** on (set 2026-10-19).
+4. **Vercel values.** In the `ezdraft` project: Production values from `ezdraft-prod`, Preview values from `ezdraft-dev`, for every name in docs/architecture.md "Environment variables" that Vercel holds. Preview needs `EMAIL_FROM` and `SUPABASE_API_GATE_SECRET` too, and `EMAIL_TRANSPORT` = `stub`. `SUPABASE_API_GATE_SECRET` is a different secret for each project: run `node scripts/db/api-gate.mjs generate` once per project and keep the `select private.set_api_gate_hash(…)` line for item 10. Never set `EMAIL_STUB_DIR` in Vercel. Mark every secret value **Sensitive**, in `ezdraft` and in EZ Binder's project in the same team. Leave `NEXT_PUBLIC_SUPABASE_URL` and `EMAIL_TRANSPORT` plain, because the release reads them. If you switch a preview to `resend`, make a separate Resend key for it (for example `ezdraft-preview`, Sending access); never put `ezdraft-production` in Vercel Preview.
+5. **Vercel token.** Account Settings → **Tokens** → Create: scope EZ Binder's team only, expiration **90 days**. Note the `ezdraft` project id and the team id.
+6. **Sentry.** The steps in the Sentry section (it arrives with EZD-024).
+7. **Backblaze B2.** The one-time setup in the backups section (it arrives with EZD-025): a private bucket with SSE-B2 encryption, Object Lock in Governance mode for 91 days, the lifecycle rules, and three keys: the backup key, the **release key** and the restore key. The release key works only on this bucket and on file names starting `releases/`, with `writeFiles` and `listAllBucketNames` only (Backblaze needs the second for keys limited to one bucket; it shows bucket names only). No key gets `bypassGovernance`.
+8. **GitHub `release` environment.** Open it and check: deployment branches = `main` only, administrators cannot bypass. Only then add its secrets: `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `TENANT1_OWNER_EMAIL` (the email you sign in with), `BACKUP_SOURCE_DB_URL` (the **Session pooler** connection string of `ezdraft-prod`, with the database password written percent-encoded: every character other than a letter, a digit, `-`, `.`, `_` or `~` becomes `%` and two hex digits, so `@` is `%40`, `:` is `%3A`, `/` is `%2F` and `%` is `%25`; a bare `@`, `:` or `/` breaks the address and can show part of the password in the release log), `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `RELEASE_S3_ACCESS_KEY_ID`, `RELEASE_S3_SECRET_ACCESS_KEY`, and the backups' `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`, `BACKUP_SOURCE_SUPABASE_URL`, `BACKUP_SOURCE_SECRET_KEY`. Never as repository or organization secrets, never in Vercel's `Production` environment.
+9. **First real release.** Merge the release pull request (title `Phase N: …`). Actions → **Release** must end green with `phase-N` and `released`: it saved the database, created Worth Properties and your owner account, and checked the address. If it is red, the summary names the step; fix the cause and press **Re-run jobs**. Then do the Sentry live check, run the two backup workflows by hand and do the restore drill before the first real job is entered (EZD-024, EZD-025).
+10. **Token hook and gate hash on `ezdraft-prod`.** Right after the first release, do Supabase cloud projects steps 9–10 for `ezdraft-prod`: turn on the Custom Access Token hook `private.custom_access_token_hook`, and run the `select private.set_api_gate_hash(…)` line from item 4. Until then the site is up and health passes, but every signed-in request on production is refused.
+11. **Delete `TENANT1_OWNER_EMAIL`** from the `release` environment. Every release summary shows `owner_email_secret_unused` until you do.
+12. **Every 90 days:** make a new Vercel token and replace `VERCEL_TOKEN`. The release summary shows `vercel_token_expiring` 14 days before the old one ends.
+
+### Each release (after launch)
+Merge the pull request into `main`. That is all. Watch Actions → **Release**: green means live. Red means the live site did not change, or was put back; the summary names the step. Fix the cause (for example a missing secret), then press **Re-run jobs** on that run. Notices in the summary: `vercel_token_expiring` (Before launch item 12); `owner_email_secret_unused` (item 11); `previous_deployment_unknown` (automatic rollback cannot work: tell the orchestrator, and use Instant Rollback by hand if that release has a problem).
+
+### First real release
+`ezdraft-prod` must exist. The release creates Worth Properties and your owner account, so do not paste `supabase/bootstrap/tenant-1.sql` into production. The address check (`scripts/hosting/check-live.mjs`) runs inside the release. Afterwards delete `TENANT1_OWNER_EMAIL` (Before launch item 11).
+
+### Rollback
+1. **Automatic.** When the checks after going live fail, the release puts the previous build back. The run is red, and the summary says `verify_failed` and that the previous build was put back.
+2. **By hand** (a problem found later). In Vercel → **Deployments**, open the previous production deployment (its commit carries the previous `phase-…` tag) and use **Instant Rollback**.
+3. **Leave the database alone.** Never revert, edit or delete a migration. The previous build works with the current database, because migrations add before they remove.
+4. **Check.** Run `node scripts/hosting/check-live.mjs`. `/api/health` still shows the newer `schema_version`; that is expected.
+5. **Fix forward.** Fix on `develop`, open a pull request to `main` and merge it; the release names it `phase-N.k`.
+6. **If data was damaged, stop.** Never load a dump into production by hand. The run summary names the dump taken before the release (`releases/<tag>-<time>/`); the restore steps are in the backups section (EZD-025).
+
+### Dumps
+In B2 under `releases/`, one folder per release run. They hold client data. Object Lock keeps them at least 91 days, and the lifecycle rule deletes them after 13 weeks (set with the backups, EZD-025).
+
+### Safety net
+Agents cannot run release commands (`.claude/settings.json`, `.claude/hooks/guard-bash.mjs`). Optional lines for your own Claude settings: `Bash(node scripts/release/release*)` and `Bash(gh run rerun*)`.

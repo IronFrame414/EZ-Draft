@@ -176,7 +176,7 @@ function recordingEnv(obj) {
  * `rule` override the GitHub fake's answers (a function to throw/reject); `recordEnv` wraps processEnv in the
  * recording Proxy.
  */
-function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sleep, now } = {}) {
+function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sleep, now, createTag } = {}) {
   const tip = repo.tip;
   const journal = []; // { kind: 'log' | 'summary' | 'mask', value }
   const external = []; // vercel, supabase, sql, offsite, checkLive, fetch, github.createTag
@@ -199,6 +199,7 @@ function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sle
     async createTag(...args) {
       githubCalls.push({ target: 'github.createTag', args });
       external.push({ target: 'github.createTag', args });
+      if (createTag) return createTag(...args);
       return undefined;
     },
   };
@@ -582,12 +583,13 @@ function makeVercelFake(external, o = {}) {
     getProject: rec('getProject', o.getProject ?? (() => ({ ...CLEAN_PROJECT(), ...(o.project ?? {}) }))),
     tokenInfo: rec('tokenInfo', o.tokenInfo ?? (() => ({ expiresAt: T0 + 60 * DAY, ...(o.token ?? {}) }))),
     findProductionDeployment: rec('findProductionDeployment', o.find ?? (() => ({ id: 'dpl_NEW', state: 'READY' }))),
-    currentProductionDeployment: rec('currentProductionDeployment', () => null),
+    currentProductionDeployment: rec('currentProductionDeployment', o.current ?? (() => null)),
     listEnv: rec('listEnv', o.listEnv ?? (() => ENV_LIST().filter((e) => !(o.omitEnv ?? []).includes(e.id)))),
     readEnvValue: rec('readEnvValue', (id) => (id in values ? values[id] : 'NOT-TO-BE-READ')),
     promote: async (...args) => {
       calls.push({ name: 'promote', args });
       external.push({ target: 'vercel.promote', args });
+      if (o.promote) return o.promote(...args);
     },
   };
   return {
@@ -605,7 +607,7 @@ function makeVercelFake(external, o = {}) {
 
 /** CLEAN extended with the fakes. `o` goes to makeVercelFake; `o.realVercel` replaces the fake `vercel`. */
 function makeC(mod, R, o = {}) {
-  const h = makeClean(mod, R);
+  const h = makeClean(mod, R, { pulls: o.pulls, createTag: o.createTag });
   const f = makeVercelFake(h.external, o);
   h.deps.vercel = o.realVercel ?? f.vercel;
   h.deps.sleep = f.sleep;
@@ -928,6 +930,32 @@ const worktreeCount = (R) =>
     .split(/\r?\n/)
     .filter((l) => l.startsWith('worktree ')).length;
 
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-023e builder (vault/plans/EZD-023e.md section 4): makeD plus the `fetch` and `checkLive` fakes.
+// `o.fetch(n)` (n = 1-based call number) and `o.checkLive()` replace the default answers; a throw rejects.
+// ---------------------------------------------------------------------------------------------------------------
+const LIVE_IDS = ['dns', 'tls', 'status', 'host', 'vercel', 'title', 'hsts', 'redirect'];
+const HEALTH_OK = (version = '20261102000000') => ({
+  status: 200,
+  json: async () => ({ status: 'ok', schema_version: version }),
+});
+
+function makeE(mod, bs, R, o = {}) {
+  const { h, f } = makeD(mod, bs, R, o);
+  let n = 0;
+  h.deps.fetch = async (url, init) => {
+    n += 1;
+    h.external.push({ target: 'fetch', args: [url, init] });
+    return o.fetch ? o.fetch(n) : HEALTH_OK();
+  };
+  h.deps.checkLive = async () => {
+    h.external.push({ target: 'checkLive', args: [] });
+    if (o.checkLive) return o.checkLive();
+    return { ok: true, results: LIVE_IDS.map((id) => ({ id, pass: true, detail: 'ok' })) };
+  };
+  return { h, f };
+}
+
 describe('EZD-023d dump, migrations and tenant 1', () => {
   // T25 --------------------------------------------------------------------------------------------------------
   test('EZD-023d done when: the release writes the dump off-site under releases/ with the release key before any migration', async (t) => {
@@ -937,7 +965,7 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
     // An uncommitted migration in R's working tree must never reach the release (archived step 11).
     writeFileSync(path.join(R.work, 'supabase', 'migrations', '20261201000000_wip.sql'), 'select 1;\n');
 
-    const { h } = makeD(mod, bs, R);
+    const { h } = makeE(mod, bs, R);
     h.deps.processEnv.BACKUP_S3_ACCESS_KEY_ID = 'key_TEST';
     h.deps.processEnv.BACKUP_S3_SECRET_ACCESS_KEY = 'b2-secret-TEST';
     const result = await h.run();
@@ -956,6 +984,7 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
         'offsite.putJson',
         'supabase.push',
         'sql',
+        'offsite.putJson',
       ],
       `journal order; logs: ${JSON.stringify(h.logs())}`,
     );
@@ -976,8 +1005,8 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
     const puts = h.puts();
     assert.deepEqual(
       puts.map((c) => c.args[0]),
-      ['roles.sql', 'schema.sql', 'data.sql', 'manifest.json'].map((n) => DUMP_PREFIX + n),
-      'the 4 keys',
+      ['roles.sql', 'schema.sql', 'data.sql', 'manifest.json', 'release.json'].map((n) => DUMP_PREFIX + n),
+      'the 5 keys',
     );
     for (const c of puts.slice(0, 3)) {
       assert.deepEqual(c.args[2], { contentType: 'application/sql' }, `${c.args[0]} content type`);
@@ -1042,7 +1071,14 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
     assert.equal(text.split('owner.test@example.com').length - 1, 1, 'bootstrap text holds the email once');
     assert.ok(!text.includes('PASTE-YOUR-EMAIL-HERE'), 'bootstrap text holds no placeholder');
 
-    assertNothingLive(h, 'T25');
+    {
+      const targets = h.external.map((c) => c.target);
+      const firstLive = targets.findIndex(
+        (tg) => tg === 'github.createTag' || tg === 'vercel.promote' || tg === 'checkLive',
+      );
+      assert.ok(firstLive > targets.indexOf('supabase.push'), 'T25: nothing live before supabase.push');
+      assert.ok(firstLive > targets.lastIndexOf('sql'), 'T25: nothing live before the last sql call');
+    }
     assert.deepEqual(result.notices, [], 'notices');
 
     // Cleanup: the worktree and the dump folder are gone; R lists one worktree.
@@ -1159,7 +1195,7 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
 
     // (h) already done counts as done (finding V6).
     {
-      const { h } = makeD(mod, bs, R, {
+      const { h } = makeE(mod, bs, R, {
         bootstrap: () => {
           throw childError('psql exited 3', 'ERROR:  ezd_bootstrap_already_done');
         },
@@ -1170,7 +1206,8 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
         !h.summaries().some((l) => l.startsWith('release stopped: bootstrap_failed')),
         '(h) no bootstrap_failed summary line',
       );
-      assertNothingLive(h, 'h');
+      assert.equal(h.calls('github.createTag').length, 1, '(h) exactly 1 createTag');
+      assert.equal(h.calls('vercel.promote').length, 1, '(h) exactly 1 promote');
     }
   });
 
@@ -1365,6 +1402,544 @@ describe('EZD-023d dump, migrations and tenant 1', () => {
       assert.equal(calls.length, 1, `(i) 1 bootstrap sql call; logs: ${JSON.stringify(h.logs())}`);
       assert.equal(calls[0].args[0].split('owner.test@example.com').length - 1, 1, '(i) email once');
       assert.ok(!calls[0].args[0].includes('PASTE-YOUR-EMAIL-HERE'), '(i) no placeholder');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-023e (vault/plans/EZD-023e.md section 4): T7, T8, T11 (c) (d) (f), T12, T13, T20, T21, T22. Expected values
+// come from the plan's Tests table (Step 1 G-I, section 6), the ticket's Done when (AC-EZD-023e-1, -2) and part c's
+// fake clock T0 (prefix `releases/phase-0-20261019T120000Z/`).
+// ---------------------------------------------------------------------------------------------------------------
+const HEALTH_URL_EXPECTED = 'https://ezdraft.ezcontractorbinder.com/api/health';
+const RELEASED_LINE = (tag, n) => `released ${tag} from pull request #${n}`;
+const TAG_FAILED_LINE = (prefix) =>
+  `release stopped: tag_failed — the live site is unchanged; the database has this release's migrations; the dump from before this release is in ${prefix}`;
+const PROMOTE_FAILED_LINE = (tag) =>
+  `release stopped: promote_failed — the live site is unchanged; the database has this release's migrations and the tag ${tag} was made; press Re-run jobs to try again`;
+const VERIFY_ROLLED_BACK_LINE =
+  "release failed: verify_failed — the checks after going live failed, so the previous build was put back; the database keeps this release's migrations; to go back further, use Instant Rollback (docs/runbook.md, Rollback)";
+const VERIFY_NO_EARLIER_LINE =
+  'release failed: verify_failed — the checks after going live failed and there was no earlier build to put back, so this build stays live; see docs/runbook.md, Rollback';
+const VERIFY_ROLLBACK_FAILED_LINE =
+  'release failed: verify_failed — the checks after going live failed and putting the previous build back also failed; use Instant Rollback in Vercel now (docs/runbook.md, Rollback)';
+const PREVIOUS_UNKNOWN_LINE =
+  'notice previous_deployment_unknown: Vercel did not report the build that was live before this release, so an automatic rollback would have nothing to put back; tell the orchestrator, and use Instant Rollback by hand if this release has a problem';
+const VERCEL_PROMOTE_500 = 'Vercel POST /v10/projects/{project}/promote/{deployment} failed: 500';
+const sha256Of = (text) => createHash('sha256').update(String(text)).digest('hex');
+
+/** True when some output line holds any of `texts` (hex runs of 40+ characters removed first when `stripHex`). */
+function outputHolds(h, texts, { stripHex = false } = {}) {
+  const rec = releaseJson(h);
+  const lines = rec ? [...h.output(), JSON.stringify(rec.args[1])] : h.output();
+  return lines.some((line) => {
+    const l = stripHex ? line.replace(/[0-9a-f]{40,}/g, '') : line;
+    return texts.some((v) => l.includes(v));
+  });
+}
+const SECRET_TEXTS = [
+  'S3cret',
+  'tok_TEST',
+  'rel-secret-TEST',
+  'relkey_TEST',
+  'ghs_TEST',
+  'owner.test@example.com',
+  'postgresql://',
+  'prj_TEST',
+];
+const releaseJson = (h) => {
+  const puts = h.calls('offsite.putJson').filter((c) => c.args[0].endsWith('release.json'));
+  return puts.length === 1 ? puts[0] : null;
+};
+const promoteIds = (f) => f.calls.filter((c) => c.name === 'promote').map((c) => c.args[0]);
+const notNull = (v, msg) => {
+  assert.ok(v !== null && v !== undefined, msg);
+  return v;
+};
+
+/** Setup `LATER` (archived T8): `phase-0` on C1, a Phase 1 pull request, a live build dpl_OLD, tenant 1 present. */
+function makeLater(mod, bs, t, o = {}) {
+  const R = makeR(t, { tagC1: true });
+  const { h, f } = makeE(mod, bs, R, {
+    pulls: () => [{ ...cleanPull(R.tip), title: 'Phase 1: Projects' }],
+    current: () => ({ id: 'dpl_OLD' }),
+    tenantCheck: () => ({ stdout: '1 5000 300000\n', stderr: '' }),
+    ...o,
+  });
+  delete h.deps.processEnv.TENANT1_OWNER_EMAIL;
+  return { R, h, f };
+}
+
+describe('EZD-023e go live, verify, rollback and record', () => {
+  // T7 ---------------------------------------------------------------------------------------------------------
+  test('EZD-023e done when: the release makes live only the build of the commit it tags, after the dump and the migrations', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    writeFileSync(path.join(R.work, 'supabase', 'migrations', '20261201000000_wip.sql'), 'select 1;\n');
+    const { h, f } = makeE(mod, bs, R);
+    const result = await h.run();
+
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    assert.equal(result.tag, 'phase-0');
+    assert.equal(result.rolledBack, false);
+    assert.deepEqual(result.notices, []);
+
+    assert.deepEqual(
+      h.githubCalls.map((c) => c.target),
+      ['github.mergedPullsFor', 'github.environmentBranchRule', 'github.createTag'],
+    );
+    assert.deepEqual(h.githubCalls[1].args, ['release']);
+    assert.deepEqual(h.githubCalls[2].args, ['phase-0', R.tip, 'Release phase-0 (#7)']);
+    assert.deepEqual(
+      f.calls.map((c) => c.name).filter((n) => n !== 'readEnvValue'),
+      ['getProject', 'tokenInfo', 'findProductionDeployment', 'currentProductionDeployment', 'listEnv', 'promote'],
+    );
+    assert.deepEqual(
+      h.external.map((c) => (c.target === 'supabase.dump' ? `supabase.dump(${c.args[0]})` : c.target)),
+      [
+        'sql',
+        'supabase.pushDryRun',
+        'supabase.dump(roles)',
+        'supabase.dump(schema)',
+        'supabase.dump(data)',
+        'offsite',
+        'offsite.putFile',
+        'offsite.putFile',
+        'offsite.putFile',
+        'offsite.putJson',
+        'supabase.push',
+        'sql',
+        'github.createTag',
+        'vercel.promote',
+        'fetch',
+        'checkLive',
+        'offsite.putJson',
+      ],
+      `order; logs: ${JSON.stringify(h.logs())}`,
+    );
+    const keys = h.puts().map((c) => c.args[0]);
+    assert.ok(
+      keys[0].endsWith('roles.sql') && keys[1].endsWith('schema.sql') && keys[2].endsWith('data.sql'),
+      'dump keys',
+    );
+    assert.ok(keys[3].endsWith('manifest.json'), 'manifest key');
+    assert.ok(keys[4].endsWith('release.json'), 'release.json key');
+    assert.deepEqual(promoteIds(f), ['dpl_NEW']);
+    assert.equal(h.calls('vercel.promote').length, 1, '1 promote call');
+    const fetches = h.calls('fetch');
+    assert.equal(fetches.length, 1, '1 fetch call');
+    assert.equal(fetches[0].args[0], HEALTH_URL_EXPECTED);
+    assert.equal(fetches[0].args[1].method, 'GET');
+    assert.ok(fetches[0].args[1].signal instanceof AbortSignal, 'fetch gets an AbortSignal');
+    assert.equal(h.calls('checkLive').length, 1, '1 checkLive call');
+    assert.equal(h.calls('offsite').length, 1, 'offsite factory called once');
+    for (const c of h.external.filter((e) => e.target.startsWith('offsite.put'))) {
+      assert.ok(c.args[0].startsWith(DUMP_PREFIX), 'every offsite key starts with the run prefix');
+    }
+    const rec = notNull(releaseJson(h), 'release.json put once');
+    assert.equal(rec.args[0], `${DUMP_PREFIX}release.json`);
+    const manifest = h.calls('offsite.putJson').find((c) => c.args[0].endsWith('manifest.json'));
+    assert.deepEqual(rec.args[1], {
+      tag: 'phase-0',
+      sha: R.tip,
+      previous_tag: null,
+      pr_number: 7,
+      deployment_id: 'dpl_NEW',
+      previous_deployment_id: null,
+      started_at: '2026-10-19T12:00:00.000Z',
+      finished_at: '2026-10-19T12:00:00.000Z',
+      result: 'released',
+      rolled_back: false,
+      dump_files: manifest.args[1].files,
+    });
+    assert.ok(h.logs().includes('no release tag yet: nothing is released'), 'log: no release tag yet');
+    assert.ok(h.logs().includes('health ok'), 'log: health ok');
+    assert.ok(h.summaries().includes(DUMP_SAVED_LINE(DUMP_PREFIX)), 'summary: dump saved');
+    assert.ok(h.summaries().includes(RELEASED_LINE('phase-0', 7)), `summary: released; ${JSON.stringify(h.summaries())}`);
+    assert.ok(!h.summaries().some((l) => l.startsWith('release stopped:')), 'no release stopped line');
+
+    // Masks: exactly the two derived values, all before the first log line (compared by hash, L-018).
+    const maskSet = [...new Set(h.masks())].sort();
+    assert.equal(
+      sha256Of(JSON.stringify(maskSet)),
+      sha256Of(JSON.stringify(['S3cret', 'owner.test@example.com'].sort())),
+      'mask set',
+    );
+    const firstLog = h.journal.findIndex((e) => e.kind === 'log');
+    const lastMask = h.journal.map((e) => e.kind).lastIndexOf('mask');
+    assert.ok(lastMask < firstLog, 'all masks before the first log line');
+    assert.ok(!outputHolds(h, SECRET_TEXTS), 'no secret in the output');
+    assert.equal(worktreeCount(R), 1, 'git worktree list shows one worktree');
+  });
+
+  // T8 ---------------------------------------------------------------------------------------------------------
+  test('EZD-023e T8 a later release names its previous tag and build', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const cases = [
+      { id: 'a' },
+      { id: 'b', email: 'owner.test@example.com' },
+      {
+        id: 'c',
+        o: {
+          putJson: (key) => {
+            if (key.endsWith('release.json')) throw new Error('offsite put failed: x (403)');
+          },
+        },
+      },
+      { id: 'd', o: { current: () => null } },
+    ];
+    for (const { id, email, o } of cases) {
+      const { h, f } = makeLater(mod, bs, t, o ?? {});
+      if (email) h.deps.processEnv.TENANT1_OWNER_EMAIL = email;
+      const result = await h.run();
+      assert.equal(result.ok, true, `(${id}) ok; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.code, 'released', `(${id}) code`);
+      assert.equal(result.tag, 'phase-1', `(${id}) tag`);
+      assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
+      assert.ok(h.logs().includes('migration check passed against phase-0'), `(${id}) migration check log`);
+      assert.equal(h.calls('github.createTag').length, 1, `(${id}) 1 createTag`);
+      assert.equal(h.calls('github.createTag')[0].args[0], 'phase-1', `(${id}) createTag name`);
+      assert.deepEqual(promoteIds(f), ['dpl_NEW'], `(${id}) promote once with dpl_NEW`);
+      const rec = notNull(releaseJson(h), `(${id}) release.json recorded`).args[1];
+      if (id !== 'd') {
+        assert.equal(rec.previous_tag, 'phase-0', `(${id}) previous_tag`);
+        assert.equal(rec.previous_deployment_id, 'dpl_OLD', `(${id}) previous_deployment_id`);
+      }
+      if (id === 'a') assert.deepEqual(result.notices, [], '(a) notices');
+      if (id === 'b') assert.deepEqual(result.notices, ['owner_email_secret_unused'], '(b) notices');
+      if (id === 'c') {
+        assert.ok(h.logs().includes('record_failed'), `(c) record_failed logged: ${JSON.stringify(h.logs())}`);
+        assert.ok(!outputHolds(h, ['403']), '(c) no 403 in the output');
+      }
+      if (id === 'd') {
+        assert.deepEqual(result.notices, ['previous_deployment_unknown'], '(d) notices');
+        assert.ok(h.summaries().includes(PREVIOUS_UNKNOWN_LINE), `(d) summary notice: ${JSON.stringify(h.summaries())}`);
+        assert.equal(rec.previous_deployment_id, null, '(d) previous_deployment_id null');
+      }
+    }
+  });
+
+  // T11 (c), (d), (f) ------------------------------------------------------------------------------------------
+  test('EZD-023e T11 go-live failures keep the old build live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const stoppedLines = (h) => h.summaries().filter((l) => l.startsWith('release stopped:'));
+
+    // (c) the tag cannot be made.
+    {
+      const { h, f } = makeE(mod, bs, R, {
+        createTag: () => {
+          throw new Error('POST /git/tags failed: 422');
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.ok, false, '(c) ok false');
+      assert.equal(result.code, 'tag_failed', `(c) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(promoteIds(f).length, 0, '(c) 0 promote');
+      assert.equal(h.calls('fetch').length, 0, '(c) 0 fetch');
+      assert.equal(h.calls('checkLive').length, 0, '(c) 0 checkLive');
+      assert.deepEqual(stoppedLines(h), [TAG_FAILED_LINE(DUMP_PREFIX)], '(c) summary');
+      assert.equal(notNull(releaseJson(h), '(c) release.json').args[1].result, 'tag_failed');
+      assert.ok(!outputHolds(h, ['422', '500', '/git/tags'], { stripHex: true }), '(c) no raw error text');
+    }
+
+    // (d) the promote fails.
+    {
+      const { h, f } = makeE(mod, bs, R, {
+        promote: () => {
+          throw new Error(VERCEL_PROMOTE_500);
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.ok, false, '(d) ok false');
+      assert.equal(result.code, 'promote_failed', `(d) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(promoteIds(f).length, 1, '(d) exactly 1 promote');
+      assert.equal(h.calls('fetch').length, 0, '(d) 0 fetch');
+      assert.equal(h.calls('checkLive').length, 0, '(d) 0 checkLive');
+      assert.deepEqual(stoppedLines(h), [PROMOTE_FAILED_LINE('phase-0')], '(d) summary');
+      assert.equal(notNull(releaseJson(h), '(d) release.json').args[1].result, 'promote_failed');
+      assert.ok(!outputHolds(h, ['422', '500', '/git/tags'], { stripHex: true }), '(d) no raw error text');
+    }
+
+    // (f) tenant 1 already set up counts as done.
+    {
+      const { h, f } = makeE(mod, bs, R, {
+        bootstrap: () => {
+          throw childError('psql exited 3', 'ERROR:  ezd_bootstrap_already_done');
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.ok, true, `(f) ok; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.code, 'released', '(f) code');
+      assert.equal(h.calls('github.createTag').length, 1, '(f) 1 createTag');
+      assert.equal(promoteIds(f).length, 1, '(f) 1 promote');
+    }
+  });
+
+  // T12 --------------------------------------------------------------------------------------------------------
+  test('EZD-023e done when: the release puts the previous build back when the checks after going live fail', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const FAIL_500 = () => ({ status: 500, json: async () => ({}) });
+
+    // (a) wrong schema_version for the whole limit: 25 polls, then the previous build goes back.
+    {
+      const { h, f } = makeLater(mod, bs, t, { fetch: () => HEALTH_OK('20261101000000') });
+      const result = await h.run();
+      assert.equal(result.ok, false, '(a) ok false');
+      assert.equal(result.code, 'verify_failed', `(a) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.rolledBack, true, '(a) rolledBack');
+      const targets = h.external.map((c) => c.target);
+      const promotes = targets.map((tg, i) => (tg === 'vercel.promote' ? i : -1)).filter((i) => i >= 0);
+      assert.equal(promotes.length, 2, '(a) 2 promote calls');
+      assert.equal(
+        targets.slice(0, promotes[1]).filter((tg) => tg === 'fetch').length,
+        25,
+        '(a) 25 fetches before the rollback',
+      );
+      assert.equal(f.sleeps.filter((ms) => ms === 5000).length, 24, '(a) 24 sleeps of 5000');
+      assert.deepEqual(promoteIds(f), ['dpl_NEW', 'dpl_OLD'], '(a) promote order');
+      assert.equal(targets.slice(promotes[1]).filter((tg) => tg === 'fetch').length, 1, '(a) 1 rollback poll');
+      assert.equal(h.calls('checkLive').length, 0, '(a) 0 checkLive');
+      assert.ok(h.logs().includes('health not ok after 25 tries'), `(a) log: ${JSON.stringify(h.logs())}`);
+      assert.ok(h.logs().includes('rollback health ok'), '(a) rollback health ok');
+      const rec = notNull(releaseJson(h), '(a) release.json').args[1];
+      assert.equal(rec.result, 'verify_failed');
+      assert.equal(rec.rolled_back, true);
+      assert.ok(h.summaries().includes(VERIFY_ROLLED_BACK_LINE), `(a) summary: ${JSON.stringify(h.summaries())}`);
+    }
+
+    // (b) first release, health down: no earlier build, nothing put back.
+    {
+      const R = makeR(t);
+      const { h, f } = makeE(mod, bs, R, { fetch: FAIL_500 });
+      const result = await h.run();
+      assert.equal(result.code, 'verify_failed', `(b) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.rolledBack, false, '(b) rolledBack');
+      assert.equal(h.calls('fetch').length, 25, '(b) 25 fetches');
+      assert.equal(promoteIds(f).length, 1, '(b) exactly 1 promote');
+      assert.ok(h.summaries().includes(VERIFY_NO_EARLIER_LINE), `(b) summary: ${JSON.stringify(h.summaries())}`);
+      assert.equal(notNull(releaseJson(h), '(b) release.json').args[1].rolled_back, false);
+    }
+
+    // (c) health passes, the live check fails.
+    {
+      const { h, f } = makeLater(mod, bs, t, {
+        checkLive: () => ({
+          ok: false,
+          results: LIVE_IDS.map((id) =>
+            id === 'dns'
+              ? { id, pass: false, detail: 'DNS lookup failed (ENOTFOUND)' }
+              : { id, pass: true, detail: 'ok' },
+          ),
+        }),
+      });
+      const result = await h.run();
+      assert.equal(result.code, 'verify_failed', `(c) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.rolledBack, true, '(c) rolledBack');
+      assert.deepEqual(promoteIds(f), ['dpl_NEW', 'dpl_OLD'], '(c) promote order');
+      assert.ok(h.logs().includes('live check failed: dns'), `(c) log: ${JSON.stringify(h.logs())}`);
+      assert.ok(!outputHolds(h, ['ENOTFOUND']), '(c) no raw detail in the output');
+    }
+
+    // (d) the rollback promote fails too.
+    {
+      const { h, f } = makeLater(mod, bs, t, {
+        fetch: () => HEALTH_OK('20261101000000'),
+        promote: (id) => {
+          if (id === 'dpl_OLD') throw new Error(VERCEL_PROMOTE_500);
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.code, 'verify_failed', `(d) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.rolledBack, false, '(d) rolledBack');
+      assert.equal(promoteIds(f).length, 2, '(d) 2 promote calls');
+      assert.ok(h.summaries().includes(VERIFY_ROLLBACK_FAILED_LINE), `(d) summary: ${JSON.stringify(h.summaries())}`);
+    }
+
+    // (e) two thrown polls, then health passes.
+    {
+      const R = makeR(t);
+      const { h, f } = makeE(mod, bs, R, {
+        fetch: (n) => {
+          if (n <= 2) throw new Error('fetch failed');
+          return HEALTH_OK();
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.code, 'released', `(e) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(h.calls('fetch').length, 3, '(e) 3 fetches');
+      assert.equal(f.sleeps.filter((ms) => ms === 5000).length, 2, '(e) 2 sleeps of 5000');
+      assert.equal(h.calls('checkLive').length, 1, '(e) 1 checkLive');
+    }
+
+    // (f) health passes, the live check throws.
+    {
+      const { h, f } = makeLater(mod, bs, t, {
+        checkLive: () => {
+          throw new Error('observe failed');
+        },
+      });
+      const result = await h.run();
+      assert.equal(result.code, 'verify_failed', `(f) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.rolledBack, true, '(f) rolledBack');
+      assert.deepEqual(promoteIds(f), ['dpl_NEW', 'dpl_OLD'], '(f) promote order');
+    }
+  });
+
+  // T13 --------------------------------------------------------------------------------------------------------
+  test('EZD-023e T13 a re-run is safe', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const tagTip = (R) => {
+      tagAnnotated(R.work, 'phase-0');
+      git(R.work, 'push', '-q', 'origin', 'phase-0');
+    };
+    const touched = (h) =>
+      h.external
+        .map((c) => c.target)
+        .filter(
+          (tg) =>
+            tg === 'sql' ||
+            tg.startsWith('supabase.') ||
+            tg.startsWith('offsite') ||
+            tg === 'github.createTag' ||
+            tg === 'vercel.promote',
+        );
+
+    // (a) the tagged build is already live: only the verify runs.
+    {
+      const R = makeR(t);
+      tagTip(R);
+      const { h } = makeE(mod, bs, R, { current: () => ({ id: 'dpl_NEW' }) });
+      const result = await h.run();
+      assert.equal(result.ok, true, `(a) ok; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.code, 'released', '(a) code');
+      assert.equal(result.resume, true, '(a) resume');
+      assert.equal(result.alreadyLive, true, '(a) alreadyLive');
+      assert.deepEqual(touched(h), [], '(a) no sql, supabase, offsite, createTag or promote');
+      assert.equal(h.calls('fetch').length, 1, '(a) 1 fetch');
+      assert.equal(h.calls('checkLive').length, 1, '(a) 1 checkLive');
+      assert.ok(h.logs().includes('record skipped: no dump in this run'), `(a) log: ${JSON.stringify(h.logs())}`);
+    }
+
+    // (b) tagged, not live: no new tag; promote, dump and push as usual.
+    {
+      const R = makeR(t);
+      tagTip(R);
+      const { h, f } = makeE(mod, bs, R, {
+        current: () => null,
+        tenantCheck: () => ({ stdout: '1 5000 300000\n', stderr: '' }),
+      });
+      delete h.deps.processEnv.TENANT1_OWNER_EMAIL;
+      const result = await h.run();
+      assert.equal(result.ok, true, `(b) ok; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.tag, 'phase-0', '(b) tag');
+      assert.equal(result.resume, true, '(b) resume');
+      assert.equal(h.calls('github.createTag').length, 0, '(b) 0 createTag');
+      assert.deepEqual(promoteIds(f), ['dpl_NEW'], '(b) promote dpl_NEW once');
+      assert.equal(h.dumpCalls().length, 3, '(b) 3 dump calls');
+      assert.equal(h.calls('supabase.push').length, 1, '(b) 1 push');
+      assert.equal(h.bootstrapCalls().length, 0, '(b) 0 bootstrap sql calls');
+    }
+
+    // (c) already live and the checks fail: nothing to put back.
+    {
+      const R = makeR(t);
+      tagTip(R);
+      const { h, f } = makeE(mod, bs, R, {
+        current: () => ({ id: 'dpl_NEW' }),
+        fetch: () => ({ status: 500, json: async () => ({}) }),
+      });
+      const result = await h.run();
+      assert.equal(result.code, 'verify_failed', `(c) code; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.rolledBack, false, '(c) rolledBack');
+      assert.equal(promoteIds(f).length, 0, '(c) 0 promote');
+      assert.ok(h.summaries().includes(VERIFY_NO_EARLIER_LINE), `(c) summary: ${JSON.stringify(h.summaries())}`);
+    }
+  });
+
+  // T20 --------------------------------------------------------------------------------------------------------
+  test('EZD-023e T20 token expiry notices on a released run', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const cases = [
+      ['a', () => ({ expiresAt: T0 + 13 * DAY }), ['vercel_token_expiring']],
+      ['b', () => ({ expiresAt: T0 + 15 * DAY }), []],
+      ['c', () => ({ expiresAt: null }), ['vercel_token_no_expiry']],
+      [
+        'd',
+        () => {
+          throw new Error('tokens failed: tok_TEST');
+        },
+        ['vercel_token_expiry_unknown'],
+      ],
+    ];
+    for (const [id, tokenInfo, notices] of cases) {
+      const R = makeR(t);
+      const { h } = makeE(mod, bs, R, { tokenInfo });
+      const result = await h.run();
+      assert.equal(result.ok, true, `(${id}) ok; logs: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.code, 'released', `(${id}) code`);
+      assert.deepEqual(result.notices, notices, `(${id}) notices`);
+      if (id === 'a') {
+        assert.ok(
+          h.summaries().some((l) => l.includes('vercel_token_expiring') && l.includes('2026-11-01')),
+          `(a) summary notice with the date: ${JSON.stringify(h.summaries())}`,
+        );
+      }
+      assert.ok(!outputHolds(h, ['tok_TEST']), `(${id}) no token in the output`);
+    }
+  });
+
+  // T21 --------------------------------------------------------------------------------------------------------
+  test('EZD-023e T21 a pull request title is printed escaped', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeE(mod, bs, R, {
+      pulls: () => [{ ...cleanPull(R.tip), title: 'Release notes\n::warning::x' }],
+    });
+    const result = await h.run();
+    assert.equal(result.ok, false, 'ok false');
+    assert.equal(result.code, 'no_release_name', `code; logs: ${JSON.stringify(h.logs())}`);
+    const named = h.logs().filter((l) => l.startsWith('no_release_name'));
+    assert.deepEqual(named, ['no_release_name: pull request #7 "Release notes\\n::warning::x" gives no release name']);
+    assert.ok(!h.logs().some((l) => l.startsWith('::')), 'no log line starts with ::');
+    assert.deepEqual(
+      h.external.map((c) => c.target),
+      [],
+      'nothing live and nothing else called',
+    );
+  });
+
+  // T22 --------------------------------------------------------------------------------------------------------
+  test('EZD-023e T22 the build state is printed only in the safe form', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+
+    {
+      const { h } = makeE(mod, bs, R, { find: () => ({ id: 'dpl_NEW', state: 'ERROR\n::warning::x' }) });
+      const result = await h.run();
+      assert.equal(result.code, 'build_failed', `(a) code; logs: ${JSON.stringify(h.logs())}`);
+      const lines = h.logs().filter((l) => l.startsWith('build_failed'));
+      assert.deepEqual(lines, [`build_failed: the build of ${R.tip} ended unknown`], '(a) log line');
+      assert.ok(!h.logs().some((l) => l.startsWith('::')), '(a) no log line starts with ::');
+      assert.equal(h.calls('sql').length, 0, '(a) 0 sql');
+      assertNothingLive(h, 'a');
+    }
+    {
+      const { h } = makeE(mod, bs, R, { find: () => ({ id: 'dpl_NEW', state: 'ERROR' }) });
+      const result = await h.run();
+      assert.equal(result.code, 'build_failed', `(b) code; logs: ${JSON.stringify(h.logs())}`);
+      const lines = h.logs().filter((l) => l.startsWith('build_failed'));
+      assert.equal(lines.length, 1, '(b) one build_failed line');
+      assert.ok(lines[0].endsWith('ended ERROR'), '(b) the line ends ended ERROR');
     }
   });
 });
