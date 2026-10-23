@@ -71,3 +71,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-023e · Go live, rollback, workflow and docs · merging into main now starts the Release workflow: until launch it ends green with nothing released; after launch it backs up, migrates, tags, goes live, checks the site and rolls back on failure · ea9274b
 2026-10-23 · EZD-021 · AI client and stubs · nothing on screen; a queued test job returns the stub response and a live job with no key fails with "AI key not set"; any test reaching a live provider fails · a82762c
 2026-10-23 · EZD-031 · Spike: render trial · nothing on screen; a stub-run script saves 3 test images and a cost record per render; Josh's live trial of Gemini, GPT Image 2 and Flux Kontext pro comes after Phase 10 · 4cbf838
+2026-10-23 · EZD-037 · Fix: EZD-002 done-when text · the CI acceptance criteria now say CI runs on the phase PR and by hand, as Josh decided in Q-0021 (a) · 096079b
