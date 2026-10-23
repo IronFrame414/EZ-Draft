@@ -130,7 +130,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `typescript` | `5.9.3` | root, app, geometry, worker | Stack: App shell | EZD-000 |
 | `zustand` | `5.0.15` | app | Named tools: State store for the open model | EZD-000 |
 | `zod` | `4.6.7` | geometry, app, worker | Named tools: Schema and validation | EZD-000 |
-| `vitest` | `5.0.5` | root, app, geometry, worker | Named tools: Unit tests | EZD-000 |
+| `vitest` | `5.0.5` | root, app, geometry, worker, spikes | Named tools: Unit tests | EZD-000 |
 | `@playwright/test` | `1.64.1` | root, app, spikes | Named tools: browser tests | EZD-000 |
 | `radix-ui` | `1.8.1` | app | Named tools: Styling and UI primitives | EZD-000 |
 | `idb` | `8.0.4` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
@@ -141,7 +141,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `workbox-strategies` | `7.4.1` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
 | `clipper2-wasm` | `0.4.0` | geometry, app | Named tools: Polygon math (Clipper2 WebAssembly build) | EZD-000 |
 | `three-bvh-csg` | `0.0.18` | app | Stack: Polygon math | EZD-000 |
-| `pdfkit` | `0.20.2` | app | Named tools: PDF writer; Stack: PDF out | EZD-000 |
+| `pdfkit` | `0.20.2` | app, spikes | Named tools: PDF writer; Stack: PDF out | EZD-000 |
 | `dxf-parser` | `1.1.2` | root, app | Named tools: DXF (read); provisional until EZD-029 | EZD-000 |
 | `@tarikjabiri/dxf` | `2.9.0` | app | Named tools: DXF (write); provisional until EZD-029 | EZD-000 |
 | `resend` | `6.34.1` | app | Named tools: Email | EZD-000 |
@@ -155,7 +155,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `three` | `0.186.1` | root, app, spikes | Stack: 2D + 3D; GLB / USDZ | EZD-000 |
 | `@react-three/fiber` | `9.8.2` | app | Stack: 2D + 3D | EZD-000 |
 | `three-gpu-pathtracer` | `0.0.27` | app | Stack: Browser path tracing | EZD-000 |
-| `pdfjs-dist` | `6.4.299` | root, app | Stack: PDF in | EZD-000 |
+| `pdfjs-dist` | `6.4.299` | root, app, spikes | Stack: PDF in | EZD-000 |
 | `eslint` | `9.39.5` | root, app, geometry | Machine checks: lint runner for the root flat config (EZD-020, EZD-026a and EZD-133 add rules) | EZD-001 |
 | `@eslint/js` | `9.39.5` | root | Machine checks: ESLint recommended rules for all TS/JS | EZD-001 |
 | `typescript-eslint` | `8.71.2` | root | Machine checks: TypeScript parser and recommended rules | EZD-001 |
@@ -167,6 +167,8 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `postgres` | `3.4.9` | app | Test harness: catalog queries and SQL-as-user for RLS tests (EZD-006); dev dependency, never imported by app code; ships its own types | EZD-006 |
 | `@aws-sdk/client-s3` | `3.1153.0` | root | Off-site bucket, S3-compatible API (release dumps EZD-023d; backups EZD-025) | EZD-023d |
 | `@supabase/realtime-js` | `2.118.0` | app | Browser Realtime client (EZD-018); no table-query API in the browser | EZD-018 |
+| `fontkit` | `2.0.4` | spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
+| `pdf-lib` | `1.17.1` | spikes | EZD-028 tests: PDF structure checks | EZD-028 |
 
 ## Adding a dependency
 
