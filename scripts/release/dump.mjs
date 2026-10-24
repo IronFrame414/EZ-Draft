@@ -35,6 +35,8 @@ const DROPPED_ENV_NAMES = Object.freeze([
   'GITHUB_TOKEN',
   'BACKUP_S3_ACCESS_KEY_ID',
   'BACKUP_S3_SECRET_ACCESS_KEY',
+  'BACKUP_SOURCE_SECRET_KEY',
+  'BACKUP_SOURCE_SUPABASE_URL',
 ]);
 
 /**
@@ -70,7 +72,7 @@ export function runChild(command, args, { cwd, env, input } = {}) {
   });
 }
 
-/** A copy of `env` without the 10 release secrets, GITHUB_TOKEN and the backup key. */
+/** A copy of `env` without the 10 release secrets, GITHUB_TOKEN, the backup key and the source API URL and secret key. */
 export function childEnv(env) {
   const out = {};
   for (const [k, v] of Object.entries(env ?? {})) {

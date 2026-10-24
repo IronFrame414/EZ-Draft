@@ -177,3 +177,54 @@ In B2 under `releases/`, one folder per release run. They hold client data. Obje
 
 ### Safety net
 Agents cannot run release commands (`.claude/settings.json`, `.claude/hooks/guard-bash.mjs`). Optional lines for your own Claude settings: `Bash(node scripts/release/release*)` and `Bash(gh run rerun*)`.
+
+## Off-site backups and restore drill (EZD-025)
+
+Every night Actions → **Off-site backup: files** copies new and changed files of the production project to a Backblaze B2 bucket, and every Sunday Actions → **Off-site backup: database** saves a copy of the production database there. Supabase's own daily backups (kept 7 days, no files) stay the first line; these copies are the second. The restore drill proves a deleted project comes back. Agents never see the keys.
+
+### 1. One-time setup (part of the Before launch checklist, item 7)
+Nothing here is needed until launch. Until then both backup workflows end green with "backup not configured".
+1. **Bucket.** Create a Backblaze B2 account and a **Private** bucket with default encryption **SSE-B2** on and **Object Lock** enabled, default retention mode **Governance**, **91 days**. Turn Object Lock on when you create the bucket (not yet checked whether B2 allows it later; see First run checks). B2 keeps every file version by default ("Keep all versions"); that should be the versioning the backups need, and they refuse to run without it.
+2. **Lifecycle rules.** Add three rules on the bucket:
+   - (field names as the plan gives them, not yet checked against B2; see First run checks)
+   - file names starting `files/`: delete a replaced or deleted (hidden) file version **90 days** after it was replaced or deleted (`daysFromHidingToDeleting: 90`, no automatic hiding);
+   - file names starting `db/`: hide each database copy **91 days (13 weeks)** after upload and delete it 1 day later (`daysFromUploadingToHiding: 91`, `daysFromHidingToDeleting: 1`);
+   - file names starting `releases/` (the copies the release takes): the same rule as `db/`, 13 weeks.
+   - How this fits the lock: nobody can remove a locked version before its 91 days from upload end, so every copy is kept at least 91 days. A file replaced or deleted on its first day should be removed when its lock ends (not yet checked against B2).
+3. **Three keys**, each limited to this bucket; **no key gets `bypassGovernance`**:
+   - the **backup** key: `listAllBucketNames`, `listBuckets`, `listFiles`, `readFiles`, `writeFiles` and `readBucketRetentions`, and **no `deleteFiles`**. The plan expects writing to be enough to mark a deleted file as hidden (not yet checked against B2; see First run checks); without `deleteFiles` it can never remove a version;
+   - the **release** key: file names starting `releases/`, `writeFiles` and `listAllBucketNames` only (Before launch item 7);
+   - the **restore** key: `listAllBucketNames`, `listBuckets`, `listFiles` and `readFiles` only (list and read).
+4. **GitHub.** In Settings → Environments → **`release`** (main only, administrators cannot bypass; Before launch item 8 adds the secrets), make sure these eight secrets exist, with values from `ezdraft-prod` and the **backup** key: `BACKUP_SOURCE_DB_URL`, `BACKUP_SOURCE_SUPABASE_URL`, `BACKUP_SOURCE_SECRET_KEY`, `BACKUP_S3_ENDPOINT` (the bucket's S3 endpoint, `https://s3.<region>.backblazeb2.com`), `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`. Four are shared with the release. Never as a repository or organization secret, never in Vercel's `Production` environment.
+5. **Your restore file.** On your PC only, make a folder **outside the repo**, for example `C:\Users\JSBis\ezdraft-secrets\`, and in it a file `restore.env` with the same eight names, using the **restore** key and the database password percent-encoded as in Before launch item 8. Never put the restore key into GitHub or into the repo folder.
+6. **Keep agents out of it.** In your own Claude user settings (`~/.claude/settings.json`, permissions → deny), add a Read deny for that folder, for example `Read(//c/Users/JSBis/ezdraft-secrets/**)`.
+
+### 2. After the first real release
+Actions → **Off-site backup: files** → **Run workflow**, then the same for **Off-site backup: database**. Check that both are green. Until launch they show "backup not configured".
+
+**First run checks.** These Backblaze B2 behaviours come from the plan and were not checked against B2 when the scripts were built. The first runs on the real bucket check them:
+1. B2 answers the versioning question (`GetBucketVersioning`) with `Enabled` for a bucket that keeps all versions.
+2. The backup key (with `readBucketRetentions`) can read the bucket's Object Lock settings (`GetObjectLockConfiguration`).
+3. The backup key, without `deleteFiles`, can mark a deleted file as hidden (a delete marker).
+4. The lifecycle rule field names in step 1.2 are the ones B2 uses.
+5. Object Lock has to be chosen when the bucket is created.
+
+If a run on a bucket set up as in step 1 ends `versioning_off`, `object_lock_off` or `hide_failed`, stop and raise a question with the code. Never give the backup key more rights (no `deleteFiles`, no `bypassGovernance`) to make it pass.
+
+### 3. The drill
+Do it after Phase 1 gives Projects and Delete, and before the first real job is entered.
+1. Create a project `Restore drill <date>` and upload one file.
+2. Run both backup workflows by hand.
+3. Delete the project.
+4. With **Docker** Desktop running, in your own terminal: `pnpm backup:restore --env-file C:\Users\JSBis\ezdraft-secrets\restore.env --project <id> --record` (an absolute path outside the repo; the script refuses any other).
+5. PASS = exit 0 and `"ok":true` on the last line. `--record` saves the drill, so the System status page shows it.
+
+### 4. Restoring for real
+- The scratch copy is for checking and for reading data back. Never load a dump into production by hand.
+- To rebuild a lost project: create a new Supabase project, apply the migrations up to the dump's `newest_migration`, load `data.sql`, and upload the files from `files/` in the bucket. These are the same steps the script runs on the scratch copy; the checklist: 1. new project, 2. migrations, 3. `data.sql`, 4. files, 5. check the project and its files.
+- The copy the release took just before a release (B2 `releases/<tag>-<time>/`, named in that release's summary) is restored with `--dump releases/<tag>-<time>/`; a dump folder on your disk with `--from-dir <folder>`.
+
+### 5. Notes
+- Dumps and files hold client data. A file deleted in EZ Draft stays in the backup for 90 days after the next nightly run notices it (never less than 91 days after it was copied, because of the lock), and every database copy for 13 weeks; after that it is gone from the backup too. Database copies hold no sign-in sessions or tokens, so a restore signs everyone out.
+- Storage limits per company and reminders to delete older data come in a later ticket; their deletes follow the same 90-day rule.
+- GitHub stops scheduled workflows in a public repo after 60 days without commits, so check the last backup on the System status page.

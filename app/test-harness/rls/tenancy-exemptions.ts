@@ -12,6 +12,11 @@ export const TENANTLESS_TABLES: TenantlessTable[] = [
       'One person across tenants, linked to each company by membership (user_id, tenant_id) (03 Tables; EZD-005a).',
   },
   {
+    table: 'backup_run',
+    reason:
+      'System-wide off-site backup and restore-drill records (EZD-025); no tenant data; no API role can read it',
+  },
+  {
     table: 'sign_in_throttle',
     reason:
       'Sign-in throttle: rows are written before sign-in and belong to no company; they hold only keyed hashes and times (Q-0094).',

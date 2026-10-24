@@ -184,7 +184,12 @@ describe('EZD-006 RLS audit', () => {
     const byName = new Map(tables.map((t) => [t.table, t.columns]));
 
     const exemptNames = TENANTLESS_TABLES.map((t) => t.table).sort();
-    expect(exemptNames).toEqual(['app_user', 'sign_in_throttle', 'tenant']);
+    expect(exemptNames).toEqual([
+      'app_user',
+      'backup_run',
+      'sign_in_throttle',
+      'tenant',
+    ]);
     for (const t of TENANTLESS_TABLES) {
       expect(t.reason.length, t.table).toBeGreaterThan(0);
       expect(byName.get(t.table), t.table).toBeDefined();
@@ -197,6 +202,7 @@ describe('EZD-006 RLS audit', () => {
 
     expect(Object.keys(TABLE_GRANTS).sort()).toEqual([
       'app_user',
+      'backup_run',
       'error_alert',
       'job',
       'membership',
@@ -206,7 +212,10 @@ describe('EZD-006 RLS audit', () => {
     ]);
     for (const [table, grant] of Object.entries(TABLE_GRANTS)) {
       // EZD-033 Step 5: sign_in_throttle gives authenticated no privilege at all (security definer access).
-      expect(grant.privileges, table).toEqual(table === 'sign_in_throttle' ? [] : ['SELECT']);
+      // EZD-025 Step 1: backup_run is server-only too.
+      expect(grant.privileges, table).toEqual(
+        table === 'sign_in_throttle' || table === 'backup_run' ? [] : ['SELECT'],
+      );
       expect(grant.reason.length, table).toBeGreaterThan(0);
       expect(byName.has(table), table).toBe(true);
       for (const p of grant.privileges) expect(ALL_TABLE_PRIVILEGES).toContain(p);

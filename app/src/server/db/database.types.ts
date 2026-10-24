@@ -19,6 +19,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"backup_run": {
+                  Row: {
+                    "bytes_copied": number,"created_at": string,"error": string | null,"files_cursor": string | null,"finished_at": string | null,"id": string,"kind": string,"location": string | null,"objects_copied": number,"objects_hidden": number,"objects_skipped": number,"scope": string,"started_at": string,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bytes_copied"?: number,"created_at"?: string,"error"?: string | null,"files_cursor"?: string | null,"finished_at"?: string | null,"id"?: string,"kind": string,"location"?: string | null,"objects_copied"?: number,"objects_hidden"?: number,"objects_skipped"?: number,"scope"?: string,"started_at"?: string,"status"?: string
+                  }
+                  Update: {
+                    "bytes_copied"?: number,"created_at"?: string,"error"?: string | null,"files_cursor"?: string | null,"finished_at"?: string | null,"id"?: string,"kind"?: string,"location"?: string | null,"objects_copied"?: number,"objects_hidden"?: number,"objects_skipped"?: number,"scope"?: string,"started_at"?: string,"status"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"error_alert": {
                   Row: {
                     "email_claim": string | null,"emailed_at": string | null,"fingerprint": string,"first_seen_at": string,"id": string,"kind": string,"last_seen_at": string,"occurrences": number,"project_id": string | null,"ref": string | null,"source": string,"tenant_id": string | null,"title": string

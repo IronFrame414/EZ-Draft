@@ -1,0 +1,41 @@
+name: 'Off-site backup: database'
+# Writes a dump of the production database to the off-site bucket every Sunday at 08:00 UTC (EZD-025 Step 3;
+# Q-0106; Q-0112). `supabase db dump` needs Docker, which ubuntu-latest has. Until launch the release
+# environment holds no secrets and the run ends not_configured (Q-0113).
+on:
+  schedule:
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+concurrency:
+  group: 'Off-site backup: database'
+  cancel-in-progress: false
+jobs:
+  backup-db:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: release
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Install pnpm
+        run: npm install -g pnpm@12.14.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Back up the database
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BACKUP_SOURCE_DB_URL: ${{ secrets.BACKUP_SOURCE_DB_URL }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+        run: pnpm backup:db

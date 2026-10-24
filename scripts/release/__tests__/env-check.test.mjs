@@ -189,6 +189,12 @@ describe('EZD-023c Vercel env rules, refs and redaction', () => {
     const many = Array.from({ length: 25 }, (_, i) => `line ${i + 1}`);
     assert.deepEqual(safeLines(many, []), many.slice(5), '(h)');
     assert.deepEqual(safeLines(['abc'], ['']), ['abc'], '(i)');
+    // (j) EZD-025 T20 (Q-0257 (a)): the password runs to the last `@` of the same whitespace-free run.
+    assert.equal(
+      redactUrl('postgresql://postgres.ref:p@ss@aws-0-us-east-1.pooler.supabase.com:5432/postgres'),
+      'postgresql://postgres.ref:***@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+      '(j)',
+    );
   });
 
   test('EZD-023c DECRYPTED_ENTRIES lists only the four values the release reads', async () => {
