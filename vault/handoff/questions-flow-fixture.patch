@@ -1,0 +1,19 @@
+diff --git a/scripts/ledger/questions-flow.test.mjs b/scripts/ledger/questions-flow.test.mjs
+index 008f61d..09132bc 100644
+--- a/scripts/ledger/questions-flow.test.mjs
++++ b/scripts/ledger/questions-flow.test.mjs
+@@ -46,10 +46,13 @@ before(() => {
+   edit('tickets/STATUS.md', (s) => s.replace(/^(\| EZD-\w+ \|[^|]*\|[^|]*\| )(?:in-progress|review)( \|)/gm, '$1ready$2'));
+   // A live done ticket that depends, directly or through other done tickets, on the tickets reset above
+   // (e.g. EZD-001, then EZD-002) also fails the ledger check, so reset done dependents until none is left.
++  // Dependencies come from tickets.json depends_on, as the ledger check reads them: a STATUS Depends cell keeps the
++  // raw text, which names a split ticket by its parent (EZD-101's cell says EZD-005; depends_on has EZD-005a, EZD-005b).
++  const dependsOn = new Map(JSON.parse(readFileSync(file('tickets/tickets.json'), 'utf8')).tickets.map((t) => [t.id, t.depends_on ?? []]));
+   for (let changed = true; changed; ) {
+     const rows = readFileSync(file('tickets/STATUS.md'), 'utf8').split('\n').filter((l) => /^\| EZD-\w+ \|/.test(l)).map((l) => l.split('|').map((c) => c.trim()));
+     const notDone = new Set(rows.filter((c) => c[4] !== 'done').map((c) => c[1]));
+-    const reset = new Set(rows.filter((c) => c[4] === 'done' && (c[6].match(/EZD-\w+/g) ?? []).some((d) => notDone.has(d))).map((c) => c[1]));
++    const reset = new Set(rows.filter((c) => c[4] === 'done' && (dependsOn.get(c[1]) ?? []).some((d) => notDone.has(d))).map((c) => c[1]));
+     changed = reset.size > 0;
+     for (const id of reset) edit('tickets/STATUS.md', (s) => s.replace(new RegExp(`^(\\| ${id} \\|[^|]*\\|[^|]*\\| )done( \\|)`, 'm'), '$1ready$2'));
+   }

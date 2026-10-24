@@ -1,13 +1,19 @@
 # Phase 1 · for Josh (questions unit, 2026-10-24, fourth run)
 
-Your answers Q-0303 (a), Q-0304 (c), Q-0305 (c) and Q-0307 (b) are now applied to the plans EZD-136 (not-found page language), EZD-171 (J3 after the phase 1 merge) and EZD-174 (parallel lanes). All three are ready, as are the Settings shell parts EZD-103a and EZD-103b. Two notes: EZD-136 now also waits for EZD-103a, because it puts the disclaimer line in the Settings status bar; EZD-171 stays `blocked` after its build until you run J3 on the live site after the phase 1 merge (the same pattern as EZD-003). One new question came from the EZD-175 plan, below.
+Your answers Q-0303 (a), Q-0304 (c), Q-0305 (c) and Q-0307 (b) are now applied to the plans EZD-136 (not-found page language), EZD-171 (J3 after the phase 1 merge) and EZD-174 (parallel lanes). All three are ready, as are the Settings shell parts EZD-103a and EZD-103b. Two notes: EZD-136 now also waits for EZD-103a, because it puts the disclaimer line in the Settings status bar; EZD-171 stays `blocked` after its build until you run J3 on the live site after the phase 1 merge (the same pattern as EZD-003). Two questions below: Q-0312, a test fault that turns every build's gate red until you apply a ready patch, and Q-0310, from the EZD-175 plan.
 
 ## 1. Decisions needed
+
+**Q-0312 · develop gate (urgent: every phase 1 build is red until this is in).** The test `scripts/ledger/questions-flow.test.mjs` has failed 4 of 4 since EZD-101 merged: its practice copy of the ledger looks up dependencies in the STATUS table, which names split tickets by their old parent name (EZD-005 rather than EZD-005a and EZD-005b), so the copy's ledger check fails. It is the same kind of slip as Q-0145 and Q-0147. The fix touches only the test's setup and changes no expected result; it passes 4 of 4 in a scratch copy.
+1. (recommended) Apply the ready patch: `git apply vault/handoff/questions-flow-fixture.patch`, then commit.
+2. Say yes, and the orchestrator applies it in fix mode (rule 19).
 
 **Q-0310 · EZD-175 (parallel lanes: bring a ticket branch up to date before its merge).** When two builds finish close together, the second one first takes in develop's newest changes; if both edited the same lines of a file, that update stops before anything reaches develop. Who fixes that clash?
 1. (recommended) The build stops: the ticket goes to `blocked` with the clashing file names and a question, and you or an interactive session fix it in the ticket's folder. Same as every other stop today; nothing new to build.
 2. The build hands the clash to the builder as one more review round (it merges develop and resolves the clash itself), falling back to option 1 when a clashing file is one the builder may not edit (vault/, scripts/, .claude/). Fewer stops, a bit more to build.
 3. The orchestrator fixes it itself in fix mode and the build goes on. Not recommended: fix mode is meant for broken tools, not for merging two tickets' work.
+
+Answering Q-0310 unblocks EZD-175, and through it EZD-174 (marked ready, but it waits for EZD-175, Q-0311).
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
