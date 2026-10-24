@@ -80,3 +80,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-24 · EZD-039 · Fix: TRACE report misreads test tables · nothing on screen; TRACE.md now lists real test names with titles for EZD-010c and EZD-000b to EZD-000j · 9c1b6f0
 2026-10-24 · EZD-041 · Fix: release bootstrap passes the production database URL on the psql command line · nothing on screen; release no longer puts the production database password on psql's command line · 541d261
 2026-10-24 · EZD-042 · Fix: Supabase CLI dump and push pass the production database URL as --db-url · nothing on screen; release and weekly backup no longer put the production database password on the supabase command line · 4d7ff54
+2026-10-24 · EZD-101 · Permission and role tables · nothing on screen; every company has the four fixed roles and every person their 37 permission switches · 5f2989c
