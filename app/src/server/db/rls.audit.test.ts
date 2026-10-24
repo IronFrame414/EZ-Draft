@@ -209,6 +209,7 @@ describe('EZD-006 RLS audit', () => {
       'membership_project',
       'sign_in_throttle',
       'tenant',
+      'user_permission',
     ]);
     for (const [table, grant] of Object.entries(TABLE_GRANTS)) {
       // EZD-033 Step 5: sign_in_throttle gives authenticated no privilege at all (security definer access).

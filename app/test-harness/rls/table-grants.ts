@@ -39,6 +39,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: [],
     reason: 'Read and written only by the security definer throttle functions (EZD-033, Q-0094)',
   },
+  user_permission: {
+    privileges: ['SELECT'],
+    reason:
+      'Switches decide what a member may do; a member must not change their own (EZD-101; EZD-106 adds the write path).',
+  },
   job: {
     privileges: ['SELECT'],
     reason:

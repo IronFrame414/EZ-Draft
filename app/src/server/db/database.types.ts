@@ -93,17 +93,23 @@ isOneToOne: false
                   ]
                 },"membership": {
                   Row: {
-                    "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string
+                    "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"role_id": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"scope": string,"status": string,"tenant_id": string,"updated_at"?: string,"user_id": string
+                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"role_id"?: string | null,"scope": string,"status": string,"tenant_id": string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"scope"?: string,"status"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"role_id"?: string | null,"scope"?: string,"status"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "membership_role_id_fkey"
+      columns: ["role_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "role"
+      referencedColumns: ["id","tenant_id"]
+    },{
       foreignKeyName: "membership_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
@@ -169,6 +175,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"role": {
+                  Row: {
+                    "created_at": string,"default_permissions": (string)[],"id": string,"name": string,"preset": string | null,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"default_permissions"?: (string)[],"id"?: string,"name": string,"preset"?: string | null,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"default_permissions"?: (string)[],"id"?: string,"name"?: string,"preset"?: string | null,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "role_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"sign_in_throttle": {
                   Row: {
                     "at": string,"failed": boolean,"id": string,"key_hash": string,"kind": string
@@ -196,6 +222,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"user_permission": {
+                  Row: {
+                    "granted": boolean,"membership_id": string,"permission_key": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "granted": boolean,"membership_id": string,"permission_key": string,"tenant_id": string
+                  }
+                  Update: {
+                    "granted"?: boolean,"membership_id"?: string,"permission_key"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_permission_membership_id_tenant_id_fkey"
+      columns: ["membership_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "membership"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "user_permission_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
                   ]
                 }
           }

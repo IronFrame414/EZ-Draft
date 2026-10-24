@@ -6,6 +6,13 @@ export const TENANT_1_ID = '00000000-0000-4000-8000-000000000001';
 export const JOSH_USER_ID = '00000000-0000-4000-8000-000000001001';
 export const TENANT_2_ID = '00000000-0000-4000-8000-000000000002';
 export const TENANT_2_OWNER_USER_ID = '00000000-0000-4000-8000-000000002001';
+// EZD-101 (vault/plans/EZD-101.md section 3): the Designer, Foreman and Crew seed users of tenant 1.
+export const DESIGNER_USER_ID = '00000000-0000-4000-8000-000000001002';
+export const FOREMAN_USER_ID = '00000000-0000-4000-8000-000000001003';
+export const CREW_USER_ID = '00000000-0000-4000-8000-000000001004';
+export const DESIGNER_EMAIL = 'designer@example.com';
+export const FOREMAN_EMAIL = 'foreman@example.com';
+export const CREW_EMAIL = 'crew@example.com';
 export const JOSH_EMAIL = 'josh@example.com';
 export const TENANT_2_OWNER_EMAIL = 'tenant2-owner@example.com';
 export const SEED_PROJECT_COUNT = 200;

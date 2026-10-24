@@ -24,6 +24,8 @@ import { GATED_RPC_CALLS } from '../../../test-harness/rls/gate';
 
 const PRIVILEGE = '42501';
 const CREATED_BY_TEST = ['project', 'membership', 'membership_project'];
+// Seeded by the EZD-101 tenant trigger: exactly the four presets, checked separately.
+const SEEDED_BY_TRIGGER = ['role'];
 
 describe('EZD-006 API request gate', () => {
   let sql: Sql;
@@ -67,8 +69,15 @@ describe('EZD-006 API request gate', () => {
     expect(sortedIds(memberships.data)).toEqual([g.membershipId]);
     const listed = await adminDb().from('membership_project').select('*').eq('tenant_id', tenantA);
     expect(listed.data).toEqual([]);
+    const roles = await adminDb().from('role').select('preset').eq('tenant_id', tenantA);
+    expect((roles.data ?? []).map((r) => r.preset).sort()).toEqual([
+      'crew',
+      'designer',
+      'foreman',
+      'owner',
+    ]);
     for (const table of tenantTables) {
-      if (CREATED_BY_TEST.includes(table)) continue;
+      if (CREATED_BY_TEST.includes(table) || SEEDED_BY_TRIGGER.includes(table)) continue;
       const { data, error } = await adminDb()
         .from(table)
         .select('tenant_id')
