@@ -499,7 +499,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-147 | 1 | Fix: CI workflow least rights and SHA pins | questions | medium | EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T6; prod-sensitive: no). |
 | EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | questions | low | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
 | EZD-149 | 1 | Fix: hosting live check and preview rule match what they claim | questions | low | EZD-003 |  |  | Added 2026-10-24 by the Q-0268 sweep (T8; prod-sensitive: no). |
-| EZD-150 | 1 | Fix: health check gives up on a slow database | todo |  | EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T9; prod-sensitive: yes). |
+| EZD-150 | 1 | Fix: health check gives up on a slow database | questions | low | EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T9; prod-sensitive: yes). |
 | EZD-151 | 1 | Fix: email input checks, preview stub outbox and email runbook | todo |  | EZD-008a, EZD-008b |  |  | Added 2026-10-24 by the Q-0268 sweep (T10; prod-sensitive: yes). |
 | EZD-152 | 1 | Fix: release and restore failure lines say why without leaking data | todo |  | EZD-023d, EZD-025 |  |  | Added 2026-10-24 by the Q-0268 sweep (T11; prod-sensitive: yes). |
 | EZD-153 | 1 | Fix: migration check flags objects created in dynamic SQL | todo |  | EZD-023a |  |  | Added 2026-10-24 by the Q-0268 sweep (T12; prod-sensitive: yes). |
