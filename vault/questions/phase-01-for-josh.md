@@ -1,10 +1,13 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, third run)
+# Phase 1 · for Josh (questions unit, 2026-10-24, fourth run)
 
-Your twelve answers from earlier today are applied to the plans: EZD-103 (draft), 136 (not-found page), 143 (10 of 20 alert emails), 151, 155 (dry run writes nothing), 162, 170, 171 (J3 on the live site) and 1704 (daily backup check). Applying them raised the new questions below. Third run: the Settings shell plan (EZD-103) grew past the size limit with your draft answer, so it is now two tickets, EZD-103a (the shell) and EZD-103b (unsaved edits and drafts); see Q-0309 in section 2.
+Your answers Q-0303 (a), Q-0304 (c), Q-0305 (c) and Q-0307 (b) are now applied to the plans EZD-136 (not-found page language), EZD-171 (J3 after the phase 1 merge) and EZD-174 (parallel lanes). All three are ready, as are the Settings shell parts EZD-103a and EZD-103b. Two notes: EZD-136 now also waits for EZD-103a, because it puts the disclaimer line in the Settings status bar; EZD-171 stays `blocked` after its build until you run J3 on the live site after the phase 1 merge (the same pattern as EZD-003). One new question came from the EZD-175 plan, below.
 
 ## 1. Decisions needed
 
-None. You answered Q-0303 (a), Q-0304 (c, new ticket EZD-175), Q-0305 (c) and Q-0307 (b) in your own session (commits 98a3fcf, 97f0fe2); the next questions run re-plans EZD-136, 171 and 174 to match. Nothing in phase 1 waits on you.
+**Q-0310 · EZD-175 (parallel lanes: bring a ticket branch up to date before its merge).** When two builds finish close together, the second one first takes in develop's newest changes; if both edited the same lines of a file, that update stops before anything reaches develop. Who fixes that clash?
+1. (recommended) The build stops: the ticket goes to `blocked` with the clashing file names and a question, and you or an interactive session fix it in the ticket's folder. Same as every other stop today; nothing new to build.
+2. The build hands the clash to the builder as one more review round (it merges develop and resolves the clash itself), falling back to option 1 when a clashing file is one the builder may not edit (vault/, scripts/, .claude/). Fewer stops, a bit more to build.
+3. The orchestrator fixes it itself in fix mode and the build goes on. Not recommended: fix mode is meant for broken tools, not for merging two tickets' work.
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
@@ -37,6 +40,7 @@ Confirm or override each.
 | Q-0306 | EZD-171 | (a) on the live site the cloud-check page answers only to a signed-in person; everyone else gets the usual 404. Answering everyone would let anyone probe how sign-in limits count addresses | Q-0300 (d); architecture.md Folder layout, Auth and session |
 | Q-0308 | EZD-155 | (a) a dry run also leaves an expired boost file in place and only says it would remove it (your Q-0291 rule: a dry run writes nothing) | Q-0291 (a); scripts/run.mjs line 7 |
 | Q-0309 | EZD-103 | Split into EZD-103a Settings shell and EZD-103b Unsaved edits and drafts, because the plan is over the size limit after tightening; nothing you decided changes, and every later Settings ticket waits for both | PROCESS.md section 6; Q-0246 |
+| Q-0311 | EZD-175, EZD-174 | EZD-174 (parallel lanes) now waits for EZD-175 (update before merge), because your Q-0304 (c) lets two builds edit docs/architecture.md at once only on the strength of that update step | Q-0304 (c); phase-01.md rows; Q-0268 |
 
 ## 3. Proposed wording
 
@@ -44,16 +48,16 @@ Full tables are in each plan's section 6. Needing your approval:
 
 - **EZD-103b** (EZD-103 plan section 6): toast when a Settings page comes back with a draft: "Your unsaved changes from last time are still here." (Q-0302).
 - **EZD-112** section 6: `office.company.*` keys: subtitle "Identity used on the title block, client pages, selections PDF and email."; "Upload"; "Uploading…"; "{kind} logo"; more rows in the plan.
-- **EZD-136** section 6: W1 Spanish disclaimer "Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto."; W3 Spanish not-found text "Página no encontrada." (a Spanish speaker checks both, Q-0030 (a)). W2 "Page not found." is your own text (Q-0273).
+- **EZD-136** section 6 (W3 now also shows to a signed-in person whose language is Spanish, Q-0305 (c)): W1 Spanish disclaimer "Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto."; W3 Spanish not-found text "Página no encontrada." (a Spanish speaker checks both, Q-0030 (a)). W2 "Page not found." is your own text (Q-0273).
 - **EZD-149** section 6: runbook sentences for the new preview rule (if Q-0284 stands).
 - **EZD-151** section 6 R1: runbook text for a separate Resend preview key `ezdraft-preview`.
 - **EZD-155** section 6: launcher dry-run log lines W1-W6, for example "dry run: weekly usage at <pct>%; a real run would write vault/handoff/BUDGET_HOLD.md and notify" and "dry run: would notify: <message>".
 - **EZD-162** section 6: the New cells E1-E22, with option (a) of Q1-A, Q1-B, Q1-C and Q2-A per your Q-0293 and Q-0294 answers, and Q3-A.
 - **EZD-172** section 6: lane tool messages, for example "EZD_LANE must be 0, 1, 2 or 3 (got "<value>")." and "GATE FAIL: another gate is running on lane <n> (pid <pid>). Run one gate per lane."
-- **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line."
+- **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 170, 171, 173.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 170, 171, 173, 175.
 
 ## 4. Rule candidates
 

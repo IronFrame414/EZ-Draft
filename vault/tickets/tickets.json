@@ -13180,7 +13180,7 @@
    "id": "EZD-136",
    "phase": 1,
    "title": "On-screen disclaimer",
-   "depends_raw": "EZD-011, EZD-026c",
+   "depends_raw": "EZD-011, EZD-026c, EZD-103a",
    "spec_ref": "Q-0183, Q-0208; App shell",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md",
@@ -13192,7 +13192,8 @@
     "EZD-011a",
     "EZD-011b",
     "EZD-011c",
-    "EZD-026c"
+    "EZD-026c",
+    "EZD-103a"
    ],
    "build_position": 78,
    "acs": [
@@ -13965,7 +13966,7 @@
    "id": "EZD-174",
    "phase": 1,
    "title": "Parallel lanes: the launcher runs several units at once under boost",
-   "depends_raw": "EZD-172, EZD-173",
+   "depends_raw": "EZD-172, EZD-173, EZD-175",
    "spec_ref": "Josh 2026-10-24 (boost)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -13975,7 +13976,8 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-172",
-    "EZD-173"
+    "EZD-173",
+    "EZD-175"
    ],
    "build_position": 483,
    "acs": [
