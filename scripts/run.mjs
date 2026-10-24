@@ -104,7 +104,9 @@ function buildCommand(unitName, arg) {
   const cmd = [
     '-p', prompt,
     '--output-format', 'json',
-    '--model', boostState({ root }).active ? bumpModel(u.model) : u.model, // boost mode: one model up (vault/tools/boost.mjs)
+    // Boost mode: one model up (vault/tools/boost.mjs), at most Opus for the unit itself: a Fable-only cap hit by a whole
+    // unit would be read as the weekly limit while limit formats are unconfirmed (classifyLimit) and stop the launcher.
+    '--model', boostState({ root }).active ? bumpModel(u.model, { fableAllowed: false }) : u.model,
     '--effort', u.effort,
     '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,

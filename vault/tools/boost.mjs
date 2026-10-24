@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Boost mode (Josh 2026-10-24): for spare weekly usage near the end of the week, every role runs one model up
-// (Haiku -> Sonnet -> Opus -> Fable) and the launcher may run several units at once. It turns itself off when the
+// (Haiku -> Sonnet -> Opus -> Fable). Lanes (several units at once) are recorded for the parallel launcher, which is not
+// built yet: until it is, the lane numbers change nothing. It turns itself off when the
 // weekly usage window resets, so the build returns to the normal routing of PROCESS.md section 4.
 //
 //   node vault/tools/boost.mjs on [--lanes N] [--build-lanes N]   until the weekly reset in vault/cost/usage.json (seven_day.resets_at)
@@ -75,12 +76,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (cmd === 'on') {
     const r = turnOn({ lanes: opt('--lanes', DEFAULT_LANES), buildLanes: opt('--build-lanes', DEFAULT_BUILD_LANES) });
     if (!r.ok) { console.error(r.error); process.exit(1); }
-    console.log(`boost on: up to ${r.lanes} units at once (${r.build_lanes} builds), one model up, until ${r.until} (the weekly reset)`);
+    console.log(`boost on: one model up until ${r.until} (the weekly reset); parallel lanes are not built yet`);
   } else if (cmd === 'off') {
     console.log(turnOff() ? 'boost off' : 'boost was not on');
   } else if (cmd === 'status' || !cmd) {
     const s = boostState();
-    console.log(s.active ? `boost on: up to ${s.lanes} units at once (${s.buildLanes} builds), one model up, until ${s.until}` : s.expired ? `boost expired at ${s.until ?? '(unreadable file)'}; the launcher removes it` : 'boost off');
+    console.log(s.active ? `boost on: one model up until ${s.until}; parallel lanes are not built yet` : s.expired ? `boost expired at ${s.until ?? '(unreadable file)'}; the launcher removes it` : 'boost off');
   } else {
     console.error('usage: node vault/tools/boost.mjs on [--lanes N] [--build-lanes N] | off | status');
     process.exit(2);
