@@ -16,6 +16,7 @@ const loadOffsite = () => import('../offsite-upload.mjs');
 
 // `CLEAN`'s BACKUP_SOURCE_DB_URL (release.test.mjs; vault/plans/EZD-023b.md section 4).
 const U = 'postgresql://postgres.prodref123:S3cret@aws-0-us-east-1.pooler.supabase.com:5432/postgres';
+const U_NO_PW = 'postgresql://postgres.prodref123@aws-0-us-east-1.pooler.supabase.com:5432/postgres';
 const OPTIONS_QUERY = 'options=-c%20lock_timeout%3D5s%20-c%20statement_timeout%3D300s';
 
 // Step 1 values (the test keeps its own copy so the exported arrays are checked, not trusted).
@@ -30,7 +31,7 @@ const DATA_ARGS = [
   'db',
   'dump',
   '--db-url',
-  U,
+  U_NO_PW,
   '--data-only',
   '--use-copy',
   '--exclude',
@@ -88,7 +89,7 @@ describe('EZD-023d child-process invocations and the off-site uploader', () => {
     // (b) roles dump to a file.
     assert.deepEqual(
       dump.buildDumpInvocation('roles', { dbUrl: U, file: '/tmp/d/roles.sql' }).args,
-      ['db', 'dump', '--db-url', U, '--role-only', '--file', '/tmp/d/roles.sql'],
+      ['db', 'dump', '--db-url', U_NO_PW, '--role-only', '--file', '/tmp/d/roles.sql'],
       '(b)',
     );
 
@@ -102,12 +103,12 @@ describe('EZD-023d child-process invocations and the off-site uploader', () => {
     // (e) real push carries the timeouts in the URL; (f) the dry run does not.
     assert.deepEqual(
       push.buildPushInvocation({ dbUrl: U, workdir: '/tmp/w', dryRun: false }).args,
-      ['db', 'push', '--db-url', `${U}?${OPTIONS_QUERY}`, '--workdir', '/tmp/w', '--yes'],
+      ['db', 'push', '--db-url', `${U_NO_PW}?${OPTIONS_QUERY}`, '--workdir', '/tmp/w', '--yes'],
       '(e)',
     );
     assert.deepEqual(
       push.buildPushInvocation({ dbUrl: U, workdir: '/tmp/w', dryRun: true }).args,
-      ['db', 'push', '--db-url', U, '--workdir', '/tmp/w', '--yes', '--dry-run'],
+      ['db', 'push', '--db-url', U_NO_PW, '--workdir', '/tmp/w', '--yes', '--dry-run'],
       '(f)',
     );
 

@@ -19,16 +19,36 @@ export function withTimeouts(dbUrl, { lockTimeout, statementTimeout } = MIGRATIO
   return `${url}${q === -1 ? '?' : '&'}options=${options}`;
 }
 
-/** The `supabase db push` arguments: a dry run lists pending files; the real push carries the timeouts. */
+const dbUrlInvalid = () => Object.assign(new Error('db_url_invalid'), { code: 'db_url_invalid' });
+
+/** Splits the password off a postgres URL: `{ url }` without it and the decoded `password` (EZD-042 D3, D4). */
+export function splitDbPassword(dbUrl) {
+  if (typeof dbUrl !== 'string' || dbUrl === '') throw dbUrlInvalid();
+  let u;
+  let password;
+  try {
+    u = new URL(dbUrl);
+    if (u.protocol !== 'postgresql:' && u.protocol !== 'postgres:') throw dbUrlInvalid();
+    password = decodeURIComponent(u.password);
+  } catch {
+    throw dbUrlInvalid();
+  }
+  u.password = '';
+  return { url: u.href, password };
+}
+
+/** The `supabase db push` arguments (no password) and the child env that carries it. */
 export function buildPushInvocation({ dbUrl, workdir, dryRun, lockTimeout, statementTimeout }) {
+  const { url, password } = splitDbPassword(dbUrl);
+  const env = password === '' ? {} : { PGPASSWORD: password };
   if (dryRun === true) {
-    return { args: ['db', 'push', '--db-url', dbUrl, '--workdir', workdir, '--yes', '--dry-run'] };
+    return { args: ['db', 'push', '--db-url', url, '--workdir', workdir, '--yes', '--dry-run'], env };
   }
   const timeouts = {
     lockTimeout: lockTimeout ?? MIGRATION_TIMEOUTS.lockTimeout,
     statementTimeout: statementTimeout ?? MIGRATION_TIMEOUTS.statementTimeout,
   };
-  return { args: ['db', 'push', '--db-url', withTimeouts(dbUrl, timeouts), '--workdir', workdir, '--yes'] };
+  return { args: ['db', 'push', '--db-url', withTimeouts(url, timeouts), '--workdir', workdir, '--yes'], env };
 }
 
 /** The distinct migration file names in a dry-run output, in order; nothing else is kept. */

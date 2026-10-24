@@ -9,7 +9,7 @@ import { mkdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { RELEASE_SECRET_NAMES } from './context.mjs';
-import { buildPushInvocation } from './push.mjs';
+import { buildPushInvocation, splitDbPassword } from './push.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -88,15 +88,20 @@ export function buildDumpInvocation(kind, { dbUrl, local, file, exclude } = {}) 
   if (!DUMP_KINDS.includes(kind)) throw new Error('dump_kind_invalid');
   if (exclude !== undefined && kind !== 'data') throw new Error('dump_exclude_data_only');
   const args = ['db', 'dump'];
+  let env = {};
   if (local === true) args.push('--local');
-  else args.push('--db-url', dbUrl);
+  else {
+    const { url, password } = splitDbPassword(dbUrl);
+    args.push('--db-url', url);
+    if (password !== '') env = { PGPASSWORD: password };
+  }
   if (kind === 'roles') args.push('--role-only');
   if (kind === 'data') {
     args.push('--data-only', '--use-copy');
     for (const name of exclude ?? AUTH_DATA_EXCLUDES) args.push(DUMP_EXCLUDE_FLAG, name);
   }
   if (file !== undefined) args.push('--file', file);
-  return { args };
+  return { args, env };
 }
 
 /**
@@ -105,8 +110,14 @@ export function buildDumpInvocation(kind, { dbUrl, local, file, exclude } = {}) 
  */
 export function createSupabaseCli({ root = REPO_ROOT, run = runChild } = {}) {
   const command = path.join(root, 'node_modules', '.bin', 'supabase');
-  const exec = async (what, args) => {
-    const r = await run(command, args, { cwd: root, env: childEnv(process.env) });
+  const exec = async (what, build) => {
+    const invocation = build();
+    const env = {};
+    for (const [k, v] of Object.entries(childEnv(process.env))) {
+      if (!k.startsWith('PG')) env[k] = v;
+    }
+    Object.assign(env, invocation.env);
+    const r = await run(command, invocation.args, { cwd: root, env });
     if (r.code === 0) return r.stdout;
     throw Object.assign(new Error(`supabase db ${what} exited ${r.code}`), {
       exitCode: r.code,
@@ -115,10 +126,11 @@ export function createSupabaseCli({ root = REPO_ROOT, run = runChild } = {}) {
     });
   };
   return {
-    dump: (kind, opts) => exec('dump', buildDumpInvocation(kind, opts).args),
-    pushDryRun: ({ dbUrl, workdir }) => exec('push', buildPushInvocation({ dbUrl, workdir, dryRun: true }).args),
-    push: ({ dbUrl, workdir, lockTimeout, statementTimeout }) =>
-      exec('push', buildPushInvocation({ dbUrl, workdir, dryRun: false, lockTimeout, statementTimeout }).args),
+    dump: async (kind, opts) => exec('dump', () => buildDumpInvocation(kind, opts)),
+    pushDryRun: async ({ dbUrl, workdir }) =>
+      exec('push', () => buildPushInvocation({ dbUrl, workdir, dryRun: true })),
+    push: async ({ dbUrl, workdir, lockTimeout, statementTimeout }) =>
+      exec('push', () => buildPushInvocation({ dbUrl, workdir, dryRun: false, lockTimeout, statementTimeout })),
   };
 }
 
