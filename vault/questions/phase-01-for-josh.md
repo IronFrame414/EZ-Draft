@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, fifth run)
+# Phase 1 · for Josh (questions unit, 2026-10-24, sixth run)
 
-No ticket turned ready this run; the 40 ready ones are unchanged. Six fix tickets were added to phase 1 so nothing is parked (rule 17, your Q-0268). Two are for new findings: EZD-179, a warning every app test run prints (Q-0314), and EZD-180, a test that fails if it runs after the browser tests (Q-0315). Three are tickets that earlier answers promised but that never reached the ticket list: EZD-176, the release and backup workflows still on the Node 20 action versions (Q-0281); EZD-177, refusing pnpm settings passed through environment names (Q-0283); and EZD-178, six tools that print nothing through a shortcut path (Q-0290). A fourth is EZD-181: a health check that times out on a slow database reports the error (Q-0286); it waits for EZD-150 and EZD-169. Q-0313 (the gate summary naming the wrong tests) turned out to be in EZD-155's scope already; the planner added the one case it missed. The next units plan the six new tickets. Two decisions below; Q-0312 still makes every phase 1 build gate red until the patch is in.
+Six tickets turned ready this run: EZD-176, EZD-177, EZD-178, EZD-179, EZD-180 and EZD-181 (46 ready in phase 1 now). Three new questions were answered by the reviewers (rows Q-0316 to Q-0318 below). One more fix ticket was added so nothing is parked (rule 17, your Q-0268): EZD-182, the repo checks also refuse the pnpm command-line switches that turn on install scripts (Q-0316); the next unit plans it. EZD-169 and EZD-181 were re-planned: a health check on a hung database now answers its error at the 3,000 ms limit and reports it right after, instead of waiting on the same hung database (Q-0317, Q-0318); EZD-169 now also waits for EZD-150. The two decisions below are unchanged; Q-0312 still makes every phase 1 build gate red until the patch is in.
 
 ## 1. Decisions needed
 
@@ -50,8 +50,11 @@ Confirm or override each.
 | Q-0313 | gate summary (EZD-155) | No separate patch: EZD-155 (ready) already fixes the gate summary (its ticket row and plan); the planner added the missing case, a passing test whose title contains "FAIL". The gate script changes through rule 19 in that build. | phase-01.md EZD-155 row; EZD-155.md Block S |
 | Q-0314 | EZD-179 (new) | Fix ticket EZD-179: remove the cause of the "ESM syntax in a file loaded as CommonJS" warning in every app test run; the warning is never just hidden | CLAUDE.md rule 17; Q-0268 |
 | Q-0315 | EZD-180 (new) | Fix ticket EZD-180: EZD-005b T17 passes in any order, including right after the browser tests (the seeded Josh row must not depend on earlier sign-ins) | CLAUDE.md rule 17; Q-0268; architecture.md seed rule |
+| Q-0316 | EZD-177, EZD-182 (new) | (a) fix ticket EZD-182: the repo checks refuse the pnpm switches `--dangerously-allow-all-builds`, `--config.<setting>` and `--allow-build` in workflows, package scripts and `app/vercel.json`, so no one can turn install scripts on past the settings file | Q-0283 (a); Q-0140 (a); CLAUDE.md rule 17 |
+| Q-0317 | EZD-181 | (a) the health check answers its error at the 3,000 ms limit and sends the error report right after the answer, so a hung database cannot hold the answer past the release check's 4-second limit | report.ts; kick.ts `after()` pattern; Q-0285 (a) |
+| Q-0318 | EZD-169, EZD-181 | (a) EZD-169 builds that change from the start (and now waits for EZD-150); EZD-181 only proves it with tests | EZD-150.md section 4; EZD-169.md; Q-0268 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181.
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182.
 
 ## 3. Proposed wording
 
@@ -68,7 +71,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 170, 171, 173, 175.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181.
 
 ## 4. Rule candidates
 

@@ -13845,7 +13845,7 @@
    "id": "EZD-169",
    "phase": 1,
    "title": "Fix: every 500 catch in a route reports the error",
-   "depends_raw": "EZD-024, EZD-009, EZD-018, EZD-004b",
+   "depends_raw": "EZD-024, EZD-009, EZD-018, EZD-004b, EZD-150",
    "spec_ref": "Q-0268",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Security and audit"
@@ -13857,7 +13857,8 @@
     "EZD-024",
     "EZD-009",
     "EZD-018",
-    "EZD-004b"
+    "EZD-004b",
+    "EZD-150"
    ],
    "build_position": 478,
    "acs": [
@@ -14138,6 +14139,29 @@
    "build_position": 490,
    "acs": [
     "AC-EZD-181-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-182",
+   "phase": 1,
+   "title": "Fix: repo rule tests refuse pnpm flags that turn on dependency build scripts",
+   "depends_raw": "EZD-177, EZD-003",
+   "spec_ref": "Q-0316",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-177",
+    "EZD-003"
+   ],
+   "build_position": 491,
+   "acs": [
+    "AC-EZD-182-1",
+    "AC-EZD-182-2"
    ],
    "acs_source": "done-when"
   },

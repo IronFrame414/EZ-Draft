@@ -519,19 +519,20 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-166 | 1 | Fix: db:up restarts the local stack when the Auth config or templates change | ready | low | EZD-004a, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T25; prod-sensitive: no). |
 | EZD-167 | 1 | Fix: path alias cannot bypass the import-boundaries lint | ready | low | EZD-001, EZD-020 |  |  | Added 2026-10-24 by the Q-0268 sweep (T26; prod-sensitive: no). |
 | EZD-168 | 1 | Fix: audit refuses a private function executable by an API role it is not granted to | ready | medium | EZD-006, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T27; prod-sensitive: yes). |
-| EZD-169 | 1 | Fix: every 500 catch in a route reports the error | ready | low | EZD-024, EZD-009, EZD-018, EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). |
+| EZD-169 | 1 | Fix: every 500 catch in a route reports the error | ready | low | EZD-024, EZD-009, EZD-018, EZD-004b, EZD-150 |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). EZD-150 added to Depends on 2026-10-24 by Q-0318 (a): its health step edits EZD-150's test files (questions 1). |
 | EZD-170 | 1 | Fix: run every pilot check and record its result | ready | medium | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (item 39). |
 | EZD-171 | 1 | Fix: prove the cloud-only behaviours on the dev project and the live site | ready | medium | EZD-006, EZD-033, EZD-010b, EZD-009 |  |  | Added 2026-10-24 for Q-0275 (a). |
 | EZD-172 | 1 | Parallel lanes: each build lane gets its own local database and ports | ready | medium | EZD-004a, EZD-016d, EZD-017, EZD-007f |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-173 | 1 | Parallel lanes: ledger, commits and merges never collide | ready | high | EZD-000g, EZD-000h, EZD-001 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-174 | 1 | Parallel lanes: the launcher runs several units at once under boost | ready | high | EZD-172, EZD-173, EZD-175 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-175 | 1 | Parallel lanes: a ticket branch is brought up to date with develop before its merge | questions | medium | EZD-173 |  |  | Added 2026-10-24 for Q-0304 (c). |
-| EZD-176 | 1 | Fix: release, backup and dev-migration workflows leave the Node 20 action pins | planned | low | EZD-146 |  |  | Added 2026-10-24 for Q-0281 (b) (rule 17; questions 1). |
-| EZD-177 | 1 | Fix: repo rule tests refuse pnpm_config_* environment names | questions | low | EZD-148 |  |  | Added 2026-10-24 for Q-0283 (a) (rule 17; questions 1). |
-| EZD-178 | 1 | Fix: six more tools work when run through a symlinked path | planned | low | EZD-155 |  |  | Added 2026-10-24 for Q-0290 (b) (rule 17; questions 1). |
-| EZD-179 | 1 | Fix: app Vitest config loads without the CommonJS warning | planned | low | EZD-001 |  |  | Added 2026-10-24 for Q-0314 (rule 17; questions 1). |
-| EZD-180 | 1 | Fix: EZD-005b T17 (e) passes in any run order | planned | low | EZD-005b, EZD-016a |  |  | Added 2026-10-24 for Q-0315 (rule 17; questions 1). |
-| EZD-181 | 1 | Fix: a health check that times out reports the error | questions | low | EZD-150, EZD-169 |  |  | Added 2026-10-24 for Q-0286 (b) (rule 17; questions 1). |
+| EZD-176 | 1 | Fix: release, backup and dev-migration workflows leave the Node 20 action pins | ready | low | EZD-146 |  |  | Added 2026-10-24 for Q-0281 (b) (rule 17; questions 1). |
+| EZD-177 | 1 | Fix: repo rule tests refuse pnpm_config_* environment names | ready | low | EZD-148 |  |  | Added 2026-10-24 for Q-0283 (a) (rule 17; questions 1). |
+| EZD-178 | 1 | Fix: six more tools work when run through a symlinked path | ready | low | EZD-155 |  |  | Added 2026-10-24 for Q-0290 (b) (rule 17; questions 1). |
+| EZD-179 | 1 | Fix: app Vitest config loads without the CommonJS warning | ready | low | EZD-001 |  |  | Added 2026-10-24 for Q-0314 (rule 17; questions 1). |
+| EZD-180 | 1 | Fix: EZD-005b T17 (e) passes in any run order | ready | low | EZD-005b, EZD-016a |  |  | Added 2026-10-24 for Q-0315 (rule 17; questions 1). |
+| EZD-181 | 1 | Fix: a health check that times out reports the error | ready | low | EZD-150, EZD-169 |  |  | Added 2026-10-24 for Q-0286 (b) (rule 17; questions 1). |
+| EZD-182 | 1 | Fix: repo rule tests refuse pnpm flags that turn on dependency build scripts | todo |  | EZD-177, EZD-003 |  |  | Added 2026-10-24 for Q-0316 (a) (rule 17; questions 1). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
