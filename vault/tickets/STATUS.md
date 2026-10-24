@@ -503,7 +503,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-151 | 1 | Fix: email input checks, preview stub outbox and email runbook | questions | low | EZD-008a, EZD-008b |  |  | Added 2026-10-24 by the Q-0268 sweep (T10; prod-sensitive: yes). |
 | EZD-152 | 1 | Fix: release and restore failure lines say why without leaking data | questions | low | EZD-023d, EZD-025 |  |  | Added 2026-10-24 by the Q-0268 sweep (T11; prod-sensitive: yes). |
 | EZD-153 | 1 | Fix: migration check flags objects created in dynamic SQL | planned | medium | EZD-023a |  |  | Added 2026-10-24 by the Q-0268 sweep (T12; prod-sensitive: yes). |
-| EZD-154 | 1 | Fix: remove the PA3 grant and close the two guard-bash gaps | todo |  | EZD-000c |  |  | Added 2026-10-24 by the Q-0268 sweep (T13; prod-sensitive: EZD-000b to EZD-000j). |
+| EZD-154 | 1 | Fix: remove the PA3 grant and close the two guard-bash gaps | questions | low | EZD-000c |  |  | Added 2026-10-24 by the Q-0268 sweep (T13; prod-sensitive: EZD-000b to EZD-000j). |
 | EZD-155 | 1 | Fix: gate summary and launcher tools report what really happened | todo |  | EZD-000h, EZD-000g, EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T14; prod-sensitive: no). |
 | EZD-156 | 1 | Fix: perf check refuses an empty selection and proves its server env | todo |  | EZD-017 |  |  | Added 2026-10-24 by the Q-0268 sweep (T15; prod-sensitive: no). |
 | EZD-157 | 1 | Fix: realtime hub keeps project and user channels apart | todo |  | EZD-018 |  |  | Added 2026-10-24 by the Q-0268 sweep (T16; prod-sensitive: no). |
