@@ -46,3 +46,5 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0297 | 2026-10-24 | (a): the launcher build unit does Part A and sets EZD-170 blocked; Josh does Part J (J1-J9) at his next sit-down in an interactive session; nothing else waits. |
 | Q-0303 | 2026-10-24 | (a): the parallel-lane process rows are written by the orchestrator in EZD-174's fix-mode commit; Josh confirms or reverts. |
 | Q-0304 | 2026-10-24 | (c): ticket branches are updated onto develop before the squash merge (EZD-175), so docs/architecture.md does not serialize builds. |
+| Q-0307 | 2026-10-24 | (b): EZD-171's live check J3 runs after the phase 1 merge; a mismatch is the first fix ticket of phase 2. |
+| — | 2026-10-24 | Boost mode skips the weekly usage hold (Josh: "remove the hold completely during boost"); the five-hour pause stays. |

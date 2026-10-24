@@ -358,7 +358,9 @@ async function main() {
       await waitForWindow({ pause: decision.pause, sleep });
       continue;
     }
-    const gate = await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify });
+    // Boost mode skips the weekly hold (Josh 2026-10-24: "remove the hold completely during boost"); the five-hour pause
+    // above and a real plan-limit error below still apply.
+    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify });
     if (!gate.start) {
       log(gate.reason);
       if (/weekly_ceiling_usd_est/.test(gate.reason)) notify(`launcher stopped: ${gate.reason}`);

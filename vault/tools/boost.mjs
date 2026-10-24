@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Boost mode (Josh 2026-10-24): for spare weekly usage near the end of the week, every role runs one model up
-// (Haiku -> Sonnet -> Opus -> Fable) at one effort level up, with a per-unit cap of $80. Lanes (several units at once) are recorded for the parallel launcher, which is not
+// (Haiku -> Sonnet -> Opus -> Fable) at one effort level up, with a per-unit cap of $80 and no weekly hold (the five-hour pause stays). Lanes (several units at once) are recorded for the parallel launcher, which is not
 // built yet: until it is, the lane numbers change nothing. It turns itself off when the
 // weekly usage window resets, so the build returns to the normal routing of PROCESS.md section 4.
 //
@@ -87,12 +87,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (cmd === 'on') {
     const r = turnOn({ lanes: opt('--lanes', DEFAULT_LANES), buildLanes: opt('--build-lanes', DEFAULT_BUILD_LANES) });
     if (!r.ok) { console.error(r.error); process.exit(1); }
-    console.log(`boost on: one model and one effort level up, $${BOOST_UNIT_CAP_USD} per-step cap, until ${r.until} (the weekly reset); parallel lanes are not built yet`);
+    console.log(`boost on: one model and one effort level up, $${BOOST_UNIT_CAP_USD} per-step cap, no weekly hold, until ${r.until} (the weekly reset); parallel lanes are not built yet`);
   } else if (cmd === 'off') {
     console.log(turnOff() ? 'boost off' : 'boost was not on');
   } else if (cmd === 'status' || !cmd) {
     const s = boostState();
-    console.log(s.active ? `boost on: one model and one effort level up, $${BOOST_UNIT_CAP_USD} per-step cap, until ${s.until}; parallel lanes are not built yet` : s.expired ? `boost expired at ${s.until ?? '(unreadable file)'}; the launcher removes it` : 'boost off');
+    console.log(s.active ? `boost on: one model and one effort level up, $${BOOST_UNIT_CAP_USD} per-step cap, no weekly hold, until ${s.until}; parallel lanes are not built yet` : s.expired ? `boost expired at ${s.until ?? '(unreadable file)'}; the launcher removes it` : 'boost off');
   } else {
     console.error('usage: node vault/tools/boost.mjs on [--lanes N] [--build-lanes N] | off | status');
     process.exit(2);
