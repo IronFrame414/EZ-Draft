@@ -148,7 +148,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-110 | 2 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
 | EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
 | EZD-112 | 1 | Company settings: identity | questions | high | EZD-103, EZD-132 |  |  |  |
-| EZD-113 | 1 | Customers | todo |  | EZD-112 |  |  |  |
+| EZD-113 | 1 | Customers | planned | high | EZD-112 |  |  |  |
 | EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
 | EZD-117a | 2 | Projects page: query and cards | todo |  | EZD-102, EZD-110 |  |  |  |
 | EZD-117b | 2 | Projects page: header, search and states | todo |  | EZD-117a, EZD-015 |  |  |  |
