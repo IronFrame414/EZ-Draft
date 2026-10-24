@@ -14120,6 +14120,28 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-181",
+   "phase": 1,
+   "title": "Fix: a health check that times out reports the error",
+   "depends_raw": "EZD-150, EZD-169",
+   "spec_ref": "Q-0286",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-150",
+    "EZD-169"
+   ],
+   "build_position": 490,
+   "acs": [
+    "AC-EZD-181-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",

@@ -1,6 +1,6 @@
 # Phase 1 · for Josh (questions unit, 2026-10-24, fifth run)
 
-No ticket turned ready this run; the 40 ready ones are unchanged. Five fix tickets were added to phase 1 so nothing is parked (rule 17, your Q-0268). Two are for new findings: EZD-179, a warning every app test run prints (Q-0314), and EZD-180, a test that fails if it runs after the browser tests (Q-0315). Three are tickets that earlier answers promised but that never reached the ticket list: EZD-176, the release and backup workflows still on the Node 20 action versions (Q-0281); EZD-177, refusing pnpm settings passed through environment names (Q-0283); and EZD-178, six tools that print nothing through a shortcut path (Q-0290). A fourth promised one, the health check reporting its failures (Q-0286), is already part of EZD-169, so no new ticket for it. Q-0313 (the gate summary naming the wrong tests) turned out to be in EZD-155's scope already; the planner added the one case it missed. The next units plan the five new tickets. Two decisions below; Q-0312 still makes every phase 1 build gate red until the patch is in.
+No ticket turned ready this run; the 40 ready ones are unchanged. Six fix tickets were added to phase 1 so nothing is parked (rule 17, your Q-0268). Two are for new findings: EZD-179, a warning every app test run prints (Q-0314), and EZD-180, a test that fails if it runs after the browser tests (Q-0315). Three are tickets that earlier answers promised but that never reached the ticket list: EZD-176, the release and backup workflows still on the Node 20 action versions (Q-0281); EZD-177, refusing pnpm settings passed through environment names (Q-0283); and EZD-178, six tools that print nothing through a shortcut path (Q-0290). A fourth is EZD-181: a health check that times out on a slow database reports the error (Q-0286); it waits for EZD-150 and EZD-169. Q-0313 (the gate summary naming the wrong tests) turned out to be in EZD-155's scope already; the planner added the one case it missed. The next units plan the six new tickets. Two decisions below; Q-0312 still makes every phase 1 build gate red until the patch is in.
 
 ## 1. Decisions needed
 
@@ -51,7 +51,7 @@ Confirm or override each.
 | Q-0314 | EZD-179 (new) | Fix ticket EZD-179: remove the cause of the "ESM syntax in a file loaded as CommonJS" warning in every app test run; the warning is never just hidden | CLAUDE.md rule 17; Q-0268 |
 | Q-0315 | EZD-180 (new) | Fix ticket EZD-180: EZD-005b T17 passes in any order, including right after the browser tests (the seeded Josh row must not depend on earlier sign-ins) | CLAUDE.md rule 17; Q-0268; architecture.md seed rule |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178; Q-0286 → already in EZD-169.
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181.
 
 ## 3. Proposed wording
 
