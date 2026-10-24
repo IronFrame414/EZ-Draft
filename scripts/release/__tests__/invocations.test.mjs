@@ -42,7 +42,7 @@ const DATA_ARGS = [
   '--exclude',
   'auth.flow_state',
 ];
-const PSQL_ARGS = ['--dbname', U, '-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A'];
+const PSQL_ARGS = ['-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A'];
 // Part b's list (vault/plans/EZD-023b.md Step 1), copied so `childEnv` is checked against the plan, not the code.
 const RELEASE_SECRET_NAMES_EXPECTED = [
   'VERCEL_TOKEN',
@@ -116,7 +116,21 @@ describe('EZD-023d child-process invocations and the off-site uploader', () => {
     throwsCode(() => push.withTimeouts(`${U}?options=x`), 'db_url_has_options');
 
     // (h) psql flags (scripts/db/sql.mjs).
-    assert.deepEqual(bs.buildPsqlInvocation({ dbUrl: U }), { command: 'psql', args: PSQL_ARGS }, '(h)');
+    assert.deepEqual(
+      bs.buildPsqlInvocation({ dbUrl: U }),
+      {
+        command: 'psql',
+        args: PSQL_ARGS,
+        env: {
+          PGHOST: 'aws-0-us-east-1.pooler.supabase.com',
+          PGPORT: '5432',
+          PGUSER: 'postgres.prodref123',
+          PGPASSWORD: 'S3cret',
+          PGDATABASE: 'postgres',
+        },
+      },
+      '(h)',
+    );
 
     // (i) childEnv drops the release secrets, the job token and the backup key.
     assert.deepEqual(
