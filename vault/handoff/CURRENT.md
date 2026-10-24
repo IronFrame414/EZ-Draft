@@ -1,10 +1,10 @@
-# Handoff · 2026-10-23 · questions 0
+# Handoff · 2026-10-23 · build EZD-034
 
-- Phase and stage: phase 0, Stage 2 (see vault/PROGRESS.md)
+- Phase and stage: phase 0, Stage 3
 - Why the session ended: unit complete
-- Completed this session: no open questions, no QP in plans, no candidate lessons. EZD-038, EZD-039, EZD-040 set ready (plan lint OK). EZD-041 plan: QP-1 text replaced by Q-0262; stays `questions`. phase-00-for-josh.md refreshed (stale Q-0258/Q-0259 line removed).
+- Completed this session: EZD-034 done (ca0fc63, 1116 tests). Gate green; code, security and UI reviews PASS.
 - In progress: none
 - Blocked: EZD-003, EZD-027 (unchanged)
-- Questions for Josh: Q-0262 (EZD-041; recommended (a)); Q-0260 to confirm; Q-0089 and Q-0237 later phases
-- Decisions made: none
+- Questions for Josh: Q-0262 (EZD-041), Q-0260 to confirm; EZD-034 wording to confirm (stub widget text, Spanish es.ts:59-61, runbook ## Captcha); AC-EZD-034-1 hand check (runbook ## Captcha step 5, needs Cloudflare Turnstile + Supabase dev setting)
+- Decisions made: none; plan-gap patched in plan (env-name tests T11/T12); planner lesson added
 - Next unit: see node vault/tools/next_ticket.mjs --next-unit
