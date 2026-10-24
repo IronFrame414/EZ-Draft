@@ -1,21 +1,15 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24)
+# Phase 1 · for Josh (questions unit, 2026-10-24, second run)
+
+Your twelve answers from earlier today are applied to the plans: EZD-103 (draft), 136 (not-found page), 143 (10 of 20 alert emails), 151, 155 (dry run writes nothing), 162, 170, 171 (J3 on the live site) and 1704 (daily backup check). Applying them raised the new questions below.
 
 ## 1. Decisions needed
 
-Recommendation first in each.
+Answer by number. Recommendation first.
 
-1. **Q-0272 · EZD-136** — The disclaimer line is 756 px; when the office status bar is narrower, what gives way? Recommend (a): the line is cut with "…" and shows in full on hover and for screen readers; readouts keep their room. (b) readouts are cut instead; (c) a shorter line below 1600 px (new wording).
-2. **Q-0273 · EZD-136** — Next.js's built-in "page not found" and error pages show no disclaimer. Recommend (a): leave them, they are not app screens. (b) add an app not-found page with the line and "Page not found." (new wording).
-3. **Q-0276 · EZD-143** — How many error reports may one address send per hour before it is refused? No source sets it. Recommend (a) 60 (the plan and tests use it). (b) 30, (c) 120, (d) your number.
-4. **Q-0278 · EZD-143** — Your cap of 20 alert emails per hour (Q-0068 (a)) is shared by all kinds, so many browser reports could use all 20. Recommend (b): browser and worker alerts use at most 10 of the 20 (security-reviewer agrees). (a) keep one shared 20; (c) another split.
-5. **Q-0287 · EZD-151** — Preview servers keep every stub email and its link in memory. Agents answered (a): keep at most N messages, dropping the oldest (previews keep the stub by default, Q-0041). What is N? Recommend 100 (the plan's number).
-6. **Q-0291 · EZD-155** — A launcher dry run still writes the budget hold file and marker and sends notifications to you (Q-0137 (a) accepted this as the "full gate path"). Recommend (a): a dry run writes no hold or marker and sends no notification (run.mjs defines a dry run as "print what would run and exit"). (b) separate fix ticket; (c) keep as is.
-7. **Q-0293 · EZD-162** — Which frame-rate target does the Surface hold in field checks: (a) the iPad's 30 fps, or (b) the desktop's 60 fps? Recommend (a): a touch tablet-class device, lower risk of a false fail. Your call.
-8. **Q-0294 · EZD-162** — Slice 28 says "the joystick does the same on the iPad", but you have no iPad. Recommend (a): reword to the Surface, so EZD-1003's planner must show the joystick on the Surface's touch screen too. (b) the automated iPad test checks it and you skip it.
-9. **Q-0297 · EZD-170** — When do you do the launcher live checks (J1-J9, about 30 minutes)? Recommend (a): the build unit does Part A, EZD-170 waits `blocked`, you do Part J at your next sit-down. (b) all in one sit-down; (c) record Part J as replaced by unit tests, no live check.
-10. **Q-0300 · EZD-171** — Check J3 can run only on a Vercel preview, which exists only for the phase PR. Recommend (a): you run J1-J2 after EZD-171 merges and J3 on the phase 1 PR preview; auto-merge is set only after J3 is recorded. (b) J3 waits for the first real release; (c) you make one preview of `develop` by hand first.
-11. **Q-0301 · EZD-1704** — Should the backup check also run daily by itself (new scheduled workflow; GitHub emails you on failure)? Recommend (a): by hand in the drill only for now; the System status page shows it later. (b) add the daily workflow now.
-12. **Q-0302 · EZD-103** — With your Q-0265 (b) answer, Back is caught one step at a time. A long-press Back that jumps two or more pages leaves before any prompt and loses unsaved edits. Recommend (a): accept it as a known limit (rare). (c) name another handling. Tell me if you want it treated differently.
+1. **Q-0303 · EZD-174** — Parallel lanes need two process lines changed: PROCESS-EZDRAFT.md section 8 (only you raise the one-ticket-in-progress limit) and PROCESS.md section 6 (plans are never written in parallel). The plan's proposed text is rows P1-P4 of its section 6 (listed in section 3 below). Recommend (b): you approve the P1-P4 text here, and the orchestrator puts it in during EZD-174's build, because those files change only with your approval (PROCESS.md section 1). (a) the orchestrator writes P1-P4 in the build and you confirm or revert later; (c) you change the wording first.
+2. **Q-0304 · EZD-174** — Two builds whose plans name the same file never run together, because a squash merge of two edits to the same lines stops (MERGE STOP). 118 of 132 plans name docs/architecture.md. Several of the last 12 merges appended rows to the end of the same tables in that file (environment names, Dependencies, Machine checks), so an exemption would stop merges often, not rarely, and a rebase step meets the same clash. Recommend (a): count docs/architecture.md like any file; builds then rarely run side by side, but plans and other units still do, and no merge stops. (b) exempt it and accept a merge stop for a hand fix when edits clash; (c) exempt it and add a ticket that rebases before the squash.
+3. **Q-0305 · EZD-136** — Your new not-found page ("Page not found." plus the disclaimer) can be reached signed in or signed out, and no rule says which language it shows. Recommend (c): the person's own language setting when signed in, else the device's sign-in language choice. A Spanish crew member then always sees Spanish (R24 #40), at the cost of one database read when someone opens a wrong address. (b) only the device's sign-in language choice, with no database read (the planner's pick), but a Spanish user who never picked Español at sign-in sees English; (a) English only.
+4. **Q-0307 · EZD-171** — Your Q-0300 answer runs check J3 on the live site right after EZD-171 merges. But the live site shows `main`, which changes only when a phase PR merges (Q-0264), and tickets merge to `develop`. So the page is not on the live site until the phase 1 PR merges. Recommend (b): J3 runs on the live site after the phase 1 PR merges, and a mismatch becomes a fix ticket at the start of phase 2. It needs nothing from you in Vercel. (a) after the merge you deploy `develop` to production by hand in Vercel (steps not checked); (c) you set Vercel's production branch to `develop` until launch, so every ticket merge goes live (the release workflow and runbook would need their own question).
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
@@ -25,8 +19,9 @@ Confirm or override each.
 
 | ID | Ticket | Answer | Source |
 | --- | --- | --- | --- |
-| Q-0266 | EZD-112 | (b) EZD-132 now has a plan with two signature changes; EZD-112 is re-validated against it before build | EZD-132.md line 208 |
-| Q-0269 | EZD-132 | (b) Storage refuses supplier PDFs and order reports to members without See company costs (adds EZD-101 dependency, one test) | 03b rule 2; Q-0235 (a); Q-0087 (ii) |
+| Q-0232 | EZD-102, 103, 112, 113, 132, 1704, 136 | Spec-gap answers: in-place message with no redirect; Company switch gates customers; email unique ignoring case; EZ Binder fields dropped; logo in a private bucket via signed link; download link 15 minutes; backup current = nightly copy < 26 h and weekly dump < 8 days; and the rest of the row | phase-01-spec-gaps-for-josh.md |
+| Q-0266 | EZD-112 | (b) EZD-112 is re-validated against EZD-132's plan before build | EZD-132.md line 208 |
+| Q-0269 | EZD-132 | (b) Storage refuses supplier PDFs and order reports to members without See company costs | 03b rule 2; Q-0235 (a); Q-0087 (ii) |
 | Q-0277 | EZD-143 | (a) worker-tagged events count toward the address limit and the browser row cap | architecture.md Error reporting |
 | Q-0279 | EZD-145 | (b) `edit_model` for the dev test job route | EZD-102.md; Q-0202 |
 | Q-0280 | EZD-146 | (a) pooler-options probe added to EZD-171 as a row you run | Q-0275 (a); Q-0268 |
@@ -42,21 +37,27 @@ Confirm or override each.
 | Q-0292 | EZD-161 | (a) fix geometry's vitest config type-check in EZD-161 | EZD-161.md |
 | Q-0295 | EZD-162 | (a) EZD-162 adds the security-review note to EZD-134 | sweep-2026-10-24.md |
 | Q-0296 | EZD-168 | (a) keep the three `private` helper grants, documented | architecture.md RLS |
-| Q-0298 | EZD-170 | (b) fix ticket: automated test of the API-credits override with a fake `claude` (no money spent) | CLAUDE.md rules 3, 6 |
-| Q-0299 | EZD-170 | (b) fix ticket: launcher saves raw text of any limit error and notifies you | Q-0268 |
+| Q-0298 | EZD-170 | (b) fix ticket (added by EZD-170's build): automated test of the API-credits override with a fake `claude`, no money spent | CLAUDE.md rules 3, 6 |
+| Q-0299 | EZD-170 | (b) fix ticket (added by EZD-170's build): launcher saves raw text of any limit error and notifies you | Q-0268 |
+| Q-0306 | EZD-171 | (a) on the live site the cloud-check page answers only to a signed-in person; everyone else gets the usual 404. Answering everyone would let anyone probe how sign-in limits count addresses | Q-0300 (d); architecture.md Folder layout, Auth and session |
+| Q-0308 | EZD-155 | (a) a dry run also leaves an expired boost file in place and only says it would remove it (your Q-0291 rule: a dry run writes nothing) | Q-0291 (a); scripts/run.mjs line 7 |
 
 ## 3. Proposed wording
 
 Full tables are in each plan's section 6. Needing your approval:
 
-- **EZD-112** (`vault/plans/EZD-112.md` section 6): `office.company.*` keys: subtitle "Identity used on the title block, client pages, selections PDF and email."; "Upload"; "Uploading…"; "{kind} logo"; more rows in the plan.
-- **EZD-136** section 6 W1: Spanish disclaimer "Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el …" (a Spanish speaker checks it, Q-0030 (a)). English is yours (Q-0208).
+- **EZD-103** section 6: toast when a Settings page comes back with a draft: "Your unsaved changes from last time are still here." (Q-0302).
+- **EZD-112** section 6: `office.company.*` keys: subtitle "Identity used on the title block, client pages, selections PDF and email."; "Upload"; "Uploading…"; "{kind} logo"; more rows in the plan.
+- **EZD-136** section 6: W1 Spanish disclaimer "Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto."; W3 Spanish not-found text "Página no encontrada." (a Spanish speaker checks both, Q-0030 (a)). W2 "Page not found." is your own text (Q-0273).
 - **EZD-149** section 6: runbook sentences for the new preview rule (if Q-0284 stands).
 - **EZD-151** section 6 R1: runbook text for a separate Resend preview key `ezdraft-preview`.
-- **EZD-162** section 6: the New cells E1-E22 and option texts Q1-A to Q3-A (vault text you read).
+- **EZD-155** section 6: launcher dry-run log lines W1-W6, for example "dry run: weekly usage at <pct>%; a real run would write vault/handoff/BUDGET_HOLD.md and notify" and "dry run: would notify: <message>".
+- **EZD-162** section 6: the New cells E1-E22, with option (a) of Q1-A, Q1-B, Q1-C and Q2-A per your Q-0293 and Q-0294 answers, and Q3-A.
+- **EZD-172** section 6: lane tool messages, for example "EZD_LANE must be 0, 1, 2 or 3 (got "<value>")." and "GATE FAIL: another gate is running on lane <n> (pid <pid>). Run one gate per lane."
+- **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line."
+- **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- **EZD-171** section 6: see plan.
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 170, 171, 173.
 
 ## 4. Rule candidates
 
