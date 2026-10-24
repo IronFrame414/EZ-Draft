@@ -14,7 +14,7 @@ Q-0089 (storage limit) and Q-0237 (charging other companies) belong to later pha
 
 - **Q-0260** (EZD-037): the ticket only changes `vault/` files, which the builder may not write. Answer: the orchestrator applies the plan steps directly on `develop` in one `fix(EZD-037)` commit, runs the plan's checks, and code-reviewer reviews it; no hook change. Source: vault/plans/EZD-037.md section 1; `.claude/hooks/guard-paths.mjs` orchestrator rule. Confirm or override.
 
-Still escalated and waiting on you: Q-0258 (EZD-025) and Q-0259 (EZD-034), both a `guard-paths.mjs` patch only you apply (`vault/handoff/EZD-025-guard-paths.patch`, `EZD-034-guard-paths.patch`); recommended: apply both, as for `scripts/perf/` in Q-0247.
+Q-0258 and Q-0259 (guard-paths patches) are answered and recorded; nothing else waits on you for phase 0 except Q-0262.
 
 ## 3. Proposed wording
 
