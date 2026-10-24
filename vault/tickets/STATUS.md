@@ -494,7 +494,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | planned | medium | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
 | EZD-143 | 1 | Fix: error tunnel limits each caller | questions | medium | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
 | EZD-144 | 1 | Fix: error_alert refuses a project without a company | planned | low | EZD-024 |  |  | Added 2026-10-24 by the Q-0268 sweep (T3; prod-sensitive: yes (migration)). |
-| EZD-145 | 1 | Fix: job routes check permissions with can() | todo |  | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
+| EZD-145 | 1 | Fix: job routes check permissions with can() | questions | low | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
 | EZD-146 | 1 | Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack | todo |  | EZD-004c, EZD-042 |  |  | Added 2026-10-24 by the Q-0268 sweep (T5; prod-sensitive: yes). |
 | EZD-147 | 1 | Fix: CI workflow least rights and SHA pins | todo |  | EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T6; prod-sensitive: no). |
 | EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | todo |  | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
