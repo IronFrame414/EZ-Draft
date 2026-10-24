@@ -78,3 +78,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-038 · Fix: EZD-002 Scope cell still says every push · nothing on screen; EZD-002 ledger row now says CI runs on the phase PR and manual run · bd59bab
 2026-10-23 · EZD-040 · Fix: error tunnel scrubs tags and contexts · nothing on screen; error reports sent to Sentry no longer carry emails, ids, tokens or codes in tags, contexts or stack frames · bc49700
 2026-10-24 · EZD-039 · Fix: TRACE report misreads test tables · nothing on screen; TRACE.md now lists real test names with titles for EZD-010c and EZD-000b to EZD-000j · 9c1b6f0
+2026-10-24 · EZD-041 · Fix: release bootstrap passes the production database URL on the psql command line · nothing on screen; release no longer puts the production database password on psql's command line · 541d261
