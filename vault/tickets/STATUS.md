@@ -492,7 +492,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-136 | 1 | On-screen disclaimer | questions | medium | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
 | EZD-141 | 1 | Fix: SET LOCAL warning during sign-in | questions | medium | EZD-007a, EZD-006 |  |  | Added 2026-10-24 by Josh's request (Q-0267). |
 | EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | planned | medium | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
-| EZD-143 | 1 | Fix: error tunnel limits each caller | todo |  | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
+| EZD-143 | 1 | Fix: error tunnel limits each caller | questions | medium | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
 | EZD-144 | 1 | Fix: error_alert refuses a project without a company | todo |  | EZD-024 |  |  | Added 2026-10-24 by the Q-0268 sweep (T3; prod-sensitive: yes (migration)). |
 | EZD-145 | 1 | Fix: job routes check permissions with can() | todo |  | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
 | EZD-146 | 1 | Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack | todo |  | EZD-004c, EZD-042 |  |  | Added 2026-10-24 by the Q-0268 sweep (T5; prod-sensitive: yes). |
