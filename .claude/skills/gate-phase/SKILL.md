@@ -9,7 +9,7 @@ Run the phase gate of `vault/PROCESS.md` (section 9) for phase $ARGUMENTS, with 
 2. `node vault/tools/next_ticket.mjs --report` (fresh `TRACE.md` and `PROGRESS.md`).
 3. Dispatch `security-reviewer` over the phase diff (`git diff origin/main...develop`) with the gate summary. It also writes the "Production-sensitive changes: PASS / FAIL" section (Q-0112); a FAIL blocks the PR.
 4. Dispatch `phase-auditor` (`claude-fable-5-1`; `claude-opus-5-5` if `EZD_FABLE_ALLOWED` is `0` or Fable fails) with: the diff range, the phase's plan paths, `vault/tickets/TRACE.md`, the phase's spec files, and the gate output. Every AC in the phase must map to a merged ticket with passing tests. At the Phase 0 gate also give it `docs/architecture.md` and the five spike notes (the architecture is locked after this).
-5. **Findings, before the PR opens:**
+5. **Findings, before the PR opens (every finding, *minor* included, and every warning in the gate log that our code or configuration causes: PROCESS.md rule 20, Q-0268; the PR opens only when no finding and no fix ticket of the phase is open):**
    - a defect or a missed requirement → a **fix ticket**: next free number in the phase's range, title `Fix: …`, added to the phase file, `tickets.json` (`depends_on`, `build_order`, `acs` via `node vault/tools/gen_acs.mjs`) and `STATUS.md` in one commit; then it is planned, questioned, built and reviewed like any ticket (`plan`, `questions`, `build` units), and steps 1 to 4 repeat. Under the launcher: write the ticket, handoff, end; `--next-unit` picks it up.
    - a product judgment → the PR body, for Josh.
 6. Push `develop`, then `gh pr create --base main --head develop --title "Phase $ARGUMENTS: <name>"` (from the agent account, Q-0108). Body:

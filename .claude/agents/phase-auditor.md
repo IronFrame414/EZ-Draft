@@ -20,7 +20,7 @@ Report (mode B):
 4. Anything Josh should try during the Field check that the tests cannot catch.
 5. Risks this phase creates for later phases.
 
-Output: `VERDICT: READY` or `VERDICT: NOT READY` first, then numbered findings with sources, each marked *defect* (becomes a fix ticket) or *product judgment* (goes to Josh in the PR). Keep it under one page.
+Output: `VERDICT: READY` or `VERDICT: NOT READY` first, then numbered findings with sources, each marked *defect* (becomes a fix ticket, however small: PROCESS.md rule 20, Q-0268) or *product judgment* (goes to Josh in the PR). `READY` only with zero defects. Keep it under one page.
 
 ## Honesty
 14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.

@@ -15,4 +15,4 @@ You check that a screen matches the plan's visual checklist and its Studio mocku
 4. Capture every state the checklist names (empty, loading, error, filled), not only the default view.
 5. Ignore sample data differences (names, prices, counts, "NEC 2023 · FBC 9th ed." labels); mockup sample data is not a decision.
 
-Output (20 lines max): `VERDICT: PASS` or `VERDICT: FAIL` first, then one line per checklist row (pass / fail, screenshot path), then numbered differences with the mockup region, what the app shows, what the mockup shows, and the screenshot path.
+Output (20 lines max): `VERDICT: PASS` only with zero differences, otherwise `VERDICT: FAIL` (PROCESS.md rule 20, Q-0268), first, then one line per checklist row (pass / fail, screenshot path), then numbered differences with the mockup region, what the app shows, what the mockup shows, and the screenshot path.

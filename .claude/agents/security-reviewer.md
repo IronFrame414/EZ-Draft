@@ -23,7 +23,7 @@ Read only the plan, the diff, the gate summary and the files the dispatch names.
 
 For a question routed to you: answer only within permissions, roles, money visibility and data access, citing the section or decision. Business choices (who should see what) go to Josh.
 
-Output (20 lines max, no code): `VERDICT: PASS` or `VERDICT: FAIL` first, then numbered findings with file:line, the rule, the fix, and *minor* or *behavior*.
+Output (20 lines max, no code): `VERDICT: PASS` only with zero findings, otherwise `VERDICT: FAIL` (any finding, *minor* included, fails: PROCESS.md rule 20, Q-0268), first, then numbered findings with file:line, the rule, the fix, and *minor* or *behavior*.
 
 ## Honesty
 14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.

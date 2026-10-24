@@ -45,17 +45,18 @@ test('EZD-000b T4: no skill or agent file names the task-list tools', () => {
   assert.deepEqual(hits.map((f) => path.relative(root, f)), []);
 });
 
-test('EZD-000b T5: CLAUDE.md rules are numbered 1 to 16 and 14 to 16 are the honesty rules', () => {
+test('EZD-000b T5: CLAUDE.md rules are numbered 1 to 17, 14 to 16 are the honesty rules and 17 is the no-parked-issue rule (Q-0268)', () => {
   const l = lines(read('CLAUDE.md'));
   const start = l.indexOf('## Rules (every agent)');
   assert.ok(start >= 0, 'Rules heading missing');
   let end = l.findIndex((x, i) => i > start && x.startsWith('## '));
   if (end < 0) end = l.length;
   const numbered = l.slice(start + 1, end).filter((x) => /^\d+\. /.test(x));
-  assert.deepEqual(numbered.map((x) => Number(x.match(/^(\d+)\. /)[1])), Array.from({ length: 16 }, (_, i) => i + 1));
+  assert.deepEqual(numbered.map((x) => Number(x.match(/^(\d+)\. /)[1])), Array.from({ length: 17 }, (_, i) => i + 1));
   assert.equal(numbered[13], `14. ${R14}`);
   assert.equal(numbered[14], `15. ${R15}`);
   assert.equal(numbered[15], `16. ${R16}`);
+  assert.ok(numbered[16].startsWith('17. No known issue is parked (Q-0268).'));
 });
 
 test('EZD-000b T6: CLAUDE.md is at most 60 lines', () => {
