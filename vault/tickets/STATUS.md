@@ -480,7 +480,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1617 | 52 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
 | EZD-1701 | 55 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
 | EZD-1702 | 55 | DXF size limits | todo |  | EZD-1701 |  |  |  |
-| EZD-1704 | 1 | Backups | todo |  | EZD-025 |  |  |  |
+| EZD-1704 | 1 | Backups | questions | medium | EZD-025 |  |  |  |
 | EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
 | EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
 | EZD-1707 | 1 | Terms of service | todo |  | EZD-007 |  |  |  |
