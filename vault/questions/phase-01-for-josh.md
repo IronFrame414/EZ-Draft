@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, fourth run)
+# Phase 1 · for Josh (questions unit, 2026-10-24, fifth run)
 
-Your answers Q-0303 (a), Q-0304 (c), Q-0305 (c) and Q-0307 (b) are now applied to the plans EZD-136 (not-found page language), EZD-171 (J3 after the phase 1 merge) and EZD-174 (parallel lanes). All three are ready, as are the Settings shell parts EZD-103a and EZD-103b. Two notes: EZD-136 now also waits for EZD-103a, because it puts the disclaimer line in the Settings status bar; EZD-171 stays `blocked` after its build until you run J3 on the live site after the phase 1 merge (the same pattern as EZD-003). Two questions below: Q-0312, a test fault that turns every build's gate red until you apply a ready patch, and Q-0310, from the EZD-175 plan.
+No ticket turned ready this run; the 40 ready ones are unchanged. Five fix tickets were added to phase 1 so nothing is parked (rule 17, your Q-0268). Two are for new findings: EZD-179, a warning every app test run prints (Q-0314), and EZD-180, a test that fails if it runs after the browser tests (Q-0315). Three are tickets that earlier answers promised but that never reached the ticket list: EZD-176, the release and backup workflows still on the Node 20 action versions (Q-0281); EZD-177, refusing pnpm settings passed through environment names (Q-0283); and EZD-178, six tools that print nothing through a shortcut path (Q-0290). A fourth promised one, the health check reporting its failures (Q-0286), is already part of EZD-169, so no new ticket for it. Q-0313 (the gate summary naming the wrong tests) turned out to be in EZD-155's scope already; the planner added the one case it missed. The next units plan the five new tickets. Two decisions below; Q-0312 still makes every phase 1 build gate red until the patch is in.
 
 ## 1. Decisions needed
 
@@ -47,6 +47,11 @@ Confirm or override each.
 | Q-0308 | EZD-155 | (a) a dry run also leaves an expired boost file in place and only says it would remove it (your Q-0291 rule: a dry run writes nothing) | Q-0291 (a); scripts/run.mjs line 7 |
 | Q-0309 | EZD-103 | Split into EZD-103a Settings shell and EZD-103b Unsaved edits and drafts, because the plan is over the size limit after tightening; nothing you decided changes, and every later Settings ticket waits for both | PROCESS.md section 6; Q-0246 |
 | Q-0311 | EZD-175, EZD-174 | EZD-174 (parallel lanes) now waits for EZD-175 (update before merge), because your Q-0304 (c) lets two builds edit docs/architecture.md at once only on the strength of that update step | Q-0304 (c); phase-01.md rows; Q-0268 |
+| Q-0313 | gate summary (EZD-155) | No separate patch: EZD-155 (ready) already fixes the gate summary (its ticket row and plan); the planner added the missing case, a passing test whose title contains "FAIL". The gate script changes through rule 19 in that build. | phase-01.md EZD-155 row; EZD-155.md Block S |
+| Q-0314 | EZD-179 (new) | Fix ticket EZD-179: remove the cause of the "ESM syntax in a file loaded as CommonJS" warning in every app test run; the warning is never just hidden | CLAUDE.md rule 17; Q-0268 |
+| Q-0315 | EZD-180 (new) | Fix ticket EZD-180: EZD-005b T17 passes in any order, including right after the browser tests (the seeded Josh row must not depend on earlier sign-ins) | CLAUDE.md rule 17; Q-0268; architecture.md seed rule |
+
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178; Q-0286 → already in EZD-169.
 
 ## 3. Proposed wording
 

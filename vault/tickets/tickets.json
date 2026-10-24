@@ -14010,6 +14010,116 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-176",
+   "phase": 1,
+   "title": "Fix: release, backup and dev-migration workflows leave the Node 20 action pins",
+   "depends_raw": "EZD-146",
+   "spec_ref": "Q-0281",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-146"
+   ],
+   "build_position": 485,
+   "acs": [
+    "AC-EZD-176-1",
+    "AC-EZD-176-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-177",
+   "phase": 1,
+   "title": "Fix: repo rule tests refuse pnpm_config_* environment names",
+   "depends_raw": "EZD-148",
+   "spec_ref": "Q-0283",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-148"
+   ],
+   "build_position": 486,
+   "acs": [
+    "AC-EZD-177-1",
+    "AC-EZD-177-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-178",
+   "phase": 1,
+   "title": "Fix: six more tools work when run through a symlinked path",
+   "depends_raw": "EZD-155",
+   "spec_ref": "Q-0290",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-155"
+   ],
+   "build_position": 487,
+   "acs": [
+    "AC-EZD-178-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-179",
+   "phase": 1,
+   "title": "Fix: app Vitest config loads without the CommonJS warning",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0314",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 488,
+   "acs": [
+    "AC-EZD-179-1",
+    "AC-EZD-179-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-180",
+   "phase": 1,
+   "title": "Fix: EZD-005b T17 (e) passes in any run order",
+   "depends_raw": "EZD-005b, EZD-016a",
+   "spec_ref": "Q-0315",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-005b",
+    "EZD-016a"
+   ],
+   "build_position": 489,
+   "acs": [
+    "AC-EZD-180-1",
+    "AC-EZD-180-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
