@@ -26,7 +26,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [x] Confirm or revert the fix-mode changes (confirmed 2026-10-20) Q-0218 (spec restructure, re-cut, reading map), Q-0221 (gate phase tests), Q-0233 (launcher waits instead of stopping).
 
 **Before Phase 3**
-- [ ] Drawing-speed run on your Surface over the office network (EZD-027 spike; architecture checkpoint; Surface, not iPad, per Q-0053 and Q-0088). The orchestrator starts the test page and gives you the link; Phase 2 cannot start until it is done.
+- [x] (done 2026-10-24 on your Windows machine, Q-0263; verdict go) Drawing-speed run on your Surface over the office network (EZD-027 spike; architecture checkpoint; Surface, not iPad, per Q-0053 and Q-0088). The orchestrator starts the test page and gives you the link; Phase 2 cannot start until it is done.
 
 **Later (not blocking now)**
 - [ ] Q-0237: payment provider, plans and prices for charging other companies (before phase 53).
