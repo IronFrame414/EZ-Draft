@@ -522,7 +522,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-170 | 1 | Fix: run every pilot check and record its result | questions | medium | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (item 39). |
 | EZD-171 | 1 | Fix: prove the cloud-only behaviours on the dev project and the live site | questions | medium | EZD-006, EZD-033, EZD-010b, EZD-009 |  |  | Added 2026-10-24 for Q-0275 (a). |
 | EZD-172 | 1 | Parallel lanes: each build lane gets its own local database and ports | planned | medium | EZD-004a, EZD-016d, EZD-017, EZD-007f |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
-| EZD-173 | 1 | Parallel lanes: ledger, commits and merges never collide | todo |  | EZD-000g, EZD-000h, EZD-001 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
+| EZD-173 | 1 | Parallel lanes: ledger, commits and merges never collide | planned | high | EZD-000g, EZD-000h, EZD-001 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-174 | 1 | Parallel lanes: the launcher runs several units at once under boost | todo |  | EZD-172, EZD-173 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
