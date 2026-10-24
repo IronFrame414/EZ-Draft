@@ -6,9 +6,7 @@ Q-0089 (storage limit) and Q-0237 (charging other companies) belong to later pha
 
 ## 1. Decisions needed
 
-- **Q-0262** (EZD-041, release fix: production database password on the psql command line). The ticket moves the password off psql's command line. The two Supabase CLI calls, `supabase db dump` and `supabase db push`, also receive the same URL as a `--db-url` argument on the same runner (`scripts/release/dump.mjs:90`, `push.mjs:25` and `:31`). This is a scope choice, so it is yours.
-  Options: (a) a separate follow-up ticket for the Supabase CLI calls; (b) widen EZD-041 to cover them; (c) accept it as a known limit.
-  **Recommended: (a).** EZD-041 stays small and finishes now; the CLI calls need their own plan because the CLI takes the URL only as an argument, so the fix differs from the psql one. Source: vault/plans/EZD-041.md section 10 and D10.
+None open. Q-0262 was answered by Josh on 2026-10-24: (a), a separate follow-up ticket, EZD-042. Q-0263 was answered the same day (EZD-027 verdict device).
 
 ## 2. Agent answers to confirm
 
