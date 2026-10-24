@@ -32,7 +32,7 @@ Phase N
   Stage 2  Questions   chain of command answers what it can; Josh answers the rest,
                        confirms agent answers, approves wording
   Stage 3  Build       per ticket: tests → test review → code → gate → review → merge to develop
-  Gate                 full checks, audit, fix tickets, PR develop → main; Josh tests and merges
+  Gate                 full checks, audit, fix tickets, PR develop → main; auto-merges on a green CI gate (Q-0261); Josh tests after
   Wrap                 lessons, progress, cost report
 ```
 
@@ -64,7 +64,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 3. **Business and product decisions always go to Josh.** That covers scope, what a screen shows, workflow, and anything that costs money. User-visible wording follows rule 3a so it doesn't block tickets.
 4. **The spec is read-only once Josh signs it off.** Changes are recorded as Josh's answers in `vault/spec/decisions/` (one file per spec area), and those answers override the spec text.
 5. **Tests come before code, and the builder may not change tests.** A test whose behavior or expected values look wrong becomes a question. A test that fails only because of structure (a file name, an export, a signature, a route, a test ID) follows the structural-repair step in section 8.
-6. **One ticket = one branch = one commit on `develop`.** Nobody commits to `main`. Only Josh merges `develop` → `main`, once per phase.
+6. **One ticket = one branch = one commit on `develop`.** Nobody commits to `main`. `develop` → `main` goes only through the phase PR, once per phase; the gate-phase unit turns on GitHub auto-merge, so it merges when the CI `gate` check passes (Josh 2026-10-23, Q-0261: until Josh says the system works and turns it off; then he merges by hand again).
 7. **The gate is a script, not an opinion.** A ticket can't be `done` while the gate is red.
 8. **Tests never call live services** (AI models, email, payments, outside APIs). Use stubs.
 9. **No new dependency without a line in `docs/architecture.md`,** added in the same commit.
@@ -288,11 +288,11 @@ Stage 3 ends when every ticket in the phase is `done` or `blocked`.
    - `needs-josh-confirm` wording;
    - product judgments from the auditor;
    - lessons added this phase.
-6. Josh works the punch list on the preview deploy and merges the PR himself.
+6. The orchestrator turns on auto-merge (`gh pr merge <url> --auto --merge`); GitHub merges the PR when the required CI `gate` check passes (Josh 2026-10-23, Q-0261: until Josh says the system works and turns it off; then he merges by hand again). Josh works the punch list on the preview or the merged build afterwards; an unchecked item becomes a fix ticket in the next phase and does not hold the merge or the next phase.
 
 On the first phase of a project, confirm the preview actually appears on the PR. If it doesn't, fix the hosting rule (section 12) before moving on.
 
-**Wrap unit (after Josh merges):**
+**Wrap unit (after the phase PR merges):**
 - Consolidate `vault/lessons/` (section 13), and promote any lesson that a script could check into the gate.
 - Write the phase cost report into `vault/cost/phase-NN.md`: spend per ticket, per agent and per model from the budget log; tickets that needed escalation; places Opus ran on low-complexity work or Haiku failed; defects the resumed step-8 reviewer missed that the auditor or Josh caught (section 8 revisit flag); whether the phase cost more than a third of the weekly ceiling (section 2a). Use it to adjust the complexity table, ticket-size numbers and maxTurns.
 - Regenerate `PROGRESS.md`, update the handoff, and end the session.

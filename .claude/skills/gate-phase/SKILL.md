@@ -18,6 +18,7 @@ Run the phase gate of `vault/PROCESS.md` (section 9) for phase $ARGUMENTS, with 
    - **Wording to confirm:** every `needs-josh-confirm` entry from STATUS Notes;
    - **Product judgments** from the phase-auditor; agent answers not yet `confirmed-josh`;
    - the "Production-sensitive changes" section; the phase's Field check from the phase file; lessons added this phase.
+   Then turn on auto-merge: `gh pr merge <url> --auto --merge` (Q-0261). If GitHub refuses it (auto-merge off in the repository settings, or a review still required), say so in the handoff and the end report; Josh then merges by hand.
 7. Push one empty commit so hosting builds the preview for the PR: `git commit --allow-empty -m "chore: preview"`, `git push origin develop`. On the project's first gate, confirm with `gh pr view` that a preview appears; if none appears within a few minutes, say so in the handoff (the hosting rule, PROCESS.md section 12, needs fixing before the next phase).
-8. Write `vault/tickets/gates/phase-NN.md`: `PR: <url>`, `Develop at PR: <full sha>`, `Merged: no`, the audit verdict, fix tickets created. `next_ticket.mjs --next-unit` reads it (waiting on Josh → `wrap` once the SHA is in `origin/main`).
-9. Handoff; commit `vault/` (`docs(vault): gate phase $ARGUMENTS`); push `develop`. End the session with the PR link and the preview link. Josh works the punch list and merges; never merge to `main` yourself.
+8. Write `vault/tickets/gates/phase-NN.md`: `PR: <url>`, `Develop at PR: <full sha>`, `Merged: no`, the audit verdict, fix tickets created. `next_ticket.mjs --next-unit` reads it (waiting for the merge → `wrap` once the SHA is in `origin/main`).
+9. Handoff; commit `vault/` (`docs(vault): gate phase $ARGUMENTS`); push `develop`. End the session with the PR link and the preview link. GitHub merges when the CI `gate` check passes; Josh works the punch list after. Never push to `main` and never merge without `--auto`.

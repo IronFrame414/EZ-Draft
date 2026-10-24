@@ -19,7 +19,7 @@ const always = [
   [/\b(npm|pnpm|yarn)\s+publish\b/, 'Publishing packages is not allowed.'],
   [/\bsupabase\b.*\b(db push|link)\b/, 'Remote database changes are Josh\'s. Use the local Supabase only.'],
   [/(cat|type|more|less|head|tail|bat)\s+[^|;&]*\.env(?!\.example)\b/i, 'Reading .env files is not allowed.'],
-  [/\bgh\s+pr\s+merge\b/, 'Only Josh merges PRs.'],
+  [/\bgh\s+pr\s+merge\b(?![^;&|]*--auto\b)/, 'Agents merge the phase PR only with --auto, so GitHub waits for the required gate check (Q-0261).'],
   [/\bpnpm\s+(run\s+)?release:|\bnode\s+\S*scripts[\\/]release[\\/]/, 'Release scripts are Josh\'s; agents never run them (EZD-023b).'],
   [/\bnode\s+\S*scripts[\\/](run|budget)\.mjs/, 'The launcher and the budget script are run by Josh, never from inside a session.'],
   [/(^|[;&|]\s*)claude(\s|$)/, 'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],

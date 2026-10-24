@@ -1,6 +1,6 @@
 ---
 name: wrap
-description: Unit `wrap <N>` - after Josh merges the phase PR: consolidate lessons, write the phase cost report, regenerate progress, record the merge, hand off. Usage /wrap <phase number>.
+description: Unit `wrap <N>` - after the phase PR merges (auto-merge, Q-0261): consolidate lessons, write the phase cost report, regenerate progress, record the merge, hand off. Usage /wrap <phase number>.
 ---
 
 Run the wrap of `vault/PROCESS.md` (section 9, "Wrap unit") for phase $ARGUMENTS. You are the orchestrator. **Advisor (process v2.4):** you run on Sonnet 5.5 with an Opus 5.5 advisor. Consult it before marking a ticket `blocked` and when a decision is not covered by PROCESS.md or the spec; not otherwise (each call re-reads the whole transcript). Run it only after the phase PR is merged (`git fetch origin` and `git merge-base --is-ancestor <Develop at PR sha> origin/main` succeeds; the sha is in `vault/tickets/gates/phase-NN.md`).
