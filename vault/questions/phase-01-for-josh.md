@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, second run)
+# Phase 1 · for Josh (questions unit, 2026-10-24, third run)
 
-Your twelve answers from earlier today are applied to the plans: EZD-103 (draft), 136 (not-found page), 143 (10 of 20 alert emails), 151, 155 (dry run writes nothing), 162, 170, 171 (J3 on the live site) and 1704 (daily backup check). Applying them raised the new questions below.
+Your twelve answers from earlier today are applied to the plans: EZD-103 (draft), 136 (not-found page), 143 (10 of 20 alert emails), 151, 155 (dry run writes nothing), 162, 170, 171 (J3 on the live site) and 1704 (daily backup check). Applying them raised the new questions below. Third run: the Settings shell plan (EZD-103) grew past the size limit with your draft answer, so it is now two tickets, EZD-103a (the shell) and EZD-103b (unsaved edits and drafts); see Q-0309 in section 2.
 
 ## 1. Decisions needed
 
@@ -41,12 +41,13 @@ Confirm or override each.
 | Q-0299 | EZD-170 | (b) fix ticket (added by EZD-170's build): launcher saves raw text of any limit error and notifies you | Q-0268 |
 | Q-0306 | EZD-171 | (a) on the live site the cloud-check page answers only to a signed-in person; everyone else gets the usual 404. Answering everyone would let anyone probe how sign-in limits count addresses | Q-0300 (d); architecture.md Folder layout, Auth and session |
 | Q-0308 | EZD-155 | (a) a dry run also leaves an expired boost file in place and only says it would remove it (your Q-0291 rule: a dry run writes nothing) | Q-0291 (a); scripts/run.mjs line 7 |
+| Q-0309 | EZD-103 | Split into EZD-103a Settings shell and EZD-103b Unsaved edits and drafts, because the plan is over the size limit after tightening; nothing you decided changes, and every later Settings ticket waits for both | PROCESS.md section 6; Q-0246 |
 
 ## 3. Proposed wording
 
 Full tables are in each plan's section 6. Needing your approval:
 
-- **EZD-103** section 6: toast when a Settings page comes back with a draft: "Your unsaved changes from last time are still here." (Q-0302).
+- **EZD-103b** (EZD-103 plan section 6): toast when a Settings page comes back with a draft: "Your unsaved changes from last time are still here." (Q-0302).
 - **EZD-112** section 6: `office.company.*` keys: subtitle "Identity used on the title block, client pages, selections PDF and email."; "Upload"; "Uploading…"; "{kind} logo"; more rows in the plan.
 - **EZD-136** section 6: W1 Spanish disclaimer "Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto."; W3 Spanish not-found text "Página no encontrada." (a Spanish speaker checks both, Q-0030 (a)). W2 "Page not found." is your own text (Q-0273).
 - **EZD-149** section 6: runbook sentences for the new preview rule (if Q-0284 stands).

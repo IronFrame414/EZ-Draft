@@ -26,7 +26,8 @@
   "spec_files, decisions and mockups are the reading map (Q-0218): vault-relative paths, #<anchor> = text the file contains; print a dispatch's lines with node vault/tools/next_ticket.mjs --reads <ticket> <role>.",
   "2026-10-20: EZD-019 (EZ Binder contract and stub) removed from v1 by Josh (Q-0222; Q-0190); row kept in phases/phase-00.md, BACKLOG.md.",
   "2026-10-20 Q-0220: not-in-v1 items brought into v1 (EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713); new phase 53 Billing and onboarding; old phases 53 and 54 are now 54 and 55.",
-  "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh)."
+  "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh).",
+  "EZD-103 split into EZD-103a, EZD-103b on 2026-10-24 (planner proposal, plan over 45,000 characters after tightening; orchestrator applied, Q-0309); every dependent of EZD-103 depends on both. The stage-0 ACs keep their IDs: AC-EZD-103-1 to -4 and -6 on EZD-103a, AC-EZD-103-5 on EZD-103b."
  ],
  "checks": {
   "cycles": 0,
@@ -108,7 +109,8 @@
   "EZD-033",
   "EZD-101",
   "EZD-102",
-  "EZD-103",
+  "EZD-103a",
+  "EZD-103b",
   "EZD-132",
   "EZD-112",
   "EZD-113",
@@ -2461,7 +2463,7 @@
    ]
   },
   {
-   "id": "EZD-103",
+   "id": "EZD-103a",
    "phase": 1,
    "title": "Settings shell",
    "depends_raw": "EZD-102, EZD-012",
@@ -2486,8 +2488,36 @@
     "AC-EZD-103-2",
     "AC-EZD-103-3",
     "AC-EZD-103-4",
-    "AC-EZD-103-5",
     "AC-EZD-103-6"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 1,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0210",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+   ]
+  },
+  {
+   "id": "EZD-103b",
+   "phase": 1,
+   "title": "Settings shell: unsaved edits and drafts",
+   "depends_raw": "EZD-103a",
+   "spec_ref": "S15 Layout, Entry points",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Layout",
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103a"
+   ],
+   "build_position": 74,
+   "acs": [
+    "AC-EZD-103-5"
    ],
    "acs_source": "stage-0",
    "spec_phase": 1,
@@ -2511,7 +2541,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 115,
    "acs": [
@@ -2630,7 +2661,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 81,
    "acs": [
@@ -2740,7 +2772,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-132"
    ],
    "build_position": 76,
@@ -2808,7 +2841,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 122,
    "acs": [
@@ -3315,7 +3349,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 139,
    "acs": [
@@ -3426,7 +3461,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-024",
     "EZD-025"
    ],
@@ -6455,7 +6491,8 @@
    "depends_on": [
     "EZD-607",
     "EZD-401",
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 216,
    "acs": [
@@ -11879,7 +11916,8 @@
    "phase_file": "tickets/phases/phase-15.md",
    "depends_on": [
     "EZD-1501",
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 413,
    "acs": [
@@ -12295,7 +12333,8 @@
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-1212"
    ],
    "build_position": 421,
@@ -14599,7 +14638,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-102"
    ],
    "build_position": 0,
