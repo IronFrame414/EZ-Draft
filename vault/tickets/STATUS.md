@@ -490,7 +490,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1709c | 55 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
 | EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
 | EZD-136 | 1 | On-screen disclaimer | questions | medium | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
-| EZD-141 | 1 | Fix: SET LOCAL warning during sign-in | questions | medium | EZD-007a, EZD-006 |  |  | Added 2026-10-24 by Josh's request (Q-0267). |
+| EZD-141 | 1 | Fix: SET LOCAL warning during sign-in | blocked | medium | EZD-007a, EZD-006 |  |  | Added 2026-10-24 by Josh's request (Q-0267). · BLOCKED 2026-10-24 by Josh (Q-0274 (a)): waiting on Supabase's fix of supabase/auth#2852 (GoTrue v2.197.0 runs set local statement_timeout outside a transaction when the before-user-created hook runs). Unblocks when a fixed Auth release and a Supabase CLI release with it exist: then bump the CLI pin, prove no 25P01 at sign-in. Exception to rule 20 (Josh); listed in every phase PR; each wrap checks the issue. |
 | EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | planned | medium | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
 | EZD-143 | 1 | Fix: error tunnel limits each caller | questions | medium | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
 | EZD-144 | 1 | Fix: error_alert refuses a project without a company | planned | low | EZD-024 |  |  | Added 2026-10-24 by the Q-0268 sweep (T3; prod-sensitive: yes (migration)). |
