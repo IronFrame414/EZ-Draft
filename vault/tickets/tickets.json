@@ -13947,6 +13947,28 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-175",
+   "phase": 1,
+   "title": "Parallel lanes: a ticket branch is brought up to date with develop before its merge",
+   "depends_raw": "EZD-173",
+   "spec_ref": "Q-0304",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-173"
+   ],
+   "build_position": 484,
+   "acs": [
+    "AC-EZD-175-1",
+    "AC-EZD-175-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",

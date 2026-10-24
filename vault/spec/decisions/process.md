@@ -44,3 +44,5 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | — | 2026-10-24 | Boost mode (vault/tools/boost.mjs): on Josh's word, until the weekly reset, every role one model and one effort level up and a per-step cap of $80; parallel lanes (up to 6 units, 3 builds) are built as EZD-172 to EZD-174. |
 | Q-0291 | 2026-10-24 | (a): EZD-155 makes a dry run write no hold or marker file and send no notification (budget.mjs and run.mjs changes with tests). |
 | Q-0297 | 2026-10-24 | (a): the launcher build unit does Part A and sets EZD-170 blocked; Josh does Part J (J1-J9) at his next sit-down in an interactive session; nothing else waits. |
+| Q-0303 | 2026-10-24 | (a): the parallel-lane process rows are written by the orchestrator in EZD-174's fix-mode commit; Josh confirms or reverts. |
+| Q-0304 | 2026-10-24 | (c): ticket branches are updated onto develop before the squash merge (EZD-175), so docs/architecture.md does not serialize builds. |

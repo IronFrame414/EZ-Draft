@@ -524,6 +524,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-172 | 1 | Parallel lanes: each build lane gets its own local database and ports | ready | medium | EZD-004a, EZD-016d, EZD-017, EZD-007f |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-173 | 1 | Parallel lanes: ledger, commits and merges never collide | ready | high | EZD-000g, EZD-000h, EZD-001 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
 | EZD-174 | 1 | Parallel lanes: the launcher runs several units at once under boost | questions | high | EZD-172, EZD-173 |  |  | Added 2026-10-24 by Josh's request (boost mode parallel lanes, for next week's boost). |
+| EZD-175 | 1 | Parallel lanes: a ticket branch is brought up to date with develop before its merge | todo |  | EZD-173 |  |  | Added 2026-10-24 for Q-0304 (c). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
