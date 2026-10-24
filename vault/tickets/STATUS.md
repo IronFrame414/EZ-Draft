@@ -167,7 +167,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-129 | 7 | User project scope | todo |  | EZD-106, EZD-006 |  |  |  |
 | EZD-130 | 8 | Project settings dialog | todo |  | EZD-118, EZD-116, EZD-128 |  |  |  |
 | EZD-131 | 11 | Libraries shell | todo |  | EZD-103 |  |  |  |
-| EZD-132 | 1 | File storage | ready | high | EZD-006 |  |  |  |
+| EZD-132 | 1 | File storage | review | high | EZD-006 |  |  |  |
 | EZD-133 | 3 | Access and money-field harness | todo |  | EZD-102, EZD-006 |  |  |  |
 | EZD-134 | 14 | App-shell cache and device storage | todo |  | EZD-013, EZD-120 |  |  |  |
 | EZD-135 | 6 | System status page | todo |  | EZD-103, EZD-024, EZD-025 |  |  |  |
