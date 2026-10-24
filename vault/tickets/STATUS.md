@@ -483,7 +483,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1704 | 1 | Backups | questions | medium | EZD-025 |  |  |  |
 | EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
 | EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
-| EZD-1707 | 1 | Terms of service | todo |  | EZD-007 |  |  |  |
+| EZD-1707 | 1 | Terms of service | planned | low | EZD-007 |  |  |  |
 | EZD-1708 | 55 | Accessibility pass | todo |  | EZD-222 |  |  |  |
 | EZD-1709a | 55 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
 | EZD-1709b | 55 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
