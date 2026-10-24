@@ -20,7 +20,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [x] Q-0241: captcha service = Cloudflare Turnstile (2026-10-21).
 - [ ] Before launch: create a Cloudflare Turnstile widget for ezdraft.ezcontractorbinder.com (a free Cloudflare account; the domain stays at Spaceship, no DNS move) and give the site key and secret (EZD-034; they go in Vercel and Supabase, never in chat or the repo). Then run the EZD-034 hand check on the dev site from the runbook (Q-0243 (c): tests keep the captcha off, so this is the only proof that a request without the check is refused).
 - [x] (done 2026-10-21; run 39524122587 applied 20 migrations) Fix the GitHub `dev` secret `SUPABASE_DEV_DB_URL`: the dev migrations run (39523407556) failed with "failed to parse connection string"; paste the Session pooler string with the password filled in and no brackets, then tell the orchestrator to re-run it.
-- [ ] Supabase `ezdraft-dev` Site URL and redirect list (runbook Sign-in step 1), once the Phase 0 PR has a preview address.
+- [x] (done 2026-10-24: Site URL https://ezdraft.ezcontractorbinder.com; redirects for the live site and the develop preview) Supabase `ezdraft-dev` Site URL and redirect list (runbook Sign-in step 1), once the Phase 0 PR has a preview address.
 - [x] Answer phase-00-for-josh.md of 2026-10-23 (Q-0243 (c); Q-0239, Q-0240, Q-0242, Q-0244 to Q-0246, Q-0248 confirmed; wording 98 to 107 approved; L-020, L-021 ratified).
 - [x] (confirmed 2026-10-23, wording 108 to 113 approved) Confirm or override the agent answers in the 2026-10-23 evening phase-00-for-josh.md section 2 (Q-0247, Q-0251, Q-0252, Q-0253).
 - [x] Confirm or revert the fix-mode changes (confirmed 2026-10-20) Q-0218 (spec restructure, re-cut, reading map), Q-0221 (gate phase tests), Q-0233 (launcher waits instead of stopping).
@@ -37,6 +37,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [ ] A hand load calc for one house and a hand material count for one kitchen; a past kitchen's cabinet order; a real vendor cabinet line.
 - [ ] Render trial live run (5 room images, provider keys, spending cap); the GPU machine and model for the local render worker.
 - [ ] Each code rule checked against the adopted code text (Q-0001, EZD-1710).
+- [ ] At launch (Q-0264): Vercel Production now uses the **dev** database (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_API_GATE_SECRET, SUPABASE_SECRET_KEY set to ezdraft-dev values on 2026-10-24) and "Auto-assign Custom Production Domains" is on, so each phase merge goes live. Before the first real release: replace those four with the production project values and decide whether auto-assign stays on.
 - [ ] Before-launch checklist (EZD-003 stays blocked until then). Josh 2026-10-21: "should be complete"; to verify at the next run (EZD-003 Step 6: T8 needs the first real release).
 
 | Item | Needed by | Without it |
