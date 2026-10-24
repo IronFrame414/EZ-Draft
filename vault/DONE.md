@@ -76,3 +76,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-025 · Off-site backups and restore script · nothing on screen; after launch nightly file and weekly database backups to Backblaze B2, and pnpm backup:restore proves a deleted project comes back · 485b9de
 2026-10-23 · EZD-034 · Captcha on sign-in · when the Turnstile site key is set, sign-in shows a short security check before emailing a link or checking a password; off by default · ca0fc63
 2026-10-23 · EZD-038 · Fix: EZD-002 Scope cell still says every push · nothing on screen; EZD-002 ledger row now says CI runs on the phase PR and manual run · bd59bab
+2026-10-23 · EZD-040 · Fix: error tunnel scrubs tags and contexts · nothing on screen; error reports sent to Sentry no longer carry emails, ids, tokens or codes in tags, contexts or stack frames · bc49700
