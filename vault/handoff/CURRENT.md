@@ -7,4 +7,5 @@
 - Blocked: EZD-102, EZD-132 (Q-0312, develop gate red), EZD-141 (as before); EZD-175 stays questions (Q-0310 escalated), EZD-174 waits on it
 - Questions for Josh: Q-0312, Q-0310 (vault/questions/phase-01-for-josh.md section 1); agent answers Q-0316 to Q-0318 to confirm (section 2)
 - Decisions made: Q-0316, Q-0317, Q-0318 answered-agent; no lessons
+- Note for the EZD-181 build: tests only by plan (builder changes no file); T1-T3 are expected green once EZD-169 and EZD-150 are merged, a red one is a PLAN-GAP (EZD-181.md line 24). EZD-169 deviates from its row (health route uses after(), Q-0317 (a)); row Scope and STATUS Notes updated.
 - Next unit: plan EZD-182
