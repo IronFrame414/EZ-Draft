@@ -1,10 +1,10 @@
-# Handoff · 2026-10-24 20:48 UTC · questions 1
+# Handoff · 2026-10-24 21:36 UTC · build EZD-102
 
-- Phase and stage: 1, Stage 2 done for all planned tickets; Stage 3 continues.
-- Why the session ended: unit complete
-- Completed this session: Q-0311 answered-agent (a): EZD-175 added to EZD-174's depends. Q-0310 escalated to Josh (who fixes a merge clash after EZD-175's update step; workflow, CLAUDE.md rule 3). Planner (Fable 5.1 xhigh, boost) re-planned EZD-136 for Q-0305 (c) (not-found page: app_user.language, else ezd_sign_in_lang cookie), EZD-171 for Q-0307 (b) (J3 after the phase 1 merge; ticket blocked after build until J3, EZD-003 precedent) and EZD-174 for Q-0303 (a), Q-0304 (c), Q-0311 (a); plan-checker run on all three; all lint OK. EZD-103a added to EZD-136's depends (the disclaimer goes in 103a's Settings status bar). Ready: EZD-103a, EZD-103b, EZD-136, EZD-171, EZD-174 (174 waits on 175 to start). vault/questions/phase-01-for-josh.md rewritten.
+- Phase and stage: 1, Stage 3.
+- Why the session ended: blocked
+- Completed this session: EZD-102 tests (cbac006, Opus 5.5 high), test review PASS round 1 (Fable 5.1 xhigh), builder round 1 (Fable 5.1 high, wip to c6934ff). Gate: typecheck, lint, build, test:e2e, perf pass; test FAIL only on Q-0312 (questions-flow.test.mjs not ok 280-283). The gate's app Vitest never ran (root node:test fails first, `&&`); orchestrator hand run in phase scope: app 61 passed, 0 failed; geometry 1 passed.
 - In progress: none
-- Blocked: EZD-141 (Q-0274, waits on supabase/auth#2852). Develop gate fault Q-0312: scripts/ledger/questions-flow.test.mjs 0/4 since EZD-101 went done (fixture reads STATUS Depends cells, not tickets.json depends_on); patch vault/handoff/questions-flow-fixture.patch (4/4 in a scratch worktree) waits for Josh. A build whose only gate failure is questions-flow.test.mjs hit this fault, not its own code.
-- Questions for Josh: Q-0312 (gate fault, apply the patch), Q-0310 (EZD-175 stays questions until answered); Q-0311 and the earlier answered-agent rows to confirm (phase-01-for-josh.md section 2)
-- Decisions made: Q-0311 (orchestrator, level 2)
-- Next unit: build EZD-102
+- Blocked: EZD-102 on Q-0312 (rule 12; builder cannot fix the fixture). Worktree .claude/worktrees/EZD-102 kept, branch t/EZD-102, last commit c6934ff. Resume at build step 7 (re-run the gate), NOT step 6: `worktree` will say RESUME wip=4, but no builder round is due. Then step 8: code-reviewer mode 3 resumes agent ac3924b2b03c5e6f7 (or a fresh one with the step-5 PASS noted), security-reviewer (5 flagged paths), ui-verifier. EZD-141 still blocked (Q-0274).
+- Questions for Josh: Q-0312 (apply vault/handoff/questions-flow-fixture.patch; every phase 1 gate is red until then), Q-0313 (new: gate-failures.log lists passing lines with FAIL in the title and misses node:test `not ok` lines; fix in scripts/gate.mjs lines 152-153, Josh-owned), Q-0310.
+- Decisions made: none answered. Advisor consulted before blocking. No lesson added.
+- Next unit: build EZD-132 (next_ticket --next-unit); its gate will hit the same Q-0312 red.
