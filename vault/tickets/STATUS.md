@@ -497,7 +497,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-145 | 1 | Fix: job routes check permissions with can() | questions | low | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
 | EZD-146 | 1 | Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack | questions | medium | EZD-004c, EZD-042 |  |  | Added 2026-10-24 by the Q-0268 sweep (T5; prod-sensitive: yes). |
 | EZD-147 | 1 | Fix: CI workflow least rights and SHA pins | questions | medium | EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T6; prod-sensitive: no). |
-| EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | todo |  | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
+| EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | questions | low | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
 | EZD-149 | 1 | Fix: hosting live check and preview rule match what they claim | todo |  | EZD-003 |  |  | Added 2026-10-24 by the Q-0268 sweep (T8; prod-sensitive: no). |
 | EZD-150 | 1 | Fix: health check gives up on a slow database | todo |  | EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T9; prod-sensitive: yes). |
 | EZD-151 | 1 | Fix: email input checks, preview stub outbox and email runbook | todo |  | EZD-008a, EZD-008b |  |  | Added 2026-10-24 by the Q-0268 sweep (T10; prod-sensitive: yes). |
