@@ -50,6 +50,7 @@ const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
 const { idleAction } = await import('./launcher-idle.mjs');
+const { boostState, bumpModel, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
 // .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
@@ -103,7 +104,7 @@ function buildCommand(unitName, arg) {
   const cmd = [
     '-p', prompt,
     '--output-format', 'json',
-    '--model', u.model,
+    '--model', boostState({ root }).active ? bumpModel(u.model) : u.model, // boost mode: one model up (vault/tools/boost.mjs)
     '--effort', u.effort,
     '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,
@@ -327,6 +328,8 @@ async function main() {
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   for (;;) {
+    // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
+    if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): back to normal models and one unit at a time'); }
     const stopExists = existsSync(stopFile);
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
     const next = stopExists ? '' : tool('--next-unit').stdout.trim();

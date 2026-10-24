@@ -21,6 +21,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { boostState, bumpModel } from './boost.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -249,8 +250,12 @@ function readsLines(id, role) {
 // dispatch from the STATUS Complexity, the role and the round; the orchestrator passes model and effort on the dispatch.
 const M = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' };
 const fableOr = () => (process.env.EZD_FABLE_ALLOWED === '0' ? M.opus : M.fable);
-const route = (agent, model, effort, consultAdvisor = false, extra = {}) =>
-  ({ agent, model, effort, consultAdvisor: consultAdvisor && model !== M.opus && model !== M.fable, ...extra });
+// Boost mode (vault/tools/boost.mjs, Josh 2026-10-24): while it is on, every role runs one model up until the weekly reset.
+const routeModel = (model) => (boostState({ root }).active ? bumpModel(model) : model);
+const route = (agent, model0, effort, consultAdvisor = false, extra = {}) => {
+  const model = routeModel(model0);
+  return { agent, model, effort, consultAdvisor: consultAdvisor && model !== M.opus && model !== M.fable, ...extra };
+};
 // Calculation-heavy = the plan's Reviewers line says calc-auditor yes ("calc-auditor yes", "**calc-auditor:** yes").
 const planNamesCalc = (id) => /calc-auditor[*:\s]*\**yes/i.test(read(path.join(vault, 'plans', `${id}.md`)));
 export function dispatchFor(id, role, round = 1) {

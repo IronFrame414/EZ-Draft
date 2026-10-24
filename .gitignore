@@ -24,3 +24,4 @@ Thumbs.db
 next-env.d.ts
 app/.e2e/
 perf-results/
+vault/handoff/BOOST.json
