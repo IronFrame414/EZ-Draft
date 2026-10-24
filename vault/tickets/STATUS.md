@@ -509,7 +509,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-157 | 1 | Fix: realtime hub keeps project and user channels apart | planned | low | EZD-018 |  |  | Added 2026-10-24 by the Q-0268 sweep (T16; prod-sensitive: no). |
 | EZD-158 | 1 | Fix: phase 0 test gaps | planned | low | EZD-014c, EZD-010b, EZD-026b, EZD-016b |  |  | Added 2026-10-24 by the Q-0268 sweep (T17; prod-sensitive: no). |
 | EZD-159 | 1 | Fix: test network guard also blocks sockets | planned | medium | EZD-021 |  |  | Added 2026-10-24 by the Q-0268 sweep (T18; prod-sensitive: no). |
-| EZD-160 | 1 | Fix: architecture and runbook say only what is true | todo |  | EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033 |  |  | Added 2026-10-24 by the Q-0268 sweep (T19; prod-sensitive: no). |
+| EZD-160 | 1 | Fix: architecture and runbook say only what is true | planned | low | EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033 |  |  | Added 2026-10-24 by the Q-0268 sweep (T19; prod-sensitive: no). |
 | EZD-161 | 1 | Fix: geometry tests are type-checked | todo |  | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T20; prod-sensitive: no). |
 | EZD-162 | 1 | Fix: vault wording and TRACE titles | todo |  | EZD-013, EZD-034, EZD-035, EZD-037, EZD-038 |  |  | Added 2026-10-24 by the Q-0268 sweep (T21; prod-sensitive: no). |
 | EZD-163 | 1 | Fix: find and remove the cause of the harness T12 "Worker closed" failure | todo |  | EZD-016a, EZD-035 |  |  | Added 2026-10-24 by the Q-0268 sweep (T22; prod-sensitive: no). |
