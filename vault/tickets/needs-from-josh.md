@@ -18,7 +18,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [x] (done 2026-10-21: six Preview variables) Vercel Preview keys for the dev project (EZD-023b's setup).
 - [x] Answer Q-0175 and sections 1–4 of vault/questions/phase-00-for-josh.md (2026-10-20: Q-0175 (b), rest confirmed).
 - [x] Q-0241: captcha service = Cloudflare Turnstile (2026-10-21).
-- [ ] Before launch: create a Cloudflare Turnstile widget for ezdraft.ezcontractorbinder.com (a free Cloudflare account; the domain stays at Spaceship, no DNS move) and give the site key and secret (EZD-034; they go in Vercel and Supabase, never in chat or the repo). Then run the EZD-034 hand check on the dev site from the runbook (Q-0243 (c): tests keep the captcha off, so this is the only proof that a request without the check is refused).
+- [ ] NOW (Q-0270 (a), 2026-10-24), not before launch: create a Cloudflare Turnstile widget for ezdraft.ezcontractorbinder.com (a free Cloudflare account; the domain stays at Spaceship, no DNS move) and give the site key and secret (EZD-034; they go in Vercel and Supabase, never in chat or the repo). Then run the EZD-034 hand check on the dev site from the runbook (Q-0243 (c): tests keep the captcha off, so this is the only proof that a request without the check is refused).
 - [x] (done 2026-10-21; run 39524122587 applied 20 migrations) Fix the GitHub `dev` secret `SUPABASE_DEV_DB_URL`: the dev migrations run (39523407556) failed with "failed to parse connection string"; paste the Session pooler string with the password filled in and no brackets, then tell the orchestrator to re-run it.
 - [x] (done 2026-10-24: Site URL https://ezdraft.ezcontractorbinder.com; redirects for the live site and the develop preview) Supabase `ezdraft-dev` Site URL and redirect list (runbook Sign-in step 1), once the Phase 0 PR has a preview address.
 - [x] Answer phase-00-for-josh.md of 2026-10-23 (Q-0243 (c); Q-0239, Q-0240, Q-0242, Q-0244 to Q-0246, Q-0248 confirmed; wording 98 to 107 approved; L-020, L-021 ratified).
@@ -30,6 +30,8 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [ ] Live email check (EZD-008b, AC-EZD-008b-1): the orchestrator walks you through `scripts/email/send-test.mjs` (runbook `## Email (EZD-008)`); a real email arrives.
 - [ ] EZD-028 spike PDF: open the generated PDF and measure the test line; it should measure 3.00 in on paper.
 - [ ] EZD-023e settings list: go through the release settings list in docs/runbook.md `## Environments and releases (EZD-023)` with the orchestrator and tick what exists.
+
+- [ ] Backblaze B2 account and bucket (Q-0275 (a)): the backup behaviours are proven once it exists.
 
 **Before Phase 3**
 - [x] (done 2026-10-24 on your Windows machine, Q-0263; verdict go) Drawing-speed run on your Surface over the office network (EZD-027 spike; architecture checkpoint; Surface, not iPad, per Q-0053 and Q-0088). The orchestrator starts the test page and gives you the link; Phase 2 cannot start until it is done.

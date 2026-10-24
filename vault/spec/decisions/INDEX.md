@@ -15,6 +15,6 @@ One file per spec area, mirroring `vault/spec/sections/`. A dispatch hands an ag
 | 09-calculations-and-rules.md | Calculations and code rules | Q-0001 Q-0179 Q-0180 Q-0181 Q-0182 Q-0205 Q-0207 |
 | 10-permissions-and-settings.md | Permissions, users, sign-in and language | Q-0014 Q-0029 Q-0030 Q-0043 Q-0046 Q-0047 Q-0048 Q-0049 Q-0050 Q-0090 Q-0091 Q-0092 Q-0093 Q-0099 Q-0100 Q-0101 Q-0102 Q-0002 Q-0096 Q-0121 Q-0094 Q-0178 Q-0187 Q-0188 Q-0202 Q-0210 Q-0212 Q-0216 Q-0175 Q-0241 Q-0243 |
 | 11-non-functional-requirements.md | Non-functional: performance targets, operations, releases, backups, error reporting, GPU | Q-0018 Q-0020 Q-0069 Q-0070 Q-0074 Q-0075 Q-0097 Q-0106 Q-0107 Q-0111 Q-0211 Q-0035 Q-0262 Q-0267 |
-| process.md | Build process and repository (answers that shape how the build runs rather than the product) | Q-0004 Q-0006 Q-0011 Q-0171 Q-0019 Q-0025 Q-0032 Q-0065 Q-0108 Q-0114 Q-0116 Q-0117 Q-0118 Q-0119 Q-0124 Q-0125 Q-0129 Q-0138 Q-0184 Q-0194 Q-0195 Q-0239–Q-0253 Q-0258 Q-0259 Q-0261 Q-0263 Q-0268 Q-0269 Q-0270 |
+| process.md | Build process and repository (answers that shape how the build runs rather than the product) | Q-0004 Q-0006 Q-0011 Q-0171 Q-0019 Q-0025 Q-0032 Q-0065 Q-0108 Q-0114 Q-0116 Q-0117 Q-0118 Q-0119 Q-0124 Q-0125 Q-0129 Q-0138 Q-0184 Q-0194 Q-0195 Q-0239–Q-0253 Q-0258 Q-0259 Q-0261 Q-0263 Q-0268 Q-0270 Q-0275 |
 
 Process-level answers recorded on Oct 18, 2026 (Q-0114 and later) are in `process.md`.

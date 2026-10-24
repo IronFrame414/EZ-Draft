@@ -520,6 +520,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-168 | 1 | Fix: audit refuses a private function executable by an API role it is not granted to | todo |  | EZD-006, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T27; prod-sensitive: yes). |
 | EZD-169 | 1 | Fix: every 500 catch in a route reports the error | todo |  | EZD-024, EZD-009, EZD-018, EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). |
 | EZD-170 | 1 | Fix: run every pilot check and record its result | todo |  | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (item 39). |
+| EZD-171 | 1 | Fix: prove the cloud-only behaviours on the dev project and the live site | todo |  | EZD-006, EZD-033, EZD-010b, EZD-009 |  |  | Added 2026-10-24 for Q-0275 (a). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |

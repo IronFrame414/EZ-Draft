@@ -13845,6 +13845,31 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-171",
+   "phase": 1,
+   "title": "Fix: prove the cloud-only behaviours on the dev project and the live site",
+   "depends_raw": "EZD-006, EZD-033, EZD-010b, EZD-009",
+   "spec_ref": "Q-0275",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-033",
+    "EZD-010b",
+    "EZD-009"
+   ],
+   "build_position": 480,
+   "acs": [
+    "AC-EZD-171-1",
+    "AC-EZD-171-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
