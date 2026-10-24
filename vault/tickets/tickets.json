@@ -14041,6 +14041,29 @@
     "AC-EZD-041-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-042",
+   "phase": 0,
+   "title": "Fix: Supabase CLI dump and push pass the production database URL as --db-url",
+   "depends_raw": "EZD-023b, EZD-041",
+   "spec_ref": "Operations; Q-0106; Q-0262",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-00.md",
+   "depends_on": [
+    "EZD-023b",
+    "EZD-041"
+   ],
+   "build_position": 449,
+   "acs": [
+    "AC-EZD-042-1",
+    "AC-EZD-042-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
