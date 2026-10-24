@@ -20,6 +20,10 @@ const HEAD = '| Ticket | Phase | Title | Status | Complexity | Depends on | Comm
 function fixture({ status = 'ready', depStatus = 'done', gateExit = 0 } = {}) {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-'));
   git(dir, 'init', '-q', '-b', 'develop');
+  // The script under test commits in this repo too; CI runners have no global git identity.
+  git(dir, 'config', 'user.name', 'EZ Draft Test');
+  git(dir, 'config', 'user.email', 'test@example.test');
+  git(dir, 'config', 'commit.gpgsign', 'false');
   for (const d of ['vault/tickets', 'vault/tools', 'vault/handoff']) mkdirSync(path.join(dir, d), { recursive: true });
   writeFileSync(path.join(dir, 'vault/tickets/STATUS.md'), `# Ledger\n\n${HEAD}| EZD-001 | 0 | Base | ${depStatus} | low |  | abc1234 | 3 |  |\n| EZD-002 | 0 | Thing two | ${status} | medium | EZD-001 |  |  | keep this note |\n`);
   writeFileSync(path.join(dir, 'vault/tickets/tickets.json'), JSON.stringify({ tickets: [{ id: 'EZD-001', phase: 0, depends_on: [] }, { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'] }] }));
