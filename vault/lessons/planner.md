@@ -110,3 +110,4 @@ Follow-up rule (EZD-009 round 3): when a ticket adds the first reader of an envi
 - EZD-025 (2026-10-23): when tests inject fakes, the plan's contract must name every deps key, option name, result shape and pure helper's module and entry shape; probe the roles that own any Supabase-managed table a migration or script touches.
 - EZD-031 (2026-10-23): fix default model ids and price values from official pages, and define a status for a run in progress, in the first plan version; a spike plan with a CLI must also list the confirmation lines.
 - EZD-036 (2026-10-23): a control string in a build-output test must come from a value the entry actually imports, checked in the built chunks; the bundler drops exports nobody uses.
+- EZD-025 (2026-10-23): before a plan writes to a shared file (.env.example, docs lists), grep every merged test that reads it and check whether each ignores # comment lines, not just the script the plan cites.

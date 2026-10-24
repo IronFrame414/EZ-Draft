@@ -1,10 +1,10 @@
-# Handoff · 2026-10-23 · questions 0
+# Handoff · 2026-10-23 · build EZD-025
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (launcher-run, unattended)
-- Completed this session: Q-0262 (EZD-041, plan QP-1) escalated to Josh with recommendation (a); phase-00-for-josh.md section 1 updated. No agent could answer it: scope choice. No other open questions in the phase. No ticket set ready: EZD-041 stays `questions`.
+- Why the session ended: unit complete
+- Completed this session: EZD-025 done (merge 485b9de, 1099 tests). Worktree removed.
 - In progress: none
 - Blocked: none new
-- Questions for Josh: Q-0262 (new); Q-0258, Q-0259 (guard-paths patches); Q-0089 and Q-0237 belong to later phases.
-- Decisions made: none
+- Questions for Josh: Q-0262 (EZD-041), Q-0259 (guard-paths patch, EZD-034); Q-0089 and Q-0237 later phases.
+- Decisions made: .env.example gap resolved by planner (option c, no question); lesson added to vault/lessons/planner.md
 - Next unit: per node vault/tools/next_ticket.mjs --next-unit

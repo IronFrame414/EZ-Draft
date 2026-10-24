@@ -73,3 +73,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-031 · Spike: render trial · nothing on screen; a stub-run script saves 3 test images and a cost record per render; Josh's live trial of Gemini, GPT Image 2 and Flux Kontext pro comes after Phase 10 · 4cbf838
 2026-10-23 · EZD-037 · Fix: EZD-002 done-when text · the CI acceptance criteria now say CI runs on the phase PR and by hand, as Josh decided in Q-0021 (a) · 096079b
 2026-10-23 · EZD-036 · Fix: test-harness stubs and Sentry diagnostics warnings in the production build · nothing on screen; build no longer warns about Edge Runtime, live app no longer loads email/Sentry test stubs, Sentry injection line gone · c992937
+2026-10-23 · EZD-025 · Off-site backups and restore script · nothing on screen; after launch nightly file and weekly database backups to Backblaze B2, and pnpm backup:restore proves a deleted project comes back · 485b9de
