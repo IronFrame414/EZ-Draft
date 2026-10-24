@@ -49,6 +49,9 @@ export const en = {
   'error.code_throttled': 'Too many wrong codes. Try again in 15 minutes.',
   'error.email_throttled': 'Too many sign-in emails. Try again in an hour.',
   'error.ip_throttled': 'Too many sign-in tries from this network. Try again in 15 minutes.',
+  'error.captcha_failed': "The security check didn't go through. Try again.",
+  'error.captcha_unavailable':
+    "The security check didn't load. Check your connection and reload the page.",
   'error.envelope_too_large': 'That error report is too large to send.',
   'error.invalid_envelope': "That error report couldn't be read.",
   'field.device.editor_on_phone':

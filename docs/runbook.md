@@ -88,6 +88,18 @@ Josh's steps in Supabase, once per cloud project (`ezdraft-dev` now, `ezdraft-pr
 5. **Reauthentication email.** Same place, "Reauthentication": subject exactly `Your EZ Draft confirmation code / Tu código de confirmación de EZ Draft`; body = the whole text of `supabase/templates/reauthentication.html`, copied the same way. Save.
 6. **Rate limits.** Leave Authentication, Rate Limits at Supabase's defaults (Q-0105).
 
+## Captcha (EZD-034)
+
+Josh's steps in Cloudflare, Vercel and Supabase. The security check on the sign-in page runs only where the site key is set; locally and in tests it is off. Agents never change these settings. Neither key goes in the repo, and the secret key goes only into Supabase. If a box is not where this says, look for the same words and tell the orchestrator where you found it.
+
+1. **Cloudflare, Turnstile.** Add a widget for `ezdraft.ezcontractorbinder.com` and the preview address the environments setup records (EZD-023b). Leave the other settings at their defaults. Keep the site key and the secret key it shows.
+2. **Vercel `ezdraft`.** Settings, Environment Variables: `TURNSTILE_SITE_KEY` = the site key, for Preview and Production. Redeploy.
+3. **See the check.** Open the preview's `/sign-in`: the security check shows below the password box.
+4. **Supabase `ezdraft-dev`.** Authentication, Bot and Abuse Protection: captcha protection on, provider Turnstile, secret = the Turnstile secret key.
+5. **Hand check.** In a terminal, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the dev project's values, run `node scripts/auth/captcha-check.mjs`, and report PASS or FAIL to the orchestrator.
+6. **Sign in once on the preview.**
+7. **`ezdraft-prod`.** Do steps 4-6 for it when the Before-launch checklist creates it.
+
 ## Background jobs (EZD-009)
 
 Josh's steps in Vercel. The once-a-minute sweep picks up jobs that are waiting to retry or whose run died. Vercel runs cron jobs on production deployments only, so previews get no sweep. The `ezdraft` project sits in EZ Binder's Vercel team, which is on Pro, so a cron every minute is allowed. Agents never change Vercel settings. Never paste the secret into chat, a ticket or the repo.

@@ -55,6 +55,13 @@ function authUnavailable(error: unknown): boolean {
   return status === 0 || (status !== undefined && status >= 500);
 }
 
+// EZD-034 Step 3 (vault/plans/EZD-034.md; R-013 (4)): the step-1 security check token, passed to Auth as
+// is (Auth validates it; with Auth's captcha off it is ignored).
+function captchaToken(formData: FormData): string | undefined {
+  const field = formData.get('captcha_token');
+  return typeof field === 'string' && field !== '' ? field : undefined;
+}
+
 // Every reportError call in the sign-in actions (Step 3): a code only, never an email or a password.
 async function reportSignIn(code: string): Promise<void> {
   await reportError(new Error(code), { source: 'function', location: 'auth.sign_in' });
@@ -100,7 +107,8 @@ export async function signInWithPassword(formData: FormData): Promise<{
     | 'ip_throttled'
     | 'no_access'
     | 'too_many_requests'
-    | 'unavailable';
+    | 'unavailable'
+    | 'captcha_failed';
 }> {
   const email = parseEmail(formData.get('email'));
   if (!email) return { error: 'invalid_email' };
@@ -118,7 +126,11 @@ export async function signInWithPassword(formData: FormData): Promise<{
     return { error: 'password_wrong' };
   }
 
-  const { error } = await slot.client.auth.signInWithPassword({ email, password });
+  const { error } = await slot.client.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken: captchaToken(formData) },
+  });
   if (error) {
     if (errorStatus(error) === 429) {
       await settle(slot);
@@ -128,6 +140,11 @@ export async function signInWithPassword(formData: FormData): Promise<{
       await settle(slot);
       await reportSignIn('auth_password_unavailable');
       return { error: 'unavailable' };
+    }
+    // Auth refused the security check token: the attempt's rows stop counting (Q-0251 (a)).
+    if (errorCode(error) === 'captcha_failed') {
+      await settle(slot);
+      return { error: 'captcha_failed' };
     }
     // Wrong password, unknown email, unconfirmed account: one answer (ticket Done when; Q-0091).
     return { error: 'password_wrong' };
@@ -139,13 +156,16 @@ export async function signInWithPassword(formData: FormData): Promise<{
   redirect('/');
 }
 
-export async function requestSignIn(
-  formData: FormData,
-): Promise<
+export async function requestSignIn(formData: FormData): Promise<
   | { step: 'code' }
   | {
       error:
-        'invalid_email' | 'too_many_requests' | 'email_throttled' | 'ip_throttled' | 'unavailable';
+        | 'invalid_email'
+        | 'too_many_requests'
+        | 'email_throttled'
+        | 'ip_throttled'
+        | 'unavailable'
+        | 'captcha_failed';
     }
 > {
   const email = parseEmail(formData.get('email'));
@@ -160,13 +180,15 @@ export async function requestSignIn(
 
   const { error } = await slot.client.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: { shouldCreateUser: true, captchaToken: captchaToken(formData) },
   });
   if (error) {
     const status = errorStatus(error);
     if (status === 429 && errorCode(error) === 'over_request_rate_limit') {
       return { error: 'too_many_requests' };
     }
+    // Auth refused the security check token: no cookie, and the request still counts (Q-0252).
+    if (errorCode(error) === 'captcha_failed') return { error: 'captcha_failed' };
     // Same answer for every address: the hook's refusal (403) and every other 429 (Q-0174 (a)).
     if (status !== 403 && status !== 429) throw new Error('sign_in_request_failed');
   }

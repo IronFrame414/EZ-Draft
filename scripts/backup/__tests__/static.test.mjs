@@ -262,21 +262,21 @@ describe('EZD-025 T16 static checks and docs', () => {
     }
   });
 
-  test('EZD-025 T16 .env.example holds no BACKUP names and the 12 baseline names', () => {
+  test('EZD-025 T16 .env.example holds no BACKUP names and the 13 baseline names', () => {
     const text = read('.env.example');
     const lines = text.split(/\r?\n/);
     // Plan gap 2026-10-23: none of the 8 names anywhere in the text, comment lines included.
     for (const name of FILES_SECRETS) assert.ok(!text.includes(name), `${name} is not in .env.example`);
-    // Baseline (plan Interface contract): the 12 names of EZD-004b T7, scripts/db/__tests__/env.test.mjs:11-28.
+    // Baseline (plan Interface contract): the 13 names of EZD-004b T7 (EZD-034 edit, vault/plans/EZD-034.md section 4, T11/T12 edit), scripts/db/__tests__/env.test.mjs:11-28.
     const BASELINE = [
       'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY',
-      'SUPABASE_API_GATE_SECRET', 'EMAIL_TRANSPORT', 'EMAIL_FROM', 'RESEND_API_KEY', 'CRON_SECRET',
+      'SUPABASE_API_GATE_SECRET', 'TURNSTILE_SITE_KEY', 'EMAIL_TRANSPORT', 'EMAIL_FROM', 'RESEND_API_KEY', 'CRON_SECRET',
       'SENTRY_TRANSPORT', 'SENTRY_DSN', 'ALERT_EMAIL_TO', 'AI_MODE',
     ].map((n) => `${n}=`);
     assert.deepEqual(
       lines.map((l) => l.trim()).filter((l) => l !== '' && !l.startsWith('#')),
       BASELINE,
-      'non-comment lines are the 12 baseline names',
+      'non-comment lines are the 13 baseline names',
     );
   });
 

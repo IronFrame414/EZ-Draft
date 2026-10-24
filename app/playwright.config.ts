@@ -117,6 +117,7 @@ export default defineConfig({
       SUPABASE_API_GATE_SECRET: serverEnv.SUPABASE_API_GATE_SECRET,
       SUPABASE_SECRET_KEY: serverEnv.SUPABASE_SECRET_KEY,
       EZD_TEST_DB_URL: '',
+      TURNSTILE_SITE_KEY: '',
       EMAIL_TRANSPORT: 'stub',
       EMAIL_FROM: 'EZ Draft Test <test@example.test>',
       EMAIL_STUB_DIR: outbox,

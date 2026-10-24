@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { LanguageSwitch } from '../../components/auth/LanguageSwitch';
 import styles from '../../components/auth/auth.module.css';
 import { MessagesProvider } from '../../lib/messages';
+import { captchaConfig } from '../../server/auth/captcha-config';
 import { getSession } from '../../server/auth/session';
 import { getSignInLanguage } from '../../server/auth/sign-in-language';
 import { catalogFor } from '../../server/messages/catalog';
@@ -21,6 +22,8 @@ export default async function SignInPage({
   const { e } = await searchParams;
   const initialEmail = (await cookies()).get('ezd_sign_in_email')?.value || null;
   const t = getT('sign_in', language);
+  // EZD-034 Step 6: the security check, only when the site key is set (read per request).
+  const base = captchaConfig(process.env);
 
   return (
     <main className={styles.canvas}>
@@ -31,6 +34,7 @@ export default async function SignInPage({
           <SignInForm
             initialEmail={initialEmail}
             initialError={e === 'no_access' ? 'no_access' : null}
+            captcha={base && { ...base, language }}
           />
         </div>
       </MessagesProvider>

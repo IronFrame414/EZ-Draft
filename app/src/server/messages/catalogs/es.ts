@@ -56,6 +56,9 @@ export const es = {
   'error.email_throttled': 'Demasiados correos de acceso. Inténtalo de nuevo en una hora.',
   'error.ip_throttled':
     'Demasiados intentos de acceso desde esta red. Inténtalo de nuevo en 15 minutos.',
+  'error.captcha_failed': 'La verificación de seguridad no se completó. Inténtalo de nuevo.',
+  'error.captcha_unavailable':
+    'La verificación de seguridad no se cargó. Revisa tu conexión y vuelve a cargar la página.',
   'error.envelope_too_large': 'Ese informe de error es demasiado grande para enviarlo.',
   'error.invalid_envelope': 'No se pudo leer ese informe de error.',
   'field.device.editor_on_phone':

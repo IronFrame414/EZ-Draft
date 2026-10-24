@@ -230,3 +230,17 @@ describe('EZD-016d harness config', () => {
     }
   }, 30000);
 });
+
+describe('EZD-034 harness config', () => {
+  // T10 (AC-EZD-034-2): Q-0243 (c); Step 9. The browser web server gets no site key, so no widget loads.
+  test('EZD-034 T10 the Playwright web server env has TURNSTILE_SITE_KEY set to an empty string', async () => {
+    const restore = snapshotEnv();
+    try {
+      const config = (await import('../../playwright.config')).default as unknown as AnyRecord;
+      const env = (config.webServer as AnyRecord).env as Record<string, string>;
+      expect(env.TURNSTILE_SITE_KEY).toBe('');
+    } finally {
+      restore();
+    }
+  }, 30000);
+});
