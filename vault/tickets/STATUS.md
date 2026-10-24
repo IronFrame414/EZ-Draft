@@ -515,7 +515,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-163 | 1 | Fix: find and remove the cause of the harness T12 "Worker closed" failure | planned | medium | EZD-016a, EZD-035 |  |  | Added 2026-10-24 by the Q-0268 sweep (T22; prod-sensitive: no). |
 | EZD-164 | 1 | Spike: WebKit offline service-worker test | planned | medium | EZD-013 |  |  | Added 2026-10-24 by the Q-0268 sweep (T23; prod-sensitive: no). |
 | EZD-165 | 1 | Fix: membership end-sessions trigger covers user and company changes | planned | low | EZD-006, EZD-007b |  |  | Added 2026-10-24 by the Q-0268 sweep (T24; prod-sensitive: yes). |
-| EZD-166 | 1 | Fix: db:up restarts the local stack when the Auth config or templates change | todo |  | EZD-004a, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T25; prod-sensitive: no). |
+| EZD-166 | 1 | Fix: db:up restarts the local stack when the Auth config or templates change | planned | low | EZD-004a, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T25; prod-sensitive: no). |
 | EZD-167 | 1 | Fix: path alias cannot bypass the import-boundaries lint | todo |  | EZD-001, EZD-020 |  |  | Added 2026-10-24 by the Q-0268 sweep (T26; prod-sensitive: no). |
 | EZD-168 | 1 | Fix: audit refuses a private function executable by an API role it is not granted to | todo |  | EZD-006, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T27; prod-sensitive: yes). |
 | EZD-169 | 1 | Fix: every 500 catch in a route reports the error | todo |  | EZD-024, EZD-009, EZD-018, EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). |
