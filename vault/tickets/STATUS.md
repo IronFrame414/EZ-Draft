@@ -531,7 +531,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-178 | 1 | Fix: six more tools work when run through a symlinked path | planned | low | EZD-155 |  |  | Added 2026-10-24 for Q-0290 (b) (rule 17; questions 1). |
 | EZD-179 | 1 | Fix: app Vitest config loads without the CommonJS warning | planned | low | EZD-001 |  |  | Added 2026-10-24 for Q-0314 (rule 17; questions 1). |
 | EZD-180 | 1 | Fix: EZD-005b T17 (e) passes in any run order | planned | low | EZD-005b, EZD-016a |  |  | Added 2026-10-24 for Q-0315 (rule 17; questions 1). |
-| EZD-181 | 1 | Fix: a health check that times out reports the error | todo |  | EZD-150, EZD-169 |  |  | Added 2026-10-24 for Q-0286 (b) (rule 17; questions 1). |
+| EZD-181 | 1 | Fix: a health check that times out reports the error | questions | low | EZD-150, EZD-169 |  |  | Added 2026-10-24 for Q-0286 (b) (rule 17; questions 1). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
