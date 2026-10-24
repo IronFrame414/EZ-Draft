@@ -489,7 +489,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1709b | 55 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
 | EZD-1709c | 55 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
 | EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
-| EZD-136 | 1 | On-screen disclaimer | todo |  | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
+| EZD-136 | 1 | On-screen disclaimer | questions | medium | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
 | EZD-141 | 1 | Fix: SET LOCAL warning during sign-in | todo |  | EZD-007a, EZD-006 |  |  | Added 2026-10-24 by Josh's request (Q-0267). |
 | EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | todo |  | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
 | EZD-143 | 1 | Fix: error tunnel limits each caller | todo |  | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
