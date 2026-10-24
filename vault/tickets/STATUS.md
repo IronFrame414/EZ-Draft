@@ -528,7 +528,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-175 | 1 | Parallel lanes: a ticket branch is brought up to date with develop before its merge | questions | medium | EZD-173 |  |  | Added 2026-10-24 for Q-0304 (c). |
 | EZD-176 | 1 | Fix: release, backup and dev-migration workflows leave the Node 20 action pins | planned | low | EZD-146 |  |  | Added 2026-10-24 for Q-0281 (b) (rule 17; questions 1). |
 | EZD-177 | 1 | Fix: repo rule tests refuse pnpm_config_* environment names | questions | low | EZD-148 |  |  | Added 2026-10-24 for Q-0283 (a) (rule 17; questions 1). |
-| EZD-178 | 1 | Fix: six more tools work when run through a symlinked path | todo |  | EZD-155 |  |  | Added 2026-10-24 for Q-0290 (b) (rule 17; questions 1). |
+| EZD-178 | 1 | Fix: six more tools work when run through a symlinked path | planned | low | EZD-155 |  |  | Added 2026-10-24 for Q-0290 (b) (rule 17; questions 1). |
 | EZD-179 | 1 | Fix: app Vitest config loads without the CommonJS warning | todo |  | EZD-001 |  |  | Added 2026-10-24 for Q-0314 (rule 17; questions 1). |
 | EZD-180 | 1 | Fix: EZD-005b T17 (e) passes in any run order | todo |  | EZD-005b, EZD-016a |  |  | Added 2026-10-24 for Q-0315 (rule 17; questions 1). |
 | EZD-181 | 1 | Fix: a health check that times out reports the error | todo |  | EZD-150, EZD-169 |  |  | Added 2026-10-24 for Q-0286 (b) (rule 17; questions 1). |

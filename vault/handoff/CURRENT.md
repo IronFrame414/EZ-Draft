@@ -1,10 +1,10 @@
-# Handoff · 2026-10-24 23:03 · plan EZD-177
+# Handoff · 2026-10-24 23:11 · plan EZD-178
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: Planned EZD-177: status questions, complexity low; open questions Q-0316.
+- Completed this session: Planned EZD-178: status planned, complexity low.
 - In progress: none
 - Blocked: none new
 - Questions for Josh: see vault/questions/QUESTIONS.md
 - Decisions made: none
-- Next unit: plan EZD-178
+- Next unit: plan EZD-179
