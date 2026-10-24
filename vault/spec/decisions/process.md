@@ -39,3 +39,6 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0268 | 2026-10-24 | No issue or potential problem is skipped: nothing found is parked as a minor, follow-up, watch item or known limit; each becomes a fix ticket or a question for Josh with evidence. Build it right the first time, robust and future-proof (Josh). |
 | Q-0275 | 2026-10-24 | Behaviours proven only locally or on paper are proven now on the dev project and the live site wherever possible (EZD-171); Backblaze waits for its account. |
 | Q-0270 | 2026-10-24 | Cloudflare Turnstile is set up now on the dev project and the live site, not at launch. |
+| Q-0300 | 2026-10-24 | (d): EZD-171's live check J3 runs on the live site right after EZD-171 merges, before the phase gate. |
+| Q-0301 | 2026-10-24 | (b): the backup check also runs daily as a scheduled workflow that emails Josh on failure (EZD-1704). |
+| — | 2026-10-24 | Boost mode (vault/tools/boost.mjs): on Josh's word, until the weekly reset, every role one model and one effort level up and a per-step cap of $80; parallel lanes (up to 6 units, 3 builds) are built as EZD-172 to EZD-174. |

@@ -13872,6 +13872,81 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-172",
+   "phase": 1,
+   "title": "Parallel lanes: each build lane gets its own local database and ports",
+   "depends_raw": "EZD-004a, EZD-016d, EZD-017, EZD-007f",
+   "spec_ref": "Josh 2026-10-24 (boost)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004a",
+    "EZD-016d",
+    "EZD-017",
+    "EZD-007f"
+   ],
+   "build_position": 481,
+   "acs": [
+    "AC-EZD-172-1",
+    "AC-EZD-172-2",
+    "AC-EZD-172-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-173",
+   "phase": 1,
+   "title": "Parallel lanes: ledger, commits and merges never collide",
+   "depends_raw": "EZD-000g, EZD-000h, EZD-001",
+   "spec_ref": "Josh 2026-10-24 (boost)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000g",
+    "EZD-000h",
+    "EZD-001"
+   ],
+   "build_position": 482,
+   "acs": [
+    "AC-EZD-173-1",
+    "AC-EZD-173-2",
+    "AC-EZD-173-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-174",
+   "phase": 1,
+   "title": "Parallel lanes: the launcher runs several units at once under boost",
+   "depends_raw": "EZD-172, EZD-173",
+   "spec_ref": "Josh 2026-10-24 (boost)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-172",
+    "EZD-173"
+   ],
+   "build_position": 483,
+   "acs": [
+    "AC-EZD-174-1",
+    "AC-EZD-174-2",
+    "AC-EZD-174-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
