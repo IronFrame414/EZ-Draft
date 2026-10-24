@@ -3331,7 +3331,7 @@
    "id": "EZD-132",
    "phase": 1,
    "title": "File storage",
-   "depends_raw": "EZD-006",
+   "depends_raw": "EZD-006, EZD-101",
    "spec_ref": "Data model · source_file; Non-functional · Operations",
    "spec_files": [
     "spec/sections/03c-tables.md#source_file",
@@ -3340,7 +3340,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-006"
+    "EZD-006",
+    "EZD-101"
    ],
    "build_position": 75,
    "acs": [
@@ -13477,7 +13478,8 @@
    ],
    "build_position": 463,
    "acs": [
-    "AC-EZD-154-1"
+    "AC-EZD-154-1",
+    "AC-EZD-154-2"
    ],
    "acs_source": "done-when"
   },

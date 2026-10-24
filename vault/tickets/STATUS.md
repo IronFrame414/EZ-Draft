@@ -136,8 +136,8 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-031 | 0 | Spike: render trial | done | medium | EZD-021 | 4cbf838 | 1030 | Josh 2026-10-22: build whole on this plan; Built 2026-10-23. Planner re-validation Opus 5.5 high (EZD-021 deviations: budgetMs, ImageAdapterResult, createRecordedFetch object) then plan-gap (interface contract) and round-1 gap (running status, model ids, R-014); test-author Sonnet 5.5 medium; builder Sonnet 5.5 medium r1, r2 resumed with advisor sentence (--dispatch); code-reviewer mode 3 Opus 5.5 high FAIL r1 (4 findings) then PASS; security-reviewer Opus 5.5 high PASS (2 minor, README run-dir fixed). Gate PASS r1 and r2. Deviations: PreparedTrial extra fields allModels/previous; toHtml/writeReports optional inputs map; esbuild denied in allowBuilds; tsx 4.23.15 row added; plan stays v1 layout (plan_lint fails on structure only). needs-josh-confirm: confirmation lines in spikes/EZD-031-render/src/cli.ts (rooms:, room:, model:, renders:, cap:, no price:), stderr refused:/crashed:, report.ts page title and caption. Prices for Kontext null until read. Live trial and provider pick: Josh, after Phase 10 (Q-0082). never split at build time (size line does not apply). |
 | EZD-032 | 0 | Phase 0 build-gate test | done | medium | EZD-007, EZD-011, EZD-012, EZD-014a, EZD-014b, EZD-014c, EZD-016a, EZD-017 | 127fc3f | 996 | Added at plan review (Q-0085) Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Requeued 2026-10-23T17:49Z by Josh's request after EZD-035 (flaky jobs.spec.ts, Q-0248) merged; worktree kept. · Blocked 2026-10-23 on EZD-035 (Q-0248): develop gate fails test:e2e at app/e2e/jobs.spec.ts:32 whenever this ticket's smoke spec is in the run (4 of 5 runs). Tests 2ad3144, docs 2d6b79a+66a3646 in worktree .claude/worktrees/EZD-032, kept. code-reviewer PASS (opus high), security-reviewer PASS (opus high); test-author, builder sonnet medium (--dispatch). Deviations: signInAs(email) not (page,email); workers 4 not 2 (Q-0114); B4 refused HTTP status not observed. After EZD-035 merges: re-run unit-steps merge EZD-032. |
 | EZD-033 | 0 | Password sign-in | done | high | EZD-007, EZD-006, EZD-016a, EZD-024 | 489640a | 994 | Added at Stage 2 (Q-0095) · Q-0094 overridden by Josh 2026-10-18 (minimum 8 characters); plan re-validated by the planner (Opus 5.5 high) the same day. Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). · Build 2026-10-23: planner re-validation Opus 5.5/high REVISED (5e45853 plan-gap: settle failure, auth_code_unavailable/auth_link_unavailable, small items; no QP); test-author Sonnet 5.5/medium, test review code-reviewer Opus 5.5/high PASS; builder Opus 5.5/medium r1 + r2. Structural repairs (code-reviewer confirmed): 2a147e5 (createPasswordMember sets password after create; sbWrites ignores code-verifier; T4 1.5 s wait), de02c97 (EZD-006 T20 (a) tenant-less list), T17 (d) final cookie state instead of write history. code-reviewer mode 3 Opus 5.5/high: FAIL only for red gate; ui-verifier Sonnet 5.5/low PASS; security-reviewer Fable 5.1/high PASS (x-forwarded-for assumption and settle-failure approved; minor: cite the Vercel request-headers URL in docs). BLOCKED on EZD-035 (Q-0248): worktree gate (3 runs) passes typecheck, lint, test (488 Vitest), build, perf; test:e2e fails only at app/e2e/jobs.spec.ts:32 (EZD-009 flake). Worktree .claude/worktrees/EZD-033 kept, reviewed. After EZD-035 merges: re-run /build-ticket EZD-033 (goes to step 7 gate, then merge). Deviations: mail-catcher.ts waitForRawEmail/emailSubjects and exported randomPassword (not in Step 8 list). needs-josh-confirm: builder-written Spanish (9 es.ts keys, recovery/reauthentication template Spanish blocks, config.toml Spanish subjects, runbook). Requeued 2026-10-23T17:49Z by Josh's request after EZD-035 (flaky jobs.spec.ts, Q-0248) merged; worktree kept. · Final 2026-10-23: resumed at gate after EZD-035; rebased t/EZD-033 onto develop, needed `pnpm db:stop` so local Auth picked up the new recovery template (T7 failed on the stale stack), then gate green. code-reviewer mode 3 Opus 5.5/high PASS (--dispatch); earlier security-reviewer Fable 5.1 PASS, ui-verifier PASS. Deviations: mail-catcher.ts readers, randomPassword re-export, rls-config.test.mjs tenant-less list (structural repair). needs-josh-confirm: builder-written Spanish (9 es.ts keys, recovery/reauthentication template Spanish blocks, config.toml subjects, runbook). Minor open: docs/architecture.md Password sign-in (vi) cites Vercel request-headers docs without URL. |
-| EZD-101 | 1 | Permission and role tables | planned | medium | EZD-005 |  |  |  |
-| EZD-102 | 1 | Permission enforcement | planned | high | EZD-101, EZD-006 |  |  |  |
+| EZD-101 | 1 | Permission and role tables | ready | medium | EZD-005 |  |  |  |
+| EZD-102 | 1 | Permission enforcement | ready | high | EZD-101, EZD-006 |  |  |  |
 | EZD-103 | 1 | Settings shell | questions | medium | EZD-102, EZD-012 |  |  |  |
 | EZD-104 | 7 | Users table | todo |  | EZD-103 |  |  |  |
 | EZD-105 | 7 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
@@ -147,8 +147,8 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
 | EZD-110 | 2 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
 | EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
-| EZD-112 | 1 | Company settings: identity | questions | high | EZD-103, EZD-132 |  |  |  |
-| EZD-113 | 1 | Customers | planned | high | EZD-112 |  |  |  |
+| EZD-112 | 1 | Company settings: identity | ready | high | EZD-103, EZD-132 |  |  |  |
+| EZD-113 | 1 | Customers | ready | high | EZD-112 |  |  |  |
 | EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
 | EZD-117a | 2 | Projects page: query and cards | todo |  | EZD-102, EZD-110 |  |  |  |
 | EZD-117b | 2 | Projects page: header, search and states | todo |  | EZD-117a, EZD-015 |  |  |  |
@@ -166,7 +166,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-129 | 7 | User project scope | todo |  | EZD-106, EZD-006 |  |  |  |
 | EZD-130 | 8 | Project settings dialog | todo |  | EZD-118, EZD-116, EZD-128 |  |  |  |
 | EZD-131 | 11 | Libraries shell | todo |  | EZD-103 |  |  |  |
-| EZD-132 | 1 | File storage | questions | high | EZD-006 |  |  |  |
+| EZD-132 | 1 | File storage | ready | high | EZD-006 |  |  |  |
 | EZD-133 | 3 | Access and money-field harness | todo |  | EZD-102, EZD-006 |  |  |  |
 | EZD-134 | 14 | App-shell cache and device storage | todo |  | EZD-013, EZD-120 |  |  |  |
 | EZD-135 | 6 | System status page | todo |  | EZD-103, EZD-024, EZD-025 |  |  |  |
@@ -483,7 +483,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1704 | 1 | Backups | questions | medium | EZD-025 |  |  |  |
 | EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
 | EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
-| EZD-1707 | 1 | Terms of service | planned | low | EZD-007 |  |  |  |
+| EZD-1707 | 1 | Terms of service | ready | low | EZD-007 |  |  |  |
 | EZD-1708 | 55 | Accessibility pass | todo |  | EZD-222 |  |  |  |
 | EZD-1709a | 55 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
 | EZD-1709b | 55 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
@@ -491,34 +491,34 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
 | EZD-136 | 1 | On-screen disclaimer | questions | medium | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
 | EZD-141 | 1 | Fix: SET LOCAL warning during sign-in | blocked | medium | EZD-007a, EZD-006 |  |  | Added 2026-10-24 by Josh's request (Q-0267). · BLOCKED 2026-10-24 by Josh (Q-0274 (a)): waiting on Supabase's fix of supabase/auth#2852 (GoTrue v2.197.0 runs set local statement_timeout outside a transaction when the before-user-created hook runs). Unblocks when a fixed Auth release and a Supabase CLI release with it exist: then bump the CLI pin, prove no 25P01 at sign-in. Exception to rule 20 (Josh); listed in every phase PR; each wrap checks the issue. |
-| EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | planned | medium | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
+| EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | ready | medium | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
 | EZD-143 | 1 | Fix: error tunnel limits each caller | questions | medium | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
-| EZD-144 | 1 | Fix: error_alert refuses a project without a company | planned | low | EZD-024 |  |  | Added 2026-10-24 by the Q-0268 sweep (T3; prod-sensitive: yes (migration)). |
-| EZD-145 | 1 | Fix: job routes check permissions with can() | questions | low | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
-| EZD-146 | 1 | Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack | questions | medium | EZD-004c, EZD-042 |  |  | Added 2026-10-24 by the Q-0268 sweep (T5; prod-sensitive: yes). |
-| EZD-147 | 1 | Fix: CI workflow least rights and SHA pins | questions | medium | EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T6; prod-sensitive: no). |
-| EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | questions | low | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
-| EZD-149 | 1 | Fix: hosting live check and preview rule match what they claim | questions | low | EZD-003 |  |  | Added 2026-10-24 by the Q-0268 sweep (T8; prod-sensitive: no). |
-| EZD-150 | 1 | Fix: health check gives up on a slow database | questions | low | EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T9; prod-sensitive: yes). |
+| EZD-144 | 1 | Fix: error_alert refuses a project without a company | ready | low | EZD-024 |  |  | Added 2026-10-24 by the Q-0268 sweep (T3; prod-sensitive: yes (migration)). |
+| EZD-145 | 1 | Fix: job routes check permissions with can() | ready | low | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
+| EZD-146 | 1 | Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack | ready | medium | EZD-004c, EZD-042 |  |  | Added 2026-10-24 by the Q-0268 sweep (T5; prod-sensitive: yes). |
+| EZD-147 | 1 | Fix: CI workflow least rights and SHA pins | ready | medium | EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T6; prod-sensitive: no). |
+| EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | ready | low | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
+| EZD-149 | 1 | Fix: hosting live check and preview rule match what they claim | ready | low | EZD-003 |  |  | Added 2026-10-24 by the Q-0268 sweep (T8; prod-sensitive: no). |
+| EZD-150 | 1 | Fix: health check gives up on a slow database | ready | low | EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T9; prod-sensitive: yes). |
 | EZD-151 | 1 | Fix: email input checks, preview stub outbox and email runbook | questions | low | EZD-008a, EZD-008b |  |  | Added 2026-10-24 by the Q-0268 sweep (T10; prod-sensitive: yes). |
-| EZD-152 | 1 | Fix: release and restore failure lines say why without leaking data | questions | low | EZD-023d, EZD-025 |  |  | Added 2026-10-24 by the Q-0268 sweep (T11; prod-sensitive: yes). |
-| EZD-153 | 1 | Fix: migration check flags objects created in dynamic SQL | planned | medium | EZD-023a |  |  | Added 2026-10-24 by the Q-0268 sweep (T12; prod-sensitive: yes). |
-| EZD-154 | 1 | Fix: remove the PA3 grant and close the two guard-bash gaps | questions | low | EZD-000c |  |  | Added 2026-10-24 by the Q-0268 sweep (T13; prod-sensitive: EZD-000b to EZD-000j). |
+| EZD-152 | 1 | Fix: release and restore failure lines say why without leaking data | ready | low | EZD-023d, EZD-025 |  |  | Added 2026-10-24 by the Q-0268 sweep (T11; prod-sensitive: yes). |
+| EZD-153 | 1 | Fix: migration check flags objects created in dynamic SQL | ready | medium | EZD-023a |  |  | Added 2026-10-24 by the Q-0268 sweep (T12; prod-sensitive: yes). |
+| EZD-154 | 1 | Fix: remove the PA3 grant and close the two guard-bash gaps | ready | low | EZD-000c |  |  | Added 2026-10-24 by the Q-0268 sweep (T13; prod-sensitive: EZD-000b to EZD-000j). |
 | EZD-155 | 1 | Fix: gate summary and launcher tools report what really happened | questions | low | EZD-000h, EZD-000g, EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T14; prod-sensitive: no). |
-| EZD-156 | 1 | Fix: perf check refuses an empty selection and proves its server env | planned | low | EZD-017 |  |  | Added 2026-10-24 by the Q-0268 sweep (T15; prod-sensitive: no). |
-| EZD-157 | 1 | Fix: realtime hub keeps project and user channels apart | planned | low | EZD-018 |  |  | Added 2026-10-24 by the Q-0268 sweep (T16; prod-sensitive: no). |
-| EZD-158 | 1 | Fix: phase 0 test gaps | planned | low | EZD-014c, EZD-010b, EZD-026b, EZD-016b |  |  | Added 2026-10-24 by the Q-0268 sweep (T17; prod-sensitive: no). |
-| EZD-159 | 1 | Fix: test network guard also blocks sockets | planned | medium | EZD-021 |  |  | Added 2026-10-24 by the Q-0268 sweep (T18; prod-sensitive: no). |
-| EZD-160 | 1 | Fix: architecture and runbook say only what is true | planned | low | EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033 |  |  | Added 2026-10-24 by the Q-0268 sweep (T19; prod-sensitive: no). |
-| EZD-161 | 1 | Fix: geometry tests are type-checked | questions | low | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T20; prod-sensitive: no). |
+| EZD-156 | 1 | Fix: perf check refuses an empty selection and proves its server env | ready | low | EZD-017 |  |  | Added 2026-10-24 by the Q-0268 sweep (T15; prod-sensitive: no). |
+| EZD-157 | 1 | Fix: realtime hub keeps project and user channels apart | ready | low | EZD-018 |  |  | Added 2026-10-24 by the Q-0268 sweep (T16; prod-sensitive: no). |
+| EZD-158 | 1 | Fix: phase 0 test gaps | ready | low | EZD-014c, EZD-010b, EZD-026b, EZD-016b |  |  | Added 2026-10-24 by the Q-0268 sweep (T17; prod-sensitive: no). |
+| EZD-159 | 1 | Fix: test network guard also blocks sockets | ready | medium | EZD-021 |  |  | Added 2026-10-24 by the Q-0268 sweep (T18; prod-sensitive: no). |
+| EZD-160 | 1 | Fix: architecture and runbook say only what is true | ready | low | EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033 |  |  | Added 2026-10-24 by the Q-0268 sweep (T19; prod-sensitive: no). |
+| EZD-161 | 1 | Fix: geometry tests are type-checked | ready | low | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T20; prod-sensitive: no). |
 | EZD-162 | 1 | Fix: vault wording and TRACE titles | questions | low | EZD-013, EZD-034, EZD-035, EZD-037, EZD-038 |  |  | Added 2026-10-24 by the Q-0268 sweep (T21; prod-sensitive: no). |
-| EZD-163 | 1 | Fix: find and remove the cause of the harness T12 "Worker closed" failure | planned | medium | EZD-016a, EZD-035 |  |  | Added 2026-10-24 by the Q-0268 sweep (T22; prod-sensitive: no). |
-| EZD-164 | 1 | Spike: WebKit offline service-worker test | planned | medium | EZD-013 |  |  | Added 2026-10-24 by the Q-0268 sweep (T23; prod-sensitive: no). |
-| EZD-165 | 1 | Fix: membership end-sessions trigger covers user and company changes | planned | low | EZD-006, EZD-007b |  |  | Added 2026-10-24 by the Q-0268 sweep (T24; prod-sensitive: yes). |
-| EZD-166 | 1 | Fix: db:up restarts the local stack when the Auth config or templates change | planned | low | EZD-004a, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T25; prod-sensitive: no). |
-| EZD-167 | 1 | Fix: path alias cannot bypass the import-boundaries lint | planned | low | EZD-001, EZD-020 |  |  | Added 2026-10-24 by the Q-0268 sweep (T26; prod-sensitive: no). |
-| EZD-168 | 1 | Fix: audit refuses a private function executable by an API role it is not granted to | questions | medium | EZD-006, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T27; prod-sensitive: yes). |
-| EZD-169 | 1 | Fix: every 500 catch in a route reports the error | planned | low | EZD-024, EZD-009, EZD-018, EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). |
+| EZD-163 | 1 | Fix: find and remove the cause of the harness T12 "Worker closed" failure | ready | medium | EZD-016a, EZD-035 |  |  | Added 2026-10-24 by the Q-0268 sweep (T22; prod-sensitive: no). |
+| EZD-164 | 1 | Spike: WebKit offline service-worker test | ready | medium | EZD-013 |  |  | Added 2026-10-24 by the Q-0268 sweep (T23; prod-sensitive: no). |
+| EZD-165 | 1 | Fix: membership end-sessions trigger covers user and company changes | ready | low | EZD-006, EZD-007b |  |  | Added 2026-10-24 by the Q-0268 sweep (T24; prod-sensitive: yes). |
+| EZD-166 | 1 | Fix: db:up restarts the local stack when the Auth config or templates change | ready | low | EZD-004a, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T25; prod-sensitive: no). |
+| EZD-167 | 1 | Fix: path alias cannot bypass the import-boundaries lint | ready | low | EZD-001, EZD-020 |  |  | Added 2026-10-24 by the Q-0268 sweep (T26; prod-sensitive: no). |
+| EZD-168 | 1 | Fix: audit refuses a private function executable by an API role it is not granted to | ready | medium | EZD-006, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T27; prod-sensitive: yes). |
+| EZD-169 | 1 | Fix: every 500 catch in a route reports the error | ready | low | EZD-024, EZD-009, EZD-018, EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). |
 | EZD-170 | 1 | Fix: run every pilot check and record its result | questions | medium | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (item 39). |
 | EZD-171 | 1 | Fix: prove the cloud-only behaviours on the dev project and the live site | questions | medium | EZD-006, EZD-033, EZD-010b, EZD-009 |  |  | Added 2026-10-24 for Q-0275 (a). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
