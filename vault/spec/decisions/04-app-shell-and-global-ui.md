@@ -25,3 +25,6 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0229 | 2026-10-20 | Disclaimer (Q-0208 wording) is one small grey line at the bottom of every page: in the editor status bar; a footer line on Projects, Settings, sign-in, terms, the client link and phone screens. Never on sheets or PDFs. Spanish on phone screens for Spanish users (Q-0030). (spec-check 1; Josh in chat, relayed by session "Spec restructure and reading map") |
 | Q-0265 | 2026-10-24 | (b): with unsaved edits, the browser Back or Forward button shows the same Save / Discard / Cancel prompt as the app (EZD-103). |
 | Q-0302 | 2026-10-24 | (c) "draft": unsaved Settings edits are kept as a draft on the device and restored with a notice on return, so no way of leaving loses them (EZD-103). |
+| Q-0272 | 2026-10-24 | (a): the disclaimer line is cut with "…" in a narrow office status bar and shows in full on hover and to screen readers; readouts keep their room. |
+| Q-0273 | 2026-10-24 | (b): add an app not-found page that carries the disclaimer line and the text "Page not found." |
+| Q-0273 wording | 2026-10-24 | Wording (EZD-136): "Page not found." (Josh approved with Q-0273 (b)). |

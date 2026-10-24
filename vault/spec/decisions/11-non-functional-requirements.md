@@ -19,3 +19,5 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0230 | 2026-10-20 | Terms of service: a link on the sign-in page only in v1, no "I agree" step. Claude drafts placeholder terms with the two required statements; Josh or the attorney replaces them later. (spec-check 1; Josh in chat, relayed by session "Spec restructure and reading map") |
 | Q-0262 | 2026-10-24 | (a): the `supabase db dump` and `supabase db push` `--db-url` password exposure gets its own phase 0 fix ticket, EZD-042, after EZD-041 (psql only). |
 | Q-0267 | 2026-10-24 | A warning the database logs during normal use is fixed, not accepted: the SET LOCAL (25P01) warning at sign-in gets fix ticket EZD-141 in phase 1. |
+| Q-0293 | 2026-10-24 | (a): the Surface field checks hold the tablet target of 30 fps (as the EZD-027 verdict, Q-0097 (a)). |
+| Q-0294 | 2026-10-24 | (a): the slice 28 step is reworded to the Surface: the walk joystick must work on the Surface touch screen too (EZD-1003 planner). |

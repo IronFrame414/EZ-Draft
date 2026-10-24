@@ -42,3 +42,5 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0300 | 2026-10-24 | (d): EZD-171's live check J3 runs on the live site right after EZD-171 merges, before the phase gate. |
 | Q-0301 | 2026-10-24 | (b): the backup check also runs daily as a scheduled workflow that emails Josh on failure (EZD-1704). |
 | — | 2026-10-24 | Boost mode (vault/tools/boost.mjs): on Josh's word, until the weekly reset, every role one model and one effort level up and a per-step cap of $80; parallel lanes (up to 6 units, 3 builds) are built as EZD-172 to EZD-174. |
+| Q-0291 | 2026-10-24 | (a): EZD-155 makes a dry run write no hold or marker file and send no notification (budget.mjs and run.mjs changes with tests). |
+| Q-0297 | 2026-10-24 | (a): the launcher build unit does Part A and sets EZD-170 blocked; Josh does Part J (J1-J9) at his next sit-down in an interactive session; nothing else waits. |
