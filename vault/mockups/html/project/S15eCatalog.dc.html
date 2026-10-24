@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft catalog settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'Instrument Sans',sans-serif;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#3b424d;text-decoration:none}
+.nv:hover{background:#f2f4f7;color:#14171c}
+.nv .ms{font-size:19px;color:#7a828e}
+.nvon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.nvon .ms{color:oklch(0.5 0.17 262)}
+.nvs{margin-left:auto;font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.th{font-size:12px;font-weight:600;color:#5e6672;text-align:left;padding:8px 10px;border-bottom:1px solid #dfe2e6;background:#fbfbfc}
+.td{padding:7px 10px;border-bottom:1px solid #eef0f3;font-size:13.5px;vertical-align:middle}
+.tr:hover .td{background:#f8f9fb}
+.sh{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:#5e6672}
+.pin{display:inline-flex;align-items:center;border:1px solid #dfe2e6;border-radius:6px;height:28px;box-sizing:border-box;padding:0 8px;font:500 13px 'DM Mono',monospace;color:#14171c;background:#fff;gap:2px}
+.pin .u{color:#9aa3af}
+.ed{border:1px solid oklch(0.55 0.17 262);box-shadow:0 0 0 3px #eef1ff}
+.tag{font:600 11px 'Instrument Sans',sans-serif;padding:2px 7px;border-radius:999px;background:#f2f4f7;color:#5e6672;white-space:nowrap}
+.ep{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;font-size:13px;border:1px solid transparent}
+.ep:hover{background:#f8f9fb}
+.epon{background:#f5f7ff;border-color:oklch(0.55 0.17 262)}
+.ep svg{flex:none}
+.prof{fill:#e9e6df;stroke:#3b424d;stroke-width:1.2}
+.epon .prof{fill:#e3e8ff;stroke:oklch(0.5 0.17 262)}
+.ar{display:grid;grid-template-columns:1fr 54px 64px;gap:6px;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px solid #eef0f3}
+.ar:last-child{border-bottom:0}
+.sup{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eef0f3;font-size:13px}
+.sup:last-child{border-bottom:0}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Settings</span>
+<a href="#" style="font-size: 13px; color: #5e6672; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">arrow_back</span>Projects</a>
+<div style="flex: 1"></div>
+<span style="font-size: 13px; color: #5e6672">Worth Properties</span>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px">
+<nav class="card" aria-label="Settings sections" style="width: 248px; flex: none; display: flex; flex-direction: column; overflow: hidden">
+<span class="lbl" style="padding-top: 16px">Company settings</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 8px">
+<a href="#" class="nv"><span class="ms">domain</span>Company</a>
+<a href="#" class="nv"><span class="ms">group</span>Users + permissions<span class="nvs">4</span></a>
+<a href="#" class="nv"><span class="ms">view_quilt</span>Title block</a>
+<a href="#" class="nv"><span class="ms">description</span>Sheet presets</a>
+<a href="#" class="nv"><span class="ms">tune</span>Defaults<span class="nvs">ft-in</span></a>
+<a href="#" class="nv nvon" aria-current="page"><span class="ms">inventory_2</span>Catalog<span class="nvs" style="color: oklch(0.5 0.17 262)">426</span></a>
+<a href="#" class="nv"><span class="ms">auto_awesome</span>Render models</a>
+<a href="#" class="nv"><span class="ms">gavel</span>Code edition</a>
+<a href="#" class="nv"><span class="ms">library_books</span>Libraries</a>
+<a href="#" class="nv"><span class="ms">translate</span>Translations<span class="nvs" style="color: oklch(0.48 0.13 65)">12</span></a>
+</div>
+<span style="flex: 1"></span>
+<div style="margin: 12px; padding: 12px; border-radius: 10px; background: #f6f7f9; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #5e6672">
+<span style="display: flex; justify-content: space-between"><span>User sync with EZ Binder</span><span style="color: #14171c; font-weight: 600">On</span></span>
+<span>Optional · users are invited here</span>
+</div>
+</nav>
+<main class="card" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 22px 16px; display: flex; align-items: flex-end; gap: 16px; border-bottom: 1px solid #eef0f3">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Catalog</h1>
+<span style="font-size: 13px; color: #5e6672">Categories, allowances, markup, suppliers and appliance ratings. Items themselves live in the catalog.</span>
+</div>
+<a href="#" class="b"><span class="ms" style="font-size: 18px">open_in_new</span>Open catalog<span class="mono" style="font-size: 12px; color: #9aa3af">426</span></a>
+</div>
+<div style="flex: 1; min-height: 0; display: flex">
+<section aria-label="Categories and pricing" style="flex: 1; min-width: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid #eef0f3">
+<div class="sh"><span>Categories + pricing</span><span style="font-weight: 400; color: #5e6672">Sell = cost x (1 + markup)</span></div>
+<div style="border: 1px solid #dfe2e6; border-radius: 10px; overflow: hidden">
+<table style="width: 100%; border-collapse: collapse">
+<thead><tr><th class="th" style="padding-left: 14px">Category</th><th class="th" style="text-align: right">Items</th><th class="th">Allowance category</th><th class="th">Default markup</th><th class="th" style="width: 28px"></th></tr></thead>
+<tbody>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Cabinet</span></td><td class="td mono" style="text-align: right; color: #5e6672">118</td><td class="td">Cabinets</td><td class="td"><span class="pin">25<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Counter</span></td><td class="td mono" style="text-align: right; color: #5e6672">34</td><td class="td">Countertops</td><td class="td"><span class="pin ed">22<span class="u">%</span></span><span style="font-size: 11px; color: oklch(0.48 0.13 65); margin-left: 8px">was 20%</span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Tile</span></td><td class="td mono" style="text-align: right; color: #5e6672">72</td><td class="td">Tile</td><td class="td"><span class="pin">30<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Plumbing fixture</span></td><td class="td mono" style="text-align: right; color: #5e6672">56</td><td class="td">Plumbing fixtures</td><td class="td"><span class="pin">25<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Lighting</span></td><td class="td mono" style="text-align: right; color: #5e6672">48</td><td class="td">Lighting</td><td class="td"><span class="pin">30<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Appliance</span></td><td class="td mono" style="text-align: right; color: #5e6672">41</td><td class="td">Appliances</td><td class="td"><span class="pin">15<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Hardware</span></td><td class="td mono" style="text-align: right; color: #5e6672">39</td><td class="td">Hardware</td><td class="td"><span class="pin">35<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Paint</span></td><td class="td mono" style="text-align: right; color: #5e6672">12</td><td class="td" style="color: #9aa3af">None</td><td class="td"><span class="pin">20<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Window/door</span></td><td class="td mono" style="text-align: right; color: #5e6672">4</td><td class="td" style="color: #9aa3af">None</td><td class="td"><span class="pin">20<span class="u">%</span></span></td><td class="td"></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 14px"><span style="display: flex; align-items: center; gap: 8px"><span class="ms" style="font-size: 15px; color: oklch(0.5 0.17 262)">edit</span>Shelving + brackets<span class="tag">Custom</span></span></td><td class="td mono" style="text-align: right; color: #5e6672">2</td><td class="td">Cabinets</td><td class="td"><span class="pin">30<span class="u">%</span></span></td><td class="td"><span class="ms" style="font-size: 18px; color: #9aa3af">more_horiz</span></td></tr>
+</tbody>
+</table>
+<button class="b" style="border: 0; border-top: 1px solid #eef0f3; border-radius: 0; width: 100%; justify-content: flex-start; padding: 10px 14px; color: oklch(0.45 0.17 262); font-weight: 600; font-size: 13px"><span class="ms" style="font-size: 17px">add</span>Add custom category</button>
+</div>
+<span style="font-size: 12px; color: #5e6672; display: flex; align-items: center; gap: 6px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock</span>Standard categories cannot be removed. Custom ones can when no item uses them. Markup can be changed per item in the catalog.</span>
+<div class="sh" style="margin-top: 6px"><span>Allowance categories</span><span style="font-weight: 400; color: #5e6672">Used by items and the selections PDF allowance add-on</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span class="chip">Cabinets<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip">Countertops<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip">Tile<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip">Plumbing fixtures<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip">Lighting<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip">Appliances<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip">Hardware<span class="ms" style="font-size: 14px; color: #9aa3af">close</span></span>
+<span class="chip" style="border-style: dashed; color: oklch(0.45 0.17 262); font-weight: 600"><span class="ms" style="font-size: 14px">add</span>Add</span>
+</div>
+</section>
+<section aria-label="Suppliers and appliance ratings" style="width: 330px; flex: none; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div class="sh"><span>Suppliers</span><a href="#" style="font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 15px">add</span>Add</a></div>
+<div style="display: flex; flex-direction: column">
+<div class="sup"><span class="ms" style="font-size: 18px; color: #7a828e">storefront</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500">[Supplier] cabinets</span><span style="font-size: 12px; color: #5e6672">[Contact] · [phone]</span></span><span class="mono" style="font-size: 12px; color: #5e6672">3 wk</span></div>
+<div class="sup"><span class="ms" style="font-size: 18px; color: #7a828e">storefront</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500">[Supplier] stone</span><span style="font-size: 12px; color: #5e6672">[Contact] · [phone]</span></span><span class="mono" style="font-size: 12px; color: #5e6672">10 days</span></div>
+<div class="sup"><span class="ms" style="font-size: 18px; color: #7a828e">storefront</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500">[Supplier] tile</span><span style="font-size: 12px; color: #5e6672">[Contact] · [phone]</span></span><span class="mono" style="font-size: 12px; color: #5e6672">5 days</span></div>
+<div class="sup" style="color: #9aa3af"><span class="ms" style="font-size: 18px">inventory</span><span style="flex: 1">2 archived</span><a href="#" style="font-size: 12px; text-decoration: none">Show</a></div>
+</div>
+<div class="sh" style="margin-top: 8px"><span>Appliance rating defaults</span><span style="font-weight: 400; color: #5e6672">Owner enters</span></div>
+<span style="font-size: 12px; color: #5e6672; line-height: 1.4">Used by the load calc when a catalog item has no specs.</span>
+<div style="display: flex; flex-direction: column">
+<div class="ar" style="font-size: 11px; font-weight: 600; color: #9aa3af; text-transform: uppercase; letter-spacing: .04em"><span>Type</span><span>Volts</span><span>Amps</span></div>
+<div class="ar"><span>Range, electric</span><span class="pin">240</span><span class="pin">40<span class="u">A</span></span></div>
+<div class="ar"><span>Wall oven</span><span class="pin">240</span><span class="pin">30<span class="u">A</span></span></div>
+<div class="ar"><span>Dishwasher</span><span class="pin">120</span><span class="pin">12<span class="u">A</span></span></div>
+<div class="ar"><span>Disposal</span><span class="pin">120</span><span class="pin">8<span class="u">A</span></span></div>
+<div class="ar"><span>Refrigerator</span><span class="pin">120</span><span class="pin">6<span class="u">A</span></span></div>
+<div class="ar"><span>Microwave hood</span><span class="pin">120</span><span class="pin">13<span class="u">A</span></span></div>
+</div>
+<a href="#" style="font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 15px">add</span>Add appliance type</a>
+</section>
+</div>
+<div style="padding: 12px 22px; border-top: 1px solid #eef0f3; display: flex; align-items: center; gap: 12px">
+<span style="font-size: 12px; color: oklch(0.48 0.13 65); display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>Unsaved: Counter markup 20% to 22%</span>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; color: #5e6672">Markup shown with See sell prices only</span>
+<button class="b">Discard</button><button class="b bp">Save</button>
+</div>
+</main>
+<aside class="card" aria-label="Edge profile library" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px">
+<div style="padding: 18px 18px 12px; display: flex; flex-direction: column; gap: 3px; border-bottom: 1px solid #eef0f3">
+<span style="font-size: 16px; font-weight: 600">Edge profile library</span>
+<span style="font-size: 12px; color: #5e6672; line-height: 1.4">Profiles offered on countertops. Price per LF is set per top in Countertops, Edit offered edges.</span>
+</div>
+<div style="padding: 8px 10px; display: flex; flex-direction: column; gap: 1px; border-bottom: 1px solid #eef0f3">
+<div class="ep"><svg width="44" height="22" viewBox="-2 -2 46 20" aria-hidden="true"><path class="prof" d="M0 0 H38 Q40 0 40 2 V12 Q40 14 38 14 H0 Z"></path></svg><span style="flex: 1">Eased</span><span class="tag">Standard</span></div>
+<div class="ep"><svg width="44" height="22" viewBox="-2 -2 46 20" aria-hidden="true"><path class="prof" d="M0 0 H35 L40 5 V14 H0 Z"></path></svg><span style="flex: 1">Bevel</span><span class="tag">Standard</span></div>
+<div class="ep epon" aria-selected="true"><svg width="44" height="22" viewBox="-2 -2 46 20" aria-hidden="true"><path class="prof" d="M0 0 H33 A7 7 0 0 1 40 7 V14 H0 Z"></path></svg><span style="flex: 1; font-weight: 600">Half bullnose</span><span class="tag">Standard</span></div>
+<div class="ep"><svg width="44" height="22" viewBox="-2 -2 46 20" aria-hidden="true"><path class="prof" d="M0 0 H33 A7 7 0 0 1 33 14 H0 Z"></path></svg><span style="flex: 1">Full bullnose</span><span class="tag">Standard</span></div>
+<div class="ep"><svg width="44" height="22" viewBox="-2 -2 46 20" aria-hidden="true"><path class="prof" d="M0 0 H32 C36 0 34 6 37 6 C40 6 40 9 40 10 V14 H0 Z"></path></svg><span style="flex: 1">Ogee</span><span class="tag">Standard</span></div>
+<div class="ep"><svg width="44" height="22" viewBox="-2 -2 46 34" aria-hidden="true"><path class="prof" d="M0 0 H40 V30 H34 V14 H0 Z"></path><line x1="40" y1="0" x2="34" y2="14" style="stroke: #3b424d; stroke-width: 1"></line></svg><span style="flex: 1">Mitered apron</span><span class="tag">Standard</span></div>
+<div class="ep"><svg width="44" height="22" viewBox="-2 -2 46 20" aria-hidden="true"><path class="prof" d="M0 0 H36 L40 4 V10 Q40 14 36 14 H0 Z" style="fill: #fff; stroke-dasharray: 2 2"></path></svg><span style="flex: 1">[Custom name]</span><span class="tag" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Custom</span></div>
+<button class="b" style="border-style: dashed; justify-content: center; margin: 6px 0 2px; padding: 8px; font-size: 13px; color: oklch(0.45 0.17 262); font-weight: 600"><span class="ms" style="font-size: 17px">add</span>Custom profile</button>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0">
+<div class="sh"><span>Section drawing</span><span class="mono" style="font-weight: 400; color: #9aa3af">1:1 · 3 cm slab</span></div>
+<svg viewBox="0 0 300 170" role="img" aria-label="Section drawing of a half bullnose edge on a 1 1/4 inch slab with 5/8 inch radius and 1 1/2 inch overhang past the cabinet face" style="width: 100%; border: 1px solid #eef0f3; border-radius: 8px; background: #fbfbfc; font-family: 'DM Mono', monospace">
+<defs><pattern id="stn" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" style="stroke: #b9c3ef; stroke-width: 1"></line></pattern></defs>
+<path d="M20 40 H185 A35 35 0 0 1 220 75 V110 H20 Z" style="fill: #e3e8ff"></path>
+<path d="M20 40 H185 A35 35 0 0 1 220 75 V110 H20 Z" style="fill: url(#stn); stroke: oklch(0.5 0.17 262); stroke-width: 1.6"></path>
+<line x1="12" y1="40" x2="20" y2="40" style="stroke: #9aa3af; stroke-dasharray: 2 2"></line>
+<line x1="12" y1="110" x2="20" y2="110" style="stroke: #9aa3af; stroke-dasharray: 2 2"></line>
+<rect x="20" y="112" width="116" height="48" style="fill: none; stroke: #9aa3af; stroke-width: 1; stroke-dasharray: 4 3"></rect>
+<text x="30" y="140" style="font-size: 9px; fill: #9aa3af">CABINET BOX</text>
+<line x1="230" y1="40" x2="262" y2="40" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="230" y1="110" x2="262" y2="110" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="254" y1="40" x2="254" y2="110" style="stroke: #3b424d; stroke-width: 1"></line>
+<line x1="250" y1="44" x2="258" y2="36" style="stroke: #3b424d"></line><line x1="250" y1="114" x2="258" y2="106" style="stroke: #3b424d"></line>
+<text x="262" y="78" style="font-size: 10px; fill: #14171c">1 1/4"</text>
+<line x1="185" y1="75" x2="210" y2="50" style="stroke: oklch(0.5 0.17 262); stroke-width: .8"></line>
+<circle cx="185" cy="75" r="1.8" style="fill: oklch(0.5 0.17 262)"></circle>
+<text x="196" y="30" style="font-size: 10px; fill: oklch(0.45 0.17 262)">R 5/8"</text>
+<line x1="210" y1="50" x2="218" y2="33" style="stroke: oklch(0.5 0.17 262); stroke-width: .8"></line>
+<line x1="136" y1="118" x2="136" y2="160" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="220" y1="114" x2="220" y2="160" style="stroke: #7a828e; stroke-width: .8"></line>
+<line x1="136" y1="152" x2="220" y2="152" style="stroke: #3b424d; stroke-width: 1"></line>
+<line x1="132" y1="156" x2="140" y2="148" style="stroke: #3b424d"></line><line x1="216" y1="156" x2="224" y2="148" style="stroke: #3b424d"></line>
+<text x="150" y="146" style="font-size: 10px; fill: #14171c">1 1/2" OH</text>
+</svg>
+<label class="fl">Name<input value="Half bullnose"></label>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+<label class="fl">Thickness<input class="mono" value="1 1/4&quot;"></label>
+<label class="fl">Radius<input class="mono" value="5/8&quot;"></label>
+</div>
+<div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; font-size: 13px; padding: 8px"><span class="ms" style="font-size: 17px">upload</span>Replace drawing</button><button class="b" style="flex: 1; justify-content: center; font-size: 13px; padding: 8px"><span class="ms" style="font-size: 17px">draw</span>Edit in Detail</button></div>
+<span style="font-size: 12px; color: #5e6672; display: flex; align-items: center; gap: 6px"><span class="ms" style="font-size: 15px; color: #9aa3af">info</span>Offered on 3 tops in 2 projects, incl. Hendricks island</span>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Company</span><span class="sv">Worth Properties</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Items</span><span class="sv">426</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Categories</span><span class="sv">9 standard · 1 custom</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Edge profiles</span><span class="sv">6 standard · 1 custom</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Suppliers</span><span class="sv">3 active</span></div>
+<span style="flex: 1"></span>
+<span class="sv">Settings · Catalog</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,150 +1,111 @@
-# EZ Draft build setup (Windows)
+# EZ Draft build setup (Mac mini)
 
-Everything in this folder is ready to commit. These steps are the parts only you can do on your PC and in your accounts. Roughly 45 minutes.
+The build machine is the Mac mini (moved from the Windows PC on Oct 17, 2026; the Windows section at the end is history). These are the parts only you can do on the Mac and in your accounts. The process is `vault/PROCESS.md` (v2) with the project additions in `vault/PROCESS-EZDRAFT.md`.
 
-## 1. Install the tools
+## 1. Install the tools (Terminal)
 
-Open **PowerShell as Administrator** (Start → type PowerShell → right-click → Run as administrator) and run:
-
-```powershell
-wsl --install
-winget install --id Git.Git -e
-winget install --id OpenJS.NodeJS.LTS -e
-winget install --id GitHub.cli -e
-winget install --id Docker.DockerDesktop -e
-New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
-```
-
-**Restart the PC** (WSL and Docker need it). Then open a normal PowerShell and run, with your own name and email:
-
-```powershell
-npm install -g pnpm
+```bash
+# Homebrew (skip if installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install git gh fnm
+brew install --cask docker
+fnm install 22 && fnm default 22      # Node 22 matches CI and EZD-000's engines
+echo 'eval "$(fnm env --use-on-cd)"' >> ~/.zshrc && source ~/.zshrc
+node -v                               # v22.x
+corepack enable && corepack prepare pnpm@latest --activate && pnpm -v
 git config --global user.name "Josh Bishop"
 git config --global user.email "Josh@WorthProp.com"
 git config --global init.defaultBranch main
-git config --global core.longpaths true
-gh auth login
 ```
 
-- Install the Claude Code CLI from https://code.claude.com/docs/en/setup (Windows section) and sign in with `claude` once.
-- Start Docker Desktop once and turn on "Start Docker Desktop when you sign in". The local database used by agent test runs needs it (Q-0003). The Supabase CLI is added to the project by ticket EZD-004; nothing to install for it now.
-- Playwright browsers (Chromium and WebKit, for the iPad/iPhone tests) are installed by the test harness ticket EZD-016 with `pnpm exec playwright install chromium webkit`; nothing to do now.
-- The long-path settings matter: ticket worktrees nest deep folders and Windows otherwise stops at 260 characters.
+- **GitHub CLI signs in as the agent account** `ironframe414-agent` (Q-0108): `gh auth login` with that account; `gh auth status` must show it. You do GitHub admin in the browser under your own account.
+- Claude Code: the native installer from https://code.claude.com/docs/en/setup (macOS), then `claude` once to sign in with the Max plan. The desktop app's Code tab (Local) works the same way.
+- Start Docker Desktop once; turn on "Start Docker Desktop when you sign in"; Settings → Resources: leave memory at the default (32 GB machine). The local Supabase used by agent test runs needs it (Q-0003).
+- Playwright browsers are installed by EZD-016a (`pnpm exec playwright install chromium webkit`); approve it when the build asks. Workers = 4 (Q-0114).
 
-## 2. Create the repository
+## 2. Clone
 
-```powershell
-mkdir C:\Users\$env:USERNAME\Projects -Force; cd C:\Users\$env:USERNAME\Projects
-gh repo create ezdraft --private --clone
-cd ezdraft
+```bash
+mkdir -p ~/Projects && cd ~/Projects
+gh repo clone IronFrame414/EZ-Draft ezdraft
+cd ezdraft && git switch develop && git pull
+node vault/tools/next_ticket.mjs --check      # LEDGER OK: 405 tickets
+node vault/tools/next_ticket.mjs --next-unit  # build EZD-000
 ```
 
-Unzip the kit into this `ezdraft` folder so `CLAUDE.md`, `SETUP.md`, `.claude\`, `vault\`, `scripts\`, `.github\` sit at the top level. Then:
+## 3. Your personal Claude Code settings
 
-```powershell
-git add -A
-git commit -m "chore: build kit (vault, agents, hooks, gate, CI)"
-git branch -M main
-git push -u origin main
-git switch -c develop
-git push -u origin develop
+`~/.claude/settings.json` (create it if missing):
+
+```json
+{ "permissions": { "defaultMode": "auto" } }
 ```
 
-## 3. Protect `main` (free on a public repository)
+Nothing else. Do **not** set `autoContinueAtUsageLimit` (PROCESS.md section 11): a weekly limit must stop the run and notify you, not leave a session waiting for days. `defaultMode: auto` works only in user settings; the project's deny rules and hooks still apply on top.
 
-The repository is public (your choice, Oct 11): anyone can read the spec and code, branch protection is free, and GitHub Actions minutes are free. Never commit keys; `.env*` files are in `.gitignore` and agents cannot read or write them.
+## 4. Launcher config (untracked; agents cannot read it)
 
-GitHub → EZ-Draft → Settings → Branches → Add branch protection rule:
-- Branch name pattern: `main`
-- Require a pull request before merging (approvals: 0)
-- Require status checks to pass → search and add `gate` (it appears after CI has run once on `develop`)
-- Do not allow bypassing the above settings (this applies the rule to you and to anything using your login, including agents)
-- Leave "Allow force pushes" and "Allow deletions" off
-
-Merging a phase PR still works: you click Merge after the `gate` check is green.
-
-## 4. Your personal Claude Code settings
-
-Edit `C:\Users\<you>\.claude\settings.json` (create it if missing) and add:
+Create `scripts/launcher.config.json`:
 
 ```json
 {
-  "autoContinueAtUsageLimit": true,
-  "permissions": { "defaultMode": "auto" }
+  "notify_cmd": "curl -s -d \"$MSG\" https://ntfy.sh/<your-long-random-topic>",
+  "auth_mode": "plan",
+  "limit_formats_confirmed": false
 }
 ```
 
-- `autoContinueAtUsageLimit`: a running stage waits out a usage limit and continues on its own.
-- `defaultMode: auto`: sessions start in auto mode, where a safety check reviews each action instead of asking you. The project's deny rules and hooks still apply on top. Both settings only work from your user settings, not the project's.
-- In the Code tab you can also pick **Auto** in the mode selector next to the send button.
+Use a long random topic name; anyone who knows it can read the topic on ntfy.sh. Add `"api_key": "sk-ant-…"` only if you ever use `node scripts/budget.mjs --api-until-reset` (section 11). The file is gitignored and read-denied for agents.
 
-## 5. Keep the PC awake during runs
+## 5. Budget (section 11)
 
-```powershell
-powercfg /change standby-timeout-ac 0
-powercfg /change hibernate-timeout-ac 0
+The launcher refuses to run unattended until `vault/budget.json` has a weekly ceiling. Recommended order: build EZD-000 and EZD-001 interactively, compare `/usage` in Claude Code with `vault/cost/log.jsonl` for the same days, then:
+
+```bash
+node scripts/budget.mjs --set-ceiling <usd per week> --set-cap <usd per unit> --set-fable <usd per week>
+node scripts/budget.mjs          # shows the week's spend and the ceilings
 ```
 
-Pause Windows Update while a phase is building (Settings → Windows Update → Pause). A restart kills the session; the handoff file and STATUS.md let the next session pick up, but the in-flight ticket starts over.
+Overrides when a hold happens: `--raise <usd>`, `--until-reset`, `--api-until-reset` (each removes `vault/handoff/BUDGET_HOLD.md`). The weekly window resets Monday 2:00 AM Eastern.
 
-## 6. Open the project in Claude
+## 6. Keep the Mac awake
 
-1. Claude desktop app → **Code** tab → **Local** → choose the `ezdraft` folder. Make sure the branch is `develop`.
-2. Accept the trust prompt for the folder. Hooks and project agents load only after trust.
-3. Check the setup in that session:
-   - Type `/hooks` → you should see SessionStart, PreToolUse (2) and SessionEnd.
-   - Ask: "List the custom agents and their models." → planner, test-author, builder, code-reviewer, calc-auditor, ui-verifier, security-reviewer, phase-auditor, Explore.
-   - Type `/` → the commands `/plan-phase`, `/questions`, `/build-phase`, `/phase-gate`, `/handoff` should appear.
-4. Fable (for phase audits): run `/model fable` once to see whether your plan asks to use usage credits, then switch back with `/model opus`. Answer Q-0004 based on that.
-5. Phone alerts: in the session run `/remote-control` and turn on push notifications, so a stage that stops for your answers reaches your phone.
+The launcher runs `caffeinate` for its own lifetime. For interactive sessions: System Settings → Energy → Prevent automatic sleeping when the display is off, and pause macOS updates while a phase is building. FileVault stays on. A restart kills a session; the builder's `wip` commits on the ticket branch let the next unit resume the ticket.
 
-## 7. Dry run and setup questions
+## 7. Open the project in Claude Code
 
-In PowerShell in the repo folder:
-
-```powershell
-node vault\tools\next_ticket.mjs --check
-node vault\tools\next_ticket.mjs
-```
-
-The first prints `LEDGER OK: 401 tickets`; the second prints `EZD-000` first. Then in the Code tab session ask: "Without running any tool, which ticket is next by the coordinator rule?" It must say EZD-000. If either differs, stop and send me the output.
-
-Open `vault\questions\QUESTIONS.md`. Q-0001 to Q-0004 and Q-0006 are for you; Q-0005 and Q-0007 to Q-0010 are agent answers (from the planning session's setup brief) you can override. Also read `vault\tickets\needs-from-josh.md`: items there unblock specific tickets. You can answer them in the session: "Answer Q-0003: GitHub and Vercel exist, Supabase does not yet." The orchestrator records the answer.
+1. Claude desktop app → Code tab → Local → `~/Projects/ezdraft`, branch `develop`; accept the trust prompt (hooks, agents and skills load only after trust).
+2. Ask: "What did the SessionStart hook add to your context?" → it quotes the handoff, the ledger line and `Next unit: build EZD-000`.
+3. Ask: "List the custom agents and their models." → planner, test-author, builder, code-reviewer, calc-auditor, ui-verifier, security-reviewer, phase-auditor, Explore, each with a full model ID (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`).
+4. Type `/` → `/spec-check`, `/plan-ticket`, `/review-plans`, `/questions`, `/build-ticket`, `/gate-phase`, `/wrap`.
+5. Ask, without tools: "Which unit is next?" → `build EZD-000`. If it differs from `node vault/tools/next_ticket.mjs --next-unit`, stop and say so.
 
 ## 8. Run Phase 0
 
-In the Code tab session:
+Interactive (until the ceiling is set):
 
 ```
-/plan-phase 0
+/build-ticket EZD-000
 ```
 
-When it finishes:
+One ticket per session; `/clear` after each, then the next `/build-ticket <id>` (the session-start hook names it). When `vault/budget.json` has a ceiling, unattended:
 
-```
-/questions 0
-```
-
-Answer what it asks. Then start the unattended build:
-
-```
-/goal Follow the build-phase skill for phase 0 until every ticket in vault/tickets/phases/phase-00.md is done or blocked in vault/tickets/STATUS.md, each done ticket shows a commit hash, and node scripts/gate.mjs . exits 0 on develop
+```bash
+node scripts/run.mjs            # loops: next unit → fresh claude -p → cost log → ledger check
+node scripts/run.mjs --status   # budget, next unit, which CLI flags the installed version supports
+node scripts/run.mjs --once     # one unit
 ```
 
-That one line starts the build right away; you do not also type `/build-phase 0`. A separate checker reads the progress after every turn and keeps it going until the condition is true, a usage limit pauses it (it resumes on its own), or every remaining ticket is blocked waiting on you. Type `/goal` alone to see progress, `/goal clear` to stop it.
-
-When the build stops:
-
-```
-/phase-gate 0
-```
-
-Open the PR link it gives you, click through the Vercel preview, and merge the PR yourself. That is the end of a phase. Repeat for phase 1.
+It stops and notifies you (ntfy) only when something needs you: budget hold, questions, sign-off, a blocked phase, a failed ledger check, a built phase. `touch vault/handoff/STOP` stops it after the current unit. When Phase 0 is built it runs `gate-phase 0`, opens the PR and notifies you; you work the punch list on the preview and merge; then it runs `wrap 0` and stops at Phase 1's `spec-check` (needs you; see `vault/tickets/PHASES.md` for the re-cut to approve first).
 
 ## Notes
 
-- **Vercel and the subdomain** are set up as part of ticket EZD-003 (Needs from Josh). When it asks: Vercel → Add project → import `EZ-Draft` → production branch `main`. Production deploys therefore happen only when you merge a phase PR; `develop` and the phase PR get preview deploys. Confirm a preview deploy works by pushing any small commit to `develop`. Then Settings → Domains → add `ezdraft.ezcontractorbinder.com` and add the CNAME it shows at your DNS host. If your DNS is at Cloudflare, set the record to "DNS only" (gray cloud) until Vercel verifies it.
-- **Secrets** go in `.env.local` (never committed; agents cannot read it). The names go in `.env.example`.
-- **Changing the rules** (agents, hooks, settings, gate, CI) is yours: agents are blocked from editing `.claude\`, `.github\` and `scripts\gate.mjs`.
-- **If the spec changes**, re-export the changed tab into `vault\spec\` and commit it before the next `/plan-phase`.
-- **Running two tickets at once** is off. To allow it later, change the Limits section of `vault\PROCESS.md`.
+- **Vercel:** project `ezdraft`, root `app`, production branch `main`, domain `ezdraft.ezcontractorbinder.com` (done Oct 12). The Ignored Build Step is Q-0116 (your decision): PROCESS.md v2 section 12 sets it to `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1` so only `main` and PRs build.
+- **Secrets** go in `.env.local` (never committed; agents cannot read it) or in Vercel / Supabase / GitHub environments. Names go in `.env.example`.
+- **Changing the rules** (agents, hooks, skills, settings, gate, launcher, CI, `vault/PROCESS*.md`) is yours; agents are blocked from editing them and propose changes in the handoff instead.
+- **If the spec changes**, the change is a decision in `vault/spec/decisions/<area>.md`; spec section files stay as exported (rule 4).
+- **Two tickets at once** is off (`vault/PROCESS-EZDRAFT.md` section 8).
+
+## History: Windows PC (no longer a build machine)
+
+The build ran on the Windows PC from Oct 11 to Oct 17, 2026 (PowerShell, WSL, Docker Desktop with a 6 GB cap, Node 24). All EZ Draft files were removed from it on Oct 18. If it ever becomes a build machine again: Node 22, `LongPathsEnabled`, `git config core.longpaths true`, and the Playwright worker count goes back to 2 (Q-0019).

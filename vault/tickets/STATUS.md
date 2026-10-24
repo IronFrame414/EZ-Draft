@@ -1,430 +1,527 @@
 # Ticket status ledger
 
-Status values: `todo`, `planned`, `questions`, `ready`, `in-progress`, `review`, `done`, `blocked`.
+Status values: `todo` → `planned` or `questions` → `ready` → `in-progress` → `review` → `done`, or `blocked` (PROCESS.md section 13). Complexity: `low`, `medium` or `high` from the plan (PROCESS.md section 4); it picks the test-author and builder models. Phase 0 ratings were set by the orchestrator on 2026-10-18 from the v1 plans (no planner rating existed); the planner re-rates a plan it re-validates.
 Only the orchestrator edits this file (enforced by hook). It records each stage's result: planner → `planned`/`questions`; Stage 2 → `ready`; build → `in-progress`, `review`; reviewers' verdict → `done` (with commit) or back to `in-progress`; three failed reviews or a question for Josh → `blocked`.
-A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, base IDs already expanded) is `done`. The Depends on column here is the original text, for reading only. Pick tickets with `node vault/tools/next_ticket.mjs`; validate with `--check` (done needs a commit hash, blocked needs a note, statuses must be known, STATUS.md and tickets.json must list the same tickets).
+A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, base IDs already expanded) is `done`. The Depends on column here is the original text, for reading only. Notes also records the models used for each dispatch and why (PROCESS.md section 4). Notes holds plan deviations (what the merged code does differently from its plan; dependents' plans are re-validated against it) and `needs-josh-confirm` wording (user-visible text no plan covered, listed in the phase PR for Josh). Pick tickets with `node vault/tools/next_ticket.mjs`; validate with `--check` (done needs a commit hash, blocked needs a note, statuses must be known, STATUS.md and tickets.json must list the same tickets).
 
-| Phase | Ticket | Title | Tickets |
+| Phase (slice) | Name | From spec phase(s) | Tickets |
 | --- | --- | --- | --- |
-| 0 | Phase 0 · Setup | [phase-00.md](phases/phase-00.md) | 33 |
-| 1 | Phase 1 · Foundation | [phase-01.md](phases/phase-01.md) | 37 |
-| 2 | Phase 2 · Geometry core + plan editor | [phase-02.md](phases/phase-02.md) | 38 |
-| 3 | Phase 3 · Imports | [phase-03.md](phases/phase-03.md) | 15 |
-| 4 | Phase 4 · Cabinets + countertops | [phase-04.md](phases/phase-04.md) | 19 |
-| 5 | Phase 5 · Ceilings / RCP | [phase-05.md](phases/phase-05.md) | 16 |
-| 6 | Phase 6 · Electrical + code check | [phase-06.md](phases/phase-06.md) | 40 |
-| 7 | Phase 7 · Sheets, issue, submittal profiles, revisions, property appraiser import | [phase-07.md](phases/phase-07.md) | 31 |
-| 8 | Phase 8 · Detail editor | [phase-08.md](phases/phase-08.md) | 17 |
-| 9 | Phase 9 · Reference DXF + supplier imports + rendering markup | [phase-09.md](phases/phase-09.md) | 25 |
-| 10 | Phase 10 · 3D + design options | [phase-10.md](phases/phase-10.md) | 18 |
-| 11 | Phase 11 · Render pipeline + allowance + local GPU worker | [phase-11.md](phases/phase-11.md) | 22 |
-| 12 | Phase 12 · Client link | [phase-12.md](phases/phase-12.md) | 15 |
-| 13 | Phase 13 · Change orders + EZ Binder webhooks and inbound API | [phase-13.md](phases/phase-13.md) | 13 |
-| 14 | Phase 14 · Field pack + offline + field measurements review | [phase-14.md](phases/phase-14.md) | 22 |
-| 15 | Phase 15 · Translations | [phase-15.md](phases/phase-15.md) | 10 |
-| 16 | Phase 16 · Catalog + takeoff | [phase-16.md](phases/phase-16.md) | 19 |
-| 17 | Phase 17 · Hardening | [phase-17.md](phases/phase-17.md) | 11 |
+| 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 74 |
+| 1 | Company settings and customers | 1 | 9 |
+| 2 | Projects list and new project | 1 | 7 |
+| 3 | Model store and editor route | 1, 2 | 5 |
+| 4 | Plan canvas and first walls | 2 | 8 |
+| 5 | Openings, selection, move, inspector, undo | 2 | 7 |
+| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 1, 2 | 8 |
+| 7 | Users, roles, project scope, event log | 1 | 7 |
+| 8 | Defaults, edit lock, project settings | 1, 2 | 6 |
+| 9 | Versions, sends and the project card menu | 1 | 6 |
+| 10 | Fixtures, existing conditions, showers, bearing walls | 2 | 6 |
+| 11 | Editing tools, groups, libraries, shortcuts | 1, 2 | 7 |
+| 12 | Polycam scan import | 3 | 9 |
+| 13 | PDF and DXF imports, import states, laser input | 3 | 6 |
+| 14 | Field measure and office review | 14 | 9 |
+| 15 | Cabinet runs | 4 | 10 |
+| 16 | Countertops | 4 | 9 |
+| 17 | Ceilings and the RCP | 1, 5 | 8 |
+| 18 | Beams, lights, ACT and ceiling checks | 5 | 9 |
+| 19 | Electrical devices and circuits | 6 | 8 |
+| 20 | Load calculation | 6 | 6 |
+| 21 | Code check engine and first rule sets | 2, 6 | 9 |
+| 22 | Plumbing | 7 | 2 |
+| 23 | Mechanical | 7 | 2 |
+| 24 | Tile layout | 7 | 1 |
+| 25 | Sheet set and sheet viewer | 7 | 8 |
+| 26 | Elevations, RCP and electrical sheets, title block | 7 | 7 |
+| 27 | PDF export, issue checklist and Rev 0 | 7 | 9 |
+| 28 | Revisions, client send and export options | 7 | 10 |
+| 29 | Detail editor | 8 | 9 |
+| 30 | Details on sheets, cut from model, library, export | 8 | 8 |
+| 31 | Catalog drawer and add product | 16 | 8 |
+| 32 | Catalog detail and price snapshots | 16 | 2 |
+| 33 | 3D scene, navigation and saved views | 10 | 8 |
+| 34 | 3D walk, finishes, measure and the rail | 10 | 5 |
+| 35 | Design options, phone 3D viewer, 3D exports | 10 | 9 |
+| 36 | Render setup and generate | 11 | 8 |
+| 37 | Render review and approval | 11 | 8 |
+| 38 | Render workers, extra adapters, path tracer and R1.0 | 11 | 6 |
+| 39 | Client approval page | 12 | 10 |
+| 40 | Client renders, comments and option choice | 12 | 6 |
+| 41 | Architect DXF reference | 9 | 8 |
+| 42 | Reference markup, revisions and diff | 9 | 9 |
+| 43 | Supplier files and rendering markup | 9 | 8 |
+| 44 | Offline editing | 1, 14 | 2 |
+| 45 | Field pack on the phone | 14 | 13 |
+| 46 | Code rules: Florida Residential, Existing Building, construction chapters | 6 | 5 |
+| 47 | Code rules: Energy, Mechanical, Fuel gas, Plumbing | 6 | 7 |
+| 48 | Code rules: NEC articles 100 to 230 and 240 (1 of 2) | 6 | 5 |
+| 49 | Code rules: NEC 240 to 410 (2 of 2) and 422 to 820 | 6 | 5 |
+| 50 | Translation queue | 15 | 6 |
+| 51 | Translations: approve in bulk, propagate, Spanish display | 15 | 4 |
+| 52 | Takeoff and catalog settings | 16 | 9 |
+| 53 | Billing and onboarding for other companies | 17 | 3 |
+| 54 | Hardening: security, backups, terms, event log, rule verification | 11, 17 | 5 |
+| 55 | Hardening: performance, accessibility, screen states | 17 | 6 |
 
-| Ticket | Phase | Title | Status | Depends on | Commit | Tests | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| EZD-001 | 0 | Repo and tooling | todo | EZD-000 |  |  |  |
-| EZD-002 | 0 | CI | todo | EZD-001 |  |  |  |
-| EZD-003 | 0 | Hosting and subdomain | todo | EZD-002 |  |  |  |
-| EZD-004 | 0 | Supabase project | todo | EZD-001 |  |  |  |
-| EZD-005 | 0 | Tenant, user, membership tables | todo | EZD-004 |  |  |  |
-| EZD-006 | 0 | Row-level security | todo | EZD-005 |  |  |  |
-| EZD-007 | 0 | Magic-link sign-in | todo | EZD-005 |  |  |  |
-| EZD-008 | 0 | Email provider | todo | EZD-004 |  |  |  |
-| EZD-009 | 0 | Background job queue | todo | EZD-004, EZD-018 |  |  |  |
-| EZD-010 | 0 | Design tokens | todo | EZD-001 |  |  |  |
-| EZD-011 | 0 | Shell: header card | todo | EZD-010 |  |  |  |
-| EZD-012 | 0 | Shell: rail, panels, status bar | todo | EZD-010 |  |  |  |
-| EZD-013 | 0 | PWA install | todo | EZD-012 |  |  |  |
-| EZD-014 | 0 | Device layouts | todo | EZD-012 |  |  |  |
-| EZD-015 | 0 | Shared state components | todo | EZD-010, EZD-026 |  |  |  |
-| EZD-016a | 0 | Test harness | todo | EZD-007, EZD-002 |  |  |  |
-| EZD-016b | 0 | Fixtures | todo | EZD-016a |  |  |  |
-| EZD-017 | 0 | Performance budgets and benchmark | todo | EZD-016, EZD-012 |  |  |  |
-| EZD-018 | 0 | Realtime channels | todo | EZD-006 |  |  |  |
-| EZD-019 | 0 | EZ Binder contract and stub | todo | EZD-016 |  |  |  |
-| EZD-020 | 0 | Entry points and lazy chunks | todo | EZD-017 |  |  |  |
-| EZD-021 | 0 | AI client and stubs | todo | EZD-009, EZD-016 |  |  |  |
-| EZD-022 | 0 | Event registry | todo | EZD-001 |  |  |  |
-| EZD-000 | 0 | Architecture conventions | todo | — |  |  |  |
-| EZD-023 | 0 | Environments and release | todo | EZD-002, EZD-004 |  |  |  |
-| EZD-024 | 0 | Error reporting | todo | EZD-008, EZD-009 |  |  |  |
-| EZD-025 | 0 | Off-site backups and restore script | todo | EZD-004, EZD-009 |  |  |  |
-| EZD-026 | 0 | Message helper | todo | EZD-001 |  |  |  |
-| EZD-027 | 0 | Spike: plan canvas on the iPad | todo | EZD-012 |  |  |  |
-| EZD-028 | 0 | Spike: PDF from a drawing list | todo | EZD-001 |  |  |  |
-| EZD-029 | 0 | Spike: DXF parser | todo | EZD-016, EZD-000 |  |  |  |
-| EZD-030 | 0 | Spike: wall openings and sloped ceiling | todo | EZD-001 |  |  |  |
-| EZD-031 | 0 | Spike: render trial | todo | EZD-021 |  |  |  |
-| EZD-101 | 1 | Permission and role tables | todo | EZD-005 |  |  |  |
-| EZD-102 | 1 | Permission enforcement | todo | EZD-101, EZD-006 |  |  |  |
-| EZD-103 | 1 | Settings shell | todo | EZD-102, EZD-012 |  |  |  |
-| EZD-104 | 1 | Users table | todo | EZD-103 |  |  |  |
-| EZD-105 | 1 | Invite user | todo | EZD-104, EZD-008 |  |  |  |
-| EZD-106 | 1 | User inspector | todo | EZD-104 |  |  |  |
-| EZD-107 | 1 | Custom roles | todo | EZD-106 |  |  |  |
-| EZD-108 | 1 | Avatar menu and My profile | todo | EZD-103 |  |  |  |
-| EZD-109 | 1 | Event log | todo | EZD-005, EZD-106 |  |  |  |
-| EZD-110 | 1 | Notifications | todo | EZD-008, EZD-018 |  |  |  |
-| EZD-111 | 1 | Send dialog with Copy link | todo | EZD-110, EZD-120 |  |  |  |
-| EZD-112 | 1 | Company settings: identity | todo | EZD-103, EZD-132 |  |  |  |
-| EZD-113 | 1 | Customers | todo | EZD-112 |  |  |  |
-| EZD-114 | 1 | EZ Binder connection and shared sign-on | todo | EZD-112, EZD-007, EZD-019 |  |  |  |
-| EZD-115 | 1 | Customer and user sync | todo | EZD-113, EZD-114 |  |  |  |
-| EZD-116 | 1 | Defaults framework | todo | EZD-103 |  |  |  |
-| EZD-117a | 1 | Projects page: query and cards | todo | EZD-102, EZD-110 |  |  |  |
-| EZD-117b | 1 | Projects page: header, search and states | todo | EZD-117a, EZD-015 |  |  |  |
-| EZD-118 | 1 | New project wizard | todo | EZD-117, EZD-113 |  |  |  |
-| EZD-119 | 1 | EZ Binder job picker | todo | EZD-118, EZD-114 |  |  |  |
-| EZD-120a | 1 | Model tables, save function and checkpoints | todo | EZD-005, EZD-133 |  |  |  |
-| EZD-120b | 1 | Model store, outbox and editor route | todo | EZD-120a, EZD-012, EZD-117 |  |  |  |
-| EZD-121 | 1 | Sent versions and numbering | todo | EZD-120, EZD-111 |  |  |  |
-| EZD-122 | 1 | Versions panel | todo | EZD-121 |  |  |  |
-| EZD-123 | 1 | Version cleanup | todo | EZD-122, EZD-110, EZD-116 |  |  |  |
-| EZD-124 | 1 | Project card menu | todo | EZD-117, EZD-121 |  |  |  |
-| EZD-125 | 1 | Edit lock service | todo | EZD-120, EZD-109, EZD-110, EZD-116, EZD-018 |  |  |  |
-| EZD-126 | 1 | Edit lock UI | todo | EZD-125, EZD-011 |  |  |  |
-| EZD-127 | 1 | Review pill | todo | EZD-117 |  |  |  |
-| EZD-128 | 1 | Project switcher | todo | EZD-117 |  |  |  |
-| EZD-129 | 1 | User project scope | todo | EZD-106, EZD-006 |  |  |  |
-| EZD-130 | 1 | Project settings dialog | todo | EZD-118, EZD-116, EZD-128 |  |  |  |
-| EZD-131 | 1 | Libraries shell | todo | EZD-103 |  |  |  |
-| EZD-132 | 1 | File storage | todo | EZD-006 |  |  |  |
-| EZD-133 | 1 | Access and money-field harness | todo | EZD-102, EZD-006 |  |  |  |
-| EZD-134 | 1 | App-shell cache and device storage | todo | EZD-013, EZD-120 |  |  |  |
-| EZD-135 | 1 | System status page | todo | EZD-103, EZD-024, EZD-025 |  |  |  |
-| EZD-201 | 2 | Length parse and format | todo | EZD-001 |  |  |  |
-| EZD-202 | 2 | Model document schema | todo | EZD-120 |  |  |  |
-| EZD-203 | 2 | Walls core | todo | EZD-202 |  |  |  |
-| EZD-204 | 2 | Openings core | todo | EZD-203 |  |  |  |
-| EZD-205 | 2 | Rooms and closure | todo | EZD-203 |  |  |  |
-| EZD-206 | 2 | Snapping | todo | EZD-203 |  |  |  |
-| EZD-207 | 2 | Plan canvas | todo | EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238 |  |  |  |
-| EZD-208 | 2 | Selection | todo | EZD-207 |  |  |  |
-| EZD-209 | 2 | Typed dimension bar | todo | EZD-201, EZD-207 |  |  |  |
-| EZD-210 | 2 | Wall and Room rectangle tools | todo | EZD-205, EZD-209 |  |  |  |
-| EZD-211 | 2 | Door and window tools | todo | EZD-204, EZD-209 |  |  |  |
-| EZD-212 | 2 | Move, handles, distance chips | todo | EZD-208 |  |  |  |
-| EZD-213 | 2 | Inspector fields | todo | EZD-208 |  |  |  |
-| EZD-214 | 2 | Status and phase switch | todo | EZD-213 |  |  |  |
-| EZD-215 | 2 | Bearing wall rule | todo | EZD-213, EZD-132 |  |  |  |
-| EZD-216 | 2 | Dimensions and text | todo | EZD-207, EZD-235 |  |  |  |
-| EZD-217 | 2 | Undo, redo and clipboard | todo | EZD-208 |  |  |  |
-| EZD-218 | 2 | Left panel: Layers and Rooms | todo | EZD-214, EZD-132 |  |  |  |
-| EZD-219 | 2 | Status bar popovers | todo | EZD-206 |  |  |  |
-| EZD-220 | 2 | Existing-condition pins | todo | EZD-213, EZD-132 |  |  |  |
-| EZD-221 | 2 | Blank templates | todo | EZD-210, EZD-118 |  |  |  |
-| EZD-222 | 2 | Keyboard shortcuts and Help | todo | EZD-116, EZD-012 |  |  |  |
-| EZD-223 | 2 | Sketch tool | todo | EZD-207, EZD-108 |  |  |  |
-| EZD-224 | 2 | Plan thumbnail | todo | EZD-207 |  |  |  |
-| EZD-225 | 2 | Editor states | todo | EZD-126, EZD-204 |  |  |  |
-| EZD-226 | 2 | Custom tile shower objects | todo | EZD-234 |  |  |  |
-| EZD-227 | 2 | Grab-bar blocking | todo | EZD-234 |  |  |  |
-| EZD-228 | 2 | Bath clearance check | todo | EZD-226, EZD-116 |  |  |  |
-| EZD-229 | 2 | Existing-condition details | todo | EZD-220 |  |  |  |
-| EZD-230 | 2 | Default key map and full rail | todo | EZD-222 |  |  |  |
-| EZD-231 | 2 | Measure tool (plan) | todo | EZD-206, EZD-207 |  |  |  |
-| EZD-232 | 2 | Manual revision cloud (plan) | todo | EZD-216 |  |  |  |
-| EZD-233 | 2 | Context menu, mirror, align, groups | todo | EZD-217, EZD-131, EZD-234 |  |  |  |
-| EZD-234 | 2 | Fixtures tool and utility points | todo | EZD-213 |  |  |  |
-| EZD-235 | 2 | Derived values and workers | todo | EZD-205, EZD-207 |  |  |  |
-| EZD-236 | 2 | Benchmark project generator | todo | EZD-202, EZD-017, EZD-120 |  |  |  |
-| EZD-237 | 2 | Benchmark page | todo | EZD-207, EZD-236, EZD-135 |  |  |  |
-| EZD-238 | 2 | Drawing list | todo | EZD-202 |  |  |  |
-| EZD-301 | 3 | Upload step | todo | EZD-118, EZD-009, EZD-132 |  |  |  |
-| EZD-302 | 3 | Polycam DXF detection | todo | EZD-301, EZD-202, EZD-016, EZD-029 |  |  |  |
-| EZD-303 | 3 | Polycam GLB mesh | todo | EZD-301 |  |  |  |
-| EZD-304 | 3 | PDF underlay and scale | todo | EZD-301 |  |  |  |
-| EZD-305 | 3 | Vector PDF wall detection | todo | EZD-304 |  |  |  |
-| EZD-306 | 3 | DXF conversion choice | todo | EZD-301, EZD-302 |  |  |  |
-| EZD-307 | 3 | Import review screen | todo | EZD-302, EZD-303, EZD-012 |  |  |  |
-| EZD-308 | 3 | Review modes | todo | EZD-307, EZD-116 |  |  |  |
-| EZD-309 | 3 | Fix and delete | todo | EZD-307 |  |  |  |
-| EZD-310 | 3 | Typed vs scan conflicts | todo | EZD-309, EZD-201 |  |  |  |
-| EZD-311 | 3 | Resolve the gap | todo | EZD-310, EZD-205 |  |  |  |
-| EZD-312 | 3 | Ceiling slope in review | todo | EZD-309, EZD-303 |  |  |  |
-| EZD-313 | 3 | Finish and cancel | todo | EZD-308, EZD-310, EZD-311 |  |  |  |
-| EZD-314 | 3 | Import states | todo | EZD-313, EZD-126 |  |  |  |
-| EZD-315 | 3 | Laser keyboard input | todo | EZD-209, EZD-310 |  |  |  |
-| EZD-401 | 4 | Catalog items (minimal) | todo | EZD-006 |  |  |  |
-| EZD-402 | 4 | Cabinet object model | todo | EZD-202 |  |  |  |
-| EZD-403 | 4 | Cabinet library panel | todo | EZD-402, EZD-401, EZD-404 |  |  |  |
-| EZD-404 | 4 | Plan strip and elevation | todo | EZD-402, EZD-207 |  |  |  |
-| EZD-405 | 4 | Box editing on canvas | todo | EZD-404 |  |  |  |
-| EZD-406 | 4 | Box inspector | todo | EZD-405 |  |  |  |
-| EZD-407 | 4 | Fit chip | todo | EZD-404, EZD-116 |  |  |  |
-| EZD-408 | 4 | Auto-fill run | todo | EZD-407, EZD-234 |  |  |  |
-| EZD-409 | 4 | Cabinet schedule | todo | EZD-406 |  |  |  |
-| EZD-410 | 4 | Cabinet flags and states | todo | EZD-402, EZD-204 |  |  |  |
-| EZD-411 | 4 | Countertop object model | todo | EZD-202 |  |  |  |
-| EZD-412 | 4 | Trace and Draw outline | todo | EZD-411, EZD-404, EZD-116 |  |  |  |
-| EZD-413 | 4 | Seams and cutouts | todo | EZD-412 |  |  |  |
-| EZD-414 | 4 | Edges and overhangs | todo | EZD-412, EZD-116 |  |  |  |
-| EZD-415 | 4 | Seating support check | todo | EZD-414 |  |  |  |
-| EZD-416 | 4 | Left panel and status bar | todo | EZD-412 |  |  |  |
-| EZD-417 | 4 | Edge profiles | todo | EZD-414 |  |  |  |
-| EZD-418 | 4 | Top schedule | todo | EZD-416 |  |  |  |
-| EZD-419 | 4 | Plan inspector: run selection | todo | EZD-406, EZD-409 |  |  |  |
-| EZD-501 | 5 | Ceiling data per room | todo | EZD-202 |  |  |  |
-| EZD-502 | 5 | RCP view and ceiling rail | todo | EZD-207, EZD-501, EZD-127 |  |  |  |
-| EZD-503 | 5 | Ceiling type editor | todo | EZD-501, EZD-303 |  |  |  |
-| EZD-504 | 5 | Walls cut under slopes | todo | EZD-503 |  |  |  |
-| EZD-505 | 5 | Beams | todo | EZD-501 |  |  |  |
-| EZD-506 | 5 | Section A-A preview | todo | EZD-505 |  |  |  |
-| EZD-507 | 5 | Ceiling devices | todo | EZD-501 |  |  |  |
-| EZD-508 | 5 | Fixture schedule panel | todo | EZD-507 |  |  |  |
-| EZD-509 | 5 | Auto-layout cans | todo | EZD-507, EZD-116 |  |  |  |
-| EZD-510 | 5 | Switching zones | todo | EZD-507 |  |  |  |
-| EZD-511 | 5 | ACT grid | todo | EZD-501, EZD-116 |  |  |  |
-| EZD-512 | 5 | HVAC objects | todo | EZD-511 |  |  |  |
-| EZD-513 | 5 | Soffits, trays, coffers, crown, tags | todo | EZD-501 |  |  |  |
-| EZD-514 | 5 | Framing known and keep-clear | todo | EZD-507 |  |  |  |
-| EZD-515 | 5 | Fan clearance and hosted flags | todo | EZD-507, EZD-505, EZD-116 |  |  |  |
-| EZD-516 | 5 | Beam finish, More menu, canvas | todo | EZD-505, EZD-401 |  |  |  |
-| EZD-601 | 6 | Electrical mode and left panel | todo | EZD-207, EZD-202 |  |  |  |
-| EZD-602 | 6 | Device toolbar | todo | EZD-601, EZD-507 |  |  |  |
-| EZD-603 | 6 | Device height notes | todo | EZD-602, EZD-116 |  |  |  |
-| EZD-604 | 6 | Circuits | todo | EZD-602 |  |  |  |
-| EZD-605 | 6 | Switch legs | todo | EZD-604, EZD-510 |  |  |  |
-| EZD-606 | 6 | Panel and existing panel dialog | todo | EZD-604, EZD-021 |  |  |  |
-| EZD-607 | 6 | Load calc engine | todo | EZD-604 |  |  |  |
-| EZD-608 | 6 | Load calc inspector | todo | EZD-607, EZD-116 |  |  |  |
-| EZD-609 | 6 | Panel schedule | todo | EZD-604 |  |  |  |
-| EZD-610 | 6 | Selected circuit and voltage drop | todo | EZD-604, EZD-116 |  |  |  |
-| EZD-611a | 6 | Code check engine and rule registry | todo | EZD-604, EZD-218, EZD-613 |  |  |  |
-| EZD-611b | 6 | Code rules: Florida Residential Ch. 3 (1 of 4) | todo | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-611c | 6 | Code rules: Florida Residential Ch. 3 (2 of 4) | todo | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-612 | 6 | Check button and results | todo | EZD-611a |  |  |  |
-| EZD-613 | 6 | Code edition settings | todo | EZD-116 |  |  |  |
-| EZD-614 | 6 | Appliance rating defaults | todo | EZD-607, EZD-401, EZD-103 |  |  |  |
-| EZD-615 | 6 | Load calc: optional method and cases | todo | EZD-607, EZD-606, EZD-608 |  |  |  |
-| EZD-616 | 6 | Code rules: Florida Residential Ch. 3 (3 of 4) | todo | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-617 | 6 | Code rules: Florida Residential Ch. 3 (4 of 4) | todo | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
-| EZD-618 | 6 | Code rules: Existing Building | todo | EZD-611a, EZD-620 |  |  |  |
-| EZD-620 | 6 | Code data fields | todo | EZD-611a, EZD-130, EZD-213 |  |  |  |
-| EZD-621 | 6 | Code rules: Florida construction chapters (1 of 2) | todo | EZD-611a, EZD-620, EZD-501 |  |  |  |
-| EZD-622 | 6 | Code rules: Florida construction chapters (2 of 2) | todo | EZD-611a, EZD-620, EZD-501 |  |  |  |
-| EZD-623 | 6 | Code rules: Energy Conservation | todo | EZD-611a, EZD-620, EZD-507 |  |  |  |
-| EZD-624 | 6 | Code rules: Mechanical (1 of 2) | todo | EZD-611a, EZD-620, EZD-234 |  |  |  |
-| EZD-625 | 6 | Code rules: Mechanical (2 of 2) | todo | EZD-611a, EZD-620, EZD-234 |  |  |  |
-| EZD-626 | 6 | Code rules: Fuel gas | todo | EZD-611a, EZD-620, EZD-234 |  |  |  |
-| EZD-627 | 6 | Code rules: Plumbing (1 of 3) | todo | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
-| EZD-628 | 6 | Code rules: Plumbing (2 of 3) | todo | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
-| EZD-629 | 6 | Code rules: Plumbing (3 of 3) | todo | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
-| EZD-630 | 6 | Code rules: NEC Art. 100-230 (1 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-631 | 6 | Code rules: NEC Art. 100-230 (2 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-632 | 6 | Code rules: NEC Art. 100-230 (3 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-633 | 6 | Code rules: NEC Art. 100-230 (4 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
-| EZD-634 | 6 | Code rules: NEC Art. 240-410 (1 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-635 | 6 | Code rules: NEC Art. 240-410 (2 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-636 | 6 | Code rules: NEC Art. 240-410 (3 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-637 | 6 | Code rules: NEC Art. 240-410 (4 of 4) | todo | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
-| EZD-638 | 6 | Code rules: NEC Art. 422-820 (1 of 2) | todo | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
-| EZD-639 | 6 | Code rules: NEC Art. 422-820 (2 of 2) | todo | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
-| EZD-701 | 7 | Sheet model and default set | todo | EZD-202 |  |  |  |
-| EZD-702a | 7 | Sheets screen | todo | EZD-701, EZD-726 |  |  |  |
-| EZD-702b | 7 | Sheet renderer | todo | EZD-702a, EZD-235, EZD-238 |  |  |  |
-| EZD-703 | 7 | Viewports and scales | todo | EZD-702, EZD-214 |  |  |  |
-| EZD-704 | 7 | Sheet annotation tools | todo | EZD-702 |  |  |  |
-| EZD-705 | 7 | Print rules | todo | EZD-703 |  |  |  |
-| EZD-706 | 7 | Symbol key | todo | EZD-702 |  |  |  |
-| EZD-707 | 7 | Elevations sheet | todo | EZD-703, EZD-404 |  |  |  |
-| EZD-708a | 7 | A6.0 RCP sheet | todo | EZD-703, EZD-508 |  |  |  |
-| EZD-708b | 7 | E1.0 electrical plan | todo | EZD-703, EZD-604, EZD-708a |  |  |  |
-| EZD-708c | 7 | E2.0 panel schedule and load calc | todo | EZD-708b, EZD-609, EZD-607 |  |  |  |
-| EZD-709 | 7 | Title block settings | todo | EZD-112, EZD-701 |  |  |  |
-| EZD-710 | 7 | Title block on sheets | todo | EZD-709, EZD-130 |  |  |  |
-| EZD-711 | 7 | Property appraiser import | todo | EZD-710, EZD-009, EZD-021, EZD-118 |  |  |  |
-| EZD-712 | 7 | Submittal profiles | todo | EZD-116 |  |  |  |
-| EZD-713 | 7 | Department profile settings | todo | EZD-712 |  |  |  |
-| EZD-714 | 7 | Notes library | todo | EZD-712 |  |  |  |
-| EZD-715 | 7 | PDF export job | todo | EZD-705, EZD-713, EZD-238, EZD-028 |  |  |  |
-| EZD-716 | 7 | Issue checklist | todo | EZD-612, EZD-710 |  |  |  |
-| EZD-717 | 7 | Issue Rev 0 and Rev N | todo | EZD-715, EZD-716, EZD-121 |  |  |  |
-| EZD-718 | 7 | Revision clouds and log | todo | EZD-717 |  |  |  |
-| EZD-719 | 7 | Send set to client | todo | EZD-717, EZD-111 |  |  |  |
-| EZD-720 | 7 | Client set content | todo | EZD-701, EZD-418, EZD-726 |  |  |  |
-| EZD-721 | 7 | Export menu | todo | EZD-715 |  |  |  |
-| EZD-722 | 7 | Sheets states | todo | EZD-717 |  |  |  |
-| EZD-723 | 7 | Download one page at a time | todo | EZD-715, EZD-713 |  |  |  |
-| EZD-724 | 7 | Dismissible dimension warning | todo | EZD-716 |  |  |  |
-| EZD-725 | 7 | Accepted warnings in the issue log | todo | EZD-717, EZD-612 |  |  |  |
-| EZD-726 | 7 | Sheet sets | todo | EZD-701 |  |  |  |
-| EZD-727 | 7 | Submittal profile enforcement at issue | todo | EZD-712, EZD-713, EZD-715 |  |  |  |
-| EZD-728 | 7 | Cover sheet A0.0 | todo | EZD-706, EZD-714 |  |  |  |
-| EZD-801 | 8 | Detail data and editor shell | todo | EZD-202, EZD-012 |  |  |  |
-| EZD-802 | 8 | New detail dialog | todo | EZD-801 |  |  |  |
-| EZD-803 | 8 | Drawing tools | todo | EZD-801, EZD-201 |  |  |  |
-| EZD-804 | 8 | Line roles and hatches | todo | EZD-803 |  |  |  |
-| EZD-805 | 8 | Annotation tools | todo | EZD-803 |  |  |  |
-| EZD-806 | 8 | Parts | todo | EZD-801, EZD-817 |  |  |  |
-| EZD-807 | 8 | Scale and NTS | todo | EZD-805, EZD-116 |  |  |  |
-| EZD-808 | 8 | Steps and layers | todo | EZD-801 |  |  |  |
-| EZD-809 | 8 | Legibility warnings | todo | EZD-805 |  |  |  |
-| EZD-810 | 8 | Place on sheet | todo | EZD-809, EZD-702 |  |  |  |
-| EZD-811 | 8 | Cut from model and callouts | todo | EZD-802, EZD-207 |  |  |  |
-| EZD-812 | 8 | Underlay start | todo | EZD-802, EZD-304 |  |  |  |
-| EZD-813 | 8 | Extrude to 3D | todo | EZD-803 |  |  |  |
-| EZD-814 | 8 | Detail library and countertop link | todo | EZD-801, EZD-415, EZD-817 |  |  |  |
-| EZD-815 | 8 | Detail PDF export | todo | EZD-810, EZD-721 |  |  |  |
-| EZD-816 | 8 | Freehand pen | todo | EZD-803, EZD-223 |  |  |  |
-| EZD-817 | 8 | Detail libraries in Settings | todo | EZD-801, EZD-131 |  |  |  |
-| EZD-901a | 9 | Reference conversion job | todo | EZD-306, EZD-009, EZD-016, EZD-029 |  |  |  |
-| EZD-901b | 9 | Reference drawing in Plan | todo | EZD-901a, EZD-207, EZD-235, EZD-017 |  |  |  |
-| EZD-902 | 9 | Reference under the model | todo | EZD-901 |  |  |  |
-| EZD-903 | 9 | Alignment | todo | EZD-902, EZD-904 |  |  |  |
-| EZD-904 | 9 | Reference layers panel | todo | EZD-901 |  |  |  |
-| EZD-905 | 9 | Paper-space layouts | todo | EZD-901 |  |  |  |
-| EZD-906 | 9 | Convert layers | todo | EZD-904, EZD-307, EZD-306 |  |  |  |
-| EZD-907 | 9 | Markup layer | todo | EZD-902, EZD-904 |  |  |  |
-| EZD-908 | 9 | Reference versions | todo | EZD-904, EZD-921 |  |  |  |
-| EZD-909a | 9 | Reference diff job | todo | EZD-908, EZD-907, EZD-116 |  |  |  |
-| EZD-909b | 9 | Reference diff view | todo | EZD-909a |  |  |  |
-| EZD-910 | 9 | Keep or accept a revision | todo | EZD-909 |  |  |  |
-| EZD-911 | 9 | Export markup | todo | EZD-907, EZD-913, EZD-715 |  |  |  |
-| EZD-912 | 9 | Section or callout from reference | todo | EZD-902, EZD-811 |  |  |  |
-| EZD-913 | 9 | DXF export | todo | EZD-901, EZD-721 |  |  |  |
-| EZD-914 | 9 | Supplier files panel | todo | EZD-301 |  |  |  |
-| EZD-915 | 9 | Supplier vector PDF import | todo | EZD-914, EZD-305 |  |  |  |
-| EZD-916 | 9 | 2020 order report import | todo | EZD-914, EZD-307, EZD-021 |  |  |  |
-| EZD-917 | 9 | Tag and link tools | todo | EZD-914, EZD-404, EZD-907 |  |  |  |
-| EZD-918 | 9 | Read codes | todo | EZD-917, EZD-916, EZD-021 |  |  |  |
-| EZD-919 | 9 | Compare and resolve mismatches | todo | EZD-917, EZD-407, EZD-111 |  |  |  |
-| EZD-920 | 9 | Suggested finishes | todo | EZD-917, EZD-401, EZD-021 |  |  |  |
-| EZD-921 | 9 | Architect revision labels | todo | EZD-904 |  |  |  |
-| EZD-922a | 9 | Reference states (screen 11) | todo | EZD-911 |  |  |  |
-| EZD-922b | 9 | Supplier markup states (screen 12) | todo | EZD-919 |  |  |  |
-| EZD-1001a | 10 | 3D scene core | todo | EZD-207, EZD-020, EZD-235, EZD-030 |  |  |  |
-| EZD-1001b | 10 | 3D ceilings and beams | todo | EZD-1001a, EZD-504, EZD-505 |  |  |  |
-| EZD-1001c | 10 | 3D cabinets, fixtures, devices and finishes | todo | EZD-1001b, EZD-402, EZD-414, EZD-234, EZD-226, EZD-602, EZD-401 |  |  |  |
-| EZD-1002 | 10 | Navigation | todo | EZD-1001 |  |  |  |
-| EZD-1003 | 10 | Walk and Look up | todo | EZD-1002, EZD-116 |  |  |  |
-| EZD-1004 | 10 | Section and display modes | todo | EZD-1002 |  |  |  |
-| EZD-1005 | 10 | 3D layers | todo | EZD-1001, EZD-303 |  |  |  |
-| EZD-1006 | 10 | Saved views | todo | EZD-1002 |  |  |  |
-| EZD-1007 | 10 | Select and apply finish | todo | EZD-1001, EZD-401, EZD-505 |  |  |  |
-| EZD-1008 | 10 | Rail on the 3D tab | todo | EZD-1002, EZD-612 |  |  |  |
-| EZD-1009 | 10 | Design options data | todo | EZD-202 |  |  |  |
-| EZD-1010 | 10 | Options inspector | todo | EZD-1009, EZD-1001 |  |  |  |
-| EZD-1011 | 10 | Make options from the RCP | todo | EZD-1010, EZD-505 |  |  |  |
-| EZD-1012 | 10 | Measure in 3D | todo | EZD-1002 |  |  |  |
-| EZD-1013 | 10 | Phone 3D viewer | todo | EZD-1012, EZD-014 |  |  |  |
-| EZD-1014 | 10 | GLB and USDZ export | todo | EZD-1001, EZD-721 |  |  |  |
-| EZD-1015 | 10 | iPad memory guard and states | todo | EZD-1001 |  |  |  |
-| EZD-1017 | 10 | Inspector 3D preview | todo | EZD-1001 |  |  |  |
-| EZD-1101 | 11 | Render records and jobs | todo | EZD-009, EZD-1006 |  |  |  |
-| EZD-1102 | 11 | Render models settings | todo | EZD-116 |  |  |  |
-| EZD-1103 | 11 | Provider adapters | todo | EZD-1101, EZD-1102, EZD-021 |  |  |  |
-| EZD-1104a | 11 | Local worker protocol | todo | EZD-1103, EZD-116 |  |  |  |
-| EZD-1104b | 11 | Local worker program | todo | EZD-1104a |  |  |  |
-| EZD-1105 | 11 | Browser path tracer | todo | EZD-1001, EZD-1109 |  |  |  |
-| EZD-1106 | 11 | Step 1: angle | todo | EZD-1006, EZD-1101 |  |  |  |
-| EZD-1107 | 11 | Preview and optional alignment | todo | EZD-1106 |  |  |  |
-| EZD-1108 | 11 | Step 2: style and direction | todo | EZD-1107, EZD-401 |  |  |  |
-| EZD-1109 | 11 | Tiers and Generate | todo | EZD-1108, EZD-1103 |  |  |  |
-| EZD-1110 | 11 | Renders list and notifications | todo | EZD-1109, EZD-110, EZD-127 |  |  |  |
-| EZD-1111 | 11 | Render view | todo | EZD-1110 |  |  |  |
-| EZD-1112 | 11 | Comment pins | todo | EZD-1111 |  |  |  |
-| EZD-1113 | 11 | Fix and regenerate | todo | EZD-1111 |  |  |  |
-| EZD-1114 | 11 | Two-step approval | todo | EZD-1111 |  |  |  |
-| EZD-1115 | 11 | Model changed detection | todo | EZD-1114, EZD-1001, EZD-1109, EZD-127 |  |  |  |
-| EZD-1116 | 11 | Download | todo | EZD-1111 |  |  |  |
-| EZD-1117 | 11 | Render allowance | todo | EZD-1102, EZD-110 |  |  |  |
-| EZD-1118 | 11 | Render A/B/C from 3D | todo | EZD-1109, EZD-1010 |  |  |  |
-| EZD-1119 | 11 | R1.0 finish schedule + renders | todo | EZD-1114, EZD-716, EZD-401 |  |  |  |
-| EZD-1120 | 11 | Local worker: real runner | todo | EZD-1104b |  |  |  |
-| EZD-1121 | 11 | Second provider adapter | todo | EZD-1103 |  |  |  |
-| EZD-1201 | 12 | Share links | todo | EZD-111, EZD-116 |  |  |  |
-| EZD-1202 | 12 | Client page shell | todo | EZD-1201, EZD-020 |  |  |  |
-| EZD-1203 | 12 | Render gallery | todo | EZD-1202, EZD-1114 |  |  |  |
-| EZD-1204 | 12 | Client comments | todo | EZD-1203, EZD-1112 |  |  |  |
-| EZD-1205 | 12 | Plans tab | todo | EZD-1202, EZD-702, EZD-1215 |  |  |  |
-| EZD-1206 | 12 | Send options to client | todo | EZD-1010, EZD-1201, EZD-121 |  |  |  |
-| EZD-1207 | 12 | Option choice | todo | EZD-1206, EZD-1215 |  |  |  |
-| EZD-1208 | 12 | Selection offers and choice pages | todo | EZD-1202, EZD-417 |  |  |  |
-| EZD-1209 | 12 | Edge choice | todo | EZD-1208, EZD-417 |  |  |  |
-| EZD-1210 | 12 | Verify and sign | todo | EZD-1208, EZD-113 |  |  |  |
-| EZD-1211 | 12 | Approve | todo | EZD-1210 |  |  |  |
-| EZD-1212 | 12 | Selections PDF | todo | EZD-1211 |  |  |  |
-| EZD-1213 | 12 | Send image | todo | EZD-1114, EZD-111 |  |  |  |
-| EZD-1214 | 12 | Archive options on signing | todo | EZD-1009, EZD-1211 |  |  |  |
-| EZD-1215 | 12 | Send to client composer | todo | EZD-1201, EZD-1208, EZD-401 |  |  |  |
-| EZD-1301 | 13 | Webhook delivery | todo | EZD-114, EZD-109, EZD-116, EZD-022, EZD-009, EZD-019 |  |  |  |
-| EZD-1302 | 13 | Outbound event payloads | todo | EZD-1301 |  |  |  |
-| EZD-1303 | 13 | Inbound API authentication | todo | EZD-114, EZD-019 |  |  |  |
-| EZD-1304 | 13 | Inbound: create project from job | todo | EZD-1303, EZD-119 |  |  |  |
-| EZD-1305 | 13 | Inbound: open with shared sign-on | todo | EZD-1303 |  |  |  |
-| EZD-1306 | 13 | Inbound: read approved data | todo | EZD-1303, EZD-1211, EZD-717, EZD-1114 |  |  |  |
-| EZD-1307 | 13 | Inbound: mark CO approved | todo | EZD-1303, EZD-1308 |  |  |  |
-| EZD-1308 | 13 | CO draft data and entry points | todo | EZD-717, EZD-122 |  |  |  |
-| EZD-1309 | 13 | Before and after images | todo | EZD-1308, EZD-1114 |  |  |  |
-| EZD-1310 | 13 | Scope text | todo | EZD-1308, EZD-009, EZD-021 |  |  |  |
-| EZD-1311 | 13 | Line items and schedule impact | todo | EZD-1308 |  |  |  |
-| EZD-1312 | 13 | Save draft and Send to EZ Binder | todo | EZD-1309, EZD-1311, EZD-1302 |  |  |  |
-| EZD-1314 | 13 | Canonical event registry | todo | EZD-1301, EZD-022 |  |  |  |
-| EZD-1401 | 14 | Service worker cache | todo | EZD-134 |  |  |  |
-| EZD-1402 | 14 | Offline change queue | todo | EZD-1401, EZD-120 |  |  |  |
-| EZD-1403 | 14 | Offline editing and conflicts | todo | EZD-1402, EZD-125 |  |  |  |
-| EZD-1404 | 14 | Field pack shell | todo | EZD-1401, EZD-1305 |  |  |  |
-| EZD-1405 | 14 | Plan and 3D tabs | todo | EZD-1404, EZD-1013 |  |  |  |
-| EZD-1406 | 14 | Measure tab | todo | EZD-1405, EZD-315 |  |  |  |
-| EZD-1407 | 14 | Send measurement and Flag conflict | todo | EZD-1406, EZD-1402 |  |  |  |
-| EZD-1408 | 14 | Field task templates and publishing | todo | EZD-131, EZD-021 |  |  |  |
-| EZD-1409 | 14 | Tasks tab | todo | EZD-1408, EZD-1402, EZD-1404 |  |  |  |
-| EZD-1410 | 14 | Photo tab and pins | todo | EZD-1405, EZD-1402, EZD-1407 |  |  |  |
-| EZD-1411 | 14 | Field pack PDF | todo | EZD-1405, EZD-1421, EZD-715 |  |  |  |
-| EZD-1412 | 14 | Stale actions on reconnect | todo | EZD-1402, EZD-717 |  |  |  |
-| EZD-1413 | 14 | Field measurements review | todo | EZD-1407, EZD-310, EZD-127, EZD-125 |  |  |  |
-| EZD-1414 | 14 | Field conflicts list | todo | EZD-1407, EZD-127 |  |  |  |
-| EZD-1415 | 14 | Field measure: shapes and walls | todo | EZD-1401 |  |  |  |
-| EZD-1416 | 14 | Field measure: keypad and closure | todo | EZD-1415 |  |  |  |
-| EZD-1417 | 14 | Field measure: offline save and send | todo | EZD-1416, EZD-1402, EZD-110 |  |  |  |
-| EZD-1418 | 14 | Field measure into Import review | todo | EZD-1417, EZD-307 |  |  |  |
-| EZD-1419 | 14 | Field measure entry points and states | todo | EZD-1415, EZD-1404, EZD-118, EZD-1305, EZD-1406 |  |  |  |
-| EZD-1420 | 14 | Field tasks screen | todo | EZD-1408, EZD-1409 |  |  |  |
-| EZD-1421 | 14 | Issue field pack | todo | EZD-1420, EZD-129, EZD-1404 |  |  |  |
-| EZD-1422 | 14 | Field measure as wizard input | todo | EZD-118, EZD-1419 |  |  |  |
-| EZD-1501 | 15 | Translation store | todo | EZD-006 |  |  |  |
-| EZD-1502 | 15 | AI drafting | todo | EZD-1501, EZD-009, EZD-021, EZD-110 |  |  |  |
-| EZD-1503 | 15 | Spanish display | todo | EZD-1501, EZD-1404, EZD-026 |  |  |  |
-| EZD-1504 | 15 | Review table | todo | EZD-1501, EZD-103 |  |  |  |
-| EZD-1505 | 15 | Review card actions | todo | EZD-1504 |  |  |  |
-| EZD-1506 | 15 | Draft warnings | todo | EZD-1504 |  |  |  |
-| EZD-1507 | 15 | Glossary | todo | EZD-1504 |  |  |  |
-| EZD-1508 | 15 | Bulk approve | todo | EZD-1506 |  |  |  |
-| EZD-1509 | 15 | Propagation | todo | EZD-1505 |  |  |  |
-| EZD-1510 | 15 | Translation settings | todo | EZD-1504, EZD-716 |  |  |  |
-| EZD-1601 | 16 | Catalog drawer | todo | EZD-401 |  |  |  |
-| EZD-1602 | 16 | Place from catalog | todo | EZD-1601, EZD-234 |  |  |  |
-| EZD-1603 | 16 | Add product: link | todo | EZD-1601, EZD-009, EZD-021 |  |  |  |
-| EZD-1604 | 16 | Add product: paste text and screenshot | todo | EZD-1603, EZD-021 |  |  |  |
-| EZD-1605 | 16 | Field confirmation | todo | EZD-1603 |  |  |  |
-| EZD-1606 | 16 | Save and place | todo | EZD-1605 |  |  |  |
-| EZD-1607 | 16 | Item detail | todo | EZD-1606 |  |  |  |
-| EZD-1608 | 16 | Price snapshots and refresh | todo | EZD-1607 |  |  |  |
-| EZD-1609 | 16 | Catalog settings | todo | EZD-103, EZD-1212 |  |  |  |
-| EZD-1610 | 16 | Catalog states | todo | EZD-1601 |  |  |  |
-| EZD-1611a | 16 | Takeoff framework and room finishes | todo | EZD-235, EZD-226, EZD-116 |  |  |  |
-| EZD-1611b | 16 | Takeoff: cabinets, tops, fixtures and electrical | todo | EZD-1611a, EZD-418, EZD-604 |  |  |  |
-| EZD-1611c | 16 | Takeoff: ACT, option costs and snapshot | todo | EZD-1611b, EZD-511, EZD-1010, EZD-121 |  |  |  |
-| EZD-1612 | 16 | Waste factors | todo | EZD-1611, EZD-116 |  |  |  |
-| EZD-1613 | 16 | Takeoff screen | todo | EZD-1611 |  |  |  |
-| EZD-1614 | 16 | Tile layout preview | todo | EZD-1612, EZD-1001 |  |  |  |
-| EZD-1615 | 16 | Takeoff CSV | todo | EZD-1613 |  |  |  |
-| EZD-1616 | 16 | Catalog on the standard rail | todo | EZD-1601, EZD-230 |  |  |  |
-| EZD-1617 | 16 | Catalog settings: markup per category and edge library | todo | EZD-1601, EZD-1609 |  |  |  |
-| EZD-1701 | 17 | Performance targets | todo | EZD-1001, EZD-901 |  |  |  |
-| EZD-1702 | 17 | DXF size limits | todo | EZD-1701 |  |  |  |
-| EZD-1704 | 17 | Backups | todo | EZD-025 |  |  |  |
-| EZD-1705 | 17 | Security review | todo | EZD-1302, EZD-1211 |  |  |  |
-| EZD-1706 | 17 | Event log coverage | todo | EZD-109 |  |  |  |
-| EZD-1707 | 17 | Terms of service | todo | EZD-007 |  |  |  |
-| EZD-1708 | 17 | Accessibility pass | todo | EZD-222 |  |  |  |
-| EZD-1709a | 17 | Screen states: Projects and Settings | todo | EZD-016 |  |  |  |
-| EZD-1709b | 17 | Screen states: editor tabs | todo | EZD-1709a, EZD-1613 |  |  |  |
-| EZD-1709c | 17 | Screen states: phone and client screens | todo | EZD-1709b |  |  |  |
-| EZD-1710 | 17 | Code rule list and verification | todo | EZD-611, EZD-613, EZD-620 |  |  |  |
+| Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| EZD-001 | 0 | Repo and tooling | done | high | EZD-000, EZD-000b, EZD-000c, EZD-000d, EZD-000e, EZD-000f, EZD-000g, EZD-000h, EZD-000i | 3b1037c | 139 | Done 2026-10-19 (139 = 138 repo node:test + 1 Vitest on develop phase 0). Step 1: plan re-validated (024ca47, 74888bc) after EZD-000/000d/000e/000h/000i deviations; complexity medium → high; QP-1 → Q-0139 answered-agent (a) (orchestrator), QP-2 → Q-0140 answered-agent (a) (security-reviewer). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): planner Opus 5.5 (re-validation); test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 PASS (also level-3 answer Q-0142 and repair check PASS); builder r1 Fable 5.1; code-reviewer mode 3 Fable 5.1 PASS (fresh agent, not the resumed step-5 reviewer: orchestrator slip); security-reviewer Fable 5.1 PASS (production-sensitive changes PASS). Gate: develop was red before this ticket (questions-flow.test.mjs, from 3e85263) → fixed in place b6e82e0 (Q-0141, rule 19). Worktree gate PASS round 1 after repairs; T3 clean-tree gate PASS on a fresh temp worktree (git clean -f is hook-blocked); develop phase 0 PASS. Structural repair: aa75701 T12 prettier default export. Deviations: (1) Q-0142 (a): EZD-000 fixtures T20c/T23a/T23c/T24c in scripts/conventions/__tests__/check.test.mjs gained an EZD-000 describe for C9 (file not in plan Files table); (2) eslint/@eslint/js 9.39.5 not 10.x (eslint-config-next 16.4.2 plugin peers stop at 9; registry marks 9.39.5 deprecated); (3) @types/node 22.20.5; (4) no tsconfig.test.json, geometry typecheck excludes tests (EZD-201 should add test type-checking); (5) settings.next.rootDir absolute via import.meta.dirname; (6) app tsconfig keeps create-next-app `@/*` paths alias. allowBuilds denies unrs-resolver only. Follow-up minor: T10 does not reject a pnpm `permissions` build key. needs-josh-confirm wording: tab title `EZ Draft` (plan Proposed wording). |
+| EZD-002 | 0 | CI | done | medium | EZD-001 | 562313f | 145 | Done 2026-10-19 (145 = 145 repo node:test on develop phase 0, EZD-002 T1, T2, T2b, T3–T6 among them; Vitest 1). Step 1: plan re-validated (planner Opus 5.5, v2 template, medium); QP-1 → Q-0143 (a), QP-2 → Q-0144 (a) answered-agent (orchestrator; Josh adds the `gate` required check to the `main` ruleset, needs-from-josh.md). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; builder r1 Sonnet 5.5; code-reviewer Opus 5.5 (mode 2 rounds 1–3, mode 3, same resumed agent) PASS; security-reviewer Opus 5.5 r1 FAIL (T2 bypass forms) → Q-0146 (a) answered-agent (security-reviewer level 3), planner amended T2 and added T2b, test-author fixed, r2 PASS. Gate fault: develop red before the ticket (questions-flow.test.mjs since EZD-001 went done) → fixed in place 35f8a97 (Q-0145, rule 19). Deviations: (1) childEnv also deletes NODE_TEST_CONTEXT; (2) 180 s timeout per test on T3 and T4, not file-level; (3) two `### CI` bullets worded slightly differently from plan Step 4 (same meaning); (4) T2b added (Q-0146). Follow-up minors (security, not in plan): T2 (i) misses inline `with: { cache: … }` on a one-line setup-node step and compares `actions/cache` case-sensitively. needs-josh-confirm wording: none. |
+| EZD-003 | 0 | Hosting and subdomain | blocked | medium | EZD-002 | dc6e8e6 | 151 | Repo work merged 2026-10-19 dc6e8e6; blocked per plan Step 6 / Q-0032 (a): waiting on Josh: Before-launch checklist and first real release (T8 then → done; T7 at the Phase 0 gate; T10 after each main merge before launch). 151 = repo node:test on develop phase 0 (EZD-003 T1–T6 among them; Vitest 1). Step 1: plan re-validated (planner Opus 5.5; v2 template; Josh's Vercel dashboard paths; Steps 5.2–5.4 done 2026-10-19; no QP). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; builder r1 Sonnet 5.5; code-reviewer Opus 5.5 (mode 2 PASS, resumed for mode 3 PASS); security-reviewer Opus 5.5 PASS. Gate fault: questions-flow.test.mjs red on develop again → fixed in place 52017e0 (Q-0147, rule 19). Deviations: (1) no `packageManager` in app/package.json (root pin via Corepack; unproven until T7); (2) check-live.mjs detail strings not in plan (script output only, not product wording). Follow-up minors (not in plan): `redirect` check accepts a Location that only starts with the address (security + code-reviewer; tighten = plan change + T4 case); docs say previews build "only for the phase PR" but the Ignored Build Step builds any PR (security; Q-0116 wording, Josh). needs-josh-confirm wording: none. Earlier: Build 2026-10-19: step 1 plan re-validated (planner Opus 5.5; v2 template, runbook paths fixed, no QP). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer and security-reviewer Opus 5.5. Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: previews only on the phase PR. Q-0123 (b) (domain already connected): re-validated again the same day; Josh turns off Auto-assign Custom Production Domains before the Phase 0 merge (Step 5.2). Josh did Steps 5.2–5.4 on 2026-10-19. Dashboard paths differ from the plan: Ignored Build Step is Settings → Build and Deployment (option Custom); Auto-assign Custom Production Domains is Settings → Environments → Production → Branch Tracking; Git Fork Protection is Settings → Security. The Stage 3 re-validation fixes the runbook paths. |
+| EZD-004a | 0 | Local Supabase and migrations in the gate | done | high | EZD-001 | 78b3103 | 162 | Done 2026-10-19 (162 = 161 repo node:test incl. 10 EZD-004a + 1 Vitest on develop phase 0). Step 1 skipped (plan re-validated at the split). Precondition F3: guard-paths.mjs builder exception scripts/db/ (af17c5f; Q-0148, Q-0125 (a)). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 FAIL then PASS (T1 parser repair b6a0a08; reviewer's first reading of the CLI source was wrong, the npm CLI prints JSON under an agent and an ASCII table otherwise); builder r1 Fable 5.1; code-reviewer mode 3 Fable 5.1 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS). Gate: develop red on EZD-000d T8 (research store not empty after R-001) → fixed in place 41cab19 (Q-0149, rule 19; assertion change, Josh confirms). Worktree gate PASS round 1; develop phase 0 PASS. Deviations: local.mjs inherits stdout only, so per-migration 'applying' lines are not in gate logs; gen-types.mjs reuses the Docker wording; docs/architecture.md EZD-004 refs → EZD-004a. Follow-ups (security, minor): health() exposes newest migration timestamp to anon (EZD-004b decides /api/health echo); db:env prints the local secret key (EZD-004c must not reuse for cloud); config.toml local auth defaults (signup on, password min 6, allowed_cidrs 0.0.0.0/0) settle in EZD-007 before any config push. needs-josh-confirm wording (developer stderr): local.mjs 'supabase <step> failed (exit N)', status-JSON messages, usage lines; gen-types.mjs failure, 'run pnpm db:types', 'wrote <path>', usage. |
+| EZD-004b | 0 | App reads the health row | done | medium | EZD-004a | 22b6f0a | 174 | Done 2026-10-19 (174 = 164 repo node:test incl. 3 EZD-004b + 9 app Vitest + 1 geometry Vitest on develop phase 0). Step 1 planner re-validation (Opus 5.5) PASS, sections 7/9/10 non-behavior edits (659ae6d); /api/health keeps the migration version (Done-when requires it; already readable by anon via health()). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer mode 2 Opus 5.5 FAIL (T19 test-file exemption; T5(d) loose mail key) then PASS (3c2296b, MAILPIT_URL); builder r1 Sonnet 5.5; code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Opus 5.5 PASS. Worktree gate PASS round 1; develop phase 0 PASS. Deviations: route.ts imports server/db/health by relative path, not the @/ alias (Vitest has no alias). Follow-up (security, minor): add a DB request timeout to /api/health when EZD-024 adds logging. needs-josh-confirm wording: none. |Split from EZD-004 (Q-0148) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-000, EZD-001) found the plan over the size rule; split proposal in vault/plans/EZD-004.md (dbf4985). Complexity from the proposal. |
+| EZD-004c | 0 | Cloud dev migrations workflow | done | medium | EZD-004a, EZD-004b, EZD-002 | ea665d3 | 179 | Done 2026-10-19 (179 = 169 repo node:test incl. 5 EZD-004c + 9 app Vitest + 1 geometry Vitest on develop phase 0). Field check O1 (first real cloud run) waits for Josh's dev project and SUPABASE_DEV_DB_URL (needs-from-josh.md; AC-3). Build 2026-10-19: step 1 planner re-validation (Opus 5.5) PASS, citation-only edits plus architecture "EZD-004 T13" → "EZD-004c T1" (3a48287). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer and security-reviewer Opus 5.5. code-reviewer mode 2 PASS (first round), mode 3 PASS (resumed same agent); security-reviewer PASS (Production-sensitive changes PASS). Worktree gate PASS round 1 (2 flagged paths → security review); develop phase 0 PASS. Pins: actions/checkout and actions/setup-node v4.4.0 (SHAs checked by both reviewers). Deviations: none. needs-josh-confirm wording: none beyond plan section 6 (Stage 2). Runbook items 1–6 copied to needs-from-josh.md. Split from EZD-004 (Q-0148) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-000, EZD-001) found the plan over the size rule; split proposal in vault/plans/EZD-004.md (dbf4985). Complexity from the proposal. |
+| EZD-005a | 0 | Tenancy tables | done | high | EZD-004a, EZD-004b | f5aed49 | 192 | Done 2026-10-19 (192 = 172 repo node:test incl. 3 EZD-005a + 19 app Vitest incl. 10 EZD-005a + 1 geometry Vitest on develop phase 0). Step 1 skipped (plan re-validated at the split, Q-0150). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 PASS; builder r1 Fable 5.1; structural repair T15a (ebde48b: Supabase CLI writes `},"tenant": {` on the previous brace line, so the line-anchored key regex missed four keys; regex only, code-reviewer confirmed no assertion change); code-reviewer mode 3 Fable 5.1 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS. Worktree gate PASS round 1; develop phase 0 PASS. Deviations: none. Follow-ups (security, minor): tenant and app_user are tenant-less by plan (listed in docs/architecture.md Tenancy tables); EZD-006 must not widen that list without a reason; auth_user_id FK on delete set null accepted. needs-josh-confirm wording: none. Split from EZD-005 (Q-0150) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-004a, EZD-004b) found the plan over the size rule (16 files, 17 tests); split proposal and findings V1–V8 in vault/plans/EZD-005.md. Complexity from the proposal. |
+| EZD-005b | 0 | Tenant 1 and Josh: seed and cloud setup file | done | high | EZD-005a, EZD-004a, EZD-004c | 92e848d | 206 | Done 2026-10-19 (206 = 184 repo node:test incl. 6 EZD-005b + 21 app Vitest incl. 2 EZD-005b + 1 geometry Vitest on develop phase 0). Step 1 skipped (plan re-validated at the split, Q-0150; EZD-005a and EZD-004c recorded no deviation). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 PASS (first round); builder r1 Fable 5.1; code-reviewer mode 3 Fable 5.1 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS). Worktree gate PASS round 1 (5 flagged paths → security review); develop phase 0 PASS. Q-0151 (a) applied: EZD-004a T11 comment-only check removed by the test-author (38de678), recorded assertion change. Deviations: none. Follow-ups (security, minor): the bootstrap file SQL-side email regex does not exclude quotes; safe because the value is a bound plpgsql variable, but EZD-023b review must verify renderBootstrap forbids quotes (EZD-023b.md line 274). needs-josh-confirm wording: none (plan section 6 used verbatim). Runbook steps 1–8 copied to needs-from-josh.md. Split from EZD-005 (Q-0150) at build step 1, 2026-10-19; Complexity from the split proposal. |
+| EZD-006 | 0 | Row-level security | done | high | EZD-005 | 0ff28b9 | 255 | Done 2026-10-19 (255 = 192 repo node:test incl. 8 EZD-006 + 62 app Vitest incl. 41 EZD-006 + 1 geometry Vitest on develop phase 0). Step 1 skipped (EZD-005a, EZD-005b recorded no deviation). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1 (hit 40-turn limit once, resumed); code-reviewer mode 2 Fable 5.1 PASS; builder r1 Fable 5.1; structural repair T16 (ff1f45a: plan Step 5 policy template `= any ((select private.listed_project_ids()))` fails on PG 17.11 with 42883; `::uuid[]` cast added; code-reviewer confirmed no assertion change); code-reviewer mode 3 Fable 5.1 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS. Worktree gate PASS round 1; develop phase 0 PASS. Deviations: (1) `::uuid[]` cast in every policy and the recorded template (docs/architecture.md RLS section); later table tickets copy the cast form; (2) extra export `setHashSql(hash)` in scripts/db/api-gate.mjs; (3) the local auth hook loads only at `supabase start`: a stack running from before this merge needs `pnpm db:stop` once (done on develop 2026-10-19); (4) request-gate role check order differs from Step 1b item 6, same outcome; (5) the two trigger functions are `security definer`. Security follow-ups (minor): the first ticket that updates `membership.user_id`/`tenant_id` (EZD-105/106/129) adds them to the end-sessions trigger; the first ticket adding a sequence or `public` function revokes/grants explicitly (default privileges revoked for tables only); cloud `alter role authenticator` and `delete from auth.sessions` proven locally only (runbook steps 9–11). Pinned-stack confirmations: Vault store, GraphQL 42501, hook in schema `private`. needs-josh-confirm wording: none. |
+| EZD-007a | 0 | Magic-link sign-in: account gate and local Auth config | done | high | EZD-005a, EZD-005b, EZD-006, EZD-004a, EZD-004b | 805167a | 472 | Split from EZD-007 (Q-0164) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-006, EZD-022, EZD-010c; EZD-004, EZD-005, EZD-010, EZD-026 splits; findings V1–V17) found the plan over the size rule (about 40 files, 26 tests); split proposal in vault/plans/EZD-007.md (02a942f). Complexity from the proposal. Open: Q-0165, Q-0166, Q-0167. · Stage 2 (questions 0, 2026-10-20): Q-0165–Q-0170 answered-agent; plans re-validated by the planner. · Build 2026-10-20: step 1 skipped (plan re-validated at the split and in Stage 2 against EZD-006/004a/004b deviations). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1, code-reviewer Fable 5.1, builder Fable 5.1, security-reviewer Fable 5.1 (plan section 8). · Step 6: one structural repair (T28 (h) jsonb binding, 323961c), confirmed by code-reviewer. Gate round 1 PASS (phase 0 + @smoke; 6 SECURITY FLAG paths). · Done 2026-10-20 (472 = 292 repo node:test incl. 11 EZD-007a + 179 app Vitest incl. 3 EZD-007a + 1 geometry Vitest on develop phase 0). Reviews: code-reviewer mode 3 PASS, security-reviewer PASS (Fable 5.1); builder round 1 only. Deviations: (1) explicit revoke all on private.invite_is_valid from public (Step 2.0 said no grant; pg_default_acl has no row for schema private on the pinned stack, so new private functions get PUBLIC execute unless revoked; docs/architecture.md Row-level security line 'default privileges grant execute to nobody' is now inaccurate, to reconcile at the next touch, and EZD-006 audit checks anon only); (2) guard writes null to encrypted_password for unconfirmed rows (EZD-007d T26 part d must prove a code sign-in completes for such a user); (3) hook trims and lower-cases the email, empty refused; (4) admin createUser bypasses the hook (builder-observed, recorded in docs, not reviewer-verified). Minor open: the comment at line 5 of migration 20261020101101 says the pinned Auth stores null for a passwordless user; the stack stores a bcrypt hash (docs are correct). Security conditions for EZD-007d: sign-in route returns one uniform response for allowed and refused emails. needs-josh-confirm: Spanish email subject and template text (Q-0030 (a)); runbook step 3 dashboard field names. Cloud Sign-in steps added to needs-from-josh.md. |
+| EZD-007b | 0 | Magic-link sign-in: linking and access functions | done | high | EZD-007a, EZD-006, EZD-005a, EZD-004a, EZD-004b | bdcf29f | 515 | Split from EZD-007 (Q-0164) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-006, EZD-022, EZD-010c; EZD-004, EZD-005, EZD-010, EZD-026 splits; findings V1–V17) found the plan over the size rule (about 40 files, 26 tests); split proposal in vault/plans/EZD-007.md (02a942f). Complexity from the proposal. Open: Q-0165, Q-0166, Q-0167. · Stage 2 (questions 0, 2026-10-20): Q-0165–Q-0170 answered-agent; plans re-validated by the planner. · Build 2026-10-20: step 1 planner re-validation (Opus 5.5) PASS, non-behavior edits e03a00f (EZD-007a deviations). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1, builder Fable 5.1, code-reviewer and security-reviewer Fable 5.1 (plan section 8). · Done 2026-10-20 (515 = 315 repo node:test incl. 5 EZD-007b + 199 app Vitest incl. 20 EZD-007b + 1 geometry on develop phase 0). Test review PASS round 1; builder round 1; gate PASS; code-reviewer mode 3 PASS; security-reviewer PASS (B4 confirmed; production-sensitive PASS). Deviations: (1) T17 part b in new file scripts/db/__tests__/link-migrations.test.mjs, not auth-config.test.mjs (test-author; same tests); (2) T29 (l) setup aligns invited_at with an extra update (no assertion change). Notes for dependents: database.types.ts types current_app_user_id as string, but it returns null for an ended or unlinked session (EZD-007c getSession must treat as nullable); link_app_user raises 23505 if the caller is linked to app_user Y while unlinked app_user X has the current auth email (fails closed; note for EZD-033/EZD-105b); docs/architecture.md invite_is_valid/default-privileges wording for schema private still inaccurate (next ticket adding a private function revokes from public explicitly). needs-josh-confirm: none. |
+| EZD-007c | 0 | Magic-link sign-in: session client and API gate secret | done | high | EZD-007b, EZD-004a, EZD-004b, EZD-006, EZD-026d | 0163869 | 523 | Split from EZD-007 (Q-0164) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-006, EZD-022, EZD-010c; EZD-004, EZD-005, EZD-010, EZD-026 splits; findings V1–V17) found the plan over the size rule (about 40 files, 26 tests); split proposal in vault/plans/EZD-007.md (02a942f). Complexity from the proposal. Open: Q-0165, Q-0166, Q-0167. · Stage 2 (questions 0, 2026-10-20): Q-0165–Q-0170 answered-agent; plans re-validated by the planner. · Build 2026-10-20: step 1 skipped (plan re-validated against EZD-007b, f3f5b57). Models (high, PROCESS.md s4, Q-0172): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (high ticket); Fable for test-author/builder only as step-9 retry. · Done 2026-10-20 (523 = 317 repo node:test + 205 app Vitest + 1 geometry on develop phase 0 + @smoke). Test review PASS round 1; builder round 1 (Opus 5.5); gate PASS; code-reviewer mode 3 PASS (Opus 5.5); security-reviewer PASS (Fable 5.1; C2, C3, C7 confirmed; production-sensitive PASS). Deviations: T20 (c)/T34 treat test files, test-harness/ and test-utils/ as test files (test-author; reviewer-accepted); T17 (c) also asserts the two auth files exist (stricter). Builder choices: getSession() rethrows the RPC error unchanged (Q-0168 (b)); email = claims.email cast to string; local.mjs env checks the secret file before supabase status. Notes for dependents: Q-0173 (EZD-007d proxy sets Cache-Control: private, no-store when its jar writes a cookie); EZD-007d reviewer verifies the request gate writes refreshed tokens before render (C3); first route ticket maps a getSession() RPC error to error.db_unavailable, never error.message; optional stricter secure flag when VERCEL_ENV is set (EZD-007d). Spanish error.not_signed_in by the builder (Q-0030 (a)). needs-josh-confirm: none. |
+| EZD-007d | 0 | Magic-link sign-in: sign-in actions, invite acceptance and request gate | done | high | EZD-007a, EZD-007b, EZD-007c, EZD-022, EZD-006, EZD-004b | 276a86a | 536 | Split from EZD-007 (Q-0164) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-006, EZD-022, EZD-010c; EZD-004, EZD-005, EZD-010, EZD-026 splits; findings V1–V17) found the plan over the size rule (about 40 files, 26 tests); split proposal in vault/plans/EZD-007.md (02a942f). Complexity from the proposal. Open: Q-0165, Q-0166, Q-0167. · Stage 2 (questions 0, 2026-10-20): Q-0165–Q-0170 answered-agent; plans re-validated by the planner. · Build 2026-10-20: step 1 planner re-validation (Opus 5.5; deviating EZD-007a/b/c; Q-0173 applied as Step 6 bullet + T37; T26 (d) guard precondition; 8a2c463), QP-1 → Q-0174 answered-agent (a) by security-reviewer, applied f067a92 (T27 (f) narrowed, (i) added, T6 (b) new); Q-0175 escalated to Josh, not blocking. Models (high, PROCESS.md s4, Q-0172; EZD_FABLE_ALLOWED=1): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (high ticket); Fable for test-author/builder only as step-9 retry. · Done 2026-10-20 (536 = 318 repo node:test + 217 app Vitest + 1 geometry on develop phase 0 + @smoke). Test review PASS round 1; builder round 1 (Opus 5.5); gate PASS; code-reviewer mode 3 PASS (Opus 5.5; 12 new Vitest tests verified run, none skipped); security-reviewer PASS (Fable 5.1; D1, D3, enumeration note, C3 token refresh before render, Q-0173 Cache-Control confirmed). Q-0176 (other Auth errors → 500 sign_in_request_failed) answered-agent by security-reviewer: keep the 500. Deviations: user.joined emitted only when both accepted ids are non-null (same behavior, link_app_user returns them together); proxy takes cookie-option type from SessionCookieJar['set'] (EZD-007c T34); mail-catcher.ts reads an extra test-only SUPABASE_MAIL_URL override; T17 part d also asserts the auth files and proxy.ts exist. Builder ran pnpm db:stop + db:up (D1). Notes for dependents: EZD-007f must test getSignInLanguage and signOut (no row here); EZD-102 keeps requireSession() on every page (proxy matcher skips dotted paths) and requireApiSession() on every route (/api passes the gate); Q-0175 escalated to Josh. needs-josh-confirm: none. |
+| EZD-007e | 0 | Magic-link sign-in: sign-in messages and lint | done | medium | EZD-026c, EZD-026d, EZD-026a, EZD-007c | 718cb53 | 540 | Split from EZD-007 (Q-0164) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-006, EZD-022, EZD-010c; EZD-004, EZD-005, EZD-010, EZD-026 splits; findings V1–V17) found the plan over the size rule (about 40 files, 26 tests); split proposal in vault/plans/EZD-007.md (02a942f). Complexity from the proposal. Open: Q-0165, Q-0166, Q-0167. · Stage 2 (questions 0, 2026-10-20): Q-0165–Q-0170 answered-agent; plans re-validated by the planner. · Build 2026-10-20: step 1 skipped (no dependency deviation); models (complexity medium, PROCESS.md section 4): Sonnet 5.5 test-author and builder, Opus 5.5 code-reviewer and security-reviewer. Test review PASS round 1, builder round 1, code-reviewer mode 3 PASS, security-reviewer PASS (dispatched on the gate SECURITY FLAG for the test file under app/src/server/auth/; minor note: every common. key now reaches signed-out pages, later reviewers check new common. keys). Gate needed pnpm db:stop + db:up first (3 EZD-007d email tests failed on a stale Auth template). Plan deviations: none. needs-josh-confirm: the builder-written Spanish of the 16 sign-in keys in app/src/server/messages/catalogs/es.ts (Q-0030 (a)). |
+| EZD-007f | 0 | Magic-link sign-in: sign-in pages and browser tests | done | high | EZD-007d, EZD-007e, EZD-010a, EZD-010b, EZD-010c, EZD-026d | b0f5e1a | 552 | Split from EZD-007 (Q-0164) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-006, EZD-022, EZD-010c; EZD-004, EZD-005, EZD-010, EZD-026 splits; findings V1–V17) found the plan over the size rule (about 40 files, 26 tests); split proposal in vault/plans/EZD-007.md (02a942f). Complexity from the proposal. Open: Q-0165, Q-0166, Q-0167. · Stage 2 (questions 0, 2026-10-20): Q-0165–Q-0170 answered-agent; plans re-validated by the planner. · Build 2026-10-20: step 1 planner re-validation (Opus 5.5; deviating EZD-007d) PASS, references only (e05212f); plan tightened 47.6k → 36.0k chars (2bbfe1e, PROCESS.md s194). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (high ticket); plan section 8 asks Fable for test-author/builder, but Josh 2026-10-20 keeps Fable for them as the step-9 retry only. Done 2026-10-20 (552 = 321 repo node:test + 220 app Vitest + 1 geometry + 10 Playwright on develop phase 0 + @smoke). Test review FAIL r1 (playwright.config.ts is the test-author's, plan s1 line 52; T15 timing), PASS r2. Builder r1 (Opus 5.5) stopped on Q-0197 (import.meta under Playwright, app package is CommonJS) → answered-agent (b) by code-reviewer; test-author structural repair ff8cc66 (repo root found by walking up to pnpm-workspace.yaml in playwright.config.ts and EZD-007d mail-catcher.ts), code-reviewer confirmed no assertion change. Gate PASS; code-reviewer mode 3 PASS; security-reviewer PASS (Fable 5.1; F2, F3, F6 confirmed; minor: SUPABASE_SECRET_KEY passed to pnpm start though the app reads none, trim when a later ticket touches the config); ui-verifier PASS at 1600×1000 (every row, second pass). Chromium installed by the orchestrator. Deviations: / calls connection() before requireSession() so it is not prerendered; "Use a different email" is a second submit (intent, formNoValidate) calling clearSignInEmail(); page headings via server getT('sign_in', language); pressed language button has a cobalt border; Playwright runs 2 workers (one per spec file, workers 4 is the cap). needs-josh-confirm: English text of error.sign_in_failed (en.ts, plan section 6 proposed wording); its Spanish (es.ts:34) is checked by a Spanish-speaking crew member (Q-0030 (a)). |
+| EZD-008a | 0 | Send helper and transports | done | medium | EZD-004a, EZD-004b, EZD-006 | fce41c2 | 289 | Done 2026-10-19 (289 = 192 repo node:test + 96 app Vitest incl. 34 EZD-008a + 1 geometry Vitest on develop phase 0). Step 1 skipped (plan re-validated at the split against EZD-004a, 004b, 004c, 006). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer mode 2 Opus 5.5 PASS; builder r1 Sonnet 5.5; code-reviewer mode 3 Opus 5.5 (resumed step-5 agent) FAIL minor (forced cast on the Resend client hid the plan section 3 typecheck; extra export isValidSender) → same builder fixed (07b9d82) → PASS; security-reviewer Opus 5.5 PASS (flagged app/package.json, pnpm-lock.yaml; resend 6.34.1 + 4 helper packages, no install scripts). Worktree gate PASS rounds 1 and 2; develop phase 0 PASS. Deviations: one eslint-disable no-control-regex line in send.ts (Step 6 item 1). Follow-ups (security, minor): subject refuses only line breaks, not other control characters or U+2028/2029 (Resend builds headers from JSON); links accept http, so the first caller or EZD-008b decides https-only outside local; the stub outbox keeps messages and links in memory on preview servers, so never expose it over HTTP. needs-josh-confirm wording: none. Split from EZD-008 (Q-0152) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-004a, EZD-004b, EZD-004c; EZD-006 changed the shared Vitest setup) found the plan over the size rule (18 files, 13 tests); split proposal and findings V1–V12 in vault/plans/EZD-008.md (343ed46). Complexity from the proposal. Ready 2026-10-19 (questions 0): Q-0154 answered-agent (b) by code-reviewer; plan updated by planner (Step 6 items 1, 3; T10 (d)–(f)). |
+| EZD-008b | 0 | Email setup: names, docs, runbook and live check | done | medium | EZD-008a, EZD-004b, EZD-004c | e77273a | 294 | Done 2026-10-19 (294 = 197 repo node:test incl. 5 EZD-008b + 96 app Vitest + 1 geometry Vitest on develop phase 0). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer mode 2 Opus 5.5 FAIL (T12 re-imported a cached module so the entry-guard check proved nothing; resend version literal; empty block) → test-author fixed (aa5b77a, 7de1963) → PASS; builder r1 Sonnet 5.5; code-reviewer mode 3 Opus 5.5 (resumed step-5 agent) PASS; security-reviewer Opus 5.5 PASS. Worktree gate PASS round 1 (SECURITY FLAG scripts/db/__tests__/env.test.mjs: list change only); develop phase 0 PASS. Deviations (minor, code-reviewer): architecture.md ### Email (EZD-008) has an extra sources line and cites "Server-only data access and can()" by its full heading. Untested export: parseArgs and its --to=<v> form (not in plan section 4). Follow-ups (security, minor): (1) proposed runbook wording for Josh: step 4 should say to make a separate Sending access key for previews (e.g. ezdraft-preview) and never put ezdraft-production in Vercel Preview, if a preview is ever switched to resend; (2) EZD-008a http-link follow-up still open (first sendEmail caller); (3) stub outbox keeps messages and links in memory on preview servers; the first ticket that emails a token link, or EZD-023b, settles it. needs-josh-confirm wording: none (runbook and script text verbatim from plan section 6). Field check AC-EZD-008b-1 waits on Josh (runbook ## Email (EZD-008) steps 1, 3, 4, 5). Earlier notes: step 1 skipped (EZD-008a deviation is one eslint-disable line in send.ts, none in the names plan section 9 lists; EZD-004b/004c deviations do not touch this plan). Q-0153 (a) builder exception for scripts/email/ added to guard-paths.mjs (fix mode). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer and security-reviewer Opus 5.5. Split from EZD-008 (Q-0152) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-004a, EZD-004b, EZD-004c; EZD-006 changed the shared Vitest setup) found the plan over the size rule (18 files, 13 tests); split proposal and findings V1–V12 in vault/plans/EZD-008.md (343ed46). Complexity from the proposal. Q-0153 (a): before its builder starts, the orchestrator adds the scripts/email/ builder write exception (Q-0125 (a)). Ready 2026-10-19 (questions 0): plan section 10 has no open question. |
+| EZD-009 | 0 | Background job queue | done | high | EZD-004, EZD-018, EZD-007, EZD-016a | 0c5e8c3 | 840 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Built 2026-10-22: models test-author Sonnet 5.5/medium, builder Opus 5.5/medium, planner Opus 5.5/high, code-reviewer Opus 5.5/high, security-reviewer Fable 5.1/high (all per --dispatch). Plan deviations: 3 plan-gap patches (queue factory/handlers/runner config; advisory-lock sweep isolation; browser-test server gets local SUPABASE_SECRET_KEY, EZD-016d T5(d) changed, security-reviewer approved; dev route 400 error.invalid_input); EZD-007c T34 valueUse + db.ts approved; GATED_RPC_CALLS enqueue_job; EZD-016d Machine checks row edited; ::uuid[] cast added to policy; JobsProbe buffers early events; onJobFailed gets claimed row marked failed (EZD-024 note); enqueueJob stores payload as sent. needs-josh-confirm: en error.invalid_input 'Some of that information isn't valid. Check it and try again.'; es error lines 'No tienes permiso para hacer eso.', 'Esa tarea ya no existe.', 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.'. Watch: job.result readable by project members, money kinds must store money elsewhere (R26 R2). |
+| EZD-010a | 0 | Token files and check C10 | done | medium | EZD-001, EZD-000, EZD-004a, EZD-004b | 485a54c | 313 | Done 2026-10-19 (313 = 214 repo node:test incl. 17 EZD-010a T11/T12 cases + 98 app Vitest incl. T1, T2 + 1 geometry Vitest on develop phase 0). Split from EZD-010 (Q-0155) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependency EZD-001; EZD-004a/b, EZD-006, EZD-008a changed the shared app test setup) found the plan over the size rule (about 30 files, 12 tests); split proposal and findings V1–V14 in vault/plans/EZD-010.md (b5adda3). Complexity from the proposal. Ready 2026-10-19 (questions 0): plan section 10 "None", no open question; Q-0155 answered-agent. Build 2026-10-19: step 1 skipped (plan re-validated at the split; no dependency deviated since). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder r1 Sonnet 5.5, code-reviewer Opus 5.5. Test review (mode 2) PASS round 1; gate green round 1; code-reviewer mode 3 (same agent) PASS with 3 minor formatting notes left as is (architecture.md line 160 indent, extra blank line before ### Design tokens, tokens.ts shadow line over 100 chars; formatting is review, not gated). Plan deviations: none. needs-josh-confirm wording: none. vault/architecture.md re-made. |
+| EZD-010b | 0 | Icon sprite and Icon component | done | medium | EZD-010a, EZD-001, EZD-004a, EZD-004b | 69443f9 | 329 | Split from EZD-010 (Q-0155) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependency EZD-001; EZD-004a/b, EZD-006, EZD-008a changed the shared app test setup) found the plan over the size rule (about 30 files, 12 tests); split proposal and findings V1–V14 in vault/plans/EZD-010.md (b5adda3). Complexity from the proposal. Ready 2026-10-19 (questions 0): plan section 10 "None", no open question; Q-0155 answered-agent. Build 2026-10-19: step 1 skipped (no dependency deviated). Done 2026-10-19 (329 = 220 repo node:test incl. 6 EZD-010b T12b + 108 app Vitest incl. T8, T9, T10 + 1 geometry Vitest on develop phase 0). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer mode 2 Opus 5.5 FAIL (T9 (3)/(4) passed on a missing script; T9 (1) loose path check) then PASS (95bc750); builder r1 Sonnet 5.5; gate PASS; code-reviewer mode 3 Opus 5.5 (resumed step-5 agent) FAIL (behavior: icons-build accepted a flag with no value and inherited keys like --constructor, plan Step 2) → builder r2 Opus 5.5 (fresh, tier up) fixed (6f43955), gate PASS, re-review PASS; security-reviewer Opus 5.5 PASS (dispatched on gate SECURITY FLAG app/package.json; plan said no). ICON_COMMIT 49d4db35df873165d6bd6ba09b063c7dafbac2f4. Plan deviations: none. needs-josh-confirm wording: none. Follow-up (security, minor): T9 could add a path with an extra attribute and a script/style source as rejected cases. Lesson L-012 (candidate). vault/architecture.md re-made. |
+| EZD-010c | 0 | Fonts, root layout and token test page | done | medium | EZD-010a, EZD-010b, EZD-001, EZD-004a, EZD-004b | ea641d4 | 349 | Done 2026-10-19 (349 = 224 repo node:test + 124 app Vitest + 1 geometry Vitest on develop phase 0). Split from EZD-010 (Q-0155) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependency EZD-001; EZD-004a/b, EZD-006, EZD-008a changed the shared app test setup) found the plan over the size rule (about 30 files, 12 tests); split proposal and findings V1–V14 in vault/plans/EZD-010.md (b5adda3). Complexity from the proposal. Ready 2026-10-19 (questions 0): plan section 10 "None", no open question; Q-0155 answered-agent. Build 2026-10-19: step 1 skipped (no dependency deviation). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5. Test review (mode 2) PASS first round; builder r1 gate green; code-reviewer mode 3 PASS (same agent). Plan deviations: page.module.css uses plain px for spacing/sizes where Step 4 says var(--ez-*) only (no spacing tokens exist for 8/12/40 px; C10 bans only colors). needs-josh-confirm wording: "Sample text" label on the amber and green samples, /dev/tokens page.tsx (dev page only, not shown in production). vault/architecture.md re-made. |
+| EZD-011a | 0 | Shell: header card, header button and card surface | done | low | EZD-010a, EZD-010c, EZD-000, EZD-004a, EZD-004b | 529269c | 617 | Done 2026-10-20 (617 = 370 repo node:test incl. 4 EZD-011a H15 + 246 app Vitest incl. H7, H8, H11, H16 + 1 geometry Vitest on develop phase 0; 21 browser tests also pass). Builder r1 Haiku 5.5 gate green on its 2nd own run (its own HeaderCard.tsx comment tripped H16 (3); comment reworded, no test edited); orchestrator gate PASS. code-reviewer mode 3 (Opus 5.5, tests reviewed too) PASS, 1 minor: plan deviation, globals.css body rule has margin: 0 before font-family (contract lists font-family first; no effect, H7 (d) checks both lines). needs-josh-confirm wording: none. vault/architecture.md re-copied (docs/architecture.md gained ### Shell header (EZD-011)). Build started 2026-10-20. Step 1 skipped: planned 2026-10-20 after every dependency was done, so no dependency deviation is newer than the plan. Models (low, PROCESS.md s4; plan s8): test-author Haiku 5.5, builder Haiku 5.5, code-reviewer Opus 5.5; step 5 skipped (low). Split from EZD-011 (Q-0238) at build step 1, 2026-10-20: plan re-validated 2026-10-20 (ab531d3, findings V1–V14) found it over the size rule (19 builder files, 15 tests); split proposal in vault/plans/EZD-011.md. Complexity from the proposal; security-review no on every part; ui-verifier part c only. Ready 2026-10-20 (questions 0): plan section 10 "None", no open question; Q-0238 answered-agent. |
+| EZD-011b | 0 | Shell: editor header content and labels | done | medium | EZD-011a, EZD-010b, EZD-026c, EZD-026d, EZD-004a, EZD-004b | ffe274d | 633 | Split from EZD-011 (Q-0238) at build step 1, 2026-10-20: plan re-validated 2026-10-20 (ab531d3, findings V1–V14) found it over the size rule (19 builder files, 15 tests); split proposal in vault/plans/EZD-011.md. Complexity from the proposal; security-review no on every part; ui-verifier part c only. Ready 2026-10-20 (questions 0): plan section 10 "None", no open question; Q-0238 answered-agent. Build started 2026-10-20. Step 1: planner re-validation (Opus 5.5; deviating dependency EZD-011a) PASS, citations and status only (30fa96c). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5. Done 2026-10-20 (633 = 373 repo node:test incl. 3 EZD-011b H15 + 259 app Vitest + 1 geometry Vitest on develop phase 0; 21 browser tests also pass). code-reviewer mode 2 Opus 5.5 FAIL x2 (H1 divider found by attribute order; then divider tag not checked as span) then PASS (680d24b, 3559994); builder r1 Sonnet 5.5; worktree gate PASS round 1; code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent). No ui-verifier (section 5 none), no security review. Plan deviations: none. needs-josh-confirm wording: none. vault/architecture.md re-copied; glossary row EditorView added by orchestrator (plan section 9). |
+| EZD-011c | 0 | Shell: header test page and Done-when browser test | done | medium | EZD-011a, EZD-011b, EZD-016a, EZD-016d, EZD-010c, EZD-007d | ac88f71 | 659 | Done 2026-10-20 (659 = 373 repo node:test + 261 app Vitest incl. H10 (a), (b) + 1 geometry Vitest + 24 browser incl. EZD-011c done when, H13, H14 [desktop] on develop phase 0). Worktree gate PASS round 1; code-reviewer mode 2 PASS, mode 3 PASS (same agent, 1 minor: wip label, no change); ui-verifier PASS (asked once to finish the S03 PNG comparison; differences only the plan section 5 not-findings). Plan deviations: none. needs-josh-confirm wording: none. Split from EZD-011 (Q-0238) at build step 1, 2026-10-20: plan re-validated 2026-10-20 (ab531d3, findings V1–V14) found it over the size rule (19 builder files, 15 tests); split proposal in vault/plans/EZD-011.md. Complexity from the proposal; security-review no on every part; ui-verifier part c only. Ready 2026-10-20 (questions 0): plan section 10 "None", no open question; Q-0238 answered-agent. Build started 2026-10-20. Step 1: planner re-validation (Opus 5.5; EZD-011a deviation) PASS, citations only (02fb734). Models (medium, PROCESS.md s4; plan s8): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5, ui-verifier Sonnet 5.5. |
+| EZD-012a | 0 | Shell: tool rail and tooltip | done | medium | EZD-010a, EZD-010b, EZD-011a, EZD-026c, EZD-026d, EZD-004a, EZD-004b | 5c362eb | 642 | Done 2026-10-20 (642 = 374 repo node:test + 267 app Vitest incl. 6 EZD-012a U1a, U1b, U2, U8, S1a, U7 + 1 geometry Vitest on develop phase 0; 24 browser tests also pass). Step 1 skipped (plan written at the 2026-10-20 re-validation split; no dependency deviated since). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5 (round 1), code-reviewer Opus 5.5 (modes 2 and 3, same agent). Test review PASS with 3 minor findings fixed before the build (3e313f7: CSS read inside U8, one separator element, root lookup stops at filesystem root; no expected value or count changed). Gate green first run; mode 3 PASS. No deviations, no needs-josh-confirm wording; ui-verifier and security-reviewer not needed (plan s5, s7). Split from EZD-012 (Q-0239) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-010c, EZD-011a, EZD-016a) found the plan over the size rule (21 builder files, 7 test files, 16 tests); split proposal and findings V1–V14 in vault/plans/EZD-012.md (13e5d49). Complexity from the proposal; security-review no on every part; ui-verifier part c only. |
+| EZD-012b | 0 | Shell: frame, status bar and empty editor | done | medium | EZD-012a, EZD-011a, EZD-010a, EZD-026c, EZD-026d, EZD-000, EZD-004a, EZD-004b | fdb9ff6 | 653 | Done 2026-10-20 (653 = 379 repo node:test incl. 5 EZD-012b D1 + 273 app Vitest incl. 6 EZD-012b U3 a-c, U4 a-b, S1 part b + 1 geometry Vitest on develop phase 0; 24 browser tests also pass). Test review: FAIL then PASS (afad7fe: slots inside regions, status-bar on footer). Two structural repairs confirmed by code-reviewer (f03f301 U3 (a), 7ec88ec U3 (b): both allow the MessagesProvider wrapper div; no value or count changed). Builder round 1 only; gate green; mode 3 PASS (same reviewer agent). Deviations: U3 and U4 in one file EmptyEditor.test.tsx instead of EditorFrame.test.tsx and StatusBar.test.tsx; U3 (a)/(b) spell out the MessagesProvider wrapper (repair again if it changes); box-sizing per region class (plan s1). No needs-josh-confirm wording; ui-verifier and security-reviewer not needed (plan s5, s7). Step 1 skipped (plan written at the 2026-10-20 re-validation split, after every dependency merged; EZD-012a recorded no deviations). Models (medium, PROCESS.md s4; plan s8): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5. Split from EZD-012 (Q-0239) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-010c, EZD-011a, EZD-016a) found the plan over the size rule (21 builder files, 7 test files, 16 tests); split proposal and findings V1–V14 in vault/plans/EZD-012.md (13e5d49). Complexity from the proposal; security-review no on every part; ui-verifier part c only. |
+| EZD-012c | 0 | Shell: test pages and Done-when browser test | done | medium | EZD-012a, EZD-012b, EZD-011a, EZD-016a, EZD-010c, EZD-016d, EZD-007d, EZD-026d, EZD-004a, EZD-004b | cdc640a | 671 | Split from EZD-012 (Q-0239) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-010c, EZD-011a, EZD-016a) found the plan over the size rule (21 builder files, 7 test files, 16 tests); split proposal and findings V1–V14 in vault/plans/EZD-012.md (13e5d49). Complexity from the proposal; security-review no on every part; ui-verifier part c only. Done 2026-10-22 (671 tests on develop phase 0). Step 1 re-validation (Sonnet 5.5 planner) PATCHED section 9 only. Models (medium): test-author Sonnet 5.5, builder Sonnet 5.5 (round 1), ui-verifier Sonnet 5.5, code-reviewer Opus 5.5. Test review PASS (3 minor: B6(b) "contains C" is weak because the plan value does; test reads catalogFor not en; extra mouse.move in B5). Gate round 1 red on B2 (computed background-size is per layer): PLAN-GAP, planner patched B2 to `32px 32px, 32px 32px`, test-author changed that one value (4ae6874), gate green, code-reviewer mode 3 PASS, ui-verifier PASS. No needs-josh-confirm wording. Lesson L-021 (planner, candidate). |
+| EZD-013 | 0 | PWA install | done | medium | EZD-012, EZD-016a, EZD-024 | 8637f96 | 929 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Done 2026-10-23 (8637f96; 929 tests; develop phase 0 gate PASS on 2nd run). Models (medium, --dispatch): planner re-validation Opus 5.5/high (V1-V13, no QP; plan rewritten to v2 layout), test-author Sonnet 5.5/medium, builder Sonnet 5.5/medium (round 2 resumed for 3 minor docs findings), code-reviewer Opus 5.5/high mode 3 FAIL r1 (docs placement only) then fixed, ui-verifier Sonnet 5.5/low PASS (icons by measurement; no live screenshots), security-reviewer Opus 5.5/high PASS (gate flagged next.config.ts/package.json; plan said no). First merge attempt MERGE RED on e2e jobs.spec.ts (EZD-009 'queued' event missing); re-run passed, so a timing flake, not caused by this ticket. Deviations: register-sw also returns 'unsupported' when serviceWorker undefined, and catches errors from captureBrowserError (D7). needs-josh-confirm: none (only text is 'EZ Draft'). Field check (Josh installs on iPhone and Surface from the phase PR preview) is still to do. Watch: EZD-134 needs a security review (first caching worker). |
+| EZD-014a | 0 | Device layouts: device switch and phone layout | done | medium | EZD-012b, EZD-026a, EZD-026c, EZD-026d, EZD-010a, EZD-004a, EZD-004b | 19c0e2c | 684 | Split from EZD-014 (Q-0244) at build step 1, 2026-10-22: planner re-validation (findings V1–V14) found the plan over the size rule (about 28 builder files, 11 test files, 22 tests); split proposal in vault/plans/EZD-014.md. Complexity from the proposal; security-review no on every part; ui-verifier part c only. Build: models test-author Sonnet 5.5, builder Sonnet 5.5 (medium), code-reviewer Opus 5.5 (modes 2, 3); no plan deviations; needs-josh-confirm: Spanish line `La edición se hace en un iPad o una computadora. Abre este proyecto allí.` is agent-written, checked at field check (Q-0030 (a)); review minors (U1 d same-handler check, U7 top-level only) not blocking. |
+| EZD-014b | 0 | Device layouts: touch targets and icon-only header buttons | done | medium | EZD-011a, EZD-011b, EZD-012a, EZD-010a, EZD-010b, EZD-004a, EZD-004b | 40304d4 | 691 | Split from EZD-014 (Q-0244) at build step 1, 2026-10-22: planner re-validation (findings V1–V14) found the plan over the size rule (about 28 builder files, 11 test files, 22 tests); split proposal in vault/plans/EZD-014.md. Complexity from the proposal; security-review no on every part; ui-verifier part c only. Part b's tool rail tooltip rule: Q-0245 (option b; its test-author edits EZD-012a U8). Build 2026-10-22: step 1 skipped (no dependency deviation newer than the plan). Models (medium): test-author Sonnet 5.5, builder Sonnet 5.5 (round 1), code-reviewer Opus 5.5 (modes 2, 3). Test review FAIL r1 (T1 (f)/(h) covered 4 of 5 CSS files; fixed fc1fd5a) then PASS. Builder and test-author could not run Vitest (local Supabase down); orchestrator gate ran db:up itself, PASS first run; mode 3 PASS. Deviations (minor): HeaderButton discards unused destructured names with `void` to satisfy no-unused-vars; Prettier rewrapped the --ez-shadow-card row in tokens.ts (value and order unchanged). No ui-verifier or security review (plan s5, s7). needs-josh-confirm wording: none. |
+| EZD-014c | 0 | Device layouts: test page, browser tests and docs | done | medium | EZD-014a, EZD-014b, EZD-011b, EZD-012b, EZD-016a, EZD-016d, EZD-007d, EZD-010c, EZD-026d, EZD-000, EZD-004a, EZD-004b | 6338851 | 698 | Split from EZD-014 (Q-0244) at build step 1, 2026-10-22: planner re-validation (findings V1–V14) found the plan over the size rule (about 28 builder files, 11 test files, 22 tests); split proposal in vault/plans/EZD-014.md. Complexity from the proposal; security-review no on every part; ui-verifier part c only. Build 2026-10-22: models (medium) test-author Sonnet 5.5, builder Sonnet 5.5 (round 1), code-reviewer Opus 5.5 (modes 2, 3), ui-verifier Sonnet 5.5; test review PASS first time; gate green; mode 3 and ui PASS. Deviations (minor): D1 tests in new file scripts/conventions/__tests__/device-layouts-doc.test.mjs, not appended to architecture-doc.test.mjs; one added clause in architecture.md bullet about ?lang=es. Review minors: touch-targets.ts failure label ignores empty aria-label; ui-verifier saw tabs 58 px tall, project-name button 19 px (title, not a target). needs-josh-confirm: none. |
+| EZD-015a | 0 | Shared state components: online status, skeleton, async view and banners | done | medium | EZD-010a, EZD-010b, EZD-026a, EZD-014b, EZD-011a, EZD-026c, EZD-026d, EZD-001, EZD-004a, EZD-004b | 3910274 | 718 | Split from EZD-015 (Q-0246) at build step 1, 2026-10-22: planner re-validation (Opus 5.5; deviating dependencies EZD-014a-c, EZD-011a-c, EZD-012, EZD-016a/d; findings V1-V15) found the plan over the size rule (about 43 builder files, 15 test files, 24 tests); split proposal in vault/plans/EZD-015.md (8dc4c50). Complexity from the proposal; security-review no on every part; ui-verifier part c only. Build 2026-10-22: models (medium) test-author Sonnet 5.5, builder Sonnet 5.5 (round 1), planner Opus 5.5 (plan-gap), code-reviewer Opus 5.5 (modes 2, 3). Test review FAIL r1 (U15 fixed file list; U18 compact check on case 2; fixed 7d6d5be) then PASS. Plan deviations: PLAN-GAP, EZD-014b HeaderButton.icon.test.tsx EXPECTED_ICONS copied the icon list; planner added plan row E1 and test-author edited the array (9d70683); structural repairs 5b30d85, cbd9a8d (catalog casts via unknown, TS2352). Minor: createOnlineSource uses default parameters on globalThis instead of `target ?? globalThis.window` (same behavior). Icon SVGs not byte-checked against pinned commit (no network). needs-josh-confirm wording: Spanish Reintentar, Sin conexión, Cancelar, Cerrar (agent-written, checked at field check, Q-0030 (a)). |
+| EZD-015b | 0 | Shared state components: toast and confirm dialog | done | medium | EZD-015a, EZD-010a, EZD-010b, EZD-026c, EZD-026d, EZD-000, EZD-004a, EZD-004b | 28a0330 | 737 | Split from EZD-015 (Q-0246) at build step 1, 2026-10-22: planner re-validation (Opus 5.5; deviating dependencies EZD-014a-c, EZD-011a-c, EZD-012, EZD-016a/d; findings V1-V15) found the plan over the size rule (about 43 builder files, 15 test files, 24 tests); split proposal in vault/plans/EZD-015.md (8dc4c50). Complexity from the proposal; security-review no on every part; ui-verifier part c only. Build 2026-10-22: models (medium) test-author Sonnet 5.5, builder Sonnet 5.5 (round 1), code-reviewer Opus 5.5 (modes 2, 3), security-reviewer Opus 5.5 (gate flag: radix-ui dependency only; PASS). Test review PASS. Builder gate red on test-file typecheck/lint (noUncheckedIndexedAccess, react/display-name); structural repair 045cc76 confirmed structure-only. Plan deviations: none. needs-josh-confirm wording: none. |
+| EZD-015c | 0 | Shared state components: test page, browser tests and docs | done | medium | EZD-015a, EZD-015b, EZD-016a, EZD-014c, EZD-016d, EZD-007d, EZD-010c, EZD-026d, EZD-000, EZD-004a, EZD-004b | 2d76bc4 | 745 | Split from EZD-015 (Q-0246) at build step 1, 2026-10-22: planner re-validation (Opus 5.5; deviating dependencies EZD-014a-c, EZD-011a-c, EZD-012, EZD-016a/d; findings V1-V15) found the plan over the size rule (about 43 builder files, 15 test files, 24 tests); split proposal in vault/plans/EZD-015.md (8dc4c50). Complexity from the proposal; security-review no on every part; ui-verifier part c only. Build 2026-10-22: models (medium) test-author Sonnet 5.5 (Opus 5.5 for structural repair 2), builder Sonnet 5.5 round 1, Opus 5.5 round 2 (build red: server page imported the client barrel), code-reviewer Opus 5.5 (modes 2, 3, repair check), ui-verifier Sonnet 5.5; test review PASS, code review PASS, ui PASS. Skipped re-validation: 015a's deviation (PLAN-GAP on 014b test list) did not touch 015c's contract. Plan deviations: page.tsx imports StateHost from components/states/StateHost, not the barrel (barrel lacks use client; D-Page said barrel). Structural repairs 755a479, a211a67 (waits for dialog focus and Radix pointer-events auto before touch targets; Retry lang read before dialog opens), confirmed no assertion change. needs-josh-confirm wording: none. |
+| EZD-016c | 0 | Test harness: seed rows for browser tests | done | medium | EZD-005b, EZD-004a, EZD-004b | 67d1ec8 | 3 | Build started 2026-10-20. Step 1 skipped (plan written 2026-10-20 after the split, after EZD-004a/004b/005b were done; their deviations predate it). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5, security-reviewer Opus 5.5 (plan s7 yes). Paused 2026-10-20 at step 10 by vault/handoff/STOP (restructure session); resumed and merged 2026-10-20 (67d1ec8; 3 EZD-016c tests; develop phase 0 gate PASS: node:test 356, vitest 223 + 1, e2e 10; auto-merged docs/architecture.md with Q-0221 Test scope change, no conflict). Done so far: test-author Sonnet 5.5 (02c41ea); code-reviewer mode 2 Opus 5.5 PASS; builder r1 Sonnet 5.5; worktree gate PASS round 1 (1 security flag); code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Opus 5.5 PASS. Squash 7cd2aae was made, then removed from develop (not pushed): develop phase 0 gate red only on EZD-000d T8 because of the restructure session's reports in vault/research/pending/ (ca461c6 plus untracked files). Deviations (minor, accepted by code-reviewer): docs/architecture.md line 292 reference reworded so T4 (b)'s unanchored indexOf finds the real heading; tenancy docs in a new "Local test rows" bullet instead of extending "Seed rows". needs-josh-confirm wording: none. Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016d | 0 | Test harness: device projects and runner config | done | high | EZD-016c, EZD-007f, EZD-002, EZD-006, EZD-008a | 76b7557 | 11 | Done 2026-10-20 (76b7557; 11 EZD-016d tests: 8 node:test T9, T15 + 3 Vitest T5, T6, T14; develop phase 0 gate PASS: node:test 364, vitest 226 + 1, build, e2e 10 all [desktop]). Build started 2026-10-20. Step 1 skipped (plan written 2026-10-20 after the split; EZD-007f, EZD-002, EZD-006, EZD-008a deviations predate it; EZD-016c deviations are docs wording only, no interface change). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (plan s7/s8 yes, high). Done so far: test-author Opus 5.5 (9b74d37; harness ticket, built app/test-harness/e2e helpers); code-reviewer mode 2 Opus 5.5 FAIL r1 (T12 unread bodies passed silently), test-author fix 540f6af, PASS r2; builder r1 Opus 5.5 (0e9346d, docs Step 7 only); worktree gate PASS round 1 (no security flags). WebKit installed (plan s9). Done so far: test-author Opus 5.5 (e96ae0b; harness ticket, wrote Steps 1-4); code-reviewer mode 2 Opus 5.5 PASS (T6 scope (c) reading confirmed: no assertion under (c), plan Step 1); builder r1 Opus 5.5; worktree gate PASS round 1 (2 security flags: package.json, pnpm-lock.yaml); code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (production-sensitive PASS). Deviations: none. Open minor (security-reviewer, not blocking): harness-config.test.ts T5 lines 108, 112 compare the gate secret with toBe, so a failing T5 would print the local per-run secret into git-ignored gate.log; fix by comparing a boolean or hash at the next edit (EZD-016a). Doc leftovers (code-reviewer, minor): arch CI bullet "once EZD-016a / EZD-017" and Test scope bullet "EZD-016a playwright.config.ts" name EZD-016a; fix when EZD-016a edits arch. Side effect: root playwright.config.ts makes ci.yml Install browsers step install chromium and webkit (plan Step 2.7). needs-josh-confirm wording: none. Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016a | 0 | Test harness: sign-in, session and network helpers | done | high | EZD-016c, EZD-016d, EZD-006, EZD-007 | 3ab81ab | 18 | Done 2026-10-20 (3ab81ab; 18 EZD-016a test runs: 11 Playwright (T1 x4 projects, T2 x3, T3 x2, T12, T13) + 5 Vitest T7 + 2 node:test T8, T9b; T14 edits EZD-016d T5; develop phase 0 gate PASS: node:test 366, vitest 231 + 1, build, e2e 21). code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (production-sensitive PASS; minor observation: consumed token_hash may sit in git-ignored retain-on-failure traces, same as real link, no change). Deviations (accepted by code-reviewer): test.ts also re-exports createTenant, createMember, cleanup, closeHarness (section 4 needs them); T14 changed harness-config.test.ts lines 102, 106 (plan said 108, 112; same meaning). needs-josh-confirm wording: none. Build started 2026-10-20. Reading map fixed in tickets.json (was 08 Imports, EZD-016b's; now plan section 2 files; 74f713e). Step 1: planner re-validation (Opus 5.5) REVISED a2b00f8: names unchanged; added Step 8 / T14 (EZD-016d T5 secret compare as boolean, L-018) and Step 7 / T9b doc rewording (EZD-016d open minors); no QP. Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5, security-reviewer Fable 5.1 (plan s7/s8 yes, high). Split from EZD-016a (Q-0198) at build step 1, 2026-10-20: planner re-validation (Opus 5.5; deviating dependencies EZD-002, EZD-006, EZD-007a–f; v1 plan to v2; findings V1–V12) found the plan over the size rule (about 22 files, 10 tests); split proposal in vault/plans/EZD-016a.md (548a74e). Complexity from the proposal; security-review yes on every part. |
+| EZD-016b | 0 | Fixtures | done | high | EZD-016a | e006b76 | 758 | Done 2026-10-22 (e006b76; 758 tests; develop phase 0 gate PASS). Models (high): test-author Opus 5.5, builder Opus 5.5, code-reviewer Opus 5.5 (modes 2 and 3), calc-auditor Opus 5.5, security-reviewer Opus 5.5 (Fable 5.1 hit the monthly spend limit, fell back to Opus; gate flagged package.json and pnpm-lock.yaml). All reviews PASS. Deviations: none; test-author also wrote generator and fixtures (harness ticket). README photos wording fixed by test-author a9e60b3 (data-only, not structural). Open minors: a few counts, 1e-9 angle tolerance and swingsInto hard-coded in synthetic.test.mjs (reviewer finding 3); T1 byte-identity could differ across Node zlib versions, shows only in phase CI run (T11), then plan needs re-validation. needs-josh-confirm wording: none. Note: plan Step 6 cites decisions.md Build answers, now a stub; needs-from-josh.md already lists photos and revised architect DXF rows. |
+| EZD-017 | 0 | Performance budgets and benchmark | done | high | EZD-016, EZD-012 | 453e9f9 | 772 | Josh 2026-10-22: build whole, no split, although the plan (about 51,000 characters, 21 files) is over the PROCESS.md section 4 split line. Q-0247: builder may write scripts/perf/ (guard-paths.mjs, committed by Josh's instruction). Done 2026-10-22 (453e9f9; 772 tests; gate PASS). Models (high): test-author Opus 5.5, builder r1 Opus 5.5; builder r2 dispatched Fable 5.1, hit spend limit with no output, fell back to Opus 5.5; planner Opus 5.5 (plan-gap); test-author Opus 5.5 (structural repair); code-reviewer and security-reviewer Opus 5.5, both PASS. Deviations: plan-gaps patched in plan (P1/P5 PanFailure, E1, K4, settlePage, P2 move; round 3: T-d runCli must be async spawn, not spawnSync, because the in-process fixture server hung five tests; section 3 gained runCli). Structural repair 78b3834 confirmed by code-reviewer: no assertion changed. Gate SECURITY FLAG package.json = new perf script only. Minors: no test checks the five Supabase env names are removed from the check's server (K1); `--only ,` prints PERF PASS with nothing measured. needs-josh-confirm wording: none. |
+| EZD-018 | 0 | Realtime channels | done | high | EZD-006, EZD-007, EZD-016a | da0db65 | 802 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Notes: models: test-author Sonnet 5.5 medium, builder Opus 5.5 medium (--dispatch), planner plan-gap Opus, code-reviewer Opus 5.5 high, security-reviewer Fable 5.1 high; no fallbacks. Deviations: plan-gap patch (rt-self dropped; T34 adds adapter.ts, security-reviewer approved; jsonb payload bound as object; T6 one connection per topic); structural test repairs 370f2f5, 2c13c09 (afterAll timeout 60 s, parallel close), 3902b57 (secret key name moved to app/test-harness/secret-key-value.ts). needs-josh-confirm: none. Later tickets: presence is display-only, never lock authority (EZD-125/126); realtime token fetch sends no app version until EZD-134; hub.ts project key vs USER_KEY minor. |
+| EZD-020 | 0 | Entry points and lazy chunks | done | high | EZD-017, EZD-014a, EZD-014b, EZD-014c, EZD-015a, EZD-015b, EZD-015c | 160f0ed | 867 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Done 2026-10-23 (867 tests on develop phase 0). Models (high): test-author Sonnet 5.5 (v2.4 table), code-reviewer Opus 5.5 high (mode 2 PASS, mode 3 PASS, resumed), builder Opus 5.5 medium (round 1), planner Opus 5.5 (one plan gap). Plan gap: Step 6 adds five contents.* budgets but EZD-017 T7 pinned 21; planner patched Steps 6-7 (140a60a), test-author updated T7 to 26 rows with a strict rule comparison (454fafb). Deviations (code-reviewer accepted, minor): next/dist/compiled/<name>/ counts as pkg:<name>; error codes missing_source_map and no_app_sources; the bundle report shows a compressed total only from a js-size row on the same URL, so the editor section has none until EZD-120b repoints both rows. Unit interrupted at 01:52 UTC by a Claude desktop app restart after the squash commit; the develop gate, cleanup and these notes were finished by hand 2026-10-23 (no launcher cost row). needs-josh-confirm wording: none. |
+| EZD-021 | 0 | AI client and stubs | done | high | EZD-009, EZD-016, EZD-023c, EZD-023e | a82762c | 1030 | Stage 2 (questions 0, 2026-10-19): planner re-validation for Q-0157, Q-0159 (a), Q-0160 (a): T21 fixtures now from EZD-023c T14 base (a) and CLEAN; T21 (g) needs the full release run, so EZD-023e added to depends_on (orchestrator). Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Built 2026-10-23 (1030 tests on develop phase 0). Step 1: planner re-validation (Opus 5.5 high, --dispatch) REVISED, V1-V14, no QP: JobContext<unknown,unknown>, timeLeft cap at JOB_RUN_BUDGET_MS, T21 (g) in release.test.mjs, edits to EZD-009 T19, EZD-023c DECRYPTED_ENTRIES test, EZD-004b env.test.mjs, EZD-016d T14. Models: test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high FAIL r1 (2 minor) then PASS; structural repair 047be1e (JSDoc type only, diff read by orchestrator); builder r1 Opus 5.5 medium; gate PASS r1 (8 flagged paths); code-reviewer mode 3 Opus 5.5 PASS (resumed); security-reviewer Fable 5.1 high PASS. Deviations: T14 (b) netGuardLog fixture option; T22 (c) three exchanges (plan slip); @anthropic-ai/sdk pinned 1.1.0 not 1.2.0 (1.2.0 made pnpm write minimumReleaseAgeExclude list); x-api-key via defaultHeaders with Authorization null; adapter ctx gains budgetMs; job-signal abort maps to ai_provider_timeout; OpenAI output assumed image/png; BFL media type from content-type. Follow-ups (security, minor): SDK reads ANTHROPIC_CUSTOM_HEADERS, ANTHROPIC_LOG, OpenTelemetry env names: keep unset on Vercel; net guard covers fetch/http/https only. needs-josh-confirm: 13 fixed error texts in app/src/server/ai/errors.ts:7-22 (only "AI key not set" is from the ticket); runbook section ## AI providers (EZD-021), step 5 marks keys Sensitive but Preview AI_MODE must stay not Sensitive. |
+| EZD-022 | 0 | Event registry | done | medium | EZD-001 | ffbd8d0 | 360 | Done 2026-10-19 (360 = 224 repo node:test + 135 app Vitest (11 new EZD-022) + 1 geometry on develop phase 0). Step 1: plan re-validated (24b857f; planner Opus 5.5; v2 template, EZD-001 deviations; no QP; T1, T2, T8 now @smoke; findUnregisteredEmits gains options.onFile; defaultSinks in index.ts, no sinks.ts; T4b folded into T4 (b)). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer Opus 5.5 mode 2 PASS, mode 3 PASS (same resumed agent); builder r1 Sonnet 5.5. No security review (plan no; gate no flagged paths). Worktree gate PASS round 1; develop phase 0 PASS. Deviations: (1) T7 scans temp root `.` not `src` so the node_modules skip is exercised (expected value unchanged); (2) known scan limit: literals containing a backslash or `$` are skipped by the static scan (typecheck EventName still catches them). Developer-only text (not UI): "Unknown event name: <name>", AggregateError "N event sink(s) failed for <name>". needs-josh-confirm wording: none. |
+| EZD-000 | 0 | Architecture conventions | done | high | — | 1739318 | 42 | Done 2026-10-19. Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 PASS; builder r1 Fable 5.1 (resumed 2026-10-19 as a fresh Fable 5.1 agent, prior agent not resumable across sessions); code-reviewer mode 3 Fable 5.1 PASS (fresh, step-5 reviewer not resumable); security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS). Gate PASS worktree and develop phase 0. Deviations: T6 accepts `## Rules (every agent)` (v2 CLAUDE.md heading) as well as the plan's v1 heading; pnpm-workspace.yaml adds saveExact: true (pnpm 12 ignores .npmrc save-exact; .npmrc kept); typescript pinned 5.9.3 not 7.0.2; architecture.md cites CLAUDE.md v2 rule numbers (7, 8, 5-6) where the plan said 11, 12, 10; C2 fails when pnpm-workspace.yaml is missing and any package.json exists (plan implicit). Open minor follow-ups (reviewers, PASS): docs/architecture.md:54 says typescript 7.0.2 shipped 2026-10-18, registry says 2026-07-08 (fix date or drop clause); security: Money bullet (line 128) omits 03 rule 2's 'every new money field extends the EZD-133 cost-removal test'; client-link clause omits 03 rule 11 / R26 R14 field list, hashed tokens, rate limits (planner follow-up on re-validation). needs-josh-confirm: none. |
+| EZD-000b | 0 | Hidden-token settings and honesty rules (Items 2, 5) | done | medium | EZD-000 | 2929564 | 10 | Done 2026-10-19. Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; code-reviewer mode 3 Opus 5.5 high PASS (resumed step-5 reviewer). Step 1 re-validation skipped: plan base e04d605 is after EZD-000's merge and nothing it reads changed. Gate round 1 red on 4 tooling tests outside the ticket (questions-flow hard-coded Q-IDs; guard-paths nested worktree root); fixed in place under rule 19 (dc361d2, Q-0136); round 2 gate PASS 59/59; develop phase 0 PASS 59/59. Deviations: none (plan s2 handoff-vs-PROCESS.md differences 1-3 reported as planned). Verification: item 12 verified (T8); item 6 not testable here, added to PILOT.md (Q-0126 (c)). Test count 10 = T1-T8 with T7 run per agent file. needs-josh-confirm: none. Part A of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. Was the whole PA3 ticket; plan unit re-plans Part A. |
+| EZD-000c | 0 | Whole-read guard and outline tool (Item 3) | done | medium | EZD-000b | 3b7c7c1 | 10 | Done 2026-10-19. Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; code-reviewer mode 3 Opus 5.5 high PASS (resumed step-5 reviewer; plan s7). Step 1 skipped: EZD-000b recorded no plan deviation. Gate round 1 PASS 69/69; develop phase 0 PASS 69/69. Deviations: none (handoff-vs-PROCESS.md differences reported as planned: .mjs extension, CLAUDE.md sentence from s14 template). Verification: item 7 hook level verified (T5, T6, T9); live session not testable here, added to PILOT.md as check 13 (Q-0126 (c)). Reviewer notes, no fix needed: T7(d) depends on vault/PROCESS.md staying over 20,000 chars; T10 pins the other PreToolUse entries and spawn depth "1" (EZD-000f must update it); a 30,000-char .ipynb Read is denied (not on plan binary list; in PILOT check 13); sed -n /re/p and tail -f denied as planned; Bash paths resolve against cwd, not after an in-command cd. needs-josh-confirm: none. Part B of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. |
+| EZD-000d | 0 | Research report store (Item 6) | done | medium | EZD-000c | ffa76d7 | 10 | Done 2026-10-19. Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; code-reviewer mode 3 Opus 5.5 high PASS (resumed step-5 reviewer; plan s7). Step 1 skipped: EZD-000c recorded no plan deviation. Gate round 1 PASS 79/79; develop phase 0 PASS 79/79. Deviations: (a) research.mjs CLI entry check resolves symlinks (realpathSync) before comparing with import.meta.url, where C4 compared the raw argv path; macOS /var symlink made T1, T5, T7 fail otherwise; reviewer accepted. (b) CLAUDE.md row uses PROCESS.md text "(only the reports your plan names)" over the handoff's "(read only ...)", as plan s2 planned. C9 TEMPLATE.md sentence added by the orchestrator at merge (grep confirmed). CLAUDE.md now 53 lines. Verification item 9 belongs to EZD-000e/EZD-000f. needs-josh-confirm: none. Part C of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. |
+| EZD-000e | 0 | Retriever agents and dispatch brief (Item 4, agent files) | done | medium | EZD-000d | 89d95e9 | 7 | Done 2026-10-19. Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): planner re-validation (agent default Opus 5.5 high) CHANGED citations only (EZD-000d deviations do not touch this plan; plan re-validated at e379241); test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; code-reviewer mode 3 Opus 5.5 high PASS (resumed step-5 reviewer). Gate round 1 PASS 86/86; develop phase 0 PASS 86/86. Deviations: (a) T7 pins dispatch.md lines 1-20 as a SHA-256 hash via node:crypto, where plan C8 lists no crypto module and T7 says the test holds the lines; same behavior, less precise failure message; reviewer accepted as minor. Builder: none. Spawn depth stays 1 (settings.json untouched). Verification items 8, 9 belong to EZD-000f. needs-josh-confirm: none. Part D of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. |
+| EZD-000f | 0 | Retriever spawn limits (Item 4, enforcement) | done | medium | EZD-000e | 5a8ebe3 | 94 | Done 2026-10-19 (94 = all repo tests on develop phase 0; new file spawn-limits.test.mjs has T1-T8). Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): planner re-validation Opus 5.5 high (EZD-000e deviation (a)) CHANGED citations and contract wording only, no QP: develop 539b6cd line numbers; C6 write checks use guard-paths.test.mjs fixed fake root; C7 guard-reads T10 list of other PreToolUse entries gains the C4 entry; test-author Sonnet 5.5 medium (mode 2 round 1 FAIL, 2 minor fixture findings: T8 INDEX header not the C6 text, T6 `..` path normalized by path.join; fixed, round 2 PASS); builder r1 Sonnet 5.5 medium; code-reviewer Opus 5.5 high mode 3 round 1 FAIL minor (guard-paths registered an extra rules.retriever roster key, so an agent named "retriever" passed; same builder fixed it), round 2 PASS (resumed step-5 reviewer). Gate PASS 94/94 in worktree and on develop phase 0. Deviations: none remaining. Differences handoff vs PROCESS.md as planned (guard-agents hook, not tools lines or deny rules; Q-0132 (a) edit proposed in phase-00-for-josh.md). Verification items 8, 9: decision logic verified by T1, T3, T4(a), T8; live halves not testable here, added to PILOT.md as checks 14, 15 (Q-0126 (c)). needs-josh-confirm: none. Part E of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. |
+| EZD-000g | 0 | Lesson ratification (Item 7) | done | medium | EZD-000f | 23a06c2 | 101 | Done 2026-10-19 (101 = all repo tests on develop phase 0; new file lesson-ratification.test.mjs has T1-T7). Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; code-reviewer mode 3 Opus 5.5 high PASS (resumed step-5 reviewer; plan s7). Step 1 skipped: EZD-000f recorded no plan deviation. Gate round 1 PASS 101/101; develop phase 0 PASS 101/101. Deviations: none. Differences handoff vs PROCESS.md as planned (s7 "three sections" over a four-item list: four written; "ratified" applies to both wrap triggers). Verification item 10 verified (live --lessons planner tooling printed "(no lessons for planner in areas tooling)"; reviewer re-ran it and checked INDEX.md skipped, missing vault/lessons/ allowed, real lessons pass). Reviewer notes, no fix needed: L-003 (orchestrator.md, test-author.md) is also a candidate, so the next questions 0 unit lists L-001, L-002 and L-003 under Rule candidates; next_ticket.mjs prints nothing and exits 0 when run through an unresolved symlinked path (macOS /var), pre-existing, not in this diff. needs-josh-confirm: none. Part F of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. |
+| EZD-000h | 0 | Usage meters, five-hour pause and weekly gate (Item 1a and the gates) | done | medium | EZD-000g | 4296a46 | 111 | Done 2026-10-19 (111 = all repo tests on develop phase 0; new files scripts/budget/gates.test.mjs, statusline.test.mjs, cli.test.mjs hold T1-T10). Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; gate r1 PASS 111/111; code-reviewer mode 3 r1 Opus 5.5 high FAIL (behavior: an active override bypassed an existing BUDGET_HOLD.md; minor: report crashed on an unreadable time); builder r2 Opus 5.5 (fresh, one tier up, PROCESS.md s8 step 9); gate r2 PASS 111/111; code-reviewer mode 3 r2 PASS (same agent). Step 1 skipped: EZD-000g recorded no plan deviation. Deviations: (1) plan C7 put the override (b) before the existing-hold check (e); resolved by PROCESS.md s10 step 1 and plan s1 step 3 "Existing hold": an existing hold file blocks all but the in-progress build even under an override, the override turns off only meter warn and hold. (2) budget.mjs loads weekSpend/weekStart once from its own repo copy of next_ticket.mjs, not <root>/vault/tools per call (only differs in tests, which inject spend). (3) run.mjs --dry-run still writes WINDOW_PAUSE.md and waits through a pause. (4) unreadable times show — in both reports (shared fmt). Handoff vs PROCESS.md differences as planned (s2: fable_seven_day null; percentages in PROGRESS.md when fresh; *_pct keys read with s11 defaults, budget.json untouched). Verification items 3, 4 verified by T5-T7; items 1 and the statusline half of 2 not testable here, added to PILOT.md row 16 (Q-0126 (c)); statusLine shape checked against code.claude.com/docs/en/statusline by the reviewer; docs do not say CLAUDE_PROJECT_DIR is set for status-line commands (the :-. fallback covers it). PILOT.md row 6 now names --hold-at instead of --raise. needs-josh-confirm: budget.mjs report ends with a `Warning: <text>` line when meters fell back to the dollar proxy; run.mjs --status prints its own meter line (no read time or reset times), not the s6 report line. Part G of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high. |
+| EZD-000i | 0 | OAuth usage fallback (Item 1b) | done | medium | EZD-000h | 883a54f | 125 | Done 2026-10-19 (125 = all repo tests on develop phase 0; new scripts/budget/oauth.test.mjs T1-T10 and scripts/hooks/guard-bash.test.mjs T11). Step 1: plan re-validated after EZD-000h deviations (planner PASS, reference-only edits; QP-1 → Q-0137 answered-agent (a): a dry run polls like a real pass). Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high PASS; builder r1 Sonnet 5.5 medium; gate r1 PASS 125/125; code-reviewer mode 3 (same agent) PASS; security-reviewer Opus 5.5 high PASS (plan s7). Live probe (builder report, not verifiable from repo): HTTP 200 from the keychain source; Keychain service Claude Code-credentials confirmed without -w/-g; response five_hour/seven_day values use `utilization` (and dollar fields), not `used_percentage`, so parseUsage reads every real 200 as unreadable and falls back to the proxy: reported failed per Q-0134 (a), needs a follow-up ticket that also settles 0-1 vs 0-100. Deviations: (1) the step 11 `test -f` on the sign-in file was skipped because the orchestrator dispatch forbade naming it (lesson L-005); (2) run.mjs loads oauth-usage.mjs with await import, not a static import (same behavior, matches budget.mjs loading). Security minor findings (not blocking, accident guard per Q-0135): K1 splits segments inside quotes (settings deny still covers); K3 `test -f` word match swallows space-free chained commands; probe prints nested key names (check for account IDs before sharing probe lines). Follow-ups for Josh (orchestrator may not edit .claude/ or tests): remove the pa3Grant exception and its tests (Q-0128 (a)); token rules in PROCESS.md s14. needs-josh-confirm: the two guard-bash deny reasons (plan s6). Part H of the EZD-000b split (2026-10-19). Source: vault/handoff/PA3-MECHANISMS.md. Builder may edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files the item names (rule 7; Q-0128). Test-author and builder Sonnet 5.5 medium; code-reviewer Opus 5.5 high; security-reviewer. |
+| EZD-000j | 0 | OAuth usage fallback reads `utilization` (Q-0138) | done | medium | EZD-000i | ea0b79d | 196 | Done 2026-10-19 (196 = 176 repo node:test + 20 Vitest on develop phase 0; new EZD-000j T1-T4 in scripts/budget/oauth.test.mjs). AC-2 live probe (builder report, run once; not verifiable from repo, no file records it): HTTP 200 from keychain; five_hour and seven_day keys {utilization, resets_at, limit_dollars, used_dollars, remaining_dollars, locked_reason}; `utilization: five_hour 18, seven_day 12`; token found in files: none; nothing redacted. Scale verdict 0-100 by plan step 5 rule 1 (18 > 1); UTILIZATION_MAX stays 100. Gate r1 PASS (worktree); code-reviewer mode 2 PASS, mode 3 (same agent) PASS; security-reviewer PASS (minor: copy only these probe lines into notes). Deviations: none. needs-josh-confirm wording: none (probe line is plan s6 wording). Follow-up for Josh: remove the pa3Grant exception in .claude/hooks/guard-paths.mjs (Q-0128 (a); plan s9). Added 2026-10-19 from Josh's Q-0138 (a). Builder write grant per PA3-MECHANISMS.md rule 7 and Q-0128 (guard-paths.mjs grant extended to EZD-000j). Ready 2026-10-19 (questions 0: plan section 10 has no open question). Build 2026-10-19: step 1 skipped (plan written after EZD-000i merged and cites its deviations). Models (medium, PROCESS.md s4; plan s8; EZD_FABLE_ALLOWED=1): test-author Sonnet 5.5 medium; code-reviewer Opus 5.5 high; builder Sonnet 5.5 medium; security-reviewer Opus 5.5 high (plan s7). |
+| EZD-023a | 0 | Release safety: migration check | done | high | EZD-002, EZD-004 | b8b5913 | 385 | Done 2026-10-19 (385 = 249 repo node:test incl. 25 EZD-023a + 135 app Vitest + 1 geometry Vitest on develop phase 0). Split from EZD-023 (Q-0042). Step 1 planner re-validation (Opus 5.5) after EZD-000/001/002/004a/004b deviations, no QP; v2 template; complexity medium → high; security-review yes (0806316). Precondition: builder exception scripts/release/ in guard-paths.mjs (fc09da6, Q-0125 (a), fix mode). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer Fable 5.1 (mode 2 PASS, mode 3 r1 FAIL, T19–T21 test review PASS, mode 3 r2 PASS, same agent); builder Fable 5.1 r1, r2 resumed (ceiling); security-reviewer Fable 5.1 r1 FAIL, r2 PASS (Production-sensitive changes PASS). Round 1 FAIL: re-declared base objects (create or replace / if not exists) escaped M1; view/type renames and drop attribute unflagged; created not keyed by kind; --base/--head unvalidated → Q-0156 (a) answered-agent; planner amended plan (fbd2465, Opus 5.5) adding T19–T21; tests 546d327; fix 84c5e59. Gate PASS worktree r1, r2; develop phase 0 PASS. Deviations: validateRetired also requires ticket (EZD-xxx) and non-empty reason per entry; extra exports main, MIGRATIONS_DIR, RETIRED_FILE, OBJECT_KINDS; compareReleaseTags throws on a non-tag; M0 and no-tag summaries omit the base tag. Builder r1 edits briefly landed in the main checkout and were reversed (checked clean). Follow-up (minor, code-reviewer): docs/architecture.md Release safety 'Still reads' bullet repeats 'a retired table covers its columns'. Security residual: base object set sees only static DDL in released migrations. needs-josh-confirm wording (developer script output, not in plan section 6): 'migration check passed (no release tag: supabase/retired.json only)', 'migration check failed: <n> violation(s)', '<n> new migration(s) since <base tag>', 'migration check error: <message>'. Lesson L-014 (planner). |
+| EZD-023b | 0 | Release guards and naming | done | high | EZD-023a, EZD-001 | 238bd8c | 392 | Done 2026-10-19 (392 = 256 repo node:test incl. 7 EZD-023b + 135 app Vitest + 1 geometry Vitest on develop phase 0). Step 1 skipped (plan re-validated at the split after EZD-023a/001 deviations). Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 PASS (first round); builder r1 Fable 5.1; code-reviewer mode 3 Fable 5.1 PASS (resumed step-5 agent); security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS). Worktree gate PASS round 1 (7 flagged paths → security review); develop phase 0 PASS. Deviations (minor, code-reviewer): github-api.mjs coerces an absent deployment_branch_policy to null (reads all_branches, not not_selected_branches; both refuse); release.mjs treats any non-zero checkMigrations return as migration_check_failed (plan names 1). Follow-ups (security, minor): (1) maskCommands does not escape % as %25, so a percent-encoded password form is registered altered by the runner; no leak today (nothing prints the URL); fix with a test in EZD-023c or EZD-023e; (2) release.mjs echoes the PR title unescaped into stdout (a newline could start a :: command; only Josh-merged titles reach it). EZD-005b renderBootstrap quote follow-up belongs to EZD-023d (vault/plans/EZD-023d.md lines 76–78, T9 (i)); the "line 274" pointer is stale. needs-josh-confirm wording (Actions log lines, not in plan section 6): release refused: <code>; not_latest: git fetch failed; not_latest: <sha> is not the tip of origin/main (<sha>); no_merged_pr: GitHub returned <status> / GitHub request failed; no_merged_pr: no merged pull request on main for <sha>; environment_unprotected: GitHub returned <status> / GitHub request failed / <reason>; <code>: pull request #N "<title>" gives no release name; migration_check_failed: the migration check could not run; not_built: the release steps after the migration check are added by EZD-023c, EZD-023d and EZD-023e. Open check (plan section 9): merge_commit_sha in commits/<sha>/pulls after the Phase 0 merge, before EZD-023e. Split from EZD-023b (Q-0157) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-004a, 004b, 005b, 008a, 008b, 023a; findings V1–V15) found the plan over the size rule (about 23 files, 20 tests); split proposal in vault/plans/EZD-023b.md (9f5172e). Complexity from the proposal. Split from EZD-023 (Q-0042) · Q-0116 (a) answered 2026-10-18; plan re-validated by the planner (Opus 5.5 high) the same day: phase PR preview; release step unaffected. Q-0123 (b): Before-launch checklist aligned the same day. |
+| EZD-023c | 0 | Vercel build and environment checks | done | medium | EZD-023b, EZD-004b, EZD-008a, EZD-008b | bc1d307 | 401 | Done 2026-10-19 (401 = 265 repo node:test incl. EZD-023c T6, T14, T15, T23, T24, T25 + 135 app Vitest + 1 geometry Vitest on develop phase 0). Step 1: planner re-validation (Opus 5.5) for EZD-023b's recorded deviations: structure-only edits (built stop(), makeClean overrides vercel/sleep/now, T24 (a) 'includes'); QP-1 -> Q-0161 (a) orchestrator: maskCommands escapes % as %25 here (T25; 8 files). Models (medium, PROCESS.md s4): test-author Sonnet 5.5; code-reviewer mode 2 Opus 5.5 FAIL r1 (3 minor test findings) then PASS; builder r1 Sonnet 5.5; worktree gate PASS round 1 (8 flagged paths); code-reviewer mode 3 Opus 5.5 PASS (resumed step-5 agent); security-reviewer Opus 5.5 PASS; develop phase 0 PASS. Deviations (minor, code-reviewer): vercel-api.mjs error text adds endings 'failed: bad_body' (tokenInfo) and 'failed: more_pages' (listEnv); a 2xx non-JSON body reads as null (all callers fail closed; tokenInfo then gives the non-blocking vercel_token_no_expiry notice). Follow-ups (security, minor): (1) redactUrl (redact.mjs:5) stops the password at the first @, so an un-encoded @ in a password leaks its tail; fix before EZD-025 uses it on database-tool output; (2) release.mjs build_failed log line prints Vercel's state verbatim (could carry a newline/::); print known states only. targets.production absent -> previous null: EZD-023e reviewer checks. needs-josh-confirm wording (Actions log lines in release.mjs, not in plan section 6): vercel_api_failed: <client error text> / vercel_api_failed: request failed; <vercel_auto_assign_on | deployment_protection_off>: the Vercel project settings are not as the release needs; waiting for the build: <client error text> / request failed; build_failed: the build of <sha> ended <state>; no_build: no READY production build of <sha> within 900 seconds; env_mismatch: env_example_invalid .env.example. Build 2026-10-19: step 1 planner re-validation (Opus 5.5) for EZD-023b deviations: structure-only edits (built stop()/makeClean/T24 (a) includes) + Q-0161 (a) maskCommands %25 fix (T25, 8 files). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer and security-reviewer Opus 5.5. |
+| EZD-023d | 0 | Dump, migrations and tenant 1 | done | high | EZD-023c, EZD-004a, EZD-005a, EZD-005b | 732fc00 | 409 | Done 2026-10-19 (409 = 273 repo node:test incl. EZD-023d release, bootstrap, invocations tests + 135 app Vitest + 1 geometry Vitest on develop phase 0). Step 1: planner re-validation (Opus 5.5) for EZD-023b/023c deviations: structure-only edits (built makeClean/makeC/h.external, stop() line, clock); QP-1 -> Q-0162 (a) orchestrator. Models (high, PROCESS.md s4; EZD_FABLE_ALLOWED=1): test-author Fable 5.1; code-reviewer mode 2 Fable 5.1 PASS (first round); builder r1 Fable 5.1; worktree gate PASS (10 flagged paths); code-reviewer mode 3 Fable 5.1 FAIL r1 (behavior: dumpDatabase never created outDir; real CLI 2.121.0 fails DbDumpOpenFileError) -> builder r2 resumed (Fable at ceiling, 1276f5b) -> gate PASS -> PASS; security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS); develop phase 0 PASS. Deviations (minor, code-reviewer): child lines are the last 20 (slice(-20)); each A-F refusal logs a bare code line first; owner_email_secret_unused "still set" = non-blank after trim; one trailing empty stderr element dropped; a bootstrap that resolves without ezd_bootstrap_done logs no psql ERROR line (optional improvement). Follow-ups (security, minor): (1) @aws-sdk/client-s3 3.1153.0 and @aws-sdk/token-providers were published 2026-10-19, younger than pnpm minimumReleaseAge; pnpm add asked for a minimumReleaseAgeExclude list, builder reverted pnpm-workspace.yaml, frozen install passes; orchestrator accepted the plan pin (no build script, standard SDK tree); phase-gate security review re-checks it; (2) redactUrl first-@ leak still applies to child lines echoing a URL with an unencoded @ password; fix stays with EZD-025; EZD-023e runbook must require percent-encoded passwords. needs-josh-confirm wording: none beyond section 6 (Q-0162 (a) alreadyLive line is part c's built wording). Notes: test fake creates the dump folder itself (hid the r1 bug). Split from EZD-023b (Q-0157) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-004a, 004b, 005b, 008a, 008b, 023a; findings V1–V15) found the plan over the size rule (about 23 files, 20 tests); split proposal in vault/plans/EZD-023b.md (9f5172e). Complexity from the proposal. |
+| EZD-023e | 0 | Go live, rollback, workflow and docs | done | high | EZD-023d, EZD-004b, EZD-002, EZD-004c, EZD-006, EZD-005b | ea9274b | 1007 | Split from EZD-023b (Q-0157) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-004a, 004b, 005b, 008a, 008b, 023a; findings V1–V15) found the plan over the size rule (about 23 files, 20 tests); split proposal in vault/plans/EZD-023b.md (9f5172e). Complexity from the proposal. Install form per Q-0158 (a). Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Built 2026-10-23 (1007 tests on develop phase 0). Step 1: planner re-validation (Opus 5.5) for 023b/023c/023d deviations; Q-0254 (a) PR title JSON-escaped, Q-0255 (a) build state filtered, Q-0256 (a) recorded narrowing of EZD-023d T25 and T11 (h) (security-reviewer / code-reviewer answers, answered-agent). Models (high; --dispatch): planner Opus 5.5 high; test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 FAIL r1 (1 minor test defect: outputHolds ignored release.json) then fixed 0e12547; builder r1 Opus 5.5 medium; worktree gate PASS (5 flagged paths); code-reviewer mode 3 Opus 5.5 PASS; security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS). Deviations (minor, code-reviewer): T11 (c)(d) strip 40+ hex runs before scanning for 422/500; checkReleaseWorkflow takes a secretNames option (test-internal); when checkLive throws the log line is `live check failed: ` with no ids. Follow-ups: release.mjs:304 and :326 still print Vercel client error text (EZD-023c, not touched; check before EZD-025 or at launch). Open: merge_commit_sha check on the Phase 0 merge commit (plan section 9). Tell Josh: production now changes when Release finishes after a phase PR merge (SETUP.md line is Josh's). Copy plan's settings list and Before-launch checklist into needs-from-josh.md. needs-josh-confirm: runbook text of section 6 (new Before-launch item 8 percent-encode wording) and GitHub/Vercel menu names unchecked by builder. |
+| EZD-024 | 0 | Error reporting | done | high | EZD-008, EZD-009, EZD-026a, EZD-016a, EZD-022 | 9749819 | 911 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Built 2026-10-23: planner re-validation Opus 5.5/high (--dispatch; V1-V10 patch, no QP); test-author Sonnet 5.5/medium (--dispatch), 3 test-review rounds; code-reviewer Opus 5.5/high mode 2 PASS (r3) and mode 3 PASS; builder Opus 5.5/medium r1; security-reviewer Fable 5.1/high PASS; worktree gate PASS first run; develop gate PASS. Deviations: added @sentry/browser 11.8.0 and @sentry/core 11.8.0 with Dependencies rows (V10; @sentry/nextjs lacks globalHandlersIntegration, parseEnvelope, dsnFromString on Node); extra input line in harness-config.test.ts (EZD-016d T14, SENTRY_STUB_DIR, no assertion changed); stub transport hand-built, not createTransport; buildCheckEnvelope main returns 1; PLACEHOLDER_DSN in lib/errors/browser-options.ts; sendOwnerAlert extra env arg; webhook alert title `<event>: <lastStatus>`; cap check uses advisory xact lock; Edge build warning node:fs from instrumentation.ts (no edge routes). Security minors for later: tunnel forwards browser tags and frame paths unscrubbed; caps are global not per source (Josh's choice, Q-0068 (a)); FK MATCH SIMPLE allows project_id with null tenant_id via service_role only. needs-josh-confirm wording: en/es error.envelope_too_large 'That error report is too large to send.' / 'Ese informe de error es demasiado grande para enviarlo.'; error.invalid_envelope 'That error report couldn't be read.' / 'No se pudo leer ese informe de error.'; job alert shows 'none' when no project (alert-email.ts:60); live-check.mjs messages; runbook '## Error reporting (EZD-024)'. |
+| EZD-025 | 0 | Off-site backups and restore script | done | high | EZD-004, EZD-009, EZD-023b, EZD-023c, EZD-023d, EZD-023e, EZD-005, EZD-006 | 485b9de | 1099 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Build 2026-10-23: step 1 planner re-validation (Opus 5.5 high; Q-0257 (a) redactUrl fix answered-agent by security-reviewer) + plan-gap interface contract. Models (--dispatch): test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 FAIL r1 (4 minor test defects) then PASS; builder r1 Opus 5.5 medium. BLOCKED by Q-0258: builder cannot write scripts/backup/ (guard-paths.mjs); Josh applies vault/handoff/EZD-025-guard-paths.patch then resume. Builder committed on t/EZD-025 (0b12f98, 69c13ba): 2 migrations, db types, redactUrl fix, root backup:* scripts, postgres + supabase-js root devDeps, architecture Used-in; T10 and T18 pass. Remaining: scripts/backup/** modules, scratch config, 2 workflows, .env.example comments, docs, runbook. Builder note: scratchQueries(scratch, store) second arg. Worktree left in place; builder agent a4d29761f3531b8e8 can be resumed. · Requeued 2026-10-23 by Josh: Q-0258 answered (guard-paths now allows the folder, d15a898); worktree kept, resume from it (rebase onto develop for the hook change). · Completed 2026-10-23 (merge 485b9de, 1099 tests on develop phase 0). Resumed after Q-0258. Models (--dispatch): builder Opus 5.5 medium; code-reviewer mode 3 Opus 5.5 FAIL r1 (minor: B2 behaviours stated as fact in runbook) then PASS; security-reviewer Fable 5.1 PASS (Production-sensitive changes PASS). PLAN-GAP: planner (Opus 5.5) resolved .env.example vs EZD-023e release-docs test by option (c): no BACKUP_* names in .env.example; T16 flipped (test-author). Gate failure: EZD-006 T20 (a) list in rls-config.test.mjs got backup_run (test-author). Deviations (minor): scratch config sets [realtime] enabled=true (plan Step 5 fallback); extra codes internal_error, usage, source_unavailable, scratch_start_failed, data_load_failed, files_restore_failed, scratch_sql_failed; source adds updatedAtText/files_cursor_text, getToFile returns {contentType}, runDbDump optional onDumpError, scratchQueries(scratch, store), --keep masks password, --record writes no row on early stop, location null with --from-dir; scripts/release/dump.mjs DROPPED_ENV_NAMES adds BACKUP_SOURCE_SECRET_KEY and BACKUP_SOURCE_SUPABASE_URL (security). Follow-ups: B2 behaviours unverified, runbook First run checks list for Josh; psql CONTEXT lines on data load failure may echo a row (Josh terminal only, optional). needs-josh-confirm: none. |
+| EZD-026c | 0 | Message helper: t() core | done | medium | EZD-001, EZD-004a, EZD-004b, EZD-005a | 8b71166 | 433 | Split from EZD-026a (Q-0163) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-001, EZD-010c; EZD-004, EZD-005, EZD-010 splits; findings V1–V12) found the plan over the size rule (15 builder files, 7 test files, 19 tests); split proposal in vault/plans/EZD-026a.md (113ce03). Complexity from the proposal. Ready 2026-10-19 (questions 0): plan section 10 "None", no open question; Q-0163 answered-agent. Build 2026-10-19: step 1 skipped (plan written after the split re-validation). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5. Done 2026-10-19 (433 = 273 repo node:test + 159 app Vitest incl. 24 EZD-026c + 1 geometry Vitest on develop phase 0). code-reviewer mode 2 PASS (minors accepted: two top-level describes per test file where plan section 3 says one, C9 satisfied; A6 "contains en" check is loose as the plan words it); builder r1 Sonnet 5.5; gate PASS first run; code-reviewer mode 3 (same agent) PASS. Deviations: none. needs-josh-confirm wording: none. |
+| EZD-026d | 0 | Message helper: catalogs and test-page component | done | medium | EZD-026c, EZD-004a, EZD-004b, EZD-005a, EZD-010b, EZD-010c | 3c83933 | 450 | Split from EZD-026a (Q-0163) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-001, EZD-010c; EZD-004, EZD-005, EZD-010 splits; findings V1–V12) found the plan over the size rule (15 builder files, 7 test files, 19 tests); split proposal in vault/plans/EZD-026a.md (113ce03). Complexity from the proposal. Ready 2026-10-19 (questions 0): plan section 10 "None", no open question; Q-0163 answered-agent. Build 2026-10-19: step 1 skipped (plan written after every dependency merged; no dependency deviation since). Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5. Done 2026-10-19 (450 = 273 repo node:test + 176 app Vitest + 1 geometry Vitest on develop phase 0). code-reviewer mode 2 FAIL r1 (A3 getT message check; __dirname), test-author fixed, PASS r2; builder r1 Sonnet 5.5; gate PASS first run on worktree and develop; code-reviewer mode 3 PASS. Plan deviations: MessagesProvider.tsx and get-t.ts cast the Partial catalog to Record<MessageKey, Message> for EZD-026c createT (which takes a full record); safe because createT checks Object.hasOwn and throws MissingMessageError (t.ts line 37); EZD-011 and EZD-020 pass subsets the same way. needs-josh-confirm wording: es error.db_unavailable "No se puede conectar con la base de datos. Inténtalo de nuevo en un minuto." (Q-0030 (a)); developer-only errors (never on screen): "useT must be used inside a MessagesProvider", "Surface <surface> is English only: language es is not available". |
+| EZD-026a | 0 | Message helper: phone-screen lint and docs | done | medium | EZD-026c, EZD-026d, EZD-001, EZD-000 | 5bd63e6 | 458 | Split from EZD-026a (Q-0163) at build step 1, 2026-10-19: planner re-validation (Opus 5.5; deviating dependencies EZD-001, EZD-010c; EZD-004, EZD-005, EZD-010 splits; findings V1–V12) found the plan over the size rule (15 builder files, 7 test files, 19 tests); split proposal in vault/plans/EZD-026a.md (113ce03). Complexity from the proposal. Split from EZD-026 (Q-0028). Ready 2026-10-19 (questions 0): plan section 10 "None", no open question; Q-0163 answered-agent. Build 2026-10-19: step 1 planner re-validation (Opus 5.5) for the EZD-026d deviation: PASS, no test value changed; plan sections 1 and 3 docs wording updated. Models (medium, PROCESS.md s4): test-author Sonnet 5.5, builder Sonnet 5.5, code-reviewer Opus 5.5. Done 2026-10-19 (458 = 281 repo node:test incl. 8 EZD-026a + 176 app Vitest + 1 geometry Vitest on develop phase 0). code-reviewer mode 2 PASS r1; builder r1 Sonnet 5.5; gate PASS first run on worktree and develop; code-reviewer mode 3 (same agent) PASS. Plan deviations: none. needs-josh-confirm wording: none. |
+| EZD-026b | 0 | Message helper: language from the user record | done | medium | EZD-026a, EZD-005, EZD-006, EZD-007, EZD-016a | 137b588 | 934 | Split from EZD-026 (Q-0028) Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Models: test-author, builder sonnet-5-5 medium; code-reviewer, security-reviewer opus-5-5 high (all from --dispatch). Deviations: plan-gap (lang attr is on the MessagesProvider inner div, not the section) patched in plan, test locator repaired (de44e3e); page.tsx adds `dynamic = force-dynamic`. No needs-josh-confirm wording. |
+| EZD-027 | 0 | Spike: plan canvas on the iPad | done | high | EZD-012, EZD-016a | 661bd4a | 934 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Merged 2026-10-23 (661bd4a, 934 tests). BLOCKED waiting on Josh's Surface run (plan Step 9/10, Q-0064 (b), Q-0088); vault/spikes/EZD-027.md is written only after it; Phase 2 stays closed until then. Models: test-author and builder per earlier session (builder dispatch tier opus 5.5 medium); code-reviewer mode 3 Opus 5.5 high PASS; security-reviewer Fable 5.1 high PASS (gate flagged server.mjs by name only). Deviations (minor, none fail): ?labels= capped at 100,000 in public/main.mjs; automated runs were on macOS (WebKit Apple GPU, Chromium SwiftShader), not the Windows PC of Q-0018; panel shows counts with one decimal. Gate: e2e/jobs.spec.ts (EZD-009) failed 3 of 4 full runs (missing 'queued' event, race under parallel load; passes alone 3/3; unrelated files), green on retry; fix belongs to an EZD-009 test repair. LAN mode: stop the server after the field run. · Done 2026-10-24: field run on Josh's Windows machine (Q-0263), p95 33.4 ms ≤ 34.33, max 50.1 ms, 0 over 100 ms; vault/spikes/EZD-027.md Verdict: go; results in vault/spikes/EZD-027-results/. |
+| EZD-028 | 0 | Spike: PDF from a drawing list | done | high | EZD-001, EZD-010 | f47bc2d | 934 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). · Build 2026-10-23, models per --dispatch: test-author, planner (plan-gap), code-reviewer, builder, calc-auditor Opus 5.5 (medium/high); security-reviewer Fable 5.1 high (gate flag: lockfile + spike package.json). Plan-gap: test-author found missing field names and execArgv; planner patched Steps 2, 5, T6/T7/T9/T10. Deviations: pdfkit 0.20.2 has outline.addItem not outline.add; buildStressList() added (plan silent); Vercel 300 s/2 GB not re-confirmed online (Q-0027 (a) used); lockfile re-keyed vitest peer. First develop merge gate failed on e2e/jobs.spec.ts (known EZD-009 flake), passed on re-run. Verdict go (vault/spikes/EZD-028.md); Josh's PDF viewer measurement pending, does not block. needs-josh-confirm: none. |
+| EZD-029 | 0 | Spike: DXF parser | done | high | EZD-016, EZD-000 | cf0d50d | 934 | Models: test-author, builder per earlier sessions (not recorded in this session); reviewers code-reviewer opus-5-5 high, security-reviewer fable-5-1 high, calc-auditor opus-5-5 high (all from --dispatch). First gate failed only on the EZD-009 jobs.spec.ts flake (EZD-035 repairs it); unchanged rerun green. No mode-2 test review run (high ticket); tests reviewed in mode 3. Review minors: writer docs claim BLOCK/INSERT etc. unproven (EZD-913 to check); fill/text names fixed text in write-room.mjs; extra nodeBuiltins/standins keys in results.json. Verdict go. Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Stage 2 (2026-10-23): unblocked, Q-0248 answered (a); build after EZD-035 merges. |
+| EZD-030 | 0 | Spike: wall openings and sloped ceiling | done | high | EZD-001 | c29ffae | 934 | Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Models: test-author opus medium, code-reviewer opus high (mode 2 and 3), builder opus medium, security-reviewer fable high, calc-auditor opus high (all from --dispatch). No plan deviations beyond: no tsconfig.test.json or @types/node; bench uses test-context bench (Vitest 5). Gate security flag was lockfile and package.json only; security PASS. Minor open: README bench run line needs --reporter=verbose. No needs-josh-confirm wording. |
+| EZD-031 | 0 | Spike: render trial | done | medium | EZD-021 | 4cbf838 | 1030 | Josh 2026-10-22: build whole on this plan; Built 2026-10-23. Planner re-validation Opus 5.5 high (EZD-021 deviations: budgetMs, ImageAdapterResult, createRecordedFetch object) then plan-gap (interface contract) and round-1 gap (running status, model ids, R-014); test-author Sonnet 5.5 medium; builder Sonnet 5.5 medium r1, r2 resumed with advisor sentence (--dispatch); code-reviewer mode 3 Opus 5.5 high FAIL r1 (4 findings) then PASS; security-reviewer Opus 5.5 high PASS (2 minor, README run-dir fixed). Gate PASS r1 and r2. Deviations: PreparedTrial extra fields allModels/previous; toHtml/writeReports optional inputs map; esbuild denied in allowBuilds; tsx 4.23.15 row added; plan stays v1 layout (plan_lint fails on structure only). needs-josh-confirm: confirmation lines in spikes/EZD-031-render/src/cli.ts (rooms:, room:, model:, renders:, cap:, no price:), stderr refused:/crashed:, report.ts page title and caption. Prices for Kontext null until read. Live trial and provider pick: Josh, after Phase 10 (Q-0082). never split at build time (size line does not apply). |
+| EZD-032 | 0 | Phase 0 build-gate test | done | medium | EZD-007, EZD-011, EZD-012, EZD-014a, EZD-014b, EZD-014c, EZD-016a, EZD-017 | 127fc3f | 996 | Added at plan review (Q-0085) Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). Requeued 2026-10-23T17:49Z by Josh's request after EZD-035 (flaky jobs.spec.ts, Q-0248) merged; worktree kept. · Blocked 2026-10-23 on EZD-035 (Q-0248): develop gate fails test:e2e at app/e2e/jobs.spec.ts:32 whenever this ticket's smoke spec is in the run (4 of 5 runs). Tests 2ad3144, docs 2d6b79a+66a3646 in worktree .claude/worktrees/EZD-032, kept. code-reviewer PASS (opus high), security-reviewer PASS (opus high); test-author, builder sonnet medium (--dispatch). Deviations: signInAs(email) not (page,email); workers 4 not 2 (Q-0114); B4 refused HTTP status not observed. After EZD-035 merges: re-run unit-steps merge EZD-032. |
+| EZD-033 | 0 | Password sign-in | done | high | EZD-007, EZD-006, EZD-016a, EZD-024 | 489640a | 994 | Added at Stage 2 (Q-0095) · Q-0094 overridden by Josh 2026-10-18 (minimum 8 characters); plan re-validated by the planner (Opus 5.5 high) the same day. Josh 2026-10-22: build whole on this plan; never split at build time (size line does not apply). · Build 2026-10-23: planner re-validation Opus 5.5/high REVISED (5e45853 plan-gap: settle failure, auth_code_unavailable/auth_link_unavailable, small items; no QP); test-author Sonnet 5.5/medium, test review code-reviewer Opus 5.5/high PASS; builder Opus 5.5/medium r1 + r2. Structural repairs (code-reviewer confirmed): 2a147e5 (createPasswordMember sets password after create; sbWrites ignores code-verifier; T4 1.5 s wait), de02c97 (EZD-006 T20 (a) tenant-less list), T17 (d) final cookie state instead of write history. code-reviewer mode 3 Opus 5.5/high: FAIL only for red gate; ui-verifier Sonnet 5.5/low PASS; security-reviewer Fable 5.1/high PASS (x-forwarded-for assumption and settle-failure approved; minor: cite the Vercel request-headers URL in docs). BLOCKED on EZD-035 (Q-0248): worktree gate (3 runs) passes typecheck, lint, test (488 Vitest), build, perf; test:e2e fails only at app/e2e/jobs.spec.ts:32 (EZD-009 flake). Worktree .claude/worktrees/EZD-033 kept, reviewed. After EZD-035 merges: re-run /build-ticket EZD-033 (goes to step 7 gate, then merge). Deviations: mail-catcher.ts waitForRawEmail/emailSubjects and exported randomPassword (not in Step 8 list). needs-josh-confirm: builder-written Spanish (9 es.ts keys, recovery/reauthentication template Spanish blocks, config.toml Spanish subjects, runbook). Requeued 2026-10-23T17:49Z by Josh's request after EZD-035 (flaky jobs.spec.ts, Q-0248) merged; worktree kept. · Final 2026-10-23: resumed at gate after EZD-035; rebased t/EZD-033 onto develop, needed `pnpm db:stop` so local Auth picked up the new recovery template (T7 failed on the stale stack), then gate green. code-reviewer mode 3 Opus 5.5/high PASS (--dispatch); earlier security-reviewer Fable 5.1 PASS, ui-verifier PASS. Deviations: mail-catcher.ts readers, randomPassword re-export, rls-config.test.mjs tenant-less list (structural repair). needs-josh-confirm: builder-written Spanish (9 es.ts keys, recovery/reauthentication template Spanish blocks, config.toml subjects, runbook). Minor open: docs/architecture.md Password sign-in (vi) cites Vercel request-headers docs without URL. |
+| EZD-101 | 1 | Permission and role tables | todo |  | EZD-005 |  |  |  |
+| EZD-102 | 1 | Permission enforcement | todo |  | EZD-101, EZD-006 |  |  |  |
+| EZD-103 | 1 | Settings shell | todo |  | EZD-102, EZD-012 |  |  |  |
+| EZD-104 | 7 | Users table | todo |  | EZD-103 |  |  |  |
+| EZD-105 | 7 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
+| EZD-106 | 7 | User inspector | todo |  | EZD-104 |  |  |  |
+| EZD-107 | 7 | Custom roles | todo |  | EZD-106 |  |  |  |
+| EZD-108 | 2 | Avatar menu and My profile | todo |  | EZD-103 |  |  |  |
+| EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
+| EZD-110 | 2 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
+| EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
+| EZD-112 | 1 | Company settings: identity | todo |  | EZD-103, EZD-132 |  |  |  |
+| EZD-113 | 1 | Customers | todo |  | EZD-112 |  |  |  |
+| EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
+| EZD-117a | 2 | Projects page: query and cards | todo |  | EZD-102, EZD-110 |  |  |  |
+| EZD-117b | 2 | Projects page: header, search and states | todo |  | EZD-117a, EZD-015 |  |  |  |
+| EZD-118 | 2 | New project wizard | todo |  | EZD-117, EZD-113 |  |  |  |
+| EZD-120a | 3 | Model tables, save function and checkpoints | todo |  | EZD-005, EZD-133 |  |  |  |
+| EZD-120b | 3 | Model store, outbox and editor route | todo |  | EZD-120a, EZD-012, EZD-117 |  |  |  |
+| EZD-121 | 9 | Sent versions and numbering | todo |  | EZD-120, EZD-111 |  |  |  |
+| EZD-122 | 9 | Versions panel | todo |  | EZD-121 |  |  |  |
+| EZD-123 | 9 | Version cleanup | todo |  | EZD-122, EZD-110, EZD-116 |  |  |  |
+| EZD-124 | 9 | Project card menu | todo |  | EZD-117, EZD-121 |  |  |  |
+| EZD-125 | 8 | Edit lock service | todo |  | EZD-120, EZD-109, EZD-110, EZD-116, EZD-018 |  |  |  |
+| EZD-126 | 8 | Edit lock UI | todo |  | EZD-125, EZD-011 |  |  |  |
+| EZD-127 | 17 | Review pill | todo |  | EZD-117 |  |  |  |
+| EZD-128 | 8 | Project switcher | todo |  | EZD-117 |  |  |  |
+| EZD-129 | 7 | User project scope | todo |  | EZD-106, EZD-006 |  |  |  |
+| EZD-130 | 8 | Project settings dialog | todo |  | EZD-118, EZD-116, EZD-128 |  |  |  |
+| EZD-131 | 11 | Libraries shell | todo |  | EZD-103 |  |  |  |
+| EZD-132 | 1 | File storage | todo |  | EZD-006 |  |  |  |
+| EZD-133 | 3 | Access and money-field harness | todo |  | EZD-102, EZD-006 |  |  |  |
+| EZD-134 | 14 | App-shell cache and device storage | todo |  | EZD-013, EZD-120 |  |  |  |
+| EZD-135 | 6 | System status page | todo |  | EZD-103, EZD-024, EZD-025 |  |  |  |
+| EZD-201 | 4 | Length parse and format | todo |  | EZD-001 |  |  |  |
+| EZD-202 | 3 | Model document schema | todo |  | EZD-120 |  |  |  |
+| EZD-203 | 4 | Walls core | todo |  | EZD-202 |  |  |  |
+| EZD-204 | 5 | Openings core | todo |  | EZD-203 |  |  |  |
+| EZD-205 | 4 | Rooms and closure | todo |  | EZD-203 |  |  |  |
+| EZD-206 | 5 | Snapping | todo |  | EZD-203 |  |  |  |
+| EZD-207 | 4 | Plan canvas | todo |  | EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238 |  |  |  |
+| EZD-208 | 5 | Selection | todo |  | EZD-207 |  |  |  |
+| EZD-209 | 4 | Typed dimension bar | todo |  | EZD-201, EZD-207 |  |  |  |
+| EZD-210 | 4 | Wall and Room rectangle tools | todo |  | EZD-205, EZD-209 |  |  |  |
+| EZD-211 | 5 | Door and window tools | todo |  | EZD-204, EZD-209 |  |  |  |
+| EZD-212 | 5 | Move, handles, distance chips | todo |  | EZD-208 |  |  |  |
+| EZD-213 | 5 | Inspector fields | todo |  | EZD-208 |  |  |  |
+| EZD-214 | 6 | Status and phase switch | todo |  | EZD-213 |  |  |  |
+| EZD-215 | 10 | Bearing wall rule | todo |  | EZD-213, EZD-132 |  |  |  |
+| EZD-216 | 6 | Dimensions and text | todo |  | EZD-207, EZD-235 |  |  |  |
+| EZD-217 | 5 | Undo, redo and clipboard | todo |  | EZD-208 |  |  |  |
+| EZD-218 | 6 | Left panel: Layers and Rooms | todo |  | EZD-214, EZD-132 |  |  |  |
+| EZD-219 | 6 | Status bar popovers | todo |  | EZD-206 |  |  |  |
+| EZD-220 | 10 | Existing-condition pins | todo |  | EZD-213, EZD-132 |  |  |  |
+| EZD-221 | 4 | Blank templates | todo |  | EZD-210, EZD-118 |  |  |  |
+| EZD-222 | 11 | Keyboard shortcuts and Help | todo |  | EZD-116, EZD-012 |  |  |  |
+| EZD-223 | 11 | Sketch tool | todo |  | EZD-207, EZD-108 |  |  |  |
+| EZD-224 | 6 | Plan thumbnail | todo |  | EZD-207 |  |  |  |
+| EZD-225 | 8 | Editor states | todo |  | EZD-126, EZD-204 |  |  |  |
+| EZD-226 | 10 | Custom tile shower objects | todo |  | EZD-234 |  |  |  |
+| EZD-227 | 10 | Grab-bar blocking | todo |  | EZD-234 |  |  |  |
+| EZD-228 | 21 | Bath clearance check | todo |  | EZD-226, EZD-116 |  |  |  |
+| EZD-229 | 10 | Existing-condition details | todo |  | EZD-220 |  |  |  |
+| EZD-230 | 11 | Default key map and full rail | todo |  | EZD-222 |  |  |  |
+| EZD-231 | 11 | Measure tool (plan) | todo |  | EZD-206, EZD-207 |  |  |  |
+| EZD-232 | 11 | Manual revision cloud (plan) | todo |  | EZD-216 |  |  |  |
+| EZD-233 | 11 | Context menu, mirror, align, groups | todo |  | EZD-217, EZD-131, EZD-234 |  |  |  |
+| EZD-234 | 10 | Fixtures tool and utility points | todo |  | EZD-213 |  |  |  |
+| EZD-235 | 6 | Derived values and workers | todo |  | EZD-205, EZD-207 |  |  |  |
+| EZD-236 | 4 | Benchmark project generator | todo |  | EZD-202, EZD-017, EZD-120 |  |  |  |
+| EZD-237 | 6 | Benchmark page | todo |  | EZD-207, EZD-236, EZD-135 |  |  |  |
+| EZD-238 | 3 | Drawing list | todo |  | EZD-202 |  |  |  |
+| EZD-301 | 12 | Upload step | todo |  | EZD-118, EZD-009, EZD-132 |  |  |  |
+| EZD-302 | 12 | Polycam DXF detection | todo |  | EZD-301, EZD-202, EZD-016, EZD-029 |  |  |  |
+| EZD-303 | 12 | Polycam GLB mesh | todo |  | EZD-301 |  |  |  |
+| EZD-304 | 13 | PDF underlay and scale | todo |  | EZD-301 |  |  |  |
+| EZD-305 | 13 | Vector PDF wall detection | todo |  | EZD-304 |  |  |  |
+| EZD-306 | 13 | DXF conversion choice | todo |  | EZD-301, EZD-302 |  |  |  |
+| EZD-307 | 12 | Import review screen | todo |  | EZD-302, EZD-303, EZD-012 |  |  |  |
+| EZD-308 | 12 | Review modes | todo |  | EZD-307, EZD-116 |  |  |  |
+| EZD-309 | 12 | Fix and delete | todo |  | EZD-307 |  |  |  |
+| EZD-310 | 12 | Typed vs scan conflicts | todo |  | EZD-309, EZD-201 |  |  |  |
+| EZD-311 | 12 | Resolve the gap | todo |  | EZD-310, EZD-205 |  |  |  |
+| EZD-312 | 13 | Ceiling slope in review | todo |  | EZD-309, EZD-303 |  |  |  |
+| EZD-313 | 12 | Finish and cancel | todo |  | EZD-308, EZD-310, EZD-311 |  |  |  |
+| EZD-314 | 13 | Import states | todo |  | EZD-313, EZD-126 |  |  |  |
+| EZD-315 | 13 | Laser keyboard input | todo |  | EZD-209, EZD-310 |  |  |  |
+| EZD-401 | 15 | Catalog items (minimal) | todo |  | EZD-006 |  |  |  |
+| EZD-402 | 15 | Cabinet object model | todo |  | EZD-202 |  |  |  |
+| EZD-403 | 15 | Cabinet library panel | todo |  | EZD-402, EZD-401, EZD-404 |  |  |  |
+| EZD-404 | 15 | Plan strip and elevation | todo |  | EZD-402, EZD-207 |  |  |  |
+| EZD-405 | 15 | Box editing on canvas | todo |  | EZD-404 |  |  |  |
+| EZD-406 | 15 | Box inspector | todo |  | EZD-405 |  |  |  |
+| EZD-407 | 15 | Fit chip | todo |  | EZD-404, EZD-116 |  |  |  |
+| EZD-408 | 15 | Auto-fill run | todo |  | EZD-407, EZD-234 |  |  |  |
+| EZD-409 | 15 | Cabinet schedule | todo |  | EZD-406 |  |  |  |
+| EZD-410 | 15 | Cabinet flags and states | todo |  | EZD-402, EZD-204 |  |  |  |
+| EZD-411 | 16 | Countertop object model | todo |  | EZD-202 |  |  |  |
+| EZD-412 | 16 | Trace and Draw outline | todo |  | EZD-411, EZD-404, EZD-116 |  |  |  |
+| EZD-413 | 16 | Seams and cutouts | todo |  | EZD-412 |  |  |  |
+| EZD-414 | 16 | Edges and overhangs | todo |  | EZD-412, EZD-116 |  |  |  |
+| EZD-415 | 16 | Seating support check | todo |  | EZD-414 |  |  |  |
+| EZD-416 | 16 | Left panel and status bar | todo |  | EZD-412 |  |  |  |
+| EZD-417 | 16 | Edge profiles | todo |  | EZD-414 |  |  |  |
+| EZD-418 | 16 | Top schedule | todo |  | EZD-416 |  |  |  |
+| EZD-419 | 16 | Plan inspector: run selection | todo |  | EZD-406, EZD-409 |  |  |  |
+| EZD-501 | 17 | Ceiling data per room | todo |  | EZD-202 |  |  |  |
+| EZD-502 | 17 | RCP view and ceiling rail | todo |  | EZD-207, EZD-501, EZD-127 |  |  |  |
+| EZD-503 | 17 | Ceiling type editor | todo |  | EZD-501, EZD-303 |  |  |  |
+| EZD-504 | 17 | Walls cut under slopes | todo |  | EZD-503 |  |  |  |
+| EZD-505 | 18 | Beams | todo |  | EZD-501 |  |  |  |
+| EZD-506 | 18 | Section A-A preview | todo |  | EZD-505 |  |  |  |
+| EZD-507 | 17 | Ceiling devices | todo |  | EZD-501 |  |  |  |
+| EZD-508 | 17 | Fixture schedule panel | todo |  | EZD-507 |  |  |  |
+| EZD-509 | 18 | Auto-layout cans | todo |  | EZD-507, EZD-116 |  |  |  |
+| EZD-510 | 18 | Switching zones | todo |  | EZD-507 |  |  |  |
+| EZD-511 | 18 | ACT grid | todo |  | EZD-501, EZD-116 |  |  |  |
+| EZD-512 | 18 | HVAC objects | todo |  | EZD-511 |  |  |  |
+| EZD-513 | 17 | Soffits, trays, coffers, crown, tags | todo |  | EZD-501 |  |  |  |
+| EZD-514 | 18 | Framing known and keep-clear | todo |  | EZD-507 |  |  |  |
+| EZD-515 | 18 | Fan clearance and hosted flags | todo |  | EZD-507, EZD-505, EZD-116 |  |  |  |
+| EZD-516 | 18 | Beam finish, More menu, canvas | todo |  | EZD-505, EZD-401 |  |  |  |
+| EZD-601 | 19 | Electrical mode and left panel | todo |  | EZD-207, EZD-202 |  |  |  |
+| EZD-602 | 19 | Device toolbar | todo |  | EZD-601, EZD-507 |  |  |  |
+| EZD-603 | 19 | Device height notes | todo |  | EZD-602, EZD-116 |  |  |  |
+| EZD-604 | 19 | Circuits | todo |  | EZD-602 |  |  |  |
+| EZD-605 | 19 | Switch legs | todo |  | EZD-604, EZD-510 |  |  |  |
+| EZD-606 | 19 | Panel and existing panel dialog | todo |  | EZD-604, EZD-021 |  |  |  |
+| EZD-607 | 20 | Load calc engine | todo |  | EZD-604 |  |  |  |
+| EZD-608 | 20 | Load calc inspector | todo |  | EZD-607, EZD-116 |  |  |  |
+| EZD-609 | 19 | Panel schedule | todo |  | EZD-604 |  |  |  |
+| EZD-610 | 19 | Selected circuit and voltage drop | todo |  | EZD-604, EZD-116 |  |  |  |
+| EZD-611a | 21 | Code check engine and rule registry | todo |  | EZD-604, EZD-218, EZD-613 |  |  |  |
+| EZD-611b | 21 | Code rules: Florida Residential Ch. 3 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-611c | 21 | Code rules: Florida Residential Ch. 3 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-612 | 21 | Check button and results | todo |  | EZD-611a |  |  |  |
+| EZD-613 | 21 | Code edition settings | todo |  | EZD-116 |  |  |  |
+| EZD-614 | 20 | Appliance rating defaults | todo |  | EZD-607, EZD-401, EZD-103 |  |  |  |
+| EZD-615 | 20 | Load calc: optional method and cases | todo |  | EZD-607, EZD-606, EZD-608 |  |  |  |
+| EZD-616 | 46 | Code rules: Florida Residential Ch. 3 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-617 | 46 | Code rules: Florida Residential Ch. 3 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-501, EZD-234 |  |  |  |
+| EZD-618 | 46 | Code rules: Existing Building | todo |  | EZD-611a, EZD-620 |  |  |  |
+| EZD-620 | 21 | Code data fields | todo |  | EZD-611a, EZD-130, EZD-213 |  |  |  |
+| EZD-621 | 46 | Code rules: Florida construction chapters (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-501 |  |  |  |
+| EZD-622 | 46 | Code rules: Florida construction chapters (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-501 |  |  |  |
+| EZD-623 | 47 | Code rules: Energy Conservation | todo |  | EZD-611a, EZD-620, EZD-507 |  |  |  |
+| EZD-624 | 47 | Code rules: Mechanical (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
+| EZD-625 | 47 | Code rules: Mechanical (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
+| EZD-626 | 47 | Code rules: Fuel gas | todo |  | EZD-611a, EZD-620, EZD-234 |  |  |  |
+| EZD-627 | 47 | Code rules: Plumbing (1 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
+| EZD-628 | 47 | Code rules: Plumbing (2 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
+| EZD-629 | 47 | Code rules: Plumbing (3 of 3) | todo |  | EZD-611a, EZD-620, EZD-234, EZD-226 |  |  |  |
+| EZD-630 | 48 | Code rules: NEC Art. 100-230 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-631 | 48 | Code rules: NEC Art. 100-230 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-632 | 48 | Code rules: NEC Art. 100-230 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-633 | 48 | Code rules: NEC Art. 100-230 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-411 |  |  |  |
+| EZD-634 | 48 | Code rules: NEC Art. 240-410 (1 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-635 | 49 | Code rules: NEC Art. 240-410 (2 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-636 | 49 | Code rules: NEC Art. 240-410 (3 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-637 | 49 | Code rules: NEC Art. 240-410 (4 of 4) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-610 |  |  |  |
+| EZD-638 | 49 | Code rules: NEC Art. 422-820 (1 of 2) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
+| EZD-639 | 49 | Code rules: NEC Art. 422-820 (2 of 2) | todo |  | EZD-611a, EZD-620, EZD-604, EZD-234 |  |  |  |
+| EZD-701 | 25 | Sheet model and default set | todo |  | EZD-202 |  |  |  |
+| EZD-702a | 25 | Sheets screen | todo |  | EZD-701, EZD-726 |  |  |  |
+| EZD-702b | 25 | Sheet renderer | todo |  | EZD-702a, EZD-235, EZD-238 |  |  |  |
+| EZD-703 | 25 | Viewports and scales | todo |  | EZD-702, EZD-214 |  |  |  |
+| EZD-704 | 25 | Sheet annotation tools | todo |  | EZD-702 |  |  |  |
+| EZD-705 | 25 | Print rules | todo |  | EZD-703 |  |  |  |
+| EZD-706 | 25 | Symbol key | todo |  | EZD-702 |  |  |  |
+| EZD-707 | 26 | Elevations sheet | todo |  | EZD-703, EZD-404 |  |  |  |
+| EZD-708a | 26 | A6.0 RCP sheet | todo |  | EZD-703, EZD-508 |  |  |  |
+| EZD-708b | 26 | E1.0 electrical plan | todo |  | EZD-703, EZD-604, EZD-708a |  |  |  |
+| EZD-708c | 26 | E2.0 panel schedule and load calc | todo |  | EZD-708b, EZD-609, EZD-607 |  |  |  |
+| EZD-709 | 26 | Title block settings | todo |  | EZD-112, EZD-701 |  |  |  |
+| EZD-710 | 26 | Title block on sheets | todo |  | EZD-709, EZD-130 |  |  |  |
+| EZD-711 | 26 | Property appraiser import | todo |  | EZD-710, EZD-009, EZD-021, EZD-118 |  |  |  |
+| EZD-712 | 27 | Submittal profiles | todo |  | EZD-116 |  |  |  |
+| EZD-713 | 27 | Department profile settings | todo |  | EZD-712 |  |  |  |
+| EZD-714 | 27 | Notes library | todo |  | EZD-712 |  |  |  |
+| EZD-715 | 27 | PDF export job | todo |  | EZD-705, EZD-713, EZD-238, EZD-028 |  |  |  |
+| EZD-716 | 27 | Issue checklist | todo |  | EZD-612, EZD-710 |  |  |  |
+| EZD-717 | 27 | Issue Rev 0 and Rev N | todo |  | EZD-715, EZD-716, EZD-121 |  |  |  |
+| EZD-718 | 28 | Revision clouds and log | todo |  | EZD-717 |  |  |  |
+| EZD-719 | 28 | Send set to client | todo |  | EZD-717, EZD-111 |  |  |  |
+| EZD-720 | 28 | Client set content | todo |  | EZD-701, EZD-418, EZD-726 |  |  |  |
+| EZD-721 | 27 | Export menu | todo |  | EZD-715 |  |  |  |
+| EZD-722 | 27 | Sheets states | todo |  | EZD-717 |  |  |  |
+| EZD-723 | 28 | Download one page at a time | todo |  | EZD-715, EZD-713 |  |  |  |
+| EZD-724 | 28 | Dismissible dimension warning | todo |  | EZD-716 |  |  |  |
+| EZD-725 | 28 | Accepted warnings in the issue log | todo |  | EZD-717, EZD-612 |  |  |  |
+| EZD-726 | 25 | Sheet sets | todo |  | EZD-701 |  |  |  |
+| EZD-727 | 28 | Submittal profile enforcement at issue | todo |  | EZD-712, EZD-713, EZD-715 |  |  |  |
+| EZD-728 | 27 | Cover sheet A0.0 | todo |  | EZD-706, EZD-714 |  |  |  |
+| EZD-801 | 29 | Detail data and editor shell | todo |  | EZD-202, EZD-012 |  |  |  |
+| EZD-802 | 29 | New detail dialog | todo |  | EZD-801 |  |  |  |
+| EZD-803 | 29 | Drawing tools | todo |  | EZD-801, EZD-201 |  |  |  |
+| EZD-804 | 29 | Line roles and hatches | todo |  | EZD-803 |  |  |  |
+| EZD-805 | 29 | Annotation tools | todo |  | EZD-803 |  |  |  |
+| EZD-806 | 29 | Parts | todo |  | EZD-801, EZD-817 |  |  |  |
+| EZD-807 | 29 | Scale and NTS | todo |  | EZD-805, EZD-116 |  |  |  |
+| EZD-808 | 29 | Steps and layers | todo |  | EZD-801 |  |  |  |
+| EZD-809 | 30 | Legibility warnings | todo |  | EZD-805 |  |  |  |
+| EZD-810 | 30 | Place on sheet | todo |  | EZD-809, EZD-702 |  |  |  |
+| EZD-811 | 30 | Cut from model and callouts | todo |  | EZD-802, EZD-207 |  |  |  |
+| EZD-812 | 30 | Underlay start | todo |  | EZD-802, EZD-304 |  |  |  |
+| EZD-813 | 30 | Extrude to 3D | todo |  | EZD-803 |  |  |  |
+| EZD-814 | 30 | Detail library and countertop link | todo |  | EZD-801, EZD-415, EZD-817 |  |  |  |
+| EZD-815 | 30 | Detail PDF export | todo |  | EZD-810, EZD-721 |  |  |  |
+| EZD-816 | 30 | Freehand pen | todo |  | EZD-803, EZD-223 |  |  |  |
+| EZD-817 | 29 | Detail libraries in Settings | todo |  | EZD-801, EZD-131 |  |  |  |
+| EZD-901a | 41 | Reference conversion job | todo |  | EZD-306, EZD-009, EZD-016, EZD-029 |  |  |  |
+| EZD-901b | 41 | Reference drawing in Plan | todo |  | EZD-901a, EZD-207, EZD-235, EZD-017 |  |  |  |
+| EZD-902 | 41 | Reference under the model | todo |  | EZD-901 |  |  |  |
+| EZD-903 | 41 | Alignment | todo |  | EZD-902, EZD-904 |  |  |  |
+| EZD-904 | 41 | Reference layers panel | todo |  | EZD-901 |  |  |  |
+| EZD-905 | 41 | Paper-space layouts | todo |  | EZD-901 |  |  |  |
+| EZD-906 | 42 | Convert layers | todo |  | EZD-904, EZD-307, EZD-306 |  |  |  |
+| EZD-907 | 42 | Markup layer | todo |  | EZD-902, EZD-904 |  |  |  |
+| EZD-908 | 42 | Reference versions | todo |  | EZD-904, EZD-921 |  |  |  |
+| EZD-909a | 42 | Reference diff job | todo |  | EZD-908, EZD-907, EZD-116 |  |  |  |
+| EZD-909b | 42 | Reference diff view | todo |  | EZD-909a |  |  |  |
+| EZD-910 | 42 | Keep or accept a revision | todo |  | EZD-909 |  |  |  |
+| EZD-911 | 42 | Export markup | todo |  | EZD-907, EZD-913, EZD-715 |  |  |  |
+| EZD-912 | 42 | Section or callout from reference | todo |  | EZD-902, EZD-811 |  |  |  |
+| EZD-913 | 41 | DXF export | todo |  | EZD-901, EZD-721 |  |  |  |
+| EZD-914 | 43 | Supplier files panel | todo |  | EZD-301 |  |  |  |
+| EZD-915 | 43 | Supplier vector PDF import | todo |  | EZD-914, EZD-305 |  |  |  |
+| EZD-916 | 43 | 2020 order report import | todo |  | EZD-914, EZD-307, EZD-021 |  |  |  |
+| EZD-917 | 43 | Tag and link tools | todo |  | EZD-914, EZD-404, EZD-907 |  |  |  |
+| EZD-918 | 43 | Read codes | todo |  | EZD-917, EZD-916, EZD-021 |  |  |  |
+| EZD-919 | 43 | Compare and resolve mismatches | todo |  | EZD-917, EZD-407, EZD-111 |  |  |  |
+| EZD-920 | 43 | Suggested finishes | todo |  | EZD-917, EZD-401, EZD-021 |  |  |  |
+| EZD-921 | 41 | Architect revision labels | todo |  | EZD-904 |  |  |  |
+| EZD-922a | 42 | Reference states (screen 11) | todo |  | EZD-911 |  |  |  |
+| EZD-922b | 43 | Supplier markup states (screen 12) | todo |  | EZD-919 |  |  |  |
+| EZD-1001a | 33 | 3D scene core | todo |  | EZD-207, EZD-020, EZD-235, EZD-030 |  |  |  |
+| EZD-1001b | 33 | 3D ceilings and beams | todo |  | EZD-1001a, EZD-504, EZD-505 |  |  |  |
+| EZD-1001c | 33 | 3D cabinets, fixtures, devices and finishes | todo |  | EZD-1001b, EZD-402, EZD-414, EZD-234, EZD-226, EZD-602, EZD-401 |  |  |  |
+| EZD-1002 | 33 | Navigation | todo |  | EZD-1001 |  |  |  |
+| EZD-1003 | 34 | Walk and Look up | todo |  | EZD-1002, EZD-116 |  |  |  |
+| EZD-1004 | 33 | Section and display modes | todo |  | EZD-1002 |  |  |  |
+| EZD-1005 | 33 | 3D layers | todo |  | EZD-1001, EZD-303 |  |  |  |
+| EZD-1006 | 33 | Saved views | todo |  | EZD-1002 |  |  |  |
+| EZD-1007 | 34 | Select and apply finish | todo |  | EZD-1001, EZD-401, EZD-505 |  |  |  |
+| EZD-1008 | 34 | Rail on the 3D tab | todo |  | EZD-1002, EZD-612 |  |  |  |
+| EZD-1009 | 35 | Design options data | todo |  | EZD-202 |  |  |  |
+| EZD-1010 | 35 | Options inspector | todo |  | EZD-1009, EZD-1001 |  |  |  |
+| EZD-1011 | 35 | Make options from the RCP | todo |  | EZD-1010, EZD-505 |  |  |  |
+| EZD-1012 | 34 | Measure in 3D | todo |  | EZD-1002 |  |  |  |
+| EZD-1013 | 35 | Phone 3D viewer | todo |  | EZD-1012, EZD-014a, EZD-014b, EZD-014c |  |  |  |
+| EZD-1014 | 35 | GLB and USDZ export | todo |  | EZD-1001, EZD-721 |  |  |  |
+| EZD-1015 | 33 | iPad memory guard and states | todo |  | EZD-1001 |  |  |  |
+| EZD-1017 | 34 | Inspector 3D preview | todo |  | EZD-1001 |  |  |  |
+| EZD-1101 | 36 | Render records and jobs | todo |  | EZD-009, EZD-1006 |  |  |  |
+| EZD-1102 | 36 | Render models settings | todo |  | EZD-116 |  |  |  |
+| EZD-1103 | 36 | Provider adapters | todo |  | EZD-1101, EZD-1102, EZD-021 |  |  |  |
+| EZD-1104a | 38 | Local worker protocol | todo |  | EZD-1103, EZD-116 |  |  |  |
+| EZD-1104b | 38 | Local worker program | todo |  | EZD-1104a |  |  |  |
+| EZD-1105 | 38 | Browser path tracer | todo |  | EZD-1001, EZD-1109 |  |  |  |
+| EZD-1106 | 36 | Step 1: angle | todo |  | EZD-1006, EZD-1101 |  |  |  |
+| EZD-1107 | 36 | Preview and optional alignment | todo |  | EZD-1106 |  |  |  |
+| EZD-1108 | 36 | Step 2: style and direction | todo |  | EZD-1107, EZD-401 |  |  |  |
+| EZD-1109 | 36 | Tiers and Generate | todo |  | EZD-1108, EZD-1103 |  |  |  |
+| EZD-1110 | 36 | Renders list and notifications | todo |  | EZD-1109, EZD-110, EZD-127 |  |  |  |
+| EZD-1111 | 37 | Render view | todo |  | EZD-1110 |  |  |  |
+| EZD-1112 | 37 | Comment pins | todo |  | EZD-1111 |  |  |  |
+| EZD-1113 | 37 | Fix and regenerate | todo |  | EZD-1111 |  |  |  |
+| EZD-1114 | 37 | Two-step approval | todo |  | EZD-1111 |  |  |  |
+| EZD-1115 | 37 | Model changed detection | todo |  | EZD-1114, EZD-1001, EZD-1109, EZD-127 |  |  |  |
+| EZD-1116 | 37 | Download | todo |  | EZD-1111 |  |  |  |
+| EZD-1117 | 37 | Render allowance | todo |  | EZD-1102, EZD-110 |  |  |  |
+| EZD-1118 | 38 | Render A/B/C from 3D | todo |  | EZD-1109, EZD-1010 |  |  |  |
+| EZD-1119 | 38 | R1.0 finish schedule + renders | todo |  | EZD-1114, EZD-716, EZD-401 |  |  |  |
+| EZD-1120 | 54 | Local worker: real runner | todo |  | EZD-1104b |  |  |  |
+| EZD-1121 | 38 | Second provider adapter | todo |  | EZD-1103 |  |  |  |
+| EZD-1201 | 39 | Share links | todo |  | EZD-111, EZD-116 |  |  |  |
+| EZD-1202 | 39 | Client page shell | todo |  | EZD-1201, EZD-020 |  |  |  |
+| EZD-1203 | 40 | Render gallery | todo |  | EZD-1202, EZD-1114 |  |  |  |
+| EZD-1204 | 40 | Client comments | todo |  | EZD-1203, EZD-1112 |  |  |  |
+| EZD-1205 | 39 | Plans tab | todo |  | EZD-1202, EZD-702, EZD-1215 |  |  |  |
+| EZD-1206 | 40 | Send options to client | todo |  | EZD-1010, EZD-1201, EZD-121 |  |  |  |
+| EZD-1207 | 40 | Option choice | todo |  | EZD-1206, EZD-1215 |  |  |  |
+| EZD-1208 | 39 | Selection offers and choice pages | todo |  | EZD-1202, EZD-417 |  |  |  |
+| EZD-1209 | 39 | Edge choice | todo |  | EZD-1208, EZD-417 |  |  |  |
+| EZD-1210 | 39 | Verify and sign | todo |  | EZD-1208, EZD-113 |  |  |  |
+| EZD-1211 | 39 | Approve | todo |  | EZD-1210 |  |  |  |
+| EZD-1212 | 39 | Selections PDF | todo |  | EZD-1211 |  |  |  |
+| EZD-1213 | 40 | Send image | todo |  | EZD-1114, EZD-111 |  |  |  |
+| EZD-1214 | 40 | Archive options on signing | todo |  | EZD-1009, EZD-1211 |  |  |  |
+| EZD-1215 | 39 | Send to client composer | todo |  | EZD-1201, EZD-1208, EZD-401 |  |  |  |
+| EZD-1314 | 54 | Canonical event registry | todo |  | EZD-1301, EZD-022 |  |  |  |
+| EZD-1401 | 14 | Service worker cache | todo |  | EZD-134 |  |  |  |
+| EZD-1402 | 14 | Offline change queue | todo |  | EZD-1401, EZD-120 |  |  |  |
+| EZD-1403 | 44 | Offline editing and conflicts | todo |  | EZD-1402, EZD-125 |  |  |  |
+| EZD-1404 | 45 | Field pack shell | todo |  | EZD-1401, EZD-1305 |  |  |  |
+| EZD-1405 | 45 | Plan and 3D tabs | todo |  | EZD-1404, EZD-1013 |  |  |  |
+| EZD-1406 | 45 | Measure tab | todo |  | EZD-1405, EZD-315 |  |  |  |
+| EZD-1407 | 45 | Send measurement and Flag conflict | todo |  | EZD-1406, EZD-1402 |  |  |  |
+| EZD-1408 | 45 | Field task templates and publishing | todo |  | EZD-131, EZD-021 |  |  |  |
+| EZD-1409 | 45 | Tasks tab | todo |  | EZD-1408, EZD-1402, EZD-1404 |  |  |  |
+| EZD-1410 | 45 | Photo tab and pins | todo |  | EZD-1405, EZD-1402, EZD-1407 |  |  |  |
+| EZD-1411 | 45 | Field pack PDF | todo |  | EZD-1405, EZD-1421, EZD-715 |  |  |  |
+| EZD-1412 | 44 | Stale actions on reconnect | todo |  | EZD-1402, EZD-717 |  |  |  |
+| EZD-1413 | 45 | Field measurements review | todo |  | EZD-1407, EZD-310, EZD-127, EZD-125 |  |  |  |
+| EZD-1414 | 45 | Field conflicts list | todo |  | EZD-1407, EZD-127 |  |  |  |
+| EZD-1415 | 14 | Field measure: shapes and walls | todo |  | EZD-1401 |  |  |  |
+| EZD-1416 | 14 | Field measure: keypad and closure | todo |  | EZD-1415 |  |  |  |
+| EZD-1417 | 14 | Field measure: offline save and send | todo |  | EZD-1416, EZD-1402, EZD-110 |  |  |  |
+| EZD-1418 | 14 | Field measure into Import review | todo |  | EZD-1417, EZD-307 |  |  |  |
+| EZD-1419 | 14 | Field measure entry points and states | todo |  | EZD-1415, EZD-1404, EZD-118, EZD-1305, EZD-1406 |  |  |  |
+| EZD-1420 | 45 | Field tasks screen | todo |  | EZD-1408, EZD-1409 |  |  |  |
+| EZD-1421 | 45 | Issue field pack | todo |  | EZD-1420, EZD-129, EZD-1404 |  |  |  |
+| EZD-1422 | 14 | Field measure as wizard input | todo |  | EZD-118, EZD-1419 |  |  |  |
+| EZD-1501 | 50 | Translation store | todo |  | EZD-006 |  |  |  |
+| EZD-1502 | 50 | AI drafting | todo |  | EZD-1501, EZD-009, EZD-021, EZD-110 |  |  |  |
+| EZD-1503 | 51 | Spanish display | todo |  | EZD-1501, EZD-1404, EZD-026 |  |  |  |
+| EZD-1504 | 50 | Review table | todo |  | EZD-1501, EZD-103 |  |  |  |
+| EZD-1505 | 50 | Review card actions | todo |  | EZD-1504 |  |  |  |
+| EZD-1506 | 50 | Draft warnings | todo |  | EZD-1504 |  |  |  |
+| EZD-1507 | 50 | Glossary | todo |  | EZD-1504 |  |  |  |
+| EZD-1508 | 51 | Bulk approve | todo |  | EZD-1506 |  |  |  |
+| EZD-1509 | 51 | Propagation | todo |  | EZD-1505 |  |  |  |
+| EZD-1510 | 51 | Translation settings | todo |  | EZD-1504, EZD-716 |  |  |  |
+| EZD-1601 | 31 | Catalog drawer | todo |  | EZD-401 |  |  |  |
+| EZD-1602 | 31 | Place from catalog | todo |  | EZD-1601, EZD-234 |  |  |  |
+| EZD-1603 | 31 | Add product: link | todo |  | EZD-1601, EZD-009, EZD-021 |  |  |  |
+| EZD-1604 | 31 | Add product: paste text and screenshot | todo |  | EZD-1603, EZD-021 |  |  |  |
+| EZD-1605 | 31 | Field confirmation | todo |  | EZD-1603 |  |  |  |
+| EZD-1606 | 31 | Save and place | todo |  | EZD-1605 |  |  |  |
+| EZD-1607 | 32 | Item detail | todo |  | EZD-1606 |  |  |  |
+| EZD-1608 | 32 | Price snapshots and refresh | todo |  | EZD-1607 |  |  |  |
+| EZD-1609 | 52 | Catalog settings | todo |  | EZD-103, EZD-1212 |  |  |  |
+| EZD-1610 | 31 | Catalog states | todo |  | EZD-1601 |  |  |  |
+| EZD-1611a | 52 | Takeoff framework and room finishes | todo |  | EZD-235, EZD-226, EZD-116 |  |  |  |
+| EZD-1611b | 52 | Takeoff: cabinets, tops, fixtures and electrical | todo |  | EZD-1611a, EZD-418, EZD-604 |  |  |  |
+| EZD-1611c | 52 | Takeoff: ACT, option costs and snapshot | todo |  | EZD-1611b, EZD-511, EZD-1010, EZD-121 |  |  |  |
+| EZD-1612 | 52 | Waste factors | todo |  | EZD-1611, EZD-116 |  |  |  |
+| EZD-1613 | 52 | Takeoff screen | todo |  | EZD-1611 |  |  |  |
+| EZD-1614 | 52 | Tile layout preview | todo |  | EZD-1612, EZD-1001 |  |  |  |
+| EZD-1615 | 52 | Takeoff CSV | todo |  | EZD-1613 |  |  |  |
+| EZD-1616 | 31 | Catalog on the standard rail | todo |  | EZD-1601, EZD-230 |  |  |  |
+| EZD-1617 | 52 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
+| EZD-1701 | 55 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
+| EZD-1702 | 55 | DXF size limits | todo |  | EZD-1701 |  |  |  |
+| EZD-1704 | 1 | Backups | todo |  | EZD-025 |  |  |  |
+| EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
+| EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
+| EZD-1707 | 1 | Terms of service | todo |  | EZD-007 |  |  |  |
+| EZD-1708 | 55 | Accessibility pass | todo |  | EZD-222 |  |  |  |
+| EZD-1709a | 55 | Screen states: Projects and Settings | todo |  | EZD-016 |  |  |  |
+| EZD-1709b | 55 | Screen states: editor tabs | todo |  | EZD-1709a, EZD-1613 |  |  |  |
+| EZD-1709c | 55 | Screen states: phone and client screens | todo |  | EZD-1709b |  |  |  |
+| EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
+| EZD-136 | 1 | On-screen disclaimer | todo |  | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
+| EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
+| EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
+| EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
+| EZD-641 | 21 | Scope of work match check | todo |  | EZD-611a, EZD-118 |  |  | Added 2026-10-20 in the re-cut for Q-0180 (Q-0218). |
+| EZD-729 | 22 | Plumbing locations | todo |  | EZD-234, EZD-218 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-730 | 22 | Plumbing diagram and calculations | todo |  | EZD-729 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-731 | 23 | Mechanical layout | todo |  | EZD-234, EZD-218 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-732 | 23 | Mechanical calculations | todo |  | EZD-731 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-733 | 24 | Tile layout | todo |  | EZD-404, EZD-218 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-734 | 39 | Tile layout client sign-off | todo |  | EZD-738, EZD-1210 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-735 | 28 | Scope PDF | todo |  | EZD-715, EZD-118 |  |  | Added 2026-10-20 in the re-cut for Q-0190 (Q-0218). |
+| EZD-736 | 28 | Export and issue acknowledgement | todo |  | EZD-715, EZD-717 |  |  | Added 2026-10-20 in the re-cut for Q-0209 (Q-0218). |
+| EZD-737 | 37 | Scope PDF with renders | todo |  | EZD-735, EZD-1114 |  |  | Added 2026-10-20 in the re-cut for Q-0190 (Q-0218). |
+| EZD-738 | 28 | Plumbing, mechanical and tile sheets | todo |  | EZD-701, EZD-715, EZD-730, EZD-732, EZD-733 |  |  | Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). |
+| EZD-1424 | 45 | Field measure from the field pack | todo |  | EZD-1419, EZD-1404, EZD-1406 |  |  | Added 2026-10-20 in the re-cut for S17b Entry points (Q-0218). |
+| EZD-1018 | 35 | Spike: AR on iPhone and iPad | todo |  | EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1019 | 35 | AR viewing | todo |  | EZD-1018, EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1020 | 35 | AR editing | todo |  | EZD-1019, EZD-120b |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1021 | 35 | IFC export | todo |  | EZD-1001c, EZD-1014 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-642 | 20 | Commercial load calculation | todo |  | EZD-607, EZD-615 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-643 | 21 | Other code editions | todo |  | EZD-611a, EZD-613 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-139 | 9 | Visual diff of an old version | todo |  | EZD-122, EZD-121 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-140 | 2 | Notification settings per user | todo |  | EZD-110 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1711 | 53 | Billing and paywall for other companies | todo |  | EZD-103, EZD-102 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |
+| EZD-034 | 0 | Captcha on sign-in | done | high | EZD-007d, EZD-007f | ca0fc63 | 1116 | Added 2026-10-20 for Q-0175 (b). · Stage 2 (questions 0, 2026-10-23): Q-0243 answered-josh (c), captcha off in every test; Q-0251 (a) security-reviewer, Q-0252 orchestrator (answered-agent); planner re-planned as one ticket (19 files, 21 tests; PROCESS.md section 6 limits of 2026-10-22), plan_lint OK, plan-checker 2 rounds. Missing deps named in plan section 9 (EZD-033, EZD-016a, EZD-016d, EZD-008b, EZD-007a; all done). Wording R1-R6 (hand-check lines) pending Josh, items 108-113. · Build 2026-10-23: test-author Sonnet 5.5 (5f5a6aa), test review PASS (code-reviewer Opus 5.5), builder r1 Opus 5.5 (ea44721, 0e49729): all but Step 13 done, Vitest T1-T10 and browser B1-B4 pass in the worktree. BLOCKED on Q-0259: guard-paths refuses the builder scripts/auth/ (captcha-check.mjs, N1-N7). Worktree .claude/worktrees/EZD-034 kept. needs-josh-confirm: es.ts:59-61 Spanish; stub text route.ts:29; runbook ## Captcha (EZD-034). · Requeued 2026-10-23 by Josh: Q-0259 answered (guard-paths now allows the folder, d15a898); worktree kept, resume from it (rebase onto develop for the hook change). · Merged 2026-10-23 (ca0fc63, 1116 tests). Models: test-author Sonnet 5.5, builder Opus 5.5 (--dispatch), code-reviewer Opus 5.5, security-reviewer Fable 5.1, ui-verifier Sonnet 5.5 (low); planner Opus 5.5 plan-gap. Reviews all PASS. Deviation: plan-gap, EZD-004b T7 and EZD-025 T16 env-name lists edited (T11/T12, 16030fc). needs-josh-confirm: stub widget text 'Security check (test stub)' (dev/captcha/stub/route.ts:30); es.ts:59-61 Spanish; runbook ## Captcha (EZD-034). AC-EZD-034-1 awaits Josh's hand check (runbook step 5). |
+| EZD-035 | 0 | Fix: job progress browser test misses the queued event under load | done | medium | EZD-009 | a8de11a | 947 | Added 2026-10-23 by Josh's request: flaky in the EZD-027 gate (see the EZD-027 notes). · Build 2026-10-23: test-author, builder Sonnet 5.5/medium (--dispatch); code-reviewer Opus 5.5/high PASS, security-reviewer Opus 5.5/high PASS (gate flagged scripts/db). Gate green. V1: first 10-run loop failed at run 2 on an unrelated test (harness.spec.ts T12 'Worker closed', 1.0m); the jobs test passed in that run; a full re-run passed 10 of 10, each log with 'Realtime broadcast stream ready' and the EZD-009 test passing; jobs.spec.ts unchanged. Deviations: none. needs-josh-confirm: none. Watch: harness.spec.ts T12 may be another flake (seen once). Unblocks EZD-029, EZD-032, EZD-033. |
+| EZD-036 | 0 | Fix: test-harness stubs and Sentry diagnostics warnings in the production build | done | medium | EZD-008a, EZD-024 | c992937 | 1036 | Added 2026-10-23 by the Phase 0 gate (phase-auditor findings 5, 6). Models (--dispatch): test-author Sonnet medium; builder Sonnet medium; planner (plan-gap) Opus high; code-reviewer Opus high. Deviation: plan-gap on B2 control (monitoring route holds no sentry_stub_not_allowed; repointed to PLACEHOLDER_DSN plus all-chunks check, plan E7); U4 mocks whole @sentry/nextjs (form only). No needs-josh-confirm wording. |
+| EZD-037 | 0 | Fix: EZD-002 done-when text still says every push | done | low | EZD-002 | 096079b | 1030 | Added 2026-10-23 by the Phase 0 gate (phase-auditor finding 7). Orchestrator-direct per Q-0260 (a), no builder or test-author; code-reviewer mode 3 opus-5-5 medium (--dispatch): PASS, V1-V8 pass. No plan deviations; no needs-josh-confirm wording. Follow-up: EZD-002 Scope cell still says every push (plan s9). |
+| EZD-038 | 0 | Fix: EZD-002 Scope cell still says every push | done | low | EZD-037 | bd59bab | 1116 | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). Models: code-reviewer opus/medium (--dispatch); no test-author/builder (Q-0260 (a)). Deviation: built in worktree t/EZD-038, wip commit squashed to feat(); TRACE/PROGRESS regenerated at ledger step. V1-V7 pass; reviewer PASS. |
+| EZD-039 | 0 | Fix: TRACE report misreads the test tables of EZD-000b to EZD-000j and EZD-010c | done | low | EZD-038 | 9c1b6f0 | V1-V8 | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). Josh applies vault/handoff/EZD-039-next-ticket.patch with git apply (no launcher unit running), then resume. Models: orchestrator only, no dispatch yet (plan section 8). · 2026-10-24: Josh applied vault/handoff/EZD-039-next-ticket.patch on develop (uncommitted in the main checkout; a later unit's vault commit may carry it, plan section 9 "If Josh already committed the patch"); resume at step 5. · 2026-10-24 done: orchestrator-direct (Q-0260 (a)); patch was already in 8cbb564, so fix commit has no next_ticket.mjs change (8cbb564 also carries Q-0261 hunks). Nine plans titled; TRACE regenerated, changed cells only EZD-010c/023d/023e/031/032 + the nine. V1-V5, V7, V8 pass (23 tests). Models: code-reviewer opus/medium (--dispatch) PASS. Row count 907 not 905 (EZD-041/042 added). |
+| EZD-040 | 0 | Fix: error tunnel scrubs tags and contexts | done | medium | EZD-024, EZD-036 | bc49700 | 1123 | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). Models: test-author, builder Sonnet 5.5 medium; code-reviewer, security-reviewer Opus 5.5 high (all from --dispatch). Deviations (minor): scrub.ts put() uses defineProperty; two test titles and one helper signature differ from plan. Follow-up candidates (security review): EMAIL regex quadratic time on long strings; threads, logentry, mechanism, fingerprint not scrubbed (D10). |
+| EZD-041 | 0 | Fix: release bootstrap passes the production database URL on the psql command line | done | medium | EZD-023b | 541d261 | 1129 | Added 2026-10-23 by the Phase 0 gate (audit and security review findings). · 2026-10-24 done: test-author sonnet/medium, builder sonnet/medium (--dispatch); code-reviewer and security-reviewer opus/high, both PASS. No plan deviations, no needs-josh-confirm wording. Open: dump.mjs --db-url still exposes URL (EZD-042). |
+| EZD-042 | 0 | Fix: Supabase CLI dump and push pass the production database URL as --db-url | done | medium | EZD-023b, EZD-041 | 4d7ff54 | 1137 | Added 2026-10-24 for Q-0262 (a) (Josh: separate follow-up ticket to EZD-041). · 2026-10-24 done: test-author sonnet/medium, builder sonnet/medium (--dispatch); code-reviewer and security-reviewer opus/high, both PASS. No plan deviations, no needs-josh-confirm wording. Open (minor, security-reviewer): .github/workflows/supabase-dev.yml:41 still passes the dev database URL in --db-url (made-up data, Q-0110); the migration push reading PGPASSWORD rests on the plan's probe and was not run. |

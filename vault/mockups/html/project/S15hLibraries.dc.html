@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft libraries</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'Instrument Sans',sans-serif;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#3b424d;text-decoration:none}
+.nv:hover{background:#f2f4f7;color:#14171c}
+.nv .ms{font-size:19px;color:#7a828e}
+.nvon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.nvon .ms{color:oklch(0.5 0.17 262)}
+.nvs{margin-left:auto;font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.pill{font:600 12px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.sh{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:#5e6672}
+.tb{display:flex;align-items:center;gap:6px;padding:0 2px;height:44px;box-sizing:border-box;font-size:14px;color:#5e6672;text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}
+.tb:hover{color:#14171c}
+.tb .n{font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.tbon{color:#14171c;font-weight:600;border-bottom-color:oklch(0.55 0.17 262)}
+.tbon .n{color:oklch(0.5 0.17 262)}
+.tl{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;font-size:14px;color:#3b424d;border:1px solid transparent}
+.tl:hover{background:#f8f9fb}
+.tlon{background:#f5f7ff;border-color:oklch(0.55 0.17 262);color:#14171c}
+.ph{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #dfe2e6;border-radius:10px;background:#fff;font-size:14px}
+.ph .h{color:#9aa3af;font-size:18px;cursor:grab}
+.pn{width:24px;height:24px;border-radius:6px;background:#f2f4f7;color:#5e6672;font:500 12px 'DM Mono',monospace;display:flex;align-items:center;justify-content:center;flex:none}
+.phon{border-color:oklch(0.55 0.17 262);box-shadow:0 0 0 3px #eef1ff}
+.phon .pn{background:oklch(0.55 0.17 262);color:#fff}
+.tk{display:flex;align-items:center;gap:10px;padding:7px 4px 7px 6px;font-size:13.5px;border-bottom:1px solid #eef0f3}
+.tk:last-child{border-bottom:0}
+.tk .h{color:#c9ced5;font-size:16px}
+.tr{font:500 11px 'Instrument Sans',sans-serif;padding:2px 7px;border-radius:5px;background:#f2f4f7;color:#5e6672;white-space:nowrap}
+.seq{font:500 12px 'Instrument Sans',sans-serif;padding:4px 8px;border-radius:6px;background:#f2f4f7;color:#3b424d}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Settings</span>
+<a href="#" style="font-size: 13px; color: #5e6672; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">arrow_back</span>Projects</a>
+<div style="flex: 1"></div>
+<span style="font-size: 13px; color: #5e6672">Worth Properties</span>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px">
+<nav class="card" aria-label="Settings sections" style="width: 248px; flex: none; display: flex; flex-direction: column; overflow: hidden">
+<span class="lbl" style="padding-top: 16px">Company settings</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 8px">
+<a href="#" class="nv"><span class="ms">domain</span>Company</a>
+<a href="#" class="nv"><span class="ms">group</span>Users + permissions<span class="nvs">4</span></a>
+<a href="#" class="nv"><span class="ms">view_quilt</span>Title block</a>
+<a href="#" class="nv"><span class="ms">description</span>Sheet presets</a>
+<a href="#" class="nv"><span class="ms">tune</span>Defaults<span class="nvs">ft-in</span></a>
+<a href="#" class="nv"><span class="ms">inventory_2</span>Catalog<span class="nvs">426</span></a>
+<a href="#" class="nv"><span class="ms">auto_awesome</span>Render models</a>
+<a href="#" class="nv"><span class="ms">gavel</span>Code edition</a>
+<a href="#" class="nv nvon" aria-current="page"><span class="ms">library_books</span>Libraries</a>
+<a href="#" class="nv"><span class="ms">translate</span>Translations<span class="nvs" style="color: oklch(0.48 0.13 65)">12</span></a>
+</div>
+<span style="flex: 1"></span>
+<div style="margin: 12px; padding: 12px; border-radius: 10px; background: #f6f7f9; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #5e6672">
+<span style="display: flex; justify-content: space-between"><span>User sync with EZ Binder</span><span style="color: #14171c; font-weight: 600">On</span></span>
+<span>Optional · users are invited here</span>
+</div>
+</nav>
+<main class="card" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 22px 12px; display: flex; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Libraries</h1>
+<span style="font-size: 13px; color: #5e6672">Company content reused across projects. Editing a library item never changes copies already placed in projects.</span>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; width: 220px; height: 38px; box-sizing: border-box; border: 1px solid #dfe2e6; border-radius: 8px; padding: 0 12px; color: #5e6672"><span class="ms" style="font-size: 19px">search</span><input aria-label="Search field task templates" placeholder="Search templates" style="border: 0; outline: none; flex: 1; min-width: 0; font: 400 14px 'Instrument Sans', sans-serif; color: #14171c"></label>
+<button class="b bp"><span class="ms" style="font-size: 18px">add</span>New template</button>
+</div>
+<div role="tablist" aria-label="Library" style="display: flex; gap: 22px; padding: 0 22px; border-bottom: 1px solid #dfe2e6">
+<a href="#" role="tab" class="tb">Notes<span class="n">48</span></a>
+<a href="#" role="tab" class="tb">Symbols + abbreviations<span class="n">212</span></a>
+<a href="#" role="tab" class="tb">Details<span class="n">24</span></a>
+<a href="#" role="tab" class="tb">Hatches<span class="n">18</span></a>
+<a href="#" role="tab" class="tb">Parts<span class="n">36</span></a>
+<a href="#" role="tab" class="tb">Saved groups<span class="n">7</span></a>
+<a href="#" role="tab" class="tb tbon" aria-selected="true">Field task templates<span class="n">4</span></a>
+</div>
+<div style="flex: 1; min-height: 0; display: flex">
+<div style="width: 232px; flex: none; border-right: 1px solid #eef0f3; padding: 14px 12px; display: flex; flex-direction: column; gap: 4px">
+<span class="sh" style="padding: 0 4px 6px">By room type</span>
+<div class="tl tlon" aria-selected="true"><span class="ms" style="font-size: 19px; color: oklch(0.5 0.17 262)">kitchen</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Kitchen</span><span style="font-size: 12px; color: #5e6672">5 phases · 27 tasks</span></span></div>
+<div class="tl"><span class="ms" style="font-size: 19px; color: #7a828e">bathtub</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span>Bath</span><span style="font-size: 12px; color: #5e6672">5 phases · 31 tasks</span></span></div>
+<div class="tl"><span class="ms" style="font-size: 19px; color: #7a828e">local_laundry_service</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span>Laundry</span><span style="font-size: 12px; color: #5e6672">5 phases · 16 tasks</span></span></div>
+<div class="tl"><span class="ms" style="font-size: 19px; color: #7a828e">home_repair_service</span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span>Other</span><span style="font-size: 12px; color: #5e6672">5 phases · 12 tasks</span></span></div>
+<span style="flex: 1"></span>
+<div style="padding: 10px; border-radius: 8px; background: #f6f7f9; font-size: 12px; color: #5e6672; line-height: 1.45">Each template starts from the default trade sequence. A project picks the template matching its room type.</div>
+</div>
+<div style="flex: 1; min-width: 0; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; overflow: hidden">
+<div class="sh" style="padding-bottom: 2px"><span>Phases · drag to reorder</span><a href="#" style="font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 15px">add</span>Add phase</a></div>
+<div class="ph"><span class="ms h">drag_indicator</span><span class="pn">1</span><span style="flex: 1; font-weight: 500">Demo</span><span class="mono" style="font-size: 12px; color: #5e6672">5 tasks</span><span class="ms" style="font-size: 18px; color: #9aa3af">expand_more</span></div>
+<div class="ph phon" style="flex-direction: column; align-items: stretch; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px"><span class="ms h">drag_indicator</span><span class="pn">2</span><span style="flex: 1; font-weight: 600">Rough-in</span><span class="mono" style="font-size: 12px; color: oklch(0.45 0.17 262)">6 tasks</span><span class="ms" style="font-size: 18px; color: oklch(0.5 0.17 262)">expand_less</span></div>
+<div style="margin-left: 34px; border-top: 1px solid #eef0f3">
+<div class="tk"><span class="ms h">drag_indicator</span><span class="ms" style="font-size: 17px; color: #9aa3af">check_box_outline_blank</span><span style="flex: 1">Mark cabinet layout and centerlines on walls</span><span class="tr">Carpentry</span></div>
+<div class="tk"><span class="ms h">drag_indicator</span><span class="ms" style="font-size: 17px; color: #9aa3af">check_box_outline_blank</span><span style="flex: 1">Install blocking for uppers and floating shelves</span><span class="tr">Carpentry</span></div>
+<div class="tk"><span class="ms h">drag_indicator</span><span class="ms" style="font-size: 17px; color: #9aa3af">check_box_outline_blank</span><span style="flex: 1">Plumbing rough: sink, dishwasher, ice maker</span><span class="tr">Plumbing</span></div>
+<div class="tk"><span class="ms h">drag_indicator</span><span class="ms" style="font-size: 17px; color: #9aa3af">check_box_outline_blank</span><span style="flex: 1">Electrical rough: circuits, boxes, cans per E1.0</span><span class="tr">Electrical</span></div>
+<div class="tk"><span class="ms h">drag_indicator</span><span class="ms" style="font-size: 17px; color: #9aa3af">check_box_outline_blank</span><span style="flex: 1">Under-cabinet LED drivers and low voltage</span><span class="tr">Electrical</span></div>
+<div class="tk" style="background: #fbfbfc"><span class="ms h">drag_indicator</span><span class="ms" style="font-size: 17px; color: #9aa3af">check_box_outline_blank</span><span style="flex: 1; display: flex; align-items: center; gap: 6px">Photo all open walls before cover<span class="ms" style="font-size: 15px; color: #7a828e">photo_camera</span></span><span class="tr">Foreman</span></div>
+<a href="#" style="font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 8px 6px 2px"><span class="ms" style="font-size: 16px">add</span>Add task</a>
+</div>
+</div>
+<div class="ph"><span class="ms h">drag_indicator</span><span class="pn">3</span><span style="flex: 1; font-weight: 500">Inspection</span><span class="mono" style="font-size: 12px; color: #5e6672">4 tasks</span><span class="ms" style="font-size: 18px; color: #9aa3af">expand_more</span></div>
+<div class="ph"><span class="ms h">drag_indicator</span><span class="pn">4</span><span style="flex: 1; font-weight: 500">Drywall</span><span class="mono" style="font-size: 12px; color: #5e6672">4 tasks</span><span class="ms" style="font-size: 18px; color: #9aa3af">expand_more</span></div>
+<div class="ph"><span class="ms h">drag_indicator</span><span class="pn">5</span><span style="flex: 1; font-weight: 500">Finish</span><span class="mono" style="font-size: 12px; color: #5e6672">8 tasks</span><span class="ms" style="font-size: 18px; color: #9aa3af">expand_more</span></div>
+</div>
+</div>
+</main>
+<aside class="card" aria-label="Selected template" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px">
+<div style="padding: 18px 18px 14px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #eef0f3">
+<span style="width: 42px; height: 42px; border-radius: 10px; background: #eef1ff; color: oklch(0.45 0.17 262); display: flex; align-items: center; justify-content: center"><span class="ms" style="font-size: 22px">kitchen</span></span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 18px; font-weight: 600">Kitchen</span><span style="font-size: 13px; color: #5e6672">Field task template</span></div>
+<span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #eef0f3">
+<label class="fl">Name<input value="Kitchen"></label>
+<label class="fl">Room type<select><option>Kitchen</option><option>Bath</option><option>Laundry</option><option>Other</option></select></label>
+<div class="fl">Default trade sequence
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; color: #9aa3af"><span class="seq">Demo</span><span class="ms" style="font-size: 14px">arrow_forward</span><span class="seq" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Rough-in</span><span class="ms" style="font-size: 14px">arrow_forward</span><span class="seq">Inspection</span><span class="ms" style="font-size: 14px">arrow_forward</span><span class="seq">Drywall</span><span class="ms" style="font-size: 14px">arrow_forward</span><span class="seq">Finish</span></div>
+</div>
+<a href="#" style="font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 15px">restart_alt</span>Reset to default sequence</a>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #eef0f3">
+<span class="sh">Used in</span>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>Kitchen remodel · Hendricks residence</span><span style="color: #5e6672">Copy</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>[Project] · [Client B]</span><span style="color: #5e6672">Copy</span></div>
+<span style="font-size: 12px; color: #5e6672; line-height: 1.4">Projects hold their own copy of the tasks. Changes here apply to new projects only.</span>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 10px">
+<span class="sh"><span>Spanish</span><span class="pill" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65); font-size: 11px">2 unreviewed</span></span>
+<span style="font-size: 12.5px; color: #3b424d; line-height: 1.45">Task text goes to the Translations queue. Spanish users see the Spanish version right away, reviewed or not.</span>
+<a href="#" style="font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px">Open Translations<span class="ms" style="font-size: 16px">arrow_forward</span></a>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 14px 18px 16px; border-top: 1px solid #eef0f3; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; color: #5e6672; display: flex; align-items: center; gap: 6px"><span class="ms" style="font-size: 15px; color: #9aa3af">lock_open</span>Editable with Manage settings or Edit field tasks</span>
+<div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center; padding: 10px">Duplicate</button><button class="b" style="flex: 1; justify-content: center; padding: 10px; color: oklch(0.55 0.19 28)">Delete</button><button class="b bp" style="flex: 1; justify-content: center; padding: 10px">Save</button></div>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Company</span><span class="sv">Worth Properties</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Templates</span><span class="sv">4 room types</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Kitchen</span><span class="sv">5 phases · 27 tasks</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Language</span><span class="sv">EN source · ES via Translations</span></div>
+<span style="flex: 1"></span>
+<span class="sv">Settings · Libraries · Field task templates</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

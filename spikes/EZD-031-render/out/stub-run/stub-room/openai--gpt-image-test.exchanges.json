@@ -1,0 +1,23 @@
+[
+  {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/images/edits",
+    "status": 200,
+    "requestId": "oai_stub_1",
+    "json": {
+      "created": 1760000000,
+      "data": [
+        {
+          "b64_json": "<redacted 104 chars>"
+        }
+      ],
+      "usage": {
+        "input_tokens": 300,
+        "output_tokens": 1056,
+        "total_tokens": 1356
+      }
+    },
+    "contentType": null,
+    "bytes": null
+  }
+]

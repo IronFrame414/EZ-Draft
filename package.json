@@ -1,0 +1,44 @@
+{
+  "name": "ezdraft",
+  "private": true,
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present --filter \"!./spikes/**\" run typecheck",
+    "lint": "node scripts/conventions/check.mjs && node scripts/release/check-migrations.mjs && pnpm -r --if-present --filter \"!./spikes/**\" run lint",
+    "test": "pnpm run db:up && node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 \"scripts/**/*.test.mjs\" && pnpm -r --if-present --filter \"!./spikes/**\" run test",
+    "build": "pnpm -r --if-present --filter \"!./spikes/**\" run build",
+    "test:e2e": "pnpm run db:up && pnpm -r --if-present --filter \"!./spikes/**\" run test:e2e",
+    "perf": "node scripts/perf/run.mjs",
+    "db:up": "node scripts/db/local.mjs up",
+    "db:env": "node scripts/db/local.mjs env",
+    "db:reset": "supabase db reset --local",
+    "db:stop": "supabase stop",
+    "db:types": "node scripts/db/gen-types.mjs",
+    "backup:files": "node scripts/backup/files.mjs",
+    "backup:db": "node scripts/backup/db.mjs",
+    "backup:restore": "node scripts/backup/restore.mjs",
+    "fixtures:generate": "node scripts/fixtures/generate-synthetic.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "3.1153.0",
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.64.1",
+    "@supabase/supabase-js": "2.118.0",
+    "dxf-parser": "1.1.2",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.2",
+    "pdfjs-dist": "6.4.299",
+    "postgres": "3.4.9",
+    "prettier": "3.9.10",
+    "supabase": "2.121.0",
+    "three": "0.186.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.5"
+  }
+}

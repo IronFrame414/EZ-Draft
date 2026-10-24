@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>EZ Draft icon</title>
+    <link rel="stylesheet" href="../styles/tokens.css" />
+    <style>
+      @font-face {
+        font-family: 'Instrument Sans';
+        font-weight: 600;
+        src: url('../styles/fonts/instrument-sans-latin-600-normal.woff2') format('woff2');
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--ez-cobalt);
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .mark {
+        color: var(--ez-surface);
+        font-family: 'Instrument Sans', sans-serif;
+        font-weight: 600;
+        font-size: 40vmin;
+        line-height: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mark">ez</div>
+    <script>
+      document.fonts.ready.then(() => {
+        document.documentElement.dataset.ready = '1';
+      });
+    </script>
+  </body>
+</html>

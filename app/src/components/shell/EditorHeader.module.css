@@ -1,0 +1,92 @@
+.divider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  background: var(--ez-border);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 600 15px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+button.name {
+  cursor: pointer;
+}
+
+.name svg {
+  flex: none;
+  color: var(--ez-slate-500);
+}
+
+.nameText,
+.subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.views {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  align-self: stretch;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  color: var(--ez-slate-500);
+  font-size: 14px;
+  font-family: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.active {
+  font-weight: 600;
+  color: var(--ez-cobalt-text);
+  box-shadow: inset 0 -2px 0 var(--ez-cobalt);
+}
+
+@media (any-pointer: coarse) {
+  .titleBlock {
+    position: relative;
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  button.name::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .tab {
+    min-width: var(--ez-touch-target);
+  }
+}

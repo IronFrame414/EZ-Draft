@@ -1,0 +1,64 @@
+{
+  "fixture": "room-12x10-vector.pdf",
+  "generatedBy": "scripts/fixtures/generate-synthetic.mjs",
+  "sources": [
+    "vault/plans/EZD-016b.md Step 3 (plan drawing), Steps 4.2-4.3 (vector page), Tests T3, Fixture values",
+    "09 Sheet set rules: plans at 1/4\" = 1'-0\" (72 / 48 = 1.5 pt per model inch)",
+    "08 Exports: 11x17 (17 x 72 = 1224 pt, 11 x 72 = 792 pt)",
+    "S01: PDF scale calibration, two points, type the real distance"
+  ],
+  "tolerances": {
+    "paperPt": 0.0234375
+  },
+  "pageCount": 1,
+  "view": [0, 0, 1224, 792],
+  "textItems": 0,
+  "imagePaintOps": 0,
+  "mapping": {
+    "ptPerIn": 1.5,
+    "originPt": [504, 300]
+  },
+  "straightSegmentCount": 20,
+  "wallLineWidth": 1.5,
+  "wallSegments": [
+    [[504, 300], [522, 300]],
+    [[576, 300], [630, 300]],
+    [[684, 300], [720, 300]],
+    [[497.25, 293.25], [522, 293.25]],
+    [[576, 293.25], [630, 293.25]],
+    [[684, 293.25], [726.75, 293.25]],
+    [[522, 293.25], [522, 300]],
+    [[576, 293.25], [576, 300]],
+    [[630, 293.25], [630, 300]],
+    [[684, 293.25], [684, 300]],
+    [[504, 480], [720, 480]],
+    [[497.25, 486.75], [726.75, 486.75]],
+    [[504, 300], [504, 480]],
+    [[497.25, 293.25], [497.25, 486.75]],
+    [[720, 300], [720, 480]],
+    [[726.75, 293.25], [726.75, 486.75]]
+  ],
+  "otherLineWidth": 0.5,
+  "otherSegments": [
+    [[522, 300], [522, 354]],
+    [[630, 300], [684, 300]],
+    [[630, 296.625], [684, 296.625]],
+    [[630, 293.25], [684, 293.25]]
+  ],
+  "curveCount": 1,
+  "curve": {
+    "from": [576, 300],
+    "to": [522, 354],
+    "center": [522, 300],
+    "radiusPt": 54,
+    "lineWidth": 0.5
+  },
+  "calibration": [
+    { "from": [504, 300], "to": [720, 300], "lengthPt": 216, "lengthIn": 144 },
+    { "from": [504, 300], "to": [504, 480], "lengthPt": 180, "lengthIn": 120 }
+  ],
+  "structure": {
+    "xrefOffsetsPointAtObjects": true,
+    "encrypt": false
+  }
+}

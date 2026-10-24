@@ -2,6 +2,8 @@
 
 These items are deferred by the spec. No ticket covers them.
 
+**Q-0220 (Josh, 2026-10-20) moved some of these into v1** (AR viewing and editing, IFC export, billing and onboarding for other companies, commercial load calc, visual diff of old versions, per-user notification settings, other code editions; tickets EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713) **and removed VR entirely.** The rest stays out of v1; Polycam API pull stays v2 (import only in v1). See vault/spec/decisions/02-product-overview.md Q-0220.
+
 - DWG import and export through the paid ODA converter (v1 asks for a DXF re-save).
 - IFC export.
 - Billing, paywall, seats meter and onboarding for other GCs (Billing hidden for tenant 1).

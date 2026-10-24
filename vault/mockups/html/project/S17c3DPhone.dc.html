@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft field 3D</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:6px 12px;font:500 13px 'Instrument Sans',sans-serif;color:#3b424d;white-space:nowrap}
+.chipon{background:#14171c;border-color:#14171c;color:#fff}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font:500 11px 'Instrument Sans',sans-serif;color:#7a828e;padding:8px 0 0;cursor:pointer;position:relative}
+.tab .ms{font-size:23px}
+.tabon{color:oklch(0.45 0.17 262);font-weight:600}
+.tabon .ms{font-variation-settings:'FILL' 1}
+.fb{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 12px;border-radius:10px;font:600 14px 'Instrument Sans',sans-serif;cursor:pointer}
+.tb{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;font-size:21px;cursor:pointer}
+.tbon{background:#eef1ff;color:oklch(0.45 0.17 262)}
+.dl{display:flex;flex-direction:column;gap:1px;font-size:11px;color:#5e6672}
+.dl b{font:500 14px 'DM Mono',monospace;color:#14171c}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header style="flex: none; padding: 12px 16px 10px; background: #fff; border-bottom: 1px solid #dfe2e6; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px">
+<a href="#" style="display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; color: oklch(0.5 0.17 262); text-decoration: none"><span class="ms" style="font-size: 20px">arrow_back</span>EZ Binder</a>
+<span style="flex: 1"></span>
+<span class="ms" style="font-size: 20px; color: oklch(0.42 0.12 150)" aria-label="Available offline">offline_pin</span>
+<span class="mono" style="font-size: 12px; font-weight: 500; padding: 4px 9px; border-radius: 999px; background: #14171c; color: #fff">Rev 0</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em">Kitchen remodel · Hendricks</span><span style="font-size: 12px; color: #5e6672">Field pack · issued Oct 8 · 3D model</span></div>
+<div style="display: flex; gap: 6px"><span class="chip">All</span><span class="chip chipon">Kitchen</span><span class="chip">Laundry</span></div>
+</header>
+<main style="flex: 1; min-height: 0; position: relative; background: linear-gradient(#fbfbfc, #eef0f3)">
+<svg viewBox="0 0 390 360" role="img" aria-label="3D cutaway of the kitchen: back run F3, B15, DW24, SB36, B18, B21 under a window, left run BBC42, RNG30, B15, refrigerator, and island B24, DB24, B24 with end panels; countertops ghosted so each cabinet box shows; SB36 is selected; a measurement from the back counter edge to the island top reads 5 feet 9 inches" style="position: absolute; left: 0; top: 28px; width: 390px; height: 360px">
+<polygon points="196.0,150.0 370.0,250.5 200.3,348.4 26.3,248.0" style="fill: #f1efea; stroke: #dfe2e6"></polygon>
+<line x1="181.2" y1="158.5" x2="355.2" y2="259.0" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="166.5" y1="167.0" x2="340.5" y2="267.5" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="151.7" y1="175.6" x2="325.7" y2="276.0" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="137.0" y1="184.1" x2="311.0" y2="284.5" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="122.2" y1="192.6" x2="296.2" y2="293.1" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="107.5" y1="201.1" x2="281.5" y2="301.6" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="92.7" y1="209.6" x2="266.7" y2="310.1" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="77.9" y1="218.2" x2="252.0" y2="318.6" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="63.2" y1="226.7" x2="237.2" y2="327.1" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="48.4" y1="235.2" x2="222.4" y2="335.7" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<line x1="33.7" y1="243.7" x2="207.7" y2="344.2" style="stroke: #e7e3dc; stroke-width: 0.6"></line>
+<polygon points="196.0,150.0 370.0,250.5 370.0,114.1 196.0,13.7" style="fill: #f4f5f7; stroke: #9aa3af; stroke-width: 0.8"></polygon>
+<polygon points="196.0,150.0 26.3,248.0 26.3,111.7 196.0,13.7" style="fill: #e9ecef; stroke: #9aa3af; stroke-width: 0.8"></polygon>
+<polygon points="196.0,6.6 376.2,110.6 370.0,114.1 196.0,13.7 26.3,111.7 20.2,108.1" style="fill: #3b424d; stroke: #3b424d; stroke-width: 0.6"></polygon>
+<polygon points="276.2,136.7 322.4,163.3 322.4,103.7 276.2,77.0" style="fill: #dfe9f3; stroke: #7a828e; stroke-width: 1"></polygon>
+<line x1="299.3" y1="150.0" x2="299.3" y2="90.4" style="stroke: #7a828e; stroke-width: 0.8"></line>
+<polygon points="144.4,179.8 173.9,196.9 173.9,147.9 144.4,130.8" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="225.5,167.0 173.9,196.9 173.9,147.9 225.5,118.0" style="fill: #e3e6ea; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="196.0,101.0 225.5,118.0 173.9,147.9 144.4,130.8" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="107.5,201.1 137.0,218.2 137.0,169.2 107.5,152.1" style="fill: #d9dde2; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="173.9,196.9 137.0,218.2 137.0,169.2 173.9,147.9" style="fill: #c4cad2; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="144.4,130.8 173.9,147.9 137.0,169.2 107.5,152.1" style="fill: #c9ced5; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="89.0,211.8 118.5,228.8 118.5,179.8 89.0,162.8" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="137.0,218.2 118.5,228.8 118.5,179.8 137.0,169.2" style="fill: #e3e6ea; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="107.5,152.1 137.0,169.2 118.5,179.8 89.0,162.8" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="196.0,184.1 199.7,186.2 199.7,137.2 196.0,135.1" style="fill: #eef0f3; stroke: #9aa3af; stroke-width: 0.6; stroke-linejoin: round; stroke-dasharray: 2 1.5"></polygon>
+<polygon points="229.2,169.2 199.7,186.2 199.7,137.2 229.2,120.2" style="fill: #e3e6ea; stroke: #9aa3af; stroke-width: 0.6; stroke-linejoin: round; stroke-dasharray: 2 1.5"></polygon>
+<polygon points="225.5,118.0 229.2,120.2 199.7,137.2 196.0,135.1" style="fill: #f6f7f9; stroke: #9aa3af; stroke-width: 0.6; stroke-linejoin: round; stroke-dasharray: 2 1.5"></polygon>
+<polygon points="199.7,186.2 218.1,196.9 218.1,147.9 199.7,137.2" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="247.6,179.8 218.1,196.9 218.1,147.9 247.6,130.8" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="229.2,120.2 247.6,130.8 218.1,147.9 199.7,137.2" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="218.1,196.9 247.6,213.9 247.6,164.9 218.1,147.9" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="277.2,196.9 247.6,213.9 247.6,164.9 277.2,147.9" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="247.6,130.8 277.2,147.9 247.6,164.9 218.1,147.9" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="247.6,213.9 291.9,239.5 291.9,190.5 247.6,164.9" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.6; stroke-linejoin: round"></polygon>
+<polygon points="321.4,222.4 291.9,239.5 291.9,190.5 321.4,173.4" style="fill: oklch(0.9 0.05 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.6; stroke-linejoin: round"></polygon>
+<polygon points="277.2,147.9 321.4,173.4 291.9,190.5 247.6,164.9" style="fill: oklch(0.93 0.04 262); stroke: oklch(0.55 0.17 262); stroke-width: 1.6; stroke-linejoin: round"></polygon>
+<polygon points="291.9,239.5 314.1,252.2 314.1,203.2 291.9,190.5" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="343.6,235.2 314.1,252.2 314.1,203.2 343.6,186.2" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="321.4,173.4 343.6,186.2 314.1,203.2 291.9,190.5" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="314.1,252.2 339.9,267.1 339.9,218.2 314.1,203.2" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="369.4,250.1 339.9,267.1 339.9,218.2 369.4,201.1" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="343.6,186.2 369.4,201.1 339.9,218.2 314.1,203.2" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<line x1="201.5" y1="147.5" x2="216.3" y2="156.0" style="stroke: #b8bec7; stroke-width: 0.6"></line>
+<line x1="219.4" y1="155.0" x2="246.4" y2="170.6" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<line x1="269.8" y1="221.0" x2="269.8" y2="188.3" style="stroke: #b8bec7; stroke-width: 0.6"></line>
+<line x1="249.5" y1="175.2" x2="290.1" y2="198.6" style="stroke: #b8bec7; stroke-width: 0.6"></line>
+<line x1="293.8" y1="200.8" x2="312.2" y2="211.4" style="stroke: #b8bec7; stroke-width: 0.6"></line>
+<line x1="315.9" y1="213.5" x2="338.0" y2="226.3" style="stroke: #b8bec7; stroke-width: 0.6"></line>
+<polygon points="196.0,98.9 370.0,199.3 338.6,217.4 196.0,135.1 118.5,179.8 87.2,161.7" style="fill: none; stroke: #7a828e; stroke-width: 0.8; stroke-dasharray: 3 2"></polygon>
+<polygon points="252.0,276.0 288.8,297.3 288.8,197.9 252.0,176.6" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="333.1,271.8 288.8,297.3 288.8,197.9 333.1,172.4" style="fill: #dfe2e6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="296.2,151.1 333.1,172.4 288.8,197.9 252.0,176.6" style="fill: #eef0f3; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<line x1="270.4" y1="229.9" x2="270.4" y2="187.3" style="stroke: #9aa3af; stroke-width: 0.7"></line>
+<polygon points="104.7,265.6 105.6,266.1 105.6,217.1 104.7,216.6" style="fill: #3b424d; stroke: #3b424d; stroke-width: 0.6; stroke-linejoin: round"></polygon>
+<polygon points="135.1,249.0 105.6,266.1 105.6,217.1 135.1,200.1" style="fill: #2a2f36; stroke: #3b424d; stroke-width: 0.6; stroke-linejoin: round"></polygon>
+<polygon points="134.2,199.5 135.1,200.1 105.6,217.1 104.7,216.6" style="fill: #14171c; stroke: #3b424d; stroke-width: 0.6; stroke-linejoin: round"></polygon>
+<polygon points="105.6,266.1 135.1,283.1 135.1,234.1 105.6,217.1" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="164.6,266.1 135.1,283.1 135.1,234.1 164.6,217.1" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="135.1,200.1 164.6,217.1 135.1,234.1 105.6,217.1" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="135.1,283.1 164.6,300.2 164.6,251.2 135.1,234.1" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="194.2,283.1 164.6,300.2 164.6,251.2 194.2,234.1" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="164.6,217.1 194.2,234.1 164.6,251.2 135.1,234.1" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="164.6,300.2 194.2,317.2 194.2,268.2 164.6,251.2" style="fill: #f3f4f6; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="223.7,300.2 194.2,317.2 194.2,268.2 223.7,251.2" style="fill: #e6e9ed; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="194.2,234.1 223.7,251.2 194.2,268.2 164.6,251.2" style="fill: #fff; stroke: #9aa3af; stroke-width: 0.8; stroke-linejoin: round"></polygon>
+<polygon points="194.2,317.2 195.1,317.7 195.1,268.7 194.2,268.2" style="fill: #3b424d; stroke: #3b424d; stroke-width: 0.6; stroke-linejoin: round"></polygon>
+<polygon points="224.6,300.7 195.1,317.7 195.1,268.7 224.6,251.7" style="fill: #2a2f36; stroke: #3b424d; stroke-width: 0.6; stroke-linejoin: round"></polygon>
+<polygon points="223.7,251.2 224.6,251.7 195.1,268.7 194.2,268.2" style="fill: #14171c; stroke: #3b424d; stroke-width: 0.6; stroke-linejoin: round"></polygon>
+<polygon points="132.4,196.3 226.4,250.6 180.3,277.3 86.2,223.0" style="fill: none; stroke: #7a828e; stroke-width: 0.8; stroke-dasharray: 3 2"></polygon>
+<text x="226.1" y="135.4" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">B15</text>
+<text x="250.1" y="149.3" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">DW24</text>
+<text x="287.0" y="170.6" style="font: 600 9px 'DM Mono', monospace; fill: oklch(0.42 0.17 262); text-anchor: middle">SB36</text>
+<text x="320.2" y="189.8" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">B18</text>
+<text x="344.2" y="203.6" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">B21</text>
+<text x="182.5" y="125.9" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">BBC42</text>
+<text x="138.2" y="151.4" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">RNG30</text>
+<text x="110.5" y="167.4" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">B15</text>
+<text x="135.1" y="217.1" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">B24</text>
+<text x="164.6" y="234.1" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">DB24</text>
+<text x="194.2" y="251.2" style="font: 500 8px 'DM Mono', monospace; fill: #3b424d; text-anchor: middle">B24</text>
+<text x="292.5" y="174.5" style="font: 500 8px 'DM Mono', monospace; fill: #7a828e; text-anchor: middle">REF</text>
+<line x1="233.5" y1="156.7" x2="148.7" y2="205.7" style="stroke: oklch(0.55 0.17 262); stroke-width: 1.8"></line>
+<circle cx="233.5" cy="156.7" r="7" style="fill: oklch(0.55 0.17 262); fill-opacity: 0.16; stroke: oklch(0.55 0.17 262); stroke-width: 1.3"></circle><circle cx="233.5" cy="156.7" r="2.4" style="fill: oklch(0.55 0.17 262)"></circle>
+<text x="222.5" y="150.7" style="font: 600 9px 'Instrument Sans', sans-serif; fill: oklch(0.45 0.17 262); text-anchor: middle">A</text>
+<circle cx="148.7" cy="205.7" r="7" style="fill: oklch(0.55 0.17 262); fill-opacity: 0.16; stroke: oklch(0.55 0.17 262); stroke-width: 1.3"></circle><circle cx="148.7" cy="205.7" r="2.4" style="fill: oklch(0.55 0.17 262)"></circle>
+<text x="137.7" y="199.7" style="font: 600 9px 'Instrument Sans', sans-serif; fill: oklch(0.45 0.17 262); text-anchor: middle">B</text>
+<rect x="154.1" y="172.2" width="46" height="18" rx="9" style="fill: oklch(0.55 0.17 262)"></rect><text x="177.1" y="185.2" style="font: 500 10.5px 'DM Mono', monospace; fill: #fff; text-anchor: middle">5' 9"</text>
+<line x1="284.5" y1="166" x2="300" y2="136" style="stroke: oklch(0.55 0.17 262); stroke-width: 1"></line>
+<rect x="296" y="116" width="54" height="20" rx="10" style="fill: oklch(0.55 0.17 262)"></rect><text x="323" y="130" style="font: 500 11px 'DM Mono', monospace; fill: #fff; text-anchor: middle">SB36</text>
+</svg>
+<div style="position: absolute; top: 10px; left: 12px; display: flex; flex-direction: column; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(20,30,50,.08)" role="group" aria-label="3D tools">
+<button class="tb tbon ms" aria-label="Tap to select" aria-pressed="true" style="border-bottom: 1px solid #eef0f3">touch_app</button>
+<button class="tb ms" aria-label="Measure between two points">straighten</button>
+</div>
+<div class="card" aria-label="View cube" style="position: absolute; top: 10px; right: 12px; width: 70px; padding: 6px 0 4px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: 0 6px 20px rgba(20,30,50,.08)">
+<svg width="52" height="52" viewBox="0 0 84 84" style="font-family: 'DM Mono', monospace" aria-hidden="true">
+<polygon points="42,8 76,26 42,44 8,26" style="fill: #eef1ff; stroke: oklch(0.55 0.17 262); stroke-width: 1.4"></polygon>
+<polygon points="8,26 42,44 42,80 8,62" style="fill: #fff; stroke: #9aa3af"></polygon>
+<polygon points="42,44 76,26 76,62 42,80" style="fill: #f2f4f7; stroke: #9aa3af"></polygon>
+<text x="42" y="30" style="font-size: 11px; fill: oklch(0.45 0.17 262); text-anchor: middle; font-weight: 500">TOP</text>
+<text x="25" y="58" style="font-size: 10px; fill: #3b424d; text-anchor: middle">FRT</text>
+<text x="59" y="58" style="font-size: 10px; fill: #3b424d; text-anchor: middle">RT</text>
+</svg>
+<span class="ms" style="font-size: 17px; color: #7a828e" aria-label="Home view">home</span>
+</div>
+<div style="position: absolute; top: 106px; left: 12px; display: flex; flex-direction: column; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(20,30,50,.08); width: 42px">
+<button class="tb ms" aria-label="Look up at ceiling" style="width: 42px; height: auto; flex-direction: column; gap: 2px; padding: 7px 0 6px; font-size: 20px; border-bottom: 1px solid #eef0f3">north<span style="font: 500 9px 'Instrument Sans', sans-serif">Look up</span></button>
+<button class="tb ms" aria-label="Layers" style="width: 42px; height: 38px; font-size: 20px">layers</button>
+</div>
+<div style="position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 999px; background: rgba(20,23,28,.86); color: #fff; font-size: 12px; white-space: nowrap">
+<span style="display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">touch_app</span>Orbit</span>
+<span style="width: 1px; height: 12px; background: #5e6672"></span>
+<span style="display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">pan_tool</span>2 fingers pan</span>
+<span style="width: 1px; height: 12px; background: #5e6672"></span>
+<span style="display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">pinch_zoom_in</span>Pinch</span>
+</div>
+</main>
+<section aria-label="Selected cabinet" style="flex: none; background: #fff; border-top: 1px solid #dfe2e6; border-radius: 16px 16px 0 0; box-shadow: 0 -6px 20px rgba(20,30,50,.08); padding: 8px 16px 14px; display: flex; flex-direction: column; gap: 11px; margin-top: -10px; position: relative">
+<span style="width: 36px; height: 4px; border-radius: 999px; background: #dfe2e6; align-self: center"></span>
+<div style="display: flex; align-items: center; gap: 10px">
+<span class="mono" style="font-size: 15px; font-weight: 500; padding: 5px 10px; border-radius: 8px; background: #eef1ff; color: oklch(0.42 0.17 262)">SB36</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600">Sink base</span><span style="font-size: 12px; color: #5e6672">Back run · between <span class="mono">DW24</span> and <span class="mono">B18</span></span></div>
+<button class="fb" aria-label="Show in plan" style="border: 1px solid #dfe2e6; background: #fff; color: #14171c; font-weight: 500; font-size: 13px; padding: 7px 10px"><span class="ms" style="font-size: 17px">map</span>Plan</button>
+<button class="ms" aria-label="Close" style="border: 0; background: transparent; color: #7a828e; font-size: 20px; cursor: pointer">close</button>
+</div>
+<div style="display: flex; gap: 14px; padding: 9px 12px; border: 1px solid #eef0f3; border-radius: 10px">
+<span class="dl">Width<b>36"</b></span><span class="dl">Depth<b>24"</b></span><span class="dl">Height<b>34 1/2"</b></span><span class="dl" style="flex: 1">Finish<span style="font-size: 13px; color: #14171c; font-weight: 500; padding-top: 1px">Shaker, Midnight</span></span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: #f6f7f9">
+<span style="width: 22px; height: 22px; border-radius: 50%; background: oklch(0.55 0.17 262); color: #fff; font: 600 11px 'Instrument Sans', sans-serif; display: flex; align-items: center; justify-content: center">M1</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 12px; color: #5e6672">Back counter edge to island top</span><span class="mono" style="font-size: 17px; font-weight: 500">5' 9"</span></div>
+<button class="ms" aria-label="Clear measurement" style="border: 0; background: transparent; color: #7a828e; font-size: 20px; cursor: pointer">delete</button>
+<button class="fb" style="border: 0; background: oklch(0.55 0.17 262); color: #fff; padding: 8px 12px; font-size: 13px"><span class="ms" style="font-size: 17px">straighten</span>New</button>
+</div>
+</section>
+<nav aria-label="Field pack" style="flex: none; height: 74px; box-sizing: border-box; display: flex; background: #fff; border-top: 1px solid #eef0f3; padding-bottom: 18px">
+<button class="tab"><span class="ms">map</span>Plan</button>
+<button class="tab tabon" aria-current="page"><span class="ms">view_in_ar</span>3D</button>
+<button class="tab"><span class="ms">straighten</span>Measure</button>
+<button class="tab"><span class="ms">checklist</span>Tasks<span class="mono" style="position: absolute; top: 4px; left: 50%; margin-left: 6px; font-size: 10px; font-weight: 500; min-width: 16px; padding: 1px 4px; box-sizing: border-box; text-align: center; border-radius: 999px; background: oklch(0.6 0.19 28); color: #fff">16</span></button>
+<button class="tab"><span class="ms">photo_camera</span>Photo</button>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft versions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bd{background:oklch(0.6 0.19 28);border-color:oklch(0.6 0.19 28);color:#fff;font-weight:600}
+.bs{padding:6px 10px;font-size:13px}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;cursor:pointer;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px 2px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 12px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:12px 14px 6px;display:flex;justify-content:space-between;align-items:center}
+.vr{display:flex;gap:9px;padding:7px 8px;border-radius:7px;font-size:13px;align-items:flex-start}
+.vron{background:#eef1ff}
+.vt{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.vs{font-size:11px;color:#7a828e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.pill{font:600 11px 'Instrument Sans',sans-serif;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.dl{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:oklch(0.45 0.17 262);border:1px solid oklch(0.55 0.17 262);border-radius:4px;padding:0 4px;line-height:15px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-top:1px solid #eef0f3}
+.kv .k{color:#7a828e}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.ck{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:15px;border:1.5px solid #c9ced5;box-sizing:border-box;color:#fff;flex:none;background:#fff}
+.ckon{background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262)}
+.cr{display:grid;grid-template-columns:28px 120px 1fr 236px;gap:14px;align-items:center;padding:8px 20px;border-bottom:1px solid #eef0f3}
+.crk{background:#f7f8ff}
+.thb{width:120px;height:68px;border-radius:7px;border:1px solid #dfe2e6;background:#f6f7f9;overflow:hidden;display:block}
+.nm{font:400 13px 'Instrument Sans',sans-serif;color:#14171c;padding:7px 10px;border:1px solid #dfe2e6;border-radius:7px;background:#fff;display:flex;align-items:center;gap:6px}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672; display: flex; align-items: center; gap: 3px">Hendricks residence · <span style="color: oklch(0.45 0.17 262); text-decoration: underline; text-underline-offset: 2px">Working copy · Rev 0 issued</span> · Saved just now</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<button class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</button>
+<button class="b">Share</button>
+<button class="b">Export</button>
+<button class="b bp">Issue set</button>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb rbon ms" aria-label="Select (V)" aria-pressed="true">arrow_selector_tool</button>
+<button class="rb ms" aria-label="Move (M)">open_with</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button>
+<button class="rb ms" aria-label="Door (D)">door_front</button>
+<button class="rb ms" aria-label="Window">window</button>
+<button class="rb ms" aria-label="Cabinets (C)">kitchen</button>
+<button class="rb ms" aria-label="Fixtures">countertops</button>
+<button class="rb ms" aria-label="Electrical (E)">bolt</button>
+<button class="rb ms" aria-label="Ceiling">roofing</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button>
+<button class="rb ms" aria-label="Text (T)">title</button>
+<button class="rb ms" aria-label="Sketch">draw</button>
+<button class="rb ms" aria-label="Detail callout">zoom_in</button>
+<span style="flex: 1"></span>
+<button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+
+<aside class="card" aria-label="Versions" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="display: flex; gap: 2px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg">Layers</button><button class="seg">Rooms</button><button class="seg segon">Versions</button><button class="seg">Takeoff</button></div>
+<div style="padding: 8px 6px 0">
+<div class="vr" style="border: 1px solid #dfe2e6"><span class="ic ms" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">edit</span><span class="vt"><span style="font-weight: 600">Working copy</span><span class="vs">You hold the edit lock · saved just now</span></span></div>
+</div>
+<span class="lbl">Sent<span style="font-weight: 500; color: #7a828e">Revision log</span></span>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="vr" style="border: 1px dashed oklch(0.72 0.16 65)"><span class="ic mono" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65); font-size: 10px">R1</span><span class="vt"><span style="display: flex; gap: 6px; align-items: center"><span style="font-weight: 600">Rev 1</span><span class="pill" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)">Draft</span><span class="dl">Δ3</span></span><span class="vs">Island 73 1/2", pendants · not issued</span></span></div>
+<div class="vr vron"><span class="ic mono" style="background: oklch(0.55 0.17 262); color: #fff; font-size: 10px">R0</span><span class="vt"><span style="display: flex; gap: 6px; align-items: center"><span style="font-weight: 600">Rev 0</span><span class="pill" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">Issued</span></span><span class="vs mono">09/29 · Building dept · permit set</span></span><span class="ms" style="font-size: 16px; color: #7a828e">lock</span></div>
+<div class="vr"><span class="ic mono" style="background: #f2f4f7; color: #3b424d; font-size: 10px">V3</span><span class="vt"><span style="display: flex; gap: 6px; align-items: center"><span style="font-weight: 500">Version 3</span><span class="dl">Δ4</span></span><span class="vs">Sep 26 · client · signed</span></span><span class="ms" style="font-size: 16px; color: #9aa3af">lock</span></div>
+<div class="vr"><span class="ic mono" style="background: #f2f4f7; color: #3b424d; font-size: 10px">V2</span><span class="vt"><span style="display: flex; gap: 6px; align-items: center"><span style="font-weight: 500">Version 2</span><span class="dl">Δ7</span></span><span class="vs">Sep 12 · client · layout B</span></span><span class="ms" style="font-size: 16px; color: #9aa3af">lock</span></div>
+<div class="vr"><span class="ic mono" style="background: #f2f4f7; color: #3b424d; font-size: 10px">V1</span><span class="vt"><span style="font-weight: 500">Version 1</span><span class="vs">Aug 29 · client · first layout</span></span><span class="ms" style="font-size: 16px; color: #9aa3af">lock</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Named snapshots</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="vr"><span class="ic ms" style="background: #eef1ff; color: oklch(0.45 0.17 262)">bookmark</span><span class="vt"><span style="font-weight: 500">Before island resize</span><span class="vs">Oct 2 · Josh Bishop</span></span></div>
+<div class="vr"><span class="ic ms" style="background: #eef1ff; color: oklch(0.45 0.17 262)">bookmark</span><span class="vt"><span style="font-weight: 500">Pre-permit check</span><span class="vs">Sep 27 · Josh Bishop</span></span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Working versions<span class="pill" style="background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65)">7 due</span></span>
+<div style="display: flex; flex-direction: column; padding: 0 6px; gap: 1px">
+<div class="vr"><span class="ic ms" style="background: #f2f4f7; color: #7a828e">history</span><span class="vt"><span style="font-weight: 500" class="mono">Oct 10 · 4:12 PM</span><span class="vs">Stop editing · Josh Bishop</span></span></div>
+<div class="vr"><span class="ic ms" style="background: #f2f4f7; color: #7a828e">history</span><span class="vt"><span style="font-weight: 500" class="mono">Oct 8 · 11:03 AM</span><span class="vs">Closed project · [Name]</span></span></div>
+<div class="vr"><span class="ic ms" style="background: #f2f4f7; color: #7a828e">history</span><span class="vt"><span style="font-weight: 500" class="mono">Oct 3 · 2:40 PM</span><span class="vs">Revert from Rev 0 · Josh Bishop</span></span></div>
+<div style="font-size: 12px; color: #7a828e; padding: 6px 8px">+ 9 older · unsent versions clean up at 30 days</div>
+</div>
+</aside>
+
+<div style="flex: 1; align-self: stretch; position: relative">
+<div class="card" style="position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-size: 13px; box-shadow: none"><span class="ms" style="font-size: 18px; color: #5e6672">visibility</span><span><b style="font-weight: 600">Rev 0</b> · read-only</span><span style="flex: 1"></span><button class="b bs">Back to working copy</button></div>
+<svg viewBox="0 0 880 700" aria-hidden="true" style="position: absolute; left: 0; top: 60px; width: 880px; height: 700px; font-family: 'DM Mono', monospace">
+<path d="M253 420 V60 H683 V570" style="fill: none; stroke: #3b424d; stroke-width: 13"></path>
+<rect x="260" y="66" width="72" height="200" style="fill: #fff; stroke: #7a828e"></rect>
+<rect x="332" y="66" width="345" height="72" style="fill: #fff; stroke: #7a828e"></rect>
+<rect x="390" y="340" width="220" height="72" style="fill: #fff; stroke: #7a828e"></rect>
+</svg>
+</div>
+
+<aside class="card" aria-label="Version details" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Rev 0</span><span style="font-size: 13px; color: #5e6672">Permit set · issued 09/29/2026</span></div><span class="pill" style="font-size: 12px; padding: 4px 9px; background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">Issued</span></div>
+<div style="padding: 0 18px 12px">
+<div class="kv"><span class="k">Issued by</span><span>Josh Bishop</span></div>
+<div class="kv"><span class="k">Sent to</span><span>PBC Building Division</span></div>
+<div class="kv"><span class="k">Sheets</span><span class="mono" style="font-size: 12px">10 · 24 x 36</span></div>
+<div class="kv"><span class="k">File</span><span class="mono" style="font-size: 12px">[ADDRESS]_PERMIT_REV0.pdf</span></div>
+<div class="kv"><span class="k">Based on</span><span>Version 3 (signed Sep 26)</span></div>
+<div class="kv"><span class="k">Takeoff</span><span>Snapshot stored</span></div>
+<div class="kv"><span class="k">Status</span><span style="display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 15px; color: #7a828e">lock</span>Frozen permanently</span></div>
+</div>
+<div style="padding: 12px 18px; border-top: 1px solid #eef0f3; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: #5e6672">Changes since Rev 0 · in Rev 1 draft</span>
+<div style="display: flex; gap: 8px; font-size: 13px"><span class="dl">Δ1</span><span>Island run widened to 73 1/2"; top 76 1/2" x 37 1/2"</span></div>
+<div style="display: flex; gap: 8px; font-size: 13px"><span class="dl">Δ1</span><span>3 pendants over island; circuit 24</span></div>
+<div style="display: flex; gap: 8px; font-size: 13px"><span class="dl">Δ1</span><span>Edge profile: Half bullnose</span></div>
+</div>
+<div style="flex: 1"></div>
+<div style="padding: 14px 18px; border-top: 1px solid #eef0f3; display: flex; flex-direction: column; gap: 8px">
+<button class="b bp" style="justify-content: center; padding: 10px"><span class="ms" style="font-size: 18px">assignment_add</span>Create CO from Rev 1</button>
+<div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center"><span class="ms" style="font-size: 18px">history</span>Revert to this</button><button class="b" style="flex: 1; justify-content: center"><span class="ms" style="font-size: 18px">description</span>Open sheets</button></div>
+<div style="display: flex; gap: 8px"><button class="b" style="flex: 1; justify-content: center">Issue Rev 1</button><button class="b" style="flex: 1; justify-content: center">Send to client</button></div>
+<span style="font-size: 11px; color: #7a828e; line-height: 1.4">Revert makes a new working version from Rev 0. Sent versions never change.</span>
+</div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Viewing</span><span class="sv">Rev 0 · read-only</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Sent</span><span class="sv">5</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Snapshots</span><span class="sv">2</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Working</span><span class="sv">12</span></div>
+<span style="flex: 1"></span>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Cleanup</span><span style="color: oklch(0.48 0.13 65)">7 due · delete Oct 18</span></div>
+</footer>
+
+<!-- dim -->
+<div style="position: absolute; inset: 0; background: rgba(20,23,28,.30)"></div>
+
+<!-- cleanup sheet -->
+<section class="card" role="dialog" aria-modal="true" aria-label="Clean up working versions" style="position: absolute; left: 330px; top: 84px; width: 930px; height: 868px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 64px rgba(10,15,30,.28)">
+<div style="padding: 18px 20px 14px; display: flex; gap: 14px; align-items: flex-start; border-bottom: 1px solid #dfe2e6">
+<span class="ms" style="font-size: 22px; width: 40px; height: 40px; border-radius: 10px; background: oklch(0.96 0.04 80); color: oklch(0.48 0.13 65); display: flex; align-items: center; justify-content: center">auto_delete</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Clean up working versions</span><span style="font-size: 13px; color: #5e6672">7 unsent working versions reached 30 days. Tick the ones to keep; kept versions become named snapshots. Sent versions and snapshots are never deleted.</span></div>
+<button class="b ms" aria-label="Close" style="padding: 7px; font-size: 20px">close</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid #dfe2e6; background: #fbfbfc; font-size: 13px">
+<span class="ck ckon ms" style="font-size: 15px">remove</span>
+<span style="color: #5e6672">Select</span><a href="#" style="text-decoration: none; font-weight: 500">All</a><span style="color: #c9ced5">/</span><a href="#" style="text-decoration: none; font-weight: 500">None</a>
+<span style="flex: 1"></span>
+<span class="mono" style="font-size: 12px; color: #5e6672">3 keep · 4 delete</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden">
+<sc-for list="{{rows}}" as="v" hint-placeholder-count="7">
+<div class="{{v.rowClass}}">
+<span class="{{v.ckClass}}">{{v.ckIcon}}</span>
+<svg class="thb" viewBox="0 0 132 80" role="img" aria-label="{{v.alt}}">
+<path d="M30 70 V8 H110 V74" style="fill: none; stroke: #3b424d; stroke-width: 3"></path>
+<rect x="32" y="10" width="12" height="34" style="fill: #fff; stroke: #7a828e; stroke-width: .8"></rect>
+<rect x="44" y="10" width="64" height="12" style="fill: #fff; stroke: #7a828e; stroke-width: .8"></rect>
+<rect x="{{v.ix}}" y="48" width="{{v.iw}}" height="12" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 1"></rect>
+<rect x="94" y="28" width="14" height="{{v.fh}}" style="fill: #fff; stroke: #9aa3af; stroke-width: .8; stroke-dasharray: 2 1.5"></rect>
+<circle cx="{{v.px}}" cy="54" r="{{v.pr}}" style="fill: none; stroke: oklch(0.55 0.17 262); stroke-width: 1"></circle>
+</svg>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<span style="display: flex; gap: 8px; align-items: baseline"><span class="mono" style="font-size: 13px; font-weight: 500">{{v.when}}</span><span style="font-size: 12px; color: #7a828e">{{v.who}} · {{v.cp}}</span></span>
+<span style="font-size: 13px; color: #3b424d">{{v.sum}}</span>
+<span style="font-size: 11px; color: #9aa3af" class="mono">{{v.age}}</span>
+</div>
+<div style="{{v.nameStyle}}">
+<span style="font-size: 11px; color: #5e6672; font-weight: 500; display: block; margin-bottom: 4px">Snapshot name</span>
+<span class="nm"><span class="ms" style="font-size: 15px; color: oklch(0.5 0.17 262)">bookmark</span><span style="flex: 1">{{v.name}}</span></span>
+</div>
+<div style="{{v.delStyle}}"><span class="ms" style="font-size: 15px">delete</span>Deletes</div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid #dfe2e6; background: #fff">
+<span class="ms" style="font-size: 18px; color: oklch(0.48 0.13 65)">schedule</span>
+<span style="font-size: 13px; color: #3b424d; line-height: 1.35">If you do nothing, unticked versions delete on <b class="mono" style="font-weight: 500">Oct 18, 2026</b>, 7 days after this sheet first appeared.<br><span style="color: #7a828e; font-size: 12px">A deleted working version cannot be restored. Needs Edit model and the edit lock.</span></span>
+<span style="flex: 1"></span>
+<button class="b">Later</button>
+<button class="b bd"><span class="ms" style="font-size: 18px">delete</span>Keep 3, delete 4 unticked</button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const data = [
+// when, who, checkpoint, summary, keep, islandX, islandW, fridgeH, pendantX, pendantR
+['Sep 11 · 5:02 PM', 'Josh Bishop', 'Stop editing', 'Island to 3 boxes, B24 + DB24 + B24; end panels added', true, 48, 46, 22, 71, 2, 'Island 3-box layout'],
+['Sep 10 · 9:47 AM', '[Name]', 'Closed project', 'Moved range 6" left; BBC42 swapped for BBC45', false, 50, 40, 22, 70, 0, ''],
+['Sep 9 · 3:18 PM', 'Josh Bishop', 'Finish import', 'Polycam rescan merged; back wall 11\' 9 1/2"', true, 52, 36, 22, 70, 0, 'After Polycam rescan'],
+['Sep 8 · 1:26 PM', '[Name]', 'Stop editing', 'Tried 2-box island, no seating', false, 54, 30, 22, 69, 0, ''],
+['Sep 6 · 10:55 AM', 'Josh Bishop', 'Stop editing', 'Pantry tall cabinet beside refrigerator', false, 52, 36, 34, 70, 0, ''],
+['Sep 5 · 4:31 PM', 'Josh Bishop', 'Revert', 'Reverted to Version 1 to compare sink wall', true, 52, 36, 22, 70, 0, 'Sink wall from Version 1'],
+['Sep 4 · 8:12 AM', '[Name]', 'Closed project', 'Dimension cleanup on left run', false, 52, 36, 22, 70, 0, '']
+];
+const days = [30, 31, 32, 33, 35, 36, 37];
+return {
+rows: data.map((r, i) => ({
+when: r[0], who: r[1], cp: r[2], sum: r[3],
+rowClass: r[4] ? 'cr crk' : 'cr',
+ckClass: r[4] ? 'ck ckon ms' : 'ck ms',
+ckIcon: r[4] ? 'check' : '',
+ix: r[5], iw: r[6], fh: r[7], px: r[8], pr: r[9],
+name: r[10],
+alt: 'Plan preview, ' + r[0],
+age: days[i] + ' days old · unsent',
+nameStyle: r[4] ? 'display: block' : 'display: none',
+delStyle: r[4] ? 'display: none' : 'display: flex; align-items: center; gap: 5px; font-size: 12px; color: oklch(0.55 0.17 28); justify-self: start'
+}))
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft company settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.fl input,.fl select{font:400 14px 'Instrument Sans',sans-serif;color:#14171c;padding:9px 10px;border:1px solid #dfe2e6;border-radius:8px;width:100%;box-sizing:border-box;background:#fff}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:6px;border-radius:6px;cursor:pointer}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.chip{border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:5px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#3b424d;cursor:pointer;white-space:nowrap}
+.chipon{background:#eef1ff;border-color:oklch(0.55 0.17 262);color:oklch(0.42 0.17 262);font-weight:600}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#3b424d;text-decoration:none}
+.nv:hover{background:#f2f4f7;color:#14171c}
+.nv .ms{font-size:19px;color:#7a828e}
+.nvon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.nvon .ms{color:oklch(0.5 0.17 262)}
+.nvs{margin-left:auto;font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.th{font-size:12px;font-weight:600;color:#5e6672;text-align:left;padding:10px 12px;border-bottom:1px solid #dfe2e6;background:#fbfbfc}
+.td{padding:12px;border-bottom:1px solid #eef0f3;font-size:14px;vertical-align:middle}
+.tr:hover .td{background:#f8f9fb}
+.tron .td{background:#f5f7ff}
+.av{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif;flex:none}
+.pill{font:600 12px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.lg{font:500 11px 'DM Mono',monospace;padding:3px 7px;border-radius:5px;border:1px solid #dfe2e6;color:#3b424d}
+.pm{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #eef0f3}
+.pm:last-child{border-bottom:0}
+.sw{width:34px;height:20px;border-radius:999px;background:#dfe2e6;position:relative;flex:none;border:0;padding:0;cursor:pointer}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(20,30,50,.25)}
+.swon{background:oklch(0.55 0.17 262)}
+.swon::after{left:16px}
+.pg{grid-column:1 / -1;font-size:10.5px;font-weight:600;color:#9aa3af;padding:6px 0 1px;text-transform:uppercase;letter-spacing:.04em}
+.pc{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11.5px;line-height:1.15;color:#3b424d;min-height:19px}
+.sws{width:26px;height:15px}
+.sws::after{top:2px;left:2px;width:11px;height:11px}
+.sws.swon::after{left:13px}
+.sec{font-size:12px;font-weight:600;color:#5e6672;display:flex;align-items:center;gap:8px;margin:0}
+.hint{font-size:12px;color:#7a828e;line-height:1.4}
+.box{border:1px solid #dfe2e6;border-radius:10px}
+.fr{display:flex;align-items:center;gap:10px;min-height:30px;font-size:13px;color:#3b424d}
+.fr>.k{flex:1;min-width:0}
+.ip{font:400 13px 'DM Mono',monospace;color:#14171c;padding:5px 8px;border:1px solid #dfe2e6;border-radius:7px;background:#fff;width:84px;box-sizing:border-box;text-align:right}
+.ipe{color:#9aa3af;border-style:dashed;font-family:'Instrument Sans',sans-serif;font-size:12px}
+.tok{font:500 11.5px 'DM Mono',monospace;padding:3px 7px;border-radius:5px;background:#eef1ff;color:oklch(0.45 0.17 262);white-space:nowrap}
+.kbd{font:500 11.5px 'DM Mono',monospace;padding:2px 7px;border-radius:5px;border:1px solid #dfe2e6;border-bottom-width:2px;background:#fff;color:#14171c;white-space:nowrap;display:inline-block}
+.note{display:flex;gap:8px;align-items:flex-start;padding:9px 11px;border-radius:8px;background:#f6f7f9;color:#3b424d;font-size:12px;line-height:1.4}
+.note .ms{font-size:16px;color:#7a828e}
+.warn{background:oklch(0.96 0.04 80);color:oklch(0.42 0.12 65)}
+.warn .ms{color:oklch(0.55 0.14 65)}
+.ok{background:oklch(0.95 0.05 150);color:oklch(0.42 0.12 150)}
+.fs{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:#5e6672;min-width:0}
+.fs input,.fs select{font:400 13px 'Instrument Sans',sans-serif;color:#14171c;padding:6px 8px;border:1px solid #dfe2e6;border-radius:7px;width:100%;box-sizing:border-box;background:#fff}
+.fs .tgi{font-size:12.5px;padding:5px}
+.lock{font-size:12px;color:#7a828e;display:inline-flex;align-items:center;gap:4px}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Settings</span>
+<a href="#" style="font-size: 13px; color: #5e6672; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">arrow_back</span>Projects</a>
+<div style="flex: 1"></div>
+<span style="font-size: 13px; color: #5e6672">Worth Properties</span>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px">
+<nav class="card" aria-label="Settings sections" style="width: 248px; flex: none; display: flex; flex-direction: column; overflow: hidden">
+<span class="lbl" style="padding-top: 16px">Company settings</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 8px">
+<a href="#" class="nv nvon" aria-current="page"><span class="ms">domain</span>Company</a>
+<a href="#" class="nv"><span class="ms">group</span>Users + permissions<span class="nvs">4</span></a>
+<a href="#" class="nv"><span class="ms">view_quilt</span>Title block</a>
+<a href="#" class="nv"><span class="ms">description</span>Sheet presets</a>
+<a href="#" class="nv"><span class="ms">tune</span>Defaults<span class="nvs">ft-in</span></a>
+<a href="#" class="nv"><span class="ms">inventory_2</span>Catalog<span class="nvs">426</span></a>
+<a href="#" class="nv"><span class="ms">auto_awesome</span>Render models</a>
+<a href="#" class="nv"><span class="ms">gavel</span>Code edition</a>
+<a href="#" class="nv"><span class="ms">library_books</span>Libraries</a>
+<a href="#" class="nv"><span class="ms">translate</span>Translations<span class="nvs" style="color: oklch(0.48 0.13 65)">12</span></a>
+</div>
+<span style="flex: 1"></span>
+<div style="margin: 12px; padding: 12px; border-radius: 10px; background: #f6f7f9; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #5e6672">
+<span style="display: flex; justify-content: space-between"><span>User sync with EZ Binder</span><span style="color: #14171c; font-weight: 600">On</span></span>
+<span>Optional · users are invited here</span>
+</div>
+</nav>
+<main class="card" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 22px 16px; display: flex; align-items: flex-end; gap: 16px; border-bottom: 1px solid #eef0f3">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Company</h1>
+<span style="font-size: 13px; color: #5e6672">Identity used on the title block, client pages, selections PDF and email. EZ Draft works on its own; the EZ Binder connection is optional.</span>
+</div>
+</div>
+<div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 410px minmax(0, 1fr); overflow: hidden">
+<div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; border-right: 1px solid #eef0f3; overflow: hidden">
+<h2 class="sec"><span class="ms" style="font-size: 17px; color: #7a828e">badge</span>Identity</h2>
+<label class="fl">Company name <span style="display: none">required</span><input value="Worth Properties" aria-required="true"></label>
+<div class="fl">Logo
+<div style="display: flex; gap: 12px; align-items: center">
+<div class="box" style="width: 96px; height: 96px; flex: none; display: flex; align-items: center; justify-content: center; background: #fbfbfc">
+<svg width="76" height="56" viewBox="0 0 76 56" role="img" aria-label="Worth Properties logo preview"><rect x="27" y="2" width="22" height="22" style="fill: none; stroke: #14171c; stroke-width: 2"></rect><path d="M31 9 L34.5 19 L38 11 L41.5 19 L45 9" style="fill: none; stroke: #14171c; stroke-width: 1.8; stroke-linejoin: round"></path><text x="38" y="38" style="font: 600 9px 'Instrument Sans', sans-serif; letter-spacing: 1.6px; text-anchor: middle; fill: #14171c">WORTH</text><text x="38" y="49" style="font: 600 7px 'Instrument Sans', sans-serif; letter-spacing: 1.4px; text-anchor: middle; fill: #3b424d">PROPERTIES</text></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-size: 13px; color: #14171c">wp-logo.svg <span class="mono" style="font-size: 12px; color: #7a828e">· 24 KB</span></span>
+<div style="display: flex; gap: 6px"><button class="b" style="padding: 6px 10px; font-size: 13px"><span class="ms" style="font-size: 16px">upload</span>Replace</button><button class="b" style="padding: 6px 10px; font-size: 13px; color: #5e6672">Remove</button></div>
+<span class="hint">PNG, JPG or SVG, up to 5 MB</span>
+</div>
+</div>
+</div>
+<label class="fl">License number<input value="CGC1541042" style="font-family: 'DM Mono', monospace"></label>
+<div class="note"><span class="ms">history</span><span>Logo and license changes apply to future sends only. Sent versions are permanent and never change.</span></div>
+<div style="height: 1px; background: #eef0f3; margin: 2px 0"></div>
+<h2 class="sec"><span class="ms" style="font-size: 17px; color: #7a828e">contact_mail</span>Contact</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+<label class="fl">Phone<input value="561-806-8987" style="font-family: 'DM Mono', monospace"></label>
+<label class="fl">Email<input value="josh@worthprop.com"></label>
+<label class="fl" style="grid-column: 1 / -1">Website<input value="worthprop.com" style="border-color: oklch(0.55 0.17 262); box-shadow: 0 0 0 3px #eef1ff"></label>
+<label class="fl" style="grid-column: 1 / -1">Address<input value="[Street address], [City], FL [ZIP]"></label>
+</div>
+<span class="hint">License and contact print in the title block company block when "Company logo, license and contact" is on. <a href="#" style="text-decoration: none">Title block</a></span>
+</div>
+<div style="padding: 16px 22px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; min-width: 0">
+<div style="display: flex; align-items: center; gap: 10px"><h2 class="sec" style="flex: 1"><span class="ms" style="font-size: 17px; color: #7a828e">link</span>EZ Binder connection</h2><span class="pill" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150); display: inline-flex; align-items: center; gap: 5px"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.6 0.14 150)"></span>Connected</span></div>
+<div class="box" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 36px; height: 36px; border-radius: 9px; background: #14171c; color: #fff; display: flex; align-items: center; justify-content: center; font: 600 12px 'Instrument Sans', sans-serif; flex: none">EZ</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0"><span style="font-size: 14px; font-weight: 600">Worth Properties on EZ Contractor Binder</span><span style="font-size: 12px; color: #5e6672">Shared sign-on + webhooks · since Sep 12, 2026</span></div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; margin-right: 6px"><span style="font-size: 11.5px; color: #7a828e">Last sync</span><span class="mono" style="font-size: 12px">Today 2:14 PM · OK</span></div>
+<button class="b" style="padding: 7px 12px; font-size: 13px"><span class="ms" style="font-size: 17px">sync</span>Sync now</button>
+<button class="b" style="padding: 7px 12px; font-size: 13px; color: oklch(0.5 0.19 28)">Disconnect</button>
+</div>
+<div class="pm" style="margin-top: 8px; border-top: 1px solid #eef0f3; padding-top: 12px; align-items: flex-start">
+<span class="ms" style="font-size: 19px; color: #7a828e; margin-top: 1px">group</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Sync users</span><span style="font-size: 12px; color: #5e6672; line-height: 1.4">Import EZ Binder users and match them to EZ Draft users by email. Deactivating in either app is mirrored. Apps stay separate; roles are set here.</span></div>
+<span class="mono" style="font-size: 12px; color: #5e6672; white-space: nowrap; margin-top: 2px">4 matched · 1 here only</span>
+<button class="sw swon" role="switch" aria-checked="true" aria-label="Sync users"></button>
+</div>
+<div class="pm" style="align-items: flex-start; border-bottom: 0">
+<span class="ms" style="font-size: 19px; color: #7a828e; margin-top: 1px">contacts</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Sync customers</span><span style="font-size: 12px; color: #5e6672; line-height: 1.4">Customer list syncs both ways: name, email, phone and address. If the same customer was edited in both apps, the latest edit wins and the change is logged.</span></div>
+<span class="mono" style="font-size: 12px; color: #5e6672; white-space: nowrap; margin-top: 2px">38 customers</span>
+<button class="sw swon" role="switch" aria-checked="true" aria-label="Sync customers"></button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: #f6f7f9; font-size: 12px; color: #3b424d"><span class="ms" style="font-size: 16px; color: #7a828e">merge</span><span style="flex: 1">Oct 10 · [Client C] phone edited in both apps · kept the EZ Binder edit (latest)</span><a href="#" style="text-decoration: none">Sync log</a></div>
+</div>
+<div style="height: 1px; background: #eef0f3"></div>
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 class="sec" style="flex: 1"><span class="ms" style="font-size: 17px; color: #7a828e">person_book</span>Customers <span class="mono" style="font-weight: 400; color: #9aa3af">38 · 3 archived</span></h2>
+<label style="display: flex; align-items: center; gap: 6px; width: 200px; height: 34px; box-sizing: border-box; border: 1px solid #dfe2e6; border-radius: 8px; padding: 0 10px; color: #5e6672"><span class="ms" style="font-size: 17px">search</span><input aria-label="Search customers" placeholder="Search customers" style="border: 0; outline: none; flex: 1; min-width: 0; font: 400 13px 'Instrument Sans', sans-serif; color: #14171c"></label>
+<button class="b" style="padding: 7px 12px; font-size: 13px"><span class="ms" style="font-size: 17px">add</span>Add customer</button>
+</div>
+<table style="width: 100%; border-collapse: collapse; margin-top: -4px">
+<thead><tr><th class="th" style="padding: 8px 12px 8px 0; background: #fff">Customer</th><th class="th" style="background: #fff; padding: 8px 12px">Email (client verification)</th><th class="th" style="background: #fff; padding: 8px 12px">Phone</th><th class="th" style="background: #fff; padding: 8px 12px">Projects</th><th class="th" style="background: #fff; padding: 8px 12px">Sync</th><th class="th" style="background: #fff; padding: 8px 0"></th></tr></thead>
+<tbody>
+<tr class="tr"><td class="td" style="padding: 9px 12px 9px 0"><span style="display: flex; align-items: center; gap: 9px"><span class="av" style="width: 28px; height: 28px; font-size: 11px; background: #eef1ff; color: oklch(0.45 0.17 262)">HR</span><span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-weight: 600; font-size: 13px">Hendricks residence</span><span style="font-size: 11.5px; color: #7a828e">[Owner name]</span></span></span></td><td class="td" style="padding: 9px 12px; font-size: 13px"><span style="display: flex; flex-direction: column; gap: 2px">[email]<span style="font-size: 11.5px; color: oklch(0.42 0.12 150); display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 13px">verified_user</span>Signing check on</span></span></td><td class="td mono" style="padding: 9px 12px; font-size: 12px; color: #3b424d">[phone]</td><td class="td" style="padding: 9px 12px; font-size: 13px">Kitchen remodel</td><td class="td" style="padding: 9px 12px"><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5e6672"><span class="ms" style="font-size: 15px; color: oklch(0.5 0.17 262)">sync</span>Both apps</span></td><td class="td" style="padding: 9px 0; width: 24px"><span class="ms" style="font-size: 18px; color: #9aa3af">more_horiz</span></td></tr><tr class="tr"><td class="td" style="padding: 9px 12px 9px 0"><span style="display: flex; align-items: center; gap: 9px"><span class="av" style="width: 28px; height: 28px; font-size: 11px; background: #f2f4f7; color: #5e6672">CB</span><span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-weight: 600; font-size: 13px">[Client B]</span><span style="font-size: 11.5px; color: #7a828e">[Owner name]</span></span></span></td><td class="td" style="padding: 9px 12px; font-size: 13px"><span style="display: flex; flex-direction: column; gap: 2px">[email]<span style="font-size: 11.5px; color: oklch(0.42 0.12 150); display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 13px">verified_user</span>Signing check on</span></span></td><td class="td mono" style="padding: 9px 12px; font-size: 12px; color: #3b424d">[phone]</td><td class="td" style="padding: 9px 12px; font-size: 13px">2 projects</td><td class="td" style="padding: 9px 12px"><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5e6672"><span class="ms" style="font-size: 15px; color: oklch(0.5 0.17 262)">sync</span>Both apps</span></td><td class="td" style="padding: 9px 0; width: 24px"><span class="ms" style="font-size: 18px; color: #9aa3af">more_horiz</span></td></tr><tr class="tr"><td class="td" style="padding: 9px 12px 9px 0"><span style="display: flex; align-items: center; gap: 9px"><span class="av" style="width: 28px; height: 28px; font-size: 11px; background: #f2f4f7; color: #5e6672">CC</span><span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-weight: 600; font-size: 13px">[Client C]</span><span style="font-size: 11.5px; color: #7a828e">[Owner name]</span></span></span></td><td class="td" style="padding: 9px 12px; font-size: 13px"><span style="display: flex; flex-direction: column; gap: 2px">[email]<span style="font-size: 11.5px; color: oklch(0.42 0.12 150); display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 13px">verified_user</span>Signing check on</span></span></td><td class="td mono" style="padding: 9px 12px; font-size: 12px; color: #3b424d">[phone]</td><td class="td" style="padding: 9px 12px; font-size: 13px">Primary bath</td><td class="td" style="padding: 9px 12px"><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5e6672"><span class="ms" style="font-size: 15px; color: oklch(0.5 0.17 262)">sync</span>Both apps</span><span class="pill" style="margin-left: 6px; font-size: 11px; padding: 2px 7px; background: #f2f4f7; color: #5e6672">Merged Oct 10</span></td><td class="td" style="padding: 9px 0; width: 24px"><span class="ms" style="font-size: 18px; color: #9aa3af">more_horiz</span></td></tr><tr class="tr"><td class="td" style="padding: 9px 12px 9px 0"><span style="display: flex; align-items: center; gap: 9px"><span class="av" style="width: 28px; height: 28px; font-size: 11px; background: #f2f4f7; color: #5e6672">CD</span><span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-weight: 600; font-size: 13px">[Client D]</span><span style="font-size: 11.5px; color: #7a828e">[Owner name]</span></span></span></td><td class="td" style="padding: 9px 12px; font-size: 13px"><span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #9aa3af">No email</span><span style="font-size: 11.5px; color: oklch(0.48 0.13 65); display: flex; align-items: center; gap: 3px"><span class="ms" style="font-size: 13px">error</span>Required to verify and sign</span></span></td><td class="td mono" style="padding: 9px 12px; font-size: 12px; color: #3b424d">[phone]</td><td class="td" style="padding: 9px 12px; font-size: 13px"><span style="color: #9aa3af">None yet</span></td><td class="td" style="padding: 9px 12px"><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5e6672"><span class="ms" style="font-size: 15px; color: #9aa3af">edit_note</span>Added here</span></td><td class="td" style="padding: 9px 0; width: 24px"><span class="ms" style="font-size: 18px; color: #9aa3af">more_horiz</span></td></tr>
+</tbody>
+</table>
+<div class="note"><span class="ms">verified_user</span><span>Before signing, a client verifies by entering the email on their customer profile. Email is required and unique per company.</span></div>
+</div>
+</div>
+<div style="padding: 12px 22px; border-top: 1px solid #eef0f3; display: flex; align-items: center; gap: 12px">
+<span style="font-size: 12px; color: oklch(0.48 0.13 65); display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>Unsaved: 1 change · Website</span>
+<span style="flex: 1"></span>
+<button class="b" style="padding: 9px 14px">Discard</button>
+<button class="b bp">Save</button>
+</div>
+</main>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Company</span><span class="sv">Worth Properties</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">License</span><span class="sv">CGC1541042</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Customers</span><span class="sv">38 · 1 missing email</span></div>
+<div style="display: flex; gap: 6px"><span class="sl">Sync</span><span class="sv">EZ Binder · 2 min ago</span></div>
+<span style="flex: 1"></span>
+<span class="sv">Settings · Company</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

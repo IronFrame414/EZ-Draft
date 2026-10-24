@@ -1,0 +1,34 @@
+{
+  "rooms": [
+    {
+      "id": "room-1",
+      "label": "Room 1",
+      "image": "stub-room.png",
+      "finishes": "EZD-031 finishes 1."
+    },
+    {
+      "id": "room-2",
+      "label": "Room 2",
+      "image": "stub-room.png",
+      "finishes": "EZD-031 finishes 2."
+    },
+    {
+      "id": "room-3",
+      "label": "Room 3",
+      "image": "stub-room.png",
+      "finishes": "EZD-031 finishes 3."
+    },
+    {
+      "id": "room-4",
+      "label": "Room 4",
+      "image": "stub-room.png",
+      "finishes": "EZD-031 finishes 4."
+    },
+    {
+      "id": "room-5",
+      "label": "Room 5",
+      "image": "stub-room.png",
+      "finishes": "EZD-031 finishes 5."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+[
+  { "provider": "gemini", "model": "gemini-3.1-flash-image" },
+  { "provider": "openai", "model": "gpt-image-2" },
+  { "provider": "bfl", "model": "flux-kontext-pro" }
+]

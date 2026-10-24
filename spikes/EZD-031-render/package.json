@@ -1,0 +1,14 @@
+{
+  "name": "@ezdraft/spike-ezd-031-render",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "spike-test": "vitest run",
+    "spike-stub": "node --import ../../app/test-harness/net-guard/preload.mjs --import tsx src/cli.ts --mode stub --rooms test/fixtures/rooms.stub.json --run-dir out/stub-run --prices test/fixtures/prices.test.json --models test/fixtures/models.stub.json",
+    "spike-live": "node --env-file-if-exists=.env.local --import tsx src/cli.ts --mode live"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@ezdraft/spike-ezd-029-dxf",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "spike-test": "node --test --test-concurrency=1 \"test/*.test.mjs\"",
+    "spike-report": "node src/run-in-limits.mjs --file ../../fixtures/synthetic/room-12x10.dxf --label synthetic --out out",
+    "spike-standin": "node src/run-in-limits.mjs --standin 1500 --label standin-1500 --out out",
+    "spike-writer": "node src/write-room.mjs --out out",
+    "spike-real": "node src/run-in-limits.mjs --out out/real"
+  },
+  "dependencies": {
+    "@tarikjabiri/dxf": "2.9.0",
+    "dxf-parser": "1.1.2"
+  }
+}

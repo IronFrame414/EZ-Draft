@@ -1,0 +1,17 @@
+{
+  "name": "@ezdraft/spike-ezd-027-canvas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "spike-serve": "node server.mjs",
+    "spike-serve-lan": "node server.mjs --lan",
+    "spike-unit": "node --test --test-concurrency=1 \"test/*.test.mjs\"",
+    "spike-test": "playwright test"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

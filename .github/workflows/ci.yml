@@ -1,9 +1,12 @@
 name: CI
+# Runs only when it matters, to save Actions minutes and Vercel builds:
+#  - on the phase PR (develop -> main), which branch protection requires ("gate")
+#  - by hand from the Actions tab (Run workflow)
+# Per-ticket checks run locally with `node scripts/gate.mjs`; CI is the final check per phase.
 on:
-  push:
-    branches: [develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
+  workflow_dispatch:
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -21,5 +24,23 @@ jobs:
       - name: Install browsers (once browser tests exist)
         if: hashFiles('playwright.config.*') != ''
         run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
+      - name: Ledger check
+        run: node vault/tools/next_ticket.mjs --check
       - name: Gate
         run: node scripts/gate.mjs .
+      - name: Performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-results
+          path: perf-results/
+          if-no-files-found: ignore
+      - name: Upload gate logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-logs
+          path: |
+            gate-failures.log
+            gate.log
+          if-no-files-found: ignore

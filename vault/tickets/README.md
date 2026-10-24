@@ -1,7 +1,8 @@
-> **Build-process overrides (setup, Oct 11, 2026).** Where this file and `vault/PROCESS.md` differ, PROCESS.md wins:
-> - The "Done when" test is written by the **test-author** before the builder starts, not by the builder (rule "Done when" below).
+> **Build-process overrides (Oct 11, 2026; process v2 Oct 18).** Where this file and `vault/PROCESS.md` or `vault/PROCESS-EZDRAFT.md` differ, those win:
+> - The "Done when" test is written by the **test-author** before the builder starts, not by the builder (rule "Done when" below). Each Done-when sentence is an acceptance criterion `AC-<ticket>-<n>` (`vault/spec/acceptance-criteria.md`).
 > - Questions go to `vault/questions/QUESTIONS.md` through the chain of command, not to the handoff file (rules 5 and 8).
-> - "Coordinator" in this file means the orchestrator (the main session).
+> - "Coordinator" in this file means the orchestrator (the main session). "QA agent" means code-reviewer (plus ui-verifier, security-reviewer and calc-auditor as the plan says).
+> - Phases: the spec's phases 1 to 17 are re-cut into slices in `vault/tickets/PHASES.md` (Josh approves); the tables in `phases/` stay the source of each ticket's text.
 
 # EZ Draft: Phases and tickets
 
@@ -19,7 +20,7 @@ There is no schedule. Work the phases in order; within a phase, work the tickets
 
 1. Read before building: the ticket row, the sections its Spec ref names, Data model, App shell, and Non-functional requirements (Performance) in the main tab. Also read the Architecture rules in Data model and the conventions file from EZD-000. Do not load the whole spec.
 2. The performance rules apply to every ticket. A ticket does not pass if the performance check from EZD-017 fails or a download-size budget is exceeded.
-3. The QA agent runs the whole test suite, not only the new test, and checks the ticket against its Spec ref and mockup.
+3. Each ticket's check runs the current phase's tests plus a smoke set, not only the new test; the full suite runs at the phase gate (Q-0006, Josh, Oct 11, 2026). The QA agent checks the ticket against its Spec ref and mockup.
 4. Tests never call a live AI model, email provider, render provider or EZ Binder. They use the recorded fixtures and stubs from EZD-008, EZD-016, EZD-019 and EZD-021. Timers such as the 5-minute lock release are read from Defaults so tests can shorten them.
 5. If the spec does not decide something, write the question to the handoff file and go on to the next ticket that does not depend on the answer. Do not guess. A layout detail with no rule follows the nearest Studio mockup. The mockup for screen Snn is the Studio board with the same number; boards on the Polished, Refined and Layout C pages of the design canvas are superseded and are never used.
 6. A screen marked "needs a mockup before build" is built from its Layout and Controls text with the Studio shell components unless Josh supplies a mockup first.
@@ -42,11 +43,11 @@ Things no agent can produce. Supplying them early keeps the build from stopping.
 | EZ Binder side of the contract (EZD-019): job, customer and user endpoints, shared sign-on, webhook receiver, mark CO approved, model viewer, field pack tab | Field checks of Phases 1, 10, 13, 14 | EZ Draft runs against the stub |
 | iPad, iPhone, keyboard-mode laser | Field checks | Automated tests use device emulation and typed keystrokes |
 | The GPU machine for the local render worker, and the choice of model to run on it | EZD-1104 follow-up | The worker runs its stub runner; renders use the cloud API |
-| Mockups for screens that have none (New project wizard, Takeoff, Versions and cleanup sheet, Field measurements review, Field tasks, Settings 15a to 15h, phone 3D viewer) | EZD-118, EZD-122, EZD-123, EZD-1413, EZD-1420, EZD-1613, EZD-1013 and the settings tickets | Built from the spec text (rule 6) |
+| Mockups for screens that had none: supplied Oct 11, 2026 (S01b, S15a–S15h, S17c, S19–S22 in `vault/mockups`) | EZD-118, EZD-122, EZD-123, EZD-1013, EZD-1413, EZD-1420, EZD-1613 and the settings tickets | Done |
 | Docker Desktop on the Windows build machine (the local Supabase used by agent test runs needs it) | EZD-004, EZD-006, EZD-016 | No local database; agent test runs cannot start |
 | Each code rule checked against the adopted code text, with 9th Edition section numbers | EZD-1710 | Rules are built from the tables in Calculations; their warnings carry the “not yet verified” tag |
 | Answer to R26 R2: which money numbers Crew and Foreman may see | EZD-133 | Answered: two permissions, See company costs and See sell prices (R26 R2) |
 | Terms of service text | EZD-1707 | The page ships with placeholder text |
 | A real vendor cabinet line | EZD-401, EZD-408 | The generic seed line is used |
-| Mockup exports of the 22 Studio boards in the vault | Every screen ticket | QA checks against the spec text only |
+| Mockup exports of the 36 Studio boards in the vault | Every screen ticket | Done |
 

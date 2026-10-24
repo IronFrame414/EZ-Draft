@@ -1,0 +1,46 @@
+{
+  "name": "@ezdraft/app",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test",
+    "app-icons:render": "node scripts/app-icons.mjs",
+    "icons:build": "node scripts/icons-build.mjs",
+    "icons:fetch": "node scripts/icons-fetch.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.1.0",
+    "@sentry/browser": "11.8.0",
+    "@sentry/core": "11.8.0",
+    "@sentry/nextjs": "11.8.0",
+    "@supabase/realtime-js": "2.118.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
+    "next": "16.4.2",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "resend": "6.34.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.2",
+    "postgres": "3.4.9",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "weekly_ceiling_usd_est": 1400,
+  "week_resets": "Monday 02:00 America/New_York",
+  "fable_ceiling_usd_est": null,
+  "fable_fallback_fraction": 0.9,
+  "warn_at_fraction": 0.7,
+  "hold_at_fraction": 0.8,
+  "per_unit_cap_usd_est": 40,
+  "override": {
+    "type": "until-reset",
+    "week_start": "2026-10-19T06:00:00.000Z",
+    "set_on": "2026-10-22"
+  },
+  "_note": "null ceilings: the launcher refuses to run unattended until Josh sets weekly_ceiling_usd_est (PROCESS.md section 11, Calibration). Set per_unit_cap_usd_est after the pilot ticket, about three times the median unit. Only Josh or scripts/budget.mjs edit this file.",
+  "history": [
+    {
+      "date": "2026-10-20",
+      "set": "weekly_ceiling_usd_est",
+      "value": 1100
+    },
+    {
+      "date": "2026-10-20",
+      "hold_at": {
+        "from": 80,
+        "to": 80
+      }
+    },
+    {
+      "date": "2026-10-20",
+      "set": "weekly_ceiling_usd_est",
+      "value": 1400
+    },
+    {
+      "date": "2026-10-20",
+      "hold_at": {
+        "from": 80,
+        "to": 80
+      }
+    },
+    {
+      "date": "2026-10-22",
+      "override": "until-reset"
+    }
+  ],
+  "hold_at_pct": 80
+}

@@ -1,0 +1,28 @@
+{
+  "limits": {
+    "seconds": 300,
+    "memoryMb": 2048
+  },
+  "room": {
+    "ms": 25.544583,
+    "maxRssMb": 97.671875,
+    "bytes": 16786,
+    "execArgv": [
+      "--max-old-space-size=2048"
+    ],
+    "node": "v22.23.3",
+    "pdfkit": "0.20.2",
+    "pdf": "EZD-028-room.pdf"
+  },
+  "stress": {
+    "ms": 235.366792,
+    "maxRssMb": 379.40625,
+    "bytes": 2359532,
+    "execArgv": [
+      "--max-old-space-size=2048"
+    ],
+    "node": "v22.23.3",
+    "pdfkit": "0.20.2",
+    "pdf": "EZD-028-stress.pdf"
+  }
+}

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-ezd027-state="loading">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EZD-027 plan canvas spike</title>
+    <script type="importmap">
+      { "imports": { "three": "/vendor/three.module.js" } }
+    </script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #f6f7f9;
+        color: #14171c;
+        font: 13px/1.4 system-ui, sans-serif;
+        overflow: hidden;
+      }
+      canvas {
+        position: absolute;
+        display: block;
+      }
+      #panel {
+        position: absolute;
+        left: 88px;
+        top: 92px;
+        width: 248px;
+        bottom: 46px;
+        overflow: auto;
+        box-sizing: border-box;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid #dfe2e6;
+        border-radius: 12px;
+      }
+      button {
+        min-height: 44px;
+        width: 100%;
+        margin-bottom: 8px;
+        font: inherit;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2px 8px;
+        margin: 8px 0;
+      }
+      dt {
+        color: #5e6672;
+      }
+      dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+      #status,
+      #saved {
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="plan"></canvas>
+    <div id="panel">
+      <button id="run" type="button" disabled>Run</button>
+      <button id="download" type="button" disabled>Download results</button>
+      <div id="status">Loading</div>
+      <div id="saved"></div>
+      <dl>
+        <dt>frames</dt><dd data-ezd027-stat="frames"></dd>
+        <dt>count</dt><dd data-ezd027-stat="count"></dd>
+        <dt>mean ms</dt><dd data-ezd027-stat="mean"></dd>
+        <dt>p50 ms</dt><dd data-ezd027-stat="p50"></dd>
+        <dt>p95 ms</dt><dd data-ezd027-stat="p95"></dd>
+        <dt>p99 ms</dt><dd data-ezd027-stat="p99"></dd>
+        <dt>max ms</dt><dd data-ezd027-stat="max"></dd>
+        <dt>&gt;16.7 ms</dt><dd data-ezd027-stat="over16_7"></dd>
+        <dt>&gt;33.3 ms</dt><dd data-ezd027-stat="over33_3"></dd>
+        <dt>&gt;100 ms</dt><dd data-ezd027-stat="over100"></dd>
+        <dt>draw calls</dt><dd data-ezd027-stat="drawCalls"></dd>
+        <dt>JS heap</dt><dd data-ezd027-stat="jsHeapUsedBytes"></dd>
+        <dt>GPU buffers</dt><dd data-ezd027-stat="gpuBufferBytes"></dd>
+        <dt>texture</dt><dd data-ezd027-stat="textureBytes"></dd>
+        <dt>renderer</dt><dd data-ezd027-stat="renderer"></dd>
+      </dl>
+    </div>
+    <script type="module" src="/main.mjs"></script>
+  </body>
+</html>

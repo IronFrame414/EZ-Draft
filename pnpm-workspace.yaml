@@ -1,0 +1,10 @@
+packages:
+  - app
+  - packages/*
+  - worker
+  - spikes/*
+saveExact: true
+workspaceConcurrency: 1
+allowBuilds:
+  unrs-resolver: false
+  esbuild: false

@@ -1,0 +1,55 @@
+[
+ {
+  "source": "vault/spec/sections/03-data-model.md",
+  "heading": "## Data model",
+  "pointer": "This section moved word for word into six smaller files.",
+  "parts": [
+   { "file": "vault/spec/sections/03a-working-copy-and-saves.md", "title": "Data model: intro, working copy and saves", "covers": "the intro, Working copy and saves", "lines": [[1, 11]] },
+   { "file": "vault/spec/sections/03b-architecture-rules.md", "title": "Data model: architecture rules", "covers": "Architecture rules 1 to 13 (Round 26)", "lines": [[12, 26]] },
+   { "file": "vault/spec/sections/03c-tables.md", "title": "Data model: tables", "covers": "the first Tables table (tenant to event_log)", "lines": [[27, 74]] },
+   { "file": "vault/spec/sections/03d-tables-rounds-24-25.md", "title": "Data model: tables added in Rounds 24 and 25", "covers": "customer, role, render_allowance, sent_package, field_measurement_review, sheet_set, field_measure_session, field_pack_issue, model_object, job", "lines": [[75, 89]] },
+   { "file": "vault/spec/sections/03e-tables-round-26.md", "title": "Data model: tables added in Round 26", "covers": "edit_lock, model_version and project added fields, library_item, code_rule, render_worker, order_line, glossary, benchmark_run", "lines": [[90, 103]] },
+   { "file": "vault/spec/sections/03f-model-json-objects.md", "title": "Data model: objects inside model_json", "covers": "Objects inside model_json", "lines": [[104, 116]] }
+  ]
+ },
+ {
+  "source": "vault/spec/sections/09-calculations-and-rules.md",
+  "heading": "## Calculations and rules",
+  "pointer": "This section moved word for word into nine smaller files.",
+  "parts": [
+   { "file": "vault/spec/sections/09a-load-calc.md", "title": "Calculations and rules: electrical load calculation", "covers": "Electrical load calculation; worked example; the five cases", "lines": [[5, 13], [57, 88]] },
+   { "file": "vault/spec/sections/09b-electrical-rules.md", "title": "Calculations and rules: electrical rules", "covers": "Electrical code warnings; Electrical rules (2023 NEC) first sample; Voltage drop formula", "lines": [[14, 20], [31, 56]] },
+   { "file": "vault/spec/sections/09c-code-check-engine.md", "title": "Calculations and rules: intro and code check engine", "covers": "the intro (code checks are warnings; code editions); Code check engine", "lines": [[1, 4], [21, 30]] },
+   { "file": "vault/spec/sections/09d-building-rules.md", "title": "Calculations and rules: building rules", "covers": "Building rules (Florida Building Code, Residential) first sample", "lines": [[89, 120]] },
+   { "file": "vault/spec/sections/09e-geometry-and-drafting.md", "title": "Calculations and rules: geometry and drafting", "covers": "Geometry and drafting rules", "lines": [[121, 130]] },
+   { "file": "vault/spec/sections/09f-cabinets-and-countertops.md", "title": "Calculations and rules: cabinets and countertops", "covers": "Cabinet rules; Countertop rules", "lines": [[131, 142]] },
+   { "file": "vault/spec/sections/09g-ceilings-and-lighting.md", "title": "Calculations and rules: ceilings and lighting", "covers": "Ceiling and lighting rules", "lines": [[143, 149]] },
+   { "file": "vault/spec/sections/09h-sheets-and-revisions.md", "title": "Calculations and rules: sheets and revisions", "covers": "Sheet set rules; Revision rules", "lines": [[150, 167]] },
+   { "file": "vault/spec/sections/09i-takeoff.md", "title": "Calculations and rules: takeoff", "covers": "Takeoff rules", "lines": [[168, 191]] }
+  ]
+ },
+ {
+  "source": "vault/spec/sections/screens/X-takeoff-not-in-mockup.md",
+  "heading": "### Takeoff (not in mockup)",
+  "pointer": "Renamed after board S19 (Q-0185), text unchanged.",
+  "parts": [ { "file": "vault/spec/sections/screens/S19-takeoff.md", "title": "19 · Takeoff (board S19)", "lines": [[1, 35]] } ]
+ },
+ {
+  "source": "vault/spec/sections/screens/X-revisions-version-history-not-in-mockup.md",
+  "heading": "### Revisions / version history (not in mockup)",
+  "pointer": "Renamed after board S20 (Q-0185), text unchanged.",
+  "parts": [ { "file": "vault/spec/sections/screens/S20-revisions-version-history.md", "title": "20 · Revisions / version history (board S20, Versions + cleanup sheet)", "lines": [[1, 49]] } ]
+ },
+ {
+  "source": "vault/spec/sections/screens/X-field-measurements-review-not-in-mockup.md",
+  "heading": "### Field measurements review (not in mockup)",
+  "pointer": "Renamed after board S21 (Q-0185), text unchanged.",
+  "parts": [ { "file": "vault/spec/sections/screens/S21-field-measurements-review.md", "title": "21 · Field measurements review (board S21)", "lines": [[1, 34]] } ]
+ },
+ {
+  "source": "vault/spec/sections/screens/X-field-tasks-not-in-mockup.md",
+  "heading": "### Field tasks (not in mockup)",
+  "pointer": "Renamed after board S22 (Q-0185), text unchanged.",
+  "parts": [ { "file": "vault/spec/sections/screens/S22-field-tasks.md", "title": "22 · Field tasks (board S22)", "lines": [[1, 37]] } ]
+ }
+]

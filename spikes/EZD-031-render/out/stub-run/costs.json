@@ -1,0 +1,146 @@
+{
+  "runId": "20261023-213319-stub",
+  "mode": "stub",
+  "startedAt": "2026-10-23T21:33:19.688Z",
+  "finishedAt": "2026-10-23T21:33:20.703Z",
+  "status": "complete",
+  "capUsd": null,
+  "totalMicroUsd": 124240,
+  "records": [
+    {
+      "roomId": "stub-room",
+      "provider": "gemini",
+      "model": "gemini-test-model",
+      "label": "gemini-test-model",
+      "settings": null,
+      "rawUsage": {
+        "promptTokenCount": 300,
+        "candidatesTokenCount": 1290,
+        "totalTokenCount": 1590
+      },
+      "price": {
+        "unit": "per_token",
+        "rates": {
+          "inputPerMTok": 1,
+          "outputPerMTok": 30
+        },
+        "sourceUrl": "https://example.test/prices",
+        "retrieved": "2026-10-11"
+      },
+      "ms": 1,
+      "startedAt": "2026-10-23T21:33:19.689Z",
+      "status": "ok",
+      "errorCode": null,
+      "output": "stub-room/gemini--gemini-test-model.png",
+      "mediaType": "image/png",
+      "bytes": 77,
+      "width": 2,
+      "height": 2,
+      "usage": {
+        "inputTokens": 300,
+        "outputTokens": 1290,
+        "images": 1
+      },
+      "costMicroUsd": 39000,
+      "costUsd": 0.039,
+      "costReason": null,
+      "requestId": "gem_stub_1"
+    },
+    {
+      "roomId": "stub-room",
+      "provider": "openai",
+      "model": "gpt-image-test",
+      "label": "gpt-image-test",
+      "settings": null,
+      "rawUsage": {
+        "input_tokens": 300,
+        "output_tokens": 1056,
+        "total_tokens": 1356
+      },
+      "price": {
+        "unit": "per_token",
+        "rates": {
+          "inputPerMTok": 10,
+          "outputPerMTok": 40
+        },
+        "sourceUrl": "https://example.test/prices",
+        "retrieved": "2026-10-11"
+      },
+      "ms": 0,
+      "startedAt": "2026-10-23T21:33:19.692Z",
+      "status": "ok",
+      "errorCode": null,
+      "output": "stub-room/openai--gpt-image-test.png",
+      "mediaType": "image/png",
+      "bytes": 77,
+      "width": 2,
+      "height": 2,
+      "usage": {
+        "inputTokens": 300,
+        "outputTokens": 1056,
+        "images": 1
+      },
+      "costMicroUsd": 45240,
+      "costUsd": 0.04524,
+      "costReason": null,
+      "requestId": "oai_stub_1"
+    },
+    {
+      "roomId": "stub-room",
+      "provider": "bfl",
+      "model": "flux-kontext-pro",
+      "label": "flux-kontext-pro",
+      "settings": null,
+      "rawUsage": null,
+      "price": {
+        "unit": "per_image",
+        "rates": {
+          "perImage": 0.04
+        },
+        "sourceUrl": "https://example.test/prices",
+        "retrieved": "2026-10-11"
+      },
+      "ms": 1007,
+      "startedAt": "2026-10-23T21:33:19.692Z",
+      "status": "ok",
+      "errorCode": null,
+      "output": "stub-room/bfl--flux-kontext-pro.png",
+      "mediaType": "image/png",
+      "bytes": 77,
+      "width": 2,
+      "height": 2,
+      "usage": {
+        "inputTokens": null,
+        "outputTokens": null,
+        "images": 1
+      },
+      "costMicroUsd": 40000,
+      "costUsd": 0.04,
+      "costReason": null,
+      "requestId": "bfl_stub_1"
+    }
+  ],
+  "summary": {
+    "gemini--gemini-test-model": {
+      "ok": 1,
+      "failed": 0,
+      "totalMicroUsd": 39000,
+      "meanMicroUsd": 39000,
+      "meanMs": 1
+    },
+    "openai--gpt-image-test": {
+      "ok": 1,
+      "failed": 0,
+      "totalMicroUsd": 45240,
+      "meanMicroUsd": 45240,
+      "meanMs": 0
+    },
+    "bfl--flux-kontext-pro": {
+      "ok": 1,
+      "failed": 0,
+      "totalMicroUsd": 40000,
+      "meanMicroUsd": 40000,
+      "meanMs": 1007
+    }
+  }
+}

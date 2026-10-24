@@ -1,0 +1,23 @@
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ez-ink);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.accent {
+  color: var(--ez-cobalt);
+}
+
+@media (any-pointer: coarse) {
+  .wordmark {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+    align-items: center;
+  }
+}

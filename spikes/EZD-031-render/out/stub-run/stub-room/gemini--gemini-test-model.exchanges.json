@@ -1,0 +1,34 @@
+[
+  {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-test-model:generateContent",
+    "status": 200,
+    "requestId": null,
+    "json": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "inlineData": {
+                  "mimeType": "image/png",
+                  "data": "<redacted 104 chars>"
+                }
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 300,
+        "candidatesTokenCount": 1290,
+        "totalTokenCount": 1590
+      },
+      "responseId": "gem_stub_1"
+    },
+    "contentType": null,
+    "bytes": null
+  }
+]

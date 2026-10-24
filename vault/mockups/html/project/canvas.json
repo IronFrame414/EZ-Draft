@@ -305,6 +305,118 @@
    "h": 844,
    "title": "17b \u00b7 Field measure (phone)",
    "page": "studio"
+  },
+  "S01bWizard.dc.html": {
+   "x": 0,
+   "y": 7840,
+   "w": 1600,
+   "h": 1000,
+   "title": "01b \u00b7 New project wizard",
+   "page": "studio"
+  },
+  "S19Takeoff.dc.html": {
+   "x": 1680,
+   "y": 7840,
+   "w": 1600,
+   "h": 1000,
+   "title": "19 \u00b7 Takeoff",
+   "page": "studio"
+  },
+  "S20Versions.dc.html": {
+   "x": 3360,
+   "y": 7840,
+   "w": 1600,
+   "h": 1000,
+   "title": "20 \u00b7 Versions + cleanup sheet",
+   "page": "studio"
+  },
+  "S21FieldMeasReview.dc.html": {
+   "x": 0,
+   "y": 8960,
+   "w": 1600,
+   "h": 1000,
+   "title": "21 \u00b7 Field measurements review",
+   "page": "studio"
+  },
+  "S22FieldTasks.dc.html": {
+   "x": 1680,
+   "y": 8960,
+   "w": 1600,
+   "h": 1000,
+   "title": "22 \u00b7 Field tasks",
+   "page": "studio"
+  },
+  "S15aCompany.dc.html": {
+   "x": 3360,
+   "y": 8960,
+   "w": 1600,
+   "h": 1000,
+   "title": "15a \u00b7 Settings: company + EZ Binder",
+   "page": "studio"
+  },
+  "S15bTitleBlock.dc.html": {
+   "x": 0,
+   "y": 10080,
+   "w": 1600,
+   "h": 1000,
+   "title": "15b \u00b7 Settings: title block",
+   "page": "studio"
+  },
+  "S15cSubmittal.dc.html": {
+   "x": 1680,
+   "y": 10080,
+   "w": 1600,
+   "h": 1000,
+   "title": "15c \u00b7 Settings: submittal profiles",
+   "page": "studio"
+  },
+  "S15dDefaults.dc.html": {
+   "x": 3360,
+   "y": 10080,
+   "w": 1600,
+   "h": 1000,
+   "title": "15d \u00b7 Settings: defaults + shortcuts",
+   "page": "studio"
+  },
+  "S15eCatalog.dc.html": {
+   "x": 0,
+   "y": 11200,
+   "w": 1600,
+   "h": 1000,
+   "title": "15e \u00b7 Settings: catalog",
+   "page": "studio"
+  },
+  "S15fRender.dc.html": {
+   "x": 1680,
+   "y": 11200,
+   "w": 1600,
+   "h": 1000,
+   "title": "15f \u00b7 Settings: render models",
+   "page": "studio"
+  },
+  "S15gCode.dc.html": {
+   "x": 3360,
+   "y": 11200,
+   "w": 1600,
+   "h": 1000,
+   "title": "15g \u00b7 Settings: code edition + rules",
+   "page": "studio"
+  },
+  "S15hLibraries.dc.html": {
+   "x": 0,
+   "y": 12320,
+   "w": 1600,
+   "h": 1000,
+   "title": "15h \u00b7 Settings: libraries",
+   "page": "studio"
+  },
+  "S17c3DPhone.dc.html": {
+   "x": 1880,
+   "y": 6720,
+   "w": 390,
+   "h": 844,
+   "title": "17c \u00b7 Field pack 3D (phone)",
+   "page": "studio"
   }
  },
  "createdOnFiles": {
@@ -382,8 +494,22 @@
   "S16Translations.dc.html",
   "S17Field.dc.html",
   "S17bFieldMeasure.dc.html",
+  "S17c3DPhone.dc.html",
   "S18Client.dc.html",
-  "S18bClientEdge.dc.html"
+  "S18bClientEdge.dc.html",
+  "S01bWizard.dc.html",
+  "S19Takeoff.dc.html",
+  "S20Versions.dc.html",
+  "S21FieldMeasReview.dc.html",
+  "S22FieldTasks.dc.html",
+  "S15aCompany.dc.html",
+  "S15bTitleBlock.dc.html",
+  "S15cSubmittal.dc.html",
+  "S15dDefaults.dc.html",
+  "S15eCatalog.dc.html",
+  "S15fRender.dc.html",
+  "S15gCode.dc.html",
+  "S15hLibraries.dc.html"
  ],
  "pages": [
   {

@@ -1,0 +1,21 @@
+/* Touch targets (11 Accessibility "at least 44 px"; EZD-014b). For phone components and later controls; the shell CSS writes its own coarse rules (P14 V13). */
+@media (any-pointer: coarse) {
+  .target {
+    box-sizing: border-box;
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+
+  .hitArea {
+    position: relative;
+  }
+
+  .hitArea::after {
+    content: '';
+    position: absolute;
+    top: min(0px, calc(50% - var(--ez-touch-target) / 2));
+    bottom: min(0px, calc(50% - var(--ez-touch-target) / 2));
+    left: min(0px, calc(50% - var(--ez-touch-target) / 2));
+    right: min(0px, calc(50% - var(--ez-touch-target) / 2));
+  }
+}
