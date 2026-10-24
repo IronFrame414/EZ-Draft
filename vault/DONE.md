@@ -79,3 +79,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-23 · EZD-040 · Fix: error tunnel scrubs tags and contexts · nothing on screen; error reports sent to Sentry no longer carry emails, ids, tokens or codes in tags, contexts or stack frames · bc49700
 2026-10-24 · EZD-039 · Fix: TRACE report misreads test tables · nothing on screen; TRACE.md now lists real test names with titles for EZD-010c and EZD-000b to EZD-000j · 9c1b6f0
 2026-10-24 · EZD-041 · Fix: release bootstrap passes the production database URL on the psql command line · nothing on screen; release no longer puts the production database password on psql's command line · 541d261
+2026-10-24 · EZD-042 · Fix: Supabase CLI dump and push pass the production database URL as --db-url · nothing on screen; release and weekly backup no longer put the production database password on the supabase command line · 4d7ff54
