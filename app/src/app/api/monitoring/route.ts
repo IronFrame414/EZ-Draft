@@ -67,10 +67,11 @@ export async function POST(request: Request): Promise<Response> {
   const events = parsed.events.map((raw) => {
     const source: 'browser' | 'worker' =
       raw.tags?.['ezd.source'] === 'worker' ? 'worker' : 'browser';
+    const scrubbed = scrubEvent(raw as ScrubbableEvent) as unknown as EventPayload;
     const event: EventPayload = {
-      ...scrubEvent(raw as ScrubbableEvent),
+      ...scrubbed,
       environment,
-      tags: { ...raw.tags, 'ezd.source': source },
+      tags: { ...scrubbed.tags, 'ezd.source': source },
     };
     if (release) event.release = release;
     else delete event.release;
