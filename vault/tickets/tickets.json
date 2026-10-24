@@ -13168,6 +13168,29 @@
    ]
   },
   {
+   "id": "EZD-141",
+   "phase": 1,
+   "title": "Fix: SET LOCAL warning during sign-in",
+   "depends_raw": "EZD-007a, EZD-006",
+   "spec_ref": "Q-0267; 11 Security and audit",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-007a",
+    "EZD-006"
+   ],
+   "build_position": 450,
+   "acs": [
+    "AC-EZD-141-1",
+    "AC-EZD-141-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
