@@ -13191,6 +13191,660 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-142",
+   "phase": 1,
+   "title": "Fix: error scrubbing covers every event field and runs in linear time",
+   "depends_raw": "EZD-024, EZD-040",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-040"
+   ],
+   "build_position": 451,
+   "acs": [
+    "AC-EZD-142-1",
+    "AC-EZD-142-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-143",
+   "phase": 1,
+   "title": "Fix: error tunnel limits each caller",
+   "depends_raw": "EZD-024, EZD-033, EZD-040",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-033",
+    "EZD-040"
+   ],
+   "build_position": 452,
+   "acs": [
+    "AC-EZD-143-1",
+    "AC-EZD-143-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-144",
+   "phase": 1,
+   "title": "Fix: error_alert refuses a project without a company",
+   "depends_raw": "EZD-024",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024"
+   ],
+   "build_position": 453,
+   "acs": [
+    "AC-EZD-144-1",
+    "AC-EZD-144-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-145",
+   "phase": 1,
+   "title": "Fix: job routes check permissions with can()",
+   "depends_raw": "EZD-009, EZD-102",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-009",
+    "EZD-102"
+   ],
+   "build_position": 454,
+   "acs": [
+    "AC-EZD-145-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-146",
+   "phase": 1,
+   "title": "Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack",
+   "depends_raw": "EZD-004c, EZD-042",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004c",
+    "EZD-042"
+   ],
+   "build_position": 455,
+   "acs": [
+    "AC-EZD-146-1",
+    "AC-EZD-146-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-147",
+   "phase": 1,
+   "title": "Fix: CI workflow least rights and SHA pins",
+   "depends_raw": "EZD-002",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-002"
+   ],
+   "build_position": 456,
+   "acs": [
+    "AC-EZD-147-1",
+    "AC-EZD-147-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-148",
+   "phase": 1,
+   "title": "Fix: repo rule tests catch the remaining bypass forms",
+   "depends_raw": "EZD-001, EZD-002",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-002"
+   ],
+   "build_position": 457,
+   "acs": [
+    "AC-EZD-148-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-149",
+   "phase": 1,
+   "title": "Fix: hosting live check and preview rule match what they claim",
+   "depends_raw": "EZD-003",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-003"
+   ],
+   "build_position": 458,
+   "acs": [
+    "AC-EZD-149-1",
+    "AC-EZD-149-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-150",
+   "phase": 1,
+   "title": "Fix: health check gives up on a slow database",
+   "depends_raw": "EZD-004b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004b"
+   ],
+   "build_position": 459,
+   "acs": [
+    "AC-EZD-150-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-151",
+   "phase": 1,
+   "title": "Fix: email input checks, preview stub outbox and email runbook",
+   "depends_raw": "EZD-008a, EZD-008b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-008a",
+    "EZD-008b"
+   ],
+   "build_position": 460,
+   "acs": [
+    "AC-EZD-151-1",
+    "AC-EZD-151-2",
+    "AC-EZD-151-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-152",
+   "phase": 1,
+   "title": "Fix: release and restore failure lines say why without leaking data",
+   "depends_raw": "EZD-023d, EZD-025",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-023d",
+    "EZD-025"
+   ],
+   "build_position": 461,
+   "acs": [
+    "AC-EZD-152-1",
+    "AC-EZD-152-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-153",
+   "phase": 1,
+   "title": "Fix: migration check flags objects created in dynamic SQL",
+   "depends_raw": "EZD-023a",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-023a"
+   ],
+   "build_position": 462,
+   "acs": [
+    "AC-EZD-153-1",
+    "AC-EZD-153-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-154",
+   "phase": 1,
+   "title": "Fix: remove the PA3 grant and close the two guard-bash gaps",
+   "depends_raw": "EZD-000c",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000c"
+   ],
+   "build_position": 463,
+   "acs": [
+    "AC-EZD-154-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-155",
+   "phase": 1,
+   "title": "Fix: gate summary and launcher tools report what really happened",
+   "depends_raw": "EZD-000h, EZD-000g, EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h",
+    "EZD-000g",
+    "EZD-001"
+   ],
+   "build_position": 464,
+   "acs": [
+    "AC-EZD-155-1",
+    "AC-EZD-155-2",
+    "AC-EZD-155-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-156",
+   "phase": 1,
+   "title": "Fix: perf check refuses an empty selection and proves its server env",
+   "depends_raw": "EZD-017",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-017"
+   ],
+   "build_position": 465,
+   "acs": [
+    "AC-EZD-156-1",
+    "AC-EZD-156-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-157",
+   "phase": 1,
+   "title": "Fix: realtime hub keeps project and user channels apart",
+   "depends_raw": "EZD-018",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-018"
+   ],
+   "build_position": 466,
+   "acs": [
+    "AC-EZD-157-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-158",
+   "phase": 1,
+   "title": "Fix: phase 0 test gaps",
+   "depends_raw": "EZD-014c, EZD-010b, EZD-026b, EZD-016b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-014c",
+    "EZD-010b",
+    "EZD-026b",
+    "EZD-016b"
+   ],
+   "build_position": 467,
+   "acs": [
+    "AC-EZD-158-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-159",
+   "phase": 1,
+   "title": "Fix: test network guard also blocks sockets",
+   "depends_raw": "EZD-021",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-021"
+   ],
+   "build_position": 468,
+   "acs": [
+    "AC-EZD-159-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-160",
+   "phase": 1,
+   "title": "Fix: architecture and runbook say only what is true",
+   "depends_raw": "EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-021",
+    "EZD-000",
+    "EZD-023a",
+    "EZD-029",
+    "EZD-033"
+   ],
+   "build_position": 469,
+   "acs": [
+    "AC-EZD-160-1",
+    "AC-EZD-160-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-161",
+   "phase": 1,
+   "title": "Fix: geometry tests are type-checked",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 470,
+   "acs": [
+    "AC-EZD-161-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-162",
+   "phase": 1,
+   "title": "Fix: vault wording and TRACE titles",
+   "depends_raw": "EZD-013, EZD-034, EZD-035, EZD-037, EZD-038",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-013",
+    "EZD-034",
+    "EZD-035",
+    "EZD-037",
+    "EZD-038"
+   ],
+   "build_position": 471,
+   "acs": [
+    "AC-EZD-162-1",
+    "AC-EZD-162-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-163",
+   "phase": 1,
+   "title": "Fix: find and remove the cause of the harness T12 \"Worker closed\" failure",
+   "depends_raw": "EZD-016a, EZD-035",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-016a",
+    "EZD-035"
+   ],
+   "build_position": 472,
+   "acs": [
+    "AC-EZD-163-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-164",
+   "phase": 1,
+   "title": "Spike: WebKit offline service-worker test",
+   "depends_raw": "EZD-013",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-013"
+   ],
+   "build_position": 473,
+   "acs": [
+    "AC-EZD-164-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-165",
+   "phase": 1,
+   "title": "Fix: membership end-sessions trigger covers user and company changes",
+   "depends_raw": "EZD-006, EZD-007b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-007b"
+   ],
+   "build_position": 474,
+   "acs": [
+    "AC-EZD-165-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-166",
+   "phase": 1,
+   "title": "Fix: db:up restarts the local stack when the Auth config or templates change",
+   "depends_raw": "EZD-004a, EZD-007a",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004a",
+    "EZD-007a"
+   ],
+   "build_position": 475,
+   "acs": [
+    "AC-EZD-166-1",
+    "AC-EZD-166-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-167",
+   "phase": 1,
+   "title": "Fix: path alias cannot bypass the import-boundaries lint",
+   "depends_raw": "EZD-001, EZD-020",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-020"
+   ],
+   "build_position": 476,
+   "acs": [
+    "AC-EZD-167-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-168",
+   "phase": 1,
+   "title": "Fix: audit refuses a private function executable by an API role it is not granted to",
+   "depends_raw": "EZD-006, EZD-007a",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-007a"
+   ],
+   "build_position": 477,
+   "acs": [
+    "AC-EZD-168-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-169",
+   "phase": 1,
+   "title": "Fix: every 500 catch in a route reports the error",
+   "depends_raw": "EZD-024, EZD-009, EZD-018, EZD-004b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-009",
+    "EZD-018",
+    "EZD-004b"
+   ],
+   "build_position": 478,
+   "acs": [
+    "AC-EZD-169-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-170",
+   "phase": 1,
+   "title": "Fix: run every pilot check and record its result",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 479,
+   "acs": [
+    "AC-EZD-170-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",

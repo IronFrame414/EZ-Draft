@@ -491,6 +491,35 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1710 | 54 | Code rule list and verification | todo |  | EZD-611, EZD-613, EZD-620 |  |  |  |
 | EZD-136 | 1 | On-screen disclaimer | todo |  | EZD-011, EZD-026c |  |  | Added 2026-10-20 in the re-cut for Q-0183, Q-0208 (Q-0218). |
 | EZD-141 | 1 | Fix: SET LOCAL warning during sign-in | todo |  | EZD-007a, EZD-006 |  |  | Added 2026-10-24 by Josh's request (Q-0267). |
+| EZD-142 | 1 | Fix: error scrubbing covers every event field and runs in linear time | todo |  | EZD-024, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T1; prod-sensitive: yes). |
+| EZD-143 | 1 | Fix: error tunnel limits each caller | todo |  | EZD-024, EZD-033, EZD-040 |  |  | Added 2026-10-24 by the Q-0268 sweep (T2; prod-sensitive: yes). |
+| EZD-144 | 1 | Fix: error_alert refuses a project without a company | todo |  | EZD-024 |  |  | Added 2026-10-24 by the Q-0268 sweep (T3; prod-sensitive: yes (migration)). |
+| EZD-145 | 1 | Fix: job routes check permissions with can() | todo |  | EZD-009, EZD-102 |  |  | Added 2026-10-24 by the Q-0268 sweep (T4; prod-sensitive: yes). |
+| EZD-146 | 1 | Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack | todo |  | EZD-004c, EZD-042 |  |  | Added 2026-10-24 by the Q-0268 sweep (T5; prod-sensitive: yes). |
+| EZD-147 | 1 | Fix: CI workflow least rights and SHA pins | todo |  | EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T6; prod-sensitive: no). |
+| EZD-148 | 1 | Fix: repo rule tests catch the remaining bypass forms | todo |  | EZD-001, EZD-002 |  |  | Added 2026-10-24 by the Q-0268 sweep (T7; prod-sensitive: no). |
+| EZD-149 | 1 | Fix: hosting live check and preview rule match what they claim | todo |  | EZD-003 |  |  | Added 2026-10-24 by the Q-0268 sweep (T8; prod-sensitive: no). |
+| EZD-150 | 1 | Fix: health check gives up on a slow database | todo |  | EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T9; prod-sensitive: yes). |
+| EZD-151 | 1 | Fix: email input checks, preview stub outbox and email runbook | todo |  | EZD-008a, EZD-008b |  |  | Added 2026-10-24 by the Q-0268 sweep (T10; prod-sensitive: yes). |
+| EZD-152 | 1 | Fix: release and restore failure lines say why without leaking data | todo |  | EZD-023d, EZD-025 |  |  | Added 2026-10-24 by the Q-0268 sweep (T11; prod-sensitive: yes). |
+| EZD-153 | 1 | Fix: migration check flags objects created in dynamic SQL | todo |  | EZD-023a |  |  | Added 2026-10-24 by the Q-0268 sweep (T12; prod-sensitive: yes). |
+| EZD-154 | 1 | Fix: remove the PA3 grant and close the two guard-bash gaps | todo |  | EZD-000c |  |  | Added 2026-10-24 by the Q-0268 sweep (T13; prod-sensitive: EZD-000b to EZD-000j). |
+| EZD-155 | 1 | Fix: gate summary and launcher tools report what really happened | todo |  | EZD-000h, EZD-000g, EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T14; prod-sensitive: no). |
+| EZD-156 | 1 | Fix: perf check refuses an empty selection and proves its server env | todo |  | EZD-017 |  |  | Added 2026-10-24 by the Q-0268 sweep (T15; prod-sensitive: no). |
+| EZD-157 | 1 | Fix: realtime hub keeps project and user channels apart | todo |  | EZD-018 |  |  | Added 2026-10-24 by the Q-0268 sweep (T16; prod-sensitive: no). |
+| EZD-158 | 1 | Fix: phase 0 test gaps | todo |  | EZD-014c, EZD-010b, EZD-026b, EZD-016b |  |  | Added 2026-10-24 by the Q-0268 sweep (T17; prod-sensitive: no). |
+| EZD-159 | 1 | Fix: test network guard also blocks sockets | todo |  | EZD-021 |  |  | Added 2026-10-24 by the Q-0268 sweep (T18; prod-sensitive: no). |
+| EZD-160 | 1 | Fix: architecture and runbook say only what is true | todo |  | EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033 |  |  | Added 2026-10-24 by the Q-0268 sweep (T19; prod-sensitive: no). |
+| EZD-161 | 1 | Fix: geometry tests are type-checked | todo |  | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (T20; prod-sensitive: no). |
+| EZD-162 | 1 | Fix: vault wording and TRACE titles | todo |  | EZD-013, EZD-034, EZD-035, EZD-037, EZD-038 |  |  | Added 2026-10-24 by the Q-0268 sweep (T21; prod-sensitive: no). |
+| EZD-163 | 1 | Fix: find and remove the cause of the harness T12 "Worker closed" failure | todo |  | EZD-016a, EZD-035 |  |  | Added 2026-10-24 by the Q-0268 sweep (T22; prod-sensitive: no). |
+| EZD-164 | 1 | Spike: WebKit offline service-worker test | todo |  | EZD-013 |  |  | Added 2026-10-24 by the Q-0268 sweep (T23; prod-sensitive: no). |
+| EZD-165 | 1 | Fix: membership end-sessions trigger covers user and company changes | todo |  | EZD-006, EZD-007b |  |  | Added 2026-10-24 by the Q-0268 sweep (T24; prod-sensitive: yes). |
+| EZD-166 | 1 | Fix: db:up restarts the local stack when the Auth config or templates change | todo |  | EZD-004a, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T25; prod-sensitive: no). |
+| EZD-167 | 1 | Fix: path alias cannot bypass the import-boundaries lint | todo |  | EZD-001, EZD-020 |  |  | Added 2026-10-24 by the Q-0268 sweep (T26; prod-sensitive: no). |
+| EZD-168 | 1 | Fix: audit refuses a private function executable by an API role it is not granted to | todo |  | EZD-006, EZD-007a |  |  | Added 2026-10-24 by the Q-0268 sweep (T27; prod-sensitive: yes). |
+| EZD-169 | 1 | Fix: every 500 catch in a route reports the error | todo |  | EZD-024, EZD-009, EZD-018, EZD-004b |  |  | Added 2026-10-24 by the Q-0268 sweep (T28; prod-sensitive: yes). |
+| EZD-170 | 1 | Fix: run every pilot check and record its result | todo |  | EZD-001 |  |  | Added 2026-10-24 by the Q-0268 sweep (item 39). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
