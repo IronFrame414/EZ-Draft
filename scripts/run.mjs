@@ -50,7 +50,7 @@ const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
 const { idleAction } = await import('./launcher-idle.mjs');
-const { boostState, bumpModel, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
+const { boostState, bumpModel, bumpEffort, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
 // .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
@@ -98,6 +98,7 @@ function authMode() {
 
 function buildCommand(unitName, arg) {
   const u = UNITS[unitName];
+  const boost = boostState({ root }).active;
   const prompt = (config.prompt_style === 'ask')
     ? `Run the ${u.skill} skill for ${arg}. Follow it exactly and end the session when the unit is complete.`
     : `/${u.skill} ${arg}`;
@@ -106,13 +107,16 @@ function buildCommand(unitName, arg) {
     '--output-format', 'json',
     // Boost mode: one model up (vault/tools/boost.mjs), at most Opus for the unit itself: a Fable-only cap hit by a whole
     // unit would be read as the weekly limit while limit formats are unconfirmed (classifyLimit) and stop the launcher.
-    '--model', boostState({ root }).active ? bumpModel(u.model, { fableAllowed: false }) : u.model,
-    '--effort', u.effort,
+    '--model', boost ? bumpModel(u.model, { fableAllowed: false }) : u.model,
+    // Boost: one effort level up, at most `high` for the unit itself (xhigh/max are unconfirmed as CLI values).
+    '--effort', boost ? bumpEffort(u.effort, { ceiling: 'high' }) : u.effort,
     '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,
   ];
   const b = budget();
-  if (b.per_unit_cap_usd_est) cmd.push('--max-budget-usd', String(b.per_unit_cap_usd_est));
+  // Boost raises the per-unit cap to $80 (Josh 2026-10-24); never lowers a higher configured cap.
+  const cap = boost ? Math.max(BOOST_UNIT_CAP_USD, b.per_unit_cap_usd_est || 0) : b.per_unit_cap_usd_est;
+  if (cap) cmd.push('--max-budget-usd', String(cap));
   if (u.as) cmd.push('--agent', u.as);
   // --max-turns is not listed by every CLI version (absent in 2.1.302); the per-unit dollar cap is the hard stop either way.
   if (flagSupported('--max-turns')) cmd.push('--max-turns', String(config.max_turns?.[unitName] ?? u.turns));

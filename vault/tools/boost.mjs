@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Boost mode (Josh 2026-10-24): for spare weekly usage near the end of the week, every role runs one model up
-// (Haiku -> Sonnet -> Opus -> Fable). Lanes (several units at once) are recorded for the parallel launcher, which is not
+// (Haiku -> Sonnet -> Opus -> Fable) at one effort level up, with a per-unit cap of $80. Lanes (several units at once) are recorded for the parallel launcher, which is not
 // built yet: until it is, the lane numbers change nothing. It turns itself off when the
 // weekly usage window resets, so the build returns to the normal routing of PROCESS.md section 4.
 //
@@ -44,6 +44,17 @@ const UP = {
   'claude-opus-5-5': 'claude-fable-5-1',
   'claude-fable-5-1': 'claude-fable-5-1',
 };
+// Boost raises the per-unit dollar cap to this (Josh 2026-10-24: "raise the per-step cap to $80 while boost is on").
+export const BOOST_UNIT_CAP_USD = 80;
+
+const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'];
+// One effort level up (Josh 2026-10-24), never past `ceiling`.
+export function bumpEffort(effort, { ceiling = 'max' } = {}) {
+  const i = EFFORTS.indexOf(effort);
+  if (i < 0) return effort;
+  return EFFORTS[Math.min(i + 1, EFFORTS.indexOf(ceiling))] ?? effort;
+}
+
 // One model up. Fable only when the Fable window allows it (EZD_FABLE_ALLOWED, set by the launcher from the meter).
 export function bumpModel(model, { fableAllowed = process.env.EZD_FABLE_ALLOWED !== '0' } = {}) {
   const up = UP[model] ?? model;
@@ -76,12 +87,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (cmd === 'on') {
     const r = turnOn({ lanes: opt('--lanes', DEFAULT_LANES), buildLanes: opt('--build-lanes', DEFAULT_BUILD_LANES) });
     if (!r.ok) { console.error(r.error); process.exit(1); }
-    console.log(`boost on: one model up until ${r.until} (the weekly reset); parallel lanes are not built yet`);
+    console.log(`boost on: one model and one effort level up, $${BOOST_UNIT_CAP_USD} per-step cap, until ${r.until} (the weekly reset); parallel lanes are not built yet`);
   } else if (cmd === 'off') {
     console.log(turnOff() ? 'boost off' : 'boost was not on');
   } else if (cmd === 'status' || !cmd) {
     const s = boostState();
-    console.log(s.active ? `boost on: one model up until ${s.until}; parallel lanes are not built yet` : s.expired ? `boost expired at ${s.until ?? '(unreadable file)'}; the launcher removes it` : 'boost off');
+    console.log(s.active ? `boost on: one model and one effort level up, $${BOOST_UNIT_CAP_USD} per-step cap, until ${s.until}; parallel lanes are not built yet` : s.expired ? `boost expired at ${s.until ?? '(unreadable file)'}; the launcher removes it` : 'boost off');
   } else {
     console.error('usage: node vault/tools/boost.mjs on [--lanes N] [--build-lanes N] | off | status');
     process.exit(2);

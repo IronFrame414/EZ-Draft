@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { boostState, bumpModel, turnOn, turnOff, boostFile, MAX_LANES, MAX_BUILD_LANES } from '../../vault/tools/boost.mjs';
+import { boostState, bumpModel, bumpEffort, turnOn, turnOff, boostFile, MAX_LANES, MAX_BUILD_LANES, BOOST_UNIT_CAP_USD } from '../../vault/tools/boost.mjs';
 
 const NOW = new Date('2026-10-24T18:00:00Z');
 function repo(resetsAt) {
@@ -62,4 +62,15 @@ test('boost: every model moves up one, Fable stays Fable, and Opus stays Opus wh
   assert.equal(bumpModel('claude-fable-5-1', { fableAllowed: true }), 'claude-fable-5-1');
   assert.equal(bumpModel('claude-opus-5-5', { fableAllowed: false }), 'claude-opus-5-5');
   assert.equal(bumpModel('claude-fable-5-1', { fableAllowed: false }), 'claude-opus-5-5');
+});
+
+test('boost: every effort moves up one level, max stays max, and a ceiling holds', () => {
+  assert.deepEqual(['low', 'medium', 'high', 'xhigh', 'max'].map((e) => bumpEffort(e)), ['medium', 'high', 'xhigh', 'max', 'max']);
+  assert.equal(bumpEffort('medium', { ceiling: 'high' }), 'high');
+  assert.equal(bumpEffort('high', { ceiling: 'high' }), 'high');
+  assert.equal(bumpEffort('unknown'), 'unknown');
+});
+
+test('boost: the per-step cap while boost is on is $80 (Josh 2026-10-24)', () => {
+  assert.equal(BOOST_UNIT_CAP_USD, 80);
 });
