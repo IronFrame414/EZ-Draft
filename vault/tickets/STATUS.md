@@ -540,7 +540,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-187 | 1 | Fix: the root `test` step runs the package tests even when a root node:test file fails | ready | low | EZD-001, EZD-004a |  |  | Added 2026-10-25 for Q-0326 (rule 17; questions 1). |
 | EZD-188 | 1 | Fix: production workflows use only listed actions | ready | medium | EZD-148 |  |  | Added 2026-10-25 for Q-0328 (rule 17; questions 1; security review: yes). · 2026-10-25 questions 1: plan lints clean, no open question; ready. |
 | EZD-189 | 1 | Fix: the policy check allows a Storage policy to read its screen's switch | ready | medium | EZD-102 |  |  | Added 2026-10-25 for Q-0323 (Josh: option 1; security review: yes). EZD-132 waits for it. · 2026-10-25 questions 1: plan lints clean, no open question; ready. |
-| EZD-190 | 1 | Fix: the API request gate is in force as soon as the local stack is up | todo |  | EZD-006, EZD-032 |  |  | Added 2026-10-25 for Q-0330 (rule 17; found in the EZD-151 ticket gate; security review: yes). EZD-151 waits for it. |
+| EZD-190 | 1 | Fix: the API request gate is in force as soon as the local stack is up | planned | high | EZD-006, EZD-032 |  |  | Added 2026-10-25 for Q-0330 (rule 17; found in the EZD-151 ticket gate; security review: yes). EZD-151 waits for it. |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
