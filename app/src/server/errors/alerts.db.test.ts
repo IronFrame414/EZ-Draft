@@ -418,6 +418,155 @@ describe('EZD-024 error alert store and reporting', () => {
   });
 });
 
+// EZD-144 (vault/plans/EZD-144.md sections 1, 3, 4; AC-EZD-144-1, AC-EZD-144-2), local stack. Runs under the
+// file-level error-alert lock. A row with a project always has a company: the composite foreign key is MATCH
+// SIMPLE and checks nothing when tenant_id is null, so the check error_alert_project_needs_tenant refuses it.
+describe('EZD-144 error_alert refuses a project without a company', () => {
+  type DbError = { code?: string; message?: string } | null;
+  let tenantId = '';
+  let projectId = '';
+
+  async function rowOf(f: string): Promise<Row | null> {
+    const { data, error } = await adminDb()
+      .from('error_alert')
+      .select('*')
+      .eq('fingerprint', f)
+      .maybeSingle();
+    expect(error).toBeNull();
+    return (data as Row | null) ?? null;
+  }
+
+  async function insertAsRunner(row: Row): Promise<DbError> {
+    const { error } = await adminDb().from('error_alert').insert(row);
+    return error;
+  }
+
+  async function recordAsRunner(f: string, over: Row): Promise<DbError> {
+    const { error } = await adminDb().rpc('record_error_alert', {
+      p_kind: 'error',
+      p_source: 'function',
+      p_fingerprint: f,
+      p_title: 'Error: x',
+      p_ref: null,
+      p_tenant_id: null,
+      p_project_id: null,
+      ...over,
+    });
+    return error;
+  }
+
+  beforeAll(async () => {
+    tenantId = await createTenant();
+    [projectId] = await createProjects(tenantId, 1);
+  }, 180000);
+
+  beforeEach(async () => {
+    await harnessSql()`delete from public.error_alert`;
+  });
+
+  afterAll(async () => {
+    await harnessSql()`delete from public.error_alert`;
+  });
+
+  it('EZD-144 done when: a service_role insert with a project and no company fails with 23514', async () => {
+    const f = fingerprint();
+    const error = await insertAsRunner({
+      kind: 'error',
+      source: 'function',
+      fingerprint: f,
+      title: 'Error: x',
+      tenant_id: null,
+      project_id: projectId,
+    });
+    expect(error?.code).toBe('23514');
+    expect(error?.message).toContain('error_alert_project_needs_tenant');
+    expect(await rowOf(f)).toBeNull();
+  });
+
+  it('EZD-144 T2 record_error_alert as service_role refuses a project without a company', async () => {
+    const f = fingerprint();
+    const error = await recordAsRunner(f, { p_project_id: projectId });
+    expect(error?.code).toBe('23514');
+    expect(error?.message).toContain('error_alert_project_needs_tenant');
+    expect(await rowOf(f)).toBeNull();
+  });
+
+  it('EZD-144 T3 an update that adds a project to a row without a company fails', async () => {
+    const f = fingerprint();
+    const inserted = await insertAsRunner({
+      kind: 'error',
+      source: 'function',
+      fingerprint: f,
+      title: 'Error: x',
+    });
+    expect(inserted).toBeNull();
+    const { error } = await adminDb()
+      .from('error_alert')
+      .update({ project_id: projectId })
+      .eq('fingerprint', f);
+    expect(error?.code).toBe('23514');
+    expect(error?.message).toContain('error_alert_project_needs_tenant');
+    expect((await rowOf(f))?.project_id).toBeNull();
+  });
+
+  it('EZD-144 T4 rows the app writes still insert', async () => {
+    const a = fingerprint();
+    const b = fingerprint();
+    const c = fingerprint();
+    expect(
+      await insertAsRunner({
+        kind: 'error',
+        source: 'function',
+        fingerprint: a,
+        title: 'Error: x',
+        tenant_id: null,
+        project_id: null,
+      }),
+    ).toBeNull();
+    expect(
+      await insertAsRunner({
+        kind: 'job_failed',
+        source: 'job',
+        fingerprint: b,
+        title: 'test: handler_failed',
+        tenant_id: tenantId,
+        project_id: projectId,
+      }),
+    ).toBeNull();
+    expect(
+      await insertAsRunner({
+        kind: 'job_failed',
+        source: 'job',
+        fingerprint: c,
+        title: 'test: handler_failed',
+        tenant_id: tenantId,
+        project_id: null,
+      }),
+    ).toBeNull();
+
+    const rowA = await rowOf(a);
+    expect(rowA?.tenant_id).toBeNull();
+    expect(rowA?.project_id).toBeNull();
+    const rowB = await rowOf(b);
+    expect(rowB?.tenant_id).toBe(tenantId);
+    expect(rowB?.project_id).toBe(projectId);
+    const rowC = await rowOf(c);
+    expect(rowC?.tenant_id).toBe(tenantId);
+    expect(rowC?.project_id).toBeNull();
+  });
+
+  it('EZD-144 T5 the constraint is validated with the planned definition', async () => {
+    const rows = await harnessSql()`
+      select contype, convalidated, pg_get_constraintdef(oid) as def
+      from pg_constraint
+      where conrelid = 'public.error_alert'::regclass and conname = 'error_alert_project_needs_tenant'`;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].contype).toBe('c');
+    expect(rows[0].convalidated).toBe(true);
+    expect(rows[0].def).toBe('CHECK (((tenant_id IS NOT NULL) OR (project_id IS NULL)))');
+  });
+});
+
 // Last in the file; its rows live in its own tenants and are removed by the helper's afterAll. A sibling
 // describe, so the main describe's per-test delete never touches its row; the file-level lock covers it.
 describe('EZD-024 error_alert tenant isolation', () => {
