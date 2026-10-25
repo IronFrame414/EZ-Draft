@@ -13439,7 +13439,7 @@
    "id": "EZD-151",
    "phase": 1,
    "title": "Fix: email input checks, preview stub outbox and email runbook",
-   "depends_raw": "EZD-008a, EZD-008b",
+   "depends_raw": "EZD-008a, EZD-008b, EZD-190",
    "spec_ref": "Q-0268",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -13449,7 +13449,8 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-008a",
-    "EZD-008b"
+    "EZD-008b",
+    "EZD-190"
    ],
    "build_position": 460,
    "acs": [
@@ -14325,6 +14326,29 @@
    "build_position": 498,
    "acs": [
     "AC-EZD-189-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-190",
+   "phase": 1,
+   "title": "Fix: the API request gate is in force as soon as the local stack is up",
+   "depends_raw": "EZD-006, EZD-032",
+   "spec_ref": "Q-0330",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-032"
+   ],
+   "build_position": 499,
+   "acs": [
+    "AC-EZD-190-1",
+    "AC-EZD-190-2"
    ],
    "acs_source": "done-when"
   },
