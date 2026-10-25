@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, sixth run)
+# Phase 1 · for Josh (questions unit, 2026-10-24, seventh run)
 
-Six tickets turned ready this run: EZD-176, EZD-177, EZD-178, EZD-179, EZD-180 and EZD-181 (46 ready in phase 1 now). Three new questions were answered by the reviewers (rows Q-0316 to Q-0318 below). One more fix ticket was added so nothing is parked (rule 17, your Q-0268): EZD-182, the repo checks also refuse the pnpm command-line switches that turn on install scripts (Q-0316); the next unit plans it. EZD-169 and EZD-181 were re-planned: a health check on a hung database now answers its error at the 3,000 ms limit and reports it right after, instead of waiting on the same hung database (Q-0317, Q-0318); EZD-169 now also waits for EZD-150. The two decisions below are unchanged; Q-0312 still makes every phase 1 build gate red until the patch is in.
+One ticket turned ready this run: EZD-182, the repo checks also refuse the pnpm command-line switches that turn on install scripts (Q-0316; 47 ready in phase 1 now). It raised no new question and has no wording for you. Nothing else changed since the sixth run: the two decisions below are still open, and Q-0312 still makes every phase 1 build gate red until the patch is in (the patch has not been applied yet).
 
 ## 1. Decisions needed
 
@@ -71,7 +71,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182.
 
 ## 4. Rule candidates
 
