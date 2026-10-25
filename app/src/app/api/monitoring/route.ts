@@ -9,6 +9,7 @@ import { after } from 'next/server';
 import { scrubEvent, type ScrubbableEvent } from '../../../lib/errors/scrub';
 import { noteBrowserEvent } from '../../../server/errors/report';
 import { PLACEHOLDER_DSN } from '../../../server/errors/sentry-options';
+import { tunnelAllows } from '../../../server/errors/tunnel-throttle';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,9 +22,13 @@ const TOO_LARGE = {
   error: { code: 'envelope_too_large', message_key: 'error.envelope_too_large' },
 };
 const INVALID = { error: { code: 'invalid_envelope', message_key: 'error.invalid_envelope' } };
+const TOO_MANY = {
+  error: { code: 'too_many_requests', message_key: 'error.too_many_requests' },
+};
 
-function errorBody(status: 413 | 400): Response {
-  return Response.json(status === 413 ? TOO_LARGE : INVALID, { status, headers });
+function errorBody(status: 413 | 400 | 429): Response {
+  const body = status === 413 ? TOO_LARGE : status === 429 ? TOO_MANY : INVALID;
+  return Response.json(body, { status, headers });
 }
 
 function parse(
@@ -61,6 +66,11 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = parse(body);
   if (!parsed) return errorBody(400);
+  // EZD-143 (D9): over the per-address limit (error_tunnel_take), the whole envelope is refused before
+  // anything is forwarded or recorded.
+  if (parsed.events.length > 0 && !(await tunnelAllows(request.headers, parsed.events.length))) {
+    return errorBody(429);
+  }
 
   const environment = process.env.VERCEL_ENV || 'local';
   const release = process.env.VERCEL_GIT_COMMIT_SHA || undefined;

@@ -35,6 +35,10 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: [],
     reason: 'Server-only backup records (EZD-025); no API role reads or writes it',
   },
+  error_tunnel_throttle: {
+    privileges: [],
+    reason: 'Read and written only by the security definer function error_tunnel_take (EZD-143)',
+  },
   sign_in_throttle: {
     privileges: [],
     reason: 'Read and written only by the security definer throttle functions (EZD-033, Q-0094)',

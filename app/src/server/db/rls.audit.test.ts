@@ -187,6 +187,7 @@ describe('EZD-006 RLS audit', () => {
     expect(exemptNames).toEqual([
       'app_user',
       'backup_run',
+      'error_tunnel_throttle',
       'sign_in_throttle',
       'tenant',
     ]);
@@ -204,6 +205,7 @@ describe('EZD-006 RLS audit', () => {
       'app_user',
       'backup_run',
       'error_alert',
+      'error_tunnel_throttle',
       'job',
       'membership',
       'membership_project',
@@ -213,9 +215,11 @@ describe('EZD-006 RLS audit', () => {
     ]);
     for (const [table, grant] of Object.entries(TABLE_GRANTS)) {
       // EZD-033 Step 5: sign_in_throttle gives authenticated no privilege at all (security definer access).
-      // EZD-025 Step 1: backup_run is server-only too.
+      // EZD-025 Step 1: backup_run is server-only too. EZD-143 D11: error_tunnel_throttle as well.
       expect(grant.privileges, table).toEqual(
-        table === 'sign_in_throttle' || table === 'backup_run' ? [] : ['SELECT'],
+        table === 'sign_in_throttle' || table === 'backup_run' || table === 'error_tunnel_throttle'
+          ? []
+          : ['SELECT'],
       );
       expect(grant.reason.length, table).toBeGreaterThan(0);
       expect(byName.has(table), table).toBe(true);

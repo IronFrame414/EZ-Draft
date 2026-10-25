@@ -59,6 +59,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"error_tunnel_throttle": {
+                  Row: {
+                    "at": string,"id": string,"key_hash": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "at"?: string,"id"?: string,"key_hash": string
+                  }
+                  Update: {
+                    "at"?: string,"id"?: string,"key_hash"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"job": {
                   Row: {
                     "attempts": number,"created_at": string,"created_by": string | null,"error": string | null,"finished_at": string | null,"id": string,"kind": string,"lease_expires_at": string | null,"max_attempts": number,"payload": NonNullable<Json>,"progress": number,"project_id": string | null,"result": Json | null,"run_after": string,"run_id": string | null,"started_at": string | null,"state": Json | null,"status": string,"tenant_id": string,"updated_at": string
@@ -265,6 +279,9 @@ isOneToOne: false
                            },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
+                           },
+"error_tunnel_take":
+{ Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
                            },
 "health":
 { Args: Record<PropertyKey, never>; Returns: {

@@ -17,6 +17,11 @@ export const TENANTLESS_TABLES: TenantlessTable[] = [
       'System-wide off-site backup and restore-drill records (EZD-025); no tenant data; no API role can read it',
   },
   {
+    table: 'error_tunnel_throttle',
+    reason:
+      'Error tunnel per-address count (EZD-143): rows are written for anonymous error reports and belong to no company; they hold only keyed hashes and times.',
+  },
+  {
     table: 'sign_in_throttle',
     reason:
       'Sign-in throttle: rows are written before sign-in and belong to no company; they hold only keyed hashes and times (Q-0094).',
