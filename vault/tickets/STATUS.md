@@ -538,7 +538,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-185 | 1 | Fix: unit-steps merge reports a failed cleanup, and screenshots never block it | ready | low | EZD-174, EZD-175 |  |  | Added 2026-10-24 for Q-0321 (rule 17; questions 1). |
 | EZD-186 | 1 | Fix: no "React version detect" warning when lint runs from the repo root | ready | low | EZD-001, EZD-184 |  |  | Added 2026-10-25 for Q-0324 (rule 17; questions 1). |
 | EZD-187 | 1 | Fix: the root `test` step runs the package tests even when a root node:test file fails | ready | low | EZD-001, EZD-004a |  |  | Added 2026-10-25 for Q-0326 (rule 17; questions 1). |
-| EZD-188 | 1 | Fix: production workflows use only listed actions | todo |  | EZD-148 |  |  | Added 2026-10-25 for Q-0328 (rule 17; questions 1; security review: yes). |
+| EZD-188 | 1 | Fix: production workflows use only listed actions | planned | medium | EZD-148 |  |  | Added 2026-10-25 for Q-0328 (rule 17; questions 1; security review: yes). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
