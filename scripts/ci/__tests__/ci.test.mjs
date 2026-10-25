@@ -114,27 +114,51 @@ function secretsOf(lines) {
   return { names: [...names].sort(), bad };
 }
 
-// Problems of rule (i): any actions/cache use, or a `cache:` key in an actions/setup-node step.
+// Rule (i), R1 (vault/plans/EZD-148.md section 1): no cache in any form in the production workflows. Every line is scanned
+// on its own (block, flow, any step or depth); what cannot be read is refused, never skipped (L-006, Q-0146 (a)).
+const USES_KEY_RE = /(^|[\s{,\[])["']?uses["']?\s*:/gi;
+const CACHE_KEY_RE = /(^|[\s{,?\[])["']?cache["']?\s*:/i;
+const PM_CACHE_RE = /(^|[\s{,?\[])["']?package-manager-cache["']?\s*:\s*("[^"]*"|'[^']*'|[^\s,}\]#]*)/i;
+// cacheUses's own comment strip: YAML white space is space and tab only (D13); stripComment stays for readTriggers.
+const stripCacheComment = (s) => s.replace(/[ \t]+#.*$/, '');
+// EZD-148 D4, D13: a line the line scanner cannot read is refused, never skipped (L-006). A line holding a quote is
+// readable only when it fits one of QUOTE_SHAPES: Q1 a plain key with one single-quoted scalar and at most a quote-free
+// comment; Q2 a plain key with a plain scalar holding no '"' and no '#'; Q3 an indented '@scope/name': false entry.
+// A line with a character outside tab and printable ASCII, or with an anchor, alias or tag at a node start, is unreadable.
+const QUOTE_SHAPES = [
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: '(?:[^'#]|'')*'\s*(?:#[^'"]*)?$/,
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: [A-Za-z0-9$_(][^"#]*$/,
+  /^\s+'@[a-z0-9-]+\/[a-z0-9._-]+': false\s*(?:#[^'"]*)?$/,
+];
+const ASCII_LINE_RE = /^[\t\x20-\x7E]*$/;
+const NODE_START_RE = /(?:^\s*(?:-\s+)*|[{,\[]\s*|:\s+|\?\s+)[&*!]/;
+function quoteReadable(l) {
+  return !/['"]/.test(l) || QUOTE_SHAPES.some((re) => re.test(l));
+}
+
 function cacheUses(lines) {
   const found = [];
   lines.forEach((l, i) => {
-    if (l.trim().startsWith('#')) return;
-    const m = /\buses\s*:\s*("[^"]*"|'[^']*'|[^\s,}]+)/.exec(l);
-    if (!m) return;
-    const value = stripQuotes(m[1]);
-    if (/^actions\/cache(\/|@|$)/.test(value)) found.push(`${value} at line ${i + 1}`);
-    if (!/^actions\/setup-node(@|$)/.test(value)) return;
-    let start = i;
-    if (!/^\s*-\s/.test(l)) {
-      const ind = indentOf(l);
-      while (start > 0 && !(/^\s*-\s/.test(lines[start]) && indentOf(lines[start]) < ind)) start--;
+    const n = i + 1;
+    const t = l.trim();
+    const ascii = ASCII_LINE_RE.test(l);
+    if (ascii && t.startsWith('#')) return;
+    const readable = ascii && quoteReadable(l) && !NODE_START_RE.test(stripCacheComment(l));
+    const body = readable ? stripCacheComment(l) : l;
+    if (/^(-\s+)?\?(\s|$)/.test(t)) found.push(`explicit key at line ${n}`);
+    if (!readable) found.push(`unreadable quoting at line ${n}`);
+    for (const m of body.matchAll(USES_KEY_RE)) {
+      const raw = body.slice(m.index + m[0].length).split(/[,}\]]/)[0].trim();
+      if (raw === '' || /^[>|*&!]/.test(raw)) {
+        found.push(`unreadable uses value at line ${n}`);
+        continue;
+      }
+      const value = raw.replace(/^["']/, '').replace(/["']$/, '').trim().toLowerCase();
+      if (/^actions\/cache(\/|@|$)/.test(value)) found.push(`${value} at line ${n}`);
     }
-    const stepIndent = indentOf(lines[start]);
-    for (let j = start + 1; j < lines.length; j++) {
-      if (isBlankOrComment(lines[j])) continue;
-      if (indentOf(lines[j]) <= stepIndent) break;
-      if (/^\s*cache\s*:/.test(lines[j])) found.push(`setup-node cache at line ${j + 1}`);
-    }
+    if (CACHE_KEY_RE.test(body)) found.push(`cache key at line ${n}`);
+    const pm = PM_CACHE_RE.exec(body);
+    if (pm && stripQuotes(pm[2]).toLowerCase() !== 'false') found.push(`package-manager-cache at line ${n}`);
   });
   return found;
 }
@@ -282,6 +306,96 @@ test('EZD-002 T2b T2 rules catch the bypasses (AC-EZD-002-1)', () => {
   // c0: clean control
   const c0 = on('    steps:\n      - run: echo ok\n');
   assert.deepEqual(show(checkWorkflow('x.yml', c0)), [], 'c0: clean text has no problem');
+});
+
+// ---------- EZD-148 T1 ----------
+// Sources: ticket EZD-148 Done when and Scope (inline flow maps, mixed-case action names); plan decisions D2-D5, D10;
+// lesson L-006 (every form the checker cannot read is refused). Each sample runs for all three production workflow
+// files, because rule (i) runs only for them. Messages name the sample id and the file.
+test('EZD-148 T1 rule (i) catches inline, mixed-case and unreadable cache forms (AC-EZD-148-1) done when', () => {
+  const on = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const files = ['release.yml', 'backup-files.yml', 'backup-db.yml'];
+  const bad = [
+    ['i1', '      - uses: actions/setup-node@v4\n        with: { cache: pnpm }\n'],
+    ['i2', '      - uses: Actions/Cache@v4\n'],
+    ['i3', '      - { uses: actions/setup-node@v4, with: { cache: pnpm } }\n'],
+    ['i4', '      - uses: actions/setup-node@v4\n        with:\n          "cache": pnpm\n'],
+    ['i5', '      - uses: actions/setup-node@v4\n        with:\n          Cache: pnpm\n'],
+    ['i6', '      - with:\n          cache: pnpm\n        uses: actions/setup-node@v4\n'],
+    ['i7', '      - "uses": actions/cache@v4\n'],
+    ['i8', '      - uses: ACTIONS/CACHE/restore@v4\n'],
+    ['i9', '      - uses: >-\n          actions/cache@v4\n'],
+    ['i10', '      - uses: *c\n'],
+    ['i11', '      - uses: actions/setup-node@v4\n        with:\n          package-manager-cache: true\n'],
+    ['i12', '      - uses: actions/setup-node@v4\n        with:\n          ? cache\n          : pnpm\n'],
+    // the text line is `          "c\x61che": pnpm` with one backslash
+    ['i13', '      - uses: actions/setup-node@v4\n        with:\n          "c\\x61che": pnpm\n'],
+    // security review 2026-10-25 finding 1 and plan D4: quoting the line scanner cannot read is refused (one backslash each)
+    // i14, i15: the text line holds `"actions/c\x61che@v4"` (a \ escape inside double quotes)
+    ['i14', '      - uses: "actions/c\\x61che@v4"\n'],
+    ['i15', '      - { uses: "actions/c\\x61che@v4" }\n'],
+    // i16: the key is split by an escaped line break; the third text line ends with one backslash
+    ['i16', '      - uses: actions/setup-node@v4\n        with:\n          "ca\\\n          che": pnpm\n'],
+    // i17: the value is split the same way; the first text line ends with one backslash
+    ['i17', '      - uses: "actions/\\\n          cache@v4"\n'],
+    // i18, i19: a ` #` inside a quoted scalar; the comment strip would cut the body and hide the uses key
+    ['i18', "      - { name: 'a #', uses: actions/cache@v4 }\n"],
+    ['i19', '      - { name: "a #", uses: actions/cache@v4 }\n'],
+    // i20-i22: a stray quote in a plain scalar must not pair with the opener of a real quoted scalar (round 2, plan D4)
+    ['i20', "      - { name: a'b, x: 'c #', uses: actions/cache@v4 }\n"],
+    ['i21', '      - { name: a"b, x: "c #", uses: actions/cache@v4 }\n'],
+    ['i22', "      - uses: actions/setup-node@v4\n        with: { x: a'b, y: 'c #', cache: pnpm }\n"],
+    // i23, i24: the round-1 controls c5 and c6 fit no quote shape (plan D4); i23's text ends `a\b` with one backslash
+    ['i23', `      - run: echo "ok" 'it"s' a\\b\n`],
+    ['i24', `      - run: echo ok # it's "fine\n`],
+    // i25-i27: a key right after `[` (a flow sequence of single-pair maps, plan D13)
+    ['i25', '      [uses: actions/cache@v4]\n'],
+    ['i26', '      [uses: actions/cache@v4,\n       run: echo ok]\n'],
+    ['i27', '      - { uses: actions/setup-node@v4, with: [cache: pnpm] }\n'],
+    // i28, i29: a no-break space (U+00A0) before `#` is not YAML white space, so the `#` starts no comment (plan D13)
+    ['i28', '      - { name: a\u00A0#, uses: actions/cache@v4 }\n'],
+    ['i29', '      - uses: actions/setup-node@v4\n        with: { x: a\u00A0#, cache: pnpm }\n'],
+    // i30: an accented letter in a comment; refused by the ASCII-only rule alone (plan D13)
+    ['i30', '      - run: echo ok # caf\u00E9\n'],
+    // i31-i35: anchors, aliases and tags at a node start (round 4, plan D4 NODE_START_RE)
+    ['i31', '      - uses: actions/setup-node@v4\n        name: &k cache\n        with:\n          *k : pnpm\n'],
+    ['i32', '      - name: &k uses\n        *k : actions/cache@v4\n'],
+    ['i33', '      - { uses: actions/setup-node@v4, name: &k cache, with: { *k : pnpm } }\n'],
+    ['i34', '      - uses: actions/setup-node@v4\n        name: !!str &k cache\n        with:\n          *k : pnpm\n'],
+    ['i35', '      - &s { uses: actions/cache@v4 }\n      - *s\n'],
+  ];
+  const controls = [
+    ['c1', '      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          package-manager-cache: false\n'],
+    ['c2', '      - uses: actions/checkout@v4\n      - run: echo ok\n'],
+    ['c3', '      - uses: actions/setup-node@v4\n        with:\n          cache-dependency-path: pnpm-lock.yaml\n'],
+    // c5: the real-file shapes Q1 (a single-quoted scalar) and Q2 (an `if:` expression holding `'`), plan D4
+    ['c5', "      - name: 'Off-site backup: files'\n        if: github.ref == 'refs/heads/main' && github.event_name == 'push'\n        run: echo ok\n"],
+    // c6: Q1 with a quote-free comment; a comment on a quote-free line
+    ['c6', "      - name: 'build' # the step name\n        run: echo ok # a plain comment\n"],
+    // c9: a key after `[` that is not a cache key (plan D13)
+    ['c9', '      - uses: actions/checkout@v4\n        with: [fetch-depth: 0]\n'],
+    // c10: `&&` and `!=` after a started scalar; the indicators `* & !` only inside a comment (plan D4 node starts)
+    ['c10', "      - run: cat a && b # *note &x !y\n        if: github.ref == 'refs/heads/main' && x != ''\n"],
+  ];
+  let cases = 0;
+  const missed = [];
+  for (const file of files) {
+    for (const [id, body] of bad) {
+      cases += 1;
+      const P = checkWorkflow(file, on(body));
+      if (!P.some((p) => p.rule === 'i')) missed.push(`${id} in ${file}: no problem with rule (i), got [${show(P)}]`);
+    }
+  }
+  assert.equal(cases, 105, '35 samples x 3 files');
+  assert.deepEqual(missed, [], 'every bad cache form is caught by rule (i)');
+  const falsePositives = [];
+  for (const file of files) {
+    for (const [id, body] of controls) {
+      const P = checkWorkflow(file, on(body));
+      if (P.some((p) => p.rule === 'i')) falsePositives.push(`${id} in ${file}: ${show(P.filter((p) => p.rule === 'i'))}`);
+    }
+  }
+  assert.deepEqual(falsePositives, [], 'clean controls have no problem with rule (i)');
 });
 
 // ---------- T3 ----------

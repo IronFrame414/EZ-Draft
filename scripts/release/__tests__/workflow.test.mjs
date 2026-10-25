@@ -11,6 +11,20 @@ import { REPO_ROOT } from './git-fixture.mjs';
 
 const RELEASE_YML = path.join(REPO_ROOT, '.github', 'workflows', 'release.yml');
 const SUPABASE_DEV_YML = path.join(REPO_ROOT, '.github', 'workflows', 'supabase-dev.yml');
+// EZD-148 D4, D13: a line the line scanner cannot read is refused, never skipped (L-006). A line holding a quote is
+// readable only when it fits one of QUOTE_SHAPES: Q1 a plain key with one single-quoted scalar and at most a quote-free
+// comment; Q2 a plain key with a plain scalar holding no '"' and no '#'; Q3 an indented '@scope/name': false entry.
+// A line with a character outside tab and printable ASCII, or with an anchor, alias or tag at a node start, is unreadable.
+const QUOTE_SHAPES = [
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: '(?:[^'#]|'')*'\s*(?:#[^'"]*)?$/,
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: [A-Za-z0-9$_(][^"#]*$/,
+  /^\s+'@[a-z0-9-]+\/[a-z0-9._-]+': false\s*(?:#[^'"]*)?$/,
+];
+const ASCII_LINE_RE = /^[\t\x20-\x7E]*$/;
+const NODE_START_RE = /(?:^\s*(?:-\s+)*|[{,\[]\s*|:\s+|\?\s+)[&*!]/;
+function quoteReadable(l) {
+  return !/['"]/.test(l) || QUOTE_SHAPES.some((re) => re.test(l));
+}
 const loadContext = () => import('../context.mjs');
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -323,5 +337,64 @@ function checkAllowBuilds(text) {
     }
   }
   if (/dangerouslyAllowAllBuilds|onlyBuiltDependencies/.test(text)) problems.push('allow-all or only-built setting');
+  // EZD-148 R3: the pnpm `permissions` setting (pnpm 12.11) overrides allowBuilds, so the key is refused anywhere;
+  // a line the scan cannot read (explicit `?` key, D4 quote shapes, D4 node starts, D13 non-ASCII) is refused too.
+  let perm = false;
+  let unreadable = false;
+  for (const l of ls) {
+    const ascii = ASCII_LINE_RE.test(l);
+    if (ascii && l.trim().startsWith('#')) continue;
+    const readable = ascii && !/^(-\s+)?\?(\s|$)/.test(l.trim()) && quoteReadable(l) && !NODE_START_RE.test(l.replace(/[ \t]+#.*$/, ''));
+    const body = readable ? l.replace(/[ \t]+#.*$/, '') : l;
+    if (/(^|[\s{,?\[])["']?permissions["']?\s*:/i.test(body)) perm = true;
+    if (!readable) unreadable = true;
+  }
+  if (perm) problems.push('permissions setting');
+  if (unreadable) problems.push('unreadable quoting');
   return problems;
 }
+
+// EZD-148 T3 (vault/plans/EZD-148.md section 4). The expected value comes from D8 (the pnpm `permissions` setting overrides
+// `allowBuilds`, pnpm 12.14.0 CHANGELOG 12.11.0) and Q-0158 (a); the base is the real pnpm-workspace.yaml (same as T17).
+describe('EZD-148 release build settings', () => {
+  test('EZD-148 T3 release build-settings check refuses permissions (AC-EZD-148-1)', () => {
+    const wsText = readFileSync(path.join(REPO_ROOT, 'pnpm-workspace.yaml'), 'utf8');
+    const withNl = wsText.endsWith('\n') ? wsText : `${wsText}\n`;
+    const samples = {
+      r1: `${withNl}permissions:\n  esbuild:\n    build: true\n`,
+      r2: `${withNl}"permissions": {}\n`,
+      // r11: a key right after `[` (plan D13)
+      r11: '{ packages: [permissions: {}] }\n',
+    };
+    for (const [name, sample] of Object.entries(samples)) {
+      assert.ok(checkAllowBuilds(sample).includes('permissions setting'), `sample ${name} gives the problem "permissions setting"`);
+    }
+    // security review 2026-10-25 finding 1 and plan D4: quoting the line scanner cannot read is refused.
+    const quoting = {
+      // r3: the key is split by an escaped line break; the first text line `"permi\` ends with one backslash
+      r3: `${withNl}"permi\\\n ssions": {}\n`,
+      // r4: a ` #` inside a quoted scalar leaves an open quote in the comment-stripped line
+      r4: `${withNl}{ x: 'a #', permissions: {} }\n`,
+      // r5: a \ escape inside double quotes; the text line is `x: "a\tb"` with one backslash
+      r5: `${withNl}x: "a\\tb"\n`,
+      // r6, r7: a stray quote in a plain scalar must not pair with the opener of a real quoted scalar (round 2, plan D4)
+      r6: "{ packages: [app], x: a'b, y: 'c #', permissions: { esbuild: { build: true } } }\n",
+      r7: `${withNl}x: { a: a'b, b: 'c #', permissions: { esbuild: { build: true } } }\n`,
+      // r8: the round-1 control c8 fits no quote shape (plan D4); the text line is `x: "ok" # it's`
+      r8: `${withNl}x: "ok" # it's\n`,
+      // r9: an explicit `?` key (plan D4)
+      r9: `${withNl}? permissions\n: {}\n`,
+      // r10: a no-break space (U+00A0) before `#` is not YAML white space (plan D13)
+      r10: '{ packages: [app], x: a\u00A0#, permissions: { esbuild: { build: true } } }\n',
+      // r12, r13: an anchored scalar reused as an alias key (round 4, plan D4 NODE_START_RE)
+      r12: `${withNl}x: &k permissions\n*k : { esbuild: { build: true } }\n`,
+      r13: '{ packages: [app], x: &k permissions, *k : { esbuild: { build: true } } }\n',
+    };
+    for (const [name, sample] of Object.entries(quoting)) {
+      assert.ok(checkAllowBuilds(sample).includes('unreadable quoting'), `sample ${name} gives the problem "unreadable quoting"`);
+    }
+    assert.deepEqual(checkAllowBuilds(`${withNl}# permissions: x\n`), [], 'control: a commented permissions line is no problem');
+    // c8: shape Q1, a single-quoted scalar then a quote-free comment (plan D4)
+    assert.deepEqual(checkAllowBuilds(`${withNl}x: 'ok' # a comment\n`), [], 'c8: a single-quoted value then a quote-free comment is no problem');
+  });
+});

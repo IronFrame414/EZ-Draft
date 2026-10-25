@@ -64,6 +64,69 @@ function entersExcluded(p) {
   return EXCLUDED.some((seg) => rel.includes(seg));
 }
 
+// ---------- pnpm build settings checker (EZD-001 T10; extended by EZD-148 T2, R2) ----------
+// The text of pnpm-workspace.yaml is read as lines (no YAML package). Returns [{ rule, msg }], rule one of
+// 'permissions', 'allow-all', 'allowBuilds-form', 'allowBuilds-entry', 'unreadable'. Each msg names the line.
+// What cannot be read (explicit `?` keys and the lines D4 and D13 name) is refused, never skipped (L-006).
+const stripYamlComment = (s) => s.replace(/[ \t]+#.*$/, '');
+const KEY = (name) => new RegExp('(^|[\\s{,?\\[])["\']?' + name + '["\']?\\s*:', 'i');
+// EZD-148 D4, D13: a line the line scanner cannot read is refused, never skipped (L-006). A line holding a quote is
+// readable only when it fits one of QUOTE_SHAPES: Q1 a plain key with one single-quoted scalar and at most a quote-free
+// comment; Q2 a plain key with a plain scalar holding no '"' and no '#'; Q3 an indented '@scope/name': false entry.
+// A line with a character outside tab and printable ASCII, or with an anchor, alias or tag at a node start, is unreadable.
+const QUOTE_SHAPES = [
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: '(?:[^'#]|'')*'\s*(?:#[^'"]*)?$/,
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: [A-Za-z0-9$_(][^"#]*$/,
+  /^\s+'@[a-z0-9-]+\/[a-z0-9._-]+': false\s*(?:#[^'"]*)?$/,
+];
+const ASCII_LINE_RE = /^[\t\x20-\x7E]*$/;
+const NODE_START_RE = /(?:^\s*(?:-\s+)*|[{,\[]\s*|:\s+|\?\s+)[&*!]/;
+function quoteReadable(l) {
+  return !/['"]/.test(l) || QUOTE_SHAPES.some((re) => re.test(l));
+}
+
+function buildSettingProblems(text) {
+  const lines = text.split(/\r?\n/);
+  const problems = [];
+  const add = (rule, msg) => problems.push({ rule, msg });
+  const allowBuildsLines = [];
+  const bodies = [];
+  lines.forEach((l, i) => {
+    const t = l.trim();
+    const ascii = ASCII_LINE_RE.test(l);
+    if (ascii && (t === '' || t.startsWith('#'))) return;
+    const n = i + 1;
+    const readable = ascii && quoteReadable(l) && !NODE_START_RE.test(stripYamlComment(l));
+    const body = readable ? stripYamlComment(l) : l;
+    bodies[i] = body;
+    if (/^(-\s+)?\?(\s|$)/.test(t) || !readable) add('unreadable', `line ${n}: a key form this check cannot read`);
+    if (KEY('permissions').test(body)) add('permissions', `line ${n}: the pnpm permissions setting overrides allowBuilds (D8)`);
+    if (KEY('dangerouslyAllowAllBuilds').test(body)) add('allow-all', `line ${n}: allow-all build setting (Q-0140 (a))`);
+    if (KEY('allowBuilds').test(body)) allowBuildsLines.push(i);
+  });
+  if (allowBuildsLines.length > 1) add('allowBuilds-form', `line ${allowBuildsLines[1] + 1}: allowBuilds appears more than once`);
+  if (allowBuildsLines.length >= 1) {
+    const first = allowBuildsLines[0];
+    if (bodies[first].trimEnd() !== 'allowBuilds:') {
+      add('allowBuilds-form', `line ${first + 1}: allowBuilds must be a top-level block map`);
+    } else {
+      for (let i = first + 1; i < lines.length; i++) {
+        const l = lines[i];
+        if (l.trim() === '' || /^\s*#/.test(l)) continue;
+        if (!/^\s/.test(l)) break;
+        if (/^\s*-\s/.test(l)) {
+          add('allowBuilds-form', `line ${i + 1}: allowBuilds is a map, not a list (EZD-000 T26)`);
+          continue;
+        }
+        const m = /^\s+(['"]?)([^'":]+)\1:\s*(.+?)\s*$/.exec(l);
+        if (!m) add('allowBuilds-entry', `line ${i + 1}: allowBuilds entry is "<package>: <value>"`);
+        else if (m[3] !== 'false') add('allowBuilds-entry', `line ${i + 1}: allowBuilds entry ${m[2]} must be false (Q-0140 (a))`);
+      }
+    }
+  }
+  return problems;
+}
+
 describe('EZD-001 repo tooling', () => {
   // ---------- T4 ----------
   test('EZD-001 T4: geometry has no DOM or Node types', () => {
@@ -196,19 +259,7 @@ describe('EZD-001 repo tooling', () => {
     const ws = readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8');
     const lines = ws.split(/\r?\n/);
     assert.ok(lines.some((l) => /^workspaceConcurrency:\s*1\s*$/.test(l)), 'pnpm-workspace.yaml has top-level workspaceConcurrency: 1 (Q-0139 (a))');
-    assert.ok(!lines.some((l) => /^dangerouslyAllowAllBuilds:\s*true\s*$/.test(l)), 'no allow-all build setting (Q-0140 (a))');
-    const ab = lines.findIndex((l) => /^allowBuilds:\s*$/.test(l));
-    if (ab >= 0) {
-      for (let i = ab + 1; i < lines.length; i++) {
-        const l = lines[i];
-        if (l.trim() === '' || /^\s*#/.test(l)) continue;
-        if (!/^\s/.test(l)) break;
-        assert.ok(!/^\s*-\s/.test(l), `allowBuilds is a map, not a list (EZD-000 T26): ${l}`);
-        const m = /^\s+(['"]?)([^'":]+)\1:\s*(.+?)\s*$/.exec(l);
-        assert.ok(m, `allowBuilds entry is "<package>: <value>": ${l}`);
-        assert.equal(m[3], 'false', `allowBuilds entry ${m[2]} must be false (Q-0140 (a))`);
-      }
-    }
+    assert.deepEqual(buildSettingProblems(ws).map((p) => `${p.rule}: ${p.msg}`), [], 'pnpm-workspace.yaml build settings (Q-0140 (a), EZD-148)');
   });
 
   // ---------- T11 ----------
@@ -388,5 +439,90 @@ describe('EZD-001 repo tooling', () => {
     assert.deepEqual(e.c9, [], '(e) spikes are outside the scan');
     const f = fixture('app/src/test-utils/h.test.ts', `${vitestHead}test('x', () => {});\n`);
     assert.deepEqual(f.c9, [], '(f) test-utils is exempt');
+  });
+});
+
+// EZD-148 T2, T4 (vault/plans/EZD-148.md section 4). Expected rules come from the plan's decisions D4, D7, D8, D11 and
+// Q-0140 (a); the real pnpm-workspace.yaml is the base of every sample (D11). Tests match rule names, never message text (D12).
+describe('EZD-148 repo rule bypass forms', () => {
+  // ---------- T2 ----------
+  test('EZD-148 T2 pnpm build settings refuse permissions, allow-all and allowBuilds bypass forms (AC-EZD-148-1)', () => {
+    const wsText = readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8');
+    const base = wsText.endsWith('\n') ? wsText : `${wsText}\n`;
+    assert.deepEqual(buildSettingProblems(base), [], 'base: the real pnpm-workspace.yaml has no problem');
+
+    // W8 = EZD-023e T17's `block` regex, verbatim: on the real file it spans from `allowBuilds:` to the end of the file.
+    const W8 = /^allowBuilds:\n(?:[ \t]+.*\n|\n)*/m;
+    const w8 = base.replace(W8, 'allowBuilds: { esbuild: true }\n');
+    assert.notEqual(w8, base, 'w8: the allowBuilds block was replaced');
+    const w10 = base.replace('  esbuild: false', '  esbuild: true');
+    assert.notEqual(w10, base, 'w10: the esbuild entry was changed');
+
+    const samples = [
+      ['w1', `${base}permissions:\n  esbuild:\n    build: true\n`, 'permissions'],
+      ['w2', `${base}"permissions": {}\n`, 'permissions'],
+      ['w3', '{ packages: [app], permissions: { esbuild: { build: true } } }\n', 'permissions'],
+      // the text line is `"permi\u0073sions": {}` with one backslash
+      ['w4', `${base}"permi\\u0073sions": {}\n`, 'unreadable'],
+      ['w5', `${base}? permissions\n: {}\n`, 'unreadable'],
+      ['w6', `${base}dangerouslyAllowAllBuilds: True\n`, 'allow-all'],
+      ['w7', `${base}"dangerouslyAllowAllBuilds": true\n`, 'allow-all'],
+      ['w8', w8, 'allowBuilds-form'],
+      ['w9', `${base}allowBuilds:\n  esbuild: true\n`, 'allowBuilds-form'],
+      ['w10', w10, 'allowBuilds-entry'],
+      // w11: the key is split by an escaped line break; the first text line `"permi\` ends with one backslash
+      ['w11', `${base}"permi\\\n ssions": {}\n`, 'unreadable'],
+      // w12: a ` #` inside a quoted scalar leaves an open quote in the comment-stripped body (plan D4)
+      ['w12', `${base}{ x: 'a #', permissions: {} }\n`, 'unreadable'],
+      // w13: a \ escape inside double quotes; the text line is `x: "a\tb"` with one backslash
+      ['w13', `${base}x: "a\\tb"\n`, 'unreadable'],
+      // w14, w15: a stray quote in a plain scalar must not pair with the opener of a real quoted scalar (round 2, plan D4)
+      ['w14', "{ packages: [app], x: a'b, y: 'c #', permissions: { esbuild: { build: true } } }\n", 'unreadable'],
+      ['w15', `${base}x: { a: a'b, b: 'c #', permissions: { esbuild: { build: true } } }\n`, 'unreadable'],
+      // w16: the round-1 control c7 fits no quote shape (plan D4); the text line is `x: "ok" # it's`
+      ['w16', `${base}x: "ok" # it's\n`, 'unreadable'],
+      // w17: a no-break space (U+00A0) before `#` is not YAML white space (plan D13)
+      ['w17', '{ packages: [app], x: a\u00A0#, permissions: { esbuild: { build: true } } }\n', 'unreadable'],
+      // w18: a key right after `[` (plan D13)
+      ['w18', '{ packages: [permissions: {}] }\n', 'permissions'],
+      // w19, w20: an anchored scalar reused as an alias key (round 4, plan D4 NODE_START_RE)
+      ['w19', `${base}x: &k permissions\n*k : { esbuild: { build: true } }\n`, 'unreadable'],
+      ['w20', '{ packages: [app], x: &k permissions, *k : { esbuild: { build: true } } }\n', 'unreadable'],
+    ];
+    const missed = [];
+    for (const [id, sample, rule] of samples) {
+      const got = buildSettingProblems(sample);
+      if (!got.some((p) => p.rule === rule)) missed.push(`${id}: no problem with rule ${rule}, got [${got.map((p) => p.rule)}]`);
+    }
+    assert.deepEqual(missed, [], 'every bypass sample gets its rule');
+
+    // c4: a comment that names the key is not a setting
+    assert.deepEqual(buildSettingProblems(`${base}# permissions: x\n`), [], 'c4: a commented permissions line is no problem');
+    // c7: shape Q1, a single-quoted scalar then a quote-free comment (plan D4)
+    assert.deepEqual(buildSettingProblems(`${base}x: 'ok' # a comment\n`), [], 'c7: a single-quoted value then a quote-free comment is no problem');
+  });
+
+  // ---------- T4 ----------
+  // D1 and D2 are written in the plan with \` for a backtick inside a code span; the docs hold plain backticks.
+  test('EZD-148 T4 docs name the build-settings and cache rules (AC-EZD-148-1)', () => {
+    const doc = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8');
+    const d1 = 'The pnpm `permissions` setting (pnpm 12.11; its `build` capability overrides `allowBuilds`) is never used (EZD-148).';
+    assert.ok(doc.includes(d1), 'docs/architecture.md holds the D1 sentence');
+    const lines = doc.split(/\r?\n/);
+    const mc = lines.findIndex((l) => l.trim() === '## Machine checks');
+    assert.ok(mc >= 0, '## Machine checks heading');
+    let end = lines.length;
+    for (let i = mc + 1; i < lines.length; i++) if (/^## /.test(lines[i])) { end = i; break; }
+    const rows = lines.slice(mc, end).filter((l) => {
+      const t = l.trim();
+      if (!t.startsWith('|')) return false;
+      const cells = t.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+      return cells[cells.length - 1] === 'EZD-148';
+    });
+    assert.ok(rows.length > 0, 'Machine checks table row whose last cell is EZD-148');
+    assert.ok(
+      rows.some((r) => ['EZD-148 T1', 'EZD-148 T2', 'EZD-148 T3'].every((s) => r.includes(s))),
+      'the EZD-148 row names EZD-148 T1, EZD-148 T2 and EZD-148 T3',
+    );
   });
 });
