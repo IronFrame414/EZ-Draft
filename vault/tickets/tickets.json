@@ -3366,7 +3366,7 @@
    "id": "EZD-132",
    "phase": 1,
    "title": "File storage",
-   "depends_raw": "EZD-006, EZD-101",
+   "depends_raw": "EZD-006, EZD-101, EZD-189",
    "spec_ref": "Data model · source_file; Non-functional · Operations",
    "spec_files": [
     "spec/sections/03c-tables.md#source_file",
@@ -3377,7 +3377,8 @@
    "depends_on": [
     "EZD-006",
     "EZD-101",
-    "EZD-102"
+    "EZD-102",
+    "EZD-189"
    ],
    "build_position": 75,
    "acs": [
@@ -14303,6 +14304,27 @@
     "AC-EZD-188-1",
     "AC-EZD-188-2",
     "AC-EZD-188-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-189",
+   "phase": 1,
+   "title": "Fix: the policy check allows a Storage policy to read its screen's switch",
+   "depends_raw": "EZD-102",
+   "spec_ref": "Q-0323",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md#Permissions and settings"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102"
+   ],
+   "build_position": 498,
+   "acs": [
+    "AC-EZD-189-1"
    ],
    "acs_source": "done-when"
   },

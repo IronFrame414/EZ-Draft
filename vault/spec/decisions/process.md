@@ -48,3 +48,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0304 | 2026-10-24 | (c): ticket branches are updated onto develop before the squash merge (EZD-175), so docs/architecture.md does not serialize builds. |
 | Q-0307 | 2026-10-24 | (b): EZD-171's live check J3 runs after the phase 1 merge; a mismatch is the first fix ticket of phase 2. |
 | — | 2026-10-24 | Boost mode skips the weekly usage hold (Josh: "remove the hold completely during boost"); the five-hour pause stays. |
+| Q-0310 | 2026-10-25 | (b): a merge clash in EZD-175's update step goes to an Opus agent that resolves it so the file does what both tickets meant; a clash in a file it may not write goes blocked for an interactive orchestrator session, not to Josh. |
