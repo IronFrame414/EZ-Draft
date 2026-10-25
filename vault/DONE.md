@@ -81,3 +81,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-24 · EZD-041 · Fix: release bootstrap passes the production database URL on the psql command line · nothing on screen; release no longer puts the production database password on psql's command line · 541d261
 2026-10-24 · EZD-042 · Fix: Supabase CLI dump and push pass the production database URL as --db-url · nothing on screen; release and weekly backup no longer put the production database password on the supabase command line · 4d7ff54
 2026-10-24 · EZD-101 · Permission and role tables · nothing on screen; every company has the four fixed roles and every person their 37 permission switches · 5f2989c
+2026-10-24 · EZD-102 · Permission enforcement · a person without a switch no longer sees its button, gets "You don't have access to this. Ask your supervisor." on a page they may not open and is refused by the server; switch changes show on the open page without a reload · f6c255c
