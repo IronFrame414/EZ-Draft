@@ -42,6 +42,15 @@ export function ConfirmDialog({ request, onChoose }: ConfirmDialogProps) {
             <AlertDialog.Cancel asChild>
               <StateButton>{t(request.cancelLabel)}</StateButton>
             </AlertDialog.Cancel>
+            {request.discardLabel ? (
+              <StateButton
+                variant="secondary"
+                data-confirm-discard=""
+                onClick={() => onChoose('discard')}
+              >
+                {t(request.discardLabel)}
+              </StateButton>
+            ) : null}
             <AlertDialog.Action asChild onClick={() => onChoose('confirm')}>
               <StateButton variant={request.tone}>{t(request.confirmLabel)}</StateButton>
             </AlertDialog.Action>

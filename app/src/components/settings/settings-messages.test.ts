@@ -1,6 +1,8 @@
 // EZD-103a U7 (vault/plans/EZD-103a.md sections 3, 4; AC-EZD-103-1).
 // Expected values: section 3 "messages" (26 keys, en only, Q-0121 (a)); labels of Decided "Sections"
 // (Q-0228 "Sheet presets"; B15x).
+// EZD-103b E3 (vault/plans/EZD-103b.md sections 3, 4, step 2): the 4 keys of EZD-103b's section 3
+// "messages" added, so 30 in all.
 import { describe, expect, it } from 'vitest';
 import { en } from '../../server/messages/catalogs/en';
 import { es } from '../../server/messages/catalogs/es';
@@ -26,6 +28,10 @@ const EXPECTED: Record<string, string> = {
   'office.settings.nav_aria': 'Settings sections',
   'office.settings.status_company': 'Company',
   'office.settings.badge_units': 'ft-in',
+  'office.settings.unsaved_title': 'Save your changes?',
+  'office.settings.unsaved_save': 'Save',
+  'office.settings.unsaved_discard': 'Discard',
+  'office.settings.draft_restored': 'Your unsaved changes from last time are still here.',
 };
 for (const [id, label] of Object.entries(LABELS)) {
   EXPECTED[`office.settings.section.${id}`] = label;
@@ -34,14 +40,14 @@ for (const [id, label] of Object.entries(LABELS)) {
 }
 
 describe('EZD-103a settings messages', () => {
-  it('U7 the 26 office.settings keys in en, none in es', () => {
+  it('U7 the 30 office.settings keys in en (26 of EZD-103a, 4 of EZD-103b), none in es', () => {
     const E = en as unknown as Record<string, unknown>;
     const S = es as unknown as Record<string, unknown>;
     const keys = Object.keys(E)
       .filter((k) => k.startsWith('office.settings.'))
       .sort();
     expect(keys).toEqual(Object.keys(EXPECTED).sort());
-    expect(keys.length).toBe(26);
+    expect(keys.length).toBe(30);
     expect(Object.fromEntries(keys.map((k) => [k, E[k]]))).toEqual(EXPECTED);
     expect(Object.keys(S).filter((k) => k.startsWith('office.settings.'))).toEqual([]);
   });

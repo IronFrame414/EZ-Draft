@@ -11,7 +11,7 @@ const nav = vi.hoisted(() => ({ path: '/settings/users' as string | null }));
 vi.mock('next/navigation', async (orig) => ({
   ...(await orig<typeof import('next/navigation')>()),
   usePathname: () => nav.path,
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ push() {}, replace() {}, refresh: vi.fn() }),
 }));
 
 import { MessagesProvider } from '../../lib/messages';
@@ -95,6 +95,7 @@ const shell = (props: Partial<Parameters<typeof SettingsShell>[0]> = {}) => (
     initials="JB"
     activeMembers={4}
     allowed={ALL}
+    draftScope="m1"
     {...props}
   >
     <p data-c="" />

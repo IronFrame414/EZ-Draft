@@ -75,3 +75,28 @@ describe('EZD-015b confirm controller', () => {
     expect(spy).toHaveBeenCalledTimes(3);
   });
 });
+
+// EZD-103b U8 (vault/plans/EZD-103b.md sections 3, 4, step 3; AC-EZD-103-5): the Discard choice and its
+// label (`discardLabel` key absent when not given).
+describe('EZD-103b confirm controller discard', () => {
+  it('U8 (a) discardLabel in the snapshot and the discard choice', async () => {
+    const c = createConfirmController();
+    const p = c.open({
+      title: 'dev.messages.sample',
+      confirmLabel: 'common.retry',
+      discardLabel: 'common.close',
+    });
+    expect(c.getSnapshot()?.discardLabel).toBe('common.close');
+    c.choose('discard');
+    await expect(p).resolves.toBe('discard');
+    expect(c.getSnapshot()).toBeNull();
+  });
+
+  it('U8 (b) open without discardLabel: no discardLabel key', () => {
+    const c = createConfirmController();
+    void c.open(A);
+    const snap = c.getSnapshot();
+    expect(snap).not.toBeNull();
+    expect('discardLabel' in (snap ?? {})).toBe(false);
+  });
+});

@@ -12,6 +12,14 @@ import FieldPage from './(field)/dev/entry/field/page';
 import ClientPage from './(client)/dev/entry/client/page';
 import LazyPage from './dev/lazy/page';
 
+// EZD-103b E2 (vault/plans/EZD-103b.md section 4, step 12): the office placeholder now renders the unsaved
+// provider, whose useRouter throws without an app router.
+vi.mock('next/navigation', async (orig) => ({
+  ...(await orig<typeof import('next/navigation')>()),
+  usePathname: () => '/dev/entry/office',
+  useRouter: () => ({ push() {}, replace() {}, refresh() {} }),
+}));
+
 const NOT_FOUND = 'NEXT_HTTP_ERROR_FALLBACK;404';
 
 async function notFoundDigest(fn: () => unknown): Promise<string | undefined> {

@@ -1,6 +1,8 @@
 // EZD-103a Step 9 (vault/plans/EZD-103a.md Decided "Root", "Nav filtering", "Load failure"; Q-0121 (a)):
 // the Settings layout's server part. It loads the shell data, filters the nav on the server and renders the
 // shell around the page, or the load error (reported with its code only) when the data cannot be read.
+// EZD-103b Step 9 (vault/plans/EZD-103b.md Decided "Draft lifetime"): the shell's draft scope is the
+// membership, or the user when there is no permission context.
 import { connection } from 'next/server';
 import type { ReactNode } from 'react';
 import { SettingsLoadError, SettingsShell } from '../../components/settings/SettingsShell';
@@ -37,6 +39,7 @@ export async function SettingsRoot({ children }: { children: ReactNode }) {
             initials={data.initials}
             allowed={allowedSections((p) => can(ctx, p)).map((s) => s.id)}
             activeMembers={data.activeMembers}
+            draftScope={ctx?.membershipId ?? session.appUserId}
           >
             {children}
           </SettingsShell>

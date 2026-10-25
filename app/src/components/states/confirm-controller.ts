@@ -2,7 +2,7 @@
 import type { MessageKey } from '../../server/messages/catalog';
 import type { MessageParams } from '../../lib/messages';
 
-export type ConfirmChoice = 'confirm' | 'cancel';
+export type ConfirmChoice = 'confirm' | 'cancel' | 'discard';
 export type ConfirmTone = 'primary' | 'danger';
 export type ConfirmOptions = {
   title: MessageKey;
@@ -10,6 +10,7 @@ export type ConfirmOptions = {
   params?: MessageParams;
   confirmLabel: MessageKey;
   cancelLabel?: MessageKey;
+  discardLabel?: MessageKey;
   tone?: ConfirmTone;
 };
 export type ConfirmRequest = {
@@ -19,6 +20,7 @@ export type ConfirmRequest = {
   params?: MessageParams;
   confirmLabel: MessageKey;
   cancelLabel: MessageKey;
+  discardLabel?: MessageKey;
   tone: ConfirmTone;
 };
 export type ConfirmController = {
@@ -59,6 +61,7 @@ export function createConfirmController(): ConfirmController {
       ...(o.params ? { params: o.params } : {}),
       confirmLabel: o.confirmLabel,
       cancelLabel: o.cancelLabel ?? 'common.cancel',
+      ...(o.discardLabel ? { discardLabel: o.discardLabel } : {}),
       tone: o.tone ?? 'primary',
     });
     const promise = new Promise<ConfirmChoice>((resolve) => {

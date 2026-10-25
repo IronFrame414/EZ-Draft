@@ -10,7 +10,7 @@ import type { PermissionContext } from '../permissions';
 vi.mock('next/navigation', async (orig) => ({
   ...(await orig<typeof import('next/navigation')>()),
   usePathname: () => '/settings/company',
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ push() {}, replace() {}, refresh: vi.fn() }),
 }));
 vi.mock('next/server', () => ({ connection: async () => {} }));
 vi.mock('../auth/session', () => ({
