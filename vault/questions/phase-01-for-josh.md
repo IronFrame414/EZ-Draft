@@ -1,18 +1,10 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, seventeenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, eighteenth run)
 
-This run: one question answered by an agent (Q-0332, root scripts are never linted: fix ticket EZD-191 added, needs a plan), and one process question opened for you (Q-0333). Q-0331 (EZD-153) still waits for your answer. Sections 2 and 3 still wait for your confirm or override.
+This run: no new questions. Your answers Q-0331 (EZD-153 gets one more round) and Q-0333 (the orchestrator consults its advisor before a round 3) are recorded; EZD-153 was re-planned and EZD-191 was planned, both with no open question, and both are now ready. Sections 2 and 3 still wait for your confirm or override.
 
 ## 1. Decisions needed
 
-1. **Q-0331 · EZD-153** (the release safety check must catch tables and functions created in text it cannot read). It failed review three times, the most the build allows, so it is blocked; each round closed every earlier finding and it is already stricter than what is on develop. Three findings remain: a quoted setting name (`set "standard_conforming_strings" = off`) can switch string reading off and hide a table from the check; one test case has no test row; one docs cell says T1-T8 instead of T1-T10.
-   - **(a) Recommended:** allow one more round. The planner first checks every place the new rules compare a plain word and proves on the database whether a quoted name can stand in for it, so the round closes the whole kind of gap, not just this one; then tests, build and both reviews again. Reason: your rule that no known issue is parked (Q-0268), and this check guards production migrations.
-   - (b) Merge round 3 as it is and add a fix ticket for the quoted-name gap. Not recommended: the check would ship with a known security gap until that ticket merges.
-2. **Q-0333 · process (the "Advisor" line in agent dispatches).** The build routing tells some agents to consult the advisor, but in practice it never happens: in EZD-153 one builder skipped it and the next had no advisor tool at all; in EZD-148 the agent given it did not call it. The files involved (`.claude/`) are yours.
-   - **(a) Recommended:** remove the Advisor line from agent dispatches and keep the advisor for the orchestrator only (it already consults it before blocking a ticket and on decisions the process does not cover). Reason: it matches what actually runs, costs nothing, and the move to a stronger model on round 3 stays.
-   - (b) Keep the line and make the advisor reach the agents (agent files and settings changed by your patch), then prove it in one build.
-   - (c) Replace the line with an orchestrator step: before a round 3 builder, the orchestrator asks its own advisor and passes the advice to the builder with the findings.
-
-(Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
+None for phase 1. (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
 ## 2. Agent answers to confirm
 
@@ -63,7 +55,7 @@ Confirm or override each.
 | Q-0330 | EZD-190 (new), EZD-151 | Fix ticket EZD-190: the EZD-151 build's check failed once on a test that proves a request without the server's gate header is refused (it got an empty answer instead of a refusal). The cause is a short gap after the local database reset; EZD-190 closes it and, because the plan found it can also open on a cloud project, adds a second check inside the database. EZD-151 is held until EZD-190 merges; the failure was not cleared by simply running the check again | CLAUDE.md rules 16, 17; EZD-190.md section 1; build-gate-phase-00.spec.ts:147 |
 | Q-0332 | EZD-191 (new) | (a) Fix ticket EZD-191: the repo's own scripts (including the release and backup scripts) and lint rules are never checked by the lint step; add them to it, with the right settings for scripts, and fix what it finds (521 problems today, 40 once the script settings are right). Four of the files are yours (gate, launcher, usage tools), so those fixes come as a patch you apply | code-reviewer; package.json:10; eslint.config.mjs; EZD-001.md:52; CLAUDE.md rule 17 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (added, needs a plan).
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (planned, ready).
 
 ## 3. Proposed wording
 
@@ -74,13 +66,14 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-136** section 6 (W3 now also shows to a signed-in person whose language is Spanish, Q-0305 (c)): W1 Spanish disclaimer "Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto."; W3 Spanish not-found text "Página no encontrada." (a Spanish speaker checks both, Q-0030 (a)). W2 "Page not found." is your own text (Q-0273).
 - **EZD-149** section 6: runbook sentences for the new preview rule (if Q-0284 stands).
 - **EZD-151** section 6 R1: runbook text for a separate Resend preview key `ezdraft-preview`.
+- **EZD-153** section 6: migration check output lines (developer output, no app screen), for example "cannot be checked: create inside a string or function body" and "migration check passed (no release tag: supabase/retired.json and dynamic SQL only)".
 - **EZD-155** section 6: launcher dry-run log lines W1-W6, for example "dry run: weekly usage at <pct>%; a real run would write vault/handoff/BUDGET_HOLD.md and notify" and "dry run: would notify: <message>".
 - **EZD-162** section 6: the New cells E1-E22, with option (a) of Q1-A, Q1-B, Q1-C and Q2-A per your Q-0293 and Q-0294 answers, and Q3-A.
 - **EZD-172** section 6: lane tool messages, for example "EZD_LANE must be 0, 1, 2 or 3 (got "<value>")." and "GATE FAIL: another gate is running on lane <n> (pid <pid>). Run one gate per lane."
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190 (its two new `db:up` console lines follow the existing local-stack wording).
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190 (its two new `db:up` console lines follow the existing local-stack wording), 191.
 
 ## 4. Rule candidates
 
