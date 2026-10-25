@@ -37,6 +37,8 @@ export const en = {
   'common.offline': 'Offline',
   'common.cancel': 'Cancel',
   'common.close': 'Close',
+  'common.no_access': "You don't have access to this. Ask your supervisor.",
+  'error.project_not_found': "That project isn't available.",
   'error.invalid_email': 'Enter a valid email address.',
   'error.too_many_requests': 'Too many tries. Wait a minute and try again.',
   'error.code_invalid': 'That code is wrong or has expired.',

@@ -45,4 +45,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'sign_in_throttle_settle',
     args: { p_attempt_id: '00000000-0000-4000-8000-000000000000', p_ip_attempt_id: null },
   },
+  // EZD-102 section 3 (vault/plans/EZD-102.md): the member's permission set, authenticated only.
+  { fn: 'current_permissions', args: {} },
 ];

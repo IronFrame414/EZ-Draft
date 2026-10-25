@@ -258,6 +258,11 @@ isOneToOne: false
             "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"current_permissions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "listed_project_ids": (string)[],"membership_id": string,"permission_keys": (string)[],"project_scope": string
+            }[]
+                           },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },

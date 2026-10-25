@@ -67,3 +67,5 @@ export {
 } from '../auth-users';
 export { signInWithCode } from '../sign-in';
 export { countAuthEmails, emailSubjects, waitForAuthEmail, waitForRawEmail } from '../mail-catcher';
+// EZD-102 section 4: set a membership's 37 switches directly, so specs still import only from this file.
+export { setPermissions } from '../permissions/grant';
