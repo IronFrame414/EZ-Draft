@@ -14259,6 +14259,30 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-187",
+   "phase": 1,
+   "title": "Fix: the root `test` step runs the package tests even when a root node:test file fails",
+   "depends_raw": "EZD-001, EZD-004a",
+   "spec_ref": "Q-0326",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-004a"
+   ],
+   "build_position": 496,
+   "acs": [
+    "AC-EZD-187-1",
+    "AC-EZD-187-2",
+    "AC-EZD-187-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
