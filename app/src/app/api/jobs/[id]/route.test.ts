@@ -5,6 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { holdJobQueueShared } from '../../../../../test-harness/jobs/queue-lock';
+import { setPermissions } from '../../../../../test-harness/permissions/grant';
 import {
   adminDb,
   cleanup,
@@ -90,7 +91,11 @@ describe('EZD-009 job read route', () => {
     const [p] = await createProjects(tenantA, 1);
     projectA = p;
     o = await createMember({ tenantId: tenantA, scope: 'all' });
+    // EZD-145 D11: createMember gives no switches; o reads (View projects) and posts to the dev route (Edit
+    // model), b only reads.
+    await setPermissions(tenantA, o.membershipId, ['view_projects', 'edit_model']);
     const b = await createMember({ tenantId: tenantB, scope: 'all' });
+    await setPermissions(tenantB, b.membershipId, ['view_projects']);
     oCookies = await cookiesFor(o.email);
     bCookies = await cookiesFor(b.email);
     const { data, error } = await adminDb()

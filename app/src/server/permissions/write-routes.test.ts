@@ -2,7 +2,7 @@
 // writes need it"; L-006): every exported POST, PUT, PATCH or DELETE of a route file under app/src/app/ calls
 // requireApiPermission(, no 'use server' file is a write path, and the only exceptions are the section 3
 // write-exemptions list. Harness: app/test-harness/permissions/write-routes.ts, write-exemptions.ts.
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,5 +60,17 @@ describe('EZD-102 server check on every write', () => {
       expect(existsSync(path.join(repoRoot, e.path)), e.path).toBe(true);
       expect(e.reason.trim().length, e.path).toBeGreaterThan(0);
     }
+  });
+});
+
+// EZD-145 P4 (vault/plans/EZD-145.md section 4; D10): the dev jobs route checks permissions itself, so it
+// leaves the exemption list; U8 (b) above stays [] with the entry gone.
+describe('EZD-145 dev jobs route is no longer exempt', () => {
+  it('P4 the exemption list does not hold the dev jobs route and the route calls requireApiPermission(', () => {
+    const devJobsRoute = 'app/src/app/api/dev/jobs/route.ts';
+    expect(WRITE_PERMISSION_EXEMPTIONS.map((e) => e.path)).not.toContain(devJobsRoute);
+    expect(readFileSync(path.join(repoRoot, devJobsRoute), 'utf8')).toContain(
+      'requireApiPermission(',
+    );
   });
 });

@@ -1,10 +1,13 @@
 // EZD-009 Step 6 (vault/plans/EZD-009.md): read one job through the user's session client, so RLS decides
 // what is visible. Not a UUID, or no visible row, is 404 and does not reveal whether the job exists
 // (docs/architecture.md Errors and logging). An explicit field list: never payload, state, run_id or the
-// lease.
+// lease. EZD-145 (vault/plans/EZD-145.md): the server checks View projects with can() before RLS does.
+// Order: 401, then 403 (no View projects), then 404 for a malformed id, no visible row or a job on a
+// project outside a listed member's projects (the same body as a missing job), then 200. A tenant-level job
+// (no project) has no project to check; RLS already limits it to all-projects members.
 import { z } from 'zod';
-import { requireApiSession } from '../../../../server/auth/session';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
+import { can, requireApiPermission } from '../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,8 +31,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   try {
-    const s = await requireApiSession();
-    if (s instanceof Response) return s;
+    const p = await requireApiPermission('view_projects');
+    if (p instanceof Response) return p;
     const { id } = await params;
     if (!z.uuid().safeParse(id).success) return notFound();
     const { data, error } = await createSessionClient()
@@ -41,6 +44,9 @@ export async function GET(
       .maybeSingle();
     if (error) throw error;
     if (!data) return notFound();
+    if (data.project_id !== null && !can(p.ctx, 'view_projects', { projectId: data.project_id })) {
+      return notFound();
+    }
     return Response.json(
       {
         job: {
