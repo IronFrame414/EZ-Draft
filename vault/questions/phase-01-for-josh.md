@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, tenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, eleventh run)
 
-No new decisions for you this run. One new agent answer: a lint warning that prints in every test run (React version "detect") becomes fix ticket EZD-186 (Q-0324, section 2); it still needs a plan before it can be built. Q-0322 (the Render models icon, answered during the EZD-103a build) is also added to section 2 for you to confirm. Two decisions are still open: Q-0310 and Q-0323.
+No new decisions or agent answers this run. EZD-186 (the "React version detect" lint warning, Q-0324) now has a plan with no open questions and is ready to build once EZD-184 is done. Two decisions are still open: Q-0310 and Q-0323.
 
 ## 1. Decisions needed
 
@@ -61,7 +61,7 @@ Confirm or override each.
 | Q-0322 | EZD-103a (built) | (b) keep the `auto_awesome` icon from your mockup by committing a converted copy (a small hand-run script turns the old icon format into the one the icon build accepts), with the original kept and checked by a test and a licence note; checked against B15 by screenshot | code-reviewer; icons-build.mjs:56,64-71; EZD-010b.md; architecture.md Design tokens, fonts and icons |
 | Q-0324 | EZD-186 (new) | Fix ticket EZD-186: the lint tests run from the repo root stop printing "React version was set to detect" by telling the lint the real React version (the pinned one), not by hiding the warning. Waits for EZD-184, which adds one more test of the same kind | CLAUDE.md rules 16, 17; Q-0268; eslint.config.mjs:46 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186.
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready).
 
 ## 3. Proposed wording
 
@@ -78,7 +78,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186.
 
 ## 4. Rule candidates
 
