@@ -176,8 +176,79 @@ const EXPECTED_SECRETS = {
 };
 const sortedCopy = (a) => [...a].sort();
 
+// EZD-147 rule (j): a `uses:` value must be owner/repo[/path]@<40 lower-case hex> (vault/plans/EZD-147.md section 3).
+const PIN_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.\/-]+)?@[0-9a-f]{40}$/;
+
+// Problems of rule (j), J1-J5 (Q-0329 (a)): the R1 line loop over EZD-148's constants; a line that can hide a `uses`
+// key from USES_KEY_RE is refused, never skipped (L-006).
+function unpinnedUses(lines) {
+  const found = [];
+  lines.forEach((l, i) => {
+    const n = i + 1;
+    const t = l.trim();
+    const ascii = ASCII_LINE_RE.test(l);
+    if (ascii && t.startsWith('#')) return;
+    const readable = ascii && quoteReadable(l) && !NODE_START_RE.test(stripCacheComment(l));
+    const body = readable ? stripCacheComment(l) : l;
+    if (!ascii) found.push(`non-ASCII text at line ${n}`);
+    if (/^(-\s+)?\?(\s|$)/.test(t)) found.push(`explicit key at line ${n}`);
+    if (ascii && NODE_START_RE.test(body)) found.push(`anchor, alias or tag at line ${n}`);
+    if (ascii && !quoteReadable(l) && l.includes('\\')) found.push(`escaped text at line ${n}`);
+    for (const m of body.matchAll(USES_KEY_RE)) {
+      const raw = body.slice(m.index + m[0].length).split(/[,}\]]/)[0].trim();
+      const value = stripQuotes(raw);
+      if (value === '' || !PIN_RE.test(value)) found.push(`uses not pinned to a full SHA at line ${n}: ${value}`);
+    }
+  });
+  return found;
+}
+
+// EZD-147 rule (k): permissions form and coverage (vault/plans/EZD-147.md section 3).
+const PERM_RE = /^(\s*)["']?permissions["']?\s*:(.*)$/;
+const PERM_ENTRY_RE = /^\s*["']?[a-z-]+["']?\s*:\s*["']?(read|write|none)["']?\s*$/;
+
+// Problems of rule (k).
+function permissionProblems(lines) {
+  const found = [];
+  let topLevel = false;
+  lines.forEach((l, i) => {
+    if (l.trim().startsWith('#')) return;
+    const m = PERM_RE.exec(l);
+    if (!m) return;
+    if (m[1].length === 0) topLevel = true;
+    const rest = stripComment(m[2]).trim();
+    if (rest === '{}') return;
+    if (rest === '') {
+      const kids = children(lines, i);
+      if (kids.length === 0) found.push(`permissions block with no entry at line ${i + 1}`);
+      for (const k of kids) {
+        if (!PERM_ENTRY_RE.test(stripComment(k.text))) found.push(`permissions entry not read/write/none at line ${k.idx + 1}: ${k.text.trim()}`);
+      }
+      return;
+    }
+    found.push(`permissions value not allowed at line ${i + 1}: ${rest}`);
+  });
+  if (topLevel) return found;
+  const jobsIdx = lines.findIndex((l) => /^["']?jobs["']?\s*:(.*)$/.test(l));
+  if (jobsIdx < 0 || stripComment(/^["']?jobs["']?\s*:(.*)$/.exec(lines[jobsIdx])[1]).trim() !== '') {
+    found.push('jobs not in block form');
+    return found;
+  }
+  const jobs = children(lines, jobsIdx);
+  if (!jobs.length) return found;
+  const jobIndent = indentOf(jobs[0].text);
+  for (const job of jobs) {
+    if (indentOf(job.text) !== jobIndent) continue;
+    const kids = children(lines, job.idx);
+    const direct = kids.length ? indentOf(kids[0].text) : -1;
+    const has = kids.some((k) => indentOf(k.text) === direct && PERM_RE.test(k.text));
+    if (!has) found.push(`no top-level permissions and job ${job.text.trim()} sets none`);
+  }
+  return found;
+}
+
 // The one checker T2 runs on every real workflow file and T2b runs on in-memory samples.
-// Returns [{ rule: 'a'..'i', msg }].
+// Returns [{ rule: 'a'..'k', msg }].
 function checkWorkflow(fileName, text) {
   const lines = text.split(/\r?\n/);
   const problems = [];
@@ -235,6 +306,10 @@ function checkWorkflow(fileName, text) {
   if (['release.yml', 'backup-files.yml', 'backup-db.yml'].includes(fileName)) {
     for (const c of cacheUses(lines)) add('i', c);
   }
+
+  // (j) SHA pins and (k) permissions, every file (EZD-147)
+  for (const u of unpinnedUses(lines)) add('j', u);
+  for (const p of permissionProblems(lines)) add('k', p);
   return problems;
 }
 
@@ -303,8 +378,8 @@ test('EZD-002 T2b T2 rules catch the bypasses (AC-EZD-002-1)', () => {
     );
     assert.ok(!ps.some((p) => p.msg.startsWith('unsupported use of secrets')), `${samples[i][0]}: bracket form is not flagged as unsupported`);
   }
-  // c0: clean control
-  const c0 = on('    steps:\n      - run: echo ok\n');
+  // c0: clean control (EZD-147: pinned() adds the top-level permissions rule (k) needs)
+  const c0 = pinned('      - run: echo ok\n');
   assert.deepEqual(show(checkWorkflow('x.yml', c0)), [], 'c0: clean text has no problem');
 });
 
@@ -573,4 +648,152 @@ test('EZD-002 T6 CI documented', () => {
     encoding: 'utf8', env: childEnv(),
   });
   assert.equal(c.status, 0, `conventions check:\n${c.stdout}${c.stderr}`);
+});
+
+// ---------- EZD-147 T1-T5 (vault/plans/EZD-147.md sections 3 and 4) ----------
+const CI_PINS = [
+  '- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1',
+  '- uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0',
+  'uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2',
+  'uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2',
+];
+
+test('EZD-147 T1 ci.yml least rights and pins (AC-EZD-147-1) done when', () => {
+  const lines = readLines(path.join(workflowsDir, 'ci.yml'));
+  const jobsIdx = lines.findIndex((l) => l.trim() === 'jobs:');
+  assert.ok(jobsIdx >= 0, 'jobs: line');
+  // (a)
+  const perm = lines.map((l, i) => (PERM_RE.test(l) ? i : -1)).filter((i) => i >= 0);
+  assert.equal(perm.length, 1, `exactly one permissions line, got ${perm.length}`);
+  assert.equal(indentOf(lines[perm[0]]), 0, 'permissions at indent 0');
+  assert.ok(perm[0] < jobsIdx, 'permissions before jobs:');
+  assert.deepEqual(children(lines, perm[0]).map((k) => k.text.trim()), ['contents: read']);
+  // (b)
+  const uses = lines.map((l) => l.trim()).filter((l) => !l.startsWith('#') && l.includes('uses:'));
+  assert.deepEqual(uses, CI_PINS);
+  // (c)
+  const nodeAt = lines.findIndex((l) => l.trim() === CI_PINS[1]);
+  assert.ok(nodeAt >= 0, 'setup-node pin line');
+  assert.equal(lines[nodeAt + 1].trim(), 'with:', 'line after the setup-node pin is with:');
+  assert.deepEqual(children(lines, nodeAt + 1).map((k) => k.text.trim()), ['node-version: 22', 'package-manager-cache: false']);
+});
+
+test('EZD-147 T2 every workflow passes rules (j) and (k) (AC-EZD-147-1)', () => {
+  const files = workflowFiles();
+  assert.ok(files.includes('ci.yml'), 'ci.yml exists');
+  for (const f of files) {
+    const problems = checkWorkflow(f, readFileSync(path.join(workflowsDir, f), 'utf8'))
+      .filter((p) => p.rule === 'j' || p.rule === 'k');
+    assert.deepEqual(show(problems), [], `${f}: rules (j) and (k)`);
+  }
+});
+
+// Sample helpers (section 3). `pinned` is a function declaration so EZD-002 T2b can use it.
+const S = '3d3c42e5aac5ba805825da76410c181273ba90b1';
+function pinned(body) {
+  return `on:\n  workflow_dispatch:\npermissions:\n  contents: read\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+}
+const B = 'on:\n  workflow_dispatch:\n';
+const JOB = 'jobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n';
+
+test('EZD-147 T3 rule (j) catches unpinned forms (AC-EZD-147-1)', () => {
+  const bad = [
+    ['j1', '      - uses: actions/checkout@v4\n'],
+    ['j2', '      - uses: actions/checkout@3d3c42e\n'],
+    ['j3', '      - uses: "actions/checkout@v4"\n'],
+    ['j4', '      - { uses: actions/checkout@v4 }\n'],
+    ['j5', '      - name: co\n        uses: actions/checkout@v4\n'],
+    ['j6', `      - uses: actions/checkout@${S.toUpperCase()}\n`],
+    ['j7', '      - uses: >-\n          actions/checkout@v4\n'],
+    ['j8', '      - uses: *co\n'],
+    ['j9', '      - uses: ${{ matrix.action }}\n'],
+    ['j10', '      - uses: ./.github/actions/local\n'],
+    ['j11', '      - uses: docker://alpine:3.20\n'],
+    ['j12', '      - "uses": actions/checkout@v4\n'],
+    ['j13', `      - uses: actions/checkout@${S}0\n`],
+    ['j14', '      - uses: actions/checkout@main\n'],
+    ['j15', '      - run: echo ok\n  b:\n    uses: o/r/.github/workflows/x.yml@v1\n'],
+    // j16-j26: Q-0329 (a); EZD-148 D4, D13, R1 item 1 (vault/plans/EZD-147.md section 4 T3)
+    ['j16', '      [uses: actions/checkout@v4]\n'],
+    ['j17', '      [uses: actions/checkout@v4,\n       run: echo ok]\n'],
+    ['j18', '      - { name: a\u00A0#, uses: actions/checkout@v4 }\n'],
+    ['j19', `      - uses: actions/checkout@${S}\u00A0# v7.0.1\n`],
+    ['j20', '      - run: echo ok # caf\u00E9\n'],
+    ['j21', '      - ? uses\n        : actions/checkout@v4\n'],
+    ['j22', '      - name: &k uses\n        *k : actions/checkout@v4\n'],
+    ['j23', '      - { name: &k uses, x: "a #", *k : actions/checkout@v4 }\n'],
+    ['j24', '      - "us\\x65s": actions/checkout@v4\n'],
+    ['j25', '      - "us\\\n        es": actions/checkout@v4\n'],
+    ['j26', '      - !!str uses: actions/checkout@v4\n'],
+  ];
+  for (const [id, body] of bad) {
+    const problems = checkWorkflow('x.yml', pinned(body));
+    assert.ok(problems.some((p) => p.rule === 'j'), `${id}: caught by rule (j), got ${show(problems)}`);
+  }
+  const good = [
+    ['jc1', `      - uses: actions/checkout@${S} # v7.0.1\n`],
+    ['jc2', `      - uses: 'actions/checkout@${S}'\n`],
+    ['jc3', `      - { uses: actions/checkout@${S}, with: { fetch-depth: 1 } }\n`],
+    // jc4-jc7: Q-0329 (a); EZD-148 D4 (jc7 = EZD-148 c10); Decided "Fail-closed lines" (jc6)
+    ['jc4', `      - uses: actions/checkout@${S}\n        with: [fetch-depth: 1]\n`],
+    ['jc5', `      [uses: actions/checkout@${S}]\n`],
+    ['jc6', `      - { uses: actions/checkout@${S}, name: "co" }\n`],
+    ['jc7', `      - run: cat a && b # *note &x !y\n        if: github.ref == 'refs/heads/main' && x != ''\n`],
+  ];
+  for (const [id, body] of good) {
+    assert.deepEqual(show(checkWorkflow('x.yml', pinned(body))), [], `${id}: no problem`);
+  }
+});
+
+test('EZD-147 T4 rule (k) catches missing and broad permissions (AC-EZD-147-1)', () => {
+  const bad = [
+    ['k1', B + JOB],
+    ['k2', B + 'permissions: write-all\n' + JOB],
+    ['k3', B + 'permissions: read-all\n' + JOB],
+    ['k4', B + 'permissions: { contents: read }\n' + JOB],
+    ['k5', B + 'jobs:\n  a:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    steps:\n      - run: echo ok\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n'],
+    ['k6', B + 'permissions: ${{ inputs.p }}\n' + JOB],
+    ['k7', B + 'permissions:\n  contents: ${{ inputs.p }}\n' + JOB],
+    ['k8', B + 'permissions:\n  contents: read\njobs:\n  a:\n    runs-on: ubuntu-latest\n    permissions: write-all\n    steps:\n      - run: echo ok\n'],
+    ['k9', B + "'permissions': write-all\n" + JOB],
+    ['k10', B + 'permissions: *p\n' + JOB],
+    ['k11', B + 'permissions:\n' + JOB],
+    ['k12', B + 'jobs: { a: { runs-on: ubuntu-latest } }\n'],
+  ];
+  for (const [id, text] of bad) {
+    const problems = checkWorkflow('x.yml', text);
+    assert.ok(problems.some((p) => p.rule === 'k'), `${id}: caught by rule (k), got ${show(problems)}`);
+  }
+  const good = [
+    ['kc1', B + 'permissions:\n  contents: read\n' + JOB],
+    ['kc2', B + 'permissions: {}\njobs:\n  a:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n      pull-requests: read\n    steps:\n      - run: echo ok\n'],
+    ['kc3', B + 'jobs:\n  a:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      actions: read\n    steps:\n      - run: echo ok\n'],
+    ['kc4', B + 'permissions: {}\n' + JOB],
+  ];
+  for (const [id, text] of good) {
+    assert.deepEqual(show(checkWorkflow('x.yml', text)), [], `${id}: no problem`);
+  }
+});
+
+test('EZD-147 T5 CI rules documented (AC-EZD-147-1)', () => {
+  const lines = readLines(path.join(repo, 'docs', 'architecture.md'));
+  // The ### CI section and the Machine checks range, found as EZD-002 T6 finds them.
+  const mc = lines.findIndex((l) => l.trim() === '## Machine checks');
+  assert.ok(mc >= 0, '## Machine checks heading');
+  let end = lines.length;
+  for (let i = mc + 1; i < lines.length; i++) if (/^## /.test(lines[i])) { end = i; break; }
+  const ci = lines.findIndex((l, i) => i > mc && i < end && l.trim() === '### CI');
+  assert.ok(ci > mc, '### CI heading inside ## Machine checks');
+  let ciEnd = end;
+  for (let i = ci + 1; i < end; i++) if (/^#{2,3} /.test(lines[i])) { ciEnd = i; break; }
+  const section = lines.slice(ci, ciEnd).join('\n');
+  for (const s of ['EZD-147', 'rule (k)']) assert.ok(section.includes(s), `### CI mentions ${s}`);
+  const row = lines.slice(mc, end).some((l) => {
+    const cells = l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+    return l.trim().startsWith('|') && cells.length >= 4 && cells[cells.length - 1] === 'EZD-147';
+  });
+  assert.ok(row, 'Machine checks table row whose last cell is EZD-147');
+  const named = lines.find((l) => /^\|\s*CI and repository\s*\|/.test(l.trim()));
+  assert.ok(named, 'Named tools row CI and repository');
+  for (const v of ['v7.0.1', 'v7.1.0', 'v7.0.2']) assert.ok(named.includes(v), `CI and repository row mentions ${v}`);
 });
