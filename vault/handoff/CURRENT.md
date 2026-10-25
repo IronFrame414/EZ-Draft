@@ -1,11 +1,12 @@
-# Handoff · 2026-10-25 · build EZD-103a
+# Handoff · 2026-10-25 · build EZD-103b
 
 - Phase and stage: phase 1, Stage 3 (build); see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: EZD-103a Settings shell done, 7bc0ad1, 686 tests on develop phase 1. Resumed an interrupted build (tests and 3 wip commits existed); round 1 gate PASS; reviews: security PASS, code-reviewer FAIL (1 minor: U8 comment), ui-verifier FAIL (status location grey vs B15 ink); round 2: plan-gap patch (`.location` color `--ez-ink`), structural comment repair f9566a7, U8 assertion b967694, builder 9b969b8; round 2 gate PASS; code-reviewer and ui-verifier PASS; merge gate green.
+- Completed this session: EZD-103b Settings shell: unsaved edits and drafts done, 4e8fd07, 719 tests on develop phase 1. Planner re-validation against merged EZD-103a (citations patched, ab316be); one plan gap (B9 (b) needed a fresh browser context, 1781efc; test cb6bdac); gate round 1 PASS; code-reviewer, security-reviewer and ui-verifier PASS with zero findings; merge gate green.
 - In progress: none
 - Blocked: EZD-175 stays `questions` (Q-0310 escalated); EZD-174 and EZD-185 wait on EZD-175. EZD-141 blocked as before.
 - Questions for Josh: Q-0310 (phase 1); Q-0089, Q-0237 (later phases)
-- Decisions made: none. Lesson added: vault/lessons/planner.md (carry every style of a board class, not only the layout rule).
-- Screenshots: vault/plans/shots/EZD-103a-*.png (ui-verifier, rounds 1 and 2)
-- Next unit: build EZD-103b
+- Decisions made: none. Lesson added: vault/lessons/planner.md (a clean-state browser check runs in its own context).
+- Screenshots: vault/plans/shots/EZD-103b-*.png (ui-verifier)
+- Office entry size: 193,868 of 200,000 bytes after EZD-103b; later office tickets have about 6 KB left.
+- Next unit: build EZD-132
