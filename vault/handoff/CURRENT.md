@@ -8,6 +8,6 @@
 - Ready to resume: EZD-142 (worktree .claude/worktrees/EZD-142 kept) and EZD-132. Merge develop into each ticket branch first, because `unit-steps.mjs worktree` does not; then run the gate. For EZD-142, send the new gate summary to the code-reviewer for its verdict (only the gate changed), then `unit-steps.mjs merge EZD-142` on PASS.
 - Screenshots: the ui-verifier's three EZD-102 PNGs are at /tmp/ezd102-shots-keep, not committed (no screenshots are tracked in vault/plans/shots).
 - Questions for Josh: Q-0310 (escalated); Q-0089, Q-0237 (not phase 1)
-- Open for questions 1: Q-0319, Q-0320
+- Open for questions 1: Q-0319, Q-0320, Q-0321 (merge ignores a failed worktree remove; EZD-102 cleaned up by hand)
 - Decisions made: none. No lessons added.
 - Next unit: questions 1
