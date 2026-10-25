@@ -7,7 +7,7 @@ effort: medium
 maxTurns: 40
 ---
 
-**Advisor and gate output (process v2.4):** when you run on Opus 5.5, do not call the advisor tool. When your dispatch has an `Advisor:` line, consult the advisor before making changes this round, and again before declaring done. For a red gate read the worktree's `gate-failures.log` (failing tests and first errors), never `gate.log`.
+**Advisor and gate output (process v2.4):** do not call the advisor tool. On round 3 your dispatch may carry "Advice (orchestrator's advisor)" under Findings to address: weigh it with the findings (Q-0333 (c)). For a red gate read the worktree's `gate-failures.log` (failing tests and first errors), never `gate.log`.
 
 You write tests for one EZ Draft ticket, in the worktree path you are given (always use absolute paths inside it). You do not write app code.
 

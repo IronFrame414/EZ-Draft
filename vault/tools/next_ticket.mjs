@@ -9,7 +9,7 @@
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
 //   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
 //                                                    lines (Sections from the table in .claude/skills/build-ticket/SKILL.md; Q-0218)
-//   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, consultAdvisor}
+//   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, orchestratorAdvice}
 //                                                    from the PROCESS.md section 4 table (v2.4)
 //   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch (v2.4)
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
@@ -246,16 +246,18 @@ function readsLines(id, role) {
   return lines;
 }
 
-// Dispatch routing (process v2.4, PROCESS.md section 4 table). Returns { agent, model, effort, consultAdvisor } for one
+// Dispatch routing (process v2.4, PROCESS.md section 4 table). Returns { agent, model, effort, orchestratorAdvice } for one
 // dispatch from the STATUS Complexity, the role and the round; the orchestrator passes model and effort on the dispatch.
 const M = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' };
 const fableOr = () => (process.env.EZD_FABLE_ALLOWED === '0' ? M.opus : M.fable);
 // Boost mode (vault/tools/boost.mjs, Josh 2026-10-24): while it is on, every role runs one model and one effort level up until the weekly reset.
-const route = (agent, model0, effort0, consultAdvisor = false, extra = {}) => {
+// orchestratorAdvice (Q-0333 (c), Josh 2026-10-25): the orchestrator consults its own advisor before this dispatch and
+// passes the advice in "Findings to address"; subagents never get an advisor line (it never reached them).
+const route = (agent, model0, effort0, orchestratorAdvice = false, extra = {}) => {
   const boost = boostState({ root }).active;
   const model = boost ? bumpModel(model0) : model0;
   const effort = boost ? bumpEffort(effort0) : effort0;
-  return { agent, model, effort, consultAdvisor: consultAdvisor && model !== M.opus && model !== M.fable, ...extra };
+  return { agent, model, effort, orchestratorAdvice, ...extra };
 };
 // Calculation-heavy = the plan's Reviewers line says calc-auditor yes ("calc-auditor yes", "**calc-auditor:** yes").
 const planNamesCalc = (id) => /calc-auditor[*:\s]*\**yes/i.test(read(path.join(vault, 'plans', `${id}.md`)));
@@ -266,14 +268,14 @@ export function dispatchFor(id, role, round = 1) {
   if (!COMPLEXITY.includes(c)) throw new Error(`${id} has no complexity in STATUS.md`);
   if (!Number.isInteger(round) || round < 1 || round > 3) throw new Error(`--round must be 1, 2 or 3, got ${round}`);
   const key = roleKey(role);
-  // r1 = [model, effort] for round 1. Round 2: same model with the advisor (high: Opus at high effort). Round 3: one tier
-  // up with the advisor (high: the orchestrator's blocked review with the advisor).
+  // r1 = [model, effort] for round 1. Round 2: same model (high: Opus at high effort). Round 3: one tier up, with the
+  // orchestrator's advisor advice in the dispatch (high: the orchestrator's blocked review with the advisor).
   const ladder = (agent, r1) => {
     if (round === 1) return route(agent, r1[0], r1[1]);
     if (c === 'high') return round === 2 ? route(agent, M.opus, 'high')
       : route('orchestrator', M.sonnet, 'medium', true, { action: 'blocked review with the advisor, then blocked' });
-    if (round === 2) return route(agent, r1[0], r1[1], true);
-    return c === 'low' ? route(agent, M.sonnet, 'medium', true) : route(agent, M.opus, 'medium');
+    if (round === 2) return route(agent, r1[0], r1[1]);
+    return c === 'low' ? route(agent, M.sonnet, 'medium', true) : route(agent, M.opus, 'medium', true);
   };
   switch (key) {
     case 'test-author':

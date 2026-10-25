@@ -10,8 +10,7 @@ Spec files: <the files the plan's Sources section cites>
 Decisions: <vault/spec/decisions/<area>.md files the plan cites; Q-IDs>
 Gate summary: <paste the GATE SUMMARY block and SECURITY FLAG lines; reviewers only>
 Gate failures: <worktree>/gate-failures.log (never gate.log); red-gate rounds and reviewers
-Findings to address: <numbered findings from the last review; retries only>
-Advisor: Consult the advisor before making changes this round, and again before declaring done. <only when --dispatch says consultAdvisor: true; omit the line otherwise>
+Findings to address: <numbered findings from the last review; retries only. When --dispatch says orchestratorAdvice: true, add a block "Advice (orchestrator's advisor):" with the advice you got (Q-0333 (c))>
 Lessons:
 <output of next_ticket.mjs --lessons <role> <areas>, or "(none)">
 Report format: 20 lines max. First line PASS, FAIL or STATUS: <one line>. Then file paths and findings, numbered. No code.
