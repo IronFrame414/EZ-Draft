@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, twelfth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, thirteenth run)
 
-Three new agent answers this run, all from build EZD-147 (section 2: Q-0325, Q-0326, Q-0327). Two of them were already covered by fix tickets (EZD-155, EZD-180); Q-0326 adds fix ticket EZD-187 (not planned yet). Two decisions are still open: Q-0310 and Q-0323.
+No new questions this run. EZD-187 (fix ticket for Q-0326) is now planned, has no wording and no open question, and is ready. Two decisions are still open: Q-0310 and Q-0323.
 
 ## 1. Decisions needed
 
@@ -64,7 +64,7 @@ Confirm or override each.
 | Q-0326 | EZD-187 (new) | (a) Fix ticket EZD-187: the test step runs the app tests even when a repo-script test fails, and fails if either part failed. Today one failing script test hides every app test result, which happened in builds EZD-132 and EZD-147. Database reset failing still stops everything | code-reviewer; scripts/gate.mjs; package.json:11; CLAUDE.md rules 12, 16, 17 |
 | Q-0327 | EZD-180 | No new ticket: same as Q-0315. EZD-180's plan keeps the rule "tests never change seeded rows" and makes the browser tests put your seeded login back the way they found it when they finish | Q-0315; EZD-180.md lines 10-13 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (todo, to be planned).
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready).
 
 ## 3. Proposed wording
 
@@ -81,7 +81,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186. EZD-187 has no plan yet.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187.
 
 ## 4. Rule candidates
 
