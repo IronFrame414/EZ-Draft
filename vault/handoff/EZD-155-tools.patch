@@ -1,0 +1,197 @@
+diff --git a/scripts/gate.mjs b/scripts/gate.mjs
+index 4c7a33d..0efdf7e 100644
+--- a/scripts/gate.mjs
++++ b/scripts/gate.mjs
+@@ -20,6 +20,7 @@ import { spawnSync } from 'node:child_process';
+ import os from 'node:os';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
++import { summarizeStep } from './gate-summary.mjs';
+ 
+ const args = process.argv.slice(2);
+ const phaseIdx = args.indexOf('--phase');
+@@ -147,25 +148,10 @@ const run = (cmdArgs, label) => {
+     const lines = out.trim().split('\n');
+     console.log(lines.slice(-3).join('\n'));
+   } else {
+-    // Summary for reviewers: failing test names and the first error line; the rest is in gate.log.
+-    const lines = out.split('\n');
+-    const isFailing = (l) => /(^|\s)(FAIL|✗|✘|×|✖)\s/.test(l) || /^\s+\d+\)\s/.test(l);
+-    const isError = (l) => /error/i.test(l) && !/0 errors?/i.test(l) && !/^\s*>/.test(l);
+-    const allFailing = lines.filter(isFailing);
+-    const failing = allFailing.slice(0, 12);
+-    const firstError = lines.find(isError);
+-    for (const l of failing) console.log(l);
+-    if (firstError) console.log(`first error: ${firstError.trim()}`);
+-    if (!failing.length && !firstError) console.log(lines.filter(Boolean).slice(-8).join('\n'));
++    // Summary for reviewers: failing test names and the first error after them; the rest is in gate.log (scripts/gate-summary.mjs, EZD-155).
++    const { failing, firstError, consoleLines, entries } = summarizeStep(label, out);
++    for (const l of consoleLines) console.log(l);
+     failures.push({ label, failing, firstError });
+-    // gate-failures.log: each failing line with the first error line after it (within 30 lines), then the step's first error.
+-    const entries = [`=== ${label} ===`];
+-    for (const l of allFailing) {
+-      const at = lines.indexOf(l);
+-      const err = lines.slice(at + 1, at + 31).find(isError);
+-      entries.push(l.trim(), ...(err ? [`  ${err.trim()}`] : []));
+-    }
+-    if (!allFailing.length) entries.push(firstError ? `first error: ${firstError.trim()}` : lines.filter(Boolean).slice(-8).join('\n'));
+     try {
+       const have = readFileSync(failuresPath, 'utf8').split('\n').filter(Boolean).length;
+       const room = FAILURES_CAP - have;
+diff --git a/scripts/run.mjs b/scripts/run.mjs
+index e466cf4..bddf58b 100644
+--- a/scripts/run.mjs
++++ b/scripts/run.mjs
+@@ -39,6 +39,7 @@ const budgetPath = path.join(vault, 'budget.json');
+ const costLog = path.join(vault, 'cost/log.jsonl');
+ const holdFile = path.join(vault, 'handoff/BUDGET_HOLD.md');
+ const stopFile = path.join(vault, 'handoff/STOP');
++const windowPauseFile = path.join(vault, 'handoff/WINDOW_PAUSE.md');
+ const failureFile = path.join(vault, 'handoff/last-failure.json');
+ // The unit in flight, written before each `claude -p` and removed after its cost row, so a launcher killed mid-unit
+ // (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start.
+@@ -67,6 +68,8 @@ const UNITS = {
+ 
+ const log = (msg) => console.log(`[run ${new Date().toISOString().slice(11, 19)}] ${msg}`);
+ function notify(msg) {
++  // A dry run reports the message and sends nothing (EZD-155; Q-0291 (a)).
++  if (dryRun) { log(`dry run: would notify: ${msg}`); return; }
+   log(`NOTIFY: ${msg}`);
+   if (!config.notify_cmd) return;
+   const r = spawnSync('/bin/sh', ['-c', config.notify_cmd], { env: { ...process.env, MSG: `EZ Draft: ${msg}` }, encoding: 'utf8', timeout: 20000 });
+@@ -335,8 +338,11 @@ async function main() {
+   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
+   for (;;) {
+     // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
+-    if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): back to normal models and one unit at a time'); }
++    if (dryRun && boostState({ root }).expired) log('dry run: boost mode has expired; a real run would remove vault/handoff/BOOST.json');
++    else if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): back to normal models and one unit at a time'); }
+     const stopExists = existsSync(stopFile);
++    // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
++    if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
+     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
+     const next = stopExists ? '' : tool('--next-unit').stdout.trim();
+     const [unitName, arg] = next.split(/\s+/, 2);
+@@ -354,13 +360,16 @@ async function main() {
+     if (meters.warning) log(meters.warning);
+     const decision = gateDecision(meters, b);
+     if (decision.pause) {
++      if (dryRun) { log(`dry run: five-hour window at ${decision.pause.pct}%; a real run would pause until ${decision.pause.resume_at} and write vault/handoff/WINDOW_PAUSE.md`); return; }
+       log(`five-hour window at ${decision.pause.pct}%; paused until ${decision.pause.resume_at} (vault/handoff/WINDOW_PAUSE.md)`);
+       await waitForWindow({ pause: decision.pause, sleep });
+       continue;
+     }
+     // Boost mode skips the weekly hold (Josh 2026-10-24: "remove the hold completely during boost"); the five-hour pause
+     // above and a real plan-limit error below still apply.
+-    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify });
++    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify, dryRun });
++    // A dry run writes no hold or marker file (EZD-155; Q-0291 (a)); it says what a real run would write, and under boost a real run skips the hold (above).
++    if (dryRun && !boostState({ root }).active && decision.hold && !existsSync(holdFile)) log(`dry run: weekly usage at ${Math.round(meters.seven_day.pct)}%; a real run would write vault/handoff/BUDGET_HOLD.md and notify`);
+     if (!gate.start) {
+       log(gate.reason);
+       if (/weekly_ceiling_usd_est/.test(gate.reason)) notify(`launcher stopped: ${gate.reason}`);
+diff --git a/scripts/budget.mjs b/scripts/budget.mjs
+index baa164d..6382e10 100644
+--- a/scripts/budget.mjs
++++ b/scripts/budget.mjs
+@@ -93,7 +93,8 @@ export function writeHold({ root = ROOT, now = new Date(), reason, meters, budge
+   writeFileSync(handoff(root, 'BUDGET_HOLD.md'), txt);
+ }
+ 
+-export async function applyGates({ root = ROOT, now = new Date(), budget = {}, meters, nextUnit, inProgressBuild, notify = () => {} }) {
++// dryRun (EZD-155; Q-0291 (a)): the same decision and return value as a real pass, but no marker or hold file is written and notify is never called.
++export async function applyGates({ root = ROOT, now = new Date(), budget = {}, meters, nextUnit, inProgressBuild, notify = () => {}, dryRun = false }) {
+   const decision = gateDecision(meters, budget, now);
+   const holdFile = handoff(root, 'BUDGET_HOLD.md');
+   if (meters.source === 'proxy' && !budget.weekly_ceiling_usd_est) {
+@@ -105,14 +106,14 @@ export async function applyGates({ root = ROOT, now = new Date(), budget = {}, m
+   const pct = w ? Math.round(w.pct) : 0;
+   if (decision.warn) {
+     const marker = handoff(root, `.budget-warned-${w.resets_at.slice(0, 10)}`);
+-    if (!existsSync(marker)) {
++    if (!existsSync(marker) && !dryRun) {
+       mkdirSync(path.dirname(marker), { recursive: true });
+       writeFileSync(marker, now.toISOString());
+       await notify(`weekly usage at ${pct}% (${meters.source}); hold at ${decision.thresholds.hold_at_pct}%. Resets ${fmt(w.resets_at)}.`);
+     }
+   }
+   if (decision.hold) {
+-    if (!existsSync(holdFile)) {
++    if (!existsSync(holdFile) && !dryRun) {
+       writeHold({ root, now, reason: `weekly usage reached the hold (${pct}%)`, meters, budget, nextUnit });
+       await notify(`budget hold: weekly usage at ${pct}% (hold at ${decision.thresholds.hold_at_pct}%). In-progress ticket finishes; nothing new starts. See vault/handoff/BUDGET_HOLD.md.`);
+     }
+diff --git a/vault/tools/next_ticket.mjs b/vault/tools/next_ticket.mjs
+index ca59525..1a698b3 100644
+--- a/vault/tools/next_ticket.mjs
++++ b/vault/tools/next_ticket.mjs
+@@ -16,7 +16,7 @@
+ // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
+ // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
+ // Stage 1 of a phase needs a sign-off row in vault/spec/SIGNOFF.md (PROCESS.md section 5).
+-import { readFileSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
++import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync } from 'node:fs';
+ import { spawnSync } from 'node:child_process';
+ import { createHash } from 'node:crypto';
+ import path from 'node:path';
+@@ -586,7 +586,8 @@ export function weekSpend(budget, now = new Date()) {
+ }
+ 
+ const args = process.argv.slice(2);
+-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++// Realpaths on both sides, so a run through a symlinked path (macOS /var, /tmp) still counts as main (EZD-155; Q-0268 sweep item 45).
++const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+ if (isMain) {
+   if (args.includes('--check')) {
+     const p = check();
+diff --git a/scripts/gate-summary.mjs b/scripts/gate-summary.mjs
+new file mode 100644
+index 0000000..704f757
+--- /dev/null
++++ b/scripts/gate-summary.mjs
+@@ -0,0 +1,44 @@
++// Failure summary of one gate step (scripts/gate.mjs; PROCESS v2.4 Change 7): the failing test lines and the first error after
++// each, for the console and gate-failures.log. Pure functions, no I/O (EZD-155; Q-0268 sweep item 24).
++export const FAILING_MAX = 12;
++export const ERROR_WINDOW = 30;
++export const TAIL_LINES = 8;
++// Vitest, Playwright and mocha-style markers, plus node:test TAP `not ok N` (a `# TODO` or `# SKIP` result is not a failure).
++// A passing TAP result `ok N` (nested ones indented) is never failing, even when its title holds FAIL or a cross mark (Q-0313).
++export function isFailing(line) {
++  if (/^\s*ok \d+\b/.test(line)) return false;
++  if (/(^|\s)(FAIL|✗|✘|×|✖)\s/.test(line) || /^\s+\d+\)\s/.test(line)) return true;
++  return /(^|\s)not ok \d+\b/.test(line) && !/#\s*(todo|skip)\b/i.test(line);
++}
++// A line naming an error. Test result lines (`ok N`, `not ok N`) and `# Subtest:` headers are titles, never errors.
++export function isError(line) {
++  if (!/error/i.test(line) || /0 errors?/i.test(line) || /^\s*>/.test(line)) return false;
++  return !/(^|\s)(not )?ok \d+\b/.test(line) && !/(^|\s)# Subtest:/.test(line);
++}
++// The error line at index i, trimmed; a YAML block scalar (`error: |-`) is joined with its first non-blank line.
++function errorText(lines, i) {
++  const t = lines[i].trim();
++  if (!/:\s*[|>][-+]?$/.test(t)) return t;
++  const next = lines.slice(i + 1).find((l) => l.trim());
++  return next ? `${t.replace(/\s*[|>][-+]?$/, '')} ${next.trim()}` : t;
++}
++export function summarizeStep(label, out) {
++  const lines = out.split('\n');
++  const failingAt = [];
++  lines.forEach((l, i) => { if (isFailing(l)) failingAt.push(i); });
++  const errorAfter = (at) => {
++    for (let i = at + 1; i <= at + ERROR_WINDOW && i < lines.length; i++) if (isError(lines[i])) return errorText(lines, i);
++    return null;
++  };
++  const anyError = () => { const i = lines.findIndex(isError); return i < 0 ? null : errorText(lines, i); };
++  const firstError = failingAt.length ? (failingAt.map(errorAfter).find((e) => e !== null) ?? null) : anyError();
++  const failing = failingAt.slice(0, FAILING_MAX).map((i) => lines[i]);
++  const tail = lines.filter(Boolean).slice(-TAIL_LINES).join('\n');
++  const consoleLines = [...failing];
++  if (firstError) consoleLines.push(`first error: ${firstError}`);
++  if (!failing.length && !firstError) consoleLines.push(tail);
++  const entries = [`=== ${label} ===`];
++  for (const at of failingAt) { const err = errorAfter(at); entries.push(lines[at].trim(), ...(err ? [`  ${err}`] : [])); }
++  if (!failingAt.length) entries.push(firstError ? `first error: ${firstError}` : tail);
++  return { failing, firstError, consoleLines, entries };
++}
