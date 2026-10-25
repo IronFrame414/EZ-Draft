@@ -1971,3 +1971,72 @@ describe('EZD-021 release reads the Preview AI_MODE value', () => {
     assert.ok(reads.includes('env_AI_PREVIEW'), `readEnvValue('env_AI_PREVIEW') was called; reads: ${reads}`);
   });
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-152 T5 and T6 (vault/plans/EZD-152.md section 4; Step 3; Q-0288 (a)): a bootstrap that ends without the done
+// code and without a rejection logs psql's last stderr lines through safeLines. Uses the file's own makeR, makeD,
+// CLEAN_DB_URL, DUMP_PREFIX, BOOTSTRAP_FAILED_LINE and assertNoText in place. Masks are the release's own
+// (TENANT1_OWNER_EMAIL and the DB password from cleanEnv); the fake returns the shape of createSql's result.
+// ---------------------------------------------------------------------------------------------------------------
+describe('EZD-152 bootstrap failure lines', () => {
+  test('EZD-152 done when: a bootstrap fake that ends without the code logs its safe lines', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeD(mod, bs, R, {
+      bootstrap: () => ({
+        stdout: '',
+        stderr: `NOTICE:  creating tenant 1\nERROR:  ezd_bootstrap_email_missing\nowner owner.test@example.com\nat ${CLEAN_DB_URL}\n`,
+      }),
+    });
+
+    const result = await h.run();
+
+    assert.equal(result.ok, false, `ok false; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'bootstrap_failed', `code; logs: ${JSON.stringify(h.logs())}`);
+    const logs = h.logs();
+    const codeAt = logs.indexOf('bootstrap_failed');
+    const noticeAt = logs.indexOf('  | NOTICE:  creating tenant 1');
+    const errorAt = logs.indexOf('  | ERROR:  ezd_bootstrap_email_missing');
+    // The owner line is masked away; the URL line is kept with its password redacted (redactUrl runs before the
+    // mask filter, plan Decided: Order inside safeLines).
+    const urlAt = logs.indexOf(
+      '  | at postgresql://postgres.prodref123:***@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+    );
+    assert.ok(codeAt >= 0, `a log line is the code; logs: ${JSON.stringify(logs)}`);
+    assert.ok(noticeAt > codeAt, `the NOTICE line follows the code; logs: ${JSON.stringify(logs)}`);
+    assert.ok(errorAt > noticeAt, `the ERROR line follows the NOTICE line; logs: ${JSON.stringify(logs)}`);
+    assert.ok(urlAt > errorAt, `the redacted URL line follows the ERROR line; logs: ${JSON.stringify(logs)}`);
+    assert.ok(
+      h.summaries().includes(BOOTSTRAP_FAILED_LINE(DUMP_PREFIX)),
+      `summary line; summaries: ${JSON.stringify(h.summaries())}`,
+    );
+    assertNoText(h, ['owner.test@example.com', 'S3cret'], 'T5');
+  });
+
+  test('EZD-152 bootstrap without the done code logs no row text', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeD(mod, bs, R, {
+      bootstrap: () => ({
+        stdout: '',
+        stderr:
+          'ERROR:  null value in column "name" of relation "tenant" violates not-null constraint\n' +
+          'DETAIL:  Failing row contains (00000000-0000-4000-8000-000000000001, null, Ana Client).\n' +
+          'CONTEXT:  SQL statement "insert into public.tenant values (\'Ana Client\')"\n',
+      }),
+    });
+
+    const result = await h.run();
+
+    assert.equal(result.code, 'bootstrap_failed', `code; logs: ${JSON.stringify(h.logs())}`);
+    assert.ok(
+      h
+        .logs()
+        .includes('  | ERROR:  null value in column "name" of relation "tenant" violates not-null constraint'),
+      `the ERROR line is logged; logs: ${JSON.stringify(h.logs())}`,
+    );
+    assertNoText(h, ['Ana Client', 'DETAIL:', 'CONTEXT:'], 'T6');
+  });
+});

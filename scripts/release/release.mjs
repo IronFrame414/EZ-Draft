@@ -495,14 +495,16 @@ export async function runRelease(opts, deps) {
       if (bootstrapSql !== null) {
         let done = false;
         let err = null;
+        let out = null;
         try {
           const r = await sql(bootstrapSql, { dbUrl });
+          out = r;
           done = `${r?.stdout ?? ''}${r?.stderr ?? ''}`.includes('ezd_bootstrap_done');
         } catch (e) {
           err = e;
           done = `${e?.message ?? ''}${e?.stdout ?? ''}${e?.stderr ?? ''}`.includes('ezd_bootstrap_already_done');
         }
-        if (!done) return partlyUpdated('bootstrap_failed', err);
+        if (!done) return partlyUpdated('bootstrap_failed', err ?? out);
       }
     } finally {
       if (tmp !== null) {

@@ -219,6 +219,21 @@ export function createGit(repoRoot) {
   };
 }
 
+/**
+ * The lines the CLI prints for a step that failed outside the checks (EZD-152): the child's stderr only through
+ * `safeLines` (secrets masked, psql row fields dropped), then the code as one JSON line.
+ */
+export function failureLines(err) {
+  const lines = [];
+  // A step failed outside the checks: its code, and the child's lines only through safeLines.
+  const code = typeof err?.code === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(err.code) ? err.code : 'internal_error';
+  const text = typeof err?.stderr === 'string' ? err.stderr.replace(/\r?\n$/, '') : '';
+  const masked = Array.isArray(err?.masked) ? err.masked : null;
+  if (text !== '' && masked !== null) for (const line of safeLines(text.split(/\r?\n/), masked)) lines.push(`  | ${line}`);
+  lines.push(JSON.stringify({ ok: false, code }));
+  return lines;
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const out = (line) => process.stdout.write(`${line}\n`);
   let exitCode = 1;
@@ -274,12 +289,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       exitCode = r.exitCode;
       out(JSON.stringify(r.result));
     } catch (err) {
-      // A step failed outside the checks: its code, and the child's lines only through safeLines.
-      const code = typeof err?.code === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(err.code) ? err.code : 'internal_error';
-      const text = typeof err?.stderr === 'string' ? err.stderr.replace(/\r?\n$/, '') : '';
-      const masked = Array.isArray(err?.masked) ? err.masked : null;
-      if (text !== '' && masked !== null) for (const line of safeLines(text.split(/\r?\n/), masked)) out(`  | ${line}`);
-      out(JSON.stringify({ ok: false, code }));
+      for (const line of failureLines(err)) out(line);
     }
   }
   process.exitCode = exitCode;
