@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, fifteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, sixteenth run)
 
-No new questions this run. Your answers to Q-0310 (b) and Q-0323 (1) are applied: EZD-175 was re-planned with Q-0310, and fix ticket EZD-189 (the automatic check allows a storage rule to check its screen's switch) was planned; EZD-132 waits for it. EZD-175, EZD-188 and EZD-189 are now ready. Nothing needs a decision; sections 2 and 3 still wait for your confirm or override.
+No new questions this run. Fix ticket EZD-190 (Q-0330) is planned and now ready; EZD-151 waits for it. Its plan found the cause of the EZD-151 gate failure: after a local database reset, the database's API server can briefly answer requests without running our server-only gate check. It also found that the same short gap can open on a cloud project (on a restart, maintenance or failover), so the fix adds a second check inside the database as well as fixing the local reset. Nothing needs a decision; sections 2 and 3 still wait for your confirm or override.
 
 ## 1. Decisions needed
 
@@ -52,8 +52,9 @@ Confirm or override each.
 | Q-0327 | EZD-180 | No new ticket: same as Q-0315. EZD-180's plan keeps the rule "tests never change seeded rows" and makes the browser tests put your seeded login back the way they found it when they finish | Q-0315; EZD-180.md lines 10-13 |
 | Q-0328 | EZD-188 (new) | (a) Fix ticket EZD-188: the release and backup workflows (which hold the production secrets) may use only `actions/checkout` and `actions/setup-node`, pinned to an exact version; any other action, including a copied or third-party cache action, is refused by the repo checks. Today a copied cache action would pass every check in the two backup workflows | security-reviewer; ci.test.mjs:157; static.test.mjs:127-141; Q-0112; CLAUDE.md rule 17 |
 | Q-0329 | EZD-147 | (a) No new ticket: EZD-147 (not merged yet) fixes its own pin check so it also sees a step written inside `[ ]` and lines with unusual space characters, reusing EZD-148's line reader. Your patch for ci.yml is unchanged; after you apply it the build takes one more test round before its gate | EZD-148.md section 9; CLAUDE.md rule 17 |
+| Q-0330 | EZD-190 (new), EZD-151 | Fix ticket EZD-190: the EZD-151 build's check failed once on a test that proves a request without the server's gate header is refused (it got an empty answer instead of a refusal). The cause is a short gap after the local database reset; EZD-190 closes it and, because the plan found it can also open on a cloud project, adds a second check inside the database. EZD-151 is held until EZD-190 merges; the failure was not cleared by simply running the check again | CLAUDE.md rules 16, 17; EZD-190.md section 1; build-gate-phase-00.spec.ts:147 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready).
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready).
 
 ## 3. Proposed wording
 
@@ -70,7 +71,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190 (its two new `db:up` console lines follow the existing local-stack wording).
 
 ## 4. Rule candidates
 
