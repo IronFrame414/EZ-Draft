@@ -1,11 +1,13 @@
-# Handoff · 2026-10-25 · build EZD-153
+# Handoff · 2026-10-25 · build EZD-154
 
 - Phase and stage: phase 1, Stage 3 (builds); see vault/PROGRESS.md
-- Why the session ended: blocked
-- Completed this session: EZD-153 extra round 3 (Q-0331 (a)). Test-author added the R5 rows (9ae2adf: T11 quoted names, T10 TL3, T8 pg_settings); builder implemented R5 (46bad44); orchestrator gate PASS (phase 1 + @smoke, 3 security-flagged paths). Code-reviewer FAIL (1 minor: checkWithoutTag JSDoc lists 3 of 4 reasons); security-reviewer FAIL (2 new bypasses: non-ASCII name characters before a dollar tag; EXPLAIN … INTO in PL/pgSQL FOR … IN / RETURN QUERY). All three Q-0331 findings confirmed closed; Production-sensitive changes PASS.
+- Why the session ended: blocked (by design: plan section 1 session 1 ends waiting for Josh's patch)
+- Completed this session: EZD-154 session 1. Worktree .claude/worktrees/EZD-154 on t/EZD-154. Test-author (Sonnet 5.5 xhigh, --dispatch) committed a889616: guard-paths T1-T3, guard-bash T4-T6; on the old hooks T1 T3 T4 T5 red, T2 T6 and the 4 EZD-000i T11 green (orchestrator re-ran). Orchestrator: V0 hashes match, Blocks A and B applied to work copies (V1 hashes match), patch built at vault/handoff/EZD-154-hooks.patch (V2 apply --check exit 0). Probe: patch applied in a scratch copy, all 10 tests green; probe removed.
 - In progress: none
-- Blocked: EZD-153 on Q-0334 (escalated). Worktree kept at .claude/worktrees/EZD-153, t/EZD-153 at 46bad44, not merged. Unblocks when Josh picks (a) R6 fail-closed round, (b) scratch-database design, or (c) merge with a fix ticket. EZD-141, EZD-151 unchanged. EZD-191 depends on EZD-153.
-- Questions for Josh: Q-0334 (new, phase-01-for-josh.md section 1); Q-0089, Q-0237 stay escalated (not phase 1)
-- Decisions made: none. Scanner side of both bypasses reproduced by the orchestrator; 45 develop migrations hold 0 non-ASCII characters and 0 `explain`.
-- Note for the next resume: the worktree's vault/plans/EZD-153.md is stale (R1-R3; branch predates the re-plan). Merge develop into t/EZD-153 before dispatching, or point every agent at the main-checkout plan.
-- Next unit: build EZD-154 (`next_ticket.mjs --next-unit`)
+- Blocked: EZD-154, waiting for Josh to apply the hooks patch. Unblocks when Josh runs, from the repo root with no launcher unit running:
+  `git -C .claude/worktrees/EZD-154 apply "$PWD/vault/handoff/EZD-154-hooks.patch"`
+  Then resume `/build-ticket EZD-154` at step 8: V3 (hook hashes = V1), the gate, then code-reviewer mode 3 and security-reviewer in parallel (security-review: yes), merge, V5, delete the patch before finish.
+- Risk: any change to .claude/hooks/guard-paths.mjs or guard-bash.mjs on develop before the apply breaks the patch (plan section 9); the planner then re-validates Blocks A and B.
+- Questions for Josh: none new; Q-0334 (EZD-153), Q-0089, Q-0237 stay escalated
+- Decisions made: none
+- Next unit: build EZD-155 (`next_ticket.mjs --next-unit`)
