@@ -13350,7 +13350,7 @@
    "id": "EZD-147",
    "phase": 1,
    "title": "Fix: CI workflow least rights and SHA pins",
-   "depends_raw": "EZD-002",
+   "depends_raw": "EZD-002, EZD-148",
    "spec_ref": "Q-0268",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -13359,7 +13359,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-002"
+    "EZD-002",
+    "EZD-148"
    ],
    "build_position": 456,
    "acs": [
@@ -14279,6 +14280,29 @@
     "AC-EZD-187-1",
     "AC-EZD-187-2",
     "AC-EZD-187-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-188",
+   "phase": 1,
+   "title": "Fix: production workflows use only listed actions",
+   "depends_raw": "EZD-148",
+   "spec_ref": "Q-0328",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-148"
+   ],
+   "build_position": 497,
+   "acs": [
+    "AC-EZD-188-1",
+    "AC-EZD-188-2",
+    "AC-EZD-188-3"
    ],
    "acs_source": "done-when"
   },
