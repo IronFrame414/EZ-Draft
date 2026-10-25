@@ -4,7 +4,9 @@ This run: no new questions. Your answers Q-0331 (EZD-153 gets one more round) an
 
 ## 1. Decisions needed
 
-None for phase 1. (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
+**Q-0334 · EZD-153 (release safety check), added by build EZD-153 2026-10-25.** The extra round you allowed (Q-0331) closed every earlier finding, but the security review found two new ways to hide a table from the check: unusual letters (like `é`) in a name, and EXPLAIN inside a database function. This is the fourth round where each fix worked and a new spelling turned up. Pick one: (a) one more round that refuses anything unusual instead of listing spellings; none of today's 45 migrations would be refused (recommended); (b) change the design so a scratch database runs the new migrations and reports what they really create; bigger job; (c) merge as it is (stricter than today everywhere) with a fix ticket, shipping two known gaps until it merges. Full text: QUESTIONS.md Q-0334.
+
+(Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
 ## 2. Agent answers to confirm
 
