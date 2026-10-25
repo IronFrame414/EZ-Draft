@@ -21,3 +21,5 @@ Symptom: e2e/jobs.spec.ts (EZD-009) failed 3 of 4 full gate runs (missing 'queue
 Cause: the test races the first job status event under four parallel workers.
 Rule: run the failing spec alone before blaming the branch, retry the gate, and record the flake in STATUS Notes; a repair to the EZD-009 test goes to the test-author as its own ticket, not into the unit at hand.
 Check: STATUS Notes name the spec and the failure counts.
+
+- EZD-148 (2026-10-25): when a security finding sends a text-checker rule back to the planner, have the security-reviewer attack the patched plan (read-only) before the test-author implements it; on EZD-148 two plan checks found two more bypasses at plan-text cost instead of two failed implementation rounds.
