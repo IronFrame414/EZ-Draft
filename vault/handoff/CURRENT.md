@@ -1,12 +1,11 @@
-# Handoff · 2026-10-25 09:36 · questions 1
+# Handoff · 2026-10-25 06:02 · build EZD-147
 
-- Phase and stage: phase 1, Stage 2 (questions) done; see vault/PROGRESS.md
+- Phase and stage: phase 1, Stage 3 (build); see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: Fifteenth phase 1 questions run. No open question and no QP left in any phase 1 plan (Q-0310 and Q-0323 were answered by Josh before this run). Plans EZD-175 (re-plan for Q-0310), EZD-188 and EZD-189 pass plan_lint strict; all three set planned → ready. vault/questions/phase-01-for-josh.md rewritten: section 1 empty for phase 1; section 2 (40 agent answers to confirm) and section 3 (wording) carried; EZD-189 added to the no-wording list; no rule candidates.
+- Completed this session: EZD-147 done (908a39d, 788 tests on develop phase 1). Plan-gap steps 4a (rebase onto develop, clean) and 4b (rule (j) J1-J6 over EZD-148's extraction, T3 j16-j26 and jc4-jc7; test-author Opus 5.5/high) done; worktree gate PASS; code-reviewer mode 3 and security-reviewer (Fable 5.1/xhigh) PASS with zero findings; V3 hand-started CI run 40182192705 on t/EZD-147 success with no Node.js 20 annotation (one Ubuntu 26 notice, already Q-0282 (a)); remote t/EZD-147 and vault/handoff/EZD-147-ci.patch deleted.
 - In progress: none
 - Blocked: EZD-141 (Josh, Q-0274 (a): waits for Supabase's fix of supabase/auth#2852)
-- Questions for Josh: none new; Q-0089 and Q-0237 stay escalated (not phase 1); section 2 and 3 of phase-01-for-josh.md wait for confirm or override
-- Decisions made: none
-- Next unit: build EZD-147
-
-Ledger: LEDGER OK: 510 tickets
+- Questions for Josh: none new; Q-0089 and Q-0237 stay escalated (not phase 1)
+- Decisions made: none; lesson added to vault/lessons/orchestrator.md (follow the plan's Session line over a later "resume at step N" note)
+- Note for EZD-188: EZD-147 merged first, so EZD-188's test-author moves unpinnedUses onto its shared helper, keeping PIN_RE, J1-J6's problems and T3 (vault/plans/EZD-147.md section 9).
+- Next unit: build EZD-150

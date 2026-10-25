@@ -23,3 +23,5 @@ Rule: run the failing spec alone before blaming the branch, retry the gate, and 
 Check: STATUS Notes name the spec and the failure counts.
 
 - EZD-148 (2026-10-25): when a security finding sends a text-checker rule back to the planner, have the security-reviewer attack the patched plan (read-only) before the test-author implements it; on EZD-148 two plan checks found two more bypasses at plan-text cost instead of two failed implementation rounds.
+
+- EZD-147 (2026-10-25): when STATUS Notes hold two resume instructions ("resume at step 7" written after an earlier "resume order"), follow the plan header's Session line and the steps it lists: the later note skipped plan-gap steps 4a (rebase) and 4b (test-author round), which the worktree log showed were still undone.
