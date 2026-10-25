@@ -1,0 +1,23 @@
+/* vault/plans/EZD-136.md Decided "CSS"; Q-0229 ("small grey line"); Q-0272 (a). */
+.bar {
+  margin: 0;
+  flex: 0 1000 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ez-font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ez-slate-500);
+}
+
+.page {
+  margin: 0;
+  padding: 16px;
+  font-family: var(--ez-font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ez-slate-500);
+  text-align: center;
+}

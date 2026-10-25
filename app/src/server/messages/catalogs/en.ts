@@ -37,6 +37,8 @@ export const en = {
   'common.offline': 'Offline',
   'common.cancel': 'Cancel',
   'common.close': 'Close',
+  'common.disclaimer':
+    "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
   'error.project_not_found': "That project isn't available.",
   'error.invalid_email': 'Enter a valid email address.',
@@ -56,6 +58,7 @@ export const en = {
     "The security check didn't load. Check your connection and reload the page.",
   'error.envelope_too_large': 'That error report is too large to send.',
   'error.invalid_envelope': "That error report couldn't be read.",
+  'error.page_not_found': 'Page not found.',
   'field.device.editor_on_phone':
     'Editing is done on an iPad or a computer. Open this project there.',
   'office.header.wordmark_ez': 'ez',

@@ -43,6 +43,8 @@ export const es = {
   'common.offline': 'Sin conexión',
   'common.cancel': 'Cancelar',
   'common.close': 'Cerrar',
+  'common.disclaimer':
+    'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
   'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
   'error.project_not_found': 'Ese proyecto no está disponible.',
   'error.invalid_email': 'Escribe un correo electrónico válido.',
@@ -63,6 +65,7 @@ export const es = {
     'La verificación de seguridad no se cargó. Revisa tu conexión y vuelve a cargar la página.',
   'error.envelope_too_large': 'Ese informe de error es demasiado grande para enviarlo.',
   'error.invalid_envelope': 'No se pudo leer ese informe de error.',
+  'error.page_not_found': 'Página no encontrada.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

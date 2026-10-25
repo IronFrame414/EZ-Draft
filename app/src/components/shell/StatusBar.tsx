@@ -2,6 +2,7 @@
 // Status bar and its readout item (vault/plans/EZD-012b.md Step 2; 04 Status bar).
 import type { ReactNode } from 'react';
 import { useT } from '../../lib/messages';
+import { Disclaimer } from '../disclaimer/Disclaimer';
 import type { MessageKey } from '../../server/messages/catalog';
 import styles from './StatusBar.module.css';
 
@@ -14,6 +15,7 @@ export function StatusBar({ start, end }: { start?: ReactNode; end?: ReactNode }
       <div className={styles.end} data-status="end">
         {end}
       </div>
+      <Disclaimer placement="bar" />
     </footer>
   );
 }

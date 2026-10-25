@@ -59,7 +59,12 @@ describe('EZD-012b frame markup', () => {
     expect(html.match(/data-rail-tool/g) ?? []).toHaveLength(0);
     expect(html.match(/data-status-item/g) ?? []).toHaveLength(0);
     // Tag attributes hold the aria-labels, so strip tags first, then check no text remains.
-    const rest = html.replace('<p data-x="1"></p>', '').replace(/<[^>]*>/g, '');
+    // EZD-136: the status bar carries the disclaimer line (Q-0229); it is removed first.
+    expect(html.match(/data-testid="disclaimer"/g) ?? []).toHaveLength(1);
+    const rest = html
+      .replace('<p data-x="1"></p>', '')
+      .replace(/<p [^>]*data-testid="disclaimer"[^>]*>[^<]*<\/p>/, '')
+      .replace(/<[^>]*>/g, '');
     expect(rest).toBe('');
   });
 

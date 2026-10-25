@@ -2,6 +2,7 @@
 // verifies; the button posts confirmSignInLink. Referrer-Policy comes from app/next.config.ts headers().
 import { LanguageSwitch } from '../../../components/auth/LanguageSwitch';
 import styles from '../../../components/auth/auth.module.css';
+import { Disclaimer } from '../../../components/disclaimer/Disclaimer';
 import { MessagesProvider } from '../../../lib/messages';
 import { getSignInLanguage } from '../../../server/auth/sign-in-language';
 import { catalogFor } from '../../../server/messages/catalog';
@@ -39,6 +40,7 @@ export default async function ConfirmPage({
             </div>
           )}
         </div>
+        <Disclaimer placement="page" />
       </MessagesProvider>
     </main>
   );

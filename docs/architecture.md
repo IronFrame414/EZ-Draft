@@ -473,6 +473,18 @@ EZD-015a, EZD-015b, EZD-015c (vault/plans/EZD-015a.md, EZD-015b.md, EZD-015c.md)
 - EZD-126 extends the toast `tone`.
 - The test page is `/dev/states` (`?lang=es` shows Spanish; not found in production).
 
+### Disclaimer (EZD-136)
+
+EZD-136 (vault/plans/EZD-136.md Steps 1-19); 04 App shell; Q-0208; Q-0229; Q-0272 (a); Q-0273 (b); Q-0305 (c); AC-EZD-136-2.
+
+- **Component.** `Disclaimer` (`app/src/components/disclaimer/Disclaimer.tsx`, client, `DisclaimerPlacement` `'bar' | 'page'`) renders one `<p data-testid="disclaimer" data-placement="bar|page">` with `t('common.disclaimer')`; never a `<footer>` or `data-status`. It imports only `useT` and its CSS module. The folder is in the field lint block (`common.`, `field.`, `error.`).
+- **Where.** `bar`: the last child of the editor `StatusBar` and of the Settings status bar (`SettingsShell`), right of every readout. `page`: the last element of the page: `/` (home column, `app/src/app/home.module.css`), `/sign-in` and `/auth/confirm` (bottom of the canvas, the card centred above it), the phone screens (last child of `PhoneFrame`'s main: `EditorPhoneNotice`, the field and client entry pages) and the not-found page. Each page's own `MessagesProvider` decides the language.
+- **Text.** `common.disclaimer` (en Q-0208; es W1) and `error.page_not_found` (en "Page not found.", Q-0273 (b); es "Página no encontrada."), both in `en` and `es`.
+- **Narrow status bar** (Q-0272 (a)): `.bar` is `flex: 0 1000 auto` with an ellipsis and `StatusBar.module.css` `.start` is `flex: 1 1 auto`, so the readouts keep their width and the line gives way first; the full text stays in the DOM and in `title` (on `bar` only).
+- **Every page.** Every `page.tsx` and `not-found.tsx` under `app/src/app/` outside `app/src/app/dev/` has one row in `DISCLAIMER_PAGES` (`app/test-harness/e2e/disclaimer-pages.ts`, U6). A later ticket that adds such a file renders `Disclaimer` and adds its row.
+- **Not-found page.** `app/src/app/not-found.tsx` (status 404): "Page not found." and the line, no link or control. Language through `getNotFoundLanguage()` (`app/src/server/messages/not-found-language.ts`, Q-0305 (c)): the signed-in person's `app_user.language` (`getRequestLanguage('field')`), else the device's sign-in cookie (`getSignInLanguage()`); a failed read other than "not signed in" is reported (`not_found.language`) and falls back to the cookie. The request gate and `PUBLIC_PATHS` are unchanged, so signed out it is reached only under a public entry (`/dev/...`).
+- **Never in outputs** (AC-EZD-136-2): no file under `app/src/server/jobs/`, `app/src/lazy/`, `app/src/workers/`, `packages/geometry/src/` or `worker/src/` names `common.disclaimer`, `components/disclaimer` or the text (U7), so sheets and PDFs never carry it. No `@media print` rule.
+
 ### Entry points and lazy modules (EZD-020)
 
 EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download size, rules 3 and 7); 04 ("the only separate pages are Projects, Settings, the phone field pack and the client link").

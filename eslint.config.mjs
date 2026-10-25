@@ -52,6 +52,7 @@ export default tseslint.config(
       'app/src/components/field/**/*.{tsx,jsx}',
       'app/src/components/phone/**/*.{tsx,jsx}',
       'app/src/components/states/**/*.{tsx,jsx}',
+      'app/src/components/disclaimer/**/*.{tsx,jsx}',
     ],
     ignores: ['**/*.test.*', '**/*.spec.*'],
     plugins: { ezdraft },

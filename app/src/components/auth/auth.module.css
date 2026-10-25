@@ -1,8 +1,10 @@
 /* EZD-007f Step 11 (vault/plans/EZD-007f.md): one module for the sign-in pages and their components.
    Tokens only (check C10); spacing in plain px (L-013); inputs and buttons at least 44 px (11 Accessibility). */
 .canvas {
+  box-sizing: border-box;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24px;
@@ -14,6 +16,7 @@
 .card {
   width: 100%;
   max-width: 420px;
+  margin-block: auto;
   padding: 32px;
   background: var(--ez-surface);
   border: 1px solid var(--ez-border);

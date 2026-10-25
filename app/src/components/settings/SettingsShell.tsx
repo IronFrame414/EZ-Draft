@@ -7,6 +7,7 @@
 // status bar; the Projects link and the nav items are GuardedLinks.
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { Disclaimer } from '../disclaimer/Disclaimer';
 import { Icon } from '../icon/Icon';
 import { InlineError } from '../states/InlineError';
 import { useT } from '../../lib/messages';
@@ -113,6 +114,7 @@ export function SettingsShell({
           <span data-settings-status="location" className={styles.location}>
             {active ? t(active.location) : ''}
           </span>
+          <Disclaimer placement="bar" />
         </footer>
       </UnsavedChangesProvider>
     </div>

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { LanguageSwitch } from '../../components/auth/LanguageSwitch';
 import styles from '../../components/auth/auth.module.css';
+import { Disclaimer } from '../../components/disclaimer/Disclaimer';
 import { MessagesProvider } from '../../lib/messages';
 import { captchaConfig } from '../../server/auth/captcha-config';
 import { getSession } from '../../server/auth/session';
@@ -37,6 +38,7 @@ export default async function SignInPage({
             captcha={base && { ...base, language }}
           />
         </div>
+        <Disclaimer placement="page" />
       </MessagesProvider>
     </main>
   );
