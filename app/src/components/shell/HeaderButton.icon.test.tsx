@@ -13,16 +13,28 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const classTokens = (html: string) =>
   (/class="([^"]*)"/.exec(html)?.[1] ?? '').split(' ').filter((c) => c.length > 0);
 const count = (html: string, needle: string) => html.split(needle).length - 1;
+// EZD-103a E1 (vault/plans/EZD-103a.md Decided "Icons"): the 20 names after the Settings icons.
 const EXPECTED_ICONS = [
+  'arrow_back',
   'arrow_selector_tool',
+  'auto_awesome',
   'close',
   'cloud_off',
+  'description',
+  'domain',
   'download',
   'error',
   'expand_more',
+  'gavel',
+  'group',
   'help',
+  'inventory_2',
   'kitchen',
+  'library_books',
+  'monitor_heart',
   'share',
+  'tune',
+  'view_quilt',
 ];
 
 describe('EZD-014b HeaderButton icon form', () => {

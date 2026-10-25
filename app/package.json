@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "app-icons:render": "node scripts/app-icons.mjs",
     "icons:build": "node scripts/icons-build.mjs",
+    "icons:convert-legacy": "node scripts/icons-convert-legacy.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs"
   },
   "dependencies": {

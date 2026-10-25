@@ -1,0 +1,230 @@
+/* Settings shell (vault/plans/EZD-103a.md Step 7, Decided "CSS"; S15 Layout; B15). Rebuilt from tokens, never imported from components/shell/. */
+.frame {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ez-ink);
+  background-color: var(--ez-canvas);
+  background-image:
+    linear-gradient(var(--ez-canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ez-canvas-grid) 1px, transparent 1px);
+  background-size: var(--ez-grid-size) var(--ez-grid-size);
+  font-family: var(--ez-font-sans);
+}
+
+.card {
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}
+
+.header {
+  box-sizing: border-box;
+  height: var(--ez-header-height);
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  margin: var(--ez-header-margin) var(--ez-header-margin) 0;
+  overflow: hidden;
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.accent {
+  color: var(--ez-cobalt);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--ez-border);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+  text-decoration: none;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.company {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.body {
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  padding: var(--ez-body-padding);
+  gap: var(--ez-body-gap);
+}
+
+.nav {
+  box-sizing: border-box;
+  width: var(--ez-left-panel-width);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.navLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 16px 14px 6px;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--ez-radius-8);
+  font-size: 14px;
+  color: var(--ez-slate-700);
+  text-decoration: none;
+}
+
+.item svg {
+  color: var(--ez-slate-400);
+}
+
+.item[aria-current='page'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.item[aria-current='page'] svg,
+.item[aria-current='page'] .badge {
+  color: var(--ez-cobalt-link);
+}
+
+.badge {
+  margin-left: auto;
+  font: 400 11px var(--ez-font-mono);
+  color: var(--ez-slate-300);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  gap: var(--ez-body-gap);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mainHead {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.mainTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.mainBody {
+  padding: 20px 22px;
+}
+
+.status {
+  box-sizing: border-box;
+  height: var(--ez-status-bar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  background: var(--ez-surface);
+  margin: 0 var(--ez-body-padding) var(--ez-body-padding);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font-size: 12px;
+  font-family: var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}
+
+.statusItem {
+  display: flex;
+  gap: 6px;
+}
+
+.statusLabel {
+  color: var(--ez-slate-300);
+}
+
+.statusValue {
+  color: var(--ez-ink);
+}
+
+.location {
+  margin-left: auto;
+  color: var(--ez-ink);
+}
+
+@media (hover: hover) {
+  .item:hover {
+    background: var(--ez-hover);
+    color: var(--ez-ink);
+  }
+}

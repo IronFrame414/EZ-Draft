@@ -381,6 +381,7 @@ EZD-010a (vault/plans/EZD-010a.md Step 4); 04 Frame and visual system (Studio); 
 - Icons (EZD-010b; vault/plans/EZD-010b.md): source `github.com/google/material-design-icons`, folder `symbols/web/<name>/materialsymbolsoutlined/`, pinned commit `49d4db35df873165d6bd6ba09b063c7dafbac2f4` (`ICON_COMMIT` in `app/scripts/icons-fetch.mjs`), Apache-2.0.
 - Icon style: Outlined, weight 400, grade 0, optical size 20; FILL 0, with `<name>-fill` for FILL 1.
 - To add an icon: run `pnpm --filter @ezdraft/app icons:fetch <name>`, add the name to `icons.json` in sorted order, run `pnpm --filter @ezdraft/app icons:build`, then commit the SVG, the sprite and the names file. `icons.test.ts` (T8) fails otherwise.
+- Legacy-format icons (Q-0322): an upstream file without a viewBox is refused by `icons:build`; convert it with `pnpm --filter @ezdraft/app icons:convert-legacy <in> <out>` (M/L/H/V/Z only; absolute x × 48, y × 48 − 960; relative deltas × 48), keep the fetched original under `src/components/icon/__fixtures__/legacy/` with a byte-equality test, and list it in `svg/CONVERTED.md` (Apache-2.0 4(b)). `icons:fetch <name>` overwrites the converted file and `icons:build` then exits 1: run the converter again. Converted: `auto_awesome` (EZD-103a).
 - `Icon` is decorative, so the button around it carries the label and tooltip (11 Accessibility).
 - Never load the icon font, and never write the words "Material Symbols" in `app/src/` or `app/public/` (EZD-010c T7).
 - Fonts (EZD-010c; vault/plans/EZD-010c.md): the files in `app/src/styles/fonts/` are copied unchanged from `@fontsource/instrument-sans` and `@fontsource/dm-mono` 5.3.0 (not installed as packages), OFL-1.1, licences next to them. Instrument Sans 400/500/600 for UI; DM Mono 400/500 for measurements, code and numbers.
@@ -522,6 +523,17 @@ EZD-013 (vault/plans/EZD-013.md Steps 1-12); 02 Platform; R24 #1; Q-0051 (a); Q-
 - `registerServiceWorker` registers after the window `load` event, only in a secure context with service worker support, and reports a failed registration with `captureBrowserError(error, 'pwa.register')`, loaded with `import()`, and never throws.
 - Re-render the icons: edit `app/src/pwa/app-icon.html`, run `pnpm --filter @ezdraft/app app-icons:render`, commit the five PNGs.
 - Public static files keep a file extension, so the request gate (`app/src/proxy.ts` matcher) never sees them.
+
+### Settings shell (EZD-103a)
+
+EZD-103a (vault/plans/EZD-103a.md Steps 4-12); S15 Layout, Entry points; Q-0210; Q-0214; Q-0226; Q-0232; Q-0234.
+
+- **Files and exports.** `app/src/lib/settings/sections.ts` (`SettingsSectionId`, `SettingsSection`, `SETTINGS_SECTIONS` in nav order, `settingsHref`, `sectionBySlug`, `sectionForPath`, `allowedSections`); `app/src/lib/users/initials.ts` (`initialsFor`); `app/src/components/settings/SettingsShell.tsx` (`SettingsShell`, `SettingsShellProps`, `SettingsMain`, `SettingsLoadError`) with `SettingsShell.module.css`; `app/src/server/settings/shell-data.ts` (`SettingsShellData`, `loadSettingsShellData`, `settingsPermissionContext`); `app/src/server/settings/settings-root.tsx` (`SettingsRoot`); `app/src/app/(office)/settings/layout.tsx`, `page.tsx` and `[section]/page.tsx`.
+- **Routes.** `/settings` sends a 307 to the first section the user may open, in nav order, and shows `NoAccess` in place when there is none; `/settings/<slug>` serves the ten sections (an unknown slug is not found). `[section]` serves a section's page (its title only) until a page ticket adds `app/src/app/(office)/settings/<slug>/page.tsx`, which takes precedence.
+- **Nav filtering on the server.** `SettingsRoot` passes `allowed` = `allowedSections((p) => can(ctx, p))`; a section without its `settings_*` switch is absent, never disabled; no `PermissionsProvider` is mounted.
+- **Page-ticket contract.** A Settings page renders inside `SettingsMain`, reads the context through `settingsPermissionContext()` (one load per request, shared with the layout; `'failed'` renders `null`, the layout shows the error), checks `can(ctx, <its settings_* switch>)` itself and renders `NoAccess` inside `SettingsMain` when false (HTTP 200, URL unchanged).
+- **Load failure.** When the permission context or the shell data cannot be read, the layout renders `SettingsLoadError` (`error.db_unavailable` with Retry, `router.refresh()`) instead of the page and reports `settings_shell_load_failed` with location `settings.shell`.
+- **Shell parts never import `components/shell/`** (editor code; the office entry forbids it): the card, header and status bar CSS are rebuilt from tokens.
 
 ## Server-only data access and can()
 
