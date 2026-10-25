@@ -129,6 +129,7 @@ function planRows(cfg, only) {
     byId.set(row.id, row);
   }
   if (!only) return rows;
+  if (only.length === 0) throw new UsageError('--only: no measurement ids');
   for (const id of only) {
     if (!byId.has(id)) throw new UsageError(`--only: unknown measurement ${id}`);
   }
