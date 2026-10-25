@@ -1,23 +1,10 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, fourteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, fifteenth run)
 
-Two new questions from build EZD-148 were answered by agents this run (section 2): Q-0328 adds fix ticket EZD-188 (production workflows may use only the two GitHub actions they use today), and Q-0329 fixes EZD-147's pin check inside EZD-147 before it merges. Two decisions are still open: Q-0310 and Q-0323.
+No new questions this run. Your answers to Q-0310 (b) and Q-0323 (1) are applied: EZD-175 was re-planned with Q-0310, and fix ticket EZD-189 (the automatic check allows a storage rule to check its screen's switch) was planned; EZD-132 waits for it. EZD-175, EZD-188 and EZD-189 are now ready. Nothing needs a decision; sections 2 and 3 still wait for your confirm or override.
 
 ## 1. Decisions needed
 
-**Q-0310 · EZD-175 (parallel lanes: bring a ticket branch up to date before its merge).** When two builds finish close together, the second one first takes in develop's newest changes; if both edited the same lines of a file, that update stops before anything reaches develop. Who fixes that clash?
-1. (recommended) The build stops: the ticket goes to `blocked` with the clashing file names and a question, and you or an interactive session fix it in the ticket's folder. Same as every other stop today; nothing new to build.
-2. The build hands the clash to the builder as one more review round (it merges develop and resolves the clash itself), falling back to option 1 when a clashing file is one the builder may not edit (vault/, scripts/, .claude/). Fewer stops, a bit more to build.
-3. The orchestrator fixes it itself in fix mode and the build goes on. Not recommended: fix mode is meant for broken tools, not for merging two tickets' work.
-
-Answering Q-0310 unblocks EZD-175, and through it EZD-174 and EZD-185 (both marked ready, but both wait for EZD-175 to be built; Q-0311, EZD-185 row).
-
-**Q-0323 · EZD-132 (file storage: who may open money files and change the logo outside the app).** Added by build EZD-132, 2026-10-25. You approved this rule for permissions: "No row-level security policy reads permission rows; policies check tenant and project scope only" (AC-EZD-102-6). That holds for every database table. File storage is different: a signed-in person's own login token is in their browser (the app needs it for live updates), and with it someone with technical know-how can fetch a file straight from storage, so no app screen is in the way. The only check there is the storage rule itself. EZD-132's storage rules check two switches: "See company costs" for supplier PDFs and order reports (they may show supplier prices; an agent picked this in Q-0269), and "Company settings" for adding or removing the company logo file (found in security review). Those switch checks break the rule you approved. Agents cannot change an approved rule, so it's your call.
-1. (recommended) Change the rule to: tables check company and project only; a storage rule may also check the switch its screen checks, because it's the only check on a direct file fetch. Members can then do no more outside the app than the screens let them. Cost: a small fix ticket this phase updates EZD-102's automatic check to match, and EZD-132 waits for it. You can also say whether to keep the logo check or just the two money-file checks.
-2. Keep the rule as written. Storage checks company and project only. Cost: any member who can open a project could fetch its supplier PDFs and order reports outside the app without "See company costs", and any company member could replace or delete the logo file outside the app. The screens still hide them.
-
-Answering Q-0323 unblocks EZD-132, and through it EZD-112 (company logo) and later the import tickets.
-
-(Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
+None for phase 1. (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
 ## 2. Agent answers to confirm
 
@@ -66,7 +53,7 @@ Confirm or override each.
 | Q-0328 | EZD-188 (new) | (a) Fix ticket EZD-188: the release and backup workflows (which hold the production secrets) may use only `actions/checkout` and `actions/setup-node`, pinned to an exact version; any other action, including a copied or third-party cache action, is refused by the repo checks. Today a copied cache action would pass every check in the two backup workflows | security-reviewer; ci.test.mjs:157; static.test.mjs:127-141; Q-0112; CLAUDE.md rule 17 |
 | Q-0329 | EZD-147 | (a) No new ticket: EZD-147 (not merged yet) fixes its own pin check so it also sees a step written inside `[ ]` and lines with unusual space characters, reusing EZD-148's line reader. Your patch for ci.yml is unchanged; after you apply it the build takes one more test round before its gate | EZD-148.md section 9; CLAUDE.md rule 17 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (todo, needs a plan).
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready).
 
 ## 3. Proposed wording
 
@@ -83,7 +70,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189.
 
 ## 4. Rule candidates
 
