@@ -11,6 +11,12 @@ No new questions this run. The three fix tickets added last run now have plans, 
 
 Answering Q-0310 unblocks EZD-175, and through it EZD-174 and EZD-185 (both marked ready, but both wait for EZD-175 to be built; Q-0311, EZD-185 row).
 
+**Q-0323 · EZD-132 (file storage: who may open money files and change the logo outside the app).** Added by build EZD-132, 2026-10-25. You approved this rule for permissions: "No row-level security policy reads permission rows; policies check tenant and project scope only" (AC-EZD-102-6). That holds for every database table. File storage is different: a signed-in person's own login token is in their browser (the app needs it for live updates), and with it someone with technical know-how can fetch a file straight from storage, so no app screen is in the way. The only check there is the storage rule itself. EZD-132's storage rules check two switches: "See company costs" for supplier PDFs and order reports (they may show supplier prices; an agent picked this in Q-0269), and "Company settings" for adding or removing the company logo file (found in security review). Those switch checks break the rule you approved. Agents cannot change an approved rule, so it's your call.
+1. (recommended) Change the rule to: tables check company and project only; a storage rule may also check the switch its screen checks, because it's the only check on a direct file fetch. Members can then do no more outside the app than the screens let them. Cost: a small fix ticket this phase updates EZD-102's automatic check to match, and EZD-132 waits for it. You can also say whether to keep the logo check or just the two money-file checks.
+2. Keep the rule as written. Storage checks company and project only. Cost: any member who can open a project could fetch its supplier PDFs and order reports outside the app without "See company costs", and any company member could replace or delete the logo file outside the app. The screens still hide them.
+
+Answering Q-0323 unblocks EZD-132, and through it EZD-112 (company logo) and later the import tickets.
+
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
 ## 2. Agent answers to confirm
