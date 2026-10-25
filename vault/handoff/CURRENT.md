@@ -1,13 +1,13 @@
-# Handoff · 2026-10-24 23:59 · build EZD-102
+# Handoff · 2026-10-24 20:56 · questions 1
 
-- Phase and stage: phase 1, Stage 3 (build)
-- Why the session ended: unit complete (EZD-102 done)
-- Completed this session: EZD-102 resumed after the Q-0312 fix. Develop merged into t/EZD-102 (b708d70); gate PASS. Reviews: code-reviewer mode 3 (Fable 5.1 xhigh, fresh, because the step-5 reviewer was in an earlier session) FAIL with 1 finding (a failed permission refetch was an unhandled rejection); security-reviewer (Fable 5.1 xhigh) PASS; ui-verifier (Opus 5.5 medium) PASS. Builder round 2 (Fable 5.1 xhigh) fixed it in permission-store.ts (602cb43); gate PASS; code-reviewer PASS. Merged f6c255c, develop gate green, 652 tests.
+- Phase and stage: phase 1, Stage 2 (questions), eighth run
+- Why the session ended: unit complete
+- Completed this session: Q-0319, Q-0320, Q-0321 answered at level 2 (answered-agent) as phase 1 fix tickets, following Q-0314 and Q-0315: EZD-183 (tunnel forwards the header `event_id` only when it matches `EVENT_ID`; depends on EZD-142, EZD-143; security review), EZD-184 (the two ESLint warnings; depends on EZD-018, EZD-101), EZD-185 (`unit-steps.mjs merge` checks the worktree remove and branch delete, and one ui-verifier screenshot location that agrees with EZD-173 C12; depends on EZD-174, EZD-175). Added to tickets.json, STATUS.md (`todo`) and phase-01.md; ACs regenerated. phase-01-for-josh.md rewritten (Q-0312 removed as answered; 3 rows added to section 2). No ticket turned ready (the new ones have no plans yet).
 - In progress: none
-- Blocked: EZD-141 on supabase/auth#2852 (Q-0274 (a)). EZD-175 on Q-0310 (EZD-174 waits on it, Q-0311).
-- Ready to resume: EZD-142 (worktree .claude/worktrees/EZD-142 kept) and EZD-132. Merge develop into each ticket branch first, because `unit-steps.mjs worktree` does not; then run the gate. For EZD-142, send the new gate summary to the code-reviewer for its verdict (only the gate changed), then `unit-steps.mjs merge EZD-142` on PASS.
-- Screenshots: the ui-verifier's three EZD-102 PNGs are at /tmp/ezd102-shots-keep, not committed (no screenshots are tracked in vault/plans/shots).
+- Blocked: EZD-141 on supabase/auth#2852 (Q-0274 (a)). EZD-175 stays `questions` on Q-0310; EZD-174 and EZD-185 wait on it.
+- Ready to resume: EZD-142 (worktree .claude/worktrees/EZD-142 kept) and EZD-132. Merge develop into each ticket branch first; then run the gate. For EZD-142, send the new gate summary to the code-reviewer, then `unit-steps.mjs merge EZD-142` on PASS.
+- Until EZD-185 is built: after each `merge` / `finish`, check `git worktree list` and `git branch --list 't/*'` by hand (Q-0321), because `MERGE OK` does not prove the cleanup worked.
+- Screenshots: the ui-verifier's three EZD-102 PNGs are at /tmp/ezd102-shots-keep, not committed.
 - Questions for Josh: Q-0310 (escalated); Q-0089, Q-0237 (not phase 1)
-- Open for questions 1: Q-0319, Q-0320, Q-0321 (merge ignores a failed worktree remove; EZD-102 cleaned up by hand)
-- Decisions made: none. No lessons added.
-- Next unit: questions 1
+- Decisions made: Q-0319, Q-0320, Q-0321 (answered-agent). No lessons added; no rule candidates.
+- Next unit: plan EZD-183

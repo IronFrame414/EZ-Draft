@@ -14166,6 +14166,75 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-183",
+   "phase": 1,
+   "title": "Fix: error tunnel forwards only a well-formed envelope event_id",
+   "depends_raw": "EZD-142, EZD-143",
+   "spec_ref": "Q-0319",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-142",
+    "EZD-143"
+   ],
+   "build_position": 492,
+   "acs": [
+    "AC-EZD-183-1",
+    "AC-EZD-183-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-184",
+   "phase": 1,
+   "title": "Fix: the two ESLint warnings from our code on develop",
+   "depends_raw": "EZD-018, EZD-101",
+   "spec_ref": "Q-0320",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-018",
+    "EZD-101"
+   ],
+   "build_position": 493,
+   "acs": [
+    "AC-EZD-184-1",
+    "AC-EZD-184-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-185",
+   "phase": 1,
+   "title": "Fix: unit-steps merge reports a failed cleanup, and screenshots never block it",
+   "depends_raw": "EZD-174, EZD-175",
+   "spec_ref": "Q-0321",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-174",
+    "EZD-175"
+   ],
+   "build_position": 494,
+   "acs": [
+    "AC-EZD-185-1",
+    "AC-EZD-185-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",

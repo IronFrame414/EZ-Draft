@@ -533,6 +533,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-180 | 1 | Fix: EZD-005b T17 (e) passes in any run order | ready | low | EZD-005b, EZD-016a |  |  | Added 2026-10-24 for Q-0315 (rule 17; questions 1). |
 | EZD-181 | 1 | Fix: a health check that times out reports the error | ready | low | EZD-150, EZD-169 |  |  | Added 2026-10-24 for Q-0286 (b) (rule 17; questions 1). |
 | EZD-182 | 1 | Fix: repo rule tests refuse pnpm flags that turn on dependency build scripts | ready | low | EZD-177, EZD-003 |  |  | Added 2026-10-24 for Q-0316 (a) (rule 17; questions 1). |
+| EZD-183 | 1 | Fix: error tunnel forwards only a well-formed envelope event_id | todo |  | EZD-142, EZD-143 |  |  | Added 2026-10-24 for Q-0319 (rule 17; questions 1). |
+| EZD-184 | 1 | Fix: the two ESLint warnings from our code on develop | todo |  | EZD-018, EZD-101 |  |  | Added 2026-10-24 for Q-0320 (rule 17; questions 1). |
+| EZD-185 | 1 | Fix: unit-steps merge reports a failed cleanup, and screenshots never block it | todo |  | EZD-174, EZD-175 |  |  | Added 2026-10-24 for Q-0321 (rule 17; questions 1). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |

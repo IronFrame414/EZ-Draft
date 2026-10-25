@@ -1,19 +1,15 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, seventh run)
+# Phase 1 · for Josh (questions unit, 2026-10-24, eighth run)
 
-One ticket turned ready this run: EZD-182, the repo checks also refuse the pnpm command-line switches that turn on install scripts (Q-0316; 47 ready in phase 1 now). It raised no new question and has no wording for you. Nothing else changed since the sixth run: the two decisions below are still open, and Q-0312 still makes every phase 1 build gate red until the patch is in (the patch has not been applied yet).
+Three new questions came out of the EZD-102 and EZD-142 builds. The orchestrator answered all three by adding fix tickets, as earlier found-in-build items were handled (Q-0314, Q-0315): EZD-183 (the error tunnel passes on an unchecked id field), EZD-184 (two lint warnings from our code), EZD-185 (the merge step said `MERGE OK` when its cleanup failed). They need plans before they can be built, so no ticket turned ready this run. Q-0312 is done (you said yes; patch applied, 1bc9b53). One decision is still open.
 
 ## 1. Decisions needed
-
-**Q-0312 · develop gate (urgent: every phase 1 build is red until this is in).** The test `scripts/ledger/questions-flow.test.mjs` has failed 4 of 4 since EZD-101 merged: its practice copy of the ledger looks up dependencies in the STATUS table, which names split tickets by their old parent name (EZD-005 rather than EZD-005a and EZD-005b), so the copy's ledger check fails. It is the same kind of slip as Q-0145 and Q-0147. The fix touches only the test's setup and changes no expected result; it passes 4 of 4 in a scratch copy.
-1. (recommended) Apply the ready patch: `git apply vault/handoff/questions-flow-fixture.patch`, then commit.
-2. Say yes, and the orchestrator applies it in fix mode (rule 19).
 
 **Q-0310 · EZD-175 (parallel lanes: bring a ticket branch up to date before its merge).** When two builds finish close together, the second one first takes in develop's newest changes; if both edited the same lines of a file, that update stops before anything reaches develop. Who fixes that clash?
 1. (recommended) The build stops: the ticket goes to `blocked` with the clashing file names and a question, and you or an interactive session fix it in the ticket's folder. Same as every other stop today; nothing new to build.
 2. The build hands the clash to the builder as one more review round (it merges develop and resolves the clash itself), falling back to option 1 when a clashing file is one the builder may not edit (vault/, scripts/, .claude/). Fewer stops, a bit more to build.
 3. The orchestrator fixes it itself in fix mode and the build goes on. Not recommended: fix mode is meant for broken tools, not for merging two tickets' work.
 
-Answering Q-0310 unblocks EZD-175, and through it EZD-174 (marked ready, but it waits for EZD-175, Q-0311).
+Answering Q-0310 unblocks EZD-175, and through it EZD-174 (marked ready, but it waits for EZD-175, Q-0311) and the new EZD-185.
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
@@ -53,8 +49,11 @@ Confirm or override each.
 | Q-0316 | EZD-177, EZD-182 (new) | (a) fix ticket EZD-182: the repo checks refuse the pnpm switches `--dangerously-allow-all-builds`, `--config.<setting>` and `--allow-build` in workflows, package scripts and `app/vercel.json`, so no one can turn install scripts on past the settings file | Q-0283 (a); Q-0140 (a); CLAUDE.md rule 17 |
 | Q-0317 | EZD-181 | (a) the health check answers its error at the 3,000 ms limit and sends the error report right after the answer, so a hung database cannot hold the answer past the release check's 4-second limit | report.ts; kick.ts `after()` pattern; Q-0285 (a) |
 | Q-0318 | EZD-169, EZD-181 | (a) EZD-169 builds that change from the start (and now waits for EZD-150); two earlier health tests get a stand-in for the report so the late report cannot leak out of them (checks unchanged); EZD-181 only proves it with tests | EZD-150.md section 4; EZD-169.md; Q-0268 |
+| Q-0319 | EZD-183 (new) | Fix ticket EZD-183: the public error tunnel passes on the envelope's id field to Sentry only when it is a real 32-character id, so a caller cannot slip an email address or other text through it to Sentry. Kept apart from EZD-143 (per-caller limits), as with Q-0316 | CLAUDE.md rule 17; Q-0316 (a); route.ts:87-89; EZD-142.md D8 |
+| Q-0320 | EZD-184 (new) | Fix ticket EZD-184: remove the two lint warnings from our code (the realtime sign-out redirect and an unused list in a permissions test); a lint switch-off is allowed only with a cited reason | CLAUDE.md rules 16, 17; Q-0314 |
+| Q-0321 | EZD-185 (new) | Fix ticket EZD-185: the merge step checks that removing the ticket folder and branch worked and says so when it did not, and the screen checker's screenshots go where they cannot block that cleanup. Waits for EZD-174 and EZD-175, which change the same step. Until then the orchestrator checks by hand after each merge | CLAUDE.md rule 17; unit-steps.mjs:143-144; EZD-173.md C12; ui-verifier.md:13 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182.
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185.
 
 ## 3. Proposed wording
 
@@ -71,7 +70,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182. Not yet planned: EZD-183, 184, 185.
 
 ## 4. Rule candidates
 
