@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-24, eighth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, ninth run)
 
-Three new questions came out of the EZD-102 and EZD-142 builds. The orchestrator answered all three by adding fix tickets, as earlier found-in-build items were handled (Q-0314, Q-0315): EZD-183 (the error tunnel passes on an unchecked id field), EZD-184 (two lint warnings from our code), EZD-185 (the merge step said `MERGE OK` when its cleanup failed). They need plans before they can be built, so no ticket turned ready this run. Q-0312 is done (you said yes; patch applied, 1bc9b53). One decision is still open.
+No new questions this run. The three fix tickets added last run now have plans, each with no questions and no on-screen wording: EZD-183 (the error tunnel passes on only a well-formed id), EZD-184 (the two lint warnings from our code), EZD-185 (the merge step reports a failed cleanup). All three are now ready; EZD-185 still waits for EZD-174 and EZD-175 to be built first. One decision is still open.
 
 ## 1. Decisions needed
 
@@ -9,7 +9,7 @@ Three new questions came out of the EZD-102 and EZD-142 builds. The orchestrator
 2. The build hands the clash to the builder as one more review round (it merges develop and resolves the clash itself), falling back to option 1 when a clashing file is one the builder may not edit (vault/, scripts/, .claude/). Fewer stops, a bit more to build.
 3. The orchestrator fixes it itself in fix mode and the build goes on. Not recommended: fix mode is meant for broken tools, not for merging two tickets' work.
 
-Answering Q-0310 unblocks EZD-175, and through it EZD-174 (marked ready, but it waits for EZD-175, Q-0311) and the new EZD-185.
+Answering Q-0310 unblocks EZD-175, and through it EZD-174 and EZD-185 (both marked ready, but both wait for EZD-175 to be built; Q-0311, EZD-185 row).
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
@@ -70,7 +70,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
 - **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
-- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182. Not yet planned: EZD-183, 184, 185.
+- No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185.
 
 ## 4. Rule candidates
 
