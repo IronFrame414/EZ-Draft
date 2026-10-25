@@ -7,6 +7,7 @@
 - Blocked: EZD-141 (Q-0274 (a), waits on supabase/auth#2852); EZD-151 (waits on EZD-190 merge, Q-0330)
 - Questions for Josh: none new; Q-0089 and Q-0237 stay escalated (not phase 1); section 2 agent answers await confirm or override
 - Decisions made: Q-0330 listed for confirmation; no lessons candidates
+- Note: until EZD-190 merges, any phase 1 ticket gate can hit the `@smoke` failure `EZD-032 a request without the server gate header is refused`. Treat it as Q-0330, not as that ticket's fault, and never re-run to clear it.
 - Next unit: build EZD-152
 
 Ledger: LEDGER OK: 511 tickets
