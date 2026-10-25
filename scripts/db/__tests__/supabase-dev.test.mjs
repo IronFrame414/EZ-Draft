@@ -123,9 +123,12 @@ function checkDevWorkflow(text, version) {
     const ei = body.findIndex((l) => l.trim() === 'env:');
     if (ei < 0) add('push step env');
     else if (!sameSet(directChildren(blockAfter(body, ei)), [ENVLINE])) add('env has exactly one key, the secret');
-    // (i)
-    if (!body.join('\n').includes('pnpm supabase db push --db-url "$SUPABASE_DEV_DB_URL"')) add('push command');
+    // (i) EZD-146: the push goes through scripts/db/dev-push.mjs
+    if (!body.join('\n').includes('node scripts/db/dev-push.mjs')) add('push command');
   }
+
+  // (k) EZD-146: no password-bearing --db-url anywhere in the file
+  if (text.includes('--db-url')) add('password-bearing --db-url');
 
   // (j)
   const lower = text.toLowerCase();
@@ -161,7 +164,7 @@ test('EZD-004c T1b Checker catches each bypass (AC-EZD-004c-1)', () => {
     m10: (t) => t.replace('cancel-in-progress: false', () => 'cancel-in-progress: true'),
     m11: (t) => t.replace(/(actions\/checkout)@[0-9a-f]{40}/, (_s, a) => `${a}@v4`),
     m12: (t) => t.replace(/^ {4}steps:\n/m, (s) => `${s}      - uses: "actions/cache@${A40}"\n`),
-    m13: (t) => t.replace('pnpm supabase db push --db-url "$SUPABASE_DEV_DB_URL"', () => 'pnpm supabase db push --db-url "${{ secrets.SUPABASE_DEV_DB_URL }}"'),
+    m13: (t) => t.replace('node scripts/db/dev-push.mjs', () => 'node scripts/db/dev-push.mjs "${{ secrets.SUPABASE_DEV_DB_URL }}"'),
     m14: (t) => t.replace(/( {8}run: \|\n)( {10}if )/, (_s, a, b) => `${a}          set -x\n${b}`),
     m15: (t) => t.replace(/^ {8}shell: bash\n/m, (s) => s + '        continue-on-error: true\n'),
     m16: (t) => t.replace(`npm install -g pnpm@${v}`, () => 'npm install -g pnpm'),
@@ -169,8 +172,9 @@ test('EZD-004c T1b Checker catches each bypass (AC-EZD-004c-1)', () => {
     m18: (t) => t.replace('persist-credentials: false', () => 'persist-credentials: true'),
     m19: (t) => t.replace(/^ {10}SUPABASE_DEV_DB_URL: .*\n/m, (s) => s + '          SUPABASE_ACCESS_TOKEN: x\n'),
     m20: (t) => t.replace(/^ +timeout-minutes: 15\n/m, () => ''),
+    m21: (t) => t.replace('node scripts/db/dev-push.mjs', () => 'pnpm supabase db push --db-url "$SUPABASE_DEV_DB_URL"'),
   };
-  assert.equal(Object.keys(muts).length, 20);
+  assert.equal(Object.keys(muts).length, 21);
   for (const [name, f] of Object.entries(muts)) {
     const t = f(real);
     assert.notEqual(t, real, `${name} edit changed the text`);
@@ -202,7 +206,7 @@ test('EZD-004c T2 Pushes nothing without the secret, done when (AC-EZD-004c-1, A
     writeFileSync(script, body);
     const stubDir = path.join(tmp, 'bin');
     mkdirSync(stubDir);
-    const stub = path.join(stubDir, 'pnpm');
+    const stub = path.join(stubDir, 'node');
     writeFileSync(stub, '#!/bin/sh\necho "$*" >> "$STUB_LOG"\nexit ${STUB_EXIT:-0}\n');
     chmodSync(stub, 0o755);
     const URL = 'postgresql://postgres.stubref:Pw123abc@example.invalid:5432/postgres';
@@ -223,7 +227,7 @@ test('EZD-004c T2 Pushes nothing without the secret, done when (AC-EZD-004c-1, A
     }
     const c = run({ SUPABASE_DEV_DB_URL: URL }, false);
     assert.equal(c.r.status, 0, '(c) exit');
-    assert.equal(readFileSync(c.log, 'utf8'), `supabase db push --db-url ${URL}\n`);
+    assert.equal(readFileSync(c.log, 'utf8'), 'scripts/db/dev-push.mjs\n');
     const out = c.r.stdout + c.r.stderr;
     assert.ok(!out.includes('::notice::'), '(c) no notice');
     assert.ok(!out.includes('Pw123abc'), '(c) secret not in logs');

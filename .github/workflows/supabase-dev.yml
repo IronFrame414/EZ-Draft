@@ -38,4 +38,4 @@ jobs:
             echo "::notice::SUPABASE_DEV_DB_URL not set: cloud dev migrations wait for Josh"
             exit 0
           fi
-          pnpm supabase db push --db-url "$SUPABASE_DEV_DB_URL"
+          node scripts/db/dev-push.mjs
