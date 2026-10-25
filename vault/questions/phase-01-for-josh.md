@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, ninth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, tenth run)
 
-No new questions this run. The three fix tickets added last run now have plans, each with no questions and no on-screen wording: EZD-183 (the error tunnel passes on only a well-formed id), EZD-184 (the two lint warnings from our code), EZD-185 (the merge step reports a failed cleanup). All three are now ready; EZD-185 still waits for EZD-174 and EZD-175 to be built first. One decision is still open.
+No new decisions for you this run. One new agent answer: a lint warning that prints in every test run (React version "detect") becomes fix ticket EZD-186 (Q-0324, section 2); it still needs a plan before it can be built. Q-0322 (the Render models icon, answered during the EZD-103a build) is also added to section 2 for you to confirm. Two decisions are still open: Q-0310 and Q-0323.
 
 ## 1. Decisions needed
 
@@ -58,8 +58,10 @@ Confirm or override each.
 | Q-0319 | EZD-183 (new) | Fix ticket EZD-183: the public error tunnel passes on the envelope's id field to Sentry only when it is a real 32-character id, so a caller cannot slip an email address or other text through it to Sentry. Kept apart from EZD-143 (per-caller limits), as with Q-0316 | CLAUDE.md rule 17; Q-0316 (a); route.ts:87-89; EZD-142.md D8 |
 | Q-0320 | EZD-184 (new) | Fix ticket EZD-184: remove the two lint warnings from our code (the realtime sign-out redirect and an unused list in a permissions test); a lint switch-off is allowed only with a cited reason | CLAUDE.md rules 16, 17; Q-0314 |
 | Q-0321 | EZD-185 (new) | Fix ticket EZD-185: the merge step checks that removing the ticket folder and branch worked and says so when it did not, and the screen checker's screenshots go where they cannot block that cleanup. Waits for EZD-174 and EZD-175, which change the same step. Until then the orchestrator checks by hand after each merge | CLAUDE.md rule 17; unit-steps.mjs:143-144; EZD-173.md C12; ui-verifier.md:13 |
+| Q-0322 | EZD-103a (built) | (b) keep the `auto_awesome` icon from your mockup by committing a converted copy (a small hand-run script turns the old icon format into the one the icon build accepts), with the original kept and checked by a test and a licence note; checked against B15 by screenshot | code-reviewer; icons-build.mjs:56,64-71; EZD-010b.md; architecture.md Design tokens, fonts and icons |
+| Q-0324 | EZD-186 (new) | Fix ticket EZD-186: the lint tests run from the repo root stop printing "React version was set to detect" by telling the lint the real React version (the pinned one), not by hiding the warning. Waits for EZD-184, which adds one more test of the same kind | CLAUDE.md rules 16, 17; Q-0268; eslint.config.mjs:46 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185.
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186.
 
 ## 3. Proposed wording
 

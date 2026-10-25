@@ -14236,6 +14236,29 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-186",
+   "phase": 1,
+   "title": "Fix: no \"React version detect\" warning when lint runs from the repo root",
+   "depends_raw": "EZD-001, EZD-184",
+   "spec_ref": "Q-0324",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-184"
+   ],
+   "build_position": 495,
+   "acs": [
+    "AC-EZD-186-1",
+    "AC-EZD-186-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
