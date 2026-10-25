@@ -1,11 +1,23 @@
-# Handoff · 2026-10-25 · build EZD-152
+# Handoff · 2026-10-25 · build EZD-153
 
 - Phase and stage: phase 1, Stage 3 (build); see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: EZD-152 done (4f86fe0, 806 tests on develop phase 1). Release and restore failure lines now show psql's last lines with secrets masked and never print a client data row. Security-reviewer FAIL round 1 (2 minor) led to two planner plan-gap patches: QUERY joins ROW_START, a row block drops to the end, and both psql runners run `-v VERBOSITY=terse`. Round 2 PASS from code-reviewer and security-reviewer.
+- Why the session ended: blocked
+- Completed this session: none merged. EZD-153 ran three full rounds: tests, build, gate (green every round) and code and security review. Each round closed every earlier finding. After round 2 the planner switched to fail-closed token rules, backed by a 76-case corpus run on PostgreSQL 17.11 (plan R4). Security-reviewer, round 3: the check is stricter than develop everywhere, and production-sensitive changes PASS.
 - In progress: none
-- Blocked: EZD-141 (Q-0274 (a), waits on supabase/auth#2852); EZD-151 (waits on EZD-190 merge, Q-0330)
-- Questions for Josh: none new; Q-0089 and Q-0237 stay escalated (not phase 1)
-- Decisions made: no Q-IDs; two planner lessons added to vault/lessons/planner.md (probe another program's output before writing a filter for it; re-read the comment and docs sentence next to a one-line change)
-- Note: the EZD-032 `@smoke` gate-header test passed in both EZD-152 gate runs; Q-0330 / EZD-190 still owns that flake
-- Next unit: build EZD-153
+- Blocked:
+  - EZD-153 on Q-0331 (escalated). The 3-round ladder is used up (PROCESS.md s8 step 9, advisor consulted). Open findings:
+    - quoted names (`set "standard_conforming_strings"`, `"set_config"(…)`) get past the new escape guard;
+    - E10 TL3 has no test row;
+    - the docs D3 cell says T1-T8 instead of T1-T10.
+  - The worktree `.claude/worktrees/EZD-153` is kept at 15c7b31. Josh's (a) means one more round (R5): a planner sweep of every word-only token check, then tests, build and both reviews, resumed from that worktree.
+  - EZD-141 (Q-0274 (a), waits on supabase/auth#2852).
+  - EZD-151 (waits on EZD-190, Q-0330).
+- Questions for Josh:
+  - Q-0331 (EZD-153: allow one more round, recommended, or merge round 3 with a fix ticket). Q-0089 and Q-0237 stay escalated.
+  - Process item: the dispatch `Advisor:` line does nothing for subagents. Builder r2 skipped it and builder r3 had no advisor tool.
+- Decisions made:
+  - Q-0332 opened for the agent chain: root `scripts/` is not linted with Node globals (code-reviewer r3 item (c)).
+  - Two planner lessons added (vault/lessons/planner.md, EZD-153 plan-gap and plan-gap 2).
+  - The plan stays whole at 49,764 characters, over the 45,000 split line, because it is at its last round (STATUS Notes).
+- Note: the Vite CommonJS warning in the test step is owned by EZD-179 (Q-0314).
+- Next unit: questions 1
