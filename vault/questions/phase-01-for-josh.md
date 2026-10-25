@@ -1,10 +1,18 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, sixteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-25, seventeenth run)
 
-No new questions this run. Fix ticket EZD-190 (Q-0330) is planned and now ready; EZD-151 waits for it. Its plan found the cause of the EZD-151 gate failure: after a local database reset, the database's API server can briefly answer requests without running our server-only gate check. It also found that the same short gap can open on a cloud project (on a restart, maintenance or failover), so the fix adds a second check inside the database as well as fixing the local reset. Nothing needs a decision; sections 2 and 3 still wait for your confirm or override.
+This run: one question answered by an agent (Q-0332, root scripts are never linted: fix ticket EZD-191 added, needs a plan), and one process question opened for you (Q-0333). Q-0331 (EZD-153) still waits for your answer. Sections 2 and 3 still wait for your confirm or override.
 
 ## 1. Decisions needed
 
-None for phase 1. (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
+1. **Q-0331 · EZD-153** (the release safety check must catch tables and functions created in text it cannot read). It failed review three times, the most the build allows, so it is blocked; each round closed every earlier finding and it is already stricter than what is on develop. Three findings remain: a quoted setting name (`set "standard_conforming_strings" = off`) can switch string reading off and hide a table from the check; one test case has no test row; one docs cell says T1-T8 instead of T1-T10.
+   - **(a) Recommended:** allow one more round. The planner first checks every place the new rules compare a plain word and proves on the database whether a quoted name can stand in for it, so the round closes the whole kind of gap, not just this one; then tests, build and both reviews again. Reason: your rule that no known issue is parked (Q-0268), and this check guards production migrations.
+   - (b) Merge round 3 as it is and add a fix ticket for the quoted-name gap. Not recommended: the check would ship with a known security gap until that ticket merges.
+2. **Q-0333 · process (the "Advisor" line in agent dispatches).** The build routing tells some agents to consult the advisor, but in practice it never happens: in EZD-153 one builder skipped it and the next had no advisor tool at all; in EZD-148 the agent given it did not call it. The files involved (`.claude/`) are yours.
+   - **(a) Recommended:** remove the Advisor line from agent dispatches and keep the advisor for the orchestrator only (it already consults it before blocking a ticket and on decisions the process does not cover). Reason: it matches what actually runs, costs nothing, and the move to a stronger model on round 3 stays.
+   - (b) Keep the line and make the advisor reach the agents (agent files and settings changed by your patch), then prove it in one build.
+   - (c) Replace the line with an orchestrator step: before a round 3 builder, the orchestrator asks its own advisor and passes the advice to the builder with the findings.
+
+(Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
 ## 2. Agent answers to confirm
 
@@ -53,8 +61,9 @@ Confirm or override each.
 | Q-0328 | EZD-188 (new) | (a) Fix ticket EZD-188: the release and backup workflows (which hold the production secrets) may use only `actions/checkout` and `actions/setup-node`, pinned to an exact version; any other action, including a copied or third-party cache action, is refused by the repo checks. Today a copied cache action would pass every check in the two backup workflows | security-reviewer; ci.test.mjs:157; static.test.mjs:127-141; Q-0112; CLAUDE.md rule 17 |
 | Q-0329 | EZD-147 | (a) No new ticket: EZD-147 (not merged yet) fixes its own pin check so it also sees a step written inside `[ ]` and lines with unusual space characters, reusing EZD-148's line reader. Your patch for ci.yml is unchanged; after you apply it the build takes one more test round before its gate | EZD-148.md section 9; CLAUDE.md rule 17 |
 | Q-0330 | EZD-190 (new), EZD-151 | Fix ticket EZD-190: the EZD-151 build's check failed once on a test that proves a request without the server's gate header is refused (it got an empty answer instead of a refusal). The cause is a short gap after the local database reset; EZD-190 closes it and, because the plan found it can also open on a cloud project, adds a second check inside the database. EZD-151 is held until EZD-190 merges; the failure was not cleared by simply running the check again | CLAUDE.md rules 16, 17; EZD-190.md section 1; build-gate-phase-00.spec.ts:147 |
+| Q-0332 | EZD-191 (new) | (a) Fix ticket EZD-191: the repo's own scripts (including the release and backup scripts) and lint rules are never checked by the lint step; add them to it, with the right settings for scripts, and fix what it finds (521 problems today, 40 once the script settings are right). Four of the files are yours (gate, launcher, usage tools), so those fixes come as a patch you apply | code-reviewer; package.json:10; eslint.config.mjs; EZD-001.md:52; CLAUDE.md rule 17 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready).
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (added, needs a plan).
 
 ## 3. Proposed wording
 

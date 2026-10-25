@@ -14353,6 +14353,38 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-191",
+   "phase": 1,
+   "title": "Fix: root scripts and lint rules are linted",
+   "depends_raw": "EZD-001, EZD-153, EZD-155, EZD-172, EZD-173, EZD-178, EZD-185, EZD-186, EZD-187, EZD-188",
+   "spec_ref": "Q-0332",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-153",
+    "EZD-155",
+    "EZD-172",
+    "EZD-173",
+    "EZD-178",
+    "EZD-185",
+    "EZD-186",
+    "EZD-187",
+    "EZD-188"
+   ],
+   "build_position": 500,
+   "acs": [
+    "AC-EZD-191-1",
+    "AC-EZD-191-2",
+    "AC-EZD-191-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
