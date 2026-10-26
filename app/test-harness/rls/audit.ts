@@ -3,9 +3,11 @@
 // problem per failed rule. Codes and their sources are the plan's Step 6 table. The audit test (T15) is
 // @smoke, so every later ticket's gate runs it. Sources: 03 intro, 03 membership, 11 rule 10,
 // 11 Operations, 11 Security; Step 5 grants convention (orchestrator's brief 2026-10-12).
+// EZD-168 adds the `private` function execute rules (PUBLIC and the API roles; private-execute.ts).
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Sql, TransactionSql } from './db';
+import { API_ROLES, PRIVATE_EXECUTE } from './private-execute';
 import { expectedAuthenticatedPrivileges, explicitGrantRoles } from './table-grants';
 import { PROJECT_KEY, TENANTLESS_TABLES } from './tenancy-exemptions';
 
@@ -72,6 +74,17 @@ export async function auditRls(
     cross join unnest(${ROLES}::text[]) as r(role)
     cross join unnest(${PRIVS}::text[]) as p(priv)
     where n.nspname in ('public', 'private') and c.relkind in ('r', 'p', 'v')`;
+
+  const fnRows = await sql<{ fn: string; public_execute: boolean; role: string; ok: boolean }[]>`
+    select format('%I.%I(%s)', n.nspname, p.proname, oidvectortypes(p.proargtypes)) as fn,
+      exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) x
+        where x.grantee = 0 and x.privilege_type = 'EXECUTE') as public_execute,
+      r.role, has_function_privilege(r.role, p.oid, 'EXECUTE') as ok
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    cross join unnest(${[...API_ROLES]}::text[]) as r(role)
+    where n.nspname = 'private'
+    order by 1, 3`;
 
   const testText = readAppTestText(options.repoRoot);
   const migrationTexts = readMigrationTexts(options.repoRoot);
@@ -170,6 +183,27 @@ export async function auditRls(
       if (actual !== expected) add(name, 'authenticated_grants_mismatch');
       if (DATA_PRIVS.some((priv) => !has(rel, 'service_role', priv))) {
         add(name, 'service_role_grants_missing');
+      }
+    }
+  }
+
+  // EZD-168 rule 1: PUBLIC executes nothing in private; an API role executes only its allow-list.
+  const fnNames = [...new Set(fnRows.map((r) => r.fn))];
+  for (const fn of fnNames) {
+    const rows = fnRows.filter((r) => r.fn === fn);
+    if (rows.some((r) => r.public_execute)) add(fn, 'public_executes_private_function');
+    for (const role of API_ROLES) {
+      const ok = rows.some((r) => r.role === role && r.ok);
+      if (ok && !PRIVATE_EXECUTE[role].some((e) => e.fn === fn)) {
+        add(fn, `${role}_executes_private_function`);
+      }
+    }
+  }
+  // Rule 2: every allow-list entry must still be executable by its role.
+  for (const role of API_ROLES) {
+    for (const entry of PRIVATE_EXECUTE[role]) {
+      if (!fnRows.some((r) => r.fn === entry.fn && r.role === role && r.ok)) {
+        add(entry.fn, `${role}_private_execute_stale`);
       }
     }
   }

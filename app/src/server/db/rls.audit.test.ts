@@ -13,7 +13,8 @@ import {
   type Sql,
   type TransactionSql,
 } from '../../../test-harness/rls/db';
-import { auditRls } from '../../../test-harness/rls/audit';
+import { auditRls, type RlsProblem } from '../../../test-harness/rls/audit';
+import { API_ROLES, PRIVATE_EXECUTE } from '../../../test-harness/rls/private-execute';
 import {
   ALL_TABLE_PRIVILEGES,
   explicitGrantRoles,
@@ -307,6 +308,111 @@ describe('EZD-006 RLS audit', () => {
       await tx.unsafe('revoke delete on public.ezd006_grant_probe from authenticated');
       expect(await grantCodes()).toEqual(['authenticated_grants_mismatch', 'grants_not_explicit']);
     });
+  });
+});
+
+describe('EZD-168 private function execute audit', () => {
+  let sql: Sql;
+
+  beforeAll(() => {
+    sql = adminSql();
+  });
+
+  afterAll(async () => {
+    await sql.end({ timeout: 5 });
+  });
+
+  const codes = (problems: RlsProblem[], fn: string) =>
+    problems
+      .filter((p) => p.table === fn)
+      .map((p) => p.code)
+      .sort();
+  const ALL4 = [
+    'anon_executes_private_function',
+    'authenticated_executes_private_function',
+    'public_executes_private_function',
+    'service_role_executes_private_function',
+  ];
+  const PROBE = 'private.ezd168_probe()';
+  const createProbe = (tx: TransactionSql) =>
+    tx.unsafe("create function private.ezd168_probe() returns integer language sql as 'select 1'");
+
+  it('EZD-168 done when: a probe function in private with PUBLIC execute makes the audit fail', async () => {
+    await withRollback(sql, async (tx) => {
+      await createProbe(tx);
+      const problems = await auditRls(tx, { repoRoot });
+      expect(codes(problems, PROBE)).toEqual(ALL4);
+      expect(problems).not.toEqual([]);
+    });
+  });
+
+  it('T2 each API role is refused on its own', async () => {
+    await withRollback(sql, async (tx) => {
+      await createProbe(tx);
+      await tx.unsafe('revoke all on function private.ezd168_probe() from public');
+      expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual([]);
+      for (const role of API_ROLES) {
+        await tx.unsafe(`grant execute on function private.ezd168_probe() to ${role}`);
+        expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual([
+          `${role}_executes_private_function`,
+        ]);
+        await tx.unsafe(`revoke execute on function private.ezd168_probe() from ${role}`);
+        expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual([]);
+      }
+    });
+  });
+
+  it('T3 explicit PUBLIC, overloads and procedures', async () => {
+    await withRollback(sql, async (tx) => {
+      await createProbe(tx);
+      await tx.unsafe('revoke all on function private.ezd168_probe() from public');
+      await tx.unsafe('grant execute on function private.ezd168_probe() to public');
+      expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual(ALL4);
+
+      await tx.unsafe(
+        "create function private.ezd168_probe(p uuid, q timestamptz) returns integer language sql as 'select 1'",
+      );
+      expect(
+        codes(
+          await auditRls(tx, { repoRoot }),
+          'private.ezd168_probe(uuid, timestamp with time zone)',
+        ),
+      ).toEqual(ALL4);
+
+      await tx.unsafe('create procedure private.ezd168_proc() language sql as $$ select 1 $$');
+      expect(codes(await auditRls(tx, { repoRoot }), 'private.ezd168_proc()')).toEqual(ALL4);
+    });
+  });
+
+  it('T4 allow-list is per role and both ways', async () => {
+    const fn = 'private.tenant_id()';
+    await withRollback(sql, async (tx) => {
+      await tx.unsafe('revoke execute on function private.tenant_id() from authenticated');
+      expect(codes(await auditRls(tx, { repoRoot }), fn)).toEqual([
+        'authenticated_private_execute_stale',
+      ]);
+    });
+    await withRollback(sql, async (tx) => {
+      await tx.unsafe('grant execute on function private.tenant_id() to anon');
+      expect(codes(await auditRls(tx, { repoRoot }), fn)).toEqual([
+        'anon_executes_private_function',
+      ]);
+    });
+  });
+
+  it('T5 allow-list shape', () => {
+    expect([...API_ROLES]).toEqual(['anon', 'authenticated', 'service_role']);
+    expect(Object.keys(PRIVATE_EXECUTE).sort()).toEqual(['anon', 'authenticated', 'service_role']);
+    for (const role of API_ROLES) {
+      const list = PRIVATE_EXECUTE[role];
+      const fns = list.map((e) => e.fn);
+      expect(new Set(fns).size).toBe(fns.length);
+      expect(fns).toEqual([...fns].sort());
+      for (const e of list) {
+        expect(e.fn).toMatch(/^private\.[a-z_]+\([a-z ,]*\)$/);
+        expect(e.reason.length).toBeGreaterThan(0);
+      }
+    }
   });
 });
 
