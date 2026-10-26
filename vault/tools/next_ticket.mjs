@@ -21,7 +21,6 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boostState, bumpModel, bumpEffort } from './boost.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -250,15 +249,10 @@ function readsLines(id, role) {
 // dispatch from the STATUS Complexity, the role and the round; the orchestrator passes model and effort on the dispatch.
 const M = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' };
 const fableOr = () => (process.env.EZD_FABLE_ALLOWED === '0' ? M.opus : M.fable);
-// Boost mode (vault/tools/boost.mjs, Josh 2026-10-24): while it is on, every role runs one model and one effort level up until the weekly reset.
 // orchestratorAdvice (Q-0333 (c), Josh 2026-10-25): the orchestrator consults its own advisor before this dispatch and
 // passes the advice in "Findings to address"; subagents never get an advisor line (it never reached them).
-const route = (agent, model0, effort0, orchestratorAdvice = false, extra = {}) => {
-  const boost = boostState({ root }).active;
-  const model = boost ? bumpModel(model0) : model0;
-  const effort = boost ? bumpEffort(effort0) : effort0;
-  return { agent, model, effort, orchestratorAdvice, ...extra };
-};
+// Boost no longer changes models or effort (Josh 2026-10-26: the bump bought stricter reviews, not throughput).
+const route = (agent, model, effort, orchestratorAdvice = false, extra = {}) => ({ agent, model, effort, orchestratorAdvice, ...extra });
 // Calculation-heavy = the plan's Reviewers line says calc-auditor yes ("calc-auditor yes", "**calc-auditor:** yes").
 const planNamesCalc = (id) => /calc-auditor[*:\s]*\**yes/i.test(read(path.join(vault, 'plans', `${id}.md`)));
 export function dispatchFor(id, role, round = 1) {

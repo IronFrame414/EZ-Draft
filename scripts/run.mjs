@@ -50,7 +50,7 @@ const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
 const { idleAction } = await import('./launcher-idle.mjs');
-const { boostState, bumpModel, bumpEffort, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
+const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
 // .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
@@ -105,11 +105,9 @@ function buildCommand(unitName, arg) {
   const cmd = [
     '-p', prompt,
     '--output-format', 'json',
-    // Boost mode: one model up (vault/tools/boost.mjs), at most Opus for the unit itself: a Fable-only cap hit by a whole
-    // unit would be read as the weekly limit while limit formats are unconfirmed (classifyLimit) and stop the launcher.
-    '--model', boost ? bumpModel(u.model, { fableAllowed: false }) : u.model,
-    // Boost: one effort level up, at most `high` for the unit itself (xhigh/max are unconfirmed as CLI values).
-    '--effort', boost ? bumpEffort(u.effort, { ceiling: 'high' }) : u.effort,
+    // Boost keeps the normal model and effort (Josh 2026-10-26); it changes only the hold and the cap.
+    '--model', u.model,
+    '--effort', u.effort,
     '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,
   ];
@@ -335,7 +333,7 @@ async function main() {
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   for (;;) {
     // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
-    if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): back to normal models and one unit at a time'); }
+    if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
     const stopExists = existsSync(stopFile);
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
     const next = stopExists ? '' : tool('--next-unit').stdout.trim();
