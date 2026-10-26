@@ -121,3 +121,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-178 · Fix: six more tools work when run through a symlinked path · budget, oauth-usage, watchdog, plan_lint, usage-by-agent and outline print their output through a symlinked folder · 0d27a16
 2026-10-26 · EZD-188 · Fix: production workflows use only listed actions · nothing on screen; the repo rule test fails if release or backup workflows use any action besides pinned checkout and setup-node · 2f4cd6f
 2026-10-26 · EZD-189 · Fix: the policy check allows a Storage policy to read its screen's switch · nothing on screen; the table-policy check skips Storage policies so file storage (EZD-132) can merge · 4c7e85f
+2026-10-26 · EZD-132 · File storage · private per-company files, resumable browser uploads, 15-minute download links (nothing on screen yet) · 77c9085
