@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { gateHash, newGateSecret, setHashSql } from './api-gate.mjs';
 import { runLocalSql } from './sql.mjs';
 import { ensureRealtimeBroadcastStream } from './realtime-warmup.mjs';
+// EZD-166 (vault/plans/EZD-166.md): restart the stack when supabase/config.toml or supabase/templates/* changed.
+import { STACK_CONFIG_MARKER, ensureStackCurrent, sharedTempDir } from './stack-config.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const supabaseBin = path.join(repo, 'node_modules', '.bin', 'supabase');
@@ -39,12 +41,10 @@ function fail(step, result) {
 }
 
 async function up() {
-  const status = cli(['status']);
-  if (!status.ok) {
-    if (/docker/i.test(status.out)) fail('status', status);
-    const start = cli(['start'], { inherit: true });
-    if (!start.ok) fail('start', start);
-  }
+  const markerFile = path.join(sharedTempDir(repo), STACK_CONFIG_MARKER);
+  const stack = ensureStackCurrent({ cli, root: repo, markerFile });
+  if (stack.outcome === 'failed') fail(stack.step, stack.result);
+  if (stack.outcome === 'restarted') process.stdout.write('Local Supabase config changed: stack restarted\n');
   const reset = cli(['db', 'reset', '--local'], { inherit: true });
   if (!reset.ok) fail('db reset --local', reset);
   await storeLocalGateSecret();
