@@ -521,8 +521,8 @@ EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download siz
 | `reference/` | reference drawing in Plan | EZD-901b |
 
 - `app/src/lazy/dev-sample/` is the dev-only proof module, loaded by `/dev/lazy` on first press.
-- **One list.** `eslint-rules/boundaries.mjs` (`LAZY_ROOT`, `LAZY_PLACES`, `EDITOR_CODE`, `EDITOR_CODE_IMPORTERS`, `HEAVY_PACKAGES`, `ENTRY_RULES`, `WATCH_PACKAGES`) is the single list read by the lint rule `ezdraft/import-boundaries` and by the contents check; EZD-029's replace path edits the DXF names there, and a test fails when that list and the Named tools `DXF` row drift apart.
-- The lint rule (`eslint-rules/import-boundaries.mjs`, block in `eslint.config.mjs` for `app/src/**` and `packages/*/src/**`, test files ignored) reports `heavyPackage`, `lazyStatic` (a static import into `app/src/lazy/<name>/` from outside it) and `editorOnly` (editor code imported outside `EDITOR_CODE_IMPORTERS`). It resolves relative paths only; a ticket that adds a tsconfig path alias teaches the rule to resolve it. Transitive imports through shared code are caught by the contents check, not the lint.
+- **One list.** `eslint-rules/boundaries.mjs` (`LAZY_ROOT`, `LAZY_PLACES`, `EDITOR_CODE`, `EDITOR_CODE_IMPORTERS`, `PATH_ALIASES`, `HEAVY_PACKAGES`, `ENTRY_RULES`, `WATCH_PACKAGES`) is the single list read by the lint rule `ezdraft/import-boundaries` and by the contents check; EZD-029's replace path edits the DXF names there, and a test fails when that list and the Named tools `DXF` row drift apart.
+- The lint rule (`eslint-rules/import-boundaries.mjs`, block in `eslint.config.mjs` for `app/src/**` and `packages/*/src/**`, test files ignored) reports `heavyPackage`, `lazyStatic` (a static import into `app/src/lazy/<name>/` from outside it) and `editorOnly` (editor code imported outside `EDITOR_CODE_IMPORTERS`). It resolves relative paths and the tsconfig path aliases in `PATH_ALIASES` (`@/` = `app/src/`, for files under `app/`; EZD-167); a ticket that adds a `paths` or `baseUrl` entry to a tsconfig adds it there in the same commit, or `import-boundaries-lint.test.mjs` (A6) fails. Transitive imports through shared code are caught by the contents check, not the lint.
 
 ### PWA (EZD-013)
 
@@ -916,7 +916,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |
-| — | Static imports of heavy libraries; bundle report | `ezdraft/import-boundaries` (`eslint-rules/import-boundaries.mjs`); `scripts/perf/js-contents.mjs` (gate step `perf`); `scripts/tooling/__tests__/import-boundaries-lint.test.mjs`, `scripts/perf/__tests__/sourcemap.test.mjs`, `scripts/perf/__tests__/js-contents.test.mjs`, `app/e2e/entries.spec.ts` | EZD-020 |
+| — | Static imports of heavy libraries; bundle report | `ezdraft/import-boundaries` (`eslint-rules/import-boundaries.mjs`); `scripts/perf/js-contents.mjs` (gate step `perf`); `scripts/tooling/__tests__/import-boundaries-lint.test.mjs`, `scripts/perf/__tests__/sourcemap.test.mjs`, `scripts/perf/__tests__/js-contents.test.mjs`, `app/e2e/entries.spec.ts` | EZD-020, EZD-167 |
 | — | No polling: `setInterval` refused in `app/src` | `eslint.config.mjs` (`no-restricted-globals`, `no-restricted-properties`); `scripts/tooling/__tests__/no-polling-lint.test.mjs` (T18) | EZD-018 |
 | — | Realtime event names used in migrations are in `events.ts` | `scripts/db/__tests__/realtime-sql.test.mjs` (T19) | EZD-018 |
 | — | Literal interface strings in phone components | `ezdraft/no-literal-ui-string`, `scripts/tooling/__tests__/messages-lint.test.mjs` | EZD-026a |

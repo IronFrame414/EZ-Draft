@@ -25,6 +25,11 @@ export const EDITOR_CODE_IMPORTERS = [
 ];
 
 /**
+ * Path aliases of app/tsconfig.json `paths`, resolved by ezdraft/import-boundaries (EZD-167). A new alias goes here in the same commit (test A6).
+ */
+export const PATH_ALIASES = [{ prefix: '@/', target: 'app/src/', appliesTo: 'app/' }];
+
+/**
  * Matched in order; the first match wins. A name without a trailing `/` matches the exact name or `name/...`;
  * a name ending in `/` matches by prefix. `allowed` lists the path prefixes where a static import is allowed.
  */

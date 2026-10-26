@@ -14,6 +14,7 @@ import {
   EDITOR_CODE_IMPORTERS,
   HEAVY_PACKAGES,
   LAZY_ROOT,
+  PATH_ALIASES,
 } from './eslint-rules/boundaries.mjs';
 
 const APP = ['app/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'];
@@ -128,6 +129,7 @@ export default tseslint.config(
           lazyRoot: LAZY_ROOT,
           editorCode: EDITOR_CODE,
           editorCodeImporters: EDITOR_CODE_IMPORTERS,
+          aliases: PATH_ALIASES,
         },
       ],
     },
