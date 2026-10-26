@@ -5,10 +5,12 @@
 import { requireApiSession } from '../../../../server/auth/session';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { readPublicDbEnv } from '../../../../server/db/env';
+import { reportRouteFailure } from '../../../../server/errors/route-failure';
 
 export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store' };
+const ROUTE = '/api/realtime/token';
 
 const notSignedIn = () =>
   Response.json(
@@ -38,7 +40,8 @@ export async function GET(): Promise<Response> {
       },
       { status: 200, headers },
     );
-  } catch {
+  } catch (e) {
+    await reportRouteFailure(e, ROUTE);
     return Response.json(
       { error: { code: 'db_unavailable', message_key: 'error.db_unavailable' } },
       { status: 500, headers },

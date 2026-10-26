@@ -7,11 +7,13 @@
 // (no project) has no project to check; RLS already limits it to all-projects members.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
+import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { can, requireApiPermission } from '../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store' };
+const ROUTE = '/api/jobs/[id]';
 
 // A failed session read or database error (Q-0168 (b); architecture Errors and logging).
 const dbUnavailable = () =>
@@ -65,7 +67,8 @@ export async function GET(
       },
       { status: 200, headers },
     );
-  } catch {
+  } catch (e) {
+    await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
 }

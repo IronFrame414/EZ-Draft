@@ -1,6 +1,12 @@
 // EZD-150 T1-T5 (vault/plans/EZD-150.md section 4). Unit tests: fake setTimeout/clearTimeout and a stubbed
 // global fetch, so nothing reaches a network (CLAUDE.md rule 6). Env comes from the global setup (EZD-004b).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// EZD-169 (vault/plans/EZD-169.md E3; Q-0317 (a)): the 500 path now calls reportRouteFailure after() unawaited.
+// The mock keeps that report from reaching the local database or the stubbed fetch after this file's afterEach.
+vi.mock('../../../server/errors/route-failure', () => ({
+  reportRouteFailure: vi.fn(async () => {}),
+}));
 import { HEALTH_DB_TIMEOUT_MS } from '../../../server/db/health';
 import { GET } from './route';
 

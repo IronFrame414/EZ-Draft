@@ -3,6 +3,12 @@ import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+// EZD-169 (vault/plans/EZD-169.md E2; Q-0317 (a)): the 500 path now calls reportRouteFailure after() unawaited.
+// The mock keeps that report from reaching the local database or the real fetch after this file's afterEach.
+vi.mock('../../../server/errors/route-failure', () => ({
+  reportRouteFailure: vi.fn(async () => {}),
+}));
 import { GET } from './route';
 
 const migrationsDir = path.resolve(

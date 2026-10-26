@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type { PermissionKey } from '../../../../lib/permissions/catalog';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { enqueueJob, JobError } from '../../../../server/jobs';
+import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { testJobHandler } from '../../../../server/jobs/handlers/test-job';
 import {
   requireApiPermission,
@@ -20,6 +21,7 @@ export const dynamic = 'force-dynamic';
 const headers = { 'Cache-Control': 'no-store' };
 
 const DEV_JOB_PERMISSION: PermissionKey = 'edit_model';
+const ROUTE = '/api/dev/jobs';
 
 // The project id plus the test handler's own payload schema (Step 5).
 const bodySchema = z.object({ projectId: z.uuid() }).and(testJobHandler.payload);
@@ -48,7 +50,8 @@ export async function POST(request: Request): Promise<Response> {
   let p: Permitted | Response;
   try {
     p = await requireApiPermission(DEV_JOB_PERMISSION);
-  } catch {
+  } catch (e) {
+    await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
   if (p instanceof Response) return p;
@@ -63,6 +66,7 @@ export async function POST(request: Request): Promise<Response> {
   } catch (e) {
     if (e instanceof JobError && e.code === 'invalid_payload') return invalidInput();
     if ((e as { code?: unknown }).code === '42501') return notFound();
+    await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
 }
