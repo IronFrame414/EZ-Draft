@@ -545,7 +545,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-192 | 1 | Fix: the net-guard browser test EZD-159 T7 does not fail at random | questions | medium | EZD-159, EZD-167 |  |  | Added 2026-10-26 for Q-0339 (rule 17; questions 1). Plan written; waits on Q-0340 (gate.mjs one-line change). |
 | EZD-193 | 1 | Fix: the launcher saves the raw text of any limit error (pilot row 8) | planned | low | EZD-001 |  |  | Added 2026-10-26 by EZD-170 (pilot row 8; Q-0299 (b)). |
 | EZD-194 | 1 | Fix: switching to API credits is proven with a fake claude (pilot row 10) | planned | low | EZD-001 |  |  | Added 2026-10-26 by EZD-170 (pilot row 10; Q-0298 (b)). |
-| EZD-195 | 1 | Fix: a refused agent start is seen live (pilot row 14) | todo |  | EZD-000f |  |  | Added 2026-10-26 by EZD-170 (pilot row 14; the planner probe never attempted the Explore call). |
+| EZD-195 | 1 | Fix: a refused agent start is seen live (pilot row 14) | planned | low | EZD-000f |  |  | Added 2026-10-26 by EZD-170 (pilot row 14; the planner probe never attempted the Explore call). |
 | EZD-196 | 1 | Fix: a retriever write outside pending is refused live (pilot row 15) | todo |  | EZD-000f |  |  | Added 2026-10-26 by EZD-170 (pilot row 15; the retriever probe never attempted the Write). |
 | EZD-197 | 1 | Fix: the 70% weekly warning is proven to notify (pilot row 10) | todo |  | EZD-001 |  |  | Added 2026-10-26 by EZD-170 (pilot row 10; no NOTIFY line could be shown). |
 | EZD-198 | 1 | Fix: the whole-read guard and notebooks over its limit agree with the pilot (pilot row 13) | todo |  | EZD-000c |  |  | Added 2026-10-26 by EZD-170 (pilot row 13; the notebook read was refused by the Read tool's own cap). |
