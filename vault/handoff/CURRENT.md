@@ -7,3 +7,7 @@
 - Josh's decision (Q-0346): (a) yes in chat, orchestrator writes in fix mode; (b) one-time guard-paths grant for the builder in this worktree (recommended); (c) a patch he applies.
 - Next session: after the answer, /build-ticket EZD-173 resumes at step 6 (build); then gate, mode 3 review, merge.
 - Also still blocked: EZD-172 (gate.mjs patch, vault/handoff/EZD-172-gate.patch).
+
+## Questions unit 2026-10-26 (phase 1)
+- Q-0346 set to escalated and added to vault/questions/phase-01-for-josh.md. No other open rows; no plans changed; no tickets newly ready.
+- Waiting on Josh: Q-0334, Q-0337, Q-0338, Q-0340, Q-0346.

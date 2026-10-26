@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-26, twenty-first run)
+# Phase 1 · for Josh (questions unit, 2026-10-26, twenty-second run)
 
-This run: Q-0342, Q-0343 and Q-0344 (launcher and guard tooling) answered by the code-reviewer; Q-0344 added fix ticket EZD-199. Four decisions still wait for you (Q-0334, Q-0337, Q-0338, Q-0340). Section 2 and the rule candidate wait for your confirm.
+This run: Q-0346 (EZD-173 blocked on the builder's file permissions) is new and goes to you; it is a change to the guard, which only you make. Five decisions wait for you (Q-0334, Q-0337, Q-0338, Q-0340, Q-0346). Section 2 and the rule candidate wait for your confirm.
 
 ## 1. Decisions needed
 
@@ -11,6 +11,8 @@ This run: Q-0342, Q-0343 and Q-0344 (launcher and guard tooling) answered by the
 **Q-0338 · EZD-134, EZD-1401, EZD-1404 (offline tests), added by build EZD-164 2026-10-26.** The spike showed the app opens offline after a reload in the iPad and iPhone test browsers (WebKit), same as Chrome. Pick one: (a) those three tickets also run their offline tests in the iPad and iPhone projects (recommended: covered automatically); (b) Chrome only, and you check a real iPad and iPhone by hand. Full text: Q-0338.
 
 **Q-0340 · EZD-192 (gate failure list), added by the planner 2026-10-26.** The "failed" browser test T7 never failed: it is a test that must fail, and the gate prints every line with a ✘ as a failure, so T7 showed up whenever another test in the step really failed. The fix is one line in `scripts/gate.mjs`, which agents may not edit. Pick one: (a) you apply the one-line change from the plan, or approve fix mode doing it (recommended); (b) leave it (breaks rule 17: the mis-listing stays). Full text: Q-0340.
+
+**Q-0346 · EZD-173 (ledger and unit tooling), added by build EZD-173 2026-10-26.** Tests are written and reviewed, but every build step is a file the builder is not allowed to write (scripts/ledger.mjs, research.mjs, next_ticket.mjs, unit-steps.mjs, run.mjs, the session-end hook, two skills, PROCESS.md). EZD-172 hit the same wall. Pick one: (b) you give the builder a one-time permission in the guard for this worktree's listed files (recommended: the code is large and the builder tier is made for it; the change to the guard is yours); (a) you say yes in chat and I write the files in fix mode (the classifier may refuse, then I hand you a patch); (c) I prepare a patch and you apply it. Full text: Q-0346.
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
