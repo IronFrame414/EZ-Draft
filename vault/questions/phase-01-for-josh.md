@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-26, twenty-second run)
+# Phase 1 · for Josh (questions unit, 2026-10-26, twenty-third run)
 
-This run: Q-0346 (EZD-173 blocked on the builder's file permissions) is new and goes to you; it is a change to the guard, which only you make. Five decisions wait for you (Q-0334, Q-0337, Q-0338, Q-0340, Q-0346). Section 2 and the rule candidate wait for your confirm.
+This run: Q-0349 (EZD-188 rule (j) scanner) was answered by the code-reviewer (section 2) and EZD-188 is ready again. Four decisions wait for you (Q-0334, Q-0337, Q-0338, Q-0340, Q-0346 — five counting Q-0338). Section 2 and the rule candidate wait for your confirm.
 
 ## 1. Decisions needed
 
@@ -71,6 +71,7 @@ Confirm or override each.
 | Q-0343 | EZD-198 | (a) The guard denies any Read of a notebook over 20,000 characters, ranged or not | CLAUDE.md rules 10, 17; guard-reads.mjs:157 |
 | Q-0345 | EZD-199 | (a) accept: the guard's 20,000-character limit stays per file, as the rule says; adding up several files in one command would block nothing real, and a cap on total reading would be a new process rule for you to decide | CLAUDE.md rule 10; guard-reads.mjs:24-37,157-165 |
 | Q-0344 | EZD-199 (new) | (b) Fix ticket EZD-199: the guard also refuses a ranged read whose selected lines are over the limit (one very long line gets past it today) | CLAUDE.md rule 17; guard-reads.mjs:102,119-140 |
+| Q-0349 | EZD-188 | (a) Rule (j) check cross-checked against a real YAML parser: js-yaml 4.3.2 (already in the lockfile) becomes a direct root dev dependency with its Dependencies row; any difference between the line reader and the parser fails the check, ending the string of missed quoting forms | CLAUDE.md rule 7; pnpm-lock.yaml:3427; code-reviewer |
 | Q-0347 | EZD-200 (new) | (a) Fix ticket EZD-200: the flaky type check in EZD-025 T16 prints its failing command and error, the cause is found and fixed (or the Docker type checks are serialized); never retried or loosened | CLAUDE.md rule 17; vault/plans/EZD-200.md |
 
 Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (planned, ready), Q-0344 → EZD-199 (todo).
