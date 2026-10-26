@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-25, eighteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-26, nineteenth run)
 
-This run: no new questions. Your answers Q-0331 (EZD-153 gets one more round) and Q-0333 (the orchestrator consults its advisor before a round 3) are recorded; EZD-153 was re-planned and EZD-191 was planned, both with no open question, and both are now ready. Sections 2 and 3 still wait for your confirm or override.
+This run: one new question, Q-0336 (the app test-run warning), already covered by EZD-179 (Q-0314), so nothing new for you to decide. Q-0334 still waits for you. Sections 2 and 3 wait for your confirm or override.
 
 ## 1. Decisions needed
 
@@ -56,6 +56,8 @@ Confirm or override each.
 | Q-0329 | EZD-147 | (a) No new ticket: EZD-147 (not merged yet) fixes its own pin check so it also sees a step written inside `[ ]` and lines with unusual space characters, reusing EZD-148's line reader. Your patch for ci.yml is unchanged; after you apply it the build takes one more test round before its gate | EZD-148.md section 9; CLAUDE.md rule 17 |
 | Q-0330 | EZD-190 (new), EZD-151 | Fix ticket EZD-190: the EZD-151 build's check failed once on a test that proves a request without the server's gate header is refused (it got an empty answer instead of a refusal). The cause is a short gap after the local database reset; EZD-190 closes it and, because the plan found it can also open on a cloud project, adds a second check inside the database. EZD-151 is held until EZD-190 merges; the failure was not cleared by simply running the check again | CLAUDE.md rules 16, 17; EZD-190.md section 1; build-gate-phase-00.spec.ts:147 |
 | Q-0332 | EZD-191 (new) | (a) Fix ticket EZD-191: the repo's own scripts (including the release and backup scripts) and lint rules are never checked by the lint step; add them to it, with the right settings for scripts, and fix what it finds (521 problems today, 40 once the script settings are right). Four of the files are yours (gate, launcher, usage tools), so those fixes come as a patch you apply | code-reviewer; package.json:10; eslint.config.mjs; EZD-001.md:52; CLAUDE.md rule 17 |
+| Q-0335 | scripts/process/retrievers.test.mjs (EZD-156 build) | Orchestrator re-pinned the dispatch-template test to lines 1-21 in fix mode (commit 679b71b); confirm or revert | QUESTIONS.md Q-0335 |
+| Q-0336 | EZD-179 | Same as Q-0314: EZD-179 already removes the CommonJS warning from app test runs; no new ticket | Q-0314; vault/plans/EZD-179.md |
 
 Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (planned, ready).
 
