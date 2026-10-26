@@ -269,3 +269,120 @@ describe('EZD-018 realtime hub', () => {
     expect(toEventPayload({ payload: { id: 'm1' }, meta: { id: 'm1' } })).toEqual({});
   });
 });
+
+// EZD-157 (vault/plans/EZD-157.md Tests U1-U6): a project handle whose id is not a UUID never shares or
+// closes the user channel. Expected values are the plan's Tests table; "after flush" is one flush().
+describe('EZD-157 realtime hub keeps project and user channels apart', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('EZD-157 done when: hub.project(user) gets its own entry and the user channel is untouched', async () => {
+    const { adapter, fetchToken, hub } = setup();
+    const u = hub.user();
+    const p = hub.project('user');
+    const uPing = vi.fn();
+    const pPing = vi.fn();
+    u.on('dev.ping', uPing);
+    p.on('dev.ping', pPing);
+    await flush();
+    only(adapter, USER_TOPIC).emit('dev.ping', { n: 1 });
+    await flush();
+    expect(adapter.channels.filter((c) => c.topic === USER_TOPIC)).toHaveLength(1);
+    expect(adapter.channels).toHaveLength(1);
+    expect(u.status).toBe('subscribed');
+    expect(p.status).toBe('refused');
+    expect(await p.ready).toBe('refused');
+    expect(uPing).toHaveBeenCalledTimes(1);
+    expect(uPing).toHaveBeenCalledWith({ n: 1 });
+    expect(pPing).toHaveBeenCalledTimes(0);
+
+    p.release();
+    await flush();
+    expect(adapter.removedFor(USER_TOPIC)).toBe(0);
+    expect(u.status).toBe('subscribed');
+    expect(fetchToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('EZD-157 U2 project first, then user: the order does not matter', async () => {
+    const { adapter, hub } = setup();
+    const p = hub.project('user');
+    const u = hub.user();
+    await flush();
+    expect(adapter.channels.filter((c) => c.topic === USER_TOPIC)).toHaveLength(1);
+    expect(adapter.channelsFor('project:')).toHaveLength(0);
+    expect(u.status).toBe('subscribed');
+    expect(p.status).toBe('refused');
+  });
+
+  it('EZD-157 U3 an invalid project id is refused at once with no request', async () => {
+    const INVALID = ['user', '', 'not-a-uuid', `project:${randomUUID()}`, ` ${randomUUID()}`];
+    for (const id of INVALID) {
+      const { adapter, fetchToken, hub } = setup();
+      const h = hub.project(id);
+      const statusCb = vi.fn();
+      h.onStatus(statusCb);
+      const statusBefore = h.status;
+      await flush();
+      expect(statusBefore, id).toBe('connecting');
+      expect(h.status, id).toBe('refused');
+      expect(await h.ready, id).toBe('refused');
+      expect(statusCb.mock.calls, id).toEqual([['refused']]);
+      expect(fetchToken, id).toHaveBeenCalledTimes(0);
+      expect(adapter.connectCalls, id).toHaveLength(0);
+      expect(adapter.channels, id).toHaveLength(0);
+
+      h.release();
+      await flush();
+      expect(adapter.removedTopics, id).toHaveLength(0);
+    }
+  });
+
+  it('EZD-157 U4 an upper-case UUID shares the lower-case entry', async () => {
+    const { adapter, hub } = setup();
+    const P = randomUUID();
+    const a = hub.project(P.toUpperCase());
+    const b = hub.project(P);
+    await flush();
+    const projects = adapter.channelsFor('project:');
+    expect(projects).toHaveLength(1);
+    expect(projects[0].topic).toBe(`project:${P}`);
+    expect(a.status).toBe('subscribed');
+    expect(b.status).toBe('subscribed');
+  });
+
+  it('EZD-157 U5 an invalid handle holds no channel of its own and removes none', async () => {
+    const { adapter, hub } = setup();
+    const P1 = randomUUID();
+    const a = hub.project(P1);
+    const b = hub.project('not-a-uuid');
+    await flush();
+    expect(adapter.channelsFor('project:')).toHaveLength(1);
+    expect(adapter.channelsFor('project:')[0].topic).toBe(`project:${P1}`);
+    expect(adapter.channels.filter((c) => c.topic === USER_TOPIC)).toHaveLength(1);
+
+    b.release();
+    await flush();
+    expect(adapter.removedFor('project:')).toBe(0);
+    expect(adapter.removedFor(USER_TOPIC)).toBe(0);
+
+    a.release();
+    await flush();
+    expect(adapter.removedFor('project:')).toBe(1);
+    expect(adapter.removedFor(USER_TOPIC)).toBe(1);
+  });
+
+  it('EZD-157 U6 session.ended closes an invalid handle too', async () => {
+    const { adapter, onSessionEnded, hub } = setup();
+    const u = hub.user();
+    const p = hub.project('user');
+    await flush();
+    only(adapter, USER_TOPIC).emit('session.ended', {});
+    await flush();
+    expect(p.status).toBe('closed');
+    expect(u.status).toBe('closed');
+    expect(onSessionEnded).toHaveBeenCalledTimes(1);
+    expect(adapter.removedFor(USER_TOPIC)).toBe(1);
+  });
+});

@@ -12,7 +12,7 @@ import type {
   RealtimeToken,
 } from './adapter';
 import { toEventPayload, type ProjectChannelEvents, type UserChannelEvents } from './events';
-import { projectTopic, userTopic } from './topics';
+import { parseTopic, projectTopic, userTopic } from './topics';
 
 export type ChannelStatus = 'connecting' | 'subscribed' | 'reconnecting' | 'refused' | 'closed';
 
@@ -54,7 +54,7 @@ type Callbacks = {
 };
 
 type Entry = {
-  key: string; // 'user' or the project id
+  key: string; // 'user', or projectTopic(id) for a project
   kind: 'project' | 'user';
   channel: AdapterChannel | null;
   handles: Set<Callbacks>;
@@ -85,7 +85,7 @@ export function createRealtimeHub({
   let unlisten: Array<() => void> = [];
 
   const topicOf = (e: Entry, t: RealtimeToken) =>
-    e.kind === 'project' ? projectTopic(e.key) : userTopic(t.appUserId);
+    e.kind === 'project' ? e.key : userTopic(t.appUserId);
 
   function newEntry(key: string, kind: 'project' | 'user'): Entry {
     let settle: (v: 'subscribed' | 'refused') => void = () => {};
@@ -302,17 +302,29 @@ export function createRealtimeHub({
     };
   }
 
-  function acquire(key: string, kind: 'project' | 'user'): ProjectHandle {
+  // An invalid project id (valid === false) gets its own entry, refused at once: it never counts as an
+  // open handle, never starts the hub, never opens a channel and never touches the user channel (EZD-157).
+  function refuseInvalid(e: Entry) {
+    e.refused = true;
+    void Promise.resolve().then(() => {
+      if (ended) return;
+      setStatus(e, 'refused');
+      e.settle('refused');
+    });
+  }
+
+  function acquire(key: string, kind: 'project' | 'user', valid: boolean): ProjectHandle {
     if (ended) return closedHandle();
-    let e = entries.get(key);
-    if (!e) {
-      e = newEntry(key, kind);
-      entries.set(key, e);
+    const found = entries.get(key);
+    const entry = found ?? newEntry(key, kind);
+    if (!found) {
+      entries.set(key, entry);
+      if (!valid) refuseInvalid(entry);
     }
-    const entry = e;
+    const counted = valid;
     const cbs: Callbacks = { events: new Map(), resync: new Set(), status: new Set(), presence: new Set() };
     entry.handles.add(cbs);
-    openHandles++;
+    if (counted) openHandles++;
     let released = false;
     const add = <T>(set: Set<T>, cb: T) => {
       set.add(cb);
@@ -321,11 +333,13 @@ export function createRealtimeHub({
       };
     };
 
-    if (phase === 'connected') {
-      ensureUserEntry();
-      for (const x of entries.values()) openChannel(x);
-    } else {
-      start();
+    if (counted) {
+      if (phase === 'connected') {
+        ensureUserEntry();
+        for (const x of entries.values()) openChannel(x);
+      } else {
+        start();
+      }
     }
 
     return {
@@ -355,7 +369,7 @@ export function createRealtimeHub({
         if (released) return;
         released = true;
         entry.handles.delete(cbs);
-        openHandles--;
+        if (counted) openHandles--;
         if (ended) return;
         if (entry.handles.size === 0 && entry.kind === 'project') drop(entry);
         if (openHandles === 0) {
@@ -375,7 +389,10 @@ export function createRealtimeHub({
   }
 
   return {
-    project: (projectId) => acquire(projectId.toLowerCase(), 'project'),
-    user: () => acquire(USER_KEY, 'user') as unknown as UserHandle,
+    project: (projectId) => {
+      const key = projectTopic(projectId);
+      return acquire(key, 'project', parseTopic(key) !== null);
+    },
+    user: () => acquire(USER_KEY, 'user', true) as unknown as UserHandle,
   };
 }
