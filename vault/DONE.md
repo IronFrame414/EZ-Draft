@@ -119,3 +119,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-186 · Fix: no React version detect warning when lint runs from the repo root · nothing changes on screen; the gate's test step no longer prints the warning · a6f5849
 2026-10-26 · EZD-187 · Fix: the root test step runs the package tests even when a root node:test file fails · the gate now reports every app and geometry test even when one repo-script test is red · 01c6395
 2026-10-26 · EZD-178 · Fix: six more tools work when run through a symlinked path · budget, oauth-usage, watchdog, plan_lint, usage-by-agent and outline print their output through a symlinked folder · 0d27a16
+2026-10-26 · EZD-188 · Fix: production workflows use only listed actions · nothing on screen; the repo rule test fails if release or backup workflows use any action besides pinned checkout and setup-node · 2f4cd6f
