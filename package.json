@@ -8,7 +8,7 @@
   "scripts": {
     "typecheck": "pnpm -r --if-present --filter \"!./spikes/**\" run typecheck",
     "lint": "node scripts/conventions/check.mjs && node scripts/release/check-migrations.mjs && pnpm -r --if-present --filter \"!./spikes/**\" run lint",
-    "test": "pnpm run db:up && node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 \"scripts/**/*.test.mjs\" && pnpm -r --if-present --filter \"!./spikes/**\" run test",
+    "test": "pnpm run db:up && { node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 \"scripts/**/*.test.mjs\"; root=$?; pnpm -r --no-bail --if-present --filter \"!./spikes/**\" run test; pkgs=$?; [ $root -eq 0 ] && [ $pkgs -eq 0 ]; }",
     "build": "pnpm -r --if-present --filter \"!./spikes/**\" run build",
     "test:e2e": "pnpm run db:up && pnpm -r --if-present --filter \"!./spikes/**\" run test:e2e",
     "perf": "node scripts/perf/run.mjs",

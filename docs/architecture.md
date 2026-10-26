@@ -355,7 +355,7 @@ supabase/                 Supabase CLI folder: config.toml, seed.sql, migrations
 docs/architecture.md      this file; vault copy at vault/architecture.md, made by the orchestrator after EZD-000 and re-made on every merge that changes this file (PROCESS.md; Q-0012 (b))
 ```
 
-Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` (`app`, `geometry`, `worker`, `spike-<dir>` in lowercase). The root scripts `typecheck`, `lint`, `test` and `build` fan out to every workspace package except `spikes/*` with `pnpm -r --if-present --filter "!./spikes/**"`; `lint` runs check C1–C10 first and `test` runs the repo scripts' `node:test` files first. EZD-001 extends these files; it does not replace them. The geometry package runs in the browser, in Web Workers and in Node (02 Geometry core; 11 Where each output is produced), so it uses no DOM or React.
+Every workspace `package.json` is `"private": true` and named `@ezdraft/<name>` (`app`, `geometry`, `worker`, `spike-<dir>` in lowercase). The root scripts `typecheck`, `lint`, `test` and `build` fan out to every workspace package except `spikes/*` with `pnpm -r --if-present --filter "!./spikes/**"`; `lint` runs check C1–C10 first and `test` runs `db:up`, then the repo scripts' `node:test` files, then the package tests with `--no-bail`, every time, and fails when either part failed; a failed `db:up` runs neither (Q-0326). EZD-001 extends these files; it does not replace them. The geometry package runs in the browser, in Web Workers and in Node (02 Geometry core; 11 Where each output is produced), so it uses no DOM or React.
 
 ### Root config files
 

@@ -301,19 +301,13 @@ test('EZD-004a T14 Root scripts', () => {
   assert.ok(String(s['db:stop'] ?? '').includes('supabase stop'), 'db:stop');
   assert.equal(s['db:types'], 'node scripts/db/gen-types.mjs');
 
-  const t = String(s.test ?? '');
-  assert.ok(t.startsWith('pnpm run db:up && '), `test starts with "pnpm run db:up && ": ${t}`);
-  const tokens = t.split(/\s+/);
-  for (const tok of ['--test', '--test-concurrency=4', '"scripts/**/*.test.mjs"', '--if-present', '"!./spikes/**"']) {
-    assert.ok(tokens.includes(tok), `test script has token ${tok}`);
-  }
-  for (const pair of ['pnpm -r', 'run test']) {
-    const [a, b] = pair.split(' ');
-    assert.ok(
-      tokens.some((tok, i) => tok === a && tokens[i + 1] === b),
-      `test script has "${pair}" as consecutive tokens`,
-    );
-  }
+  // EZD-187 section 1 (S): db:up, then the root node:test files, then the package fan-out with --no-bail;
+  // the step exits 0 only when both parts exited 0.
+  assert.equal(
+    s.test,
+    'pnpm run db:up && { node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 "scripts/**/*.test.mjs"; root=$?; pnpm -r --no-bail --if-present --filter "!./spikes/**" run test; pkgs=$?; [ $root -eq 0 ] && [ $pkgs -eq 0 ]; }',
+    'test script equals S (EZD-187 section 1)',
+  );
   assert.ok(String(s.lint ?? '').includes('scripts/conventions/check.mjs'), 'lint still runs check.mjs');
 });
 
