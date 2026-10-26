@@ -101,3 +101,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-160 · Fix: architecture and runbook say only what is true · nothing on screen; the runbook lists the Claude settings never to add in Vercel, and the architecture notes and one migration comment no longer state wrong or unproven things · 54bb4d4
 2026-10-26 · EZD-161 · Fix: geometry tests are type-checked · nothing on screen; a type mistake in a geometry test or the geometry test config now fails the typecheck instead of slipping through · a4e1b73
 2026-10-26 · EZD-162 · Fix: vault wording and TRACE titles · nothing on screen; Josh's to-do list says Mac build machine, every field check names the Surface, and TRACE shows a title for each test of EZD-034, 035, 037, 038 · d2d328d
+2026-10-26 · EZD-164 · Spike: WebKit offline service-worker test · nothing on screen; the automated iPad and iPhone (WebKit) tests can check that the app opens offline: verdict yes · d7fcca6
