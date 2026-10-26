@@ -1,11 +1,10 @@
-# Handoff · 2026-10-26 · build EZD-171
+# Handoff · 2026-10-26 · build EZD-172
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: EZD-171 merged to develop (6905dbf, 930 tests). Code-reviewer and security-reviewer PASS round 1.
-- In progress: none
-- Blocked: none
-- Questions for Josh: see vault/questions/QUESTIONS.md. Josh's own steps from EZD-171: J1, J2, J4 (docs/runbook.md Cloud checks (EZD-171)); J3 after the phase 1 PR merges.
-- Decisions made: plan-gap (icons check skips CONVERTED.md, checks converted icons via kept original); planner lesson added.
-- Note: plan D12 says EZD-171 stays blocked through the phase 1 gate; the merge tool set it done. Orchestrator to reconcile.
-- Next unit: run node vault/tools/next_ticket.mjs --next-unit
+- Why the session ended: blocked on one guarded-file edit (scripts/gate.mjs, plan step 8)
+- Completed: worktree .claude/worktrees/EZD-172 on t/EZD-172. Tests a39a192 (test-author, Sonnet 5.5 medium). Build 2a382fd (builder, Sonnet 5.5 medium): steps 1-7 and 9. L1-L11 pass; not yet run: E1-E7, full gate.
+- Blocked: the hook refused my Edit on scripts/gate.mjs (rule 19 fix mode did not help). Patch: vault/handoff/EZD-172-gate.patch. On a temp copy, L12 (a)-(d) pass with it.
+- Josh's one step: `cd .claude/worktrees/EZD-172 && git apply ../../../vault/handoff/EZD-172-gate.patch` (do not commit it; the merge step squashes the worktree), then run /build-ticket EZD-172 again.
+- Next session continues at: gate, reviews (code-reviewer + security-reviewer), then the A1 three-gate acceptance run (plan section 4).
+- Builder notes for reviewers: (1) extra serverPort() call at top of runCheck in scripts/perf/check.mjs, not in plan; (2) EZD-166's config-hash marker is shared by all lanes and hashes only the root config.toml, so a running lane may not restart after a config change — reviewers to decide if that is a finding.
+- Questions for Josh: none new.
