@@ -115,3 +115,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-180 · Fix: EZD-005b T17 (e) passes in any run order · browser tests now hand the seeded people back unlinked, so the seed checks pass in any run order · 04dd279
 2026-10-26 · EZD-181 · Fix: a health check that times out reports the error · tests prove a hung database still gets its 500 at 3 s and the error reaches Sentry · 17bb02a
 2026-10-26 · EZD-183 · Fix: error tunnel forwards only a well-formed envelope event_id · text a caller puts in the error report's event_id no longer reaches Sentry; real reports still arrive with their id · bd73807
+2026-10-26 · EZD-184 · Fix: the two ESLint warnings from our code on develop · nothing changes on screen; lint prints no warnings from our code, and removed access still sends the person to sign-in · c3cb996
