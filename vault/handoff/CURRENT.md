@@ -1,11 +1,10 @@
-# Handoff · 2026-10-26 · build EZD-178 (session 1)
+# Handoff · 2026-10-26 · build EZD-179
 
 - Phase and stage: phase 1, build.
-- Why the session ended: EZD-178 blocked by design; its code is a patch Josh applies (guarded files).
-- Completed this session: worktree .claude/worktrees/EZD-178 on t/EZD-178; tests d1c7d7e (scripts/process/main-symlink-tools.test.mjs, T1-T8; T1-T6 red, T7-T8 green before the patch); patch vault/handoff/EZD-178-tools.patch (six files, apply --check exit 0).
-- In progress: EZD-178 awaits the patch.
-- Blocked: EZD-178 until Josh applies the patch.
-- Questions for Josh: none.
-- Josh: from the repo root, with no launcher unit running: git -C .claude/worktrees/EZD-178 apply "$PWD/vault/handoff/EZD-178-tools.patch"
-- Models: test-author haiku/high (--dispatch).
-- Next unit: build EZD-178 (session 2: resume at step 6, gate, then code-reviewer; no builder; delete the patch before finish).
+- Why the session ended: unit complete.
+- Completed this session: EZD-179 merged to develop (ea03a44, 967 tests); app/root/probe Vitest configs now .mts, no CommonJS warning.
+- In progress: none.
+- Blocked: EZD-178 (awaits Josh applying vault/handoff/EZD-178-tools.patch), EZD-153 (Q-0334).
+- Questions for Josh: none new.
+- Decisions made: D14 over D5 for the probe config comment (plan gap, orchestrator).
+- Next unit: run node vault/tools/next_ticket.mjs --next-unit

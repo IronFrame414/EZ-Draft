@@ -111,3 +111,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-171 · Fix: prove the cloud-only behaviours on the dev project and the live site · Josh gets a paste-in dev database check, a /dev/cloud-check page showing the visitor address the sign-in limit counts, and an icons:verify command · 6905dbf
 2026-10-26 · EZD-176 · Fix: workflows leave the Node 20 action pins · release, both backups and the dev-migration run use the Node 24 checkout and setup-node actions · e66b5a7
 2026-10-26 · EZD-177 · Fix: repo rule tests refuse pnpm_config_* environment names · the repo's rule tests now fail any workflow or package script that sets a pnpm_config_* name · fd5b147
+2026-10-26 · EZD-179 · Fix: app Vitest config loads without the CommonJS warning · every Vitest run of the app starts with no ESM/CommonJS warning · ea03a44
