@@ -282,7 +282,7 @@ export type ScrubbableEvent = {
   fingerprint?: unknown;
 };
 
-const EVENT_ID = /^[0-9a-f]{32}$/;
+export const EVENT_ID = /^[0-9a-f]{32}$/;
 const LEVELS = new Set(['fatal', 'error', 'warning', 'log', 'info', 'debug']);
 const TEXT_FIELDS = ['platform', 'logger', 'transaction', 'dist', 'type', 'message'] as const;
 const CONFIG_FIELDS = ['release', 'environment'] as const;

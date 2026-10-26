@@ -6,7 +6,7 @@
 import { parseEnvelope, type Envelope } from '@sentry/core';
 import * as Sentry from '@sentry/nextjs';
 import { after } from 'next/server';
-import { scrubEvent, type ScrubbableEvent } from '../../../lib/errors/scrub';
+import { EVENT_ID, scrubEvent, type ScrubbableEvent } from '../../../lib/errors/scrub';
 import { noteBrowserEvent } from '../../../server/errors/report';
 import { PLACEHOLDER_DSN } from '../../../server/errors/sentry-options';
 import { tunnelAllows } from '../../../server/errors/tunnel-throttle';
@@ -95,7 +95,7 @@ export async function POST(request: Request): Promise<Response> {
     if (events.length > 0 && dsn && transport) {
       const envelope = [
         {
-          ...(typeof parsed.header.event_id === 'string'
+          ...(typeof parsed.header.event_id === 'string' && EVENT_ID.test(parsed.header.event_id)
             ? { event_id: parsed.header.event_id }
             : {}),
           sent_at: new Date().toISOString(),
