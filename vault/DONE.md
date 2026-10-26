@@ -117,3 +117,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-183 · Fix: error tunnel forwards only a well-formed envelope event_id · text a caller puts in the error report's event_id no longer reaches Sentry; real reports still arrive with their id · bd73807
 2026-10-26 · EZD-184 · Fix: the two ESLint warnings from our code on develop · nothing changes on screen; lint prints no warnings from our code, and removed access still sends the person to sign-in · c3cb996
 2026-10-26 · EZD-186 · Fix: no React version detect warning when lint runs from the repo root · nothing changes on screen; the gate's test step no longer prints the warning · a6f5849
+2026-10-26 · EZD-187 · Fix: the root test step runs the package tests even when a root node:test file fails · the gate now reports every app and geometry test even when one repo-script test is red · 01c6395
