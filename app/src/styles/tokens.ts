@@ -51,4 +51,6 @@ export const TOKENS: readonly {
   { name: '--ez-shadow-dialog', value: '0 24px 64px rgba(10,15,30,.28)', group: 'shadow' },
   { name: '--ez-radius-14', value: '14px', group: 'radius' },
   { name: '--ez-cobalt-link', value: 'oklch(0.5 0.17 262)', group: 'color' },
+  { name: '--ez-surface-sunken', value: '#fbfbfc', group: 'color' },
+  { name: '--ez-amber-text', value: 'oklch(0.48 0.13 65)', group: 'color' },
 ];

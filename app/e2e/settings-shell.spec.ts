@@ -142,7 +142,8 @@ test.describe('EZD-103a settings shell', () => {
 
   test('B5 unbuilt pages open inside the shell with only their title', async ({ page }) => {
     await signInAsOwner(page);
-    for (const [id, slug, label] of SECTIONS) {
+    // EZD-112 built the company page, so it is no longer an unbuilt, title-only page.
+    for (const [id, slug, label] of SECTIONS.filter(([id]) => id !== 'company')) {
       const res = await page.goto(`/settings/${slug}`);
       expect(res?.status(), slug).toBe(200);
       await expect(page.locator('[data-settings-region="nav"]')).toBeVisible();

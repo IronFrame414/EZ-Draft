@@ -49,4 +49,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'error_tunnel_take', args: { p_ip_key: '0'.repeat(64), p_events: 1 } },
   // EZD-102 section 3 (vault/plans/EZD-102.md): the member's permission set, authenticated only.
   { fn: 'current_permissions', args: {} },
+  // EZD-112 section 3 (vault/plans/EZD-112.md): the company identity write path, authenticated only.
+  {
+    fn: 'update_tenant_identity',
+    args: { p_name: 'x', p_license_no: null, p_contact: {}, p_set_logo: false, p_logo_path: null },
+  },
 ];

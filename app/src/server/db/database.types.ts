@@ -410,6 +410,11 @@ isOneToOne: false
 { Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
               "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
             }[]
+                           },
+"update_tenant_identity":
+{ Args: { "p_contact": Json,"p_license_no": string,"p_logo_path": string,"p_name": string,"p_set_logo": boolean }; Returns: {
+              "changed": (string)[],"tenant_contact": Json,"tenant_id": string,"tenant_license_no": string,"tenant_logo_path": string,"tenant_name": string,"tenant_updated_at": string
+            }[]
                            }
           }
           Enums: {

@@ -66,6 +66,10 @@ export const es = {
   'error.envelope_too_large': 'Ese informe de error es demasiado grande para enviarlo.',
   'error.invalid_envelope': 'No se pudo leer ese informe de error.',
   'error.page_not_found': 'Página no encontrada.',
+  'error.company_name_required': 'Escribe el nombre de tu empresa.',
+  'error.logo_too_large': 'Los logotipos pueden pesar hasta 5 MB. Elige un archivo más pequeño.',
+  'error.logo_wrong_type': 'Los logotipos deben ser PNG, JPG o SVG.',
+  'error.logo_svg_unsafe': 'Este SVG no se puede usar. Guárdalo como PNG e inténtalo de nuevo.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

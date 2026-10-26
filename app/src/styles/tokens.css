@@ -50,4 +50,7 @@
   --ez-radius-14: 14px;
   /* S15 link color: a, .nvon .ms, Users badge; tickets README rule 5; EZD-103a */
   --ez-cobalt-link: oklch(0.5 0.17 262);
+  /* S15a logo box, unsaved line; EZD-112 */
+  --ez-surface-sunken: #fbfbfc;
+  --ez-amber-text: oklch(0.48 0.13 65);
 }
