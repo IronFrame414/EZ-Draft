@@ -11,7 +11,7 @@ import path from 'node:path';
 import tls from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import vitestConfig from '../../vitest.config';
+import vitestConfig from '../../vitest.config.mjs';
 import { netGuardFixture } from '../e2e/net-guard-fixture';
 import { GUARD_MARKER, blockedAttempts, socketTargetHost } from './net-guard.mjs';
 
@@ -38,7 +38,7 @@ function runProbe(probe: string) {
       'vitest',
       'run',
       '--config',
-      'test-harness/net-guard/probe.vitest.config.ts',
+      'test-harness/net-guard/probe.vitest.config.mts',
       `test-harness/net-guard/probes/${probe}`,
     ],
     { cwd: repoRoot, encoding: 'utf8', env: childEnv(), timeout: 120000 },

@@ -1,5 +1,5 @@
 // EZD-021 T3-T11 and T22 (vault/plans/EZD-021.md section 4): the AI client, the four adapters and the stub
-// providers. Everything runs in stub mode (AI_MODE=stub from app/vitest.config.ts) on the recordings of
+// providers. Everything runs in stub mode (AI_MODE=stub from app/vitest.config.mts) on the recordings of
 // src/server/ai/test-harness; the net guard (vitest.setup.ts) fails any test that reaches a live host.
 // Expected values come from the plan's Step 1 tables, Step 3 recordings and the inputs below.
 import { createHash } from 'node:crypto';

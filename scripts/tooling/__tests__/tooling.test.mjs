@@ -431,7 +431,7 @@ describe('EZD-001 repo tooling', () => {
 
   // ---------- T15 ----------
   test('EZD-001 T15: worker limits in the package Vitest configs', () => {
-    for (const p of [path.join(appDir, 'vitest.config.ts'), path.join(geoDir, 'vitest.config.ts')]) {
+    for (const p of [path.join(appDir, 'vitest.config.mts'), path.join(geoDir, 'vitest.config.ts')]) {
       const text = readFileSync(p, 'utf8');
       assert.ok(/\bmaxWorkers\s*:\s*4\b/.test(text), `${p} sets maxWorkers to 4 (Q-0114)`);
       assert.ok(text.includes('EZD_TEST_GREP'), `${p} reads EZD_TEST_GREP`);
