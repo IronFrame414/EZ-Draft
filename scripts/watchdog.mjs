@@ -9,7 +9,7 @@
 // It stays quiet while vault/handoff/STOP, BUDGET_HOLD.md or WINDOW_PAUSE.md exists, while the launcher says it is
 // waiting (on Josh, a pause or a limit), and after a stop the launcher already notified about. The same alert is sent
 // at most once every 3 hours. Config: scripts/launcher.config.json (notify_cmd, claude_bin, log_dir), as run.mjs.
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync, statSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -106,4 +106,5 @@ function main() {
   appendFileSync(path.join(logDir, 'watchdog-alerts.log'), `${new Date(now).toISOString()} ${msg}\n`);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+if (isMain) main();

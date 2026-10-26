@@ -7,7 +7,7 @@
 //   node scripts/budget.mjs --until-reset      ignore the hold for the rest of this week and release the hold
 //   node scripts/budget.mjs --api-until-reset  run on API credits (launcher.config.json api_key) until the weekly reset; releases the hold
 //   node scripts/budget.mjs --clear-override   remove an override
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -180,7 +180,7 @@ function cli() {
   return b;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain) {
   const b = cli();
   const holdFile = handoff(ROOT, 'BUDGET_HOLD.md');

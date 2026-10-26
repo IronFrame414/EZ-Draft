@@ -4,8 +4,7 @@
 //   node vault/tools/plan_lint.mjs <plan> [--allow-questions]   prints PLAN LINT OK, or PLAN LINT FAIL and one problem per line
 // --allow-questions: the planner's own check at plan time (QP questions go to the questions unit). Without it (before
 // `ready`), any QP question left in section 10 fails.
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // Words that leave a choice to the builder. Matched case-insensitively as whole words in sections 1, 3 and 4.
@@ -83,7 +82,7 @@ export function lintPlan(text, { allowQuestions = false } = {}) {
   return problems;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain) {
   const file = process.argv.slice(2).find((a) => !a.startsWith('--'));
   if (!file) { console.log('usage: node vault/tools/plan_lint.mjs <plan> [--allow-questions]'); process.exit(2); }

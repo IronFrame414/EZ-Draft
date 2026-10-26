@@ -3,8 +3,8 @@
 // Usage: node vault/tools/outline.mjs <path>   (vault/PROCESS.md section 13; PA3-MECHANISMS.md Item 3)
 //        node vault/tools/outline.mjs <plan> --section <n|header> [--section …]   print only those plan sections
 //        node vault/tools/outline.mjs <plan> --sizes   characters per plan section (optimize plan C3)
-import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { readFileSync, realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const CODE = ['.mjs', '.cjs', '.js', '.jsx', '.ts', '.tsx', '.mts', '.cts'];
 const MAX = 60;
@@ -104,7 +104,8 @@ export function outline(text, filePath) {
   return entries.map(cut);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+if (isMain) {
   const p = process.argv[2];
   if (!p) {
     process.stderr.write('usage: node vault/tools/outline.mjs <path>\n');
