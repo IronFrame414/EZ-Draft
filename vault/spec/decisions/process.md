@@ -55,3 +55,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0342 | 2026-10-26 | (a) Agent answer (code-reviewer): under boost no 70% weekly warning is sent, because boost removes the hold; PROCESS.md section 11 says so. Confirm or override. |
 | Q-0343 | 2026-10-26 | (a) Agent answer (code-reviewer): the guard denies any Read of a notebook over 20,000 characters, ranged or not. Confirm or override. |
 | Q-0344 | 2026-10-26 | (b) Agent answer (code-reviewer): fix ticket EZD-199, the guard denies a ranged Bash read whose selected text is over the limit. Confirm or override. |
+| Q-0351 | 2026-10-26 | Yes: EZD-172 gets one round past the three-round limit, limited to the out-of-date plan copy on its branch and three docs/architecture.md lines, then both reviewers. |
