@@ -22,3 +22,10 @@ Mistake: the `supabase.dump` test fake created its output folder itself, so `dum
 Cause: the fake did more than the real tool does, hiding a precondition the code under test must meet.
 Rule: a fake for an external tool does only what the real tool does (no creating folders, files or state the tool expects to exist); the builder makes every precondition the real tool needs (folders, files) itself rather than relying on the fake.
 Check: the fake writes into a path it did not create and fails like the real tool when the path is missing.
+
+## L-022  areas: tooling, scripts  seen: 1  status: candidate
+Ticket EZD-166, 2026-10-26
+Mistake: the builder added a try/catch fallback the plan did not list, and mapped every statSync error to "file missing".
+Cause: defensive handling written for cases the plan never named.
+Rule: catch only the errors the plan names (for example ENOENT) and rethrow the rest; add no fallback the plan does not list.
+Check: every catch in the diff names its error code or maps to a plan line.

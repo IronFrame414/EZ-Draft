@@ -103,3 +103,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-162 · Fix: vault wording and TRACE titles · nothing on screen; Josh's to-do list says Mac build machine, every field check names the Surface, and TRACE shows a title for each test of EZD-034, 035, 037, 038 · d2d328d
 2026-10-26 · EZD-164 · Spike: WebKit offline service-worker test · nothing on screen; the automated iPad and iPhone (WebKit) tests can check that the app opens offline: verdict yes · d7fcca6
 2026-10-26 · EZD-165 · Fix: membership end-sessions trigger covers user and company changes · nothing on screen; if a membership is moved to another person or company, those touched are signed out · 3e92a7a
+2026-10-26 · EZD-166 · Fix: db:up restarts the local stack when the Auth config or templates change · nothing on screen; after the sign-in email templates or local Supabase settings change, the next gate run picks them up with no manual db:stop · 0b3fba0
