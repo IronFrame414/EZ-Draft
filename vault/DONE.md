@@ -123,3 +123,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-189 · Fix: the policy check allows a Storage policy to read its screen's switch · nothing on screen; the table-policy check skips Storage policies so file storage (EZD-132) can merge · 4c7e85f
 2026-10-26 · EZD-132 · File storage · private per-company files, resumable browser uploads, 15-minute download links (nothing on screen yet) · 77c9085
 2026-10-26 · EZD-112 · Company settings: identity · Settings → Company: edit name, logo, license, contact; Save updates the Settings header · 69241cd
+2026-10-26 · EZD-113 · Customers · Settings → Company lists customers (50 per page, search, project counts), add/edit/archive/restore, duplicate email refused · 8047e76
