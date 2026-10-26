@@ -57,3 +57,4 @@ Mistake: U3 (a) anchored the frame markup at `^` and U3 (b) read the last `</div
 Cause: markup position checks were written without rendering the test's own harness wrapper once.
 Rule: when a test renders through `MessagesProvider`, position checks name the wrapper exactly (or anchor on the component's own tag), never `^` / `$` / the last closing tag.
 Check: render the wrapper alone with `renderToStaticMarkup` and look at the first and last tags before writing order assertions.
+- EZD-188 (2026-10-26): an allow-list over YAML built on a hand line scanner did not converge in 3 adversarial review rounds (each fix closed its sample, the next probe found another quoting form); plan a parser-backed cross-check (scanner list must equal the parser list) from the start.
