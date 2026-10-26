@@ -95,7 +95,7 @@ describe('EZD-014a device layout', () => {
     expect(spyW).toHaveBeenCalledTimes(0);
   });
 
-  it('U1 (d) the store reads the window and the server snapshot is full', () => {
+  it('U1 (d) the store reads the window and the server snapshot is full (EZD-158)', () => {
     for (const [w, layout] of [
       [1023, 'phone'],
       [1024, 'full'],
@@ -111,9 +111,10 @@ describe('EZD-014a device layout', () => {
       const adds = subscribed.flatMap((l) => l.addEventListener.mock.calls);
       expect(adds).toHaveLength(1);
       expect(adds[0][0]).toBe('change');
+      expect(subscribed).toHaveLength(1);
       off();
-      const removes = mm.lists.flatMap((l) => l.removeEventListener.mock.calls);
-      expect(removes).toHaveLength(1);
+      expect(subscribed[0].removeEventListener.mock.calls).toEqual([['change', adds[0][1]]]);
+      expect(mm.lists.flatMap((l) => l.removeEventListener.mock.calls)).toHaveLength(1);
       expect(spyW).toHaveBeenCalledTimes(0);
       vi.unstubAllGlobals();
     }

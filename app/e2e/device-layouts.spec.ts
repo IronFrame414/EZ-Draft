@@ -329,3 +329,26 @@ test.describe('EZD-014c device layouts', () => {
     },
   );
 });
+
+test.describe('EZD-158 touch-target helper', () => {
+  test('EZD-158 an empty aria-label falls back to the text', async ({ page }) => {
+    const box = 'position:fixed;top:100px;width:20px;height:20px;margin:0;padding:0;border:0';
+    await page.setContent(
+      '<!doctype html><html><body>' +
+        `<button aria-label="" style="${box};left:100px">Tap</button>` +
+        `<button aria-label="Close" style="${box};left:200px">X</button>` +
+        '</body></html>',
+    );
+    let caught: unknown = null;
+    try {
+      await expectTouchTargets(page, page.locator('body'));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught, 'expectTouchTargets must fail on these two buttons').not.toBeNull();
+    const message = String(caught);
+    expect(message).toMatch(/BUTTON \\?"Tap\\?" tap area \d+x\d+/);
+    expect(message).toMatch(/BUTTON \\?"Close\\?" tap area/);
+    expect(message).not.toMatch(/BUTTON \\?"\\?"/);
+  });
+});

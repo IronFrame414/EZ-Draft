@@ -267,8 +267,7 @@ async function loadGlb(file) {
 
 // ---------- T2-T5 checks ----------
 
-async function checkDxf(file) {
-  const e = expected(DXF);
+async function checkDxf(file, e = expected(DXF)) {
   const tol = e.tolerances.lengthIn;
   const dxf = await parseDxf(file);
 
@@ -383,11 +382,8 @@ async function checkDxf(file) {
   near(deg(arc.endAngle - arc.startAngle), door.swingDeg, 1e-9, 'swing angle');
   const mid = (arc.startAngle + arc.endAngle) / 2;
   const mp = [arc.center.x + arc.radius * Math.cos(mid), arc.center.y + arc.radius * Math.sin(mid)];
-  assert.equal(door.swingsInto, 'room');
-  assert.ok(
-    mp[0] > minX && mp[0] < maxX && mp[1] > minY && mp[1] < maxY,
-    'swing arc lies inside the room',
-  );
+  const inside = mp[0] > minX && mp[0] < maxX && mp[1] > minY && mp[1] < maxY;
+  assert.equal(inside, door.swingsInto === 'room', `swing arc follows swingsInto (${door.swingsInto})`);
   const win = e.semantic.window;
   const wsd = sides[win.wall];
   const thickness = e.semantic.walls.find((w) => w.side === win.wall).thicknessIn;
@@ -784,5 +780,13 @@ describe('EZD-016b synthetic fixtures', () => {
         assert.ok(!specs.some((s) => s === bad || s.includes(bad)), `${f}: imports ${bad}`);
       }
     }
+  });
+});
+
+describe('EZD-158 synthetic DXF swing direction', () => {
+  it('EZD-158 the DXF check follows swingsInto from the expected JSON', async () => {
+    const e2 = structuredClone(expected(DXF));
+    e2.semantic.door.swingsInto = 'outside';
+    await assert.rejects(checkDxf(path.join(SYNTHETIC, DXF), e2), /swingsInto/);
   });
 });
