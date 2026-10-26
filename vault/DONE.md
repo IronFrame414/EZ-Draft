@@ -116,3 +116,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-181 · Fix: a health check that times out reports the error · tests prove a hung database still gets its 500 at 3 s and the error reaches Sentry · 17bb02a
 2026-10-26 · EZD-183 · Fix: error tunnel forwards only a well-formed envelope event_id · text a caller puts in the error report's event_id no longer reaches Sentry; real reports still arrive with their id · bd73807
 2026-10-26 · EZD-184 · Fix: the two ESLint warnings from our code on develop · nothing changes on screen; lint prints no warnings from our code, and removed access still sends the person to sign-in · c3cb996
+2026-10-26 · EZD-186 · Fix: no React version detect warning when lint runs from the repo root · nothing changes on screen; the gate's test step no longer prints the warning · a6f5849
