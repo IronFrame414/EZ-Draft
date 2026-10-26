@@ -223,6 +223,38 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"source_file": {
+                  Row: {
+                    "content_type": string,"created_at": string,"id": string,"kind": string,"original_name": string,"project_id": string,"scale_calibration": Json | null,"size_bytes": number,"storage_path": string,"supplier_contact_email": string | null,"supplier_name": string | null,"tenant_id": string,"uploaded_at": string | null,"uploaded_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_type": string,"created_at"?: string,"id"?: string,"kind": string,"original_name": string,"project_id": string,"scale_calibration"?: Json | null,"size_bytes": number,"storage_path": string,"supplier_contact_email"?: string | null,"supplier_name"?: string | null,"tenant_id": string,"uploaded_at"?: string | null,"uploaded_by"?: string | null
+                  }
+                  Update: {
+                    "content_type"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"original_name"?: string,"project_id"?: string,"scale_calibration"?: Json | null,"size_bytes"?: number,"storage_path"?: string,"supplier_contact_email"?: string | null,"supplier_name"?: string | null,"tenant_id"?: string,"uploaded_at"?: string | null,"uploaded_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "source_file_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "source_file_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "source_file_uploaded_by_fkey"
+      columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tenant": {
                   Row: {
                     "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string

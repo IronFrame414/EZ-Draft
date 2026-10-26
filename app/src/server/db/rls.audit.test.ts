@@ -211,16 +211,20 @@ describe('EZD-006 RLS audit', () => {
       'membership',
       'membership_project',
       'sign_in_throttle',
+      'source_file',
       'tenant',
       'user_permission',
     ]);
     for (const [table, grant] of Object.entries(TABLE_GRANTS)) {
       // EZD-033 Step 5: sign_in_throttle gives authenticated no privilege at all (security definer access).
       // EZD-025 Step 1: backup_run is server-only too. EZD-143 D11: error_tunnel_throttle as well.
+      // EZD-132 section 3: source_file rows are written by members but never deleted (03c; 11 Data retention).
       expect(grant.privileges, table).toEqual(
         table === 'sign_in_throttle' || table === 'backup_run' || table === 'error_tunnel_throttle'
           ? []
-          : ['SELECT'],
+          : table === 'source_file'
+            ? ['SELECT', 'INSERT', 'UPDATE']
+            : ['SELECT'],
       );
       expect(grant.reason.length, table).toBeGreaterThan(0);
       expect(byName.has(table), table).toBe(true);

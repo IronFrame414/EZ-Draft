@@ -53,6 +53,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       'Members enqueue only through enqueue_job; the runner writes with the secret key (EZD-009)',
   },
+  source_file: {
+    privileges: ['SELECT', 'INSERT', 'UPDATE'],
+    reason:
+      'Originals are kept for the life of the project; no member deletes a row (03c; 11 Data retention; EZD-132)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {
