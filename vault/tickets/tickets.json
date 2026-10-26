@@ -14385,6 +14385,29 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-192",
+   "phase": 1,
+   "title": "Fix: the net-guard browser test EZD-159 T7 does not fail at random",
+   "depends_raw": "EZD-159, EZD-167",
+   "spec_ref": "Q-0339",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-159",
+    "EZD-167"
+   ],
+   "build_position": 501,
+   "acs": [
+    "AC-EZD-192-1",
+    "AC-EZD-192-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",

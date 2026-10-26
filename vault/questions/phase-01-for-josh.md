@@ -1,10 +1,16 @@
-# Phase 1 · for Josh (questions unit, 2026-10-26, nineteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-26, twentieth run)
 
-This run: one new question, Q-0336 (the app test-run warning), already covered by EZD-179 (Q-0314), so nothing new for you to decide. Q-0334 still waits for you. Sections 2 and 3 wait for your confirm or override.
+This run: Q-0339 (a flaky net-guard browser test) answered by rule 17: fix ticket EZD-192. The planner found the cause: not a flaky test but a gate listing fault. Four decisions wait for you (Q-0334, Q-0337, Q-0338, Q-0340). Section 2 and the rule candidate wait for your confirm.
 
 ## 1. Decisions needed
 
 **Q-0334 · EZD-153 (release safety check), added by build EZD-153 2026-10-25.** The extra round you allowed (Q-0331) closed every earlier finding, but the security review found two new ways to hide a table from the check: unusual letters (like `é`) in a name, and EXPLAIN inside a database function. This is the fourth round where each fix worked and a new spelling turned up. Pick one: (a) one more round that refuses anything unusual instead of listing spellings; none of today's 45 migrations would be refused (recommended); (b) change the design so a scratch database runs the new migrations and reports what they really create; bigger job; (c) merge as it is (stricter than today everywhere) with a fix ticket, shipping two known gaps until it merges. Full text: QUESTIONS.md Q-0334.
+
+**Q-0337 · EZD-163 (test harness leak checks), added by the planner 2026-10-26.** Chrome sometimes throws away the body of a form-submit reply (sign-in, server actions) when the page navigates, so the check that no secret leaks into responses cannot read those bodies. Pick one: (a) count those bodies as unread and allow that only for fetch and XHR replies; every page, script and GET body must still be read (recommended: stricter than the merged check for pages and scripts, and it does not change how traffic flows); (b) route every request through the test so all bodies are read first (buffers everything, changes app traffic under test); (c) check only pages and scripts, as the merged test did (weakest). It narrows a secret-leak check, so it is your call. Full text: Q-0337.
+
+**Q-0338 · EZD-134, EZD-1401, EZD-1404 (offline tests), added by build EZD-164 2026-10-26.** The spike showed the app opens offline after a reload in the iPad and iPhone test browsers (WebKit), same as Chrome. Pick one: (a) those three tickets also run their offline tests in the iPad and iPhone projects (recommended: covered automatically); (b) Chrome only, and you check a real iPad and iPhone by hand. Full text: Q-0338.
+
+**Q-0340 · EZD-192 (gate failure list), added by the planner 2026-10-26.** The "failed" browser test T7 never failed: it is a test that must fail, and the gate prints every line with a ✘ as a failure, so T7 showed up whenever another test in the step really failed. The fix is one line in `scripts/gate.mjs`, which agents may not edit. Pick one: (a) you apply the one-line change from the plan, or approve fix mode doing it (recommended); (b) leave it (breaks rule 17: the mis-listing stays). Full text: Q-0340.
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
@@ -58,6 +64,7 @@ Confirm or override each.
 | Q-0332 | EZD-191 (new) | (a) Fix ticket EZD-191: the repo's own scripts (including the release and backup scripts) and lint rules are never checked by the lint step; add them to it, with the right settings for scripts, and fix what it finds (521 problems today, 40 once the script settings are right). Four of the files are yours (gate, launcher, usage tools), so those fixes come as a patch you apply | code-reviewer; package.json:10; eslint.config.mjs; EZD-001.md:52; CLAUDE.md rule 17 |
 | Q-0335 | scripts/process/retrievers.test.mjs (EZD-156 build) | Orchestrator re-pinned the dispatch-template test to lines 1-21 in fix mode (commit 679b71b); confirm or revert | QUESTIONS.md Q-0335 |
 | Q-0336 | EZD-179 | Same as Q-0314: EZD-179 already removes the CommonJS warning from app test runs; no new ticket | Q-0314; vault/plans/EZD-179.md |
+| Q-0339 | EZD-192 (new) | Fix ticket EZD-192 for the `EZD-159 T7` report in the EZD-167 build; the planner found the cause is the gate's failure list (see Q-0340 above), not the test | CLAUDE.md rule 17; PROCESS.md rule 20 |
 
 Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (planned, ready).
 
@@ -81,4 +88,6 @@ Full tables are in each plan's section 6. Needing your approval:
 
 ## 4. Rule candidates
 
-None (no lessons entry has `status: candidate`).
+| ID | Rule | From | Recommendation |
+| --- | --- | --- | --- |
+| L-022 | Catch only the errors the plan names (for example ENOENT) and rethrow the rest; add no fallback the plan does not list. | EZD-166 | **ratify**: it is CLAUDE.md rule 4 (implement exactly your plan) applied to error handling, and a catch-all hides real faults (rule 16). |
