@@ -14408,6 +14408,141 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-193",
+   "phase": 1,
+   "title": "Fix: the launcher saves the raw text of any limit error (pilot row 8)",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 502,
+   "acs": [
+    "AC-EZD-193-1",
+    "AC-EZD-193-2",
+    "AC-EZD-193-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-194",
+   "phase": 1,
+   "title": "Fix: switching to API credits is proven with a fake claude (pilot row 10)",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 503,
+   "acs": [
+    "AC-EZD-194-1",
+    "AC-EZD-194-2",
+    "AC-EZD-194-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-195",
+   "phase": 1,
+   "title": "Fix: a refused agent start is seen live (pilot row 14)",
+   "depends_raw": "EZD-000f",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000f"
+   ],
+   "build_position": 504,
+   "acs": [
+    "AC-EZD-195-1",
+    "AC-EZD-195-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-196",
+   "phase": 1,
+   "title": "Fix: a retriever write outside pending is refused live (pilot row 15)",
+   "depends_raw": "EZD-000f",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000f"
+   ],
+   "build_position": 505,
+   "acs": [
+    "AC-EZD-196-1",
+    "AC-EZD-196-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-197",
+   "phase": 1,
+   "title": "Fix: the 70% weekly warning is proven to notify (pilot row 10)",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 506,
+   "acs": [
+    "AC-EZD-197-1",
+    "AC-EZD-197-2",
+    "AC-EZD-197-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-198",
+   "phase": 1,
+   "title": "Fix: the whole-read guard and notebooks over its limit agree with the pilot (pilot row 13)",
+   "depends_raw": "EZD-000c",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000c"
+   ],
+   "build_position": 507,
+   "acs": [
+    "AC-EZD-198-1",
+    "AC-EZD-198-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
