@@ -1,11 +1,11 @@
-# Handoff · 2026-10-26 · build EZD-177
+# Handoff · 2026-10-26 · build EZD-178 (session 1)
 
 - Phase and stage: phase 1, build.
-- Why the session ended: unit complete.
-- Completed this session: EZD-177 merged to develop (fd5b147, 960 tests). Gate green; code-reviewer (opus/medium) PASS, no findings.
-- In progress: none.
-- Blocked: none.
+- Why the session ended: EZD-178 blocked by design; its code is a patch Josh applies (guarded files).
+- Completed this session: worktree .claude/worktrees/EZD-178 on t/EZD-178; tests d1c7d7e (scripts/process/main-symlink-tools.test.mjs, T1-T8; T1-T6 red, T7-T8 green before the patch); patch vault/handoff/EZD-178-tools.patch (six files, apply --check exit 0).
+- In progress: EZD-178 awaits the patch.
+- Blocked: EZD-178 until Josh applies the patch.
 - Questions for Josh: none.
-- Decisions made: Q-0348 filed (answered-agent, level 2): flaky EZD-023e T8 (c) '403' check in scripts/release/__tests__/release.test.mjs:1615 (likely a git hash containing "403"; lines 1647/1665 use stripHex). The questions unit turns it into a phase-1 fix ticket. EZD-177 does not wait for it (rule 17 allows a fix ticket).
-- Models: test-author haiku/high, builder haiku/high, code-reviewer opus/medium (all from --dispatch).
-- Next unit: build EZD-178
+- Josh: from the repo root, with no launcher unit running: git -C .claude/worktrees/EZD-178 apply "$PWD/vault/handoff/EZD-178-tools.patch"
+- Models: test-author haiku/high (--dispatch).
+- Next unit: build EZD-178 (session 2: resume at step 6, gate, then code-reviewer; no builder; delete the patch before finish).

@@ -1,0 +1,123 @@
+diff --git a/scripts/budget.mjs b/scripts/budget.mjs
+index 6382e10..35dc709 100644
+--- a/scripts/budget.mjs
++++ b/scripts/budget.mjs
+@@ -7,7 +7,7 @@
+ //   node scripts/budget.mjs --until-reset      ignore the hold for the rest of this week and release the hold
+ //   node scripts/budget.mjs --api-until-reset  run on API credits (launcher.config.json api_key) until the weekly reset; releases the hold
+ //   node scripts/budget.mjs --clear-override   remove an override
+-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
++import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, realpathSync } from 'node:fs';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ 
+@@ -180,7 +180,7 @@ function cli() {
+   return b;
+ }
+ 
+-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+ if (isMain) {
+   const b = cli();
+   const holdFile = handoff(ROOT, 'BUDGET_HOLD.md');
+diff --git a/scripts/oauth-usage.mjs b/scripts/oauth-usage.mjs
+index ad055e1..651c341 100644
+--- a/scripts/oauth-usage.mjs
++++ b/scripts/oauth-usage.mjs
+@@ -2,7 +2,7 @@
+ // OAuth usage fallback (vault/PROCESS.md section 11 source 2; PA3-MECHANISMS.md Item 1b and rule 8).
+ // Reads Claude's usage endpoint when the status line has not refreshed. The sign-in token is read only when a request
+ // is due, held in one local variable, and never written to any file, log, output or report.
+-import { readFileSync, writeFileSync, renameSync, mkdirSync, readdirSync, existsSync, lstatSync } from 'node:fs';
++import { readFileSync, writeFileSync, renameSync, mkdirSync, readdirSync, existsSync, lstatSync, realpathSync } from 'node:fs';
+ import { spawnSync } from 'node:child_process';
+ import os from 'node:os';
+ import path from 'node:path';
+@@ -224,7 +224,7 @@ export async function probe({ root = ROOT, fetch = globalThis.fetch, readToken:
+   return lines;
+ }
+ 
+-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+ if (isMain && process.argv.includes('--probe')) {
+   for (const l of await probe()) console.log(l);
+   console.log(tokenExpiry());
+diff --git a/scripts/watchdog.mjs b/scripts/watchdog.mjs
+index 8b46c1b..66f3375 100644
+--- a/scripts/watchdog.mjs
++++ b/scripts/watchdog.mjs
+@@ -9,7 +9,7 @@
+ // It stays quiet while vault/handoff/STOP, BUDGET_HOLD.md or WINDOW_PAUSE.md exists, while the launcher says it is
+ // waiting (on Josh, a pause or a limit), and after a stop the launcher already notified about. The same alert is sent
+ // at most once every 3 hours. Config: scripts/launcher.config.json (notify_cmd, claude_bin, log_dir), as run.mjs.
+-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
++import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync, statSync, realpathSync } from 'node:fs';
+ import { spawnSync } from 'node:child_process';
+ import os from 'node:os';
+ import path from 'node:path';
+@@ -106,4 +106,5 @@ function main() {
+   appendFileSync(path.join(logDir, 'watchdog-alerts.log'), `${new Date(now).toISOString()} ${msg}\n`);
+ }
+ 
+-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
++const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
++if (isMain) main();
+diff --git a/vault/tools/plan_lint.mjs b/vault/tools/plan_lint.mjs
+index 2333db5..ce16384 100644
+--- a/vault/tools/plan_lint.mjs
++++ b/vault/tools/plan_lint.mjs
+@@ -4,8 +4,7 @@
+ //   node vault/tools/plan_lint.mjs <plan> [--allow-questions]   prints PLAN LINT OK, or PLAN LINT FAIL and one problem per line
+ // --allow-questions: the planner's own check at plan time (QP questions go to the questions unit). Without it (before
+ // `ready`), any QP question left in section 10 fails.
+-import { readFileSync } from 'node:fs';
+-import path from 'node:path';
++import { readFileSync, realpathSync } from 'node:fs';
+ import { fileURLToPath } from 'node:url';
+ 
+ // Words that leave a choice to the builder. Matched case-insensitively as whole words in sections 1, 3 and 4.
+@@ -83,7 +82,7 @@ export function lintPlan(text, { allowQuestions = false } = {}) {
+   return problems;
+ }
+ 
+-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+ if (isMain) {
+   const file = process.argv.slice(2).find((a) => !a.startsWith('--'));
+   if (!file) { console.log('usage: node vault/tools/plan_lint.mjs <plan> [--allow-questions]'); process.exit(2); }
+diff --git a/vault/tools/usage-by-agent.mjs b/vault/tools/usage-by-agent.mjs
+index a22266a..48a7331 100644
+--- a/vault/tools/usage-by-agent.mjs
++++ b/vault/tools/usage-by-agent.mjs
+@@ -322,4 +322,5 @@ function main() {
+   else process.stdout.write(md + '\n');
+ }
+ 
+-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main();
++const isMain = (() => { try { return !!process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
++if (isMain) main();
+diff --git a/vault/tools/outline.mjs b/vault/tools/outline.mjs
+index 090ad4f..c421c00 100644
+--- a/vault/tools/outline.mjs
++++ b/vault/tools/outline.mjs
+@@ -3,8 +3,8 @@
+ // Usage: node vault/tools/outline.mjs <path>   (vault/PROCESS.md section 13; PA3-MECHANISMS.md Item 3)
+ //        node vault/tools/outline.mjs <plan> --section <n|header> [--section …]   print only those plan sections
+ //        node vault/tools/outline.mjs <plan> --sizes   characters per plan section (optimize plan C3)
+-import { readFileSync } from 'node:fs';
+-import { pathToFileURL } from 'node:url';
++import { readFileSync, realpathSync } from 'node:fs';
++import { fileURLToPath } from 'node:url';
+ 
+ const CODE = ['.mjs', '.cjs', '.js', '.jsx', '.ts', '.tsx', '.mts', '.cts'];
+ const MAX = 60;
+@@ -104,7 +104,8 @@ export function outline(text, filePath) {
+   return entries.map(cut);
+ }
+ 
+-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
++const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
++if (isMain) {
+   const p = process.argv[2];
+   if (!p) {
+     process.stderr.write('usage: node vault/tools/outline.mjs <path>\n');
