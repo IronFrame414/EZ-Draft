@@ -5,14 +5,15 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
-import type { AddressInfo } from 'node:net';
+import net, { connect as netConnect, type AddressInfo } from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
+import tls from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import vitestConfig from '../../vitest.config';
 import { netGuardFixture } from '../e2e/net-guard-fixture';
-import { GUARD_MARKER } from './net-guard.mjs';
+import { GUARD_MARKER, blockedAttempts, socketTargetHost } from './net-guard.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(here, '..', '..');
@@ -203,6 +204,7 @@ test('swallows a live fetch', async () => { try { await fetch('https://api.anthr
         matcher = m;
         handler = h;
       },
+      routeWebSocket: async () => {},
     };
     const [fixture] = netGuardFixture as unknown as [
       (args: unknown, provide: (v: void) => Promise<void>) => Promise<void>,
@@ -214,5 +216,210 @@ test('swallows a live fetch', async () => { try { await fetch('https://api.anthr
       await handler?.({ request: () => ({ url: () => url }), abort: async () => {} });
     });
     await expect(run).rejects.toThrow('api.anthropic.com');
+  });
+});
+
+const SOCKET_HOSTS = [
+  'api.anthropic.com',
+  'api.openai.com',
+  'api.resend.com',
+  'api.bfl.ai',
+  'o1.ingest.sentry.io',
+];
+
+describe('EZD-159 network guard blocks sockets', () => {
+  // T1
+  it('EZD-159 T1 a test opening a socket to a live host fails with NetGuardError @smoke', () => {
+    const run = runProbe('live-sockets.probe.ts');
+    expect(run.status, run.output).not.toBe(0);
+    for (const host of SOCKET_HOSTS) {
+      expect(run.output, host).toContain(`NetGuardError: Live network blocked in tests: ${host}`);
+    }
+    expect(run.output).toMatch(/Tests\s+5 failed \(5\)/);
+  }, 240000);
+
+  // T2
+  it('EZD-159 T2 the preload records each blocked socket call', () => {
+    const script = path.join(tmp, 't2.mjs');
+    writeFileSync(
+      script,
+      `import net from 'node:net';
+import tls from 'node:tls';
+import { connect as tlsConnect } from 'node:tls';
+const calls = [
+  () => tls.connect(443, 'api.anthropic.com'),
+  () => net.connect(443, 'api.openai.com'),
+  () => net.createConnection({ host: 'api.resend.com', port: 443 }),
+  () => new net.Socket().connect(443, 'api.bfl.ai'),
+  () => new WebSocket('wss://o1.ingest.sentry.io/api/1/'),
+  () => tlsConnect({ host: 'generativelanguage.googleapis.com', port: 443 }),
+];
+calls.forEach((fn, i) => {
+  try { fn(); console.log(JSON.stringify({ call: i + 1, name: 'none', code: 'none' })); }
+  catch (e) { console.log(JSON.stringify({ call: i + 1, name: e.name, code: e.code })); }
+});
+`,
+    );
+    const log = path.join(tmp, 't2.log');
+    const run = spawnSync(process.execPath, ['--import', preload, script], {
+      encoding: 'utf8',
+      env: childEnv({ EZD_NET_GUARD_LOG: log }),
+      timeout: 30000,
+    });
+    expect(run.status, run.stderr).toBe(1);
+    const out = run.stdout
+      .split('\n')
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as { name: string; code: string });
+    expect(out).toHaveLength(6);
+    for (const o of out) {
+      expect(o.name).toBe('NetGuardError');
+      expect(o.code).toBe('live_network_blocked_in_tests');
+    }
+    const lines = readFileSync(log, 'utf8')
+      .split('\n')
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as { via: string; method: string; host: string });
+    expect(lines.map((l) => [l.via, l.method, l.host])).toEqual([
+      ['tls', 'CONNECT', 'api.anthropic.com'],
+      ['net', 'CONNECT', 'api.openai.com'],
+      ['net', 'CONNECT', 'api.resend.com'],
+      ['net', 'CONNECT', 'api.bfl.ai'],
+      ['websocket', 'GET', 'o1.ingest.sentry.io'],
+      ['tls', 'CONNECT', 'generativelanguage.googleapis.com'],
+    ]);
+    for (const host of [
+      'api.anthropic.com',
+      'api.openai.com',
+      'api.resend.com',
+      'api.bfl.ai',
+      'o1.ingest.sentry.io',
+      'generativelanguage.googleapis.com',
+    ]) {
+      expect(run.stderr, host).toContain(host);
+    }
+  }, 60000);
+
+  // T3
+  it('EZD-159 T3 loopback sockets and Unix socket paths are allowed', () => {
+    const script = path.join(tmp, 't3.mjs');
+    writeFileSync(
+      script,
+      `import fs from 'node:fs';
+import net from 'node:net';
+import os from 'node:os';
+import path from 'node:path';
+import tls from 'node:tls';
+let tcp = 0;
+let ipc = 0;
+const tcpServer = net.createServer((s) => { tcp++; s.on('error', () => {}); });
+const sockPath = path.join(os.tmpdir(), \`ezd159-\${process.pid}.sock\`);
+try { fs.rmSync(sockPath, { force: true }); } catch {}
+const ipcServer = net.createServer((s) => { ipc++; s.on('error', () => {}); });
+await new Promise((r) => tcpServer.listen(0, '127.0.0.1', r));
+await new Promise((r) => ipcServer.listen(sockPath, r));
+const port = tcpServer.address().port;
+const quiet = (c) => { c.on('error', () => {}); return c; };
+const clients = [
+  quiet(net.connect(port, '127.0.0.1')),
+  quiet(net.createConnection({ port, host: '127.0.0.1' })),
+  quiet(new net.Socket().connect(port, '127.0.0.1')),
+  quiet(tls.connect({ port, host: '127.0.0.1', rejectUnauthorized: false })),
+  quiet(net.connect(sockPath)),
+];
+const ws = new WebSocket(\`ws://127.0.0.1:\${port}/\`);
+ws.onerror = () => {};
+const start = Date.now();
+while ((tcp < 5 || ipc < 1) && Date.now() - start < 5000) await new Promise((r) => setTimeout(r, 20));
+console.log(JSON.stringify({ tcp, ipc }));
+for (const c of clients) c.destroy();
+try { ws.close(); } catch {}
+tcpServer.close();
+ipcServer.close();
+fs.rmSync(sockPath, { force: true });
+process.exit();
+`,
+    );
+    const log = path.join(tmp, 't3.log');
+    const run = spawnSync(process.execPath, ['--import', preload, script], {
+      encoding: 'utf8',
+      env: childEnv({ EZD_NET_GUARD_LOG: log }),
+      timeout: 30000,
+    });
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.stdout.trim()).toBe('{"tcp":5,"ipc":1}');
+    expect(existsSync(log) ? readFileSync(log, 'utf8') : '').toBe('');
+    expect(run.stderr).not.toContain('Live network blocked');
+  }, 60000);
+
+  // T4
+  it('EZD-159 T4 socketTargetHost reads every argument form', () => {
+    const before = blockedAttempts().length;
+    const sock = {};
+    const cases: Array<[string, unknown[], 'net' | 'tls', string | null]> = [
+      ['a', [443, 'api.example.test'], 'net', 'api.example.test'],
+      ['b', [5432], 'net', 'localhost'],
+      ['c', ['5432', '127.0.0.1'], 'net', '127.0.0.1'],
+      ['d', ['/tmp/ezd.sock'], 'net', null],
+      ['e', [{ host: 'api.example.test', port: 443 }], 'net', 'api.example.test'],
+      ['f', [{ port: 443 }], 'net', 'localhost'],
+      ['g', [{ port: 443, host: '' }], 'net', 'localhost'],
+      ['h', [{ path: '/tmp/ezd.sock', host: 'api.example.test' }], 'net', null],
+      ['i', [[{ host: 'api.example.test', port: 443 }, null]], 'net', 'api.example.test'],
+      ['j', [{ socket: sock, host: 'api.example.test', port: 443 }], 'net', 'api.example.test'],
+      ['k', [{ socket: sock, host: 'api.example.test' }], 'tls', null],
+      ['l', [443, 'a.example.test', { host: 'b.example.test' }], 'tls', 'b.example.test'],
+      ['m', [443, { host: 'c.example.test' }], 'tls', 'c.example.test'],
+      ['n', [443, 'd.example.test'], 'tls', 'd.example.test'],
+      ['o', ['/tmp/ezd.sock', { host: 'api.example.test' }], 'tls', null],
+      ['p', [], 'net', 'localhost'],
+    ];
+    for (const [name, args, kind, expected] of cases) {
+      expect(socketTargetHost(args, kind), name).toBe(expected);
+    }
+    expect(blockedAttempts().length).toBe(before);
+  });
+
+  // T5
+  it('EZD-159 T5 Vitest runs with every socket wrapper installed', () => {
+    const marked = (fn: unknown) => (fn as Record<symbol, unknown>)[GUARD_MARKER];
+    expect(marked(net.connect), 'net.connect').toBe(true);
+    expect(marked(net.createConnection), 'net.createConnection').toBe(true);
+    expect(marked(net.Socket.prototype.connect), 'Socket.prototype.connect').toBe(true);
+    expect(marked(tls.connect), 'tls.connect').toBe(true);
+    expect(marked(globalThis.WebSocket), 'WebSocket').toBe(true);
+    expect(marked(netConnect), 'named import connect').toBe(true);
+    expect(typeof WebSocket).toBe('function');
+    expect(WebSocket.OPEN).toBe(1);
+  });
+
+  // T6
+  it('EZD-159 T6 the browser fixture blocks a live page WebSocket and names it', async () => {
+    type WsHandler = (ws: { url(): string; close(): Promise<void> }) => unknown;
+    let matcher: ((url: URL) => boolean) | undefined;
+    let handler: WsHandler | undefined;
+    let closed = false;
+    const context = {
+      route: async () => {},
+      routeWebSocket: async (m: (url: URL) => boolean, h: WsHandler) => {
+        matcher = m;
+        handler = h;
+      },
+    };
+    const [fixture] = netGuardFixture as unknown as [
+      (args: unknown, provide: (v: void) => Promise<void>) => Promise<void>,
+    ];
+    const run = fixture({ context, netGuardLog: path.join(tmp, 'none.log') }, async () => {
+      expect(matcher?.(new URL('wss://api.anthropic.com/'))).toBe(true);
+      expect(matcher?.(new URL('ws://127.0.0.1:54321/realtime/v1/websocket'))).toBe(false);
+      await handler?.({
+        url: () => 'wss://api.anthropic.com/',
+        close: async () => {
+          closed = true;
+        },
+      });
+    });
+    await expect(run).rejects.toThrow('Live network blocked in browser tests: api.anthropic.com');
+    expect(closed).toBe(true);
   });
 });

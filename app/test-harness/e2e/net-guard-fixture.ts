@@ -40,6 +40,13 @@ export const netGuardFixture = [
         return route.abort();
       },
     );
+    await context.routeWebSocket(
+      (url) => !isLoopback(url),
+      (ws) => {
+        browserHosts.push(new URL(ws.url()).hostname);
+        return ws.close();
+      },
+    );
     await provide();
     const serverHosts = logLines(netGuardLog).slice(before).map(hostOfLine);
     const runnerHosts = blockedAttempts()
