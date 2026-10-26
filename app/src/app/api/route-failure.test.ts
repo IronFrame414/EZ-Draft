@@ -31,7 +31,7 @@ const state = vi.hoisted(() => ({
   afterTasks: [] as Array<() => unknown>,
   requireApiSession: async (): Promise<unknown> => null,
   getPermissionContext: async (): Promise<unknown> => null,
-  enqueueJob: async (..._args: unknown[]): Promise<unknown> => null,
+  enqueueJob: async (): Promise<unknown> => null,
   readHealth: async (): Promise<unknown> => null,
 }));
 
@@ -64,7 +64,7 @@ vi.mock('../../server/permissions/context', async (importOriginal) => ({
 
 vi.mock('../../server/jobs', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../server/jobs')>()),
-  enqueueJob: (...a: unknown[]) => state.enqueueJob(...a),
+  enqueueJob: () => state.enqueueJob(),
 }));
 
 vi.mock('../../server/db/health', () => ({

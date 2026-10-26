@@ -96,12 +96,6 @@ const PRESETS: Record<string, string[]> = {
   foreman: FOREMAN,
   crew: CREW,
 };
-const PRESET_NAMES: Record<string, string> = {
-  owner: 'Owner',
-  designer: 'Designer',
-  foreman: 'Foreman',
-  crew: 'Crew',
-};
 
 const PRIVILEGE = '42501';
 const sorted = (a: string[]) => [...a].sort();
