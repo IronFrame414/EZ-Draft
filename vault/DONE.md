@@ -112,3 +112,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-176 · Fix: workflows leave the Node 20 action pins · release, both backups and the dev-migration run use the Node 24 checkout and setup-node actions · e66b5a7
 2026-10-26 · EZD-177 · Fix: repo rule tests refuse pnpm_config_* environment names · the repo's rule tests now fail any workflow or package script that sets a pnpm_config_* name · fd5b147
 2026-10-26 · EZD-179 · Fix: app Vitest config loads without the CommonJS warning · every Vitest run of the app starts with no ESM/CommonJS warning · ea03a44
+2026-10-26 · EZD-180 · Fix: EZD-005b T17 (e) passes in any run order · browser tests now hand the seeded people back unlinked, so the seed checks pass in any run order · 04dd279

@@ -1,10 +1,10 @@
-# Handoff · 2026-10-26 · build EZD-179
+# Handoff · 2026-10-26 · build EZD-180
 
 - Phase and stage: phase 1, build.
 - Why the session ended: unit complete.
-- Completed this session: EZD-179 merged to develop (ea03a44, 967 tests); app/root/probe Vitest configs now .mts, no CommonJS warning.
+- Completed this session: EZD-180 merged to develop (04dd279, 973 tests); browser test teardown now restores the five seeded people unlinked, so EZD-005b T17 (e) passes in any run order. vault/architecture.md re-made.
 - In progress: none.
 - Blocked: EZD-178 (awaits Josh applying vault/handoff/EZD-178-tools.patch), EZD-153 (Q-0334).
 - Questions for Josh: none new.
-- Decisions made: D14 over D5 for the probe config comment (plan gap, orchestrator).
-- Next unit: run node vault/tools/next_ticket.mjs --next-unit
+- Decisions made: none. Models followed --dispatch (haiku/high test-author and builder, opus/medium reviewer), not the plan's Sonnet text.
+- Next unit: build EZD-181
