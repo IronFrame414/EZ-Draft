@@ -284,6 +284,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@types/react` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `@types/react-dom` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `postgres` | `3.4.9` | root, app | Test harness: catalog queries and SQL-as-user for RLS tests (EZD-006); dev dependency, never imported by app code; ships its own types | EZD-006 |
+| `js-yaml` | `4.3.2` | root | Test harness: YAML parser that cross-checks the workflow line scanner (rules (j), (n), ci.test.mjs); dev dependency, never imported by app code; same version as the transitive copy under @eslint/eslintrc | EZD-188 |
 | `@aws-sdk/client-s3` | `3.1153.0` | root | Off-site bucket, S3-compatible API (release dumps EZD-023d; backups EZD-025) | EZD-023d |
 | `@supabase/realtime-js` | `2.118.0` | app | Browser Realtime client (EZD-018); no table-query API in the browser | EZD-018 |
 | `fontkit` | `2.0.4` | spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
@@ -937,6 +938,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Release refuses anything but the newest merged PR on main | scripts/release/__tests__/release.test.mjs | EZD-023b |
 | — | Release workflow is main-only, pinned and secret-safe | scripts/release/__tests__/workflow.test.mjs | EZD-023e |
 | — | pnpm build settings: no `permissions` setting, no allow-all, `allowBuilds` a block of `false` entries; production workflows switch on no cache in any form | `scripts/tooling/__tests__/tooling.test.mjs` (EZD-001 T10, EZD-148 T2), `scripts/release/__tests__/workflow.test.mjs` (EZD-023e T17, EZD-148 T3), `scripts/ci/__tests__/ci.test.mjs` (EZD-002 T2 (i), EZD-148 T1) | EZD-148 |
+| — | Production workflows (`release.yml`, `backup-files.yml`, `backup-db.yml`) use only `actions/checkout` and `actions/setup-node` pinned to a 40-character SHA, every `uses` value at any depth (rule (n); Q-0328); rules (i), (j) and (n) read `uses` through one helper | `scripts/ci/__tests__/ci.test.mjs` (EZD-002 T2 rule (n), EZD-188 T1-T6) | EZD-188 |
 | — | Performance counts and download size | scripts/perf/run.mjs (gate step perf); scripts/perf/__tests__/, app/e2e/perf-check.spec.ts | EZD-017 |
 | — | A test reaching a live provider fails | `app/test-harness/net-guard/net-guard.test.ts` (T12, T13), `app/e2e/net-guard.spec.ts` (T14) | EZD-021 |
 | — | A raw socket, TLS socket or WebSocket to a live host fails a test | `app/test-harness/net-guard/net-guard.test.ts` (EZD-159 T1–T6), `app/e2e/net-guard.spec.ts` (EZD-159 T7, T8) | EZD-159 |

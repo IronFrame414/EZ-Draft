@@ -1,4 +1,4 @@
-// EZD-002 T1-T6 (vault/plans/EZD-002.md sections 3 and 4). Offline; Node built-ins only.
+// EZD-002 T1-T6 (vault/plans/EZD-002.md sections 3 and 4). Offline; Node built-ins and js-yaml (EZD-188 A3).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import yaml from 'js-yaml';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const workflowsDir = path.join(repo, '.github', 'workflows');
@@ -19,7 +20,7 @@ const isBlankOrComment = (l) => l.trim() === '' || l.trim().startsWith('#');
 const stripQuotes = (s) => s.trim().replace(/^(['"])(.*)\1$/, '$2');
 const stripComment = (s) => s.replace(/\s+#.*$/, '');
 
-// ---------- workflow checker (line based, no YAML package) ----------
+// ---------- workflow checker (line based, cross-checked with js-yaml, EZD-188 A3) ----------
 
 // Lines nested under the line at index i (indent greater than line i's), blank/comment lines skipped.
 function children(lines, i) {
@@ -136,8 +137,37 @@ function quoteReadable(l) {
   return !/['"]/.test(l) || QUOTE_SHAPES.some((re) => re.test(l));
 }
 
-function cacheUses(lines) {
-  const found = [];
+// EZD-188 R1: the one extraction of `uses` values and of the lines that can hide one (rules (i), (j) and (n) read it).
+const USES_WORD_RE = /(?<![A-Za-z0-9_-])uses(?![A-Za-z0-9_-])/gi;
+const KEY_LINE_RE = /^[ \t]*(?:-[ \t]+)*["']?[A-Za-z_][A-Za-z0-9_.-]*["']?[ \t]*:(?:[ \t]|$)/;
+// Brackets opened minus closed on one line, outside quoted text. A quote opens quoted text only where YAML starts a
+// node (line start, after `- `, `: `, `? `, or after `,` `[` `{`); elsewhere it is a plain character. Quoted text left
+// open runs to the end of the line, so a quoted } or ] never closes a flow (fail closed).
+const QUOTE_START_RE = /(?:^|[-:?][ \t]+|[,\[{][ \t]*)$/;
+function flowDepth(text) {
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if ((c === '"' || c === "'") && QUOTE_START_RE.test(text.slice(0, i).replace(/^[ \t]+/, ''))) {
+      let j = i + 1;
+      while (j < text.length) {
+        if (c === '"' && text[j] === '\\') j += 2;
+        else if (c === "'" && text[j] === "'" && text[j + 1] === "'") j += 2;
+        else if (text[j] === c) break;
+        else j += 1;
+      }
+      i = j;
+      continue;
+    }
+    if (c === '{' || c === '[') depth += 1;
+    if (c === '}' || c === ']') depth -= 1;
+  }
+  return depth;
+}
+
+function scanWorkflowLines(lines) {
+  const out = [];
+  let open = null;
   lines.forEach((l, i) => {
     const n = i + 1;
     const t = l.trim();
@@ -145,22 +175,96 @@ function cacheUses(lines) {
     if (ascii && t.startsWith('#')) return;
     const readable = ascii && quoteReadable(l) && !NODE_START_RE.test(stripCacheComment(l));
     const body = readable ? stripCacheComment(l) : l;
-    if (/^(-\s+)?\?(\s|$)/.test(t)) found.push(`explicit key at line ${n}`);
-    if (!readable) found.push(`unreadable quoting at line ${n}`);
+    const problems = [];
+    const uses = [];
+    if (open !== null && body.trim() !== '') {
+      if (!KEY_LINE_RE.test(body) && indentOf(l) > open) problems.push(`uses value continued at line ${n}`);
+      open = null;
+    }
+    if (/^(-\s+)?\?(\s|$)/.test(t)) problems.push(`explicit key at line ${n}`);
+    if (!readable) problems.push(`unreadable quoting at line ${n}`);
+    let keys = 0;
     for (const m of body.matchAll(USES_KEY_RE)) {
-      const raw = body.slice(m.index + m[0].length).split(/[,}\]]/)[0].trim();
+      keys += 1;
+      const flow = /[{\[]/.test(body.slice(0, m.index + m[1].length));
+      const rest = body.slice(m.index + m[0].length);
+      const parts = flow ? rest.split(/[,}\]]/) : [rest];
+      const raw = parts[0].trim();
+      if (parts.length === 1) open = indentOf(l);
       if (raw === '' || /^[>|*&!]/.test(raw)) {
-        found.push(`unreadable uses value at line ${n}`);
+        problems.push(`unreadable uses value at line ${n}`);
         continue;
       }
-      const value = raw.replace(/^["']/, '').replace(/["']$/, '').trim().toLowerCase();
+      uses.push(stripQuotes(raw));
+    }
+    if ([...body.matchAll(USES_WORD_RE)].length > keys) problems.push(`uses word not read as a key at line ${n}`);
+    // A2: a { or [ left open at the end of the line. A line refused for another reason keeps that reason only, unless
+    // that reason is `unreadable quoting`, which rule (j) drops (D16); then the open flow is reported as well.
+    if (flowDepth(body) > 0 && problems.every((p) => p.startsWith('unreadable quoting at line '))) {
+      problems.push(`unreadable multi-line flow at line ${n}`);
+    }
+    out.push({ n, body, problems, uses });
+  });
+  return out;
+}
+
+function cacheUses(lines) {
+  const found = [];
+  for (const { n, body, problems, uses } of scanWorkflowLines(lines)) {
+    found.push(...problems);
+    for (const v of uses) {
+      const value = v.toLowerCase();
       if (/^actions\/cache(\/|@|$)/.test(value)) found.push(`${value} at line ${n}`);
     }
     if (CACHE_KEY_RE.test(body)) found.push(`cache key at line ${n}`);
     const pm = PM_CACHE_RE.exec(body);
     if (pm && stripQuotes(pm[2]).toLowerCase() !== 'false') found.push(`package-manager-cache at line ${n}`);
-  });
+  }
   return found;
+}
+
+// EZD-188 R3 (Q-0328): the production workflows may use only these actions, pinned to a full lower-case SHA.
+const LISTED_ACTIONS = ['actions/checkout', 'actions/setup-node'];
+const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+function isListedUse(v) {
+  const at = v.indexOf('@');
+  return at > 0 && LISTED_ACTIONS.includes(v.slice(0, at).toLowerCase()) && FULL_SHA_RE.test(v.slice(at + 1));
+}
+function unlistedUses(lines) {
+  const found = [];
+  for (const { n, problems, uses } of scanWorkflowLines(lines)) {
+    found.push(...problems);
+    for (const v of uses) {
+      if (!isListedUse(v)) found.push(`uses not on the allowed list at line ${n}: ${v}`);
+    }
+  }
+  return found;
+}
+
+// EZD-188 A3 (Q-0349 (a)): every string value of an exact `uses` key in the parsed document, in document order.
+function parsedUses(node, out = []) {
+  if (Array.isArray(node)) {
+    for (const el of node) parsedUses(el, out);
+  } else if (node !== null && typeof node === 'object') {
+    for (const [k, v] of Object.entries(node)) {
+      if (k === 'uses' && typeof v === 'string') out.push(v);
+      parsedUses(v, out);
+    }
+  }
+  return out;
+}
+
+// EZD-188 A3: the scanner's uses values must equal the parser's; text js-yaml refuses is refused (fail closed).
+function usesCrossCheck(text, lines) {
+  let doc;
+  try {
+    doc = yaml.load(text);
+  } catch {
+    return ['workflow text is not valid YAML'];
+  }
+  const a = scanWorkflowLines(lines).flatMap((e) => e.uses).sort();
+  const b = parsedUses(doc).sort();
+  return JSON.stringify(a) === JSON.stringify(b) ? [] : ['scanner/parser uses mismatch'];
 }
 
 const EXPECTED_SECRETS = {
@@ -182,27 +286,20 @@ const PNPM_CONFIG_RE = /pnpm_config_/i;
 // EZD-147 rule (j): a `uses:` value must be owner/repo[/path]@<40 lower-case hex> (vault/plans/EZD-147.md section 3).
 const PIN_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.\/-]+)?@[0-9a-f]{40}$/;
 
-// Problems of rule (j), J1-J5 (Q-0329 (a)): the R1 line loop over EZD-148's constants; a line that can hide a `uses`
-// key from USES_KEY_RE is refused, never skipped (L-006).
+// Rule (j) (Q-0329 (a)): uses values and problems from scanWorkflowLines, except unreadable quoting.
 function unpinnedUses(lines) {
   const found = [];
-  lines.forEach((l, i) => {
-    const n = i + 1;
-    const t = l.trim();
+  for (const { n, body, problems, uses } of scanWorkflowLines(lines)) {
+    const l = lines[n - 1];
     const ascii = ASCII_LINE_RE.test(l);
-    if (ascii && t.startsWith('#')) return;
-    const readable = ascii && quoteReadable(l) && !NODE_START_RE.test(stripCacheComment(l));
-    const body = readable ? stripCacheComment(l) : l;
     if (!ascii) found.push(`non-ASCII text at line ${n}`);
-    if (/^(-\s+)?\?(\s|$)/.test(t)) found.push(`explicit key at line ${n}`);
     if (ascii && NODE_START_RE.test(body)) found.push(`anchor, alias or tag at line ${n}`);
     if (ascii && !quoteReadable(l) && l.includes('\\')) found.push(`escaped text at line ${n}`);
-    for (const m of body.matchAll(USES_KEY_RE)) {
-      const raw = body.slice(m.index + m[0].length).split(/[,}\]]/)[0].trim();
-      const value = stripQuotes(raw);
-      if (value === '' || !PIN_RE.test(value)) found.push(`uses not pinned to a full SHA at line ${n}: ${value}`);
+    found.push(...problems.filter((p) => !p.startsWith('unreadable quoting at line ')));
+    for (const v of uses) {
+      if (!PIN_RE.test(v)) found.push(`uses not pinned to a full SHA at line ${n}: ${v}`);
     }
-  });
+  }
   return found;
 }
 
@@ -251,7 +348,7 @@ function permissionProblems(lines) {
 }
 
 // The one checker T2 runs on every real workflow file and T2b runs on in-memory samples.
-// Returns [{ rule: 'a'..'k', msg }].
+// Returns [{ rule, msg }]; rule is the letter of the block that found it.
 function checkWorkflow(fileName, text) {
   const lines = text.split(/\r?\n/);
   const problems = [];
@@ -312,12 +409,19 @@ function checkWorkflow(fileName, text) {
 
   // (j) SHA pins and (k) permissions, every file (EZD-147)
   for (const u of unpinnedUses(lines)) add('j', u);
+  const cross = usesCrossCheck(text, lines);
+  for (const c of cross) add('j', c);
   for (const p of permissionProblems(lines)) add('k', p);
   // (l) pnpm settings from environment names (EZD-177; Q-0283 (a))
   lines.forEach((l, i) => {
     if (l.trim().startsWith('#')) return;
     if (PNPM_CONFIG_RE.test(l)) add('l', `pnpm_config_ name at line ${i + 1}`);
   });
+  // (n) listed actions only (EZD-188, Q-0328)
+  if (['release.yml', 'backup-files.yml', 'backup-db.yml'].includes(fileName)) {
+    for (const u of unlistedUses(lines)) add('n', u);
+    for (const c of cross) add('n', c);
+  }
   return problems;
 }
 
@@ -479,6 +583,239 @@ test('EZD-148 T1 rule (i) catches inline, mixed-case and unreadable cache forms 
     }
   }
   assert.deepEqual(falsePositives, [], 'clean controls have no problem with rule (i)');
+});
+
+// ---------- EZD-188 T1-T6 (vault/plans/EZD-188.md sections 3 and 4) ----------
+const PROD_FILES = ['release.yml', 'backup-files.yml', 'backup-db.yml'];
+const ruleOf = (P, r) => P.filter((p) => p.rule === r).map((p) => p.msg);
+
+test('EZD-188 T1 rule (n) refuses every uses value outside the listed actions (AC-EZD-188-1, AC-EZD-188-2) done when', () => {
+  const on = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const bad = [
+    ['l1', on(`      - uses: someone/cache@${S}\n`)],
+    ['l2', on(`      - uses: actions/checkout/sub@${S}\n`)],
+    ['l3', `on:\n  workflow_dispatch:\njobs:\n  a:\n    uses: o/r/.github/workflows/x.yml@${S}\n`],
+    ['l4', on('      - uses: docker://alpine:3\n')],
+    ['l5', on('      - uses: ./.github/actions/x\n')],
+    ['l6', on('      - uses: actions/checkout@v4\n')],
+    ['l7', on(`      - uses: >-\n          actions/checkout@${S}\n`)],
+    ['l8', on(`      - uses: actions/checkout@${S.toUpperCase()}\n`)],
+    ['l9', on('      - uses: actions/setup-node@3d3c42e\n')],
+    ['l10', on('      - uses: actions/checkout\n')],
+    ['l11', on(`      - { uses: someone/cache@${S} }\n`)],
+    ['l12', on(`      [uses: someone/cache@${S}]\n`)],
+    ['l13', on(`      - uses: "actions/checkout@${S}"\n`)],
+    ['l14', on(`      - { ? uses\n          : someone/cache@${S} }\n`)],
+    ['l15', on(`      - uses: actions/checkout@${S}\n          someone/cache@${S}\n`)],
+    ['l16', on(`      - uses: actions/checkout@${S}\n\n          x\n`)],
+    ['l17', on(`      - { uses: actions/checkout@${S}\n        someone }\n`)],
+    ['l18', on(`      - uses: actions/checkout@${S}, someone/cache@${S}\n`)],
+    ['l19', on(`      - uses: actions/checkout@${S} }\n`)],
+    ['l20', on(`      - uses: Someone/Cache@${S}\n`)],
+    ['l21', on(`      - name: &k uses\n        *k : someone/cache@${S}\n`)],
+    ['l22', on(`      - uses:\n          actions/checkout@${S}\n`)],
+    ['l23', on('      - uses: *a\n')],
+    ['l24', on(`      - uses: actions/checkout@${S}@x\n`)],
+  ];
+  const controls = [
+    ['m1', on(`      - uses: actions/checkout@${S}\n        with:\n          persist-credentials: false\n      - uses: actions/setup-node@${S}\n        with:\n          node-version: 22\n`)],
+    ['m2', on(`      - uses: Actions/Setup-Node@${S}\n`)],
+    ['m3', on(`      - uses: 'actions/checkout@${S}'\n`)],
+    ['m4', on(`      - uses: actions/checkout@${S} # v7.0.1\n      - run: echo ok\n`)],
+    ['m5', on(`      - { uses: actions/checkout@${S}, with: { fetch-depth: 0 } }\n`)],
+    ['m6', on('      - run: echo ok\n')],
+    ['m7', on(`      - uses: actions/checkout@${S}\n      - { run: echo ok }\n`)],
+  ];
+  const exact = {
+    l1: [`uses not on the allowed list at line 7: someone/cache@${S}`],
+    l3: [`uses not on the allowed list at line 5: o/r/.github/workflows/x.yml@${S}`],
+    l7: ['unreadable uses value at line 7', 'uses value continued at line 8', 'scanner/parser uses mismatch'],
+    l13: ['unreadable quoting at line 7'],
+    l14: ['uses word not read as a key at line 7', 'scanner/parser uses mismatch'],
+    l15: ['uses value continued at line 8', 'scanner/parser uses mismatch'],
+    l23: ['unreadable quoting at line 7', 'unreadable uses value at line 7', 'workflow text is not valid YAML'],
+  };
+  let cases = 0;
+  for (const f of PROD_FILES) {
+    for (const [id, text] of bad) {
+      cases += 1;
+      const P = checkWorkflow(f, text);
+      assert.ok(ruleOf(P, 'n').length > 0, `${id} in ${f}: rule (n) refuses it`);
+      if (exact[id]) assert.deepEqual(ruleOf(P, 'n'), exact[id], `${id} in ${f}: exact (n) messages`);
+    }
+    for (const [id, text] of controls) {
+      const P = checkWorkflow(f, text);
+      assert.deepEqual(ruleOf(P, 'n'), [], `${id} in ${f}: no (n) problem`);
+      assert.deepEqual(ruleOf(P, 'i'), [], `${id} in ${f}: no (i) problem`);
+    }
+  }
+  assert.equal(cases, 72, '24 samples x 3 files');
+  const extra = [
+    ['a1', on(`      - uses: ' actions/checkout@${S} '\n`)],
+    ['p1', on(`      - { name: a,\n        uses: actions/checkout@${S}\n        someone }\n`)],
+    ['p2', on(`      - {\n        uses: actions/checkout@${S}\n        someone }\n`)],
+    ['p3', on(`      - { name: a,\n          uses: actions/checkout@${S}\n        someone }\n`)],
+    ['p4', on(`      - [ { name: a,\n        uses: actions/checkout@${S}\n        someone } ]\n`)],
+    // Round 3: an opening line whose only other problem is `unreadable quoting` (dropped by rule (j), D16).
+    ['q1', on(`      - { name: "b",\n        uses: actions/checkout@${S}\n        x }\n`)],
+    ['q2', on(`      - { name: 'b',\n        uses: actions/checkout@${S}\n        x }\n`)],
+    ['q3', on(`      - { name: "}",\n        uses: actions/checkout@${S}\n        x }\n`)],
+    ['q4', on(`      - { name: "a},\n        b", uses: actions/checkout@${S}\n        x }\n`)],
+  ];
+  for (const f of PROD_FILES) {
+    for (const [id, text] of extra) {
+      const m = ruleOf(checkWorkflow(f, text), 'n');
+      assert.ok(m.length > 0, `${id} in ${f}: rule (n) refuses it`);
+      if (id === 'a1') {
+        // A3: scanner and parser agree on the padded value, so no mismatch.
+        assert.deepEqual(m, [`uses not on the allowed list at line 7:  actions/checkout@${S} `], `${id} in ${f}`);
+      } else {
+        assert.ok(m.includes('unreadable multi-line flow at line 7'), `${id} in ${f}: ${m}`);
+        assert.ok(m.includes('scanner/parser uses mismatch'), `${id} in ${f}: ${m}`);
+      }
+    }
+  }
+  // A3 round 3: misses the line scanner alone let through, closed by the parser cross-check.
+  const crossOnly = [
+    ['r1', on(`      - { "k":"}",\n        uses: actions/checkout@${S}\n        x }\n`)],
+    ['r2', on(`      - { name: a, # "}"\n        uses: actions/checkout@${S}\n        x }\n`)],
+  ];
+  for (const f of PROD_FILES) {
+    for (const [id, text] of crossOnly) {
+      const P = checkWorkflow(f, text);
+      assert.deepEqual(ruleOf(P, 'n'), ['unreadable quoting at line 7', 'scanner/parser uses mismatch'], `${id} in ${f}: (n)`);
+      assert.deepEqual(ruleOf(P, 'i'), ['unreadable quoting at line 7'], `${id} in ${f}: (i)`);
+    }
+    const d1 = checkWorkflow(f, on(`      - uses: actions/checkout@${S}\n        uses: actions/checkout@${S}\n`));
+    assert.deepEqual(ruleOf(d1, 'n'), ['workflow text is not valid YAML'], `d1 in ${f}: (n)`);
+    assert.deepEqual(ruleOf(d1, 'i'), [], `d1 in ${f}: (i)`);
+  }
+  for (const f of ['ci.yml', 'supabase-dev.yml', 'x.yml']) {
+    for (const [id, text] of bad) {
+      assert.deepEqual(ruleOf(checkWorkflow(f, text), 'n'), [], `${id} as ${f}: rule (n) does not run`);
+    }
+  }
+});
+
+test('EZD-188 T2 the three production workflows pass and use only the listed actions (AC-EZD-188-3)', () => {
+  const expected = {
+    'release.yml': [[24, ['actions/checkout']], [28, ['actions/setup-node']]],
+    'backup-files.yml': [[22, ['actions/checkout']], [25, ['actions/setup-node']]],
+    'backup-db.yml': [[22, ['actions/checkout']], [25, ['actions/setup-node']]],
+  };
+  for (const f of PROD_FILES) {
+    const text = readFileSync(path.join(workflowsDir, f), 'utf8');
+    assert.deepEqual(show(checkWorkflow(f, text)), [], `${f}: no problem`);
+    const scan = scanWorkflowLines(text.split(/\r?\n/));
+    assert.deepEqual(
+      scan.filter((e) => e.uses.length).map((e) => [e.n, e.uses.map((v) => v.split('@')[0])]),
+      expected[f],
+      `${f}: uses lines`,
+    );
+    for (const e of scan) for (const v of e.uses) assert.ok(isListedUse(v), `${f} line ${e.n}: ${v} is listed`);
+  }
+  // A3: scanner and parser agree on every real workflow file.
+  const parsedCount = {
+    'ci.yml': 4, 'supabase-dev.yml': 2, 'release.yml': 2, 'backup-files.yml': 2, 'backup-db.yml': 2,
+  };
+  for (const [f, count] of Object.entries(parsedCount)) {
+    const text = readFileSync(path.join(workflowsDir, f), 'utf8');
+    assert.deepEqual(usesCrossCheck(text, text.split(/\r?\n/)), [], `${f}: scanner and parser agree`);
+    assert.equal(parsedUses(yaml.load(text)).length, count, `${f}: parsed uses count`);
+  }
+});
+
+test('EZD-188 T3 rules (i) and (n) report the same unreadable lines (AC-EZD-188-1, AC-EZD-188-2)', () => {
+  const on = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const H = /^(explicit key|unreadable quoting|unreadable uses value|uses word not read as a key|uses value continued) at line \d+$/;
+  const cases = [
+    ['h1', on(`      - uses: >-\n          actions/checkout@${S}\n`), ['unreadable uses value at line 7', 'uses value continued at line 8']],
+    ['h2', on(`      - uses: "actions/checkout@${S}"\n`), ['unreadable quoting at line 7']],
+    ['h3', on('      - { ? uses\n          : actions/cache@v4 }\n'), ['uses word not read as a key at line 7']],
+    ['h4', on(`      - uses: actions/checkout@${S}\n          someone/cache@${S}\n`), ['uses value continued at line 8']],
+    ['h5', on(`      - ? uses\n        : someone/cache@${S}\n`), ['explicit key at line 7', 'uses word not read as a key at line 7']],
+    ['h6', on(`      - { name: a\u00A0#, uses: someone/cache@${S} }\n`), ['unreadable quoting at line 7']],
+    ['h7', on(`      - &s { uses: someone/cache@${S} }\n`), ['unreadable quoting at line 7']],
+  ];
+  for (const f of PROD_FILES) {
+    for (const [id, text, want] of cases) {
+      const P = checkWorkflow(f, text);
+      assert.deepEqual(ruleOf(P, 'i').filter((m) => H.test(m)), want, `${id} in ${f}: rule (i)`);
+      assert.deepEqual(ruleOf(P, 'n').filter((m) => H.test(m)), want, `${id} in ${f}: rule (n)`);
+    }
+  }
+});
+
+test('EZD-188 T4 one uses extraction in ci.test.mjs (AC-EZD-188-1)', () => {
+  const text = readFileSync(fileURLToPath(import.meta.url), 'utf8');
+  const needle = '.matchAll(' + 'USES_KEY_RE)';
+  assert.equal(text.split(needle).length - 1, 1, 'exactly one uses-key extraction');
+});
+
+test('EZD-188 T5 Machine checks names rule (n)', () => {
+  const doc = readFileSync(path.join(repo, 'docs', 'architecture.md'), 'utf8');
+  const lines = doc.split(/\r?\n/);
+  const mc = lines.findIndex((l) => l.trim() === '## Machine checks');
+  assert.ok(mc >= 0, '## Machine checks heading');
+  let end = lines.length;
+  for (let i = mc + 1; i < lines.length; i++) if (/^## /.test(lines[i])) { end = i; break; }
+  const rows = lines.slice(mc, end).filter((l) => {
+    const t = l.trim();
+    if (!t.startsWith('|')) return false;
+    const cells = t.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+    return cells[cells.length - 1] === 'EZD-188';
+  });
+  assert.ok(rows.length > 0, 'a Machine checks row whose last cell is EZD-188');
+  assert.ok(
+    rows.some((r) => ['ci.test.mjs', 'actions/checkout', 'actions/setup-node', 'rule (n)'].every((s) => r.includes(s))),
+    'the row names ci.test.mjs, actions/checkout, actions/setup-node and rule (n)',
+  );
+});
+
+test('EZD-188 T6 rule (j) reads uses through the shared helper (AC-EZD-188-1)', () => {
+  const cases = [
+    ['g1', '      - { ? uses\n          : actions/checkout@v4 }\n', ['(j) uses word not read as a key at line 9', '(j) scanner/parser uses mismatch']],
+    ['g2', `      - uses: actions/checkout@${S}, x\n`, [`(j) uses not pinned to a full SHA at line 9: actions/checkout@${S}, x`]],
+    ['g3', `      - uses: actions/checkout@${S}\n          x\n`, ['(j) uses value continued at line 10', '(j) scanner/parser uses mismatch']],
+    ['g4', `      - uses: actions/checkout@${S}'\n`, [`(j) uses not pinned to a full SHA at line 9: actions/checkout@${S}'`]],
+    ['g5', '      - uses:\n          actions/checkout@v4\n', ['(j) unreadable uses value at line 9', '(j) uses value continued at line 10', '(j) scanner/parser uses mismatch']],
+    ['ga1', `      - uses: ' actions/checkout@${S} '\n`, [`(j) uses not pinned to a full SHA at line 9:  actions/checkout@${S} `]],
+    ['gp1', `      - { name: a,\n        uses: actions/checkout@${S}\n        someone }\n`, ['(j) unreadable multi-line flow at line 9', '(j) scanner/parser uses mismatch']],
+    ['gp2', `      - {\n        uses: actions/checkout@${S}\n        someone }\n`, ['(j) unreadable multi-line flow at line 9', '(j) scanner/parser uses mismatch']],
+    ['gp3', `      - { name: a,\n          uses: actions/checkout@${S}\n        someone }\n`, ['(j) unreadable multi-line flow at line 9', '(j) scanner/parser uses mismatch']],
+    ['gp4', `      - [ { name: a,\n        uses: actions/checkout@${S}\n        someone } ]\n`, ['(j) unreadable multi-line flow at line 9', '(j) scanner/parser uses mismatch']],
+    ['gc1', `      - { uses: actions/checkout@${S}, name: "co" }\n`, []],
+    ['gc2', `      - uses: someone/x@${S}\n`, []],
+  ];
+  for (const [id, body, want] of cases) {
+    assert.deepEqual(show(checkWorkflow('x.yml', pinned(body))), want, id);
+  }
+  // Round 3: an opening line whose only other problem is `unreadable quoting`, which rule (j) drops (D16), still
+  // reports the open flow under (j) in every file rule (j) checks.
+  const quoted = [
+    ['gq1', `      - { name: "b",\n        uses: actions/checkout@${S}\n        x }\n`],
+    ['gq2', `      - { name: 'b',\n        uses: actions/checkout@${S}\n        x }\n`],
+    ['gq3', `      - { name: "}",\n        uses: actions/checkout@${S}\n        x }\n`],
+    ['gq4', `      - { name: "a},\n        b", uses: actions/checkout@${S}\n        x }\n`],
+  ];
+  for (const f of ['x.yml', 'ci.yml', 'release.yml']) {
+    for (const [id, body] of quoted) {
+      const j = show(checkWorkflow(f, pinned(body))).filter((m) => m.startsWith('(j) '));
+      assert.deepEqual(j, ['(j) unreadable multi-line flow at line 9', '(j) scanner/parser uses mismatch'], `${id} in ${f}`);
+    }
+  }
+  // A3 round 3: no other (j) problem on these, so the parser cross-check alone refuses them.
+  const crossOnly = [
+    ['gr1', `      - { "k":"}",\n        uses: actions/checkout@${S}\n        x }\n`, ['(j) scanner/parser uses mismatch']],
+    ['gr2', `      - { name: a, # "}"\n        uses: actions/checkout@${S}\n        x }\n`, ['(j) scanner/parser uses mismatch']],
+    ['gd1', `      - uses: actions/checkout@${S}\n        uses: actions/checkout@${S}\n`, ['(j) workflow text is not valid YAML']],
+  ];
+  for (const f of ['x.yml', 'ci.yml', 'release.yml']) {
+    for (const [id, body, want] of crossOnly) {
+      const j = show(checkWorkflow(f, pinned(body))).filter((m) => m.startsWith('(j) '));
+      assert.deepEqual(j, want, `${id} in ${f}`);
+    }
+  }
 });
 
 // ---------- T3 ----------
