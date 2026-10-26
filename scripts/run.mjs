@@ -39,6 +39,7 @@ const budgetPath = path.join(vault, 'budget.json');
 const costLog = path.join(vault, 'cost/log.jsonl');
 const holdFile = path.join(vault, 'handoff/BUDGET_HOLD.md');
 const stopFile = path.join(vault, 'handoff/STOP');
+const windowPauseFile = path.join(vault, 'handoff/WINDOW_PAUSE.md');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
 // The unit in flight, written before each `claude -p` and removed after its cost row, so a launcher killed mid-unit
 // (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start.
@@ -67,6 +68,8 @@ const UNITS = {
 
 const log = (msg) => console.log(`[run ${new Date().toISOString().slice(11, 19)}] ${msg}`);
 function notify(msg) {
+  // A dry run reports the message and sends nothing (EZD-155; Q-0291 (a)).
+  if (dryRun) { log(`dry run: would notify: ${msg}`); return; }
   log(`NOTIFY: ${msg}`);
   if (!config.notify_cmd) return;
   const r = spawnSync('/bin/sh', ['-c', config.notify_cmd], { env: { ...process.env, MSG: `EZ Draft: ${msg}` }, encoding: 'utf8', timeout: 20000 });
@@ -333,8 +336,11 @@ async function main() {
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   for (;;) {
     // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
-    if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
+    if (dryRun && boostState({ root }).expired) log('dry run: boost mode has expired; a real run would remove vault/handoff/BOOST.json');
+    else if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
     const stopExists = existsSync(stopFile);
+    // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
+    if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
     const next = stopExists ? '' : tool('--next-unit').stdout.trim();
     const [unitName, arg] = next.split(/\s+/, 2);
@@ -352,13 +358,16 @@ async function main() {
     if (meters.warning) log(meters.warning);
     const decision = gateDecision(meters, b);
     if (decision.pause) {
+      if (dryRun) { log(`dry run: five-hour window at ${decision.pause.pct}%; a real run would pause until ${decision.pause.resume_at} and write vault/handoff/WINDOW_PAUSE.md`); return; }
       log(`five-hour window at ${decision.pause.pct}%; paused until ${decision.pause.resume_at} (vault/handoff/WINDOW_PAUSE.md)`);
       await waitForWindow({ pause: decision.pause, sleep });
       continue;
     }
     // Boost mode skips the weekly hold (Josh 2026-10-24: "remove the hold completely during boost"); the five-hour pause
     // above and a real plan-limit error below still apply.
-    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify });
+    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify, dryRun });
+    // A dry run writes no hold or marker file (EZD-155; Q-0291 (a)); it says what a real run would write, and under boost a real run skips the hold (above).
+    if (dryRun && !boostState({ root }).active && decision.hold && !existsSync(holdFile)) log(`dry run: weekly usage at ${Math.round(meters.seven_day.pct)}%; a real run would write vault/handoff/BUDGET_HOLD.md and notify`);
     if (!gate.start) {
       log(gate.reason);
       if (/weekly_ceiling_usd_est/.test(gate.reason)) notify(`launcher stopped: ${gate.reason}`);

@@ -93,7 +93,8 @@ export function writeHold({ root = ROOT, now = new Date(), reason, meters, budge
   writeFileSync(handoff(root, 'BUDGET_HOLD.md'), txt);
 }
 
-export async function applyGates({ root = ROOT, now = new Date(), budget = {}, meters, nextUnit, inProgressBuild, notify = () => {} }) {
+// dryRun (EZD-155; Q-0291 (a)): the same decision and return value as a real pass, but no marker or hold file is written and notify is never called.
+export async function applyGates({ root = ROOT, now = new Date(), budget = {}, meters, nextUnit, inProgressBuild, notify = () => {}, dryRun = false }) {
   const decision = gateDecision(meters, budget, now);
   const holdFile = handoff(root, 'BUDGET_HOLD.md');
   if (meters.source === 'proxy' && !budget.weekly_ceiling_usd_est) {
@@ -105,14 +106,14 @@ export async function applyGates({ root = ROOT, now = new Date(), budget = {}, m
   const pct = w ? Math.round(w.pct) : 0;
   if (decision.warn) {
     const marker = handoff(root, `.budget-warned-${w.resets_at.slice(0, 10)}`);
-    if (!existsSync(marker)) {
+    if (!existsSync(marker) && !dryRun) {
       mkdirSync(path.dirname(marker), { recursive: true });
       writeFileSync(marker, now.toISOString());
       await notify(`weekly usage at ${pct}% (${meters.source}); hold at ${decision.thresholds.hold_at_pct}%. Resets ${fmt(w.resets_at)}.`);
     }
   }
   if (decision.hold) {
-    if (!existsSync(holdFile)) {
+    if (!existsSync(holdFile) && !dryRun) {
       writeHold({ root, now, reason: `weekly usage reached the hold (${pct}%)`, meters, budget, nextUnit });
       await notify(`budget hold: weekly usage at ${pct}% (hold at ${decision.thresholds.hold_at_pct}%). In-progress ticket finishes; nothing new starts. See vault/handoff/BUDGET_HOLD.md.`);
     }

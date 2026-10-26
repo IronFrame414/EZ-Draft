@@ -20,6 +20,7 @@ import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { summarizeStep } from './gate-summary.mjs';
 
 const args = process.argv.slice(2);
 const phaseIdx = args.indexOf('--phase');
@@ -147,25 +148,10 @@ const run = (cmdArgs, label) => {
     const lines = out.trim().split('\n');
     console.log(lines.slice(-3).join('\n'));
   } else {
-    // Summary for reviewers: failing test names and the first error line; the rest is in gate.log.
-    const lines = out.split('\n');
-    const isFailing = (l) => /(^|\s)(FAIL|✗|✘|×|✖)\s/.test(l) || /^\s+\d+\)\s/.test(l);
-    const isError = (l) => /error/i.test(l) && !/0 errors?/i.test(l) && !/^\s*>/.test(l);
-    const allFailing = lines.filter(isFailing);
-    const failing = allFailing.slice(0, 12);
-    const firstError = lines.find(isError);
-    for (const l of failing) console.log(l);
-    if (firstError) console.log(`first error: ${firstError.trim()}`);
-    if (!failing.length && !firstError) console.log(lines.filter(Boolean).slice(-8).join('\n'));
+    // Summary for reviewers: failing test names and the first error after them; the rest is in gate.log (scripts/gate-summary.mjs, EZD-155).
+    const { failing, firstError, consoleLines, entries } = summarizeStep(label, out);
+    for (const l of consoleLines) console.log(l);
     failures.push({ label, failing, firstError });
-    // gate-failures.log: each failing line with the first error line after it (within 30 lines), then the step's first error.
-    const entries = [`=== ${label} ===`];
-    for (const l of allFailing) {
-      const at = lines.indexOf(l);
-      const err = lines.slice(at + 1, at + 31).find(isError);
-      entries.push(l.trim(), ...(err ? [`  ${err.trim()}`] : []));
-    }
-    if (!allFailing.length) entries.push(firstError ? `first error: ${firstError.trim()}` : lines.filter(Boolean).slice(-8).join('\n'));
     try {
       const have = readFileSync(failuresPath, 'utf8').split('\n').filter(Boolean).length;
       const room = FAILURES_CAP - have;

@@ -16,7 +16,7 @@
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
 // Stage 1 of a phase needs a sign-off row in vault/spec/SIGNOFF.md (PROCESS.md section 5).
-import { readFileSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -580,7 +580,8 @@ export function weekSpend(budget, now = new Date()) {
 }
 
 const args = process.argv.slice(2);
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+// Realpaths on both sides, so a run through a symlinked path (macOS /var, /tmp) still counts as main (EZD-155; Q-0268 sweep item 45).
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain) {
   if (args.includes('--check')) {
     const p = check();
