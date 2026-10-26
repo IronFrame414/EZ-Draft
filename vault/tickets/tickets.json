@@ -14543,6 +14543,28 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-199",
+   "phase": 1,
+   "title": "Fix: the whole-read guard refuses a ranged read whose selected text is over its limit",
+   "depends_raw": "EZD-198",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-198"
+   ],
+   "build_position": 508,
+   "acs": [
+    "AC-EZD-199-1",
+    "AC-EZD-199-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",

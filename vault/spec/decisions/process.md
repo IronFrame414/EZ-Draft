@@ -52,3 +52,6 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0331 | 2026-10-25 | (a): EZD-153 gets one round past the three-round limit; the planner first proves where a quoted name can stand in for a plain word, so the round closes the whole kind of gap. |
 | Q-0333 | 2026-10-25 | (c): subagents are never told to consult the advisor; before a round 3 builder or test-author dispatch the orchestrator consults its own advisor and passes the advice with the findings. |
 | — | 2026-10-26 | Boost keeps every role's normal model and effort; it only lifts the weekly hold and raises the per-unit cap (until parallel lanes exist, EZD-172 to EZD-175). Josh, after the boost comparison: the model bump bought stricter reviews, not throughput. |
+| Q-0342 | 2026-10-26 | (a) Agent answer (code-reviewer): under boost no 70% weekly warning is sent, because boost removes the hold; PROCESS.md section 11 says so. Confirm or override. |
+| Q-0343 | 2026-10-26 | (a) Agent answer (code-reviewer): the guard denies any Read of a notebook over 20,000 characters, ranged or not. Confirm or override. |
+| Q-0344 | 2026-10-26 | (b) Agent answer (code-reviewer): fix ticket EZD-199, the guard denies a ranged Bash read whose selected text is over the limit. Confirm or override. |

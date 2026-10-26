@@ -402,7 +402,7 @@ Before every unit, if the five-hour window is at or above `five_hour_pause_pct`,
 
 ### When the weekly hold is reached
 
-Before every unit, the launcher reads the weekly percentage. At or above `warn_at_pct` it notifies Josh once. At or above `hold_at_pct`, the launcher:
+Before every unit, the launcher reads the weekly percentage. At or above `warn_at_pct` it notifies Josh once. At or above `hold_at_pct`, the launcher: Under boost (vault/handoff/BOOST.json) there is no hold, so no warning is sent either (Q-0342 (a)).
 1. Writes `vault/handoff/BUDGET_HOLD.md`: the percentages, the reset time, the next unit, and how to override.
 2. Notifies Josh through the configured channel.
 3. Starts no new ticket. A ticket already `in-progress` keeps running until it is `done` or `blocked`, including its reviews and merge, so nothing is left half-built. The week can overshoot the hold by about one ticket's cost.

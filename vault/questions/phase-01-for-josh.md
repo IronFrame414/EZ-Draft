@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-26, twentieth run)
+# Phase 1 · for Josh (questions unit, 2026-10-26, twenty-first run)
 
-This run: Q-0339 (a flaky net-guard browser test) answered by rule 17: fix ticket EZD-192. The planner found the cause: not a flaky test but a gate listing fault. Four decisions wait for you (Q-0334, Q-0337, Q-0338, Q-0340). Section 2 and the rule candidate wait for your confirm.
+This run: Q-0342, Q-0343 and Q-0344 (launcher and guard tooling) answered by the code-reviewer; Q-0344 added fix ticket EZD-199. Four decisions still wait for you (Q-0334, Q-0337, Q-0338, Q-0340). Section 2 and the rule candidate wait for your confirm.
 
 ## 1. Decisions needed
 
@@ -65,8 +65,11 @@ Confirm or override each.
 | Q-0335 | scripts/process/retrievers.test.mjs (EZD-156 build) | Orchestrator re-pinned the dispatch-template test to lines 1-21 in fix mode (commit 679b71b); confirm or revert | QUESTIONS.md Q-0335 |
 | Q-0336 | EZD-179 | Same as Q-0314: EZD-179 already removes the CommonJS warning from app test runs; no new ticket | Q-0314; vault/plans/EZD-179.md |
 | Q-0339 | EZD-192 (new) | Fix ticket EZD-192 for the `EZD-159 T7` report in the EZD-167 build; the planner found the cause is the gate's failure list (see Q-0340 above), not the test | CLAUDE.md rule 17; PROCESS.md rule 20 |
+| Q-0342 | EZD-197 | (a) Under boost no 70% weekly warning is sent, because boost removes the hold; PROCESS.md section 11 now says so | PROCESS.md:387,405; run.mjs:366-368 |
+| Q-0343 | EZD-198 | (a) The guard denies any Read of a notebook over 20,000 characters, ranged or not | CLAUDE.md rules 10, 17; guard-reads.mjs:157 |
+| Q-0344 | EZD-199 (new) | (b) Fix ticket EZD-199: the guard also refuses a ranged read whose selected lines are over the limit (one very long line gets past it today) | CLAUDE.md rule 17; guard-reads.mjs:102,119-140 |
 
-Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (planned, ready).
+Fix tickets added for earlier answers: Q-0281 → EZD-176, Q-0283 → EZD-177, Q-0290 → EZD-178, Q-0286 → EZD-181, Q-0316 → EZD-182, Q-0319 → EZD-183, Q-0320 → EZD-184, Q-0321 → EZD-185, Q-0324 → EZD-186 (planned, ready), Q-0326 → EZD-187 (planned, ready), Q-0328 → EZD-188 (planned, ready), Q-0323 (your answer) → EZD-189 (planned, ready), Q-0330 → EZD-190 (planned, ready), Q-0332 → EZD-191 (planned, ready), Q-0344 → EZD-199 (todo).
 
 ## 3. Proposed wording
 
