@@ -5,7 +5,7 @@
 // Tests match exit codes, rule IDs, check IDs and paths, not message wording.
 import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -125,6 +125,48 @@ function buildSettingProblems(text) {
     }
   }
   return problems;
+}
+
+// EZD-177 (vault/plans/EZD-177.md sections 1, 3): pnpm_config_ environment names in package scripts.
+const PNPM_CONFIG_RE = /pnpm_config_/i;
+
+// R2 (vault/plans/EZD-177.md section 3): problems of one package.json text, in this order.
+function pnpmConfigScriptProblems(text) {
+  let pkg;
+  try {
+    pkg = JSON.parse(text);
+  } catch {
+    return ['unreadable'];
+  }
+  if (pkg === null || typeof pkg !== 'object' || Array.isArray(pkg)) return ['unreadable'];
+  if (pkg.scripts === undefined) return [];
+  const scripts = pkg.scripts;
+  if (scripts === null || typeof scripts !== 'object' || Array.isArray(scripts)) return ['scripts not an object'];
+  const problems = [];
+  for (const [name, cmd] of Object.entries(scripts)) {
+    if (typeof cmd !== 'string') problems.push(`script ${name} not a string`);
+    else if (PNPM_CONFIG_RE.test(cmd)) problems.push(`script ${name}`);
+  }
+  return problems;
+}
+
+// R3 (vault/plans/EZD-177.md section 3): repo-relative package.json paths of the workspace packages.
+function workspacePackageFiles() {
+  const found = ['package.json'];
+  for (const f of ['app/package.json', 'worker/package.json']) {
+    if (existsSync(path.join(root, f))) found.push(f);
+  }
+  for (const d of ['packages', 'spikes']) {
+    const dir = path.join(root, d);
+    if (!existsSync(dir)) continue;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const rel = `${d}/${entry.name}/package.json`;
+      if (existsSync(path.join(root, rel))) found.push(rel);
+    }
+  }
+  const rest = found.slice(1).sort();
+  return [found[0], ...rest];
 }
 
 describe('EZD-001 repo tooling', () => {
@@ -616,5 +658,84 @@ describe('EZD-148 repo rule bypass forms', () => {
       rows.some((r) => ['EZD-148 T1', 'EZD-148 T2', 'EZD-148 T3'].every((s) => r.includes(s))),
       'the EZD-148 row names EZD-148 T1, EZD-148 T2 and EZD-148 T3',
     );
+  });
+});
+
+describe('EZD-177 pnpm_config names', () => {
+  test('EZD-177 T2 package scripts naming pnpm_config_ are refused and the real package files pass (AC-EZD-177-1, AC-EZD-177-2)', async (t) => {
+    await t.test('T2 (a) a script that sets PNPM_CONFIG_ before pnpm (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { build: 'PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true pnpm install' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script build']);
+    });
+
+    await t.test('T2 (b) a cross-env wrapper with pnpm_config_ (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { setup: 'cross-env pnpm_config_ignore_scripts=false pnpm rebuild' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script setup']);
+    });
+
+    await t.test('T2 (c) mixed case, any script name reported (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { a: 'env Pnpm_Config_Dangerously_Allow_All_Builds=true pnpm i', b: 'echo ok' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script a']);
+    });
+
+    await t.test('T2 (d) two scripts, reported in script order (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { a: 'export PNPM_CONFIG_X=1 && pnpm i', b: 'PNPM_CONFIG_Y=1 pnpm i' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script a', 'script b']);
+    });
+
+    await t.test('T2 (e) text that is not JSON is unreadable (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems('{'), ['unreadable']);
+    });
+
+    await t.test('T2 (f) JSON that is not an object is unreadable (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems('"x"'), ['unreadable']);
+    });
+
+    await t.test('T2 (g) scripts as an array is refused (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ scripts: ['PNPM_CONFIG_X=1 pnpm i'] })), ['scripts not an object']);
+    });
+
+    await t.test('T2 (h) scripts as null is refused (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ scripts: null })), ['scripts not an object']);
+    });
+
+    await t.test('T2 (i) a script that is not a string is refused (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ scripts: { a: ['PNPM_CONFIG_X=1'] } })), ['script a not a string']);
+    });
+
+    await t.test('T2 (j) control: no scripts key gives no problem (AC-EZD-177-2)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ name: 'x' })), []);
+    });
+
+    await t.test('T2 (k) control: npm_config_, PNPM_HOME and pnpm config get pass (AC-EZD-177-2)', () => {
+      const text = JSON.stringify({
+        scripts: { a: 'npm_config_loglevel=error pnpm i', b: 'PNPM_HOME=/tmp/pnpm pnpm i', c: 'pnpm config get store-dir' },
+      });
+      assert.deepEqual(pnpmConfigScriptProblems(text), []);
+    });
+
+    await t.test('T2 (l) the real package files pass (AC-EZD-177-2)', () => {
+      const files = workspacePackageFiles();
+      assert.equal(files[0], 'package.json');
+      assert.ok(files.includes('app/package.json'), 'app/package.json is listed');
+      assert.ok(files.includes('packages/geometry/package.json'), 'packages/geometry/package.json is listed');
+      for (const f of files) {
+        assert.deepEqual(pnpmConfigScriptProblems(readFileSync(path.join(root, f), 'utf8')), [], f);
+      }
+    });
+  });
+
+  test('EZD-177 T3 docs record the pnpm_config_ rule', () => {
+    const doc = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8');
+    const D1 = 'Settings from environment names (Q-0283 (a); EZD-177): pnpm 12 also reads its settings from `PNPM_CONFIG_*` and `pnpm_config_*` environment names (pnpm 12.14.0 CHANGELOG, 12.8.2 and 12.3.0 entries), so `PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true` would run new build scripts past `allowBuilds`. No workflow file and no workspace `package.json` script names `pnpm_config_` in any letter case: `ci.test.mjs` rule (l) and `tooling.test.mjs` EZD-177 T2 refuse it. A name built at run time is checked by review.';
+    const D2 = '| — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |';
+    const lines = doc.split(/\r?\n/);
+    assert.ok(lines.includes(D1), 'docs/architecture.md holds the D1 paragraph line in ## Adding a dependency');
+    assert.ok(lines.includes(D2), 'docs/architecture.md holds the D2 row in ## Machine checks');
+    const dep = lines.findIndex((l) => l.startsWith('Dependency build scripts (Q-0140 (a)):'));
+    const folder = lines.indexOf('## Folder layout');
+    const d1 = lines.indexOf(D1);
+    assert.ok(dep >= 0 && folder > dep, 'the Dependency build scripts paragraph comes before ## Folder layout');
+    assert.ok(d1 > dep && d1 < folder, 'D1 comes after the Dependency build scripts paragraph and before ## Folder layout');
   });
 });

@@ -298,6 +298,8 @@ CLAUDE.md rule 7 and 02 Named tools. A commit that adds or upgrades a package in
 
 Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any dependency's install script is unsettled. Every reported script is denied in `pnpm-workspace.yaml` `allowBuilds` (map form, `<package>: false`); no entry is set to allow and no allow-all setting is used. The pnpm `permissions` setting (pnpm 12.11; its `build` capability overrides `allowBuilds`) is never used (EZD-148). Denied so far: `unrs-resolver` (pulled in by `eslint-config-next` through `eslint-import-resolver-typescript`; added by EZD-001), `esbuild` (pulled in by `tsx`; its install script only checks the platform binary that `optionalDependencies` already install; added by EZD-031). A new build script a ticket's install reports is denied the same way; if the build or tests need it, the builder stops and raises a question naming the package, what the script does, what fails without it and the effect on EZD-023b T17. No agent allows one on its own.
 
+Settings from environment names (Q-0283 (a); EZD-177): pnpm 12 also reads its settings from `PNPM_CONFIG_*` and `pnpm_config_*` environment names (pnpm 12.14.0 CHANGELOG, 12.8.2 and 12.3.0 entries), so `PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true` would run new build scripts past `allowBuilds`. No workflow file and no workspace `package.json` script names `pnpm_config_` in any letter case: `ci.test.mjs` rule (l) and `tooling.test.mjs` EZD-177 T2 refuse it. A name built at run time is checked by review.
+
 ## Folder layout
 
 Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/README.md.
@@ -998,6 +1000,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | psql runs terse on both runners; psql row lines (DETAIL, CONTEXT, QUERY, LINE n) and everything after them never reach release, backup or restore output; a bootstrap without its done code logs its safe lines | `scripts/release/__tests__/redact-rows.test.mjs`, `scripts/backup/__tests__/restore-output.test.mjs`, `scripts/backup/__tests__/psql-terse-local.test.mjs`, `scripts/release/__tests__/release.test.mjs` (EZD-152) | EZD-152 |
 | — | Cloud settings SQL | `app/src/server/db/cloud-settings.test.ts` (T1-T3) | EZD-171 |
 | — | Icon files equal the pinned commit | `icons:verify` (by hand), `app/src/components/icon/icons-verify.test.ts` | EZD-171 |
+| — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |
 
 ### CI
 

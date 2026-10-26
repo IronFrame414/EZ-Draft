@@ -176,6 +176,9 @@ const EXPECTED_SECRETS = {
 };
 const sortedCopy = (a) => [...a].sort();
 
+// EZD-177 rule (l): pnpm reads settings from `pnpm_config_` environment names in any letter case (vault/plans/EZD-177.md section 3).
+const PNPM_CONFIG_RE = /pnpm_config_/i;
+
 // EZD-147 rule (j): a `uses:` value must be owner/repo[/path]@<40 lower-case hex> (vault/plans/EZD-147.md section 3).
 const PIN_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.\/-]+)?@[0-9a-f]{40}$/;
 
@@ -310,6 +313,11 @@ function checkWorkflow(fileName, text) {
   // (j) SHA pins and (k) permissions, every file (EZD-147)
   for (const u of unpinnedUses(lines)) add('j', u);
   for (const p of permissionProblems(lines)) add('k', p);
+  // (l) pnpm settings from environment names (EZD-177; Q-0283 (a))
+  lines.forEach((l, i) => {
+    if (l.trim().startsWith('#')) return;
+    if (PNPM_CONFIG_RE.test(l)) add('l', `pnpm_config_ name at line ${i + 1}`);
+  });
   return problems;
 }
 
@@ -796,4 +804,80 @@ test('EZD-147 T5 CI rules documented (AC-EZD-147-1)', () => {
   const named = lines.find((l) => /^\|\s*CI and repository\s*\|/.test(l.trim()));
   assert.ok(named, 'Named tools row CI and repository');
   for (const v of ['v7.0.1', 'v7.1.0', 'v7.0.2']) assert.ok(named.includes(v), `CI and repository row mentions ${v}`);
+});
+
+// ---------- EZD-177 T1 ----------
+// Rule (l) through checkWorkflow (vault/plans/EZD-177.md sections 3 and 4). Expected values are the plan's R1 texts.
+test('EZD-177 done when: T1 workflows naming pnpm_config_ are refused and the real workflows pass (AC-EZD-177-1, AC-EZD-177-2)', async (t) => {
+  const wf = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const lOf = (problems) => problems.filter((p) => p.rule === 'l').map((p) => p.msg);
+
+  await t.test('T1 (a) step env: names PNPM_CONFIG_ at line 9 (AC-EZD-177-1)', () => {
+    const text = wf("      - run: pnpm install --frozen-lockfile\n        env:\n          PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS: 'true'\n");
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 9']);
+  });
+
+  await t.test('T1 (b) lower case in release.yml at line 9 (AC-EZD-177-1)', () => {
+    const text = wf("      - run: echo ok\n        env:\n          pnpm_config_allow_builds: '{\"esbuild\":true}'\n");
+    assert.deepEqual(lOf(checkWorkflow('release.yml', text)), ['pnpm_config_ name at line 9']);
+  });
+
+  await t.test('T1 (c) mixed case in a flow map in ci.yml at line 8 (AC-EZD-177-1)', () => {
+    const text = wf('      - run: echo ok\n        env: { Pnpm_Config_Ignore_Scripts: false }\n');
+    assert.deepEqual(lOf(checkWorkflow('ci.yml', text)), ['pnpm_config_ name at line 8']);
+  });
+
+  await t.test('T1 (d) prefix in a run: line at line 7 (AC-EZD-177-1)', () => {
+    const text = wf('      - run: PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true pnpm install\n');
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 7']);
+  });
+
+  await t.test('T1 (e) write to $GITHUB_ENV at line 7 (AC-EZD-177-1)', () => {
+    const text = wf('      - run: echo "PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true" >> "$GITHUB_ENV"\n');
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 7']);
+  });
+
+  await t.test('T1 (f) block scalar export at line 8 (AC-EZD-177-1)', () => {
+    const text = wf('      - run: |\n          export pnpm_config_dangerously_allow_all_builds=true\n          pnpm install\n');
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 8']);
+  });
+
+  await t.test('T1 (g) quoted key in backup-db.yml at line 9 (AC-EZD-177-1)', () => {
+    const text = wf('      - run: echo ok\n        env:\n          "PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS": "true"\n');
+    assert.deepEqual(lOf(checkWorkflow('backup-db.yml', text)), ['pnpm_config_ name at line 9']);
+  });
+
+  await t.test('T1 (h) workflow-level env: at line 4 (AC-EZD-177-1)', () => {
+    const text = 'on:\n  workflow_dispatch:\nenv:\n  PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS: \'true\'\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n';
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 4']);
+  });
+
+  await t.test('T1 (i) job-level env: at line 7 (AC-EZD-177-1)', () => {
+    const text = 'on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    env:\n      PNPM_CONFIG_IGNORE_SCRIPTS: \'false\'\n    steps:\n      - run: echo ok\n';
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 7']);
+  });
+
+  await t.test('T1 (j) two names on two lines give two problems in line order (AC-EZD-177-1)', () => {
+    const text = wf("      - run: echo ok\n        env:\n          PNPM_CONFIG_A: '1'\n          pnpm_config_b: '2'\n");
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), ['pnpm_config_ name at line 9', 'pnpm_config_ name at line 10']);
+  });
+
+  await t.test('T1 (k) control: a full-line comment is skipped (AC-EZD-177-2)', () => {
+    const text = wf('      # PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS is refused\n      - run: echo ok\n');
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), []);
+  });
+
+  await t.test('T1 (l) control: npm_config_, PNPM_HOME and MY_PNPM_CONFIG are not pnpm_config_ names (AC-EZD-177-2)', () => {
+    const text = wf('      - run: echo ok\n        env:\n          npm_config_loglevel: error\n          PNPM_HOME: /tmp/pnpm\n          MY_PNPM_CONFIG: x\n');
+    assert.deepEqual(lOf(checkWorkflow('x.yml', text)), []);
+  });
+
+  await t.test('T1 (m) every real workflow file passes rule (l) (AC-EZD-177-2)', () => {
+    const files = workflowFiles();
+    assert.ok(files.includes('ci.yml'), 'workflowFiles() lists ci.yml');
+    for (const f of files) {
+      const text = readFileSync(path.join(workflowsDir, f), 'utf8');
+      assert.deepEqual(lOf(checkWorkflow(f, text)), [], f);
+    }
+  });
 });
