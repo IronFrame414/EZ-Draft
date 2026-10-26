@@ -1,0 +1,110 @@
+{
+  "verdict": "yes",
+  "chromiumControl": "pass",
+  "failedWebkitChecks": [],
+  "playwrightExit": 0,
+  "results": [
+    {
+      "project": "desktop",
+      "variant": "V1",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "checks": {
+        "registered": true,
+        "controlled": true,
+        "cached": true,
+        "offline_flag": true,
+        "offline_reload": true,
+        "same_render": true,
+        "controlled_offline": true,
+        "hydrated_offline": true,
+        "uncached_fails": true
+      }
+    },
+    {
+      "project": "desktop",
+      "variant": "V2",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "checks": {
+        "registered": true,
+        "controlled": true,
+        "cached": true,
+        "offline_flag": true,
+        "offline_reload": true,
+        "same_render": true,
+        "controlled_offline": true,
+        "hydrated_offline": true,
+        "uncached_fails": true
+      }
+    },
+    {
+      "project": "ipad-landscape",
+      "variant": "V1",
+      "browser": "webkit",
+      "version": "27.2",
+      "checks": {
+        "registered": true,
+        "controlled": true,
+        "cached": true,
+        "offline_flag": true,
+        "offline_reload": true,
+        "same_render": true,
+        "controlled_offline": true,
+        "hydrated_offline": true,
+        "uncached_fails": true
+      }
+    },
+    {
+      "project": "ipad-landscape",
+      "variant": "V2",
+      "browser": "webkit",
+      "version": "27.2",
+      "checks": {
+        "registered": true,
+        "controlled": true,
+        "cached": true,
+        "offline_flag": true,
+        "offline_reload": true,
+        "same_render": true,
+        "controlled_offline": true,
+        "hydrated_offline": true,
+        "uncached_fails": true
+      }
+    },
+    {
+      "project": "phone",
+      "variant": "V1",
+      "browser": "webkit",
+      "version": "27.2",
+      "checks": {
+        "registered": true,
+        "controlled": true,
+        "cached": true,
+        "offline_flag": true,
+        "offline_reload": true,
+        "same_render": true,
+        "controlled_offline": true,
+        "hydrated_offline": true,
+        "uncached_fails": true
+      }
+    },
+    {
+      "project": "phone",
+      "variant": "V2",
+      "browser": "webkit",
+      "version": "27.2",
+      "checks": {
+        "registered": true,
+        "controlled": true,
+        "cached": true,
+        "offline_flag": true,
+        "offline_reload": true,
+        "same_render": true,
+        "controlled_offline": true,
+        "hydrated_offline": true,
+        "uncached_fails": true
+      }
+    }
+  ]
+}
