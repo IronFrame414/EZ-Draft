@@ -442,6 +442,98 @@ describe('EZD-001 repo tooling', () => {
   });
 });
 
+// EZD-161 · geometry test files are type-checked (vault/plans/EZD-161.md sections 3-4; AC-EZD-161-1; Q-0268 sweep item 35;
+// Q-0292 (a)). Probes live in packages/geometry/src/__ezd161_probe__/, removed at the start and in a finally of each test.
+// Each test runs the real tsc or pnpm through run(); expected values come from the plan's section 3 and 4 rows.
+describe('EZD-161 geometry tests are type-checked', () => {
+  const probeDir = path.join(geoDir, 'src', '__ezd161_probe__');
+  const removeProbe = () => rmSync(probeDir, { recursive: true, force: true });
+  const writeProbe = (name, source) => {
+    mkdirSync(probeDir, { recursive: true });
+    writeFileSync(path.join(probeDir, name), source);
+  };
+  /** JSON from `tsc -p <file> --showConfig` run inside the package through pnpm (the file's showConfig takes only `.`). */
+  function showConfigOf(filter, file) {
+    const r = run('pnpm', ['--filter', filter, 'exec', 'tsc', '-p', file, '--showConfig']);
+    assert.equal(r.status, 0, `tsc -p ${file} --showConfig for ${filter} failed: ${r.stderr || r.stdout}`);
+    return JSON.parse(r.stdout.slice(r.stdout.indexOf('{')));
+  }
+  const hasDomLib = (lib) => lib.some((l) => /dom/i.test(l));
+
+  // ---------- T1 ----------
+  test('EZD-161 T1: a type error in a geometry test file fails pnpm typecheck', { timeout: 300_000 }, () => {
+    try {
+      removeProbe();
+      writeProbe('probe.test.ts', "export const probe: number = 'not a number';\n");
+      const a = run('pnpm', ['typecheck']);
+      const outA = a.stdout + a.stderr;
+      assert.notEqual(a.status, 0, '(a) a string assigned to a number in a geometry test must fail pnpm typecheck');
+      assert.ok(outA.includes('probe.test.ts'), `(a) the output names probe.test.ts: ${outA}`);
+      assert.ok(outA.includes('TS2322'), `(a) the output holds TS2322: ${outA}`);
+      writeProbe('probe.test.ts', 'export const probe: number = 1;\n');
+      const b = run('pnpm', ['typecheck']);
+      assert.equal(b.status, 0, `(b) control: the probe and the existing tests type-check: ${b.stdout}${b.stderr}`);
+    } finally {
+      removeProbe();
+    }
+  });
+
+  // ---------- T2 ----------
+  test('EZD-161 T2: geometry test files are type-checked with no DOM types', { timeout: 300_000 }, () => {
+    try {
+      removeProbe();
+      const cfg = showConfigOf('@ezdraft/geometry', 'tsconfig.test.json');
+      const lib = cfg.compilerOptions?.lib;
+      assert.ok(Array.isArray(lib) && lib.length > 0, `(a) compilerOptions.lib is a non-empty array: ${JSON.stringify(lib)}`);
+      assert.ok(!hasDomLib(lib), `(a) the test program lib has no DOM entry: ${JSON.stringify(lib)}`);
+      const files = cfg.files;
+      assert.ok(Array.isArray(files) && files.length > 0, `(a) showConfig files list present: ${JSON.stringify(files)}`);
+      const resolved = files.map((f) => path.resolve(geoDir, f));
+      assert.ok(resolved.includes(path.join(geoDir, 'src', 'index.test.ts')), `(a) files holds src/index.test.ts: ${JSON.stringify(files)}`);
+      for (const abs of resolved) {
+        assert.ok(abs.startsWith(geoDir + path.sep), `(a) ${abs} is inside ${geoDir}`);
+        assert.ok(!entersExcluded(abs), `(a) ${abs} is not under vault/, spikes/ or .claude/`);
+      }
+      writeProbe('dom.test.ts', 'export const t = document.title;\n');
+      const b = run('pnpm', ['--filter', '@ezdraft/geometry', 'run', 'typecheck']);
+      const outB = b.stdout + b.stderr;
+      assert.notEqual(b.status, 0, '(b) a DOM global in a geometry test must fail the geometry typecheck');
+      assert.ok(outB.includes('dom.test.ts'), `(b) the output names dom.test.ts: ${outB}`);
+      assert.ok(outB.includes('document'), `(b) the output names document: ${outB}`);
+    } finally {
+      removeProbe();
+    }
+  });
+
+  // ---------- T3 ----------
+  // A guard, not a red test: the source program already leaves tests out today; it fails once a change drops the exclude.
+  test('EZD-161 T3: the source program still leaves test files out', { timeout: 300_000 }, () => {
+    const cfg = showConfig('@ezdraft/geometry');
+    assert.ok(Array.isArray(cfg.files) && cfg.files.length > 0, `source program files list present: ${JSON.stringify(cfg.files)}`);
+    const tests = cfg.files.filter((f) => f.endsWith('.test.ts'));
+    assert.deepEqual(tests, [], `the source program holds no test file: ${JSON.stringify(tests)}`);
+  });
+
+  // ---------- T5 ----------
+  test('EZD-161 T5: geometry vitest.config.ts is type-checked by its own program', { timeout: 300_000 }, () => {
+    const cfg = showConfigOf('@ezdraft/geometry', 'tsconfig.config.json');
+    const files = cfg.files;
+    assert.ok(Array.isArray(files) && files.length === 1, `(a) the config program has exactly 1 file: ${JSON.stringify(files)}`);
+    assert.equal(path.resolve(geoDir, files[0]), path.join(geoDir, 'vitest.config.ts'), '(a) the one file is vitest.config.ts');
+    const lib = cfg.compilerOptions?.lib;
+    assert.ok(Array.isArray(lib) && lib.length > 0, `(a) compilerOptions.lib is a non-empty array: ${JSON.stringify(lib)}`);
+    assert.ok(!hasDomLib(lib), `(a) the config program lib has no DOM entry: ${JSON.stringify(lib)}`);
+    const b = run('pnpm', ['--filter', '@ezdraft/geometry', 'exec', 'tsc', '--noEmit', '-p', 'tsconfig.config.json']);
+    assert.equal(b.status, 0, `(b) tsc -p tsconfig.config.json passes: ${b.stdout}${b.stderr}`);
+    const pkg = readJson(path.join(geoDir, 'package.json'));
+    assert.equal(
+      pkg.scripts?.typecheck,
+      'tsc --noEmit -p . && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.config.json',
+      '(c) the geometry typecheck script runs the three programs in order',
+    );
+  });
+});
+
 // EZD-148 T2, T4 (vault/plans/EZD-148.md section 4). Expected rules come from the plan's decisions D4, D7, D8, D11 and
 // Q-0140 (a); the real pnpm-workspace.yaml is the base of every sample (D11). Tests match rule names, never message text (D12).
 describe('EZD-148 repo rule bypass forms', () => {

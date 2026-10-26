@@ -6,7 +6,7 @@ import * as geometry from './index';
 describe('EZD-001 geometry package', () => {
   test('done when: loads with no DOM @smoke', () => {
     expect(typeof geometry).toBe('object');
-    expect(typeof globalThis.document).toBe('undefined');
-    expect(typeof globalThis.window).toBe('undefined');
+    expect(typeof Reflect.get(globalThis, 'document')).toBe('undefined');
+    expect(typeof Reflect.get(globalThis, 'window')).toBe('undefined');
   });
 });
