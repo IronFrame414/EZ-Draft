@@ -148,7 +148,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
 | EZD-110 | 2 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
 | EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
-| EZD-112 | 1 | Company settings: identity | in-progress | high | EZD-103, EZD-132 |  |  |  |
+| EZD-112 | 1 | Company settings: identity | done | high | EZD-103, EZD-132 | 69241cd | 1061 | Models: test-author and builder opus-5-5 (plan complexity), code-reviewer opus-5-5 high, security-reviewer fable-5-1 high, ui-verifier sonnet-5-5 low (--dispatch). Deviations: save route 500 calls reportRouteFailure (EZD-169) not reportError; update_tenant_identity args cast as unknown (generated types mark empty args never-empty); EZD-103a B5 spec drops company from unbuilt list. ui-verifier did not capture skeleton, save-error banner, load error, logo field error (covered by app/e2e/company-settings.spec.ts). No needs-josh-confirm wording. |
 | EZD-113 | 1 | Customers | ready | high | EZD-112 |  |  |  |
 | EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
 | EZD-117a | 2 | Projects page: query and cards | todo |  | EZD-102, EZD-110 |  |  |  |
