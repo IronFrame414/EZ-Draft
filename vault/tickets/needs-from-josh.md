@@ -60,10 +60,10 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 | A hand load calc for one sample house, and a hand material count for one kitchen | EZD-607, EZD-1611 | Engines are tested only against textbook examples |
 | A past kitchen's cabinet order | Phase 4 field check | Field check waits |
 | EZ Binder side of the contract (EZD-019): job, customer and user endpoints, shared sign-on, webhook receiver, mark CO approved, model viewer, field pack tab | Field checks of Phases 1, 10, 13, 14 | EZ Draft runs against the stub |
-| iPad, iPhone, keyboard-mode laser | Field checks | Automated tests use device emulation and typed keystrokes |
+| Surface, iPhone, keyboard-mode laser | Field checks | Automated tests use device emulation and typed keystrokes |
 | The GPU machine for the local render worker, and the choice of model to run on it | EZD-1104 follow-up | The worker runs its stub runner; renders use the cloud API |
 | Mockups for screens that had none: supplied Oct 11, 2026 (S01b, S15a–S15h, S17c, S19–S22 in `vault/mockups`) | EZD-118, EZD-122, EZD-123, EZD-1013, EZD-1413, EZD-1420, EZD-1613 and the settings tickets | Done |
-| Docker Desktop on the Windows build machine (the local Supabase used by agent test runs needs it) | EZD-004, EZD-006, EZD-016 | No local database; agent test runs cannot start |
+| Docker Desktop on the Mac build machine (the local Supabase used by agent test runs needs it) | EZD-004, EZD-006, EZD-016 | No local database; agent test runs cannot start |
 | Each code rule checked against the adopted code text, with 9th Edition section numbers | EZD-1710 | Rules are built from the tables in Calculations; their warnings carry the “not yet verified” tag |
 | Answer to R26 R2: which money numbers Crew and Foreman may see | EZD-133 | Answered: two permissions, See company costs and See sell prices (R26 R2) |
 | Terms of service text | EZD-1707 | The page ships with placeholder text |
@@ -77,7 +77,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 | A few job photos (how they are handled in a public repo: Q-0065) | EZD-016b | Photo tests use synthetic images |
 | A revised version of one of the architect DXFs (same drawing, a later revision) | EZD-016b, 08 Import and export (revised architect DXF) | Revision compare is tested on a synthetic pair |
 | Render trial live run: 5 room images and instructions (Q-0082, Q-0083), keys for the three image providers (Q-0076), a spending cap typed at the run, and the next-day billed totals | EZD-031 field check, R21 provider pick (Q-0016) | The spike closes on the stub run; the provider pick waits |
-| iPad drawing-speed run on Josh's iPad over the office network (EZD-027) | EZD-027 note, architecture checkpoint before Phase 2 | Phase 2 cannot start (Q-0064) |
+| EZD-027 drawing-speed run: DONE 2026-10-24 on Josh's Windows machine, verdict go (Q-0263) | — | — |
 | One-time install on the build PC: Playwright browsers `pnpm exec playwright install chromium webkit` (agents can run it once Josh approves) | EZD-007, EZD-016a | Browser tests cannot run |
 | Docker Desktop running whenever a build session runs | EZD-004 onward | Every check fails at the database step |
 | Vercel Ignored Build Step: DONE 2026-10-19 (Settings → Build and Deployment → Ignored Build Step → Custom, the PROCESS.md section 12 command; Q-0116 (a)) | — | — |

@@ -97,7 +97,7 @@ Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are
 ## Phase 0 · Setup
 
 - **Goal:** a deployed, empty, multi-tenant app with sign-in and the Studio shell components, ready for features.
-- **User-visible result:** Josh can open ezdraft.ezcontractorbinder.com on the desktop and the iPad, sign in, and see the empty editor shell.
+- **User-visible result:** Josh can open ezdraft.ezcontractorbinder.com on the desktop and the Surface, sign in, and see the empty editor shell.
 - **Spec files:** Product overview (Stack, Named tools), Data model (Architecture rules), App shell and global UI, Non-functional requirements (Performance, Security, Operations), Decisions (R26 R1 to R34). ACs: AC-EZD-000-1 to AC-EZD-031-n (generated from Done-when; see migration step 4).
 - **Tickets:** every EZD-0xx row in `STATUS.md` (37 as of Oct 14, 2026, all `ready`). Build order: `tickets.json` `build_order`.
 - **Depends on:** nothing.
@@ -107,7 +107,7 @@ Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are
 - **Josh's test script (punch list at the gate):**
   1. Open the PR "Phase 0: Setup" and its preview link. Expected: the preview loads over HTTPS.
   2. Sign in with the tenant 1 owner account on the desktop. Expected: the empty editor shell with the Studio header, rail and status bar; no drawing tools.
-  3. Repeat on the iPad in landscape. Expected: the same shell at iPad size; no horizontal scroll.
+  3. Repeat on the Surface. Expected: the same shell at Surface size; no horizontal scroll.
   4. Sign in as the second-tenant test user. Expected: no tenant 1 projects or users are visible anywhere.
   5. In the PR checks, open the gate run. Expected: lint, type check, unit tests, browser tests and the performance check (EZD-017) all pass.
   6. After merging, open ezdraft.ezcontractorbinder.com. Expected: production serves the merged build.
@@ -291,7 +291,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move and inspector (slice 5); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
-- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; this is the first field check on the iPad. The spike EZD-027 (plan canvas on the iPad) must have a go note.
+- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; this is the first field check on the Surface. The spike EZD-027 (plan canvas on the iPad) must have a go note.
 - **Josh's test script:**
   1. New project → Standalone → L-kitchen template. Expected: The plan opens with the template walls.
   2. Press R, click a start point, type 12'6" Tab 10' Enter. Expected: A 12'6" × 10' room closes with no gap and shows its area.
@@ -341,7 +341,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-237 Benchmark page — after EZD-135; needs EZD-207 (s4), EZD-236 (s4)
 - **Depends on slices:** 1, 4, 5
 - **Out of scope until later:** Versions tab in the left panel (slice 9); Tasks and Takeoff tabs (slices 41, 51); revision clouds (slice 11).
-- **Risks and spikes:** EZD-235 fixes the derived-value and worker pattern that takeoff, load calc, sheets and DXF parsing reuse; the recompute-count test is the guard. EZD-224 must capture from the already drawn canvas (no second render). EZD-237 is the field check Josh repeats at every slice on the iPad.
+- **Risks and spikes:** EZD-235 fixes the derived-value and worker pattern that takeoff, load calc, sheets and DXF parsing reuse; the recompute-count test is the guard. EZD-224 must capture from the already drawn canvas (no second render). EZD-237 is the field check Josh repeats at every slice on the Surface.
 - **Josh's test script:**
   1. Draw a wall in Proposed, switch to Existing. Expected: The wall is New and hidden in the Existing view.
   2. Open Layers, lock the Rooms layer, click a room. Expected: The room cannot be selected.
@@ -507,7 +507,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-315 Laser keyboard input — needs EZD-209 (s4), EZD-310 (s12)
 - **Depends on slices:** 4, 8, 12
 - **Out of scope until later:** Architect DXF as a full-fidelity reference (slice 37); supplier PDF import (slice 39).
-- **Risks and spikes:** Built against synthetic PDFs until Josh supplies a vector plan, a scanned plan and a supplier PDF. The real laser is a field check (iPad + keyboard-mode laser).
+- **Risks and spikes:** Built against synthetic PDFs until Josh supplies a vector plan, a scanned plan and a supplier PDF. The real laser is a field check (Surface + keyboard-mode laser).
 - **Josh's test script:**
   1. Upload the fixture vector PDF, calibrate two points with a typed distance. Expected: A known length measures correctly; wall items appear in review.
   2. Upload the fixture scanned PDF. Expected: “Nothing detected. Trace over the underlay” with a button to the Plan editor.
@@ -859,7 +859,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-1015 iPad memory guard and states — after EZD-1001a, EZD-1001b, EZD-1001c
 - **Depends on slices:** 4, 6, 10, 12, 14, 15, 16, 17, 18
 - **Out of scope until later:** Walk, finishes, measure and the rail (slice 28); design options, phone viewer and GLB export (slice 29); renders (slice 30).
-- **Risks and spikes:** EZD-1001a follows spike EZD-030 for openings; CSG only in a worker. First open on the benchmark project must meet the budget; a real kitchen on the iPad without memory errors is the field check.
+- **Risks and spikes:** EZD-1001a follows spike EZD-030 for openings; CSG only in a worker. First open on the benchmark project must meet the budget; a real kitchen on the Surface without memory errors is the field check.
 - **Josh's test script:**
   1. Open the 3D tab on the fixture kitchen. Expected: The model shows with cabinets, tops, fixtures and devices; the footer reads “Model synced with plan”.
   2. Move a wall on Plan and return to 3D. Expected: The change shows without a save; only that wall's meshes rebuilt (test counter).
@@ -884,7 +884,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Out of scope until later:** Phone 3D viewer and exports (slice 29); Render A/B/C (slice 32).
 - **Risks and spikes:** EZD-1017 must use the shared renderer and draw no frames while idle.
 - **Josh's test script:**
-  1. Press Walk, hold W. Expected: The camera moves along its heading at the Defaults eye height; the joystick does the same on the iPad.
+  1. Press Walk, hold W. Expected: The camera moves along its heading at the Defaults eye height; the joystick does the same on the Surface.
   2. Click a wall → Apply finish → pick a catalog finish. Expected: The wall shows the texture; a beam shows its bottom-of-beam AFF tag.
   3. Press Wall on the 3D rail. Expected: Plan opens with the Wall tool active.
   4. Press Check in 3D. Expected: The results list shows.
@@ -1100,7 +1100,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-921 Architect revision labels — after EZD-904
 - **Depends on slices:** 4, 6, 13, 23
 - **Out of scope until later:** Markup, versions and diff (slice 38); supplier files (slice 39); DXF size limits (slice 53).
-- **Risks and spikes:** Josh's 2–3 real architect DXFs are needed for the field check; the benchmark uses a generated 150,000-entity DXF. Pan and zoom over it must stay inside the frame budget on the iPad.
+- **Risks and spikes:** Josh's 2–3 real architect DXFs are needed for the field check; the benchmark uses a generated 150,000-entity DXF. Pan and zoom over it must stay inside the frame budget on the Surface.
 - **Josh's test script:**
   1. Upload the fixture architect DXF as a reference. Expected: “Loading layers n of m” shows while the Plan stays interactive; every layer's entity count matches the parser's.
   2. Hide a layer and recolor another; Isolate; Show all. Expected: The canvas follows; the file is unchanged.
@@ -1201,7 +1201,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-1421 Issue field pack — after EZD-1420, EZD-1404; needs EZD-129 (s7)
 - **Depends on slices:** 7, 11, 13, 29, 35, 40
 - **Out of scope until later:** Field pack PDF, office review of measurements and conflicts, phone field measure (slice 42); Spanish field pack (slice 48).
-- **Risks and spikes:** The pack must meet its download-size budget. A crew using it on a live job for a week is the field check; iPhone and iPad are Josh items.
+- **Risks and spikes:** The pack must meet its download-size budget. A crew using it on a live job for a week is the field check; iPhone and Surface are Josh items.
 - **Josh's test script:**
   1. Settings → Libraries → Field task templates: reorder the Kitchen phases; run the draft job (stub AI). Expected: Unpublished field_task rows per phase appear on the Plan's Tasks tab, hidden from crew.
   2. Publish the tasks, then Issue field pack. Expected: An assigned Crew user gets “New field pack issued” with Copy link; an unassigned user gets nothing.
@@ -1453,7 +1453,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 ### Slice 53 · Hardening: performance, accessibility, screen states (from spec phase 17)
 
-- **Goal:** Every performance budget holds on the benchmark in CI and on the iPad, every icon button is named, and every screen state in the spec passes.
+- **Goal:** Every performance budget holds on the benchmark in CI and on the Surface, every icon button is named, and every screen state in the spec passes.
 - **User-visible result:** Budget failures fixed; DXF size limits from Defaults; accessibility pass with 44 px targets; table-driven state tests for Projects, Settings, every editor tab, phone and client screens.
 - **Spec files:** `spec/sections/11-non-functional-requirements.md`, `spec/decisions.md`, `spec/sections/05-screen-by-screen-spec.md`
 - **Tickets (6, build order):**
@@ -1468,9 +1468,9 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Risks and spikes:** EZD-1701 may surface regressions from any earlier slice; budget fixes land as new tickets if they do not fit.
 - **Josh's test script:**
   1. Run the EZD-017 check in CI on the benchmark project. Expected: Every budget in Non-functional · Performance passes.
-  2. Run the benchmark page on the iPad with a real architect DXF. Expected: 60 fps desktop, 30 fps iPad; cold open within 2.5 s, cached within 1 s.
+  2. Run the benchmark page on the Surface with a real architect DXF. Expected: 60 fps desktop, 30 fps Surface; cold open within 2.5 s, cached within 1 s.
   3. Upload a DXF over the Defaults limit. Expected: Refused with the limit shown.
-  4. Run axe-core on every editor tab, Settings page and phone screen. Expected: No unnamed button; targets are 44 px on the iPad.
+  4. Run axe-core on every editor tab, Settings page and phone screen. Expected: No unnamed button; targets are 44 px on the Surface.
   5. Run the state tables for all screens. Expected: Every row passes.
 
 ### Validation
