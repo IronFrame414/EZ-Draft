@@ -1,10 +1,10 @@
-# Handoff · 2026-10-26 · build EZD-162
+# Handoff · 2026-10-26 · build EZD-163
 
-- Phase and stage: phase 1, Stage 3 (build); see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: EZD-162 done, commit d2d328d (orchestrator-direct, Q-0260 (a)). Code-reviewer round 1 FAIL (plan V2 file list missed generated TRACE.md; fixed), round 2 PASS. Q-0293 (a), Q-0294 (a), Q-0295 (a) applied.
-- In progress: none
-- Blocked (unchanged): EZD-155 waits for vault/handoff/EZD-155-tools.patch; EZD-154 waits for vault/handoff/EZD-154-hooks.patch; EZD-153 (Q-0334).
-- Questions for Josh: Q-0334 (escalated); confirm or revert 679b71b (Q-0335); Q-0089, Q-0237 stay escalated.
-- Decisions made: none
+- Phase and stage: phase 1, Stage 3 (build)
+- Why the session ended: blocked
+- Completed this session: worktree + tests for EZD-163 (commit 4be178a on t/EZD-163); planner plan-gap patched vault/plans/EZD-163.md (R1 via CDP stopped event, memory-cache GET bodies refetched, C6 added: no finished() call).
+- In progress: EZD-163, worktree .claude/worktrees/EZD-163, last commit 4be178a (tests only; no builder yet)
+- Blocked: EZD-163 waits for Q-0337 (unreadable non-GET response bodies: options a/b/c, planner leans a). After the answer: patch plan section 4 E1-E3 if needed, re-run test-author for the rest, then builder. Also EZD-155, EZD-154, EZD-153 (unchanged).
+- Questions for Josh: Q-0337 (new), Q-0334, Q-0335, Q-0089, Q-0237
+- Decisions made: lesson added to vault/lessons/planner.md
 - Next unit: run `node vault/tools/next_ticket.mjs --next-unit`
