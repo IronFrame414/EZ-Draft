@@ -548,7 +548,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-195 | 1 | Fix: a refused agent start is seen live (pilot row 14) | planned | low | EZD-000f |  |  | Added 2026-10-26 by EZD-170 (pilot row 14; the planner probe never attempted the Explore call). |
 | EZD-196 | 1 | Fix: a retriever write outside pending is refused live (pilot row 15) | planned | low | EZD-000f |  |  | Added 2026-10-26 by EZD-170 (pilot row 15; the retriever probe never attempted the Write). |
 | EZD-197 | 1 | Fix: the 70% weekly warning is proven to notify (pilot row 10) | questions | low | EZD-001 |  |  | Added 2026-10-26 by EZD-170 (pilot row 10; no NOTIFY line could be shown). |
-| EZD-198 | 1 | Fix: the whole-read guard and notebooks over its limit agree with the pilot (pilot row 13) | todo |  | EZD-000c |  |  | Added 2026-10-26 by EZD-170 (pilot row 13; the notebook read was refused by the Read tool's own cap). |
+| EZD-198 | 1 | Fix: the whole-read guard and notebooks over its limit agree with the pilot (pilot row 13) | questions | low | EZD-000c |  |  | Added 2026-10-26 by EZD-170 (pilot row 13; the notebook read was refused by the Read tool's own cap). |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
