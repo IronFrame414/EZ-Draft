@@ -1,85 +1,34 @@
-diff --git a/.claude/hooks/guard-paths.mjs b/.claude/hooks/guard-paths.mjs
-index 345c300..5809e4d 100644
---- a/.claude/hooks/guard-paths.mjs
-+++ b/.claude/hooks/guard-paths.mjs
-@@ -1,8 +1,7 @@
- // PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
- // project write limits in vault/PROCESS-EZDRAFT.md section 3).
- import { existsSync, readFileSync } from 'node:fs';
--import path from 'node:path';
--import { readInput, repoRelative, deny, projectDir, norm } from './lib.mjs';
-+import { readInput, repoRelative, deny, projectDir } from './lib.mjs';
- 
- const input = readInput();
- const agent = input.agent_type || 'orchestrator'; // main session = orchestrator
-@@ -40,16 +39,6 @@ function orchestratorSpecOk() {
-   return false;
- }
- 
--// PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000j worktrees (EZD-000j added by Q-0138 (a)) the builder may
--// edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
--// and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000j merges.
--const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-j]\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
--const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
--function pa3Grant() {
--  if (!pa3Worktree || isTest || isSpec || rel === 'vault/PROCESS.md' || rel === 'scripts/gate.mjs') return false;
--  return rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || pa3Vault.some((p) => rel === p || (p.endsWith('/') && rel.startsWith(p)));
--}
--
- // Retrievers write only their report files (vault/PROCESS.md section 4 roster; EZD-000f).
- function retriever() {
-   if (!rel.startsWith('vault/research/pending/')) return 'Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).';
-@@ -75,7 +64,6 @@ const rules = {
-   },
-   builder: () => {
-     if (isTest) return 'The builder may not change tests or fixtures. If a test looks wrong, report it as a question.';
--    if (pa3Grant()) return;
-     if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
-     // Q-0124 (a), Josh 2026-10-19: scripts/conventions/ is the builder's (the conventions check, EZD-000 and later).
-     // Q-0148 / Q-0125 (a), orchestrator 2026-10-19: scripts/db/ is the builder's (local Supabase and types scripts, EZD-004a and later).
 diff --git a/.claude/hooks/guard-bash.mjs b/.claude/hooks/guard-bash.mjs
-index 98be8b2..9a9d402 100644
+index 9a9d402..9464c47 100644
 --- a/.claude/hooks/guard-bash.mjs
 +++ b/.claude/hooks/guard-bash.mjs
-@@ -28,13 +28,35 @@ for (const [re, why] of always) if (re.test(why.startsWith('Reading .env') ? raw
- 
- // Token guard (Q-0135 (a), PA3 rule 8): an accident guard so a sign-in token is not printed into a transcript.
- const KEYCHAIN_WHY = 'Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).';
--for (const seg of raw.split(/[;&|]/)) {
--  if (/\bsecurity\s+find-(generic|internet)-password\b[^;&|]*\s-(?=[A-Za-z]*[wg])[A-Za-z]+(\s|$)/.test(seg)) deny(KEYCHAIN_WHY);
--  if (/\bsecurity\s+dump-keychain\b[^;&|]*\s-(?=[A-Za-z]*d)[A-Za-z]+(\s|$)/.test(seg)) deny(KEYCHAIN_WHY);
-+// Segments split at ; & | outside quotes only; a backslash outside single quotes escapes the next character (EZD-154; EZD-000i K1).
-+function segments(s) {
-+  const out = [];
-+  let cur = '';
-+  let q = '';
-+  for (let i = 0; i < s.length; i++) {
-+    const ch = s[i];
-+    if (q === "'") { cur += ch; if (ch === "'") q = ''; continue; }
-+    if (ch === '\\' && i + 1 < s.length) { cur += ch + s[i + 1]; i++; continue; }
-+    if (q === '"') { cur += ch; if (ch === '"') q = ''; continue; }
-+    if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
-+    if (ch === ';' || ch === '&' || ch === '|') { out.push(cur); cur = ''; continue; }
-+    cur += ch;
-+  }
-+  out.push(cur);
-+  return out;
+@@ -47,16 +47,22 @@ function segments(s) {
  }
--const noTests = raw
--  .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)/g, '$1')
--  .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)\s+\]/g, '');
-+// Quote marks and backslashes are dropped before matching, so a quoted or escaped option or file name is still seen (EZD-154).
-+const unquote = (s) => s.replace(/["'\\]/g, '');
-+for (const seg of segments(raw)) {
-+  const s = unquote(seg);
-+  if (/\bsecurity\s+find-(generic|internet)-password\b.*\s-(?=[A-Za-z]*[wg])[A-Za-z]+(\s|$)/.test(s)) deny(KEYCHAIN_WHY);
-+  if (/\bsecurity\s+dump-keychain\b.*\s-(?=[A-Za-z]*d)[A-Za-z]+(\s|$)/.test(s)) deny(KEYCHAIN_WHY);
-+}
-+// The test -f and [ -f ] exemption covers one path token: a quoted string, or unquoted text with no space, quote, ; & | < > ( ) or
-+// backtick, followed by a space or the end (test -f) or by ] (bracket form) (EZD-154; EZD-000i K3).
-+const noTests = unquote(raw
-+  .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|[^\s;&|<>()`'"]+)(?=\s|$)/g, '$1')
-+  .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|[^\s;&|<>()`'"]+)\s+\]/g, ''));
+ // Quote marks and backslashes are dropped before matching, so a quoted or escaped option or file name is still seen (EZD-154).
+ const unquote = (s) => s.replace(/["'\\]/g, '');
++// An option group containing w or g (dump-keychain: d) is caught whatever follows it: a space, the end, ) ` > < ; & | (EZD-154; Q-0135 (a)).
+ for (const seg of segments(raw)) {
+   const s = unquote(seg);
+-  if (/\bsecurity\s+find-(generic|internet)-password\b.*\s-(?=[A-Za-z]*[wg])[A-Za-z]+(\s|$)/.test(s)) deny(KEYCHAIN_WHY);
+-  if (/\bsecurity\s+dump-keychain\b.*\s-(?=[A-Za-z]*d)[A-Za-z]+(\s|$)/.test(s)) deny(KEYCHAIN_WHY);
++  if (/\bsecurity\s+find-(generic|internet)-password\b.*\s-[A-Za-z]*[wg]/.test(s)) deny(KEYCHAIN_WHY);
++  if (/\bsecurity\s+dump-keychain\b.*\s-[A-Za-z]*d/.test(s)) deny(KEYCHAIN_WHY);
+ }
+-// The test -f and [ -f ] exemption covers one path token: a quoted string, or unquoted text with no space, quote, ; & | < > ( ) or
+-// backtick, followed by a space or the end (test -f) or by ] (bracket form) (EZD-154; EZD-000i K3).
+-const noTests = unquote(raw
+-  .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|[^\s;&|<>()`'"]+)(?=\s|$)/g, '$1')
+-  .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|[^\s;&|<>()`'"]+)\s+\]/g, ''));
++// The test -f and [ -f ] exemption covers one path token: a single-quoted string, or a double-quoted or unquoted one whose only
++// expansions are $NAME and ${NAME} (no $( ), backtick, backslash or other $ form), followed by a space or the end (test -f) or
++// by ] (bracket form) (EZD-154; EZD-000i K3).
++const PATH = /(?:'[^']*'|"(?:[^"\\$`]|\$[A-Za-z_]|\$\{[A-Za-z_]\w*\})*"|(?:[^\s;&|<>()`'"\\$]|\$[A-Za-z_]|\$\{[A-Za-z_]\w*\})+)/.source;
++const stripped = unquote(raw
++  .replace(new RegExp(String.raw`(^|\s)test\s+-f\s+${PATH}(?=\s|$)`, 'g'), '$1')
++  .replace(new RegExp(String.raw`\[\s+-f\s+${PATH}\s+\]`, 'g'), ''));
++// Beside a removed path token only echo of plain words may run, so nothing can reuse the path ($_, !$, fc, a substitution) (EZD-154).
++const echoOnly = segments(stripped).every((seg) => /^\s*(echo(\s+[\w.,:\/+=-]+)*)?\s*$/.test(seg));
++const noTests = echoOnly ? stripped : unquote(raw);
  if (/\.credentials\.json|\.claude\/\.cred/.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
  
  const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
