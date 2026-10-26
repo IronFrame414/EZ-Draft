@@ -36,6 +36,8 @@ Both exist only in the Node test process. The gate secret and the gated client n
 
 Tests never change seeded rows. A test that changes data creates its own rows with the EZD-006 (`createTenant`, `createMember`, re-exported by `test.ts`) or EZD-007a fixtures and removes them in `afterAll` with `cleanup()` and `closeHarness()`.
 
+The global teardown (`global-teardown.ts`, EZD-180) deletes the auth users of `SEEDED_USERS` (`seeded-users.ts`) and fails the run when one is still linked, so a browser sign-in leaves the seeded rows as `pnpm db:up` made them. A ticket that adds a seeded person adds it to `app/test-utils/seed-ids.ts` and to `SEEDED_USERS` (EZD-180 T5 fails otherwise).
+
 ## Running
 
 Run `pnpm build`, then `pnpm test:e2e`. Install WebKit once with `pnpm --filter @ezdraft/app exec playwright install webkit`.
