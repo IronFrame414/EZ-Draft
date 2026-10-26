@@ -12,8 +12,8 @@ import { spawnSync } from 'node:child_process';
 import { REPO_ROOT, childEnv } from './local-fixture.mjs';
 
 const read = (...p) => readFileSync(path.join(REPO_ROOT, ...p), 'utf8');
-const SHA_CHECKOUT = '11d5960a326750d5838078e36cf38b85af677262';
-const SHA_NODE = '49933ea5288caeca8642d1e84afbd3f7d6820020';
+const SHA_CHECKOUT = '3d3c42e5aac5ba805825da76410c181273ba90b1';
+const SHA_NODE = '949feb2413d6458794dcd2491c4babbbce0c15c1';
 
 const FILES_SECRETS = [
   'BACKUP_SOURCE_DB_URL',
@@ -162,12 +162,13 @@ jobs:
       contents: read
       actions: read
     steps:
-      - uses: actions/checkout@${SHA_CHECKOUT} # v4.4.0
+      - uses: actions/checkout@${SHA_CHECKOUT} # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@${SHA_NODE} # v4.4.0
+      - uses: actions/setup-node@${SHA_NODE} # v7.1.0
         with:
           node-version: 22
+          package-manager-cache: false
       - name: Install pnpm
         run: npm install -g pnpm@12.14.0
       - name: Install dependencies

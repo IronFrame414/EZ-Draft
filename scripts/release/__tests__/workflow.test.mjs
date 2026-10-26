@@ -155,7 +155,7 @@ function checkReleaseWorkflow(text, { pins, pnpmVersion, secretNames }) {
         if (!sameSet(keysOf(s2), ['uses', 'with'])) bad('step 2 keys');
         else {
           if (get(s2, 'uses').v !== pins[1]) bad('step 2 uses is not the supabase-dev setup-node pin');
-          if (!sameSet(get(s2, 'with').kids, ['node-version: 22'])) bad('step 2 with');
+          if (!sameSet(get(s2, 'with').kids, ['node-version: 22', 'package-manager-cache: false'])) bad('step 2 with');
         }
         if (!sameSet(keysOf(s3), ['run']) || get(s3, 'run').v !== `npm install -g pnpm@${pnpmVersion}`) {
           bad('step 3 is not the pnpm install line');
@@ -232,6 +232,7 @@ describe('EZD-023e release workflow', () => {
       'fetch-depth 1': sub(real, /fetch-depth: 0/, 'fetch-depth: 1'),
       'persist-credentials removed': sub(real, /^.*persist-credentials:.*\n/m, ''),
       'setup-node cache': sub(real, /^(\s+)node-version: 22.*$/m, (m, ind) => `${m}\n${ind}cache: pnpm`),
+      'package-manager-cache removed': sub(real, /^.*package-manager-cache: false.*\n/m, ''),
       'ignore-scripts': sub(real, /pnpm install --frozen-lockfile/, 'pnpm install --frozen-lockfile --ignore-scripts'),
       'pnpm rebuild step': `${real.trimEnd()}\n${si}- run: pnpm rebuild supabase\n`,
       'job-level env': sub(
@@ -317,6 +318,90 @@ describe('EZD-023e release workflow', () => {
     };
     for (const [name, sample] of Object.entries(samples)) {
       assert.ok(checkAllowBuilds(sample).length > 0, `sample "${name}" gives at least one problem`);
+    }
+  });
+});
+
+// EZD-176 (vault/plans/EZD-176.md sections 3 and 4; AC-EZD-176-1, AC-EZD-176-2). Node 22 built-ins only.
+// The four workflows that EZD-023b, EZD-025, EZD-146 and EZD-004c wrote move from the v4.4.0 pins (Node 20, R-020,
+// R-021) to the v7 pins of EZD-147 (CI_PINS), and each setup-node `with:` block gains `package-manager-cache: false`
+// (EZD-147 section 1 Decided; EZD-148 rule (i) accepts only `false`).
+const OLD_PIN_SHAS = ['11d5960a326750d5838078e36cf38b85af677262', '49933ea5288caeca8642d1e84afbd3f7d6820020'];
+const NEW_PIN_LINES = [
+  '- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1',
+  '- uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0',
+];
+const PIN_WORKFLOWS = ['release.yml', 'backup-files.yml', 'backup-db.yml', 'supabase-dev.yml'];
+const WORKFLOWS_DIR = path.join(REPO_ROOT, '.github', 'workflows');
+
+/** One entry `<sha> at line <n>` (n from 1) per line whose lower-cased text holds a lower-cased old pin SHA. */
+function oldPinHits(text) {
+  const hits = [];
+  text.split('\n').forEach((line, i) => {
+    const lower = line.toLowerCase();
+    for (const sha of OLD_PIN_SHAS) {
+      if (lower.includes(sha)) hits.push(`${sha} at line ${i + 1}`);
+    }
+  });
+  return hits;
+}
+
+/** Trimmed text of the lines under the `with:` line at index i: deeper indent, blank lines skipped, stop at the first shallower line. */
+function withKids(lines, i) {
+  const indentOf = (s) => /^ */.exec(s)[0].length;
+  const base = indentOf(lines[i]);
+  const kids = [];
+  for (let j = i + 1; j < lines.length; j++) {
+    if (lines[j].trim() === '') continue;
+    if (indentOf(lines[j]) <= base) break;
+    kids.push(lines[j].trim());
+  }
+  return kids;
+}
+
+describe('EZD-176 workflow action pins', () => {
+  // T1 ----------------------------------------------------------------------------------------------------------
+  test('EZD-176 T1 no workflow names a v4.4.0 checkout or setup-node SHA (AC-EZD-176-1) done when', () => {
+    // (a) the helper on in-memory samples (lesson L-006): one-line and two-line bad samples, an upper-cased SHA, a clean control.
+    const s1 = '      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0\n';
+    const s2 = '      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020\n';
+    const s4 = s1.replace(OLD_PIN_SHAS[0], OLD_PIN_SHAS[0].toUpperCase());
+    const c1 = `      ${NEW_PIN_LINES[0]}\n      ${NEW_PIN_LINES[1]}\n`;
+    assert.equal(oldPinHits(s1).length, 1, 's1 has one hit');
+    assert.equal(oldPinHits(s2).length, 1, 's2 has one hit');
+    assert.equal(oldPinHits(s1 + s2).length, 2, 's1 and s2 have two hits');
+    assert.equal(oldPinHits(s4).length, 1, 'an upper-cased SHA still hits');
+    assert.deepEqual(oldPinHits(c1), [], 'the clean control has no hit');
+
+    // (b) the scan finds the real files; an empty scan fails.
+    const names = readdirSync(WORKFLOWS_DIR).filter((f) => /\.ya?ml$/.test(f));
+    assert.ok(names.length >= 5, `at least five workflow files, found ${names.length}`);
+    assert.ok(names.includes('ci.yml'), 'ci.yml is scanned');
+    for (const file of PIN_WORKFLOWS) assert.ok(names.includes(file), `${file} is scanned`);
+
+    // (c) no real workflow file names an old SHA, comment lines included.
+    for (const name of names) {
+      const text = readFileSync(path.join(WORKFLOWS_DIR, name), 'utf8');
+      assert.deepEqual(oldPinHits(text), [], `${name} names no v4.4.0 pin`);
+    }
+  });
+
+  // T2 ----------------------------------------------------------------------------------------------------------
+  test('EZD-176 T2 the four workflows pin checkout v7.0.1 and setup-node v7.1.0 with no automatic cache (AC-EZD-176-2)', () => {
+    for (const file of PIN_WORKFLOWS) {
+      const lines = readFileSync(path.join(WORKFLOWS_DIR, file), 'utf8').split('\n');
+      // (a) the two uses lines, in order, and nothing else that names a uses.
+      const uses = lines.map((l) => l.trim()).filter((l) => !l.startsWith('#') && l.includes('uses:'));
+      assert.deepEqual(uses, NEW_PIN_LINES, `${file}: the two pins, checkout then setup-node`);
+      // (b) the setup-node `with:` holds node-version 22 and package-manager-cache false, nothing else.
+      const p2 = lines.findIndex((l) => l.trim() === NEW_PIN_LINES[1]);
+      assert.ok(p2 >= 0, `${file}: the setup-node pin line is present`);
+      assert.equal(lines[p2 + 1].trim(), 'with:', `${file}: the line after the setup-node pin is with:`);
+      assert.deepEqual(
+        withKids(lines, p2 + 1),
+        ['node-version: 22', 'package-manager-cache: false'],
+        `${file}: the setup-node with block`,
+      );
     }
   });
 });
