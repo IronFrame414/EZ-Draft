@@ -70,6 +70,10 @@ export const es = {
   'error.logo_too_large': 'Los logotipos pueden pesar hasta 5 MB. Elige un archivo más pequeño.',
   'error.logo_wrong_type': 'Los logotipos deben ser PNG, JPG o SVG.',
   'error.logo_svg_unsafe': 'Este SVG no se puede usar. Guárdalo como PNG e inténtalo de nuevo.',
+  'error.customer_name_required': 'Escribe el nombre del cliente.',
+  'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
+  'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
+  'error.customer_not_found': 'Este cliente ya no existe.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

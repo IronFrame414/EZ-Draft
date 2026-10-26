@@ -54,4 +54,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'update_tenant_identity',
     args: { p_name: 'x', p_license_no: null, p_contact: {}, p_set_logo: false, p_logo_path: null },
   },
+  // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
+  { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
 ];

@@ -53,4 +53,6 @@
   /* S15a logo box, unsaved line; EZD-112 */
   --ez-surface-sunken: #fbfbfc;
   --ez-amber-text: oklch(0.48 0.13 65);
+  /* B15a .tr:hover; EZD-113 */
+  --ez-row-hover: #f8f9fb;
 }

@@ -576,6 +576,18 @@ EZD-112 (vault/plans/EZD-112.md Steps 1-19); S15a; Q-0228; Q-0232; Q-0302; Q-035
 - **Event.** `tenant.updated` (`log_only`, payload `{ fields: TenantField[] }`) is emitted by the save route when `changed` is not empty; a failed emit does not fail the save.
 - **Shell additions.** `SettingsMain` takes `subtitle` and `flush`; a page adds status bar items after the Company item with `useSettingsStatus(items)` (`SettingsStatusEntry`).
 
+### Customers (EZD-113)
+
+EZD-113 (vault/plans/EZD-113.md Steps 1-18); S15a Customers; 03d customer; Q-0227; Q-0228; Q-0232.
+
+- **Table `public.customer`** (tenant-owned): `name` and `email` required (not blank), `phone` and `address` optional, `archived_at`. Email is unique per tenant ignoring case, archived rows included (`customer_tenant_email_key` on `(tenant_id, lower(email))`), stored trimmed as typed; another company may reuse it. Policies `customer_select`, `customer_insert`, `customer_update` by the claim tenant; `authenticated` has `select, insert, update` only.
+- **No delete** (Q-0227): no delete grant or policy for `authenticated`, no `DELETE` route, no Delete control; a customer is archived and restored instead.
+- **Project link.** `project.customer_id` (nullable, composite foreign key `project_customer_fk` to `customer (id, tenant_id)`, index `project_customer_id_idx`) is what the project count reads; EZD-118 fills it when the wizard picks a client.
+- **List.** `public.list_customers(p_search, p_archived, p_page)` (`security invoker`, `authenticated` only, in `GATED_RPC_CALLS`) returns one page of 50 (`CUSTOMER_PAGE_SIZE`) ordered by `lower(name)`, `id`, with `total`, `active`, `archived` and each row's `projectCount` from one grouped query over the projects the viewer can see (RLS on `project`). Search is a trimmed, case-insensitive substring of name or email, with `%`, `_` and `\` matched literally.
+- **Routes** (each `requireApiPermission('settings_company')`, `Cache-Control: no-store`): `GET /api/settings/customers?q=&archived=0|1&page=` (`CustomerPage`); `POST /api/settings/customers` (`{ name, email, phone, address }` → 201 `{ customer }`); `PATCH /api/settings/customers/<id>` (the same body, or `{ archived: boolean }` → 200 `{ customer }`; nothing changed means no write). Codes: `invalid_input`, `customer_name_required`, `customer_email_required`, `invalid_email`, `customer_email_taken`, `customer_not_found`, `permission_denied`, `db_unavailable`. Helpers in `app/src/lib/customers/customers.ts` and `app/src/server/customers/customers.ts`.
+- **Events.** `customer.created` `{ customerId }` and `customer.updated` `{ customerId, fields }` (`log_only`; `fields` from `name`, `email`, `phone`, `address`, `archived`); a failed emit does not fail the save.
+- **Page.** `CustomersPanel` fills `CompanyForm`'s `company-customers` column and adds the `customers` status bar item (active count); `CustomerDialog` (Radix `Dialog`) saves at once through its route, outside the company form's Save.
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-102 (helper, server-route pattern, UI hook) and EZD-133 (browser-query lint rule, money serializers).

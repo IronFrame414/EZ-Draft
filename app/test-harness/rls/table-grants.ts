@@ -58,6 +58,10 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       'Originals are kept for the life of the project; no member deletes a row (03c; 11 Data retention; EZD-132)',
   },
+  customer: {
+    privileges: ['SELECT', 'INSERT', 'UPDATE'],
+    reason: 'No delete in v1; customers are archived (Q-0227; EZD-113).',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

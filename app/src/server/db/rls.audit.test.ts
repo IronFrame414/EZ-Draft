@@ -205,6 +205,7 @@ describe('EZD-006 RLS audit', () => {
     expect(Object.keys(TABLE_GRANTS).sort()).toEqual([
       'app_user',
       'backup_run',
+      'customer',
       'error_alert',
       'error_tunnel_throttle',
       'job',
@@ -222,7 +223,7 @@ describe('EZD-006 RLS audit', () => {
       expect(grant.privileges, table).toEqual(
         table === 'sign_in_throttle' || table === 'backup_run' || table === 'error_tunnel_throttle'
           ? []
-          : table === 'source_file'
+          : table === 'source_file' || table === 'customer'
             ? ['SELECT', 'INSERT', 'UPDATE']
             : ['SELECT'],
       );

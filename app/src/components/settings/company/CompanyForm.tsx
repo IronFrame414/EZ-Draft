@@ -16,6 +16,7 @@ import {
   type CompanyLogo,
   type LogoChange,
 } from '../../../lib/company/company';
+import type { CustomerCounts } from '../../../lib/customers/customers';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
 import { uploadFile, type SignedUpload } from '../../../lib/storage/upload';
@@ -27,6 +28,7 @@ import { StateButton } from '../../states/StateButton';
 import { useSettingsStatus, type SettingsStatusEntry } from '../SettingsShell';
 import { GuardedLink, useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
 import styles from './CompanyForm.module.css';
+import { CustomersPanel } from './CustomersPanel';
 
 type Fields = CompanyDraft['fields'];
 type Staged = CompanyLogo & { fileName: string; size: number };
@@ -76,6 +78,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
   const [logoError, setLogoError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saveFailed, setSaveFailed] = useState(false);
+  const [customerCounts, setCustomerCounts] = useState<CustomerCounts | null>(null);
   const [saving, setSaving] = useState(false);
   const [working, setWorking] = useState(false);
 
@@ -200,13 +203,20 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
     setSaveFailed(false);
   };
 
-  const statusItems = useMemo<readonly SettingsStatusEntry[]>(
-    () =>
-      saved.licenseNo
-        ? [{ id: 'license', label: 'office.company.status_license', value: saved.licenseNo }]
-        : [],
-    [saved.licenseNo],
-  );
+  const statusItems = useMemo<readonly SettingsStatusEntry[]>(() => {
+    const items: SettingsStatusEntry[] = [];
+    if (saved.licenseNo) {
+      items.push({ id: 'license', label: 'office.company.status_license', value: saved.licenseNo });
+    }
+    if (customerCounts !== null) {
+      items.push({
+        id: 'customers',
+        label: 'office.customers.status',
+        value: String(customerCounts.active),
+      });
+    }
+    return items;
+  }, [saved.licenseNo, customerCounts]);
   useSettingsStatus(statusItems);
 
   const onPick = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -471,7 +481,9 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
             </p>
           </section>
         </div>
-        <div data-testid="company-customers" className={styles.right} />
+        <div data-testid="company-customers" className={styles.right}>
+          <CustomersPanel onCounts={setCustomerCounts} />
+        </div>
       </div>
       <div className={styles.footer}>
         {dirty ? (

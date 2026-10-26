@@ -53,4 +53,5 @@ export const TOKENS: readonly {
   { name: '--ez-cobalt-link', value: 'oklch(0.5 0.17 262)', group: 'color' },
   { name: '--ez-surface-sunken', value: '#fbfbfc', group: 'color' },
   { name: '--ez-amber-text', value: 'oklch(0.48 0.13 65)', group: 'color' },
+  { name: '--ez-row-hover', value: '#f8f9fb', group: 'color' },
 ];
