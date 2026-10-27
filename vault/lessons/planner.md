@@ -151,3 +151,10 @@ Mistake: the plan added a `private` function granted to `authenticated` only, th
 Cause: grants and the audit allow-list were not cross-read against the test rows.
 Rule: a plan that adds a `private` function lists its `PRIVATE_EXECUTE` entry in the test-author scope and calls it in tests only as a role that has execute (else through a definer RPC that role can run).
 Check: plan review matches every test caller role to the function's grants.
+
+## L-024  areas: migrations, testing  seen: 1  status: candidate
+Ticket EZD-190, 2026-10-26
+Mistake: DB tests pinned catalog counts (9 tables, 8 functions) with `toEqual`; three migrations merged between planning and build, so the builder hit a PLAN-GAP.
+Cause: a dated catalog snapshot was written into the test contract.
+Rule: a test over catalog contents checks the rule plus a minimum list (`toContain`), never `toEqual` on a snapshot; each count in the plan names its date and newest migration.
+Check: plan review greps test rows for `toEqual` over catalog lists.
