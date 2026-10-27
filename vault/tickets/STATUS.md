@@ -481,7 +481,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-1617 | 52 | Catalog settings: markup per category and edge library | todo |  | EZD-1601, EZD-1609 |  |  |  |
 | EZD-1701 | 55 | Performance targets | todo |  | EZD-1001, EZD-901 |  |  |  |
 | EZD-1702 | 55 | DXF size limits | todo |  | EZD-1701 |  |  |  |
-| EZD-1704 | 1 | Backups | ready | medium | EZD-025 |  |  |  |
+| EZD-1704 | 1 | Backups | done | medium | EZD-025 | 8d4286d | 1153 | Models: test-author sonnet-5-5 medium, builder sonnet-5-5 medium (2 rounds), code-reviewer opus-5-5 high (3 reviews), security-reviewer opus-5-5 high (all from --dispatch). Deviation: plan section 3 SHA pins were stale; backup-check.yml copies backup-db.yml pins (D15, EZD-176). Review added backup-check.yml to ci.test.mjs rule (n), PROD_FILES and EZD-188 maps (plan D18 amendment). No needs-josh-confirm wording. |
 | EZD-1705 | 54 | Security review | todo |  | EZD-1302, EZD-1211 |  |  |  |
 | EZD-1706 | 54 | Event log coverage | todo |  | EZD-109 |  |  |  |
 | EZD-1707 | 1 | Terms of service | ready | low | EZD-007 |  |  |  |
