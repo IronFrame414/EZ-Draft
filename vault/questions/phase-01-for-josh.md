@@ -99,3 +99,5 @@ Full tables are in each plan's section 6. Needing your approval:
 | ID | Rule | From | Recommendation |
 | --- | --- | --- | --- |
 | L-022 | Catch only the errors the plan names (for example ENOENT) and rethrow the rest; add no fallback the plan does not list. | EZD-166 | **ratify**: it is CLAUDE.md rule 4 (implement exactly your plan) applied to error handling, and a catch-all hides real faults (rule 16). |
+
+| Q-0358 | EZD-153 | (c) Fix ticket: temporary `sql_drop` event trigger on production during the migrations (plus a rename check), proven first on `ezdraft-dev`; fallback (b) comes back to you only if the probe fails | security-reviewer; CLAUDE.md rules 17, 18 |
