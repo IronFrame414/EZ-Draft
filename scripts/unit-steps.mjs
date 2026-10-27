@@ -26,7 +26,7 @@ const out = (r) => `${r.stdout || ''}${r.stderr || ''}`.trim();
 const stop = (msg) => { console.log(msg); process.exit(3); };
 
 // STATUS.md columns: Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes
-const COL = { phase: 1, title: 2, status: 3, complexity: 4, commit: 6, tests: 7 };
+const COL = { phase: 1, title: 2, status: 3, complexity: 4, commit: 6, tests: 7, notes: 8 };
 function readRows() {
   const lines = readFileSync(statusPath, 'utf8').split('\n');
   const rows = new Map();
@@ -161,9 +161,23 @@ function finish() {
   console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})`);
 }
 
-const steps = { preflight, worktree, merge, finish };
+// The launcher tables a build that ends twice without progress (Josh 2026-10-27: "override so it keeps moving
+// forward"): the ticket becomes blocked with a note, so --next-unit moves on to the next ready ticket. Its worktree
+// and branch stay; the orchestrator sets it back to ready when Josh answers.
+function table() {
+  const r = rowOf(ticket);
+  if (!['in-progress', 'review'].includes(r.status)) stop(`TABLE STOP: ${ticket} is ${r.status}, not in-progress or review`);
+  const note = `${new Date().toISOString().slice(0, 10)}: tabled by the launcher (build ended twice without progress, most likely waiting on Josh; see vault/handoff/CURRENT.md). Worktree kept; back to ready when Josh answers.`;
+  setRow(ticket, { status: 'blocked', notes: r.notes ? `${r.notes} · ${note}` : note });
+  git('add', 'vault/tickets/STATUS.md');
+  const c = git('commit', '-q', '-m', `docs(vault): ${ticket} tabled by the launcher`);
+  if (c.status) stop(`TABLE STOP: commit failed: ${out(c).split('\n')[0]}`);
+  console.log(`TABLE OK ${ticket} (STATUS → blocked)`);
+}
+
+const steps = { preflight, worktree, merge, finish, table };
 if (!steps[step] || !/^EZD-[0-9A-Za-z]+$/.test(ticket || '')) {
-  console.log('usage: node scripts/unit-steps.mjs preflight|worktree|merge|finish <EZD-xxx> [done|blocked]');
+  console.log('usage: node scripts/unit-steps.mjs preflight|worktree|merge|finish|table <EZD-xxx> [done|blocked]');
   process.exit(2);
 }
 steps[step]();

@@ -171,3 +171,26 @@ test('finish commits vault/ with the ticket outcome', () => {
   assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 done');
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('table sets an in-progress ticket blocked, keeps its note and commits STATUS.md (Josh 2026-10-27)', () => {
+  const dir = fixture({ status: 'in-progress' });
+  const r = run(dir, 'table', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /^TABLE OK EZD-002/);
+  const cells = row(dir, 'EZD-002').split('|').map((c) => c.trim());
+  assert.equal(cells[4], 'blocked');
+  assert.match(cells[9], /^keep this note · \d{4}-\d{2}-\d{2}: tabled by the launcher/);
+  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 tabled by the launcher');
+  assert.equal(git(dir, 'status', '--porcelain'), '');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('table refuses a ticket that is not in-progress or review and changes nothing', () => {
+  const dir = fixture({ status: 'ready' });
+  const before = row(dir, 'EZD-002');
+  const r = run(dir, 'table', 'EZD-002');
+  assert.equal(r.status, 3);
+  assert.match(r.stdout, /TABLE STOP: EZD-002 is ready/);
+  assert.equal(row(dir, 'EZD-002'), before);
+  rmSync(dir, { recursive: true, force: true });
+});

@@ -332,6 +332,7 @@ async function main() {
   if (!dryRun) await recoverInflight();
   let checkFailures = 0;
   let noProgress = 0;
+  let tabled = 0; // builds tabled in a row by the no-progress guard
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   for (;;) {
@@ -398,12 +399,26 @@ async function main() {
       if (checkFailures >= 2) { notify('ledger check failed twice in a row; launcher stopped. See vault/handoff/CURRENT.md.'); return; }
     } else checkFailures = 0;
     // No-progress guard (2026-10-19): a unit that ends ok but leaves STATUS.md and the next unit unchanged is not
-    // retried forever; two in a row stop the launcher.
+    // retried forever. A build that does it twice is tabled (blocked with a note) and the launcher moves on to the next
+    // ready ticket (Josh 2026-10-27: "override so it keeps moving forward"); any other unit, a failed table, or a third
+    // stuck build right after two tables (a systemic fault, not one ticket) still stop the launcher.
     if (r.outcome === 'ok' && statusHash() === statusBefore && tool('--next-unit').stdout.trim() === next) {
       noProgress++;
       log(`${next} ended ok but changed nothing in STATUS.md (${noProgress} in a row)`);
-      if (noProgress >= 2) { notify(`unit ${next} ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.`); return; }
-    } else noProgress = 0;
+      if (noProgress >= 2) {
+        const t = unitName === 'build' && tabled < 2 ? spawnSync(process.execPath, [path.join(root, 'scripts/unit-steps.mjs'), 'table', arg], { encoding: 'utf8', cwd: root }) : null;
+        if (t && t.status === 0) {
+          tabled++;
+          noProgress = 0;
+          log(t.stdout.trim());
+          notify(`${arg} tabled (blocked) after two builds without progress; the launcher goes on with the next ticket. See vault/handoff/CURRENT.md.`);
+          continue;
+        }
+        if (t) log(`table ${arg} failed: ${(t.stdout + t.stderr).trim().split('\n')[0]}`);
+        notify(`unit ${next} ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.`);
+        return;
+      }
+    } else { noProgress = 0; tabled = 0; }
     if (r.outcome !== 'ok') {
       const info = { ts: new Date().toISOString(), unit: next, outcome: r.outcome, note: r.note || r.parsed?.result?.slice?.(0, 500) };
       writeFileSync(failureFile, JSON.stringify(info, null, 2));
