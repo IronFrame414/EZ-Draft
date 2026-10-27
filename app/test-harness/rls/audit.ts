@@ -21,9 +21,10 @@ type Relation = {
   reloptions: string[] | null;
   columns: string[];
 };
-type Policy = {
+export type Policy = {
   tablename: string;
   policyname: string;
+  permissive: string;
   roles: string[];
   cmd: string;
   qual: string | null;
@@ -34,6 +35,8 @@ type Privilege = { schema: string; table: string; role: string; priv: string; ok
 const ROLES = ['anon', 'authenticated', 'service_role'];
 const PRIVS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'];
 const DATA_PRIVS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
+// EZD-190: the restrictive policy every table the signed-in role can touch carries, as pg_policies prints it.
+export const API_GATE_POLICY_EXPR = '( SELECT private.require_api_gate() AS require_api_gate)';
 const SCOPE_HELPERS = [/private\.listed_project_ids\(\)/, /private\.can_see_project\(/];
 
 export async function auditRls(
@@ -62,7 +65,8 @@ export async function auditRls(
     where n.nspname in ('public', 'private')`;
 
   const policies = await sql<Policy[]>`
-    select tablename::text as tablename, policyname::text as policyname, roles::text[] as roles,
+    select tablename::text as tablename, policyname::text as policyname, permissive::text as permissive,
+      roles::text[] as roles,
       cmd::text as cmd, qual, with_check
     from pg_policies where schemaname in ('public', 'private')`;
 
@@ -114,6 +118,13 @@ export async function auditRls(
     if (isTable) {
       const tablePolicies = policies.filter((p) => p.tablename === name);
       if (!rel.relrowsecurity) add(name, 'rls_disabled');
+      if (
+        rel.schema === 'public' &&
+        DATA_PRIVS.some((priv) => has(rel, 'authenticated', priv)) &&
+        !tablePolicies.some(isApiGatePolicy)
+      ) {
+        add(name, 'api_gate_policy_missing');
+      }
       if (tablePolicies.length === 0) add(name, 'no_policy');
 
       const isExempt = exempt.has(name);
@@ -137,10 +148,11 @@ export async function auditRls(
         const check = p.with_check ?? '';
         const both = `${using}\n${check}`;
         const cmd = p.cmd.toUpperCase();
-        if (!isExempt && hasTenantId && !/private\.tenant_id\(\)/.test(both)) {
+        const isGatePolicy = isApiGatePolicy(p);
+        if (!isExempt && hasTenantId && !isGatePolicy && !/private\.tenant_id\(\)/.test(both)) {
           add(name, 'policy_missing_tenant_helper');
         }
-        if (!isExempt && hasScopeKey) {
+        if (!isExempt && hasScopeKey && !isGatePolicy) {
           const usingApplies = ['SELECT', 'UPDATE', 'DELETE', 'ALL'].includes(cmd);
           const checkApplies = !scopeUsingOnly && ['INSERT', 'UPDATE', 'ALL'].includes(cmd);
           const missing =
@@ -208,6 +220,18 @@ export async function auditRls(
     }
   }
   return problems;
+}
+
+export function isApiGatePolicy(p: Policy): boolean {
+  return (
+    p.policyname === `${p.tablename}_api_gate` &&
+    p.permissive === 'RESTRICTIVE' &&
+    p.cmd.toUpperCase() === 'ALL' &&
+    p.roles.length === 1 &&
+    p.roles[0] === 'authenticated' &&
+    p.qual === API_GATE_POLICY_EXPR &&
+    p.with_check === API_GATE_POLICY_EXPR
+  );
 }
 
 // pg_policies prints a wrapped helper as `( SELECT private.<fn>() AS <fn>)`; any other call site of a

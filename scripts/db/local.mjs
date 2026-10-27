@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { gateHash, newGateSecret, setHashSql } from './api-gate.mjs';
 import { runLocalSql } from './sql.mjs';
 import { ensureRealtimeBroadcastStream } from './realtime-warmup.mjs';
+// EZD-190 (vault/plans/EZD-190.md; Q-0330): restart PostgREST and wait until the API request gate is in force.
+import { ensureApiGateInForce } from './api-gate-ready.mjs';
 // EZD-166 (vault/plans/EZD-166.md): restart the stack when supabase/config.toml or supabase/templates/* changed.
 import { STACK_CONFIG_MARKER, ensureStackCurrent, sharedTempDir } from './stack-config.mjs';
 
@@ -49,6 +51,13 @@ async function up() {
   if (!reset.ok) fail('db reset --local', reset);
   await storeLocalGateSecret();
   const s = readStatus();
+  try {
+    await ensureApiGateInForce({ apiUrl: s.url, apiKey: s.publishable });
+  } catch (error) {
+    process.stderr.write(`Local API request gate is not in force (${error.message}): run pnpm db:stop, then pnpm db:up.\n`);
+    process.exit(1);
+  }
+  process.stdout.write('API request gate in force\n');
   try {
     await ensureRealtimeBroadcastStream({ apiUrl: s.url, apiKey: s.publishable });
   } catch (error) {

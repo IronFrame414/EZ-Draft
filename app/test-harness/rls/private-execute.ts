@@ -30,6 +30,11 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
       reason:
         'Granted to authenticated with the realtime_can_* helpers (EZD-018, 20261022120000_create_realtime_topic_helpers.sql).',
     },
+    {
+      fn: 'private.require_api_gate()',
+      reason:
+        'Called by the <table>_api_gate restrictive policies as the querying user (EZD-190; Q-0330).',
+    },
     { fn: 'private.session_is_live()', reason: ONE_OFF },
     { fn: 'private.tenant_id()', reason: POLICY_HELPER },
     { fn: 'private.tenant_user_ids()', reason: POLICY_HELPER },

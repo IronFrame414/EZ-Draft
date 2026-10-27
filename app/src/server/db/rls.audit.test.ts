@@ -437,3 +437,48 @@ function flattenPlan(plan: unknown): PlanNode[] {
   walk(plan);
   return out;
 }
+
+describe('EZD-190 audit: API gate policy', () => {
+  let sql: Sql;
+
+  beforeAll(() => {
+    sql = adminSql();
+  });
+
+  afterAll(async () => {
+    await closeHarness();
+    await sql.end({ timeout: 5 });
+  });
+
+  it('A1 the audit asks for the gate policy and recognises only the exact one', async () => {
+    await withRollback(sql, async (tx) => {
+      const codes = async () =>
+        (await auditRls(tx, { repoRoot }))
+          .filter((p) => p.table === 'ezd190_probe' && !GRANT_CODES.includes(p.code))
+          .map((p) => p.code)
+          .sort();
+
+      await tx.unsafe('create table public.ezd190_probe (id uuid primary key, tenant_id uuid)');
+      await tx.unsafe('alter table public.ezd190_probe enable row level security');
+      await tx.unsafe(
+        'create policy ezd190_probe_select on public.ezd190_probe for select to authenticated using (tenant_id = (select private.tenant_id()))',
+      );
+      await tx.unsafe('create index on public.ezd190_probe (tenant_id)');
+      await tx.unsafe('grant select on public.ezd190_probe to authenticated');
+      expect(await codes(), 'step 1').toEqual(['api_gate_policy_missing', 'no_isolation_test']);
+
+      await tx.unsafe(
+        'create policy ezd190_probe_api_gate on public.ezd190_probe as restrictive for all to authenticated using ((select private.require_api_gate())) with check ((select private.require_api_gate()))',
+      );
+      expect(await codes(), 'step 2').toEqual(['no_isolation_test']);
+
+      await tx.unsafe(
+        'create policy ezd190_probe_x on public.ezd190_probe as restrictive for all to authenticated using (true)',
+      );
+      expect(await codes(), 'step 3').toEqual([
+        'no_isolation_test',
+        'policy_missing_tenant_helper',
+      ]);
+    });
+  });
+});

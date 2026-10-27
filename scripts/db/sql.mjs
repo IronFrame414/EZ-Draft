@@ -13,7 +13,7 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const configPath = path.join(repo, 'supabase', 'config.toml');
 const DOCKER_MESSAGE = 'Local Supabase needs Docker running (start Docker Desktop).';
 
-function projectId() {
+export function projectId() {
   const toml = readFileSync(configPath, 'utf8');
   const m = /^\s*project_id\s*=\s*"([^"]+)"/m.exec(toml);
   if (!m) throw new Error('supabase/config.toml has no project_id');
