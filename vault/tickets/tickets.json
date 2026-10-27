@@ -13396,7 +13396,7 @@
    "id": "EZD-149",
    "phase": 1,
    "title": "Fix: hosting live check and preview rule match what they claim",
-   "depends_raw": "EZD-003",
+   "depends_raw": "",
    "spec_ref": "Q-0268",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -13404,9 +13404,7 @@
    "decisions": [],
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
-   "depends_on": [
-    "EZD-003"
-   ],
+   "depends_on": [],
    "build_position": 458,
    "acs": [
     "AC-EZD-149-1",
@@ -14150,7 +14148,7 @@
    "id": "EZD-182",
    "phase": 1,
    "title": "Fix: repo rule tests refuse pnpm flags that turn on dependency build scripts",
-   "depends_raw": "EZD-177, EZD-003",
+   "depends_raw": "EZD-177",
    "spec_ref": "Q-0316",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -14159,8 +14157,7 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-177",
-    "EZD-003"
+    "EZD-177"
    ],
    "build_position": 491,
    "acs": [
