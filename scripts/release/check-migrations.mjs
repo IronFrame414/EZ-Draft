@@ -1,15 +1,16 @@
 #!/usr/bin/env node
-// EZD-023a Step 4 (vault/plans/EZD-023a.md): the release-safety migration check. Node 22 built-ins only.
+// EZD-023a Step 4 (vault/plans/EZD-023a.md): the release-safety migration check. Node 22 built-ins plus the scripts/db lock; the scratch database step is scripts/release/scratch-check.mjs (EZD-153).
 // Refuses a migration that drops or renames something the previous release tag still reads (M1), an edited
 // or removed released migration (M2), an out-of-order version (M3), SQL that cannot be checked statically
 // (M4) and a malformed supabase/retired.json (M5). In GitHub Actions a failed tag fetch is M0 (fails closed).
 // Run by the root `lint` script, so every gate run and CI run it (docs/architecture.md ### Release safety).
 //
-// CLI: node scripts/release/check-migrations.mjs [--root <dir>] [--base <tag>] [--head <git ref>] [--no-fetch]
+// CLI: node scripts/release/check-migrations.mjs [--root <dir>] [--base <tag>] [--head <git ref>] [--no-fetch] [--no-db]
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runScratchCheck } from './scratch-check.mjs';
 import { listReleaseTags, previousReleaseTag, RELEASE_TAG_RE } from './tags.mjs';
 import {
   findCreated,
@@ -197,13 +198,14 @@ export function checkMigrations({ baseTag, released, retired, current }) {
 // ---------------------------------------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const opts = { root: process.cwd(), base: null, head: null, fetch: true };
+  const opts = { root: process.cwd(), base: null, head: null, fetch: true, db: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--root') opts.root = path.resolve(argv[++i] ?? '.');
     else if (a === '--base') opts.base = argv[++i] ?? null;
     else if (a === '--head') opts.head = argv[++i] ?? null;
     else if (a === '--no-fetch') opts.fetch = false;
+    else if (a === '--no-db') opts.db = false;
     else throw new Error(`unknown argument ${a}`);
   }
   return opts;
@@ -288,8 +290,9 @@ function printViolations(out, violations) {
   for (const v of violations) out(`[${v.id}] ${v.file}: ${v.object} ${v.detail}`);
 }
 
-export function main(argv, out = (line) => process.stdout.write(`${line}\n`)) {
+export function main(argv, out = (line) => process.stdout.write(`${line}\n`), mainOpts = {}) {
   const opts = parseArgs(argv);
+  const scratch = mainOpts.scratch ?? runScratchCheck;
   const invalid = invalidRef(argv, opts);
   if (invalid) {
     out(invalid);
@@ -329,17 +332,46 @@ export function main(argv, out = (line) => process.stdout.write(`${line}\n`)) {
 
   const base = readRef(git, baseTag);
   const baseRetired = validateRetired(base.retired);
+  const retiredEntries = base.retired === null ? [] : baseRetired.entries;
   const result = checkMigrations({
     baseTag,
     released: base.migrations,
-    retired: base.retired === null ? [] : baseRetired.entries,
+    retired: retiredEntries,
     current: head.migrations,
   });
-  const violations = [...result.violations, ...m5];
   for (const n of result.notes) out(n);
+
+  // EZD-153: the scratch database step (Q-0334 (b)).
+  const newNames = Object.keys(head.migrations)
+    .filter((n) => !(n in base.migrations))
+    .sort();
+  let scratchResult = { violations: [], notes: [], failure: null };
+  if (!opts.db) out('scratch_db_skipped (--no-db)');
+  else if (newNames.length === 0) out(`scratch database not needed: no new migration since ${baseTag}`);
+  else if (result.violations.some((v) => v.id === 'M3')) out('scratch database skipped: fix the M3 version first');
+  else {
+    scratchResult = scratch({
+      baseTag,
+      released: base.migrations,
+      newFiles: Object.fromEntries(newNames.map((n) => [n, head.migrations[n]])),
+      isRetired: (item) => isRetired(retiredEntries, item),
+    });
+    for (const n of scratchResult.notes) out(n);
+  }
+
+  const staticM1 = new Set(result.violations.filter((v) => v.id === 'M1').map((v) => `${v.file}\n${v.object}`));
+  const scratchViolations = scratchResult.violations.filter(
+    (v) => !(v.id === 'M1' && staticM1.has(`${v.file}\n${v.object}`)),
+  );
+  const violations = [...result.violations, ...scratchViolations, ...m5];
   printViolations(out, violations);
+  if (scratchResult.failure) out(`scratch_db_failed: ${scratchResult.failure}`);
   if (violations.length) {
     out(`migration check failed against ${baseTag}: ${violations.length} violation(s)`);
+    return 1;
+  }
+  if (scratchResult.failure) {
+    out(`migration check failed against ${baseTag}: the scratch database check could not run`);
     return 1;
   }
   out(`migration check passed against ${baseTag}`);

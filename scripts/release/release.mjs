@@ -248,13 +248,13 @@ export async function runRelease(opts, deps) {
   }
   const { tag, resume } = named;
 
-  // 8. EZD-023a's migration check, in-process, against the previous release tag.
+  // 8. EZD-023a's migration check with EZD-153's scratch database, in-process, against the previous release tag.
   const argv = ['--root', opts.root, '--head', sha];
   const base = previousReleaseTag(tags, tag);
   if (base !== null) argv.push('--base', base);
   let checkResult;
   try {
-    checkResult = checkMigrations(argv, (line) => log(line));
+    checkResult = checkMigrations(argv, (line) => log(line), { scratch: deps.scratchCheck });
   } catch {
     log('migration_check_failed: the migration check could not run');
     return stop('migration_check_failed', { prNumber, tag, resume });

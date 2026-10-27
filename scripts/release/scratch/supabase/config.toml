@@ -1,0 +1,50 @@
+# EZD-153 (vault/plans/EZD-153.md): the scratch Supabase stack of the migration check. Built from the base tag's migrations,
+# then every service but Postgres is stopped and the new migrations are applied one at a time (Q-0334 (b)).
+
+project_id = "ezdraft-migcheck"
+
+[api]
+enabled = true
+port = 56321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 56322
+shadow_port = 56320
+major_version = 17
+
+[db.pooler]
+enabled = false
+port = 56329
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = false
+
+# EZD-018's migrations use realtime.messages, which exists only with Realtime on (plan Step 5 fallback).
+[realtime]
+enabled = true
+
+[studio]
+enabled = false
+
+[local_smtp]
+enabled = false
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+
+[edge_runtime]
+enabled = false
+
+[analytics]
+enabled = false

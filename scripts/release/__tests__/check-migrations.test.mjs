@@ -75,7 +75,7 @@ describe('EZD-023a release safety: migration check', () => {
 
     const clone = cloneFrom(repo.origin, { depth: 1, noTags: true });
     assert.equal(git(clone, 'tag', '--list', 'phase-*'), '', 'the CI clone starts with no tags');
-    const r = runCheck(clone, [], { GITHUB_ACTIONS: 'true', CI: '1' });
+    const r = runCheck(clone, ['--no-db'], { GITHUB_ACTIONS: 'true', CI: '1' });
     assert.equal(r.status, 1, `exit 1\n${r.stdout}${r.stderr}`);
     assert.ok(r.stdout.includes('[M1]'), `[M1] in output:\n${r.stdout}`);
     assert.ok(r.stdout.includes(migrationPath(DROP_NAME)), 'names the new migration file');
@@ -96,7 +96,7 @@ describe('EZD-023a release safety: migration check', () => {
     );
     git(repo.work, 'push', '-q', 'origin', 'main');
     const clone = cloneFrom(repo.origin, { depth: 1, noTags: true });
-    const r = runCheck(clone, [], { GITHUB_ACTIONS: 'true', CI: '1' });
+    const r = runCheck(clone, ['--no-db'], { GITHUB_ACTIONS: 'true', CI: '1' });
     assert.equal(r.status, 0, `exit 0\n${r.stdout}${r.stderr}`);
     assert.ok(r.stdout.includes('phase-0'), 'names the base tag');
   });
@@ -285,7 +285,7 @@ describe('EZD-023a release safety: migration check', () => {
     git(repo.work, 'checkout', '-q', '--detach', 'phase-0');
     assert.equal(git(repo.work, 'status', '--porcelain'), '', 'working tree clean at phase-0');
 
-    const bad = runCheck(repo.work, ['--base', 'phase-0', '--head', 'phase-1', '--no-fetch'], {});
+    const bad = runCheck(repo.work, ['--base', 'phase-0', '--head', 'phase-1', '--no-fetch', '--no-db'], {});
     assert.equal(bad.status, 1, `exit 1\n${bad.stdout}${bad.stderr}`);
     assert.ok(bad.stdout.includes('[M1]'), `[M1]:\n${bad.stdout}`);
     assert.ok(bad.stdout.includes(LEGACY), 'names the column');
@@ -326,7 +326,7 @@ describe('EZD-023a release safety: migration check', () => {
     git(repo.work, 'push', '-q', 'origin', 'phase-0');
     assert.equal(git(local, 'tag', '--list', 'phase-0'), '', '(d) the clone has no phase-0 yet');
     writeWorkingTree(local, migrationPath(DROP_NAME), DROP_SQL);
-    const d = runCheck(local, [], {});
+    const d = runCheck(local, ['--no-db'], {});
     assert.equal(d.status, 1, `(d) exit 1\n${d.stdout}${d.stderr}`);
     assert.ok(d.stdout.includes('[M1]'), `(d) [M1]:\n${d.stdout}`);
     assert.ok(d.stdout.includes(LEGACY), '(d) names the column');
@@ -336,14 +336,14 @@ describe('EZD-023a release safety: migration check', () => {
     // (f): same origin state, a full clone under GITHUB_ACTIONS stays full.
     const full = cloneFrom(repo.origin, { noTags: true });
     writeWorkingTree(full, migrationPath(DROP_NAME), DROP_SQL);
-    const f = runCheck(full, [], { GITHUB_ACTIONS: 'true' });
+    const f = runCheck(full, ['--no-db'], { GITHUB_ACTIONS: 'true' });
     assert.equal(f.status, 1, `(f) exit 1\n${f.stdout}${f.stderr}`);
     assert.ok(f.stdout.includes('[M1]'), `(f) [M1]:\n${f.stdout}`);
     assert.equal(git(full, 'rev-parse', '--is-shallow-repository'), 'false', '(f) never made shallow');
   });
 
   test('EZD-023a T16 Real repo passes', () => {
-    const r = runCheck(REPO_ROOT, ['--no-fetch'], {});
+    const r = runCheck(REPO_ROOT, ['--no-fetch', '--no-db'], {});
     assert.equal(r.status, 0, `exit 0\n${r.stdout}${r.stderr}`);
   });
 
@@ -540,7 +540,7 @@ describe('EZD-023a release safety: migration check', () => {
     git(repo.work, 'checkout', '-q', '--detach', 'phase-0');
     assert.match(sha, /^[0-9a-f]{40}$/, 'full sha');
     for (const head of [sha, sha.slice(0, 7)]) {
-      const r = runCheck(repo.work, ['--no-fetch', '--base', 'phase-0', '--head', head], {});
+      const r = runCheck(repo.work, ['--no-fetch', '--base', 'phase-0', '--head', head, '--no-db'], {});
       assert.equal(r.status, 1, `exit 1 for --head ${head}\n${r.stdout}${r.stderr}`);
       assert.ok(r.stdout.includes('[M1]'), `[M1] for --head ${head}:\n${r.stdout}`);
       assert.ok(r.stdout.includes(LEGACY), `names the column for --head ${head}`);

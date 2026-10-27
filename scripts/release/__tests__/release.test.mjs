@@ -174,9 +174,23 @@ function recordingEnv(obj) {
 /**
  * Builds CLEAN deps for fixture `R`. `env` replaces the whole processEnv when given as an object; `pulls` and
  * `rule` override the GitHub fake's answers (a function to throw/reject); `recordEnv` wraps processEnv in the
- * recording Proxy.
+ * recording Proxy. `scratchCheck` is the injected scratch database check (EZD-153 E2; default: clean result).
  */
-function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sleep, now, createTag } = {}) {
+function makeClean(
+  mod,
+  repo,
+  {
+    env,
+    pulls,
+    rule,
+    recordEnv = false,
+    vercel,
+    sleep,
+    now,
+    createTag,
+    scratchCheck = () => ({ violations: [], notes: [], failure: null }),
+  } = {},
+) {
   const tip = repo.tip;
   const journal = []; // { kind: 'log' | 'summary' | 'mask', value }
   const external = []; // vercel, supabase, sql, offsite, checkLive, fetch, github.createTag
@@ -221,6 +235,7 @@ function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sle
     fetch: recorder('fetch', external),
     sleep: sleep ?? recorder('sleep', external),
     now: now ?? (() => new Date('2026-10-19T12:00:00Z')),
+    scratchCheck,
   };
   const h = {
     deps,
@@ -2038,5 +2053,34 @@ describe('EZD-152 bootstrap failure lines', () => {
       `the ERROR line is logged; logs: ${JSON.stringify(h.logs())}`,
     );
     assertNoText(h, ['Ana Client', 'DETAIL:', 'CONTEXT:'], 'T6');
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-153 R1 (vault/plans/EZD-153.md section 4; Build step 4): step 8 passes deps.scratchCheck to the check.
+describe('EZD-153 release uses the scratch database result', () => {
+  test('EZD-153 R1 release uses the scratch result', async (t) => {
+    const mod = await loadRelease();
+    const R = makeR(t, { tagC1: true });
+    const inputs = [];
+    const scratchCheck = (input) => {
+      inputs.push(input);
+      return {
+        violations: [{ id: 'M4', file: 'supabase/migrations/20261102000000_add_note.sql', object: 'public.x', detail: 'd' }],
+        notes: [],
+        failure: null,
+      };
+    };
+    const h = makeClean(mod, R, { pulls: () => [{ ...cleanPull(R.tip), title: 'Phase 1: x' }], scratchCheck });
+    const result = await h.run();
+    assertRefused(result, 'migration_check_failed', h);
+    const logs = h.logs();
+    assert.ok(
+      logs.includes('[M4] supabase/migrations/20261102000000_add_note.sql: public.x d'),
+      `the scratch M4 is logged; logs: ${JSON.stringify(logs)}`,
+    );
+    assert.equal(inputs.length, 1, 'scratchCheck called once');
+    assert.equal(inputs[0].baseTag, 'phase-0');
+    assert.deepEqual(Object.keys(inputs[0].newFiles), ['20261102000000_add_note.sql']);
   });
 });
