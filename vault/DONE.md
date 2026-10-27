@@ -131,3 +131,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-197 · Fix: the 70% weekly warning is proven to notify · weekly-warning.test.mjs T1-T3 show marker, one notify, NOTIFY log line, none on a second pass; PILOT.md row 10 updated · 8658b0b
 2026-10-26 · EZD-200 · Fix: the EZD-025 T16 type check names its failure and no longer fails at random · a failing types check now names the command and the first differing line, and concurrent checks take turns on one lock · 76c2cae
 2026-10-26 · EZD-1704 · Backups · pnpm backup:check shows whether the nightly file copy and weekly database copy are current; a daily workflow runs it and GitHub emails Josh when red; restore drill re-proved in phase 1 · 8d4286d
+2026-10-26 · EZD-1707 · Terms of service · sign-in page has a Terms of service link opening /terms without signing in; page states EZ Draft does not certify code compliance, follows the English / Español choice · 903a2cb

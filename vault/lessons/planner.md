@@ -160,3 +160,9 @@ Mistake: DB tests pinned catalog counts (9 tables, 8 functions) with `toEqual`; 
 Cause: a dated catalog snapshot was written into the test contract.
 Rule: a test over catalog contents checks the rule plus a minimum list (`toContain`), never `toEqual` on a snapshot; each count in the plan names its date and newest migration.
 Check: plan review greps test rows for `toEqual` over catalog lists.
+
+Ticket EZD-1707, 2026-10-26
+Mistake: the visual checklist said "card 720 px wide" while step 3 set `max-width: 720px` on a content-box card with padding and border, so the ui-verifier measured 786 px and failed it; section 6 also said W3 "ends with the Q-0208 sentence" when W3 restated it.
+Cause: a CSS value was copied into the checklist as a rendered width, and a summary of wording was written from memory instead of compared with the decision text.
+Rule: pixel widths in a checklist must say outer box vs max-width (and give the outer value with padding and border); a plan that says wording "is" a decision's text quotes it verbatim or says "restates".
+Check: plan review compares every checklist width with the CSS box model of the step that sets it, and every "Q-xxxx wording" claim with the decision row.

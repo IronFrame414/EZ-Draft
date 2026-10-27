@@ -91,7 +91,7 @@ Full tables are in each plan's section 6. Needing your approval:
 - **EZD-172** section 6: lane tool messages, for example "EZD_LANE must be 0, 1, 2 or 3 (got "<value>")." and "GATE FAIL: another gate is running on lane <n> (pid <pid>). Run one gate per lane."
 - **EZD-174** section 6: boost on/off/status lines and the process text P1-P4 (Q-0303), for example P2: "One ticket in progress at a time, or up to the boost build lanes while vault/handoff/BOOST.json exists (next_ticket.mjs --check fails on more). Josh raises the limit by editing this line." P4 also says docs/architecture.md no longer keeps two builds apart (Q-0304 (c)).
 - **EZD-1704** section 6: the new drill step "Check the backups are current" for your runbook, plus any daily-workflow lines (see plan).
-- **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 ends with your Q-0208 sentence).
+- **EZD-1707** section 6 W1-W4: Terms of service page text (placeholder terms; W3 restates your Q-0208 sentence in the terms and the exact Q-0208 line shows below the card as the disclaimer; say if you want W3 to quote it instead).
 - No wording: EZD-132, 143, 145, 146, 147, 148, 150, 152, 154, 161, 168, 169, 170, 171, 173, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190 (its two new `db:up` console lines follow the existing local-stack wording), 191.
 
 ## 4. Rule candidates
