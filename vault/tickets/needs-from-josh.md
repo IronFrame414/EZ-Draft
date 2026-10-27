@@ -80,7 +80,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 | EZD-027 drawing-speed run: DONE 2026-10-24 on Josh's Windows machine, verdict go (Q-0263) | — | — |
 | One-time install on the build PC: Playwright browsers `pnpm exec playwright install chromium webkit` (agents can run it once Josh approves) | EZD-007, EZD-016a | Browser tests cannot run |
 | Docker Desktop running whenever a build session runs | EZD-004 onward | Every check fails at the database step |
-| Vercel Ignored Build Step: DONE 2026-10-19 (Settings → Build and Deployment → Ignored Build Step → Custom, the PROCESS.md section 12 command; Q-0116 (a)) | — | — |
+| Vercel Ignored Build Step: DONE 2026-10-19; command replaced and DONE 2026-10-27 (Josh: "vercel updated"), the one in docs/runbook.md `## Vercel and the subdomain (EZD-003)` step 2 (EZD-149; Q-0284 (a)) | — | — |
 | Vercel "Auto-assign Custom Production Domains": DONE 2026-10-19, off (Settings → Environments → Production → Branch Tracking; EZD-003 Step 5.2; Q-0123). Never turn it back on. ENABLE_EXPERIMENTAL_COREPACK=1 also added for Production and Preview (EZD-003 Step 5.3). | — | — |
 | Database API gate secret (Q-0087): generate one secret and store it in each cloud Supabase project and in Vercel, per the EZD-006 runbook step | EZD-006 cloud setup, first release | The cloud app refuses all data requests (fails closed) |
 | GitHub `main` ruleset: add "Require status checks to pass" with the check `gate` (Settings → Rules → Rulesets → the `main` ruleset; PROCESS.md section 12; Q-0144) | Phase 0 PR (EZD-002 CI must block a red merge) | A red CI run would not block the merge into `main` |
