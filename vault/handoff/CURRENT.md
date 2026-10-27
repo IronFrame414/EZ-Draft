@@ -1,11 +1,11 @@
-# Handoff · 2026-10-26 · build EZD-197
+# Handoff · 2026-10-26 · build EZD-198 (blocked on Josh)
 
-- Phase and stage: phase 1, build.
-- Why the session ended: unit complete.
-- Completed this session: EZD-197 done, commit 8658b0b (1117 tests). New scripts/launcher/weekly-warning.test.mjs T1-T3 prove the 70% warning (marker, one notify, NOTIFY log line, nothing on a second pass). PILOT.md row 10 got the warning-half sentence.
-- Models: test-author haiku/high; code-reviewer opus/medium (PASS, zero findings); no builder (gate-only plan).
-- In progress: nothing. EZD-193's worktree still waits for Josh to apply vault/handoff/EZD-193-launcher.patch.
-- Open observation (from EZD-193): scripts/run.mjs line 254 writes claude's raw stderr to the launcher stderr, so an API key in it could reach the launcher log. Needs a decision or a fix ticket.
-- Blocked: none.
+- Phase and stage: phase 1, build, session 1 of 2.
+- Why the session ended: the fix is in .claude/hooks/guard-reads.mjs and vault/PROCESS.md, which agents cannot edit. It goes to Josh as a patch (plan section 1; PROCESS.md section 3 rule 19).
+- Completed: worktree .claude/worktrees/EZD-198 on t/EZD-198; tests T1-T4 committed (9c17ab1; T1, T3, T4 fail on the old hook as planned); PILOT.md row 13 How text committed as wip; patch made and checked (V0, V1 hashes match, V2 `apply --check` exit 0).
+- Models: test-author haiku/high (--dispatch). No builder (plan).
+- Josh's one step, from the repo root with no launcher unit running:
+  git -C .claude/worktrees/EZD-198 apply "$PWD/vault/handoff/EZD-198-hooks.patch"
+- Next unit: /build-ticket EZD-198 again. Resume at plan step 7: V3, gate, code-reviewer (opus), merge, then step 9 (live V6 re-run, PILOT.md row 13 Result), delete the patch (step 10).
+- Open observation (from EZD-193): scripts/run.mjs line 254 writes claude's raw stderr to the launcher stderr; needs a decision or fix ticket.
 - Questions for Josh: none new.
-- Next unit: node vault/tools/next_ticket.mjs --next-unit.
