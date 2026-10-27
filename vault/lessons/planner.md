@@ -144,3 +144,10 @@ Follow-up rule (EZD-009 round 3): when a ticket adds the first reader of an envi
 - EZD-172 plan-gap (2026-10-26, round 3): a ticket that adds parallel lanes must at planning time grep every test and harness file for each lane-0 resource (ports, project id, container names, .temp files, os.tmpdir locks) and give each hit an E-row or a written ruling; the gate runs lane 0 only and never catches them.
 - EZD-172 plan-gap (2026-10-26, A1): when sweeping for lane conflicts, check every --workdir passed to the real Supabase CLI (it beats SUPABASE_WORKDIR and decides which [db] port counts as local) and grep fixed listening ports (-p <n>, next start, listen(<n>)), not only Supabase ports.
 - EZD-113 re-validation (2026-10-26): give every export a plan takes from a dependency as path plus signature, write route 500 handling as the current reportRouteFailure convention, and require new migration timestamps to be newer than develop's newest file.
+
+## L-0XX  areas: migrations, security  seen: 1  status: new
+Ticket EZD-190, 2026-10-26
+Mistake: the plan added a `private` function granted to `authenticated` only, then had a test call it directly as `service_role` and `anon`, and left `PRIVATE_EXECUTE` out of the test-author scope.
+Cause: grants and the audit allow-list were not cross-read against the test rows.
+Rule: a plan that adds a `private` function lists its `PRIVATE_EXECUTE` entry in the test-author scope and calls it in tests only as a role that has execute (else through a definer RPC that role can run).
+Check: plan review matches every test caller role to the function's grants.
