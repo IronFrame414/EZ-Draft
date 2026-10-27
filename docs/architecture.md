@@ -36,7 +36,7 @@ Values never go in the repo; names go in `.env.example`; the app reads them per 
 | `SUPABASE_DEV_DB_URL` | never | none (the local stack needs none) | the dev project's Session pooler connection string, an environment secret of the GitHub environment `dev` (`develop` only); production has no counterpart (EZD-023b's `release` environment) | `.github/workflows/supabase-dev.yml` only |
 | `EMAIL_TRANSPORT` | never | `stub` in unit tests (`app/vitest.config.mts`) and browser tests (EZD-016d's web server); empty in `.env.example`, so a plain `pnpm dev` fails every send with `email_transport_not_set` and still returns the link | Preview `stub` by default, `resend` allowed (Q-0041; EZD-023b enters it); Production `resend` (the stub is refused when `VERCEL_ENV` is `production`) | `app/src/server/email/transport.ts` |
 | `EMAIL_FROM` | never | `EZ Draft Test <test@example.test>` in tests | `EZ Draft <no-reply@ezcontractorbinder.com>` (Q-0035; Q-0036); company emails keep its address and show "<Company> via EZ Draft" | `app/src/server/email/transport.ts`, `send.ts`; `scripts/email/send-test.mjs` |
-| `RESEND_API_KEY` | never | none (tests never send, CLAUDE.md rule 6) | Production: the sending-only key `ezdraft-production` (runbook `## Email (EZD-008)` step 3); Preview only if Josh switches a preview to `resend` (Q-0041) | `app/src/server/email/resend-transport.ts` through `transport.ts`; `scripts/email/send-test.mjs` |
+| `RESEND_API_KEY` | never | none (tests never send, CLAUDE.md rule 6) | Production: the sending-only key `ezdraft-production` (runbook `## Email (EZD-008)` step 3); Preview only if Josh switches a preview to `resend` (Q-0041), then with its own key `ezdraft-preview`, never `ezdraft-production` (EZD-151) | `app/src/server/email/resend-transport.ts` through `transport.ts`; `scripts/email/send-test.mjs` |
 | `EMAIL_STUB_DIR` | never | browser tests only (EZD-016d); not in `.env.example` | never set on Vercel | `app/src/server/email/transport.ts` |
 | `CRON_SECRET` | never | none (tests stub it) | Production only, entered by Josh (`docs/runbook.md` `## Background jobs (EZD-009)`); Vercel sends it as `Authorization: Bearer <CRON_SECRET>` on cron requests | `app/src/app/api/jobs/sweep/route.ts` |
 | `SENTRY_TRANSPORT` | never | unset (Sentry off); `stub` in unit tests (`app/vitest.config.mts`) and browser tests (EZD-016d's web server) | `sentry` for Preview and Production, entered by Josh (`docs/runbook.md` `## Error reporting (EZD-024)`); unset or empty turns Sentry off, `stub` is refused when `VERCEL_ENV` is `production` | `app/src/server/errors/sentry-options.ts` |
@@ -81,6 +81,7 @@ Q-0035; Q-0036; Q-0041; R24 #15; EZD-008a; EZD-008b.
 - Sign-in emails are sent by Supabase Auth through Resend SMTP (runbook `## Email (EZD-008)` step 6), not through `sendEmail`.
 - Live check `scripts/email/send-test.mjs`, run by Josh by hand only, refused under `CI`, never by the gate (Q-0153).
 - Agents never change Resend, DNS, Vercel or Supabase settings; those steps are in `docs/runbook.md` (CLAUDE.md rule 3; Q-0003: the Resend account is shared with EZ Binder).
+- **Input checks (EZD-151):** `sendEmail` refuses (`EmailInputError`) a subject holding U+0000–U+001F, U+007F, U+0085, U+2028 or U+2029; a caller that builds a subject from free text passes it through `toSubjectLine()` first (owner alerts do). A company name loses those characters. With `VERCEL_ENV` set to any value the link must be `https:`; locally and in tests `http:` is allowed. The stub keeps at most `STUB_OUTBOX_MAX` (100) messages in memory and drops the oldest; the `EMAIL_STUB_DIR` files are not capped.
 
 ### Background jobs (EZD-009)
 
@@ -1043,6 +1044,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Cloud settings SQL | `app/src/server/db/cloud-settings.test.ts` (T1-T3) | EZD-171 |
 | — | Icon files equal the pinned commit | `icons:verify` (by hand), `app/src/components/icon/icons-verify.test.ts` | EZD-171 |
 | — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |
+| — | Email subject characters, https links on Vercel, stub outbox cap, alert subject line | `app/src/server/email/input-checks.test.ts`, `app/src/server/errors/alert-email.test.ts` | EZD-151 |
 
 ### CI
 

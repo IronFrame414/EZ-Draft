@@ -1,4 +1,4 @@
-export { sendEmail, EmailInputError } from './send';
+export { sendEmail, EmailInputError, toSubjectLine } from './send';
 export type {
   EmailMessage,
   TransportResult,

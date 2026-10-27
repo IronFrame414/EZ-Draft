@@ -4,7 +4,7 @@
 // sendEmail still returns the link and this module ignores it.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../db/database.types';
-import { sendEmail } from '../email/send';
+import { sendEmail, toSubjectLine } from '../email/send';
 import { getT } from '../messages/get-t';
 import { alertRecipients, type AlertKind } from './alert-recipients';
 import { appOrigin } from './app-origin';
@@ -113,7 +113,8 @@ export async function sendOwnerAlert(input: {
     return 'email_failed';
   }
 
-  const { subject, paragraphs, link } = content(input.params, input.env);
+  const { subject: rawSubject, paragraphs, link } = content(input.params, input.env);
+  const subject = toSubjectLine(rawSubject);
   let sent = 0;
   for (const recipient of recipients) {
     const idempotencyKey =

@@ -9,6 +9,9 @@ export type StubMessage = EmailMessage & {
   sentAt: string;
 };
 
+// EZD-151 (Q-0287 (a)): the in-memory outbox keeps the newest 100 messages; files in `dir` are not capped.
+export const STUB_OUTBOX_MAX = 100;
+
 type G = typeof globalThis & { __ezdEmailStubOutbox?: StubMessage[]; __ezdEmailStubSeq?: number };
 const g = globalThis as G;
 
@@ -48,6 +51,7 @@ export function createStubTransport(opts: { dir?: string } = {}): EmailTransport
         sentAt: new Date().toISOString(),
       };
       box.push(record);
+      if (box.length > STUB_OUTBOX_MAX) box.splice(0, box.length - STUB_OUTBOX_MAX);
       if (opts.dir) {
         mkdirSync(opts.dir, { recursive: true });
         g.__ezdEmailStubSeq = (g.__ezdEmailStubSeq ?? 0) + 1;
