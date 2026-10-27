@@ -5,9 +5,9 @@
 Josh's steps in Vercel and at the DNS host. All are done; this is the record. Agents never change Vercel or DNS settings.
 
 1. **Create the project** (done Oct 12). In EZ Binder's Vercel team: Add New, Project, import `IronFrame414/EZ-Draft`, name it `ezdraft`, Framework Next.js, Root Directory `app` (or later Settings, Build and Deployment, Root Directory). Leave "Include files outside the root directory" on. The first production build of `main` fails until the Phase 0 merge; that is expected.
-2. **Build and branch settings** (done 2026-10-19).
+2. **Build and branch settings** (done 2026-10-19; EZD-149 changed the Ignored Build Step command below: paste it again in Vercel).
    - Production Branch is `main`.
-   - Settings, Build and Deployment, **Ignored Build Step**, option Custom, with exactly: `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1`. Production builds only from `main`, the phase PR builds a preview, a plain `develop` push builds nothing.
+   - Settings, Build and Deployment, **Ignored Build Step**, option Custom, with exactly: `[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1; [ "$VERCEL_GIT_COMMIT_REF" = "develop" ] && [ -n "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 1; exit 0`. Production builds only from `main`. A preview builds only for a pull request from `develop` (the phase PR); a plain `develop` push and a pull request from any other branch build nothing.
    - Settings, Environments, Production, Branch Tracking: **Auto-assign Custom Production Domains** off, before any pull request is merged into `main`. With it off, a merge builds a staged production deployment that the address does not show; only the release workflow makes a build live. Never turn it back on.
 3. **Environment variables** (done 2026-10-19). Settings, Environment Variables: `ENABLE_EXPERIMENTAL_COREPACK` = `1` for Production and Preview. It is not a secret. No Supabase values yet; EZD-023b enters them.
 4. **Deployment Protection** (done 2026-10-19). Leave the default, Standard Protection, with Vercel Authentication on. Leave Settings, Security, Git Fork Protection on. Previews need a Vercel login; the production address stays public.

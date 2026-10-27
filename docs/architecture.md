@@ -14,7 +14,7 @@ R24 #1; 02 Stack Hosting; Q-0113; Q-0116 (a); Q-0123 (b); Q-0106; EZD-003.
 
 - Vercel project `ezdraft`, Root Directory `app`. Config is `app/vercel.json` (framework `nextjs`, function region `iad1`). Node `22.x` comes from `app/package.json` `engines`. pnpm runs through Corepack (`ENABLE_EXPERIMENTAL_COREPACK=1`) and the root `packageManager` pin.
 - Production branch `main`: production changes only after Josh merges a phase PR. A build goes live only when EZD-023b's release workflow promotes it.
-- Previews only for the phase PR (develop to main), through the Ignored Build Step in the Vercel project. A plain `develop` push builds no preview; the gate's empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the dev database once EZD-023b enters its values.
+- Previews only for the phase PR, read as a pull request from `develop` (Vercel names no target branch), through the Ignored Build Step in the Vercel project; a pull request from any other branch builds nothing. A plain `develop` push builds no preview; the gate's empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the dev database once EZD-023b enters its values.
 - Domain `ezdraft.ezcontractorbinder.com`. DNS is at Spaceship; Vercel provides the HTTPS certificate and the HTTP to HTTPS redirect. "Auto-assign Custom Production Domains" is off and stays off, so the address shows only a build the release workflow promotes.
 - Rollback is Vercel's previous deployment.
 - The live check `scripts/hosting/check-live.mjs` is never run by the gate. EZD-023b's release workflow runs its checks after every release; anyone may run it by hand (read-only).
@@ -986,6 +986,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Every workflow sets `permissions:` and pins each `uses:` to a full commit SHA | `scripts/ci/__tests__/ci.test.mjs` (EZD-002 T2; EZD-147 T2-T4) | EZD-147 |
 | — | Vercel config pinned (region, Node major, framework) | scripts/hosting/__tests__/hosting.test.mjs | EZD-003 |
 | — | Subdomain serves the app over HTTPS (after each release and by hand, not gated) | node scripts/hosting/check-live.mjs | EZD-003 |
+| — | Ignored Build Step command in the runbook builds what the docs say | scripts/hosting/__tests__/hosting.test.mjs (EZD-149 T2) | EZD-149 |
 | — | Migrations applied to the local database equal the files in `supabase/migrations/` | scripts/db/__tests__/db.test.mjs (T1) | EZD-004a |
 | — | Committed `database.types.ts` matches the local database | scripts/db/__tests__/db.test.mjs (T9), `node scripts/db/gen-types.mjs --check` | EZD-004a |
 | — | Concurrent type checks pass; a failed check names its command and stderr | `scripts/db/__tests__/types-check.test.mjs` | EZD-200 |
