@@ -1,34 +1,47 @@
 diff --git a/.claude/hooks/guard-bash.mjs b/.claude/hooks/guard-bash.mjs
-index 9a9d402..9464c47 100644
+index 9464c47..c8de336 100644
 --- a/.claude/hooks/guard-bash.mjs
 +++ b/.claude/hooks/guard-bash.mjs
-@@ -47,16 +47,22 @@ function segments(s) {
- }
- // Quote marks and backslashes are dropped before matching, so a quoted or escaped option or file name is still seen (EZD-154).
- const unquote = (s) => s.replace(/["'\\]/g, '');
-+// An option group containing w or g (dump-keychain: d) is caught whatever follows it: a space, the end, ) ` > < ; & | (EZD-154; Q-0135 (a)).
- for (const seg of segments(raw)) {
-   const s = unquote(seg);
--  if (/\bsecurity\s+find-(generic|internet)-password\b.*\s-(?=[A-Za-z]*[wg])[A-Za-z]+(\s|$)/.test(s)) deny(KEYCHAIN_WHY);
--  if (/\bsecurity\s+dump-keychain\b.*\s-(?=[A-Za-z]*d)[A-Za-z]+(\s|$)/.test(s)) deny(KEYCHAIN_WHY);
-+  if (/\bsecurity\s+find-(generic|internet)-password\b.*\s-[A-Za-z]*[wg]/.test(s)) deny(KEYCHAIN_WHY);
-+  if (/\bsecurity\s+dump-keychain\b.*\s-[A-Za-z]*d/.test(s)) deny(KEYCHAIN_WHY);
- }
--// The test -f and [ -f ] exemption covers one path token: a quoted string, or unquoted text with no space, quote, ; & | < > ( ) or
--// backtick, followed by a space or the end (test -f) or by ] (bracket form) (EZD-154; EZD-000i K3).
--const noTests = unquote(raw
--  .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|[^\s;&|<>()`'"]+)(?=\s|$)/g, '$1')
--  .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|[^\s;&|<>()`'"]+)\s+\]/g, ''));
-+// The test -f and [ -f ] exemption covers one path token: a single-quoted string, or a double-quoted or unquoted one whose only
-+// expansions are $NAME and ${NAME} (no $( ), backtick, backslash or other $ form), followed by a space or the end (test -f) or
-+// by ] (bracket form) (EZD-154; EZD-000i K3).
-+const PATH = /(?:'[^']*'|"(?:[^"\\$`]|\$[A-Za-z_]|\$\{[A-Za-z_]\w*\})*"|(?:[^\s;&|<>()`'"\\$]|\$[A-Za-z_]|\$\{[A-Za-z_]\w*\})+)/.source;
-+const stripped = unquote(raw
-+  .replace(new RegExp(String.raw`(^|\s)test\s+-f\s+${PATH}(?=\s|$)`, 'g'), '$1')
-+  .replace(new RegExp(String.raw`\[\s+-f\s+${PATH}\s+\]`, 'g'), ''));
-+// Beside a removed path token only echo of plain words may run, so nothing can reuse the path ($_, !$, fc, a substitution) (EZD-154).
-+const echoOnly = segments(stripped).every((seg) => /^\s*(echo(\s+[\w.,:\/+=-]+)*)?\s*$/.test(seg));
-+const noTests = echoOnly ? stripped : unquote(raw);
- if (/\.credentials\.json|\.claude\/\.cred/.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
+@@ -28,20 +28,35 @@ for (const [re, why] of always) if (re.test(why.startsWith('Reading .env') ? raw
  
- const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
+ // Token guard (Q-0135 (a), PA3 rule 8): an accident guard so a sign-in token is not printed into a transcript.
+ const KEYCHAIN_WHY = 'Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).';
+-// Segments split at ; & | outside quotes only; a backslash outside single quotes escapes the next character (EZD-154; EZD-000i K1).
++// Segments split at ; & | only outside every quote ('…', "…", $'…'), substitution or group ($( ), ( ), <( ), >( ), =( ), `…`,
++// ${ }, $[ ]) and redirection (>& <& &> >|). A backslash outside single quotes escapes the next character; { nests inside ${ }
++// and [ inside $[ ] (zsh). An unclosed quote or substitution, or a ) that closes nothing, makes the whole command one segment
++// (fail closed): where bash and zsh read a command differently, the reading with fewer splits wins (EZD-154; Q-0350 (a)).
++const PAIR = { '(': ')', '{': '}', '[': ']' };
+ function segments(s) {
+   const out = [];
++  const open = [];
+   let cur = '';
+-  let q = '';
+   for (let i = 0; i < s.length; i++) {
+     const ch = s[i];
+-    if (q === "'") { cur += ch; if (ch === "'") q = ''; continue; }
+-    if (ch === '\\' && i + 1 < s.length) { cur += ch + s[i + 1]; i++; continue; }
+-    if (q === '"') { cur += ch; if (ch === '"') q = ''; continue; }
+-    if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
+-    if (ch === ';' || ch === '&' || ch === '|') { out.push(cur); cur = ''; continue; }
++    const two = s.slice(i, i + 2);
++    const top = open[open.length - 1];
++    if (top === "'") { cur += ch; if (ch === "'") open.pop(); continue; }
++    if (ch === '\\' && i + 1 < s.length) { cur += two; i++; continue; }
++    if (top === "$'" || top === '`') { cur += ch; if (ch === top.slice(-1)) open.pop(); continue; }
++    if (two === '$(' || two === '${' || two === '$[') { open.push(PAIR[two[1]]); cur += two; i++; continue; }
++    if (ch === '`') { open.push('`'); cur += ch; continue; }
++    if (top === '"') { cur += ch; if (ch === '"') open.pop(); continue; }
++    if (two === "$'") { open.push("$'"); cur += two; i++; continue; }
++    if (ch === "'" || ch === '"') { open.push(ch); cur += ch; continue; }
++    if (ch === '(' || (PAIR[ch] && top === PAIR[ch])) { open.push(PAIR[ch]); cur += ch; continue; }
++    if (top && ch === top) { open.pop(); cur += ch; continue; }
++    if (ch === ')' && !top) return [s];
++    const redirect = (ch === '&' && (s[i - 1] === '>' || s[i - 1] === '<' || s[i + 1] === '>')) || (ch === '|' && s[i - 1] === '>');
++    if (!top && !redirect && (ch === ';' || ch === '&' || ch === '|')) { out.push(cur); cur = ''; continue; }
+     cur += ch;
+   }
++  if (open.length) return [s];
+   out.push(cur);
+   return out;
+ }
