@@ -125,3 +125,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-112 · Company settings: identity · Settings → Company: edit name, logo, license, contact; Save updates the Settings header · 69241cd
 2026-10-26 · EZD-113 · Customers · Settings → Company lists customers (50 per page, search, project counts), add/edit/archive/restore, duplicate email refused · 8047e76
 2026-10-26 · EZD-190 · Fix: the API request gate is in force as soon as the local stack is up · pnpm db:up restarts the database API and returns only when the gate refuses header-less requests; a database backstop refuses them even if the gate is skipped, locally and in the cloud · bb15791
+2026-10-26 · EZD-194 · Fix: switching to API credits is proven with a fake claude · a repo test proves --api-until-reset passes the API key and logs auth api, and without it no key and auth plan · 75bcfc9
