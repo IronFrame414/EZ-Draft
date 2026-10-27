@@ -133,6 +133,16 @@ export function createSource({ dbUrl, supabaseUrl = null, secretKey = null }) {
       };
     },
 
+    async lastSucceededAt(kind, scope) {
+      const [r] = await db()`
+        select finished_at
+        from public.backup_run
+        where kind = ${kind} and scope = ${scope} and status = 'succeeded'
+        order by started_at desc
+        limit 1`;
+      return r ? new Date(r.finished_at) : null;
+    },
+
     async close() {
       const s = sql;
       sql = null;

@@ -221,3 +221,160 @@ describe(
     });
   },
 );
+
+// EZD-1704 D-1 and D-2 (vault/plans/EZD-1704.md section 4; D13): the phase re-run of the drill on a fresh dump, with the
+// backup check run between the dump and the delete. A second top-level describe, so it runs after EZD-025's
+// block (one scratch stack at a time). No --record (D13). The stub secret is `stub-secret-EZD1704`.
+const STUB_SECRET_1704 = 'stub-secret-EZD1704';
+
+describe(
+  'EZD-1704 phase restore drill',
+  { skip: !inScope('EZD-1704') },
+  () => {
+    let stub;
+    let d;
+    let env;
+    let localSecretKey;
+    let scratchWorkdir;
+    const outputs = {};
+
+    before(async () => {
+      stub = await startStubS3({ bucket: 'ezd1704-offsite', versioning: 'Enabled' });
+      env = stubEnv(stub, { secret: STUB_SECRET_1704 });
+      d = await createDrillData();
+      localSecretKey = d.local.secretKey;
+    });
+
+    after(async () => {
+      if (scratchWorkdir) {
+        spawnSync(SUPABASE_BIN, ['stop', '--workdir', scratchWorkdir, '--no-backup'], {
+          cwd: REPO_ROOT,
+          env: childEnv(),
+        });
+      }
+      await stub.stop();
+      await cleanup();
+    });
+
+    test(
+      'EZD-1704 done when: the drill passes on a fresh dump and the backup check is current',
+      { timeout: 900_000 },
+      async () => {
+        const A = randomBytes(1_048_576);
+        const B = Buffer.from('ezd-1704');
+        const aName = `${d.tenantId}/${d.projectId}/a.bin`;
+        const bName = `${d.tenantId}/${d.projectId}/b.txt`;
+        assert.equal((await d.api.upload(d.bucket, aName, A)).status, 200, 'upload a.bin');
+        assert.equal((await d.api.upload(d.bucket, bName, B)).status, 200, 'upload b.txt');
+
+        const files = await runCli('scripts/backup/files.mjs', ['--local', '--only-bucket', d.bucket], env);
+        outputs.files = files;
+        assert.equal(files.code, 0, 'files exit 0');
+
+        const known = new Set(stub.currentKeys('db/').map((k) => k.split('/').slice(0, 2).join('/')));
+        const db = await runCli('scripts/backup/db.mjs', ['--local'], env);
+        outputs.db = db;
+        assert.equal(db.code, 0, 'db exit 0');
+        const now2 = new Set(stub.currentKeys('db/').map((k) => k.split('/').slice(0, 2).join('/')));
+        const added = [...now2].filter((p) => !known.has(p));
+        assert.equal(added.length, 1, 'exactly one new db/<ts>/ prefix');
+        const prefix = `${added[0]}/`;
+        const manifest = JSON.parse(stub.current(`${prefix}manifest.json`).body.toString('utf8'));
+        assert.equal(manifest.newest_migration, newestMigration(), 'manifest newest_migration');
+
+        const check = await runCli('scripts/backup/check.mjs', ['--local', '--only-bucket', d.bucket], env);
+        outputs.check = check;
+        assert.equal(check.code, 0, 'check exit 0');
+        assert.equal(check.last?.ok, true, 'check ok');
+        assert.deepEqual(check.last?.stale, [], 'check stale empty');
+
+        exec(`delete from public.project where id = '${d.projectId}';`);
+        await d.api.remove(d.bucket, [aName, bName]);
+
+        const restore = await runCli(
+          'scripts/backup/restore.mjs',
+          ['--local', '--project', d.projectId, '--dump', prefix, '--keep'],
+          env,
+          { timeoutMs: 850_000 },
+        );
+        outputs.restore = restore;
+        scratchWorkdir = restore.last?.scratch?.workdir;
+        assert.equal(restore.code, 0, 'restore exit 0');
+        assert.equal(restore.last?.ok, true, 'restore ok');
+        assert.equal(restore.last?.dump, prefix, 'restore dump');
+        assert.equal(restore.last?.newest_migration, newestMigration(), 'restore newest_migration');
+        assert.deepEqual(restore.last?.projects_found, [d.projectId], 'projects_found');
+        assert.deepEqual(restore.last?.problems, [], 'no problems');
+        assert.equal(restore.last?.files_restored, 2, 'files_restored');
+        assert.equal(restore.last?.files_checked, 2, 'files_checked');
+        assert.equal(restore.last?.orphan_rows, 0, 'orphan_rows');
+
+        const q = (sql) => query(sql, SCRATCH_DB_CONTAINER);
+        assert.deepEqual(
+          q(`select name from public.project where id = '${d.projectId}'`),
+          [{ name: `EZD-025 drill ${d.suffix}` }],
+          'scratch project row',
+        );
+        const scratchApi = storageApi({
+          apiUrl: restore.last.scratch.apiUrl,
+          secretKey: stackStatus(scratchWorkdir).secretKey,
+        });
+        const gotA = await scratchApi.download(d.bucket, aName);
+        const gotB = await scratchApi.download(d.bucket, bName);
+        assert.ok(gotA && gotB, 'both files download from scratch Storage');
+        assert.equal(sha256(gotA), sha256(A), 'a.bin SHA-256');
+        assert.equal(sha256(gotB), sha256(B), 'b.txt SHA-256');
+        assert.equal(
+          query(`select count(*)::int as n from public.project where id = '${d.projectId}'`)[0].n,
+          0,
+          'the source still has 0 rows for P',
+        );
+      },
+    );
+
+    test('EZD-1704 D-2 logs carry counts and codes only', () => {
+      const children = ['files', 'db', 'check', 'restore'];
+      for (const k of children) {
+        assert.ok(outputs[k] && typeof outputs[k].stdout === 'string', `${k} output captured`);
+      }
+      const forbidden = {
+        'stub secret': STUB_SECRET_1704,
+        'local secret key': localSecretKey,
+        'a.bin': 'a.bin',
+        'b.txt': 'b.txt',
+        'tenant id': d.tenantId,
+        'project id': d.projectId,
+      };
+      const scannable = (k) => {
+        const { stdout, stderr, last } = outputs[k];
+        if (k !== 'restore') return `${stdout}\n${stderr}`;
+        const lines = stdout.split('\n');
+        const at = lines.findLastIndex((l) => {
+          try {
+            return JSON.stringify(JSON.parse(l.trim())) === JSON.stringify(last);
+          } catch {
+            return false;
+          }
+        });
+        assert.ok(at >= 0, 'the restore last JSON line was found');
+        lines[at] = JSON.stringify({
+          ...last,
+          projects_found: [],
+          problems: (last.problems ?? []).map((p) => ({ ...p, ref: '' })),
+        });
+        return `${lines.join('\n')}\n${stderr}`;
+      };
+      for (const k of children) {
+        const text = scannable(k);
+        for (const [label, value] of Object.entries(forbidden)) {
+          assert.equal(text.includes(value), false, `${k} output does not contain the ${label}`);
+        }
+      }
+      assert.deepEqual(
+        Object.keys(outputs.check.last).sort(),
+        ['db_dump_succeeded_at', 'files_succeeded_at', 'kind', 'ok', 'stale'],
+        'check last line keys',
+      );
+    });
+  },
+);

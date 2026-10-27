@@ -36,6 +36,7 @@ const DB_SECRETS = [
 const SPECS = {
   'backup-files.yml': { cron: '0 7 * * *', timeout: '120', script: 'pnpm backup:files', secrets: FILES_SECRETS },
   'backup-db.yml': { cron: '0 8 * * 0', timeout: '60', script: 'pnpm backup:db', secrets: DB_SECRETS },
+  'backup-check.yml': { cron: '0 10 * * *', timeout: '15', script: 'pnpm backup:check', secrets: ['BACKUP_SOURCE_DB_URL'] },
 };
 
 // ---- line parser (blank and comment lines dropped, trailing ` # comment` stripped) --------------------------

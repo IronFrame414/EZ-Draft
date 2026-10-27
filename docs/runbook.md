@@ -229,8 +229,9 @@ Do it after Phase 1 gives Projects and Delete, and before the first real job is 
 1. Create a project `Restore drill <date>` and upload one file.
 2. Run both backup workflows by hand.
 3. Delete the project.
-4. With **Docker** Desktop running, in your own terminal: `pnpm backup:restore --env-file C:\Users\JSBis\ezdraft-secrets\restore.env --project <id> --record` (an absolute path outside the repo; the script refuses any other).
-5. PASS = exit 0 and `"ok":true` on the last line. `--record` saves the drill, so the System status page shows it.
+4. **Check the backups are current.** In your own terminal: `pnpm backup:check --env-file C:\Users\JSBis\ezdraft-secrets\restore.env`. PASS = exit 0 and `"ok":true`. If `"stale"` lists `files_stale`, the last nightly file copy did not finish in the last 26 hours; `db_dump_stale`, the last weekly database copy is 8 days old or more. Run that workflow by hand, check it is green, and run the check again.
+5. With **Docker** Desktop running, in your own terminal: `pnpm backup:restore --env-file C:\Users\JSBis\ezdraft-secrets\restore.env --project <id> --record` (an absolute path outside the repo; the script refuses any other).
+6. PASS = exit 0 and `"ok":true` on the last line. `--record` saves the drill, so the System status page shows it.
 
 ### 4. Restoring for real
 - The scratch copy is for checking and for reading data back. Never load a dump into production by hand.
@@ -240,6 +241,7 @@ Do it after Phase 1 gives Projects and Delete, and before the first real job is 
 ### 5. Notes
 - Dumps and files hold client data. A file deleted in EZ Draft stays in the backup for 90 days after the next nightly run notices it (never less than 91 days after it was copied, because of the lock), and every database copy for 13 weeks; after that it is gone from the backup too. Database copies hold no sign-in sessions or tokens, so a restore signs everyone out.
 - Storage limits per company and reminders to delete older data come in a later ticket; their deletes follow the same 90-day rule.
+- **Off-site backup: check** runs every day at 10:00 UTC and is red when the last nightly file copy did not finish in the last 26 hours or the last weekly database copy is 8 days old or more. GitHub emails you about a red run. Open the run: `backup_stale` with `files_stale` or `db_dump_stale` names the copy that is behind; run that backup workflow by hand, check it is green, then run **Off-site backup: check** by hand. `environment_unprotected` means the `release` environment's rule changed (Before launch item 8). Until launch it shows `not_configured` and stays green.
 - GitHub stops scheduled workflows in a public repo after 60 days without commits, so check the last backup on the System status page.
 
 ## Cloud checks (EZD-171)

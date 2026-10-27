@@ -276,6 +276,7 @@ const EXPECTED_SECRETS = {
     'BACKUP_S3_SECRET_ACCESS_KEY'],
   'backup-db.yml': ['BACKUP_SOURCE_DB_URL', 'BACKUP_S3_ENDPOINT', 'BACKUP_S3_REGION', 'BACKUP_S3_BUCKET',
     'BACKUP_S3_ACCESS_KEY_ID', 'BACKUP_S3_SECRET_ACCESS_KEY'],
+  'backup-check.yml': ['BACKUP_SOURCE_DB_URL'],
   'supabase-dev.yml': ['SUPABASE_DEV_DB_URL'],
 };
 const sortedCopy = (a) => [...a].sort();
@@ -388,7 +389,7 @@ function checkWorkflow(fileName, text) {
     const e = env.toLowerCase();
     if (env.includes('${{')) add('g', 'environment chosen by an expression');
     if (e === 'production') add('g', 'production environment');
-    if (e === 'release' && !['release.yml', 'backup-files.yml', 'backup-db.yml'].includes(fileName)) {
+    if (e === 'release' && !['release.yml', 'backup-files.yml', 'backup-db.yml', 'backup-check.yml'].includes(fileName)) {
       add('g', 'release environment not allowed here');
     }
     if (e === 'dev' && fileName !== 'supabase-dev.yml') add('g', 'dev environment not allowed here');
@@ -403,7 +404,7 @@ function checkWorkflow(fileName, text) {
   }
 
   // (i) caches
-  if (['release.yml', 'backup-files.yml', 'backup-db.yml'].includes(fileName)) {
+  if (['release.yml', 'backup-files.yml', 'backup-db.yml', 'backup-check.yml'].includes(fileName)) {
     for (const c of cacheUses(lines)) add('i', c);
   }
 
@@ -418,7 +419,7 @@ function checkWorkflow(fileName, text) {
     if (PNPM_CONFIG_RE.test(l)) add('l', `pnpm_config_ name at line ${i + 1}`);
   });
   // (n) listed actions only (EZD-188, Q-0328)
-  if (['release.yml', 'backup-files.yml', 'backup-db.yml'].includes(fileName)) {
+  if (['release.yml', 'backup-files.yml', 'backup-db.yml', 'backup-check.yml'].includes(fileName)) {
     for (const u of unlistedUses(lines)) add('n', u);
     for (const c of cross) add('n', c);
   }
@@ -497,11 +498,11 @@ test('EZD-002 T2b T2 rules catch the bypasses (AC-EZD-002-1)', () => {
 
 // ---------- EZD-148 T1 ----------
 // Sources: ticket EZD-148 Done when and Scope (inline flow maps, mixed-case action names); plan decisions D2-D5, D10;
-// lesson L-006 (every form the checker cannot read is refused). Each sample runs for all three production workflow
+// lesson L-006 (every form the checker cannot read is refused). Each sample runs for all four production workflow
 // files, because rule (i) runs only for them. Messages name the sample id and the file.
 test('EZD-148 T1 rule (i) catches inline, mixed-case and unreadable cache forms (AC-EZD-148-1) done when', () => {
   const on = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
-  const files = ['release.yml', 'backup-files.yml', 'backup-db.yml'];
+  const files = ['release.yml', 'backup-files.yml', 'backup-db.yml', 'backup-check.yml'];
   const bad = [
     ['i1', '      - uses: actions/setup-node@v4\n        with: { cache: pnpm }\n'],
     ['i2', '      - uses: Actions/Cache@v4\n'],
@@ -573,7 +574,7 @@ test('EZD-148 T1 rule (i) catches inline, mixed-case and unreadable cache forms 
       if (!P.some((p) => p.rule === 'i')) missed.push(`${id} in ${file}: no problem with rule (i), got [${show(P)}]`);
     }
   }
-  assert.equal(cases, 105, '35 samples x 3 files');
+  assert.equal(cases, 140, '35 samples x 4 files');
   assert.deepEqual(missed, [], 'every bad cache form is caught by rule (i)');
   const falsePositives = [];
   for (const file of files) {
@@ -586,7 +587,7 @@ test('EZD-148 T1 rule (i) catches inline, mixed-case and unreadable cache forms 
 });
 
 // ---------- EZD-188 T1-T6 (vault/plans/EZD-188.md sections 3 and 4) ----------
-const PROD_FILES = ['release.yml', 'backup-files.yml', 'backup-db.yml'];
+const PROD_FILES = ['release.yml', 'backup-files.yml', 'backup-db.yml', 'backup-check.yml'];
 const ruleOf = (P, r) => P.filter((p) => p.rule === r).map((p) => p.msg);
 
 test('EZD-188 T1 rule (n) refuses every uses value outside the listed actions (AC-EZD-188-1, AC-EZD-188-2) done when', () => {
@@ -649,7 +650,7 @@ test('EZD-188 T1 rule (n) refuses every uses value outside the listed actions (A
       assert.deepEqual(ruleOf(P, 'i'), [], `${id} in ${f}: no (i) problem`);
     }
   }
-  assert.equal(cases, 72, '24 samples x 3 files');
+  assert.equal(cases, 96, '24 samples x 4 files');
   const extra = [
     ['a1', on(`      - uses: ' actions/checkout@${S} '\n`)],
     ['p1', on(`      - { name: a,\n        uses: actions/checkout@${S}\n        someone }\n`)],
@@ -697,11 +698,12 @@ test('EZD-188 T1 rule (n) refuses every uses value outside the listed actions (A
   }
 });
 
-test('EZD-188 T2 the three production workflows pass and use only the listed actions (AC-EZD-188-3)', () => {
+test('EZD-188 T2 the four production workflows pass and use only the listed actions (AC-EZD-188-3)', () => {
   const expected = {
     'release.yml': [[24, ['actions/checkout']], [28, ['actions/setup-node']]],
     'backup-files.yml': [[22, ['actions/checkout']], [25, ['actions/setup-node']]],
     'backup-db.yml': [[22, ['actions/checkout']], [25, ['actions/setup-node']]],
+    'backup-check.yml': [[21, ['actions/checkout']], [24, ['actions/setup-node']]],
   };
   for (const f of PROD_FILES) {
     const text = readFileSync(path.join(workflowsDir, f), 'utf8');
@@ -716,7 +718,7 @@ test('EZD-188 T2 the three production workflows pass and use only the listed act
   }
   // A3: scanner and parser agree on every real workflow file.
   const parsedCount = {
-    'ci.yml': 4, 'supabase-dev.yml': 2, 'release.yml': 2, 'backup-files.yml': 2, 'backup-db.yml': 2,
+    'ci.yml': 4, 'supabase-dev.yml': 2, 'release.yml': 2, 'backup-files.yml': 2, 'backup-db.yml': 2, 'backup-check.yml': 2,
   };
   for (const [f, count] of Object.entries(parsedCount)) {
     const text = readFileSync(path.join(workflowsDir, f), 'utf8');

@@ -20,6 +20,7 @@
     "backup:files": "node scripts/backup/files.mjs",
     "backup:db": "node scripts/backup/db.mjs",
     "backup:restore": "node scripts/backup/restore.mjs",
+    "backup:check": "node scripts/backup/check.mjs",
     "fixtures:generate": "node scripts/fixtures/generate-synthetic.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
