@@ -1,9 +1,11 @@
-# Handoff · 2026-10-27 · questions 1
+# Handoff · 2026-10-27 · build EZD-100
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed: Q-0358 (EZD-153 scratch gap) answered-agent (c) by the security-reviewer: a phase 1 fix ticket adds a temporary `sql_drop` event trigger plus a rename check during release step E, proven first on `ezdraft-dev`. EZD-153 plan updated and lint OK. Set ready: EZD-153, EZD-163, EZD-100, EZD-239, EZD-240.
-- Pending (orchestrator): the Q-0358 fix ticket is NOT yet created (needs a tickets.json, phase-01.md and STATUS row; next free EZD number). Create it before the phase gate (CLAUDE.md rule 17). Fallback if the dev probe fails: option (b) goes to Josh.
-- Blocked: EZD-003, EZD-141, EZD-173 (unchanged). Escalated and not phase 1: Q-0089, Q-0237.
-- Questions for Josh: Q-0360 (EZD-112 offline input look, escalated, see phase-01-for-josh.md section 1); Q-0358 confirm in section 2.
+- Completed this session: EZD-100 done (0b987c5, 1172 tests). One test file, scripts/launcher/budget-hold.test.mjs, proves a real hold writes BUDGET_HOLD.md, notifies once and --hold-at releases it. Reviewer PASS round 1.
+- In progress: none
+- Blocked: EZD-003, EZD-141, EZD-173 (unchanged)
+- Questions for Josh: Q-0360, Q-0358 confirm (unchanged). Optional: delete the stray temp folder /var/folders/2t/t09425m57_g4jvd1l3z5wnj00000gn/T/ezd100-FnL69k (an agent cannot).
+- Pending (orchestrator): Q-0358 fix ticket still not created.
+- Decisions made: none; no lessons added.
 - Next unit: see `node vault/tools/next_ticket.mjs --next-unit`
