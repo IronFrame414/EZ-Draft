@@ -33,7 +33,7 @@ The claude.ai documents (build specification, mockup canvas, code-rule catalog) 
 ## 2. Ticket IDs and statuses
 
 - Format `EZD-<number>` with an optional lowercase letter for split parts (`EZD-016a`). `next_ticket.mjs` parses only this format: no other suffixes.
-- Phase N owns numbers N×100 to N×100+99 (Phase 0: 000–099). Fix tickets from a phase gate take the next free number in their phase, title starting `Fix:`.
+- Phase N owns numbers N×100 to N×100+99 (Phase 0: 000–099). Fix tickets from a phase gate take the next free number in their phase, title starting `Fix:`. When the phase's range has no free number, a fix ticket takes the next number above the highest ticket number in the next phase's range (phase N+1; for phase 1, after phase 2's highest) (Q-0359: EZD-239 and EZD-240 after EZD-238; EZD-200 keeps its number).
 - A dependency on a split ticket's base number means all of its lettered parts (R26 R33). `tickets.json` `depends_on` is already expanded.
 - 36 tickets depend on a later-numbered ticket in the same phase; `next_ticket.mjs` picks by dependencies, never by number alone.
 - A new or split ticket is added to the phase file, `tickets.json` (with `acs` from `gen_acs.mjs`) and `STATUS.md` in one commit by the orchestrator; `next_ticket.mjs --check` must pass.

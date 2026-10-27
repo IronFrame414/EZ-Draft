@@ -14584,6 +14584,74 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-100",
+   "phase": 1,
+   "title": "Fix: a real budget hold is proven to write its file, notify and be released (pilot row 6)",
+   "depends_raw": "EZD-000h",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h"
+   ],
+   "build_position": 510,
+   "acs": [
+    "AC-EZD-100-1",
+    "AC-EZD-100-2",
+    "AC-EZD-100-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-239",
+   "phase": 1,
+   "title": "Fix: the budget status printout shows no override from a past week (pilot row 6)",
+   "depends_raw": "EZD-000h",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h"
+   ],
+   "build_position": 511,
+   "acs": [
+    "AC-EZD-239-1",
+    "AC-EZD-239-2",
+    "AC-EZD-239-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-240",
+   "phase": 1,
+   "title": "Fix: the status line saves its raw sample only from a payload with rate limits (pilot row 16)",
+   "depends_raw": "EZD-000h",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h"
+   ],
+   "build_position": 512,
+   "acs": [
+    "AC-EZD-240-1",
+    "AC-EZD-240-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
    "phase": 2,
    "title": "Mark complete and Completed filter",
