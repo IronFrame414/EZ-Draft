@@ -128,3 +128,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-194 · Fix: switching to API credits is proven with a fake claude · a repo test proves --api-until-reset passes the API key and logs auth api, and without it no key and auth plan · 75bcfc9
 2026-10-26 · EZD-195 · Fix: a refused agent start is seen live · PILOT.md row 14 now records a real planner Agent call to Explore refused by the guard, with the transcript path · f7422ad
 2026-10-26 · EZD-196 · Fix: a retriever write outside pending is refused live · PILOT.md row 15 records the guard's refusal of a retriever Write to vault/research/ezd170-probe.md (hook run on a real retriever payload; the live retriever declined) · c33c465
+2026-10-26 · EZD-197 · Fix: the 70% weekly warning is proven to notify · weekly-warning.test.mjs T1-T3 show marker, one notify, NOTIFY log line, none on a second pass; PILOT.md row 10 updated · 8658b0b
