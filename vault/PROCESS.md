@@ -546,7 +546,7 @@ vault/research/           INDEX.md, R-NNN.md, pending/
 
 ### CLAUDE.md template
 
-Every subagent except Explore and Plan loads `CLAUDE.md` at startup, so it stays under about 60 lines: basic rules and a directory. Detail lives in the files the directory points to.
+Every subagent except Explore and Plan loads `CLAUDE.md` at startup, so it stays short and concise, at most 100 lines (Josh 2026-10-27; EZD-000b T6): basic rules and a directory. Detail lives in the files the directory points to.
 
 ```markdown
 # <Project> — build rules

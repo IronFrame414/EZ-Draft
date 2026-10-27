@@ -45,22 +45,23 @@ test('EZD-000b T4: no skill or agent file names the task-list tools', () => {
   assert.deepEqual(hits.map((f) => path.relative(root, f)), []);
 });
 
-test('EZD-000b T5: CLAUDE.md rules are numbered 1 to 17, 14 to 16 are the honesty rules and 17 is the no-parked-issue rule (Q-0268)', () => {
+test('EZD-000b T5: CLAUDE.md rules are numbered 1 to 18, 14 to 16 are the honesty rules, 17 is the no-parked-issue rule (Q-0268) and 18 the long-term rule (Josh 2026-10-27)', () => {
   const l = lines(read('CLAUDE.md'));
   const start = l.indexOf('## Rules (every agent)');
   assert.ok(start >= 0, 'Rules heading missing');
   let end = l.findIndex((x, i) => i > start && x.startsWith('## '));
   if (end < 0) end = l.length;
   const numbered = l.slice(start + 1, end).filter((x) => /^\d+\. /.test(x));
-  assert.deepEqual(numbered.map((x) => Number(x.match(/^(\d+)\. /)[1])), Array.from({ length: 17 }, (_, i) => i + 1));
+  assert.deepEqual(numbered.map((x) => Number(x.match(/^(\d+)\. /)[1])), Array.from({ length: 18 }, (_, i) => i + 1));
   assert.equal(numbered[13], `14. ${R14}`);
   assert.equal(numbered[14], `15. ${R15}`);
   assert.equal(numbered[15], `16. ${R16}`);
   assert.ok(numbered[16].startsWith('17. No known issue is parked (Q-0268).'));
+  assert.ok(numbered[17].startsWith('18. Build for the long term (Josh 2026-10-27).'));
 });
 
-test('EZD-000b T6: CLAUDE.md is at most 60 lines', () => {
-  assert.ok(lines(read('CLAUDE.md')).length <= 60);
+test('EZD-000b T6: CLAUDE.md is at most 100 lines (Josh 2026-10-27: may grow, stays short and concise)', () => {
+  assert.ok(lines(read('CLAUDE.md')).length <= 100);
 });
 
 for (const name of ['code-reviewer', 'security-reviewer', 'phase-auditor']) {

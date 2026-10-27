@@ -20,6 +20,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 15. Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim until checked against the primary artifact (the file, the diff, the output).
 16. A result that looks too good is a bug until proven otherwise. Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
 17. No known issue is parked (Q-0268). Every finding of any size (a reviewer minor, a deviation that leaves something wrong, a flaky test, a warning from our code or configuration in a build, test run, browser console or service log) is fixed before the ticket merges or becomes a fix ticket in the same phase. Never write it off as a minor, follow-up, watch item or known limit. If only a third party can fix it, it goes to Josh as a question with the evidence and the workarounds.
+18. Build for the long term (Josh 2026-10-27). The system must be secure, robust, bug free and lasting, with no major rework or overhaul later. When options differ, recommend and pick the most secure and robust long-term option, even when it costs more work now: close a whole class of problem instead of the one example, prefer a design that cannot drift from what it checks, and never trade a known blind spot for convenience. Say plainly what the stronger option costs.
 
 ## Directory
 | When you need | Read |
