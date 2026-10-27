@@ -14,6 +14,8 @@ This run: Q-0349 (EZD-188 rule (j) scanner) was answered by the code-reviewer (s
 
 **Q-0346 · EZD-173 (ledger and unit tooling), added by build EZD-173 2026-10-26.** Tests are written and reviewed, but every build step is a file the builder is not allowed to write (scripts/ledger.mjs, research.mjs, next_ticket.mjs, unit-steps.mjs, run.mjs, the session-end hook, two skills, PROCESS.md). EZD-172 hit the same wall. Pick one: (b) you give the builder a one-time permission in the guard for this worktree's listed files (recommended: the code is large and the builder tier is made for it; the change to the guard is yours); (a) you say yes in chat and I write the files in fix mode (the classifier may refuse, then I hand you a patch); (c) I prepare a patch and you apply it. Full text: Q-0346.
 
+**Q-0360 · EZD-112 (Company settings), added by the planner 2026-10-27.** No mockup shows a read-only input, so it is open how the Company inputs look while the device is offline. Pick one: (a) normal input look, the offline banner is the only signal (as built now; recommended: nothing changes, the banner already says it); (b) muted text like the disabled buttons; (c) sunken background with muted text.
+
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
 ## 2. Agent answers to confirm
