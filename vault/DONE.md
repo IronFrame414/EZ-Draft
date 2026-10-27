@@ -129,3 +129,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-195 · Fix: a refused agent start is seen live · PILOT.md row 14 now records a real planner Agent call to Explore refused by the guard, with the transcript path · f7422ad
 2026-10-26 · EZD-196 · Fix: a retriever write outside pending is refused live · PILOT.md row 15 records the guard's refusal of a retriever Write to vault/research/ezd170-probe.md (hook run on a real retriever payload; the live retriever declined) · c33c465
 2026-10-26 · EZD-197 · Fix: the 70% weekly warning is proven to notify · weekly-warning.test.mjs T1-T3 show marker, one notify, NOTIFY log line, none on a second pass; PILOT.md row 10 updated · 8658b0b
+2026-10-26 · EZD-200 · Fix: the EZD-025 T16 type check names its failure and no longer fails at random · a failing types check now names the command and the first differing line, and concurrent checks take turns on one lock · 76c2cae

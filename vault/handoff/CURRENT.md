@@ -1,11 +1,11 @@
-# Handoff · 2026-10-26 · build EZD-198 (blocked on Josh)
+# Handoff · 2026-10-26 · build EZD-200 (done)
 
-- Phase and stage: phase 1, build, session 1 of 2.
-- Why the session ended: the fix is in .claude/hooks/guard-reads.mjs and vault/PROCESS.md, which agents cannot edit. It goes to Josh as a patch (plan section 1; PROCESS.md section 3 rule 19).
-- Completed: worktree .claude/worktrees/EZD-198 on t/EZD-198; tests T1-T4 committed (9c17ab1; T1, T3, T4 fail on the old hook as planned); PILOT.md row 13 How text committed as wip; patch made and checked (V0, V1 hashes match, V2 `apply --check` exit 0).
-- Models: test-author haiku/high (--dispatch). No builder (plan).
-- Josh's one step, from the repo root with no launcher unit running:
-  git -C .claude/worktrees/EZD-198 apply "$PWD/vault/handoff/EZD-198-hooks.patch"
-- Next unit: /build-ticket EZD-198 again. Resume at plan step 7: V3, gate, code-reviewer (opus), merge, then step 9 (live V6 re-run, PILOT.md row 13 Result), delete the patch (step 10).
-- Open observation (from EZD-193): scripts/run.mjs line 254 writes claude's raw stderr to the launcher stderr; needs a decision or fix ticket.
+- Phase and stage: phase 1, build.
+- Why the session ended: unit complete.
+- Completed: EZD-200 merged to develop (76c2cae, 1128 tests). gen-types.mjs now names its failure and runs under one rename-based lock; tests T1-T7, T4b-d, T5b.
+- Models: test-author haiku/high, builder haiku/high (2 rounds), code-reviewer opus/medium, security-reviewer opus/high, planner opus/high (plan-gap after round 1: lock takeover race).
+- Found: cross-file `deadlock detected` in full test runs (files.test.mjs after-hook, tenancy-bootstrap.test.mjs), 2 of 20 runs. Logged as Q-0357 (answered-agent: fix ticket, medium). It needs a ticket row in STATUS/tickets.json via the questions unit.
+- Procedure D of the plan was clean for gen_types_ lines; the only `not ok` was the deadlock above.
+- Lesson added by the planner (vault/lessons/planner.md): decide lock takeover as one atomic check-and-claim.
 - Questions for Josh: none new.
+- Next unit: node vault/tools/next_ticket.mjs --next-unit
