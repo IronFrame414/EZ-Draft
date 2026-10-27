@@ -145,7 +145,7 @@ Follow-up rule (EZD-009 round 3): when a ticket adds the first reader of an envi
 - EZD-172 plan-gap (2026-10-26, A1): when sweeping for lane conflicts, check every --workdir passed to the real Supabase CLI (it beats SUPABASE_WORKDIR and decides which [db] port counts as local) and grep fixed listening ports (-p <n>, next start, listen(<n>)), not only Supabase ports.
 - EZD-113 re-validation (2026-10-26): give every export a plan takes from a dependency as path plus signature, write route 500 handling as the current reportRouteFailure convention, and require new migration timestamps to be newer than develop's newest file.
 
-## L-0XX  areas: migrations, security  seen: 1  status: new
+## L-023  areas: migrations, security  seen: 1  status: candidate
 Ticket EZD-190, 2026-10-26
 Mistake: the plan added a `private` function granted to `authenticated` only, then had a test call it directly as `service_role` and `anon`, and left `PRIVATE_EXECUTE` out of the test-author scope.
 Cause: grants and the audit allow-list were not cross-read against the test rows.
