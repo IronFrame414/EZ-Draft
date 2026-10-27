@@ -166,3 +166,9 @@ Mistake: the visual checklist said "card 720 px wide" while step 3 set `max-widt
 Cause: a CSS value was copied into the checklist as a rendered width, and a summary of wording was written from memory instead of compared with the decision text.
 Rule: pixel widths in a checklist must say outer box vs max-width (and give the outer value with padding and border); a plan that says wording "is" a decision's text quotes it verbatim or says "restates".
 Check: plan review compares every checklist width with the CSS box model of the step that sets it, and every "Q-xxxx wording" claim with the decision row.
+
+Ticket EZD-153, 2026-10-27
+Mistake: the plan read the Supabase CLI's JSON stdout from `migration up`, but the probe ran with CLAUDECODE set, and the child env allow-list and GitHub Actions have no such variable, so stdout was empty.
+Cause: the CLI prints JSON only when it detects an AI agent unless told with `--output-format json`.
+Rule: a CLI probe runs in the same allow-listed environment as the child (no CLAUDECODE or AI_AGENT), and a plan that reads CLI stdout names the output-format flag explicitly.
+Check: plan review compares the probe's environment with the child's env list.
