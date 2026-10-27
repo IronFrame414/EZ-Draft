@@ -1,11 +1,11 @@
-# Handoff · 2026-10-26 · build EZD-172
+# Handoff · 2026-10-26 · build EZD-190
 
 - Phase and stage: phase 1, build.
-- Why the session ended: blocked.
-- Completed this session: EZD-172 round 4 (Q-0351): plan copy restored on t/EZD-172 (6a7aba0); three docs/architecture.md lines fixed (83607c4); EZD_LANE used-by cell completed after a code-reviewer finding (a55727e). Lane 0 gate PASS. Code-reviewer's only finding fixed.
-- In progress: EZD-172, worktree .claude/worktrees/EZD-172, branch t/EZD-172 at a55727e. Not merged.
-- Blocked: EZD-172. Security-reviewer FAIL: (1) lane stacks listen on 0.0.0.0 (same as lane 0 today); (2) app/playwright.config.ts:124 web server has no `-H 127.0.0.1`. Both need code beyond the round Josh allowed. Unblocks with Josh's answer to Q-0354 (recommended: one more round, then both reviewers again).
-- Questions for Josh: Q-0354 (plus earlier escalated: Q-0334, Q-0337, Q-0338, Q-0340, Q-0346, Q-0350).
+- Why the session ended: unit complete.
+- Completed this session: EZD-190 merged to develop (bb15791, 1109 tests). pnpm db:up restarts PostgREST and waits for the gate; database backstop (11 `_api_gate` policies, 9 guarded RPCs, `private.require_api_gate`). Both reviewers PASS. Two plan-gaps patched; lessons L-023, L-024 (planner, candidate).
+- In progress: none.
+- Blocked: none. EZD-151 can now be rebuilt (rebase t/EZD-151 onto develop, gate, reviews).
+- Questions for Josh: none new; Q-0355 (EZD-102 D3 flake) and Q-0356 (EZD-181 T3 flake) are answered-agent fix-ticket questions awaiting the questions unit (no fix ticket created yet).
 - Decisions made: none.
-- Note: merge will conflict in the Machine checks table next to the EZD-177 row (branch predates EZD-176..189).
+- Note: EZD-172 is still blocked on Q-0354 (see earlier handoff in vault/handoff/log).
 - Next unit: node vault/tools/next_ticket.mjs --next-unit
