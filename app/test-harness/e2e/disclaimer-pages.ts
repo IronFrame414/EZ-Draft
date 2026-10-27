@@ -18,6 +18,7 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     signedIn: false,
     placement: 'page',
   },
+  { file: 'src/app/terms/page.tsx', path: '/terms', signedIn: false, placement: 'page' },
   {
     file: 'src/app/(office)/dev/entry/office/page.tsx',
     path: '/dev/entry/office',

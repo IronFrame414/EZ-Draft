@@ -37,6 +37,11 @@ export default async function SignInPage({
             initialError={e === 'no_access' ? 'no_access' : null}
             captcha={base && { ...base, language }}
           />
+          <p className={styles.termsRow}>
+            <a className={styles.link} href="/terms" data-testid="sign-in-terms-link">
+              {t('common.terms.title')}
+            </a>
+          </p>
         </div>
         <Disclaimer placement="page" />
       </MessagesProvider>

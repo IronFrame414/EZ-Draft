@@ -39,6 +39,14 @@ export const es = {
   'common.sign_in.password_submit': 'Iniciar sesión',
   'common.sign_in.send_instead': 'Mejor envíame un enlace de acceso por correo',
   'common.sign_in.forgot': '¿Olvidaste tu contraseña? Envíame un código por correo',
+  'common.terms.title': 'Términos del servicio',
+  'common.terms.no_certification':
+    'EZ Draft no certifica que ningún plano, cálculo o diseño cumpla con los códigos de construcción, eléctricos ni otros.',
+  'common.terms.responsibility':
+    'EZ Draft es solo para diseño y planificación. La responsabilidad del cumplimiento de los códigos es del usuario con licencia: todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
+  'common.terms.placeholder':
+    'Texto provisional: los términos completos del servicio aún no están redactados y reemplazarán este texto. Las dos declaraciones anteriores ya se aplican.',
+  'common.terms.back': 'Volver a iniciar sesión',
   'common.retry': 'Reintentar',
   'common.offline': 'Sin conexión',
   'common.cancel': 'Cancelar',

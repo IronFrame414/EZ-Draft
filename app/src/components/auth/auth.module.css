@@ -155,3 +155,20 @@
   font: inherit;
   cursor: pointer;
 }
+
+/* EZD-1707 Step 3 (vault/plans/EZD-1707.md section 1): the terms card, 720 px so the statements read as paragraphs. */
+.termsCard {
+  max-width: 720px;
+}
+
+.termsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.termsRow {
+  margin: 16px 0 0;
+  text-align: center;
+}

@@ -97,6 +97,7 @@ export default tseslint.config(
       'app/src/app/sign-in/**/*.{tsx,jsx}',
       'app/src/app/auth/confirm/**/*.{tsx,jsx}',
       'app/src/components/auth/**/*.{tsx,jsx}',
+      'app/src/app/terms/**/*.{tsx,jsx}',
     ],
     ignores: ['**/*.test.*', '**/*.spec.*'],
     plugins: { ezdraft },
