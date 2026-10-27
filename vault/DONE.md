@@ -126,3 +126,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-26 · EZD-113 · Customers · Settings → Company lists customers (50 per page, search, project counts), add/edit/archive/restore, duplicate email refused · 8047e76
 2026-10-26 · EZD-190 · Fix: the API request gate is in force as soon as the local stack is up · pnpm db:up restarts the database API and returns only when the gate refuses header-less requests; a database backstop refuses them even if the gate is skipped, locally and in the cloud · bb15791
 2026-10-26 · EZD-194 · Fix: switching to API credits is proven with a fake claude · a repo test proves --api-until-reset passes the API key and logs auth api, and without it no key and auth plan · 75bcfc9
+2026-10-26 · EZD-195 · Fix: a refused agent start is seen live · PILOT.md row 14 now records a real planner Agent call to Explore refused by the guard, with the transcript path · f7422ad
