@@ -349,9 +349,9 @@ describe('EZD-025 T16 static checks and docs', () => {
 
   test('EZD-025 T16 the conventions check and the generated types are clean', () => {
     const c = spawnSync('node', ['scripts/conventions/check.mjs', '.'], { cwd: REPO_ROOT, encoding: 'utf8', env: childEnv() });
-    assert.equal(c.status, 0, `conventions check: ${c.stdout}${c.stderr}`);
+    assert.equal(c.status, 0, `node scripts/conventions/check.mjs . exited ${c.status} (signal ${c.signal ?? 'none'}): ${c.stdout}${c.stderr}`);
     const g = spawnSync('node', ['scripts/db/gen-types.mjs', '--check'], { cwd: REPO_ROOT, encoding: 'utf8', env: childEnv() });
-    assert.equal(g.status, 0, `gen-types --check: ${g.stdout}${g.stderr}`);
+    assert.equal(g.status, 0, `node scripts/db/gen-types.mjs --check exited ${g.status} (signal ${g.signal ?? 'none'}): ${g.stdout}${g.stderr}`);
   });
 
   test('EZD-025 T16 files.mjs with no BACKUP_* is not_configured, with one name it is env_missing', () => {
