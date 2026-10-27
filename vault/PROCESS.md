@@ -443,7 +443,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 - CI runs **only** on the PR to `main` and when started by hand from the Actions tab. It does not run on every push.
 - Per-ticket checks run locally with `scripts/gate.mjs`.
 - `develop` is pushed after every merged ticket. This does not trigger CI or a preview build.
-- Hosting builds production only from `main`. On Vercel, set the Ignored Build Step to: `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1`. A push made before the PR exists is skipped, which is why the gate pushes an empty commit after opening the PR.
+- Hosting builds production only from `main`. On Vercel, set the Ignored Build Step to: `[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1; [ "$VERCEL_GIT_COMMIT_REF" = "develop" ] && [ -n "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 1; exit 0`. A push made before the PR exists is skipped, which is why the gate pushes an empty commit after opening the PR.
 - Public repos get free Actions minutes and free branch protection. Never commit keys.
 - Protect `main`: require a PR, require the `gate` check to pass, allow no bypassing.
 
