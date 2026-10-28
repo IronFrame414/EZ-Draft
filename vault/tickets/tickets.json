@@ -15906,6 +15906,28 @@
     "AC-EZD-251-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-252",
+   "phase": 1,
+   "title": "Fix: a test file that writes error_alert rows must hold the error-alert lock",
+   "depends_raw": "EZD-251",
+   "spec_ref": "Q-0385",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-251"
+   ],
+   "build_position": 524,
+   "acs": [
+    "AC-EZD-252-1",
+    "AC-EZD-252-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"

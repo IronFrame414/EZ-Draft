@@ -1,27 +1,29 @@
-# Phase 1 · for Josh (questions unit, 2026-10-28, second run)
+# Phase 1 · for Josh (questions unit, 2026-10-28, third run)
 
-Your answers to Q-0373 to Q-0380 are recorded. EZD-247, EZD-248 and EZD-250 are re-planned and ready (with EZD-243 to EZD-246). EZD-249 stays `questions` until you answer Q-0382. EZD-172 stays blocked on Q-0381.
+Agents answered Q-0384 and Q-0385 (EZD-251). New fix ticket EZD-252 added. EZD-249 stays `questions` until you answer Q-0382; EZD-245 stays blocked on Q-0383.
 
 ## 1. Decisions needed
 
 **Q-0382 · EZD-249.** Your Q-0376 (a) widens the research-report `ticket:` line to allow a Q-ID. The brief text that says what goes in `FOR` also sits in both retriever agent files, `.claude/skills/build-ticket/dispatch.md` (lines 24, 28) and `vault/PROCESS.md` line 121, and tests pin it. Your Q-0375 grant covers only four tooling files. Pick:
-- (a) add the two retriever files, `dispatch.md` and `PROCESS.md` to the EZD-249 builder grant, and change the text in all four so the brief cannot drift. **Recommended**: rule 18, closes the class. The grant patch `vault/handoff/EZD-249-grant.patch` then gets those four paths added.
+- (a) add the two retriever files, `dispatch.md` and `PROCESS.md` to the EZD-249 builder grant and change the text in all four so the brief cannot drift. **Recommended**: rule 18, closes the class. The grant patch `vault/handoff/EZD-249-grant.patch` then gets those four paths added.
 - (b) add only the two retriever files; `dispatch.md` and `PROCESS.md` keep naming a ticket only.
 - (c) drop the text change; askers put a Q-ID in `FOR` without the files saying so.
 
-**Q-0381 · EZD-172.** Round 6 is green but both reviewers FAILED it on small items (an empty-lock-file window in the gate lock; two slips of mine; two out-of-date architecture lines). Pick: (a) round 7, only these items (**recommended**); (b) merge now and fix later (rule 17 forbids it for a lock defect); (c) drop the ticket. Also noted: EZD-181 T3 is a timing race in develop's test and needs its own phase 1 fix ticket (orchestrator adds it in fix mode).
-
-**Edits only you make** (if not done): EZD-243 phase-01 row and tickets.json (Scope item 4, a Done-when sentence, AC-EZD-243-4, EZD-003 dependency); `vault/PROCESS-EZDRAFT.md` line 99 (Q-0364 (a)); EZD-247's row Scope and ACs still name only the first four places (plan files T6 under AC-EZD-247-2). Apply `vault/handoff/EZD-249-grant.patch` only after Q-0382 is answered. After EZD-250 merges, rerun `node scripts/launchd/install.mjs install` once.
+**Q-0383 · EZD-245.** Your one-sentence fix (Q-0380 (a)) is in and the gate is green, but a fresh re-review found four small items: `findings.mjs categories` does not refuse a bad log file; `findings.mjs list` accepts a misspelled category and prints "no findings"; a note in `.claude/agents/planner.md` sits in the wrong place; `.claude/agents/plan-checker.md` line 25 conflicts with the new lesson-gap wording. Pick:
+- (a) one more cycle in this ticket: planner settles items 2 and 4, test-author adds two tests, builder fixes all four, gate, re-review, merge. **Recommended**: rule 18, every command refuses bad input.
+- (b) merge as is and fix in a new phase 1 ticket. EZD-246 depends on this ticket and edits the same files, so it would build on the defects.
 
 (Q-0089 and Q-0237 stay escalated; not phase 1.)
 
 ## 2. Agent answers to confirm
 
-Unchanged: Q-0232, Q-0266, Q-0269, Q-0277, Q-0279, Q-0280, Q-0281, Q-0282, Q-0362 (confirm or override each).
+- **Q-0384 · EZD-251.** (b) 10 runs of two full lane gates started together; a failure on any run is reported and the count restarts. Source: EZD-035.md line 99 (10 of 10 full runs); CLAUDE.md rules 16, 18. Confirm or override.
+- **Q-0385 · EZD-251.** (a) a separate fix ticket, EZD-252, adds a check that fails a test file which writes `error_alert` rows without `holdErrorAlertLock`. Source: CLAUDE.md rules 4, 17, 18; Q-0281, Q-0283, Q-0290. Confirm or override.
+- Unchanged: Q-0232, Q-0266, Q-0269, Q-0277, Q-0279, Q-0280, Q-0281, Q-0282, Q-0362.
 
 ## 3. Proposed wording
 
-EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249: section 6 of their plans. EZD-250: W1–W5 (W5 is the CI-red repair) and the watchdog alerts, vault/plans/EZD-250.md section 6.
+EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249, EZD-251: section 6 of their plans. EZD-250: W1–W5 and the watchdog alerts, vault/plans/EZD-250.md section 6.
 
 ## 4. Rule candidates
 
