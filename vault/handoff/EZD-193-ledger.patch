@@ -1,0 +1,17 @@
+--- a/vault/tools/next_ticket.mjs	2026-10-28 18:33:35
++++ b/vault/tools/next_ticket.mjs	2026-10-28 18:33:35
+@@ -340,11 +340,13 @@
+   }
+   for (const t of data.tickets) {
+     if (!OPEN_STATUSES.includes(status(t.id))) continue;
++    const planPath = path.join(vault, 'plans', `${t.id}.md`);
++    // A ticket blocked before it has a plan has nothing to copy a list from yet.
++    if (t.architecture === undefined && status(t.id) === 'blocked' && !existsSync(planPath)) continue;
+     if (t.architecture === undefined) { out.push(noList(t.id)); continue; }
+     if (!doc) continue;
+     const e = entryProblem(t.id, t.architecture, doc.headings);
+     if (e) out.push(e);
+-    const planPath = path.join(vault, 'plans', `${t.id}.md`);
+     if (!existsSync(planPath) || !Array.isArray(t.architecture)) continue;
+     const a = planArchitecture(readFileSync(planPath, 'utf8'));
+     if (a.list && (a.list.length !== t.architecture.length || a.list.some((h, i) => h !== t.architecture[i])))
