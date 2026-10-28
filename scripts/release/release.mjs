@@ -24,10 +24,11 @@ import {
 import { createSupabaseCli, dumpDatabase, runChild } from './dump.mjs';
 import { DECRYPTED_ENTRIES, envExampleNames, evaluateVercelEnv, supabaseRefFromDbUrl } from './env-check.mjs';
 import { createGitHubApi, evaluateEnvironmentRule } from './github-api.mjs';
-import { main as checkMigrations } from './check-migrations.mjs';
+import { baseRetiredEntries, main as checkMigrations, RETIRED_FILE } from './check-migrations.mjs';
 import { createOffsiteUploader } from './offsite-upload.mjs';
 import { MIGRATION_TIMEOUTS, parsePendingMigrations, withTimeouts } from './push.mjs';
 import { safeLines } from './redact.mjs';
+import { createReleaseGuard, RELEASE_GUARD_SETTING } from './release-guard.mjs';
 import { releaseTagFor } from './release-name.mjs';
 import { listReleaseTags, parseReleaseTag, previousReleaseTag } from './tags.mjs';
 import { createVercelApi, evaluateVercelProject } from './vercel-api.mjs';
@@ -51,6 +52,11 @@ const UPLOAD_FAILED_LINE = (prefix) =>
   `release stopped: dump_upload_failed — the database and the live site are unchanged; an incomplete dump may be in ${prefix}`;
 const PARTLY_UPDATED_LINE = (code, prefix) =>
   `release stopped: ${code} — the live site is unchanged; the database may be partly updated; the dump from before this release is in ${prefix}`;
+// EZD-241 section 6: the release guard's own stop lines.
+const GUARD_REMOVE_FAILED_LINE =
+  "release stopped: release_guard_remove_failed — the live site is unchanged and no migration ran; the release guard's triggers are still in the database, and the next run removes them first";
+const GUARD_LOST_LINE = (prefix) =>
+  `release stopped: release_guard_lost — the live site is unchanged; migrations ran without a proven release guard; do not press Re-run jobs, send the log to the orchestrator; the dump from before this release is in ${prefix}`;
 // EZD-023e section 6: lines from step G on.
 const RELEASED_LINE = (tag, n) => `released ${tag} from pull request #${n}`;
 const TAG_FAILED_LINE = (prefix) =>
@@ -438,9 +444,11 @@ export async function runRelease(opts, deps) {
       }
 
       // C. The pending migrations, file names only.
+      let pendingCount = 0;
       try {
         const out = await supabase.pushDryRun({ dbUrl, workdir: worktree() });
         const pending = parsePendingMigrations(out);
+        pendingCount = pending.length;
         if (pending.length === 0) log('pending migrations: none');
         for (const name of pending) log(`pending migration: ${name}`);
       } catch (err) {
@@ -484,12 +492,92 @@ export async function runRelease(opts, deps) {
       }
       summary(DUMP_SAVED_LINE(dumpPrefix));
 
-      // E. The migrations, with the lock and statement timeouts.
-      try {
-        await supabase.push({ dbUrl, workdir: worktree(), ...MIGRATION_TIMEOUTS });
-      } catch (err) {
-        return partlyUpdated('migrate_failed', err);
+      // E. The migrations, with the lock and statement timeouts, under EZD-241's release guard when there is a
+      // previous release tag (Q-0358 (c)).
+      const guarded = base !== null;
+      const releaseGuard = deps.releaseGuard;
+      if (guarded) {
+        if (!releaseGuard) {
+          log('release_guard_failed: not_wired');
+          return stopV('release_guard_failed', built);
+        }
+        let retiredText;
+        try {
+          retiredText = git(['show', `${base}:${RETIRED_FILE}`]);
+        } catch {
+          retiredText = null;
+        }
+        try {
+          const { protectedCount } = await releaseGuard.install({
+            dbUrl,
+            baseTag: base,
+            retired: baseRetiredEntries(retiredText),
+          });
+          log(`release guard on: ${protectedCount} objects of ${base}`);
+        } catch (err) {
+          log(`release_guard_failed: ${err?.code ?? 'install_failed'}`);
+          childLines(err);
+          try {
+            await releaseGuard.remove({ dbUrl });
+          } catch (removeErr) {
+            log('release_guard_remove_failed');
+            childLines(removeErr);
+            summary(GUARD_REMOVE_FAILED_LINE);
+            return { ok: false, code: 'release_guard_remove_failed', prNumber, tag, resume, notices, ...built };
+          }
+          return stopV('release_guard_failed', built);
+        }
       }
+      let pushErr = null;
+      let removeResult = null;
+      let removeErr = null;
+      try {
+        await supabase.push({
+          dbUrl,
+          workdir: worktree(),
+          ...MIGRATION_TIMEOUTS,
+          ...(guarded ? { settings: [RELEASE_GUARD_SETTING] } : {}),
+        });
+      } catch (err) {
+        pushErr = err;
+      } finally {
+        if (guarded) {
+          try {
+            removeResult = await releaseGuard.remove({ dbUrl });
+            log('release guard removed');
+          } catch (err) {
+            removeErr = err;
+          }
+        }
+      }
+      // The guard's outcome outranks migrate_failed (plan Step E table rows 1-4).
+      const guardLost = (reason) => {
+        log(`release_guard_lost: ${reason}`);
+        if (reason === 'remove_failed') childLines(removeErr);
+        if (pushErr !== null) {
+          log('migrate_failed');
+          childLines(pushErr);
+        }
+        summary(GUARD_LOST_LINE(dumpPrefix));
+        return {
+          ok: false,
+          code: 'release_guard_lost',
+          prNumber,
+          tag,
+          resume,
+          notices,
+          ...built,
+          dumpPrefix,
+          dumpFiles,
+        };
+      };
+      if (guarded) {
+        if (removeErr !== null) return guardLost('remove_failed');
+        if (removeResult.wasIntact !== true) return guardLost('guard_lost');
+        if (removeResult.seen !== removeResult.applied) return guardLost('guard_inactive');
+        if (pushErr === null && removeResult.applied !== pendingCount) return guardLost('guard_inactive');
+      }
+      if (pushErr !== null) return partlyUpdated('migrate_failed', pushErr);
 
       // F. Tenant 1, on the first release only. The rendered SQL goes on stdin and nowhere else.
       if (bootstrapSql !== null) {
@@ -686,6 +774,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     // None of these reads process.env until it is called (part c's lazy-dep rule).
     supabase: createSupabaseCli({ root: process.cwd() }),
     sql: createSql({ run: runChild }),
+    releaseGuard: createReleaseGuard({ sql: createSql({ run: runChild }) }),
     offsite: createOffsiteUploader,
     fetch: globalThis.fetch,
     checkLive: async () => evaluate(await observe(HOST)),

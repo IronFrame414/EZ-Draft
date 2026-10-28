@@ -85,11 +85,16 @@ export function validateRetired(text) {
   return { entries: errors.length ? [] : data.retired, errors };
 }
 
+/** EZD-241: the base tag's retired entries (`null` = no file); a file that fails validation gives []. */
+export function baseRetiredEntries(text) {
+  return text === null ? [] : validateRetired(text).entries;
+}
+
 const CONTAINER_KINDS = ['table', 'view', 'materialized_view'];
 const containerOf = (columnName) => columnName.slice(0, columnName.lastIndexOf('.'));
 
 /** True when `retired` (the base tag's entries) covers the object; a retired table, view or materialized view covers its columns. */
-function isRetired(retired, item) {
+export function isRetired(retired, item) {
   for (const e of retired) {
     if (e.kind === item.kind && e.name === item.name) return true;
     if (CONTAINER_KINDS.includes(e.kind) && item.kind === 'column' && containerOf(item.name) === e.name) return true;
@@ -331,8 +336,7 @@ export function main(argv, out = (line) => process.stdout.write(`${line}\n`), ma
   }
 
   const base = readRef(git, baseTag);
-  const baseRetired = validateRetired(base.retired);
-  const retiredEntries = base.retired === null ? [] : baseRetired.entries;
+  const retiredEntries = baseRetiredEntries(base.retired);
   const result = checkMigrations({
     baseTag,
     released: base.migrations,

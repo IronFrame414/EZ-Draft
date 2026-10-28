@@ -236,6 +236,12 @@ function makeClean(
     sleep: sleep ?? recorder('sleep', external),
     now: now ?? (() => new Date('2026-10-19T12:00:00Z')),
     scratchCheck,
+    // EZD-241: the guard fake records nothing, so existing assertions are unchanged.
+    // remove: seen and applied 2 = the files DRY_RUN_TEXT lists (plan section 1, Tests line).
+    releaseGuard: {
+      install: async () => ({ protectedCount: 3 }),
+      remove: async () => ({ wasIntact: true, seen: 2, applied: 2 }),
+    },
   };
   const h = {
     deps,
@@ -2082,5 +2088,231 @@ describe('EZD-153 release uses the scratch database result', () => {
     assert.equal(inputs.length, 1, 'scratchCheck called once');
     assert.equal(inputs[0].baseTag, 'phase-0');
     assert.deepEqual(Object.keys(inputs[0].newFiles), ['20261102000000_add_note.sql']);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-241 (vault/plans/EZD-241.md section 4): R1-R10. The release guard in step E. Expected values come from the
+// plan's Step E outcome table, Decided rows, section 3 (result codes, log lines) and section 6 (summaries).
+// ---------------------------------------------------------------------------------------------------------------
+const loadGuard = () => import('../release-guard.mjs');
+const GUARD_SETTING = { name: 'ezd.release_guard', value: 'on' };
+// Section 6 wording.
+const GUARD_REMOVE_FAILED_LINE =
+  "release stopped: release_guard_remove_failed — the live site is unchanged and no migration ran; the release guard's triggers are still in the database, and the next run removes them first";
+const GUARD_LOST_LINE = (prefix) =>
+  `release stopped: release_guard_lost — the live site is unchanged; migrations ran without a proven release guard; do not press Re-run jobs, send the log to the orchestrator; the dump from before this release is in ${prefix}`;
+
+/** Replaces the harness guard by a recorder that pushes into `h.external`; `o.install` / `o.remove` override. */
+function recordGuard(h, o = {}) {
+  h.deps.releaseGuard = {
+    async install(...args) {
+      h.external.push({ target: 'releaseGuard.install', args });
+      return o.install ? o.install(...args) : { protectedCount: 3 };
+    },
+    async remove(...args) {
+      h.external.push({ target: 'releaseGuard.remove', args });
+      return o.remove ? o.remove(...args) : { wasIntact: true, seen: 2, applied: 2 };
+    },
+  };
+}
+const targetsOf = (h) => h.external.map((c) => c.target);
+// Dump prefix of a phase-1 release on the fake clock T0 (same clock as DUMP_PREFIX, line ~835: 20261019T120000Z).
+const PHASE1_DUMP_PREFIX = 'releases/phase-1-20261019T120000Z/';
+
+describe('EZD-241 release guard in step E', () => {
+  test('EZD-241 R1 a release with a base tag installs the guard, pushes under it, removes it, then tags', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t);
+    recordGuard(h);
+    const result = await h.run();
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    const order = targetsOf(h);
+    const install = order.indexOf('releaseGuard.install');
+    const push = order.indexOf('supabase.push');
+    const remove = order.indexOf('releaseGuard.remove');
+    const tag = order.indexOf('github.createTag');
+    assert.ok(install >= 0 && install < push && push < remove && remove < tag, `order: ${order.join(', ')}`);
+    assert.deepEqual(h.calls('releaseGuard.install')[0].args, [{ dbUrl: CLEAN_DB_URL, baseTag: 'phase-0', retired: [] }]);
+    assert.deepEqual(h.calls('supabase.push')[0].args[0].settings, [GUARD_SETTING]);
+    assert.ok(h.logs().includes('release guard on: 3 objects of phase-0'), JSON.stringify(h.logs()));
+    assert.ok(h.logs().includes('release guard removed'), JSON.stringify(h.logs()));
+  });
+
+  test('EZD-241 R2 a failed push still removes the guard once, after the push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t, {
+      push: () => {
+        throw childError('supabase db push exited 1', 'ERROR: x');
+      },
+    });
+    recordGuard(h);
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'migrate_failed');
+    const order = targetsOf(h);
+    assert.equal(h.calls('releaseGuard.remove').length, 1, 'remove called once');
+    assert.ok(order.indexOf('releaseGuard.remove') > order.indexOf('supabase.push'), 'remove after push');
+    assertNothingLive(h, 'R2');
+  });
+
+  test('EZD-241 R3 a guard that cannot be installed stops the release before the push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { ReleaseGuardError } = await loadGuard();
+    const { h } = makeLater(mod, bs, t);
+    recordGuard(h, {
+      install: () => {
+        throw new ReleaseGuardError('setting_not_applied', { stderr: '' });
+      },
+    });
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_failed');
+    assert.equal(h.calls('supabase.push').length, 0, '0 push');
+    assert.equal(h.calls('releaseGuard.remove').length, 1, 'remove called once');
+    assert.ok(h.logs().includes('release_guard_failed: setting_not_applied'), JSON.stringify(h.logs()));
+    assert.ok(h.summaries().includes(stoppedLine('release_guard_failed')), JSON.stringify(h.summaries()));
+    assertNothingLive(h, 'R3');
+  });
+
+  test('EZD-241 R4 a guard lost or not removed after a good push stops the release before it goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const cases = [
+      { id: 'a', remove: async () => ({ wasIntact: false, seen: 2, applied: 2 }), log: 'release_guard_lost: guard_lost' },
+      {
+        id: 'b',
+        remove: async () => {
+          throw childError('psql exited 1', 'E2');
+        },
+        log: 'release_guard_lost: remove_failed',
+      },
+    ];
+    for (const c of cases) {
+      const { h } = makeLater(mod, bs, t);
+      recordGuard(h, { remove: c.remove });
+      const result = await h.run();
+      const logs = h.logs();
+      assert.equal(result.ok, false, `(${c.id}) ok`);
+      assert.equal(result.code, 'release_guard_lost', `(${c.id}) code`);
+      assert.ok(logs.includes(c.log), `(${c.id}) log ${c.log}: ${JSON.stringify(logs)}`);
+      if (c.id === 'a') {
+        const removed = logs.indexOf('release guard removed');
+        assert.ok(removed >= 0 && removed < logs.indexOf(c.log), `(a) release guard removed, then ${c.log}`);
+      } else {
+        assert.ok(!logs.includes('release guard removed'), `(b) no release guard removed: ${JSON.stringify(logs)}`);
+      }
+      assert.equal(result.dumpPrefix, PHASE1_DUMP_PREFIX, `(${c.id}) dumpPrefix`);
+      assert.equal(h.summaries().at(-1), GUARD_LOST_LINE(result.dumpPrefix), `(${c.id}) last summary`);
+      assert.equal(h.calls('github.createTag').length, 0, `(${c.id}) 0 github.createTag`);
+      assertNothingLive(h, `R4${c.id}`);
+    }
+  });
+
+  test('EZD-241 R5 a release with no base tag uses no guard and passes no setting', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeE(mod, bs, R);
+    recordGuard(h);
+    const result = await h.run();
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    assert.equal(h.calls('releaseGuard.install').length + h.calls('releaseGuard.remove').length, 0, '0 guard calls');
+    const pushArgs = h.calls('supabase.push')[0].args[0];
+    assert.equal(Object.hasOwn(pushArgs, 'settings'), false, 'push has no own settings');
+  });
+
+  test('EZD-241 R6 a base tag with no guard dependency stops the release before the push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t);
+    delete h.deps.releaseGuard;
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_failed');
+    assert.ok(h.logs().includes('release_guard_failed: not_wired'), JSON.stringify(h.logs()));
+    assert.equal(h.calls('supabase.push').length, 0, '0 push');
+    assertNothingLive(h, 'R6');
+  });
+
+  test('EZD-241 R7 a guard that can be neither installed nor removed stops with its own summary', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { ReleaseGuardError } = await loadGuard();
+    const { h } = makeLater(mod, bs, t);
+    recordGuard(h, {
+      install: () => {
+        throw new ReleaseGuardError('setting_not_applied', { stderr: '' });
+      },
+      remove: () => {
+        throw childError('psql exited 1', 'E2');
+      },
+    });
+    const result = await h.run();
+    const logs = h.logs();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_remove_failed');
+    assert.equal(h.calls('supabase.push').length, 0, '0 push');
+    const failed = logs.indexOf('release_guard_failed: setting_not_applied');
+    const removeFailed = logs.indexOf('release_guard_remove_failed');
+    assert.ok(failed >= 0 && failed < removeFailed, `logs in order: ${JSON.stringify(logs)}`);
+    assert.equal(h.summaries().at(-1), GUARD_REMOVE_FAILED_LINE, 'last summary');
+    assert.ok(!h.summaries().some((l) => l.includes('nothing changed')), JSON.stringify(h.summaries()));
+    assertNothingLive(h, 'R7');
+  });
+
+  test('EZD-241 R8 a guard that did not count every applied migration stops the release before it goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const cases = [
+      // (a) outcome row 4: applied 0, but DRY_RUN_TEXT lists 2 pending. (b) outcome row 3: seen 2, applied 1.
+      { id: 'a', remove: async () => ({ wasIntact: true, seen: 0, applied: 0 }) },
+      { id: 'b', remove: async () => ({ wasIntact: true, seen: 2, applied: 1 }) },
+    ];
+    for (const c of cases) {
+      const { h } = makeLater(mod, bs, t);
+      recordGuard(h, { remove: c.remove });
+      const result = await h.run();
+      assert.equal(result.ok, false, `(${c.id}) ok`);
+      assert.equal(result.code, 'release_guard_lost', `(${c.id}) code`);
+      assert.ok(h.logs().includes('release_guard_lost: guard_inactive'), `(${c.id}) log: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.dumpPrefix, PHASE1_DUMP_PREFIX, `(${c.id}) dumpPrefix`);
+      assert.equal(h.summaries().at(-1), GUARD_LOST_LINE(result.dumpPrefix), `(${c.id}) last summary`);
+      assert.equal(h.calls('github.createTag').length, 0, `(${c.id}) 0 github.createTag`);
+      assertNothingLive(h, `R8${c.id}`);
+    }
+  });
+
+  test('EZD-241 R9 a lost guard outranks a failed push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t, {
+      push: () => {
+        throw childError('supabase db push exited 1', 'ERROR: x');
+      },
+    });
+    recordGuard(h, { remove: async () => ({ wasIntact: false, seen: 1, applied: 1 }) });
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_lost');
+    assert.ok(h.logs().includes('release_guard_lost: guard_lost'), JSON.stringify(h.logs()));
+    assert.ok(h.logs().includes('migrate_failed'), JSON.stringify(h.logs()));
+    assertNothingLive(h, 'R9');
+  });
+
+  test('EZD-241 R10 a release with no pending migration and an untouched guard goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t, { pushDryRun: () => 'Remote database is up to date.\n' });
+    recordGuard(h, { remove: async () => ({ wasIntact: true, seen: 0, applied: 0 }) });
+    const result = await h.run();
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    assert.ok(h.logs().includes('pending migrations: none'), JSON.stringify(h.logs()));
   });
 });

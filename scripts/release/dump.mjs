@@ -129,8 +129,10 @@ export function createSupabaseCli({ root = REPO_ROOT, run = runChild } = {}) {
     dump: async (kind, opts) => exec('dump', () => buildDumpInvocation(kind, opts)),
     pushDryRun: async ({ dbUrl, workdir }) =>
       exec('push', () => buildPushInvocation({ dbUrl, workdir, dryRun: true })),
-    push: async ({ dbUrl, workdir, lockTimeout, statementTimeout }) =>
-      exec('push', () => buildPushInvocation({ dbUrl, workdir, dryRun: false, lockTimeout, statementTimeout })),
+    push: async ({ dbUrl, workdir, lockTimeout, statementTimeout, settings }) =>
+      exec('push', () =>
+        buildPushInvocation({ dbUrl, workdir, dryRun: false, lockTimeout, statementTimeout, settings }),
+      ),
   };
 }
 
