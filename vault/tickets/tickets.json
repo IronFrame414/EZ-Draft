@@ -15699,6 +15699,29 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-247",
+   "phase": 1,
+   "title": "Fix: runbook and architecture match Q-0264 (remaining lines)",
+   "depends_raw": "EZD-243",
+   "spec_ref": "Q-0264",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-243"
+   ],
+   "build_position": 519,
+   "acs": [
+    "AC-EZD-247-1",
+    "AC-EZD-247-2",
+    "AC-EZD-247-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
