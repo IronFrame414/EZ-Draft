@@ -1,0 +1,14 @@
+diff --git a/.claude/hooks/guard-paths.mjs b/.claude/hooks/guard-paths.mjs
+index cdc7577d..2695581c 100644
+--- a/.claude/hooks/guard-paths.mjs
++++ b/.claude/hooks/guard-paths.mjs
+@@ -70,6 +70,9 @@ const rules = {
+     if (!fixMode && (rel === 'vault/PROCESS.md' || rel === 'vault/PROCESS-EZDRAFT.md')) return 'The process files change only with Josh\'s yes in chat; propose the change, do not edit.';
+     if (rel === 'vault/PROGRESS.md' || rel === 'vault/tickets/TRACE.md') return 'Generated file: run node vault/tools/next_ticket.mjs --report instead of editing it.';
+     const tooling = rel.startsWith('.claude/') || rel.startsWith('scripts/') || rel.startsWith('vault/tools/');
++    // Open-source reuse grant (vault/handoff/OPEN_SOURCE_REUSE.md rule 9, Josh 2026-10-28): the orchestrator writes the
++    // third-party notices table at the repo root. Josh removes this line when the unit lands.
++    if (rel === 'THIRD_PARTY_NOTICES.md') return;
+     if (!isVault && rel !== 'CLAUDE.md' && rel !== 'docs/architecture.md' && !(fixMode && tooling))
+       return 'The orchestrator does not write app code or tests. Dispatch test-author or builder.';
+   },
