@@ -1,11 +1,13 @@
-# Handoff · 2026-10-28 · questions 1
+# Handoff · 2026-10-28 · build EZD-245
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (questions 1).
-- Completed this session: EZD-247, EZD-248, EZD-250 re-planned for Josh's answers Q-0373 to Q-0379 and set ready; EZD-249 re-planned, its new Q-0382 escalated; EZD-249 grant patch written (vault/handoff/EZD-249-grant.patch, not applied); vault/questions/phase-01-for-josh.md rewritten.
-- In progress: none.
-- Blocked: EZD-249 on Q-0382 (grant scope for the FOR text files); EZD-172 on Q-0381.
-- Questions for Josh: Q-0381, Q-0382.
-- Decisions made: none new (Q-0373 to Q-0380 already recorded).
-- Open from before: orchestrator fix-mode work: phase-1 fix ticket for EZD-181 T3 timing race; builder git hook refusal vs plan row 0; EZD-172 plan deviation (c9296fd8 edited app/playwright.config.ts). plan-checker was not run on EZD-247 and EZD-249 re-plans.
+- Why the session ended: blocked (EZD-245 on Q-0383).
+- Completed this session: Q-0380 sentence built (builder round 4, commits 74cd84c9, 22003be1 in the worktree); gate PASS; fresh code-reviewer FAILED with 4 small items.
+- In progress: none. Worktree kept: .claude/worktrees/EZD-245 on t/EZD-245 (last commit 22003be1).
+- Blocked: EZD-245 on Q-0383 (finish the 4 items in this ticket, or merge and fix in a new ticket).
+- Questions for Josh: Q-0383 (plus Q-0381, Q-0382 from before).
+- Decisions made: none.
+- The 4 items: (1) findings.mjs `categories` must read the log first and refuse a bad one; (2) `list` with an unknown category must refuse (plan gap); (3) planner.md: move the "(the one agent besides retrievers...)" note to right after `plan-checker`; (4) plan-checker.md line 25 Report wording to the dispatch.md D24 wording (not in plan step 7).
+- Resume on Q-0383 (a): planner plan-gap (2, 4), test-author (categories case in F10; list unknown-category test), builder 1-4, gate, fresh code-reviewer, merge. After MERGE OK: plan step 11 (Areas line in vault/plans/TEMPLATE.md), DONE.md line, Block M rows in vault/cost/startup-context.md.
+- Open from before: fix ticket for EZD-181 T3 timing race; builder git hook refusal vs plan row 0; EZD-172 plan deviation.
 - Next unit: per `node vault/tools/next_ticket.mjs --next-unit`.
