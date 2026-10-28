@@ -7,7 +7,7 @@ export const TAIL_LINES = 8;
 // A passing TAP result `ok N` (nested ones indented) is never failing, even when its title holds FAIL or a cross mark (Q-0313).
 export function isFailing(line) {
   if (/^\s*ok \d+\b/.test(line)) return false;
-  if (/(^|\s)(FAIL|✗|✘|×|✖)\s/.test(line) || /^\s+\d+\)\s/.test(line)) return true;
+  if (/(^|\s)(FAIL|✗|×|✖)\s/.test(line) || /^\s+\d+\)\s/.test(line)) return true;
   return /(^|\s)not ok \d+\b/.test(line) && !/#\s*(todo|skip)\b/i.test(line);
 }
 // A line naming an error. Test result lines (`ok N`, `not ok N`) and `# Subtest:` headers are titles, never errors.

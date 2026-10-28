@@ -987,6 +987,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | A stored sample of every schema version loads | CI test | the ticket that adds the schema (03 rule 5) |
 | — | One Zod file per object type; Clipper only in a worker; error body shape; log redaction | review | — |
 | — | CI fails when any gate check fails | scripts/gate.mjs exit code; proved by scripts/ci/__tests__/ci.test.mjs | EZD-002 |
+| — | The gate's failure list names only unexpected test results; a Playwright expected failure (`test.fail()`) is not listed | scripts/ci/__tests__/gate-failures.test.mjs (EZD-192 G1-G3) | EZD-192 |
 | — | Every workflow sets `permissions:` and pins each `uses:` to a full commit SHA | `scripts/ci/__tests__/ci.test.mjs` (EZD-002 T2; EZD-147 T2-T4) | EZD-147 |
 | — | Vercel config pinned (region, Node major, framework) | scripts/hosting/__tests__/hosting.test.mjs | EZD-003 |
 | — | Subdomain serves the app over HTTPS (after each release and by hand, not gated) | node scripts/hosting/check-live.mjs | EZD-003 |
