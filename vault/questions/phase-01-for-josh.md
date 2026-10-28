@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-28, third run)
+# Phase 1 · for Josh (questions unit, 2026-10-28, fourth run)
 
-Agents answered Q-0384 and Q-0385 (EZD-251). New fix ticket EZD-252 added. EZD-249 stays `questions` until you answer Q-0382; EZD-245 stays blocked on Q-0383.
+Agents answered Q-0384 and Q-0385 (EZD-251). New fix ticket EZD-252 added. EZD-249 stays `questions` until you answer Q-0382; EZD-245 stays blocked on Q-0383. EZD-252 (plan lint OK, no open question) is now `ready`.
 
 ## 1. Decisions needed
 
