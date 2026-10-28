@@ -562,7 +562,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-246 | 1 | Fix: one review pass covers two or three related tickets | ready | medium | EZD-245 |  |  | Added 2026-10-27 by Josh's usage plan (priority 1: planned and built first). The builder may write the plan's tooling files in this worktree only (.claude/hooks/guard-paths.mjs usage-fix grant; removed at merge). |
 | EZD-247 | 1 | Fix: runbook and architecture match Q-0264 (remaining lines) | questions | low | EZD-243 |  |  | Added 2026-10-28 for Q-0371 (a), answered by Josh (rule 17; EZD-243 stays as planned). |
 | EZD-248 | 1 | Fix: a question row is checked before it is committed | questions | medium | EZD-000 |  |  | Added 2026-10-28 by Josh (rule 17): an agent slip must not stop the launcher. |
-| EZD-249 | 1 | Fix: a research report is checked before it is committed | todo |  | EZD-000 |  |  | Added 2026-10-28 by Josh (rule 17): an agent slip must not stop the launcher. |
+| EZD-249 | 1 | Fix: a research report is checked before it is committed | questions | medium | EZD-000 |  |  | Added 2026-10-28 by Josh (rule 17): an agent slip must not stop the launcher. |
 | EZD-250 | 1 | Fix: the launcher never waits on a stop an agent can fix | todo |  | EZD-244 |  |  | Added 2026-10-28 by Josh (priority 1): one fix for every stop an agent can fix. Josh asked to be notified the moment its guard patch is ready to authorize. |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
