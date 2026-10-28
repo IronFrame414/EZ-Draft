@@ -4,7 +4,7 @@ EZD-243, EZD-244 and EZD-246 are ready (Q-0363 to Q-0366 answered by you, plans 
 
 ## 1. Decisions needed
 
-**Q-0370 · EZD-243 follow-on, planner 2026-10-28.** After Q-0365 (a), more docs lines still contradict Q-0264: runbook Vercel step 3 ("No Supabase values yet"), Supabase step 10 ("Production = prod project"), the architecture `dev` row ("phase field checks use it until launch") and possibly the `Until launch` bullet. Pick: (a) a new phase 1 fix ticket for them (recommended: rule 17, EZD-243 stays as planned); (b) widen EZD-243 again.
+**Q-0371 · EZD-243 follow-on, planner 2026-10-28.** After Q-0365 (a), more docs lines still contradict Q-0264: runbook Vercel step 3 ("No Supabase values yet"), Supabase step 10 ("Production = prod project"), the architecture `dev` row ("phase field checks use it until launch") and possibly the `Until launch` bullet. Pick: (a) a new phase 1 fix ticket for them (recommended: rule 17, EZD-243 stays as planned); (b) widen EZD-243 again.
 
 **Edits only you can make for EZD-243:** phase-01 row and tickets.json need Scope item (4), a Done-when sentence, AC-EZD-243-4 and EZD-003 as a dependency. Also your hand edit of `vault/PROCESS-EZDRAFT.md` line 99 (Q-0364 (a)) for EZD-246.
 
