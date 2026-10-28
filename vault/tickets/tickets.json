@@ -16069,6 +16069,10 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Local database"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-172"
