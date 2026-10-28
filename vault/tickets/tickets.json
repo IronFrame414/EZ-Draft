@@ -15549,6 +15549,81 @@
     "AC-EZD-042-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-241",
+   "phase": 1,
+   "title": "Fix: the release stops a migration that drops or renames a released object in production",
+   "depends_raw": "EZD-153, EZD-023e",
+   "spec_ref": "Q-0358",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-153",
+    "EZD-023e"
+   ],
+   "build_position": 513,
+   "acs": [
+    "AC-EZD-241-1",
+    "AC-EZD-241-2",
+    "AC-EZD-241-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-242",
+   "phase": 1,
+   "title": "Fix: Company settings inputs look read-only while offline",
+   "depends_raw": "EZD-112",
+   "spec_ref": "S15a",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [
+    "mockups/S15aCompany.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-112"
+   ],
+   "build_position": 514,
+   "acs": [
+    "AC-EZD-242-1",
+    "AC-EZD-242-2",
+    "AC-EZD-242-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-243",
+   "phase": 1,
+   "title": "Fix: runbook and architecture match the live email key and the ezdraft-dev Site URL",
+   "depends_raw": "EZD-008b, EZD-023b",
+   "spec_ref": "Q-0264",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-008b",
+    "EZD-023b"
+   ],
+   "build_position": 515,
+   "acs": [
+    "AC-EZD-243-1",
+    "AC-EZD-243-2",
+    "AC-EZD-243-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
