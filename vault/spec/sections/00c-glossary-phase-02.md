@@ -15,3 +15,5 @@ Added by spec-check 2 (Q-0403). Definitions only, each from the source named; no
 | Scope of work | The written scope typed in the wizard; it prints in the title block. | `project.scope_of_work` | Q-0186; Q-0396 |
 | Input source | What a new project starts from: Polycam scan, PDF, DXF, supplier kitchen PDF, field measure or blank. | none yet (plan names it) | Q-0189; Q-0398 |
 | Working copy | The version label on a project card when nothing has been sent. | none | S01 Data shown |
+| Entry point | A way to start a project from the New project button: Standalone now, Start from a file when it ships. | none | S01 Controls; Q-0398; Q-0410 |
+| Status tab | One of the filters above the project cards (All and one per status), each with its count. | none | S01 Controls; Q-0402 |

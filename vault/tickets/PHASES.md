@@ -122,8 +122,8 @@ Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are
 - **Josh's test script (punch list at the gate):**
   1. Sign in. Expected: Projects shows the status tabs with counts, sort and search, and no EZ Binder link.
   2. Type part of a client name in search. Expected: the cards and the tab counts narrow to the matches.
-  3. New project → Standalone, fill name, address, type and scope of work, pick or add a client, Create. Expected: back on Projects with the new Draft card.
-  4. Open the bell after a test notification is sent. Expected: it is listed and the email arrives; clicking it marks it read.
+  3. New project, fill name, address, type and scope of work, pick or add a client, Create. Expected: back on Projects with the new Draft card.
+  4. Send yourself a notification from the development page on the preview, then open the bell. Expected: it is listed and the email arrives; clicking it marks it read.
   5. Avatar → My profile → Notifications, turn that kind's Email off, Save, send it again. Expected: it shows in the bell but no email arrives.
   6. My profile → Profile, change iPad drawing and language, Save, reload. Expected: both kept.
 

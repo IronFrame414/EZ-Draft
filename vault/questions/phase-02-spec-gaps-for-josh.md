@@ -61,3 +61,11 @@ Stage 0 (spec-check 2), 2026-10-28. Phase 2 is the re-cut phase (vault/tickets/P
 ## Answers (Josh, 2026-10-28, in chat)
 
 1 Q-0390 recommended; 2 Q-0391 (b) draw the boards first, then "approve" for boards 01c to 01f; 3 Q-0392 recommended; 4 Q-0393 recommended; 5 Q-0394 alternative, "cant be clicked yet. no reason to build something that will is planned to be changed"; 6 Q-0395 alternative (EZD-137 to phase 9); 7 Q-0396, 8 Q-0397, 9 Q-0398, 10 Q-0399 recommended; 11 Q-0400 "anyone who can create a project can create new clients"; 12 Q-0401 "drop the link too"; 13 Q-0402 recommended. Agent-settled list: Q-0403 (no objection). Recorded as decision rows; ACs written (acs_source stage-0).
+
+## Round 2 (re-audit after the answers): 11 gaps, 3 for Josh
+
+**1. New project button with one entry point.** Recommended: opens the wizard directly; the menu returns with a second entry point. Alternative: a one-item menu.
+**2. Wizard step 2 with nothing to choose.** Recommended: one step, Create on step 1; step 2 returns with templates (EZD-221). Alternative: keep two steps.
+**3. Change password for a user with no password.** Recommended: "Set password" with New and Confirm only. Alternative: hide it and point to Forgot password.
+
+Answer (2026-10-28): "accept recs". Recorded as Q-0410, Q-0411, Q-0412. Agent-settled gaps 4 to 11: Q-0413 (the event-sink gap was checked and is not a gap: the emitter exists). ACs updated.
