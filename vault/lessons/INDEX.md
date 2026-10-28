@@ -2,6 +2,8 @@
 
 One file per role. Format and rules: PROCESS.md section 13. Only the orchestrator writes here, at the end of a unit. `next_ticket.mjs --lessons <role> <areas>` prints the entries a dispatch carries.
 
+`vault/lessons/findings.jsonl` holds every review finding (`node vault/tools/findings.mjs categories` lists the categories). `node vault/tools/findings.mjs repeats` lists categories seen on two or more tickets that no planner lesson covers.
+
 | File | Role | Areas with entries |
 | --- | --- | --- |
 | orchestrator.md | dispatch, model choice, ledgers, merges | tooling, scripts, process (L-003, ratified); tooling, process (L-005, ratified) |

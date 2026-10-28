@@ -155,8 +155,16 @@ test('EZD-000e T6 AC-EZD-000e-3: no other agent has an Agent tool', () => {
 
 test('EZD-000e T7 AC-EZD-000e-4: dispatch.md holds the retriever brief format', () => {
   const lines = read('.claude/skills/build-ticket/dispatch.md').split('\n');
-  // Process v2.4 (Josh 2026-10-22) added the Gate failures and Advisor lines to the dispatch template; Q-0333 (c) (Josh 2026-10-25) folded the Advisor line into Findings to address, so the head was 21 lines; EZD-244 adds the Architecture line, so the head is 22 lines.
+  // Process v2.4 (Josh 2026-10-22) added the Gate failures and Advisor lines to the dispatch template; Q-0333 (c) (Josh 2026-10-25) folded the Advisor line into Findings to address, so the head was 21 lines; EZD-244 adds the Architecture line, so the head is 22 lines; EZD-245 adds the Plan-checker dispatch block before the retriever brief.
   const head = lines.slice(0, 22).join('\n') + '\n';
   assert.equal(crypto.createHash('sha256').update(head).digest('hex'), '5afca9d0a92301bffa634d67568f0655791a8547e27271a5490f593321142f7f', 'lines 1-22 changed');
-  assert.deepEqual(lines.slice(22), ['', B1, '', ...B2, '']);
+  const PC = [
+    '**Plan-checker dispatch** (EZD-245). Only the planner dispatches `plan-checker`, with:',
+    '',
+    '```',
+    '<the output of: node vault/tools/next_ticket.mjs --reads EZD-xxx plan-checker>',
+    'Report format: 15 lines max, no code. First line READY or GAPS: <n>. Then one numbered line per gap: <step, section or L-n> · <what is undecided or lacking> · <the options you see>.',
+    '```',
+  ];
+  assert.deepEqual(lines.slice(22), ['', ...PC, '', B1, '', ...B2, '']);
 });

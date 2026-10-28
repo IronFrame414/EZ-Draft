@@ -10,6 +10,7 @@
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
 //   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Architecture, Plan and Sections
 //                                                    lines (Sections from the table in .claude/skills/build-ticket/SKILL.md; Q-0218)
+//   node vault/tools/next_ticket.mjs --reads <ticket> plan-checker  -> Plan, Sections, Areas and the planner lessons for the plan's areas (EZD-245)
 //   node vault/tools/next_ticket.mjs --set-architecture <ticket>  -> copies the plan's Architecture line to tickets.json (EZD-244)
 //   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, orchestratorAdvice}
 //                                                    from the PROCESS.md section 4 table (v2.4)
@@ -24,6 +25,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
+import { findingProblems } from './findings.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -399,9 +401,36 @@ function roleSections() {
   }
   return out;
 }
+const PLAN_CHECKER_SECTIONS = 'header, 1, 3, 4, 6';
+// Lesson areas of every `## L-<n>` heading in vault/lessons/*.md other than INDEX.md (D21).
+function headingAreas(head) {
+  const m = head.match(/areas:\s*([^]*?)\s+seen:/);
+  return (m ? m[1] : '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+}
+function planCheckerLines(id) {
+  const rel = `vault/plans/${id}.md`;
+  const f = path.join(vault, 'plans', `${id}.md`);
+  if (!existsSync(f)) throw new Error(`${rel} does not exist`);
+  const header = readFileSync(f, 'utf8').split(/\r?\n/).filter((l, i, all) => !all.slice(0, i).some((x) => x.startsWith('## ')) && !l.startsWith('## '));
+  const line = header.find((l) => /^- \*\*Areas:\*\*/.test(l));
+  if (!line) throw new Error(`${rel} has no Areas line in its header (- **Areas:** <area>, <area>)`);
+  const areas = line.replace(/^- \*\*Areas:\*\*/, '').split(',').map((a) => a.trim().toLowerCase());
+  for (const a of areas) if (!/^[a-z][a-z0-9-]*$/.test(a)) throw new Error(`${rel} Areas line has an invalid area "${a}"`);
+  const out = [`Plan: ${rel}`, `Sections: ${PLAN_CHECKER_SECTIONS}`, `Areas: ${areas.join(', ')}`, 'Lessons:', lessons('planner', areas)];
+  const dir = path.join(vault, 'lessons');
+  const known = new Set();
+  for (const n of existsSync(dir) ? readdirSync(dir) : []) {
+    if (!n.endsWith('.md') || n === 'INDEX.md') continue;
+    for (const h of read(path.join(dir, n)).split('\n').filter((l) => /^## L-\d+/.test(l))) for (const a of headingAreas(h)) known.add(a);
+  }
+  const none = areas.filter((a) => !known.has(a));
+  if (none.length) out.push(`Areas with no lesson in any role file: ${none.join(', ')}`);
+  return out;
+}
 function readsLines(id, role) {
   const t = tickets.get(id);
   if (!t) throw new Error(`unknown ticket ${id}`);
+  if (roleKey(role) === 'plan-checker') return planCheckerLines(id);
   const roles = roleSections();
   const key = roleKey(role);
   if (key !== 'planner' && !roles.has(key)) throw new Error(`unknown role "${role}"; roles: planner, ${[...roles.values()].map((r) => r.name).join(', ')}`);
@@ -535,6 +564,7 @@ function check() {
   const ac = spawnSync(process.execPath, [path.join(vault, 'tools/gen_acs.mjs'), '--check'], { encoding: 'utf8' });
   if (ac.status !== 0) problems.push((ac.stdout || ac.stderr).trim().split('\n')[0]);
   problems.push(...lessonProblems());
+  problems.push(...findingProblems(vault));
   problems.push(...readingProblems());
   problems.push(...architectureProblems());
   return problems;

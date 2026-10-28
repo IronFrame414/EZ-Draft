@@ -21,6 +21,13 @@ Model and effort go on the dispatch call itself (`model`, `effort`), taken from 
 
 Reviewers get the plan, the diff (they run `git -C <worktree> diff develop...HEAD` themselves) and the gate summary, not the whole repository. phase-auditor (gate-phase unit) gets the phase diff range, the plan paths, `vault/tickets/TRACE.md` and the phase's spec files.
 
+**Plan-checker dispatch** (EZD-245). Only the planner dispatches `plan-checker`, with:
+
+```
+<the output of: node vault/tools/next_ticket.mjs --reads EZD-xxx plan-checker>
+Report format: 15 lines max, no code. First line READY or GAPS: <n>. Then one numbered line per gap: <step, section or L-n> · <what is undecided or lacking> · <the options you see>.
+```
+
 **Retriever brief** (PROCESS.md section 4): `QUESTION · FOR (agent and ticket) · SCOPE (paths or sites) · CAP (max lines) · REPORT yes|no · KNOWN (what the asker already has)`. Only the orchestrator, planner, code-reviewer, security-reviewer and phase-auditor dispatch `retriever-digest` (documents in this repository) or `retriever-web` (the outside world), with only these lines:
 
 ```
