@@ -1,12 +1,12 @@
-# Handoff · 2026-10-28 · build EZD-154
+# Handoff · 2026-10-28 · build EZD-172
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: EZD-154 blocked on Q-0407 (security-reviewer round 5 FAIL; advisor consulted; hook rounds keep finding new forms)
-- Completed this session: Re-run 4 hooks patch committed on t/EZD-154 (1aad6907, guard-bash sha 6df71675 = plan V1), gate PASS, code-reviewer PASS (Opus 5.5 medium), security-reviewer FAIL (Opus 5.5 high)
-- Security findings: (1) run-time `..` in exempt .claude folders: brace `.{.,.}`, wildcard `.?` / `.*` (variable form already in KNOWN-LIMITS line 19); (2) `ln -s ~/.claude .claude/skills/l` link passes. Both confirmed allowed by the hook
-- In progress: none; worktree .claude/worktrees/EZD-154 kept at 1aad6907
-- Blocked: EZD-154 on Q-0407
-- Questions for Josh: Q-0407 (a) close the class (deny `$`, backtick, `{`, dot-wildcard in earlier folder levels; deny `ln` to ~/.claude; one more interactive session; recommended, rule 18) or (b) list the forms in KNOWN-LIMITS line 19 and merge as is
-- Decisions made: none
-- Next unit: after Q-0407: (a) interactive session for plan patch, T8 samples, patch Josh applies, then gate and both reviewers; (b) KNOWN-LIMITS edit then merge (step 10). Code-reviewer PASS stands unless hooks change
-- Also still open: EZD-250 on Q-0404 (see its STATUS row); fix tickets owed (EZD-254)
+- Why the session ended: EZD-172 blocked on Q-0408 (round 7 was the last Josh allowed; security-reviewer FAIL)
+- Completed this session: planner amended plan (Lock files row, L22, r1-r4); L22 tests (2318010f); gate.mjs temp-file+link locks (f0360765); architecture lines (builder); empty-lock deadline fix (4f88fc59); lane 0 gate PASS; A1 lane 2 PASS, lane 1 failed only on EZD-181 T3 race (EZD-251)
+- Open findings: security-reviewer: a leftover `<lock>.<pid>.tmp` is rewritten through by a later gate with the same pid (breaks "visible lock never empty"; symlink at the tmp name is followed). Fix: unlink then create with `wx` in takeLock/takeSweepLock; needs a plan amendment first. code-reviewer's finding (deadline) is fixed but not re-reviewed
+- In progress: none; worktree .claude/worktrees/EZD-172 kept at 4f88fc59
+- Blocked: EZD-172 on Q-0408
+- Questions for Josh: Q-0408 (a) round 8, the last, only the tmp-file finding (recommended) / (b) merge, fix later / (c) drop
+- Owed: phase 1 fix ticket for planner QP-1 (two gates racing to take over a dead lock can both run); ticket not yet created
+- Next unit: after Q-0408 (a): planner amends Lock files row, test-author adds leftover-tmp test, orchestrator edits gate.mjs, lane 0 gate, A1, both reviewers
+- Also still open: EZD-154 on Q-0407; EZD-250 on Q-0404; fix tickets owed (EZD-254)
