@@ -18,7 +18,7 @@ Result: 0 port, 7 reference, 53 none.
 | EZD-133 | 3 | Access and money-field harness | none | — | — | title |
 | EZD-202 | 3 | Model document schema | none | — | — | title |
 | EZD-238 | 3 | Drawing list | none | — | — | title; maker.js toPDF is a primitive, not a drawing list |
-| EZD-201 | 4 | Length parse and format | reference (see note) | Driven take-off utils/geometry.ts parseDimensionInput; pascalorg schedules.ts formatScheduleLength | some | 04-app-shell §Measurement entry lists 4 formats and 1/16" storage; Driven returns decimal feet and also accepts "10-6"; pascal formatter takes metres and sits in a file that imports @pascal-app/core (the function itself is pure) |
+| EZD-201 | 4 | Length parse and format | reference | Driven take-off utils/geometry.ts parseDimensionInput; pascalorg schedules.ts formatScheduleLength | some | 04-app-shell §Measurement entry lists 4 formats and 1/16" storage; Driven returns decimal feet and also accepts "10-6"; pascal formatter takes metres and sits in a file that imports @pascal-app/core (the function itself is pure) |
 | EZD-203 | 4 | Walls core | reference | pascal wall-mitering.ts | little | 09e: moving a wall stretches connected walls; mitering only draws joins |
 | EZD-205 | 4 | Rooms and closure | reference | pascal room-graph.ts; openPlan3D roomDetection.ts | little | 09e closure gap and wall choice; candidates detect faces, no gap logic |
 | EZD-207 | 4 | Plan canvas | none | — | — | title |
@@ -71,4 +71,4 @@ Spec vs candidate conflicts:
 1. EZD-204, EZD-211: pascal clampDoorToWall moves hosted items onto the wall; spec 04 says off-wall items stay put and turn red "Not on a wall".
 2. EZD-201, EZD-209: Driven parseDimensionInput also accepts "10-6"; the spec lists only the four formats. Returns decimal feet; spec stores inches to 1/16".
 
-Note on EZD-201: the parser is the closest thing to a port in this group. Making it one means dropping its "10-6" branch (a removal, not a logic change) and multiplying by 12 then rounding to 1/16". Whether that counts as "fits perfectly" is Josh's call (see the summary report, open items).
+Note on EZD-201: the parser was the closest thing to a port in this group. Josh (2026-10-28): reference only; EZD-201 writes its own parser from 04 §Measurement entry and reads the take-off file for the format cases.

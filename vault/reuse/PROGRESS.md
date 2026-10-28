@@ -4,7 +4,7 @@ Handoff: vault/handoff/OPEN_SOURCE_REUSE.md. Branch r/open-source-reuse, worktre
 
 | Step | State | Notes |
 | --- | --- | --- |
-| 0 setup | in progress | worktree, handoff file, grant patch (vault/handoff/OPEN_SOURCE_REUSE-grant.patch, Josh applies), process-line question |
+| 0 setup | done | worktree, handoff file; grant patch dropped (Josh 2026-10-28: no notices file, no grant) |
 | 1 verify candidates | todo | retriever-web per repo group; reports in vault/research/pending/ |
 | 2 gap search | todo | |
 | 3 map tickets | todo | Explore agents per 3-4 phases; files vault/research/reuse/phases-NN-NN.md |
@@ -43,3 +43,5 @@ Step 3 (mapping) complete: five files in vault/research/reuse/, 371 tickets, 1 p
 Step 4 (report) complete: adopted as R-033 (summary) and R-034..R-042 (retriever reports); research.test passes.
 Steps 5-7 wait on Josh: EZD-201 parser as port (a) or reference (b). Under (b) no notices file, no grant, no staging.
 Step 8: proposals are in R-033 (no merges/splits/drops; dependency table; planner process line). Questions ledger entries not yet written (Q-IDs taken at commit time on develop).
+
+Decision (Josh 2026-10-28): parser is reference only; no notices file, no grant, no staging. Steps 5-7 closed as not needed. Unit closes: maps + R-033 merged to develop; Q entries for the process line and the dependency list added at merge.

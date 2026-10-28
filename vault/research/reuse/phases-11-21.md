@@ -2,7 +2,7 @@
 
 Source: open-source reuse unit, 2026-10-28 (vault/handoff/OPEN_SOURCE_REUSE.md; summary report R-033 (vault/research/R-033.md)). Verdicts by the copy criteria in that report. `port` = staged code in vault/reuse/code/<ticket>/; `reference` = read the named file while planning, copy nothing; `none` = build as planned. Pinned SHAs: Driven take-off 46079c8c; pascalorg/editor fec1d14b; mozilla/pdf.js 24a63a4d; microsoft/maker.js 53bb7f64; bosch-plr-demo 8fb074b2; CaveSurvey 43f6ef35; json-rules-engine e1f1fda8; pnnl 977e8c9c; nfe c2485a70.
 
-Result: 1 port (EZD-1416, shares the EZD-201 parser), 13 reference, 76 none.
+Result: 0 port, 14 reference, 76 none (EZD-1416 was the one port candidate; Josh 2026-10-28: reference only, it uses the EZD-201 parser).
 
 | Ticket | Phase | Title | Verdict | Repo and files | Coverage | Why |
 |---|---|---|---|---|---|---|
@@ -32,7 +32,7 @@ Result: 1 port (EZD-1416, shares the EZD-201 parser), 13 reference, 76 none.
 | EZD-1401 | 14 | Service worker cache | none | — | — | title |
 | EZD-1402 | 14 | Offline change queue | none | — | — | title |
 | EZD-1415 | 14 | Field measure: shapes and walls | reference | Driven calculatePolygonArea, calculatePolylineLength | little | S17b Layout and Controls: shapes and closure; helpers do not close walls |
-| EZD-1416 | 14 | Field measure: keypad and closure | port (same code as EZD-201) | Driven parseDimensionInput, via the EZD-201 length package | some | S17b Keypad row and 04 Measurement entry: same four formats; closure not covered |
+| EZD-1416 | 14 | Field measure: keypad and closure | reference | Driven parseDimensionInput (format cases); the parser itself comes from EZD-201 | some | S17b Keypad row and 04 Measurement entry: same four formats; closure not covered |
 | EZD-1417 | 14 | Field measure: offline save and send | none | — | — | title |
 | EZD-1418 | 14 | Field measure into Import review | none | — | — | title |
 | EZD-1419 | 14 | Field measure entry points and states | none | — | — | title |
