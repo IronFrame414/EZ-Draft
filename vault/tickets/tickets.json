@@ -15879,6 +15879,28 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-251",
+   "phase": 1,
+   "title": "Fix: the health timeout test (EZD-181 T3) passes when two full gates run at once",
+   "depends_raw": "EZD-181",
+   "spec_ref": "Q-0286",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-181"
+   ],
+   "build_position": 523,
+   "acs": [
+    "AC-EZD-251-1",
+    "AC-EZD-251-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
