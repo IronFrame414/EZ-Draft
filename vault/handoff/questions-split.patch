@@ -1,0 +1,299 @@
+diff --git a/.claude/agents/planner.md b/.claude/agents/planner.md
+index 580be4d9..064337da 100644
+--- a/.claude/agents/planner.md
++++ b/.claude/agents/planner.md
+@@ -15,7 +15,7 @@ Read, in this order and nothing more:
+ 1. `.claude/skills/plan-ticket/SKILL.md` (the unit), `vault/KNOWN-LIMITS.md`, and the lessons in your dispatch.
+ 2. The ticket's entry in `vault/tickets/tickets.json` (`depends_on`, `spec_files`, `mockups`, `acs`; the Spec ref text governs over `spec_files`), the ticket row in `vault/tickets/phases/phase-NN.md`, the phase's entry in `vault/tickets/PHASES.md`, and `vault/tickets/README.md`.
+ 3. The sections the ticket's Spec ref names, via `vault/spec/INDEX.md`. Always also: Data model (`03`), App shell (`04`), Non-functional requirements (`11`, Performance). Plus `vault/spec/non-goals.md`, `glossary.md` and the ticket's rows in `acceptance-criteria.md`.
+-4. The decision files for those areas (`vault/spec/decisions/INDEX.md`) and answered rows of `vault/questions/QUESTIONS.md`. These override the spec.
++4. The decision files for those areas (`vault/spec/decisions/INDEX.md`) and the answered rows of `vault/questions/QUESTIONS-answered.md` (and any in `QUESTIONS.md`). These override the spec. A Q-ID cited elsewhere may sit in `QUESTIONS-archive.md`; look it up in all three files.
+ 5. The Studio mockup for any screen the ticket touches (`vault/mockups/INDEX.md`). Never use Polished, Refined or Layout C boards.
+ 6. Existing code and `docs/architecture.md`, if present, for anything the ticket extends. The plans of the tickets this one depends on: their interface contracts only, printed with `node vault/tools/outline.mjs <plan> --section 3`; never read another plan whole.
+ 
+diff --git a/.claude/skills/questions/SKILL.md b/.claude/skills/questions/SKILL.md
+index 7bf527f2..afb8c7e4 100644
+--- a/.claude/skills/questions/SKILL.md
++++ b/.claude/skills/questions/SKILL.md
+@@ -13,9 +13,9 @@ Run Stage 2 of `vault/PROCESS.md` (section 7) for phase $ARGUMENTS. You are the
+    Record answers as `answered-agent` with the source. Everything else becomes `escalated`.
+ 3. Write `vault/questions/phase-NN-for-josh.md` (two-digit phase; overwrite if it exists, keeping answered items out) with four sections:
+    1. **Decisions needed** - each escalated question: ID, ticket, two sentences of context, the options, your recommended answer first with the reason.
+-   2. **Agent answers to confirm** - every `answered-agent` row for the phase not yet `confirmed-josh`: ID, ticket, answer, source, "confirm or override".
++   2. **Agent answers to confirm** - every `answered-agent` row for the phase not yet `confirmed-josh` (in `QUESTIONS.md`, `QUESTIONS-answered.md` and `QUESTIONS-archive.md`): ID, ticket, answer, source, "confirm or override".
+    3. **Proposed wording** - every plan's Proposed wording, grouped by ticket, one list.
+    4. **Rule candidates** - every lessons entry in `vault/lessons/*.md` with `status: candidate`: the L-number, the rule in one sentence, the ticket it came from, and a recommendation `ratify` or `reject` with the reason.
+ 4. If Josh is at the computer, ask him the same content in chat as plain-text numbered lists, recommendation first, and take his answers by number (PROCESS.md section 1; never multiple-choice prompts). Unattended (launcher run; Q-0129): do not wait for him; go on to step 5 with the escalated questions left `escalated`. The launcher sends him one notification per new escalation after the unit ends, and keeps building other ready work. Record each answer: `answered-josh` in QUESTIONS.md and a row in the decisions file for the spec area (`vault/spec/decisions/<area>.md`, Q-ID, date, answer); overrides of agent answers the same way; confirmed agent answers → `confirmed-josh`. Rule candidates: ratify → `status: ratified`, reject → `status: rejected`, set in every role file under `vault/lessons/` that carries that L-number and in its mention in `vault/lessons/INDEX.md`; one `answered-josh` row per answer in QUESTIONS.md with the next free Q-ID and Phase / ticket cell `<N> / L-nnn`. Unattended, candidates stay `candidate` and no row is written. Approved or edited wording → the decisions file for the area as `Wording (EZD-xxx): <text>` and the plan's Proposed wording updated to match.
+ 5. Dispatch `planner` for any plan an answer changes. Then run `node vault/tools/plan_lint.mjs vault/plans/<T>.md` (strict: no QP left) for each candidate; a plan that fails goes back to `planner` with the lint lines, once. Set to `ready` every ticket in the phase that is `planned` or `questions`, passes the lint, and has no unanswered question (an `answered-agent` answer counts as answered; Josh confirms it later through section 2 of the file); tickets with an `escalated` question stay `questions`.
+-6. `node vault/tools/next_ticket.mjs --check`; handoff (`vault/handoff/TEMPLATE.md`); commit `vault/` (`docs(vault): questions phase $ARGUMENTS`); end the session. Report: answered by agents, escalated to Josh, tickets ready.
++6. `node vault/tools/next_ticket.mjs --sort-questions` (answered rows leave `QUESTIONS.md` for `QUESTIONS-answered.md` or `QUESTIONS-archive.md`; Josh 2026-10-28), then `node vault/tools/next_ticket.mjs --check`; handoff (`vault/handoff/TEMPLATE.md`); commit `vault/` (`docs(vault): questions phase $ARGUMENTS`); end the session. Report: answered by agents, escalated to Josh, tickets ready.
+diff --git a/.claude/skills/wrap/SKILL.md b/.claude/skills/wrap/SKILL.md
+index d8e170ac..83ad4304 100644
+--- a/.claude/skills/wrap/SKILL.md
++++ b/.claude/skills/wrap/SKILL.md
+@@ -11,5 +11,5 @@ Run the wrap of `vault/PROCESS.md` (section 9, "Wrap unit") for phase $ARGUMENTS
+    Take the dollar figures from `node vault/tools/usage-by-agent.mjs --since <phase start ISO>` ($ by unit × role × model, $ per ticket, plan characters per role) and compare role shares and $ per ticket with `vault/cost/baseline-2026-10-19.md`.
+    **v2.4 comparison** (Josh, 2026-10-22): write or update `vault/cost/v2.4-comparison.md`, one screen of tables. Per ticket: model and effort per dispatch and advisor calls per dispatch (`usage-by-agent.mjs` columns), whether it was batched, first-round PASS or FAIL and the number of rounds (STATUS Notes), tokens per ticket, and weekly-limit % used per ticket from the `meter_source` rows of `vault/cost/log.jsonl` (say where the meter was missing). Sections: (1) baseline: the same metrics for the tickets built before v2.4 (say so if fewer than 5); (2) v2.4 per-ticket averages per complexity tier; (3) share of usage by agent and by model, and the advisor share; (4) watch items, each marked "worse than baseline" when it is: first-round PASS rate on low (Haiku) tickets, share of tickets reaching round 3 or `blocked`, test defects found at the final review that a standalone test review would have caught, problems Josh found at the phase gate and traced to a ticket. A watch item worse than baseline over 10 or more tickets goes to `vault/tickets/needs-from-josh.md` with the numbers; never revert anything.
+ 4. **Waiting on outside fixes** (Q-0274): for each `blocked` ticket whose note names an outside issue (EZD-141: `gh issue view 2852 -R supabase/auth --json state`), check it; when the fix is released, set the ticket back to `todo` with a note so it is planned and built; otherwise say "still open" in the handoff.
+-5. `node vault/tools/next_ticket.mjs --report`.
++5. `node vault/tools/next_ticket.mjs --sort-questions` (rows whose tickets are now done move to `vault/questions/QUESTIONS-archive.md`; Josh 2026-10-28), then `node vault/tools/next_ticket.mjs --report`.
+ 6. Handoff: next unit is the next phase's `spec-check` (needs Josh) or, if its spec is already signed off, `plan <first ticket>`. Commit `vault/` (`docs(vault): wrap phase $ARGUMENTS`); push `develop`; end the session. Report: cost total, Fable total, lessons kept, recommendations.
+diff --git a/CLAUDE.md b/CLAUDE.md
+index a6b374f5..0579a516 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -39,6 +39,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
+ | Past mistakes to avoid | vault/lessons/<your role>.md (only the entries your dispatch includes) |
+ | Phases and ticket status | vault/tickets/PHASES.md, vault/tickets/STATUS.md |
+ | Open questions | vault/questions/QUESTIONS.md |
++| Answered questions still needed (no longer needed: QUESTIONS-archive.md) | vault/questions/QUESTIONS-answered.md |
+ | Where the work stands | vault/handoff/CURRENT.md |
+ | Models, budget, units, gates | vault/PROCESS.md; project specifics in vault/PROCESS-EZDRAFT.md |
+ | Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |
+diff --git a/scripts/ledger/questions-flow.test.mjs b/scripts/ledger/questions-flow.test.mjs
+index 09132bcc..06d225ff 100644
+--- a/scripts/ledger/questions-flow.test.mjs
++++ b/scripts/ledger/questions-flow.test.mjs
+@@ -24,6 +24,11 @@ const fresh = async () => import(`${pathToFileURL(tool()).href}?t=${Date.now()}$
+ // The copied ledger grows with the real one, so the expected IDs are the next ones after its highest Q-ID.
+ let qa, qb, qc;
+ const qid = (n) => `Q-${String(n).padStart(4, '0')}`;
++// The ledger is one table in three files (Josh 2026-10-28); new rows land in QUESTIONS.md.
++const QFILES = ['questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md'];
++const qText = (rel) => (existsSync(file(rel)) ? readFileSync(file(rel), 'utf8') : '');
++const qRows = (rel) => qText(rel).split('\n').filter((l) => /^\| Q-\d{4} \|/.test(l));
++const run = (flag) => spawnSync(process.execPath, [tool(), flag], { encoding: 'utf8' });
+ 
+ before(() => {
+   const dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-ledger-')));
+@@ -58,7 +63,7 @@ before(() => {
+   }
+   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
+   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
+-  const top = Math.max(...[...readFileSync(file('questions/QUESTIONS.md'), 'utf8').matchAll(/^\| Q-(\d{4}) \|/gm)].map((m) => Number(m[1])));
++  const top = Math.max(...QFILES.flatMap((q) => [...qText(q).matchAll(/^\| Q-(\d{4}) \|/gm)]).map((m) => Number(m[1])));
+   [qa, qb, qc] = [qid(top + 1), qid(top + 2), qid(top + 3)];
+ });
+ 
+@@ -93,3 +98,37 @@ test('Q-0129: a ticket whose question is escalated waits while ready work builds
+   edit('questions/QUESTIONS.md', (s) => `${s.trimEnd()}\n| ${qc} | 0 / EZD-000i (plan QP-9) | planner | Product choice? | escalated |  |  |  |\n`);
+   assert.equal(nextUnit(), 'build EZD-000b');
+ });
++
++test('Josh 2026-10-28: question rows move between the three files whole and unchanged, and --check guards the split', async () => {
++  assert.equal(run('--sort-questions').status, 0);
++  const all = () => QFILES.flatMap(qRows).sort();
++  const before = all();
++  assert.equal(new Set(before.map((l) => l.split('|')[1])).size, before.length, 'each Q-ID once');
++  for (const rel of QFILES.slice(1)) assert.ok(qRows(rel).every((l) => !/\| (open|escalated) \|/.test(l)), `${rel} holds only answered rows`);
++  const row = (id) => qRows('questions/QUESTIONS.md').find((l) => l.startsWith(`| ${id} |`));
++  // An escalated row outside QUESTIONS.md fails the check; sorting brings it back unchanged.
++  const qaRow = row(qa);
++  edit('questions/QUESTIONS.md', (s) => s.replace(`${qaRow}\n`, ''));
++  edit('questions/QUESTIONS-answered.md', (s) => `${s.trimEnd()}\n${qaRow}\n`);
++  const bad = run('--check');
++  assert.equal(bad.status, 1);
++  assert.match(bad.stdout, new RegExp(`${qa} is escalated but sits in questions/QUESTIONS-answered.md`));
++  run('--sort-questions');
++  assert.equal(row(qa), qaRow);
++  assert.deepEqual(all(), before);
++  // A Q-ID in two files fails the check.
++  edit('questions/QUESTIONS-archive.md', (s) => `${s.trimEnd()}\n${qaRow}\n`);
++  assert.match(run('--check').stdout, new RegExp(`${qa} is in questions/QUESTIONS.md and questions/QUESTIONS-archive.md`));
++  edit('questions/QUESTIONS-archive.md', (s) => s.replace(`${qaRow}\n`, ''));
++  // Answered rows leave QUESTIONS.md unchanged except for the status the unit wrote; EZD-000i is not done, so they stay needed.
++  edit('questions/QUESTIONS.md', (s) => s.replace(new RegExp(`^(\\| (?:${qa}|${qb}|${qc}) \\|[^\\n]*?\\| )escalated( \\|)`, 'gm'), '$1answered-agent$2'));
++  const answered = [qa, qb, qc].map(row);
++  assert.match(run('--sort-questions').stdout, /^QUESTIONS SORTED: 3 moved;/);
++  assert.equal([qa, qb, qc].map(row).filter(Boolean).length, 0);
++  assert.deepEqual(answered.map((l) => qRows('questions/QUESTIONS-answered.md').includes(l)), [true, true, true]);
++  assert.match(run('--check').stdout, /^LEDGER OK/);
++  // IDs are never reused: the highest ID now sits in QUESTIONS-answered.md.
++  writeFileSync(file('plans/EZD-000i.md'), `# EZD-000i\n\n## 10. Open questions\n- QP-1: One more?\n`);
++  const [next] = (await fresh()).assignQuestionIds('EZD-000i');
++  assert.equal(next, qid(Number(qc.slice(2)) + 1));
++});
+diff --git a/vault/PROCESS.md b/vault/PROCESS.md
+index 670c584e..c2ba8c71 100644
+--- a/vault/PROCESS.md
++++ b/vault/PROCESS.md
+@@ -455,7 +455,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the
+ 
+ **`vault/tickets/STATUS.md`** — columns: Ticket, Phase, Title, Status, Complexity, Depends on, Commit, Tests, Notes. Statuses: `todo` → `planned` or `questions` → `ready` → `in-progress` → `review` → `done`, or `blocked`. Notes record the models used and why, plan deviations, and `needs-josh-confirm` wording. Only the orchestrator edits it.
+ 
+-**`vault/questions/QUESTIONS.md`** — columns: ID, Phase/ticket, Asked by, Question, Status, Answered by, Answer, Source. Statuses: `open`, `answered-agent`, `escalated`, `answered-josh`, `confirmed-josh`. IDs are never reused.
++**`vault/questions/QUESTIONS.md`** — columns: ID, Phase/ticket, Asked by, Question, Status, Answered by, Answer, Source. Statuses: `open`, `answered-agent`, `escalated`, `answered-josh`, `confirmed-josh`. IDs are never reused. One ledger in three files with the same columns (Josh 2026-10-28): `QUESTIONS.md` holds open and escalated rows and takes every new row; `QUESTIONS-answered.md` holds answered rows the build still needs; `QUESTIONS-archive.md` holds answered rows it no longer needs. `node vault/tools/next_ticket.mjs --sort-questions` moves rows whole and unchanged (the rule is in that file); the questions unit runs it at its end and the wrap unit before `--report`. `--check` fails when an open or escalated row sits outside `QUESTIONS.md` or a Q-ID is in two files. Look a Q-ID up in all three files.
+ 
+ **`vault/handoff/CURRENT.md`** — overwritten at the end of every session, 30 lines at most: phase and stage, why the session ended, what was completed, what's in progress, what's blocked, questions for Josh, decisions made, the next unit. The previous handoff moves to `vault/handoff/log/`.
+ 
+@@ -532,7 +532,7 @@ vault/spikes/             one note per risk, ending in a verdict
+ vault/tickets/            PHASES.md, BACKLOG.md, phase files, tickets.json, STATUS.md, TRACE.md, needs-from-josh.md
+ vault/tools/              next_ticket.mjs, research.mjs, outline.mjs
+ vault/plans/              TEMPLATE.md (header + ten sections from section 6), one plan per ticket, shots/
+-vault/questions/          QUESTIONS.md, phase-NN-for-josh.md, phase-NN-spec-gaps-for-josh.md
++vault/questions/          QUESTIONS.md, QUESTIONS-answered.md, QUESTIONS-archive.md, phase-NN-for-josh.md, phase-NN-spec-gaps-for-josh.md
+ vault/handoff/            CURRENT.md, TEMPLATE.md, log/
+ vault/mockups/            PNG + source per screen, INDEX.md
+ vault/cost/               usage.json, log.jsonl, phase-NN.md
+@@ -581,6 +581,7 @@ Process: vault/PROCESS.md (the orchestrator and Josh read it; other agents read
+ | Past mistakes to avoid | vault/lessons/<your role>.md (only the entries your dispatch includes) |
+ | Ticket status | vault/tickets/STATUS.md |
+ | Open questions | vault/questions/QUESTIONS.md |
++| Answered questions still needed (no longer needed: QUESTIONS-archive.md) | vault/questions/QUESTIONS-answered.md |
+ | Where the work stands | vault/handoff/CURRENT.md |
+ | Models, budget, units, gates | vault/PROCESS.md |
+ | Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |
+diff --git a/vault/tools/next_ticket.mjs b/vault/tools/next_ticket.mjs
+index 5134ed2a..9edd24c5 100644
+--- a/vault/tools/next_ticket.mjs
++++ b/vault/tools/next_ticket.mjs
+@@ -5,6 +5,7 @@
+ //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
+ //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
+ //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
++//   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
+ //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
+ //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
+ //   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
+@@ -109,8 +110,10 @@ function questionsWork(p) {
+ }
+ // Loop guard (Q-0129): the launcher records the ledger fingerprint before and after each questions unit in
+ // vault/handoff/.questions-last-run.json. A run that changed nothing is not repeated until the ledger changes.
++// Rows of all three questions files, sorted by Q-ID, so moving a row between files does not count as a change.
+ export function questionsFingerprint() {
+-  return createHash('sha256').update(read(path.join(vault, 'questions/QUESTIONS.md'))).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
++  const rowsText = Object.values(Q_FILES).flatMap((f) => read(path.join(vault, f)).split(/\r?\n/).filter((l) => Q_ROW.test(l))).sort().join('\n');
++  return createHash('sha256').update(rowsText).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+ }
+ function questionsGuarded(p) {
+   let last; try { last = JSON.parse(read(path.join(vault, 'handoff/.questions-last-run.json'))); } catch { return false; }
+@@ -118,6 +121,97 @@ function questionsGuarded(p) {
+ }
+ const questionsDue = (p) => questionsWork(p) && !questionsGuarded(p);
+ 
++// Questions ledger in three files (Josh 2026-10-28). QUESTIONS.md holds open and escalated rows (new rows land there);
++// QUESTIONS-answered.md the answered rows the build still needs; QUESTIONS-archive.md the answered rows it no longer needs.
++// A row moves only whole and unchanged. Archive rule: the Phase / ticket cell starts with a phase number, names at least one
++// ticket, names nothing but tickets and the words in Q_ARCHIVE_WORDS, every ticket it names is done, and no plan of an
++// unfinished ticket and no phase file of an unfinished phase cites the Q-ID. Lookups by Q-ID read all three files.
++const Q_FILES = { open: 'questions/QUESTIONS.md', answered: 'questions/QUESTIONS-answered.md', archive: 'questions/QUESTIONS-archive.md' };
++const Q_ROW = /^\|\s*Q-\d{4}\s*\|/;
++const Q_STATUSES = ['open', 'answered-agent', 'escalated', 'answered-josh', 'confirmed-josh'];
++const Q_ARCHIVE_WORDS = new Set(['also', 'plan', 'round', 'build', 'builds', 'review', 'code', 'security', 'reviewer', 'level', 'live', 'run',
++  'only', 'builder', 'raised', 'by', 'planner', 'does', 'not', 'block', 'found', 'in', 'and', 'with', 'from', 'applied', 're', 'for',
++  'validation', 'gap', 'stage', 'step', 'part', 'j', 'follow', 'up']);
++const Q_TITLES = { open: 'open and escalated', answered: 'answered, still needed for the build', archive: 'answered, no longer needed' };
++const questionCells = (line) => line.split(/(?<!\\)\|/).map((c) => c.trim());
++const questionStatus = (cells) => cells.slice(5).find((c) => Q_STATUSES.includes(c));
++function questionHeader(kind) {
++  return [`# Questions ledger: ${Q_TITLES[kind]}`, '',
++    'Three files, one ledger (Josh 2026-10-28): `QUESTIONS.md` holds open and escalated questions (new questions are added there); `QUESTIONS-answered.md` holds answered questions the build still needs; `QUESTIONS-archive.md` holds answered questions it no longer needs (every ticket named is done and no unfinished plan or phase file cites them). Rows move only whole and unchanged, by `node vault/tools/next_ticket.mjs --sort-questions` (rule in that file). Look a Q-ID up in all three files.', '',
++    'Chain of command: asking agent → orchestrator → specialist (calc-auditor / security-reviewer / code-reviewer) → Josh. No citation, no answer. Business and product decisions always go to Josh. Full rules: `vault/PROCESS.md`, Stage 2.', '',
++    'Statuses: `open`, `answered-agent`, `escalated` (waiting on Josh), `answered-josh`, `confirmed-josh` (an agent answer Josh confirmed). Agent answers not yet confirmed when Stage 3 starts stand as written.',
++    'IDs never change or get reused. Josh\'s answers are also appended to the decisions file for the spec area (`vault/spec/decisions/<area>.md`; index in `vault/spec/decisions/INDEX.md`). Until Oct 18, 2026 they went to `vault/spec/decisions.md`, now split into that folder.', '',
++    '| ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |',
++    '| --- | --- | --- | --- | --- | --- | --- | --- |'];
++}
++function questionFiles() {
++  const out = {};
++  for (const [kind, f] of Object.entries(Q_FILES)) {
++    const lines = read(path.join(vault, f)).split(/\r?\n/);
++    const table = lines.slice(lines.findIndex((l) => /^\| --- /.test(l)) + 1);
++    out[kind] = { rows: lines.filter((l) => Q_ROW.test(l)), other: table.filter((l) => !Q_ROW.test(l) && l.trim()) };
++  }
++  return out;
++}
++function questionTarget(line, cited) {
++  const cells = questionCells(line);
++  const st = questionStatus(cells);
++  if (st === 'open' || st === 'escalated' || !st) return 'open';
++  if (cited.has(cells[1])) return 'answered';
++  const m = cells[2].match(/^\d+ \/ (.*)$/);
++  if (!m) return 'answered';
++  const ids = rowTickets(cells[2]);
++  if (!ids.size) return 'answered';
++  const rest = m[1].replace(/EZD-\d{3,4}[a-z]?/g, ' ').replace(/\bQ-\d{4}\b|\bQP-\d+\b|\d{4}-\d\d-\d\d|\b(?:round|step|level) \d+\b/gi, ' ');
++  if (rest.split(/[\s,;()–→-]+/).filter(Boolean).some((w) => !Q_ARCHIVE_WORDS.has(w.toLowerCase()))) return 'answered';
++  // A split ticket (EZD-019 → EZD-019a, …) counts as done when all its parts are.
++  const parts = (id) => [...rows.keys()].filter((k) => k.length === id.length + 1 && k.startsWith(id) && /[a-z]$/.test(k));
++  const done = (id) => (rows.has(id) ? status(id) === 'done' : parts(id).length > 0 && parts(id).every((k) => status(k) === 'done'));
++  return [...ids].every(done) ? 'archive' : 'answered';
++}
++// Q-IDs cited by the plan of any unfinished ticket or the phase file of any unfinished phase.
++function citedByUnfinished() {
++  const open = [...rows].filter(([, r]) => r.status !== 'done');
++  let text = '';
++  for (const [id] of open) text += read(path.join(vault, 'plans', `${id}.md`));
++  for (const p of new Set(open.map(([, r]) => r.phase))) text += read(path.join(vault, 'tickets/phases', `phase-${pad2(p)}.md`));
++  return new Set(text.match(/Q-\d{4}/g) || []);
++}
++export function sortQuestions() {
++  const files = questionFiles();
++  const cited = citedByUnfinished();
++  const next = { open: [], answered: [], archive: [] };
++  const arriving = { open: [], answered: [], archive: [] };
++  let moved = 0;
++  for (const kind of Object.keys(Q_FILES)) for (const line of files[kind].rows) {
++    const to = questionTarget(line, cited);
++    if (to === kind) next[to].push(line); else { arriving[to].push(line); moved++; }
++  }
++  for (const kind of Object.keys(Q_FILES)) {
++    const p = path.join(vault, Q_FILES[kind]);
++    const text = [...questionHeader(kind), ...next[kind], ...arriving[kind], ''].join('\n');
++    if (read(p) !== text) writeFileSync(p, text);
++  }
++  return { moved, open: next.open.length + arriving.open.length, answered: next.answered.length + arriving.answered.length, archive: next.archive.length + arriving.archive.length };
++}
++function questionProblems() {
++  const problems = [];
++  const files = questionFiles();
++  const seen = new Map();
++  for (const [kind, f] of Object.entries(files)) {
++    for (const l of f.other) problems.push(`${Q_FILES[kind]}: line in the questions table that is not a Q-ID row: "${l.slice(0, 60)}"`);
++    for (const line of f.rows) {
++      const cells = questionCells(line);
++      const st = questionStatus(cells);
++      if (seen.has(cells[1])) problems.push(`${cells[1]} is in ${Q_FILES[seen.get(cells[1])]} and ${Q_FILES[kind]} (a Q-ID appears once)`);
++      seen.set(cells[1], kind);
++      if (!st) problems.push(`${cells[1]} in ${Q_FILES[kind]} has no known status`);
++      else if (kind !== 'open' && (st === 'open' || st === 'escalated')) problems.push(`${cells[1]} is ${st} but sits in ${Q_FILES[kind]}: run node vault/tools/next_ticket.mjs --sort-questions`);
++    }
++  }
++  return problems;
++}
++
+ // Q-0129 (Josh, 2026-10-19): the plan unit turns the plan's QP-n questions into `open` Q-IDs as it finishes, so the
+ // questions unit answers them at once (plan-ticket skill, ledger step). Only lines that open with QP-n are new questions.
+ const QP_LINE = /^(\s*(?:[-*]|\d+\.)?\s*\**\s*)(QP-\d+)\b(\**\s*[:.)]?\s*\**\s*)(.*)$/;
+@@ -127,6 +221,10 @@ export function assignQuestionIds(ticket) {
+   const qLines = readFileSync(qPath, 'utf8').split('\n');
+   let max = 0, last = -1;
+   qLines.forEach((l, i) => { const m = l.match(/^\|\s*Q-(\d{4})\s*\|/); if (m) { max = Math.max(max, Number(m[1])); last = i; } });
++  // IDs are never reused: the highest ID may sit in the answered or archive file (Josh 2026-10-28).
++  for (const f of [Q_FILES.answered, Q_FILES.archive])
++    for (const m of read(path.join(vault, f)).matchAll(/^\|\s*Q-(\d{4})\s*\|/gm)) max = Math.max(max, Number(m[1]));
++  if (last < 0) last = qLines.findIndex((l) => /^\| -/.test(l));
+   // Read fresh: the launcher imports this module once, and a split may have added the ticket since (Q-0168 to Q-0170).
+   const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
+   const phase = fresh?.phase ?? tickets.get(ticket)?.phase ?? '?';
+@@ -318,7 +416,7 @@ export function batchFor(id) {
+ const batchOf = (id) => (rows.get(id)?.notes.match(/batch:\s*(EZD-\d+[a-z]?(?:\+EZD-\d+[a-z]?)+)/) || [])[1]?.split('+') || null;
+ 
+ function check() {
+-  const problems = [];
++  const problems = questionProblems();
+   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
+   for (const [id, r] of rows) {
+     const t = tickets.get(id);
+@@ -593,6 +691,11 @@ if (isMain) {
+     process.exit(0);
+   }
+   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
++  if (args.includes('--sort-questions')) {
++    const r = sortQuestions();
++    console.log(`QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
++    process.exit(0);
++  }
+   if (args.includes('--reads')) {
+     const i = args.indexOf('--reads');
+     const [id, ...role] = args.slice(i + 1);
