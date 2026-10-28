@@ -1,17 +1,10 @@
-# Phase 1 · for Josh (questions unit, 2026-10-28, fourth run)
+# Phase 1 · for Josh (questions unit, 2026-10-28, fifth run)
 
-Agents answered Q-0384 and Q-0385 (EZD-251). New fix ticket EZD-252 added. EZD-249 stays `questions` until you answer Q-0382; EZD-245 stays blocked on Q-0383. EZD-252 (plan lint OK, no open question) is now `ready`.
+You answered Q-0382 (a) and Q-0383 (a); both are recorded. EZD-249 and EZD-245 are `ready`. Nothing new is waiting for a decision.
 
 ## 1. Decisions needed
 
-**Q-0382 · EZD-249.** Your Q-0376 (a) widens the research-report `ticket:` line to allow a Q-ID. The brief text that says what goes in `FOR` also sits in both retriever agent files, `.claude/skills/build-ticket/dispatch.md` (lines 24, 28) and `vault/PROCESS.md` line 121, and tests pin it. Your Q-0375 grant covers only four tooling files. Pick:
-- (a) add the two retriever files, `dispatch.md` and `PROCESS.md` to the EZD-249 builder grant and change the text in all four so the brief cannot drift. **Recommended**: rule 18, closes the class. The grant patch `vault/handoff/EZD-249-grant.patch` then gets those four paths added.
-- (b) add only the two retriever files; `dispatch.md` and `PROCESS.md` keep naming a ticket only.
-- (c) drop the text change; askers put a Q-ID in `FOR` without the files saying so.
-
-**Q-0383 · EZD-245.** Your one-sentence fix (Q-0380 (a)) is in and the gate is green, but a fresh re-review found four small items: `findings.mjs categories` does not refuse a bad log file; `findings.mjs list` accepts a misspelled category and prints "no findings"; a note in `.claude/agents/planner.md` sits in the wrong place; `.claude/agents/plan-checker.md` line 25 conflicts with the new lesson-gap wording. Pick:
-- (a) one more cycle in this ticket: planner settles items 2 and 4, test-author adds two tests, builder fixes all four, gate, re-review, merge. **Recommended**: rule 18, every command refuses bad input.
-- (b) merge as is and fix in a new phase 1 ticket. EZD-246 depends on this ticket and edits the same files, so it would build on the defects.
+None.
 
 (Q-0089 and Q-0237 stay escalated; not phase 1.)
 
