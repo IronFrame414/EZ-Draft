@@ -1,12 +1,15 @@
-# Handoff · 2026-10-28 · build EZD-245
+# Handoff · 2026-10-28 · build EZD-154
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: EZD-245 blocked after 3 review rounds (Q-0380)
-- Completed this session: tests (19 + F13 + T7 update), build, gate green on the final commit; code-reviewer rounds 1-3 closed every finding except one docs sentence in vault/PROCESS.md (`findings.jsonl` paragraph).
-- In progress: none. Worktree .claude/worktrees/EZD-245 kept (branch t/EZD-245, last commit e8135fee).
-- Blocked: EZD-245 on Q-0380 (needs Josh: allow one more builder round for that sentence; recommended). EZD-246 depends on EZD-245.
-- Questions for Josh: Q-0380 in vault/questions/QUESTIONS.md (plus the 7 escalated phase-1 questions in vault/questions/phase-01-for-josh.md).
-- Plan deviation: planner added D24-D26 (T7 in retrievers.test.mjs allows the plan-checker block in dispatch.md). EZD-246 must plan the same T7 update.
-- Owed: Block M after-token rows in vault/cost/startup-context.md (Q-0363 (a); no build log row existed during this unit); plan step 11 (Areas line in vault/plans/TEMPLATE.md) after MERGE OK.
-- Decisions made: none
-- Next unit: after Josh answers Q-0380, resume EZD-245 at step 6 round 4; otherwise EZD-246 is blocked by it, so run EZD-163 merge or node vault/tools/next_ticket.mjs --next-unit.
+- Why the session ended: EZD-154 blocked, waiting for Josh to apply a hook patch.
+- Completed this session: found that code-reviewer r4's `..` finding (built .claude/ path exempt only on the first folder) was still open on 246e6bce; plan patched (Re-run 4, Block B4); test-author added 7 builtPaths + 1 stillAllowed samples (d75e2f70 on t/EZD-154, 7 red as predicted); KNOWN-LIMITS entry for `cd ~/.claude; cat .c*` (Q-0366 (b)); new patch built.
+- In progress: none. Worktree .claude/worktrees/EZD-154 kept at d75e2f70.
+- Blocked: EZD-154 needs Josh: from the repo root, with no launcher unit running, `git -C .claude/worktrees/EZD-154 apply "$PWD/vault/handoff/EZD-154-hooks.patch"` (guard-bash only; sha 6df71675… after apply; check OK; 27 hook tests green in scratch).
+- Then: resume EZD-154 at step 7 (gate), step 8 with code-reviewer and security-reviewer (pipe the Samples B4 items into the hook). Delete the patch and vault/handoff/EZD-154-work at step 10.
+- Questions for Josh: none new (Q-0366 (b) answered). Q-0380 (EZD-245) and the 7 phase-1 escalations still open.
+- Plan deviation: none from dependencies. Plan count labels fixed (stillAllowed 21 to 22).
+- Models: test-author Haiku 5.5 high (--dispatch). No reviewers this session.
+- Decisions made: also made both guard-bash denies case-insensitive (plan B4, rule 18; APFS).
+- Next unit: after Josh applies the patch, build EZD-154 (resume step 7); EZD-245 waits on Q-0380.
+
+Ledger: LEDGER OK: 534 tickets

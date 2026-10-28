@@ -13526,9 +13526,7 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [
-    "Machine checks"
-   ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000c"
