@@ -5,6 +5,7 @@
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
+//   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
 //   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
@@ -109,14 +110,107 @@ function questionsWork(p) {
 }
 // Loop guard (Q-0129): the launcher records the ledger fingerprint before and after each questions unit in
 // vault/handoff/.questions-last-run.json. A run that changed nothing is not repeated until the ledger changes.
+// Rows of all three questions files, sorted by Q-ID, so moving a row between files does not count as a change.
 export function questionsFingerprint() {
-  return createHash('sha256').update(read(path.join(vault, 'questions/QUESTIONS.md'))).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+  const rowsText = Object.values(Q_FILES).flatMap((f) => read(path.join(vault, f)).split(/\r?\n/).filter((l) => Q_ROW.test(l))).sort().join('\n');
+  return createHash('sha256').update(rowsText).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
 }
 function questionsGuarded(p) {
   let last; try { last = JSON.parse(read(path.join(vault, 'handoff/.questions-last-run.json'))); } catch { return false; }
   return last?.phase === p && last.before === last.after && last.after === questionsFingerprint();
 }
 const questionsDue = (p) => questionsWork(p) && !questionsGuarded(p);
+
+// Questions ledger in three files (Josh 2026-10-28). QUESTIONS.md holds open and escalated rows (new rows land there);
+// QUESTIONS-answered.md the answered rows the build still needs; QUESTIONS-archive.md the answered rows it no longer needs.
+// A row moves only whole and unchanged. Archive rule: the Phase / ticket cell starts with a phase number, names at least one
+// ticket, names nothing but tickets and the words in Q_ARCHIVE_WORDS, every ticket it names is done, and no plan of an
+// unfinished ticket and no phase file of an unfinished phase cites the Q-ID. Lookups by Q-ID read all three files.
+const Q_FILES = { open: 'questions/QUESTIONS.md', answered: 'questions/QUESTIONS-answered.md', archive: 'questions/QUESTIONS-archive.md' };
+const Q_ROW = /^\|\s*Q-\d{4}\s*\|/;
+const Q_STATUSES = ['open', 'answered-agent', 'escalated', 'answered-josh', 'confirmed-josh'];
+const Q_ARCHIVE_WORDS = new Set(['also', 'plan', 'round', 'build', 'builds', 'review', 'code', 'security', 'reviewer', 'level', 'live', 'run',
+  'only', 'builder', 'raised', 'by', 'planner', 'does', 'not', 'block', 'found', 'in', 'and', 'with', 'from', 'applied', 're', 'for',
+  'validation', 'gap', 'stage', 'step', 'part', 'j', 'follow', 'up']);
+const Q_TITLES = { open: 'open and escalated', answered: 'answered, still needed for the build', archive: 'answered, no longer needed' };
+const questionCells = (line) => line.split(/(?<!\\)\|/).map((c) => c.trim());
+const questionStatus = (cells) => cells.slice(5).find((c) => Q_STATUSES.includes(c));
+function questionHeader(kind) {
+  return [`# Questions ledger: ${Q_TITLES[kind]}`, '',
+    'Three files, one ledger (Josh 2026-10-28): `QUESTIONS.md` holds open and escalated questions (new questions are added there); `QUESTIONS-answered.md` holds answered questions the build still needs; `QUESTIONS-archive.md` holds answered questions it no longer needs (every ticket named is done and no unfinished plan or phase file cites them). Rows move only whole and unchanged, by `node vault/tools/next_ticket.mjs --sort-questions` (rule in that file). Look a Q-ID up in all three files.', '',
+    'Chain of command: asking agent → orchestrator → specialist (calc-auditor / security-reviewer / code-reviewer) → Josh. No citation, no answer. Business and product decisions always go to Josh. Full rules: `vault/PROCESS.md`, Stage 2.', '',
+    'Statuses: `open`, `answered-agent`, `escalated` (waiting on Josh), `answered-josh`, `confirmed-josh` (an agent answer Josh confirmed). Agent answers not yet confirmed when Stage 3 starts stand as written.',
+    'IDs never change or get reused. Josh\'s answers are also appended to the decisions file for the spec area (`vault/spec/decisions/<area>.md`; index in `vault/spec/decisions/INDEX.md`). Until Oct 18, 2026 they went to `vault/spec/decisions.md`, now split into that folder.', '',
+    '| ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- |'];
+}
+function questionFiles() {
+  const out = {};
+  for (const [kind, f] of Object.entries(Q_FILES)) {
+    const lines = read(path.join(vault, f)).split(/\r?\n/);
+    const table = lines.slice(lines.findIndex((l) => /^\| --- /.test(l)) + 1);
+    out[kind] = { rows: lines.filter((l) => Q_ROW.test(l)), other: table.filter((l) => !Q_ROW.test(l) && l.trim()) };
+  }
+  return out;
+}
+function questionTarget(line, cited) {
+  const cells = questionCells(line);
+  const st = questionStatus(cells);
+  if (st === 'open' || st === 'escalated' || !st) return 'open';
+  if (cited.has(cells[1])) return 'answered';
+  const m = cells[2].match(/^\d+ \/ (.*)$/);
+  if (!m) return 'answered';
+  const ids = rowTickets(cells[2]);
+  if (!ids.size) return 'answered';
+  const rest = m[1].replace(/EZD-\d{3,4}[a-z]?/g, ' ').replace(/\bQ-\d{4}\b|\bQP-\d+\b|\d{4}-\d\d-\d\d|\b(?:round|step|level) \d+\b/gi, ' ');
+  if (rest.split(/[\s,;()–→-]+/).filter(Boolean).some((w) => !Q_ARCHIVE_WORDS.has(w.toLowerCase()))) return 'answered';
+  // A split ticket (EZD-019 → EZD-019a, …) counts as done when all its parts are.
+  const parts = (id) => [...rows.keys()].filter((k) => k.length === id.length + 1 && k.startsWith(id) && /[a-z]$/.test(k));
+  const done = (id) => (rows.has(id) ? status(id) === 'done' : parts(id).length > 0 && parts(id).every((k) => status(k) === 'done'));
+  return [...ids].every(done) ? 'archive' : 'answered';
+}
+// Q-IDs cited by the plan of any unfinished ticket or the phase file of any unfinished phase.
+function citedByUnfinished() {
+  const open = [...rows].filter(([, r]) => r.status !== 'done');
+  let text = '';
+  for (const [id] of open) text += read(path.join(vault, 'plans', `${id}.md`));
+  for (const p of new Set(open.map(([, r]) => r.phase))) text += read(path.join(vault, 'tickets/phases', `phase-${pad2(p)}.md`));
+  return new Set(text.match(/Q-\d{4}/g) || []);
+}
+export function sortQuestions() {
+  const files = questionFiles();
+  const cited = citedByUnfinished();
+  const next = { open: [], answered: [], archive: [] };
+  const arriving = { open: [], answered: [], archive: [] };
+  let moved = 0;
+  for (const kind of Object.keys(Q_FILES)) for (const line of files[kind].rows) {
+    const to = questionTarget(line, cited);
+    if (to === kind) next[to].push(line); else { arriving[to].push(line); moved++; }
+  }
+  for (const kind of Object.keys(Q_FILES)) {
+    const p = path.join(vault, Q_FILES[kind]);
+    const text = [...questionHeader(kind), ...next[kind], ...arriving[kind], ''].join('\n');
+    if (read(p) !== text) writeFileSync(p, text);
+  }
+  return { moved, open: next.open.length + arriving.open.length, answered: next.answered.length + arriving.answered.length, archive: next.archive.length + arriving.archive.length };
+}
+function questionProblems() {
+  const problems = [];
+  const files = questionFiles();
+  const seen = new Map();
+  for (const [kind, f] of Object.entries(files)) {
+    for (const l of f.other) problems.push(`${Q_FILES[kind]}: line in the questions table that is not a Q-ID row: "${l.slice(0, 60)}"`);
+    for (const line of f.rows) {
+      const cells = questionCells(line);
+      const st = questionStatus(cells);
+      if (seen.has(cells[1])) problems.push(`${cells[1]} is in ${Q_FILES[seen.get(cells[1])]} and ${Q_FILES[kind]} (a Q-ID appears once)`);
+      seen.set(cells[1], kind);
+      if (!st) problems.push(`${cells[1]} in ${Q_FILES[kind]} has no known status`);
+      else if (kind !== 'open' && (st === 'open' || st === 'escalated')) problems.push(`${cells[1]} is ${st} but sits in ${Q_FILES[kind]}: run node vault/tools/next_ticket.mjs --sort-questions`);
+    }
+  }
+  return problems;
+}
 
 // Q-0129 (Josh, 2026-10-19): the plan unit turns the plan's QP-n questions into `open` Q-IDs as it finishes, so the
 // questions unit answers them at once (plan-ticket skill, ledger step). Only lines that open with QP-n are new questions.
@@ -127,6 +221,10 @@ export function assignQuestionIds(ticket) {
   const qLines = readFileSync(qPath, 'utf8').split('\n');
   let max = 0, last = -1;
   qLines.forEach((l, i) => { const m = l.match(/^\|\s*Q-(\d{4})\s*\|/); if (m) { max = Math.max(max, Number(m[1])); last = i; } });
+  // IDs are never reused: the highest ID may sit in the answered or archive file (Josh 2026-10-28).
+  for (const f of [Q_FILES.answered, Q_FILES.archive])
+    for (const m of read(path.join(vault, f)).matchAll(/^\|\s*Q-(\d{4})\s*\|/gm)) max = Math.max(max, Number(m[1]));
+  if (last < 0) last = qLines.findIndex((l) => /^\| -/.test(l));
   // Read fresh: the launcher imports this module once, and a split may have added the ticket since (Q-0168 to Q-0170).
   const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
   const phase = fresh?.phase ?? tickets.get(ticket)?.phase ?? '?';
@@ -318,7 +416,7 @@ export function batchFor(id) {
 const batchOf = (id) => (rows.get(id)?.notes.match(/batch:\s*(EZD-\d+[a-z]?(?:\+EZD-\d+[a-z]?)+)/) || [])[1]?.split('+') || null;
 
 function check() {
-  const problems = [];
+  const problems = questionProblems();
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
   for (const [id, r] of rows) {
     const t = tickets.get(id);
@@ -593,6 +691,11 @@ if (isMain) {
     process.exit(0);
   }
   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
+  if (args.includes('--sort-questions')) {
+    const r = sortQuestions();
+    console.log(`QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
+    process.exit(0);
+  }
   if (args.includes('--reads')) {
     const i = args.indexOf('--reads');
     const [id, ...role] = args.slice(i + 1);

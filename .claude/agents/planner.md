@@ -15,7 +15,7 @@ Read, in this order and nothing more:
 1. `.claude/skills/plan-ticket/SKILL.md` (the unit), `vault/KNOWN-LIMITS.md`, and the lessons in your dispatch.
 2. The ticket's entry in `vault/tickets/tickets.json` (`depends_on`, `spec_files`, `mockups`, `acs`; the Spec ref text governs over `spec_files`), the ticket row in `vault/tickets/phases/phase-NN.md`, the phase's entry in `vault/tickets/PHASES.md`, and `vault/tickets/README.md`.
 3. The sections the ticket's Spec ref names, via `vault/spec/INDEX.md`. Always also: Data model (`03`), App shell (`04`), Non-functional requirements (`11`, Performance). Plus `vault/spec/non-goals.md`, `glossary.md` and the ticket's rows in `acceptance-criteria.md`.
-4. The decision files for those areas (`vault/spec/decisions/INDEX.md`) and answered rows of `vault/questions/QUESTIONS.md`. These override the spec.
+4. The decision files for those areas (`vault/spec/decisions/INDEX.md`) and the answered rows of `vault/questions/QUESTIONS-answered.md` (and any in `QUESTIONS.md`). These override the spec. A Q-ID cited elsewhere may sit in `QUESTIONS-archive.md`; look it up in all three files.
 5. The Studio mockup for any screen the ticket touches (`vault/mockups/INDEX.md`). Never use Polished, Refined or Layout C boards.
 6. Existing code and `docs/architecture.md`, if present, for anything the ticket extends. The plans of the tickets this one depends on: their interface contracts only, printed with `node vault/tools/outline.mjs <plan> --section 3`; never read another plan whole.
 

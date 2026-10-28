@@ -1,6 +1,6 @@
 # EZ Draft architecture conventions
 
-Written by EZD-000 (vault/plans/EZD-000.md). Every build session reads this file (R26 R11). It does not repeat CLAUDE.md; the build rules stay there (Q-0005). Sources are cited in short form: `02` = vault/spec/sections/02-product-overview.md, `03` = 03-data-model.md, `11` = 11-non-functional-requirements.md, `R24 #n` / `R26 Rn` = vault/spec/decisions/13a, 13b, `Q-nnnn` = vault/questions/QUESTIONS.md. The vault copy is `vault/architecture.md`, re-made by the orchestrator on every merge that changes this file (Q-0012 (b)).
+Written by EZD-000 (vault/plans/EZD-000.md). Every build session reads this file (R26 R11). It does not repeat CLAUDE.md; the build rules stay there (Q-0005). Sources are cited in short form: `02` = vault/spec/sections/02-product-overview.md, `03` = 03-data-model.md, `11` = 11-non-functional-requirements.md, `R24 #n` / `R26 Rn` = vault/spec/decisions/13a, 13b, `Q-nnnn` = vault/questions/QUESTIONS.md, QUESTIONS-answered.md or QUESTIONS-archive.md (one ledger in three files; look in all three). The vault copy is `vault/architecture.md`, re-made by the orchestrator on every merge that changes this file (Q-0012 (b)).
 
 ## Runtime
 

@@ -24,6 +24,11 @@ const fresh = async () => import(`${pathToFileURL(tool()).href}?t=${Date.now()}$
 // The copied ledger grows with the real one, so the expected IDs are the next ones after its highest Q-ID.
 let qa, qb, qc;
 const qid = (n) => `Q-${String(n).padStart(4, '0')}`;
+// The ledger is one table in three files (Josh 2026-10-28); new rows land in QUESTIONS.md.
+const QFILES = ['questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md'];
+const qText = (rel) => (existsSync(file(rel)) ? readFileSync(file(rel), 'utf8') : '');
+const qRows = (rel) => qText(rel).split('\n').filter((l) => /^\| Q-\d{4} \|/.test(l));
+const run = (flag) => spawnSync(process.execPath, [tool(), flag], { encoding: 'utf8' });
 
 before(() => {
   const dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-ledger-')));
@@ -58,7 +63,7 @@ before(() => {
   }
   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
-  const top = Math.max(...[...readFileSync(file('questions/QUESTIONS.md'), 'utf8').matchAll(/^\| Q-(\d{4}) \|/gm)].map((m) => Number(m[1])));
+  const top = Math.max(...QFILES.flatMap((q) => [...qText(q).matchAll(/^\| Q-(\d{4}) \|/gm)]).map((m) => Number(m[1])));
   [qa, qb, qc] = [qid(top + 1), qid(top + 2), qid(top + 3)];
 });
 
@@ -92,4 +97,38 @@ test('Q-0129: a ticket whose question is escalated waits while ready work builds
   edit('questions/QUESTIONS.md', (s) => s.replace(new RegExp(`(\\| (?:${qa}|${qb}) \\|[^\\n]*?\\| )open( \\|)`, 'g'), '$1escalated$2'));
   edit('questions/QUESTIONS.md', (s) => `${s.trimEnd()}\n| ${qc} | 0 / EZD-000i (plan QP-9) | planner | Product choice? | escalated |  |  |  |\n`);
   assert.equal(nextUnit(), 'build EZD-000b');
+});
+
+test('Josh 2026-10-28: question rows move between the three files whole and unchanged, and --check guards the split', async () => {
+  assert.equal(run('--sort-questions').status, 0);
+  const all = () => QFILES.flatMap(qRows).sort();
+  const before = all();
+  assert.equal(new Set(before.map((l) => l.split('|')[1])).size, before.length, 'each Q-ID once');
+  for (const rel of QFILES.slice(1)) assert.ok(qRows(rel).every((l) => !/\| (open|escalated) \|/.test(l)), `${rel} holds only answered rows`);
+  const row = (id) => qRows('questions/QUESTIONS.md').find((l) => l.startsWith(`| ${id} |`));
+  // An escalated row outside QUESTIONS.md fails the check; sorting brings it back unchanged.
+  const qaRow = row(qa);
+  edit('questions/QUESTIONS.md', (s) => s.replace(`${qaRow}\n`, ''));
+  edit('questions/QUESTIONS-answered.md', (s) => `${s.trimEnd()}\n${qaRow}\n`);
+  const bad = run('--check');
+  assert.equal(bad.status, 1);
+  assert.match(bad.stdout, new RegExp(`${qa} is escalated but sits in questions/QUESTIONS-answered.md`));
+  run('--sort-questions');
+  assert.equal(row(qa), qaRow);
+  assert.deepEqual(all(), before);
+  // A Q-ID in two files fails the check.
+  edit('questions/QUESTIONS-archive.md', (s) => `${s.trimEnd()}\n${qaRow}\n`);
+  assert.match(run('--check').stdout, new RegExp(`${qa} is in questions/QUESTIONS.md and questions/QUESTIONS-archive.md`));
+  edit('questions/QUESTIONS-archive.md', (s) => s.replace(`${qaRow}\n`, ''));
+  // Answered rows leave QUESTIONS.md unchanged except for the status the unit wrote; EZD-000i is not done, so they stay needed.
+  edit('questions/QUESTIONS.md', (s) => s.replace(new RegExp(`^(\\| (?:${qa}|${qb}|${qc}) \\|[^\\n]*?\\| )escalated( \\|)`, 'gm'), '$1answered-agent$2'));
+  const answered = [qa, qb, qc].map(row);
+  assert.match(run('--sort-questions').stdout, /^QUESTIONS SORTED: 3 moved;/);
+  assert.equal([qa, qb, qc].map(row).filter(Boolean).length, 0);
+  assert.deepEqual(answered.map((l) => qRows('questions/QUESTIONS-answered.md').includes(l)), [true, true, true]);
+  assert.match(run('--check').stdout, /^LEDGER OK/);
+  // IDs are never reused: the highest ID now sits in QUESTIONS-answered.md.
+  writeFileSync(file('plans/EZD-000i.md'), `# EZD-000i\n\n## 10. Open questions\n- QP-1: One more?\n`);
+  const [next] = (await fresh()).assignQuestionIds('EZD-000i');
+  assert.equal(next, qid(Number(qc.slice(2)) + 1));
 });

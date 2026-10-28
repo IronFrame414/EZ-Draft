@@ -39,6 +39,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 | Past mistakes to avoid | vault/lessons/<your role>.md (only the entries your dispatch includes) |
 | Phases and ticket status | vault/tickets/PHASES.md, vault/tickets/STATUS.md |
 | Open questions | vault/questions/QUESTIONS.md |
+| Answered questions still needed (no longer needed: QUESTIONS-archive.md) | vault/questions/QUESTIONS-answered.md |
 | Where the work stands | vault/handoff/CURRENT.md |
 | Models, budget, units, gates | vault/PROCESS.md; project specifics in vault/PROCESS-EZDRAFT.md |
 | Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |

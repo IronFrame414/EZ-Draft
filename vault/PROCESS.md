@@ -455,7 +455,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 
 **`vault/tickets/STATUS.md`** — columns: Ticket, Phase, Title, Status, Complexity, Depends on, Commit, Tests, Notes. Statuses: `todo` → `planned` or `questions` → `ready` → `in-progress` → `review` → `done`, or `blocked`. Notes record the models used and why, plan deviations, and `needs-josh-confirm` wording. Only the orchestrator edits it.
 
-**`vault/questions/QUESTIONS.md`** — columns: ID, Phase/ticket, Asked by, Question, Status, Answered by, Answer, Source. Statuses: `open`, `answered-agent`, `escalated`, `answered-josh`, `confirmed-josh`. IDs are never reused.
+**`vault/questions/QUESTIONS.md`** — columns: ID, Phase/ticket, Asked by, Question, Status, Answered by, Answer, Source. Statuses: `open`, `answered-agent`, `escalated`, `answered-josh`, `confirmed-josh`. IDs are never reused. One ledger in three files with the same columns (Josh 2026-10-28): `QUESTIONS.md` holds open and escalated rows and takes every new row; `QUESTIONS-answered.md` holds answered rows the build still needs; `QUESTIONS-archive.md` holds answered rows it no longer needs. `node vault/tools/next_ticket.mjs --sort-questions` moves rows whole and unchanged (the rule is in that file); the questions unit runs it at its end and the wrap unit before `--report`. `--check` fails when an open or escalated row sits outside `QUESTIONS.md` or a Q-ID is in two files. Look a Q-ID up in all three files.
 
 **`vault/handoff/CURRENT.md`** — overwritten at the end of every session, 30 lines at most: phase and stage, why the session ended, what was completed, what's in progress, what's blocked, questions for Josh, decisions made, the next unit. The previous handoff moves to `vault/handoff/log/`.
 
@@ -532,7 +532,7 @@ vault/spikes/             one note per risk, ending in a verdict
 vault/tickets/            PHASES.md, BACKLOG.md, phase files, tickets.json, STATUS.md, TRACE.md, needs-from-josh.md
 vault/tools/              next_ticket.mjs, research.mjs, outline.mjs
 vault/plans/              TEMPLATE.md (header + ten sections from section 6), one plan per ticket, shots/
-vault/questions/          QUESTIONS.md, phase-NN-for-josh.md, phase-NN-spec-gaps-for-josh.md
+vault/questions/          QUESTIONS.md, QUESTIONS-answered.md, QUESTIONS-archive.md, phase-NN-for-josh.md, phase-NN-spec-gaps-for-josh.md
 vault/handoff/            CURRENT.md, TEMPLATE.md, log/
 vault/mockups/            PNG + source per screen, INDEX.md
 vault/cost/               usage.json, log.jsonl, phase-NN.md
@@ -581,6 +581,7 @@ Process: vault/PROCESS.md (the orchestrator and Josh read it; other agents read 
 | Past mistakes to avoid | vault/lessons/<your role>.md (only the entries your dispatch includes) |
 | Ticket status | vault/tickets/STATUS.md |
 | Open questions | vault/questions/QUESTIONS.md |
+| Answered questions still needed (no longer needed: QUESTIONS-archive.md) | vault/questions/QUESTIONS-answered.md |
 | Where the work stands | vault/handoff/CURRENT.md |
 | Models, budget, units, gates | vault/PROCESS.md |
 | Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |
