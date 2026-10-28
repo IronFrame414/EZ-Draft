@@ -15929,6 +15929,30 @@
     "AC-EZD-252-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-253",
+   "phase": 1,
+   "title": "Fix: build-system tickets run on their own track beside the product phases",
+   "depends_raw": "EZD-244",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-244"
+   ],
+   "build_position": 525,
+   "acs": [
+    "AC-EZD-253-1",
+    "AC-EZD-253-2",
+    "AC-EZD-253-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"
