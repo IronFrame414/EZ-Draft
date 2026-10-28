@@ -9,5 +9,4 @@ IDs never change or get reused. Josh's answers are also appended to the decision
 
 | ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Q-0237 | 53 / EZD-1711 | orchestrator (Q-0236, 2026-10-20) | Charging other companies for EZ Draft: which payment provider (for example Stripe), which plans and prices, and is there a free trial? Needed before phase 53 is planned, not before. | escalated |  |  | Q-0236 |
 | Q-0371 | 1 / EZD-243 follow-on | planner (re-plan, 2026-10-28) | After Q-0365 (a), more lines of the docs still contradict Q-0264: runbook Vercel step 3 ("No Supabase values yet"), Supabase step 10 ("Production = prod project"), the architecture `dev` row ("phase field checks use it until launch") and possibly the `Until launch` bullet. Options: (a) a new phase 1 fix ticket for them (recommended, rule 17, keeps EZD-243 as planned); (b) widen EZD-243 again. | escalated | | | vault/plans/EZD-243.md report 2026-10-28 |
