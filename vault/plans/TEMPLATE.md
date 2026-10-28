@@ -2,6 +2,7 @@
 
 - **ACs:** AC-EZD-xxx-1, AC-EZD-xxx-2 … (from `vault/spec/acceptance-criteria.md`; one per testable sentence of the ticket's Done-when until the phase has Stage 0 ACs)
 - **Complexity:** low | medium | high (PROCESS.md section 4; one sentence of reasoning in section 8 below)
+- **Areas:** <lesson areas, comma-separated, lower-case; from vault/lessons/INDEX.md>
 - **User-visible result:** one line, plain words: what now works for Josh.
 - Phase: N · Planned by: planner · Date: YYYY-MM-DD · Status: planned | questions
 

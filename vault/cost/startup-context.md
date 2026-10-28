@@ -7,8 +7,11 @@ Start-up tokens = input + cache creation + cache read of the transcript's first 
 | builder (round 1) | EZD-163 | 2026-10-28T01:37:51Z | claude-sonnet-5-5 | 119,642 |
 | builder (round 2) | EZD-163 | 2026-10-28T01:37:51Z | claude-sonnet-5-5 | 119,540 |
 | code-reviewer | EZD-163 | 2026-10-28T01:37:51Z | claude-opus-5-5 | 114,446 |
+| builder (round 1, after) | EZD-245 | 2026-10-28T15:28:10Z | claude-sonnet-5-5 | 17,611 |
+| builder (round 2, after) | EZD-245 | 2026-10-28T17:28:37Z | claude-opus-5-5 | 17,649 |
+| code-reviewer (after) | EZD-245 | 2026-10-28T15:28:10Z | claude-opus-5-5 | 12,407 |
 
-After rows (builder, code-reviewer) are added by the orchestrator of the first build unit after the EZD-244 merge, as its first step (Q-0363 (a)).
+After rows (EZD-245, first build after the EZD-244 merge) added by its orchestrator 2026-10-28 with the Block M command.
 
 ## Characters loaded at start (architecture)
 
