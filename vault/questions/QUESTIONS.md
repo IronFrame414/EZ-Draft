@@ -9,4 +9,3 @@ IDs never change or get reused. Josh's answers are also appended to the decision
 
 | ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Q-0371 | 1 / EZD-243 follow-on | planner (re-plan, 2026-10-28) | After Q-0365 (a), more lines of the docs still contradict Q-0264: runbook Vercel step 3 ("No Supabase values yet"), Supabase step 10 ("Production = prod project"), the architecture `dev` row ("phase field checks use it until launch") and possibly the `Until launch` bullet. Options: (a) a new phase 1 fix ticket for them (recommended, rule 17, keeps EZD-243 as planned); (b) widen EZD-243 again. | escalated | | | vault/plans/EZD-243.md report 2026-10-28 |
