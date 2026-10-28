@@ -117,3 +117,54 @@ test('EZD-000c T10 settings register the hook and env; CLAUDE.md rule 10 has the
   assert.ok(r10[0].endsWith('A file over 20,000 characters is read by range after `node vault/tools/outline.mjs <path>`.'));
   assert.ok(md.length <= 60);
 });
+
+// EZD-198: notebooks over the limit (the Read tool ignores offset and limit on .ipynb files; vault/handoff/PILOT.md row 13).
+const NOTEBOOK_SENTENCE = "The Read tool ignores offset and limit on notebooks: read the ranges you need with sed -n 'a,bp'.";
+// An nbformat 4 notebook of exactly n characters in 14 lines (indent 1, as Jupyter writes it): one markdown cell of `a`.
+function notebook(name, n) {
+  const head = '{\n "cells": [\n  {\n   "cell_type": "markdown",\n   "metadata": {},\n   "source": [\n    "';
+  const tail = '"\n   ]\n  }\n ],\n "metadata": {},\n "nbformat": 4,\n "nbformat_minor": 5\n}\n';
+  const s = head + 'a'.repeat(n - head.length - tail.length) + tail;
+  const f = path.join(tmp, name);
+  fs.writeFileSync(f, s);
+  assert.equal(s.length, n);
+  assert.equal(JSON.parse(s).nbformat, 4);
+  return f;
+}
+const NB = notebook('NB.ipynb', 25000);
+const NBU = notebook('NBU.IPYNB', 25000);
+const SN = notebook('SN.ipynb', 5000);
+function assertDeniedNotebook(r, f, msg) {
+  assert.equal(r.status, 0, msg);
+  assert.deepEqual(reason(r).split('\n'), [
+    `Whole read blocked: ${f} has 25000 characters (limit 20000, GUARD_WHOLE_READ_CHARS).`,
+    '14 lines; nothing to outline.',
+    NOTEBOOK_SENTENCE,
+  ], msg);
+}
+
+test('EZD-198 T1 a Read of a notebook over GUARD_WHOLE_READ_CHARS is denied with or without offset, limit or pages', () => {
+  for (const ti of [{}, { offset: 1, limit: 5 }, { limit: 5 }, { offset: 100 }, { pages: '1' }, { offset: null, limit: null }])
+    assertDeniedNotebook(read({ file_path: NB, ...ti }), NB, JSON.stringify(ti));
+  assertDeniedNotebook(read({ file_path: NBU, offset: 1, limit: 5 }), NBU, 'upper-case extension');
+});
+
+test('EZD-198 T2 notebooks at or under the limit, exempt notebooks and other large files read by range still pass', () => {
+  for (const ti of [{}, { offset: 1, limit: 5 }]) assertPass(read({ file_path: SN, ...ti }), JSON.stringify(ti));
+  assertPass(read({ file_path: NB, offset: 1, limit: 5 }, { GUARD_WHOLE_READ_CHARS: '25000' }));
+  assertPass(read({ file_path: NB, offset: 1, limit: 5 }, { GUARD_WHOLE_READ_EXEMPT: NB }));
+  assertPass(read({ file_path: L, offset: 1, limit: 5 }));
+  assertPass(read({ file_path: path.join(tmp, 'missing.ipynb'), offset: 1, limit: 5 }));
+});
+
+test('EZD-198 T3 Bash on a large notebook: unranged reads are denied with the notebook sentence, ranged reads pass', () => {
+  for (const c of [`cat ${NB}`, `head ${NB}`, `sed -n p ${NB}`]) assertDeniedNotebook(bash(c), NB, c);
+  for (const c of [`sed -n '1,3p' ${NB}`, `head -n 3 ${NB}`, `grep -c cells ${NB}`, `wc -c ${NB}`]) assertPass(bash(c), c);
+});
+
+test('EZD-198 T4 the hook header names how a notebook over the limit is handled', () => {
+  const top = fs.readFileSync(hook, 'utf8').split('\n').slice(0, 5).join('\n');
+  assert.match(top, /\.ipynb/);
+  assert.match(top, /offset, limit or pages/);
+  assert.match(top, /EZD-198/);
+});

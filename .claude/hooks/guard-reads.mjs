@@ -1,5 +1,7 @@
 // PreToolUse on Read and Bash: a text file over GUARD_WHOLE_READ_CHARS is not loaded whole; the caller gets its outline
 // and reads by range (vault/handoff/PA3-MECHANISMS.md Item 3; vault/PROCESS.md section 10). Fails open on any error.
+// A notebook (.ipynb) over the limit is denied even with offset, limit or pages, because the Read tool ignores them on
+// notebooks and returns every cell; its denial ends with NOTEBOOK_SENTENCE instead (EZD-198; vault/handoff/PILOT.md row 13).
 import { readFileSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import path from 'node:path';
 import { readInput, deny, norm, projectDir, repoRelative } from './lib.mjs';
@@ -7,6 +9,8 @@ import { outline } from '../../vault/tools/outline.mjs';
 
 const BINARY_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.pdf'];
 const SENTENCE = 'Read the ranges you need with offset and limit.';
+const NOTEBOOK_SENTENCE = "The Read tool ignores offset and limit on notebooks: read the ranges you need with sed -n 'a,bp'.";
+const isNotebook = (p) => path.extname(p).toLowerCase() === '.ipynb';
 
 function threshold() {
   const v = process.env.GUARD_WHOLE_READ_CHARS;
@@ -40,7 +44,7 @@ function largeFile(given, cwd, T) {
 
 function reason(given, big, T) {
   return [`Whole read blocked: ${given} has ${big.chars} characters (limit ${T}, GUARD_WHOLE_READ_CHARS).`,
-    ...outline(big.text, big.abs), SENTENCE].join('\n');
+    ...outline(big.text, big.abs), isNotebook(big.abs) ? NOTEBOOK_SENTENCE : SENTENCE].join('\n');
 }
 
 function stripHeredocs(cmd) {
@@ -154,7 +158,7 @@ try {
     const ti = input.tool_input || {};
     if (tool === 'Read') {
       const none = (v) => v === undefined || v === null;
-      if (typeof ti.file_path === 'string' && none(ti.offset) && none(ti.limit) && none(ti.pages)) {
+      if (typeof ti.file_path === 'string' && (isNotebook(ti.file_path) || (none(ti.offset) && none(ti.limit) && none(ti.pages)))) {
         const big = largeFile(ti.file_path, cwd, T);
         if (big) deny(reason(ti.file_path, big, T));
       }
