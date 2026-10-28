@@ -303,6 +303,8 @@ Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any depe
 
 Settings from environment names (Q-0283 (a); EZD-177): pnpm 12 also reads its settings from `PNPM_CONFIG_*` and `pnpm_config_*` environment names (pnpm 12.14.0 CHANGELOG, 12.8.2 and 12.3.0 entries), so `PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true` would run new build scripts past `allowBuilds`. No workflow file and no workspace `package.json` script names `pnpm_config_` in any letter case: `ci.test.mjs` rule (l) and `tooling.test.mjs` EZD-177 T2 refuse it. A name built at run time is checked by review.
 
+Build flags (Q-0316 (a); EZD-182): pnpm 12 command-line flags also turn build scripts on past `allowBuilds`: `--dangerously-allow-all-builds`, `--config.<setting>` (the dot form, any setting) and `--allow-build <name>` (pnpm 12.14.0 `pnpm install --help`). No workflow line, workspace `package.json` script or `app/vercel.json` string value passes one, in any letter case: `ci.test.mjs` rule (m), `tooling.test.mjs` EZD-182 T2 and `hosting.test.mjs` EZD-182 T3 refuse them. The bare `--config <file>` of Vitest and Playwright stays allowed; a flag built at run time is checked by review.
+
 ## Folder layout
 
 Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/README.md.

@@ -169,6 +169,29 @@ function workspacePackageFiles() {
   return [found[0], ...rest];
 }
 
+// EZD-182 (vault/plans/EZD-182.md sections 1, 3): pnpm flags that turn dependency build scripts on past allowBuilds (Q-0316 (a)).
+const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\.|allow-build)/i;
+
+// R2 (vault/plans/EZD-182.md section 3): problems of one package.json text, in this order.
+function buildFlagScriptProblems(text) {
+  let pkg;
+  try {
+    pkg = JSON.parse(text);
+  } catch {
+    return ['unreadable'];
+  }
+  if (pkg === null || typeof pkg !== 'object' || Array.isArray(pkg)) return ['unreadable'];
+  if (pkg.scripts === undefined) return [];
+  const scripts = pkg.scripts;
+  if (scripts === null || typeof scripts !== 'object' || Array.isArray(scripts)) return ['scripts not an object'];
+  const problems = [];
+  for (const [name, cmd] of Object.entries(scripts)) {
+    if (typeof cmd !== 'string') problems.push(`script ${name} not a string`);
+    else if (BUILD_FLAG_RE.test(cmd)) problems.push(`script ${name}`);
+  }
+  return problems;
+}
+
 describe('EZD-001 repo tooling', () => {
   // ---------- T4 ----------
   test('EZD-001 T4: geometry has no DOM or Node types', () => {
@@ -737,5 +760,81 @@ describe('EZD-177 pnpm_config names', () => {
     const d1 = lines.indexOf(D1);
     assert.ok(dep >= 0 && folder > dep, 'the Dependency build scripts paragraph comes before ## Folder layout');
     assert.ok(d1 > dep && d1 < folder, 'D1 comes after the Dependency build scripts paragraph and before ## Folder layout');
+  });
+});
+
+// ---------- EZD-182 pnpm build flags ----------
+// Plan: vault/plans/EZD-182.md sections 3 and 4. Expected values are the plan's texts.
+describe('EZD-182 pnpm build flags', () => {
+  const J = (o) => JSON.stringify(o);
+
+  test('EZD-182 T2 package scripts passing a pnpm build flag are refused and the real package files pass (AC-EZD-182-1, AC-EZD-182-2)', async (t) => {
+    await t.test('T2 (a) a postinstall script with --allow-build is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { postinstall: 'pnpm rebuild --allow-build=esbuild' } })), ['script postinstall']);
+    });
+
+    await t.test('T2 (b) --dangerously-allow-all-builds in a script is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { setup: 'pnpm install --dangerously-allow-all-builds' } })), ['script setup']);
+    });
+
+    await t.test('T2 (c) mixed-case --CONFIG. form is refused, any script name reported (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { i: 'pnpm install --CONFIG.dangerously-allow-all-builds=true' } })), ['script i']);
+    });
+
+    await t.test('T2 (d) letter case and reported script only (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { a: 'pnpm i --Allow-Build esbuild', b: 'echo ok' } })), ['script a']);
+    });
+
+    await t.test('T2 (e) text that is not JSON is unreadable (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems('{'), ['unreadable']);
+    });
+
+    await t.test('T2 (f) JSON that is an array is unreadable (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems('[]'), ['unreadable']);
+    });
+
+    await t.test('T2 (g) scripts as an array is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: [] })), ['scripts not an object']);
+    });
+
+    await t.test('T2 (h) a script that is not a string is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { a: 1 } })), ['script a not a string']);
+    });
+
+    await t.test('T2 (i) control: no scripts key gives no problem (AC-EZD-182-2)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({})), []);
+    });
+
+    await t.test('T2 (j) control: a script with bare --config <file> passes (AC-EZD-182-2)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({
+        scripts: {
+          test: 'vitest run --config vitest.config.ts',
+          e2e: 'playwright test --config=playwright.config.ts',
+        },
+      })), []);
+    });
+
+    await t.test('T2 (k) the real package files pass (AC-EZD-182-2)', () => {
+      const files = workspacePackageFiles();
+      assert.equal(files[0], 'package.json');
+      assert.ok(files.includes('app/package.json'), 'app/package.json is listed');
+      for (const f of files) {
+        assert.deepEqual(buildFlagScriptProblems(readFileSync(path.join(root, f), 'utf8')), [], f);
+      }
+    });
+  });
+
+  test('EZD-182 T4 docs record the build flag rule and the three checks share one pattern', () => {
+    const D1 = 'Build flags (Q-0316 (a); EZD-182): pnpm 12 command-line flags also turn build scripts on past `allowBuilds`: `--dangerously-allow-all-builds`, `--config.<setting>` (the dot form, any setting) and `--allow-build <name>` (pnpm 12.14.0 `pnpm install --help`). No workflow line, workspace `package.json` script or `app/vercel.json` string value passes one, in any letter case: `ci.test.mjs` rule (m), `tooling.test.mjs` EZD-182 T2 and `hosting.test.mjs` EZD-182 T3 refuse them. The bare `--config <file>` of Vitest and Playwright stays allowed; a flag built at run time is checked by review.';
+    const F = 'const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\\.|allow-build)/i;';
+    const docLines = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8').split(/\r?\n/);
+    assert.ok(docLines.includes(D1), 'docs/architecture.md holds the D1 paragraph line in ## Adding a dependency');
+    for (const f of [
+      path.join(root, 'scripts', 'ci', '__tests__', 'ci.test.mjs'),
+      path.join(root, 'scripts', 'tooling', '__tests__', 'tooling.test.mjs'),
+      path.join(root, 'scripts', 'hosting', '__tests__', 'hosting.test.mjs'),
+    ]) {
+      assert.ok(readFileSync(f, 'utf8').split(/\r?\n/).includes(F), `${path.relative(root, f)} holds line F`);
+    }
   });
 });

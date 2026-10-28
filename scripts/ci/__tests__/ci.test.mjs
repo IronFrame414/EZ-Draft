@@ -13,7 +13,9 @@ import yaml from 'js-yaml';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const workflowsDir = path.join(repo, '.github', 'workflows');
 
-const readLines = (file) => readFileSync(file, 'utf8').split(/\r?\n/);
+// YAML 1.2 line breaks are CR LF, CR or LF; every scanner of workflow lines splits with this (EZD-182).
+const LINE_BREAK = /\r\n|\r|\n/;
+const readLines = (file) => readFileSync(file, 'utf8').split(LINE_BREAK);
 const trimmed = (file) => readLines(file).map((l) => l.trim());
 const indentOf = (l) => l.length - l.trimStart().length;
 const isBlankOrComment = (l) => l.trim() === '' || l.trim().startsWith('#');
@@ -283,6 +285,8 @@ const sortedCopy = (a) => [...a].sort();
 
 // EZD-177 rule (l): pnpm reads settings from `pnpm_config_` environment names in any letter case (vault/plans/EZD-177.md section 3).
 const PNPM_CONFIG_RE = /pnpm_config_/i;
+// EZD-182 (vault/plans/EZD-182.md section 3): pnpm flags that turn dependency build scripts on past allowBuilds (Q-0316 (a)).
+const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\.|allow-build)/i;
 
 // EZD-147 rule (j): a `uses:` value must be owner/repo[/path]@<40 lower-case hex> (vault/plans/EZD-147.md section 3).
 const PIN_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.\/-]+)?@[0-9a-f]{40}$/;
@@ -351,7 +355,8 @@ function permissionProblems(lines) {
 // The one checker T2 runs on every real workflow file and T2b runs on in-memory samples.
 // Returns [{ rule, msg }]; rule is the letter of the block that found it.
 function checkWorkflow(fileName, text) {
-  const lines = text.split(/\r?\n/);
+  // YAML 1.2 line breaks are CR LF, CR or LF; a lone CR starts a new line for js-yaml too (EZD-182).
+  const lines = text.split(LINE_BREAK);
   const problems = [];
   const add = (rule, msg) => problems.push({ rule, msg });
 
@@ -423,6 +428,11 @@ function checkWorkflow(fileName, text) {
     for (const u of unlistedUses(lines)) add('n', u);
     for (const c of cross) add('n', c);
   }
+  // (m) pnpm flags that turn on build scripts (EZD-182; Q-0316 (a))
+  lines.forEach((l, i) => {
+    if (l.trim().startsWith('#')) return;
+    if (BUILD_FLAG_RE.test(l)) add('m', `pnpm build flag at line ${i + 1}`);
+  });
   return problems;
 }
 
@@ -708,7 +718,7 @@ test('EZD-188 T2 the four production workflows pass and use only the listed acti
   for (const f of PROD_FILES) {
     const text = readFileSync(path.join(workflowsDir, f), 'utf8');
     assert.deepEqual(show(checkWorkflow(f, text)), [], `${f}: no problem`);
-    const scan = scanWorkflowLines(text.split(/\r?\n/));
+    const scan = scanWorkflowLines(text.split(LINE_BREAK));
     assert.deepEqual(
       scan.filter((e) => e.uses.length).map((e) => [e.n, e.uses.map((v) => v.split('@')[0])]),
       expected[f],
@@ -722,7 +732,7 @@ test('EZD-188 T2 the four production workflows pass and use only the listed acti
   };
   for (const [f, count] of Object.entries(parsedCount)) {
     const text = readFileSync(path.join(workflowsDir, f), 'utf8');
-    assert.deepEqual(usesCrossCheck(text, text.split(/\r?\n/)), [], `${f}: scanner and parser agree`);
+    assert.deepEqual(usesCrossCheck(text, text.split(LINE_BREAK)), [], `${f}: scanner and parser agree`);
     assert.equal(parsedUses(yaml.load(text)).length, count, `${f}: parsed uses count`);
   }
 });
@@ -1218,5 +1228,81 @@ test('EZD-177 done when: T1 workflows naming pnpm_config_ are refused and the re
       const text = readFileSync(path.join(workflowsDir, f), 'utf8');
       assert.deepEqual(lOf(checkWorkflow(f, text)), [], f);
     }
+  });
+});
+
+// ---------- EZD-182 T1 ----------
+// Rule (m) through checkWorkflow (vault/plans/EZD-182.md sections 3 and 4). Expected values are the plan's texts.
+test('EZD-182 done when: T1 workflow lines passing a pnpm build flag are refused and the real workflows pass (AC-EZD-182-1, AC-EZD-182-2)', async (t) => {
+  const wf = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const mOf = (problems) => problems.filter((p) => p.rule === 'm').map((p) => p.msg);
+
+  await t.test('T1 (a) m1 --dangerously-allow-all-builds on a run line is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install --dangerously-allow-all-builds\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (b) m2 --config.dangerously-allow-all-builds=true is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install --config.dangerously-allow-all-builds=true\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (c) m3 --allow-build=esbuild is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm rebuild --allow-build=esbuild\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (d) m4 upper-case --ALLOW-BUILD is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install --ALLOW-BUILD esbuild\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (e) m5 mixed-case --CONFIG.dangerouslyAllowAllBuilds=true is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install --CONFIG.dangerouslyAllowAllBuilds=true\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (f) m6 two flags on one line give one problem (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm i --dangerously-allow-all-builds --allow-build=x\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (g) m7 a trailing comment hides nothing (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install # --allow-build=x\n'))), ['pnpm build flag at line 7']);
+  });
+
+  await t.test('T1 (h) m8 a flag in a run block scalar is refused at its own line (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: |\n          pnpm install --frozen-lockfile\n          pnpm rebuild --allow-build esbuild\n'))), ['pnpm build flag at line 9']);
+  });
+
+  await t.test('T1 (i) m9 a flag in an env value is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install\n        env:\n          ARGS: --config.dangerously-allow-all-builds=true\n'))), ['pnpm build flag at line 9']);
+  });
+
+  await t.test('T1 (j) control: bare --config <file> and --config=<file> pass (AC-EZD-182-2)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm exec vitest run --config vitest.config.ts\n'))), []);
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm exec playwright test --config=playwright.config.ts\n'))), []);
+  });
+
+  await t.test('T1 (k) control: a full-line comment is skipped (AC-EZD-182-2)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      # - run: pnpm install --dangerously-allow-all-builds\n      - run: echo ok\n'))), []);
+  });
+
+  await t.test('T1 (l) control: a plain frozen install passes (AC-EZD-182-2)', () => {
+    assert.deepEqual(mOf(checkWorkflow('x.yml', wf('      - run: pnpm install --frozen-lockfile\n'))), []);
+  });
+
+  await t.test('T1 (m) every real workflow file passes rule (m) (AC-EZD-182-2)', () => {
+    const files = workflowFiles();
+    assert.ok(files.includes('ci.yml'), 'workflowFiles() lists ci.yml');
+    for (const f of files) {
+      const text = readFileSync(path.join(workflowsDir, f), 'utf8');
+      assert.deepEqual(mOf(checkWorkflow(f, text)), [], f);
+    }
+  });
+
+  await t.test('T1 (n) a lone CR ends a line: a comment line, CR, then a flagged run line is refused (AC-EZD-182-1)', () => {
+    // js-yaml reads the lone CR as a line break and the run line as a step (YAML 1.2 line breaks: CR, LF, CRLF).
+    const text = wf('      # note\r      - run: pnpm install --dangerously-allow-all-builds\n');
+    assert.deepEqual(mOf(checkWorkflow('x.yml', text)), ['pnpm build flag at line 8']);
+    const pnpmConfig = wf('      # note\r      - run: echo ok\n        env:\r          PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS: \'true\'\n');
+    assert.deepEqual(
+      checkWorkflow('x.yml', pnpmConfig).filter((p) => p.rule === 'l').map((p) => p.msg),
+      ['pnpm_config_ name at line 10'],
+    );
   });
 });

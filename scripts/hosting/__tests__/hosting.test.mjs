@@ -37,6 +37,32 @@ function sectionOf(text, headingRegex) {
   return out.join('\n');
 }
 
+// EZD-182 (vault/plans/EZD-182.md sections 1, 3): pnpm flags that turn dependency build scripts on past allowBuilds (Q-0316 (a)).
+const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\.|allow-build)/i;
+
+// R3 (vault/plans/EZD-182.md section 3): problems of one vercel.json text, every string value at any depth.
+function vercelBuildFlagProblems(text) {
+  let cfg;
+  try {
+    cfg = JSON.parse(text);
+  } catch {
+    return ['unreadable'];
+  }
+  if (cfg === null || typeof cfg !== 'object' || Array.isArray(cfg)) return ['unreadable'];
+  const problems = [];
+  const walk = (value, at) => {
+    if (typeof value === 'string') {
+      if (BUILD_FLAG_RE.test(value)) problems.push(`value at ${at}`);
+    } else if (Array.isArray(value)) {
+      value.forEach((item, i) => walk(item, `${at}[${i}]`));
+    } else if (value !== null && typeof value === 'object') {
+      for (const [k, v] of Object.entries(value)) walk(v, `${at}.${k}`);
+    }
+  };
+  for (const [k, v] of Object.entries(cfg)) walk(v, k);
+  return problems;
+}
+
 test('EZD-003 T1 Vercel config: app/vercel.json pins framework and region, no env, no root vercel.json', () => {
   const cfg = readJson('app', 'vercel.json');
   assert.equal(cfg.framework, 'nextjs');
@@ -291,4 +317,62 @@ test('EZD-149 T2 8 Docs say the same thing: runbook, architecture Hosting and Ma
   const mine = rows.filter((cells) => cells[cells.length - 1] === 'EZD-149');
   assert.equal(mine.length, 1, 'one Machine checks row built by EZD-149');
   assert.equal(mine[0][2], 'scripts/hosting/__tests__/hosting.test.mjs (EZD-149 T2)', 'row names the test');
+});
+
+// ---------- EZD-182 T3 ----------
+// Plan: vault/plans/EZD-182.md sections 3 and 4. Expected values are the plan's texts.
+test('EZD-182 T3 app/vercel.json values passing a pnpm build flag are refused and the real file passes (AC-EZD-182-1, AC-EZD-182-2)', async (t) => {
+  const J = (o) => JSON.stringify(o);
+
+  await t.test('T3 (a) installCommand with --dangerously-allow-all-builds is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({ installCommand: 'pnpm install --dangerously-allow-all-builds' })), ['value at installCommand']);
+  });
+
+  await t.test('T3 (b) buildCommand with the --config. form is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({ buildCommand: 'pnpm --config.dangerously-allow-all-builds=true build' })), ['value at buildCommand']);
+  });
+
+  await t.test('T3 (c) a string nested in an object is refused with its dotted path (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({
+      crons: [{ path: '/x', schedule: '* * * * *' }],
+      build: { env: { X: '--allow-build=esbuild' } },
+    })), ['value at build.env.X']);
+  });
+
+  await t.test('T3 (d) a string in an array is refused with its index, any letter case (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({ a: ['ok', '--ALLOW-BUILD esbuild'] })), ['value at a[1]']);
+  });
+
+  await t.test('T3 (e) two values give two problems in value order (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({
+      installCommand: '--allow-build x',
+      buildCommand: '--dangerously-allow-all-builds',
+    })), ['value at installCommand', 'value at buildCommand']);
+  });
+
+  await t.test('T3 (f) text that is not JSON is unreadable (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems('{'), ['unreadable']);
+  });
+
+  await t.test('T3 (g) JSON that is an array is unreadable (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems('[]'), ['unreadable']);
+  });
+
+  await t.test('T3 (h) JSON that is a string is unreadable (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems('"x"'), ['unreadable']);
+  });
+
+  await t.test('T3 (i) control: values without a build flag, numbers, booleans and null pass (AC-EZD-182-2)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({
+      buildCommand: 'vitest run --config vitest.config.ts',
+      regions: ['iad1'],
+      n: 1,
+      b: true,
+      z: null,
+    })), []);
+  });
+
+  await t.test('T3 (j) the real app/vercel.json passes (AC-EZD-182-2)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(read('app', 'vercel.json')), []);
+  });
 });
