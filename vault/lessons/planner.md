@@ -183,3 +183,8 @@ Check: plan review looks for that line on any plan marked re-plan.
 Cause: the plan wrote raw session output to a file in a public repo with no size cap and no ignore rule; the security-reviewer failed it.
 Rule: a plan that writes raw tool or session output to a file decides up front its size cap (unit, which end is kept, marker), whether the file is git-ignored in a public repo, and redaction before the cap, with a test for each.
 Check: plan review looks for those three lines on any plan that saves raw output.
+
+## EZD-241 plan-gap (2026-10-28)
+Cause: a local test changed a guarded object in a plain session, then ran a guarded push; the guard checks the whole protected set on every DDL statement of its session, including the migration tool's own bookkeeping, so the push would fail.
+Rule: a plan whose test changes a protected object outside the guarded session says how it is restored before the next guarded statement, and states how the guard treats changes made by other sessions.
+Check: plan review reads each guard-test row for an unrestored change before a guarded call.
