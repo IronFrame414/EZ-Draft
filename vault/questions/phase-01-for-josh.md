@@ -1,6 +1,6 @@
 # Phase 1 · for Josh (questions unit, 2026-10-27)
 
-This run: Q-0362 (EZD-244, tooling grant) was answered by the orchestrator under your standing fix-mode answer (section 2). Three decisions wait for you: Q-0363, Q-0364, Q-0365. EZD-241, EZD-242 and EZD-245 are ready. EZD-243, EZD-244 and EZD-246 wait on your answers.
+This run: Q-0362 (EZD-244, tooling grant) was answered by the orchestrator under your standing fix-mode answer (section 2). Four decisions wait for you: Q-0363, Q-0364, Q-0365, Q-0366. EZD-241, EZD-242 and EZD-245 are ready. EZD-243, EZD-244 and EZD-246 wait on your answers.
 
 ## 1. Decisions needed
 
@@ -9,6 +9,8 @@ This run: Q-0362 (EZD-244, tooling grant) was answered by the orchestrator under
 **Q-0364 · EZD-246 (one review pass for two or three tickets), planner 2026-10-28.** `vault/PROCESS-EZDRAFT.md` line 99 still says "One ticket in progress at a time", which low batches and the new review batches contradict. Only you edit that file. Pick one: (a) you add "except a batch of 2 or 3 tickets, PROCESS.md section 4" to that line (recommended: the two documents then agree and rule 17 is met); (b) leave it and let PROCESS.md section 10's exception govern (the contradiction stays). Full text: Q-0364.
 
 **Q-0365 · EZD-243 (runbook and architecture match the live setup), planner 2026-10-28.** Your Q-0264 answer (Auto-assign on, so the live address serves each phase merge before launch) contradicts more lines than EZD-243 covers: runbook Vercel steps 2 and 5, Email step 5, `### Until launch`, `### Go-live switch`, Before launch item 2, and docs/architecture.md `### Hosting`, the production row and the "Go-live choice" bullet. Pick one: (a) widen EZD-243 to fix them all (re-plan; about 9 more lines in the same two files and test; recommended: one ticket, no stale line left, rule 17); (b) a new phase 1 fix ticket for them (same result, one more ticket's overhead). Full text: Q-0365.
+
+**Q-0366 · EZD-154 (guard for the sign-in file), orchestrator 2026-10-27.** The code-reviewer failed EZD-154 (security-reviewer passed): the new block on reading `~/.claude/` lets `..` climb back out (`cat ~/.claude/skills/../.c*`), and `cd ~/.claude; cat .c*` also passes. Hooks are changed only by a patch you apply. Pick: (a) always fix the `..` form (a new Block B4 in guard-bash: plan patch, test samples, patch file), and also deny the `cd` form by refusing a wildcard or `$` in any path after a `cd` into `.claude` (more false denies); (b) fix the `..` form and list the `cd` form in vault/KNOWN-LIMITS.md line 19 as unseen, since the hook is an accident guard (Q-0135 (a)) (recommended: closes the class that a normal command can reach, without blocking ordinary use). Either way I need your OK for an interactive session to write and apply Block B4, then both reviewers re-run. Full text: Q-0366.
 
 (Q-0089 storage limits and Q-0237 payments stay escalated; they are not phase 1.)
 
