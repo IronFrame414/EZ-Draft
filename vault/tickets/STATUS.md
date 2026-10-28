@@ -566,7 +566,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-250 | 1 | Fix: the launcher never waits on a stop an agent can fix | ready | high | EZD-244 |  |  | Added 2026-10-28 by Josh (priority 1): one fix for every stop an agent can fix. Josh asked to be notified the moment its guard patch is ready to authorize. |
 | EZD-251 | 1 | Fix: the health timeout test (EZD-181 T3) passes when two full gates run at once | ready | low | EZD-181 |  |  | Added 2026-10-28 by Josh (Q-0381; rule 17): found in EZD-172 round 6. |
 | EZD-252 | 1 | Fix: a test file that writes error_alert rows must hold the error-alert lock | ready | high | EZD-251 |  |  | Added 2026-10-28 for Q-0385 (a) (rules 17, 18). |
-| EZD-253 | 1 | Fix: build-system tickets run on their own track beside the product phases | todo |  | EZD-244 |  |  | Added 2026-10-28 by Josh (priority 1): phase 1 gates and phase 2 is planned without waiting for build-system tickets. |
+| EZD-253 | 1 | Fix: build-system tickets run on their own track beside the product phases | questions | high | EZD-244 |  |  | Added 2026-10-28 by Josh (priority 1): phase 1 gates and phase 2 is planned without waiting for build-system tickets. |
 | EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
