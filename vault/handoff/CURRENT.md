@@ -1,11 +1,12 @@
-# Handoff · 2026-10-27 · build EZD-154 (BLOCKED: plan-gap stopped by classifier)
+# Handoff · 2026-10-27 · build EZD-163 (BLOCKED at merge: develop red outside the ticket)
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: the planner's plan-gap for round 2 was stopped by the safety classifier while writing the guard-bash bypass forms (finding B), as with Q-0350. Nothing changed in the plan or worktree. STATUS EZD-154 → blocked.
-- Finding A (confirmed): Block A must keep `import path` and `norm` in .claude/hooks/guard-paths.mjs, delete only pa3Worktree/pa3Vault/pa3Grant (lines 43-52) and change line 85 to `if (ezd173Grant()) return;`. Develop hashes: guard-paths 51c57e2e…, guard-bash a1b86f7c… (unchanged). Clean fix: rebase the 3 test commits (3c48337c, baf8dd67, b7204a65) onto develop and drop the 3 hook commits (5ab08754, b5fca75b, ddf824bc).
-- Finding B (open, needs Josh): guard-bash `>&|`/`>>&|` not treated as redirections; `$'\x77'`, `$'\167'`, `$(printf w)` in option or file names not refused. Needs Block B, T4/T5 samples, new V1 hashes.
-- Needs Josh: (1) authorize an interactive session or fix mode to write Block B and the patch; (2) answer Q-0361 (variable-held option accepted as a limit?); Q-0360, Q-0358 confirm unchanged.
-- Then: test-author adds samples (+ rebase), orchestrator builds patch from vault/handoff/EZD-154-work, Josh applies, gate, BOTH reviewers again. Delete the patch and EZD-154-work at merge.
-- Blocked: EZD-003, EZD-141, EZD-173, EZD-154.
-- Models: planner Opus 5.5 high.
-- Temp folders to delete by hand: /tmp/ezd154-check, /tmp/ezd154s-*, /tmp/ezd154p-*.
+- Why the session ended: blocked. EZD-163 is built and reviewed; `unit-steps.mjs merge` failed because the develop gate is red for reasons outside the ticket.
+- Completed: rebase onto develop, tests redone (33877178), docs (3b7ce610), V1 20/20, ticket gate PASS, code-reviewer PASS (no findings). planner lesson added.
+- In progress: worktree .claude/worktrees/EZD-163 on t/EZD-163 kept. Resume at step 10: `node scripts/unit-steps.mjs merge EZD-163` once develop is green.
+- Blocked: EZD-163 merge. Two reds on develop:
+  1. scripts/ledger/priority.test.mjs case 1 fails alone on develop ("plan EZD-244", expected 241). Since d1d54949 EZD-244..246 carry priority 1 in the live ledger and the test never clears existing flags. Likely fix: strip `priority` from every ticket in the copied ledger in before(). Test and scripts/ edits are Josh's or fix mode's. This blocks every merge.
+  2. scripts/release/__tests__/release.test.mjs EZD-023e T8 "(c) no 403 in the output" failed once in the merge gate, passes alone (24/0). No overlapping gate seen. Unexplained; if it recurs it needs a fix ticket (rule 17).
+- Questions for Josh: none opened. Needs: fix for red 1; decide red 2 follow-up.
+- Decisions: plan text defects E2 lines 31-45, E3 lines 263-273 (tests followed intent). Test-author ran on Opus (plan s8), others per --dispatch.
+- Also still blocked: EZD-003, EZD-141, EZD-173, EZD-154.

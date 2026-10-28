@@ -172,3 +172,9 @@ Mistake: the plan read the Supabase CLI's JSON stdout from `migration up`, but t
 Cause: the CLI prints JSON only when it detects an AI agent unless told with `--output-format json`.
 Rule: a CLI probe runs in the same allow-listed environment as the child (no CLAUDECODE or AI_AGENT), and a plan that reads CLI stdout names the output-format flag explicitly.
 Check: plan review compares the probe's environment with the child's env list.
+
+Ticket EZD-163, 2026-10-27
+Mistake: a re-plan of a ticket whose worktree already existed did not say the branch had to be rebased, so the builder and test-author kept reading the old plan and hit a gap the new plan had already closed.
+Cause: the worktree branched before the re-plan and its plan copy was stale.
+Rule: a re-plan of a ticket that already has a worktree says up front that the branch must be rebased onto develop and names the files whose old commits get replaced.
+Check: plan review looks for that line on any plan marked re-plan.
