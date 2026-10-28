@@ -370,8 +370,11 @@ function candidates(p, wantReady) {
     .filter((t) => !['done', 'blocked', 'in-progress', 'review'].includes(status(t.id)))
     .filter((t) => !wantReady || status(t.id) === 'ready')
     .filter(depsDone)
-    .sort((a, b) => num(a.id) - num(b.id));
+    .sort(byPriority);
 }
+// A ticket with "priority": 1 in tickets.json is planned and built before the others of its phase, then by number
+// (Josh 2026-10-27: the usage-saving fix tickets go first).
+const byPriority = (a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0) || num(a.id) - num(b.id);
 const inFlight = () => data.tickets.find((t) => ['in-progress', 'review'].includes(status(t.id)));
 
 // Phase gate state, from the gate record the gate-phase unit writes (vault/tickets/gates/phase-NN.md).
@@ -420,7 +423,7 @@ function nextUnit() {
   const st = (s) => ts.filter((t) => status(t.id) === s);
   // Stage 1
   const todo = st('todo').filter(depsDone).sort((a, b) => num(a.id) - num(b.id));
-  const planOrder = ts.filter((t) => status(t.id) === 'todo').sort((a, b) => num(a.id) - num(b.id));
+  const planOrder = ts.filter((t) => status(t.id) === 'todo').sort(byPriority);
   if (planOrder.length) return `plan ${planOrder[0].id}`;
   const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(p)}.md`);
   const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
