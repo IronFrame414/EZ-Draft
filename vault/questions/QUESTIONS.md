@@ -9,5 +9,3 @@ IDs never change or get reused. Josh's answers are also appended to the decision
 
 | ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Q-0387 | 1 / EZD-253 (plan QP-1) | planner (2026-10-28) | EZD-253 needs EZD-250 merged (its `planPaths`, its `nextUnit` lines and its grant hold) but the row lists only EZD-244; options: (a) add EZD-250 to EZD-253's `depends_on` in `tickets.json` and the phase row (recommended), (b) leave it and rely on EZD-250's lower number and priority. | open |  |  |  |
-| Q-0388 | 1 / EZD-253 (plan QP-2) | planner (2026-10-28) | with one unit at a time, the row does not say whether a signed-off next phase's plan, plan-review and questions units run before the current phase's remaining builds or alternate with them; options: (a) all planning-stage units of any signed-off phase first, as within a phase today (Q-0129; recommended, tests U5-U6 use it), (b) alternate one planning unit and one build unit, (c) plan the next phase only when nothing of the current phase is ready to build. | open |  |  |  |
