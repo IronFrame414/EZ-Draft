@@ -102,6 +102,22 @@ rules['retriever-digest'] = retriever;
 rules['retriever-web'] = retriever;
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) deny(`${agent} is read-only.`);
+// Usage-fix grants (Josh 2026-10-27: "you have permission to perform everything needed for this list"): in the EZD-244,
+// EZD-245 and EZD-246 worktrees only, the builder may write exactly these files. Tests stay denied. The orchestrator removes
+// a ticket's entry when it merges, and the whole block when all three have merged.
+const AGENTS = (names) => names.map((n) => `.claude/agents/${n}.md`);
+const usageFixFiles = {
+  'EZD-244': ['CLAUDE.md', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/build-ticket/dispatch.md', '.claude/skills/plan-ticket/SKILL.md',
+    '.claude/skills/questions/SKILL.md', '.claude/skills/review-plans/SKILL.md', '.claude/skills/gate-phase/SKILL.md', '.claude/skills/wrap/SKILL.md',
+    ...AGENTS(['builder', 'test-author', 'code-reviewer', 'security-reviewer', 'planner', 'plan-checker', 'ui-verifier', 'calc-auditor', 'phase-auditor', 'log-summarizer']),
+    'vault/tools/next_ticket.mjs', 'vault/tools/plan_lint.mjs', 'vault/tools/outline.mjs', 'vault/plans/TEMPLATE.md', 'vault/PROCESS.md', 'vault/tickets/tickets.json'],
+  'EZD-245': ['vault/tools/findings.mjs', 'vault/tools/next_ticket.mjs', 'vault/lessons/INDEX.md', '.claude/skills/build-ticket/SKILL.md',
+    '.claude/skills/build-ticket/dispatch.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/wrap/SKILL.md', ...AGENTS(['planner', 'plan-checker']), 'vault/PROCESS.md'],
+  'EZD-246': ['vault/tools/next_ticket.mjs', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/build-ticket/dispatch.md',
+    ...AGENTS(['code-reviewer', 'security-reviewer']), 'vault/PROCESS.md'],
+};
+const usageFixTicket = /\/\.claude\/worktrees\/(EZD-24[456])\//.exec(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))))?.[1];
+if (agent === 'builder' && usageFixTicket && !isTest && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
 const reason = rules[agent]?.();
 if (reason) deny(reason);
 if (!rules[agent]) deny(`${agent} is not in the roster (vault/PROCESS.md section 4); it may not write files.`);

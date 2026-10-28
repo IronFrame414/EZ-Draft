@@ -15624,6 +15624,81 @@
     "AC-EZD-243-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-244",
+   "phase": 1,
+   "title": "Fix: every agent loads only the architecture sections its work needs",
+   "depends_raw": "EZD-000",
+   "spec_ref": "Josh 2026-10-27",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000"
+   ],
+   "build_position": 516,
+   "acs": [
+    "AC-EZD-244-1",
+    "AC-EZD-244-2",
+    "AC-EZD-244-3",
+    "AC-EZD-244-4",
+    "AC-EZD-244-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-245",
+   "phase": 1,
+   "title": "Fix: recurring review findings become lessons and plan checks",
+   "depends_raw": "EZD-244",
+   "spec_ref": "Josh 2026-10-27",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-244"
+   ],
+   "build_position": 517,
+   "acs": [
+    "AC-EZD-245-1",
+    "AC-EZD-245-2",
+    "AC-EZD-245-3",
+    "AC-EZD-245-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-246",
+   "phase": 1,
+   "title": "Fix: one review pass covers two or three related tickets",
+   "depends_raw": "EZD-245",
+   "spec_ref": "Josh 2026-10-27",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-245"
+   ],
+   "build_position": 518,
+   "acs": [
+    "AC-EZD-246-1",
+    "AC-EZD-246-2",
+    "AC-EZD-246-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"

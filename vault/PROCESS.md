@@ -334,7 +334,7 @@ Do not start units with `--bare`: it skips CLAUDE.md, hooks, skills and subagent
 
 ### Using it interactively
 
-Run a unit by typing its skill name. Run `/clear` at each unit boundary: after a ticket merges, after a stage finishes. The `session-start` hook fires on `startup`, `resume`, `clear` and `compact`, and injects the handoff summary and the next unit, so a cleared session picks up where the files say the work is. In an interactive session, check `/context` and finish the unit and clear when it passes about half full; that figure is community folklore, not a documented limit.
+Run a unit by typing its skill name. Run `/clear` at each unit boundary: after a ticket merges, after a stage finishes. The `session-start` hook fires on `startup`, `resume`, `clear` and `compact`, and injects the handoff summary and the next unit, so a cleared session picks up where the files say the work is. **Standing rule (Josh 2026-10-27): a session ends at 30% context.** Every message re-reads the whole conversation, so a long session costs more per message than anything else running. An interactive session checks `/context`; at 30% it records what is open in the handoff (`vault/handoff/CURRENT.md`) and ends, and Josh starts a fresh one. The orchestrator tells Josh before it reaches the line, and starts each new topic in a fresh session. Launcher units are one unit per session already.
 
 ### What a unit loads
 
