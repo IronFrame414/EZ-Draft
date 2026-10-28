@@ -178,3 +178,8 @@ Mistake: a re-plan of a ticket whose worktree already existed did not say the br
 Cause: the worktree branched before the re-plan and its plan copy was stale.
 Rule: a re-plan of a ticket that already has a worktree says up front that the branch must be rebased onto develop and names the files whose old commits get replaced.
 Check: plan review looks for that line on any plan marked re-plan.
+
+## EZD-193 plan-gap (2026-10-28)
+Cause: the plan wrote raw session output to a file in a public repo with no size cap and no ignore rule; the security-reviewer failed it.
+Rule: a plan that writes raw tool or session output to a file decides up front its size cap (unit, which end is kept, marker), whether the file is git-ignored in a public repo, and redaction before the cap, with a test for each.
+Check: plan review looks for those three lines on any plan that saves raw output.

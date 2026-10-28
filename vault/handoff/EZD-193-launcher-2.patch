@@ -1,0 +1,38 @@
+diff --git a/scripts/run.mjs b/scripts/run.mjs
+index 3f8bcb9b..c2aab6e5 100644
+--- a/scripts/run.mjs
++++ b/scripts/run.mjs
+@@ -164,11 +164,20 @@ function parseWhen(s) {
+ }
+ // EZD-193 (Q-0299 (b)): the raw output of a run that ended on a limit error goes to its own file under vault/handoff/, and
+ // Josh is told its name, so the message formats can be read the first time they appear (PROCESS.md section 15 row 9).
++// The file is git-ignored (.gitignore), and each stream is cut to its first and last LIMIT_TEXT_EDGE bytes after the key is
++// redacted, so session output never reaches the public repository and one huge run cannot fill the disk or the log.
++const LIMIT_TEXT_EDGE = 8192;
++function capLimitText(s) {
++  const b = Buffer.from(s, 'utf8');
++  if (b.length <= 2 * LIMIT_TEXT_EDGE) return s;
++  return `${b.subarray(0, LIMIT_TEXT_EDGE).toString('utf8')}\n--- cut ${b.length - 2 * LIMIT_TEXT_EDGE} of ${b.length} bytes ---\n${b.subarray(b.length - LIMIT_TEXT_EDGE).toString('utf8')}`;
++}
+ function saveLimitText(unitName, arg, res, limit) {
+   const rel = `vault/handoff/limit-error-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+   const key = typeof config.api_key === 'string' ? config.api_key : '';
+   const redact = (s) => (key ? s.split(key).join('<api_key>') : s);
+-  const body = `unit: ${unitName} ${arg}\nexit: ${res.code}\nclassified: ${limit.kind}${limit.note ? ` (${limit.note})` : ''}\n\n--- stdout ---\n${redact(res.out)}\n--- stderr ---\n${redact(res.err)}\n`;
++  const keep = (s) => capLimitText(redact(s));
++  const body = `unit: ${unitName} ${arg}\nexit: ${res.code}\nclassified: ${limit.kind}${limit.note ? ` (${limit.note})` : ''}\n\n--- stdout ---\n${keep(res.out)}\n--- stderr ---\n${keep(res.err)}\n`;
+   try {
+     mkdirSync(path.join(root, 'vault/handoff'), { recursive: true });
+     writeFileSync(path.join(root, rel), body);
+diff --git a/.gitignore b/.gitignore
+index 1be9972d..28ff57d4 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -14,6 +14,7 @@ vault/reference/
+ scripts/launcher.config.json
+ vault/handoff/.budget-warned-*
+ vault/handoff/last-failure.json
++vault/handoff/limit-error-*.txt
+ vault/cost/usage.json
+ vault/cost/oauth-poll.json
+ vault/cost/usage-raw-sample.json
