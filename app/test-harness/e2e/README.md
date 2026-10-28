@@ -32,6 +32,10 @@ Both exist only in the Node test process. The gate secret and the gated client n
 - `sessions.open(emails)` opens one signed-in context per email, in order, each at the current project's size. Every context is closed when the test ends, also after a failure.
 - `network.set(pageOrContext, 'off' | 'on')` switches a context offline or online and waits until every page reports it; otherwise it throws `network state not reached`.
 
+## Traffic checks
+
+(EZD-163; Q-0337 (b)): EZD-016a T12 and EZD-007f T21 and T23 call `await captureTraffic(context)` (`app/test-harness/e2e/traffic.ts`, exported by `test.ts`) before the page loads and never read `Request` or `Response` objects. Its route fetches each loopback request in Node (`route.fetch`), keeps the body, then fulfills it, so the page gets only what the test read; a navigation redirect goes back through Playwright's internal `_redirectNavigationRequest` (guarded by `traffic.spec.ts` R4) so the next request is routed too; a non-loopback request falls through to the net guard and counts as `external`; `settle()` fails after 20,000 ms naming what is pending. Every other test and the app run unrouted.
+
 ## Seed rule
 
 Tests never change seeded rows. A test that changes data creates its own rows with the EZD-006 (`createTenant`, `createMember`, re-exported by `test.ts`) or EZD-007a fixtures and removes them in `afterAll` with `cleanup()` and `closeHarness()`.

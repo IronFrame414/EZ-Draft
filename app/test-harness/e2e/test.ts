@@ -46,6 +46,16 @@ export {
 } from './session-claims';
 export type { OpenSession, Sessions } from './sessions';
 export type { Network } from './network';
+export {
+  captureTraffic,
+  TRAFFIC_FETCH_TIMEOUT_MS,
+  TRAFFIC_SETTLE_TIMEOUT_MS,
+  type Traffic,
+  type TrafficOptions,
+  type TrafficRequest,
+  type TrafficResponse,
+  type TrafficResult,
+} from './traffic';
 export { expectTouchTargets } from '../touch-targets';
 export { adminDb } from '../rls/fixtures';
 // Section 4: fresh tenants and users come from EZD-006 createTenant / createMember and are removed with
