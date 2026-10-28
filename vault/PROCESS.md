@@ -194,7 +194,7 @@ The spec-check unit needs Josh present, so it runs interactively. The launcher n
 
 ## 6. Stage 1: plan
 
-For each ticket, in ticket order, the planner writes `vault/plans/<TICKET>.md` from `vault/plans/TEMPLATE.md`. The planner reads only: the phase's spec files, the decision files for those areas, `non-goals.md`, `glossary.md`, `architecture.md`, and `vault/lessons/planner.md` filtered to the ticket's areas. For the codebase and the outside world it dispatches retrievers (section 4) with `REPORT: yes`, then runs `node vault/tools/research.mjs adopt` and cites the IDs.
+For each ticket, in ticket order, the planner writes `vault/plans/<TICKET>.md` from `vault/plans/TEMPLATE.md`. The planner reads only: the phase's spec files, the decision files for those areas, `non-goals.md`, `glossary.md`, `architecture.md`, and `vault/lessons/planner.md` filtered to the ticket's areas. For the codebase and the outside world it dispatches retrievers (section 4) with `REPORT: yes`, then runs `node vault/tools/research.mjs adopt` and cites the IDs. Read the `vault/research/reuse/` file for this phase; where it says `reference`, read the named file at the pinned SHA before planning (Q-0405, Josh 2026-10-28).
 
 Each plan has a header and ten sections:
 
@@ -589,7 +589,7 @@ Process: vault/PROCESS.md (the orchestrator and Josh read it; other agents read 
 | Gate and ledger commands | scripts/gate.mjs, vault/tools/next_ticket.mjs |
 
 ## Reading list by role
-- planner: the phase's spec files, decisions, non-goals, glossary, architecture, lessons (planner).
+- planner: the phase's spec files, decisions, non-goals, glossary, architecture, lessons (planner), the phase's `vault/research/reuse/` file and the files it marks `reference` (Q-0405).
 - test-author, builder: your plan, the files it lists, architecture, lessons (your role).
 - reviewers: the plan, the diff, the gate summary, the spec sections the plan cites.
 ```
