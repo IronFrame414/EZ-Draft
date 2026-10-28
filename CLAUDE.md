@@ -47,7 +47,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 | Spike notes | vault/spikes/ |
 
 ## Reading list by role
-- planner: the phase's spec files, decisions for those areas, non-goals, glossary, acceptance criteria, the architecture sections the ticket needs, lessons (planner), KNOWN-LIMITS.
+- planner: the phase's spec files, decisions for those areas, non-goals, glossary, acceptance criteria, the architecture sections the ticket needs, lessons (planner), KNOWN-LIMITS, the phase's vault/research/reuse/ file and the files it marks `reference` (Q-0405).
 - test-author, builder: your plan, the files it lists, the architecture sections on your dispatch's `Architecture:` line, lessons (your role), KNOWN-LIMITS.
 - reviewers: the plan, the diff, the gate summary, the spec sections the plan cites, decisions the plan cites, the architecture sections on the dispatch's `Architecture:` line.
 
