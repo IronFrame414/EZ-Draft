@@ -217,3 +217,4 @@ Mistake: the plan removed a pattern (an @ import, a whole-file read) but covered
 Cause: no up-front search for the pattern across skills and process files.
 Rule: when a ticket removes a pattern, grep every skill and process file for it and give each hit a replacement row.
 Check: a grep for the pattern returns 0 after the build.
+- 2026-10-28 EZD-245: when a plan edits .claude/skills/build-ticket/dispatch.md, give the exact block lines and include the matching EZD-000e T7 update (scripts/process/retrievers.test.mjs) as a test-author row, because T7 pins the whole file. Also check a dispatch block does not repeat lines its --reads output already prints.
