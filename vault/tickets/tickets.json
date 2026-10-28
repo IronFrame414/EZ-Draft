@@ -15988,7 +15988,7 @@
    "id": "EZD-253",
    "phase": 1,
    "title": "Fix: build-system tickets run on their own track beside the product phases",
-   "depends_raw": "EZD-244, EZD-250",
+   "depends_raw": "EZD-244, EZD-250, EZD-254",
    "spec_ref": "Josh 2026-10-28",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -15999,7 +15999,8 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-244",
-    "EZD-250"
+    "EZD-250",
+    "EZD-254"
    ],
    "build_position": 525,
    "acs": [
@@ -16009,6 +16010,73 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-254",
+   "phase": 1,
+   "title": "Fix: a finished phase is gated even while an earlier phase has a blocked ticket",
+   "depends_raw": "EZD-250",
+   "spec_ref": "PROCESS.md section 8",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 526,
+   "acs": [
+    "AC-EZD-254-1",
+    "AC-EZD-254-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-255",
+   "phase": 1,
+   "title": "Fix: a hold or limit message names the repair unit when a repair hits it",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 527,
+   "acs": [
+    "AC-EZD-255-1",
+    "AC-EZD-255-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-256",
+   "phase": 1,
+   "title": "Fix: only one gate at a time takes over a dead lock",
+   "depends_raw": "EZD-172",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-172"
+   ],
+   "build_position": 528,
+   "acs": [
+    "AC-EZD-256-1",
+    "AC-EZD-256-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
