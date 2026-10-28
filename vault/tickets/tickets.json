@@ -15891,6 +15891,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Error reporting (EZD-024)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-181"
