@@ -218,3 +218,4 @@ Cause: no up-front search for the pattern across skills and process files.
 Rule: when a ticket removes a pattern, grep every skill and process file for it and give each hit a replacement row.
 Check: a grep for the pattern returns 0 after the build.
 - 2026-10-28 EZD-245: when a plan edits .claude/skills/build-ticket/dispatch.md, give the exact block lines and include the matching EZD-000e T7 update (scripts/process/retrievers.test.mjs) as a test-author row, because T7 pins the whole file. Also check a dispatch block does not repeat lines its --reads output already prints.
+- 2026-10-28 EZD-172: a gate step that runs a worktree's own tools must come after that worktree's install, and an acceptance run of two worktrees must run each worktree's own gate.mjs in a fresh worktree. A lock file taken with open-then-write is visible empty for a moment, so a plan must make the owner id visible before the file is (temp file plus link), or treat an empty file as held.
