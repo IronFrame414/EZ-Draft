@@ -15850,6 +15850,32 @@
     "AC-EZD-249-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-250",
+   "phase": 1,
+   "title": "Fix: the launcher never waits on a stop an agent can fix",
+   "depends_raw": "EZD-244",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-244"
+   ],
+   "build_position": 522,
+   "acs": [
+    "AC-EZD-250-1",
+    "AC-EZD-250-2",
+    "AC-EZD-250-3",
+    "AC-EZD-250-4",
+    "AC-EZD-250-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"
