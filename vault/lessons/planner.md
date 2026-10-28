@@ -196,3 +196,24 @@ Rule: when a test checks a word is absent from generated text, say which part it
 ## EZD-241 (2), 2026-10-28
 Mistake: a guard scoped by a session setting had no signal that the setting reached the protected session; failure codes did not say whether a re-run is safe.
 Rule: a guard that goes inert when its scoping signal fails needs a positive signal from the protected session itself, and every failure code must say whether a re-run is safe.
+
+## L-025  areas: tooling, process  seen: 1  status: candidate
+Ticket EZD-244, 2026-10-28
+Mistake: a backfill table in the plan listed the open tickets at plan time; four tickets planned later were missing and `--check` failed after the build.
+Cause: the list was frozen in the plan instead of derived from STATUS.md at build time.
+Rule: a backfill covers the open-ticket set at build time; the plan gives the builder the command that derives it.
+Check: `next_ticket.mjs --check` passes after the backfill.
+
+## L-026  areas: tooling, process  seen: 1  status: candidate
+Ticket EZD-244, 2026-10-28
+Mistake: the plan edited dispatch.md, which an earlier ticket's test pins by SHA-256 of its head; the gate failed on the pin and a plan gap was needed.
+Cause: the plan did not search the tests for files it edits.
+Rule: when a plan edits a file, grep scripts/**/*.test.mjs for its path; any pin by hash or line count is a structural-repair row with the new value and its authority.
+Check: the gate shows no earlier-ticket test red on an edited file.
+
+## L-027  areas: tooling, process  seen: 1  status: candidate
+Ticket EZD-244, 2026-10-28
+Mistake: the plan removed a pattern (an @ import, a whole-file read) but covered only the files the ticket row named; the reviewer found two skill lines still carrying it.
+Cause: no up-front search for the pattern across skills and process files.
+Rule: when a ticket removes a pattern, grep every skill and process file for it and give each hit a replacement row.
+Check: a grep for the pattern returns 0 after the build.
