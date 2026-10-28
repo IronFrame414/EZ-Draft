@@ -13946,7 +13946,8 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Local database"
+    "Local database",
+    "Machine checks"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
