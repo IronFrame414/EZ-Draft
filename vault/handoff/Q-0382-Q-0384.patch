@@ -1,0 +1,19 @@
+--- a/.claude/hooks/guard-paths.mjs	2026-10-28 13:50:23
++++ b/.claude/hooks/guard-paths.mjs	2026-10-28 13:50:23
+@@ -118,7 +118,8 @@
+   'EZD-248': ['vault/tools/next_ticket.mjs', '.claude/hooks/session-start.mjs', '.claude/hooks/guard-bash.mjs', 'scripts/run.mjs', 'vault/questions/QUESTIONS-answered.md',
+     'vault/questions/QUESTIONS-archive.md', '.claude/skills/questions/SKILL.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/spec-check/SKILL.md'],
+   'EZD-250': ['.claude/hooks/grants.json', '.claude/hooks/guard-paths.mjs', 'vault/tools/grants.mjs', 'vault/tools/next_ticket.mjs', 'vault/tools/ledger-queue.mjs', 'scripts/launcher-idle.mjs', 'scripts/run.mjs', 'scripts/watchdog.mjs', 'scripts/launchd/install.mjs', '.claude/skills/repair/SKILL.md', 'vault/PROCESS.md'],
+-  'EZD-249': ['vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', '.claude/hooks/guard-paths.mjs', '.claude/hooks/guard-bash.mjs'],
++  'EZD-249': ['vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', '.claude/hooks/guard-paths.mjs', '.claude/hooks/guard-bash.mjs',
++    '.claude/agents/retriever-web.md', '.claude/agents/retriever-digest.md', '.claude/skills/build-ticket/dispatch.md', 'vault/PROCESS.md'],
+ };
+ const usageFixTicket = /\/\.claude\/worktrees\/(EZD-24[456]|EZD-248|EZD-249|EZD-250)\//.exec(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))))?.[1];
+ if (agent === 'builder' && usageFixTicket && !isTest && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
+--- a/vault/PROCESS-EZDRAFT.md	2026-10-28 13:50:23
++++ b/vault/PROCESS-EZDRAFT.md	2026-10-28 13:50:23
+@@ -97,3 +97,4 @@
+ - Notifications: the launcher posts to Josh's ntfy topic only when something is needed from him (budget hold, questions, sign-off, blocked phase, failed ledger check, built phase), never for routine progress.
+ - Budget: `vault/budget.json`. The launcher gates on the real usage meters of PROCESS.md section 11 once EZD-000h builds them; the dollar ceilings are proxy mode only (Q-0119). Josh set `weekly_ceiling_usd_est` 300 and `per_unit_cap_usd_est` 40 on 2026-10-18; the launcher runs in proxy mode on those until EZD-000h merges (Q-0127 (a)). Fable dispatches run on the plan (its own weekly limit) with the Opus 5.5 fallback; Josh's Oct 11 answer that Fable may draw on account usage credits (Q-0004) stands if the plan route is unavailable.
+ - One ticket in progress at a time, except a batch of 2 or 3 tickets, PROCESS.md section 4 (`next_ticket.mjs --check` fails on more than one). Josh raises the limit by editing this line.
++- Standing rule (Josh 2026-10-28, Q-0384): two decisions never go to Josh; the orchestrator makes them and records them in the ticket's STATUS notes, citing Q-0384, with no question row. (1) Another review round, beyond the ladder's 3 failed rounds (PROCESS.md section 4), for findings inside the ticket's own scope. (2) Widening a ticket's builder grant in `.claude/hooks/guard-paths.mjs` to files its approved plan names; the orchestrator writes and applies the grant patch, and the grant is removed at merge as before. Product, scope, wording and money decisions, and a grant to files no approved plan names, still go to Josh.
