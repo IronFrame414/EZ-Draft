@@ -1,44 +1,17 @@
-# Phase 1 · for Josh (questions unit, 2026-10-28)
+# Phase 1 · for Josh (questions unit, 2026-10-28, second run)
 
-EZD-243, EZD-244, EZD-245 and EZD-246 are ready. EZD-247 to EZD-250 stay `questions` until you answer the seven decisions below. No agent could cite an answer: each is scope or a change to a file only you edit.
+Your answers to Q-0373 to Q-0380 are recorded. EZD-247, EZD-248 and EZD-250 are re-planned and ready (with EZD-243 to EZD-246). EZD-249 stays `questions` until you answer Q-0382. EZD-172 stays blocked on Q-0381.
 
 ## 1. Decisions needed
 
-**Q-0373 · EZD-247.** Three more lines are stale against what Vercel holds (runbook Supabase step 7; architecture `### Environment variables` paragraph; architecture `### Hosting` sentence pinned by `hosting.test.mjs` EZD-149 T2). Pick:
-- (a) widen EZD-247 to fix them too (one more test; EZD-149's `ARCH_BULLET` updated; plan re-planned). **Recommended**: rule 17, no known issue is parked.
-- (b) a new phase 1 fix ticket.
-- (c) leave them.
+**Q-0382 · EZD-249.** Your Q-0376 (a) widens the research-report `ticket:` line to allow a Q-ID. The brief text that says what goes in `FOR` also sits in both retriever agent files, `.claude/skills/build-ticket/dispatch.md` (lines 24, 28) and `vault/PROCESS.md` line 121, and tests pin it. Your Q-0375 grant covers only four tooling files. Pick:
+- (a) add the two retriever files, `dispatch.md` and `PROCESS.md` to the EZD-249 builder grant, and change the text in all four so the brief cannot drift. **Recommended**: rule 18, closes the class. The grant patch `vault/handoff/EZD-249-grant.patch` then gets those four paths added.
+- (b) add only the two retriever files; `dispatch.md` and `PROCESS.md` keep naming a ticket only.
+- (c) drop the text change; askers put a Q-ID in `FOR` without the files saying so.
 
-**Q-0374 · EZD-248.** The guard keeps the builder from 11 files this ticket must change (`next_ticket.mjs`, `run.mjs`, two hooks, question files, four skill files). Pick:
-- (a) a builder grant for exactly these files in the EZD-248 worktree, as EZD-244 to EZD-246 had. **Recommended**: same precedent, smallest, removed at merge.
-- (b) the builder writes only `.githooks/` and `docs/`; the rest comes back as a patch you apply.
-- (c) the orchestrator repairs the three rows on develop in fix mode first, then (a) or (b).
+**Q-0381 · EZD-172.** Round 6 is green but both reviewers FAILED it on small items (an empty-lock-file window in the gate lock; two slips of mine; two out-of-date architecture lines). Pick: (a) round 7, only these items (**recommended**); (b) merge now and fix later (rule 17 forbids it for a lock defect); (c) drop the ticket. Also noted: EZD-181 T3 is a timing race in develop's test and needs its own phase 1 fix ticket (orchestrator adds it in fix mode).
 
-**Q-0375 · EZD-249.** The guard keeps the builder from `research.mjs`, `next_ticket.mjs`, `guard-paths.mjs`, `guard-bash.mjs`. Pick:
-- (a) a builder grant for exactly these four files in the EZD-249 worktree. **Recommended**: same as Q-0374 (a).
-- (b) the builder writes only `docs/architecture.md`; the rest is a patch you apply.
-
-**Q-0376 · EZD-249.** A research report that no ticket owns (Q-0089, Q-0237) cannot pass the `ticket:` check. Pick:
-- (a) `ticket:` may also hold a Q-ID; P5, T8 and both retriever files widened (one more test). **Recommended**: every report keeps a true owner.
-- (b) ticket IDs only; the asker names the phase ticket the answer will change.
-- (c) ticket IDs only; a question with no ticket gets `REPORT: no`. (The plan is written for (b) and (c).)
-
-**Q-0377 · EZD-249.** A hand-edited `vault/research/INDEX.md` row turned the develop gate red once (INC2); the ticket's row does not cover it. Pick:
-- (a) widen EZD-249: `check` also refuses a bad INDEX row, a repeated R-ID or an R-ID without its file (two more tests). **Recommended**: rule 18, closes the class.
-- (b) a new phase 1 fix ticket.
-- (c) leave INDEX to T8 alone.
-
-**Q-0378 · EZD-250.** EZD-250's own builder grant must be in place before its build, and agents cannot send ntfy. Pick:
-- (a) done already: the questions unit wrote `vault/handoff/EZD-250-grant.patch` (checked with `git apply --check`) and this escalation is your notice. To authorize, from the repo root: `git apply vault/handoff/EZD-250-grant.patch && git commit -m "chore(guard): grant EZD-250" -- .claude/hooks/guard-paths.mjs`. **Recommended.** (The patch is the plan's version; the plan's `grants.json` commit line does not apply yet because that file is built by EZD-250.)
-- (b) you apply it in an interactive session (same command).
-- (c) narrow the file list (the 11 Build-step paths: grants.json, guard-paths.mjs, grants.mjs, next_ticket.mjs, ledger-queue.mjs, launcher-idle.mjs, run.mjs, watchdog.mjs, install.mjs, repair/SKILL.md, PROCESS.md).
-Note: this grant lets the builder edit the guard hook itself, in the EZD-250 worktree only.
-
-**Q-0379 · EZD-250.** A phase PR waiting on its CI gate counts as a wait, so a PR whose CI went red waits for Josh. Pick:
-- (a) keep it a wait; you are notified as today. **Recommended**: a repair unit on a red CI is a new behavior (adds a GitHub check to NT) and CI-red fixes touch main's PR.
-- (b) start a repair unit once `gh` shows the gate failed.
-
-**Edits only you make** (from the earlier list, if not done): EZD-243 phase-01 row and tickets.json (Scope item 4, a Done-when sentence, AC-EZD-243-4, EZD-003 dependency); `vault/PROCESS-EZDRAFT.md` line 99 (Q-0364 (a)).
+**Edits only you make** (if not done): EZD-243 phase-01 row and tickets.json (Scope item 4, a Done-when sentence, AC-EZD-243-4, EZD-003 dependency); `vault/PROCESS-EZDRAFT.md` line 99 (Q-0364 (a)); EZD-247's row Scope and ACs still name only the first four places (plan files T6 under AC-EZD-247-2). Apply `vault/handoff/EZD-249-grant.patch` only after Q-0382 is answered. After EZD-250 merges, rerun `node scripts/launchd/install.mjs install` once.
 
 (Q-0089 and Q-0237 stay escalated; not phase 1.)
 
@@ -48,7 +21,7 @@ Unchanged: Q-0232, Q-0266, Q-0269, Q-0277, Q-0279, Q-0280, Q-0281, Q-0282, Q-036
 
 ## 3. Proposed wording
 
-EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W4, vault/plans/EZD-247.md section 6. EZD-248, EZD-249: section 6 of their plans. EZD-250: W1–W4 (repair failed; repair needs Josh; guard grant ready; queued ledger edit not applied) and the watchdog alerts, vault/plans/EZD-250.md section 6.
+EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249: section 6 of their plans. EZD-250: W1–W5 (W5 is the CI-red repair) and the watchdog alerts, vault/plans/EZD-250.md section 6.
 
 ## 4. Rule candidates
 
