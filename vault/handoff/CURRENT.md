@@ -1,10 +1,11 @@
-# Handoff · 2026-10-28 · build EZD-240 (session 1)
+# Handoff · 2026-10-28 · build EZD-241
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: blocked by design (scripts/statusline.mjs is Josh-patch-only)
-- Completed: worktree .claude/worktrees/EZD-240 (t/EZD-240); tests cc6d5534 (T1, T2 red; T3, T4 regression guards, green on current code); vault/handoff/EZD-240-statusline.patch (V0, V1, V2 pass: one hunk, apply --check exit 0).
-- Blocked: EZD-240 needs Josh: git -C .claude/worktrees/EZD-240 apply "$PWD/vault/handoff/EZD-240-statusline.patch" from the repo root with no launcher unit running, then resume at build step 6 (V3, gate, code-reviewer, merge). Delete the patch at step 8.
-- Also blocked: EZD-239 (budget patch), EZD-199 (hook patch), EZD-193, EZD-154.
-- Models: test-author haiku/high (--dispatch). No builder.
-- Open questions: none new.
+- Why the session ended: unit complete
+- Completed: EZD-241 merged to develop (b61252e6, 1280 tests). 2 rounds; security r1 FAIL fixed via plan patch (release_guard_lost, release_guard_remove_failed, seen/applied row-trigger signal). Both reviewers PASS r2.
+- In progress: none
+- Blocked: EZD-240, EZD-239, EZD-199, EZD-193, EZD-154 (unchanged)
+- Questions for Josh: none. Needs-confirm wording: runbook J5 + Release guard text (plan section 6). J5 (paste supabase/checks/release-guard-probe.sql on ezdraft-dev) is his to run.
+- Open for a fix ticket (rule 17, needs planner/orchestrator): root scripts/release/*.mjs are not covered by the gate's lint (eslint runs per package only); running eslint directly gives no-undef 'process' at scripts/release/dump.mjs:116 (predates EZD-241) and similar. Decide: lint root scripts in the gate, or a ticket to fix.
+- Lessons: planner.md x2 (U5 absence check; guard needs positive signal and re-run safety in codes).
 - Next unit: per `node vault/tools/next_ticket.mjs --next-unit`

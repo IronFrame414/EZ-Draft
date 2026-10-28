@@ -188,3 +188,11 @@ Check: plan review looks for those three lines on any plan that saves raw output
 Cause: a local test changed a guarded object in a plain session, then ran a guarded push; the guard checks the whole protected set on every DDL statement of its session, including the migration tool's own bookkeeping, so the push would fail.
 Rule: a plan whose test changes a protected object outside the guarded session says how it is restored before the next guarded statement, and states how the guard treats changes made by other sessions.
 Check: plan review reads each guard-test row for an unrestored change before a guarded call.
+
+## EZD-241, 2026-10-28
+Mistake: test U5 required `ownedBy` absent from the whole generated install SQL, which also embeds SNAPSHOT_SQL (contains `ownedBy`).
+Rule: when a test checks a word is absent from generated text, say which part it covers and check no embedded text from elsewhere contains the word.
+
+## EZD-241 (2), 2026-10-28
+Mistake: a guard scoped by a session setting had no signal that the setting reached the protected session; failure codes did not say whether a re-run is safe.
+Rule: a guard that goes inert when its scoping signal fails needs a positive signal from the protected session itself, and every failure code must say whether a re-run is safe.
