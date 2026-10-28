@@ -1,12 +1,14 @@
-# Handoff · 2026-10-28 · build EZD-172
+# Handoff · 2026-10-28 · build EZD-173
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: EZD-172 blocked on Q-0408 (round 7 was the last Josh allowed; security-reviewer FAIL)
-- Completed this session: planner amended plan (Lock files row, L22, r1-r4); L22 tests (2318010f); gate.mjs temp-file+link locks (f0360765); architecture lines (builder); empty-lock deadline fix (4f88fc59); lane 0 gate PASS; A1 lane 2 PASS, lane 1 failed only on EZD-181 T3 race (EZD-251)
-- Open findings: security-reviewer: a leftover `<lock>.<pid>.tmp` is rewritten through by a later gate with the same pid (breaks "visible lock never empty"; symlink at the tmp name is followed). Fix: unlink then create with `wx` in takeLock/takeSweepLock; needs a plan amendment first. code-reviewer's finding (deadline) is fixed but not re-reviewed
-- In progress: none; worktree .claude/worktrees/EZD-172 kept at 4f88fc59
-- Blocked: EZD-172 on Q-0408
-- Questions for Josh: Q-0408 (a) round 8, the last, only the tmp-file finding (recommended) / (b) merge, fix later / (c) drop
-- Owed: phase 1 fix ticket for planner QP-1 (two gates racing to take over a dead lock can both run); ticket not yet created
-- Next unit: after Q-0408 (a): planner amends Lock files row, test-author adds leftover-tmp test, orchestrator edits gate.mjs, lane 0 gate, A1, both reviewers
-- Also still open: EZD-154 on Q-0407; EZD-250 on Q-0404; fix tickets owed (EZD-254)
+- Why the session ended: EZD-173 blocked on Q-0409 (code-reviewer round 3 FAIL, one item; high-ticket ladder says blocked)
+- Completed this session: ledger.mjs (lock, own-path commits, lesson/seen/lessons-index, architecture), research/next_ticket/unit-steps/run.mjs/session-end changes, SKILL.md and PROCESS.md text; plan amended 3 times; develop merged into t/EZD-173 (4ac7ab1c); gate PASS on 99f988a5
+- Open finding: scripts/ledger.mjs addQuestion takes the next Q-ID from QUESTIONS.md only; develop's assignQuestionIds counts QUESTIONS, -answered and -archive (IDs never reused). Not triggered today (Q-0408 is still in QUESTIONS.md). Unclear whether `answer` must find moved rows
+- In progress: none; worktree .claude/worktrees/EZD-173 kept at 99f988a5 (develop merged in)
+- Blocked: EZD-173 on Q-0409; EZD-172 on Q-0408; EZD-154 on Q-0407; EZD-250 on Q-0404
+- Questions for Josh: Q-0409 (a) one last round, only this item (recommended) / (b) merge now, fix later / (c) drop
+- Next unit after Q-0409 (a): planner amends C4 (max Q-ID over all three files; `answer` rule), test-author adds the K-row, builder, code-reviewer only, gate, then `unit-steps.mjs merge EZD-173`. If develop moved again, resolve the merge in that round
+- At merge: remove ezd173Grant from .claude/hooks/guard-paths.mjs and vault/handoff/EZD-173-guard.patch (needs Josh, guard file)
+- Owed: phase 1 fix ticket for planner QP-1 (two gates racing to take over a dead lock); fix ticket EZD-254; confirm wording list in STATUS Notes for EZD-173
+- Scratch folders for Josh to delete by hand (a hook blocks recursive delete): /tmp/ezd173-scratch-paix, /tmp/ezd173-check-KzQU
+- vault/handoff/Q-0405-planner-reuse.patch is untracked and not from this unit; check whether it is already applied (4233c18b)
