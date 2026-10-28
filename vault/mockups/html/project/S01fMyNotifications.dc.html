@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft notification settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.ghost{height:258px;background:#fff;border:1px solid #e6e9ed;border-radius:12px}
+.tab{border:0;background:transparent;padding:10px 2px;margin-bottom:-1px;font:500 14px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer;border-bottom:2px solid transparent}
+.tabon{color:#14171c;font-weight:600;border-bottom-color:oklch(0.55 0.17 262)}
+.hp{font-size:13px;color:#5e6672;margin:0}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 80px 80px;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f2f5;font-size:14px}
+.sw{position:relative;width:40px;height:22px;border-radius:999px;border:0;padding:0;cursor:pointer;justify-self:center}
+.on{background:oklch(0.55 0.17 262)}
+.off{background:#c9ced5}
+.kn{position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Projects</span>
+</header>
+<main style="flex: 1; min-height: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600">Projects</h1>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
+<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
+</div>
+</main>
+<div style="position: absolute; inset: 0; background: rgba(20,23,28,.46)"></div>
+<section class="card" role="dialog" aria-modal="true" aria-label="My profile" style="position: absolute; left: 480px; top: 70px; width: 640px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 64px rgba(10,15,30,.28)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 24px 0">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 600">My profile</h2>
+<span style="font-size: 13px; color: #5e6672">Josh Bishop · [email]</span>
+</div>
+<button class="b" aria-label="Close" style="padding: 7px; border: 0"><span class="ms" style="font-size: 20px">close</span></button>
+</div>
+<div role="tablist" style="display: flex; gap: 24px; padding: 12px 24px 0; border-bottom: 1px solid #eef0f3">
+<a href="S01eMyProfile.dc.html" role="tab" aria-selected="false" class="tab" style="text-decoration: none">Profile</a>
+<button role="tab" aria-selected="true" class="tab tabon">Notifications</button>
+</div>
+<div style="padding: 16px 24px 20px; display: flex; flex-direction: column; gap: 4px">
+<p class="hp" style="margin-bottom: 8px">Choose what reaches you. Each email has a link that opens the same item.</p>
+<div class="row" style="font-size: 12px; font-weight: 600; color: #5e6672; text-transform: uppercase; letter-spacing: .04em; padding-top: 0"><span>Notification</span><span style="text-align: center">In app</span><span style="text-align: center">Email</span></div>
+<sc-for list="{{kinds}}" as="k" hint-placeholder-count="9">
+<div class="row">
+<span>{{k.label}}</span>
+<button class="sw {{k.appClass}}" role="switch" aria-checked="{{k.app}}" aria-label="{{k.label}} in app"><span class="kn" style="left: {{k.appKnob}}"></span></button>
+<button class="sw {{k.mailClass}}" role="switch" aria-checked="{{k.mail}}" aria-label="{{k.label}} by email"><span class="kn" style="left: {{k.mailKnob}}"></span></button>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid #eef0f3; background: #fafbfc">
+<button class="b">Cancel</button>
+<button class="b bp">Save</button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const kinds = [
+'Client approval or comment',
+'Field conflict',
+'Field measurements received',
+'Photoreal render finished',
+'Edit request',
+'Offline sync conflict',
+'Version cleanup due',
+'Render allowance refilled',
+'New field pack issued'
+];
+const sw = on => ({ cls: on ? 'on' : 'off', knob: on ? '21px' : '3px', val: on ? 'true' : 'false' });
+return {
+kinds: kinds.map(label => {
+const a = sw(true), m = sw(true);
+return { label, app: a.val, appClass: a.cls, appKnob: a.knob, mail: m.val, mailClass: m.cls, mailKnob: m.knob };
+})
+};
+}
+}
+</script>
+</body>
+</html>

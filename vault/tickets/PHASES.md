@@ -37,14 +37,14 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | Phase | Name | Draft slice | Tickets | Change |
 | --- | --- | --- | --- | --- |
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
-| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 137, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
+| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
 | 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 238 |  |
 | 4 | Plan canvas and first walls | 4 | 201, 203, 205, 236, 207, 209, 210, 221 |  |
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 206, 208, 211, 212, 213, 217 |  |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
-| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139 |  |
+| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139, 137 | EZD-137 moved from phase 2 (Q-0395). |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 10 | 215, 220, 229, 234, 226, 227 |  |
 | 11 | Editing tools, groups, libraries, shortcuts | 11 | 131, 222, 230, 223, 231, 233, 232 |  |
 | 12 | Polycam scan import | 12 | 301, 302, 303, 307, 308, 309, 310, 311, 313 |  |
@@ -111,6 +111,21 @@ Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are
   4. Sign in as the second-tenant test user. Expected: no tenant 1 projects or users are visible anywhere.
   5. In the PR checks, open the gate run. Expected: lint, type check, unit tests, browser tests and the performance check (EZD-017) all pass.
   6. After merging, open ezdraft.ezcontractorbinder.com. Expected: production serves the merged build.
+
+## Phase 2 · Projects list and new project
+
+- **Goal:** the office sees every project on one page, starts a new project, and gets notifications in the app and by email, each chosen per person (Q-0390).
+- **User-visible result:** Josh signs in, sees Projects with its status tabs, counts and search, makes a standalone project from the wizard, gets a test notification in the bell and by email, and turns that email off in My profile.
+- **Tickets:** EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118, EZD-140. EZD-137 moved to phase 9 (Q-0395).
+- **Spec files:** S01 Projects, S15 Avatar, App shell · Notifications, W1; decisions Q-0390 to Q-0403; boards S01, S01b, S01c to S01f.
+- **Out of scope until later:** opening a project (phase 3, Q-0394); Foreman picker (phase 7, Q-0397); Mark complete (phase 9, Q-0395); input sources other than Blank, code edition and submittal profile (their phases, Q-0398, Q-0399); anything EZ Binder (Q-0190, Q-0401).
+- **Josh's test script (punch list at the gate):**
+  1. Sign in. Expected: Projects shows the status tabs with counts, sort and search, and no EZ Binder link.
+  2. Type part of a client name in search. Expected: the cards and the tab counts narrow to the matches.
+  3. New project → Standalone, fill name, address, type and scope of work, pick or add a client, Create. Expected: back on Projects with the new Draft card.
+  4. Open the bell after a test notification is sent. Expected: it is listed and the email arrives; clicking it marks it read.
+  5. Avatar → My profile → Notifications, turn that kind's Email off, Save, send it again. Expected: it shows in the bell but no email arrives.
+  6. My profile → Profile, change iPad drawing and language, Save, reload. Expected: both kept.
 
 ## Slices 1 to 53 · proposed re-cut of spec phases 1 to 17 (draft for Josh's approval)
 

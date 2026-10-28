@@ -8,14 +8,14 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | --- | --- | --- | --- |
 | 0 | Phase 0 · Setup | 0 ([phase-00.md](phases/phase-00.md)) | 74 |
 | 1 | Company settings and customers | 1 | 9 |
-| 2 | Projects list and new project | 1 | 7 |
+| 2 | Projects list and new project | 1 | 6 |
 | 3 | Model store and editor route | 1, 2 | 5 |
 | 4 | Plan canvas and first walls | 2 | 8 |
 | 5 | Openings, selection, move, inspector, undo | 2 | 7 |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 1, 2 | 8 |
 | 7 | Users, roles, project scope, event log | 1 | 7 |
 | 8 | Defaults, edit lock, project settings | 1, 2 | 6 |
-| 9 | Versions, sends and the project card menu | 1 | 6 |
+| 9 | Versions, sends and the project card menu | 1 | 7 |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 2 | 6 |
 | 11 | Editing tools, groups, libraries, shortcuts | 1, 2 | 7 |
 | 12 | Polycam scan import | 3 | 9 |
@@ -567,7 +567,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-251 | 1 | Fix: the health timeout test (EZD-181 T3) passes when two full gates run at once | ready | low | EZD-181 |  |  | Added 2026-10-28 by Josh (Q-0381; rule 17): found in EZD-172 round 6. |
 | EZD-252 | 1 | Fix: a test file that writes error_alert rows must hold the error-alert lock | ready | high | EZD-251 |  |  | Added 2026-10-28 for Q-0385 (a) (rules 17, 18). |
 | EZD-253 | 1 | Fix: build-system tickets run on their own track beside the product phases | ready | high | EZD-244, EZD-250 |  |  | Added 2026-10-28 by Josh (priority 1): phase 1 gates and phase 2 is planned without waiting for build-system tickets. |
-| EZD-137 | 2 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). |
+| EZD-137 | 9 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102, EZD-124 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). Moved to phase 9 after EZD-124 (Q-0395). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
 | EZD-641 | 21 | Scope of work match check | todo |  | EZD-611a, EZD-118 |  |  | Added 2026-10-20 in the re-cut for Q-0180 (Q-0218). |

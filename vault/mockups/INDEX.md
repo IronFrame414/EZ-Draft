@@ -48,3 +48,9 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S20 | Versions + cleanup sheet | [S20Versions.png](S20Versions.png) | [html/project/S20Versions.dc.html](html/project/S20Versions.dc.html) |
 | S21 | Field measurements review | [S21FieldMeasReview.png](S21FieldMeasReview.png) | [html/project/S21FieldMeasReview.dc.html](html/project/S21FieldMeasReview.dc.html) |
 | S22 | Field tasks | [S22FieldTasks.png](S22FieldTasks.png) | [html/project/S22FieldTasks.dc.html](html/project/S22FieldTasks.dc.html) |
+| S01c | Notification list | [S01cNotifications.png](S01cNotifications.png) | [html/project/S01cNotifications.dc.html](html/project/S01cNotifications.dc.html) |
+| S01d | Avatar menu | [S01dAvatarMenu.png](S01dAvatarMenu.png) | [html/project/S01dAvatarMenu.dc.html](html/project/S01dAvatarMenu.dc.html) |
+| S01e | My profile | [S01eMyProfile.png](S01eMyProfile.png) | [html/project/S01eMyProfile.dc.html](html/project/S01eMyProfile.dc.html) |
+| S01f | My profile: notifications | [S01fMyNotifications.png](S01fMyNotifications.png) | [html/project/S01fMyNotifications.dc.html](html/project/S01fMyNotifications.dc.html) |
+
+S01c to S01f added 2026-10-28 for phase 2 (Q-0391): drawn on the same design canvas and approved by Josh; PNGs rendered from the canvas HTML with its own runtime at 1600 × 1000.

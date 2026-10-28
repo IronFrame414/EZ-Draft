@@ -2664,7 +2664,9 @@
    ],
    "mockups": [
     "mockups/S15Settings.png",
-    "mockups/S01Projects.png"
+    "mockups/S01Projects.png",
+    "mockups/S01dAvatarMenu.png",
+    "mockups/S01eMyProfile.png"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2673,12 +2675,20 @@
    ],
    "build_position": 81,
    "acs": [
-    "AC-EZD-108-1"
+    "AC-EZD-108-1",
+    "AC-EZD-108-2",
+    "AC-EZD-108-3",
+    "AC-EZD-108-4",
+    "AC-EZD-108-5",
+    "AC-EZD-108-6",
+    "AC-EZD-108-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0391",
+    "spec/decisions/05-screens.md#Q-0392"
    ]
   },
   {
@@ -2719,7 +2729,8 @@
     "spec/sections/screens/S01-projects.md#Notifications button"
    ],
    "mockups": [
-    "mockups/S01Projects.png"
+    "mockups/S01Projects.png",
+    "mockups/S01cNotifications.png"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2729,13 +2740,20 @@
    ],
    "build_position": 82,
    "acs": [
-    "AC-EZD-110-1"
+    "AC-EZD-110-1",
+    "AC-EZD-110-2",
+    "AC-EZD-110-3",
+    "AC-EZD-110-4",
+    "AC-EZD-110-5",
+    "AC-EZD-110-6",
+    "AC-EZD-110-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0391"
    ]
   },
   {
@@ -2886,12 +2904,19 @@
    "build_position": 83,
    "acs": [
     "AC-EZD-117a-1",
-    "AC-EZD-117a-2"
+    "AC-EZD-117a-2",
+    "AC-EZD-117a-3",
+    "AC-EZD-117a-4",
+    "AC-EZD-117a-5",
+    "AC-EZD-117a-6",
+    "AC-EZD-117a-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0394",
+    "spec/decisions/05-screens.md#Q-0402"
    ]
   },
   {
@@ -2917,13 +2942,19 @@
    "build_position": 84,
    "acs": [
     "AC-EZD-117b-1",
-    "AC-EZD-117b-2"
+    "AC-EZD-117b-2",
+    "AC-EZD-117b-3",
+    "AC-EZD-117b-4",
+    "AC-EZD-117b-5",
+    "AC-EZD-117b-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/05-screens.md#Q-0401",
+    "spec/decisions/05-screens.md#Q-0402"
    ]
   },
   {
@@ -2948,9 +2979,17 @@
    ],
    "build_position": 85,
    "acs": [
-    "AC-EZD-118-1"
+    "AC-EZD-118-1",
+    "AC-EZD-118-2",
+    "AC-EZD-118-3",
+    "AC-EZD-118-4",
+    "AC-EZD-118-5",
+    "AC-EZD-118-6",
+    "AC-EZD-118-7",
+    "AC-EZD-118-8",
+    "AC-EZD-118-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -2959,7 +2998,14 @@
     "spec/decisions/08-import-and-export.md#Q-0189",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
     "spec/decisions/10-permissions-and-settings.md#Q-0202",
-    "spec/decisions/05-screens.md#Q-0203"
+    "spec/decisions/05-screens.md#Q-0203",
+    "spec/decisions/05-screens.md#Q-0394",
+    "spec/decisions/05-screens.md#Q-0396",
+    "spec/decisions/05-screens.md#Q-0397",
+    "spec/decisions/05-screens.md#Q-0398",
+    "spec/decisions/05-screens.md#Q-0399",
+    "spec/decisions/05-screens.md#Q-0401",
+    "spec/decisions/10-permissions-and-settings.md#Q-0400"
    ]
   },
   {
@@ -14706,9 +14752,9 @@
   },
   {
    "id": "EZD-137",
-   "phase": 2,
+   "phase": 9,
    "title": "Mark complete and Completed filter",
-   "depends_raw": "EZD-117a, EZD-117b, EZD-102",
+   "depends_raw": "EZD-117a, EZD-117b, EZD-102, EZD-124",
    "spec_ref": "Q-0191, Q-0199; S01 Projects",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Projects"
@@ -14720,7 +14766,8 @@
    "depends_on": [
     "EZD-117a",
     "EZD-117b",
-    "EZD-102"
+    "EZD-102",
+    "EZD-124"
    ],
    "build_position": 86,
    "acs": [
@@ -14732,7 +14779,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/05-screens.md#Q-0191",
-    "spec/decisions/05-screens.md#Q-0199"
+    "spec/decisions/05-screens.md#Q-0199",
+    "spec/decisions/05-screens.md#Q-0395"
    ]
   },
   {
@@ -15305,9 +15353,13 @@
     "spec/sections/02-product-overview.md"
    ],
    "decisions": [
-    "spec/decisions/02-product-overview.md#Q-0220"
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0391",
+    "spec/decisions/05-screens.md#Q-0393"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S01fMyNotifications.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-110"
@@ -15315,9 +15367,11 @@
    "build_position": 0,
    "acs": [
     "AC-EZD-140-1",
-    "AC-EZD-140-2"
+    "AC-EZD-140-2",
+    "AC-EZD-140-3",
+    "AC-EZD-140-4"
    ],
-   "acs_source": "done-when"
+   "acs_source": "stage-0"
   },
   {
    "id": "EZD-1711",

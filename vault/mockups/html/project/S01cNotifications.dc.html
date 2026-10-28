@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft notification list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bon{border-color:oklch(0.55 0.17 262);background:#eef1ff;color:oklch(0.45 0.17 262)}
+.ghost{height:258px;background:#fff;border:1px solid #e6e9ed;border-radius:12px}
+.ni{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer;font:400 13px 'Instrument Sans',sans-serif;color:#14171c;text-decoration:none}
+.ni:hover{background:#f2f4f7}
+.nu{background:#f7f8ff}
+.ic{width:32px;height:32px;flex:none;border-radius:8px;background:#f2f4f7;color:#3b424d;display:flex;align-items:center;justify-content:center}
+.lk{border:0;background:transparent;padding:0;font:500 13px 'Instrument Sans',sans-serif;color:oklch(0.5 0.17 262);cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Projects</span>
+<div style="flex: 1"></div>
+<label style="display: flex; align-items: center; gap: 8px; width: 340px; height: 38px; box-sizing: border-box; border: 1px solid #dfe2e6; border-radius: 8px; padding: 0 12px; color: #5e6672">
+<span class="ms" style="font-size: 20px">search</span>
+<input aria-label="Search projects" placeholder="Search client, address or project" style="border: 0; outline: none; flex: 1; font: 400 14px 'Instrument Sans', sans-serif; color: #14171c">
+<span class="mono" style="font-size: 12px; border: 1px solid #dfe2e6; border-radius: 5px; padding: 1px 6px">/</span>
+</label>
+<button class="b bon" aria-label="Notifications, 2 new" aria-expanded="true" style="position: relative; padding: 9px 10px"><span class="ms" style="font-size: 20px">notifications</span><span style="position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span></button>
+<a href="#" class="b" style="padding: 9px 10px" aria-label="Company settings"><span class="ms" style="font-size: 20px">settings</span></a>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<main style="flex: 1; min-height: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Projects</h1>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
+<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
+</div>
+</main>
+<section class="card" role="dialog" aria-label="Notifications" style="position: absolute; right: 108px; top: 84px; width: 420px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 12px; box-shadow: 0 16px 48px rgba(10,15,30,.18)">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid #eef0f3">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600">Notifications</h2>
+<button class="lk">Mark all read</button>
+</div>
+<div style="display: flex; flex-direction: column; padding: 6px">
+<sc-for list="{{items}}" as="n" hint-placeholder-count="5">
+<a href="#" class="ni {{n.rowClass}}">
+<span class="ic"><span class="ms" style="font-size: 18px">{{n.icon}}</span></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<span style="font-weight: {{n.weight}}; font-size: 14px">{{n.title}}</span>
+<span style="color: #5e6672">{{n.project}}</span>
+<span class="mono" style="color: #6b7280; font-size: 12px">{{n.when}}</span>
+</span>
+<span aria-label="{{n.readLabel}}" style="width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; flex: none; background: {{n.dot}}"></span>
+</a>
+</sc-for>
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 10px 16px; display: flex; justify-content: center">
+<button class="lk">Show older</button>
+</div>
+</section>
+<section class="card" aria-label="Empty notification list" style="position: absolute; right: 108px; top: 700px; width: 420px; box-sizing: border-box; border-radius: 12px; box-shadow: 0 16px 48px rgba(10,15,30,.18)">
+<div style="padding: 14px 16px 10px; border-bottom: 1px solid #eef0f3"><h2 style="margin: 0; font-size: 15px; font-weight: 600">Notifications</h2></div>
+<div style="padding: 28px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: #5e6672">
+<span class="ms" style="font-size: 28px; color: #9aa3af">notifications_off</span>
+<span style="font-size: 14px">No notifications yet</span>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+const rows = [
+['edit', '[Name] asked to edit', 'Kitchen remodel · [Client A]', '4 min ago', true],
+['photo_camera', 'Photoreal render finished', 'Primary bath · [Client B]', '22 min ago', true],
+['check_circle', 'Client approved Version 2', 'Primary bath · [Client B]', 'Yesterday 4:12 PM', false],
+['straighten', 'Field measurements received', 'Guest bath · [Client E]', 'Oct 26', false],
+['event', 'Version cleanup due', 'Kitchen + laundry · [Client F]', 'Oct 25', false]
+];
+return {
+items: rows.map(r => ({
+icon: r[0], title: r[1], project: r[2], when: r[3],
+rowClass: r[4] ? 'nu' : '',
+weight: r[4] ? 600 : 500,
+dot: r[4] ? 'oklch(0.72 0.16 65)' : 'transparent',
+readLabel: r[4] ? 'Unread' : 'Read'
+}))
+};
+}
+}
+</script>
+</body>
+</html>
