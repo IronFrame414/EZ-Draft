@@ -1,8 +1,8 @@
 # Handoff · 2026-10-28 · build EZD-242
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: ticket blocked
-- Completed: tests (61cbeaa3), build (68066ea1), B3 structural repair (b79093f8) on t/EZD-242; worktree kept. Not yet gated by me or reviewed.
-- Blocked: EZD-242 on scripts/ledger/priority.test.mjs (fails on develop: only one ready phase 1 ticket). Details: vault/handoff/EZD-242-ledger-priority.md. Every develop gate hits it.
-- Questions for Josh: apply the ledger test fix. Also confirm the customer search box stays un-greyed offline (plan keeps it; Done-when says "every input"; Q-0360 (c) names Company settings inputs).
-- Next unit: resume `build EZD-242` at step 7 after the fix.
+- Why the session ended: ticket blocked on a develop gate failure not caused by it
+- Completed on t/EZD-242: tests, build, B3 test timing fix (b79093f8), round 2 dialog Save disabled look (68c78d8e test, 6519b95c build). Ticket gate PASS; code-reviewer and ui-verifier PASS in round 2. Worktree kept.
+- Blocked: `unit-steps.mjs merge EZD-242` is MERGE RED. EZD-000d T8 (scripts/tools/research.test.mjs) fails because the untracked vault/research/pending/Q-0089-Q-0237.md has no `ticket:` in its header, so `research.mjs adopt` skips it and T8 forbids pending .md files.
+- Needs Josh: give that report a ticket line (or move it out of pending), run `node vault/tools/research.mjs adopt`, commit.
+- Next unit: build EZD-242, resume at step 10 (merge). No re-review needed.
