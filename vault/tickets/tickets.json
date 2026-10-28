@@ -15802,6 +15802,51 @@
     "AC-EZD-247-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-248",
+   "phase": 1,
+   "title": "Fix: a question row is checked before it is committed",
+   "depends_raw": "EZD-000",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000"
+   ],
+   "build_position": 520,
+   "acs": [
+    "AC-EZD-248-1",
+    "AC-EZD-248-2",
+    "AC-EZD-248-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-249",
+   "phase": 1,
+   "title": "Fix: a research report is checked before it is committed",
+   "depends_raw": "EZD-000",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000"
+   ],
+   "build_position": 521,
+   "acs": [
+    "AC-EZD-249-1",
+    "AC-EZD-249-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
