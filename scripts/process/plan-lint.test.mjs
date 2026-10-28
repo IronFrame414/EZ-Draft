@@ -34,6 +34,7 @@ const good = () => `# EZD-900 · Sample
 
 ## 2. Sources
 Spec 04, for example the shell section.
+Architecture: none beyond the core
 
 ## 3. Interface contract
 | Kind | Name or path | Details |
@@ -115,4 +116,13 @@ test('the CLI prints PLAN LINT OK or FAIL with exit 0 or 1', () => {
   assert.equal(bad.status, 1);
   assert.match(bad.stdout, /^PLAN LINT FAIL/);
   rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-244 P2: section 2 needs an Architecture line naming existing headings', () => {
+  const without = good().replace('Architecture: none beyond the core\n', '');
+  assert.ok(lintPlan(without).includes('section 2: no "Architecture:" line (headings beyond the core, or "none beyond the core"; EZD-244)'));
+  const bad = good().replace('Architecture: none beyond the core', 'Architecture: No such heading');
+  assert.ok(lintPlan(bad, { headings: ['Tests'] }).includes('section 2: Architecture section "No such heading" is not a heading in docs/architecture.md'));
+  const fine = good().replace('Architecture: none beyond the core', 'Architecture: Tests');
+  assert.deepEqual(lintPlan(fine, { headings: ['Tests'] }), []);
 });

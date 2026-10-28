@@ -549,6 +549,13 @@
     "spec/sections/02-product-overview.md#Hosting"
    ],
    "mockups": [],
+   "architecture": [
+    "Runtime",
+    "Hosting",
+    "Named tools",
+    "Machine checks",
+    "CI"
+   ],
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
     "EZD-002"
@@ -13221,6 +13228,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Hosting",
+    "Dependencies",
+    "Local database"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-007a",
@@ -13514,6 +13526,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000c"
@@ -13722,6 +13737,13 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "PWA (EZD-013)",
+    "Auth and session (EZD-007)",
+    "Browser tests (EZD-016a)",
+    "AI stubs and the network guard (EZD-021)",
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-016a",
@@ -13925,6 +13947,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Local database"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-004a",
@@ -13951,6 +13976,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Environments and releases (EZD-023b)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000g",
@@ -13976,6 +14004,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-172",
@@ -14001,6 +14030,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-173"
@@ -14155,6 +14185,10 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Hosting",
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-177"
@@ -14223,6 +14257,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-174",
@@ -14360,6 +14395,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Dependencies",
+    "Root config files",
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-001",
@@ -14392,6 +14432,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Local database",
+    "Browser tests (EZD-016a)",
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-159",
@@ -14415,6 +14460,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "CI"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-001"
@@ -14528,6 +14576,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000c"
@@ -14550,6 +14601,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-198"
@@ -14617,6 +14669,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000h"
@@ -14640,6 +14693,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000h"
@@ -15589,6 +15643,12 @@
    "mockups": [
     "mockups/S15aCompany.png"
    ],
+   "architecture": [
+    "Machine checks",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-112"
@@ -15612,6 +15672,13 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Environment variables",
+    "Hosting",
+    "Environments and releases (EZD-023b)",
+    "Machine checks",
+    "Root config files"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-008b",
@@ -15636,6 +15703,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000"
@@ -15662,6 +15732,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-244"
@@ -15687,6 +15758,7 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-245"
@@ -15711,6 +15783,14 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Environments and releases (EZD-023b)",
+    "Machine checks",
+    "Root config files",
+    "Hosting",
+    "Row-level security (EZD-006)",
+    "Environment variables"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-243"

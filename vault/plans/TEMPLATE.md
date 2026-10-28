@@ -26,7 +26,7 @@ Files, exports and behaviors the builder must leave as they are. "None" when not
 Ticket row, copied from the phase file: Scope / Done when / Depends on / Spec ref.
 
 ## 2. Sources
-Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R26 Rn, Q-nnnn, with the decisions file), and the mockup (`vault/mockups/Snn….png` + HTML). Every statement in section 1 cites one of these. Research reports R-NNN the plan drew on; a ticket no report covers says so.
+Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R26 Rn, Q-nnnn, with the decisions file), and the mockup (`vault/mockups/Snn….png` + HTML). Every statement in section 1 cites one of these. Research reports R-NNN the plan drew on; a ticket no report covers says so. End with `Architecture: <heading>; <heading>`: the `docs/architecture.md` headings this ticket needs beyond the core (the file's `Core sections:` line), or `Architecture: none beyond the core`. `next_ticket.mjs --set-architecture` copies it to `tickets.json` (EZD-244).
 
 ## 3. Interface contract
 What tests and code are both written to. Dependents must match it.

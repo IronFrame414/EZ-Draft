@@ -46,7 +46,7 @@ const failureFile = path.join(vault, 'handoff/last-failure.json');
 export const logDir = config.log_dir || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library/Logs/ezdraft') : path.join(root, '.launcher'));
 const inflightFile = path.join(logDir, 'inflight.json');
 const claudeBin = config.claude_bin || 'claude';
-const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const { weekSpend, questionsFingerprint, assignQuestionIds, setArchitecture } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
@@ -171,6 +171,7 @@ function afterAgentUnit(unitName, arg, res) {
   if (unitName === 'plan') {
     const planPath = path.join(vault, 'plans', `${arg}.md`);
     if (!existsSync(planPath)) return `plan file missing: ${planPath}`;
+    const arch = setArchitecture(arg); if (!arch.ok) return arch.message;
     const plan = readFileSync(planPath, 'utf8');
     const complexity = plan.match(/\*\*Complexity:\*\*\s*(low|medium|high)/i)?.[1]?.toLowerCase() || '';
     const oq = plan.match(/^## (?:10\. )?Open questions[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m)?.[1] || '';

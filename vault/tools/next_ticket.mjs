@@ -8,8 +8,9 @@
 //   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
-//   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
+//   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Architecture, Plan and Sections
 //                                                    lines (Sections from the table in .claude/skills/build-ticket/SKILL.md; Q-0218)
+//   node vault/tools/next_ticket.mjs --set-architecture <ticket>  -> copies the plan's Architecture line to tickets.json (EZD-244)
 //   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, orchestratorAdvice}
 //                                                    from the PROCESS.md section 4 table (v2.4)
 //   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch (v2.4)
@@ -22,6 +23,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -301,6 +303,86 @@ function readingProblems() {
   }
   return out;
 }
+
+// Architecture map (EZD-244): docs/architecture.md is read by heading. The doc names its core sections on one line;
+// every open ticket carries `architecture` in tickets.json (headings beyond the core), copied from its plan.
+const ARCH_DOC = path.join(root, 'docs/architecture.md');
+const OPEN_STATUSES = ['planned', 'questions', 'ready', 'in-progress', 'review', 'blocked'];
+const noList = (id) => `${id}: no architecture list (EZD-244; run --set-architecture ${id})`;
+const notHeading = (id, h) => `${id}: architecture section "${h}" is not a heading in docs/architecture.md`;
+const repeatedEntry = (id) => `${id}: architecture list holds a repeated or non-text entry`;
+const DOC_MISSING = 'docs/architecture.md missing (architecture map, EZD-244)';
+const DOC_NO_CORE = 'docs/architecture.md: no "Core sections:" line (EZD-244)';
+function architectureDoc() {
+  if (!existsSync(ARCH_DOC)) return null;
+  const text = readFileSync(ARCH_DOC, 'utf8');
+  return { text, headings: architectureHeadings(text).map((h) => h.text), core: coreSections(text) };
+}
+function entryProblem(id, list, headings) {
+  if (!Array.isArray(list)) return noList(id);
+  for (const h of list) if (typeof h === 'string' && !headings.includes(h)) return notHeading(id, h);
+  if (list.some((h) => typeof h !== 'string') || new Set(list).size !== list.length) return repeatedEntry(id);
+  return null;
+}
+function architectureProblems() {
+  const doc = architectureDoc();
+  const out = [];
+  if (!doc) out.push(DOC_MISSING);
+  else {
+    const counts = new Map();
+    for (const h of doc.headings) counts.set(h, (counts.get(h) || 0) + 1);
+    for (const [h, n] of counts) {
+      if (n > 1) out.push(`docs/architecture.md: heading "${h}" appears ${n} times`);
+      if (h.includes("'") || h.includes(';')) out.push(`docs/architecture.md: heading "${h}" contains ' or ;`);
+    }
+    if (!doc.core) out.push(DOC_NO_CORE);
+    else for (const h of doc.core) if (!doc.headings.includes(h)) out.push(`docs/architecture.md: core section "${h}" is not a heading`);
+  }
+  for (const t of data.tickets) {
+    if (!OPEN_STATUSES.includes(status(t.id))) continue;
+    if (t.architecture === undefined) { out.push(noList(t.id)); continue; }
+    if (!doc) continue;
+    const e = entryProblem(t.id, t.architecture, doc.headings);
+    if (e) out.push(e);
+    const planPath = path.join(vault, 'plans', `${t.id}.md`);
+    if (!existsSync(planPath) || !Array.isArray(t.architecture)) continue;
+    const a = planArchitecture(readFileSync(planPath, 'utf8'));
+    if (a.list && (a.list.length !== t.architecture.length || a.list.some((h, i) => h !== t.architecture[i])))
+      out.push(`${t.id}: plan Architecture line differs from tickets.json (run --set-architecture ${t.id})`);
+  }
+  return out;
+}
+export function setArchitecture(id) {
+  const fail = (message) => ({ ok: false, message });
+  const planPath = path.join(vault, 'plans', `${id}.md`);
+  if (!existsSync(planPath)) return fail(`${id}: no plan vault/plans/${id}.md`);
+  const file = path.join(vault, 'tickets/tickets.json');
+  const d = JSON.parse(readFileSync(file, 'utf8'));
+  const t = d.tickets.find((x) => x.id === id);
+  if (!t) return fail(`unknown ticket ${id}`);
+  const a = planArchitecture(readFileSync(planPath, 'utf8'));
+  if (a.error === 'no Architecture line in section 2') {
+    if (Array.isArray(t.architecture)) return { ok: true, message: `ARCHITECTURE KEPT ${id}: no Architecture line; tickets.json list unchanged` };
+    return fail(`${id}: no Architecture line in section 2 of vault/plans/${id}.md`);
+  }
+  if (a.error) return fail(`${id}: empty Architecture line in section 2 of vault/plans/${id}.md`);
+  const doc = architectureDoc();
+  if (!doc) return fail(DOC_MISSING);
+  if (!doc.core) return fail(DOC_NO_CORE);
+  const e = entryProblem(id, a.list, doc.headings);
+  if (e) return fail(e);
+  const rebuilt = {};
+  let placed = false;
+  for (const [k, v] of Object.entries(t)) {
+    if (k === 'architecture') continue;
+    rebuilt[k] = v;
+    if (k === 'mockups') { rebuilt.architecture = a.list; placed = true; }
+  }
+  if (!placed) rebuilt.architecture = a.list;
+  d.tickets = d.tickets.map((x) => (x.id === id ? rebuilt : x));
+  writeFileSync(file, JSON.stringify(d, null, 1) + '\n');
+  return { ok: true, message: `ARCHITECTURE SET ${id}: ${a.list.length} section(s)` };
+}
 // The plan sections each role reads, from the table in .claude/skills/build-ticket/SKILL.md (optimize plan C3).
 const roleKey = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 function roleSections() {
@@ -338,6 +420,14 @@ function readsLines(id, role) {
     `Decisions: ${group(t.decisions || [], 'vault/') || '(none)'}`,
   ];
   if ((t.mockups || []).length) lines.push(`Mockups: ${t.mockups.map((m) => `vault/${m}`).join(', ')}`);
+  const doc = architectureDoc();
+  if (!doc) throw new Error(DOC_MISSING);
+  if (!doc.core) throw new Error(DOC_NO_CORE);
+  if (key !== 'planner' && !Array.isArray(t.architecture)) throw new Error(noList(id));
+  const extra = Array.isArray(t.architecture) ? t.architecture.filter((h) => !doc.core.includes(h)) : [];
+  const sections = [...doc.core, ...extra].map((h) => ` --section '${h}'`).join('');
+  lines.push(`Architecture: node vault/tools/outline.mjs docs/architecture.md${sections}`);
+  if (key === 'planner') lines.push('Architecture headings: node vault/tools/outline.mjs docs/architecture.md --headings');
   if (key === 'planner') lines.push(`Plan: vault/plans/${id}.md (to write)`);
   else lines.push(`Plan: vault/plans/${id}.md`, `Sections: ${roles.get(key).sections}`);
   return lines;
@@ -446,6 +536,7 @@ function check() {
   if (ac.status !== 0) problems.push((ac.stdout || ac.stderr).trim().split('\n')[0]);
   problems.push(...lessonProblems());
   problems.push(...readingProblems());
+  problems.push(...architectureProblems());
   return problems;
 }
 
@@ -702,6 +793,13 @@ if (isMain) {
     if (!id || !role.length) { console.error('usage: --reads <ticket> <role>'); process.exit(1); }
     try { console.log(readsLines(id, role.join(' ')).join('\n')); } catch (e) { console.error(e.message); process.exit(1); }
     process.exit(0);
+  }
+  if (args.includes('--set-architecture')) {
+    const id = args[args.indexOf('--set-architecture') + 1];
+    if (!id) { console.error('usage: --set-architecture <ticket>'); process.exit(1); }
+    const r = setArchitecture(id);
+    (r.ok ? console.log : console.error)(r.message);
+    process.exit(r.ok ? 0 : 1);
   }
   if (args.includes('--dispatch')) {
     const i = args.indexOf('--dispatch');

@@ -2,7 +2,7 @@
 // and a questions unit that changed nothing is not repeated. Runs on a temporary copy of vault/.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdtempSync, readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -30,10 +30,12 @@ const qText = (rel) => (existsSync(file(rel)) ? readFileSync(file(rel), 'utf8') 
 const qRows = (rel) => qText(rel).split('\n').filter((l) => /^\| Q-\d{4} \|/.test(l));
 const run = (flag) => spawnSync(process.execPath, [tool(), flag], { encoding: 'utf8' });
 
-before(() => {
+before(async () => {
   const dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-ledger-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  mkdirSync(path.join(dir, 'docs'), { recursive: true });
+  cpSync(path.join(root, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/.questions-last-run.json']) if (existsSync(file(f))) spawnSync('rm', [file(f)]);
   // Fixed fixture, independent of where the live ledger stands (lesson L-003): every phase 0 ticket but EZD-000 is ready,
   // EZD-000i is in questions, and no phase 0 question is open or escalated.
@@ -63,6 +65,17 @@ before(() => {
   }
   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
+  // Tickets the reset above opened carry the architecture list their plan names (EZD-244), as the live ledger's open tickets do.
+  const { planArchitecture } = await import(pathToFileURL(file('tools/outline.mjs')).href);
+  edit('tickets/tickets.json', (s) => {
+    const data = JSON.parse(s);
+    for (const t of data.tickets) {
+      if (t.architecture !== undefined) continue;
+      const plan = file(`plans/${t.id}.md`);
+      t.architecture = (existsSync(plan) ? planArchitecture(readFileSync(plan, 'utf8')).list : null) ?? [];
+    }
+    return JSON.stringify(data, null, 2);
+  });
   const top = Math.max(...QFILES.flatMap((q) => [...qText(q).matchAll(/^\| Q-(\d{4}) \|/gm)]).map((m) => Number(m[1])));
   [qa, qb, qc] = [qid(top + 1), qid(top + 2), qid(top + 3)];
 });

@@ -25,8 +25,12 @@ before(() => {
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/]archive([\\/]|$)/.test(s) });
   mkdirSync(path.dirname(skill()), { recursive: true });
   cpSync(path.join(root, '.claude/skills/build-ticket/SKILL.md'), skill());
+  mkdirSync(path.join(dir, 'docs'), { recursive: true });
+  cpSync(path.join(root, 'docs/architecture.md'), path.join(dir, 'docs/architecture.md'));
+  editJson((d) => { ticket(d, 'EZD-118').architecture = ['Local database']; }); // EZD-244 R1: the architecture list
   saved = readFileSync(file('tickets/tickets.json'), 'utf8');
 });
+const ARCH = "Architecture: node vault/tools/outline.mjs docs/architecture.md --section 'Folder layout' --section 'Tests' --section 'Test scope (Q-0006)' --section 'Errors and logging' --section 'Adding a dependency' --section 'Local database'";
 const restore = () => writeFileSync(file('tickets/tickets.json'), saved);
 const fixture = () => editJson((d) => Object.assign(ticket(d, 'EZD-118'), {
   spec_files: ['spec/sections/03c-tables.md#project', 'spec/sections/03c-tables.md#tenant', 'spec/sections/screens/S01-projects.md'],
@@ -43,6 +47,7 @@ test('READS T1: --reads prints the Spec files, Decisions, Mockups, Plan and Sect
     'Spec files: vault/spec/sections/03c-tables.md (project; tenant), vault/spec/sections/screens/S01-projects.md',
     'Decisions: vault/spec/decisions/05-screens.md (Q-0201), vault/spec/decisions/10-permissions-and-settings.md',
     'Mockups: vault/mockups/S01bWizard.png',
+    ARCH,
     'Plan: vault/plans/EZD-118.md',
     'Sections: header, 1, 3, 4, 6',
   ]);
@@ -63,6 +68,7 @@ test('READS T3: the planner, who writes the plan, gets no Sections line', () => 
   const out = run('--reads', 'EZD-118', 'planner').stdout.trim().split('\n');
   assert.ok(out.some((l) => l === 'Plan: vault/plans/EZD-118.md (to write)'));
   assert.ok(!out.some((l) => l.startsWith('Sections:')));
+  assert.ok(out.includes('Architecture headings: node vault/tools/outline.mjs docs/architecture.md --headings')); // EZD-244 R2
 });
 
 test('READS T4: an unknown role or ticket exits 1 and names the problem', () => {
@@ -123,8 +129,9 @@ test('READS T9: the live ledger passes --check and lists no moved file (pointer,
 test('READS T10: every live ticket prints a reading list for the builder', () => {
   const d = JSON.parse(readFileSync(path.join(root, 'vault/tickets/tickets.json'), 'utf8'));
   for (const t of d.tickets.filter((_, i) => i % 40 === 0)) {
-    const r = spawnSync(process.execPath, [path.join(root, 'vault/tools/next_ticket.mjs'), '--reads', t.id, 'builder'], { encoding: 'utf8' });
+    const r = spawnSync(process.execPath, [path.join(root, 'vault/tools/next_ticket.mjs'), '--reads', t.id, 'planner'], { encoding: 'utf8' }); // EZD-244 R3: a todo ticket has no list, so a builder read exits 1
     assert.equal(r.status, 0, `${t.id}: ${r.stderr}`);
+    assert.match(r.stdout, /^Architecture: node vault\/tools\/outline\.mjs docs\/architecture\.md --section 'Folder layout'/m);
     assert.match(r.stdout, /^Spec files: vault\//m);
     assert.match(r.stdout, /^Decisions: /m);
   }

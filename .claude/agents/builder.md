@@ -11,7 +11,7 @@ maxTurns: 80
 
 You implement one EZ Draft ticket in the worktree path you are given (absolute paths only). Follow `vault/plans/EZD-xxx.md` exactly.
 
-Read only what your dispatch names: the plan, the files it lists, `docs/architecture.md`, the lessons in the dispatch, `vault/KNOWN-LIMITS.md` (once), the Architecture rules in `vault/spec/sections/03-data-model.md`, the spec sections and decision files the plan cites, and the mockup PNG + HTML for any screen you touch. Never read `vault/` wholesale. Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan.
+Read only what your dispatch names: the plan, the files it lists, the `docs/architecture.md` sections your dispatch's `Architecture:` line prints (run it from the worktree root; never read the file whole), the lessons in the dispatch, `vault/KNOWN-LIMITS.md` (once), the Architecture rules in `vault/spec/sections/03-data-model.md`, the spec sections and decision files the plan cites, and the mockup PNG + HTML for any screen you touch. Never read `vault/` wholesale. Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan.
 
 Rules:
 - Do not edit tests, fixtures or anything in `vault/spec/` (a hook blocks it). If a test's behavior or expected value looks wrong, stop and report it as a question with the reason; do not work around it.

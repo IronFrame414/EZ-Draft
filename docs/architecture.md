@@ -1,6 +1,8 @@
 # EZ Draft architecture conventions
 
-Written by EZD-000 (vault/plans/EZD-000.md). Every build session reads this file (R26 R11). It does not repeat CLAUDE.md; the build rules stay there (Q-0005). Sources are cited in short form: `02` = vault/spec/sections/02-product-overview.md, `03` = 03-data-model.md, `11` = 11-non-functional-requirements.md, `R24 #n` / `R26 Rn` = vault/spec/decisions/13a, 13b, `Q-nnnn` = vault/questions/QUESTIONS.md, QUESTIONS-answered.md or QUESTIONS-archive.md (one ledger in three files; look in all three). The vault copy is `vault/architecture.md`, re-made by the orchestrator on every merge that changes this file (Q-0012 (b)).
+Written by EZD-000 (vault/plans/EZD-000.md). Every build session reads it by section, never whole (R26 R11; EZD-244): the core sections on the line below, then the sections its ticket lists (the `Architecture:` line of `node vault/tools/next_ticket.mjs --reads <ticket> <role>`). Heading texts are unique and hold no `'` or `;`; renaming a heading means updating every ticket list that names it (`--check` names them). It does not repeat CLAUDE.md; the build rules stay there (Q-0005). Sources are cited in short form: `02` = vault/spec/sections/02-product-overview.md, `03` = 03-data-model.md, `11` = 11-non-functional-requirements.md, `R24 #n` / `R26 Rn` = vault/spec/decisions/13a, 13b, `Q-nnnn` = vault/questions/QUESTIONS.md, QUESTIONS-answered.md or QUESTIONS-archive.md (one ledger in three files; look in all three). The vault copy is `vault/architecture.md`, re-made by the orchestrator on every merge that changes this file (Q-0012 (b)).
+
+Core sections: Folder layout; Tests; Test scope (Q-0006); Errors and logging; Adding a dependency
 
 ## Runtime
 
@@ -1053,6 +1055,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Icon files equal the pinned commit | `icons:verify` (by hand), `app/src/components/icon/icons-verify.test.ts` | EZD-171 |
 | — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |
 | — | Email subject characters, https links on Vercel, stub outbox cap, alert subject line | `app/src/server/email/input-checks.test.ts`, `app/src/server/errors/alert-email.test.ts` | EZD-151 |
+| — | Every open ticket lists its architecture sections; every listed and core heading exists, is unique and holds no ' or ; | `node vault/tools/next_ticket.mjs --check`, `scripts/ledger/architecture-map.test.mjs` | EZD-244 |
 
 ### CI
 

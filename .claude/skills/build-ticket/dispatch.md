@@ -8,6 +8,7 @@ Plan: vault/plans/EZD-xxx.md
 Worktree: <absolute path> (use absolute paths inside it)
 Spec files: <the files the plan's Sources section cites>
 Decisions: <vault/spec/decisions/<area>.md files the plan cites; Q-IDs>
+Architecture: <the Architecture line of next_ticket.mjs --reads, as printed; the agent runs it from the worktree root>
 Gate summary: <paste the GATE SUMMARY block and SECURITY FLAG lines; reviewers only>
 Gate failures: <worktree>/gate-failures.log (never gate.log); red-gate rounds and reviewers
 Findings to address: <numbered findings from the last review; retries only. When --dispatch says orchestratorAdvice: true, add a block "Advice (orchestrator's advisor):" with the advice you got (Q-0333 (c))>

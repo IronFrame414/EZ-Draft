@@ -201,7 +201,7 @@ Each plan has a header and ten sections:
 **Header:** ticket ID, title, the AC IDs it covers, complexity (low, medium or high), and a one-line plain-words **user-visible result** (what now works for Josh).
 
 1. **What to build**, execution-grade (Josh, 2026-10-22: Opus thinks, Sonnet executes): the **Build steps** table (one row per file in build order: path, exact exports and signatures, an existing file to copy the pattern from, a verify command), **Decided for the builder** (every choice a builder could otherwise make, with its source) and **Do not touch**. `vault/tools/plan_lint.mjs` checks the form and bans vague words in sections 1, 3 and 4; the planner then dispatches `plan-checker` (Sonnet) to list any decision still open, and closes each gap in the plan or as a QP question. A plan must pass `plan_lint.mjs` (strict) before its ticket becomes `ready`. In Stage 3 a builder or test-author that meets an undecided point stops with `PLAN-GAP`; the planner patches the plan and records a planner lesson, and the builder resumes at the same tier.
-2. **Sources:** the spec sections, decisions and mockup it relies on, cited, and the research reports (`R-NNN`, section 13) the plan drew on. A ticket no report covers says so.
+2. **Sources:** the spec sections, decisions and mockup it relies on, cited, and the research reports (`R-NNN`, section 13) the plan drew on. A ticket no report covers says so. Section 2 ends with the `Architecture:` line: the `docs/architecture.md` headings beyond the core, copied to `tickets.json` by `next_ticket.mjs --set-architecture` (EZD-244).
 3. **Interface contract:** file paths, exported names and signatures, route paths, component props, and `data-testid` values. Tests and code are both written to this contract.
 4. **Tests:** each test with the AC it checks, known correct values for every number, and a cited source for each value.
 5. **Visual checklist** (when a screen changes): which elements, which states, and which mockup each maps to.
@@ -342,7 +342,7 @@ Only these: `CLAUDE.md` (automatic), the hook-injected state (the handoff summar
 
 ### Dispatch rule (context diet)
 
-Every subagent dispatch contains only: the ticket ID and role; the path to the plan; the spec files and decision IDs the plan cites; the lessons for that role filtered to the plan's areas (`node vault/tools/next_ticket.mjs --lessons <role> <areas>` prints them, so the orchestrator never reads the lessons files itself); and the report format. Subagent final reports are 20 lines at most: PASS, FAIL or status first, then file paths and findings, no code. The dispatch template lives in `.claude/skills/build-ticket/dispatch.md`.
+Every subagent dispatch contains only: the ticket ID and role; the path to the plan; the spec files and decision IDs the plan cites; the `Architecture:` line of `next_ticket.mjs --reads` (EZD-244); the lessons for that role filtered to the plan's areas (`node vault/tools/next_ticket.mjs --lessons <role> <areas>` prints them, so the orchestrator never reads the lessons files itself); and the report format. Subagent final reports are 20 lines at most: PASS, FAIL or status first, then file paths and findings, no code. The dispatch template lives in `.claude/skills/build-ticket/dispatch.md`.
 
 Each role reads only its plan sections, named on a `Sections:` line the orchestrator adds under the dispatch's `Plan:` line from the table in `.claude/skills/build-ticket/SKILL.md` and printed with `node vault/tools/outline.mjs <plan> --section <n>`; the orchestrator reads the plan's header and sections 5, 7, 8 and 9 once per unit (optimize plan C3, Josh 2026-10-20). Reviewers receive their plan sections, the diff and the gate summary, not the whole repository or the whole spec. phase-auditor receives the phase diff, the plans, `TRACE.md` and the phase's spec files. Anything beyond that comes through a retriever (section 4). The whole-read guard (section 14) stops any agent from loading a file over 20,000 characters without a range.
 
@@ -467,6 +467,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 - `--check`: validates the ledger against `tickets.json`, the status list above, and the sign-off and spike rules.
 - `--report`: regenerates `PROGRESS.md` and `TRACE.md`.
 - `--lessons <role> <areas>`: prints the `ratified` lessons for a role, filtered to the areas, for a dispatch. Candidates are never printed.
+- `--reads <T> <role>`: the dispatch's Spec files, Decisions, Mockups, Architecture, Plan and Sections lines. `--set-architecture <T>`: copies the plan's `Architecture:` line to `tickets.json`; `--check` fails an open ticket without a list, a list naming a missing heading, or a plan line that differs (EZD-244).
 
 **`vault/tools/research.mjs`** — `adopt`: moves every file in `vault/research/pending/` to `vault/research/R-NNN.md` (next free number), appends the index line, prints the IDs. Run by the orchestrator after any dispatch that returned a `REPORT:` line, and by the `plan` unit before the planner finishes. A second run with nothing pending changes nothing.
 

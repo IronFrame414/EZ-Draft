@@ -3,6 +3,8 @@
 // Usage: node vault/tools/outline.mjs <path>   (vault/PROCESS.md section 13; PA3-MECHANISMS.md Item 3)
 //        node vault/tools/outline.mjs <plan> --section <n|header> [--section …]   print only those plan sections
 //        node vault/tools/outline.mjs <plan> --sizes   characters per plan section (optimize plan C3)
+//        node vault/tools/outline.mjs <file.md> --section '<heading>' [--section …]   own bodies of ## and ### headings (EZD-244)
+//        node vault/tools/outline.mjs <file.md> --headings   every ## and ### heading with its line and size (EZD-244)
 import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -92,6 +94,82 @@ export function sections(text, wanted) {
   return all.filter((s) => want.includes(s.section)).map((s) => s.body).join('');
 }
 
+// Architecture map (EZD-244). A heading is a `## ` or `### ` line outside a code fence; its own body runs to the next
+// line matching ^#{1,3}\s outside a fence, so a `##` body never holds its `###` children.
+function headingStarts(lines) {
+  const out = [];
+  let fence = null;
+  lines.forEach((line, i) => {
+    const f = line.match(/^\s{0,3}(`{3,}|~{3,})/);
+    if (f) {
+      if (!fence) fence = f[1][0];
+      else if (f[1][0] === fence) fence = null;
+      return;
+    }
+    if (fence) return;
+    const h = line.match(/^(#{2,3}) (.*)$/);
+    out.push({ i, level: h ? h[1].length : null, text: h ? h[2].trimEnd() : null, boundary: /^#{1,3}\s/.test(line) });
+  });
+  return out;
+}
+
+function ownBodies(text) {
+  const lines = text.split('\n');
+  const marks = headingStarts(lines);
+  const bounds = marks.filter((m) => m.boundary);
+  return marks.filter((m) => m.level && m.text.length > 0).map((m) => {
+    const next = bounds.find((b) => b.i > m.i);
+    const to = next ? next.i : lines.length;
+    const body = lines.slice(m.i, to).join('\n') + (to < lines.length ? '\n' : '');
+    return { level: m.level, text: m.text, line: m.i + 1, chars: body.length, body };
+  });
+}
+
+export function architectureHeadings(text) {
+  return ownBodies(text).map(({ level, text: t, line, chars }) => ({ level, text: t, line, chars }));
+}
+
+export function headingSections(text, names) {
+  const all = ownBodies(text);
+  let body = '';
+  for (const n of names) {
+    const hits = all.filter((h) => h.text === n);
+    if (hits.length === 0) return { ok: false, error: `no heading "${n}"` };
+    if (hits.length > 1) return { ok: false, error: `heading "${n}" appears ${hits.length} times` };
+    body += hits[0].body;
+  }
+  return { ok: true, body };
+}
+
+function splitList(value) {
+  return value.split(';').map((x) => x.trim()).filter((x) => x.length > 0);
+}
+
+export function coreSections(docText) {
+  const line = docText.split('\n').find((l) => l.startsWith('Core sections: '));
+  if (line === undefined) return null;
+  const list = splitList(line.slice('Core sections: '.length));
+  return list.length ? list : null;
+}
+
+export function planArchitecture(planText) {
+  const lines = planText.split('\n');
+  const start = lines.findIndex((l) => /^## 2\./.test(l));
+  if (start < 0) return { error: 'no Architecture line in section 2' };
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) if (/^## /.test(lines[i])) { end = i; break; }
+  for (let i = start + 1; i < end; i++) {
+    const m = lines[i].match(/^Architecture:\s*(.*)$/);
+    if (!m) continue;
+    const v = m[1].trim();
+    if (v === 'none beyond the core') return { list: [] };
+    if (v === '') return { error: 'empty Architecture line' };
+    const list = splitList(v);
+    return list.length ? { list } : { error: 'empty Architecture line' };
+  }
+  return { error: 'no Architecture line in section 2' };
+}
+
 export function outline(text, filePath) {
   const lines = text.split('\n');
   const kind = kindOf(filePath);
@@ -118,8 +196,22 @@ if (isMain) {
   }
   const args = process.argv.slice(3);
   const wanted = args.flatMap((a, i) => (args[i - 1] === '--section' ? [a] : []));
-  if (wanted.length) process.stdout.write(sections(text, wanted));
-  else if (args.includes('--sizes')) {
+  const planMode = wanted.length > 0 && wanted.every((w) => /^(\d+|header)$/.test(w));
+  const mixed = wanted.length > 0 && !planMode && wanted.some((w) => /^(\d+|header)$/.test(w));
+  if (mixed) {
+    process.stderr.write('usage: --section takes plan section numbers or headings, not both\n');
+    process.exit(2);
+  } else if (planMode) process.stdout.write(sections(text, wanted));
+  else if (wanted.length) {
+    const r = headingSections(text, wanted);
+    if (!r.ok) {
+      process.stderr.write(`${r.error} in ${p}\n`);
+      process.exit(1);
+    }
+    process.stdout.write(r.body);
+  } else if (args.includes('--headings')) {
+    process.stdout.write(architectureHeadings(text).map((h) => `${h.line}: ${'#'.repeat(h.level)} ${h.text} (${h.chars} chars)`).join('\n') + '\n');
+  } else if (args.includes('--sizes')) {
     const rows = sectionSizes(text);
     process.stdout.write(rows.map((r) => `${r.section} ${r.chars} ${r.heading}`).join('\n') + `\ntotal ${text.length}\n`);
   } else process.stdout.write(outline(text, p).join('\n') + '\n');

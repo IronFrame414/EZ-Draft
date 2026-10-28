@@ -98,7 +98,10 @@ test('EZD-178 T3 watchdog.mjs --check prints through a symlink', (t) => {
 });
 
 test('EZD-178 T4 plan_lint.mjs prints its result through a symlink', (t) => {
-  const c = linkedCopy(t, 'vault/tools/plan_lint.mjs', { 'plan.md': '# EZD-999 · fixture\n' });
+  const c = linkedCopy(t, 'vault/tools/plan_lint.mjs', {
+    'plan.md': '# EZD-999 · fixture\n',
+    'vault/tools/outline.mjs': readFileSync(path.join(repo, 'vault/tools/outline.mjs'), 'utf8'),
+  });
   const plan = path.join(c.root, 'plan.md');
   const { direct, link } = runBoth(c, [plan]);
   assert.equal(direct.status, 1, direct.stderr);

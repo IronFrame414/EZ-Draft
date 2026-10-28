@@ -25,7 +25,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 ## Directory
 | When you need | Read |
 | --- | --- |
-| Versions, folder layout, naming | docs/architecture.md |
+| Versions, folder layout, naming | docs/architecture.md, by section (Conventions file below) |
 | What the product does | vault/spec/INDEX.md, then the files it points to |
 | Josh's answers that override the spec | vault/spec/decisions/INDEX.md (only the areas your plan cites) |
 | What we never build | vault/spec/non-goals.md |
@@ -47,10 +47,9 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 | Spike notes | vault/spikes/ |
 
 ## Reading list by role
-- planner: the phase's spec files, decisions for those areas, non-goals, glossary, acceptance criteria, architecture, lessons (planner), KNOWN-LIMITS.
-- test-author, builder: your plan, the files it lists, architecture, lessons (your role), KNOWN-LIMITS.
-- reviewers: the plan, the diff, the gate summary, the spec sections the plan cites, decisions the plan cites.
+- planner: the phase's spec files, decisions for those areas, non-goals, glossary, acceptance criteria, the architecture sections the ticket needs, lessons (planner), KNOWN-LIMITS.
+- test-author, builder: your plan, the files it lists, the architecture sections on your dispatch's `Architecture:` line, lessons (your role), KNOWN-LIMITS.
+- reviewers: the plan, the diff, the gate summary, the spec sections the plan cites, decisions the plan cites, the architecture sections on the dispatch's `Architecture:` line.
 
 ## Conventions file
-EZD-000 creates docs/architecture.md (pinned versions, folder layout, naming) and must not rewrite this file. After EZD-000 merges, the orchestrator appends one line here: `See @docs/architecture.md`. Until then, use the Stack and Named tools tables in vault/spec/sections/02-product-overview.md.
-See @docs/architecture.md
+docs/architecture.md (pinned versions, folder layout, naming; written by EZD-000) is never imported here and never read whole (EZD-244). Read it by heading with `node vault/tools/outline.mjs docs/architecture.md --section '<heading>'`. With a ticket, run the `Architecture:` line of `node vault/tools/next_ticket.mjs --reads <ticket> <role>` (the core sections, then the ticket's own). Without one (interactive and orchestrator sessions), print the core (the file's `Core sections:` line), list the headings with `--headings` and print the ones the task needs.

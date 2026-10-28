@@ -4,7 +4,7 @@
 // never depends on where the live ledger stands.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdtempSync, readFileSync, writeFileSync, appendFileSync, existsSync, realpathSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, appendFileSync, existsSync, realpathSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -31,6 +31,8 @@ before(() => {
   const dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-priority-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  mkdirSync(path.join(dir, 'docs'), { recursive: true });
+  cpSync(path.join(root, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/LAUNCHER_FIX.md']) if (existsSync(file(f))) rmSync(file(f));
 
   // No live priority flags, and no open question row (an open row sends --next-unit to the questions unit).
@@ -55,7 +57,7 @@ before(() => {
   const model = data.tickets.find((t) => t.phase === 1);
   for (const [id] of SYNTHETIC) {
     data.tickets.push({ id, phase: 1, title: `Priority test ${id}`, spec_files: model.spec_files, decisions: model.decisions, mockups: [],
-      phase_file: 'tickets/phases/phase-01.md', depends_on: [], acs: [] });
+      phase_file: 'tickets/phases/phase-01.md', depends_on: [], acs: [], architecture: [] });
   }
   setTickets(data);
   appendFileSync(file('tickets/STATUS.md'), SYNTHETIC.map(([id, st]) => `| ${id} | 1 | Priority test ${id} | ${st} | ${st === 'ready' ? 'low' : ''} |  |  |  | Synthetic ticket of scripts/ledger/priority.test.mjs. |\n`).join(''));
