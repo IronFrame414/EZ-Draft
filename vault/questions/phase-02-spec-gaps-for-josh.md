@@ -69,3 +69,7 @@ Stage 0 (spec-check 2), 2026-10-28. Phase 2 is the re-cut phase (vault/tickets/P
 **3. Change password for a user with no password.** Recommended: "Set password" with New and Confirm only. Alternative: hide it and point to Forgot password.
 
 Answer (2026-10-28): "accept recs". Recorded as Q-0410, Q-0411, Q-0412. Agent-settled gaps 4 to 11: Q-0413 (the event-sink gap was checked and is not a gap: the emitter exists). ACs updated.
+
+## Round 3: 4 gaps, none for Josh
+
+Settled by the orchestrator as Q-0414: the wizard's customer list and add supersede AC-EZD-113-6 there (Q-0400; the EZD-118 plan changes the route and EZD-113's test); the password-set email joins AC-EZD-108-8 (Q-0096 P5); the offline state joins AC-EZD-117b-5; AC-EZD-110-5 drops the clause EZD-140 tests.
