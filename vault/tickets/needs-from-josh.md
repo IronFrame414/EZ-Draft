@@ -29,7 +29,7 @@ Every session that tells Josh he must do something adds it here, and ticks it of
 - [ ] Install EZ Draft as an app on your phone and on the Surface from https://ezdraft.ezcontractorbinder.com (EZD-013 field check): it opens full screen with the EZ Draft icon. **2026-10-27:** iPhone PASS; Surface on hold (Josh).
 - [x] Live email check (EZD-008b, AC-EZD-008b-1): the orchestrator walks you through `scripts/email/send-test.mjs` (runbook `## Email (EZD-008)`); a real email arrives. **Done 2026-10-27:** send-test delivered; sign-in emails land in the inbox from `EZ Draft <no-reply@ezcontractorbinder.com>`, SPF, DKIM and DMARC PASS; Supabase SMTP through Resend tested (step 6). Old key deleted; the key in Resend and Vercel is now `ezdraft-production-2` (docs fix EZD-243).
 - [x] EZD-028 spike PDF: open the generated PDF and measure the test line; it should measure 3.00 in on paper. **Done 2026-10-27:** printed at 100% the line measures exactly 3.00 in.
-- [ ] EZD-023e settings list: go through the release settings list in docs/runbook.md `## Environments and releases (EZD-023)` with the orchestrator and tick what exists.
+- [x] EZD-023e settings list: go through the release settings list in docs/runbook.md `## Environments and releases (EZD-023)` with the orchestrator and tick what exists. **Done 2026-10-27:** rulesets main (0 approvals per Q-0261, gate check), develop and phase tags, environments dev and release checked by the orchestrator (read-only API); dev admin bypass turned off by Josh; Actions settings and Secret Protection with push protection set by Josh (not readable by the agent account).
 
 - [ ] Backblaze B2 account and bucket (Q-0275 (a)): the backup behaviours are proven once it exists.
 
