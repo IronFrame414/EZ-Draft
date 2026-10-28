@@ -1,10 +1,10 @@
-# Handoff · 2026-10-28 · questions 1
+# Handoff · 2026-10-28 · build EZD-245
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: Q-0387 and Q-0388 answered by the orchestrator (level 2, both option a); EZD-250 added to EZD-253's dependencies; EZD-253 plan lint OK; EZD-253 set to ready; vault/questions/phase-01-for-josh.md rewritten.
-- In progress: none
-- Blocked: none
-- Questions for Josh: none new; agent answers Q-0384, Q-0385, Q-0387, Q-0388 await confirmation in vault/questions/phase-01-for-josh.md; rule candidates L-022 to L-027 left candidate (unattended).
-- Decisions made: Q-0387, Q-0388 (answered-agent)
-- Next unit: build EZD-245
+- Why the session ended: EZD-245 blocked on Q-0389 (third failed review round; Josh's extra cycles Q-0380, Q-0383 do not cover another)
+- Completed this session: planner plan-gap (plan D27, D28; F13 row), test-author F14/F15/S2 (93f521b3), builder round 4 fixes, gate PASS, fresh code-reviewer FAIL with 2 small items
+- In progress: none; worktree .claude/worktrees/EZD-245 kept (its plan copy is stale: sync from develop's vault/plans/EZD-245.md before any dispatch)
+- Blocked: EZD-245 on Q-0389
+- Questions for Josh: Q-0389 (a) one more cycle for the 2 items plus plan tightening and plan-checker re-run (recommended) or (b) merge as is and fix in a new ticket
+- Decisions made: none; planner lesson line added to vault/lessons/planner.md
+- Next unit: after Q-0389, build EZD-245 (a fresh code-reviewer will review; earlier reviewers cannot be resumed). After MERGE OK: Areas line in vault/plans/TEMPLATE.md, DONE.md line, Block M rows in vault/cost/startup-context.md.
