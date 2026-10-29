@@ -1,10 +1,16 @@
-# Phase 1 · for Josh (questions unit, 2026-10-28, eighth run)
+# Phase 1 · for Josh (questions unit, 2026-10-29, ninth run)
 
-EZD-254 to EZD-257 are `ready`. No decision is waiting.
+Five decisions wait on you. EZD-259 stays `questions` (Q-0423, Q-0424). Nothing new became `ready`.
 
 ## 1. Decisions needed
 
-None. Q-0409 is confirmed; Q-0089, Q-0237 and Q-0406 stay escalated (not phase 1 or not yet planned).
+1. **Q-0418** · EZD-154 (blocked). Re-run 5 is built and gate-green, but the code-reviewer found 4 more ways round the `ln` guard (other shell forms, wildcards in the `.claude` folder name, links made by `node -e`/`python3 -c`, and wrongly refusing quoted text). The safety classifier blocked the security-reviewer, so no security review has run. Options: **(a) recommended**: one more round fixing findings 1, 2 and 4, record 3 (links made by other programs) in vault/KNOWN-LIMITS.md, and you run the security probing yourself or approve a route; costs a sixth patch and one known blind spot. (b) fix 1 and 4 only, list 2 and 3 as limits, merge after your probe. (c) stop here: revert Re-run 5, keep 1aad6907, list everything since Re-run 4 as limits. Reason for (a): this is an accident guard (Q-0135 (a)), and it closes the defects in what we added without chasing a sandbox.
+2. **Q-0420** · EZD-247. docs/architecture.md:39 and docs/runbook.md:60 say EZD-023b enters the Preview `EMAIL_TRANSPORT` value, but architecture.md:73 (Q-0264) says you enter Vercel values by hand and agents never change Vercel. Who enters it, and has it been entered? Options: **(a) recommended**: you enter it by hand and tell us when it is done, then a fix ticket corrects both lines to say so (it matches Q-0264). (b) it is already entered: tell us, and the fix ticket only corrects the two lines. (c) an agent enters it: needs you to overrule Q-0264.
+3. **Q-0421** · EZD-248 (blocked). Three build rounds failed on the `guard-bash.mjs` check against skipping the question-row commit hook (`--no-verify`, `core.hooksPath`); each round found new edges. Options: **(c) recommended (rule 18)**: treat guard-bash as a best-effort accident guard, add a fix ticket "every update of develop is ledger-checked (reference-transaction hook)" that also covers cherry-pick, rebase and am, and merge EZD-248 after one small round clearing the 7 round-3 findings; costs one more ticket. (a) one more round on the 7 findings only, cheap but likely to find new edges. (b) merge the passed parts now with open findings (needs your yes) and make the hardening a fix ticket.
+4. **Q-0423** · EZD-259 (plan QP-1). The scratch-database failure did not come back (one full root run, 12 overlapped starts, port probes), and Docker's own log of the reason has rotated away. May EZD-259 close if the loop also passes, with the report naming the cause as far as evidence goes (Docker refused to start the scratch db container; EZD-153's note dropped the reason) and a new capture so a recurrence names itself? Options: **(a) recommended**: yes, close. (b) also make the restore drill and the migration check share one lock, as a guard against an unproven cause (edits `scripts/backup/`, which collides with in-flight EZD-172, and adds about 30 s per full gate). (c) keep EZD-259 open until a recurrence is caught. Reason for (a): (b) fixes an unproven cause; the new capture closes the class (rule 18).
+5. **Q-0424** · EZD-259 (plan QP-2). How many full gates in a row make the check loop (each about 6 minutes)? **(b) recommended: 5** (about 30 minutes; the failure was 5 starts in one run, so 5 clean runs is a fair test). (a) 3 (about 18 minutes). (c) 10 (about 60 minutes).
+
+Q-0089, Q-0237 and Q-0406 stay escalated (not phase 1 or not yet planned).
 
 ## 2. Agent answers to confirm
 
@@ -76,7 +82,7 @@ Every `answered-agent` row for phase 1 not yet `confirmed-josh` (QUESTIONS.md, Q
 
 ## 3. Proposed wording
 
-EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249, EZD-251: section 6 of their plans. EZD-250: W1–W5 and the watchdog alerts, vault/plans/EZD-250.md section 6. EZD-253: the three lines in vault/plans/EZD-253.md section 6. EZD-254 and EZD-256: none (section 6 of their plans). EZD-257: none (section 6 of its plan). EZD-255: W1–W3, vault/plans/EZD-255.md section 6.
+EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249, EZD-251: section 6 of their plans. EZD-250: W1–W5 and the watchdog alerts, vault/plans/EZD-250.md section 6. EZD-253: the three lines in vault/plans/EZD-253.md section 6. EZD-254 and EZD-256: none (section 6 of their plans). EZD-257: none (section 6 of its plan). EZD-259: the gate and log lines in vault/plans/EZD-259.md section 6 (no app text). EZD-255: W1–W3, vault/plans/EZD-255.md section 6.
 
 ## 4. Rule candidates
 
@@ -86,5 +92,9 @@ EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/pla
 - **L-025** (planner, EZD-244): a backfill covers the open-ticket set at build time; the plan gives the builder the deriving command. **Ratify**: a frozen list failed `--check`.
 - **L-026** (planner, EZD-244): when a plan edits a file, grep `scripts/**/*.test.mjs` for its path; any hash or line-count pin becomes a structural-repair row. **Ratify**: it caused a plan gap.
 - **L-027** (planner, EZD-244): when a ticket removes a pattern, grep every skill and process file and give each hit a replacement row. **Ratify**: the reviewer found two missed lines.
+- **L-028** (planner, EZD-246, EZD-240): write each exact-text or "after each step" plan row as its own numbered check, and put shared rules in the test table. **Ratify**: the reviewer found test lines that skipped a prose row.
+- **L-029** (planner, EZD-248): a plan for a guard names the threat class, the fail-closed rule, the shells in scope, and whether it is the real control or a best-effort guard with a git-level control behind it. **Ratify**: three review rounds each found new bypasses and the ticket blocked.
+- **L-030** (planner, EZD-248, EZD-251): a plan that has comments or rule text restating code behavior cites the file, line and branch. **Ratify**: the reviewer found text the code did not match.
+- **L-031** (planner, EZD-257): a plan that checks fixture git hashes are distinct names the input that makes each fixture's commits unique. **Ratify**: same-second commits got equal hashes.
 
 Left `candidate` (unattended run; no Q-ID rows written).
