@@ -1,10 +1,13 @@
-# Handoff · 2026-10-29 · questions 1
+# Handoff · 2026-10-29 · build EZD-250
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (unattended; Josh not at the computer)
-- Completed this session: ran questions for phase 1. Q-0423 and Q-0424 (EZD-259) set to escalated: product/process choices with no citable answer. Rewrote vault/questions/phase-01-for-josh.md (5 decisions, agent answers to confirm kept, EZD-259 wording, rule candidates L-022 to L-031, all recommended ratify).
-- In progress: none
+- Why the session ended: unit complete
+- Completed: EZD-250 done, merged fe81ba48 (1408 tests, gate PASS, code-reviewer and security-reviewer PASS after round 3)
+- Josh action: after this merge run `node scripts/launchd/install.mjs install` once (plan D17) so the launcher picks up its new code
+- Fix tickets added from review (ready): EZD-260 (guards resolve symlinks), EZD-261 (plan_lint rejects bare-folder node --test)
+- Note: vault/plans/EZD-250.md is ~45,180 characters, over the 45,000 split line; plan lint has no size check
+- Models: test-author opus/high, builder fable/high (round 3), reviewers opus/fable high
+- Deviations (accepted): grants.mjs need rule, grantNotices stricter unreadable check, watchdog lone-copy fallback, repair unit hold text
+- needs-josh-confirm wording: W6, W7 (plan section 6)
 - Blocked: EZD-154 (Q-0418), EZD-248 (Q-0421) unchanged
-- Questions for Josh: Q-0418, Q-0420, Q-0421, Q-0423, Q-0424 (all escalated)
-- Decisions made: none; no ticket set to ready (EZD-259 stays questions)
-- Next unit: none until Josh answers
+- Next: EZD-173 needs re-validation (its ledger lock should wrap applyQueue, plan section 9 risks)
