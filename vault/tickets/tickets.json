@@ -16304,6 +16304,26 @@
     "AC-EZD-265-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-266",
+   "phase": 1,
+   "title": "Fix: EZD-173 K7 takes its expected question IDs from all three question files",
+   "depends_raw": "EZD-173",
+   "spec_ref": "Q-0429",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-173"
+   ],
+   "build_position": 538,
+   "acs": [],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
