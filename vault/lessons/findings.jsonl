@@ -26,3 +26,4 @@
 {"date":"2026-10-29","ticket":"EZD-248","round":3,"reviewer":"code-reviewer","category":"docs","text":"plan 5a rule (r) wording differs from code (same as above)","lesson":null}
 {"date":"2026-10-29","ticket":"EZD-248","round":3,"reviewer":"code-reviewer","category":"test-defect","text":"guard-bash.test.mjs:245 find -exec input uses \\; in JS string = plain ;, plan says {} \\;","lesson":null}
 {"date":"2026-10-29","ticket":"EZD-248","round":3,"reviewer":"code-reviewer","category":"docs","text":"test file header comments stale: guard-bash.test.mjs:92 says G1-G3, session-start.test.mjs:1 says S1-S2","lesson":null}
+{"date":"2026-10-29","ticket":"EZD-251","round":1,"reviewer":"code-reviewer","category":"docs","text":"password-sign-in.test.ts comment says wrong-password and Auth-down tests write error_alert rows; only the Auth-outage test (T18, actions.ts line 141) does. Fix comment only.","lesson":null}
