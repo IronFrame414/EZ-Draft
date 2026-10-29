@@ -258,3 +258,11 @@ Mistake: a plan expected 10 distinct fixture git hashes from fixtures with fixed
 Cause: the plan named no input that makes each fixture's commits unique, and git dates have one-second resolution.
 Rule: when a test checks that fixture git hashes are distinct, the plan names what makes each fixture's commits unique (for example a run counter in the commit message).
 Check: the reviewer finds each distinctness check paired with a named unique input.
+
+## L-032  areas: tooling, scripts, testing  seen: 1  status: candidate
+Tickets EZD-250, 2026-10-29
+Mistake: the plan's Verify column gave `node --test <bare folder>` (scripts/hooks/, scripts/launcher/, scripts/ledger/), which fails on the pinned Node 22.23.3 with "Cannot find module"; code-reviewer and security-reviewer found it in round 3.
+Cause: the verify commands were written from memory of newer Node behavior and never run on the pinned version.
+Rule: Verify commands must run on the pinned Node; the planner runs each verify command once before returning the plan, and a test folder is given as a quoted glob (`'scripts/hooks/*.test.mjs'`), never as a bare folder.
+Check: the reviewer finds no `node --test` argument that is a bare folder.
+Plan check: every `node --test` argument in the Verify column is a named file or a quoted `*.test.mjs` glob.

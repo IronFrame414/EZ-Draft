@@ -16162,6 +16162,52 @@
     "AC-EZD-259-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-260",
+   "phase": 1,
+   "title": "Fix: the write and read guards resolve symlinks before judging a path",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0404",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 532,
+   "acs": [
+    "AC-EZD-260-1",
+    "AC-EZD-260-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-261",
+   "phase": 1,
+   "title": "Fix: plan lint rejects a bare folder in a node --test verify command",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0404",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 533,
+   "acs": [
+    "AC-EZD-261-1",
+    "AC-EZD-261-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
