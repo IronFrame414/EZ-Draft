@@ -1,0 +1,36 @@
+// Records Josh's answer to Q-0426 (2026-10-29, chat): moves the row to QUESTIONS-answered.md as answered-josh, adds the
+// decisions row and sets EZD-172 ready with a note. One-off; deleted after use. Each edit must find its anchor once.
+import fs from 'node:fs';
+const ANSWER = '(a): one more EZD-172 round inside its scope: the test-author adds the lane env scrub (EZD_LANE, SUPABASE_WORKDIR) to scripts/process/ledger-lock.test.mjs; EZD-173 K7 is investigated first and becomes its own fix ticket if its cause is not EZD-172. This overrides the plan\'s "round 8 is the last".';
+const cells = (row) => row.split(/(?<!\\)\|/).slice(1, -1);
+const join = (c) => `|${c.join('|')}|`;
+const Q = 'vault/questions/QUESTIONS.md';
+const QA = 'vault/questions/QUESTIONS-answered.md';
+const qs = fs.readFileSync(Q, 'utf8').split('\n');
+const i = qs.findIndex((l) => l.startsWith('| Q-0426 |'));
+if (i < 0 || qs.filter((l) => l.startsWith('| Q-0426 |')).length !== 1) throw new Error('Q-0426 row');
+const c = cells(qs[i]);
+if (c.length !== 8 || c[4].trim() !== 'escalated') throw new Error(`Q-0426 columns ${c.length} ${c[4]}`);
+c[4] = ' answered-josh ';
+c[5] = ' Josh (2026-10-29: "Q-0426 (a): one more EZD-172 round adding the env scrub to ledger-lock.test.mjs; K7 investigated first, as its own fix ticket if it is unrelated.") ';
+c[6] = ` ${ANSWER} `;
+c[7] = ' chat 2026-10-29 ';
+qs.splice(i, 1);
+fs.writeFileSync(Q, qs.join('\n'));
+const qa = fs.readFileSync(QA, 'utf8').trimEnd().split('\n');
+qa.push(join(c));
+fs.writeFileSync(QA, `${qa.join('\n')}\n`);
+const D = 'vault/spec/decisions/process.md';
+const d = fs.readFileSync(D, 'utf8').trimEnd();
+if (d.includes('| Q-0426 |')) throw new Error('decision exists');
+fs.writeFileSync(D, `${d}\n| Q-0426 | 2026-10-29 | ${ANSWER} |\n`);
+const S = 'vault/tickets/STATUS.md';
+const st = fs.readFileSync(S, 'utf8').split('\n');
+const j = st.findIndex((l) => l.startsWith('| EZD-172 |'));
+const s = cells(st[j]);
+if (s[3].trim() !== 'blocked') throw new Error(`EZD-172 status ${s[3]}`);
+s[3] = ' ready ';
+s[s.length - 1] = `${s[s.length - 1].trimEnd()} · 2026-10-29 Josh: Q-0426 (a): one more round (round 9) inside scope: test-author adds the lane env scrub to scripts/process/ledger-lock.test.mjs; EZD-173 K7 investigated first, split to its own fix ticket if not caused by EZD-172; then gate, reviews, merge. Worktree t/EZD-172 (8e6111ef). `;
+st[j] = join(s);
+fs.writeFileSync(S, st.join('\n'));
+console.log('recorded Q-0426 (a); EZD-172 ready');
