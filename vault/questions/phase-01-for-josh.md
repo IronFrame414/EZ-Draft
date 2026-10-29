@@ -1,14 +1,14 @@
-# Phase 1 · for Josh (questions unit, 2026-10-29, twelfth run)
+# Phase 1 · for Josh (questions unit, 2026-10-29, thirteenth run)
 
-Two decisions wait on you: Q-0426 (EZD-172 cannot merge) and Q-0427 (EZD-248 cannot start until its branch is rebased).
+Two decisions wait on you: Q-0427 (EZD-248 cannot start until its branch is rebased) and Q-0428 (what closes EZD-259's loop). Q-0426 is answered (a, round 9) and left this file.
 
 ## 1. Decisions needed
 
-**Q-0426 · EZD-172 (blocked).** EZD-172 passed its gate, the lane check, the code review and the security review in round 8, but its merge ran red on develop and was undone (develop is clean). Two causes: (1) `scripts/process/ledger-lock.test.mjs`, a test file from the finished ticket EZD-173, starts the gate without clearing the lane settings, so the new lane check (L20) fails; (2) a second test in the same file, EZD-173 K7, fails (it expected the question number `Q--Infinity` and got Q-0426 and Q-0427), cause not found yet and maybe unrelated to EZD-172. You set round 8 as the last round for EZD-172, so more work on it is your call.
+**Q-0428 · EZD-259 (blocked).** The 5-gate loop that tests the scratch database passed its Docker tests 5 of 5 times, none skipped. Runs 2 and 4 still printed GATE FAIL, each on one other test only: EZD-181 T3, the known flake in EZD-251, which also failed in runs that did not overlap. The ticket text says "the scratch tests pass every run"; the plan also wrote "GATE PASS every run".
 Options:
-1. (Recommended) Separate fix ticket for `ledger-lock.test.mjs` (scrub of the lane settings; K7 investigated first inside it and split off if its cause is elsewhere). EZD-172 keeps its closed rounds, waits for the fix ticket to merge, then resumes its merge. Reason: the file belongs to the finished EZD-173, and your round limit stays true. Cost: one more ticket and a short wait before EZD-172 lands.
-2. One more round on EZD-172: the test-author adds the scrub to `ledger-lock.test.mjs`, K7 checked first. Faster, but breaks the "round 8 is the last" rule and edits another ticket's test under this ticket.
-Either way the K7 failure is fixed, not parked (CLAUDE.md rule 17).
+1. (Recommended) Close on the ticket text: EZD-259 closes on its own green gate with the loop logs as evidence, and the new EZD-251 evidence goes to that ticket. Reason: the scratch database is proven 5 of 5, and the other flake already has its fix ticket (rule 17). Cost: the loop proves the scratch database, not a fully green full gate; no re-run.
+2. Keep "GATE PASS every run": EZD-259 waits for EZD-251 (behind EZD-172), then the loop runs again. Cost: blocked for an unknown time, about 35 more minutes of gates, a rebase.
+3. As 2, but EZD-251 moves ahead of EZD-172 now, since it failed in runs that did not overlap. Cost: a change to EZD-251's row and dependency; its plan rests on the overlap premise.
 
 **Q-0427 · EZD-248 (blocked).** EZD-248's branch no longer merges into develop: develop gained EZD-173/245/246 changes in two skills, `scripts/run.mjs`, `vault/tools/next_ticket.mjs` and two question files. The builder cannot edit skills, vault/ or scripts, so the rebase is a hand-merge, not part of the 7-finding round.
 Options:

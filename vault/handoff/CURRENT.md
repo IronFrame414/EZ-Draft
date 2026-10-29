@@ -1,7 +1,10 @@
-# Handoff · 2026-10-29 · build EZD-259
+# Handoff · 2026-10-29 · questions 1
 
-- Status: blocked on LEDGER OK Q-0428 (QP-1)
-- Build done on t/EZD-259, normal gate PASS; reviews not yet run
-- V1 loop: scratch tests ok 5/5; runs 2 and 4 failed on EZD-181 T3 (EZD-251 flake, also in sequential runs)
-- Josh decides which rule closes AC-1: (a) recommended, (b), (c)
-- Next: after the answer, resume EZD-259 at step 8 (a) or after EZD-251 (b/c)
+- Phase and stage: 1, Stage 2
+- Why the session ended: unit complete
+- Completed: Q-0428 (EZD-259 QP-1) escalated; plan EZD-259 QP-1 renamed Q-0428; vault/questions/phase-01-for-josh.md rewritten (Q-0426 answered, left the file)
+- In progress: EZD-259 worktree t/EZD-259 (wip ef33b4df), reviews not run
+- Blocked: EZD-259 on Q-0428; EZD-248 on Q-0427
+- Questions for Josh: Q-0427, Q-0428; agent answers to confirm Q-0415, 0416, 0417, 0419; rule candidates L-022 to L-033 (all recommended: ratify)
+- Decisions made: none (unattended-safe; no answers recorded)
+- Next unit: node vault/tools/next_ticket.mjs --next-unit
