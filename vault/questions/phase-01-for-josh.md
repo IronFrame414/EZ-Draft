@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-29, eleventh run)
+# Phase 1 · for Josh (questions unit, 2026-10-29, twelfth run)
 
-One decision waits on you: Q-0426 (EZD-172 cannot merge). Nothing else is new.
+Two decisions wait on you: Q-0426 (EZD-172 cannot merge) and Q-0427 (EZD-248 cannot start until its branch is rebased).
 
 ## 1. Decisions needed
 
@@ -9,6 +9,12 @@ Options:
 1. (Recommended) Separate fix ticket for `ledger-lock.test.mjs` (scrub of the lane settings; K7 investigated first inside it and split off if its cause is elsewhere). EZD-172 keeps its closed rounds, waits for the fix ticket to merge, then resumes its merge. Reason: the file belongs to the finished EZD-173, and your round limit stays true. Cost: one more ticket and a short wait before EZD-172 lands.
 2. One more round on EZD-172: the test-author adds the scrub to `ledger-lock.test.mjs`, K7 checked first. Faster, but breaks the "round 8 is the last" rule and edits another ticket's test under this ticket.
 Either way the K7 failure is fixed, not parked (CLAUDE.md rule 17).
+
+**Q-0427 · EZD-248 (blocked).** EZD-248's branch no longer merges into develop: develop gained EZD-173/245/246 changes in two skills, `scripts/run.mjs`, `vault/tools/next_ticket.mjs` and two question files. The builder cannot edit skills, vault/ or scripts, so the rebase is a hand-merge, not part of the 7-finding round.
+Options:
+1. (Recommended) The orchestrator does the rebase in fix mode (or gives you a patch to apply), then the 7-finding round runs on the rebased branch. Question-file conflicts take develop's version and the 4 repaired rows are re-checked with `next_ticket --check`. Cost: one extra unit before the round.
+2. You resolve the conflicts yourself. Cost: your time; the same round follows.
+Any new same-class bypass edge found in the round goes to EZD-263, not a fifth round.
 
 ## 2. Agent answers to confirm
 
