@@ -155,3 +155,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-29 · EZD-173 · Parallel lanes: ledger, commits and merges never collide · several units can run at once without losing each other's STATUS or QUESTIONS changes; merges wait their turn; each commit holds only its own files · 7a3bd64a
 2026-10-29 · EZD-258 · Failing-input tests for EZD-250's rules · none on screen; ten launcher refusal tests now guard EZD-250 · 086bdbbc
 2026-10-29 · EZD-254 · Fix: a finished phase is gated even while an earlier phase has a blocked ticket · launcher gates, waits on and wraps a finished phase before starting the next, even with an older blocked ticket (EZD-003) · 85392b0c
+2026-10-29 · EZD-175 · Parallel lanes: ticket branch updated from develop before merge · merges first take in develop's newest changes and re-run the ticket gate; same-line clashes go to an Opus builder round · 80747c50
