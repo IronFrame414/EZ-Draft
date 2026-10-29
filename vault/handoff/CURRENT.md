@@ -1,11 +1,11 @@
-# Handoff · 2026-10-28 · build EZD-245
+# Handoff · 2026-10-28 · build EZD-246
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: EZD-245 merged to develop (13b078c9, 1328 tests, develop gate green). Q-0389 (a) cycle: planner (D11, D14 texts, plan tightened, plan-checker READY), test-author (S1, S2), builder (build-ticket steps 5 and 10, planner.md Areas bullet), gate PASS, fresh code-reviewer PASS. Also written: Areas line in vault/plans/TEMPLATE.md, Block M after-token rows in vault/cost/startup-context.md, DONE.md line. `findings.mjs repeats`: NO REPEATS.
+- Completed this session: EZD-246 merged to develop (630e0e89, 1344 tests). Test-author, builder, planner plan-gap (T7 pin conflict: D12 moved the Batch review dispatch to the end of dispatch.md, D16 test-author updated T7), gate PASS, code-reviewer round 1 FAIL (3 minor), round 2 PASS. DONE.md line written. `findings.mjs repeats`: NO REPEATS.
 - In progress: none
-- Blocked: EZD-173 (Q-0409, escalated); EZD-250 (Q-0404 cycle, worktree kept)
-- Questions for Josh: Q-0409 (phase 1); Q-0406, Q-0089, Q-0237 stay escalated
+- Blocked: EZD-173 (Q-0409); EZD-250 (Q-0404 cycle, worktree kept)
+- Questions for Josh: Q-0415 (new: flaky release test EZD-023e T8 needs a fix ticket; may the orchestrator add it?); Q-0409, Q-0406, Q-0089, Q-0237 stay escalated
 - Decisions made: none new
-- Notes: plan EZD-245 stays 29,909 characters (target 25,000); planner.md line 22 also lists Areas (agrees with D11). Plans written before this ticket need an Areas line before `--reads <T> plan-checker` works.
+- Notes: EZD-249 plan points at stale dispatch.md lines (EZD-245 and EZD-246 added blocks) and needs re-validation. Plan EZD-246 is 26,954 characters (target 25,000). Commit ddd42afc is labelled structural repair but changed one expected line to match D12.
 - Next unit: node vault/tools/next_ticket.mjs --next-unit

@@ -1,0 +1,3 @@
+{"date":"2026-10-28","ticket":"EZD-246","round":1,"reviewer":"code-reviewer","category":"test-defect","text":"BR n6 and dispatch.md:47 have a backslash before the pipe; D12 n6 says one plain |","lesson":null}
+{"date":"2026-10-28","ticket":"EZD-246","round":1,"reviewer":"code-reviewer","category":"scope-extra","text":"SKILL.md:35 adds sentence 'Lettered steps; the step numbers name the steps below' not in D11 and wrong","lesson":null}
+{"date":"2026-10-28","ticket":"EZD-246","round":1,"reviewer":"code-reviewer","category":"scope-extra","text":"code-reviewer.md:31 Batch paragraph placed after routed-question paragraph; plan step 2 says directly after Mode 3 paragraph (line 27)","lesson":null}
