@@ -237,3 +237,10 @@ Mistake: a test or document line did not carry out an exact plan row (a pipe cha
 Cause: the plan's exact-text and "after each step" rows were prose the test-author could skim past.
 Rule: write each such row as its own numbered check naming the line or step (for example "T3 asserts the sample after run 1 and after run 2"), and put a shared rule such as assertion messages in the test table, not only in Decided.
 Check: the reviewer finds no test defect against a plan row.
+
+## L-029  areas: tooling, security  seen: 1  status: candidate
+Ticket EZD-248, 2026-10-28
+Mistake: a plan for a command guard listed example patterns (regex entries for known bad forms); the security-reviewer found new bypasses in each of three rounds (options before the subcommand, `--` handling, redirections, other shells), and the ticket blocked.
+Cause: the plan named forms to deny instead of the threat class and a fail-closed rule, and no not-denied control set bounded false denials.
+Rule: a plan for a guard names the threat class, states the fail-closed rule (refuse what cannot be resolved statically) and the accepted cost up front, lists the shells and wrappers in scope, and says whether the guard is the real control or a best-effort accident guard with a git-level control behind it.
+Check: the security-reviewer's first probes find nothing outside the plan's stated limits list.
