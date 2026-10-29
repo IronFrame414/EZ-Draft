@@ -294,3 +294,4 @@ Rule: for each test row, run the row's stated input through the plan's own decis
 Plan check: for each test row, name the D-line that yields its expected value and confirm no earlier D-line fires on the stated input.
 - When a ticket moves a file per lane, the plan's architecture.md step greps the doc for every place naming the old path and gives each a lane note, not only the bullets it rewrites. (EZD-172 round 9)
 When a plan asserts the whole of a list another merged ticket also writes to (e.g. notified), list every writer's lines from current develop code, not from the dependency branch the plan was written against.
+Tests section: when a note can carry several line kinds (summary, JSON error, stderr), give each kind a test with a URL password, not only stderr (EZD-259 security review).
