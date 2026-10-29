@@ -287,3 +287,8 @@ Plan check: section 4 states the test count and the fixture's returned names; se
 - EZD-253 plan-gap: when the plan adds a status message, say what fills each placeholder and give one ledger state that reaches every new branch, including grant holds for earlier phases.
 - EZD-253 gap 2: when a test pins a change in which tickets are considered, the plan gives a state where old and new code differ and names the old code's result.
 - EZD-253 gap 3: when a plan adds a ledger check, list up front every existing test fixture that builds a ledger state the check refuses (reopened done tickets, synthetic tooling plans) and say how each is repaired.
+
+## L-035  areas: tooling, scripts, ledger  seen: 2  status: candidate
+Mistake: a plan's test row or contract left an input out (EZD-253 U8 omitted that P2 was blocked, so its expected build was unreachable; EZD-154 left a bypass form uncovered), found only at test review.
+Rule: for each test row, run the row's stated input through the plan's own decision rows (D-lines) by hand and confirm the expected value is the first one reached; list every sibling form of a blocked case.
+Plan check: for each test row, name the D-line that yields its expected value and confirm no earlier D-line fires on the stated input.
