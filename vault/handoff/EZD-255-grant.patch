@@ -1,0 +1,12 @@
+diff --git a/.claude/hooks/grants.json b/.claude/hooks/grants.json
+index 0967ef4..677fe9f 100644
+--- a/.claude/hooks/grants.json
++++ b/.claude/hooks/grants.json
+@@ -1 +1,6 @@
+-{}
++{
++  "EZD-255": [
++    "scripts/launcher-idle.mjs",
++    "scripts/run.mjs"
++  ]
++}
