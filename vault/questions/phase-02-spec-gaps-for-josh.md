@@ -77,3 +77,7 @@ Settled by the orchestrator as Q-0414: the wizard's customer list and add supers
 ## Round 4: 2 gaps, none for Josh
 
 Settled by the orchestrator as Q-0422: the Projects page is the signed-in home at /, so phase 2 notification links are / (correcting /projects); EZD-108 ships My profile with the Profile tab only and EZD-140 adds the Notifications tab, now depending on EZD-108.
+
+## Round 5: 1 gap, none for Josh
+
+Settled by the orchestrator as Q-0425: the notification list loads 20 at a time.
