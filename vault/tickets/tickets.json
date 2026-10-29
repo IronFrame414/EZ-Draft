@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 455,
+ "count": 456,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -16109,6 +16109,29 @@
    "acs": [
     "AC-EZD-257-1",
     "AC-EZD-257-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-258",
+   "phase": 1,
+   "title": "Fix: failing-input tests for EZD-250's rules that have none",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0417",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 530,
+   "acs": [
+    "AC-EZD-258-1",
+    "AC-EZD-258-2"
    ],
    "acs_source": "done-when"
   }

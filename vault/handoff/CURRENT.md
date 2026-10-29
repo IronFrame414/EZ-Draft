@@ -1,11 +1,12 @@
-# Handoff · 2026-10-28 · questions 1
+# Handoff · 2026-10-28 · build EZD-250
 
-- Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: Q-0415 answered by the orchestrator (level 2): fix ticket EZD-257 added (phase-01.md, tickets.json, STATUS.md, acceptance criteria via gen_acs); it also covers Q-0348, whose ticket was never created. Planner wrote vault/plans/EZD-257.md (low); its QP-1 became Q-0416 (a), 10 forced runs (Q-0384 (b)). Plan lint OK, EZD-257 ready. phase-01-for-josh.md rewritten; questions sorted; ledger OK.
+- Phase and stage: phase 1, Stage 3 (see vault/PROGRESS.md)
+- Why the session ended: EZD-250 blocked on a change only Josh may apply
+- Completed this session: planner plan-gap for Q-0404 (a): plan names .claude/hooks/lib.mjs (D1a, T31, T33, T18), lint OK. QP-1 answered Q-0417 (b); fix ticket EZD-258 added (phase-01.md, tickets.json, STATUS, ACs, ledger OK). --set-architecture run.
 - In progress: none
-- Blocked: EZD-250 (Q-0404 cycle, worktree kept)
-- Questions for Josh: none for phase 1; Q-0415 and Q-0416 to confirm in section 2 of vault/questions/phase-01-for-josh.md; Q-0089, Q-0237, Q-0406 stay escalated. Rule candidates L-022 to L-027 stay candidate (unattended).
-- Decisions made: Q-0415, Q-0416 (answered-agent)
-- Notes: the planner needed a resume after hitting its 40-turn limit. EZD-249 plan still needs re-validation (stale dispatch.md lines).
+- Blocked: EZD-250. Worktree .claude/worktrees/EZD-250 kept (wip through 46a3b15a, gate was PASS before the plan change).
+- Needs Josh: apply vault/handoff/EZD-250-libmjs-grant.patch (git apply; one line adds .claude/hooks/lib.mjs to the EZD-250 builder grant, Q-0404 (a)). Josh asked to be told when a guard patch is ready.
+- Questions for Josh: Q-0417 (answered-agent, to confirm): the missing failing-input tests go to EZD-258 instead of splitting the 45,218-character plan.
+- Resume after the patch: sync worktree plan copy from develop; test-author (T31, T33, T18); builder round 3 (check --dispatch for advisor); gate; fresh code-reviewer; security-reviewer on both hooks that call repoRelative; merge.
+- Models: planner opus/high (--dispatch).
 - Next unit: build EZD-250
