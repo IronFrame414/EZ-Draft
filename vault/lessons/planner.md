@@ -286,3 +286,4 @@ Plan check: section 4 states the test count and the fixture's returned names; se
 - EZD-253 re-validation: set up a test ledger copy so it passes every --check rule on the live ledger (architecture list for each open ticket, a plan for each ready one); cite code by function name, not line number, because lines move between planning and build.
 - EZD-253 plan-gap: when the plan adds a status message, say what fills each placeholder and give one ledger state that reaches every new branch, including grant holds for earlier phases.
 - EZD-253 gap 2: when a test pins a change in which tickets are considered, the plan gives a state where old and new code differ and names the old code's result.
+- EZD-253 gap 3: when a plan adds a ledger check, list up front every existing test fixture that builds a ledger state the check refuses (reopened done tickets, synthetic tooling plans) and say how each is repaired.
