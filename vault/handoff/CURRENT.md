@@ -1,10 +1,10 @@
-# Handoff · 2026-10-28 · build EZD-173 (Q-0409 (a) round)
+# Handoff · 2026-10-28 · build EZD-193
 
 - Phase and stage: phase 1, Stage 3
-- Why the session ended: EZD-173 blocked: the guard hook refuses a new file (vault/tools/questions-files.mjs) to the builder and to me.
-- Done: planner amended plan (commit a260c301 on t/EZD-173; new contract C16, async cross-file addQuestion/setAnswer, tests K20, K21); test-author wrote K20/K21/K12/S1 (commit `test(EZD-173): K20, K21 questions across files`, red on missing file). Planner lesson line added to vault/lessons/planner.md.
-- Needs Josh: apply vault/handoff/EZD-173-questions-files.patch in .claude/worktrees/EZD-173 (git apply --check passed), commit as wip(EZD-173): questions-files.mjs.
-- Resume after that: build-ticket EZD-173 (RESUME skips tests): builder (Opus high) does next_ticket.mjs imports, ledger.mjs addQuestion/setAnswer, C10 message; then gate, code-reviewer only.
-- At merge: remove ezd173Grant from .claude/hooks/guard-paths.mjs, vault/handoff/EZD-173-guard.patch and EZD-173-questions-files.patch.
-- Models: planner opus/high, test-author sonnet/medium, builder opus/high (round 3 ladder says blocked; extra round per Q-0409 (a)).
-- Worktree .claude/worktrees/EZD-173 kept.
+- EZD-193 done: merged to develop as 87177229, develop gate green, 1356 tests.
+- Reviews: code-reviewer opus/medium PASS; security-reviewer opus/high PASS (round 2, after the size cap and .gitignore line).
+- Models (from --dispatch): planner opus/high, test-author haiku/high, reviewers as above. No builder round (Josh applied the launcher patches).
+- Open for a fix ticket (rule 17): scripts/run.mjs line 271 echoes child stderr uncapped to launcher.log (local, git-ignored). Not yet a ticket.
+- Leftover files: vault/handoff/EZD-193-*.patch (applied; can be deleted).
+- Still blocked from earlier: EZD-173 (needs Josh to apply vault/handoff/EZD-173-questions-files.patch).
+- Next unit: node vault/tools/next_ticket.mjs --next-unit
