@@ -292,3 +292,4 @@ Plan check: section 4 states the test count and the fixture's returned names; se
 Mistake: a plan's test row or contract left an input out (EZD-253 U8 omitted that P2 was blocked, so its expected build was unreachable; EZD-154 left a bypass form uncovered), found only at test review.
 Rule: for each test row, run the row's stated input through the plan's own decision rows (D-lines) by hand and confirm the expected value is the first one reached; list every sibling form of a blocked case.
 Plan check: for each test row, name the D-line that yields its expected value and confirm no earlier D-line fires on the stated input.
+- When a ticket moves a file per lane, the plan's architecture.md step greps the doc for every place naming the old path and gives each a lane note, not only the bullets it rewrites. (EZD-172 round 9)
