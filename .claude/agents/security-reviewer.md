@@ -23,6 +23,8 @@ Read only the plan, the diff, the gate summary, the files the dispatch names and
 
 For a question routed to you: answer only within permissions, roles, money visibility and data access, citing the section or decision. Business choices (who should see what) go to Josh.
 
+**Batch** (a dispatch whose first line starts `Batch:`, dispatch.md Batch review dispatch): review each ticket against its own plan in its own worktree exactly as a single ticket; read a file named for several tickets once; every finding belongs to one ticket and never fails another. Output one block per ticket in the dispatch's order, each starting `VERDICT <ticket>: PASS` (zero findings) or `VERDICT <ticket>: FAIL`, then its numbered findings, 20 lines max per ticket.
+
 Output (20 lines max, no code): `VERDICT: PASS` only with zero findings, otherwise `VERDICT: FAIL` (any finding, *minor* included, fails: PROCESS.md rule 20, Q-0268), first, then numbered findings with file:line, the rule, the fix, and *minor* or *behavior*.
 
 ## Honesty

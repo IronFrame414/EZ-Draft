@@ -14,7 +14,7 @@
 //   node vault/tools/next_ticket.mjs --set-architecture <ticket>  -> copies the plan's Architecture line to tickets.json (EZD-244)
 //   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, orchestratorAdvice}
 //                                                    from the PROCESS.md section 4 table (v2.4)
-//   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch (v2.4)
+//   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch, or the medium tickets that may be reviewed with it (v2.4; EZD-246)
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
@@ -407,15 +407,23 @@ function headingAreas(head) {
   const m = head.match(/areas:\s*([^]*?)\s+seen:/);
   return (m ? m[1] : '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 }
-function planCheckerLines(id) {
+// The one parser of a plan's header Areas line (EZD-246 D2; texts from EZD-245).
+export function planAreas(id) {
   const rel = `vault/plans/${id}.md`;
   const f = path.join(vault, 'plans', `${id}.md`);
   if (!existsSync(f)) throw new Error(`${rel} does not exist`);
-  const header = readFileSync(f, 'utf8').split(/\r?\n/).filter((l, i, all) => !all.slice(0, i).some((x) => x.startsWith('## ')) && !l.startsWith('## '));
-  const line = header.find((l) => /^- \*\*Areas:\*\*/.test(l));
-  if (!line) throw new Error(`${rel} has no Areas line in its header (- **Areas:** <area>, <area>)`);
-  const areas = line.replace(/^- \*\*Areas:\*\*/, '').split(',').map((a) => a.trim().toLowerCase());
+  const text = readFileSync(f, 'utf8');
+  const cut = text.search(/^## /m);
+  const header = cut < 0 ? text : text.slice(0, cut);
+  const m = header.match(/^- \*\*Areas:\*\*(.*)$/m);
+  const areas = m ? m[1].split(',').map((a) => a.trim().toLowerCase()).filter(Boolean) : [];
+  if (!areas.length) throw new Error(`${rel} has no Areas line in its header (- **Areas:** <area>, <area>)`);
   for (const a of areas) if (!/^[a-z][a-z0-9-]*$/.test(a)) throw new Error(`${rel} Areas line has an invalid area "${a}"`);
+  return areas;
+}
+function planCheckerLines(id) {
+  const rel = `vault/plans/${id}.md`;
+  const areas = planAreas(id);
   const out = [`Plan: ${rel}`, `Sections: ${PLAN_CHECKER_SECTIONS}`, `Areas: ${areas.join(', ')}`, 'Lessons:', lessons('planner', areas)];
   const dir = path.join(vault, 'lessons');
   const known = new Set();
@@ -518,6 +526,18 @@ export function batchFor(id) {
   const t = tickets.get(id);
   const r = rows.get(id);
   if (!t || !r) throw new Error(`unknown ticket ${id}`);
+  if (r.complexity === 'medium') {
+    if (!eligible(id)) return [id];
+    const peers = phaseTickets(t.phase)
+      .filter((x) => x.id !== id && rows.get(x.id)?.status === 'ready' && rows.get(x.id)?.complexity === 'medium' && eligible(x.id))
+      .sort((p, q) => num(p.id) - num(q.id));
+    const batch = [id];
+    for (const p of peers) {
+      if (batch.length === 3) break;
+      if (batch.every((m) => related(m, p.id))) batch.push(p.id);
+    }
+    return batch;
+  }
   if (r.complexity !== 'low') return [id];
   const mine = planFiles(id);
   const peers = phaseTickets(t.phase)
@@ -532,6 +552,53 @@ export function batchFor(id) {
   }
   return batch;
 }
+// Paths in the plan's section 1 Build steps table, Path column (EZD-246 D3).
+export function planStepPaths(id) {
+  const f = path.join(vault, 'plans', `${id}.md`);
+  if (!existsSync(f)) return [];
+  const text = readFileSync(f, 'utf8');
+  const start = text.search(/^## 1\. /m);
+  if (start < 0) return [];
+  let sec = text.slice(start);
+  const next = sec.slice(1).search(/^## \d+\. /m);
+  if (next >= 0) sec = sec.slice(0, next + 1);
+  const bs = sec.search(/^### Build steps\s*$/m);
+  if (bs < 0) return [];
+  let blk = sec.slice(bs + 1);
+  const nh = blk.search(/^### /m);
+  if (nh >= 0) blk = blk.slice(0, nh);
+  const lines = blk.split(/\r?\n/);
+  const first = lines.findIndex((l) => l.startsWith('|'));
+  if (first < 0) return [];
+  const table = [];
+  for (let i = first; i < lines.length && lines[i].startsWith('|'); i++) table.push(lines[i]);
+  const cells = (l) => l.replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((x) => x.trim());
+  const col = cells(table[0]).indexOf('Path');
+  if (col < 0) return [];
+  const out = [];
+  for (const row of table.slice(2)) {
+    const cell = cells(row)[col] ?? '';
+    const toks = [...cell.matchAll(/`([^`]+)`/g)].map((x) => x[1]);
+    for (const p of toks.length ? toks : (cell ? [cell] : [])) if (!out.includes(p)) out.push(p);
+  }
+  return out;
+}
+// True when a spec_files entry of a and one of b name the same file and the same anchor (or either has none) (D4).
+export function sharesSpecSection(a, b) {
+  return a.some((x) => b.some((y) => {
+    const [fx, ax] = splitRef(x); const [fy, ay] = splitRef(y);
+    return fx === fy && (ax === null || ay === null || norm(ax) === norm(ay));
+  }));
+}
+const safeAreas = (id) => { try { return planAreas(id); } catch { return null; } };
+const eligible = (m) => tickets.get(m).depends_on.every((d) => status(d) === 'done') && safeAreas(m) !== null && planStepPaths(m).length > 0;
+const related = (a, b) => {
+  const aa = planAreas(a); const ab = planAreas(b);
+  if (!aa.some((x) => ab.includes(x))) return false;
+  if (!sharesSpecSection(tickets.get(a).spec_files || [], tickets.get(b).spec_files || [])) return false;
+  const pa = planStepPaths(a);
+  return !planStepPaths(b).some((p) => pa.includes(p));
+};
 const batchOf = (id) => (rows.get(id)?.notes.match(/batch:\s*(EZD-\d+[a-z]?(?:\+EZD-\d+[a-z]?)+)/) || [])[1]?.split('+') || null;
 
 function check() {
@@ -553,10 +620,13 @@ function check() {
       problems.push(`${id} is ${r.status} but the architecture checkpoint is not met`);
   }
   const busy = [...rows].filter(([, r]) => r.status === 'in-progress' || r.status === 'review').map(([id]) => id);
-  // A batch of 2 or 3 low tickets counts as one ticket in progress (v2.4); every member must name the same batch.
+  // A batch of 2 or 3 low or medium tickets counts as one ticket in progress (v2.4); every member must name the same batch.
   const units = new Set(busy.map((id) => {
     const b = batchOf(id);
-    const valid = b && b.length <= 3 && b.includes(id) && b.every((m) => rows.get(m)?.complexity === 'low' && batchOf(m)?.join('+') === b.join('+'));
+    const valid = b && b.length <= 3 && new Set(b).size === b.length && b.includes(id)
+      && b.every((m) => rows.has(m) && tickets.has(m) && rows.get(m).complexity === rows.get(id).complexity && tickets.get(m).phase === tickets.get(id).phase)
+      && ['low', 'medium'].includes(rows.get(id).complexity)
+      && b.every((m) => !['in-progress', 'review'].includes(rows.get(m).status) || batchOf(m)?.join('+') === b.join('+'));
     return valid ? b.join('+') : id;
   }));
   if (units.size > LIMIT_IN_PROGRESS) problems.push(`more than ${LIMIT_IN_PROGRESS} ticket in progress: ${busy.join(', ')} (PROCESS-EZDRAFT.md section 8)`);

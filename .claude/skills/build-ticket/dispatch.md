@@ -38,3 +38,20 @@ CAP: <max lines, 40 at most>
 REPORT: yes | no
 KNOWN: <what the asker already has>
 ```
+
+## Batch review dispatch
+
+A review batch (build-ticket SKILL.md, Review batch (medium)) gets one reviewer dispatch for all its members, in this form:
+
+```
+Batch: <EZD-a>, <EZD-b>[, <EZD-c>] · Role: <code-reviewer (mode 3) | security-reviewer>
+--- <EZD-a>
+<every line of the single-ticket template between its Ticket: line and Lessons:, filled for EZD-a>
+--- <EZD-b>
+<the same for EZD-b; then EZD-c>
+Lessons:
+<output of next_ticket.mjs --lessons <role> <every member's areas, each once>, or "(none)">
+Report format: one block per ticket, in the order above, each starting VERDICT <ticket>: PASS (zero findings) or VERDICT <ticket>: FAIL, then that ticket's numbered findings; 20 lines max per ticket. No code.
+```
+
+Each member block keeps its own `--reads <member> <role>` lines.
