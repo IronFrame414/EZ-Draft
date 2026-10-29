@@ -1,0 +1,35 @@
+// Records Josh's answer to Q-0427 (2026-10-29, chat): moves the row to QUESTIONS-answered.md as answered-josh, adds the
+// decisions row and notes it on EZD-248 (stays blocked until the rebase is done). One-off; deleted after use.
+import fs from 'node:fs';
+const ANSWER = '(a): the orchestrator rebases t/EZD-248 onto develop in fix mode (question-file conflicts take develop\'s version; the 4 repaired rows re-checked with next_ticket --check), then the 7-finding round runs on the rebased branch; a new same-class bypass edge goes to EZD-263, not a fifth round.';
+const cells = (row) => row.split(/(?<!\\)\|/).slice(1, -1);
+const join = (c) => `|${c.join('|')}|`;
+const Q = 'vault/questions/QUESTIONS.md';
+const QA = 'vault/questions/QUESTIONS-answered.md';
+const qs = fs.readFileSync(Q, 'utf8').split('\n');
+const hits = qs.flatMap((l, n) => (l.startsWith('| Q-0427 |') ? [n] : []));
+if (hits.length !== 1) throw new Error('Q-0427 row');
+const c = cells(qs[hits[0]]);
+if (c.length !== 8 || c[4].trim() !== 'escalated') throw new Error(`Q-0427 columns ${c.length} ${c[4]}`);
+c[4] = ' answered-josh ';
+c[5] = ' Josh (2026-10-29: "Q-0427 (a): the orchestrator does the EZD-248 rebase in fix mode, then the 7-finding round runs on the rebased branch.") ';
+c[6] = ` ${ANSWER} `;
+c[7] = ' chat 2026-10-29 ';
+qs.splice(hits[0], 1);
+fs.writeFileSync(Q, qs.join('\n'));
+const qa = fs.readFileSync(QA, 'utf8').trimEnd().split('\n');
+qa.push(join(c));
+fs.writeFileSync(QA, `${qa.join('\n')}\n`);
+const D = 'vault/spec/decisions/process.md';
+const d = fs.readFileSync(D, 'utf8').trimEnd();
+if (d.includes('| Q-0427 |')) throw new Error('decision exists');
+fs.writeFileSync(D, `${d}\n| Q-0427 | 2026-10-29 | ${ANSWER} |\n`);
+const S = 'vault/tickets/STATUS.md';
+const st = fs.readFileSync(S, 'utf8').split('\n');
+const j = st.findIndex((l) => l.startsWith('| EZD-248 |'));
+const s = cells(st[j]);
+if (s[3].trim() !== 'blocked') throw new Error(`EZD-248 status ${s[3]}`);
+s[s.length - 1] = `${s[s.length - 1].trimEnd()} · 2026-10-29 Josh: Q-0427 (a): stays blocked until an interactive orchestrator session rebases t/EZD-248 onto develop in fix mode (question files take develop's version; next_ticket --check), then set ready for the 7-finding round on the rebased branch. `;
+st[j] = join(s);
+fs.writeFileSync(S, st.join('\n'));
+console.log('recorded Q-0427 (a); EZD-248 note added');
