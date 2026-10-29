@@ -1,12 +1,12 @@
-# Handoff · 2026-10-28 · build EZD-250
+# Handoff · 2026-10-28 · build EZD-154
 
 - Phase and stage: phase 1, Stage 3 (see vault/PROGRESS.md)
-- Why the session ended: EZD-250 blocked on a change only Josh may apply
-- Completed this session: planner plan-gap for Q-0404 (a): plan names .claude/hooks/lib.mjs (D1a, T31, T33, T18), lint OK. QP-1 answered Q-0417 (b); fix ticket EZD-258 added (phase-01.md, tickets.json, STATUS, ACs, ledger OK). --set-architecture run.
-- In progress: none
-- Blocked: EZD-250. Worktree .claude/worktrees/EZD-250 kept (wip through 46a3b15a, gate was PASS before the plan change).
-- Needs Josh: apply vault/handoff/EZD-250-libmjs-grant.patch (git apply; one line adds .claude/hooks/lib.mjs to the EZD-250 builder grant, Q-0404 (a)). Josh asked to be told when a guard patch is ready.
-- Questions for Josh: Q-0417 (answered-agent, to confirm): the missing failing-input tests go to EZD-258 instead of splitting the 45,218-character plan.
-- Resume after the patch: sync worktree plan copy from develop; test-author (T31, T33, T18); builder round 3 (check --dispatch for advisor); gate; fresh code-reviewer; security-reviewer on both hooks that call repoRelative; merge.
-- Models: planner opus/high (--dispatch).
-- Next unit: build EZD-250
+- Why the session ended: EZD-154 blocked on Q-0418 (Josh)
+- Completed: Re-run 5 (Q-0407 (a)): plan Block B5 + Samples B5, tests f0315d63, guard-bash patch applied as 7424332b (sha d2177068 = plan V1), 27 hook tests and gate green.
+- Code-reviewer r6 FAIL, 4 findings recorded: ln deny bypasses (;ln &&ln (ln $(ln), wildcard/brace in the .claude name, links made by node/python, ln deny refusing quoted text.
+- Security-reviewer: stopped by the classifier before any probe. No security review exists for 7424332b.
+- Blocked: EZD-154. Worktree .claude/worktrees/EZD-154 kept at 7424332b.
+- Needs Josh: answer Q-0418 (a/b/c) and do or approve the security probing of the guard hook.
+- Resume after the answer: plan patch, test-author samples, orchestrator patch, gate, code-reviewer; security review by Josh's route; merge; delete vault/handoff/EZD-154-hooks.patch.
+- Models: test-author haiku/high, code-reviewer opus/medium, security-reviewer opus/high (--dispatch).
+- Next unit: per next_ticket.mjs --next-unit

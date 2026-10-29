@@ -1,18 +1,24 @@
 diff --git a/.claude/hooks/guard-bash.mjs b/.claude/hooks/guard-bash.mjs
-index eef043b3..62e74056 100644
+index 62e74056..c57810b3 100644
 --- a/.claude/hooks/guard-bash.mjs
 +++ b/.claude/hooks/guard-bash.mjs
-@@ -84,10 +84,10 @@ const stripped = unquote(raw
- // Beside a removed path token only echo of plain words may run, so nothing can reuse the path ($_, !$, fc, a substitution) (EZD-154).
- const echoOnly = segments(stripped).every((seg) => /^\s*(echo(\s+[\w.,:\/+=-]+)*)?\s*$/.test(seg));
+@@ -86,9 +86,17 @@ const echoOnly = segments(stripped).every((seg) => /^\s*(echo(\s+[\w.,:\/+=-]+)*
  const noTests = echoOnly ? stripped : unquote(raw);
--if (/\.credentials\.json|\.claude\/\.cred/.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
-+if (/\.credentials\.json|\.claude\/\.cred/i.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
+ if (/\.credentials\.json|\.claude\/\.cred/i.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
  // A path into ~/.claude/ built with $, a backtick or a wildcard can name the sign-in file without spelling it, so it is denied
--// outside the project's own .claude/ folders; a path held whole in one variable stays unseen (Q-0361 (b); vault/KNOWN-LIMITS.md).
--if (/\.claude\/(?!(?:worktrees|skills|hooks|agents|commands|workflows)\/|settings(?:\.local)?\.json\b)[^\s;&|<>()]*[$`*?[{]/.test(noTests))
-+// outside the project's own .claude/ folders (and inside them when a `..` follows, or the case differs); a path held whole in one variable stays unseen (Q-0361 (b); vault/KNOWN-LIMITS.md).
-+if (/\.claude\/(?!(?:(?:worktrees|skills|hooks|agents|commands|workflows)\/|settings(?:\.local)?\.json\b)(?![^\s;&|<>()]*\.\.))[^\s;&|<>()]*[$`*?[{]/i.test(noTests))
+-// outside the project's own .claude/ folders (and inside them when a `..` follows, or the case differs); a path held whole in one variable stays unseen (Q-0361 (b); vault/KNOWN-LIMITS.md).
+-if (/\.claude\/(?!(?:(?:worktrees|skills|hooks|agents|commands|workflows)\/|settings(?:\.local)?\.json\b)(?![^\s;&|<>()]*\.\.))[^\s;&|<>()]*[$`*?[{]/i.test(noTests))
++// outside the project's own .claude/ folders. Inside them the exemption holds only for the last folder level: a `..`, a `$(`, a
++// backtick, or a $ or { in a level before the last, or a dot-leading wildcard level (.? .* .[.]) before the last, builds a `..` at run time.
++// The case may differ (macOS). A path held whole in one variable stays unseen (Q-0361 (b), Q-0407 (a); vault/KNOWN-LIMITS.md).
++const TOKEN = String.raw`[^\s;&|<>()]`;
++const LEVEL = String.raw`[^\s;&|<>()\/]`;
++const BUILT = new RegExp(String.raw`\.claude\/(?!(?:(?:worktrees|skills|hooks|agents|commands|workflows)\/|settings(?:\.local)?\.json\b)(?!${TOKEN}*(?:\.\.|\$\(|\x60|[$\x60{]${TOKEN}*\/)|(?:${LEVEL}*\/)*\.${LEVEL}*[*?[]${LEVEL}*\/))${TOKEN}*[$\x60*?[{]`, 'i');
++if (BUILT.test(noTests))
    deny('A path under .claude/ may not use $, a backtick or a wildcard: it could name the sign-in file. Write the path out in full (Q-0361 (b); PA3 rule 8).');
++// A link to ~/.claude lets a later path reach the sign-in file through the link, so ln may not name .claude at all (Q-0407 (a)).
++if (/(^|[\s\/])ln\s[^;&|]*\.claude/i.test(noTests))
++  deny('ln may not name .claude: a link to it could reach the sign-in file (Q-0407 (a); PA3 rule 8).');
  
  const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
+ if (readOnly.includes(agent)) {
