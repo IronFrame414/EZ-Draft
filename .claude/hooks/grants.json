@@ -1,1 +1,5 @@
-{}
+{
+  "EZD-172": [
+    "scripts/gate.mjs"
+  ]
+}
