@@ -667,10 +667,11 @@ describe('EZD-173 M: merge lock, worktree base, push, preflight', () => {
     const cmd = gateStub(`import { openSync, closeSync, unlinkSync, appendFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 try { closeSync(openSync(${JSON.stringify(busy)}, 'wx')); } catch { process.exit(1); }
-const subject = spawnSync('git', ['log', '-1', '--format=%s'], { encoding: 'utf8' }).stdout.trim();
+const target = process.argv[2];
+const subject = spawnSync('git', ['-C', target, 'log', '-1', '--format=%s'], { encoding: 'utf8' }).stdout.trim();
 const start = Date.now();
 Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500);
-appendFileSync(${JSON.stringify(runs)}, JSON.stringify({ subject, start, end: Date.now() }) + '\\n');
+appendFileSync(${JSON.stringify(runs)}, JSON.stringify({ subject, target, start, end: Date.now() }) + '\\n');
 unlinkSync(${JSON.stringify(busy)});
 console.log('ℹ pass 1');
 `);
@@ -681,9 +682,18 @@ console.log('ℹ pass 1');
     const waits = res.filter((r) => /MERGE WAIT EZD-00\d: merge lock held by pid \d+ \(unit-steps merge EZD-00\d\)/.test(r.stdout));
     assert.equal(waits.length, 1, res.map((r) => r.stdout).join('\n'));
     const rec = readFileSync(runs, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).sort((a, b) => a.start - b.start);
-    assert.equal(rec.length, 2);
-    assert.ok(rec[0].end <= rec[1].start);
-    assert.deepEqual(new Set(rec.map((r) => r.subject)), new Set(['feat(EZD-002): Thing two', 'feat(EZD-003): Thing three']));
+    assert.equal(rec.length, 4);
+    for (let i = 0; i < 3; i++) assert.ok(rec[i].end <= rec[i + 1].start);
+    assert.equal(rec[1].target, '.');
+    assert.equal(rec[3].target, '.');
+    assert.deepEqual([rec[0].target, rec[2].target].sort(), ['.claude/worktrees/EZD-002', '.claude/worktrees/EZD-003']);
+    const titles = { 'EZD-002': 'Thing two', 'EZD-003': 'Thing three' };
+    for (const j of [0, 2]) {
+      const t = rec[j].target.split('/').pop();
+      assert.match(rec[j].subject, new RegExp(`^chore\\(${t}\\): update from develop [0-9a-f]{7,40}$`));
+      assert.equal(rec[j + 1].subject, `feat(${t}): ${titles[t]}`);
+    }
+    assert.deepEqual(new Set([rec[1].subject, rec[3].subject]), new Set(['feat(EZD-002): Thing two', 'feat(EZD-003): Thing three']));
     for (const t of ['EZD-002', 'EZD-003']) {
       const hashes = git(dir, 'log', '-F', `--grep=feat(${t}): `, '--format=%h').split('\n').filter(Boolean);
       assert.equal(hashes.length, 1);
@@ -697,6 +707,7 @@ console.log('ℹ pass 1');
     const dir = fixture();
     const cmd = gateStub(`import { writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+if (process.argv[2] !== '.') { console.log('ℹ pass 1'); process.exit(0); }
 writeFileSync('vault/handoff/x.md', 'x');
 spawnSync('git', ['add', 'vault/handoff/x.md']);
 spawnSync('git', ['commit', '-qm', 'docs(vault): gate artefact']);
@@ -705,7 +716,8 @@ process.exit(1);
     const wt = addTicketWork(dir, 'EZD-002', 2);
     const r = us(dir, ['merge', 'EZD-002'], { EZD_GATE_CMD: cmd });
     assert.equal(r.status, 1, r.stdout + r.stderr);
-    assert.match(r.stdout, /MERGE RED/);
+    assert.match(r.stdout, /MERGE RED EZD-002: develop gate failed; develop restored, worktree kept\. Treat as a review FAIL\./);
+    assert.match(r.stdout, /MERGE UPDATE EZD-002 pass 1: merged develop [0-9a-f]{7,40} into t\/EZD-002; ticket gate green/);
     assert.equal(git(dir, 'log', '-1', '--format=%s'), 'Revert "feat(EZD-002): Thing two"');
     assert.ok(git(dir, 'log', '--format=%s').includes('docs(vault): gate artefact'));
     assert.ok(existsSync(path.join(dir, 'vault/handoff/x.md')));

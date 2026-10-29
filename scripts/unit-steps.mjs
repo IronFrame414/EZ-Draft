@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // The build unit's mechanical steps (optimize plan C5; token diet, Josh 2026-10-22). The build-ticket orchestrator calls
 // these instead of running git and ledger edits turn by turn, so its session stays a thin dispatcher. Each step prints
-// 5 lines or fewer. Exit 0 = go on, 1 = failed (red gate), 3 = stop the unit (reason printed), 2 = usage.
+// 5 lines or fewer. Exit 0 = go on, 1 = failed (red gate), 3 = stop the unit (reason printed), 4 = merge clash left open for the builder (EZD-175), 2 = usage.
 //
 //   node scripts/unit-steps.mjs preflight <T>          step 0: develop clean outside vault/, ledger valid, ticket startable, no hold
 //   node scripts/unit-steps.mjs worktree <T>           step 2: create or resume .claude/worktrees/<T> on t/<T>; STATUS → in-progress;
 //                                                     `RESUME merged=yes` when an interrupted unit already squashed it (go to step 10)
 //   node scripts/unit-steps.mjs merge <T>              step 10: squash, commit, develop gate, clean up; STATUS → done (hash, tests);
+//                                                     first merges develop into t/<T> and re-runs the ticket gate when that changed anything;
 //                                                     resumes after an interrupted unit (feat commit already on develop)
 //   node scripts/unit-steps.mjs finish <T> <outcome> [<vault path>...]
 //                                                     step 11: ledger check, report, commit vault/ (or only this unit's own
@@ -131,17 +132,101 @@ function worktree() {
   return 0;
 }
 
+let shown = 0;
+
+const listPaths = (paths) => paths.slice(0, 3).join(', ') + (paths.length > 3 ? ` and ${paths.length - 3} more` : '');
+const firstLine = (r) => out(r).split('\n')[0];
+const gateSummary = (r) => out(r).split('\n').filter((l) => /^(GATE|typecheck|lint|test|build|perf|first error)/.test(l)).slice(-3);
+const printSummary = (summary) => {
+  const n = Math.max(0, Math.min(3, 4 - shown));
+  for (const l of summary.slice(summary.length - n)) console.log(l);
+};
+
+// True when guard-paths.mjs would let a builder edit <rel> in the ticket's worktree (asks the hook itself; fails closed).
+function builderMayWrite(t, rel) {
+  const gp = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../.claude/hooks/guard-paths.mjs');
+  const wt = path.join(root, '.claude/worktrees', t);
+  const r = spawnSync(process.execPath, [gp], {
+    input: JSON.stringify({ agent_type: 'builder', tool_name: 'Edit', tool_input: { file_path: path.join(wt, rel) }, cwd: wt }),
+    env: { ...process.env, CLAUDE_PROJECT_DIR: root }, cwd: root, encoding: 'utf8',
+  });
+  return r.status === 0 && !(r.stdout || '').includes('"permissionDecision":"deny"');
+}
+
+function ticketGate(t) {
+  const gateCmd = process.env.EZD_GATE_CMD;
+  const wtArg = `.claude/worktrees/${t}`;
+  return gateCmd
+    ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), wtArg])
+    : sh(process.execPath, ['scripts/gate.mjs', wtArg]);
+}
+
+// EZD-175: bring t/<T> up to date with develop before the squash. Returns 0 go on, 1 red ticket gate, 3 stop, 4 clash left open.
+function updateBranch(t) {
+  const wt = path.join(root, '.claude/worktrees', t);
+  const br = `t/${t}`;
+  if (!out(git('branch', '--list', br))) { console.log(`MERGE STOP ${t}: no branch ${br}`); return 3; }
+  if (!existsSync(wt)) {
+    const add = git('worktree', 'add', wt, br);
+    if (add.status) { console.log(`MERGE STOP ${t}: cannot add .claude/worktrees/${t}: ${firstLine(add)}`); return 3; }
+  }
+  if (sh('git', ['-C', wt, 'rev-parse', '-q', '--verify', 'MERGE_HEAD']).status === 0) {
+    console.log(`MERGE STOP ${t}: .claude/worktrees/${t} has an unfinished merge; develop untouched`); return 3;
+  }
+  if (out(sh('git', ['-C', wt, 'status', '--porcelain', '--untracked-files=no']))) {
+    console.log(`MERGE STOP ${t}: .claude/worktrees/${t} has uncommitted changes; develop untouched`); return 3;
+  }
+  for (let k = 1; k <= 3; k++) {
+    const dev = out(git('rev-parse', 'develop'));
+    const short = out(git('rev-parse', '--short', dev));
+    if (git('merge-base', '--is-ancestor', dev, br).status === 0) {
+      if (k === 1) { console.log(`MERGE UPDATE ${t}: ${br} already contains develop ${short}`); shown += 1; }
+      return 0;
+    }
+    const mg = sh('git', ['-C', wt, 'merge', '--no-ff', '--no-edit', '-m', `chore(${t}): update from develop ${short}`, dev]);
+    if (mg.status) {
+      const u = out(sh('git', ['-C', wt, 'diff', '--name-only', '--diff-filter=U'])).split('\n').filter(Boolean);
+      const inMerge = () => sh('git', ['-C', wt, 'rev-parse', '-q', '--verify', 'MERGE_HEAD']).status === 0;
+      if (u.length) {
+        const denied = u.filter((f) => !builderMayWrite(t, f));
+        if (!denied.length) {
+          console.log(`MERGE CLASH ${t}: merging develop ${short} into ${br} conflicts in ${listPaths(u)}; merge left open in .claude/worktrees/${t} for the builder; develop untouched.`);
+          return 4;
+        }
+        sh('git', ['-C', wt, 'merge', '--abort']);
+        console.log(`MERGE STOP ${t}: merging develop ${short} into ${br} conflicts in ${listPaths(u)}; ${denied[0]} is not the builder's to write; merge aborted, develop untouched, worktree kept.`);
+        return 3;
+      }
+      if (inMerge()) sh('git', ['-C', wt, 'merge', '--abort']);
+      console.log(`MERGE STOP ${t}: merging develop ${short} into ${br} failed: ${firstLine(mg)}; develop untouched`);
+      return 3;
+    }
+    const gate = ticketGate(t);
+    if (gate.status !== 0) {
+      console.log(`MERGE RED ${t}: ticket gate failed after merging develop ${short} into ${br}; develop untouched, worktree kept. Treat as a review FAIL.`);
+      printSummary(gateSummary(gate));
+      return 1;
+    }
+    console.log(`MERGE UPDATE ${t} pass ${k}: merged develop ${short} into ${br}; ticket gate green`);
+    shown += 1;
+    if (git('diff', '--quiet', dev, 'develop', '--', '.', ':(exclude)vault').status === 0) return 0;
+  }
+  console.log(`MERGE STOP ${t}: develop changed outside vault/ during each of 3 ticket gates; develop untouched`);
+  return 3;
+}
+
 function merge() {
   return withMergeLock(root, {
     owner: owner(),
-    onWait: (rec) => console.log(`MERGE WAIT ${ticket}: merge lock held by pid ${rec.pid} (${rec.owner})`),
+    onWait: (rec) => { console.log(`MERGE WAIT ${ticket}: merge lock held by pid ${rec.pid} (${rec.owner})`); shown += 1; },
   }, (mergeLock) => {
+    if (!mergedCommit()) { const code = updateBranch(ticket); if (code !== 0) return code; }
     // Ledger hold 1: record the base, squash and commit.
     const { row, resumed, feat } = withLedgerLock(root, { owner: owner() }, () => {
       const row = rowOf(ticket);
       const resumed = mergedCommit();
       mergeLock.update({ base: out(git('rev-parse', resumed ? `${resumed}^` : 'HEAD')) });
-      if (resumed) console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`);
+      if (resumed) { console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`); shown += 1; }
       else {
         const sq = git('merge', '--squash', `t/${ticket}`);
         if (sq.status) { git('merge', '--abort'); git('reset', '--merge'); stop(`MERGE STOP: squash failed: ${out(sq).split('\n')[0]}`); }
@@ -156,7 +241,7 @@ function merge() {
       ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), '.', '--phase', row.phase])
       : sh(process.execPath, ['scripts/gate.mjs', '.', '--phase', row.phase]);
     const gateLog = existsSync(path.join(root, 'gate.log')) ? readFileSync(path.join(root, 'gate.log'), 'utf8') : '';
-    const summary = out(gate).split('\n').filter((l) => /^(GATE|typecheck|lint|test|build|perf|first error)/.test(l)).slice(-3);
+    const summary = gateSummary(gate);
     // Ledger hold 2: restore develop or close the ticket.
     return withLedgerLock(root, { owner: owner() }, () => {
       if (gate.status !== 0) {
@@ -164,7 +249,7 @@ function merge() {
         if (!resumed && out(git('rev-parse', 'HEAD')) === feat) git('reset', '--keep', 'HEAD~1');
         else git('revert', '--no-edit', feat);
         console.log(`MERGE RED ${ticket}: develop gate failed; develop restored, worktree kept. Treat as a review FAIL.`);
-        for (const l of summary) console.log(l);
+        printSummary(summary);
         return 1;
       }
       const hash = out(git('rev-parse', '--short', feat));
