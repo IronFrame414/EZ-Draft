@@ -16088,6 +16088,29 @@
     "AC-EZD-256-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-257",
+   "phase": 1,
+   "title": "Fix: the release T8 test cannot fail on hash text",
+   "depends_raw": "EZD-023e",
+   "spec_ref": "Q-0348",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-023e"
+   ],
+   "build_position": 529,
+   "acs": [
+    "AC-EZD-257-1",
+    "AC-EZD-257-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"

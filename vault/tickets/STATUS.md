@@ -570,6 +570,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-254 | 1 | Fix: a finished phase is gated even while an earlier phase has a blocked ticket | ready | low | EZD-250 |  |  | Added 2026-10-28 from the EZD-250 plan (Q-0404; rule 17). EZD-253 now depends on it. |
 | EZD-255 | 1 | Fix: a hold or limit message names the repair unit when a repair hits it | ready | low | EZD-250 |  |  | Added 2026-10-28 from Q-0404 (rule 17). |
 | EZD-256 | 1 | Fix: only one gate at a time takes over a dead lock | ready | high | EZD-172 |  |  | Added 2026-10-28 from Q-0408 QP-1 (rule 17). |
+| EZD-257 | 1 | Fix: the release T8 test cannot fail on hash text | ready | low | EZD-023e |  |  | Added 2026-10-28 for Q-0348 (a) and Q-0415 (rule 17; questions 1). |
 | EZD-137 | 9 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102, EZD-124 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). Moved to phase 9 after EZD-124 (Q-0395). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |

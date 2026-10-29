@@ -1,20 +1,17 @@
-# Phase 1 · for Josh (questions unit, 2026-10-28, seventh run)
+# Phase 1 · for Josh (questions unit, 2026-10-28, eighth run)
 
-EZD-254, EZD-255 and EZD-256 are `ready`. One decision is waiting (Q-0409).
+EZD-254 to EZD-257 are `ready`. No decision is waiting.
 
 ## 1. Decisions needed
 
-- **Q-0409 · EZD-173.** Build is done and the gate is green on 99f988a5, but the code-reviewer's third review failed on one item, and a high ticket is blocked at round 3 (PROCESS.md section 8). The item: `scripts/ledger.mjs` addQuestion (lines 256-267) takes the next Q-ID from QUESTIONS.md only, but develop now moves answered rows to QUESTIONS-answered.md and QUESTIONS-archive.md and its own assignQuestionIds counts all three files. No duplicate ID exists today (Q-0408 is still in QUESTIONS.md); one would appear the first time the highest row moves out.
-  - (a) **Recommended:** one last round on this item only (planner amends C4 and decides whether `answer` must find moved rows; test-author adds the row; builder; code-reviewer only). It closes the whole class of duplicate ID (CLAUDE.md rules 17, 18) before EZD-174 builds on this module.
-  - (b) Merge now, fix in a new ticket: rule 17 forbids parking a known issue, and EZD-174 builds on the module.
-  - (c) Drop the ticket.
-
-(Q-0089, Q-0237 and Q-0406 stay escalated; not phase 1 or not yet planned.)
+None. Q-0409 is confirmed; Q-0089, Q-0237 and Q-0406 stay escalated (not phase 1 or not yet planned).
 
 ## 2. Agent answers to confirm
 
 Every `answered-agent` row for phase 1 not yet `confirmed-josh` (QUESTIONS.md, QUESTIONS-answered.md, QUESTIONS-archive.md). Answers are shortened to 170 characters; the full text is in the ledger row.
 
+- **Q-0415** · EZD-246 gate. Yes, the orchestrator adds the fix ticket: EZD-257 (the release T8 test cannot fail on hash text; same defect as Q-0348, whose ticket was never created). Source: CLAUDE.md rule 17; Q-0348; Q-0385. Confirm or override.
+- **Q-0416** · EZD-257 (plan QP-1). (a) the loop runs 10 fresh release runs, each forced to a hash holding 403. Source: EZD-257.md section 2; Q-0384 (b). Confirm or override.
 - **Q-0232** · EZD-102, 103, 112, 113, 132, 1704, 136. Q-0214 in-place message, no redirect (overrides S15 States, EZD-103 text); Company switch gates customers (S15a, Q-0210), email unique ignoring case (docs/architecture... Source: vault/questions/phase-01-spec-gaps-for-josh.md. Confirm or override.
 - **Q-0281** · EZD-147 (plan QP-1). (b) separate phase 1 fix ticket for the four workflows, depending on EZD-146. Source: EZD-147.md section 1; phase-01.md EZD-146; Q-0268; fix ticket EZD-176 added (questions 1, 2026-10-24). Confirm or override.
 - **Q-0283** · EZD-148 (plan QP-1). (a) separate phase 1 fix ticket adding the refusal; planner first confirms the pnpm 12.14.0 changelog claim. Source: Q-0268; CLAUDE.md rules 4, 17; EZD-148.md; fix ticket EZD-177 added (questions 1, 2026-10-24). Confirm or override.
@@ -79,7 +76,7 @@ Every `answered-agent` row for phase 1 not yet `confirmed-josh` (QUESTIONS.md, Q
 
 ## 3. Proposed wording
 
-EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249, EZD-251: section 6 of their plans. EZD-250: W1–W5 and the watchdog alerts, vault/plans/EZD-250.md section 6. EZD-253: the three lines in vault/plans/EZD-253.md section 6. EZD-254 and EZD-256: none (section 6 of their plans). EZD-255: W1–W3, vault/plans/EZD-255.md section 6.
+EZD-243: W7–W17, vault/plans/EZD-243.md section 6. EZD-247: W1–W7, vault/plans/EZD-247.md section 6. EZD-248, EZD-249, EZD-251: section 6 of their plans. EZD-250: W1–W5 and the watchdog alerts, vault/plans/EZD-250.md section 6. EZD-253: the three lines in vault/plans/EZD-253.md section 6. EZD-254 and EZD-256: none (section 6 of their plans). EZD-257: none (section 6 of its plan). EZD-255: W1–W3, vault/plans/EZD-255.md section 6.
 
 ## 4. Rule candidates
 
