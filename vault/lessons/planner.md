@@ -284,3 +284,4 @@ Check: the reviewer counts the tests, compares the fixture's returned names to t
 Plan check: section 4 states the test count and the fixture's returned names; section 1 text blocks end with "nothing else".
 - EZD-175 (2026-10-29): before calling a change to a shared step 'tests unchanged', run every test file that calls that step (here ledger-lock.test.mjs M1/M2) and pin new expected values in the plan.
 - EZD-253 re-validation: set up a test ledger copy so it passes every --check rule on the live ledger (architecture list for each open ticket, a plan for each ready one); cite code by function name, not line number, because lines move between planning and build.
+- EZD-253 plan-gap: when the plan adds a status message, say what fills each placeholder and give one ledger state that reaches every new branch, including grant holds for earlier phases.
