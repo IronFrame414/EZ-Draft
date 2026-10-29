@@ -282,3 +282,4 @@ Cause: the test table and exact-text blocks gave what to write but never said th
 Rule: a plan's test table gives the exact test count and titles, a fixture's returned shape is listed in full, and each exact-text block ends with "nothing else".
 Check: the reviewer counts the tests, compares the fixture's returned names to the plan and finds no text or helper outside the plan.
 Plan check: section 4 states the test count and the fixture's returned names; section 1 text blocks end with "nothing else".
+- EZD-175 (2026-10-29): before calling a change to a shared step 'tests unchanged', run every test file that calls that step (here ledger-lock.test.mjs M1/M2) and pin new expected values in the plan.
