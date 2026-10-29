@@ -16137,6 +16137,28 @@
     "AC-EZD-258-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-259",
+   "phase": 1,
+   "title": "Fix: the EZD-153 scratch database starts reliably during a full gate",
+   "depends_raw": "EZD-153",
+   "spec_ref": "Q-0334",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-153"
+   ],
+   "build_position": 531,
+   "acs": [
+    "AC-EZD-259-1",
+    "AC-EZD-259-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
