@@ -102,27 +102,42 @@ rules['retriever-digest'] = retriever;
 rules['retriever-web'] = retriever;
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) deny(`${agent} is read-only.`);
-// Usage-fix grants (Josh 2026-10-27: "you have permission to perform everything needed for this list"): in the EZD-244,
-// EZD-245 and EZD-246 worktrees only, the builder may write exactly these files. Tests stay denied. The orchestrator removes
-// a ticket's entry when it merges, and the whole block when all three have merged.
+// Builder grants (Josh 2026-10-27: "you have permission to perform everything needed for this list"): the builder of a
+// ticket listed here may write exactly these files in its own worktree. Tests stay denied. The orchestrator removes a
+// ticket's entry after it merges.
 const AGENTS = (names) => names.map((n) => `.claude/agents/${n}.md`);
 const usageFixFiles = {
-  'EZD-244': ['CLAUDE.md', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/build-ticket/dispatch.md', '.claude/skills/plan-ticket/SKILL.md',
-    '.claude/skills/questions/SKILL.md', '.claude/skills/review-plans/SKILL.md', '.claude/skills/gate-phase/SKILL.md', '.claude/skills/wrap/SKILL.md',
-    ...AGENTS(['builder', 'test-author', 'code-reviewer', 'security-reviewer', 'planner', 'plan-checker', 'ui-verifier', 'calc-auditor', 'phase-auditor', 'log-summarizer']),
-    'vault/tools/next_ticket.mjs', 'vault/tools/plan_lint.mjs', 'vault/tools/outline.mjs', 'vault/plans/TEMPLATE.md', 'vault/PROCESS.md', 'vault/tickets/tickets.json'],
   'EZD-245': ['vault/tools/findings.mjs', 'vault/tools/next_ticket.mjs', 'vault/lessons/INDEX.md', '.claude/skills/build-ticket/SKILL.md',
     '.claude/skills/build-ticket/dispatch.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/wrap/SKILL.md', ...AGENTS(['planner', 'plan-checker']), 'vault/PROCESS.md'],
   'EZD-246': ['vault/tools/next_ticket.mjs', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/build-ticket/dispatch.md',
     ...AGENTS(['code-reviewer', 'security-reviewer']), 'vault/PROCESS.md'],
   'EZD-248': ['vault/tools/next_ticket.mjs', '.claude/hooks/session-start.mjs', '.claude/hooks/guard-bash.mjs', 'scripts/run.mjs', 'vault/questions/QUESTIONS-answered.md',
     'vault/questions/QUESTIONS-archive.md', '.claude/skills/questions/SKILL.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/spec-check/SKILL.md'],
-  'EZD-250': ['.claude/hooks/grants.json', '.claude/hooks/guard-paths.mjs', '.claude/hooks/lib.mjs', 'vault/tools/grants.mjs', 'vault/tools/next_ticket.mjs', 'vault/tools/ledger-queue.mjs', 'scripts/launcher-idle.mjs', 'scripts/run.mjs', 'scripts/watchdog.mjs', 'scripts/launchd/install.mjs', '.claude/skills/repair/SKILL.md', 'vault/PROCESS.md'],
   'EZD-249': ['vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', '.claude/hooks/guard-paths.mjs', '.claude/hooks/guard-bash.mjs',
     '.claude/agents/retriever-web.md', '.claude/agents/retriever-digest.md', '.claude/skills/build-ticket/dispatch.md', 'vault/PROCESS.md'],
 };
-const usageFixTicket = /\/\.claude\/worktrees\/(EZD-24[456]|EZD-248|EZD-249|EZD-250)\//.exec(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))))?.[1];
-if (agent === 'builder' && usageFixTicket && !isTest && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
+// The ticket of the worktree the file is in: a prefix match on <projectDir()>/.claude/worktrees/<T>/ (EZD-250 D1), so a
+// nested .claude/worktrees/ inside a worktree never matches the outer one.
+const worktreesPrefix = `${projectDir().replace(/\/$/, '')}/.claude/worktrees/`;
+const resolvedFile = norm(path.resolve(norm(input.cwd) || projectDir(), norm(file)));
+const usageFixTicket = resolvedFile.startsWith(worktreesPrefix) ? /^(EZD-\d+[a-z]?)\//.exec(resolvedFile.slice(worktreesPrefix.length))?.[1] : undefined;
+if (agent === 'builder' && usageFixTicket && !isTest && Object.hasOwn(usageFixFiles, usageFixTicket) && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
+// Builder grants from .claude/hooks/grants.json (EZD-250 D1): ticket ID → the exact paths its builder may write in its own
+// worktree; Josh applies them from vault/handoff/<T>-grant.patch. Read on every call. Unreadable, invalid JSON or not a plain
+// object grants nothing; a value that is not a list of strings grants nothing for that ticket (fail closed).
+function fileGrants() {
+  try {
+    const g = JSON.parse(readFileSync(`${projectDir()}/.claude/hooks/grants.json`, 'utf8'));
+    return g !== null && typeof g === 'object' && Object.getPrototypeOf(g) === Object.prototype ? g : null;
+  } catch {
+    return null;
+  }
+}
+if (agent === 'builder' && usageFixTicket && !isTest) {
+  const g = fileGrants();
+  const paths = g && Object.hasOwn(g, usageFixTicket) ? g[usageFixTicket] : null;
+  if (Array.isArray(paths) && paths.every((p) => typeof p === 'string') && paths.includes(rel)) process.exit(0);
+}
 const reason = rules[agent]?.();
 if (reason) deny(reason);
 if (!rules[agent]) deny(`${agent} is not in the roster (vault/PROCESS.md section 4); it may not write files.`);

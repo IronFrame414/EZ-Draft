@@ -51,7 +51,7 @@ const { weekSpend, questionsFingerprint, assignQuestionIds, setArchitecture } = 
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
-const { idleAction } = await import('./launcher-idle.mjs');
+const { idleAction, repairDecision, parseVerdict, fingerprint, codeFingerprint, writeLauncherState } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
@@ -65,6 +65,8 @@ const UNITS = {
   questions: { skill: 'questions', effort: 'medium', model: MODELS.orchestrator, turns: 80 },
   'gate-phase': { skill: 'gate-phase', effort: 'medium', model: MODELS.orchestrator, turns: 150 },
   wrap: { skill: 'wrap', effort: 'medium', model: MODELS.orchestrator, turns: 60 },
+  // EZD-250 D12-D13: started only by the launcher, for a ledger failure, an agent-fixable wait or a failed phase PR CI gate.
+  repair: { skill: 'repair', effort: 'medium', model: MODELS.orchestrator, turns: 80 },
 };
 
 const log = (msg) => console.log(`[run ${new Date().toISOString().slice(11, 19)}] ${msg}`);
@@ -79,6 +81,16 @@ function notify(msg) {
 const oauthFallback = createOAuthFallback({ notify, log });
 const tool = (...a) => spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), ...a], { encoding: 'utf8', cwd: root });
 const git = (...a) => spawnSync('git', ['-C', root, ...a], { encoding: 'utf8' });
+const nowIso = () => new Date().toISOString();
+const firstLine = (text) => String(text || '').split('\n').map((l) => l.trim()).find(Boolean) || '';
+// What the launcher is doing, for the watchdog (EZD-250 D7). Never written in a dry run.
+const setState = (patch) => { if (!dryRun) { try { writeLauncherState(logDir, patch); } catch (e) { log(`launcher state not written: ${e.message}`); } } };
+// The next unit, with the poll recorded in the launcher state (D7).
+function nextUnitText() {
+  const next = tool('--next-unit').stdout.trim();
+  setState({ next, polledAt: nowIso() });
+  return next;
+}
 
 // Confirm the flags this launcher relies on against the installed CLI (PROCESS.md section 15). Unknown flags are dropped
 // with a warning so a version change never makes every run fail at the parser.
@@ -241,7 +253,7 @@ function writeHandoff(unit, line) {
     const dest = path.join(vault, 'handoff/log', `${stamp}.md`);
     if (!existsSync(dest)) copyFileSync(cur, dest);
   }
-  const next = tool('--next-unit').stdout.trim();
+  const next = nextUnitText();
   writeFileSync(cur, `# Handoff · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} · ${unit}\n\n- Phase and stage: see vault/PROGRESS.md\n- Why the session ended: unit complete (launcher-run agent unit)\n- Completed this session: ${line}\n- In progress: none\n- Blocked: none new\n- Questions for Josh: see vault/questions/QUESTIONS.md\n- Decisions made: none\n- Next unit: ${next}\n`);
 }
 function commitVault(msg) {
@@ -342,6 +354,99 @@ async function recoverInflight() {
   notify(`launcher restarted after it stopped during ${f.unit} ${f.ticket}; resuming`);
 }
 
+// EZD-250 D10a: queued ledger edits (vault/tools/ledger-queue.mjs) are applied between units, on develop only. A failure is
+// logged and sent once per distinct line, never a stop; the branches stay and the next pass retries.
+let queueFailure = null;
+const rejectedSent = new Set();
+function applyQueuedEdits() {
+  if (git('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim() !== 'develop') return;
+  const script = path.join(vault, 'tools/ledger-queue.mjs');
+  let line = null;
+  let res = null;
+  if (!existsSync(script)) line = 'ledger-queue.mjs not found';
+  else {
+    const r = spawnSync(process.execPath, [script, 'apply'], { encoding: 'utf8', cwd: root });
+    if (r.status !== 0) line = firstLine(r.stderr) || `exit ${r.status}`;
+    else {
+      try { res = JSON.parse(r.stdout); } catch {}
+      if (!res || typeof res !== 'object') line = 'output unreadable';
+    }
+  }
+  if (line) {
+    if (line !== queueFailure) {
+      log(`queue apply failed: ${line}`);
+      if (line !== 'ledger-queue.mjs not found') notify(`queued ledger edits not applied: ${line}. They stay on their queue/ branches; the launcher retries each pass.`);
+      queueFailure = line;
+    }
+    return;
+  }
+  queueFailure = null;
+  for (const name of res.applied ?? []) log(`queue: applied ${name}`);
+  for (const { name, reason } of res.rejected ?? []) {
+    if (rejectedSent.has(name)) continue;
+    rejectedSent.add(name);
+    notify(`queued ledger edit ${name} not applied (${reason}); kept as branch queue-rejected/${name}.`);
+  }
+}
+
+// EZD-250 D11: a ticket held for a guard grant reaches Josh as one patch notification; a patch whose grant is in place is removed.
+const grantFailuresSent = new Set();
+let grantCheckUnreadable = false; // logged once until a readable result
+function grantNotices() {
+  const g = tool('--grant-needs');
+  const out = (g.stdout || '').trim();
+  let held = null;
+  if (g.status === 0 && out) { try { held = JSON.parse(out); } catch {} }
+  if (!Array.isArray(held) || !held.every((h) => typeof h?.id === 'string' && Array.isArray(h.paths))) {
+    if (!grantCheckUnreadable) log('grant check output unreadable');
+    grantCheckUnreadable = true;
+    return;
+  }
+  grantCheckUnreadable = false;
+  for (const { id, paths } of held) {
+    const r = spawnSync(process.execPath, [path.join(vault, 'tools/grants.mjs'), 'patch', id, ...paths], { encoding: 'utf8', cwd: root });
+    if (r.status !== 0) {
+      const line = firstLine(r.stderr) || `exit ${r.status}`;
+      if (grantFailuresSent.has(`${id}\n${line}`)) continue;
+      grantFailuresSent.add(`${id}\n${line}`);
+      notify(`grant patch for ${id} failed: ${line}. Tickets that need a guard grant stay held.`);
+      continue;
+    }
+    let res = null;
+    try { res = JSON.parse(r.stdout); } catch {}
+    if (res?.written) {
+      notify(`guard grant ready for ${id}: from the repo root run git apply vault/handoff/${id}-grant.patch && git commit -m "chore(guard): grant ${id}" -- .claude/hooks/grants.json`);
+      commitVault(`docs(vault): guard grant patch ${id}`);
+    }
+  }
+  const listed = new Set(held.map((h) => h.id));
+  let names = [];
+  try { names = readdirSync(path.join(vault, 'handoff')); } catch {}
+  for (const n of names) {
+    const id = n.match(/^(.+)-grant\.patch$/)?.[1];
+    if (!id || listed.has(id)) continue;
+    try { unlinkSync(path.join(vault, 'handoff', n)); } catch { continue; }
+    commitVault(`docs(vault): guard grant in place ${id}`);
+  }
+}
+
+// EZD-250 D9: the launcher's code changed (a merge): restart in place, same pid, so launchd and the watchdog see one process.
+function restartIfCodeChanged(atStart) {
+  const now = codeFingerprint(root);
+  if (now.hash === atStart.hash) return;
+  const changed = [...new Set([...Object.keys(atStart.files), ...Object.keys(now.files)])].filter((k) => atStart.files[k] !== now.files[k]).sort();
+  log(`launcher code changed (${changed.join(', ')}); restarting`);
+  setState({ state: 'restarting', at: nowIso() });
+  if (typeof process.execve !== 'function') { log('cannot restart in place; exiting for launchd'); process.exit(75); }
+  process.execve(process.execPath, [process.execPath, ...process.execArgv, fileURLToPath(import.meta.url), ...args], { ...process.env, EZD_LAUNCHER_RESTARTED: '1' });
+}
+
+// EZD-250 D13: the repair unit's brief.
+function writeRepairBrief({ kind, fp, next }) {
+  const chk = tool('--check');
+  writeFileSync(path.join(vault, 'handoff/REPAIR.md'), `# Repair · ${nowIso()}\n- Trigger: ${kind}\n- Fingerprint: ${fp}\n- Reason: ${next}\n\n## Ledger check output\n\`\`\`\n${(chk.stdout || '').trimEnd()}\n\`\`\`\n`);
+}
+
 async function main() {
   if (statusOnly) {
     const b = budget(); const s = weekSpend(b); const m = await readMeters({ budget: b });
@@ -353,17 +458,24 @@ async function main() {
     for (const f of [...OPTIONAL_FLAGS, ['--max-turns'], ['--max-budget-usd'], ['--effort'], ['--agent'], ['--permission-mode']]) console.log(`flag ${f[0]}: ${flagSupported(f[0]) ? 'supported' : 'not in claude --help (dropped)'}`);
     return;
   }
-  if (process.platform === 'darwin' && !dryRun) {
-    // Keep the Mac awake for the life of the launcher (PROCESS.md section 10, "Keeping the machine running").
+  if (process.platform === 'darwin' && !dryRun && process.env.EZD_LAUNCHER_RESTARTED !== '1') {
+    // Keep the Mac awake for the life of the launcher (PROCESS.md section 10, "Keeping the machine running"). A restart in
+    // place (D9) keeps the pid, so the first caffeinate still watches it.
     try { const c = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }); c.unref(); } catch {}
   }
   if (!dryRun) await recoverInflight();
-  let checkFailures = 0;
+  // EZD-250 D8: the continuous run also restarts on new code, applies queued ledger edits, sends grant notices and repairs.
+  const continuous = !once && !dryRun;
+  const codeAtStart = codeFingerprint(root);
+  const repairStateFile = path.join(logDir, 'repair-state.json');
+  let repairs = 0; // repair units since the last runnable next unit (D12)
   let noProgress = 0;
   let tabled = 0; // builds tabled in a row by the no-progress guard
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
+  let failedWait = null; // the next-unit text a failed repair was started for; the same wait keeps state repair-failed (D7)
   for (;;) {
+    if (continuous) restartIfCodeChanged(codeAtStart);
     // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
     if (dryRun && boostState({ root }).expired) log('dry run: boost mode has expired; a real run would remove vault/handoff/BOOST.json');
     else if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
@@ -371,13 +483,36 @@ async function main() {
     // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
     if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
-    const next = stopExists ? '' : tool('--next-unit').stdout.trim();
-    const [unitName, arg] = next.split(/\s+/, 2);
-    const idle = idleAction({ stopExists, next: stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`, once: once || dryRun });
+    if (continuous && !stopExists) { applyQueuedEdits(); grantNotices(); }
+    const next = stopExists ? '' : nextUnitText();
+    let [unitName, arg] = next.split(/\s+/, 2);
+    const effective = stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`;
+    let idle = idleAction({ stopExists, next: effective, once: once || dryRun });
+    // EZD-250 D12: a wait an agent can fix starts a repair unit; a runnable unit is the only reset.
+    let repair = null;
+    if (continuous && !stopExists) {
+      if (!/^none:/.test(effective)) {
+        try { unlinkSync(repairStateFile); } catch {}
+        repairs = 0;
+      } else {
+        const d = repairDecision({ next: effective, state: readJson(repairStateFile, null), consecutive: repairs });
+        if (d.action === 'repair') {
+          repair = { ...d, next: effective };
+          writeRepairBrief(repair);
+          unitName = 'repair';
+          arg = d.kind;
+          idle = { action: 'run' };
+        } else if (d.why === 'tried' && idle.action === 'wait') idle = { ...idle, notify: null };
+      }
+    }
     if (idle.action === 'stop') { log(stopExists ? 'vault/handoff/STOP exists; stopping.' : next); if (!stopExists && !/budget hold/.test(next)) notify(`launcher stopped: ${next.replace(/^none:\s*/, '')}`); return; }
     if (idle.action === 'wait') {
-      if (waiting !== idle.why) { log(idle.why); if (idle.notify) notify(idle.notify); waiting = idle.why; }
-      await sleep(idle.ms);
+      if (waiting !== idle.why) {
+        log(idle.why); if (idle.notify) notify(idle.notify); waiting = idle.why;
+        // D7: after a failed repair the same wait keeps state repair-failed and its time, so the watchdog can alert (D16 (a)).
+        if (failedWait === null || effective !== failedWait) { setState({ state: 'idle', at: nowIso() }); failedWait = null; }
+      }
+      await sleep(config.idle_poll_ms ?? idle.ms);
       continue;
     }
     if (waiting) { log('resuming'); waiting = null; }
@@ -407,12 +542,16 @@ async function main() {
     if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
     process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
     const statusBefore = statusHash();
+    setState({ state: 'unit', at: nowIso() });
+    failedWait = null;
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
+    setState({ state: 'after-unit', at: nowIso() });
     if (r.outcome.startsWith('limit-')) {
       if (r.limit.kind === 'five-hour') {
         const until = parseWhen(r.limit.until) || new Date(Date.now() + 30 * 60000);
         log(`five-hour limit; waiting until ${until.toISOString()} then resuming ${next}`);
+        setState({ state: 'limit-wait', at: nowIso(), until: until.toISOString() });
         await sleep(Math.max(60000, until.getTime() - Date.now() + 60000));
         continue;
       }
@@ -421,16 +560,30 @@ async function main() {
       return;
     }
     const chk = tool('--check');
-    if (chk.status !== 0) {
-      checkFailures++;
-      log(`ledger check failed (${checkFailures}):\n${chk.stdout}`);
-      if (checkFailures >= 2) { notify('ledger check failed twice in a row; launcher stopped. See vault/handoff/CURRENT.md.'); return; }
-    } else checkFailures = 0;
+    if (repair) {
+      // EZD-250 D12a: a REPAIRED claim stands only if the ledger check passes and the wait it was started for is gone.
+      const after = nextUnitText();
+      let v = r.outcome === 'ok' ? parseVerdict(r.parsed?.result) : { verdict: 'failed', line: r.outcome };
+      if (v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
+      else if (v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
+      try { mkdirSync(logDir, { recursive: true }); writeFileSync(repairStateFile, JSON.stringify({ fp: repair.fp, verdict: v.verdict, at: nowIso() }) + '\n'); } catch (e) { log(`repair state not written: ${e.message}`); }
+      repairs++;
+      if (v.verdict === 'repaired') log(`repair ${repair.kind}: repaired: ${v.line}`);
+      else if (v.verdict === 'josh') notify(`needs Josh: ${v.line} (vault/handoff/REPAIR.md)`);
+      else {
+        notify(`repair failed for "${repair.next}": ${v.line}. The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`);
+        setState({ state: 'repair-failed', at: nowIso() });
+        failedWait = repair.next;
+      }
+      continue;
+    }
+    // After a normal unit a failed check only logs; the next pass starts a repair unit (EZD-250 D12a).
+    if (chk.status !== 0) log(`ledger check failed:\n${chk.stdout}`);
     // No-progress guard (2026-10-19): a unit that ends ok but leaves STATUS.md and the next unit unchanged is not
     // retried forever. A build that does it twice is tabled (blocked with a note) and the launcher moves on to the next
     // ready ticket (Josh 2026-10-27: "override so it keeps moving forward"); any other unit, a failed table, or a third
     // stuck build right after two tables (a systemic fault, not one ticket) still stop the launcher.
-    if (r.outcome === 'ok' && statusHash() === statusBefore && tool('--next-unit').stdout.trim() === next) {
+    if (r.outcome === 'ok' && statusHash() === statusBefore && nextUnitText() === next) {
       noProgress++;
       log(`${next} ended ok but changed nothing in STATUS.md (${noProgress} in a row)`);
       if (noProgress >= 2) {

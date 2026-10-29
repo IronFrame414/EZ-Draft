@@ -9,7 +9,7 @@
 //
 // The launcher agent restarts only after a crash or a kill (KeepAlive SuccessfulExit false): when the launcher stops on
 // purpose (a repeated failure, a ledger error, a plan limit) it notifies Josh and exits 0, and stays stopped. To pause,
-// touch vault/handoff/STOP (the running unit finishes); remove it to resume. The watchdog runs every 15 minutes.
+// touch vault/handoff/STOP (the running unit finishes); remove it to resume. The watchdog runs every 5 minutes (EZD-250).
 // PATH is the PATH of the shell that ran `install`, so node, pnpm, claude and docker resolve as they do there.
 import { writeFileSync, mkdirSync, existsSync, unlinkSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -24,6 +24,8 @@ const logDir = config.log_dir || path.join(os.homedir(), 'Library/Logs/ezdraft')
 const agentsDir = path.join(os.homedir(), 'Library/LaunchAgents');
 const uid = process.getuid();
 const LABELS = { launcher: 'com.ezdraft.launcher', watchdog: 'com.ezdraft.watchdog' };
+// Every 5 minutes, so the watchdog's 15-minute idle rule fires by minute 20 (EZD-250 D17).
+export const WATCHDOG_INTERVAL_S = 300;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export function plist(label, { program, interval, keepAlive, log }) {
@@ -58,7 +60,7 @@ function install() {
   const node = process.execPath;
   const defs = {
     [LABELS.launcher]: { program: [node, path.join(root, 'scripts/run.mjs')], keepAlive: true, log: path.join(logDir, 'launcher.log') },
-    [LABELS.watchdog]: { program: [node, path.join(root, 'scripts/watchdog.mjs')], interval: 900, log: path.join(logDir, 'watchdog.log') },
+    [LABELS.watchdog]: { program: [node, path.join(root, 'scripts/watchdog.mjs')], interval: WATCHDOG_INTERVAL_S, log: path.join(logDir, 'watchdog.log') },
   };
   for (const [label, d] of Object.entries(defs)) {
     lc('bootout', `gui/${uid}/${label}`);

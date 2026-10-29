@@ -4,6 +4,7 @@
 //   node vault/tools/next_ticket.mjs --ready         -> the next `ready` ticket whose dependencies are all done (Stage 3)
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
+//   node vault/tools/next_ticket.mjs --grant-needs   -> JSON [{ id, paths }]: ready tickets held for a guard grant (EZD-250)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
 //   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
@@ -25,6 +26,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
+import { grantNeeds } from './grants.mjs';
 import { findingProblems } from './findings.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -684,6 +686,13 @@ function gateState(p) {
 }
 const wrapped = (p) => existsSync(path.join(vault, 'cost', `phase-${pad2(p)}.md`));
 
+// EZD-250 D6: every ready ticket of the working phase that waits on a guard grant, with the paths it needs.
+function heldForGrants() {
+  const { p } = workingPhase();
+  if (p === null) return [];
+  return candidates(p, true).map((t) => ({ id: t.id, paths: grantNeeds({ root, id: t.id }) })).filter((h) => h.paths.length);
+}
+
 function nextUnit() {
   if (existsSync(path.join(vault, 'handoff/STOP'))) return 'none: vault/handoff/STOP exists';
   const problems = check();
@@ -702,7 +711,20 @@ function nextUnit() {
     if (wrapped(p)) continue;
     const g = gateState(p);
     if (g.state === 'not-gated' || g.state === 'gating') return `gate-phase ${p}`;
-    if (g.state === 'pr-open') return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr})`;
+    if (g.state === 'pr-open') {
+      // EZD-250 D18 (Q-0379 (b)): a failed CI `gate` check on the phase PR is a repairable wait; any other CI state keeps the wait.
+      const r = spawnSync('gh', ['pr', 'checks', g.pr, '--json', 'name,bucket,link'], { cwd: root, encoding: 'utf8', timeout: 30000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+      let checks = null;
+      try { checks = JSON.parse(r.stdout); } catch {}
+      if (!Array.isArray(checks)) {
+        const detail = (r.stderr || '').split('\n').map((l) => l.trim()).find(Boolean)
+          || (r.error?.code === 'ENOENT' ? 'gh not found' : r.error ? `gh error ${r.error.code}` : `gh exited ${r.status}`);
+        return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr}; CI status unreadable: ${detail})`;
+      }
+      const failed = checks.find((c) => c?.name === 'gate' && c?.bucket === 'fail');
+      if (failed) return `none: phase ${p} PR CI gate check failed (${g.pr}; ${typeof failed.link === 'string' && failed.link ? failed.link : 'no link'})`;
+      return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr})`;
+    }
     if (g.state === 'merged') return `wrap ${p}`;
   }
   const { p } = workingPhase();
@@ -729,8 +751,11 @@ function nextUnit() {
     const missing = checkpointMissing();
     if (missing.length) return `none: architecture checkpoint not met (${missing.join('; ')})`;
   }
+  // EZD-250 D6: a ready ticket whose plan needs a guard grant is held until Josh applies it; the others build meanwhile.
   const ready = candidates(p, true);
-  if (ready.length) return `build ${ready[0].id}`;
+  const free = ready.find((t) => grantNeeds({ root, id: t.id }).length === 0);
+  if (free) return `build ${free.id}`;
+  if (ready.length) return `none: waiting on Josh (guard grant for ${ready.map((t) => t.id).join(', ')}; see vault/handoff/)`;
   const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
   if (waiting.length) {
     if (questionsGuarded(p)) return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
@@ -882,6 +907,7 @@ if (isMain) {
     process.exit(0);
   }
   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
+  if (args.includes('--grant-needs')) { console.log(JSON.stringify(heldForGrants())); process.exit(0); }
   if (args.includes('--sort-questions')) {
     const r = sortQuestions();
     console.log(`QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
