@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-29, thirteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-29, fourteenth run)
 
-Two decisions wait on you: Q-0427 (EZD-248 cannot start until its branch is rebased) and Q-0428 (what closes EZD-259's loop). Q-0426 is answered (a, round 9) and left this file.
+Four decisions wait on you: Q-0427, Q-0428, Q-0429 and Q-0431. Q-0430 was answered by the security-reviewer (section 2); it needs one new ticket row that only you can add.
 
 ## 1. Decisions needed
 
@@ -16,13 +16,29 @@ Options:
 2. You resolve the conflicts yourself. Cost: your time; the same round follows.
 Any new same-class bypass edge found in the round goes to EZD-263, not a fifth round.
 
+**Q-0429 · EZD-172 (blocked).** The last parallel-lanes check (A1) passed on lane 2 and lane 0, but lane 1 failed on EZD-181 T3 only, the known flake (fix is EZD-251, which waits for EZD-172: a cycle). Evidence: vault/handoff/EZD-172-a1-evidence.txt.
+Options:
+1. (Recommended) Merge EZD-172 now on its plan's own text that A1 can fail on T3 until EZD-251 lands; EZD-251 then runs its own check. Reason: breaks the cycle; the failure is outside EZD-172's code. Cost: EZD-172 merges without one fully green A1.
+2. Move EZD-251 ahead of EZD-172. Cost: its check needs EZD-172 merged, so it cannot finish first.
+3. Run A1 again hoping T3 passes. Cost: a rerun until green, which rule 16 forbids.
+Also found: EZD-173's test K7 takes its expected Q-IDs from QUESTIONS.md rows only, but the numbering uses all three files, so it fails when QUESTIONS.md has no open rows. It needs its own fix ticket (rule 17); the ledger tools cannot add one, so please add a row (see the end of this section).
+
+**Q-0431 · EZD-265 (questions).** The ticket text says a stuck repair unit "still stops the launcher". Since EZD-250 a failed repair never stops it: it notifies "repair failed … The launcher keeps waiting and re-checks", and the same wait is never repaired twice.
+Options:
+1. (Recommended) Keep EZD-250's behavior; EZD-265 only tests that a repair is never set aside. Reason: you approved the wait in EZD-250 and the ticket then changes nothing there. The AC wording changes to drop "repair". Cost: none.
+2. A repair unit that ends without progress stops the launcher. Cost: reverses EZD-250 and its test S6; a stuck repair halts all other work.
+
+**Rows only you can add (ledger tools cannot):**
+- New phase 1 fix ticket from Q-0430: the gate fails a ticket diff that changes a file the builder's write rules deny and no grant lists (closes shell writes, `cp`, `>`, `sed -i`, for every tool and link). Touches scripts/gate.mjs and likely a grant patch from you.
+- New fix ticket: EZD-173 K7 expected Q-IDs must use all three question files.
+
 ## 2. Agent answers to confirm
 
-Not yet confirmed (confirm or override): Q-0415 (EZD-246), Q-0416 (EZD-257), Q-0417 (EZD-250), Q-0419 (EZD-199). Older ones: earlier runs of this file (git log).
+Not yet confirmed (confirm or override): **Q-0430 (EZD-260): (b), a separate fix ticket for shell writes, not a KNOWN-LIMITS entry; source: security-reviewer, CLAUDE.md rules 17, 18, KNOWN-LIMITS.md:19, Q-0421**; Q-0415 (EZD-246), Q-0416 (EZD-257), Q-0417 (EZD-250), Q-0419 (EZD-199). Older ones: earlier runs of this file (git log).
 
 ## 3. Proposed wording
 
-None new this run.
+None new this run (EZD-260, 261, 262 are ready; none has new wording).
 
 ## 4. Rule candidates
 
@@ -39,3 +55,4 @@ All still `candidate` (unattended run; none decided). Recommendation, one line e
 - L-031 (EZD-257): a distinct-hash fixture test names what makes each fixture's commits unique. **Ratify**.
 - L-032 (EZD-250): verify commands run on the pinned Node; test folders given as quoted globs. **Ratify**.
 - L-033 (EZD-173): a plan changing a shared test helper names the stale options, callers and comments, and says later develop files get the same repair. **Ratify**.
+- L-034 (EZD-246, EZD-254): a plan's test table gives the exact test count and titles, a fixture's returned shape is listed in full, and exact-text blocks end with "nothing else". **Ratify**: reviewers found added work beyond the plan twice.
