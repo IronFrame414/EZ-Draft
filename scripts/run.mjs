@@ -15,7 +15,8 @@
 //   extra_args      array of extra flags for every run
 //   max_turns       { build: 150, plan: 60, "review-plans": 60, questions: 80, "gate-phase": 150, wrap: 60 }
 //   limit_formats_confirmed   true once the pilot (section 15) confirmed the limit-error message formats; until then every
-//                   limit error is treated as the weekly case (section 11)
+//                   limit error is treated as the weekly case (section 11). Either way the raw output of every limit error is saved
+//                   to vault/handoff/limit-error-<time>.txt and Josh is told its name (EZD-193; Q-0299 (b))
 //   prompt_style    "slash" (default: the prompt is `/<skill> <arg>`) or "ask" (plain sentence naming the skill)
 //   log_dir         where the launcher keeps inflight.json and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
 //                   .launcher/ in the checkout elsewhere); scripts/launchd/install.mjs and scripts/watchdog.mjs use the same
@@ -161,6 +162,31 @@ function parseWhen(s) {
   const d = new Date(); d.setHours(h, mm, 0, 0); if (d <= new Date()) d.setDate(d.getDate() + 1);
   return d;
 }
+// EZD-193 (Q-0299 (b)): the raw output of a run that ended on a limit error goes to its own file under vault/handoff/, and
+// Josh is told its name, so the message formats can be read the first time they appear (PROCESS.md section 15 row 9).
+// The file is git-ignored (.gitignore), and each stream is cut to its first and last LIMIT_TEXT_EDGE bytes after the key is
+// redacted, so session output never reaches the public repository and one huge run cannot fill the disk or the log.
+const LIMIT_TEXT_EDGE = 8192;
+function capLimitText(s) {
+  const b = Buffer.from(s, 'utf8');
+  if (b.length <= 2 * LIMIT_TEXT_EDGE) return s;
+  return `${b.subarray(0, LIMIT_TEXT_EDGE).toString('utf8')}\n--- cut ${b.length - 2 * LIMIT_TEXT_EDGE} of ${b.length} bytes ---\n${b.subarray(b.length - LIMIT_TEXT_EDGE).toString('utf8')}`;
+}
+function saveLimitText(unitName, arg, res, limit) {
+  const rel = `vault/handoff/limit-error-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+  const key = typeof config.api_key === 'string' ? config.api_key : '';
+  const redact = (s) => (key ? s.split(key).join('<api_key>') : s);
+  const keep = (s) => capLimitText(redact(s));
+  const body = `unit: ${unitName} ${arg}\nexit: ${res.code}\nclassified: ${limit.kind}${limit.note ? ` (${limit.note})` : ''}\n\n--- stdout ---\n${keep(res.out)}\n--- stderr ---\n${keep(res.err)}\n`;
+  try {
+    mkdirSync(path.join(root, 'vault/handoff'), { recursive: true });
+    writeFileSync(path.join(root, rel), body);
+    notify(`limit error during ${unitName} ${arg}: raw text saved to ${rel}`);
+  } catch (e) {
+    log(`could not save the limit error text to ${rel} (${e.code || e.message}); the text follows:\n${body}`);
+    notify(`limit error during ${unitName} ${arg}: raw text could not be saved; it is in the launcher log`);
+  }
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function appendCost(entry) { mkdirSync(path.dirname(costLog), { recursive: true }); appendFileSync(costLog, JSON.stringify(entry) + '\n'); }
@@ -267,6 +293,7 @@ async function runUnit(unitName, arg, meterSource = null) {
   try { unlinkSync(inflightFile); } catch {}
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
+  if (limit) saveLimitText(unitName, arg, res, limit);
   if (outcome === 'ok' && UNITS[unitName].as) {
     const problem = afterAgentUnit(unitName, arg, parsed);
     if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
