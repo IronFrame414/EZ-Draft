@@ -1,0 +1,43 @@
+// Dot globbing (zsh globdots, bash dotglob or GLOBIGNORE) lets a plain * match .claude, so it may not be turned on (Q-0418 (a)).
+if (/glob_?dots|dotglob|globignore/i.test(noTests))
+  deny('Dot globbing may not be turned on: a plain * could then match .claude and reach the sign-in file (Q-0418 (a); PA3 rule 8).');
+// A level written with $, a backtick, a brace or a parenthesis, or a dot-leading wildcard (.cl* .cla[u]de .claud?), could
+// spell .claude; when the next level could spell the sign-in file the same way, or a later level is or could spell `..`, the
+// path could reach it without naming it, so it is denied (empty and `.` levels are skipped). A wildcard with no leading dot
+// never matches a dot name, so $D/* and .claude/skills/*/SKILL.md pass. Refused although harmless: cat $A/$B, ls $HOME/.c*,
+// cat $PWD/x/../y. A path held whole in one variable stays unseen (Q-0418 (a); vault/KNOWN-LIMITS.md).
+const glob = (level) => level.replace(/\[[^\]]*\]|[*?]|[^*?[]/g, (m) =>
+  (m === '*' ? '.*' : m === '?' || (m[0] === '[' && m.length > 1) ? '.' : m.replace(/[.\\^$|+()\]{}[]/g, '\\$&')));
+const spells = (level, name) => /[$`{}()]/.test(level) ||
+  (/[*?[]/.test(level) && level.startsWith('.') && new RegExp(`^${glob(level)}$`, 'i').test(name));
+const SIGN_IN = '.credentials.json';
+for (const token of noTests.split(/[\s;&|<>]+/)) {
+  const levels = token.split('/').filter((l) => l !== '' && l !== '.');
+  for (let i = 0; i < levels.length - 1; i++) {
+    const rest = levels.slice(i + 1);
+    if (spells(levels[i], '.claude') && (spells(rest[0], SIGN_IN) || rest.slice(0, -1).some((l) => l === '..' || spells(l, '..'))))
+      deny('A path level built with $, a backtick, a brace or a dot-leading wildcard may not lead to the sign-in file or a `..`: write the path out in full (Q-0418 (a); PA3 rule 8).');
+  }
+}
+// ln may not name .claude, nor a level that could spell it (Q-0407 (a), Q-0418 (a)). It counts as a whole word anywhere in a
+// segment (after ; & | ( $( or a backtick, behind sudo or xargs, as ${U:-ln}, or written \ln, "l"n or $'\x6cn'). Quoted text
+// that holds a space is a message, not a command, and is dropped (git commit -m "ln …"), unless the command runs sh, bash, zsh,
+// dash, ksh, eval, source or . anywhere (echo '…' | sh). grep -ln is not ln. A link made by another program (node, python3,
+// cp -s) stays unseen (Q-0418 (a); vault/KNOWN-LIMITS.md).
+const ESC = { a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v' };
+const ansi = (s) => s.replace(/\\(x[0-9a-fA-F]{1,2}|u[0-9a-fA-F]{1,4}|U[0-9a-fA-F]{1,8}|[0-7]{1,3}|.)/g, (m, e) =>
+  (/^[xuU]/.test(e) ? String.fromCodePoint(parseInt(e.slice(1), 16)) : /^[0-7]/.test(e) ? String.fromCharCode(parseInt(e, 8)) : ESC[e] ?? e));
+const LN = /(^|[\s;&|<>()`{}=!\/])ln(?=$|[\s;&|<>()`}])|\$\{[^}]*[-=+?]ln\}/;
+const SHELL = /(^|[\s;&|(`{\/])(sh|bash|zsh|dash|ksh|eval|source)(?=$|[\s;&|)`}])|(^|[;&|(`{])\s*\.(?=\s)/;
+const spans = (seg, keep) => seg.replace(/\$'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|'([^']*)'/g, (m, a, d, q) => {
+  const t = a !== undefined ? ansi(a) : d ?? q;
+  return keep || !/\s/.test(t) ? t : '""';
+}).replace(/\\(.)/g, '$1');
+const segs = segments(raw);
+const runsShell = segs.some((seg) => SHELL.test(spans(seg, false)));
+for (const seg of segs) {
+  if (!LN.test(spans(seg, runsShell))) continue;
+  const all = spans(seg, true);
+  if (/\.claude/i.test(all) || all.split(/[\s;&|<>]+/).some((t) => t.split('/').some((l) => spells(l, '.claude'))))
+    deny('ln may not name .claude, or a path level that could spell it: a link to it could reach the sign-in file (Q-0407 (a), Q-0418 (a); PA3 rule 8).');
+}
