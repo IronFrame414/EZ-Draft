@@ -6,5 +6,21 @@
     ".claude/agents/builder.md",
     ".claude/skills/build-ticket/SKILL.md",
     "scripts/unit-steps.mjs"
+  ],
+  "EZD-199": [
+    ".claude/hooks/guard-reads.mjs",
+    "vault/PROCESS.md",
+    "vault/handoff/EZD-199-hooks.patch",
+    "vault/handoff/EZD-199-work/PROCESS.md",
+    "vault/handoff/EZD-199-work/apply.mjs",
+    "vault/handoff/EZD-199-work/guard-reads.mjs",
+    "vault/tickets/STATUS.md"
+  ],
+  "EZD-254": [
+    "vault/tools/next_ticket.mjs"
+  ],
+  "EZD-255": [
+    "scripts/launcher-idle.mjs",
+    "scripts/run.mjs"
   ]
 }
