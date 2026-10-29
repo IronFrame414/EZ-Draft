@@ -235,29 +235,59 @@ describe('EZD-173 K: ledger lock, ledger commands and commits', () => {
     assert.deepEqual(ids.sort(), ['Q-0002', 'Q-0003']);
   });
 
-  test('K7: two plan recordings together get distinct Q-IDs, their own plan lines and their own handoff archives', async () => {
-    const root = tmp('ezd173-copy-');
-    const vault = path.join(root, 'vault');
-    cpSync(path.join(REPO, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
-    git(root, 'init', '-q', '-b', 'develop');
-    git(root, 'config', 'user.name', 'EZ Draft Test');
-    git(root, 'config', 'user.email', 'test@example.test');
-    git(root, 'config', 'commit.gpgsign', 'false');
-    git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'copy');
-    const tickets = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets;
-    const phaseOf = (t) => tickets.find((x) => x.id === t).phase;
-    for (const t of ['EZD-173', 'EZD-174']) {
-      writeFileSync(path.join(vault, `plans/${t}.md`), `# ${t}\n\n- **Complexity:** medium\n\n## 10. Open questions\n- **QP-1:** Question for ${t}?\n`);
-    }
-    git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'plans');
-    const qPath = path.join(vault, 'questions/QUESTIONS.md');
-    const max = Math.max(...[...readFileSync(qPath, 'utf8').matchAll(/^\| Q-(\d{4}) \|/gm)].map((m) => Number(m[1])));
-    const logs = () => readdirSync(path.join(vault, 'handoff/log')).length;
-    const logsBefore = logs();
-    const driver = path.join(tmp('ezd173-driver-'), 'driver.mjs');
-    writeFileSync(driver, `const [ledger, nt, root, ticket, calls] = process.argv.slice(2);
+  // EZD-266: K7 runs once with no open rows in QUESTIONS.md and once with one open row. Its expected max is taken over all three
+  // question files (questionMax in questions-files.mjs, EZD-173 C16), not from QUESTIONS.md alone.
+  for (const openRows of [false, true]) {
+    const label = openRows ? 'open rows' : 'no open rows';
+    test(`K7 (EZD-266 done when: ${label} in QUESTIONS.md): two plan recordings together get distinct Q-IDs, their own plan lines and their own handoff archives`, async () => {
+      const root = tmp('ezd173-copy-');
+      const vault = path.join(root, 'vault');
+      cpSync(path.join(REPO, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+      // EZD-266 D2: the copy's question state. The seeded archive row holds the highest ID, so expected values never depend on the live ledger.
+      const Q3 = ['questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md'];
+      const textOf = (rel) => (existsSync(path.join(vault, rel)) ? readFileSync(path.join(vault, rel), 'utf8') : '');
+      const qNums = (text) => [...text.matchAll(/^\|\s*Q-(\d{4})\s*\|/gm)].map((m) => Number(m[1]));
+      const insertAfterSeparator = (rel, row) => {
+        const lines = textOf(rel).split('\n');
+        const at = lines.findIndex((l) => /^\| -/.test(l));
+        if (at < 0) assert.fail(`${rel} has no table separator`);
+        lines.splice(at + 1, 0, row);
+        writeFileSync(path.join(vault, rel), lines.join('\n'));
+      };
+      const archived = Math.max(0, ...Q3.flatMap((f) => qNums(textOf(f)))) + 1;
+      insertAfterSeparator('questions/QUESTIONS-archive.md', `| Q-${String(archived).padStart(4, '0')} | 1 / EZD-266 | test (2026-10-29) | K7 seeded archived question? | answered-agent | test | a | EZD-266 |`);
+      writeFileSync(path.join(vault, 'questions/QUESTIONS.md'), textOf('questions/QUESTIONS.md').split('\n').filter((l) => !/^\|\s*Q-\d{4}\s*\|/.test(l)).join('\n'));
+      let seed;
+      if (openRows) {
+        seed = archived + 1;
+        insertAfterSeparator('questions/QUESTIONS.md', `| Q-${String(seed).padStart(4, '0')} | 1 / EZD-266 | test (2026-10-29) | K7 seeded open question? | open |  |  |  |`);
+      }
+      git(root, 'init', '-q', '-b', 'develop');
+      git(root, 'config', 'user.name', 'EZ Draft Test');
+      git(root, 'config', 'user.email', 'test@example.test');
+      git(root, 'config', 'commit.gpgsign', 'false');
+      git(root, 'add', '-A');
+      git(root, 'commit', '-qm', 'copy');
+      const tickets = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets;
+      const phaseOf = (t) => tickets.find((x) => x.id === t).phase;
+      for (const t of ['EZD-173', 'EZD-174']) {
+        writeFileSync(path.join(vault, `plans/${t}.md`), `# ${t}\n\n- **Complexity:** medium\n\n## 10. Open questions\n- **QP-1:** Question for ${t}?\n`);
+      }
+      git(root, 'add', '-A');
+      git(root, 'commit', '-qm', 'plans');
+      const qPath = path.join(vault, 'questions/QUESTIONS.md');
+      // EZD-266 D3: the expected max over the copy's three files, a missing file counts as empty.
+      const max = Math.max(0, ...Q3.flatMap((f) => qNums(textOf(f))));
+      // EZD-266 D4: state proofs before the drivers, so each variant provably ran in the state it names.
+      const openCount = qNums(textOf('questions/QUESTIONS.md')).length;
+      assert.equal(openCount, openRows ? 1 : 0, `${label}: QUESTIONS.md has ${openCount} Q rows, expected ${openRows ? 1 : 0}`);
+      const wantMax = openRows ? seed : archived;
+      assert.equal(max, wantMax, `${label}: max is ${max}, expected ${wantMax}`);
+      assert.ok(max + 2 <= 9999, `${label}: max ${max} leaves no room for two 4-digit Q-IDs`);
+      const logs = () => readdirSync(path.join(vault, 'handoff/log')).length;
+      const logsBefore = logs();
+      const driver = path.join(tmp('ezd173-driver-'), 'driver.mjs');
+      writeFileSync(driver, `const [ledger, nt, root, ticket, calls] = process.argv.slice(2);
 const L = await import(ledger); const NT = await import(nt);
 const { appendFileSync } = await import('node:fs');
 L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
@@ -265,27 +295,28 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
   L.commitPaths(root, r.paths, 'docs(vault): plan ' + ticket);
 });
 `);
-    const nt = pathToFileURL(path.join(vault, 'tools/next_ticket.mjs')).href;
-    const calls = path.join(tmp('ezd173-calls-'), 'arch-calls.txt');
-    const rs = await Promise.all(['EZD-173', 'EZD-174'].map((t) => spawnP(process.execPath, [driver, pathToFileURL(LEDGER).href, nt, root, t, calls], { env: { ...process.env, EZD_INFLIGHT_DIR: inflightFor(root) } })));
-    rs.forEach((r) => assert.equal(r.status, 0, r.stdout + r.stderr));
-    assert.deepEqual(new Set((existsSync(calls) ? readFileSync(calls, 'utf8') : '').split('\n').filter(Boolean)), new Set(['EZD-173', 'EZD-174']));
-    for (const t of ['EZD-173', 'EZD-174']) {
-      const c = rowCells(root, t);
-      assert.equal(c[3], 'questions');
-      assert.equal(c[4], 'medium');
-    }
-    const q = readFileSync(qPath, 'utf8');
-    const got = [];
-    for (const t of ['EZD-173', 'EZD-174']) {
-      const m = q.match(new RegExp(`^\\| (Q-\\d{4}) \\| ${phaseOf(t)} / ${t} \\(plan QP-1\\) \\|.*Question for ${t}\\?`, 'm'));
-      assert.ok(m, `Q row for ${t}`);
-      got.push(m[1]);
-      assert.match(readFileSync(path.join(vault, `plans/${t}.md`), 'utf8'), new RegExp(`^- \\*\\*${m[1]} \\(was QP-1\\):\\*\\* Question for ${t}\\?$`, 'm'));
-    }
-    assert.deepEqual(new Set(got), new Set([`Q-${String(max + 1).padStart(4, '0')}`, `Q-${String(max + 2).padStart(4, '0')}`]));
-    assert.equal(logs() - logsBefore, 2);
-  });
+      const nt = pathToFileURL(path.join(vault, 'tools/next_ticket.mjs')).href;
+      const calls = path.join(tmp('ezd173-calls-'), 'arch-calls.txt');
+      const rs = await Promise.all(['EZD-173', 'EZD-174'].map((t) => spawnP(process.execPath, [driver, pathToFileURL(LEDGER).href, nt, root, t, calls], { env: { ...process.env, EZD_INFLIGHT_DIR: inflightFor(root) } })));
+      rs.forEach((r) => assert.equal(r.status, 0, r.stdout + r.stderr));
+      assert.deepEqual(new Set((existsSync(calls) ? readFileSync(calls, 'utf8') : '').split('\n').filter(Boolean)), new Set(['EZD-173', 'EZD-174']));
+      for (const t of ['EZD-173', 'EZD-174']) {
+        const c = rowCells(root, t);
+        assert.equal(c[3], 'questions');
+        assert.equal(c[4], 'medium');
+      }
+      const q = readFileSync(qPath, 'utf8');
+      const got = [];
+      for (const t of ['EZD-173', 'EZD-174']) {
+        const m = q.match(new RegExp(`^\\| (Q-\\d{4}) \\| ${phaseOf(t)} / ${t} \\(plan QP-1\\) \\|.*Question for ${t}\\?`, 'm'));
+        assert.ok(m, `Q row for ${t}`);
+        got.push(m[1]);
+        assert.match(readFileSync(path.join(vault, `plans/${t}.md`), 'utf8'), new RegExp(`^- \\*\\*${m[1]} \\(was QP-1\\):\\*\\* Question for ${t}\\?$`, 'm'));
+      }
+      assert.deepEqual(new Set(got), new Set([`Q-${String(max + 1).padStart(4, '0')}`, `Q-${String(max + 2).padStart(4, '0')}`]));
+      assert.equal(logs() - logsBefore, 2);
+    });
+  }
 
   test('K8: with another unit in flight, finish commits only this unit\'s own paths', () => {
     const dir = fixture();
