@@ -192,6 +192,7 @@ if (isMain) {
   console.log(`Thresholds: pause ${t.five_hour_pause_pct}% · warn ${t.warn_at_pct}% · hold ${t.hold_at_pct}% · Fable fallback ${t.fable_fallback_pct}%`);
   console.log(s.text);
   console.log(`Ceilings: weekly $${b.weekly_ceiling_usd_est ?? 'unset'} · per unit cap $${b.per_unit_cap_usd_est ?? 'unset'} · Fable $${b.fable_ceiling_usd_est ?? 'unset'}`);
-  console.log(`Override: ${b.override && typeof b.override === 'object' ? `${b.override.type} (week of ${b.override.week_start.slice(0, 10)})` : 'none'} · Hold: ${existsSync(holdFile) ? 'IN PLACE (vault/handoff/BUDGET_HOLD.md)' : 'none'}`);
+  const active = overrideActive(b);
+  console.log(`Override: ${active ? `${active.type} (week of ${active.week_start.slice(0, 10)})` : 'none'} · Hold: ${existsSync(holdFile) ? 'IN PLACE (vault/handoff/BUDGET_HOLD.md)' : 'none'}`);
   if (m.warning) console.log(`Warning: ${m.warning}`);
 }
