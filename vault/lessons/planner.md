@@ -251,3 +251,10 @@ Mistake: a comment or rule wording in a plan or test file described code behavio
 Cause: the sentence was written from memory of the code, not from the cited lines.
 Rule: when a plan has the builder or test-author write a comment or rule text about code behavior, cite the file and line it restates and name the exact branch (for example "only the Auth-outage branch, actions.ts line 141").
 Check: the reviewer finds no comment or rule text that differs from the code it cites.
+
+## L-031  areas: release, testing, scripts  seen: 1  status: candidate
+Tickets EZD-257, 2026-10-29
+Mistake: a plan expected 10 distinct fixture git hashes from fixtures with fixed identity, fixed content and fixed messages; commits made in the same second got the same hash (test-author PLAN-GAP).
+Cause: the plan named no input that makes each fixture's commits unique, and git dates have one-second resolution.
+Rule: when a test checks that fixture git hashes are distinct, the plan names what makes each fixture's commits unique (for example a run counter in the commit message).
+Check: the reviewer finds each distinctness check paired with a named unique input.

@@ -15904,7 +15904,7 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000",
-     "EZD-248"
+    "EZD-248"
    ],
    "build_position": 521,
    "acs": [
