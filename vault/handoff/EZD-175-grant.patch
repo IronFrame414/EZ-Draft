@@ -1,13 +1,15 @@
 diff --git a/.claude/hooks/grants.json b/.claude/hooks/grants.json
-index 0967ef4..3932c2d 100644
+index ddcce4c..609e95d 100644
 --- a/.claude/hooks/grants.json
 +++ b/.claude/hooks/grants.json
-@@ -1 +1,7 @@
--{}
-+{
+@@ -1,5 +1,10 @@
+ {
+   "EZD-172": [
+     "scripts/gate.mjs"
++  ],
 +  "EZD-175": [
 +    ".claude/agents/builder.md",
 +    ".claude/skills/build-ticket/SKILL.md",
 +    "scripts/unit-steps.mjs"
-+  ]
-+}
+   ]
+ }
