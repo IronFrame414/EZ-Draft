@@ -2,23 +2,6 @@
   "EZD-172": [
     "scripts/gate.mjs"
   ],
-  "EZD-199": [
-    ".claude/hooks/guard-reads.mjs",
-    "vault/PROCESS.md",
-    "vault/handoff/EZD-199-hooks.patch",
-    "vault/handoff/EZD-199-work/PROCESS.md",
-    "vault/handoff/EZD-199-work/apply.mjs",
-    "vault/handoff/EZD-199-work/guard-reads.mjs",
-    "vault/tickets/STATUS.md"
-  ],
-  "EZD-253": [
-    ".claude/agents/phase-auditor.md",
-    ".claude/skills/gate-phase/SKILL.md",
-    ".claude/skills/wrap/SKILL.md",
-    "vault/PROCESS.md",
-    "vault/tickets/tickets.json",
-    "vault/tools/next_ticket.mjs"
-  ],
   "EZD-255": [
     "scripts/launcher-idle.mjs",
     "scripts/run.mjs"
@@ -38,5 +21,14 @@
     "scripts/unit-steps.mjs",
     "vault/PROCESS.md",
     "vault/tools/findings.mjs"
+  ],
+  "EZD-267": [
+    ".claude/hooks/guard-paths.mjs",
+    "scripts/ledger.mjs",
+    "scripts/run.mjs",
+    "scripts/unit-steps.mjs",
+    "vault/PROCESS.md",
+    "vault/tools/grants.mjs",
+    "vault/tools/next_ticket.mjs"
   ]
 }
