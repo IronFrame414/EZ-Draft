@@ -230,3 +230,10 @@ Check: a grep for the pattern returns 0 after the build.
 - 2026-10-28 EZD-246: when a plan adds text to a file an existing test pins (grep scripts/ for the file's path, e.g. dispatch.md under EZD-000e T7), give the exact lines and placement and a test-author row that updates the pin, as EZD-245 D26 did.
 - 2026-10-28 EZD-172: when a plan writes a temp file under a predictable name, say up front "delete it first, then create it with the exclusive flag", so a leftover or planted file is never written through.
 - 2026-10-28 EZD-173: when a plan writes a shared ledger file, name the module that owns that file's layout and ID rules and import it instead of copying the rule (addQuestion counted one questions file while develop counts three).
+
+## L-028  areas: tooling, process  seen: 1  status: candidate
+Tickets EZD-246, EZD-240, 2026-10-28
+Mistake: a test or document line did not carry out an exact plan row (a pipe character in a table, assertion messages and a first-run check in T3); the reviewer found it after the build.
+Cause: the plan's exact-text and "after each step" rows were prose the test-author could skim past.
+Rule: write each such row as its own numbered check naming the line or step (for example "T3 asserts the sample after run 1 and after run 2"), and put a shared rule such as assertion messages in the test table, not only in Decided.
+Check: the reviewer finds no test defect against a plan row.
