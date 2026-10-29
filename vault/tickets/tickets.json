@@ -16232,6 +16232,51 @@
     "AC-EZD-262-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-263",
+   "phase": 1,
+   "title": "Fix: every update of develop is ledger-checked",
+   "depends_raw": "EZD-248",
+   "spec_ref": "Q-0421",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-248"
+   ],
+   "build_position": 535,
+   "acs": [
+    "AC-EZD-263-1",
+    "AC-EZD-263-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-264",
+   "phase": 1,
+   "title": "Fix: architecture and runbook say Josh enters the Preview EMAIL_TRANSPORT value",
+   "depends_raw": "EZD-247",
+   "spec_ref": "Q-0420",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-247"
+   ],
+   "build_position": 536,
+   "acs": [
+    "AC-EZD-264-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
