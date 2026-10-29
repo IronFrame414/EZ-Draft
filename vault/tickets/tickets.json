@@ -14056,7 +14056,9 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Local database"
+   ],
    "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -14451,9 +14453,9 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Dependencies",
     "Root config files",
-    "Machine checks"
+    "Machine checks",
+    "Dependencies"
    ],
    "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
