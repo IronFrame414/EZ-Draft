@@ -1,6 +1,6 @@
-# Handoff EZD-255
-- Why the session ended: EZD-255 blocked on EZD-266 (agent-fixable). Gate red only on EZD-173 K7, same on develop.
-- Done: plan gap (LIMIT_NOTICE line) patched as D16 by planner, committed on develop. Tests 2f576219 and build d07ddd3d on t/EZD-255; own 12 tests pass, 209/210 launcher+process pass.
-- Next: build EZD-266, then resume EZD-255: worktree, gate, step 8 code-reviewer (mode 3, tests included), merge.
-- Open (rule 17): EZD-250 harness stub roots log "queue apply failed: ledger-queue.mjs not found"; needs a fix ticket. Not yet added.
-- Reviewer notes: harness fake claude uses process.exitCode; done-when test composed by test-author; run.mjs import at line 57 not 53.
+# Handoff EZD-259
+- Ended: EZD-259 blocked on EZD-266 (agent-fixable). Reviewed and passing; merge red only on EZD-173 K7, same failure on develop.
+- Done: build ef33b4df; security finding (N12 redaction test) fixed in 8ee65499, 79c2d9af; plan N12 patched on develop; code-reviewer PASS, security-reviewer PASS round 2; worktree gate PASS.
+- Next: build EZD-266 (and merge EZD-255 after it), then resume EZD-259: worktree, gate, `unit-steps.mjs merge EZD-259`.
+- Q-0428 (a): V1 loop logs go to EZD-251.
+- Open: EZD-250 stub-roots log "ledger-queue.mjs not found" still needs a fix ticket (from EZD-255 handoff).
