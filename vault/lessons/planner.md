@@ -296,3 +296,8 @@ Plan check: for each test row, name the D-line that yields its expected value an
 When a plan asserts the whole of a list another merged ticket also writes to (e.g. notified), list every writer's lines from current develop code, not from the dependency branch the plan was written against.
 Tests section: when a note can carry several line kinds (summary, JSON error, stderr), give each kind a test with a URL password, not only stderr (EZD-259 security review).
 - EZD-261 (2026-10-29): When a plan edit replaces text in another plan, check the old text against current develop right before returning (other tickets edit those plans). Write each 'old text gone' test with its closing delimiter, so a valid longer command that starts the same way does not match.
+
+## L-036  areas: tooling, scripts, testing  seen: 1  status: candidate
+Mistake: a test row passes on today's code, or checks one output channel only, so the change it pins is not tested (EZD-253 U20 grant-needs row; EZD-259 N3/N4 redaction on stderr only).
+Rule: for each test row, state the input where old and new code give different results, and name every output channel (stderr, summary, JSON) the changed behavior reaches.
+Plan check: each test row names the old code's result on its input and lists the channels it asserts.
