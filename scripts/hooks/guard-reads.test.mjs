@@ -168,3 +168,55 @@ test('EZD-198 T4 the hook header names how a notebook over the limit is handled'
   assert.match(top, /offset, limit or pages/);
   assert.match(top, /EZD-198/);
 });
+
+// EZD-199: a ranged read whose selected text is over the limit (Q-0344 (b)).
+const RANGE_SENTENCE = "Narrow the range: fewer lines with sed -n 'a,bp' or head -n K, or part of one long line with head -c K or sed -n 'Np' | cut -c a-b.";
+// One line of n - 1 `x` and its newline: exactly n characters.
+function oneLine(name, n) {
+  const f = path.join(tmp, name);
+  fs.writeFileSync(f, 'x'.repeat(n - 1) + '\n');
+  return f;
+}
+const ONE = oneLine('one.txt', 25000);
+const D = oneLine('d.txt', 15000);
+const NUL = path.join(tmp, 'nul.txt');
+fs.writeFileSync(NUL, Buffer.concat([Buffer.from([0]), Buffer.alloc(24999, 0x78)]));
+function assertDeniedRange(r, f, chars, msg) {
+  assert.equal(r.status, 0, msg);
+  assert.deepEqual(reason(r).split('\n'), [
+    `Ranged read blocked: the range selects ${chars} characters of ${f} (limit 20000, GUARD_WHOLE_READ_CHARS).`,
+    RANGE_SENTENCE,
+  ], msg);
+}
+
+test('EZD-199 T1 a ranged head, tail or sed -n read selecting over GUARD_WHOLE_READ_CHARS from one file is denied', () => {
+  for (const c of [`sed -n '1p' ${ONE}`, `sed -n 1,5p ${ONE}`, `sed -n -e 1p ${ONE}`, `head -n 1 ${ONE}`, `head -1 ${ONE}`,
+    `head --lines=1 ${ONE}`, `tail -n 1 ${ONE}`, `tail -n +1 ${ONE}`, `head -c 30000 ${ONE}`, `sed -n '1p' < ${ONE}`,
+    `sed -n '51p' ${S} ${ONE}`, `head -n 1 ${S} ${ONE}`, `git status; head -n 1 ${ONE}`, `sed -n '1,0p' ${ONE}`,
+    `head -c 100 -n 1 ${ONE}`]) assertDeniedRange(bash(c), ONE, 25000, c);
+  assertDeniedRange(bash(`head -c 20001 ${ONE}`), ONE, 20001, 'head -c 20001');
+  assertDeniedRange(bash(`tail -c 21000 ${ONE}`), ONE, 21000, 'tail -c 21000');
+  assertDeniedRange(bash(`tail -c +4001 ${ONE}`), ONE, 21000, 'tail -c +4001');
+  assertDeniedRange(bash(`sed -n '1p;1p' ${D}`), D, 30000, 'sed -n 1p;1p');
+  assertDeniedRange(bash(`sed -n '7p' ${NB}`), NB, 24851, 'notebook line 7');
+  const t = reason(bash(`head -n 1 ${ONE}`, { GUARD_WHOLE_READ_CHARS: '4000' })).split('\n')[0];
+  assert.ok(t.includes('(limit 4000,'), t);
+});
+
+test('EZD-199 T2 the same reads of a short range pass', () => {
+  for (const c of [`head -c 20000 ${ONE}`, `head -c 100 ${ONE}`, `tail -c 100 ${ONE}`, `tail -n 0 ${ONE}`, `sed -n '2,3p' ${ONE}`,
+    `sed -n '0,1p' ${ONE}`, `sed -n '50p' ${S} ${ONE}`, `sed -n '1p' ${D}`, `sed -n '1,3p' ${L}`, `head -n 3 ${L}`, `tail -n 3 ${L}`,
+    `head -n 200 ${L}`, `sed -n '1,3p' ${NB}`, `sed -n '1p' ${ONE} | cut -c 1-100`, `head -n 1 ${ONE} > ${path.join(tmp, 'one-copy.txt')}`,
+    `head -n 1 -c 100 ${ONE}`, `head -n 1 ${S} < ${ONE}`, `head -c 30000 ${P}`, `head -c 25000 ${NUL}`])
+    assertPass(bash(c), c);
+  assertPass(bash(`sed -n '1p' ${ONE}`, { GUARD_WHOLE_READ_CHARS: '25000' }));
+  assertPass(bash(`sed -n '1p' ${ONE}`, { GUARD_WHOLE_READ_EXEMPT: ONE }));
+  assertPass(bash(`head -n 1 ${path.join(tmp, 'missing.txt')}`));
+});
+
+test('EZD-199 T3 the denial names how to narrow the range, and each way it names passes', () => {
+  const last = reason(bash(`sed -n '1p' ${ONE}`)).split('\n').at(-1);
+  assert.equal(last, RANGE_SENTENCE);
+  for (const s of ["sed -n 'a,bp'", 'head -n K', 'head -c K', 'cut -c a-b']) assert.ok(last.includes(s), s);
+  for (const c of [`sed -n '1,3p' ${L}`, `head -n 3 ${L}`, `head -c 100 ${ONE}`, `sed -n '1p' ${ONE} | cut -c 1-100`]) assertPass(bash(c), c);
+});
