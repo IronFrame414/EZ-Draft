@@ -1,8 +1,8 @@
-# Handoff · 2026-10-28 · build EZD-242
+# Handoff · 2026-10-28 · build EZD-247
 
-- EZD-242: DONE, merged to develop 2dc131fb, 1365 tests, gate green.
-- Resumed at step 10 (all reviews had passed earlier; research report R-032 unblocked the merge gate).
-- Models: test-author haiku, builder haiku (--dispatch); round 2 haiku.
-- Reviews: code-reviewer PASS and ui-verifier PASS in round 2.
-- Deviations: none. No needs-josh-confirm wording.
+- EZD-247: DONE, merged to develop fdf4ef97, 1371 tests, gate green, 1 round.
+- Models: test-author haiku/high, builder haiku/high, code-reviewer opus/medium, security-reviewer opus/high (all --dispatch).
+- Reviews: code-reviewer PASS, security-reviewer PASS (run because the gate flagged scripts/hosting/__tests__/hosting.test.mjs).
+- Deviations: built alone, not batched with EZD-257 (worktree was made before batch markers). EZD-257 stays ready for its own unit.
+- Needs Josh: Q-0420 (who enters the Preview EMAIL_TRANSPORT value; two docs lines still say EZD-023b does).
 - Still open: EZD-199 blocked at merge (Q-0419), EZD-173 (needs Josh's patch), run.mjs stderr echo uncapped (no ticket).
