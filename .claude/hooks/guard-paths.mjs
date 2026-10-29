@@ -117,7 +117,7 @@ const usageFixFiles = {
     ...AGENTS(['code-reviewer', 'security-reviewer']), 'vault/PROCESS.md'],
   'EZD-248': ['vault/tools/next_ticket.mjs', '.claude/hooks/session-start.mjs', '.claude/hooks/guard-bash.mjs', 'scripts/run.mjs', 'vault/questions/QUESTIONS-answered.md',
     'vault/questions/QUESTIONS-archive.md', '.claude/skills/questions/SKILL.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/spec-check/SKILL.md'],
-  'EZD-250': ['.claude/hooks/grants.json', '.claude/hooks/guard-paths.mjs', 'vault/tools/grants.mjs', 'vault/tools/next_ticket.mjs', 'vault/tools/ledger-queue.mjs', 'scripts/launcher-idle.mjs', 'scripts/run.mjs', 'scripts/watchdog.mjs', 'scripts/launchd/install.mjs', '.claude/skills/repair/SKILL.md', 'vault/PROCESS.md'],
+  'EZD-250': ['.claude/hooks/grants.json', '.claude/hooks/guard-paths.mjs', '.claude/hooks/lib.mjs', 'vault/tools/grants.mjs', 'vault/tools/next_ticket.mjs', 'vault/tools/ledger-queue.mjs', 'scripts/launcher-idle.mjs', 'scripts/run.mjs', 'scripts/watchdog.mjs', 'scripts/launchd/install.mjs', '.claude/skills/repair/SKILL.md', 'vault/PROCESS.md'],
   'EZD-249': ['vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', '.claude/hooks/guard-paths.mjs', '.claude/hooks/guard-bash.mjs',
     '.claude/agents/retriever-web.md', '.claude/agents/retriever-digest.md', '.claude/skills/build-ticket/dispatch.md', 'vault/PROCESS.md'],
 };
