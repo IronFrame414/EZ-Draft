@@ -16279,6 +16279,31 @@
     "AC-EZD-264-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-265",
+   "phase": 1,
+   "title": "Fix: the launcher sets aside any stuck ticket unit and goes on; a ready ticket with no plan fails the ledger check",
+   "depends_raw": "EZD-254, EZD-255",
+   "spec_ref": "Josh 2026-10-29 (chat)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-254",
+    "EZD-255"
+   ],
+   "build_position": 537,
+   "acs": [
+    "AC-EZD-265-1",
+    "AC-EZD-265-2",
+    "AC-EZD-265-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
