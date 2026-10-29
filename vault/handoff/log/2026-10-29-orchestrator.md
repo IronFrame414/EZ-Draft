@@ -8,3 +8,10 @@
 - EZD-251: its STATUS note still says Josh applies vault/handoff/EZD-172-gate-r8.patch, but that patch is already applied in the EZD-172 worktree (reverse check passes); EZD-251 resumes after EZD-172 merges.
 - Launcher log 2026-10-28 23:03: one 5-minute ledger-check wait, cleared without action; cause not found.
 - Next unit: node vault/tools/next_ticket.mjs --next-unit
+
+## 10:40 UTC · orchestrator (status + EZD-154 Re-run 6 prototype; ended at the 30% context rule)
+- Grant patches (git apply --check, 10:00): EZD-172 already applied (e4fbb272). Still unapplied: EZD-175, EZD-199, EZD-255 and EZD-254 (EZD-254 was not on Josh's list).
+- EZD-172: merged as bf072cb6, gate RED on develop (L20, EZD-173 K7), develop restored by the unit; blocked on Q-0426. Likely K7 cause (not verified): the next-Q-ID code takes the max over an empty QUESTIONS.md table (-Infinity) since the questions split.
+- Phase 2: the spec-check session reports round 6 found no gaps; it waits for Josh to reply "sign off" there.
+- EZD-154 Re-run 6 (Q-0418 (a)): NOT planned into the plan yet. Prototype in vault/handoff/EZD-154-work/ (build-b6.mjs + b6-a.txt + b6-b.txt; samples-b6.mjs; replay-b6.mjs; plan-r6*.mjs/md and kl-r6.mjs are the ready plan and KNOWN-LIMITS edits; finish-r6.sh commits them). The latest work copy passes all 27 scripts/hooks tests and all 70 samples, but replay-b6.mjs (every Bash command in past transcripts, old vs new hook) still shows about 18 harmless commands newly refused: the dot-globbing (D)-qualifier regex on sed/node -e/grep text, and spelled-level hits on sed expressions and markdown backticks. Rule: no plan patch until the replay shows no unaccepted verdict change. Next: tighten those two checks, re-run samples, the 27 tests and the replay (about 15 minutes; freeze the hook copy in its own folder with lib.mjs before replaying), then finish-r6.sh, test-author for Samples B6, patch for Josh.
+- Process finding (rule 17): the EZD-172 unit's end commit 8da17550 swept the untracked EZD-154-work files into "EZD-172 blocked". A unit's commit should take only paths it wrote. Needs a fix ticket.
