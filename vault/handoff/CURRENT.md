@@ -1,10 +1,9 @@
-# Handoff · 2026-10-28 · build EZD-193
+# Handoff · 2026-10-28 · build EZD-199
 
-- Phase and stage: phase 1, Stage 3
-- EZD-193 done: merged to develop as 87177229, develop gate green, 1356 tests.
-- Reviews: code-reviewer opus/medium PASS; security-reviewer opus/high PASS (round 2, after the size cap and .gitignore line).
-- Models (from --dispatch): planner opus/high, test-author haiku/high, reviewers as above. No builder round (Josh applied the launcher patches).
-- Open for a fix ticket (rule 17): scripts/run.mjs line 271 echoes child stderr uncapped to launcher.log (local, git-ignored). Not yet a ticket.
-- Leftover files: vault/handoff/EZD-193-*.patch (applied; can be deleted).
-- Still blocked from earlier: EZD-173 (needs Josh to apply vault/handoff/EZD-173-questions-files.patch).
-- Next unit: node vault/tools/next_ticket.mjs --next-unit
+- EZD-199: BLOCKED at merge (Q-0419). Worktree .claude/worktrees/EZD-199 kept (branch t/EZD-199, commits 623cebab test, wip 1123e8c7 hook+PROCESS.md).
+- Done: Josh applied the patch; worktree gate GREEN; code-reviewer opus/medium PASS (hook hash db903e08 = plan, T1-T3 right).
+- Merge: `unit-steps.mjs merge EZD-199` MERGE RED: develop gate failed on 5 EZD-153 tests (scratch-check-local, "failed to start containers"). No EZD-199 file involved; Docker stack restarted during the run. Finding recorded (gate-red r1).
+- Needs Josh (Q-0419): flaky Docker scratch start (fix ticket for the EZD-153 test) or OK to re-run merge once Docker is idle.
+- Resume: `node scripts/unit-steps.mjs merge EZD-199`; then delete vault/handoff/EZD-199-hooks.patch, DONE.md line, STATUS notes.
+- Models: test-author haiku/high, code-reviewer opus/medium (both from --dispatch). No builder.
+- Also open: EZD-173 (needs Josh's patch), run.mjs stderr echo uncapped (no ticket yet).
