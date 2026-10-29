@@ -1,5 +1,10 @@
-# Handoff EZD-172
-- Ended: EZD-172 blocked at merge. Reviews had PASSed; EZD-266 done.
-- MERGE STOP: merging develop f3af29ca into t/EZD-172 conflicts in scripts/process/ledger-lock.test.mjs (not the builder's file). Merge aborted, develop untouched, worktree kept.
-- Needs: an interactive orchestrator session (Q-0310) to resolve the clash, re-run the gate, then unit-steps merge EZD-172.
-- No questions for Josh.
+# Handoff · 2026-10-29 20:45 · plan EZD-265
+
+- Phase and stage: see vault/PROGRESS.md
+- Why the session ended: unit complete (launcher-run agent unit)
+- Completed this session: Planned EZD-265: status questions, complexity high; open questions Q-0433.
+- In progress: none
+- Blocked: none new
+- Questions for Josh: see vault/questions/QUESTIONS.md
+- Decisions made: none
+- Next unit: plan EZD-267

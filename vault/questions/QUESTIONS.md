@@ -9,3 +9,4 @@ IDs never change or get reused. Josh's answers are also appended to the decision
 
 | ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Q-0433 | 1 / EZD-265 (plan QP-1) | planner (2026-10-29) | EZD-268 (a dependency, not yet planned) rewrites the same run.mjs failure and no-progress paths, and its ticket text also sets a ticket aside after the ladder; undecided is who owns the set-aside call: (a) EZD-265 owns it (D1-D8 here) and EZD-268's plan stops at "ladder exhausted" for build and plan units and calls nothing, with this plan re-validated against EZD-268's merged code before tests are written (recommended); (b) EZD-268 owns the set-aside call and this plan is re-validated to keep only the note, the any-status rule, three in a row, the watchdog, the wait texts and the plan-file check. | open |  |  |  |
