@@ -1,44 +1,33 @@
-# Phase 1 · for Josh (questions unit, 2026-10-29, fourteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-29, fifteenth run)
 
-Four decisions wait on you: Q-0427, Q-0428, Q-0429 and Q-0431. Q-0430 was answered by the security-reviewer (section 2); it needs one new ticket row that only you can add.
+One decision waits on you: Q-0431. Q-0427, Q-0428 and Q-0429 are answered (decisions files). EZD-266 is now ready. Q-0432 was answered by the orchestrator (section 2).
 
 ## 1. Decisions needed
-
-**Q-0428 · EZD-259 (blocked).** The 5-gate loop that tests the scratch database passed its Docker tests 5 of 5 times, none skipped. Runs 2 and 4 still printed GATE FAIL, each on one other test only: EZD-181 T3, the known flake in EZD-251, which also failed in runs that did not overlap. The ticket text says "the scratch tests pass every run"; the plan also wrote "GATE PASS every run".
-Options:
-1. (Recommended) Close on the ticket text: EZD-259 closes on its own green gate with the loop logs as evidence, and the new EZD-251 evidence goes to that ticket. Reason: the scratch database is proven 5 of 5, and the other flake already has its fix ticket (rule 17). Cost: the loop proves the scratch database, not a fully green full gate; no re-run.
-2. Keep "GATE PASS every run": EZD-259 waits for EZD-251 (behind EZD-172), then the loop runs again. Cost: blocked for an unknown time, about 35 more minutes of gates, a rebase.
-3. As 2, but EZD-251 moves ahead of EZD-172 now, since it failed in runs that did not overlap. Cost: a change to EZD-251's row and dependency; its plan rests on the overlap premise.
-
-**Q-0427 · EZD-248 (blocked).** EZD-248's branch no longer merges into develop: develop gained EZD-173/245/246 changes in two skills, `scripts/run.mjs`, `vault/tools/next_ticket.mjs` and two question files. The builder cannot edit skills, vault/ or scripts, so the rebase is a hand-merge, not part of the 7-finding round.
-Options:
-1. (Recommended) The orchestrator does the rebase in fix mode (or gives you a patch to apply), then the 7-finding round runs on the rebased branch. Question-file conflicts take develop's version and the 4 repaired rows are re-checked with `next_ticket --check`. Cost: one extra unit before the round.
-2. You resolve the conflicts yourself. Cost: your time; the same round follows.
-Any new same-class bypass edge found in the round goes to EZD-263, not a fifth round.
-
-**Q-0429 · EZD-172 (blocked).** The last parallel-lanes check (A1) passed on lane 2 and lane 0, but lane 1 failed on EZD-181 T3 only, the known flake (fix is EZD-251, which waits for EZD-172: a cycle). Evidence: vault/handoff/EZD-172-a1-evidence.txt.
-Options:
-1. (Recommended) Merge EZD-172 now on its plan's own text that A1 can fail on T3 until EZD-251 lands; EZD-251 then runs its own check. Reason: breaks the cycle; the failure is outside EZD-172's code. Cost: EZD-172 merges without one fully green A1.
-2. Move EZD-251 ahead of EZD-172. Cost: its check needs EZD-172 merged, so it cannot finish first.
-3. Run A1 again hoping T3 passes. Cost: a rerun until green, which rule 16 forbids.
-Also found: EZD-173's test K7 takes its expected Q-IDs from QUESTIONS.md rows only, but the numbering uses all three files, so it fails when QUESTIONS.md has no open rows. It needs its own fix ticket (rule 17); the ledger tools cannot add one, so please add a row (see the end of this section).
 
 **Q-0431 · EZD-265 (questions).** The ticket text says a stuck repair unit "still stops the launcher". Since EZD-250 a failed repair never stops it: it notifies "repair failed … The launcher keeps waiting and re-checks", and the same wait is never repaired twice.
 Options:
 1. (Recommended) Keep EZD-250's behavior; EZD-265 only tests that a repair is never set aside. Reason: you approved the wait in EZD-250 and the ticket then changes nothing there. The AC wording changes to drop "repair". Cost: none.
 2. A repair unit that ends without progress stops the launcher. Cost: reverses EZD-250 and its test S6; a stuck repair halts all other work.
 
-**Rows only you can add (ledger tools cannot):**
+**Row only you can add (ledger tools cannot):**
 - New phase 1 fix ticket from Q-0430: the gate fails a ticket diff that changes a file the builder's write rules deny and no grant lists (closes shell writes, `cp`, `>`, `sed -i`, for every tool and link). Touches scripts/gate.mjs and likely a grant patch from you.
-- New fix ticket: EZD-173 K7 expected Q-IDs must use all three question files.
 
 ## 2. Agent answers to confirm
 
-Not yet confirmed (confirm or override): **Q-0430 (EZD-260): (b), a separate fix ticket for shell writes, not a KNOWN-LIMITS entry; source: security-reviewer, CLAUDE.md rules 17, 18, KNOWN-LIMITS.md:19, Q-0421**; Q-0415 (EZD-246), Q-0416 (EZD-257), Q-0417 (EZD-250), Q-0419 (EZD-199). Older ones: earlier runs of this file (git log).
+Not yet confirmed (confirm or override):
+- **Q-0432 (EZD-175): (a)** print min(3, 4 - W - P) summary lines after a red merge, so the "5 lines or fewer" header of scripts/unit-steps.mjs:4 stays. Source: scripts/unit-steps.mjs:4; CLAUDE.md rules 3, 16.
+- **Q-0430 (EZD-260): (b)**, a separate fix ticket for shell writes, not a KNOWN-LIMITS entry. Source: security-reviewer, CLAUDE.md rules 17, 18, KNOWN-LIMITS.md:19, Q-0421.
+- Q-0415 (EZD-246), Q-0416 (EZD-257), Q-0417 (EZD-250), Q-0419 (EZD-199). Older ones: earlier runs of this file (git log).
 
 ## 3. Proposed wording
 
-None new this run (EZD-260, 261, 262 are ready; none has new wording).
+EZD-265 (plan section 6, W1 to W6, launcher notifications and status notes; not yet approved):
+- W1 STATUS note: `<date>: tabled by the launcher (<build|plan> unit ended twice without progress, most likely waiting on Josh; see the launcher log). Worktree kept; back to ready when Josh answers.`
+- W2 notification, set aside: `<T> tabled (blocked) after two <build|plan> units without progress; the launcher goes on with the next unit. See the launcher log.`
+- W3 notification, stop: `unit <next> ended twice without progress; launcher stopped. See the launcher log.`
+- W4 unchanged: `unit <next> failed twice (<outcome>); launcher stopped.`
+- W5, W6 table refusals: see vault/plans/EZD-265.md section 6.
+EZD-266: none.
 
 ## 4. Rule candidates
 
