@@ -157,3 +157,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-29 · EZD-254 · Fix: a finished phase is gated even while an earlier phase has a blocked ticket · launcher gates, waits on and wraps a finished phase before starting the next, even with an older blocked ticket (EZD-003) · 85392b0c
 2026-10-29 · EZD-175 · Parallel lanes: ticket branch updated from develop before merge · merges first take in develop's newest changes and re-run the ticket gate; same-line clashes go to an Opus builder round · 80747c50
 2026-10-29 · EZD-199 · Fix: whole-read guard on ranged reads · agents can no longer pull one huge-line file into context via sed/head/tail · 2cbea034
+2026-10-29 · EZD-266 · Fix: EZD-173 K7 takes its expected question IDs from all three question files · the ledger-lock test K7 no longer fails when QUESTIONS.md has no open questions, so the gate stops going red for that reason · 7eb76cb1
