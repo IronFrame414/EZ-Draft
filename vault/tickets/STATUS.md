@@ -576,7 +576,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-260 | 1 | Fix: the write and read guards resolve symlinks before judging a path | ready | medium | EZD-250 |  |  | Added 2026-10-29 from the EZD-250 round-3 review (rule 17). |
 | EZD-261 | 1 | Fix: plan lint rejects a bare folder in a node --test verify command | ready | low | EZD-250 |  |  | Added 2026-10-29 from the EZD-250 round-3 review (rule 17). |
 | EZD-262 | 1 | Fix: findings records are written under the ledger lock and committed with their unit | ready | medium | EZD-173 |  |  | Added 2026-10-29 from the EZD-173 re-review (rule 17). EZD-174 depends on it (add to its row). |
-| EZD-263 | 1 | Fix: every update of develop is ledger-checked | todo |  | EZD-248 |  |  | Added 2026-10-29 from Q-0421 (Josh). |
+| EZD-263 | 1 | Fix: every update of develop is ledger-checked | planned | medium | EZD-248 |  |  | Added 2026-10-29 from Q-0421 (Josh). |
 | EZD-264 | 1 | Fix: architecture and runbook say Josh enters the Preview EMAIL_TRANSPORT value | todo |  | EZD-247 |  |  | Added 2026-10-29 from Q-0420 (Josh). |
 | EZD-137 | 9 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102, EZD-124 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). Moved to phase 9 after EZD-124 (Q-0395). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
