@@ -238,7 +238,7 @@ const SECTION3_CMD = '[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1; '
   + '[ "$VERCEL_GIT_COMMIT_REF" = "develop" ] && [ -n "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 1; exit 0';
 const RUNBOOK_HEADING = '**Build and branch settings** (done 2026-10-19; EZD-149 changed the Ignored Build Step command below: paste it again in Vercel).';
 const RUNBOOK_SENTENCE = 'Production builds only from `main`. A preview builds only for a pull request from `develop` (the phase PR); a plain `develop` push and a pull request from any other branch build nothing.';
-const ARCH_BULLET = '- Previews only for the phase PR, read as a pull request from `develop` (Vercel names no target branch), through the Ignored Build Step in the Vercel project; a pull request from any other branch builds nothing. A plain `develop` push builds no preview; the gate\'s empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the dev database once EZD-023b enters its values.';
+const ARCH_BULLET = '- Previews only for the phase PR, read as a pull request from `develop` (Vercel names no target branch), through the Ignored Build Step in the Vercel project; a pull request from any other branch builds nothing. A plain `develop` push builds no preview; the gate\'s empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the `ezdraft-dev` database (its values entered in Vercel `Preview` on 2026-10-21); until launch Production uses it too (Q-0264).';
 
 // The command as the runbook gives it to Josh (the text he pastes into Vercel).
 function runbookCmd() {

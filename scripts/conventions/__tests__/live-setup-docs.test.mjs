@@ -166,3 +166,64 @@ describe('EZD-243 runbook and architecture match the live setup', () => {
     }
   });
 });
+
+// EZD-247 (vault/plans/EZD-247.md sections 3, 4 and 6): the remaining lines that still say the
+// Supabase values sit in Vercel only from launch. Until launch the live address and the previews
+// both run on ezdraft-dev (Q-0264). The expected texts (W1-W7) are copied from the plan's section 6
+// table; each is one whole line (W3c3 and W3c4 one table cell each).
+const EZD247_W1 = "3. **Environment variables** (done 2026-10-19). Settings, Environment Variables: `ENABLE_EXPERIMENTAL_COREPACK` = `1` for Production and Preview. It is not a secret. Supabase values: Preview holds the `ezdraft-dev` values (entered 2026-10-21). Until launch Production holds the `ezdraft-dev` values too (entered 2026-10-24, Q-0264), so the live address runs on the `ezdraft-dev` database. From launch Production holds the `ezdraft-prod` values (Before launch checklist, item 4).";
+const EZD247_W2 = "10. **API gate secret (EZD-006; Q-0087).** For each cloud project (dev, prod) run `node scripts/db/api-gate.mjs generate` on this PC. Paste the printed `select private.set_api_gate_hash('…');` line into that project's SQL editor and run it. Put the printed secret into Vercel as `SUPABASE_API_GATE_SECRET` for each environment that runs on that project: until launch the dev project's secret goes into both Preview and Production, because the live address runs on `ezdraft-dev` (Q-0264); from launch Preview keeps the dev project's secret and Production gets the prod project's (Before launch checklist, items 4 and 10). A project keeps only its newest hash, so after a new generate put the new secret into every environment that runs on that project. Use a different secret per project; never paste a secret into chat, a ticket or the repo. Until this is done, the gate refuses every signed-in request on that project (it fails closed).";
+const EZD247_W3c3 = "Vercel Preview of the phase pull request (Q-0116 (a)); a plain `develop` push builds no preview; until launch also Vercel `Production` at `ezdraft.ezcontractorbinder.com` (Q-0264), so phase field checks use the preview before the phase merge and the live address after it; from launch the Preview only";
+const EZD247_W3c4 = "Vercel `Preview` values = the dev project's values; `EMAIL_TRANSPORT` `stub` by default (Q-0041); until launch Vercel `Production` also holds the dev project's Supabase values (Q-0264); from launch only `Preview` does";
+const EZD247_W4 = "- **Until launch** a merge releases nothing: the `release` environment holds no secrets, so the run ends `not_configured` and is green (Q-0113). The merge still goes live: with Auto-assign on (Go-live choice above), Vercel puts its production build on the address at once, running on the `ezdraft-dev` database, with no dump and no tag (Q-0264). From launch a build goes live only when the release promotes it.";
+const EZD247_W5 = "7. **App keys.** Each project's URL, publishable key and secret key go into Vercel, never into the repo. The `ezdraft-dev` values went into Preview on 2026-10-21 and, until launch, into Production too on 2026-10-24 (Q-0264), so the live address runs on the `ezdraft-dev` database. From launch Production holds the `ezdraft-prod` values (Before launch checklist, item 4).";
+const EZD247_W6 = "Which project's values go where: local is the local stack; preview is the dev project (11 Operations: preview deploys use the dev database); until launch production is the dev project too, so the live address runs on the `ezdraft-dev` database (Q-0264); from launch production is the production project, which Josh sets up from the Before-launch checklist (items 1 and 4; Q-0113). Josh enters the values in Vercel by hand from `docs/runbook.md` (Vercel and the subdomain, step 3; Before launch checklist, item 4); agents never change Vercel settings.";
+const EZD247_W7 = "- Previews only for the phase PR, read as a pull request from `develop` (Vercel names no target branch), through the Ignored Build Step in the Vercel project; a pull request from any other branch builds nothing. A plain `develop` push builds no preview; the gate's empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the `ezdraft-dev` database (its values entered in Vercel `Preview` on 2026-10-21); until launch Production uses it too (Q-0264).";
+
+describe('EZD-247 runbook and architecture match Q-0264 (remaining lines)', () => {
+  it('EZD-247 done when: the Vercel environment step states the Supabase values before and after launch', () => {
+    const step3 = oneLineStarting(sectionText(runbook(), '## Vercel and the subdomain (EZD-003)'), '3. ');
+    assert.equal(step3, EZD247_W1);
+  });
+
+  it('EZD-247 done when: the gate secret step names the environments before and after launch', () => {
+    const step10 = oneLineStarting(sectionText(runbook(), '## Supabase cloud projects (EZD-004)'), '10. ');
+    assert.equal(step10, EZD247_W2);
+  });
+
+  it('EZD-247 done when: the dev row states the live address until launch', () => {
+    const rows = tableRows(sectionText(arch(), '### Environments and releases (EZD-023b)')).filter(
+      (l) => cells(l)[0] === 'dev',
+    );
+    assert.equal(rows.length, 1, 'one dev row');
+    const c = cells(rows[0]);
+    assert.equal(c.length, 5, 'dev row has five cells');
+    assert.equal(c[2], EZD247_W3c3, 'App cell of the dev row');
+    assert.equal(c[3], EZD247_W3c4, 'Env values cell of the dev row');
+  });
+
+  it('EZD-247 done when: the Until launch bullet says the merge still goes live', () => {
+    const s = sectionText(arch(), '### Environments and releases (EZD-023b)');
+    assert.equal(oneLineStarting(s, '- **Until launch**'), EZD247_W4);
+  });
+
+  it('EZD-247 done when: no line says Production uses the prod project before launch or field checks use only the preview', () => {
+    const r = runbook();
+    const a = arch();
+    assert.equal(countOf(r, 'No Supabase values yet'), 0, 'runbook still says: No Supabase values yet');
+    assert.equal(countOf(r, 'Production = prod project'), 0, 'runbook still says: Production = prod project');
+    assert.equal(countOf(a, 'phase field checks use it until launch'), 0, 'architecture still says: phase field checks use it until launch');
+    assert.equal(countOf(a, 'Preview of the phase pull request only'), 0, 'architecture still says: Preview of the phase pull request only');
+  });
+
+  it('EZD-247 the App keys step, the Environment variables paragraph and the Hosting previews bullet state the Q-0264 setup', () => {
+    const r = runbook();
+    const a = arch();
+    assert.equal(oneLineStarting(sectionText(r, '## Supabase cloud projects (EZD-004)'), '7. '), EZD247_W5);
+    assert.equal(oneLineStarting(sectionText(a, '### Environment variables'), "Which project's values go where:"), EZD247_W6);
+    assert.equal(oneLineStarting(sectionText(a, '### Hosting'), '- Previews only for the phase PR'), EZD247_W7);
+    assert.equal(countOf(r, "in EZD-023b's setup"), 0, "runbook still says: in EZD-023b's setup");
+    assert.equal(countOf(a, 'Entering values in Vercel is EZD-023b\'s'), 0, "architecture still says: Entering values in Vercel is EZD-023b's");
+    assert.equal(countOf(a, 'once EZD-023b enters its values'), 0, 'architecture still says: once EZD-023b enters its values');
+  });
+});
