@@ -1449,12 +1449,26 @@ const PREVIOUS_UNKNOWN_LINE =
 const VERCEL_PROMOTE_500 = 'Vercel POST /v10/projects/{project}/promote/{deployment} failed: 500';
 const sha256Of = (text) => createHash('sha256').update(String(text)).digest('hex');
 
-/** True when some output line holds any of `texts` (hex runs of 40+ characters removed first when `stripHex`). */
+// Hash text: a whole run of exactly 40 (git SHA-1 object id) or 64 (SHA-256 dump digest) lower-case hex characters.
+// A longer run is not hash text, so a real 403 glued to a hash still counts (EZD-257).
+const HASH_TEXT = /(?<![0-9a-f])[0-9a-f]{40}(?:[0-9a-f]{24})?(?![0-9a-f])/g;
+
+/**
+ * True when some output line holds any of `texts` (40- and 64-character hex runs replaced by # first when `stripHex`;
+ * refuses an unstripped text that starts or ends with a hex character).
+ */
 function outputHolds(h, texts, { stripHex = false } = {}) {
+  if (!stripHex) {
+    for (const v of texts) {
+      if (/^[0-9a-f]|[0-9a-f]$/.test(v)) {
+        throw new Error(`outputHolds: "${v}" can match hash text; pass { stripHex: true }`);
+      }
+    }
+  }
   const rec = releaseJson(h);
   const lines = rec ? [...h.output(), JSON.stringify(rec.args[1])] : h.output();
   return lines.some((line) => {
-    const l = stripHex ? line.replace(/[0-9a-f]{40,}/g, '') : line;
+    const l = stripHex ? line.replace(HASH_TEXT, '#') : line;
     return texts.some((v) => l.includes(v));
   });
 }
@@ -1479,8 +1493,9 @@ const notNull = (v, msg) => {
 };
 
 /** Setup `LATER` (archived T8): `phase-0` on C1, a Phase 1 pull request, a live build dpl_OLD, tenant 1 present. */
-function makeLater(mod, bs, t, o = {}) {
+function makeLater(mod, bs, t, o = {}, { tipHolds = null } = {}) {
   const R = makeR(t, { tagC1: true });
+  if (tipHolds) retipHolding(R, tipHolds);
   const { h, f } = makeE(mod, bs, R, {
     pulls: () => [{ ...cleanPull(R.tip), title: 'Phase 1: Projects' }],
     current: () => ({ id: 'dpl_OLD' }),
@@ -1490,6 +1505,70 @@ function makeLater(mod, bs, t, o = {}) {
   delete h.deps.processEnv.TENANT1_OWNER_EMAIL;
   return { R, h, f };
 }
+
+// Counts the fixtures that `retipHolding` has made, so each run's amend messages (and so its tip) differ.
+let retipRuns = 0;
+
+/** Amends C2 (the tip) until its commit hash holds `text`, then force-pushes `main`: fixture setup, not a retry. */
+function retipHolding(R, text) {
+  retipRuns += 1;
+  for (let n = 1; n <= 4000; n += 1) {
+    git(R.work, 'commit', '--amend', '--allow-empty', '-q', '-m', `C2 add note ${retipRuns}.${n}`);
+    const sha = git(R.work, 'rev-parse', 'HEAD');
+    if (sha.includes(text)) {
+      git(R.work, 'push', '-q', '-f', 'origin', 'main');
+      R.c2 = sha;
+      R.tip = sha;
+      return sha;
+    }
+  }
+  throw new Error(`no commit hash holding ${text} in 4000 tries`);
+}
+
+/** One T8 case: the `LATER` setup, the release run and the checks of EZD-023e T8 for case `id`. Returns the tip sha. */
+async function runLaterCase(mod, bs, t, { id, email, o, tipHolds }) {
+  const { R, h, f } = makeLater(mod, bs, t, o ?? {}, { tipHolds: tipHolds ?? null });
+  if (email) h.deps.processEnv.TENANT1_OWNER_EMAIL = email;
+  const result = await h.run();
+  assert.equal(result.ok, true, `(${id}) ok; logs: ${JSON.stringify(h.logs())}`);
+  assert.equal(result.code, 'released', `(${id}) code`);
+  assert.equal(result.tag, 'phase-1', `(${id}) tag`);
+  assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
+  assert.ok(h.logs().includes('migration check passed against phase-0'), `(${id}) migration check log`);
+  assert.equal(h.calls('github.createTag').length, 1, `(${id}) 1 createTag`);
+  assert.equal(h.calls('github.createTag')[0].args[0], 'phase-1', `(${id}) createTag name`);
+  assert.deepEqual(promoteIds(f), ['dpl_NEW'], `(${id}) promote once with dpl_NEW`);
+  const rec = notNull(releaseJson(h), `(${id}) release.json recorded`).args[1];
+  if (id !== 'd') {
+    assert.equal(rec.previous_tag, 'phase-0', `(${id}) previous_tag`);
+    assert.equal(rec.previous_deployment_id, 'dpl_OLD', `(${id}) previous_deployment_id`);
+  }
+  if (id === 'a') assert.deepEqual(result.notices, [], '(a) notices');
+  if (id === 'b') assert.deepEqual(result.notices, ['owner_email_secret_unused'], '(b) notices');
+  if (id === 'c') {
+    assert.ok(h.logs().includes('record_failed'), `(c) record_failed logged: ${JSON.stringify(h.logs())}`);
+    assert.equal(rec.sha, R.tip, '(c) recorded sha is the tip');
+    assert.ok(R.tip.includes('403'), `(c) the tip holds 403: ${R.tip}`);
+    assert.ok(!outputHolds(h, ['403'], { stripHex: true }), '(c) no 403 in the output');
+  }
+  if (id === 'd') {
+    assert.deepEqual(result.notices, ['previous_deployment_unknown'], '(d) notices');
+    assert.ok(h.summaries().includes(PREVIOUS_UNKNOWN_LINE), `(d) summary notice: ${JSON.stringify(h.summaries())}`);
+    assert.equal(rec.previous_deployment_id, null, '(d) previous_deployment_id null');
+  }
+  return R.tip;
+}
+
+/** T8 case (c) with the record-failure put of EZD-023e T8; its tip hash is forced to hold `403` (EZD-257). */
+const LATER_CASE_C = {
+  id: 'c',
+  tipHolds: '403',
+  o: {
+    putJson: (key) => {
+      if (key.endsWith('release.json')) throw new Error('offsite put failed: x (403)');
+    },
+  },
+};
 
 describe('EZD-023e go live, verify, rollback and record', () => {
   // T7 ---------------------------------------------------------------------------------------------------------
@@ -1602,45 +1681,10 @@ describe('EZD-023e go live, verify, rollback and record', () => {
     const cases = [
       { id: 'a' },
       { id: 'b', email: 'owner.test@example.com' },
-      {
-        id: 'c',
-        o: {
-          putJson: (key) => {
-            if (key.endsWith('release.json')) throw new Error('offsite put failed: x (403)');
-          },
-        },
-      },
+      LATER_CASE_C,
       { id: 'd', o: { current: () => null } },
     ];
-    for (const { id, email, o } of cases) {
-      const { h, f } = makeLater(mod, bs, t, o ?? {});
-      if (email) h.deps.processEnv.TENANT1_OWNER_EMAIL = email;
-      const result = await h.run();
-      assert.equal(result.ok, true, `(${id}) ok; logs: ${JSON.stringify(h.logs())}`);
-      assert.equal(result.code, 'released', `(${id}) code`);
-      assert.equal(result.tag, 'phase-1', `(${id}) tag`);
-      assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
-      assert.ok(h.logs().includes('migration check passed against phase-0'), `(${id}) migration check log`);
-      assert.equal(h.calls('github.createTag').length, 1, `(${id}) 1 createTag`);
-      assert.equal(h.calls('github.createTag')[0].args[0], 'phase-1', `(${id}) createTag name`);
-      assert.deepEqual(promoteIds(f), ['dpl_NEW'], `(${id}) promote once with dpl_NEW`);
-      const rec = notNull(releaseJson(h), `(${id}) release.json recorded`).args[1];
-      if (id !== 'd') {
-        assert.equal(rec.previous_tag, 'phase-0', `(${id}) previous_tag`);
-        assert.equal(rec.previous_deployment_id, 'dpl_OLD', `(${id}) previous_deployment_id`);
-      }
-      if (id === 'a') assert.deepEqual(result.notices, [], '(a) notices');
-      if (id === 'b') assert.deepEqual(result.notices, ['owner_email_secret_unused'], '(b) notices');
-      if (id === 'c') {
-        assert.ok(h.logs().includes('record_failed'), `(c) record_failed logged: ${JSON.stringify(h.logs())}`);
-        assert.ok(!outputHolds(h, ['403']), '(c) no 403 in the output');
-      }
-      if (id === 'd') {
-        assert.deepEqual(result.notices, ['previous_deployment_unknown'], '(d) notices');
-        assert.ok(h.summaries().includes(PREVIOUS_UNKNOWN_LINE), `(d) summary notice: ${JSON.stringify(h.summaries())}`);
-        assert.equal(rec.previous_deployment_id, null, '(d) previous_deployment_id null');
-      }
-    }
+    for (const c of cases) await runLaterCase(mod, bs, t, c);
   });
 
   // T11 (c), (d), (f) ------------------------------------------------------------------------------------------
@@ -2314,5 +2358,53 @@ describe('EZD-241 release guard in step E', () => {
     assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
     assert.equal(result.code, 'released');
     assert.ok(h.logs().includes('pending migrations: none'), JSON.stringify(h.logs()));
+  });
+});
+
+describe('EZD-257 release output checks cannot match hash text', () => {
+  const H40 = 'a'.repeat(18) + '403' + 'b'.repeat(19); // 40 characters, holds 403
+  const H64 = 'c'.repeat(30) + '403' + 'd'.repeat(31); // 64 characters, holds 403
+  const stubH = (lines) => ({ output: () => lines, calls: () => [] });
+
+  test('EZD-257 E1 hash text holding 403 does not count', () => {
+    for (const lines of [
+      ['released phase-1 from pull request #7', `{"sha":"${H40}","dump_files":[{"sha256":"${H64}"}]}`],
+      [`dpl_${H40}`],
+      [`${H40} ${H64}`],
+    ]) {
+      assert.equal(outputHolds(stubH(lines), ['403'], { stripHex: true }), false, JSON.stringify(lines));
+    }
+  });
+
+  test('EZD-257 E2 a real 403 still counts', () => {
+    for (const line of [
+      'offsite put failed: x (403)',
+      '403',
+      `${H40} 403`,
+      `${H40}403`,
+      `${'e'.repeat(38)}403`,
+    ]) {
+      assert.equal(outputHolds(stubH([line]), ['403'], { stripHex: true }), true, line);
+    }
+  });
+
+  test('EZD-257 E3 an unstripped text that can match hash text is refused', () => {
+    for (const v of ['403', 'a:', 'x4']) {
+      assert.throws(() => outputHolds(stubH([H40]), [v]), {
+        message: `outputHolds: "${v}" can match hash text; pass { stripHex: true }`,
+      });
+    }
+    for (const texts of [SECRET_TEXTS, ['ENOTFOUND'], ['tok_TEST']]) {
+      assert.equal(outputHolds(stubH([H40]), texts), false, JSON.stringify(texts));
+    }
+  });
+
+  test('EZD-257 E4 the T8 record-failure case passes on 10 fresh release runs', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const tips = [];
+    for (let i = 0; i < 10; i += 1) tips.push(await runLaterCase(mod, bs, t, LATER_CASE_C));
+    assert.equal(new Set(tips).size, 10, `10 distinct tips: ${JSON.stringify(tips)}`);
+    for (const tip of tips) assert.ok(tip.includes('403'), `the tip holds 403: ${tip}`);
   });
 });
