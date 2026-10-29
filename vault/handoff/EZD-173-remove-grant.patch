@@ -1,27 +1,25 @@
-diff --git a/.claude/hooks/guard-paths.mjs b/.claude/hooks/guard-paths.mjs
-index 345c300..462224d 100644
 --- a/.claude/hooks/guard-paths.mjs
 +++ b/.claude/hooks/guard-paths.mjs
-@@ -50,6 +50,13 @@ function pa3Grant() {
+@@ -50,13 +50,6 @@
    return rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || pa3Vault.some((p) => rel === p || (p.endsWith('/') && rel.startsWith(p)));
  }
  
-+// EZD-173 builder grant (Q-0346 (b), Josh 2026-10-27): in the EZD-173 worktree only, the builder may write exactly the files
-+// its plan marks R19. Tests stay denied. The orchestrator removes this grant when EZD-173 merges.
-+const ezd173Worktree = /\/\.claude\/worktrees\/EZD-173\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
-+const ezd173Files = ['scripts/ledger.mjs', 'vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', 'scripts/unit-steps.mjs', 'scripts/run.mjs',
-+  '.claude/hooks/session-end.mjs', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/plan-ticket/SKILL.md', 'vault/PROCESS.md'];
-+const ezd173Grant = () => ezd173Worktree && !isTest && ezd173Files.includes(rel);
-+
+-// EZD-173 builder grant (Q-0346 (b), Josh 2026-10-27): in the EZD-173 worktree only, the builder may write exactly the files
+-// its plan marks R19. Tests stay denied. The orchestrator removes this grant when EZD-173 merges.
+-const ezd173Worktree = /\/\.claude\/worktrees\/EZD-173\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
+-const ezd173Files = ['scripts/ledger.mjs', 'vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', 'scripts/unit-steps.mjs', 'scripts/run.mjs',
+-  '.claude/hooks/session-end.mjs', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/plan-ticket/SKILL.md', 'vault/PROCESS.md'];
+-const ezd173Grant = () => ezd173Worktree && !isTest && ezd173Files.includes(rel);
+-
  // Retrievers write only their report files (vault/PROCESS.md section 4 roster; EZD-000f).
  function retriever() {
    if (!rel.startsWith('vault/research/pending/')) return 'Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).';
-@@ -75,7 +82,7 @@ const rules = {
+@@ -82,7 +75,7 @@
    },
    builder: () => {
      if (isTest) return 'The builder may not change tests or fixtures. If a test looks wrong, report it as a question.';
--    if (pa3Grant()) return;
-+    if (pa3Grant() || ezd173Grant()) return;
+-    if (pa3Grant() || ezd173Grant()) return;
++    if (pa3Grant()) return;
      if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
      // Q-0124 (a), Josh 2026-10-19: scripts/conventions/ is the builder's (the conventions check, EZD-000 and later).
      // Q-0148 / Q-0125 (a), orchestrator 2026-10-19: scripts/db/ is the builder's (local Supabase and types scripts, EZD-004a and later).

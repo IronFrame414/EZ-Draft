@@ -266,3 +266,11 @@ Cause: the verify commands were written from memory of newer Node behavior and n
 Rule: Verify commands must run on the pinned Node; the planner runs each verify command once before returning the plan, and a test folder is given as a quoted glob (`'scripts/hooks/*.test.mjs'`), never as a bare folder.
 Check: the reviewer finds no `node --test` argument that is a bare folder.
 Plan check: every `node --test` argument in the Verify column is a named file or a quoted `*.test.mjs` glob.
+
+## L-033  areas: tooling, scripts, testing  seen: 1  status: candidate
+Tickets EZD-173, 2026-10-29
+Mistake: the plan changed a shared test helper's contract (every launcher test root is now a git repository with ledger.mjs copied) but named only four test files; develop's two newer launcher test files broke at merge, and the repair left an ignored option, two callers and two comments stale.
+Cause: the plan listed the test files that existed when it was written and did not name the helper option and comments its rule makes obsolete.
+Rule: when a plan changes what a shared test helper does, it names the helper's options, callers and comments that become stale, and says that test files added by develop later get the same repair.
+Check: the reviewer greps the helper's old option and old comment text and finds no caller or comment left.
+Plan check: a plan that changes a shared test helper lists each option and comment it removes or rewrites, and a grep command that finds none left.

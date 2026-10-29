@@ -14047,7 +14047,7 @@
    "id": "EZD-174",
    "phase": 1,
    "title": "Parallel lanes: the launcher runs several units at once under boost",
-   "depends_raw": "EZD-172, EZD-173, EZD-175",
+   "depends_raw": "EZD-172, EZD-173, EZD-175, EZD-262",
    "spec_ref": "Josh 2026-10-24 (boost)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -14059,9 +14059,10 @@
    "depends_on": [
     "EZD-172",
     "EZD-173",
-    "EZD-175"
+    "EZD-175",
+    "EZD-262"
    ],
-   "build_position": 483,
+   "build_position": 484,
    "acs": [
     "AC-EZD-174-1",
     "AC-EZD-174-2",
@@ -14085,7 +14086,7 @@
    "depends_on": [
     "EZD-173"
    ],
-   "build_position": 484,
+   "build_position": 485,
    "acs": [
     "AC-EZD-175-1",
     "AC-EZD-175-2"
@@ -14107,7 +14108,7 @@
    "depends_on": [
     "EZD-146"
    ],
-   "build_position": 485,
+   "build_position": 486,
    "acs": [
     "AC-EZD-176-1",
     "AC-EZD-176-2"
@@ -14129,7 +14130,7 @@
    "depends_on": [
     "EZD-148"
    ],
-   "build_position": 486,
+   "build_position": 487,
    "acs": [
     "AC-EZD-177-1",
     "AC-EZD-177-2"
@@ -14151,7 +14152,7 @@
    "depends_on": [
     "EZD-155"
    ],
-   "build_position": 487,
+   "build_position": 488,
    "acs": [
     "AC-EZD-178-1"
    ],
@@ -14172,7 +14173,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 488,
+   "build_position": 489,
    "acs": [
     "AC-EZD-179-1",
     "AC-EZD-179-2"
@@ -14195,7 +14196,7 @@
     "EZD-005b",
     "EZD-016a"
    ],
-   "build_position": 489,
+   "build_position": 490,
    "acs": [
     "AC-EZD-180-1",
     "AC-EZD-180-2"
@@ -14218,7 +14219,7 @@
     "EZD-150",
     "EZD-169"
    ],
-   "build_position": 490,
+   "build_position": 491,
    "acs": [
     "AC-EZD-181-1"
    ],
@@ -14243,7 +14244,7 @@
    "depends_on": [
     "EZD-177"
    ],
-   "build_position": 491,
+   "build_position": 492,
    "acs": [
     "AC-EZD-182-1",
     "AC-EZD-182-2"
@@ -14266,7 +14267,7 @@
     "EZD-142",
     "EZD-143"
    ],
-   "build_position": 492,
+   "build_position": 493,
    "acs": [
     "AC-EZD-183-1",
     "AC-EZD-183-2"
@@ -14289,7 +14290,7 @@
     "EZD-018",
     "EZD-101"
    ],
-   "build_position": 493,
+   "build_position": 494,
    "acs": [
     "AC-EZD-184-1",
     "AC-EZD-184-2"
@@ -14313,7 +14314,7 @@
     "EZD-174",
     "EZD-175"
    ],
-   "build_position": 494,
+   "build_position": 495,
    "acs": [
     "AC-EZD-185-1",
     "AC-EZD-185-2"
@@ -14336,7 +14337,7 @@
     "EZD-001",
     "EZD-184"
    ],
-   "build_position": 495,
+   "build_position": 496,
    "acs": [
     "AC-EZD-186-1",
     "AC-EZD-186-2"
@@ -14359,7 +14360,7 @@
     "EZD-001",
     "EZD-004a"
    ],
-   "build_position": 496,
+   "build_position": 497,
    "acs": [
     "AC-EZD-187-1",
     "AC-EZD-187-2",
@@ -14382,7 +14383,7 @@
    "depends_on": [
     "EZD-148"
    ],
-   "build_position": 497,
+   "build_position": 498,
    "acs": [
     "AC-EZD-188-1",
     "AC-EZD-188-2",
@@ -14405,7 +14406,7 @@
    "depends_on": [
     "EZD-102"
    ],
-   "build_position": 498,
+   "build_position": 499,
    "acs": [
     "AC-EZD-189-1"
    ],
@@ -14427,7 +14428,7 @@
     "EZD-006",
     "EZD-032"
    ],
-   "build_position": 499,
+   "build_position": 500,
    "acs": [
     "AC-EZD-190-1",
     "AC-EZD-190-2"
@@ -14463,7 +14464,7 @@
     "EZD-187",
     "EZD-188"
    ],
-   "build_position": 500,
+   "build_position": 501,
    "acs": [
     "AC-EZD-191-1",
     "AC-EZD-191-2",
@@ -14492,7 +14493,7 @@
     "EZD-159",
     "EZD-167"
    ],
-   "build_position": 501,
+   "build_position": 502,
    "acs": [
     "AC-EZD-192-1",
     "AC-EZD-192-2"
@@ -14517,7 +14518,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 502,
+   "build_position": 503,
    "acs": [
     "AC-EZD-193-1",
     "AC-EZD-193-2",
@@ -14540,7 +14541,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 503,
+   "build_position": 504,
    "acs": [
     "AC-EZD-194-1",
     "AC-EZD-194-2",
@@ -14563,7 +14564,7 @@
    "depends_on": [
     "EZD-000f"
    ],
-   "build_position": 504,
+   "build_position": 505,
    "acs": [
     "AC-EZD-195-1",
     "AC-EZD-195-2"
@@ -14585,7 +14586,7 @@
    "depends_on": [
     "EZD-000f"
    ],
-   "build_position": 505,
+   "build_position": 506,
    "acs": [
     "AC-EZD-196-1",
     "AC-EZD-196-2"
@@ -14607,7 +14608,7 @@
    "depends_on": [
     "EZD-001"
    ],
-   "build_position": 506,
+   "build_position": 507,
    "acs": [
     "AC-EZD-197-1",
     "AC-EZD-197-2",
@@ -14633,7 +14634,7 @@
    "depends_on": [
     "EZD-000c"
    ],
-   "build_position": 507,
+   "build_position": 508,
    "acs": [
     "AC-EZD-198-1",
     "AC-EZD-198-2"
@@ -14656,7 +14657,7 @@
    "depends_on": [
     "EZD-198"
    ],
-   "build_position": 508,
+   "build_position": 509,
    "acs": [
     "AC-EZD-199-1",
     "AC-EZD-199-2"
@@ -14678,7 +14679,7 @@
    "depends_on": [
     "EZD-025"
    ],
-   "build_position": 509,
+   "build_position": 510,
    "acs": [
     "AC-EZD-200-1",
     "AC-EZD-200-2"
@@ -14700,7 +14701,7 @@
    "depends_on": [
     "EZD-000h"
    ],
-   "build_position": 510,
+   "build_position": 511,
    "acs": [
     "AC-EZD-100-1",
     "AC-EZD-100-2",
@@ -14724,7 +14725,7 @@
    "depends_on": [
     "EZD-000h"
    ],
-   "build_position": 511,
+   "build_position": 512,
    "acs": [
     "AC-EZD-239-1",
     "AC-EZD-239-2",
@@ -14748,7 +14749,7 @@
    "depends_on": [
     "EZD-000h"
    ],
-   "build_position": 512,
+   "build_position": 513,
    "acs": [
     "AC-EZD-240-1",
     "AC-EZD-240-2"
@@ -15679,7 +15680,7 @@
     "EZD-153",
     "EZD-023e"
    ],
-   "build_position": 513,
+   "build_position": 514,
    "acs": [
     "AC-EZD-241-1",
     "AC-EZD-241-2",
@@ -15712,7 +15713,7 @@
    "depends_on": [
     "EZD-112"
    ],
-   "build_position": 514,
+   "build_position": 515,
    "acs": [
     "AC-EZD-242-1",
     "AC-EZD-242-2",
@@ -15743,7 +15744,7 @@
     "EZD-008b",
     "EZD-023b"
    ],
-   "build_position": 515,
+   "build_position": 516,
    "acs": [
     "AC-EZD-243-1",
     "AC-EZD-243-2",
@@ -15769,7 +15770,7 @@
    "depends_on": [
     "EZD-000"
    ],
-   "build_position": 516,
+   "build_position": 517,
    "acs": [
     "AC-EZD-244-1",
     "AC-EZD-244-2",
@@ -15796,7 +15797,7 @@
    "depends_on": [
     "EZD-244"
    ],
-   "build_position": 517,
+   "build_position": 518,
    "acs": [
     "AC-EZD-245-1",
     "AC-EZD-245-2",
@@ -15822,7 +15823,7 @@
    "depends_on": [
     "EZD-245"
    ],
-   "build_position": 518,
+   "build_position": 519,
    "acs": [
     "AC-EZD-246-1",
     "AC-EZD-246-2",
@@ -15854,7 +15855,7 @@
    "depends_on": [
     "EZD-243"
    ],
-   "build_position": 519,
+   "build_position": 520,
    "acs": [
     "AC-EZD-247-1",
     "AC-EZD-247-2",
@@ -15880,7 +15881,7 @@
    "depends_on": [
     "EZD-000"
    ],
-   "build_position": 520,
+   "build_position": 521,
    "acs": [
     "AC-EZD-248-1",
     "AC-EZD-248-2",
@@ -15907,7 +15908,7 @@
     "EZD-000",
     "EZD-248"
    ],
-   "build_position": 521,
+   "build_position": 522,
    "acs": [
     "AC-EZD-249-1",
     "AC-EZD-249-2"
@@ -15930,7 +15931,7 @@
    "depends_on": [
     "EZD-244"
    ],
-   "build_position": 522,
+   "build_position": 523,
    "acs": [
     "AC-EZD-250-1",
     "AC-EZD-250-2",
@@ -15962,7 +15963,7 @@
     "EZD-181",
     "EZD-172"
    ],
-   "build_position": 523,
+   "build_position": 524,
    "acs": [
     "AC-EZD-251-1",
     "AC-EZD-251-2"
@@ -15985,7 +15986,7 @@
    "depends_on": [
     "EZD-251"
    ],
-   "build_position": 524,
+   "build_position": 525,
    "acs": [
     "AC-EZD-252-1",
     "AC-EZD-252-2"
@@ -16010,7 +16011,7 @@
     "EZD-250",
     "EZD-254"
    ],
-   "build_position": 525,
+   "build_position": 526,
    "acs": [
     "AC-EZD-253-1",
     "AC-EZD-253-2",
@@ -16035,7 +16036,7 @@
    "depends_on": [
     "EZD-250"
    ],
-   "build_position": 526,
+   "build_position": 527,
    "acs": [
     "AC-EZD-254-1",
     "AC-EZD-254-2"
@@ -16059,7 +16060,7 @@
    "depends_on": [
     "EZD-250"
    ],
-   "build_position": 527,
+   "build_position": 528,
    "acs": [
     "AC-EZD-255-1",
     "AC-EZD-255-2"
@@ -16085,7 +16086,7 @@
    "depends_on": [
     "EZD-172"
    ],
-   "build_position": 528,
+   "build_position": 529,
    "acs": [
     "AC-EZD-256-1",
     "AC-EZD-256-2"
@@ -16108,7 +16109,7 @@
    "depends_on": [
     "EZD-023e"
    ],
-   "build_position": 529,
+   "build_position": 530,
    "acs": [
     "AC-EZD-257-1",
     "AC-EZD-257-2"
@@ -16131,7 +16132,7 @@
    "depends_on": [
     "EZD-250"
    ],
-   "build_position": 530,
+   "build_position": 531,
    "acs": [
     "AC-EZD-258-1",
     "AC-EZD-258-2"
@@ -16156,7 +16157,7 @@
    "depends_on": [
     "EZD-153"
    ],
-   "build_position": 531,
+   "build_position": 532,
    "acs": [
     "AC-EZD-259-1",
     "AC-EZD-259-2"
@@ -16179,7 +16180,7 @@
    "depends_on": [
     "EZD-250"
    ],
-   "build_position": 532,
+   "build_position": 533,
    "acs": [
     "AC-EZD-260-1",
     "AC-EZD-260-2"
@@ -16202,10 +16203,33 @@
    "depends_on": [
     "EZD-250"
    ],
-   "build_position": 533,
+   "build_position": 534,
    "acs": [
     "AC-EZD-261-1",
     "AC-EZD-261-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-262",
+   "phase": 1,
+   "title": "Fix: findings records are written under the ledger lock and committed with their unit",
+   "depends_raw": "EZD-173",
+   "spec_ref": "EZD-173 re-review",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-173"
+   ],
+   "build_position": 483,
+   "acs": [
+    "AC-EZD-262-1",
+    "AC-EZD-262-2"
    ],
    "acs_source": "done-when"
   }
