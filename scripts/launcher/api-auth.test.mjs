@@ -44,7 +44,7 @@ const fakeClaude = (root) => [
   '  if [ "${ANTHROPIC_API_KEY+set}" = set ]; then printf \'key=%s\\n\' "$ANTHROPIC_API_KEY"; else printf \'key=unset\\n\'; fi',
   '  printf \'scrub=%s\\n\' "${CLAUDE_CODE_SUBPROCESS_ENV_SCRUB-unset}"',
   "} > '" + root + "/claude-env.txt'",
-  "cp '" + root + "/logs/inflight.json' '" + root + "/inflight-seen.json'",
+  "cp '" + root + "/logs/inflight/build-EZD-999.json' '" + root + "/inflight-seen.json'",
   "printf '%s\\n' '" + RESULT_JSON + "'",
   '',
 ].join('\n');
@@ -55,7 +55,7 @@ function makeRoot() {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger('build EZD-999'));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
@@ -76,7 +76,16 @@ function makeRoot() {
     log_dir: at('logs'),
     api_key: FAKE_KEY,
   }));
+  initRepo(tmp);
   return { tmp, at };
+}
+
+// EZD-173 Decided "Launcher test roots": run.mjs takes the ledger lock, which needs a git repo on develop.
+function initRepo(tmp) {
+  for (const args of [['init', '-q', '-b', 'develop'], ['config', 'user.name', 'EZ Draft Test'], ['config', 'user.email', 'test@example.test'], ['config', 'commit.gpgsign', 'false'], ['add', '-A'], ['commit', '-qm', 'init']]) {
+    const r = spawnSync('git', args, { cwd: tmp, encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`git ${args.join(' ')}: ${r.stderr}`);
+  }
 }
 
 const setBudget = (root, obj) => writeFileSync(root.at('vault/budget.json'), JSON.stringify(obj));

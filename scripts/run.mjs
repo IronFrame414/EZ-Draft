@@ -18,14 +18,16 @@
 //                   limit error is treated as the weekly case (section 11). Either way the raw output of every limit error is saved
 //                   to vault/handoff/limit-error-<time>.txt and Josh is told its name (EZD-193; Q-0299 (b))
 //   prompt_style    "slash" (default: the prompt is `/<skill> <arg>`) or "ask" (plain sentence naming the skill)
-//   log_dir         where the launcher keeps inflight.json and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
+//   log_dir         where the launcher keeps its in-flight records (inflight/) and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
 //                   .launcher/ in the checkout elsewhere); scripts/launchd/install.mjs and scripts/watchdog.mjs use the same
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, unlinkSync, copyFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, withLedgerLock, recordPlan, writeHandoff, launcherHandoffText, writeFileAtomic, closeUnit, commitPaths,
+} from './ledger.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vault = path.join(root, 'vault');
@@ -43,9 +45,10 @@ const stopFile = path.join(vault, 'handoff/STOP');
 const windowPauseFile = path.join(vault, 'handoff/WINDOW_PAUSE.md');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
 // The unit in flight, written before each `claude -p` and removed after its cost row, so a launcher killed mid-unit
-// (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start.
-export const logDir = config.log_dir || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library/Logs/ezdraft') : path.join(root, '.launcher'));
-const inflightFile = path.join(logDir, 'inflight.json');
+// (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start. One record per unit in
+// <logDir>/inflight/ (EZD-173); the single file of earlier launchers is still recovered once.
+export const logDir = launcherLogDir(root);
+const legacyInflightFile = path.join(logDir, 'inflight.json');
 const claudeBin = config.claude_bin || 'claude';
 const { weekSpend, questionsFingerprint, assignQuestionIds, setArchitecture } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
@@ -203,37 +206,22 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function appendCost(entry) { mkdirSync(path.dirname(costLog), { recursive: true }); appendFileSync(costLog, JSON.stringify(entry) + '\n'); }
 
-// Ledger line and handoff for the units that run as an agent (plan, review-plans), PROCESS.md section 10.
+// Ledger line and handoff for the units that run as an agent (plan, review-plans), PROCESS.md section 10. Runs inside
+// runUnit's ledger hold; returns { problem, paths } (paths = the files it wrote, for the unit's own-path commit).
 function afterAgentUnit(unitName, arg, res) {
   const text = String(res?.result || '');
   if (unitName === 'plan') {
-    const planPath = path.join(vault, 'plans', `${arg}.md`);
-    if (!existsSync(planPath)) return `plan file missing: ${planPath}`;
-    const arch = setArchitecture(arg); if (!arch.ok) return arch.message;
-    const plan = readFileSync(planPath, 'utf8');
-    const complexity = plan.match(/\*\*Complexity:\*\*\s*(low|medium|high)/i)?.[1]?.toLowerCase() || '';
-    const oq = plan.match(/^## (?:10\. )?Open questions[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m)?.[1] || '';
-    const hasQ = /\bQP-\d+/.test(oq);
-    const statusPath = path.join(vault, 'tickets/STATUS.md');
-    const lines = readFileSync(statusPath, 'utf8').split('\n');
-    const i = lines.findIndex((l) => l.startsWith(`| ${arg} |`));
-    if (i < 0) return `no STATUS.md row for ${arg}`;
-    const c = lines[i].split('|');
-    // | '' | id | phase | title | status | complexity | depends | commit | tests | notes | ''
-    const ids = hasQ ? assignQuestionIds(arg) : [];
-    c[4] = ` ${hasQ ? 'questions' : 'planned'} `; c[5] = ` ${complexity} `;
-    lines[i] = c.join('|');
-    writeFileSync(statusPath, lines.join('\n'));
-    writeHandoff(`plan ${arg}`, `Planned ${arg}: status ${hasQ ? 'questions' : 'planned'}, complexity ${complexity || '(none in plan header)'}${ids.length ? `; open questions ${ids.join(', ')}` : ''}.`);
-    return null;
+    const r = recordPlan(root, { ticket: arg, assignQuestionIds, setArchitecture, nextUnit: nextUnitText });
+    return { problem: r.problem, paths: r.paths };
   }
   if (unitName === 'review-plans') {
     const out = path.join(vault, 'plans', `review-phase-${String(arg).padStart(2, '0')}.md`);
-    writeFileSync(out, `# Plan review · phase ${arg}\n\nWritten by the launcher from the code-reviewer's final report (${new Date().toISOString()}).\n\n${text.trim()}\n`);
-    writeHandoff(`review-plans ${arg}`, `Plan review written to ${path.relative(root, out)}.`);
-    return null;
+    writeFileAtomic(root, out, `# Plan review · phase ${arg}\n\nWritten by the launcher from the code-reviewer's final report (${new Date().toISOString()}).\n\n${text.trim()}\n`);
+    const label = `review-plans ${arg}`;
+    const h = writeHandoff(root, { label, text: launcherHandoffText(label, `Plan review written to ${path.relative(root, out)}.`, nextUnitText()) });
+    return { problem: null, paths: [path.relative(root, out), ...h.paths] };
   }
-  return null;
+  return { problem: null, paths: [] };
 }
 // Escalated rows, for one notification per new escalation after a questions unit (Q-0129).
 function escalatedRows() {
@@ -245,22 +233,6 @@ function escalatedRows() {
   return out;
 }
 
-function writeHandoff(unit, line) {
-  const cur = path.join(vault, 'handoff/CURRENT.md');
-  if (existsSync(cur)) {
-    mkdirSync(path.join(vault, 'handoff/log'), { recursive: true });
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-    const dest = path.join(vault, 'handoff/log', `${stamp}.md`);
-    if (!existsSync(dest)) copyFileSync(cur, dest);
-  }
-  const next = nextUnitText();
-  writeFileSync(cur, `# Handoff · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} · ${unit}\n\n- Phase and stage: see vault/PROGRESS.md\n- Why the session ended: unit complete (launcher-run agent unit)\n- Completed this session: ${line}\n- In progress: none\n- Blocked: none new\n- Questions for Josh: see vault/questions/QUESTIONS.md\n- Decisions made: none\n- Next unit: ${next}\n`);
-}
-function commitVault(msg) {
-  if (git('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim() !== 'develop') return;
-  if (!git('status', '--porcelain', '--', 'vault').stdout.trim()) return;
-  git('add', '--', 'vault'); git('commit', '-m', msg, '--', 'vault');
-}
 
 async function runUnit(unitName, arg, meterSource = null) {
   const cmd = buildCommand(unitName, arg);
@@ -284,7 +256,11 @@ async function runUnit(unitName, arg, meterSource = null) {
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
   const processRev = git('rev-parse', '--short', 'HEAD').stdout.trim() || null;
-  try { mkdirSync(logDir, { recursive: true }); writeFileSync(inflightFile, JSON.stringify({ unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }) + '\n'); } catch {}
+  // One in-flight record per unit (EZD-173 C6); the session's commands see their own id in EZD_UNIT_ID.
+  const id = unitId(unitName, arg);
+  const dir = inflightDir({ root });
+  env.EZD_UNIT_ID = id;
+  try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }); } catch {}
   const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
   const res = await new Promise((resolve) => {
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -301,31 +277,52 @@ async function runUnit(unitName, arg, meterSource = null) {
   // misread as limit-weekly and wrote a hold after EZD-000 had merged).
   const limit = (res.code !== 0 || parsed?.is_error) ? classifyLimit(text) : null;
   const outcome = limit ? `limit-${limit.kind}` : (res.code === 0 && !parsed?.is_error ? 'ok' : `error${parsed?.subtype ? `:${parsed.subtype}` : ''}`);
-  appendCost(costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }));
-  try { unlinkSync(inflightFile); } catch {}
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
   if (limit) saveLimitText(unitName, arg, res, limit);
-  if (outcome === 'ok' && UNITS[unitName].as) {
-    const problem = afterAgentUnit(unitName, arg, parsed);
-    if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
-  }
-  if (qBefore) {
-    // Q-0129: one notification per newly escalated question; the fingerprints feed the loop guard in next_ticket.mjs.
-    for (const [id, text] of escalatedRows()) if (!qBefore.esc.has(id)) notify(`question for Josh: ${id} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
-    writeFileSync(path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
-  }
-  commitVault(`docs(vault): ${unitName} ${arg}`);
+  // One ledger hold for the cost row, the record's removal, the agent unit's ledger and the unit's commit (EZD-173 C13).
+  const problem = withLedgerLock(root, { owner: `run.mjs ${id}` }, () => {
+    appendCost(costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }));
+    removeInflight(dir, id);
+    const paths = [];
+    const ownPaths = ['vault/cost/log.jsonl', 'vault/handoff/.questions-last-run.json'];
+    const msg = `docs(vault): ${unitName} ${arg}`;
+    if (outcome === 'ok' && UNITS[unitName].as) {
+      const r = afterAgentUnit(unitName, arg, parsed);
+      // A plan problem writes nothing more, but the cost row is still committed on the unit's own paths (C13).
+      if (r.problem) { closeUnit(root, { dir, ownId: id, ownPaths, msg }); return r.problem; }
+      paths.push(...r.paths);
+    }
+    // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
+    if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
+    closeUnit(root, { dir, ownId: id, ownPaths: [...ownPaths, ...paths], msg });
+    return null;
+  });
+  if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
+  // Q-0129: one notification per newly escalated question.
+  if (qBefore) for (const [qid, text] of escalatedRows()) if (!qBefore.esc.has(qid)) notify(`question for Josh: ${qid} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
   return { outcome, limit, parsed };
 }
 
-// A unit whose launcher died before its cost row (inflight.json still there): price its transcripts with the cost
-// tool's rates and append one row with outcome "interrupted", then tell Josh. The unit itself is picked up again by the
-// next --next-unit (an in-progress build resumes; unit-steps.mjs finishes an interrupted merge).
+// A unit whose launcher died before its cost row (its in-flight record still there, its pid dead): price its transcripts
+// with the cost tool's rates and append one row with outcome "interrupted", then tell Josh. The unit itself is picked up
+// again by the next --next-unit (an in-progress build resumes; unit-steps.mjs finishes an interrupted merge). Records of
+// launchers still running are left alone; the single inflight.json of earlier launchers is recovered the same way.
 async function recoverInflight() {
-  if (!existsSync(inflightFile)) return;
-  let f;
-  try { f = JSON.parse(readFileSync(inflightFile, 'utf8')); } catch { try { unlinkSync(inflightFile); } catch {} return; }
+  const dir = inflightDir({ root });
+  const found = listInflight(dir).filter((r) => !r.alive).map((r) => ({ rec: r, remove: () => removeInflight(dir, r.id) }));
+  if (existsSync(legacyInflightFile)) {
+    const remove = () => { try { unlinkSync(legacyInflightFile); } catch {} };
+    let rec = null;
+    try { rec = JSON.parse(readFileSync(legacyInflightFile, 'utf8')); } catch {}
+    found.push({ rec: rec && typeof rec === 'object' ? rec : { unreadable: true }, remove });
+  }
+  for (const { rec, remove } of found) {
+    if (rec.unreadable) { remove(); continue; }
+    await recoverOne(rec, remove);
+  }
+}
+async function recoverOne(f, remove) {
   let est = 0, fable = 0, models = new Set(), sessionId = f.session_id, last = f.startedMs;
   try {
     const u = await import(path.join(vault, 'tools/usage-by-agent.mjs'));
@@ -347,9 +344,11 @@ async function recoverInflight() {
       }
     }
   } catch (e) { log(`interrupted unit: could not price its transcripts (${e.message})`); }
-  appendCost({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev });
-  try { unlinkSync(inflightFile); } catch {}
-  commitVault(`docs(vault): cost row for interrupted ${f.unit} ${f.ticket}`);
+  withLedgerLock(root, { owner: `run.mjs recover ${f.id || `${f.unit} ${f.ticket}`}` }, () => {
+    appendCost({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev });
+    remove();
+    closeUnit(root, { dir: inflightDir({ root }), ownId: f.id, ownPaths: ['vault/cost/log.jsonl'], msg: `docs(vault): cost row for interrupted ${f.unit} ${f.ticket}` });
+  });
   log(`previous launcher stopped during ${f.unit} ${f.ticket}; cost row written (est ${est.toFixed(2)}); resuming`);
   notify(`launcher restarted after it stopped during ${f.unit} ${f.ticket}; resuming`);
 }
@@ -416,7 +415,7 @@ function grantNotices() {
     try { res = JSON.parse(r.stdout); } catch {}
     if (res?.written) {
       notify(`guard grant ready for ${id}: from the repo root run git apply vault/handoff/${id}-grant.patch && git commit -m "chore(guard): grant ${id}" -- .claude/hooks/grants.json`);
-      commitVault(`docs(vault): guard grant patch ${id}`);
+      withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => commitPaths(root, [`vault/handoff/${id}-grant.patch`], `docs(vault): guard grant patch ${id}`));
     }
   }
   const listed = new Set(held.map((h) => h.id));
@@ -426,7 +425,7 @@ function grantNotices() {
     const id = n.match(/^(.+)-grant\.patch$/)?.[1];
     if (!id || listed.has(id)) continue;
     try { unlinkSync(path.join(vault, 'handoff', n)); } catch { continue; }
-    commitVault(`docs(vault): guard grant in place ${id}`);
+    withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => commitPaths(root, [`vault/handoff/${n}`], `docs(vault): guard grant in place ${id}`));
   }
 }
 

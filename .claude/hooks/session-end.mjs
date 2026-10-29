@@ -1,4 +1,5 @@
-// SessionEnd (timeout 30 s): archive the handoff, add any ledger problems to it, and commit vault/ on develop (vault/PROCESS.md section 14).
+// SessionEnd (timeout 30 s): archive the handoff, add any ledger problems to it, and commit vault/ on develop when no other
+// unit is in flight (vault/PROCESS.md section 14; EZD-173 C14). The commit waits up to 20 s for the ledger lock.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { projectDir } from './lib.mjs';
@@ -17,9 +18,16 @@ try {
   const chk = spawnSync(process.execPath, [`${root}/vault/tools/next_ticket.mjs`, '--check'], { encoding: 'utf8' });
   if (chk.status !== 0) appendFileSync(cur, `\n\n## Ledger problems at session end\n${chk.stdout}`);
   if (git('rev-parse', '--abbrev-ref', 'HEAD') !== 'develop') process.exit(0);
-  if (!git('status', '--porcelain', '--', 'vault')) process.exit(0);
-  git('add', '--', 'vault');
-  git('commit', '-m', 'docs(vault): session end', '--', 'vault');
+  // Imported here, inside the try, so a ledger module that fails to load cannot make the hook exit non-zero.
+  const { withLedgerLock, closeUnit, inflightDir, LockError } = await import(new URL('../../scripts/ledger.mjs', import.meta.url).href);
+  try {
+    withLedgerLock(root, { owner: 'session-end', timeoutMs: 20000 }, () => closeUnit(root, {
+      dir: inflightDir({ root }), ownId: process.env.EZD_UNIT_ID, ownPaths: [], msg: 'docs(vault): session end',
+    }));
+  } catch (e) {
+    if (!(e instanceof LockError && e.code === 'lock_timeout')) throw e;
+    process.stderr.write('session-end hook: ledger lock busy; vault/ not committed\n');
+  }
 } catch (e) {
   process.stderr.write(`session-end hook: ${e.message}\n`);
 }

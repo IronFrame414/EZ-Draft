@@ -69,7 +69,7 @@ function makeRoot() {
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) {
     mkdirSync(at(d), { recursive: true });
   }
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs']) {
+  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) {
     copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   }
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
@@ -86,7 +86,16 @@ function makeRoot() {
       notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"`,
     }),
   );
+  initRepo(tmp);
   return { tmp, at };
+}
+
+// EZD-173 Decided "Launcher test roots": run.mjs takes the ledger lock, which needs a git repo on develop.
+function initRepo(tmp) {
+  for (const args of [['init', '-q', '-b', 'develop'], ['config', 'user.name', 'EZ Draft Test'], ['config', 'user.email', 'test@example.test'], ['config', 'commit.gpgsign', 'false'], ['add', '-A'], ['commit', '-qm', 'init']]) {
+    const r = spawnSync('git', args, { cwd: tmp, encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`git ${args.join(' ')}: ${r.stderr}`);
+  }
 }
 
 // Writes vault/cost/usage.json just before a run (section 1 Decided, Meters). five_hour at 10% is under the 90% pause.

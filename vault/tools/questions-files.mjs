@@ -1,0 +1,27 @@
+// The questions ledger lives in three files (Josh 2026-10-28; EZD-173 contract C16). This module owns their paths and the
+// Q-ID rules, so next_ticket.mjs and scripts/ledger.mjs cannot drift apart. IDs are never reused; read-only, no writes.
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+
+export const Q_FILES = { open: 'questions/QUESTIONS.md', answered: 'questions/QUESTIONS-answered.md', archive: 'questions/QUESTIONS-archive.md' };
+
+const readText = (vaultDir, kind) => {
+  const file = path.join(vaultDir, Q_FILES[kind]);
+  return existsSync(file) ? readFileSync(file, 'utf8') : '';
+};
+
+// Highest Q-nnnn across the three files; a missing file counts as empty; none found gives 0.
+export function questionMax(vaultDir) {
+  let max = 0;
+  for (const kind of Object.keys(Q_FILES))
+    for (const m of readText(vaultDir, kind).matchAll(/^\|\s*Q-(\d{4})\s*\|/gm)) max = Math.max(max, Number(m[1]));
+  return max;
+}
+
+// The first file (in Q_FILES order) with a row for qid, else null.
+export function findQuestion(vaultDir, qid) {
+  for (const kind of Object.keys(Q_FILES))
+    for (const m of readText(vaultDir, kind).matchAll(/^\|\s*(Q-\d+)\s*\|/gm))
+      if (m[1] === qid) return { kind, file: Q_FILES[kind] };
+  return null;
+}

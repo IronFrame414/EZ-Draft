@@ -49,7 +49,6 @@ function queueEdit(q, slug, newLine) {
 
 test('EZD-250 T9 between units: a queued ledger edit is applied before the next unit, with no pause (AC-EZD-250-2)', async () => {
   const root = makeLauncherRoot({
-    git: true,
     copy: ['vault/tools/ledger-queue.mjs'],
     stub: {
       next: [{ text: 'build EZD-901', until: 'built-901' }, { text: 'build EZD-902', until: 'built-902' }, { text: 'none: budget hold (test)' }],
@@ -161,7 +160,6 @@ test('EZD-250 T13 deferred: nothing is applied with uncommitted vault changes or
 
 test('EZD-250 T29 queue apply fails: the failure is logged and sent once, and the build goes on (AC-EZD-250-2)', async () => {
   const root = makeLauncherRoot({
-    git: true,
     stub: { next: [{ text: 'build EZD-901', until: 'built' }, { text: 'none: budget hold (test)' }] },
     rules: [{ prompt: '/build-ticket EZD-901', writes: ['built'] }],
   });

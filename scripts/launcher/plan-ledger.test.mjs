@@ -42,7 +42,7 @@ function makeRoot(result) {
   made.push(tmp);
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'vault/plans', 'logs', 'bin']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(at('arch-calls.txt'), result));
   writeFileSync(at('vault/tickets/STATUS.md'), '| EZD-999 | 1 | t | todo | | | | | |\n');
@@ -67,7 +67,16 @@ function makeRoot(result) {
       source: 'statusline',
     }),
   );
+  initRepo(tmp);
   return { tmp, at };
+}
+
+// EZD-173 Decided "Launcher test roots": run.mjs takes the ledger lock, which needs a git repo on develop.
+function initRepo(tmp) {
+  for (const args of [['init', '-q', '-b', 'develop'], ['config', 'user.name', 'EZ Draft Test'], ['config', 'user.email', 'test@example.test'], ['config', 'commit.gpgsign', 'false'], ['add', '-A'], ['commit', '-qm', 'init']]) {
+    const r = spawnSync('git', args, { cwd: tmp, encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`git ${args.join(' ')}: ${r.stderr}`);
+  }
 }
 
 function runOnce(root) {

@@ -20,12 +20,13 @@
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
 // Stage 1 of a phase needs a sign-off row in vault/spec/SIGNOFF.md (PROCESS.md section 5).
-import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync, renameSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
+import { Q_FILES, questionMax } from './questions-files.mjs';
 import { grantNeeds } from './grants.mjs';
 import { findingProblems } from './findings.mjs';
 
@@ -38,6 +39,19 @@ const CHECKPOINT_FROM = 200; // ticket numbers at or above this wait for the arc
 const LIMIT_IN_PROGRESS = 1; // PROCESS-EZDRAFT.md section 8
 
 const read = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : '');
+// Every write is a temp file renamed into place, so a reader in another lane never sees half a file (EZD-173 C2). The temp
+// file sits in <root>/.git/ezdraft-tmp/; with no .git folder (test copies of vault/), next to the target.
+let tmpCount = 0;
+function writeAtomic(file, text) {
+  tmpCount += 1;
+  let dir = path.join(root, '.git');
+  let isGit = false;
+  try { isGit = statSync(dir).isDirectory(); } catch {}
+  let tmp;
+  if (isGit) { dir = path.join(dir, 'ezdraft-tmp'); mkdirSync(dir, { recursive: true }); tmp = path.join(dir, `${process.pid}-${tmpCount}.tmp`); }
+  else tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}-${tmpCount}.tmp`);
+  try { writeFileSync(tmp, text); renameSync(tmp, file); } catch (e) { try { unlinkSync(tmp); } catch {} throw e; }
+}
 const data = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8'));
 const tickets = new Map(data.tickets.map((t) => [t.id, t]));
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -132,7 +146,6 @@ const questionsDue = (p) => questionsWork(p) && !questionsGuarded(p);
 // A row moves only whole and unchanged. Archive rule: the Phase / ticket cell starts with a phase number, names at least one
 // ticket, names nothing but tickets and the words in Q_ARCHIVE_WORDS, every ticket it names is done, and no plan of an
 // unfinished ticket and no phase file of an unfinished phase cites the Q-ID. Lookups by Q-ID read all three files.
-const Q_FILES = { open: 'questions/QUESTIONS.md', answered: 'questions/QUESTIONS-answered.md', archive: 'questions/QUESTIONS-archive.md' };
 const Q_ROW = /^\|\s*Q-\d{4}\s*\|/;
 const Q_STATUSES = ['open', 'answered-agent', 'escalated', 'answered-josh', 'confirmed-josh'];
 const Q_ARCHIVE_WORDS = new Set(['also', 'plan', 'round', 'build', 'builds', 'review', 'code', 'security', 'reviewer', 'level', 'live', 'run',
@@ -196,7 +209,7 @@ export function sortQuestions() {
   for (const kind of Object.keys(Q_FILES)) {
     const p = path.join(vault, Q_FILES[kind]);
     const text = [...questionHeader(kind), ...next[kind], ...arriving[kind], ''].join('\n');
-    if (read(p) !== text) writeFileSync(p, text);
+    if (read(p) !== text) writeAtomic(p, text);
   }
   return { moved, open: next.open.length + arriving.open.length, answered: next.answered.length + arriving.answered.length, archive: next.archive.length + arriving.archive.length };
 }
@@ -225,11 +238,8 @@ export function assignQuestionIds(ticket) {
   const planPath = path.join(vault, 'plans', `${ticket}.md`);
   const qPath = path.join(vault, 'questions/QUESTIONS.md');
   const qLines = readFileSync(qPath, 'utf8').split('\n');
-  let max = 0, last = -1;
-  qLines.forEach((l, i) => { const m = l.match(/^\|\s*Q-(\d{4})\s*\|/); if (m) { max = Math.max(max, Number(m[1])); last = i; } });
-  // IDs are never reused: the highest ID may sit in the answered or archive file (Josh 2026-10-28).
-  for (const f of [Q_FILES.answered, Q_FILES.archive])
-    for (const m of read(path.join(vault, f)).matchAll(/^\|\s*Q-(\d{4})\s*\|/gm)) max = Math.max(max, Number(m[1]));
+  let max = questionMax(vault), last = -1;
+  qLines.forEach((l, i) => { if (/^\|\s*Q-(\d{4})\s*\|/.test(l)) last = i; });
   if (last < 0) last = qLines.findIndex((l) => /^\| -/.test(l));
   // Read fresh: the launcher imports this module once, and a split may have added the ticket since (Q-0168 to Q-0170).
   const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
@@ -248,8 +258,8 @@ export function assignQuestionIds(ticket) {
   }
   if (!ids.length) return ids;
   qLines.splice(last + 1, 0, ...rows);
-  writeFileSync(qPath, qLines.join('\n'));
-  writeFileSync(planPath, plan.join('\n'));
+  writeAtomic(qPath, qLines.join('\n'));
+  writeAtomic(planPath, plan.join('\n'));
   return ids;
 }
 const LESSON_STATUSES = ['candidate', 'ratified', 'rejected'];
@@ -384,7 +394,7 @@ export function setArchitecture(id) {
   }
   if (!placed) rebuilt.architecture = a.list;
   d.tickets = d.tickets.map((x) => (x.id === id ? rebuilt : x));
-  writeFileSync(file, JSON.stringify(d, null, 1) + '\n');
+  writeAtomic(file, JSON.stringify(d, null, 1) + '\n');
   return { ok: true, message: `ARCHITECTURE SET ${id}: ${a.list.length} section(s)` };
 }
 // The plan sections each role reads, from the table in .claude/skills/build-ticket/SKILL.md (optimize plan C3).
@@ -819,7 +829,7 @@ function report() {
     trace += '\n';
   }
   trace += `ACs not yet covered by a merged ticket: ${uncovered}.\n`;
-  writeFileSync(path.join(vault, 'tickets/TRACE.md'), trace);
+  writeAtomic(path.join(vault, 'tickets/TRACE.md'), trace);
 
   // PROGRESS.md
   const done = read(path.join(vault, 'DONE.md')).split(/\r?\n/).filter((l) => /^\d{4}-\d\d-\d\d/.test(l) || /^- \d{4}-\d\d-\d\d/.test(l) || /^\| \d{4}/.test(l));
@@ -848,7 +858,7 @@ function report() {
     const row = (name, w) => (w ? `| ${name} | ${Math.round(w.pct)}% | ${utc(w.resets_at)} |\n` : `| ${name} | no meter | — |\n`);
     md += `## Usage\n\nSource: ${usage.source}, read ${utc(usage.read_at)}.\n\n| Window | Used | Resets |\n| --- | --- | --- |\n${row('Five-hour', usage.five_hour)}${row('Weekly', usage.seven_day)}${row('Fable weekly', usage.fable_seven_day)}`;
   } else md += `## This week's estimated spend\n\n${spend.text}\n`;
-  writeFileSync(path.join(vault, 'PROGRESS.md'), md);
+  writeAtomic(path.join(vault, 'PROGRESS.md'), md);
   console.log('wrote vault/PROGRESS.md and vault/tickets/TRACE.md');
 }
 

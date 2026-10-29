@@ -3,27 +3,35 @@
 // these instead of running git and ledger edits turn by turn, so its session stays a thin dispatcher. Each step prints
 // 5 lines or fewer. Exit 0 = go on, 1 = failed (red gate), 3 = stop the unit (reason printed), 2 = usage.
 //
-//   node scripts/unit-steps.mjs preflight <T>          step 0: develop clean, ledger valid, ticket startable, no hold
+//   node scripts/unit-steps.mjs preflight <T>          step 0: develop clean outside vault/, ledger valid, ticket startable, no hold
 //   node scripts/unit-steps.mjs worktree <T>           step 2: create or resume .claude/worktrees/<T> on t/<T>; STATUS → in-progress;
 //                                                     `RESUME merged=yes` when an interrupted unit already squashed it (go to step 10)
 //   node scripts/unit-steps.mjs merge <T>              step 10: squash, commit, develop gate, clean up; STATUS → done (hash, tests);
 //                                                     resumes after an interrupted unit (feat commit already on develop)
-//   node scripts/unit-steps.mjs finish <T> <outcome>   step 11: ledger check, report, commit vault/, push develop
+//   node scripts/unit-steps.mjs finish <T> <outcome> [<vault path>...]
+//                                                     step 11: ledger check, report, commit vault/ (or only this unit's own
+//                                                     paths while another unit is in flight), push develop
 //
-// Env (tests only): EZD_ROOT (checkout), EZD_GATE_CMD (gate command), EZD_NO_PUSH=1.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+// Units may run side by side (EZD-173): ledger writes and commits hold the ledger lock, and merges queue behind the merge
+// lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_GATE_CMD (gate command), EZD_NO_PUSH=1,
+// EZD_INFLIGHT_DIR (in-flight records). EZD_UNIT_ID is set by scripts/run.mjs for the unit's session.
+import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withLedgerLock, withMergeLock, tryLock, readLock, updateStatusRow, commitPaths, closeUnit, inflightDir, LockError } from './ledger.mjs';
 
 const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const statusPath = path.join(root, 'vault/tickets/STATUS.md');
-const [step, ticket, outcome] = process.argv.slice(2);
+const [step, ticket, outcome, ...extraPaths] = process.argv.slice(2);
 
 const sh = (cmd, args, opts = {}) => spawnSync(cmd, args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
 const git = (...args) => sh('git', args);
 const out = (r) => `${r.stdout || ''}${r.stderr || ''}`.trim();
-const stop = (msg) => { console.log(msg); process.exit(3); };
+// A stop is thrown, not exited, so the locks a step holds are released on the way out.
+class Stop extends Error {}
+const stop = (msg) => { throw new Stop(msg); };
+const owner = () => `unit-steps ${step} ${ticket}`;
 
 // STATUS.md columns: Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes
 const COL = { phase: 1, title: 2, status: 3, complexity: 4, commit: 6, tests: 7, notes: 8 };
@@ -36,18 +44,15 @@ function readRows() {
   });
   return { lines, rows };
 }
-function setRow(id, changes) {
-  const { lines, rows } = readRows();
-  const r = rows.get(id);
-  if (!r) throw new Error(`${id} has no STATUS row`);
-  for (const [k, v] of Object.entries(changes)) r.cells[COL[k]] = String(v);
-  lines[r.i] = `| ${r.cells.join(' | ')} |`;
-  writeFileSync(statusPath, lines.join('\n'));
-}
 function rowOf(id) {
   const r = readRows().rows.get(id);
   if (!r) stop(`STOP: ${id} has no row in vault/tickets/STATUS.md`);
   return Object.fromEntries(Object.entries(COL).map(([k, i]) => [k, r.cells[i]]));
+}
+// A STATUS change and its commit, inside the caller's ledger hold.
+function setStatus(changes) {
+  const { paths } = updateStatusRow(root, ticket, changes);
+  commitPaths(root, paths, `docs(vault): ${ticket} status`);
 }
 
 // Test count: node:test `# pass N` / `ℹ pass N` plus Vitest `Tests  N passed` lines from the gate's output and its gate.log.
@@ -63,7 +68,8 @@ function testCount(text) {
 function preflight() {
   const branch = out(git('rev-parse', '--abbrev-ref', 'HEAD'));
   if (branch !== 'develop') stop(`PREFLIGHT STOP: main checkout is on ${branch}, not develop`);
-  const dirty = out(git('status', '--porcelain', '--untracked-files=no'));
+  // Other lanes' uncommitted vault/ edits are not this unit's (EZD-173).
+  const dirty = out(git('status', '--porcelain', '--untracked-files=no', '--', '.', ':(exclude)vault'));
   if (dirty) stop(`PREFLIGHT STOP: develop has uncommitted changes:\n${dirty.split('\n').slice(0, 3).join('\n')}`);
   const check = sh(process.execPath, ['vault/tools/next_ticket.mjs', '--check']);
   if (check.status !== 0) stop(`PREFLIGHT STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
@@ -90,94 +96,150 @@ function mergedCommit() {
 }
 
 function worktree() {
-  const rel = `.claude/worktrees/${ticket}`;
-  const wt = path.join(root, rel);
-  const branchExists = out(git('branch', '--list', `t/${ticket}`)) !== '';
-  const merged = mergedCommit();
-  if (merged) {
-    console.log(`WORKTREE RESUME merged=yes commit=${merged.slice(0, 7)}: go to step 10 (merge resumes: develop gate, clean up, done)`);
-    return;
-  }
-  if (existsSync(wt) || branchExists) {
-    if (!existsSync(wt)) { const r = git('worktree', 'add', rel, `t/${ticket}`); if (r.status) stop(`WORKTREE STOP: ${out(r)}`); }
-    const log = out(sh('git', ['-C', wt, 'log', '--format=%s', `develop..HEAD`]));
-    const subjects = log ? log.split('\n') : [];
-    const tests = subjects.some((s) => s.startsWith(`test(${ticket})`)) ? 'yes' : 'no';
-    const wip = subjects.filter((s) => s.startsWith(`wip(${ticket})`)).length;
-    console.log(`WORKTREE RESUME tests=${tests} wip=${wip} path=${wt}`);
-  } else {
-    const r = git('worktree', 'add', rel, '-b', `t/${ticket}`, 'develop');
-    if (r.status) stop(`WORKTREE STOP: ${out(r)}`);
-    console.log(`WORKTREE NEW path=${wt}`);
-  }
-  if (rowOf(ticket).status === 'ready') setRow(ticket, { status: 'in-progress' });
-  console.log(`STATUS ${ticket} → ${rowOf(ticket).status}`);
+  withLedgerLock(root, { owner: owner() }, () => {
+    const rel = `.claude/worktrees/${ticket}`;
+    const wt = path.join(root, rel);
+    const branchExists = out(git('branch', '--list', `t/${ticket}`)) !== '';
+    const merged = mergedCommit();
+    if (merged) {
+      console.log(`WORKTREE RESUME merged=yes commit=${merged.slice(0, 7)}: go to step 10 (merge resumes: develop gate, clean up, done)`);
+      return;
+    }
+    if (existsSync(wt) || branchExists) {
+      if (!existsSync(wt)) { const r = git('worktree', 'add', rel, `t/${ticket}`); if (r.status) stop(`WORKTREE STOP: ${out(r)}`); }
+      const log = out(sh('git', ['-C', wt, 'log', '--format=%s', `develop..HEAD`]));
+      const subjects = log ? log.split('\n') : [];
+      const tests = subjects.some((s) => s.startsWith(`test(${ticket})`)) ? 'yes' : 'no';
+      const wip = subjects.filter((s) => s.startsWith(`wip(${ticket})`)).length;
+      console.log(`WORKTREE RESUME tests=${tests} wip=${wip} path=${wt}`);
+    } else {
+      // While a merge is in progress develop's tip is an ungated feat commit; branch from the commit under it instead.
+      const merge = readLock(root, 'merge');
+      if (merge?.alive && merge.base) {
+        const r = git('worktree', 'add', rel, '-b', `t/${ticket}`, merge.base);
+        if (r.status) stop(`WORKTREE STOP: ${out(r)}`);
+        console.log(`WORKTREE NEW path=${wt} base=${out(git('rev-parse', '--short', merge.base))} (merge in progress)`);
+      } else {
+        const r = git('worktree', 'add', rel, '-b', `t/${ticket}`, 'develop');
+        if (r.status) stop(`WORKTREE STOP: ${out(r)}`);
+        console.log(`WORKTREE NEW path=${wt}`);
+      }
+    }
+    if (rowOf(ticket).status === 'ready') setStatus({ status: 'in-progress' });
+    console.log(`STATUS ${ticket} → ${rowOf(ticket).status}`);
+  });
+  return 0;
 }
 
 function merge() {
-  const row = rowOf(ticket);
-  const resumed = mergedCommit();
-  if (resumed) console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`);
-  else {
-    const sq = git('merge', '--squash', `t/${ticket}`);
-    if (sq.status) { git('merge', '--abort'); git('reset', '--merge'); stop(`MERGE STOP: squash failed: ${out(sq).split('\n')[0]}`); }
-    const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
-    if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);
-  }
-  const gateCmd = process.env.EZD_GATE_CMD;
-  const gate = gateCmd
-    ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), '.', '--phase', row.phase])
-    : sh(process.execPath, ['scripts/gate.mjs', '.', '--phase', row.phase]);
-  const gateLog = existsSync(path.join(root, 'gate.log')) ? readFileSync(path.join(root, 'gate.log'), 'utf8') : '';
-  const summary = out(gate).split('\n').filter((l) => /^(GATE|typecheck|lint|test|build|perf|first error)/.test(l)).slice(-3);
-  if (gate.status !== 0) {
-    // A resumed merge may have vault commits on top of the feat commit, so it is reverted rather than reset away.
-    if (resumed) git('revert', '--no-edit', resumed);
-    else git('reset', '--keep', 'HEAD~1');
-    console.log(`MERGE RED ${ticket}: develop gate failed; develop restored, worktree kept. Treat as a review FAIL.`);
-    for (const l of summary) console.log(l);
-    process.exit(1);
-  }
-  const hash = resumed ? resumed.slice(0, 7) : out(git('rev-parse', '--short', 'HEAD'));
-  const tests = testCount(`${out(gate)}\n${gateLog}`);
-  git('worktree', 'remove', `.claude/worktrees/${ticket}`);
-  git('branch', '-D', `t/${ticket}`);
-  setRow(ticket, { status: 'done', commit: hash, tests });
-  console.log(`MERGE OK ${ticket} commit=${hash} tests=${tests || '?'} (STATUS → done; add Notes, DONE.md line and lessons)`);
+  return withMergeLock(root, {
+    owner: owner(),
+    onWait: (rec) => console.log(`MERGE WAIT ${ticket}: merge lock held by pid ${rec.pid} (${rec.owner})`),
+  }, (mergeLock) => {
+    // Ledger hold 1: record the base, squash and commit.
+    const { row, resumed, feat } = withLedgerLock(root, { owner: owner() }, () => {
+      const row = rowOf(ticket);
+      const resumed = mergedCommit();
+      mergeLock.update({ base: out(git('rev-parse', resumed ? `${resumed}^` : 'HEAD')) });
+      if (resumed) console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`);
+      else {
+        const sq = git('merge', '--squash', `t/${ticket}`);
+        if (sq.status) { git('merge', '--abort'); git('reset', '--merge'); stop(`MERGE STOP: squash failed: ${out(sq).split('\n')[0]}`); }
+        const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
+        if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);
+      }
+      return { row, resumed, feat: resumed || out(git('rev-parse', 'HEAD')) };
+    });
+    // The develop gate runs under the merge lock only, so other lanes keep writing the ledger meanwhile.
+    const gateCmd = process.env.EZD_GATE_CMD;
+    const gate = gateCmd
+      ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), '.', '--phase', row.phase])
+      : sh(process.execPath, ['scripts/gate.mjs', '.', '--phase', row.phase]);
+    const gateLog = existsSync(path.join(root, 'gate.log')) ? readFileSync(path.join(root, 'gate.log'), 'utf8') : '';
+    const summary = out(gate).split('\n').filter((l) => /^(GATE|typecheck|lint|test|build|perf|first error)/.test(l)).slice(-3);
+    // Ledger hold 2: restore develop or close the ticket.
+    return withLedgerLock(root, { owner: owner() }, () => {
+      if (gate.status !== 0) {
+        // Commits on top of the feat commit (a resumed merge, or other lanes during the gate) are kept: revert, not reset.
+        if (!resumed && out(git('rev-parse', 'HEAD')) === feat) git('reset', '--keep', 'HEAD~1');
+        else git('revert', '--no-edit', feat);
+        console.log(`MERGE RED ${ticket}: develop gate failed; develop restored, worktree kept. Treat as a review FAIL.`);
+        for (const l of summary) console.log(l);
+        return 1;
+      }
+      const hash = out(git('rev-parse', '--short', feat));
+      const tests = testCount(`${out(gate)}\n${gateLog}`);
+      git('worktree', 'remove', `.claude/worktrees/${ticket}`);
+      git('branch', '-D', `t/${ticket}`);
+      setStatus({ status: 'done', commit: hash, tests });
+      console.log(`MERGE OK ${ticket} commit=${hash} tests=${tests || '?'} (STATUS → done; add Notes, DONE.md line and lessons)`);
+      return 0;
+    });
+  });
 }
 
 function finish() {
-  if (!['done', 'blocked'].includes(outcome)) { console.log('usage: finish <T> done|blocked'); process.exit(2); }
-  const check = sh(process.execPath, ['vault/tools/next_ticket.mjs', '--check']);
-  if (check.status !== 0) stop(`FINISH STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
-  sh(process.execPath, ['vault/tools/next_ticket.mjs', '--report']);
-  git('add', 'vault/');
-  const c = git('commit', '-q', '-m', `docs(vault): ${ticket} ${outcome}`);
-  if (c.status && !/nothing to commit/.test(out(c))) stop(`FINISH STOP: commit failed: ${out(c).split('\n')[0]}`);
-  if (!process.env.EZD_NO_PUSH) {
-    const p = git('push', '-q', 'origin', 'develop');
-    if (p.status) stop(`FINISH STOP: push failed: ${out(p).split('\n')[0]}`);
+  if (!['done', 'blocked'].includes(outcome) || extraPaths.some((p) => !p.startsWith('vault/'))) {
+    console.log('usage: finish <T> done|blocked [<vault path>...]');
+    return 2;
   }
-  console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})`);
+  withLedgerLock(root, { owner: owner() }, () => {
+    const check = sh(process.execPath, ['vault/tools/next_ticket.mjs', '--check']);
+    if (check.status !== 0) stop(`FINISH STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
+    sh(process.execPath, ['vault/tools/next_ticket.mjs', '--report']);
+    const ownPaths = ['vault/PROGRESS.md', 'vault/tickets/TRACE.md', `vault/plans/${ticket}.md`, `vault/plans/shots/${ticket}`, `vault/spikes/${ticket}.md`, ...extraPaths];
+    try {
+      closeUnit(root, { dir: inflightDir({ root }), ownId: process.env.EZD_UNIT_ID, ownPaths, msg: `docs(vault): ${ticket} ${outcome}` });
+    } catch (e) {
+      if (e instanceof LockError) throw e;
+      stop(`FINISH STOP: ${e.message}`);
+    }
+  });
+  let deferred = '';
+  if (!process.env.EZD_NO_PUSH) {
+    // A merge in progress has an ungated feat commit on develop; its own finish pushes later.
+    const pushLock = tryLock(root, 'merge', { owner: owner() });
+    if (!pushLock) deferred = ' push deferred: merge in progress';
+    else {
+      try {
+        const p = git('push', '-q', 'origin', 'develop');
+        if (p.status) stop(`FINISH STOP: push failed: ${out(p).split('\n')[0]}`);
+      } finally { pushLock.release(); }
+    }
+  }
+  console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})${deferred}`);
+  return 0;
 }
 
 // The launcher tables a build that ends twice without progress (Josh 2026-10-27: "override so it keeps moving
 // forward"): the ticket becomes blocked with a note, so --next-unit moves on to the next ready ticket. Its worktree
 // and branch stay; the orchestrator sets it back to ready when Josh answers.
 function table() {
-  const r = rowOf(ticket);
-  if (!['in-progress', 'review'].includes(r.status)) stop(`TABLE STOP: ${ticket} is ${r.status}, not in-progress or review`);
-  const note = `${new Date().toISOString().slice(0, 10)}: tabled by the launcher (build ended twice without progress, most likely waiting on Josh; see vault/handoff/CURRENT.md). Worktree kept; back to ready when Josh answers.`;
-  setRow(ticket, { status: 'blocked', notes: r.notes ? `${r.notes} · ${note}` : note });
-  git('add', 'vault/tickets/STATUS.md');
-  const c = git('commit', '-q', '-m', `docs(vault): ${ticket} tabled by the launcher`);
-  if (c.status) stop(`TABLE STOP: commit failed: ${out(c).split('\n')[0]}`);
+  // The row is read, changed and committed in one ledger hold (EZD-173), committing only STATUS.md.
+  withLedgerLock(root, { owner: owner() }, () => {
+    const r = rowOf(ticket);
+    if (!['in-progress', 'review'].includes(r.status)) stop(`TABLE STOP: ${ticket} is ${r.status}, not in-progress or review`);
+    const note = `${new Date().toISOString().slice(0, 10)}: tabled by the launcher (build ended twice without progress, most likely waiting on Josh; see vault/handoff/CURRENT.md). Worktree kept; back to ready when Josh answers.`;
+    const { paths } = updateStatusRow(root, ticket, { status: 'blocked', notes: r.notes ? `${r.notes} · ${note}` : note });
+    try {
+      commitPaths(root, paths, `docs(vault): ${ticket} tabled by the launcher`);
+    } catch (e) {
+      if (e instanceof LockError) throw e;
+      stop(`TABLE STOP: ${e.message}`);
+    }
+  });
   console.log(`TABLE OK ${ticket} (STATUS → blocked)`);
 }
 
 const steps = { preflight, worktree, merge, finish, table };
 if (!steps[step] || !/^EZD-[0-9A-Za-z]+$/.test(ticket || '')) {
-  console.log('usage: node scripts/unit-steps.mjs preflight|worktree|merge|finish|table <EZD-xxx> [done|blocked]');
+  console.log('usage: node scripts/unit-steps.mjs preflight|worktree|merge|finish|table <EZD-xxx> [done|blocked [<vault path>...]]');
   process.exit(2);
 }
-steps[step]();
+try {
+  process.exitCode = steps[step]() ?? 0;
+} catch (e) {
+  if (e instanceof Stop) console.log(e.message);
+  else console.log(`${step.toUpperCase()} STOP: ${e.message}`);
+  process.exitCode = 3;
+}

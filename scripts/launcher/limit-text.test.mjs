@@ -68,7 +68,7 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
   // handoffIsFile: vault/handoff is a plain file, so no limit file can be written under it (T6).
   if (handoffIsFile) writeFileSync(at('vault/handoff'), 'not a folder\n');
   else mkdirSync(at('vault/handoff'), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(nextUnit));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
@@ -103,8 +103,8 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
   if (confirmed) config.limit_formats_confirmed = true;
   if (apiKey) { config.api_key = apiKey; config.auth_mode = 'api'; }
   writeFileSync(at('scripts/launcher.config.json'), JSON.stringify(config));
-  // gitRepo (T12, plan section 4): a temp repository on develop holding every file written above, with the copied ignore rule.
-  if (gitRepo) {
+  // Every root is a temp git repository on develop holding every file written above (plan C9). gitRepo (T12, plan section 4) also copies the ignore rule.
+  {
     const git = (...args) => {
       const r = spawnSync('git', ['-C', tmp, ...args], { encoding: 'utf8' });
       assert.equal(r.status, 0, `git ${args.join(' ')}: ${r.stderr}`);
@@ -115,7 +115,7 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
     git('config', 'user.email', 'ezd193@example.test');
     git('config', 'commit.gpgsign', 'false');
     git('config', 'core.hooksPath', at('no-hooks'));
-    copyFileSync(path.join(repo, '.gitignore'), at('.gitignore'));
+    if (gitRepo) copyFileSync(path.join(repo, '.gitignore'), at('.gitignore'));
     git('add', '-A');
     git('commit', '-q', '-m', 'init');
   }

@@ -118,11 +118,11 @@ const fakeClaude = () =>
 
 const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFile}"`, 'exit 1', ''].join('\n');
 
-const BASE_COPY = ['scripts/run.mjs', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'vault/tools/boost.mjs'];
+const BASE_COPY = ['scripts/run.mjs', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'vault/tools/boost.mjs'];
 
-// A temporary launcher root. copy: more repo files to copy to the same relative path. git: make the root a git repository
-// on develop with scripts/ and vault/ committed (the queue tests). stub: the stub ledger tool's config. rules: fake claude rules.
-export function makeLauncherRoot({ stub = {}, rules = [], copy = [], git = false } = {}) {
+// A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
+// with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules.
+export function makeLauncherRoot({ stub = {}, rules = [], copy = [] } = {}) {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs', 'bin', 'markers']) mkdirSync(at(d), { recursive: true });
@@ -160,7 +160,8 @@ export function makeLauncherRoot({ stub = {}, rules = [], copy = [], git = false
       notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"`,
     }),
   );
-  if (git) gitInit(tmp, ['scripts', 'vault']);
+  // Every root is a git repository: run.mjs imports ledger.mjs, whose lock needs .git (plan C9, Decided "Launcher test roots").
+  gitInit(tmp, ['scripts', 'vault']);
   return { tmp, at };
 }
 

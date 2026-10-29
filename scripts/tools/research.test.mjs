@@ -157,8 +157,8 @@ test('EZD-000d T9 done when: CLAUDE.md has the research row in place and is at m
 });
 
 test('EZD-000d T10 skill files carry the adopt sentences and keep their step numbers', () => {
-  const S1 = 'If a retriever you dispatched returned a `REPORT:` line, run `node vault/tools/research.mjs adopt` before you finish and cite the IDs it prints as `R-NNN` in section 2; a ticket no report covers says so in section 2.';
-  const S2 = '**Research reports.** After any dispatch that returned a `REPORT:` line, run `node vault/tools/research.mjs adopt`; it moves each pending report to `vault/research/R-NNN.md` and prints the IDs to cite (PROCESS.md section 13).';
+  const S1 = 'If a retriever you dispatched returned a `REPORT:` line, run `node scripts/ledger.mjs research $ARGUMENTS` before you finish and cite the IDs it prints as `R-NNN` in section 2; a ticket no report covers says so in section 2.';
+  const S2 = '**Research reports.** After any dispatch that returned a `REPORT:` line, run `node scripts/ledger.mjs research $ARGUMENTS`; it moves each of this ticket\'s pending reports to `vault/research/R-NNN.md`, commits them and prints the IDs to cite (PROCESS.md section 13).';
   const plan = read(path.join(root, '.claude/skills/plan-ticket/SKILL.md')).split('\n');
   const step2 = plan.find((l) => l.startsWith('2. Write `vault/plans/$ARGUMENTS.md`'));
   assert.ok(step2 && step2.endsWith(' ' + S1));
@@ -170,4 +170,75 @@ test('EZD-000d T10 skill files carry the adopt sentences and keep their step num
   const nums = (ls_) => ls_.filter((l) => /^\d+\. /.test(l)).map((l) => l.match(/^(\d+)\./)[1]);
   assert.deepEqual(nums(plan), ['1', '2', '3', '4']);
   assert.deepEqual(nums(build), Array.from({ length: 12 }, (_, n) => String(n)));
+});
+
+// EZD-173 R1 (plan vault/plans/EZD-173.md section 4; C11, C4): adopt() can be limited to one ticket, and the ledger command
+// commits exactly the files that adoption changed.
+const R1_ID = ['-c', 'user.name=EZ Draft Test', '-c', 'user.email=test@example.test', '-c', 'commit.gpgsign=false'];
+const r1git = (dir, ...a) => {
+  const r = spawnSync('git', ['-C', dir, ...R1_ID, ...a], { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`git ${a.join(' ')}: ${r.stderr}`);
+  return r.stdout.trim();
+};
+const R1_2 = '---\ntitle: Title Two\nscope: app/src\nticket: EZD-002\n---\nBody two\n';
+const R1_3 = '---\ntitle: Title Three\nscope: app/src\nticket: EZD-003\n---\nBody three\n';
+
+test('EZD-173 R1 adopt with a ticket moves only that ticket\'s reports; the ledger research command commits only the adopted files', async () => {
+  const { adopt } = await import(pathToFileURL(tool).href);
+  const a = makeTree({ pending: { 'two.md': R1_2, 'three.md': R1_3 } });
+  const res = adopt(a.rdir, '2026-10-24', { ticket: 'EZD-002' });
+  assert.deepEqual(res.ids, ['R-001']);
+  assert.deepEqual(res.skipped, []);
+  assert.deepEqual(res.moved, [{ file: 'two.md', id: 'R-001' }]);
+  assert.deepEqual(ls(path.join(a.rdir, 'pending')), ['three.md']);
+
+  const { tmp, rdir } = makeTree({});
+  r1git(tmp, 'init', '-q', '-b', 'develop');
+  r1git(tmp, 'config', 'user.name', 'EZ Draft Test');
+  r1git(tmp, 'config', 'user.email', 'test@example.test');
+  r1git(tmp, 'config', 'commit.gpgsign', 'false');
+  r1git(tmp, 'add', '-A');
+  r1git(tmp, 'commit', '-qm', 'init');
+  fs.writeFileSync(path.join(rdir, 'pending', 'two.md'), R1_2);
+  fs.writeFileSync(path.join(rdir, 'pending', 'three.md'), R1_3);
+  const inflight = fs.mkdtempSync(path.join(os.tmpdir(), 'ezd173-r1-inflight-'));
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts/ledger.mjs'), 'research', 'EZD-002'], {
+    encoding: 'utf8', env: { ...process.env, EZD_ROOT: tmp, EZD_INFLIGHT_DIR: inflight },
+  });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout.trim(), /^LEDGER OK research R-001$/);
+  assert.equal(r1git(tmp, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 research');
+  assert.deepEqual(r1git(tmp, 'show', '--name-only', '--format=', 'HEAD').split('\n').sort(), ['vault/research/INDEX.md', 'vault/research/R-001.md']);
+  assert.ok(fs.existsSync(path.join(rdir, 'pending', 'three.md')));
+  fs.rmSync(tmp, { recursive: true, force: true });
+  fs.rmSync(inflight, { recursive: true, force: true });
+});
+
+test('EZD-173 R2 an unreadable pending report is skipped and kept; the ledger research command commits the adopted files, prints LEDGER FAIL and exits 1', async () => {
+  const { adopt } = await import(pathToFileURL(tool).href);
+  const a = makeTree({ pending: { 'two.md': R1_2, 'bad.md': 'no front matter here' } });
+  const res = adopt(a.rdir, '2026-10-24', { ticket: 'EZD-002' });
+  assert.deepEqual(res.skipped, [{ file: 'bad.md', reason: 'no front matter' }]);
+  assert.deepEqual(res.moved, [{ file: 'two.md', id: 'R-001' }]);
+
+  const { tmp, rdir } = makeTree({});
+  r1git(tmp, 'init', '-q', '-b', 'develop');
+  r1git(tmp, 'config', 'user.name', 'EZ Draft Test');
+  r1git(tmp, 'config', 'user.email', 'test@example.test');
+  r1git(tmp, 'config', 'commit.gpgsign', 'false');
+  r1git(tmp, 'add', '-A');
+  r1git(tmp, 'commit', '-qm', 'init');
+  fs.writeFileSync(path.join(rdir, 'pending', 'two.md'), R1_2);
+  fs.writeFileSync(path.join(rdir, 'pending', 'bad.md'), 'no front matter here');
+  const inflight = fs.mkdtempSync(path.join(os.tmpdir(), 'ezd173-r2-inflight-'));
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts/ledger.mjs'), 'research', 'EZD-002'], {
+    encoding: 'utf8', env: { ...process.env, EZD_ROOT: tmp, EZD_INFLIGHT_DIR: inflight },
+  });
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.equal(r.stdout.trim(), 'LEDGER FAIL: research R-001; skipped pending/bad.md: no front matter');
+  assert.equal(r1git(tmp, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 research');
+  assert.deepEqual(r1git(tmp, 'show', '--name-only', '--format=', 'HEAD').split('\n').sort(), ['vault/research/INDEX.md', 'vault/research/R-001.md']);
+  assert.ok(fs.existsSync(path.join(rdir, 'pending', 'bad.md')));
+  fs.rmSync(tmp, { recursive: true, force: true });
+  fs.rmSync(inflight, { recursive: true, force: true });
 });

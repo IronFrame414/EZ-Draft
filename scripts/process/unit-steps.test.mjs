@@ -34,9 +34,10 @@ function fixture({ status = 'ready', depStatus = 'done', gateExit = 0 } = {}) {
   git(dir, 'commit', '-qm', 'init');
   return dir;
 }
+// EZD-173: an empty in-flight folder per call, so no live launcher record makes a test unit think another unit is running.
 const run = (dir, ...a) => spawnSync(process.execPath, [SCRIPT, ...a], {
   encoding: 'utf8',
-  env: { ...process.env, EZD_ROOT: dir, EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1' },
+  env: { ...process.env, EZD_ROOT: dir, EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-inflight-')), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1' },
 });
 const row = (dir, id) => readFileSync(path.join(dir, 'vault/tickets/STATUS.md'), 'utf8').split('\n').find((l) => l.startsWith(`| ${id} `));
 const commitIn = (dir, file, text, msg) => { writeFileSync(path.join(dir, file), text); git(dir, 'add', '-A'); git(dir, 'commit', '-qm', msg); };
@@ -85,16 +86,16 @@ test('worktree creates t/<ID>, sets in-progress, and reports resume state on a s
 test('merge squashes, runs the develop gate, cleans up and marks done with hash and test count', () => {
   const dir = fixture();
   run(dir, 'worktree', 'EZD-002');
-  git(dir, 'commit', '-qam', 'docs(vault): EZD-002 in-progress');
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
   commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
   const r = run(dir, 'merge', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /MERGE OK/);
-  assert.match(git(dir, 'log', '-1', '--format=%s'), /^feat\(EZD-002\): Thing two$/);
+  assert.match(git(dir, 'log', '-1', '--skip=1', '--format=%s'), /^feat\(EZD-002\): Thing two$/);
+  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 status');
   assert.ok(!existsSync(wt));
   assert.equal(git(dir, 'branch', '--list', 't/EZD-002'), '');
-  const hash = git(dir, 'rev-parse', '--short', 'HEAD');
+  const hash = git(dir, 'rev-parse', '--short', 'HEAD~1');
   assert.match(row(dir, 'EZD-002'), new RegExp(`\\| done \\| medium \\| EZD-001 \\| ${hash} \\| 42 \\|`));
   rmSync(dir, { recursive: true, force: true });
 });
@@ -104,7 +105,6 @@ test('merge squashes, runs the develop gate, cleans up and marks done with hash 
 function interrupted(gateExit = 0) {
   const dir = fixture({ gateExit });
   run(dir, 'worktree', 'EZD-002');
-  git(dir, 'commit', '-qam', 'docs(vault): EZD-002 in-progress');
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
   commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
   git(dir, 'merge', '--squash', 't/EZD-002');
@@ -129,7 +129,7 @@ test('merge resumes an interrupted merge without a second squash and marks done 
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /MERGE RESUME EZD-002/);
   assert.match(r.stdout, /MERGE OK/);
-  assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), before);
+  assert.equal(Number(git(dir, 'rev-list', '--count', 'HEAD')), Number(before) + 1);
   assert.equal(git(dir, 'log', '-F', '--grep=feat(EZD-002): ', '--format=%h').split('\n').length, 1);
   assert.ok(!existsSync(wt));
   assert.match(row(dir, 'EZD-002'), new RegExp(`\\| done \\| medium \\| EZD-001 \\| ${feat} \\| 42 \\|`));
@@ -150,7 +150,6 @@ test('a resumed merge on a red develop gate reverts the feat commit and keeps th
 test('merge on a red develop gate restores develop and keeps the worktree', () => {
   const dir = fixture({ gateExit: 1 });
   run(dir, 'worktree', 'EZD-002');
-  git(dir, 'commit', '-qam', 'docs(vault): EZD-002 in-progress');
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
   commitIn(wt, 'feature.mjs', 'bad\n', 'wip(EZD-002): feature');
   const before = git(dir, 'rev-parse', 'HEAD');
