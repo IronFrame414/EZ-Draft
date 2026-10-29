@@ -2,7 +2,7 @@
 // D1-D6, D11). Everything runs under temporary roots with copies of the hook, the grants tool and a stub ledger tool.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync, readFileSync, copyFileSync, existsSync, rmSync, cpSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, copyFileSync, existsSync, rmSync, cpSync, chmodSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -240,4 +240,52 @@ test('EZD-250 T32 grant check unreadable: an unreadable grant check is logged on
   assert.equal(r.log.split('\n').filter((l) => l.includes('grant check output unreadable')).length, 1, why(r));
   assert.equal(existsSync(root.at(PATCH_REL)), true, `patch file removed\n${why(r)}`);
   assert.deepEqual(r.notified, [], why(r));
+});
+
+test('EZD-258 T1 grant check spawn fails: a hook that cannot answer denies every plan path (AC-EZD-258-1)', async () => {
+  const { grantNeeds } = await loadGrants();
+  const want = ['app/src/a.ts', 'scripts/launcher/a.test.mjs', 'scripts/run.mjs'];
+  const dir = hookRoot();
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-990.md'), planText('EZD-990', [q('app/src/a.ts'), q('scripts/launcher/a.test.mjs'), q('scripts/run.mjs')]));
+  const hook = path.join(dir, '.claude/hooks/guard-paths.mjs');
+  // (a) The hook is killed by a signal: no exit status (status null).
+  writeFileSync(hook, "process.kill(process.pid, 'SIGKILL');\n");
+  assert.deepEqual(grantNeeds({ root: dir, id: 'EZD-990' }), want, '(a) hook killed by a signal');
+  // (b) The hook cannot start: the spawn fails with ENOENT, because the child's execPath does not exist.
+  writeFileSync(hook, 'process.exit(3);\n');
+  const script = [
+    `process.execPath = ${JSON.stringify('/nonexistent/ezd258-node')};`,
+    `const { grantNeeds } = await import(${JSON.stringify(grantsUrl)});`,
+    `console.log(JSON.stringify(grantNeeds({ root: ${JSON.stringify(dir)}, id: 'EZD-990' })));`,
+    '',
+  ].join('\n');
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' });
+  assert.equal(child.status, 0, `(b) child\n${child.stdout}${child.stderr}`);
+  assert.deepEqual(JSON.parse(child.stdout), want, '(b) spawn error');
+  // (c) Control: the same hook (exit 3, empty stdout) answers in-process, so every path is allowed and none is a need.
+  assert.deepEqual(grantNeeds({ root: dir, id: 'EZD-990' }), [], '(c) hook exits 3 with no output');
+});
+
+test('EZD-258 T2 patch diff fails: git diff exit above 1 writes nothing and exits 1 (AC-EZD-258-1)', () => {
+  const shims = [
+    ['a', ['echo "fatal: shim error" >&2', 'echo "second line" >&2', 'exit 2'], 'git diff failed: fatal: shim error'],
+    ['b', ['exit 3'], 'git diff failed: exit 3'],
+  ];
+  for (const [name, body, line] of shims) {
+    const { dir, at } = patchRepo('{}\n');
+    const shimDir = mkTmp('ezd258-shim-');
+    writeFileSync(path.join(shimDir, 'git'), ['#!/bin/sh', ...body, ''].join('\n'));
+    chmodSync(path.join(shimDir, 'git'), 0o755);
+    const r = spawnSync(process.execPath, [at('vault/tools/grants.mjs'), 'patch', 'EZD-990', 'scripts/run.mjs'], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: shimDir + path.delimiter + process.env.PATH },
+    });
+    assert.equal(r.status, 1, `(${name}) exit\n${r.stdout}${r.stderr}`);
+    assert.equal(r.stdout, '', `(${name}) stdout`);
+    assert.equal(r.stderr.trim(), line, `(${name}) stderr`);
+    assert.equal(existsSync(at(PATCH_REL)), false, `(${name}) patch file written`);
+    assert.equal(readFileSync(at('.claude/hooks/grants.json'), 'utf8'), '{}\n', `(${name}) grants.json changed`);
+  }
 });

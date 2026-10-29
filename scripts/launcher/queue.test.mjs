@@ -185,3 +185,101 @@ test('EZD-250 T29 queue apply fails: the failure is logged and sent once, and th
   assert.deepEqual(r.notified, ['EZ Draft: queued ledger edits not applied: boom. They stay on their queue/ branches; the launcher retries each pass.'], why(r));
   assert.equal(r.prompts.filter((p) => p === '/build-ticket EZD-901').length, 1, why(r));
 });
+
+test('EZD-258 T4 queue start bad slug: refused with exit 2, nothing created (AC-EZD-258-1)', () => {
+  const q = makeQueueRepo();
+  for (const slug of ['Bad', 'a_b', 'a'.repeat(41), '', 'a b']) {
+    const r = cli(q, 'start', slug);
+    assert.equal(r.status, 2, `slug ${JSON.stringify(slug)}\n${out(r)}`);
+    assert.equal(r.stdout, '', `slug ${JSON.stringify(slug)} stdout`);
+  }
+  const noSlug = cli(q, 'start');
+  assert.equal(noSlug.status, 2, out(noSlug));
+  assert.equal(noSlug.stdout, '', 'no slug stdout');
+  const twoSlugs = cli(q, 'start', 'a', 'b');
+  assert.equal(twoSlugs.status, 2, out(twoSlugs));
+  assert.equal(twoSlugs.stdout, '', 'two slugs stdout');
+  assert.equal(git(q.dir, 'branch', '--list', 'queue/*').stdout.trim(), '', 'a queue branch was created');
+  assert.equal(existsSync(q.at('.claude/worktrees')), false, 'a worktree folder was created');
+  // Control: the longest valid slug (40 characters) is accepted.
+  const ok = cli(q, 'start', 'a'.repeat(40));
+  assert.equal(ok.status, 0, out(ok));
+  assert.match(ok.stdout, /^QUEUE WORKTREE \.claude\/worktrees\/queue-\d{8}T\d{6}-a{40}\n$/);
+});
+
+test('EZD-258 T5 queue submit no worktree: refused, nothing committed (AC-EZD-258-1)', () => {
+  const q = makeQueueRepo();
+  const before = head(q);
+  // (a) a name with no queue worktree; (b) a name that resolves to the repository's own vault/ folder.
+  for (const name of ['20261029T000000-none', '../../vault']) {
+    const r = cli(q, 'submit', name, '-m', 'x');
+    assert.equal(r.status, 1, `${name}\n${out(r)}`);
+    assert.equal(r.stdout, '', `${name} stdout`);
+    assert.equal(r.stderr.trim(), `QUEUE REFUSED ${name}: no queue worktree`, `${name} stderr`);
+    assert.equal(head(q), before, `${name}: develop moved`);
+    assert.equal(git(q.dir, 'branch', '--list', 'queue/*').stdout.trim(), '', `${name}: a queue branch exists`);
+  }
+});
+
+test('EZD-258 T6 queue submit no changes: refused, branch gets no commit (AC-EZD-258-1)', () => {
+  const q = makeQueueRepo();
+  const { name } = start(q, 'empty');
+  const r = cli(q, 'submit', name, '-m', 'x');
+  assert.equal(r.status, 1, out(r));
+  assert.equal(r.stdout, '', 'stdout');
+  assert.equal(r.stderr.trim(), `QUEUE REFUSED ${name}: no changes`, 'stderr');
+  assert.equal(branchTip(q, `queue/${name}`), head(q), 'the queue branch got a commit');
+});
+
+test('EZD-258 T7 queue submit check fails: refused with the check output, branch gets no commit (AC-EZD-258-1)', () => {
+  const q = makeQueueRepo();
+  const { name, wt } = start(q, 'badcheck');
+  // The stub check fails while STATUS.md holds BAD (stub-config.json in makeQueueRepo).
+  appendFileSync(path.join(wt, 'vault/tickets/STATUS.md'), 'BAD\n');
+  const r = cli(q, 'submit', name, '-m', 'x');
+  assert.equal(r.status, 1, out(r));
+  assert.equal(r.stdout, '', 'stdout');
+  assert.equal(r.stderr.trim(), `QUEUE REFUSED ${name}: ledger check failed\nstub check failed`, 'stderr');
+  assert.equal(branchTip(q, `queue/${name}`), head(q), 'the queue branch got a commit');
+});
+
+test('EZD-258 T8 queue apply touches: a branch changing a non-ledger file is rejected to the next free queue-rejected name (AC-EZD-258-1)', async () => {
+  const q = makeQueueRepo();
+  const wt = q.at('.claude/worktrees/w');
+  assert.equal(git(q.dir, 'worktree', 'add', '-q', '-b', 'queue/20261029T000001-touch', wt, 'develop').status, 0);
+  mkdirSync(path.join(wt, 'scripts'), { recursive: true });
+  writeFileSync(path.join(wt, 'scripts/x.mjs'), 'export {};\n');
+  appendFileSync(path.join(wt, 'vault/tickets/STATUS.md'), 'ok\n');
+  assert.equal(git(wt, 'add', '-A').status, 0);
+  assert.equal(git(wt, 'commit', '-q', '-m', 'touch').status, 0);
+  assert.equal(git(q.dir, 'worktree', 'remove', '--force', wt).status, 0);
+  const tip = branchTip(q, 'queue/20261029T000001-touch');
+  // The name queue-rejected/<name> is taken, so the rejected branch gets the suffix -2.
+  assert.equal(git(q.dir, 'branch', 'queue-rejected/20261029T000001-touch', 'develop').status, 0);
+  const before = head(q);
+  const r = await apply(q);
+  assert.deepEqual(r, { applied: [], rejected: [{ name: '20261029T000001-touch', reason: 'touches scripts/x.mjs' }], deferred: null });
+  assert.equal(head(q), before, 'develop moved');
+  assert.equal(branchTip(q, 'queue/20261029T000001-touch'), '', 'the queue branch is still there');
+  assert.equal(branchTip(q, 'queue-rejected/20261029T000001-touch-2'), tip, 'the rejected branch is not the queue branch');
+  assert.equal(branchTip(q, 'queue-rejected/20261029T000001-touch'), before, 'the taken rejected branch was moved');
+});
+
+test('EZD-258 T9 queue apply live worktree: a branch still checked out is skipped until its worktree is removed (AC-EZD-258-1)', async () => {
+  const q = makeQueueRepo();
+  const wt = q.at('.claude/worktrees/live');
+  assert.equal(git(q.dir, 'worktree', 'add', '-q', '-b', 'queue/20261029T000002-live', wt, 'develop').status, 0);
+  appendFileSync(path.join(wt, 'vault/tickets/STATUS.md'), 'live\n');
+  assert.equal(git(wt, 'commit', '-q', '-am', 'live').status, 0);
+  const before = head(q);
+  const tip = branchTip(q, 'queue/20261029T000002-live');
+  const first = await apply(q);
+  assert.deepEqual(first, { applied: [], rejected: [], deferred: null }, 'while the worktree is live');
+  assert.equal(head(q), before, 'develop moved while the worktree is live');
+  assert.equal(branchTip(q, 'queue/20261029T000002-live'), tip, 'the live branch moved');
+  assert.equal(git(q.dir, 'worktree', 'remove', wt).status, 0);
+  const second = await apply(q);
+  assert.deepEqual(second.applied, ['20261029T000002-live'], 'after the worktree is removed');
+  assert.deepEqual(second.rejected, [], 'after the worktree is removed');
+  assert.equal(git(q.dir, 'log', '-1', '--format=%s').stdout.trim(), 'live', 'develop does not have the queued commit');
+});

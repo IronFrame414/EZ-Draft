@@ -192,12 +192,14 @@ export const readJson = (f) => {
 };
 
 // One continuous launcher run (no --once unless args say so), stdout and stderr appended to logs/launcher.log as launchd does.
-export function runLauncher(root, { args = [], timeout = 25000 } = {}) {
+// env: extra child variables, applied last.
+export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = {} } = {}) {
   const fd = openSync(root.at('logs/launcher.log'), 'a');
   const env = {
     ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_') && k !== 'EZD_LAUNCHER_RESTARTED')),
     GIT_CEILING_DIRECTORIES: path.dirname(root.tmp),
     PATH: `${root.at('bin')}${path.delimiter}${process.env.PATH ?? ''}`,
+    ...extraEnv,
   };
   const t0 = Date.now();
   return new Promise((resolve) => {

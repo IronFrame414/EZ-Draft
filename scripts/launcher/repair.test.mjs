@@ -2,7 +2,9 @@
 // The launcher runs only as a copy under a temporary root with a stub ledger tool, a fake claude and a stub notify command.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
 import { makeLauncherRoot, runLauncher, readJson, why } from './test-utils/harness.mjs';
+import { fingerprint } from '../launcher-idle.mjs';
 
 const CHECK_FAILED = 'none: ledger check failed (1); run --check';
 const BUDGET_HOLD = 'none: budget hold (test)';
@@ -92,4 +94,41 @@ test('EZD-250 T30 failed state holds: the same wait after a failed repair keeps 
   assert.equal(copies[1].at, copies[0].at, why(r));
   assert.equal(copies[2].at, copies[0].at, why(r));
   assert.equal(r.prompts.filter((p) => p.startsWith('/repair')).length, 1, why(r));
+});
+
+test('EZD-258 T10 repair cap: after 3 repair units in a row the launcher waits and notifies instead of a 4th (AC-EZD-258-1)', async () => {
+  const root = makeLauncherRoot({
+    stub: {
+      next: [
+        { text: 'none: test wait a', until: 'r1' },
+        { text: 'none: test wait b', until: 'r2' },
+        { text: 'none: test wait c', until: 'r3' },
+        { text: 'none: test wait d', times: 3 },
+        { text: BUDGET_HOLD },
+      ],
+    },
+    rules: [{ prompt: '/repair', script: 'next-marker.cjs', result: 'REPAIRED: test' }],
+  });
+  // Each repair writes the next marker r1, r2, r3, which ends the wait that was answered before it.
+  writeFileSync(
+    root.at('next-marker.cjs'),
+    [
+      "const fs = require('fs');",
+      "const path = require('path');",
+      "const dir = path.join(process.env.FAKE_ROOT, 'markers');",
+      "const name = ['r1', 'r2', 'r3'].find((n) => !fs.existsSync(path.join(dir, n)));",
+      "if (name) fs.writeFileSync(path.join(dir, name), 'x');",
+      '',
+    ].join('\n'),
+  );
+  const r = await runLauncher(root);
+  assert.equal(r.status, 0, why(r));
+  assert.deepEqual(r.prompts, ['/repair waiting', '/repair waiting', '/repair waiting'], why(r));
+  assert.deepEqual(r.notified, ['EZ Draft: launcher waiting: test wait d'], why(r));
+  const waits = r.log.split('\n').filter((l) => l.includes('nothing to run: test wait d; re-checking every 5 minutes'));
+  assert.equal(waits.length, 1, why(r));
+  // Precondition: the wait d answer was given 3 times, so the cap pass was tested more than once.
+  const counts = readJson(root.at('counts.json')) ?? {};
+  assert.equal(counts['next-e3'], 3, `stub counts ${JSON.stringify(counts)}\n${why(r)}`);
+  assert.equal(r.repairState?.fp, fingerprint('none: test wait c'), `the last repaired wait\n${why(r)}`);
 });
