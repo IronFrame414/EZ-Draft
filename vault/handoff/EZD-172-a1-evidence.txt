@@ -1,0 +1,39 @@
+EZD-172 round 9 A1 evidence 2026-10-29 (fresh lane-2 worktree, run 3 of the unit; run 2 reused node_modules from a killed run and does not count)
+rest_ezdraft StartedAt unchanged; no *_ezdraft-lane* container after; container list before = after
+== /tmp/a1-l1.out
+=== GATE SUMMARY ===
+scope      full suite
+typecheck  pass
+lint       pass
+test       FAIL
+build      pass
+test:e2e   pass
+perf       pass
+lane sweep pass
+lane stop  pass
+security   13 flagged path(s): security review required
+log        /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172/gate.log
+failures   /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172/gate-failures.log
+GATE FAIL: test
+48:=== lane sweep: stale stacks of the other lanes ===
+66:     × EZD-181 T3 outside a request scope the report still starts and the answer is unchanged 8010ms
+67: FAIL  src/app/api/health/route-timeout-report.test.ts > EZD-181 health timeout reports the error > EZD-181 T3 outside a request scope the report still starts and the answer is unchanged
+69:first error: FAIL  src/app/api/health/route-timeout-report.test.ts > EZD-181 health timeout reports the error > EZD-181 T3 outside a request scope the report still starts and the answer is unchanged
+== /tmp/a1-l2.out
+=== GATE SUMMARY ===
+scope      full suite
+typecheck  pass
+lint       pass
+test       pass
+build      pass
+test:e2e   pass
+perf       pass
+lane sweep pass
+lane stop  pass
+security   13 flagged path(s): security review required
+log        /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172-lane2/gate.log
+failures   /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172-lane2/gate-failures.log
+GATE PASS
+48:=== install: pnpm install --frozen-lockfile ===
+53:=== lane sweep: stale stacks of the other lanes ===
+lane-0 gate after A1: GATE PASS
