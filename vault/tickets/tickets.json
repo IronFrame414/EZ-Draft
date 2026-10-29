@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 456,
+ "count": 557,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -16299,9 +16299,9 @@
   {
    "id": "EZD-265",
    "phase": 1,
-   "title": "Fix: the launcher sets aside any stuck ticket unit and goes on; a ready ticket with no plan fails the ledger check",
-   "depends_raw": "EZD-254, EZD-255",
-   "spec_ref": "Josh 2026-10-29 (chat)",
+   "title": "Fix: one ticket never stops the launcher; the watchdog restarts it after any stop not on the KEEP list; every wait names its real reason",
+   "depends_raw": "EZD-254, EZD-255, EZD-268",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
@@ -16312,15 +16312,19 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-254",
-    "EZD-255"
+    "EZD-255",
+    "EZD-268"
    ],
    "build_position": 537,
    "acs": [
     "AC-EZD-265-1",
     "AC-EZD-265-2",
-    "AC-EZD-265-3"
+    "AC-EZD-265-3",
+    "AC-EZD-265-4",
+    "AC-EZD-265-5"
    ],
-   "acs_source": "done-when"
+   "acs_source": "done-when",
+   "priority": 1
   },
   {
    "id": "EZD-266",
@@ -16347,6 +16351,191 @@
     "AC-EZD-266-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-267",
+   "phase": 1,
+   "title": "Fix: the launcher applies the guard grant for the files an approved plan names",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 539,
+   "acs": [
+    "AC-EZD-267-1",
+    "AC-EZD-267-2",
+    "AC-EZD-267-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-268",
+   "phase": 1,
+   "title": "Fix: a failed unit or role goes up the model ladder before a ticket is set aside or the launcher waits",
+   "depends_raw": "EZD-267",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-267"
+   ],
+   "build_position": 540,
+   "acs": [
+    "AC-EZD-268-1",
+    "AC-EZD-268-2",
+    "AC-EZD-268-3",
+    "AC-EZD-268-4",
+    "AC-EZD-268-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-269",
+   "phase": 1,
+   "title": "Fix: a wait on another ticket is a dependency, and the ticket resumes by itself",
+   "depends_raw": "EZD-265",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-265"
+   ],
+   "build_position": 541,
+   "acs": [
+    "AC-EZD-269-1",
+    "AC-EZD-269-2",
+    "AC-EZD-269-3",
+    "AC-EZD-269-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-270",
+   "phase": 1,
+   "title": "Fix: the chain of command answers every question the system can answer; only Level 4 questions wait for Josh",
+   "depends_raw": "EZD-269",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-269"
+   ],
+   "build_position": 542,
+   "acs": [
+    "AC-EZD-270-1",
+    "AC-EZD-270-2",
+    "AC-EZD-270-3",
+    "AC-EZD-270-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-271",
+   "phase": 1,
+   "title": "Fix: only a weekly usage limit holds the launcher; a five-hour limit waits for its reset",
+   "depends_raw": "EZD-270",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-270"
+   ],
+   "build_position": 543,
+   "acs": [
+    "AC-EZD-271-1",
+    "AC-EZD-271-2",
+    "AC-EZD-271-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-272",
+   "phase": 1,
+   "title": "Fix: every unit has a defined step for a classifier refusal or a protected path",
+   "depends_raw": "EZD-271",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-271"
+   ],
+   "build_position": 544,
+   "acs": [
+    "AC-EZD-272-1",
+    "AC-EZD-272-2",
+    "AC-EZD-272-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-273",
+   "phase": 1,
+   "title": "Fix: the gate fails when the launcher or ledger gains a stop path that is not on the KEEP list",
+   "depends_raw": "EZD-265, EZD-267, EZD-268, EZD-269, EZD-270, EZD-271, EZD-272",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-265",
+    "EZD-267",
+    "EZD-268",
+    "EZD-269",
+    "EZD-270",
+    "EZD-271",
+    "EZD-272"
+   ],
+   "build_position": 545,
+   "acs": [
+    "AC-EZD-273-1",
+    "AC-EZD-273-2",
+    "AC-EZD-273-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"
