@@ -244,3 +244,10 @@ Mistake: a plan for a command guard listed example patterns (regex entries for k
 Cause: the plan named forms to deny instead of the threat class and a fail-closed rule, and no not-denied control set bounded false denials.
 Rule: a plan for a guard names the threat class, states the fail-closed rule (refuse what cannot be resolved statically) and the accepted cost up front, lists the shells and wrappers in scope, and says whether the guard is the real control or a best-effort accident guard with a git-level control behind it.
 Check: the security-reviewer's first probes find nothing outside the plan's stated limits list.
+
+## L-030  areas: tooling, tests  seen: 1  status: candidate
+Tickets EZD-248, EZD-251, 2026-10-29
+Mistake: a comment or rule wording in a plan or test file described code behavior that the code does not have (rule (r) m=data, "wrong-password tests write error_alert rows"); the reviewer found it after the build.
+Cause: the sentence was written from memory of the code, not from the cited lines.
+Rule: when a plan has the builder or test-author write a comment or rule text about code behavior, cite the file and line it restates and name the exact branch (for example "only the Auth-outage branch, actions.ts line 141").
+Check: the reviewer finds no comment or rule text that differs from the code it cites.
