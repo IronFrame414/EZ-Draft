@@ -290,6 +290,12 @@
   flex: 1;
 }
 
+/* Offline (S15a States; EZD-242): the dialog Save looks disabled, as CompanyForm.module.css .saveButton:disabled. */
+.saveButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* Offline (S15a States): Add customer and the row edit buttons look disabled, as the company form's
    Upload button (CompanyForm.module.css .plainButton:disabled). */
 .head > button:disabled,

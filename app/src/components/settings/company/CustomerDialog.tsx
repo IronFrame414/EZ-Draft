@@ -15,6 +15,7 @@ import { useOnline } from '../../../lib/network';
 import type { MessageKey } from '../../../server/messages/catalog';
 import { StateButton } from '../../states/StateButton';
 import styles from './Customers.module.css';
+import offline from './offline-input.module.css';
 
 export type CustomerDialogProps = {
   customer: CustomerRow | null;
@@ -133,12 +134,13 @@ export function CustomerDialog({ customer, onClose, onDone }: CustomerDialogProp
                 return (
                   <label key={f.id} className={styles.field}>
                     {t(f.label)}
+                    {/* EZD-242 (S15a States "offline read-only"; Q-0360 (c)): offline fields are read-only and look it. */}
                     <input
                       data-testid={`customer-field-${f.id}`}
-                      className={styles.input}
+                      className={online ? styles.input : `${styles.input} ${offline.offline}`}
                       type={f.type}
                       value={draft[f.id]}
-                      readOnly={archived}
+                      readOnly={archived || !online}
                       onChange={(e) => {
                         const value = e.target.value;
                         setDraft((d) => ({ ...d, [f.id]: value }));
@@ -191,6 +193,7 @@ export function CustomerDialog({ customer, onClose, onDone }: CustomerDialogProp
               <StateButton
                 data-testid="customer-save"
                 variant="primary"
+                className={styles.saveButton}
                 disabled={disabled}
                 onClick={onSave}
               >

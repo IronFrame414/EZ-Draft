@@ -28,6 +28,7 @@ import { StateButton } from '../../states/StateButton';
 import { useSettingsStatus, type SettingsStatusEntry } from '../SettingsShell';
 import { GuardedLink, useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
 import styles from './CompanyForm.module.css';
+import offline from './offline-input.module.css';
 import { CustomersPanel } from './CustomersPanel';
 
 type Fields = CompanyDraft['fields'];
@@ -286,6 +287,8 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
 
   const buttonsOff = !dirty || saving || !online || working;
   const readOnly = !online;
+  // EZD-242 (Q-0360 (c)): offline inputs show the sunken, muted look.
+  const inputClass = readOnly ? `${styles.input} ${offline.offline}` : styles.input;
   const set = (key: keyof Fields) => (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFields((f) => ({ ...f, [key]: value }));
@@ -326,7 +329,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
               <input
                 id={`${ids}-name`}
                 data-testid="company-name"
-                className={styles.input}
+                className={inputClass}
                 aria-required="true"
                 value={fields.name}
                 readOnly={readOnly}
@@ -409,7 +412,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
               <input
                 id={`${ids}-license`}
                 data-testid="company-license"
-                className={`${styles.input} ${styles.mono}`}
+                className={`${inputClass} ${styles.mono}`}
                 value={fields.licenseNo}
                 readOnly={readOnly}
                 onChange={set('licenseNo')}
@@ -432,7 +435,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
                 <input
                   id={`${ids}-phone`}
                   data-testid="company-phone"
-                  className={`${styles.input} ${styles.mono}`}
+                  className={`${inputClass} ${styles.mono}`}
                   value={fields.phone}
                   readOnly={readOnly}
                   onChange={set('phone')}
@@ -443,7 +446,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
                 <input
                   id={`${ids}-email`}
                   data-testid="company-email"
-                  className={styles.input}
+                  className={inputClass}
                   value={fields.email}
                   readOnly={readOnly}
                   onChange={set('email')}
@@ -455,7 +458,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
                 <input
                   id={`${ids}-website`}
                   data-testid="company-website"
-                  className={styles.input}
+                  className={inputClass}
                   value={fields.website}
                   readOnly={readOnly}
                   onChange={set('website')}
@@ -466,7 +469,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
                 <input
                   id={`${ids}-address`}
                   data-testid="company-address"
-                  className={styles.input}
+                  className={inputClass}
                   value={fields.address}
                   readOnly={readOnly}
                   onChange={set('address')}

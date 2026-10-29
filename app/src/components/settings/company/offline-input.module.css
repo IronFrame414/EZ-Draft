@@ -1,0 +1,6 @@
+/* EZD-242 (Q-0360 (c)): the offline look of the Company settings inputs. Colors from tokens only (check C10). */
+
+.offline:read-only {
+  background-color: var(--ez-surface-sunken);
+  color: var(--ez-slate-300);
+}
