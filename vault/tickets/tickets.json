@@ -13578,6 +13578,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000c"
@@ -14000,6 +14001,7 @@
     "Local database",
     "Machine checks"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-004a",
@@ -14055,6 +14057,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-172",
@@ -14309,6 +14312,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-174",
@@ -14451,6 +14455,7 @@
     "Root config files",
     "Machine checks"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-001",
@@ -15877,6 +15882,7 @@
    "architecture": [
     "Machine checks"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000"
@@ -15903,6 +15909,7 @@
    "architecture": [
     "Machine checks"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-000",
@@ -16005,6 +16012,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-244",
@@ -16056,6 +16064,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-250"
@@ -16082,6 +16091,7 @@
     "Machine checks",
     "Local database"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-172"
@@ -16153,6 +16163,7 @@
    "architecture": [
     "Release safety (EZD-023a)"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-153"
@@ -16176,6 +16187,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-250"
@@ -16199,6 +16211,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-250"
@@ -16222,6 +16235,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-173"
@@ -16245,6 +16259,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-248"
@@ -16270,6 +16285,7 @@
    "architecture": [
     "Environment variables"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-247"
@@ -16292,6 +16308,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-254",
@@ -16320,6 +16337,7 @@
     "Tests",
     "Test scope (Q-0006)"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-173"

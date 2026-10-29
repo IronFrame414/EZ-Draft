@@ -113,8 +113,8 @@ test('EZD-250 T19 patch: one patch that adds the ticket and drops done tickets, 
   assert.equal(existsSync(at(PATCH_REL)), false, 'patch file still present after call 3');
 });
 
-// The T20 copy: a vault copy with the real hook, grants.json `{}`, ready EZD-9992 with a plan needing scripts/run.mjs and
-// ready EZD-9993 with no plan.
+// The T20 copy: a vault copy with the real hook, grants.json `{}`, ready EZD-9992 with a product plan (app/src/a.ts) that needs
+// scripts/run.mjs and ready EZD-9993 with no plan.
 function t20Copy() {
   const l = makeLedgerCopy({ synthetic: [['EZD-9992', 'ready'], ['EZD-9993', 'ready']] });
   for (const f of ['guard-paths.mjs', 'lib.mjs']) {
@@ -122,7 +122,7 @@ function t20Copy() {
     copyFileSync(path.join(repo, '.claude/hooks', f), path.join(l.dir, '.claude/hooks', f));
   }
   setGrants(l.dir, '{}\n');
-  writeFileSync(l.file('plans/EZD-9992.md'), planText('EZD-9992', [q('scripts/run.mjs')]));
+  writeFileSync(l.file('plans/EZD-9992.md'), planText('EZD-9992', [q('app/src/a.ts'), q('scripts/run.mjs')]));
   return l;
 }
 

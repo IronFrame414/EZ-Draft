@@ -40,6 +40,7 @@ Phase N
 - Stage 1 doesn't start until Josh has signed off the phase's spec. Stage 3 doesn't start until every question for the phase is answered, unless Josh says a ticket may start early.
 - Josh touches each phase three times: spec sign-off (after Stage 0), questions (after Stage 2), and testing (at the gate).
 - Josh does the testing, at the gate. Agents run the automated tests on every ticket; Josh does not test tickets one by one.
+- **Tooling track** (Josh 2026-10-28, EZD-253): a tooling ticket is one whose plan's Build steps change no file under `app/`, `packages/`, `worker/` or `supabase/`; `--set-architecture` marks it `"track": "tooling"` in `tickets.json` and `--check` refuses a mark the plan does not support. Tooling tickets build before product tickets, but the gate, the phase PR, wrap and the next phase do not wait for them; the PR lists the open ones and their merges reach main with the next phase PR. A signed-off next phase is planned, plan-reviewed and questioned while the current phase builds; its product builds start once the current phase is wrapped.
 
 ### 2a. Establishing phases
 
@@ -50,7 +51,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 3. **Each phase entry states:** a one-sentence goal; the user-visible result; the spec files and AC IDs it covers; its tickets; the phases it depends on; what is out of scope until later; risks and spikes; and Josh's test script (numbered steps, each with the expected result), which becomes the punch list at the gate.
 4. **Every AC belongs to exactly one phase.** `TRACE.md` flags any AC with no phase or with two.
 5. **Order by dependency, then by value.** A phase may use only what earlier phases built. Foundations (auth, data model) are built only as far as the current slice needs them.
-6. **Clean breaking point.** A phase closes only when all of these hold: the gate is green and every ticket is `done` or explicitly deferred by Josh; nothing half-built is reachable by a user (unfinished features are hidden or absent); no open questions remain for the phase; nothing from the next phase is needed to make this one work; the app runs from `develop` as it would in production; Josh's test script passes; lessons, progress and the handoff are current.
+6. **Clean breaking point.** A phase closes only when all of these hold: the gate is green and every product ticket is `done` or explicitly deferred by Josh (open tooling tickets carry over, section 2); nothing half-built is reachable by a user (unfinished features are hidden or absent); no open questions remain for the phase; nothing from the next phase is needed to make this one work; the app runs from `develop` as it would in production; Josh's test script passes; lessons, progress and the handoff are current.
 7. **A phase that can't meet rule 6 is split before building,** not after.
 8. **Scope changes.** Only Josh changes an approved `PHASES.md`. New requests go to `vault/tickets/BACKLOG.md`, then into a later phase.
 9. **Cost check.** If a phase's actual cost exceeds a third of the weekly ceiling, the wrap step recommends splitting the next one.
@@ -272,7 +273,7 @@ Each ticket is built in its own fresh orchestrator session (section 10). The orc
 
 Pushing is free: CI doesn't run on pushes and hosting skips `develop` (section 12), and it protects the work.
 
-Stage 3 ends when every ticket in the phase is `done` or `blocked`.
+Stage 3 ends when every product ticket in the phase is `done` or `blocked` (tooling tickets build on, section 2).
 
 ---
 
@@ -282,7 +283,7 @@ Stage 3 ends when every ticket in the phase is `done` or `blocked`.
 1. `node vault/tools/next_ticket.mjs --check` passes.
 2. The full gate passes on `develop`.
 3. security-reviewer reviews the whole phase diff, if that agent is in use.
-4. phase-auditor reviews the whole phase against the spec and `TRACE.md`: every AC in the phase must map to a merged ticket with passing tests. Findings are handled before the PR opens:
+4. phase-auditor reviews the whole phase against the spec and `TRACE.md`: every AC of a product ticket in the phase, and of each tooling ticket the PR carries, must map to a merged ticket with passing tests. Findings are handled before the PR opens:
    - a defect or a missed requirement becomes a fix ticket (`T-0xx-fix`) in the same phase, planned, tested, built and reviewed like any ticket;
    - a product judgment goes in the PR for Josh.
 5. The orchestrator pushes `develop`, opens a PR `develop` → `main` titled `Phase N: <name>`, then pushes one empty commit (`chore: preview`) so hosting builds the preview for the PR. The PR body contains:
@@ -299,7 +300,7 @@ On the first phase of a project, confirm the preview actually appears on the PR.
 - Consolidate `vault/lessons/` (section 13), and promote any lesson that a script could check into the gate.
 - Write the phase cost report into `vault/cost/phase-NN.md`: spend per ticket, per agent and per model from the budget log; tickets that needed escalation; places Opus ran on low-complexity work or Haiku failed; defects the resumed step-8 reviewer missed that the auditor or Josh caught (section 8 revisit flag); whether the phase cost more than a third of the weekly ceiling (section 2a). Use it to adjust the complexity table, ticket-size numbers and maxTurns.
 - Regenerate `PROGRESS.md`, update the handoff, and end the session.
-- The next phase starts at Stage 0.
+- The next phase starts at Stage 0, unless it is already signed off; then its planning may already have run (section 2, Tooling track).
 
 ---
 

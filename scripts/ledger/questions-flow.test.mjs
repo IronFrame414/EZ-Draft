@@ -65,13 +65,15 @@ before(async () => {
   }
   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
-  // Tickets the reset above opened carry the architecture list their plan names (EZD-244), as the live ledger's open tickets do.
+  // Tickets the reset above opened carry the architecture list their plan names (EZD-244), as the live ledger's open tickets do, and the tooling mark it implies (EZD-253).
   const { planArchitecture } = await import(pathToFileURL(file('tools/outline.mjs')).href);
+  const { planTrack } = await import(pathToFileURL(file('tools/next_ticket.mjs')).href);
   edit('tickets/tickets.json', (s) => {
     const data = JSON.parse(s);
     for (const t of data.tickets) {
-      if (t.architecture !== undefined) continue;
       const plan = file(`plans/${t.id}.md`);
+      if (t.track === undefined && existsSync(plan) && planTrack(readFileSync(plan, 'utf8')) === 'tooling') t.track = 'tooling';
+      if (t.architecture !== undefined) continue;
       t.architecture = (existsSync(plan) ? planArchitecture(readFileSync(plan, 'utf8')).list : null) ?? [];
     }
     return JSON.stringify(data, null, 2);

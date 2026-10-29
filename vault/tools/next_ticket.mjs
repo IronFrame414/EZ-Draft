@@ -16,10 +16,12 @@
 //   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, orchestratorAdvice}
 //                                                    from the PROCESS.md section 4 table (v2.4)
 //   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch, or the medium tickets that may be reviewed with it (v2.4; EZD-246)
+//   node vault/tools/next_ticket.mjs --tooling N -> the tooling tickets of phases 1..N, one tab-separated line each (EZD-253)
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
 // Stage 1 of a phase needs a sign-off row in vault/spec/SIGNOFF.md (PROCESS.md section 5).
+// A ticket marked "track": "tooling" does not hold its phase's gate (EZD-253).
 import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync, renameSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -27,7 +29,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
 import { Q_FILES, questionMax } from './questions-files.mjs';
-import { grantNeeds } from './grants.mjs';
+import { grantNeeds, planPaths } from './grants.mjs';
 import { findingProblems } from './findings.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -366,6 +368,46 @@ function architectureProblems() {
   }
   return out;
 }
+// Tooling track (EZD-253): a ticket whose plan's Build steps change no file under a product dir builds beside the phases.
+// A path is product when it equals a dir or starts with `<dir>/`. One parser for the plan's files: grants.mjs planPaths.
+export const PRODUCT_DIRS = ['app', 'packages', 'worker', 'supabase'];
+const isProductPath = (p) => PRODUCT_DIRS.some((d) => p === d || p.startsWith(`${d}/`));
+export function planTrack(planText) {
+  const paths = planPaths(planText);
+  return paths.length && !paths.some(isProductPath) ? 'tooling' : 'product';
+}
+const isTooling = (t) => t.track === 'tooling';
+function trackProblems() {
+  const out = [];
+  for (const t of data.tickets) {
+    const planPath = path.join(vault, 'plans', `${t.id}.md`);
+    const plan = existsSync(planPath) ? readFileSync(planPath, 'utf8') : null;
+    if ('track' in t && t.track !== 'tooling') { out.push(`${t.id}: track "${String(t.track)}" is not "tooling" (EZD-253)`); continue; }
+    if (isTooling(t)) {
+      const paths = plan === null ? [] : planPaths(plan);
+      const product = paths.find(isProductPath);
+      if (!paths.length) out.push(`${t.id}: tooling mark but its plan lists no Build steps files (EZD-253)`);
+      else if (product) out.push(`${t.id}: tooling mark but the plan changes ${product} (EZD-253)`);
+      continue;
+    }
+    if (OPEN_STATUSES.includes(status(t.id)) && plan !== null && planTrack(plan) === 'tooling')
+      out.push(`${t.id}: plan changes no file under app/, packages/, worker/ or supabase/ but tickets.json has no tooling mark (run --set-architecture ${t.id})`);
+  }
+  return out;
+}
+// D3: the ticket with `track` set from its plan (right after `architecture`, else after `mockups`) or removed.
+function withTrack(t, plan) {
+  const tooling = planTrack(plan) === 'tooling';
+  const out = {};
+  let placed = false;
+  for (const [k, v] of Object.entries(t)) {
+    if (k === 'track') continue;
+    out[k] = v;
+    if (tooling && (k === 'architecture' || (k === 'mockups' && !('architecture' in t)))) { out.track = 'tooling'; placed = true; }
+  }
+  if (tooling && !placed) out.track = 'tooling';
+  return out;
+}
 export function setArchitecture(id) {
   const fail = (message) => ({ ok: false, message });
   const planPath = path.join(vault, 'plans', `${id}.md`);
@@ -374,9 +416,15 @@ export function setArchitecture(id) {
   const d = JSON.parse(readFileSync(file, 'utf8'));
   const t = d.tickets.find((x) => x.id === id);
   if (!t) return fail(`unknown ticket ${id}`);
-  const a = planArchitecture(readFileSync(planPath, 'utf8'));
+  const plan = readFileSync(planPath, 'utf8');
+  const a = planArchitecture(plan);
   if (a.error === 'no Architecture line in section 2') {
-    if (Array.isArray(t.architecture)) return { ok: true, message: `ARCHITECTURE KEPT ${id}: no Architecture line; tickets.json list unchanged` };
+    if (Array.isArray(t.architecture)) {
+      d.tickets = d.tickets.map((x) => (x.id === id ? withTrack(t, plan) : x));
+      const text = JSON.stringify(d, null, 1) + '\n';
+      if (text !== readFileSync(file, 'utf8')) writeAtomic(file, text);
+      return { ok: true, message: `ARCHITECTURE KEPT ${id}: no Architecture line; tickets.json list unchanged` };
+    }
     return fail(`${id}: no Architecture line in section 2 of vault/plans/${id}.md`);
   }
   if (a.error) return fail(`${id}: empty Architecture line in section 2 of vault/plans/${id}.md`);
@@ -393,7 +441,7 @@ export function setArchitecture(id) {
     if (k === 'mockups') { rebuilt.architecture = a.list; placed = true; }
   }
   if (!placed) rebuilt.architecture = a.list;
-  d.tickets = d.tickets.map((x) => (x.id === id ? rebuilt : x));
+  d.tickets = d.tickets.map((x) => (x.id === id ? withTrack(rebuilt, plan) : x));
   writeAtomic(file, JSON.stringify(d, null, 1) + '\n');
   return { ok: true, message: `ARCHITECTURE SET ${id}: ${a.list.length} section(s)` };
 }
@@ -649,6 +697,7 @@ function check() {
   problems.push(...findingProblems(vault));
   problems.push(...readingProblems());
   problems.push(...architectureProblems());
+  problems.push(...trackProblems());
   return problems;
 }
 
@@ -696,30 +745,43 @@ function gateState(p) {
 }
 const wrapped = (p) => existsSync(path.join(vault, 'cost', `phase-${pad2(p)}.md`));
 
-// EZD-250 D6: every ready ticket of the working phase that waits on a guard grant, with the paths it needs.
+// EZD-253 D6: the first phase, ascending, with a product ticket (no tooling mark) not done or blocked; null when none.
+function blockingPhase() {
+  const ps = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  return ps.find((p) => phaseTickets(p).some((t) => !isTooling(t) && !['done', 'blocked'].includes(status(t.id)))) ?? null;
+}
+// EZD-253 D9: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies done,
+// by phase then priority; then, when B is signed off, B's ready product tickets.
+function buildPool(B) {
+  const cap = B ?? Math.max(...data.tickets.map((t) => t.phase));
+  const pool = data.tickets.filter((t) => isTooling(t) && t.phase <= cap && status(t.id) === 'ready' && depsDone(t))
+    .sort((a, b) => a.phase - b.phase || byPriority(a, b));
+  if (B !== null && signedOff(B)) pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
+  return pool;
+}
+
+// EZD-250 D6: every ticket of the build pool (EZD-253 D11) that waits on a guard grant, with the paths it needs.
 function heldForGrants() {
-  const { p } = workingPhase();
-  if (p === null) return [];
-  return candidates(p, true).map((t) => ({ id: t.id, paths: grantNeeds({ root, id: t.id }) })).filter((h) => h.paths.length);
+  return buildPool(blockingPhase()).map((t) => ({ id: t.id, paths: grantNeeds({ root, id: t.id }) })).filter((h) => h.paths.length);
 }
 
 function nextUnit() {
   if (existsSync(path.join(vault, 'handoff/STOP'))) return 'none: vault/handoff/STOP exists';
   const problems = check();
   if (problems.length) return `none: ledger check failed (${problems.length}); run --check`;
-  const hold = existsSync(path.join(vault, 'handoff/BUDGET_HOLD.md'));
   const flying = inFlight();
-  if (flying) return `build ${flying.id}`;
-  if (hold) return 'none: budget hold (vault/handoff/BUDGET_HOLD.md); no ticket in progress';
+  // L-004: under a budget hold only the in-flight build runs.
+  if (existsSync(path.join(vault, 'handoff/BUDGET_HOLD.md'))) return flying ? `build ${flying.id}` : 'none: budget hold (vault/handoff/BUDGET_HOLD.md); no ticket in progress';
   const phase = currentPhase();
   if (phase === null) return 'none: every ticket is done';
-  const { p: working } = workingPhase();
-  // Every finished phase (all done or blocked) up to the working phase goes through gate -> PR merge -> wrap, in phase order, before the working phase runs (EZD-254; PROCESS.md sections 8-9). An earlier phase's blocked ticket does not stop a later finished phase's gate.
-  for (const p of [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b)) {
-    if (working !== null && p > working) break;
-    const ts = phaseTickets(p);
-    if (!ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
+  const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  const B = blockingPhase();
+  // Every finished phase (all product tickets done or blocked; tooling tickets do not count, EZD-253) up to the working phase goes through gate -> PR merge -> wrap, in phase order, before the working phase runs (EZD-254; PROCESS.md sections 8-9). An earlier phase's blocked ticket does not stop a later finished phase's gate.
+  for (const p of phases) {
+    if (B !== null && p >= B) break;
     if (wrapped(p)) continue;
+    // A ticket in review may already have its feat commit on develop (scripts/unit-steps.mjs), so it finishes before a gate.
+    if (flying && status(flying.id) === 'review') return `build ${flying.id}`;
     const g = gateState(p);
     if (g.state === 'not-gated' || g.state === 'gating') return `gate-phase ${p}`;
     if (g.state === 'pr-open') {
@@ -738,44 +800,61 @@ function nextUnit() {
     }
     if (g.state === 'merged') return `wrap ${p}`;
   }
-  const p = working;
-  if (p === null) return `none: only blocked tickets left (from phase ${phase}); see STATUS.md notes`;
-  const ts = phaseTickets(p);
-  if (!signedOff(p)) return `none: phase ${p} spec not signed off (spec-check unit needs Josh)`;
-  const st = (s) => ts.filter((t) => status(t.id) === s);
-  // Stage 1
-  const todo = st('todo').filter(depsDone).sort((a, b) => num(a.id) - num(b.id));
-  const planOrder = ts.filter((t) => status(t.id) === 'todo').sort(byPriority);
-  if (planOrder.length) return `plan ${planOrder[0].id}`;
-  const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(p)}.md`);
-  const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
-  if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile)) return `review-plans ${p}`;
-  // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
-  if (questionsDue(p)) return `questions ${p}`;
-  if (!inStage3 && (st('planned').length || st('questions').length)) {
-    const q = questionsForPhase(p);
-    if (q.escalated) return `none: waiting on Josh (${q.escalated} escalated question${q.escalated === 1 ? '' : 's'} for phase ${p}; vault/questions/phase-${pad2(p)}-for-josh.md)`;
-    return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); see vault/handoff/CURRENT.md`;
+  if (flying) return `build ${flying.id}`;
+
+  // EZD-253 D8: Stage 1-2 of every signed-off phase up to `last` (B's next phase once B is signed off) comes before any
+  // build (Q-0129; Q-0388). A phase whose Stage 1-2 waits on Josh keeps its text as the first fall-through reason.
+  const last = B === null ? phases[phases.length - 1] : !signedOff(B) ? B : (phases.find((q) => q > B) ?? B);
+  let reason = null;
+  for (const q of phases) {
+    if (q > last) break;
+    if (!signedOff(q)) continue;
+    const ts = phaseTickets(q);
+    if (ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
+    const st = (s) => ts.filter((t) => status(t.id) === s);
+    // Stage 1
+    const planOrder = st('todo').sort(byPriority);
+    if (planOrder.length) return `plan ${planOrder[0].id}`;
+    const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(q)}.md`);
+    const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
+    if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile)) return `review-plans ${q}`;
+    // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
+    if (questionsDue(q)) return `questions ${q}`;
+    if (!inStage3 && (st('planned').length || st('questions').length) && reason === null) {
+      const n = questionsForPhase(q);
+      reason = n.escalated
+        ? `none: waiting on Josh (${n.escalated} escalated question${n.escalated === 1 ? '' : 's'} for phase ${q}; vault/questions/phase-${pad2(q)}-for-josh.md)`
+        : `none: the last questions ${q} unit changed nothing (loop guard, Q-0129); see vault/handoff/CURRENT.md`;
+    }
   }
-  // Stage 3; tickets still in `questions` wait on their own answer while ready tickets build
-  if (ticketNumber(ts[0].id) >= CHECKPOINT_FROM || ts.some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM)) {
-    const missing = checkpointMissing();
-    if (missing.length) return `none: architecture checkpoint not met (${missing.join('; ')})`;
-  }
+
+  // EZD-253 D9: Stage 3. Tooling tickets first, then B's product tickets; tickets still in `questions` wait on their own answer.
+  const pool = buildPool(B);
+  const missing = checkpointMissing();
+  if (missing.length && ((pool.length && ticketNumber(pool[0].id) >= CHECKPOINT_FROM) || (B !== null && phaseTickets(B).some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM))))
+    return `none: architecture checkpoint not met (${missing.join('; ')})`;
   // EZD-250 D6: a ready ticket whose plan needs a guard grant is held until Josh applies it; the others build meanwhile.
-  const ready = candidates(p, true);
-  const free = ready.find((t) => grantNeeds({ root, id: t.id }).length === 0);
+  const free = pool.find((t) => grantNeeds({ root, id: t.id }).length === 0);
   if (free) return `build ${free.id}`;
-  if (ready.length) return `none: waiting on Josh (guard grant for ${ready.map((t) => t.id).join(', ')}; see vault/handoff/)`;
-  const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
-  if (waiting.length) {
-    if (questionsGuarded(p)) return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
-    return `none: waiting on Josh (tickets with open questions: ${waiting.join(', ')}); nothing else is ready in phase ${p}`;
+  if (pool.length) return `none: waiting on Josh (guard grant for ${pool.map((t) => t.id).join(', ')}; see vault/handoff/)`;
+  if (reason) return reason;
+  if (B !== null) {
+    if (!signedOff(B)) return `none: phase ${B} spec not signed off (spec-check unit needs Josh)`;
+    const ts = phaseTickets(B);
+    const st = (s) => ts.filter((t) => status(t.id) === s);
+    const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
+    if (waiting.length) {
+      if (questionsGuarded(B)) return `none: the last questions ${B} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
+      return `none: waiting on Josh (tickets with open questions: ${waiting.join(', ')}); nothing else is ready in phase ${B}`;
+    }
+    const blocked = st('blocked').map((t) => t.id);
+    if (blocked.length) return `none: waiting on Josh (blocked: ${blocked.join(', ')}); nothing else is ready in phase ${B}`;
+    return `none: nothing ready in phase ${B}; waiting on dependencies`;
   }
-  const blocked = st('blocked').map((t) => t.id);
-  if (blocked.length) return `none: waiting on Josh (blocked: ${blocked.join(', ')}); nothing else is ready in phase ${p}`;
-  return `none: nothing ready in phase ${p}; waiting on dependencies`;
-  void todo;
+  const open = data.tickets.filter((t) => status(t.id) !== 'done');
+  if (open.every((t) => status(t.id) === 'blocked')) return `none: only blocked tickets left (from phase ${phase}); see STATUS.md notes`;
+  const ids = open.filter((t) => status(t.id) !== 'blocked').sort((a, b) => a.phase - b.phase || num(a.id) - num(b.id)).map((t) => t.id);
+  return `none: no tooling ticket is ready; waiting on dependencies or questions (open: ${ids.join(', ')})`;
 }
 
 function lessons(role, areas) {
@@ -919,6 +998,13 @@ if (isMain) {
   }
   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
   if (args.includes('--grant-needs')) { console.log(JSON.stringify(heldForGrants())); process.exit(0); }
+  if (args.includes('--tooling')) {
+    const n = args[args.indexOf('--tooling') + 1];
+    if (!/^\d+$/.test(n || '')) { console.error('usage: --tooling <phase number>'); process.exit(2); }
+    const list = data.tickets.filter((t) => isTooling(t) && t.phase <= Number(n)).sort((a, b) => a.phase - b.phase || num(a.id) - num(b.id));
+    for (const t of list) console.log(`${t.id}\t${t.phase}\t${status(t.id)}\t${rows.get(t.id)?.commit || '-'}\t${t.title}`);
+    process.exit(0);
+  }
   if (args.includes('--sort-questions')) {
     const r = sortQuestions();
     console.log(`QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
