@@ -22,5 +22,21 @@
   "EZD-255": [
     "scripts/launcher-idle.mjs",
     "scripts/run.mjs"
+  ],
+  "EZD-260": [
+    ".claude/hooks/guard-paths.mjs",
+    ".claude/hooks/guard-reads.mjs",
+    ".claude/hooks/lib.mjs"
+  ],
+  "EZD-261": [
+    "vault/plans/EZD-151.md",
+    "vault/plans/EZD-253.md",
+    "vault/plans/EZD-255.md",
+    "vault/tools/plan_lint.mjs"
+  ],
+  "EZD-262": [
+    "scripts/unit-steps.mjs",
+    "vault/PROCESS.md",
+    "vault/tools/findings.mjs"
   ]
 }
