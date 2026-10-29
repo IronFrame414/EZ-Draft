@@ -1,9 +1,11 @@
-# Handoff · 2026-10-28 · build EZD-248
+# Handoff · 2026-10-28 · build EZD-249 (stopped, nothing built)
 
-- EZD-248: BLOCKED after 3 failed rounds. Worktree kept: .claude/worktrees/EZD-248 (branch t/EZD-248; the patched plan is committed there only).
-- Passed review: ledger row check, .githooks, session-start, run.mjs, skills/docs, 4 extra ledger row repairs. Gate green in all rounds.
-- Failing: guard-bash.mjs hook-bypass parser. Security-reviewer r3 findings: `2>&1`/`&>` split commands; `--` after value-taking option (--into-name); tcsh/csh missing from SHELLS; `>/dev/null $G commit`. Plus minors: plan 5a rule (r) wording, test line 245 `\;`, stale test header comments. All recorded in findings.jsonl (r1-r3).
-- Needs Josh: Q-0421 (options a/b/c; recommended c: reference-transaction hook fix ticket + clear the 7 findings in one small round). Planner proposed fix ticket "every update of develop is ledger-checked (reference-transaction hook)" (cherry-pick/rebase/am bypass pre-commit); not yet added to the ledger.
-- Step 0 grant for EZD-248 stays live while blocked (guard-paths.mjs line 118); remove after merge. EZD-250 regex risk in plan s9.
-- Models: sonnet/medium test-author + builder r1-2, opus builder r3, opus/high reviewers and planner.
-- Earlier open: Q-0420 (EZD-247), Q-0419/EZD-199 blocked, EZD-173 needs Josh's patch.
+- EZD-249: not built. No worktree, no branch, no dispatch. STATUS stays `ready`.
+- Why: plan s9 says 1b and C1-C8 build on EZD-248's .githooks/pre-commit, checkStaged, core.hooksPath and fixture R. EZD-248 is blocked (Q-0421) and .githooks is not on develop. The row listed only EZD-000, so preflight passed.
+- Fix made (ledger repair): EZD-249 now depends on EZD-000, EZD-248 in vault/tickets/phases/phase-01.md and vault/tickets/tickets.json. `next_ticket.mjs --check` LEDGER OK; `--next-unit` now returns EZD-251, not EZD-249.
+- On resume (after EZD-248 merges): run build step 1 first, planner re-validation. EZD-246 moved dispatch.md sections (plan cites stale lines) and EZD-248's final shape may change with Q-0421.
+- Step 0 grant for EZD-249 is live in .claude/hooks/guard-paths.mjs (lines 121, 124); remove after merge.
+- Needs Josh: Q-0421 (EZD-248 options a/b/c; recommended c). Earlier open: Q-0420 (EZD-247), Q-0419/EZD-199 blocked, EZD-173 needs Josh's patch.
+- Models: none dispatched. Advisor consulted once (agreed: do not build; fix the dependency).
+
+Next unit (node vault/tools/next_ticket.mjs --next-unit): build EZD-251
