@@ -1,0 +1,21 @@
+diff --git a/.claude/hooks/grants.json b/.claude/hooks/grants.json
+index 668566f..a32c392 100644
+--- a/.claude/hooks/grants.json
++++ b/.claude/hooks/grants.json
+@@ -16,11 +16,13 @@
+     "vault/handoff/EZD-199-work/guard-reads.mjs",
+     "vault/tickets/STATUS.md"
+   ],
+-  "EZD-254": [
+-    "vault/tools/next_ticket.mjs"
+-  ],
+   "EZD-255": [
+     "scripts/launcher-idle.mjs",
+     "scripts/run.mjs"
++  ],
++  "EZD-262": [
++    "scripts/unit-steps.mjs",
++    "vault/PROCESS.md",
++    "vault/tools/findings.mjs"
+   ]
+ }
