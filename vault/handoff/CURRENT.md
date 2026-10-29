@@ -1,6 +1,6 @@
-# Handoff EZD-266
-- Ended: EZD-266 done (7eb76cb1, tests=1482). K7 now takes expected Q-IDs from all three question files.
-- Models: test-author haiku/high, builder haiku/high, code-reviewer opus/medium (--dispatch).
-- Note: test-author is refused git by a hook; orchestrator committed its file (e96b46ba).
-- Next: resume blocked tickets whose only red was K7: EZD-264 (low), 255, 261, 262, 259 (merge only), 172, 253, 260. Each: unit-steps.mjs worktree <T>, merge develop, gate, review, merge.
+# Handoff EZD-253
+- Ended: EZD-253 done (03546b0b, tests=1502). Tooling-track tickets no longer hold the phase gate.
+- Models: test-author sonnet/medium, builder opus/medium, code-reviewer opus/high, planner opus/high x4 (--dispatch).
+- Deviations accepted: unused todo var dropped (D8); withTrack mark placement (unreachable case).
+- Next: remaining K7-blocked tickets: EZD-264, 255, 261, 262, 259 (merge only), 172, 260.
 - No questions for Josh.
