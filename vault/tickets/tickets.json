@@ -16149,6 +16149,9 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Release safety (EZD-023a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-153"
