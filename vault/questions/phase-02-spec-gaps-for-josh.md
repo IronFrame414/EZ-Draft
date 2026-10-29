@@ -73,3 +73,7 @@ Answer (2026-10-28): "accept recs". Recorded as Q-0410, Q-0411, Q-0412. Agent-se
 ## Round 3: 4 gaps, none for Josh
 
 Settled by the orchestrator as Q-0414: the wizard's customer list and add supersede AC-EZD-113-6 there (Q-0400; the EZD-118 plan changes the route and EZD-113's test); the password-set email joins AC-EZD-108-8 (Q-0096 P5); the offline state joins AC-EZD-117b-5; AC-EZD-110-5 drops the clause EZD-140 tests.
+
+## Round 4: 2 gaps, none for Josh
+
+Settled by the orchestrator as Q-0422: the Projects page is the signed-in home at /, so phase 2 notification links are / (correcting /projects); EZD-108 ships My profile with the Profile tab only and EZD-140 adds the Notifications tab, now depending on EZD-108.

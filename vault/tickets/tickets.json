@@ -15352,7 +15352,7 @@
    "phase": 2,
    "spec_phase": 1,
    "title": "Notification settings per user",
-   "depends_raw": "EZD-110",
+   "depends_raw": "EZD-110, EZD-108",
    "spec_ref": "Q-0220; App shell",
    "spec_files": [
     "spec/sections/02-product-overview.md"
@@ -15367,7 +15367,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-110"
+    "EZD-110",
+    "EZD-108"
    ],
    "build_position": 0,
    "acs": [
