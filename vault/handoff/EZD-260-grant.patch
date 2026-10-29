@@ -1,8 +1,20 @@
 diff --git a/.claude/hooks/grants.json b/.claude/hooks/grants.json
-index 668566f..c88cf60 100644
+index 668566f..5a08240 100644
 --- a/.claude/hooks/grants.json
 +++ b/.claude/hooks/grants.json
-@@ -16,11 +16,13 @@
+@@ -2,11 +2,6 @@
+   "EZD-172": [
+     "scripts/gate.mjs"
+   ],
+-  "EZD-175": [
+-    ".claude/agents/builder.md",
+-    ".claude/skills/build-ticket/SKILL.md",
+-    "scripts/unit-steps.mjs"
+-  ],
+   "EZD-199": [
+     ".claude/hooks/guard-reads.mjs",
+     "vault/PROCESS.md",
+@@ -16,11 +11,13 @@
      "vault/handoff/EZD-199-work/guard-reads.mjs",
      "vault/tickets/STATUS.md"
    ],
