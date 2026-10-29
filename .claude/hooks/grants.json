@@ -1,5 +1,10 @@
 {
   "EZD-172": [
     "scripts/gate.mjs"
+  ],
+  "EZD-175": [
+    ".claude/agents/builder.md",
+    ".claude/skills/build-ticket/SKILL.md",
+    "scripts/unit-steps.mjs"
   ]
 }
