@@ -1,10 +1,12 @@
 diff --git a/.claude/hooks/grants.json b/.claude/hooks/grants.json
-index 0967ef4..86623d7 100644
+index ddcce4c..99d6c03 100644
 --- a/.claude/hooks/grants.json
 +++ b/.claude/hooks/grants.json
-@@ -1 +1,11 @@
--{}
-+{
+@@ -1,5 +1,14 @@
+ {
+   "EZD-172": [
+     "scripts/gate.mjs"
++  ],
 +  "EZD-199": [
 +    ".claude/hooks/guard-reads.mjs",
 +    "vault/PROCESS.md",
@@ -13,5 +15,5 @@ index 0967ef4..86623d7 100644
 +    "vault/handoff/EZD-199-work/apply.mjs",
 +    "vault/handoff/EZD-199-work/guard-reads.mjs",
 +    "vault/tickets/STATUS.md"
-+  ]
-+}
+   ]
+ }
