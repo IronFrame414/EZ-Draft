@@ -1,10 +1,7 @@
-# Handoff · 2026-10-29 · questions 1
+# Handoff · 2026-10-29 · build EZD-259
 
-- Phase and stage: 1, Stage 2 (questions)
-- Why the session ended: unit complete (unattended; both questions need Josh)
-- Completed this session: Q-0427 set to escalated; file for Josh (vault/questions/phase-01-for-josh.md) already current; no QP left in phase 1 plans; no ticket newly ready.
-- In progress: none
-- Blocked: EZD-172 (Q-0426: ledger-lock.test.mjs scrub + K7), EZD-248 (Q-0427: rebase onto develop before its 7-finding round)
-- Questions for Josh: Q-0426, Q-0427 (recommendations in the file)
-- Decisions made: none; rule candidates L-022..L-033 stay candidate (unattended)
-- Next unit: run node vault/tools/next_ticket.mjs --next-unit
+- Status: blocked on LEDGER OK Q-0428 (QP-1)
+- Build done on t/EZD-259, normal gate PASS; reviews not yet run
+- V1 loop: scratch tests ok 5/5; runs 2 and 4 failed on EZD-181 T3 (EZD-251 flake, also in sequential runs)
+- Josh decides which rule closes AC-1: (a) recommended, (b), (c)
+- Next: after the answer, resume EZD-259 at step 8 (a) or after EZD-251 (b/c)
