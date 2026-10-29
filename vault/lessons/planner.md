@@ -274,3 +274,11 @@ Cause: the plan listed the test files that existed when it was written and did n
 Rule: when a plan changes what a shared test helper does, it names the helper's options, callers and comments that become stale, and says that test files added by develop later get the same repair.
 Check: the reviewer greps the helper's old option and old comment text and finds no caller or comment left.
 Plan check: a plan that changes a shared test helper lists each option and comment it removes or rewrites, and a grep command that finds none left.
+
+## L-034  areas: tooling, scripts, testing  seen: 1  status: candidate
+Tickets EZD-246, EZD-254, 2026-10-29
+Mistake: reviewers found added work beyond the plan twice (a sentence in a skill file; a fourth test and extra fixture helpers beyond the D6 shape) because the plan did not say the list was complete.
+Cause: the test table and exact-text blocks gave what to write but never said that nothing else is wanted.
+Rule: a plan's test table gives the exact test count and titles, a fixture's returned shape is listed in full, and each exact-text block ends with "nothing else".
+Check: the reviewer counts the tests, compares the fixture's returned names to the plan and finds no text or helper outside the plan.
+Plan check: section 4 states the test count and the fixture's returned names; section 1 text blocks end with "nothing else".
