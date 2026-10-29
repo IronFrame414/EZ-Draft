@@ -713,9 +713,10 @@ function nextUnit() {
   if (hold) return 'none: budget hold (vault/handoff/BUDGET_HOLD.md); no ticket in progress';
   const phase = currentPhase();
   if (phase === null) return 'none: every ticket is done';
-  // A finished phase (all done or blocked) goes through gate -> Josh merges -> wrap before the next phase starts.
+  const { p: working } = workingPhase();
+  // Every finished phase (all done or blocked) up to the working phase goes through gate -> PR merge -> wrap, in phase order, before the working phase runs (EZD-254; PROCESS.md sections 8-9). An earlier phase's blocked ticket does not stop a later finished phase's gate.
   for (const p of [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b)) {
-    if (p > phase) break;
+    if (working !== null && p > working) break;
     const ts = phaseTickets(p);
     if (!ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
     if (wrapped(p)) continue;
@@ -737,7 +738,7 @@ function nextUnit() {
     }
     if (g.state === 'merged') return `wrap ${p}`;
   }
-  const { p } = workingPhase();
+  const p = working;
   if (p === null) return `none: only blocked tickets left (from phase ${phase}); see STATUS.md notes`;
   const ts = phaseTickets(p);
   if (!signedOff(p)) return `none: phase ${p} spec not signed off (spec-check unit needs Josh)`;
