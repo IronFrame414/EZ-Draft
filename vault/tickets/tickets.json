@@ -16209,7 +16209,8 @@
     "AC-EZD-255-1",
     "AC-EZD-255-2"
    ],
-   "acs_source": "done-when"
+   "acs_source": "done-when",
+   "priority": 1
   },
   {
    "id": "EZD-256",
@@ -16332,7 +16333,8 @@
     "AC-EZD-260-1",
     "AC-EZD-260-2"
    ],
-   "acs_source": "done-when"
+   "acs_source": "done-when",
+   "priority": 1
   },
   {
    "id": "EZD-261",
@@ -16517,7 +16519,7 @@
    "id": "EZD-268",
    "phase": 1,
    "title": "Fix: a failed unit or role goes up the model ladder before a ticket is set aside or the launcher waits",
-   "depends_raw": "EZD-267",
+   "depends_raw": "EZD-267, EZD-255, EZD-250",
    "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -16528,7 +16530,9 @@
    "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-267"
+    "EZD-267",
+    "EZD-255",
+    "EZD-250"
    ],
    "build_position": 540,
    "acs": [
@@ -16772,7 +16776,7 @@
    "id": "EZD-277",
    "phase": 1,
    "title": "Fix: the write and read guards compare paths case-insensitively on a case-insensitive disk",
-   "depends_raw": "EZD-267",
+   "depends_raw": "EZD-267, EZD-260",
    "spec_ref": "Q-0457",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -16783,7 +16787,8 @@
    "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-267"
+    "EZD-267",
+    "EZD-260"
    ],
    "build_position": 549,
    "acs": [
