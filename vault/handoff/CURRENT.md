@@ -1,11 +1,11 @@
-# Handoff · 2026-10-29 · questions 1
+# Handoff · 2026-10-30 · questions 2
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete (unattended, no answers taken)
-- Completed this session: Phase 1 questions re-run. No open rows. Four escalated (Q-0443 to Q-0446) unchanged; no answered-agent rows pending; vault/questions/phase-01-for-josh.md still current. Sort moved 0 rows; ledger check OK (560 tickets).
+- Completed this session: Phase 2 questions re-run. No open rows. Three escalated (Q-0447, Q-0453, Q-0454) unchanged; Q-0448 to Q-0452 stay answered-agent; vault/questions/phase-02-for-josh.md refreshed (date, EZD-110 line). Plans 108, 140, 276 fail strict lint only on their escalated QP-1; 110, 117a, 117b, 118 pass. Sort moved 0 rows; ledger check OK (560 tickets). EZD-110 `--set-architecture` was already set (no diff).
 - In progress: none
-- Blocked: EZD-267 on Q-0443; EZD-274 on Q-0444/Q-0445; EZD-275 on Q-0446; EZD-269 needs Josh's yes on the split.
-- Questions for Josh: phase 1: Q-0443 to Q-0446; phase 2: Q-0447, Q-0453, Q-0454
+- Blocked: EZD-108 on Q-0447; EZD-140 on Q-0453; EZD-276 on Q-0454. EZD-110 stays `planned`: apply the 110a/110b split first (orchestrator, PROCESS.md section 6; needs two tickets.json entries with gen_acs.mjs acs, depends_on of every dependent expanded, STATUS and phase-file rows, recut.json slice 2, then two part plans) in its own unit.
+- Questions for Josh: phase 2: Q-0447, Q-0453, Q-0454; phase 1: Q-0443 to Q-0446
 - Decisions made: none
-- Tickets set ready: none new
+- Tickets set ready: none new (117a, 117b, 118 already ready)
 - Next unit: node vault/tools/next_ticket.mjs --next-unit
