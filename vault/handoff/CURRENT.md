@@ -1,10 +1,10 @@
-# Handoff · 2026-10-30 10:26 · plan EZD-278
+# Handoff · 2026-10-30 · questions 1
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: Planned EZD-278: status questions, complexity medium; open questions Q-0460.
+- Why the session ended: unit complete
+- Completed this session: Q-0458 (a) and Q-0459 (b) answered by agents; new fix ticket EZD-279 (todo, needs a plan); EZD-277 plan patched, lint OK, set ready.
 - In progress: none
 - Blocked: none new
-- Questions for Josh: see vault/questions/QUESTIONS.md
+- Questions for Josh: Q-0460 (EZD-278) escalated; see vault/questions/phase-01-for-josh.md
 - Decisions made: none
-- Next unit: questions 1
+- Next unit: plan EZD-279

@@ -1,26 +1,20 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-sixth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-seventh run)
 
-Three decisions wait on you (Q-0455, Q-0456, Q-0457). Q-0443 to Q-0446 were answered by you. Tickets with a waiting question stay `questions`: EZD-271, EZD-274. EZD-267 is `blocked` on Q-0457 (its build stopped after review round 1; EZD-275 is `ready`).
+One decision waits on you (Q-0460). Q-0455, Q-0456 and Q-0457 were answered by you. EZD-278 stays `questions` until Q-0460 is answered. EZD-277 is `ready` once its plan is patched for Q-0458 and Q-0459. New fix ticket EZD-279 (from Q-0459) needs a plan.
 
 ## 1. Decisions needed
 
-**Q-0455 · EZD-271.** When you run an override (`--until-reset`, `--api-until-reset`, api mode) or a boost, you have already let the weekly meter run past the hold line. A limit-like error that then reads between the hold line and 100% would write a hold you lifted. In api mode the plan meters do not measure the API spend at all.
-1. (Recommended) While an override or boost is active, the weekly hold uses 100% (the plan's real limit); a lower reading is treated as an ordinary failed unit (EZD-274). Reason: it keeps your override from being undone by the launcher. Cost: one more test row.
-2. As planned: the weekly branch always uses the hold line, and you re-run the override after a hold. Cost: the launcher can hold work you chose to let run.
-
-**Q-0456 · EZD-274.** EZD-193 sends you one notice for every limit-like error, before the meter reading decides. A rate-limit burst that EZD-274 now treats as an ordinary failure would still send up to four notices (three-rung ladder) plus EZD-268's failure notice.
-1. (Recommended) Keep it as you worded it in Q-0299 (b): a notice on any limit error. Reason: your answer, and a new unknown message is always flagged. Cost: a burst can send several notices.
-2. Save every limit file but send the notice only when the decision is a wait or a hold. Reason: PROCESS-EZDRAFT.md section 8 says notices go out only when something is needed from you. Cost: the notice moves out of `runUnit` and EZD-193 tests T2, T3, T6 and this plan's L1, L2, E2 change.
-
-**Q-0457 · EZD-267.** The launcher will now write a guard grant by itself when an approved plan names a guarded file. Your decision names no exceptions, and the security-reviewer could not cite an answer, so you set the list of files that always need your own patch. Today's list is `.claude/hooks/grants.json` and `scripts/gate.mjs`. Without a longer list one approved plan could widen its own and later grants.
-1. (Recommended, CLAUDE.md rule 18) A class rule: never auto-grant `.claude/**` (except worktrees), `CLAUDE.md`, `vault/PROCESS*.md`, `vault/tools/grants.mjs`, `plan_lint.mjs`, `next_ticket.mjs`, `scripts/gate.mjs`, `scripts/run.mjs`, `.github/workflows/**`. Reason: closes the whole class of files that decide who may write what. Cost: tickets changing those files wait for your patch.
-2. The middle list: the two above plus all of `.claude/hooks/`, `.claude/settings.json`, `CLAUDE.md`, `vault/tools/grants.mjs`, `vault/tools/plan_lint.mjs`. Cost: smaller, but a file outside it can still be granted.
-3. Only the two files today. Cost: leaves the self-widening gap.
-Also confirm the message wording `josh-only path <p>`. Separate finding, needs a fix ticket in this phase (rule 17): `.claude/hooks/guard-paths.mjs` compares paths case-sensitively on a case-insensitive disk, so `Scripts/gate.mjs` slips past the guard. Recommended: yes, add the fix ticket.
+**Q-0460 · EZD-278.** When the next phase's tickets build while this phase is still open, they land on develop before this phase's pull request to main. How should that pull request carry them?
+1. (Recommended) Phase N's pull request carries everything on develop and lists the early later-phase tickets under "Later-phase tickets in this PR". The phase-auditor skips them, and the later phase's own gate audits them. You test them at that gate. Cost: they reach main, and production at that promotion, before their phase is finished.
+2. The early later-phase tickets finish review but merge to develop only after this phase's PR merges. Main stays one phase at a time. Cost: a merge queue is needed (one ticket in flight blocks all builds), a larger ticket.
+3. The PR is cut from a release branch at the last commit before the first later-phase merge, and later fixes are cherry-picked onto it. Cost: fragile when fixes and tooling commits interleave.
 
 ## 2. Agent answers to confirm
 
 New this run (confirm or override):
+- **Q-0458 (EZD-277): (a)** add the case-insensitive flag to the guard-bash sign-in-file pattern inside EZD-277, with one more test. Source: Q-0457 (Josh); CLAUDE.md rules 17, 18.
+- **Q-0459 (EZD-277): (b)** `guard-reads.mjs` gets a backstop that denies a Read of the secret files in any letter case; new fix ticket EZD-279 (also covers Grep and Glob, and `.env.*` names the deny list misses, such as `.env.staging`). Claude Code's own rules are not documented for letter case. Source: security-reviewer; https://code.claude.com/docs/en/permissions; CLAUDE.md rules 8, 17, 18. Your call if the backstop should cover more secret paths than these three.
+Earlier run:
 - **Q-0433 (EZD-265): (a)** EZD-265 owns the set-aside call; EZD-268 stops at "ladder exhausted" and calls nothing; EZD-265 is re-validated against EZD-268's merged code first. Source: vault/plans/EZD-265.md D1; vault/plans/EZD-268.md section 3.
 - **Q-0435 (EZD-268): (a)** same answer: EZD-268 calls today's table step or stops; EZD-265 then widens it. Source: vault/plans/EZD-268.md section 10, tests L1, L10.
 - **Q-0434 (EZD-267): (a)** the missing Architecture line was added to EZD-174, EZD-185 and EZD-191 so the launcher can apply their grants. Source: CLAUDE.md Conventions file (EZD-244); vault/tools/plan_lint.mjs.

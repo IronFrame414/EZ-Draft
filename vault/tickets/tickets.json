@@ -16814,6 +16814,31 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-279",
+   "phase": 1,
+   "title": "Fix: the read guard denies a Read, Grep or Glob of the secret files in any letter case",
+   "depends_raw": "EZD-277",
+   "spec_ref": "Q-0459",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-277"
+   ],
+   "build_position": 551,
+   "acs": [
+    "AC-EZD-279-1",
+    "AC-EZD-279-2",
+    "AC-EZD-279-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"
