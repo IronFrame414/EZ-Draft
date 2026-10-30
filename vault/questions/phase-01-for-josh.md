@@ -1,25 +1,16 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-fourth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-fifth run)
 
-Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443. EZD-271, EZD-272, EZD-273 are now `ready` (plans carry Q-0437 to Q-0442). EZD-269 is now `ready` (Q-0436 answered).
+Two decisions wait on you (Q-0455, Q-0456), both from the re-scoped EZD-271 and EZD-274 plans. Q-0443 to Q-0446 were answered by you. Tickets with a waiting question stay `questions`: EZD-271, EZD-274 (EZD-275 and EZD-267 are `ready`).
 
 ## 1. Decisions needed
 
-**Q-0444 · EZD-274.** Two of your answers disagree on a message that has both kinds of words. Q-0438 (b): "rate limit" or "too many requests" without "usage limit" is an ordinary failure, retried on the model ladder. Q-0437 (a): a message naming "5-hour", "five-hour", "session limit" or "week" is a limit. EZD-193's tests already feed `5-hour limit reached` plus a `rate limit` line.
-1. (Recommended) The rate-limit words count only when the text names no five-hour or weekly form either, so a real limit message is never retried as a failure. Reason: money-safe, and both your answers stay true. Cost: none; the plan is written this way.
-2. Q-0438 as written: such a text is retried on the ladder. Cost: a real five-hour limit message that also says "rate limit" is retried instead of waiting for the reset, and three old tests need new fixtures.
+**Q-0455 · EZD-271.** When you run an override (`--until-reset`, `--api-until-reset`, api mode) or a boost, you have already let the weekly meter run past the hold line. A limit-like error that then reads between the hold line and 100% would write a hold you lifted. In api mode the plan meters do not measure the API spend at all.
+1. (Recommended) While an override or boost is active, the weekly hold uses 100% (the plan's real limit); a lower reading is treated as an ordinary failed unit (EZD-274). Reason: it keeps your override from being undone by the launcher. Cost: one more test row.
+2. As planned: the weekly branch always uses the hold line, and you re-run the override after a hold. Cost: the launcher can hold work you chose to let run.
 
-**Q-0445 · EZD-274.** A passing rate-limit error goes straight to the next model with no pause. A burst longer than three tries tables the ticket, or leaves the launcher waiting for a change, for an error that clears by itself.
-1. (Recommended) No pause, as Q-0438 (b) says. Reason: nothing was asked for; the ladder already limits retries. Cost: a long burst can still table a ticket.
-2. Wait a fixed time before the next model after a rate-limit failure. You give the minutes. Cost: one more wait in EZD-268's ladder and one more test.
-
-**Q-0446 · EZD-275.** Your Q-0442 asked for a text check over the skill files (`.claude/skills/*/SKILL.md`). `.claude/skills/build-ticket/dispatch.md` and the agent files (`.claude/agents/builder.md`, `test-author.md`, `log-summarizer.md`) also carry stop and wait steps (9 blocks today).
-1. (Recommended) Add those files to the same check (about 9 more markers). Reason: it closes the whole class, so a stop that is not on the KEEP line cannot come back through any agent text (CLAUDE.md rule 18). Cost: a bit more work in this ticket.
-2. Skill files only, as you worded it. Cost: stops in dispatch.md and the agent files stay unchecked.
-
-**Q-0443 · EZD-267.** EZD-267 is built and every one of its tests passes, but its gate is red on one old test, EZD-254 T2, which also fails on develop (EZD-253 is done and depends on EZD-254, so the test's copy of the ledger refuses). Every phase 1 build gate hits it until fixed. The test-author's fix (commit 9e81edb1, fixture only, no expected value changed, 3 of 3 pass) was ruled FAIL by code-reviewer as an input change outside the plan.
-1. (Recommended) Accept 9e81edb1 inside EZD-267 as a recorded deviation. Reason: smallest change, restores the test's intent, and the copy then derives its dependents so the class cannot return. Cost: EZD-267 carries a change its plan does not list.
-2. A fix ticket for T2 (test-author and a test review) merges first, then EZD-267 resumes without 9e81edb1. Cost: one more ticket, and EZD-267 and everything behind it wait.
-Also for you: a one-line PROCESS.md rule that merge gates run before a row is set done (how EZD-253 slipped through); agents cannot edit that file.
+**Q-0456 · EZD-274.** EZD-193 sends you one notice for every limit-like error, before the meter reading decides. A rate-limit burst that EZD-274 now treats as an ordinary failure would still send up to four notices (three-rung ladder) plus EZD-268's failure notice.
+1. (Recommended) Keep it as you worded it in Q-0299 (b): a notice on any limit error. Reason: your answer, and a new unknown message is always flagged. Cost: a burst can send several notices.
+2. Save every limit file but send the notice only when the decision is a wait or a hold. Reason: PROCESS-EZDRAFT.md section 8 says notices go out only when something is needed from you. Cost: the notice moves out of `runUnit` and EZD-193 tests T2, T3, T6 and this plan's L1, L2, E2 change.
 
 ## 2. Agent answers to confirm
 
