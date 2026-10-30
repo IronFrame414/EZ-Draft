@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-fifth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-sixth run)
 
-Two decisions wait on you (Q-0455, Q-0456), both from the re-scoped EZD-271 and EZD-274 plans. Q-0443 to Q-0446 were answered by you. Tickets with a waiting question stay `questions`: EZD-271, EZD-274 (EZD-275 and EZD-267 are `ready`).
+Three decisions wait on you (Q-0455, Q-0456, Q-0457). Q-0443 to Q-0446 were answered by you. Tickets with a waiting question stay `questions`: EZD-271, EZD-274. EZD-267 is `blocked` on Q-0457 (its build stopped after review round 1; EZD-275 is `ready`).
 
 ## 1. Decisions needed
 
@@ -11,6 +11,12 @@ Two decisions wait on you (Q-0455, Q-0456), both from the re-scoped EZD-271 and 
 **Q-0456 · EZD-274.** EZD-193 sends you one notice for every limit-like error, before the meter reading decides. A rate-limit burst that EZD-274 now treats as an ordinary failure would still send up to four notices (three-rung ladder) plus EZD-268's failure notice.
 1. (Recommended) Keep it as you worded it in Q-0299 (b): a notice on any limit error. Reason: your answer, and a new unknown message is always flagged. Cost: a burst can send several notices.
 2. Save every limit file but send the notice only when the decision is a wait or a hold. Reason: PROCESS-EZDRAFT.md section 8 says notices go out only when something is needed from you. Cost: the notice moves out of `runUnit` and EZD-193 tests T2, T3, T6 and this plan's L1, L2, E2 change.
+
+**Q-0457 · EZD-267.** The launcher will now write a guard grant by itself when an approved plan names a guarded file. Your decision names no exceptions, and the security-reviewer could not cite an answer, so you set the list of files that always need your own patch. Today's list is `.claude/hooks/grants.json` and `scripts/gate.mjs`. Without a longer list one approved plan could widen its own and later grants.
+1. (Recommended, CLAUDE.md rule 18) A class rule: never auto-grant `.claude/**` (except worktrees), `CLAUDE.md`, `vault/PROCESS*.md`, `vault/tools/grants.mjs`, `plan_lint.mjs`, `next_ticket.mjs`, `scripts/gate.mjs`, `scripts/run.mjs`, `.github/workflows/**`. Reason: closes the whole class of files that decide who may write what. Cost: tickets changing those files wait for your patch.
+2. The middle list: the two above plus all of `.claude/hooks/`, `.claude/settings.json`, `CLAUDE.md`, `vault/tools/grants.mjs`, `vault/tools/plan_lint.mjs`. Cost: smaller, but a file outside it can still be granted.
+3. Only the two files today. Cost: leaves the self-widening gap.
+Also confirm the message wording `josh-only path <p>`. Separate finding, needs a fix ticket in this phase (rule 17): `.claude/hooks/guard-paths.mjs` compares paths case-sensitively on a case-insensitive disk, so `Scripts/gate.mjs` slips past the guard. Recommended: yes, add the fix ticket.
 
 ## 2. Agent answers to confirm
 
