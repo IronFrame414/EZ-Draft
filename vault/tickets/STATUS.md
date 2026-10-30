@@ -144,7 +144,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-105 | 7 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
 | EZD-106 | 7 | User inspector | todo |  | EZD-104 |  |  |  |
 | EZD-107 | 7 | Custom roles | todo |  | EZD-106 |  |  |  |
-| EZD-108 | 2 | Avatar menu and My profile | todo |  | EZD-103 |  |  |  |
+| EZD-108 | 2 | Avatar menu and My profile | questions | high | EZD-103 |  |  |  |
 | EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
 | EZD-110 | 2 | Notifications | todo |  | EZD-008, EZD-018 |  |  |  |
 | EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |

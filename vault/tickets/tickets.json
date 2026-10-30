@@ -2668,6 +2668,19 @@
     "mockups/S01dAvatarMenu.png",
     "mockups/S01eMyProfile.png"
    ],
+   "architecture": [
+    "Password sign-in (EZD-033)",
+    "Auth and session (EZD-007)",
+    "Email (EZD-008)",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Events",
+    "Row-level security (EZD-006)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103a",
