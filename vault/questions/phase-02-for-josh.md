@@ -1,4 +1,4 @@
-# Phase 2 · for Josh (questions unit, 2026-10-30)
+# Phase 2 · for Josh (questions unit, 2026-10-29, re-run)
 
 Three decisions wait on you (Q-0447, Q-0453, Q-0454). Five questions (Q-0448 to Q-0452) were answered by agents with citations; confirm or override them in section 2. EZD-117a, EZD-117b and EZD-118 are `ready`. EZD-108 and EZD-140 stay `questions` until you answer. EZD-110 stays `planned`: its plan is over the size line and carries a split proposal (110a/110b) to apply first. A new fix ticket, EZD-276, was added from Q-0449; it stays `questions` until you answer Q-0454.
 
