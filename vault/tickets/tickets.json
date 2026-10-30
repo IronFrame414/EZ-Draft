@@ -16587,7 +16587,10 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-273"
