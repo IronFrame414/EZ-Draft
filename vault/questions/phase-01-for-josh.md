@@ -1,36 +1,20 @@
-# Phase 1 · for Josh (questions unit, 2026-10-29, seventeenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, eighteenth run)
 
-Eight decisions wait on you (Q-0436 to Q-0443). Q-0433, Q-0434 and Q-0435 were answered by the orchestrator (section 2). Tickets with a waiting question stay `questions`: EZD-269, EZD-271, EZD-272, EZD-273.
+Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443.
 
 ## 1. Decisions needed
 
-**Q-0436 · EZD-269.** EZD-172 (blocked on a merge clash) and EZD-248 (blocked by your Q-0427 (a) until an interactive orchestrator rebases it) name no ticket they wait on, so the new dependency wait leaves them alone. Undecided: do they also go back to `ready` so the new agent merge-clash path handles them?
-1. (Recommended) Yes. A blocked ticket whose last note is a merge clash goes back to `ready`; this overrides Q-0427 (a) "interactive orchestrator" for EZD-248. Reason: it is the never-stops goal, and the new clash path exists for this. Cost: an agent, not you or an interactive session, resolves those two clashes.
-2. No. They stay as your answers left them. Cost: both stay blocked until an interactive session.
+**Q-0444 · EZD-274.** Two of your answers disagree on a message that has both kinds of words. Q-0438 (b): "rate limit" or "too many requests" without "usage limit" is an ordinary failure, retried on the model ladder. Q-0437 (a): a message naming "5-hour", "five-hour", "session limit" or "week" is a limit. EZD-193's tests already feed `5-hour limit reached` plus a `rate limit` line.
+1. (Recommended) The rate-limit words count only when the text names no five-hour or weekly form either, so a real limit message is never retried as a failure. Reason: money-safe, and both your answers stay true. Cost: none; the plan is written this way.
+2. Q-0438 as written: such a text is retried on the ladder. Cost: a real five-hour limit message that also says "rate limit" is retried instead of waiting for the reset, and three old tests need new fixtures.
 
-**Q-0437 · EZD-271.** No real five-hour or weekly limit message has ever been captured, so the formats cannot be confirmed. The only evidence is wording inside the installed CLI.
-1. (Recommended) Stop reading `limit_formats_confirmed`. A message naming "5-hour", "five-hour" or "session limit" and not "week" waits for the reset, no hold; one naming "week" and not those is weekly; anything else, including both, is held with the text quoted. The first real message (saved by EZD-193) confirms or corrects the patterns. Reason: money-safe, because any doubt holds. Cost: a wrong pattern may hold a five-hour limit until you release it.
-2. Keep the flag unset: every limit stays a hold until a real message is captured; build only the quoted notice and the pause-file wait. Cost: every five-hour limit still stops the launcher for you.
+**Q-0445 · EZD-274.** A passing rate-limit error goes straight to the next model with no pause. A burst longer than three tries tables the ticket, or leaves the launcher waiting for a change, for an error that clears by itself.
+1. (Recommended) No pause, as Q-0438 (b) says. Reason: nothing was asked for; the ladder already limits retries. Cost: a long burst can still table a ticket.
+2. Wait a fixed time before the next model after a rate-limit failure. You give the minutes. Cost: one more wait in EZD-268's ladder and one more test.
 
-**Q-0438 · EZD-271.** The limit matcher also catches a transient API error ("rate limit", "too many requests") and treats it as an unreadable limit: hold and notice.
-1. (Recommended) A fix ticket in phase 1 treats those words without "usage limit" as an ordinary failed unit under EZD-268's retry ladder. Reason: otherwise a passing API hiccup holds the launcher for you (rule 17: no known issue parked). Cost: one more ticket.
-2. Keep it. Money-safe; you release the hold. Cost: a hold for every transient error.
-
-**Q-0439 · EZD-272.** PROCESS-EZDRAFT.md section 8 KEEP list has no entry for a tool call refused by a hook, a permission rule or the classifier that only you can clear. Without it, EZD-273's check rejects EZD-272's set-aside and refusal wait.
-1. (Recommended) You add "a tool call refused by a hook, a permission rule or the classifier that only Josh can clear" to the KEEP list; the ticket is set aside at once. Reason: no other model can clear it, so a ladder only burns budget. Cost: one line from you (agents cannot edit that file).
-2. A remaining refusal first goes up the full model ladder (EZD-268), then is set aside under the existing "failed after the full ladder" entry. Cost: wasted tries on every refusal.
-
-**Q-0440 · EZD-272.** Claude Code does not document whether settings deny-rule refusals and refusals inside a subagent appear in the result's `permission_denials`; such a refusal might reach the launcher only through the unit's `REFUSED:` line.
-1. (Recommended) Add a pilot row to vault/handoff/PILOT.md that you run once (one denied Bash call in `claude -p`, one inside a subagent), and a fix ticket if either is missing. Reason: closes the blind spot with a test instead of a guess (rule 18). Cost: a few minutes of yours, once.
-2. Accept it as the plan is written. Cost: a refusal may go unseen by the launcher.
-
-**Q-0441 · EZD-273.** A guard-grant hold for a path no approved plan names (EZD-267) waits on you but is not on the KEEP line ("only these"). Which class does its wait site get?
-1. (Recommended) You add it to the KEEP line together with Q-0439 (a) as one entry, "a permission only Josh can grant". Reason: one class closes both, and the check then needs no stretched reading. Cost: one line from you.
-2. It counts as "a question escalated to Josh (… no document answers it)". Cost: stretches that entry; the check gets a special case.
-
-**Q-0442 · EZD-273.** Skill texts (`.claude/skills/*/SKILL.md`) also end units and set tickets blocked (stop inventory S17-S24), but the ticket names only the five code files, so the scan does not see them.
-1. (Recommended) A fix ticket adds a text check over the skills against the same KEEP line. Reason: otherwise the same stop can return through a skill (rule 18). Cost: one ticket; a text check is fuzzier than a code check.
-2. Skills stay under review only. Cost: the blind spot stays.
+**Q-0446 · EZD-275.** Your Q-0442 asked for a text check over the skill files (`.claude/skills/*/SKILL.md`). `.claude/skills/build-ticket/dispatch.md` and the agent files (`.claude/agents/builder.md`, `test-author.md`, `log-summarizer.md`) also carry stop and wait steps (9 blocks today).
+1. (Recommended) Add those files to the same check (about 9 more markers). Reason: it closes the whole class, so a stop that is not on the KEEP line cannot come back through any agent text (CLAUDE.md rule 18). Cost: a bit more work in this ticket.
+2. Skill files only, as you worded it. Cost: stops in dispatch.md and the agent files stay unchecked.
 
 **Q-0443 · EZD-267.** EZD-267 is built and every one of its tests passes, but its gate is red on one old test, EZD-254 T2, which also fails on develop (EZD-253 is done and depends on EZD-254, so the test's copy of the ledger refuses). Every phase 1 build gate hits it until fixed. The test-author's fix (commit 9e81edb1, fixture only, no expected value changed, 3 of 3 pass) was ruled FAIL by code-reviewer as an input change outside the plan.
 1. (Recommended) Accept 9e81edb1 inside EZD-267 as a recorded deviation. Reason: smallest change, restores the test's intent, and the copy then derives its dependents so the class cannot return. Cost: EZD-267 carries a change its plan does not list.
@@ -125,6 +109,8 @@ Full tables are in each plan's section 6. Launcher and ledger text only; no app 
 - EZD-271 (W1 to W9): `plan limit reached during <next>; the message is not in a confirmed five-hour or weekly format: "<quote>". Hold written; override with budget.mjs or wait for the weekly reset.`; the WINDOW_PAUSE.md text; the PROCESS.md lines for the five-hour and weekly cases (W6, W7).
 - EZD-272 (W1 to W8c): `<T> set aside (blocked): <tool> <target> was refused: "<text>". To clear it: <how>. The launcher goes on with the next ticket.`; `<unit> <arg> is waiting: <tool> <target> was refused: … The launcher runs it again when the hook or permission settings or STATUS.md change.`
 - EZD-273: none (gate output for agents).
+- EZD-274: one code comment, developer text: `// EZD-274 (Q-0438 (b)): "rate limit" or "too many requests" with no usage-limit, five-hour or weekly wording is a passing API error: an ordinary failed unit for the model ladder (EZD-268), not a limit.`
+- EZD-275: none (checker messages are developer text).
 
 ## 4. Rule candidates
 
