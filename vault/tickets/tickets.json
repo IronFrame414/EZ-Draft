@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 560,
+ "count": 561,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -27,7 +27,8 @@
   "2026-10-20: EZD-019 (EZ Binder contract and stub) removed from v1 by Josh (Q-0222; Q-0190); row kept in phases/phase-00.md, BACKLOG.md.",
   "2026-10-20 Q-0220: not-in-v1 items brought into v1 (EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713); new phase 53 Billing and onboarding; old phases 53 and 54 are now 54 and 55.",
   "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh).",
-  "EZD-103 split into EZD-103a, EZD-103b on 2026-10-24 (planner proposal, plan over 45,000 characters after tightening; orchestrator applied, Q-0309); every dependent of EZD-103 depends on both. The stage-0 ACs keep their IDs: AC-EZD-103-1 to -4 and -6 on EZD-103a, AC-EZD-103-5 on EZD-103b."
+  "EZD-103 split into EZD-103a, EZD-103b on 2026-10-24 (planner proposal, plan over 45,000 characters after tightening; orchestrator applied, Q-0309); every dependent of EZD-103 depends on both. The stage-0 ACs keep their IDs: AC-EZD-103-1 to -4 and -6 on EZD-103a, AC-EZD-103-5 on EZD-103b.",
+  "EZD-110 split into EZD-110a, EZD-110b on 2026-10-30 (planner proposal, plan over 45,000 characters; orchestrator applied at questions 2); every dependent of EZD-110 depends on both. The stage-0 ACs keep their IDs: AC-EZD-110-5, -6 and -8 on EZD-110a, AC-EZD-110-1, -2, -3, -4 and -7 on EZD-110b."
  ],
  "checks": {
   "cycles": 0,
@@ -118,7 +119,8 @@
   "EZD-1704",
   "EZD-1707",
   "EZD-108",
-  "EZD-110",
+  "EZD-110a",
+  "EZD-110b",
   "EZD-117a",
   "EZD-117b",
   "EZD-118",
@@ -2734,10 +2736,10 @@
    ]
   },
   {
-   "id": "EZD-110",
+   "id": "EZD-110a",
    "phase": 2,
-   "title": "Notifications",
-   "depends_raw": "EZD-008, EZD-018",
+   "title": "Notifications: table, email and routes",
+   "depends_raw": "EZD-008, EZD-018, EZD-009, EZD-102, EZD-113",
    "spec_ref": "App shell · Notifications; S01 Notifications button",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md#Notifications",
@@ -2755,8 +2757,6 @@
     "Server-only data access and can()",
     "Permission enforcement (EZD-102)",
     "Messages and language (t())",
-    "State components (EZD-015)",
-    "Design tokens, fonts and icons",
     "Browser tests (EZD-016a)",
     "Customers (EZD-113)"
    ],
@@ -2764,7 +2764,53 @@
    "depends_on": [
     "EZD-008a",
     "EZD-008b",
-    "EZD-018"
+    "EZD-018",
+    "EZD-009",
+    "EZD-102",
+    "EZD-113"
+   ],
+   "build_position": 82,
+   "acs": [
+    "AC-EZD-110-5",
+    "AC-EZD-110-6",
+    "AC-EZD-110-8"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 1,
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0391"
+   ]
+  },
+  {
+   "id": "EZD-110b",
+   "phase": 2,
+   "title": "Notifications: bell and list",
+   "depends_raw": "EZD-110a, EZD-015, EZD-016a",
+   "spec_ref": "App shell · Notifications; S01 Notifications button",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications",
+    "spec/sections/screens/S01-projects.md#Notifications button"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S01cNotifications.png"
+   ],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110a",
+    "EZD-015a",
+    "EZD-015b",
+    "EZD-015c",
+    "EZD-016a"
    ],
    "build_position": 82,
    "acs": [
@@ -2772,10 +2818,7 @@
     "AC-EZD-110-2",
     "AC-EZD-110-3",
     "AC-EZD-110-4",
-    "AC-EZD-110-5",
-    "AC-EZD-110-6",
-    "AC-EZD-110-7",
-    "AC-EZD-110-8"
+    "AC-EZD-110-7"
    ],
    "acs_source": "stage-0",
    "spec_phase": 1,
@@ -2797,7 +2840,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-120a",
     "EZD-120b"
    ],
@@ -2945,7 +2989,8 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 83,
    "acs": [
@@ -2992,7 +3037,8 @@
     "EZD-015b",
     "EZD-015c",
     "EZD-108",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 84,
    "acs": [
@@ -3216,7 +3262,8 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-122",
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-116"
    ],
    "build_position": 131,
@@ -3285,7 +3332,8 @@
     "EZD-120a",
     "EZD-120b",
     "EZD-109",
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-116",
     "EZD-018"
    ],
@@ -10462,7 +10510,8 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1109",
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-127"
    ],
    "build_position": 318,
@@ -10671,7 +10720,8 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1102",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 326,
    "acs": [
@@ -11760,7 +11810,8 @@
    "depends_on": [
     "EZD-1416",
     "EZD-1402",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 166,
    "acs": [
@@ -11977,7 +12028,8 @@
     "EZD-1501",
     "EZD-009",
     "EZD-021",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 412,
    "acs": [
@@ -15451,7 +15503,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-108"
    ],
    "build_position": 0,

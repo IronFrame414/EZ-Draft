@@ -1,6 +1,6 @@
 # Phase 2 · for Josh (questions unit, 2026-10-30, re-run)
 
-Three decisions wait on you (Q-0447, Q-0453, Q-0454). Five questions (Q-0448 to Q-0452) were answered by agents with citations; confirm or override them in section 2. EZD-117a, EZD-117b and EZD-118 are `ready`. EZD-108 and EZD-140 stay `questions` until you answer. EZD-110 stays `planned`: its plan is over the size line and carries a split proposal (110a/110b); the orchestrator applies it (PROCESS.md section 6, no decision from you needed) before it can be ready. A new fix ticket, EZD-276, was added from Q-0449; it stays `questions` until you answer Q-0454.
+Three decisions wait on you (Q-0447, Q-0453, Q-0454). Five questions (Q-0448 to Q-0452) were answered by agents with citations; confirm or override them in section 2. EZD-117a, EZD-117b and EZD-118 are `ready`. EZD-108 and EZD-140 stay `questions` until you answer. EZD-110 was split into EZD-110a (table, email, routes) and EZD-110b (bell and list) as its plan proposed (PROCESS.md section 6, no decision from you needed); both plans are written and both are `ready`. A new fix ticket, EZD-276, was added from Q-0449; it stays `questions` until you answer Q-0454.
 
 ## 1. Decisions needed
 
@@ -60,7 +60,7 @@ Confirm or override each (answer; source).
 
 Board text, copied exactly (boards 01d, 01e): `office.account.my_profile` "My profile"; `office.account.company_settings` "Company settings"; `office.profile.title` "My profile"; `office.profile.tab_profile` "Profile"; `office.profile.language` "Language"; `office.profile.language_en` "English"; `office.profile.language_es` "Español"; `office.profile.language_help` "Field pack, tasks and notes open in Spanish for this user. Permit sheets stay in English." (also S15 Language toggle); `office.profile.ipad` "iPad drawing"; `office.profile.ipad_finger` "Pencil or finger"; `office.profile.ipad_pencil` "Pencil only"; `office.profile.ipad_help` "Pencil only lets your hand rest on the screen while you draw."; `office.profile.change_password` "Change password"; `office.profile.current_password` "Current password"; `office.profile.new_password` "New password"; `office.profile.confirm_password` "Confirm new password"; `office.profile.password_help` "We email you when your password changes."; `office.profile.save` "Save". Reused keys `common.sign_in.sign_out`, `common.cancel`, `common.close`, `common.retry`, `error.code_invalid`, `error.code_throttled`, `error.ip_throttled`, `error.too_many_requests`, `error.invalid_input`, `error.db_unavailable`. Spanish for the new `error.*` keys is the builder's (Q-0030 (a)).
 
-### EZD-110
+### EZD-110a and EZD-110b (split from EZD-110, 2026-10-30; the wording list below belongs to both)
 
 Board text is used as drawn (S01c: "Notifications", "Mark all read", "Show older", "No notifications yet", "Notifications, N new", "Unread"/"Read", "{n} min ago", "Yesterday 4:12 PM", "Oct 26", "Photoreal render finished", "Field measurements received", "Version cleanup due", "{name} asked to edit", "Client approved {version}", "{project} · {client}"). Not on a board:
 
