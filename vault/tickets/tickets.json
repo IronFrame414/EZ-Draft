@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 557,
+ "count": 559,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -16518,7 +16518,7 @@
    "id": "EZD-273",
    "phase": 1,
    "title": "Fix: the gate fails when the launcher or ledger gains a stop path that is not on the KEEP list",
-   "depends_raw": "EZD-265, EZD-267, EZD-268, EZD-269, EZD-270, EZD-271, EZD-272",
+   "depends_raw": "EZD-265, EZD-267, EZD-268, EZD-269, EZD-270, EZD-271, EZD-272, EZD-274",
    "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -16538,13 +16538,63 @@
     "EZD-269",
     "EZD-270",
     "EZD-271",
-    "EZD-272"
+    "EZD-272",
+    "EZD-274"
    ],
    "build_position": 545,
    "acs": [
     "AC-EZD-273-1",
     "AC-EZD-273-2",
     "AC-EZD-273-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-274",
+   "phase": 1,
+   "title": "Fix: a passing API rate-limit error is an ordinary failed unit, not a usage-limit hold",
+   "depends_raw": "EZD-268, EZD-271",
+   "spec_ref": "Q-0438",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-268",
+    "EZD-271"
+   ],
+   "build_position": 546,
+   "acs": [
+    "AC-EZD-274-1",
+    "AC-EZD-274-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-275",
+   "phase": 1,
+   "title": "Fix: the gate fails when a skill ends a unit or blocks a ticket for a reason not on the KEEP list",
+   "depends_raw": "EZD-273",
+   "spec_ref": "Q-0442",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-273"
+   ],
+   "build_position": 547,
+   "acs": [
+    "AC-EZD-275-1",
+    "AC-EZD-275-2"
    ],
    "acs_source": "done-when",
    "priority": 1
