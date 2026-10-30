@@ -2,9 +2,9 @@
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: Q-0461 (a) and Q-0462 (a) answered by security-reviewer. New fix ticket EZD-280 (shell guard; depends on EZD-279). EZD-279 plan patched for Q-0462; EZD-279 and EZD-280 plans lint OK, both set ready.
+- Completed this session: Q-0455 (b) and Q-0456 (b) were already answered-josh; EZD-271 and EZD-274 plans re-planned to them (no QP left, lint OK) and set ready.
 - In progress: none
-- Blocked: EZD-278 stays questions (Q-0460)
+- Blocked: EZD-278 stays questions (Q-0460, escalated)
 - Questions for Josh: Q-0460 (vault/questions/phase-01-for-josh.md)
-- Decisions made: Q-0461, Q-0462 (answered-agent); no lessons ratified (unattended)
-- Next unit: questions 1
+- Decisions made: none new; lessons candidates unchanged
+- Next unit: questions 1 until Q-0460 is answered
