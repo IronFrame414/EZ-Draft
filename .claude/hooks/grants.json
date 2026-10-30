@@ -26,5 +26,9 @@
     ".claude/hooks/guard-paths.mjs",
     ".claude/hooks/guard-reads.mjs",
     ".claude/hooks/lib.mjs"
+  ],
+  "EZD-282": [
+    ".claude/hooks/guard-paths.mjs",
+    "vault/tools/grants.mjs"
   ]
 }
