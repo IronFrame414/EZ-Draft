@@ -16840,6 +16840,32 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-280",
+   "phase": 1,
+   "title": "Fix: the shell guard denies any command that names a secret file, whatever the command word",
+   "depends_raw": "EZD-279",
+   "spec_ref": "Q-0461",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-279"
+   ],
+   "build_position": 552,
+   "acs": [
+    "AC-EZD-280-1",
+    "AC-EZD-280-2",
+    "AC-EZD-280-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"

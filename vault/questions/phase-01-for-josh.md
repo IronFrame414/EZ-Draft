@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-seventh run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-eighth run)
 
-One decision waits on you (Q-0460). Q-0455, Q-0456 and Q-0457 were answered by you. EZD-278 stays `questions` until Q-0460 is answered. EZD-277 is `ready` once its plan is patched for Q-0458 and Q-0459. New fix ticket EZD-279 (from Q-0459) needs a plan.
+One decision waits on you (Q-0460). Q-0461 and Q-0462 were answered by the security-reviewer; EZD-279 is `ready`, and new fix ticket EZD-280 (from Q-0461) is `ready`. Q-0455, Q-0456 and Q-0457 were answered by you. EZD-278 stays `questions` until Q-0460 is answered. EZD-277 is `ready` once its plan is patched for Q-0458 and Q-0459. New fix ticket EZD-279 (from Q-0459) needs a plan.
 
 ## 1. Decisions needed
 
@@ -12,6 +12,8 @@ One decision waits on you (Q-0460). Q-0455, Q-0456 and Q-0457 were answered by y
 ## 2. Agent answers to confirm
 
 New this run (confirm or override):
+- **Q-0461 (EZD-279): (a)** new fix ticket EZD-280 makes the shell guard deny any command naming a secret file, using the same secret-file test as the read guard. Source: guard-bash.mjs:21,38; CLAUDE.md rules 17, 18; Q-0458 (a).
+- **Q-0462 (EZD-279): (a)** deny every Grep aimed outside the repository (ticket worktrees count as inside). Cost: agents cannot Grep other folders, `/tmp` included. Source: EZD-279.md; CLAUDE.md rules 17, 18.
 - **Q-0458 (EZD-277): (a)** add the case-insensitive flag to the guard-bash sign-in-file pattern inside EZD-277, with one more test. Source: Q-0457 (Josh); CLAUDE.md rules 17, 18.
 - **Q-0459 (EZD-277): (b)** `guard-reads.mjs` gets a backstop that denies a Read of the secret files in any letter case; new fix ticket EZD-279 (also covers Grep and Glob, and `.env.*` names the deny list misses, such as `.env.staging`). Claude Code's own rules are not documented for letter case. Source: security-reviewer; https://code.claude.com/docs/en/permissions; CLAUDE.md rules 8, 17, 18. Your call if the backstop should cover more secret paths than these three.
 Earlier run:
@@ -102,6 +104,8 @@ Full tables are in each plan's section 6. Launcher and ledger text only; no app 
 - EZD-273: none (gate output for agents).
 - EZD-274: one code comment, developer text: `// EZD-274 (Q-0438 (b)): "rate limit" or "too many requests" with no usage-limit, five-hour or weekly wording is a passing API error: an ordinary failed unit for the model ladder (EZD-268), not a limit.`
 - EZD-275: none (checker messages are developer text).
+- EZD-279 (W1 to W5): agent-facing hook texts, e.g. `Reading secret files is not allowed: <path> is <what> (Q-0459).` and `Searching secret files is not allowed: this <tool> can reach <what> (Q-0459). Search a folder or a pattern that cannot match it.`; full text in plan section 1.
+- EZD-280 (B1 to B4): e.g. `Naming secret files in a shell command is not allowed: <shown> is <what> (Q-0461).`; full text in plan section 1.
 
 ## 4. Rule candidates
 
