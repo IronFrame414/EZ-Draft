@@ -144,7 +144,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-105 | 7 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
 | EZD-106 | 7 | User inspector | todo |  | EZD-104 |  |  |  |
 | EZD-107 | 7 | Custom roles | todo |  | EZD-106 |  |  |  |
-| EZD-108 | 2 | Avatar menu and My profile | questions | high | EZD-103 |  |  |  |
+| EZD-108 | 2 | Avatar menu and My profile | ready | high | EZD-103 |  |  |  |
 | EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
 | EZD-110a | 2 | Notifications: table, email and routes | ready | high | EZD-008a, EZD-008b, EZD-018, EZD-009, EZD-102, EZD-113 |  |  | Split from EZD-110 at the questions unit, 2026-10-30: plan vault/plans/EZD-110.md was 49,126 characters with a split proposal; the planner writes vault/plans/EZD-110a.md from it. |
 | EZD-110b | 2 | Notifications: bell and list | ready | medium | EZD-110a, EZD-015a, EZD-015b, EZD-015c, EZD-016a |  |  | Split from EZD-110 at the questions unit, 2026-10-30: the planner writes vault/plans/EZD-110b.md from the same proposal. |
@@ -594,7 +594,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-278 | 1 | Fix: the next signed-off phase builds while the current phase has no product ticket the launcher can build | questions | medium | EZD-267 |  |  | Added 2026-10-30 from Josh 2026-10-29 (chat) (Josh, chat; rule 17; priority 1). |
 | EZD-279 | 1 | Fix: the read guard denies a Read, Grep or Glob of the secret files in any letter case | ready | high | EZD-277 |  |  | Added 2026-10-30 from Q-0459 (b) (security-reviewer; rule 17; priority 1). Q-0462 (a) answered by agents; plan lint OK. |
 | EZD-280 | 1 | Fix: the shell guard denies any command that names a secret file, whatever the command word | ready | high | EZD-279 |  |  | Added 2026-10-30 from Q-0461 (a) (security-reviewer; rule 17; priority 1). Q-0461 (a) answered by agent; plan lint OK. |
-| EZD-276 | 2 | Fix: the perf check signs in a member and measures the Projects first cards | questions | high | EZD-017, EZD-016a, EZD-016c, EZD-016d, EZD-117b |  |  | Added 2026-10-30 from Q-0449 (a) (rule 17). |
+| EZD-276 | 2 | Fix: the perf check signs in a member and measures the Projects first cards | ready | high | EZD-017, EZD-016a, EZD-016c, EZD-016d, EZD-117b |  |  | Added 2026-10-30 from Q-0449 (a) (rule 17). |
 | EZD-137 | 9 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102, EZD-124 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). Moved to phase 9 after EZD-124 (Q-0395). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
@@ -617,7 +617,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-642 | 20 | Commercial load calculation | todo |  | EZD-607, EZD-615 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-643 | 21 | Other code editions | todo |  | EZD-611a, EZD-613 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-139 | 9 | Visual diff of an old version | todo |  | EZD-122, EZD-121 |  |  | Added 2026-10-20 for Q-0220. |
-| EZD-140 | 2 | Notification settings per user | questions | high | EZD-110, EZD-108 |  |  | Added 2026-10-20 for Q-0220. Depends on EZD-108, which builds My profile (Q-0422). |
+| EZD-140 | 2 | Notification settings per user | ready | high | EZD-110, EZD-108 |  |  | Added 2026-10-20 for Q-0220. Depends on EZD-108, which builds My profile (Q-0422). |
 | EZD-1711 | 53 | Billing and paywall for other companies | todo |  | EZD-103, EZD-102 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |

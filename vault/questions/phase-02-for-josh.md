@@ -1,21 +1,10 @@
 # Phase 2 · for Josh (questions unit, 2026-10-30, re-run)
 
-Three decisions wait on you (Q-0447, Q-0453, Q-0454). Five questions (Q-0448 to Q-0452) were answered by agents with citations; confirm or override them in section 2. EZD-117a, EZD-117b and EZD-118 are `ready`. EZD-108 and EZD-140 stay `questions` until you answer. EZD-110 was split into EZD-110a (table, email, routes) and EZD-110b (bell and list) as its plan proposed (PROCESS.md section 6, no decision from you needed); both plans are written and both are `ready`. A new fix ticket, EZD-276, was added from Q-0449; it stays `questions` until you answer Q-0454.
+No decisions wait on you. Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4). All phase 2 tickets are `ready`.
 
 ## 1. Decisions needed
 
-**Q-0447 · EZD-108.** Supabase asks for an emailed 6-digit code before a password can be set from a sign-in older than 24 hours, and most people stay signed in for months (Q-0048). Your Set password list (Q-0412) shows only New password and Confirm.
-1. (Recommended) When Supabase asks, email the existing confirmation code (Q-0102 wording) and show a Code box under the two fields. Reason: the only option that keeps the check and works for a long-signed-in user. Cost: one extra box that appears only sometimes.
-2. Ask the person to sign out and sign in again before setting a password. Cost: a long-signed-in user is bounced out of the dialog.
-3. Set it with the server's admin key and no extra check. Cost: anyone holding a stolen session could add a password. Not recommended.
-
-**Q-0453 · EZD-140.** When a user turns a notification kind's In app off, what happens to notifications of that kind already in the bell?
-1. (Recommended) They stay; the switch applies to notifications sent after Save, as Email does. Reason: simplest, matches how email behaves, nothing disappears unexpectedly.
-2. They are hidden too and come back if In app is turned on again. Cost: the bell filters by the current setting, so a count can change when only a setting changed.
-
-**Q-0454 · EZD-276.** The acceptance criterion says the Projects first-cards row fails the check when the time is over 1000 ms. The spec (11 opening paragraph, R26 R10) and EZD-017 G1 say Projects-page times are `trend` rows that are recorded and never fail.
-1. (Recommended) Keep it a `trend` row that is marked over budget while the check passes, and reword the criterion to "is marked over budget". Reason: it follows the spec and Josh's earlier rule; a slow gate machine cannot fail the gate or EZD-017 on timing noise. Cost: a slow Projects page never stops a merge by itself.
-2. Make it a `gate` row that fails when the median is over 1000 ms. Cost: a slow CI runner can fail the gate; EZD-017 G1 and the spec paragraph change.
+None. Q-0447, Q-0453 and Q-0454 were answered by Josh on 2026-10-30 (decisions files; plans EZD-108, EZD-140, EZD-276 updated).
 
 ## 2. Agent answers to confirm
 
