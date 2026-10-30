@@ -1,7 +1,5 @@
-EZD-108 BLOCKED on Q-0465 (Josh): Change password cannot work on the live site as planned (Supabase captcha refuses the token-less password check). Options (a) security-check box in My profile [recommended], (b) database-side password check plus emailed code, (c) admin-key change. Evidence R-046.
-State: worktree .claude/worktrees/EZD-108 on t/EZD-108 (tests 365649f9, 73d9d1c1, 9a9fe897; wip commits to 006a83d3; develop merged in). Gate was green (perf 198,700 <= 200,000). Round 1 FAILED review (8 findings recorded).
-Plan on develop patched 3 times (SettingsShell callers; hand-written Menu replaces Radix; blank code, captcha code, silent drops). Plan is 49,094 chars.
-Resume: after Josh answers Q-0465, run the planner for the chosen option, test-author edits (T2 codeProblem, T6, new T22; T3/T4/T7/T8/T15 depending on the answer), then builder round 2 (step 6) with the open findings: blank icons in the full avatar menu, menu position flush right, architecture.md line 698 Radix wording, local signOut on session-move failure, reportError for language-event drops. Then steps 7-10.
-Needs fix tickets (orchestrator, interactive): company/route.ts:81 silent catch; re-validate EZD-140 and EZD-117a (Radix menu over budget; use Menu); EZD-117b Depends on EZD-108.
-needs-josh-confirm: Spanish for 9 new error.* keys; error.db_unavailable in the password section.
-Note: the test-author ran pnpm db:up once, resetting the shared local DB.
+EZD-255 DONE (cbee4d96, 1553 tests). Repair-unit text now in budget hold, plan limit, five-hour limit, per-unit cap and turn limit. Code-reviewer opus PASS round 1.
+Unblocks: EZD-268 (Depends on EZD-255, EZD-250, EZD-267) and EZD-265.
+Open (rule 17, no fix ticket exists yet): EZD-250 launcher test harness stub roots log 'queue apply failed: ledger-queue.mjs not found'. Orchestrator (interactive) must add a fix ticket in phase 1.
+EZD-108 still BLOCKED on Q-0465 (Josh); see earlier handoff for its resume steps.
+Next unit: node vault/tools/next_ticket.mjs --next-unit
