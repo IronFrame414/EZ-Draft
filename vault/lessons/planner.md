@@ -301,3 +301,8 @@ Tests section: when a note can carry several line kinds (summary, JSON error, st
 Mistake: a test row passes on today's code, or checks one output channel only, so the change it pins is not tested (EZD-253 U20 grant-needs row; EZD-259 N3/N4 redaction on stderr only).
 Rule: for each test row, state the input where old and new code give different results, and name every output channel (stderr, summary, JSON) the changed behavior reaches.
 Plan check: each test row names the old code's result on its input and lists the channels it asserts.
+
+## L-037  areas: tooling, scripts, security  seen: 1  status: candidate
+Mistake: EZD-267's plan gave an automatic permission grant and its apply/commit flow only the success path: no fixed list of files never granted (gate.mjs, grants.json), no restore for failed apply or failed commit, and a regression test whose input dropped a file the real case had (same shape: EZD-250, EZD-248, EZD-254).
+Rule: a plan for code that grants a permission, or writes then commits, names the files it never grants with the refusal reason, the restore and single notice for every step that can fail after a write, and a test per failure branch whose input has every file the real case has.
+Plan check: each write-then-commit step lists its failure branch and restore; each grant rule lists its deny list.
