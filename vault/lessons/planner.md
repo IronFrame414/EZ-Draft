@@ -323,3 +323,4 @@ Rule: when a plan dictates comment or doc text, the text states only what the pl
 Plan check: every comment or doc sentence the plan quotes names a case the planned code handles, checked against the code, not the plan's intent.
 When a dependency adds a naming helper for a class of messages (EZD-255 unitSubject for limit texts), every new message of that class in the plan uses the helper.
 When a rule changes from 'round N' to 'round N or later', list every place the skill states the old round.
+When a rule's wording changes, grep .claude/agents/ and .claude/skills/ for the old wording and list every file in Build steps, so the grant covers them all.
