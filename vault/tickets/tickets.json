@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 559,
+ "count": 560,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -2969,7 +2969,7 @@
    "id": "EZD-117b",
    "phase": 2,
    "title": "Projects page: header, search and states",
-   "depends_raw": "EZD-117a, EZD-015",
+   "depends_raw": "EZD-117a, EZD-015, EZD-108, EZD-110",
    "spec_ref": "S01 Controls, States",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Controls",
@@ -2990,7 +2990,9 @@
     "EZD-117a",
     "EZD-015a",
     "EZD-015b",
-    "EZD-015c"
+    "EZD-015c",
+    "EZD-108",
+    "EZD-110"
    ],
    "build_position": 84,
    "acs": [
@@ -16676,6 +16678,33 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-276",
+   "phase": 2,
+   "title": "Fix: the perf check signs in a member and measures the Projects first cards",
+   "depends_raw": "EZD-017, EZD-016a, EZD-016c, EZD-016d, EZD-117b",
+   "spec_ref": "Q-0449",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Budgets"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-017",
+    "EZD-016a",
+    "EZD-016c",
+    "EZD-016d",
+    "EZD-117b"
+   ],
+   "build_position": 548,
+   "acs": [
+    "AC-EZD-276-1",
+    "AC-EZD-276-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"

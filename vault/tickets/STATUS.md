@@ -146,14 +146,14 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-107 | 7 | Custom roles | todo |  | EZD-106 |  |  |  |
 | EZD-108 | 2 | Avatar menu and My profile | questions | high | EZD-103 |  |  |  |
 | EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
-| EZD-110 | 2 | Notifications | planned | high | EZD-008, EZD-018 |  |  |  |
+| EZD-110 | 2 | Notifications | planned | high | EZD-008, EZD-018 |  |  | 2026-10-30 questions 2: plan is 49,126 characters and carries a split proposal (110a/110b) the orchestrator has not applied; apply the split (PROCESS-EZDRAFT ticket rules) before ready. |
 | EZD-111 | 9 | Send dialog with Copy link | todo |  | EZD-110, EZD-120 |  |  |  |
 | EZD-112 | 1 | Company settings: identity | done | high | EZD-103, EZD-132 | 69241cd | 1061 | Models: test-author and builder opus-5-5 (plan complexity), code-reviewer opus-5-5 high, security-reviewer fable-5-1 high, ui-verifier sonnet-5-5 low (--dispatch). Deviations: save route 500 calls reportRouteFailure (EZD-169) not reportError; update_tenant_identity args cast as unknown (generated types mark empty args never-empty); EZD-103a B5 spec drops company from unbuilt list. ui-verifier did not capture skeleton, save-error banner, load error, logo field error (covered by app/e2e/company-settings.spec.ts). No needs-josh-confirm wording. |
 | EZD-113 | 1 | Customers | done | high | EZD-112 | 8047e76 | 1088 | Build 2026-10-26/27 (--dispatch): step 1 planner re-validation Opus 5.5 high PASS (citations/mechanism only: reportRouteFailure, migration order, types); test-author Sonnet 5.5 medium; code-reviewer mode 2 Opus 5.5 high (FAIL r1: B5 readOnly on phone/address, fixed a0c03a5; PASS); builder r1 Opus 5.5 medium, r2 Opus 5.5 high (resumed, ui finding); code-reviewer mode 3 Opus 5.5 high PASS; security-reviewer Fable 5.1 high PASS; ui-verifier Sonnet 5.5 low (FAIL r1: disabled Add/edit buttons looked enabled offline; PASS r2; skeleton and inline-error not captured, duplicate-email error not triggered). Gate PASS both rounds. Deviations (mechanism only, code-reviewer accepted): Change route reads tenant id via currentTenantId(client) for emit; one eslint-disable react-hooks/exhaustive-deps with reason in CustomersPanel.tsx; extra .customer CSS class from the board. Test-author's table-grants edit left rls.audit T18 stale: repaired 6c67567 (expected values changed, not a pure structural repair; mode 2 accepted). needs-josh-confirm: Spanish error.customer_* texts, es.ts lines 73-76 (Q-0030 (a)). |
 | EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
-| EZD-117a | 2 | Projects page: query and cards | planned | high | EZD-102, EZD-110 |  |  |  |
-| EZD-117b | 2 | Projects page: header, search and states | questions | high | EZD-117a, EZD-015 |  |  |  |
-| EZD-118 | 2 | New project wizard | questions | high | EZD-117, EZD-113 |  |  |  |
+| EZD-117a | 2 | Projects page: query and cards | ready | high | EZD-102, EZD-110 |  |  |  |
+| EZD-117b | 2 | Projects page: header, search and states | ready | high | EZD-117a, EZD-015, EZD-108, EZD-110 |  |  |  |
+| EZD-118 | 2 | New project wizard | ready | high | EZD-117, EZD-113 |  |  |  |
 | EZD-120a | 3 | Model tables, save function and checkpoints | todo |  | EZD-005, EZD-133 |  |  |  |
 | EZD-120b | 3 | Model store, outbox and editor route | todo |  | EZD-120a, EZD-012, EZD-117 |  |  |  |
 | EZD-121 | 9 | Sent versions and numbering | todo |  | EZD-120, EZD-111 |  |  |  |
@@ -589,6 +589,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-273 | 1 | Fix: the gate fails when the launcher or ledger gains a stop path that is not on the KEEP list | ready | high | EZD-265, EZD-267, EZD-268, EZD-269, EZD-270, EZD-271, EZD-272, EZD-274 |  |  | Added 2026-10-29 by Josh (never-stops redesign item 7, chat; priority 1). · 2026-10-29 orchestrator: EZD-274 added to Depends on (Q-0438 (b)). |
 | EZD-274 | 1 | Fix: a passing API rate-limit error is an ordinary failed unit, not a usage-limit hold | questions | medium | EZD-268, EZD-271 |  |  | Added 2026-10-29 from Q-0438 (b) (Josh, chat; rule 17; priority 1). |
 | EZD-275 | 1 | Fix: the gate fails when a skill ends a unit or blocks a ticket for a reason not on the KEEP list | questions | medium | EZD-273 |  |  | Added 2026-10-29 from Q-0442 (b) (Josh, chat; rule 17; priority 1). |
+| EZD-276 | 2 | Fix: the perf check signs in a member and measures the Projects first cards | todo |  | EZD-017, EZD-016a, EZD-016c, EZD-016d, EZD-117b |  |  | Added 2026-10-30 from Q-0449 (a) (rule 17). |
 | EZD-137 | 9 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102, EZD-124 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). Moved to phase 9 after EZD-124 (Q-0395). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
 | EZD-640 | 20 | Common loads list | todo |  | EZD-607, EZD-614 |  |  | Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). |
