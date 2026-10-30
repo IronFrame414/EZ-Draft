@@ -160,3 +160,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-29 · EZD-266 · Fix: EZD-173 K7 takes its expected question IDs from all three question files · the ledger-lock test K7 no longer fails when QUESTIONS.md has no open questions, so the gate stops going red for that reason · 7eb76cb1
 2026-10-29 · EZD-253 · Fix: build-system tickets run on their own track · a phase is gated and wrapped once its product tickets are done while build-system tickets stay open; next phase planned meanwhile · 03546b0b
 2026-10-30 · EZD-281 · Fix: tests that pin live state read it from their own temporary copy · develop's gate is green again and live budget/questions changes no longer break tests, so EZD-267 can merge · 028399de
+2026-10-30 · EZD-267 · Fix: the launcher applies the guard grant for the files an approved plan names · a ticket whose approved plan changes guarded tooling builds without Josh applying a patch · 93059726
