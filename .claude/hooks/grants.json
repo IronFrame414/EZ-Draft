@@ -35,5 +35,11 @@
     ".claude/hooks/guard-paths.mjs",
     ".claude/hooks/guard-reads.mjs",
     ".claude/hooks/lib.mjs"
+  ],
+  "EZD-278": [
+    ".claude/agents/phase-auditor.md",
+    ".claude/skills/gate-phase/SKILL.md",
+    "vault/PROCESS.md",
+    "vault/tools/next_ticket.mjs"
   ]
 }
