@@ -324,3 +324,4 @@ Plan check: every comment or doc sentence the plan quotes names a case the plann
 When a dependency adds a naming helper for a class of messages (EZD-255 unitSubject for limit texts), every new message of that class in the plan uses the helper.
 When a rule changes from 'round N' to 'round N or later', list every place the skill states the old round.
 When a rule's wording changes, grep .claude/agents/ and .claude/skills/ for the old wording and list every file in Build steps, so the grant covers them all.
+EZD-277 (2026-10-30): a permission plan gives the direction of each compare up front: a check that refuses may fold wider than the disk, but a check that allows (grants, exemptions, writes-only-under rules) folds no wider than the disk; add a test row with a look-alike letter.
