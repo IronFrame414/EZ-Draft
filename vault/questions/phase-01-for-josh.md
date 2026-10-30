@@ -1,6 +1,6 @@
 # Phase 1 · for Josh (questions unit, 2026-10-30, twenty-fourth run)
 
-Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443. EZD-271, EZD-272, EZD-273 are now `ready` (plans carry Q-0437 to Q-0442). EZD-269 is now `ready` (Q-0436 answered).md section 6).
+Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443. EZD-271, EZD-272, EZD-273 are now `ready` (plans carry Q-0437 to Q-0442). EZD-269 is now `ready` (Q-0436 answered).
 
 ## 1. Decisions needed
 
