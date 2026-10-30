@@ -2,10 +2,6 @@
   "EZD-172": [
     "scripts/gate.mjs"
   ],
-  "EZD-255": [
-    "scripts/launcher-idle.mjs",
-    "scripts/run.mjs"
-  ],
   "EZD-260": [
     ".claude/hooks/guard-paths.mjs",
     ".claude/hooks/guard-reads.mjs",
