@@ -163,3 +163,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-30 · EZD-267 · Fix: the launcher applies the guard grant for the files an approved plan names · a ticket whose approved plan changes guarded tooling builds without Josh applying a patch · 93059726
 2026-10-30 · EZD-278 · Next signed-off phase builds when the current phase has nothing buildable · the launcher no longer sits idle; current phase's buildable tickets still go first · 380ab95c
 2026-10-30 · EZD-255 · Fix: a hold or limit message names the repair unit · notifications, hold file and log now say 'repair <kind> for "<wait>"' when a repair hits a hold or limit · cbee4d96
+2026-10-30 · EZD-260 · Guards resolve symlinks before judging a path · an agent can no longer get around the file-write guard or the whole-read limit through a link or hard link to a protected file · a5d1e087
