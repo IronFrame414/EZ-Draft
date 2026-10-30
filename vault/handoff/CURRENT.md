@@ -1,12 +1,12 @@
-# Handoff · 2026-10-30 · build EZD-268
+# Handoff · 2026-10-30 · build EZD-277
 
 - Phase and stage: 1, Stage 3.
-- Why the session ended: EZD-268 blocked before any dispatch (no worktree made).
-- Completed: nothing built. Advisor consulted before blocking.
-- Blocked: EZD-268. Its plan (section 9) needs EZD-255 merged first: unitSubject, repairStopLine and scripts/launcher/repair-limits.test.mjs exist only on branch t/EZD-255, not on develop (git grep checked both).
-- EZD-255 is resumable now: its blocker EZD-266 is done (7eb76cb1). Resume at its worktree .claude/worktrees/EZD-255: gate, step 8 review, merge.
-- Open finding (rule 17): the STATUS/tickets.json row for EZD-268 lists only EZD-267 as dependency. EZD-255 and EZD-250 must be added (fix mode, orchestrator session). The same gap may hit EZD-265, EZD-270, EZD-274; check their plans' section 9.
-- Open finding (rule 17), still carried: the ledger check fails when a ticket is marked tooling in tickets.json before its plan has Build steps files (EZD-253).
+- Why the session ended: EZD-277 blocked before any dispatch (no worktree made). Advisor consulted.
+- Completed: nothing built.
+- Blocked: EZD-277. Plan section 9 needs EZD-260 merged first. Checked: git log develop..t/EZD-260 has 3 commits; not merged into develop; its diff touches lib.mjs, guard-paths.mjs, guard-reads.mjs (the files EZD-277 edits).
+- EZD-260 is resumable now: blocker EZD-266 is done (7eb76cb1). Resume at .claude/worktrees/EZD-260: merge develop in, gate, step 8 reviews (code-reviewer + security-reviewer), merge.
+- Open finding (rule 17), class fix wanted: tickets.json depends_on omits dependencies the plan's section 9 names. Now seen on EZD-268 (EZD-255, EZD-250) and EZD-277 (EZD-260). May also hit EZD-265, EZD-270, EZD-274. Fix each row in fix mode and add a preflight or plan-lint check that compares section 9 dependencies with depends_on.
+- Open finding (rule 17), still carried: ledger check fails when a ticket is marked tooling before its plan has Build steps files (EZD-253).
 - Last launcher failure (vault/handoff/last-failure.json): plan EZD-110, "no Architecture line in section 2"; not looked at.
 - Questions for Josh: none.
-- Next unit: build EZD-255 (resume), then EZD-268 once the dependency row is fixed.
+- Next unit order: build EZD-255 (resume), EZD-260 (resume), then EZD-277 once its depends_on has EZD-260, then EZD-279 (depends on EZD-277). EZD-268 after its row is fixed.
