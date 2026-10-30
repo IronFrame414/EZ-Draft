@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, eighteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, nineteenth run)
 
-Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443.
+Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443. EZD-271, EZD-272, EZD-273 are now `ready` (plans carry Q-0437 to Q-0442). EZD-269 stays `questions`: its plan is a split proposal (EZD-269b) that needs your yes before it is applied (PROCESS.md section 6).
 
 ## 1. Decisions needed
 
@@ -130,3 +130,10 @@ All still `candidate` (unattended run; none decided). Recommendation, one line e
 - L-034 (EZD-246, EZD-254): a plan's test table gives the exact test count and titles, a returned fixture shape in full, and exact-text blocks end with "nothing else". **Ratify**: reviewers found added work beyond the plan twice.
 - L-035 (EZD-253, EZD-154; seen twice): for each test row, run its input through the plan's own decision rows by hand and name the D-line that yields the expected value; list every sibling form of a blocked case. **Ratify**: two plans had an unreachable or uncovered case found only at test review.
 - L-036 (EZD-253, EZD-259): for each test row, state the input where old and new code differ and name every output channel the change reaches. **Ratify**: a row that passes on today's code tests nothing.
+- L-025 (EZD-244): a backfill covers the open-ticket set at build time, and the plan gives the command that derives it. **Ratify**: a frozen list went stale and failed `--check`.
+- L-026 (EZD-244): when a plan edits a file, grep the tests for its path; any hash or line-count pin becomes a structural-repair row. **Ratify**.
+- L-027 (EZD-244): when a ticket removes a pattern, grep every skill and process file and give each hit a replacement row. **Ratify**.
+- L-028 (EZD-246, EZD-240): exact-text and "after each step" rows are written as numbered checks naming the line or step. **Ratify**.
+- L-029 (EZD-248): a guard plan names the threat class, the fail-closed rule, the accepted cost, the shells in scope and whether a git-level control backs it. **Ratify**: example patterns failed three review rounds.
+- L-030 (EZD-248, EZD-251): a comment or rule text about code behavior cites the file, line and branch it restates. **Ratify**.
+- L-031 (EZD-257): a distinct-hash check names the input that makes each fixture's commits unique. **Ratify**.
