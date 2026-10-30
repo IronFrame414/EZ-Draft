@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 561,
+ "count": 563,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -16763,6 +16763,55 @@
     "AC-EZD-276-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-277",
+   "phase": 1,
+   "title": "Fix: the write and read guards compare paths case-insensitively on a case-insensitive disk",
+   "depends_raw": "EZD-267",
+   "spec_ref": "Q-0457",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-267"
+   ],
+   "build_position": 549,
+   "acs": [
+    "AC-EZD-277-1",
+    "AC-EZD-277-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-278",
+   "phase": 1,
+   "title": "Fix: the next signed-off phase builds while the current phase has no product ticket the launcher can build",
+   "depends_raw": "EZD-267",
+   "spec_ref": "Josh 2026-10-29 (chat)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-267"
+   ],
+   "build_position": 550,
+   "acs": [
+    "AC-EZD-278-1",
+    "AC-EZD-278-2",
+    "AC-EZD-278-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"
