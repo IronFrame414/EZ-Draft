@@ -14,6 +14,8 @@
     "vault/tools/findings.mjs"
   ],
   "EZD-268": [
+    ".claude/agents/builder.md",
+    ".claude/agents/test-author.md",
     ".claude/skills/build-ticket/SKILL.md",
     "scripts/launcher-idle.mjs",
     "scripts/run.mjs",
