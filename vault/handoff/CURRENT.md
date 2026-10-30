@@ -1,10 +1,9 @@
-# Handoff · 2026-10-30 · questions 2
+# Handoff · 2026-10-30 · build EZD-267
 
-- Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: Josh's answers Q-0447 (a), Q-0453 (a), Q-0454 (b) applied; plans EZD-108, EZD-140, EZD-276 updated (lint OK, no QP left); AC-EZD-276-2 reworded in acceptance-criteria.md and phase-01.md; EZD-108, EZD-140, EZD-276 set ready. All phase 2 tickets are ready.
-- In progress: none
-- Blocked: none in phase 2
-- Questions for Josh: none to decide. Still to confirm in vault/questions/phase-02-for-josh.md: agent answers (Q-0448 to Q-0452 and earlier), proposed wording, rule candidates L-022 to L-031.
-- Decisions made: none new
-- Next unit: build phase 2 tickets (EZD-276 plan is 30,572 chars, over the 25,000 target, noted by planner)
+- Status: blocked (reviews PASS, merge red)
+- Why: unit-steps merge ran the ticket gate after merging develop 94a0730b; 4 tests fail, and they also fail on develop itself (live-state pins): scripts/budget/cli.test.mjs:23 (hold 80 vs live 90), scripts/ledger/questions-flow.test.mjs (Q-0129 x2, Q-ID once; next Q-ID is now Q-0463).
+- Done this unit: plan closed QP-1 (Q-0457 a) and matches the diff; tests updated; builder r2; gate green in worktree; code-reviewer and security-reviewer PASS.
+- Worktree kept: .claude/worktrees/EZD-267 (t/EZD-267, update merge 756d47a5).
+- Question: Q-0463 (orchestrator level): new priority-1 fix ticket for the four tests, EZD-267 then resumes at step 10 with no new build round. Develop stays red until it lands.
+- Models: planner opus/high, test-author sonnet/medium, builder opus/high, code-reviewer opus/high, security-reviewer fable/high.
+- Next unit: fix ticket for the tests (after Q-0463), then /build-ticket EZD-267 (resume at merge).
