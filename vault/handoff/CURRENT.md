@@ -1,11 +1,11 @@
-# Handoff · 2026-10-30 · questions 1
+# Handoff · 2026-10-30 · questions 2
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete (unattended; no answers taken)
-- Completed this session: Phase 1 questions run. Q-0454 (EZD-276 QP-1, gate vs trend row) escalated to Josh: product call, spec and AC disagree. Written into vault/questions/phase-01-for-josh.md (section 1 and 3). No answered-agent rows were new for phase 1. Architecture line set on EZD-276. Sort and ledger check OK.
+- Completed this session: Phase 2 questions re-run. No open rows were left; Q-0447, Q-0453, Q-0454 are escalated. Q-0454 (EZD-276, gate vs trend row) had been written into phase-01-for-josh.md by mistake; moved to phase-02-for-josh.md (section 1 and 3). Sort and ledger check OK.
 - In progress: none
 - Blocked: EZD-267 on Q-0443
-- Questions for Josh: Q-0443, Q-0444, Q-0445, Q-0446, Q-0454 (vault/questions/phase-01-for-josh.md); 15 rule candidates L-022 to L-036 stay candidate
+- Questions for Josh: phase 2: Q-0447, Q-0453, Q-0454 (vault/questions/phase-02-for-josh.md); phase 1: Q-0443 to Q-0446; agent answers Q-0448 to Q-0452 await confirmation
 - Decisions made: none
-- Tickets set ready: none (EZD-269, 274, 275, 276 stay questions)
+- Tickets set ready: none new (EZD-117a, 117b, 118 already ready; EZD-108, 140, 276 stay questions; EZD-110 stays planned, split proposal 110a/110b pending)
 - Next unit: node vault/tools/next_ticket.mjs --next-unit

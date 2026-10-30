@@ -1,6 +1,6 @@
 # Phase 2 · for Josh (questions unit, 2026-10-30)
 
-Two decisions wait on you (Q-0447, Q-0453). Five questions (Q-0448 to Q-0452) were answered by agents with citations; confirm or override them in section 2. EZD-117a, EZD-117b and EZD-118 are `ready`. EZD-108 and EZD-140 stay `questions` until you answer. EZD-110 stays `planned`: its plan is over the size line and carries a split proposal (110a/110b) to apply first. A new fix ticket, EZD-276, was added from Q-0449.
+Three decisions wait on you (Q-0447, Q-0453, Q-0454). Five questions (Q-0448 to Q-0452) were answered by agents with citations; confirm or override them in section 2. EZD-117a, EZD-117b and EZD-118 are `ready`. EZD-108 and EZD-140 stay `questions` until you answer. EZD-110 stays `planned`: its plan is over the size line and carries a split proposal (110a/110b) to apply first. A new fix ticket, EZD-276, was added from Q-0449; it stays `questions` until you answer Q-0454.
 
 ## 1. Decisions needed
 
@@ -12,6 +12,10 @@ Two decisions wait on you (Q-0447, Q-0453). Five questions (Q-0448 to Q-0452) we
 **Q-0453 · EZD-140.** When a user turns a notification kind's In app off, what happens to notifications of that kind already in the bell?
 1. (Recommended) They stay; the switch applies to notifications sent after Save, as Email does. Reason: simplest, matches how email behaves, nothing disappears unexpectedly.
 2. They are hidden too and come back if In app is turned on again. Cost: the bell filters by the current setting, so a count can change when only a setting changed.
+
+**Q-0454 · EZD-276.** The acceptance criterion says the Projects first-cards row fails the check when the time is over 1000 ms. The spec (11 opening paragraph, R26 R10) and EZD-017 G1 say Projects-page times are `trend` rows that are recorded and never fail.
+1. (Recommended) Keep it a `trend` row that is marked over budget while the check passes, and reword the criterion to "is marked over budget". Reason: it follows the spec and Josh's earlier rule; a slow gate machine cannot fail the gate or EZD-017 on timing noise. Cost: a slow Projects page never stops a merge by itself.
+2. Make it a `gate` row that fails when the median is over 1000 ms. Cost: a slow CI runner can fail the gate; EZD-017 G1 and the spec paragraph change.
 
 ## 2. Agent answers to confirm
 
@@ -105,6 +109,10 @@ Board keys: `office.notifications.title`, `.mark_all_read`, `.show_older`, `.emp
 | Cancel confirm title | Discard this new project? |
 | Cancel confirm message | Nothing you typed will be saved. |
 | Cancel confirm buttons | Discard · Keep editing |
+
+### EZD-276
+
+None (check output for agents). If you pick 1 in Q-0454, AC-EZD-276-2 is reworded to "is marked over budget".
 
 ### EZD-140
 
