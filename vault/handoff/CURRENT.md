@@ -1,12 +1,10 @@
-# Handoff · 2026-10-30 · questions 1
+# Handoff · 2026-10-30 02:43 · plan EZD-140
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: questions 1. No new phase-1 question; Q-0443 to Q-0446 stay escalated (business or process decisions for Josh). Removed a duplicated rule-candidate list from vault/questions/phase-01-for-josh.md. No ticket set ready (EZD-269, EZD-274, EZD-275 wait on Josh; EZD-267 blocked on Q-0443).
+- Completed this session: Planned EZD-140: status questions, complexity high; open questions Q-0453.
 - In progress: none
-- Blocked: EZD-267 (Q-0443)
-- Questions for Josh: vault/questions/phase-01-for-josh.md
+- Blocked: none new
+- Questions for Josh: see vault/questions/QUESTIONS.md
 - Decisions made: none
-- Next unit: other ready work (phase 1 questions unchanged until Josh answers)
-
-Ledger: LEDGER OK: 559 tickets
+- Next unit: questions 1

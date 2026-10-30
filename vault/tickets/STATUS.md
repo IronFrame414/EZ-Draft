@@ -611,7 +611,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-642 | 20 | Commercial load calculation | todo |  | EZD-607, EZD-615 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-643 | 21 | Other code editions | todo |  | EZD-611a, EZD-613 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-139 | 9 | Visual diff of an old version | todo |  | EZD-122, EZD-121 |  |  | Added 2026-10-20 for Q-0220. |
-| EZD-140 | 2 | Notification settings per user | todo |  | EZD-110, EZD-108 |  |  | Added 2026-10-20 for Q-0220. Depends on EZD-108, which builds My profile (Q-0422). |
+| EZD-140 | 2 | Notification settings per user | questions | high | EZD-110, EZD-108 |  |  | Added 2026-10-20 for Q-0220. Depends on EZD-108, which builds My profile (Q-0422). |
 | EZD-1711 | 53 | Billing and paywall for other companies | todo |  | EZD-103, EZD-102 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1712 | 53 | Seats meter | todo |  | EZD-1711, EZD-105 |  |  | Added 2026-10-20 for Q-0220. |
 | EZD-1713 | 53 | Onboarding a new company | todo |  | EZD-1711, EZD-105, EZD-112 |  |  | Added 2026-10-20 for Q-0220. |
