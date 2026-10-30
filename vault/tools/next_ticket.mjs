@@ -4,7 +4,7 @@
 //   node vault/tools/next_ticket.mjs --ready         -> the next `ready` ticket whose dependencies are all done (Stage 3)
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
-//   node vault/tools/next_ticket.mjs --grant-needs   -> JSON [{ id, paths }]: ready tickets held for a guard grant (EZD-250)
+//   node vault/tools/next_ticket.mjs --grant-needs   -> JSON [{ id, paths }]: build-pool then in-progress/review tickets that need a guard grant (EZD-250, EZD-267)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
 //   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
@@ -760,9 +760,12 @@ function buildPool(B) {
   return pool;
 }
 
-// EZD-250 D6: every ticket of the build pool (EZD-253 D11) that waits on a guard grant, with the paths it needs.
+// EZD-250 D6: every ticket of the build pool (EZD-253 D11) that waits on a guard grant, with the paths it needs; then (EZD-267)
+// every in-progress or review ticket not in the pool, in tickets.json order.
 function heldForGrants() {
-  return buildPool(blockingPhase()).map((t) => ({ id: t.id, paths: grantNeeds({ root, id: t.id }) })).filter((h) => h.paths.length);
+  const pool = buildPool(blockingPhase());
+  const flying = data.tickets.filter((t) => ['in-progress', 'review'].includes(status(t.id)) && !pool.some((p) => p.id === t.id));
+  return [...pool, ...flying].map((t) => ({ id: t.id, paths: grantNeeds({ root, id: t.id }) })).filter((h) => h.paths.length);
 }
 
 function nextUnit() {
@@ -833,10 +836,15 @@ function nextUnit() {
   const missing = checkpointMissing();
   if (missing.length && ((pool.length && ticketNumber(pool[0].id) >= CHECKPOINT_FROM) || (B !== null && phaseTickets(B).some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM))))
     return `none: architecture checkpoint not met (${missing.join('; ')})`;
-  // EZD-250 D6: a ready ticket whose plan needs a guard grant is held until Josh applies it; the others build meanwhile.
-  const free = pool.find((t) => grantNeeds({ root, id: t.id }).length === 0);
+  // EZD-250 D6: a ready ticket whose plan needs a guard grant is held until the grant is in place; the others build meanwhile.
+  // EZD-267: the held text names each ticket's paths.
+  const needs = new Map();
+  const free = pool.find((t) => {
+    needs.set(t.id, grantNeeds({ root, id: t.id }));
+    return needs.get(t.id).length === 0;
+  });
   if (free) return `build ${free.id}`;
-  if (pool.length) return `none: waiting on Josh (guard grant for ${pool.map((t) => t.id).join(', ')}; see vault/handoff/)`;
+  if (pool.length) return `none: waiting on Josh (guard grant for ${pool.map((t) => `${t.id}: ${needs.get(t.id).join(', ')}`).join('; ')}; see vault/handoff/)`;
   if (reason) return reason;
   if (B !== null) {
     if (!signedOff(B)) return `none: phase ${B} spec not signed off (spec-check unit needs Josh)`;

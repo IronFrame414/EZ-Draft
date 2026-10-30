@@ -20,7 +20,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withLedgerLock, withMergeLock, tryLock, readLock, updateStatusRow, commitPaths, closeUnit, inflightDir, LockError } from './ledger.mjs';
+import { withLedgerLock, withMergeLock, tryLock, readLock, updateStatusRow, commitPaths, commitOrRestore, closeUnit, inflightDir, LockError } from './ledger.mjs';
+import { dropGrant } from '../vault/tools/grants.mjs';
 
 const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const statusPath = path.join(root, 'vault/tickets/STATUS.md');
@@ -257,6 +258,14 @@ function merge() {
       git('worktree', 'remove', `.claude/worktrees/${ticket}`);
       git('branch', '-D', `t/${ticket}`);
       setStatus({ status: 'done', commit: hash, tests });
+      // EZD-267: the ticket's guard grant goes with the merge; a failure is a note, not a stop.
+      try {
+        const grantsRel = '.claude/hooks/grants.json';
+        const before = existsSync(path.join(root, grantsRel)) ? readFileSync(path.join(root, grantsRel), 'utf8') : null;
+        if (dropGrant({ root, id: ticket }).removed) commitOrRestore(root, grantsRel, before, `chore(guard): remove grant ${ticket}`);
+      } catch (e) {
+        console.log(`MERGE NOTE ${ticket}: guard grant not removed: ${e.message}`);
+      }
       console.log(`MERGE OK ${ticket} commit=${hash} tests=${tests || '?'} (STATUS → done; add Notes, DONE.md line and lessons)`);
       return 0;
     });

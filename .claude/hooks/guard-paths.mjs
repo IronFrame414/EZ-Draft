@@ -116,7 +116,7 @@ const resolvedFile = norm(path.resolve(norm(input.cwd) || projectDir(), norm(fil
 const usageFixTicket = resolvedFile.startsWith(worktreesPrefix) ? /^(EZD-\d+[a-z]?)\//.exec(resolvedFile.slice(worktreesPrefix.length))?.[1] : undefined;
 if (agent === 'builder' && usageFixTicket && !isTest && Object.hasOwn(usageFixFiles, usageFixTicket) && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
 // Builder grants from .claude/hooks/grants.json (EZD-250 D1): ticket ID → the exact paths its builder may write in its own
-// worktree; Josh applies them from vault/handoff/<T>-grant.patch. Read on every call. Unreadable, invalid JSON or not a plain
+// worktree; the launcher writes them from the ticket's approved plan (EZD-267); Josh applies a patch only for a plan that is not approved. Read on every call. Unreadable, invalid JSON or not a plain
 // object grants nothing; a value that is not a list of strings grants nothing for that ticket (fail closed).
 function fileGrants() {
   try {

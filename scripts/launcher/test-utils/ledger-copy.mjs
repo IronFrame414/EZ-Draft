@@ -62,7 +62,7 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
       data.tickets.push({ id, phase: 1, title: `EZD-250 test ${id}`, spec_files: model.spec_files, decisions: model.decisions, mockups: [], phase_file: 'tickets/phases/phase-01.md', depends_on: [], acs: [], architecture: [] });
     }
     setTickets(data);
-    appendFileSync(file('tickets/STATUS.md'), synthetic.map(([id, st]) => `| ${id} | 1 | EZD-250 test ${id} | ${st} | ${st === 'ready' ? 'low' : ''} |  |  |  | Synthetic ticket of scripts/launcher/test-utils/ledger-copy.mjs. |\n`).join(''));
+    appendFileSync(file('tickets/STATUS.md'), synthetic.map(([id, st]) => `| ${id} | 1 | EZD-250 test ${id} | ${st} | ${['ready', 'in-progress', 'review'].includes(st) ? 'low' : ''} |  |  |  | Synthetic ticket of scripts/launcher/test-utils/ledger-copy.mjs. |\n`).join(''));
     appendFileSync(file('tickets/phases/phase-01.md'), '\n' + synthetic.map(([id]) => `| ${id} | EZD-250 test ${id} | The test passes. | — | — |\n`).join(''));
     const acs = tool('gen_acs.mjs', []);
     assert.equal(acs.status, 0, acs.stdout + acs.stderr);

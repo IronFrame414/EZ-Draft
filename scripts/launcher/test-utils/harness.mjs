@@ -250,3 +250,30 @@ export const planText = (id, paths) =>
   ].join('\n');
 
 export const GH_ARGV = 'pr checks https://github.com/o/r/pull/5 --json name,bucket,link';
+
+// EZD-267: a plan that passes the strict lint (vault/tools/plan_lint.mjs lintPlan returns []), for the approved-plan tests.
+// question: true adds one open question, which the lint reports as `section 10: open questions remain: QP-1`.
+export const approvedPlanText = (id, paths, { question = false } = {}) =>
+  [
+    [`# ${id} · fixture`],
+    ['## 1. What to build'],
+    [
+      '### Build steps',
+      '| # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |',
+      '| --- | --- | --- | --- | --- | --- |',
+      ...paths.map((p, i) => `| ${i + 1} | \`${p}\` | change | none | none | none |`),
+    ],
+    ['### Decided for the builder', 'None.'],
+    ['### Do not touch', 'None.'],
+    ['## 2. Sources', 'Architecture: none beyond the core'],
+    ['## 3. Interface contract', 'None.'],
+    ['## 4. Tests', '| Test | Expected value |', '| --- | --- |', '| F1 | 1 |'],
+    ['## 5. Visual checklist', 'None.'],
+    ['## 6. Proposed wording', 'None.'],
+    ['## 7. Security review', 'security-review: no'],
+    ['## 8. Complexity and model recommendation', 'low'],
+    ['## 9. Dependencies', 'None.'],
+    ['## 10. Open questions', question ? 'QP-1 fixture question.' : 'None.'],
+  ]
+    .map((block) => [...block, ''].join('\n'))
+    .join('\n');

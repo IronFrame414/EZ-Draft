@@ -1,16 +1,22 @@
 #!/usr/bin/env node
-// Builder guard grants (EZD-250; vault/plans/EZD-250.md D1-D5). A ticket whose plan writes files the builder may not
-// write is held until Josh applies one patch to .claude/hooks/grants.json (ticket ID → sorted paths).
+// Builder guard grants (EZD-250 D1-D5; EZD-267). The launcher writes .claude/hooks/grants.json (ticket ID → sorted paths) from a
+// ticket's approved plan and removes the entry at merge; a plan that is not approved goes to Josh as one patch.
 // Usage: node vault/tools/grants.mjs needs <T>              the plan's Build-steps paths the guard denies the builder, one per line
 //        node vault/tools/grants.mjs patch <T> <path>...    write vault/handoff/<T>-grant.patch; prints {"path","written"}
-import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, unlinkSync, realpathSync } from 'node:fs';
+//        node vault/tools/grants.mjs apply <T>              grant an approved plan's needs; prints {"id","approved","paths","written","reason"}
+//        node vault/tools/grants.mjs drop <T>               remove the ticket's entry; prints {"removed"}
+import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, unlinkSync, realpathSync, renameSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { lintPlan } from './plan_lint.mjs';
 
 const GRANTS_REL = '.claude/hooks/grants.json';
 const ID_RE = /^EZD-\d+[a-z]?$/;
+export const APPROVED_STATUSES = ['ready', 'in-progress', 'review'];
+export const JOSH_ONLY_PATHS = ['.claude/hooks/grants.json', 'scripts/gate.mjs'];
 
 // D4: the Path cell of each row of the section 1 `### Build steps` table: every backticked token with no space that holds
 // `/` or `.`, leading `./` removed. Plan order, no repeats.
@@ -99,6 +105,87 @@ function doneIds(root) {
   return done;
 }
 
+// EZD-267: the status cell of the ticket's STATUS.md row (the doneIds parse); null = no row.
+function statusOf(root, id) {
+  let text = '';
+  try {
+    text = readFileSync(path.join(root, 'vault/tickets/STATUS.md'), 'utf8');
+  } catch {
+    return null;
+  }
+  for (const line of text.split('\n')) {
+    const m = line.match(/^\| (EZD-\w+) \|/);
+    if (m && m[1] === id) return line.split('|')[4]?.trim() ?? '';
+  }
+  return null;
+}
+
+// EZD-267: approved = status ready, in-progress or review, the plan exists and the strict plan_lint finds no problem.
+export function planApproval({ root, id }) {
+  const status = statusOf(root, id);
+  if (status === null) return { approved: false, reason: 'status none' };
+  if (!APPROVED_STATUSES.includes(status)) return { approved: false, reason: `status ${status}` };
+  const planFile = path.join(root, 'vault/plans', `${id}.md`);
+  if (!existsSync(planFile)) return { approved: false, reason: 'no plan' };
+  const problems = lintPlan(readFileSync(planFile, 'utf8'));
+  if (problems.length) return { approved: false, reason: `plan_lint: ${problems[0]}` };
+  return { approved: true, reason: null };
+}
+
+// EZD-267 (Q-0457 (a)): the first path whose normalized lower-case form is Josh-only; none → null.
+export function joshOnlyPath(paths) {
+  return paths.find((p) => JOSH_ONLY_PATHS.includes(path.posix.normalize(p).toLowerCase())) ?? null;
+}
+
+const grantsText = (obj) => JSON.stringify(Object.fromEntries(Object.keys(obj).sort().map((k) => [k, obj[k]])), null, 2) + '\n';
+
+// EZD-267 "Write": an exclusive temp file in .claude/hooks renamed onto grants.json; any failure throws `grants.json not written: <code>`.
+function writeGrants(root, text) {
+  const file = path.join(root, GRANTS_REL);
+  const dir = path.dirname(file);
+  const tmp = path.join(dir, `.grants.json.${process.pid}.${randomUUID()}.tmp`);
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(tmp, text, { flag: 'wx' });
+    renameSync(tmp, file);
+  } catch (e) {
+    try {
+      unlinkSync(tmp);
+    } catch {}
+    throw new Error(`grants.json not written: ${e.code || e.message}`);
+  }
+}
+
+// EZD-267: grant <id> the paths its approved plan needs; needs and approval are computed here, never taken from the caller.
+export function applyGrant({ root, id }) {
+  const a = planApproval({ root, id });
+  const needs = grantNeeds({ root, id });
+  if (!needs.length) return { id, approved: a.approved, paths: [], written: false, reason: a.reason };
+  if (!a.approved) return { id, approved: false, paths: needs, written: false, reason: a.reason };
+  const p = joshOnlyPath(needs);
+  if (p !== null) return { id, approved: false, paths: needs, written: false, reason: `josh-only path ${p}` };
+  const { text: oldText, obj } = readGrants(root);
+  const done = doneIds(root);
+  const next = {};
+  for (const k of Object.keys(obj)) if (k !== id && !done.has(k)) next[k] = obj[k];
+  const listed = planPaths(readFileSync(path.join(root, 'vault/plans', `${id}.md`), 'utf8'));
+  const entry = [...new Set([...(obj[id] ?? []).filter((p) => listed.includes(p)), ...needs])].sort();
+  next[id] = entry;
+  const text = grantsText(next);
+  const written = text !== oldText;
+  if (written) writeGrants(root, text);
+  return { id, approved: true, paths: entry, written, reason: null };
+}
+
+// EZD-267: remove <id>'s entry; no entry (or no file) writes nothing.
+export function dropGrant({ root, id }) {
+  const { obj } = readGrants(root);
+  if (!Object.prototype.hasOwnProperty.call(obj, id)) return { removed: false };
+  delete obj[id];
+  writeGrants(root, grantsText(obj));
+  return { removed: true };
+}
+
 // D5: one patch to grants.json that adds <id> with its sorted paths and drops done tickets, at vault/handoff/<id>-grant.patch.
 export function writeGrantPatch({ root, id, paths }) {
   const { text: oldText, obj } = readGrants(root);
@@ -156,7 +243,7 @@ if (isMain) {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
   const [cmd, id, ...rest] = process.argv.slice(2);
   const usage = () => {
-    process.stderr.write('usage: node vault/tools/grants.mjs needs <T> | patch <T> <path>...\n');
+    process.stderr.write('usage: node vault/tools/grants.mjs needs <T> | patch <T> <path>... | apply <T> | drop <T>\n');
     process.exit(2);
   };
   if (!ID_RE.test(id || '')) usage();
@@ -166,6 +253,14 @@ if (isMain) {
   } else if (cmd === 'patch' && rest.length > 0) {
     try {
       process.stdout.write(JSON.stringify(writeGrantPatch({ root, id, paths: rest })) + '\n');
+    } catch (e) {
+      process.stderr.write(`${e.message}\n`);
+      process.exit(1);
+    }
+  } else if ((cmd === 'apply' || cmd === 'drop') && rest.length === 0) {
+    try {
+      const out = cmd === 'apply' ? applyGrant({ root, id }) : dropGrant({ root, id });
+      process.stdout.write(JSON.stringify(out) + '\n');
     } catch (e) {
       process.stderr.write(`${e.message}\n`);
       process.exit(1);

@@ -227,6 +227,29 @@ export function commitPaths(root, paths, msg) {
   return { sha: git(root, 'rev-parse', '--short', 'HEAD').stdout.trim() };
 }
 
+// EZD-267: commit one file; when the commit throws or is skipped, put back its old text (null = no file) and its index entry, then throw.
+export function commitOrRestore(root, rel, before, msg) {
+  let r;
+  try {
+    r = commitPaths(root, [rel], msg);
+  } catch (e) {
+    restoreFile(root, rel, before);
+    throw e;
+  }
+  if (r.skipped) {
+    restoreFile(root, rel, before);
+    throw new Error(r.skipped);
+  }
+  return r;
+}
+
+export function restoreFile(root, rel, before) {
+  git(root, 'reset', '-q', '--', rel);
+  if (before === null) {
+    try { unlinkSync(path.join(root, rel)); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  } else writeFileAtomic(root, path.join(root, rel), before);
+}
+
 // ---- Ledger writes (C4) ----
 const STATUS_REL = 'vault/tickets/STATUS.md';
 const QUESTIONS_REL = 'vault/questions/QUESTIONS.md';

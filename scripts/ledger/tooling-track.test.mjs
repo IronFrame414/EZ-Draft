@@ -344,7 +344,7 @@ test('EZD-253 U20 a guard grant for a tooling ticket of an earlier phase holds o
     appendFileSync(file(`plans/${P2}.md`), '| 2 | `scripts/run.mjs` | new | none | none | none |\n');
     const needs = run('next_ticket.mjs', ['--grant-needs']);
     assert.deepEqual(JSON.parse(needs.stdout), [{ id: T1, paths: ['scripts/run.mjs'] }, { id: P2, paths: ['scripts/run.mjs'] }]);
-    assert.equal(nextUnit(), `none: waiting on Josh (guard grant for ${T1}, ${P2}; see vault/handoff/)`);
+    assert.equal(nextUnit(), `none: waiting on Josh (guard grant for ${T1}: scripts/run.mjs; ${P2}: scripts/run.mjs; see vault/handoff/)`);
   } finally {
     rmSync(path.join(dir, '.claude'), { recursive: true, force: true });
     reset();

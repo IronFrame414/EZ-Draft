@@ -26,7 +26,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, withLedgerLock, recordPlan, writeHandoff, launcherHandoffText, writeFileAtomic, closeUnit, commitPaths,
+  launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, withLedgerLock, recordPlan, writeHandoff, launcherHandoffText, writeFileAtomic, closeUnit, commitOrRestore, restoreFile,
 } from './ledger.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -388,10 +388,10 @@ function applyQueuedEdits() {
   }
 }
 
-// EZD-250 D11: a ticket held for a guard grant reaches Josh as one patch notification; a patch whose grant is in place is removed.
+// EZD-267: a ticket held for a guard grant gets its grant from its approved plan (grants.mjs apply, committed); a plan not approved reaches Josh as one patch (EZD-250 D11).
 const grantFailuresSent = new Set();
 let grantCheckUnreadable = false; // logged once until a readable result
-function grantNotices() {
+function grantPass() {
   const g = tool('--grant-needs');
   const out = (g.stdout || '').trim();
   let held = null;
@@ -402,30 +402,96 @@ function grantNotices() {
     return;
   }
   grantCheckUnreadable = false;
-  for (const { id, paths } of held) {
-    const r = spawnSync(process.execPath, [path.join(vault, 'tools/grants.mjs'), 'patch', id, ...paths], { encoding: 'utf8', cwd: root });
-    if (r.status !== 0) {
-      const line = firstLine(r.stderr) || `exit ${r.status}`;
-      if (grantFailuresSent.has(`${id}\n${line}`)) continue;
-      grantFailuresSent.add(`${id}\n${line}`);
-      notify(`grant patch for ${id} failed: ${line}. Tickets that need a guard grant stay held.`);
-      continue;
-    }
-    let res = null;
-    try { res = JSON.parse(r.stdout); } catch {}
-    if (res?.written) {
-      notify(`guard grant ready for ${id}: from the repo root run git apply vault/handoff/${id}-grant.patch && git commit -m "chore(guard): grant ${id}" -- .claude/hooks/grants.json`);
-      withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => commitPaths(root, [`vault/handoff/${id}-grant.patch`], `docs(vault): guard grant patch ${id}`));
+  const notifyOnce = (id, text) => {
+    if (grantFailuresSent.has(`${id}\n${text}`)) return;
+    grantFailuresSent.add(`${id}\n${text}`);
+    notify(text);
+  };
+  const grantsRel = '.claude/hooks/grants.json';
+  const stayHeld = '. Tickets that need a guard grant stay held.';
+  const readOrNull = (rel) => {
+    try { return readFileSync(path.join(root, rel), 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw e; }
+  };
+  const restoreIfChanged = (rel, before) => {
+    let now;
+    try { now = readOrNull(rel); } catch { now = undefined; }
+    if (now !== before) restoreFile(root, rel, before);
+  };
+  const keep = new Set(held.map((h) => h.id));
+  for (const { id } of held) {
+    const patchRel = `vault/handoff/${id}-grant.patch`;
+    try {
+      withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => {
+        let before;
+        try { before = readOrNull(grantsRel); } catch (e) {
+          notifyOnce(id, `guard grant for ${id} failed: grants.json unreadable: ${e.code || e.message}${stayHeld}`);
+          return;
+        }
+        const r = spawnSync(process.execPath, [path.join(vault, 'tools/grants.mjs'), 'apply', id], { encoding: 'utf8', cwd: root });
+        if (r.status !== 0) {
+          restoreIfChanged(grantsRel, before);
+          notifyOnce(id, `guard grant for ${id} failed: ${firstLine(r.stderr) || `exit ${r.status}`}${stayHeld}`);
+          return;
+        }
+        let res = null;
+        try { res = JSON.parse(r.stdout); } catch {}
+        if (res === null || typeof res !== 'object' || typeof res.approved !== 'boolean' || !Array.isArray(res.paths)) {
+          restoreIfChanged(grantsRel, before);
+          notifyOnce(id, `guard grant for ${id} failed: apply output unreadable${stayHeld}`);
+          return;
+        }
+        if (res.approved) {
+          if (res.written) {
+            try {
+              commitOrRestore(root, grantsRel, before, `chore(guard): grant ${id} (approved plan)`);
+            } catch (e) {
+              notifyOnce(id, `guard grant for ${id} not committed: ${e.message}${stayHeld}`);
+              return;
+            }
+            log(`guard grant applied for ${id}: ${res.paths.join(', ')}`);
+          }
+          keep.delete(id);
+          return;
+        }
+        if (!res.paths.length) { keep.delete(id); return; }
+        const patchBefore = readOrNull(patchRel);
+        const p = spawnSync(process.execPath, [path.join(vault, 'tools/grants.mjs'), 'patch', id, ...res.paths], { encoding: 'utf8', cwd: root });
+        if (p.status !== 0) {
+          restoreIfChanged(patchRel, patchBefore);
+          notifyOnce(id, `grant patch for ${id} failed: ${firstLine(p.stderr) || `exit ${p.status}`}${stayHeld}`);
+          return;
+        }
+        let pres = null;
+        try { pres = JSON.parse(p.stdout); } catch {}
+        if (pres?.written) {
+          try {
+            commitOrRestore(root, patchRel, patchBefore, `docs(vault): guard grant patch ${id}`);
+          } catch (e) {
+            notifyOnce(id, `guard grant for ${id} not committed: ${e.message}${stayHeld}`);
+            return;
+          }
+          notify(`guard grant for ${id} needs you: ${res.paths.join(', ')} (${res.reason}); from the repo root run git apply vault/handoff/${id}-grant.patch && git commit -m "chore(guard): grant ${id}" -- .claude/hooks/grants.json`);
+        }
+      });
+    } catch (e) {
+      notifyOnce(id, `guard grant for ${id} failed: ${e.message}${stayHeld}`);
     }
   }
-  const listed = new Set(held.map((h) => h.id));
   let names = [];
   try { names = readdirSync(path.join(vault, 'handoff')); } catch {}
   for (const n of names) {
     const id = n.match(/^(.+)-grant\.patch$/)?.[1];
-    if (!id || listed.has(id)) continue;
-    try { unlinkSync(path.join(vault, 'handoff', n)); } catch { continue; }
-    withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => commitPaths(root, [`vault/handoff/${n}`], `docs(vault): guard grant in place ${id}`));
+    if (!id || keep.has(id)) continue;
+    const patchRel = `vault/handoff/${n}`;
+    try {
+      withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => {
+        const b = readFileSync(path.join(root, patchRel), 'utf8');
+        unlinkSync(path.join(root, patchRel));
+        commitOrRestore(root, patchRel, b, `docs(vault): guard grant in place ${id}`);
+      });
+    } catch (e) {
+      notifyOnce(id, `guard grant for ${id} not committed: ${e.message}${stayHeld}`);
+    }
   }
 }
 
@@ -482,7 +548,7 @@ async function main() {
     // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
     if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
-    if (continuous && !stopExists) { applyQueuedEdits(); grantNotices(); }
+    if (continuous && !stopExists) { applyQueuedEdits(); grantPass(); }
     const next = stopExists ? '' : nextUnitText();
     let [unitName, arg] = next.split(/\s+/, 2);
     const effective = stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`;

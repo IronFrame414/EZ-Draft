@@ -193,3 +193,62 @@ test('table refuses a ticket that is not in-progress or review and changes nothi
   assert.equal(row(dir, 'EZD-002'), before);
   rmSync(dir, { recursive: true, force: true });
 });
+
+// ---- EZD-267 M1-M4: the merge removes the ticket's guard grant (vault/plans/EZD-267.md sections 3 and 4, step 5) ----
+// The other key of grants.json is EZD-003: the plan names EZD-002 there, which is the ticket merged in this fixture.
+const GRANTS_REL = '.claude/hooks/grants.json';
+const grantsFile = (dir) => path.join(dir, GRANTS_REL);
+function grantFixture(grantsText, { gateExit = 0 } = {}) {
+  const dir = fixture({ gateExit });
+  run(dir, 'worktree', 'EZD-002');
+  mkdirSync(path.dirname(grantsFile(dir)), { recursive: true });
+  commitIn(dir, GRANTS_REL, grantsText, 'test grants');
+  commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  return dir;
+}
+const subjects = (dir) => git(dir, 'log', '--format=%s').split('\n');
+const guardSubjects = (dir) => subjects(dir).filter((s) => s.startsWith('chore(guard)'));
+
+test('EZD-267 M1 merge removes: a green merge drops the ticket grant in its own commit and keeps the other keys (AC-EZD-267-3)', () => {
+  const dir = grantFixture('{"EZD-003":["y"],"EZD-002":["scripts/run.mjs"]}');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /MERGE OK/);
+  assert.equal(readFileSync(grantsFile(dir), 'utf8'), '{\n  "EZD-003": [\n    "y"\n  ]\n}\n');
+  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'chore(guard): remove grant EZD-002');
+  assert.equal(git(dir, 'show', '--name-only', '--format=', 'HEAD'), GRANTS_REL);
+  assert.match(row(dir, 'EZD-002'), /\| done \|/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-267 M2 red gate keeps: a red develop gate leaves the grant and makes no removal commit (AC-EZD-267-3)', () => {
+  const text = '{"EZD-003":["y"],"EZD-002":["scripts/run.mjs"]}';
+  const dir = grantFixture(text, { gateExit: 1 });
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /MERGE RED/);
+  assert.equal(readFileSync(grantsFile(dir), 'utf8'), text);
+  assert.deepEqual(guardSubjects(dir), []);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-267 M3 no entry: a merge of a ticket with no grant changes no file and makes no guard commit (AC-EZD-267-3)', () => {
+  const text = '{"EZD-003":["y"]}';
+  const dir = grantFixture(text);
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /MERGE OK/);
+  assert.equal(readFileSync(grantsFile(dir), 'utf8'), text);
+  assert.deepEqual(guardSubjects(dir), []);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-267 M4 unreadable: a broken grants.json is reported in a note and does not stop the merge (AC-EZD-267-3)', () => {
+  const dir = grantFixture('{');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.ok(r.stdout.includes('MERGE NOTE EZD-002: guard grant not removed: grants.json unreadable: invalid JSON'), r.stdout);
+  assert.match(r.stdout, /MERGE OK/);
+  assert.equal(readFileSync(grantsFile(dir), 'utf8'), '{');
+  rmSync(dir, { recursive: true, force: true });
+});
