@@ -306,3 +306,8 @@ Plan check: each test row names the old code's result on its input and lists the
 Mistake: EZD-267's plan gave an automatic permission grant and its apply/commit flow only the success path: no fixed list of files never granted (gate.mjs, grants.json), no restore for failed apply or failed commit, and a regression test whose input dropped a file the real case had (same shape: EZD-250, EZD-248, EZD-254).
 Rule: a plan for code that grants a permission, or writes then commits, names the files it never grants with the refusal reason, the restore and single notice for every step that can fail after a write, and a test per failure branch whose input has every file the real case has.
 Plan check: each write-then-commit step lists its failure branch and restore; each grant rule lists its deny list.
+
+## L-038  areas: tooling, scripts, process  seen: 1  status: candidate
+Mistake: tests pinned live values (budget hold 80, next Q-ID), so merges went red on develop for causes outside the diff (EZD-267, EZD-259, EZD-172, EZD-199); plan text also fixed a comment's line count and was off by a line (EZD-172, EZD-267).
+Rule: a plan's test rows use fixture values, never the live ledger or budget files; plan text about a comment or doc names the sentence, not an exact line count.
+Plan check: no test row reads vault/ ledger files, budget.json or the live next Q-ID; no plan text pins a comment's line count.
