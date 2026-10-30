@@ -43,8 +43,8 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
         const c = m[2].split('|');
         const st = c[2].trim();
         if (phaseZeroDone && phase0.has(m[1]) && st !== 'done') c[2] = ' done ';
-        else if (Number(c[0]) > 1 && signedPhases.has(Number(c[0])) && ['todo', 'planned', 'questions'].includes(st)) {
-          // Later signed-off phases stay quiet (EZD-281 D3); unsigned phases are left alone.
+        else if (Number(c[0]) > 1 && signedPhases.has(Number(c[0])) && ['todo', 'planned', 'questions', 'ready', 'in-progress', 'review'].includes(st)) {
+          // Later signed-off phases stay quiet (EZD-281 D3, EZD-278): every ticket there not done or blocked is blocked; unsigned phases are left alone.
           c[2] = ' blocked ';
           if (!c[7].trim()) c[7] = ' ezd-250 fixture ';
         }

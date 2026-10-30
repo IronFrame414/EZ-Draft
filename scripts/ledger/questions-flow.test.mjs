@@ -65,13 +65,13 @@ before(async () => {
   }
   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
-  // Later phases stay quiet (EZD-281 D3): an open question of any phase is answered, and every todo, planned or questions ticket of a signed-off
+  // Later phases stay quiet (EZD-281 D3, EZD-278): an open question of any phase is answered, and every ticket not done or blocked of a signed-off
   // phase above phase 0 is blocked, so no live phase 1 or 2 work leaks into the phase 0 fixture. Unsigned phases are left alone.
   const signed = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
   for (const rel of QFILES) if (existsSync(file(rel))) edit(rel, (s) => s.replace(/^(\|\s*Q-\d{4}\s*\|[^|]*\|[^|]*\|[^|]*\|\s*)open(\s*\|)/gm, '$1answered-agent$2'));
   edit('tickets/STATUS.md', (s) => s.split('\n').map((l) => {
     const c = l.split('|');
-    if (c.length < 10 || !/^ EZD-/.test(c[1]) || !(Number(c[2]) > 0) || !signed.has(Number(c[2])) || !['todo', 'planned', 'questions'].includes(c[4].trim())) return l;
+    if (c.length < 10 || !/^ EZD-/.test(c[1]) || !(Number(c[2]) > 0) || !signed.has(Number(c[2])) || !['todo', 'planned', 'questions', 'ready', 'in-progress', 'review'].includes(c[4].trim())) return l;
     c[4] = ' blocked '; if (!c[9].trim()) c[9] = ' questions-flow.test.mjs fixture '; return c.join('|');
   }).join('\n'));
   // Tickets the reset above opened carry the architecture list their plan names (EZD-244), as the live ledger's open tickets do, and the tooling mark it implies (EZD-253).

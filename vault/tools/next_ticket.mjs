@@ -746,17 +746,27 @@ function gateState(p) {
 const wrapped = (p) => existsSync(path.join(vault, 'cost', `phase-${pad2(p)}.md`));
 
 // EZD-253 D6: the first phase, ascending, with a product ticket (no tooling mark) not done or blocked; null when none.
-function blockingPhase() {
+export function blockingPhase() {
   const ps = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
   return ps.find((p) => phaseTickets(p).some((t) => !isTooling(t) && !['done', 'blocked'].includes(status(t.id)))) ?? null;
 }
-// EZD-253 D9: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies done,
-// by phase then priority; then, when B is signed off, B's ready product tickets.
-function buildPool(B) {
+// EZD-253 D9, EZD-278: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies
+// done, by phase then priority; then, when B is signed off, B's ready product tickets; then, when the phase after B is signed off,
+// its ready product tickets (those numbered CHECKPOINT_FROM or higher only once the architecture checkpoint is met). nextUnit
+// builds the first one no guard grant holds, so the next phase builds only while B has none the launcher can build.
+export function buildPool(B) {
   const cap = B ?? Math.max(...data.tickets.map((t) => t.phase));
   const pool = data.tickets.filter((t) => isTooling(t) && t.phase <= cap && status(t.id) === 'ready' && depsDone(t))
     .sort((a, b) => a.phase - b.phase || byPriority(a, b));
-  if (B !== null && signedOff(B)) pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
+  if (B !== null && signedOff(B)) {
+    pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
+    const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+    const next = phases.find((q) => q > B);
+    if (next !== undefined && signedOff(next)) {
+      const early = checkpointMissing().length > 0;
+      pool.push(...candidates(next, true).filter((t) => !isTooling(t) && !(early && ticketNumber(t.id) >= CHECKPOINT_FROM)));
+    }
+  }
   return pool;
 }
 

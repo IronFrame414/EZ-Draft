@@ -53,7 +53,7 @@ before(() => {
     return `| ${m[1]} |${c.join('|')}|`;
   }).join('\n'));
 
-  // Later phases stay quiet (EZD-281 D3): an open question of any phase is answered, and every todo, planned or questions ticket of a signed-off
+  // Later phases stay quiet (EZD-281 D3, EZD-278): an open question of any phase is answered, and every ticket not done or blocked of a signed-off
   // phase above phase 1 is blocked. Unsigned phases are left alone.
   const signed = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
   for (const rel of ['questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md']) if (existsSync(file(rel))) {
@@ -63,7 +63,7 @@ before(() => {
     const m = line.match(/^\| (EZD-\w+) \|(.*)\|$/);
     if (!m) return line;
     const c = m[2].split('|');
-    if (!(Number(c[0]) > 1) || !signed.has(Number(c[0])) || !['todo', 'planned', 'questions'].includes(c[2].trim())) return line;
+    if (!(Number(c[0]) > 1) || !signed.has(Number(c[0])) || !['todo', 'planned', 'questions', 'ready', 'in-progress', 'review'].includes(c[2].trim())) return line;
     c[2] = ' blocked '; if (!c[7].trim()) c[7] = ' priority test fixture ';
     return `| ${m[1]} |${c.join('|')}|`;
   }).join('\n'));
