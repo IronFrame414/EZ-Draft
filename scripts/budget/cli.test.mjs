@@ -5,7 +5,7 @@ import { cpSync, mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSy
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let tmp;
@@ -20,15 +20,19 @@ before(() => {
   for (const x of ['vault/cost/usage.json', 'vault/handoff/BUDGET_HOLD.md']) if (existsSync(f(x))) spawnSync('rm', [f(x)]);
 });
 
-test('EZD-000h T9: --hold-at sets and logs the hold and releases it; a bad value or --raise changes nothing', () => {
+test('EZD-000h T9: --hold-at sets and logs the hold and releases it; a bad value or --raise changes nothing', async () => {
   const bj = f('vault/budget.json');
   writeFileSync(f('vault/handoff/BUDGET_HOLD.md'), '# Budget hold\n');
   const original = readFileSync(bj, 'utf8');
-  const a = budgetCli('--hold-at', '85');
+  // The expected `from` comes from the copy (EZD-281 D1), never from a literal: the copied budget.json, else the script's default.
+  const { GATE_DEFAULTS } = await import(pathToFileURL(f('scripts/budget.mjs')).href);
+  const from = JSON.parse(original).hold_at_pct ?? GATE_DEFAULTS.hold_at_pct;
+  const to = from === 85 ? 86 : 85;
+  const a = budgetCli('--hold-at', String(to));
   assert.equal(a.status, 0);
   const b = JSON.parse(readFileSync(bj, 'utf8'));
-  assert.equal(b.hold_at_pct, 85);
-  assert.deepEqual(b.history.at(-1), { date: new Date().toISOString().slice(0, 10), hold_at: { from: 80, to: 85 } });
+  assert.equal(b.hold_at_pct, to);
+  assert.deepEqual(b.history.at(-1), { date: new Date().toISOString().slice(0, 10), hold_at: { from, to } });
   assert.equal(existsSync(f('vault/handoff/BUDGET_HOLD.md')), false);
   const after = readFileSync(bj, 'utf8');
   const bad = budgetCli('--hold-at', '0');

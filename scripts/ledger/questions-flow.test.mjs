@@ -27,7 +27,7 @@ const qid = (n) => `Q-${String(n).padStart(4, '0')}`;
 // The ledger is one table in three files (Josh 2026-10-28); new rows land in QUESTIONS.md.
 const QFILES = ['questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md'];
 const qText = (rel) => (existsSync(file(rel)) ? readFileSync(file(rel), 'utf8') : '');
-const qRows = (rel) => qText(rel).split('\n').filter((l) => /^\| Q-\d{4} \|/.test(l));
+const qRows = (rel) => qText(rel).split('\n').filter((l) => /^\|\s*Q-\d{4}\s*\|/.test(l));
 const run = (flag) => spawnSync(process.execPath, [tool(), flag], { encoding: 'utf8' });
 
 before(async () => {
@@ -65,6 +65,15 @@ before(async () => {
   }
   // Live escalations on the tickets reset above (e.g. Q-0138) would leak into the fixture; the tests add their own.
   edit('questions/QUESTIONS.md', (s) => s.replace(/^(\| Q-\d{4} \| [^|]*EZD-000[b-i][^|]*\|[^|]*\|[^|]*\| )escalated( \|)/gm, '$1answered-agent$2'));
+  // Later phases stay quiet (EZD-281 D3): an open question of any phase is answered, and every todo, planned or questions ticket of a signed-off
+  // phase above phase 0 is blocked, so no live phase 1 or 2 work leaks into the phase 0 fixture. Unsigned phases are left alone.
+  const signed = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
+  for (const rel of QFILES) if (existsSync(file(rel))) edit(rel, (s) => s.replace(/^(\|\s*Q-\d{4}\s*\|[^|]*\|[^|]*\|[^|]*\|\s*)open(\s*\|)/gm, '$1answered-agent$2'));
+  edit('tickets/STATUS.md', (s) => s.split('\n').map((l) => {
+    const c = l.split('|');
+    if (c.length < 10 || !/^ EZD-/.test(c[1]) || !(Number(c[2]) > 0) || !signed.has(Number(c[2])) || !['todo', 'planned', 'questions'].includes(c[4].trim())) return l;
+    c[4] = ' blocked '; if (!c[9].trim()) c[9] = ' questions-flow.test.mjs fixture '; return c.join('|');
+  }).join('\n'));
   // Tickets the reset above opened carry the architecture list their plan names (EZD-244), as the live ledger's open tickets do, and the tooling mark it implies (EZD-253).
   const { planArchitecture } = await import(pathToFileURL(file('tools/outline.mjs')).href);
   const { planTrack } = await import(pathToFileURL(file('tools/next_ticket.mjs')).href);
@@ -78,7 +87,8 @@ before(async () => {
     }
     return JSON.stringify(data, null, 2);
   });
-  const top = Math.max(...QFILES.flatMap((q) => [...qText(q).matchAll(/^\| Q-(\d{4}) \|/gm)]).map((m) => Number(m[1])));
+  const { questionMax } = await import(pathToFileURL(file('tools/questions-files.mjs')).href);
+  const top = questionMax(vault);
   [qa, qb, qc] = [qid(top + 1), qid(top + 2), qid(top + 3)];
 });
 
@@ -118,7 +128,7 @@ test('Josh 2026-10-28: question rows move between the three files whole and unch
   assert.equal(run('--sort-questions').status, 0);
   const all = () => QFILES.flatMap(qRows).sort();
   const before = all();
-  assert.equal(new Set(before.map((l) => l.split('|')[1])).size, before.length, 'each Q-ID once');
+  assert.equal(new Set(before.map((l) => l.split('|')[1].trim())).size, before.length, 'each Q-ID once');
   for (const rel of QFILES.slice(1)) assert.ok(qRows(rel).every((l) => !/\| (open|escalated) \|/.test(l)), `${rel} holds only answered rows`);
   const row = (id) => qRows('questions/QUESTIONS.md').find((l) => l.startsWith(`| ${id} |`));
   // An escalated row outside QUESTIONS.md fails the check; sorting brings it back unchanged.

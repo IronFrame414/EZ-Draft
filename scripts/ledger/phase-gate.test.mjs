@@ -109,6 +109,15 @@ function makeCopy({ later }) {
     nt,
     setStatus(id, st) {
       const p = file('tickets/STATUS.md');
+      if (st === 'todo') {
+        // the ledger refuses a done ticket whose dependency is not done (depends_on in tickets.json; the STATUS.md
+        // Depends column is reading text only): in the copy, drop the reopened ticket from every done ticket's depends_on
+        const tp = file('tickets/tickets.json');
+        const tj = JSON.parse(readFileSync(tp, 'utf8'));
+        const doneIds = new Set(readFileSync(p, 'utf8').split('\n').map((l) => l.match(/^\| (EZD-\w+) \|([^|]*\|){2}\s*done\s*\|/)).filter(Boolean).map((m) => m[1]));
+        for (const t of tj.tickets) if (doneIds.has(t.id)) t.depends_on = (t.depends_on || []).filter((d) => d !== id);
+        writeFileSync(tp, JSON.stringify(tj, null, 1) + '\n');
+      }
       writeFileSync(p, readFileSync(p, 'utf8')
         .replace(new RegExp(`^(\\| ${id} \\|[^|]*\\|[^|]*\\| )[a-z-]+( \\|)`, 'm'), `$1${st}$2`));
     },

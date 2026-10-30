@@ -32,6 +32,7 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
   );
   const phase0 = new Set(data.tickets.filter((t) => t.phase === 0).map((t) => t.id));
   const phase1 = new Set(data.tickets.filter((t) => t.phase === 1).map((t) => t.id));
+  const signedPhases = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
   writeFileSync(
     file('tickets/STATUS.md'),
     readFileSync(file('tickets/STATUS.md'), 'utf8')
@@ -42,6 +43,11 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
         const c = m[2].split('|');
         const st = c[2].trim();
         if (phaseZeroDone && phase0.has(m[1]) && st !== 'done') c[2] = ' done ';
+        else if (Number(c[0]) > 1 && signedPhases.has(Number(c[0])) && ['todo', 'planned', 'questions'].includes(st)) {
+          // Later signed-off phases stay quiet (EZD-281 D3); unsigned phases are left alone.
+          c[2] = ' blocked ';
+          if (!c[7].trim()) c[7] = ' ezd-250 fixture ';
+        }
         else if (phase1.has(m[1]) && st !== 'done') {
           c[2] = ' blocked ';
           if (!c[7].trim()) c[7] = ' ezd-250 test ';
