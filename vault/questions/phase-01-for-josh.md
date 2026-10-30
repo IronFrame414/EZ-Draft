@@ -1,13 +1,10 @@
 # Phase 1 · for Josh (questions unit, 2026-10-30, twenty-ninth run)
 
-One decision waits on you (Q-0460). New this run: Q-0463 answered by the orchestrator; new fix ticket EZD-281 (eight tests that pin live ledger values) unblocks EZD-267. Q-0461 and Q-0462 were answered by the security-reviewer; EZD-279 is `ready`, and new fix ticket EZD-280 (from Q-0461) is `ready`. Q-0455, Q-0456 and Q-0457 were answered by you. EZD-278 stays `questions` until Q-0460 is answered. EZD-277 is `ready` once its plan is patched for Q-0458 and Q-0459. New fix ticket EZD-279 (from Q-0459) needs a plan.
+No decision waits on you. Q-0460 was answered by you (option 1) and recorded; EZD-278 is `ready`. Q-0463 and Q-0464 were answered by the orchestrator (EZD-281 is done); Q-0461 and Q-0462 by the security-reviewer; EZD-277, EZD-279 and EZD-280 are `ready`.
 
 ## 1. Decisions needed
 
-**Q-0460 · EZD-278.** When the next phase's tickets build while this phase is still open, they land on develop before this phase's pull request to main. How should that pull request carry them?
-1. (Recommended) Phase N's pull request carries everything on develop and lists the early later-phase tickets under "Later-phase tickets in this PR". The phase-auditor skips them, and the later phase's own gate audits them. You test them at that gate. Cost: they reach main, and production at that promotion, before their phase is finished.
-2. The early later-phase tickets finish review but merge to develop only after this phase's PR merges. Main stays one phase at a time. Cost: a merge queue is needed (one ticket in flight blocks all builds), a larger ticket.
-3. The PR is cut from a release branch at the last commit before the first later-phase merge, and later fixes are cherry-picked onto it. Cost: fragile when fixes and tooling commits interleave.
+None.
 
 ## 2. Agent answers to confirm
 
