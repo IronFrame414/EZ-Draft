@@ -16690,7 +16690,11 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-017",
