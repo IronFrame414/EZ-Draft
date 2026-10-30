@@ -3024,6 +3024,16 @@
     "mockups/S01Projects.png",
     "mockups/S01bWizard.png"
    ],
+   "architecture": [
+    "Customers (EZD-113)",
+    "Permission enforcement (EZD-102)",
+    "Events",
+    "State components (EZD-015)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Row-level security (EZD-006)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-117a",

@@ -153,7 +153,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-116 | 8 | Defaults framework | todo |  | EZD-103 |  |  |  |
 | EZD-117a | 2 | Projects page: query and cards | planned | high | EZD-102, EZD-110 |  |  |  |
 | EZD-117b | 2 | Projects page: header, search and states | questions | high | EZD-117a, EZD-015 |  |  |  |
-| EZD-118 | 2 | New project wizard | todo |  | EZD-117, EZD-113 |  |  |  |
+| EZD-118 | 2 | New project wizard | questions | high | EZD-117, EZD-113 |  |  |  |
 | EZD-120a | 3 | Model tables, save function and checkpoints | todo |  | EZD-005, EZD-133 |  |  |  |
 | EZD-120b | 3 | Model store, outbox and editor route | todo |  | EZD-120a, EZD-012, EZD-117 |  |  |  |
 | EZD-121 | 9 | Sent versions and numbering | todo |  | EZD-120, EZD-111 |  |  |  |
