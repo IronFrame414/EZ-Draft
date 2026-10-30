@@ -144,7 +144,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-105 | 7 | Invite user | todo |  | EZD-104, EZD-008 |  |  |  |
 | EZD-106 | 7 | User inspector | todo |  | EZD-104 |  |  |  |
 | EZD-107 | 7 | Custom roles | todo |  | EZD-106 |  |  |  |
-| EZD-108 | 2 | Avatar menu and My profile | ready | high | EZD-103 |  |  |  |
+| EZD-108 | 2 | Avatar menu and My profile | in-progress | high | EZD-103 |  |  |  |
 | EZD-109 | 7 | Event log | todo |  | EZD-005, EZD-106 |  |  |  |
 | EZD-110a | 2 | Notifications: table, email and routes | ready | high | EZD-008a, EZD-008b, EZD-018, EZD-009, EZD-102, EZD-113 |  |  | Split from EZD-110 at the questions unit, 2026-10-30: plan vault/plans/EZD-110.md was 49,126 characters with a split proposal; the planner writes vault/plans/EZD-110a.md from it. |
 | EZD-110b | 2 | Notifications: bell and list | ready | medium | EZD-110a, EZD-015a, EZD-015b, EZD-015c, EZD-016a |  |  | Split from EZD-110 at the questions unit, 2026-10-30: the planner writes vault/plans/EZD-110b.md from the same proposal. |
