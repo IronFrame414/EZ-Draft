@@ -54,7 +54,7 @@ const { weekSpend, questionsFingerprint, assignQuestionIds, setArchitecture } = 
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
-const { idleAction, repairDecision, parseVerdict, fingerprint, codeFingerprint, writeLauncherState } = await import('./launcher-idle.mjs');
+const { idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
@@ -570,6 +570,7 @@ async function main() {
         } else if (d.why === 'tried' && idle.action === 'wait') idle = { ...idle, notify: null };
       }
     }
+    const subject = unitSubject(next, repair);
     if (idle.action === 'stop') { log(stopExists ? 'vault/handoff/STOP exists; stopping.' : next); if (!stopExists && !/budget hold/.test(next)) notify(`launcher stopped: ${next.replace(/^none:\s*/, '')}`); return; }
     if (idle.action === 'wait') {
       if (waiting !== idle.why) {
@@ -594,7 +595,7 @@ async function main() {
     }
     // Boost mode skips the weekly hold (Josh 2026-10-24: "remove the hold completely during boost"); the five-hour pause
     // above and a real plan-limit error below still apply.
-    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify, dryRun });
+    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: subject, inProgressBuild, notify, dryRun });
     // A dry run writes no hold or marker file (EZD-155; Q-0291 (a)); it says what a real run would write, and under boost a real run skips the hold (above).
     if (dryRun && !boostState({ root }).active && decision.hold && !existsSync(holdFile)) log(`dry run: weekly usage at ${Math.round(meters.seven_day.pct)}%; a real run would write vault/handoff/BUDGET_HOLD.md and notify`);
     if (!gate.start) {
@@ -615,20 +616,20 @@ async function main() {
     if (r.outcome.startsWith('limit-')) {
       if (r.limit.kind === 'five-hour') {
         const until = parseWhen(r.limit.until) || new Date(Date.now() + 30 * 60000);
-        log(`five-hour limit; waiting until ${until.toISOString()} then resuming ${next}`);
+        log(`five-hour limit; waiting until ${until.toISOString()} then resuming ${subject}`);
         setState({ state: 'limit-wait', at: nowIso(), until: until.toISOString() });
         await sleep(Math.max(60000, until.getTime() - Date.now() + 60000));
         continue;
       }
-      writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters, budget: b, nextUnit: next });
-      notify(`plan limit reached during ${next}. Hold written; override with budget.mjs or wait for the weekly reset.`);
+      writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters, budget: b, nextUnit: subject });
+      notify(`plan limit reached during ${subject}. Hold written; override with budget.mjs or wait for the weekly reset.`);
       return;
     }
     const chk = tool('--check');
     if (repair) {
       // EZD-250 D12a: a REPAIRED claim stands only if the ledger check passes and the wait it was started for is gone.
       const after = nextUnitText();
-      let v = r.outcome === 'ok' ? parseVerdict(r.parsed?.result) : { verdict: 'failed', line: r.outcome };
+      let v = r.outcome === 'ok' ? parseVerdict(r.parsed?.result) : { verdict: 'failed', line: repairStopLine(repair.kind, r.outcome) };
       if (v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
       else if (v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
       try { mkdirSync(logDir, { recursive: true }); writeFileSync(repairStateFile, JSON.stringify({ fp: repair.fp, verdict: v.verdict, at: nowIso() }) + '\n'); } catch (e) { log(`repair state not written: ${e.message}`); }

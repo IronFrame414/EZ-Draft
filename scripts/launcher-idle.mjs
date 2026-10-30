@@ -58,6 +58,18 @@ export function parseVerdict(text) {
   return m ? { verdict: m[1].toLowerCase(), line: m[2] } : { verdict: 'failed', line: 'no verdict line' };
 }
 
+// EZD-255 D1: the unit a hold or limit text names: the repair unit while a repair runs, else the next unit.
+export function unitSubject(next, repair) {
+  return repair ? `repair ${repair.kind} for "${repair.next}"` : next;
+}
+
+// EZD-255 D2: the line for a repair stopped by the per-unit cap or the turn limit; any other outcome is returned unchanged.
+export function repairStopLine(kind, outcome) {
+  if (outcome === 'error:error_max_budget_usd') return `repair ${kind} stopped at the per-unit cap (${outcome})`;
+  if (outcome === 'error:error_max_turns') return `repair ${kind} stopped at the turn limit (${outcome})`;
+  return outcome;
+}
+
 // D9: the launcher's own code, every *.mjs directly in scripts/ and vault/tools/ except tests.
 export function codeFingerprint(root) {
   const sha = (b) => createHash('sha256').update(b).digest('hex');

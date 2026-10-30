@@ -10,7 +10,7 @@
 //          copied to state-copies/<list>-<n>.json (n = the entry's own answer number; `null` when the file is absent).
 //   check: { failUntil?: marker, failIfStatusContains?: text, output? }: exit 1 until the marker exists / while STATUS.md has the text.
 //   grantNeeds: entries as next, plus exit?: the exit code (default 0); an empty text prints nothing.
-// Fake claude reads fake-rules.json: rules { prompt (prefix), writes: [markers], result, append: [{ file, text }], script }.
+// Fake claude reads fake-rules.json: rules { prompt (prefix), writes: [markers], result, subtype (default 'success'), exit (default 0), append: [{ file, text }], script }.
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync, chmodSync, rmSync, realpathSync, openSync, closeSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -112,7 +112,9 @@ const fakeClaude = () =>
     "for (const a of rule.append || []) { fs.mkdirSync(path.dirname(path.join(root, a.file)), { recursive: true }); fs.appendFileSync(path.join(root, a.file), a.text); }",
     "if (rule.script) spawnSync(process.execPath, [path.join(root, rule.script)], { cwd: root, stdio: 'ignore', env: { ...process.env, FAKE_ROOT: root } });",
     "for (const m of rule.writes || []) { fs.mkdirSync(path.join(root, 'markers'), { recursive: true }); fs.writeFileSync(path.join(root, 'markers', m), 'x'); }",
-    "console.log(JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: rule.result || 'fake unit done', session_id: 'ezd250-fake-session', num_turns: 1, duration_ms: 5, total_cost_usd: 0, modelUsage: {} }));",
+    "console.log(JSON.stringify({ type: 'result', subtype: rule.subtype || 'success', is_error: false, result: rule.result || 'fake unit done', session_id: 'ezd250-fake-session', num_turns: 1, duration_ms: 5, total_cost_usd: 0, modelUsage: {} }));",
+    // The exit code is set, not passed to process.exit, so the piped result line is flushed before the process ends.
+    "process.exitCode = rule.exit || 0;",
     '',
   ].join('\n');
 
@@ -121,8 +123,9 @@ const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFi
 const BASE_COPY = ['scripts/run.mjs', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'vault/tools/boost.mjs'];
 
 // A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
-// with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules.
-export function makeLauncherRoot({ stub = {}, rules = [], copy = [] } = {}) {
+// with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules. config: spread last into
+// launcher.config.json. weeklyPct: the seven_day.pct in vault/cost/usage.json (default 10: below every hold).
+export function makeLauncherRoot({ stub = {}, rules = [], copy = [], config = {}, weeklyPct = 10 } = {}) {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs', 'bin', 'markers']) mkdirSync(at(d), { recursive: true });
@@ -140,7 +143,7 @@ export function makeLauncherRoot({ stub = {}, rules = [], copy = [] } = {}) {
     at('vault/cost/usage.json'),
     JSON.stringify({
       five_hour: { pct: 10, resets_at: new Date(now + 7_200_000).toISOString() },
-      seven_day: { pct: 10, resets_at: new Date(now + 3 * 86_400_000).toISOString() },
+      seven_day: { pct: weeklyPct, resets_at: new Date(now + 3 * 86_400_000).toISOString() },
       fable_seven_day: null,
       read_at: new Date(now).toISOString(),
       source: 'statusline',
@@ -158,6 +161,7 @@ export function makeLauncherRoot({ stub = {}, rules = [], copy = [] } = {}) {
       log_dir: at('logs'),
       idle_poll_ms: 200,
       notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"`,
+      ...config,
     }),
   );
   // Every root is a git repository: run.mjs imports ledger.mjs, whose lock needs .git (plan C9, Decided "Launcher test roots").
