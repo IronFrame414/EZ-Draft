@@ -22,13 +22,12 @@
     "vault/PROCESS.md",
     "vault/tools/findings.mjs"
   ],
-  "EZD-267": [
-    ".claude/hooks/guard-paths.mjs",
-    "scripts/ledger.mjs",
+  "EZD-268": [
+    ".claude/skills/build-ticket/SKILL.md",
+    "scripts/launcher-idle.mjs",
     "scripts/run.mjs",
-    "scripts/unit-steps.mjs",
-    "vault/PROCESS.md",
-    "vault/tools/grants.mjs",
+    "scripts/watchdog.mjs",
+    "vault/tools/model-ladder.mjs",
     "vault/tools/next_ticket.mjs"
   ]
 }
