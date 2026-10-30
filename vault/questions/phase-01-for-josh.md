@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-eighth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-ninth run)
 
-One decision waits on you (Q-0460). Q-0461 and Q-0462 were answered by the security-reviewer; EZD-279 is `ready`, and new fix ticket EZD-280 (from Q-0461) is `ready`. Q-0455, Q-0456 and Q-0457 were answered by you. EZD-278 stays `questions` until Q-0460 is answered. EZD-277 is `ready` once its plan is patched for Q-0458 and Q-0459. New fix ticket EZD-279 (from Q-0459) needs a plan.
+One decision waits on you (Q-0460). New this run: Q-0463 answered by the orchestrator; new fix ticket EZD-281 (eight tests that pin live ledger values) unblocks EZD-267. Q-0461 and Q-0462 were answered by the security-reviewer; EZD-279 is `ready`, and new fix ticket EZD-280 (from Q-0461) is `ready`. Q-0455, Q-0456 and Q-0457 were answered by you. EZD-278 stays `questions` until Q-0460 is answered. EZD-277 is `ready` once its plan is patched for Q-0458 and Q-0459. New fix ticket EZD-279 (from Q-0459) needs a plan.
 
 ## 1. Decisions needed
 
@@ -12,6 +12,8 @@ One decision waits on you (Q-0460). Q-0461 and Q-0462 were answered by the secur
 ## 2. Agent answers to confirm
 
 New this run (confirm or override):
+- **Q-0464 (EZD-281): (a)** EZD-281 changes only test files, which only the test-author may write, so its build skips the builder round: test-author commit, then gate and reviews. Source: PROCESS.md section 8 steps 4, 6; CLAUDE.md rules 4, 5.
+- **Q-0463 (EZD-267): (a)** new priority-1 fix ticket EZD-281 makes the four tests that pin live values (budget hold 80, next Q-ID) read them from their own temporary copy; EZD-267 resumes at its merge step afterwards. Source: CLAUDE.md rules 17, 18; Q-0268; EZD-281 row in phase-01.md.
 - **Q-0461 (EZD-279): (a)** new fix ticket EZD-280 makes the shell guard deny any command naming a secret file, using the same secret-file test as the read guard. Source: guard-bash.mjs:21,38; CLAUDE.md rules 17, 18; Q-0458 (a).
 - **Q-0462 (EZD-279): (a)** deny every Grep aimed outside the repository (ticket worktrees count as inside). Cost: agents cannot Grep other folders, `/tmp` included. Source: EZD-279.md; CLAUDE.md rules 17, 18.
 - **Q-0458 (EZD-277): (a)** add the case-insensitive flag to the guard-bash sign-in-file pattern inside EZD-277, with one more test. Source: Q-0457 (Josh); CLAUDE.md rules 17, 18.

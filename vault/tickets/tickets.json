@@ -16866,6 +16866,34 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-281",
+   "phase": 1,
+   "title": "Fix: tests that pin live state read it from their own temporary copy",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0463",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 553,
+   "acs": [
+    "AC-EZD-281-1",
+    "AC-EZD-281-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"

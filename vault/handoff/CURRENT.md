@@ -1,9 +1,10 @@
-# Handoff · 2026-10-30 · build EZD-267
+# Handoff · 2026-10-30 · questions 1
 
-- Status: blocked (reviews PASS, merge red)
-- Why: unit-steps merge ran the ticket gate after merging develop 94a0730b; 4 tests fail, and they also fail on develop itself (live-state pins): scripts/budget/cli.test.mjs:23 (hold 80 vs live 90), scripts/ledger/questions-flow.test.mjs (Q-0129 x2, Q-ID once; next Q-ID is now Q-0463).
-- Done this unit: plan closed QP-1 (Q-0457 a) and matches the diff; tests updated; builder r2; gate green in worktree; code-reviewer and security-reviewer PASS.
-- Worktree kept: .claude/worktrees/EZD-267 (t/EZD-267, update merge 756d47a5).
-- Question: Q-0463 (orchestrator level): new priority-1 fix ticket for the four tests, EZD-267 then resumes at step 10 with no new build round. Develop stays red until it lands.
-- Models: planner opus/high, test-author sonnet/medium, builder opus/high, code-reviewer opus/high, security-reviewer fable/high.
-- Next unit: fix ticket for the tests (after Q-0463), then /build-ticket EZD-267 (resume at merge).
+- Phase and stage: 1, Stage 2.
+- Why the session ended: unit complete.
+- Completed: Q-0463 answered by orchestrator (a): new fix ticket EZD-281 (eight tests that pin live values, plus a drift test), plan written, lint OK, `ready`. Q-0464 (EZD-281 QP-1) answered: no builder round, test-author only.
+- Blocked: EZD-267 (reviews PASS, merge red) until EZD-281 merges; then /build-ticket EZD-267 resumes at step 10 (worktree .claude/worktrees/EZD-267 kept). EZD-281 copies the EZD-254 T2 fix from t/EZD-267 commit 9e81edb1.
+- Questions for Josh: Q-0460 (EZD-278, how phase PRs carry early next-phase tickets); EZD-278 stays `questions`. File: vault/questions/phase-01-for-josh.md.
+- Open finding (rule 17): the ledger check fails when a ticket is in tickets.json marked tooling but its plan has no Build steps files (EZD-253), so any ticket added before its plan breaks every ledger-copy test fixture. Needs its own fix ticket or a decision that this is intended.
+- Rule candidates L-022 to L-036 stay candidate (unattended).
+- Next unit: build EZD-281
