@@ -55,8 +55,15 @@
       "date": "2026-10-30",
       "set": "five_hour_pause_pct",
       "value": 100
+    },
+    {
+      "date": "2026-10-30",
+      "hold_at": {
+        "from": 80,
+        "to": 90
+      }
     }
   ],
-  "hold_at_pct": 80,
+  "hold_at_pct": 90,
   "five_hour_pause_pct": 100
 }
