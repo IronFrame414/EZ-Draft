@@ -316,3 +316,8 @@ When a ticket widens which tickets `next_ticket.mjs` can build, list in the plan
 - EZD-108 (2026-10-30): before choosing a UI library component for a budgeted entry, check that page's headroom in perf-results and the library's bundle cost; the office entry had about 4 KB left and a Radix popper menu costs about 20 KB.
 - EZD-108 (2026-10-30): a server-side password re-check must be checked against the live site's Auth settings (captcha on), not only the local test setup; every Code input needs a shared format check that runs before any throttle slot.
 When a plan's test fixture adds a hard link, name a separate target file, never a guarded file: a hard link gives that file two links and the hard-link deny (W2) fires on it. (EZD-260)
+
+## L-039  areas: tooling, security, docs  seen: 1  status: candidate
+Mistake: plan-quoted comment or doc text claimed more than the code enforces (EZD-260: a comment said a link to "another checkout" gets no grant, but a link to a sibling worktree does; EZD-108: architecture.md named a component the code does not use), so a reviewer failed a finding for wording alone.
+Rule: when a plan dictates comment or doc text, the text states only what the planned code enforces; the planner checks each claim in it against the code and narrows the wording to the case that is true.
+Plan check: every comment or doc sentence the plan quotes names a case the planned code handles, checked against the code, not the plan's intent.
