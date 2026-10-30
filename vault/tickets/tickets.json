@@ -2925,6 +2925,23 @@
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Entry contents and bundle report (EZD-020)",
+    "Performance check (EZD-017)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Customers (EZD-113)",
+    "Tenancy tables (EZD-005)",
+    "Row-level security (EZD-006)",
+    "Local database",
+    "Migrations",
+    "State components (EZD-015)",
+    "Messages and language (t())",
+    "Disclaimer (EZD-136)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
