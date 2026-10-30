@@ -2,11 +2,6 @@
   "EZD-172": [
     "scripts/gate.mjs"
   ],
-  "EZD-260": [
-    ".claude/hooks/guard-paths.mjs",
-    ".claude/hooks/guard-reads.mjs",
-    ".claude/hooks/lib.mjs"
-  ],
   "EZD-261": [
     "vault/plans/EZD-151.md",
     "vault/plans/EZD-253.md",
