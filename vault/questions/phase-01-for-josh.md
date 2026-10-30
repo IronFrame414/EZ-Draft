@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-29, sixteenth run)
+# Phase 1 · for Josh (questions unit, 2026-10-29, seventeenth run)
 
-Seven decisions wait on you (Q-0436 to Q-0442). Q-0433, Q-0434 and Q-0435 were answered by the orchestrator (section 2). Tickets with a waiting question stay `questions`: EZD-269, EZD-271, EZD-272, EZD-273.
+Eight decisions wait on you (Q-0436 to Q-0443). Q-0433, Q-0434 and Q-0435 were answered by the orchestrator (section 2). Tickets with a waiting question stay `questions`: EZD-269, EZD-271, EZD-272, EZD-273.
 
 ## 1. Decisions needed
 
@@ -31,6 +31,11 @@ Seven decisions wait on you (Q-0436 to Q-0442). Q-0433, Q-0434 and Q-0435 were a
 **Q-0442 · EZD-273.** Skill texts (`.claude/skills/*/SKILL.md`) also end units and set tickets blocked (stop inventory S17-S24), but the ticket names only the five code files, so the scan does not see them.
 1. (Recommended) A fix ticket adds a text check over the skills against the same KEEP line. Reason: otherwise the same stop can return through a skill (rule 18). Cost: one ticket; a text check is fuzzier than a code check.
 2. Skills stay under review only. Cost: the blind spot stays.
+
+**Q-0443 · EZD-267.** EZD-267 is built and every one of its tests passes, but its gate is red on one old test, EZD-254 T2, which also fails on develop (EZD-253 is done and depends on EZD-254, so the test's copy of the ledger refuses). Every phase 1 build gate hits it until fixed. The test-author's fix (commit 9e81edb1, fixture only, no expected value changed, 3 of 3 pass) was ruled FAIL by code-reviewer as an input change outside the plan.
+1. (Recommended) Accept 9e81edb1 inside EZD-267 as a recorded deviation. Reason: smallest change, restores the test's intent, and the copy then derives its dependents so the class cannot return. Cost: EZD-267 carries a change its plan does not list.
+2. A fix ticket for T2 (test-author and a test review) merges first, then EZD-267 resumes without 9e81edb1. Cost: one more ticket, and EZD-267 and everything behind it wait.
+Also for you: a one-line PROCESS.md rule that merge gates run before a row is set done (how EZD-253 slipped through); agents cannot edit that file.
 
 ## 2. Agent answers to confirm
 
