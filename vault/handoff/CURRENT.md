@@ -1,10 +1,10 @@
-# Handoff · 2026-10-30 · questions 1
+# Handoff · 2026-10-30 10:53 · plan EZD-279
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete
-- Completed this session: Q-0458 (a) and Q-0459 (b) answered by agents; new fix ticket EZD-279 (todo, needs a plan); EZD-277 plan patched, lint OK, set ready.
+- Why the session ended: unit complete (launcher-run agent unit)
+- Completed this session: Planned EZD-279: status questions, complexity high; open questions Q-0461, Q-0462.
 - In progress: none
 - Blocked: none new
-- Questions for Josh: Q-0460 (EZD-278) escalated; see vault/questions/phase-01-for-josh.md
+- Questions for Josh: see vault/questions/QUESTIONS.md
 - Decisions made: none
-- Next unit: plan EZD-279
+- Next unit: questions 1
