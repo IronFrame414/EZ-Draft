@@ -1,6 +1,6 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twentieth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-first run)
 
-Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275; EZD-267 stays blocked on Q-0443. EZD-271, EZD-272, EZD-273 are now `ready` (plans carry Q-0437 to Q-0442). EZD-269 stays `questions`: its plan is a split proposal (EZD-269b) that needs your yes before it is applied (PROCESS.md section 6).
+Five decisions wait on you (Q-0443 to Q-0446, Q-0454). Q-0436 to Q-0442 were answered by you on 2026-10-29. Tickets with a waiting question stay `questions`: EZD-274, EZD-275, EZD-276; EZD-267 stays blocked on Q-0443. EZD-271, EZD-272, EZD-273 are now `ready` (plans carry Q-0437 to Q-0442). EZD-269 stays `questions`: its plan is a split proposal (EZD-269b) that needs your yes before it is applied (PROCESS.md section 6).
 
 ## 1. Decisions needed
 
@@ -15,6 +15,10 @@ Four decisions wait on you (Q-0443 to Q-0446). Q-0436 to Q-0442 were answered by
 **Q-0446 · EZD-275.** Your Q-0442 asked for a text check over the skill files (`.claude/skills/*/SKILL.md`). `.claude/skills/build-ticket/dispatch.md` and the agent files (`.claude/agents/builder.md`, `test-author.md`, `log-summarizer.md`) also carry stop and wait steps (9 blocks today).
 1. (Recommended) Add those files to the same check (about 9 more markers). Reason: it closes the whole class, so a stop that is not on the KEEP line cannot come back through any agent text (CLAUDE.md rule 18). Cost: a bit more work in this ticket.
 2. Skill files only, as you worded it. Cost: stops in dispatch.md and the agent files stay unchecked.
+
+**Q-0454 · EZD-276.** The acceptance criterion says the Projects first-cards row fails the check when the time is over 1000 ms. The spec (11 opening paragraph, R26 R10) and EZD-017 G1 say Projects-page times are `trend` rows that are recorded and never fail.
+1. (Recommended) Keep it a `trend` row that is marked over budget while the check passes, and reword the criterion to "is marked over budget". Reason: it follows the spec and Josh's earlier rule; a slow gate machine cannot fail the gate or EZD-017 on timing noise. Cost: a slow Projects page never stops a merge by itself.
+2. Make it a `gate` row that fails when the median is over 1000 ms. Cost: a slow CI runner can fail the gate; EZD-017 G1 and the spec paragraph change.
 
 **Q-0443 · EZD-267.** EZD-267 is built and every one of its tests passes, but its gate is red on one old test, EZD-254 T2, which also fails on develop (EZD-253 is done and depends on EZD-254, so the test's copy of the ledger refuses). Every phase 1 build gate hits it until fixed. The test-author's fix (commit 9e81edb1, fixture only, no expected value changed, 3 of 3 pass) was ruled FAIL by code-reviewer as an input change outside the plan.
 1. (Recommended) Accept 9e81edb1 inside EZD-267 as a recorded deviation. Reason: smallest change, restores the test's intent, and the copy then derives its dependents so the class cannot return. Cost: EZD-267 carries a change its plan does not list.
@@ -111,6 +115,7 @@ Full tables are in each plan's section 6. Launcher and ledger text only; no app 
 - EZD-273: none (gate output for agents).
 - EZD-274: one code comment, developer text: `// EZD-274 (Q-0438 (b)): "rate limit" or "too many requests" with no usage-limit, five-hour or weekly wording is a passing API error: an ordinary failed unit for the model ladder (EZD-268), not a limit.`
 - EZD-275: none (checker messages are developer text).
+- EZD-276: none (check output for agents; Q-0454 reword of AC-EZD-276-2 if you pick 1).
 
 ## 4. Rule candidates
 

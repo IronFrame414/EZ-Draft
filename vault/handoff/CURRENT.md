@@ -1,10 +1,11 @@
-# Handoff · 2026-10-30 03:16 · plan EZD-276
+# Handoff · 2026-10-30 · questions 1
 
 - Phase and stage: see vault/PROGRESS.md
-- Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: Planned EZD-276: status questions, complexity high; open questions Q-0454.
+- Why the session ended: unit complete (unattended; no answers taken)
+- Completed this session: Phase 1 questions run. Q-0454 (EZD-276 QP-1, gate vs trend row) escalated to Josh: product call, spec and AC disagree. Written into vault/questions/phase-01-for-josh.md (section 1 and 3). No answered-agent rows were new for phase 1. Architecture line set on EZD-276. Sort and ledger check OK.
 - In progress: none
-- Blocked: none new
-- Questions for Josh: see vault/questions/QUESTIONS.md
+- Blocked: EZD-267 on Q-0443
+- Questions for Josh: Q-0443, Q-0444, Q-0445, Q-0446, Q-0454 (vault/questions/phase-01-for-josh.md); 15 rule candidates L-022 to L-036 stay candidate
 - Decisions made: none
-- Next unit: questions 1
+- Tickets set ready: none (EZD-269, 274, 275, 276 stay questions)
+- Next unit: node vault/tools/next_ticket.mjs --next-unit
