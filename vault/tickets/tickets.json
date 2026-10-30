@@ -16903,6 +16903,34 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-282",
+   "phase": 1,
+   "title": "Fix: a write grant applies only to files in the agent's own worktree",
+   "depends_raw": "EZD-260",
+   "spec_ref": "Q-0466",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-260"
+   ],
+   "build_position": 554,
+   "acs": [
+    "AC-EZD-282-1",
+    "AC-EZD-282-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
   }
  ],
  "recut_applied": "2026-10-20"

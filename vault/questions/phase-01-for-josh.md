@@ -1,14 +1,17 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, twenty-ninth run)
+# Phase 1 · for Josh (questions unit, 2026-10-30, thirtieth run)
 
-No decision waits on you. Q-0460 was answered by you (option 1) and recorded; EZD-278 is `ready`. Q-0463 and Q-0464 were answered by the orchestrator (EZD-281 is done); Q-0461 and Q-0462 by the security-reviewer; EZD-277, EZD-279 and EZD-280 are `ready`.
+One decision waits on you: Q-0469 (Bash is a hole in every file hook). Q-0466, Q-0467, Q-0468 were answered by agents; new fix ticket EZD-282 is `ready`.
 
 ## 1. Decisions needed
 
-None.
+- **Q-0469 (EZD-282, from Q-0468):** Builders run unsandboxed and the shell guard blocks only git branch commands, so any file hook can be sidestepped through Bash (a builder could write a sibling worktree's file or forge its identity). The hooks stop honest mistakes only. Options: (a) an operating-system sandbox per builder, write access only to its own worktree (recommended, rule 18; real setup work, may change how the launcher starts agents); (b) run each builder with its worktree as the session folder (smaller, not a hard wall); (c) accept the hooks as accident guards and record it in KNOWN-LIMITS. Sources: Q-0468; CLAUDE.md rules 17, 18; scripts/run.mjs:130; guard-bash.mjs:49-52.
 
 ## 2. Agent answers to confirm
 
 New this run (confirm or override):
+- **Q-0466 (EZD-260): (a)** an agent's write grant applies only to files in its own worktree; new fix ticket EZD-282. Source: CLAUDE.md rules 17, 18; Q-0463.
+- **Q-0467 (EZD-282): (a)** the builder's own worktree is read from its dispatch's `Worktree:` line in its own transcript, failing closed; it is an accident guard, forgeable through Bash. Source: security-reviewer; R-047; run.mjs:130.
+- **Q-0468 (EZD-282): (a)** a later fix ticket limits all builder and test-author writes to the dispatched worktree, covering Bash or going to you (Q-0469). Source: security-reviewer; rules 17, 18.
 - **Q-0464 (EZD-281): (a)** EZD-281 changes only test files, which only the test-author may write, so its build skips the builder round: test-author commit, then gate and reviews. Source: PROCESS.md section 8 steps 4, 6; CLAUDE.md rules 4, 5.
 - **Q-0463 (EZD-267): (a)** new priority-1 fix ticket EZD-281 makes the four tests that pin live values (budget hold 80, next Q-ID) read them from their own temporary copy; EZD-267 resumes at its merge step afterwards. Source: CLAUDE.md rules 17, 18; Q-0268; EZD-281 row in phase-01.md.
 - **Q-0461 (EZD-279): (a)** new fix ticket EZD-280 makes the shell guard deny any command naming a secret file, using the same secret-file test as the read guard. Source: guard-bash.mjs:21,38; CLAUDE.md rules 17, 18; Q-0458 (a).
