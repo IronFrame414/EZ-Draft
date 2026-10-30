@@ -1,10 +1,10 @@
-# Handoff · 2026-10-30 · build EZD-268 (blocked)
+# Handoff · 2026-10-30 · questions 1
 
-- EZD-268 blocked on Q-0471 (workflow, Josh): does a review finding caused by a plan gap, fixed by a plan-gap patch, use a ladder round? Develop's ladder blocks a high ticket at round 3; findings r1 and r2 are both docs wording (advisor "round 3" text).
-- Done: plan re-validated (QP-2 = Q-0470 answered (a)), tests written and reviewed (PASS), builder round 1+2, gate green at 2304d663, code-reviewer round 1 FAIL (fixed), round 2 FAIL: .claude/agents/builder.md:10 and test-author.md:10 still say "round 3".
-- Plan patched (rows 7-8 for the two agent files), committed; grant for them written and committed on develop (grants.json).
-- Worktree .claude/worktrees/EZD-268 kept, synced to develop.
-- Resume after Q-0471: builder applies D10 rows 7-8 (one-line edits), gate, same code-reviewer re-reviews, then unit-steps.mjs merge EZD-268.
-- vault/PROCESS.md s4/s8 are outside the plan (plan lines 74, 81).
-- Open from before: Q-0469, Q-0465 escalated; EZD-250 harness warning needs a fix ticket.
+- Phase and stage: 1, Stage 2 (questions).
+- Why the session ended: unit complete; Josh's answers pending in chat.
+- Completed this session: Q-0470 recorded answered-agent (LG2 uses unitSubject); Q-0471 escalated (not covered by PROCESS.md s4/s8); phase-01-for-josh.md rewritten with Q-0471, Q-0469, Q-0470 to confirm, L-037 to L-039 candidates; ledger sorted and checked (OK, 567 tickets).
+- In progress: EZD-268 blocked, worktree .claude/worktrees/EZD-268 kept at develop sync.
+- Blocked: EZD-268 on Q-0471. If (a): builder applies D10 rows 7-8, gate, same code-reviewer re-reviews, unit-steps.mjs merge EZD-268; PROCESS.md needs one sentence that a plan-gap fix is not a ladder round.
+- Questions for Josh: Q-0471, Q-0469 (escalated); Q-0465 (phase 2, EZD-108).
+- Decisions made: none by Josh yet. No tickets set ready (none planned or questions).
 - Next unit: node vault/tools/next_ticket.mjs --next-unit
