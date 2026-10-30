@@ -322,3 +322,4 @@ Mistake: plan-quoted comment or doc text claimed more than the code enforces (EZ
 Rule: when a plan dictates comment or doc text, the text states only what the planned code enforces; the planner checks each claim in it against the code and narrows the wording to the case that is true.
 Plan check: every comment or doc sentence the plan quotes names a case the planned code handles, checked against the code, not the plan's intent.
 When a dependency adds a naming helper for a class of messages (EZD-255 unitSubject for limit texts), every new message of that class in the plan uses the helper.
+When a rule changes from 'round N' to 'round N or later', list every place the skill states the old round.
