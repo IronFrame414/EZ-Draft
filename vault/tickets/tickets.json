@@ -2681,7 +2681,11 @@
     "Design tokens, fonts and icons",
     "Events",
     "Row-level security (EZD-006)",
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Entry contents and bundle report (EZD-020)",
+    "Performance check (EZD-017)",
+    "Device layouts (EZD-014)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
