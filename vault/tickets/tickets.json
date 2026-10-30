@@ -16541,9 +16541,9 @@
   {
    "id": "EZD-271",
    "phase": 1,
-   "title": "Fix: only a weekly usage limit holds the launcher; a five-hour limit waits for its reset",
+   "title": "Fix: a usage-limit error is classified by a fresh meter reading; only a full weekly meter holds the launcher",
    "depends_raw": "EZD-270",
-   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_ref": "Josh 2026-10-30 (chat, meter first)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
@@ -16559,7 +16559,8 @@
    "acs": [
     "AC-EZD-271-1",
     "AC-EZD-271-2",
-    "AC-EZD-271-3"
+    "AC-EZD-271-3",
+    "AC-EZD-271-4"
    ],
    "acs_source": "done-when",
    "priority": 1
@@ -16629,9 +16630,9 @@
   {
    "id": "EZD-274",
    "phase": 1,
-   "title": "Fix: a passing API rate-limit error is an ordinary failed unit, not a usage-limit hold",
+   "title": "Fix: a limit-like error with neither meter full is an ordinary failed unit, not a usage-limit hold",
    "depends_raw": "EZD-268, EZD-271",
-   "spec_ref": "Q-0438",
+   "spec_ref": "Josh 2026-10-30 (chat, meter first)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
