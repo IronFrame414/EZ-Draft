@@ -2747,6 +2747,19 @@
     "mockups/S01Projects.png",
     "mockups/S01cNotifications.png"
    ],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Background jobs (EZD-009)",
+    "Email (EZD-008)",
+    "Row-level security (EZD-006)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)",
+    "Customers (EZD-113)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-008a",

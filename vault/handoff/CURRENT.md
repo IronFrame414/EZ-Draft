@@ -1,10 +1,10 @@
-# Handoff · 2026-10-30 · questions 1
+# Handoff · 2026-10-30 01:37 · plan EZD-110
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete (launcher-run agent unit)
-- Completed this session: Questions 1 re-run unattended: no new phase-1 questions; Q-0443 to Q-0446 still escalated (vault/questions/phase-01-for-josh.md unchanged); ledger sorted; no ticket set ready (EZD-274, EZD-275 stay questions).
+- Completed this session: Planned EZD-110: status planned, complexity high.
 - In progress: none
 - Blocked: none new
 - Questions for Josh: see vault/questions/QUESTIONS.md
 - Decisions made: none
-- Next unit: per node vault/tools/next_ticket.mjs --next-unit
+- Next unit: questions 1
