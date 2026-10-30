@@ -1,16 +1,23 @@
 // PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
 // project write limits in vault/PROCESS-EZDRAFT.md section 3).
-import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
-import { readInput, repoRelative, deny, projectDir, norm } from './lib.mjs';
+import { existsSync, readFileSync, lstatSync } from 'node:fs';
+import { readInput, repoRelative, canonicalPath, repoRoot, deny, projectDir } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator'; // main session = orchestrator
 const file = input.tool_input?.file_path || input.tool_input?.notebook_path;
 if (!file) process.exit(0);
+const real = canonicalPath(file, input.cwd);
+if (real === null) deny(`${agent}: writing to a path that cannot be resolved is not allowed (${file}).`);
 const rel = repoRelative(file, input.cwd);
 
 if (rel === null) deny(`${agent}: writing outside the repository is not allowed (${file}).`);
+try {
+  const st = lstatSync(real);
+  if (st.isFile() && st.nlink > 1) deny(`${agent}: writing to a file that has more than one hard link is not allowed (${file}).`);
+} catch (e) {
+  if (e?.code !== 'ENOENT') deny(`${agent}: writing to a path that cannot be resolved is not allowed (${file}).`);
+}
 
 const isTest = /(^|\/)(tests?|e2e|__tests__|fixtures|__fixtures__|test-utils|test-harness)\//.test(rel)
   || /\.(test|spec)\.[cm]?[jt]sx?$/.test(rel)
@@ -43,7 +50,7 @@ function orchestratorSpecOk() {
 // PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000j worktrees (EZD-000j added by Q-0138 (a)) the builder may
 // edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
 // and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000j merges.
-const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-j]\//.test(norm(path.resolve(norm(input.cwd) || projectDir(), norm(file))));
+const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-j]\//.test(real);
 const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
 function pa3Grant() {
   if (!pa3Worktree || isTest || isSpec || rel === 'vault/PROCESS.md' || rel === 'scripts/gate.mjs') return false;
@@ -109,11 +116,10 @@ const usageFixFiles = {
   'EZD-249': ['vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', '.claude/hooks/guard-paths.mjs', '.claude/hooks/guard-bash.mjs',
     '.claude/agents/retriever-web.md', '.claude/agents/retriever-digest.md', '.claude/skills/build-ticket/dispatch.md', 'vault/PROCESS.md'],
 };
-// The ticket of the worktree the file is in: a prefix match on <projectDir()>/.claude/worktrees/<T>/ (EZD-250 D1), so a
-// nested .claude/worktrees/ inside a worktree never matches the outer one.
-const worktreesPrefix = `${projectDir().replace(/\/$/, '')}/.claude/worktrees/`;
-const resolvedFile = norm(path.resolve(norm(input.cwd) || projectDir(), norm(file)));
-const usageFixTicket = resolvedFile.startsWith(worktreesPrefix) ? /^(EZD-\d+[a-z]?)\//.exec(resolvedFile.slice(worktreesPrefix.length))?.[1] : undefined;
+// The ticket of the worktree the file really is in: a prefix match of the canonical path on <canonical project dir>/.claude/worktrees/<T>/
+// (EZD-250 D1; EZD-260), so a link inside a worktree to the main checkout gets no grant.
+const worktreesPrefix = `${repoRoot()}/.claude/worktrees/`;
+const usageFixTicket = real.startsWith(worktreesPrefix) ? /^(EZD-\d+[a-z]?)\//.exec(real.slice(worktreesPrefix.length))?.[1] : undefined;
 if (agent === 'builder' && usageFixTicket && !isTest && Object.hasOwn(usageFixFiles, usageFixTicket) && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
 // Builder grants from .claude/hooks/grants.json (EZD-250 D1): ticket ID → the exact paths its builder may write in its own
 // worktree; the launcher writes them from the ticket's approved plan (EZD-267); Josh applies a patch only for a plan that is not approved. Read on every call. Unreadable, invalid JSON or not a plain

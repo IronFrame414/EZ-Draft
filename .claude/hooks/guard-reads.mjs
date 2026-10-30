@@ -6,7 +6,7 @@
 // prints whole); its denial ends with RANGE_SENTENCE (EZD-199; Q-0344).
 import { readFileSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import path from 'node:path';
-import { readInput, deny, norm, projectDir, repoRelative } from './lib.mjs';
+import { readInput, deny, norm, projectDir, repoRelative, canonicalPath } from './lib.mjs';
 import { outline } from '../../vault/tools/outline.mjs';
 
 const BINARY_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.pdf'];
@@ -19,11 +19,19 @@ function threshold() {
   return v && /^\d+$/.test(v) && Number(v) > 0 ? Number(v) : 20000;
 }
 
+// Exempt entries are judged on resolved paths (EZD-260): a repo entry against repoRelative (links followed); an absolute
+// entry by its resolved folder plus its own name, so a link placed at an exempt name is not exempt.
+function entryPath(e) {
+  const dir = canonicalPath(path.posix.dirname(norm(e)), '/');
+  return dir === null ? null : `${dir}/${path.posix.basename(norm(e))}`;
+}
 function exempt(abs, cwd) {
   const list = (process.env.GUARD_WHOLE_READ_EXEMPT || '').split(',').map((s) => s.trim()).filter(Boolean);
   if (!list.length) return false;
   const rel = repoRelative(abs, cwd);
-  return list.includes(rel === null ? norm(path.resolve(abs)) : rel);
+  if (rel !== null) return list.includes(rel);
+  const real = canonicalPath(abs, cwd);
+  return real !== null && list.some((e) => e.startsWith('/') && entryPath(e) === real);
 }
 
 // Returns { text, chars } for a large text file, otherwise null.
