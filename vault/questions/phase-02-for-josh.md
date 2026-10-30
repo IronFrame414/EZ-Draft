@@ -1,10 +1,16 @@
 # Phase 2 · for Josh (questions unit, 2026-10-30, re-run)
 
-No decisions wait on you. Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4). All phase 2 tickets are `ready`.
+One decision waits on you (Q-0465, section 1). Then confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4). Tickets other than EZD-108 are `ready`; EZD-108 stays blocked until you answer.
 
 ## 1. Decisions needed
 
-None. Q-0447, Q-0453 and Q-0454 were answered by Josh on 2026-10-30 (decisions files; plans EZD-108, EZD-140, EZD-276 updated).
+**Q-0465 · EZD-108 (Change password in My profile).** The live site has the Turnstile security check on, and Supabase refuses the password check that Change password uses unless it gets the check's token. As planned, Change password cannot work on the live site (evidence R-046; runbook Captcha; Q-0243 (c)).
+Options:
+- (a) **Recommended.** Show the same security-check box under the password fields as on the sign-in page. No new wording (`error.captcha_failed` and `error.captcha_unavailable` exist). Supabase stays the only thing that checks the password (rule 18). Costs one widget in the dialog and a token through the route.
+- (b) No box. The database compares the typed password with the stored hash in a new owner-rights function; anyone signed in over 24 h also gets the emailed 6-digit code, as Set password does (Q-0447). Costs a new function reading auth.users, rewritten tests T3, T4, T7, T15, and a visible rule change.
+- (c) No box and no code: the server changes the password with the admin key after the database check. Least preferred (admin key in a user route).
+
+Also needs your yes: Spanish for the 9 new `error.*` keys and `error.db_unavailable` in the password section.
 
 ## 2. Agent answers to confirm
 
