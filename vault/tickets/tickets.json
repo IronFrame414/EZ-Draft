@@ -2978,6 +2978,13 @@
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)",
+    "Release safety (EZD-023a)",
+    "Settings shell (EZD-103a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-117a",
