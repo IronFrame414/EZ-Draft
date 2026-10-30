@@ -60,3 +60,4 @@
 {"date":"2026-10-30","ticket":"EZD-108","round":1,"reviewer":"security-reviewer","category":"docs","text":"architecture.md:698 AvatarMenu said Radix DropdownMenu (dup of code-reviewer 1)","lesson":null}
 {"date":"2026-10-30","ticket":"EZD-108","round":1,"reviewer":"ui-verifier","category":"ui-mismatch","text":"full avatar menu shows blank icon slots (person, gear, logout) vs mockup S01dAvatarMenu; no-permission menu shows icons","lesson":null}
 {"date":"2026-10-30","ticket":"EZD-108","round":1,"reviewer":"ui-verifier","category":"ui-mismatch","text":"avatar menu position/width differs slightly from S01dAvatarMenu (flush right edge)","lesson":null}
+{"date":"2026-10-30","ticket":"EZD-260","round":1,"reviewer":"security-reviewer","category":"docs","text":"guard-paths.mjs:119-120 comment says a link inside one worktree to another checkout gets no grant, but a link to a sibling worktree's granted file is allowed (probe P30); reword to main checkout","lesson":null}
