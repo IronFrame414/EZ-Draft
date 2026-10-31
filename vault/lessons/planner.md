@@ -325,3 +325,4 @@ When a dependency adds a naming helper for a class of messages (EZD-255 unitSubj
 When a rule changes from 'round N' to 'round N or later', list every place the skill states the old round.
 When a rule's wording changes, grep .claude/agents/ and .claude/skills/ for the old wording and list every file in Build steps, so the grant covers them all.
 EZD-277 (2026-10-30): a permission plan gives the direction of each compare up front: a check that refuses may fold wider than the disk, but a check that allows (grants, exemptions, writes-only-under rules) folds no wider than the disk; add a test row with a look-alike letter.
+EZD-277 (2026-10-30): before a plan claims how the disk treats a name, test it on that disk against an existing folder; realpath rewrites a look-alike folder name to the real one and hides it from any check on the resolved path.
