@@ -1,10 +1,11 @@
-# Handoff · 2026-10-30 · questions 1
+# Handoff · 2026-10-30 · build EZD-277
 
-- Phase and stage: 1, Stage 2 (questions).
-- Why the session ended: unit complete; Josh's answers pending in chat.
-- Completed this session: Q-0470 recorded answered-agent (LG2 uses unitSubject); Q-0471 escalated (not covered by PROCESS.md s4/s8); phase-01-for-josh.md rewritten with Q-0471, Q-0469, Q-0470 to confirm, L-037 to L-039 candidates; ledger sorted and checked (OK, 567 tickets).
-- In progress: EZD-268 blocked, worktree .claude/worktrees/EZD-268 kept at develop sync.
-- Blocked: EZD-268 on Q-0471. If (a): builder applies D10 rows 7-8, gate, same code-reviewer re-reviews, unit-steps.mjs merge EZD-268; PROCESS.md needs one sentence that a plan-gap fix is not a ladder round.
-- Questions for Josh: Q-0471, Q-0469 (escalated); Q-0465 (phase 2, EZD-108).
-- Decisions made: none by Josh yet. No tickets set ready (none planned or questions).
+- Phase and stage: 1, Stage 3.
+- Why the session ended: ticket done.
+- Completed: EZD-277 merged 41de137d (1578 tests, 2 rounds). Round 1 security FAIL (pathKey folded wider than the disk) led to two plan-gap patches: new G0 (no non-ASCII write paths on a case-insensitive disk), ASCII-only grant compare, printableAscii export.
+- Plan deviations: EZD-279 must re-validate (pathIn, printableAscii, pathKey off guard-reads import).
+- needs-josh-confirm: G0 refusal text (Q-0472, agent-answered). Cost: no non-ASCII file names written by agents on Josh Mac.
+- Open: Q-0473 needs an orchestrator fix ticket (repoRelative toLowerCase, Linux CI). Lesson L-040 candidate.
+- Still blocked from before: EZD-268 on Q-0471; Q-0469, Q-0465 for Josh.
+- Untracked vault/handoff/RESUME-2026-10-30.md and STOP are not from this unit; left alone.
 - Next unit: node vault/tools/next_ticket.mjs --next-unit
