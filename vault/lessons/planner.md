@@ -326,3 +326,11 @@ When a rule changes from 'round N' to 'round N or later', list every place the s
 When a rule's wording changes, grep .claude/agents/ and .claude/skills/ for the old wording and list every file in Build steps, so the grant covers them all.
 EZD-277 (2026-10-30): a permission plan gives the direction of each compare up front: a check that refuses may fold wider than the disk, but a check that allows (grants, exemptions, writes-only-under rules) folds no wider than the disk; add a test row with a look-alike letter.
 EZD-277 (2026-10-30): before a plan claims how the disk treats a name, test it on that disk against an existing folder; realpath rewrites a look-alike folder name to the real one and hides it from any check on the resolved path.
+
+## L-040  areas: tooling, security, testing  seen: 1  status: candidate
+Ticket EZD-277, 2026-10-30
+Mistake: a permission plan folded letters with JavaScript toLowerCase for grants too; the disk folds fewer characters (dotless i stays distinct), so a grant covered a look-alike path, and a later claim about how the disk treats ſ, ﬁ and Kelvin K was wrong (realpath rewrites them to the ASCII folder).
+Cause: the plan did not state the direction of each compare and did not test the disk with an existing folder.
+Rule: a check that refuses may fold wider than the disk; a check that allows (grants, exemptions) folds only plain ASCII; test disk claims on that disk against an existing folder.
+Check: each permission plan has a look-alike-letter row for every allow rule.
+Plan check: Tests rows include a look-alike letter against an existing folder.
