@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 563,
+ "count": 568,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -2963,7 +2963,7 @@
    "id": "EZD-117a",
    "phase": 2,
    "title": "Projects page: query and cards",
-   "depends_raw": "EZD-102, EZD-110",
+   "depends_raw": "EZD-102, EZD-110a, EZD-110b, EZD-108",
    "spec_ref": "S01 Controls, Data shown, States",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Controls",
@@ -2994,7 +2994,8 @@
    "depends_on": [
     "EZD-102",
     "EZD-110a",
-    "EZD-110b"
+    "EZD-110b",
+    "EZD-108"
    ],
    "build_position": 83,
    "acs": [
@@ -16931,6 +16932,29 @@
    ],
    "acs_source": "done-when",
    "priority": 1
+  },
+  {
+   "id": "EZD-283",
+   "phase": 2,
+   "title": "Fix: a failed tenant.updated event after a Company settings save is reported",
+   "depends_raw": "EZD-024, EZD-169",
+   "spec_ref": "EZD-108 build (rule 17)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-169"
+   ],
+   "build_position": 555,
+   "acs": [
+    "AC-EZD-283-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
