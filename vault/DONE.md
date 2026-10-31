@@ -164,3 +164,4 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-30 · EZD-278 · Next signed-off phase builds when the current phase has nothing buildable · the launcher no longer sits idle; current phase's buildable tickets still go first · 380ab95c
 2026-10-30 · EZD-255 · Fix: a hold or limit message names the repair unit · notifications, hold file and log now say 'repair <kind> for "<wait>"' when a repair hits a hold or limit · cbee4d96
 2026-10-30 · EZD-260 · Guards resolve symlinks before judging a path · an agent can no longer get around the file-write guard or the whole-read limit through a link or hard link to a protected file · a5d1e087
+2026-10-30 · EZD-277 · Fix: write and read guards compare paths case-insensitively on a case-insensitive disk · on Josh's Mac an agent can no longer pass a write limit by spelling a path in other capitals or with look-alike letters, and the shell guard blocks the sign-in file in any capitals · 41de137d
