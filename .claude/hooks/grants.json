@@ -23,12 +23,6 @@
     "vault/tools/model-ladder.mjs",
     "vault/tools/next_ticket.mjs"
   ],
-  "EZD-277": [
-    ".claude/hooks/guard-bash.mjs",
-    ".claude/hooks/guard-paths.mjs",
-    ".claude/hooks/guard-reads.mjs",
-    ".claude/hooks/lib.mjs"
-  ],
   "EZD-282": [
     ".claude/hooks/guard-paths.mjs",
     "vault/tools/grants.mjs"
