@@ -1,5 +1,5 @@
 // Shared helpers for EZ Draft hooks. Node 22, no dependencies.
-import { readFileSync, lstatSync, realpathSync } from 'node:fs';
+import { readFileSync, lstatSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 export function readInput() {
@@ -62,6 +62,43 @@ export function repoRelative(filePath, cwd) {
   }
   if (lower.startsWith(`${root.toLowerCase()}/`)) return p.slice(root.length + 1);
   return null; // outside the repo
+}
+// Letter case (EZD-277): on a disk that ignores case, a compare that denies uses pathKey(…, true), which folds wider than the disk; a compare that allows (pathIn, grants) folds only printable ASCII, which the disk folds too, so no look-alike letter (ı, ſ, K, ﬁ) is ever allowed. The probe fails closed to folding. Grant keys and paths outside printable ASCII grant nothing.
+export function caseInsensitiveDisk(dir) {
+  if (typeof dir !== 'string' || dir === '') return true;
+  const flipped = dir.replace(/[A-Za-z]/g, (c) => (c === c.toLowerCase() ? c.toUpperCase() : c.toLowerCase()));
+  if (flipped === dir) return true;
+  let a;
+  try {
+    a = statSync(dir);
+  } catch {
+    return true;
+  }
+  let b;
+  try {
+    b = statSync(flipped);
+  } catch {
+    return false;
+  }
+  return a.dev === b.dev && a.ino === b.ino;
+}
+export function pathKey(p, fold) {
+  if (!fold) return p;
+  return p.normalize('NFC').toUpperCase().toLowerCase().normalize('NFC');
+}
+export function pathIn(list, p, fold) {
+  return list.some((e) => e === p || (fold && printableAscii(e) && printableAscii(p) && pathKey(e, true) === pathKey(p, true)));
+}
+const ASCII = /^[\x20-\x7e]+$/;
+export function printableAscii(s) {
+  return typeof s === 'string' && ASCII.test(s);
+}
+export function grantFor(grants, ticket, fold) {
+  if (!(grants !== null && typeof grants === 'object' && Object.getPrototypeOf(grants) === Object.prototype)) return null;
+  const keys = Object.keys(grants).filter((k) => ASCII.test(k) && pathKey(k, fold) === pathKey(ticket, fold));
+  if (keys.length !== 1) return null;
+  const v = grants[keys[0]];
+  return Array.isArray(v) && v.every((e) => typeof e === 'string' && ASCII.test(e)) ? v : null;
 }
 export function deny(reason) {
   process.stdout.write(JSON.stringify({

@@ -35,7 +35,7 @@ for (const seg of raw.split(/[;&|]/)) {
 const noTests = raw
   .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)/g, '$1')
   .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)\s+\]/g, '');
-if (/\.credentials\.json|\.claude\/\.cred/.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
+if (/\.credentials\.json|\.claude\/\.cred/i.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
 
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) {

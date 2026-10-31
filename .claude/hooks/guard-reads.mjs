@@ -6,7 +6,7 @@
 // prints whole); its denial ends with RANGE_SENTENCE (EZD-199; Q-0344).
 import { readFileSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import path from 'node:path';
-import { readInput, deny, norm, projectDir, repoRelative, canonicalPath } from './lib.mjs';
+import { readInput, deny, norm, projectDir, repoRelative, canonicalPath, repoRoot, caseInsensitiveDisk, pathIn } from './lib.mjs';
 import { outline } from '../../vault/tools/outline.mjs';
 
 const BINARY_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.pdf'];
@@ -28,10 +28,15 @@ function entryPath(e) {
 function exempt(abs, cwd) {
   const list = (process.env.GUARD_WHOLE_READ_EXEMPT || '').split(',').map((s) => s.trim()).filter(Boolean);
   if (!list.length) return false;
+  const fold = caseInsensitiveDisk(repoRoot());
   const rel = repoRelative(abs, cwd);
-  if (rel !== null) return list.includes(rel);
+  if (rel !== null) return pathIn(list, rel, fold);
   const real = canonicalPath(abs, cwd);
-  return real !== null && list.some((e) => e.startsWith('/') && entryPath(e) === real);
+  return real !== null && list.some((e) => {
+    if (!e.startsWith('/')) return false;
+    const ep = entryPath(e);
+    return ep !== null && pathIn([ep], real, fold);
+  });
 }
 
 // Returns { text, chars } for a large text file, otherwise null.

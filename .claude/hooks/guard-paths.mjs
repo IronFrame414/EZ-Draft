@@ -1,7 +1,7 @@
 // PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
 // project write limits in vault/PROCESS-EZDRAFT.md section 3).
 import { existsSync, readFileSync, lstatSync } from 'node:fs';
-import { readInput, repoRelative, canonicalPath, repoRoot, deny, projectDir } from './lib.mjs';
+import { readInput, repoRelative, canonicalPath, repoRoot, deny, projectDir, caseInsensitiveDisk, pathKey, pathIn, grantFor, printableAscii } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator'; // main session = orchestrator
@@ -18,19 +18,26 @@ try {
 } catch (e) {
   if (e?.code !== 'ENOENT') deny(`${agent}: writing to a path that cannot be resolved is not allowed (${file}).`);
 }
+const fold = caseInsensitiveDisk(repoRoot());
+const asSent = input.cwd ? [file, input.cwd] : [file];
+if (fold && ![...asSent, rel, real].every((s) => printableAscii(s))) deny(`${agent}: writing to a path with a character outside plain ASCII is not allowed on a disk that ignores letter case (${file}).`);
+const key = pathKey(rel, fold);
+const realKey = pathKey(real, fold);
+const is = (p) => key === pathKey(p, fold);
+const under = (prefix) => key.startsWith(pathKey(prefix, fold));
 
-const isTest = /(^|\/)(tests?|e2e|__tests__|fixtures|__fixtures__|test-utils|test-harness)\//.test(rel)
-  || /\.(test|spec)\.[cm]?[jt]sx?$/.test(rel)
-  || /(^|\/)(vitest|playwright)(\.workspace)?(\.config)?\.[cm]?[jt]s$/.test(rel);
-const isSpec = rel.startsWith('vault/spec/');
-const isVault = rel.startsWith('vault/');
-const isEnv = /(^|\/)\.env(\.|$)/.test(rel) && !rel.endsWith('.env.example');
+const isTest = /(^|\/)(tests?|e2e|__tests__|fixtures|__fixtures__|test-utils|test-harness)\//.test(key)
+  || /\.(test|spec)\.[cm]?[jt]sx?$/.test(key)
+  || /(^|\/)(vitest|playwright)(\.workspace)?(\.config)?\.[cm]?[jt]s$/.test(key);
+const isSpec = under('vault/spec/');
+const isVault = under('vault/');
+const isEnv = /(^|\/)\.env(\.|$)/.test(key) && !key.endsWith('.env.example');
 
 if (isEnv) deny('No agent writes .env files. Put variable names in .env.example; Josh sets values.');
 
 // Josh-only files (PROCESS.md sections 5, 11 and 14): sign-offs, budget, hold.
 const joshOnly = ['vault/spec/SIGNOFF.md', 'vault/budget.json', 'vault/handoff/BUDGET_HOLD.md'];
-if (joshOnly.includes(rel)) deny(`${rel} is written only by Josh (or scripts/budget.mjs). Agents never edit it.`);
+if (joshOnly.some(is)) deny(`${rel} is written only by Josh (or scripts/budget.mjs). Agents never edit it.`);
 
 // Fix mode (Q-0125 (a), Josh 2026-10-19; PROCESS.md section 3 rule 19): while vault/handoff/LAUNCHER_FIX.md exists the
 // orchestrator may edit hooks, skills, scripts/, vault/tools/ and the process files to repair a broken run. The file names
@@ -41,40 +48,40 @@ const fixMode = existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
 // (a Stage 0 gap filled from Josh's answer). Existing section and screen files are read-only (rule 4).
 const specWritable = ['vault/spec/glossary.md', 'vault/spec/non-goals.md', 'vault/spec/acceptance-criteria.md', 'vault/spec/READINESS.md', 'vault/spec/INDEX.md'];
 function orchestratorSpecOk() {
-  if (rel.startsWith('vault/spec/decisions/')) return true;
-  if (specWritable.includes(rel)) return true;
-  if (/^vault\/spec\/sections\/.+\.md$/.test(rel) && !existsSync(`${projectDir()}/${rel}`)) return true;
+  if (under('vault/spec/decisions/')) return true;
+  if (specWritable.some(is)) return true;
+  if (/^vault\/spec\/sections\/.+\.md$/.test(key) && !existsSync(`${projectDir()}/${rel}`)) return true;
   return false;
 }
 
 // PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000j worktrees (EZD-000j added by Q-0138 (a)) the builder may
 // edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
 // and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000j merges.
-const pa3Worktree = /\/\.claude\/worktrees\/EZD-000[b-j]\//.test(real);
+const pa3Worktree = (fold ? /\/\.claude\/worktrees\/ezd-000[b-j]\// : /\/\.claude\/worktrees\/EZD-000[b-j]\//).test(realKey);
 const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
 function pa3Grant() {
-  if (!pa3Worktree || isTest || isSpec || rel === 'vault/PROCESS.md' || rel === 'scripts/gate.mjs') return false;
-  return rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || pa3Vault.some((p) => rel === p || (p.endsWith('/') && rel.startsWith(p)));
+  if (!pa3Worktree || isTest || isSpec || is('vault/PROCESS.md') || is('scripts/gate.mjs')) return false;
+  return under('.claude/') || is('CLAUDE.md') || under('scripts/') || pa3Vault.some((p) => is(p) || (p.endsWith('/') && under(p)));
 }
 
 // Retrievers write only their report files (vault/PROCESS.md section 4 roster; EZD-000f).
 function retriever() {
-  if (!rel.startsWith('vault/research/pending/')) return 'Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).';
+  if (!under('vault/research/pending/')) return 'Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).';
 }
 
 const rules = {
   orchestrator: () => {
     if (isSpec && !orchestratorSpecOk()) return 'The spec is read-only after sign-off. Record a change in vault/spec/decisions/<area>.md; a new section file is allowed only when it does not exist yet.';
-    if (!fixMode && (rel.startsWith('.claude/') || rel.startsWith('.github/') || rel.startsWith('scripts/') || rel.startsWith('vault/tools/')))
+    if (!fixMode && (under('.claude/') || under('.github/') || under('scripts/') || under('vault/tools/')))
       return 'Agent config, hooks, skills, CI, the gate script, the launcher and the ledger tool are changed only by Josh (propose the change in the handoff).';
-    if (!fixMode && (rel === 'vault/PROCESS.md' || rel === 'vault/PROCESS-EZDRAFT.md')) return 'The process files change only with Josh\'s yes in chat; propose the change, do not edit.';
-    if (rel === 'vault/PROGRESS.md' || rel === 'vault/tickets/TRACE.md') return 'Generated file: run node vault/tools/next_ticket.mjs --report instead of editing it.';
-    const tooling = rel.startsWith('.claude/') || rel.startsWith('scripts/') || rel.startsWith('vault/tools/');
-    if (!isVault && rel !== 'CLAUDE.md' && rel !== 'docs/architecture.md' && !(fixMode && tooling))
+    if (!fixMode && (is('vault/PROCESS.md') || is('vault/PROCESS-EZDRAFT.md'))) return 'The process files change only with Josh\'s yes in chat; propose the change, do not edit.';
+    if (is('vault/PROGRESS.md') || is('vault/tickets/TRACE.md')) return 'Generated file: run node vault/tools/next_ticket.mjs --report instead of editing it.';
+    const tooling = under('.claude/') || under('scripts/') || under('vault/tools/');
+    if (!isVault && !is('CLAUDE.md') && !is('docs/architecture.md') && !(fixMode && tooling))
       return 'The orchestrator does not write app code or tests. Dispatch test-author or builder.';
   },
   planner: () => {
-    if (!rel.startsWith('vault/plans/') || rel.startsWith('vault/plans/shots/'))
+    if (!under('vault/plans/') || under('vault/plans/shots/'))
       return 'The planner writes only vault/plans/<ticket>.md. Put questions in the plan\'s Open questions section; the orchestrator assigns Q-IDs.';
   },
   'test-author': () => {
@@ -91,11 +98,11 @@ const rules = {
     // Q-0247 / Q-0125 (a), orchestrator 2026-10-22: scripts/perf/ is the builder's (the performance check, EZD-017 and later).
     // Q-0125 (a), EZD-149: scripts/hosting/ is the builder's (the live hosting check)
     // Q-0258, Josh 2026-10-23: scripts/backup/ is the builder's (backups, EZD-025). Q-0259, Josh 2026-10-23: scripts/auth/ is the builder's (captcha hand check, EZD-034).
-    if ((rel.startsWith('.claude/') || rel === 'CLAUDE.md' || rel.startsWith('scripts/') || rel === '.github/workflows/ci.yml') && !rel.startsWith('scripts/conventions/') && !rel.startsWith('scripts/db/') && !rel.startsWith('scripts/email/') && !rel.startsWith('scripts/release/') && !rel.startsWith('scripts/perf/') && !rel.startsWith('scripts/backup/') && !rel.startsWith('scripts/auth/') && !rel.startsWith('scripts/hosting/'))
+    if ((under('.claude/') || is('CLAUDE.md') || under('scripts/') || is('.github/workflows/ci.yml')) && !under('scripts/conventions/') && !under('scripts/db/') && !under('scripts/email/') && !under('scripts/release/') && !under('scripts/perf/') && !under('scripts/backup/') && !under('scripts/auth/') && !under('scripts/hosting/'))
       return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget; scripts/conventions/, scripts/db/, scripts/email/ and scripts/release/, scripts/perf/, scripts/backup/, scripts/auth/ and scripts/hosting/ are allowed) or ci.yml. New workflow files under .github/workflows/ are allowed.';
   },
   'ui-verifier': () => {
-    if (!rel.startsWith('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
+    if (!under('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
   },
 };
 rules['retriever-digest'] = retriever;
@@ -119,8 +126,9 @@ const usageFixFiles = {
 // The ticket of the worktree the file really is in: a prefix match of the canonical path on <canonical project dir>/.claude/worktrees/<T>/
 // (EZD-250 D1; EZD-260), so a link inside a worktree to the main checkout gets no grant.
 const worktreesPrefix = `${repoRoot()}/.claude/worktrees/`;
-const usageFixTicket = real.startsWith(worktreesPrefix) ? /^(EZD-\d+[a-z]?)\//.exec(real.slice(worktreesPrefix.length))?.[1] : undefined;
-if (agent === 'builder' && usageFixTicket && !isTest && Object.hasOwn(usageFixFiles, usageFixTicket) && usageFixFiles[usageFixTicket].includes(rel)) process.exit(0);
+const usageFixTicket = realKey.startsWith(pathKey(worktreesPrefix, fold)) ? (fold ? /^(ezd-\d+[a-z]?)\// : /^(EZD-\d+[a-z]?)\//).exec(realKey.slice(pathKey(worktreesPrefix, fold).length))?.[1] : undefined;
+const fixPaths = usageFixTicket ? grantFor(usageFixFiles, usageFixTicket, fold) : null;
+if (agent === 'builder' && fixPaths && !isTest && pathIn(fixPaths, rel, fold)) process.exit(0);
 // Builder grants from .claude/hooks/grants.json (EZD-250 D1): ticket ID → the exact paths its builder may write in its own
 // worktree; the launcher writes them from the ticket's approved plan (EZD-267); Josh applies a patch only for a plan that is not approved. Read on every call. Unreadable, invalid JSON or not a plain
 // object grants nothing; a value that is not a list of strings grants nothing for that ticket (fail closed).
@@ -133,9 +141,8 @@ function fileGrants() {
   }
 }
 if (agent === 'builder' && usageFixTicket && !isTest) {
-  const g = fileGrants();
-  const paths = g && Object.hasOwn(g, usageFixTicket) ? g[usageFixTicket] : null;
-  if (Array.isArray(paths) && paths.every((p) => typeof p === 'string') && paths.includes(rel)) process.exit(0);
+  const paths = grantFor(fileGrants(), usageFixTicket, fold);
+  if (paths && pathIn(paths, rel, fold)) process.exit(0);
 }
 const reason = rules[agent]?.();
 if (reason) deny(reason);
