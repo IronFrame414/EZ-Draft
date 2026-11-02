@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, realpathSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,7 +36,7 @@ function fixture({ status = 'ready', depStatus = 'done', gateExit = 0 } = {}) {
   mkdirSync(path.join(dir, 'scripts'), { recursive: true });
   writeFileSync(path.join(dir, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(dir, '.git', 'launcher-logs') }));
   writeFileSync(path.join(dir, 'gate-stub.mjs'), `console.log('=== GATE SUMMARY ===');console.log('ℹ pass 30');console.log(' Tests  12 passed (12)');process.exit(${gateExit});\n`);
-  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\nvault/tickets/STATUS.md\nvault/handoff/CURRENT.md\nvault/DONE.md\n');
+  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\nvault/tickets/STATUS.md\nvault/handoff/CURRENT.md\nvault/DONE.md\ngate.log\n');
   git(dir, 'add', '-A');
   git(dir, 'commit', '-qm', 'init');
   const imp = spawnSync(process.execPath, [RECORDS, 'import', '--vault', path.join(dir, 'vault'), '--db', dbOf(dir)], { encoding: 'utf8' });
@@ -49,6 +49,12 @@ const run = (dir, ...a) => spawnSync(process.execPath, [SCRIPT, ...a], {
   env: { ...process.env, EZD_ROOT: dir, EZD_RECORDS_DB: dbOf(dir), EZD_RESULTS_FILE: '', EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-inflight-')), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1' },
 });
 const row = (dir, id) => readFileSync(path.join(dir, 'vault/tickets/STATUS.md'), 'utf8').split('\n').find((l) => l.startsWith(`| ${id} `));
+// The unit's own passing gate run on the worktree (build-ticket step 7; Josh 2026-11-02: the merge runs no gate). It starts
+// in the next whole second, after the worktree's last commit, and writes gate.log as scripts/gate.mjs does.
+function passGate(wt) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1005 - (Date.now() % 1000));
+  writeFileSync(path.join(wt, 'gate.log'), `GATE ${new Date().toISOString()} ${realpathSync(wt)}\n=== GATE SUMMARY ===\nℹ pass 30\n Tests  12 passed (12)\nGATE PASS\n`);
+}
 const commitIn = (dir, file, text, msg) => { writeFileSync(path.join(dir, file), text); git(dir, 'add', '-A'); git(dir, 'commit', '-qm', msg); };
 
 test('preflight passes a ready ticket whose dependencies are done, in 5 lines or fewer', () => {
@@ -92,11 +98,12 @@ test('worktree creates t/<ID>, sets in-progress, and reports resume state on a s
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('merge squashes, runs the develop gate, cleans up and marks done with hash and test count; its feat commit is the only commit (D2 (a))', () => {
+test('merge squashes after the worktree\'s passing gate, cleans up and marks done with hash and gate.log test count; its feat commit is the only commit (D2 (a))', () => {
   const dir = fixture();
   run(dir, 'worktree', 'EZD-002');
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
   commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(wt);
   const r = run(dir, 'merge', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /MERGE OK/);
@@ -112,11 +119,12 @@ test('merge squashes, runs the develop gate, cleans up and marks done with hash 
 
 // An interrupted unit (EZD-020, 2026-10-23: the launcher was killed after the squash commit) leaves the feat commit on
 // develop, a vault commit on top and the branch and worktree in place.
-function interrupted(gateExit = 0) {
-  const dir = fixture({ gateExit });
+function interrupted() {
+  const dir = fixture();
   run(dir, 'worktree', 'EZD-002');
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
   commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(wt);
   git(dir, 'merge', '--squash', 't/EZD-002');
   git(dir, 'commit', '-qm', 'feat(EZD-002): Thing two');
   const feat = git(dir, 'rev-parse', '--short', 'HEAD');
@@ -143,31 +151,6 @@ test('merge resumes an interrupted merge without a second squash and marks done 
   assert.equal(git(dir, 'log', '-F', '--grep=feat(EZD-002): ', '--format=%h').split('\n').length, 1);
   assert.ok(!existsSync(wt));
   assert.match(row(dir, 'EZD-002'), new RegExp(`\\| done \\| medium \\| EZD-001 \\| ${feat} \\| 42 \\|`));
-  rmSync(dir, { recursive: true, force: true });
-});
-
-test('a resumed merge on a red develop gate reverts the feat commit and keeps the worktree', () => {
-  const { dir, wt } = interrupted(1);
-  const r = run(dir, 'merge', 'EZD-002');
-  assert.equal(r.status, 1);
-  assert.match(r.stdout, /MERGE RED/);
-  assert.ok(!existsSync(path.join(dir, 'feature.mjs')));
-  assert.match(git(dir, 'log', '-1', '--format=%s'), /^Revert "feat\(EZD-002\): Thing two"$/);
-  assert.ok(existsSync(wt));
-  rmSync(dir, { recursive: true, force: true });
-});
-
-test('merge on a red develop gate restores develop and keeps the worktree', () => {
-  const dir = fixture({ gateExit: 1 });
-  run(dir, 'worktree', 'EZD-002');
-  const wt = path.join(dir, '.claude/worktrees/EZD-002');
-  commitIn(wt, 'feature.mjs', 'bad\n', 'wip(EZD-002): feature');
-  const before = git(dir, 'rev-parse', 'HEAD');
-  const r = run(dir, 'merge', 'EZD-002');
-  assert.equal(r.status, 1);
-  assert.match(r.stdout, /MERGE RED/);
-  assert.equal(git(dir, 'rev-parse', 'HEAD'), before);
-  assert.ok(existsSync(wt));
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -240,6 +223,7 @@ test('2.12 U1 the feat commit carries develop\'s untracked plan; it is the one n
   assert.equal(readFileSync(path.join(wt, 'vault/plans/EZD-002.md'), 'utf8'), '# EZD-002 plan v1\n', 'the worktree gets the plan');
   writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# EZD-002 plan v2\n');
   commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(wt);
   const before = Number(git(dir, 'rev-list', '--count', 'HEAD'));
   const r = run(dir, 'merge', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
@@ -260,6 +244,7 @@ test('2.12 U2 inside a unit the merge queues its STATUS change; the database cha
   });
   assert.equal(inUnit('worktree', 'EZD-002').status, 0);
   commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(path.join(dir, '.claude/worktrees/EZD-002'));
   const m = inUnit('merge', 'EZD-002');
   assert.equal(m.status, 0, m.stdout + m.stderr);
   const db = openRecords(dbOf(dir));
@@ -279,6 +264,7 @@ test('2.12 U3 the feat commit writes the tickets.json entry the records database
   db.close();
   run(dir, 'worktree', 'EZD-002');
   commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(path.join(dir, '.claude/worktrees/EZD-002'));
   const r = run(dir, 'merge', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.equal(git(dir, 'log', '-1', '--format=%s'), 'feat(EZD-002): Thing two');

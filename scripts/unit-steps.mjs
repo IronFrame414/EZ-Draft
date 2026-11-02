@@ -6,8 +6,9 @@
 //   node scripts/unit-steps.mjs preflight <T>          step 0: develop clean outside vault/, ledger valid, ticket startable, no hold
 //   node scripts/unit-steps.mjs worktree <T>           step 2: create or resume .claude/worktrees/<T> on t/<T>; STATUS → in-progress;
 //                                                     `RESUME merged=yes` when an interrupted unit already squashed it (go to step 10)
-//   node scripts/unit-steps.mjs merge <T>              step 10: squash, commit, develop gate, clean up; STATUS → done (hash, tests);
-//                                                     first merges develop into t/<T> and re-runs the ticket gate when that changed anything;
+//   node scripts/unit-steps.mjs merge <T>              step 10: squash, commit, clean up; STATUS → done (hash, tests); runs no gate:
+//                                                     first merges develop into t/<T> (exit 5 MERGE GATE when that changed anything)
+//                                                     and needs the worktree's passing gate.log on its last commit (exit 5 otherwise);
 //                                                     resumes after an interrupted unit (feat commit already on develop)
 //   node scripts/unit-steps.mjs finish <T> <outcome> [<vault path>...]
 //                                                     step 11: ledger check, report, push develop
@@ -16,9 +17,9 @@
 // through records.mjs record(), which queues it in the unit's results file for the launcher. No step commits records;
 // the only develop commit of a ticket is its feat commit, which also carries the ticket's plan.
 //
-// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_GATE_CMD (gate command), EZD_NO_PUSH=1,
+// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_NO_PUSH=1,
 // EZD_INFLIGHT_DIR (in-flight records). EZD_UNIT_ID is set by scripts/run.mjs for the unit's session.
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -102,7 +103,7 @@ function worktree() {
     const branchExists = out(git('branch', '--list', `t/${ticket}`)) !== '';
     const merged = mergedCommit();
     if (merged) {
-      console.log(`WORKTREE RESUME merged=yes commit=${merged.slice(0, 7)}: go to step 10 (merge resumes: develop gate, clean up, done)`);
+      console.log(`WORKTREE RESUME merged=yes commit=${merged.slice(0, 7)}: go to step 10 (merge resumes: clean up, done)`);
       return;
     }
     if (existsSync(wt) || branchExists) {
@@ -141,15 +142,8 @@ function copyPlan(wt) {
   writeFileSync(path.join(wt, planRel()), readFileSync(src));
 }
 
-let shown = 0;
-
 const listPaths = (paths) => paths.slice(0, 3).join(', ') + (paths.length > 3 ? ` and ${paths.length - 3} more` : '');
 const firstLine = (r) => out(r).split('\n')[0];
-const gateSummary = (r) => out(r).split('\n').filter((l) => /^(GATE|typecheck|lint|test|build|perf|first error)/.test(l)).slice(-3);
-const printSummary = (summary) => {
-  const n = Math.max(0, Math.min(3, 4 - shown));
-  for (const l of summary.slice(summary.length - n)) console.log(l);
-};
 
 // True when guard-paths.mjs would let a builder edit <rel> in the ticket's worktree (asks the hook itself; fails closed).
 function builderMayWrite(t, rel) {
@@ -162,15 +156,28 @@ function builderMayWrite(t, rel) {
   return r.status === 0 && !(r.stdout || '').includes('"permissionDecision":"deny"');
 }
 
-function ticketGate(t) {
-  const gateCmd = process.env.EZD_GATE_CMD;
-  const wtArg = `.claude/worktrees/${t}`;
-  return gateCmd
-    ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), wtArg])
-    : sh(process.execPath, ['scripts/gate.mjs', wtArg]);
+// The merge never runs a gate (Josh 2026-11-02, sandbox option 3): the gate runs only as the unit's own
+// `node scripts/gate.mjs .claude/worktrees/<T>`, the one command outside the unit sandbox. The merge takes that run's
+// gate.log as proof: it is the worktree's, it ends in GATE PASS, the worktree has no uncommitted change, and no commit
+// is newer than the gate's start, so the squash commits exactly the tree that was gated.
+function worktreeGate(t) {
+  const wt = path.join(root, '.claude/worktrees', t);
+  const logFile = path.join(wt, 'gate.log');
+  if (!existsSync(logFile)) return { ok: false, why: 'no gate.log in the worktree' };
+  const log = readFileSync(logFile, 'utf8');
+  const head = /^GATE (\S+) (.+)$/.exec(log.split('\n')[0] || '');
+  if (!head || (existsSync(head[2]) ? realpathSync(head[2]) : head[2]) !== realpathSync(wt)) return { ok: false, why: 'gate.log is not from this worktree' };
+  const lines = log.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (lines[lines.length - 1] !== 'GATE PASS') return { ok: false, why: 'the last gate did not pass' };
+  if (out(sh('git', ['-C', wt, 'status', '--porcelain', '--untracked-files=no']))) return { ok: false, why: 'uncommitted changes after the gate' };
+  // Commit times have one-second resolution: a commit in the gate's own start second fails closed (one more gate run).
+  const started = Math.floor(Date.parse(head[1]) / 1000);
+  const committed = Number(out(sh('git', ['-C', wt, 'log', '-1', '--format=%ct'])));
+  if (!(committed < started)) return { ok: false, why: 'a commit is newer than the last gate' };
+  return { ok: true, log };
 }
 
-// EZD-175: bring t/<T> up to date with develop before the squash. Returns 0 go on, 1 red ticket gate, 3 stop, 4 clash left open.
+// EZD-175: bring t/<T> up to date with develop before the squash. Returns 0 go on, 3 stop, 4 clash left open, 5 develop merged in (gate again).
 function updateBranch(t) {
   const wt = path.join(root, '.claude/worktrees', t);
   const br = `t/${t}`;
@@ -185,11 +192,11 @@ function updateBranch(t) {
   if (out(sh('git', ['-C', wt, 'status', '--porcelain', '--untracked-files=no']))) {
     console.log(`MERGE STOP ${t}: .claude/worktrees/${t} has uncommitted changes; develop untouched`); return 3;
   }
-  for (let k = 1; k <= 3; k++) {
+  {
     const dev = out(git('rev-parse', 'develop'));
     const short = out(git('rev-parse', '--short', dev));
     if (git('merge-base', '--is-ancestor', dev, br).status === 0) {
-      if (k === 1) { console.log(`MERGE UPDATE ${t}: ${br} already contains develop ${short}`); shown += 1; }
+      console.log(`MERGE UPDATE ${t}: ${br} already contains develop ${short}`);
       return 0;
     }
     const mg = sh('git', ['-C', wt, 'merge', '--no-ff', '--no-edit', '-m', `chore(${t}): update from develop ${short}`, dev]);
@@ -210,32 +217,30 @@ function updateBranch(t) {
       console.log(`MERGE STOP ${t}: merging develop ${short} into ${br} failed: ${firstLine(mg)}; develop untouched`);
       return 3;
     }
-    const gate = ticketGate(t);
-    if (gate.status !== 0) {
-      console.log(`MERGE RED ${t}: ticket gate failed after merging develop ${short} into ${br}; develop untouched, worktree kept. Treat as a review FAIL.`);
-      printSummary(gateSummary(gate));
-      return 1;
-    }
-    console.log(`MERGE UPDATE ${t} pass ${k}: merged develop ${short} into ${br}; ticket gate green`);
-    shown += 1;
-    if (git('diff', '--quiet', dev, 'develop', '--', '.', ':(exclude)vault').status === 0) return 0;
+    console.log(`MERGE GATE ${t}: merged develop ${short} into ${br}; run node scripts/gate.mjs .claude/worktrees/${t}, then merge again; develop untouched.`);
+    return 5;
   }
-  console.log(`MERGE STOP ${t}: develop changed outside vault/ during each of 3 ticket gates; develop untouched`);
-  return 3;
 }
 
 function merge() {
   return withMergeLock(root, {
     owner: owner(),
-    onWait: (rec) => { console.log(`MERGE WAIT ${ticket}: merge lock held by pid ${rec.pid} (${rec.owner})`); shown += 1; },
+    onWait: (rec) => { console.log(`MERGE WAIT ${ticket}: merge lock held by pid ${rec.pid} (${rec.owner})`); },
   }, (mergeLock) => {
-    if (!mergedCommit()) { const code = updateBranch(ticket); if (code !== 0) return code; }
+    let gateLog = '';
+    if (!mergedCommit()) {
+      const code = updateBranch(ticket);
+      if (code !== 0) return code;
+      const g = worktreeGate(ticket);
+      if (!g.ok) { console.log(`MERGE GATE ${ticket}: ${g.why}; run node scripts/gate.mjs .claude/worktrees/${ticket}, then merge again; develop untouched.`); return 5; }
+      gateLog = g.log;
+    }
     // Ledger hold 1: record the base, squash and commit.
-    const { row, resumed, feat } = withLedgerLock(root, { owner: owner() }, () => {
+    const { feat } = withLedgerLock(root, { owner: owner() }, () => {
       const row = rowOf(ticket);
       const resumed = mergedCommit();
       mergeLock.update({ base: out(git('rev-parse', resumed ? `${resumed}^` : 'HEAD')) });
-      if (resumed) { console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`); shown += 1; }
+      if (resumed) { console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; closing the ticket`); }
       else {
         // develop's plan (untracked until now) goes into the feat commit; set aside so the squash cannot clash with it.
         const planFile = path.join(root, planRel());
@@ -264,25 +269,12 @@ function merge() {
       }
       return { row, resumed, feat: resumed || out(git('rev-parse', 'HEAD')) };
     });
-    // The develop gate runs under the merge lock only, so other lanes keep writing the ledger meanwhile.
-    const gateCmd = process.env.EZD_GATE_CMD;
-    const gate = gateCmd
-      ? sh(gateCmd.split(' ')[0], [...gateCmd.split(' ').slice(1), '.', '--phase', row.phase])
-      : sh(process.execPath, ['scripts/gate.mjs', '.', '--phase', row.phase]);
-    const gateLog = existsSync(path.join(root, 'gate.log')) ? readFileSync(path.join(root, 'gate.log'), 'utf8') : '';
-    const summary = gateSummary(gate);
-    // Ledger hold 2: restore develop or close the ticket.
+    // Ledger hold 2: close the ticket.
     return withLedgerLock(root, { owner: owner() }, () => {
-      if (gate.status !== 0) {
-        // Commits on top of the feat commit (a resumed merge, or other lanes during the gate) are kept: revert, not reset.
-        if (!resumed && out(git('rev-parse', 'HEAD')) === feat) git('reset', '--keep', 'HEAD~1');
-        else git('revert', '--no-edit', feat);
-        console.log(`MERGE RED ${ticket}: develop gate failed; develop restored, worktree kept. Treat as a review FAIL.`);
-        printSummary(summary);
-        return 1;
-      }
       const hash = out(git('rev-parse', '--short', feat));
-      const tests = testCount(`${out(gate)}\n${gateLog}`);
+      // A resumed merge reads the worktree's last gate.log for the test count.
+      const wtLog = path.join(root, '.claude/worktrees', ticket, 'gate.log');
+      const tests = testCount(gateLog || (existsSync(wtLog) ? readFileSync(wtLog, 'utf8') : ''));
       git('worktree', 'remove', `.claude/worktrees/${ticket}`);
       git('branch', '-D', `t/${ticket}`);
       setStatus({ status: 'done', commit: hash, tests });

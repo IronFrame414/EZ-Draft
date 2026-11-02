@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Ledger lock, merge lock and ledger writes for units that run side by side (EZD-173; vault/plans/EZD-173.md section 3).
-// One ledger lock covers every write and commit of a shared vault/ ledger; one merge lock covers the squash onto develop
-// and the develop gate. Lock order: ledger inside merge is allowed, merge inside ledger is not. Node built-ins only.
+// One ledger lock covers every write and commit of a shared vault/ ledger; one merge lock covers the update from develop
+// and the squash onto develop (no gate runs under it since 2026-11-02). Lock order: ledger inside merge is allowed, merge inside ledger is not. Node built-ins only.
 //
 //   node scripts/ledger.mjs status <T> <key>=<value>...                       STATUS.md row (status complexity commit tests notes)
 //   node scripts/ledger.mjs question <T> <asked-by> <text>                    new open row in QUESTIONS.md

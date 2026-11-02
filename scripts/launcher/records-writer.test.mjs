@@ -23,7 +23,7 @@ const QUESTIONS = ['# Questions', '', '| ID | Phase / ticket | Asked by | Questi
 
 // The proof unit's script: what the build-ticket orchestrator runs, with the real unit-steps.mjs and ledger.mjs.
 const PROOF = `import { spawnSync } from 'node:child_process';
-import { writeFileSync, appendFileSync } from 'node:fs';
+import { writeFileSync, appendFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 const root = process.env.FAKE_ROOT;
 const step = (cmd, args, input) => {
@@ -37,6 +37,9 @@ const wt = path.join(root, '.claude/worktrees/EZD-900');
 writeFileSync(path.join(wt, 'feature.mjs'), 'export const proof = 1;\\n');
 spawnSync('git', ['-C', wt, 'add', 'feature.mjs']);
 spawnSync('git', ['-C', wt, '-c', 'user.name=t', '-c', 'user.email=t@example.invalid', 'commit', '-qm', 'wip(EZD-900): feature']);
+// The unit's own gate on the worktree (the merge runs none since 2026-11-02): in the next whole second, gate.log as gate.mjs writes it.
+Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1005 - (Date.now() % 1000));
+writeFileSync(path.join(wt, 'gate.log'), 'GATE ' + new Date().toISOString() + ' ' + realpathSync(wt) + '\\nℹ pass 7\\nGATE PASS\\n');
 step('scripts/unit-steps.mjs', ['merge', 'EZD-900']);
 step('scripts/ledger.mjs', ['append', 'vault/DONE.md', 'EZD-900'], '2026-11-02 · EZD-900 · Proof ticket · one commit\\n');
 step('scripts/ledger.mjs', ['handoff', 'EZD-900'], '# Handoff · proof\\n\\n- Next unit: none');

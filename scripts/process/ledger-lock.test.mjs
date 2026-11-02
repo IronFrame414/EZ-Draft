@@ -4,7 +4,7 @@
 import { describe, test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -716,40 +716,37 @@ test('2.12 L1: ledger.mjs status and question inside a unit queue ops; STATUS.md
 });
 
 describe('EZD-173 M: merge lock, worktree base, push, preflight', () => {
-  test('M1: two merges together queue; each gate run is alone, on its own feat commit, and both land', async () => {
+  test('M1: two merges together queue under the merge lock, run no gate, and both land after each worktree is gated (Josh 2026-11-02)', async () => {
     const dir = fixture();
-    const busy = path.join(tmp('ezd173-state-'), 'gate.busy');
-    const runs = path.join(path.dirname(busy), 'gate.runs');
-    const cmd = gateStub(`import { openSync, closeSync, unlinkSync, appendFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
-try { closeSync(openSync(${JSON.stringify(busy)}, 'wx')); } catch { process.exit(1); }
-const target = process.argv[2];
-const subject = spawnSync('git', ['-C', target, 'log', '-1', '--format=%s'], { encoding: 'utf8' }).stdout.trim();
-const start = Date.now();
-Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500);
-appendFileSync(${JSON.stringify(runs)}, JSON.stringify({ subject, target, start, end: Date.now() }) + '\\n');
-unlinkSync(${JSON.stringify(busy)});
+    const runs = path.join(tmp('ezd173-state-'), 'gate.runs');
+    // EZD_GATE_CMD is set, but the merge never runs a gate since 2026-11-02 (sandbox option 3): runs must stay empty.
+    const cmd = gateStub(`import { appendFileSync } from 'node:fs';
+appendFileSync(${JSON.stringify(runs)}, process.argv[2] + '\\n');
 console.log('ℹ pass 1');
 `);
+    // The unit's own passing gate on the worktree: starts in the next whole second, writes gate.log as gate.mjs does.
+    const passGate = (t) => {
+      const wt = path.join(dir, '.claude/worktrees', t);
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1005 - (Date.now() % 1000));
+      writeFileSync(path.join(wt, 'gate.log'), `GATE ${new Date().toISOString()} ${realpathSync(wt)}\nℹ pass 1\nGATE PASS\n`);
+    };
+    const both = () => Promise.all([usP(dir, ['merge', 'EZD-002'], { EZD_GATE_CMD: cmd }), usP(dir, ['merge', 'EZD-003'], { EZD_GATE_CMD: cmd })]);
     addTicketWork(dir, 'EZD-002', 2);
     addTicketWork(dir, 'EZD-003', 3);
-    const res = await Promise.all([usP(dir, ['merge', 'EZD-002'], { EZD_GATE_CMD: cmd }), usP(dir, ['merge', 'EZD-003'], { EZD_GATE_CMD: cmd })]);
-    res.forEach((r) => { assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /MERGE OK/); });
-    const waits = res.filter((r) => /MERGE WAIT EZD-00\d: merge lock held by pid \d+ \(unit-steps merge EZD-00\d\)/.test(r.stdout));
-    assert.equal(waits.length, 1, res.map((r) => r.stdout).join('\n'));
-    const rec = readFileSync(runs, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).sort((a, b) => a.start - b.start);
-    assert.equal(rec.length, 4);
-    for (let i = 0; i < 3; i++) assert.ok(rec[i].end <= rec[i + 1].start);
-    assert.equal(rec[1].target, '.');
-    assert.equal(rec[3].target, '.');
-    assert.deepEqual([rec[0].target, rec[2].target].sort(), ['.claude/worktrees/EZD-002', '.claude/worktrees/EZD-003']);
-    const titles = { 'EZD-002': 'Thing two', 'EZD-003': 'Thing three' };
-    for (const j of [0, 2]) {
-      const t = rec[j].target.split('/').pop();
-      assert.match(rec[j].subject, new RegExp(`^chore\\(${t}\\): update from develop [0-9a-f]{7,40}$`));
-      assert.equal(rec[j + 1].subject, `feat(${t}): ${titles[t]}`);
-    }
-    assert.deepEqual(new Set([rec[1].subject, rec[3].subject]), new Set(['feat(EZD-002): Thing two', 'feat(EZD-003): Thing three']));
+    // First round: each branch is behind develop, so each merge brings develop in and asks for a gate.
+    const first = await both();
+    first.forEach((r) => { assert.equal(r.status, 5, r.stdout + r.stderr); assert.match(r.stdout, /MERGE GATE EZD-00\d: merged develop /); });
+    passGate('EZD-002');
+    passGate('EZD-003');
+    // Second round: one waits for the lock; the first lands; the second finds develop moved and asks for one more gate.
+    const second = await both();
+    const waits = second.filter((r) => /MERGE WAIT EZD-00\d: merge lock held by pid \d+ \(unit-steps merge EZD-00\d\)/.test(r.stdout));
+    assert.equal(waits.length, 1, second.map((r) => r.stdout).join('\n'));
+    assert.deepEqual(second.map((r) => r.status).sort(), [0, 5], second.map((r) => r.stdout).join('\n'));
+    const late = ['EZD-002', 'EZD-003'][second.findIndex((r) => r.status === 5)];
+    passGate(late);
+    const last = us(dir, ['merge', late], { EZD_GATE_CMD: cmd });
+    assert.equal(last.status, 0, last.stdout + last.stderr);
     for (const t of ['EZD-002', 'EZD-003']) {
       const hashes = git(dir, 'log', '-F', `--grep=feat(${t}): `, '--format=%h').split('\n').filter(Boolean);
       assert.equal(hashes.length, 1);
@@ -757,28 +754,7 @@ console.log('ℹ pass 1');
       assert.equal(c[3], 'done');
       assert.ok(hashes[0].startsWith(c[6]) || c[6].startsWith(hashes[0]), `${t} commit ${c[6]} vs ${hashes[0]}`);
     }
-  });
-
-  test('M2: a red develop gate that committed on top is undone by a revert; the gate\'s commit stays and the worktree is kept', () => {
-    const dir = fixture();
-    const cmd = gateStub(`import { writeFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
-if (process.argv[2] !== '.') { console.log('ℹ pass 1'); process.exit(0); }
-writeFileSync('vault/handoff/x.md', 'x');
-spawnSync('git', ['add', 'vault/handoff/x.md']);
-spawnSync('git', ['commit', '-qm', 'docs(vault): gate artefact']);
-process.exit(1);
-`);
-    const wt = addTicketWork(dir, 'EZD-002', 2);
-    const r = us(dir, ['merge', 'EZD-002'], { EZD_GATE_CMD: cmd });
-    assert.equal(r.status, 1, r.stdout + r.stderr);
-    assert.match(r.stdout, /MERGE RED EZD-002: develop gate failed; develop restored, worktree kept\. Treat as a review FAIL\./);
-    assert.match(r.stdout, /MERGE UPDATE EZD-002 pass 1: merged develop [0-9a-f]{7,40} into t\/EZD-002; ticket gate green/);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'Revert "feat(EZD-002): Thing two"');
-    assert.ok(git(dir, 'log', '--format=%s').includes('docs(vault): gate artefact'));
-    assert.ok(existsSync(path.join(dir, 'vault/handoff/x.md')));
-    assert.ok(!existsSync(path.join(dir, 'feature2.mjs')));
-    assert.ok(existsSync(wt));
+    assert.ok(!existsSync(runs), 'the merge ran a gate');
   });
 
   test('M3: with a merge in progress a new worktree branches from the merge base, else from develop', () => {
