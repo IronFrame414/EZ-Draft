@@ -6,7 +6,6 @@
 // give no tenant claim), the primary keys of user_permission (EZD-101) and membership_project (EZD-005a),
 // and Decided "broadcast SQL" (one user_permission.updated {} per member per statement, EZD-018 T23).
 // Realtime waits: JOIN_WAIT_MS and QUIET_MS from app/test-harness/realtime/node-client.ts.
-import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { withRollback } from '../../../test-harness/rls/db';
 import {
@@ -20,6 +19,7 @@ import {
   signIn,
 } from '../../../test-harness/rls/fixtures';
 import { setPermissions } from '../../../test-harness/permissions/grant';
+import { explainLoad, loadPlanProblems } from '../../../test-harness/permissions/load-plan';
 import {
   closeAllRealtime,
   connectRealtime,
@@ -40,10 +40,6 @@ async function sqlStateOf(run: () => Promise<unknown>): Promise<string | undefin
     return (e as { code?: string }).code;
   }
 }
-
-// A plan names an index only as a whole identifier (L-008: bounded on both sides).
-const namesIndex = (plan: string, index: string) =>
-  new RegExp(`(^|[^a-z0-9_])${index}([^a-z0-9_]|$)`).test(plan);
 
 describe('EZD-102 current_permissions and the permission broadcast', () => {
   let tenant: string;
@@ -115,22 +111,14 @@ describe('EZD-102 current_permissions and the permission broadcast', () => {
     expect(procs[0].prosecdef).toBe(false);
   });
 
-  it('D3 indexed: both inner reads use the primary keys', async () => {
-    const id = randomUUID();
-    const plans = await withRollback(harnessSql(), async (tx) => {
-      await tx.unsafe('set local enable_seqscan = off');
-      const up = await tx.unsafe(
-        `explain select up.permission_key from public.user_permission up where up.membership_id = '${id}'::uuid and up.granted order by up.permission_key`,
-      );
-      const mp = await tx.unsafe(
-        `explain select mp.project_id from public.membership_project mp where mp.membership_id = '${id}'::uuid order by mp.project_id`,
-      );
-      const text = (rows: readonly Record<string, unknown>[]) =>
-        rows.map((r) => String(r['QUERY PLAN'])).join('\n');
-      return { up: text(up), mp: text(mp) };
-    });
-    expect(namesIndex(plans.up, 'user_permission_pkey'), plans.up).toBe(true);
-    expect(namesIndex(plans.mp, 'membership_project_pkey'), plans.mp).toBe(true);
+  it('D3 indexed: every read in current_permissions() has an index condition, whatever the table statistics (EZD-285)', async () => {
+    const load = await withRollback(harnessSql(), (tx) =>
+      explainLoad(tx, 'public.current_permissions()'),
+    );
+    expect(load.language).toBe('sql');
+    expect(load.statements).toBe(1);
+    expect(load.tables).toEqual(['membership', 'membership_project', 'user_permission']);
+    expect(loadPlanProblems(load), JSON.stringify(load.plan)).toEqual([]);
   });
 
   it('D5 broadcast: one user_permission.updated {} per statement on the member channel', async () => {
