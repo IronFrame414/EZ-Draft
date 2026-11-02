@@ -301,7 +301,8 @@ test('EZD-193 T10 the key is redacted before the cut (AC-EZD-193-1)', () => {
 test('EZD-193 T11 the repository ignores limit files (AC-EZD-193-1)', () => {
   const ignored = (p) => spawnSync('git', ['-C', repo, 'check-ignore', '-q', '--no-index', p], { encoding: 'utf8' }).status;
   assert.equal(ignored('vault/handoff/limit-error-2026-10-26T14-03-07-123Z.txt'), 0, 'a limit error file is not ignored');
-  assert.equal(ignored('vault/handoff/CURRENT.md'), 1, 'vault/handoff/CURRENT.md is ignored');
+  // CURRENT.md is a running record and git-ignored since REMEDIATION-PLAN 2.14; STAGE2-LOG.md is a handoff file that stays tracked.
+  assert.equal(ignored('vault/handoff/STAGE2-LOG.md'), 1, 'vault/handoff/STAGE2-LOG.md is ignored');
   assert.equal(ignored('vault/handoff/limit-error-notes.md'), 1, 'vault/handoff/limit-error-notes.md is ignored');
 });
 

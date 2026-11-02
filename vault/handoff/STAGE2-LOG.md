@@ -95,3 +95,18 @@ Where: develop f20fb07e, `next dev` on 127.0.0.1:3100 against the local stack (r
 
 - Phase 1 PR (Josh, chat 2026-11-02, relayed by the parent session): auto-merge on a green CI gate stays (Q-0261); Josh walks the punch list after. The 2026-11-02 row in `vault/spec/decisions/process.md` now says so.
 - Sandbox (Josh, same relay): option 3 now (the gate command runs outside the sandbox), option 1 with the lanes work. Not yet done: the merge step runs the develop gate inside `unit-steps.mjs merge`, so excluding only `node scripts/gate.mjs *` would stop every merge, and the re-probe needs a `claude` start that 2.8 removed. Both asked back to Josh.
+- 2.12 launcher is the only writer: done on branch `s2/records-writer` (not merged; merge steps in `vault/handoff/records-writer/MERGE-RUNBOOK.md`). Plans P1 to P3 in `vault/handoff/records-writer/`, each under 5,000 characters.
+  - Units queue their record changes in a results file; the launcher applies them with the cost row in one transaction and re-exports the views.
+  - Nothing commits records any more: ledger.mjs, unit-steps.mjs, findings.mjs, the session-end hook, the skills, the questions unit and the wrap.
+  - Proof: `scripts/launcher/records-writer.test.mjs` W1. A real launcher run of one fake build ticket makes exactly 1 commit, `feat(EZD-900): Proof ticket`, and `git status` is clean afterwards.
+- 2.13 next_ticket reads the database: done on the same branch (plan P5). It reads the records database of its own checkout; test copies and CI read their files. `--check` adds four checks: SQLite's integrity check, view drift, the held plans' hashes and untracked vault files. The CLI is unchanged.
+- 2.14 git-ignore and snapshot: done on the same branch. The running records are git-ignored and leave git (their history stays). `vault/snapshots/migration-2026-11-02/` holds them; CI writes the views from the last snapshot. The snapshot must be regenerated at the merge (runbook step 4).
+- Technical decisions (D9 (a), 2026-11-02):
+  - (1) Plans stay untracked until their ticket's feat commit (parent session's answer (a)). The database holds each plan's text, sha256 and tickets.json entry; `--check` fails when the file is missing or changed. The worktree step copies the plan in. The merge stages the plan, the entry and the ticket's adopted research reports into the one feat commit.
+  - (2) `--check` allows these untracked vault files: open tickets' plans and open phases' `review-phase-NN.md`. It also allows `phase-NN-for-josh.md` and `vault/research/pending/`, which go beyond the parent's list.
+  - (3) An interactive session's record changes go to the launcher inbox while the launcher runs; the launcher applies them between units.
+  - (4) `debt.md` and `needs-from-josh.md` stay in git: people edit them by hand (rule 17), so they are not database views.
+  - (5) The importer keeps a table going across a blank line, as next_ticket.mjs reads it.
+- Gate: the first full run failed only on EZD-193 T11, whose not-ignored example was CURRENT.md (now ignored by 2.14); the example is now STAGE2-LOG.md.
+- Josh to confirm: decisions (2) and (4).
+
