@@ -41,8 +41,9 @@ if (joshOnly.some(is)) deny(`${rel} is written only by Josh (or scripts/budget.m
 
 // Fix mode (Q-0125 (a), Josh 2026-10-19; PROCESS.md section 3 rule 19): while vault/handoff/LAUNCHER_FIX.md exists the
 // orchestrator may edit hooks, skills, scripts/, vault/tools/ and the process files to repair a broken run. The file names
-// the fault; the fix is committed with it and the handoff records it for Josh to confirm or revert.
-const fixMode = existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
+// the fault; the fix is committed with it and the handoff records it for Josh to confirm or revert. A launcher unit
+// (EZD_UNIT_ID set by scripts/run.mjs) never gets fix mode, so an open fix can run beside the build (Josh 2026-11-02).
+const fixMode = !process.env.EZD_UNIT_ID && existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
 
 // Spec files the orchestrator may still write: decisions, the shared spec companions, and a section file that does not exist yet
 // (a Stage 0 gap filled from Josh's answer). Existing section and screen files are read-only (rule 4).

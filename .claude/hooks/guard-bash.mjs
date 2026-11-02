@@ -27,7 +27,8 @@ const always = [
 ];
 // Stage 2 exceptions (Josh 2026-11-01, vault/spec/decisions/process.md; removed in remediation item 2.8): while fix mode is
 // open, the orchestrator alone may run one of these as a single command (no ; & | $( or backticks).
-const fixMode = existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
+// A launcher unit (EZD_UNIT_ID set by scripts/run.mjs) never gets them (Josh 2026-11-02: the build resumes beside Stage 2).
+const fixMode = !process.env.EZD_UNIT_ID && existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
 const single = !/[;&|`]|\$\(/.test(raw);
 const stage2 = agent === 'orchestrator' && fixMode && single;
 const stage2Ok = {

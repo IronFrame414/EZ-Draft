@@ -92,12 +92,18 @@ test('EZD-000i T11 settings.json deny list gains the five token entries and keep
 });
 
 // Stage 2 exceptions (Josh 2026-11-01; removed in remediation item 2.8).
-function runIn(dir, agent, command) {
+function runIn(dir, agent, command, extraEnv = {}) {
   const input = { tool_input: { command } };
   if (agent) input.agent_type = agent;
-  const r = spawnSync('node', [hook], { input: JSON.stringify(input), env: { ...process.env, CLAUDE_PROJECT_DIR: dir }, encoding: 'utf8' });
+  const env = { ...process.env, CLAUDE_PROJECT_DIR: dir, ...extraEnv };
+  if (!('EZD_UNIT_ID' in extraEnv)) delete env.EZD_UNIT_ID; // the gate may itself run inside a launcher unit
+  const r = spawnSync('node', [hook], { input: JSON.stringify(input), env, encoding: 'utf8' });
   return r.stdout.includes('"deny"');
 }
+// A root with fix mode open, so the tests do not depend on the real checkout's vault/handoff.
+const fixRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-bash-fix-'));
+fs.mkdirSync(path.join(fixRoot, 'vault/handoff'), { recursive: true });
+fs.writeFileSync(path.join(fixRoot, 'vault/handoff/LAUNCHER_FIX.md'), '# test\n');
 const exceptions = [
   'rm -rf .claude/worktrees/EZD-012c',
   'rm -rf .claude/worktrees/EZD-012c/ perf-results',
@@ -117,14 +123,15 @@ const stillDenied = [
 ];
 
 test('Stage 2: in fix mode the orchestrator may run only the three narrow exceptions', () => {
-  for (const cmd of exceptions) assert.ok(!runIn(repo, null, cmd), cmd);
-  for (const cmd of stillDenied) assert.ok(runIn(repo, null, cmd), cmd);
+  for (const cmd of exceptions) assert.ok(!runIn(fixRoot, null, cmd), cmd);
+  for (const cmd of stillDenied) assert.ok(runIn(fixRoot, null, cmd), cmd);
 });
 
-test('Stage 2: the exceptions never apply to an agent or outside fix mode', () => {
+test('Stage 2: the exceptions never apply to an agent, a launcher unit, or outside fix mode', () => {
   const noFix = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-bash-'));
   for (const cmd of exceptions) {
-    assert.ok(runIn(repo, 'builder', cmd), `builder ${cmd}`);
+    assert.ok(runIn(fixRoot, 'builder', cmd), `builder ${cmd}`);
+    assert.ok(runIn(fixRoot, null, cmd, { EZD_UNIT_ID: 'build-EZD-259' }), `launcher unit ${cmd}`);
     assert.ok(runIn(noFix, null, cmd), `no fix mode ${cmd}`);
   }
 });
