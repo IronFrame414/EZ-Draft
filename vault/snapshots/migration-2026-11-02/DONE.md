@@ -166,3 +166,5 @@ Append-only. One line per merged ticket: date · ticket · title · user-visible
 2026-10-30 · EZD-260 · Guards resolve symlinks before judging a path · an agent can no longer get around the file-write guard or the whole-read limit through a link or hard link to a protected file · a5d1e087
 2026-10-30 · EZD-277 · Fix: write and read guards compare paths case-insensitively on a case-insensitive disk · on Josh's Mac an agent can no longer pass a write limit by spelling a path in other capitals or with look-alike letters, and the shell guard blocks the sign-in file in any capitals · 41de137d
 2026-11-02 · EZD-259 · Fix: the EZD-153 scratch database starts reliably during a full gate · when the migration check's scratch database cannot start, the gate output shows Docker's own reason and every line the start printed · 7024ee42
+2026-11-02 · EZD-287 · pnpm db:up leaves the local stack templates current · sign-in tests stop failing on a stale stack · 558dd0f2
+2026-11-02 · EZD-286 · root test files that write the local database no longer deadlock · test runs stop failing at random on deadlocks; a broken cleanup fails the run · b03eed8b
