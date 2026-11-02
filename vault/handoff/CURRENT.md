@@ -1,10 +1,11 @@
-# Handoff · 2026-11-02 · questions 2
+# Handoff · 2026-11-02 · build EZD-259
 
 - Phase and stage: see vault/PROGRESS.md
 - Why the session ended: unit complete
-- Completed this session: Phase 2 questions re-run. No open phase 2 rows (Q-0475 already answered-agent). EZD-288 passed plan lint and architecture set; status ready. vault/questions/phase-02-for-josh.md from the earlier run stands.
+- Completed this session: EZD-259 merged to develop as 7024ee42 (1603 tests, develop gate passed). Reviews had passed on 2026-10-29 and were not repeated. The first merge run hit the 600 s background limit after the squash; the resume finished it.
 - In progress: none
 - Blocked: none
-- Questions for Josh: none new; confirm section 2 of vault/questions/phase-02-for-josh.md
+- Questions for Josh: none
 - Decisions made: none
+- Lessons: new candidate planner lesson L-042 (test fixtures and escapes), for Josh to ratify
 - Next unit: see `node vault/tools/next_ticket.mjs --next-unit`
