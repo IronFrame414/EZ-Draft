@@ -71,3 +71,19 @@ Not overnight (need Josh): 2.24 (his own folder), removing STOP, EZD-172 and EZD
 4. Leave units unsandboxed until Claude Code allows the browser.
 
 **Also for Josh:** the gate-phase skill turns on auto-merge for the phase PR (Q-0261), while the 2026-11-02 decision says the phase 1 PR "waits for Josh's punch-list walk". No PR is open yet (fix tickets EZD-284 to EZD-287 come first). Which holds?
+
+## Phase 1 punch list walk (2026-11-02, orchestrator; Josh: "you can do the punch list walk in the browser")
+
+Where: develop f20fb07e, `next dev` on 127.0.0.1:3100 against the local stack (reset by `pnpm db:up` first, because the app's gate secret no longer matched the database's), built-in browser, seeded test users signed in through emailed links from the local mailbox. Script: `vault/tickets/PHASES.md` slice 1. The audit walkthrough (`~/Projects/ezdraft-audit/notes/CC-07-walkthrough.md`, Nov 1) already covered steps 2 and 4 and the nav list; this walk covered what it left.
+
+| Step | Result |
+| --- | --- |
+| 1 Settings from the gear; left nav | **FAIL on the gear, PASS on the nav.** Home after sign-in still shows only "Sign out", with no gear or link (audit M10, still open). By address, Settings shows the 10 sections and no Billing. |
+| 2 Company name, PNG logo, Save | PASS in the audit walkthrough (not repeated) |
+| 3 6 MB logo | PASS: "Logos can be up to 5 MB. Choose a smaller file." |
+| 4 Two customers, duplicate email | PASS in the audit walkthrough (duplicate refused, any letter case) |
+| 5 Search by part of a name | PASS: "mar" shows Martha Alvarez only, "thom" Derek Thompson only |
+| 6 Crew user types the Settings URL | PASS: "You don't have access to this. Ask your supervisor." in place |
+| Field check: bad SVG | PASS: an SVG with a script is refused, "This SVG can't be used. Save it as PNG and try again." |
+
+**For Josh:** audit M10 ("No way from the home page to Settings") was to become a phase 1 gate product ticket (AUDIT-ADDENDUM section 10), and the phase 1 gate did not create one. Until the Projects page exists (phase 2): a "Settings" link on the home page, or send `/` to Settings for users who may see it? Wording is yours.
