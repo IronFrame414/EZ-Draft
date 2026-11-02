@@ -1,0 +1,15 @@
+diff --git a/scripts/unit-sandbox.json b/scripts/unit-sandbox.json
+index 48a1d9aa..e139d2f6 100644
+--- a/scripts/unit-sandbox.json
++++ b/scripts/unit-sandbox.json
+@@ -34,6 +34,9 @@
+       "allowUnixSockets": [
+         "~/.docker/run/docker.sock"
+       ]
+-    }
++    },
++    "excludedCommands": [
++      "node scripts/gate.mjs *"
++    ]
+   }
+ }

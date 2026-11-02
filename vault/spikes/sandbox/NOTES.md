@@ -54,3 +54,5 @@ Settings `scripts/unit-sandbox.json` (branch `s2/sandbox`, not merged). Probe pr
 Known holes in the settings file: the Docker socket (any container reaches the whole Mac), `enableWeakerNetworkIsolation` (a possible exfiltration path through the trust service), GitHub domains (domain fronting, per the docs).
 
 **Blocker:** the gate runs Playwright (test:e2e), so every sandboxed unit's gate would fail. No setting fixes it; question for Josh in `vault/handoff/STAGE2-LOG.md` (2.7).
+
+**Josh (2026-11-02): option 3 now, option 1 with the lanes work.** `excludedCommands` is exactly `node scripts/gate.mjs *` (applied by Josh from `vault/handoff/sandbox-exclude-gate.patch`). The merge step no longer runs the gate itself, so no gate runs inside the sandbox. Known holes while this stands: the gate and everything it runs are unsandboxed; the Docker socket; `enableWeakerNetworkIsolation`; GitHub domains (domain fronting). Recorded in `vault/KNOWN-LIMITS.md`. No re-probe (orchestrator decision, D9 (a)): the first sandboxed build unit is watched in launcher.log, and the sandbox commit is reverted at once if its gate fails for a sandbox reason.
