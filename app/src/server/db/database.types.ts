@@ -189,6 +189,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notification": {
+                  Row: {
+                    "created_at": string,"emailed_at": string | null,"id": string,"kind": string,"link": string,"payload": NonNullable<Json>,"project_id": string | null,"read_at": string | null,"tenant_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"kind": string,"link": string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"kind"?: string,"link"?: string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notification_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notification_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project": {
                   Row: {
                     "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"name": string,"open_items_count": number,"phase_default": string | null,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
@@ -424,6 +450,17 @@ isOneToOne: false
 "list_customers":
 { Args: { "p_archived": boolean,"p_page": number,"p_search": string }; Returns: Json
                            },
+"list_notifications":
+{ Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
+                           },
+"mark_all_notifications_read":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"open_notification":
+{ Args: { "p_id": string }; Returns: {
+              "link": string,"project_id": string,"project_state": string
+            }[]
+                           },
 "record_error_alert":
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {
               "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
@@ -431,6 +468,9 @@ isOneToOne: false
                            },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
+                           },
+"send_test_notification":
+{ Args: { "p_kind": string,"p_payload": Json,"p_project_id": string }; Returns: string
                            },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined

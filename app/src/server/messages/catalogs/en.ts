@@ -49,6 +49,7 @@ export const en = {
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
   'error.project_not_found': "That project isn't available.",
+  'error.notification_not_found': 'That notification no longer exists.',
   'error.invalid_email': 'Enter a valid email address.',
   'error.too_many_requests': 'Too many tries. Wait a minute and try again.',
   'error.code_invalid': 'That code is wrong or has expired.',
@@ -203,6 +204,18 @@ export const en = {
   'office.alert.webhook.body':
     'Delivery of {event} (event {eventId}) failed after {attempts} tries. Last response: {status}.',
   'office.alert.open_app': 'Open EZ Draft',
+  'office.notifications.kind.client_response.approved': 'Client approved {version}',
+  'office.notifications.kind.client_response.commented': 'Client commented on {version}',
+  'office.notifications.kind.field_conflict': 'Field conflict to resolve',
+  'office.notifications.kind.field_measurements_received': 'Field measurements received',
+  'office.notifications.kind.render_finished': 'Photoreal render finished',
+  'office.notifications.kind.edit_request': '{name} asked to edit',
+  'office.notifications.kind.sync_conflict': 'Offline changes conflict with newer edits',
+  'office.notifications.kind.cleanup_due': 'Version cleanup due',
+  'office.notifications.kind.render_allowance_refilled': 'Render allowance refilled',
+  'office.notifications.kind.field_pack_issued': 'New field pack issued',
+  'office.notifications.project_line': '{project} · {client}',
+  'office.notifications.email_link': 'Open EZ Draft',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

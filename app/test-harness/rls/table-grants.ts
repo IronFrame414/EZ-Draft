@@ -62,6 +62,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: ['SELECT', 'INSERT', 'UPDATE'],
     reason: 'No delete in v1; customers are archived (Q-0227; EZD-113).',
   },
+  notification: {
+    privileges: ['SELECT'],
+    reason:
+      'Members read their own notifications; rows are written only by definer functions and the email job (EZD-110)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

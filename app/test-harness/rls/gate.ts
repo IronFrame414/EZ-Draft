@@ -56,4 +56,12 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
   { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
+  // EZD-110a section 3 (vault/plans/EZD-110a.md): the notification functions, authenticated only.
+  {
+    fn: 'send_test_notification',
+    args: { p_kind: 'render_finished', p_project_id: null, p_payload: {} },
+  },
+  { fn: 'list_notifications', args: { p_before_created_at: null, p_before_id: null } },
+  { fn: 'open_notification', args: { p_id: '00000000-0000-4000-8000-000000000000' } },
+  { fn: 'mark_all_notifications_read', args: {} },
 ];

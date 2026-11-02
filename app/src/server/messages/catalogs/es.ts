@@ -55,6 +55,7 @@ export const es = {
     'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
   'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
   'error.project_not_found': 'Ese proyecto no está disponible.',
+  'error.notification_not_found': 'Esa notificación ya no existe.',
   'error.invalid_email': 'Escribe un correo electrónico válido.',
   'error.too_many_requests': 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
   'error.code_invalid': 'Ese código es incorrecto o ya venció.',

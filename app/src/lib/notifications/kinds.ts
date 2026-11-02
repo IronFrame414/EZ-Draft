@@ -1,0 +1,69 @@
+// EZD-110a Step 7 (vault/plans/EZD-110a.md section 3 "kinds.ts"; Decided D1, D22; Q-0425): the notification
+// kinds, in the order of the notification table's kind check, their title params and titles, and the list
+// types shared by the browser and the server. No React, no Supabase.
+import { z } from 'zod';
+import type { MessageParams } from '../messages/types';
+import type { MessageKey } from '../../server/messages/catalog';
+
+export const NOTIFICATION_KINDS = [
+  'client_response',
+  'field_conflict',
+  'field_measurements_received',
+  'render_finished',
+  'edit_request',
+  'sync_conflict',
+  'cleanup_due',
+  'render_allowance_refilled',
+  'field_pack_issued',
+] as const;
+
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+
+export const NOTIFICATION_PAGE_SIZE = 20;
+
+export type NotificationParams = Record<string, string>;
+
+export type NotificationItem = {
+  id: string;
+  kind: NotificationKind;
+  params: NotificationParams;
+  link: string;
+  projectId: string | null;
+  projectName: string | null;
+  clientName: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationPage = { items: NotificationItem[]; unreadCount: number; hasMore: boolean };
+
+export type NotificationCursor = { createdAt: string; id: string };
+
+const noParams = z.strictObject({});
+
+export const NOTIFICATION_PARAM_SCHEMAS: Record<NotificationKind, z.ZodType<NotificationParams>> = {
+  client_response: z.strictObject({
+    action: z.enum(['approved', 'commented']),
+    version: z.string().min(1).max(40),
+  }),
+  field_conflict: noParams,
+  field_measurements_received: noParams,
+  render_finished: noParams,
+  edit_request: z.strictObject({ name: z.string().min(1).max(100) }),
+  sync_conflict: noParams,
+  cleanup_due: noParams,
+  render_allowance_refilled: noParams,
+  field_pack_issued: noParams,
+};
+
+export function notificationTitle(
+  kind: NotificationKind,
+  params: NotificationParams,
+): { key: MessageKey; params: MessageParams } {
+  if (kind === 'client_response')
+    return {
+      key: `office.notifications.kind.client_response.${params.action}` as MessageKey,
+      params,
+    };
+  return { key: `office.notifications.kind.${kind}` as MessageKey, params };
+}
