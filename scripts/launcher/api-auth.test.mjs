@@ -55,7 +55,7 @@ function makeRoot() {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger('build EZD-999'));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');

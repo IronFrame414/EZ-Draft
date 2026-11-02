@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, realpathSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, realpathSync, chmodSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -96,6 +96,26 @@ test('worktree creates t/<ID>, sets in-progress, and reports resume state on a s
   const r2 = run(dir, 'worktree', 'EZD-002');
   assert.match(r2.stdout, /WORKTREE RESUME tests=yes wip=0/);
   rmSync(dir, { recursive: true, force: true });
+});
+
+test('D-008 worktree and merge stop before git runs when .claude/ is not writable (the unit sandbox), and name the exact command', { skip: process.getuid?.() === 0 }, () => {
+  const dir = fixture();
+  const agents = path.join(dir, '.claude/agents');
+  mkdirSync(agents, { recursive: true });
+  chmodSync(agents, 0o555);
+  try {
+    for (const s of ['worktree', 'merge']) {
+      const r = run(dir, s, 'EZD-002');
+      assert.equal(r.status, 3, r.stdout + r.stderr);
+      assert.match(r.stdout, new RegExp(`SANDBOX STOP: ${s} .*\\\`node scripts/unit-steps\\.mjs ${s} EZD-002\\\` again as its own Bash call`));
+    }
+    assert.equal(git(dir, 'branch', '--list', 't/EZD-002'), '');
+    assert.ok(!existsSync(path.join(dir, '.claude/worktrees/EZD-002')));
+    assert.match(row(dir, 'EZD-002'), /\| ready \|/);
+  } finally {
+    chmodSync(agents, 0o755);
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('merge squashes after the worktree\'s passing gate, cleans up and marks done with hash and gate.log test count; its feat commit is the only commit (D2 (a))', () => {

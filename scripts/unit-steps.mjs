@@ -336,7 +336,21 @@ if (!steps[step] || !/^EZD-[0-9A-Za-z]+$/.test(ticket || '')) {
   console.log('usage: node scripts/unit-steps.mjs preflight|worktree|merge|finish|table <EZD-xxx> [done|blocked [<vault path>...]]');
   process.exit(2);
 }
+// The worktree and merge steps write a worktree's .claude/ files, which the unit sandbox always protects; they run outside it
+// only as a Bash call of their own (scripts/unit-sandbox.json excludedCommands). Fail before git touches anything (D-008).
+function sandboxCheck() {
+  const probe = path.join(root, '.claude/agents', `.unit-steps-probe-${process.pid}`);
+  try {
+    mkdirSync(path.dirname(probe), { recursive: true });
+    writeFileSync(probe, '');
+    unlinkSync(probe);
+  } catch (e) {
+    if (e.code !== 'EPERM' && e.code !== 'EACCES') throw e;
+    stop(`SANDBOX STOP: ${step} cannot write .claude/ here (the unit sandbox protects it); nothing changed. Run \`node scripts/unit-steps.mjs ${step} ${ticket}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect.`);
+  }
+}
 try {
+  if (step === 'worktree' || step === 'merge') sandboxCheck();
   process.exitCode = steps[step]() ?? 0;
 } catch (e) {
   if (e instanceof Stop) console.log(e.message);
