@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 572,
+ "count": 574,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -485,7 +485,8 @@
   "EZD-284",
   "EZD-285",
   "EZD-286",
-  "EZD-287"
+  "EZD-287",
+  "EZD-289"
  ],
  "tickets": [
   {
@@ -17082,6 +17083,34 @@
    "acs": [
     "AC-EZD-287-1",
     "AC-EZD-287-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-289",
+   "phase": 1,
+   "title": "Fix: the signed-in home page has a Settings link",
+   "depends_raw": "EZD-102, EZD-103a",
+   "spec_ref": "Josh 2026-11-02 (audit M10)",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points",
+    "spec/sections/10-permissions-and-settings.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-103a"
+   ],
+   "build_position": 561,
+   "acs": [
+    "AC-EZD-289-1",
+    "AC-EZD-289-2"
    ],
    "acs_source": "done-when"
   }

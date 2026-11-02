@@ -28,3 +28,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0272 | 2026-10-24 | (a): the disclaimer line is cut with "…" in a narrow office status bar and shows in full on hover and to screen readers; readouts keep their room. |
 | Q-0273 | 2026-10-24 | (b): add an app not-found page that carries the disclaimer line and the text "Page not found." |
 | Q-0273 wording | 2026-10-24 | Wording (EZD-136): "Page not found." (Josh approved with Q-0273 (b)). |
+| — | 2026-11-02 | Audit M10 (Josh, chat: "Add a Settings link"): until the Projects page replaces the signed-in home page, it shows a link with the text "Settings" that opens Settings, to users who may open Settings (EZD-289). |

@@ -87,3 +87,5 @@ Where: develop f20fb07e, `next dev` on 127.0.0.1:3100 against the local stack (r
 | Field check: bad SVG | PASS: an SVG with a script is refused, "This SVG can't be used. Save it as PNG and try again." |
 
 **For Josh:** audit M10 ("No way from the home page to Settings") was to become a phase 1 gate product ticket (AUDIT-ADDENDUM section 10), and the phase 1 gate did not create one. Until the Projects page exists (phase 2): a "Settings" link on the home page, or send `/` to Settings for users who may see it? Wording is yours.
+
+- M10 answer (Josh, chat 2026-11-02: "Add a Settings link"): fix ticket EZD-289 added to phase 1 as `todo` (a "Settings" link on the signed-in home page, shown only to users who may open Settings); decision row in `vault/spec/decisions/04-app-shell-and-global-ui.md`.
