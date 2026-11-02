@@ -880,7 +880,7 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     const root = tmp('ezd173-x1-');
     const at = (...p) => path.join(root, ...p);
     for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
-    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
+    for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
     cpSync(path.join(REPO, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
     cpSync(path.join(REPO, 'vault/tools/questions-files.mjs'), at('vault/tools/questions-files.mjs'));
     writeFileSync(at('vault/tools/next_ticket.mjs'), [
