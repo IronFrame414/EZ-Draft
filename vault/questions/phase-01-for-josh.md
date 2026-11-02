@@ -1,6 +1,6 @@
 # Phase 1 · for Josh (questions unit, 2026-11-02)
 
-No decision waits on you. One new agent answer: Q-0473 (a hook edge case goes to the debt list, not a ticket). Nothing is `planned` or `questions`, so no ticket changed.
+No decision waits on you. No new question this run; EZD-284, 285, 286, 287 and 289 had none and are now `ready`. Earlier agent answers below still wait for your confirmation (Q-0473 is the newest).
 
 ## 1. Decisions needed
 
@@ -110,6 +110,10 @@ Full tables are in each plan's section 6. Launcher and ledger text only; no app 
 - EZD-275: none (checker messages are developer text).
 - EZD-279 (W1 to W5): agent-facing hook texts, e.g. `Reading secret files is not allowed: <path> is <what> (Q-0459).` and `Searching secret files is not allowed: this <tool> can reach <what> (Q-0459). Search a folder or a pattern that cannot match it.`; full text in plan section 1.
 - EZD-280 (B1 to B4): e.g. `Naming secret files in a shell command is not allowed: <shown> is <what> (Q-0461).`; full text in plan section 1.
+- EZD-284, EZD-285: none.
+- EZD-286: none (dev stderr only: `hook failure: <file> > <name>: <cause>`).
+- EZD-287: stdout `Local Supabase email templates were stale: stack restarted`; stderr `Local Supabase email templates are not current (<reason> <template>).` (developer tooling text).
+- EZD-289: none new; the link text "Settings" is your decision of 2026-11-02 (decisions/04).
 
 ## 4. Rule candidates
 
