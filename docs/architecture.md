@@ -195,7 +195,6 @@ One choice per job (02 Named tools; R26 R11). The `Packages` cell holds only npm
 | CI and repository | GitHub with GitHub Actions; workflow `.github/workflows/ci.yml` uses `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0 and `actions/upload-artifact` v7.0.2, each pinned to its full commit SHA, Node 22 (02; ci.yml; EZD-147) | — |
 | Error reporting | Sentry in browser and functions (`@sentry/nextjs`) and in the render worker (`@sentry/node`), both at one version, emailing the owner on new errors (02; 11 Operations; EZD-024) | `@sentry/nextjs`, `@sentry/node` |
 | Database migrations | Supabase CLI migrations, timestamp-named, with generated TypeScript types; the CLI is the `supabase` devDependency (02) | `supabase` |
-| Build records | Node's built-in `node:sqlite`, one local file `~/.ezdraft/records.db` written by `scripts/records.mjs` (REMEDIATION-PLAN 2.10; D1 (a), Josh 2026-11-01); its one "experimental" load warning is dropped there | — |
 
 ## Stack
 
@@ -308,6 +307,8 @@ Dependency build scripts (Q-0140 (a)): pnpm 12 refuses to install while any depe
 Settings from environment names (Q-0283 (a); EZD-177): pnpm 12 also reads its settings from `PNPM_CONFIG_*` and `pnpm_config_*` environment names (pnpm 12.14.0 CHANGELOG, 12.8.2 and 12.3.0 entries), so `PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true` would run new build scripts past `allowBuilds`. No workflow file and no workspace `package.json` script names `pnpm_config_` in any letter case: `ci.test.mjs` rule (l) and `tooling.test.mjs` EZD-177 T2 refuse it. A name built at run time is checked by review.
 
 Build flags (Q-0316 (a); EZD-182): pnpm 12 command-line flags also turn build scripts on past `allowBuilds`: `--dangerously-allow-all-builds`, `--config.<setting>` (the dot form, any setting) and `--allow-build <name>` (pnpm 12.14.0 `pnpm install --help`). No workflow line, workspace `package.json` script or `app/vercel.json` string value passes one, in any letter case: `ci.test.mjs` rule (m), `tooling.test.mjs` EZD-182 T2 and `hosting.test.mjs` EZD-182 T3 refuse them. The bare `--config <file>` of Vitest and Playwright stays allowed; a flag built at run time is checked by review.
+
+Node built-in modules (REMEDIATION-PLAN 2.10; D1 (a), Josh 2026-11-01): a `node:` module is not a package and has no row above. The build records use `node:sqlite` (Node 22), one local file `~/.ezdraft/records.db` written by `scripts/records.mjs`; its one "experimental" load warning is dropped in that script only.
 
 ## Folder layout
 
