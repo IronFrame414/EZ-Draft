@@ -8,6 +8,7 @@
       "allowWrite": [
         "./",
         "~/Library/Logs/ezdraft/inflight",
+        "~/.supabase",
         "~/Library/pnpm/store",
         "/private/tmp/pnpm-store-operation-locks-501"
       ],
