@@ -4,7 +4,7 @@
 // one file at a time with `supabase migration up --local`; the catalog is read before and after each. Identity is
 // the object id, so a rename, a move and a drop-and-recreate all show. M1 = a base object dropped or renamed
 // unless retired; M4 = a created object whose create statement the scan does not find, or a migration that fails.
-// Children get only SCRATCH_ENV_NAMES; their output is captured, never printed here.
+// Children get only SCRATCH_ENV_NAMES; their output is captured and printed only as failure notes (cliFailureNotes, EZD-259): URL passwords redacted, at most CLI_NOTE_MAX_LINES lines per source.
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withTypesLock } from '../db/gen-types.mjs';
 import { sharedTempDir } from '../db/stack-config.mjs';
+import { redactUrl } from './redact.mjs';
 import { findCreated, OBJECT_KINDS, splitStatements } from './sql-scan.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -241,13 +242,38 @@ export function defaultScratchDeps() {
 /** Lines the CLI adds after a failed start (the rerun hint, the update notice); never the note's line. */
 const START_NOISE = ['Try rerunning the command', 'A new version of Supabase CLI', 'We recommend updating'];
 
-/** The last non-empty stderr line of a failed start that is not CLI noise, or `(no stderr)`. */
-const startErrorLine = (text) =>
-  text
+export const CLI_NOTE_MAX_LINES = 20;
+export const CLI_NOTE_MAX_CHARS = 500;
+
+/** The note lines of a failed CLI or docker step (EZD-259 R1): a summary, the JSON error lines, the stderr lines. */
+export function cliFailureNotes(step, { stdout, stderr }) {
+  let errorLines = [];
+  try {
+    const message = JSON.parse(stdout.trim())?.error?.message;
+    if (typeof message === 'string') {
+      errorLines = message
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l !== '');
+    }
+  } catch {
+    errorLines = [];
+  }
+  const stderrLines = stderr
     .split('\n')
     .map((l) => l.trimEnd())
-    .filter((l) => l.trim() !== '' && !START_NOISE.some((p) => l.trimStart().startsWith(p)))
-    .at(-1) ?? '(no stderr)';
+    .filter((l) => l.trim() !== '' && !START_NOISE.some((p) => l.trimStart().startsWith(p)));
+  const clean = (line) => {
+    const r = redactUrl(line);
+    return r.length > CLI_NOTE_MAX_CHARS ? r.slice(0, CLI_NOTE_MAX_CHARS) : r;
+  };
+  const summary = errorLines[0] ?? stderrLines.at(-1) ?? '(no stderr)';
+  return [
+    `scratch ${step}: ${clean(summary)}`,
+    ...errorLines.slice(0, CLI_NOTE_MAX_LINES).map((l) => `scratch ${step} error: ${clean(l)}`),
+    ...stderrLines.slice(-CLI_NOTE_MAX_LINES).map((l) => `scratch ${step} stderr: ${clean(l)}`),
+  ];
+}
 
 /** The first line of `error.message` in the CLI's JSON stdout, or null. */
 function cliErrorLine(stdout) {
@@ -303,26 +329,42 @@ function scratchBody(input, deps) {
     copyFileSync(SCRATCH_CONFIG_PATH, path.join(w, 'supabase', 'config.toml'));
     for (const [name, text] of Object.entries(input.released)) writeFileSync(path.join(migrationsDir, name), text);
 
-    run(bin, ['stop', '--no-backup', '--workdir', w], { cwd: w, timeoutMs: 120000 });
+    const pre = run(bin, ['stop', '--no-backup', '--workdir', w], { cwd: w, timeoutMs: 120000 });
+    if (pre.status !== 0) {
+      notes.push(...cliFailureNotes('stop before start', pre));
+      return 'scratch_start_failed';
+    }
     const started = run(bin, ['start', '--exclude', MIGCHECK_EXCLUDE.join(','), '--workdir', w], {
       cwd: w,
       timeoutMs: 600000,
     });
     if (started.status !== 0) {
-      notes.push(`scratch start: ${startErrorLine(started.stderr)}`);
+      notes.push(...cliFailureNotes('start', started));
       return 'scratch_start_failed';
     }
 
     const ps = run('docker', ['ps', '--format', '{{.Names}}'], { timeoutMs: 120000 });
-    if (ps.status !== 0) return 'scratch_start_failed';
+    if (ps.status !== 0) {
+      notes.push(...cliFailureNotes('docker ps', ps));
+      return 'scratch_start_failed';
+    }
     const names = ps.stdout
       .split('\n')
       .map((l) => l.trim())
       .filter((l) => l.endsWith(`_${SCRATCH_PROJECT_ID}`));
-    if (!names.includes(SCRATCH_DB_CONTAINER)) return 'scratch_start_failed';
+    if (!names.includes(SCRATCH_DB_CONTAINER)) {
+      notes.push(
+        `scratch start: ${SCRATCH_DB_CONTAINER} is not running; running: ${names.length > 0 ? names.join(', ') : 'none'}`,
+      );
+      return 'scratch_start_failed';
+    }
     for (const name of names) {
       if (name === SCRATCH_DB_CONTAINER) continue;
-      if (run('docker', ['stop', name], { timeoutMs: 120000 }).status !== 0) return 'scratch_services_stop_failed';
+      const r = run('docker', ['stop', name], { timeoutMs: 120000 });
+      if (r.status !== 0) {
+        notes.push(...cliFailureNotes(`docker stop ${name}`, r));
+        return 'scratch_services_stop_failed';
+      }
     }
 
     const s0 = snapshot();
