@@ -195,6 +195,7 @@ One choice per job (02 Named tools; R26 R11). The `Packages` cell holds only npm
 | CI and repository | GitHub with GitHub Actions; workflow `.github/workflows/ci.yml` uses `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0 and `actions/upload-artifact` v7.0.2, each pinned to its full commit SHA, Node 22 (02; ci.yml; EZD-147) | — |
 | Error reporting | Sentry in browser and functions (`@sentry/nextjs`) and in the render worker (`@sentry/node`), both at one version, emailing the owner on new errors (02; 11 Operations; EZD-024) | `@sentry/nextjs`, `@sentry/node` |
 | Database migrations | Supabase CLI migrations, timestamp-named, with generated TypeScript types; the CLI is the `supabase` devDependency (02) | `supabase` |
+| Build records | Node's built-in `node:sqlite`, one local file `~/.ezdraft/records.db` written by `scripts/records.mjs` (REMEDIATION-PLAN 2.10; D1 (a), Josh 2026-11-01); its one "experimental" load warning is dropped there | — |
 
 ## Stack
 
