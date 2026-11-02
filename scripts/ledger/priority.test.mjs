@@ -75,6 +75,8 @@ before(() => {
       phase_file: 'tickets/phases/phase-01.md', depends_on: [], acs: [], architecture: [] });
   }
   setTickets(data);
+  // A ticket past todo has a plan (next_ticket.mjs --check, D-004).
+  for (const [id, st] of SYNTHETIC) if (st !== 'todo') writeFileSync(file(`plans/${id}.md`), `# ${id} · synthetic test plan\n`);
   appendFileSync(file('tickets/STATUS.md'), SYNTHETIC.map(([id, st]) => `| ${id} | 1 | Priority test ${id} | ${st} | ${st === 'ready' ? 'low' : ''} |  |  |  | Synthetic ticket of scripts/ledger/priority.test.mjs. |\n`).join(''));
   appendFileSync(file('tickets/phases/phase-01.md'), '\n' + SYNTHETIC.map(([id]) => `| ${id} | Priority test ${id} | The test passes. | — | — |\n`).join(''));
   const acs = tool('gen_acs.mjs', []);

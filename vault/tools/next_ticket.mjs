@@ -669,6 +669,9 @@ function check() {
     if (!STATUSES.includes(r.status)) problems.push(`${id} has unknown status "${r.status}"`);
     if (r.status === 'done' && !/^[0-9a-f]{7,40}$/i.test(r.commit)) problems.push(`${id} is done but has no commit hash`);
     if (r.status === 'blocked' && !r.notes) problems.push(`${id} is blocked but has no note`);
+    // A ticket past todo has a plan (D-004: a phase gate wrote fix tickets ready with no plan and the launcher stopped).
+    if (['planned', 'questions', 'ready', 'in-progress', 'review'].includes(r.status) && !existsSync(path.join(vault, 'plans', `${id}.md`)))
+      problems.push(`${id} is ${r.status} but has no plan (vault/plans/${id}.md); a new ticket starts as todo`);
     if (['ready', 'in-progress', 'review', 'done'].includes(r.status) && !COMPLEXITY.includes(r.complexity))
       problems.push(`${id} is ${r.status} but has no complexity rating (low, medium or high)`);
     if (['in-progress', 'review', 'done'].includes(r.status) && !depsDone(t))
