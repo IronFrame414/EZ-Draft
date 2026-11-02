@@ -39,8 +39,12 @@ export async function POST(request: Request): Promise<Response> {
     if (tenantId === null) return fail(400, 'invalid_input');
     const check = await checkLogoObject(client, tenantId, path);
     if (!check.ok) return fail(400, check.code);
-    const url = await signedDownloadUrl(client, { bucket: 'media', path });
-    return Response.json({ logo: { path, url, kind: check.kind } }, { status: 200, headers });
+    // EZD-290: a rewritten SVG lives at the path the check returned.
+    const url = await signedDownloadUrl(client, { bucket: 'media', path: check.path });
+    return Response.json(
+      { logo: { path: check.path, url, kind: check.kind } },
+      { status: 200, headers },
+    );
   } catch (e) {
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');

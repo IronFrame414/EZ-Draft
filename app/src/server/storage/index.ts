@@ -7,6 +7,7 @@ export {
   SIGNED_DOWNLOAD_SECONDS,
   statObject,
   StorageError,
+  uploadObject,
   type DbClient,
   type StorageErrorCode,
 } from './objects';

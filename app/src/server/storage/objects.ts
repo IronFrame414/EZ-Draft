@@ -66,6 +66,26 @@ export async function createSignedUpload(
   return { bucket, path, token: data.token, url: resumableEndpoint(readPublicDbEnv().url) };
 }
 
+// EZD-290 D-uploadObject: a server-side write of bytes the server built (the clean SVG logo); never an
+// overwrite. Refusals map as in `createSignedUpload`.
+export async function uploadObject(
+  client: DbClient,
+  target: StoragePath,
+  bytes: Uint8Array,
+  contentType: string,
+): Promise<void> {
+  const { bucket, path } = parseTarget(target);
+  const { error } = await client.storage
+    .from(bucket)
+    .upload(path, bytes, { contentType, upsert: false });
+  if (error) {
+    const status = statusOf(error);
+    throw new StorageError(
+      status !== null && REFUSED.has(status) ? 'upload_refused' : 'storage_unavailable',
+    );
+  }
+}
+
 export async function signedDownloadUrl(
   client: DbClient,
   target: StoragePath,

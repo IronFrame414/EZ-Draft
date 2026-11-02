@@ -130,15 +130,14 @@ describe('EZD-112 logo check route', () => {
   });
 
   it('T7 POST /api/settings/company/logo/check: 400 too large and unsafe SVG remove the object, 200 signed link, 400 for a foreign or missing path', async () => {
-    // (a) 6,000,000 bytes: too large, the object is removed
+    // (a) 6,000,000 bytes: refused by the bucket at upload (EZD-290 E1)
     const bigPath = logoPathFor(tenantA, 'png');
-    await put(bigPath, PNG_6MB, 'image/png');
-    state.store = new Map(ownerCookies);
-    const a = await check(bigPath);
-    expect(a.res.status).toBe(400);
-    expect(a.json).toEqual({
-      error: { code: 'logo_too_large', message_key: 'error.logo_too_large' },
-    });
+    // EZD-290 E1: the media bucket now refuses the 6,000,000-byte file at upload, so nothing is stored
+    const bigPut = await ownerSession.serverDb.storage
+      .from('media')
+      .upload(bigPath, PNG_6MB, { contentType: 'image/png' });
+    uploaded.push(bigPath);
+    expect(bigPut.error).not.toBeNull();
     expect(await exists(bigPath)).toBe(false);
 
     // (b) an SVG with a script: unsafe, removed

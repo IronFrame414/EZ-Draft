@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
   CONTACT_KEYS,
+  LOGO_CONTENT_TYPES,
   LOGO_MAX_BYTES,
   type CompanyContact,
   type CompanyData,
@@ -14,7 +15,8 @@ import {
   type LogoProblem,
 } from '../../lib/company/company';
 import type { Database, Json } from '../db/database.types';
-import { readObject, removeObject, signedDownloadUrl, statObject } from '../storage';
+import { readObject, removeObject, signedDownloadUrl, statObject, uploadObject } from '../storage';
+import { cleanSvg } from './svg-logo';
 
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 
@@ -40,41 +42,57 @@ export type LogoCheckProblem = LogoProblem | 'logo_svg_unsafe';
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const JPG_SIGNATURE = [0xff, 0xd8, 0xff];
-const SVG_ROOT = /<svg[\s>/]/i;
-const SVG_UNSAFE = [
-  /<script[\s>/]/i,
-  /<foreignobject[\s>/]/i,
-  /[\s/"']on[a-z]+\s*=/i,
-  /javascript:/i,
-  /<!entity/i,
-];
 
 function startsWith(bytes: Uint8Array, signature: readonly number[]): boolean {
   if (bytes.length < signature.length) return false;
   return signature.every((b, i) => bytes[i] === b);
 }
 
-export function inspectLogo(bytes: Uint8Array, kind: LogoKind): LogoCheckProblem | null {
-  if (bytes.length > LOGO_MAX_BYTES) return 'logo_too_large';
-  if (bytes.length === 0) return 'logo_wrong_type';
-  if (kind === 'png') return startsWith(bytes, PNG_SIGNATURE) ? null : 'logo_wrong_type';
-  if (kind === 'jpg') return startsWith(bytes, JPG_SIGNATURE) ? null : 'logo_wrong_type';
+export type LogoClean = { ok: true; bytes: Uint8Array } | { ok: false; code: LogoCheckProblem };
+
+// EZD-290 Decided D-pre: PNG and JPG keep their bytes; an SVG is replaced by the copy `cleanSvg` writes, and
+// that copy must still fit LOGO_MAX_BYTES.
+export function cleanLogo(bytes: Uint8Array, kind: LogoKind): LogoClean {
+  if (bytes.length > LOGO_MAX_BYTES) return { ok: false, code: 'logo_too_large' };
+  if (bytes.length === 0) return { ok: false, code: 'logo_wrong_type' };
+  if (kind === 'png' || kind === 'jpg') {
+    const signature = kind === 'png' ? PNG_SIGNATURE : JPG_SIGNATURE;
+    return startsWith(bytes, signature)
+      ? { ok: true, bytes }
+      : { ok: false, code: 'logo_wrong_type' };
+  }
   if (bytes.includes(0x00) || startsWith(bytes, [0xfe, 0xff]) || startsWith(bytes, [0xff, 0xfe])) {
-    return 'logo_svg_unsafe';
+    return { ok: false, code: 'logo_svg_unsafe' };
   }
   let text = new TextDecoder('utf-8', { fatal: false, ignoreBOM: true }).decode(bytes);
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-  if (!SVG_ROOT.test(text)) return 'logo_wrong_type';
-  return SVG_UNSAFE.some((re) => re.test(text)) ? 'logo_svg_unsafe' : null;
+  const clean = cleanSvg(text);
+  if (!clean.ok) return clean;
+  const out = new TextEncoder().encode(clean.svg);
+  if (out.length > LOGO_MAX_BYTES) return { ok: false, code: 'logo_too_large' };
+  return { ok: true, bytes: out };
+}
+
+export function inspectLogo(bytes: Uint8Array, kind: LogoKind): LogoCheckProblem | null {
+  const result = cleanLogo(bytes, kind);
+  return result.ok ? null : result.code;
+}
+
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
 }
 
 export type LogoObjectCheck =
-  | { ok: true; kind: LogoKind }
+  | { ok: true; kind: LogoKind; path: string }
   | { ok: false; code: 'invalid_input' | LogoCheckProblem };
 
 // Decided "Logo object check": the one check the check route and the save route run. A path that is not
 // this company's logo path, or has no object, is invalid input; a too-large object is removed without a
-// download; an object whose bytes fail `inspectLogo` is removed. Storage throws pass up to the route.
+// download; an object whose bytes fail `cleanLogo` is removed. EZD-290 D-store: an SVG whose clean copy
+// differs from its bytes is stored at a new path (written before the original is removed) and that path is
+// returned. Storage throws pass up to the route.
 export async function checkLogoObject(
   client: SupabaseClient<Database>,
   tenantId: string,
@@ -91,12 +109,30 @@ export async function checkLogoObject(
   }
   const bytes = await readObject(client, target);
   if (bytes === null) return { ok: false, code: 'invalid_input' };
-  const problem = inspectLogo(bytes, kind);
-  if (problem) {
+  const clean = cleanLogo(bytes, kind);
+  if (!clean.ok) {
     await removeObject(client, target);
-    return { ok: false, code: problem };
+    return { ok: false, code: clean.code };
   }
-  return { ok: true, kind };
+  if (kind !== 'svg' || sameBytes(clean.bytes, bytes)) return { ok: true, kind, path };
+  const next = logoPathFor(tenantId, 'svg');
+  try {
+    await uploadObject(
+      client,
+      { bucket: 'media', path: next },
+      clean.bytes,
+      LOGO_CONTENT_TYPES.svg,
+    );
+  } catch (e) {
+    try {
+      await removeObject(client, target);
+    } catch {
+      // D-store: the upload's error is the one reported.
+    }
+    throw e;
+  }
+  await removeObject(client, target);
+  return { ok: true, kind: 'svg', path: next };
 }
 
 const MAX_TEXT = 1000;

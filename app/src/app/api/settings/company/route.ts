@@ -41,6 +41,7 @@ export async function PATCH(request: Request): Promise<Response> {
     const value = parsed.value;
 
     const client = createSessionClient();
+    let logoPath: string | null = null;
     if (value.logo.action === 'set') {
       const tenantId = await currentTenantId(client);
       if (tenantId === null) return fail(400, 'invalid_input');
@@ -48,6 +49,8 @@ export async function PATCH(request: Request): Promise<Response> {
       // object; a refused object is removed.
       const check = await checkLogoObject(client, tenantId, value.logo.path);
       if (!check.ok) return fail(400, check.code);
+      // EZD-290: a rewritten SVG is saved at the path the check returned.
+      logoPath = check.path;
     }
 
     // The generated Args type marks every argument non-null; the function takes null license and path.
@@ -56,7 +59,7 @@ export async function PATCH(request: Request): Promise<Response> {
       p_license_no: value.licenseNo,
       p_contact: value.contact,
       p_set_logo: value.logo.action !== 'keep',
-      p_logo_path: value.logo.action === 'set' ? value.logo.path : null,
+      p_logo_path: logoPath,
     } as unknown as Args;
     const { data, error } = await client.rpc('update_tenant_identity', args);
     if (error) {

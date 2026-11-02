@@ -91,7 +91,7 @@ export async function recheckDraftLogo(
       const logo = (body as { logo?: CompanyLogo } | null)?.logo;
       if (!logo) return { logoChange: keep, staged: null, logoError: UPLOAD_FAILED };
       return {
-        logoChange: { action: 'set', path },
+        logoChange: { action: 'set', path: logo.path },
         staged: {
           path: logo.path,
           url: logo.url,
