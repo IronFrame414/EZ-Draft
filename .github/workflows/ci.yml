@@ -30,6 +30,9 @@ jobs:
       - name: Install browsers (once browser tests exist)
         if: hashFiles('playwright.config.*') != ''
         run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
+      - name: Record views from the last snapshot
+        # REMEDIATION-PLAN 2.14: the running records are not in git; CI reads the last committed snapshot.
+        run: node scripts/records.mjs views-from-snapshot
       - name: Ledger check
         run: node vault/tools/next_ticket.mjs --check
       - name: Gate
