@@ -9,6 +9,7 @@ import { initialsFor } from '../users/initials';
 import {
   SETTINGS_SECTIONS,
   allowedSections,
+  mayOpenSettings,
   sectionBySlug,
   sectionForPath,
   settingsHref,
@@ -210,5 +211,33 @@ describe('EZD-103a settings sections', () => {
     expect(initialsFor(null, 'josh@example.com')).toBe('J');
     expect(initialsFor('', 'z@x.test')).toBe('Z');
     expect(initialsFor('élan vital', 'e@x.test')).toBe('ÉV');
+  });
+});
+
+// EZD-289 S1 (vault/plans/EZD-289.md sections 1, 3, 4; AC-EZD-289-1, -2). Expected values: plan Decided
+// "Who sees the link" (a user for whom at least one Settings section's switch is on, over can(ctx, p));
+// Q-0210 (one permission switch per Settings page); Q-0234 (no Translations page, so ten sections, the
+// SETTINGS_SECTIONS rows above). Switch keys: PERMISSION_KEYS (app/src/lib/permissions/catalog.ts).
+describe('EZD-289 mayOpenSettings', () => {
+  it('S1 the link shows only when at least one Settings section switch is on', () => {
+    // (a) no switch on
+    expect(mayOpenSettings(() => false)).toBe(false);
+
+    // (b) every key that is not a Settings switch on
+    const notSettings = PERMISSION_KEYS.filter((k) => !k.startsWith('settings_'));
+    expect(notSettings.length).toBeGreaterThan(0);
+    const onB = new Set<PermissionKey>(notSettings);
+    expect(mayOpenSettings((p) => onB.has(p))).toBe(false);
+
+    // (c) each Settings section's switch alone
+    expect(SETTINGS_SECTIONS).toHaveLength(10);
+    for (const s of SETTINGS_SECTIONS) {
+      const onC = new Set<PermissionKey>([s.permission]);
+      const got = mayOpenSettings((p) => onC.has(p));
+      expect(got, s.id).toBe(true);
+    }
+
+    // (d) all keys on
+    expect(mayOpenSettings(() => true)).toBe(true);
   });
 });

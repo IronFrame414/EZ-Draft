@@ -137,3 +137,9 @@ export function sectionForPath(pathname: string | null): SettingsSection | null 
 export function allowedSections(can: (p: PermissionKey) => boolean): SettingsSection[] {
   return SETTINGS_SECTIONS.filter((s) => can(s.permission));
 }
+
+// EZD-289 (vault/plans/EZD-289.md Decided "Who sees the link"): a user may open Settings when at least one
+// Settings section's switch is on, because `/settings` sends them to their first permitted section.
+export function mayOpenSettings(can: (p: PermissionKey) => boolean): boolean {
+  return allowedSections(can).length > 0;
+}

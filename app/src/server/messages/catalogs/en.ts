@@ -91,6 +91,7 @@ export const en = {
   'office.shell.left_panel': 'Left panel',
   'office.shell.inspector': 'Inspector',
   'office.settings.title': 'Settings',
+  'office.home.settings': 'Settings',
   'office.settings.back': 'Projects',
   'office.settings.nav_label': 'Company settings',
   'office.settings.nav_aria': 'Settings sections',
