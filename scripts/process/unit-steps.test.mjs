@@ -9,6 +9,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'unit-steps.mjs');
+const RECORDS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'records.mjs');
+// REMEDIATION-PLAN 2.12 (D1 (a), D2 (a)): rows live in a records database (a temp file per fixture, L-041); STATUS.md is
+// its generated view, git-ignored as the running records are (2.14).
+const dbOf = (dir) => path.join(dir, '.git', 'records.db');
 const ID = ['-c', 'user.name=EZ Draft Test', '-c', 'user.email=test@example.test', '-c', 'commit.gpgsign=false'];
 const git = (dir, ...a) => {
   const r = spawnSync('git', ['-C', dir, ...ID, ...a], { encoding: 'utf8' });
@@ -28,16 +32,21 @@ function fixture({ status = 'ready', depStatus = 'done', gateExit = 0 } = {}) {
   writeFileSync(path.join(dir, 'vault/tickets/STATUS.md'), `# Ledger\n\n${HEAD}| EZD-001 | 0 | Base | ${depStatus} | low |  | abc1234 | 3 |  |\n| EZD-002 | 0 | Thing two | ${status} | medium | EZD-001 |  |  | keep this note |\n`);
   writeFileSync(path.join(dir, 'vault/tickets/tickets.json'), JSON.stringify({ tickets: [{ id: 'EZD-001', phase: 0, depends_on: [] }, { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'] }] }));
   writeFileSync(path.join(dir, 'vault/tools/next_ticket.mjs'), 'process.exit(0);\n');
+  // Its own launcher log folder, so the live launcher's lock (~/Library/Logs/ezdraft) never applies here.
+  mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+  writeFileSync(path.join(dir, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(dir, '.git', 'launcher-logs') }));
   writeFileSync(path.join(dir, 'gate-stub.mjs'), `console.log('=== GATE SUMMARY ===');console.log('ℹ pass 30');console.log(' Tests  12 passed (12)');process.exit(${gateExit});\n`);
-  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\n');
+  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\nvault/tickets/STATUS.md\nvault/handoff/CURRENT.md\nvault/DONE.md\n');
   git(dir, 'add', '-A');
   git(dir, 'commit', '-qm', 'init');
+  const imp = spawnSync(process.execPath, [RECORDS, 'import', '--vault', path.join(dir, 'vault'), '--db', dbOf(dir)], { encoding: 'utf8' });
+  if (imp.status !== 0) throw new Error(imp.stdout + imp.stderr);
   return dir;
 }
 // EZD-173: an empty in-flight folder per call, so no live launcher record makes a test unit think another unit is running.
 const run = (dir, ...a) => spawnSync(process.execPath, [SCRIPT, ...a], {
   encoding: 'utf8',
-  env: { ...process.env, EZD_ROOT: dir, EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-inflight-')), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1' },
+  env: { ...process.env, EZD_ROOT: dir, EZD_RECORDS_DB: dbOf(dir), EZD_RESULTS_FILE: '', EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-inflight-')), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1' },
 });
 const row = (dir, id) => readFileSync(path.join(dir, 'vault/tickets/STATUS.md'), 'utf8').split('\n').find((l) => l.startsWith(`| ${id} `));
 const commitIn = (dir, file, text, msg) => { writeFileSync(path.join(dir, file), text); git(dir, 'add', '-A'); git(dir, 'commit', '-qm', msg); };
@@ -83,7 +92,7 @@ test('worktree creates t/<ID>, sets in-progress, and reports resume state on a s
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('merge squashes, runs the develop gate, cleans up and marks done with hash and test count', () => {
+test('merge squashes, runs the develop gate, cleans up and marks done with hash and test count; its feat commit is the only commit (D2 (a))', () => {
   const dir = fixture();
   run(dir, 'worktree', 'EZD-002');
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
@@ -91,11 +100,12 @@ test('merge squashes, runs the develop gate, cleans up and marks done with hash 
   const r = run(dir, 'merge', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /MERGE OK/);
-  assert.match(git(dir, 'log', '-1', '--skip=1', '--format=%s'), /^feat\(EZD-002\): Thing two$/);
-  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 status');
+  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'feat(EZD-002): Thing two');
+  assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), '2', 'init and the feat commit only');
   assert.ok(!existsSync(wt));
   assert.equal(git(dir, 'branch', '--list', 't/EZD-002'), '');
-  const hash = git(dir, 'rev-parse', '--short', 'HEAD~1');
+  assert.equal(git(dir, 'status', '--porcelain'), '');
+  const hash = git(dir, 'rev-parse', '--short', 'HEAD');
   assert.match(row(dir, 'EZD-002'), new RegExp(`\\| done \\| medium \\| EZD-001 \\| ${hash} \\| 42 \\|`));
   rmSync(dir, { recursive: true, force: true });
 });
@@ -110,7 +120,7 @@ function interrupted(gateExit = 0) {
   git(dir, 'merge', '--squash', 't/EZD-002');
   git(dir, 'commit', '-qm', 'feat(EZD-002): Thing two');
   const feat = git(dir, 'rev-parse', '--short', 'HEAD');
-  commitIn(dir, 'vault/handoff/CURRENT.md', 'session end\n', 'docs(vault): session end');
+  commitIn(dir, 'vault/handoff/note.md', 'session end\n', 'docs(vault): session end'); // a commit on top, as before 2.12
   return { dir, wt, feat };
 }
 
@@ -122,14 +132,14 @@ test('worktree reports merged=yes when an interrupted unit already squashed the 
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('merge resumes an interrupted merge without a second squash and marks done with the feat hash', () => {
+test('merge resumes an interrupted merge without a second squash and marks done with the feat hash, with no new commit (D2 (a))', () => {
   const { dir, wt, feat } = interrupted();
   const before = git(dir, 'rev-list', '--count', 'HEAD');
   const r = run(dir, 'merge', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /MERGE RESUME EZD-002/);
   assert.match(r.stdout, /MERGE OK/);
-  assert.equal(Number(git(dir, 'rev-list', '--count', 'HEAD')), Number(before) + 1);
+  assert.equal(Number(git(dir, 'rev-list', '--count', 'HEAD')), Number(before));
   assert.equal(git(dir, 'log', '-F', '--grep=feat(EZD-002): ', '--format=%h').split('\n').length, 1);
   assert.ok(!existsSync(wt));
   assert.match(row(dir, 'EZD-002'), new RegExp(`\\| done \\| medium \\| EZD-001 \\| ${feat} \\| 42 \\|`));
@@ -161,17 +171,18 @@ test('merge on a red develop gate restores develop and keeps the worktree', () =
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('finish commits vault/ with the ticket outcome', () => {
+test('finish checks and reports but commits nothing (D1 (a), D2 (a))', () => {
   const dir = fixture();
   writeFileSync(path.join(dir, 'vault/handoff/CURRENT.md'), 'handoff');
+  const head = git(dir, 'rev-parse', 'HEAD');
   const r = run(dir, 'finish', 'EZD-002', 'done');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /FINISH OK/);
-  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 done');
+  assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('table sets an in-progress ticket blocked, keeps its note and commits STATUS.md (Josh 2026-10-27)', () => {
+test('table sets an in-progress ticket blocked and keeps its note, with no commit (Josh 2026-10-27; D1 (a), D2 (a))', () => {
   const dir = fixture({ status: 'in-progress' });
   const r = run(dir, 'table', 'EZD-002');
   assert.equal(r.status, 0, r.stdout + r.stderr);
@@ -179,7 +190,7 @@ test('table sets an in-progress ticket blocked, keeps its note and commits STATU
   const cells = row(dir, 'EZD-002').split('|').map((c) => c.trim());
   assert.equal(cells[4], 'blocked');
   assert.match(cells[9], /^keep this note · \d{4}-\d{2}-\d{2}: tabled by the launcher/);
-  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 tabled by the launcher');
+  assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), '1');
   assert.equal(git(dir, 'status', '--porcelain'), '');
   rmSync(dir, { recursive: true, force: true });
 });
@@ -219,3 +230,60 @@ test('table refuses a ticket that is not ready, in-progress or review and change
   rmSync(dir, { recursive: true, force: true });
 });
 
+// ---- REMEDIATION-PLAN 2.12 U1-U2 (vault/handoff/records-writer/P2-tools-no-commits.md; D1 (a), D2 (a)) ----
+test('2.12 U1 the feat commit carries develop\'s untracked plan; it is the one new develop commit', () => {
+  const dir = fixture();
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# EZD-002 plan v1\n');
+  run(dir, 'worktree', 'EZD-002');
+  const wt = path.join(dir, '.claude/worktrees/EZD-002');
+  assert.equal(readFileSync(path.join(wt, 'vault/plans/EZD-002.md'), 'utf8'), '# EZD-002 plan v1\n', 'the worktree gets the plan');
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# EZD-002 plan v2\n');
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  const before = Number(git(dir, 'rev-list', '--count', 'HEAD'));
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(Number(git(dir, 'rev-list', '--count', 'HEAD')), before + 1);
+  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'feat(EZD-002): Thing two');
+  assert.equal(git(dir, 'show', 'HEAD:vault/plans/EZD-002.md'), '# EZD-002 plan v2');
+  assert.equal(git(dir, 'status', '--porcelain'), '');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('2.12 U2 inside a unit the merge queues its STATUS change; the database changes only when the launcher applies it', async () => {
+  const { openRecords, applyQueueFile } = await import(RECORDS);
+  const dir = fixture();
+  const results = path.join(dir, '.git', 'unit.results.jsonl');
+  const inUnit = (...a) => spawnSync(process.execPath, [SCRIPT, ...a], {
+    encoding: 'utf8',
+    env: { ...process.env, EZD_ROOT: dir, EZD_RECORDS_DB: dbOf(dir), EZD_RESULTS_FILE: results, EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-inflight-')), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1' },
+  });
+  assert.equal(inUnit('worktree', 'EZD-002').status, 0);
+  commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  const m = inUnit('merge', 'EZD-002');
+  assert.equal(m.status, 0, m.stdout + m.stderr);
+  const db = openRecords(dbOf(dir));
+  assert.equal(db.prepare("select status from tickets where id = 'EZD-002'").get().status, 'ready');
+  assert.equal(applyQueueFile(db, results), 2);
+  const t = db.prepare("select status, commit_hash, tests from tickets where id = 'EZD-002'").get();
+  assert.deepEqual({ ...t }, { status: 'done', commit_hash: git(dir, 'rev-parse', '--short', 'HEAD'), tests: '42' });
+  db.close();
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('2.12 U3 the feat commit writes the tickets.json entry the records database held for the ticket (D9 (a), 2026-11-02)', async () => {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const dir = fixture();
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan\n', entry: { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture: ['Tests'] } }]);
+  db.close();
+  run(dir, 'worktree', 'EZD-002');
+  commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(git(dir, 'log', '-1', '--format=%s'), 'feat(EZD-002): Thing two');
+  const entry = JSON.parse(git(dir, 'show', 'HEAD:vault/tickets/tickets.json')).tickets.find((t) => t.id === 'EZD-002');
+  assert.deepEqual(entry.architecture, ['Tests']);
+  assert.equal(git(dir, 'status', '--porcelain'), '');
+  rmSync(dir, { recursive: true, force: true });
+});

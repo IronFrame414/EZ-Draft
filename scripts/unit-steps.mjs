@@ -10,17 +10,20 @@
 //                                                     first merges develop into t/<T> and re-runs the ticket gate when that changed anything;
 //                                                     resumes after an interrupted unit (feat commit already on develop)
 //   node scripts/unit-steps.mjs finish <T> <outcome> [<vault path>...]
-//                                                     step 11: ledger check, report, commit vault/ (or only this unit's own
-//                                                     paths while another unit is in flight), push develop
+//                                                     step 11: ledger check, report, push develop
 //
-// Units may run side by side (EZD-173): ledger writes and commits hold the ledger lock, and merges queue behind the merge
-// lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_GATE_CMD (gate command), EZD_NO_PUSH=1,
+// Records (REMEDIATION-PLAN 2.12; D1 (a), D2 (a)): rows are read from the records database and every STATUS change goes
+// through records.mjs record(), which queues it in the unit's results file for the launcher. No step commits records;
+// the only develop commit of a ticket is its feat commit, which also carries the ticket's plan.
+//
+// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_GATE_CMD (gate command), EZD_NO_PUSH=1,
 // EZD_INFLIGHT_DIR (in-flight records). EZD_UNIT_ID is set by scripts/run.mjs for the unit's session.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withLedgerLock, withMergeLock, tryLock, readLock, updateStatusRow, commitPaths, closeUnit, inflightDir, LockError } from './ledger.mjs';
+import { withLedgerLock, withMergeLock, tryLock, readLock } from './ledger.mjs';
+import { openRecords, dbPath, record, planRecord } from './records.mjs';
 
 const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const statusPath = path.join(root, 'vault/tickets/STATUS.md');
@@ -34,27 +37,23 @@ class Stop extends Error {}
 const stop = (msg) => { throw new Stop(msg); };
 const owner = () => `unit-steps ${step} ${ticket}`;
 
-// STATUS.md columns: Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes
-const COL = { phase: 1, title: 2, status: 3, complexity: 4, commit: 6, tests: 7, notes: 8 };
+// Ticket rows from the records database (tickets table).
 function readRows() {
-  const lines = readFileSync(statusPath, 'utf8').split('\n');
-  const rows = new Map();
-  lines.forEach((l, i) => {
-    const m = /^\| (EZD-[0-9A-Za-z]+) \|/.exec(l);
-    if (m) rows.set(m[1], { i, cells: l.split('|').slice(1, -1).map((c) => c.trim()) });
-  });
-  return { lines, rows };
+  const db = openRecords(dbPath());
+  try {
+    const rows = new Map();
+    for (const t of db.prepare('select * from tickets').all()) {
+      rows.set(t.id, { phase: t.phase, title: t.title, status: t.status, complexity: t.complexity, commit: t.commit_hash, tests: t.tests, notes: t.notes });
+    }
+    return { rows };
+  } finally { db.close(); }
 }
 function rowOf(id) {
   const r = readRows().rows.get(id);
-  if (!r) stop(`STOP: ${id} has no row in vault/tickets/STATUS.md`);
-  return Object.fromEntries(Object.entries(COL).map(([k, i]) => [k, r.cells[i]]));
+  if (!r) stop(`STOP: ${id} has no row in the records database`);
+  return r;
 }
-// A STATUS change and its commit, inside the caller's ledger hold.
-function setStatus(changes) {
-  const { paths } = updateStatusRow(root, ticket, changes);
-  commitPaths(root, paths, `docs(vault): ${ticket} status`);
-}
+const setStatus = (changes) => record({ op: 'status', ticket, changes }, { root });
 
 // Test count: node:test `# pass N` / `ℹ pass N` plus Vitest `Tests  N passed` lines from the gate's output and its gate.log.
 function testCount(text) {
@@ -79,7 +78,7 @@ function preflight() {
   const data = JSON.parse(readFileSync(path.join(root, 'vault/tickets/tickets.json'), 'utf8'));
   const deps = data.tickets.find((t) => t.id === ticket)?.depends_on || [];
   const { rows } = readRows();
-  const open = deps.filter((d) => rows.get(d)?.cells[COL.status] !== 'done');
+  const open = deps.filter((d) => rows.get(d)?.status !== 'done');
   if (open.length) stop(`PREFLIGHT STOP: dependencies not done: ${open.join(', ')}`);
   if (row.status === 'ready' && existsSync(path.join(root, 'vault/handoff/BUDGET_HOLD.md'))) stop('PREFLIGHT STOP: vault/handoff/BUDGET_HOLD.md exists; nothing new starts under a hold');
   console.log(`PREFLIGHT OK ${ticket} status=${row.status} complexity=${row.complexity} phase=${row.phase}`);
@@ -126,10 +125,20 @@ function worktree() {
         console.log(`WORKTREE NEW path=${wt}`);
       }
     }
-    if (rowOf(ticket).status === 'ready') setStatus({ status: 'in-progress' });
-    console.log(`STATUS ${ticket} → ${rowOf(ticket).status}`);
+    copyPlan(wt);
+    if (rowOf(ticket).status === 'ready') { setStatus({ status: 'in-progress' }); console.log(`STATUS ${ticket} → in-progress`); }
+    else console.log(`STATUS ${ticket} → ${rowOf(ticket).status}`);
   });
   return 0;
+}
+
+// The plan travels with its ticket (AUDIT-REPORT 3.2): agents in the worktree read develop's copy of vault/plans/<T>.md.
+const planRel = () => `vault/plans/${ticket}.md`;
+function copyPlan(wt) {
+  const src = path.join(root, planRel());
+  if (!existsSync(src) || !existsSync(wt)) return;
+  mkdirSync(path.join(wt, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(wt, planRel()), readFileSync(src));
 }
 
 let shown = 0;
@@ -228,8 +237,28 @@ function merge() {
       mergeLock.update({ base: out(git('rev-parse', resumed ? `${resumed}^` : 'HEAD')) });
       if (resumed) { console.log(`MERGE RESUME ${ticket}: feat commit ${resumed.slice(0, 7)} already on develop; running the develop gate`); shown += 1; }
       else {
+        // develop's plan (untracked until now) goes into the feat commit; set aside so the squash cannot clash with it.
+        const planFile = path.join(root, planRel());
+        const tracked = git('ls-files', '--error-unmatch', '--', planRel()).status === 0;
+        const plan = existsSync(planFile) ? readFileSync(planFile) : null;
+        if (plan !== null && !tracked) unlinkSync(planFile);
         const sq = git('merge', '--squash', `t/${ticket}`);
+        if (plan !== null) { mkdirSync(path.dirname(planFile), { recursive: true }); writeFileSync(planFile, plan); }
         if (sq.status) { git('merge', '--abort'); git('reset', '--merge'); stop(`MERGE STOP: squash failed: ${out(sq).split('\n')[0]}`); }
+        if (plan !== null) git('add', '--', planRel());
+        // Research reports adopted during the build (ledger.mjs research) travel with the ticket too.
+        git('add', '--', 'vault/research', ':(exclude)vault/research/pending');
+        // The ticket's tickets.json entry (its Architecture line) waits in the records database until now (D9 (a)).
+        const db = openRecords(dbPath());
+        let held;
+        try { held = planRecord(db, ticket); } finally { db.close(); }
+        if (held?.entry) {
+          const ticketsRel = 'vault/tickets/tickets.json';
+          const d = JSON.parse(readFileSync(path.join(root, ticketsRel), 'utf8'));
+          d.tickets = d.tickets.map((x) => (x.id === ticket ? held.entry : x));
+          writeFileSync(path.join(root, ticketsRel), JSON.stringify(d, null, 1) + '\n');
+          git('add', '--', ticketsRel);
+        }
         const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
         if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);
       }
@@ -272,13 +301,6 @@ function finish() {
     const check = sh(process.execPath, ['vault/tools/next_ticket.mjs', '--check']);
     if (check.status !== 0) stop(`FINISH STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
     sh(process.execPath, ['vault/tools/next_ticket.mjs', '--report']);
-    const ownPaths = ['vault/PROGRESS.md', 'vault/tickets/TRACE.md', `vault/plans/${ticket}.md`, `vault/plans/shots/${ticket}`, `vault/spikes/${ticket}.md`, ...extraPaths];
-    try {
-      closeUnit(root, { dir: inflightDir({ root }), ownId: process.env.EZD_UNIT_ID, ownPaths, msg: `docs(vault): ${ticket} ${outcome}` });
-    } catch (e) {
-      if (e instanceof LockError) throw e;
-      stop(`FINISH STOP: ${e.message}`);
-    }
   });
   let deferred = '';
   if (!process.env.EZD_NO_PUSH) {
@@ -302,7 +324,6 @@ function finish() {
 // 2026-11-02: three launcher stops were ready tickets that never started); one with no plan goes back to todo, so
 // --next-unit plans it.
 function table() {
-  // The row is read, changed and committed in one ledger hold (EZD-173), committing only STATUS.md.
   let status;
   withLedgerLock(root, { owner: owner() }, () => {
     const r = rowOf(ticket);
@@ -313,13 +334,7 @@ function table() {
     const note = unplanned
       ? `${date}: set back to todo by the launcher (ready with no plan; build ended twice without progress).`
       : `${date}: tabled by the launcher (build ended twice without progress, most likely waiting on Josh; see vault/handoff/CURRENT.md). Worktree, if any, kept; back to ready when Josh answers.`;
-    const { paths } = updateStatusRow(root, ticket, { status, notes: r.notes ? `${r.notes} · ${note}` : note });
-    try {
-      commitPaths(root, paths, `docs(vault): ${ticket} tabled by the launcher`);
-    } catch (e) {
-      if (e instanceof LockError) throw e;
-      stop(`TABLE STOP: ${e.message}`);
-    }
+    setStatus({ status, notes: r.notes ? `${r.notes} · ${note}` : note });
   });
   console.log(`TABLE OK ${ticket} (STATUS → ${status})`);
 }

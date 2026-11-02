@@ -545,6 +545,13 @@ export function closeUnit(root, { dir, ownId, ownPaths, msg }) {
 }
 
 // ---- CLI (C10) ----
+const recordsModule = () => import(pathToFileURL(path.join(REPO, 'scripts/records.mjs')).href);
+async function rec(root, op) {
+  const { record } = await recordsModule();
+  record(op, { root });
+  return {};
+}
+
 async function main(argv) {
   const root = process.env.EZD_ROOT || REPO;
   const usage = (reason) => { console.log(`LEDGER USAGE: ${reason}`); return 2; };
@@ -569,21 +576,48 @@ async function main(argv) {
       if (key === 'complexity' && !COMPLEXITY.includes(value)) return usage(`complexity must be one of ${COMPLEXITY.join(', ')}`);
       changes[key] = value;
     }
-    job = { arg: ticket, run: () => ({ ...updateStatusRow(root, ticket, changes), msg: `docs(vault): ${ticket} status`, ok: `${ticket} status` }) };
+    job = { arg: ticket, run: async () => ({ ...(await rec(root, { op: 'status', ticket, changes })), ok: `${ticket} status` }) };
+  } else if (cmd === 'ticket') {
+    // 2.12: a new STATUS row (a fix ticket from gate-phase, repair or wrap), after its tickets.json entry exists.
+    if (rest.length !== 5) return usage('ticket <T> <phase> <complexity> <depends-on> <title>');
+    const [ticket, phase, complexity, dependsOn, title] = rest;
+    if (!isTicket(ticket)) return usage(`not a ticket: ${ticket}`);
+    if (!COMPLEXITY.includes(complexity)) return usage(`complexity must be one of ${COMPLEXITY.join(', ')}`);
+    if (rest.some((a) => a.includes('|'))) return usage('| in a ticket argument');
+    job = { arg: ticket, run: async () => {
+      const entry = JSON.parse(readText(root, 'vault/tickets/tickets.json') || '{"tickets":[]}').tickets.find((t) => t.id === ticket);
+      if (!entry) throw new LedgerFail(`${ticket} not in tickets.json`);
+      const row = { id: ticket, phase, title, status: 'todo', complexity, depends_on: dependsOn, commit_hash: '', tests: '', notes: '' };
+      return { ...(await rec(root, { op: 'ticket', row })), ok: `${ticket} ticket` };
+    } };
   } else if (cmd === 'question') {
     if (rest.length !== 3) return usage('question <T> <asked-by> <text>');
     const [ticket, askedBy, text] = rest;
     if (!isTicket(ticket)) return usage(`not a ticket: ${ticket}`);
     job = { arg: ticket, run: async () => {
-      const r = await addQuestion(root, { ticket, askedBy, text, date: new Date().toISOString().slice(0, 10) });
-      return { ...r, msg: `docs(vault): ${ticket} question ${r.id}`, ok: r.id };
+      const entry = JSON.parse(readText(root, 'vault/tickets/tickets.json') || '{"tickets":[]}').tickets.find((t) => t.id === ticket);
+      if (!entry) throw new LedgerFail(`${ticket} not in tickets.json`);
+      const { openRecords, dbPath, nextQuestionId } = await recordsModule();
+      const db = openRecords(dbPath());
+      let id;
+      try { id = nextQuestionId(db, process.env.EZD_RESULTS_FILE); } finally { db.close(); }
+      const esc = (x) => String(x).replace(/\|/g, '\\|');
+      const row = { id, phase_ticket: `${entry.phase ?? '?'} / ${ticket}`, asked_by: `${esc(askedBy)} (${new Date().toISOString().slice(0, 10)})`, question: esc(text), status: 'open', answered_by: '', answer: '', source: '' };
+      return { ...(await rec(root, { op: 'question', row })), ok: id };
     } };
   } else if (cmd === 'answer') {
     if (rest.length !== 5) return usage('answer <Q-ID> <status> <answered-by> <answer> <sources>');
     const [qid, status, answeredBy, answer, sources] = rest;
     if (!Q_STATUSES.includes(status)) return usage(`status must be one of ${Q_STATUSES.join(', ')}`);
     if (rest.some((a) => a.includes('|'))) return usage('| in an answer argument');
-    job = { arg: qid, run: async () => ({ ...(await setAnswer(root, qid, { status, answeredBy, answer, sources })), msg: `docs(vault): answer ${qid}`, ok: qid }) };
+    job = { arg: qid, run: async () => {
+      const { openRecords, dbPath, readQueue } = await recordsModule();
+      const db = openRecords(dbPath());
+      let known;
+      try { known = !!db.prepare('select 1 from questions where id = ?').get(qid); } finally { db.close(); }
+      if (!known && !readQueue(process.env.EZD_RESULTS_FILE || '').some((o) => o.op === 'question' && o.row.id === qid)) throw new LedgerFail(`${qid} not in vault/questions`);
+      return { ...(await rec(root, { op: 'answer', id: qid, status, answered_by: answeredBy, answer, source: sources })), ok: qid };
+    } };
   } else if (cmd === 'append') {
     if (rest.length !== 2) return usage('append <path> <T> (text on stdin)');
     const [rel, ticket] = rest;
@@ -592,7 +626,13 @@ async function main(argv) {
     const text = stdinText();
     if (!text) return usage('empty stdin');
     if (rel !== 'vault/DONE.md' && text.startsWith('## L-')) return usage('a `## L-` entry goes through lesson, not append');
-    job = { arg: rel, run: () => ({ ...appendEntry(root, rel, text), msg: `docs(vault): ${ticket} ${path.basename(rel)}`, ok: rel }) };
+    job = rel === 'vault/DONE.md'
+      ? { arg: rel, run: async () => {
+        const lines = text.split('\n').filter((l) => l.trim());
+        for (const line of lines) await rec(root, { op: 'done', line });
+        return { ok: rel };
+      } }
+      : { arg: rel, run: () => ({ ...appendEntry(root, rel, text), ok: rel }) };
   } else if (cmd === 'lesson') {
     const [ticket, ...rels] = rest;
     if (!rels.length) return usage('lesson <T> vault/lessons/<name>.md... (entry on stdin)');
@@ -604,7 +644,7 @@ async function main(argv) {
     if (!LESSON_ENTRY.test(firstLineOf(text))) return usage('the entry starts `## L-next  areas: <areas>  seen: <n>  status: candidate`');
     job = { arg: ticket, run: () => {
       const r = addLesson(root, rels, text);
-      return { ...r, msg: `docs(vault): ${ticket} lesson ${r.lesson}`, ok: r.lesson };
+      return { ...r, ok: r.lesson };
     } };
   } else if (cmd === 'seen') {
     if (rest.length !== 2) return usage('seen <T> <L-nnn>');
@@ -613,25 +653,32 @@ async function main(argv) {
     if (!/^L-\d{3,}$/.test(lid)) return usage(`not a lesson ID: ${lid}`);
     job = { arg: ticket, run: () => {
       const r = bumpSeen(root, lid);
-      return { ...r, msg: `docs(vault): ${ticket} seen ${lid}`, ok: `${lid} seen ${r.seen}` };
+      return { ...r, ok: `${lid} seen ${r.seen}` };
     } };
   } else if (cmd === 'lessons-index') {
     if (rest.length !== 1) return usage('lessons-index <T>');
     const [ticket] = rest;
     if (!isTicket(ticket)) return usage(`not a ticket: ${ticket}`);
-    job = { arg: ticket, run: () => ({ ...lessonsIndex(root), msg: `docs(vault): ${ticket} lessons index`, ok: LESSONS_INDEX }) };
+    job = { arg: ticket, run: () => ({ ...lessonsIndex(root), ok: LESSONS_INDEX }) };
   } else if (cmd === 'architecture') {
     if (rest.length !== 1) return usage('architecture <T>');
     const [ticket] = rest;
     if (!isTicket(ticket)) return usage(`not a ticket: ${ticket}`);
-    job = { arg: ticket, run: async () => ({ ...(await setTicketArchitecture(root, ticket)), msg: `docs(vault): ${ticket} architecture`, ok: `${ticket} architecture` }) };
+    // D9 (a), 2026-11-02: the entry and the plan's text and hash go to the records database; the feat commit writes tickets.json.
+    job = { arg: ticket, run: async () => {
+      const { architectureEntry } = await import(pathToFileURL(path.join(root, 'vault/tools/next_ticket.mjs')).href);
+      const r = architectureEntry(ticket);
+      if (!r.ok) throw new LedgerFail(r.message);
+      await rec(root, { op: 'plan', ticket, text: readFileSync(path.join(root, `vault/plans/${ticket}.md`), 'utf8'), entry: r.entry });
+      return { ok: `${ticket} architecture` };
+    } };
   } else if (cmd === 'handoff') {
     if (rest.length !== 1) return usage('handoff <T> (text on stdin)');
     const [ticket] = rest;
     if (!isTicket(ticket)) return usage(`not a ticket: ${ticket}`);
     const text = stdinText();
     if (!text) return usage('empty stdin');
-    job = { arg: ticket, run: () => ({ ...writeHandoff(root, { label: `handoff ${ticket}`, text }), msg: `docs(vault): handoff ${ticket}`, ok: CURRENT_REL }) };
+    job = { arg: ticket, run: async () => ({ ...(await rec(root, { op: 'handoff', text: `${text}\n` })), ok: CURRENT_REL }) };
   } else if (cmd === 'research') {
     if (rest.length !== 1) return usage('research <T>');
     const [ticket] = rest;
@@ -642,16 +689,17 @@ async function main(argv) {
       const ids = `research ${r.ids.join(',') || 'none'}`;
       // A report that could not be read stays in pending/ and fails the command after the good ones are committed.
       const fail = r.skipped.length ? `${ids}${r.skipped.map((s) => `; skipped pending/${s.file}: ${s.reason}`).join('')}` : null;
-      return { ...r, msg: `docs(vault): ${ticket} research`, ok: ids, fail };
+      return { ...r, ok: ids, fail };
     } };
   } else {
-    return usage(`unknown command: ${cmd ?? '(none)'} (status, question, answer, append, lesson, seen, lessons-index, architecture, handoff, research)`);
+    return usage(`unknown command: ${cmd ?? '(none)'} (status, ticket, question, answer, append, lesson, seen, lessons-index, architecture, handoff, research)`);
   }
   try {
     const r = await withLedgerLock(root, { owner: `ledger ${cmd} ${job.arg}` }, async () => {
-      const res = await job.run();
-      commitPaths(root, res.paths, res.msg);
-      return res;
+      // REMEDIATION-PLAN 2.12 (D1 (a), D2 (a)): no command commits. Running records go to the records database through
+      // records.mjs record() (queued for the launcher inside a unit); reference files (lessons, research, tickets.json)
+      // are written and reach git with the ticket's feat commit or the phase snapshot.
+      return job.run();
     });
     if (r.fail) { console.log(`LEDGER FAIL: ${r.fail}`); return 1; }
     console.log(`LEDGER OK ${r.ok}`);

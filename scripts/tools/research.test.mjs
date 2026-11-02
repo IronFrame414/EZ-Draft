@@ -158,7 +158,7 @@ test('EZD-000d T9 done when: CLAUDE.md has the research row in place and is at m
 
 test('EZD-000d T10 skill files carry the adopt sentences and keep their step numbers', () => {
   const S1 = 'If a retriever you dispatched returned a `REPORT:` line, run `node scripts/ledger.mjs research $ARGUMENTS` before you finish and cite the IDs it prints as `R-NNN` in section 2; a ticket no report covers says so in section 2.';
-  const S2 = '**Research reports.** After any dispatch that returned a `REPORT:` line, run `node scripts/ledger.mjs research $ARGUMENTS`; it moves each of this ticket\'s pending reports to `vault/research/R-NNN.md`, commits them and prints the IDs to cite (PROCESS.md section 13).';
+  const S2 = '**Research reports.** After any dispatch that returned a `REPORT:` line, run `node scripts/ledger.mjs research $ARGUMENTS`; it moves each of this ticket\'s pending reports to `vault/research/R-NNN.md` (they reach git with the ticket\'s feat commit) and prints the IDs to cite (PROCESS.md section 13).';
   const plan = read(path.join(root, '.claude/skills/plan-ticket/SKILL.md')).split('\n');
   const step2 = plan.find((l) => l.startsWith('2. Write `vault/plans/$ARGUMENTS.md`'));
   assert.ok(step2 && step2.endsWith(' ' + S1));
@@ -183,7 +183,7 @@ const r1git = (dir, ...a) => {
 const R1_2 = '---\ntitle: Title Two\nscope: app/src\nticket: EZD-002\n---\nBody two\n';
 const R1_3 = '---\ntitle: Title Three\nscope: app/src\nticket: EZD-003\n---\nBody three\n';
 
-test('EZD-173 R1 adopt with a ticket moves only that ticket\'s reports; the ledger research command commits only the adopted files', async () => {
+test('EZD-173 R1 adopt with a ticket moves only that ticket\'s reports; the ledger research command writes only the adopted files, no commit (2.12)', async () => {
   const { adopt } = await import(pathToFileURL(tool).href);
   const a = makeTree({ pending: { 'two.md': R1_2, 'three.md': R1_3 } });
   const res = adopt(a.rdir, '2026-10-24', { ticket: 'EZD-002' });
@@ -207,14 +207,15 @@ test('EZD-173 R1 adopt with a ticket moves only that ticket\'s reports; the ledg
   });
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout.trim(), /^LEDGER OK research R-001$/);
-  assert.equal(r1git(tmp, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 research');
-  assert.deepEqual(r1git(tmp, 'show', '--name-only', '--format=', 'HEAD').split('\n').sort(), ['vault/research/INDEX.md', 'vault/research/R-001.md']);
+  // 2.12 (D1 (a), D2 (a)): the command writes the adopted files and commits nothing; they reach git with the ticket.
+  assert.equal(r1git(tmp, 'log', '-1', '--format=%s'), 'init');
+  assert.deepEqual(r1git(tmp, 'status', '--porcelain', '--untracked-files=all', '--', 'vault/research/INDEX.md', 'vault/research/R-001.md').split('\n').map((l) => l.replace(/^\s*\S+\s+/, '')).sort(), ['vault/research/INDEX.md', 'vault/research/R-001.md']);
   assert.ok(fs.existsSync(path.join(rdir, 'pending', 'three.md')));
   fs.rmSync(tmp, { recursive: true, force: true });
   fs.rmSync(inflight, { recursive: true, force: true });
 });
 
-test('EZD-173 R2 an unreadable pending report is skipped and kept; the ledger research command commits the adopted files, prints LEDGER FAIL and exits 1', async () => {
+test('EZD-173 R2 an unreadable pending report is skipped and kept; the ledger research command writes the adopted files with no commit (2.12), prints LEDGER FAIL and exits 1', async () => {
   const { adopt } = await import(pathToFileURL(tool).href);
   const a = makeTree({ pending: { 'two.md': R1_2, 'bad.md': 'no front matter here' } });
   const res = adopt(a.rdir, '2026-10-24', { ticket: 'EZD-002' });
@@ -236,8 +237,9 @@ test('EZD-173 R2 an unreadable pending report is skipped and kept; the ledger re
   });
   assert.equal(r.status, 1, r.stdout + r.stderr);
   assert.equal(r.stdout.trim(), 'LEDGER FAIL: research R-001; skipped pending/bad.md: no front matter');
-  assert.equal(r1git(tmp, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 research');
-  assert.deepEqual(r1git(tmp, 'show', '--name-only', '--format=', 'HEAD').split('\n').sort(), ['vault/research/INDEX.md', 'vault/research/R-001.md']);
+  // 2.12 (D1 (a), D2 (a)): the command writes the adopted files and commits nothing; they reach git with the ticket.
+  assert.equal(r1git(tmp, 'log', '-1', '--format=%s'), 'init');
+  assert.deepEqual(r1git(tmp, 'status', '--porcelain', '--untracked-files=all', '--', 'vault/research/INDEX.md', 'vault/research/R-001.md').split('\n').map((l) => l.replace(/^\s*\S+\s+/, '')).sort(), ['vault/research/INDEX.md', 'vault/research/R-001.md']);
   assert.ok(fs.existsSync(path.join(rdir, 'pending', 'bad.md')));
   fs.rmSync(tmp, { recursive: true, force: true });
   fs.rmSync(inflight, { recursive: true, force: true });

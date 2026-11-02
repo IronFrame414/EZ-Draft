@@ -39,6 +39,7 @@ export const STUB_NT = [
   "export const questionsFingerprint = () => '';",
   'export const assignQuestionIds = () => ({});',
   'export const setArchitecture = () => ({ ok: true });',
+  "export const architectureEntry = () => ({ ok: true, message: 'stub', entry: null });",
   "const cfg = (() => { try { return JSON.parse(readFileSync(path.join(here, 'stub-config.json'), 'utf8')); } catch { return {}; } })();",
   "const marker = (n) => existsSync(path.join(root, 'markers', n));",
   "const writeMarker = (n) => { mkdirSync(path.join(root, 'markers'), { recursive: true }); writeFileSync(path.join(root, 'markers', n), 'x'); };",
@@ -115,7 +116,7 @@ const fakeClaude = () =>
 
 const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFile}"`, 'exit 1', ''].join('\n');
 
-const BASE_COPY = ['scripts/run.mjs', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'vault/tools/boost.mjs'];
+const BASE_COPY = ['scripts/run.mjs', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'vault/tools/boost.mjs'];
 
 // A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
 // with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules. config: spread last into
@@ -154,11 +155,15 @@ export function makeLauncherRoot({ stub = {}, rules = [], copy = [], config = {}
     JSON.stringify({
       claude_bin: at('fake-claude'),
       log_dir: at('logs'),
+      records_db: at('records.db'),
       idle_poll_ms: 200,
       notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"`,
       ...config,
     }),
   );
+  // The record files the launcher exports from its database are git-ignored, as in the checkout (REMEDIATION-PLAN 2.12, 2.14).
+  // STATUS.md stays tracked here for the queue tests until 2.15 removes the ledger queue.
+  writeFileSync(at('.gitignore'), ['vault/cost/log.jsonl', 'vault/lessons/findings.jsonl', 'vault/DONE.md', 'vault/handoff/CURRENT.md', 'vault/PROGRESS.md', 'vault/tickets/TRACE.md', 'records.db*', ''].join('\n'));
   // Every root is a git repository: run.mjs imports ledger.mjs, whose lock needs .git (plan C9, Decided "Launcher test roots").
   gitInit(tmp, ['scripts', 'vault']);
   return { tmp, at };
@@ -191,13 +196,16 @@ export const readJson = (f) => {
 };
 
 // One continuous launcher run (no --once unless args say so), stdout and stderr appended to logs/launcher.log as launchd does.
-// env: extra child variables, applied last.
+// env: extra child variables, applied last. The records database is the root's own records.db (REMEDIATION-PLAN 2.12; L-041:
+// never ~/.ezdraft/records.db).
 export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = {} } = {}) {
   const fd = openSync(root.at('logs/launcher.log'), 'a');
   const env = {
     ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_') && k !== 'EZD_LAUNCHER_RESTARTED')),
     GIT_CEILING_DIRECTORIES: path.dirname(root.tmp),
     PATH: `${root.at('bin')}${path.delimiter}${process.env.PATH ?? ''}`,
+    EZD_RECORDS_DB: root.at('records.db'),
+    EZD_RESULTS_FILE: '',
     ...extraEnv,
   };
   const t0 = Date.now();

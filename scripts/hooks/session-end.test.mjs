@@ -1,5 +1,4 @@
-// EZD-173 H1-H3 (plan vault/plans/EZD-173.md section 4, C14): the SessionEnd hook commits vault/ only when no other unit is in
-// flight, and never blocks. Each case runs the real hook against a throwaway git repo on develop.
+// The SessionEnd hook (EZD-173 C14, changed by REMEDIATION-PLAN 2.12): it never commits and never blocks. Each case runs the real hook against a throwaway git repo on develop.
 import { describe, test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
@@ -50,28 +49,30 @@ function runHook(dir, inflight, env = {}) {
   });
 }
 
-describe('EZD-173 H: session-end hook', () => {
-  test('H1: with no other unit in flight the hook commits vault/ as "session end"', async () => {
+// REMEDIATION-PLAN 2.12 (D1 (a), D2 (a)): the hook replaced EZD-173 C14's commit. Running records live in the records
+// database, which only the launcher writes, so the hook commits nothing in any state; it only reports ledger problems.
+describe('2.12 H: session-end hook commits nothing (D1 (a), D2 (a))', () => {
+  test('H1: with no other unit in flight the hook makes no commit and leaves the working tree as it was', async () => {
     const dir = repo();
-    const r = await runHook(dir, tmp('ezd173-inflight-'));
-    assert.equal(r.status, 0, r.stderr);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): session end');
-    assert.equal(git(dir, 'status', '--porcelain'), '');
-  });
-
-  test('H2: with another unit in flight the hook commits nothing and leaves the change', async () => {
-    const dir = repo();
-    const inflight = tmp('ezd173-inflight-');
-    writeFileSync(path.join(inflight, 'plan-EZD-004.json'), JSON.stringify({ id: 'plan-EZD-004', pid: process.pid, unit: 'plan', ticket: 'EZD-004' }));
     const head = git(dir, 'rev-parse', 'HEAD');
-    const r = await runHook(dir, inflight, { EZD_UNIT_ID: 'build-EZD-002' });
+    const r = await runHook(dir, tmp('ezd173-inflight-'));
     assert.equal(r.status, 0, r.stderr);
     assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
     assert.equal(readFileSync(path.join(dir, 'vault/handoff/CURRENT.md'), 'utf8'), 'edited this session\n');
-    assert.match(git(dir, 'status', '--porcelain'), /CURRENT\.md/);
+    assert.equal(git(dir, 'ls-files', '--others', '--exclude-standard'), '', 'no handoff archive file is written');
   });
 
-  test('H3: a busy ledger lock makes the hook give up inside the 30 s hook timeout, with a message and no commit', async () => {
+  test('H2: a failing ledger check is reported on stderr; the hook still exits 0 and commits nothing', async () => {
+    const dir = repo();
+    writeFileSync(path.join(dir, 'vault/tools/next_ticket.mjs'), "console.log('EZD-002 has unknown status');process.exit(1);\n");
+    const head = git(dir, 'rev-parse', 'HEAD');
+    const r = await runHook(dir, tmp('ezd173-inflight-'));
+    assert.equal(r.status, 0);
+    assert.match(r.stderr, /session-end hook: ledger problems\nEZD-002 has unknown status/);
+    assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
+  });
+
+  test('H3: a held ledger lock does not matter: the hook ends well inside the 30 s hook timeout', async () => {
     const dir = repo();
     const child = spawn(process.execPath, ['-e', 'setTimeout(()=>{},90000)'], { stdio: 'ignore' });
     try {
@@ -79,8 +80,7 @@ describe('EZD-173 H: session-end hook', () => {
       const head = git(dir, 'rev-parse', 'HEAD');
       const r = await runHook(dir, tmp('ezd173-inflight-'));
       assert.equal(r.status, 0);
-      assert.ok(r.ms < 30000, `took ${r.ms} ms`);
-      assert.ok(r.stderr.includes('session-end hook: ledger lock busy; vault/ not committed'), r.stderr);
+      assert.ok(r.ms < 5000, `took ${r.ms} ms`);
       assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
     } finally { child.kill(); }
   });

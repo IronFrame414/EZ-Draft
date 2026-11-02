@@ -24,6 +24,8 @@ const stubLedger = (callsFile, result) =>
     "export const questionsFingerprint = () => '';",
     'export const assignQuestionIds = () => ({});',
     `export const setArchitecture = (id) => { appendFileSync(${JSON.stringify(callsFile)}, id + '\\n'); return ${JSON.stringify(result)}; };`,
+    // D9 (a), 2026-11-02: the launcher asks for the entry (architectureEntry) and holds it in the records database.
+    `export const architectureEntry = (id) => { appendFileSync(${JSON.stringify(callsFile)}, id + '\\n'); return ${JSON.stringify(result)}; };`,
     "if (process.argv.includes('--next-unit')) console.log('plan EZD-999');",
     '',
   ].join('\n');
@@ -42,10 +44,10 @@ function makeRoot(result) {
   made.push(tmp);
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'vault/plans', 'logs', 'bin']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(at('arch-calls.txt'), result));
-  writeFileSync(at('vault/tickets/STATUS.md'), '| EZD-999 | 1 | t | todo | | | | | |\n');
+  writeFileSync(at('vault/tickets/STATUS.md'), '| Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| EZD-999 | 1 | t | todo | | | | | |\n');
   writeFileSync(at('vault/plans/EZD-999.md'), '# EZD-999 · Sample\n\n- **Complexity:** low\n\n## 1. What to build\nx\n');
   writeFileSync(at('vault/budget.json'), JSON.stringify({ meter_source: 'statusline', weekly_ceiling_usd_est: 1000 }));
   writeFileSync(at('fake-claude'), fakeClaude(at('claude-calls.txt')), { mode: 0o755 });
@@ -54,7 +56,7 @@ function makeRoot(result) {
   chmodSync(at('bin/claude'), 0o755);
   writeFileSync(
     at('scripts/launcher.config.json'),
-    JSON.stringify({ claude_bin: at('fake-claude'), log_dir: at('logs'), notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"` }),
+    JSON.stringify({ claude_bin: at('fake-claude'), log_dir: at('logs'), records_db: at('records.db'), notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"` }),
   );
   const now = Date.now();
   writeFileSync(
@@ -68,6 +70,9 @@ function makeRoot(result) {
     }),
   );
   initRepo(tmp);
+  // REMEDIATION-PLAN 2.12: the launcher reads and writes the row in the root's records database (records_db; L-041).
+  const imp = spawnSync(process.execPath, [at('scripts/records.mjs'), 'import', '--vault', at('vault'), '--db', at('records.db')], { encoding: 'utf8' });
+  if (imp.status !== 0) throw new Error(imp.stdout + imp.stderr);
   return { tmp, at };
 }
 
@@ -96,7 +101,7 @@ function runOnce(root) {
 const statusRow = (root) => readFileSync(root.at('vault/tickets/STATUS.md'), 'utf8').split('\n').find((l) => l.startsWith('| EZD-999 |')).split('|').map((c) => c.trim());
 const readIf = (f) => (existsSync(f) ? readFileSync(f, 'utf8') : null);
 
-test('EZD-244 L1: a plan unit calls setArchitecture once, then marks the row planned', () => {
+test('EZD-244 L1: a plan unit asks for the Architecture entry once (architectureEntry, D9 (a)), then marks the row planned', () => {
   const root = makeRoot({ ok: true, message: 'ARCHITECTURE SET EZD-999: 0 section(s)' });
   runOnce(root);
   const log = readIf(root.at('logs/launcher.log'));
@@ -106,7 +111,7 @@ test('EZD-244 L1: a plan unit calls setArchitecture once, then marks the row pla
   assert.equal(row[5], 'low', log);
 });
 
-test('EZD-244 L2: a failed setArchitecture leaves the row todo and logs its message', () => {
+test('EZD-244 L2: a failed architecture entry leaves the row todo and logs its message', () => {
   const message = 'EZD-999: no Architecture line in section 2 of vault/plans/EZD-999.md';
   const root = makeRoot({ ok: false, message });
   runOnce(root);

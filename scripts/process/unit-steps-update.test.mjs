@@ -12,6 +12,10 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(HERE, '..', 'unit-steps.mjs');
 const CHECKOUT = path.resolve(HERE, '..', '..');
+const RECORDS = path.resolve(HERE, '..', 'records.mjs');
+// REMEDIATION-PLAN 2.12 (D1 (a), D2 (a)): rows live in a temp records database per fixture (L-041); STATUS.md is its
+// generated view, git-ignored as the running records are (2.14).
+const dbOf = (dir) => path.join(dir, '.git', 'records.db');
 const ID = ['-c', 'user.name=EZ Draft Test', '-c', 'user.email=test@example.test', '-c', 'commit.gpgsign=false'];
 const git = (dir, ...a) => {
   const r = spawnSync('git', ['-C', dir, ...ID, ...a], { encoding: 'utf8' });
@@ -62,7 +66,10 @@ function fixture({ extra = {} } = {}) {
   writeFileSync(path.join(dir, 'vault/tickets/tickets.json'), JSON.stringify({ tickets: [{ id: 'EZD-001', phase: 0, depends_on: [] }, { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'] }, { id: 'EZD-003', phase: 0, depends_on: ['EZD-001'] }] }));
   writeFileSync(path.join(dir, 'vault/tools/next_ticket.mjs'), 'process.exit(0);\n');
   writeFileSync(path.join(dir, 'docs/architecture.md'), `${ARCH.join('\n')}\n`);
-  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\n');
+  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\nvault/tickets/STATUS.md\n');
+  // Its own launcher log folder, so the live launcher's lock never applies here.
+  mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+  writeFileSync(path.join(dir, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(dir, '.git', 'launcher-logs') }));
   for (const [rel, text] of Object.entries(extra)) {
     mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
     writeFileSync(path.join(dir, rel), text);
@@ -71,14 +78,20 @@ function fixture({ extra = {} } = {}) {
   writeFileSync(stub, STUB);
   git(dir, 'add', '-A');
   git(dir, 'commit', '-qm', 'init');
+  const imp = spawnSync(process.execPath, [RECORDS, 'import', '--vault', path.join(dir, 'vault'), '--db', dbOf(dir)], { encoding: 'utf8' });
+  if (imp.status !== 0) throw new Error(imp.stdout + imp.stderr);
   return { dir, tmp, stub, calls: path.join(tmp, 'calls.txt') };
 }
 const cleanup = (f) => { rmSync(f.dir, { recursive: true, force: true }); rmSync(f.tmp, { recursive: true, force: true }); };
 const run = (f, step, T, env = {}) => spawnSync(process.execPath, [SCRIPT, step, ...(T ? [T] : [])], {
   encoding: 'utf8',
-  env: { ...process.env, EZD_ROOT: f.dir, EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-upd-inflight-')), EZD_GATE_CMD: `${process.execPath} ${f.stub}`, EZD_NO_PUSH: '1', GATE_CALLS: f.calls, GATE_FAIL: '', GATE_MOVE: '', GATE_MOVE_VAULT: '', GATE_KILL: '', ...env },
+  env: { ...process.env, EZD_ROOT: f.dir, EZD_RECORDS_DB: dbOf(f.dir), EZD_RESULTS_FILE: '', EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-upd-inflight-')), EZD_GATE_CMD: `${process.execPath} ${f.stub}`, EZD_NO_PUSH: '1', GATE_CALLS: f.calls, GATE_FAIL: '', GATE_MOVE: '', GATE_MOVE_VAULT: '', GATE_KILL: '', ...env },
 });
 const row = (f, id) => readFileSync(path.join(f.dir, 'vault/tickets/STATUS.md'), 'utf8').split('\n').find((l) => l.startsWith(`| ${id} `));
+const setRecord = (f, op) => {
+  const r = spawnSync(process.execPath, [RECORDS, 'queue', JSON.stringify(op), '--db', dbOf(f.dir)], { encoding: 'utf8', env: { ...process.env, EZD_ROOT: f.dir, EZD_RESULTS_FILE: '' } });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+};
 const calls = (f) => (existsSync(f.calls) ? readFileSync(f.calls, 'utf8').split('\n').filter(Boolean) : []);
 const callArgs = (f) => calls(f).map((l) => l.replace(/ lock=\w+$/, ''));
 const resetCalls = (f) => rmSync(f.calls, { force: true });
@@ -99,10 +112,13 @@ function write(dir, file, text) {
   writeFileSync(path.join(dir, file), text);
 }
 function commitAll(dir, subject) { git(dir, 'add', '-A'); git(dir, 'commit', '-qm', subject); }
-// worktree <T>, the root's STATUS change committed, then the ticket's wip commit in the worktree.
+// worktree <T>, a vault-only commit on develop (before 2.12 this was the worktree step's own STATUS commit; it keeps
+// develop one commit ahead of the branch base, as these scenarios need), then the ticket's wip commit in the worktree.
 function ticketBranch(f, T, change) {
   const r = run(f, 'worktree', T);
   assert.equal(r.status, 0, r.stdout + r.stderr);
+  write(f.dir, `vault/handoff/note-${T}.md`, `${T} started\n`);
+  commitAll(f.dir, `docs(vault): ${T} note`);
   const wt = wtOf(f, T);
   change(wt);
   commitAll(wt, `wip(${T}): change`);
@@ -216,8 +232,7 @@ test('EZD-175 a missing branch stops with the no-branch line', (t) => {
   ticketBranch(f, 'EZD-002', editArch(2, 'line 2 EZD-002'));
   git(f.dir, 'worktree', 'remove', '--force', wtOf(f, 'EZD-002'));
   git(f.dir, 'branch', '-D', 't/EZD-002');
-  write(f.dir, 'vault/tickets/STATUS.md', readFileSync(path.join(f.dir, 'vault/tickets/STATUS.md'), 'utf8').replace('| EZD-002 | 0 | Thing two | in-progress', '| EZD-002 | 0 | Thing two | review'));
-  commitAll(f.dir, 'docs(vault): EZD-002 review');
+  setRecord(f, { op: 'status', ticket: 'EZD-002', changes: { status: 'review' } });
   const dev = git(f.dir, 'rev-parse', 'develop');
   const r = run(f, 'merge', 'EZD-002');
   assert.equal(r.status, 3, r.stdout + r.stderr);

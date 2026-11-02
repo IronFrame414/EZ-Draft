@@ -68,7 +68,7 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
   // handoffIsFile: vault/handoff is a plain file, so no limit file can be written under it (T6).
   if (handoffIsFile) writeFileSync(at('vault/handoff'), 'not a folder\n');
   else mkdirSync(at('vault/handoff'), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(nextUnit));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
@@ -97,7 +97,7 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
   chmodSync(at('fake-claude'), 0o755);
   const config = {
     claude_bin: at('fake-claude'),
-    log_dir: at('logs'),
+    log_dir: at('logs'), records_db: at('records.db'),
     notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"`,
   };
   if (confirmed) config.limit_formats_confirmed = true;
@@ -305,7 +305,7 @@ test('EZD-193 T11 the repository ignores limit files (AC-EZD-193-1)', () => {
   assert.equal(ignored('vault/handoff/limit-error-notes.md'), 1, 'vault/handoff/limit-error-notes.md is ignored');
 });
 
-test('EZD-193 T12 the launcher vault commit leaves the limit file out (AC-EZD-193-1)', () => {
+test('EZD-193 T12 the launcher makes no vault commit and the limit file stays git-ignored (AC-EZD-193-1; 2.12, D2 (a))', () => {
   const root = makeRoot({ out: OUT_W, err: ERR_L, exit: 1, gitRepo: true });
   // Without GIT_* names, so the launcher's git works on the temp repository only.
   const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')));
@@ -318,7 +318,7 @@ test('EZD-193 T12 the launcher vault commit leaves the limit file out (AC-EZD-19
     assert.equal(g.status, 0, `git ${args.join(' ')}: ${g.stderr}`);
     return g.stdout;
   };
-  assert.ok(git('log', '--format=%s').split('\n').includes('docs(vault): build EZD-999'), 'the launcher made no vault commit');
+  assert.ok(!git('log', '--format=%s').split('\n').some((l) => l.startsWith('docs(vault)')), 'the launcher makes no vault commit (2.12)');
   const tracked = git('ls-files', '--', 'vault/handoff').split('\n');
   assert.equal(tracked.some((n) => n.includes('limit-error-')), false, `a limit file is tracked: ${JSON.stringify(tracked)}`);
   const status = git('status', '--porcelain', '--ignored', '--untracked-files=all', '--', 'vault/handoff').split('\n');

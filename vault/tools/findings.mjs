@@ -5,7 +5,7 @@
 // The log is vault/lessons/findings.jsonl, one JSON object per line.
 import { existsSync, readFileSync, writeFileSync, appendFileSync, renameSync, unlinkSync, mkdirSync, realpathSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -88,7 +88,8 @@ function readClean(vaultDir) {
   return r.findings;
 }
 
-export function recordFinding(vaultDir, input, today = new Date().toISOString().slice(0, 10)) {
+// The finding as checked; the CLI records it through scripts/records.mjs (REMEDIATION-PLAN 2.12), recordFinding appends it.
+export function checkedFinding(vaultDir, input, today = new Date().toISOString().slice(0, 10)) {
   const { ticket, round, reviewer, category, text } = input;
   readClean(vaultDir);
   if (!ticketIds(vaultDir).has(ticket)) throw new Error(`unknown ticket ${ticket} (not in tickets.json)`);
@@ -97,7 +98,11 @@ export function recordFinding(vaultDir, input, today = new Date().toISOString().
   if (!CATEGORIES.some((c) => c.name === category)) throw new Error(`unknown category "${category}" (run node vault/tools/findings.mjs categories)`);
   const t = typeof text === 'string' ? text.trim() : text;
   if (!textOk(t)) throw new Error(TEXT_PROBLEM);
-  const finding = { date: today, ticket, round: Number(round), reviewer, category, text: t, lesson: null };
+  return { date: today, ticket, round: Number(round), reviewer, category, text: t, lesson: null };
+}
+
+export function recordFinding(vaultDir, input, today = new Date().toISOString().slice(0, 10)) {
+  const finding = checkedFinding(vaultDir, input, today);
   const f = logFile(vaultDir);
   mkdirSync(path.dirname(f), { recursive: true });
   const prefix = existsSync(f) && readFileSync(f, 'utf8').length > 0 && !readFileSync(f, 'utf8').endsWith('\n') ? '\n' : '';
@@ -131,14 +136,18 @@ export function coverCategory(vaultDir, category, lessonId) {
 
 const USAGE = 'usage: findings.mjs record <ticket> <round> <reviewer> <category> <text…> | categories | repeats | list <category> | cover <category> <L-n>';
 
-function main(args) {
+// The launcher is the only writer of the running records (REMEDIATION-PLAN 2.12; D1 (a)): record and cover go through
+// scripts/records.mjs record(), queued in the unit's results file inside a unit.
+const records = () => import(pathToFileURL(path.join(vault, '..', 'scripts/records.mjs')).href);
+
+async function main(args) {
   const [cmd, ...rest] = args;
   const usage = () => { console.error(USAGE); process.exit(2); };
   try {
     if (cmd === 'record') {
       if (rest.length < 5) usage();
       const [ticket, round, reviewer, category, ...text] = rest;
-      recordFinding(vault, { ticket, round, reviewer, category, text: text.join(' ') });
+      (await records()).record({ op: 'finding', entry: checkedFinding(vault, { ticket, round, reviewer, category, text: text.join(' ') }) });
       console.log(`FINDING RECORDED ${ticket} r${round} ${reviewer} ${category}`);
     } else if (cmd === 'categories') {
       readClean(vault);
@@ -156,7 +165,13 @@ function main(args) {
       for (const x of open) console.log(`${x.ticket} r${x.round} ${x.reviewer} ${x.date}: ${x.text}`);
     } else if (cmd === 'cover') {
       if (rest.length < 2) usage();
-      console.log(`COVERED ${rest[0]} by ${rest[1]}: ${coverCategory(vault, rest[0], rest[1])} finding(s)`);
+      const all = readClean(vault);
+      if (!CATEGORIES.some((c) => c.name === rest[0])) throw new Error(`unknown category "${rest[0]}" (run node vault/tools/findings.mjs categories)`);
+      if (!plannerLessons(vault).has(rest[1])) throw new Error(`${rest[1]} is not a lesson in vault/lessons/planner.md`);
+      const n = all.filter((x) => x.category === rest[0] && x.lesson === null).length;
+      if (!n) throw new Error(`no uncovered finding in category ${rest[0]}`);
+      (await records()).record({ op: 'cover', category: rest[0], lesson: rest[1] });
+      console.log(`COVERED ${rest[0]} by ${rest[1]}: ${n} finding(s)`);
     } else usage();
   } catch (e) {
     console.error(`findings: ${e.message}`);
@@ -165,4 +180,4 @@ function main(args) {
 }
 
 const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
-if (isMain) main(process.argv.slice(2));
+if (isMain) await main(process.argv.slice(2));

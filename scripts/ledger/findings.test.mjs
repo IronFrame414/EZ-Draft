@@ -11,7 +11,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let dir, vault;
 
-const findings = (...args) => spawnSync(process.execPath, [path.join(vault, 'tools/findings.mjs'), ...args], { encoding: 'utf8' });
+// REMEDIATION-PLAN 2.12 (D1 (a)): record and cover write the copy's temp records database (L-041), which re-exports
+// findings.jsonl as a view; a test that writes the log file itself imports it again (reimport) first.
+const dbFile = () => path.join(dir, 'records.db');
+const findings = (...args) => spawnSync(process.execPath, [path.join(vault, 'tools/findings.mjs'), ...args], { encoding: 'utf8', env: { ...process.env, EZD_RECORDS_DB: dbFile(), EZD_RESULTS_FILE: '', EZD_ROOT: dir } });
+const reimport = () => {
+  const r = spawnSync(process.execPath, [path.join(dir, 'scripts/records.mjs'), 'import', '--replace', '--vault', vault, '--db', dbFile()], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+};
 const next = (...args) => spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), ...args], { encoding: 'utf8' });
 const logPath = () => path.join(vault, 'lessons/findings.jsonl');
 const planPath = () => path.join(vault, 'plans/EZD-245.md');
@@ -56,6 +63,10 @@ beforeEach(() => {
   cpSync(path.join(root, 'docs/architecture.md'), path.join(dir, 'docs/architecture.md'));
   rmSync(logPath(), { force: true });
   writeFileSync(path.join(vault, 'lessons/planner.md'), PLANNER);
+  mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+  cpSync(path.join(root, 'scripts/records.mjs'), path.join(dir, 'scripts/records.mjs'));
+  writeFileSync(path.join(dir, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(dir, 'logs') }));
+  reimport();
 });
 afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
@@ -312,6 +323,7 @@ test('EZD-245 S3 wrap and docs name the findings log and repeats (AC-2)', () => 
 test('EZD-245 F13 record repairs a log whose last line has no final newline (AC-1)', async () => {
   const base = { date: '2026-10-28', ticket: 'EZD-245', round: 1, reviewer: 'code-reviewer', category: 'test-weak', text: 'first', lesson: null };
   writeFileSync(logPath(), JSON.stringify(base));
+  reimport();
   rec('EZD-246', 2, 'code-reviewer', 'docs', 'second');
   const raw = readFileSync(logPath(), 'utf8');
   assert.ok(raw.endsWith('\n'));

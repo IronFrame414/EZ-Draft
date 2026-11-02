@@ -13,6 +13,11 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const LEDGER = path.join(REPO, 'scripts/ledger.mjs');
 const UNIT_STEPS = path.join(REPO, 'scripts/unit-steps.mjs');
 const ledger = () => import(pathToFileURL(LEDGER).href);
+const RECORDS = path.join(REPO, 'scripts/records.mjs');
+// REMEDIATION-PLAN 2.12 (D1 (a), D2 (a)): the running records live in a temp records database per fixture (L-041); the
+// markdown files are its generated views, git-ignored (2.14), and no ledger command commits.
+const dbOf = (dir) => path.join(dir, '.git', 'records.db');
+const RUNNING = ['vault/tickets/STATUS.md', 'vault/questions/QUESTIONS.md', 'vault/questions/QUESTIONS-answered.md', 'vault/questions/QUESTIONS-archive.md', 'vault/DONE.md', 'vault/handoff/CURRENT.md'];
 
 const ID = ['-c', 'user.name=EZ Draft Test', '-c', 'user.email=test@example.test', '-c', 'commit.gpgsign=false'];
 const git = (dir, ...a) => {
@@ -74,9 +79,13 @@ function fixture({ gateExit = 0, remote = false } = {}) {
   writeFileSync(path.join(dir, 'vault/tools/next_ticket.mjs'), 'process.exit(0);\n');
   cpSync(path.join(REPO, 'vault/tools/questions-files.mjs'), path.join(dir, 'vault/tools/questions-files.mjs'));
   writeFileSync(path.join(dir, 'gate-stub.mjs'), `console.log('ℹ pass 30');process.exit(${gateExit});\n`);
-  writeFileSync(path.join(dir, '.gitignore'), '.claude/worktrees/\n');
+  writeFileSync(path.join(dir, '.gitignore'), ['.claude/worktrees/', ...RUNNING, ''].join('\n'));
+  mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+  writeFileSync(path.join(dir, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(dir, '.git', 'launcher-logs') }));
   git(dir, 'add', '-A');
   git(dir, 'commit', '-qm', 'init');
+  const imp = spawnSync(process.execPath, [RECORDS, 'import', '--vault', path.join(dir, 'vault'), '--db', dbOf(dir)], { encoding: 'utf8' });
+  if (imp.status !== 0) throw new Error(imp.stdout + imp.stderr);
   if (remote) {
     const origin = path.join(tmp('ezd173-origin-'), 'origin.git');
     git(dir, 'init', '--bare', '-q', origin);
@@ -88,7 +97,7 @@ function fixture({ gateExit = 0, remote = false } = {}) {
 }
 // An env value of undefined removes the variable (M4 runs finish with EZD_NO_PUSH unset).
 const envFor = (dir, extra = {}) => {
-  const env = { ...process.env, EZD_ROOT: dir, EZD_INFLIGHT_DIR: inflightFor(dir), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1', ...extra };
+  const env = { ...process.env, EZD_ROOT: dir, EZD_RECORDS_DB: dbOf(dir), EZD_RESULTS_FILE: '', EZD_INFLIGHT_DIR: inflightFor(dir), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1', ...extra };
   delete env.EZD_UNIT_ID;
   if ('EZD_UNIT_ID' in extra) env.EZD_UNIT_ID = extra.EZD_UNIT_ID;
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
@@ -188,7 +197,7 @@ describe('EZD-173 K: ledger lock, ledger commands and commits', () => {
     assert.ok(!existsSync(lockPath(dir, 'ledger')) && !existsSync(lockPath(dir, 'merge')));
   });
 
-  test('K5: eight status commands together all keep their change, one clean commit each', async () => {
+  test('K5: eight status commands together all keep their change, with no commit (2.12; D1 (a), D2 (a))', async () => {
     const dir = fixture();
     const before = count(dir);
     const results = await Promise.all([2, 3, 4, 5, 6, 7, 8, 9].map((n) => cliP(dir, ['status', `EZD-00${n}`, `notes=lane-${n}`])));
@@ -198,10 +207,7 @@ describe('EZD-173 K: ledger lock, ledger commands and commits', () => {
       assert.match(r.stdout, new RegExp(`LEDGER OK EZD-00${n} status`));
       assert.equal(rowCells(dir, `EZD-00${n}`)[8], `lane-${n}`);
     });
-    assert.equal(count(dir) - before, 8);
-    for (const c of git(dir, 'rev-list', 'HEAD~8..HEAD').split('\n')) {
-      assert.equal(git(dir, 'show', '--numstat', '--format=', c), `1\t1\t${STATUS}`);
-    }
+    assert.equal(count(dir) - before, 0);
     assert.equal(git(dir, 'status', '--porcelain'), '');
   });
 
@@ -318,31 +324,24 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     });
   }
 
-  test('K8: with another unit in flight, finish commits only this unit\'s own paths', () => {
-    const dir = fixture();
-    writeFileSync(path.join(inflightFor(dir), 'build-EZD-003.json'), JSON.stringify({ id: 'build-EZD-003', pid: process.pid }));
-    writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), 'plan two\n');
-    writeFileSync(path.join(dir, 'vault/plans/EZD-003.md'), 'plan three\n');
-    writeFileSync(path.join(dir, 'vault/lessons/builder.md'), 'changed by another unit\n');
-    const r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_UNIT_ID: 'build-EZD-002' });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 done');
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/plans/EZD-002.md']);
-    const left = spawnSync('git', ['-C', dir, 'status', '--porcelain'], { encoding: 'utf8' }).stdout.split('\n').filter(Boolean).map((l) => l.slice(3)).sort();
-    assert.deepEqual(left, ['vault/lessons/builder.md', 'vault/plans/EZD-003.md']);
-  });
+  // 2.12 (D1 (a), D2 (a)): finish commits nothing, with or without another unit in flight; reference edits stay in the
+  // working tree for the ticket's feat commit or the phase snapshot.
+  for (const other of [true, false]) {
+    test(`K8/K9: ${other ? 'with' : 'with no'} other unit in flight, finish commits nothing and leaves every edit in place`, () => {
+      const dir = fixture();
+      if (other) writeFileSync(path.join(inflightFor(dir), 'build-EZD-003.json'), JSON.stringify({ id: 'build-EZD-003', pid: process.pid }));
+      writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), 'plan two\n');
+      writeFileSync(path.join(dir, 'vault/lessons/builder.md'), 'changed by another unit\n');
+      const head = git(dir, 'rev-parse', 'HEAD');
+      const r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_UNIT_ID: 'build-EZD-002' });
+      assert.equal(r.status, 0, r.stdout + r.stderr);
+      assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
+      const left = spawnSync('git', ['-C', dir, 'status', '--porcelain', '--untracked-files=all'], { encoding: 'utf8' }).stdout.split('\n').filter(Boolean).map((l) => l.slice(3)).sort();
+      assert.deepEqual(left, ['vault/lessons/builder.md', 'vault/plans/EZD-002.md']);
+    });
+  }
 
-  test('K9: with no other unit in flight, finish commits all of vault/', () => {
-    const dir = fixture();
-    writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), 'plan two\n');
-    writeFileSync(path.join(dir, 'vault/plans/EZD-003.md'), 'plan three\n');
-    writeFileSync(path.join(dir, 'vault/lessons/builder.md'), 'changed\n');
-    const r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_UNIT_ID: 'build-EZD-002' });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
-    assert.deepEqual(filesOf(dir, 'HEAD').sort(), ['vault/lessons/builder.md', 'vault/plans/EZD-002.md', 'vault/plans/EZD-003.md']);
-  });
-
-  test('K10: lesson, seen, append (lesson and DONE) and handoff write their files, number the lesson and archive twice in a minute', async () => {
+  test('K10: lesson, seen, append (lesson and DONE) and handoff write their records, number the lesson, and commit nothing (2.12; D1 (a), D2 (a))', async () => {
     const dir = fixture();
     const E = '## L-next  areas: tooling  seen: 1  status: candidate\nRule: x.';
     const read = (rel) => readFileSync(path.join(dir, rel), 'utf8');
@@ -356,9 +355,7 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     const idx = read('vault/lessons/INDEX.md');
     assert.ok(idx.includes('| builder.md | b | x (L-007, candidate); tooling (L-010, candidate) |'), idx);
     assert.ok(idx.includes('| planner.md | p | y (L-009, ratified); tooling (L-010, candidate) |'), idx);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 lesson L-010');
-    assert.deepEqual(filesOf(dir, 'HEAD').sort(), ['vault/lessons/INDEX.md', 'vault/lessons/builder.md', 'vault/lessons/planner.md']);
-    assert.equal(count(dir) - c, 1);
+    assert.equal(count(dir) - c, 0);
     // (b) seen
     c = count(dir);
     r = cli(dir, ['seen', 'EZD-002', 'L-010']);
@@ -366,37 +363,34 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.match(r.stdout.trim(), /^LEDGER OK L-010 seen 2$/);
     assert.equal(read('vault/lessons/builder.md').split('\n').filter((l) => l.startsWith('## L-010  ')).join(), '## L-010  areas: tooling  seen: 2  status: candidate');
     assert.equal(read('vault/lessons/planner.md').split('\n').filter((l) => l.startsWith('## L-010  ')).join(), '## L-010  areas: tooling  seen: 2  status: candidate');
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 seen L-010');
-    assert.deepEqual(filesOf(dir, 'HEAD').sort(), ['vault/lessons/builder.md', 'vault/lessons/planner.md']);
-    assert.equal(count(dir) - c, 1);
+    assert.equal(count(dir) - c, 0);
     // (c) append to a lessons file
     c = count(dir);
     r = cli(dir, ['append', 'vault/lessons/planner.md', 'EZD-002'], { input: '- 2026-10-28 EZD-002: x.' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.match(r.stdout.trim(), /^LEDGER OK vault\/lessons\/planner\.md$/);
     assert.ok(read('vault/lessons/planner.md').endsWith('Rule: x.\n- 2026-10-28 EZD-002: x.\n'));
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/lessons/planner.md']);
-    assert.equal(count(dir) - c, 1);
+    assert.equal(count(dir) - c, 0);
     // (d) append to DONE.md
     c = count(dir);
     r = cli(dir, ['append', 'vault/DONE.md', 'EZD-002'], { input: '2026-10-24 · EZD-002 · x\n' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.equal(read('vault/DONE.md'), '2026-10-01 · EZD-001 · base\n2026-10-24 · EZD-002 · x\n');
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/DONE.md']);
-    assert.equal(count(dir) - c, 1);
-    // (e) handoff: the CLI, then writeHandoff twice with one fixed minute
+    assert.equal(count(dir) - c, 0);
+    // (e) handoff: the CLI keeps the old text as a handoff event in the database (2.12), then writeHandoff (the library
+    // function, removed in 2.15) twice with one fixed minute
     const logDir = path.join(dir, 'vault/handoff/log');
     c = count(dir);
     r = cli(dir, ['handoff', 'EZD-002'], { input: 'one' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.match(r.stdout.trim(), /^LEDGER OK vault\/handoff\/CURRENT\.md$/);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): handoff EZD-002');
-    const made = readdirSync(logDir);
-    assert.equal(made.length, 1);
-    assert.equal(readFileSync(path.join(logDir, made[0]), 'utf8'), '# Handoff\n\nold text\n');
+    assert.ok(!existsSync(logDir), 'no handoff archive file');
+    const { openRecords } = await import(pathToFileURL(RECORDS).href);
+    const db = openRecords(dbOf(dir));
+    assert.deepEqual(db.prepare("select data from events where kind = 'handoff'").all().map((e) => JSON.parse(e.data).text), ['# Handoff\n\nold text\n']);
+    db.close();
     assert.equal(read('vault/handoff/CURRENT.md'), 'one\n');
-    assert.deepEqual(filesOf(dir, 'HEAD').sort(), ['vault/handoff/CURRENT.md', `vault/handoff/log/${made[0]}`]);
-    assert.equal(count(dir) - c, 1);
+    assert.equal(count(dir) - c, 0);
     const L = await ledger();
     const now = new Date('2026-10-24T10:00:30Z');
     for (let i = 0; i < 2; i++) await L.withLedgerLock(dir, { owner: 'k10' }, async () => L.writeHandoff(dir, { label: 'k10', text: 'two', now }));
@@ -412,7 +406,7 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.match(r.stdout, /LEDGER OK Q-0001/);
     const cells = readFileSync(path.join(dir, 'vault/questions/QUESTIONS.md'), 'utf8').split('\n').find((l) => l.startsWith('| Q-0001 ')).split('|').slice(1, -1).map((c) => c.trim());
     assert.deepEqual(cells, ['Q-0001', '0 / EZD-002', 'setup', 'A first question?', 'answered-agent', 'orchestrator', 'a', 'Q-0125']);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): answer Q-0001');
+    assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), '1', 'no commit (2.12; D1 (a), D2 (a))');
   });
 
   test('K12: bad commands exit 2 with LEDGER USAGE, unknown tickets, questions and lessons exit 1 with LEDGER FAIL; nothing changes', () => {
@@ -471,13 +465,17 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     writeFileSync(path.join(dir, QDIR, 'QUESTIONS.md'), QHEAD);
     writeFileSync(path.join(dir, QDIR, 'QUESTIONS-answered.md'), `${QHEAD}${QROW.first}\n${QROW.moved}\n`);
     writeFileSync(path.join(dir, QDIR, 'QUESTIONS-archive.md'), `${QHEAD}${QROW.old}\n`);
-    git(dir, 'add', '-A');
-    git(dir, 'commit', '-qm', 'three questions files');
+    reimport(dir);
     return dir;
   }
+  // The question files are running records (2.12): a fixture change reaches the database by importing again.
+  const reimport = (dir) => {
+    const r = spawnSync(process.execPath, [RECORDS, 'import', '--replace', '--vault', path.join(dir, 'vault'), '--db', dbOf(dir)], { encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(r.stdout + r.stderr);
+  };
   const afterSep = (dir, file) => { const l = readFileSync(path.join(dir, QDIR, file), 'utf8').split('\n'); return l[l.findIndex((x) => x.startsWith('| --- ')) + 1]; };
 
-  test('K20: question numbers across the three files and writes only QUESTIONS.md', () => {
+  test('K20: question numbers across the three files and writes only QUESTIONS.md, with no commit (2.12)', () => {
     const dir = threeFiles();
     const answered = readFileSync(path.join(dir, QDIR, 'QUESTIONS-answered.md'), 'utf8');
     const archive = readFileSync(path.join(dir, QDIR, 'QUESTIONS-archive.md'), 'utf8');
@@ -488,9 +486,9 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.equal(afterSep(dir, 'QUESTIONS.md'), `| Q-0013 | 1 / EZD-003 | orchestrator (${today}) | k20 a | open |  |  |  |`);
     assert.equal(readFileSync(path.join(dir, QDIR, 'QUESTIONS-answered.md'), 'utf8'), answered);
     assert.equal(readFileSync(path.join(dir, QDIR, 'QUESTIONS-archive.md'), 'utf8'), archive);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-003 question Q-0013');
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/questions/QUESTIONS.md']);
-    commitIn(dir, `${QDIR}QUESTIONS-archive.md`, `${archive}${QROW.older}\n`, 'older archive row');
+    assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), '1');
+    writeFileSync(path.join(dir, QDIR, 'QUESTIONS-archive.md'), `${archive}${QROW.older}\n`);
+    reimport(dir);
     r = cli(dir, ['question', 'EZD-004', 'orchestrator', 'k20 b']);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.match(r.stdout, /LEDGER OK Q-0031/);
@@ -499,7 +497,7 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.equal(lines[i + 1], `| Q-0031 | 1 / EZD-004 | orchestrator (${today}) | k20 b | open |  |  |  |`);
   });
 
-  test('K21: answer finds the row in any of the three files and moves a row to QUESTIONS.md when it is escalated', () => {
+  test('K21: answer finds the row in any of the three files and moves a row to QUESTIONS.md when it is escalated, with no commit (2.12)', () => {
     const dir = threeFiles();
     const rd = (f) => readFileSync(path.join(dir, QDIR, f), 'utf8');
     const open0 = rd('QUESTIONS.md');
@@ -511,14 +509,12 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.deepEqual(row, ['Q-0012', '1 / EZD-003', 'planner (2026-10-01)', 'Moved?', 'confirmed-josh', 'josh', 'y', 'Q-0409']);
     assert.equal(rd('QUESTIONS.md'), open0);
     assert.equal(rd('QUESTIONS-archive.md'), archive0);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): answer Q-0012');
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/questions/QUESTIONS-answered.md']);
     r = cli(dir, ['answer', 'Q-0007', 'escalated', 'orchestrator', 'z', 'Q-0409']);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.match(r.stdout, /LEDGER OK Q-0007/);
     assert.ok(!rd('QUESTIONS-archive.md').includes('| Q-0007 '), 'Q-0007 left the archive');
     assert.equal(afterSep(dir, 'QUESTIONS.md'), '| Q-0007 | 1 / EZD-002 | planner (2026-10-01) | Old? | escalated | orchestrator | z | Q-0409 |');
-    assert.deepEqual(filesOf(dir, 'HEAD').sort(), ['vault/questions/QUESTIONS-archive.md', 'vault/questions/QUESTIONS.md']);
+    assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), '1');
     const head = git(dir, 'rev-parse', 'HEAD');
     r = cli(dir, ['answer', 'Q-0099', 'open', 'a', 'b', 'c']);
     assert.equal(r.status, 1, r.stdout + r.stderr);
@@ -578,7 +574,7 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
   });
 
-  test('K16: lessonsIndexText groups by (areas, status) and equals the real INDEX.md; lessons-index regenerates a stale row', async () => {
+  test('K16: lessonsIndexText groups by (areas, status) and equals the real INDEX.md; lessons-index regenerates a stale row with no commit (2.12)', async () => {
     const L = await ledger();
     // (a)
     const root = tmp('ezd173-k16-');
@@ -599,11 +595,11 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.match(r.stdout.trim(), /^LEDGER OK vault\/lessons\/INDEX\.md$/);
     assert.ok(readFileSync(path.join(dir, 'vault/lessons/INDEX.md'), 'utf8').includes('| builder.md | b | x (L-007, candidate) |'));
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 lessons index');
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/lessons/INDEX.md']);
+    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'stale index');
+    assert.equal(git(dir, 'status', '--porcelain'), 'M vault/lessons/INDEX.md');
   });
 
-  test('K17: ledger.mjs architecture writes tickets.json in one commit; a bad heading fails with no change', () => {
+  test('K17: ledger.mjs architecture holds the entry and the plan in the records database (D9 (a)); tickets.json and git stay as they were; a bad heading fails with no change', async () => {
     const root = tmp('ezd173-k17-');
     cpSync(path.join(REPO, 'vault'), path.join(root, 'vault'), { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
     mkdirSync(path.join(root, 'docs'), { recursive: true });
@@ -614,15 +610,22 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     git(root, 'config', 'commit.gpgsign', 'false');
     const plan = (line) => `# EZD-173 · x\n\n## 2. Sources\n- x\n\n${line}\n\n## 3. Interface contract\nx\n`;
     writeFileSync(path.join(root, 'vault/plans/EZD-173.md'), plan('Architecture: Tests'));
+    mkdirSync(path.join(root, 'scripts'), { recursive: true });
+    writeFileSync(path.join(root, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(root, '.git', 'launcher-logs') }));
     git(root, 'add', '-A');
     git(root, 'commit', '-qm', 'copy');
     const a = cli(root, ['architecture', 'EZD-173']);
     assert.equal(a.status, 0, a.stdout + a.stderr);
     assert.equal(a.stdout.trim(), 'LEDGER OK EZD-173 architecture');
     const ticketsPath = path.join(root, 'vault/tickets/tickets.json');
-    assert.deepEqual(JSON.parse(readFileSync(ticketsPath, 'utf8')).tickets.find((t) => t.id === 'EZD-173').architecture, ['Tests']);
-    assert.equal(git(root, 'log', '-1', '--format=%s'), 'docs(vault): EZD-173 architecture');
-    assert.deepEqual(filesOf(root, 'HEAD'), ['vault/tickets/tickets.json']);
+    const { openRecords, planRecord, sha256 } = await import(pathToFileURL(RECORDS).href);
+    const db = openRecords(dbOf(root));
+    const held = planRecord(db, 'EZD-173');
+    db.close();
+    assert.deepEqual(held.entry.architecture, ['Tests']);
+    assert.equal(held.sha256, sha256(plan('Architecture: Tests')));
+    assert.equal(git(root, 'log', '-1', '--format=%s'), 'copy');
+    assert.equal(git(root, 'status', '--porcelain', '--', 'vault/tickets'), '');
     commitIn(root, 'vault/plans/EZD-173.md', plan('Architecture: No such heading'), 'bad heading');
     const before = readFileSync(ticketsPath, 'utf8');
     const head = git(root, 'rev-parse', 'HEAD');
@@ -661,18 +664,16 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.deepEqual(logsOf(b), []);
   });
 
-  test('K19: unit-steps table commits only STATUS.md and leaves another unit\'s edit alone', () => {
+  test('K19: unit-steps table records blocked with no commit (2.12) and leaves another unit\'s edit alone', () => {
     const dir = fixture();
-    const status = readFileSync(path.join(dir, STATUS), 'utf8').replace(/^(\| EZD-002 \|.*?\|) ready \|/m, '$1 in-progress |');
-    commitIn(dir, STATUS, status, 'EZD-002 in-progress');
+    assert.equal(cli(dir, ['status', 'EZD-002', 'status=in-progress']).status, 0);
     assert.equal(rowCells(dir, 'EZD-002')[3], 'in-progress');
     const builderPath = path.join(dir, 'vault/lessons/builder.md');
     writeFileSync(builderPath, `${readFileSync(builderPath, 'utf8')}Another unit's line.\n`);
     const r = us(dir, ['table', 'EZD-002']);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     assert.ok(r.stdout.startsWith('TABLE OK EZD-002'), r.stdout);
-    assert.equal(git(dir, 'log', '-1', '--format=%s'), 'docs(vault): EZD-002 tabled by the launcher');
-    assert.deepEqual(filesOf(dir, 'HEAD'), ['vault/tickets/STATUS.md']);
+    assert.equal(git(dir, 'rev-list', '--count', 'HEAD'), '1');
     assert.equal(rowCells(dir, 'EZD-002')[3], 'blocked');
     assert.equal(git(dir, 'status', '--porcelain', '--', 'vault/lessons/builder.md'), 'M vault/lessons/builder.md');
   });
@@ -683,12 +684,36 @@ function gateStub(body) {
   writeFileSync(f, body);
   return `node ${f.replace(/\\/g, '/')}`;
 }
+// worktree <T>, then a vault-only commit on develop (before 2.12 this was the worktree step's STATUS commit; it keeps
+// develop ahead of the branch base, as M1 and M2 need), then the ticket's wip commit.
 function addTicketWork(dir, t, n) {
   assert.equal(us(dir, ['worktree', t]).status, 0);
+  commitIn(dir, `vault/handoff/note-${t}.md`, `${t} started\n`, `docs(vault): ${t} note`);
   const wt = path.join(dir, '.claude/worktrees', t);
   commitIn(wt, `feature${n}.mjs`, `export const x = ${n};\n`, `wip(${t}): feature`);
   return wt;
 }
+
+// REMEDIATION-PLAN 2.12 L1 (vault/handoff/records-writer/P2-tools-no-commits.md): inside a unit a ledger command only queues.
+test('2.12 L1: ledger.mjs status and question inside a unit queue ops; STATUS.md, the database and git stay as they were', async () => {
+  const dir = fixture();
+  const results = path.join(tmp('ezd212-results-'), 'unit.results.jsonl');
+  const before = readFileSync(path.join(dir, STATUS), 'utf8');
+  const head = git(dir, 'rev-parse', 'HEAD');
+  const a = cli(dir, ['status', 'EZD-003', 'status=blocked'], { env: { EZD_RESULTS_FILE: results } });
+  assert.equal(a.status, 0, a.stdout + a.stderr);
+  const b = cli(dir, ['question', 'EZD-003', 'orchestrator', 'q one'], { env: { EZD_RESULTS_FILE: results } });
+  const c = cli(dir, ['question', 'EZD-004', 'orchestrator', 'q two'], { env: { EZD_RESULTS_FILE: results } });
+  assert.match(b.stdout, /LEDGER OK Q-0002/);
+  assert.match(c.stdout, /LEDGER OK Q-0003/, 'the second ID counts the queued one');
+  const { readQueue, openRecords } = await import(pathToFileURL(RECORDS).href);
+  assert.deepEqual(readQueue(results).map((o) => o.op), ['status', 'question', 'question']);
+  assert.equal(readFileSync(path.join(dir, STATUS), 'utf8'), before);
+  const db = openRecords(dbOf(dir));
+  assert.equal(db.prepare("select status from tickets where id = 'EZD-003'").get().status, 'ready');
+  db.close();
+  assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
+});
 
 describe('EZD-173 M: merge lock, worktree base, push, preflight', () => {
   test('M1: two merges together queue; each gate run is alone, on its own feat commit, and both land', async () => {
@@ -839,11 +864,11 @@ describe('EZD-173 S: static checks', () => {
     assert.ok(!ledgerSrc.includes('QUESTIONS-archive'), 'ledger.mjs does not name QUESTIONS-archive');
   });
 
-  test('S2: skills, plan-ticket and PROCESS.md carry the EZD-173 wording', () => {
+  test('S2: skills, plan-ticket and PROCESS.md carry the EZD-173 wording, as changed by REMEDIATION-PLAN 2.12', () => {
     const build = read('.claude/skills/build-ticket/SKILL.md');
     const plan = read('.claude/skills/plan-ticket/SKILL.md');
     for (const s of ['node scripts/ledger.mjs research $ARGUMENTS', '**Ledger writes (EZD-173).**', 'node scripts/ledger.mjs status', 'question', 'answer', 'append vault/DONE.md', 'append vault/lessons/<role>.md', 'L-next', 'handoff',
-      'Never edit STATUS.md, QUESTIONS.md, DONE.md, the lessons files or CURRENT.md with Edit or Write in a build unit.', 'MERGE WAIT']) {
+      'Never edit STATUS.md, QUESTIONS.md, DONE.md, the lessons files or CURRENT.md with Edit or Write in a build unit (the record files are views the launcher regenerates from its database).', 'MERGE WAIT']) {
       assert.ok(build.includes(s), `build-ticket SKILL.md: ${s}`);
     }
     assert.match(build, /finish \$ARGUMENTS done\\?\|blocked \[/);
@@ -856,7 +881,7 @@ describe('EZD-173 S: static checks', () => {
     assert.equal(build.split(archCmd).length - 1, 2, 'build-ticket has the architecture command twice');
     assert.equal(plan.split(archCmd).length - 1, 1, 'plan-ticket has the architecture command once');
     // The whole Ledger writes paragraph and the two phrase replacements (plan C15).
-    for (const s of ["**Ledger writes (EZD-173).** Other units may run at the same time, so every ledger change goes through `node scripts/ledger.mjs`, which takes the ledger lock, writes and commits only the files it changed: `node scripts/ledger.mjs status $ARGUMENTS <key>=<value>...` (STATUS row: `status`, `complexity`, `commit`, `tests`, `notes`), `question $ARGUMENTS <asked-by> <text>` (prints the new Q-ID), `answer <Q-ID> <status> <answered-by> <answer> <sources>`, `append vault/DONE.md $ARGUMENTS` and `append vault/lessons/<role>.md $ARGUMENTS` (text on stdin: a DONE line or a planner's lesson line), `lesson $ARGUMENTS vault/lessons/<role>.md...` (a new entry on stdin headed `## L-next` with `status: candidate`; it takes the next L-number across all lesson files, writes the entry into each role file named and updates `vault/lessons/INDEX.md`), `seen $ARGUMENTS <L-nnn>` (raises an existing lesson's `seen` count in every file that holds it) and `handoff $ARGUMENTS` (text on stdin). Never edit STATUS.md, QUESTIONS.md, DONE.md, the lessons files or CURRENT.md with Edit or Write in a build unit.",
+    for (const s of ["**Ledger writes (EZD-173).** The launcher is the only writer of the running records (REMEDIATION-PLAN 2.12; D1 (a)), so every ledger change goes through `node scripts/ledger.mjs`, which queues it in this unit's results file for the launcher to record after the unit; no command commits: `node scripts/ledger.mjs status $ARGUMENTS <key>=<value>...` (STATUS row: `status`, `complexity`, `commit`, `tests`, `notes`), `question $ARGUMENTS <asked-by> <text>` (prints the new Q-ID), `answer <Q-ID> <status> <answered-by> <answer> <sources>`, `append vault/DONE.md $ARGUMENTS` and `append vault/lessons/<role>.md $ARGUMENTS` (text on stdin: a DONE line or a planner's lesson line), `lesson $ARGUMENTS vault/lessons/<role>.md...` (a new entry on stdin headed `## L-next` with `status: candidate`; it takes the next L-number across all lesson files, writes the entry into each role file named and updates `vault/lessons/INDEX.md`), `seen $ARGUMENTS <L-nnn>` (raises an existing lesson's `seen` count in every file that holds it) and `handoff $ARGUMENTS` (text on stdin). Never edit STATUS.md, QUESTIONS.md, DONE.md, the lessons files or CURRENT.md with Edit or Write in a build unit (the record files are views the launcher regenerates from its database).",
       "Record the planner's lesson line with `node scripts/ledger.mjs append vault/lessons/planner.md $ARGUMENTS` (text on stdin; section 13).",
       "Record any lesson with `lesson`, or `seen` when one already covers it (PROCESS.md section 13; search the role files first)."]) {
       assert.ok(build.includes(s), `build-ticket SKILL.md: ${s}`);
@@ -872,11 +897,11 @@ describe('EZD-173 S: static checks', () => {
 
 describe('EZD-173 X: the launcher with a plan problem', () => {
   // Root built as makeRoot in scripts/launcher/dry-run.test.mjs (fivePct 10, nextUnit 'plan EZD-999', no vault/plans/EZD-999.md).
-  test('X1: run.mjs --once with a missing plan file prints the problem and commits its cost row', () => {
+  test('X1: run.mjs --once with a missing plan file prints the problem and records its cost row, with no commit (2.12; D1 (a), D2 (a))', async () => {
     const root = tmp('ezd173-x1-');
     const at = (...p) => path.join(root, ...p);
     for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
-    for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
+    for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
     cpSync(path.join(REPO, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
     cpSync(path.join(REPO, 'vault/tools/questions-files.mjs'), at('vault/tools/questions-files.mjs'));
     writeFileSync(at('vault/tools/next_ticket.mjs'), [
@@ -903,9 +928,10 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     writeFileSync(at('scripts/launcher.config.json'), JSON.stringify({
       claude_bin: at('fake-claude'),
       log_dir: at('logs'),
+      records_db: at('.git', 'records.db'),
       notify_cmd: `printf '%s\\n' "$MSG" >> "${at('notified.txt')}"`,
     }));
-    writeFileSync(at('.gitignore'), 'logs/\nnotified.txt\nvault/handoff/last-failure.json\n');
+    writeFileSync(at('.gitignore'), 'logs/\nnotified.txt\nvault/handoff/last-failure.json\nvault/cost/log.jsonl\nvault/tickets/STATUS.md\n');
     git(root, 'init', '-q', '-b', 'develop');
     git(root, 'config', 'user.name', 'EZ Draft Test');
     git(root, 'config', 'user.email', 'test@example.test');
@@ -918,8 +944,11 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     });
     const out = `exit ${r.status}, signal ${r.signal}\n${r.stdout}\n${r.stderr}`;
     assert.ok(r.stdout.includes('plan file missing:'), out);
-    assert.equal(git(root, 'log', '-1', '--format=%s'), 'docs(vault): plan EZD-999', out);
-    assert.ok(filesOf(root, 'HEAD').includes('vault/cost/log.jsonl'), out);
+    assert.equal(git(root, 'log', '-1', '--format=%s'), 'init', out);
+    const { openRecords } = await import(pathToFileURL(RECORDS).href);
+    const db = openRecords(at('.git', 'records.db'));
+    assert.deepEqual(db.prepare('select line from cost').all().map((c) => [JSON.parse(c.line).unit, JSON.parse(c.line).ticket]), [['plan', 'EZD-999'], ['plan', 'EZD-999']], 'one cost row per run (the launcher retries a failed unit once)');
+    db.close();
     assert.equal(git(root, 'status', '--porcelain', '--', 'vault'), '', out);
   });
 });

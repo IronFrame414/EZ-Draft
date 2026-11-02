@@ -25,7 +25,7 @@ import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync, ren
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
 import { Q_FILES, questionMax } from './questions-files.mjs';
 import { guardedPaths, planPaths } from './plan-paths.mjs';
@@ -39,7 +39,27 @@ const SPIKES = ['EZD-027', 'EZD-028', 'EZD-029', 'EZD-030', 'EZD-031'];
 const CHECKPOINT_FROM = 200; // ticket numbers at or above this wait for the architecture checkpoint
 const LIMIT_IN_PROGRESS = 1; // PROCESS-EZDRAFT.md section 8
 
-const read = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : '');
+// REMEDIATION-PLAN 2.13 (D1 (a)): the running records are read from the records database when it belongs to this checkout
+// (its meta checkout row, written by records.mjs import). A copy of vault/ (tests) or a checkout with no database (CI)
+// reads its own files. $EZD_RECORDS_DB naming a database of another checkout is an error, never a silent switch.
+const records = await import(pathToFileURL(path.join(root, 'scripts/records.mjs')).href).catch(() => null);
+export const recordsDb = (() => {
+  if (!records) return null;
+  const file = records.dbPath([], process.env);
+  if (!existsSync(file)) return null;
+  const db = records.openRecords(file);
+  const owner = records.checkoutOf(db);
+  if (owner === realpathSync(root)) return db;
+  db.close();
+  if (process.env.EZD_RECORDS_DB) throw new Error(`records database ${file} belongs to ${owner ?? 'no checkout'}, not ${realpathSync(root)}`);
+  return null;
+})();
+const RECORD_DOCS = new Set(records ? Object.keys(records.DOCS) : []);
+const recordRel = (p) => path.relative(vault, p).split(path.sep).join('/');
+const read = (p) => {
+  if (recordsDb && RECORD_DOCS.has(recordRel(p))) return records.renderDoc(recordsDb, recordRel(p)) ?? '';
+  return existsSync(p) ? readFileSync(p, 'utf8') : '';
+};
 // Every write is a temp file renamed into place, so a reader in another lane never sees half a file (EZD-173 C2). The temp
 // file sits in <root>/.git/ezdraft-tmp/; with no .git folder (test copies of vault/), next to the target.
 let tmpCount = 0;
@@ -198,6 +218,7 @@ function citedByUnfinished() {
   return new Set(text.match(/Q-\d{4}/g) || []);
 }
 export function sortQuestions() {
+  if (recordsDb) return sortQuestionsInDb();
   const files = questionFiles();
   const cited = citedByUnfinished();
   const next = { open: [], answered: [], archive: [] };
@@ -213,6 +234,22 @@ export function sortQuestions() {
     if (read(p) !== text) writeAtomic(p, text);
   }
   return { moved, open: next.open.length + arriving.open.length, answered: next.answered.length + arriving.answered.length, archive: next.archive.length + arriving.archive.length };
+}
+// 2.13: the same moves as records ops. Inside a unit nothing moves: the launcher sorts after it applies the unit's results.
+function sortQuestionsInDb() {
+  if (process.env.EZD_RESULTS_FILE) return { deferred: true };
+  const files = questionFiles();
+  const cited = citedByUnfinished();
+  const count = { open: 0, answered: 0, archive: 0 };
+  const ops = [];
+  for (const kind of Object.keys(Q_FILES)) for (const line of files[kind].rows) {
+    const to = questionTarget(line, cited);
+    count[to]++;
+    if (to !== kind) ops.push({ op: 'move', id: questionCells(line)[1], file: Q_FILES[to].replace(/^vault\//, '') });
+  }
+  recordsDb.close();
+  for (const op of ops) records.record(op, { root });
+  return { moved: ops.length, ...count };
 }
 function questionProblems() {
   const problems = [];
@@ -232,10 +269,32 @@ function questionProblems() {
   return problems;
 }
 
+// REMEDIATION-PLAN 2.12: the launcher's form of assignQuestionIds. Q-IDs from firstId on (the launcher takes it from the
+// records database); returns the question rows as records ops and the plan's new text, and writes nothing.
+export function planQuestionRows(ticket, firstId) {
+  const planPath = path.join(vault, 'plans', `${ticket}.md`);
+  const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
+  const phase = fresh?.phase ?? tickets.get(ticket)?.phase ?? '?';
+  const plan = readFileSync(planPath, 'utf8').split('\n');
+  const start = plan.findIndex((l) => /^## (?:10\. )?Open questions/.test(l));
+  let n = Number(String(firstId).slice(2));
+  const ids = [], rows = [];
+  for (let i = start + 1; start >= 0 && i < plan.length && !/^## /.test(plan[i]); i++) {
+    const m = plan[i].match(QP_LINE);
+    if (!m) continue;
+    const id = `Q-${String(n++).padStart(4, '0')}`;
+    rows.push({ id, phase_ticket: `${phase} / ${ticket} (plan ${m[2]})`, asked_by: `planner (${new Date().toISOString().slice(0, 10)})`, question: m[4].replace(/\|/g, '\\|').trim(), status: 'open', answered_by: '', answer: '', source: '' });
+    plan[i] = `${m[1]}${id} (was ${m[2]})${m[3]}${m[4]}`;
+    ids.push(id);
+  }
+  return { ids, rows, planText: plan.join('\n') };
+}
+
 // Q-0129 (Josh, 2026-10-19): the plan unit turns the plan's QP-n questions into `open` Q-IDs as it finishes, so the
 // questions unit answers them at once (plan-ticket skill, ledger step). Only lines that open with QP-n are new questions.
 const QP_LINE = /^(\s*(?:[-*]|\d+\.)?\s*\**\s*)(QP-\d+)\b(\**\s*[:.)]?\s*\**\s*)(.*)$/;
 export function assignQuestionIds(ticket) {
+  if (recordsDb) throw new Error('assignQuestionIds writes QUESTIONS.md; with the records database the launcher uses planQuestionRows (2.12)');
   const planPath = path.join(vault, 'plans', `${ticket}.md`);
   const qPath = path.join(vault, 'questions/QUESTIONS.md');
   const qLines = readFileSync(qPath, 'utf8').split('\n');
@@ -407,7 +466,9 @@ function withTrack(t, plan) {
   if (tooling && !placed) out.track = 'tooling';
   return out;
 }
-export function setArchitecture(id) {
+// The ticket's tickets.json entry with the plan's Architecture line, without writing it: { ok, message, entry }.
+// REMEDIATION-PLAN 2.12 (D9 (a), 2026-11-02): the launcher holds it in the records database until the feat commit.
+export function architectureEntry(id) {
   const fail = (message) => ({ ok: false, message });
   const planPath = path.join(vault, 'plans', `${id}.md`);
   if (!existsSync(planPath)) return fail(`${id}: no plan vault/plans/${id}.md`);
@@ -419,10 +480,7 @@ export function setArchitecture(id) {
   const a = planArchitecture(plan);
   if (a.error === 'no Architecture line in section 2') {
     if (Array.isArray(t.architecture)) {
-      d.tickets = d.tickets.map((x) => (x.id === id ? withTrack(t, plan) : x));
-      const text = JSON.stringify(d, null, 1) + '\n';
-      if (text !== readFileSync(file, 'utf8')) writeAtomic(file, text);
-      return { ok: true, message: `ARCHITECTURE KEPT ${id}: no Architecture line; tickets.json list unchanged` };
+      return { ok: true, message: `ARCHITECTURE KEPT ${id}: no Architecture line; tickets.json list unchanged`, entry: withTrack(t, plan) };
     }
     return fail(`${id}: no Architecture line in section 2 of vault/plans/${id}.md`);
   }
@@ -440,9 +498,22 @@ export function setArchitecture(id) {
     if (k === 'mockups') { rebuilt.architecture = a.list; placed = true; }
   }
   if (!placed) rebuilt.architecture = a.list;
-  d.tickets = d.tickets.map((x) => (x.id === id ? withTrack(rebuilt, plan) : x));
-  writeAtomic(file, JSON.stringify(d, null, 1) + '\n');
-  return { ok: true, message: `ARCHITECTURE SET ${id}: ${a.list.length} section(s)` };
+  return { ok: true, message: `ARCHITECTURE SET ${id}: ${a.list.length} section(s)`, entry: withTrack(rebuilt, plan) };
+}
+
+export function setArchitecture(id) {
+  const r = architectureEntry(id);
+  if (!r.ok) return { ok: false, message: r.message };
+  writeTicketEntry(path.join(vault, 'tickets/tickets.json'), r.entry);
+  return { ok: true, message: r.message };
+}
+
+// Writes one ticket's entry into a tickets.json file (unit-steps merge does the same for the feat commit).
+export function writeTicketEntry(file, entry) {
+  const d = JSON.parse(readFileSync(file, 'utf8'));
+  d.tickets = d.tickets.map((x) => (x.id === entry.id ? entry : x));
+  const text = JSON.stringify(d, null, 1) + '\n';
+  if (text !== readFileSync(file, 'utf8')) writeAtomic(file, text);
 }
 // The plan sections each role reads, from the table in .claude/skills/build-ticket/SKILL.md (optimize plan C3).
 const roleKey = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -660,8 +731,40 @@ const related = (a, b) => {
 };
 const batchOf = (id) => (rows.get(id)?.notes.match(/batch:\s*(EZD-\d+[a-z]?(?:\+EZD-\d+[a-z]?)+)/) || [])[1]?.split('+') || null;
 
+// 2.13: the records database itself: SQLite's own check, every view on disk equal to its database rendering, and every
+// open ticket's untracked plan equal to the text the launcher holds for it (D9 (a), 2026-11-02).
+function recordsProblems() {
+  if (!recordsDb) return [];
+  const out = [];
+  const ok = recordsDb.prepare('pragma integrity_check').get();
+  if (Object.values(ok)[0] !== 'ok') out.push(`records database integrity check: ${Object.values(ok)[0]}`);
+  for (const rel of RECORD_DOCS) {
+    const want = records.renderDoc(recordsDb, rel);
+    const f = path.join(vault, rel);
+    if (want !== null && existsSync(f) && readFileSync(f, 'utf8') !== want) out.push(`vault/${rel} differs from the records database (a view is never edited; run node scripts/records.mjs export)`);
+  }
+  // 2.14: the only untracked vault files are the plans of open tickets and the review and for-josh files of open phases;
+  // they reach git with the ticket's feat commit or the phase snapshot (D9 (a), 2026-11-02).
+  const g = spawnSync('git', ['-C', root, 'ls-files', '--others', '--exclude-standard', '--', 'vault'], { encoding: 'utf8' });
+  const openPhases = new Set([...rows.values()].filter((r) => r.status !== 'done').map((r) => Number(r.phase)));
+  for (const f of g.status === 0 ? g.stdout.split('\n').filter(Boolean) : []) {
+    const plan = f.match(/^vault\/plans\/(EZD-[0-9A-Za-z]+)\.md$/);
+    const phaseFile = f.match(/^vault\/(?:plans\/review-phase|questions\/phase)-(\d+)(?:-for-josh)?\.md$/);
+    if (plan && rows.has(plan[1]) && rows.get(plan[1]).status !== 'done') continue;
+    if (phaseFile && openPhases.has(Number(phaseFile[1]))) continue;
+    if (f.startsWith('vault/research/pending/')) continue; // a retriever's report, adopted within its unit
+    out.push(`${f} is untracked: only open tickets' plans and open phases' review and for-josh files wait outside git (commit it or remove it)`);
+  }
+  for (const p of recordsDb.prepare('select ticket, sha256 from plans').all()) {
+    if (rows.get(p.ticket)?.status === 'done') continue;
+    const f = path.join(vault, 'plans', `${p.ticket}.md`);
+    if (!existsSync(f)) out.push(`vault/plans/${p.ticket}.md is missing; the records database holds its text (sha256 ${p.sha256.slice(0, 12)})`);
+    else if (records.sha256(readFileSync(f, 'utf8')) !== p.sha256) out.push(`vault/plans/${p.ticket}.md differs from the text recorded for it; record it with node scripts/ledger.mjs architecture ${p.ticket}`);
+  }
+  return out;
+}
 function check() {
-  const problems = questionProblems();
+  const problems = [...recordsProblems(), ...questionProblems()];
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
   for (const [id, r] of rows) {
     const t = tickets.get(id);
@@ -1018,7 +1121,7 @@ if (isMain) {
   }
   if (args.includes('--sort-questions')) {
     const r = sortQuestions();
-    console.log(`QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
+    console.log(r.deferred ? 'QUESTIONS SORT DEFERRED: the launcher sorts after this unit (REMEDIATION-PLAN 2.13)' : `QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
     process.exit(0);
   }
   if (args.includes('--reads')) {

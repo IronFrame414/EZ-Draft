@@ -6,13 +6,21 @@
 //   node scripts/records.mjs export [--out <dir>]                 write the record files from the database (default: vault/)
 //   node scripts/records.mjs show <EZD-xxx>                       one ticket: its row, its questions, its done line
 //   node scripts/records.mjs backup <file>                        a consistent copy of the database
+//   node scripts/records.mjs snapshot <dir>                       the views and a JSON export of every table (D2 (a): one per phase)
+//   node scripts/records.mjs views-from-snapshot                  a checkout with no record views (CI, a fresh clone) gets the last snapshot's
+//   node scripts/records.mjs apply <file>                         apply a unit's results file (the launcher)
+//   node scripts/records.mjs queue '<json op>'                    record one op (queued inside a unit; see record())
 // Every command takes --db <file> (default $EZD_RECORDS_DB, else ~/.ezdraft/records.db).
+//
+// The launcher is the only writer (2.12): inside a unit, record() appends ops to the unit's results file
+// ($EZD_RESULTS_FILE); the launcher applies the file in one transaction after the unit and re-exports the views.
 //
 // Typed tables hold the rows; `parts` keeps each file's other lines in order, so export rebuilds each file exactly
 // (table cells are re-rendered as `| a | b |`, so only spacing inside a row can differ). PROGRESS.md and TRACE.md are views,
 // rebuilt by `node vault/tools/next_ticket.mjs --report` from STATUS.md and the plans; they are not stored.
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, appendFileSync, readdirSync, statSync, realpathSync } from 'node:fs';
 import os from 'node:os';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -26,6 +34,14 @@ const { DatabaseSync } = await import('node:sqlite');
 process.emitWarning = emitWarning;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The launcher's log folder and a pid check, as scripts/ledger.mjs has them (that file goes in 2.15; importing it here
+// would be circular, since its CLI writes through record()).
+function launcherLogDir(base) {
+  let config = {};
+  try { config = JSON.parse(readFileSync(path.join(base, 'scripts/launcher.config.json'), 'utf8')); } catch {}
+  return config.log_dir || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library/Logs/ezdraft') : path.join(base, '.launcher'));
+}
+const pidAlive = (pid) => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
 
 // File (relative to vault/) -> how its lines are read. `tables` maps a header row to the typed table its data rows go to.
 const TICKETS = '| Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |';
@@ -37,9 +53,8 @@ export const DOCS = {
   'questions/QUESTIONS.md': { tables: { [QUESTIONS]: 'questions' } },
   'questions/QUESTIONS-answered.md': { tables: { [QUESTIONS]: 'questions' } },
   'questions/QUESTIONS-archive.md': { tables: { [QUESTIONS]: 'questions' } },
-  'debt.md': { tables: { [DEBT]: 'debt' } },
+  // debt.md and tickets/needs-from-josh.md are lists people edit by hand (CLAUDE.md rule 17), so they stay in git (2.14).
   'DONE.md': { done: true },
-  'tickets/needs-from-josh.md': {},
   'handoff/CURRENT.md': {},
   'cost/log.jsonl': { jsonl: 'cost' },
   'lessons/findings.jsonl': { jsonl: 'findings' },
@@ -66,6 +81,8 @@ create table if not exists debt (id text primary key check (id glob 'D-*'), seve
 create table if not exists done (seq integer primary key, date text not null, ticket text not null, line text not null);
 create table if not exists cost (seq integer primary key, line text not null check (json_valid(line)));
 create table if not exists findings (seq integer primary key, line text not null check (json_valid(line)));
+create table if not exists plans (ticket text primary key check (ticket glob 'EZD-*'), text text not null, sha256 text not null, entry text check (entry is null or json_valid(entry)), at text not null);
+create table if not exists meta (key text primary key, value text not null);
 create table if not exists events (seq integer primary key, at text not null, kind text not null, ticket text, data text check (data is null or json_valid(data)));
 `;
 
@@ -78,7 +95,7 @@ export function dbPath(args = [], env = process.env) {
 export function openRecords(file) {
   mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
-  db.exec('pragma foreign_keys = on; pragma journal_mode = wal;');
+  db.exec('pragma busy_timeout = 10000; pragma foreign_keys = on; pragma journal_mode = wal;');
   db.exec(SCHEMA);
   return db;
 }
@@ -98,7 +115,7 @@ export function splitRow(line, n = Infinity) {
 export const renderRow = (cells) => `| ${cells.join(' | ')} |`;
 
 function withTransaction(db, fn) {
-  db.exec('begin');
+  db.exec('begin immediate');
   try { fn(); db.exec('commit'); } catch (e) { db.exec('rollback'); throw e; }
 }
 
@@ -108,6 +125,8 @@ export function importVault(db, vaultDir, { replace = false } = {}) {
   const counts = {};
   withTransaction(db, () => {
     if (have) for (const t of ['parts', 'docs', 'tickets', 'phases', 'questions', 'debt', 'done', 'cost', 'findings']) db.exec(`delete from ${t}`);
+    // 2.13: the checkout these records belong to; next_ticket.mjs reads the database only for that checkout.
+    db.prepare("insert into meta (key, value) values ('checkout', ?) on conflict(key) do update set value = excluded.value").run(realpathSync(path.resolve(vaultDir, '..')));
     for (const [name, how] of Object.entries(DOCS)) {
       const file = path.join(vaultDir, name);
       if (!existsSync(file)) continue;
@@ -134,8 +153,9 @@ export function importVault(db, vaultDir, { replace = false } = {}) {
         }
         if (how.tables && Object.hasOwn(how.tables, l.trim())) { table = how.tables[l.trim()]; part.run(name, i, 'text', l, null, null); return; }
         const isRow = l.startsWith('|');
-        if (!isRow) table = null;
-        if (!table || /^\|\s*-{3,}/.test(l)) { part.run(name, i, 'text', l, null, null); return; }
+        // A blank line does not end a table: next_ticket.mjs reads every row after the header (2.13), so the import does too.
+        if (!isRow && l.trim() !== '') table = null;
+        if (!table || !isRow || /^\|\s*-{3,}/.test(l)) { part.run(name, i, 'text', l, null, null); return; }
         const cols = COLUMNS[table];
         const cells = splitRow(l, cols.length);
         if (cells.length !== cols.length) throw new Error(`${name}:${i + 1}: ${cells.length} cells, the ${table} table has ${cols.length}`);
@@ -165,8 +185,7 @@ function renderPart(db, p) {
 export function exportVault(db, outDir) {
   const written = [];
   for (const d of db.prepare('select name, final_newline from docs order by name').all()) {
-    const parts = db.prepare('select * from parts where doc = ? order by seq').all(d.name);
-    const text = parts.map((p) => renderPart(db, p)).join('\n') + (d.final_newline ? '\n' : '');
+    const text = renderDoc(db, d.name);
     const file = path.join(outDir, d.name);
     mkdirSync(path.dirname(file), { recursive: true });
     const tmp = `${file}.tmp-${process.pid}`;
@@ -177,6 +196,305 @@ export function exportVault(db, outDir) {
   return written;
 }
 
+// ---- Results (2.12, vault/handoff/records-writer/P1-results-api.md) ----
+// Value lists of vault/tools/next_ticket.mjs (STATUSES, COMPLEXITY, Q_STATUSES).
+const STATUSES = ['todo', 'planned', 'questions', 'ready', 'in-progress', 'review', 'done', 'blocked'];
+const COMPLEXITY = ['low', 'medium', 'high'];
+const Q_STATUSES = ['open', 'answered-agent', 'escalated', 'answered-josh', 'confirmed-josh'];
+const STATUS_KEYS = { status: 'status', complexity: 'complexity', commit: 'commit_hash', tests: 'tests', notes: 'notes', title: 'title' };
+const Q_OPEN_FILE = 'questions/QUESTIONS.md';
+const DOC_OF = { tickets: 'tickets/STATUS.md', done: 'DONE.md', handoff: 'handoff/CURRENT.md', cost: 'cost/log.jsonl', finding: 'lessons/findings.jsonl' };
+
+function cell(v, what) {
+  const s = String(v ?? '');
+  if (/[\r\n]/.test(s)) throw new Error(`${what}: line break in a cell`);
+  return s;
+}
+const fail = (op, msg) => { throw new Error(`record op ${JSON.stringify(op?.op ?? op)}: ${msg}`); };
+const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
+
+export function validateOp(op) {
+  if (!isObj(op)) fail(op, 'not an object');
+  const need = (k) => { if (op[k] === undefined || op[k] === null || op[k] === '') fail(op, `missing ${k}`); };
+  switch (op.op) {
+    case 'status':
+      need('ticket');
+      if (!isObj(op.changes) || !Object.keys(op.changes).length) fail(op, 'missing changes');
+      for (const [k, v] of Object.entries(op.changes)) {
+        if (!(k in STATUS_KEYS)) fail(op, `unknown STATUS column ${k}`);
+        cell(v, `${op.ticket} ${k}`);
+      }
+      if (op.changes.status !== undefined && !STATUSES.includes(op.changes.status)) fail(op, `unknown ticket status "${op.changes.status}"`);
+      if (op.changes.complexity !== undefined && op.changes.complexity !== '' && !COMPLEXITY.includes(op.changes.complexity)) fail(op, `unknown complexity "${op.changes.complexity}"`);
+      break;
+    case 'ticket':
+      if (!isObj(op.row)) fail(op, 'missing row');
+      for (const c of COLUMNS.tickets) cell(op.row[c], `ticket ${c}`);
+      if (!/^EZD-/.test(op.row.id ?? '')) fail(op, 'row.id is not a ticket');
+      if (!STATUSES.includes(op.row.status)) fail(op, `unknown ticket status "${op.row.status}"`);
+      break;
+    case 'question':
+      if (!isObj(op.row)) fail(op, 'missing row');
+      for (const c of COLUMNS.questions) cell(op.row[c], `question ${c}`);
+      if (!/^Q-\d{4}$/.test(op.row.id ?? '')) fail(op, 'row.id is not a Q-ID');
+      if (!Q_STATUSES.includes(op.row.status)) fail(op, `unknown question status "${op.row.status}"`);
+      break;
+    case 'answer':
+      need('id');
+      if (!Q_STATUSES.includes(op.status)) fail(op, `unknown question status "${op.status}"`);
+      for (const k of ['answered_by', 'answer', 'source']) cell(op[k], `${op.id} ${k}`);
+      break;
+    case 'done':
+      need('line');
+      cell(op.line, 'done line');
+      if (!/^\d{4}-\d\d-\d\d · EZD-[0-9A-Za-z]+ · /.test(op.line)) fail(op, 'a done line starts `YYYY-MM-DD · EZD-xxx · `');
+      break;
+    case 'handoff':
+      need('text');
+      break;
+    case 'cost':
+    case 'finding':
+      if (!isObj(op.entry)) fail(op, 'missing entry');
+      break;
+    case 'plan':
+      need('ticket');
+      if (typeof op.text !== 'string' || !op.text) fail(op, 'missing text');
+      if (op.entry !== undefined && op.entry !== null && (!isObj(op.entry) || op.entry.id !== op.ticket)) fail(op, 'entry is not this ticket\'s tickets.json entry');
+      break;
+    case 'move':
+      need('id');
+      if (!Object.keys(DOCS).filter((d) => d.startsWith('questions/')).includes(op.file)) fail(op, `not a questions file: ${op.file}`);
+      break;
+    case 'cover':
+      need('category');
+      need('lesson');
+      break;
+    case 'event':
+      need('kind');
+      break;
+    default:
+      fail(op, 'unknown op');
+  }
+  return op;
+}
+
+// The doc's parts table as a list; inserting at seq `at` moves the later parts down by `n` (through negative seqs, so the
+// primary key never clashes).
+function ensureDoc(db, name) {
+  if (!db.prepare('select 1 from docs where name = ?').get(name)) db.prepare('insert into docs (name, final_newline) values (?, 1)').run(name);
+}
+function insertParts(db, doc, at, parts) {
+  const n = parts.length;
+  db.prepare('update parts set seq = -(seq + ?) - 1 where doc = ? and seq >= ?').run(n, doc, at);
+  db.prepare('update parts set seq = -(seq + 1) where doc = ? and seq < 0').run(doc);
+  const ins = db.prepare('insert into parts (doc, seq, kind, text, tbl, key) values (?, ?, ?, ?, ?, ?)');
+  parts.forEach((p, i) => ins.run(doc, at + i, p.kind, p.text ?? null, p.tbl ?? null, p.key ?? null));
+}
+const endSeq = (db, doc) => (db.prepare('select max(seq) as m from parts where doc = ?').get(doc).m ?? -1) + 1;
+// After the last row of `tbl` in the doc, else after the table's `| ---` line, else at the end.
+function rowSlot(db, doc, tbl) {
+  const last = db.prepare("select max(seq) as m from parts where doc = ? and kind = 'row' and tbl = ?").get(doc, tbl).m;
+  if (last !== null) return last + 1;
+  const sep = db.prepare("select seq, text from parts where doc = ? and kind = 'text' order by seq").all(doc).filter((p) => /^\|\s*-{3,}/.test(p.text));
+  return sep.length ? sep[sep.length - 1].seq + 1 : endSeq(db, doc);
+}
+const nextSeq = (db, tbl) => (db.prepare(`select max(seq) as m from ${tbl}`).get().m ?? -1) + 1;
+
+function applyOne(db, op) {
+  switch (op.op) {
+    case 'status': {
+      if (!db.prepare('select 1 from tickets where id = ?').get(op.ticket)) throw new Error(`${op.ticket} has no STATUS row`);
+      for (const [k, v] of Object.entries(op.changes)) db.prepare(`update tickets set ${STATUS_KEYS[k]} = ? where id = ?`).run(String(v), op.ticket);
+      return;
+    }
+    case 'ticket': {
+      const r = op.row;
+      db.prepare(`insert into tickets (${COLUMNS.tickets.join(', ')}) values (${COLUMNS.tickets.map(() => '?').join(', ')})`).run(...COLUMNS.tickets.map((c) => String(r[c] ?? '')));
+      ensureDoc(db, DOC_OF.tickets);
+      insertParts(db, DOC_OF.tickets, rowSlot(db, DOC_OF.tickets, 'tickets'), [{ kind: 'row', tbl: 'tickets', key: r.id }]);
+      return;
+    }
+    case 'question': {
+      const r = op.row;
+      if (db.prepare('select 1 from questions where id = ?').get(r.id)) throw new Error(`${r.id} is already used (IDs are never reused)`);
+      const cols = ['id', 'file', ...COLUMNS.questions.slice(1)];
+      db.prepare(`insert into questions (${cols.join(', ')}) values (${cols.map(() => '?').join(', ')})`).run(r.id, Q_OPEN_FILE, ...COLUMNS.questions.slice(1).map((c) => String(r[c] ?? '')));
+      ensureDoc(db, Q_OPEN_FILE);
+      insertParts(db, Q_OPEN_FILE, rowSlot(db, Q_OPEN_FILE, 'questions'), [{ kind: 'row', tbl: 'questions', key: r.id }]);
+      return;
+    }
+    case 'answer': {
+      const q = db.prepare('select file from questions where id = ?').get(op.id);
+      if (!q) throw new Error(`${op.id} is not in the questions tables`);
+      db.prepare('update questions set status = ?, answered_by = ?, answer = ?, source = ? where id = ?').run(op.status, String(op.answered_by ?? ''), String(op.answer ?? ''), String(op.source ?? ''), op.id);
+      if ((op.status === 'open' || op.status === 'escalated') && q.file !== Q_OPEN_FILE) moveQuestion(db, op.id, Q_OPEN_FILE);
+      return;
+    }
+    case 'done': {
+      const [date, ticket] = op.line.split(' · ');
+      const seq = nextSeq(db, 'done');
+      db.prepare('insert into done (seq, date, ticket, line) values (?, ?, ?, ?)').run(seq, date, ticket, op.line);
+      ensureDoc(db, DOC_OF.done);
+      insertParts(db, DOC_OF.done, endSeq(db, DOC_OF.done), [{ kind: 'row', tbl: 'done', key: String(seq) }]);
+      db.prepare('update docs set final_newline = 1 where name = ?').run(DOC_OF.done);
+      return;
+    }
+    case 'handoff': {
+      const doc = DOC_OF.handoff;
+      ensureDoc(db, doc);
+      const old = renderDoc(db, doc);
+      if (old !== null) db.prepare("insert into events (at, kind, data) values (?, 'handoff', ?)").run(new Date().toISOString(), JSON.stringify({ text: old }));
+      const text = String(op.text);
+      const finalNewline = text.endsWith('\n');
+      db.prepare('delete from parts where doc = ?').run(doc);
+      db.prepare('update docs set final_newline = ? where name = ?').run(finalNewline ? 1 : 0, doc);
+      insertParts(db, doc, 0, (finalNewline ? text.slice(0, -1) : text).split('\n').map((t) => ({ kind: 'text', text: t })));
+      return;
+    }
+    case 'cost':
+    case 'finding': {
+      const tbl = op.op === 'cost' ? 'cost' : 'findings';
+      const seq = nextSeq(db, tbl);
+      db.prepare(`insert into ${tbl} (seq, line) values (?, ?)`).run(seq, JSON.stringify(op.entry));
+      ensureDoc(db, DOC_OF[op.op]);
+      insertParts(db, DOC_OF[op.op], endSeq(db, DOC_OF[op.op]), [{ kind: 'row', tbl, key: String(seq) }]);
+      // An appended log line always ends the file with a line break (a log that had none is repaired, EZD-245 F13).
+      db.prepare('update docs set final_newline = 1 where name = ?').run(DOC_OF[op.op]);
+      return;
+    }
+    case 'move':
+      moveQuestion(db, op.id, op.file);
+      return;
+    case 'plan':
+      // D9 (a), 2026-11-02: an untracked plan's text and hash, and its tickets.json entry, wait here for the feat commit.
+      db.prepare('insert into plans (ticket, text, sha256, entry, at) values (?, ?, ?, ?, ?) on conflict(ticket) do update set text = excluded.text, sha256 = excluded.sha256, entry = excluded.entry, at = excluded.at')
+        .run(op.ticket, op.text, sha256(op.text), op.entry ? JSON.stringify(op.entry) : null, new Date().toISOString());
+      return;
+    case 'cover': {
+      // findings.mjs cover: every uncovered finding of the category gets the lesson ID.
+      let n = 0;
+      for (const f of db.prepare('select seq, line from findings').all()) {
+        const x = JSON.parse(f.line);
+        if (x.category !== op.category || x.lesson !== null) continue;
+        x.lesson = op.lesson;
+        db.prepare('update findings set line = ? where seq = ?').run(JSON.stringify(x), f.seq);
+        n++;
+      }
+      if (!n) throw new Error(`no uncovered finding in category ${op.category}`);
+      return;
+    }
+    case 'event':
+      db.prepare('insert into events (at, kind, ticket, data) values (?, ?, ?, ?)').run(new Date().toISOString(), op.kind, op.ticket ?? null, op.data === undefined ? null : JSON.stringify(op.data));
+      return;
+  }
+}
+
+// A question row moves whole to another questions file: after that file's last Q row.
+export const checkoutOf = (db) => db.prepare("select value from meta where key = 'checkout'").get()?.value ?? null;
+
+export const sha256 = (text) => createHash('sha256').update(text).digest('hex');
+export function planRecord(db, ticket) {
+  const r = db.prepare('select text, sha256, entry from plans where ticket = ?').get(ticket);
+  return r ? { text: r.text, sha256: r.sha256, entry: r.entry ? JSON.parse(r.entry) : null } : null;
+}
+
+export function moveQuestion(db, id, file) {
+  const from = db.prepare('select file from questions where id = ?').get(id)?.file;
+  if (!from) throw new Error(`${id} is not in the questions tables`);
+  if (from === file) return;
+  const p = db.prepare("select seq from parts where doc = ? and kind = 'row' and tbl = 'questions' and key = ?").get(from, id);
+  db.prepare('delete from parts where doc = ? and seq = ?').run(from, p.seq);
+  db.prepare('update parts set seq = -(seq - 1) - 1 where doc = ? and seq > ?').run(from, p.seq);
+  db.prepare('update parts set seq = -(seq + 1) where doc = ? and seq < 0').run(from);
+  ensureDoc(db, file);
+  insertParts(db, file, rowSlot(db, file, 'questions'), [{ kind: 'row', tbl: 'questions', key: id }]);
+  db.prepare('update questions set file = ? where id = ?').run(file, id);
+}
+
+export function applyOps(db, ops) {
+  ops.forEach(validateOp);
+  withTransaction(db, () => { for (const op of ops) applyOne(db, op); });
+  return ops.length;
+}
+
+export function queueOp(file, op) {
+  validateOp(op);
+  mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
+  appendFileSync(file, `${JSON.stringify(op)}\n`);
+}
+export function readQueue(file) {
+  if (!existsSync(file)) return [];
+  return readFileSync(file, 'utf8').split('\n').map((l, i) => [l, i]).filter(([l]) => l.trim()).map(([l, i]) => {
+    try { return validateOp(JSON.parse(l)); } catch (e) { throw new Error(`${file} line ${i + 1}: ${e.message}`); }
+  });
+}
+// The inbox files interactive sessions queued while the launcher ran (record()), oldest first.
+export function inboxFiles(logDir) {
+  const dir = path.join(logDir, 'inbox');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).filter((n) => n.endsWith('.results.jsonl')).map((n) => path.join(dir, n)).sort((a, b) => statSync(a).mtimeMs - statSync(b).mtimeMs);
+}
+
+// Applies a unit's results file in one transaction; the file is kept as .applied, or as .rejected when it fails.
+export function applyQueueFile(db, file) {
+  if (!existsSync(file)) return 0;
+  try {
+    const n = applyOps(db, readQueue(file));
+    renameSync(file, `${file}.applied`);
+    return n;
+  } catch (e) {
+    renameSync(file, `${file}.rejected`);
+    throw e;
+  }
+}
+
+export function nextQuestionId(db, queueFile) {
+  let max = 0;
+  for (const { id } of db.prepare('select id from questions').all()) max = Math.max(max, Number(id.slice(2)) || 0);
+  for (const op of queueFile ? readQueue(queueFile) : []) if (op.op === 'question') max = Math.max(max, Number(op.row.id.slice(2)) || 0);
+  return `Q-${String(max + 1).padStart(4, '0')}`;
+}
+
+export const refreshViews = (db, vaultDir) => exportVault(db, vaultDir);
+
+// Who may write the database directly: nobody else while a live launcher holds <log_dir>/launcher.lock, except that
+// launcher itself and a direct child it started with EZD_RECORDS_WRITER=<its pid> (a unit's shell is never a direct child).
+// Anyone else (an interactive session) gets its op queued in <log_dir>/inbox/, which the launcher applies between units.
+function directWriteRefusal(env, logDir) {
+  const lock = path.join(logDir, 'launcher.lock');
+  if (!existsSync(lock)) return null;
+  const held = Number.parseInt(readFileSync(lock, 'utf8'), 10);
+  if (!Number.isInteger(held) || !pidAlive(held) || held === process.pid) return null;
+  if (env.EZD_RECORDS_WRITER === String(held) && process.ppid === held) return null;
+  return `the launcher (pid ${held}) is running: records are written only through the launcher (a unit's results file)`;
+}
+
+// The one entry point for the tools that write records (ledger.mjs, unit-steps.mjs, next_ticket.mjs).
+export function record(op, { env = process.env, root: rootOpt, logDir } = {}) {
+  validateOp(op);
+  const base = rootOpt ?? env.EZD_ROOT ?? root;
+  if (env.EZD_RESULTS_FILE) { queueOp(env.EZD_RESULTS_FILE, op); return { queued: true }; }
+  const dir = logDir ?? launcherLogDir(base);
+  if (directWriteRefusal(env, dir)) {
+    queueOp(path.join(dir, 'inbox', `${process.pid}.results.jsonl`), op);
+    return { queued: true, inbox: true };
+  }
+  const db = openRecords(env.EZD_RECORDS_DB || dbPath([], env));
+  try {
+    applyOps(db, [op]);
+    refreshViews(db, path.join(base, 'vault'));
+  } finally { db.close(); }
+  return { queued: false };
+}
+
+// One doc rendered from the database (null when the database does not hold it).
+export function renderDoc(db, name) {
+  const d = db.prepare('select final_newline from docs where name = ?').get(name);
+  if (!d) return null;
+  const parts = db.prepare('select * from parts where doc = ? order by seq').all(name);
+  return parts.map((p) => renderPart(db, p)).join('\n') + (d.final_newline ? '\n' : '');
+}
+
 export function showTicket(db, id) {
   const t = db.prepare('select * from tickets where id = ?').get(id);
   if (!t) return null;
@@ -184,6 +502,18 @@ export function showTicket(db, id) {
   const questions = db.prepare('select id, status, file, phase_ticket from questions order by id').all().filter((q) => named.test(q.phase_ticket));
   const done = db.prepare('select line from done where ticket = ? order by seq').all(id).map((r) => r.line);
   return { ticket: { ...t }, questions: questions.map(({ id: q, status, file }) => ({ id: q, status, file })), done };
+}
+
+// The phase snapshot (D2 (a)): every view as exported, plus records.json with every table's rows.
+export const TABLES = ['docs', 'parts', 'tickets', 'phases', 'questions', 'debt', 'done', 'cost', 'findings', 'plans', 'events', 'meta'];
+// PROGRESS.md and TRACE.md are generated by next_ticket.mjs --report (run it first) and copied from vaultDir.
+export const REPORTS = ['PROGRESS.md', 'tickets/TRACE.md'];
+export function snapshot(db, dir, { vaultDir = path.join(root, 'vault') } = {}) {
+  const files = exportVault(db, dir);
+  for (const r of REPORTS) if (existsSync(path.join(vaultDir, r))) { mkdirSync(path.dirname(path.join(dir, r)), { recursive: true }); writeFileSync(path.join(dir, r), readFileSync(path.join(vaultDir, r))); files.push(r); }
+  const out = Object.fromEntries(TABLES.map((t) => [t, db.prepare(`select * from ${t} order by rowid`).all().map((r) => ({ ...r }))]));
+  writeFileSync(path.join(dir, 'records.json'), `${JSON.stringify(out, null, 1)}\n`);
+  return [...files, 'records.json'];
 }
 
 export function backup(db, file) {
@@ -212,8 +542,32 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       if (!r) { console.error(`no ticket ${args[0] ?? ''}`); process.exitCode = 1; } else console.log(JSON.stringify(r, null, 2));
     } else if (cmd === 'backup') {
       if (!args[0] || args[0].startsWith('--')) { console.error('usage: records.mjs backup <file>'); process.exitCode = 1; } else { backup(db, args[0]); console.log(`backup written to ${path.resolve(args[0])}`); }
+    } else if (cmd === 'snapshot') {
+      if (!args[0] || args[0].startsWith('--')) { console.error('usage: records.mjs snapshot <dir>'); process.exitCode = 1; } else console.log(`snapshot: ${snapshot(db, path.resolve(args[0])).length} files under ${path.resolve(args[0])}`);
+    } else if (cmd === 'views-from-snapshot') {
+      // 2.14: the running records are not in git; a checkout without them reads the last committed snapshot (CI, a fresh clone).
+      const label = readFileSync(path.join(root, 'vault/snapshots/LATEST'), 'utf8').trim();
+      let n = 0;
+      for (const name of [...Object.keys(DOCS), ...REPORTS]) {
+        const src = path.join(root, 'vault/snapshots', label, name);
+        const dst = path.join(root, 'vault', name);
+        if (!existsSync(src) || existsSync(dst)) continue;
+        mkdirSync(path.dirname(dst), { recursive: true });
+        writeFileSync(dst, readFileSync(src));
+        n++;
+      }
+      console.log(`views from snapshot ${label}: ${n} files written`);
+    } else if (cmd === 'apply') {
+      if (!args[0] || args[0].startsWith('--')) { console.error('usage: records.mjs apply <file>'); process.exitCode = 1; } else {
+        const n = applyQueueFile(db, args[0]);
+        refreshViews(db, path.join(root, 'vault'));
+        console.log(`RECORDS APPLY OK ${n} ops`);
+      }
+    } else if (cmd === 'queue') {
+      const r = record(JSON.parse(args[0] ?? 'null'), { env: { ...process.env, EZD_RECORDS_DB: dbPath(args) } });
+      console.log(r.inbox ? 'RECORDS QUEUED for the launcher (inbox)' : r.queued ? 'RECORDS QUEUED' : 'RECORDS WRITTEN');
     } else {
-      console.error('usage: node scripts/records.mjs import|export|show <EZD-xxx>|backup <file> [--db <file>]');
+      console.error('usage: node scripts/records.mjs import|export|show <EZD-xxx>|backup <file>|apply <file>|queue <json> [--db <file>]');
       process.exitCode = 1;
     }
   } finally {
