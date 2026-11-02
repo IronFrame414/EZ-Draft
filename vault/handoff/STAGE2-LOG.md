@@ -21,3 +21,11 @@ Not overnight (need Josh): 2.24 (his own folder), removing STOP, EZD-172 and EZD
 ## Entries
 
 - H7: done, b07dee8f (gate PASS on the Mac run CI-style; GitHub CI run 41376564624 on fix/h7-ci PASS; develop push started run 41378084333). Josh to confirm: nothing (approved and applied by him).
+- Note: this session could not start the planned fresh sessions (the app allows a start only on a turn Josh typed), so Stage 2 continues in this one session.
+- Guard-bash exceptions: done, a78c5b41. Also closes a gap: an env-prefixed `claude` (e.g. `FOO=1 claude`) was not denied before. Josh to confirm: the three settings.json deny entries moved to the hook.
+- 2.1 non-goals: done, 191e40a9 (0 of 568 ticket titles match a remaining non-goal; positive control found the billing, IFC and AR tickets). The product overview's scope table is already overridden by the Q-0220 row in decisions/02-product-overview.md, so no new decision row.
+- 2.2 duplicate sentence: done, b60437ae (count 1).
+- 2.3 rules 17 and 18, debt list, plan caps, freeze: done, ff63dbaa and c103fb74. New file `vault/debt.md` (L11, L12 as D-001, D-002). Josh to confirm: the rule 17 and 18 wording in CLAUDE.md.
+- 2.4 one launcher at a time: done, d4be9db6 (`<log_dir>/launcher.lock`; the launcher already ran one unit at a time, but nothing stopped a second launcher beside the service). EZD-172 and EZD-174 stay open.
+- 2.5 lesson: done, 7259c07f (L-041, marked ratified on Josh's acceptance of the audit recommendations).
+- Gate for all of the above: PASS on 11b8337c, pushed. One earlier gate run on the guard change alone failed only in the backup restore drills (EZD-025, EZD-1704); they passed alone (4 of 4) and in the next full gate. That is the open defect EZD-259 (scratch database start under a full gate), a flaky test, not accepted: it stays a ticket at the front of the queue after resume.
