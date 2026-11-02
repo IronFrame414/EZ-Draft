@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 574,
+ "count": 576,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -486,7 +486,9 @@
   "EZD-285",
   "EZD-286",
   "EZD-287",
-  "EZD-289"
+  "EZD-289",
+  "EZD-290",
+  "EZD-291"
  ],
  "tickets": [
   {
@@ -17120,6 +17122,62 @@
    "acs": [
     "AC-EZD-289-1",
     "AC-EZD-289-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-290",
+   "phase": 1,
+   "title": "Fix: a company logo is accepted only after an allowlist check of its content, and the media bucket limits file types",
+   "depends_raw": "EZD-112, EZD-132",
+   "spec_ref": "Q-0268, rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-112",
+    "EZD-132"
+   ],
+   "build_position": 562,
+   "acs": [
+    "AC-EZD-290-1",
+    "AC-EZD-290-2",
+    "AC-EZD-290-3",
+    "AC-EZD-290-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-291",
+   "phase": 1,
+   "title": "Fix: the EZD-102 D5 permissions realtime test does not depend on fixed waits",
+   "depends_raw": "EZD-102, EZD-285",
+   "spec_ref": "Q-0268, rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-285"
+   ],
+   "build_position": 563,
+   "acs": [
+    "AC-EZD-291-1",
+    "AC-EZD-291-2"
    ],
    "acs_source": "done-when"
   }
