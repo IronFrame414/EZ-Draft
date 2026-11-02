@@ -110,3 +110,11 @@ Where: develop f20fb07e, `next dev` on 127.0.0.1:3100 against the local stack (r
 - Gate: the first full run failed only on EZD-193 T11, whose not-ignored example was CURRENT.md (now ignored by 2.14); the example is now STAGE2-LOG.md.
 - Josh to confirm: decisions (2) and (4).
 
+
+## Sandbox option 3 (2026-11-02, orchestrator)
+
+- Josh: option 3 now, option 1 with the lanes work. Josh applied `vault/handoff/sandbox-exclude-gate.patch` (my settings edit was refused by the classifier as Self-Modification).
+- Decisions (parent session, D9 (a)): (a) `unit-steps.mjs merge` runs no gate; the unit runs `node scripts/gate.mjs .claude/worktrees/<T>` itself after the merge brings develop in (MERGE GATE, exit 5), and the merge needs that run's gate.log: from the worktree, ending GATE PASS, no uncommitted change, no commit in or after the gate's start second. (b) No re-probe: the first sandboxed build is watched; the sandbox commits are reverted at once if its gate fails for a sandbox reason.
+- Gap: the squash adds three things the worktree gate never saw (the plan, the held tickets.json entry, `vault/research`); before, the develop gate ran on them. All are vault files; the CI gate on the develop push is the backstop.
+- Limit: the gate.log binding is by time, not commit hash (debt D-005).
+- Merged: see the commit list in the final report.
