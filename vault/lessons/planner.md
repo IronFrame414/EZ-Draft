@@ -350,3 +350,10 @@ Cause: the plan gave test data in prose and never said that fixtures must satisf
 Rule: when a plan changes a type or needs non-ASCII test data, its Tests rows list the fixtures to update and name the exact escape sequences.
 Check: each Tests row with a changed type names the fixture files; each look-alike row gives \u escapes.
 Plan check: no Tests row says "look-alike" or "new required field" without the escape or the fixture path.
+
+## L-043  areas: tooling, scripts, testing  seen: 1  status: candidate
+Ticket EZD-287, 2026-11-02
+Mistake: plan step 3 called projectId() without naming where it comes from; the builder wrote a private copy in local.mjs although scripts/db/sql.mjs already exports one, and the copy's regex drifted. The reviewer found it.
+Cause: the plan used a helper by name and did not check the repo for an existing export.
+Rule: every function a plan step calls that the plan does not create is named with its file path, found by grep at plan time; "add a helper" is written only when no export exists.
+Check: the plan review greps each called-but-not-created name in the plan's steps and finds a file path beside it.
