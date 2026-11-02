@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 577,
+ "count": 578,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -121,6 +121,7 @@
   "EZD-108",
   "EZD-110a",
   "EZD-292",
+  "EZD-293",
   "EZD-110b",
   "EZD-117a",
   "EZD-117b",
@@ -17218,6 +17219,35 @@
    "acs": [
     "AC-EZD-292-1",
     "AC-EZD-292-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-293",
+   "phase": 2,
+   "title": "Research: Realtime keeps live updates after a hosted database failover",
+   "depends_raw": "EZD-018, EZD-291",
+   "spec_ref": "Q-0480 (a), R-048",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-018",
+    "EZD-291"
+   ],
+   "build_position": 565,
+   "acs": [
+    "AC-EZD-293-1",
+    "AC-EZD-293-2"
    ],
    "acs_source": "done-when"
   }

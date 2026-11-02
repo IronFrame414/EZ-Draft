@@ -1,0 +1,13 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 65a32d4..a223c25 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -26,7 +26,7 @@ jobs:
+           node-version: 22
+           package-manager-cache: false
+       - name: Install pnpm
+-        run: npm install -g pnpm
++        run: npm install -g pnpm@12.14.0
+       - name: Install browsers (once browser tests exist)
+         if: hashFiles('playwright.config.*') != ''
+         run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
