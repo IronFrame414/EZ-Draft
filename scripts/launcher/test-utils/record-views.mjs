@@ -5,6 +5,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { addNewTicketRows } from '../../records.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 export const RECORD_VIEWS = ['tickets/STATUS.md', 'tickets/TRACE.md', 'PROGRESS.md', 'DONE.md', 'cost/log.jsonl', 'handoff/CURRENT.md', 'lessons/findings.jsonl', 'questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md'];
@@ -19,16 +20,7 @@ export function seedRecordViews(vaultDir, { from = repo } = {}) {
     mkdirSync(path.dirname(dst), { recursive: true });
     writeFileSync(dst, readFileSync(src));
   }
-  // A ticket added to tickets.json after the snapshot (a phase gate's fix tickets) gets the row every new ticket starts with,
-  // `todo`, as the launcher's records give it; otherwise each new ticket breaks the copy's ledger check.
-  const ticketsFile = path.join(vaultDir, 'tickets/tickets.json');
-  const statusFile = path.join(vaultDir, 'tickets/STATUS.md');
-  if (existsSync(ticketsFile) && existsSync(statusFile)) {
-    const status = readFileSync(statusFile, 'utf8');
-    const known = new Set([...status.matchAll(/^\| (EZD-[0-9A-Za-z]+) \|/gm)].map((m) => m[1]));
-    const added = JSON.parse(readFileSync(ticketsFile, 'utf8')).tickets.filter((t) => !known.has(t.id));
-    if (added.length) writeFileSync(statusFile, status.replace(/\n*$/, '\n') + added.map((t) => `| ${t.id} | ${t.phase} | ${t.title} | todo |  |  |  |  |  |\n`).join(''));
-  }
+  addNewTicketRows(vaultDir); // tickets added since the snapshot start as todo (scripts/records.mjs)
   mkdirSync(path.join(vaultDir, 'handoff/log'), { recursive: true });
   return label;
 }

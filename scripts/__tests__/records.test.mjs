@@ -237,6 +237,23 @@ test('2.13 a row after a blank line inside a table is still a table row (as next
   assert.equal(nextQuestionId(db), 'Q-0010');
 });
 
+test('views-from-snapshot gives a ticket added to tickets.json after the snapshot a todo row, so the checkout\'s ledger reads it (CI 41510528108)', () => {
+  const root = tmp();
+  mkdirSync(path.join(root, 'scripts'), { recursive: true });
+  writeFileSync(path.join(root, 'scripts/records.mjs'), readFileSync(script));
+  const db = openRecords(path.join(tmp(), 'r.db'));
+  importVault(db, fixtureVault());
+  exportVault(db, path.join(root, 'vault/snapshots/p1'));
+  writeFileSync(path.join(root, 'vault/snapshots/LATEST'), 'p1\n');
+  const ids = [...FILES['tickets/STATUS.md'].matchAll(/^\| (EZD-[0-9A-Za-z]+) \|/gm)].map((m) => m[1]);
+  mkdirSync(path.join(root, 'vault/tickets'), { recursive: true });
+  writeFileSync(path.join(root, 'vault/tickets/tickets.json'), JSON.stringify({ tickets: [...ids.map((id) => ({ id, phase: 1, title: 'x' })), { id: 'EZD-901', phase: 1, title: 'Fix: added after the snapshot' }] }));
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts/records.mjs'), 'views-from-snapshot', '--db', path.join(tmp(), 'x.db')], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /todo rows for tickets added since: EZD-901/);
+  assert.equal(readFileSync(path.join(root, 'vault/tickets/STATUS.md'), 'utf8'), FILES['tickets/STATUS.md'].replace(/\n*$/, '\n') + '| EZD-901 | 1 | Fix: added after the snapshot | todo |  |  |  |  |  |\n');
+});
+
 test('2.14 views-from-snapshot writes the last snapshot\'s views into a checkout that has none, and never overwrites one', () => {
   const root = tmp();
   mkdirSync(path.join(root, 'scripts'), { recursive: true });

@@ -526,6 +526,20 @@ function opt(args, name, fallback) {
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 }
 
+// A STATUS.md taken from a snapshot predates any ticket added to tickets.json since (a phase gate's fix tickets). Each such
+// ticket gets the row every new ticket starts with, `todo`, as the launcher's records give it; otherwise the ledger check of a
+// checkout that reads the snapshot (CI, a fresh clone, a test copy) fails on every new ticket. Returns the IDs added.
+export function addNewTicketRows(vaultDir) {
+  const ticketsFile = path.join(vaultDir, 'tickets/tickets.json');
+  const statusFile = path.join(vaultDir, 'tickets/STATUS.md');
+  if (!existsSync(ticketsFile) || !existsSync(statusFile)) return [];
+  const status = readFileSync(statusFile, 'utf8');
+  const known = new Set([...status.matchAll(/^\| (EZD-[0-9A-Za-z]+) \|/gm)].map((m) => m[1]));
+  const added = JSON.parse(readFileSync(ticketsFile, 'utf8')).tickets.filter((t) => !known.has(t.id));
+  if (added.length) writeFileSync(statusFile, status.replace(/\n*$/, '\n') + added.map((t) => `| ${t.id} | ${t.phase} | ${t.title} | todo |  |  |  |  |  |\n`).join(''));
+  return added.map((t) => t.id);
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [cmd, ...args] = process.argv.slice(2);
   const db = openRecords(dbPath(args));
@@ -548,6 +562,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       // 2.14: the running records are not in git; a checkout without them reads the last committed snapshot (CI, a fresh clone).
       const label = readFileSync(path.join(root, 'vault/snapshots/LATEST'), 'utf8').trim();
       let n = 0;
+      let statusFromSnapshot = false;
       for (const name of [...Object.keys(DOCS), ...REPORTS]) {
         const src = path.join(root, 'vault/snapshots', label, name);
         const dst = path.join(root, 'vault', name);
@@ -555,8 +570,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         mkdirSync(path.dirname(dst), { recursive: true });
         writeFileSync(dst, readFileSync(src));
         n++;
+        if (name === 'tickets/STATUS.md') statusFromSnapshot = true;
       }
-      console.log(`views from snapshot ${label}: ${n} files written`);
+      const added = statusFromSnapshot ? addNewTicketRows(path.join(root, 'vault')) : [];
+      console.log(`views from snapshot ${label}: ${n} files written${added.length ? `; todo rows for tickets added since: ${added.join(', ')}` : ''}`);
     } else if (cmd === 'apply') {
       if (!args[0] || args[0].startsWith('--')) { console.error('usage: records.mjs apply <file>'); process.exitCode = 1; } else {
         const n = applyQueueFile(db, args[0]);
