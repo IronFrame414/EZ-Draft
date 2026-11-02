@@ -16965,6 +16965,32 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-288",
+   "phase": 2,
+   "title": "Fix: a failed customer.created, customer.updated or user.joined event is reported",
+   "depends_raw": "EZD-283",
+   "spec_ref": "Q-0475 (rule 17)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-283"
+   ],
+   "build_position": 560,
+   "acs": [
+    "AC-EZD-288-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-284",
    "phase": 1,
    "title": "Fix: the CI workflow installs the pinned pnpm version",

@@ -1,16 +1,10 @@
-# Phase 2 · for Josh (questions unit, 2026-10-30, re-run)
+# Phase 2 · for Josh (questions unit, 2026-11-02)
 
-One decision waits on you (Q-0465, section 1). Then confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4). Tickets other than EZD-108 are `ready`; EZD-108 stays blocked until you answer.
+Nothing waits on you in section 1. Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
 
 ## 1. Decisions needed
 
-**Q-0465 · EZD-108 (Change password in My profile).** The live site has the Turnstile security check on, and Supabase refuses the password check that Change password uses unless it gets the check's token. As planned, Change password cannot work on the live site (evidence R-046; runbook Captcha; Q-0243 (c)).
-Options:
-- (a) **Recommended.** Show the same security-check box under the password fields as on the sign-in page. No new wording (`error.captcha_failed` and `error.captcha_unavailable` exist). Supabase stays the only thing that checks the password (rule 18). Costs one widget in the dialog and a token through the route.
-- (b) No box. The database compares the typed password with the stored hash in a new owner-rights function; anyone signed in over 24 h also gets the emailed 6-digit code, as Set password does (Q-0447). Costs a new function reading auth.users, rewritten tests T3, T4, T7, T15, and a visible rule change.
-- (c) No box and no code: the server changes the password with the admin key after the database check. Least preferred (admin key in a user route).
-
-Also needs your yes: Spanish for the 9 new `error.*` keys and `error.db_unavailable` in the password section.
+None.
 
 ## 2. Agent answers to confirm
 
@@ -21,6 +15,7 @@ Confirm or override each (answer; source).
 - **Q-0451 · EZD-118.** A member who creates a project is listed on it automatically, so a Foreman can see what they made. Source: security-reviewer; spec section 10 line 11; Q-0178, Q-0202, Q-0224.
 - **Q-0452 · EZD-118.** Scope of work accepts up to 20,000 characters (input guard only). Source: Q-0396; EZD-113 precedent.
 - **Q-0403, Q-0413, Q-0414, Q-0422, Q-0425** (earlier phase 2 agent answers, in QUESTIONS-answered.md): confirm or override.
+- **Q-0475 · EZD-283.** Keep EZD-283 as written (Company settings only) and add fix ticket EZD-288 for the same silent catch in the customers routes and the sign-in `user.joined` emit. Source: CLAUDE.md rule 17 (fix in place only in files already in the ticket; a defect gets its own ticket); Q-0268.
 
 ## 3. Proposed wording
 
