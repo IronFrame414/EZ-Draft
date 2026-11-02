@@ -68,7 +68,7 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
   // handoffIsFile: vault/handoff is a plain file, so no limit file can be written under it (T6).
   if (handoffIsFile) writeFileSync(at('vault/handoff'), 'not a folder\n');
   else mkdirSync(at('vault/handoff'), { recursive: true });
-  for (const f of ['run.mjs', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(nextUnit));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');

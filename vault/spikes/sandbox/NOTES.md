@@ -28,3 +28,29 @@ Docs: https://code.claude.com/docs/en/sandboxing (macOS Seatbelt; `sandbox.*` se
 ## Question for Josh (morning)
 
 Recommended: (1) now, a unit-level sandbox (writes inside the repository and its `.git` only, secret files unreadable, network to GitHub and local services only, Docker socket allowed and recorded as a known hole), keeping the path and read guards; (2) with parallel lanes, true per-worktree isolation by running the builder and test-author as their own processes inside the worktree, with each lane's database started outside the sandbox (EZD-172, EZD-174). Cost: (1) about half a day plus a probe of push, pnpm and Playwright; (2) part of the lanes work, about 1 to 2 days more.
+
+## Unit-level probes (2.7), 2026-11-02
+
+Settings `scripts/unit-sandbox.json` (branch `s2/sandbox`, not merged). Probe prompts `probe-unit*.txt`; each a Haiku `claude -p --settings <file> --permission-mode bypassPermissions --permission-prompts none` session, as a launcher unit runs.
+
+| # | Probe | Result |
+| --- | --- | --- |
+| 1 | write inside the repository (a worktree) | allowed |
+| 2 | write in the home folder | refused |
+| 3 | read a decoy `.env` (`denyRead` `./**/.env`) | refused |
+| 4 | the same file as `.ENV` (letter case) | refused |
+| 5 | the same file through a symlink | refused |
+| 6 | the same file through a glob (`.e*`) | refused |
+| 7 | read `scripts/launcher.config.json` | refused |
+| 8 | `git push --dry-run` over HTTPS (keychain helper) | works |
+| 9 | `gh api user` | works only with `enableWeakerNetworkIsolation` (TLS trust service); without it, x509 OSStatus -26276 |
+| 10 | `pnpm install --frozen-lockfile` | works only with `/private/tmp/pnpm-store-operation-locks-501` and `~/Library/pnpm/store` writable (the second probe ran after an unsandboxed install, so it did not prove a cold install) |
+| 11 | Playwright Chromium launch | **fails**: `bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.<pid>: Permission denied (1100)`. `allowMachLookup` (`org.chromium.*`, then `*`) does not help: the block is on registering a Mach service, which no sandbox setting allows |
+| 12 | `docker ps`; local Supabase API | works (socket allowed: known hole) |
+| 13 | outside site (example.com) | **reachable** under `bypassPermissions` unless `network.strictAllowlist` is true; with it, refused by the proxy |
+| 14 | `dangerouslyDisableSandbox` on a home-folder write | refused (`allowUnsandboxedCommands: false`) |
+| 15 | a subagent's Bash write to the home folder | refused (subagents share the sandbox) |
+
+Known holes in the settings file: the Docker socket (any container reaches the whole Mac), `enableWeakerNetworkIsolation` (a possible exfiltration path through the trust service), GitHub domains (domain fronting, per the docs).
+
+**Blocker:** the gate runs Playwright (test:e2e), so every sandboxed unit's gate would fail. No setting fixes it; question for Josh in `vault/handoff/STAGE2-LOG.md` (2.7).
