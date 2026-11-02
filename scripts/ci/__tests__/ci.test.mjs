@@ -368,7 +368,7 @@ function checkWorkflow(fileName, text) {
   }
   if ('push' in triggers) {
     const t = triggers.push;
-    if (!['release.yml', 'supabase-dev.yml'].includes(fileName)) add('b', 'push trigger not allowed');
+    if (!['release.yml', 'supabase-dev.yml', 'ci.yml'].includes(fileName)) add('b', 'push trigger not allowed');
     if (t.form !== 'block' || t.rest !== '') add('c', 'push must use the block form');
     if (readKey(lines, t.lineIdx, 'branches-ignore') !== null) add('c', 'branches-ignore');
     const branches = readKey(lines, t.lineIdx, 'branches');
@@ -383,6 +383,13 @@ function checkWorkflow(fileName, text) {
       if (JSON.stringify(branches) !== JSON.stringify(['develop'])) add('e', 'push branches must be exactly develop');
       if (JSON.stringify(readKey(lines, t.lineIdx, 'paths')) !== JSON.stringify(['supabase/migrations/**'])) {
         add('e', 'push paths must be exactly supabase/migrations/**');
+      }
+    }
+    if (fileName === 'ci.yml') {
+      // H7 (Josh 2026-11-01): CI runs on every push to develop and on no other branch.
+      if (JSON.stringify(branches) !== JSON.stringify(['develop'])) add('b', 'ci.yml push branches must be exactly develop');
+      for (const k of ['tags', 'tags-ignore', 'paths', 'paths-ignore']) {
+        if (readKey(lines, t.lineIdx, k) !== null) add('b', `ci.yml push has ${k}`);
       }
     }
   }
@@ -486,6 +493,7 @@ test('EZD-002 T2b T2 rules catch the bypasses (AC-EZD-002-1)', () => {
     ['s9', 'release.yml', on('    steps:\n      - uses: actions/cache/save@v4\n'), 'i'],
     ['s10', 'release.yml', on('    steps:\n      - uses: "actions/cache@v4"\n'), 'i'],
     ['s11', 'backup-db.yml', on("    steps:\n      - uses: 'actions/setup-node@v4'\n        with:\n          cache: pnpm\n"), 'i'],
+    ['s12', 'ci.yml', 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n', 'b'],
   ];
   for (const [id, file, text, rule] of samples) {
     const problems = checkWorkflow(file, text);

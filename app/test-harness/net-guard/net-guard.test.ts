@@ -22,9 +22,10 @@ const preload = path.join(here, 'preload.mjs');
 const norm = (p: string) => p.replace(/\\/g, '/');
 
 function childEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
-  const env = { ...process.env, ...extra };
+  const env: NodeJS.ProcessEnv = { ...process.env, ...extra, NO_COLOR: '1' }; // H7: colour codes break the output matches
   delete env.EZD_TEST_GREP; // docs/architecture.md Test scope: a spawned runner sets its own scope
   delete env.NODE_OPTIONS;
+  delete env.FORCE_COLOR;
   return env;
 }
 

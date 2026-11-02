@@ -21,9 +21,10 @@ const WARNING_TEXTS = ['ESM syntax in a file loaded as CommonJS', "configLoader:
 
 /** D9: a shell value must not hide the warning or narrow the run. */
 function childEnv() {
-  const env = { ...process.env };
+  const env = { ...process.env, NO_COLOR: '1' }; // H7: colour codes break the output matches
   delete env.EZD_TEST_GREP;
   delete env.VITE_CONFIG_NATIVE_IGNORE_WARNING;
+  delete env.FORCE_COLOR;
   return env;
 }
 

@@ -83,8 +83,9 @@ if (args.includes('--print-scope')) {
   process.exit(0);
 }
 
-const env = { ...process.env, CI: '1', EZD_TEST_SCOPE: scope.mode };
-delete env.EZD_TEST_GREP; delete env.EZD_PHASE;
+// NO_COLOR (H7): output reads the same on a Mac inside an agent and on the CI runner.
+const env = { ...process.env, CI: '1', NO_COLOR: '1', EZD_TEST_SCOPE: scope.mode };
+delete env.EZD_TEST_GREP; delete env.EZD_PHASE; delete env.FORCE_COLOR;
 if (scope.mode === 'phase') { env.EZD_PHASE = String(scope.phase); env.EZD_TEST_GREP = scope.grep; }
 
 // One gate at a time (Q-0019). A lock left by a dead process is taken over.

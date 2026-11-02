@@ -1,9 +1,12 @@
 name: CI
-# Runs only when it matters, to save Actions minutes and Vercel builds:
+# Runs:
+#  - on every push to develop, so a red develop shows the same day (H7, Josh 2026-11-01)
 #  - on the phase PR (develop -> main), which branch protection requires ("gate")
 #  - by hand from the Actions tab (Run workflow)
-# Per-ticket checks run locally with `node scripts/gate.mjs`; CI is the final check per phase.
+# Per-ticket checks run locally with `node scripts/gate.mjs`; a newer push cancels an older run.
 on:
+  push:
+    branches: [develop]
   pull_request:
     branches: [main]
   workflow_dispatch:

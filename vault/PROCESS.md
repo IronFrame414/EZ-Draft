@@ -271,7 +271,7 @@ Each ticket is built in its own fresh orchestrator session (section 10). The orc
 9. **FAIL** (any finding, *minor* included, rule 20) → record every finding with `vault/tools/findings.mjs record`, then findings go back to the builder in the same worktree, following the v2.4 ladder in section 4 (round 2 same model, round 3 one tier up with the orchestrator's advisor advice); a test defect goes to the test-author first. Only the reviewers whose findings are open review again. After 3 failed rounds the ticket goes to `blocked` with notes and the orchestrator ends the unit.
 10. **PASS** (zero findings from every reviewer, rule 20) → squash the branch into one commit `feat(<T>): <title>` on `develop`, remove the worktree, mark the status `done` with the commit hash, record any deviation from the plan in STATUS notes, append a line to `vault/DONE.md`, regenerate `PROGRESS.md` (`next_ticket.mjs --report`), push `develop`, record any lesson (section 13), update the handoff, and end the session.
 
-Pushing is free: CI doesn't run on pushes and hosting skips `develop` (section 12), and it protects the work.
+Pushing is free: CI runs on each push to `develop` at no cost (public repository), hosting skips `develop` (section 12), and it protects the work.
 
 Stage 3 ends when every product ticket in the phase is `done` or `blocked` (tooling tickets build on, section 2).
 
@@ -444,9 +444,9 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 
 ## 12. CI and deploys (keep GitHub Actions usage low)
 
-- CI runs **only** on the PR to `main` and when started by hand from the Actions tab. It does not run on every push.
+- CI runs on every push to `develop`, on the PR to `main` and when started by hand from the Actions tab (H7, Josh 2026-11-01: a red `develop` shows the same day). A newer push cancels an older run.
 - Per-ticket checks run locally with `scripts/gate.mjs`.
-- `develop` is pushed after every merged ticket. This does not trigger CI or a preview build.
+- `develop` is pushed after every merged ticket. This triggers CI but not a preview build.
 - Hosting builds production only from `main`. On Vercel, set the Ignored Build Step to: `[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1; [ "$VERCEL_GIT_COMMIT_REF" = "develop" ] && [ -n "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 1; exit 0`. A push made before the PR exists is skipped, which is why the gate pushes an empty commit after opening the PR.
 - Public repos get free Actions minutes and free branch protection. Never commit keys.
 - Protect `main`: require a PR, require the `gate` check to pass, allow no bypassing.
