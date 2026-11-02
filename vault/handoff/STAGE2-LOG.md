@@ -89,3 +89,6 @@ Where: develop f20fb07e, `next dev` on 127.0.0.1:3100 against the local stack (r
 **For Josh:** audit M10 ("No way from the home page to Settings") was to become a phase 1 gate product ticket (AUDIT-ADDENDUM section 10), and the phase 1 gate did not create one. Until the Projects page exists (phase 2): a "Settings" link on the home page, or send `/` to Settings for users who may see it? Wording is yours.
 
 - M10 answer (Josh, chat 2026-11-02: "Add a Settings link"): fix ticket EZD-289 added to phase 1 as `todo` (a "Settings" link on the signed-in home page, shown only to users who may open Settings); decision row in `vault/spec/decisions/04-app-shell-and-global-ui.md`.
+
+- Launcher restarted (Josh, chat 2026-11-02: "restart launcher") with `node scripts/launchd/install.mjs install` at 10:17 UTC; plan EZD-284 started at once.
+- Launcher stops (Josh: "Yes, fix it"): all three self-stops since 2026-10-23 (EZD-154, EZD-258, EZD-284; about 16 idle hours) were `ready` tickets whose builds never started, which the table step refused. Fixed in 9fdc9e2c (gate PASS): the table step now takes a `ready` ticket (no plan: back to `todo`; with a plan: `blocked` with a note) and the launcher goes on; a third stuck build in a row still stops it.
