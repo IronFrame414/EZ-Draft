@@ -40,7 +40,8 @@
     "excludedCommands": [
       "node scripts/gate.mjs *",
       "node scripts/unit-steps.mjs worktree *",
-      "node scripts/unit-steps.mjs merge *"
+      "node scripts/unit-steps.mjs merge *",
+      "node scripts/ui-run.mjs *"
     ]
   }
 }
