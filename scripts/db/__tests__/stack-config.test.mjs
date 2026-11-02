@@ -153,14 +153,14 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     const newHash = stackConfigHash(f.root);
     const cli = fakeCli({});
 
-    const first = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker });
+    const first = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker, checkTemplates: () => ({ ok: true }) });
     assert.deepEqual(first, { outcome: 'restarted' });
     assert.deepEqual(cli.argsList(), [['status'], ['stop'], ['start']]);
     assertInherit(cli);
     assert.equal(readMarker(f.marker), `${newHash}\n`);
 
     cli.reset();
-    const second = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker });
+    const second = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker, checkTemplates: () => ({ ok: true }) });
     assert.deepEqual(second, { outcome: 'unchanged' });
     assert.deepEqual(cli.argsList(), [['status']], 'second call does not restart: one restart in total');
   });
@@ -172,7 +172,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeMarker(f.marker, `${hash}\n`);
     const cli = fakeCli({});
 
-    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker });
+    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker, checkTemplates: () => ({ ok: true }) });
     assert.deepEqual(r, { outcome: 'unchanged' });
     assert.deepEqual(cli.argsList(), [['status']]);
     assert.equal(readMarker(f.marker), `${hash}\n`, 'marker content unchanged');
@@ -185,7 +185,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeFileSync(path.join(f.root, 'supabase', 'config.toml'), 'project_id = "fixture"\n# x\n');
     const cli = fakeCli({});
 
-    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker });
+    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker, checkTemplates: () => ({ ok: true }) });
     assert.deepEqual(r, { outcome: 'restarted' });
     assert.deepEqual(cli.argsList(), [['status'], ['stop'], ['start']]);
   });
@@ -199,7 +199,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeMarker(a.marker, `${stackConfigHash(a.root)}\n`);
     writeFileSync(tpl(a, 'recovery.html'), '<p>r</p>\n');
     const cliA = fakeCli({});
-    assert.deepEqual(ensureStackCurrent({ cli: cliA, root: a.root, markerFile: a.marker }), {
+    assert.deepEqual(ensureStackCurrent({ cli: cliA, root: a.root, markerFile: a.marker, checkTemplates: () => ({ ok: true }) }), {
       outcome: 'restarted',
     });
     assert.deepEqual(cliA.argsList(), [['status'], ['stop'], ['start']]);
@@ -210,7 +210,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeMarker(b.marker, `${stackConfigHash(b.root)}\n`);
     unlinkSync(tpl(b, 'recovery.html'));
     const cliB = fakeCli({});
-    assert.deepEqual(ensureStackCurrent({ cli: cliB, root: b.root, markerFile: b.marker }), {
+    assert.deepEqual(ensureStackCurrent({ cli: cliB, root: b.root, markerFile: b.marker, checkTemplates: () => ({ ok: true }) }), {
       outcome: 'restarted',
     });
     assert.deepEqual(cliB.argsList(), [['status'], ['stop'], ['start']]);
@@ -222,7 +222,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     // (a) marker file absent
     const a = fixture();
     const cliA = fakeCli({});
-    assert.deepEqual(ensureStackCurrent({ cli: cliA, root: a.root, markerFile: a.marker }), {
+    assert.deepEqual(ensureStackCurrent({ cli: cliA, root: a.root, markerFile: a.marker, checkTemplates: () => ({ ok: true }) }), {
       outcome: 'restarted',
     });
     assert.deepEqual(cliA.argsList(), [['status'], ['stop'], ['start']]);
@@ -233,7 +233,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     const b = fixture();
     writeMarker(b.marker, '\n');
     const cliB = fakeCli({});
-    assert.deepEqual(ensureStackCurrent({ cli: cliB, root: b.root, markerFile: b.marker }), {
+    assert.deepEqual(ensureStackCurrent({ cli: cliB, root: b.root, markerFile: b.marker, checkTemplates: () => ({ ok: true }) }), {
       outcome: 'restarted',
     });
     assert.deepEqual(cliB.argsList(), [['status'], ['stop'], ['start']]);
@@ -245,7 +245,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     const f = fixture();
     const cli = fakeCli({ status: NOT_RUNNING });
 
-    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker });
+    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker, checkTemplates: () => ({ ok: true }) });
     assert.deepEqual(r, { outcome: 'started' });
     assert.deepEqual(cli.argsList(), [['status'], ['start']]);
     assert.equal(cli.calls[1].inherit, true, 'start runs with { inherit: true }');
@@ -260,7 +260,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeFileSync(path.join(f.root, 'supabase', 'config.toml'), 'project_id = "fixture"\n# x\n');
     const cli = fakeCli({ status: DOCKER_DOWN });
 
-    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker });
+    const r = ensureStackCurrent({ cli, root: f.root, markerFile: f.marker, checkTemplates: () => ({ ok: true }) });
     assert.equal(r.outcome, 'failed');
     assert.equal(r.step, 'status');
     assert.deepEqual(r.result, DOCKER_DOWN);
@@ -277,7 +277,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeMarker(a.marker, oldA);
     writeFileSync(path.join(a.root, 'supabase', 'config.toml'), 'project_id = "fixture"\n# a\n');
     const cliA = fakeCli({ stop: FAILED });
-    const rA = ensureStackCurrent({ cli: cliA, root: a.root, markerFile: a.marker });
+    const rA = ensureStackCurrent({ cli: cliA, root: a.root, markerFile: a.marker, checkTemplates: () => ({ ok: true }) });
     assert.equal(rA.outcome, 'failed');
     assert.equal(rA.step, 'stop');
     assert.deepEqual(cliA.argsList(), [['status'], ['stop']]);
@@ -289,7 +289,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeMarker(b.marker, oldB);
     writeFileSync(path.join(b.root, 'supabase', 'config.toml'), 'project_id = "fixture"\n# b\n');
     const cliB = fakeCli({ start: FAILED });
-    const rB = ensureStackCurrent({ cli: cliB, root: b.root, markerFile: b.marker });
+    const rB = ensureStackCurrent({ cli: cliB, root: b.root, markerFile: b.marker, checkTemplates: () => ({ ok: true }) });
     assert.equal(rB.outcome, 'failed');
     assert.equal(rB.step, 'start');
     assert.deepEqual(cliB.argsList(), [['status'], ['stop'], ['start']]);
@@ -298,7 +298,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     // (c) stopped, start fails, no marker before
     const c = fixture();
     const cliC = fakeCli({ status: NOT_RUNNING, start: FAILED });
-    const rC = ensureStackCurrent({ cli: cliC, root: c.root, markerFile: c.marker });
+    const rC = ensureStackCurrent({ cli: cliC, root: c.root, markerFile: c.marker, checkTemplates: () => ({ ok: true }) });
     assert.equal(rC.outcome, 'failed');
     assert.equal(rC.step, 'start');
     assert.deepEqual(cliC.argsList(), [['status'], ['start']]);
@@ -347,7 +347,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     assert.throws(() => stackConfigHash(none.root), { message: 'stack_config_missing' });
     const cli = fakeCli({});
     assert.throws(
-      () => ensureStackCurrent({ cli, root: none.root, markerFile: none.marker }),
+      () => ensureStackCurrent({ cli, root: none.root, markerFile: none.marker, checkTemplates: () => ({ ok: true }) }),
       { message: 'stack_config_missing' },
     );
     assert.equal(cli.calls.length, 0, 'no CLI call without config.toml');

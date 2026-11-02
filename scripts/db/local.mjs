@@ -11,12 +11,14 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gateHash, newGateSecret, setHashSql } from './api-gate.mjs';
-import { runLocalSql } from './sql.mjs';
+import { projectId, runLocalSql } from './sql.mjs';
 import { ensureRealtimeBroadcastStream } from './realtime-warmup.mjs';
 // EZD-190 (vault/plans/EZD-190.md; Q-0330): restart PostgREST and wait until the API request gate is in force.
 import { ensureApiGateInForce } from './api-gate-ready.mjs';
 // EZD-166 (vault/plans/EZD-166.md): restart the stack when supabase/config.toml or supabase/templates/* changed.
 import { STACK_CONFIG_MARKER, ensureStackCurrent, sharedTempDir } from './stack-config.mjs';
+// EZD-287 (vault/plans/EZD-287.md): Kong must serve this checkout's email templates.
+import { checkTemplates, dockerCli } from './stack-templates.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const supabaseBin = path.join(repo, 'node_modules', '.bin', 'supabase');
@@ -44,9 +46,20 @@ function fail(step, result) {
 
 async function up() {
   const markerFile = path.join(sharedTempDir(repo), STACK_CONFIG_MARKER);
-  const stack = ensureStackCurrent({ cli, root: repo, markerFile });
+  const stack = ensureStackCurrent({
+    cli,
+    root: repo,
+    markerFile,
+    checkTemplates: () => checkTemplates({ docker: dockerCli, root: repo, projectId: projectId() }),
+  });
+  if (stack.outcome === 'failed' && stack.step === 'templates') {
+    const { reason, template } = stack.check;
+    process.stderr.write(`Local Supabase email templates are not current (${template ? `${reason} ${template}` : reason}).\n`);
+    process.exit(1);
+  }
   if (stack.outcome === 'failed') fail(stack.step, stack.result);
   if (stack.outcome === 'restarted') process.stdout.write('Local Supabase config changed: stack restarted\n');
+  if (stack.outcome === 'templates_restarted') process.stdout.write('Local Supabase email templates were stale: stack restarted\n');
   const reset = cli(['db', 'reset', '--local'], { inherit: true });
   if (!reset.ok) fail('db reset --local', reset);
   await storeLocalGateSecret();

@@ -11,7 +11,7 @@ export const STACK_CONFIG_MARKER = 'ezd-stack-config-sha256';
 
 /**
  * @typedef {{ ok: boolean, status: number | null, out: string, stdout: string, stderr: string }} CliResult
- * @typedef {{ outcome: 'started' | 'restarted' | 'unchanged' } | { outcome: 'failed', step: 'status' | 'stop' | 'start', result: CliResult }} StackResult
+ * @typedef {{ outcome: 'started' | 'restarted' | 'templates_restarted' | 'unchanged' } | { outcome: 'failed', step: 'status' | 'stop' | 'start', result: CliResult } | { outcome: 'failed', step: 'templates', check: object }} StackResult
  */
 
 const CONFIG = 'supabase/config.toml';
@@ -79,25 +79,36 @@ function writeMarker(markerFile, hash) {
 }
 
 /**
- * Brings the stack up to date with the config files. Runs no CLI call when the config is missing.
- * @param {{ cli: (args: string[], o?: { inherit?: boolean }) => CliResult, root: string, markerFile: string }} opts
+ * Brings the stack up to date with the config files and the email templates Kong serves (EZD-287).
+ * Runs no CLI call when the config is missing.
+ * @param {{ cli: (args: string[], o?: { inherit?: boolean }) => CliResult, root: string, markerFile: string, checkTemplates: () => any }} opts
  * @returns {StackResult}
  */
-export function ensureStackCurrent({ cli, root, markerFile }) {
+export function ensureStackCurrent({ cli, root, markerFile, checkTemplates }) {
   const hash = stackConfigHash(root);
   const status = cli(['status']);
   if (!status.ok) {
     if (/docker/i.test(status.out)) return { outcome: 'failed', step: 'status', result: status };
+    return startAndCheck('started');
+  }
+  if (readMarker(markerFile) === hash) {
+    if (checkTemplates().ok) return { outcome: 'unchanged' };
+    return restart('templates_restarted');
+  }
+  return restart('restarted');
+
+  function restart(outcome) {
+    const stop = cli(['stop'], { inherit: true });
+    if (!stop.ok) return { outcome: 'failed', step: 'stop', result: stop };
+    return startAndCheck(outcome);
+  }
+
+  function startAndCheck(outcome) {
     const start = cli(['start'], { inherit: true });
     if (!start.ok) return { outcome: 'failed', step: 'start', result: start };
     writeMarker(markerFile, hash);
-    return { outcome: 'started' };
+    const check = checkTemplates();
+    if (!check.ok) return { outcome: 'failed', step: 'templates', check };
+    return { outcome };
   }
-  if (readMarker(markerFile) === hash) return { outcome: 'unchanged' };
-  const stop = cli(['stop'], { inherit: true });
-  if (!stop.ok) return { outcome: 'failed', step: 'stop', result: stop };
-  const start = cli(['start'], { inherit: true });
-  if (!start.ok) return { outcome: 'failed', step: 'start', result: start };
-  writeMarker(markerFile, hash);
-  return { outcome: 'restarted' };
 }
