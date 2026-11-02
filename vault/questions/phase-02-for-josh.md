@@ -1,10 +1,10 @@
 # Phase 2 · for Josh (questions unit, 2026-11-02)
 
-Nothing waits on you in section 1. Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
+One decision waits on you in section 1 (Q-0482, plan size of EZD-108). Q-0481 is answered (you applied the sandbox patches, 2026-11-02). Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
 
 ## 1. Decisions needed
 
-None.
+- **Q-0482 · EZD-108.** The plan is about 55,400 characters, over your 45,000 split line (2026-10-22), because your Q-0465 answer and the review round-1 findings added rows to a ticket already built and past review round 2. Options: (a) recommended: accept the size for this in-flight ticket, since a split now repeats the per-ticket overhead and leaves Change password unusable on the live site until part two merges; (b) split the security check (Decided "Security check", T23) into EZD-108b. It does not block the build.
 
 ## 2. Agent answers to confirm
 
@@ -15,6 +15,7 @@ Confirm or override each (answer; source).
 - **Q-0451 · EZD-118.** A member who creates a project is listed on it automatically, so a Foreman can see what they made. Source: security-reviewer; spec section 10 line 11; Q-0178, Q-0202, Q-0224.
 - **Q-0452 · EZD-118.** Scope of work accepts up to 20,000 characters (input guard only). Source: Q-0396; EZD-113 precedent.
 - **Q-0403, Q-0413, Q-0414, Q-0422, Q-0425** (earlier phase 2 agent answers, in QUESTIONS-answered.md): confirm or override.
+- **Q-0483 · EZD-283.** The EZD-283 gate is red only because develop's ledger had uncommitted files (EZD-291 and EZD-292 plans, EZD-110b Architecture line); the launcher commits them at the unit boundary, then EZD-283 re-runs from the gate. The missing STATUS.md in worktrees is debt D-020. Source: CLAUDE.md rule 17; vault/handoff/CURRENT.md. Confirm or override.
 - **Q-0475 · EZD-283.** Keep EZD-283 as written (Company settings only) and add fix ticket EZD-288 for the same silent catch in the customers routes and the sign-in `user.joined` emit. Source: CLAUDE.md rule 17 (fix in place only in files already in the ticket; a defect gets its own ticket); Q-0268.
 
 ## 3. Proposed wording
@@ -135,3 +136,9 @@ All recommended `ratify` (each is a planner or builder check that came from a re
 - **L-034** (EZD-246, EZD-254): plans give exact test counts, fixture shapes in full, and "nothing else" on text blocks. Ratify.
 - **L-035** (EZD-253, EZD-154): run each test row's input through the plan's own decision rows by hand. Ratify.
 - **L-036** (EZD-253, EZD-259): each test row names the input where old and new code differ and every output channel. Ratify.
+- **L-037** (EZD-267): a plan for code that grants a permission, or writes then commits, names the files never granted, the restore for each failing step and a test per failure branch. Ratify.
+- **L-038** (EZD-267, EZD-259, EZD-172, EZD-199): plan test rows use fixture values, never live ledger or budget files; plan text names a comment's sentence, not its line count. Ratify.
+- **L-039** (EZD-260, EZD-108): comment or doc text a plan dictates states only what the planned code enforces, checked against the code. Ratify.
+- **L-040** (EZD-277): a check that refuses may fold letters wider than the disk; a check that allows folds only plain ASCII; disk claims are tested on the disk. Ratify.
+- **L-042** (EZD-108, EZD-277): a plan that changes a type or needs non-ASCII test data lists the fixtures to update and the exact escape sequences. Ratify.
+- **L-043** (EZD-287): every function a plan step calls but does not create is named with its file path, found by grep at plan time. Ratify.

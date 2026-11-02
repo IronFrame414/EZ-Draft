@@ -17206,8 +17206,7 @@
    "mockups": [],
    "architecture": [
     "Row-level security (EZD-006)",
-    "Background jobs (EZD-009)",
-    "Tests"
+    "Background jobs (EZD-009)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [

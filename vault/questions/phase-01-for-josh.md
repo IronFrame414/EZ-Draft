@@ -4,13 +4,16 @@ No decision waits on you (Q-0476 answered yes, Josh 2026-11-02 in chat: "yes."; 
 
 ## 1. Decisions needed
 
-- **Q-0476 (EZD-285 build): answered (a) yes** (Josh 2026-11-02, chat: "yes."). The fix ticket is EZD-291, added by the phase 1 gate (0a1bbce6).
-
-Already settled: Q-0469 is answered by your audit decision D4 (a) (sandbox, guard hardening stopped); Q-0471 and Q-0472 you answered earlier.
+- **Q-0480 (EZD-291, plan QP-2): does Realtime silently lose live updates on the hosted service?** Local evidence only (R-048). Security-reviewer: stale data, not leaked data, but a missed `user_permission.updated` or `session.ended` leaves loaded data on screen up to 3,600 s. Options: (a) a research ticket checks the hosted behaviour on the dev cloud project (recommended: rule 17 allows no parked issue); (b) accept as hosted-only and unlikely, which needs your named exception. A browser liveness timer, if the check finds one is needed, conflicts with 11 rule 11 (push, not poll) and comes back to you.
+- Q-0476 answered yes (Josh 2026-11-02): fix ticket EZD-291.
+- **Tickets to add by hand (rule 17, no unit has a ticket-adding tool; need your yes):** from Q-0477 (`sources` bucket types), Q-0478 (server-only logo writes), Q-0479 (move other realtime event tests onto stream.ts).
 
 ## 2. Agent answers to confirm
 
 New this run (confirm or override):
+- **Q-0477 (EZD-290):** limit `media` in EZD-290; open a defect ticket now for the `sources` bucket and upload types (types from 03c-tables.md:15; formats no source names and the size limit come to you when it is planned). Source: rules 17, 18; Q-0268.
+- **Q-0478 (EZD-290):** a defect ticket where only the server writes logo files (normal under 03 rule 1); not accepted as a known limit. If the route body limit forces the logo below 5 MB, that is your call. Source: rule 17; 03b-architecture-rules.md:6; S15a:16,33.
+- **Q-0479 (EZD-291):** a separate defect ticket moves the event tests in realtime-auth.test.ts and jobs/runner.test.ts onto stream.ts, after EZD-291. Source: rules 4, 17; process.md:115.
 - **Q-0473 (EZD-277, from its planner): debt item D-003 (low), no fix ticket.** The `.claude/worktrees` prefix check in `.claude/hooks/lib.mjs` lowercases a Kelvin-sign spelling; reachable only on a case-sensitive disk, which the Mac is not (EZD-277 G0 refuses it). Guard hardening is stopped (D4 (a)); the sandbox is the boundary, and EZD-279, 280 and 282 are held the same way. Cost of this answer: a rule-18 reading of "security finding becomes a ticket" (D3 (a)) is set aside for guard code. Override to a ticket if you disagree. Source: process.md D3/D4 (a); rule 17; debt.md D-003.
 - **Q-0470 (EZD-268, plan QP-2): (a)** the LG2 limit text uses `unitSubject(next, repair)` like every other limit text, so a repair's limit text names the repair unit; no test value changes. Source: AC-EZD-255-1; EZD-255 D1; vault/plans/EZD-268.md QP-2.
 - **Q-0466 (EZD-260): (a)** an agent's write grant applies only to files in its own worktree; new fix ticket EZD-282. Source: CLAUDE.md rules 17, 18; Q-0463.

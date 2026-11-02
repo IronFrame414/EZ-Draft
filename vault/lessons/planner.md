@@ -357,3 +357,9 @@ Mistake: plan step 3 called projectId() without naming where it comes from; the 
 Cause: the plan used a helper by name and did not check the repo for an existing export.
 Rule: every function a plan step calls that the plan does not create is named with its file path, found by grep at plan time; "add a helper" is written only when no export exists.
 Check: the plan review greps each called-but-not-created name in the plan's steps and finds a file path beside it.
+- EZD-108 (2026-11-02): a plan whose feature calls a password sign-in must check up front whether that call is captcha-guarded in production (runbook Captcha) and plan the widget and token from the start.
+When a build step changes which value a function returns, the plan lists a test whose stub returns a value different from the input, so the step cannot pass by echoing the input. (EZD-290)
+When a plan keeps an old quick check in front of a new parser, it says which one decides each refusal code; better, drop the old check so only the parser decides. (EZD-290)
+When a plan's cleaner reports text positions, they come from the original string; include a test whose case change alters length (U+0130) and key the duplicate-attribute rule by expanded name with a two-prefixes-one-namespace test. (EZD-290)
+Before a plan reuses a component in an office part, check `eslint-rules/boundaries.mjs` (`components/shell/` is EDITOR_CODE, barred from the office entry) and rebuild its CSS from tokens instead; a step that runs a Node script needing the network inside a unit prefixes `NODE_USE_ENV_PROXY=1` (Node fetch ignores the sandbox proxy). (EZD-110b)
+- EZD-110b (2026-11-02): a popover list with a page of N rows states its maximum height and scroll area at the largest page in the smallest test window, and a store action that triggers a refetch says whether it waits for it before the UI reacts.
