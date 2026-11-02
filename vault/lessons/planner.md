@@ -342,3 +342,11 @@ Cause: plans turned "the doc says X" into a test instead of testing the behaviou
 Rule: never plan a test that reads a document's wording or the live vault; test the behaviour (the code, the config, the script's output) against fixtures. The only exceptions guard a real rule (no secrets in docs, migration lists) and test it as behaviour.
 Check: no Tests row reads `docs/*.md`, `CLAUDE.md`, `vault/` or a heading or phrase in them.
 Plan check: every Tests row names code, config or a fixture as its subject, never a document.
+
+## L-042  areas: testing, tooling  seen: 2  status: candidate
+Tickets EZD-108 and EZD-277, 2026-10-30 (code-reviewer r1, category test-defect)
+Mistake: tests did not match what the plan or the types fixed: a settings test fixture lacked a field the type had just made required (tsc failed), and look-alike letters were typed as literal characters where the plan named \u escapes.
+Cause: the plan gave test data in prose and never said that fixtures must satisfy the changed type or that exotic characters are written as escapes.
+Rule: when a plan changes a type or needs non-ASCII test data, its Tests rows list the fixtures to update and name the exact escape sequences.
+Check: each Tests row with a changed type names the fixture files; each look-alike row gives \u escapes.
+Plan check: no Tests row says "look-alike" or "new required field" without the escape or the fixture path.
