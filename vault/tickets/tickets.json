@@ -17237,7 +17237,8 @@
    ],
    "mockups": [],
    "architecture": [
-    "Realtime (EZD-018)"
+    "Realtime (EZD-018)",
+    "Environments and releases (EZD-023b)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
