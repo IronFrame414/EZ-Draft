@@ -1,16 +1,15 @@
-# Phase 1 · for Josh (questions unit, 2026-10-30, thirty-first run)
+# Phase 1 · for Josh (questions unit, 2026-11-02)
 
-Two decisions wait on you: Q-0471 (new: does a plan-gap fix use up a ladder round; it holds EZD-268 blocked) and Q-0469 (Bash is a hole in every file hook). New agent answer: Q-0470. No ticket changed to `ready` this run (none is `planned` or `questions`).
+No decision waits on you. One new agent answer: Q-0473 (a hook edge case goes to the debt list, not a ticket). Nothing is `planned` or `questions`, so no ticket changed.
 
 ## 1. Decisions needed
 
-- **Q-0471 (EZD-268):** The code reviewer failed EZD-268 twice on docs wording: `.claude/agents/builder.md:10` and `test-author.md:10` still say the advisor comes on "round 3" only. The plan did not name those two files, so the reviewer said the builder was right. The plan is patched (rows 7-8), but PROCESS.md counts any FAIL as a round and a high ticket is blocked at round 3, so the ticket is blocked. Options: (a) a fail caused by a plan gap does not use a round; the builder applies the two one-line edits, gate, same reviewer re-reviews, merge (recommended: the builder followed the plan exactly, and PROCESS.md already says a plan gap never moves the builder up a tier; costs one more review round, and a one-sentence rule in PROCESS.md that you or a fix ticket must add); (b) it counts as a round: the ticket stays blocked until you or a fix ticket takes it (costs the ticket's progress and a new ticket for two one-line edits). Sources: vault/plans/EZD-268.md lines 74, 81; PROCESS.md section 4 (Retry and escalation on FAIL), section 8 step 9; build-ticket SKILL.md step 6; CLAUDE.md rule 18.
-
-- **Q-0469 (EZD-282, from Q-0468):** Builders run unsandboxed and the shell guard blocks only git branch commands, so any file hook can be sidestepped through Bash (a builder could write a sibling worktree's file or forge its identity). The hooks stop honest mistakes only. Options: (a) an operating-system sandbox per builder, write access only to its own worktree (recommended, rule 18; real setup work, may change how the launcher starts agents); (b) run each builder with its worktree as the session folder (smaller, not a hard wall); (c) accept the hooks as accident guards and record it in KNOWN-LIMITS. Sources: Q-0468; CLAUDE.md rules 17, 18; scripts/run.mjs:130; guard-bash.mjs:49-52.
+None. Q-0469 is answered by your audit decision D4 (a) (sandbox, guard hardening stopped); Q-0471 and Q-0472 you answered earlier.
 
 ## 2. Agent answers to confirm
 
 New this run (confirm or override):
+- **Q-0473 (EZD-277, from its planner): debt item D-003 (low), no fix ticket.** The `.claude/worktrees` prefix check in `.claude/hooks/lib.mjs` lowercases a Kelvin-sign spelling; reachable only on a case-sensitive disk, which the Mac is not (EZD-277 G0 refuses it). Guard hardening is stopped (D4 (a)); the sandbox is the boundary, and EZD-279, 280 and 282 are held the same way. Cost of this answer: a rule-18 reading of "security finding becomes a ticket" (D3 (a)) is set aside for guard code. Override to a ticket if you disagree. Source: process.md D3/D4 (a); rule 17; debt.md D-003.
 - **Q-0470 (EZD-268, plan QP-2): (a)** the LG2 limit text uses `unitSubject(next, repair)` like every other limit text, so a repair's limit text names the repair unit; no test value changes. Source: AC-EZD-255-1; EZD-255 D1; vault/plans/EZD-268.md QP-2.
 - **Q-0466 (EZD-260): (a)** an agent's write grant applies only to files in its own worktree; new fix ticket EZD-282. Source: CLAUDE.md rules 17, 18; Q-0463.
 - **Q-0467 (EZD-282): (a)** the builder's own worktree is read from its dispatch's `Worktree:` line in its own transcript, failing closed; it is an accident guard, forgeable through Bash. Source: security-reviewer; R-047; run.mjs:130.
@@ -133,3 +132,4 @@ All still `candidate`. Recommendation, one line each:
 - L-037 (EZD-267): a plan for code that grants a permission or writes then commits names the files never granted, the restore and one notice for every step that can fail after a write, and a test per failure branch. **Ratify**: the same gap appeared in EZD-250, EZD-248 and EZD-254.
 - L-038 (EZD-267, EZD-259, EZD-172, EZD-199): test rows use fixture values, never the live ledger or budget files; plan text about a comment names the sentence, not a line count. **Ratify**: four merges went red on develop for causes outside their diff.
 - L-039 (EZD-260, EZD-108): comment or doc text a plan dictates states only what the planned code enforces, and a rule-wording change greps agents and skills for the old wording. **Ratify**: reviewers failed two tickets for wording alone, and EZD-268 is blocked on one.
+- L-040 (EZD-277): a check that refuses may fold letters wider than the disk, a check that allows (grants, exemptions) folds only plain ASCII; test disk claims against an existing folder. **Ratify**: the EZD-277 grant check folded wider than the disk (Q-0473).

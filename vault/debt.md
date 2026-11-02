@@ -6,3 +6,4 @@ Small findings that are not defects (CLAUDE.md rule 17; D3 (a) and P2 (a), Josh 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | D-001 | low | app Settings save | No "saving" state on Save; the footer says "Unsaved" for about 2 seconds (L11) | audit walkthrough 2026-11-01 | 1 | phase 3 gate | |
 | D-002 | low | app Customers table | Below about 1,280 px wide the edit button is cut off (L12) | audit walkthrough 2026-11-01 | 1 | phase 3 gate | |
+| D-003 | low | .claude/hooks/lib.mjs repoRelative (lines 56-63) | The .claude/worktrees/<T>/ prefix is matched with JavaScript toLowerCase(), which maps a Kelvin-sign spelling to the real prefix; on a case-sensitive disk (CI Linux) a builder could write into a look-alike folder and be judged by the worktree-relative path. Not reachable on the Mac (EZD-277 G0 refuses it). Fix: ASCII-only lower-casing plus a test row (Q-0473) | EZD-277 planner | 1 | when the sandbox lands: closed or kept with EZD-279/280/282 | |
