@@ -600,7 +600,7 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-286 | 1 | Fix: root test files that write the local database no longer deadlock | ready | medium | EZD-200 |  |  | Added 2026-11-02 by the phase 1 gate (Q-0357; rule 17; defect at the front of the queue). |
 | EZD-285 | 1 | Fix: the EZD-102 D3 permissions query test does not depend on the planner's index choice | ready | medium | EZD-102, EZD-190 |  |  | Added 2026-11-02 by the phase 1 gate (Q-0355; rule 17; defect at the front of the queue). |
 | EZD-284 | 1 | Fix: the CI workflow installs the pinned pnpm version | ready | medium | EZD-002, EZD-147 |  |  | Added 2026-11-02 by the phase 1 gate (Phase 1 gate security review (rules 17, 18); rule 17; defect at the front of the queue). |
-| EZD-283 | 2 | Fix: a failed tenant.updated event after a Company settings save is reported | todo |  | EZD-024, EZD-169 |  |  | Added 2026-10-30 from the EZD-108 build (rule 17). |
+| EZD-283 | 2 | Fix: a failed tenant.updated event after a Company settings save is reported | questions | low | EZD-024, EZD-169 |  |  | Added 2026-10-30 from the EZD-108 build (rule 17). |
 | EZD-276 | 2 | Fix: the perf check signs in a member and measures the Projects first cards | ready | high | EZD-017, EZD-016a, EZD-016c, EZD-016d, EZD-117b |  |  | Added 2026-10-30 from Q-0449 (a) (rule 17). |
 | EZD-137 | 9 | Mark complete and Completed filter | todo |  | EZD-117a, EZD-117b, EZD-102, EZD-124 |  |  | Added 2026-10-20 in the re-cut for Q-0191, Q-0199 (Q-0218). Moved to phase 9 after EZD-124 (Q-0395). |
 | EZD-138 | 7 | Invite link and code for the sender | todo |  | EZD-105, EZD-007d |  |  | Added 2026-10-20 in the re-cut for Q-0187, Q-0216 (Q-0218). |
