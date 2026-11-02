@@ -92,3 +92,6 @@ Where: develop f20fb07e, `next dev` on 127.0.0.1:3100 against the local stack (r
 
 - Launcher restarted (Josh, chat 2026-11-02: "restart launcher") with `node scripts/launchd/install.mjs install` at 10:17 UTC; plan EZD-284 started at once.
 - Launcher stops (Josh: "Yes, fix it"): all three self-stops since 2026-10-23 (EZD-154, EZD-258, EZD-284; about 16 idle hours) were `ready` tickets whose builds never started, which the table step refused. Fixed in 9fdc9e2c (gate PASS): the table step now takes a `ready` ticket (no plan: back to `todo`; with a plan: `blocked` with a note) and the launcher goes on; a third stuck build in a row still stops it.
+
+- Phase 1 PR (Josh, chat 2026-11-02, relayed by the parent session): auto-merge on a green CI gate stays (Q-0261); Josh walks the punch list after. The 2026-11-02 row in `vault/spec/decisions/process.md` now says so.
+- Sandbox (Josh, same relay): option 3 now (the gate command runs outside the sandbox), option 1 with the lanes work. Not yet done: the merge step runs the develop gate inside `unit-steps.mjs merge`, so excluding only `node scripts/gate.mjs *` would stop every merge, and the re-probe needs a `claude` start that 2.8 removed. Both asked back to Josh.
