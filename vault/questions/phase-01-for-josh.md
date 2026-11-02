@@ -1,10 +1,12 @@
 # Phase 1 · for Josh (questions unit, 2026-11-02)
 
-No decision waits on you. No new question this run; EZD-284, 285, 286, 287 and 289 had none and are now `ready`. Earlier agent answers below still wait for your confirmation (Q-0473 is the newest).
+No decision waits on you (Q-0476 answered yes, Josh 2026-11-02 in chat: "yes."; its fix ticket is EZD-291). EZD-284, 285, 286, 287 and 289 had no question. Earlier agent answers below still wait for your confirmation (Q-0473 is the newest).
 
 ## 1. Decisions needed
 
-None. Q-0469 is answered by your audit decision D4 (a) (sandbox, guard hardening stopped); Q-0471 and Q-0472 you answered earlier.
+- **Q-0476 (EZD-285 build): answered (a) yes** (Josh 2026-11-02, chat: "yes."). The fix ticket is EZD-291, added by the phase 1 gate (0a1bbce6).
+
+Already settled: Q-0469 is answered by your audit decision D4 (a) (sandbox, guard hardening stopped); Q-0471 and Q-0472 you answered earlier.
 
 ## 2. Agent answers to confirm
 
