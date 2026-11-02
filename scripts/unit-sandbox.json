@@ -34,9 +34,6 @@
       "allowUnixSockets": [
         "~/.docker/run/docker.sock"
       ]
-    },
-    "excludedCommands": [
-      "node scripts/gate.mjs *"
-    ]
+    }
   }
 }
