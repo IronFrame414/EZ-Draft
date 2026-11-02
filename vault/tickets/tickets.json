@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 576,
+ "count": 577,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -120,6 +120,7 @@
   "EZD-1707",
   "EZD-108",
   "EZD-110a",
+  "EZD-292",
   "EZD-110b",
   "EZD-117a",
   "EZD-117b",
@@ -2813,7 +2814,9 @@
     "Messages and language (t())",
     "State components (EZD-015)",
     "Design tokens, fonts and icons",
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Settings shell (EZD-103a)",
+    "Entry contents and bundle report (EZD-020)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -17184,6 +17187,38 @@
    "acs": [
     "AC-EZD-291-1",
     "AC-EZD-291-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-292",
+   "phase": 2,
+   "title": "Fix: the RLS audit and job handler tests list the notification table and the notification_email job",
+   "depends_raw": "EZD-110a, EZD-006, EZD-009",
+   "spec_ref": "Q-0268, rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications",
+    "spec/sections/screens/S01-projects.md#Notifications button"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Row-level security (EZD-006)",
+    "Background jobs (EZD-009)",
+    "Tests"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110a",
+    "EZD-006",
+    "EZD-009"
+   ],
+   "build_position": 564,
+   "acs": [
+    "AC-EZD-292-1",
+    "AC-EZD-292-2"
    ],
    "acs_source": "done-when"
   }
