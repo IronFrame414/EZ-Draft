@@ -87,51 +87,29 @@ test('EZD-000i T11 settings.json deny list gains the five token entries and keep
     'Bash(security find-internet-password *-g*)',
     'Read(./.env)',
   ]) assert.ok(deny.includes(e), e);
-  // Stage 2 (Josh 2026-11-01): these three move to the hook alone, which allows only the narrow exceptions below.
+  // Stage 2 (Josh 2026-11-01): these three move to the hook alone.
   for (const e of ['Bash(claude *)', 'Bash(rm -rf *)', 'Bash(node scripts/run.mjs*)']) assert.ok(!deny.includes(e), e);
 });
 
-// Stage 2 exceptions (Josh 2026-11-01; removed in remediation item 2.8).
-function runIn(dir, agent, command, extraEnv = {}) {
+// Stage 2 exceptions removed (REMEDIATION 2.8): with fix mode open, the orchestrator is denied each of them again.
+function runIn(dir, agent, command) {
   const input = { tool_input: { command } };
   if (agent) input.agent_type = agent;
-  const env = { ...process.env, CLAUDE_PROJECT_DIR: dir, ...extraEnv };
-  if (!('EZD_UNIT_ID' in extraEnv)) delete env.EZD_UNIT_ID; // the gate may itself run inside a launcher unit
+  const env = { ...process.env, CLAUDE_PROJECT_DIR: dir };
+  delete env.EZD_UNIT_ID; // the gate may itself run inside a launcher unit
   const r = spawnSync('node', [hook], { input: JSON.stringify(input), env, encoding: 'utf8' });
   return r.stdout.includes('"deny"');
 }
-// A root with fix mode open, so the tests do not depend on the real checkout's vault/handoff.
+// A root with fix mode open, so the test does not depend on the real checkout's vault/handoff.
 const fixRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-bash-fix-'));
 fs.mkdirSync(path.join(fixRoot, 'vault/handoff'), { recursive: true });
 fs.writeFileSync(path.join(fixRoot, 'vault/handoff/LAUNCHER_FIX.md'), '# test\n');
-const exceptions = [
-  'rm -rf .claude/worktrees/EZD-012c',
-  'rm -rf .claude/worktrees/EZD-012c/ perf-results',
-  'node scripts/run.mjs --dry-run',
-  'EZD_SANDBOX_SPIKE=1 claude -p "probe" --settings vault/spikes/sandbox/settings.json',
-];
-const stillDenied = [
-  'rm -rf app',
-  'rm -rf .claude/worktrees/EZD-012c ../x',
-  'rm -rf .claude/worktrees/EZD-012c; echo x',
-  'node scripts/run.mjs',
-  'node scripts/run.mjs --dry-run && node scripts/run.mjs',
-  'node scripts/budget.mjs --dry-run',
-  'claude -p "probe"',
-  'FOO=1 claude -p "probe"',
-  'EZD_SANDBOX_SPIKE=1 claude -p x | tee y',
-];
 
-test('Stage 2: in fix mode the orchestrator may run only the three narrow exceptions', () => {
-  for (const cmd of exceptions) assert.ok(!runIn(fixRoot, null, cmd), cmd);
-  for (const cmd of stillDenied) assert.ok(runIn(fixRoot, null, cmd), cmd);
-});
-
-test('Stage 2: the exceptions never apply to an agent, a launcher unit, or outside fix mode', () => {
-  const noFix = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-bash-'));
-  for (const cmd of exceptions) {
-    assert.ok(runIn(fixRoot, 'builder', cmd), `builder ${cmd}`);
-    assert.ok(runIn(fixRoot, null, cmd, { EZD_UNIT_ID: 'build-EZD-259' }), `launcher unit ${cmd}`);
-    assert.ok(runIn(noFix, null, cmd), `no fix mode ${cmd}`);
-  }
+test('Stage 2 exceptions are gone: in fix mode the orchestrator is denied each former exception', () => {
+  for (const cmd of [
+    'rm -rf .claude/worktrees/EZD-012c',
+    'rm -rf .claude/worktrees/EZD-012c/ perf-results',
+    'node scripts/run.mjs --dry-run',
+    'EZD_SANDBOX_SPIKE=1 claude -p "probe" --settings vault/spikes/sandbox/settings.json',
+  ]) assert.ok(runIn(fixRoot, null, cmd), cmd);
 });

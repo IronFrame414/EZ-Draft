@@ -334,17 +334,14 @@ test('EZD-253 U19 nothing tooling is ready: the fall-through message names the o
   }
 });
 
-test('EZD-253 U20 a guard grant for a tooling ticket of an earlier phase holds only that ticket (AC-EZD-253-3)', () => {
+test('EZD-253 U20 a guarded path for a tooling ticket of an earlier phase holds only that ticket (AC-EZD-253-3)', () => {
   try {
     mkdirSync(path.join(dir, '.claude/hooks'), { recursive: true });
     for (const f of ['guard-paths.mjs', 'lib.mjs']) copyFileSync(path.join(root, '.claude/hooks', f), path.join(dir, '.claude/hooks', f));
-    writeFileSync(path.join(dir, '.claude/hooks/grants.json'), '{}\n');
     reset(); done(P1); wrapped(); writePlan(T1, '`scripts/run.mjs`'); setStatus(P2, 'ready');
     assert.equal(nextUnit(), `build ${P2}`);
     appendFileSync(file(`plans/${P2}.md`), '| 2 | `scripts/run.mjs` | new | none | none | none |\n');
-    const needs = run('next_ticket.mjs', ['--grant-needs']);
-    assert.deepEqual(JSON.parse(needs.stdout), [{ id: T1, paths: ['scripts/run.mjs'] }, { id: P2, paths: ['scripts/run.mjs'] }]);
-    assert.equal(nextUnit(), `none: waiting on Josh (guard grant for ${T1}: scripts/run.mjs; ${P2}: scripts/run.mjs; see vault/handoff/)`);
+    assert.equal(nextUnit(), `none: waiting on Josh (guarded paths for ${T1}: scripts/run.mjs; ${P2}: scripts/run.mjs; a change to them goes through fix mode)`);
   } finally {
     rmSync(path.join(dir, '.claude'), { recursive: true, force: true });
     reset();

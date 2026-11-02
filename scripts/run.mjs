@@ -26,7 +26,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, withLedgerLock, recordPlan, writeHandoff, launcherHandoffText, writeFileAtomic, closeUnit, commitOrRestore, restoreFile,
+  launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, withLedgerLock, recordPlan, writeHandoff, launcherHandoffText, writeFileAtomic, closeUnit,
   takeLauncherLock,
 } from './ledger.mjs';
 
@@ -389,113 +389,6 @@ function applyQueuedEdits() {
   }
 }
 
-// EZD-267: a ticket held for a guard grant gets its grant from its approved plan (grants.mjs apply, committed); a plan not approved reaches Josh as one patch (EZD-250 D11).
-const grantFailuresSent = new Set();
-let grantCheckUnreadable = false; // logged once until a readable result
-function grantPass() {
-  const g = tool('--grant-needs');
-  const out = (g.stdout || '').trim();
-  let held = null;
-  if (g.status === 0 && out) { try { held = JSON.parse(out); } catch {} }
-  if (!Array.isArray(held) || !held.every((h) => typeof h?.id === 'string' && Array.isArray(h.paths))) {
-    if (!grantCheckUnreadable) log('grant check output unreadable');
-    grantCheckUnreadable = true;
-    return;
-  }
-  grantCheckUnreadable = false;
-  const notifyOnce = (id, text) => {
-    if (grantFailuresSent.has(`${id}\n${text}`)) return;
-    grantFailuresSent.add(`${id}\n${text}`);
-    notify(text);
-  };
-  const grantsRel = '.claude/hooks/grants.json';
-  const stayHeld = '. Tickets that need a guard grant stay held.';
-  const readOrNull = (rel) => {
-    try { return readFileSync(path.join(root, rel), 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw e; }
-  };
-  const restoreIfChanged = (rel, before) => {
-    let now;
-    try { now = readOrNull(rel); } catch { now = undefined; }
-    if (now !== before) restoreFile(root, rel, before);
-  };
-  const keep = new Set(held.map((h) => h.id));
-  for (const { id } of held) {
-    const patchRel = `vault/handoff/${id}-grant.patch`;
-    try {
-      withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => {
-        let before;
-        try { before = readOrNull(grantsRel); } catch (e) {
-          notifyOnce(id, `guard grant for ${id} failed: grants.json unreadable: ${e.code || e.message}${stayHeld}`);
-          return;
-        }
-        const r = spawnSync(process.execPath, [path.join(vault, 'tools/grants.mjs'), 'apply', id], { encoding: 'utf8', cwd: root });
-        if (r.status !== 0) {
-          restoreIfChanged(grantsRel, before);
-          notifyOnce(id, `guard grant for ${id} failed: ${firstLine(r.stderr) || `exit ${r.status}`}${stayHeld}`);
-          return;
-        }
-        let res = null;
-        try { res = JSON.parse(r.stdout); } catch {}
-        if (res === null || typeof res !== 'object' || typeof res.approved !== 'boolean' || !Array.isArray(res.paths)) {
-          restoreIfChanged(grantsRel, before);
-          notifyOnce(id, `guard grant for ${id} failed: apply output unreadable${stayHeld}`);
-          return;
-        }
-        if (res.approved) {
-          if (res.written) {
-            try {
-              commitOrRestore(root, grantsRel, before, `chore(guard): grant ${id} (approved plan)`);
-            } catch (e) {
-              notifyOnce(id, `guard grant for ${id} not committed: ${e.message}${stayHeld}`);
-              return;
-            }
-            log(`guard grant applied for ${id}: ${res.paths.join(', ')}`);
-          }
-          keep.delete(id);
-          return;
-        }
-        if (!res.paths.length) { keep.delete(id); return; }
-        const patchBefore = readOrNull(patchRel);
-        const p = spawnSync(process.execPath, [path.join(vault, 'tools/grants.mjs'), 'patch', id, ...res.paths], { encoding: 'utf8', cwd: root });
-        if (p.status !== 0) {
-          restoreIfChanged(patchRel, patchBefore);
-          notifyOnce(id, `grant patch for ${id} failed: ${firstLine(p.stderr) || `exit ${p.status}`}${stayHeld}`);
-          return;
-        }
-        let pres = null;
-        try { pres = JSON.parse(p.stdout); } catch {}
-        if (pres?.written) {
-          try {
-            commitOrRestore(root, patchRel, patchBefore, `docs(vault): guard grant patch ${id}`);
-          } catch (e) {
-            notifyOnce(id, `guard grant for ${id} not committed: ${e.message}${stayHeld}`);
-            return;
-          }
-          notify(`guard grant for ${id} needs you: ${res.paths.join(', ')} (${res.reason}); from the repo root run git apply vault/handoff/${id}-grant.patch && git commit -m "chore(guard): grant ${id}" -- .claude/hooks/grants.json`);
-        }
-      });
-    } catch (e) {
-      notifyOnce(id, `guard grant for ${id} failed: ${e.message}${stayHeld}`);
-    }
-  }
-  let names = [];
-  try { names = readdirSync(path.join(vault, 'handoff')); } catch {}
-  for (const n of names) {
-    const id = n.match(/^(.+)-grant\.patch$/)?.[1];
-    if (!id || keep.has(id)) continue;
-    const patchRel = `vault/handoff/${n}`;
-    try {
-      withLedgerLock(root, { owner: `run.mjs grant ${id}` }, () => {
-        const b = readFileSync(path.join(root, patchRel), 'utf8');
-        unlinkSync(path.join(root, patchRel));
-        commitOrRestore(root, patchRel, b, `docs(vault): guard grant in place ${id}`);
-      });
-    } catch (e) {
-      notifyOnce(id, `guard grant for ${id} not committed: ${e.message}${stayHeld}`);
-    }
-  }
-}
-
 // EZD-250 D9: the launcher's code changed (a merge): restart in place, same pid, so launchd and the watchdog see one process.
 function restartIfCodeChanged(atStart) {
   const now = codeFingerprint(root);
@@ -535,7 +428,7 @@ async function main() {
     try { const c = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }); c.unref(); } catch {}
   }
   if (!dryRun) await recoverInflight();
-  // EZD-250 D8: the continuous run also restarts on new code, applies queued ledger edits, sends grant notices and repairs.
+  // EZD-250 D8: the continuous run also restarts on new code, applies queued ledger edits and repairs.
   const continuous = !once && !dryRun;
   const codeAtStart = codeFingerprint(root);
   const repairStateFile = path.join(logDir, 'repair-state.json');
@@ -554,7 +447,7 @@ async function main() {
     // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
     if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
-    if (continuous && !stopExists) { applyQueuedEdits(); grantPass(); }
+    if (continuous && !stopExists) applyQueuedEdits();
     const next = stopExists ? '' : nextUnitText();
     let [unitName, arg] = next.split(/\s+/, 2);
     const effective = stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`;

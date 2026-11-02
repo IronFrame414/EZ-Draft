@@ -147,7 +147,6 @@ test('EZD-278 O3 phase 1 only ready ticket is held (AC-EZD-278-1)', () => {
   for (const f of readdirSync(path.join(root, '.claude/hooks')).filter((n) => n.endsWith('.mjs'))) {
     copyFileSync(path.join(root, '.claude/hooks', f), path.join(dir, '.claude/hooks', f));
   }
-  writeFileSync(path.join(dir, '.claude/hooks/grants.json'), '{}\n');
   writePlan(P1, '`app/src/a.ts` and `scripts/gate.mjs`');
   assert.equal(nextUnit(), `build ${P2}`);
 });

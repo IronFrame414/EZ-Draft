@@ -1,5 +1,5 @@
 // EZD-250 test harness (vault/plans/EZD-250.md section 4): a temporary root with copies of the launcher, a stub ledger tool (NT)
-// answering --next-unit, --check and --grant-needs from marker files, a fake claude, a PATH shim for claude and a stub notify
+// answering --next-unit and --check from marker files, a fake claude, a PATH shim for claude and a stub notify
 // command. Nothing here touches the real vault/, the real launcher log, a real claude or a live service.
 //
 // Stub ledger tool (vault/tools/next_ticket.mjs in the root) reads vault/tools/stub-config.json:
@@ -9,7 +9,6 @@
 //          it also writes the marker markers/<writes>. copyState: each time the entry answers, logs/launcher-state.json is
 //          copied to state-copies/<list>-<n>.json (n = the entry's own answer number; `null` when the file is absent).
 //   check: { failUntil?: marker, failIfStatusContains?: text, output? }: exit 1 until the marker exists / while STATUS.md has the text.
-//   grantNeeds: entries as next, plus exit?: the exit code (default 0); an empty text prints nothing.
 // Fake claude reads fake-rules.json: rules { prompt (prefix), writes: [markers], result, subtype (default 'success'), exit (default 0), append: [{ file, text }], script }.
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync, chmodSync, rmSync, realpathSync, openSync, closeSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
@@ -76,10 +75,6 @@ export const STUB_NT = [
   "const argv = isMain ? process.argv.slice(2) : ['--imported'];",
   "if (argv.includes('--next-unit')) {",
   "  console.log(pick(cfg.next ?? [{ text: 'none: budget hold (test)' }], bump('next'), 'next').text);",
-  "} else if (argv.includes('--grant-needs')) {",
-  "  const e = pick(cfg.grantNeeds ?? [{ text: '[]' }], bump('grant'), 'grant');",
-  '  if (e.text) console.log(e.text);',
-  '  process.exitCode = e.exit ?? 0;',
   "} else if (argv.includes('--check')) {",
   '  const k = cfg.check ?? {};',
   '  let fail = false;',
@@ -237,7 +232,7 @@ export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = 
 
 export const why = (r) => `exit ${r.status}, signal ${r.signal}${r.timedOut ? ', TIMED OUT' : ''}\n${r.log}`;
 
-// A plan with a Build steps table (vault/plans/TEMPLATE.md section 1), for planPaths and grantNeeds.
+// A plan with a Build steps table (vault/plans/TEMPLATE.md section 1), for planPaths and guardedPaths.
 export const planText = (id, paths) =>
   [
     `# ${id} · test plan`,
@@ -254,30 +249,3 @@ export const planText = (id, paths) =>
   ].join('\n');
 
 export const GH_ARGV = 'pr checks https://github.com/o/r/pull/5 --json name,bucket,link';
-
-// EZD-267: a plan that passes the strict lint (vault/tools/plan_lint.mjs lintPlan returns []), for the approved-plan tests.
-// question: true adds one open question, which the lint reports as `section 10: open questions remain: QP-1`.
-export const approvedPlanText = (id, paths, { question = false } = {}) =>
-  [
-    [`# ${id} · fixture`],
-    ['## 1. What to build'],
-    [
-      '### Build steps',
-      '| # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |',
-      '| --- | --- | --- | --- | --- | --- |',
-      ...paths.map((p, i) => `| ${i + 1} | \`${p}\` | change | none | none | none |`),
-    ],
-    ['### Decided for the builder', 'None.'],
-    ['### Do not touch', 'None.'],
-    ['## 2. Sources', 'Architecture: none beyond the core'],
-    ['## 3. Interface contract', 'None.'],
-    ['## 4. Tests', '| Test | Expected value |', '| --- | --- |', '| F1 | 1 |'],
-    ['## 5. Visual checklist', 'None.'],
-    ['## 6. Proposed wording', 'None.'],
-    ['## 7. Security review', 'security-review: no'],
-    ['## 8. Complexity and model recommendation', 'low'],
-    ['## 9. Dependencies', 'None.'],
-    ['## 10. Open questions', question ? 'QP-1 fixture question.' : 'None.'],
-  ]
-    .map((block) => [...block, ''].join('\n'))
-    .join('\n');

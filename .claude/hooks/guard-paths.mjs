@@ -1,7 +1,7 @@
 // PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
 // project write limits in vault/PROCESS-EZDRAFT.md section 3).
-import { existsSync, readFileSync, lstatSync } from 'node:fs';
-import { readInput, repoRelative, canonicalPath, repoRoot, deny, projectDir, caseInsensitiveDisk, pathKey, pathIn, grantFor, printableAscii } from './lib.mjs';
+import { existsSync, lstatSync } from 'node:fs';
+import { readInput, repoRelative, canonicalPath, repoRoot, deny, projectDir, caseInsensitiveDisk, pathKey, pathIn, printableAscii } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator'; // main session = orchestrator
@@ -110,41 +110,6 @@ rules['retriever-digest'] = retriever;
 rules['retriever-web'] = retriever;
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) deny(`${agent} is read-only.`);
-// Builder grants (Josh 2026-10-27: "you have permission to perform everything needed for this list"): the builder of a
-// ticket listed here may write exactly these files in its own worktree. Tests stay denied. The orchestrator removes a
-// ticket's entry after it merges.
-const AGENTS = (names) => names.map((n) => `.claude/agents/${n}.md`);
-const usageFixFiles = {
-  'EZD-245': ['vault/tools/findings.mjs', 'vault/tools/next_ticket.mjs', 'vault/lessons/INDEX.md', '.claude/skills/build-ticket/SKILL.md',
-    '.claude/skills/build-ticket/dispatch.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/wrap/SKILL.md', ...AGENTS(['planner', 'plan-checker']), 'vault/PROCESS.md'],
-  'EZD-246': ['vault/tools/next_ticket.mjs', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/build-ticket/dispatch.md',
-    ...AGENTS(['code-reviewer', 'security-reviewer']), 'vault/PROCESS.md'],
-  'EZD-248': ['vault/tools/next_ticket.mjs', '.claude/hooks/session-start.mjs', '.claude/hooks/guard-bash.mjs', 'scripts/run.mjs', 'vault/questions/QUESTIONS-answered.md',
-    'vault/questions/QUESTIONS-archive.md', '.claude/skills/questions/SKILL.md', '.claude/skills/plan-ticket/SKILL.md', '.claude/skills/build-ticket/SKILL.md', '.claude/skills/spec-check/SKILL.md'],
-  'EZD-249': ['vault/tools/research.mjs', 'vault/tools/next_ticket.mjs', '.claude/hooks/guard-paths.mjs', '.claude/hooks/guard-bash.mjs',
-    '.claude/agents/retriever-web.md', '.claude/agents/retriever-digest.md', '.claude/skills/build-ticket/dispatch.md', 'vault/PROCESS.md'],
-};
-// The ticket of the worktree the file really is in: a prefix match of the canonical path on <canonical project dir>/.claude/worktrees/<T>/
-// (EZD-250 D1; EZD-260), so a link inside a worktree to the main checkout gets no grant.
-const worktreesPrefix = `${repoRoot()}/.claude/worktrees/`;
-const usageFixTicket = realKey.startsWith(pathKey(worktreesPrefix, fold)) ? (fold ? /^(ezd-\d+[a-z]?)\// : /^(EZD-\d+[a-z]?)\//).exec(realKey.slice(pathKey(worktreesPrefix, fold).length))?.[1] : undefined;
-const fixPaths = usageFixTicket ? grantFor(usageFixFiles, usageFixTicket, fold) : null;
-if (agent === 'builder' && fixPaths && !isTest && pathIn(fixPaths, rel, fold)) process.exit(0);
-// Builder grants from .claude/hooks/grants.json (EZD-250 D1): ticket ID → the exact paths its builder may write in its own
-// worktree; the launcher writes them from the ticket's approved plan (EZD-267); Josh applies a patch only for a plan that is not approved. Read on every call. Unreadable, invalid JSON or not a plain
-// object grants nothing; a value that is not a list of strings grants nothing for that ticket (fail closed).
-function fileGrants() {
-  try {
-    const g = JSON.parse(readFileSync(`${projectDir()}/.claude/hooks/grants.json`, 'utf8'));
-    return g !== null && typeof g === 'object' && Object.getPrototypeOf(g) === Object.prototype ? g : null;
-  } catch {
-    return null;
-  }
-}
-if (agent === 'builder' && usageFixTicket && !isTest) {
-  const paths = grantFor(fileGrants(), usageFixTicket, fold);
-  if (paths && pathIn(paths, rel, fold)) process.exit(0);
-}
 const reason = rules[agent]?.();
 if (reason) deny(reason);
 if (!rules[agent]) deny(`${agent} is not in the roster (vault/PROCESS.md section 4); it may not write files.`);

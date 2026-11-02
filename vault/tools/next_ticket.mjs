@@ -4,7 +4,6 @@
 //   node vault/tools/next_ticket.mjs --ready         -> the next `ready` ticket whose dependencies are all done (Stage 3)
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
-//   node vault/tools/next_ticket.mjs --grant-needs   -> JSON [{ id, paths }]: build-pool then in-progress/review tickets that need a guard grant (EZD-250, EZD-267)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
 //   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
@@ -29,7 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
 import { Q_FILES, questionMax } from './questions-files.mjs';
-import { grantNeeds, planPaths } from './grants.mjs';
+import { guardedPaths, planPaths } from './plan-paths.mjs';
 import { findingProblems } from './findings.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -369,7 +368,7 @@ function architectureProblems() {
   return out;
 }
 // Tooling track (EZD-253): a ticket whose plan's Build steps change no file under a product dir builds beside the phases.
-// A path is product when it equals a dir or starts with `<dir>/`. One parser for the plan's files: grants.mjs planPaths.
+// A path is product when it equals a dir or starts with `<dir>/`. One parser for the plan's files: plan-paths.mjs planPaths.
 export const PRODUCT_DIRS = ['app', 'packages', 'worker', 'supabase'];
 const isProductPath = (p) => PRODUCT_DIRS.some((d) => p === d || p.startsWith(`${d}/`));
 export function planTrack(planText) {
@@ -753,7 +752,7 @@ export function blockingPhase() {
 // EZD-253 D9, EZD-278: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies
 // done, by phase then priority; then, when B is signed off, B's ready product tickets; then, when the phase after B is signed off,
 // its ready product tickets (those numbered CHECKPOINT_FROM or higher only once the architecture checkpoint is met). nextUnit
-// builds the first one no guard grant holds, so the next phase builds only while B has none the launcher can build.
+// builds the first one whose plan needs no guarded path, so the next phase builds only while B has none the launcher can build.
 export function buildPool(B) {
   const cap = B ?? Math.max(...data.tickets.map((t) => t.phase));
   const pool = data.tickets.filter((t) => isTooling(t) && t.phase <= cap && status(t.id) === 'ready' && depsDone(t))
@@ -768,14 +767,6 @@ export function buildPool(B) {
     }
   }
   return pool;
-}
-
-// EZD-250 D6: every ticket of the build pool (EZD-253 D11) that waits on a guard grant, with the paths it needs; then (EZD-267)
-// every in-progress or review ticket not in the pool, in tickets.json order.
-function heldForGrants() {
-  const pool = buildPool(blockingPhase());
-  const flying = data.tickets.filter((t) => ['in-progress', 'review'].includes(status(t.id)) && !pool.some((p) => p.id === t.id));
-  return [...pool, ...flying].map((t) => ({ id: t.id, paths: grantNeeds({ root, id: t.id }) })).filter((h) => h.paths.length);
 }
 
 function nextUnit() {
@@ -846,15 +837,15 @@ function nextUnit() {
   const missing = checkpointMissing();
   if (missing.length && ((pool.length && ticketNumber(pool[0].id) >= CHECKPOINT_FROM) || (B !== null && phaseTickets(B).some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM))))
     return `none: architecture checkpoint not met (${missing.join('; ')})`;
-  // EZD-250 D6: a ready ticket whose plan needs a guard grant is held until the grant is in place; the others build meanwhile.
+  // EZD-250 D6: a ready ticket whose plan needs a guarded path is held for Josh (fix mode); the others build meanwhile.
   // EZD-267: the held text names each ticket's paths.
   const needs = new Map();
   const free = pool.find((t) => {
-    needs.set(t.id, grantNeeds({ root, id: t.id }));
+    needs.set(t.id, guardedPaths({ root, id: t.id }));
     return needs.get(t.id).length === 0;
   });
   if (free) return `build ${free.id}`;
-  if (pool.length) return `none: waiting on Josh (guard grant for ${pool.map((t) => `${t.id}: ${needs.get(t.id).join(', ')}`).join('; ')}; see vault/handoff/)`;
+  if (pool.length) return `none: waiting on Josh (guarded paths for ${pool.map((t) => `${t.id}: ${needs.get(t.id).join(', ')}`).join('; ')}; a change to them goes through fix mode)`;
   if (reason) return reason;
   if (B !== null) {
     if (!signedOff(B)) return `none: phase ${B} spec not signed off (spec-check unit needs Josh)`;
@@ -1015,7 +1006,6 @@ if (isMain) {
     process.exit(0);
   }
   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
-  if (args.includes('--grant-needs')) { console.log(JSON.stringify(heldForGrants())); process.exit(0); }
   if (args.includes('--tooling')) {
     const n = args[args.indexOf('--tooling') + 1];
     if (!/^\d+$/.test(n || '')) { console.error('usage: --tooling <phase number>'); process.exit(2); }

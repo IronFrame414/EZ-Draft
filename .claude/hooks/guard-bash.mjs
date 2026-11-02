@@ -1,6 +1,5 @@
 // PreToolUse on Bash: backstop for the deny rules in settings.json (vault/PROCESS.md section 14, guard-bash).
-import { existsSync } from 'node:fs';
-import { readInput, deny, projectDir } from './lib.mjs';
+import { readInput, deny } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator';
@@ -25,20 +24,8 @@ const always = [
   [/\bnode\s+\S*scripts[\\/](run|budget)\.mjs/, 'The launcher and the budget script are run by Josh, never from inside a session.'],
   [/(^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*=\S*\s+)*claude(\s|$)/,'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],
 ];
-// Stage 2 exceptions (Josh 2026-11-01, vault/spec/decisions/process.md; removed in remediation item 2.8): while fix mode is
-// open, the orchestrator alone may run one of these as a single command (no ; & | $( or backticks).
-// A launcher unit (EZD_UNIT_ID set by scripts/run.mjs) never gets them (Josh 2026-11-02: the build resumes beside Stage 2).
-const fixMode = !process.env.EZD_UNIT_ID && existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
-const single = !/[;&|`]|\$\(/.test(raw);
-const stage2 = agent === 'orchestrator' && fixMode && single;
-const stage2Ok = {
-  'rm -rf is not allowed.': /^\s*rm\s+-rf(\s+(\.claude\/worktrees\/[A-Za-z0-9._-]+|perf-results)\/?)+\s*$/,
-  'The launcher and the budget script are run by Josh, never from inside a session.': /^\s*node\s+scripts\/run\.mjs\s+--dry-run(\s+--[a-z-]+)*\s*$/,
-  'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.': /^\s*EZD_SANDBOX_SPIKE=1\s+claude\s/,
-};
 for (const [re, why] of always) {
   if (!re.test(why.startsWith('Reading .env') ? raw : c)) continue;
-  if (stage2 && stage2Ok[why]?.test(raw)) continue;
   deny(why);
 }
 

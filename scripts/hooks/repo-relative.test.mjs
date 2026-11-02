@@ -37,7 +37,7 @@ test('EZD-250 T33 repo path: the repo-relative path strips only the project dir 
     else process.env.CLAUDE_PROJECT_DIR = saved;
   }
 
-  // The write guard spawned as EZD-250 T18 (scripts/launcher/grants.test.mjs), dir /r: a builder write outside the repo is denied.
+  // The write guard spawned as in EZD-250 T18 (removed with the guard grants, REMEDIATION 2.8), dir /r: a builder write outside the repo is denied.
   const r = spawnSync(process.execPath, [path.join(repo, '.claude/hooks/guard-paths.mjs')], {
     input: JSON.stringify({ agent_type: 'builder', tool_input: { file_path: '/tmp/.claude/worktrees/EZD-1/app/x.ts' }, cwd: '/r' }),
     env: { ...process.env, CLAUDE_PROJECT_DIR: '/r' },

@@ -83,32 +83,6 @@ test('EZD-277 T3 pathIn compares list entries in the chosen form (AC-EZD-277-2)'
   );
 });
 
-test('EZD-277 T4 grantFor matches the ticket key in one form and returns the stored list (AC-EZD-277-2)', async () => {
-  const { grantFor } = await import(libUrl);
-  const g = { 'EZD-990': ['scripts/run.mjs'] };
-  const two = { 'EZD-990': ['a'], 'ezd-990': ['b'] };
-  assert.deepEqual(
-    [
-      grantFor(g, 'ezd-990', true),
-      grantFor(g, 'ezd-990', false),
-      grantFor(g, 'EZD-990', false),
-      grantFor(g, 'EZD-991', true),
-      grantFor(two, 'EZD-990', true),
-      grantFor(two, 'EZD-990', false),
-      grantFor({ 'EZD-990': ['scripts/\u017Ftool.mjs'] }, 'EZD-990', true),
-      grantFor({ 'EZD-990': ['scripts/\u017Ftool.mjs'] }, 'EZD-990', false),
-      grantFor({ 'EZD-301\u017F': ['a'] }, 'ezd-301s', true),
-      grantFor({ 'EZD-990': 'scripts/run.mjs' }, 'EZD-990', true),
-      grantFor({ 'EZD-990': ['a', 1] }, 'EZD-990', true),
-      grantFor([], 'EZD-990', true),
-      grantFor(null, 'EZD-990', true),
-      grantFor({}, 'toString', true),
-    ],
-    [['scripts/run.mjs'], null, ['scripts/run.mjs'], null, null, ['a'], null, null, null, null, null, null, null, null],
-  );
-  assert.equal(grantFor(g, 'EZD-990', false), g['EZD-990']);
-});
-
 test('EZD-277 T5 write guard denies other spellings of guarded paths (AC-EZD-277-1)', () => {
   const files = [
     'scripts/gate.mjs', 'Scripts/gate.mjs', 'SCRIPTS/GATE.MJS', '\u017Fcripts/gate.mjs',
@@ -141,47 +115,6 @@ test('EZD-277 T6 write guard judges other spellings like the listed case (AC-EZD
     assert.equal(r.verdict, 'deny', f);
     assert.ok(r.stdout.includes('is written only by Josh'), f);
   }
-});
-
-test('EZD-277 T7 a grant covers its file in any case and no other path (AC-EZD-277-2)', () => {
-  const R = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ezd277-grant-')));
-  fs.mkdirSync(path.join(R, '.claude/hooks'), { recursive: true });
-  fs.mkdirSync(path.join(R, '.claude/worktrees/EZD-990/scripts'), { recursive: true });
-  fs.mkdirSync(path.join(R, '.claude/worktrees/EZD-991/scripts'), { recursive: true });
-  const grants = path.join(R, '.claude/hooks/grants.json');
-  fs.writeFileSync(grants, JSON.stringify({ 'EZD-990': ['scripts/tool.mjs'] }));
-  const w = (t, f) => `.claude/worktrees/${t}/${f}`;
-  const rows = [
-    ['builder', w('EZD-990', 'scripts/tool.mjs'), 'allow'],
-    ['builder', w('EZD-990', 'scripts/TOOL.mjs'), CI ? 'allow' : 'deny'],
-    ['builder', w('EZD-990', 'scripts/tool.mjs.bak'), 'deny'],
-    ['builder', w('EZD-990', 'scripts/tool2.mjs'), 'deny'],
-    ['builder', w('ezd-990', 'scripts/tool.mjs'), CI ? 'allow' : 'deny'],
-    ['builder', w('EZD-991', 'scripts/TOOL.mjs'), 'deny'],
-    ['test-author', w('EZD-990', 'scripts/tool.mjs'), 'deny'],
-  ];
-  assert.deepEqual(rows.map(([a, f]) => [a, f, decide(a, R, f).verdict]), rows);
-  fs.writeFileSync(grants, JSON.stringify({ 'EZD-990': ['scripts/\u017Ftool.mjs'] }));
-  const rows2 = [
-    ['builder', w('EZD-990', 'scripts/stool.mjs'), 'deny'],
-    ['builder', w('EZD-990', 'scripts/\u017Ftool.mjs'), 'deny'],
-  ];
-  assert.deepEqual(rows2.map(([a, f]) => [a, f, decide(a, R, f).verdict]), rows2);
-  // Look-alike spellings of the granted path (security-reviewer round 1 finding 1).
-  fs.writeFileSync(grants, JSON.stringify({ 'EZD-990': ['scripts/tool.mjs'] }));
-  fs.mkdirSync(path.join(R, '.claude/worktrees/EZD-990/vault/tools'), { recursive: true });
-  for (const f of ['scr\u0131pts/tool.mjs', '\u017Fcripts/tool.mjs']) {
-    const r = decide('builder', R, w('EZD-990', f));
-    assert.equal(r.verdict, CI ? 'deny' : 'allow', f);
-    if (CI) assert.ok(r.stdout.includes('outside plain ASCII'), f);
-  }
-  fs.writeFileSync(grants, JSON.stringify({ 'EZD-990': ['vault/tools/findings.mjs'] }));
-  const rows3 = [
-    ['builder', w('EZD-990', 'vault/tools/findings.mjs'), 'allow'],
-    ['builder', w('EZD-990', 'vault/tools/f\u0131nd\u0131ngs.mjs'), 'deny'],
-    ['builder', w('EZD-990', 'vault/tools/\uFB01ndings.mjs'), 'deny'],
-  ];
-  assert.deepEqual(rows3.map(([a, f]) => [a, f, decide(a, R, f).verdict]), rows3);
 });
 
 function bigFile(dir, name) {
@@ -268,7 +201,6 @@ test('EZD-277 T13 write guard refuses a non-ASCII path on a folding disk (AC-EZD
   const R = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ezd277-grant-')));
   fs.mkdirSync(path.join(R, '.claude/hooks'), { recursive: true });
   fs.mkdirSync(path.join(R, '.claude/worktrees/EZD-990/src'), { recursive: true });
-  fs.writeFileSync(path.join(R, '.claude/hooks/grants.json'), JSON.stringify({ 'EZD-990': ['scripts/tool.mjs'] }));
   const wt = '.claude/worktrees/EZD-990';
   const asSent = (file, cwd) => {
     const r = spawnHook('guard-paths.mjs', { agent_type: 'builder', tool_name: 'Write', tool_input: { file_path: file }, cwd }, R);

@@ -45,9 +45,6 @@ before(() => {
   ln(O, path.join(R, 'scripts/db/out'));
   put('scripts/db/hard-src.mjs', 'hard\n');
   fs.linkSync(path.join(R, 'scripts/db/hard-src.mjs'), path.join(R, 'scripts/db/hard.mjs'));
-  ln(path.join(R, 'scripts/run.mjs'), path.join(R, '.claude/worktrees/EZD-990/scripts/run.mjs'));
-  put('.claude/worktrees/EZD-991/scripts/run.mjs', 'run\n');
-  put('.claude/hooks/grants.json', JSON.stringify({ 'EZD-990': ['scripts/run.mjs'], 'EZD-991': ['scripts/run.mjs'] }));
   make(path.join(R, 'big.md'), 25000);
   make(path.join(O, 'big.md'), 25000);
   ln('../big.md', path.join(R, 'notes/link.md'));
@@ -105,10 +102,6 @@ test('EZD-260 T2 folder link: a builder write through a link to a protected fold
 test('EZD-260 T3 controls: ordinary writes still pass (AC-EZD-260-1)', () => {
   for (const f of ['scripts/db/plain.mjs', 'scripts/db/new.mjs', 'scripts/db/new-dir/new.mjs']) allow(write('builder', `${R}/${f}`), f);
   allow(write('test-author', `${R}/scripts/db/x.test.mjs`), 'test-author new test');
-});
-test('EZD-260 T4 worktree link: a link inside a worktree to the main checkout gets no grant (AC-EZD-260-1)', () => {
-  denyB(write('builder', `${R}/.claude/worktrees/EZD-990/scripts/run.mjs`), 'link');
-  allow(write('builder', `${R}/.claude/worktrees/EZD-991/scripts/run.mjs`), 'regular file');
 });
 test('EZD-260 T5 letter case: a differently-cased protected path is judged by its on-disk name (AC-EZD-260-1)', () => {
   fs.writeFileSync(path.join(R, 'case-probe'), 'x');
