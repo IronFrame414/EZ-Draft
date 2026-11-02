@@ -27,6 +27,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, withLedgerLock, recordPlan, writeHandoff, launcherHandoffText, writeFileAtomic, closeUnit, commitOrRestore, restoreFile,
+  takeLauncherLock,
 } from './ledger.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -522,6 +523,11 @@ async function main() {
     console.log(`Next unit: ${tool('--next-unit').stdout.trim()}`);
     for (const f of [...OPTIONAL_FLAGS, ['--max-turns'], ['--max-budget-usd'], ['--effort'], ['--agent'], ['--permission-mode']]) console.log(`flag ${f[0]}: ${flagSupported(f[0]) ? 'supported' : 'not in claude --help (dropped)'}`);
     return;
+  }
+  if (!dryRun) {
+    // One launcher at a time (REMEDIATION-PLAN 2.4): a second one would run a second build on the shared local database.
+    const lock = takeLauncherLock(logDir);
+    if (!lock.ok) { console.error(`another launcher is running (pid ${lock.pid ?? 'unknown'}); one build at a time until H1 and EZD-172 land`); process.exit(1); }
   }
   if (process.platform === 'darwin' && !dryRun && process.env.EZD_LAUNCHER_RESTARTED !== '1') {
     // Keep the Mac awake for the life of the launcher (PROCESS.md section 10, "Keeping the machine running"). A restart in

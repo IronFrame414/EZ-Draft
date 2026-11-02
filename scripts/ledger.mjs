@@ -17,7 +17,7 @@
 // Each command takes the ledger lock, writes, commits only its own files and prints one line. Exit 0 `LEDGER OK`,
 // 1 `LEDGER FAIL`, 2 `LEDGER USAGE`, 3 `LEDGER STOP` (lock). Env: EZD_ROOT (checkout; tests), EZD_INFLIGHT_DIR (tests).
 import {
-  closeSync, existsSync, linkSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync,
+  closeSync, existsSync, linkSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync, writeSync,
 } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
@@ -505,6 +505,33 @@ export function launcherLogDir(root) {
 }
 export function inflightDir({ root, env = process.env }) {
   return env.EZD_INFLIGHT_DIR || path.join(launcherLogDir(root), 'inflight');
+}
+
+// One launcher at a time (REMEDIATION-PLAN 2.4 as changed by AUDIT-ADDENDUM section 8; Josh 2026-11-01). Until the records
+// redesign (H1) and per-lane databases (EZD-172) land, a second launcher would run a second build on the one shared local
+// database. { ok: true, file } when this process holds the lock; { ok: false, pid, file } when another live launcher holds
+// it. A lock left by a dead process is taken over; a restart in place (EZD-250 D9) keeps the pid, so it keeps the lock.
+export function pidAlive(pid) {
+  try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
+}
+export function takeLauncherLock(dir, { pid = process.pid, alive = pidAlive } = {}) {
+  mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, 'launcher.lock');
+  for (let i = 0; i < 2; i++) {
+    try {
+      const fd = openSync(file, 'wx');
+      writeSync(fd, String(pid));
+      closeSync(fd);
+      return { ok: true, file };
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e;
+      const held = Number.parseInt(readFileSync(file, 'utf8'), 10);
+      if (held === pid) return { ok: true, file };
+      if (Number.isInteger(held) && alive(held)) return { ok: false, pid: held, file };
+      try { unlinkSync(file); } catch {}
+    }
+  }
+  return { ok: false, pid: null, file };
 }
 export function unitId(unit, arg) {
   return `${unit}-${arg}`.replace(/[^A-Za-z0-9-]/g, '_');
