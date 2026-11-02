@@ -2,7 +2,7 @@
 // The real Supabase CLI against the local stack (Docker): it reads the database password from PGPASSWORD
 // with none in --db-url, and the session that applies a migration has the URL's lock_timeout and
 // statement_timeout. L2 works in its own scratch database, never in the main `postgres` database.
-import { describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
@@ -17,6 +17,7 @@ import {
   MAIN_DB_CONTAINER,
   SUPABASE_BIN,
 } from '../../backup/__tests__/local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const loadDump = () => import('../dump.mjs');
 const loadPush = () => import('../push.mjs');
@@ -65,6 +66,11 @@ function dropScratchDatabases() {
 }
 
 describe('EZD-146 Supabase CLI push on the local stack', { skip: !inScope('EZD-146') }, () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   test('EZD-146 L1 the real CLI dry run takes the password from PGPASSWORD', { timeout: 120_000 }, async () => {
     const { createSupabaseCli, runChild } = await loadDump();
     const { splitDbPassword } = await loadPush();
@@ -174,4 +180,8 @@ describe('EZD-146 Supabase CLI push on the local stack', { skip: !inScope('EZD-1
       );
     },
   );
+
+  after(async () => {
+    await releaseRootDb?.();
+  });
 });

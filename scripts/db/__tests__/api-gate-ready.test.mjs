@@ -1,5 +1,5 @@
 // EZD-190 U1-U7, L1, L2 (vault/plans/EZD-190.md sections 3 and 4). node:test, Node 22 built-ins only.
-import { describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -15,6 +15,7 @@ import {
   ensureApiGateInForce,
 } from '../api-gate-ready.mjs';
 import { runLocalSql } from '../sql.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const read = (...p) => readFileSync(path.join(repo, ...p), 'utf8');
@@ -54,6 +55,11 @@ function localEnv() {
 }
 
 describe('EZD-190 API request gate readiness', () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   test('EZD-190 U1 classifyGateProbe', () => {
     assert.equal(GATE_PROBE_PATH, '/rest/v1/project?select=id&limit=1');
     assert.equal(classifyGateProbe(401, GATE_BODY), 'in_force');
@@ -307,5 +313,9 @@ describe('EZD-190 API request gate readiness', () => {
       }
       assert.equal(await probeApiGate({ apiUrl, apiKey }), 'in_force');
     }
+  });
+
+  after(async () => {
+    await releaseRootDb?.();
   });
 });

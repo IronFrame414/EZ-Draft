@@ -21,6 +21,7 @@ import {
   runCli,
   stubEnv,
 } from './local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const FILES = 'scripts/backup/files.mjs';
 
@@ -36,6 +37,11 @@ function sourceFiles(dir) {
 }
 
 describe('EZD-025 T3 and T4 the files backup', { skip: !inScope('EZD-025') }, () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   let stub;
   let d;
   let env;
@@ -48,8 +54,12 @@ describe('EZD-025 T3 and T4 the files backup', { skip: !inScope('EZD-025') }, ()
   });
 
   after(async () => {
-    await stub.stop();
-    await cleanup();
+    try {
+      await stub.stop();
+      await cleanup();
+    } finally {
+      await releaseRootDb?.();
+    }
   });
 
   test('EZD-025 T2 only new objects are copied', async () => {

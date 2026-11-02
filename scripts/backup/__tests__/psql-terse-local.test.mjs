@@ -3,11 +3,12 @@
 // (started by the gate's `db:up`): with `-v VERBOSITY=terse` psql prints only `SEVERITY:  message` lines, never a
 // DETAIL, QUERY, CONTEXT or LINE n field. The expected text is the plan's probe recording (section 2, cases 1, 3, 4),
 // asserted exactly. Every statement only raises or fails, so nothing is committed (case (c) reads the count back).
-import { describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { exec, inScope, MAIN_DB_CONTAINER } from './local-fixture.mjs';
 import { safeLines } from '../../release/redact.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const loadScratch = () => import('../scratch.mjs');
 
@@ -25,6 +26,11 @@ function runPsql(args, input) {
 }
 
 describe('EZD-152 psql row fields on the local stack', { skip: !inScope('EZD-152') }, () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   test('EZD-152 psql prints no row field under VERBOSITY=terse', async () => {
     const mod = await loadScratch();
     assert.equal(typeof mod.scratchPsqlArgs, 'function', 'scripts/backup/scratch.mjs exports scratchPsqlArgs');
@@ -80,5 +86,9 @@ describe('EZD-152 psql row fields on the local stack', { skip: !inScope('EZD-152
         `(d) exactly one line starts ${label}; lines: ${JSON.stringify(d.lines)}`,
       );
     }
+  });
+
+  after(async () => {
+    await releaseRootDb?.();
   });
 });

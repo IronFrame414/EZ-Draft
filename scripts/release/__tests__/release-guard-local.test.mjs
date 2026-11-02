@@ -9,6 +9,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import os from 'node:os';
 import path from 'node:path';
 import { inScope, stackStatus, exec, MAIN_DB_CONTAINER, REPO_ROOT } from '../../backup/__tests__/local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const SCRATCH_LIKE = "datname like 'ezd241\\_guard\\_%'";
 const BASE_VERSION = '20990101000000';
@@ -28,6 +29,11 @@ function dropScratchDatabases() {
 }
 
 describe('EZD-241 release guard on the local stack', { skip: !inScope('EZD-241') }, () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   let name;
   let workdir;
   let migrations;
@@ -105,14 +111,18 @@ describe('EZD-241 release guard on the local stack', { skip: !inScope('EZD-241')
     await cli.push({ dbUrl: scratchUrl, workdir });
   });
 
-  after(() => {
-    dropScratchDatabases();
-    if (workdir) rmSync(workdir, { recursive: true, force: true });
-    assert.equal(
-      exec(`select count(*) from pg_catalog.pg_database where ${SCRATCH_LIKE};`),
-      '0',
-      'no scratch database left',
-    );
+  after(async () => {
+    try {
+      dropScratchDatabases();
+      if (workdir) rmSync(workdir, { recursive: true, force: true });
+      assert.equal(
+        exec(`select count(*) from pg_catalog.pg_database where ${SCRATCH_LIKE};`),
+        '0',
+        'no scratch database left',
+      );
+    } finally {
+      await releaseRootDb?.();
+    }
   });
 
   test(

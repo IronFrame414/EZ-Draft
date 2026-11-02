@@ -7,7 +7,7 @@
 // committed database.types.ts must never be overwritten by a test).
 // Fake bins are written into os.tmpdir() folders, one per test; T2 and T7 run the real CLI against the
 // local stack (Docker) and skip outside the EZD-200 scope.
-import { describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   existsSync,
@@ -24,6 +24,7 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { childEnv, inScope } from '../../backup/__tests__/local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const genTypesScript = path.join(repo, 'scripts', 'db', 'gen-types.mjs');
@@ -157,6 +158,11 @@ process.stdout.write('x\\n');
 }
 
 describe('EZD-200 type check diagnostics and lock', () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   // ---------- T1 ----------
   test('EZD-200 T1 a failed CLI names its command, exit, signal and stderr on line 1', async () => {
     const tmp = mkdtempSync(path.join(os.tmpdir(), 'ezd-200-t1-'));
@@ -439,5 +445,9 @@ process.stdout.write('x\\n');
         });
       }
     });
+  });
+
+  after(async () => {
+    await releaseRootDb?.();
   });
 });

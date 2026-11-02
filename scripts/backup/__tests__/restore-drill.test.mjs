@@ -24,6 +24,7 @@ import {
   storageApi,
   stubEnv,
 } from './local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const STUB_SECRET = 'stub-secret-EZD025';
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
@@ -38,6 +39,11 @@ describe(
   'EZD-025 restore drill',
   { skip: !inScope('EZD-025') },
   () => {
+    let releaseRootDb;
+    before(async () => {
+      releaseRootDb = await holdRootDbShared();
+    });
+
     let stub;
     let d;
     let env;
@@ -53,14 +59,18 @@ describe(
     });
 
     after(async () => {
-      if (scratchWorkdir) {
-        spawnSync(SUPABASE_BIN, ['stop', '--workdir', scratchWorkdir, '--no-backup'], {
-          cwd: REPO_ROOT,
-          env: childEnv(),
-        });
+      try {
+        if (scratchWorkdir) {
+          spawnSync(SUPABASE_BIN, ['stop', '--workdir', scratchWorkdir, '--no-backup'], {
+            cwd: REPO_ROOT,
+            env: childEnv(),
+          });
+        }
+        await stub.stop();
+        await cleanup();
+      } finally {
+        await releaseRootDb?.();
       }
-      await stub.stop();
-      await cleanup();
     });
 
     test(
@@ -231,6 +241,11 @@ describe(
   'EZD-1704 phase restore drill',
   { skip: !inScope('EZD-1704') },
   () => {
+    let releaseRootDb;
+    before(async () => {
+      releaseRootDb = await holdRootDbShared();
+    });
+
     let stub;
     let d;
     let env;
@@ -246,14 +261,18 @@ describe(
     });
 
     after(async () => {
-      if (scratchWorkdir) {
-        spawnSync(SUPABASE_BIN, ['stop', '--workdir', scratchWorkdir, '--no-backup'], {
-          cwd: REPO_ROOT,
-          env: childEnv(),
-        });
+      try {
+        if (scratchWorkdir) {
+          spawnSync(SUPABASE_BIN, ['stop', '--workdir', scratchWorkdir, '--no-backup'], {
+            cwd: REPO_ROOT,
+            env: childEnv(),
+          });
+        }
+        await stub.stop();
+        await cleanup();
+      } finally {
+        await releaseRootDb?.();
       }
-      await stub.stop();
-      await cleanup();
     });
 
     test(

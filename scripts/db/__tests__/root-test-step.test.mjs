@@ -40,6 +40,21 @@ const ROOT_TEST_SOURCE =
     '});',
   ].join('\n') + '\n';
 
+// EZD-286 T7 (vault/plans/EZD-286.md section 4): a second root test file whose `describe` `after` hook throws when
+// the case sets FIX_HOOK_FAIL=1. node:test alone exits 0 on that; the step must still fail (AC-EZD-286-2).
+const HOOK_TEST_SOURCE =
+  [
+    "import { describe, test, after } from 'node:test';",
+    "describe('fixture hook case', () => {",
+    "  test('inner passes', () => {});",
+    "  after(() => {",
+    "    if (process.env.FIX_HOOK_FAIL === '1') throw new Error('fixture cleanup failure');",
+    "  });",
+    "});",
+  ].join('\n') + '\n';
+
+const REPORTER_PATH = path.join('scripts', 'test-harness', 'hook-fail-reporter.mjs');
+
 const folders = [];
 after(() => {
   for (const dir of folders) rmSync(dir, { recursive: true, force: true });
@@ -87,6 +102,8 @@ function makeFixture() {
   writeFile(dir, 'spikes/s/package.json', packageJson('@fx/spike', { test: 'node ../../rec.mjs spike' }));
   writeFile(dir, 'app/test-harness/net-guard/preload.mjs', '');
   writeFile(dir, 'scripts/x/root.test.mjs', ROOT_TEST_SOURCE);
+  writeFile(dir, 'scripts/x/hook.test.mjs', HOOK_TEST_SOURCE);
+  writeFile(dir, REPORTER_PATH, readFileSync(path.join(repo, REPORTER_PATH), 'utf8'));
   return dir;
 }
 
@@ -168,5 +185,10 @@ describe('EZD-187 root test step', () => {
     const r = runRootTest({ FIX_EXIT_APP: '1', FIX_EXIT_GEOMETRY: '1' });
     assert.notEqual(r.status, 0, `the step must fail when two package suites fail\n${r.output}`);
     assertRanEverything(r.lines, '- - -', r.output);
+  });
+
+  test('EZD-286 T7 a root test describe after hook throws: the test step fails (AC-EZD-286-2)', () => {
+    const r = runRootTest({ FIX_HOOK_FAIL: '1' });
+    assert.notEqual(r.status, 0, `the step must fail when a describe after hook throws\n${r.output}`);
   });
 });

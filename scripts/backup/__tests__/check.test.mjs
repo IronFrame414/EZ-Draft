@@ -2,7 +2,7 @@
 // order and D1-D18). The backup check: pure currency rule, the CLI with fake dependencies (no Docker), the
 // scripts and docs text, and two rows on the local stack (Docker, only in scope). Expected values come from the
 // plan's table (Q-0232: files < 26 h, dump < 8 days; Q-0112 finding 2; Q-0113), never from running code.
-import { after, describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -15,6 +15,7 @@ import {
 } from '../check.mjs';
 import { createSource } from '../source.mjs';
 import { REPO_ROOT, exec, inScope, query, runCli, stackStatus } from './local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const T0 = new Date('2026-11-10T12:00:00.000Z');
 const ago = (ms) => new Date(T0.getTime() - ms);
@@ -398,6 +399,11 @@ describe(
   'EZD-1704 backup check on the local stack',
   { skip: !inScope('EZD-1704') },
   () => {
+    let releaseRootDb;
+    before(async () => {
+      releaseRootDb = await holdRootDbShared();
+    });
+
     const hex = () => randomUUID().replace(/-/g, '').slice(0, 8);
     const insertRow = (scope, status, interval, kind = 'files') =>
       exec(
@@ -411,8 +417,12 @@ describe(
         `select to_char(t at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as v from (${sql}) s(t)`,
       )[0].v;
 
-    after(() => {
-      exec("delete from public.backup_run where scope like 'buckets:ezd1704-%';");
+    after(async () => {
+      try {
+        exec("delete from public.backup_run where scope like 'buckets:ezd1704-%';");
+      } finally {
+        await releaseRootDb?.();
+      }
     });
 
     test('EZD-1704 L1 stale on the local stack', async () => {

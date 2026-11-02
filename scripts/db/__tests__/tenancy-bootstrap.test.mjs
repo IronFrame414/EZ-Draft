@@ -3,11 +3,17 @@
 // T17 runs the file against the local container through scripts/db/sql.mjs runLocalSql, always inside
 // a rolled-back transaction (or, for (d), a run the file itself refuses), so seeded rows never change.
 // Expected values: plan Step 1 table and Step 2; Q-0033 (a); Q-0106; Q-0029 (a); EZD-023b line 274.
-import { test } from 'node:test';
+import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { holdRootDbExclusive } from '../../test-harness/db-lock.mjs';
+
+let releaseRootDb;
+before(async () => {
+  releaseRootDb = await holdRootDbExclusive();
+});
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const bootstrapPath = path.join(repo, 'supabase', 'bootstrap', 'tenant-1.sql');
@@ -228,4 +234,8 @@ test('EZD-005b T18 No personal data; bootstrap and seed in step', () => {
   for (const code of ['ezd_bootstrap_email_missing', 'ezd_bootstrap_already_done', 'ezd_bootstrap_done']) {
     assert.ok(F.includes(code), `bootstrap contains ${code}`);
   }
+});
+
+after(async () => {
+  await releaseRootDb?.();
 });

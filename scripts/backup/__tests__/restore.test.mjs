@@ -3,7 +3,7 @@
 // the scratch queries. Expected values come from the plan rows; the dump is a fake in-memory folder whose
 // manifest and file bytes the tests build. Tests that need no Docker always run; T14 (a real source on the local
 // stack) is in the plan's scope guard.
-import { after, describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -12,6 +12,12 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { FIX, FIX_NAME, RETIRED_EMPTY, RETIRED_PATH, commitFiles, makeRepo, migrationPath, tagAnnotated } from '../../release/__tests__/git-fixture.mjs';
 import { REPO_ROOT, exec, inScope, newestMigrationVersion, query, stackStatus } from './local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
+
+let releaseRootDb;
+before(async () => {
+  releaseRootDb = await holdRootDbShared();
+});
 
 const sha = (b) => createHash('sha256').update(b).digest('hex');
 const NEWEST = newestMigrationVersion();
@@ -38,7 +44,13 @@ const tmp = () => {
   tmpRoots.push(d);
   return d;
 };
-after(() => tmpRoots.forEach((d) => rmSync(d, { recursive: true, force: true })));
+after(async () => {
+  try {
+    tmpRoots.forEach((d) => rmSync(d, { recursive: true, force: true }));
+  } finally {
+    await releaseRootDb?.();
+  }
+});
 
 /** The three dump files as bytes, plus a manifest that matches them (override pieces per case). */
 function dumpBytes() {

@@ -10,10 +10,16 @@ import os from 'node:os';
 import path from 'node:path';
 import { startStubS3 } from './stub-s3.mjs';
 import { exec, inScope, newestMigrationVersion, query, realDeps } from './local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 
 describe('EZD-025 T5 weekly dump', { skip: !inScope('EZD-025') }, () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   let stub;
   let deps;
   let tmpRoot;
@@ -25,10 +31,14 @@ describe('EZD-025 T5 weekly dump', { skip: !inScope('EZD-025') }, () => {
   });
 
   after(async () => {
-    await deps?.close();
-    await stub?.stop();
-    rmSync(tmpRoot, { recursive: true, force: true });
-    exec("delete from public.backup_run where kind = 'db_dump' and location like 'db/20261101T08%';");
+    try {
+      await deps?.close();
+      await stub?.stop();
+      rmSync(tmpRoot, { recursive: true, force: true });
+      exec("delete from public.backup_run where kind = 'db_dump' and location like 'db/20261101T08%';");
+    } finally {
+      await releaseRootDb?.();
+    }
   });
 
   /** A dumper fake that writes the given files and records the outDir it was given. */
