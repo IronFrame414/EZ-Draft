@@ -58,3 +58,11 @@ Cause: markup position checks were written without rendering the test's own harn
 Rule: when a test renders through `MessagesProvider`, position checks name the wrapper exactly (or anchor on the component's own tag), never `^` / `$` / the last closing tag.
 Check: render the wrapper alone with `renderToStaticMarkup` and look at the first and last tags before writing order assertions.
 - EZD-188 (2026-10-26): an allow-list over YAML built on a hand line scanner did not converge in 3 adversarial review rounds (each fix closed its sample, the next probe found another quoting form); plan a parser-backed cross-check (scanner list must equal the parser list) from the start.
+
+## L-041  areas: testing, docs, tooling  seen: 5  status: ratified
+Audit M4, 2026-11-01 (ratified by Josh's acceptance of the audit recommendations, 2026-11-01)
+Mistake: 73 test files check what documents say; each doc edit breaks a test, and five fix tickets only re-aligned wording.
+Cause: tests read `docs/*.md`, `CLAUDE.md` or the live vault instead of the behaviour those documents describe.
+Rule: never write a test that reads a document's wording or the live vault; test code, config or script output against fixtures. If a plan's Tests row asks for one, report it as a plan gap instead of writing it.
+Check: grep the new test files for `docs/`, `CLAUDE.md` and `vault/` reads before committing.
+

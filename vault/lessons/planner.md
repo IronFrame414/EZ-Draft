@@ -334,3 +334,11 @@ Cause: the plan did not state the direction of each compare and did not test the
 Rule: a check that refuses may fold wider than the disk; a check that allows (grants, exemptions) folds only plain ASCII; test disk claims on that disk against an existing folder.
 Check: each permission plan has a look-alike-letter row for every allow rule.
 Plan check: Tests rows include a look-alike letter against an existing folder.
+
+## L-041  areas: testing, docs, tooling  seen: 5  status: ratified
+Audit M4, 2026-11-01 (ratified by Josh's acceptance of the audit recommendations, 2026-11-01)
+Mistake: 73 test files check what documents say (architecture.md, runbook.md, CLAUDE.md, STATUS.md, the live vault); each doc edit then breaks a test, and EZD-160, 162, 243, 247 and 264 only re-aligned wording.
+Cause: plans turned "the doc says X" into a test instead of testing the behaviour the doc describes.
+Rule: never plan a test that reads a document's wording or the live vault; test the behaviour (the code, the config, the script's output) against fixtures. The only exceptions guard a real rule (no secrets in docs, migration lists) and test it as behaviour.
+Check: no Tests row reads `docs/*.md`, `CLAUDE.md`, `vault/` or a heading or phrase in them.
+Plan check: every Tests row names code, config or a fixture as its subject, never a document.
