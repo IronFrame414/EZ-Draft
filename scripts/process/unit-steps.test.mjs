@@ -184,12 +184,37 @@ test('table sets an in-progress ticket blocked, keeps its note and commits STATU
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('table refuses a ticket that is not in-progress or review and changes nothing', () => {
+test('table sets a ready ticket with no plan back to todo, so it is planned (Josh 2026-11-02)', () => {
   const dir = fixture({ status: 'ready' });
+  const r = run(dir, 'table', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /^TABLE OK EZD-002 \(STATUS → todo\)/);
+  const cells = row(dir, 'EZD-002').split('|').map((c) => c.trim());
+  assert.equal(cells[4], 'todo');
+  assert.match(cells[9], /\d{4}-\d{2}-\d{2}: set back to todo by the launcher \(ready with no plan/);
+  assert.equal(git(dir, 'status', '--porcelain'), '');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('table sets a ready ticket that has a plan blocked (Josh 2026-11-02)', () => {
+  const dir = fixture({ status: 'ready' });
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# EZD-002 plan\n');
+  git(dir, 'add', 'vault/plans/EZD-002.md');
+  git(dir, 'commit', '-q', '-m', 'plan');
+  const r = run(dir, 'table', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /^TABLE OK EZD-002 \(STATUS → blocked\)/);
+  assert.equal(row(dir, 'EZD-002').split('|').map((c) => c.trim())[4], 'blocked');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('table refuses a ticket that is not ready, in-progress or review and changes nothing', () => {
+  const dir = fixture({ status: 'todo' });
   const before = row(dir, 'EZD-002');
   const r = run(dir, 'table', 'EZD-002');
   assert.equal(r.status, 3);
-  assert.match(r.stdout, /TABLE STOP: EZD-002 is ready/);
+  assert.match(r.stdout, /TABLE STOP: EZD-002 is todo, not ready, in-progress or review/);
   assert.equal(row(dir, 'EZD-002'), before);
   rmSync(dir, { recursive: true, force: true });
 });

@@ -557,7 +557,7 @@ async function main() {
           tabled++;
           noProgress = 0;
           log(t.stdout.trim());
-          notify(`${arg} tabled (blocked) after two builds without progress; the launcher goes on with the next ticket. See vault/handoff/CURRENT.md.`);
+          notify(`${arg} set aside (${/STATUS → todo/.test(t.stdout) ? 'back to todo: it had no plan' : 'blocked'}) after two builds without progress; the launcher goes on with the next ticket. See vault/handoff/CURRENT.md.`);
           continue;
         }
         if (t) log(`table ${arg} failed: ${(t.stdout + t.stderr).trim().split('\n')[0]}`);

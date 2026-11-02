@@ -298,14 +298,22 @@ function finish() {
 
 // The launcher tables a build that ends twice without progress (Josh 2026-10-27: "override so it keeps moving
 // forward"): the ticket becomes blocked with a note, so --next-unit moves on to the next ready ticket. Its worktree
-// and branch stay; the orchestrator sets it back to ready when Josh answers.
+// and branch stay; the orchestrator sets it back to ready when Josh answers. A ready ticket is tabled too (Josh
+// 2026-11-02: three launcher stops were ready tickets that never started); one with no plan goes back to todo, so
+// --next-unit plans it.
 function table() {
   // The row is read, changed and committed in one ledger hold (EZD-173), committing only STATUS.md.
+  let status;
   withLedgerLock(root, { owner: owner() }, () => {
     const r = rowOf(ticket);
-    if (!['in-progress', 'review'].includes(r.status)) stop(`TABLE STOP: ${ticket} is ${r.status}, not in-progress or review`);
-    const note = `${new Date().toISOString().slice(0, 10)}: tabled by the launcher (build ended twice without progress, most likely waiting on Josh; see vault/handoff/CURRENT.md). Worktree kept; back to ready when Josh answers.`;
-    const { paths } = updateStatusRow(root, ticket, { status: 'blocked', notes: r.notes ? `${r.notes} · ${note}` : note });
+    if (!['ready', 'in-progress', 'review'].includes(r.status)) stop(`TABLE STOP: ${ticket} is ${r.status}, not ready, in-progress or review`);
+    const date = new Date().toISOString().slice(0, 10);
+    const unplanned = r.status === 'ready' && !existsSync(path.join(root, 'vault/plans', `${ticket}.md`));
+    status = unplanned ? 'todo' : 'blocked';
+    const note = unplanned
+      ? `${date}: set back to todo by the launcher (ready with no plan; build ended twice without progress).`
+      : `${date}: tabled by the launcher (build ended twice without progress, most likely waiting on Josh; see vault/handoff/CURRENT.md). Worktree, if any, kept; back to ready when Josh answers.`;
+    const { paths } = updateStatusRow(root, ticket, { status, notes: r.notes ? `${r.notes} · ${note}` : note });
     try {
       commitPaths(root, paths, `docs(vault): ${ticket} tabled by the launcher`);
     } catch (e) {
@@ -313,7 +321,7 @@ function table() {
       stop(`TABLE STOP: ${e.message}`);
     }
   });
-  console.log(`TABLE OK ${ticket} (STATUS → blocked)`);
+  console.log(`TABLE OK ${ticket} (STATUS → ${status})`);
 }
 
 const steps = { preflight, worktree, merge, finish, table };
