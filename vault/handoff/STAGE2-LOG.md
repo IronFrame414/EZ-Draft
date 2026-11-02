@@ -1,5 +1,20 @@
 # Stage 2 log (overnight, unattended)
 
+## Morning summary (2026-11-02, for Josh)
+
+**Status: part done. The build is still paused (STOP in place). develop is green on the Mac gate; CI runs on every push to develop.**
+
+Done, all merged and pushed: H7 CI fix (b07dee8f) · guard exceptions (a78c5b41) · 2.1 non-goals (191e40a9) · 2.2 (b60437ae) · 2.3 rules 17 and 18, debt list, plan caps (ff63dbaa, c103fb74) · 2.4 one launcher at a time (d4be9db6; the live service took the lock, pid 975) · 2.5 lesson (7259c07f) · 2.6 sandbox spike (727f3ffb) · 2.10 records database (d69d7cf7, aef626d9) · 2.11 round trip (76365f41) · 2.20 to 2.23 cleanup (8f2e83c1; worktrees and `perf-results/` removed).
+
+Needs your decision:
+1. The sandbox (2.7 to 2.9): see the question at the end of `vault/spikes/sandbox/NOTES.md`. Recommended: a unit-level sandbox now, and per-worktree isolation with the lanes work.
+2. Start the session card "Records redesign 2.12 to 2.14" (it stays on a branch until you answer 1).
+3. L8 (dependency audit in CI, Sentry update), L10 (knip in the gate) and 2.19 (test split) are build-system tickets; the new rule 18 needs your yes to create them. L9 (a proxy rule that hides developer pages on the live site) is an app security defect, so it becomes a ticket without one.
+
+Needs your confirmation: the wording of CLAUDE.md rules 17 and 18 · the three deny entries moved from `.claude/settings.json` into the shell guard · lesson L-041 is marked ratified because you accepted the audit's recommendation, not this exact text.
+
+Good to know: fix mode and the guard exceptions stay open until Stage 2 ends · the `archive/*` tags are on this Mac only · EZD-259 (the flaky backup restore drill) is still open and failed one gate run · four question rows were repaired · the planned one-session-per-group run could not start (the app allows that only on a turn you type), so everything ran in this one session.
+
 Started 2026-11-01. Plan: ~/Projects/ezdraft-audit/REMEDIATION-PLAN.md Stage 2, with AUDIT-ADDENDUM.md sections 5, 8, 9 and 10. Fix mode: vault/handoff/LAUNCHER_FIX.md. Josh's standing approvals (chat, 2026-11-01): fix mode for Stage 2; one commit per item on develop after a green gate, then push; deletions the plan lists, tagged first; CLAUDE.md and PROCESS.md edited as D3 and D9 say; three guard-bash exceptions (starting `claude` for the sandbox spike, `node scripts/run.mjs --dry-run`, `rm -rf` on the listed cleanup folders) until item 2.8; a stuck item (guard or classifier refusal, a question for Josh, or two failed attempts) is skipped with its reason and the next independent item starts; vault/handoff/STOP stays; one session per group, never two at once.
 
 Each session appends: item, commit hash or SKIPPED with the reason, and anything Josh must confirm.
