@@ -227,7 +227,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 1 · Company settings and customers (from spec phase 1)
 
 - **Goal:** Prove the stack end to end: sign in, open Settings, save the company record and a customer.
-- **User-visible result:** Settings opens with its left nav; Company shows name, logo, license and contact and saves; the Customers list adds, edits, archives and searches customers; a Crew user is sent back to Projects with the no-access message.
+- **User-visible result:** Settings opens with its left nav; Company shows name, logo, license and contact and saves; the Customers list adds, edits, archives and searches customers; a Crew user sees “You don't have access to this. Ask your supervisor.” in place (Q-0214).
 - **Spec files:** `spec/sections/10-permissions-and-settings.md`, `spec/sections/screens/S15-settings-users-permissions.md`, `spec/decisions.md`, `spec/sections/03-data-model.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S15a-settings-company.md`
 - **Tickets (6, build order):**
   - EZD-101 Permission and role tables
@@ -240,12 +240,12 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Out of scope until later:** Users table, invites and custom roles (slice 7); Defaults page (slice 8); EZ Binder connect and sync (slice 35); every editor screen.
 - **Risks and spikes:** EZD-102 fixes the permission pattern (server check on every write, can() in the UI, hidden not disabled) that every later ticket follows; get it reviewed before slice 2. EZD-132 fixes the Storage path layout and signed-link lifetime. Josh needs to supply the Supabase and storage keys or the slice runs on the local stack only.
 - **Josh's test script:**
-  1. Sign in as the owner and open Settings from the gear. Expected: Settings opens with the left nav (Company, Users + permissions, Title block, Sheet presets, Defaults, Catalog, Render models, Code edition, Libraries, Translations) and no Billing item.
+  1. Sign in as the owner and open Settings from the gear. Expected: Settings opens with the left nav (Company, Users + permissions, Title block, Sheet presets, Defaults, Catalog, Render models, Code edition, Libraries, System status) and no Billing item (Q-0234: System status replaced Translations).
   2. Open Company, enter the company name and license, upload a PNG logo under 5 MB, Save. Expected: Save succeeds; the company name shows in the header after reload.
   3. Upload a 6 MB logo. Expected: Refused with a size message.
   4. Open Customers, add two customers, then add a third with the same email as the first. Expected: Two rows appear; the duplicate email is refused.
   5. Search customers by part of a name. Expected: The list filters as typed.
-  6. Sign in as a Crew-preset test user and type the Settings URL. Expected: Redirected to Projects with “You don't have access to company settings.”
+  6. Sign in as a Crew-preset test user and type the Settings URL. Expected: “You don't have access to this. Ask your supervisor.” shows in place (Q-0214, AC-EZD-102-3).
 
 ### Slice 2 · Projects list and new project (from spec phase 1)
 

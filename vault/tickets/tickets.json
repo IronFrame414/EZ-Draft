@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 568,
+ "count": 572,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -481,7 +481,11 @@
   "EZD-1709c",
   "EZD-034",
   "EZD-036",
-  "EZD-037"
+  "EZD-037",
+  "EZD-284",
+  "EZD-285",
+  "EZD-286",
+  "EZD-287"
  ],
  "tickets": [
   {
@@ -16953,6 +16957,101 @@
    "build_position": 555,
    "acs": [
     "AC-EZD-283-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-284",
+   "phase": 1,
+   "title": "Fix: the CI workflow installs the pinned pnpm version",
+   "depends_raw": "EZD-002, EZD-147",
+   "spec_ref": "Phase 1 gate security review (rules 17, 18)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-002",
+    "EZD-147"
+   ],
+   "build_position": 556,
+   "acs": [
+    "AC-EZD-284-1",
+    "AC-EZD-284-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-285",
+   "phase": 1,
+   "title": "Fix: the EZD-102 D3 permissions query test does not depend on the planner's index choice",
+   "depends_raw": "EZD-102, EZD-190",
+   "spec_ref": "Q-0355",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-190"
+   ],
+   "build_position": 557,
+   "acs": [
+    "AC-EZD-285-1",
+    "AC-EZD-285-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-286",
+   "phase": 1,
+   "title": "Fix: root test files that write the local database no longer deadlock",
+   "depends_raw": "EZD-200",
+   "spec_ref": "Q-0357",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-200"
+   ],
+   "build_position": 558,
+   "acs": [
+    "AC-EZD-286-1",
+    "AC-EZD-286-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-287",
+   "phase": 1,
+   "title": "Fix: pnpm db:up leaves the local stack templates current",
+   "depends_raw": "EZD-166, EZD-168",
+   "spec_ref": "Q-0341",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-166",
+    "EZD-168"
+   ],
+   "build_position": 559,
+   "acs": [
+    "AC-EZD-287-1",
+    "AC-EZD-287-2"
    ],
    "acs_source": "done-when"
   }
