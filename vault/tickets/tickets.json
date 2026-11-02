@@ -17029,7 +17029,10 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Permission enforcement (EZD-102)",
+    "Policy test harness (EZD-006)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
