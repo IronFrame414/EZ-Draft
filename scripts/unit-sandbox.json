@@ -7,6 +7,7 @@
     "filesystem": {
       "allowWrite": [
         "./",
+        "~/Library/Logs/ezdraft/inflight",
         "~/Library/pnpm/store",
         "/private/tmp/pnpm-store-operation-locks-501"
       ],
