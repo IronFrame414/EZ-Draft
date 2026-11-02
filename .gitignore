@@ -41,3 +41,5 @@ vault/lessons/findings.jsonl
 vault/questions/QUESTIONS.md
 vault/questions/QUESTIONS-answered.md
 vault/questions/QUESTIONS-archive.md
+# pnpm falls back to a store in the checkout when a sandboxed unit cannot use ~/Library/pnpm/store (debt D-014)
+.pnpm-store/
