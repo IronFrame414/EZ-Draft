@@ -1,0 +1,13 @@
+1. PASS. `ok`
+2. PASS. `(eval):1: operation not permitted: ../EZD-012c/spike-probe.txt` / `exit=1`
+3. PASS. `(eval):1: operation not permitted: /Users/josh/Projects/ezdraft/vault/spike-probe.txt` / `exit=1`
+4. PASS. `(eval):1: operation not permitted: /Users/josh/Projects/ezdraft/.claude/spike-probe.txt` / `exit=1`
+5. PASS. `cat: /Users/josh/Projects/ezdraft/.claude/worktrees/spike-decoy-secret.txt: Operation not permitted` / `READ-DENIED`
+6. PASS, but not proof of the sandbox. `ls: /Users/josh/.ssh: No such file or directory` / `LIST-DENIED`. The directory does not exist on this machine, so the denial may come from that, not the sandbox.
+7. PASS. `(eval):1: operation not permitted: /Users/josh/spike-probe.txt` / `exit=1`
+8. PASS. `COMMIT-OK`. This commit is on `spike/sandbox` in the worktree, not pushed. It adds `spike-probe.txt`, which you may want to drop.
+9. FAIL. `000`, curl exit 7 (connection refused). Expected an HTTP code, so nothing is listening on 127.0.0.1:54321 here.
+10. FAIL. `permission denied while trying to connect to the docker API at unix:///Users/josh/.docker/run/docker.sock`
+11. PASS. `000`, curl exit 56, with a `<sandbox_violations>` block: `deny network-outbound example.com:443`.
+
+No command used `dangerouslyDisableSandbox`, and I did not read any .env files.
