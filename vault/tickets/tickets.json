@@ -17139,7 +17139,10 @@
     "spec/decisions/10-permissions-and-settings.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Company settings (EZD-112)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-112",
@@ -17168,7 +17171,10 @@
     "spec/decisions/10-permissions-and-settings.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Tests"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
