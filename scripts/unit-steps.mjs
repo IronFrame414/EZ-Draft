@@ -275,10 +275,15 @@ function merge() {
       // A resumed merge reads the worktree's last gate.log for the test count.
       const wtLog = path.join(root, '.claude/worktrees', ticket, 'gate.log');
       const tests = testCount(gateLog || (existsSync(wtLog) ? readFileSync(wtLog, 'utf8') : ''));
-      git('worktree', 'remove', `.claude/worktrees/${ticket}`);
-      git('branch', '-D', `t/${ticket}`);
+      // The plan copy (copyPlan) is untracked in the worktree and its text is in the feat commit; left there, it stops the removal.
+      const wtDir = path.join(root, '.claude/worktrees', ticket);
+      const wtPlan = path.join(wtDir, planRel());
+      if (existsSync(wtPlan) && sh('git', ['-C', wtDir, 'ls-files', '--error-unmatch', '--', planRel()]).status !== 0) unlinkSync(wtPlan);
+      const removed = git('worktree', 'remove', `.claude/worktrees/${ticket}`);
+      if (removed.status === 0) git('branch', '-D', `t/${ticket}`);
       setStatus({ status: 'done', commit: hash, tests });
       console.log(`MERGE OK ${ticket} commit=${hash} tests=${tests || '?'} (STATUS → done; add Notes, DONE.md line and lessons)`);
+      if (removed.status) console.log(`MERGE NOTE ${ticket}: worktree and branch kept: ${firstLine(removed)}`);
       return 0;
     });
   });

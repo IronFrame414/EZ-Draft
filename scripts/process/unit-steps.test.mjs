@@ -242,7 +242,10 @@ test('2.12 U1 the feat commit carries develop\'s untracked plan; it is the one n
   const wt = path.join(dir, '.claude/worktrees/EZD-002');
   assert.equal(readFileSync(path.join(wt, 'vault/plans/EZD-002.md'), 'utf8'), '# EZD-002 plan v1\n', 'the worktree gets the plan');
   writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# EZD-002 plan v2\n');
-  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  // A builder commits its own files; the plan copy stays untracked in the worktree.
+  writeFileSync(path.join(wt, 'feature.mjs'), 'export const x = 1;\n');
+  git(wt, 'add', 'feature.mjs');
+  git(wt, 'commit', '-qm', 'wip(EZD-002): feature');
   passGate(wt);
   const before = Number(git(dir, 'rev-list', '--count', 'HEAD'));
   const r = run(dir, 'merge', 'EZD-002');
@@ -251,6 +254,9 @@ test('2.12 U1 the feat commit carries develop\'s untracked plan; it is the one n
   assert.equal(git(dir, 'log', '-1', '--format=%s'), 'feat(EZD-002): Thing two');
   assert.equal(git(dir, 'show', 'HEAD:vault/plans/EZD-002.md'), '# EZD-002 plan v2');
   assert.equal(git(dir, 'status', '--porcelain'), '');
+  // The worktree's untracked plan copy never keeps the worktree and branch alive (EZD-290, 2026-11-02).
+  assert.ok(!existsSync(wt), 'the worktree is removed');
+  assert.equal(git(dir, 'branch', '--list', 't/EZD-002'), '');
   rmSync(dir, { recursive: true, force: true });
 });
 
