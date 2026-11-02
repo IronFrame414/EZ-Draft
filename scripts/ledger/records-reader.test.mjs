@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let dir, fileAnswer;
@@ -19,6 +20,7 @@ const VIEWS = ['tickets/STATUS.md', 'questions/QUESTIONS.md', 'questions/QUESTIO
 before(async () => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd213-')));
   cpSync(path.join(repo, 'vault'), at('vault'), { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(at('vault')); // the committed snapshot's records, not the checkout's (2.14, L-041)
   for (const f of ['docs/architecture.md', '.claude/skills/build-ticket/SKILL.md', 'scripts/records.mjs']) { mkdirSync(path.dirname(at(f)), { recursive: true }); cpSync(path.join(repo, f), at(f)); }
   writeFileSync(at('scripts/launcher.config.json'), JSON.stringify({ log_dir: at('logs') }));
   // The copy's own answer read from its files (no database yet), then the import.

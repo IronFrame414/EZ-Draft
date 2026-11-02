@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let tmp;
@@ -15,6 +16,7 @@ const budgetCli = (...args) => spawnSync(process.execPath, [f('scripts/budget.mj
 before(() => {
   tmp = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-budgetcli-')));
   cpSync(path.join(repo, 'vault'), f('vault'), { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(f('vault')); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(f('scripts'), { recursive: true });
   copyFileSync(path.join(repo, 'scripts/budget.mjs'), f('scripts/budget.mjs'));
   for (const x of ['vault/cost/usage.json', 'vault/handoff/BUDGET_HOLD.md']) if (existsSync(f(x))) spawnSync('rm', [f(x)]);

@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const PR = 'https://github.com/o/r/pull/5';
@@ -39,6 +40,7 @@ function makeCopy({ later }) {
   const file = (rel) => path.join(vault, rel);
   // (1)
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(path.join(dir, 'docs'), { recursive: true });
   cpSync(path.join(root, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/LAUNCHER_FIX.md']) rmSync(file(f), { force: true });

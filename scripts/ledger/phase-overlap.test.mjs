@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const NT_URL = pathToFileURL(path.join(root, 'vault/tools/next_ticket.mjs')).href;
@@ -64,6 +65,7 @@ before(async () => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-phase-overlap-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(path.join(dir, 'docs'), { recursive: true });
   cpSync(path.join(root, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/LAUNCHER_FIX.md', 'tickets/gates/phase-01.md', 'cost/phase-01.md', 'plans/review-phase-02.md']) {

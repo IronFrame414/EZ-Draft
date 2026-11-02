@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let dir, vault;
@@ -23,6 +24,7 @@ before(() => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-reads-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/]archive([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(path.dirname(skill()), { recursive: true });
   cpSync(path.join(root, '.claude/skills/build-ticket/SKILL.md'), skill());
   mkdirSync(path.join(dir, 'docs'), { recursive: true });
@@ -115,7 +117,13 @@ test('READS T8: --check fails when a file under spec/sections is over 20,000 cha
 });
 
 test('READS T9: the live ledger passes --check and lists no moved file (pointer, old decisions.md)', () => {
-  const r = spawnSync(process.execPath, [path.join(root, 'vault/tools/next_ticket.mjs'), '--check'], { encoding: 'utf8' });
+  // A copy of the checkout with the committed snapshot's records (2.14): the checkout's own record views are git-ignored.
+  const live = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-reads-live-')));
+  cpSync(path.join(root, 'vault'), path.join(live, 'vault'), { recursive: true, filter: (s) => !/[\\/]vault[\\/]archive([\\/]|$)/.test(s) });
+  seedRecordViews(path.join(live, 'vault'));
+  for (const f of ['.claude/skills/build-ticket/SKILL.md', 'docs/architecture.md']) { mkdirSync(path.dirname(path.join(live, f)), { recursive: true }); cpSync(path.join(root, f), path.join(live, f)); }
+  const r = spawnSync(process.execPath, [path.join(live, 'vault/tools/next_ticket.mjs'), '--check'], { encoding: 'utf8' });
+  rmSync(live, { recursive: true, force: true });
   assert.equal(r.status, 0, r.stdout);
   const d = JSON.parse(readFileSync(path.join(root, 'vault/tickets/tickets.json'), 'utf8'));
   const moved = /^spec\/(decisions\.md|sections\/03-data-model\.md|sections\/09-calculations-and-rules\.md|sections\/screens\/X-)/;

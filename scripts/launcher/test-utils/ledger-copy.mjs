@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { repo, mkTmp } from './harness.mjs';
+import { seedRecordViews } from './record-views.mjs';
 
 // synthetic: [[id, status]]. phaseZeroDone: every phase 0 ticket that is not done (EZD-003 is blocked in the live ledger) is set done, so
 // the lowest open phase is phase 1 and next_ticket.mjs reaches the phase 1 gate. Returns helpers over the copy; dir is its root (the parent of vault/).
@@ -15,6 +16,7 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
   const vault = path.join(dir, 'vault');
   const file = (rel) => path.join(vault, rel);
   cpSync(path.join(repo, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(path.join(dir, 'docs'), { recursive: true });
   cpSync(path.join(repo, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/LAUNCHER_FIX.md']) if (existsSync(file(f))) rmSync(file(f));

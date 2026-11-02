@@ -8,6 +8,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const LEDGER = path.join(REPO, 'scripts/ledger.mjs');
@@ -249,6 +250,7 @@ describe('EZD-173 K: ledger lock, ledger commands and commits', () => {
       const root = tmp('ezd173-copy-');
       const vault = path.join(root, 'vault');
       cpSync(path.join(REPO, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+      seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
       // EZD-266 D2: the copy's question state. The seeded archive row holds the highest ID, so expected values never depend on the live ledger.
       const Q3 = ['questions/QUESTIONS.md', 'questions/QUESTIONS-answered.md', 'questions/QUESTIONS-archive.md'];
       const textOf = (rel) => (existsSync(path.join(vault, rel)) ? readFileSync(path.join(vault, rel), 'utf8') : '');
@@ -602,6 +604,7 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
   test('K17: ledger.mjs architecture holds the entry and the plan in the records database (D9 (a)); tickets.json and git stay as they were; a bad heading fails with no change', async () => {
     const root = tmp('ezd173-k17-');
     cpSync(path.join(REPO, 'vault'), path.join(root, 'vault'), { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+    seedRecordViews(path.join(root, 'vault')); // the committed snapshot's records, not the checkout's (2.14, L-041)
     mkdirSync(path.join(root, 'docs'), { recursive: true });
     cpSync(path.join(REPO, 'docs/architecture.md'), path.join(root, 'docs/architecture.md'));
     git(root, 'init', '-q', '-b', 'develop');

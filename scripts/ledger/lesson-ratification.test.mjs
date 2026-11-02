@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let dir, vault;
@@ -29,6 +30,7 @@ before(() => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-lessons-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
 });
 after(() => rmSync(dir, { recursive: true, force: true }));
 

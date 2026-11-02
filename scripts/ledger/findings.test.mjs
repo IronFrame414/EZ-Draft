@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let dir, vault;
@@ -56,6 +57,7 @@ beforeEach(() => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd-findings-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
   // next_ticket.mjs reads the role table from <root>/.claude/skills/build-ticket/SKILL.md and docs/architecture.md, one folder above the vault
   mkdirSync(path.join(dir, '.claude/skills/build-ticket'), { recursive: true });
   cpSync(path.join(root, '.claude/skills/build-ticket/SKILL.md'), path.join(dir, '.claude/skills/build-ticket/SKILL.md'));

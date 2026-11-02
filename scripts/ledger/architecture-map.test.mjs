@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const outline = await import(pathToFileURL(path.join(root, 'vault/tools/outline.mjs')).href);
@@ -28,6 +29,7 @@ before(() => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd244-map-')));
   vault = path.join(dir, 'vault');
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/]archive([\\/]|$)/.test(s) });
+  seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(path.dirname(skill()), { recursive: true });
   cpSync(path.join(root, '.claude/skills/build-ticket/SKILL.md'), skill());
   mkdirSync(path.dirname(docFile()), { recursive: true });
@@ -83,7 +85,8 @@ test('EZD-244 A2: every open ticket lists distinct existing headings; the core n
   assert.equal(core.length, 5);
   assert.deepEqual(core, ['Folder layout', 'Tests', 'Test scope (Q-0006)', 'Errors and logging', 'Adding a dependency']);
   for (const c of core) assert.ok(headings.includes(c), `core "${c}" is not a heading`);
-  const open = lines(readFileSync(path.join(root, 'vault/tickets/STATUS.md'), 'utf8'))
+  // The committed snapshot's records, seeded into the copy (2.14): the checkout's STATUS.md is a git-ignored view.
+  const open = lines(readFileSync(path.join(vault, 'tickets/STATUS.md'), 'utf8'))
     .filter((l) => /^\| EZD-/.test(l)).map((l) => l.split('|')).map((c) => ({ id: c[1].trim(), status: c[4].trim() }))
     .filter((r) => r.status !== 'todo' && r.status !== 'done');
   assert.ok(open.length >= 1, 'no open ticket');

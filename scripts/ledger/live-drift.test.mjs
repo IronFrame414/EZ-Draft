@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { seedRecordViews, RECORD_VIEWS } from '../launcher/test-utils/record-views.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SELF = 'scripts/ledger/live-drift.test.mjs';
@@ -37,6 +38,7 @@ before(async () => {
   dir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd281-drift-')));
   cpSync(path.join(repo, 'scripts'), f('scripts'), { recursive: true });
   cpSync(path.join(repo, 'vault'), f('vault'), { recursive: true, filter: (s) => !/[\\/]vault[\\/]archive([\\/]|$)/.test(s) }); // mockups stay: reads.test.mjs T5 needs the folder present
+  seedRecordViews(f('vault')); // the committed snapshot's records, not the checkout's (2.14, L-041)
   mkdirSync(f('docs'), { recursive: true });
   cpSync(path.join(repo, 'docs/architecture.md'), f('docs/architecture.md'));
   // D6 lists .claude/hooks only; the suites in the run set also read .claude/settings.json, skills and agents, CLAUDE.md and .gitignore.
@@ -79,6 +81,10 @@ before(async () => {
   writeFileSync(f('vault/tickets/tickets.json'), JSON.stringify(tj, null, 1) + '\n');
   const acs = tool('gen_acs.mjs');
   assert.equal(acs.status, 0, acs.stdout + acs.stderr);
+
+  // 2.14: the suites read their records from the copy's last snapshot (seedRecordViews), so the drift goes there too.
+  const label = read('vault/snapshots/LATEST').trim();
+  for (const rel of RECORD_VIEWS) if (existsSync(f(`vault/${rel}`))) cpSync(f(`vault/${rel}`), f(`vault/snapshots/${label}/${rel}`));
 
   assert.equal(git('add', '-A').status, 0);
   const c = git('commit', '-qm', 'base');
