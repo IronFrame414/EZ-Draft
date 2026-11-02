@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -85,6 +86,45 @@ test('EZD-000i T11 settings.json deny list gains the five token entries and keep
     'Bash(security find-internet-password *-w*)',
     'Bash(security find-internet-password *-g*)',
     'Read(./.env)',
-    'Bash(claude *)',
   ]) assert.ok(deny.includes(e), e);
+  // Stage 2 (Josh 2026-11-01): these three move to the hook alone, which allows only the narrow exceptions below.
+  for (const e of ['Bash(claude *)', 'Bash(rm -rf *)', 'Bash(node scripts/run.mjs*)']) assert.ok(!deny.includes(e), e);
+});
+
+// Stage 2 exceptions (Josh 2026-11-01; removed in remediation item 2.8).
+function runIn(dir, agent, command) {
+  const input = { tool_input: { command } };
+  if (agent) input.agent_type = agent;
+  const r = spawnSync('node', [hook], { input: JSON.stringify(input), env: { ...process.env, CLAUDE_PROJECT_DIR: dir }, encoding: 'utf8' });
+  return r.stdout.includes('"deny"');
+}
+const exceptions = [
+  'rm -rf .claude/worktrees/EZD-012c',
+  'rm -rf .claude/worktrees/EZD-012c/ perf-results',
+  'node scripts/run.mjs --dry-run',
+  'EZD_SANDBOX_SPIKE=1 claude -p "probe" --settings vault/spikes/sandbox/settings.json',
+];
+const stillDenied = [
+  'rm -rf app',
+  'rm -rf .claude/worktrees/EZD-012c ../x',
+  'rm -rf .claude/worktrees/EZD-012c; echo x',
+  'node scripts/run.mjs',
+  'node scripts/run.mjs --dry-run && node scripts/run.mjs',
+  'node scripts/budget.mjs --dry-run',
+  'claude -p "probe"',
+  'FOO=1 claude -p "probe"',
+  'EZD_SANDBOX_SPIKE=1 claude -p x | tee y',
+];
+
+test('Stage 2: in fix mode the orchestrator may run only the three narrow exceptions', () => {
+  for (const cmd of exceptions) assert.ok(!runIn(repo, null, cmd), cmd);
+  for (const cmd of stillDenied) assert.ok(runIn(repo, null, cmd), cmd);
+});
+
+test('Stage 2: the exceptions never apply to an agent or outside fix mode', () => {
+  const noFix = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-bash-'));
+  for (const cmd of exceptions) {
+    assert.ok(runIn(repo, 'builder', cmd), `builder ${cmd}`);
+    assert.ok(runIn(noFix, null, cmd), `no fix mode ${cmd}`);
+  }
 });

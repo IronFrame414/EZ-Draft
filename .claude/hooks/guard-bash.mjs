@@ -1,5 +1,6 @@
 // PreToolUse on Bash: backstop for the deny rules in settings.json (vault/PROCESS.md section 14, guard-bash).
-import { readInput, deny } from './lib.mjs';
+import { existsSync } from 'node:fs';
+import { readInput, deny, projectDir } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator';
@@ -22,9 +23,23 @@ const always = [
   [/\bgh\s+pr\s+merge\b(?![^;&|]*--auto\b)/, 'Agents merge the phase PR only with --auto, so GitHub waits for the required gate check (Q-0261).'],
   [/\bpnpm\s+(run\s+)?release:|\bnode\s+\S*scripts[\\/]release[\\/]/, 'Release scripts are Josh\'s; agents never run them (EZD-023b).'],
   [/\bnode\s+\S*scripts[\\/](run|budget)\.mjs/, 'The launcher and the budget script are run by Josh, never from inside a session.'],
-  [/(^|[;&|]\s*)claude(\s|$)/, 'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],
+  [/(^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*=\S*\s+)*claude(\s|$)/,'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],
 ];
-for (const [re, why] of always) if (re.test(why.startsWith('Reading .env') ? raw : c)) deny(why);
+// Stage 2 exceptions (Josh 2026-11-01, vault/spec/decisions/process.md; removed in remediation item 2.8): while fix mode is
+// open, the orchestrator alone may run one of these as a single command (no ; & | $( or backticks).
+const fixMode = existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
+const single = !/[;&|`]|\$\(/.test(raw);
+const stage2 = agent === 'orchestrator' && fixMode && single;
+const stage2Ok = {
+  'rm -rf is not allowed.': /^\s*rm\s+-rf(\s+(\.claude\/worktrees\/[A-Za-z0-9._-]+|perf-results)\/?)+\s*$/,
+  'The launcher and the budget script are run by Josh, never from inside a session.': /^\s*node\s+scripts\/run\.mjs\s+--dry-run(\s+--[a-z-]+)*\s*$/,
+  'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.': /^\s*EZD_SANDBOX_SPIKE=1\s+claude\s/,
+};
+for (const [re, why] of always) {
+  if (!re.test(why.startsWith('Reading .env') ? raw : c)) continue;
+  if (stage2 && stage2Ok[why]?.test(raw)) continue;
+  deny(why);
+}
 
 // Token guard (Q-0135 (a), PA3 rule 8): an accident guard so a sign-in token is not printed into a transcript.
 const KEYCHAIN_WHY = 'Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).';
