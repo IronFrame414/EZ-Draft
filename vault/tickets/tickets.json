@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 584,
+ "count": 585,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -17483,6 +17483,30 @@
    "build_position": 571,
    "acs": [
     "AC-EZD-300-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-316",
+   "phase": 1,
+   "title": "Fix: sandboxed commands cannot use Josh's GitHub login; pushes and gh calls go through one trusted script",
+   "depends_raw": "",
+   "spec_ref": "D-021, Q-0268, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 572,
+   "acs": [
+    "AC-EZD-316-1",
+    "AC-EZD-316-2"
    ],
    "acs_source": "done-when"
   }
