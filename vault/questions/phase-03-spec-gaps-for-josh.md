@@ -100,3 +100,7 @@ Settled by the orchestrator as Q-0540: the server copy of refused changes is a n
 ## Round 5: 2 gaps, none for Josh
 
 Fixed in place under Q-0540: EZD-134's Done-when and AC-EZD-134-3 apply the after-drain reload prompt to requests other than saves; the EZD-299 row and spec_ref cite Q-0511 (e) and Q-0540 instead of rule 12 for saves.
+
+## Round 6: 1 gap, none for Josh
+
+Fixed in place under Q-0530 and Q-0540: EZD-134's Scope column limits the app version and the after-drain reload prompt to requests other than saves.
