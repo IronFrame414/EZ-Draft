@@ -1,7 +1,7 @@
 // EZD-253: build-system tickets run on their own track beside the product phases. A ticket whose plan's Build steps touch
 // no file under app/, packages/, worker/ or supabase/ is marked "track": "tooling" in tickets.json; the phase gate, the
 // phase PR and wrap do not wait for it, and the next phase is planned meanwhile. Runs on a temporary copy of vault/ with a
-// fixed ledger state (plan section 4): four synthetic tickets, every other real phase 1 and 2 ticket not done is blocked.
+// fixed ledger state (plan section 4): four synthetic tickets, every other real ticket not done of phase 1, 2 or a later signed-off phase is blocked.
 // Each test resets the synthetic state first, so the tests do not depend on each other.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -78,7 +78,10 @@ before(async () => {
   writeFileSync(file('questions/QUESTIONS.md'), readFileSync(file('questions/QUESTIONS.md'), 'utf8')
     .replace(/^(\|\s*Q-\d{4}\s*\|[^|]*\|[^|]*\|[^|]*\|\s*)open(\s*\|)/gm, '$1answered-agent$2'));
 
-  // Every real phase 1 and 2 ticket not done is blocked; other in-progress/review tickets are ready.
+  // Every real ticket not done of phase 1, phase 2 or a later signed-off phase is blocked (a later sign-off must not change these tests;
+  // unsigned phases are left alone, as in test-utils/ledger-copy.mjs); other in-progress/review tickets are ready.
+  const signedPhases = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
+  const quiet = (ph) => ph === 1 || ph === 2 || signedPhases.has(ph) && ph > 2;
   const phaseOf = new Map(data.tickets.map((t) => [t.id, t.phase]));
   writeFileSync(file('tickets/STATUS.md'), readFileSync(file('tickets/STATUS.md'), 'utf8').split('\n').map((line) => {
     const m = line.match(/^\| (EZD-\w+) \|(.*)\|$/);
@@ -86,12 +89,12 @@ before(async () => {
     const c = m[2].split('|');
     const st = c[2].trim();
     const ph = phaseOf.get(m[1]);
-    if ((ph === 1 || ph === 2) && st !== 'done') { c[2] = ' blocked '; if (!c[7].trim()) c[7] = ' tooling-track test '; }
+    if (quiet(ph) && st !== 'done') { c[2] = ' blocked '; if (!c[7].trim()) c[7] = ' tooling-track test '; }
     else if (st === 'in-progress' || st === 'review') c[2] = ' ready ';
     return `| ${m[1]} |${c.join('|')}|`;
   }).join('\n'));
   for (const t of data.tickets) {
-    if ((t.phase !== 1 && t.phase !== 2) || t.id in PHASE) continue;
+    if (!quiet(t.phase) || t.id in PHASE) continue;
     const planFile = file(`plans/${t.id}.md`);
     if (!('architecture' in t) && !existsSync(planFile)) t.architecture = [];
     if (!('track' in t) && typeof planTrack === 'function' && existsSync(planFile) && planTrack(readFileSync(planFile, 'utf8')) === 'tooling') t.track = 'tooling';
