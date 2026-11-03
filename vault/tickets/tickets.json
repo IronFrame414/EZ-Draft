@@ -3142,7 +3142,7 @@
    "id": "EZD-120a",
    "phase": 3,
    "title": "Model tables, save function and checkpoints",
-   "depends_raw": "EZD-005, EZD-133",
+   "depends_raw": "EZD-005, EZD-133, EZD-118",
    "spec_ref": "Data model · Working copy and saves, Architecture rules, model_version",
    "spec_files": [
     "spec/sections/03a-working-copy-and-saves.md#Working copy and saves",
@@ -3155,7 +3155,8 @@
    "depends_on": [
     "EZD-005a",
     "EZD-005b",
-    "EZD-133"
+    "EZD-133",
+    "EZD-118"
    ],
    "build_position": 88,
    "acs": [
@@ -3171,14 +3172,15 @@
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/03-data-model.md#Q-0507",
-    "spec/decisions/03-data-model.md#Q-0508"
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/03-data-model.md#Q-0530"
    ]
   },
   {
    "id": "EZD-120b",
    "phase": 3,
    "title": "Model store, outbox and editor route",
-   "depends_raw": "EZD-120a, EZD-012, EZD-117",
+   "depends_raw": "EZD-120a, EZD-012, EZD-117, EZD-118",
    "spec_ref": "Data model · Working copy and saves, Architecture rules; S03 States",
    "spec_files": [
     "spec/sections/03a-working-copy-and-saves.md#Working copy and saves",
@@ -3196,7 +3198,8 @@
     "EZD-012b",
     "EZD-012c",
     "EZD-117a",
-    "EZD-117b"
+    "EZD-117b",
+    "EZD-118"
    ],
    "build_position": 89,
    "acs": [
@@ -3222,7 +3225,8 @@
     "spec/decisions/process.md#Q-0505",
     "spec/decisions/05-screens.md#Q-0506",
     "spec/decisions/03-data-model.md#Q-0508",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/03-data-model.md#Q-0530"
    ]
   },
   {
@@ -3662,7 +3666,8 @@
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/03-data-model.md#Q-0502",
-    "spec/decisions/03-data-model.md#Q-0503"
+    "spec/decisions/03-data-model.md#Q-0503",
+    "spec/decisions/03-data-model.md#Q-0530"
    ]
   },
   {
@@ -3754,7 +3759,8 @@
    "decisions": [
     "spec/decisions/03-data-model.md#Q-0504",
     "spec/decisions/03-data-model.md#Q-0507",
-    "spec/decisions/03-data-model.md#Q-0508"
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/03-data-model.md#Q-0530"
    ]
   },
   {
@@ -17302,23 +17308,32 @@
    "id": "EZD-299",
    "phase": 3,
    "title": "Conflict list: Keep mine / Keep theirs",
-   "depends_raw": "EZD-120b, EZD-202",
+   "depends_raw": "EZD-120b, EZD-202, EZD-110b, EZD-140",
    "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511",
    "spec_files": [
     "spec/sections/03b-architecture-rules.md#Architecture rules",
-    "spec/sections/00d-glossary-phase-03.md"
+    "spec/sections/00d-glossary-phase-03.md",
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications"
    ],
    "decisions": [
     "spec/decisions/03-data-model.md#Q-0502",
     "spec/decisions/03-data-model.md#Q-0508",
     "spec/decisions/05-screens.md#Q-0510",
-    "spec/decisions/03-data-model.md#Q-0511"
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0393",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0531"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S01cNotifications.png"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120b",
-    "EZD-202"
+    "EZD-202",
+    "EZD-110b",
+    "EZD-140"
    ],
    "build_position": 566,
    "acs": [
@@ -17331,7 +17346,8 @@
     "AC-EZD-299-7",
     "AC-EZD-299-8",
     "AC-EZD-299-9",
-    "AC-EZD-299-10"
+    "AC-EZD-299-10",
+    "AC-EZD-299-11"
    ],
    "acs_source": "stage-0"
   },

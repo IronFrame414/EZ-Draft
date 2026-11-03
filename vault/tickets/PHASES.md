@@ -38,7 +38,7 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | --- | --- | --- | --- | --- |
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
 | 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
-| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 294, 238 | Adds Keep mine / Keep theirs (EZD-299, Q-0502). |
+| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299, 238 | Adds Keep mine / Keep theirs (EZD-299, Q-0502). |
 | 4 | Plan canvas and first walls | 4 | 201, 203, 205, 236, 207, 209, 210, 221 |  |
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 206, 208, 211, 212, 213, 217 |  |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
