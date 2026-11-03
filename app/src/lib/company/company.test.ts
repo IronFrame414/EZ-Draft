@@ -1,5 +1,5 @@
 // EZD-112 T1 and T11 (vault/plans/EZD-112.md section 4; AC-EZD-112-4).
-// Expected values: Decided "Size limit" (5 MB = 5,000,000 bytes, `size > limit` is too large), "Type from
+// Expected values: Decided "Size limit" (4 MB = 4,000,000 bytes, Q-0512 (a), `size > limit` is too large), "Type from
 // name" (last extension, lower-cased), "`checkLogoFile` order" (type first, then size), "Draft restore"
 // (what `recheckDraftLogo` returns for each check answer) and "Check route" (400 body `message_key`).
 import { randomUUID } from 'node:crypto';
@@ -7,10 +7,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { checkLogoFile, recheckDraftLogo, type CompanyDraft } from './company';
 
 describe('EZD-112 logo file rules', () => {
-  it('T1 checkLogoFile: type first, then size, limit 5,000,000 bytes', () => {
+  it('T1 checkLogoFile: type first, then size, limit 4,000,000 bytes', () => {
     const cases: [string, number, string | null][] = [
-      ['a.png', 5_000_000, null],
-      ['a.PNG', 5_000_001, 'logo_too_large'],
+      ['a.png', 4_000_000, null],
+      ['a.PNG', 4_000_001, 'logo_too_large'],
       ['a.png', 6_000_000, 'logo_too_large'],
       ['b.JPEG', 10, null],
       ['c.svg', 1, null],

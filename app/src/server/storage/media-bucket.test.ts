@@ -1,5 +1,5 @@
 // EZD-290 T6 (vault/plans/EZD-290.md section 4; AC-EZD-290-3). Expected values: build step 1 (the migration sets
-// `media` to file_size_limit 5000000 and allowed_mime_types png, jpeg, svg+xml). The member puts through the gated
+// `media` to file_size_limit 4000000 and allowed_mime_types png, jpeg, svg+xml). The member puts through the gated
 // serverDb to its own logo path (the media insert policy, EZD-132 K2); the bucket refuses by size and type.
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -17,7 +17,7 @@ import {
 
 const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const PNG_100 = Uint8Array.from([...PNG_SIG, ...new Array(92).fill(0)]);
-const PNG_5MB_PLUS_1 = Uint8Array.from([...PNG_SIG, ...new Array(4_999_993).fill(0)]);
+const PNG_4MB_PLUS_1 = Uint8Array.from([...PNG_SIG, ...new Array(3_999_993).fill(0)]);
 
 describe('EZD-290 media bucket limits', () => {
   let tenant = '';
@@ -52,11 +52,11 @@ describe('EZD-290 media bucket limits', () => {
     return session.serverDb.storage.from('media').upload(path, bytes, { contentType });
   };
 
-  it('T6 the media bucket holds a 5,000,000-byte limit and three image types, and refuses others', async () => {
+  it('T6 the media bucket holds a 4,000,000-byte limit and three image types, and refuses others', async () => {
     const rows = await harnessSql()`
       select file_size_limit, allowed_mime_types from storage.buckets where id = 'media'`;
     expect(rows).toHaveLength(1);
-    expect(Number(rows[0].file_size_limit)).toBe(5000000);
+    expect(Number(rows[0].file_size_limit)).toBe(4000000);
     expect(rows[0].allowed_mime_types).toEqual(['image/png', 'image/jpeg', 'image/svg+xml']);
 
     const html = logoPath('png');
@@ -65,7 +65,7 @@ describe('EZD-290 media bucket limits', () => {
     expect(await objectExists(html)).toBe(false);
 
     const big = logoPath('png');
-    const bigPut = await put(big, PNG_5MB_PLUS_1, 'image/png');
+    const bigPut = await put(big, PNG_4MB_PLUS_1, 'image/png');
     expect(bigPut.error).not.toBeNull();
     expect(await objectExists(big)).toBe(false);
 

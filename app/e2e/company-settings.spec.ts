@@ -29,7 +29,7 @@ const SVG_SCRIPT = Buffer.from(
 );
 
 const SUBTITLE = 'Identity used on the title block, client pages, selections PDF and email.';
-const TOO_LARGE = 'Logos can be up to 5 MB. Choose a smaller file.';
+const TOO_LARGE = 'Logos can be up to 4 MB. Choose a smaller file.';
 const WRONG_TYPE = 'Logos must be PNG, JPG or SVG.';
 const SVG_UNSAFE = "This SVG can't be used. Save it as PNG and try again.";
 const NAME_REQUIRED = 'Enter your company name.';
@@ -219,6 +219,12 @@ test.describe('EZD-112 company settings', () => {
       signedPrefix(tenant),
     );
     const saved = await previewPath(page);
+    // EZD-295 D9: a refused file never reaches Storage from the browser.
+    const storageWrites: string[] = [];
+    page.on('request', (req) => {
+      if (['POST', 'PUT', 'PATCH'].includes(req.method()) && req.url().includes('/storage/v1/'))
+        storageWrites.push(`${req.method()} ${req.url()}`);
+    });
 
     const refusals: [string, string, Buffer, string][] = [
       ['big.png', 'image/png', PNG_6MB, TOO_LARGE],
@@ -231,6 +237,7 @@ test.describe('EZD-112 company settings', () => {
       expect(await previewPath(page)).toBe(saved);
     }
     await expect(tid(page, 'company-save')).toBeDisabled();
+    expect(storageWrites).toEqual([]);
   });
 
   test('B6 remove: the logo is gone after Save and a reload, the button reads Upload', async ({

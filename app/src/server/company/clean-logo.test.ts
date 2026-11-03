@@ -25,7 +25,7 @@ const UNSAFE = [
 ];
 
 describe('EZD-290 cleanLogo', () => {
-  it('T3 cleanLogo: plain logos unchanged, F2 rewritten, a clean copy over 5 MB refused, unsafe SVG refused', () => {
+  it('T3 cleanLogo: plain logos unchanged, F2 rewritten, a clean copy over 4 MB refused (Q-0512 (a)), unsafe SVG refused', () => {
     expect(cleanLogo(enc(F1), 'svg')).toEqual({ ok: true, bytes: enc(F1) });
     expect(cleanLogo(PNG_100, 'png')).toEqual({ ok: true, bytes: PNG_100 });
     expect(cleanLogo(enc(F2), 'svg')).toEqual({ ok: true, bytes: enc(O2) });

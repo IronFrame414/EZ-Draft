@@ -19,7 +19,7 @@ describe('EZD-112 logo inspection', () => {
     expect(inspectLogo(PNG_100, 'png')).toBeNull();
     expect(inspectLogo(JPG_10, 'png')).toBe('logo_wrong_type');
     expect(inspectLogo(JPG_10, 'jpg')).toBeNull();
-    expect(inspectLogo(png(5_000_001), 'png')).toBe('logo_too_large');
+    expect(inspectLogo(png(4_000_001), 'png')).toBe('logo_too_large');
     expect(inspectLogo(new Uint8Array(0), 'png')).toBe('logo_wrong_type');
 
     // control: the word "on" in a title is not an event handler

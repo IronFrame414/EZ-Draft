@@ -28,6 +28,7 @@ import {
   completeSourceFileUpload,
   createSignedUpload,
   readObject,
+  uploadObject,
   removeObject,
   signedDownloadUrl,
   SIGNED_DOWNLOAD_SECONDS,
@@ -434,12 +435,15 @@ describe('EZD-132 file storage', () => {
     const bytes = new Uint8Array(randomBytes(50));
 
     // (1) L without the switch cannot sign the logo path.
-    await expectStorageCode(createSignedUpload(db(sL), target), 'upload_refused', '(1)');
+    await expectStorageCode(
+      uploadObject(db(sL), target, bytes, 'image/png'),
+      'upload_refused',
+      '(1)',
+    );
 
     // (2) With settings_company, L uploads the logo.
     await setSwitch(l, 'settings_company', true);
-    const upload = await createSignedUpload(db(sL), target);
-    await uploadFile(upload, new Blob([bytes]), { contentType: 'image/png' });
+    await uploadObject(db(sL), target, bytes, 'image/png');
 
     // (3) Readable by L and by A (no switch); not by tenant B.
     const readL = await readObject(db(sL), target);
@@ -465,21 +469,33 @@ describe('EZD-132 file storage', () => {
 
     // (7) Only the logo folder takes uploads, and never sources' tenant folder.
     await expectStorageCode(
-      createSignedUpload(db(sL), { bucket: 'media', path: `${tA}/tenant/${randomUUID()}.png` }),
+      uploadObject(
+        db(sL),
+        { bucket: 'media', path: `${tA}/tenant/${randomUUID()}.png` },
+        bytes,
+        'image/png',
+      ),
       'upload_refused',
       '(7) tenant folder',
     );
     await expectStorageCode(
-      createSignedUpload(db(sL), {
-        bucket: 'media',
-        path: `${tA}/tenant/logo/sub/${randomUUID()}.png`,
-      }),
+      uploadObject(
+        db(sL),
+        { bucket: 'media', path: `${tA}/tenant/logo/sub/${randomUUID()}.png` },
+        bytes,
+        'image/png',
+      ),
       'upload_refused',
       '(7) logo subfolder',
     );
     await setSwitch(a, 'settings_company', true);
     await expectStorageCode(
-      createSignedUpload(db(sA), { bucket: 'media', path: `${tA}/${pA}/${randomUUID()}.png` }),
+      uploadObject(
+        db(sA),
+        { bucket: 'media', path: `${tA}/${pA}/${randomUUID()}.png` },
+        bytes,
+        'image/png',
+      ),
       'upload_refused',
       '(7) project folder',
     );

@@ -19,7 +19,6 @@ import {
 import type { CustomerCounts } from '../../../lib/customers/customers';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
-import { uploadFile, type SignedUpload } from '../../../lib/storage/upload';
 import type { MessageKey } from '../../../server/messages/catalog';
 import { Icon } from '../../icon/Icon';
 import { InlineError } from '../../states/InlineError';
@@ -234,9 +233,12 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
     }
     setWorking(true);
     try {
-      const res = await postJson('/api/settings/company/logo', {
-        fileName: file.name,
-        size: file.size,
+      const res = await fetch('/api/settings/company/logo', {
+        method: 'POST',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { 'content-type': LOGO_CONTENT_TYPES[kind] },
+        body: file,
       });
       if (res.status === 400) {
         setLogoError((await messageKeyOf(res)) ?? UPLOAD_FAILED);
@@ -246,23 +248,7 @@ export function CompanyForm({ initial }: { initial: CompanyData }) {
         setLogoError(UPLOAD_FAILED);
         return;
       }
-      const { upload } = (await res.json()) as { upload: SignedUpload };
-      try {
-        await uploadFile(upload, file, { contentType: LOGO_CONTENT_TYPES[kind] });
-      } catch {
-        setLogoError(UPLOAD_FAILED);
-        return;
-      }
-      const checked = await postJson('/api/settings/company/logo/check', { path: upload.path });
-      if (checked.status === 400) {
-        setLogoError((await messageKeyOf(checked)) ?? UPLOAD_FAILED);
-        return;
-      }
-      if (checked.status !== 200) {
-        setLogoError(UPLOAD_FAILED);
-        return;
-      }
-      const { logo } = (await checked.json()) as { logo: CompanyLogo };
+      const { logo } = (await res.json()) as { logo: CompanyLogo };
       setStaged({ ...logo, fileName: file.name, size: file.size });
       setLogoChange({ action: 'set', path: logo.path });
     } catch {

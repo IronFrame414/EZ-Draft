@@ -1,7 +1,8 @@
-// EZD-112 T6 (vault/plans/EZD-112.md section 4; AC-EZD-112-4, -6).
-// next/headers is mocked as in app/src/app/api/jobs/[id]/route.test.ts. Expected values: Decided "Upload
-// route" (400 `logo_too_large` / `logo_wrong_type` from `checkLogoFile`, 403 `permission_denied`, 200
-// `{ upload: SignedUpload }` in bucket `media`) and "Logo path" (`<tenant_id>/tenant/logo/<uuid>.<kind>`).
+// EZD-295 T4 (vault/plans/EZD-295.md section 4; AC-EZD-295-1), replacing EZD-112 T6. next/headers is mocked as in
+// app/src/app/api/jobs/[id]/route.test.ts. Expected values: Decided D6 (route order and codes), D7 (200
+// `{ logo: { path, url, kind } }`, no `upload`), `cleanLogo` (the stored SVG is its clean bytes) and
+// `<tenant_id>/tenant/logo/<uuid>.<kind>`. Q-0512 (a): 4,000,000 bytes.
+import { createHash } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { setPermissions } from '../../../../../../test-harness/permissions/grant';
 import {
@@ -12,6 +13,7 @@ import {
   createTenant,
   type Member,
 } from '../../../../../../test-harness/rls/fixtures';
+import { cleanLogo } from '../../../../../server/company/company';
 import {
   createSessionClient,
   type SessionCookieJar,
@@ -58,24 +60,42 @@ async function cookiesFor(email: string): Promise<Map<string, string>> {
   return store;
 }
 
-async function post(payload: unknown): Promise<{ res: Response; json: unknown }> {
+const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const PNG_100 = Uint8Array.from([...PNG_SIG, ...new Array(92).fill(0)]);
+const PNG_BIG = Uint8Array.from([...PNG_SIG, ...new Array(3_999_993).fill(0)]); // 4,000,001 bytes
+const SVG_SCRIPT = new TextEncoder().encode(
+  '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+);
+// Local copy of clean-logo.test.ts lines 12-13.
+const F2 =
+  '<?xml version="1.0"?>\n<!-- x -->\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "svg11.dtd">\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:i="urn:i" xmlns:xlink="http://www.w3.org/1999/xlink" i:v="1" id="L" xml:space="preserve">\n <style>.a{fill:#231F20}</style><i:meta/><defs><path id="p" d="M0 0h9"/></defs><use xlink:href="#p" class="a"/><image xlink:href="https://e.x/a.png"/><a href="#p"><rect/></a></svg>\n';
+
+const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
+const err = (code: string, key = `error.${code}`) => ({ error: { code, message_key: key } });
+
+async function post(
+  type: string,
+  body: Uint8Array,
+  extra: Record<string, string> = {},
+): Promise<{ res: Response; json: unknown }> {
   const { POST } = await import('./route');
   const res = await POST(
     new Request('http://localhost/api/settings/company/logo', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: { 'content-type': type, ...extra },
+      body: body as BodyInit,
     }),
   );
   return { res, json: await res.json() };
 }
 
-describe('EZD-112 logo upload route', () => {
+describe('EZD-295 logo upload route', () => {
   let tenant = '';
   let owner: Member;
   let plain: Member;
   let ownerCookies: Map<string, string>;
   let plainCookies: Map<string, string>;
+  const folder = () => `${tenant}/tenant/logo`;
 
   beforeAll(async () => {
     tenant = await createTenant();
@@ -93,38 +113,84 @@ describe('EZD-112 logo upload route', () => {
   });
 
   afterAll(async () => {
-    await cleanup();
-    await closeHarness();
+    try {
+      const { data } = await adminDb().storage.from('media').list(folder());
+      await adminDb()
+        .storage.from('media')
+        .remove((data ?? []).map((o) => `${folder()}/${o.name}`));
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
   });
 
-  it('T6 POST /api/settings/company/logo: 400 too large, 400 wrong type, 200 signed upload, 403 without the switch', async () => {
-    state.store = new Map(ownerCookies);
-    const big = await post({ fileName: 'big.png', size: 6_000_000 });
-    expect(big.res.status).toBe(400);
-    expect(big.json).toEqual({
-      error: { code: 'logo_too_large', message_key: 'error.logo_too_large' },
-    });
+  const names = async () => {
+    const { data, error } = await adminDb().storage.from('media').list(folder());
+    expect(error).toBeNull();
+    return (data ?? []).map((o) => o.name).sort();
+  };
+  const stored = async (path: string) => {
+    const { data, error } = await adminDb().storage.from('media').download(path);
+    expect(error).toBeNull();
+    return new Uint8Array(await (data as Blob).arrayBuffer());
+  };
 
-    state.store = new Map(ownerCookies);
-    const gif = await post({ fileName: 'a.gif', size: 10 });
-    expect(gif.res.status).toBe(400);
-    expect(gif.json).toEqual({
-      error: { code: 'logo_wrong_type', message_key: 'error.logo_wrong_type' },
-    });
+  it('T4 POST /api/settings/company/logo: refusals leave no file; a png and a cleaned svg are stored by the server', async () => {
+    // (a) no session
+    state.store = new Map();
+    const a = await post('image/png', PNG_100);
+    expect(a.res.status).toBe(401);
 
-    state.store = new Map(ownerCookies);
-    const svg = await post({ fileName: 'a.svg', size: 100 });
-    expect(svg.res.status).toBe(200);
-    const upload = (svg.json as { upload: { bucket: string; path: string; token: string } }).upload;
-    expect(upload.bucket).toBe('media');
-    expect(upload.path).toMatch(new RegExp(`^${tenant}/tenant/logo/[0-9a-f-]{36}\\.svg$`));
-    expect(typeof upload.token).toBe('string');
-
+    // (b) member without the switch
     state.store = new Map(plainCookies);
-    const denied = await post({ fileName: 'a.svg', size: 100 });
-    expect(denied.res.status).toBe(403);
-    expect(denied.json).toEqual({
-      error: { code: 'permission_denied', message_key: 'error.not_authorized' },
-    });
-  });
+    const b = await post('image/png', PNG_100);
+    expect(b.res.status).toBe(403);
+    expect(b.json).toEqual(err('permission_denied', 'error.not_authorized'));
+    expect(await names()).toEqual([]);
+
+    const before = await names();
+    const refusals: [string, () => Promise<{ res: Response; json: unknown }>, string][] = [
+      ['(c) image/gif', () => post('image/gif', PNG_100), 'logo_wrong_type'],
+      [
+        '(d) 4,000,001 bytes, no content-length',
+        () => post('image/png', PNG_BIG),
+        'logo_too_large',
+      ],
+      [
+        '(d2) content-length 4000001',
+        () => post('image/png', PNG_100, { 'content-length': '4000001' }),
+        'logo_too_large',
+      ],
+      ['(e) svg with a script', () => post('image/svg+xml', SVG_SCRIPT), 'logo_svg_unsafe'],
+      ['(f) empty png', () => post('image/png', new Uint8Array(0)), 'logo_wrong_type'],
+    ];
+    for (const [label, run, code] of refusals) {
+      state.store = new Map(ownerCookies);
+      const r = await run();
+      expect(r.res.status, label).toBe(400);
+      expect(r.json, label).toEqual(err(code));
+      expect(await names(), label).toEqual(before);
+    }
+
+    // (g) a png
+    state.store = new Map(ownerCookies);
+    const g = await post('image/png', PNG_100);
+    expect(g.res.status).toBe(200);
+    const gj = g.json as { logo: { path: string; url: string; kind: string }; upload?: unknown };
+    expect(gj.logo.kind).toBe('png');
+    expect(gj.logo.path).toMatch(new RegExp(`^${tenant}/tenant/logo/[0-9a-f-]{36}\\.png$`));
+    expect(sha(await stored(gj.logo.path))).toBe(sha(PNG_100));
+    expect(gj.logo.url).toContain('/object/sign/media/');
+    expect(Object.keys(gj)).not.toContain('upload');
+
+    // (h) an svg is stored as its clean copy
+    state.store = new Map(ownerCookies);
+    const h = await post('image/svg+xml', new TextEncoder().encode(F2));
+    expect(h.res.status).toBe(200);
+    const hj = h.json as { logo: { path: string; kind: string } };
+    expect(hj.logo.kind).toBe('svg');
+    const clean = cleanLogo(new TextEncoder().encode(F2), 'svg');
+    if (!clean.ok) throw new Error('F2 must clean');
+    expect(await stored(hj.logo.path)).toEqual(clean.bytes);
+  }, 120000);
 });

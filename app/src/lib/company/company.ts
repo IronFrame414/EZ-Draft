@@ -2,7 +2,7 @@
 // "Draft restore"; S15a Validation): the company identity types and logo file rules shared by the browser
 // and the server. No React, no Supabase.
 
-export const LOGO_MAX_BYTES = 5_000_000;
+export const LOGO_MAX_BYTES = 4_000_000;
 export const LOGO_KINDS = ['png', 'jpg', 'svg'] as const;
 export type LogoKind = (typeof LOGO_KINDS)[number];
 

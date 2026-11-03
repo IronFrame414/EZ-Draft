@@ -50,6 +50,43 @@ function startsWith(bytes: Uint8Array, signature: readonly number[]): boolean {
 
 export type LogoClean = { ok: true; bytes: Uint8Array } | { ok: false; code: LogoCheckProblem };
 
+// EZD-295 D4: the logo kind a request's `content-type` header names (parameters after `;` ignored).
+export function logoKindFromContentType(header: string | null): LogoKind | null {
+  if (header === null) return null;
+  const type = (header.split(';')[0] ?? '').trim().toLowerCase();
+  for (const kind of Object.keys(LOGO_CONTENT_TYPES) as LogoKind[]) {
+    if (LOGO_CONTENT_TYPES[kind] === type) return kind;
+  }
+  return null;
+}
+
+// EZD-295 D4: read a request body, stopping (and cancelling the stream) once it passes LOGO_MAX_BYTES.
+export async function readLogoBody(
+  body: ReadableStream<Uint8Array> | null,
+): Promise<{ ok: true; bytes: Uint8Array } | { ok: false; code: 'logo_too_large' }> {
+  if (body === null) return { ok: true, bytes: new Uint8Array(0) };
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > LOGO_MAX_BYTES) {
+      await reader.cancel();
+      return { ok: false, code: 'logo_too_large' };
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let at = 0;
+  for (const c of chunks) {
+    bytes.set(c, at);
+    at += c.length;
+  }
+  return { ok: true, bytes };
+}
+
 // EZD-290 Decided D-pre: PNG and JPG keep their bytes; an SVG is replaced by the copy `cleanSvg` writes, and
 // that copy must still fit LOGO_MAX_BYTES.
 export function cleanLogo(bytes: Uint8Array, kind: LogoKind): LogoClean {

@@ -36,6 +36,11 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
         'Called by the <table>_api_gate restrictive policies as the querying user (EZD-190; Q-0330).',
     },
     { fn: 'private.session_is_live()', reason: ONE_OFF },
+    {
+      fn: 'private.storage_request_from_server()',
+      reason:
+        'Called by the media logo insert and delete policies as the uploading member (EZD-295).',
+    },
     { fn: 'private.tenant_id()', reason: POLICY_HELPER },
     { fn: 'private.tenant_user_ids()', reason: POLICY_HELPER },
   ],

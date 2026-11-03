@@ -9,7 +9,7 @@ import { EVENTS } from '../events/registry';
 
 const ERROR_TEXTS: Record<string, string> = {
   'error.company_name_required': 'Enter your company name.',
-  'error.logo_too_large': 'Logos can be up to 5 MB. Choose a smaller file.',
+  'error.logo_too_large': 'Logos can be up to 4 MB. Choose a smaller file.',
   'error.logo_wrong_type': 'Logos must be PNG, JPG or SVG.',
   'error.logo_svg_unsafe': "This SVG can't be used. Save it as PNG and try again.",
 };
@@ -53,7 +53,7 @@ const BOARD_TEXTS: Record<string, string> = {
   'office.company.logo': 'Logo',
   'office.company.logo_replace': 'Replace',
   'office.company.logo_remove': 'Remove',
-  'office.company.logo_hint': 'PNG, JPG or SVG, up to 5 MB',
+  'office.company.logo_hint': 'PNG, JPG or SVG, up to 4 MB',
   'office.company.license': 'License number',
   'office.company.sends_note':
     'Logo and license changes apply to future sends only. Sent versions are permanent and never change.',

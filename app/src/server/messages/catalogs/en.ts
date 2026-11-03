@@ -69,7 +69,7 @@ export const en = {
   'error.invalid_envelope': "That error report couldn't be read.",
   'error.page_not_found': 'Page not found.',
   'error.company_name_required': 'Enter your company name.',
-  'error.logo_too_large': 'Logos can be up to 5 MB. Choose a smaller file.',
+  'error.logo_too_large': 'Logos can be up to 4 MB. Choose a smaller file.',
   'error.logo_wrong_type': 'Logos must be PNG, JPG or SVG.',
   'error.logo_svg_unsafe': "This SVG can't be used. Save it as PNG and try again.",
   'error.customer_name_required': "Enter the customer's name.",
@@ -134,7 +134,7 @@ export const en = {
   'office.company.logo_saved': '{kind} logo',
   'office.company.logo_size': '{kb} KB',
   'office.company.logo_alt': 'Company logo',
-  'office.company.logo_hint': 'PNG, JPG or SVG, up to 5 MB',
+  'office.company.logo_hint': 'PNG, JPG or SVG, up to 4 MB',
   'office.company.logo_upload_failed': "Couldn't upload the logo. Try again.",
   'office.company.license': 'License number',
   'office.company.sends_note':
