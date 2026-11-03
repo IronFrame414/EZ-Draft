@@ -25,3 +25,12 @@ For the session that takes over from the 2026-11-03 night watch. It replaces the
 - **Launcher idle since 06:48 UTC**: `none: waiting on Josh (guarded paths for EZD-300: vault/handoff/ezd-300-ci-persist.patch)` (`vault/handoff/REPAIR.md`). EZD-295, 296 and 298 wait on Josh's questions Q-0512 to Q-0516 (`vault/questions/phase-01-for-josh.md`).
 - `ezd-300-ci-persist.patch` and `d006-ci.patch` both edit the lines after the ci.yml checkout step and do not apply one after the other. `vault/handoff/ci-ezd300-d006.patch` holds both (checked with `git apply --check` on 96483261's ci.yml; not run against the EZD-300 tests). Before Josh applies it, confirm with the EZD-300 plan's fix-mode route (PROCESS.md rule 19) that applying the combined patch releases EZD-300.
 - First item for the next session: get EZD-300 released (fix mode, Josh's yes), then the Q-0512 to Q-0516 answers, then the sandbox switch-on.
+
+## Update 17:57 UTC (Josh away, unattended)
+
+- **Josh (chat, 2026-11-03 ~17:45 UTC):** "keep build moving forward without me ... if a block is reached, set it aside and keep forward progress at all costs." Bypass permissions is on.
+- Done today: hold-rule fix 932091a2 (orchestrator plan steps no longer hold a ticket); CI patch eb08213d (EZD-300 + D-006); EZD-300 648b6e15; EZD-295 7ea0aa17. Josh answered Q-0485, Q-0512 to Q-0514, Q-0516 (87244742) and Q-0517 (3524db19; EZD-301 builds the per-kind type check); phase 3 round 3 "accept all" was sent to spec-check 3.
+- Josh "Yes, do that" on build-system tickets: the 9 dropped for "one gate at a time" (EZD-248, 249, 251, 252, 256, 262, 263, 273, 275) are ready (their Depends on sets the order); the 14 frozen ones (EZD-154, 185, 191, 261, 264, 265, 268 to 272, 274, 279, 280) carry a note: set ready once the sandbox is back on, guards and dead-lock fixes before lanes (EZD-172, 174).
+- D-021: Josh chose close the class (decision row process.md 2026-11-03). Fix ticket **EZD-316** (priority, phase 1, 75b8441b) is being planned; it changes launcher scripts, so its build needs fix mode (an interactive session). The sandbox stays off until it lands.
+- Phase 1 path: EZD-296, 298 and the ready build-system tickets, then gate-phase 1 rerun, PR auto-merge on green CI, wrap 1, phase 2. Build-system tickets whose plans touch guarded paths are held for fix mode while the rest builds.
+- D-028 (ci.test.mjs capitalised Jobs:/Steps:) went into spec-check 3's commit 31ce61ce by accident; it is on develop unchanged.
