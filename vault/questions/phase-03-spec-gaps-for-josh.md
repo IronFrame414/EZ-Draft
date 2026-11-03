@@ -54,3 +54,23 @@ Stage 0 (spec-check 3), 2026-11-02. Phase 3 is the re-cut phase (vault/tickets/P
 ## Answers (Josh, 2026-11-02, in chat)
 
 5 Q-0490: "build ability for multiple floors now." (several floors per project in v1; the EZD-202 schema holds floors from phase 3). The rest: "the rest are accepted": 1 Q-0486, 2 Q-0487, 3 Q-0488 (new ticket EZD-294 "Conflict list: Keep mine / Keep theirs" in phase 3), 4 Q-0489, 6 Q-0491, 7 Q-0492. Agent-settled list: Q-0493 (tolerance examples in `vault/spec/sections/03g-tolerance-and-rounding.md`, calc-auditor; glossary `vault/spec/sections/00d-glossary-phase-03.md`). Recorded as decision rows (new file `vault/spec/decisions/03-data-model.md`); ACs written (acs_source stage-0); PHASES.md slice 3 updated.
+
+## Round 2 (re-audit after the answers): 12 gaps, 3 for Josh
+
+**1. Floors: which phase builds the floor tools (gap 1; Q-0490).** Phase 3 stores floors (every project starts with one floor). Adding, renaming and deleting floors, the floor switcher in the editor and a floor on each plan view and sheet need the canvas and sheets.
+- Recommended: phase 6 (with the phase switch and layers) adds the floor switcher and add, rename and delete floor; the sheets phases (25 and 26) give each plan sheet its floor. Deleting a floor that still has objects asks first and deletes them with it.
+- Alternative: phase 4, with the first canvas (phase 4 grows from 8 tickets).
+
+**2. A board for the conflict list (gap 3).** Q-0492 waived boards only for one-line messages; the conflict list (EZD-294) is a real screen part.
+- Recommended: draw a board first (as in phase 2, Q-0391); phase 3's EZD-294 waits for it, the other tickets do not.
+- Alternative: build it from the text, no board.
+
+**3. How the conflict list works (gap 4).**
+- (a) Where it shows. Recommended: a notification (bell and email, per each person's settings) names the project and the objects (Architecture rule 9), and a banner in that project's editor opens the list; both open the same list.
+- (b) How a row names an object. Recommended: its type and number in the project ("Wall 4", "Door 2"), plus what changed; once the canvas exists (phase 4) a Show button zooms to it.
+- (c) Keep mine when the other person deleted the object brings it back; Keep mine when my change was a delete deletes theirs.
+- (d) Keep mine that is refused again goes back on the list; Keep mine while offline waits in the queue like any edit.
+- (e) Other refusals. Edit model taken away while the project stays visible: the row says so and offers only removing it (like a project that is gone). A change from an older app version: the app asks to reload, then sends it again (Architecture rule 12). A change the app itself built wrong (fails the data check): reported automatically as an error, kept on the list with only Remove.
+- Alternative: say which part you want different.
+
+Agent-settled (Q-0494): floor record (project floors with id, name and order; one floor made at Create; floors edited by anyone with Edit model; the drawing list's view settings name one floor; schema choice reviewed by the code-reviewer, gap 2); test page gets a "make a conflict" button and shows rows written and checkpoints made, step 5 uses it (gap 5, Q-0491 precedent); phase numbers in Q-0487 to Q-0489 checked against the re-cut table (EZD-134 phase 14, EZD-1403 phase 44): no change (gap 6); EZD-134 and EZD-1403 carry Q-0488 and Q-0489 in their decisions lists (gap 7); slice 3 entry updated (gap 8); EZD-202 reads Q-0490 (gap 9); ACs added for undo, changed ids, the device copy, arcs, fills, hatches and layers (gap 10); glossary separates Floor from a room's floor level (gap 11); Q-0493 gets a decision row (gap 12).
