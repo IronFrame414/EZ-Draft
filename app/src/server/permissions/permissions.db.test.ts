@@ -5,7 +5,8 @@
 // authenticated only), ARCH Row-level security (claims; 42501 on an ended session; two active memberships
 // give no tenant claim), the primary keys of user_permission (EZD-101) and membership_project (EZD-005a),
 // and Decided "broadcast SQL" (one user_permission.updated {} per member per statement, EZD-018 T23).
-// Realtime waits: JOIN_WAIT_MS and QUIET_MS from app/test-harness/realtime/node-client.ts.
+// D5 and D5c (EZD-291): each step runs through fencedStep (app/test-harness/realtime/stream.ts), which proves
+// the Realtime broadcast stream live before the step and fences it with a probe after; no fixed waits.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { withRollback } from '../../../test-harness/rls/db';
 import {
@@ -20,15 +21,8 @@ import {
 } from '../../../test-harness/rls/fixtures';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import { explainLoad, loadPlanProblems } from '../../../test-harness/permissions/load-plan';
-import {
-  closeAllRealtime,
-  connectRealtime,
-  eventsNamed,
-  JOIN_WAIT_MS,
-  QUIET_MS,
-  sleep,
-  waitFor,
-} from '../../../test-harness/realtime/node-client';
+import { closeAllRealtime, connectRealtime } from '../../../test-harness/realtime/node-client';
+import { fencedStep } from '../../../test-harness/realtime/stream';
 
 const EVENT = 'user_permission.updated';
 
@@ -124,51 +118,90 @@ describe('EZD-102 current_permissions and the permission broadcast', () => {
   it('D5 broadcast: one user_permission.updated {} per statement on the member channel', async () => {
     const m = await createMember({ tenantId: tenant, scope: 'all' });
     await setPermissions(tenant, m.membershipId, ['view_projects']);
-    const rt = await connectRealtime((await signIn(m.email)).accessToken);
+    const s = await signIn(m.email);
+    const rt = await connectRealtime(s.accessToken);
     const own = rt.join(`user:${m.appUserId}`);
     expect(await own.joined).toBe('SUBSCRIBED');
-    // Nothing from the setup may still be on its way.
-    await sleep(QUIET_MS);
     const sql = harnessSql();
 
-    const steps: Array<[string, () => Promise<unknown>]> = [
-      [
-        '(a) update one switch',
-        () => sql`
+    const deleteRow = () => sql`
+      delete from public.user_permission
+      where membership_id = ${m.membershipId}::uuid and permission_key = 'edit_model'`;
+    const insertRow = () => sql`
+      insert into public.user_permission (tenant_id, membership_id, permission_key, granted)
+      values (${tenant}::uuid, ${m.membershipId}::uuid, 'edit_model', true)`;
+    const insertRowIfMissing = () => sql`
+      insert into public.user_permission (tenant_id, membership_id, permission_key, granted)
+      values (${tenant}::uuid, ${m.membershipId}::uuid, 'edit_model', true)
+      on conflict (membership_id, permission_key) do nothing`;
+
+    const steps: Array<{
+      name: string;
+      restore?: () => Promise<unknown>;
+      run: () => Promise<unknown>;
+    }> = [
+      {
+        name: '(a) update one switch',
+        run: () => sql`
           update public.user_permission set granted = true
           where membership_id = ${m.membershipId}::uuid and permission_key = 'edit_model'`,
-      ],
-      [
-        '(b) one statement updating all 37',
-        async () => {
+      },
+      {
+        name: '(b) one statement updating all 37',
+        run: async () => {
           const r = await sql`
             update public.user_permission set granted = not granted
             where membership_id = ${m.membershipId}::uuid`;
           expect(r.count).toBe(37);
         },
-      ],
-      [
-        '(c) delete one row',
-        () => sql`
-          delete from public.user_permission
-          where membership_id = ${m.membershipId}::uuid and permission_key = 'edit_model'`,
-      ],
-      [
-        '(d) insert it back',
-        () => sql`
-          insert into public.user_permission (tenant_id, membership_id, permission_key, granted)
-          values (${tenant}::uuid, ${m.membershipId}::uuid, 'edit_model', true)`,
-      ],
+      },
+      { name: '(c) delete one row', restore: insertRowIfMissing, run: deleteRow },
+      { name: '(d) insert it back', restore: deleteRow, run: insertRow },
     ];
 
-    for (const [name, run] of steps) {
-      const before = eventsNamed(own, EVENT).length;
-      await run();
-      await waitFor(() => eventsNamed(own, EVENT).length > before, JOIN_WAIT_MS);
-      await sleep(QUIET_MS);
-      const arrived = eventsNamed(own, EVENT).slice(before);
+    for (const { name, restore, run } of steps) {
+      const { arrived } = await fencedStep({
+        sql,
+        channel: own,
+        appUserId: m.appUserId,
+        accessToken: s.accessToken,
+        event: EVENT,
+        restore,
+        run,
+      });
       expect(arrived, name).toHaveLength(1);
       expect(arrived[0].payload, name).toEqual({});
     }
   }, 90000);
+
+  it('D5c control: a delete whose event is never sent fails the D5 check (EZD-291)', async () => {
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, m.membershipId, ['view_projects']);
+    const s = await signIn(m.email);
+    const rt = await connectRealtime(s.accessToken);
+    const own = rt.join(`user:${m.appUserId}`);
+    expect(await own.joined).toBe('SUBSCRIBED');
+    const sql = harnessSql();
+
+    const { arrived } = await fencedStep({
+      sql,
+      channel: own,
+      appUserId: m.appUserId,
+      accessToken: s.accessToken,
+      event: EVENT,
+      restore: () => sql`
+        insert into public.user_permission (tenant_id, membership_id, permission_key, granted)
+        values (${tenant}::uuid, ${m.membershipId}::uuid, 'edit_model', true)
+        on conflict (membership_id, permission_key) do nothing`,
+      run: () =>
+        sql.begin(async (tx) => {
+          await tx`set local session_replication_role = replica`;
+          await tx`
+            delete from public.user_permission
+            where membership_id = ${m.membershipId}::uuid and permission_key = 'edit_model'`;
+        }),
+    });
+    expect(arrived).toEqual([]);
+    expect(() => expect(arrived, '(c) delete one row').toHaveLength(1)).toThrow();
+  }, 60000);
 });
