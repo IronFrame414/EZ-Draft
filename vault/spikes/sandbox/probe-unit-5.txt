@@ -1,0 +1,18 @@
+You are a sandbox probe. Your working folder is /Users/josh/Projects/ezdraft. Run each numbered step with the Bash tool, one call per step, exactly as written, and do nothing else. Never retry, never use dangerouslyDisableSandbox. After all steps, print one line per step: the number, then the first 200 characters of its output or error (no PASS/FAIL judgement).
+1. node scripts/gate.mjs . --print-scope
+2. Run `node scripts/gate.mjs . --print-scope` with the Bash tool parameter run_in_background set to true, then read its output file when it finishes.
+3. DO_NOT_TRACK=1 node scripts/gate.mjs . --print-scope
+4. timeout 60 node scripts/gate.mjs . --print-scope
+5. Use the Agent tool to start one general-purpose subagent with this prompt: "Run exactly this one Bash command, alone, and report its full output: node scripts/gate.mjs . --print-scope"
+6. node scripts/unit-steps.mjs preflight EZD-001
+7. git push --dry-run origin HEAD:refs/heads/probe-sandbox-5 2>&1 | tail -2; echo "exit=$?"
+8. gh api user --jq .login
+9. node scripts/records.mjs show EZD-001 | head -3
+10. touch scripts/.probe-5 && echo WROTE-SCRIPTS; rm -f scripts/.probe-5
+11. touch app/.probe-5 && echo WROTE-APP; rm -f app/.probe-5
+12. mkdir -p .claude/worktrees/probe-5/scripts && touch .claude/worktrees/probe-5/scripts/x && echo WROTE-WORKTREE-SCRIPTS; rm -f .claude/worktrees/probe-5/scripts/x; rmdir .claude/worktrees/probe-5/scripts .claude/worktrees/probe-5
+13. S=$(pnpm store path) && echo "$S" && touch "$S/.probe-5" && echo STORE-WRITABLE; rm -f "$S/.probe-5"
+14. npm config get cache; npm cache verify 2>&1 | tail -2
+15. DO_NOT_TRACK=1 pnpm exec supabase --version 2>&1 | tail -3
+16. pnpm exec supabase --version 2>&1 | tail -3
+17. echo "TMPDIR=$TMPDIR"; touch "$TMPDIR/probe-5" && echo TMPDIR-WRITABLE; touch /tmp/probe-5 && echo SLASH-TMP-WRITABLE; rm -f "$TMPDIR/probe-5" /tmp/probe-5

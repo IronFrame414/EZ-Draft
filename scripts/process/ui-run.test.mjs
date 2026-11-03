@@ -63,3 +63,19 @@ test('D-013 ui-run refuses anything but a .spec.ts file under the worktree app/e
   assert.ok(!existsSync(f.ran));
   rmSync(f.dir, { recursive: true, force: true });
 });
+
+test('D-023 ui-run stops with UI-RUN SANDBOX STOP and the exact command, and runs nothing, when .claude/agents is not writable', { skip: process.getuid?.() === 0 }, () => {
+  const f = fixture();
+  const agents = path.join(f.dir, '.claude/agents');
+  mkdirSync(agents, { recursive: true });
+  chmodSync(agents, 0o555);
+  try {
+    const r = run(f, 'EZD-002', 'e2e/shots.spec.ts');
+    assert.equal(r.status, 3, r.stdout + r.stderr);
+    assert.match(r.stdout, /^UI-RUN SANDBOX STOP: .*`node scripts\/ui-run\.mjs EZD-002 e2e\/shots\.spec\.ts` again as its own Bash call/m);
+    assert.ok(!existsSync(f.ran));
+  } finally {
+    chmodSync(agents, 0o755);
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
