@@ -81,3 +81,6 @@ Third gap, same day: in EZD-108's second sandboxed run (session 131593f0) the ui
 | 14 | `npm cache verify` | fails: `~/.npm` not writable |
 | 15, 16 | `pnpm exec supabase --version` with / without `DO_NOT_TRACK=1` | works / crashes (Bun) on the telemetry write |
 | 17 | `$TMPDIR` (`/tmp/claude-501`), `/tmp` | writable / not writable |
+
+## Probe round 6 (2026-11-03, session ec665a73, settings `probe-settings-6.json`)
+Settings `env` `DO_NOT_TRACK=1`: `pnpm exec supabase --version` works with no prefix. `env` `npm_config_cache=/tmp/claude-501/npm-cache`: `npm cache verify` works. `env` `npm_config_store_dir`: no effect; inside the sandbox pnpm still uses `node_modules/.pnpm-store/v11` in the checkout (git-ignored; it keeps sandboxed installs out of the store unsandboxed runs use). `denyWrite: ["/Users/josh/Projects/ezdraft/scripts"]` (absolute): the main checkout's `scripts/` is refused, a worktree's `scripts/` and `app/` stay writable, and `node scripts/gate.mjs` still runs outside the sandbox in the foreground and the background. Applied to `scripts/unit-sandbox.json` (the env pair, the absolute denyWrite, `~/.supabase` dropped); asserted by `scripts/process/sandbox-coverage.test.mjs`.

@@ -83,3 +83,14 @@ test('D-022 the folder the launcher gives each unit for its records queue is wri
   });
   assert.ok(ok, `${inflight} is not under any allowWrite entry`);
 });
+
+test('D-012, D-014 probe rounds 5 and 6: the main checkout scripts/ is write-denied by absolute path, and units get DO_NOT_TRACK and a writable npm cache', () => {
+  // A relative denyWrite entry had no effect (round 5); the absolute one denied the main checkout and left worktrees writable (round 6).
+  const deny = sandbox.filesystem.denyWrite ?? [];
+  const scriptsDeny = deny.filter((p) => path.isAbsolute(p) && p.endsWith(`${path.sep}scripts`));
+  assert.equal(scriptsDeny.length, 1, `denyWrite: ${JSON.stringify(deny)}`);
+  if (path.dirname(scriptsDeny[0]) === repo) assert.ok(existsSync(scriptsDeny[0]));
+  const env = JSON.parse(readFileSync(path.join(repo, 'scripts/unit-sandbox.json'), 'utf8')).env ?? {};
+  assert.equal(env.DO_NOT_TRACK, '1', 'the Supabase CLI crashes on its telemetry write inside the sandbox without it (round 5, step 16)');
+  assert.match(env.npm_config_cache ?? '', /^\/tmp\/claude-\d+\//, 'npm cannot write ~/.npm inside the sandbox (round 5, step 14)');
+});
