@@ -17348,7 +17348,10 @@
    "mockups": [],
    "architecture": [
     "Storage buckets and paths",
-    "Company settings (EZD-112)"
+    "Company settings (EZD-112)",
+    "Server-only data access and can()",
+    "Release safety (EZD-023a)",
+    "Machine checks"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
