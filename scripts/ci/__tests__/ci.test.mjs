@@ -288,6 +288,45 @@ const PNPM_CONFIG_RE = /pnpm_config_/i;
 // EZD-182 (vault/plans/EZD-182.md section 3): pnpm flags that turn dependency build scripts on past allowBuilds (Q-0316 (a)).
 const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\.|allow-build)/i;
 
+// EZD-284 (vault/plans/EZD-284.md section 3): every pnpm install names the packageManager version (package.json line 4).
+const PACKAGE_MANAGER = JSON.parse(readFileSync(path.join(repo, 'package.json'), 'utf8')).packageManager;
+if (!/^pnpm@\d+\.\d+\.\d+$/.test(PACKAGE_MANAGER)) throw new Error(`packageManager is not pnpm@<x.y.z>: ${PACKAGE_MANAGER}`);
+const PNPM_INSTALL_LINE = `npm install -g ${PACKAGE_MANAGER}`;
+const INSTALL_RE = /(?<![A-Za-z0-9_-])(?:npm|npx|pnpx|yarn|bunx?|corepack|volta|dlx|self-update|action-setup|-g|--global)(?![A-Za-z0-9_-])|pnpm@|get\.pnpm\.io/i;
+const PNPM_RE = /(?<![A-Za-z0-9_-])pnpm(?![A-Za-z0-9_-])/i;
+
+// EZD-284 helper: every string in a parsed workflow, depth first; a mapping key has key null, its value's strings take that key, array items inherit it.
+function workflowStrings(node, key = null) {
+  if (typeof node === 'string') return [{ key, s: node }];
+  if (Array.isArray(node)) return node.flatMap((item) => workflowStrings(item, key));
+  if (node && typeof node === 'object') {
+    return Object.entries(node).flatMap(([k, v]) => [{ key: null, s: k }, ...workflowStrings(v, k)]);
+  }
+  return [];
+}
+
+// EZD-284 helper (vault/plans/EZD-284.md section 3): pnpm install lines not pinned to packageManager (O1, M1) and jobs whose first pnpm step is not the pinned install (O2, M2).
+function pnpmPinProblems(text) {
+  let doc;
+  try {
+    doc = yaml.load(text);
+  } catch {
+    return ['workflow text is not valid YAML'];
+  }
+  const problems = [];
+  for (const { key, s } of workflowStrings(doc)) {
+    if (INSTALL_RE.test(s) && !(key === 'run' && s === PNPM_INSTALL_LINE)) {
+      problems.push(`pnpm install not pinned to ${PACKAGE_MANAGER}: ${JSON.stringify(s)}`);
+    }
+  }
+  for (const [id, job] of Object.entries(doc?.jobs ?? {})) {
+    const steps = Array.isArray(job?.steps) ? job.steps : [];
+    const first = steps.find((step) => workflowStrings(step).some(({ s }) => PNPM_RE.test(s)));
+    if (first && first.run !== PNPM_INSTALL_LINE) problems.push(`job ${id} uses pnpm before ${PNPM_INSTALL_LINE}`);
+  }
+  return problems;
+}
+
 // EZD-147 rule (j): a `uses:` value must be owner/repo[/path]@<40 lower-case hex> (vault/plans/EZD-147.md section 3).
 const PIN_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.\/-]+)?@[0-9a-f]{40}$/;
 
@@ -440,6 +479,8 @@ function checkWorkflow(fileName, text) {
     if (l.trim().startsWith('#')) return;
     if (BUILD_FLAG_RE.test(l)) add('m', `pnpm build flag at line ${i + 1}`);
   });
+  // (o) pnpm installs pinned to packageManager (EZD-284; vault/plans/EZD-284.md section 3)
+  for (const p of pnpmPinProblems(text)) add('o', p);
   return problems;
 }
 
@@ -1312,5 +1353,89 @@ test('EZD-182 done when: T1 workflow lines passing a pnpm build flag are refused
       checkWorkflow('x.yml', pnpmConfig).filter((p) => p.rule === 'l').map((p) => p.msg),
       ['pnpm_config_ name at line 10'],
     );
+  });
+});
+
+// ---------- EZD-284 T1-T2g ----------
+// Rule (o): pnpm installs pinned to packageManager (vault/plans/EZD-284.md sections 3 and 4). Expected values are the plan's texts.
+test('EZD-284 done when: ci.yml installs the packageManager pnpm and an unpinned or other-version pnpm install is refused (AC-EZD-284-1, AC-EZD-284-2)', async (t) => {
+  const wf = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const oOf = (problems) => problems.filter((p) => p.rule === 'o').map((p) => p.msg);
+  const M2 = 'job a uses pnpm before npm install -g pnpm@12.14.0';
+
+  await t.test('T1 PACKAGE_MANAGER is the package.json pin and ci.yml installs it (AC-EZD-284-1)', () => {
+    assert.equal(PACKAGE_MANAGER, 'pnpm@12.14.0');
+    const text = readFileSync(path.join(workflowsDir, 'ci.yml'), 'utf8');
+    const install = yaml.load(text).jobs.gate.steps.find((s) => s.name === 'Install pnpm');
+    assert.ok(install, 'step Install pnpm in ci.yml');
+    assert.equal(install.run, 'npm install -g pnpm@12.14.0');
+    assert.equal(install.run, PNPM_INSTALL_LINE);
+    assert.deepEqual(oOf(checkWorkflow('ci.yml', text)), []);
+  });
+
+  await t.test('T2a npm install -g pnpm then pnpm install is refused on x.yml and ci.yml (AC-EZD-284-2)', () => {
+    const body = '      - run: npm install -g pnpm\n      - run: pnpm install\n';
+    const expected = ['pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm"', M2];
+    assert.deepEqual(oOf(checkWorkflow('x.yml', wf(body))), expected);
+    assert.deepEqual(oOf(checkWorkflow('ci.yml', wf(body))), expected);
+  });
+
+  await t.test('T2b the same with pnpm@12.13.0 is refused on x.yml and ci.yml (AC-EZD-284-2)', () => {
+    const body = '      - run: npm install -g pnpm@12.13.0\n      - run: pnpm install\n';
+    const expected = ['pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm@12.13.0"', M2];
+    assert.deepEqual(oOf(checkWorkflow('x.yml', wf(body))), expected);
+    assert.deepEqual(oOf(checkWorkflow('ci.yml', wf(body))), expected);
+  });
+
+  await t.test('T2c each install form alone is refused; corepack alone gives only the pin problem (AC-EZD-284-2)', () => {
+    const cases = [
+      ['      - run: "n\\x70m install -g pnpm"\n', ['pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm"', M2]],
+      ['      - run: corepack enable\n', ['pnpm install not pinned to pnpm@12.14.0: "corepack enable"']],
+      ['      - run: npx pnpm@latest install\n', ['pnpm install not pinned to pnpm@12.14.0: "npx pnpm@latest install"', M2]],
+      ['      - run: NPM install -G pnpm@12.14.0\n', ['pnpm install not pinned to pnpm@12.14.0: "NPM install -G pnpm@12.14.0"', M2]],
+      ['      - run: pnpm add -g pnpm\n', ['pnpm install not pinned to pnpm@12.14.0: "pnpm add -g pnpm"', M2]],
+      ['      - run: npm i -g pnpm@12.14.0\n', ['pnpm install not pinned to pnpm@12.14.0: "npm i -g pnpm@12.14.0"', M2]],
+      ['      - run: curl -fsSL https://get.pnpm.io/install.sh | sh -\n', ['pnpm install not pinned to pnpm@12.14.0: "curl -fsSL https://get.pnpm.io/install.sh | sh -"', M2]],
+    ];
+    for (const [body, expected] of cases) {
+      assert.deepEqual(oOf(checkWorkflow('x.yml', wf(body))), expected, body);
+    }
+  });
+
+  await t.test('T2d a pnpm action, a folded install line and an alias are refused (AC-EZD-284-2)', () => {
+    assert.deepEqual(
+      oOf(checkWorkflow('x.yml', wf('      - uses: pnpm/action-setup@0123456789abcdef0123456789abcdef01234567\n'))),
+      ['pnpm install not pinned to pnpm@12.14.0: "pnpm/action-setup@0123456789abcdef0123456789abcdef01234567"', M2],
+    );
+    assert.deepEqual(
+      oOf(checkWorkflow('x.yml', wf('      - run: >-\n          npm install -g\n          pnpm\n'))),
+      ['pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm"', M2],
+    );
+    assert.deepEqual(
+      oOf(checkWorkflow('x.yml', wf('      - env:\n          V: &v npm install -g pnpm\n        run: *v\n'))),
+      [
+        'pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm"',
+        'pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm"',
+        M2,
+      ],
+    );
+  });
+
+  await t.test('T2e a bare pnpm install gives only the job problem; a block with the pinned line and pnpm install gives both (AC-EZD-284-2)', () => {
+    assert.deepEqual(oOf(checkWorkflow('x.yml', wf('      - run: pnpm install\n'))), [M2]);
+    assert.deepEqual(
+      oOf(checkWorkflow('x.yml', wf('      - run: |\n          npm install -g pnpm@12.14.0\n          pnpm install\n'))),
+      ['pnpm install not pinned to pnpm@12.14.0: "npm install -g pnpm@12.14.0\\npnpm install\\n"', M2],
+    );
+  });
+
+  await t.test('T2f controls: the pinned install under name Install pnpm passes in each plain form (AC-EZD-284-2)', () => {
+    for (const run of ['npm install -g pnpm@12.14.0', "'npm install -g pnpm@12.14.0'", 'npm install -g pnpm@12.14.0 # pinned']) {
+      assert.deepEqual(oOf(checkWorkflow('x.yml', wf(`      - name: Install pnpm\n        run: ${run}\n      - run: echo ok\n`))), [], run);
+    }
+  });
+
+  await t.test('T2g text js-yaml refuses is refused, fail closed (AC-EZD-284-2)', () => {
+    assert.deepEqual(pnpmPinProblems('on: ['), ['workflow text is not valid YAML']);
   });
 });
