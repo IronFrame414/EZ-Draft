@@ -3173,7 +3173,8 @@
    "decisions": [
     "spec/decisions/03-data-model.md#Q-0507",
     "spec/decisions/03-data-model.md#Q-0508",
-    "spec/decisions/03-data-model.md#Q-0530"
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0540"
    ]
   },
   {
@@ -3667,7 +3668,8 @@
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/03-data-model.md#Q-0502",
     "spec/decisions/03-data-model.md#Q-0503",
-    "spec/decisions/03-data-model.md#Q-0530"
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0540"
    ]
   },
   {
@@ -3760,7 +3762,8 @@
     "spec/decisions/03-data-model.md#Q-0504",
     "spec/decisions/03-data-model.md#Q-0507",
     "spec/decisions/03-data-model.md#Q-0508",
-    "spec/decisions/03-data-model.md#Q-0530"
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0540"
    ]
   },
   {
@@ -17323,7 +17326,8 @@
     "spec/decisions/02-product-overview.md#Q-0220",
     "spec/decisions/05-screens.md#Q-0393",
     "spec/decisions/03-data-model.md#Q-0530",
-    "spec/decisions/03-data-model.md#Q-0531"
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540"
    ],
    "mockups": [
     "mockups/S01cNotifications.png"
