@@ -12,11 +12,9 @@ import {
   closeAllRealtime,
   connectRealtime,
   eventsNamed,
-  JOIN_WAIT_MS,
-  QUIET_MS,
   sleep,
-  waitFor,
 } from '../../../test-harness/realtime/node-client';
+import { ensureStream, fencedStep } from '../../../test-harness/realtime/stream';
 import {
   cleanup,
   closeHarness,
@@ -234,37 +232,89 @@ describe('EZD-110a notification table and functions', () => {
     const other = rtK.join(`user:${f.k.appUserId}`);
     expect(await own.joined).toBe('SUBSCRIBED');
     expect(await other.joined).toBe('SUBSCRIBED');
-    await sleep(QUIET_MS);
+    const sql = harnessSql();
+    const ctx = { sql, channel: own, accessToken: f.mS.accessToken };
+    const notif = (w: { event: string; payload: unknown }[]) =>
+      w.filter((e) => e.event.startsWith('notification.'));
+    let n1 = '';
+    let n2 = '';
 
-    const [{ id: n1 }] = await create(f.tenant, f.m.appUserId, 'render_finished', null);
-    await waitFor(() => eventsNamed(own, 'notification.created').length >= 1, JOIN_WAIT_MS);
-    await sleep(QUIET_MS);
-    expect(eventsNamed(own, 'notification.created').map((e) => e.payload)).toEqual([
-      { notificationId: n1 },
+    const s1 = await fencedStep({
+      ...ctx,
+      event: 'notification.created',
+      run: async () => {
+        n1 = (await create(f.tenant, f.m.appUserId, 'render_finished', null))[0].id as string;
+      },
+    });
+    expect(notif(s1.window)).toEqual([
+      { event: 'notification.created', payload: { notificationId: n1 } },
     ]);
 
-    const opened = await f.mS.serverDb.rpc('open_notification', { p_id: n1 });
-    expect(opened.error).toBeNull();
-    await waitFor(() => eventsNamed(own, 'notification.read').length >= 1, JOIN_WAIT_MS);
-
-    const [{ id: n2 }] = await create(f.tenant, f.m.appUserId, 'cleanup_due', null);
-    await waitFor(() => eventsNamed(own, 'notification.created').length >= 2, JOIN_WAIT_MS);
-    const all = await f.mS.serverDb.rpc('mark_all_notifications_read');
-    expect(all.error).toBeNull();
-    await waitFor(() => eventsNamed(own, 'notification.read').length >= 2, JOIN_WAIT_MS);
-    await sleep(QUIET_MS);
-
-    expect(eventsNamed(own, 'notification.created').map((e) => e.payload)).toEqual([
-      { notificationId: n1 },
-      { notificationId: n2 },
+    const s2 = await fencedStep({
+      ...ctx,
+      event: 'notification.read',
+      restore: () => sql`update public.notification set read_at = null where id = ${n1}::uuid`,
+      run: async () => {
+        const opened = await f.mS.serverDb.rpc('open_notification', { p_id: n1 });
+        expect(opened.error).toBeNull();
+      },
+    });
+    expect(notif(s2.window)).toEqual([
+      { event: 'notification.read', payload: { notificationId: n1 } },
     ]);
-    expect(eventsNamed(own, 'notification.read').map((e) => e.payload)).toEqual([
-      { notificationId: n1 },
-      { notificationId: null },
+
+    const s3 = await fencedStep({
+      ...ctx,
+      event: 'notification.created',
+      run: async () => {
+        n2 = (await create(f.tenant, f.m.appUserId, 'cleanup_due', null))[0].id as string;
+      },
+    });
+    expect(notif(s3.window)).toEqual([
+      { event: 'notification.created', payload: { notificationId: n2 } },
     ]);
+
+    const s4 = await fencedStep({
+      ...ctx,
+      event: 'notification.read',
+      restore: () => sql`update public.notification set read_at = null where id = ${n2}::uuid`,
+      run: async () => {
+        const all = await f.mS.serverDb.rpc('mark_all_notifications_read');
+        expect(all.error).toBeNull();
+      },
+    });
+    expect(notif(s4.window)).toEqual([
+      { event: 'notification.read', payload: { notificationId: null } },
+    ]);
+
+    await ensureStream({ sql, channel: other, accessToken: f.kS.accessToken });
     expect(eventsNamed(other, 'notification.created')).toHaveLength(0);
     expect(eventsNamed(other, 'notification.read')).toHaveLength(0);
   }, 120000);
+
+  it('EZD-297 control: a notification that is not sent on the channel fails the N1 check', async () => {
+    const f = await track();
+    const rt = await connectRealtime(f.mS.accessToken);
+    const own = rt.join(`user:${f.m.appUserId}`);
+    expect(await own.joined).toBe('SUBSCRIBED');
+    let otherId = '';
+    const { window } = await fencedStep({
+      sql: harnessSql(),
+      channel: own,
+      accessToken: f.mS.accessToken,
+      event: 'notification.created',
+      run: async () => {
+        otherId = (await create(f.tenant, f.k.appUserId, 'render_finished', null))[0].id as string;
+      },
+    });
+    const notif = window.filter((e) => e.event.startsWith('notification.'));
+    expect(notif).toEqual([]);
+    expect(() =>
+      expect(notif).toEqual([
+        { event: 'notification.created', payload: { notificationId: otherId } },
+      ]),
+    ).toThrow();
+  }, 60000);
 
   it('EZD-110a T4 a member reads only their own rows; a listed member misses unlisted projects; no gate is refused', async () => {
     const f = await track();

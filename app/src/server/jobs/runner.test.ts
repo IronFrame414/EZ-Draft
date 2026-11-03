@@ -8,11 +8,10 @@ import {
   closeAllRealtime,
   connectRealtime,
   eventsNamed,
-  QUIET_MS,
   sleep,
-  waitFor,
   wasRefused,
 } from '../../../test-harness/realtime/node-client';
+import { ensureStream, fencedStep } from '../../../test-harness/realtime/stream';
 import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import {
   adminDb,
@@ -31,6 +30,8 @@ import { createJobQueue } from './queue';
 import { runJobs } from './runner';
 
 type Row = Record<string, unknown>;
+
+const PROGRESS_STEPS = ['queued/0', 'running/0', 'running/50', 'running/100', 'done/100'];
 
 describe('EZD-009 job runner on the local stack', () => {
   let tenantA = '';
@@ -184,21 +185,24 @@ describe('EZD-009 job runner on the local stack', () => {
     await sP1.joined;
     expect(wasRefused(sP1)).toBe(true);
 
-    const { id } = await enqueueJob(
-      aSession.serverDb,
-      { kind: 'test', projectId: p1, payload: { steps: 2, stepMs: 0 } },
-      { kick: () => {} },
-    );
-    await runJobs({ queue, onlyTenantId: tenantA });
-    expect(await waitFor(() => eventsNamed(aP1, 'job.progress').length >= 5)).toBe(true);
-    const seen = eventsNamed(aP1, 'job.progress').map((e) => e.payload as Row);
-    expect(seen.map((p) => `${p.status}/${p.progress}`)).toEqual([
-      'queued/0',
-      'running/0',
-      'running/50',
-      'running/100',
-      'done/100',
-    ]);
+    const sql = harnessSql();
+    let id = '';
+    const stepA = await fencedStep({
+      sql,
+      channel: aP1,
+      accessToken: aSession.accessToken,
+      event: 'job.progress',
+      run: async () => {
+        ({ id } = await enqueueJob(
+          aSession.serverDb,
+          { kind: 'test', projectId: p1, payload: { steps: 2, stepMs: 0 } },
+          { kick: () => {} },
+        ));
+        await runJobs({ queue, onlyTenantId: tenantA });
+      },
+    });
+    const seen = stepA.arrived.map((e) => e.payload as Row);
+    expect(seen.map((p) => `${p.status}/${p.progress}`)).toEqual(PROGRESS_STEPS);
     for (const payload of seen) {
       expect(Object.keys(payload).sort()).toEqual([
         'attempts',
@@ -212,11 +216,48 @@ describe('EZD-009 job runner on the local stack', () => {
     }
 
     // A tenant-level job sends nothing on either channel.
-    const tenantLevel = await insertJob({ payload: { steps: 1, stepMs: 0 } });
-    await runJobs({ queue, onlyTenantId: tenantA });
-    expect((await jobRow(tenantLevel.id)).status).toBe('done');
-    await sleep(QUIET_MS);
-    expect(eventsNamed(aP1, 'job.progress')).toHaveLength(5);
+    let tenantLevelId = '';
+    const stepB = await fencedStep({
+      sql,
+      channel: aP1,
+      accessToken: aSession.accessToken,
+      event: 'job.progress',
+      run: async () => {
+        tenantLevelId = (await insertJob({ payload: { steps: 1, stepMs: 0 } })).id;
+        await runJobs({ queue, onlyTenantId: tenantA });
+      },
+    });
+    expect(stepB.arrived).toEqual([]);
+    expect((await jobRow(tenantLevelId)).status).toBe('done');
+    await ensureStream({ sql, channel: aP2, accessToken: aSession.accessToken });
     expect(eventsNamed(aP2, 'job.progress')).toHaveLength(0);
-  });
+  }, 60000);
+
+  it('EZD-297 control: a job whose progress is not sent on the channel fails the J1 check', async () => {
+    const a = await createMember({ tenantId: tenantA, scope: 'all' });
+    const aSession = await signIn(a.email);
+    const aRt = await connectRealtime(aSession.accessToken);
+    const aP1 = aRt.join(`project:${p1}`);
+    expect(await aP1.joined).toBe('SUBSCRIBED');
+    const { arrived } = await fencedStep({
+      sql: harnessSql(),
+      channel: aP1,
+      accessToken: aSession.accessToken,
+      event: 'job.progress',
+      run: async () => {
+        await enqueueJob(
+          aSession.serverDb,
+          { kind: 'test', projectId: p2, payload: { steps: 2, stepMs: 0 } },
+          { kick: () => {} },
+        );
+        await runJobs({ queue, onlyTenantId: tenantA });
+      },
+    });
+    expect(arrived).toEqual([]);
+    expect(() =>
+      expect(arrived.map((e) => e.payload as Row).map((p) => `${p.status}/${p.progress}`)).toEqual(
+        PROGRESS_STEPS,
+      ),
+    ).toThrow();
+  }, 60000);
 });

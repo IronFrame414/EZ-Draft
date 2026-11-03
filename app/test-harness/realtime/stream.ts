@@ -29,10 +29,13 @@ export type StepState = {
 export type StreamContext = {
   sql: Sql;
   channel: TestChannel;
-  appUserId: string;
   accessToken: string;
 };
-export type FencedStepResult = { arrived: ReceivedEvent[]; attempts: number };
+export type FencedStepResult = {
+  arrived: ReceivedEvent[];
+  window: ReceivedEvent[];
+  attempts: number;
+};
 
 export async function streamPid(sql: Sql): Promise<number | null> {
   const rows = await sql.unsafe(STREAM_PID_SQL);
@@ -57,6 +60,26 @@ export async function sendProbe(sql: Sql, appUserId: string): Promise<string> {
   return nonce;
 }
 
+const TOPIC_RE = /^(user|project):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/;
+
+// EZD-297: the probe goes on the channel's own topic, so one topic's commit order fences the step.
+export function probeTarget(topic: string): { kind: 'user' | 'project'; id: string } | null {
+  const m = TOPIC_RE.exec(topic);
+  return m ? { kind: m[1] as 'user' | 'project', id: m[2] } : null;
+}
+
+export async function sendTopicProbe(sql: Sql, topic: string): Promise<string> {
+  const target = probeTarget(topic);
+  if (target === null) throw new Error('realtime_probe_topic');
+  const nonce = randomUUID();
+  if (target.kind === 'user') {
+    await sql`select private.broadcast_user(${target.id}::uuid, 'test.probe', jsonb_build_object('probe', ${nonce}::text))`;
+  } else {
+    await sql`select private.broadcast_project(${target.id}::uuid, 'test.probe', jsonb_build_object('probe', ${nonce}::text))`;
+  }
+  return nonce;
+}
+
 export function probeIndex(events: ReceivedEvent[], nonce: string): number {
   return events.findIndex(
     (e) =>
@@ -67,16 +90,29 @@ export function probeIndex(events: ReceivedEvent[], nonce: string): number {
   );
 }
 
+export function windowBetween(
+  events: ReceivedEvent[],
+  startNonce: string,
+  endNonce: string,
+): ReceivedEvent[] | null {
+  const s = probeIndex(events, startNonce);
+  const e = probeIndex(events, endNonce);
+  if (s < 0 || e < 0 || e < s) return null;
+  return events.slice(s + 1, e);
+}
+
+export function nonProbeEvents(events: ReceivedEvent[]): ReceivedEvent[] {
+  return events.filter((x) => x.event !== PROBE_EVENT);
+}
+
 export function eventsBetween(
   events: ReceivedEvent[],
   startNonce: string,
   endNonce: string,
   name: string,
 ): ReceivedEvent[] | null {
-  const s = probeIndex(events, startNonce);
-  const e = probeIndex(events, endNonce);
-  if (s < 0 || e < 0 || e < s) return null;
-  return events.slice(s + 1, e).filter((x) => x.event === name);
+  const w = windowBetween(events, startNonce, endNonce);
+  return w === null ? null : w.filter((x) => x.event === name);
 }
 
 export function stepOutcome(s: StepState): 'complete' | 'interrupted' {
@@ -91,9 +127,9 @@ export function stepOutcome(s: StepState): 'complete' | 'interrupted' {
 export async function ensureStream(
   ctx: StreamContext,
 ): Promise<{ nonce: string; pid: number | null }> {
-  const { sql, channel, appUserId, accessToken } = ctx;
+  const { sql, channel, accessToken } = ctx;
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const nonce = await sendProbe(sql, appUserId);
+    const nonce = await sendTopicProbe(sql, channel.topic);
     if (await waitFor(() => probeIndex(channel.events, nonce) >= 0, JOIN_WAIT_MS)) {
       return { nonce, pid: await streamPid(sql) };
     }
@@ -113,13 +149,13 @@ export async function fencedStep(
     run: () => Promise<unknown>;
   },
 ): Promise<FencedStepResult> {
-  const { sql, channel, appUserId, event, restore, run } = opts;
+  const { sql, channel, event, restore, run } = opts;
   for (let attempt = 1; attempt <= 2; attempt++) {
     await restore?.();
     const start = await ensureStream(opts);
     const statusesBefore = channel.statuses.length;
     await run();
-    const end = await sendProbe(sql, appUserId);
+    const end = await sendTopicProbe(sql, channel.topic);
     const fenceSeen = await waitFor(() => probeIndex(channel.events, end) >= 0, JOIN_WAIT_MS);
     const pidAfter = await streamPid(sql);
     const outcome = stepOutcome({
@@ -132,6 +168,7 @@ export async function fencedStep(
     if (outcome === 'complete') {
       return {
         arrived: eventsBetween(channel.events, start.nonce, end, event) ?? [],
+        window: windowBetween(channel.events, start.nonce, end) ?? [],
         attempts: attempt,
       };
     }

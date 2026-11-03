@@ -1,7 +1,17 @@
 // EZD-291 J1–J8 (vault/plans/EZD-291.md section 4; AC-EZD-291-1). Pure unit tests of stepOutcome,
 // eventsBetween and probeIndex on literal event lists. Expected values come from the plan's Decided rows.
 import { describe, expect, it } from 'vitest';
-import { eventsBetween, probeIndex, stepOutcome, type StepState } from './stream';
+import type { Sql } from '../rls/db';
+import {
+  eventsBetween,
+  nonProbeEvents,
+  probeIndex,
+  probeTarget,
+  sendTopicProbe,
+  stepOutcome,
+  windowBetween,
+  type StepState,
+} from './stream';
 
 const U = 'user_permission.updated';
 const P = (n: string) => ({ event: 'test.probe', payload: { probe: n } });
@@ -53,5 +63,36 @@ describe('EZD-291 stream helpers', () => {
     ];
     expect(probeIndex(list, 'n')).toBe(2);
     expect(probeIndex(list, 'm')).toBe(-1);
+  });
+});
+
+describe('EZD-297 stream helpers', () => {
+  const u = '00000000-0000-4000-8000-000000000001';
+  const X = { event: 'a.x', payload: {} };
+  const Y = { event: 'a.y', payload: {} };
+  it('S1 probeTarget: user and project topics parse, anything else is null', () => {
+    expect(probeTarget(`user:${u}`)).toEqual({ kind: 'user', id: u });
+    expect(probeTarget(`project:${u}`)).toEqual({ kind: 'project', id: u });
+    for (const t of [
+      `tenant:${u}`,
+      'project:not-a-uuid',
+      'user:',
+      // u has no letters, so its upper-case is itself; a letter-bearing id makes the case check real.
+      'project:0000000a-0000-4000-8000-00000000000a'.toUpperCase(),
+      `project:${u}:x`,
+    ]) {
+      expect(probeTarget(t), t).toBeNull();
+    }
+  });
+  it('S2 windowBetween: events strictly between the probes, else null', () => {
+    expect(windowBetween([P('a'), X, Y, P('b')], 'a', 'b')).toEqual([X, Y]);
+    expect(windowBetween([P('a'), X, Y], 'a', 'b')).toBeNull();
+    expect(windowBetween([P('b'), P('a')], 'a', 'b')).toBeNull();
+  });
+  it('S3 sendTopicProbe: a topic that is not user or project rejects before any SQL', async () => {
+    await expect(sendTopicProbe({} as Sql, 'tenant:x')).rejects.toThrow('realtime_probe_topic');
+  });
+  it('S4 nonProbeEvents: drops the probes', () => {
+    expect(nonProbeEvents([P('a'), X])).toEqual([X]);
   });
 });

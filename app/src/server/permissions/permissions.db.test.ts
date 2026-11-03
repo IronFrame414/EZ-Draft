@@ -163,7 +163,6 @@ describe('EZD-102 current_permissions and the permission broadcast', () => {
       const { arrived } = await fencedStep({
         sql,
         channel: own,
-        appUserId: m.appUserId,
         accessToken: s.accessToken,
         event: EVENT,
         restore,
@@ -186,7 +185,6 @@ describe('EZD-102 current_permissions and the permission broadcast', () => {
     const { arrived } = await fencedStep({
       sql,
       channel: own,
-      appUserId: m.appUserId,
       accessToken: s.accessToken,
       event: EVENT,
       restore: () => sql`

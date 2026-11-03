@@ -17401,8 +17401,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Realtime (EZD-018)",
-    "Tests"
+    "Realtime (EZD-018)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -17427,7 +17426,9 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Environments and releases (EZD-023b)"
+    "Environments and releases (EZD-023b)",
+    "Release safety (EZD-023a)",
+    "Auth and session (EZD-007)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -17454,6 +17455,7 @@
    "architecture": [
     "CI"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-284"
