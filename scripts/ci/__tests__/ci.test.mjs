@@ -1439,3 +1439,109 @@ test('EZD-284 done when: ci.yml installs the packageManager pnpm and an unpinned
     assert.deepEqual(pnpmPinProblems('on: ['), ['workflow text is not valid YAML']);
   });
 });
+
+// ---------- EZD-300 T1-T5 ----------
+// EZD-300 (vault/plans/EZD-300.md section 3): an actions/checkout step keeps no repository token.
+const CHECKOUT_RE = /^\s*actions\/checkout(?![A-Za-z0-9_.-])/i;
+
+// EZD-300 helper (vault/plans/EZD-300.md section 3): per job in doc.jobs order, per step that checks out without persist-credentials: false (n is 1-based).
+// Passing value (plan section 1): with is a plain object, with['persist-credentials'] === false, and no other key equal to it lower-cased.
+function checkoutCredentialProblems(text) {
+  let doc;
+  try {
+    doc = yaml.load(text);
+  } catch {
+    return ['workflow text is not valid YAML'];
+  }
+  const problems = [];
+  for (const [id, job] of Object.entries(doc?.jobs ?? {})) {
+    const steps = Array.isArray(job?.steps) ? job.steps : [];
+    steps.forEach((step, i) => {
+      if (!step || typeof step.uses !== 'string' || !CHECKOUT_RE.test(step.uses)) return;
+      const w = step.with;
+      const plain = w && typeof w === 'object' && !Array.isArray(w);
+      const otherCase = plain && Object.keys(w).some((k) => k !== 'persist-credentials' && k.toLowerCase() === 'persist-credentials');
+      const kept = plain && w['persist-credentials'] === false && !otherCase;
+      if (!kept) problems.push(`job ${id} step ${i + 1} checks out without persist-credentials: false`);
+    });
+  }
+  return problems;
+}
+
+test('EZD-300 done when: every actions/checkout step in .github/workflows sets persist-credentials: false (AC-EZD-300-1)', async (t) => {
+  const wf = (body) => `on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+  const M = (n) => [`job a step ${n} checks out without persist-credentials: false`];
+  const ciText = readFileSync(path.join(workflowsDir, 'ci.yml'), 'utf8');
+  const ciCheckout = yaml.load(ciText).jobs.gate.steps[0].uses;
+  const S = ciCheckout.slice(ciCheckout.indexOf('@') + 1);
+  assert.match(S, FULL_SHA_RE, 'ci.yml checkout is pinned to a full SHA');
+  const c = `      - uses: actions/checkout@${S}\n`;
+
+  await t.test('T1 every workflow file checks out with persist-credentials: false; ci.yml sets it on jobs.gate.steps[0] (AC-EZD-300-1)', () => {
+    const files = workflowFiles();
+    assert.ok(files.includes('ci.yml'), 'ci.yml is one of the workflow files');
+    for (const f of files) {
+      const text = readFileSync(path.join(workflowsDir, f), 'utf8');
+      assert.deepEqual(checkoutCredentialProblems(text), [], `${f}: checkout credentials`);
+    }
+    assert.equal(yaml.load(ciText).jobs.gate.steps[0].with['persist-credentials'], false);
+  });
+
+  await t.test('T2 a checkout step without persist-credentials: false is refused, each form (AC-EZD-300-1)', () => {
+    const cases = [
+      ['c with no with', c],
+      ['c with fetch-depth: 0', `${c}        with:\n          fetch-depth: 0\n`],
+      ['c with persist-credentials: true', `${c}        with:\n          persist-credentials: true\n`],
+      ["c with persist-credentials: 'false'", `${c}        with:\n          persist-credentials: 'false'\n`],
+      ['c with persist-credentials: ${{ false }}', `${c}        with:\n          persist-credentials: \${{ false }}\n`],
+      ['c with persist-credentials: false and Persist-Credentials: true', `${c}        with:\n          persist-credentials: false\n          Persist-Credentials: true\n`],
+      ['c with Persist-Credentials: false alone', `${c}        with:\n          Persist-Credentials: false\n`],
+      ['c with persist_credentials: false', `${c}        with:\n          persist_credentials: false\n`],
+      ['c with with: [persist-credentials: false]', `${c}        with: [persist-credentials: false]\n`],
+      ['alone: { uses: actions/checkout@S }', `      - { uses: actions/checkout@${S} }\n`],
+      ['alone: Actions/Checkout@S', `      - uses: Actions/Checkout@${S}\n`],
+      ['alone: actions/checkout/x@S', `      - uses: actions/checkout/x@${S}\n`],
+      ['alone: " actions/checkout@S"', `      - uses: " actions/checkout@${S}"\n`],
+      ['alone: actions/checkout@v4', '      - uses: actions/checkout@v4\n'],
+    ];
+    for (const [id, body] of cases) {
+      assert.deepEqual(checkoutCredentialProblems(wf(body)), M(1), id);
+    }
+  });
+
+  await t.test('T3 a checkout as step 2 is refused, also through an alias carrying true (AC-EZD-300-1)', () => {
+    assert.deepEqual(checkoutCredentialProblems(wf(`      - run: echo ok\n${c}`)), M(2), 'run then c');
+    const alias = '      - run: echo ok\n        env: &w\n          persist-credentials: true\n'
+      + `      - uses: actions/checkout@${S}\n        with: *w\n`;
+    assert.deepEqual(checkoutCredentialProblems(wf(alias)), M(2), 'alias with true');
+  });
+
+  await t.test('T4 controls pass: false set, with fetch-depth, flow with, other actions and aliases with false (AC-EZD-300-1)', () => {
+    const controls = [
+      `${c}        with:\n          persist-credentials: false\n`,
+      `${c}        with:\n          fetch-depth: 0\n          persist-credentials: false\n`,
+      `      - uses: actions/checkout@${S}\n        with: { persist-credentials: false }\n`,
+      `      - uses: actions/checkout-extra@${S}\n`,
+      '      - run: echo ok\n        env: &w\n          persist-credentials: false\n'
+        + `      - uses: actions/checkout@${S}\n        with: *w\n`,
+    ];
+    for (const body of controls) {
+      assert.deepEqual(checkoutCredentialProblems(wf(body)), [], body);
+    }
+    assert.deepEqual(checkoutCredentialProblems(''), [], 'empty text');
+    assert.deepEqual(
+      checkoutCredentialProblems('on:\n  workflow_dispatch:\njobs:\n  a:\n    uses: ./.github/workflows/x.yml\n'),
+      [],
+      'job uses a reusable workflow',
+    );
+    assert.deepEqual(
+      checkoutCredentialProblems('on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps: 3\n'),
+      [],
+      'steps is not a list',
+    );
+  });
+
+  await t.test('T5 text js-yaml refuses is refused, fail closed (AC-EZD-300-1)', () => {
+    assert.deepEqual(checkoutCredentialProblems('on: ['), ['workflow text is not valid YAML']);
+  });
+});
