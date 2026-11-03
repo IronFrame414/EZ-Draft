@@ -61,3 +61,16 @@ Denials that were the sandbox working as intended: reading `scripts/launcher.con
 6. Dry-run each unit type sandboxed, one at a time, with the launcher stopped: build (with worktree, tests, builder, reviewers, ui-verifier, gate, merge, finish), plan, review-plans, questions, gate-phase (full gate in the background, PR, auto-merge), wrap, repair. Each must end with its normal result and no denial in its transcript.
 7. Decide 3.1 and 3.2 with Josh (rule 18: close the class).
 8. Update `builder.md`, build-ticket step 7, and PROCESS.md, then re-apply the `--settings` flag with a test that asserts it.
+
+## Status after the fixes (2026-11-03, same day)
+
+| Checklist item | State |
+| --- | --- |
+| 1. Probe background, env prefix, timeout, subagent | Done (rounds 5 and 6, NOTES.md): background and subagent runs of an excluded command stay outside; an env prefix puts it back inside (GATE SANDBOX STOP); `timeout` is not on macOS |
+| 2. `~/.npm`; `DO_NOT_TRACK` | Done (22cef398): settings `env` gives both; `~/.supabase` allowance dropped |
+| 3. pnpm store fallback | Cause found: pnpm uses an in-checkout store inside the sandbox; accepted (D-014) |
+| 4. ui-run self-check | Done (dec37b8d) |
+| 5. Coverage test | Done (dec37b8d, 22cef398); launcher assertion in `vault/handoff/sandbox-on.patch` |
+| 6. Dry run of every unit type | Not done. Units already seen sandboxed and clean: build (worktree, tests, reviews, gate, merge), plan, questions, repair. Not yet seen: review-plans, wrap, gate-phase past step 1, ui-run inside a unit |
+| 7. D-021, D-012 | D-012 closed (22cef398). D-021: reach is the agent account on this repository only; recommended known hole, Josh to say |
+| 8. Wording, re-enable | Ready in `vault/handoff/sandbox-on.patch` (run.mjs, the launcher test, builder.md, build-ticket step 7), checked on a scratch copy: 223 tests pass |
