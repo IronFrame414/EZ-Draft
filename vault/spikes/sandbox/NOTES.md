@@ -64,3 +64,20 @@ The first sandboxed unit (EZD-285, sessions 40161097 and cb55c6df) could not cre
 The protected `.claude/` paths (settings files, `agents`, `skills`, `commands`, `hooks`) cannot be unlocked by `allowWrite` (https://code.claude.com/docs/en/sandboxing: "the protection still applies"; only `filesystem.disabled` turns it off, with all filesystem isolation). So the two steps that write a worktree's `.claude/` run outside the sandbox: `excludedCommands` adds `node scripts/unit-steps.mjs worktree *` and `node scripts/unit-steps.mjs merge *`. A call leaves the sandbox only when every command in it matches an entry, and a `cd`, redirect or `$(...)` keeps it inside, so units must run these as their own Bash call (the 20e0d7de unit chained `grep ...; node scripts/unit-steps.mjs worktree ...` and piped `merge ... 2>&1 | tail`). The build-ticket skill could not be edited (the auto-mode classifier refuses `.claude/` edits), so `unit-steps.mjs` checks first: when it cannot write `.claude/agents` it prints SANDBOX STOP with the exact command to rerun, before git changes anything (no stray branch). No `claude -p` probe was possible (guard-bash); the first live unit is the probe. New hole (4) in KNOWN-LIMITS: the main checkout's `scripts/` is writable (debt D-012).
 Same day, second gap: the first re-sandboxed build (EZD-108, session 832f19b5) could not queue its records: `ledger.mjs` writes the unit's results file (`$EZD_RESULTS_FILE`, `~/Library/Logs/ezdraft/inflight/<unit>.results.jsonl`, scripts/run.mjs runUnit) and got EPERM. `allowWrite` adds `~/Library/Logs/ezdraft/inflight` (the default log folder on macOS; a `log_dir` in launcher.config.json would need the same entry). The worktree step's SANDBOX STOP worked as designed: the unit reran the command alone and resumed.
 Third gap, same day: in EZD-108's second sandboxed run (session 131593f0) the ui-verifier could not start Chromium (SIGTRAP, as probe 11 predicted) and checked no row, and the Supabase CLI failed writing `~/.supabase/telemetry.json` (PlatformError). `allowWrite` adds `~/.supabase` (no token kept there). `scripts/ui-run.mjs` runs one spec under a worktree's `app/e2e/`; adding it to `excludedCommands` was refused by the auto-mode classifier, so it is Josh's patch `vault/handoff/sandbox-ui-run.patch` (debt D-013).
+
+## Probe round 5 (2026-11-03, Josh ran it; session 6c67f887, settings `probe-settings-5.json`: unit settings without `~/.supabase`, plus `denyWrite: ["./scripts"]`)
+| # | Probe | Result |
+| --- | --- | --- |
+| 1 | `node scripts/gate.mjs . --print-scope` alone | outside the sandbox (scope printed) |
+| 2 | same with `run_in_background` | outside the sandbox (scope printed, exit 0): the full gate can run sandboxed units in the background |
+| 3 | `DO_NOT_TRACK=1 node scripts/gate.mjs ...` | inside: GATE SANDBOX STOP. An environment prefix defeats `excludedCommands` |
+| 4 | `timeout 60 ...` | `timeout` is not installed on macOS |
+| 5 | a general-purpose subagent runs the gate alone | outside the sandbox: exclusions apply in subagents |
+| 7, 8 | `git push --dry-run`, `gh api user` | work; the account is `ironframe414-agent`, whose only repository is IronFrame414/EZ-Draft (push) |
+| 9 | `records.mjs show` (records.db, WAL) | works |
+| 10 | write the main checkout's `scripts/` with `denyWrite: ["./scripts"]` | written: a relative `denyWrite` entry has no effect |
+| 11, 12 | write `app/`, a worktree's `scripts/` | written |
+| 13 | `pnpm store path` | `/Users/josh/Projects/ezdraft/node_modules/.pnpm-store/v11` inside the sandbox (not ~/Library/pnpm/store/v11): the cause of D-014 |
+| 14 | `npm cache verify` | fails: `~/.npm` not writable |
+| 15, 16 | `pnpm exec supabase --version` with / without `DO_NOT_TRACK=1` | works / crashes (Bun) on the telemetry write |
+| 17 | `$TMPDIR` (`/tmp/claude-501`), `/tmp` | writable / not writable |
