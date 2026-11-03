@@ -1,0 +1,10 @@
+# Unblock EZD-300 and fix the guarded-path hold (Josh's yes, 2026-11-03 ~14:00 UTC: "Yes, do both")
+
+For an interactive session Josh starts. The night session's attempt to start it was refused by the auto-mode classifier (tooling self-modification), so Josh starts it himself.
+
+**Fault.** Since 06:48 UTC the launcher waits: `none: waiting on Josh (guarded paths for EZD-300: vault/handoff/ezd-300-ci-persist.patch)` (`vault/handoff/REPAIR.md`). `vault/tools/plan-paths.mjs` `guardedPaths` holds a ready ticket for every guarded path in its plan's `### Build steps` Path cells. That includes a step the plan gives to the orchestrator or Josh, such as EZD-300 step 1, "(orchestrator writes; Josh applies)", whose patch was already written at 35affad7. Applying the patch does not release the ticket, because the plan still names the path.
+
+1. **CI patch.** Run `git apply vault/handoff/ci-ezd300-d006.patch`. It covers EZD-300 step 1 (`persist-credentials: false`) and debt D-006 (reserve ports 54320-54329 as the first CI step). Run `scripts/ci/__tests__/ci.test.mjs` and `scripts/release/__tests__/workflow.test.mjs`, check EZD-300 T1 against `vault/plans/EZD-300.md`, then commit `ci.yml` alone. Update the D-006 row in `vault/debt.md`. Delete `ezd-300-ci-persist.patch` and `d006-ci.patch` only if nothing references them.
+2. **Hold rule.** Fix mode (PROCESS.md section 3 rule 19: `vault/handoff/LAUNCHER_FIX.md`). A build step the plan assigns to the orchestrator or Josh must not hold a builder ticket. Close the class (CLAUDE.md rule 18). First read how `vault/plans/TEMPLATE.md` marks a step's owner. If it doesn't, settle it there rather than guessing from free text. Test first. Then `node vault/tools/next_ticket.mjs --next-unit` must name a real unit, not "waiting on Josh". Commit at a unit boundary. If the classifier refuses a direct edit, hand Josh one patch and the command to apply it (memory `tooling-edits-need-patch`).
+
+**Done when:** both commits are on develop and pushed, the launcher log shows a new unit starting, and LAUNCHER_FIX.md is removed. Then continue with `vault/handoff/RESUME-2026-11-03-morning.md`.
