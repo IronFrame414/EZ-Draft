@@ -3151,6 +3151,7 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-005a",
@@ -3192,6 +3193,7 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120a",
@@ -3618,6 +3620,7 @@
     "spec/sections/03b-architecture-rules.md#Architecture rules"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
@@ -3742,6 +3745,7 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-120a",
@@ -4791,6 +4795,7 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202"
@@ -17524,10 +17529,15 @@
     "spec/decisions/process.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "CI"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
-   "depends_on": [],
+   "depends_on": [
+    "EZD-316"
+   ],
    "build_position": 573,
    "acs": [
     "AC-EZD-317-1",
