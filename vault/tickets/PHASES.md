@@ -273,13 +273,13 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 - **Goal:** A project opens into the editor route and its model saves through the patch store, outbox and save function.
 - **User-visible result:** Opening a project card loads the editor shell in one query with the header save state (Saving…, Saved just now, Saved N min ago) and the save error banner with Retry; the offline banner (Q-0501), the sign-out warning for unsaved edits (Q-0503) and the conflict list with Keep mine / Keep theirs (EZD-299, after board S03b; Q-0502, Q-0510, Q-0511); projects store their floors (Q-0504, Q-0508); the object schema, save function, checkpoints and drawing list are in place for slice 4.
-- **Spec files:** `spec/sections/03-data-model.md` (03a to 03g), `spec/sections/00d-glossary-phase-03.md`, `spec/decisions/03-data-model.md`, `spec/decisions/05-screens.md`, `spec/decisions/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md` (spec-check 3: Q-0500 to Q-0511)
+- **Spec files:** `spec/sections/03-data-model.md` (03a to 03g), `spec/sections/00d-glossary-phase-03.md`, `spec/decisions/03-data-model.md`, `spec/decisions/05-screens.md`, `spec/decisions/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/04-app-shell-and-global-ui.md` (Notifications), `spec/sections/screens/S01-projects.md` (board S01c) (spec-check 3: Q-0500 to Q-0540)
 - **Tickets (6, build order):**
   - EZD-133 Access and money-field harness — needs EZD-102 (s1)
-  - EZD-120a Model tables, save function and checkpoints — after EZD-133
-  - EZD-120b Model store, outbox and editor route — after EZD-120a; needs EZD-117a (s2), EZD-117b (s2)
+  - EZD-120a Model tables, save function and checkpoints — after EZD-133; needs EZD-118 (s2) (Q-0530)
+  - EZD-120b Model store, outbox and editor route — after EZD-120a; needs EZD-117a (s2), EZD-117b (s2), EZD-118 (s2) (Q-0530)
   - EZD-202 Model document schema — after EZD-120a, EZD-120b
-  - EZD-299 Conflict list: Keep mine / Keep theirs — after EZD-120b, EZD-202; blocked until board S03b is approved (Q-0510)
+  - EZD-299 Conflict list: Keep mine / Keep theirs — after EZD-120b, EZD-202; needs EZD-110b (s2), EZD-140 (s2) (Q-0530); blocked until board S03b is approved (Q-0510)
   - EZD-238 Drawing list — after EZD-202
 - **Depends on slices:** 1, 2
 - **Out of scope until later:** Any drawing tool (slice 4); edit lock (slice 8); versions panel (slice 9); the full offline mode (phases 14 and 44); floor tools (phase 6, Q-0509).

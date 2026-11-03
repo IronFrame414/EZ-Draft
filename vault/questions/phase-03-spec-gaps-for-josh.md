@@ -104,3 +104,7 @@ Fixed in place under Q-0540: EZD-134's Done-when and AC-EZD-134-3 apply the afte
 ## Round 6: 1 gap, none for Josh
 
 Fixed in place under Q-0530 and Q-0540: EZD-134's Scope column limits the app version and the after-drain reload prompt to requests other than saves.
+
+## Round 7: 3 gaps, none for Josh
+
+Fixed in place under Q-0530 and Q-0540: the slice 3 ticket list names the phase 2 tickets EZD-120a, EZD-120b and EZD-299 need; its Spec files line adds 04 Notifications and S01; the EZD-299 row no longer lists an older app version among conflicts (reload then resend, no list row). STATUS Depends on drift: debt D-026.
