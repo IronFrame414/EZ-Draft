@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 585,
+ "count": 586,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -17332,6 +17332,7 @@
    "mockups": [
     "mockups/S01cNotifications.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120b",
@@ -17507,6 +17508,30 @@
    "acs": [
     "AC-EZD-316-1",
     "AC-EZD-316-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-317",
+   "phase": 1,
+   "title": "Fix: a sandboxed command cannot run a writable copy of an excluded script outside the sandbox",
+   "depends_raw": "",
+   "spec_ref": "Q-0541, D-021, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 573,
+   "acs": [
+    "AC-EZD-317-1",
+    "AC-EZD-317-2"
    ],
    "acs_source": "done-when"
   }
