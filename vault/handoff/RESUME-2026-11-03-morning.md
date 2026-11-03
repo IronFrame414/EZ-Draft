@@ -18,3 +18,10 @@ For the session that takes over from the 2026-11-03 night watch. It replaces the
 3. Josh's decisions, one batched list with a recommendation each: the D-006 patch (recommended: yes, he runs `git apply vault/handoff/d006-ci.patch`), D-021, Q-0485, Q-0471, and any open phase 3 question (spec-check 3 committed a round 3 question in ea497af5).
 4. Rule-settled, not for Josh: add the defect tickets from Q-0477, Q-0478 and Q-0479 + Q-0486 (rule 17; agents may add fix tickets, Josh 2026-11-02). The only route that works while the launcher runs is the records inbox plus a commit of tickets.json, the phase file and acceptance-criteria.md right after it shows `.applied` (D-024, D-025). Take IDs after the highest in tickets.json and QUESTIONS* at write time. The questions unit's reverted draft (phase 1 row and 2 ACs for the Q-0479/Q-0486 ticket) is the template. Do it all in one sitting or not at all.
 5. 2-3 tickets at a time, as in `RESUME-2026-11-03.md` step 4.
+
+## Update 13:58 UTC (night session, status check)
+
+- gate-phase 1 ended ok 04:07 and added fix tickets EZD-295 to 298 and 300. Built since: EZD-297, 283, 288 (done). EZD-108 still blocked (ui-run).
+- **Launcher idle since 06:48 UTC**: `none: waiting on Josh (guarded paths for EZD-300: vault/handoff/ezd-300-ci-persist.patch)` (`vault/handoff/REPAIR.md`). EZD-295, 296 and 298 wait on Josh's questions Q-0512 to Q-0516 (`vault/questions/phase-01-for-josh.md`).
+- `ezd-300-ci-persist.patch` and `d006-ci.patch` both edit the lines after the ci.yml checkout step and do not apply one after the other. `vault/handoff/ci-ezd300-d006.patch` holds both (checked with `git apply --check` on 96483261's ci.yml; not run against the EZD-300 tests). Before Josh applies it, confirm with the EZD-300 plan's fix-mode route (PROCESS.md rule 19) that applying the combined patch releases EZD-300.
+- First item for the next session: get EZD-300 released (fix mode, Josh's yes), then the Q-0512 to Q-0516 answers, then the sandbox switch-on.
