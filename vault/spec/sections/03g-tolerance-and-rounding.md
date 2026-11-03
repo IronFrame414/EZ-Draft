@@ -1,6 +1,6 @@
 # Data model: comparison tolerance and stored lengths
 
-Added by spec-check 3 (Q-0493; calc-auditor, 2026-11-02). Worked examples for Architecture rule 5 (`03b-architecture-rules.md`). No new rule beyond the two marked *settled here*.
+Added by spec-check 3 (Q-0507; calc-auditor, 2026-11-02). Worked examples for Architecture rule 5 (`03b-architecture-rules.md`). No new rule beyond the two marked *settled here*.
 
 **Statement.** Coordinates are stored as decimal inches and are not rounded when stored. Two coordinates are equal when the difference between them is 1/64 inch (0.015625) or less (*settled here*: inclusive). This tolerance is fixed; it is not the owner's Measurement tolerance in Defaults, which covers scan against typed values, field measurements and the closure check (S15d Defaults; Round 24 #30). Rule 5 is later than 13a's "every tolerance is a company setting" and says "fixed", so it governs.
 

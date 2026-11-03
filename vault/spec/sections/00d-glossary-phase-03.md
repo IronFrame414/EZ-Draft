@@ -1,6 +1,6 @@
 # Glossary addendum · Phase 3
 
-Added by spec-check 3 (Q-0493, Q-0494). Definitions only, each from the source named; no new rules. Read with `vault/spec/glossary.md`, `00b-glossary-phase-01.md` and `00c-glossary-phase-02.md`.
+Added by spec-check 3 (Q-0507, Q-0508). Definitions only, each from the source named; no new rules. Read with `vault/spec/glossary.md`, `00b-glossary-phase-01.md` and `00c-glossary-phase-02.md`.
 
 | Term | Meaning | Code name | Source |
 | --- | --- | --- | --- |
@@ -14,9 +14,9 @@ Added by spec-check 3 (Q-0493, Q-0494). Definitions only, each from the source n
 | Lock generation | A number that goes up each time the edit lock changes hands; a save with an old number is refused. It stays 0 until the edit lock ships (EZD-125, phase 8). | `edit_lock.lock_epoch` | 03b rule 6; 03e |
 | Schema version | The version number of the model's data layout, carried on every stored copy and every queued change. | `schema_version` | 03b rule 5 |
 | Migrate | Upgrading an older stored model to the current layout when it is read, without rewriting what is stored. | migrate functions in the geometry package | 03b rule 5 |
-| Floor | One storey of a project; every model object belongs to one floor, and a project can have several. Not a room's "floor level" (its floor height) or its floor finish (03f existing conditions). | `level` on each object; the project's floor list | 03f; Q-0490; Q-0494 |
-| Conflict | A queued change the server refuses for good, for example because someone else saved the same object first. | none yet (EZD-294 plan names it) | 03b rule 9; Q-0488 |
-| Conflict list | The list of conflicts on this device; each is resolved with Keep mine (send my change over the server's) or Keep theirs (drop my change). | none yet (EZD-294 plan names it) | 03b rule 9; Q-0488 |
+| Floor | One storey of a project; every model object belongs to one floor, and a project can have several. Not a room's "floor level" (its floor height) or its floor finish (03f existing conditions). | `level` on each object; the project's floor list | 03f; Q-0504; Q-0508 |
+| Conflict | A queued change the server refuses for good, for example because someone else saved the same object first. | none yet (EZD-294 plan names it) | 03b rule 9; Q-0502 |
+| Conflict list | The list of conflicts on this device; each is resolved with Keep mine (send my change over the server's) or Keep theirs (drop my change). | none yet (EZD-294 plan names it) | 03b rule 9; Q-0502 |
 | Drawing list | The list of lines, arcs, fills, hatches and text (with sizes measured from the bundled font files) that one view of the model turns into; the plan canvas, sheets and PDF all draw from it. | geometry package function (EZD-238) | 02 Product overview · PDF out; R26 R7 |
 | Line-weight role | What a line in the drawing list stands for (cut, beyond, hidden, dimension), which sets how heavy it prints. | none yet (EZD-238 plan names it) | 09h Sheet set rules |
 | Money field | A cost, sell price, markup, option cost line, change-order amount or render dollar amount; shown only to users with See company costs or See sell prices. | separate money tables and columns | 03b rule 2; R26 R1, R2 |
