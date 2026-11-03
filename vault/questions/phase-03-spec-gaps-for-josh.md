@@ -96,3 +96,7 @@ Answer (Josh, 2026-11-03, chat in the resume session "Resume EZ Draft build (202
 ## Round 4: 5 gaps, none for Josh
 
 Settled by the orchestrator as Q-0540: the server copy of refused changes is a new per-user table (shape reviewed by the code-reviewer), deleted with the project (Q-0201) and on resolve or Remove; a row for a project no longer open shows no saved values; EZD-299 adds the app-version check on saves (Q-0511 e over rule 12 for saves); "one sync" is one outbox drain; EZD-120a stores the floor list and EZD-202 checks against it. ACs AC-EZD-202-5, AC-EZD-299-6, -8, -11 updated.
+
+## Round 5: 2 gaps, none for Josh
+
+Fixed in place under Q-0540: EZD-134's Done-when and AC-EZD-134-3 apply the after-drain reload prompt to requests other than saves; the EZD-299 row and spec_ref cite Q-0511 (e) and Q-0540 instead of rule 12 for saves.

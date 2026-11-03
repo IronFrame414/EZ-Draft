@@ -17312,7 +17312,7 @@
    "phase": 3,
    "title": "Conflict list: Keep mine / Keep theirs",
    "depends_raw": "EZD-120b, EZD-202, EZD-110b, EZD-140",
-   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540",
    "spec_files": [
     "spec/sections/03b-architecture-rules.md#Architecture rules",
     "spec/sections/00d-glossary-phase-03.md",
