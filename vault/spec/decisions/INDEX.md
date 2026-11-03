@@ -8,9 +8,9 @@ One file per spec area, mirroring `vault/spec/sections/`. A dispatch hands an ag
 | 13b-round-26.md | Round 26 build-readiness audit decisions R1–R34 (override Round 24 where they differ) | R26 R1–R34 |
 | 13c-open-and-resolved.md | Items still open outside the software, and items resolved from the plan doc (Oct 11) | — |
 | 02-product-overview.md | Product overview: stack, platform, hosting, accounts, devices | Q-0003 Q-0013 Q-0015 Q-0024 Q-0027 Q-0031 Q-0033 Q-0053 Q-0054 Q-0088 Q-0109 Q-0110 Q-0113 Q-0123 Q-0177 Q-0196 Q-0220 Q-0236 Q-0264 Q-0271 |
-| 03-data-model.md | Data model: working copy, saves, outbox, conflicts, schema, floors | Q-0488 Q-0489 Q-0490 |
+| 03-data-model.md | Data model: working copy, saves, outbox, conflicts, schema, floors | Q-0488 Q-0489 Q-0490 Q-0493 Q-0494 Q-0495 Q-0497 |
 | 04-app-shell-and-global-ui.md | App shell and global UI: tokens, radii, header, states, shared wording | Q-0026 Q-0037 Q-0039 Q-0040 Q-0051 Q-0055 Q-0056 Q-0057 Q-0058 Q-0086 Q-0098 Q-0038 Q-0122 Q-0183 Q-0206 Q-0208 Q-0213 Q-0214 Q-0265 Q-0302 Q-0272 Q-0273 Q-0487 |
-| 05-screens.md | Screens and mockups | Q-0034 — Q-0080 Q-0185 Q-0186 Q-0191 Q-0192 Q-0199 Q-0200 Q-0201 Q-0203 Q-0204 Q-0217 Q-0391 Q-0392 Q-0393 Q-0394 Q-0395 Q-0396 Q-0397 Q-0398 Q-0399 Q-0401 Q-0402 Q-0410 Q-0411 Q-0486 Q-0492 |
+| 05-screens.md | Screens and mockups | Q-0034 — Q-0080 Q-0185 Q-0186 Q-0191 Q-0192 Q-0199 Q-0200 Q-0201 Q-0203 Q-0204 Q-0217 Q-0391 Q-0392 Q-0393 Q-0394 Q-0395 Q-0396 Q-0397 Q-0398 Q-0399 Q-0401 Q-0402 Q-0410 Q-0411 Q-0486 Q-0492 Q-0496 |
 | 07-hooks-events-and-integrations.md | Hooks, events, jobs and outside services: email, jobs, EZ Binder, AI and render providers | Q-0035 Q-0036 Q-0041 Q-0059 Q-0067 Q-0068 Q-0077 Q-0078 Q-0081 Q-0016 Q-0076 Q-0082 Q-0083 Q-0084 Q-0190 Q-0222 Q-0276 Q-0278 Q-0287 |
 | 08-import-and-export.md | Import and export: department submittals | Q-0017 Q-0189 Q-0193 Q-0209 Q-0215 |
 | 09-calculations-and-rules.md | Calculations and code rules | Q-0001 Q-0179 Q-0180 Q-0181 Q-0182 Q-0205 Q-0207 |
