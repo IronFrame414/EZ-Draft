@@ -80,3 +80,13 @@ Answer (Josh, 2026-11-02, chat): "accept all. make sure #2 is drawn tomorrow in 
 Renumbered 2026-11-03: the launcher refused the first queue because a build unit took Q-0486 first; this spec-check's questions are Q-0500 to Q-0511 (old Q-0486 to Q-0497, same order). Q-0487 to Q-0499 stay unused.
 
 Ticket renamed 2026-11-03: a questions 1 unit took EZD-294 for a phase 1 fix ticket at the same time; the conflict-list ticket is EZD-299.
+
+Note: commit 39703d3d's title still says EZD-294 and Q-0486 to Q-0497 (written before the renames); its content uses Q-0500 to Q-0511 and EZD-299.
+
+## Round 3: 8 gaps, 1 for Josh
+
+**1. Where the conflict list lives (gap 6).** Q-0502 keeps the list on the device that made the edits, but the notification email (Q-0511 a) links to "the same list". On another device, or after the browser's data is cleared, that list would be empty.
+- Recommended: refused changes are also kept on the server for that person, so the list opens from any device and survives a cleared browser; one notification per project per sync, listing every object (a Keep mine refused again joins the next one). Cost: a little server storage and one more route in EZD-299.
+- Alternative: device only; another device shows a short message saying the changes are on the device that made them.
+
+Agent-settled (Q-0520): PHASES.md table row 3 says 299, not 294 (gap 1); EZD-299 depends on EZD-110b and EZD-140 (bell list, per-person settings) and reads 04 Notifications, Q-0393, Q-0220 and board S01c (gap 2); EZD-299 sends the app version on save requests and handles the older-version refusal, EZD-134 keeps it for all other requests and the after-drain prompt (gap 3; Q-0511 e, Q-0503 precedent); EZD-120b and EZD-120a depend on EZD-118 (Create) (gap 4); EZD-120a owns the floor list's storage and makes the first floor when a project's working copy is created, EZD-202 checks every object's floor against it (gap 5); AC-EZD-299-10 leaves the Show button out until phase 4 (gap 7, Q-0500); the board's notification row proposes new wording naming the project and objects, for online conflicts too, and EZD-299 extends the `sync_conflict` kind (gap 8, Q-0510, PROCESS.md 3a).
