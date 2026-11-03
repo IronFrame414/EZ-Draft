@@ -1,6 +1,6 @@
 # Resume · 2026-11-03 morning
 
-For the session that takes over from the 2026-11-03 night watch. It replaces `vault/handoff/RESUME-2026-11-03.md` for steps 1 to 4; that file's "Open items to know" still hold. Josh said "Morning" for the watched sandbox switch-on.
+For the session that takes over from the 2026-11-03 night watch. It replaces the "Do first" list of `vault/handoff/RESUME-2026-11-03.md`; that file's "Open items to know" still hold. Josh said "Morning" for the watched sandbox switch-on.
 
 ## Night so far (to 03:45 UTC)
 
@@ -8,6 +8,7 @@ For the session that takes over from the 2026-11-03 night watch. It replaces `va
 - **questions 1** ran (03:26 to 03:28): Q-0486 answered by agent; Q-0485 (EZD-293) waits on Josh (`vault/questions/phase-01-for-josh.md`, left uncommitted in the main checkout by that unit).
 - **EZD-292** built and merged (03:28 to 03:43; STATUS done). **gate-phase 1** started 03:43:47, unsandboxed.
 - **Phase 3 records clash, fixed:** the phase 3 spec-check inbox file was rejected at 03:26 (Q-0486 taken by the EZD-291 unit). That session renumbered to Q-0500 to Q-0511 and EZD-299 (0c781eeb, 80910e68, 39703d3d), applied, debt D-025 (50c74688). LEDGER OK 579. EZD-299's row in phase-01.md is correct (phase_file names the spec phase after the re-cut, as for EZD-120a).
+- **Watch ended 03:45 UTC** (night session at its context limit): gate-phase 1 and everything after it ran unwatched; treat any stop since then as unattended. Commits 7bece9a8 and this file are local until a unit pushes develop.
 - **D-006 (CI port 54322):** likely cause found in the gate log: the first `supabase start` on a fresh runner failed, and 54322 is inside Linux's outgoing port range. Patch `vault/handoff/d006-ci.patch` reserves 54320-54329 as the first CI step; the ci.yml tests pass with it (7bece9a8). It is a CI change, so it waits for Josh's yes. Until then the phase PR's CI can still fail on it once in a while (a re-run passed last time).
 
 ## Do first (in order)
