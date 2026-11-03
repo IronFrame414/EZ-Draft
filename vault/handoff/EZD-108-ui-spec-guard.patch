@@ -1,0 +1,11 @@
+--- a/.claude/hooks/guard-paths.mjs	2026-11-03 01:01:05
++++ b/.claude/hooks/guard-paths.mjs	2026-11-03 01:01:06
+@@ -103,7 +103,7 @@
+       return 'The builder may not change agent config, hooks, CLAUDE.md, scripts/ (gate, launcher, budget; scripts/conventions/, scripts/db/, scripts/email/ and scripts/release/, scripts/perf/, scripts/backup/, scripts/auth/ and scripts/hosting/ are allowed) or ci.yml. New workflow files under .github/workflows/ are allowed.';
+   },
+   'ui-verifier': () => {
+-    if (!under('vault/plans/shots/')) return 'ui-verifier writes only screenshots in vault/plans/shots/.';
++    if (!under('vault/plans/shots/') && !/^.*app\/e2e\/ui-[A-Za-z0-9-]+\.spec\.ts$/.test(key)) return 'ui-verifier writes only screenshots in vault/plans/shots/ and its spec app/e2e/ui-*.spec.ts.';
+   },
+ };
+ rules['retriever-digest'] = retriever;
