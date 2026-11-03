@@ -107,4 +107,4 @@ Fixed in place under Q-0530 and Q-0540: EZD-134's Scope column limits the app ve
 
 ## Round 7: 3 gaps, none for Josh
 
-Fixed in place under Q-0530 and Q-0540: the slice 3 ticket list names the phase 2 tickets EZD-120a, EZD-120b and EZD-299 need; its Spec files line adds 04 Notifications and S01; the EZD-299 row no longer lists an older app version among conflicts (reload then resend, no list row). STATUS Depends on drift: debt D-026.
+Fixed in place under Q-0530 and Q-0540: the slice 3 ticket list names the phase 2 tickets EZD-120a, EZD-120b and EZD-299 need; its Spec files line adds 04 Notifications and S01; the EZD-299 row no longer lists an older app version among conflicts (reload then resend, no list row). STATUS Depends on drift: debt D-029 (first written as D-026, a number already in use).
