@@ -29,3 +29,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0273 | 2026-10-24 | (b): add an app not-found page that carries the disclaimer line and the text "Page not found." |
 | Q-0273 wording | 2026-10-24 | Wording (EZD-136): "Page not found." (Josh approved with Q-0273 (b)). |
 | — | 2026-11-02 | Audit M10 (Josh, chat: "Add a Settings link"): until the Projects page replaces the signed-in home page, it shows a link with the text "Settings" that opens Settings, to users who may open Settings (EZD-289). |
+| Q-0487 | 2026-11-02 | Phase 3 (EZD-120b) shows the office editor offline banner with the Q-0214 wording ("Offline. Changes are saved on this device and will sync.", which replaces S03 "Offline · changes will sync"); edits keep queuing in the outbox and send on reconnect. The full offline mode (the app opening with no connection, cached projects, field pack) stays in phases 14 and 44. (spec-check 3; Josh in chat) |

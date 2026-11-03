@@ -9,6 +9,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
 - [Job stories (Round 1, Josh)](sections/00-job-stories.md) — how a job runs and what EZ Draft is for; Q-0177 to Q-0196
 - [Glossary addendum, Phase 1](sections/00b-glossary-phase-01.md) — Phase 1 terms added to glossary.md; Q-0231
 - [Glossary addendum, Phase 2](sections/00c-glossary-phase-02.md) — Phase 2 terms added to glossary.md; Q-0403
+- [Glossary addendum, Phase 3](sections/00d-glossary-phase-03.md) — Phase 3 terms added to glossary.md; Q-0493
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
@@ -18,6 +19,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [03d · Tables added in Rounds 24 and 25](sections/03d-tables-rounds-24-25.md)
   - [03e · Tables added in Round 26](sections/03e-tables-round-26.md)
   - [03f · Objects inside model_json](sections/03f-model-json-objects.md)
+  - [03g · Comparison tolerance and stored lengths](sections/03g-tolerance-and-rounding.md) — worked examples for Architecture rule 5; Q-0493
 - [App shell and global UI](sections/04-app-shell-and-global-ui.md)
 - [Screen-by-screen spec](sections/05-screen-by-screen-spec.md) — one file per screen:
   - [01 · Projects](sections/screens/S01-projects.md) — board S01Projects, S01bWizard

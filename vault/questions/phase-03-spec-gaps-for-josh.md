@@ -50,3 +50,7 @@ Stage 0 (spec-check 3), 2026-11-02. Phase 3 is the re-cut phase (vault/tickets/P
 - Gap 21: EZD-238 receives dimension text already formatted (the length formatter is EZD-201, phase 4).
 - Gap 22: real acceptance criteria are written for all five tickets after the answers (acs_source stage-0).
 - Gap 23: glossary addendum `vault/spec/sections/00d-glossary-phase-03.md` (precedent Q-0231, Q-0403).
+
+## Answers (Josh, 2026-11-02, in chat)
+
+5 Q-0490: "build ability for multiple floors now." (several floors per project in v1; the EZD-202 schema holds floors from phase 3). The rest: "the rest are accepted": 1 Q-0486, 2 Q-0487, 3 Q-0488 (new ticket EZD-294 "Conflict list: Keep mine / Keep theirs" in phase 3), 4 Q-0489, 6 Q-0491, 7 Q-0492. Agent-settled list: Q-0493 (tolerance examples in `vault/spec/sections/03g-tolerance-and-rounding.md`, calc-auditor; glossary `vault/spec/sections/00d-glossary-phase-03.md`). Recorded as decision rows (new file `vault/spec/decisions/03-data-model.md`); ACs written (acs_source stage-0); PHASES.md slice 3 updated.
