@@ -1,0 +1,90 @@
+diff --git a/.claude/skills/gate-phase/SKILL.md b/.claude/skills/gate-phase/SKILL.md
+index 17978f0..408b184 100644
+--- a/.claude/skills/gate-phase/SKILL.md
++++ b/.claude/skills/gate-phase/SKILL.md
+@@ -5,7 +5,7 @@ description: Unit `gate-phase <N>` - phase gate: ledger check, full gate on deve
+ 
+ Run the phase gate of `vault/PROCESS.md` (section 9) for phase $ARGUMENTS, with the additions in `vault/PROCESS-EZDRAFT.md` section 7. You are the orchestrator. Every product ticket in the phase must be `done` or `blocked`; tooling tickets (`"track": "tooling"` in `tickets.json`, EZD-253) may be in any status and do not hold the gate, the PR or wrap. **Advisor (process v2.4):** you run on Sonnet 5.5 with an Opus 5.5 advisor. Consult it before opening the phase PR, before marking a ticket `blocked` and when a decision is not covered by PROCESS.md or the spec; not otherwise (each call re-reads the whole transcript).
+ 
+-1. `node vault/tools/next_ticket.mjs --check` passes. On `develop`: `node scripts/gate.mjs . --full`, plus the phase's Build gate test named in `vault/tickets/phases/phase-NN.md`. Red → stop, handoff, report.
++1. `node vault/tools/next_ticket.mjs --check` passes. On `develop`: `node scripts/gate.mjs . --full` as its own Bash call with `run_in_background` (it takes longer than 10 minutes), exactly so written: no `cd`, no chaining, no pipe, no redirect, no `timeout`; any other form runs inside the unit sandbox and prints GATE SANDBOX STOP. Plus the phase's Build gate test named in `vault/tickets/phases/phase-NN.md`. Red → stop, handoff, report.
+ 2. `node vault/tools/next_ticket.mjs --report` (fresh `TRACE.md` and `PROGRESS.md`).
+ 3. Dispatch `security-reviewer` over the phase diff (`git diff origin/main...develop`) with the gate summary. It also writes the "Production-sensitive changes: PASS / FAIL" section (Q-0112); a FAIL blocks the PR.
+ 4. Dispatch `phase-auditor` (`claude-fable-5-1`; `claude-opus-5-5` if `EZD_FABLE_ALLOWED` is `0` or Fable fails) with: the diff range, the phase's plan paths, `vault/tickets/TRACE.md`, the phase's spec files, and the gate output. Every AC in the phase must map to a merged ticket with passing tests. At the Phase 0 gate also give it `docs/architecture.md` and the five spike notes (the architecture is locked after this). Also give it the output of `node vault/tools/next_ticket.mjs --tooling $ARGUMENTS`: ACs of tooling tickets not `done` are not counted at this gate; a `done` tooling ticket of an earlier phase whose commit is not on main (`git merge-base --is-ancestor <commit> origin/main` exits 1) is audited at this gate with its plan. Product tickets of a later phase that this PR carries (step 6) are not audited at this gate; their own phase's gate audits them. A `done` product ticket of this phase whose commit is already on main (built early, EZD-278) is audited at this gate with its plan and `git show <commit>`.
+diff --git a/scripts/gate.mjs b/scripts/gate.mjs
+index 49bcc46..ea7d979 100644
+--- a/scripts/gate.mjs
++++ b/scripts/gate.mjs
+@@ -37,6 +37,22 @@ try { writeFileSync(failuresPath, ''); } catch {}
+ const log = (text) => { try { appendFileSync(logPath, text.endsWith('\n') ? text : text + '\n'); } catch {} };
+ const say = (text) => { console.log(text); log(text); };
+ 
++// A gate inside the unit sandbox fails on write denials, not on the code (D-008, 2026-11-02). It runs outside the sandbox
++// only as a Bash call of its own (scripts/unit-sandbox.json excludedCommands). The sandbox always protects .claude/agents:
++// when this process cannot write there, stop before any check runs.
++{
++  const probe = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'agents', `.gate-probe-${process.pid}`);
++  try {
++    writeFileSync(probe, '');
++    unlinkSync(probe);
++  } catch (e) {
++    if (e.code === 'EPERM' || e.code === 'EACCES') {
++      say(`GATE SANDBOX STOP: the gate ran inside the unit sandbox, so its result would say nothing about the code. Run \`node scripts/gate.mjs ${args.join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout. A run longer than 10 minutes goes in the background with the Bash tool's run_in_background setting, not with & or a redirect.`);
++      process.exit(3);
++    }
++  }
++}
++
+ // tickets.json is read from this script's own checkout (develop when run as node scripts/gate.mjs <worktree>).
+ const ticketsPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vault', 'tickets', 'tickets.json');
+ function scopeFor() {
+diff --git a/scripts/process/gate-sandbox.test.mjs b/scripts/process/gate-sandbox.test.mjs
+new file mode 100644
+index 0000000..a0059df
+--- /dev/null
++++ b/scripts/process/gate-sandbox.test.mjs
+@@ -0,0 +1,44 @@
++// D-008 (2026-11-02): scripts/gate.mjs stops with GATE SANDBOX STOP before any check when it cannot write .claude/agents
++// (the unit sandbox), and runs on when it can. Each test copies gate.mjs and gate-summary.mjs into a throwaway root.
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { spawnSync } from 'node:child_process';
++import { mkdtempSync, mkdirSync, copyFileSync, chmodSync, rmSync, writeFileSync, readdirSync } from 'node:fs';
++import os from 'node:os';
++import path from 'node:path';
++import { fileURLToPath } from 'node:url';
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++
++function fixture() {
++  const root = mkdtempSync(path.join(os.tmpdir(), 'ezd-gate-sandbox-'));
++  mkdirSync(path.join(root, 'scripts'));
++  for (const f of ['gate.mjs', 'gate-summary.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
++  mkdirSync(path.join(root, '.claude/agents'), { recursive: true });
++  const dir = path.join(root, 'work');
++  mkdirSync(dir);
++  writeFileSync(path.join(dir, 'package.json'), '{"name":"x","scripts":{}}');
++  return { root, dir };
++}
++const gate = (f) => spawnSync(process.execPath, [path.join(f.root, 'scripts/gate.mjs'), f.dir, '--print-scope'], { encoding: 'utf8' });
++
++test('D-008 the gate stops with GATE SANDBOX STOP and the exact command when .claude/agents is not writable', { skip: process.getuid?.() === 0 }, () => {
++  const f = fixture();
++  chmodSync(path.join(f.root, '.claude/agents'), 0o555);
++  try {
++    const r = gate(f);
++    assert.equal(r.status, 3, r.stdout + r.stderr);
++    assert.match(r.stdout, /^GATE SANDBOX STOP: .*`node scripts\/gate\.mjs .* --print-scope` again as its own Bash call/m);
++  } finally {
++    chmodSync(path.join(f.root, '.claude/agents'), 0o755);
++    rmSync(f.root, { recursive: true, force: true });
++  }
++});
++
++test('D-008 the gate runs on and leaves no probe file when .claude/agents is writable', () => {
++  const f = fixture();
++  const r = gate(f);
++  assert.doesNotMatch(r.stdout, /GATE SANDBOX STOP/);
++  assert.deepEqual(readdirSync(path.join(f.root, '.claude/agents')), []);
++  rmSync(f.root, { recursive: true, force: true });
++});
