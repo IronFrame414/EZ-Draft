@@ -32,6 +32,26 @@ test('EZD-250 T17 guarded: the plan paths the real hook denies the builder, not 
   assert.deepEqual(guardedPaths({ root: dir, id: 'EZD-990' }), []);
 });
 
+// EZD-300 hold (Josh 2026-11-03, vault/handoff/EZD-300-UNBLOCK.md): a step the plan gives the orchestrator holds the
+// ticket only when the guard denies the orchestrator inside a unit too; builder rows keep the T17 rule.
+test('EZD-300 hold: an orchestrator step is held only for a path the guard denies the orchestrator in a unit', async () => {
+  const { guardedPaths } = await loadPlanPaths();
+  const dir = mkTmp('ezd300-hold-');
+  copyHooks(dir);
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  mkdirSync(path.join(dir, 'vault/handoff'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/handoff/LAUNCHER_FIX.md'), 'fix mode open in an interactive session\n');
+  writeFileSync(path.join(dir, 'vault/plans/EZD-990.md'), planText('EZD-990', [
+    `${q('vault/handoff/a.patch')} (orchestrator writes; Josh applies)`,
+    `${q('docs/architecture.md')} \`### CI\` (orchestrator)`,
+    `${q('.github/workflows/ci.yml')} (orchestrator)`,
+    `${q('scripts/run.mjs')} (Orchestrator, after merge)`,
+    `${q('vault/tools/next_ticket.mjs')} (builder)`,
+    `${q('scripts/launcher/a.test.mjs')} (test-author)`,
+  ]));
+  assert.deepEqual(guardedPaths({ root: dir, id: 'EZD-990' }), ['.github/workflows/ci.yml', 'scripts/run.mjs', 'vault/tools/next_ticket.mjs']);
+});
+
 function holdCopy() {
   const l = makeLedgerCopy({ synthetic: [['EZD-9992', 'ready'], ['EZD-9993', 'ready']] });
   copyHooks(l.dir);

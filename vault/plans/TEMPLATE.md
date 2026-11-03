@@ -13,6 +13,7 @@ Data (when the ticket has any): tables, columns, migrations, RLS policies, `sche
 
 ### Build steps
 In build order. One row per file. "Exports and signatures": the exact exported names and TypeScript signatures (or `none`). "Copy the pattern from": an existing file in the repo the builder mirrors (or `none (first of its kind)` plus the pattern in one line). "Verify with": the command that proves the step (a test name, `pnpm run typecheck`).
+A step the orchestrator does, not the builder: put `(orchestrator ...)` after the path in its Path cell (EZD-300 hold: only a path the guard denies the orchestrator then holds the ticket for Josh).
 | # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |
 | --- | --- | --- | --- | --- | --- |
 
