@@ -5,7 +5,12 @@
 // trigger of Step 1 stores now() and refuses a second stamp). Only the view's columns leave the server.
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { SOURCE_FILE_KINDS, type SourceFileKind } from '../../lib/storage/source-file-kinds';
+import {
+  SOURCE_CONTENT_TYPES,
+  SOURCE_FILE_KINDS,
+  SOURCE_MAX_BYTES,
+  type SourceFileKind,
+} from '../../lib/storage/source-file-kinds';
 import type { SignedUpload } from '../../lib/storage/upload';
 import { createSignedUpload, statObject, StorageError, type DbClient } from './objects';
 
@@ -56,8 +61,14 @@ const startSchema = z.object({
   projectId: z.uuid(),
   kind: z.enum(SOURCE_FILE_KINDS),
   originalName: z.string().refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255),
-  contentType: z.string().trim().toLowerCase().max(127).regex(CONTENT_TYPE_RE),
-  size: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  contentType: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(127)
+    .regex(CONTENT_TYPE_RE)
+    .refine((v) => (SOURCE_CONTENT_TYPES as readonly string[]).includes(v)),
+  size: z.number().int().min(1).max(SOURCE_MAX_BYTES),
   uploadedBy: z.uuid(),
   supplierName: z
     .string()

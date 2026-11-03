@@ -342,8 +342,10 @@ describe('EZD-132 file storage', () => {
     const bucket = sA.serverDb.storage.from('sources');
 
     expect((await bucket.createSignedUploadUrl(path)).error?.message).toBe(RLS_REFUSED);
-    expect((await bucket.upload(path, y, { upsert: true })).error?.message).toBe(RLS_REFUSED);
-    expect((await bucket.update(path, y)).error?.message).toBe(RLS_REFUSED);
+    expect((await bucket.upload(path, y, { upsert: true, contentType: PDF })).error?.message).toBe(
+      RLS_REFUSED,
+    );
+    expect((await bucket.update(path, y, { contentType: PDF })).error?.message).toBe(RLS_REFUSED);
     expect((await bucket.move(path, `${tA}/${pA}/${randomUUID()}`)).error).not.toBeNull();
     expect((await bucket.remove([path])).data).toEqual([]);
     const back = await readObject(db(sA), sourcesTarget(path));
