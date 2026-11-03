@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 579,
+ "count": 584,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -17334,6 +17334,132 @@
     "AC-EZD-299-10"
    ],
    "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-295",
+   "phase": 1,
+   "title": "Fix: only the server writes and deletes company logo files",
+   "depends_raw": "EZD-290",
+   "spec_ref": "Q-0478, rule 17, 18",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Company settings (EZD-112)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-290"
+   ],
+   "build_position": 567,
+   "acs": [
+    "AC-EZD-295-1",
+    "AC-EZD-295-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-296",
+   "phase": 1,
+   "title": "Fix: the sources bucket limits file types and size",
+   "depends_raw": "EZD-290",
+   "spec_ref": "Q-0477, rule 17, 18",
+   "spec_files": [
+    "spec/sections/03c-tables.md#Storage"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-290"
+   ],
+   "build_position": 568,
+   "acs": [
+    "AC-EZD-296-1",
+    "AC-EZD-296-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-297",
+   "phase": 1,
+   "title": "Fix: the realtime event tests in realtime-auth, the job runner and notification T3 wait for their events",
+   "depends_raw": "EZD-291",
+   "spec_ref": "Q-0479, Q-0486, rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Tests"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-291"
+   ],
+   "build_position": 569,
+   "acs": [
+    "AC-EZD-297-1",
+    "AC-EZD-297-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-298",
+   "phase": 1,
+   "title": "Fix: released migration 20261020101101 is restored to its released text",
+   "depends_raw": "EZD-160",
+   "spec_ref": "Phase 1 gate security review (rules 17, 18)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Environments and releases (EZD-023b)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-160"
+   ],
+   "build_position": 570,
+   "acs": [
+    "AC-EZD-298-1",
+    "AC-EZD-298-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-300",
+   "phase": 1,
+   "title": "Fix: the CI checkout does not keep the repository token",
+   "depends_raw": "EZD-284",
+   "spec_ref": "Phase 1 gate security review (rules 17, 18)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "CI"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-284"
+   ],
+   "build_position": 571,
+   "acs": [
+    "AC-EZD-300-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
