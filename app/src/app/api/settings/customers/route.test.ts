@@ -3,7 +3,10 @@
 // app/src/server/auth/password-sign-in.test.ts. Expected values: Decided "List route", "Create route",
 // "Error bodies" (`{ error: { code, message_key: 'error.<code>' } }`, `permission_denied` is
 // `error.not_authorized`, `Cache-Control: no-store`), the EZD-007c 401 body, Q-0228 (email texts).
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import * as Sentry from '@sentry/nextjs';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { holdErrorAlertLock } from '../../../../../test-harness/errors/alert-lock';
+import { expectReportedOnce } from '../../../../../test-harness/errors/expect-reported';
 import { setPermissions } from '../../../../../test-harness/permissions/grant';
 import {
   adminDb,
@@ -18,6 +21,8 @@ import {
   createSessionClient,
   type SessionCookieJar,
 } from '../../../../server/auth/supabase-server';
+import { initErrorReporting } from '../../../../server/errors/sentry-options';
+import { clearSentryStubOutbox } from '../../../../server/errors/test-harness/sentry-stub-transport';
 import { emit } from '../../../../server/events';
 
 vi.mock('../../../../server/events', async (importOriginal) => {
@@ -255,5 +260,75 @@ describe('EZD-113 customers list and create routes', () => {
       JSON.stringify({ ...ANN, name: 'Shared', email: 'shared@example.test' }),
     );
     expect(j.res.status).toBe(201);
+  });
+});
+
+// EZD-288 T1 (vault/plans/EZD-288.md sections 3-4; AC-EZD-288-1): a create whose customer.created emit fails
+// still answers 201 and reports the failure once through reportError. Setup copies the EZD-283 describe
+// (app/src/app/api/settings/company/route.test.ts) and route-failure.test.ts (EZD-169) lines 116-146.
+describe('EZD-288 customer create reports a failed customer.created event', () => {
+  let tenant = '';
+  let owner: Member;
+  let ownerCookies: Map<string, string>;
+  let releaseLock: () => Promise<void> = async () => {};
+
+  beforeAll(async () => {
+    releaseLock = await holdErrorAlertLock();
+    await harnessSql()`delete from public.error_alert`;
+    initErrorReporting({ SENTRY_TRANSPORT: 'stub' }, 'function');
+    tenant = await createTenant();
+    owner = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, owner.membershipId, ['settings_company']);
+    ownerCookies = await cookiesFor(owner.email);
+  }, 180000);
+
+  beforeEach(async () => {
+    clearSentryStubOutbox();
+    await harnessSql()`delete from public.error_alert`;
+  });
+
+  afterEach(() => {
+    state.store = new Map();
+    vi.resetModules();
+    emitMock.mockClear();
+  });
+
+  afterAll(async () => {
+    try {
+      await harnessSql()`delete from public.error_alert`;
+      await cleanup();
+      await closeHarness();
+      await Sentry.close(2000);
+    } finally {
+      await releaseLock();
+    }
+  }, 180000);
+
+  it('EZD-288 T1 a failed customer.created emit still answers 201 and is reported once', async () => {
+    emitMock.mockRejectedValueOnce(
+      Object.assign(new Error('ezd288-probe-detail'), { name: 'ProbeEmitError' }),
+    );
+    state.store = new Map(ownerCookies);
+    const r = await create(JSON.stringify(ANN));
+    expect(r.res.status).toBe(201);
+    expect(r.res.headers.get('cache-control') ?? '').toContain('no-store');
+    const made = (r.json as { customer: Record<string, unknown> }).customer;
+    expect(made).toMatchObject({ ...ANN, archivedAt: null });
+    const id = made.id as string;
+    const stored = await harnessSql()`select id from public.customer
+      where tenant_id = ${tenant}::uuid and id = ${id}::uuid`;
+    expect(stored).toHaveLength(1);
+    expect(emitMock).toHaveBeenCalledTimes(1);
+    expect(emitMock).toHaveBeenCalledWith(
+      'customer.created',
+      { customerId: id },
+      { tenantId: tenant, actorId: owner.appUserId },
+    );
+    await expectReportedOnce({
+      message: 'customer_created_event_failed',
+      location: '/api/settings/customers',
+      cause: 'ProbeEmitError',
+      hidden: 'ezd288-probe-detail',
+    });
   });
 });

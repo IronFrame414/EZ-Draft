@@ -577,20 +577,8 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     expect(emitMock).not.toHaveBeenCalled();
     expect(c.calls.refresh).toBe(0);
 
-    // (d) accepted invite, emit rejects
+    // (d) moved to complete-sign-in.test.ts EZD-288 T3: a failed emit now writes error_alert, which needs the alert lock.
     const accepted = row({ accepted_membership_id: 'm', accepted_tenant_id: 't' });
-    emitMock.mockClear();
-    emitMock.mockRejectedValueOnce(new Error('sink down'));
-    const d = stubClient({ rpc: { data: [accepted], error: null } });
-    await expect(completeSignIn(d.client)).resolves.toBe('ok');
-    expect(emitMock).toHaveBeenCalledTimes(1);
-    expect(emitMock).toHaveBeenCalledWith(
-      'user.joined',
-      { membershipId: 'm', appUserId: 'u', via: 'sign_in' },
-      { tenantId: 't', actorId: 'u' },
-    );
-    expect(d.calls.refresh).toBe(1);
-    expect(d.calls.signOut).toEqual([]);
 
     // (e) refresh error
     emitMock.mockClear();

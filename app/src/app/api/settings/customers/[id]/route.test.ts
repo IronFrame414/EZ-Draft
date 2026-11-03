@@ -5,7 +5,10 @@
 // nothing changed is a 200 with no write and no event; `emit('customer.updated', { customerId, fields },
 // { tenantId, actorId })`; no DELETE export), Q-0227, "Error bodies".
 import { randomUUID } from 'node:crypto';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import * as Sentry from '@sentry/nextjs';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { holdErrorAlertLock } from '../../../../../../test-harness/errors/alert-lock';
+import { expectReportedOnce } from '../../../../../../test-harness/errors/expect-reported';
 import { setPermissions } from '../../../../../../test-harness/permissions/grant';
 import {
   adminDb,
@@ -20,6 +23,8 @@ import {
   createSessionClient,
   type SessionCookieJar,
 } from '../../../../../server/auth/supabase-server';
+import { initErrorReporting } from '../../../../../server/errors/sentry-options';
+import { clearSentryStubOutbox } from '../../../../../server/errors/test-harness/sentry-stub-transport';
 import { emit } from '../../../../../server/events';
 
 vi.mock('../../../../../server/events', async (importOriginal) => {
@@ -245,5 +250,77 @@ describe('EZD-113 customer change route', () => {
     const all = (await import('../route')) as Record<string, unknown>;
     expect('DELETE' in one).toBe(false);
     expect('DELETE' in all).toBe(false);
+  });
+});
+
+// EZD-288 T2 (vault/plans/EZD-288.md sections 3-4; AC-EZD-288-1): a change whose customer.updated emit fails
+// still answers 200 and reports the failure once through reportError. Setup as the EZD-283 describe
+// (app/src/app/api/settings/company/route.test.ts) and route-failure.test.ts (EZD-169) lines 116-146.
+describe('EZD-288 customer change reports a failed customer.updated event', () => {
+  let tenant = '';
+  let owner: Member;
+  let ownerCookies: Map<string, string>;
+  let annId = '';
+  let releaseLock: () => Promise<void> = async () => {};
+
+  beforeAll(async () => {
+    releaseLock = await holdErrorAlertLock();
+    await harnessSql()`delete from public.error_alert`;
+    initErrorReporting({ SENTRY_TRANSPORT: 'stub' }, 'function');
+    tenant = await createTenant();
+    owner = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, owner.membershipId, ['settings_company']);
+    ownerCookies = await cookiesFor(owner.email);
+    annId = (
+      await harnessSql()<{ id: string }[]>`insert into public.customer (tenant_id, name, email)
+        values (${tenant}::uuid, 'Ann', 'ann@example.test') returning id`
+    )[0].id;
+  }, 180000);
+
+  beforeEach(async () => {
+    clearSentryStubOutbox();
+    await harnessSql()`delete from public.error_alert`;
+  });
+
+  afterEach(() => {
+    state.store = new Map();
+    vi.resetModules();
+    emitMock.mockClear();
+  });
+
+  afterAll(async () => {
+    try {
+      await harnessSql()`delete from public.error_alert`;
+      await cleanup();
+      await closeHarness();
+      await Sentry.close(2000);
+    } finally {
+      await releaseLock();
+    }
+  }, 180000);
+
+  it('EZD-288 T2 a failed customer.updated emit still answers 200 and is reported once', async () => {
+    emitMock.mockRejectedValueOnce(
+      Object.assign(new Error('ezd288-probe-detail'), { name: 'ProbeEmitError' }),
+    );
+    state.store = new Map(ownerCookies);
+    const r = await patch(annId, EDIT);
+    expect(r.res.status).toBe(200);
+    expect(r.res.headers.get('cache-control') ?? '').toContain('no-store');
+    expect((r.json as { customer: { phone: string } }).customer.phone).toBe('561-555-0199');
+    const stored = await harnessSql()`select phone from public.customer where id = ${annId}::uuid`;
+    expect(stored[0].phone).toBe('561-555-0199');
+    expect(emitMock).toHaveBeenCalledTimes(1);
+    expect(emitMock).toHaveBeenCalledWith(
+      'customer.updated',
+      { customerId: annId, fields: ['phone'] },
+      { tenantId: tenant, actorId: owner.appUserId },
+    );
+    await expectReportedOnce({
+      message: 'customer_updated_event_failed',
+      location: '/api/settings/customers/[id]',
+      cause: 'ProbeEmitError',
+      hidden: 'ezd288-probe-detail',
+    });
   });
 });

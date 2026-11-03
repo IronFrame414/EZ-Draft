@@ -13,6 +13,8 @@ import {
   parseListQuery,
   toCustomer,
 } from '../../../../server/customers/customers';
+import { errorType } from '../../../../server/errors/fingerprint';
+import { reportError } from '../../../../server/errors/report';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { emit } from '../../../../server/events';
 import { requireApiPermission } from '../../../../server/permissions';
@@ -21,6 +23,7 @@ export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store' };
 const ROUTE = '/api/settings/customers';
+const EMIT_FAILED = 'customer_created_event_failed';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -73,8 +76,13 @@ export async function POST(request: Request): Promise<Response> {
         { customerId: data.id },
         { tenantId, actorId: p.session.appUserId },
       );
-    } catch {
+    } catch (e) {
       // The insert is committed; a failed emit does not fail the save.
+      await reportError(new Error(EMIT_FAILED), {
+        source: 'function',
+        location: ROUTE,
+        tags: { 'ezd.cause': errorType(e) },
+      });
     }
 
     return Response.json({ customer: toCustomer(data) }, { status: 201, headers });
