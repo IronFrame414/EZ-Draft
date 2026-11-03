@@ -37,6 +37,22 @@ try { writeFileSync(failuresPath, ''); } catch {}
 const log = (text) => { try { appendFileSync(logPath, text.endsWith('\n') ? text : text + '\n'); } catch {} };
 const say = (text) => { console.log(text); log(text); };
 
+// A gate inside the unit sandbox fails on write denials, not on the code (D-008, 2026-11-02). It runs outside the sandbox
+// only as a Bash call of its own (scripts/unit-sandbox.json excludedCommands). The sandbox always protects .claude/agents:
+// when this process cannot write there, stop before any check runs.
+{
+  const probe = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'agents', `.gate-probe-${process.pid}`);
+  try {
+    writeFileSync(probe, '');
+    unlinkSync(probe);
+  } catch (e) {
+    if (e.code === 'EPERM' || e.code === 'EACCES') {
+      say(`GATE SANDBOX STOP: the gate ran inside the unit sandbox, so its result would say nothing about the code. Run \`node scripts/gate.mjs ${args.join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout. A run longer than 10 minutes goes in the background with the Bash tool's run_in_background setting, not with & or a redirect.`);
+      process.exit(3);
+    }
+  }
+}
+
 // tickets.json is read from this script's own checkout (develop when run as node scripts/gate.mjs <worktree>).
 const ticketsPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vault', 'tickets', 'tickets.json');
 function scopeFor() {

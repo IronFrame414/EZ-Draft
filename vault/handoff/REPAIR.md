@@ -1,9 +1,12 @@
-# Repair · 2026-11-02T22:53:54.813Z
-- Trigger: waiting
-- Fingerprint: 5bec4c46514986ba
-- Reason: none: waiting on Josh (guarded paths for EZD-284: .github/workflows/ci.yml; a change to them goes through fix mode)
+# Repair · 2026-11-02T23:32:45.942Z
+- Trigger: check
+- Fingerprint: 161de0e1c2b0d208
+- Reason: none: ledger check failed (3); run --check
 
 ## Ledger check output
 ```
-LEDGER OK: 577 tickets
+LEDGER INVALID (3)
+- vault/research/R-049.md is untracked: only open tickets' plans and open phases' review and for-josh files wait outside git (commit it or remove it)
+- vault/research/R-050.md is untracked: only open tickets' plans and open phases' review and for-josh files wait outside git (commit it or remove it)
+- EZD-293: plan Architecture line differs from tickets.json (run --set-architecture EZD-293)
 ```

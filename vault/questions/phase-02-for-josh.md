@@ -1,10 +1,10 @@
 # Phase 2 · for Josh (questions unit, 2026-11-02)
 
-One decision waits on you in section 1 (Q-0482, plan size of EZD-108). Q-0481 is answered (you applied the sandbox patches, 2026-11-02). Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
+One decision waits on you in section 1 (Q-0485, EZD-293). Q-0482 and Q-0481 are answered. Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
 
 ## 1. Decisions needed
 
-- **Q-0482 · EZD-108.** The plan is about 55,400 characters, over your 45,000 split line (2026-10-22), because your Q-0465 answer and the review round-1 findings added rows to a ticket already built and past review round 2. Options: (a) recommended: accept the size for this in-flight ticket, since a split now repeats the per-ticket overhead and leaves Change password unusable on the live site until part two merges; (b) split the security check (Decided "Security check", T23) into EZD-108b. It does not block the build.
+- **Q-0485 · EZD-293.** Q-0484 (a) moves the fix out of EZD-293, but AC-EZD-293-2 (a test shows the hub resyncs after a stopped stream) is still owned by EZD-293 with no test there. Options: (a) recommended: if your RESULT verdict is SILENT, AC-EZD-293-2 moves to the fix ticket planned from the report, and is voided if not (Q-0480 (a): "fixes it if real"); (b) keep the fix inside EZD-293 and re-plan after your run, which delays the ticket. It does not block the research part.
 
 ## 2. Agent answers to confirm
 
@@ -17,6 +17,8 @@ Confirm or override each (answer; source).
 - **Q-0403, Q-0413, Q-0414, Q-0422, Q-0425** (earlier phase 2 agent answers, in QUESTIONS-answered.md): confirm or override.
 - **Q-0483 · EZD-283.** The EZD-283 gate is red only because develop's ledger had uncommitted files (EZD-291 and EZD-292 plans, EZD-110b Architecture line); the launcher commits them at the unit boundary, then EZD-283 re-runs from the gate. The missing STATUS.md in worktrees is debt D-020. Source: CLAUDE.md rule 17; vault/handoff/CURRENT.md. Confirm or override.
 - **Q-0475 · EZD-283.** Keep EZD-283 as written (Company settings only) and add fix ticket EZD-288 for the same silent catch in the customers routes and the sign-in `user.joined` emit. Source: CLAUDE.md rule 17 (fix in place only in files already in the ticket; a defect gets its own ticket); Q-0268.
+
+- **Q-0484 · EZD-293.** AC-2's fix is a fix ticket planned from the RESULT report, not part of EZD-293 (tests cannot precede an undecided design). A browser timer or heartbeat would conflict with 11 rule 11 and comes back to you. Source: PROCESS.md rule 20; Q-0480 (a). Confirm or override.
 
 ## 3. Proposed wording
 
@@ -104,6 +106,10 @@ Board keys: `office.notifications.title`, `.mark_all_read`, `.show_older`, `.emp
 ### EZD-276
 
 None (check output for agents). If you pick 1 in Q-0454, AC-EZD-276-2 is reworded to "is marked over budget".
+
+### EZD-293
+
+`STOP_PROMPT`: Now restart ezdraft-dev: Supabase dashboard, ezdraft-dev, Project Settings, General, Restart project. Press Return when it shows healthy again. `REF_PROMPT`: Type the project ref shown for ezdraft-dev in the Supabase dashboard. Runbook intro: This restarts ezdraft-dev; the live address is down a few minutes. Never on ezdraft-prod. Output lines and runbook steps: plan section 6.
 
 ### EZD-140
 
