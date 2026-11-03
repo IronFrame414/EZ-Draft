@@ -53,7 +53,7 @@ Stage 0 (spec-check 3), 2026-11-02. Phase 3 is the re-cut phase (vault/tickets/P
 
 ## Answers (Josh, 2026-11-02, in chat)
 
-5 Q-0504: "build ability for multiple floors now." (several floors per project in v1; the EZD-202 schema holds floors from phase 3). The rest: "the rest are accepted": 1 Q-0500, 2 Q-0501, 3 Q-0502 (new ticket EZD-294 "Conflict list: Keep mine / Keep theirs" in phase 3), 4 Q-0503, 6 Q-0505, 7 Q-0506. Agent-settled list: Q-0507 (tolerance examples in `vault/spec/sections/03g-tolerance-and-rounding.md`, calc-auditor; glossary `vault/spec/sections/00d-glossary-phase-03.md`). Recorded as decision rows (new file `vault/spec/decisions/03-data-model.md`); ACs written (acs_source stage-0); PHASES.md slice 3 updated.
+5 Q-0504: "build ability for multiple floors now." (several floors per project in v1; the EZD-202 schema holds floors from phase 3). The rest: "the rest are accepted": 1 Q-0500, 2 Q-0501, 3 Q-0502 (new ticket EZD-299 "Conflict list: Keep mine / Keep theirs" in phase 3), 4 Q-0503, 6 Q-0505, 7 Q-0506. Agent-settled list: Q-0507 (tolerance examples in `vault/spec/sections/03g-tolerance-and-rounding.md`, calc-auditor; glossary `vault/spec/sections/00d-glossary-phase-03.md`). Recorded as decision rows (new file `vault/spec/decisions/03-data-model.md`); ACs written (acs_source stage-0); PHASES.md slice 3 updated.
 
 ## Round 2 (re-audit after the answers): 12 gaps, 3 for Josh
 
@@ -61,8 +61,8 @@ Stage 0 (spec-check 3), 2026-11-02. Phase 3 is the re-cut phase (vault/tickets/P
 - Recommended: phase 6 (with the phase switch and layers) adds the floor switcher and add, rename and delete floor; the sheets phases (25 and 26) give each plan sheet its floor. Deleting a floor that still has objects asks first and deletes them with it.
 - Alternative: phase 4, with the first canvas (phase 4 grows from 8 tickets).
 
-**2. A board for the conflict list (gap 3).** Q-0506 waived boards only for one-line messages; the conflict list (EZD-294) is a real screen part.
-- Recommended: draw a board first (as in phase 2, Q-0391); phase 3's EZD-294 waits for it, the other tickets do not.
+**2. A board for the conflict list (gap 3).** Q-0506 waived boards only for one-line messages; the conflict list (EZD-299) is a real screen part.
+- Recommended: draw a board first (as in phase 2, Q-0391); phase 3's EZD-299 waits for it, the other tickets do not.
 - Alternative: build it from the text, no board.
 
 **3. How the conflict list works (gap 4).**
@@ -75,6 +75,8 @@ Stage 0 (spec-check 3), 2026-11-02. Phase 3 is the re-cut phase (vault/tickets/P
 
 Agent-settled (Q-0508): floor record (project floors with id, name and order; one floor made at Create; floors edited by anyone with Edit model; the drawing list's view settings name one floor; schema choice reviewed by the code-reviewer, gap 2); test page gets a "make a conflict" button and shows rows written and checkpoints made, step 5 uses it (gap 5, Q-0505 precedent); phase numbers in Q-0501 to Q-0503 checked against the re-cut table (EZD-134 phase 14, EZD-1403 phase 44): no change (gap 6); EZD-134 and EZD-1403 carry Q-0502 and Q-0503 in their decisions lists (gap 7); slice 3 entry updated (gap 8); EZD-202 reads Q-0504 (gap 9); ACs added for undo, changed ids, the device copy, arcs, fills, hatches and layers (gap 10); glossary separates Floor from a room's floor level (gap 11); Q-0507 gets a decision row (gap 12).
 
-Answer (Josh, 2026-11-02, chat): "accept all. make sure #2 is drawn tomorrow in cowork". Recorded as Q-0509 (floor tools in phase 6, sheets 25 and 26), Q-0510 (board S03b drawn 2026-11-03 in Cowork, brief `vault/handoff/board-S03b-conflict-list.md`; EZD-294 blocked until approved), Q-0511 (conflict list workflow). Agent-settled round 2: Q-0507 and Q-0508 decision rows (`vault/spec/decisions/03-data-model.md`).
+Answer (Josh, 2026-11-02, chat): "accept all. make sure #2 is drawn tomorrow in cowork". Recorded as Q-0509 (floor tools in phase 6, sheets 25 and 26), Q-0510 (board S03b drawn 2026-11-03 in Cowork, brief `vault/handoff/board-S03b-conflict-list.md`; EZD-299 blocked until approved), Q-0511 (conflict list workflow). Agent-settled round 2: Q-0507 and Q-0508 decision rows (`vault/spec/decisions/03-data-model.md`).
 
 Renumbered 2026-11-03: the launcher refused the first queue because a build unit took Q-0486 first; this spec-check's questions are Q-0500 to Q-0511 (old Q-0486 to Q-0497, same order). Q-0487 to Q-0499 stay unused.
+
+Ticket renamed 2026-11-03: a questions 1 unit took EZD-294 for a phase 1 fix ticket at the same time; the conflict-list ticket is EZD-299.

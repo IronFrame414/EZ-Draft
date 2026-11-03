@@ -1,6 +1,6 @@
 # Board brief · S03b Conflict list (for a Cowork session, 2026-11-03)
 
-Josh, 2026-11-02 (spec-check 3, Q-0510): "make sure #2 is drawn tomorrow in cowork". EZD-294 stays blocked until Josh approves this board.
+Josh, 2026-11-02 (spec-check 3, Q-0510): "make sure #2 is drawn tomorrow in cowork". EZD-299 stays blocked until Josh approves this board.
 
 ## What to draw
 
@@ -23,10 +23,10 @@ Wording: proposed on the board for Josh's approval (vault/PROCESS.md 3a). Sample
 
 - Decisions: Q-0502 (`vault/spec/decisions/03-data-model.md`), Q-0511 (same file: where it shows, row names, Keep mine cases, refusals), Q-0510 (`vault/spec/decisions/05-screens.md`).
 - Architecture rule 9 (`vault/spec/sections/03b-architecture-rules.md`); notification kinds (`vault/spec/sections/00c-glossary-phase-02.md`: "offline sync conflict").
-- Ticket row EZD-294 (`vault/tickets/phases/phase-01.md`, last row).
+- Ticket row EZD-299 (`vault/tickets/phases/phase-01.md`, last row).
 
 ## When Josh approves
 
 1. Export PNG and HTML into `vault/mockups/` (`S03bConflictList.png`, `html/project/S03bConflictList.dc.html`, and the S01c state) as S01c to S01f were (vault/mockups/INDEX.md note under the table), and add the rows to `vault/mockups/INDEX.md`.
-2. Add `mockups/S03bConflictList.png` to EZD-294's `mockups` in `vault/tickets/tickets.json`.
-3. Set EZD-294 back to todo: `node scripts/ledger.mjs status EZD-294 status=todo notes="Board S03b approved by Josh <date> (Q-0510)."` (queued to the launcher inbox while it runs). The launcher then plans it.
+2. Add `mockups/S03bConflictList.png` to EZD-299's `mockups` in `vault/tickets/tickets.json`.
+3. Set EZD-299 back to todo: `node scripts/ledger.mjs status EZD-299 status=todo notes="Board S03b approved by Josh <date> (Q-0510)."` (queued to the launcher inbox while it runs). The launcher then plans it.
