@@ -17239,7 +17239,7 @@
   },
   {
    "id": "EZD-292",
-   "phase": 1,
+   "phase": 2,
    "title": "Fix: the RLS audit and job handler tests list the notification table and the notification_email job",
    "depends_raw": "EZD-110a, EZD-006, EZD-009",
    "spec_ref": "Q-0268, rule 17",
