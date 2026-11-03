@@ -34,3 +34,11 @@ For the session that takes over from the 2026-11-03 night watch. It replaces the
 - D-021: Josh chose close the class (decision row process.md 2026-11-03). Fix ticket **EZD-316** (priority, phase 1, 75b8441b) is being planned; it changes launcher scripts, so its build needs fix mode (an interactive session). The sandbox stays off until it lands.
 - Phase 1 path: EZD-296, 298 and the ready build-system tickets, then gate-phase 1 rerun, PR auto-merge on green CI, wrap 1, phase 2. Build-system tickets whose plans touch guarded paths are held for fix mode while the rest builds.
 - D-028 (ci.test.mjs capitalised Jobs:/Steps:) went into spec-check 3's commit 31ce61ce by accident; it is on develop unchanged.
+
+## Update 20:31 UTC
+
+- Merged since 17:57: EZD-296. Josh applied `EZD-108-ui-spec-guard.patch` (88fdf256); EZD-108 and EZD-110b set ready. Q-0541 answered "A, and fix 5.12" (44230531).
+- **EZD-316** blocked again: Q-0543 (grant a 4th round; recommended yes), asked of Josh in chat, not answered yet. The sandbox stays off until EZD-316 and EZD-317 are both merged.
+- **EZD-317** (probe 5.12: excluded commands run only the main checkout's scripts; e037e146) is blocked on EZD-316 by its plan. To fix: tickets.json `depends_on` lacks EZD-316 (edit it at a unit boundary or during a brief STOP, with Josh's yes for the STOP).
+- e037e146 also gave EZD-299 `"architecture": []` (the EZD-244 check failed develop after the phase 3 sign-off 17bd3326). EZD-120a, 120b, 133, 202 and 238 have no architecture key either; spec-check 3 was told.
+- Adding a ticket while the launcher runs: brief STOP (Josh's yes), write tickets.json, the phase file and ACs, `node scripts/ledger.mjs ticket ...`, wait for the STATUS row, run `--check`, commit, remove STOP; a 10-minute safety net removes STOP. Do not set `track: tooling` before the plan exists (the check refuses it).
