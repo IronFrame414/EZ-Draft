@@ -4,8 +4,11 @@
 // body of EZD-007c, 403 `permission_denied` / `error.not_authorized`, 400 codes, `emit('tenant.updated',
 // { fields: changed }, { tenantId, actorId })` only when something changed, `Cache-Control: no-store`) and
 // "Error bodies" (`message_key: 'error.<code>'`).
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import * as Sentry from '@sentry/nextjs';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setPermissions } from '../../../../../test-harness/permissions/grant';
+import { holdErrorAlertLock } from '../../../../../test-harness/errors/alert-lock';
+import { eventsIn } from '../../../../../test-harness/sentry-outbox';
 import {
   adminDb,
   cleanup,
@@ -22,6 +25,12 @@ import {
   type SessionCookieJar,
 } from '../../../../server/auth/supabase-server';
 import { logoPathFor } from '../../../../server/company/company';
+import { errorFingerprint } from '../../../../server/errors/fingerprint';
+import { initErrorReporting } from '../../../../server/errors/sentry-options';
+import {
+  clearSentryStubOutbox,
+  readSentryStubOutbox,
+} from '../../../../server/errors/test-harness/sentry-stub-transport';
 import { emit } from '../../../../server/events';
 
 vi.mock('../../../../server/events', async (importOriginal) => {
@@ -270,5 +279,124 @@ describe('EZD-112 company save route', () => {
       { fields: ['logo'] },
       { tenantId: tenant, actorId: owner.appUserId },
     );
+  });
+});
+
+// EZD-283 (vault/plans/EZD-283.md sections 3-4; AC-EZD-283-1): a Company save whose tenant.updated emit fails
+// still answers 200 and reports the failure once through reportError. Setup copies route-failure.test.ts
+// (EZD-169) lines 115-145; the report checks copy its expectReportedOnce and expectNothingReported.
+describe('EZD-283 company save reports a failed tenant.updated event', () => {
+  let tenant = '';
+  let owner: Member;
+  let ownerCookies: Map<string, string>;
+  let releaseLock: () => Promise<void> = async () => {};
+
+  const nameInDb = async () =>
+    (await harnessSql()`select name from public.tenant where id = ${tenant}::uuid`)[0]
+      .name as string;
+
+  // Nothing reported: no stub event and no error_alert row.
+  async function expectNothingReported() {
+    await Sentry.flush(2000);
+    expect(eventsIn(readSentryStubOutbox())).toHaveLength(0);
+    const { data, error } = await adminDb().from('error_alert').select('kind');
+    expect(error).toBeNull();
+    expect(data).toHaveLength(0);
+  }
+
+  beforeAll(async () => {
+    releaseLock = await holdErrorAlertLock();
+    await harnessSql()`delete from public.error_alert`;
+    initErrorReporting({ SENTRY_TRANSPORT: 'stub' }, 'function');
+    tenant = await createTenant();
+    owner = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, owner.membershipId, ['settings_company']);
+    ownerCookies = await cookiesFor(owner.email);
+  }, 180000);
+
+  beforeEach(async () => {
+    clearSentryStubOutbox();
+    await harnessSql()`delete from public.error_alert`;
+    emitMock.mockClear();
+  });
+
+  afterEach(() => {
+    state.store = new Map();
+    vi.resetModules();
+  });
+
+  afterAll(async () => {
+    try {
+      await harnessSql()`delete from public.error_alert`;
+      await cleanup();
+      await closeHarness();
+      await Sentry.close(2000);
+    } finally {
+      await releaseLock();
+    }
+  }, 180000);
+
+  it('EZD-283 T1 a save whose tenant.updated emit succeeds reports nothing', async () => {
+    state.store = new Map(ownerCookies);
+    const r = await patch(body({ name: 'EZD-283 T1 Renamed' }));
+    expect(r.res.status).toBe(200);
+    expect((r.json as { company: { name: string } }).company.name).toBe('EZD-283 T1 Renamed');
+    expect(emitMock).toHaveBeenCalledTimes(1);
+    expect(emitMock).toHaveBeenCalledWith(
+      'tenant.updated',
+      { fields: ['name'] },
+      { tenantId: tenant, actorId: owner.appUserId },
+    );
+    await expectNothingReported();
+  });
+
+  it('EZD-283 T2 a save whose tenant.updated emit fails still answers 200 and reports once', async () => {
+    emitMock.mockRejectedValueOnce(
+      Object.assign(new Error('ezd283-probe-detail'), { name: 'ProbeEmitError' }),
+    );
+    state.store = new Map(ownerCookies);
+    const r = await patch(body({ name: 'EZD-283 T2 Renamed' }));
+    expect(r.res.status).toBe(200);
+    expect(r.res.headers.get('cache-control') ?? '').toContain('no-store');
+    expect((r.json as { company: { name: string } }).company.name).toBe('EZD-283 T2 Renamed');
+    expect(await nameInDb()).toBe('EZD-283 T2 Renamed');
+    expect(emitMock).toHaveBeenCalledTimes(1);
+    // The response scan is only meaningful if the body was read: the saved name must be in it.
+    const responseText = JSON.stringify(r.json);
+    expect(responseText).toContain('EZD-283 T2 Renamed');
+    expect(responseText).not.toContain('ezd283-probe-detail');
+
+    await Sentry.flush(2000);
+    const events = eventsIn(readSentryStubOutbox());
+    expect(events).toHaveLength(1);
+    const event = events[0];
+    expect(event.exception.values[0].type).toBe('Error');
+    expect(event.exception.values[0].value).toBe('company_tenant_event_failed');
+    expect(event.tags['ezd.source']).toBe('function');
+    expect(event.tags['ezd.location']).toBe('/api/settings/company');
+    expect(event.tags['ezd.cause']).toBe('ProbeEmitError');
+    // The event scan is only meaningful if the event was read: its cause tag must be in it.
+    const eventText = JSON.stringify(event);
+    expect(eventText).toContain('ProbeEmitError');
+    expect(eventText).not.toContain('ezd283-probe-detail');
+
+    const { data, error } = await adminDb()
+      .from('error_alert')
+      .select('kind, source, title, fingerprint, ref, occurrences');
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+    expect(data?.[0]).toEqual({
+      kind: 'error',
+      source: 'function',
+      title: 'Error: company_tenant_event_failed',
+      fingerprint: await errorFingerprint({
+        source: 'function',
+        type: 'Error',
+        message: 'company_tenant_event_failed',
+        location: '/api/settings/company',
+      }),
+      ref: event.event_id,
+      occurrences: 1,
+    });
   });
 });

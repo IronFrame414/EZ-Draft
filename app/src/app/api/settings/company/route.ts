@@ -1,7 +1,7 @@
 // EZD-112 Step 11 (vault/plans/EZD-112.md Decided "Save route", "Error bodies"; S15a Save, Events): save the
 // company identity. Order: 401, 403 (no Company settings switch), 400 (body; a `set` logo that fails
 // `checkLogoObject`), then the one write path `update_tenant_identity` under the member's session (it
-// checks the switch again), then 200 with the saved company. `tenant.updated` is emitted only when something changed; a failed emit does not fail the save.
+// checks the switch again), then 200 with the saved company. `tenant.updated` is emitted only when something changed; a failed emit is reported (EZD-283) and does not fail the save.
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import {
   checkLogoObject,
@@ -10,6 +10,8 @@ import {
   toCompanyData,
 } from '../../../../server/company/company';
 import type { Database } from '../../../../server/db/database.types';
+import { errorType } from '../../../../server/errors/fingerprint';
+import { reportError } from '../../../../server/errors/report';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { emit } from '../../../../server/events';
 import type { TenantField } from '../../../../lib/events/registry';
@@ -19,6 +21,7 @@ export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store' };
 const ROUTE = '/api/settings/company';
+const EMIT_FAILED = 'company_tenant_event_failed';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -81,8 +84,17 @@ export async function PATCH(request: Request): Promise<Response> {
           { fields: row.changed as TenantField[] },
           { tenantId: row.tenant_id, actorId: p.session.appUserId },
         );
-      } catch {
-        // The write is committed; a failed emit does not fail the save.
+      } catch (e) {
+        // EZD-283: the write is committed; a failed emit is reported and does not fail the save.
+        try {
+          await reportError(new Error(EMIT_FAILED), {
+            source: 'function',
+            location: ROUTE,
+            tags: { 'ezd.cause': errorType(e) },
+          });
+        } catch {
+          /* reportError never throws; guarded as route-failure.ts does */
+        }
       }
     }
 
