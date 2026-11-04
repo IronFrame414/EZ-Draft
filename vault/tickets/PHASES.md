@@ -171,8 +171,8 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 1. Company settings and customers (from phase 1) — 6 tickets
 2. Projects list and new project (from phase 1) — 5 tickets
 3. Model store and editor route (from phase 1, 2) — 5 tickets
-4. Plan canvas and first walls (from phase 2) — 8 tickets
-5. Openings, selection, move, inspector, undo (from phase 2) — 7 tickets
+4. Plan canvas and first walls (from phase 2) — 9 tickets
+5. Openings, selection, move, inspector, undo (from phase 2) — 6 tickets
 6. Phase switch, layers, dimensions, thumbnails, benchmark page (from phase 1, 2) — 8 tickets
 7. Users, roles, project scope, event log (from phase 1) — 6 tickets
 8. Defaults, edit lock, project settings (from phase 1, 2) — 6 tickets
@@ -295,7 +295,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 - **Goal:** Draw a closed room by typing lengths on the plan canvas and have it saved.
 - **User-visible result:** Plan tab with grid, pan, zoom, Fit and hover; Wall and Room rectangle tools with snapping and the typed dimension bar; rooms detected with area, and a gap shown with absorb or keep out of square; blank templates (galley, L-kitchen, 5x8 bath, primary bath, Empty) in the new project wizard; the benchmark project generator.
-- **Spec files:** `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S02-import-review.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/screens/S01-projects.md`, `spec/sections/09j-walls-and-rooms-examples.md`, `spec/sections/00e-glossary-phase-04.md`; decisions Q-0558 to Q-0568
+- **Spec files:** `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S02-import-review.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/screens/S01-projects.md`, `spec/sections/09j-walls-and-rooms-examples.md`, `spec/sections/00e-glossary-phase-04.md`, `spec/sections/09e-geometry-and-drafting.md`, `spec/sections/03f-model-json-objects.md`, `spec/sections/03g-tolerance-and-rounding.md`; decisions Q-0558 to Q-0570
 - **Tickets (9, build order):**
   - EZD-201 Length parse and format
   - EZD-203 Walls core — needs EZD-202 (s3)
@@ -308,20 +308,20 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
-- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; this is the first field check on the Surface. The spike EZD-027 (plan canvas on the iPad) must have a go note.
+- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Q-0570). The spike EZD-027 (plan canvas on the iPad) must have a go note.
 - **Josh's test script:**
   1. New project → Blank → L-kitchen template. Expected: The plan opens with the template walls.
-  2. Press R, click a start point, type 12'6" Tab 10' Enter. Expected: A 12'6" × 10' room closes with no gap and shows its area.
+  2. In a new Empty project, press R, click a start point, type 12'6" Tab 10' Enter. Expected: A 12'6" × 10' room closes with no gap and shows its area.
   3. Press W, draw a single wall chain and close on the start point. Expected: The chain closes and the room is detected.
   4. Type 150" and 12.5' in the length box. Expected: The typed bar reads 12' 6" for both after commit; a bad entry lists the accepted formats.
   5. Pan with space-drag and zoom toward the cursor, then Fit. Expected: The view follows the cursor and Fit frames the plan.
   6. Reload the project. Expected: The walls and room are still there.
-  7. Press W, type 12' Enter, 10' Enter, 12' Enter, 9' 11 1/2" Enter, Enter. Expected: A 1/2" gap shows with the two buttons; pick the 9' 11 1/2" wall and the room closes at 120 SF.
+  7. In a new Empty project, press W, click a start point, type 12' Enter, then for each next wall point the cursor left and type its length Tab 90 Enter: 10', 12', 9' 11 1/2", then Enter again to finish. Expected: A 1/2" gap shows with the two buttons; pick the 9' 11 1/2" wall and the room closes at 120 SF.
 
 ### Slice 5 · Openings, selection, move, inspector, undo (from spec phase 2)
 
 - **Goal:** Place doors and windows, select and move objects with typed distances, edit them in the inspector, and undo.
-- **User-visible result:** Door and Window tools with hover preview and typed offset; snapping with markers; click, cycle, Shift-click and box select; Move tool, resize handles and live distance chips; inspector fields with bulk edit; undo, redo, copy, paste, duplicate, delete.
+- **User-visible result:** Door and Window tools with hover preview and typed offset; click, cycle, Shift-click and box select; Move tool, resize handles and live distance chips; inspector fields with bulk edit; undo, redo, copy, paste, duplicate, delete.
 - **Spec files:** `spec/sections/03-data-model.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`
 - **Tickets (6, build order):**
   - EZD-204 Openings core — needs EZD-203 (s4)

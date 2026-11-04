@@ -21,3 +21,5 @@ Added by spec-check 4 (Q-0568). Definitions only, each from the source named; no
 | Zoom stack | Zoom in, Zoom out and Fit to screen at the top right of the canvas. | none yet (EZD-207 plan names it) | S03 |
 | Blank template | A starting room shape in the New project wizard: Galley kitchen, L-kitchen, 5x8 bath, primary bath; Empty is the choice with no walls. | none yet (EZD-221 plan names it) | S01; Q-0565 |
 | Benchmark project | A generated whole-home model of 3,000 objects, used only to measure speed. | none yet (EZD-236 plan names it) | EZD-236; 11 Performance |
+| Spatial index | The lookup that finds which objects are near a point without checking every object. | none yet (EZD-206 plan names it) | EZD-206; 11 rule 4 |
+| Pick mode | The state after pressing the absorb button: the next click on a wall picks it, Esc goes back. | none yet (EZD-210 plan names it) | S02; Q-0570 |

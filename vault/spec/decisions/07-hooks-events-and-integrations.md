@@ -24,3 +24,4 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0276 | 2026-10-24 | (a): 60 error-tunnel events per address per rolling hour, then 429. |
 | Q-0278 | 2026-10-24 | (b): browser and worker alerts use at most 10 of the 20 alert emails per hour, so server errors, failed jobs and failed deliveries always have room. |
 | Q-0287 | 2026-10-24 | (a): the preview email stub outbox keeps at most 100 messages, dropping the oldest. |
+| Q-0570 | 2026-11-04 | `room.closure_overridden` is an internal event, added to section 07's table by this row and to the event registry by EZD-205 (S02 Events; Q-0568; EZD-022). |
