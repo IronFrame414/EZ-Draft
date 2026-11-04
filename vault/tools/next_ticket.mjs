@@ -46,8 +46,6 @@ const OVERLAP_EXEMPT = ['docs/architecture.md'];
 // (its meta checkout row, written by records.mjs import). A copy of vault/ (tests) or a checkout with no database (CI)
 // reads its own files. $EZD_RECORDS_DB naming a database of another checkout is an error, never a silent switch.
 const records = await import(pathToFileURL(path.join(root, 'scripts/records.mjs')).href).catch(() => null);
-// The ledger module, for the running units' in-flight records and queued results files (EZD-174); none in a copy of vault/.
-const ledger = await import(pathToFileURL(path.join(root, 'scripts/ledger.mjs')).href).catch(() => null);
 export const recordsDb = (() => {
   if (!records) return null;
   const file = records.dbPath([], process.env);
@@ -769,10 +767,9 @@ function recordsProblems() {
   }
   // A running unit's plan-gap edit is queued, not applied, so its ticket and batch mates are skipped while it runs (EZD-174).
   const running = new Set();
-  for (const r of ledger ? ledger.listInflight(ledger.inflightDir({ root })) : []) {
-    if (!r.alive || typeof r.ticket !== 'string') continue;
-    running.add(r.ticket);
-    for (const m of batchOf(r.ticket) || []) running.add(m);
+  for (const t of records.liveInflightTickets?.(root) ?? []) {
+    running.add(t);
+    for (const m of batchOf(t) || []) running.add(m);
   }
   for (const p of recordsDb.prepare('select ticket, sha256 from plans').all()) {
     if (rows.get(p.ticket)?.status === 'done' || running.has(p.ticket)) continue;
@@ -786,7 +783,7 @@ function recordsProblems() {
 // the launcher applies the unit's results (EZD-174). Unreadable lines are skipped.
 function queuedTickets() {
   const ids = new Set();
-  for (const dir of ledger ? ledger.queueDirs(root) : []) {
+  for (const dir of records?.queueDirsOf?.(root) ?? []) {
     let names = [];
     try { names = readdirSync(dir).filter((n) => n.endsWith('.results.jsonl')); } catch {}
     for (const n of names) {

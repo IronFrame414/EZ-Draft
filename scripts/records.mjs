@@ -42,6 +42,23 @@ function launcherLogDir(base) {
   return config.log_dir || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library/Logs/ezdraft') : path.join(base, '.launcher'));
 }
 const pidAlive = (pid) => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+// Where running units' records and queued results files are (scripts/ledger.mjs inflightDir, queueDirs), for
+// next_ticket.mjs --check: it reads them here because importing scripts/ledger.mjs from it is a cycle (EZD-174).
+export const inflightDirOf = (base, env = process.env) => env.EZD_INFLIGHT_DIR || path.join(launcherLogDir(base), 'inflight');
+export const queueDirsOf = (base, env = process.env) => [inflightDirOf(base, env), path.join(launcherLogDir(base), 'inbox')];
+// The tickets of in-flight records whose unit is still alive.
+export function liveInflightTickets(base, env = process.env) {
+  const dir = inflightDirOf(base, env);
+  let names = [];
+  try { names = readdirSync(dir).filter((n) => n.endsWith('.json') && !n.startsWith('.')); } catch {}
+  const out = [];
+  for (const n of names) {
+    let rec = null;
+    try { rec = JSON.parse(readFileSync(path.join(dir, n), 'utf8')); } catch {}
+    if (rec && typeof rec.ticket === 'string' && Number.isInteger(rec.pid) && pidAlive(rec.pid)) out.push(rec.ticket);
+  }
+  return out;
+}
 
 // File (relative to vault/) -> how its lines are read. `tables` maps a header row to the typed table its data rows go to.
 const TICKETS = '| Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |';

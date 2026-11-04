@@ -641,6 +641,34 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
     assert.equal(git(root, 'rev-parse', 'HEAD'), head);
   });
 
+  test('EZD-174 C2 regression: ledger.mjs architecture exits 0 (no next_ticket/ledger import cycle)', () => {
+    // The fixture root holds its own scripts/ (ledger.mjs, records.mjs, their imports) and vault/tools/next_ticket.mjs, so a
+    // next_ticket -> ledger -> next_ticket import cycle would be reachable and hang the top-level await (exit 13).
+    const root = tmp('ezd174-c2-');
+    const skip = /[\\/](node_modules|mockups|archive)([\\/]|$)|\.test\.[cm]?[jt]s$/;
+    cpSync(path.join(REPO, 'vault'), path.join(root, 'vault'), { recursive: true, filter: (s) => !skip.test(s) });
+    seedRecordViews(path.join(root, 'vault'));
+    cpSync(path.join(REPO, 'scripts'), path.join(root, 'scripts'), { recursive: true, filter: (s) => !skip.test(s) });
+    mkdirSync(path.join(root, 'docs'), { recursive: true });
+    cpSync(path.join(REPO, 'docs/architecture.md'), path.join(root, 'docs/architecture.md'));
+    git(root, 'init', '-q', '-b', 'develop');
+    git(root, 'config', 'user.name', 'EZ Draft Test');
+    git(root, 'config', 'user.email', 'test@example.test');
+    git(root, 'config', 'commit.gpgsign', 'false');
+    writeFileSync(path.join(root, 'vault/plans/EZD-173.md'), '# EZD-173 · x\n\n## 2. Sources\n- x\n\nArchitecture: Tests\n\n## 3. Interface contract\nx\n');
+    writeFileSync(path.join(root, 'scripts/launcher.config.json'), JSON.stringify({ log_dir: path.join(root, '.git', 'launcher-logs') }));
+    git(root, 'add', '-A');
+    git(root, 'commit', '-qm', 'copy');
+    const r = spawnSync(process.execPath, [path.join(root, 'scripts/ledger.mjs'), 'architecture', 'EZD-173'], { encoding: 'utf8', input: '', env: envFor(root) });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.equal(r.stdout.trim(), 'LEDGER OK EZD-173 architecture');
+    assert.doesNotMatch(r.stderr, /unsettled top-level await/);
+    // Static: next_ticket.mjs never imports ledger.mjs (it reads in-flight and queue folders through scripts/records.mjs).
+    // Its message text may name the command `node scripts/ledger.mjs architecture`, so only an import is refused.
+    const nt = readFileSync(path.join(REPO, 'vault/tools/next_ticket.mjs'), 'utf8');
+    assert.doesNotMatch(nt, /import\([^\n]*scripts\/ledger\.mjs|from\s+['"][^'"\n]*ledger\.mjs/);
+  });
+
   test('K18: recordPlan with a problem writes nothing, calls no later step and leaves vault/ clean', async () => {
     const L = await ledger();
     const planText = '# EZD-099\n\n- **Complexity:** low\n\n## 1. What to build\nx\n';
