@@ -25,6 +25,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withLedgerLock, withMergeLock, tryLock, readLock } from './ledger.mjs';
 import { openRecords, dbPath, record, planRecord } from './records.mjs';
+import { planArchitecture } from '../vault/tools/outline.mjs';
 
 const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const statusPath = path.join(root, 'vault/tickets/STATUS.md');
@@ -294,9 +295,14 @@ function merge() {
         const db = openRecords(dbPath());
         let held;
         try { held = planRecord(db, ticket); } finally { db.close(); }
-        if (held?.entry) {
-          // Commit this ticket's entry on the squash's own copy: another ticket still uncommitted in the checkout's file has no phase row yet on develop (Q-0544).
-          stageEntry(git('show', `:${TICKETS_REL}`).stdout, held.entry);
+        // Commit this ticket's entry on the squash's own copy: another ticket still uncommitted in the checkout's file has no phase row yet on develop (Q-0544).
+        // The Architecture list comes from the plan going into this commit: a plan amended during the unit is newer than the held entry (CI red at cd5ef475).
+        const shown = git('show', `:${TICKETS_REL}`);
+        const onDevelop = shown.status === 0 ? JSON.parse(shown.stdout).tickets.find((x) => x.id === ticket) : null;
+        if (onDevelop) {
+          const planned = plan !== null ? planArchitecture(plan.toString('utf8')) : {};
+          const entry = { ...(held?.entry ?? onDevelop), ...(planned.list ? { architecture: planned.list } : {}) };
+          if (JSON.stringify(entry) !== JSON.stringify(onDevelop)) stageEntry(shown.stdout, entry);
         }
         const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
         if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);

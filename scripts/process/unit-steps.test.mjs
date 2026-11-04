@@ -341,6 +341,23 @@ test('Q-0544 an amended plan already on develop is committed with its entry, so 
   assert.equal(git(dir, 'show', 'develop:vault/plans/EZD-002.md').trim(), '# plan two');
 });
 
+test('a plan amended during the unit sets the Architecture list in the feat commit, newer than the held entry (CI red at cd5ef475)', async () => {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const dir = fixture();
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan\n', entry: { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture: ['Tests'] } }]);
+  db.close();
+  run(dir, 'worktree', 'EZD-002');
+  commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(path.join(dir, '.claude/worktrees/EZD-002'));
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# plan\n\n## 2. Architecture\n\nArchitecture: Tests; Migrations\n');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const entry = JSON.parse(git(dir, 'show', 'HEAD:vault/tickets/tickets.json')).tickets.find((x) => x.id === 'EZD-002');
+  assert.deepEqual(entry.architecture, ['Tests', 'Migrations']);
+});
+
 test('2.12 U3 the feat commit writes the tickets.json entry the records database held for the ticket (D9 (a), 2026-11-02)', async () => {
   const { openRecords, applyOps } = await import(RECORDS);
   const dir = fixture();
