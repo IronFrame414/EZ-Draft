@@ -17669,7 +17669,8 @@
    "mockups": [],
    "architecture": [
     "Storage buckets and paths",
-    "Permissions"
+    "Permission enforcement (EZD-102)",
+    "Server-only data access and can()"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
