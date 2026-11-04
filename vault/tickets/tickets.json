@@ -3723,6 +3723,7 @@
     "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-001"
@@ -3794,6 +3795,7 @@
     "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202"
@@ -3855,6 +3857,7 @@
     "spec/sections/07-hooks-events-and-integrations.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-203"
@@ -3893,6 +3896,7 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-203"
@@ -3928,6 +3932,7 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-012a",
@@ -4008,6 +4013,7 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-201",
@@ -4050,6 +4056,7 @@
     "mockups/S03Plan.png",
     "mockups/S02Import.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205",
@@ -4387,6 +4394,7 @@
     "mockups/S03Plan.png",
     "mockups/S01bWizard.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-210",
@@ -4831,6 +4839,7 @@
     "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202",
