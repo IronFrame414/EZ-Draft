@@ -15577,7 +15577,10 @@
     "Device layouts (EZD-014)",
     "Messages and language (t())",
     "Permission enforcement (EZD-102)",
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Notifications (EZD-110)",
+    "My profile (EZD-108)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
