@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 587,
+ "count": 595,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -17761,7 +17761,11 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Off-site backups and restore (EZD-025)",
+    "Release safety (EZD-023a)"
+   ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -17770,6 +17774,56 @@
    "build_position": 581,
    "acs": [
     "AC-EZD-325-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-326",
+   "phase": 1,
+   "title": "Fix: test: EZD-025 T3 versioning and Object Lock must be on, before any write: (a) one failed files run row",
+   "depends_raw": "EZD-025",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03); CI gate failure on PR 4",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Off-site backups and restore (EZD-025)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-025"
+   ],
+   "build_position": 582,
+   "acs": [
+    "AC-EZD-326-1",
+    "AC-EZD-326-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-327",
+   "phase": 2,
+   "title": "Fix: the EZD-025 files backup test T3 does not fail at random in CI",
+   "depends_raw": "EZD-025",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-025"
+   ],
+   "build_position": 583,
+   "acs": [
+    "AC-EZD-327-1"
    ],
    "acs_source": "done-when"
   }
