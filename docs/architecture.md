@@ -349,6 +349,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   scripts/                icons-build.mjs, icons-fetch.mjs, icons-verify.mjs: the icon pipeline, run by hand (EZD-010b, EZD-171; not the root scripts/); realtime-failover-check.mjs (by hand; EZD-293)
   e2e/                    Playwright browser specs, *.spec.ts (EZD-007f)
   test-harness/jobs/      job queue test helpers: fake-clock.ts, run-twice.ts, queue-lock.ts (EZD-009)
+  test-harness/errors/    error-alert test lock and write guard: alert-lock.ts, alert-write-guard.ts, vitest.setup.ts, probes (EZD-024, EZD-252)
   test-harness/net-guard/ the live-network guard: net-guard.mjs, preload.mjs, vitest.setup.ts, probes (EZD-021)
   test-harness/ai/        makeAiTestContext (EZD-021)
   test-harness/e2e/       browser test harness: devices.ts (DEVICE_PROJECTS, projectGrep), global-setup.ts (EZD-016d)
@@ -901,6 +902,7 @@ EZD-024 (vault/plans/EZD-024.md Steps 1-12); 11 Operations; R26 R12; Q-0067 (b);
 - Spike tests live with the spike under `spikes/` and are not run by the root gate (vault/spikes/TEMPLATE.md; PROCESS.md).
 - Check C7 enforces the file names.
 - Email: unit tests read readStubOutbox() (app/src/server/email/test-harness/stub-transport.ts); browser tests set EMAIL_STUB_DIR and read it with readStubOutboxDir from app/test-harness/email-outbox.ts (EZD-008a).
+- Every app Vitest file runs test-harness/errors/vitest.setup.ts: a file that makes the app write error_alert rows without holdErrorAlertLock fails, and the write is refused by the local-only trigger ezd_test_alert_write_guard (EZD-252; Q-0385).
 
 ### Browser tests (EZD-016a)
 

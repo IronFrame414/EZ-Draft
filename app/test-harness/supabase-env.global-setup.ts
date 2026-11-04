@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import postgres from 'postgres';
+import { ERROR_ALERT_TEST_LOCK_KEY } from './errors/alert-lock';
+import { installAlertWriteGuardSql } from './errors/alert-write-guard';
 
 const NAMES = [
   'NEXT_PUBLIC_SUPABASE_URL',
@@ -45,6 +47,8 @@ export default async function setup(): Promise<void> {
   const sql = postgres(dbUrl, { max: 1 });
   try {
     await sql`select private.set_api_gate_hash(${gate.gateHash(secret)})`;
+    // EZD-252 Step 8: the local-only error_alert write guard trigger (alert-write-guard.ts).
+    await installAlertWriteGuardSql(sql, ERROR_ALERT_TEST_LOCK_KEY);
   } finally {
     await sql.end({ timeout: 5 });
   }
