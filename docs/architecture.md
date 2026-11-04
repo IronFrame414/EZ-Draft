@@ -641,7 +641,7 @@ EZD-140 (vault/plans/EZD-140.md Steps 1-14); Q-0220; Q-0393; Q-0453 (a); S15 lin
 
 ## Server-only data access and can()
 
-03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-102 (helper, server-route pattern, UI hook) and EZD-133 (browser-query lint rule, money serializers).
+03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-102 (helper, server-route pattern, UI hook) and EZD-133 (browser-query lint rule, money registry `app/src/server/db/money-fields.ts`).
 
 - Browser code never queries tables. It calls the app's own HTTP routes (Route Handlers under `app/src/app/api/**`) through one fetch helper in `app/src/lib/` that adds the app version to every request (03 rule 12; EZD-134). Reads and writes use Route Handlers, not Server Actions, because the outbox (03 rule 9) and the EZ Binder inbound API need plain HTTP endpoints.
 - The two exceptions (03 rule 1): Realtime subscriptions authorized per project scope (EZD-018) and signed uploads straight to Storage (EZD-132).
@@ -1039,7 +1039,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | Named colors in CSS and colors in TSX style props | review | EZD-010a |
 | — | Icon sprite and names file match icons.json; icons:build is byte-stable and refuses missing, repeated or unsorted names | app/src/components/icon/icons.test.ts (T8, T9) | EZD-010b |
 | — | No icon font, no Google Fonts reference; woff2 files only in app/src/styles/fonts/ | app/src/styles/no-icon-font.test.ts (T7) | EZD-010c |
-| — | Browser table query lint; RLS-policy CI test | lint rule and CI test | EZD-133 |
+| — | Browser table query lint; money fields only with their permission | eslint-rules/no-browser-table-query.mjs; app/src/server/db/money-routes.test.ts; app/e2e/money-pages.spec.ts | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |
 | — | No `private` function executable by PUBLIC, or by an API role outside `PRIVATE_EXECUTE` | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`; EZD-168 T1-T4) | EZD-168 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |
