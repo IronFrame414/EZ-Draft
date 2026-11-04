@@ -3,6 +3,7 @@
 // the caller's client (RLS: another tenant's or an unlisted project is not found), inserts the row and signs
 // the upload; complete checks the object is there with the declared size and stamps uploaded_at once (the
 // trigger of Step 1 stores now() and refuses a second stamp). Only the view's columns leave the server.
+// A cost record (EZD-322 D1) is refused without See company costs before any write.
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
@@ -12,7 +13,11 @@ import {
   type SourceFileKind,
 } from '../../lib/storage/source-file-kinds';
 import type { SignedUpload } from '../../lib/storage/upload';
+import { can, loadPermissionContext } from '../permissions';
 import { createSignedUpload, statObject, StorageError, type DbClient } from './objects';
+
+// Supplier files and order reports are cost files (Q-0269 (b)); their starts need See company costs (EZD-322).
+export const COST_FILE_KINDS: readonly SourceFileKind[] = ['supplier_pdf', 'order_report'];
 
 export type SourceFileView = {
   id: string;
@@ -97,6 +102,18 @@ function toView(row: ViewRow): SourceFileView {
   };
 }
 
+// EZD-322 D2: the caller's own switch, read live through current_permissions on the caller's client. A missing
+// context or a missing key is permission_denied; a failed read is storage_unavailable (no table call either way).
+async function requireSeeCompanyCosts(client: DbClient, appUserId: string): Promise<void> {
+  let ctx: Awaited<ReturnType<typeof loadPermissionContext>>;
+  try {
+    ctx = await loadPermissionContext(client, appUserId);
+  } catch {
+    throw new StorageError('storage_unavailable');
+  }
+  if (!can(ctx, 'see_company_costs')) throw new StorageError('permission_denied');
+}
+
 export async function startSourceFileUpload(
   client: DbClient,
   input: StartSourceFileInput,
@@ -104,6 +121,12 @@ export async function startSourceFileUpload(
   const parsed = startSchema.safeParse(input);
   if (!parsed.success) throw new StorageError('invalid_input');
   const v = parsed.data;
+
+  const isCostRecord =
+    COST_FILE_KINDS.includes(v.kind) ||
+    (v.supplierName !== undefined && v.supplierName !== null) ||
+    (v.supplierContactEmail !== undefined && v.supplierContactEmail !== null);
+  if (isCostRecord) await requireSeeCompanyCosts(client, v.uploadedBy);
 
   const project = await client
     .from('project')

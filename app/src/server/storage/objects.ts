@@ -21,6 +21,7 @@ export type StorageErrorCode =
   | 'upload_refused'
   | 'upload_missing'
   | 'upload_size_mismatch'
+  | 'permission_denied'
   | 'storage_unavailable';
 
 export class StorageError extends Error {

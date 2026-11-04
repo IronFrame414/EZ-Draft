@@ -12,6 +12,7 @@ export {
   type StorageErrorCode,
 } from './objects';
 export {
+  COST_FILE_KINDS,
   completeSourceFileUpload,
   sourceFilePath,
   startSourceFileUpload,

@@ -1,8 +1,8 @@
 // EZD-132 Step 11 (vault/plans/EZD-132.md Decided Dev routes; section 3): start a source file upload for the
 // /dev/storage test page. Not found in production (EZD-010 Step 5 rule). After the body parse the caller needs
 // Edit model on the project (requireApiPermission, EZD-102 U8; Q-0202); RLS and the Storage policies stay the
-// backstop. Order: production 404, then 401, then 400, then 403 or 404 (permission), then the helper's 400s,
-// then 500. A 500 reports the error first (reportRouteFailure, EZD-169).
+// backstop. Order: production 404, then 401, then 400, then 403 or 404 (permission), then the helper's 403
+// (permission_denied, EZD-322) and 400s, then 500. A 500 reports the error first (reportRouteFailure, EZD-169).
 import { z } from 'zod';
 import { SOURCE_FILE_KINDS } from '../../../../lib/storage/source-file-kinds';
 import { requireApiSession } from '../../../../server/auth/session';
@@ -38,6 +38,13 @@ const INPUT_CODES = new Set([
 const invalidInput = (code = 'invalid_input') =>
   Response.json({ error: { code, message_key: 'error.invalid_input' } }, { status: 400, headers });
 
+// The helper's refusal of a cost-record start without See company costs (EZD-322 D3; same body as can.ts).
+const permissionDenied = () =>
+  Response.json(
+    { error: { code: 'permission_denied', message_key: 'error.not_authorized' } },
+    { status: 403, headers },
+  );
+
 // A failed session read or database error (Q-0168 (b); architecture Errors and logging).
 const dbUnavailable = () =>
   Response.json(
@@ -72,6 +79,7 @@ export async function POST(request: Request): Promise<Response> {
     });
     return Response.json({ sourceFile, upload }, { status: 201, headers });
   } catch (e) {
+    if (e instanceof StorageError && e.code === 'permission_denied') return permissionDenied();
     if (e instanceof StorageError && INPUT_CODES.has(e.code)) return invalidInput(e.code);
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();

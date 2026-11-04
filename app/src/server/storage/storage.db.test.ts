@@ -549,7 +549,7 @@ describe('EZD-132 file storage', () => {
     for (const kind of ['supplier_pdf', 'order_report'] as const) {
       await expectStorageCode(
         startSourceFileUpload(db(sF), startInput(f, { kind, size: 100 })),
-        'upload_refused',
+        'permission_denied',
         kind,
       );
     }
