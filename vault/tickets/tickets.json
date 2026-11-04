@@ -17598,6 +17598,54 @@
     "AC-EZD-319-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-320",
+   "phase": 1,
+   "title": "Fix: a project member cannot complete or orphan another person's pending source-file upload",
+   "depends_raw": "EZD-132",
+   "spec_ref": "Security review phase 1 gate 2026-11-03 (finding 2); rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-132"
+   ],
+   "build_position": 576,
+   "acs": [
+    "AC-EZD-320-1",
+    "AC-EZD-320-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-321",
+   "phase": 1,
+   "title": "Fix: every cap that counts rows before inserting takes a lock first",
+   "depends_raw": "EZD-143",
+   "spec_ref": "Security review phase 1 gate 2026-11-03 (slice B finding); EZD-143; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-143"
+   ],
+   "build_position": 577,
+   "acs": [
+    "AC-EZD-321-1",
+    "AC-EZD-321-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
