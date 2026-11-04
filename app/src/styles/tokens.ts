@@ -58,4 +58,7 @@ export const TOKENS: readonly {
   { name: '--ez-unread-tint', value: '#f7f8ff', group: 'color' },
   { name: '--ez-slate-450', value: '#6b7280', group: 'color' },
   { name: '--ez-shadow-popover', value: '0 16px 48px rgba(10,15,30,.18)', group: 'shadow' },
+  // S01f .row border, .kn shadow; EZD-140
+  { name: '--ez-divider-row', value: '#f0f2f5', group: 'color' },
+  { name: '--ez-shadow-switch-knob', value: '0 1px 2px rgba(0,0,0,.2)', group: 'shadow' },
 ];

@@ -67,6 +67,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       'Members read their own notifications; rows are written only by definer functions and the email job (EZD-110)',
   },
+  notification_setting: {
+    privileges: ['SELECT'],
+    reason:
+      'Members read their own notification settings; rows are written only by save_my_notification_settings (EZD-140)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

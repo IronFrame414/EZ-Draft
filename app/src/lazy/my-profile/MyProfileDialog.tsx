@@ -4,6 +4,8 @@
 // Q-0412; Q-0422; Q-0465 (a) "Security check"): the signed-in user's own profile. Save sends only language and iPad drawing; the password
 // has its own button and route and is never part of Save. Cancel, Esc, Close and the overlay discard
 // without a prompt. Office text only (English, Q-0121 (a)).
+// EZD-140 Step 12 (vault/plans/EZD-140.md Decided D8-D10, D15): a Notifications tab; one footer saves both
+// tabs (the profile, then the notification settings); both tab panels stay mounted so a switch keeps edits.
 import { Dialog, Tabs } from 'radix-ui';
 import { useCallback, useState } from 'react';
 import { useT } from '../../lib/messages';
@@ -17,6 +19,14 @@ import {
   type ProfileCaptcha,
   type ProfileResponse,
 } from '../../lib/profile/profile';
+import type { NotificationKind } from '../../lib/notifications/kinds';
+import {
+  fetchNotificationSettings,
+  saveNotificationSettings,
+  settingsChanged,
+  type NotificationChannel,
+  type NotificationSetting,
+} from '../../lib/notifications/settings';
 import type { MessageKey } from '../../server/messages/catalog';
 import { Captcha } from '../../components/auth/Captcha';
 import { Icon } from '../../components/icon/Icon';
@@ -26,13 +36,17 @@ import { StateButton } from '../../components/states/StateButton';
 import { useToast } from '../../components/states/ToastProvider';
 import touch from '../../styles/touch.module.css';
 import styles from './my-profile.module.css';
+import { NotificationSettingsTab } from './NotificationSettingsTab';
 
 export type MyProfileDialogProps = { onClose: () => void };
 
-export const PROFILE_TABS = ['profile'] as const;
+export const PROFILE_TABS = ['profile', 'notifications'] as const;
 
-const TAB_LABELS: Record<(typeof PROFILE_TABS)[number], MessageKey> = {
+type ProfileTab = (typeof PROFILE_TABS)[number];
+
+const TAB_LABELS: Record<ProfileTab, MessageKey> = {
   profile: 'office.profile.tab_profile',
+  notifications: 'office.profile.tab_notifications',
 };
 
 const LANGUAGES = [
@@ -281,112 +295,120 @@ function PasswordSection({
 function ProfileForm({
   profile,
   captcha,
-  onClose,
+  language,
+  ipadDrawing,
+  onLanguage,
+  onIpadDrawing,
 }: {
   profile: Profile;
   captcha: ProfileCaptcha | null;
-  onClose: () => void;
+  language: Language;
+  ipadDrawing: IpadDrawing;
+  onLanguage: (v: Language) => void;
+  onIpadDrawing: (v: IpadDrawing) => void;
 }) {
+  const t = useT();
+  return (
+    <div className={styles.body}>
+      <div className={styles.section}>
+        <h3 className={styles.label}>{t('office.profile.language')}</h3>
+        <Segmented
+          label="office.profile.language"
+          options={LANGUAGES}
+          value={language}
+          testid="profile-language"
+          onChange={onLanguage}
+        />
+        <p className={styles.help}>{t('office.profile.language_help')}</p>
+      </div>
+      <div className={styles.section}>
+        <h3 className={styles.label}>{t('office.profile.ipad')}</h3>
+        <Segmented
+          label="office.profile.ipad"
+          options={IPAD}
+          value={ipadDrawing}
+          testid="profile-ipad"
+          onChange={onIpadDrawing}
+        />
+        <p className={styles.help}>{t('office.profile.ipad_help')}</p>
+      </div>
+      <span aria-hidden="true" className={styles.divider} />
+      <PasswordSection email={profile.email} initial={profile.hasPassword} captcha={captcha} />
+    </div>
+  );
+}
+
+export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
   const t = useT();
   const online = useOnline();
   const toast = useToast();
-  const [language, setLanguage] = useState<Language>(profile.language);
-  const [ipadDrawing, setIpadDrawing] = useState<IpadDrawing>(profile.ipadDrawing);
+  const [tab, setTab] = useState<ProfileTab>('profile');
+  const [notifShown, setNotifShown] = useState(false);
+  // The Profile tab: the loaded (then saved) values and the drafts (EZD-140 D15).
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [language, setLanguage] = useState<Language | null>(null);
+  const [ipadDrawing, setIpadDrawing] = useState<IpadDrawing | null>(null);
+  // The Notifications tab: the loaded (then saved) settings and the draft (EZD-140 D8).
+  const [notifLoaded, setNotifLoaded] = useState<NotificationSetting[] | null>(null);
+  const [notifDraft, setNotifDraft] = useState<NotificationSetting[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState(false);
-  const changed = language !== profile.language || ipadDrawing !== profile.ipadDrawing;
 
+  const load = useCallback(async (signal: AbortSignal) => {
+    const loaded = await loadProfile(signal);
+    setProfile(loaded.profile);
+    setLanguage((v) => v ?? loaded.profile.language);
+    setIpadDrawing((v) => v ?? loaded.profile.ipadDrawing);
+    return loaded;
+  }, []);
+
+  const loadNotifications = useCallback(async (signal: AbortSignal) => {
+    const loaded = await fetchNotificationSettings(signal);
+    setNotifLoaded(loaded);
+    setNotifDraft((v) => v ?? loaded);
+    return loaded;
+  }, []);
+
+  const toggle = (kind: NotificationKind, channel: NotificationChannel, on: boolean) =>
+    setNotifDraft((d) => d && d.map((s) => (s.kind === kind ? { ...s, [channel]: on } : s)));
+
+  const profileChanged =
+    profile !== null &&
+    language !== null &&
+    ipadDrawing !== null &&
+    (language !== profile.language || ipadDrawing !== profile.ipadDrawing);
+  const notifChanged = settingsChanged(notifLoaded, notifDraft);
+
+  // EZD-140 D9: the profile first, then the notification settings; a failure stops there and keeps the
+  // drafts, so a retry sends only what is left.
   const save = async () => {
     setBusy(true);
     setSaveError(false);
     try {
-      const res = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ language, ipadDrawing }),
-      });
-      if (res.status === 200) {
-        toast.show({ message: 'office.profile.saved' });
-        onClose();
-        return;
+      if (profileChanged) {
+        const res = await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ language, ipadDrawing }),
+        });
+        if (res.status !== 200) {
+          setSaveError(true);
+          return;
+        }
+        setProfile((p) => p && { ...p, language, ipadDrawing });
       }
-      setSaveError(true);
+      if (notifChanged && notifDraft !== null) {
+        setNotifLoaded(await saveNotificationSettings(notifDraft));
+      }
+      toast.show({ message: 'office.profile.saved' });
+      onClose();
     } catch {
       setSaveError(true);
     } finally {
       setBusy(false);
     }
   };
-
-  return (
-    <>
-      <div className={styles.body}>
-        <div className={styles.section}>
-          <h3 className={styles.label}>{t('office.profile.language')}</h3>
-          <Segmented
-            label="office.profile.language"
-            options={LANGUAGES}
-            value={language}
-            testid="profile-language"
-            onChange={setLanguage}
-          />
-          <p className={styles.help}>{t('office.profile.language_help')}</p>
-        </div>
-        <div className={styles.section}>
-          <h3 className={styles.label}>{t('office.profile.ipad')}</h3>
-          <Segmented
-            label="office.profile.ipad"
-            options={IPAD}
-            value={ipadDrawing}
-            testid="profile-ipad"
-            onChange={setIpadDrawing}
-          />
-          <p className={styles.help}>{t('office.profile.ipad_help')}</p>
-        </div>
-        <span aria-hidden="true" className={styles.divider} />
-        <PasswordSection email={profile.email} initial={profile.hasPassword} captcha={captcha} />
-      </div>
-      <div className={styles.footer}>
-        {saveError ? (
-          <p
-            data-testid="profile-save-error"
-            role="alert"
-            className={`${styles.message} ${styles.error}`}
-          >
-            {t('office.profile.save_failed')}
-          </p>
-        ) : null}
-        <button
-          type="button"
-          data-testid="profile-cancel"
-          className={`${styles.button} ${touch.target}`}
-          onClick={onClose}
-        >
-          {t('common.cancel')}
-        </button>
-        <button
-          type="button"
-          data-testid="profile-save"
-          className={`${styles.button} ${styles.primary} ${touch.target}`}
-          disabled={!changed || !online || busy}
-          onClick={() => void save()}
-        >
-          {t('office.profile.save')}
-        </button>
-      </div>
-    </>
-  );
-}
-
-export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
-  const t = useT();
-  const [who, setWho] = useState<{ name: string | null; email: string } | null>(null);
-  const load = useCallback(async (signal: AbortSignal) => {
-    const loaded = await loadProfile(signal);
-    setWho({ name: loaded.profile.name, email: loaded.profile.email });
-    return loaded;
-  }, []);
 
   return (
     <Dialog.Root
@@ -406,11 +428,11 @@ export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
           <div className={styles.head}>
             <div>
               <Dialog.Title className={styles.title}>{t('office.profile.title')}</Dialog.Title>
-              {who === null ? null : (
+              {profile === null ? null : (
                 <p data-testid="my-profile-subtitle" className={styles.subtitle}>
-                  {who.name === null
-                    ? who.email
-                    : t('office.profile.subtitle', { name: who.name, email: who.email })}
+                  {profile.name === null
+                    ? profile.email
+                    : t('office.profile.subtitle', { name: profile.name, email: profile.email })}
                 </p>
               )}
             </div>
@@ -423,7 +445,13 @@ export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
               <Icon name="close" size={20} />
             </StateButton>
           </div>
-          <Tabs.Root defaultValue={PROFILE_TABS[0]}>
+          <Tabs.Root
+            value={tab}
+            onValueChange={(v) => {
+              setTab(v as ProfileTab);
+              if (v === 'notifications') setNotifShown(true);
+            }}
+          >
             <Tabs.List className={styles.tabs}>
               {PROFILE_TABS.map((id) => (
                 <Tabs.Trigger
@@ -436,7 +464,7 @@ export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
                 </Tabs.Trigger>
               ))}
             </Tabs.List>
-            <Tabs.Content value="profile">
+            <Tabs.Content value="profile" forceMount hidden={tab !== 'profile'}>
               <AsyncView
                 load={load}
                 skeleton={
@@ -452,12 +480,69 @@ export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
                   <ProfileForm
                     profile={loaded.profile}
                     captcha={loaded.captcha}
-                    onClose={onClose}
+                    language={language ?? loaded.profile.language}
+                    ipadDrawing={ipadDrawing ?? loaded.profile.ipadDrawing}
+                    onLanguage={setLanguage}
+                    onIpadDrawing={setIpadDrawing}
                   />
                 )}
               </AsyncView>
             </Tabs.Content>
+            <Tabs.Content
+              value="notifications"
+              forceMount
+              hidden={tab !== 'notifications'}
+              data-testid="notification-settings"
+            >
+              {notifShown ? (
+                <AsyncView
+                  load={loadNotifications}
+                  skeleton={
+                    <div className={styles.body}>
+                      <SkeletonGroup count={9}>
+                        <Skeleton height="22px" />
+                      </SkeletonGroup>
+                    </div>
+                  }
+                  errorMessage="office.profile.notifications.load_failed"
+                >
+                  {(loaded) => (
+                    <NotificationSettingsTab settings={notifDraft ?? loaded} onToggle={toggle} />
+                  )}
+                </AsyncView>
+              ) : null}
+            </Tabs.Content>
           </Tabs.Root>
+          {profile === null && notifLoaded === null ? null : (
+            <div className={styles.footer}>
+              {saveError ? (
+                <p
+                  data-testid="profile-save-error"
+                  role="alert"
+                  className={`${styles.message} ${styles.error}`}
+                >
+                  {t('office.profile.save_failed')}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                data-testid="profile-cancel"
+                className={`${styles.button} ${touch.target}`}
+                onClick={onClose}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                data-testid="profile-save"
+                className={`${styles.button} ${styles.primary} ${touch.target}`}
+                disabled={!(profileChanged || notifChanged) || !online || busy}
+                onClick={() => void save()}
+              >
+                {t('office.profile.save')}
+              </button>
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

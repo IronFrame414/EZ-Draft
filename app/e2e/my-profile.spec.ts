@@ -218,7 +218,7 @@ test.describe('EZD-108 my profile', () => {
     await expectIconsDraw(page, ['avatar-menu-profile', 'avatar-menu-sign-out']);
   });
 
-  test('T11 dialog: title, subtitle, one Profile tab and no Notifications', async ({
+  test('T11 dialog: title, subtitle, Profile and Notifications tabs', async ({
     page,
     signInAs,
   }) => {
@@ -228,10 +228,10 @@ test.describe('EZD-108 my profile', () => {
     const dialog = tid(page, 'my-profile-dialog');
     await expect(dialog.getByRole('heading', { name: 'My profile', exact: true })).toBeVisible();
     await expect(tid(page, 'my-profile-subtitle')).toHaveText(`Mia Owner · ${who.email}`);
-    await expect(dialog.getByRole('tab')).toHaveCount(1);
-    await expect(dialog.getByRole('tab')).toHaveText('Profile');
+    await expect(dialog.getByRole('tab')).toHaveCount(2);
+    await expect(dialog.getByRole('tab')).toHaveText(['Profile', 'Notifications']);
     await expect(tid(page, 'my-profile-tab-profile')).toHaveText('Profile');
-    await expect(dialog.getByText('Notifications')).toHaveCount(0);
+    await expect(tid(page, 'my-profile-tab-notifications')).toHaveText('Notifications');
   });
 
   test('T12 EZD-108 done when: a member changes their language and it persists', async ({

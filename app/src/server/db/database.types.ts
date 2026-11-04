@@ -191,14 +191,14 @@ isOneToOne: false
                   ]
                 },"notification": {
                   Row: {
-                    "created_at": string,"emailed_at": string | null,"id": string,"kind": string,"link": string,"payload": NonNullable<Json>,"project_id": string | null,"read_at": string | null,"tenant_id": string,"user_id": string
+                    "created_at": string,"emailed_at": string | null,"id": string,"in_app": boolean,"kind": string,"link": string,"payload": NonNullable<Json>,"project_id": string | null,"read_at": string | null,"tenant_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"kind": string,"link": string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id": string,"user_id": string
+                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"in_app"?: boolean,"kind": string,"link": string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id": string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"kind"?: string,"link"?: string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id"?: string,"user_id"?: string
+                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"in_app"?: boolean,"kind"?: string,"link"?: string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -209,6 +209,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "notification_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notification_setting": {
+                  Row: {
+                    "email": boolean,"in_app": boolean,"kind": string,"tenant_id": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email"?: boolean,"in_app"?: boolean,"kind": string,"tenant_id": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "email"?: boolean,"in_app"?: boolean,"kind"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notification_setting_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notification_setting_user_id_fkey"
       columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "app_user"
@@ -471,6 +497,9 @@ isOneToOne: false
                            },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
+                           },
+"save_my_notification_settings":
+{ Args: { "p_settings": Json }; Returns: undefined
                            },
 "send_test_notification":
 { Args: { "p_kind": string,"p_payload": Json,"p_project_id": string }; Returns: string

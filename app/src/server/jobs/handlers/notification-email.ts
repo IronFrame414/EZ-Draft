@@ -53,6 +53,17 @@ export const notificationEmailHandler: JobHandler<
 
     if (row.emailed_at !== null) return { done: { emailed: true } };
 
+    // EZD-140 D5: the person turned this kind's Email off after the job was queued; nothing is sent.
+    const { data: setting, error: settingError } = await db
+      .from('notification_setting')
+      .select('email')
+      .eq('tenant_id', tenantId)
+      .eq('user_id', row.user_id)
+      .eq('kind', row.kind)
+      .maybeSingle();
+    if (settingError) throw settingError;
+    if (setting?.email === false) return { done: { emailed: false } };
+
     const { data: user, error: userError } = await db
       .from('app_user')
       .select('email')

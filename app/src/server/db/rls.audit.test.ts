@@ -212,6 +212,7 @@ describe('EZD-006 RLS audit', () => {
       'membership',
       'membership_project',
       'notification',
+      'notification_setting',
       'sign_in_throttle',
       'source_file',
       'tenant',

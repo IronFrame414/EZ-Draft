@@ -67,4 +67,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'list_notifications', args: { p_before_created_at: null, p_before_id: null } },
   { fn: 'open_notification', args: { p_id: '00000000-0000-4000-8000-000000000000' } },
   { fn: 'mark_all_notifications_read', args: {} },
+  // EZD-140 section 3 (vault/plans/EZD-140.md): the notification settings save, authenticated only.
+  { fn: 'save_my_notification_settings', args: { p_settings: [] } },
 ];
