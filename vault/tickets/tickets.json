@@ -17571,6 +17571,30 @@
     "AC-EZD-318-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-319",
+   "phase": 2,
+   "title": "Fix: the my-profile migration runs after every migration already on the dev database",
+   "depends_raw": "EZD-108",
+   "spec_ref": "CI run 41756259716, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-108"
+   ],
+   "build_position": 575,
+   "acs": [
+    "AC-EZD-319-1",
+    "AC-EZD-319-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
