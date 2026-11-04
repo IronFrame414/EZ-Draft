@@ -83,3 +83,23 @@ Sources in brackets. These are recorded as one Q-ID row in the matching decision
 - Build choices for the plans: grid meaning, zoom limits, Fit on an empty model, hover style, joins (with worked examples), benchmark object mix and where it lives (not listed as a normal project), room storage with area derived (AC-EZD-202-1; 11 rule 2), spatial index owned by the ticket that first needs it, drawing-list entries for room labels and the gap marker.
 - Test script step 1 drops "Standalone" (Q-0410); step 4 reads `12' 6"` (03g). Glossary addendum `00e-glossary-phase-04.md`; `spec_files` for EZD-201 add 03g, and for EZD-203 and EZD-205 add 03f.
 - The conflict-row Show button promised for phase 4 (Q-0511 b, AC-EZD-299-10): whichever of EZD-207 and EZD-299 is built second adds it, so it does not depend on board S03b's arrival.
+
+## Round 2 (phase-auditor run 2, Opus 5.5): 24 gaps, 4 for Josh
+
+Round 1 answers differed from the recommendation on item 4 (no laser), item 10 and item 11 (briefs written) and item 12 (model picker per prompt); see decisions Q-0561, Q-0567, Q-0474.
+
+**1. Snap increment (gap 1).** No value exists; the board's 1/2" is sample data.
+- Recommended: 1/2" until the snap settings arrive in phase 6.
+- Alternative: another value.
+
+**2. Walls not closing a room (gap 2).** Thickness "goes outside the room" says nothing for a lone wall, an open chain, or a partition between two rooms.
+- Recommended: a lone wall or open chain keeps thickness on the right side of the drawing direction until it closes, then outside. A partition inside a room is centered on the line drawn.
+- Alternative: every wall that does not close a room is centered on the line.
+
+**3. A gap that misses both ways (gap 3).** No single wall can absorb a miss that is off in both directions, for example 1/2" each way.
+- Recommended: the 12" limit is the straight-line distance. A both-ways miss offers only Keep out of square, with a line saying to fix the walls once move arrives in phase 5.
+- Alternative: split it across two picked walls (more to build).
+
+**4. Where the gap buttons go (gap 4).** S02 puts them in the inspector, phase 4 has none, and no board shows them.
+- Recommended: no new board (Q-0506 precedent); a small box near the gap holds the size and both buttons, and the inspector takes them over in phase 5. Wording is approved at Stage 2.
+- Alternative: draw a board first in Cowork.
