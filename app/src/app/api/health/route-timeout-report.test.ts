@@ -2,8 +2,21 @@
 // Q-0285 (a); Q-0317 (a)). A timed-out health read answers its 500 at the 3-second limit, and the report of
 // that failure still reaches Sentry and error_alert: in-scope request (T1, T2) and outside a request scope
 // (T3). Unit tests against the local database and the stub Sentry transport (CLAUDE.md rule 6; no live service).
+// EZD-251 (vault/plans/EZD-251.md sections 1, 3, 4; AC-EZD-251-1, AC-EZD-251-2; Q-0356 (a); Q-0381 (a)): the
+// alert store is shared by every test file, so the rows and the store requests are scoped to this test's
+// fingerprint and fetch stub, and each test waits for its own store request instead of a fixed window.
 import * as Sentry from '@sentry/nextjs';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
 import { HEALTH_DB_TIMEOUT_MS } from '../../../server/db/health';
 import { errorFingerprint } from '../../../server/errors/fingerprint';
 import { initErrorReporting } from '../../../server/errors/sentry-options';
@@ -39,19 +52,55 @@ function isHealthRpc(input: RequestInfo | URL): boolean {
   return new URL(url).pathname === '/rest/v1/rpc/health';
 }
 
-// The health RPC never answers but honours its abort signal; every other request goes to the local database.
-function stalledHealthFetch() {
-  return vi.fn<typeof fetch>((input, init) => {
+// The report's store call (supabase-js rpc path, report.ts line 69).
+function isStoreRpc(input: RequestInfo | URL): boolean {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  return new URL(url).pathname === '/rest/v1/rpc/record_error_alert';
+}
+
+// The health RPC never answers but honours its abort signal. The first store call goes to the local database,
+// and storeAnswered resolves when that call settles (fulfilled or rejected). Every other request goes to the
+// local database too.
+function stalledHealthFetch(): { fetch: Mock<typeof fetch>; storeAnswered: Promise<void> } {
+  let resolveStore!: () => void;
+  const storeAnswered = new Promise<void>((resolve) => {
+    resolveStore = resolve;
+  });
+  let storeSeen = false;
+  const fetchMock = vi.fn<typeof fetch>((input, init) => {
+    if (isStoreRpc(input)) {
+      const answer = realFetch(input, init);
+      if (!storeSeen) {
+        storeSeen = true;
+        answer.then(resolveStore, resolveStore);
+      }
+      return answer;
+    }
     if (!isHealthRpc(input)) return realFetch(input, init);
     return new Promise<Response>((_, reject) => {
       init?.signal?.addEventListener('abort', () => reject(init.signal?.reason), { once: true });
     });
   });
+  return { fetch: fetchMock, storeAnswered };
 }
 
-// Every request never answers, so nothing reaches the local database.
-function hungDatabaseFetch() {
-  return vi.fn<typeof fetch>(() => new Promise<Response>(() => {}));
+// Every request never answers, so nothing reaches the local database. storeCalled resolves when the first store
+// call arrives.
+function hungDatabaseFetch(): { fetch: Mock<typeof fetch>; storeCalled: Promise<void> } {
+  let resolveStored!: () => void;
+  const storeCalled = new Promise<void>((resolve) => {
+    resolveStored = resolve;
+  });
+  const fetchMock = vi.fn<typeof fetch>((input) => {
+    if (isStoreRpc(input)) resolveStored();
+    return new Promise<Response>(() => {});
+  });
+  return { fetch: fetchMock, storeCalled };
+}
+
+// The number of store calls that one test's fetch stub received.
+function storeRpcCalls(fetchMock: Mock<typeof fetch>): number {
+  return fetchMock.mock.calls.filter(([input]) => isStoreRpc(input)).length;
 }
 
 async function expectUnavailable(res: Response) {
@@ -74,22 +123,33 @@ function expectReported() {
   return event;
 }
 
-async function expectOneAlertRow(eventId: string) {
+function healthFingerprint(): Promise<string> {
+  return errorFingerprint({
+    source: 'function',
+    type: 'Error',
+    message: 'db_unavailable',
+    location: '/api/health',
+  });
+}
+
+// The rows of this test's own fingerprint; other files' rows are not counted (Q-0356 (a)).
+async function alertRows() {
   const { data, error } = await adminDb()
     .from('error_alert')
-    .select('kind, source, title, fingerprint, ref, occurrences');
+    .select('kind, source, title, fingerprint, ref, occurrences')
+    .eq('fingerprint', await healthFingerprint());
+  return { data, error };
+}
+
+async function expectOneAlertRow(eventId: string) {
+  const { data, error } = await alertRows();
   expect(error).toBeNull();
   expect(data).toHaveLength(1);
   expect(data?.[0]).toEqual({
     kind: 'error',
     source: 'function',
     title: 'Error: db_unavailable',
-    fingerprint: await errorFingerprint({
-      source: 'function',
-      type: 'Error',
-      message: 'db_unavailable',
-      location: '/api/health',
-    }),
+    fingerprint: await healthFingerprint(),
     ref: eventId,
     occurrences: 1,
   });
@@ -127,7 +187,8 @@ afterAll(async () => {
 
 describe('EZD-181 health timeout reports the error', () => {
   it('EZD-181 T1 a timed-out health read answers db_unavailable and reports once, done when', async () => {
-    vi.stubGlobal('fetch', stalledHealthFetch());
+    const stub = stalledHealthFetch();
+    vi.stubGlobal('fetch', stub.fetch);
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
     const progress = { settled: false };
@@ -154,13 +215,15 @@ describe('EZD-181 health timeout reports the error', () => {
     await expectUnavailable(res);
 
     await state.tasks[0]();
-    await Sentry.flush(2000);
+    expect(await Sentry.flush(2000)).toBe(true);
     const event = expectReported();
     await expectOneAlertRow(event.event_id);
+    expect(storeRpcCalls(stub.fetch)).toBe(1);
   });
 
   it('EZD-181 T2 a hung database still gets its 500 at the limit and the Sentry event', async () => {
-    vi.stubGlobal('fetch', hungDatabaseFetch());
+    const stub = hungDatabaseFetch();
+    vi.stubGlobal('fetch', stub.fetch);
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
     const progress = { settled: false };
@@ -186,35 +249,34 @@ describe('EZD-181 health timeout reports the error', () => {
     const res = await p;
     await expectUnavailable(res);
 
-    // The store call never answers, so the task is not awaited.
+    // The store call never answers, so the task is not awaited. Waiting for the call to reach the stub keeps
+    // it on this test's fetch stub; it can never reach the database after this test ends.
     void state.tasks[0]();
-    await Sentry.flush(2000);
+    await stub.storeCalled;
+    expect(await Sentry.flush(2000)).toBe(true);
     expectReported();
+    expect(storeRpcCalls(stub.fetch)).toBe(1);
 
     vi.unstubAllGlobals();
-    const { data, error } = await adminDb().from('error_alert').select('kind');
+    const { data, error } = await alertRows();
     expect(error).toBeNull();
     expect(data).toHaveLength(0);
   });
 
   it('EZD-181 T3 outside a request scope the report still starts and the answer is unchanged', async () => {
     state.afterThrows = true;
-    vi.stubGlobal('fetch', stalledHealthFetch());
+    const stub = stalledHealthFetch();
+    vi.stubGlobal('fetch', stub.fetch);
 
     const res = await GET();
     await expectUnavailable(res);
 
-    await Sentry.flush(2000);
+    expect(await Sentry.flush(2000)).toBe(true);
     const event = expectReported();
 
-    await vi.waitFor(
-      async () => {
-        const { data, error } = await adminDb().from('error_alert').select('kind');
-        expect(error).toBeNull();
-        expect(data).toHaveLength(1);
-      },
-      { timeout: 5000 },
-    );
+    // The report's store call settles when the database answers it; no fixed window is needed.
+    await stub.storeAnswered;
     await expectOneAlertRow(event.event_id);
+    expect(storeRpcCalls(stub.fetch)).toBe(1);
   }, 20000);
 });
