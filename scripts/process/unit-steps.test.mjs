@@ -397,3 +397,157 @@ test('2.12 U3 the feat commit writes the tickets.json entry the records database
   assert.equal(git(dir, 'status', '--porcelain'), '');
   rmSync(dir, { recursive: true, force: true });
 });
+
+// EZD-329: a tooling ticket's worktree gets merge's tickets.json entry, flagged skip-worktree, so its gate reads the mark
+// while the plan is still untracked on develop. Held entry as in the test at 'a tooling mark does not reach develop'.
+const TJ = 'vault/tickets/tickets.json';
+const heldEntry = (architecture = ['Tests'], extra = { track: 'tooling' }) => ({ id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture, ...extra });
+async function hold(dir, entry) {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan\n', entry }]);
+  db.close();
+}
+// T1's state: the held tooling entry, the plan in develop's checkout (untracked), the worktree made.
+async function toolingWorktree(entry = heldEntry()) {
+  const dir = fixture();
+  await hold(dir, entry);
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# plan\n');
+  const w = run(dir, 'worktree', 'EZD-002');
+  assert.equal(w.status, 0, w.stdout + w.stderr);
+  return { dir, wt: path.join(dir, '.claude/worktrees/EZD-002'), w };
+}
+const entryIn = (text, id = 'EZD-002') => JSON.parse(text).tickets.find((t) => t.id === id);
+const wtEntry = (wt, id) => entryIn(readFileSync(path.join(wt, TJ), 'utf8'), id);
+const flagOf = (wt) => git(wt, 'ls-files', '-v', '--', TJ);
+const lockIn = (wt) => { const g = git(wt, 'rev-parse', '--git-dir'); const p = path.join(path.resolve(wt, g), 'index.lock'); writeFileSync(p, ''); return p; };
+// A develop commit that touches only <file> (the plan stays untracked in the checkout).
+const commitOnly = (dir, file, text, msg) => { mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); writeFileSync(path.join(dir, file), text); git(dir, 'add', '--', file); git(dir, 'commit', '-qm', msg, '--', file); };
+const retitle = (dir, id, title) => {
+  const d = JSON.parse(readFileSync(path.join(dir, TJ), 'utf8'));
+  d.tickets.find((t) => t.id === id).title = title;
+  return JSON.stringify(d, null, 1) + '\n';
+};
+
+test('EZD-329 T1 worktree gives the tooling ticket its held entry, flagged skip-worktree; develop and status stay clean of it', async () => {
+  const { dir, wt } = await toolingWorktree();
+  assert.equal(wtEntry(wt).track, 'tooling');
+  assert.equal(git(wt, 'status', '-s', '-uno'), '');
+  assert.ok(flagOf(wt).startsWith('S '), flagOf(wt));
+  assert.equal(entryIn(git(dir, 'show', `develop:${TJ}`)).track, undefined);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T2 the squash carries the mark once, on the feat commit only; the checkout\'s other pending entry stays uncommitted', async () => {
+  const { dir, wt } = await toolingWorktree();
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  writeFileSync(path.join(wt, 'feature.mjs'), 'export const x = 2;\n');
+  git(wt, 'commit', '-qam', 'wip(EZD-002): more');
+  writeFileSync(path.join(dir, TJ), retitle(dir, 'EZD-001', 'x'));
+  passGate(wt);
+  assert.equal(entryIn(git(wt, 'show', `HEAD:${TJ}`)).track, undefined);
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(entryIn(git(dir, 'show', `HEAD:${TJ}`)).track, 'tooling');
+  assert.equal(git(dir, 'log', '-S"track"', '--format=%H', 'develop', '--', TJ), git(dir, 'rev-parse', 'HEAD'));
+  assert.equal(entryIn(readFileSync(path.join(dir, TJ), 'utf8'), 'EZD-001').title, 'x');
+  assert.match(git(dir, 'status', '--porcelain', '--', TJ), /M vault\/tickets\/tickets\.json$/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T3 a resumed worktree takes the amended Architecture list with the mark, with no WORKTREE NOTE', async () => {
+  const { dir, wt } = await toolingWorktree();
+  await hold(dir, heldEntry(['Tests', 'Migrations']));
+  const r = run(dir, 'worktree', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.doesNotMatch(r.stdout, /WORKTREE NOTE/);
+  assert.equal(wtEntry(wt).track, 'tooling');
+  assert.deepEqual(wtEntry(wt).architecture, ['Tests', 'Migrations']);
+  assert.ok(flagOf(wt).startsWith('S '), flagOf(wt));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T4 merge brings develop\'s tickets.json change over the flagged file, keeps the mark, and a second merge finishes', async () => {
+  const { dir, wt } = await toolingWorktree();
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  commitOnly(dir, TJ, retitle(dir, 'EZD-001', 'y'), 'docs: retitle EZD-001');
+  const r1 = run(dir, 'merge', 'EZD-002');
+  assert.equal(r1.status, 5, r1.stdout + r1.stderr);
+  assert.match(r1.stdout, /MERGE GATE EZD-002: merged develop/);
+  assert.equal(wtEntry(wt, 'EZD-001').title, 'y');
+  assert.equal(wtEntry(wt).track, 'tooling');
+  passGate(wt);
+  const r2 = run(dir, 'merge', 'EZD-002');
+  assert.equal(r2.status, 0, r2.stdout + r2.stderr);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T5 a merge clash left open takes the index copy of tickets.json, without the mark; the flagged file keeps it', async () => {
+  const dir = fixture();
+  commitOnly(dir, 'docs/architecture.md', 'a\n', 'docs: architecture a');
+  await hold(dir, heldEntry());
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# plan\n');
+  const w = run(dir, 'worktree', 'EZD-002');
+  assert.equal(w.status, 0, w.stdout + w.stderr);
+  const wt = path.join(dir, '.claude/worktrees/EZD-002');
+  commitIn(wt, 'docs/architecture.md', 'b\n', 'wip(EZD-002): architecture b');
+  commitOnly(dir, 'docs/architecture.md', 'c\n', 'docs: architecture c');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 4, r.stdout + r.stderr);
+  assert.match(r.stdout, /MERGE CLASH/);
+  assert.equal(wtEntry(wt).track, 'tooling');
+  writeFileSync(path.join(wt, 'docs/architecture.md'), 'bc\n');
+  git(wt, 'add', '-A');
+  git(wt, 'commit', '--no-edit');
+  assert.equal(entryIn(git(wt, 'show', `HEAD:${TJ}`)).track, undefined);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T6 a ticket with no held entry leaves the worktree\'s tickets.json as committed, unflagged', () => {
+  const dir = fixture();
+  const w = run(dir, 'worktree', 'EZD-002');
+  assert.equal(w.status, 0, w.stdout + w.stderr);
+  const wt = path.join(dir, '.claude/worktrees/EZD-002');
+  assert.equal(readFileSync(path.join(wt, TJ), 'utf8'), git(wt, 'show', `HEAD:${TJ}`));
+  assert.ok(flagOf(wt).startsWith('H '), flagOf(wt));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T7 a git failure while writing the entry stops the step with its own line', async () => {
+  const { dir, wt } = await toolingWorktree();
+  lockIn(wt);
+  const r = run(dir, 'worktree', 'EZD-002');
+  assert.equal(r.status, 3, r.stdout + r.stderr);
+  assert.match(r.stdout, /STOP: tickets\.json entry failed/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T8 a failed develop merge leaves the mark and the flag in place', async () => {
+  const { dir, wt } = await toolingWorktree();
+  writeFileSync(path.join(wt, 'x.txt'), 'wt\n');
+  commitOnly(dir, 'x.txt', 'dev\n', 'docs: x');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 3, r.stdout + r.stderr);
+  assert.match(r.stdout, /MERGE STOP/);
+  assert.equal(wtEntry(wt).track, 'tooling');
+  assert.ok(flagOf(wt).startsWith('S '), flagOf(wt));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-329 T9 a git failure clearing the flag stops the merge with develop, the mark and the flag unchanged', async () => {
+  const { dir, wt } = await toolingWorktree();
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  commitOnly(dir, TJ, retitle(dir, 'EZD-001', 'y'), 'docs: retitle EZD-001');
+  const devBefore = git(dir, 'rev-parse', 'develop');
+  const wBefore = readFileSync(path.join(wt, TJ), 'utf8');
+  lockIn(wt);
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 3, r.stdout + r.stderr);
+  assert.match(r.stdout, /STOP: tickets\.json entry failed/);
+  assert.equal(git(dir, 'rev-parse', 'develop'), devBefore);
+  assert.equal(readFileSync(path.join(wt, TJ), 'utf8'), wBefore);
+  assert.ok(flagOf(wt).startsWith('S '), flagOf(wt));
+  rmSync(dir, { recursive: true, force: true });
+});
