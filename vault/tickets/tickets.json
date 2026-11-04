@@ -17610,7 +17610,12 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Migrations",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
