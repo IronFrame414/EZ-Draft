@@ -259,10 +259,17 @@ function merge() {
         try { held = planRecord(db, ticket); } finally { db.close(); }
         if (held?.entry) {
           const ticketsRel = 'vault/tickets/tickets.json';
-          const d = JSON.parse(readFileSync(path.join(root, ticketsRel), 'utf8'));
-          d.tickets = d.tickets.map((x) => (x.id === ticket ? held.entry : x));
-          writeFileSync(path.join(root, ticketsRel), JSON.stringify(d, null, 1) + '\n');
-          git('add', '--', ticketsRel);
+          const withEntry = (text) => {
+            const d = JSON.parse(text);
+            d.tickets = d.tickets.map((x) => (x.id === ticket ? held.entry : x));
+            return JSON.stringify(d, null, 1) + '\n';
+          };
+          // Commit this ticket's entry on the squash's own copy: another ticket still uncommitted in the checkout's file has no phase row yet on develop (Q-0544).
+          const blob = sh('git', ['hash-object', '-w', '--stdin'], { input: withEntry(git('show', `:${ticketsRel}`).stdout) });
+          if (blob.status) stop(`MERGE STOP: tickets.json entry failed: ${out(blob).split('\n')[0]}`);
+          const staged = git('update-index', '--cacheinfo', `100644,${blob.stdout.trim()},${ticketsRel}`);
+          if (staged.status) stop(`MERGE STOP: tickets.json entry failed: ${out(staged).split('\n')[0]}`);
+          writeFileSync(path.join(root, ticketsRel), withEntry(readFileSync(path.join(root, ticketsRel), 'utf8')));
         }
         const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
         if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);

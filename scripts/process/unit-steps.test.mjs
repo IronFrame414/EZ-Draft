@@ -282,6 +282,28 @@ test('2.12 U2 inside a unit the merge queues its STATUS change; the database cha
   rmSync(dir, { recursive: true, force: true });
 });
 
+test('Q-0544 the feat commit takes only its own tickets.json entry; another ticket left uncommitted there stays uncommitted', async () => {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const dir = fixture();
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan\n', entry: { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture: ['Tests'] } }]);
+  db.close();
+  run(dir, 'worktree', 'EZD-002');
+  commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(path.join(dir, '.claude/worktrees/EZD-002'));
+  const file = path.join(dir, 'vault/tickets/tickets.json');
+  const pending = JSON.parse(readFileSync(file, 'utf8'));
+  pending.tickets.push({ id: 'EZD-009', phase: 0, depends_on: [] });
+  writeFileSync(file, JSON.stringify(pending, null, 1) + '\n');
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const ids = (text) => JSON.parse(text).tickets.map((x) => x.id);
+  assert.deepEqual(ids(git(dir, 'show', 'HEAD:vault/tickets/tickets.json')), ['EZD-001', 'EZD-002']);
+  assert.deepEqual(ids(readFileSync(file, 'utf8')), ['EZD-001', 'EZD-002', 'EZD-009']);
+  const entry = JSON.parse(git(dir, 'show', 'HEAD:vault/tickets/tickets.json')).tickets.find((x) => x.id === 'EZD-002');
+  assert.deepEqual(entry.architecture, ['Tests']);
+});
+
 test('2.12 U3 the feat commit writes the tickets.json entry the records database held for the ticket (D9 (a), 2026-11-02)', async () => {
   const { openRecords, applyOps } = await import(RECORDS);
   const dir = fixture();
