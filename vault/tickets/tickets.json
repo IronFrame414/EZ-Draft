@@ -17954,6 +17954,27 @@
     "AC-EZD-328-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-329",
+   "phase": 1,
+   "title": "Fix: a tooling ticket's worktree gets its held tickets.json entry, so its gate passes",
+   "depends_raw": "",
+   "spec_ref": "CLAUDE.md rule 17; EZD-326 merge (2026-11-04)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 585,
+   "acs": [
+    "AC-EZD-329-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
