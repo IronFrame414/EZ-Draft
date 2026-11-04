@@ -136,7 +136,8 @@ export function storageApi({ apiUrl, secretKey }) {
   };
 }
 
-const made = { buckets: [], tenants: [], authUsers: [] };
+// What this process made. cleanup() removes only these (EZD-326: another test file's rows and users stay).
+const made = { buckets: [], tenants: [], authUsers: [], appUsers: [] };
 
 /** Creates a private bucket on the main stack and removes it (with its objects) at cleanup(). */
 export async function newBucket(name) {
@@ -215,6 +216,7 @@ export async function createDrillData({ suffix = randomUUID().slice(0, 8) } = {}
   ).split('\n')[0];
   // The sign-up hook refuses an unknown email, so the app_user and an active membership come first.
   const appUserId = exec(`insert into public.app_user (email) values ('${email}') returning id;`).split('\n')[0];
+  made.appUsers.push(appUserId);
   exec(
     `insert into public.membership (tenant_id, user_id, status, scope)
      values ('${tenantId}', '${appUserId}', 'active', 'all');`,
@@ -227,23 +229,33 @@ export async function createDrillData({ suffix = randomUUID().slice(0, 8) } = {}
   return { suffix, email, bucket, tenantId, projectId, appUserId, authUserId, api, local };
 }
 
-/** Removes what createDrillData made (rows, objects, buckets, Auth users) from the main stack. */
+/**
+ * Removes what this process made (rows, objects, buckets, app users, Auth users) from the main stack, and nothing
+ * else. EZD-326: the backup_run rows and app users are matched by the ids this process recorded, never by a name
+ * pattern, so another test file's cleanup() cannot delete them while that file is still using them.
+ */
 export async function cleanup() {
   const local = stackStatus();
   const api = storageApi(local);
-  for (const bucket of made.buckets.splice(0)) {
+  const buckets = made.buckets.splice(0);
+  for (const bucket of buckets) {
     execStorageDelete(`delete from storage.objects where bucket_id = '${bucket}';`);
     execStorageDelete(`delete from storage.buckets where id = '${bucket}';`);
   }
-  exec(
-    `do $$ begin if to_regclass('public.backup_run') is not null then
-       delete from public.backup_run where scope like 'buckets:ezd025-%'; end if; end $$;`,
-  );
+  if (buckets.length > 0) {
+    const scopes = buckets.map((bucket) => `'buckets:${bucket}'`).join(', ');
+    exec(
+      `do $$ begin if to_regclass('public.backup_run') is not null then
+         delete from public.backup_run where scope in (${scopes}); end if; end $$;`,
+    );
+  }
   for (const tenantId of made.tenants.splice(0)) {
     exec(`delete from public.membership where tenant_id = '${tenantId}';`);
     exec(`delete from public.project where tenant_id = '${tenantId}';`);
-    exec(`delete from public.app_user where email like 'ezd025-%@example.com' and id not in (select user_id from public.membership);`);
     exec(`delete from public.tenant where id = '${tenantId}';`);
+  }
+  for (const id of made.appUsers.splice(0)) {
+    exec(`delete from public.app_user where id = '${id}';`);
   }
   for (const id of made.authUsers.splice(0)) await api.deleteAuthUser(id);
 }
