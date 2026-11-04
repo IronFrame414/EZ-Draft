@@ -55,3 +55,10 @@ For the session that takes over from the 2026-11-03 night watch. It replaces the
 - Fix: `tooling-track` and `phase-overlap` (same hard-coded fixture, not yet failing) now block every later signed-off phase; no assertion or expected value changed. Full gate passed on clean develop plus the change; CI gate run 41743175841 green on 06467c59; both suites also pass with phases 4 and 5 signed in a scratch copy. Fix mode (rule 19): Josh confirms or reverts at his next sit-down.
 - Q-0544 answered agent; EZD-108, EZD-298, EZD-318 and EZD-293 set ready (queued for the launcher). EZD-110b stays blocked on Q-0545, Q-0546.
 - `vault/handoff/LAUNCHER_FIX.md` still holds the Stage 2 text from 2026-11-01, so fix mode has stayed open; this fix ran under it without naming its fault there (debt D-036).
+
+## Update 01:35 UTC 2026-11-04: develop went red twice more; Josh's speed-up decisions applied
+
+- Red again after 06467c59, both now fixed. (1) The EZD-298 merge committed the checkout's whole tickets.json, carrying EZD-318's entry without its phase row (ba38d127 adds the row and ACs; 7de2e27a makes a merge commit only its own entry, with a test). (2) My L-046 commit left `vault/lessons/INDEX.md` stale (8aea55b3). Clean-checkout suites pass; see CI on develop for the latest run. EZD-318, 108 and 293 set ready again.
+- Josh "Approve 1-3" (0bb94f2e, decisions row in `vault/spec/decisions/process.md`): the bar for a new ticket (CLAUDE.md rule 17, PROCESS.md rule 20, reviewer, phase auditor, gate-phase), `/spec-check` takes a range, and 14 build-system tickets are put off (blocked with a note; do not set ready until Josh says).
+- Josh: the weekly budget is not a holdup, and he now has 2 accounts. The launcher uses one login and gates on the dollar proxy while the usage meter is unreadable, so `hold_at_pct` of $1,160 can still stop it. Josh's call: `budget.json` is his alone.
+- Waits on Josh: Q-0543 (EZD-316 4th round).
