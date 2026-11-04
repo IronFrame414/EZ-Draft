@@ -2,7 +2,7 @@
 
 Goal: show the live 3D model with orbit, walk, look up, section and saved views, and build design options A/B/C with internal costs.
 
-**Build gate:** the benchmark kitchen opens in 3D within budget; saved views, section and walk pass their browser tests; options A/B/C for a ceiling show their internal cost deltas; the exported GLB passes glTF validation and loads in a model-viewer test page. **Field check (Josh):** a real kitchen opens in 3D on the iPad without memory errors, and the GLB displays in EZ Binder's model viewer.
+**Build gate:** the benchmark kitchen opens in 3D within budget; saved views, section and walk pass their browser tests; options A/B/C for a ceiling show their internal cost deltas; the exported GLB passes glTF validation and loads in a model-viewer test page. **Field check (Josh):** a real kitchen opens in 3D on the Surface without memory errors, and the GLB displays in EZ Binder's model viewer.
 
 | ID | Ticket | Scope (what to build, concrete) | Done when (testable) | Depends on | Spec ref |
 | --- | --- | --- | --- | --- | --- |

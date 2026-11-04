@@ -1,7 +1,8 @@
 // EZD-018 Step 5 (vault/plans/EZD-018.md): the per-tab Realtime hub. Plain TypeScript over a
 // RealtimeAdapter (adapter.ts). One channel per topic per tab; network requests only on events (first
-// connect, a refused or closed channel, a socket reopen after a drop), never on a timer; every onResync
-// callback runs exactly once after each re-subscription; session.ended drops every channel and goes to
+// connect, a refused or closed channel, a socket reopen after a drop), never on a timer; every handle's
+// onResync callbacks run exactly once after each SUBSCRIBED, the first included, and once when a handle
+// joins a channel already subscribed (EZD-318); session.ended drops every channel and goes to
 // sign-in (Q-0052 (c)). It adds no online, offline or visibilitychange listener of its own.
 import type { OnlineSource } from '../network';
 import type {
@@ -12,13 +13,13 @@ import type {
   RealtimeToken,
 } from './adapter';
 import { toEventPayload, type ProjectChannelEvents, type UserChannelEvents } from './events';
-import { projectTopic, userTopic } from './topics';
+import { parseTopic, projectTopic, userTopic } from './topics';
 
 export type ChannelStatus = 'connecting' | 'subscribed' | 'reconnecting' | 'refused' | 'closed';
 
 export type ChannelHandle<E> = {
   readonly status: ChannelStatus;
-  ready: Promise<'subscribed' | 'refused'>;
+  readonly ready: Promise<'subscribed' | 'refused'>;
   on<K extends keyof E>(event: K, cb: (payload: E[K]) => void): () => void;
   onResync(cb: () => void | Promise<void>): () => void;
   onStatus(cb: (status: ChannelStatus) => void): () => void;
@@ -51,16 +52,18 @@ type Callbacks = {
   resync: Set<() => void | Promise<void>>;
   status: Set<(status: ChannelStatus) => void>;
   presence: Set<() => void>;
+  synced: boolean;
 };
 
 type Entry = {
-  key: string; // 'user' or the project id
+  key: string; // 'user', or projectTopic(id) for a project
   kind: 'project' | 'user';
   channel: AdapterChannel | null;
   handles: Set<Callbacks>;
   status: ChannelStatus;
   ready: Promise<'subscribed' | 'refused'>;
-  settle: (v: 'subscribed' | 'refused') => void;
+  resolve: (v: 'subscribed' | 'refused') => void;
+  outcome: 'subscribed' | 'refused' | null;
   everSubscribed: boolean;
   errors: number;
   refused: boolean;
@@ -85,12 +88,12 @@ export function createRealtimeHub({
   let unlisten: Array<() => void> = [];
 
   const topicOf = (e: Entry, t: RealtimeToken) =>
-    e.kind === 'project' ? projectTopic(e.key) : userTopic(t.appUserId);
+    e.kind === 'project' ? e.key : userTopic(t.appUserId);
 
   function newEntry(key: string, kind: 'project' | 'user'): Entry {
-    let settle: (v: 'subscribed' | 'refused') => void = () => {};
+    let resolveReady: (v: 'subscribed' | 'refused') => void = () => {};
     const ready = new Promise<'subscribed' | 'refused'>((resolve) => {
-      settle = resolve;
+      resolveReady = resolve;
     });
     return {
       key,
@@ -99,7 +102,8 @@ export function createRealtimeHub({
       handles: new Set(),
       status: 'connecting',
       ready,
-      settle,
+      resolve: resolveReady,
+      outcome: null,
       everSubscribed: false,
       errors: 0,
       refused: false,
@@ -113,10 +117,22 @@ export function createRealtimeHub({
     for (const h of e.handles) for (const cb of h.status) cb(status);
   }
 
+  function settleReady(e: Entry, v: 'subscribed' | 'refused') {
+    if (e.outcome === v) return;
+    if (e.outcome === null) e.resolve(v);
+    else e.ready = Promise.resolve(v);
+    e.outcome = v;
+  }
+
+  function runResync(h: Callbacks) {
+    h.synced = true;
+    for (const cb of [...h.resync]) void cb();
+  }
+
   function refuse(e: Entry) {
     e.refused = true;
     setStatus(e, 'refused');
-    e.settle('refused');
+    settleReady(e, 'refused');
     if (e.channel && !e.removed) {
       e.removed = true;
       void adapter.removeChannel(e.channel);
@@ -155,9 +171,9 @@ export function createRealtimeHub({
     if (ended) return;
     if (phase === 'fetching') phase = 'failed';
     for (const e of entries.values()) {
-      if (e.refused) continue;
+      if (e.refused || e.status === 'subscribed') continue;
       setStatus(e, 'refused');
-      e.settle('refused');
+      settleReady(e, 'refused');
     }
   }
 
@@ -207,13 +223,12 @@ export function createRealtimeHub({
   function onJoinStatus(e: Entry, status: JoinStatus) {
     if (ended || e.removed) return;
     if (status === 'SUBSCRIBED') {
-      const resync = e.everSubscribed;
       e.everSubscribed = true;
       e.errors = 0;
       setStatus(e, 'subscribed');
-      e.settle('subscribed');
+      settleReady(e, 'subscribed');
       if (e.kind === 'project' && token) void e.channel?.track({ appUserId: token.appUserId });
-      if (resync) for (const h of [...e.handles]) for (const cb of [...h.resync]) void cb();
+      for (const h of [...e.handles]) runResync(h);
       return;
     }
     // The pinned library reports a channel error before the socket close callback; the decision waits
@@ -282,7 +297,7 @@ export function createRealtimeHub({
     token = null;
     for (const e of entries.values()) {
       setStatus(e, 'closed');
-      e.settle('refused');
+      settleReady(e, 'refused');
     }
     for (const off of unlisten) off();
     unlisten = [];
@@ -302,18 +317,34 @@ export function createRealtimeHub({
     };
   }
 
-  function acquire(key: string, kind: 'project' | 'user'): ProjectHandle {
+  // An invalid project id (valid === false) gets its own entry, refused at once: it never counts as an
+  // open handle, never starts the hub, never opens a channel and never touches the user channel (EZD-157).
+  function refuseInvalid(e: Entry) {
+    e.refused = true;
+    void Promise.resolve().then(() => {
+      if (ended) return;
+      setStatus(e, 'refused');
+      settleReady(e, 'refused');
+    });
+  }
+
+  function acquire(key: string, kind: 'project' | 'user', valid: boolean): ProjectHandle {
     if (ended) return closedHandle();
-    let e = entries.get(key);
-    if (!e) {
-      e = newEntry(key, kind);
-      entries.set(key, e);
+    const found = entries.get(key);
+    const entry = found ?? newEntry(key, kind);
+    if (!found) {
+      entries.set(key, entry);
+      if (!valid) refuseInvalid(entry);
     }
-    const entry = e;
-    const cbs: Callbacks = { events: new Map(), resync: new Set(), status: new Set(), presence: new Set() };
+    const counted = valid;
+    const cbs: Callbacks = { events: new Map(), resync: new Set(), status: new Set(), presence: new Set(), synced: false };
     entry.handles.add(cbs);
-    openHandles++;
+    if (counted) openHandles++;
     let released = false;
+    void Promise.resolve().then(() => {
+      if (released || ended || cbs.synced || entry.status !== 'subscribed') return;
+      runResync(cbs);
+    });
     const add = <T>(set: Set<T>, cb: T) => {
       set.add(cb);
       return () => {
@@ -321,18 +352,22 @@ export function createRealtimeHub({
       };
     };
 
-    if (phase === 'connected') {
-      ensureUserEntry();
-      for (const x of entries.values()) openChannel(x);
-    } else {
-      start();
+    if (counted) {
+      if (phase === 'connected') {
+        ensureUserEntry();
+        for (const x of entries.values()) openChannel(x);
+      } else {
+        start();
+      }
     }
 
     return {
       get status() {
         return ended ? 'closed' : entry.status;
       },
-      ready: entry.ready,
+      get ready() {
+        return entry.ready;
+      },
       on(event, cb) {
         const name = String(event);
         let set = cbs.events.get(name);
@@ -355,7 +390,7 @@ export function createRealtimeHub({
         if (released) return;
         released = true;
         entry.handles.delete(cbs);
-        openHandles--;
+        if (counted) openHandles--;
         if (ended) return;
         if (entry.handles.size === 0 && entry.kind === 'project') drop(entry);
         if (openHandles === 0) {
@@ -375,7 +410,10 @@ export function createRealtimeHub({
   }
 
   return {
-    project: (projectId) => acquire(projectId.toLowerCase(), 'project'),
-    user: () => acquire(USER_KEY, 'user') as unknown as UserHandle,
+    project: (projectId) => {
+      const key = projectTopic(projectId);
+      return acquire(key, 'project', parseTopic(key) !== null);
+    },
+    user: () => acquire(USER_KEY, 'user', true) as unknown as UserHandle,
   };
 }

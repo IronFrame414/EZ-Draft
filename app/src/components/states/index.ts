@@ -3,6 +3,7 @@ export { AsyncView } from './AsyncView';
 export { useAsync } from './use-async';
 export { InlineError } from './InlineError';
 export { OfflineBanner, OfflineBannerView } from './OfflineBanner';
+export { NoAccess } from './NoAccess';
 export type { SkeletonProps, SkeletonGroupProps } from './Skeleton';
 export type { AsyncViewProps } from './AsyncView';
 export type { UseAsyncResult } from './use-async';

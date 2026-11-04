@@ -17,11 +17,23 @@ export class EmailInputError extends Error {
 
 // eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
+// EZD-151: characters that break a header line (CONTROL_CHARS plus U+0085, U+2028, U+2029).
+// A regex with the g flag keeps lastIndex between test() calls, so the checking one has no flag.
+// eslint-disable-next-line no-control-regex
+const HEADER_UNSAFE = /[\u0000-\u001f\u007f\u0085\u2028\u2029]/;
+// eslint-disable-next-line no-control-regex
+const HEADER_UNSAFE_RUN = /[\u0000-\u001f\u007f\u0085\u2028\u2029]+/g;
+
+// Each run of header-unsafe characters becomes one space (EZD-151). For a subject built from free text.
+export function toSubjectLine(text: string): string {
+  return text.replace(HEADER_UNSAFE_RUN, ' ').trim();
+}
 
 function cleanName(name: string): string {
   return name
     .replace(/["<>\\]/g, '')
     .replace(CONTROL_CHARS, '')
+    .replace(/[\u0085\u2028\u2029]/g, '')
     .trim();
 }
 
@@ -30,7 +42,7 @@ const inputSchema = z.object({
   subject: z
     .string()
     .min(1)
-    .refine((s) => !/[\r\n]/.test(s)),
+    .refine((s) => !HEADER_UNSAFE.test(s)),
   paragraphs: z.array(z.string()),
   link: z.object({
     url: z.url({ protocol: /^https?$/ }),
@@ -59,6 +71,14 @@ export async function sendEmail(
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) throw new EmailInputError();
   const env = options.env ?? process.env;
+  // EZD-151: on any Vercel deployment (VERCEL_ENV set) the link must be https.
+  if (
+    typeof env.VERCEL_ENV === 'string' &&
+    env.VERCEL_ENV.trim() !== '' &&
+    new URL(parsed.data.link.url).protocol !== 'https:'
+  ) {
+    throw new EmailInputError();
+  }
   const link = input.link.url;
 
   const chosen = getEmailTransport(env);

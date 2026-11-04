@@ -174,9 +174,23 @@ function recordingEnv(obj) {
 /**
  * Builds CLEAN deps for fixture `R`. `env` replaces the whole processEnv when given as an object; `pulls` and
  * `rule` override the GitHub fake's answers (a function to throw/reject); `recordEnv` wraps processEnv in the
- * recording Proxy.
+ * recording Proxy. `scratchCheck` is the injected scratch database check (EZD-153 E2; default: clean result).
  */
-function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sleep, now, createTag } = {}) {
+function makeClean(
+  mod,
+  repo,
+  {
+    env,
+    pulls,
+    rule,
+    recordEnv = false,
+    vercel,
+    sleep,
+    now,
+    createTag,
+    scratchCheck = () => ({ violations: [], notes: [], failure: null }),
+  } = {},
+) {
   const tip = repo.tip;
   const journal = []; // { kind: 'log' | 'summary' | 'mask', value }
   const external = []; // vercel, supabase, sql, offsite, checkLive, fetch, github.createTag
@@ -221,6 +235,13 @@ function makeClean(mod, repo, { env, pulls, rule, recordEnv = false, vercel, sle
     fetch: recorder('fetch', external),
     sleep: sleep ?? recorder('sleep', external),
     now: now ?? (() => new Date('2026-10-19T12:00:00Z')),
+    scratchCheck,
+    // EZD-241: the guard fake records nothing, so existing assertions are unchanged.
+    // remove: seen and applied 2 = the files DRY_RUN_TEXT lists (plan section 1, Tests line).
+    releaseGuard: {
+      install: async () => ({ protectedCount: 3 }),
+      remove: async () => ({ wasIntact: true, seen: 2, applied: 2 }),
+    },
   };
   const h = {
     deps,
@@ -1428,12 +1449,26 @@ const PREVIOUS_UNKNOWN_LINE =
 const VERCEL_PROMOTE_500 = 'Vercel POST /v10/projects/{project}/promote/{deployment} failed: 500';
 const sha256Of = (text) => createHash('sha256').update(String(text)).digest('hex');
 
-/** True when some output line holds any of `texts` (hex runs of 40+ characters removed first when `stripHex`). */
+// Hash text: a whole run of exactly 40 (git SHA-1 object id) or 64 (SHA-256 dump digest) lower-case hex characters.
+// A longer run is not hash text, so a real 403 glued to a hash still counts (EZD-257).
+const HASH_TEXT = /(?<![0-9a-f])[0-9a-f]{40}(?:[0-9a-f]{24})?(?![0-9a-f])/g;
+
+/**
+ * True when some output line holds any of `texts` (40- and 64-character hex runs replaced by # first when `stripHex`;
+ * refuses an unstripped text that starts or ends with a hex character).
+ */
 function outputHolds(h, texts, { stripHex = false } = {}) {
+  if (!stripHex) {
+    for (const v of texts) {
+      if (/^[0-9a-f]|[0-9a-f]$/.test(v)) {
+        throw new Error(`outputHolds: "${v}" can match hash text; pass { stripHex: true }`);
+      }
+    }
+  }
   const rec = releaseJson(h);
   const lines = rec ? [...h.output(), JSON.stringify(rec.args[1])] : h.output();
   return lines.some((line) => {
-    const l = stripHex ? line.replace(/[0-9a-f]{40,}/g, '') : line;
+    const l = stripHex ? line.replace(HASH_TEXT, '#') : line;
     return texts.some((v) => l.includes(v));
   });
 }
@@ -1458,8 +1493,9 @@ const notNull = (v, msg) => {
 };
 
 /** Setup `LATER` (archived T8): `phase-0` on C1, a Phase 1 pull request, a live build dpl_OLD, tenant 1 present. */
-function makeLater(mod, bs, t, o = {}) {
+function makeLater(mod, bs, t, o = {}, { tipHolds = null } = {}) {
   const R = makeR(t, { tagC1: true });
+  if (tipHolds) retipHolding(R, tipHolds);
   const { h, f } = makeE(mod, bs, R, {
     pulls: () => [{ ...cleanPull(R.tip), title: 'Phase 1: Projects' }],
     current: () => ({ id: 'dpl_OLD' }),
@@ -1469,6 +1505,70 @@ function makeLater(mod, bs, t, o = {}) {
   delete h.deps.processEnv.TENANT1_OWNER_EMAIL;
   return { R, h, f };
 }
+
+// Counts the fixtures that `retipHolding` has made, so each run's amend messages (and so its tip) differ.
+let retipRuns = 0;
+
+/** Amends C2 (the tip) until its commit hash holds `text`, then force-pushes `main`: fixture setup, not a retry. */
+function retipHolding(R, text) {
+  retipRuns += 1;
+  for (let n = 1; n <= 4000; n += 1) {
+    git(R.work, 'commit', '--amend', '--allow-empty', '-q', '-m', `C2 add note ${retipRuns}.${n}`);
+    const sha = git(R.work, 'rev-parse', 'HEAD');
+    if (sha.includes(text)) {
+      git(R.work, 'push', '-q', '-f', 'origin', 'main');
+      R.c2 = sha;
+      R.tip = sha;
+      return sha;
+    }
+  }
+  throw new Error(`no commit hash holding ${text} in 4000 tries`);
+}
+
+/** One T8 case: the `LATER` setup, the release run and the checks of EZD-023e T8 for case `id`. Returns the tip sha. */
+async function runLaterCase(mod, bs, t, { id, email, o, tipHolds }) {
+  const { R, h, f } = makeLater(mod, bs, t, o ?? {}, { tipHolds: tipHolds ?? null });
+  if (email) h.deps.processEnv.TENANT1_OWNER_EMAIL = email;
+  const result = await h.run();
+  assert.equal(result.ok, true, `(${id}) ok; logs: ${JSON.stringify(h.logs())}`);
+  assert.equal(result.code, 'released', `(${id}) code`);
+  assert.equal(result.tag, 'phase-1', `(${id}) tag`);
+  assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
+  assert.ok(h.logs().includes('migration check passed against phase-0'), `(${id}) migration check log`);
+  assert.equal(h.calls('github.createTag').length, 1, `(${id}) 1 createTag`);
+  assert.equal(h.calls('github.createTag')[0].args[0], 'phase-1', `(${id}) createTag name`);
+  assert.deepEqual(promoteIds(f), ['dpl_NEW'], `(${id}) promote once with dpl_NEW`);
+  const rec = notNull(releaseJson(h), `(${id}) release.json recorded`).args[1];
+  if (id !== 'd') {
+    assert.equal(rec.previous_tag, 'phase-0', `(${id}) previous_tag`);
+    assert.equal(rec.previous_deployment_id, 'dpl_OLD', `(${id}) previous_deployment_id`);
+  }
+  if (id === 'a') assert.deepEqual(result.notices, [], '(a) notices');
+  if (id === 'b') assert.deepEqual(result.notices, ['owner_email_secret_unused'], '(b) notices');
+  if (id === 'c') {
+    assert.ok(h.logs().includes('record_failed'), `(c) record_failed logged: ${JSON.stringify(h.logs())}`);
+    assert.equal(rec.sha, R.tip, '(c) recorded sha is the tip');
+    assert.ok(R.tip.includes('403'), `(c) the tip holds 403: ${R.tip}`);
+    assert.ok(!outputHolds(h, ['403'], { stripHex: true }), '(c) no 403 in the output');
+  }
+  if (id === 'd') {
+    assert.deepEqual(result.notices, ['previous_deployment_unknown'], '(d) notices');
+    assert.ok(h.summaries().includes(PREVIOUS_UNKNOWN_LINE), `(d) summary notice: ${JSON.stringify(h.summaries())}`);
+    assert.equal(rec.previous_deployment_id, null, '(d) previous_deployment_id null');
+  }
+  return R.tip;
+}
+
+/** T8 case (c) with the record-failure put of EZD-023e T8; its tip hash is forced to hold `403` (EZD-257). */
+const LATER_CASE_C = {
+  id: 'c',
+  tipHolds: '403',
+  o: {
+    putJson: (key) => {
+      if (key.endsWith('release.json')) throw new Error('offsite put failed: x (403)');
+    },
+  },
+};
 
 describe('EZD-023e go live, verify, rollback and record', () => {
   // T7 ---------------------------------------------------------------------------------------------------------
@@ -1581,45 +1681,10 @@ describe('EZD-023e go live, verify, rollback and record', () => {
     const cases = [
       { id: 'a' },
       { id: 'b', email: 'owner.test@example.com' },
-      {
-        id: 'c',
-        o: {
-          putJson: (key) => {
-            if (key.endsWith('release.json')) throw new Error('offsite put failed: x (403)');
-          },
-        },
-      },
+      LATER_CASE_C,
       { id: 'd', o: { current: () => null } },
     ];
-    for (const { id, email, o } of cases) {
-      const { h, f } = makeLater(mod, bs, t, o ?? {});
-      if (email) h.deps.processEnv.TENANT1_OWNER_EMAIL = email;
-      const result = await h.run();
-      assert.equal(result.ok, true, `(${id}) ok; logs: ${JSON.stringify(h.logs())}`);
-      assert.equal(result.code, 'released', `(${id}) code`);
-      assert.equal(result.tag, 'phase-1', `(${id}) tag`);
-      assert.equal(h.bootstrapCalls().length, 0, `(${id}) 0 bootstrap sql calls`);
-      assert.ok(h.logs().includes('migration check passed against phase-0'), `(${id}) migration check log`);
-      assert.equal(h.calls('github.createTag').length, 1, `(${id}) 1 createTag`);
-      assert.equal(h.calls('github.createTag')[0].args[0], 'phase-1', `(${id}) createTag name`);
-      assert.deepEqual(promoteIds(f), ['dpl_NEW'], `(${id}) promote once with dpl_NEW`);
-      const rec = notNull(releaseJson(h), `(${id}) release.json recorded`).args[1];
-      if (id !== 'd') {
-        assert.equal(rec.previous_tag, 'phase-0', `(${id}) previous_tag`);
-        assert.equal(rec.previous_deployment_id, 'dpl_OLD', `(${id}) previous_deployment_id`);
-      }
-      if (id === 'a') assert.deepEqual(result.notices, [], '(a) notices');
-      if (id === 'b') assert.deepEqual(result.notices, ['owner_email_secret_unused'], '(b) notices');
-      if (id === 'c') {
-        assert.ok(h.logs().includes('record_failed'), `(c) record_failed logged: ${JSON.stringify(h.logs())}`);
-        assert.ok(!outputHolds(h, ['403']), '(c) no 403 in the output');
-      }
-      if (id === 'd') {
-        assert.deepEqual(result.notices, ['previous_deployment_unknown'], '(d) notices');
-        assert.ok(h.summaries().includes(PREVIOUS_UNKNOWN_LINE), `(d) summary notice: ${JSON.stringify(h.summaries())}`);
-        assert.equal(rec.previous_deployment_id, null, '(d) previous_deployment_id null');
-      }
-    }
+    for (const c of cases) await runLaterCase(mod, bs, t, c);
   });
 
   // T11 (c), (d), (f) ------------------------------------------------------------------------------------------
@@ -1969,5 +2034,377 @@ describe('EZD-021 release reads the Preview AI_MODE value', () => {
     assert.notEqual(result.code, 'env_mismatch');
     const reads = f.calls.filter((c) => c.name === 'readEnvValue').map((c) => c.args[0]);
     assert.ok(reads.includes('env_AI_PREVIEW'), `readEnvValue('env_AI_PREVIEW') was called; reads: ${reads}`);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-152 T5 and T6 (vault/plans/EZD-152.md section 4; Step 3; Q-0288 (a)): a bootstrap that ends without the done
+// code and without a rejection logs psql's last stderr lines through safeLines. Uses the file's own makeR, makeD,
+// CLEAN_DB_URL, DUMP_PREFIX, BOOTSTRAP_FAILED_LINE and assertNoText in place. Masks are the release's own
+// (TENANT1_OWNER_EMAIL and the DB password from cleanEnv); the fake returns the shape of createSql's result.
+// ---------------------------------------------------------------------------------------------------------------
+describe('EZD-152 bootstrap failure lines', () => {
+  test('EZD-152 done when: a bootstrap fake that ends without the code logs its safe lines', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeD(mod, bs, R, {
+      bootstrap: () => ({
+        stdout: '',
+        stderr: `NOTICE:  creating tenant 1\nERROR:  ezd_bootstrap_email_missing\nowner owner.test@example.com\nat ${CLEAN_DB_URL}\n`,
+      }),
+    });
+
+    const result = await h.run();
+
+    assert.equal(result.ok, false, `ok false; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'bootstrap_failed', `code; logs: ${JSON.stringify(h.logs())}`);
+    const logs = h.logs();
+    const codeAt = logs.indexOf('bootstrap_failed');
+    const noticeAt = logs.indexOf('  | NOTICE:  creating tenant 1');
+    const errorAt = logs.indexOf('  | ERROR:  ezd_bootstrap_email_missing');
+    // The owner line is masked away; the URL line is kept with its password redacted (redactUrl runs before the
+    // mask filter, plan Decided: Order inside safeLines).
+    const urlAt = logs.indexOf(
+      '  | at postgresql://postgres.prodref123:***@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+    );
+    assert.ok(codeAt >= 0, `a log line is the code; logs: ${JSON.stringify(logs)}`);
+    assert.ok(noticeAt > codeAt, `the NOTICE line follows the code; logs: ${JSON.stringify(logs)}`);
+    assert.ok(errorAt > noticeAt, `the ERROR line follows the NOTICE line; logs: ${JSON.stringify(logs)}`);
+    assert.ok(urlAt > errorAt, `the redacted URL line follows the ERROR line; logs: ${JSON.stringify(logs)}`);
+    assert.ok(
+      h.summaries().includes(BOOTSTRAP_FAILED_LINE(DUMP_PREFIX)),
+      `summary line; summaries: ${JSON.stringify(h.summaries())}`,
+    );
+    assertNoText(h, ['owner.test@example.com', 'S3cret'], 'T5');
+  });
+
+  test('EZD-152 bootstrap without the done code logs no row text', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeD(mod, bs, R, {
+      bootstrap: () => ({
+        stdout: '',
+        stderr:
+          'ERROR:  null value in column "name" of relation "tenant" violates not-null constraint\n' +
+          'DETAIL:  Failing row contains (00000000-0000-4000-8000-000000000001, null, Ana Client).\n' +
+          'CONTEXT:  SQL statement "insert into public.tenant values (\'Ana Client\')"\n',
+      }),
+    });
+
+    const result = await h.run();
+
+    assert.equal(result.code, 'bootstrap_failed', `code; logs: ${JSON.stringify(h.logs())}`);
+    assert.ok(
+      h
+        .logs()
+        .includes('  | ERROR:  null value in column "name" of relation "tenant" violates not-null constraint'),
+      `the ERROR line is logged; logs: ${JSON.stringify(h.logs())}`,
+    );
+    assertNoText(h, ['Ana Client', 'DETAIL:', 'CONTEXT:'], 'T6');
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-153 R1 (vault/plans/EZD-153.md section 4; Build step 4): step 8 passes deps.scratchCheck to the check.
+describe('EZD-153 release uses the scratch database result', () => {
+  test('EZD-153 R1 release uses the scratch result', async (t) => {
+    const mod = await loadRelease();
+    const R = makeR(t, { tagC1: true });
+    const inputs = [];
+    const scratchCheck = (input) => {
+      inputs.push(input);
+      return {
+        violations: [{ id: 'M4', file: 'supabase/migrations/20261102000000_add_note.sql', object: 'public.x', detail: 'd' }],
+        notes: [],
+        failure: null,
+      };
+    };
+    const h = makeClean(mod, R, { pulls: () => [{ ...cleanPull(R.tip), title: 'Phase 1: x' }], scratchCheck });
+    const result = await h.run();
+    assertRefused(result, 'migration_check_failed', h);
+    const logs = h.logs();
+    assert.ok(
+      logs.includes('[M4] supabase/migrations/20261102000000_add_note.sql: public.x d'),
+      `the scratch M4 is logged; logs: ${JSON.stringify(logs)}`,
+    );
+    assert.equal(inputs.length, 1, 'scratchCheck called once');
+    assert.equal(inputs[0].baseTag, 'phase-0');
+    assert.deepEqual(Object.keys(inputs[0].newFiles), ['20261102000000_add_note.sql']);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// EZD-241 (vault/plans/EZD-241.md section 4): R1-R10. The release guard in step E. Expected values come from the
+// plan's Step E outcome table, Decided rows, section 3 (result codes, log lines) and section 6 (summaries).
+// ---------------------------------------------------------------------------------------------------------------
+const loadGuard = () => import('../release-guard.mjs');
+const GUARD_SETTING = { name: 'ezd.release_guard', value: 'on' };
+// Section 6 wording.
+const GUARD_REMOVE_FAILED_LINE =
+  "release stopped: release_guard_remove_failed — the live site is unchanged and no migration ran; the release guard's triggers are still in the database, and the next run removes them first";
+const GUARD_LOST_LINE = (prefix) =>
+  `release stopped: release_guard_lost — the live site is unchanged; migrations ran without a proven release guard; do not press Re-run jobs, send the log to the orchestrator; the dump from before this release is in ${prefix}`;
+
+/** Replaces the harness guard by a recorder that pushes into `h.external`; `o.install` / `o.remove` override. */
+function recordGuard(h, o = {}) {
+  h.deps.releaseGuard = {
+    async install(...args) {
+      h.external.push({ target: 'releaseGuard.install', args });
+      return o.install ? o.install(...args) : { protectedCount: 3 };
+    },
+    async remove(...args) {
+      h.external.push({ target: 'releaseGuard.remove', args });
+      return o.remove ? o.remove(...args) : { wasIntact: true, seen: 2, applied: 2 };
+    },
+  };
+}
+const targetsOf = (h) => h.external.map((c) => c.target);
+// Dump prefix of a phase-1 release on the fake clock T0 (same clock as DUMP_PREFIX, line ~835: 20261019T120000Z).
+const PHASE1_DUMP_PREFIX = 'releases/phase-1-20261019T120000Z/';
+
+describe('EZD-241 release guard in step E', () => {
+  test('EZD-241 R1 a release with a base tag installs the guard, pushes under it, removes it, then tags', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t);
+    recordGuard(h);
+    const result = await h.run();
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    const order = targetsOf(h);
+    const install = order.indexOf('releaseGuard.install');
+    const push = order.indexOf('supabase.push');
+    const remove = order.indexOf('releaseGuard.remove');
+    const tag = order.indexOf('github.createTag');
+    assert.ok(install >= 0 && install < push && push < remove && remove < tag, `order: ${order.join(', ')}`);
+    assert.deepEqual(h.calls('releaseGuard.install')[0].args, [{ dbUrl: CLEAN_DB_URL, baseTag: 'phase-0', retired: [] }]);
+    assert.deepEqual(h.calls('supabase.push')[0].args[0].settings, [GUARD_SETTING]);
+    assert.ok(h.logs().includes('release guard on: 3 objects of phase-0'), JSON.stringify(h.logs()));
+    assert.ok(h.logs().includes('release guard removed'), JSON.stringify(h.logs()));
+  });
+
+  test('EZD-241 R2 a failed push still removes the guard once, after the push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t, {
+      push: () => {
+        throw childError('supabase db push exited 1', 'ERROR: x');
+      },
+    });
+    recordGuard(h);
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'migrate_failed');
+    const order = targetsOf(h);
+    assert.equal(h.calls('releaseGuard.remove').length, 1, 'remove called once');
+    assert.ok(order.indexOf('releaseGuard.remove') > order.indexOf('supabase.push'), 'remove after push');
+    assertNothingLive(h, 'R2');
+  });
+
+  test('EZD-241 R3 a guard that cannot be installed stops the release before the push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { ReleaseGuardError } = await loadGuard();
+    const { h } = makeLater(mod, bs, t);
+    recordGuard(h, {
+      install: () => {
+        throw new ReleaseGuardError('setting_not_applied', { stderr: '' });
+      },
+    });
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_failed');
+    assert.equal(h.calls('supabase.push').length, 0, '0 push');
+    assert.equal(h.calls('releaseGuard.remove').length, 1, 'remove called once');
+    assert.ok(h.logs().includes('release_guard_failed: setting_not_applied'), JSON.stringify(h.logs()));
+    assert.ok(h.summaries().includes(stoppedLine('release_guard_failed')), JSON.stringify(h.summaries()));
+    assertNothingLive(h, 'R3');
+  });
+
+  test('EZD-241 R4 a guard lost or not removed after a good push stops the release before it goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const cases = [
+      { id: 'a', remove: async () => ({ wasIntact: false, seen: 2, applied: 2 }), log: 'release_guard_lost: guard_lost' },
+      {
+        id: 'b',
+        remove: async () => {
+          throw childError('psql exited 1', 'E2');
+        },
+        log: 'release_guard_lost: remove_failed',
+      },
+    ];
+    for (const c of cases) {
+      const { h } = makeLater(mod, bs, t);
+      recordGuard(h, { remove: c.remove });
+      const result = await h.run();
+      const logs = h.logs();
+      assert.equal(result.ok, false, `(${c.id}) ok`);
+      assert.equal(result.code, 'release_guard_lost', `(${c.id}) code`);
+      assert.ok(logs.includes(c.log), `(${c.id}) log ${c.log}: ${JSON.stringify(logs)}`);
+      if (c.id === 'a') {
+        const removed = logs.indexOf('release guard removed');
+        assert.ok(removed >= 0 && removed < logs.indexOf(c.log), `(a) release guard removed, then ${c.log}`);
+      } else {
+        assert.ok(!logs.includes('release guard removed'), `(b) no release guard removed: ${JSON.stringify(logs)}`);
+      }
+      assert.equal(result.dumpPrefix, PHASE1_DUMP_PREFIX, `(${c.id}) dumpPrefix`);
+      assert.equal(h.summaries().at(-1), GUARD_LOST_LINE(result.dumpPrefix), `(${c.id}) last summary`);
+      assert.equal(h.calls('github.createTag').length, 0, `(${c.id}) 0 github.createTag`);
+      assertNothingLive(h, `R4${c.id}`);
+    }
+  });
+
+  test('EZD-241 R5 a release with no base tag uses no guard and passes no setting', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const R = makeR(t);
+    const { h } = makeE(mod, bs, R);
+    recordGuard(h);
+    const result = await h.run();
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    assert.equal(h.calls('releaseGuard.install').length + h.calls('releaseGuard.remove').length, 0, '0 guard calls');
+    const pushArgs = h.calls('supabase.push')[0].args[0];
+    assert.equal(Object.hasOwn(pushArgs, 'settings'), false, 'push has no own settings');
+  });
+
+  test('EZD-241 R6 a base tag with no guard dependency stops the release before the push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t);
+    delete h.deps.releaseGuard;
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_failed');
+    assert.ok(h.logs().includes('release_guard_failed: not_wired'), JSON.stringify(h.logs()));
+    assert.equal(h.calls('supabase.push').length, 0, '0 push');
+    assertNothingLive(h, 'R6');
+  });
+
+  test('EZD-241 R7 a guard that can be neither installed nor removed stops with its own summary', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { ReleaseGuardError } = await loadGuard();
+    const { h } = makeLater(mod, bs, t);
+    recordGuard(h, {
+      install: () => {
+        throw new ReleaseGuardError('setting_not_applied', { stderr: '' });
+      },
+      remove: () => {
+        throw childError('psql exited 1', 'E2');
+      },
+    });
+    const result = await h.run();
+    const logs = h.logs();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_remove_failed');
+    assert.equal(h.calls('supabase.push').length, 0, '0 push');
+    const failed = logs.indexOf('release_guard_failed: setting_not_applied');
+    const removeFailed = logs.indexOf('release_guard_remove_failed');
+    assert.ok(failed >= 0 && failed < removeFailed, `logs in order: ${JSON.stringify(logs)}`);
+    assert.equal(h.summaries().at(-1), GUARD_REMOVE_FAILED_LINE, 'last summary');
+    assert.ok(!h.summaries().some((l) => l.includes('nothing changed')), JSON.stringify(h.summaries()));
+    assertNothingLive(h, 'R7');
+  });
+
+  test('EZD-241 R8 a guard that did not count every applied migration stops the release before it goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const cases = [
+      // (a) outcome row 4: applied 0, but DRY_RUN_TEXT lists 2 pending. (b) outcome row 3: seen 2, applied 1.
+      { id: 'a', remove: async () => ({ wasIntact: true, seen: 0, applied: 0 }) },
+      { id: 'b', remove: async () => ({ wasIntact: true, seen: 2, applied: 1 }) },
+    ];
+    for (const c of cases) {
+      const { h } = makeLater(mod, bs, t);
+      recordGuard(h, { remove: c.remove });
+      const result = await h.run();
+      assert.equal(result.ok, false, `(${c.id}) ok`);
+      assert.equal(result.code, 'release_guard_lost', `(${c.id}) code`);
+      assert.ok(h.logs().includes('release_guard_lost: guard_inactive'), `(${c.id}) log: ${JSON.stringify(h.logs())}`);
+      assert.equal(result.dumpPrefix, PHASE1_DUMP_PREFIX, `(${c.id}) dumpPrefix`);
+      assert.equal(h.summaries().at(-1), GUARD_LOST_LINE(result.dumpPrefix), `(${c.id}) last summary`);
+      assert.equal(h.calls('github.createTag').length, 0, `(${c.id}) 0 github.createTag`);
+      assertNothingLive(h, `R8${c.id}`);
+    }
+  });
+
+  test('EZD-241 R9 a lost guard outranks a failed push', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t, {
+      push: () => {
+        throw childError('supabase db push exited 1', 'ERROR: x');
+      },
+    });
+    recordGuard(h, { remove: async () => ({ wasIntact: false, seen: 1, applied: 1 }) });
+    const result = await h.run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'release_guard_lost');
+    assert.ok(h.logs().includes('release_guard_lost: guard_lost'), JSON.stringify(h.logs()));
+    assert.ok(h.logs().includes('migrate_failed'), JSON.stringify(h.logs()));
+    assertNothingLive(h, 'R9');
+  });
+
+  test('EZD-241 R10 a release with no pending migration and an untouched guard goes live', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const { h } = makeLater(mod, bs, t, { pushDryRun: () => 'Remote database is up to date.\n' });
+    recordGuard(h, { remove: async () => ({ wasIntact: true, seen: 0, applied: 0 }) });
+    const result = await h.run();
+    assert.equal(result.ok, true, `ok; logs: ${JSON.stringify(h.logs())}`);
+    assert.equal(result.code, 'released');
+    assert.ok(h.logs().includes('pending migrations: none'), JSON.stringify(h.logs()));
+  });
+});
+
+describe('EZD-257 release output checks cannot match hash text', () => {
+  const H40 = 'a'.repeat(18) + '403' + 'b'.repeat(19); // 40 characters, holds 403
+  const H64 = 'c'.repeat(30) + '403' + 'd'.repeat(31); // 64 characters, holds 403
+  const stubH = (lines) => ({ output: () => lines, calls: () => [] });
+
+  test('EZD-257 E1 hash text holding 403 does not count', () => {
+    for (const lines of [
+      ['released phase-1 from pull request #7', `{"sha":"${H40}","dump_files":[{"sha256":"${H64}"}]}`],
+      [`dpl_${H40}`],
+      [`${H40} ${H64}`],
+    ]) {
+      assert.equal(outputHolds(stubH(lines), ['403'], { stripHex: true }), false, JSON.stringify(lines));
+    }
+  });
+
+  test('EZD-257 E2 a real 403 still counts', () => {
+    for (const line of [
+      'offsite put failed: x (403)',
+      '403',
+      `${H40} 403`,
+      `${H40}403`,
+      `${'e'.repeat(38)}403`,
+    ]) {
+      assert.equal(outputHolds(stubH([line]), ['403'], { stripHex: true }), true, line);
+    }
+  });
+
+  test('EZD-257 E3 an unstripped text that can match hash text is refused', () => {
+    for (const v of ['403', 'a:', 'x4']) {
+      assert.throws(() => outputHolds(stubH([H40]), [v]), {
+        message: `outputHolds: "${v}" can match hash text; pass { stripHex: true }`,
+      });
+    }
+    for (const texts of [SECRET_TEXTS, ['ENOTFOUND'], ['tok_TEST']]) {
+      assert.equal(outputHolds(stubH([H40]), texts), false, JSON.stringify(texts));
+    }
+  });
+
+  test('EZD-257 E4 the T8 record-failure case passes on 10 fresh release runs', async (t) => {
+    const mod = await loadRelease();
+    const bs = await loadBootstrap();
+    const tips = [];
+    for (let i = 0; i < 10; i += 1) tips.push(await runLaterCase(mod, bs, t, LATER_CASE_C));
+    assert.equal(new Set(tips).size, 10, `10 distinct tips: ${JSON.stringify(tips)}`);
+    for (const tip of tips) assert.ok(tip.includes('403'), `the tip holds 403: ${tip}`);
   });
 });

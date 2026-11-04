@@ -1,0 +1,22 @@
+--- a/scripts/gate.mjs
++++ b/scripts/gate.mjs	2026-10-28 20:48:20
+@@ -112,7 +112,8 @@
+ }
+ function takeLock() {
+   const tmp = `${lockPath}.${process.pid}.tmp`;
+-  writeFileSync(tmp, String(process.pid));
++  try { unlinkSync(tmp); } catch {}
++  writeFileSync(tmp, String(process.pid), { flag: 'wx' });
+   const dropTmp = () => { try { unlinkSync(tmp); } catch {} };
+   let gone = 0;
+   for (let attempt = 0; attempt < 2; attempt++) {
+@@ -153,7 +154,8 @@
+ function takeSweepLock(m) {
+   const file = sweepLockPath(m);
+   const tmp = `${file}.${process.pid}.tmp`;
+-  writeFileSync(tmp, String(process.pid));
++  try { unlinkSync(tmp); } catch {}
++  writeFileSync(tmp, String(process.pid), { flag: 'wx' });
+   try {
+     for (let attempt = 0; attempt < 2; attempt++) {
+       try { linkSync(tmp, file); sweepLock = file; return 0; }

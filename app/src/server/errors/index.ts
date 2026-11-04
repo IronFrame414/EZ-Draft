@@ -8,4 +8,5 @@ export {
   type ReportContext,
   type ReportResult,
 } from './report';
+export { reportRouteFailure } from './route-failure';
 export { initErrorReporting, type SentryOffCode, type SentryOptions } from './sentry-options';

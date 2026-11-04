@@ -15,10 +15,16 @@ import {
   query,
   storageApi,
 } from './local-fixture.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const BUCKET = 'exports';
 
 describe('EZD-025 T9 sent-package files are soft deletes', { skip: !inScope('EZD-025') }, () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   let d;
   let api;
   const sentName = () => `${d.tenantId}/${d.projectId}/sent/${sentId}/set.pdf`;
@@ -39,22 +45,26 @@ describe('EZD-025 T9 sent-package files are soft deletes', { skip: !inScope('EZD
   });
 
   after(async () => {
-    // The trigger refuses the cleanup too, so it is switched off for the delete and back on. storage.objects is
-    // owned by supabase_storage_admin, so the DDL runs as supabase_admin.
-    const toggle = (state) =>
-      exec(
-        `do $$ begin if exists (select 1 from pg_trigger where tgname = 'sent_files_soft_delete') then
-           alter table storage.objects ${state} trigger sent_files_soft_delete; end if; end $$;`,
-        MAIN_DB_CONTAINER,
-        'supabase_admin',
-      );
-    toggle('disable');
     try {
-      execStorageDelete(`delete from storage.objects where bucket_id = '${BUCKET}' and name like '${d.tenantId}/%';`);
+      // The trigger refuses the cleanup too, so it is switched off for the delete and back on. storage.objects is
+      // owned by supabase_storage_admin, so the DDL runs as supabase_admin.
+      const toggle = (state) =>
+        exec(
+          `do $$ begin if exists (select 1 from pg_trigger where tgname = 'sent_files_soft_delete') then
+             alter table storage.objects ${state} trigger sent_files_soft_delete; end if; end $$;`,
+          MAIN_DB_CONTAINER,
+          'supabase_admin',
+        );
+      toggle('disable');
+      try {
+        execStorageDelete(`delete from storage.objects where bucket_id = '${BUCKET}' and name like '${d.tenantId}/%';`);
+      } finally {
+        toggle('enable');
+      }
+      await cleanup();
     } finally {
-      toggle('enable');
+      await releaseRootDb?.();
     }
-    await cleanup();
   });
 
   const assertSentIntact = async (why) => {

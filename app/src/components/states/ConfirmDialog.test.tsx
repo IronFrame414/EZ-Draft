@@ -137,3 +137,42 @@ describe('EZD-015b confirm dialog wiring', () => {
     expect(classesOf(buttons[1] ?? '')).toContain(buttonStyles.primary);
   });
 });
+
+// EZD-103b U9 (vault/plans/EZD-103b.md sections 1, 3, 4, step 4; AC-EZD-103-5; Q-0228): three buttons in
+// the order Cancel, Discard, Save (Decided "Footer order"); rendered with the office catalog, since the
+// file's `render` helper uses the dev catalog, which has no office. keys.
+describe('EZD-103b confirm dialog discard button', () => {
+  it('U9 three buttons: Cancel, Discard, Save', () => {
+    const request: ConfirmRequest = {
+      id: 1,
+      title: 'office.settings.unsaved_title',
+      message: null,
+      confirmLabel: 'office.settings.unsaved_save',
+      cancelLabel: 'common.cancel',
+      discardLabel: 'office.settings.unsaved_discard',
+      tone: 'primary',
+    };
+    const html = decode(
+      renderToStaticMarkup(
+        <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+          <ConfirmDialog request={request} onChoose={vi.fn()} />
+        </MessagesProvider>,
+      ),
+    );
+    expect(/<h2[^>]*>([^<]*)<\/h2>/.exec(html)?.[1]).toBe('Save your changes?');
+    const buttons = html.match(/<button[^>]*>[^<]*<\/button>/g) ?? [];
+    expect(buttons.map((b) => /<button[^>]*>([^<]*)<\/button>/.exec(b)?.[1])).toEqual([
+      'Cancel',
+      'Discard',
+      'Save',
+    ]);
+    const discardTag = /<button[^>]*>/.exec(buttons[1] ?? '')?.[0] ?? '';
+    expect(discardTag).toContain('data-confirm-discard=""');
+    expect(classesOf(discardTag)).toEqual([
+      buttonStyles.button,
+      buttonStyles.secondary,
+      touch.target,
+    ]);
+    expect(classesOf(buttons[2] ?? '')).toContain(buttonStyles.primary);
+  });
+});

@@ -155,8 +155,34 @@ test('EZD-000e T6 AC-EZD-000e-3: no other agent has an Agent tool', () => {
 
 test('EZD-000e T7 AC-EZD-000e-4: dispatch.md holds the retriever brief format', () => {
   const lines = read('.claude/skills/build-ticket/dispatch.md').split('\n');
-  // Process v2.4 (Josh 2026-10-22) added the Gate failures and Advisor lines to the dispatch template, so the head is 22 lines.
+  // Process v2.4 (Josh 2026-10-22) added the Gate failures and Advisor lines to the dispatch template; Q-0333 (c) (Josh 2026-10-25) folded the Advisor line into Findings to address, so the head was 21 lines; EZD-244 adds the Architecture line, so the head is 22 lines; EZD-245 adds the Plan-checker dispatch block before the retriever brief; EZD-246 adds the Batch review dispatch section after the retriever brief.
   const head = lines.slice(0, 22).join('\n') + '\n';
-  assert.equal(crypto.createHash('sha256').update(head).digest('hex'), 'e4f9580f61f52cd97e57162d525ff4849fe80a0ac510ef87971f7ece50c434f4', 'lines 1-22 changed');
-  assert.deepEqual(lines.slice(22), ['', B1, '', ...B2, '']);
+  assert.equal(crypto.createHash('sha256').update(head).digest('hex'), '5afca9d0a92301bffa634d67568f0655791a8547e27271a5490f593321142f7f', 'lines 1-22 changed');
+  const PC = [
+    '**Plan-checker dispatch** (EZD-245). Only the planner dispatches `plan-checker`, with:',
+    '',
+    '```',
+    '<the output of: node vault/tools/next_ticket.mjs --reads EZD-xxx plan-checker>',
+    'Report format: 15 lines max, no code. First line READY or GAPS: <n>. Then one numbered line per gap: <step, section or L-n> · <what is undecided or lacking> · <the options you see>.',
+    '```',
+  ];
+  const BR = [
+    '## Batch review dispatch',
+    '',
+    'A review batch (build-ticket SKILL.md, Review batch (medium)) gets one reviewer dispatch for all its members, in this form:',
+    '',
+    '```',
+    'Batch: <EZD-a>, <EZD-b>[, <EZD-c>] · Role: <code-reviewer (mode 3) | security-reviewer>',
+    '--- <EZD-a>',
+    '<every line of the single-ticket template between its Ticket: line and Lessons:, filled for EZD-a>',
+    '--- <EZD-b>',
+    '<the same for EZD-b; then EZD-c>',
+    'Lessons:',
+    '<output of next_ticket.mjs --lessons <role> <every member\'s areas, each once>, or "(none)">',
+    'Report format: one block per ticket, in the order above, each starting VERDICT <ticket>: PASS (zero findings) or VERDICT <ticket>: FAIL, then that ticket\'s numbered findings; 20 lines max per ticket. No code.',
+    '```',
+    '',
+    'Each member block keeps its own `--reads <member> <role>` lines.',
+  ];
+  assert.deepEqual(lines.slice(22), ['', ...PC, '', B1, '', ...B2, '', ...BR, '']);
 });

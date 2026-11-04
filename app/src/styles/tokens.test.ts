@@ -46,6 +46,13 @@ const EXPECTED: readonly (readonly [string, string, Group])[] = [
   ['--ez-inspector-width', '336px', 'frame'],
   ['--ez-status-bar-height', '30px', 'frame'],
   ['--ez-grid-size', '32px', 'frame'],
+  // EZD-110 step 18 (vault/plans/EZD-110b.md): S01c notification list.
+  ['--ez-unread-tint', '#f7f8ff', 'color'],
+  ['--ez-slate-450', '#6b7280', 'color'],
+  ['--ez-shadow-popover', '0 16px 48px rgba(10,15,30,.18)', 'shadow'],
+  // EZD-140 step 10 (vault/plans/EZD-140.md): S01f notification settings (.row border, .kn shadow).
+  ['--ez-divider-row', '#f0f2f5', 'color'],
+  ['--ez-shadow-switch-knob', '0 1px 2px rgba(0,0,0,.2)', 'shadow'],
 ];
 
 const here = path.dirname(fileURLToPath(import.meta.url));

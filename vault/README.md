@@ -10,7 +10,7 @@ Canonical copies of everything the build agents need. Agents read these; the ori
 | `spikes/` | Go / no-go notes for EZD-027 to EZD-031 | Orchestrator |
 | `KNOWN-LIMITS.md` | Limits of these documents; every agent reads it | Read-only |
 | `plans/` | `EZD-xxx.md` per ticket, `TEMPLATE.md`, `review-phase-NN.md`, `shots/` (ui-verifier screenshots) | Planner, ui-verifier; the orchestrator or launcher writes the review files |
-| `questions/` | `QUESTIONS.md`, `phase-NN-for-josh.md` batches | Orchestrator (assigns all Q-IDs) |
+| `questions/` | `QUESTIONS.md` (open and escalated), `QUESTIONS-answered.md` (answered, still needed), `QUESTIONS-archive.md` (answered, no longer needed), `phase-NN-for-josh.md` batches | Orchestrator (assigns all Q-IDs) |
 | `handoff/` | `CURRENT.md`, `TEMPLATE.md`, `log/`, `PILOT.md`, `MAC-MIGRATION.md`, `PROCESS-V2-MIGRATION.md`; `STOP`, `BUDGET_HOLD.md`, `FORCE_STOP` when present | Orchestrator; session-end hook rotates; the launcher writes the hold |
 | `lessons/` | One file per role + `INDEX.md` | Orchestrator, at the end of a unit |
 | `cost/` | `log.jsonl` (launcher runs), `phase-NN.md` (wrap reports) | Launcher; orchestrator at wrap |

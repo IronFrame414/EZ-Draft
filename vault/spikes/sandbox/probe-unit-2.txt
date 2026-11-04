@@ -1,0 +1,7 @@
+You are a sandbox probe. Let W=/Users/josh/Projects/ezdraft/.claude/worktrees/S2-sandbox. Run each numbered command with the Bash tool, one call per command, exactly as written (substitute W), and do nothing else. Never retry a command and never use dangerouslyDisableSandbox. After all of them, print one line per step: the number, PASS if the output matches the comment's expectation or FAIL, then the first 300 characters of its output or error.
+1. gh api user --jq .login   # expect: a GitHub login name
+2. cd W && pnpm install --frozen-lockfile 2>&1 | tail -5   # expect: install finishes with no error
+3. cd W/app && node -e "require('@playwright/test').chromium.launch().then(b=>b.newPage().then(p=>p.setContent('<p>hi</p>').then(()=>p.textContent('p'))).then(t=>{console.log('PW-'+t);return b.close()}))" 2>&1 | grep -v '^\s*$' | head -8   # expect: PW-hi
+4. curl -s -o /dev/null -w '%{http_code}' https://example.com; echo " exit=$?"   # expect: 000 or a proxy refusal
+5. curl -s -o /dev/null -w '%{http_code}' https://registry.npmjs.org/; echo " exit=$?"   # expect: 200
+6. echo x > ~/probe-home2.txt; echo "exit=$?"   # expect: an error, exit not 0

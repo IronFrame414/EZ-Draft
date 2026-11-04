@@ -1,0 +1,21 @@
+EZD-164 run 2026-10-26T11:18:50.324Z
+commit 81f5b36560ce98128eb5975186aa82d263d0afc3
+playwright exit 0
+[WebServer] $ next start -p 3000
+
+Running 6 tests using 1 worker
+
+EZD-164 RESULT {"project":"desktop","variant":"V1","browser":"chromium","version":"156.0.8078.4","checks":{"registered":true,"controlled":true,"cached":true,"offline_flag":true,"offline_reload":true,"same_render":true,"controlled_offline":true,"hydrated_offline":true,"uncached_fails":true}}
+  ✓  1 [desktop] › e2e/offline-sw.spec.ts:128:14 › EZD-164 WebKit offline service worker (V1 harness) › EZD-164 V1 offline reload @desktop @ipad @phone (232ms)
+EZD-164 RESULT {"project":"desktop","variant":"V2","browser":"chromium","version":"156.0.8078.4","checks":{"registered":true,"controlled":true,"cached":true,"offline_flag":true,"offline_reload":true,"same_render":true,"controlled_offline":true,"hydrated_offline":true,"uncached_fails":true}}
+  ✓  2 [desktop] › e2e/offline-sw.spec.ts:143:12 › EZD-164 WebKit offline service worker (V2 plain) › EZD-164 V2 offline reload @desktop @ipad @phone (149ms)
+EZD-164 RESULT {"project":"ipad-landscape","variant":"V1","browser":"webkit","version":"27.2","checks":{"registered":true,"controlled":true,"cached":true,"offline_flag":true,"offline_reload":true,"same_render":true,"controlled_offline":true,"hydrated_offline":true,"uncached_fails":true}}
+  ✓  3 [ipad-landscape] › e2e/offline-sw.spec.ts:128:14 › EZD-164 WebKit offline service worker (V1 harness) › EZD-164 V1 offline reload @desktop @ipad @phone (339ms)
+EZD-164 RESULT {"project":"ipad-landscape","variant":"V2","browser":"webkit","version":"27.2","checks":{"registered":true,"controlled":true,"cached":true,"offline_flag":true,"offline_reload":true,"same_render":true,"controlled_offline":true,"hydrated_offline":true,"uncached_fails":true}}
+  ✓  4 [ipad-landscape] › e2e/offline-sw.spec.ts:143:12 › EZD-164 WebKit offline service worker (V2 plain) › EZD-164 V2 offline reload @desktop @ipad @phone (348ms)
+EZD-164 RESULT {"project":"phone","variant":"V1","browser":"webkit","version":"27.2","checks":{"registered":true,"controlled":true,"cached":true,"offline_flag":true,"offline_reload":true,"same_render":true,"controlled_offline":true,"hydrated_offline":true,"uncached_fails":true}}
+  ✓  5 [phone] › e2e/offline-sw.spec.ts:128:14 › EZD-164 WebKit offline service worker (V1 harness) › EZD-164 V1 offline reload @desktop @ipad @phone (328ms)
+EZD-164 RESULT {"project":"phone","variant":"V2","browser":"webkit","version":"27.2","checks":{"registered":true,"controlled":true,"cached":true,"offline_flag":true,"offline_reload":true,"same_render":true,"controlled_offline":true,"hydrated_offline":true,"uncached_fails":true}}
+  ✓  6 [phone] › e2e/offline-sw.spec.ts:143:12 › EZD-164 WebKit offline service worker (V2 plain) › EZD-164 V2 offline reload @desktop @ipad @phone (352ms)
+
+  6 passed (6.8s)

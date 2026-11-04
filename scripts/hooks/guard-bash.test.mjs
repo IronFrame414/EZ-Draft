@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -85,6 +86,30 @@ test('EZD-000i T11 settings.json deny list gains the five token entries and keep
     'Bash(security find-internet-password *-w*)',
     'Bash(security find-internet-password *-g*)',
     'Read(./.env)',
-    'Bash(claude *)',
   ]) assert.ok(deny.includes(e), e);
+  // Stage 2 (Josh 2026-11-01): these three move to the hook alone.
+  for (const e of ['Bash(claude *)', 'Bash(rm -rf *)', 'Bash(node scripts/run.mjs*)']) assert.ok(!deny.includes(e), e);
+});
+
+// Stage 2 exceptions removed (REMEDIATION 2.8): with fix mode open, the orchestrator is denied each of them again.
+function runIn(dir, agent, command) {
+  const input = { tool_input: { command } };
+  if (agent) input.agent_type = agent;
+  const env = { ...process.env, CLAUDE_PROJECT_DIR: dir };
+  delete env.EZD_UNIT_ID; // the gate may itself run inside a launcher unit
+  const r = spawnSync('node', [hook], { input: JSON.stringify(input), env, encoding: 'utf8' });
+  return r.stdout.includes('"deny"');
+}
+// A root with fix mode open, so the test does not depend on the real checkout's vault/handoff.
+const fixRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-bash-fix-'));
+fs.mkdirSync(path.join(fixRoot, 'vault/handoff'), { recursive: true });
+fs.writeFileSync(path.join(fixRoot, 'vault/handoff/LAUNCHER_FIX.md'), '# test\n');
+
+test('Stage 2 exceptions are gone: in fix mode the orchestrator is denied each former exception', () => {
+  for (const cmd of [
+    'rm -rf .claude/worktrees/EZD-012c',
+    'rm -rf .claude/worktrees/EZD-012c/ perf-results',
+    'node scripts/run.mjs --dry-run',
+    'EZD_SANDBOX_SPIKE=1 claude -p "probe" --settings vault/spikes/sandbox/settings.json',
+  ]) assert.ok(runIn(fixRoot, null, cmd), cmd);
 });

@@ -2,7 +2,7 @@
 
 Goal: show architect and supplier DXFs at full fidelity under the model, mark them up, compare versions, and tie supplier renderings and order reports to the plan's cabinet boxes.
 
-**Build gate:** each fixture DXF draws every entity the parser reports (entity counts per layer match); pan and zoom over the benchmark DXF stay inside the frame budget; every mismatch between the fixture order report and the plan can be resolved. **Field check (Josh):** open 2–3 real architect DXFs on the iPad, and resolve a real supplier order report against the plan when a sample is available.
+**Build gate:** each fixture DXF draws every entity the parser reports (entity counts per layer match); pan and zoom over the benchmark DXF stay inside the frame budget; every mismatch between the fixture order report and the plan can be resolved. **Field check (Josh):** open 2–3 real architect DXFs on the Surface, and resolve a real supplier order report against the plan when a sample is available.
 
 | ID | Ticket | Scope (what to build, concrete) | Done when (testable) | Depends on | Spec ref |
 | --- | --- | --- | --- | --- | --- |

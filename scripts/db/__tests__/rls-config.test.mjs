@@ -128,7 +128,7 @@ test('EZD-006 T20 (a) docs/architecture.md: Row-level security section, harness 
   }
   const exemptions = read('app', 'test-harness', 'rls', 'tenancy-exemptions.ts');
   const listed = [...exemptions.matchAll(/table:\s*'([a-z_]+)'/g)].map((m) => m[1]).sort();
-  assert.deepEqual(listed, ['app_user', 'backup_run', 'sign_in_throttle', 'tenant']);
+  assert.deepEqual(listed, ['app_user', 'backup_run', 'error_tunnel_throttle', 'sign_in_throttle', 'tenant']);
   for (const t of listed) {
     assert.match(rls, new RegExp(`\\b${t}\\b`), `Row-level security section names ${t}`);
   }
@@ -145,6 +145,21 @@ test('EZD-006 T20 (a) docs/architecture.md: Row-level security section, harness 
   assert.ok(row, 'Dependencies row for postgres');
   assert.match(row, /\|\s*EZD-006\s*\|\s*$/, 'postgres row Added by EZD-006');
   assert.ok(existsSync(path.join(repo, 'app', 'src', 'server', 'db', 'rls.audit.test.ts')));
+});
+
+test('EZD-168 T6 docs/architecture.md names the private execute allow-list', () => {
+  const arch = read('docs', 'architecture.md');
+  const migrations = section(arch, '## Migrations');
+  const i = migrations.indexOf('### Row-level security (EZD-006)');
+  assert.ok(i >= 0, '### Row-level security (EZD-006) under ## Migrations');
+  const rest = migrations.slice(i);
+  const next = rest.indexOf('\n### ', 1);
+  const rls = next < 0 ? rest : rest.slice(0, next);
+  for (const word of ['PRIVATE_EXECUTE', 'private-execute.ts', 'public_executes_private_function']) {
+    assert.ok(rls.includes(word), `Row-level security section names ${word}`);
+  }
+  assert.ok(section(arch, '## Tests').includes('private-execute.ts'), '## Tests names private-execute.ts');
+  assert.ok(section(arch, '## Machine checks').includes('PRIVATE_EXECUTE'), 'Machine checks names PRIVATE_EXECUTE');
 });
 
 test('EZD-006 T20 (b) docs/runbook.md names the hook, the gate function, the Vercel name and the setting', () => {

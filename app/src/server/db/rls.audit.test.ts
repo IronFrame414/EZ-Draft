@@ -13,7 +13,8 @@ import {
   type Sql,
   type TransactionSql,
 } from '../../../test-harness/rls/db';
-import { auditRls } from '../../../test-harness/rls/audit';
+import { auditRls, type RlsProblem } from '../../../test-harness/rls/audit';
+import { API_ROLES, PRIVATE_EXECUTE } from '../../../test-harness/rls/private-execute';
 import {
   ALL_TABLE_PRIVILEGES,
   explicitGrantRoles,
@@ -187,6 +188,7 @@ describe('EZD-006 RLS audit', () => {
     expect(exemptNames).toEqual([
       'app_user',
       'backup_run',
+      'error_tunnel_throttle',
       'sign_in_throttle',
       'tenant',
     ]);
@@ -203,18 +205,29 @@ describe('EZD-006 RLS audit', () => {
     expect(Object.keys(TABLE_GRANTS).sort()).toEqual([
       'app_user',
       'backup_run',
+      'customer',
       'error_alert',
+      'error_tunnel_throttle',
       'job',
       'membership',
       'membership_project',
+      'notification',
+      'notification_setting',
       'sign_in_throttle',
+      'source_file',
       'tenant',
+      'user_permission',
     ]);
     for (const [table, grant] of Object.entries(TABLE_GRANTS)) {
       // EZD-033 Step 5: sign_in_throttle gives authenticated no privilege at all (security definer access).
-      // EZD-025 Step 1: backup_run is server-only too.
+      // EZD-025 Step 1: backup_run is server-only too. EZD-143 D11: error_tunnel_throttle as well.
+      // EZD-132 section 3: source_file rows are written by members but never deleted (03c; 11 Data retention).
       expect(grant.privileges, table).toEqual(
-        table === 'sign_in_throttle' || table === 'backup_run' ? [] : ['SELECT'],
+        table === 'sign_in_throttle' || table === 'backup_run' || table === 'error_tunnel_throttle'
+          ? []
+          : table === 'source_file' || table === 'customer'
+            ? ['SELECT', 'INSERT', 'UPDATE']
+            : ['SELECT'],
       );
       expect(grant.reason.length, table).toBeGreaterThan(0);
       expect(byName.has(table), table).toBe(true);
@@ -305,6 +318,111 @@ describe('EZD-006 RLS audit', () => {
   });
 });
 
+describe('EZD-168 private function execute audit', () => {
+  let sql: Sql;
+
+  beforeAll(() => {
+    sql = adminSql();
+  });
+
+  afterAll(async () => {
+    await sql.end({ timeout: 5 });
+  });
+
+  const codes = (problems: RlsProblem[], fn: string) =>
+    problems
+      .filter((p) => p.table === fn)
+      .map((p) => p.code)
+      .sort();
+  const ALL4 = [
+    'anon_executes_private_function',
+    'authenticated_executes_private_function',
+    'public_executes_private_function',
+    'service_role_executes_private_function',
+  ];
+  const PROBE = 'private.ezd168_probe()';
+  const createProbe = (tx: TransactionSql) =>
+    tx.unsafe("create function private.ezd168_probe() returns integer language sql as 'select 1'");
+
+  it('EZD-168 done when: a probe function in private with PUBLIC execute makes the audit fail', async () => {
+    await withRollback(sql, async (tx) => {
+      await createProbe(tx);
+      const problems = await auditRls(tx, { repoRoot });
+      expect(codes(problems, PROBE)).toEqual(ALL4);
+      expect(problems).not.toEqual([]);
+    });
+  });
+
+  it('T2 each API role is refused on its own', async () => {
+    await withRollback(sql, async (tx) => {
+      await createProbe(tx);
+      await tx.unsafe('revoke all on function private.ezd168_probe() from public');
+      expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual([]);
+      for (const role of API_ROLES) {
+        await tx.unsafe(`grant execute on function private.ezd168_probe() to ${role}`);
+        expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual([
+          `${role}_executes_private_function`,
+        ]);
+        await tx.unsafe(`revoke execute on function private.ezd168_probe() from ${role}`);
+        expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual([]);
+      }
+    });
+  });
+
+  it('T3 explicit PUBLIC, overloads and procedures', async () => {
+    await withRollback(sql, async (tx) => {
+      await createProbe(tx);
+      await tx.unsafe('revoke all on function private.ezd168_probe() from public');
+      await tx.unsafe('grant execute on function private.ezd168_probe() to public');
+      expect(codes(await auditRls(tx, { repoRoot }), PROBE)).toEqual(ALL4);
+
+      await tx.unsafe(
+        "create function private.ezd168_probe(p uuid, q timestamptz) returns integer language sql as 'select 1'",
+      );
+      expect(
+        codes(
+          await auditRls(tx, { repoRoot }),
+          'private.ezd168_probe(uuid, timestamp with time zone)',
+        ),
+      ).toEqual(ALL4);
+
+      await tx.unsafe('create procedure private.ezd168_proc() language sql as $$ select 1 $$');
+      expect(codes(await auditRls(tx, { repoRoot }), 'private.ezd168_proc()')).toEqual(ALL4);
+    });
+  });
+
+  it('T4 allow-list is per role and both ways', async () => {
+    const fn = 'private.tenant_id()';
+    await withRollback(sql, async (tx) => {
+      await tx.unsafe('revoke execute on function private.tenant_id() from authenticated');
+      expect(codes(await auditRls(tx, { repoRoot }), fn)).toEqual([
+        'authenticated_private_execute_stale',
+      ]);
+    });
+    await withRollback(sql, async (tx) => {
+      await tx.unsafe('grant execute on function private.tenant_id() to anon');
+      expect(codes(await auditRls(tx, { repoRoot }), fn)).toEqual([
+        'anon_executes_private_function',
+      ]);
+    });
+  });
+
+  it('T5 allow-list shape', () => {
+    expect([...API_ROLES]).toEqual(['anon', 'authenticated', 'service_role']);
+    expect(Object.keys(PRIVATE_EXECUTE).sort()).toEqual(['anon', 'authenticated', 'service_role']);
+    for (const role of API_ROLES) {
+      const list = PRIVATE_EXECUTE[role];
+      const fns = list.map((e) => e.fn);
+      expect(new Set(fns).size).toBe(fns.length);
+      expect(fns).toEqual([...fns].sort());
+      for (const e of list) {
+        expect(e.fn).toMatch(/^private\.[a-z_]+\([a-z ,]*\)$/);
+        expect(e.reason.length).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
 type PlanNode = Record<string, unknown>;
 
 function flattenPlan(plan: unknown): PlanNode[] {
@@ -321,3 +439,48 @@ function flattenPlan(plan: unknown): PlanNode[] {
   walk(plan);
   return out;
 }
+
+describe('EZD-190 audit: API gate policy', () => {
+  let sql: Sql;
+
+  beforeAll(() => {
+    sql = adminSql();
+  });
+
+  afterAll(async () => {
+    await closeHarness();
+    await sql.end({ timeout: 5 });
+  });
+
+  it('A1 the audit asks for the gate policy and recognises only the exact one', async () => {
+    await withRollback(sql, async (tx) => {
+      const codes = async () =>
+        (await auditRls(tx, { repoRoot }))
+          .filter((p) => p.table === 'ezd190_probe' && !GRANT_CODES.includes(p.code))
+          .map((p) => p.code)
+          .sort();
+
+      await tx.unsafe('create table public.ezd190_probe (id uuid primary key, tenant_id uuid)');
+      await tx.unsafe('alter table public.ezd190_probe enable row level security');
+      await tx.unsafe(
+        'create policy ezd190_probe_select on public.ezd190_probe for select to authenticated using (tenant_id = (select private.tenant_id()))',
+      );
+      await tx.unsafe('create index on public.ezd190_probe (tenant_id)');
+      await tx.unsafe('grant select on public.ezd190_probe to authenticated');
+      expect(await codes(), 'step 1').toEqual(['api_gate_policy_missing', 'no_isolation_test']);
+
+      await tx.unsafe(
+        'create policy ezd190_probe_api_gate on public.ezd190_probe as restrictive for all to authenticated using ((select private.require_api_gate())) with check ((select private.require_api_gate()))',
+      );
+      expect(await codes(), 'step 2').toEqual(['no_isolation_test']);
+
+      await tx.unsafe(
+        'create policy ezd190_probe_x on public.ezd190_probe as restrictive for all to authenticated using (true)',
+      );
+      expect(await codes(), 'step 3').toEqual([
+        'no_isolation_test',
+        'policy_missing_tenant_helper',
+      ]);
+    });
+  });
+});

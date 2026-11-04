@@ -1,0 +1,291 @@
+diff -ruN a/.claude/skills/build-ticket/SKILL.md b/.claude/skills/build-ticket/SKILL.md
+--- a/.claude/skills/build-ticket/SKILL.md	2026-11-03 13:46:20
++++ b/.claude/skills/build-ticket/SKILL.md	2026-11-03 14:15:30
+@@ -59,4 +59,4 @@
+    - `calc-auditor` when the plan's Reviewers line says so.
+ 9. **FAIL** (any finding, *minor* included: PROCESS.md rule 20, Q-0268) → first record every finding of every reviewer, *minor* included, with `node vault/tools/findings.mjs record <T> <round> <reviewer> <category> <text…>` (categories: `node vault/tools/findings.mjs categories`; first category in that order whose meaning fits), round = the failed build round; text = the finding line without its number and file:line, first 300 characters; a finding still open in the next round is recorded again in that round. Then STATUS → `in-progress`. Next round from `--dispatch $ARGUMENTS builder --round N` (PROCESS.md section 4 ladder, v2.4): round 2 is the same model, resumed for *minor* findings (naming, style, one-file fix, no behavior or requirement) and fresh otherwise, with no advisor; round 3 is one tier up, with your advisor's advice in the dispatch (on a high ticket: your blocked review with the advisor, then `blocked`). A finding that a test is wrong goes to the test-author first, then the builder, as one round. Only the reviewers whose findings are open review again. After the 3rd failed round → consult the advisor, then `blocked` with a one-line reason and a question; leave the worktree; handoff; end. If the advisor is not working (vault/tickets/needs-from-josh.md), use the old ladder: one tier up per failed round.
+ 10. **PASS** (zero findings from every reviewer; a flaky gate is a finding, never cleared by re-running: rule 20) → `node scripts/unit-steps.mjs merge $ARGUMENTS`. Run it as its own Bash call, exactly so written: no `cd`, no chaining (`&&`, `;`), no pipe (`| tail`), no redirect (`2>&1`). It runs outside the unit sandbox (it writes the worktree's `.claude/` files, which the sandbox always protects); any other form runs inside it and prints SANDBOX STOP. It runs no gate (Josh 2026-11-02: the gate runs only as your own `node scripts/gate.mjs .claude/worktrees/$ARGUMENTS`, one of the three commands outside the unit sandbox). Before the squash it merges the latest develop into t/$ARGUMENTS (MERGE UPDATE lines; EZD-175) and checks the worktree's gate.log: the last gate passed and nothing was committed after it. Then it squashes `t/$ARGUMENTS`, commits `feat($ARGUMENTS): <title>`, removes the worktree and branch, and sets STATUS `done` with hash and the gate's test count. MERGE GATE (exit 5): develop is untouched; run the step 7 gate command again as its own Bash call (no `cd`, no chaining, or it runs inside the sandbox), then this merge again; a red gate here is handled like a red step 7 (`node vault/tools/findings.mjs record $ARGUMENTS <round> gate gate-red <text>`, text = the gate's GATE FAIL line, first 300 characters, then a review FAIL as in step 9 without recording it again, handing the builder the worktree's gate-failures.log). MERGE CLASH (exit 4; Q-0310): develop is untouched and the merge is left open in the worktree; STATUS → in-progress (node scripts/ledger.mjs status $ARGUMENTS status=in-progress), dispatch builder fresh with model claude-opus-5-5 and effort high (Q-0310; record it in Notes) and the MERGE CLASH line under Findings to address. This round is not one of step 9's three; then steps 7, 8 and 10 as written. When the builder reports it cannot resolve, run git -C .claude/worktrees/$ARGUMENTS merge --abort and handle its report as a step 6 question. Any other MERGE STOP (exit 3): STATUS → blocked with the line in Notes, handoff, finish $ARGUMENTS blocked, end. MERGE STOP naming conflicting files: a file is one the builder may not write, the update was aborted and develop is untouched; STATUS → blocked with Notes "merge clash with develop in <files>: needs an interactive orchestrator session (Q-0310)", no question (Q-0310: never to Josh), handoff, finish $ARGUMENTS blocked, end. When another unit's merge is running it prints `MERGE WAIT` and waits for it; let it run. On `MERGE OK`: write STATUS Notes: models used, plan deviations (from the builder's and reviewers' reports), `needs-josh-confirm` wording. Notes never hold an unfixed issue (no "minor", "follow-up", "watch" or "known limit": rule 20); anything still wrong becomes a fix ticket in the phase. Append one line to `vault/DONE.md` (date · ticket · title · user-visible result · commit). Record any lesson with `lesson`, or `seen` when one already covers it (PROCESS.md section 13; search the role files first). Special cases: after EZD-000, copy `docs/architecture.md` to `vault/architecture.md` (`CLAUDE.md` never imports it, EZD-244); after a spike (EZD-027 to EZD-031), write `vault/spikes/$ARGUMENTS.md` from the template with its `Verdict:` line.
+-11. **Handoff and push.** Write the new handoff (template; 30 lines max) with `node scripts/ledger.mjs handoff $ARGUMENTS` (text on stdin), then `node scripts/unit-steps.mjs finish $ARGUMENTS done|blocked [<other vault paths this unit wrote>]` (ledger check, report, and a push of develop unless a merge is in progress; it commits nothing, since the launcher records this unit's results). Before `finish` when the ticket is `done` or `blocked`: run `node vault/tools/findings.mjs repeats`; for each `REPEAT <category>` run `node vault/tools/findings.mjs list <category>`. If a planner lesson already states that rule, raise its `seen` with `node scripts/ledger.mjs seen $ARGUMENTS <L-n>`; otherwise write a new `candidate` planner lesson with `node scripts/ledger.mjs lesson $ARGUMENTS vault/lessons/planner.md` (entry on stdin headed `## L-next`, PROCESS.md section 13 format; it takes the next L-number across all lesson files; areas = the Areas lines of those tickets' plans, or for a plan without one the `vault/lessons/INDEX.md` areas its Sources cite; with a `Plan check:` line). Then run `node vault/tools/findings.mjs cover <category> <L-n>`. Ratification stays Josh's. End the session with a report of 20 lines or fewer: status first, then commit, models used, deviations, open questions.
++11. **Handoff and push.** Write the new handoff (template; 30 lines max) with `node scripts/ledger.mjs handoff $ARGUMENTS` (text on stdin), then `node scripts/unit-steps.mjs finish $ARGUMENTS done|blocked [<other vault paths this unit wrote>]` (ledger check and report; it commits nothing, since the launcher records this unit's results), then push develop with `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs push-develop` (it pushes nothing and says so while a merge is in progress); in a batch, `finish` runs once per member and the push once, after the last. Before `finish` when the ticket is `done` or `blocked`: run `node vault/tools/findings.mjs repeats`; for each `REPEAT <category>` run `node vault/tools/findings.mjs list <category>`. If a planner lesson already states that rule, raise its `seen` with `node scripts/ledger.mjs seen $ARGUMENTS <L-n>`; otherwise write a new `candidate` planner lesson with `node scripts/ledger.mjs lesson $ARGUMENTS vault/lessons/planner.md` (entry on stdin headed `## L-next`, PROCESS.md section 13 format; it takes the next L-number across all lesson files; areas = the Areas lines of those tickets' plans, or for a plan without one the `vault/lessons/INDEX.md` areas its Sources cite; with a `Plan check:` line). Then run `node vault/tools/findings.mjs cover <category> <L-n>`. Ratification stays Josh's. End the session with a report of 20 lines or fewer: status first, then commit, models used, deviations, open questions.
+diff -ruN a/.claude/skills/gate-phase/SKILL.md b/.claude/skills/gate-phase/SKILL.md
+--- a/.claude/skills/gate-phase/SKILL.md	2026-11-03 13:46:20
++++ b/.claude/skills/gate-phase/SKILL.md	2026-11-03 13:46:54
+@@ -12,7 +12,7 @@
+ 5. **Findings, before the PR opens (every finding, *minor* included, and every warning in the gate log that our code or configuration causes: PROCESS.md rule 20, Q-0268; the PR opens only when no finding and no product fix ticket of the phase is open (a fix ticket whose plan marks it tooling is listed in the PR body instead, EZD-253)):**
+    - a defect or a missed requirement → a **fix ticket**: next free number in the phase's range, title `Fix: …`, added to the phase file, `tickets.json` (`depends_on`, `build_order`, `acs` via `node vault/tools/gen_acs.mjs`) and its STATUS row with `node scripts/ledger.mjs ticket <T> <phase> <complexity> <depends-on> <title>` (status `todo`: it has no plan yet; the ledger check refuses a later status without one, D-004); then it is planned, questioned, built and reviewed like any ticket (`plan`, `questions`, `build` units), and steps 1 to 4 repeat. Under the launcher: write the ticket, handoff, end; `--next-unit` picks it up.
+    - a product judgment → the PR body, for Josh.
+-6. Push `develop`, then `gh pr create --base main --head develop --title "Phase $ARGUMENTS: <name>"` (from the agent account, Q-0108). Body:
++6. Push `develop` with `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs push-develop`, write the body below to `vault/handoff/pr-body/phase-$ARGUMENTS.md` (absolute path), then `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs pr-create "Phase $ARGUMENTS: <name>" /Users/josh/Projects/ezdraft/vault/handoff/pr-body/phase-$ARGUMENTS.md` (from the agent account, Q-0108). Body:
+    - **Punch list:** Josh's test script from `vault/tickets/PHASES.md` for this phase, as checkboxes, plus one line per done ticket (what to click, what should happen). An unchecked item becomes a fix ticket.
+    - tickets done (ID, title, commit); tickets blocked and why;
+    - **Tooling tickets still open** (EZD-253): each `--tooling $ARGUMENTS` line whose status is not `done` (ID, title, status); their merges reach main with the next phase PR. **Tooling tickets from earlier phases in this PR:** each `done` line of an earlier phase whose commit is not on main.
+@@ -20,7 +20,7 @@
+    - **Wording to confirm:** every `needs-josh-confirm` entry from STATUS Notes;
+    - **Product judgments** from the phase-auditor; agent answers not yet `confirmed-josh`;
+    - the "Production-sensitive changes" section; the phase's Field check from the phase file; lessons added this phase.
+-   Then turn on auto-merge: `gh pr merge <url> --auto --merge` (Q-0261). If GitHub refuses it (auto-merge off in the repository settings, or a review still required), say so in the handoff and the end report; Josh then merges by hand.
+-7. Push one empty commit so hosting builds the preview for the PR: `git commit --allow-empty -m "chore: preview"`, `git push origin develop`. On the project's first gate, confirm with `gh pr view` that a preview appears; if none appears within a few minutes, say so in the handoff (the hosting rule, PROCESS.md section 12, needs fixing before the next phase).
++   Then turn on auto-merge: `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs pr-merge-auto <url>` (Q-0261). If GitHub refuses it (auto-merge off in the repository settings, or a review still required), say so in the handoff and the end report; Josh then merges by hand.
++7. Push one empty commit so hosting builds the preview for the PR: `git commit --allow-empty -m "chore: preview"`, `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs push-develop`. On the project's first gate, confirm with `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs pr-view <url>` that a preview appears; if none appears within a few minutes, say so in the handoff (the hosting rule, PROCESS.md section 12, needs fixing before the next phase).
+ 8. Write `vault/tickets/gates/phase-NN.md`: `PR: <url>`, `Develop at PR: <full sha>`, `Merged: no`, the audit verdict, fix tickets created. `next_ticket.mjs --next-unit` reads it (waiting for the merge → `wrap` once the SHA is in `origin/main`).
+ 9. Handoff with `node scripts/ledger.mjs handoff <a ticket of the phase>`; then the phase's one records snapshot (D2 (a)): `node scripts/records.mjs snapshot vault/snapshots/phase-NN` and commit it with this unit's reference files (`docs(vault): phase $ARGUMENTS records snapshot`); push `develop`. End the session with the PR link and the preview link. GitHub merges when the CI `gate` check passes; Josh works the punch list after. Never push to `main` and never merge without `--auto`.
+diff -ruN a/.claude/skills/repair/SKILL.md b/.claude/skills/repair/SKILL.md
+--- a/.claude/skills/repair/SKILL.md	2026-11-03 13:46:20
++++ b/.claude/skills/repair/SKILL.md	2026-11-03 13:46:54
+@@ -11,6 +11,6 @@
+ 4. Josh's, never yours: account settings; product, scope, wording and money decisions; guarded files (fix mode).
+ 5. Dispatch no agent.
+ 6. End with `node vault/tools/next_ticket.mjs --check` passing and the handoff (`vault/handoff/TEMPLATE.md`). Line 1 of your report is exactly one of `REPAIRED: <what changed>`, `JOSH: <what Josh must do, with the file>` or `FAILED: <why>`.
+-7. Kind `ci`: the run id is the `/actions/runs/<id>/` part of the link in the reason. Read `gh run view <id> --log-failed`. Never re-run the job (vault/PROCESS.md rules 16 and 20: a flaky test is fixed, not re-run).
++7. Kind `ci`: the run id is the `/actions/runs/<id>/` part of the link in the reason. Read `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs run-log <id>`. Never re-run the job (vault/PROCESS.md rules 16 and 20: a flaky test is fixed, not re-run).
+    - A failure our code, tests or configuration causes: write one fix ticket by following `.claude/skills/gate-phase/SKILL.md` step 5: number per `vault/PROCESS-EZDRAFT.md` line 36, title `Fix: <failing step>: <first error>`, phase file row, `tickets.json`, ACs via `vault/tools/gen_acs.mjs`, its STATUS row with `node scripts/ledger.mjs ticket <T> <phase> <complexity> <depends-on> <title>` (status `todo`); no commit. Report `REPAIRED: fix ticket <T> for <failing step>`.
+    - A failure only GitHub or another third party can fix (runner outage, Actions quota, repository settings): report `JOSH: <what>, with the run link`.
+diff -ruN a/.claude/skills/wrap/SKILL.md b/.claude/skills/wrap/SKILL.md
+--- a/.claude/skills/wrap/SKILL.md	2026-11-03 13:46:20
++++ b/.claude/skills/wrap/SKILL.md	2026-11-03 13:46:54
+@@ -10,6 +10,6 @@
+ 3. **Cost report** `vault/cost/phase-NN.md`, from `vault/cost/log.jsonl` and STATUS Notes: spend per ticket, per unit type, per model (Fable separately); tickets that needed escalation (tier changes) and why; places Opus or Fable ran on low-complexity work, or Haiku failed; defects the resumed step-8 reviewer missed that the auditor or Josh then caught (section 8 revisit flag); whether the phase cost more than a third of `weekly_ceiling_usd_est` (section 2a rule 9: recommend splitting the next phase if so); the median unit cost (for `per_unit_cap_usd_est`); recommended changes to the complexity table, ticket-size numbers and maxTurns, as a numbered list for Josh (PROCESS.md changes need his yes).
+    Take the dollar figures from `node vault/tools/usage-by-agent.mjs --since <phase start ISO>` ($ by unit × role × model, $ per ticket, plan characters per role) and compare role shares and $ per ticket with `vault/cost/baseline-2026-10-19.md`.
+    **v2.4 comparison** (Josh, 2026-10-22): write or update `vault/cost/v2.4-comparison.md`, one screen of tables. Per ticket: model and effort per dispatch and advisor calls per dispatch (`usage-by-agent.mjs` columns), whether it was batched, first-round PASS or FAIL and the number of rounds (STATUS Notes), tokens per ticket, and weekly-limit % used per ticket from the `meter_source` rows of `vault/cost/log.jsonl` (say where the meter was missing). Sections: (1) baseline: the same metrics for the tickets built before v2.4 (say so if fewer than 5); (2) v2.4 per-ticket averages per complexity tier; (3) share of usage by agent and by model, and the advisor share; (4) watch items, each marked "worse than baseline" when it is: first-round PASS rate on low (Haiku) tickets, share of tickets reaching round 3 or `blocked`, test defects found at the final review that a standalone test review would have caught, problems Josh found at the phase gate and traced to a ticket. A watch item worse than baseline over 10 or more tickets goes to `vault/tickets/needs-from-josh.md` with the numbers; never revert anything.
+-4. **Waiting on outside fixes** (Q-0274): for each `blocked` ticket whose note names an outside issue (EZD-141: `gh issue view 2852 -R supabase/auth --json state`), check it; when the fix is released, set the ticket back to `todo` with a note (`node scripts/ledger.mjs status <T> status=todo notes=<note>`) so it is planned and built; otherwise say "still open" in the handoff.
++4. **Waiting on outside fixes** (Q-0274): for each `blocked` ticket whose note names an outside issue (EZD-141: `curl -s https://api.github.com/repos/supabase/auth/issues/2852`), check it; when the fix is released, set the ticket back to `todo` with a note (`node scripts/ledger.mjs status <T> status=todo notes=<note>`) so it is planned and built; otherwise say "still open" in the handoff.
+ 5. `node vault/tools/next_ticket.mjs --sort-questions` (rows whose tickets are now done move to `vault/questions/QUESTIONS-archive.md`; Josh 2026-10-28), then `node vault/tools/next_ticket.mjs --report`.
+ 6. Handoff: next unit is what `node vault/tools/next_ticket.mjs --next-unit` prints (a signed-off next phase may already be planned, EZD-253); `none: phase <N> spec not signed off` means the next phase's `spec-check` (needs Josh). Commit `vault/` (`docs(vault): wrap phase $ARGUMENTS`); push `develop`; end the session. Report: cost total, Fable total, lessons kept, recommendations.
+diff -ruN a/scripts/process/ledger-lock.test.mjs b/scripts/process/ledger-lock.test.mjs
+--- a/scripts/process/ledger-lock.test.mjs	2026-11-03 13:46:54
++++ b/scripts/process/ledger-lock.test.mjs	2026-11-03 13:46:54
+@@ -718,7 +718,7 @@
+   assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
+ });
+ 
+-describe('EZD-173 M: merge lock, worktree base, push, preflight', () => {
++describe('EZD-173 M: merge lock, worktree base, preflight', () => {
+   test('M1: two merges together queue under the merge lock, run no gate, and both land after each worktree is gated (Josh 2026-11-02)', async () => {
+     const dir = fixture();
+     const runs = path.join(tmp('ezd173-state-'), 'gate.runs');
+@@ -775,25 +775,6 @@
+     assert.equal(r2.status, 0, r2.stdout + r2.stderr);
+     assert.ok(!/merge in progress/.test(r2.stdout));
+     assert.equal(git(dir, 'rev-parse', 't/EZD-003'), develop);
+-  });
+-
+-  test('M4: finish pushes develop only when no merge is in progress', () => {
+-    const dir = fixture({ remote: true });
+-    const origin = originOf.get(dir);
+-    const originHead = () => git(origin, 'rev-parse', 'develop');
+-    const start = originHead();
+-    writeLock(dir, 'merge', { pid: process.pid, owner: 'test', base: null });
+-    writeFileSync(path.join(dir, 'vault/handoff/CURRENT.md'), 'change a\n');
+-    let r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_NO_PUSH: undefined });
+-    assert.equal(r.status, 0, r.stdout + r.stderr);
+-    assert.match(r.stdout.trim(), /FINISH OK EZD-002 done \(\w+\).* push deferred: merge in progress$/);
+-    assert.equal(originHead(), start);
+-    rmSync(lockPath(dir, 'merge'));
+-    writeFileSync(path.join(dir, 'vault/handoff/CURRENT.md'), 'change b\n');
+-    r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_NO_PUSH: undefined });
+-    assert.equal(r.status, 0, r.stdout + r.stderr);
+-    assert.ok(!/push deferred/.test(r.stdout));
+-    assert.equal(originHead(), git(dir, 'rev-parse', 'HEAD'));
+   });
+ 
+   test('M5: preflight ignores uncommitted vault/ changes but stops on any other', () => {
+diff -ruN a/scripts/process/sandbox-coverage.test.mjs b/scripts/process/sandbox-coverage.test.mjs
+--- a/scripts/process/sandbox-coverage.test.mjs	2026-11-03 13:46:20
++++ b/scripts/process/sandbox-coverage.test.mjs	2026-11-03 14:15:30
+@@ -13,7 +13,7 @@
+ 
+ // The scripts that must run outside the sandbox, and the subcommands of each (null = every form). Each one stops with
+ // "SANDBOX STOP" when it finds itself sandboxed.
+-const OUTSIDE = { 'scripts/gate.mjs': null, 'scripts/unit-steps.mjs': ['worktree', 'merge'], 'scripts/ui-run.mjs': null };
++const OUTSIDE = { 'scripts/gate.mjs': null, 'scripts/unit-steps.mjs': ['worktree', 'merge'], 'scripts/ui-run.mjs': null, 'scripts/release/github-ops.mjs': null };
+ 
+ // Bash permission-rule syntax: no wildcard = exact; a trailing " *" also matches the bare prefix.
+ function covered(cmd) {
+@@ -37,7 +37,7 @@
+ }
+ 
+ function mustRunOutside(cmd) {
+-  const m = cmd.match(/^node (scripts\/[\w./-]+\.mjs)(?: (\S+))?/);
++  const m = cmd.match(/^node (?:\/Users\/josh\/Projects\/ezdraft\/)?(scripts\/[\w./-]+\.mjs)(?: (\S+))?/);
+   if (!m || !(m[1] in OUTSIDE)) return false;
+   return OUTSIDE[m[1]] === null || OUTSIDE[m[1]].includes(m[2]);
+ }
+@@ -46,7 +46,7 @@
+   const missing = [];
+   let seen = 0;
+   for (const file of instructionFiles()) {
+-    for (const m of readFileSync(file, 'utf8').matchAll(/`(node scripts\/[^`]+)`/g)) {
++    for (const m of readFileSync(file, 'utf8').matchAll(/`(node (?:\/Users\/josh\/Projects\/ezdraft\/)?scripts\/[^`]+)`/g)) {
+       const cmd = m[1].trim();
+       if (!mustRunOutside(cmd)) continue;
+       seen++;
+@@ -59,15 +59,15 @@
+ 
+ test('D-022 every excluded command names a script on the list above, and every script that stops with SANDBOX STOP is on it', () => {
+   for (const p of sandbox.excludedCommands) {
+-    const m = p.match(/^node (scripts\/[\w./-]+\.mjs)(?: (\S+))? \*$/);
++    const m = p.match(/^node (?:\/Users\/josh\/Projects\/ezdraft\/)?(scripts\/[\w./-]+\.mjs)(?: (\S+))? \*$/);
+     assert.ok(m, `excluded command not of the form "node scripts/<x>.mjs [sub] *": ${p}`);
+     assert.ok(m[1] in OUTSIDE, `${p}: ${m[1]} is not on the OUTSIDE list`);
+     assert.ok(existsSync(path.join(repo, m[1])), `${p}: ${m[1]} does not exist`);
+     if (OUTSIDE[m[1]] !== null) assert.ok(OUTSIDE[m[1]].includes(m[2]), `${p}: subcommand ${m[2]} is not on the list`);
+   }
+-  const selfChecking = readdirSync(path.join(repo, 'scripts'))
+-    .filter((f) => f.endsWith('.mjs') && readFileSync(path.join(repo, 'scripts', f), 'utf8').includes('SANDBOX STOP'))
+-    .map((f) => `scripts/${f}`);
++  const selfChecking = ['scripts', 'scripts/release']
++    .flatMap((d) => readdirSync(path.join(repo, d)).filter((f) => f.endsWith('.mjs')).map((f) => `${d}/${f}`))
++    .filter((f) => readFileSync(path.join(repo, f), 'utf8').includes('SANDBOX STOP'));
+   assert.deepEqual(selfChecking.sort(), Object.keys(OUTSIDE).sort());
+ });
+ 
+@@ -93,4 +93,12 @@
+   const env = JSON.parse(readFileSync(path.join(repo, 'scripts/unit-sandbox.json'), 'utf8')).env ?? {};
+   assert.equal(env.DO_NOT_TRACK, '1', 'the Supabase CLI crashes on its telemetry write inside the sandbox without it (round 5, step 16)');
+   assert.match(env.npm_config_cache ?? '', /^\/tmp\/claude-\d+\//, 'npm cannot write ~/.npm inside the sandbox (round 5, step 14)');
++});
++
++test('D-021 the sandbox cannot read the GitHub login or write the repo git config', () => {
++  const read = sandbox.filesystem.denyRead;
++  for (const p of ['~/Library/Keychains', '~/.config/gh', '~/.git-credentials', '~/.netrc']) assert.ok(read.includes(p), `denyRead lacks ${p}`);
++  const write = sandbox.filesystem.denyWrite;
++  for (const p of ['.git/config', '.git/config.worktree', '.git/commondir']) assert.ok(write.includes(`/Users/josh/Projects/ezdraft/${p}`), `denyWrite lacks ${p}`);
++  assert.ok(write.includes('~/.ezdraft-github-ops'), 'denyWrite lacks ~/.ezdraft-github-ops');
+ });
+diff -ruN a/scripts/unit-sandbox.json b/scripts/unit-sandbox.json
+--- a/scripts/unit-sandbox.json	2026-11-03 13:46:20
++++ b/scripts/unit-sandbox.json	2026-11-03 14:15:30
+@@ -24,10 +24,18 @@
+         "./**/.env.development",
+         "~/.claude/.credentials.json",
+         "~/.ssh",
+-        "~/.aws"
++        "~/.aws",
++        "~/Library/Keychains",
++        "~/.config/gh",
++        "~/.git-credentials",
++        "~/.netrc"
+       ],
+       "denyWrite": [
+-        "/Users/josh/Projects/ezdraft/scripts"
++        "/Users/josh/Projects/ezdraft/scripts",
++        "/Users/josh/Projects/ezdraft/.git/config",
++        "/Users/josh/Projects/ezdraft/.git/config.worktree",
++        "/Users/josh/Projects/ezdraft/.git/commondir",
++        "~/.ezdraft-github-ops"
+       ]
+     },
+     "network": {
+@@ -47,7 +55,8 @@
+       "node scripts/gate.mjs *",
+       "node scripts/unit-steps.mjs worktree *",
+       "node scripts/unit-steps.mjs merge *",
+-      "node scripts/ui-run.mjs *"
++      "node scripts/ui-run.mjs *",
++      "node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs *"
+     ]
+   }
+ }
+diff -ruN a/scripts/unit-steps.mjs b/scripts/unit-steps.mjs
+--- a/scripts/unit-steps.mjs	2026-11-03 13:46:20
++++ b/scripts/unit-steps.mjs	2026-11-03 14:15:30
+@@ -11,20 +11,22 @@
+ //                                                     and needs the worktree's passing gate.log on its last commit (exit 5 otherwise);
+ //                                                     resumes after an interrupted unit (feat commit already on develop)
+ //   node scripts/unit-steps.mjs finish <T> <outcome> [<vault path>...]
+-//                                                     step 11: ledger check, report, push develop
++//                                                     step 11: ledger check, report (the push is github-ops.mjs push-develop)
+ //
+ // Records (REMEDIATION-PLAN 2.12; D1 (a), D2 (a)): rows are read from the records database and every STATUS change goes
+ // through records.mjs record(), which queues it in the unit's results file for the launcher. No step commits records;
+ // the only develop commit of a ticket is its feat commit, which also carries the ticket's plan.
+ //
+-// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_NO_PUSH=1,
++// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout),
+ // EZD_INFLIGHT_DIR (in-flight records). EZD_UNIT_ID is set by scripts/run.mjs for the unit's session.
+ import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, realpathSync } from 'node:fs';
+ import { spawnSync } from 'node:child_process';
++import os from 'node:os';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+-import { withLedgerLock, withMergeLock, tryLock, readLock } from './ledger.mjs';
++import { withLedgerLock, withMergeLock, readLock } from './ledger.mjs';
+ import { openRecords, dbPath, record, planRecord } from './records.mjs';
++import { verifyDevelop, recordDevelop } from './release/github-ops.mjs';
+ 
+ const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+ const statusPath = path.join(root, 'vault/tickets/STATUS.md');
+@@ -235,6 +237,11 @@
+       if (!g.ok) { console.log(`MERGE GATE ${ticket}: ${g.why}; run node scripts/gate.mjs .claude/worktrees/${ticket}, then merge again; develop untouched.`); return 5; }
+       gateLog = g.log;
+     }
++    // D-021: only develop as the last unsandboxed step recorded it (plus vault/ data) may be built on and pushed.
++    if (!mergedCommit()) {
++      const v = verifyDevelop(root, os.userInfo().homedir, spawnSync);
++      if (v.refuse) { console.log(`MERGE STOP: ${v.refuse}; run node scripts/unit-steps.mjs record-develop (Josh) if develop is right`); return 3; }
++    }
+     // Ledger hold 1: record the base, squash and commit.
+     const { feat } = withLedgerLock(root, { owner: owner() }, () => {
+       const row = rowOf(ticket);
+@@ -272,6 +279,7 @@
+     // Ledger hold 2: close the ticket.
+     return withLedgerLock(root, { owner: owner() }, () => {
+       const hash = out(git('rev-parse', '--short', feat));
++      recordDevelop(os.userInfo().homedir, out(git('rev-parse', feat)));
+       // A resumed merge reads the worktree's last gate.log for the test count.
+       const wtLog = path.join(root, '.claude/worktrees', ticket, 'gate.log');
+       const tests = testCount(gateLog || (existsSync(wtLog) ? readFileSync(wtLog, 'utf8') : ''));
+@@ -299,19 +307,7 @@
+     if (check.status !== 0) stop(`FINISH STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
+     sh(process.execPath, ['vault/tools/next_ticket.mjs', '--report']);
+   });
+-  let deferred = '';
+-  if (!process.env.EZD_NO_PUSH) {
+-    // A merge in progress has an ungated feat commit on develop; its own finish pushes later.
+-    const pushLock = tryLock(root, 'merge', { owner: owner() });
+-    if (!pushLock) deferred = ' push deferred: merge in progress';
+-    else {
+-      try {
+-        const p = git('push', '-q', 'origin', 'develop');
+-        if (p.status) stop(`FINISH STOP: push failed: ${out(p).split('\n')[0]}`);
+-      } finally { pushLock.release(); }
+-    }
+-  }
+-  console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})${deferred}`);
++  console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})`);
+   return 0;
+ }
+ 
+@@ -337,6 +333,12 @@
+ }
+ 
+ const steps = { preflight, worktree, merge, finish, table };
++// Josh, unsandboxed: after applying sandbox-github.patch and after his own code commits on develop (D-021).
++if (step === 'record-develop') {
++  recordDevelop(os.userInfo().homedir, out(git('rev-parse', 'develop')));
++  console.log(`RECORD OK develop ${out(git('rev-parse', '--short', 'develop'))}`);
++  process.exit(0);
++}
+ if (!steps[step] || !/^EZD-[0-9A-Za-z]+$/.test(ticket || '')) {
+   console.log('usage: node scripts/unit-steps.mjs preflight|worktree|merge|finish|table <EZD-xxx> [done|blocked [<vault path>...]]');
+   process.exit(2);
+diff -ruN a/vault/spikes/sandbox/NOTES.md b/vault/spikes/sandbox/NOTES.md
+--- a/vault/spikes/sandbox/NOTES.md	2026-11-03 13:46:20
++++ b/vault/spikes/sandbox/NOTES.md	2026-11-03 14:15:30
+@@ -84,3 +84,16 @@
+ 
+ ## Probe round 6 (2026-11-03, session ec665a73, settings `probe-settings-6.json`)
+ Settings `env` `DO_NOT_TRACK=1`: `pnpm exec supabase --version` works with no prefix. `env` `npm_config_cache=/tmp/claude-501/npm-cache`: `npm cache verify` works. `env` `npm_config_store_dir`: no effect; inside the sandbox pnpm still uses `node_modules/.pnpm-store/v11` in the checkout (git-ignored; it keeps sandboxed installs out of the store unsandboxed runs use). `denyWrite: ["/Users/josh/Projects/ezdraft/scripts"]` (absolute): the main checkout's `scripts/` is refused, a worktree's `scripts/` and `app/` stay writable, and `node scripts/gate.mjs` still runs outside the sandbox in the foreground and the background. Applied to `scripts/unit-sandbox.json` (the env pair, the absolute denyWrite, `~/.supabase` dropped); asserted by `scripts/process/sandbox-coverage.test.mjs`.
++
++## Probe 7 (EZD-316, D-021): GitHub login and repo git config; Josh runs it after applying vault/handoff/sandbox-github.patch
++| # | Probe | Expect |
++| --- | --- | --- |
++| 1 | sandboxed `gh auth status`, `cat ~/.config/gh/hosts.yml`, `cat ~/.netrc` | no login, reads denied |
++| 2 | sandboxed `git push --dry-run origin develop` | fails (no credential) |
++| 3 | `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs push-develop` as its own Bash call | runs outside the sandbox and pushes |
++| 4 | same with `cd` or `&&` in front | prints GITHUB-OPS SANDBOX STOP |
++| 5 | sandboxed `git config --local x.y z` (the repo config) | write denied; also check no unit step needs to write it |
++| 6 | sandboxed `mv` or `ln` of a repo `.env` file to an unlisted path, then read it | if the read works, open a defect ticket (denyRead matches paths) |
++| 7 | sandboxed `touch ~/.ezdraft-github-ops/x`, `mv .git .git-probe`, `ln` of a read-denied file into any folder | all fail; if `mv` or `ln` works, undo it and open a defect ticket |
++| 8 | Josh runs `node scripts/unit-steps.mjs record-develop` unsandboxed once, then `github-ops.mjs push-develop` | records develop; the push reaches GitHub (the first live try of the script-made push repo) |
++| 9 | `pr-create` with a body file outside vault/handoff/pr-body, a symlink, a hard link | refused |

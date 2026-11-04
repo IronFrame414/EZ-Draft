@@ -117,7 +117,7 @@ test('EZD-000f T8: retriever pending file is writable and adopt() adopts it (ver
     fs.writeFileSync(path.join(dir, 'pending/retriever-digest-spawn-limits.md'),
       '---\ntitle: spawn limits\nscope: .claude/hooks/\nticket: EZD-000f\n---\n\nBody.\n');
     const res = adopt(dir, '2026-10-19');
-    assert.deepEqual(res, { ids: ['R-001'], skipped: [] });
+    assert.deepEqual(res, { ids: ['R-001'], skipped: [], moved: [{ file: 'retriever-digest-spawn-limits.md', id: 'R-001' }] });
     assert.deepEqual(fs.readdirSync(path.join(dir, 'pending')).filter((f) => f.endsWith('.md')), []);
     const index = fs.readFileSync(path.join(dir, 'INDEX.md'), 'utf8');
     assert.equal(index, header + 'R-001 | 2026-10-19 | spawn limits | .claude/hooks/ | EZD-000f\n');

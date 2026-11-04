@@ -40,6 +40,7 @@ Phase N
 - Stage 1 doesn't start until Josh has signed off the phase's spec. Stage 3 doesn't start until every question for the phase is answered, unless Josh says a ticket may start early.
 - Josh touches each phase three times: spec sign-off (after Stage 0), questions (after Stage 2), and testing (at the gate).
 - Josh does the testing, at the gate. Agents run the automated tests on every ticket; Josh does not test tickets one by one.
+- **Tooling track** (Josh 2026-10-28, EZD-253): a tooling ticket is one whose plan's Build steps change no file under `app/`, `packages/`, `worker/` or `supabase/`; `--set-architecture` marks it `"track": "tooling"` in `tickets.json` and `--check` refuses a mark the plan does not support. Tooling tickets build before product tickets, but the gate, the phase PR, wrap and the next phase do not wait for them; the PR lists the open ones and their merges reach main with the next phase PR. A signed-off next phase is planned, plan-reviewed and questioned while the current phase builds; its ready product tickets build whenever the current phase has none the launcher can build, and the current phase's buildable ones always go first (Josh 2026-10-29, EZD-278).
 
 ### 2a. Establishing phases
 
@@ -50,7 +51,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 3. **Each phase entry states:** a one-sentence goal; the user-visible result; the spec files and AC IDs it covers; its tickets; the phases it depends on; what is out of scope until later; risks and spikes; and Josh's test script (numbered steps, each with the expected result), which becomes the punch list at the gate.
 4. **Every AC belongs to exactly one phase.** `TRACE.md` flags any AC with no phase or with two.
 5. **Order by dependency, then by value.** A phase may use only what earlier phases built. Foundations (auth, data model) are built only as far as the current slice needs them.
-6. **Clean breaking point.** A phase closes only when all of these hold: the gate is green and every ticket is `done` or explicitly deferred by Josh; nothing half-built is reachable by a user (unfinished features are hidden or absent); no open questions remain for the phase; nothing from the next phase is needed to make this one work; the app runs from `develop` as it would in production; Josh's test script passes; lessons, progress and the handoff are current.
+6. **Clean breaking point.** A phase closes only when all of these hold: the gate is green and every product ticket is `done` or explicitly deferred by Josh (open tooling tickets carry over, section 2); nothing half-built is reachable by a user (unfinished features are hidden or absent); no open questions remain for the phase; nothing from the next phase is needed to make this one work; the app runs from `develop` as it would in production; Josh's test script passes; lessons, progress and the handoff are current.
 7. **A phase that can't meet rule 6 is split before building,** not after.
 8. **Scope changes.** Only Josh changes an approved `PHASES.md`. New requests go to `vault/tickets/BACKLOG.md`, then into a later phase.
 9. **Cost check.** If a phase's actual cost exceeds a third of the weekly ceiling, the wrap step recommends splitting the next one.
@@ -78,6 +79,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 17. **Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim** until checked against the primary artifact: the file, the diff, the output.
 18. **A result that looks too good is a bug until proven otherwise.** Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
 19. **Tooling faults are fixed in place (Q-0125 (a), Josh 2026-10-19).** When a run is broken or looping, or a plan names a path a guard denies, the orchestrator may fix and commit the launcher, a hook, a skill, a ledger tool or these process files: it writes `vault/handoff/LAUNCHER_FIX.md` naming the fault (guard-paths.mjs fix mode), makes the change, records it in the handoff and the questions ledger, commits, and removes the file. Josh confirms or reverts at his next sit-down.
+20. **No known issue is parked (Q-0268, Josh 2026-10-24: "no issues or potential problems should be skipped. I want to build this right the first time. this system must be robust and future proof from the start").** Narrowed by D3 (a) (Josh 2026-11-01; CLAUDE.md rule 17): every finding, of any size, is tagged by the reviewer as one of four kinds (the orchestrator may upgrade a tag, never downgrade it). **in-place:** up to about 30 changed lines in files already in the ticket, fixed before merge and re-checked. **defect** (the bar for a new ticket, Josh 2026-11-03): app behaviour wrong, a security or data-isolation issue, anything that fails the gate (fixed, never accepted by a re-run): a fix ticket at once, at the front of the queue. **debt:** any other test, tooling or wording issue: a tooling edge case, a misleading doc line, a slow, copied or flaky test that has not failed the gate, a warning our code or configuration causes in a build, test run, browser console or service log: one row on `vault/debt.md` with severity and deadline (`gate` before the next merge, `medium` before the phase gate, `low` within two phases), never a ticket; debt rows are fixed in batches. **question:** Josh's queue. Nothing is recorded as a minor, follow-up, watch item or known limit instead. A reviewer `PASS` means zero open in-place and defect findings; debt rows are recorded, not blocking. When only a third party can fix something, it goes to Josh as a question with the evidence and the workarounds, never as a recommendation to accept it.
 
 ### 3a. Wording rule (user-visible text)
 
@@ -125,7 +127,7 @@ The orchestrator passes a `model` (and, where useful, an `effort`) on each dispa
 
 The planner rates each ticket's complexity in its plan (section 6): **low**: the plan's interface contract is complete, the change follows an existing pattern, few files, no calculations, permissions, money, data-model or auth work; **medium** (default): anything not clearly low or high; **high**: a new pattern, calculations, permissions, data model, auth or money, or many files.
 
-**Routing is mechanical (v2.4).** `node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]` prints `{agent, model, effort, consultAdvisor}` from the table below, the STATUS Complexity, the round and the role. The orchestrator uses those values and deviates only with a one-line reason in STATUS notes.
+**Routing is mechanical (v2.4).** `node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]` prints `{agent, model, effort, orchestratorAdvice}` from the table below, the STATUS Complexity, the round and the role. The orchestrator uses those values and deviates only with a one-line reason in STATUS notes.
 
 | Agent | low | medium | high |
 | --- | --- | --- | --- |
@@ -135,25 +137,26 @@ The planner rates each ticket's complexity in its plan (section 6): **low**: the
 | test-author | Haiku 5.5 / high | Sonnet 5.5 / medium | Sonnet 5.5 / medium; Opus 5.5 for calculation-heavy tests |
 | standalone test review | none (merged into the final review) | none (merged into the final review) | Opus 5.5 / high |
 | builder round 1 | Haiku 5.5 / high | Sonnet 5.5 / medium | Opus 5.5 / medium |
-| builder round 2 | same model + advisor consult | same model + advisor consult | Opus 5.5 / high |
-| builder round 3 | Sonnet 5.5 + advisor | Opus 5.5 | blocked review by the orchestrator + advisor, then blocked |
+| builder round 2 | same model | same model | Opus 5.5 / high |
+| builder round 3 | Sonnet 5.5 + the orchestrator's advisor advice | Opus 5.5 + the orchestrator's advisor advice | blocked review by the orchestrator + advisor, then blocked |
 | final review (code-reviewer) | Opus 5.5 / medium | Opus 5.5 / high | Opus 5.5 / high |
 | security-reviewer | Opus 5.5 / high | Opus 5.5 / high | Opus 5.5 / high (Fable 5.1 per the rule below) |
 | ui-verifier | Sonnet 5.5 / low | same | same |
 | phase-auditor | Fable 5.1 → Opus 5.5 / high | same | same |
 | Explore, retrievers, log-summarizer | Haiku 5.5 / low | same | same |
 
-**Advisor (v2.4).** Project settings set `advisorModel` to `claude-opus-5-5`; subagents inherit it. Every Opus-model agent file says "Do not call the advisor tool" (no second Opus reviewing the first); Fable takes no Opus advisor. Advisor calls count toward plan limits and re-read the whole transcript uncached, so consult only where named: the round-2 and round-3 builder or test-author ("Consult the advisor before making changes this round, and again before declaring done."), and the orchestrator before accepting a complexity rating it doubts, before marking a ticket `blocked`, before opening a phase PR, and when a decision is not covered by this file or the spec.
+**Advisor (v2.4).** Project settings set `advisorModel` to `claude-opus-5-5`; subagents inherit it. Every Opus-model agent file says "Do not call the advisor tool" (no second Opus reviewing the first); Fable takes no Opus advisor. Advisor calls count toward plan limits and re-read the whole transcript uncached, so consult only where named. Subagents are never told to consult it (Q-0333 (c), Josh 2026-10-25: the dispatch line never reached them); instead the orchestrator consults its own advisor before a round-3 builder or test-author dispatch (`--dispatch` prints `orchestratorAdvice: true`) and passes the advice with the findings. The orchestrator also consults it before accepting a complexity rating it doubts, before marking a ticket `blocked`, before opening a phase PR, and when a decision is not covered by this file or the spec.
 
 **Haiku price cliff.** Haiku 5.5 costs five times as much per token once a prompt passes 100,000 tokens. Haiku dispatches carry only the plan, the contract and the files they touch; if one would clearly pass 100,000 tokens, use Sonnet 5.5 and log why.
 
 Floors and ceilings:
 - planner, code-reviewer, security-reviewer and phase-auditor never run below Opus 5.5. ui-verifier never runs below Sonnet 5.5.
 - Josh, 2026-10-20 (from the C2 cost baseline, `vault/cost/baseline-2026-10-19.md`): Opus 5.5 is the default for high-complexity work, and Fable 5.1 is an upgrade on retry (Josh, in chat: "most of the higher agents are good on opus with the option to upgrade to fable if the task is complex"). test-author and builder follow the v2.4 ladder above and are never dispatched on Fable 5.1. code-reviewer always runs Opus 5.5, also when it reviews a Fable retry; that is the one exception to the next rule. On a high-complexity ticket, security-reviewer runs Fable 5.1. Otherwise neither reviewer runs a lower tier than the builder it reviews. ui-verifier is exempt and stays on Sonnet 5.5: it checks screenshots against the mockup, which doesn't depend on the builder's tier.
-- **Retry and escalation on FAIL (v2.4, advisor first):** round 1 is the tier's model. Round 2 is the same model again, resumed when the findings are *minor* (naming, style, a fix confined to one file, nothing about behavior or a requirement) and fresh otherwise, with the advisor-consult sentence in the dispatch. Round 3 is one tier up (Haiku → Sonnet → Opus) with the advisor, except on a high ticket, where round 2 is Opus at high effort and round 3 is the orchestrator's blocked review with the advisor. After 3 failed rounds the ticket is `blocked`. A FAIL caused by a test defect goes to the test-author first, then the builder, and counts as one round. Opus-model agents never call the advisor. If the advisor is not working, the old ladder applies (one tier up per failed round) until it is fixed.
+- **Retry and escalation on FAIL (v2.4, advisor first):** round 1 is the tier's model. Round 2 is the same model again, resumed when the findings are *minor* (naming, style, a fix confined to one file, nothing about behavior or a requirement) and fresh otherwise, with no advisor. Round 3 is one tier up (Haiku → Sonnet → Opus) with the orchestrator's advisor advice in the dispatch, except on a high ticket, where round 2 is Opus at high effort and round 3 is the orchestrator's blocked review with the advisor. After 3 failed rounds the ticket is `blocked`. A FAIL caused by a test defect goes to the test-author first, then the builder, and counts as one round. Opus-model agents never call the advisor. If the advisor is not working, the old ladder applies (one tier up per failed round) until it is fixed. A FAIL whose findings the reviewer attributes to a gap in the plan (the builder followed the plan as written) does not use a round: the planner patches the plan, the builder makes exactly those edits, then gate, and the same reviewer re-reviews (Q-0471 (a), Josh 2026-11-01). A ticket's merge gate passes before its STATUS row is set done (EZD-267 report, Josh 2026-11-01).
 - **Fable fallback:** Fable has its own weekly limit, separate from the main one (section 11). Every place this process says Fable, the orchestrator uses Opus 5.5 instead when Fable is past its fallback fraction (section 11), when a Fable run ends on a limit error, or, unlikely, when Fable declines a task (its extra safeguards cover biology, cybersecurity and model research, not ordinary app work). With Fable out, Opus is the ceiling. The fallback is logged in STATUS notes with the reason.
 - The gate script and the reviews are identical whatever model wrote the code. A cheaper model never means a lighter check.
 - **Batches (v2.4).** The orchestrator may group 2 or 3 low tickets into one unit when they are in the same phase, their plans touch overlapping files, none depends on an unfinished ticket outside the batch, and every plan rated them low (`next_ticket.mjs --batch <ticket>` lists them). One test-author dispatch writes all their tests, one builder dispatch builds them, the gate runs once, and the code-reviewer reviews each ticket's diff separately with a PASS or FAIL per ticket. Each ticket is its own commit. A FAIL on one ticket sends only that ticket into the round-2 ladder; the others merge.
+- **Review batches (medium, EZD-246).** `next_ticket.mjs --batch <ticket>` also offers 2 or 3 ready medium tickets of one phase that share a plan area and a spec section, whose plans' Build steps name no common file and whose dependencies are all done. Each gets its own worktree, tests, build and gate; one code-reviewer dispatch, and one security-reviewer dispatch when any member is flagged, review them together with a verdict per ticket. Each merges as its own commit; a FAIL sends only that ticket back. A high ticket is never batched.
 - The model chosen for every dispatch, with its reason, is logged in STATUS notes. The wrap step uses this log to adjust the table above.
 
 Never set `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`: it ignores per-dispatch choices. Set `CLAUDE_CODE_SUBAGENT_MODEL` to `claude-sonnet-5-5` in project settings only as a backstop so an unlisted agent never silently inherits Opus.
@@ -193,14 +196,14 @@ The spec-check unit needs Josh present, so it runs interactively. The launcher n
 
 ## 6. Stage 1: plan
 
-For each ticket, in ticket order, the planner writes `vault/plans/<TICKET>.md` from `vault/plans/TEMPLATE.md`. The planner reads only: the phase's spec files, the decision files for those areas, `non-goals.md`, `glossary.md`, `architecture.md`, and `vault/lessons/planner.md` filtered to the ticket's areas. For the codebase and the outside world it dispatches retrievers (section 4) with `REPORT: yes`, then runs `node vault/tools/research.mjs adopt` and cites the IDs.
+For each ticket, in ticket order, the planner writes `vault/plans/<TICKET>.md` from `vault/plans/TEMPLATE.md`. The planner reads only: the phase's spec files, the decision files for those areas, `non-goals.md`, `glossary.md`, `architecture.md`, and `vault/lessons/planner.md` filtered to the ticket's areas. For the codebase and the outside world it dispatches retrievers (section 4) with `REPORT: yes`, then runs `node scripts/ledger.mjs research <TICKET>` and cites the IDs. Read the `vault/research/reuse/` file for this phase; where it says `reference`, read the named file at the pinned SHA before planning (Q-0405, Josh 2026-10-28).
 
 Each plan has a header and ten sections:
 
-**Header:** ticket ID, title, the AC IDs it covers, complexity (low, medium or high), and a one-line plain-words **user-visible result** (what now works for Josh).
+**Header:** ticket ID, title, the AC IDs it covers, complexity (low, medium or high), areas (the lesson areas the ticket touches, as `- **Areas:** <a>, <b>`), and a one-line plain-words **user-visible result** (what now works for Josh).
 
-1. **What to build**, execution-grade (Josh, 2026-10-22: Opus thinks, Sonnet executes): the **Build steps** table (one row per file in build order: path, exact exports and signatures, an existing file to copy the pattern from, a verify command), **Decided for the builder** (every choice a builder could otherwise make, with its source) and **Do not touch**. `vault/tools/plan_lint.mjs` checks the form and bans vague words in sections 1, 3 and 4; the planner then dispatches `plan-checker` (Sonnet) to list any decision still open, and closes each gap in the plan or as a QP question. A plan must pass `plan_lint.mjs` (strict) before its ticket becomes `ready`. In Stage 3 a builder or test-author that meets an undecided point stops with `PLAN-GAP`; the planner patches the plan and records a planner lesson, and the builder resumes at the same tier.
-2. **Sources:** the spec sections, decisions and mockup it relies on, cited, and the research reports (`R-NNN`, section 13) the plan drew on. A ticket no report covers says so.
+1. **What to build**, execution-grade (Josh, 2026-10-22: Opus thinks, Sonnet executes): the **Build steps** table (one row per file in build order: path, exact exports and signatures, an existing file to copy the pattern from, a verify command), **Decided for the builder** (every choice a builder could otherwise make, with its source) and **Do not touch**. `vault/tools/plan_lint.mjs` checks the form and bans vague words in sections 1, 3 and 4; the planner then dispatches `plan-checker` (Sonnet) to list any decision still open, and closes each gap in the plan or as a QP question. The plan-checker dispatch carries the planner lessons for the plan's areas (`node vault/tools/next_ticket.mjs --reads <T> plan-checker`; EZD-245). A plan must pass `plan_lint.mjs` (strict) before its ticket becomes `ready`. In Stage 3 a builder or test-author that meets an undecided point stops with `PLAN-GAP`; the planner patches the plan and records a planner lesson, and the builder resumes at the same tier.
+2. **Sources:** the spec sections, decisions and mockup it relies on, cited, and the research reports (`R-NNN`, section 13) the plan drew on. A ticket no report covers says so. Section 2 ends with the `Architecture:` line: the `docs/architecture.md` headings beyond the core, copied to `tickets.json` by `next_ticket.mjs --set-architecture` (EZD-244).
 3. **Interface contract:** file paths, exported names and signatures, route paths, component props, and `data-testid` values. Tests and code are both written to this contract.
 4. **Tests:** each test with the AC it checks, known correct values for every number, and a cited source for each value.
 5. **Visual checklist** (when a screen changes): which elements, which states, and which mockup each maps to.
@@ -211,6 +214,8 @@ Each plan has a header and ten sections:
 10. **Open questions,** labelled QP-1, QP-2 and so on. Only the orchestrator turns these into Q-IDs.
 
 Plans are written one at a time, in ticket order. Parallel planning saves no usage (the same tokens are spent either way) and risks ledger conflicts, so it is not used.
+
+**Plan size caps (H2, D3 (a), Josh 2026-11-01).** A product ticket's plan is at most 15,000 characters; a tooling ticket's plan (section 2, tooling track) at most 5,000. A tooling plan that cannot fit goes to Josh first as a one-line "worth it?" question with its cost. No new build-system ticket is created without Josh's yes on a one-line why and cost; until the records redesign (H1) and the sandbox (H3) are done, new build-system tickets are frozen. These caps override the targets below where they are smaller.
 
 **Ticket size.** Every ticket must be buildable in one fresh session. A plan targets 25,000 characters: over it, the planner tightens the wording first (section 1 as steps and the file table, sources cited by ID, nothing repeated) without dropping any requirement, test, source or question (optimize plan C4, Josh 2026-10-20: tighten, don't split). If a plan is still over 45,000 characters after tightening, or touches more than about 20 files or has more than about 25 tests (raised from 8 and 10 by Josh, 2026-10-22: every part pays the whole per-ticket overhead again), the planner proposes a split into lettered parts (T-012a, T-012b). The orchestrator updates the phase file, ticket data and ledger in one commit. These numbers are starting values; adjust them from the cost report.
 
@@ -264,12 +269,13 @@ Each ticket is built in its own fresh orchestrator session (section 10). The orc
    - ui-verifier reviews when the plan has a visual checklist: only the states on the checklist, at one viewport, with screenshots downscaled before the agent reads them (screenshots are image tokens);
    - security-reviewer reviews when the plan says `security review: yes` **or** the gate flagged a path. Either trigger is enough;
    - a reviewer that needs more than the plan, the diff and the gate summary asks a retriever (section 4) rather than reading the spec or the logs itself.
-9. **FAIL** → findings go back to the builder in the same worktree, following the v2.4 ladder in section 4 (round 2 same model with the advisor, round 3 one tier up); a test defect goes to the test-author first. Only the reviewers whose findings are open review again. After 3 failed rounds the ticket goes to `blocked` with notes and the orchestrator ends the unit.
-10. **PASS** → squash the branch into one commit `feat(<T>): <title>` on `develop`, remove the worktree, mark the status `done` with the commit hash, record any deviation from the plan in STATUS notes, append a line to `vault/DONE.md`, regenerate `PROGRESS.md` (`next_ticket.mjs --report`), push `develop`, record any lesson (section 13), update the handoff, and end the session.
+   A review batch (section 4) is reviewed in one dispatch per reviewer with a verdict per ticket.
+9. **FAIL** (any open `in-place` or `defect` finding, rule 20) → record every finding with `vault/tools/findings.mjs record`; `debt` findings become rows on `vault/debt.md` and `question` findings go to the questions file; a `defect` outside the ticket's own work becomes a fix ticket at the front of the queue; `in-place` findings go back to the builder in the same worktree, following the v2.4 ladder in section 4 (round 2 same model, round 3 one tier up with the orchestrator's advisor advice); a test defect goes to the test-author first. Only the reviewers whose findings are open review again. After 3 failed rounds the ticket goes to `blocked` with notes and the orchestrator ends the unit.
+10. **PASS** (zero open `in-place` and `defect` findings from every reviewer, rule 20; debt rows recorded) → squash the branch into one commit `feat(<T>): <title>` on `develop`, remove the worktree, mark the status `done` with the commit hash, record any deviation from the plan in STATUS notes, append a line to `vault/DONE.md`, regenerate `PROGRESS.md` (`next_ticket.mjs --report`), push `develop`, record any lesson (section 13), update the handoff, and end the session.
 
-Pushing is free: CI doesn't run on pushes and hosting skips `develop` (section 12), and it protects the work.
+Pushing is free: CI runs on each push to `develop` at no cost (public repository), hosting skips `develop` (section 12), and it protects the work.
 
-Stage 3 ends when every ticket in the phase is `done` or `blocked`.
+Stage 3 ends when every product ticket in the phase is `done` or `blocked` (tooling tickets build on, section 2).
 
 ---
 
@@ -279,8 +285,9 @@ Stage 3 ends when every ticket in the phase is `done` or `blocked`.
 1. `node vault/tools/next_ticket.mjs --check` passes.
 2. The full gate passes on `develop`.
 3. security-reviewer reviews the whole phase diff, if that agent is in use.
-4. phase-auditor reviews the whole phase against the spec and `TRACE.md`: every AC in the phase must map to a merged ticket with passing tests. Findings are handled before the PR opens:
+4. phase-auditor reviews the whole phase against the spec and `TRACE.md`: every AC of a product ticket in the phase, and of each tooling ticket the PR carries, must map to a merged ticket with passing tests. Findings are handled before the PR opens:
    - a defect or a missed requirement becomes a fix ticket (`T-0xx-fix`) in the same phase, planned, tested, built and reviewed like any ticket;
+   - a debt item becomes a row on `vault/debt.md` (rule 20); the phase PR does not open while a `gate` or `medium` row from this phase is open;
    - a product judgment goes in the PR for Josh.
 5. The orchestrator pushes `develop`, opens a PR `develop` → `main` titled `Phase N: <name>`, then pushes one empty commit (`chore: preview`) so hosting builds the preview for the PR. The PR body contains:
    - **Punch list:** the test script for Josh, per ticket: what to click and what should happen. Josh checks items off; an unchecked item becomes a fix ticket;
@@ -288,7 +295,7 @@ Stage 3 ends when every ticket in the phase is `done` or `blocked`.
    - `needs-josh-confirm` wording;
    - product judgments from the auditor;
    - lessons added this phase.
-6. The orchestrator turns on auto-merge (`gh pr merge <url> --auto --merge`); GitHub merges the PR when the required CI `gate` check passes (Josh 2026-10-23, Q-0261: until Josh says the system works and turns it off; then he merges by hand again). Josh works the punch list on the preview or the merged build afterwards; an unchecked item becomes a fix ticket in the next phase and does not hold the merge or the next phase.
+6. The orchestrator turns on auto-merge (`gh pr merge <url> --auto --merge`); GitHub merges the PR when the required CI `gate` check passes (Josh 2026-10-23, Q-0261: until Josh says the system works and turns it off; then he merges by hand again). If the check fails, the launcher starts a repair unit, which adds a fix ticket (Q-0379). Josh works the punch list on the preview or the merged build afterwards; an unchecked item becomes a fix ticket in the next phase and does not hold the merge or the next phase.
 
 On the first phase of a project, confirm the preview actually appears on the PR. If it doesn't, fix the hosting rule (section 12) before moving on.
 
@@ -296,7 +303,7 @@ On the first phase of a project, confirm the preview actually appears on the PR.
 - Consolidate `vault/lessons/` (section 13), and promote any lesson that a script could check into the gate.
 - Write the phase cost report into `vault/cost/phase-NN.md`: spend per ticket, per agent and per model from the budget log; tickets that needed escalation; places Opus ran on low-complexity work or Haiku failed; defects the resumed step-8 reviewer missed that the auditor or Josh caught (section 8 revisit flag); whether the phase cost more than a third of the weekly ceiling (section 2a). Use it to adjust the complexity table, ticket-size numbers and maxTurns.
 - Regenerate `PROGRESS.md`, update the handoff, and end the session.
-- The next phase starts at Stage 0.
+- The next phase starts at Stage 0, unless it is already signed off; then its planning may already have run (section 2, Tooling track).
 
 ---
 
@@ -315,6 +322,7 @@ On the first phase of a project, confirm the preview actually appears on the PR.
 | `build <T>` | Stage 3 steps 1 to 10 for one ticket (also fix tickets) | No |
 | `gate-phase` | Phase gate steps 1 to 5 | No (Josh tests afterward) |
 | `wrap` | Lessons, cost report, progress | No |
+| `repair` | Repairs a ledger failure, an agent-fixable wait or a failed phase PR CI gate; started only by the launcher | No |
 
 Each unit has a skill in `.claude/skills/`. The names match the unit, except that unit `plan` uses skill `plan-ticket` and unit `build` uses skill `build-ticket`.
 
@@ -323,17 +331,17 @@ Each unit has a skill in `.claude/skills/`. The names match the unit, except tha
 ### The launcher
 
 `scripts/run.mjs` runs the loop. Each pass:
-1. If `vault/handoff/STOP` exists, wait and re-check every minute; it resumes when the file is removed (fix mode, rule 19; Q-0233). If `vault/handoff/WINDOW_PAUSE.md` exists, wait until its resume time (section 11). If `vault/handoff/BUDGET_HOLD.md` exists, run only a `build <T>` unit for a ticket already `in-progress` (so it reaches `done` or `blocked`); start nothing else (section 11).
-2. Ask `next_ticket.mjs --next-unit`. If `none`, notify Josh once with the reason and re-check every 5 minutes, so his answer is picked up without a restart; only a budget hold ends the run (Josh, 2026-10-20, Q-0233: the build never stops unless it hits a usage limit or truly nothing can be done until he answers).
+1. If `vault/handoff/STOP` exists, wait and re-check every minute; it resumes when the file is removed (fix mode, rule 19; Q-0233). If `vault/handoff/WINDOW_PAUSE.md` exists, wait until its resume time (section 11). If `vault/handoff/BUDGET_HOLD.md` exists, run only a `build <T>` unit for a ticket already `in-progress` (so it reaches `done` or `blocked`); start nothing else (section 11). Before anything else, a pass whose launcher code (`scripts/*.mjs`, `vault/tools/*.mjs`, not tests) changed since the start restarts the launcher in place (EZD-250). Then it applies queued ledger edits to `develop` (`vault/tools/ledger-queue.mjs apply`; a rejected edit stays on a `queue-rejected/` branch and Josh is notified once). A ready ticket whose plan names files the guard denies the builder is held for Josh; the change goes through fix mode (guard grants removed, REMEDIATION 2.8).
+2. Ask `next_ticket.mjs --next-unit`. If `none`, notify Josh once with the reason and re-check every 5 minutes, so his answer is picked up without a restart; only a budget hold ends the run (Josh, 2026-10-20, Q-0233: the build never stops unless it hits a usage limit or truly nothing can be done until he answers). A `none` an agent can fix (a ledger check failure or a wait that is not Josh's) starts a `repair` unit instead, also when the phase PR's CI `gate` check failed (Q-0379); a repair whose claim does not hold, or that names something only Josh can do, notifies him once (EZD-250).
 3. Start a fresh `claude -p` for that unit with the unit's skill as the prompt, a session name such as `T-012 build`, a `--max-turns` limit, and a `--max-budget-usd` cap (section 11). Orchestrator units (`build`, `questions`, `gate-phase`, `wrap`) run `claude-sonnet-5-5` at `medium` effort with the Opus 5.5 advisor from project settings (v2.4; the judgment calls go to the advisor at the moments section 4 names). `plan` and `review-plans` run as the agent at that agent's model and effort. Effort is set per run, never changed within one.
 4. Record the run's estimated cost in `vault/cost/log.jsonl`.
-5. Run `next_ticket.mjs --check`. If it fails twice in a row, stop and notify.
+5. Run `next_ticket.mjs --check`. If it fails, the next pass starts a repair unit.
 
 Do not start units with `--bare`: it skips CLAUDE.md, hooks, skills and subagents, which this process depends on. Unattended runs use the permission settings in section 14, and `--permission-prompts none` so a prompt nobody can answer is denied instead of hanging the run. A denial becomes a note on the ticket.
 
 ### Using it interactively
 
-Run a unit by typing its skill name. Run `/clear` at each unit boundary: after a ticket merges, after a stage finishes. The `session-start` hook fires on `startup`, `resume`, `clear` and `compact`, and injects the handoff summary and the next unit, so a cleared session picks up where the files say the work is. In an interactive session, check `/context` and finish the unit and clear when it passes about half full; that figure is community folklore, not a documented limit.
+Run a unit by typing its skill name. Run `/clear` at each unit boundary: after a ticket merges, after a stage finishes. The `session-start` hook fires on `startup`, `resume`, `clear` and `compact`, and injects the handoff summary and the next unit, so a cleared session picks up where the files say the work is. Ledger edits go through the queue, so the launcher never pauses for them: `node vault/tools/ledger-queue.mjs start <slug>` makes a queue worktree, edit the ledger files there, then `node vault/tools/ledger-queue.mjs submit <name> -m <message>`; the launcher applies it between units (EZD-250). **Standing rule (Josh 2026-10-27): a session ends at 30% context.** Every message re-reads the whole conversation, so a long session costs more per message than anything else running. An interactive session checks `/context`; at 30% it records what is open in the handoff (`vault/handoff/CURRENT.md`) and ends, and Josh starts a fresh one. The orchestrator tells Josh before it reaches the line, and starts each new topic in a fresh session. Launcher units are one unit per session already.
 
 ### What a unit loads
 
@@ -341,16 +349,16 @@ Only these: `CLAUDE.md` (automatic), the hook-injected state (the handoff summar
 
 ### Dispatch rule (context diet)
 
-Every subagent dispatch contains only: the ticket ID and role; the path to the plan; the spec files and decision IDs the plan cites; the lessons for that role filtered to the plan's areas (`node vault/tools/next_ticket.mjs --lessons <role> <areas>` prints them, so the orchestrator never reads the lessons files itself); and the report format. Subagent final reports are 20 lines at most: PASS, FAIL or status first, then file paths and findings, no code. The dispatch template lives in `.claude/skills/build-ticket/dispatch.md`.
+Every subagent dispatch contains only: the ticket ID and role; the path to the plan; the spec files and decision IDs the plan cites; the `Architecture:` line of `next_ticket.mjs --reads` (EZD-244); the lessons for that role filtered to the plan's areas (`node vault/tools/next_ticket.mjs --lessons <role> <areas>` prints them, so the orchestrator never reads the lessons files itself); and the report format. Subagent final reports are 20 lines at most: PASS, FAIL or status first, then file paths and findings, no code. The dispatch template lives in `.claude/skills/build-ticket/dispatch.md`.
 
 Each role reads only its plan sections, named on a `Sections:` line the orchestrator adds under the dispatch's `Plan:` line from the table in `.claude/skills/build-ticket/SKILL.md` and printed with `node vault/tools/outline.mjs <plan> --section <n>`; the orchestrator reads the plan's header and sections 5, 7, 8 and 9 once per unit (optimize plan C3, Josh 2026-10-20). Reviewers receive their plan sections, the diff and the gate summary, not the whole repository or the whole spec. phase-auditor receives the phase diff, the plans, `TRACE.md` and the phase's spec files. Anything beyond that comes through a retriever (section 4). The whole-read guard (section 14) stops any agent from loading a file over 20,000 characters without a range.
 
 ### Keeping the machine running
 
-- **Run the launcher as a launchd service, never in a terminal tab** (2026-10-23: the Claude app's update restart killed a launcher running in its terminal pane mid-merge and the build sat idle 9.5 hours). `node scripts/launchd/install.mjs install` loads two agents: `com.ezdraft.launcher` (`scripts/run.mjs`, restarted by launchd after a crash or kill, not after a stop it notified about) and `com.ezdraft.watchdog` (`scripts/watchdog.mjs` every 15 minutes: it restarts a launcher that is down and notifies Josh when a unit shows no activity for 45 minutes or the launcher starts nothing for 30 minutes without a waiting reason; Haiku 5.5 writes one plain sentence about the log for the alert). `status` and `uninstall` do what they say; logs are in `~/Library/Logs/ezdraft/`. Pause with `vault/handoff/STOP` as before. A unit killed mid-run gets an `interrupted` cost row on the next start (`inflight.json`), and `unit-steps.mjs` finishes a merge that was squashed but not gated (`RESUME merged=yes`).
+- **Run the launcher as a launchd service, never in a terminal tab** (2026-10-23: the Claude app's update restart killed a launcher running in its terminal pane mid-merge and the build sat idle 9.5 hours). `node scripts/launchd/install.mjs install` loads two agents: `com.ezdraft.launcher` (`scripts/run.mjs`, restarted by launchd after a crash or kill, not after a stop it notified about) and `com.ezdraft.watchdog` (`scripts/watchdog.mjs` every 5 minutes: it restarts a launcher that is down and notifies Josh when a unit shows no activity for 45 minutes or the launcher starts nothing for 30 minutes without a waiting reason, and when the launcher has been idle 15 minutes with a ready unit or after a failed repair (EZD-250); Haiku 5.5 writes one plain sentence about the log for the alert). `status` and `uninstall` do what they say; logs are in `~/Library/Logs/ezdraft/`. Pause with `vault/handoff/STOP` as before. A unit killed mid-run gets an `interrupted` cost row on the next start (its in-flight record in `<log dir>/inflight/`), and `unit-steps.mjs` finishes a merge that was squashed but not gated (`RESUME merged=yes`).
 - Keep the machine awake and pause OS updates during a run. A restart kills the session; the builder's work-in-progress commits on the ticket branch let the next unit resume the ticket.
 - One build per machine at a time. Two parallel builds can run out of memory, and failed tests then waste usage on retries.
-- One ticket in progress at a time. Raise the limit only when Josh says so and the plans touch no shared files. Exception (v2.4): a batch of 2 or 3 low tickets (section 4) counts as one ticket in progress.
+- One ticket in progress at a time. Raise the limit only when Josh says so and the plans touch no shared files. Exception: a batch of 2 or 3 low tickets, or a review batch of 2 or 3 medium tickets (section 4), counts as one ticket in progress.
 - Never change the orchestrator's model or effort in the middle of a session; that invalidates the prompt cache for the whole context.
 
 ---
@@ -401,7 +409,7 @@ Before every unit, if the five-hour window is at or above `five_hour_pause_pct`,
 
 ### When the weekly hold is reached
 
-Before every unit, the launcher reads the weekly percentage. At or above `warn_at_pct` it notifies Josh once. At or above `hold_at_pct`, the launcher:
+Before every unit, the launcher reads the weekly percentage. At or above `warn_at_pct` it notifies Josh once. At or above `hold_at_pct`, the launcher: Under boost (vault/handoff/BOOST.json) there is no hold, so no warning is sent either (Q-0342 (a)).
 1. Writes `vault/handoff/BUDGET_HOLD.md`: the percentages, the reset time, the next unit, and how to override.
 2. Notifies Josh through the configured channel.
 3. Starts no new ticket. A ticket already `in-progress` keeps running until it is `done` or `blocked`, including its reviews and merge, so nothing is left half-built. The week can overshoot the hold by about one ticket's cost.
@@ -439,10 +447,10 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 
 ## 12. CI and deploys (keep GitHub Actions usage low)
 
-- CI runs **only** on the PR to `main` and when started by hand from the Actions tab. It does not run on every push.
+- CI runs on every push to `develop`, on the PR to `main` and when started by hand from the Actions tab (H7, Josh 2026-11-01: a red `develop` shows the same day). A newer push cancels an older run.
 - Per-ticket checks run locally with `scripts/gate.mjs`.
-- `develop` is pushed after every merged ticket. This does not trigger CI or a preview build.
-- Hosting builds production only from `main`. On Vercel, set the Ignored Build Step to: `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1`. A push made before the PR exists is skipped, which is why the gate pushes an empty commit after opening the PR.
+- `develop` is pushed after every merged ticket. This triggers CI but not a preview build.
+- Hosting builds production only from `main`. On Vercel, set the Ignored Build Step to: `[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1; [ "$VERCEL_GIT_COMMIT_REF" = "develop" ] && [ -n "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 1; exit 0`. A push made before the PR exists is skipped, which is why the gate pushes an empty commit after opening the PR.
 - Public repos get free Actions minutes and free branch protection. Never commit keys.
 - Protect `main`: require a PR, require the `gate` check to pass, allow no bypassing.
 
@@ -454,7 +462,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 
 **`vault/tickets/STATUS.md`** — columns: Ticket, Phase, Title, Status, Complexity, Depends on, Commit, Tests, Notes. Statuses: `todo` → `planned` or `questions` → `ready` → `in-progress` → `review` → `done`, or `blocked`. Notes record the models used and why, plan deviations, and `needs-josh-confirm` wording. Only the orchestrator edits it.
 
-**`vault/questions/QUESTIONS.md`** — columns: ID, Phase/ticket, Asked by, Question, Status, Answered by, Answer, Source. Statuses: `open`, `answered-agent`, `escalated`, `answered-josh`, `confirmed-josh`. IDs are never reused.
+**`vault/questions/QUESTIONS.md`** — columns: ID, Phase/ticket, Asked by, Question, Status, Answered by, Answer, Source. Statuses: `open`, `answered-agent`, `escalated`, `answered-josh`, `confirmed-josh`. IDs are never reused. One ledger in three files with the same columns (Josh 2026-10-28): `QUESTIONS.md` holds open and escalated rows and takes every new row; `QUESTIONS-answered.md` holds answered rows the build still needs; `QUESTIONS-archive.md` holds answered rows it no longer needs. `node vault/tools/next_ticket.mjs --sort-questions` moves rows whole and unchanged (the rule is in that file); the questions unit runs it at its end and the wrap unit before `--report`. `--check` fails when an open or escalated row sits outside `QUESTIONS.md` or a Q-ID is in two files. Look a Q-ID up in all three files.
 
 **`vault/handoff/CURRENT.md`** — overwritten at the end of every session, 30 lines at most: phase and stage, why the session ended, what was completed, what's in progress, what's blocked, questions for Josh, decisions made, the next unit. The previous handoff moves to `vault/handoff/log/`.
 
@@ -466,8 +474,13 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 - `--check`: validates the ledger against `tickets.json`, the status list above, and the sign-off and spike rules.
 - `--report`: regenerates `PROGRESS.md` and `TRACE.md`.
 - `--lessons <role> <areas>`: prints the `ratified` lessons for a role, filtered to the areas, for a dispatch. Candidates are never printed.
+- `--reads <T> <role>`: the dispatch's Spec files, Decisions, Mockups, Architecture, Plan and Sections lines. `--set-architecture <T>`: copies the plan's `Architecture:` line to `tickets.json`; `--check` fails an open ticket without a list, a list naming a missing heading, or a plan line that differs (EZD-244).
 
-**`vault/tools/research.mjs`** — `adopt`: moves every file in `vault/research/pending/` to `vault/research/R-NNN.md` (next free number), appends the index line, prints the IDs. Run by the orchestrator after any dispatch that returned a `REPORT:` line, and by the `plan` unit before the planner finishes. A second run with nothing pending changes nothing.
+**`vault/tools/research.mjs`** — `adopt`: moves every file in `vault/research/pending/` to `vault/research/R-NNN.md` (next free number), appends the index line, prints the IDs. Run through `node scripts/ledger.mjs research <TICKET>` (this ticket's reports, committed under the ledger lock; EZD-173) by the orchestrator after any dispatch that returned a `REPORT:` line, and by the `plan` unit before the planner finishes. A second run with nothing pending changes nothing.
+
+**`vault/lessons/findings.jsonl`** — every review finding, one JSON object per line (`date`, `ticket`, `round`, `reviewer`, `category`, `text`, `lesson`), written only by `findings.mjs record` (at build-ticket steps 5, 9 and 10; the orchestrator picks the first category in `findings.mjs categories` order whose meaning fits) and `findings.mjs cover`. `lesson` is `null` until `findings.mjs cover` sets it to the planner lesson that covers it; findings recorded later in the same category start uncovered again. A category with uncovered findings on two or more tickets is a repeat: at the end of the build unit (and as a backstop in the wrap unit) the orchestrator turns it into a candidate planner lesson with a `Plan check:` line, or raises `seen` of the lesson that already states it, then marks the findings covered with `findings.mjs cover`. `next_ticket.mjs --check` fails on a bad line (EZD-245).
+
+**`vault/tools/findings.mjs`** — `record <ticket> <round> <reviewer> <category> <text…>`, `categories`, `repeats`, `list <category>`, `cover <category> <L-n>`. Exit 1 on bad input or a bad log line, 2 on usage.
 
 **`vault/tools/outline.mjs <path>`** — prints a file's outline (Markdown: headings to depth 2 with line numbers; code: the top comment block, then each exported function, class or constant with its line; 60 lines at most). What the guard-reads hook returns on a denied whole read; agents can call it directly.
 
@@ -475,7 +488,7 @@ The launcher calls a notify command, kept in an untracked config. Josh uses the 
 
 **`vault/spec/decisions/`** — Josh's answers that override the spec, one file per spec area mirroring the spec files (`decisions/invoices.md` for `spec/invoices.md`), plus `INDEX.md`. A dispatch hands over the decision files for the areas the plan cites.
 
-**`vault/lessons/`** — the mistakes we don't repeat. One file per role: `orchestrator.md`, `planner.md`, `test-author.md`, `builder.md`, `reviewer.md` (code-reviewer and security-reviewer), `ui.md` (ui-verifier), `spec.md` (Stage 0 gaps), plus `INDEX.md`. A lesson that applies to two roles is written in both files with the same L-number. Entry format:
+**`vault/lessons/`** — the mistakes we don't repeat. One file per role: `orchestrator.md`, `planner.md`, `test-author.md`, `builder.md`, `reviewer.md` (code-reviewer and security-reviewer), `ui.md` (ui-verifier), `spec.md` (Stage 0 gaps), plus `INDEX.md`. A lesson that applies to two roles is written in both files with the same L-number; L-numbers are one sequence across all role files. Entry format (a planner lesson may add an optional `Plan check: <what the plan-checker looks for in a plan>` line after `Check:`):
 
 ```
 ## L-007  areas: auth, api  seen: 1  status: candidate
@@ -487,7 +500,7 @@ Check: how a reviewer or the gate would catch it.
 ```
 
 - **Status:** every entry carries `status: candidate | ratified | rejected`. A new entry is `candidate`. Only Josh ratifies, at the next Stage 2 (section 7, section 4 of the questions file); a candidate written after a phase's Stage 2 waits for the next phase's. Candidates never reach a dispatch. `next_ticket.mjs --check` fails on an entry without a status.
-- **Who writes:** only the orchestrator, at the end of a unit. **When:** a review round failed for a reason no lesson covers; the gate failed for a repeatable reason; a ticket was blocked; Josh failed a punch-list item or overrode an agent answer; a spec gap was found late. Not for one-off typos.
+- **Who writes:** only the orchestrator, at the end of a unit; in a build unit through `node scripts/ledger.mjs lesson`, `seen` and `append` (EZD-173). **When:** a category `findings.mjs repeats` reports; a review round failed for a reason no lesson covers; the gate failed for a repeatable reason; a ticket was blocked; Josh failed a punch-list item or overrode an agent answer; a spec gap was found late. Not for one-off typos.
 - **Before adding,** search for an existing lesson. If one exists, increase its `seen` count instead of adding another.
 - **Who reads:** every agent applies its role file, filtered to the plan's areas. `next_ticket.mjs --lessons <role> <areas>` prints the matching entries and the dispatch carries only those (section 10), so the files can grow without bloating context.
 - **Wrap step:** merge duplicates, drop entries made obsolete, and keep each role file under about 30 entries. A ratified lesson with `seen` of 2 or more, or one a script could check, becomes a gate check, lint rule or hook, and the entry is marked `automated: <name>`.
@@ -531,7 +544,7 @@ vault/spikes/             one note per risk, ending in a verdict
 vault/tickets/            PHASES.md, BACKLOG.md, phase files, tickets.json, STATUS.md, TRACE.md, needs-from-josh.md
 vault/tools/              next_ticket.mjs, research.mjs, outline.mjs
 vault/plans/              TEMPLATE.md (header + ten sections from section 6), one plan per ticket, shots/
-vault/questions/          QUESTIONS.md, phase-NN-for-josh.md, phase-NN-spec-gaps-for-josh.md
+vault/questions/          QUESTIONS.md, QUESTIONS-answered.md, QUESTIONS-archive.md, phase-NN-for-josh.md, phase-NN-spec-gaps-for-josh.md
 vault/handoff/            CURRENT.md, TEMPLATE.md, log/
 vault/mockups/            PNG + source per screen, INDEX.md
 vault/cost/               usage.json, log.jsonl, phase-NN.md
@@ -545,7 +558,7 @@ vault/research/           INDEX.md, R-NNN.md, pending/
 
 ### CLAUDE.md template
 
-Every subagent except Explore and Plan loads `CLAUDE.md` at startup, so it stays under about 60 lines: basic rules and a directory. Detail lives in the files the directory points to.
+Every subagent except Explore and Plan loads `CLAUDE.md` at startup, so it stays short and concise, at most 100 lines (Josh 2026-10-27; EZD-000b T6): basic rules and a directory. Detail lives in the files the directory points to.
 
 ```markdown
 # <Project> — build rules
@@ -580,27 +593,28 @@ Process: vault/PROCESS.md (the orchestrator and Josh read it; other agents read 
 | Past mistakes to avoid | vault/lessons/<your role>.md (only the entries your dispatch includes) |
 | Ticket status | vault/tickets/STATUS.md |
 | Open questions | vault/questions/QUESTIONS.md |
+| Answered questions still needed (no longer needed: QUESTIONS-archive.md) | vault/questions/QUESTIONS-answered.md |
 | Where the work stands | vault/handoff/CURRENT.md |
 | Models, budget, units, gates | vault/PROCESS.md |
 | Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |
 | Gate and ledger commands | scripts/gate.mjs, vault/tools/next_ticket.mjs |
 
 ## Reading list by role
-- planner: the phase's spec files, decisions, non-goals, glossary, architecture, lessons (planner).
+- planner: the phase's spec files, decisions, non-goals, glossary, architecture, lessons (planner), the phase's `vault/research/reuse/` file and the files it marks `reference` (Q-0405).
 - test-author, builder: your plan, the files it lists, architecture, lessons (your role).
 - reviewers: the plan, the diff, the gate summary, the spec sections the plan cites.
 ```
 
 ### Hooks
 
-- **guard-paths** (before Write and Edit): enforces each agent's write limits from the roster. Blocks `.env*` files except `.env.example`. Spec files are read-only after sign-off except `decisions/`. `budget.json` and `BUDGET_HOLD.md` are writable only by Josh's scripts.
+- **guard-paths** (before Write and Edit): enforces each agent's write limits from the roster. Blocks `.env*` files except `.env.example`. Spec files are read-only after sign-off except `decisions/`. `budget.json` and `BUDGET_HOLD.md` are writable only by Josh's scripts. There are no builder grants (removed in REMEDIATION 2.8).
 - **guard-bash** (before Bash): strips quoted text before matching, then blocks force pushes, pushes to `main`, checking out `main`, `reset --hard`, `rm -rf`, production deploys, package publishing, remote database pushes, reading `.env` files, `gh pr merge`, and running `claude` from inside a session. Reviewers can't write. The builder and test-author can't merge, push or switch branches.
 - **session-start** (matchers `startup`, `resume`, `clear`, `compact`): injects the handoff summary, the ledger check result, the next unit and the open question count. Output is plain text on stdout.
 - **stop-ledger-check** (Stop): refuses to end the main session's turn while `next_ticket.mjs --check` fails. Escape: if `vault/handoff/FORCE_STOP` exists, the hook writes the failure into the handoff, deletes the file, and lets the session end. Use this only when the check itself is broken; fixing it is the next unit's first job.
-- **guard-reads** (before Read and Bash): denies a `Read` with no `offset`/`limit` on a file over `GUARD_WHOLE_READ_CHARS` (20,000 by default), and `cat`, `head`, `tail`, `sed -n` or `less` on such a file without a narrowing range; `grep`, `wc` and ranged `sed -n 'a,bp'` pass. The denial carries the file's outline (`vault/tools/outline.mjs`) and ends "Read the ranges you need with offset and limit." Exempt list in settings, empty by default; `gate.log` is not exempt.
+- **guard-reads** (before Read and Bash): denies a `Read` with no `offset`/`limit` on a file over `GUARD_WHOLE_READ_CHARS` (20,000 by default), and `cat`, `head`, `tail`, `sed -n` or `less` on such a file without a narrowing range; `grep`, `wc` and ranged `sed -n 'a,bp'` pass. The denial carries the file's outline (`vault/tools/outline.mjs`) and ends "Read the ranges you need with offset and limit." A notebook (`.ipynb`) over the limit is denied even with a range, because the Read tool ignores `offset` and `limit` on notebooks; that denial ends "The Read tool ignores offset and limit on notebooks: read the ranges you need with sed -n 'a,bp'." (EZD-198). A ranged `head`, `tail` or `sed -n` read is denied when the text it selects from one file is over the limit, because a long line prints whole; that denial ends "Narrow the range: fewer lines with sed -n 'a,bp' or head -n K, or part of one long line with head -c K or sed -n 'Np' | cut -c a-b." (EZD-199). Exempt list in settings, empty by default; `gate.log` is not exempt.
 - **guard-agents** (before Agent): the main session may start any agent; the planner, code-reviewer, security-reviewer and phase-auditor may start only retriever-digest and retriever-web; every other agent, the retrievers included, starts none (Q-0132).
 - **stop-failure** (StopFailure): records the error type and time in `vault/handoff/last-failure.json` for the launcher.
-- **session-end** (timeout 30 s): archives the handoff, adds any ledger problems to it, and commits `vault/` on `develop`.
+- **session-end** (timeout 30 s): archives the handoff, adds any ledger problems to it, and commits `vault/` on `develop` when no other unit is in flight (EZD-173).
 - Deny rules in settings: reading `.env`, `.env.local`, `.env.*.local`, `.env.production`, plus the same git and deploy commands as guard-bash.
 
 ### Settings

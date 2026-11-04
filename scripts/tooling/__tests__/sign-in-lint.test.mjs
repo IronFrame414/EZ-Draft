@@ -62,3 +62,20 @@ describe('EZD-007f sign-in folders lint', () => {
     assert.equal(errors, 0, JSON.stringify(results.flatMap((r) => r.messages)));
   });
 });
+
+// EZD-1707 T3 (vault/plans/EZD-1707.md sections 3, 4; step 7): the terms page folder is in the lint block
+// (the same block as the sign-in pages, prefixes common. and error.), so literal text fails and the real folder lints clean.
+describe('EZD-1707 terms page lint', () => {
+  test('EZD-1707 T3 the terms folder refuses literal text and lints clean', async () => {
+    const f = 'app/src/app/terms/x.tsx';
+    const msgs = await lint('export default function P(){ return <p>Terms</p>; }\n', f);
+    assert.ok(msgs.length >= 1 && msgs.every((m) => m.severity === 2), JSON.stringify(msgs));
+    assert.equal((await lint(comp("<p>{t('office.x')}</p>"), f)).length, 1);
+    const { ESLint } = await importFromRoot('eslint');
+    const eslint = new ESLint({ cwd: root });
+    const results = await eslint.lintFiles(['app/src/app/terms/']);
+    assert.ok(results.length >= 1, 'the terms folder holds files');
+    const errors = results.reduce((s, r) => s + r.errorCount, 0);
+    assert.equal(errors, 0, JSON.stringify(results.flatMap((r) => r.messages)));
+  });
+});

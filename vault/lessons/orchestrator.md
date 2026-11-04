@@ -2,7 +2,7 @@
 
 Entries follow the format in PROCESS.md section 13. Keep under about 30; the wrap unit consolidates.
 
-## L-003  areas: tooling, scripts, process  seen: 2  status: ratified
+## L-003  areas: tooling, scripts, process  seen: 3  status: ratified
 Ticket EZD-000b, 2026-10-19
 Mistake: two repo-script tests went red in later runs: one hard-coded the next Q-IDs from a copy of the live ledger, one built hook inputs under the real repo root, which inside a ticket worktree changed the hook's answer.
 Cause: the tests depended on live repo state (ledger size, checkout location) instead of fixed inputs.
@@ -21,3 +21,11 @@ Symptom: e2e/jobs.spec.ts (EZD-009) failed 3 of 4 full gate runs (missing 'queue
 Cause: the test races the first job status event under four parallel workers.
 Rule: run the failing spec alone before blaming the branch, retry the gate, and record the flake in STATUS Notes; a repair to the EZD-009 test goes to the test-author as its own ticket, not into the unit at hand.
 Check: STATUS Notes name the spec and the failure counts.
+
+- EZD-148 (2026-10-25): when a security finding sends a text-checker rule back to the planner, have the security-reviewer attack the patched plan (read-only) before the test-author implements it; on EZD-148 two plan checks found two more bypasses at plan-text cost instead of two failed implementation rounds.
+
+- EZD-147 (2026-10-25): when STATUS Notes hold two resume instructions ("resume at step 7" written after an earlier "resume order"), follow the plan header's Session line and the steps it lists: the later note skipped plan-gap steps 4a (rebase) and 4b (test-author round), which the worktree log showed were still undone.
+
+- EZD-156 (2026-10-25): a fix-mode commit (124fdd2) edited `.claude/skills/build-ticket/dispatch.md` without re-running `scripts/process/retrievers.test.mjs`, which pins its head by hash, so develop stayed red until the next gate (Q-0335). Rule: after a fix-mode edit to a skill, agent file or process file, run `node --test scripts/process/` (and any test that names the file, `grep -rl <file> scripts/`) before committing; when a ticket gate is red only on a test outside the ticket, run it on plain develop first and fix it there, never as a builder round.
+
+- EZD-198 (2026-10-28): `unit-steps.mjs merge` stops with "squash failed" when develop changed the same file as the branch (here vault/handoff/PILOT.md row 13), and `mergedCommit` cannot resume a hand-made squash because it diffs the branch tip against develop. Resolve the conflict keeping develop's Result cells, commit `feat(T): <row title>`, run the phase gate, remove worktree and branch, set the STATUS row by hand; keep the row ending in `|` or `--check` loses it. Before writing a Result cell, read the old one and append, never replace.

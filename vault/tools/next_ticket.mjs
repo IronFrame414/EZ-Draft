@@ -5,22 +5,31 @@
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
+//   node vault/tools/next_ticket.mjs --sort-questions -> moves question rows between the three questions files (Josh 2026-10-28)
 //   node vault/tools/next_ticket.mjs --lessons <role> <area> [<area>...]  -> prints the ratified lessons a dispatch carries
 //   node vault/tools/next_ticket.mjs --phase N       -> counts by status for phase N
-//   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Plan and Sections
+//   node vault/tools/next_ticket.mjs --reads <ticket> <role>  -> the dispatch's Spec files, Decisions, Mockups, Architecture, Plan and Sections
 //                                                    lines (Sections from the table in .claude/skills/build-ticket/SKILL.md; Q-0218)
-//   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, consultAdvisor}
+//   node vault/tools/next_ticket.mjs --reads <ticket> plan-checker  -> Plan, Sections, Areas and the planner lessons for the plan's areas (EZD-245)
+//   node vault/tools/next_ticket.mjs --set-architecture <ticket>  -> copies the plan's Architecture line to tickets.json (EZD-244)
+//   node vault/tools/next_ticket.mjs --dispatch <ticket> <role> [--round N]  -> one JSON line {agent, model, effort, orchestratorAdvice}
 //                                                    from the PROCESS.md section 4 table (v2.4)
-//   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch (v2.4)
+//   node vault/tools/next_ticket.mjs --batch <ticket>  -> the low tickets that may be built with it as one batch, or the medium tickets that may be reviewed with it (v2.4; EZD-246)
+//   node vault/tools/next_ticket.mjs --tooling N -> the tooling tickets of phases 1..N, one tab-separated line each (EZD-253)
 // Rules: phases in order; in the current phase, the lowest-numbered ticket whose depends_on are all done. depends_on comes
 // from tickets.json (base IDs already expanded). Architecture checkpoint (PROCESS-EZDRAFT.md section 6): no ticket numbered
 // 200 or higher starts until EZD-000 is done and each spike EZD-027..EZD-031 has a go / no-go note in vault/spikes/.
 // Stage 1 of a phase needs a sign-off row in vault/spec/SIGNOFF.md (PROCESS.md section 5).
-import { readFileSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
+// A ticket marked "track": "tooling" does not hold its phase's gate (EZD-253).
+import { readFileSync, existsSync, writeFileSync, readdirSync, realpathSync, renameSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
+import { Q_FILES, questionMax } from './questions-files.mjs';
+import { guardedPaths, planPaths } from './plan-paths.mjs';
+import { findingProblems } from './findings.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -30,7 +39,40 @@ const SPIKES = ['EZD-027', 'EZD-028', 'EZD-029', 'EZD-030', 'EZD-031'];
 const CHECKPOINT_FROM = 200; // ticket numbers at or above this wait for the architecture checkpoint
 const LIMIT_IN_PROGRESS = 1; // PROCESS-EZDRAFT.md section 8
 
-const read = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : '');
+// REMEDIATION-PLAN 2.13 (D1 (a)): the running records are read from the records database when it belongs to this checkout
+// (its meta checkout row, written by records.mjs import). A copy of vault/ (tests) or a checkout with no database (CI)
+// reads its own files. $EZD_RECORDS_DB naming a database of another checkout is an error, never a silent switch.
+const records = await import(pathToFileURL(path.join(root, 'scripts/records.mjs')).href).catch(() => null);
+export const recordsDb = (() => {
+  if (!records) return null;
+  const file = records.dbPath([], process.env);
+  if (!existsSync(file)) return null;
+  const db = records.openRecords(file);
+  const owner = records.checkoutOf(db);
+  if (owner === realpathSync(root)) return db;
+  db.close();
+  if (process.env.EZD_RECORDS_DB) throw new Error(`records database ${file} belongs to ${owner ?? 'no checkout'}, not ${realpathSync(root)}`);
+  return null;
+})();
+const RECORD_DOCS = new Set(records ? Object.keys(records.DOCS) : []);
+const recordRel = (p) => path.relative(vault, p).split(path.sep).join('/');
+const read = (p) => {
+  if (recordsDb && RECORD_DOCS.has(recordRel(p))) return records.renderDoc(recordsDb, recordRel(p)) ?? '';
+  return existsSync(p) ? readFileSync(p, 'utf8') : '';
+};
+// Every write is a temp file renamed into place, so a reader in another lane never sees half a file (EZD-173 C2). The temp
+// file sits in <root>/.git/ezdraft-tmp/; with no .git folder (test copies of vault/), next to the target.
+let tmpCount = 0;
+function writeAtomic(file, text) {
+  tmpCount += 1;
+  let dir = path.join(root, '.git');
+  let isGit = false;
+  try { isGit = statSync(dir).isDirectory(); } catch {}
+  let tmp;
+  if (isGit) { dir = path.join(dir, 'ezdraft-tmp'); mkdirSync(dir, { recursive: true }); tmp = path.join(dir, `${process.pid}-${tmpCount}.tmp`); }
+  else tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}-${tmpCount}.tmp`);
+  try { writeFileSync(tmp, text); renameSync(tmp, file); } catch (e) { try { unlinkSync(tmp); } catch {} throw e; }
+}
 const data = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8'));
 const tickets = new Map(data.tickets.map((t) => [t.id, t]));
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -109,8 +151,10 @@ function questionsWork(p) {
 }
 // Loop guard (Q-0129): the launcher records the ledger fingerprint before and after each questions unit in
 // vault/handoff/.questions-last-run.json. A run that changed nothing is not repeated until the ledger changes.
+// Rows of all three questions files, sorted by Q-ID, so moving a row between files does not count as a change.
 export function questionsFingerprint() {
-  return createHash('sha256').update(read(path.join(vault, 'questions/QUESTIONS.md'))).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+  const rowsText = Object.values(Q_FILES).flatMap((f) => read(path.join(vault, f)).split(/\r?\n/).filter((l) => Q_ROW.test(l))).sort().join('\n');
+  return createHash('sha256').update(rowsText).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
 }
 function questionsGuarded(p) {
   let last; try { last = JSON.parse(read(path.join(vault, 'handoff/.questions-last-run.json'))); } catch { return false; }
@@ -118,15 +162,145 @@ function questionsGuarded(p) {
 }
 const questionsDue = (p) => questionsWork(p) && !questionsGuarded(p);
 
+// Questions ledger in three files (Josh 2026-10-28). QUESTIONS.md holds open and escalated rows (new rows land there);
+// QUESTIONS-answered.md the answered rows the build still needs; QUESTIONS-archive.md the answered rows it no longer needs.
+// A row moves only whole and unchanged. Archive rule: the Phase / ticket cell starts with a phase number, names at least one
+// ticket, names nothing but tickets and the words in Q_ARCHIVE_WORDS, every ticket it names is done, and no plan of an
+// unfinished ticket and no phase file of an unfinished phase cites the Q-ID. Lookups by Q-ID read all three files.
+const Q_ROW = /^\|\s*Q-\d{4}\s*\|/;
+const Q_STATUSES = ['open', 'answered-agent', 'escalated', 'answered-josh', 'confirmed-josh'];
+const Q_ARCHIVE_WORDS = new Set(['also', 'plan', 'round', 'build', 'builds', 'review', 'code', 'security', 'reviewer', 'level', 'live', 'run',
+  'only', 'builder', 'raised', 'by', 'planner', 'does', 'not', 'block', 'found', 'in', 'and', 'with', 'from', 'applied', 're', 'for',
+  'validation', 'gap', 'stage', 'step', 'part', 'j', 'follow', 'up']);
+const Q_TITLES = { open: 'open and escalated', answered: 'answered, still needed for the build', archive: 'answered, no longer needed' };
+const questionCells = (line) => line.split(/(?<!\\)\|/).map((c) => c.trim());
+const questionStatus = (cells) => cells.slice(5).find((c) => Q_STATUSES.includes(c));
+function questionHeader(kind) {
+  return [`# Questions ledger: ${Q_TITLES[kind]}`, '',
+    'Three files, one ledger (Josh 2026-10-28): `QUESTIONS.md` holds open and escalated questions (new questions are added there); `QUESTIONS-answered.md` holds answered questions the build still needs; `QUESTIONS-archive.md` holds answered questions it no longer needs (every ticket named is done and no unfinished plan or phase file cites them). Rows move only whole and unchanged, by `node vault/tools/next_ticket.mjs --sort-questions` (rule in that file). Look a Q-ID up in all three files.', '',
+    'Chain of command: asking agent → orchestrator → specialist (calc-auditor / security-reviewer / code-reviewer) → Josh. No citation, no answer. Business and product decisions always go to Josh. Full rules: `vault/PROCESS.md`, Stage 2.', '',
+    'Statuses: `open`, `answered-agent`, `escalated` (waiting on Josh), `answered-josh`, `confirmed-josh` (an agent answer Josh confirmed). Agent answers not yet confirmed when Stage 3 starts stand as written.',
+    'IDs never change or get reused. Josh\'s answers are also appended to the decisions file for the spec area (`vault/spec/decisions/<area>.md`; index in `vault/spec/decisions/INDEX.md`). Until Oct 18, 2026 they went to `vault/spec/decisions.md`, now split into that folder.', '',
+    '| ID | Phase / ticket | Asked by | Question | Status | Answered by | Answer | Source |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- |'];
+}
+function questionFiles() {
+  const out = {};
+  for (const [kind, f] of Object.entries(Q_FILES)) {
+    const lines = read(path.join(vault, f)).split(/\r?\n/);
+    const table = lines.slice(lines.findIndex((l) => /^\| --- /.test(l)) + 1);
+    out[kind] = { rows: lines.filter((l) => Q_ROW.test(l)), other: table.filter((l) => !Q_ROW.test(l) && l.trim()) };
+  }
+  return out;
+}
+function questionTarget(line, cited) {
+  const cells = questionCells(line);
+  const st = questionStatus(cells);
+  if (st === 'open' || st === 'escalated' || !st) return 'open';
+  if (cited.has(cells[1])) return 'answered';
+  const m = cells[2].match(/^\d+ \/ (.*)$/);
+  if (!m) return 'answered';
+  const ids = rowTickets(cells[2]);
+  if (!ids.size) return 'answered';
+  const rest = m[1].replace(/EZD-\d{3,4}[a-z]?/g, ' ').replace(/\bQ-\d{4}\b|\bQP-\d+\b|\d{4}-\d\d-\d\d|\b(?:round|step|level) \d+\b/gi, ' ');
+  if (rest.split(/[\s,;()–→-]+/).filter(Boolean).some((w) => !Q_ARCHIVE_WORDS.has(w.toLowerCase()))) return 'answered';
+  // A split ticket (EZD-019 → EZD-019a, …) counts as done when all its parts are.
+  const parts = (id) => [...rows.keys()].filter((k) => k.length === id.length + 1 && k.startsWith(id) && /[a-z]$/.test(k));
+  const done = (id) => (rows.has(id) ? status(id) === 'done' : parts(id).length > 0 && parts(id).every((k) => status(k) === 'done'));
+  return [...ids].every(done) ? 'archive' : 'answered';
+}
+// Q-IDs cited by the plan of any unfinished ticket or the phase file of any unfinished phase.
+function citedByUnfinished() {
+  const open = [...rows].filter(([, r]) => r.status !== 'done');
+  let text = '';
+  for (const [id] of open) text += read(path.join(vault, 'plans', `${id}.md`));
+  for (const p of new Set(open.map(([, r]) => r.phase))) text += read(path.join(vault, 'tickets/phases', `phase-${pad2(p)}.md`));
+  return new Set(text.match(/Q-\d{4}/g) || []);
+}
+export function sortQuestions() {
+  if (recordsDb) return sortQuestionsInDb();
+  const files = questionFiles();
+  const cited = citedByUnfinished();
+  const next = { open: [], answered: [], archive: [] };
+  const arriving = { open: [], answered: [], archive: [] };
+  let moved = 0;
+  for (const kind of Object.keys(Q_FILES)) for (const line of files[kind].rows) {
+    const to = questionTarget(line, cited);
+    if (to === kind) next[to].push(line); else { arriving[to].push(line); moved++; }
+  }
+  for (const kind of Object.keys(Q_FILES)) {
+    const p = path.join(vault, Q_FILES[kind]);
+    const text = [...questionHeader(kind), ...next[kind], ...arriving[kind], ''].join('\n');
+    if (read(p) !== text) writeAtomic(p, text);
+  }
+  return { moved, open: next.open.length + arriving.open.length, answered: next.answered.length + arriving.answered.length, archive: next.archive.length + arriving.archive.length };
+}
+// 2.13: the same moves as records ops. Inside a unit nothing moves: the launcher sorts after it applies the unit's results.
+function sortQuestionsInDb() {
+  if (process.env.EZD_RESULTS_FILE) return { deferred: true };
+  const files = questionFiles();
+  const cited = citedByUnfinished();
+  const count = { open: 0, answered: 0, archive: 0 };
+  const ops = [];
+  for (const kind of Object.keys(Q_FILES)) for (const line of files[kind].rows) {
+    const to = questionTarget(line, cited);
+    count[to]++;
+    if (to !== kind) ops.push({ op: 'move', id: questionCells(line)[1], file: Q_FILES[to].replace(/^vault\//, '') });
+  }
+  recordsDb.close();
+  for (const op of ops) records.record(op, { root });
+  return { moved: ops.length, ...count };
+}
+function questionProblems() {
+  const problems = [];
+  const files = questionFiles();
+  const seen = new Map();
+  for (const [kind, f] of Object.entries(files)) {
+    for (const l of f.other) problems.push(`${Q_FILES[kind]}: line in the questions table that is not a Q-ID row: "${l.slice(0, 60)}"`);
+    for (const line of f.rows) {
+      const cells = questionCells(line);
+      const st = questionStatus(cells);
+      if (seen.has(cells[1])) problems.push(`${cells[1]} is in ${Q_FILES[seen.get(cells[1])]} and ${Q_FILES[kind]} (a Q-ID appears once)`);
+      seen.set(cells[1], kind);
+      if (!st) problems.push(`${cells[1]} in ${Q_FILES[kind]} has no known status`);
+      else if (kind !== 'open' && (st === 'open' || st === 'escalated')) problems.push(`${cells[1]} is ${st} but sits in ${Q_FILES[kind]}: run node vault/tools/next_ticket.mjs --sort-questions`);
+    }
+  }
+  return problems;
+}
+
+// REMEDIATION-PLAN 2.12: the launcher's form of assignQuestionIds. Q-IDs from firstId on (the launcher takes it from the
+// records database); returns the question rows as records ops and the plan's new text, and writes nothing.
+export function planQuestionRows(ticket, firstId) {
+  const planPath = path.join(vault, 'plans', `${ticket}.md`);
+  const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
+  const phase = fresh?.phase ?? tickets.get(ticket)?.phase ?? '?';
+  const plan = readFileSync(planPath, 'utf8').split('\n');
+  const start = plan.findIndex((l) => /^## (?:10\. )?Open questions/.test(l));
+  let n = Number(String(firstId).slice(2));
+  const ids = [], rows = [];
+  for (let i = start + 1; start >= 0 && i < plan.length && !/^## /.test(plan[i]); i++) {
+    const m = plan[i].match(QP_LINE);
+    if (!m) continue;
+    const id = `Q-${String(n++).padStart(4, '0')}`;
+    rows.push({ id, phase_ticket: `${phase} / ${ticket} (plan ${m[2]})`, asked_by: `planner (${new Date().toISOString().slice(0, 10)})`, question: m[4].replace(/\|/g, '\\|').trim(), status: 'open', answered_by: '', answer: '', source: '' });
+    plan[i] = `${m[1]}${id} (was ${m[2]})${m[3]}${m[4]}`;
+    ids.push(id);
+  }
+  return { ids, rows, planText: plan.join('\n') };
+}
+
 // Q-0129 (Josh, 2026-10-19): the plan unit turns the plan's QP-n questions into `open` Q-IDs as it finishes, so the
 // questions unit answers them at once (plan-ticket skill, ledger step). Only lines that open with QP-n are new questions.
 const QP_LINE = /^(\s*(?:[-*]|\d+\.)?\s*\**\s*)(QP-\d+)\b(\**\s*[:.)]?\s*\**\s*)(.*)$/;
 export function assignQuestionIds(ticket) {
+  if (recordsDb) throw new Error('assignQuestionIds writes QUESTIONS.md; with the records database the launcher uses planQuestionRows (2.12)');
   const planPath = path.join(vault, 'plans', `${ticket}.md`);
   const qPath = path.join(vault, 'questions/QUESTIONS.md');
   const qLines = readFileSync(qPath, 'utf8').split('\n');
-  let max = 0, last = -1;
-  qLines.forEach((l, i) => { const m = l.match(/^\|\s*Q-(\d{4})\s*\|/); if (m) { max = Math.max(max, Number(m[1])); last = i; } });
+  let max = questionMax(vault), last = -1;
+  qLines.forEach((l, i) => { if (/^\|\s*Q-(\d{4})\s*\|/.test(l)) last = i; });
+  if (last < 0) last = qLines.findIndex((l) => /^\| -/.test(l));
   // Read fresh: the launcher imports this module once, and a split may have added the ticket since (Q-0168 to Q-0170).
   const fresh = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8')).tickets.find((t) => t.id === ticket);
   const phase = fresh?.phase ?? tickets.get(ticket)?.phase ?? '?';
@@ -144,8 +318,8 @@ export function assignQuestionIds(ticket) {
   }
   if (!ids.length) return ids;
   qLines.splice(last + 1, 0, ...rows);
-  writeFileSync(qPath, qLines.join('\n'));
-  writeFileSync(planPath, plan.join('\n'));
+  writeAtomic(qPath, qLines.join('\n'));
+  writeAtomic(planPath, plan.join('\n'));
   return ids;
 }
 const LESSON_STATUSES = ['candidate', 'ratified', 'rejected'];
@@ -203,6 +377,144 @@ function readingProblems() {
   }
   return out;
 }
+
+// Architecture map (EZD-244): docs/architecture.md is read by heading. The doc names its core sections on one line;
+// every open ticket carries `architecture` in tickets.json (headings beyond the core), copied from its plan.
+const ARCH_DOC = path.join(root, 'docs/architecture.md');
+const OPEN_STATUSES = ['planned', 'questions', 'ready', 'in-progress', 'review', 'blocked'];
+const noList = (id) => `${id}: no architecture list (EZD-244; run --set-architecture ${id})`;
+const notHeading = (id, h) => `${id}: architecture section "${h}" is not a heading in docs/architecture.md`;
+const repeatedEntry = (id) => `${id}: architecture list holds a repeated or non-text entry`;
+const DOC_MISSING = 'docs/architecture.md missing (architecture map, EZD-244)';
+const DOC_NO_CORE = 'docs/architecture.md: no "Core sections:" line (EZD-244)';
+function architectureDoc() {
+  if (!existsSync(ARCH_DOC)) return null;
+  const text = readFileSync(ARCH_DOC, 'utf8');
+  return { text, headings: architectureHeadings(text).map((h) => h.text), core: coreSections(text) };
+}
+function entryProblem(id, list, headings) {
+  if (!Array.isArray(list)) return noList(id);
+  for (const h of list) if (typeof h === 'string' && !headings.includes(h)) return notHeading(id, h);
+  if (list.some((h) => typeof h !== 'string') || new Set(list).size !== list.length) return repeatedEntry(id);
+  return null;
+}
+function architectureProblems() {
+  const doc = architectureDoc();
+  const out = [];
+  if (!doc) out.push(DOC_MISSING);
+  else {
+    const counts = new Map();
+    for (const h of doc.headings) counts.set(h, (counts.get(h) || 0) + 1);
+    for (const [h, n] of counts) {
+      if (n > 1) out.push(`docs/architecture.md: heading "${h}" appears ${n} times`);
+      if (h.includes("'") || h.includes(';')) out.push(`docs/architecture.md: heading "${h}" contains ' or ;`);
+    }
+    if (!doc.core) out.push(DOC_NO_CORE);
+    else for (const h of doc.core) if (!doc.headings.includes(h)) out.push(`docs/architecture.md: core section "${h}" is not a heading`);
+  }
+  for (const t of data.tickets) {
+    if (!OPEN_STATUSES.includes(status(t.id))) continue;
+    if (t.architecture === undefined) { out.push(noList(t.id)); continue; }
+    if (!doc) continue;
+    const e = entryProblem(t.id, t.architecture, doc.headings);
+    if (e) out.push(e);
+    const planPath = path.join(vault, 'plans', `${t.id}.md`);
+    if (!existsSync(planPath) || !Array.isArray(t.architecture)) continue;
+    const a = planArchitecture(readFileSync(planPath, 'utf8'));
+    if (a.list && (a.list.length !== t.architecture.length || a.list.some((h, i) => h !== t.architecture[i])))
+      out.push(`${t.id}: plan Architecture line differs from tickets.json (run --set-architecture ${t.id})`);
+  }
+  return out;
+}
+// Tooling track (EZD-253): a ticket whose plan's Build steps change no file under a product dir builds beside the phases.
+// A path is product when it equals a dir or starts with `<dir>/`. One parser for the plan's files: plan-paths.mjs planPaths.
+export const PRODUCT_DIRS = ['app', 'packages', 'worker', 'supabase'];
+const isProductPath = (p) => PRODUCT_DIRS.some((d) => p === d || p.startsWith(`${d}/`));
+export function planTrack(planText) {
+  const paths = planPaths(planText);
+  return paths.length && !paths.some(isProductPath) ? 'tooling' : 'product';
+}
+const isTooling = (t) => t.track === 'tooling';
+function trackProblems() {
+  const out = [];
+  for (const t of data.tickets) {
+    const planPath = path.join(vault, 'plans', `${t.id}.md`);
+    const plan = existsSync(planPath) ? readFileSync(planPath, 'utf8') : null;
+    if ('track' in t && t.track !== 'tooling') { out.push(`${t.id}: track "${String(t.track)}" is not "tooling" (EZD-253)`); continue; }
+    if (isTooling(t)) {
+      const paths = plan === null ? [] : planPaths(plan);
+      const product = paths.find(isProductPath);
+      if (!paths.length) out.push(`${t.id}: tooling mark but its plan lists no Build steps files (EZD-253)`);
+      else if (product) out.push(`${t.id}: tooling mark but the plan changes ${product} (EZD-253)`);
+      continue;
+    }
+    if (OPEN_STATUSES.includes(status(t.id)) && plan !== null && planTrack(plan) === 'tooling')
+      out.push(`${t.id}: plan changes no file under app/, packages/, worker/ or supabase/ but tickets.json has no tooling mark (run --set-architecture ${t.id})`);
+  }
+  return out;
+}
+// D3: the ticket with `track` set from its plan (right after `architecture`, else after `mockups`) or removed.
+function withTrack(t, plan) {
+  const tooling = planTrack(plan) === 'tooling';
+  const out = {};
+  let placed = false;
+  for (const [k, v] of Object.entries(t)) {
+    if (k === 'track') continue;
+    out[k] = v;
+    if (tooling && (k === 'architecture' || (k === 'mockups' && !('architecture' in t)))) { out.track = 'tooling'; placed = true; }
+  }
+  if (tooling && !placed) out.track = 'tooling';
+  return out;
+}
+// The ticket's tickets.json entry with the plan's Architecture line, without writing it: { ok, message, entry }.
+// REMEDIATION-PLAN 2.12 (D9 (a), 2026-11-02): the launcher holds it in the records database until the feat commit.
+export function architectureEntry(id) {
+  const fail = (message) => ({ ok: false, message });
+  const planPath = path.join(vault, 'plans', `${id}.md`);
+  if (!existsSync(planPath)) return fail(`${id}: no plan vault/plans/${id}.md`);
+  const file = path.join(vault, 'tickets/tickets.json');
+  const d = JSON.parse(readFileSync(file, 'utf8'));
+  const t = d.tickets.find((x) => x.id === id);
+  if (!t) return fail(`unknown ticket ${id}`);
+  const plan = readFileSync(planPath, 'utf8');
+  const a = planArchitecture(plan);
+  if (a.error === 'no Architecture line in section 2') {
+    if (Array.isArray(t.architecture)) {
+      return { ok: true, message: `ARCHITECTURE KEPT ${id}: no Architecture line; tickets.json list unchanged`, entry: withTrack(t, plan) };
+    }
+    return fail(`${id}: no Architecture line in section 2 of vault/plans/${id}.md`);
+  }
+  if (a.error) return fail(`${id}: empty Architecture line in section 2 of vault/plans/${id}.md`);
+  const doc = architectureDoc();
+  if (!doc) return fail(DOC_MISSING);
+  if (!doc.core) return fail(DOC_NO_CORE);
+  const e = entryProblem(id, a.list, doc.headings);
+  if (e) return fail(e);
+  const rebuilt = {};
+  let placed = false;
+  for (const [k, v] of Object.entries(t)) {
+    if (k === 'architecture') continue;
+    rebuilt[k] = v;
+    if (k === 'mockups') { rebuilt.architecture = a.list; placed = true; }
+  }
+  if (!placed) rebuilt.architecture = a.list;
+  return { ok: true, message: `ARCHITECTURE SET ${id}: ${a.list.length} section(s)`, entry: withTrack(rebuilt, plan) };
+}
+
+export function setArchitecture(id) {
+  const r = architectureEntry(id);
+  if (!r.ok) return { ok: false, message: r.message };
+  writeTicketEntry(path.join(vault, 'tickets/tickets.json'), r.entry);
+  return { ok: true, message: r.message };
+}
+
+// Writes one ticket's entry into a tickets.json file (unit-steps merge does the same for the feat commit).
+export function writeTicketEntry(file, entry) {
+  const d = JSON.parse(readFileSync(file, 'utf8'));
+  d.tickets = d.tickets.map((x) => (x.id === entry.id ? entry : x));
+  const text = JSON.stringify(d, null, 1) + '\n';
+  if (text !== readFileSync(file, 'utf8')) writeAtomic(file, text);
+}
 // The plan sections each role reads, from the table in .claude/skills/build-ticket/SKILL.md (optimize plan C3).
 const roleKey = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 function roleSections() {
@@ -219,9 +531,44 @@ function roleSections() {
   }
   return out;
 }
+const PLAN_CHECKER_SECTIONS = 'header, 1, 3, 4, 6';
+// Lesson areas of every `## L-<n>` heading in vault/lessons/*.md other than INDEX.md (D21).
+function headingAreas(head) {
+  const m = head.match(/areas:\s*([^]*?)\s+seen:/);
+  return (m ? m[1] : '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+}
+// The one parser of a plan's header Areas line (EZD-246 D2; texts from EZD-245).
+export function planAreas(id) {
+  const rel = `vault/plans/${id}.md`;
+  const f = path.join(vault, 'plans', `${id}.md`);
+  if (!existsSync(f)) throw new Error(`${rel} does not exist`);
+  const text = readFileSync(f, 'utf8');
+  const cut = text.search(/^## /m);
+  const header = cut < 0 ? text : text.slice(0, cut);
+  const m = header.match(/^- \*\*Areas:\*\*(.*)$/m);
+  const areas = m ? m[1].split(',').map((a) => a.trim().toLowerCase()).filter(Boolean) : [];
+  if (!areas.length) throw new Error(`${rel} has no Areas line in its header (- **Areas:** <area>, <area>)`);
+  for (const a of areas) if (!/^[a-z][a-z0-9-]*$/.test(a)) throw new Error(`${rel} Areas line has an invalid area "${a}"`);
+  return areas;
+}
+function planCheckerLines(id) {
+  const rel = `vault/plans/${id}.md`;
+  const areas = planAreas(id);
+  const out = [`Plan: ${rel}`, `Sections: ${PLAN_CHECKER_SECTIONS}`, `Areas: ${areas.join(', ')}`, 'Lessons:', lessons('planner', areas)];
+  const dir = path.join(vault, 'lessons');
+  const known = new Set();
+  for (const n of existsSync(dir) ? readdirSync(dir) : []) {
+    if (!n.endsWith('.md') || n === 'INDEX.md') continue;
+    for (const h of read(path.join(dir, n)).split('\n').filter((l) => /^## L-\d+/.test(l))) for (const a of headingAreas(h)) known.add(a);
+  }
+  const none = areas.filter((a) => !known.has(a));
+  if (none.length) out.push(`Areas with no lesson in any role file: ${none.join(', ')}`);
+  return out;
+}
 function readsLines(id, role) {
   const t = tickets.get(id);
   if (!t) throw new Error(`unknown ticket ${id}`);
+  if (roleKey(role) === 'plan-checker') return planCheckerLines(id);
   const roles = roleSections();
   const key = roleKey(role);
   if (key !== 'planner' && !roles.has(key)) throw new Error(`unknown role "${role}"; roles: planner, ${[...roles.values()].map((r) => r.name).join(', ')}`);
@@ -240,17 +587,27 @@ function readsLines(id, role) {
     `Decisions: ${group(t.decisions || [], 'vault/') || '(none)'}`,
   ];
   if ((t.mockups || []).length) lines.push(`Mockups: ${t.mockups.map((m) => `vault/${m}`).join(', ')}`);
+  const doc = architectureDoc();
+  if (!doc) throw new Error(DOC_MISSING);
+  if (!doc.core) throw new Error(DOC_NO_CORE);
+  if (key !== 'planner' && !Array.isArray(t.architecture)) throw new Error(noList(id));
+  const extra = Array.isArray(t.architecture) ? t.architecture.filter((h) => !doc.core.includes(h)) : [];
+  const sections = [...doc.core, ...extra].map((h) => ` --section '${h}'`).join('');
+  lines.push(`Architecture: node vault/tools/outline.mjs docs/architecture.md${sections}`);
+  if (key === 'planner') lines.push('Architecture headings: node vault/tools/outline.mjs docs/architecture.md --headings');
   if (key === 'planner') lines.push(`Plan: vault/plans/${id}.md (to write)`);
   else lines.push(`Plan: vault/plans/${id}.md`, `Sections: ${roles.get(key).sections}`);
   return lines;
 }
 
-// Dispatch routing (process v2.4, PROCESS.md section 4 table). Returns { agent, model, effort, consultAdvisor } for one
+// Dispatch routing (process v2.4, PROCESS.md section 4 table). Returns { agent, model, effort, orchestratorAdvice } for one
 // dispatch from the STATUS Complexity, the role and the round; the orchestrator passes model and effort on the dispatch.
 const M = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' };
 const fableOr = () => (process.env.EZD_FABLE_ALLOWED === '0' ? M.opus : M.fable);
-const route = (agent, model, effort, consultAdvisor = false, extra = {}) =>
-  ({ agent, model, effort, consultAdvisor: consultAdvisor && model !== M.opus && model !== M.fable, ...extra });
+// orchestratorAdvice (Q-0333 (c), Josh 2026-10-25): the orchestrator consults its own advisor before this dispatch and
+// passes the advice in "Findings to address"; subagents never get an advisor line (it never reached them).
+// Boost no longer changes models or effort (Josh 2026-10-26: the bump bought stricter reviews, not throughput).
+const route = (agent, model, effort, orchestratorAdvice = false, extra = {}) => ({ agent, model, effort, orchestratorAdvice, ...extra });
 // Calculation-heavy = the plan's Reviewers line says calc-auditor yes ("calc-auditor yes", "**calc-auditor:** yes").
 const planNamesCalc = (id) => /calc-auditor[*:\s]*\**yes/i.test(read(path.join(vault, 'plans', `${id}.md`)));
 export function dispatchFor(id, role, round = 1) {
@@ -260,14 +617,14 @@ export function dispatchFor(id, role, round = 1) {
   if (!COMPLEXITY.includes(c)) throw new Error(`${id} has no complexity in STATUS.md`);
   if (!Number.isInteger(round) || round < 1 || round > 3) throw new Error(`--round must be 1, 2 or 3, got ${round}`);
   const key = roleKey(role);
-  // r1 = [model, effort] for round 1. Round 2: same model with the advisor (high: Opus at high effort). Round 3: one tier
-  // up with the advisor (high: the orchestrator's blocked review with the advisor).
+  // r1 = [model, effort] for round 1. Round 2: same model (high: Opus at high effort). Round 3: one tier up, with the
+  // orchestrator's advisor advice in the dispatch (high: the orchestrator's blocked review with the advisor).
   const ladder = (agent, r1) => {
     if (round === 1) return route(agent, r1[0], r1[1]);
     if (c === 'high') return round === 2 ? route(agent, M.opus, 'high')
       : route('orchestrator', M.sonnet, 'medium', true, { action: 'blocked review with the advisor, then blocked' });
-    if (round === 2) return route(agent, r1[0], r1[1], true);
-    return c === 'low' ? route(agent, M.sonnet, 'medium', true) : route(agent, M.opus, 'medium');
+    if (round === 2) return route(agent, r1[0], r1[1]);
+    return c === 'low' ? route(agent, M.sonnet, 'medium', true) : route(agent, M.opus, 'medium', true);
   };
   switch (key) {
     case 'test-author':
@@ -299,6 +656,18 @@ export function batchFor(id) {
   const t = tickets.get(id);
   const r = rows.get(id);
   if (!t || !r) throw new Error(`unknown ticket ${id}`);
+  if (r.complexity === 'medium') {
+    if (!eligible(id)) return [id];
+    const peers = phaseTickets(t.phase)
+      .filter((x) => x.id !== id && rows.get(x.id)?.status === 'ready' && rows.get(x.id)?.complexity === 'medium' && eligible(x.id))
+      .sort((p, q) => num(p.id) - num(q.id));
+    const batch = [id];
+    for (const p of peers) {
+      if (batch.length === 3) break;
+      if (batch.every((m) => related(m, p.id))) batch.push(p.id);
+    }
+    return batch;
+  }
   if (r.complexity !== 'low') return [id];
   const mine = planFiles(id);
   const peers = phaseTickets(t.phase)
@@ -313,10 +682,89 @@ export function batchFor(id) {
   }
   return batch;
 }
+// Paths in the plan's section 1 Build steps table, Path column (EZD-246 D3).
+export function planStepPaths(id) {
+  const f = path.join(vault, 'plans', `${id}.md`);
+  if (!existsSync(f)) return [];
+  const text = readFileSync(f, 'utf8');
+  const start = text.search(/^## 1\. /m);
+  if (start < 0) return [];
+  let sec = text.slice(start);
+  const next = sec.slice(1).search(/^## \d+\. /m);
+  if (next >= 0) sec = sec.slice(0, next + 1);
+  const bs = sec.search(/^### Build steps\s*$/m);
+  if (bs < 0) return [];
+  let blk = sec.slice(bs + 1);
+  const nh = blk.search(/^### /m);
+  if (nh >= 0) blk = blk.slice(0, nh);
+  const lines = blk.split(/\r?\n/);
+  const first = lines.findIndex((l) => l.startsWith('|'));
+  if (first < 0) return [];
+  const table = [];
+  for (let i = first; i < lines.length && lines[i].startsWith('|'); i++) table.push(lines[i]);
+  const cells = (l) => l.replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((x) => x.trim());
+  const col = cells(table[0]).indexOf('Path');
+  if (col < 0) return [];
+  const out = [];
+  for (const row of table.slice(2)) {
+    const cell = cells(row)[col] ?? '';
+    const toks = [...cell.matchAll(/`([^`]+)`/g)].map((x) => x[1]);
+    for (const p of toks.length ? toks : (cell ? [cell] : [])) if (!out.includes(p)) out.push(p);
+  }
+  return out;
+}
+// True when a spec_files entry of a and one of b name the same file and the same anchor (or either has none) (D4).
+export function sharesSpecSection(a, b) {
+  return a.some((x) => b.some((y) => {
+    const [fx, ax] = splitRef(x); const [fy, ay] = splitRef(y);
+    return fx === fy && (ax === null || ay === null || norm(ax) === norm(ay));
+  }));
+}
+const safeAreas = (id) => { try { return planAreas(id); } catch { return null; } };
+const eligible = (m) => tickets.get(m).depends_on.every((d) => status(d) === 'done') && safeAreas(m) !== null && planStepPaths(m).length > 0;
+const related = (a, b) => {
+  const aa = planAreas(a); const ab = planAreas(b);
+  if (!aa.some((x) => ab.includes(x))) return false;
+  if (!sharesSpecSection(tickets.get(a).spec_files || [], tickets.get(b).spec_files || [])) return false;
+  const pa = planStepPaths(a);
+  return !planStepPaths(b).some((p) => pa.includes(p));
+};
 const batchOf = (id) => (rows.get(id)?.notes.match(/batch:\s*(EZD-\d+[a-z]?(?:\+EZD-\d+[a-z]?)+)/) || [])[1]?.split('+') || null;
 
+// 2.13: the records database itself: SQLite's own check, every view on disk equal to its database rendering, and every
+// open ticket's untracked plan equal to the text the launcher holds for it (D9 (a), 2026-11-02).
+function recordsProblems() {
+  if (!recordsDb) return [];
+  const out = [];
+  const ok = recordsDb.prepare('pragma integrity_check').get();
+  if (Object.values(ok)[0] !== 'ok') out.push(`records database integrity check: ${Object.values(ok)[0]}`);
+  for (const rel of RECORD_DOCS) {
+    const want = records.renderDoc(recordsDb, rel);
+    const f = path.join(vault, rel);
+    if (want !== null && existsSync(f) && readFileSync(f, 'utf8') !== want) out.push(`vault/${rel} differs from the records database (a view is never edited; run node scripts/records.mjs export)`);
+  }
+  // 2.14: the only untracked vault files are the plans of open tickets and the review and for-josh files of open phases;
+  // they reach git with the ticket's feat commit or the phase snapshot (D9 (a), 2026-11-02).
+  const g = spawnSync('git', ['-C', root, 'ls-files', '--others', '--exclude-standard', '--', 'vault'], { encoding: 'utf8' });
+  const openPhases = new Set([...rows.values()].filter((r) => r.status !== 'done').map((r) => Number(r.phase)));
+  for (const f of g.status === 0 ? g.stdout.split('\n').filter(Boolean) : []) {
+    const plan = f.match(/^vault\/plans\/(EZD-[0-9A-Za-z]+)\.md$/);
+    const phaseFile = f.match(/^vault\/(?:plans\/review-phase|questions\/phase)-(\d+)(?:-for-josh)?\.md$/);
+    if (plan && rows.has(plan[1]) && rows.get(plan[1]).status !== 'done') continue;
+    if (phaseFile && openPhases.has(Number(phaseFile[1]))) continue;
+    if (f.startsWith('vault/research/pending/')) continue; // a retriever's report, adopted within its unit
+    out.push(`${f} is untracked: only open tickets' plans and open phases' review and for-josh files wait outside git (commit it or remove it)`);
+  }
+  for (const p of recordsDb.prepare('select ticket, sha256 from plans').all()) {
+    if (rows.get(p.ticket)?.status === 'done') continue;
+    const f = path.join(vault, 'plans', `${p.ticket}.md`);
+    if (!existsSync(f)) out.push(`vault/plans/${p.ticket}.md is missing; the records database holds its text (sha256 ${p.sha256.slice(0, 12)})`);
+    else if (records.sha256(readFileSync(f, 'utf8')) !== p.sha256) out.push(`vault/plans/${p.ticket}.md differs from the text recorded for it; record it with node scripts/ledger.mjs architecture ${p.ticket}`);
+  }
+  return out;
+}
 function check() {
-  const problems = [];
+  const problems = [...recordsProblems(), ...questionProblems()];
   for (const id of tickets.keys()) if (!rows.has(id)) problems.push(`${id} is in tickets.json but not in STATUS.md`);
   for (const [id, r] of rows) {
     const t = tickets.get(id);
@@ -324,6 +772,9 @@ function check() {
     if (!STATUSES.includes(r.status)) problems.push(`${id} has unknown status "${r.status}"`);
     if (r.status === 'done' && !/^[0-9a-f]{7,40}$/i.test(r.commit)) problems.push(`${id} is done but has no commit hash`);
     if (r.status === 'blocked' && !r.notes) problems.push(`${id} is blocked but has no note`);
+    // A ticket past todo has a plan (D-004: a phase gate wrote fix tickets ready with no plan and the launcher stopped).
+    if (['planned', 'questions', 'ready', 'in-progress', 'review'].includes(r.status) && !existsSync(path.join(vault, 'plans', `${id}.md`)))
+      problems.push(`${id} is ${r.status} but has no plan (vault/plans/${id}.md); a new ticket starts as todo`);
     if (['ready', 'in-progress', 'review', 'done'].includes(r.status) && !COMPLEXITY.includes(r.complexity))
       problems.push(`${id} is ${r.status} but has no complexity rating (low, medium or high)`);
     if (['in-progress', 'review', 'done'].includes(r.status) && !depsDone(t))
@@ -334,10 +785,13 @@ function check() {
       problems.push(`${id} is ${r.status} but the architecture checkpoint is not met`);
   }
   const busy = [...rows].filter(([, r]) => r.status === 'in-progress' || r.status === 'review').map(([id]) => id);
-  // A batch of 2 or 3 low tickets counts as one ticket in progress (v2.4); every member must name the same batch.
+  // A batch of 2 or 3 low or medium tickets counts as one ticket in progress (v2.4); every member must name the same batch.
   const units = new Set(busy.map((id) => {
     const b = batchOf(id);
-    const valid = b && b.length <= 3 && b.includes(id) && b.every((m) => rows.get(m)?.complexity === 'low' && batchOf(m)?.join('+') === b.join('+'));
+    const valid = b && b.length <= 3 && new Set(b).size === b.length && b.includes(id)
+      && b.every((m) => rows.has(m) && tickets.has(m) && rows.get(m).complexity === rows.get(id).complexity && tickets.get(m).phase === tickets.get(id).phase)
+      && ['low', 'medium'].includes(rows.get(id).complexity)
+      && b.every((m) => !['in-progress', 'review'].includes(rows.get(m).status) || batchOf(m)?.join('+') === b.join('+'));
     return valid ? b.join('+') : id;
   }));
   if (units.size > LIMIT_IN_PROGRESS) problems.push(`more than ${LIMIT_IN_PROGRESS} ticket in progress: ${busy.join(', ')} (PROCESS-EZDRAFT.md section 8)`);
@@ -345,7 +799,10 @@ function check() {
   const ac = spawnSync(process.execPath, [path.join(vault, 'tools/gen_acs.mjs'), '--check'], { encoding: 'utf8' });
   if (ac.status !== 0) problems.push((ac.stdout || ac.stderr).trim().split('\n')[0]);
   problems.push(...lessonProblems());
+  problems.push(...findingProblems(vault));
   problems.push(...readingProblems());
+  problems.push(...architectureProblems());
+  problems.push(...trackProblems());
   return problems;
 }
 
@@ -368,8 +825,11 @@ function candidates(p, wantReady) {
     .filter((t) => !['done', 'blocked', 'in-progress', 'review'].includes(status(t.id)))
     .filter((t) => !wantReady || status(t.id) === 'ready')
     .filter(depsDone)
-    .sort((a, b) => num(a.id) - num(b.id));
+    .sort(byPriority);
 }
+// A ticket with "priority": 1 in tickets.json is planned and built before the others of its phase, then by number
+// (Josh 2026-10-27: the usage-saving fix tickets go first).
+const byPriority = (a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0) || num(a.id) - num(b.id);
 const inFlight = () => data.tickets.find((t) => ['in-progress', 'review'].includes(status(t.id)));
 
 // Phase gate state, from the gate record the gate-phase unit writes (vault/tickets/gates/phase-NN.md).
@@ -390,62 +850,133 @@ function gateState(p) {
 }
 const wrapped = (p) => existsSync(path.join(vault, 'cost', `phase-${pad2(p)}.md`));
 
+// EZD-253 D6: the first phase, ascending, with a product ticket (no tooling mark) not done or blocked; null when none.
+export function blockingPhase() {
+  const ps = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  return ps.find((p) => phaseTickets(p).some((t) => !isTooling(t) && !['done', 'blocked'].includes(status(t.id)))) ?? null;
+}
+// EZD-253 D9, EZD-278: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies
+// done, by phase then priority; then, when B is signed off, B's ready product tickets; then, when the phase after B is signed off,
+// its ready product tickets (those numbered CHECKPOINT_FROM or higher only once the architecture checkpoint is met). nextUnit
+// builds the first one whose plan needs no guarded path, so the next phase builds only while B has none the launcher can build.
+export function buildPool(B) {
+  const cap = B ?? Math.max(...data.tickets.map((t) => t.phase));
+  const pool = data.tickets.filter((t) => isTooling(t) && t.phase <= cap && status(t.id) === 'ready' && depsDone(t))
+    .sort((a, b) => a.phase - b.phase || byPriority(a, b));
+  if (B !== null && signedOff(B)) {
+    pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
+    const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+    const next = phases.find((q) => q > B);
+    if (next !== undefined && signedOff(next)) {
+      const early = checkpointMissing().length > 0;
+      pool.push(...candidates(next, true).filter((t) => !isTooling(t) && !(early && ticketNumber(t.id) >= CHECKPOINT_FROM)));
+    }
+  }
+  return pool;
+}
+
+// Units the launcher set aside after two runs without progress (Josh 2026-11-03): skipped until Josh clears the list. Only the main checkout has this file.
+function setAsideUnits() {
+  try { return new Set(JSON.parse(readFileSync(path.join(root, '.git', 'set-aside.json'), 'utf8'))); } catch { return new Set(); }
+}
+
 function nextUnit() {
   if (existsSync(path.join(vault, 'handoff/STOP'))) return 'none: vault/handoff/STOP exists';
   const problems = check();
   if (problems.length) return `none: ledger check failed (${problems.length}); run --check`;
-  const hold = existsSync(path.join(vault, 'handoff/BUDGET_HOLD.md'));
   const flying = inFlight();
-  if (flying) return `build ${flying.id}`;
-  if (hold) return 'none: budget hold (vault/handoff/BUDGET_HOLD.md); no ticket in progress';
+  // L-004: under a budget hold only the in-flight build runs.
+  if (existsSync(path.join(vault, 'handoff/BUDGET_HOLD.md'))) return flying ? `build ${flying.id}` : 'none: budget hold (vault/handoff/BUDGET_HOLD.md); no ticket in progress';
   const phase = currentPhase();
   if (phase === null) return 'none: every ticket is done';
-  // A finished phase (all done or blocked) goes through gate -> Josh merges -> wrap before the next phase starts.
-  for (const p of [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b)) {
-    if (p > phase) break;
-    const ts = phaseTickets(p);
-    if (!ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
+  const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  const B = blockingPhase();
+  const aside = setAsideUnits();
+  // Every finished phase (all product tickets done or blocked; tooling tickets do not count, EZD-253) up to the working phase goes through gate -> PR merge -> wrap, in phase order, before the working phase runs (EZD-254; PROCESS.md sections 8-9). An earlier phase's blocked ticket does not stop a later finished phase's gate.
+  for (const p of phases) {
+    if (B !== null && p >= B) break;
     if (wrapped(p)) continue;
+    // A ticket in review may already have its feat commit on develop (scripts/unit-steps.mjs), so it finishes before a gate.
+    if (flying && status(flying.id) === 'review') return `build ${flying.id}`;
     const g = gateState(p);
+    if (aside.has(`gate-phase ${p}`) || aside.has(`wrap ${p}`)) continue;
     if (g.state === 'not-gated' || g.state === 'gating') return `gate-phase ${p}`;
-    if (g.state === 'pr-open') return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr})`;
+    if (g.state === 'pr-open') {
+      // EZD-250 D18 (Q-0379 (b)): a failed CI `gate` check on the phase PR is a repairable wait; any other CI state keeps the wait.
+      const r = spawnSync('gh', ['pr', 'checks', g.pr, '--json', 'name,bucket,link'], { cwd: root, encoding: 'utf8', timeout: 30000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+      let checks = null;
+      try { checks = JSON.parse(r.stdout); } catch {}
+      if (!Array.isArray(checks)) {
+        const detail = (r.stderr || '').split('\n').map((l) => l.trim()).find(Boolean)
+          || (r.error?.code === 'ENOENT' ? 'gh not found' : r.error ? `gh error ${r.error.code}` : `gh exited ${r.status}`);
+        return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr}; CI status unreadable: ${detail})`;
+      }
+      const failed = checks.find((c) => c?.name === 'gate' && c?.bucket === 'fail');
+      if (failed) return `none: phase ${p} PR CI gate check failed (${g.pr}; ${typeof failed.link === 'string' && failed.link ? failed.link : 'no link'})`;
+      return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr})`;
+    }
     if (g.state === 'merged') return `wrap ${p}`;
   }
-  const { p } = workingPhase();
-  if (p === null) return `none: only blocked tickets left (from phase ${phase}); see STATUS.md notes`;
-  const ts = phaseTickets(p);
-  if (!signedOff(p)) return `none: phase ${p} spec not signed off (spec-check unit needs Josh)`;
-  const st = (s) => ts.filter((t) => status(t.id) === s);
-  // Stage 1
-  const todo = st('todo').filter(depsDone).sort((a, b) => num(a.id) - num(b.id));
-  const planOrder = ts.filter((t) => status(t.id) === 'todo').sort((a, b) => num(a.id) - num(b.id));
-  if (planOrder.length) return `plan ${planOrder[0].id}`;
-  const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(p)}.md`);
-  const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
-  if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile)) return `review-plans ${p}`;
-  // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
-  if (questionsDue(p)) return `questions ${p}`;
-  if (!inStage3 && (st('planned').length || st('questions').length)) {
-    const q = questionsForPhase(p);
-    if (q.escalated) return `none: waiting on Josh (${q.escalated} escalated question${q.escalated === 1 ? '' : 's'} for phase ${p}; vault/questions/phase-${pad2(p)}-for-josh.md)`;
-    return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); see vault/handoff/CURRENT.md`;
+  if (flying) return `build ${flying.id}`;
+
+  // EZD-253 D8: Stage 1-2 of every signed-off phase up to `last` (B's next phase once B is signed off) comes before any
+  // build (Q-0129; Q-0388). A phase whose Stage 1-2 waits on Josh keeps its text as the first fall-through reason.
+  const last = B === null ? phases[phases.length - 1] : !signedOff(B) ? B : (phases.find((q) => q > B) ?? B);
+  let reason = null;
+  for (const q of phases) {
+    if (q > last) break;
+    if (!signedOff(q)) continue;
+    const ts = phaseTickets(q);
+    if (ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
+    const st = (s) => ts.filter((t) => status(t.id) === s);
+    // Stage 1
+    const planOrder = st('todo').filter((t) => !aside.has(`plan ${t.id}`)).sort(byPriority);
+    if (planOrder.length) return `plan ${planOrder[0].id}`;
+    const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(q)}.md`);
+    const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
+    if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
+    // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
+    if (questionsDue(q) && !aside.has(`questions ${q}`)) return `questions ${q}`;
+    if (!inStage3 && (st('planned').length || st('questions').length) && reason === null) {
+      const n = questionsForPhase(q);
+      reason = n.escalated
+        ? `none: waiting on Josh (${n.escalated} escalated question${n.escalated === 1 ? '' : 's'} for phase ${q}; vault/questions/phase-${pad2(q)}-for-josh.md)`
+        : `none: the last questions ${q} unit changed nothing (loop guard, Q-0129); see vault/handoff/CURRENT.md`;
+    }
   }
-  // Stage 3; tickets still in `questions` wait on their own answer while ready tickets build
-  if (ticketNumber(ts[0].id) >= CHECKPOINT_FROM || ts.some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM)) {
-    const missing = checkpointMissing();
-    if (missing.length) return `none: architecture checkpoint not met (${missing.join('; ')})`;
+
+  // EZD-253 D9: Stage 3. Tooling tickets first, then B's product tickets; tickets still in `questions` wait on their own answer.
+  const pool = buildPool(B);
+  const missing = checkpointMissing();
+  if (missing.length && ((pool.length && ticketNumber(pool[0].id) >= CHECKPOINT_FROM) || (B !== null && phaseTickets(B).some((t) => ticketNumber(t.id) >= CHECKPOINT_FROM))))
+    return `none: architecture checkpoint not met (${missing.join('; ')})`;
+  // EZD-250 D6: a ready ticket whose plan needs a guarded path is held for Josh (fix mode); the others build meanwhile.
+  // EZD-267: the held text names each ticket's paths.
+  const needs = new Map();
+  const free = pool.find((t) => {
+    needs.set(t.id, guardedPaths({ root, id: t.id }));
+    return needs.get(t.id).length === 0;
+  });
+  if (free) return `build ${free.id}`;
+  if (pool.length) return `none: waiting on Josh (guarded paths for ${pool.map((t) => `${t.id}: ${needs.get(t.id).join(', ')}`).join('; ')}; a change to them goes through fix mode)`;
+  if (reason) return reason;
+  if (B !== null) {
+    if (!signedOff(B)) return `none: phase ${B} spec not signed off (spec-check unit needs Josh)`;
+    const ts = phaseTickets(B);
+    const st = (s) => ts.filter((t) => status(t.id) === s);
+    const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
+    if (waiting.length) {
+      if (questionsGuarded(B)) return `none: the last questions ${B} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
+      return `none: waiting on Josh (tickets with open questions: ${waiting.join(', ')}); nothing else is ready in phase ${B}`;
+    }
+    const blocked = st('blocked').map((t) => t.id);
+    if (blocked.length) return `none: waiting on Josh (blocked: ${blocked.join(', ')}); nothing else is ready in phase ${B}`;
+    return `none: nothing ready in phase ${B}; waiting on dependencies`;
   }
-  const ready = candidates(p, true);
-  if (ready.length) return `build ${ready[0].id}`;
-  const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
-  if (waiting.length) {
-    if (questionsGuarded(p)) return `none: the last questions ${p} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
-    return `none: waiting on Josh (tickets with open questions: ${waiting.join(', ')}); nothing else is ready in phase ${p}`;
-  }
-  const blocked = st('blocked').map((t) => t.id);
-  if (blocked.length) return `none: waiting on Josh (blocked: ${blocked.join(', ')}); nothing else is ready in phase ${p}`;
-  return `none: nothing ready in phase ${p}; waiting on dependencies`;
-  void todo;
+  const open = data.tickets.filter((t) => status(t.id) !== 'done');
+  if (open.every((t) => status(t.id) === 'blocked')) return `none: only blocked tickets left (from phase ${phase}); see STATUS.md notes`;
+  const ids = open.filter((t) => status(t.id) !== 'blocked').sort((a, b) => a.phase - b.phase || num(a.id) - num(b.id)).map((t) => t.id);
+  return `none: no tooling ticket is ready; waiting on dependencies or questions (open: ${ids.join(', ')})`;
 }
 
 function lessons(role, areas) {
@@ -500,7 +1031,7 @@ function report() {
     trace += '\n';
   }
   trace += `ACs not yet covered by a merged ticket: ${uncovered}.\n`;
-  writeFileSync(path.join(vault, 'tickets/TRACE.md'), trace);
+  writeAtomic(path.join(vault, 'tickets/TRACE.md'), trace);
 
   // PROGRESS.md
   const done = read(path.join(vault, 'DONE.md')).split(/\r?\n/).filter((l) => /^\d{4}-\d\d-\d\d/.test(l) || /^- \d{4}-\d\d-\d\d/.test(l) || /^\| \d{4}/.test(l));
@@ -529,7 +1060,7 @@ function report() {
     const row = (name, w) => (w ? `| ${name} | ${Math.round(w.pct)}% | ${utc(w.resets_at)} |\n` : `| ${name} | no meter | — |\n`);
     md += `## Usage\n\nSource: ${usage.source}, read ${utc(usage.read_at)}.\n\n| Window | Used | Resets |\n| --- | --- | --- |\n${row('Five-hour', usage.five_hour)}${row('Weekly', usage.seven_day)}${row('Fable weekly', usage.fable_seven_day)}`;
   } else md += `## This week's estimated spend\n\n${spend.text}\n`;
-  writeFileSync(path.join(vault, 'PROGRESS.md'), md);
+  writeAtomic(path.join(vault, 'PROGRESS.md'), md);
   console.log('wrote vault/PROGRESS.md and vault/tickets/TRACE.md');
 }
 
@@ -578,7 +1109,8 @@ export function weekSpend(budget, now = new Date()) {
 }
 
 const args = process.argv.slice(2);
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+// Realpaths on both sides, so a run through a symlinked path (macOS /var, /tmp) still counts as main (EZD-155; Q-0268 sweep item 45).
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain) {
   if (args.includes('--check')) {
     const p = check();
@@ -587,12 +1119,31 @@ if (isMain) {
     process.exit(0);
   }
   if (args.includes('--next-unit')) { console.log(nextUnit()); process.exit(0); }
+  if (args.includes('--tooling')) {
+    const n = args[args.indexOf('--tooling') + 1];
+    if (!/^\d+$/.test(n || '')) { console.error('usage: --tooling <phase number>'); process.exit(2); }
+    const list = data.tickets.filter((t) => isTooling(t) && t.phase <= Number(n)).sort((a, b) => a.phase - b.phase || num(a.id) - num(b.id));
+    for (const t of list) console.log(`${t.id}\t${t.phase}\t${status(t.id)}\t${rows.get(t.id)?.commit || '-'}\t${t.title}`);
+    process.exit(0);
+  }
+  if (args.includes('--sort-questions')) {
+    const r = sortQuestions();
+    console.log(r.deferred ? 'QUESTIONS SORT DEFERRED: the launcher sorts after this unit (REMEDIATION-PLAN 2.13)' : `QUESTIONS SORTED: ${r.moved} moved; open ${r.open}, answered ${r.answered}, archive ${r.archive}`);
+    process.exit(0);
+  }
   if (args.includes('--reads')) {
     const i = args.indexOf('--reads');
     const [id, ...role] = args.slice(i + 1);
     if (!id || !role.length) { console.error('usage: --reads <ticket> <role>'); process.exit(1); }
     try { console.log(readsLines(id, role.join(' ')).join('\n')); } catch (e) { console.error(e.message); process.exit(1); }
     process.exit(0);
+  }
+  if (args.includes('--set-architecture')) {
+    const id = args[args.indexOf('--set-architecture') + 1];
+    if (!id) { console.error('usage: --set-architecture <ticket>'); process.exit(1); }
+    const r = setArchitecture(id);
+    (r.ok ? console.log : console.error)(r.message);
+    process.exit(r.ok ? 0 : 1);
   }
   if (args.includes('--dispatch')) {
     const i = args.indexOf('--dispatch');

@@ -20,12 +20,13 @@ try {
   let raw = '';
   try { raw = readFileSync(0, 'utf8'); } catch {}
   mkdirSync(dir, { recursive: true });
-  if (!existsSync(usageFile) && !existsSync(sampleFile)) writeFileSync(sampleFile, raw);
   let line = 'usage: no data';
   try {
     const limits = JSON.parse(raw)?.rate_limits;
     const five = win(limits?.five_hour), week = win(limits?.seven_day);
     if (five && week) {
+      // Raw sample (EZD-240): the first payload that yields both windows, never one sent before any model call.
+      if (!existsSync(usageFile) && !existsSync(sampleFile)) writeFileSync(sampleFile, raw);
       const out = { five_hour: five, seven_day: week, fable_seven_day: null, read_at: new Date().toISOString(), source: 'statusline' };
       const tmp = `${usageFile}.${process.pid}.tmp`;
       writeFileSync(tmp, JSON.stringify(out, null, 2) + '\n');

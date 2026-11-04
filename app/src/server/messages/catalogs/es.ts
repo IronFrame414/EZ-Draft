@@ -39,10 +39,23 @@ export const es = {
   'common.sign_in.password_submit': 'Iniciar sesión',
   'common.sign_in.send_instead': 'Mejor envíame un enlace de acceso por correo',
   'common.sign_in.forgot': '¿Olvidaste tu contraseña? Envíame un código por correo',
+  'common.terms.title': 'Términos del servicio',
+  'common.terms.no_certification':
+    'EZ Draft no certifica que ningún plano, cálculo o diseño cumpla con los códigos de construcción, eléctricos ni otros.',
+  'common.terms.responsibility':
+    'EZ Draft es solo para diseño y planificación. La responsabilidad del cumplimiento de los códigos es del usuario con licencia: todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
+  'common.terms.placeholder':
+    'Texto provisional: los términos completos del servicio aún no están redactados y reemplazarán este texto. Las dos declaraciones anteriores ya se aplican.',
+  'common.terms.back': 'Volver a iniciar sesión',
   'common.retry': 'Reintentar',
   'common.offline': 'Sin conexión',
   'common.cancel': 'Cancelar',
   'common.close': 'Cerrar',
+  'common.disclaimer':
+    'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
+  'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
+  'error.project_not_found': 'Ese proyecto no está disponible.',
+  'error.notification_not_found': 'Esa notificación ya no existe.',
   'error.invalid_email': 'Escribe un correo electrónico válido.',
   'error.too_many_requests': 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
   'error.code_invalid': 'Ese código es incorrecto o ya venció.',
@@ -61,6 +74,26 @@ export const es = {
     'La verificación de seguridad no se cargó. Revisa tu conexión y vuelve a cargar la página.',
   'error.envelope_too_large': 'Ese informe de error es demasiado grande para enviarlo.',
   'error.invalid_envelope': 'No se pudo leer ese informe de error.',
+  'error.page_not_found': 'Página no encontrada.',
+  'error.company_name_required': 'Escribe el nombre de tu empresa.',
+  'error.logo_too_large': 'Los logotipos pueden pesar hasta 4 MB. Elige un archivo más pequeño.',
+  'error.logo_wrong_type': 'Los logotipos deben ser PNG, JPG o SVG.',
+  'error.logo_svg_unsafe': 'Este SVG no se puede usar. Guárdalo como PNG e inténtalo de nuevo.',
+  'error.customer_name_required': 'Escribe el nombre del cliente.',
+  'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
+  'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
+  'error.customer_not_found': 'Este cliente ya no existe.',
+  'error.password_too_short': 'Usa al menos 8 caracteres.',
+  'error.password_too_long': 'Esa contraseña es demasiado larga.',
+  'error.password_contains_app_name': 'No uses "ezdraft" en tu contraseña.',
+  'error.password_contains_email_name':
+    'No uses la primera parte de tu correo electrónico en tu contraseña.',
+  'error.password_mismatch': 'Las contraseñas nuevas no coinciden.',
+  'error.current_password_wrong': 'Tu contraseña actual es incorrecta.',
+  'error.current_password_throttled':
+    'Demasiadas contraseñas incorrectas. Inténtalo de nuevo en 15 minutos.',
+  'error.password_same': 'Elige una contraseña distinta de la actual.',
+  'error.password_breached': 'Esta contraseña apareció en una filtración de datos. Elige otra.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

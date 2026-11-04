@@ -11,6 +11,7 @@ import {
   createTenant,
   expect,
   harnessSql,
+  setPermissions,
   test,
 } from '../test-harness/e2e/test';
 
@@ -36,6 +37,8 @@ test.describe('EZD-009 background jobs', () => {
     tenantA = await createTenant();
     const [project] = await createProjects(tenantA, 1);
     const a = await createMember({ tenantId: tenantA, scope: 'all' });
+    // EZD-145 D11: createMember gives no switches; the page enqueues (Edit model) and reads (View projects).
+    await setPermissions(tenantA, a.membershipId, ['view_projects', 'edit_model']);
     await signInAs(a.email);
 
     // Leak check (EZD-007f T21 pattern, app/e2e/gate-secret.spec.ts): the secret key the server runner uses

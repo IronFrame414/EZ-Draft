@@ -1,0 +1,103 @@
+/* EZD-108 Step 11 (vault/plans/EZD-108.md Decided "Settings header markup", "Menu"; board 01d): the
+   avatar trigger and menu. Colors from tokens only (check C10); spacing and font sizes in px; :hover only
+   under (hover: hover). */
+
+/* Avatar trigger (board 01d). */
+
+.trigger {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font: 600 12px var(--ez-font-sans);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.trigger[data-state='open'],
+.trigger:focus-visible {
+  outline: 2px solid var(--ez-cobalt);
+  outline-offset: 2px;
+}
+
+/* Menu (board 01d). */
+
+.menu {
+  z-index: 101;
+  box-sizing: border-box;
+  width: 280px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-dialog);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+}
+
+.menuHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 12px;
+}
+
+.menuName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.menuEmail {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+  overflow-wrap: anywhere;
+}
+
+.menuDivider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--ez-divider);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  font-size: 14px;
+  font-weight: 500;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: var(--ez-font-sans);
+  color: var(--ez-ink);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.menuItem:focus-visible {
+  background: var(--ez-hover);
+}
+
+@media (hover: hover) {
+  .menuItem:hover {
+    background: var(--ez-hover);
+  }
+}
+
+.menuIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--ez-slate-700);
+}

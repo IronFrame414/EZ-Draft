@@ -2,9 +2,10 @@
 // test.ts. Fresh tenants and users come from EZD-006 createTenant / createMember and are removed in
 // afterAll; seeded rows (EZD-005b tenant 1 and Josh) are only read. Tests match codes, URLs, claims, sizes
 // and names, never wording. The gate secret is compared only as a boolean or count (L-018).
-import type { BrowserContext, Request, Response } from '@playwright/test';
+import type { BrowserContext } from '@playwright/test';
 import {
   adminDb,
+  captureTraffic,
   cleanup,
   closeHarness,
   createMember,
@@ -165,36 +166,28 @@ test.describe('EZD-016a harness', () => {
     // A blank secret would make the search below pass on nothing (CLAUDE.md rule 16).
     expect(secret.length >= 43).toBe(true);
 
-    const headerNames: Promise<string[]>[] = [];
-    // null marks a non-redirect body that could not be read; it is counted, never skipped (rule 16).
-    const bodies: Promise<string | null>[] = [];
-    context.on('request', (r: Request) => {
-      headerNames.push(r.allHeaders().then((h) => Object.keys(h).map((k) => k.toLowerCase())));
-    });
-    context.on('response', (r: Response) => {
-      const type = r.request().resourceType();
-      if (type !== 'document' && type !== 'script') return;
-      const redirect = r.status() >= 300 && r.status() < 400;
-      bodies.push(
-        r.body().then(
-          (b) => b.toString('utf8'),
-          () => (redirect ? '' : null), // only redirects have no body
-        ),
-      );
-    });
+    const traffic = await captureTraffic(context);
 
     const signed = await signInAsOwner(page);
     await page.reload();
     await page.getByTestId('sign-out').waitFor({ state: 'visible' });
     const html = await page.evaluate(() => document.documentElement.outerHTML);
 
-    const names = await Promise.all(headerNames);
-    const texts = await Promise.all(bodies);
-    expect(names.length > 0).toBe(true);
-    expect(names.filter((n) => n.includes('x-ezd-api-gate')).length).toBe(0);
-    expect(texts.length > 0).toBe(true);
-    expect(texts.filter((t) => t === null).length).toBe(0);
-    expect([...texts, html].filter((t) => t !== null && t.includes(secret)).length).toBe(0);
+    const { requests, responses, cookieValues } = await traffic.settle();
+    const docs = responses.filter(
+      (r) => r.resourceType === 'document' || r.resourceType === 'script',
+    );
+    expect(requests.length > 0).toBe(true);
+    expect(requests.filter((r) => r.external).length).toBe(0);
+    expect(
+      requests.filter((r) => r.headerNames.some((n) => n.includes('x-ezd-api-gate'))).length,
+    ).toBe(0);
+    expect(docs.length > 0).toBe(true);
+    expect([...responses.map((r) => r.body), html].filter((t) => t.includes(secret)).length).toBe(
+      0,
+    );
+    expect(responses.filter((r) => r.headerValues.some((v) => v.includes(secret))).length).toBe(0);
+    expect(cookieValues.filter((v) => v.includes(secret)).length).toBe(0);
 
     const server = await signed.serverDb.from('app_user').select('id').eq('id', JOSH_USER_ID);
     expect(server.error).toBeNull();

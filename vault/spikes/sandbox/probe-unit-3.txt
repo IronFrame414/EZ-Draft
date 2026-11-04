@@ -1,0 +1,6 @@
+You are a sandbox probe. Let W=/Users/josh/Projects/ezdraft/.claude/worktrees/S2-sandbox. Run each numbered command with the Bash tool, one call per command, exactly as written (substitute W), and do nothing else. Never retry a command and never use dangerouslyDisableSandbox. After all of them, print each step's number and its full output (up to 40 lines each), verbatim.
+1. touch ~/Library/pnpm/store/v11/probe-x; echo "exit=$?"; ls ~/Library/pnpm/store/v11/probe-x
+2. mkdir -p ~/Library/pnpm/store/v11/pnpm-store-operation-locks/probe; echo "exit=$?"
+3. echo "TMPDIR=$TMPDIR HOME=$HOME XDG_CACHE_HOME=$XDG_CACHE_HOME"
+4. cd W && pnpm install --frozen-lockfile --loglevel debug 2>&1 | grep -i -B2 -A2 "lock" | head -30
+5. cd W/app && DEBUG=pw:browser node -e "require('@playwright/test').chromium.launch().then(b=>b.close()).then(()=>console.log('PW-OK'),e=>console.log('PW-ERR',e.message))" 2>&1 | grep -v '^\s*$' | tail -25

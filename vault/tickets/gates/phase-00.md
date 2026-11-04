@@ -1,6 +1,6 @@
 PR: https://github.com/IronFrame414/EZ-Draft/pull/2
 Develop at PR: 60a550ca4da828209167e14f3971c6582463829e
-Merged: no
+Merged: yes
 
 - Audit verdict: READY (phase-auditor). One defect (stale vault/architecture.md) fixed in 2de25be as a vault-only commit; no fix tickets.
 - Security-reviewer: PASS; Production-sensitive changes: PASS; 4 minors, no fix tickets.

@@ -28,6 +28,17 @@ export async function observe(host) {
   return obs;
 }
 
+// True only for an https URL whose host (lower-cased by the parser, with any explicit port) is HOST,
+// with no user name or password. Path, query and hash are not compared.
+function isSiteUrl(text) {
+  try {
+    const u = new URL(String(text));
+    return u.protocol === 'https:' && u.host === HOST && u.username === '' && u.password === '';
+  } catch {
+    return false;
+  }
+}
+
 export function evaluate(obs) {
   const https = obs.https ?? {};
   const http = obs.http ?? {};
@@ -50,14 +61,7 @@ export function evaluate(obs) {
 
   add('status', https.status === 200, `status ${https.status}`);
 
-  let hostOk = false;
-  try {
-    const u = new URL(https.finalUrl);
-    hostOk = u.protocol === 'https:' && u.hostname === HOST;
-  } catch {
-    hostOk = false;
-  }
-  add('host', hostOk, `final url ${https.finalUrl}`);
+  add('host', isSiteUrl(https.finalUrl), `final url ${https.finalUrl}`);
 
   const server = String(https.headers?.server ?? '').toLowerCase();
   add('vercel', server === 'vercel', `server ${server || 'missing'}`);
@@ -70,11 +74,7 @@ export function evaluate(obs) {
   add('hsts', !!age && Number(age[1]) > 0, hsts ? `hsts ${hsts}` : 'missing');
 
   const loc = String(http.location ?? '');
-  add(
-    'redirect',
-    http.status === 308 && loc.startsWith('https://' + HOST),
-    `http ${http.status} ${loc}`.trim(),
-  );
+  add('redirect', http.status === 308 && isSiteUrl(http.location), `http ${http.status} ${loc}`.trim());
 
   return { ok: results.every((r) => r.pass), results };
 }

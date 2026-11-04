@@ -9,11 +9,13 @@ import tseslint from 'typescript-eslint';
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
 import ezdraft from './eslint-rules/index.mjs';
+import { pinnedReactVersion } from './eslint-rules/react-version.mjs';
 import {
   EDITOR_CODE,
   EDITOR_CODE_IMPORTERS,
   HEAVY_PACKAGES,
   LAZY_ROOT,
+  PATH_ALIASES,
 } from './eslint-rules/boundaries.mjs';
 
 const APP = ['app/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'];
@@ -43,7 +45,11 @@ export default tseslint.config(
   ...[...nextCoreWebVitals, ...nextTypescript].map((cfg) => ({ ...cfg, files: APP })),
   {
     files: APP,
-    settings: { next: { rootDir: APP_DIR } },
+    settings: {
+      next: { rootDir: APP_DIR },
+      // EZD-186 (Q-0324): an exact react version, not 'detect', so a root lint never warns about react.
+      react: { version: pinnedReactVersion(APP_DIR) },
+    },
   },
   // EZD-026a · phone screens never carry literal interface text (vault/plans/EZD-026a.md Step 4; R26 R17). EZD-015a adds the states folder.
   {
@@ -52,6 +58,7 @@ export default tseslint.config(
       'app/src/components/field/**/*.{tsx,jsx}',
       'app/src/components/phone/**/*.{tsx,jsx}',
       'app/src/components/states/**/*.{tsx,jsx}',
+      'app/src/components/disclaimer/**/*.{tsx,jsx}',
     ],
     ignores: ['**/*.test.*', '**/*.spec.*'],
     plugins: { ezdraft },
@@ -90,6 +97,7 @@ export default tseslint.config(
       'app/src/app/sign-in/**/*.{tsx,jsx}',
       'app/src/app/auth/confirm/**/*.{tsx,jsx}',
       'app/src/components/auth/**/*.{tsx,jsx}',
+      'app/src/app/terms/**/*.{tsx,jsx}',
     ],
     ignores: ['**/*.test.*', '**/*.spec.*'],
     plugins: { ezdraft },
@@ -127,6 +135,7 @@ export default tseslint.config(
           lazyRoot: LAZY_ROOT,
           editorCode: EDITOR_CODE,
           editorCodeImporters: EDITOR_CODE_IMPORTERS,
+          aliases: PATH_ALIASES,
         },
       ],
     },

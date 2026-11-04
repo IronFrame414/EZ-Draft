@@ -2,6 +2,7 @@
 
 - **ACs:** AC-EZD-xxx-1, AC-EZD-xxx-2 … (from `vault/spec/acceptance-criteria.md`; one per testable sentence of the ticket's Done-when until the phase has Stage 0 ACs)
 - **Complexity:** low | medium | high (PROCESS.md section 4; one sentence of reasoning in section 8 below)
+- **Areas:** <lesson areas, comma-separated, lower-case; from vault/lessons/INDEX.md>
 - **User-visible result:** one line, plain words: what now works for Josh.
 - Phase: N · Planned by: planner · Date: YYYY-MM-DD · Status: planned | questions
 
@@ -12,6 +13,7 @@ Data (when the ticket has any): tables, columns, migrations, RLS policies, `sche
 
 ### Build steps
 In build order. One row per file. "Exports and signatures": the exact exported names and TypeScript signatures (or `none`). "Copy the pattern from": an existing file in the repo the builder mirrors (or `none (first of its kind)` plus the pattern in one line). "Verify with": the command that proves the step (a test name, `pnpm run typecheck`).
+A step the orchestrator does, not the builder: put `(orchestrator ...)` after the path in its Path cell (EZD-300 hold: only a path the guard denies the orchestrator then holds the ticket for Josh).
 | # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |
 | --- | --- | --- | --- | --- | --- |
 
@@ -26,7 +28,7 @@ Files, exports and behaviors the builder must leave as they are. "None" when not
 Ticket row, copied from the phase file: Scope / Done when / Depends on / Spec ref.
 
 ## 2. Sources
-Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R26 Rn, Q-nnnn, with the decisions file), and the mockup (`vault/mockups/Snn….png` + HTML). Every statement in section 1 cites one of these. Research reports R-NNN the plan drew on; a ticket no report covers says so.
+Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R26 Rn, Q-nnnn, with the decisions file), and the mockup (`vault/mockups/Snn….png` + HTML). Every statement in section 1 cites one of these. Research reports R-NNN the plan drew on; a ticket no report covers says so. End with `Architecture: <heading>; <heading>`: the `docs/architecture.md` headings this ticket needs beyond the core (the file's `Core sections:` line), or `Architecture: none beyond the core`. `next_ticket.mjs --set-architecture` copies it to `tickets.json` (EZD-244).
 
 ## 3. Interface contract
 What tests and code are both written to. Dependents must match it.

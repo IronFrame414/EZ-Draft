@@ -2,7 +2,7 @@
 
 Entries follow the format in PROCESS.md section 13. Keep under about 30; the wrap unit consolidates.
 
-## L-003  areas: tooling, scripts, process  seen: 1  status: ratified
+## L-003  areas: tooling, scripts, process  seen: 3  status: ratified
 Ticket EZD-000b, 2026-10-19
 Mistake: two repo-script tests went red in later runs: one hard-coded the next Q-IDs from a copy of the live ledger, one built hook inputs under the real repo root, which inside a ticket worktree changed the hook's answer.
 Cause: the tests depended on live repo state (ledger size, checkout location) instead of fixed inputs.
@@ -57,3 +57,19 @@ Mistake: U3 (a) anchored the frame markup at `^` and U3 (b) read the last `</div
 Cause: markup position checks were written without rendering the test's own harness wrapper once.
 Rule: when a test renders through `MessagesProvider`, position checks name the wrapper exactly (or anchor on the component's own tag), never `^` / `$` / the last closing tag.
 Check: render the wrapper alone with `renderToStaticMarkup` and look at the first and last tags before writing order assertions.
+- EZD-188 (2026-10-26): an allow-list over YAML built on a hand line scanner did not converge in 3 adversarial review rounds (each fix closed its sample, the next probe found another quoting form); plan a parser-backed cross-check (scanner list must equal the parser list) from the start.
+
+## L-041  areas: testing, docs, tooling  seen: 5  status: ratified
+Audit M4, 2026-11-01 (ratified by Josh's acceptance of the audit recommendations, 2026-11-01)
+Mistake: 73 test files check what documents say; each doc edit breaks a test, and five fix tickets only re-aligned wording.
+Cause: tests read `docs/*.md`, `CLAUDE.md` or the live vault instead of the behaviour those documents describe.
+Rule: never write a test that reads a document's wording or the live vault; test code, config or script output against fixtures. If a plan's Tests row asks for one, report it as a plan gap instead of writing it.
+Check: grep the new test files for `docs/`, `CLAUDE.md` and `vault/` reads before committing.
+
+
+## L-046  areas: ledger, tests  seen: 1  status: candidate
+Q-0544, 2026-11-03
+Mistake: the phase 3 sign-off turned develop red and blocked every merge, because tooling-track.test.mjs named phases 1 and 2 in its fixture. EZD-278 and EZD-281 had already fixed the same gap in ledger-copy.mjs and priority.test.mjs, but not here.
+Cause: several ledger tests build their own copy of the ledger, each with its own rule for which phases stay quiet, so a fix to one did not reach the others.
+Rule: a fixture over the live ledger never names the phases it keeps quiet; it blocks every later phase signed off in the copy's SIGNOFF.md, and leaves unsigned phases alone.
+Check: grep new ledger test fixtures for `ph === 1`, `ph === 2` and `phase === 2`, and run them with an extra phase signed in a scratch copy.

@@ -3,9 +3,12 @@
 // problem per failed rule. Codes and their sources are the plan's Step 6 table. The audit test (T15) is
 // @smoke, so every later ticket's gate runs it. Sources: 03 intro, 03 membership, 11 rule 10,
 // 11 Operations, 11 Security; Step 5 grants convention (orchestrator's brief 2026-10-12).
+// EZD-168 adds the `private` function execute rules (PUBLIC and the API roles; private-execute.ts).
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Sql, TransactionSql } from './db';
+import { API_ROLES, PRIVATE_EXECUTE } from './private-execute';
+import { isTestOnlyName, TEST_ONLY_FUNCTIONS } from './test-only-functions';
 import { expectedAuthenticatedPrivileges, explicitGrantRoles } from './table-grants';
 import { PROJECT_KEY, TENANTLESS_TABLES } from './tenancy-exemptions';
 
@@ -19,9 +22,10 @@ type Relation = {
   reloptions: string[] | null;
   columns: string[];
 };
-type Policy = {
+export type Policy = {
   tablename: string;
   policyname: string;
+  permissive: string;
   roles: string[];
   cmd: string;
   qual: string | null;
@@ -32,6 +36,8 @@ type Privilege = { schema: string; table: string; role: string; priv: string; ok
 const ROLES = ['anon', 'authenticated', 'service_role'];
 const PRIVS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'];
 const DATA_PRIVS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
+// EZD-190: the restrictive policy every table the signed-in role can touch carries, as pg_policies prints it.
+export const API_GATE_POLICY_EXPR = '( SELECT private.require_api_gate() AS require_api_gate)';
 const SCOPE_HELPERS = [/private\.listed_project_ids\(\)/, /private\.can_see_project\(/];
 
 export async function auditRls(
@@ -60,7 +66,8 @@ export async function auditRls(
     where n.nspname in ('public', 'private')`;
 
   const policies = await sql<Policy[]>`
-    select tablename::text as tablename, policyname::text as policyname, roles::text[] as roles,
+    select tablename::text as tablename, policyname::text as policyname, permissive::text as permissive,
+      roles::text[] as roles,
       cmd::text as cmd, qual, with_check
     from pg_policies where schemaname in ('public', 'private')`;
 
@@ -72,6 +79,29 @@ export async function auditRls(
     cross join unnest(${ROLES}::text[]) as r(role)
     cross join unnest(${PRIVS}::text[]) as p(priv)
     where n.nspname in ('public', 'private') and c.relkind in ('r', 'p', 'v')`;
+
+  const fnRows = await sql<{ fn: string; public_execute: boolean; role: string; ok: boolean }[]>`
+    select format('%I.%I(%s)', n.nspname, p.proname, oidvectortypes(p.proargtypes)) as fn,
+      exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) x
+        where x.grantee = 0 and x.privilege_type = 'EXECUTE') as public_execute,
+      r.role, has_function_privilege(r.role, p.oid, 'EXECUTE') as ok
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    cross join unnest(${[...API_ROLES]}::text[]) as r(role)
+    where n.nspname = 'private'
+    order by 1, 3`;
+
+  const testOnlyRows = await sql<
+    { fn: string; proname: string; anon: boolean; authenticated: boolean }[]
+  >`
+    select format('%I.%I(%s)', n.nspname, p.proname, oidvectortypes(p.proargtypes)) as fn,
+      p.proname::text as proname,
+      has_function_privilege('anon', p.oid, 'EXECUTE') as anon,
+      has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname in ('public', 'private')
+    order by 1`;
 
   const testText = readAppTestText(options.repoRoot);
   const migrationTexts = readMigrationTexts(options.repoRoot);
@@ -101,6 +131,13 @@ export async function auditRls(
     if (isTable) {
       const tablePolicies = policies.filter((p) => p.tablename === name);
       if (!rel.relrowsecurity) add(name, 'rls_disabled');
+      if (
+        rel.schema === 'public' &&
+        DATA_PRIVS.some((priv) => has(rel, 'authenticated', priv)) &&
+        !tablePolicies.some(isApiGatePolicy)
+      ) {
+        add(name, 'api_gate_policy_missing');
+      }
       if (tablePolicies.length === 0) add(name, 'no_policy');
 
       const isExempt = exempt.has(name);
@@ -124,10 +161,11 @@ export async function auditRls(
         const check = p.with_check ?? '';
         const both = `${using}\n${check}`;
         const cmd = p.cmd.toUpperCase();
-        if (!isExempt && hasTenantId && !/private\.tenant_id\(\)/.test(both)) {
+        const isGatePolicy = isApiGatePolicy(p);
+        if (!isExempt && hasTenantId && !isGatePolicy && !/private\.tenant_id\(\)/.test(both)) {
           add(name, 'policy_missing_tenant_helper');
         }
-        if (!isExempt && hasScopeKey) {
+        if (!isExempt && hasScopeKey && !isGatePolicy) {
           const usingApplies = ['SELECT', 'UPDATE', 'DELETE', 'ALL'].includes(cmd);
           const checkApplies = !scopeUsingOnly && ['INSERT', 'UPDATE', 'ALL'].includes(cmd);
           const missing =
@@ -173,7 +211,51 @@ export async function auditRls(
       }
     }
   }
+
+  // EZD-168 rule 1: PUBLIC executes nothing in private; an API role executes only its allow-list.
+  const fnNames = [...new Set(fnRows.map((r) => r.fn))];
+  for (const fn of fnNames) {
+    const rows = fnRows.filter((r) => r.fn === fn);
+    if (rows.some((r) => r.public_execute)) add(fn, 'public_executes_private_function');
+    for (const role of API_ROLES) {
+      const ok = rows.some((r) => r.role === role && r.ok);
+      if (ok && !PRIVATE_EXECUTE[role].some((e) => e.fn === fn)) {
+        add(fn, `${role}_executes_private_function`);
+      }
+    }
+  }
+  // Rule 2: every allow-list entry must still be executable by its role.
+  for (const role of API_ROLES) {
+    for (const entry of PRIVATE_EXECUTE[role]) {
+      if (!fnRows.some((r) => r.fn === entry.fn && r.role === role && r.ok)) {
+        add(entry.fn, `${role}_private_execute_stale`);
+      }
+    }
+  }
+  // EZD-323: a function whose name marks it test-only is never executable by anon or authenticated, and
+  // is listed with a reason; a listed entry must still exist.
+  const named = testOnlyRows.filter((r) => isTestOnlyName(r.proname));
+  for (const r of named) {
+    if (r.anon) add(r.fn, 'anon_executes_test_only_function');
+    if (r.authenticated) add(r.fn, 'authenticated_executes_test_only_function');
+    if (!TEST_ONLY_FUNCTIONS.some((e) => e.fn === r.fn)) add(r.fn, 'test_only_function_unlisted');
+  }
+  for (const entry of TEST_ONLY_FUNCTIONS) {
+    if (!named.some((r) => r.fn === entry.fn)) add(entry.fn, 'test_only_function_stale');
+  }
   return problems;
+}
+
+export function isApiGatePolicy(p: Policy): boolean {
+  return (
+    p.policyname === `${p.tablename}_api_gate` &&
+    p.permissive === 'RESTRICTIVE' &&
+    p.cmd.toUpperCase() === 'ALL' &&
+    p.roles.length === 1 &&
+    p.roles[0] === 'authenticated' &&
+    p.qual === API_GATE_POLICY_EXPR &&
+    p.with_check === API_GATE_POLICY_EXPR
+  );
 }
 
 // pg_policies prints a wrapped helper as `( SELECT private.<fn>() AS <fn>)`; any other call site of a

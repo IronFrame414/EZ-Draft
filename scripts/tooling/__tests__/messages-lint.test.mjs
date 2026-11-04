@@ -188,3 +188,29 @@ describe('EZD-015a states folder lint', () => {
     assert.equal(results.reduce((s, r) => s + r.errorCount, 0), 0, JSON.stringify(msgs));
   });
 });
+
+// EZD-136 L1 (vault/plans/EZD-136.md section 4; step 18): the disclaimer folder joins the phone-screen
+// block (prefixes common., field., error.), following the EZD-015a L1 pattern.
+describe('EZD-136 disclaimer folder lint', () => {
+  const DISCLAIMER = 'app/src/components/disclaimer/X.tsx';
+
+  test('EZD-136 L1 literal text and a foreign key prefix are reported, the disclaimer key is not, and the folder lints clean', async () => {
+    const a = await lint('export default function X(){ return <p>Notice</p>; }\n', DISCLAIMER);
+    assert.ok(a.length >= 1, 'literal text reported');
+    assert.ok(a.every((m) => m.severity === 2));
+    const b = await lint(comp("<p>{t('office.header.share')}</p>"), DISCLAIMER);
+    assert.ok(b.length >= 1, 'office key reported');
+    assert.ok(b.every((m) => m.severity === 2));
+    const c = await lint(comp("<p>{t('common.disclaimer')}</p>"), DISCLAIMER);
+    assert.equal(c.length, 0);
+
+    const { ESLint } = await importFromRoot('eslint');
+    const eslint = new ESLint({ cwd: root });
+    const results = await eslint.lintFiles(['app/src/components/disclaimer']);
+    const names = results.map((r) => path.basename(r.filePath));
+    assert.ok(names.includes('Disclaimer.tsx'), 'Disclaimer.tsx is linted');
+    const msgs = results.flatMap((r) => r.messages);
+    assert.equal(msgs.filter((m) => m.ruleId === RULE).length, 0, JSON.stringify(msgs));
+    assert.equal(results.reduce((s, r) => s + r.errorCount, 0), 0, JSON.stringify(msgs));
+  });
+});

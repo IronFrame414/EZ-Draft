@@ -1,6 +1,7 @@
 // EZD-020 Step 4 (vault/plans/EZD-020.md): refuses static imports of heavy libraries outside their lazy places,
 // static imports of a lazy module from outside its folder, and editor code outside the editor (11 Performance
 // rule 7). Options come from eslint-rules/boundaries.mjs. `import()` and type-only imports are never reported.
+// EZD-167: also resolves the tsconfig path aliases in PATH_ALIASES (passed as the `aliases` option).
 import path from 'node:path';
 import { findHeavy } from './boundaries.mjs';
 
@@ -26,8 +27,28 @@ const rule = {
           lazyRoot: { type: 'string' },
           editorCode: { type: 'array', items: { type: 'string' } },
           editorCodeImporters: { type: 'array', items: { type: 'string' } },
+          aliases: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                prefix: { type: 'string' },
+                target: { type: 'string' },
+                appliesTo: { type: 'string' },
+              },
+              required: ['prefix', 'target', 'appliesTo'],
+              additionalProperties: false,
+            },
+          },
         },
-        required: ['rootDir', 'packages', 'lazyRoot', 'editorCode', 'editorCodeImporters'],
+        required: [
+          'rootDir',
+          'packages',
+          'lazyRoot',
+          'editorCode',
+          'editorCodeImporters',
+          'aliases',
+        ],
         additionalProperties: false,
       },
     ],
@@ -45,10 +66,21 @@ const rule = {
     const file = toPosix(path.relative(opts.rootDir, context.filename));
     const dir = path.posix.dirname(file);
 
+    // A relative spec joins to its folder; a spec under a PATH_ALIASES prefix joins to the alias target (EZD-167).
+    // The first alias that applies to this file and matches the spec wins. Returns null for a package spec.
+    function resolveTarget(spec) {
+      if (spec.startsWith('.')) return path.posix.join(dir, spec);
+      const alias = opts.aliases.find(
+        (a) => file.startsWith(a.appliesTo) && spec.startsWith(a.prefix),
+      );
+      if (alias) return path.posix.join(alias.target, spec.slice(alias.prefix.length));
+      return null;
+    }
+
     function check(node, spec) {
       if (typeof spec !== 'string') return;
-      if (spec.startsWith('.')) {
-        const target = path.posix.join(dir, spec);
+      const target = resolveTarget(spec);
+      if (target !== null) {
         const withSlash = target + '/';
         if (withSlash.startsWith(opts.lazyRoot)) {
           const name = withSlash.slice(opts.lazyRoot.length).split('/')[0];

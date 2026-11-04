@@ -33,6 +33,26 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"customer": {
+                  Row: {
+                    "address": string | null,"archived_at": string | null,"created_at": string,"email": string,"id": string,"name": string,"phone": string | null,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"archived_at"?: string | null,"created_at"?: string,"email": string,"id"?: string,"name": string,"phone"?: string | null,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "address"?: string | null,"archived_at"?: string | null,"created_at"?: string,"email"?: string,"id"?: string,"name"?: string,"phone"?: string | null,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customer_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"error_alert": {
                   Row: {
                     "email_claim": string | null,"emailed_at": string | null,"fingerprint": string,"first_seen_at": string,"id": string,"kind": string,"last_seen_at": string,"occurrences": number,"project_id": string | null,"ref": string | null,"source": string,"tenant_id": string | null,"title": string
@@ -58,6 +78,20 @@ isOneToOne: false
       referencedRelation: "tenant"
       referencedColumns: ["id"]
     }
+                  ]
+                },"error_tunnel_throttle": {
+                  Row: {
+                    "at": string,"id": string,"key_hash": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "at"?: string,"id"?: string,"key_hash": string
+                  }
+                  Update: {
+                    "at"?: string,"id"?: string,"key_hash"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"job": {
                   Row: {
@@ -93,17 +127,23 @@ isOneToOne: false
                   ]
                 },"membership": {
                   Row: {
-                    "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string
+                    "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"role_id": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"scope": string,"status": string,"tenant_id": string,"updated_at"?: string,"user_id": string
+                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"role_id"?: string | null,"scope": string,"status": string,"tenant_id": string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"scope"?: string,"status"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"id"?: string,"invited_at"?: string | null,"last_active_at"?: string | null,"role_id"?: string | null,"scope"?: string,"status"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "membership_role_id_fkey"
+      columns: ["role_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "role"
+      referencedColumns: ["id","tenant_id"]
+    },{
       foreignKeyName: "membership_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
@@ -149,20 +189,98 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"project": {
+                },"notification": {
                   Row: {
-                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"name": string,"open_items_count": number,"phase_default": string | null,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
+                    "created_at": string,"emailed_at": string | null,"id": string,"in_app": boolean,"kind": string,"link": string,"payload": NonNullable<Json>,"project_id": string | null,"read_at": string | null,"tenant_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name": string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
+                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"in_app"?: boolean,"kind": string,"link": string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id": string,"user_id": string
                   }
                   Update: {
-                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name"?: string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
+                    "created_at"?: string,"emailed_at"?: string | null,"id"?: string,"in_app"?: boolean,"kind"?: string,"link"?: string,"payload"?: NonNullable<Json>,"project_id"?: string | null,"read_at"?: string | null,"tenant_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "notification_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notification_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notification_setting": {
+                  Row: {
+                    "email": boolean,"in_app": boolean,"kind": string,"tenant_id": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email"?: boolean,"in_app"?: boolean,"kind": string,"tenant_id": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "email"?: boolean,"in_app"?: boolean,"kind"?: string,"tenant_id"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notification_setting_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notification_setting_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project": {
+                  Row: {
+                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"name": string,"open_items_count": number,"phase_default": string | null,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name": string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name"?: string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_customer_fk"
+      columns: ["customer_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "customer"
+      referencedColumns: ["id","tenant_id"]
+    },{
       foreignKeyName: "project_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"role": {
+                  Row: {
+                    "created_at": string,"default_permissions": (string)[],"id": string,"name": string,"preset": string | null,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"default_permissions"?: (string)[],"id"?: string,"name": string,"preset"?: string | null,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"default_permissions"?: (string)[],"id"?: string,"name"?: string,"preset"?: string | null,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "role_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
@@ -183,6 +301,38 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"source_file": {
+                  Row: {
+                    "content_type": string,"created_at": string,"id": string,"kind": string,"original_name": string,"project_id": string,"scale_calibration": Json | null,"size_bytes": number,"storage_path": string,"supplier_contact_email": string | null,"supplier_name": string | null,"tenant_id": string,"uploaded_at": string | null,"uploaded_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_type": string,"created_at"?: string,"id"?: string,"kind": string,"original_name": string,"project_id": string,"scale_calibration"?: Json | null,"size_bytes": number,"storage_path": string,"supplier_contact_email"?: string | null,"supplier_name"?: string | null,"tenant_id": string,"uploaded_at"?: string | null,"uploaded_by"?: string | null
+                  }
+                  Update: {
+                    "content_type"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"original_name"?: string,"project_id"?: string,"scale_calibration"?: Json | null,"size_bytes"?: number,"storage_path"?: string,"supplier_contact_email"?: string | null,"supplier_name"?: string | null,"tenant_id"?: string,"uploaded_at"?: string | null,"uploaded_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "source_file_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "source_file_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "source_file_uploaded_by_fkey"
+      columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tenant": {
                   Row: {
                     "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
@@ -197,6 +347,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"user_permission": {
+                  Row: {
+                    "granted": boolean,"membership_id": string,"permission_key": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "granted": boolean,"membership_id": string,"permission_key": string,"tenant_id": string
+                  }
+                  Update: {
+                    "granted"?: boolean,"membership_id"?: string,"permission_key"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_permission_membership_id_tenant_id_fkey"
+      columns: ["membership_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "membership"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "user_permission_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -206,8 +382,19 @@ isOneToOne: false
             "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"current_permissions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "listed_project_ids": (string)[],"membership_id": string,"permission_keys": (string)[],"project_scope": string
+            }[]
+                           },
+"current_user_has_password":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
+                           },
+"error_tunnel_take":
+{ Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
                            },
 "health":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -289,6 +476,20 @@ isOneToOne: false
               "accepted_membership_id": string,"accepted_tenant_id": string,"app_user_id": string,"has_access": boolean
             }[]
                            },
+"list_customers":
+{ Args: { "p_archived": boolean,"p_page": number,"p_search": string }; Returns: Json
+                           },
+"list_notifications":
+{ Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
+                           },
+"mark_all_notifications_read":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"open_notification":
+{ Args: { "p_id": string }; Returns: {
+              "link": string,"project_id": string,"project_state": string
+            }[]
+                           },
 "record_error_alert":
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {
               "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
@@ -297,12 +498,28 @@ isOneToOne: false
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            },
+"save_my_notification_settings":
+{ Args: { "p_settings": Json }; Returns: undefined
+                           },
+"send_test_notification":
+{ Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
+                           },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
                            },
 "sign_in_throttle_take":
 { Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
               "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
+            }[]
+                           },
+"update_my_profile":
+{ Args: { "p_ipad_input_mode": string,"p_language": string }; Returns: {
+              "language_changed": boolean,"saved_ipad_input_mode": string,"saved_language": string
+            }[]
+                           },
+"update_tenant_identity":
+{ Args: { "p_contact": Json,"p_license_no": string,"p_logo_path": string,"p_name": string,"p_set_logo": boolean }; Returns: {
+              "changed": (string)[],"tenant_contact": Json,"tenant_id": string,"tenant_license_no": string,"tenant_logo_path": string,"tenant_name": string,"tenant_updated_at": string
             }[]
                            }
           }

@@ -71,13 +71,35 @@ export async function startScratch(workdir) {
   };
 }
 
+/**
+ * The `docker exec` arguments of the scratch psql (EZD-152 Step 2b). `VERBOSITY=terse` makes psql write only
+ * `SEVERITY:  message` lines, never a DETAIL, HINT, QUERY, CONTEXT or LINE n field that could quote a client row.
+ */
+export function scratchPsqlArgs(container, { user = 'postgres', extra = [] } = {}) {
+  return [
+    'exec',
+    '-i',
+    container,
+    'psql',
+    '-v',
+    'ON_ERROR_STOP=1',
+    '-v',
+    'VERBOSITY=terse',
+    ...extra,
+    '-U',
+    user,
+    '-d',
+    'postgres',
+    '-X',
+    '-q',
+    '-t',
+    '-A',
+  ];
+}
+
 /** psql in the scratch database container; resolves stdout, rejects with `code` on a SQL error. */
 async function psql(scratch, input, { user = 'postgres', code = 'scratch_sql_failed', extra = [] } = {}) {
-  const r = await runChild(
-    'docker',
-    ['exec', '-i', scratch.dbContainer, 'psql', '-v', 'ON_ERROR_STOP=1', ...extra, '-U', user, '-d', 'postgres', '-X', '-q', '-t', '-A'],
-    { input },
-  );
+  const r = await runChild('docker', scratchPsqlArgs(scratch.dbContainer, { user, extra }), { input });
   if (r.code !== 0) throw failure(code, r);
   return r.stdout.trim();
 }

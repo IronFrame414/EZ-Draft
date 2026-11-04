@@ -74,6 +74,7 @@ const COLUMNS = {
     'scope',
     'invited_at',
     'last_active_at',
+    'role_id',
     'created_at',
     'updated_at',
   ],

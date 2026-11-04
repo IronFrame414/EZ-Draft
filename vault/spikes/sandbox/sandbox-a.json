@@ -1,0 +1,3 @@
+{"sandbox":{"enabled":true,"allowUnsandboxedCommands":false,"failIfUnavailable":true,
+ "filesystem":{"allowWrite":["/Users/josh/Projects/ezdraft/.git"],"denyRead":["/Users/josh/Projects/ezdraft/.claude/worktrees/spike-decoy-secret.txt","~/.ssh"]},
+ "network":{"allowedDomains":["localhost","127.0.0.1"]}}}

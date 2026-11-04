@@ -13,7 +13,9 @@ Source: vault/plans/EZD-006.md Steps 6 and 7; vault/tickets/README.md ("a tenant
 - A table without `tenant_id` needs an entry in `tenancy-exemptions.ts` (`TENANTLESS_TABLES`) with a reason and the matching line in `docs/architecture.md`; the security-reviewer approves it.
 - A table whose `authenticated` privileges are narrower than select/insert/update/delete needs an entry in `table-grants.ts` (`TABLE_GRANTS`) with a reason.
 - A `public` function callable by `anon` or `authenticated` is added to `gate.ts` (`GATED_RPC_CALLS`).
+- A `private` function that `anon`, `authenticated` or `service_role` may execute needs an entry in `private-execute.ts` (`PRIVATE_EXECUTE`) with a reason; no `private` function may be executable by PUBLIC (EZD-168).
+- A test-only function (`test` or `dev` as a whole word of its name) is never executable by `anon` or `authenticated` and is listed in `TEST_ONLY_FUNCTIONS` with a reason; the `@smoke` audit enforces it (EZD-323).
 
 ## Files
 
-`db.ts` (postgres.js client to `EZD_TEST_DB_URL`, `withRollback`), `fixtures.ts` (tenants, projects, members, sign-in through the Auth admin API, `serverDb` with the gate header / `browserDb` without, `anonDb`, `claimsOf`, `sessionCount`, `asClaims`, `cleanup`), `isolation.ts`, `audit.ts`, `tenancy-exemptions.ts`, `table-grants.ts`, `gate.ts`. The global setup `app/test-harness/supabase-env.global-setup.ts` sets `EZD_TEST_DB_URL` and a per-run `SUPABASE_API_GATE_SECRET`.
+`db.ts` (postgres.js client to `EZD_TEST_DB_URL`, `withRollback`), `fixtures.ts` (tenants, projects, members, sign-in through the Auth admin API, `serverDb` with the gate header / `browserDb` without, `anonDb`, `claimsOf`, `sessionCount`, `asClaims`, `cleanup`), `isolation.ts`, `audit.ts`, `tenancy-exemptions.ts`, `table-grants.ts`, `private-execute.ts`, `test-only-functions.ts`, `gate.ts`. The global setup `app/test-harness/supabase-env.global-setup.ts` sets `EZD_TEST_DB_URL` and a per-run `SUPABASE_API_GATE_SECRET`.

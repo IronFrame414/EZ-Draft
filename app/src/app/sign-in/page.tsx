@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { LanguageSwitch } from '../../components/auth/LanguageSwitch';
 import styles from '../../components/auth/auth.module.css';
+import { Disclaimer } from '../../components/disclaimer/Disclaimer';
 import { MessagesProvider } from '../../lib/messages';
 import { captchaConfig } from '../../server/auth/captcha-config';
 import { getSession } from '../../server/auth/session';
@@ -36,7 +37,13 @@ export default async function SignInPage({
             initialError={e === 'no_access' ? 'no_access' : null}
             captcha={base && { ...base, language }}
           />
+          <p className={styles.termsRow}>
+            <a className={styles.link} href="/terms" data-testid="sign-in-terms-link">
+              {t('common.terms.title')}
+            </a>
+          </p>
         </div>
+        <Disclaimer placement="page" />
       </MessagesProvider>
     </main>
   );

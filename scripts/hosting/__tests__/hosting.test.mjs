@@ -37,6 +37,32 @@ function sectionOf(text, headingRegex) {
   return out.join('\n');
 }
 
+// EZD-182 (vault/plans/EZD-182.md sections 1, 3): pnpm flags that turn dependency build scripts on past allowBuilds (Q-0316 (a)).
+const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\.|allow-build)/i;
+
+// R3 (vault/plans/EZD-182.md section 3): problems of one vercel.json text, every string value at any depth.
+function vercelBuildFlagProblems(text) {
+  let cfg;
+  try {
+    cfg = JSON.parse(text);
+  } catch {
+    return ['unreadable'];
+  }
+  if (cfg === null || typeof cfg !== 'object' || Array.isArray(cfg)) return ['unreadable'];
+  const problems = [];
+  const walk = (value, at) => {
+    if (typeof value === 'string') {
+      if (BUILD_FLAG_RE.test(value)) problems.push(`value at ${at}`);
+    } else if (Array.isArray(value)) {
+      value.forEach((item, i) => walk(item, `${at}[${i}]`));
+    } else if (value !== null && typeof value === 'object') {
+      for (const [k, v] of Object.entries(value)) walk(v, `${at}.${k}`);
+    }
+  };
+  for (const [k, v] of Object.entries(cfg)) walk(v, k);
+  return problems;
+}
+
 test('EZD-003 T1 Vercel config: app/vercel.json pins framework and region, no env, no root vercel.json', () => {
   const cfg = readJson('app', 'vercel.json');
   assert.equal(cfg.framework, 'nextjs');
@@ -144,4 +170,209 @@ test('EZD-003 T6 Docs: architecture Hosting subsection, Machine checks rows, run
     'Auto-assign Custom Production Domains']) {
     assert.ok(runbook.includes(s), `runbook mentions ${s}`);
   }
+});
+
+// EZD-149 T1-T2 (vault/plans/EZD-149.md sections 3, 4 and 6). Offline; Node built-ins only; no network.
+
+// T1: a fail case changes only `redirect` or `host`; every other check of GOOD() still passes.
+function assertOnlyFails(r, failId) {
+  assert.equal(r.ok, false, 'ok is false');
+  assert.deepEqual(r.results.map((x) => x.id), ID_ORDER, 'ids in order');
+  for (const x of r.results) assert.equal(x.pass, x.id !== failId, `${x.id} pass is ${x.id !== failId}`);
+}
+
+test('EZD-149 T1 j Live check refuses a redirect to a look-alike host', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.http = { status: 308, location: 'https://ezdraft.ezcontractorbinder.com.evil.example/' };
+  assertOnlyFails(evaluate(obs), 'redirect');
+});
+
+test('EZD-149 T1 k Live check refuses a redirect to the right host on another port', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.http = { status: 308, location: 'https://ezdraft.ezcontractorbinder.com:8443/' };
+  assertOnlyFails(evaluate(obs), 'redirect');
+});
+
+test('EZD-149 T1 l Live check refuses a relative redirect Location', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.http = { status: 308, location: '/' };
+  assertOnlyFails(evaluate(obs), 'redirect');
+});
+
+test('EZD-149 T1 m Live check refuses a redirect Location with a user name', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.http = { status: 308, location: 'https://user@ezdraft.ezcontractorbinder.com/' };
+  assertOnlyFails(evaluate(obs), 'redirect');
+});
+
+test('EZD-149 T1 n Live check refuses a redirect that names the site only in its query', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.http = { status: 308, location: 'https://evil.example/?https://ezdraft.ezcontractorbinder.com' };
+  assertOnlyFails(evaluate(obs), 'redirect');
+});
+
+test('EZD-149 T1 o Live check refuses a final URL on another port', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.https.finalUrl = 'https://ezdraft.ezcontractorbinder.com:8443/';
+  assertOnlyFails(evaluate(obs), 'host');
+});
+
+test('EZD-149 T1 p Live check passes a redirect to the site with an upper-case host', async () => {
+  const { evaluate } = await loadCheck();
+  const obs = GOOD();
+  obs.http = { status: 308, location: 'https://EZDRAFT.ezcontractorbinder.com/sign-in' };
+  const r = evaluate(obs);
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.results.map((x) => x.id), ID_ORDER);
+  for (const x of r.results) assert.equal(x.pass, true, x.id);
+});
+
+// T2: the Ignored Build Step command (vault/plans/EZD-149.md section 3, CMD).
+const SECTION3_CMD = '[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1; '
+  + '[ "$VERCEL_GIT_COMMIT_REF" = "develop" ] && [ -n "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 1; exit 0';
+const RUNBOOK_HEADING = '**Build and branch settings** (done 2026-10-19; EZD-149 changed the Ignored Build Step command below: paste it again in Vercel).';
+const RUNBOOK_SENTENCE = 'Production builds only from `main`. A preview builds only for a pull request from `develop` (the phase PR); a plain `develop` push and a pull request from any other branch build nothing.';
+const ARCH_BULLET = '- Previews only for the phase PR, read as a pull request from `develop` (Vercel names no target branch), through the Ignored Build Step in the Vercel project; a pull request from any other branch builds nothing. A plain `develop` push builds no preview; the gate\'s empty `chore: preview` commit after the PR opens gives the PR its preview. Previews use the `ezdraft-dev` database (its values entered in Vercel `Preview` on 2026-10-21); until launch Production uses it too (Q-0264).';
+
+// The command as the runbook gives it to Josh (the text he pastes into Vercel).
+function runbookCmd() {
+  const section = sectionOf(read('docs', 'runbook.md'), /^## Vercel and the subdomain \(EZD-003\)\s*$/);
+  assert.ok(section !== null, 'runbook section exists');
+  const line = section.split(/\r?\n/).find((l) => l.includes('**Ignored Build Step**'));
+  assert.ok(line !== undefined, 'runbook has an Ignored Build Step line');
+  const m = /with exactly: `([^`]+)`/.exec(line);
+  assert.ok(m !== null, 'runbook line names the command');
+  return m[1];
+}
+
+// The command as vault/PROCESS.md section 12 gives it.
+function processCmd() {
+  const section = sectionOf(read('vault', 'PROCESS.md'), /^## 12\. CI and deploys \(keep GitHub Actions usage low\)\s*$/);
+  assert.ok(section !== null, 'PROCESS.md section 12 exists');
+  const line = section.split(/\r?\n/).find((l) => l.includes('Ignored Build Step to:'));
+  assert.ok(line !== undefined, 'PROCESS.md has an Ignored Build Step line');
+  const m = /Ignored Build Step to: `([^`]+)`/.exec(line);
+  assert.ok(m !== null, 'PROCESS.md line names the command');
+  return m[1];
+}
+
+// Runs the command with only the given Vercel variables; `undefined` means the variable is absent.
+function runCmd(cmd, ref, pr) {
+  const env = { PATH: process.env.PATH };
+  if (ref !== undefined) env.VERCEL_GIT_COMMIT_REF = ref;
+  if (pr !== undefined) env.VERCEL_GIT_PULL_REQUEST_ID = pr;
+  const r = spawnSync('/bin/sh', ['-c', cmd], { env, encoding: 'utf8' });
+  return r.status;
+}
+
+test('EZD-149 T2 1 Ignored Build Step: production branch main builds (exit 1)', () => {
+  assert.equal(runCmd(runbookCmd(), 'main', undefined), 1);
+});
+
+test('EZD-149 T2 2 Ignored Build Step: a plain develop push builds nothing (exit 0)', () => {
+  assert.equal(runCmd(runbookCmd(), 'develop', ''), 0);
+});
+
+test('EZD-149 T2 3 Ignored Build Step: the develop pull request (phase PR) builds a preview (exit 1)', () => {
+  assert.equal(runCmd(runbookCmd(), 'develop', '12'), 1);
+});
+
+test('EZD-149 T2 4 Ignored Build Step: a pull request from another branch builds nothing (exit 0)', () => {
+  assert.equal(runCmd(runbookCmd(), 't/EZD-999', '13'), 0);
+});
+
+test('EZD-149 T2 5 Ignored Build Step: a branch push that is not a pull request builds nothing (exit 0)', () => {
+  assert.equal(runCmd(runbookCmd(), 't/EZD-999', ''), 0);
+});
+
+test('EZD-149 T2 6 Ignored Build Step: both variables absent builds nothing (exit 0)', () => {
+  assert.equal(runCmd(runbookCmd(), undefined, undefined), 0);
+});
+
+test('EZD-149 T2 7 Docs and the Vercel command say the same thing: runbook and PROCESS.md equal the command', () => {
+  assert.equal(runbookCmd(), SECTION3_CMD, 'runbook command');
+  assert.equal(processCmd(), SECTION3_CMD, 'PROCESS.md command');
+});
+
+test('EZD-149 T2 8 Docs say the same thing: runbook, architecture Hosting and Machine checks hold the section 6 text', () => {
+  const runbook = sectionOf(read('docs', 'runbook.md'), /^## Vercel and the subdomain \(EZD-003\)\s*$/);
+  assert.ok(runbook.includes(RUNBOOK_HEADING), 'runbook step 2 heading text');
+  assert.ok(runbook.includes(RUNBOOK_SENTENCE), 'runbook sentence after the command');
+
+  const arch = read('docs', 'architecture.md');
+  const hosting = sectionOf(arch, /^### Hosting\s*$/);
+  assert.ok(hosting !== null, '### Hosting exists');
+  assert.ok(hosting.includes(ARCH_BULLET), 'architecture Hosting bullet');
+
+  const machine = sectionOf(arch, /^## Machine checks\s*$/);
+  const rows = machine.split(/\r?\n/)
+    .filter((l) => l.startsWith('|'))
+    .map((l) => l.replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim()));
+  const mine = rows.filter((cells) => cells[cells.length - 1] === 'EZD-149');
+  assert.equal(mine.length, 1, 'one Machine checks row built by EZD-149');
+  assert.equal(mine[0][2], 'scripts/hosting/__tests__/hosting.test.mjs (EZD-149 T2)', 'row names the test');
+});
+
+// ---------- EZD-182 T3 ----------
+// Plan: vault/plans/EZD-182.md sections 3 and 4. Expected values are the plan's texts.
+test('EZD-182 T3 app/vercel.json values passing a pnpm build flag are refused and the real file passes (AC-EZD-182-1, AC-EZD-182-2)', async (t) => {
+  const J = (o) => JSON.stringify(o);
+
+  await t.test('T3 (a) installCommand with --dangerously-allow-all-builds is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({ installCommand: 'pnpm install --dangerously-allow-all-builds' })), ['value at installCommand']);
+  });
+
+  await t.test('T3 (b) buildCommand with the --config. form is refused (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({ buildCommand: 'pnpm --config.dangerously-allow-all-builds=true build' })), ['value at buildCommand']);
+  });
+
+  await t.test('T3 (c) a string nested in an object is refused with its dotted path (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({
+      crons: [{ path: '/x', schedule: '* * * * *' }],
+      build: { env: { X: '--allow-build=esbuild' } },
+    })), ['value at build.env.X']);
+  });
+
+  await t.test('T3 (d) a string in an array is refused with its index, any letter case (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({ a: ['ok', '--ALLOW-BUILD esbuild'] })), ['value at a[1]']);
+  });
+
+  await t.test('T3 (e) two values give two problems in value order (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({
+      installCommand: '--allow-build x',
+      buildCommand: '--dangerously-allow-all-builds',
+    })), ['value at installCommand', 'value at buildCommand']);
+  });
+
+  await t.test('T3 (f) text that is not JSON is unreadable (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems('{'), ['unreadable']);
+  });
+
+  await t.test('T3 (g) JSON that is an array is unreadable (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems('[]'), ['unreadable']);
+  });
+
+  await t.test('T3 (h) JSON that is a string is unreadable (AC-EZD-182-1)', () => {
+    assert.deepEqual(vercelBuildFlagProblems('"x"'), ['unreadable']);
+  });
+
+  await t.test('T3 (i) control: values without a build flag, numbers, booleans and null pass (AC-EZD-182-2)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(J({
+      buildCommand: 'vitest run --config vitest.config.ts',
+      regions: ['iad1'],
+      n: 1,
+      b: true,
+      z: null,
+    })), []);
+  });
+
+  await t.test('T3 (j) the real app/vercel.json passes (AC-EZD-182-2)', () => {
+    assert.deepEqual(vercelBuildFlagProblems(read('app', 'vercel.json')), []);
+  });
 });

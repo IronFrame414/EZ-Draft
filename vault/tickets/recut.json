@@ -41,7 +41,6 @@
     "EZD-117a",
     "EZD-117b",
     "EZD-118",
-    "EZD-137",
     "EZD-140"
    ],
    "note": "Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202)."
@@ -59,6 +58,7 @@
     "EZD-120a",
     "EZD-120b",
     "EZD-202",
+    "EZD-299",
     "EZD-238"
    ]
   },
@@ -163,7 +163,8 @@
     "EZD-122",
     "EZD-123",
     "EZD-124",
-    "EZD-139"
+    "EZD-139",
+    "EZD-137"
    ]
   },
   {

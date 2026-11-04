@@ -1,5 +1,5 @@
 // EZD-035 U1-U13 (vault/plans/EZD-035.md sections 3 and 4). node:test, Node 22 built-ins only.
-import { describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -15,6 +15,7 @@ import {
   ensureRealtimeBroadcastStream,
 } from '../realtime-warmup.mjs';
 import { runLocalSql } from '../sql.mjs';
+import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const read = (...p) => readFileSync(path.join(repo, ...p), 'utf8');
@@ -67,6 +68,11 @@ function fakeHandle() {
 }
 
 describe('EZD-035 Realtime warm-up', () => {
+  let releaseRootDb;
+  before(async () => {
+    releaseRootDb = await holdRootDbShared();
+  });
+
   test('EZD-035 U1 realtimeSocketUrl builds the websocket url', () => {
     assert.equal(
       realtimeSocketUrl('http://127.0.0.1:54321', 'sb_publishable_x'),
@@ -308,5 +314,9 @@ describe('EZD-035 Realtime warm-up', () => {
     assert.ok(local.includes('Realtime broadcast stream ready'));
     assert.ok(local.includes('Local Realtime is not ready ('));
     assert.ok(read('docs', 'architecture.md').includes('realtime-warmup.test.mjs'));
+  });
+
+  after(async () => {
+    await releaseRootDb?.();
   });
 });

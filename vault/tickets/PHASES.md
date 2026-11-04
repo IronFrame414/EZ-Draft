@@ -37,14 +37,14 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | Phase | Name | Draft slice | Tickets | Change |
 | --- | --- | --- | --- | --- |
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
-| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 137, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
-| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 238 |  |
+| 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
+| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299, 238 | Adds Keep mine / Keep theirs (EZD-299, Q-0502). |
 | 4 | Plan canvas and first walls | 4 | 201, 203, 205, 236, 207, 209, 210, 221 |  |
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 206, 208, 211, 212, 213, 217 |  |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
-| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139 |  |
+| 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139, 137 | EZD-137 moved from phase 2 (Q-0395). |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 10 | 215, 220, 229, 234, 226, 227 |  |
 | 11 | Editing tools, groups, libraries, shortcuts | 11 | 131, 222, 230, 223, 231, 233, 232 |  |
 | 12 | Polycam scan import | 12 | 301, 302, 303, 307, 308, 309, 310, 311, 313 |  |
@@ -97,7 +97,7 @@ Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are
 ## Phase 0 · Setup
 
 - **Goal:** a deployed, empty, multi-tenant app with sign-in and the Studio shell components, ready for features.
-- **User-visible result:** Josh can open ezdraft.ezcontractorbinder.com on the desktop and the iPad, sign in, and see the empty editor shell.
+- **User-visible result:** Josh can open ezdraft.ezcontractorbinder.com on the desktop and the Surface, sign in, and see the empty editor shell.
 - **Spec files:** Product overview (Stack, Named tools), Data model (Architecture rules), App shell and global UI, Non-functional requirements (Performance, Security, Operations), Decisions (R26 R1 to R34). ACs: AC-EZD-000-1 to AC-EZD-031-n (generated from Done-when; see migration step 4).
 - **Tickets:** every EZD-0xx row in `STATUS.md` (37 as of Oct 14, 2026, all `ready`). Build order: `tickets.json` `build_order`.
 - **Depends on:** nothing.
@@ -107,10 +107,25 @@ Q-0220 (2026-10-20): new phase 53 (billing and onboarding); the final checks are
 - **Josh's test script (punch list at the gate):**
   1. Open the PR "Phase 0: Setup" and its preview link. Expected: the preview loads over HTTPS.
   2. Sign in with the tenant 1 owner account on the desktop. Expected: the empty editor shell with the Studio header, rail and status bar; no drawing tools.
-  3. Repeat on the iPad in landscape. Expected: the same shell at iPad size; no horizontal scroll.
+  3. Repeat on the Surface. Expected: the same shell at Surface size; no horizontal scroll.
   4. Sign in as the second-tenant test user. Expected: no tenant 1 projects or users are visible anywhere.
   5. In the PR checks, open the gate run. Expected: lint, type check, unit tests, browser tests and the performance check (EZD-017) all pass.
   6. After merging, open ezdraft.ezcontractorbinder.com. Expected: production serves the merged build.
+
+## Phase 2 · Projects list and new project
+
+- **Goal:** the office sees every project on one page, starts a new project, and gets notifications in the app and by email, each chosen per person (Q-0390).
+- **User-visible result:** Josh signs in, sees Projects with its status tabs, counts and search, makes a standalone project from the wizard, gets a test notification in the bell and by email, and turns that email off in My profile.
+- **Tickets:** EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118, EZD-140. EZD-137 moved to phase 9 (Q-0395).
+- **Spec files:** S01 Projects, S15 Avatar, App shell · Notifications, W1; decisions Q-0390 to Q-0403; boards S01, S01b, S01c to S01f.
+- **Out of scope until later:** opening a project (phase 3, Q-0394); Foreman picker (phase 7, Q-0397); Mark complete (phase 9, Q-0395); input sources other than Blank, code edition and submittal profile (their phases, Q-0398, Q-0399); anything EZ Binder (Q-0190, Q-0401).
+- **Josh's test script (punch list at the gate):**
+  1. Sign in. Expected: Projects shows the status tabs with counts, sort and search, and no EZ Binder link.
+  2. Type part of a client name in search. Expected: the cards and the tab counts narrow to the matches.
+  3. New project, fill name, address, type and scope of work, pick or add a client, Create. Expected: back on Projects with the new Draft card.
+  4. Send yourself a notification from the development page on the preview, then open the bell. Expected: it is listed and the email arrives; clicking it marks it read.
+  5. Avatar → My profile → Notifications, turn that kind's Email off, Save, send it again. Expected: it shows in the bell but no email arrives.
+  6. My profile → Profile, change iPad drawing and language, Save, reload. Expected: both kept.
 
 ## Slices 1 to 53 · proposed re-cut of spec phases 1 to 17 (draft for Josh's approval)
 
@@ -212,7 +227,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 1 · Company settings and customers (from spec phase 1)
 
 - **Goal:** Prove the stack end to end: sign in, open Settings, save the company record and a customer.
-- **User-visible result:** Settings opens with its left nav; Company shows name, logo, license and contact and saves; the Customers list adds, edits, archives and searches customers; a Crew user is sent back to Projects with the no-access message.
+- **User-visible result:** Settings opens with its left nav; Company shows name, logo, license and contact and saves; the Customers list adds, edits, archives and searches customers; a Crew user sees “You don't have access to this. Ask your supervisor.” in place (Q-0214).
 - **Spec files:** `spec/sections/10-permissions-and-settings.md`, `spec/sections/screens/S15-settings-users-permissions.md`, `spec/decisions.md`, `spec/sections/03-data-model.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S15a-settings-company.md`
 - **Tickets (6, build order):**
   - EZD-101 Permission and role tables
@@ -225,12 +240,12 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Out of scope until later:** Users table, invites and custom roles (slice 7); Defaults page (slice 8); EZ Binder connect and sync (slice 35); every editor screen.
 - **Risks and spikes:** EZD-102 fixes the permission pattern (server check on every write, can() in the UI, hidden not disabled) that every later ticket follows; get it reviewed before slice 2. EZD-132 fixes the Storage path layout and signed-link lifetime. Josh needs to supply the Supabase and storage keys or the slice runs on the local stack only.
 - **Josh's test script:**
-  1. Sign in as the owner and open Settings from the gear. Expected: Settings opens with the left nav (Company, Users + permissions, Title block, Sheet presets, Defaults, Catalog, Render models, Code edition, Libraries, Translations) and no Billing item.
+  1. Sign in as the owner and open Settings from the gear. Expected: Settings opens with the left nav (Company, Users + permissions, Title block, Sheet presets, Defaults, Catalog, Render models, Code edition, Libraries, System status) and no Billing item (Q-0234: System status replaced Translations).
   2. Open Company, enter the company name and license, upload a PNG logo under 5 MB, Save. Expected: Save succeeds; the company name shows in the header after reload.
   3. Upload a 6 MB logo. Expected: Refused with a size message.
   4. Open Customers, add two customers, then add a third with the same email as the first. Expected: Two rows appear; the duplicate email is refused.
   5. Search customers by part of a name. Expected: The list filters as typed.
-  6. Sign in as a Crew-preset test user and type the Settings URL. Expected: Redirected to Projects with “You don't have access to company settings.”
+  6. Sign in as a Crew-preset test user and type the Settings URL. Expected: “You don't have access to this. Ask your supervisor.” shows in place (Q-0214, AC-EZD-102-3).
 
 ### Slice 2 · Projects list and new project (from spec phase 1)
 
@@ -257,23 +272,24 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 3 · Model store and editor route (from spec phase 1, 2)
 
 - **Goal:** A project opens into the editor route and its model saves through the patch store, outbox and save function.
-- **User-visible result:** Opening a project card loads the editor shell in one query with the header save state (Saving…, Saved just now, Saved N min ago) and the save error banner with Retry; the object schema, save function, checkpoints and drawing list are in place for slice 4.
-- **Spec files:** `spec/sections/03-data-model.md`, `spec/decisions.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`
-- **Tickets (5, build order):**
+- **User-visible result:** Opening a project card loads the editor shell in one query with the header save state (Saving…, Saved just now, Saved N min ago) and the save error banner with Retry; the offline banner (Q-0501), the sign-out warning for unsaved edits (Q-0503) and the conflict list with Keep mine / Keep theirs (EZD-299, after board S03b; Q-0502, Q-0510, Q-0511); projects store their floors (Q-0504, Q-0508); the object schema, save function, checkpoints and drawing list are in place for slice 4.
+- **Spec files:** `spec/sections/03-data-model.md` (03a to 03g), `spec/sections/00d-glossary-phase-03.md`, `spec/decisions/03-data-model.md`, `spec/decisions/05-screens.md`, `spec/decisions/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/04-app-shell-and-global-ui.md` (Notifications), `spec/sections/screens/S01-projects.md` (board S01c) (spec-check 3: Q-0500 to Q-0540)
+- **Tickets (6, build order):**
   - EZD-133 Access and money-field harness — needs EZD-102 (s1)
-  - EZD-120a Model tables, save function and checkpoints — after EZD-133
-  - EZD-120b Model store, outbox and editor route — after EZD-120a; needs EZD-117a (s2), EZD-117b (s2)
+  - EZD-120a Model tables, save function and checkpoints — after EZD-133; needs EZD-118 (s2) (Q-0530)
+  - EZD-120b Model store, outbox and editor route — after EZD-120a; needs EZD-117a (s2), EZD-117b (s2), EZD-118 (s2) (Q-0530)
   - EZD-202 Model document schema — after EZD-120a, EZD-120b
+  - EZD-299 Conflict list: Keep mine / Keep theirs — after EZD-120b, EZD-202; needs EZD-110b (s2), EZD-140 (s2) (Q-0530); blocked until board S03b is approved (Q-0510)
   - EZD-238 Drawing list — after EZD-202
 - **Depends on slices:** 1, 2
-- **Out of scope until later:** Any drawing tool (slice 4); edit lock (slice 8); versions panel (slice 9); offline editing (slice 40).
+- **Out of scope until later:** Any drawing tool (slice 4); edit lock (slice 8); versions panel (slice 9); the full offline mode (phases 14 and 44); floor tools (phase 6, Q-0509).
 - **Risks and spikes:** EZD-120a/120b fix Architecture rules 6, 7 and 9 (save only changed rows, lock_epoch, outbox); EZD-202 fixes schema_version and the 1/64" tolerance; EZD-238 fixes the drawing-list contract that the canvas, sheets and PDF all consume. These four are the hardest to change later; review them against Data model · Architecture rules before slice 4. EZD-133's lint rule (no table query in browser code) and the RLS CI test apply to every later ticket.
 - **Josh's test script:**
-  1. Click a project card. Expected: The editor route opens with the Phase 0 shell and “Saved” in the header; one project query in the network panel.
-  2. With the test hook, apply 50 edits in one minute. Expected: Only the changed model_object rows are written; no model_version row appears.
+  1. Click a project card. Expected: the editor opens with Saved in the header (Q-0505).
+  2. On the test page (develop preview), press "50 edits". Expected: the page shows only the changed rows written and no checkpoint made (Q-0505, Q-0508).
   3. Turn the network off, apply edits, turn it back on. Expected: Edits wait in the outbox and drain on reconnect; nothing is lost.
-  4. Force a failed save with the test hook. Expected: The error banner shows with Retry; the edits stay.
-  5. Sign in as a user without See company costs and request each route built so far. Expected: No cost field in any response.
+  4. On the test page, press "fail next save", then make an edit. Expected: the error banner shows with Retry; the edits stay; Retry saves them.
+  5. On the test page, press "make a conflict" (after board S03b and EZD-299). Expected: a notification and the editor banner open the conflict list; Keep mine or Keep theirs clears the row (Q-0502, Q-0508, Q-0511). The old step 5 (cost fields in responses) is covered by the automated money-field test (Q-0505).
 
 ### Slice 4 · Plan canvas and first walls (from spec phase 2)
 
@@ -291,7 +307,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move and inspector (slice 5); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
-- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; this is the first field check on the iPad. The spike EZD-027 (plan canvas on the iPad) must have a go note.
+- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; this is the first field check on the Surface. The spike EZD-027 (plan canvas on the iPad) must have a go note.
 - **Josh's test script:**
   1. New project → Standalone → L-kitchen template. Expected: The plan opens with the template walls.
   2. Press R, click a start point, type 12'6" Tab 10' Enter. Expected: A 12'6" × 10' room closes with no gap and shows its area.
@@ -341,7 +357,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-237 Benchmark page — after EZD-135; needs EZD-207 (s4), EZD-236 (s4)
 - **Depends on slices:** 1, 4, 5
 - **Out of scope until later:** Versions tab in the left panel (slice 9); Tasks and Takeoff tabs (slices 41, 51); revision clouds (slice 11).
-- **Risks and spikes:** EZD-235 fixes the derived-value and worker pattern that takeoff, load calc, sheets and DXF parsing reuse; the recompute-count test is the guard. EZD-224 must capture from the already drawn canvas (no second render). EZD-237 is the field check Josh repeats at every slice on the iPad.
+- **Risks and spikes:** EZD-235 fixes the derived-value and worker pattern that takeoff, load calc, sheets and DXF parsing reuse; the recompute-count test is the guard. EZD-224 must capture from the already drawn canvas (no second render). EZD-237 is the field check Josh repeats at every slice on the Surface.
 - **Josh's test script:**
   1. Draw a wall in Proposed, switch to Existing. Expected: The wall is New and hidden in the Existing view.
   2. Open Layers, lock the Rooms layer, click a room. Expected: The room cannot be selected.
@@ -507,7 +523,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-315 Laser keyboard input — needs EZD-209 (s4), EZD-310 (s12)
 - **Depends on slices:** 4, 8, 12
 - **Out of scope until later:** Architect DXF as a full-fidelity reference (slice 37); supplier PDF import (slice 39).
-- **Risks and spikes:** Built against synthetic PDFs until Josh supplies a vector plan, a scanned plan and a supplier PDF. The real laser is a field check (iPad + keyboard-mode laser).
+- **Risks and spikes:** Built against synthetic PDFs until Josh supplies a vector plan, a scanned plan and a supplier PDF. The real laser is a field check (Surface + keyboard-mode laser).
 - **Josh's test script:**
   1. Upload the fixture vector PDF, calibrate two points with a typed distance. Expected: A known length measures correctly; wall items appear in review.
   2. Upload the fixture scanned PDF. Expected: “Nothing detected. Trace over the underlay” with a button to the Plan editor.
@@ -859,7 +875,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-1015 iPad memory guard and states — after EZD-1001a, EZD-1001b, EZD-1001c
 - **Depends on slices:** 4, 6, 10, 12, 14, 15, 16, 17, 18
 - **Out of scope until later:** Walk, finishes, measure and the rail (slice 28); design options, phone viewer and GLB export (slice 29); renders (slice 30).
-- **Risks and spikes:** EZD-1001a follows spike EZD-030 for openings; CSG only in a worker. First open on the benchmark project must meet the budget; a real kitchen on the iPad without memory errors is the field check.
+- **Risks and spikes:** EZD-1001a follows spike EZD-030 for openings; CSG only in a worker. First open on the benchmark project must meet the budget; a real kitchen on the Surface without memory errors is the field check.
 - **Josh's test script:**
   1. Open the 3D tab on the fixture kitchen. Expected: The model shows with cabinets, tops, fixtures and devices; the footer reads “Model synced with plan”.
   2. Move a wall on Plan and return to 3D. Expected: The change shows without a save; only that wall's meshes rebuilt (test counter).
@@ -884,7 +900,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Out of scope until later:** Phone 3D viewer and exports (slice 29); Render A/B/C (slice 32).
 - **Risks and spikes:** EZD-1017 must use the shared renderer and draw no frames while idle.
 - **Josh's test script:**
-  1. Press Walk, hold W. Expected: The camera moves along its heading at the Defaults eye height; the joystick does the same on the iPad.
+  1. Press Walk, hold W. Expected: The camera moves along its heading at the Defaults eye height; the joystick does the same on the Surface.
   2. Click a wall → Apply finish → pick a catalog finish. Expected: The wall shows the texture; a beam shows its bottom-of-beam AFF tag.
   3. Press Wall on the 3D rail. Expected: Plan opens with the Wall tool active.
   4. Press Check in 3D. Expected: The results list shows.
@@ -1100,7 +1116,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-921 Architect revision labels — after EZD-904
 - **Depends on slices:** 4, 6, 13, 23
 - **Out of scope until later:** Markup, versions and diff (slice 38); supplier files (slice 39); DXF size limits (slice 53).
-- **Risks and spikes:** Josh's 2–3 real architect DXFs are needed for the field check; the benchmark uses a generated 150,000-entity DXF. Pan and zoom over it must stay inside the frame budget on the iPad.
+- **Risks and spikes:** Josh's 2–3 real architect DXFs are needed for the field check; the benchmark uses a generated 150,000-entity DXF. Pan and zoom over it must stay inside the frame budget on the Surface.
 - **Josh's test script:**
   1. Upload the fixture architect DXF as a reference. Expected: “Loading layers n of m” shows while the Plan stays interactive; every layer's entity count matches the parser's.
   2. Hide a layer and recolor another; Isolate; Show all. Expected: The canvas follows; the file is unchanged.
@@ -1201,7 +1217,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-1421 Issue field pack — after EZD-1420, EZD-1404; needs EZD-129 (s7)
 - **Depends on slices:** 7, 11, 13, 29, 35, 40
 - **Out of scope until later:** Field pack PDF, office review of measurements and conflicts, phone field measure (slice 42); Spanish field pack (slice 48).
-- **Risks and spikes:** The pack must meet its download-size budget. A crew using it on a live job for a week is the field check; iPhone and iPad are Josh items.
+- **Risks and spikes:** The pack must meet its download-size budget. A crew using it on a live job for a week is the field check; iPhone and Surface are Josh items.
 - **Josh's test script:**
   1. Settings → Libraries → Field task templates: reorder the Kitchen phases; run the draft job (stub AI). Expected: Unpublished field_task rows per phase appear on the Plan's Tasks tab, hidden from crew.
   2. Publish the tasks, then Issue field pack. Expected: An assigned Crew user gets “New field pack issued” with Copy link; an unassigned user gets nothing.
@@ -1453,7 +1469,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 ### Slice 53 · Hardening: performance, accessibility, screen states (from spec phase 17)
 
-- **Goal:** Every performance budget holds on the benchmark in CI and on the iPad, every icon button is named, and every screen state in the spec passes.
+- **Goal:** Every performance budget holds on the benchmark in CI and on the Surface, every icon button is named, and every screen state in the spec passes.
 - **User-visible result:** Budget failures fixed; DXF size limits from Defaults; accessibility pass with 44 px targets; table-driven state tests for Projects, Settings, every editor tab, phone and client screens.
 - **Spec files:** `spec/sections/11-non-functional-requirements.md`, `spec/decisions.md`, `spec/sections/05-screen-by-screen-spec.md`
 - **Tickets (6, build order):**
@@ -1468,9 +1484,9 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Risks and spikes:** EZD-1701 may surface regressions from any earlier slice; budget fixes land as new tickets if they do not fit.
 - **Josh's test script:**
   1. Run the EZD-017 check in CI on the benchmark project. Expected: Every budget in Non-functional · Performance passes.
-  2. Run the benchmark page on the iPad with a real architect DXF. Expected: 60 fps desktop, 30 fps iPad; cold open within 2.5 s, cached within 1 s.
+  2. Run the benchmark page on the Surface with a real architect DXF. Expected: 60 fps desktop, 30 fps Surface; cold open within 2.5 s, cached within 1 s.
   3. Upload a DXF over the Defaults limit. Expected: Refused with the limit shown.
-  4. Run axe-core on every editor tab, Settings page and phone screen. Expected: No unnamed button; targets are 44 px on the iPad.
+  4. Run axe-core on every editor tab, Settings page and phone screen. Expected: No unnamed button; targets are 44 px on the Surface.
   5. Run the state tables for all screens. Expected: Every row passes.
 
 ### Validation

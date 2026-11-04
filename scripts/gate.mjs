@@ -20,6 +20,7 @@ import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { summarizeStep } from './gate-summary.mjs';
 
 const args = process.argv.slice(2);
 const phaseIdx = args.indexOf('--phase');
@@ -35,6 +36,22 @@ try { writeFileSync(logPath, `GATE ${new Date().toISOString()} ${dir}\n`); } cat
 try { writeFileSync(failuresPath, ''); } catch {}
 const log = (text) => { try { appendFileSync(logPath, text.endsWith('\n') ? text : text + '\n'); } catch {} };
 const say = (text) => { console.log(text); log(text); };
+
+// A gate inside the unit sandbox fails on write denials, not on the code (D-008, 2026-11-02). It runs outside the sandbox
+// only as a Bash call of its own (scripts/unit-sandbox.json excludedCommands). The sandbox always protects .claude/agents:
+// when this process cannot write there, stop before any check runs.
+{
+  const probe = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'agents', `.gate-probe-${process.pid}`);
+  try {
+    writeFileSync(probe, '');
+    unlinkSync(probe);
+  } catch (e) {
+    if (e.code === 'EPERM' || e.code === 'EACCES') {
+      say(`GATE SANDBOX STOP: the gate ran inside the unit sandbox, so its result would say nothing about the code. Run \`node scripts/gate.mjs ${args.join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout. A run longer than 10 minutes goes in the background with the Bash tool's run_in_background setting, not with & or a redirect.`);
+      process.exit(3);
+    }
+  }
+}
 
 // tickets.json is read from this script's own checkout (develop when run as node scripts/gate.mjs <worktree>).
 const ticketsPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vault', 'tickets', 'tickets.json');
@@ -82,8 +99,9 @@ if (args.includes('--print-scope')) {
   process.exit(0);
 }
 
-const env = { ...process.env, CI: '1', EZD_TEST_SCOPE: scope.mode };
-delete env.EZD_TEST_GREP; delete env.EZD_PHASE;
+// NO_COLOR (H7): output reads the same on a Mac inside an agent and on the CI runner.
+const env = { ...process.env, CI: '1', NO_COLOR: '1', EZD_TEST_SCOPE: scope.mode };
+delete env.EZD_TEST_GREP; delete env.EZD_PHASE; delete env.FORCE_COLOR;
 if (scope.mode === 'phase') { env.EZD_PHASE = String(scope.phase); env.EZD_TEST_GREP = scope.grep; }
 
 // One gate at a time (Q-0019). A lock left by a dead process is taken over.
@@ -147,25 +165,10 @@ const run = (cmdArgs, label) => {
     const lines = out.trim().split('\n');
     console.log(lines.slice(-3).join('\n'));
   } else {
-    // Summary for reviewers: failing test names and the first error line; the rest is in gate.log.
-    const lines = out.split('\n');
-    const isFailing = (l) => /(^|\s)(FAIL|✗|✘|×|✖)\s/.test(l) || /^\s+\d+\)\s/.test(l);
-    const isError = (l) => /error/i.test(l) && !/0 errors?/i.test(l) && !/^\s*>/.test(l);
-    const allFailing = lines.filter(isFailing);
-    const failing = allFailing.slice(0, 12);
-    const firstError = lines.find(isError);
-    for (const l of failing) console.log(l);
-    if (firstError) console.log(`first error: ${firstError.trim()}`);
-    if (!failing.length && !firstError) console.log(lines.filter(Boolean).slice(-8).join('\n'));
+    // Summary for reviewers: failing test names and the first error after them; the rest is in gate.log (scripts/gate-summary.mjs, EZD-155).
+    const { failing, firstError, consoleLines, entries } = summarizeStep(label, out);
+    for (const l of consoleLines) console.log(l);
     failures.push({ label, failing, firstError });
-    // gate-failures.log: each failing line with the first error line after it (within 30 lines), then the step's first error.
-    const entries = [`=== ${label} ===`];
-    for (const l of allFailing) {
-      const at = lines.indexOf(l);
-      const err = lines.slice(at + 1, at + 31).find(isError);
-      entries.push(l.trim(), ...(err ? [`  ${err.trim()}`] : []));
-    }
-    if (!allFailing.length) entries.push(firstError ? `first error: ${firstError.trim()}` : lines.filter(Boolean).slice(-8).join('\n'));
     try {
       const have = readFileSync(failuresPath, 'utf8').split('\n').filter(Boolean).length;
       const room = FAILURES_CAP - have;

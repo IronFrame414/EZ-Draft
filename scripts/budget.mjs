@@ -7,7 +7,7 @@
 //   node scripts/budget.mjs --until-reset      ignore the hold for the rest of this week and release the hold
 //   node scripts/budget.mjs --api-until-reset  run on API credits (launcher.config.json api_key) until the weekly reset; releases the hold
 //   node scripts/budget.mjs --clear-override   remove an override
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -93,7 +93,8 @@ export function writeHold({ root = ROOT, now = new Date(), reason, meters, budge
   writeFileSync(handoff(root, 'BUDGET_HOLD.md'), txt);
 }
 
-export async function applyGates({ root = ROOT, now = new Date(), budget = {}, meters, nextUnit, inProgressBuild, notify = () => {} }) {
+// dryRun (EZD-155; Q-0291 (a)): the same decision and return value as a real pass, but no marker or hold file is written and notify is never called.
+export async function applyGates({ root = ROOT, now = new Date(), budget = {}, meters, nextUnit, inProgressBuild, notify = () => {}, dryRun = false }) {
   const decision = gateDecision(meters, budget, now);
   const holdFile = handoff(root, 'BUDGET_HOLD.md');
   if (meters.source === 'proxy' && !budget.weekly_ceiling_usd_est) {
@@ -105,14 +106,14 @@ export async function applyGates({ root = ROOT, now = new Date(), budget = {}, m
   const pct = w ? Math.round(w.pct) : 0;
   if (decision.warn) {
     const marker = handoff(root, `.budget-warned-${w.resets_at.slice(0, 10)}`);
-    if (!existsSync(marker)) {
+    if (!existsSync(marker) && !dryRun) {
       mkdirSync(path.dirname(marker), { recursive: true });
       writeFileSync(marker, now.toISOString());
       await notify(`weekly usage at ${pct}% (${meters.source}); hold at ${decision.thresholds.hold_at_pct}%. Resets ${fmt(w.resets_at)}.`);
     }
   }
   if (decision.hold) {
-    if (!existsSync(holdFile)) {
+    if (!existsSync(holdFile) && !dryRun) {
       writeHold({ root, now, reason: `weekly usage reached the hold (${pct}%)`, meters, budget, nextUnit });
       await notify(`budget hold: weekly usage at ${pct}% (hold at ${decision.thresholds.hold_at_pct}%). In-progress ticket finishes; nothing new starts. See vault/handoff/BUDGET_HOLD.md.`);
     }
@@ -179,7 +180,7 @@ function cli() {
   return b;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain) {
   const b = cli();
   const holdFile = handoff(ROOT, 'BUDGET_HOLD.md');
@@ -191,6 +192,7 @@ if (isMain) {
   console.log(`Thresholds: pause ${t.five_hour_pause_pct}% · warn ${t.warn_at_pct}% · hold ${t.hold_at_pct}% · Fable fallback ${t.fable_fallback_pct}%`);
   console.log(s.text);
   console.log(`Ceilings: weekly $${b.weekly_ceiling_usd_est ?? 'unset'} · per unit cap $${b.per_unit_cap_usd_est ?? 'unset'} · Fable $${b.fable_ceiling_usd_est ?? 'unset'}`);
-  console.log(`Override: ${b.override && typeof b.override === 'object' ? `${b.override.type} (week of ${b.override.week_start.slice(0, 10)})` : 'none'} · Hold: ${existsSync(holdFile) ? 'IN PLACE (vault/handoff/BUDGET_HOLD.md)' : 'none'}`);
+  const active = overrideActive(b);
+  console.log(`Override: ${active ? `${active.type} (week of ${active.week_start.slice(0, 10)})` : 'none'} · Hold: ${existsSync(holdFile) ? 'IN PLACE (vault/handoff/BUDGET_HOLD.md)' : 'none'}`);
   if (m.warning) console.log(`Warning: ${m.warning}`);
 }

@@ -50,4 +50,15 @@ export const TOKENS: readonly {
   { name: '--ez-overlay', value: 'rgba(20,23,28,.46)', group: 'color' },
   { name: '--ez-shadow-dialog', value: '0 24px 64px rgba(10,15,30,.28)', group: 'shadow' },
   { name: '--ez-radius-14', value: '14px', group: 'radius' },
+  { name: '--ez-cobalt-link', value: 'oklch(0.5 0.17 262)', group: 'color' },
+  { name: '--ez-surface-sunken', value: '#fbfbfc', group: 'color' },
+  { name: '--ez-amber-text', value: 'oklch(0.48 0.13 65)', group: 'color' },
+  { name: '--ez-row-hover', value: '#f8f9fb', group: 'color' },
+  // S01c notification list; EZD-110
+  { name: '--ez-unread-tint', value: '#f7f8ff', group: 'color' },
+  { name: '--ez-slate-450', value: '#6b7280', group: 'color' },
+  { name: '--ez-shadow-popover', value: '0 16px 48px rgba(10,15,30,.18)', group: 'shadow' },
+  // S01f .row border, .kn shadow; EZD-140
+  { name: '--ez-divider-row', value: '#f0f2f5', group: 'color' },
+  { name: '--ez-shadow-switch-knob', value: '0 1px 2px rgba(0,0,0,.2)', group: 'shadow' },
 ];

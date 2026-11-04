@@ -1,0 +1,11 @@
+{
+  "name": "@ezdraft/spike-ezd-164-webkit-offline-sw",
+  "private": true,
+  "scripts": {
+    "spike-test": "node --test \"test/*.test.mjs\"",
+    "spike-run": "node src/run.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

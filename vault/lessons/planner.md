@@ -112,3 +112,278 @@ Follow-up rule (EZD-009 round 3): when a ticket adds the first reader of an envi
 - EZD-036 (2026-10-23): a control string in a build-output test must come from a value the entry actually imports, checked in the built chunks; the bundler drops exports nobody uses.
 - EZD-025 (2026-10-23): before a plan writes to a shared file (.env.example, docs lists), grep every merged test that reads it and check whether each ignores # comment lines, not just the script the plan cites.
 - EZD-034 (2026-10-23): when a plan adds a name to `.env.example`, list `scripts/db/__tests__/env.test.mjs` (EZD-004b T7) and `scripts/backup/__tests__/static.test.mjs` (EZD-025 T16) as test-author edits in section 4; grep tests for the name next to it (`SUPABASE_API_GATE_SECRET`).
+- EZD-132 (2026-10-24): a Storage policy is the only check on a direct Storage call (outside the PostgREST gate; the browser holds the token), so scope every storage.objects insert or delete policy like the owning route: one prefix per owner ticket, the same switch its can() reads, and the table insert policy's row-ownership match.
+- EZD-103a (2026-10-24): when a plan names a test helper, cite the file specs import it from (`app/test-harness/e2e/test.ts`), not only the file that defines it; specs import from one barrel.
+- EZD-103a (2026-10-24): before a plan writes `icons:fetch <name>`, fetch the raw file at the pinned commit and confirm `viewBox="0 -960 960 960"`; some upstream icons are still in the legacy width/height format that EZD-010b's pipeline and T8 refuse. Never put `{` or `}` in text a plan dictates for a CSS comment inside `:root`.
+- EZD-103a (2026-10-24): when a Decided "CSS" row maps a mockup element to a class, carry every style the board's class gives it (B15 `.sv` color), not only the layout rule; a span without its own color inherits the container's, so name that inheritance.
+- EZD-103b (2026-10-25): when a browser test's later part asserts a clean state (no draft, no warning), the plan puts it in its own browser context (harness `sessions` fixture), because IndexedDB, localStorage and cookies persist across pages of one Playwright context and an earlier part's device data leaks into it.
+- EZD-132 (2026-10-24): before a plan puts a permission read in any RLS policy (`storage.objects` included), read the ACs and machine checks of every merged or in-flight ticket that governs policies and routes (EZD-102 AC-6, D4, U8) and fit them or raise the conflict as a QP before the build; an agent answer (Q-0269 (b)) or a review finding never overrides an approved AC, and a dependency that merges mid-build brings its checks onto this ticket's gate.
+- EZD-136 re-validation (2026-10-24): a plan that fixes an inventory for a completeness test (every `page.tsx` gets a row) must re-list the files at every re-validation, since a sibling ticket's dev page can join the set the plan said was absent.
+- EZD-136 plan-gap (2026-10-24): when a plan adds text to an existing container (status bar, frame, footer), grep every earlier test for whole-markup "strip tags then expect empty" checks, not only element-count checks, and name each edit with its owner; a ticket gate's phase scope does not run the earlier phase's test, so only the full suite catches it.
+- EZD-146 plan-gap (2026-10-25): when a plan asserts which stream, exit code or connection mode a pinned third-party CLI produces, run the pinned binary once on the local stack for that exact subcommand before writing the expected value; a sibling subcommand's test (`db dump` for `db push`) and a config file borrowed from another ticket (the scratch `config.toml` port) are not evidence.
+- EZD-146 review round 1 (2026-10-25): when a plan reuses another ticket's process wrapper, read how that wrapper builds the child env and the mask list, and name in the plan every secret this ticket adds that the wrapper does not already drop or mask; "the helper handles the env" holds only for the names the helper was written for.
+- EZD-148 plan-gap (2026-10-25): a line-scanning config checker must state in the plan what it does with every quoting form the format allows (escapes, quotes continued over a line break, a comment marker inside quotes), prove each on a sample, and never run the comment strip before an open-quote check; "refuse what cannot be read" must name the unreadable forms, or the builder handles only the ones listed.
+- EZD-148 plan-gap 2 (2026-10-25): a text checker over config must list the line shapes it can read and prove every real-file line fits one (allow-list), not list the forms it refuses; a deny rule on quoting is fooled by quote pairing, every checker sharing the rule carries every refusal the others have, and an oracle parse over a generated corpus proves it before the plan returns.
+- EZD-148 plan-gap 3 (2026-10-25): a line regex over YAML must use YAML's own character classes, not JavaScript's (`\s` matches non-ASCII spaces YAML does not; a key may follow `[` as well as `{` and `,`), and the oracle corpus must include every flow-collection opener and every Unicode space before the rule is trusted.
+- EZD-148 plan-gap 4 (2026-10-25): a text checker over YAML must refuse the node-start indicators `&`, `*` and `!` wherever a node can begin, not only inside the values it inspects, because an alias makes a key's text live at a distance; the oracle corpus must include aliases, tags and merge keys.
+- EZD-147 plan-gap (2026-10-25): a plan whose rule reads the same key as an existing rule names that rule's constants by identifier and reuses its line loop from day one, so a later fix to the shared extraction does not leave a second copy behind.
+- EZD-152 (2026-10-25): when a plan filters another program's output (psql stderr), run that program once on the local stack and put its exact lines in section 2 before writing the rule; the probe shows which fields follow which (`QUERY:` after `LINE n:`), that continuation lines carry no label, and whether a flag (`-v VERBOSITY=terse`) removes the fields at the source.
+- EZD-152 (2026-10-25): when a step changes one line of a file, re-read the comment above it and the docs sentence that describes it; both must restate the new rule exactly, or the builder is left with a false comment it was told not to touch.
+- EZD-153 plan-gap (2026-10-25): a scanner rule over text inside a body is specified on the comment-stripped text at every nesting depth and names, per body language, which statements run as plain SQL; each case is probed on the pinned stack before the rule is written, since one unprobed "same as a do block" sentence left both a comment gap and an `sql`-body gap.
+- EZD-153 plan-gap 2 (2026-10-25): a rule that reads SQL text is stated on the lexer's tokens, never on the raw text, and the plan lists every place the raw text is re-joined (`splitStatements`, `stripComments`) and every form the lexer cannot read as written (escape strings, continued strings, `
+` comments, settings that change parsing), each proven on the pinned stack with an oracle corpus before the plan returns; a deny-list of normalizations leaks one form per review round.
+- EZD-155 re-validation (2026-10-25): when a plan carries line numbers for a pinned base, take them with `grep -n` on that exact commit in the planning session and pin V0 to it; EZD-155's run.mjs numbers were copied from an older checkout and were off by two on the stated base, and a base change later moved the R4 line itself.
+- EZD-160 plan-gap (2026-10-26): when new text names a ticket's phase, take the phase from `vault/tickets/tickets.json`, never from the spec's old numbering; the spec still says "Phase 1" for EZD-133, which is phase 3 after the re-cut.
+- EZD-163 plan-gap (2026-10-26): before a plan requires every response body to be read, probe the real app's own navigations, memory-cache hits and a stopped service worker; Playwright cannot read some bodies, and a read on a stopped worker's response closes the browser.
+- EZD-165 plan-gap (2026-10-26): when a plan says a foreign key blocks a column change, list every foreign key carrying that column (grep all migrations) and check the insert triggers that fill the dependent tables, not just the first table found.
+- EZD-169 plan-gap (2026-10-26): when a test calls a route with only the session mocked, read every guard the route calls before its catch on the current develop (here `requireApiPermission` loads a permission context after the session) and mock each one, and take any "grep finds exactly N files" count on that same commit; EZD-102 and EZD-145 merged after planning and added a guard and two 500 routes.
+- EZD-154 plan-gap (2026-10-26): when a plan exempts a path from a deny check, say what the path may expand to and what may run beside it, test command substitution and back-reference forms (`$(…)`, backtick, `$_`, `!$`) for each, and never rely on a fixed list of characters that end an option.
+- EZD-155 (2026-10-26): a plan that quotes text from a guarded file must take it from develop's current head and recheck it at re-validation, not from the prototype commit (boost notify text changed in bd7c901).
+- EZD-171 plan-gap (2026-10-26): a plan that checks a folder against an outside source must list the folder's real contents when written and say how each kind of file is handled, including repo-owned files such as notices and converted copies.
+- EZD-188 plan-gap (2026-10-26): when a plan's shared helper must also serve another ticket's rule in the same file, plan that rule's rewrite over the helper up front (kept messages, its controls proven on an oracle) instead of a "stop if it merged" guard.
+- EZD-172 plan-gap (2026-10-26): when a ticket splits a resource that was shared, the plan lists every shared file and earlier-ticket state (markers, locks, secret files) and decides per item whether it is per lane; it also searches the tests for hard-coded values the change moves (ports) and gives those tests E-rows from the start.
+- EZD-172 plan-gap (2026-10-26, round 3): a ticket that adds parallel lanes must at planning time grep every test and harness file for each lane-0 resource (ports, project id, container names, .temp files, os.tmpdir locks) and give each hit an E-row or a written ruling; the gate runs lane 0 only and never catches them.
+- EZD-172 plan-gap (2026-10-26, A1): when sweeping for lane conflicts, check every --workdir passed to the real Supabase CLI (it beats SUPABASE_WORKDIR and decides which [db] port counts as local) and grep fixed listening ports (-p <n>, next start, listen(<n>)), not only Supabase ports.
+- EZD-113 re-validation (2026-10-26): give every export a plan takes from a dependency as path plus signature, write route 500 handling as the current reportRouteFailure convention, and require new migration timestamps to be newer than develop's newest file.
+- EZD-200 plan-gap (2026-10-26): a plan that adds a file or directory lock must decide stale takeover as one atomic step that both checks "still that owner" and claims (unlink of a name unique to one take, lock created whole by rename), and test two waiters holding the same stale observation; never check-then-rmSync.
+
+## L-023  areas: migrations, security  seen: 1  status: candidate
+Ticket EZD-190, 2026-10-26
+Mistake: the plan added a `private` function granted to `authenticated` only, then had a test call it directly as `service_role` and `anon`, and left `PRIVATE_EXECUTE` out of the test-author scope.
+Cause: grants and the audit allow-list were not cross-read against the test rows.
+Rule: a plan that adds a `private` function lists its `PRIVATE_EXECUTE` entry in the test-author scope and calls it in tests only as a role that has execute (else through a definer RPC that role can run).
+Check: plan review matches every test caller role to the function's grants.
+
+## L-024  areas: migrations, testing  seen: 1  status: candidate
+Ticket EZD-190, 2026-10-26
+Mistake: DB tests pinned catalog counts (9 tables, 8 functions) with `toEqual`; three migrations merged between planning and build, so the builder hit a PLAN-GAP.
+Cause: a dated catalog snapshot was written into the test contract.
+Rule: a test over catalog contents checks the rule plus a minimum list (`toContain`), never `toEqual` on a snapshot; each count in the plan names its date and newest migration.
+Check: plan review greps test rows for `toEqual` over catalog lists.
+
+Ticket EZD-1707, 2026-10-26
+Mistake: the visual checklist said "card 720 px wide" while step 3 set `max-width: 720px` on a content-box card with padding and border, so the ui-verifier measured 786 px and failed it; section 6 also said W3 "ends with the Q-0208 sentence" when W3 restated it.
+Cause: a CSS value was copied into the checklist as a rendered width, and a summary of wording was written from memory instead of compared with the decision text.
+Rule: pixel widths in a checklist must say outer box vs max-width (and give the outer value with padding and border); a plan that says wording "is" a decision's text quotes it verbatim or says "restates".
+Check: plan review compares every checklist width with the CSS box model of the step that sets it, and every "Q-xxxx wording" claim with the decision row.
+
+Ticket EZD-153, 2026-10-27
+Mistake: the plan read the Supabase CLI's JSON stdout from `migration up`, but the probe ran with CLAUDECODE set, and the child env allow-list and GitHub Actions have no such variable, so stdout was empty.
+Cause: the CLI prints JSON only when it detects an AI agent unless told with `--output-format json`.
+Rule: a CLI probe runs in the same allow-listed environment as the child (no CLAUDECODE or AI_AGENT), and a plan that reads CLI stdout names the output-format flag explicitly.
+Check: plan review compares the probe's environment with the child's env list.
+
+Ticket EZD-163, 2026-10-27
+Mistake: a re-plan of a ticket whose worktree already existed did not say the branch had to be rebased, so the builder and test-author kept reading the old plan and hit a gap the new plan had already closed.
+Cause: the worktree branched before the re-plan and its plan copy was stale.
+Rule: a re-plan of a ticket that already has a worktree says up front that the branch must be rebased onto develop and names the files whose old commits get replaced.
+Check: plan review looks for that line on any plan marked re-plan.
+
+## EZD-193 plan-gap (2026-10-28)
+Cause: the plan wrote raw session output to a file in a public repo with no size cap and no ignore rule; the security-reviewer failed it.
+Rule: a plan that writes raw tool or session output to a file decides up front its size cap (unit, which end is kept, marker), whether the file is git-ignored in a public repo, and redaction before the cap, with a test for each.
+Check: plan review looks for those three lines on any plan that saves raw output.
+
+## EZD-241 plan-gap (2026-10-28)
+Cause: a local test changed a guarded object in a plain session, then ran a guarded push; the guard checks the whole protected set on every DDL statement of its session, including the migration tool's own bookkeeping, so the push would fail.
+Rule: a plan whose test changes a protected object outside the guarded session says how it is restored before the next guarded statement, and states how the guard treats changes made by other sessions.
+Check: plan review reads each guard-test row for an unrestored change before a guarded call.
+
+## EZD-241, 2026-10-28
+Mistake: test U5 required `ownedBy` absent from the whole generated install SQL, which also embeds SNAPSHOT_SQL (contains `ownedBy`).
+Rule: when a test checks a word is absent from generated text, say which part it covers and check no embedded text from elsewhere contains the word.
+
+## EZD-241 (2), 2026-10-28
+Mistake: a guard scoped by a session setting had no signal that the setting reached the protected session; failure codes did not say whether a re-run is safe.
+Rule: a guard that goes inert when its scoping signal fails needs a positive signal from the protected session itself, and every failure code must say whether a re-run is safe.
+
+## L-025  areas: tooling, process  seen: 1  status: candidate
+Ticket EZD-244, 2026-10-28
+Mistake: a backfill table in the plan listed the open tickets at plan time; four tickets planned later were missing and `--check` failed after the build.
+Cause: the list was frozen in the plan instead of derived from STATUS.md at build time.
+Rule: a backfill covers the open-ticket set at build time; the plan gives the builder the command that derives it.
+Check: `next_ticket.mjs --check` passes after the backfill.
+
+## L-026  areas: tooling, process  seen: 1  status: candidate
+Ticket EZD-244, 2026-10-28
+Mistake: the plan edited dispatch.md, which an earlier ticket's test pins by SHA-256 of its head; the gate failed on the pin and a plan gap was needed.
+Cause: the plan did not search the tests for files it edits.
+Rule: when a plan edits a file, grep scripts/**/*.test.mjs for its path; any pin by hash or line count is a structural-repair row with the new value and its authority.
+Check: the gate shows no earlier-ticket test red on an edited file.
+
+## L-027  areas: tooling, process  seen: 1  status: candidate
+Ticket EZD-244, 2026-10-28
+Mistake: the plan removed a pattern (an @ import, a whole-file read) but covered only the files the ticket row named; the reviewer found two skill lines still carrying it.
+Cause: no up-front search for the pattern across skills and process files.
+Rule: when a ticket removes a pattern, grep every skill and process file for it and give each hit a replacement row.
+Check: a grep for the pattern returns 0 after the build.
+- 2026-10-28 EZD-245: when a plan edits .claude/skills/build-ticket/dispatch.md, give the exact block lines and include the matching EZD-000e T7 update (scripts/process/retrievers.test.mjs) as a test-author row, because T7 pins the whole file. Also check a dispatch block does not repeat lines its --reads output already prints.
+- 2026-10-28 EZD-172: a gate step that runs a worktree's own tools must come after that worktree's install, and an acceptance run of two worktrees must run each worktree's own gate.mjs in a fresh worktree. A lock file taken with open-then-write is visible empty for a moment, so a plan must make the owner id visible before the file is (temp file plus link), or treat an empty file as held.
+- 2026-10-28 EZD-245: when a plan states an output or report format in more than one file (an agent file and a dispatch block), it gives the one exact text, names where each file carries it, and adds a text test that every copy matches and the old wording is gone; an 'every subcommand refuses' rule gets one failing-input test per subcommand, including read-only ones.
+- 2026-10-28 EZD-250: when a plan changes next_ticket.mjs phase logic, check its fixtures against the live ledger's blocked tickets in earlier phases, and say what an idempotent tool writes when there is nothing to change.
+- 2026-10-28 EZD-250: a tool that rewrites a guarded config file says what it does when the existing file cannot be parsed (refuse and notify, never rebuild from empty); for every child process the launcher runs, say what a missing file, a non-zero exit and unreadable output each do, and who hears about it.
+- 2026-10-28 EZD-250: when a plan has a launcher state the watchdog reads, name exactly which events may replace it; every worktree path match is a prefix of the project folder, never a search anywhere in the path (check every helper that computes the path, not only the caller).
+- 2026-10-28 EZD-250: when a test counts calls to a stub, say which call starts the count, especially when the code under test makes its own call before the state change.
+- 2026-10-28 EZD-173: when a plan changes the return shape of an existing export, grep the existing tests for exact-match checks on that export and list each under changed tests; when a text template moves into a shared module, say the old copy is deleted and test that it is gone.
+- 2026-10-28 EZD-173: when a tool writes a file that follows a process rule (lesson numbering, two-role entries, seen counts, an index), plan every operation that rule needs from the PROCESS.md section, checked against the real files, not only the one the caller named; grep the stale names a change leaves in PROCESS.md and the skills. The early return that skipped the commit repeats L-004.
+- 2026-10-28 EZD-173: when a plan changes a module that other tests copy into temp roots (run.mjs, the ledger), grep every test that copies it and list each under changed tests with its fixture edits (copy list, git repo, moved file paths); and re-check after each develop merge that every writer of a shared ledger file (tickets.json included) writes and commits inside one ledger hold.
+- 2026-10-28 EZD-246: when a plan adds text to a file an existing test pins (grep scripts/ for the file's path, e.g. dispatch.md under EZD-000e T7), give the exact lines and placement and a test-author row that updates the pin, as EZD-245 D26 did.
+- 2026-10-28 EZD-172: when a plan writes a temp file under a predictable name, say up front "delete it first, then create it with the exclusive flag", so a leftover or planted file is never written through.
+- 2026-10-28 EZD-173: when a plan writes a shared ledger file, name the module that owns that file's layout and ID rules and import it instead of copying the rule (addQuestion counted one questions file while develop counts three).
+
+## L-028  areas: tooling, process  seen: 1  status: candidate
+Tickets EZD-246, EZD-240, 2026-10-28
+Mistake: a test or document line did not carry out an exact plan row (a pipe character in a table, assertion messages and a first-run check in T3); the reviewer found it after the build.
+Cause: the plan's exact-text and "after each step" rows were prose the test-author could skim past.
+Rule: write each such row as its own numbered check naming the line or step (for example "T3 asserts the sample after run 1 and after run 2"), and put a shared rule such as assertion messages in the test table, not only in Decided.
+Check: the reviewer finds no test defect against a plan row.
+
+## L-029  areas: tooling, security  seen: 1  status: candidate
+Ticket EZD-248, 2026-10-28
+Mistake: a plan for a command guard listed example patterns (regex entries for known bad forms); the security-reviewer found new bypasses in each of three rounds (options before the subcommand, `--` handling, redirections, other shells), and the ticket blocked.
+Cause: the plan named forms to deny instead of the threat class and a fail-closed rule, and no not-denied control set bounded false denials.
+Rule: a plan for a guard names the threat class, states the fail-closed rule (refuse what cannot be resolved statically) and the accepted cost up front, lists the shells and wrappers in scope, and says whether the guard is the real control or a best-effort accident guard with a git-level control behind it.
+Check: the security-reviewer's first probes find nothing outside the plan's stated limits list.
+
+## L-030  areas: tooling, tests  seen: 1  status: candidate
+Tickets EZD-248, EZD-251, 2026-10-29
+Mistake: a comment or rule wording in a plan or test file described code behavior that the code does not have (rule (r) m=data, "wrong-password tests write error_alert rows"); the reviewer found it after the build.
+Cause: the sentence was written from memory of the code, not from the cited lines.
+Rule: when a plan has the builder or test-author write a comment or rule text about code behavior, cite the file and line it restates and name the exact branch (for example "only the Auth-outage branch, actions.ts line 141").
+Check: the reviewer finds no comment or rule text that differs from the code it cites.
+
+## L-031  areas: release, testing, scripts  seen: 1  status: candidate
+Tickets EZD-257, 2026-10-29
+Mistake: a plan expected 10 distinct fixture git hashes from fixtures with fixed identity, fixed content and fixed messages; commits made in the same second got the same hash (test-author PLAN-GAP).
+Cause: the plan named no input that makes each fixture's commits unique, and git dates have one-second resolution.
+Rule: when a test checks that fixture git hashes are distinct, the plan names what makes each fixture's commits unique (for example a run counter in the commit message).
+Check: the reviewer finds each distinctness check paired with a named unique input.
+
+## L-032  areas: tooling, scripts, testing  seen: 1  status: candidate
+Tickets EZD-250, 2026-10-29
+Mistake: the plan's Verify column gave `node --test <bare folder>` (scripts/hooks/, scripts/launcher/, scripts/ledger/), which fails on the pinned Node 22.23.3 with "Cannot find module"; code-reviewer and security-reviewer found it in round 3.
+Cause: the verify commands were written from memory of newer Node behavior and never run on the pinned version.
+Rule: Verify commands must run on the pinned Node; the planner runs each verify command once before returning the plan, and a test folder is given as a quoted glob (`'scripts/hooks/*.test.mjs'`), never as a bare folder.
+Check: the reviewer finds no `node --test` argument that is a bare folder.
+Plan check: every `node --test` argument in the Verify column is a named file or a quoted `*.test.mjs` glob.
+
+## L-033  areas: tooling, scripts, testing  seen: 1  status: candidate
+Tickets EZD-173, 2026-10-29
+Mistake: the plan changed a shared test helper's contract (every launcher test root is now a git repository with ledger.mjs copied) but named only four test files; develop's two newer launcher test files broke at merge, and the repair left an ignored option, two callers and two comments stale.
+Cause: the plan listed the test files that existed when it was written and did not name the helper option and comments its rule makes obsolete.
+Rule: when a plan changes what a shared test helper does, it names the helper's options, callers and comments that become stale, and says that test files added by develop later get the same repair.
+Check: the reviewer greps the helper's old option and old comment text and finds no caller or comment left.
+Plan check: a plan that changes a shared test helper lists each option and comment it removes or rewrites, and a grep command that finds none left.
+
+## L-034  areas: tooling, scripts, testing  seen: 1  status: candidate
+Tickets EZD-246, EZD-254, 2026-10-29
+Mistake: reviewers found added work beyond the plan twice (a sentence in a skill file; a fourth test and extra fixture helpers beyond the D6 shape) because the plan did not say the list was complete.
+Cause: the test table and exact-text blocks gave what to write but never said that nothing else is wanted.
+Rule: a plan's test table gives the exact test count and titles, a fixture's returned shape is listed in full, and each exact-text block ends with "nothing else".
+Check: the reviewer counts the tests, compares the fixture's returned names to the plan and finds no text or helper outside the plan.
+Plan check: section 4 states the test count and the fixture's returned names; section 1 text blocks end with "nothing else".
+- EZD-175 (2026-10-29): before calling a change to a shared step 'tests unchanged', run every test file that calls that step (here ledger-lock.test.mjs M1/M2) and pin new expected values in the plan.
+- EZD-253 re-validation: set up a test ledger copy so it passes every --check rule on the live ledger (architecture list for each open ticket, a plan for each ready one); cite code by function name, not line number, because lines move between planning and build.
+- EZD-253 plan-gap: when the plan adds a status message, say what fills each placeholder and give one ledger state that reaches every new branch, including grant holds for earlier phases.
+- EZD-253 gap 2: when a test pins a change in which tickets are considered, the plan gives a state where old and new code differ and names the old code's result.
+- EZD-253 gap 3: when a plan adds a ledger check, list up front every existing test fixture that builds a ledger state the check refuses (reopened done tickets, synthetic tooling plans) and say how each is repaired.
+
+## L-035  areas: tooling, scripts, ledger  seen: 2  status: candidate
+Mistake: a plan's test row or contract left an input out (EZD-253 U8 omitted that P2 was blocked, so its expected build was unreachable; EZD-154 left a bypass form uncovered), found only at test review.
+Rule: for each test row, run the row's stated input through the plan's own decision rows (D-lines) by hand and confirm the expected value is the first one reached; list every sibling form of a blocked case.
+Plan check: for each test row, name the D-line that yields its expected value and confirm no earlier D-line fires on the stated input.
+- When a ticket moves a file per lane, the plan's architecture.md step greps the doc for every place naming the old path and gives each a lane note, not only the bullets it rewrites. (EZD-172 round 9)
+When a plan asserts the whole of a list another merged ticket also writes to (e.g. notified), list every writer's lines from current develop code, not from the dependency branch the plan was written against.
+Tests section: when a note can carry several line kinds (summary, JSON error, stderr), give each kind a test with a URL password, not only stderr (EZD-259 security review).
+- EZD-261 (2026-10-29): When a plan edit replaces text in another plan, check the old text against current develop right before returning (other tickets edit those plans). Write each 'old text gone' test with its closing delimiter, so a valid longer command that starts the same way does not match.
+
+## L-036  areas: tooling, scripts, testing  seen: 1  status: candidate
+Mistake: a test row passes on today's code, or checks one output channel only, so the change it pins is not tested (EZD-253 U20 grant-needs row; EZD-259 N3/N4 redaction on stderr only).
+Rule: for each test row, state the input where old and new code give different results, and name every output channel (stderr, summary, JSON) the changed behavior reaches.
+Plan check: each test row names the old code's result on its input and lists the channels it asserts.
+
+## L-037  areas: tooling, scripts, security  seen: 1  status: candidate
+Mistake: EZD-267's plan gave an automatic permission grant and its apply/commit flow only the success path: no fixed list of files never granted (gate.mjs, grants.json), no restore for failed apply or failed commit, and a regression test whose input dropped a file the real case had (same shape: EZD-250, EZD-248, EZD-254).
+Rule: a plan for code that grants a permission, or writes then commits, names the files it never grants with the refusal reason, the restore and single notice for every step that can fail after a write, and a test per failure branch whose input has every file the real case has.
+Plan check: each write-then-commit step lists its failure branch and restore; each grant rule lists its deny list.
+
+## L-038  areas: tooling, scripts, process  seen: 1  status: candidate
+Mistake: tests pinned live values (budget hold 80, next Q-ID), so merges went red on develop for causes outside the diff (EZD-267, EZD-259, EZD-172, EZD-199); plan text also fixed a comment's line count and was off by a line (EZD-172, EZD-267).
+Rule: a plan's test rows use fixture values, never the live ledger or budget files; plan text about a comment or doc names the sentence, not an exact line count.
+Plan check: no test row reads vault/ ledger files, budget.json or the live next Q-ID; no plan text pins a comment's line count.
+When a ticket widens which tickets `next_ticket.mjs` can build, list in the plan every shared ledger fixture (`ledger-copy.mjs`, `priority`/`questions-flow` `before()`) and every doc-text assertion (EZD-253 U17) that the change breaks, and give the test-author rows for them. Run the existing ledger and launcher suites against the planned change before writing Do not touch.
+- EZD-108 (2026-10-30): when a plan adds a required prop or field to a shared component or type, grep the worktree for every caller and fixture, dev placeholder pages and typed test mocks included, and list each as a build step or test edit.
+- EZD-108 (2026-10-30): before choosing a UI library component for a budgeted entry, check that page's headroom in perf-results and the library's bundle cost; the office entry had about 4 KB left and a Radix popper menu costs about 20 KB.
+- EZD-108 (2026-10-30): a server-side password re-check must be checked against the live site's Auth settings (captcha on), not only the local test setup; every Code input needs a shared format check that runs before any throttle slot.
+When a plan's test fixture adds a hard link, name a separate target file, never a guarded file: a hard link gives that file two links and the hard-link deny (W2) fires on it. (EZD-260)
+
+## L-039  areas: tooling, security, docs  seen: 1  status: candidate
+Mistake: plan-quoted comment or doc text claimed more than the code enforces (EZD-260: a comment said a link to "another checkout" gets no grant, but a link to a sibling worktree does; EZD-108: architecture.md named a component the code does not use), so a reviewer failed a finding for wording alone.
+Rule: when a plan dictates comment or doc text, the text states only what the planned code enforces; the planner checks each claim in it against the code and narrows the wording to the case that is true.
+Plan check: every comment or doc sentence the plan quotes names a case the planned code handles, checked against the code, not the plan's intent.
+When a dependency adds a naming helper for a class of messages (EZD-255 unitSubject for limit texts), every new message of that class in the plan uses the helper.
+When a rule changes from 'round N' to 'round N or later', list every place the skill states the old round.
+When a rule's wording changes, grep .claude/agents/ and .claude/skills/ for the old wording and list every file in Build steps, so the grant covers them all.
+EZD-277 (2026-10-30): a permission plan gives the direction of each compare up front: a check that refuses may fold wider than the disk, but a check that allows (grants, exemptions, writes-only-under rules) folds no wider than the disk; add a test row with a look-alike letter.
+EZD-277 (2026-10-30): before a plan claims how the disk treats a name, test it on that disk against an existing folder; realpath rewrites a look-alike folder name to the real one and hides it from any check on the resolved path.
+
+## L-040  areas: tooling, security, testing  seen: 1  status: candidate
+Ticket EZD-277, 2026-10-30
+Mistake: a permission plan folded letters with JavaScript toLowerCase for grants too; the disk folds fewer characters (dotless i stays distinct), so a grant covered a look-alike path, and a later claim about how the disk treats ſ, ﬁ and Kelvin K was wrong (realpath rewrites them to the ASCII folder).
+Cause: the plan did not state the direction of each compare and did not test the disk with an existing folder.
+Rule: a check that refuses may fold wider than the disk; a check that allows (grants, exemptions) folds only plain ASCII; test disk claims on that disk against an existing folder.
+Check: each permission plan has a look-alike-letter row for every allow rule.
+Plan check: Tests rows include a look-alike letter against an existing folder.
+
+## L-041  areas: testing, docs, tooling  seen: 5  status: ratified
+Audit M4, 2026-11-01 (ratified by Josh's acceptance of the audit recommendations, 2026-11-01)
+Mistake: 73 test files check what documents say (architecture.md, runbook.md, CLAUDE.md, STATUS.md, the live vault); each doc edit then breaks a test, and EZD-160, 162, 243, 247 and 264 only re-aligned wording.
+Cause: plans turned "the doc says X" into a test instead of testing the behaviour the doc describes.
+Rule: never plan a test that reads a document's wording or the live vault; test the behaviour (the code, the config, the script's output) against fixtures. The only exceptions guard a real rule (no secrets in docs, migration lists) and test it as behaviour.
+Check: no Tests row reads `docs/*.md`, `CLAUDE.md`, `vault/` or a heading or phrase in them.
+Plan check: every Tests row names code, config or a fixture as its subject, never a document.
+
+## L-042  areas: testing, tooling  seen: 2  status: candidate
+Tickets EZD-108 and EZD-277, 2026-10-30 (code-reviewer r1, category test-defect)
+Mistake: tests did not match what the plan or the types fixed: a settings test fixture lacked a field the type had just made required (tsc failed), and look-alike letters were typed as literal characters where the plan named \u escapes.
+Cause: the plan gave test data in prose and never said that fixtures must satisfy the changed type or that exotic characters are written as escapes.
+Rule: when a plan changes a type or needs non-ASCII test data, its Tests rows list the fixtures to update and name the exact escape sequences.
+Check: each Tests row with a changed type names the fixture files; each look-alike row gives \u escapes.
+Plan check: no Tests row says "look-alike" or "new required field" without the escape or the fixture path.
+
+## L-043  areas: tooling, scripts, testing  seen: 1  status: candidate
+Ticket EZD-287, 2026-11-02
+Mistake: plan step 3 called projectId() without naming where it comes from; the builder wrote a private copy in local.mjs although scripts/db/sql.mjs already exports one, and the copy's regex drifted. The reviewer found it.
+Cause: the plan used a helper by name and did not check the repo for an existing export.
+Rule: every function a plan step calls that the plan does not create is named with its file path, found by grep at plan time; "add a helper" is written only when no export exists.
+Check: the plan review greps each called-but-not-created name in the plan's steps and finds a file path beside it.
+- EZD-108 (2026-11-02): a plan whose feature calls a password sign-in must check up front whether that call is captcha-guarded in production (runbook Captcha) and plan the widget and token from the start.
+When a build step changes which value a function returns, the plan lists a test whose stub returns a value different from the input, so the step cannot pass by echoing the input. (EZD-290)
+When a plan keeps an old quick check in front of a new parser, it says which one decides each refusal code; better, drop the old check so only the parser decides. (EZD-290)
+When a plan's cleaner reports text positions, they come from the original string; include a test whose case change alters length (U+0130) and key the duplicate-attribute rule by expanded name with a two-prefixes-one-namespace test. (EZD-290)
+Before a plan reuses a component in an office part, check `eslint-rules/boundaries.mjs` (`components/shell/` is EDITOR_CODE, barred from the office entry) and rebuild its CSS from tokens instead; a step that runs a Node script needing the network inside a unit prefixes `NODE_USE_ENV_PROXY=1` (Node fetch ignores the sandbox proxy). (EZD-110b)
+- EZD-110b (2026-11-02): a popover list with a page of N rows states its maximum height and scroll area at the largest page in the smallest test window, and a store action that triggers a refetch says whether it waits for it before the UI reacts.
+When a ticket extends a test file that exports nothing, section 3 must say which file the helpers live in and whether they are exported, and must define every helper it names instead of saying 'as <other ticket> T1'.
+
+## L-044  areas: testing, realtime  seen: 1  status: candidate
+Ticket EZD-297, 2026-11-03
+Mistake: the plan's control row (N2) said "the N1 step-1 assert throws" without saying what value that assert expects; the test-author put a placeholder, so the inner check threw whether or not the event arrived. The plan's S1 upper-case case also used an id with no letters, so it could not test case.
+Cause: a negative-control row named the assert but not the expected value, and a case-change input was written without checking it differs from the original.
+Rule: a control row names the exact value the inner assert must expect (the id the step created), and a case, length or format test input is shown to differ from its original after the change.
+Check: for each control row, the plan review finds the expected value beside the assert; each case-change input contains a letter or character that changes.
+- EZD-295 re-validation (2026-11-03): when a ticket lowers a limit, list every earlier test fixture set just past the old limit (the *_PLUS_1 constants) as an edit, not only the tests that check the limit value.
+- EZD-295 plan-gap (2026-11-03): when a plan says an earlier test passes unedited, open its body and check every call against the new policy; a policy that narrows Storage operations needs every earlier test that signs uploads to that bucket listed with its replacement call.
+When a script runs outside the sandbox and takes a file path from a sandboxed caller, the plan names the one folder the file must be in, how symlinks and hard links are handled, and that the script reads the file itself rather than passing the path on; every child process gets a cwd outside any folder the sandbox can write (EZD-316 round 1).
+A plan for a script that runs outside the sandbox first lists every file and env var its child processes read, then chooses a design where none of them is sandbox-writable, instead of blocking one variant per review round (EZD-316 round 3).
+A plan that gates what a trusted script pushes names its trust anchor first: anything the sandbox can write is data, never authority (EZD-316 round 3).
+
+## L-045  areas: tooling, security  seen: 1  status: candidate
+Ticket EZD-316, 2026-11-03
+Mistake: a sandbox-guard plan listed three denied write paths and a check-then-commit step; three review rounds each found another path of the same class (git hooks, worktree config, a resumed merge that records without checking, develop moving between check and commit).
+Cause: the plan fixed the examples reviewers named instead of listing every file the unsandboxed step reads and every state it re-reads between check and use.
+Rule: for a guard on an unsandboxed step, the plan lists every file and ref that step reads, marks each denied or checked, and says what is re-verified at the moment of use (rule 18).
+Check: the plan has a read-list table with a decision per row and a test per check-then-use step.
+Plan check: every path an excluded command reads appears in the plan's read-list table.
+- EZD-298 (2026-11-03): when an AC says '(test)' but a ratified lesson forbids that test, section 4 says the AC is met by the code-reviewer's check under the Q-ID and names the ticket row line, so the test-author does not raise it as a gap.
+When a browser test changes server state after a click whose server function sends a Realtime event, put the clicked row in a state where the function sends no event and name the SQL line that proves it; never make the test wait for a number of responses (EZD-110b T19).
+When a component fetches on mount and also listens on a realtime channel, the plan says from the start how the gap before the first join is closed (refetch when ready resolves 'subscribed'), because the hub resyncs only on a re-subscribe (EZD-110b D16).

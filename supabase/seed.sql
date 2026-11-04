@@ -19,6 +19,20 @@ values (
   'all'
 );
 
+-- EZD-101: one seeded person per other preset in tenant 1 (S15 Decision 13: Foreman and Crew are listed,
+-- with no listed projects yet; example.com test addresses, Q-0033 (a)).
+insert into public.app_user (id, name, email, language, role_preset)
+values
+  ('00000000-0000-4000-8000-000000001002', 'Seed Designer', 'designer@example.com', 'en', 'designer'),
+  ('00000000-0000-4000-8000-000000001003', 'Seed Foreman', 'foreman@example.com', 'en', 'foreman'),
+  ('00000000-0000-4000-8000-000000001004', 'Seed Crew', 'crew@example.com', 'en', 'crew');
+
+insert into public.membership (tenant_id, user_id, status, scope)
+values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000001002', 'active', 'all'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000001003', 'active', 'listed'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000001004', 'active', 'listed');
+
 -- EZD-016c: local test data for browser and isolation tests, never copied into
 -- supabase/bootstrap/tenant-1.sql (Q-0033 (a)). The "keep the two files in step" note above covers
 -- tenant 1 and Josh only.

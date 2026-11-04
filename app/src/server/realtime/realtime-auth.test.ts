@@ -23,13 +23,13 @@ import {
 import {
   closeAllRealtime,
   connectRealtime,
-  eventsNamed,
   JOIN_WAIT_MS,
   QUIET_MS,
   sleep,
   waitFor,
   wasRefused,
 } from '../../../test-harness/realtime/node-client';
+import { ensureStream, fencedStep, nonProbeEvents } from '../../../test-harness/realtime/stream';
 
 // Several joins, a refusal (the pinned stack reports it about 5 s after the join) and a quiet time per test.
 const LONG = 45_000;
@@ -85,14 +85,20 @@ describe('EZD-018 realtime authorization', () => {
       expect(j1).toBe('SUBSCRIBED');
       expect(wasRefused(c2)).toBe(true);
 
-      await broadcastProject(p1, 'dev.ping', { n: 2 });
-      await broadcastProject(p2, 'dev.ping', { n: 2 });
-      await waitFor(() => eventsNamed(c1, 'dev.ping').length > 0, JOIN_WAIT_MS);
+      const { arrived } = await fencedStep({
+        sql: harnessSql(),
+        channel: c1,
+        accessToken,
+        event: 'dev.ping',
+        run: async () => {
+          await broadcastProject(p1, 'dev.ping', { n: 2 });
+          await broadcastProject(p2, 'dev.ping', { n: 2 });
+        },
+      });
       await sleep(QUIET_MS);
 
-      const got = eventsNamed(c1, 'dev.ping');
-      expect(got).toHaveLength(1);
-      expect(got[0].payload).toEqual({ n: 2 });
+      expect(arrived).toHaveLength(1);
+      expect(arrived[0].payload).toEqual({ n: 2 });
       expect(c2.events).toHaveLength(0);
       expect(c2.statuses).not.toContain('SUBSCRIBED');
     },
@@ -125,7 +131,15 @@ describe('EZD-018 realtime authorization', () => {
       expect(wasRefused(cc)).toBe(true);
       expect(jd).toBe('SUBSCRIBED');
 
-      await broadcastProject(p1, 'dev.ping', { n: 1 });
+      const { arrived } = await fencedStep({
+        sql: harnessSql(),
+        channel: cd,
+        accessToken: uToken,
+        event: 'dev.ping',
+        run: () => broadcastProject(p1, 'dev.ping', { n: 1 }),
+      });
+      expect(arrived).toHaveLength(1);
+      expect(arrived[0].payload).toEqual({ n: 1 });
       await sleep(QUIET_MS);
       for (const ch of [ca, cb, cc]) {
         expect(ch.events).toHaveLength(0);
@@ -140,18 +154,23 @@ describe('EZD-018 realtime authorization', () => {
     async () => {
       const m = await createMember({ tenantId: tenantA, scope: 'all' });
       const k = await createMember({ tenantId: tenantA, scope: 'all' });
-      const rt = await connectRealtime((await signIn(m.email)).accessToken);
+      const mToken = (await signIn(m.email)).accessToken;
+      const rt = await connectRealtime(mToken);
       const own = rt.join(`user:${m.appUserId}`);
       const other = rt.join(`user:${k.appUserId}`);
       const [jOwn] = await Promise.all([own.joined, other.joined]);
       expect(jOwn).toBe('SUBSCRIBED');
       expect(wasRefused(other)).toBe(true);
 
-      await broadcastUser(m.appUserId, 'dev.ping', { n: 3 });
-      await waitFor(() => own.events.length > 0, JOIN_WAIT_MS);
+      const { window } = await fencedStep({
+        sql: harnessSql(),
+        channel: own,
+        accessToken: mToken,
+        event: 'dev.ping',
+        run: () => broadcastUser(m.appUserId, 'dev.ping', { n: 3 }),
+      });
       await sleep(QUIET_MS);
-      expect(own.events).toHaveLength(1);
-      expect(own.events[0].payload).toEqual({ n: 3 });
+      expect(window).toEqual([{ event: 'dev.ping', payload: { n: 3 } }]);
       expect(other.events).toHaveLength(0);
     },
     LONG,
@@ -163,7 +182,8 @@ describe('EZD-018 realtime authorization', () => {
       const a = await createMember({ tenantId: tenantA, scope: 'all' });
       const b = await createMember({ tenantId: tenantA, scope: 'all' });
       const topic = `project:${p1}`;
-      const ca = (await connectRealtime((await signIn(a.email)).accessToken)).join(topic, {
+      const aToken = (await signIn(a.email)).accessToken;
+      const ca = (await connectRealtime(aToken)).join(topic, {
         presenceKey: a.appUserId,
       });
       const cb = (await connectRealtime((await signIn(b.email)).accessToken)).join(topic, {
@@ -173,6 +193,7 @@ describe('EZD-018 realtime authorization', () => {
       expect(ja).toBe('SUBSCRIBED');
       expect(jb).toBe('SUBSCRIBED');
 
+      await ensureStream({ sql: harnessSql(), channel: ca, accessToken: aToken });
       // (a) a client broadcast on the private channel.
       await ca.send('lock.changed', {});
       // (b) presence.
@@ -195,8 +216,8 @@ describe('EZD-018 realtime authorization', () => {
       expect(sawBoth).toBe(true);
       expect(ca.presenceIds()).toEqual(both);
       expect(cb.presenceIds()).toEqual(both);
-      expect(cb.events).toHaveLength(0);
-      expect(ca.events).toHaveLength(0);
+      expect(nonProbeEvents(cb.events)).toHaveLength(0);
+      expect(nonProbeEvents(ca.events)).toHaveLength(0);
     },
     LONG,
   );
@@ -298,26 +319,44 @@ describe('EZD-018 realtime authorization', () => {
     'EZD-018 T23 deactivation pushes session.ended on the user channel',
     async () => {
       const d = await createMember({ tenantId: tenantA, scope: 'all' });
-      const rt = await connectRealtime((await signIn(d.email)).accessToken);
+      const dToken = (await signIn(d.email)).accessToken;
+      const rt = await connectRealtime(dToken);
       const proj = rt.join(`project:${p1}`);
       const own = rt.join(`user:${d.appUserId}`);
       const [jp, ju] = await Promise.all([proj.joined, own.joined]);
       expect(jp).toBe('SUBSCRIBED');
       expect(ju).toBe('SUBSCRIBED');
 
-      await deactivate(d);
-      const arrived = await waitFor(
-        () => eventsNamed(own, 'session.ended').length > 0,
-        JOIN_WAIT_MS,
-      );
-      await sleep(QUIET_MS);
+      const { arrived } = await fencedStep({
+        sql: harnessSql(),
+        channel: own,
+        accessToken: dToken,
+        event: 'session.ended',
+        restore: () =>
+          harnessSql()`update public.membership set status = 'active' where id = ${d.membershipId}::uuid`,
+        run: () => deactivate(d),
+      });
 
-      expect(arrived).toBe(true);
-      const ended = eventsNamed(own, 'session.ended');
-      expect(ended).toHaveLength(1);
-      expect(ended[0].payload).toEqual({});
+      expect(arrived).toHaveLength(1);
+      expect(arrived[0].payload).toEqual({});
       expect(await sessionCount(d.authUserId)).toBe(0);
     },
     LONG,
   );
+  it('EZD-297 control: an event that is not delivered fails the R1 check', async () => {
+    const s = await createMember({ tenantId: tenantA, scope: 'listed', listed: [p1] });
+    const { accessToken } = await signIn(s.email);
+    const rt = await connectRealtime(accessToken);
+    const c1 = rt.join(`project:${p1}`);
+    expect(await c1.joined).toBe('SUBSCRIBED');
+    const { arrived } = await fencedStep({
+      sql: harnessSql(),
+      channel: c1,
+      accessToken,
+      event: 'dev.ping',
+      run: () => broadcastProject(p2, 'dev.ping', { n: 2 }),
+    });
+    expect(arrived).toEqual([]);
+    expect(() => expect(arrived).toHaveLength(1)).toThrow();
+  }, 60000);
 });

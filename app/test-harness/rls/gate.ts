@@ -5,6 +5,9 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
+  { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
+  { fn: 'current_user_has_password', args: {} },
   { fn: 'health', args: {} },
   // EZD-007b (vault/plans/EZD-007b.md section 3): the linking and access functions, authenticated only.
   { fn: 'current_app_user_id', args: {} },
@@ -45,4 +48,21 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'sign_in_throttle_settle',
     args: { p_attempt_id: '00000000-0000-4000-8000-000000000000', p_ip_attempt_id: null },
   },
+  // EZD-143 D4, D11 (vault/plans/EZD-143.md): the error tunnel per-address count, anon only.
+  { fn: 'error_tunnel_take', args: { p_ip_key: '0'.repeat(64), p_events: 1 } },
+  // EZD-102 section 3 (vault/plans/EZD-102.md): the member's permission set, authenticated only.
+  { fn: 'current_permissions', args: {} },
+  // EZD-112 section 3 (vault/plans/EZD-112.md): the company identity write path, authenticated only.
+  {
+    fn: 'update_tenant_identity',
+    args: { p_name: 'x', p_license_no: null, p_contact: {}, p_set_logo: false, p_logo_path: null },
+  },
+  // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
+  { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
+  // EZD-110a section 3 (vault/plans/EZD-110a.md): the notification functions, authenticated only.
+  { fn: 'list_notifications', args: { p_before_created_at: null, p_before_id: null } },
+  { fn: 'open_notification', args: { p_id: '00000000-0000-4000-8000-000000000000' } },
+  { fn: 'mark_all_notifications_read', args: {} },
+  // EZD-140 section 3 (vault/plans/EZD-140.md): the notification settings save, authenticated only.
+  { fn: 'save_my_notification_settings', args: { p_settings: [] } },
 ];

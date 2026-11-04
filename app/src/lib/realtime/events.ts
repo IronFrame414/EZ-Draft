@@ -18,6 +18,13 @@ export interface ProjectChannelEvents {
 export interface UserChannelEvents {
   'dev.ping': { n: number };
   'session.ended': Record<string, never>;
+  // EZD-102 Step 2: pushed by the user_permission_broadcast triggers after any change to the member's
+  // switches; the payload is empty and the browser refetches GET /api/permissions.
+  'user_permission.updated': Record<string, never>;
+  // EZD-110a Step 6: pushed by the notification_broadcast_created trigger after each insert, and by
+  // open_notification (the opened id) and mark_all_notifications_read (null); the bell refetches its list.
+  'notification.created': { notificationId: string };
+  'notification.read': { notificationId: string | null };
 }
 
 // realtime.send adds the message id as payload key `id` when the payload has none, and the same id

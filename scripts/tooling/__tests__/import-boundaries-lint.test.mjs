@@ -2,7 +2,7 @@
 // Sources: Step 2 (HEAVY_PACKAGES, EDITOR_CODE, EDITOR_CODE_IMPORTERS), Step 3, Step 4; 11 rule 7. Wording never compared.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -241,5 +241,133 @@ describe('EZD-020 import boundaries lint', () => {
     const off = (await e.calculateConfigForFile('app/src/lib/x.test.ts')).rules?.[RULE];
     const level = Array.isArray(off) ? off[0] : off;
     assert.ok(level === undefined || level === 0 || level === 'off', `test file level ${level}`);
+  });
+});
+
+// EZD-167 (vault/plans/EZD-167.md section 4): the import-boundaries rule reads the `@/` path alias of app/.
+describe('EZD-167 import boundaries path alias', () => {
+  const PROBE = 'app/src/app/dev/lazy/LazyProbe.tsx';
+  const SAMPLE = '@/lazy/dev-sample';
+  // Dynamic import: a missing export reads as undefined and fails its own assertion, not the whole file.
+  const boundaries = () =>
+    import(pathToFileURL(path.join(root, 'eslint-rules', 'boundaries.mjs')).href);
+  const readJson = (rel) => JSON.parse(readFileSync(path.join(root, rel), 'utf8'));
+
+  test('EZD-167 done when: a static import of @/lazy/dev-sample from outside the folder is reported', async () => {
+    const forms = [
+      `import { sampleMarker } from '${SAMPLE}';\nexport default sampleMarker;\n`,
+      `import '${SAMPLE}';\n`,
+      `export * from '${SAMPLE}';\n`,
+      `export { sampleMarker } from '${SAMPLE}';\n`,
+      `const m = require('${SAMPLE}');\nexport default m;\n`,
+    ];
+    for (const f of [PROBE, 'app/src/lib/x.ts']) {
+      for (const code of forms) reported(await lint(code, f), 'lazyStatic', `${f} ${code}`);
+    }
+  });
+
+  test('EZD-167 A2 aliased import() and type-only imports stay allowed', async () => {
+    allowed(await lint(`export const load = () => import('${SAMPLE}');\n`, PROBE), 'import()');
+    allowed(
+      await lint(`import type { X } from '${SAMPLE}';\nexport type Y = X;\n`, PROBE),
+      'import type',
+    );
+    allowed(
+      await lint(
+        `import { sampleMarker } from '${SAMPLE}';\nexport default sampleMarker;\n`,
+        'app/src/lazy/dev-sample/b.ts',
+      ),
+      'a module imports itself through the alias',
+    );
+  });
+
+  test('EZD-167 A3 aliased import into another lazy module is reported', async () => {
+    reported(
+      await lint(
+        `import { sampleMarker } from '${SAMPLE}';\nexport default sampleMarker;\n`,
+        'app/src/lazy/sheets/a.ts',
+      ),
+      'lazyStatic',
+      'sheets to dev-sample',
+    );
+  });
+
+  test('EZD-167 A4 editor code through the alias is reported outside the editor', async () => {
+    const code = "import x from '@/components/shell/EditorFrame';\nexport default x;\n";
+    const bad = [
+      'app/src/components/phone/P.tsx',
+      'app/src/components/states/S.tsx',
+      'app/src/app/(field)/dev/entry/field/page.tsx',
+      'app/src/app/(client)/dev/entry/client/page.tsx',
+      'app/src/app/(office)/dev/entry/office/page.tsx',
+      'app/src/lib/x.ts',
+    ];
+    for (const f of bad) reported(await lint(code, f), 'editorOnly', f);
+    reported(
+      await lint("import x from '@/editor/store';\nexport default x;\n", 'app/src/app/(office)/page.tsx'),
+      'editorOnly',
+      'app/src/app/(office)/page.tsx',
+    );
+    const good = [
+      'app/src/app/(editor)/dev/entry/editor/page.tsx',
+      'app/src/app/dev/shell/page.tsx',
+      'app/src/components/shell/Y.tsx',
+      'app/src/editor/x.ts',
+      'app/src/lazy/sheets/x.ts',
+    ];
+    for (const f of good) allowed(await lint(code, f), f);
+  });
+
+  test('EZD-167 A5 the alias applies under app/ only; packages and other specs are unaffected', async () => {
+    allowed(
+      await lint(
+        `import { sampleMarker } from '${SAMPLE}';\nexport default sampleMarker;\n`,
+        'packages/geometry/src/x.ts',
+      ),
+      'packages/geometry',
+    );
+    reported(await lint(imp('@react-three/fiber'), 'app/src/lib/x.ts'), 'heavyPackage', '@react-three/fiber');
+    allowed(await lint(imp('@/lib/x'), 'app/src/app/(office)/page.tsx'), '@/lib/x');
+  });
+
+  test('EZD-167 A6 the alias list matches every tsconfig path the rule uses', async () => {
+    const b = await boundaries();
+    assert.ok(Array.isArray(b.PATH_ALIASES), 'eslint-rules/boundaries.mjs exports PATH_ALIASES');
+    const pkgTsconfigs = readdirSync(path.join(root, 'packages'))
+      .map((n) => path.join('packages', n, 'tsconfig.json'))
+      .filter((rel) => existsSync(path.join(root, rel)));
+    assert.ok(pkgTsconfigs.length > 0, 'packages/*/tsconfig.json found');
+
+    // (i) every app/tsconfig.json path is one `@/*` style alias; the derived list equals PATH_ALIASES.
+    // The target is the app-relative value with its `*` and trailing `/` removed, joined under app/, plus one `/`.
+    const paths = readJson(path.join('app', 'tsconfig.json')).compilerOptions?.paths ?? {};
+    const derived = Object.entries(paths).map(([key, values]) => {
+      assert.ok(key.endsWith('/*'), `app/tsconfig.json path ${key} ends with /*`);
+      assert.ok(
+        Array.isArray(values) && values.length === 1 && typeof values[0] === 'string' && values[0].endsWith('/*'),
+        `app/tsconfig.json path ${key} maps to exactly one target ending /*`,
+      );
+      const dir = path.posix.join('app', values[0].slice(0, -1).replace(/\/$/, ''));
+      return { prefix: key.slice(0, -1), target: dir + '/', appliesTo: 'app/' };
+    });
+    assert.deepEqual(derived, b.PATH_ALIASES);
+
+    // (ii) the rule's list is exactly the one alias the app uses today.
+    assert.deepEqual(b.PATH_ALIASES, [{ prefix: '@/', target: 'app/src/', appliesTo: 'app/' }]);
+
+    // (iii) no baseUrl anywhere, and no paths outside app/tsconfig.json: a new alias must fail until the rule knows it.
+    for (const rel of [path.join('app', 'tsconfig.json'), 'tsconfig.base.json', ...pkgTsconfigs]) {
+      assert.equal(readJson(rel).compilerOptions?.baseUrl, undefined, `${rel} has no baseUrl`);
+    }
+    for (const rel of ['tsconfig.base.json', ...pkgTsconfigs]) {
+      assert.equal(readJson(rel).compilerOptions?.paths, undefined, `${rel} has no paths`);
+    }
+  });
+
+  test('EZD-167 A7 the config passes the alias list to the rule', async () => {
+    const b = await boundaries();
+    assert.ok(Array.isArray(b.PATH_ALIASES), 'eslint-rules/boundaries.mjs exports PATH_ALIASES');
+    const cfg = await (await eslint()).calculateConfigForFile('app/src/app/(office)/page.tsx');
+    assert.deepEqual(cfg.rules[RULE][1].aliases, b.PATH_ALIASES);
   });
 });

@@ -1,0 +1,209 @@
+/* EZD-112 Step 17 (vault/plans/EZD-112.md Decided "CSS"; B15a): the Company settings form. Colors from
+   tokens only (check C10); spacing and font sizes in px. */
+
+.form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 410px minmax(0, 1fr);
+}
+
+.left {
+  overflow-y: auto;
+  padding: 18px 22px 20px;
+  border-right: 1px solid var(--ez-divider);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.right {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 18px 22px 20px;
+}
+
+.sec {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sec h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-slate-700);
+}
+
+.sec h2 svg {
+  color: var(--ez-slate-500);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ez-slate-500);
+}
+
+.input {
+  box-sizing: border-box;
+  height: 38px;
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+}
+
+.logoRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.logoBox {
+  box-sizing: border-box;
+  flex: none;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface-sunken);
+}
+
+.logoBox img {
+  max-width: 76px;
+  max-height: 76px;
+  object-fit: contain;
+}
+
+.logoMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-ink);
+}
+
+.logoMeta > div {
+  display: flex;
+  gap: 6px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-slate-400);
+}
+
+.hint a {
+  color: var(--ez-cobalt-link);
+  text-decoration: none;
+}
+
+.note {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-canvas);
+  font-size: 12.5px;
+  color: var(--ez-slate-700);
+}
+
+.note svg {
+  flex: none;
+  color: var(--ez-slate-500);
+}
+
+.rule {
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.contact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.unsaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-amber-text);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.fieldError {
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+/* Decided "Disabled buttons": this page only; StateButton.module.css is unchanged (S15bTitleBlock disabled
+   Save, S19Takeoff disabled secondary). */
+.saveButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.plainButton:disabled {
+  color: var(--ez-slate-300);
+  cursor: default;
+}

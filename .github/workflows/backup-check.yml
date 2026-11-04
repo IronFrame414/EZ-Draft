@@ -1,0 +1,36 @@
+name: 'Off-site backup: check'
+# Checks every day at 10:00 UTC that the nightly file copy and the weekly database dump are current (EZD-1704;
+# Q-0301 (b); Q-0232). Until launch the release environment holds no secrets and the run ends not_configured (Q-0113).
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+concurrency:
+  group: 'Off-site backup: check'
+  cancel-in-progress: false
+jobs:
+  backup-check:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Install pnpm
+        run: npm install -g pnpm@12.14.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check the backups
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BACKUP_SOURCE_DB_URL: ${{ secrets.BACKUP_SOURCE_DB_URL }}
+        run: pnpm backup:check

@@ -1,0 +1,71 @@
+diff --git a/.claude/agents/builder.md b/.claude/agents/builder.md
+index e648f7c..a6f48e7 100644
+--- a/.claude/agents/builder.md
++++ b/.claude/agents/builder.md
+@@ -27,7 +27,7 @@ Rules:
+ - Mockup names, prices and numbers are sample data, not decisions (except the load calc).
+ - **Wording:** user-visible text on the mockup or in the plan's Proposed wording is used exactly. Text that neither covers (an error, empty state, toast, label): write it in the same style as the approved wording, keep going, and list it in your report under `needs-josh-confirm` (file:line and the text). It does not block the ticket.
+ - Performance rules in `vault/spec/sections/11-non-functional-requirements.md` apply to every change.
+-- When done, run `node scripts/gate.mjs <worktree>` and fix until it exits 0. Run it as its own command, exactly so written (no `cd`, no `&&`): it is the one command outside the unit sandbox, and any other form runs inside it, where the browser tests cannot start.
++- When done, run `node scripts/gate.mjs <worktree>` and fix until it exits 0. Run it as its own Bash call, exactly so written: no `cd`, no `&&` or `;`, no pipe, no redirect, no `timeout`, no `NAME=value` in front. Only that form runs outside the unit sandbox; any other form prints GATE SANDBOX STOP. A run longer than 10 minutes goes in the background with the Bash tool's `run_in_background`, which keeps it outside the sandbox.
+ 
+ Commit work in progress on the ticket branch in the worktree as you go, `wip(EZD-xxx): <what>`, so a restart resumes instead of starting over (the orchestrator squashes the branch at merge).
+ 
+diff --git a/.claude/skills/build-ticket/SKILL.md b/.claude/skills/build-ticket/SKILL.md
+index 264b76c..36f05f0 100644
+--- a/.claude/skills/build-ticket/SKILL.md
++++ b/.claude/skills/build-ticket/SKILL.md
+@@ -51,7 +51,7 @@ You are the orchestrator for one unit: build ticket $ARGUMENTS (PROCESS.md secti
+    - A **change only Josh may approve** (a guard hook, `ci.yml`, `CLAUDE.md` or another agent-protected file): write the patch to `vault/handoff/$ARGUMENTS-<name>.patch`, STATUS → `blocked` with `needs Josh: apply vault/handoff/<file>.patch, then resume at step <n>`, handoff, end. Never end with the ticket `in-progress` while it waits on Josh: the launcher would re-run it, then table it (Josh 2026-10-27: the build keeps moving).
+    - A **structural test mismatch**: send it to `test-author` for a structure-only repair (`test($ARGUMENTS): structural repair - …`), then `code-reviewer` confirms the diff changed no assertion, expected value, input or test count. FAIL → it becomes a question. PASS → back to the builder.
+    - **`needs-josh-confirm` wording**: keep the list for STATUS Notes. It does not block.
+-7. **Gate.** Run `node scripts/gate.mjs .claude/worktrees/$ARGUMENTS` yourself, once, as its own Bash call exactly so written (it is one of the three commands outside the unit sandbox). Keep the summary (touched paths, `SECURITY FLAG:` lines, failing tests). Red → back to step 6 as the next round, handing the builder the path of the worktree's `gate-failures.log`. Agents never get `gate.log`; if `gate-failures.log` is unclear, dispatch `log-summarizer` (model and effort from `--dispatch`) on `gate.log` and pass on its answer.
++7. **Gate.** Run `node scripts/gate.mjs .claude/worktrees/$ARGUMENTS` yourself, once, as its own Bash call exactly so written: no `cd`, no chaining, no pipe, no redirect, no `timeout`, no `NAME=value` in front (only that form runs outside the unit sandbox; any other prints GATE SANDBOX STOP). When it may take longer than 10 minutes, use the Bash tool's `run_in_background`, which keeps it outside the sandbox, and read its output file when it ends. Keep the summary (touched paths, `SECURITY FLAG:` lines, failing tests). Red → back to step 6 as the next round, handing the builder the path of the worktree's `gate-failures.log`. Agents never get `gate.log`; if `gate-failures.log` is unclear, dispatch `log-summarizer` (model and effort from `--dispatch`) on `gate.log` and pass on its answer.
+ 8. **Review.** STATUS → `review`. Dispatch in parallel, each with the plan path, worktree path, the gate summary and the path of `gate-failures.log` (reviewers do not run the gate and never read `gate.log`):
+    - `code-reviewer` mode 3, always. On a high ticket resume the step-5 reviewer (same agent) instead of a fresh one; on a low or medium ticket it reviews the tests here too (mode 3 test check), at the effort `--dispatch` gives.
+    - `ui-verifier` when the plan has a visual checklist (one viewport, the states on the checklist).
+diff --git a/scripts/process/sandbox-coverage.test.mjs b/scripts/process/sandbox-coverage.test.mjs
+index 2a2f2bf..953a0bb 100644
+--- a/scripts/process/sandbox-coverage.test.mjs
++++ b/scripts/process/sandbox-coverage.test.mjs
+@@ -94,3 +94,10 @@ test('D-012, D-014 probe rounds 5 and 6: the main checkout scripts/ is write-den
+   assert.equal(env.DO_NOT_TRACK, '1', 'the Supabase CLI crashes on its telemetry write inside the sandbox without it (round 5, step 16)');
+   assert.match(env.npm_config_cache ?? '', /^\/tmp\/claude-\d+\//, 'npm cannot write ~/.npm inside the sandbox (round 5, step 14)');
+ });
++
++test('D-022 the launcher starts every unit with the sandbox settings and refuses to start one without them', () => {
++  const run = readFileSync(path.join(repo, 'scripts/run.mjs'), 'utf8');
++  assert.match(run, /const sandboxSettings = path\.join\(root, 'scripts\/unit-sandbox\.json'\);/);
++  assert.match(run, /'--settings', sandboxSettings,/);
++  assert.match(run, /if \(!existsSync\(sandboxSettings\)\) return \{ outcome: 'error'/);
++});
+diff --git a/scripts/run.mjs b/scripts/run.mjs
+index 9c4e281..8dc2ee7 100644
+--- a/scripts/run.mjs
++++ b/scripts/run.mjs
+@@ -59,7 +59,7 @@ export const logDir = launcherLogDir(root);
+ const legacyInflightFile = path.join(logDir, 'inflight.json');
+ const claudeBin = config.claude_bin || 'claude';
+ // Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; Josh 2026-11-02: option 3 now, option 1 with the lanes work; vault/spikes/sandbox/NOTES.md).
+-// Units start unsandboxed until every unit type has had a sandboxed dry run (Josh 2026-11-03; vault/spikes/sandbox/NOTES.md).
++// Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; back on after probe rounds 5 and 6 and the audit, vault/handoff/SANDBOX-AUDIT-2026-11-03.md).
+ const sandboxSettings = path.join(root, 'scripts/unit-sandbox.json');
+ const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+ const { createOAuthFallback } = await import('./oauth-usage.mjs');
+@@ -140,6 +140,7 @@ function buildCommand(unitName, arg) {
+     '--effort', u.effort,
+     '--permission-mode', 'bypassPermissions',
+     '--name', `${arg} ${unitName}`,
++    '--settings', sandboxSettings,
+   ];
+   const b = budget();
+   // Boost raises the per-unit cap to $80 (Josh 2026-10-24); never lowers a higher configured cap.
+@@ -305,6 +306,8 @@ async function runUnit(unitName, arg, meterSource = null) {
+   }
+   const sessionId = flagSupported('--session-id') ? randomUUID() : null;
+   if (sessionId) cmd.push('--session-id', sessionId);
++  if (!existsSync(sandboxSettings)) return { outcome: 'error', note: 'scripts/unit-sandbox.json missing: no unit starts unsandboxed' };
++  log(`${unitName} ${arg}: starts sandboxed (scripts/unit-sandbox.json)`);
+   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
+   if (dryRun) return { outcome: 'dry-run' };
+   const started = Date.now();

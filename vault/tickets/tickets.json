@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 455,
+ "count": 595,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -26,7 +26,9 @@
   "spec_files, decisions and mockups are the reading map (Q-0218): vault-relative paths, #<anchor> = text the file contains; print a dispatch's lines with node vault/tools/next_ticket.mjs --reads <ticket> <role>.",
   "2026-10-20: EZD-019 (EZ Binder contract and stub) removed from v1 by Josh (Q-0222; Q-0190); row kept in phases/phase-00.md, BACKLOG.md.",
   "2026-10-20 Q-0220: not-in-v1 items brought into v1 (EZD-139, 140, 642, 643, 1018 to 1021, 1711 to 1713); new phase 53 Billing and onboarding; old phases 53 and 54 are now 54 and 55.",
-  "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh)."
+  "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh).",
+  "EZD-103 split into EZD-103a, EZD-103b on 2026-10-24 (planner proposal, plan over 45,000 characters after tightening; orchestrator applied, Q-0309); every dependent of EZD-103 depends on both. The stage-0 ACs keep their IDs: AC-EZD-103-1 to -4 and -6 on EZD-103a, AC-EZD-103-5 on EZD-103b.",
+  "EZD-110 split into EZD-110a, EZD-110b on 2026-10-30 (planner proposal, plan over 45,000 characters; orchestrator applied at questions 2); every dependent of EZD-110 depends on both. The stage-0 ACs keep their IDs: AC-EZD-110-5, -6 and -8 on EZD-110a, AC-EZD-110-1, -2, -3, -4 and -7 on EZD-110b."
  ],
  "checks": {
   "cycles": 0,
@@ -108,7 +110,8 @@
   "EZD-033",
   "EZD-101",
   "EZD-102",
-  "EZD-103",
+  "EZD-103a",
+  "EZD-103b",
   "EZD-132",
   "EZD-112",
   "EZD-113",
@@ -116,7 +119,10 @@
   "EZD-1704",
   "EZD-1707",
   "EZD-108",
-  "EZD-110",
+  "EZD-110a",
+  "EZD-292",
+  "EZD-293",
+  "EZD-110b",
   "EZD-117a",
   "EZD-117b",
   "EZD-118",
@@ -125,6 +131,7 @@
   "EZD-120a",
   "EZD-120b",
   "EZD-202",
+  "EZD-299",
   "EZD-238",
   "EZD-201",
   "EZD-203",
@@ -477,7 +484,14 @@
   "EZD-1709c",
   "EZD-034",
   "EZD-036",
-  "EZD-037"
+  "EZD-037",
+  "EZD-284",
+  "EZD-285",
+  "EZD-286",
+  "EZD-287",
+  "EZD-289",
+  "EZD-290",
+  "EZD-291"
  ],
  "tickets": [
   {
@@ -547,6 +561,13 @@
     "spec/sections/02-product-overview.md#Hosting"
    ],
    "mockups": [],
+   "architecture": [
+    "Runtime",
+    "Hosting",
+    "Named tools",
+    "Machine checks",
+    "CI"
+   ],
    "phase_file": "tickets/phases/phase-00.md",
    "depends_on": [
     "EZD-002"
@@ -2461,7 +2482,7 @@
    ]
   },
   {
-   "id": "EZD-103",
+   "id": "EZD-103a",
    "phase": 1,
    "title": "Settings shell",
    "depends_raw": "EZD-102, EZD-012",
@@ -2486,8 +2507,36 @@
     "AC-EZD-103-2",
     "AC-EZD-103-3",
     "AC-EZD-103-4",
-    "AC-EZD-103-5",
     "AC-EZD-103-6"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 1,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0210",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+   ]
+  },
+  {
+   "id": "EZD-103b",
+   "phase": 1,
+   "title": "Settings shell: unsaved edits and drafts",
+   "depends_raw": "EZD-103a",
+   "spec_ref": "S15 Layout, Entry points",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Layout",
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-103a"
+   ],
+   "build_position": 74,
+   "acs": [
+    "AC-EZD-103-5"
    ],
    "acs_source": "stage-0",
    "spec_phase": 1,
@@ -2511,7 +2560,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 115,
    "acs": [
@@ -2626,20 +2676,50 @@
    ],
    "mockups": [
     "mockups/S15Settings.png",
-    "mockups/S01Projects.png"
+    "mockups/S01Projects.png",
+    "mockups/S01dAvatarMenu.png",
+    "mockups/S01eMyProfile.png"
+   ],
+   "architecture": [
+    "Password sign-in (EZD-033)",
+    "Auth and session (EZD-007)",
+    "Email (EZD-008)",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Events",
+    "Row-level security (EZD-006)",
+    "Browser tests (EZD-016a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Entry contents and bundle report (EZD-020)",
+    "Performance check (EZD-017)",
+    "Device layouts (EZD-014)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 81,
    "acs": [
-    "AC-EZD-108-1"
+    "AC-EZD-108-1",
+    "AC-EZD-108-2",
+    "AC-EZD-108-3",
+    "AC-EZD-108-4",
+    "AC-EZD-108-5",
+    "AC-EZD-108-6",
+    "AC-EZD-108-7",
+    "AC-EZD-108-8"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0391",
+    "spec/decisions/05-screens.md#Q-0392",
+    "spec/decisions/10-permissions-and-settings.md#Q-0412"
    ]
   },
   {
@@ -2670,33 +2750,98 @@
    ]
   },
   {
-   "id": "EZD-110",
+   "id": "EZD-110a",
    "phase": 2,
-   "title": "Notifications",
-   "depends_raw": "EZD-008, EZD-018",
+   "title": "Notifications: table, email and routes",
+   "depends_raw": "EZD-008, EZD-018, EZD-009, EZD-102, EZD-113",
    "spec_ref": "App shell · Notifications; S01 Notifications button",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md#Notifications",
     "spec/sections/screens/S01-projects.md#Notifications button"
    ],
    "mockups": [
-    "mockups/S01Projects.png"
+    "mockups/S01Projects.png",
+    "mockups/S01cNotifications.png"
+   ],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Background jobs (EZD-009)",
+    "Email (EZD-008)",
+    "Row-level security (EZD-006)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)",
+    "Customers (EZD-113)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-008a",
     "EZD-008b",
-    "EZD-018"
+    "EZD-018",
+    "EZD-009",
+    "EZD-102",
+    "EZD-113"
    ],
    "build_position": 82,
    "acs": [
-    "AC-EZD-110-1"
+    "AC-EZD-110-5",
+    "AC-EZD-110-6",
+    "AC-EZD-110-8"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0391"
+   ]
+  },
+  {
+   "id": "EZD-110b",
+   "phase": 2,
+   "title": "Notifications: bell and list",
+   "depends_raw": "EZD-110a, EZD-015, EZD-016a",
+   "spec_ref": "App shell · Notifications; S01 Notifications button",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications",
+    "spec/sections/screens/S01-projects.md#Notifications button"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S01cNotifications.png"
+   ],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)",
+    "Settings shell (EZD-103a)",
+    "Entry contents and bundle report (EZD-020)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110a",
+    "EZD-015a",
+    "EZD-015b",
+    "EZD-015c",
+    "EZD-016a"
+   ],
+   "build_position": 82,
+   "acs": [
+    "AC-EZD-110-1",
+    "AC-EZD-110-2",
+    "AC-EZD-110-3",
+    "AC-EZD-110-4",
+    "AC-EZD-110-7"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 1,
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0391"
    ]
   },
   {
@@ -2711,7 +2856,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-120a",
     "EZD-120b"
    ],
@@ -2740,7 +2886,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-132"
    ],
    "build_position": 76,
@@ -2808,7 +2955,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 122,
    "acs": [
@@ -2827,7 +2975,7 @@
    "id": "EZD-117a",
    "phase": 2,
    "title": "Projects page: query and cards",
-   "depends_raw": "EZD-102, EZD-110",
+   "depends_raw": "EZD-102, EZD-110a, EZD-110b, EZD-108",
    "spec_ref": "S01 Controls, Data shown, States",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Controls",
@@ -2837,27 +2985,55 @@
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Entry contents and bundle report (EZD-020)",
+    "Performance check (EZD-017)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Customers (EZD-113)",
+    "Tenancy tables (EZD-005)",
+    "Row-level security (EZD-006)",
+    "Local database",
+    "Migrations",
+    "State components (EZD-015)",
+    "Messages and language (t())",
+    "Disclaimer (EZD-136)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)",
+    "Menus (EZD-108)",
+    "Device layouts (EZD-014)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b",
+    "EZD-108"
    ],
    "build_position": 83,
    "acs": [
     "AC-EZD-117a-1",
-    "AC-EZD-117a-2"
+    "AC-EZD-117a-2",
+    "AC-EZD-117a-3",
+    "AC-EZD-117a-4",
+    "AC-EZD-117a-5",
+    "AC-EZD-117a-6",
+    "AC-EZD-117a-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0394",
+    "spec/decisions/05-screens.md#Q-0402"
    ]
   },
   {
    "id": "EZD-117b",
    "phase": 2,
    "title": "Projects page: header, search and states",
-   "depends_raw": "EZD-117a, EZD-015",
+   "depends_raw": "EZD-117a, EZD-015, EZD-108, EZD-110",
    "spec_ref": "S01 Controls, States",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Controls",
@@ -2866,23 +3042,39 @@
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)",
+    "Release safety (EZD-023a)",
+    "Settings shell (EZD-103a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-117a",
     "EZD-015a",
     "EZD-015b",
-    "EZD-015c"
+    "EZD-015c",
+    "EZD-108",
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 84,
    "acs": [
     "AC-EZD-117b-1",
-    "AC-EZD-117b-2"
+    "AC-EZD-117b-2",
+    "AC-EZD-117b-3",
+    "AC-EZD-117b-4",
+    "AC-EZD-117b-5",
+    "AC-EZD-117b-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/05-screens.md#Q-0401",
+    "spec/decisions/05-screens.md#Q-0402"
    ]
   },
   {
@@ -2899,6 +3091,16 @@
     "mockups/S01Projects.png",
     "mockups/S01bWizard.png"
    ],
+   "architecture": [
+    "Customers (EZD-113)",
+    "Permission enforcement (EZD-102)",
+    "Events",
+    "State components (EZD-015)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Row-level security (EZD-006)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-117a",
@@ -2907,9 +3109,17 @@
    ],
    "build_position": 85,
    "acs": [
-    "AC-EZD-118-1"
+    "AC-EZD-118-1",
+    "AC-EZD-118-2",
+    "AC-EZD-118-3",
+    "AC-EZD-118-4",
+    "AC-EZD-118-5",
+    "AC-EZD-118-6",
+    "AC-EZD-118-7",
+    "AC-EZD-118-8",
+    "AC-EZD-118-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -2918,51 +3128,74 @@
     "spec/decisions/08-import-and-export.md#Q-0189",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
     "spec/decisions/10-permissions-and-settings.md#Q-0202",
-    "spec/decisions/05-screens.md#Q-0203"
+    "spec/decisions/05-screens.md#Q-0203",
+    "spec/decisions/05-screens.md#Q-0394",
+    "spec/decisions/05-screens.md#Q-0396",
+    "spec/decisions/05-screens.md#Q-0397",
+    "spec/decisions/05-screens.md#Q-0398",
+    "spec/decisions/05-screens.md#Q-0399",
+    "spec/decisions/05-screens.md#Q-0401",
+    "spec/decisions/10-permissions-and-settings.md#Q-0400",
+    "spec/decisions/05-screens.md#Q-0410",
+    "spec/decisions/05-screens.md#Q-0411"
    ]
   },
   {
    "id": "EZD-120a",
    "phase": 3,
    "title": "Model tables, save function and checkpoints",
-   "depends_raw": "EZD-005, EZD-133",
+   "depends_raw": "EZD-005, EZD-133, EZD-118",
    "spec_ref": "Data model · Working copy and saves, Architecture rules, model_version",
    "spec_files": [
     "spec/sections/03a-working-copy-and-saves.md#Working copy and saves",
     "spec/sections/03b-architecture-rules.md#Architecture rules",
-    "spec/sections/03c-tables.md#model_version"
+    "spec/sections/03c-tables.md#model_version",
+    "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-005a",
     "EZD-005b",
-    "EZD-133"
+    "EZD-133",
+    "EZD-118"
    ],
    "build_position": 88,
    "acs": [
     "AC-EZD-120a-1",
     "AC-EZD-120a-2",
-    "AC-EZD-120a-3"
+    "AC-EZD-120a-3",
+    "AC-EZD-120a-4",
+    "AC-EZD-120a-5",
+    "AC-EZD-120a-6",
+    "AC-EZD-120a-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
-   "decisions": []
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0507",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ]
   },
   {
    "id": "EZD-120b",
    "phase": 3,
    "title": "Model store, outbox and editor route",
-   "depends_raw": "EZD-120a, EZD-012, EZD-117",
+   "depends_raw": "EZD-120a, EZD-012, EZD-117, EZD-118",
    "spec_ref": "Data model · Working copy and saves, Architecture rules; S03 States",
    "spec_files": [
     "spec/sections/03a-working-copy-and-saves.md#Working copy and saves",
     "spec/sections/03b-architecture-rules.md#Architecture rules",
-    "spec/sections/screens/S03-plan-editor.md#States"
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120a",
@@ -2970,18 +3203,35 @@
     "EZD-012b",
     "EZD-012c",
     "EZD-117a",
-    "EZD-117b"
+    "EZD-117b",
+    "EZD-118"
    ],
    "build_position": 89,
    "acs": [
     "AC-EZD-120b-1",
     "AC-EZD-120b-2",
-    "AC-EZD-120b-3"
+    "AC-EZD-120b-3",
+    "AC-EZD-120b-4",
+    "AC-EZD-120b-5",
+    "AC-EZD-120b-6",
+    "AC-EZD-120b-7",
+    "AC-EZD-120b-8",
+    "AC-EZD-120b-9",
+    "AC-EZD-120b-10",
+    "AC-EZD-120b-11"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0500",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0501",
+    "spec/decisions/03-data-model.md#Q-0503",
+    "spec/decisions/process.md#Q-0505",
+    "spec/decisions/05-screens.md#Q-0506",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/03-data-model.md#Q-0530"
    ]
   },
   {
@@ -3062,7 +3312,8 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-122",
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-116"
    ],
    "build_position": 131,
@@ -3131,7 +3382,8 @@
     "EZD-120a",
     "EZD-120b",
     "EZD-109",
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-116",
     "EZD-018"
    ],
@@ -3315,7 +3567,8 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 139,
    "acs": [
@@ -3331,7 +3584,7 @@
    "id": "EZD-132",
    "phase": 1,
    "title": "File storage",
-   "depends_raw": "EZD-006",
+   "depends_raw": "EZD-006, EZD-101, EZD-189",
    "spec_ref": "Data model · source_file; Non-functional · Operations",
    "spec_files": [
     "spec/sections/03c-tables.md#source_file",
@@ -3340,7 +3593,10 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-006"
+    "EZD-006",
+    "EZD-101",
+    "EZD-102",
+    "EZD-189"
    ],
    "build_position": 75,
    "acs": [
@@ -3366,6 +3622,7 @@
     "spec/sections/03b-architecture-rules.md#Architecture rules"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-102",
@@ -3375,13 +3632,16 @@
    "acs": [
     "AC-EZD-133-1",
     "AC-EZD-133-2",
-    "AC-EZD-133-3"
+    "AC-EZD-133-3",
+    "AC-EZD-133-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/13b-round-26.md#R1",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0235",
+    "spec/decisions/03-data-model.md#Q-0507"
    ]
   },
   {
@@ -3410,7 +3670,11 @@
    "acs_source": "done-when",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0503",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0540"
    ]
   },
   {
@@ -3425,7 +3689,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-024",
     "EZD-025"
    ],
@@ -3477,9 +3742,12 @@
    "depends_raw": "EZD-120",
    "spec_ref": "Data model · Objects inside model_json",
    "spec_files": [
-    "spec/sections/03f-model-json-objects.md#Objects inside model_json"
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-120a",
@@ -3490,11 +3758,19 @@
     "AC-EZD-202-1",
     "AC-EZD-202-2",
     "AC-EZD-202-3",
-    "AC-EZD-202-4"
+    "AC-EZD-202-4",
+    "AC-EZD-202-5",
+    "AC-EZD-202-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
-   "decisions": []
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0504",
+    "spec/decisions/03-data-model.md#Q-0507",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ]
   },
   {
    "id": "EZD-203",
@@ -4516,23 +4792,30 @@
    "depends_raw": "EZD-202",
    "spec_ref": "Stack · PDF out; R26 R7",
    "spec_files": [
-    "spec/sections/02-product-overview.md#PDF out"
+    "spec/sections/02-product-overview.md#PDF out",
+    "spec/sections/09h-sheets-and-revisions.md",
+    "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
+   "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202"
    ],
    "build_position": 91,
    "acs": [
-    "AC-EZD-238-1"
+    "AC-EZD-238-1",
+    "AC-EZD-238-2",
+    "AC-EZD-238-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/02-product-overview.md",
     "spec/decisions/13b-round-26.md#R7",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md#Q-0507",
+    "spec/decisions/03-data-model.md#Q-0508"
    ]
   },
   {
@@ -6454,7 +6737,8 @@
    "depends_on": [
     "EZD-607",
     "EZD-401",
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 216,
    "acs": [
@@ -10302,7 +10586,8 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1109",
-    "EZD-110",
+    "EZD-110a",
+    "EZD-110b",
     "EZD-127"
    ],
    "build_position": 318,
@@ -10511,7 +10796,8 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1102",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 326,
    "acs": [
@@ -11198,7 +11484,9 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/11-non-functional-requirements.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0511"
    ]
   },
   {
@@ -11600,7 +11888,8 @@
    "depends_on": [
     "EZD-1416",
     "EZD-1402",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 166,
    "acs": [
@@ -11817,7 +12106,8 @@
     "EZD-1501",
     "EZD-009",
     "EZD-021",
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b"
    ],
    "build_position": 412,
    "acs": [
@@ -11878,7 +12168,8 @@
    "phase_file": "tickets/phases/phase-15.md",
    "depends_on": [
     "EZD-1501",
-    "EZD-103"
+    "EZD-103a",
+    "EZD-103b"
    ],
    "build_position": 413,
    "acs": [
@@ -12294,7 +12585,8 @@
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-1212"
    ],
    "build_position": 421,
@@ -13140,7 +13432,7 @@
    "id": "EZD-136",
    "phase": 1,
    "title": "On-screen disclaimer",
-   "depends_raw": "EZD-011, EZD-026c",
+   "depends_raw": "EZD-011, EZD-026c, EZD-103a",
    "spec_ref": "Q-0183, Q-0208; App shell",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md",
@@ -13152,7 +13444,8 @@
     "EZD-011a",
     "EZD-011b",
     "EZD-011c",
-    "EZD-026c"
+    "EZD-026c",
+    "EZD-103a"
    ],
    "build_position": 78,
    "acs": [
@@ -13168,10 +13461,1505 @@
    ]
   },
   {
+   "id": "EZD-141",
+   "phase": 1,
+   "title": "Fix: SET LOCAL warning during sign-in",
+   "depends_raw": "EZD-007a, EZD-006",
+   "spec_ref": "Q-0267; 11 Security and audit",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Hosting",
+    "Dependencies",
+    "Local database"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-007a",
+    "EZD-006"
+   ],
+   "build_position": 450,
+   "acs": [
+    "AC-EZD-141-1",
+    "AC-EZD-141-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-142",
+   "phase": 1,
+   "title": "Fix: error scrubbing covers every event field and runs in linear time",
+   "depends_raw": "EZD-024, EZD-040",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-040"
+   ],
+   "build_position": 451,
+   "acs": [
+    "AC-EZD-142-1",
+    "AC-EZD-142-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-143",
+   "phase": 1,
+   "title": "Fix: error tunnel limits each caller",
+   "depends_raw": "EZD-024, EZD-033, EZD-040",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-033",
+    "EZD-040"
+   ],
+   "build_position": 452,
+   "acs": [
+    "AC-EZD-143-1",
+    "AC-EZD-143-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-144",
+   "phase": 1,
+   "title": "Fix: error_alert refuses a project without a company",
+   "depends_raw": "EZD-024",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024"
+   ],
+   "build_position": 453,
+   "acs": [
+    "AC-EZD-144-1",
+    "AC-EZD-144-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-145",
+   "phase": 1,
+   "title": "Fix: job routes check permissions with can()",
+   "depends_raw": "EZD-009, EZD-102",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-009",
+    "EZD-102"
+   ],
+   "build_position": 454,
+   "acs": [
+    "AC-EZD-145-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-146",
+   "phase": 1,
+   "title": "Fix: dev migration push and release push pass the password through PGPASSWORD, proven on the local stack",
+   "depends_raw": "EZD-004c, EZD-042",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004c",
+    "EZD-042"
+   ],
+   "build_position": 455,
+   "acs": [
+    "AC-EZD-146-1",
+    "AC-EZD-146-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-147",
+   "phase": 1,
+   "title": "Fix: CI workflow least rights and SHA pins",
+   "depends_raw": "EZD-002, EZD-148",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-002",
+    "EZD-148"
+   ],
+   "build_position": 456,
+   "acs": [
+    "AC-EZD-147-1",
+    "AC-EZD-147-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-148",
+   "phase": 1,
+   "title": "Fix: repo rule tests catch the remaining bypass forms",
+   "depends_raw": "EZD-001, EZD-002",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-002"
+   ],
+   "build_position": 457,
+   "acs": [
+    "AC-EZD-148-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-149",
+   "phase": 1,
+   "title": "Fix: hosting live check and preview rule match what they claim",
+   "depends_raw": "",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 458,
+   "acs": [
+    "AC-EZD-149-1",
+    "AC-EZD-149-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-150",
+   "phase": 1,
+   "title": "Fix: health check gives up on a slow database",
+   "depends_raw": "EZD-004b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004b"
+   ],
+   "build_position": 459,
+   "acs": [
+    "AC-EZD-150-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-151",
+   "phase": 1,
+   "title": "Fix: email input checks, preview stub outbox and email runbook",
+   "depends_raw": "EZD-008a, EZD-008b, EZD-190",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-008a",
+    "EZD-008b",
+    "EZD-190"
+   ],
+   "build_position": 460,
+   "acs": [
+    "AC-EZD-151-1",
+    "AC-EZD-151-2",
+    "AC-EZD-151-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-152",
+   "phase": 1,
+   "title": "Fix: release and restore failure lines say why without leaking data",
+   "depends_raw": "EZD-023d, EZD-025",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-023d",
+    "EZD-025"
+   ],
+   "build_position": 461,
+   "acs": [
+    "AC-EZD-152-1",
+    "AC-EZD-152-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-153",
+   "phase": 1,
+   "title": "Fix: migration check flags objects created in dynamic SQL",
+   "depends_raw": "EZD-023a",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-023a"
+   ],
+   "build_position": 462,
+   "acs": [
+    "AC-EZD-153-1",
+    "AC-EZD-153-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-154",
+   "phase": 1,
+   "title": "Fix: remove the PA3 grant and close the two guard-bash gaps",
+   "depends_raw": "EZD-000c",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000c"
+   ],
+   "build_position": 463,
+   "acs": [
+    "AC-EZD-154-1",
+    "AC-EZD-154-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-155",
+   "phase": 1,
+   "title": "Fix: gate summary and launcher tools report what really happened",
+   "depends_raw": "EZD-000h, EZD-000g, EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h",
+    "EZD-000g",
+    "EZD-001"
+   ],
+   "build_position": 464,
+   "acs": [
+    "AC-EZD-155-1",
+    "AC-EZD-155-2",
+    "AC-EZD-155-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-156",
+   "phase": 1,
+   "title": "Fix: perf check refuses an empty selection and proves its server env",
+   "depends_raw": "EZD-017",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-017"
+   ],
+   "build_position": 465,
+   "acs": [
+    "AC-EZD-156-1",
+    "AC-EZD-156-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-157",
+   "phase": 1,
+   "title": "Fix: realtime hub keeps project and user channels apart",
+   "depends_raw": "EZD-018",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-018"
+   ],
+   "build_position": 466,
+   "acs": [
+    "AC-EZD-157-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-158",
+   "phase": 1,
+   "title": "Fix: phase 0 test gaps",
+   "depends_raw": "EZD-014c, EZD-010b, EZD-026b, EZD-016b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-014c",
+    "EZD-010b",
+    "EZD-026b",
+    "EZD-016b"
+   ],
+   "build_position": 467,
+   "acs": [
+    "AC-EZD-158-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-159",
+   "phase": 1,
+   "title": "Fix: test network guard also blocks sockets",
+   "depends_raw": "EZD-021",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-021"
+   ],
+   "build_position": 468,
+   "acs": [
+    "AC-EZD-159-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-160",
+   "phase": 1,
+   "title": "Fix: architecture and runbook say only what is true",
+   "depends_raw": "EZD-021, EZD-000, EZD-023a, EZD-029, EZD-033",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-021",
+    "EZD-000",
+    "EZD-023a",
+    "EZD-029",
+    "EZD-033"
+   ],
+   "build_position": 469,
+   "acs": [
+    "AC-EZD-160-1",
+    "AC-EZD-160-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-161",
+   "phase": 1,
+   "title": "Fix: geometry tests are type-checked",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 470,
+   "acs": [
+    "AC-EZD-161-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-162",
+   "phase": 1,
+   "title": "Fix: vault wording and TRACE titles",
+   "depends_raw": "EZD-013, EZD-034, EZD-035, EZD-037, EZD-038",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-013",
+    "EZD-034",
+    "EZD-035",
+    "EZD-037",
+    "EZD-038"
+   ],
+   "build_position": 471,
+   "acs": [
+    "AC-EZD-162-1",
+    "AC-EZD-162-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-163",
+   "phase": 1,
+   "title": "Fix: find and remove the cause of the harness T12 \"Worker closed\" failure",
+   "depends_raw": "EZD-016a, EZD-035",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "PWA (EZD-013)",
+    "Auth and session (EZD-007)",
+    "Browser tests (EZD-016a)",
+    "AI stubs and the network guard (EZD-021)",
+    "Machine checks"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-016a",
+    "EZD-035"
+   ],
+   "build_position": 472,
+   "acs": [
+    "AC-EZD-163-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-164",
+   "phase": 1,
+   "title": "Spike: WebKit offline service-worker test",
+   "depends_raw": "EZD-013",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-013"
+   ],
+   "build_position": 473,
+   "acs": [
+    "AC-EZD-164-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-165",
+   "phase": 1,
+   "title": "Fix: membership end-sessions trigger covers user and company changes",
+   "depends_raw": "EZD-006, EZD-007b",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-007b"
+   ],
+   "build_position": 474,
+   "acs": [
+    "AC-EZD-165-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-166",
+   "phase": 1,
+   "title": "Fix: db:up restarts the local stack when the Auth config or templates change",
+   "depends_raw": "EZD-004a, EZD-007a",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004a",
+    "EZD-007a"
+   ],
+   "build_position": 475,
+   "acs": [
+    "AC-EZD-166-1",
+    "AC-EZD-166-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-167",
+   "phase": 1,
+   "title": "Fix: path alias cannot bypass the import-boundaries lint",
+   "depends_raw": "EZD-001, EZD-020",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-020"
+   ],
+   "build_position": 476,
+   "acs": [
+    "AC-EZD-167-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-168",
+   "phase": 1,
+   "title": "Fix: audit refuses a private function executable by an API role it is not granted to",
+   "depends_raw": "EZD-006, EZD-007a",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-007a"
+   ],
+   "build_position": 477,
+   "acs": [
+    "AC-EZD-168-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-169",
+   "phase": 1,
+   "title": "Fix: every 500 catch in a route reports the error",
+   "depends_raw": "EZD-024, EZD-009, EZD-018, EZD-004b, EZD-150",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-009",
+    "EZD-018",
+    "EZD-004b",
+    "EZD-150"
+   ],
+   "build_position": 478,
+   "acs": [
+    "AC-EZD-169-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-170",
+   "phase": 1,
+   "title": "Fix: run every pilot check and record its result",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 479,
+   "acs": [
+    "AC-EZD-170-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-171",
+   "phase": 1,
+   "title": "Fix: prove the cloud-only behaviours on the dev project and the live site",
+   "depends_raw": "EZD-006, EZD-033, EZD-010b, EZD-009",
+   "spec_ref": "Q-0275",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-033",
+    "EZD-010b",
+    "EZD-009"
+   ],
+   "build_position": 480,
+   "acs": [
+    "AC-EZD-171-1",
+    "AC-EZD-171-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-172",
+   "phase": 1,
+   "title": "Parallel lanes: each build lane gets its own local database and ports",
+   "depends_raw": "EZD-004a, EZD-016d, EZD-017, EZD-007f",
+   "spec_ref": "Josh 2026-10-24 (boost)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Local database",
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-004a",
+    "EZD-016d",
+    "EZD-017",
+    "EZD-007f"
+   ],
+   "build_position": 481,
+   "acs": [
+    "AC-EZD-172-1",
+    "AC-EZD-172-2",
+    "AC-EZD-172-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-173",
+   "phase": 1,
+   "title": "Parallel lanes: ledger, commits and merges never collide",
+   "depends_raw": "EZD-000g, EZD-000h, EZD-001",
+   "spec_ref": "Josh 2026-10-24 (boost)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Environments and releases (EZD-023b)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000g",
+    "EZD-000h",
+    "EZD-001"
+   ],
+   "build_position": 482,
+   "acs": [
+    "AC-EZD-173-1",
+    "AC-EZD-173-2",
+    "AC-EZD-173-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-174",
+   "phase": 1,
+   "title": "Parallel lanes: the launcher runs several units at once under boost",
+   "depends_raw": "EZD-172, EZD-173, EZD-175, EZD-262",
+   "spec_ref": "Josh 2026-10-24 (boost)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Local database"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-172",
+    "EZD-173",
+    "EZD-175",
+    "EZD-262"
+   ],
+   "build_position": 484,
+   "acs": [
+    "AC-EZD-174-1",
+    "AC-EZD-174-2",
+    "AC-EZD-174-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-175",
+   "phase": 1,
+   "title": "Parallel lanes: a ticket branch is brought up to date with develop before its merge",
+   "depends_raw": "EZD-173",
+   "spec_ref": "Q-0304",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-173"
+   ],
+   "build_position": 485,
+   "acs": [
+    "AC-EZD-175-1",
+    "AC-EZD-175-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-176",
+   "phase": 1,
+   "title": "Fix: release, backup and dev-migration workflows leave the Node 20 action pins",
+   "depends_raw": "EZD-146",
+   "spec_ref": "Q-0281",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-146"
+   ],
+   "build_position": 486,
+   "acs": [
+    "AC-EZD-176-1",
+    "AC-EZD-176-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-177",
+   "phase": 1,
+   "title": "Fix: repo rule tests refuse pnpm_config_* environment names",
+   "depends_raw": "EZD-148",
+   "spec_ref": "Q-0283",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-148"
+   ],
+   "build_position": 487,
+   "acs": [
+    "AC-EZD-177-1",
+    "AC-EZD-177-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-178",
+   "phase": 1,
+   "title": "Fix: six more tools work when run through a symlinked path",
+   "depends_raw": "EZD-155",
+   "spec_ref": "Q-0290",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-155"
+   ],
+   "build_position": 488,
+   "acs": [
+    "AC-EZD-178-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-179",
+   "phase": 1,
+   "title": "Fix: app Vitest config loads without the CommonJS warning",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0314",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 489,
+   "acs": [
+    "AC-EZD-179-1",
+    "AC-EZD-179-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-180",
+   "phase": 1,
+   "title": "Fix: EZD-005b T17 (e) passes in any run order",
+   "depends_raw": "EZD-005b, EZD-016a",
+   "spec_ref": "Q-0315",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-005b",
+    "EZD-016a"
+   ],
+   "build_position": 490,
+   "acs": [
+    "AC-EZD-180-1",
+    "AC-EZD-180-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-181",
+   "phase": 1,
+   "title": "Fix: a health check that times out reports the error",
+   "depends_raw": "EZD-150, EZD-169",
+   "spec_ref": "Q-0286",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-150",
+    "EZD-169"
+   ],
+   "build_position": 491,
+   "acs": [
+    "AC-EZD-181-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-182",
+   "phase": 1,
+   "title": "Fix: repo rule tests refuse pnpm flags that turn on dependency build scripts",
+   "depends_raw": "EZD-177",
+   "spec_ref": "Q-0316",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Hosting",
+    "Machine checks"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-177"
+   ],
+   "build_position": 492,
+   "acs": [
+    "AC-EZD-182-1",
+    "AC-EZD-182-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-183",
+   "phase": 1,
+   "title": "Fix: error tunnel forwards only a well-formed envelope event_id",
+   "depends_raw": "EZD-142, EZD-143",
+   "spec_ref": "Q-0319",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-142",
+    "EZD-143"
+   ],
+   "build_position": 493,
+   "acs": [
+    "AC-EZD-183-1",
+    "AC-EZD-183-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-184",
+   "phase": 1,
+   "title": "Fix: the two ESLint warnings from our code on develop",
+   "depends_raw": "EZD-018, EZD-101",
+   "spec_ref": "Q-0320",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-018",
+    "EZD-101"
+   ],
+   "build_position": 494,
+   "acs": [
+    "AC-EZD-184-1",
+    "AC-EZD-184-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-185",
+   "phase": 1,
+   "title": "Fix: unit-steps merge reports a failed cleanup, and screenshots never block it",
+   "depends_raw": "EZD-174, EZD-175",
+   "spec_ref": "Q-0321",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-174",
+    "EZD-175"
+   ],
+   "build_position": 495,
+   "acs": [
+    "AC-EZD-185-1",
+    "AC-EZD-185-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-186",
+   "phase": 1,
+   "title": "Fix: no \"React version detect\" warning when lint runs from the repo root",
+   "depends_raw": "EZD-001, EZD-184",
+   "spec_ref": "Q-0324",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-184"
+   ],
+   "build_position": 496,
+   "acs": [
+    "AC-EZD-186-1",
+    "AC-EZD-186-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-187",
+   "phase": 1,
+   "title": "Fix: the root `test` step runs the package tests even when a root node:test file fails",
+   "depends_raw": "EZD-001, EZD-004a",
+   "spec_ref": "Q-0326",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-004a"
+   ],
+   "build_position": 497,
+   "acs": [
+    "AC-EZD-187-1",
+    "AC-EZD-187-2",
+    "AC-EZD-187-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-188",
+   "phase": 1,
+   "title": "Fix: production workflows use only listed actions",
+   "depends_raw": "EZD-148",
+   "spec_ref": "Q-0328",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-148"
+   ],
+   "build_position": 498,
+   "acs": [
+    "AC-EZD-188-1",
+    "AC-EZD-188-2",
+    "AC-EZD-188-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-189",
+   "phase": 1,
+   "title": "Fix: the policy check allows a Storage policy to read its screen's switch",
+   "depends_raw": "EZD-102",
+   "spec_ref": "Q-0323",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md#Permissions and settings"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102"
+   ],
+   "build_position": 499,
+   "acs": [
+    "AC-EZD-189-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-190",
+   "phase": 1,
+   "title": "Fix: the API request gate is in force as soon as the local stack is up",
+   "depends_raw": "EZD-006, EZD-032",
+   "spec_ref": "Q-0330",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-006",
+    "EZD-032"
+   ],
+   "build_position": 500,
+   "acs": [
+    "AC-EZD-190-1",
+    "AC-EZD-190-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-191",
+   "phase": 1,
+   "title": "Fix: root scripts and lint rules are linted",
+   "depends_raw": "EZD-001, EZD-153, EZD-155, EZD-172, EZD-173, EZD-178, EZD-185, EZD-186, EZD-187, EZD-188",
+   "spec_ref": "Q-0332",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Root config files",
+    "Machine checks",
+    "Dependencies"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001",
+    "EZD-153",
+    "EZD-155",
+    "EZD-172",
+    "EZD-173",
+    "EZD-178",
+    "EZD-185",
+    "EZD-186",
+    "EZD-187",
+    "EZD-188"
+   ],
+   "build_position": 501,
+   "acs": [
+    "AC-EZD-191-1",
+    "AC-EZD-191-2",
+    "AC-EZD-191-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-192",
+   "phase": 1,
+   "title": "Fix: the net-guard browser test EZD-159 T7 does not fail at random",
+   "depends_raw": "EZD-159, EZD-167",
+   "spec_ref": "Q-0339",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Local database",
+    "Browser tests (EZD-016a)",
+    "Machine checks"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-159",
+    "EZD-167"
+   ],
+   "build_position": 502,
+   "acs": [
+    "AC-EZD-192-1",
+    "AC-EZD-192-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-193",
+   "phase": 1,
+   "title": "Fix: the launcher saves the raw text of any limit error (pilot row 8)",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "CI"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 503,
+   "acs": [
+    "AC-EZD-193-1",
+    "AC-EZD-193-2",
+    "AC-EZD-193-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-194",
+   "phase": 1,
+   "title": "Fix: switching to API credits is proven with a fake claude (pilot row 10)",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 504,
+   "acs": [
+    "AC-EZD-194-1",
+    "AC-EZD-194-2",
+    "AC-EZD-194-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-195",
+   "phase": 1,
+   "title": "Fix: a refused agent start is seen live (pilot row 14)",
+   "depends_raw": "EZD-000f",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000f"
+   ],
+   "build_position": 505,
+   "acs": [
+    "AC-EZD-195-1",
+    "AC-EZD-195-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-196",
+   "phase": 1,
+   "title": "Fix: a retriever write outside pending is refused live (pilot row 15)",
+   "depends_raw": "EZD-000f",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000f"
+   ],
+   "build_position": 506,
+   "acs": [
+    "AC-EZD-196-1",
+    "AC-EZD-196-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-197",
+   "phase": 1,
+   "title": "Fix: the 70% weekly warning is proven to notify (pilot row 10)",
+   "depends_raw": "EZD-001",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-001"
+   ],
+   "build_position": 507,
+   "acs": [
+    "AC-EZD-197-1",
+    "AC-EZD-197-2",
+    "AC-EZD-197-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-198",
+   "phase": 1,
+   "title": "Fix: the whole-read guard and notebooks over its limit agree with the pilot (pilot row 13)",
+   "depends_raw": "EZD-000c",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000c"
+   ],
+   "build_position": 508,
+   "acs": [
+    "AC-EZD-198-1",
+    "AC-EZD-198-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-199",
+   "phase": 1,
+   "title": "Fix: the whole-read guard refuses a ranged read whose selected text is over its limit",
+   "depends_raw": "EZD-198",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-198"
+   ],
+   "build_position": 509,
+   "acs": [
+    "AC-EZD-199-1",
+    "AC-EZD-199-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-200",
+   "phase": 1,
+   "title": "Fix: the EZD-025 T16 type check names its failure and no longer fails at random",
+   "depends_raw": "EZD-025",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-025"
+   ],
+   "build_position": 510,
+   "acs": [
+    "AC-EZD-200-1",
+    "AC-EZD-200-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-100",
+   "phase": 1,
+   "title": "Fix: a real budget hold is proven to write its file, notify and be released (pilot row 6)",
+   "depends_raw": "EZD-000h",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h"
+   ],
+   "build_position": 511,
+   "acs": [
+    "AC-EZD-100-1",
+    "AC-EZD-100-2",
+    "AC-EZD-100-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-239",
+   "phase": 1,
+   "title": "Fix: the budget status printout shows no override from a past week (pilot row 6)",
+   "depends_raw": "EZD-000h",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h"
+   ],
+   "build_position": 512,
+   "acs": [
+    "AC-EZD-239-1",
+    "AC-EZD-239-2",
+    "AC-EZD-239-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-240",
+   "phase": 1,
+   "title": "Fix: the status line saves its raw sample only from a payload with rate limits (pilot row 16)",
+   "depends_raw": "EZD-000h",
+   "spec_ref": "Q-0268",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000h"
+   ],
+   "build_position": 513,
+   "acs": [
+    "AC-EZD-240-1",
+    "AC-EZD-240-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-137",
-   "phase": 2,
+   "phase": 9,
    "title": "Mark complete and Completed filter",
-   "depends_raw": "EZD-117a, EZD-117b, EZD-102",
+   "depends_raw": "EZD-117a, EZD-117b, EZD-102, EZD-124",
    "spec_ref": "Q-0191, Q-0199; S01 Projects",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Projects"
@@ -13183,7 +14971,8 @@
    "depends_on": [
     "EZD-117a",
     "EZD-117b",
-    "EZD-102"
+    "EZD-102",
+    "EZD-124"
    ],
    "build_position": 86,
    "acs": [
@@ -13195,7 +14984,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/05-screens.md#Q-0191",
-    "spec/decisions/05-screens.md#Q-0199"
+    "spec/decisions/05-screens.md#Q-0199",
+    "spec/decisions/05-screens.md#Q-0395"
    ]
   },
   {
@@ -13762,25 +15552,50 @@
    "phase": 2,
    "spec_phase": 1,
    "title": "Notification settings per user",
-   "depends_raw": "EZD-110",
+   "depends_raw": "EZD-110, EZD-108",
    "spec_ref": "Q-0220; App shell",
    "spec_files": [
     "spec/sections/02-product-overview.md"
    ],
    "decisions": [
-    "spec/decisions/02-product-overview.md#Q-0220"
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0391",
+    "spec/decisions/05-screens.md#Q-0393"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S01fMyNotifications.png"
+   ],
+   "architecture": [
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "Release safety (EZD-023a)",
+    "Background jobs (EZD-009)",
+    "Email (EZD-008)",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Device layouts (EZD-014)",
+    "Messages and language (t())",
+    "Permission enforcement (EZD-102)",
+    "Browser tests (EZD-016a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Notifications (EZD-110)",
+    "My profile (EZD-108)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-110"
+    "EZD-110a",
+    "EZD-110b",
+    "EZD-108"
    ],
    "build_position": 0,
    "acs": [
     "AC-EZD-140-1",
-    "AC-EZD-140-2"
+    "AC-EZD-140-2",
+    "AC-EZD-140-3",
+    "AC-EZD-140-4"
    ],
-   "acs_source": "done-when"
+   "acs_source": "stage-0"
   },
   {
    "id": "EZD-1711",
@@ -13798,7 +15613,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-103",
+    "EZD-103a",
+    "EZD-103b",
     "EZD-102"
    ],
    "build_position": 0,
@@ -14062,6 +15878,1950 @@
    "acs": [
     "AC-EZD-042-1",
     "AC-EZD-042-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-241",
+   "phase": 1,
+   "title": "Fix: the release stops a migration that drops or renames a released object in production",
+   "depends_raw": "EZD-153, EZD-023e",
+   "spec_ref": "Q-0358",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-153",
+    "EZD-023e"
+   ],
+   "build_position": 514,
+   "acs": [
+    "AC-EZD-241-1",
+    "AC-EZD-241-2",
+    "AC-EZD-241-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-242",
+   "phase": 1,
+   "title": "Fix: Company settings inputs look read-only while offline",
+   "depends_raw": "EZD-112",
+   "spec_ref": "S15a",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [
+    "mockups/S15aCompany.png"
+   ],
+   "architecture": [
+    "Machine checks",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-112"
+   ],
+   "build_position": 515,
+   "acs": [
+    "AC-EZD-242-1",
+    "AC-EZD-242-2",
+    "AC-EZD-242-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-243",
+   "phase": 1,
+   "title": "Fix: runbook and architecture match the live email key and the ezdraft-dev Site URL",
+   "depends_raw": "EZD-008b, EZD-023b",
+   "spec_ref": "Q-0264",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Environment variables",
+    "Hosting",
+    "Environments and releases (EZD-023b)",
+    "Machine checks",
+    "Root config files"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-008b",
+    "EZD-023b"
+   ],
+   "build_position": 516,
+   "acs": [
+    "AC-EZD-243-1",
+    "AC-EZD-243-2",
+    "AC-EZD-243-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-244",
+   "phase": 1,
+   "title": "Fix: every agent loads only the architecture sections its work needs",
+   "depends_raw": "EZD-000",
+   "spec_ref": "Josh 2026-10-27",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000"
+   ],
+   "build_position": 517,
+   "acs": [
+    "AC-EZD-244-1",
+    "AC-EZD-244-2",
+    "AC-EZD-244-3",
+    "AC-EZD-244-4",
+    "AC-EZD-244-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-245",
+   "phase": 1,
+   "title": "Fix: recurring review findings become lessons and plan checks",
+   "depends_raw": "EZD-244",
+   "spec_ref": "Josh 2026-10-27",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-244"
+   ],
+   "build_position": 518,
+   "acs": [
+    "AC-EZD-245-1",
+    "AC-EZD-245-2",
+    "AC-EZD-245-3",
+    "AC-EZD-245-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-246",
+   "phase": 1,
+   "title": "Fix: one review pass covers two or three related tickets",
+   "depends_raw": "EZD-245",
+   "spec_ref": "Josh 2026-10-27",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-245"
+   ],
+   "build_position": 519,
+   "acs": [
+    "AC-EZD-246-1",
+    "AC-EZD-246-2",
+    "AC-EZD-246-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-247",
+   "phase": 1,
+   "title": "Fix: runbook and architecture match Q-0264 (remaining lines)",
+   "depends_raw": "EZD-243",
+   "spec_ref": "Q-0264",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Environments and releases (EZD-023b)",
+    "Machine checks",
+    "Root config files",
+    "Hosting",
+    "Row-level security (EZD-006)",
+    "Environment variables"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-243"
+   ],
+   "build_position": 520,
+   "acs": [
+    "AC-EZD-247-1",
+    "AC-EZD-247-2",
+    "AC-EZD-247-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-248",
+   "phase": 1,
+   "title": "Fix: a question row is checked before it is committed",
+   "depends_raw": "EZD-000",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000"
+   ],
+   "build_position": 521,
+   "acs": [
+    "AC-EZD-248-1",
+    "AC-EZD-248-2",
+    "AC-EZD-248-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-249",
+   "phase": 1,
+   "title": "Fix: a research report is checked before it is committed",
+   "depends_raw": "EZD-000, EZD-248",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-000",
+    "EZD-248"
+   ],
+   "build_position": 522,
+   "acs": [
+    "AC-EZD-249-1",
+    "AC-EZD-249-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-250",
+   "phase": 1,
+   "title": "Fix: the launcher never waits on a stop an agent can fix",
+   "depends_raw": "EZD-244",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-244"
+   ],
+   "build_position": 523,
+   "acs": [
+    "AC-EZD-250-1",
+    "AC-EZD-250-2",
+    "AC-EZD-250-3",
+    "AC-EZD-250-4",
+    "AC-EZD-250-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-251",
+   "phase": 1,
+   "title": "Fix: the health timeout test (EZD-181 T3) passes when two full gates run at once",
+   "depends_raw": "EZD-181, EZD-172",
+   "spec_ref": "Q-0286",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Error reporting (EZD-024)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-181",
+    "EZD-172"
+   ],
+   "build_position": 524,
+   "acs": [
+    "AC-EZD-251-1",
+    "AC-EZD-251-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-252",
+   "phase": 1,
+   "title": "Fix: a test file that writes error_alert rows must hold the error-alert lock",
+   "depends_raw": "EZD-251",
+   "spec_ref": "Q-0385",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-251"
+   ],
+   "build_position": 525,
+   "acs": [
+    "AC-EZD-252-1",
+    "AC-EZD-252-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-253",
+   "phase": 1,
+   "title": "Fix: build-system tickets run on their own track beside the product phases",
+   "depends_raw": "EZD-244, EZD-250, EZD-254",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-244",
+    "EZD-250",
+    "EZD-254"
+   ],
+   "build_position": 526,
+   "acs": [
+    "AC-EZD-253-1",
+    "AC-EZD-253-2",
+    "AC-EZD-253-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-254",
+   "phase": 1,
+   "title": "Fix: a finished phase is gated even while an earlier phase has a blocked ticket",
+   "depends_raw": "EZD-250",
+   "spec_ref": "PROCESS.md section 8",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 527,
+   "acs": [
+    "AC-EZD-254-1",
+    "AC-EZD-254-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-255",
+   "phase": 1,
+   "title": "Fix: a hold or limit message names the repair unit when a repair hits it",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 528,
+   "acs": [
+    "AC-EZD-255-1",
+    "AC-EZD-255-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-256",
+   "phase": 1,
+   "title": "Fix: only one gate at a time takes over a dead lock",
+   "depends_raw": "EZD-172",
+   "spec_ref": "Josh 2026-10-28",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Local database"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-172"
+   ],
+   "build_position": 529,
+   "acs": [
+    "AC-EZD-256-1",
+    "AC-EZD-256-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-257",
+   "phase": 1,
+   "title": "Fix: the release T8 test cannot fail on hash text",
+   "depends_raw": "EZD-023e",
+   "spec_ref": "Q-0348",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-023e"
+   ],
+   "build_position": 530,
+   "acs": [
+    "AC-EZD-257-1",
+    "AC-EZD-257-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-258",
+   "phase": 1,
+   "title": "Fix: failing-input tests for EZD-250's rules that have none",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0417",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 531,
+   "acs": [
+    "AC-EZD-258-1",
+    "AC-EZD-258-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-259",
+   "phase": 1,
+   "title": "Fix: the EZD-153 scratch database starts reliably during a full gate",
+   "depends_raw": "EZD-153",
+   "spec_ref": "Q-0334",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Release safety (EZD-023a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-153"
+   ],
+   "build_position": 532,
+   "acs": [
+    "AC-EZD-259-1",
+    "AC-EZD-259-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-260",
+   "phase": 1,
+   "title": "Fix: the write and read guards resolve symlinks before judging a path",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0404",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 533,
+   "acs": [
+    "AC-EZD-260-1",
+    "AC-EZD-260-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-261",
+   "phase": 1,
+   "title": "Fix: plan lint rejects a bare folder in a node --test verify command",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0404",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 534,
+   "acs": [
+    "AC-EZD-261-1",
+    "AC-EZD-261-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-262",
+   "phase": 1,
+   "title": "Fix: findings records are written under the ledger lock and committed with their unit",
+   "depends_raw": "EZD-173",
+   "spec_ref": "EZD-173 re-review",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-173"
+   ],
+   "build_position": 483,
+   "acs": [
+    "AC-EZD-262-1",
+    "AC-EZD-262-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-263",
+   "phase": 1,
+   "title": "Fix: every update of develop is ledger-checked",
+   "depends_raw": "EZD-248",
+   "spec_ref": "Q-0421",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-248"
+   ],
+   "build_position": 535,
+   "acs": [
+    "AC-EZD-263-1",
+    "AC-EZD-263-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-264",
+   "phase": 1,
+   "title": "Fix: architecture and runbook say Josh enters the Preview EMAIL_TRANSPORT value",
+   "depends_raw": "EZD-247",
+   "spec_ref": "Q-0420",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Environment variables"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-247"
+   ],
+   "build_position": 536,
+   "acs": [
+    "AC-EZD-264-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-265",
+   "phase": 1,
+   "title": "Fix: one ticket never stops the launcher; the watchdog restarts it after any stop not on the KEEP list; every wait names its real reason",
+   "depends_raw": "EZD-254, EZD-255, EZD-268",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-254",
+    "EZD-255",
+    "EZD-268"
+   ],
+   "build_position": 537,
+   "acs": [
+    "AC-EZD-265-1",
+    "AC-EZD-265-2",
+    "AC-EZD-265-3",
+    "AC-EZD-265-4",
+    "AC-EZD-265-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-266",
+   "phase": 1,
+   "title": "Fix: EZD-173 K7 takes its expected question IDs from all three question files",
+   "depends_raw": "EZD-173",
+   "spec_ref": "Q-0429",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-173"
+   ],
+   "build_position": 538,
+   "acs": [
+    "AC-EZD-266-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-267",
+   "phase": 1,
+   "title": "Fix: the launcher applies the guard grant for the files an approved plan names",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 539,
+   "acs": [
+    "AC-EZD-267-1",
+    "AC-EZD-267-2",
+    "AC-EZD-267-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-268",
+   "phase": 1,
+   "title": "Fix: a failed unit or role goes up the model ladder before a ticket is set aside or the launcher waits",
+   "depends_raw": "EZD-267, EZD-255, EZD-250",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-267",
+    "EZD-255",
+    "EZD-250"
+   ],
+   "build_position": 540,
+   "acs": [
+    "AC-EZD-268-1",
+    "AC-EZD-268-2",
+    "AC-EZD-268-3",
+    "AC-EZD-268-4",
+    "AC-EZD-268-5"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-269",
+   "phase": 1,
+   "title": "Fix: a wait on another ticket is a dependency, and the ticket resumes by itself",
+   "depends_raw": "EZD-265",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-265"
+   ],
+   "build_position": 541,
+   "acs": [
+    "AC-EZD-269-1",
+    "AC-EZD-269-2",
+    "AC-EZD-269-3",
+    "AC-EZD-269-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-270",
+   "phase": 1,
+   "title": "Fix: the chain of command answers every question the system can answer; only Level 4 questions wait for Josh",
+   "depends_raw": "EZD-269",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-269"
+   ],
+   "build_position": 542,
+   "acs": [
+    "AC-EZD-270-1",
+    "AC-EZD-270-2",
+    "AC-EZD-270-3",
+    "AC-EZD-270-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-271",
+   "phase": 1,
+   "title": "Fix: a usage-limit error is classified by a fresh meter reading; only a full weekly meter holds the launcher",
+   "depends_raw": "EZD-270",
+   "spec_ref": "Josh 2026-10-30 (chat, meter first)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-270"
+   ],
+   "build_position": 543,
+   "acs": [
+    "AC-EZD-271-1",
+    "AC-EZD-271-2",
+    "AC-EZD-271-3",
+    "AC-EZD-271-4"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-272",
+   "phase": 1,
+   "title": "Fix: every unit has a defined step for a classifier refusal or a protected path",
+   "depends_raw": "EZD-271",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-271"
+   ],
+   "build_position": 544,
+   "acs": [
+    "AC-EZD-272-1",
+    "AC-EZD-272-2",
+    "AC-EZD-272-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-273",
+   "phase": 1,
+   "title": "Fix: the gate fails when the launcher or ledger gains a stop path that is not on the KEEP list",
+   "depends_raw": "EZD-265, EZD-267, EZD-268, EZD-269, EZD-270, EZD-271, EZD-272, EZD-274",
+   "spec_ref": "Josh 2026-10-29 (chat, never-stops redesign)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Dependencies"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-265",
+    "EZD-267",
+    "EZD-268",
+    "EZD-269",
+    "EZD-270",
+    "EZD-271",
+    "EZD-272",
+    "EZD-274"
+   ],
+   "build_position": 545,
+   "acs": [
+    "AC-EZD-273-1",
+    "AC-EZD-273-2",
+    "AC-EZD-273-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-274",
+   "phase": 1,
+   "title": "Fix: a limit-like error with neither meter full is an ordinary failed unit, not a usage-limit hold",
+   "depends_raw": "EZD-268, EZD-271",
+   "spec_ref": "Josh 2026-10-30 (chat, meter first)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-268",
+    "EZD-271"
+   ],
+   "build_position": 546,
+   "acs": [
+    "AC-EZD-274-1",
+    "AC-EZD-274-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-275",
+   "phase": 1,
+   "title": "Fix: the gate fails when a skill ends a unit or blocks a ticket for a reason not on the KEEP list",
+   "depends_raw": "EZD-273",
+   "spec_ref": "Q-0442",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-273"
+   ],
+   "build_position": 547,
+   "acs": [
+    "AC-EZD-275-1",
+    "AC-EZD-275-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-276",
+   "phase": 2,
+   "title": "Fix: the perf check signs in a member and measures the Projects first cards",
+   "depends_raw": "EZD-017, EZD-016a, EZD-016c, EZD-016d, EZD-117b",
+   "spec_ref": "Q-0449",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Budgets"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-017",
+    "EZD-016a",
+    "EZD-016c",
+    "EZD-016d",
+    "EZD-117b"
+   ],
+   "build_position": 548,
+   "acs": [
+    "AC-EZD-276-1",
+    "AC-EZD-276-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-277",
+   "phase": 1,
+   "title": "Fix: the write and read guards compare paths case-insensitively on a case-insensitive disk",
+   "depends_raw": "EZD-267, EZD-260",
+   "spec_ref": "Q-0457",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-267",
+    "EZD-260"
+   ],
+   "build_position": 549,
+   "acs": [
+    "AC-EZD-277-1",
+    "AC-EZD-277-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-278",
+   "phase": 1,
+   "title": "Fix: the next signed-off phase builds while the current phase has no product ticket the launcher can build",
+   "depends_raw": "EZD-267",
+   "spec_ref": "Josh 2026-10-29 (chat)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-267"
+   ],
+   "build_position": 550,
+   "acs": [
+    "AC-EZD-278-1",
+    "AC-EZD-278-2",
+    "AC-EZD-278-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-279",
+   "phase": 1,
+   "title": "Fix: the read guard denies a Read, Grep or Glob of the secret files in any letter case",
+   "depends_raw": "EZD-277",
+   "spec_ref": "Q-0459",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-277"
+   ],
+   "build_position": 551,
+   "acs": [
+    "AC-EZD-279-1",
+    "AC-EZD-279-2",
+    "AC-EZD-279-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-280",
+   "phase": 1,
+   "title": "Fix: the shell guard denies any command that names a secret file, whatever the command word",
+   "depends_raw": "EZD-279",
+   "spec_ref": "Q-0461",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-279"
+   ],
+   "build_position": 552,
+   "acs": [
+    "AC-EZD-280-1",
+    "AC-EZD-280-2",
+    "AC-EZD-280-3"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-281",
+   "phase": 1,
+   "title": "Fix: tests that pin live state read it from their own temporary copy",
+   "depends_raw": "EZD-250",
+   "spec_ref": "Q-0463",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250"
+   ],
+   "build_position": 553,
+   "acs": [
+    "AC-EZD-281-1",
+    "AC-EZD-281-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-282",
+   "phase": 1,
+   "title": "Fix: a write grant applies only to files in the agent's own worktree",
+   "depends_raw": "EZD-260",
+   "spec_ref": "Q-0466",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-260"
+   ],
+   "build_position": 554,
+   "acs": [
+    "AC-EZD-282-1",
+    "AC-EZD-282-2"
+   ],
+   "acs_source": "done-when",
+   "priority": 1
+  },
+  {
+   "id": "EZD-283",
+   "phase": 2,
+   "title": "Fix: a failed tenant.updated event after a Company settings save is reported",
+   "depends_raw": "EZD-024, EZD-169",
+   "spec_ref": "EZD-108 build (rule 17)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-024",
+    "EZD-169"
+   ],
+   "build_position": 555,
+   "acs": [
+    "AC-EZD-283-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-288",
+   "phase": 2,
+   "title": "Fix: a failed customer.created, customer.updated or user.joined event is reported",
+   "depends_raw": "EZD-283",
+   "spec_ref": "Q-0475 (rule 17)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-283"
+   ],
+   "build_position": 560,
+   "acs": [
+    "AC-EZD-288-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-284",
+   "phase": 1,
+   "title": "Fix: the CI workflow installs the pinned pnpm version",
+   "depends_raw": "EZD-002, EZD-147",
+   "spec_ref": "Phase 1 gate security review (rules 17, 18)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "CI"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-002",
+    "EZD-147"
+   ],
+   "build_position": 556,
+   "acs": [
+    "AC-EZD-284-1",
+    "AC-EZD-284-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-285",
+   "phase": 1,
+   "title": "Fix: the EZD-102 D3 permissions query test does not depend on the planner's index choice",
+   "depends_raw": "EZD-102, EZD-190",
+   "spec_ref": "Q-0355",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Permission enforcement (EZD-102)",
+    "Policy test harness (EZD-006)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-190"
+   ],
+   "build_position": 557,
+   "acs": [
+    "AC-EZD-285-1",
+    "AC-EZD-285-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-286",
+   "phase": 1,
+   "title": "Fix: root test files that write the local database no longer deadlock",
+   "depends_raw": "EZD-200",
+   "spec_ref": "Q-0357",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-200"
+   ],
+   "build_position": 558,
+   "acs": [
+    "AC-EZD-286-1",
+    "AC-EZD-286-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-287",
+   "phase": 1,
+   "title": "Fix: pnpm db:up leaves the local stack templates current",
+   "depends_raw": "EZD-166, EZD-168",
+   "spec_ref": "Q-0341",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Local database"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-166",
+    "EZD-168"
+   ],
+   "build_position": 559,
+   "acs": [
+    "AC-EZD-287-1",
+    "AC-EZD-287-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-289",
+   "phase": 1,
+   "title": "Fix: the signed-in home page has a Settings link",
+   "depends_raw": "EZD-102, EZD-103a",
+   "spec_ref": "Josh 2026-11-02 (audit M10)",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points",
+    "spec/sections/10-permissions-and-settings.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-103a"
+   ],
+   "build_position": 561,
+   "acs": [
+    "AC-EZD-289-1",
+    "AC-EZD-289-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-290",
+   "phase": 1,
+   "title": "Fix: a company logo is accepted only after an allowlist check of its content, and the media bucket limits file types",
+   "depends_raw": "EZD-112, EZD-132",
+   "spec_ref": "Q-0268, rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Company settings (EZD-112)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-112",
+    "EZD-132"
+   ],
+   "build_position": 562,
+   "acs": [
+    "AC-EZD-290-1",
+    "AC-EZD-290-2",
+    "AC-EZD-290-3",
+    "AC-EZD-290-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-291",
+   "phase": 1,
+   "title": "Fix: the EZD-102 D5 permissions realtime test does not depend on fixed waits",
+   "depends_raw": "EZD-102, EZD-285",
+   "spec_ref": "Q-0268, rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Tests"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-102",
+    "EZD-285"
+   ],
+   "build_position": 563,
+   "acs": [
+    "AC-EZD-291-1",
+    "AC-EZD-291-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-292",
+   "phase": 2,
+   "title": "Fix: the RLS audit and job handler tests list the notification table and the notification_email job",
+   "depends_raw": "EZD-110a, EZD-006, EZD-009",
+   "spec_ref": "Q-0268, rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications",
+    "spec/sections/screens/S01-projects.md#Notifications button"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Row-level security (EZD-006)",
+    "Background jobs (EZD-009)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110a",
+    "EZD-006",
+    "EZD-009"
+   ],
+   "build_position": 564,
+   "acs": [
+    "AC-EZD-292-1",
+    "AC-EZD-292-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-293",
+   "phase": 2,
+   "title": "Research: Realtime keeps live updates after a hosted database failover",
+   "depends_raw": "EZD-018, EZD-291",
+   "spec_ref": "Q-0480 (a), R-048",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)",
+    "Environments and releases (EZD-023b)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-018",
+    "EZD-291"
+   ],
+   "build_position": 565,
+   "acs": [
+    "AC-EZD-293-1",
+    "AC-EZD-293-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-299",
+   "phase": 3,
+   "title": "Conflict list: Keep mine / Keep theirs",
+   "depends_raw": "EZD-120b, EZD-202, EZD-110b, EZD-140",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540",
+   "spec_files": [
+    "spec/sections/03b-architecture-rules.md#Architecture rules",
+    "spec/sections/00d-glossary-phase-03.md",
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications"
+   ],
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/05-screens.md#Q-0510",
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0393",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ],
+   "mockups": [
+    "mockups/S01cNotifications.png"
+   ],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120b",
+    "EZD-202",
+    "EZD-110b",
+    "EZD-140"
+   ],
+   "build_position": 566,
+   "acs": [
+    "AC-EZD-299-1",
+    "AC-EZD-299-2",
+    "AC-EZD-299-3",
+    "AC-EZD-299-4",
+    "AC-EZD-299-5",
+    "AC-EZD-299-6",
+    "AC-EZD-299-7",
+    "AC-EZD-299-8",
+    "AC-EZD-299-9",
+    "AC-EZD-299-10",
+    "AC-EZD-299-11"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-295",
+   "phase": 1,
+   "title": "Fix: only the server writes and deletes company logo files",
+   "depends_raw": "EZD-290",
+   "spec_ref": "Q-0478, rule 17, 18",
+   "spec_files": [
+    "spec/sections/screens/S15a-settings-company.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Company settings (EZD-112)",
+    "Server-only data access and can()",
+    "Release safety (EZD-023a)",
+    "Machine checks"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-290"
+   ],
+   "build_position": 567,
+   "acs": [
+    "AC-EZD-295-1",
+    "AC-EZD-295-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-296",
+   "phase": 1,
+   "title": "Fix: the sources bucket limits file types and size",
+   "depends_raw": "EZD-290",
+   "spec_ref": "Q-0477, rule 17, 18",
+   "spec_files": [
+    "spec/sections/03c-tables.md#Storage"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-290"
+   ],
+   "build_position": 568,
+   "acs": [
+    "AC-EZD-296-1",
+    "AC-EZD-296-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-297",
+   "phase": 1,
+   "title": "Fix: the realtime event tests in realtime-auth, the job runner and notification T3 wait for their events",
+   "depends_raw": "EZD-291",
+   "spec_ref": "Q-0479, Q-0486, rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-291"
+   ],
+   "build_position": 569,
+   "acs": [
+    "AC-EZD-297-1",
+    "AC-EZD-297-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-298",
+   "phase": 1,
+   "title": "Fix: released migration 20261020101101 is restored to its released text",
+   "depends_raw": "EZD-160",
+   "spec_ref": "Phase 1 gate security review (rules 17, 18)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Environments and releases (EZD-023b)",
+    "Release safety (EZD-023a)",
+    "Auth and session (EZD-007)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-160"
+   ],
+   "build_position": 570,
+   "acs": [
+    "AC-EZD-298-1",
+    "AC-EZD-298-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-300",
+   "phase": 1,
+   "title": "Fix: the CI checkout does not keep the repository token",
+   "depends_raw": "EZD-284",
+   "spec_ref": "Phase 1 gate security review (rules 17, 18)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "CI"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-284"
+   ],
+   "build_position": 571,
+   "acs": [
+    "AC-EZD-300-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-316",
+   "phase": 1,
+   "title": "Fix: sandboxed commands cannot use Josh's GitHub login; pushes and gh calls go through one trusted script",
+   "depends_raw": "",
+   "spec_ref": "D-021, Q-0268, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 572,
+   "acs": [
+    "AC-EZD-316-1",
+    "AC-EZD-316-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-317",
+   "phase": 1,
+   "title": "Fix: a sandboxed command cannot run a writable copy of an excluded script outside the sandbox",
+   "depends_raw": "",
+   "spec_ref": "Q-0541, D-021, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-316"
+   ],
+   "build_position": 573,
+   "acs": [
+    "AC-EZD-317-1",
+    "AC-EZD-317-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-318",
+   "phase": 2,
+   "title": "Fix: the realtime hub resyncs on a subscriber’s first join and after a refused token",
+   "depends_raw": "EZD-018",
+   "spec_ref": "Q-0545, Q-0546, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-018"
+   ],
+   "build_position": 574,
+   "acs": [
+    "AC-EZD-318-1",
+    "AC-EZD-318-2",
+    "AC-EZD-318-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-319",
+   "phase": 2,
+   "title": "Fix: the my-profile migration runs after every migration already on the dev database",
+   "depends_raw": "EZD-108",
+   "spec_ref": "CI run 41756259716, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Migrations",
+    "Local database"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-108"
+   ],
+   "build_position": 575,
+   "acs": [
+    "AC-EZD-319-1",
+    "AC-EZD-319-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-320",
+   "phase": 1,
+   "title": "Fix: a project member cannot complete or orphan another person's pending source-file upload",
+   "depends_raw": "EZD-132",
+   "spec_ref": "Security review phase 1 gate 2026-11-03 (finding 2); rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Migrations",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-132"
+   ],
+   "build_position": 576,
+   "acs_source": "done-when",
+   "acs": [
+    "AC-EZD-320-1",
+    "AC-EZD-320-2"
+   ]
+  },
+  {
+   "id": "EZD-321",
+   "phase": 1,
+   "title": "Fix: every cap that counts rows before inserting takes a lock first",
+   "depends_raw": "EZD-143",
+   "spec_ref": "Security review phase 1 gate 2026-11-03 (slice B finding); EZD-143; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Migrations",
+    "Errors and logging",
+    "Machine checks"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-143"
+   ],
+   "build_position": 577,
+   "acs": [
+    "AC-EZD-321-1",
+    "AC-EZD-321-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-322",
+   "phase": 1,
+   "title": "Fix: a project member without See company costs cannot create a supplier file or order report record",
+   "depends_raw": "EZD-132",
+   "spec_ref": "Security review phase 1 gate 2026-11-04 (finding 1); Q-0323; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Permission enforcement (EZD-102)",
+    "Server-only data access and can()"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-132"
+   ],
+   "build_position": 578,
+   "acs_source": "done-when",
+   "acs": [
+    "AC-EZD-322-1",
+    "AC-EZD-322-2",
+    "AC-EZD-322-3"
+   ]
+  },
+  {
+   "id": "EZD-323",
+   "phase": 1,
+   "title": "Fix: no test-only database function can be run by a signed-in user in production",
+   "depends_raw": "EZD-140",
+   "spec_ref": "Security review phase 1 gate 2026-11-04 (finding 2); rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Migrations",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Release safety (EZD-023a)",
+    "Notifications (EZD-110)",
+    "Server-only data access and can()",
+    "Auth and session (EZD-007)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-140"
+   ],
+   "build_position": 579,
+   "acs_source": "done-when",
+   "acs": [
+    "AC-EZD-323-1",
+    "AC-EZD-323-2",
+    "AC-EZD-323-3"
+   ]
+  },
+  {
+   "id": "EZD-324",
+   "phase": 2,
+   "title": "Fix: the device layout test B5 does not fail at random in CI",
+   "depends_raw": "EZD-014c",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-014c"
+   ],
+   "build_position": 580,
+   "acs": [
+    "AC-EZD-324-1",
+    "AC-EZD-324-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-325",
+   "phase": 2,
+   "title": "Fix: the EZD-153 scratch database test does not fail at random in CI",
+   "depends_raw": "EZD-153",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Off-site backups and restore (EZD-025)",
+    "Release safety (EZD-023a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-153"
+   ],
+   "build_position": 581,
+   "acs": [
+    "AC-EZD-325-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-326",
+   "phase": 1,
+   "title": "Fix: test: EZD-025 T3 versioning and Object Lock must be on, before any write: (a) one failed files run row",
+   "depends_raw": "EZD-025",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03); CI gate failure on PR 4",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Off-site backups and restore (EZD-025)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-025"
+   ],
+   "build_position": 582,
+   "acs": [
+    "AC-EZD-326-1",
+    "AC-EZD-326-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-327",
+   "phase": 2,
+   "title": "Fix: the EZD-025 files backup test T3 does not fail at random in CI",
+   "depends_raw": "EZD-025",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-025"
+   ],
+   "build_position": 583,
+   "acs": [
+    "AC-EZD-327-1"
    ],
    "acs_source": "done-when"
   }

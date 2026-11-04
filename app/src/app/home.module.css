@@ -1,0 +1,33 @@
+/* vault/plans/EZD-136.md Decided "CSS": the home page and the not-found page are a full-height column,
+   content at the top and the disclaimer line at the bottom. Tokens only (check C10); px spacing (L-013). */
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.message {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ez-ink);
+}
+
+/* EZD-289 (vault/plans/EZD-289.md Decided "CSS"): the top row holds the Settings link and Sign out. Tokens for
+   color only; spacing and the 44 px touch target in plain px (11 Accessibility; L-013). */
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settingsLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--ez-cobalt-link);
+}

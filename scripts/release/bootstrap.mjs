@@ -4,8 +4,8 @@ import { childEnv, runChild } from './dump.mjs';
 
 const codeError = (code) => Object.assign(new Error(code), { code });
 
-/** The psql flags of scripts/db/sql.mjs, without a database argument: the connection is in `PG*` variables. */
-export const PSQL_ARGS = Object.freeze(['-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A']);
+/** The psql flags of scripts/db/sql.mjs plus `-v VERBOSITY=terse` (EZD-152: psql prints only severity and message lines), without a database argument: the connection is in `PG*` variables. */
+export const PSQL_ARGS = Object.freeze(['-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=terse', '-X', '-q', '-t', '-A']);
 
 /** The URL query keys that are allowed, and the `PG*` variable each one sets (EZD-041 D5). */
 export const PG_QUERY_ENV = Object.freeze({

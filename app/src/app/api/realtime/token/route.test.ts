@@ -23,6 +23,13 @@ import {
 
 const state = vi.hoisted(() => ({ store: new Map<string, string>() }));
 
+// EZD-169 (vault/plans/EZD-169.md E1): the 500 catch now reports through reportRouteFailure. T17 (d) reaches
+// that catch with a working alert store; the mock keeps it from writing an error_alert row or sending an
+// owner email outside the error-alert lock (architecture EZD-024; app/test-harness/errors/alert-lock.ts).
+vi.mock('../../../../server/errors/route-failure', () => ({
+  reportRouteFailure: vi.fn(async () => {}),
+}));
+
 vi.mock('next/headers', () => ({
   cookies: async () => ({
     getAll: () => [...state.store].map(([name, value]) => ({ name, value })),

@@ -1,9 +1,13 @@
 // EZD-007d Step 2 (vault/plans/EZD-007d.md; parent P-Step 3; D3): after verifyOtp, link the app_user,
 // accept the most recently sent valid invite (EZD-007b link_app_user), emit user.joined and refresh the
-// session so the token hook adds the tenant claim. Fails closed; logs nothing.
+// session so the token hook adds the tenant claim. Fails closed; logs nothing; a failed user.joined emit is reported by code (EZD-288).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../db/database.types';
+import { errorType } from '../errors/fingerprint';
+import { reportError } from '../errors/report';
 import { emit } from '../events';
+
+const EMIT_FAILED = 'user_joined_event_failed';
 
 type LinkRow = {
   app_user_id: string;
@@ -34,8 +38,13 @@ export async function completeSignIn(
         { membershipId: row.accepted_membership_id, appUserId: row.app_user_id, via: 'sign_in' },
         { tenantId: row.accepted_tenant_id, actorId: row.app_user_id },
       );
-    } catch {
+    } catch (e) {
       // The acceptance is already committed (P-Step 3); a failed emit does not fail the sign-in.
+      await reportError(new Error(EMIT_FAILED), {
+        source: 'function',
+        location: 'auth.sign_in',
+        tags: { 'ezd.cause': errorType(e) },
+      });
     }
   }
 

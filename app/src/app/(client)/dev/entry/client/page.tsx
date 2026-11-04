@@ -5,13 +5,16 @@ import { MessagesProvider } from '../../../../../lib/messages';
 import { catalogFor } from '../../../../../server/messages/catalog';
 import { StateHost } from '../../../../../components/states/StateHost';
 import { PhoneFrame } from '../../../../../components/phone/PhoneFrame';
+import { Disclaimer } from '../../../../../components/disclaimer/Disclaimer';
 
 export default function Page() {
   if (process.env.VERCEL_ENV === 'production') notFound();
   return (
     <MessagesProvider language="en" messages={catalogFor('client', 'en')}>
       <StateHost>
-        <PhoneFrame>{null}</PhoneFrame>
+        <PhoneFrame>
+          <Disclaimer placement="page" />
+        </PhoneFrame>
       </StateHost>
     </MessagesProvider>
   );

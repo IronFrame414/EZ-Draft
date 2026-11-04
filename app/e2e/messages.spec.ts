@@ -88,3 +88,11 @@ test.describe('EZD-026b messages test page', () => {
     await expect(field(page, 'sample')).toHaveText('Sample message');
   });
 });
+
+test.describe('EZD-158 messages test page without a session', () => {
+  test('EZD-158 /dev/messages without a session is not found', async ({ page }) => {
+    const res = await page.goto('/dev/messages');
+    expect(res?.status()).toBe(404);
+    await expect(page.getByTestId('field-sample')).toHaveCount(0);
+  });
+});

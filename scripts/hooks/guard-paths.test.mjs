@@ -45,3 +45,20 @@ test('Q-0128 grant: no other worktree or agent gets it', () => {
   assert.equal(decide('test-author', wt('EZD-000b', 'scripts/statusline.mjs')), 'deny', 'test-author');
   assert.equal(decide('builder', wt('EZD-001', 'scripts/conventions/check.mjs')), 'allow', 'Q-0124 unchanged');
 });
+
+// Fix mode is for the interactive orchestrator only; a launcher unit (EZD_UNIT_ID) never gets it (Josh 2026-11-02).
+test('fix mode lets the interactive orchestrator edit scripts/, never a launcher unit', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const fixRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'guard-paths-fix-'));
+  fs.mkdirSync(path.join(fixRoot, 'vault/handoff'), { recursive: true });
+  fs.writeFileSync(path.join(fixRoot, 'vault/handoff/LAUNCHER_FIX.md'), '# test\n');
+  const run = (extra) => {
+    const env = { ...process.env, CLAUDE_PROJECT_DIR: fixRoot, ...extra };
+    if (!('EZD_UNIT_ID' in extra)) delete env.EZD_UNIT_ID;
+    const r = spawnSync('node', [hook], { input: JSON.stringify({ tool_input: { file_path: path.join(fixRoot, 'scripts/x.mjs') }, cwd: fixRoot }), env, encoding: 'utf8' });
+    return r.stdout.includes('"deny"') ? 'deny' : 'allow';
+  };
+  assert.equal(run({}), 'allow', 'interactive orchestrator in fix mode');
+  assert.equal(run({ EZD_UNIT_ID: 'build-EZD-259' }), 'deny', 'launcher unit in fix mode');
+});

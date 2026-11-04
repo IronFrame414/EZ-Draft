@@ -22,9 +22,12 @@ const always = [
   [/\bgh\s+pr\s+merge\b(?![^;&|]*--auto\b)/, 'Agents merge the phase PR only with --auto, so GitHub waits for the required gate check (Q-0261).'],
   [/\bpnpm\s+(run\s+)?release:|\bnode\s+\S*scripts[\\/]release[\\/]/, 'Release scripts are Josh\'s; agents never run them (EZD-023b).'],
   [/\bnode\s+\S*scripts[\\/](run|budget)\.mjs/, 'The launcher and the budget script are run by Josh, never from inside a session.'],
-  [/(^|[;&|]\s*)claude(\s|$)/, 'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],
+  [/(^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*=\S*\s+)*claude(\s|$)/,'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],
 ];
-for (const [re, why] of always) if (re.test(why.startsWith('Reading .env') ? raw : c)) deny(why);
+for (const [re, why] of always) {
+  if (!re.test(why.startsWith('Reading .env') ? raw : c)) continue;
+  deny(why);
+}
 
 // Token guard (Q-0135 (a), PA3 rule 8): an accident guard so a sign-in token is not printed into a transcript.
 const KEYCHAIN_WHY = 'Printing a Keychain secret is not allowed (security with -w or -g, or dump-keychain -d). To check that an item exists, run security find-generic-password -s "<name>" without -w or -g (PA3 rule 8).';
@@ -35,7 +38,7 @@ for (const seg of raw.split(/[;&|]/)) {
 const noTests = raw
   .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)/g, '$1')
   .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)\s+\]/g, '');
-if (/\.credentials\.json|\.claude\/\.cred/.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
+if (/\.credentials\.json|\.claude\/\.cred/i.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
 
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) {

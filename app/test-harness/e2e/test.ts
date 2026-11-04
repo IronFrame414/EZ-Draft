@@ -46,6 +46,16 @@ export {
 } from './session-claims';
 export type { OpenSession, Sessions } from './sessions';
 export type { Network } from './network';
+export {
+  captureTraffic,
+  TRAFFIC_FETCH_TIMEOUT_MS,
+  TRAFFIC_SETTLE_TIMEOUT_MS,
+  type Traffic,
+  type TrafficOptions,
+  type TrafficRequest,
+  type TrafficResponse,
+  type TrafficResult,
+} from './traffic';
 export { expectTouchTargets } from '../touch-targets';
 export { adminDb } from '../rls/fixtures';
 // Section 4: fresh tenants and users come from EZD-006 createTenant / createMember and are removed with
@@ -67,3 +77,5 @@ export {
 } from '../auth-users';
 export { signInWithCode } from '../sign-in';
 export { countAuthEmails, emailSubjects, waitForAuthEmail, waitForRawEmail } from '../mail-catcher';
+// EZD-102 section 4: set a membership's 37 switches directly, so specs still import only from this file.
+export { setPermissions } from '../permissions/grant';

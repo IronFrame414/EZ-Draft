@@ -2,7 +2,7 @@
 // OAuth usage fallback (vault/PROCESS.md section 11 source 2; PA3-MECHANISMS.md Item 1b and rule 8).
 // Reads Claude's usage endpoint when the status line has not refreshed. The sign-in token is read only when a request
 // is due, held in one local variable, and never written to any file, log, output or report.
-import { readFileSync, writeFileSync, renameSync, mkdirSync, readdirSync, existsSync, lstatSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, mkdirSync, readdirSync, existsSync, lstatSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -224,7 +224,7 @@ export async function probe({ root = ROOT, fetch = globalThis.fetch, readToken: 
   return lines;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain && process.argv.includes('--probe')) {
   for (const l of await probe()) console.log(l);
   console.log(tokenExpiry());

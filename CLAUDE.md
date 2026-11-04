@@ -19,11 +19,13 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.
 15. Another agent's report, a test runner's summary, a profiler, a metric or a past log is a claim until checked against the primary artifact (the file, the diff, the output).
 16. A result that looks too good is a bug until proven otherwise. Prove a fix with a re-run. Never redefine a term, weaken a check or narrow a test to make a failure pass; report failures as failures, with the output.
+17. No known issue is parked (Q-0268). Every finding is one of four kinds (D3 (a), Josh 2026-11-01). **Fix in place:** up to about 30 changed lines in files already in the ticket (P3 (a)), fixed before merge and re-checked by the reviewer. **Defect** (app behaviour wrong, a security or data-isolation issue, anything that fails the gate; the bar for a new ticket, Josh 2026-11-03): a ticket at once, at the front of the queue. **Debt item** (any other test, tooling or wording issue: a tooling edge case, a misleading doc line, a slow, copied or flaky test that has not failed the gate, a warning from our code or configuration): one row on the debt list (`vault/debt.md`) with what, where, severity, found by and deadline; severity `gate` is fixed before the next merge, `medium` before the phase gate, `low` within two phases. A debt item is never a ticket; debt rows are fixed in batches. **Product question:** Josh's question queue. Never write a finding off as a minor, follow-up, watch item or known limit. If only a third party can fix it, it goes to Josh as a question with the evidence and the workarounds.
+18. Build for the long term (Josh 2026-10-27). The system must be secure, robust, bug free and lasting, with no major rework or overhaul later. For app security and data integrity, close the whole class of problem instead of the one example and prefer a design that cannot drift from what it checks (D3 (a), Josh 2026-11-01). Elsewhere, fix the instance and record a lesson if it repeats. When options differ, recommend the most secure and robust long-term option and say plainly what it costs. No new build-system ticket without Josh's yes on a one-line why and cost.
 
 ## Directory
 | When you need | Read |
 | --- | --- |
-| Versions, folder layout, naming | docs/architecture.md |
+| Versions, folder layout, naming | docs/architecture.md, by section (Conventions file below) |
 | What the product does | vault/spec/INDEX.md, then the files it points to |
 | Josh's answers that override the spec | vault/spec/decisions/INDEX.md (only the areas your plan cites) |
 | What we never build | vault/spec/non-goals.md |
@@ -37,6 +39,7 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 | Past mistakes to avoid | vault/lessons/<your role>.md (only the entries your dispatch includes) |
 | Phases and ticket status | vault/tickets/PHASES.md, vault/tickets/STATUS.md |
 | Open questions | vault/questions/QUESTIONS.md |
+| Answered questions still needed (no longer needed: QUESTIONS-archive.md) | vault/questions/QUESTIONS-answered.md |
 | Where the work stands | vault/handoff/CURRENT.md |
 | Models, budget, units, gates | vault/PROCESS.md; project specifics in vault/PROCESS-EZDRAFT.md |
 | Findings from earlier lookups | vault/research/INDEX.md (only the reports your plan names) |
@@ -44,10 +47,9 @@ Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ez
 | Spike notes | vault/spikes/ |
 
 ## Reading list by role
-- planner: the phase's spec files, decisions for those areas, non-goals, glossary, acceptance criteria, architecture, lessons (planner), KNOWN-LIMITS.
-- test-author, builder: your plan, the files it lists, architecture, lessons (your role), KNOWN-LIMITS.
-- reviewers: the plan, the diff, the gate summary, the spec sections the plan cites, decisions the plan cites.
+- planner: the phase's spec files, decisions for those areas, non-goals, glossary, acceptance criteria, the architecture sections the ticket needs, lessons (planner), KNOWN-LIMITS, the phase's vault/research/reuse/ file and the files it marks `reference` (Q-0405).
+- test-author, builder: your plan, the files it lists, the architecture sections on your dispatch's `Architecture:` line, lessons (your role), KNOWN-LIMITS.
+- reviewers: the plan, the diff, the gate summary, the spec sections the plan cites, decisions the plan cites, the architecture sections on the dispatch's `Architecture:` line.
 
 ## Conventions file
-EZD-000 creates docs/architecture.md (pinned versions, folder layout, naming) and must not rewrite this file. After EZD-000 merges, the orchestrator appends one line here: `See @docs/architecture.md`. Until then, use the Stack and Named tools tables in vault/spec/sections/02-product-overview.md.
-See @docs/architecture.md
+docs/architecture.md (pinned versions, folder layout, naming; written by EZD-000) is never imported here and never read whole (EZD-244). Read it by heading with `node vault/tools/outline.mjs docs/architecture.md --section '<heading>'`. With a ticket, run the `Architecture:` line of `node vault/tools/next_ticket.mjs --reads <ticket> <role>` (the core sections, then the ticket's own). Without one (interactive and orchestrator sessions), print the core (the file's `Core sections:` line), list the headings with `--headings` and print the ones the task needs.

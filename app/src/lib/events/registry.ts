@@ -1,3 +1,6 @@
+import type { CustomerEventField } from '../customers/customers';
+import type { Language } from '../profile/profile';
+
 export type EventKind = 'webhook' | 'internal' | 'log_only';
 
 export const EVENTS = {
@@ -53,9 +56,16 @@ export const EVENTS = {
   'catalog_item.created': { kind: 'log_only' },
   'detail.placed': { kind: 'log_only' },
   'user.joined': { kind: 'log_only' },
+  'tenant.updated': { kind: 'log_only' },
+  'customer.created': { kind: 'log_only' },
+  'customer.updated': { kind: 'log_only' },
+  'user.language_changed': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
+
+// EZD-112: the company identity fields a `tenant.updated` event names (S15a Events).
+export type TenantField = 'name' | 'logo' | 'license_no' | 'contact';
 
 export function isRegisteredEvent(name: string): name is EventName {
   return Object.hasOwn(EVENTS, name);
@@ -112,4 +122,8 @@ export interface EventPayloads {
   'catalog_item.created': Record<string, unknown>;
   'detail.placed': Record<string, unknown>;
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };
+  'tenant.updated': { fields: TenantField[] };
+  'customer.created': { customerId: string };
+  'customer.updated': { customerId: string; fields: CustomerEventField[] };
+  'user.language_changed': { appUserId: string; language: Language };
 }

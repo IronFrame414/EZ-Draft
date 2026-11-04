@@ -12,8 +12,8 @@ import { spawnSync } from 'node:child_process';
 import { REPO_ROOT, childEnv } from './local-fixture.mjs';
 
 const read = (...p) => readFileSync(path.join(REPO_ROOT, ...p), 'utf8');
-const SHA_CHECKOUT = '11d5960a326750d5838078e36cf38b85af677262';
-const SHA_NODE = '49933ea5288caeca8642d1e84afbd3f7d6820020';
+const SHA_CHECKOUT = '3d3c42e5aac5ba805825da76410c181273ba90b1';
+const SHA_NODE = '949feb2413d6458794dcd2491c4babbbce0c15c1';
 
 const FILES_SECRETS = [
   'BACKUP_SOURCE_DB_URL',
@@ -36,6 +36,7 @@ const DB_SECRETS = [
 const SPECS = {
   'backup-files.yml': { cron: '0 7 * * *', timeout: '120', script: 'pnpm backup:files', secrets: FILES_SECRETS },
   'backup-db.yml': { cron: '0 8 * * 0', timeout: '60', script: 'pnpm backup:db', secrets: DB_SECRETS },
+  'backup-check.yml': { cron: '0 10 * * *', timeout: '15', script: 'pnpm backup:check', secrets: ['BACKUP_SOURCE_DB_URL'] },
 };
 
 // ---- line parser (blank and comment lines dropped, trailing ` # comment` stripped) --------------------------
@@ -162,12 +163,13 @@ jobs:
       contents: read
       actions: read
     steps:
-      - uses: actions/checkout@${SHA_CHECKOUT} # v4.4.0
+      - uses: actions/checkout@${SHA_CHECKOUT} # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@${SHA_NODE} # v4.4.0
+      - uses: actions/setup-node@${SHA_NODE} # v7.1.0
         with:
           node-version: 22
+          package-manager-cache: false
       - name: Install pnpm
         run: npm install -g pnpm@12.14.0
       - name: Install dependencies
@@ -348,9 +350,9 @@ describe('EZD-025 T16 static checks and docs', () => {
 
   test('EZD-025 T16 the conventions check and the generated types are clean', () => {
     const c = spawnSync('node', ['scripts/conventions/check.mjs', '.'], { cwd: REPO_ROOT, encoding: 'utf8', env: childEnv() });
-    assert.equal(c.status, 0, `conventions check: ${c.stdout}${c.stderr}`);
+    assert.equal(c.status, 0, `node scripts/conventions/check.mjs . exited ${c.status} (signal ${c.signal ?? 'none'}): ${c.stdout}${c.stderr}`);
     const g = spawnSync('node', ['scripts/db/gen-types.mjs', '--check'], { cwd: REPO_ROOT, encoding: 'utf8', env: childEnv() });
-    assert.equal(g.status, 0, `gen-types --check: ${g.stdout}${g.stderr}`);
+    assert.equal(g.status, 0, `node scripts/db/gen-types.mjs --check exited ${g.status} (signal ${g.signal ?? 'none'}): ${g.stdout}${g.stderr}`);
   });
 
   test('EZD-025 T16 files.mjs with no BACKUP_* is not_configured, with one name it is env_missing', () => {

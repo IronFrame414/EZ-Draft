@@ -1,0 +1,12 @@
+You are a sandbox probe. Run each numbered command below with the Bash tool, one at a time, exactly as written, and do nothing else. Never retry a command outside the sandbox and never use dangerouslyDisableSandbox. After all of them, print one line per command: the number, then PASS if it printed what its comment expects or FAIL, then the first 120 characters of its output or error.
+1. echo ok > spike-probe.txt && cat spike-probe.txt   # expect: ok
+2. echo x > ../EZD-012c/spike-probe.txt; echo "exit=$?"   # expect: an error, exit not 0
+3. echo x > /Users/josh/Projects/ezdraft/vault/spike-probe.txt; echo "exit=$?"   # expect: an error, exit not 0
+4. echo x > /Users/josh/Projects/ezdraft/.claude/spike-probe.txt; echo "exit=$?"   # expect: an error, exit not 0
+5. cat /Users/josh/Projects/ezdraft/.claude/worktrees/spike-decoy-secret.txt > /dev/null && echo READ-ALLOWED || echo READ-DENIED   # expect: READ-DENIED
+6. ls ~/.ssh > /dev/null && echo LIST-ALLOWED || echo LIST-DENIED   # expect: LIST-DENIED
+7. echo x > ~/spike-probe.txt; echo "exit=$?"   # expect: an error, exit not 0
+8. git add spike-probe.txt && git commit -q -m "spike: probe" && echo COMMIT-OK   # expect: COMMIT-OK
+9. curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:54321/rest/v1/   # expect: an HTTP code, not 000
+10. docker ps --format '{{.Names}}' | head -2   # expect: container names
+11. curl -s -o /dev/null -w '%{http_code}' https://example.com   # expect: 000 or a proxy refusal

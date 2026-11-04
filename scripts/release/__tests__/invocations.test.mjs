@@ -43,7 +43,7 @@ const DATA_ARGS = [
   '--exclude',
   'auth.flow_state',
 ];
-const PSQL_ARGS = ['-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A'];
+const PSQL_ARGS = ['-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=terse', '-X', '-q', '-t', '-A'];
 // Part b's list (vault/plans/EZD-023b.md Step 1), copied so `childEnv` is checked against the plan, not the code.
 const RELEASE_SECRET_NAMES_EXPECTED = [
   'VERCEL_TOKEN',

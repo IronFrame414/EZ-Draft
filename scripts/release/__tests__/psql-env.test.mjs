@@ -16,7 +16,7 @@ const U_ENV = {
   PGPASSWORD: 'S3cret',
   PGDATABASE: 'postgres',
 };
-const ARGS = ['-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A'];
+const ARGS = ['-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=terse', '-X', '-q', '-t', '-A'];
 const TIMEOUT_ENV = { ...U_ENV, PGOPTIONS: '-c lock_timeout=5s -c statement_timeout=300s' };
 
 const errState = (e) =>

@@ -1,0 +1,15 @@
+--- a/.github/workflows/ci.yml	2026-10-24 05:20:23
++++ b/.github/workflows/ci.yml	2026-10-24 05:20:23
+@@ -35,3 +35,12 @@
+           name: perf-results
+           path: perf-results/
+           if-no-files-found: ignore
++      - name: Upload gate logs
++        if: failure()
++        uses: actions/upload-artifact@v4
++        with:
++          name: gate-logs
++          path: |
++            gate-failures.log
++            gate.log
++          if-no-files-found: ignore

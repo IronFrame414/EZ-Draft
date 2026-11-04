@@ -1,0 +1,59 @@
+// Dot globbing (zsh globdots or a (D) qualifier at the end of a pattern, bash dotglob or GLOBIGNORE) lets a plain * match .claude, so it may not be
+// turned on (Q-0418 (a)).
+if (/glob_?dots|dotglob|globignore/i.test(noTests) || /[*?\]][^\s\/()]*\((?:#q)?[^()\s]*D[^()\s]*\)(?=$|[\s;&|<>])/.test(noTests))
+  deny('Dot globbing may not be turned on: a plain * could then match .claude and reach the sign-in file (Q-0418 (a); PA3 rule 8).');
+// A level that could spell a dot name at run time: it starts with a dot and holds a wildcard, brace, group, $ or backtick
+// (.cl* .cla[u]de .claude{,} .claud?), or it holds a $( ) or backtick substitution, or a { } or ( ) group with a dot in it
+// ({.c,x}laude, (.claude|x)). The paths are read twice: as written, and with each substitution collapsed to one level, so a
+// space inside one does not split the path. Such a level
+// that could spell .claude, followed by a level that could spell the sign-in file or holds a $ or substitution, or by a later
+// level that is or could spell `..`, is denied. A zsh group (a|b) is one level. A level of plain variables ($E/$n, ${D}) or a wildcard with no leading dot ($D/*) is not one: a path held in
+// variables stays unseen (Q-0418 (a); vault/KNOWN-LIMITS.md).
+// ln may not name .claude, nor a level that could spell it (Q-0407 (a), Q-0418 (a)). It counts as a whole word anywhere in a
+// segment (after ; & | ( $( or a backtick, behind sudo or xargs, as ${U:-ln}, or written \ln, "l"n or $'\x6cn'). Quoted text
+// that holds a space is a message, not a command, and is dropped (git commit -m "ln …"), unless the command runs sh, bash, zsh,
+// dash, ksh, eval, source or . anywhere outside a quoted heredoc body (echo '…' | sh). grep -ln is not ln. A link made by another program (node, python3,
+// cp -s) stays unseen (Q-0418 (a); vault/KNOWN-LIMITS.md).
+const LN = /(^|[\s;&|<>()`{}=!\/])ln(?=$|[\s;&|<>()`}])|\$\{[^}]*[-=+?]ln\}/;
+const SHELL = /(^|[\s;&|(`{\/])(sh|bash|zsh|dash|ksh|eval|source)(?=$|[\s;&|)`}])|(^|[;&|(`{])\s*\.(?=\s)/;
+const spans = (seg, keep) => seg.replace(/\$'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|'([^']*)'/g, (m, a, d, q) => {
+  const t = a !== undefined ? ansi(a) : d ?? q;
+  return keep || !/\s/.test(t) ? t : '""';
+}).replace(/\\(.)/g, '$1');
+// A heredoc with a quoted delimiter (<<'EOF') is data, not expanded, so its body is skipped unless a shell reads it.
+const HEREDOC = /<<-?[ \t]*(['"])(\w+)\1([^\n]*)\n[\s\S]*?\n[ \t]*\2(?=\n|$)/g;
+const noBody = cmd.replace(HEREDOC, '<<$2$3').replace(/\s+/g, ' ');
+const runsShell = segments(noBody).some((seg) => SHELL.test(spans(seg, false)));
+const segs = segments(runsShell ? raw : noBody);
+const SUB = '\u0001';
+const bodyless = echoOnly || runsShell ? noTests
+  : unquote(noBody.replace(ANSI, (m, q) => `'${ansi(q).replace(/'/g, '')}'`));
+let collapsed = bodyless;
+for (let prev; prev !== collapsed;) { prev = collapsed; collapsed = collapsed.replace(/\$\([^()]*\)|`[^`]*`/g, SUB); }
+collapsed = collapsed.replace(/\(([^()\s]*)\)/g, (m, g) => `(${g.replace(/\|/g, "\u0002")})`);
+const esc = (t) => t.replace(/[.\\^$|+()\]{}[*?]/g, '\\$&');
+const group = (alts) => `(?:${alts.map((a) => (/[$`*?[{(\u0001]/.test(a) ? '.*' : esc(a))).join('|')})`;
+const spells = (level, name) => {
+  if (!/[$`*?[{(\u0001]/.test(level)) return false;
+  if (!level.startsWith('.') && !level.includes(SUB) && !/[{(][^})]*\./.test(level)) return false;
+  const re = level.replace(/\u0001|\$\{[^}]*\}|\$\w+|\$|\{([^{}]*)\}|\(([^()]*)\)|\[[^\]]*\]|[*?`(){}]|[^\u0001${}()[\]*?`]+/g, (m, b, p) =>
+    (b !== undefined ? group(b.split(',')) : p !== undefined ? group(p.split(/[|\u0002]/)) : m[0] === '[' && m.length > 1 ? '.' : m === '?' ? '.' : /^[\u0001$*`(){}]/.test(m) ? '.*' : esc(m)));
+  return new RegExp(`^${re}$`, 'i').test(name);
+};
+const SIGN_IN = '.credentials.json';
+const BUILT_WHY = 'A path level built with a wildcard, brace, group or substitution may not lead to the sign-in file or a `..`: write the path out in full (Q-0418 (a); PA3 rule 8).';
+for (const token of [...bodyless.split(/[\s;&|<>]+/), ...collapsed.split(/[\s;&|<>]+/)]) {
+  const levels = token.split('/').filter((l) => l !== '' && l !== '.');
+  for (let i = 0; i < levels.length - 1; i++) {
+    const rest = levels.slice(i + 1);
+    if (spells(levels[i], '.claude') && (spells(rest[0], SIGN_IN) || /[$\u0001]/.test(rest[0]) || rest.slice(0, -1).some((l) => l === '..' || spells(l, '..'))))
+      deny(BUILT_WHY);
+  }
+}
+for (const seg of segs) {
+  if (!LN.test(spans(seg, runsShell))) continue;
+  let all = spans(seg, true);
+  for (let prev; prev !== all;) { prev = all; all = all.replace(/\$\([^()]*\)|`[^`]*`/g, SUB); }
+  if (/\.claude/i.test(spans(seg, true)) || all.split(/[\s;&|<>]+/).some((t) => t.split('/').some((l) => spells(l, '.claude'))))
+    deny('ln may not name .claude, or a path level that could spell it: a link to it could reach the sign-in file (Q-0407 (a), Q-0418 (a); PA3 rule 8).');
+}

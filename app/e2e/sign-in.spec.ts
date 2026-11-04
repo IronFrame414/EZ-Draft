@@ -3,20 +3,14 @@
 // createTenant, never a seeded row. Codes and links come from the local mail catcher (CLAUDE.md rule 6).
 // Text is compared with the en / es catalogs, never copied wording. Two sign-in emails to one address
 // are sent at least 1,100 ms apart (EZD-007d D2).
-import {
-  expect,
-  test,
-  type Browser,
-  type BrowserContext,
-  type Page,
-  type Response,
-} from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import { en } from '../src/server/messages/catalogs/en';
 import { es } from '../src/server/messages/catalogs/es';
 import { cleanupTestMembers, createTestMember } from '../test-harness/auth-users';
 import { waitForAuthEmail, type AuthEmail } from '../test-harness/mail-catcher';
 import { adminDb, cleanup, closeHarness, createTenant } from '../test-harness/rls/fixtures';
 import { signInWithCode } from '../test-harness/sign-in';
+import { captureTraffic } from '../test-harness/e2e/test';
 
 const EMAIL_GAP_MS = 1100;
 // 400 days (Q-0048 (a); EZD-007d cookie maxAge 34,560,000 s), with the plan's 1,000 s tolerance.
@@ -260,17 +254,7 @@ test.describe('EZD-007f sign-in pages', () => {
   }) => {
     const m = await activeMember();
     const context = await newContext(browser, baseURL);
-    let recording = true;
-    const bodies: Promise<string>[] = [];
-    context.on('response', (r: Response) => {
-      if (!recording) return;
-      bodies.push(
-        r
-          .body()
-          .then((b) => b.toString('utf8'))
-          .catch(() => ''),
-      );
-    });
+    const traffic = await captureTraffic(context);
     const page = await context.newPage();
     await page.goto('/sign-in');
     await page.getByTestId('sign-in-email').fill(m.email);
@@ -281,13 +265,15 @@ test.describe('EZD-007f sign-in pages', () => {
     await expect(page.getByTestId('sign-in-check-spam')).toHaveText(
       text('en', 'common.sign_in.check_spam'),
     );
-    recording = false;
+    traffic.stop();
 
     const mail = await waitForAuthEmail(m.email, { after });
     const tokenHash = new URL(mail.link).searchParams.get('token_hash') ?? '';
     expect(tokenHash).not.toBe('');
-    const all = await Promise.all(bodies);
+    const { requests, responses } = await traffic.settle();
+    const all = responses.map((r) => r.body);
     expect(all.length).toBeGreaterThan(0);
+    expect(requests.filter((r) => r.external)).toHaveLength(0);
     expect(all.filter((b) => b.includes(tokenHash))).toHaveLength(0);
     expect(all.filter((b) => b.includes('/auth/confirm'))).toHaveLength(0);
     expect(await page.innerText('body')).not.toContain(mail.code);

@@ -11,6 +11,17 @@ describe('EZD-007d public paths', () => {
     for (const p of ['/', '/projects', '/sign-in-x', '/auth', '/devx', '/settings/users']) {
       expect(isPublicPath(p), p).toBe(false);
     }
-    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev']);
+    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev', '/terms']);
+  });
+});
+
+// EZD-1707 T2 (vault/plans/EZD-1707.md sections 3, 4; step 6): /terms is public, its prefix-only neighbours are not.
+describe('EZD-1707 public paths', () => {
+  it('EZD-1707 T2 /terms is public and its look-alikes are not', () => {
+    expect(isPublicPath('/terms')).toBe(true);
+    expect(isPublicPath('/terms/')).toBe(true);
+    expect(isPublicPath('/termsx')).toBe(false);
+    expect(isPublicPath('/term')).toBe(false);
+    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev', '/terms']);
   });
 });

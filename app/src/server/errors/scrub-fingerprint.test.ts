@@ -4,7 +4,7 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { scrubEvent, scrubText } from '../../lib/errors/scrub';
-import { errorFingerprint, normalizeLocation, normalizeMessage } from './fingerprint';
+import { errorFingerprint, errorTitle, normalizeLocation, normalizeMessage } from './fingerprint';
 
 const FAKE_KEY = 'sk_' + 'live_' + 'ABCdef1234567890ABCdef12';
 const UUID = '6f1c9a2e-1111-4222-8333-444455556666';
@@ -76,5 +76,35 @@ describe('EZD-024 scrubbing and fingerprints', () => {
       expect(d).not.toBe(a);
       for (const f of [a, b, c, d]) expect(f).toMatch(/^[0-9a-f]{64}$/);
     });
+  });
+});
+
+describe('EZD-142 fingerprint helpers stay linear and scrub the type', () => {
+  const EMAIL = 'a@b.test';
+
+  // vault/plans/EZD-142.md D14: one untimed warm-up call, then performance.now() around one call.
+  const expectLinear = (input: string, expected: string): void => {
+    expect(input.length).toBe(262_144);
+    normalizeMessage('warm a@b.test http://x?y 123456');
+    const t0 = performance.now();
+    const out = normalizeMessage(input);
+    const ms = performance.now() - t0;
+    expect(out).toBe(expected);
+    expect(ms).toBeLessThan(100);
+  };
+
+  it('EZD-142 T7 normalizeMessage runs in linear time', () => {
+    expectLinear('a'.repeat(262144), '<hex>');
+    expectLinear('1'.repeat(262144), '<hex>');
+    expectLinear('a'.repeat(262143) + 'g', 'a'.repeat(300));
+    const ats = 'a@'.repeat(131072);
+    expectLinear(ats, ats.slice(0, 300));
+    const urls = 'http://'.repeat(37449) + 'x';
+    expectLinear(urls, urls.slice(0, 300));
+    expectLinear('a@b.io '.repeat(37449) + 'x', '<email> '.repeat(38).slice(0, 300));
+  });
+
+  it('EZD-142 T8 errorTitle scrubs the type', () => {
+    expect(errorTitle('E ' + EMAIL, 'm ' + UUID)).toBe('E <email>: m <uuid>');
   });
 });

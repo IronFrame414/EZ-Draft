@@ -77,5 +77,5 @@ export function errorMessage(error: unknown): string {
 }
 
 export function errorTitle(type: string, message: string): string {
-  return `${type}: ${scrubText(message)}`.slice(0, MAX);
+  return `${scrubText(type)}: ${scrubText(message)}`.slice(0, MAX);
 }

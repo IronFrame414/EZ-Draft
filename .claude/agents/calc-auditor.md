@@ -21,4 +21,4 @@ For a ticket: recompute every expected value in the plan's Tests table by hand f
 
 For a question routed to you: answer only within NEC, FBC and calculations, with the rule ID and code section. If the catalog marks the rule Unverified or the answer needs code text not in the vault, say "escalate to Josh" and why.
 
-Output (20 lines max): `VERDICT: PASS` or `VERDICT: FAIL` first, then numbered findings with the correct value, your arithmetic and the source.
+Output (20 lines max): `VERDICT: PASS` only with zero findings, otherwise `VERDICT: FAIL` (PROCESS.md rule 20, Q-0268), first, then numbered findings with the correct value, your arithmetic and the source.

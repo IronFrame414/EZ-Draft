@@ -23,6 +23,16 @@ function run(args: string[]) {
 function symbolIds(svg: string): string[] {
   return [...svg.matchAll(/<symbol id="([^"]+)"/g)].map((m) => m[1]);
 }
+function build(list: unknown) {
+  const dir = tmp();
+  const listFile = path.join(dir, 'list.json');
+  fs.writeFileSync(listFile, JSON.stringify(list));
+  const sprite = path.join(dir, 'out', 'sprite.svg');
+  const names = path.join(dir, 'out', 'names.ts');
+  fs.mkdirSync(path.join(dir, 'out'));
+  const r = run(['--src', fixtures, '--list', listFile, '--sprite', sprite, '--names', names]);
+  return { r, sprite, names };
+}
 
 describe('EZD-010b icons:build output', () => {
   it('EZD-010b done when: icons:build turns icons.json into the committed sprite and IconName list', () => {
@@ -71,17 +81,6 @@ describe('EZD-010b icons:build output', () => {
 });
 
 describe('EZD-010b icons:build rules', () => {
-  function build(list: unknown) {
-    const dir = tmp();
-    const listFile = path.join(dir, 'list.json');
-    fs.writeFileSync(listFile, JSON.stringify(list));
-    const sprite = path.join(dir, 'out', 'sprite.svg');
-    const names = path.join(dir, 'out', 'names.ts');
-    fs.mkdirSync(path.join(dir, 'out'));
-    const r = run(['--src', fixtures, '--list', listFile, '--sprite', sprite, '--names', names]);
-    return { r, sprite, names };
-  }
-
   it('EZD-010b T9 (1): a valid list builds a byte-stable sprite and names file', () => {
     const one = build(['a', 'a-fill']);
     expect(one.r.status, one.r.stderr).toBe(0);
@@ -123,4 +122,33 @@ describe('EZD-010b icons:build rules', () => {
       expect(fs.existsSync(names)).toBe(false);
     });
   }
+});
+
+describe('EZD-158 icons:build refuses unsafe sources', () => {
+  it('EZD-158 a path with an extra attribute exits 1 and writes nothing', () => {
+    const { r, sprite, names } = build(['a', 'attr']);
+    expect(r.stderr).not.toContain('MODULE_NOT_FOUND');
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('attr');
+    expect(fs.existsSync(sprite)).toBe(false);
+    expect(fs.existsSync(names)).toBe(false);
+  });
+
+  it('EZD-158 a source with a script element exits 1 and writes nothing', () => {
+    const { r, sprite, names } = build(['a', 'script']);
+    expect(r.stderr).not.toContain('MODULE_NOT_FOUND');
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('script');
+    expect(fs.existsSync(sprite)).toBe(false);
+    expect(fs.existsSync(names)).toBe(false);
+  });
+
+  it('EZD-158 a source with a style element exits 1 and writes nothing', () => {
+    const { r, sprite, names } = build(['a', 'style']);
+    expect(r.stderr).not.toContain('MODULE_NOT_FOUND');
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('style');
+    expect(fs.existsSync(sprite)).toBe(false);
+    expect(fs.existsSync(names)).toBe(false);
+  });
 });

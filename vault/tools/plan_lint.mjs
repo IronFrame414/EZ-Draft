@@ -4,9 +4,10 @@
 //   node vault/tools/plan_lint.mjs <plan> [--allow-questions]   prints PLAN LINT OK, or PLAN LINT FAIL and one problem per line
 // --allow-questions: the planner's own check at plan time (QP questions go to the questions unit). Without it (before
 // `ready`), any QP question left in section 10 fails.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { architectureHeadings, planArchitecture } from './outline.mjs';
 
 // Words that leave a choice to the builder. Matched case-insensitively as whole words in sections 1, 3 and 4.
 const VAGUE = ['TBD', 'TODO', 'as appropriate', 'as needed', 'if needed', 'where needed', 'consider', 'maybe', 'perhaps', 'e.g.',
@@ -43,9 +44,22 @@ function tables(text) {
 const table = (text) => tables(text)[0] || { head: [], body: [] };
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-export function lintPlan(text, { allowQuestions = false } = {}) {
+const ARCH_DOC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs', 'architecture.md');
+
+export function lintPlan(text, { allowQuestions = false, headings = null } = {}) {
   const problems = [];
   const s = sections(text);
+  const arch = planArchitecture(text);
+  if (arch.error === 'no Architecture line in section 2') problems.push('section 2: no "Architecture:" line (headings beyond the core, or "none beyond the core"; EZD-244)');
+  else if (arch.error) problems.push('section 2: empty "Architecture:" line');
+  else if (arch.list.length) {
+    let known = headings;
+    if (known === null) {
+      if (existsSync(ARCH_DOC)) known = architectureHeadings(readFileSync(ARCH_DOC, 'utf8')).map((h) => h.text);
+      else problems.push('docs/architecture.md missing (architecture map, EZD-244)');
+    }
+    if (known) for (const h of arch.list) if (!known.includes(h)) problems.push(`section 2: Architecture section "${h}" is not a heading in docs/architecture.md`);
+  }
   for (let n = 1; n <= 10; n++) if (s[n] === undefined) problems.push(`section ${n} missing`);
   const s1 = s[1] || '';
 
@@ -83,7 +97,7 @@ export function lintPlan(text, { allowQuestions = false } = {}) {
   return problems;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain = (() => { try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
 if (isMain) {
   const file = process.argv.slice(2).find((a) => !a.startsWith('--'));
   if (!file) { console.log('usage: node vault/tools/plan_lint.mjs <plan> [--allow-questions]'); process.exit(2); }

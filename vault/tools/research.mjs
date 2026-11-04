@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Adopts pending research reports: moves each to vault/research/R-NNN.md and appends one index line.
-// Usage: node vault/tools/research.mjs adopt   (vault/PROCESS.md section 13; PA3-MECHANISMS.md Item 6)
+// Usage: node vault/tools/research.mjs adopt [--ticket <T>]   (vault/PROCESS.md section 13; PA3-MECHANISMS.md Item 6)
+// With a ticket, only that ticket's pending reports are adopted; the others stay in pending/ (EZD-173 C11).
 import { existsSync, realpathSync, readFileSync, readdirSync, renameSync, statSync, appendFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -23,9 +24,9 @@ function parse(text) {
   return { fields };
 }
 
-export function adopt(researchDir, date) {
+export function adopt(researchDir, date, { ticket: only } = {}) {
   const pending = join(researchDir, 'pending');
-  const result = { ids: [], skipped: [] };
+  const result = { ids: [], skipped: [], moved: [] };
   if (!existsSync(pending)) return result;
   const candidates = readdirSync(pending)
     .filter((f) => f.endsWith('.md') && !f.startsWith('.') && statSync(join(pending, f)).isFile())
@@ -51,11 +52,13 @@ export function adopt(researchDir, date) {
       result.skipped.push({ file, reason: parsed.reason });
       continue;
     }
+    if (only && parsed.fields.ticket !== only) continue;
     const id = 'R-' + String(n).padStart(3, '0');
     renameSync(join(pending, file), join(researchDir, id + '.md'));
     const { title, scope, ticket } = parsed.fields;
     lines.push(`${id} | ${date} | ${title} | ${scope} | ${ticket}`);
     result.ids.push(id);
+    result.moved.push({ file, id });
     n += 1;
   }
   if (lines.length > 0) {
@@ -71,13 +74,14 @@ export function localDate(d = new Date()) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const args = process.argv.slice(2);
-  if (args.length !== 1 || args[0] !== 'adopt') {
+  const byTicket = args.length === 3 && args[1] === '--ticket' && args[2] !== '';
+  if (args[0] !== 'adopt' || !(args.length === 1 || byTicket)) {
     process.stderr.write('usage: node vault/tools/research.mjs adopt\n');
     process.exit(2);
   }
   try {
     const researchDir = resolve(dirname(fileURLToPath(import.meta.url)), '../research');
-    const { ids, skipped } = adopt(researchDir, localDate());
+    const { ids, skipped } = adopt(researchDir, localDate(), byTicket ? { ticket: args[2] } : {});
     for (const id of ids) process.stdout.write(id + '\n');
     for (const s of skipped) process.stderr.write(`research: skipped pending/${s.file}: ${s.reason}\n`);
     process.exit(skipped.length > 0 ? 1 : 0);

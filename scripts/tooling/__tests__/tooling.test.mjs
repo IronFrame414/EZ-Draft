@@ -5,7 +5,7 @@
 // Tests match exit codes, rule IDs, check IDs and paths, not message wording.
 import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -62,6 +62,134 @@ const EXCLUDED = ['/vault/', '/spikes/', '/.claude/'];
 function entersExcluded(p) {
   const rel = '/' + path.relative(root, p).split(path.sep).join('/') + '/';
   return EXCLUDED.some((seg) => rel.includes(seg));
+}
+
+// ---------- pnpm build settings checker (EZD-001 T10; extended by EZD-148 T2, R2) ----------
+// The text of pnpm-workspace.yaml is read as lines (no YAML package). Returns [{ rule, msg }], rule one of
+// 'permissions', 'allow-all', 'allowBuilds-form', 'allowBuilds-entry', 'unreadable'. Each msg names the line.
+// What cannot be read (explicit `?` keys and the lines D4 and D13 name) is refused, never skipped (L-006).
+const stripYamlComment = (s) => s.replace(/[ \t]+#.*$/, '');
+const KEY = (name) => new RegExp('(^|[\\s{,?\\[])["\']?' + name + '["\']?\\s*:', 'i');
+// EZD-148 D4, D13: a line the line scanner cannot read is refused, never skipped (L-006). A line holding a quote is
+// readable only when it fits one of QUOTE_SHAPES: Q1 a plain key with one single-quoted scalar and at most a quote-free
+// comment; Q2 a plain key with a plain scalar holding no '"' and no '#'; Q3 an indented '@scope/name': false entry.
+// A line with a character outside tab and printable ASCII, or with an anchor, alias or tag at a node start, is unreadable.
+const QUOTE_SHAPES = [
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: '(?:[^'#]|'')*'\s*(?:#[^'"]*)?$/,
+  /^\s*(?:- )?[A-Za-z][A-Za-z0-9_.-]*: [A-Za-z0-9$_(][^"#]*$/,
+  /^\s+'@[a-z0-9-]+\/[a-z0-9._-]+': false\s*(?:#[^'"]*)?$/,
+];
+const ASCII_LINE_RE = /^[\t\x20-\x7E]*$/;
+const NODE_START_RE = /(?:^\s*(?:-\s+)*|[{,\[]\s*|:\s+|\?\s+)[&*!]/;
+function quoteReadable(l) {
+  return !/['"]/.test(l) || QUOTE_SHAPES.some((re) => re.test(l));
+}
+
+function buildSettingProblems(text) {
+  const lines = text.split(/\r?\n/);
+  const problems = [];
+  const add = (rule, msg) => problems.push({ rule, msg });
+  const allowBuildsLines = [];
+  const bodies = [];
+  lines.forEach((l, i) => {
+    const t = l.trim();
+    const ascii = ASCII_LINE_RE.test(l);
+    if (ascii && (t === '' || t.startsWith('#'))) return;
+    const n = i + 1;
+    const readable = ascii && quoteReadable(l) && !NODE_START_RE.test(stripYamlComment(l));
+    const body = readable ? stripYamlComment(l) : l;
+    bodies[i] = body;
+    if (/^(-\s+)?\?(\s|$)/.test(t) || !readable) add('unreadable', `line ${n}: a key form this check cannot read`);
+    if (KEY('permissions').test(body)) add('permissions', `line ${n}: the pnpm permissions setting overrides allowBuilds (D8)`);
+    if (KEY('dangerouslyAllowAllBuilds').test(body)) add('allow-all', `line ${n}: allow-all build setting (Q-0140 (a))`);
+    if (KEY('allowBuilds').test(body)) allowBuildsLines.push(i);
+  });
+  if (allowBuildsLines.length > 1) add('allowBuilds-form', `line ${allowBuildsLines[1] + 1}: allowBuilds appears more than once`);
+  if (allowBuildsLines.length >= 1) {
+    const first = allowBuildsLines[0];
+    if (bodies[first].trimEnd() !== 'allowBuilds:') {
+      add('allowBuilds-form', `line ${first + 1}: allowBuilds must be a top-level block map`);
+    } else {
+      for (let i = first + 1; i < lines.length; i++) {
+        const l = lines[i];
+        if (l.trim() === '' || /^\s*#/.test(l)) continue;
+        if (!/^\s/.test(l)) break;
+        if (/^\s*-\s/.test(l)) {
+          add('allowBuilds-form', `line ${i + 1}: allowBuilds is a map, not a list (EZD-000 T26)`);
+          continue;
+        }
+        const m = /^\s+(['"]?)([^'":]+)\1:\s*(.+?)\s*$/.exec(l);
+        if (!m) add('allowBuilds-entry', `line ${i + 1}: allowBuilds entry is "<package>: <value>"`);
+        else if (m[3] !== 'false') add('allowBuilds-entry', `line ${i + 1}: allowBuilds entry ${m[2]} must be false (Q-0140 (a))`);
+      }
+    }
+  }
+  return problems;
+}
+
+// EZD-177 (vault/plans/EZD-177.md sections 1, 3): pnpm_config_ environment names in package scripts.
+const PNPM_CONFIG_RE = /pnpm_config_/i;
+
+// R2 (vault/plans/EZD-177.md section 3): problems of one package.json text, in this order.
+function pnpmConfigScriptProblems(text) {
+  let pkg;
+  try {
+    pkg = JSON.parse(text);
+  } catch {
+    return ['unreadable'];
+  }
+  if (pkg === null || typeof pkg !== 'object' || Array.isArray(pkg)) return ['unreadable'];
+  if (pkg.scripts === undefined) return [];
+  const scripts = pkg.scripts;
+  if (scripts === null || typeof scripts !== 'object' || Array.isArray(scripts)) return ['scripts not an object'];
+  const problems = [];
+  for (const [name, cmd] of Object.entries(scripts)) {
+    if (typeof cmd !== 'string') problems.push(`script ${name} not a string`);
+    else if (PNPM_CONFIG_RE.test(cmd)) problems.push(`script ${name}`);
+  }
+  return problems;
+}
+
+// R3 (vault/plans/EZD-177.md section 3): repo-relative package.json paths of the workspace packages.
+function workspacePackageFiles() {
+  const found = ['package.json'];
+  for (const f of ['app/package.json', 'worker/package.json']) {
+    if (existsSync(path.join(root, f))) found.push(f);
+  }
+  for (const d of ['packages', 'spikes']) {
+    const dir = path.join(root, d);
+    if (!existsSync(dir)) continue;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const rel = `${d}/${entry.name}/package.json`;
+      if (existsSync(path.join(root, rel))) found.push(rel);
+    }
+  }
+  const rest = found.slice(1).sort();
+  return [found[0], ...rest];
+}
+
+// EZD-182 (vault/plans/EZD-182.md sections 1, 3): pnpm flags that turn dependency build scripts on past allowBuilds (Q-0316 (a)).
+const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\.|allow-build)/i;
+
+// R2 (vault/plans/EZD-182.md section 3): problems of one package.json text, in this order.
+function buildFlagScriptProblems(text) {
+  let pkg;
+  try {
+    pkg = JSON.parse(text);
+  } catch {
+    return ['unreadable'];
+  }
+  if (pkg === null || typeof pkg !== 'object' || Array.isArray(pkg)) return ['unreadable'];
+  if (pkg.scripts === undefined) return [];
+  const scripts = pkg.scripts;
+  if (scripts === null || typeof scripts !== 'object' || Array.isArray(scripts)) return ['scripts not an object'];
+  const problems = [];
+  for (const [name, cmd] of Object.entries(scripts)) {
+    if (typeof cmd !== 'string') problems.push(`script ${name} not a string`);
+    else if (BUILD_FLAG_RE.test(cmd)) problems.push(`script ${name}`);
+  }
+  return problems;
 }
 
 describe('EZD-001 repo tooling', () => {
@@ -196,19 +324,7 @@ describe('EZD-001 repo tooling', () => {
     const ws = readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8');
     const lines = ws.split(/\r?\n/);
     assert.ok(lines.some((l) => /^workspaceConcurrency:\s*1\s*$/.test(l)), 'pnpm-workspace.yaml has top-level workspaceConcurrency: 1 (Q-0139 (a))');
-    assert.ok(!lines.some((l) => /^dangerouslyAllowAllBuilds:\s*true\s*$/.test(l)), 'no allow-all build setting (Q-0140 (a))');
-    const ab = lines.findIndex((l) => /^allowBuilds:\s*$/.test(l));
-    if (ab >= 0) {
-      for (let i = ab + 1; i < lines.length; i++) {
-        const l = lines[i];
-        if (l.trim() === '' || /^\s*#/.test(l)) continue;
-        if (!/^\s/.test(l)) break;
-        assert.ok(!/^\s*-\s/.test(l), `allowBuilds is a map, not a list (EZD-000 T26): ${l}`);
-        const m = /^\s+(['"]?)([^'":]+)\1:\s*(.+?)\s*$/.exec(l);
-        assert.ok(m, `allowBuilds entry is "<package>: <value>": ${l}`);
-        assert.equal(m[3], 'false', `allowBuilds entry ${m[2]} must be false (Q-0140 (a))`);
-      }
-    }
+    assert.deepEqual(buildSettingProblems(ws).map((p) => `${p.rule}: ${p.msg}`), [], 'pnpm-workspace.yaml build settings (Q-0140 (a), EZD-148)');
   });
 
   // ---------- T11 ----------
@@ -338,7 +454,7 @@ describe('EZD-001 repo tooling', () => {
 
   // ---------- T15 ----------
   test('EZD-001 T15: worker limits in the package Vitest configs', () => {
-    for (const p of [path.join(appDir, 'vitest.config.ts'), path.join(geoDir, 'vitest.config.ts')]) {
+    for (const p of [path.join(appDir, 'vitest.config.mts'), path.join(geoDir, 'vitest.config.ts')]) {
       const text = readFileSync(p, 'utf8');
       assert.ok(/\bmaxWorkers\s*:\s*4\b/.test(text), `${p} sets maxWorkers to 4 (Q-0114)`);
       assert.ok(text.includes('EZD_TEST_GREP'), `${p} reads EZD_TEST_GREP`);
@@ -388,5 +504,337 @@ describe('EZD-001 repo tooling', () => {
     assert.deepEqual(e.c9, [], '(e) spikes are outside the scan');
     const f = fixture('app/src/test-utils/h.test.ts', `${vitestHead}test('x', () => {});\n`);
     assert.deepEqual(f.c9, [], '(f) test-utils is exempt');
+  });
+});
+
+// EZD-161 · geometry test files are type-checked (vault/plans/EZD-161.md sections 3-4; AC-EZD-161-1; Q-0268 sweep item 35;
+// Q-0292 (a)). Probes live in packages/geometry/src/__ezd161_probe__/, removed at the start and in a finally of each test.
+// Each test runs the real tsc or pnpm through run(); expected values come from the plan's section 3 and 4 rows.
+describe('EZD-161 geometry tests are type-checked', () => {
+  const probeDir = path.join(geoDir, 'src', '__ezd161_probe__');
+  const removeProbe = () => rmSync(probeDir, { recursive: true, force: true });
+  const writeProbe = (name, source) => {
+    mkdirSync(probeDir, { recursive: true });
+    writeFileSync(path.join(probeDir, name), source);
+  };
+  /** JSON from `tsc -p <file> --showConfig` run inside the package through pnpm (the file's showConfig takes only `.`). */
+  function showConfigOf(filter, file) {
+    const r = run('pnpm', ['--filter', filter, 'exec', 'tsc', '-p', file, '--showConfig']);
+    assert.equal(r.status, 0, `tsc -p ${file} --showConfig for ${filter} failed: ${r.stderr || r.stdout}`);
+    return JSON.parse(r.stdout.slice(r.stdout.indexOf('{')));
+  }
+  const hasDomLib = (lib) => lib.some((l) => /dom/i.test(l));
+
+  // ---------- T1 ----------
+  test('EZD-161 T1: a type error in a geometry test file fails pnpm typecheck', { timeout: 300_000 }, () => {
+    try {
+      removeProbe();
+      writeProbe('probe.test.ts', "export const probe: number = 'not a number';\n");
+      const a = run('pnpm', ['typecheck']);
+      const outA = a.stdout + a.stderr;
+      assert.notEqual(a.status, 0, '(a) a string assigned to a number in a geometry test must fail pnpm typecheck');
+      assert.ok(outA.includes('probe.test.ts'), `(a) the output names probe.test.ts: ${outA}`);
+      assert.ok(outA.includes('TS2322'), `(a) the output holds TS2322: ${outA}`);
+      writeProbe('probe.test.ts', 'export const probe: number = 1;\n');
+      const b = run('pnpm', ['typecheck']);
+      assert.equal(b.status, 0, `(b) control: the probe and the existing tests type-check: ${b.stdout}${b.stderr}`);
+    } finally {
+      removeProbe();
+    }
+  });
+
+  // ---------- T2 ----------
+  test('EZD-161 T2: geometry test files are type-checked with no DOM types', { timeout: 300_000 }, () => {
+    try {
+      removeProbe();
+      const cfg = showConfigOf('@ezdraft/geometry', 'tsconfig.test.json');
+      const lib = cfg.compilerOptions?.lib;
+      assert.ok(Array.isArray(lib) && lib.length > 0, `(a) compilerOptions.lib is a non-empty array: ${JSON.stringify(lib)}`);
+      assert.ok(!hasDomLib(lib), `(a) the test program lib has no DOM entry: ${JSON.stringify(lib)}`);
+      const files = cfg.files;
+      assert.ok(Array.isArray(files) && files.length > 0, `(a) showConfig files list present: ${JSON.stringify(files)}`);
+      const resolved = files.map((f) => path.resolve(geoDir, f));
+      assert.ok(resolved.includes(path.join(geoDir, 'src', 'index.test.ts')), `(a) files holds src/index.test.ts: ${JSON.stringify(files)}`);
+      for (const abs of resolved) {
+        assert.ok(abs.startsWith(geoDir + path.sep), `(a) ${abs} is inside ${geoDir}`);
+        assert.ok(!entersExcluded(abs), `(a) ${abs} is not under vault/, spikes/ or .claude/`);
+      }
+      writeProbe('dom.test.ts', 'export const t = document.title;\n');
+      const b = run('pnpm', ['--filter', '@ezdraft/geometry', 'run', 'typecheck']);
+      const outB = b.stdout + b.stderr;
+      assert.notEqual(b.status, 0, '(b) a DOM global in a geometry test must fail the geometry typecheck');
+      assert.ok(outB.includes('dom.test.ts'), `(b) the output names dom.test.ts: ${outB}`);
+      assert.ok(outB.includes('document'), `(b) the output names document: ${outB}`);
+    } finally {
+      removeProbe();
+    }
+  });
+
+  // ---------- T3 ----------
+  // A guard, not a red test: the source program already leaves tests out today; it fails once a change drops the exclude.
+  test('EZD-161 T3: the source program still leaves test files out', { timeout: 300_000 }, () => {
+    const cfg = showConfig('@ezdraft/geometry');
+    assert.ok(Array.isArray(cfg.files) && cfg.files.length > 0, `source program files list present: ${JSON.stringify(cfg.files)}`);
+    const tests = cfg.files.filter((f) => f.endsWith('.test.ts'));
+    assert.deepEqual(tests, [], `the source program holds no test file: ${JSON.stringify(tests)}`);
+  });
+
+  // ---------- T5 ----------
+  test('EZD-161 T5: geometry vitest.config.ts is type-checked by its own program', { timeout: 300_000 }, () => {
+    const cfg = showConfigOf('@ezdraft/geometry', 'tsconfig.config.json');
+    const files = cfg.files;
+    assert.ok(Array.isArray(files) && files.length === 1, `(a) the config program has exactly 1 file: ${JSON.stringify(files)}`);
+    assert.equal(path.resolve(geoDir, files[0]), path.join(geoDir, 'vitest.config.ts'), '(a) the one file is vitest.config.ts');
+    const lib = cfg.compilerOptions?.lib;
+    assert.ok(Array.isArray(lib) && lib.length > 0, `(a) compilerOptions.lib is a non-empty array: ${JSON.stringify(lib)}`);
+    assert.ok(!hasDomLib(lib), `(a) the config program lib has no DOM entry: ${JSON.stringify(lib)}`);
+    const b = run('pnpm', ['--filter', '@ezdraft/geometry', 'exec', 'tsc', '--noEmit', '-p', 'tsconfig.config.json']);
+    assert.equal(b.status, 0, `(b) tsc -p tsconfig.config.json passes: ${b.stdout}${b.stderr}`);
+    const pkg = readJson(path.join(geoDir, 'package.json'));
+    assert.equal(
+      pkg.scripts?.typecheck,
+      'tsc --noEmit -p . && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.config.json',
+      '(c) the geometry typecheck script runs the three programs in order',
+    );
+  });
+});
+
+// EZD-148 T2, T4 (vault/plans/EZD-148.md section 4). Expected rules come from the plan's decisions D4, D7, D8, D11 and
+// Q-0140 (a); the real pnpm-workspace.yaml is the base of every sample (D11). Tests match rule names, never message text (D12).
+describe('EZD-148 repo rule bypass forms', () => {
+  // ---------- T2 ----------
+  test('EZD-148 T2 pnpm build settings refuse permissions, allow-all and allowBuilds bypass forms (AC-EZD-148-1)', () => {
+    const wsText = readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8');
+    const base = wsText.endsWith('\n') ? wsText : `${wsText}\n`;
+    assert.deepEqual(buildSettingProblems(base), [], 'base: the real pnpm-workspace.yaml has no problem');
+
+    // W8 = EZD-023e T17's `block` regex, verbatim: on the real file it spans from `allowBuilds:` to the end of the file.
+    const W8 = /^allowBuilds:\n(?:[ \t]+.*\n|\n)*/m;
+    const w8 = base.replace(W8, 'allowBuilds: { esbuild: true }\n');
+    assert.notEqual(w8, base, 'w8: the allowBuilds block was replaced');
+    const w10 = base.replace('  esbuild: false', '  esbuild: true');
+    assert.notEqual(w10, base, 'w10: the esbuild entry was changed');
+
+    const samples = [
+      ['w1', `${base}permissions:\n  esbuild:\n    build: true\n`, 'permissions'],
+      ['w2', `${base}"permissions": {}\n`, 'permissions'],
+      ['w3', '{ packages: [app], permissions: { esbuild: { build: true } } }\n', 'permissions'],
+      // the text line is `"permi\u0073sions": {}` with one backslash
+      ['w4', `${base}"permi\\u0073sions": {}\n`, 'unreadable'],
+      ['w5', `${base}? permissions\n: {}\n`, 'unreadable'],
+      ['w6', `${base}dangerouslyAllowAllBuilds: True\n`, 'allow-all'],
+      ['w7', `${base}"dangerouslyAllowAllBuilds": true\n`, 'allow-all'],
+      ['w8', w8, 'allowBuilds-form'],
+      ['w9', `${base}allowBuilds:\n  esbuild: true\n`, 'allowBuilds-form'],
+      ['w10', w10, 'allowBuilds-entry'],
+      // w11: the key is split by an escaped line break; the first text line `"permi\` ends with one backslash
+      ['w11', `${base}"permi\\\n ssions": {}\n`, 'unreadable'],
+      // w12: a ` #` inside a quoted scalar leaves an open quote in the comment-stripped body (plan D4)
+      ['w12', `${base}{ x: 'a #', permissions: {} }\n`, 'unreadable'],
+      // w13: a \ escape inside double quotes; the text line is `x: "a\tb"` with one backslash
+      ['w13', `${base}x: "a\\tb"\n`, 'unreadable'],
+      // w14, w15: a stray quote in a plain scalar must not pair with the opener of a real quoted scalar (round 2, plan D4)
+      ['w14', "{ packages: [app], x: a'b, y: 'c #', permissions: { esbuild: { build: true } } }\n", 'unreadable'],
+      ['w15', `${base}x: { a: a'b, b: 'c #', permissions: { esbuild: { build: true } } }\n`, 'unreadable'],
+      // w16: the round-1 control c7 fits no quote shape (plan D4); the text line is `x: "ok" # it's`
+      ['w16', `${base}x: "ok" # it's\n`, 'unreadable'],
+      // w17: a no-break space (U+00A0) before `#` is not YAML white space (plan D13)
+      ['w17', '{ packages: [app], x: a\u00A0#, permissions: { esbuild: { build: true } } }\n', 'unreadable'],
+      // w18: a key right after `[` (plan D13)
+      ['w18', '{ packages: [permissions: {}] }\n', 'permissions'],
+      // w19, w20: an anchored scalar reused as an alias key (round 4, plan D4 NODE_START_RE)
+      ['w19', `${base}x: &k permissions\n*k : { esbuild: { build: true } }\n`, 'unreadable'],
+      ['w20', '{ packages: [app], x: &k permissions, *k : { esbuild: { build: true } } }\n', 'unreadable'],
+    ];
+    const missed = [];
+    for (const [id, sample, rule] of samples) {
+      const got = buildSettingProblems(sample);
+      if (!got.some((p) => p.rule === rule)) missed.push(`${id}: no problem with rule ${rule}, got [${got.map((p) => p.rule)}]`);
+    }
+    assert.deepEqual(missed, [], 'every bypass sample gets its rule');
+
+    // c4: a comment that names the key is not a setting
+    assert.deepEqual(buildSettingProblems(`${base}# permissions: x\n`), [], 'c4: a commented permissions line is no problem');
+    // c7: shape Q1, a single-quoted scalar then a quote-free comment (plan D4)
+    assert.deepEqual(buildSettingProblems(`${base}x: 'ok' # a comment\n`), [], 'c7: a single-quoted value then a quote-free comment is no problem');
+  });
+
+  // ---------- T4 ----------
+  // D1 and D2 are written in the plan with \` for a backtick inside a code span; the docs hold plain backticks.
+  test('EZD-148 T4 docs name the build-settings and cache rules (AC-EZD-148-1)', () => {
+    const doc = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8');
+    const d1 = 'The pnpm `permissions` setting (pnpm 12.11; its `build` capability overrides `allowBuilds`) is never used (EZD-148).';
+    assert.ok(doc.includes(d1), 'docs/architecture.md holds the D1 sentence');
+    const lines = doc.split(/\r?\n/);
+    const mc = lines.findIndex((l) => l.trim() === '## Machine checks');
+    assert.ok(mc >= 0, '## Machine checks heading');
+    let end = lines.length;
+    for (let i = mc + 1; i < lines.length; i++) if (/^## /.test(lines[i])) { end = i; break; }
+    const rows = lines.slice(mc, end).filter((l) => {
+      const t = l.trim();
+      if (!t.startsWith('|')) return false;
+      const cells = t.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+      return cells[cells.length - 1] === 'EZD-148';
+    });
+    assert.ok(rows.length > 0, 'Machine checks table row whose last cell is EZD-148');
+    assert.ok(
+      rows.some((r) => ['EZD-148 T1', 'EZD-148 T2', 'EZD-148 T3'].every((s) => r.includes(s))),
+      'the EZD-148 row names EZD-148 T1, EZD-148 T2 and EZD-148 T3',
+    );
+  });
+});
+
+describe('EZD-177 pnpm_config names', () => {
+  test('EZD-177 T2 package scripts naming pnpm_config_ are refused and the real package files pass (AC-EZD-177-1, AC-EZD-177-2)', async (t) => {
+    await t.test('T2 (a) a script that sets PNPM_CONFIG_ before pnpm (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { build: 'PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true pnpm install' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script build']);
+    });
+
+    await t.test('T2 (b) a cross-env wrapper with pnpm_config_ (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { setup: 'cross-env pnpm_config_ignore_scripts=false pnpm rebuild' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script setup']);
+    });
+
+    await t.test('T2 (c) mixed case, any script name reported (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { a: 'env Pnpm_Config_Dangerously_Allow_All_Builds=true pnpm i', b: 'echo ok' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script a']);
+    });
+
+    await t.test('T2 (d) two scripts, reported in script order (AC-EZD-177-1)', () => {
+      const text = JSON.stringify({ scripts: { a: 'export PNPM_CONFIG_X=1 && pnpm i', b: 'PNPM_CONFIG_Y=1 pnpm i' } });
+      assert.deepEqual(pnpmConfigScriptProblems(text), ['script a', 'script b']);
+    });
+
+    await t.test('T2 (e) text that is not JSON is unreadable (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems('{'), ['unreadable']);
+    });
+
+    await t.test('T2 (f) JSON that is not an object is unreadable (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems('"x"'), ['unreadable']);
+    });
+
+    await t.test('T2 (g) scripts as an array is refused (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ scripts: ['PNPM_CONFIG_X=1 pnpm i'] })), ['scripts not an object']);
+    });
+
+    await t.test('T2 (h) scripts as null is refused (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ scripts: null })), ['scripts not an object']);
+    });
+
+    await t.test('T2 (i) a script that is not a string is refused (AC-EZD-177-1)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ scripts: { a: ['PNPM_CONFIG_X=1'] } })), ['script a not a string']);
+    });
+
+    await t.test('T2 (j) control: no scripts key gives no problem (AC-EZD-177-2)', () => {
+      assert.deepEqual(pnpmConfigScriptProblems(JSON.stringify({ name: 'x' })), []);
+    });
+
+    await t.test('T2 (k) control: npm_config_, PNPM_HOME and pnpm config get pass (AC-EZD-177-2)', () => {
+      const text = JSON.stringify({
+        scripts: { a: 'npm_config_loglevel=error pnpm i', b: 'PNPM_HOME=/tmp/pnpm pnpm i', c: 'pnpm config get store-dir' },
+      });
+      assert.deepEqual(pnpmConfigScriptProblems(text), []);
+    });
+
+    await t.test('T2 (l) the real package files pass (AC-EZD-177-2)', () => {
+      const files = workspacePackageFiles();
+      assert.equal(files[0], 'package.json');
+      assert.ok(files.includes('app/package.json'), 'app/package.json is listed');
+      assert.ok(files.includes('packages/geometry/package.json'), 'packages/geometry/package.json is listed');
+      for (const f of files) {
+        assert.deepEqual(pnpmConfigScriptProblems(readFileSync(path.join(root, f), 'utf8')), [], f);
+      }
+    });
+  });
+
+  test('EZD-177 T3 docs record the pnpm_config_ rule', () => {
+    const doc = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8');
+    const D1 = 'Settings from environment names (Q-0283 (a); EZD-177): pnpm 12 also reads its settings from `PNPM_CONFIG_*` and `pnpm_config_*` environment names (pnpm 12.14.0 CHANGELOG, 12.8.2 and 12.3.0 entries), so `PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true` would run new build scripts past `allowBuilds`. No workflow file and no workspace `package.json` script names `pnpm_config_` in any letter case: `ci.test.mjs` rule (l) and `tooling.test.mjs` EZD-177 T2 refuse it. A name built at run time is checked by review.';
+    const D2 = '| — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |';
+    const lines = doc.split(/\r?\n/);
+    assert.ok(lines.includes(D1), 'docs/architecture.md holds the D1 paragraph line in ## Adding a dependency');
+    assert.ok(lines.includes(D2), 'docs/architecture.md holds the D2 row in ## Machine checks');
+    const dep = lines.findIndex((l) => l.startsWith('Dependency build scripts (Q-0140 (a)):'));
+    const folder = lines.indexOf('## Folder layout');
+    const d1 = lines.indexOf(D1);
+    assert.ok(dep >= 0 && folder > dep, 'the Dependency build scripts paragraph comes before ## Folder layout');
+    assert.ok(d1 > dep && d1 < folder, 'D1 comes after the Dependency build scripts paragraph and before ## Folder layout');
+  });
+});
+
+// ---------- EZD-182 pnpm build flags ----------
+// Plan: vault/plans/EZD-182.md sections 3 and 4. Expected values are the plan's texts.
+describe('EZD-182 pnpm build flags', () => {
+  const J = (o) => JSON.stringify(o);
+
+  test('EZD-182 T2 package scripts passing a pnpm build flag are refused and the real package files pass (AC-EZD-182-1, AC-EZD-182-2)', async (t) => {
+    await t.test('T2 (a) a postinstall script with --allow-build is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { postinstall: 'pnpm rebuild --allow-build=esbuild' } })), ['script postinstall']);
+    });
+
+    await t.test('T2 (b) --dangerously-allow-all-builds in a script is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { setup: 'pnpm install --dangerously-allow-all-builds' } })), ['script setup']);
+    });
+
+    await t.test('T2 (c) mixed-case --CONFIG. form is refused, any script name reported (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { i: 'pnpm install --CONFIG.dangerously-allow-all-builds=true' } })), ['script i']);
+    });
+
+    await t.test('T2 (d) letter case and reported script only (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { a: 'pnpm i --Allow-Build esbuild', b: 'echo ok' } })), ['script a']);
+    });
+
+    await t.test('T2 (e) text that is not JSON is unreadable (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems('{'), ['unreadable']);
+    });
+
+    await t.test('T2 (f) JSON that is an array is unreadable (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems('[]'), ['unreadable']);
+    });
+
+    await t.test('T2 (g) scripts as an array is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: [] })), ['scripts not an object']);
+    });
+
+    await t.test('T2 (h) a script that is not a string is refused (AC-EZD-182-1)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({ scripts: { a: 1 } })), ['script a not a string']);
+    });
+
+    await t.test('T2 (i) control: no scripts key gives no problem (AC-EZD-182-2)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({})), []);
+    });
+
+    await t.test('T2 (j) control: a script with bare --config <file> passes (AC-EZD-182-2)', () => {
+      assert.deepEqual(buildFlagScriptProblems(J({
+        scripts: {
+          test: 'vitest run --config vitest.config.ts',
+          e2e: 'playwright test --config=playwright.config.ts',
+        },
+      })), []);
+    });
+
+    await t.test('T2 (k) the real package files pass (AC-EZD-182-2)', () => {
+      const files = workspacePackageFiles();
+      assert.equal(files[0], 'package.json');
+      assert.ok(files.includes('app/package.json'), 'app/package.json is listed');
+      for (const f of files) {
+        assert.deepEqual(buildFlagScriptProblems(readFileSync(path.join(root, f), 'utf8')), [], f);
+      }
+    });
+  });
+
+  test('EZD-182 T4 docs record the build flag rule and the three checks share one pattern', () => {
+    const D1 = 'Build flags (Q-0316 (a); EZD-182): pnpm 12 command-line flags also turn build scripts on past `allowBuilds`: `--dangerously-allow-all-builds`, `--config.<setting>` (the dot form, any setting) and `--allow-build <name>` (pnpm 12.14.0 `pnpm install --help`). No workflow line, workspace `package.json` script or `app/vercel.json` string value passes one, in any letter case: `ci.test.mjs` rule (m), `tooling.test.mjs` EZD-182 T2 and `hosting.test.mjs` EZD-182 T3 refuse them. The bare `--config <file>` of Vitest and Playwright stays allowed; a flag built at run time is checked by review.';
+    const F = 'const BUILD_FLAG_RE = /--(?:dangerously-allow-all-builds|config\\.|allow-build)/i;';
+    const docLines = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8').split(/\r?\n/);
+    assert.ok(docLines.includes(D1), 'docs/architecture.md holds the D1 paragraph line in ## Adding a dependency');
+    for (const f of [
+      path.join(root, 'scripts', 'ci', '__tests__', 'ci.test.mjs'),
+      path.join(root, 'scripts', 'tooling', '__tests__', 'tooling.test.mjs'),
+      path.join(root, 'scripts', 'hosting', '__tests__', 'hosting.test.mjs'),
+    ]) {
+      assert.ok(readFileSync(f, 'utf8').split(/\r?\n/).includes(F), `${path.relative(root, f)} holds line F`);
+    }
   });
 });

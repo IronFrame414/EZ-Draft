@@ -1,0 +1,15 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a223c25..0e934ff 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -21,6 +21,10 @@ jobs:
+     timeout-minutes: 30
+     steps:
+       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++      - name: Keep the local Supabase ports out of the ephemeral range
++        # D-006: Linux hands out outgoing ports from 32768-60999, so a download can hold 54322
++        # when the database container binds it (CI run 41465530458, attempt 1). First, before any download.
++        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
+       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+         with:
+           node-version: 22

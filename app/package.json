@@ -15,7 +15,9 @@
     "test:e2e": "playwright test",
     "app-icons:render": "node scripts/app-icons.mjs",
     "icons:build": "node scripts/icons-build.mjs",
-    "icons:fetch": "node scripts/icons-fetch.mjs"
+    "icons:convert-legacy": "node scripts/icons-convert-legacy.mjs",
+    "icons:fetch": "node scripts/icons-fetch.mjs",
+    "icons:verify": "node scripts/icons-verify.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.1.0",
@@ -25,6 +27,7 @@
     "@supabase/realtime-js": "2.118.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
+    "idb": "8.0.4",
     "next": "16.4.2",
     "radix-ui": "1.8.1",
     "react": "19.3.1",

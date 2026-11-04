@@ -32,7 +32,7 @@ export async function expectTouchTargets(page: Page, root: Locator): Promise<num
         continue;
       }
       checked++;
-      const name = el.getAttribute('aria-label') ?? (el.textContent ?? '').trim().slice(0, 20);
+      const name = el.getAttribute('aria-label') || (el.textContent ?? '').trim().slice(0, 20);
       const label = (reason: string, hh: number, vv: number): string =>
         `${el.tagName} "${name}" ${reason} ${hh}x${vv}`;
       if (r.left < 0 || r.top < 0 || r.right > w || r.bottom > h) {

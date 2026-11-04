@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft My profile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.ghost{height:258px;background:#fff;border:1px solid #e6e9ed;border-radius:12px}
+.tab{border:0;background:transparent;padding:10px 2px;margin-bottom:-1px;font:500 14px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer;border-bottom:2px solid transparent}
+.tabon{color:#14171c;font-weight:600;border-bottom-color:oklch(0.55 0.17 262)}
+.seg{display:inline-flex;gap:2px;padding:3px;border:1px solid #dfe2e6;border-radius:9px;background:#fff}
+.sg{border:0;background:transparent;padding:7px 14px;border-radius:6px;font:500 14px 'Instrument Sans',sans-serif;color:#5e6672;cursor:pointer}
+.sgon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lb{font-size:14px;font-weight:600}
+.hp{font-size:13px;color:#5e6672;margin:0}
+.in{height:38px;box-sizing:border-box;border:1px solid #dfe2e6;border-radius:8px;padding:0 12px;font:400 14px 'Instrument Sans',sans-serif;color:#14171c;width:100%}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background: #f6f7f9; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Projects</span>
+</header>
+<main style="flex: 1; min-height: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600">Projects</h1>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
+<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
+</div>
+</main>
+<div style="position: absolute; inset: 0; background: rgba(20,23,28,.46)"></div>
+<section class="card" role="dialog" aria-modal="true" aria-label="My profile" style="position: absolute; left: 480px; top: 70px; width: 640px; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 64px rgba(10,15,30,.28)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 24px 0">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 600">My profile</h2>
+<span style="font-size: 13px; color: #5e6672">Josh Bishop · [email]</span>
+</div>
+<button class="b" aria-label="Close" style="padding: 7px; border: 0"><span class="ms" style="font-size: 20px">close</span></button>
+</div>
+<div role="tablist" style="display: flex; gap: 24px; padding: 12px 24px 0; border-bottom: 1px solid #eef0f3">
+<button role="tab" aria-selected="true" class="tab tabon">Profile</button>
+<a href="S01fMyNotifications.dc.html" role="tab" aria-selected="false" class="tab" style="text-decoration: none">Notifications</a>
+</div>
+<div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="lb">Language</span>
+<div class="seg" role="radiogroup" aria-label="Language"><button class="sg sgon" role="radio" aria-checked="true">English</button><button class="sg" role="radio" aria-checked="false">Español</button></div>
+<p class="hp">Field pack, tasks and notes open in Spanish for this user. Permit sheets stay in English.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="lb">iPad drawing</span>
+<div class="seg" role="radiogroup" aria-label="iPad drawing"><button class="sg sgon" role="radio" aria-checked="true">Pencil or finger</button><button class="sg" role="radio" aria-checked="false">Pencil only</button></div>
+<p class="hp">Pencil only lets your hand rest on the screen while you draw.</p>
+</div>
+<span style="height: 1px; background: #eef0f3"></span>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span class="lb">Change password</span>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #3b424d">Current password<input class="in" type="password" value="••••••••••"></label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #3b424d">New password<input class="in" type="password"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #3b424d">Confirm new password<input class="in" type="password"></label>
+</div>
+<div><button class="b">Change password</button></div>
+<p class="hp">We email you when your password changes.</p>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid #eef0f3; background: #fafbfc">
+<button class="b">Cancel</button>
+<button class="b bp">Save</button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

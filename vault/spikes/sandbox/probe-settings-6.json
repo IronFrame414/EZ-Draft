@@ -1,0 +1,54 @@
+{
+  "env": {
+    "DO_NOT_TRACK": "1",
+    "npm_config_cache": "/tmp/claude-501/npm-cache",
+    "npm_config_store_dir": "/Users/josh/Library/pnpm/store"
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true,
+    "enableWeakerNetworkIsolation": true,
+    "filesystem": {
+      "allowWrite": [
+        "./",
+        "~/Library/Logs/ezdraft/inflight",
+        "~/Library/pnpm/store",
+        "/private/tmp/pnpm-store-operation-locks-501"
+      ],
+      "denyRead": [
+        "./scripts/launcher.config.json",
+        "./**/.env",
+        "./**/.env.local",
+        "./**/.env.*.local",
+        "./**/.env.production",
+        "./**/.env.development",
+        "~/.claude/.credentials.json",
+        "~/.ssh",
+        "~/.aws"
+      ],
+      "denyWrite": [
+        "/Users/josh/Projects/ezdraft/scripts"
+      ]
+    },
+    "network": {
+      "strictAllowlist": true,
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "*.githubusercontent.com",
+        "registry.npmjs.org"
+      ],
+      "allowLocalBinding": true,
+      "allowUnixSockets": [
+        "~/.docker/run/docker.sock"
+      ]
+    },
+    "excludedCommands": [
+      "node scripts/gate.mjs *",
+      "node scripts/unit-steps.mjs worktree *",
+      "node scripts/unit-steps.mjs merge *",
+      "node scripts/ui-run.mjs *"
+    ]
+  }
+}

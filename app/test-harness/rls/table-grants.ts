@@ -35,14 +35,42 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: [],
     reason: 'Server-only backup records (EZD-025); no API role reads or writes it',
   },
+  error_tunnel_throttle: {
+    privileges: [],
+    reason: 'Read and written only by the security definer function error_tunnel_take (EZD-143)',
+  },
   sign_in_throttle: {
     privileges: [],
     reason: 'Read and written only by the security definer throttle functions (EZD-033, Q-0094)',
+  },
+  user_permission: {
+    privileges: ['SELECT'],
+    reason:
+      'Switches decide what a member may do; a member must not change their own (EZD-101; EZD-106 adds the write path).',
   },
   job: {
     privileges: ['SELECT'],
     reason:
       'Members enqueue only through enqueue_job; the runner writes with the secret key (EZD-009)',
+  },
+  source_file: {
+    privileges: ['SELECT', 'INSERT', 'UPDATE'],
+    reason:
+      'Originals are kept for the life of the project; no member deletes a row (03c; 11 Data retention; EZD-132)',
+  },
+  customer: {
+    privileges: ['SELECT', 'INSERT', 'UPDATE'],
+    reason: 'No delete in v1; customers are archived (Q-0227; EZD-113).',
+  },
+  notification: {
+    privileges: ['SELECT'],
+    reason:
+      'Members read their own notifications; rows are written only by definer functions and the email job (EZD-110)',
+  },
+  notification_setting: {
+    privileges: ['SELECT'],
+    reason:
+      'Members read their own notification settings; rows are written only by save_my_notification_settings (EZD-140)',
   },
 };
 

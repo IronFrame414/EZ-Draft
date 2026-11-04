@@ -15,16 +15,25 @@
 //   extra_args      array of extra flags for every run
 //   max_turns       { build: 150, plan: 60, "review-plans": 60, questions: 80, "gate-phase": 150, wrap: 60 }
 //   limit_formats_confirmed   true once the pilot (section 15) confirmed the limit-error message formats; until then every
-//                   limit error is treated as the weekly case (section 11)
+//                   limit error is treated as the weekly case (section 11). Either way the raw output of every limit error is saved
+//                   to vault/handoff/limit-error-<time>.txt and Josh is told its name (EZD-193; Q-0299 (b))
 //   prompt_style    "slash" (default: the prompt is `/<skill> <arg>`) or "ask" (plain sentence naming the skill)
-//   log_dir         where the launcher keeps inflight.json and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
+//   records_db      the records database file (REMEDIATION-PLAN 2.12); default $EZD_RECORDS_DB, else ~/.ezdraft/records.db
+//   log_dir         where the launcher keeps its in-flight records (inflight/) and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
 //                   .launcher/ in the checkout elsewhere); scripts/launchd/install.mjs and scripts/watchdog.mjs use the same
-import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, unlinkSync, copyFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync, renameSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
+  takeLauncherLock,
+} from './ledger.mjs';
+// The launcher is the only writer of the running records (REMEDIATION-PLAN 2.12; D1 (a), D2 (a)): a unit's tools queue ops
+// in its results file, and the launcher applies them with its own ops in one transaction, then re-exports the views.
+// Nothing here commits records.
+import { openRecords, dbPath, readQueue, applyOps, refreshViews, nextQuestionId, inboxFiles } from './records.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vault = path.join(root, 'vault');
@@ -35,21 +44,29 @@ const statusOnly = args.includes('--status');
 
 const readJson = (p, fallback) => { try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return fallback; } };
 const config = readJson(path.join(root, 'scripts/launcher.config.json'), {});
+// records_db: the records database (default $EZD_RECORDS_DB, else ~/.ezdraft/records.db); set by test roots (L-041). The
+// launcher's units and helpers inherit it.
+if (config.records_db) process.env.EZD_RECORDS_DB = path.resolve(root, config.records_db);
 const budgetPath = path.join(vault, 'budget.json');
-const costLog = path.join(vault, 'cost/log.jsonl');
 const holdFile = path.join(vault, 'handoff/BUDGET_HOLD.md');
 const stopFile = path.join(vault, 'handoff/STOP');
+const windowPauseFile = path.join(vault, 'handoff/WINDOW_PAUSE.md');
 const failureFile = path.join(vault, 'handoff/last-failure.json');
 // The unit in flight, written before each `claude -p` and removed after its cost row, so a launcher killed mid-unit
-// (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start.
-export const logDir = config.log_dir || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library/Logs/ezdraft') : path.join(root, '.launcher'));
-const inflightFile = path.join(logDir, 'inflight.json');
+// (2026-10-23: a Claude app restart) still gets a cost row for that unit on its next start. One record per unit in
+// <logDir>/inflight/ (EZD-173); the single file of earlier launchers is still recovered once.
+export const logDir = launcherLogDir(root);
+const legacyInflightFile = path.join(logDir, 'inflight.json');
 const claudeBin = config.claude_bin || 'claude';
-const { weekSpend, questionsFingerprint, assignQuestionIds } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+// Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; Josh 2026-11-02: option 3 now, option 1 with the lanes work; vault/spikes/sandbox/NOTES.md).
+// Units start unsandboxed until every unit type has had a sandboxed dry run (Josh 2026-11-03; vault/spikes/sandbox/NOTES.md).
+const sandboxSettings = path.join(root, 'scripts/unit-sandbox.json');
+const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
-const { idleAction } = await import('./launcher-idle.mjs');
+const { idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState } = await import('./launcher-idle.mjs');
+const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
 // .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
@@ -62,10 +79,14 @@ const UNITS = {
   questions: { skill: 'questions', effort: 'medium', model: MODELS.orchestrator, turns: 80 },
   'gate-phase': { skill: 'gate-phase', effort: 'medium', model: MODELS.orchestrator, turns: 150 },
   wrap: { skill: 'wrap', effort: 'medium', model: MODELS.orchestrator, turns: 60 },
+  // EZD-250 D12-D13: started only by the launcher, for a ledger failure, an agent-fixable wait or a failed phase PR CI gate.
+  repair: { skill: 'repair', effort: 'medium', model: MODELS.orchestrator, turns: 80 },
 };
 
 const log = (msg) => console.log(`[run ${new Date().toISOString().slice(11, 19)}] ${msg}`);
 function notify(msg) {
+  // A dry run reports the message and sends nothing (EZD-155; Q-0291 (a)).
+  if (dryRun) { log(`dry run: would notify: ${msg}`); return; }
   log(`NOTIFY: ${msg}`);
   if (!config.notify_cmd) return;
   const r = spawnSync('/bin/sh', ['-c', config.notify_cmd], { env: { ...process.env, MSG: `EZ Draft: ${msg}` }, encoding: 'utf8', timeout: 20000 });
@@ -74,6 +95,16 @@ function notify(msg) {
 const oauthFallback = createOAuthFallback({ notify, log });
 const tool = (...a) => spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), ...a], { encoding: 'utf8', cwd: root });
 const git = (...a) => spawnSync('git', ['-C', root, ...a], { encoding: 'utf8' });
+const nowIso = () => new Date().toISOString();
+const firstLine = (text) => String(text || '').split('\n').map((l) => l.trim()).find(Boolean) || '';
+// What the launcher is doing, for the watchdog (EZD-250 D7). Never written in a dry run.
+const setState = (patch) => { if (!dryRun) { try { writeLauncherState(logDir, patch); } catch (e) { log(`launcher state not written: ${e.message}`); } } };
+// The next unit, with the poll recorded in the launcher state (D7).
+function nextUnitText() {
+  const next = tool('--next-unit').stdout.trim();
+  setState({ next, polledAt: nowIso() });
+  return next;
+}
 
 // Confirm the flags this launcher relies on against the installed CLI (PROCESS.md section 15). Unknown flags are dropped
 // with a warning so a version change never makes every run fail at the parser.
@@ -97,19 +128,23 @@ function authMode() {
 
 function buildCommand(unitName, arg) {
   const u = UNITS[unitName];
+  const boost = boostState({ root }).active;
   const prompt = (config.prompt_style === 'ask')
     ? `Run the ${u.skill} skill for ${arg}. Follow it exactly and end the session when the unit is complete.`
     : `/${u.skill} ${arg}`;
   const cmd = [
     '-p', prompt,
     '--output-format', 'json',
+    // Boost keeps the normal model and effort (Josh 2026-10-26); it changes only the hold and the cap.
     '--model', u.model,
     '--effort', u.effort,
     '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,
   ];
   const b = budget();
-  if (b.per_unit_cap_usd_est) cmd.push('--max-budget-usd', String(b.per_unit_cap_usd_est));
+  // Boost raises the per-unit cap to $80 (Josh 2026-10-24); never lowers a higher configured cap.
+  const cap = boost ? Math.max(BOOST_UNIT_CAP_USD, b.per_unit_cap_usd_est || 0) : b.per_unit_cap_usd_est;
+  if (cap) cmd.push('--max-budget-usd', String(cap));
   if (u.as) cmd.push('--agent', u.as);
   // --max-turns is not listed by every CLI version (absent in 2.1.302); the per-unit dollar cap is the hard stop either way.
   if (flagSupported('--max-turns')) cmd.push('--max-turns', String(config.max_turns?.[unitName] ?? u.turns));
@@ -153,40 +188,106 @@ function parseWhen(s) {
   const d = new Date(); d.setHours(h, mm, 0, 0); if (d <= new Date()) d.setDate(d.getDate() + 1);
   return d;
 }
+// EZD-193 (Q-0299 (b)): the raw output of a run that ended on a limit error goes to its own file under vault/handoff/, and
+// Josh is told its name, so the message formats can be read the first time they appear (PROCESS.md section 15 row 9).
+// The file is git-ignored (.gitignore), and each stream is cut to its first and last LIMIT_TEXT_EDGE bytes after the key is
+// redacted, so session output never reaches the public repository and one huge run cannot fill the disk or the log.
+const LIMIT_TEXT_EDGE = 8192;
+function capLimitText(s) {
+  const b = Buffer.from(s, 'utf8');
+  if (b.length <= 2 * LIMIT_TEXT_EDGE) return s;
+  return `${b.subarray(0, LIMIT_TEXT_EDGE).toString('utf8')}\n--- cut ${b.length - 2 * LIMIT_TEXT_EDGE} of ${b.length} bytes ---\n${b.subarray(b.length - LIMIT_TEXT_EDGE).toString('utf8')}`;
+}
+function saveLimitText(unitName, arg, res, limit) {
+  const rel = `vault/handoff/limit-error-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+  const key = typeof config.api_key === 'string' ? config.api_key : '';
+  const redact = (s) => (key ? s.split(key).join('<api_key>') : s);
+  const keep = (s) => capLimitText(redact(s));
+  const body = `unit: ${unitName} ${arg}\nexit: ${res.code}\nclassified: ${limit.kind}${limit.note ? ` (${limit.note})` : ''}\n\n--- stdout ---\n${keep(res.out)}\n--- stderr ---\n${keep(res.err)}\n`;
+  try {
+    mkdirSync(path.join(root, 'vault/handoff'), { recursive: true });
+    writeFileSync(path.join(root, rel), body);
+    notify(`limit error during ${unitName} ${arg}: raw text saved to ${rel}`);
+  } catch (e) {
+    log(`could not save the limit error text to ${rel} (${e.code || e.message}); the text follows:\n${body}`);
+    notify(`limit error during ${unitName} ${arg}: raw text could not be saved; it is in the launcher log`);
+  }
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// A build tables its ticket (blocked with a note); any other unit goes on the list next_ticket.mjs skips (.git/set-aside.json). Josh clears it.
+function setAside(unitName, arg, next) {
+  if (unitName === 'build') {
+    const t = spawnSync(process.execPath, [path.join(root, 'scripts/unit-steps.mjs'), 'table', arg], { encoding: 'utf8', cwd: root, env: { ...process.env, EZD_RESULTS_FILE: '', EZD_RECORDS_WRITER: String(process.pid) } });
+    return { ok: t.status === 0 && nextUnitText() !== next, text: `${t.stdout ?? ''}${t.stderr ?? ''}`.trim().split('\n')[0] };
+  }
+  try {
+    const file = path.join(root, '.git', 'set-aside.json');
+    const list = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : [];
+    writeFileSync(file, JSON.stringify([...new Set([...list, next])]) + '\n');
+    return { ok: nextUnitText() !== next, text: `SET ASIDE ${next}` }; // the same unit next would loop: only then does the launcher stop
+  } catch (e) { return { ok: false, text: e.message }; }
+}
 
-function appendCost(entry) { mkdirSync(path.dirname(costLog), { recursive: true }); appendFileSync(costLog, JSON.stringify(entry) + '\n'); }
+const resultsFile = (dir, id) => path.join(dir, `${id}.results.jsonl`);
 
-// Ledger line and handoff for the units that run as an agent (plan, review-plans), PROCESS.md section 10.
-function afterAgentUnit(unitName, arg, res) {
+// Applies a unit's results file and the launcher's own ops (the cost row first) in one transaction, then re-exports the
+// views. A file that fails is kept as .rejected, Josh is told, and the launcher's ops are applied on their own.
+function applyUnit(file, ownOps) {
+  const db = openRecords(dbPath());
+  try {
+    let queued = [];
+    let problem = null;
+    try { queued = readQueue(file); } catch (e) { problem = e.message; }
+    if (!problem) {
+      try { applyOps(db, [...ownOps, ...queued]); } catch (e) { problem = e.message; }
+    }
+    if (existsSync(file)) { try { renameSync(file, `${file}.${problem ? 'rejected' : 'applied'}`); } catch {} }
+    if (problem) {
+      log(`results not applied: ${problem}`);
+      notify(`unit results not recorded (${problem}); kept as ${path.basename(file)}.rejected for you to look at`);
+      try { applyOps(db, ownOps); } catch (e) { log(`launcher records not applied: ${e.message}`); }
+    }
+    refreshViews(db, vault);
+  } finally { db.close(); }
+  // Questions are sorted after the results are in (2.13; inside a unit the sort is deferred), then the reports regenerated.
+  spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), '--sort-questions'], { encoding: 'utf8', cwd: root, env: { ...process.env, EZD_RESULTS_FILE: '', EZD_RECORDS_WRITER: String(process.pid) } });
+  tool('--report');
+}
+
+const handoffOp = (label, line) => ({ op: 'handoff', text: launcherHandoffText(label, line, nextUnitText()) });
+// Records of the units that run as an agent (plan, review-plans), PROCESS.md section 10: { problem, ops }.
+function agentUnitOps(unitName, arg, res) {
   const text = String(res?.result || '');
   if (unitName === 'plan') {
-    const planPath = path.join(vault, 'plans', `${arg}.md`);
-    if (!existsSync(planPath)) return `plan file missing: ${planPath}`;
+    const planRel = `vault/plans/${arg}.md`;
+    const planPath = path.join(root, planRel);
+    if (!existsSync(planPath)) return { problem: `plan file missing: ${planPath}`, ops: [] };
     const plan = readFileSync(planPath, 'utf8');
     const complexity = plan.match(/\*\*Complexity:\*\*\s*(low|medium|high)/i)?.[1]?.toLowerCase() || '';
     const oq = plan.match(/^## (?:10\. )?Open questions[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m)?.[1] || '';
-    const hasQ = /\bQP-\d+/.test(oq);
-    const statusPath = path.join(vault, 'tickets/STATUS.md');
-    const lines = readFileSync(statusPath, 'utf8').split('\n');
-    const i = lines.findIndex((l) => l.startsWith(`| ${arg} |`));
-    if (i < 0) return `no STATUS.md row for ${arg}`;
-    const c = lines[i].split('|');
-    // | '' | id | phase | title | status | complexity | depends | commit | tests | notes | ''
-    const ids = hasQ ? assignQuestionIds(arg) : [];
-    c[4] = ` ${hasQ ? 'questions' : 'planned'} `; c[5] = ` ${complexity} `;
-    lines[i] = c.join('|');
-    writeFileSync(statusPath, lines.join('\n'));
-    writeHandoff(`plan ${arg}`, `Planned ${arg}: status ${hasQ ? 'questions' : 'planned'}, complexity ${complexity || '(none in plan header)'}${ids.length ? `; open questions ${ids.join(', ')}` : ''}.`);
-    return null;
+    const db = openRecords(dbPath());
+    let firstId;
+    try {
+      if (!db.prepare('select 1 from tickets where id = ?').get(arg)) return { problem: `no STATUS.md row for ${arg}`, ops: [] };
+      firstId = nextQuestionId(db);
+    } finally { db.close(); }
+    // EZD-244: the plan's Architecture line for tickets.json; a failure records nothing more. The entry and the plan's text
+    // and hash wait in the records database for the ticket's feat commit (D9 (a), 2026-11-02).
+    const archRes = architectureEntry(arg);
+    if (!archRes.ok) return { problem: archRes.message, ops: [] };
+    const q = /\bQP-\d+/.test(oq) ? planQuestionRows(arg, firstId) : { ids: [], rows: [] };
+    if (q.ids.length) writeFileAtomic(root, planPath, q.planText);
+    const planOp = { op: 'plan', ticket: arg, text: q.ids.length ? q.planText : plan, entry: archRes.entry ?? null };
+    const status = q.ids.length ? 'questions' : 'planned';
+    const line = `Planned ${arg}: status ${status}, complexity ${complexity || '(none in plan header)'}${q.ids.length ? `; open questions ${q.ids.join(', ')}` : ''}.`;
+    return { problem: null, ops: [...q.rows.map((row) => ({ op: 'question', row })), planOp, { op: 'status', ticket: arg, changes: { status, complexity } }, handoffOp(`plan ${arg}`, line)] };
   }
   if (unitName === 'review-plans') {
     const out = path.join(vault, 'plans', `review-phase-${String(arg).padStart(2, '0')}.md`);
-    writeFileSync(out, `# Plan review · phase ${arg}\n\nWritten by the launcher from the code-reviewer's final report (${new Date().toISOString()}).\n\n${text.trim()}\n`);
-    writeHandoff(`review-plans ${arg}`, `Plan review written to ${path.relative(root, out)}.`);
-    return null;
+    writeFileAtomic(root, out, `# Plan review · phase ${arg}\n\nWritten by the launcher from the code-reviewer's final report (${new Date().toISOString()}).\n\n${text.trim()}\n`);
+    return { problem: null, ops: [handoffOp(`review-plans ${arg}`, `Plan review written to ${path.relative(root, out)}.`)] };
   }
-  return null;
+  return { problem: null, ops: [] };
 }
 // Escalated rows, for one notification per new escalation after a questions unit (Q-0129).
 function escalatedRows() {
@@ -198,22 +299,6 @@ function escalatedRows() {
   return out;
 }
 
-function writeHandoff(unit, line) {
-  const cur = path.join(vault, 'handoff/CURRENT.md');
-  if (existsSync(cur)) {
-    mkdirSync(path.join(vault, 'handoff/log'), { recursive: true });
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-    const dest = path.join(vault, 'handoff/log', `${stamp}.md`);
-    if (!existsSync(dest)) copyFileSync(cur, dest);
-  }
-  const next = tool('--next-unit').stdout.trim();
-  writeFileSync(cur, `# Handoff · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} · ${unit}\n\n- Phase and stage: see vault/PROGRESS.md\n- Why the session ended: unit complete (launcher-run agent unit)\n- Completed this session: ${line}\n- In progress: none\n- Blocked: none new\n- Questions for Josh: see vault/questions/QUESTIONS.md\n- Decisions made: none\n- Next unit: ${next}\n`);
-}
-function commitVault(msg) {
-  if (git('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim() !== 'develop') return;
-  if (!git('status', '--porcelain', '--', 'vault').stdout.trim()) return;
-  git('add', '--', 'vault'); git('commit', '-m', msg, '--', 'vault');
-}
 
 async function runUnit(unitName, arg, meterSource = null) {
   const cmd = buildCommand(unitName, arg);
@@ -237,7 +322,14 @@ async function runUnit(unitName, arg, meterSource = null) {
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
   const processRev = git('rev-parse', '--short', 'HEAD').stdout.trim() || null;
-  try { mkdirSync(logDir, { recursive: true }); writeFileSync(inflightFile, JSON.stringify({ unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }) + '\n'); } catch {}
+  // One in-flight record per unit (EZD-173 C6); the session's commands see their own id in EZD_UNIT_ID.
+  const id = unitId(unitName, arg);
+  const dir = inflightDir({ root });
+  env.EZD_UNIT_ID = id;
+  const results = resultsFile(dir, id);
+  env.EZD_RESULTS_FILE = results;
+  delete env.EZD_RECORDS_WRITER;
+  try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }); } catch {}
   const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
   const res = await new Promise((resolve) => {
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -254,30 +346,42 @@ async function runUnit(unitName, arg, meterSource = null) {
   // misread as limit-weekly and wrote a hold after EZD-000 had merged).
   const limit = (res.code !== 0 || parsed?.is_error) ? classifyLimit(text) : null;
   const outcome = limit ? `limit-${limit.kind}` : (res.code === 0 && !parsed?.is_error ? 'ok' : `error${parsed?.subtype ? `:${parsed.subtype}` : ''}`);
-  appendCost(costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }));
-  try { unlinkSync(inflightFile); } catch {}
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
-  if (outcome === 'ok' && UNITS[unitName].as) {
-    const problem = afterAgentUnit(unitName, arg, parsed);
-    if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
-  }
-  if (qBefore) {
-    // Q-0129: one notification per newly escalated question; the fingerprints feed the loop guard in next_ticket.mjs.
-    for (const [id, text] of escalatedRows()) if (!qBefore.esc.has(id)) notify(`question for Josh: ${id} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
-    writeFileSync(path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
-  }
-  commitVault(`docs(vault): ${unitName} ${arg}`);
+  if (limit) saveLimitText(unitName, arg, res, limit);
+  const cost = { op: 'cost', entry: costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }) };
+  const agent = outcome === 'ok' && UNITS[unitName].as ? agentUnitOps(unitName, arg, parsed) : { problem: null, ops: [] };
+  // A plan problem records nothing more, but the cost row is still recorded (C13).
+  applyUnit(results, [cost, ...agent.ops]);
+  removeInflight(dir, id);
+  // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
+  if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
+  const problem = agent.problem;
+  if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
+  // Q-0129: one notification per newly escalated question.
+  if (qBefore) for (const [qid, text] of escalatedRows()) if (!qBefore.esc.has(qid)) notify(`question for Josh: ${qid} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
   return { outcome, limit, parsed };
 }
 
-// A unit whose launcher died before its cost row (inflight.json still there): price its transcripts with the cost
-// tool's rates and append one row with outcome "interrupted", then tell Josh. The unit itself is picked up again by the
-// next --next-unit (an in-progress build resumes; unit-steps.mjs finishes an interrupted merge).
+// A unit whose launcher died before its cost row (its in-flight record still there, its pid dead): price its transcripts
+// with the cost tool's rates and append one row with outcome "interrupted", then tell Josh. The unit itself is picked up
+// again by the next --next-unit (an in-progress build resumes; unit-steps.mjs finishes an interrupted merge). Records of
+// launchers still running are left alone; the single inflight.json of earlier launchers is recovered the same way.
 async function recoverInflight() {
-  if (!existsSync(inflightFile)) return;
-  let f;
-  try { f = JSON.parse(readFileSync(inflightFile, 'utf8')); } catch { try { unlinkSync(inflightFile); } catch {} return; }
+  const dir = inflightDir({ root });
+  const found = listInflight(dir).filter((r) => !r.alive).map((r) => ({ rec: r, remove: () => removeInflight(dir, r.id) }));
+  if (existsSync(legacyInflightFile)) {
+    const remove = () => { try { unlinkSync(legacyInflightFile); } catch {} };
+    let rec = null;
+    try { rec = JSON.parse(readFileSync(legacyInflightFile, 'utf8')); } catch {}
+    found.push({ rec: rec && typeof rec === 'object' ? rec : { unreadable: true }, remove });
+  }
+  for (const { rec, remove } of found) {
+    if (rec.unreadable) { remove(); continue; }
+    await recoverOne(rec, remove);
+  }
+}
+async function recoverOne(f, remove) {
   let est = 0, fable = 0, models = new Set(), sessionId = f.session_id, last = f.startedMs;
   try {
     const u = await import(path.join(vault, 'tools/usage-by-agent.mjs'));
@@ -299,11 +403,64 @@ async function recoverInflight() {
       }
     }
   } catch (e) { log(`interrupted unit: could not price its transcripts (${e.message})`); }
-  appendCost({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev });
-  try { unlinkSync(inflightFile); } catch {}
-  commitVault(`docs(vault): cost row for interrupted ${f.unit} ${f.ticket}`);
+  // The dead unit's results file is applied with its cost row, so a unit killed after its squash still lands done (2.12).
+  const entry = JSON.parse(JSON.stringify({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev }));
+  applyUnit(resultsFile(inflightDir({ root }), f.id || unitId(f.unit, f.ticket)), [{ op: 'cost', entry }]);
+  remove();
   log(`previous launcher stopped during ${f.unit} ${f.ticket}; cost row written (est ${est.toFixed(2)}); resuming`);
   notify(`launcher restarted after it stopped during ${f.unit} ${f.ticket}; resuming`);
+}
+
+// EZD-250 D10a: queued ledger edits (vault/tools/ledger-queue.mjs) are applied between units, on develop only. A failure is
+// logged and sent once per distinct line, never a stop; the branches stay and the next pass retries.
+let queueFailure = null;
+const rejectedSent = new Set();
+function applyQueuedEdits() {
+  if (git('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim() !== 'develop') return;
+  const script = path.join(vault, 'tools/ledger-queue.mjs');
+  let line = null;
+  let res = null;
+  if (!existsSync(script)) line = 'ledger-queue.mjs not found';
+  else {
+    const r = spawnSync(process.execPath, [script, 'apply'], { encoding: 'utf8', cwd: root });
+    if (r.status !== 0) line = firstLine(r.stderr) || `exit ${r.status}`;
+    else {
+      try { res = JSON.parse(r.stdout); } catch {}
+      if (!res || typeof res !== 'object') line = 'output unreadable';
+    }
+  }
+  if (line) {
+    if (line !== queueFailure) {
+      log(`queue apply failed: ${line}`);
+      if (line !== 'ledger-queue.mjs not found') notify(`queued ledger edits not applied: ${line}. They stay on their queue/ branches; the launcher retries each pass.`);
+      queueFailure = line;
+    }
+    return;
+  }
+  queueFailure = null;
+  for (const name of res.applied ?? []) log(`queue: applied ${name}`);
+  for (const { name, reason } of res.rejected ?? []) {
+    if (rejectedSent.has(name)) continue;
+    rejectedSent.add(name);
+    notify(`queued ledger edit ${name} not applied (${reason}); kept as branch queue-rejected/${name}.`);
+  }
+}
+
+// EZD-250 D9: the launcher's code changed (a merge): restart in place, same pid, so launchd and the watchdog see one process.
+function restartIfCodeChanged(atStart) {
+  const now = codeFingerprint(root);
+  if (now.hash === atStart.hash) return;
+  const changed = [...new Set([...Object.keys(atStart.files), ...Object.keys(now.files)])].filter((k) => atStart.files[k] !== now.files[k]).sort();
+  log(`launcher code changed (${changed.join(', ')}); restarting`);
+  setState({ state: 'restarting', at: nowIso() });
+  if (typeof process.execve !== 'function') { log('cannot restart in place; exiting for launchd'); process.exit(75); }
+  process.execve(process.execPath, [process.execPath, ...process.execArgv, fileURLToPath(import.meta.url), ...args], { ...process.env, EZD_LAUNCHER_RESTARTED: '1' });
+}
+
+// EZD-250 D13: the repair unit's brief.
+function writeRepairBrief({ kind, fp, next }) {
+  const chk = tool('--check');
+  writeFileSync(path.join(vault, 'handoff/REPAIR.md'), `# Repair · ${nowIso()}\n- Trigger: ${kind}\n- Fingerprint: ${fp}\n- Reason: ${next}\n\n## Ledger check output\n\`\`\`\n${(chk.stdout || '').trimEnd()}\n\`\`\`\n`);
 }
 
 async function main() {
@@ -317,25 +474,69 @@ async function main() {
     for (const f of [...OPTIONAL_FLAGS, ['--max-turns'], ['--max-budget-usd'], ['--effort'], ['--agent'], ['--permission-mode']]) console.log(`flag ${f[0]}: ${flagSupported(f[0]) ? 'supported' : 'not in claude --help (dropped)'}`);
     return;
   }
-  if (process.platform === 'darwin' && !dryRun) {
-    // Keep the Mac awake for the life of the launcher (PROCESS.md section 10, "Keeping the machine running").
+  if (!dryRun) {
+    // One launcher at a time (REMEDIATION-PLAN 2.4): a second one would run a second build on the shared local database.
+    const lock = takeLauncherLock(logDir);
+    if (!lock.ok) { console.error(`another launcher is running (pid ${lock.pid ?? 'unknown'}); one build at a time until H1 and EZD-172 land`); process.exit(1); }
+  }
+  if (process.platform === 'darwin' && !dryRun && process.env.EZD_LAUNCHER_RESTARTED !== '1') {
+    // Keep the Mac awake for the life of the launcher (PROCESS.md section 10, "Keeping the machine running"). A restart in
+    // place (D9) keeps the pid, so the first caffeinate still watches it.
     try { const c = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }); c.unref(); } catch {}
   }
   if (!dryRun) await recoverInflight();
-  let checkFailures = 0;
+  // EZD-250 D8: the continuous run also restarts on new code, applies queued ledger edits and repairs.
+  const continuous = !once && !dryRun;
+  const codeAtStart = codeFingerprint(root);
+  const repairStateFile = path.join(logDir, 'repair-state.json');
+  let repairs = 0; // repair units since the last runnable next unit (D12)
   let noProgress = 0;
+  let tabled = 0; // builds tabled in a row by the no-progress guard
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
+  let failedWait = null; // the next-unit text a failed repair was started for; the same wait keeps state repair-failed (D7)
   for (;;) {
+    if (continuous) restartIfCodeChanged(codeAtStart);
+    // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
+    if (dryRun && boostState({ root }).expired) log('dry run: boost mode has expired; a real run would remove vault/handoff/BOOST.json');
+    else if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
     const stopExists = existsSync(stopFile);
+    // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
+    if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
     if (!stopExists && await waitForWindow({ now: new Date(), sleep })) continue;
-    const next = stopExists ? '' : tool('--next-unit').stdout.trim();
-    const [unitName, arg] = next.split(/\s+/, 2);
-    const idle = idleAction({ stopExists, next: stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`, once: once || dryRun });
+    if (continuous && !stopExists) applyQueuedEdits();
+    // Records that interactive sessions queued while the launcher ran (records.mjs record()), applied between units.
+    if (!dryRun) for (const f of inboxFiles(logDir)) applyUnit(f, []);
+    const next = stopExists ? '' : nextUnitText();
+    let [unitName, arg] = next.split(/\s+/, 2);
+    const effective = stopExists || unitName === 'none:' || UNITS[unitName] ? next : `none: unknown unit "${next}"`;
+    let idle = idleAction({ stopExists, next: effective, once: once || dryRun });
+    // EZD-250 D12: a wait an agent can fix starts a repair unit; a runnable unit is the only reset.
+    let repair = null;
+    if (continuous && !stopExists) {
+      if (!/^none:/.test(effective)) {
+        try { unlinkSync(repairStateFile); } catch {}
+        repairs = 0;
+      } else {
+        const d = repairDecision({ next: effective, state: readJson(repairStateFile, null), consecutive: repairs });
+        if (d.action === 'repair') {
+          repair = { ...d, next: effective };
+          writeRepairBrief(repair);
+          unitName = 'repair';
+          arg = d.kind;
+          idle = { action: 'run' };
+        } else if (d.why === 'tried' && idle.action === 'wait') idle = { ...idle, notify: null };
+      }
+    }
+    const subject = unitSubject(next, repair);
     if (idle.action === 'stop') { log(stopExists ? 'vault/handoff/STOP exists; stopping.' : next); if (!stopExists && !/budget hold/.test(next)) notify(`launcher stopped: ${next.replace(/^none:\s*/, '')}`); return; }
     if (idle.action === 'wait') {
-      if (waiting !== idle.why) { log(idle.why); if (idle.notify) notify(idle.notify); waiting = idle.why; }
-      await sleep(idle.ms);
+      if (waiting !== idle.why) {
+        log(idle.why); if (idle.notify) notify(idle.notify); waiting = idle.why;
+        // D7: after a failed repair the same wait keeps state repair-failed and its time, so the watchdog can alert (D16 (a)).
+        if (failedWait === null || effective !== failedWait) { setState({ state: 'idle', at: nowIso() }); failedWait = null; }
+      }
+      await sleep(config.idle_poll_ms ?? idle.ms);
       continue;
     }
     if (waiting) { log('resuming'); waiting = null; }
@@ -345,11 +546,16 @@ async function main() {
     if (meters.warning) log(meters.warning);
     const decision = gateDecision(meters, b);
     if (decision.pause) {
+      if (dryRun) { log(`dry run: five-hour window at ${decision.pause.pct}%; a real run would pause until ${decision.pause.resume_at} and write vault/handoff/WINDOW_PAUSE.md`); return; }
       log(`five-hour window at ${decision.pause.pct}%; paused until ${decision.pause.resume_at} (vault/handoff/WINDOW_PAUSE.md)`);
       await waitForWindow({ pause: decision.pause, sleep });
       continue;
     }
-    const gate = await applyGates({ budget: b, meters, nextUnit: next, inProgressBuild, notify });
+    // Boost mode skips the weekly hold (Josh 2026-10-24: "remove the hold completely during boost"); the five-hour pause
+    // above and a real plan-limit error below still apply.
+    const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: subject, inProgressBuild, notify, dryRun });
+    // A dry run writes no hold or marker file (EZD-155; Q-0291 (a)); it says what a real run would write, and under boost a real run skips the hold (above).
+    if (dryRun && !boostState({ root }).active && decision.hold && !existsSync(holdFile)) log(`dry run: weekly usage at ${Math.round(meters.seven_day.pct)}%; a real run would write vault/handoff/BUDGET_HOLD.md and notify`);
     if (!gate.start) {
       log(gate.reason);
       if (/weekly_ceiling_usd_est/.test(gate.reason)) notify(`launcher stopped: ${gate.reason}`);
@@ -360,39 +566,79 @@ async function main() {
     if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
     process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
     const statusBefore = statusHash();
+    setState({ state: 'unit', at: nowIso() });
+    failedWait = null;
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
+    setState({ state: 'after-unit', at: nowIso() });
     if (r.outcome.startsWith('limit-')) {
       if (r.limit.kind === 'five-hour') {
         const until = parseWhen(r.limit.until) || new Date(Date.now() + 30 * 60000);
-        log(`five-hour limit; waiting until ${until.toISOString()} then resuming ${next}`);
+        log(`five-hour limit; waiting until ${until.toISOString()} then resuming ${subject}`);
+        setState({ state: 'limit-wait', at: nowIso(), until: until.toISOString() });
         await sleep(Math.max(60000, until.getTime() - Date.now() + 60000));
         continue;
       }
-      writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters, budget: b, nextUnit: next });
-      notify(`plan limit reached during ${next}. Hold written; override with budget.mjs or wait for the weekly reset.`);
+      writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters, budget: b, nextUnit: subject });
+      notify(`plan limit reached during ${subject}. Hold written; override with budget.mjs or wait for the weekly reset.`);
       return;
     }
     const chk = tool('--check');
-    if (chk.status !== 0) {
-      checkFailures++;
-      log(`ledger check failed (${checkFailures}):\n${chk.stdout}`);
-      if (checkFailures >= 2) { notify('ledger check failed twice in a row; launcher stopped. See vault/handoff/CURRENT.md.'); return; }
-    } else checkFailures = 0;
+    if (repair) {
+      // EZD-250 D12a: a REPAIRED claim stands only if the ledger check passes and the wait it was started for is gone.
+      const after = nextUnitText();
+      let v = r.outcome === 'ok' ? parseVerdict(r.parsed?.result) : { verdict: 'failed', line: repairStopLine(repair.kind, r.outcome) };
+      if (v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
+      else if (v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
+      try { mkdirSync(logDir, { recursive: true }); writeFileSync(repairStateFile, JSON.stringify({ fp: repair.fp, verdict: v.verdict, at: nowIso() }) + '\n'); } catch (e) { log(`repair state not written: ${e.message}`); }
+      repairs++;
+      if (v.verdict === 'repaired') log(`repair ${repair.kind}: repaired: ${v.line}`);
+      else if (v.verdict === 'josh') notify(`needs Josh: ${v.line} (vault/handoff/REPAIR.md)`);
+      else {
+        notify(`repair failed for "${repair.next}": ${v.line}. The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`);
+        setState({ state: 'repair-failed', at: nowIso() });
+        failedWait = repair.next;
+      }
+      continue;
+    }
+    // After a normal unit a failed check only logs; the next pass starts a repair unit (EZD-250 D12a).
+    if (chk.status !== 0) log(`ledger check failed:\n${chk.stdout}`);
     // No-progress guard (2026-10-19): a unit that ends ok but leaves STATUS.md and the next unit unchanged is not
-    // retried forever; two in a row stop the launcher.
-    if (r.outcome === 'ok' && statusHash() === statusBefore && tool('--next-unit').stdout.trim() === next) {
+    // retried forever. Any unit that does it twice is set aside until Josh is back, and the launcher goes on with other
+    // work (Josh 2026-10-27, 2026-11-03: "that item should just be set aside"). Only a set-aside that cannot be written
+    // stops it. Three in a row look like a fault in the system, not one item: the launcher pauses, then goes on.
+    if (r.outcome === 'ok' && statusHash() === statusBefore && nextUnitText() === next) {
       noProgress++;
       log(`${next} ended ok but changed nothing in STATUS.md (${noProgress} in a row)`);
-      if (noProgress >= 2) { notify(`unit ${next} ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.`); return; }
-    } else noProgress = 0;
+      if (noProgress >= 2) {
+        const aside = setAside(unitName, arg, next);
+        if (aside.ok) {
+          noProgress = 0;
+          log(aside.text);
+          notify(`${next} set aside until Josh is back, after two runs without progress; the launcher goes on with other work.`);
+          if (++tabled >= 3) { log('three set aside in a row; pausing before the next unit'); tabled = 0; await sleep(config.aside_pause_ms ?? 1800000); }
+          continue;
+        }
+        log(`set aside ${next} failed: ${aside.text}`);
+        notify(`unit ${next} ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.`);
+        return;
+      }
+    } else { noProgress = 0; tabled = 0; }
     if (r.outcome !== 'ok') {
       const info = { ts: new Date().toISOString(), unit: next, outcome: r.outcome, note: r.note || r.parsed?.result?.slice?.(0, 500) };
       writeFileSync(failureFile, JSON.stringify(info, null, 2));
       if (/max_turns|budget/i.test(r.outcome) || r.outcome === 'error') {
         // One retry of the same unit (the worktree resumes); a second failure stops the loop.
         if (!main.retried) { main.retried = next; log(`retrying ${next} once`); continue; }
-        if (main.retried === next) { notify(`unit ${next} failed twice (${r.outcome}); launcher stopped.`); return; }
+        if (main.retried === next) {
+          const aside = setAside(unitName, arg, next);
+          if (!aside.ok) { notify(`unit ${next} failed twice (${r.outcome}); launcher stopped.`); return; }
+          main.retried = null;
+          log(aside.text);
+          notify(`${next} set aside until Josh is back, after failing twice (${r.outcome}); the launcher goes on with other work.`);
+          if (++tabled >= 3) { log('three set aside in a row; pausing before the next unit'); tabled = 0; await sleep(config.aside_pause_ms ?? 1800000); }
+          continue;
+        }
       }
     }
     main.retried = null;

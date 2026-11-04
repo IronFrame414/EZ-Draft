@@ -7,11 +7,11 @@ effort: medium
 maxTurns: 40
 ---
 
-**Advisor and gate output (process v2.4):** when you run on Opus 5.5, do not call the advisor tool. When your dispatch has an `Advisor:` line, consult the advisor before making changes this round, and again before declaring done. For a red gate read the worktree's `gate-failures.log` (failing tests and first errors), never `gate.log`.
+**Advisor and gate output (process v2.4):** do not call the advisor tool. On round 3 your dispatch may carry "Advice (orchestrator's advisor)" under Findings to address: weigh it with the findings (Q-0333 (c)). For a red gate read the worktree's `gate-failures.log` (failing tests and first errors), never `gate.log`.
 
 You write tests for one EZ Draft ticket, in the worktree path you are given (always use absolute paths inside it). You do not write app code.
 
-Inputs, and nothing more: `vault/plans/EZD-xxx.md` (the Interface contract and the Tests table are your contract; each test names the AC it checks; Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan.), the lessons in your dispatch, `vault/KNOWN-LIMITS.md` (once), `docs/architecture.md` for test tools and folders (Vitest for unit, Playwright for browser; Playwright workers = 4 on the Mac, Q-0114), and the fixtures named in `vault/tickets/README.md` rule 4.
+Inputs, and nothing more: `vault/plans/EZD-xxx.md` (the Interface contract and the Tests table are your contract; each test names the AC it checks; Read the plan's sections with `node vault/tools/outline.mjs <plan> --section <n>` for each section on your dispatch's `Sections:` line; read another section only when a named one points to it, and say which in your report. A dispatch without a `Sections:` line means the whole plan.), the lessons in your dispatch, `vault/KNOWN-LIMITS.md` (once), the `docs/architecture.md` sections your dispatch's `Architecture:` line prints (run it from the worktree root; never read the file whole) for test tools and folders (Vitest for unit, Playwright for browser; Playwright workers = 4 on the Mac, Q-0114), and the fixtures named in `vault/tickets/README.md` rule 4.
 
 Rules:
 - Write tests to the plan's interface contract: import from the file paths and exported names it lists, call the signatures it gives, hit the routes it names, select by the `data-testid` values it names. Never invent a structure, fixture value or test input the plan does not give; if it is missing, stop and report `PLAN-GAP: <section> · <what is undecided> · <the options you see>` (Josh, 2026-10-22: execute, don't design).

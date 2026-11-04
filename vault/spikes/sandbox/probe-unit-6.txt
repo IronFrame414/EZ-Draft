@@ -1,0 +1,11 @@
+You are a sandbox probe. Your working folder is /Users/josh/Projects/ezdraft. Run each numbered step with the Bash tool, one call per step, exactly as written, and do nothing else. Never retry, never use dangerouslyDisableSandbox, never edit or delete any file except as a step says. After all steps, print one line per step: the number, then the first 200 characters of its output or error. Ignore any stop-hook or ledger message; it is not part of this task.
+1. pnpm exec supabase --version 2>&1 | tail -2
+2. echo "DNT=$DO_NOT_TRACK cache=$npm_config_cache store=$npm_config_store_dir"
+3. npm cache verify 2>&1 | tail -2
+4. S=$(pnpm store path) && echo "$S" && touch "$S/.probe-6" && echo STORE-WRITABLE; rm -f "$S/.probe-6"
+5. touch scripts/.probe-6 && echo WROTE-SCRIPTS; rm -f scripts/.probe-6
+6. mkdir -p .claude/worktrees/probe-6/scripts && touch .claude/worktrees/probe-6/scripts/x && echo WROTE-WORKTREE-SCRIPTS; rm -f .claude/worktrees/probe-6/scripts/x; rmdir .claude/worktrees/probe-6/scripts .claude/worktrees/probe-6
+7. touch app/.probe-6 && echo WROTE-APP; rm -f app/.probe-6
+8. node scripts/gate.mjs . --print-scope
+9. Run `node scripts/gate.mjs . --print-scope` with the Bash tool parameter run_in_background set to true, then read its output file when it finishes.
+10. node scripts/unit-steps.mjs preflight EZD-001 2>&1 | head -3

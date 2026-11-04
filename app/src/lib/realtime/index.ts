@@ -32,6 +32,7 @@ export function getRealtimeHub(): RealtimeHub {
       fetchToken,
       adapter: createSupabaseRealtimeAdapter(),
       env: { online: createOnlineSource() },
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- session.ended must load a new document: the hub stays closed for the life of the page (EZD-018 Step 5 item 8) and only a page load creates a new one; useRouter() is not reachable from this non-React module
       onSessionEnded: () => window.location.assign('/sign-in'),
     });
   }
