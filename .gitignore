@@ -26,6 +26,7 @@ next-env.d.ts
 app/.e2e/
 perf-results/
 vault/handoff/BOOST.json
+vault/handoff/LANES.json
 /.lanes/
 # Running records (REMEDIATION-PLAN 2.14; D1 (a)): views of the records database (~/.ezdraft/records.db), written only by
 # the launcher. Each phase gate commits one snapshot under vault/snapshots/ (D2 (a)).

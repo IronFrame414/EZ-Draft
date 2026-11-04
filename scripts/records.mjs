@@ -371,16 +371,14 @@ function applyOne(db, op) {
         .run(op.ticket, op.text, sha256(op.text), op.entry ? JSON.stringify(op.entry) : null, new Date().toISOString());
       return;
     case 'cover': {
-      // findings.mjs cover: every uncovered finding of the category gets the lesson ID.
-      let n = 0;
+      // findings.mjs cover: every uncovered finding of the category gets the lesson ID. With none left (another unit's
+      // cover got there first, EZD-174 C16) it changes nothing; findings.mjs refuses an empty cover itself.
       for (const f of db.prepare('select seq, line from findings').all()) {
         const x = JSON.parse(f.line);
         if (x.category !== op.category || x.lesson !== null) continue;
         x.lesson = op.lesson;
         db.prepare('update findings set line = ? where seq = ?').run(JSON.stringify(x), f.seq);
-        n++;
       }
-      if (!n) throw new Error(`no uncovered finding in category ${op.category}`);
       return;
     }
     case 'event':
@@ -448,10 +446,24 @@ export function applyQueueFile(db, file) {
   }
 }
 
-export function nextQuestionId(db, queueFile) {
+// One past the highest Q-ID in the questions table, this unit's queue file and every other unit's queued results file in
+// queueDirs (EZD-174 C16: two units queuing questions at once never pick the same ID; an unreadable line is skipped).
+export function nextQuestionId(db, queueFile, queueDirs = []) {
   let max = 0;
-  for (const { id } of db.prepare('select id from questions').all()) max = Math.max(max, Number(id.slice(2)) || 0);
-  for (const op of queueFile ? readQueue(queueFile) : []) if (op.op === 'question') max = Math.max(max, Number(op.row.id.slice(2)) || 0);
+  const seen = (id) => { max = Math.max(max, Number(String(id).slice(2)) || 0); };
+  for (const { id } of db.prepare('select id from questions').all()) seen(id);
+  for (const op of queueFile ? readQueue(queueFile) : []) if (op.op === 'question') seen(op.row.id);
+  for (const dir of queueDirs) {
+    let names = [];
+    try { names = readdirSync(dir).filter((n) => n.endsWith('.results.jsonl')); } catch {}
+    for (const n of names) {
+      let text = '';
+      try { text = readFileSync(path.join(dir, n), 'utf8'); } catch {}
+      for (const l of text.split('\n')) {
+        try { const op = JSON.parse(l); if (op?.op === 'question' && typeof op.row?.id === 'string') seen(op.row.id); } catch {}
+      }
+    }
+  }
   return `Q-${String(max + 1).padStart(4, '0')}`;
 }
 

@@ -7,13 +7,25 @@
 // Re-run after any phase-file edit (a split, a fix ticket). Hand-edit nothing. From Phase 1 on, Stage 0 writes real ACs
 // for the phase; those are added by hand to acceptance-criteria.md under the phase heading with the same ID scheme and
 // listed in the ticket's `acs`, and this script leaves a ticket alone when its `acs_source` is "stage-0".
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ticketsPath = path.join(vault, 'tickets/tickets.json');
 const acPath = path.join(vault, 'spec/acceptance-criteria.md');
+// Writing, it holds the ledger lock from the read through the write, so an entry another unit adds meanwhile is not lost
+// (EZD-174; scripts/ledger.mjs entry). A copy of vault/ with no scripts/ledger.mjs or .git takes no lock.
+let lock = null;
+const repoRoot = path.resolve(vault, '..');
+if (!process.argv.includes('--check') && existsSync(path.join(repoRoot, 'scripts/ledger.mjs')) && existsSync(path.join(repoRoot, '.git'))) {
+  const { acquireLock, LockError } = await import(pathToFileURL(path.join(repoRoot, 'scripts/ledger.mjs')).href);
+  try { lock = acquireLock(repoRoot, 'ledger', { owner: 'gen_acs' }); } catch (e) {
+    if (!(e instanceof LockError)) throw e;
+    console.error(`gen_acs: ${e.message}`);
+    process.exit(3);
+  }
+}
 const data = JSON.parse(readFileSync(ticketsPath, 'utf8'));
 
 // Done-when text per ticket, from the phase files.
@@ -116,4 +128,5 @@ if (args.includes('--check')) {
 }
 writeFileSync(ticketsPath, JSON.stringify(data, null, 1) + '\n'); // 1-space indent matches the Oct 11 export
 writeFileSync(acPath, md);
+lock?.release();
 console.log(`gen_acs: ${total} criteria for ${data.tickets.length} tickets -> ${path.relative(process.cwd(), acPath)}; tickets.json acs ${changed ? 'updated' : 'unchanged'}`);

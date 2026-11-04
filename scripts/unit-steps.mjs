@@ -70,8 +70,9 @@ function testCount(text) {
 function preflight() {
   const branch = out(git('rev-parse', '--abbrev-ref', 'HEAD'));
   if (branch !== 'develop') stop(`PREFLIGHT STOP: main checkout is on ${branch}, not develop`);
-  // Other lanes' uncommitted vault/ edits are not this unit's (EZD-173).
-  const dirty = out(git('status', '--porcelain', '--untracked-files=no', '--', '.', ':(exclude)vault'));
+  // Other lanes' uncommitted vault/ edits are not this unit's (EZD-173). Read under the ledger lock: another lane's merge
+  // stages its squash only inside its ledger hold, so this check never sees it half done (EZD-174).
+  const dirty = withLedgerLock(root, { owner: owner() }, () => out(git('status', '--porcelain', '--untracked-files=no', '--', '.', ':(exclude)vault')));
   if (dirty) stop(`PREFLIGHT STOP: develop has uncommitted changes:\n${dirty.split('\n').slice(0, 3).join('\n')}`);
   const check = sh(process.execPath, ['vault/tools/next_ticket.mjs', '--check']);
   if (check.status !== 0) stop(`PREFLIGHT STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);

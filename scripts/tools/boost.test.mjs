@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { boostState, turnOn, turnOff, boostFile, MAX_LANES, MAX_BUILD_LANES, BOOST_UNIT_CAP_USD } from '../../vault/tools/boost.mjs';
+import { boostState, turnOn, turnOff, boostFile, BOOST_UNIT_CAP_USD } from '../../vault/tools/boost.mjs';
 
 const NOW = new Date('2026-10-24T18:00:00Z');
 function repo(resetsAt) {
@@ -15,15 +15,15 @@ function repo(resetsAt) {
 }
 
 test('boost: off when there is no switch file', () => {
-  assert.deepEqual(boostState({ root: repo(), now: NOW }), { active: false, until: null, lanes: 1, buildLanes: 1, expired: false });
+  assert.deepEqual(boostState({ root: repo(), now: NOW }), { active: false, until: null, expired: false });
 });
 
-test('boost: on until the weekly reset from the usage meter, with 6 lanes and 3 build lanes by default', () => {
+test('boost: on until the weekly reset from the usage meter', () => {
   const root = repo('2026-10-26T06:00:00.143Z');
   const r = turnOn({ root, now: NOW });
   assert.equal(r.ok, true);
   assert.equal(r.until, '2026-10-26T06:00:00.143Z');
-  assert.deepEqual(boostState({ root, now: NOW }), { active: true, until: '2026-10-26T06:00:00.143Z', lanes: 6, buildLanes: 3, expired: false });
+  assert.deepEqual(boostState({ root, now: NOW }), { active: true, until: '2026-10-26T06:00:00.143Z', expired: false });
 });
 
 test('boost: expires at the reset time and reports expired so the launcher removes it', () => {
@@ -32,27 +32,23 @@ test('boost: expires at the reset time and reports expired so the launcher remov
   const at = boostState({ root, now: new Date('2026-10-26T06:00:00.000Z') });
   assert.equal(at.active, false);
   assert.equal(at.expired, true);
-  assert.equal(at.lanes, 1);
   assert.equal(turnOff({ root }), true);
   assert.equal(existsSync(boostFile(root)), false);
   assert.equal(turnOff({ root }), false);
 });
 
-test('boost: refuses to turn on without a reset time, with a past reset time, or with bad lane counts', () => {
+test('boost: refuses to turn on without a reset time, or with a past reset time', () => {
   assert.equal(turnOn({ root: repo(), now: NOW }).ok, false);
   assert.equal(turnOn({ root: repo('2026-10-24T17:00:00Z'), now: NOW }).ok, false);
-  const root = repo('2026-10-26T06:00:00Z');
-  assert.equal(turnOn({ root, now: NOW, lanes: MAX_LANES + 1 }).ok, false);
-  assert.equal(turnOn({ root, now: NOW, lanes: 0 }).ok, false);
-  assert.equal(turnOn({ root, now: NOW, lanes: 2, buildLanes: 3 }).ok, false);
-  assert.equal(turnOn({ root, now: NOW, lanes: 6, buildLanes: MAX_BUILD_LANES + 1 }).ok, false);
+  const root = repo('2026-10-24T17:00:00Z');
+  turnOn({ root, now: NOW });
   assert.equal(existsSync(boostFile(root)), false);
 });
 
 test('boost: an unreadable switch file is treated as expired, never as on', () => {
   const root = repo();
   writeFileSync(boostFile(root), '{not json');
-  assert.deepEqual(boostState({ root, now: NOW }), { active: false, until: null, lanes: 1, buildLanes: 1, expired: true });
+  assert.deepEqual(boostState({ root, now: NOW }), { active: false, until: null, expired: true });
 });
 
 test('boost: the per-step cap while boost is on is $80 (Josh 2026-10-24)', () => {

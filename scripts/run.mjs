@@ -28,7 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
-  takeLauncherLock,
+  takeLauncherLock, withLedgerLock, LockError, queueDirs,
 } from './ledger.mjs';
 // The launcher is the only writer of the running records (REMEDIATION-PLAN 2.12; D1 (a), D2 (a)): a unit's tools queue ops
 // in its results file, and the launcher applies them with its own ops in one transaction, then re-exports the views.
@@ -63,10 +63,16 @@ const claudeBin = config.claude_bin || 'claude';
 const sandboxSettings = path.join(root, 'scripts/unit-sandbox.json');
 const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
-const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
+const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive, writeWindowPause } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
-const { idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState } = await import('./launcher-idle.mjs');
+const {
+  idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
+  isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
+  laneEnvFor, writeLease, removeLease, limitPause, neverRejects,
+} = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
+// Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
+const { lanesState, lanesFile, inProgressCount, turnOff: lanesOff } = await import(path.join(vault, 'tools/lanes.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
 // .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
@@ -215,16 +221,17 @@ function saveLimitText(unitName, arg, res, limit) {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // A build tables its ticket (blocked with a note); any other unit goes on the list next_ticket.mjs skips (.git/set-aside.json). Josh clears it.
-function setAside(unitName, arg, next) {
+// isNext: whether the unit would still run next (lanes: whether it is still offered).
+function setAside(unitName, arg, next, isNext = () => nextUnitText() === next) {
   if (unitName === 'build') {
     const t = spawnSync(process.execPath, [path.join(root, 'scripts/unit-steps.mjs'), 'table', arg], { encoding: 'utf8', cwd: root, env: { ...process.env, EZD_RESULTS_FILE: '', EZD_RECORDS_WRITER: String(process.pid) } });
-    return { ok: t.status === 0 && nextUnitText() !== next, text: `${t.stdout ?? ''}${t.stderr ?? ''}`.trim().split('\n')[0] };
+    return { ok: t.status === 0 && !isNext(), text: `${t.stdout ?? ''}${t.stderr ?? ''}`.trim().split('\n')[0] };
   }
   try {
     const file = path.join(root, '.git', 'set-aside.json');
     const list = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : [];
     writeFileSync(file, JSON.stringify([...new Set([...list, next])]) + '\n');
-    return { ok: nextUnitText() !== next, text: `SET ASIDE ${next}` }; // the same unit next would loop: only then does the launcher stop
+    return { ok: !isNext(), text: `SET ASIDE ${next}` }; // the same unit next would loop: only then does the launcher stop
   } catch (e) { return { ok: false, text: e.message }; }
 }
 
@@ -269,7 +276,7 @@ function agentUnitOps(unitName, arg, res) {
     let firstId;
     try {
       if (!db.prepare('select 1 from tickets where id = ?').get(arg)) return { problem: `no STATUS.md row for ${arg}`, ops: [] };
-      firstId = nextQuestionId(db);
+      firstId = nextQuestionId(db, null, queueDirs(root));
     } finally { db.close(); }
     // EZD-244: the plan's Architecture line for tickets.json; a failure records nothing more. The entry and the plan's text
     // and hash wait in the records database for the ticket's feat commit (D9 (a), 2026-11-02).
@@ -300,7 +307,8 @@ function escalatedRows() {
 }
 
 
-async function runUnit(unitName, arg, meterSource = null) {
+// laneEnv: a lane build's database lane environment; lease: its database lane, held by the unit's pid while it runs (EZD-174).
+async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, lease = 0 } = {}) {
   const cmd = buildCommand(unitName, arg);
   // The scrub is set in api mode only (PROCESS.md section 11, Auth mode). Claude Code 2.1.303 forces the permission
   // mode to default whenever it is set, and with --permission-prompts none every write is then denied (2026-10-19 loop).
@@ -316,6 +324,7 @@ async function runUnit(unitName, arg, meterSource = null) {
   } else {
     delete env.ANTHROPIC_API_KEY; // plan auth: a stray key in the shell would silently move the spend
   }
+  Object.assign(env, laneEnv);
   const sessionId = flagSupported('--session-id') ? randomUUID() : null;
   if (sessionId) cmd.push('--session-id', sessionId);
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
@@ -331,13 +340,16 @@ async function runUnit(unitName, arg, meterSource = null) {
   delete env.EZD_RECORDS_WRITER;
   try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }); } catch {}
   const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
+  if (lease) writeLease(lease, process.pid);
   const res = await new Promise((resolve) => {
+    const done = (r) => { if (lease) removeLease(lease); resolve(r); };
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    if (lease && child.pid) writeLease(lease, child.pid);
     let out = '', err = '';
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { err += d; process.stderr.write(d); });
-    child.on('close', (code) => resolve({ code, out, err }));
-    child.on('error', (e) => resolve({ code: -1, out, err: String(e) }));
+    child.on('close', (code) => done({ code, out, err }));
+    child.on('error', (e) => done({ code: -1, out, err: String(e) }));
   });
   const parsed = parseResult(res.out);
   const { total, fable, models } = costOf(parsed);
@@ -350,9 +362,19 @@ async function runUnit(unitName, arg, meterSource = null) {
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
   if (limit) saveLimitText(unitName, arg, res, limit);
   const cost = { op: 'cost', entry: costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }) };
-  const agent = outcome === 'ok' && UNITS[unitName].as ? agentUnitOps(unitName, arg, parsed) : { problem: null, ops: [] };
-  // A plan problem records nothing more, but the cost row is still recorded (C13).
-  applyUnit(results, [cost, ...agent.ops]);
+  // A plan problem records nothing more, but the cost row is still recorded (C13). Under the ledger lock, so a Q-ID given
+  // here and a unit's `ledger.mjs question` never collide (EZD-174); a lock that stays busy is logged, never waited out.
+  const record = () => {
+    const a = outcome === 'ok' && UNITS[unitName].as ? agentUnitOps(unitName, arg, parsed) : { problem: null, ops: [] };
+    applyUnit(results, [cost, ...a.ops]);
+    return a;
+  };
+  let agent;
+  try { agent = withLedgerLock(root, { owner: `launcher apply ${id}`, timeoutMs: config.apply_lock_ms ?? 120000 }, record); } catch (e) {
+    if (!(e instanceof LockError)) throw e;
+    log(`results applied without the ledger lock: ${e.message}`);
+    agent = record();
+  }
   removeInflight(dir, id);
   // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
   if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
@@ -495,11 +517,191 @@ async function main() {
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   let failedWait = null; // the next-unit text a failed repair was started for; the same wait keeps state repair-failed (D7)
+  // Lanes (EZD-174): the running units (`<unit> <arg>` → { unit, arg, dbLane, resume, before, task }), the per-key guards,
+  // why the launcher stops once they end, and when a pause after three set-asides ends.
+  const running = new Map();
+  const guards = createGuards();
+  let stopping = null;
+  let asideUntil = 0;
+  let lastMeters = null;
+  const statusText = () => { try { return readFileSync(path.join(vault, 'tickets/STATUS.md'), 'utf8'); } catch { return ''; } };
+  const nextUnitsCall = () => {
+    const skip = [...running.values()].map((u) => u.arg);
+    const r = tool('--next-units', ...(skip.length ? ['--skip', skip.join(',')] : []));
+    let parsed = null;
+    try { parsed = JSON.parse(r.stdout); } catch {}
+    const ok = r.status === 0 && parsed && typeof parsed === 'object' && Array.isArray(parsed.units)
+      && parsed.units.every((u) => u && Object.hasOwn(UNITS, u.unit) && typeof u.arg === 'string');
+    return ok ? { ok, units: parsed.units, none: parsed.none ?? null } : { ok, line: firstLine(r.stderr) || firstLine(r.stdout) || `exit ${r.status}` };
+  };
+  // After a lane unit (synchronous; running already without it).
+  const afterUnit = (key, u, before, r) => {
+    const now = Date.now();
+    if (r.outcome === 'limit-five-hour') {
+      const pause = limitPause({ limit: { until: parseWhen(r.limit.until)?.toISOString() ?? null }, now });
+      const held = existsSync(windowPauseFile) ? Date.parse(readFileSync(windowPauseFile, 'utf8').match(/^- Resume at: (.+)$/m)?.[1]?.trim()) : NaN;
+      if (!(held > Date.parse(pause.resume_at))) writeWindowPause({ now: new Date(now), pause });
+      log(`five-hour limit during ${key}; no unit starts in any lane until ${pause.resume_at}`);
+    } else if (r.outcome === 'limit-weekly') {
+      if (!existsSync(holdFile)) {
+        writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters: lastMeters, budget: budget(), nextUnit: key });
+        notify(`plan limit reached during ${key}. Hold written; override with budget.mjs or wait for the weekly reset.`);
+      }
+      stopping = `plan limit reached during ${key}`;
+    } else {
+      const chk = tool('--check');
+      if (chk.status !== 0) log(`ledger check failed:\n${chk.stdout}`);
+      if (r.outcome !== 'ok') writeFileSync(failureFile, JSON.stringify({ ts: nowIso(), unit: key, outcome: r.outcome, note: r.note || r.parsed?.result?.slice?.(0, 500) }, null, 2));
+      // A failed call counts the unit as still offered (no progress); the next pass's own call stops the launcher.
+      const offeredKeys = () => {
+        const n = nextUnitsCall();
+        if (n.ok) return n.units.map((x) => `${x.unit} ${x.arg}`);
+        log(`--next-units failed after ${key}: ${n.line}`);
+        return [key];
+      };
+      const progress = unitProgress({ key, before, after: statusRow(statusText(), u.arg), offeredAfter: offeredKeys() });
+      const g = guardAfterUnit(guards, { key, outcome: r.outcome, progress });
+      if (g.action === 'aside') {
+        const aside = setAside(u.unit, u.arg, key, () => offeredKeys().includes(key));
+        if (aside.ok) {
+          log(aside.text);
+          notify(`${key} set aside until Josh is back, after ${g.why}; the launcher goes on with other work.`);
+          if (g.pause) { log('three set aside in a row; no new unit starts for a while'); asideUntil = Date.now() + (config.aside_pause_ms ?? 1800000); }
+        } else {
+          log(`set aside ${key} failed: ${aside.text}`);
+          notify(g.stopText);
+          stopping = g.stopText;
+        }
+      }
+    }
+    if (!running.size) setState({ state: 'after-unit', at: nowIso() });
+  };
+  // Starts ticket units side by side; never returns while one runs. 'exit' ends the launcher, 'sequential' hands the
+  // pass to the one-unit-at-a-time loop below (STOP, pause, none, repair, phase-wide units, the code restart).
+  const laneLoop = async () => {
+    let codeLogged = false;
+    let lastReason = null;
+    for (;;) {
+      const now = Date.now();
+      const drained = running.size === 0;
+      let go = true;
+      let limits = null;
+      if (stopping) { if (drained) { log(stopping); return 'exit'; } go = false; }
+      if (go) {
+        const st = lanesState({ root });
+        if (!st.on) { if (drained) return 'sequential'; go = false; } else limits = laneLimits(st);
+      }
+      if (go && continuous && codeFingerprint(root).hash !== codeAtStart.hash) {
+        if (!codeLogged) { log(`launcher code changed; waiting for ${running.size} running units`); codeLogged = true; }
+        if (drained) return 'sequential';
+        go = false;
+      }
+      if (go && existsSync(stopFile)) { if (drained) return 'sequential'; go = false; }
+      if (go && asideUntil > now) {
+        if (drained) { await sleep(asideUntil - now); continue; }
+        go = false;
+      }
+      if (go && !dryRun) for (const f of inboxFiles(logDir)) applyUnit(f, []);
+      let b = null;
+      let meters = null;
+      if (go) {
+        b = budget();
+        meters = await readMeters({ budget: b, fallback: oauthFallback });
+        lastMeters = meters;
+        if (meters.warning) log(meters.warning);
+        const decision = gateDecision(meters, b);
+        if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
+        process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
+        const fileText = existsSync(windowPauseFile) ? readFileSync(windowPauseFile, 'utf8') : '';
+        const pause = pauseFrom({ fileText, decision, now });
+        if (pause) {
+          if (dryRun) { log(`DRY-RUN PAUSE five-hour pause until ${pause.until}; no unit starts in any lane`); return 'exit'; }
+          if (drained) return 'sequential';
+          go = false;
+        }
+      }
+      let offered = [];
+      if (go) {
+        const n = nextUnitsCall();
+        if (!n.ok) {
+          log(n.line);
+          notify(`launcher stopped: --next-units failed: ${n.line}`);
+          stopping = `--next-units failed: ${n.line}`;
+          continue;
+        }
+        offered = n.units;
+        setState({ next: offered.length ? `${offered[0].unit} ${offered[0].arg}` : (n.none ?? 'none'), polledAt: nowIso() });
+        if (!offered.length) { if (drained) return 'sequential'; go = false; }
+      }
+      if (go) {
+        const busy = [...running.values()].map(({ unit, arg, dbLane }) => ({ unit, arg, dbLane }));
+        const { start, reason } = pickUnits({ offered, running: busy, limits });
+        if (reason !== lastReason && reason) log(reason);
+        lastReason = reason;
+        if (start.length && isPhaseWide(start[0].unit)) {
+          if (!dryRun) return 'sequential';
+          log(`DRY-RUN START ${start[0].unit} ${start[0].arg} db-lane=0`);
+          log(`DRY-RUN LANES lanes=${limits.lanes} build-lanes=${limits.buildLanes} started=1`);
+          return 'exit';
+        }
+        let refused = 0;
+        let started = 0;
+        for (const u of start) {
+          const key = `${u.unit} ${u.arg}`;
+          const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: key, inProgressBuild: u.resume, notify, dryRun });
+          if (!gate.start) {
+            log(gate.reason);
+            refused++;
+            if (/weekly_ceiling_usd_est/.test(gate.reason)) { notify(`launcher stopped: ${gate.reason}`); stopping = gate.reason; break; }
+            continue;
+          }
+          const dbLane = dbLaneFor({ unit: u.unit, running: busy, limits, lanesOn: true });
+          if (dbLane === null) continue;
+          busy.push({ unit: u.unit, arg: u.arg, dbLane });
+          started++;
+          if (dryRun) { await runUnit(u.unit, u.arg, meters.source); log(`DRY-RUN START ${key} db-lane=${dbLane}`); continue; }
+          const before = statusRow(statusText(), u.arg);
+          const task = neverRejects(async () => {
+            const r = await runUnit(u.unit, u.arg, meters.source, dbLane ? { env: laneEnvFor({ root, ticket: u.arg, lane: dbLane }), lease: dbLane } : {});
+            running.delete(key);
+            afterUnit(key, u, before, r);
+          }, (e) => {
+            log(`${key}: ${e?.stack || e}`);
+            notify(`launcher stopped: ${key}: ${e?.message ?? e}`);
+            running.delete(key);
+            stopping = stopping ?? `${key}: ${e?.message ?? e}`;
+          });
+          running.set(key, { unit: u.unit, arg: u.arg, dbLane, resume: u.resume, before, task });
+          repairs = 0;
+          try { unlinkSync(repairStateFile); } catch {}
+          waiting = null;
+          failedWait = null;
+          setState({ state: 'unit', at: nowIso() });
+          log(`lane: starting ${key}${dbLane ? ` on database lane ${dbLane}` : ''} (${running.size} running)`);
+        }
+        if (dryRun) { log(`DRY-RUN LANES lanes=${limits.lanes} build-lanes=${limits.buildLanes} started=${started}`); return 'exit'; }
+        if (!started && running.size === 0) return refused > 0 ? 'exit' : 'sequential';
+      }
+      let timer;
+      await Promise.race([...[...running.values()].map((x) => x.task), new Promise((r) => { timer = setTimeout(r, config.idle_poll_ms ?? LANE_POLL_MS); })]);
+      clearTimeout(timer);
+    }
+  };
   for (;;) {
     if (continuous) restartIfCodeChanged(codeAtStart);
     // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
     if (dryRun && boostState({ root }).expired) log('dry run: boost mode has expired; a real run would remove vault/handoff/BOOST.json');
     else if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
+    // Lanes turned off: the file goes once at most one ticket is in progress (EZD-174; Q-0303 (a)).
+    if (existsSync(lanesFile(root)) && !lanesState({ root }).on && inProgressCount(statusText()) <= 1) {
+      if (dryRun) log('dry run: lanes are off; a real run would remove vault/handoff/LANES.json');
+      else { lanesOff({ root, force: true }); notify('lanes off: back to one unit at a time'); }
+    }
+    if (!once && lanesState({ root }).on) {
+      const r = await laneLoop();
+      if (r === 'exit') return;
+      if (continuous) restartIfCodeChanged(codeAtStart);
+    }
     const stopExists = existsSync(stopFile);
     // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
     if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
