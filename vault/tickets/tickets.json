@@ -17583,7 +17583,10 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Migrations",
+    "Local database"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
