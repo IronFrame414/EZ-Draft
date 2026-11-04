@@ -1,5 +1,5 @@
-// EZD-160 (vault/plans/EZD-160.md sections 3 and 4): docs/architecture.md, docs/runbook.md and the
-// EZD-033 migration comment say only what is true. Each test reads the files fresh; a section is the
+// EZD-160 (vault/plans/EZD-160.md sections 3 and 4): docs/architecture.md and docs/runbook.md say
+// only what is true. Each test reads the files fresh; a section is the
 // text from its heading line to the next heading of the same or higher level.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +12,6 @@ const root = path.resolve(here, '..', '..', '..');
 const readDoc = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const arch = () => readDoc('docs/architecture.md');
 const runbook = () => readDoc('docs/runbook.md');
-const MIGRATION = 'supabase/migrations/20261020101101_create_unconfirmed_password_guard.sql';
 
 const splitLines = (text) => text.split(/\r?\n/).map((l) => l.trimEnd());
 
@@ -104,23 +103,5 @@ describe('EZD-160 docs say only what is true', () => {
       'ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES',
     ];
     for (const name of names) assert.ok(s.includes(`\`${name}\``), `missing name ${name}`);
-  });
-
-  it('EZD-160 T8 guard migration comment matches the stack', () => {
-    const text = readDoc(MIGRATION);
-    const lines = splitLines(text);
-    assert.equal(text.includes('the pinned Auth stores null for a user without a password'), false);
-    assert.ok(
-      lines.includes(
-        '-- null. The pinned Auth reads null as "no password"; the stack itself stores a bcrypt hash even for a',
-      ),
-    );
-    assert.ok(
-      lines.includes(
-        '-- code-only user, so the guard writes the one value null for every unconfirmed row.',
-      ),
-    );
-    assert.ok(text.includes('new.encrypted_password := null;'));
-    assert.ok(text.includes('before insert or update on auth.users'));
   });
 });

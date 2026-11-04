@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 586,
+ "count": 587,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -17542,6 +17542,33 @@
    "acs": [
     "AC-EZD-317-1",
     "AC-EZD-317-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-318",
+   "phase": 2,
+   "title": "Fix: the realtime hub resyncs on a subscriber’s first join and after a refused token",
+   "depends_raw": "EZD-018",
+   "spec_ref": "Q-0545, Q-0546, rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Realtime (EZD-018)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-018"
+   ],
+   "build_position": 574,
+   "acs": [
+    "AC-EZD-318-1",
+    "AC-EZD-318-2",
+    "AC-EZD-318-3"
    ],
    "acs_source": "done-when"
   }
