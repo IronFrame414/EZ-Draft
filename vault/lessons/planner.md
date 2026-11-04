@@ -343,7 +343,7 @@ Rule: never plan a test that reads a document's wording or the live vault; test 
 Check: no Tests row reads `docs/*.md`, `CLAUDE.md`, `vault/` or a heading or phrase in them.
 Plan check: every Tests row names code, config or a fixture as its subject, never a document.
 
-## L-042  areas: testing, tooling  seen: 2  status: candidate
+## L-042  areas: testing, tooling  seen: 3  status: candidate
 Tickets EZD-108 and EZD-277, 2026-10-30 (code-reviewer r1, category test-defect)
 Mistake: tests did not match what the plan or the types fixed: a settings test fixture lacked a field the type had just made required (tsc failed), and look-alike letters were typed as literal characters where the plan named \u escapes.
 Cause: the plan gave test data in prose and never said that fixtures must satisfy the changed type or that exotic characters are written as escapes.
@@ -387,3 +387,77 @@ Plan check: every path an excluded command reads appears in the plan's read-list
 - EZD-298 (2026-11-03): when an AC says '(test)' but a ratified lesson forbids that test, section 4 says the AC is met by the code-reviewer's check under the Q-ID and names the ticket row line, so the test-author does not raise it as a gap.
 When a browser test changes server state after a click whose server function sends a Realtime event, put the clicked row in a state where the function sends no event and name the SQL line that proves it; never make the test wait for a number of responses (EZD-110b T19).
 When a component fetches on mount and also listens on a realtime channel, the plan says from the start how the gap before the first join is closed (refetch when ready resolves 'subscribed'), because the hub resyncs only on a re-subscribe (EZD-110b D16).
+
+## L-047  areas: tooling, security  seen: 1  status: candidate
+Ticket EZD-316, 2026-11-03
+Mistake: the push guard was fixed one instance per round (body file, config race, commondir, hooks, resume path, squash race); 4 rounds found 22 findings, each a new case of one class: unsandboxed commands trusting git state the sandbox can write (refs, config, hooks, locks, objects).
+Cause: the plan listed the write paths to deny instead of stating the trust rule (an unsandboxed command trusts nothing the sandbox can write) and checking every unsandboxed command against it.
+Rule: a plan that moves an action outside the sandbox lists every unsandboxed command that touches the repo and, for each, which sandbox-writable inputs it reads; it closes the class (exact env, hooks off, no trusted ref or lock) before any single path.
+Check: the plan has a table of unsandboxed commands by sandbox-writable input, and the security-reviewer finds no input missing from it.
+Plan check: the table exists in the plan's security section.
+Planner lesson: when a plan drops stale async results, say up front that a stale result changes nothing on success or failure, with a test for each.
+Planner lesson: when a plan says what makes an async result stale, name every path that starts a new generation, not only the one the current finding is about.
+
+## L-048  areas: ui, tokens, testing  seen: 2  status: candidate
+Rule: A plan for a store that drops stale async results states staleness once, as an invariant over every mutation (one counter bumped by each state change; an older fetch applies only if the counter has not moved), and tests it as a matrix of every mutation against every fetch kind in flight, not one path per review round.
+Sources: EZD-110b rounds 8-10 (three failed rounds, each closing one stale-fetch path).
+Plan check: the store rule has no per-path staleness sentences; the test table has one case per (mutation, fetch kind) cell.
+Re-validation EZD-117a: a plan that replaces or deletes a page lists every test and spec that renders it, and is re-checked against fix tickets merged on that page after the plan date.
+EZD-117a: a plan that adds a SQL function containing count( checks CAP_LOCK_READ_ONLY in app/test-harness/rls/cap-locks.ts (EZD-321) and adds a test-author edit for any display-only counter.
+A length cap on an encoded value is derived from the longest value the server itself can create (max chars x max bytes per char). Every field of a client-supplied value that SQL casts is bounded to the cast type's range, with a test against the database at the extremes.
+
+## L-049  areas: testing, data-model, migrations  seen: 1  status: candidate
+Ticket EZD-140, 2026-11-04
+Mistake: the plan's Tests table named no edit to rls.audit.test.ts's exact list of TABLE_GRANTS tables, so adding the new table to TABLE_GRANTS failed T18 until the test-author edited the list after the build.
+Cause: the plan listed the harness entries to add but not the tests that enumerate them.
+Rule: when a plan adds an entry to a list the tests enumerate exactly (TABLE_GRANTS, write exemptions, token lists), the Tests table names the test that lists it as an edit row.
+Check: grep the tests for the list's name and confirm each hit has a row.
+Plan check: every harness-list addition in the Interface section has a matching test edit row.
+
+## L-050  areas: testing  seen: 1  status: candidate
+Phase 1 wrap, 2026-11-04 (categories test-missing, test-weak; EZD-253, EZD-108, EZD-110a, EZD-110b, EZD-117a)
+Mistake: tests skipped checks the plan stated (icons draw, Cache-Control, a fall-through message) or passed for a wrong implementation (a per-caller queue passed the one-refresh test; 'A'.repeat(8201) failed JSON.parse before reaching the cap).
+Cause: the Tests table did not map each plan check to a row, and gave no input that only the correct code rejects.
+Rule: every check the plan states (sections 3 and 4, Decided) has a Tests row; each row names an input or count that the plausible wrong implementation fails.
+Check: list the plan's checks beside the Tests rows; no check without a row.
+Plan check: each Tests row names the wrong implementation it rejects.
+
+## L-051  areas: testing  seen: 1  status: candidate
+Phase 1 wrap, 2026-11-04 (category test-isolation; EZD-316, EZD-110b)
+Mistake: tests left temp folders behind, and a browser test raced a permission change against an in-flight refetch.
+Cause: the plan gave no cleanup step and no ordering for state changes against pending requests.
+Rule: a Tests row that creates files names their removal in finally; a browser test that changes server state waits for every pending request first (see L-045).
+Check: grep the tests for mkdtemp and setPermissions; each has cleanup or a wait.
+Plan check: each Tests row that creates files names the cleanup.
+
+## L-052  areas: data-model, testing  seen: 1  status: candidate
+Phase 1 wrap, 2026-11-04 (categories contract-gap, general-case; EZD-108, EZD-110b, EZD-117a, EZD-321)
+Mistake: plans left out blank and extreme inputs (empty code, cursor fields, begin-atomic function bodies) and a file the feature needed (a required prop), so reviewers found one case per round.
+Cause: the plan described the main path and the examples, not each input's empty, maximum and malformed cases or every file that must change.
+Rule: for each input the plan lists empty, over-limit and malformed behaviour with the status or message returned; the Files table lists every caller of a changed signature.
+Check: grep for callers of each changed export and compare with the Files table.
+Plan check: each input row has empty, maximum and malformed cases.
+
+## L-053  areas: ci, tooling  seen: 1  status: candidate
+Phase 1 wrap, 2026-11-04 (category gate-red; EZD-110b, EZD-298, EZD-117a, EZD-323)
+Mistake: gate failures a plan could foresee: a client hook imported into a server component, a new counting SQL function against the cap-lock audit, ledger fixtures stale on a worktree behind develop.
+Cause: the plan did not name which gate parts the change can turn red.
+Rule: the plan lists the gate parts the change touches (build, test, e2e, audits) and says to merge develop into the worktree before the gate.
+Check: the plan has a line per touched gate part.
+Plan check: the Files table's new server component, SQL function or ledger row each has a gate-part line.
+
+## L-054  areas: ui  seen: 1  status: candidate
+Phase 1 wrap, 2026-11-04 (category ui-mismatch; EZD-108, EZD-110b)
+Mistake: menu icons drew blank and the menu position differed from the mockup.
+Cause: the visual checklist said "as the mockup" without the mockup's measurements.
+Rule: each checklist row gives the mockup's measured edge, offset or icon name and a way to test it.
+Check: no checklist row says only "matches the mockup".
+Plan check: every visual row has a number or a named element.
+
+## L-055  areas: docs  seen: 1  status: candidate
+Phase 1 wrap, 2026-11-04 (category docs; EZD-268, EZD-300, EZD-316, EZD-117a)
+Mistake: nine findings in four tickets: a doc line, skill step or table still described the behaviour the ticket changed.
+Cause: the plan named the main doc but did not search for every line that states the old behaviour.
+Rule: when a ticket changes a stated behaviour, the plan lists each doc, skill and agent line found by grep for the old value in its Files table.
+Check: grep the repo for the old value; each hit is in the Files table or marked unchanged.
+Plan check: the plan shows the grep and its hits.
