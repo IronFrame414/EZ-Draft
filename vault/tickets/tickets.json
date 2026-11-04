@@ -17622,11 +17622,11 @@
     "EZD-132"
    ],
    "build_position": 576,
+   "acs_source": "done-when",
    "acs": [
     "AC-EZD-320-1",
     "AC-EZD-320-2"
-   ],
-   "acs_source": "done-when"
+   ]
   },
   {
    "id": "EZD-321",
@@ -17655,6 +17655,62 @@
     "AC-EZD-321-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-322",
+   "phase": 1,
+   "title": "Fix: a project member without See company costs cannot create a supplier file or order report record",
+   "depends_raw": "EZD-132",
+   "spec_ref": "Security review phase 1 gate 2026-11-04 (finding 1); Q-0323; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Storage buckets and paths",
+    "Permissions"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-132"
+   ],
+   "build_position": 578,
+   "acs_source": "done-when",
+   "acs": [
+    "AC-EZD-322-1",
+    "AC-EZD-322-2",
+    "AC-EZD-322-3"
+   ]
+  },
+  {
+   "id": "EZD-323",
+   "phase": 1,
+   "title": "Fix: no test-only database function can be run by a signed-in user in production",
+   "depends_raw": "EZD-140",
+   "spec_ref": "Security review phase 1 gate 2026-11-04 (finding 2); rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Migrations",
+    "Row-level security (EZD-006)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-140"
+   ],
+   "build_position": 579,
+   "acs_source": "done-when",
+   "acs": [
+    "AC-EZD-323-1",
+    "AC-EZD-323-2",
+    "AC-EZD-323-3"
+   ]
   }
  ],
  "recut_applied": "2026-10-20"
