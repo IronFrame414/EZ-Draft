@@ -21,6 +21,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarizeStep } from './gate-summary.mjs';
+import { isLive, removeDeadLock } from './gate-lock.mjs';
 import { readLane } from './db/lane.mjs';
 
 const args = process.argv.slice(2);
@@ -111,7 +112,7 @@ try { lane = readLane(process.env); } catch (e) { console.error(`GATE FAIL: ${e.
 if (lane === 0) delete env.SUPABASE_WORKDIR;
 else { env.EZD_LANE = String(lane); env.SUPABASE_WORKDIR = path.join(dir, '.lanes', `lane${lane}`); }
 
-// One gate at a time per lane (Q-0019, EZD-172). A lock appears by hard link from a temp file that already holds the pid, so a visible lock is never empty (Q-0381); a lock left by a dead process is taken over.
+// One gate at a time per lane (Q-0019, EZD-172). A lock appears by hard link from a temp file that already holds the pid, so a visible lock is never empty (Q-0381); a lock left by a dead process is taken over. Only the gate holding <lock>.takeover removes a dead lock, after reading it again (EZD-256, scripts/gate-lock.mjs).
 const lockPath = path.join(os.tmpdir(), lane === 0 ? 'ezdraft-gate.lock' : `ezdraft-gate-lane${lane}.lock`);
 const busyText = (pid) => lane === 0
   ? `another gate is running (pid ${pid}). Run one gate at a time (Q-0019).`
@@ -142,10 +143,11 @@ function takeLock() {
       if (text === null && gone < 3) { gone++; continue; }
       if (text !== null) {
         const pid = Number(text) || 0;
-        let alive = false;
-        if (pid) { try { process.kill(pid, 0); alive = true; } catch (err) { alive = err.code === 'EPERM'; } }
-        if (alive) { dropTmp(); console.error(`GATE FAIL: ${busyText(pid)}`); process.exit(1); }
-        try { unlinkSync(lockPath); } catch {}
+        if (isLive(pid)) { dropTmp(); console.error(`GATE FAIL: ${busyText(pid)}`); process.exit(1); }
+        let r;
+        try { r = removeDeadLock(lockPath, text, (t) => !isLive(Number(t) || 0)); }
+        catch { r = { outcome: 'busy', pid: 0 }; } // Something else sits at the take-over name: refuse, as for a held lock.
+        if (r.outcome === 'busy') { dropTmp(); console.error(r.pid ? `GATE FAIL: ${busyText(r.pid)}` : 'GATE FAIL: could not take the gate lock.'); process.exit(1); }
       }
       break;
     }
@@ -159,7 +161,6 @@ let sweepResult = 'pass';
 let sweepLock = null;
 // pid in a lock or lease file: the trimmed text when it is a positive integer, else 0 (none).
 const pidOf = (text) => (/^[1-9][0-9]*$/.test(String(text).trim()) ? Number(String(text).trim()) : 0);
-const isAlive = (pid) => { if (!pid) return false; try { process.kill(pid, 0); return true; } catch (err) { return err.code === 'EPERM'; } };
 const readPid = (file) => { try { return pidOf(readFileSync(file, 'utf8')); } catch { return 0; } };
 const sweepLockPath = (m) => path.join(os.tmpdir(), `ezdraft-sweep-lane${m}.lock`);
 function releaseSweepLock() {
@@ -182,8 +183,11 @@ function takeSweepLock(m) {
         let text;
         try { text = readFileSync(file, 'utf8'); } catch (err) { if (err.code === 'ENOENT') continue; text = ''; }
         const pid = pidOf(text);
-        if (isAlive(pid)) return pid;
-        try { unlinkSync(file); } catch {}
+        if (isLive(pid)) return pid;
+        let r;
+        try { r = removeDeadLock(file, text, (t) => !isLive(pidOf(t))); }
+        catch { r = { outcome: 'busy', pid: 0 }; }
+        if (r.outcome === 'busy') return r.pid || -1;
       }
     }
   } finally { try { unlinkSync(tmp); } catch {} }
@@ -192,9 +196,9 @@ function takeSweepLock(m) {
 function waitForSweep() {
   const file = sweepLockPath(lane);
   const until = Date.now() + 130000;
-  while (isAlive(readPid(file)) && Date.now() < until) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
+  while (isLive(readPid(file)) && Date.now() < until) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
   const pid = readPid(file);
-  if (isAlive(pid)) {
+  if (isLive(pid)) {
     laneStopped = true;
     console.error(`GATE FAIL: a lane sweep of lane ${lane} is still running (pid ${pid}).`);
     process.exit(1);
@@ -211,9 +215,9 @@ function sweepStaleLanes() {
     const holder = takeSweepLock(m);
     if (holder) { say(`lane sweep: lane ${m} skipped (sweep pid ${holder > 0 ? holder : 'unknown'})`); continue; }
     const gatePid = readPid(path.join(os.tmpdir(), `ezdraft-gate-lane${m}.lock`));
-    if (isAlive(gatePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (gate pid ${gatePid})`); continue; }
+    if (isLive(gatePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (gate pid ${gatePid})`); continue; }
     const leasePid = readPid(path.join(os.tmpdir(), `ezdraft-lane${m}.lease`));
-    if (isAlive(leasePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (lease pid ${leasePid})`); continue; }
+    if (isLive(leasePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (lease pid ${leasePid})`); continue; }
     const r = spawnSync(process.execPath, [script, 'stop-lane'], {
       cwd: dir, env: { ...env, EZD_LANE: String(m), SUPABASE_WORKDIR: path.join(dir, '.lanes', `lane${m}`) }, encoding: 'utf8', timeout: 120000 });
     log(`${r.stdout || ''}${r.stderr || ''}`);
