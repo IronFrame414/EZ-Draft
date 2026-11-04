@@ -118,10 +118,14 @@ function commitHeldEntry() {
   if (!held?.entry) return false;
   const text = git('show', `HEAD:${TICKETS_REL}`).stdout;
   const now = JSON.parse(text).tickets.find((x) => x.id === ticket);
-  if (!now || JSON.stringify(now) === JSON.stringify(held.entry)) return false;
-  stageEntry(text, held.entry);
+  // A tooling mark waits for its plan (the feat commit brings both): on develop alone it fails the ledger check, and any other session's push carries it (CI red at 973638e3).
+  const planTracked = git('ls-files', '--error-unmatch', '--', planRel()).status === 0;
+  const { track, ...unmarked } = held.entry;
+  const entry = planTracked ? held.entry : unmarked;
+  if (!now || JSON.stringify(now) === JSON.stringify(entry)) return false;
+  stageEntry(text, entry);
   // A plan already on develop goes with its entry, or develop's ledger check sees the two differ.
-  if (git('ls-files', '--error-unmatch', '--', planRel()).status === 0) git('add', '--', planRel());
+  if (planTracked) git('add', '--', planRel());
   const c = git('commit', '-q', '-m', `docs(vault): ${ticket} tickets.json entry from its plan`);
   if (c.status) stop(`WORKTREE STOP: entry commit failed: ${firstLine(c)}`);
   console.log(`ENTRY ${ticket} committed on develop`);

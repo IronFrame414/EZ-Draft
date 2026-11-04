@@ -358,6 +358,28 @@ test('a plan amended during the unit sets the Architecture list in the feat comm
   assert.deepEqual(entry.architecture, ['Tests', 'Migrations']);
 });
 
+test('a tooling mark does not reach develop before its plan; the feat commit brings both (CI red at 973638e3)', async () => {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const dir = fixture();
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan\n', entry: { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture: ['Tests'], track: 'tooling' } }]);
+  db.close();
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# plan\n');
+  const entryAt = (rev) => JSON.parse(git(dir, 'show', `${rev}:vault/tickets/tickets.json`)).tickets.find((t) => t.id === 'EZD-002');
+  const w = run(dir, 'worktree', 'EZD-002');
+  assert.equal(w.status, 0, w.stdout + w.stderr);
+  assert.equal(entryAt('HEAD').track, undefined);
+  assert.deepEqual(entryAt('HEAD').architecture, ['Tests']);
+  commitIn(path.join(dir, '.claude/worktrees/EZD-002'), 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(path.join(dir, '.claude/worktrees/EZD-002'));
+  const r = run(dir, 'merge', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(entryAt('HEAD').track, 'tooling');
+  assert.equal(git(dir, 'show', 'HEAD:vault/plans/EZD-002.md'), '# plan');
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test('2.12 U3 the feat commit writes the tickets.json entry the records database held for the ticket (D9 (a), 2026-11-02)', async () => {
   const { openRecords, applyOps } = await import(RECORDS);
   const dir = fixture();
