@@ -77,19 +77,6 @@
   color: var(--ez-slate-500);
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--ez-radius-999);
-  background: var(--ez-ink);
-  color: var(--ez-surface);
-  font-size: 12px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .body {
   box-sizing: border-box;
   flex: 1;

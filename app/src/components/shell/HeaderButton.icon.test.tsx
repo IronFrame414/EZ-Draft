@@ -13,8 +13,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const classTokens = (html: string) =>
   (/class="([^"]*)"/.exec(html)?.[1] ?? '').split(' ').filter((c) => c.length > 0);
 const count = (html: string, needle: string) => html.split(needle).length - 1;
-// EZD-113 E1 (vault/plans/EZD-113.md Decided "Icons"): the 29 names, EZD-112's 24 plus add,
-// more_horiz, person_book, search and verified_user.
+// EZD-108 E1 (vault/plans/EZD-108.md section 4): EZD-113's 29 names plus logout, person and settings (32),
+// sorted.
 const EXPECTED_ICONS = [
   'add',
   'arrow_back',
@@ -36,10 +36,13 @@ const EXPECTED_ICONS = [
   'inventory_2',
   'kitchen',
   'library_books',
+  'logout',
   'monitor_heart',
   'more_horiz',
+  'person',
   'person_book',
   'search',
+  'settings',
   'share',
   'tune',
   'upload',

@@ -261,6 +261,17 @@ export function useLeave(): (href: string) => Promise<LeaveResult> {
   return useUnsavedContext('useLeave').leave;
 }
 
+// EZD-108 Step 14 (vault/plans/EZD-108.md Decided "Unsaved edits in Settings"): the same "Save your
+// changes?" check without navigating, for Sign out; true when the user may leave.
+export function useLeaveCheck(): () => Promise<boolean> {
+  const { holderRef } = useUnsavedContext('useLeaveCheck');
+  const ask = useConfirm();
+  return useCallback(
+    async () => (await confirmLeave(holderRef.current, ask, () => {})) === 'left',
+    [holderRef, ask],
+  );
+}
+
 export type GuardedLinkProps = {
   href: string;
   className?: string;

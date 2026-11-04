@@ -66,6 +66,7 @@ describe('EZD-103a settings shell loader', () => {
     expect(await loadSettingsShellData(client, session, WITH_USERS)).toEqual({
       companyName: 'Worth Properties',
       initials: 'JB',
+      userName: 'Josh Bishop',
       activeMembers: 4,
     });
     expect(calls.membership).toContainEqual(['select', 'id', { count: 'exact', head: true }]);
@@ -113,6 +114,7 @@ describe('EZD-103a settings shell loader', () => {
     expect(await loadSettingsShellData(client, session, WITH_USERS)).toEqual({
       companyName: '',
       initials: 'J',
+      userName: null,
       activeMembers: null,
     });
     expect(calls.membership).toBeUndefined();

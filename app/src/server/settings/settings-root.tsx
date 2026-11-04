@@ -3,6 +3,8 @@
 // shell around the page, or the load error (reported with its code only) when the data cannot be read.
 // EZD-103b Step 9 (vault/plans/EZD-103b.md Decided "Draft lifetime"): the shell's draft scope is the
 // membership, or the user when there is no permission context.
+// EZD-108 Step 17 (vault/plans/EZD-108.md Decided "Menu"): the avatar menu's account; Company settings
+// shows with at least one Settings section allowed (Q-0210; Q-0403).
 import { connection } from 'next/server';
 import type { ReactNode } from 'react';
 import { SettingsLoadError, SettingsShell } from '../../components/settings/SettingsShell';
@@ -22,6 +24,7 @@ export async function SettingsRoot({ children }: { children: ReactNode }) {
   const ctx = await settingsPermissionContext();
   const data =
     ctx === 'failed' ? null : await loadSettingsShellData(createSessionClient(), session, ctx);
+  const allowed = ctx === 'failed' ? [] : allowedSections((p) => can(ctx, p)).map((s) => s.id);
   if (data === null) {
     await reportError(new Error('settings_shell_load_failed'), {
       source: 'function',
@@ -37,9 +40,14 @@ export async function SettingsRoot({ children }: { children: ReactNode }) {
           <SettingsShell
             companyName={data.companyName}
             initials={data.initials}
-            allowed={allowedSections((p) => can(ctx, p)).map((s) => s.id)}
+            allowed={allowed}
             activeMembers={data.activeMembers}
             draftScope={ctx?.membershipId ?? session.appUserId}
+            account={{
+              name: data.userName,
+              email: session.email,
+              showCompanySettings: allowed.length > 0,
+            }}
           >
             {children}
           </SettingsShell>

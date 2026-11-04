@@ -10,4 +10,12 @@ export const WRITE_PERMISSION_EXEMPTIONS: ReadonlyArray<{ path: string; reason: 
     path: 'app/src/server/auth/actions.ts',
     reason: 'sign-in, before a member session (EZD-007d, EZD-033)',
   },
+  {
+    path: 'app/src/app/api/profile/route.ts',
+    reason: 'own profile; every signed-in user, S15 Permissions (EZD-108)',
+  },
+  {
+    path: 'app/src/app/api/profile/password/route.ts',
+    reason: 'own password; every signed-in user, Q-0096 P6 (EZD-108)',
+  },
 ];

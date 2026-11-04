@@ -5,6 +5,9 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
+  { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
+  { fn: 'current_user_has_password', args: {} },
   { fn: 'health', args: {} },
   // EZD-007b (vault/plans/EZD-007b.md section 3): the linking and access functions, authenticated only.
   { fn: 'current_app_user_id', args: {} },

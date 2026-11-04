@@ -96,6 +96,7 @@ const shell = (props: Partial<Parameters<typeof SettingsShell>[0]> = {}) => (
     activeMembers={4}
     allowed={ALL}
     draftScope="m1"
+    account={{ name: 'Josh Bishop', email: 'josh@example.test', showCompanySettings: true }}
     {...props}
   >
     <p data-c="" />

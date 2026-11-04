@@ -7,8 +7,11 @@
 // status bar; the Projects link and the nav items are GuardedLinks.
 // EZD-112 Step 14 (vault/plans/EZD-112.md Decided "Shell additions"): `SettingsMain` takes `subtitle` and
 // `flush`; a page adds status bar items after the Company item with `useSettingsStatus`.
+// EZD-108 Step 16 (vault/plans/EZD-108.md Decided "Settings header markup", "Unsaved edits in Settings"):
+// the initials are the avatar menu; Company settings and Sign out ask "Save your changes?" first.
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { AvatarMenu } from '../account/AvatarMenu';
 import { Disclaimer } from '../disclaimer/Disclaimer';
 import { Icon } from '../icon/Icon';
 import { InlineError } from '../states/InlineError';
@@ -17,7 +20,7 @@ import { SETTINGS_SECTIONS, sectionForPath, settingsHref } from '../../lib/setti
 import type { SettingsSectionId } from '../../lib/settings/sections';
 import type { MessageKey } from '../../server/messages/catalog';
 import styles from './SettingsShell.module.css';
-import { GuardedLink, UnsavedChangesProvider } from './unsaved-changes';
+import { GuardedLink, UnsavedChangesProvider, useLeave, useLeaveCheck } from './unsaved-changes';
 
 export type SettingsStatusEntry = { id: string; label: MessageKey; value: string };
 
@@ -40,8 +43,31 @@ export type SettingsShellProps = {
   allowed: readonly SettingsSectionId[];
   activeMembers: number | null;
   draftScope: string;
+  account: { name: string | null; email: string; showCompanySettings: boolean };
   children: ReactNode;
 };
+
+// Inside UnsavedChangesProvider, so the menu's leave and sign-out checks see the page's unsaved edits.
+function SettingsAvatar({
+  initials,
+  account,
+}: {
+  initials: string;
+  account: SettingsShellProps['account'];
+}) {
+  const leave = useLeave();
+  const beforeSignOut = useLeaveCheck();
+  return (
+    <AvatarMenu
+      initials={initials}
+      name={account.name}
+      email={account.email}
+      showCompanySettings={account.showCompanySettings}
+      onNavigate={(href) => void leave(href)}
+      beforeSignOut={beforeSignOut}
+    />
+  );
+}
 
 export function SettingsShell({
   companyName,
@@ -49,6 +75,7 @@ export function SettingsShell({
   allowed,
   activeMembers,
   draftScope,
+  account,
   children,
 }: SettingsShellProps) {
   const t = useT();
@@ -76,9 +103,7 @@ export function SettingsShell({
             <span data-settings-company="" className={styles.company}>
               {companyName}
             </span>
-            <span data-settings-avatar="" aria-hidden="true" className={styles.avatar}>
-              {initials}
-            </span>
+            <SettingsAvatar initials={initials} account={account} />
           </header>
           <div data-settings-region="body" className={styles.body}>
             <nav

@@ -2,6 +2,7 @@
 // check until EZD-117a (Projects) and EZD-103 (Settings) add the real pages.
 // EZD-103a: the Settings shell, so the perf check measures it.
 // EZD-103b: the unsaved-edits guard and draft store, so the perf check measures them.
+// EZD-108: the avatar menu, so the perf check measures it.
 import { notFound } from 'next/navigation';
 import { MessagesProvider } from '../../../../../lib/messages';
 import { catalogFor } from '../../../../../server/messages/catalog';
@@ -22,6 +23,7 @@ export default function Page() {
           allowed={NO_SECTIONS}
           activeMembers={null}
           draftScope=""
+          account={{ name: null, email: '', showCompanySettings: false }}
         >
           <main data-entry-placeholder="office" />
         </SettingsShell>

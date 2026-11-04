@@ -1,4 +1,5 @@
 import type { CustomerEventField } from '../customers/customers';
+import type { Language } from '../profile/profile';
 
 export type EventKind = 'webhook' | 'internal' | 'log_only';
 
@@ -58,6 +59,7 @@ export const EVENTS = {
   'tenant.updated': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
+  'user.language_changed': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -123,4 +125,5 @@ export interface EventPayloads {
   'tenant.updated': { fields: TenantField[] };
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
+  'user.language_changed': { appUserId: string; language: Language };
 }

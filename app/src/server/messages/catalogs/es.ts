@@ -83,6 +83,17 @@ export const es = {
   'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
+  'error.password_too_short': 'Usa al menos 8 caracteres.',
+  'error.password_too_long': 'Esa contraseña es demasiado larga.',
+  'error.password_contains_app_name': 'No uses "ezdraft" en tu contraseña.',
+  'error.password_contains_email_name':
+    'No uses la primera parte de tu correo electrónico en tu contraseña.',
+  'error.password_mismatch': 'Las contraseñas nuevas no coinciden.',
+  'error.current_password_wrong': 'Tu contraseña actual es incorrecta.',
+  'error.current_password_throttled':
+    'Demasiadas contraseñas incorrectas. Inténtalo de nuevo en 15 minutos.',
+  'error.password_same': 'Elige una contraseña distinta de la actual.',
+  'error.password_breached': 'Esta contraseña apareció en una filtración de datos. Elige otra.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

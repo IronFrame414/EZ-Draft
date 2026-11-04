@@ -361,6 +361,9 @@ isOneToOne: false
               "listed_project_ids": (string)[],"membership_id": string,"permission_keys": (string)[],"project_scope": string
             }[]
                            },
+"current_user_has_password":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },
@@ -478,6 +481,11 @@ isOneToOne: false
 "sign_in_throttle_take":
 { Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
               "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
+            }[]
+                           },
+"update_my_profile":
+{ Args: { "p_ipad_input_mode": string,"p_language": string }; Returns: {
+              "language_changed": boolean,"saved_ipad_input_mode": string,"saved_language": string
             }[]
                            },
 "update_tenant_identity":

@@ -28,6 +28,7 @@ vi.mock('./shell-data', async (orig) => ({
   loadSettingsShellData: vi.fn(async () => ({
     companyName: 'Worth Properties',
     initials: 'JB',
+    userName: 'Josh Bishop',
     activeMembers: 3,
   })),
 }));

@@ -43,7 +43,12 @@ const ctxWith = (keys: readonly PermissionKey[]): PermissionContext => ({
   permissions: new Set<PermissionKey>(keys),
   listedProjectIds: new Set(),
 });
-const DATA = { companyName: 'Worth Properties', initials: 'JB', activeMembers: 3 };
+const DATA = {
+  companyName: 'Worth Properties',
+  initials: 'JB',
+  userName: 'Josh Bishop',
+  activeMembers: 3,
+};
 
 const count = (html: string, needle: string) => html.split(needle).length - 1;
 const navCount = (html: string) => (html.match(/\bdata-settings-nav="/g) ?? []).length;
