@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 600,
+ "count": 601,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -18095,6 +18095,33 @@
    "build_position": 587,
    "acs": [
     "AC-EZD-329-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-330",
+   "phase": 2,
+   "title": "Fix: the Projects page tabs and other controls meet the 44 px touch-target check",
+   "depends_raw": "EZD-117a, EZD-289",
+   "spec_ref": "11 Non-functional requirements (touch targets); S01 Projects",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/sections/screens/S01-projects.md#Controls"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-289"
+   ],
+   "build_position": 588,
+   "acs": [
+    "AC-EZD-330-1"
    ],
    "acs_source": "done-when"
   }
