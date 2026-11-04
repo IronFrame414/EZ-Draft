@@ -502,7 +502,7 @@ isOneToOne: false
 { Args: { "p_settings": Json }; Returns: undefined
                            },
 "send_test_notification":
-{ Args: { "p_kind": string,"p_payload": Json,"p_project_id": string }; Returns: string
+{ Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
                            },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined

@@ -8,6 +8,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Sql, TransactionSql } from './db';
 import { API_ROLES, PRIVATE_EXECUTE } from './private-execute';
+import { isTestOnlyName, TEST_ONLY_FUNCTIONS } from './test-only-functions';
 import { expectedAuthenticatedPrivileges, explicitGrantRoles } from './table-grants';
 import { PROJECT_KEY, TENANTLESS_TABLES } from './tenancy-exemptions';
 
@@ -89,6 +90,18 @@ export async function auditRls(
     cross join unnest(${[...API_ROLES]}::text[]) as r(role)
     where n.nspname = 'private'
     order by 1, 3`;
+
+  const testOnlyRows = await sql<
+    { fn: string; proname: string; anon: boolean; authenticated: boolean }[]
+  >`
+    select format('%I.%I(%s)', n.nspname, p.proname, oidvectortypes(p.proargtypes)) as fn,
+      p.proname::text as proname,
+      has_function_privilege('anon', p.oid, 'EXECUTE') as anon,
+      has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname in ('public', 'private')
+    order by 1`;
 
   const testText = readAppTestText(options.repoRoot);
   const migrationTexts = readMigrationTexts(options.repoRoot);
@@ -218,6 +231,17 @@ export async function auditRls(
         add(entry.fn, `${role}_private_execute_stale`);
       }
     }
+  }
+  // EZD-323: a function whose name marks it test-only is never executable by anon or authenticated, and
+  // is listed with a reason; a listed entry must still exist.
+  const named = testOnlyRows.filter((r) => isTestOnlyName(r.proname));
+  for (const r of named) {
+    if (r.anon) add(r.fn, 'anon_executes_test_only_function');
+    if (r.authenticated) add(r.fn, 'authenticated_executes_test_only_function');
+    if (!TEST_ONLY_FUNCTIONS.some((e) => e.fn === r.fn)) add(r.fn, 'test_only_function_unlisted');
+  }
+  for (const entry of TEST_ONLY_FUNCTIONS) {
+    if (!named.some((r) => r.fn === entry.fn)) add(entry.fn, 'test_only_function_stale');
   }
   return problems;
 }

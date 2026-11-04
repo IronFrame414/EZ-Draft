@@ -3,13 +3,14 @@
 // then 403 (no View projects), then 400 (not JSON, unknown kind, params not the kind's), then 404
 // project_not_found (a listed member's unlisted project, or a database scope refusal 42501, so the answer
 // does not reveal whether the project exists), then the insert and the job run kick; 201.
+// EZD-323: sendTestNotification runs with the secret-key client and the caller's membership id.
 import { z } from 'zod';
 import {
   NOTIFICATION_KINDS,
   NOTIFICATION_PARAM_SCHEMAS,
 } from '../../../../lib/notifications/kinds';
-import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
+import { createJobsDbClient } from '../../../../server/jobs/db';
 import { kickJobRunner } from '../../../../server/jobs/kick';
 import { sendTestNotification } from '../../../../server/notifications/notifications';
 import {
@@ -59,7 +60,8 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const id = await sendTestNotification(createSessionClient(), {
+    const id = await sendTestNotification(createJobsDbClient(), {
+      membershipId: p.ctx.membershipId,
       kind,
       projectId: projectId ?? null,
       params: params.data,

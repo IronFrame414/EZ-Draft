@@ -2,6 +2,7 @@
 // server-only helpers over the notification functions, called with the caller's session client (RLS and the
 // definer functions limit every row to the caller's own, in scope). RPC errors are thrown unchanged; a
 // result of the wrong shape throws a fixed code.
+// EZD-323: sendTestNotification runs with the secret-key client and the caller's membership id.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
@@ -79,10 +80,16 @@ export async function markAllNotificationsRead(db: SupabaseClient<Database>): Pr
 
 export async function sendTestNotification(
   db: SupabaseClient<Database>,
-  input: { kind: NotificationKind; projectId: string | null; params: NotificationParams },
+  input: {
+    membershipId: string;
+    kind: NotificationKind;
+    projectId: string | null;
+    params: NotificationParams;
+  },
 ): Promise<string> {
   // p_project_id takes null for a notification with no project; the generated types do not say so.
   const { data, error } = await db.rpc('send_test_notification', {
+    p_membership_id: input.membershipId,
     p_kind: input.kind,
     p_project_id: input.projectId as string,
     p_payload: input.params as Json,

@@ -121,7 +121,7 @@ describe('EZD-110a dev notifications route', () => {
     }
   }, 180000);
 
-  it('EZD-110a T11 production answers a bare 404 before any session work', async () => {
+  it('EZD-110a T11 production answers a bare 404 before any session work (EZD-323)', async () => {
     vi.stubEnv('VERCEL_ENV', 'production');
     state.store = new Map(cookies);
     const r = await send({ kind: 'render_finished', params: {} });
@@ -130,7 +130,7 @@ describe('EZD-110a dev notifications route', () => {
     expect(kick.fn).not.toHaveBeenCalled();
   });
 
-  it('EZD-110a T11 signed out is 401 and bad input is 400 invalid_input', async () => {
+  it('EZD-110a T11 signed out is 401 and bad input is 400 invalid_input (EZD-323)', async () => {
     state.store = new Map();
     const a = await send({ kind: 'render_finished', params: {} });
     expect(a.res.status).toBe(401);
@@ -148,7 +148,7 @@ describe('EZD-110a dev notifications route', () => {
     expect(kick.fn).not.toHaveBeenCalled();
   }, 60000);
 
-  it('EZD-110a T11 each of the nine kinds answers 201 with the new id and link "/", kicking the job runner once each', async () => {
+  it('EZD-110a T11 each of the nine kinds answers 201 with the new id and link "/", kicking the job runner once each (EZD-323)', async () => {
     for (const kind of NOTIFICATION_KINDS) {
       state.store = new Map(cookies);
       kick.fn.mockClear();
@@ -162,7 +162,7 @@ describe('EZD-110a dev notifications route', () => {
     }
   }, 120000);
 
-  it('EZD-110a T11 a project the caller cannot see answers 404 project_not_found and creates nothing', async () => {
+  it('EZD-110a T11 a project the caller cannot see answers 404 project_not_found and creates nothing (EZD-323)', async () => {
     const counts = async () =>
       (
         await harnessSql()<{ n: number; j: number }[]>`

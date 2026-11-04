@@ -16,6 +16,7 @@ import {
 } from '../../../test-harness/realtime/node-client';
 import { ensureStream, fencedStep } from '../../../test-harness/realtime/stream';
 import {
+  adminDb,
   cleanup,
   closeHarness,
   createMember,
@@ -469,13 +470,15 @@ describe('EZD-110a notification table and functions', () => {
     expect(await unreadOf(f.m.appUserId)).toBe(0);
   }, 120000);
 
-  it('EZD-110a T8 send_test_notification sends the nine kinds to the caller and refuses an unlisted project or no gate', async () => {
+  it('EZD-110a T8 send_test_notification sends the nine kinds to the caller and refuses an unlisted project or an unknown membership (EZD-323)', async () => {
     const f = await track();
     const sql = harnessSql();
+    const admin = adminDb() as unknown as Db;
     const ids: string[] = [];
     for (const kind of NOTIFICATION_KINDS)
       ids.push(
-        await sendTestNotification(dbOf(f.mS), {
+        await sendTestNotification(admin, {
+          membershipId: f.m.membershipId,
           kind,
           projectId: null,
           params: DEV_SAMPLE_PARAMS[kind],
@@ -492,26 +495,29 @@ describe('EZD-110a notification table and functions', () => {
     expect(rows.map((r) => r.kind).sort()).toEqual([...NOTIFICATION_KINDS].sort());
 
     const l = await createMember({ tenantId: f.tenant, scope: 'listed', listed: [] });
-    const lS = await signIn(l.email);
     const err = await codeOf(
-      sendTestNotification(dbOf(lS), { kind: 'render_finished', projectId: f.project, params: {} }),
+      sendTestNotification(admin, {
+        membershipId: l.membershipId,
+        kind: 'render_finished',
+        projectId: f.project,
+        params: {},
+      }),
     );
     expect(err).toBe('42501');
 
-    const noGate = await f.mS.browserDb.rpc('send_test_notification', {
-      p_kind: 'render_finished',
-      p_project_id: null,
-      p_payload: {},
-    });
-    expect(noGate.error?.code).toBe('42501');
+    const unknown = await codeOf(
+      sendTestNotification(admin, {
+        membershipId: randomUUID(),
+        kind: 'render_finished',
+        projectId: null,
+        params: {},
+      }),
+    );
+    expect(unknown).toBe('42501');
 
     const listed = GATED_RPC_CALLS.map((c) => c.fn);
-    for (const fn of [
-      'send_test_notification',
-      'list_notifications',
-      'open_notification',
-      'mark_all_notifications_read',
-    ])
+    for (const fn of ['list_notifications', 'open_notification', 'mark_all_notifications_read'])
       expect(listed).toContain(fn);
+    expect(listed).not.toContain('send_test_notification');
   }, 120000);
 });
