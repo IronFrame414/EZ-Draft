@@ -178,9 +178,9 @@ export async function completeSourceFileUpload(
       .select(VIEW_COLUMNS)
       .eq('id', sourceFileId)
       .maybeSingle();
-    if (again.error || !again.data || again.data.uploaded_at === null) {
-      throw new StorageError('storage_unavailable');
-    }
+    if (again.error || !again.data) throw new StorageError('storage_unavailable');
+    // A still-pending re-read means the update policy refused the caller (EZD-320).
+    if (again.data.uploaded_at === null) throw new StorageError('upload_refused');
     return toView(again.data);
   }
   return toView(updated.data);
