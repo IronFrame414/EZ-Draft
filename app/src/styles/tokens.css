@@ -55,4 +55,8 @@
   --ez-amber-text: oklch(0.48 0.13 65);
   /* B15a .tr:hover; EZD-113 */
   --ez-row-hover: #f8f9fb;
+  /* S01c notification list; EZD-110 */
+  --ez-unread-tint: #f7f8ff;
+  --ez-slate-450: #6b7280;
+  --ez-shadow-popover: 0 16px 48px rgba(10,15,30,.18);
 }

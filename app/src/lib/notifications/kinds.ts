@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import type { MessageParams } from '../messages/types';
 import type { MessageKey } from '../../server/messages/catalog';
+import type { IconName } from '../../components/icon/icon-names.generated';
 
 export const NOTIFICATION_KINDS = [
   'client_response',
@@ -66,4 +67,28 @@ export function notificationTitle(
       params,
     };
   return { key: `office.notifications.kind.${kind}` as MessageKey, params };
+}
+
+// EZD-110b Step 7 (vault/plans/EZD-110b.md section 3 "kinds.ts"; board 01c): the icon of a notification.
+export function notificationIcon(kind: NotificationKind, params: NotificationParams): IconName {
+  switch (kind) {
+    case 'client_response':
+      return params.action === 'approved' ? 'check_circle' : 'chat_bubble';
+    case 'field_conflict':
+      return 'compare_arrows';
+    case 'field_measurements_received':
+      return 'straighten';
+    case 'render_finished':
+      return 'photo_camera';
+    case 'edit_request':
+      return 'edit';
+    case 'sync_conflict':
+      return 'sync_problem';
+    case 'cleanup_due':
+      return 'event';
+    case 'render_allowance_refilled':
+      return 'autorenew';
+    case 'field_pack_issued':
+      return 'assignment';
+  }
 }

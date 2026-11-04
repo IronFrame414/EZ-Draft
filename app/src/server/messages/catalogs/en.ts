@@ -261,6 +261,21 @@ export const en = {
   'office.notifications.kind.field_pack_issued': 'New field pack issued',
   'office.notifications.project_line': '{project} · {client}',
   'office.notifications.email_link': 'Open EZ Draft',
+  'office.notifications.title': 'Notifications',
+  'office.notifications.mark_all_read': 'Mark all read',
+  'office.notifications.show_older': 'Show older',
+  'office.notifications.empty': 'No notifications yet',
+  'office.notifications.bell': 'Notifications',
+  'office.notifications.bell_unread': 'Notifications, {count} new',
+  'office.notifications.unread': 'Unread',
+  'office.notifications.read': 'Read',
+  'office.notifications.load_failed': 'Notifications could not load',
+  'office.notifications.time.just_now': 'Just now',
+  'office.notifications.time.minutes_ago': '{count} min ago',
+  'office.notifications.time.hours_ago': '{count} h ago',
+  'office.notifications.time.yesterday': 'Yesterday {time}',
+  'office.notifications.time.date': '{date}',
+  'office.notifications.time.date_year': '{date}, {year}',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

@@ -1,0 +1,14 @@
+/* EZD-110b B8: places the bell where board 01c puts it in the header row. */
+.spacer {
+  flex: 1;
+}
+
+.gear {
+  width: 42px;
+  flex: none;
+}
+
+.avatar {
+  width: 32px;
+  flex: none;
+}

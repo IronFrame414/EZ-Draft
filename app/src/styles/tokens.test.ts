@@ -46,6 +46,10 @@ const EXPECTED: readonly (readonly [string, string, Group])[] = [
   ['--ez-inspector-width', '336px', 'frame'],
   ['--ez-status-bar-height', '30px', 'frame'],
   ['--ez-grid-size', '32px', 'frame'],
+  // EZD-110 step 18 (vault/plans/EZD-110b.md): S01c notification list.
+  ['--ez-unread-tint', '#f7f8ff', 'color'],
+  ['--ez-slate-450', '#6b7280', 'color'],
+  ['--ez-shadow-popover', '0 16px 48px rgba(10,15,30,.18)', 'shadow'],
 ];
 
 const here = path.dirname(fileURLToPath(import.meta.url));

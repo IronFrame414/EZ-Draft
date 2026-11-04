@@ -54,4 +54,8 @@ export const TOKENS: readonly {
   { name: '--ez-surface-sunken', value: '#fbfbfc', group: 'color' },
   { name: '--ez-amber-text', value: 'oklch(0.48 0.13 65)', group: 'color' },
   { name: '--ez-row-hover', value: '#f8f9fb', group: 'color' },
+  // S01c notification list; EZD-110
+  { name: '--ez-unread-tint', value: '#f7f8ff', group: 'color' },
+  { name: '--ez-slate-450', value: '#6b7280', group: 'color' },
+  { name: '--ez-shadow-popover', value: '0 16px 48px rgba(10,15,30,.18)', group: 'shadow' },
 ];
