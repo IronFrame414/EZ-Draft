@@ -308,7 +308,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
-- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Q-0570). The spike EZD-027 (plan canvas on the iPad) must have a go note.
+- **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Slice 6 below; AC-EZD-207-5). The spike EZD-027 (plan canvas on the iPad) must have a go note.
 - **Josh's test script:**
   1. New project → Blank → L-kitchen template. Expected: The plan opens with the template walls.
   2. In a new Empty project, press R, click a start point, type 12'6" Tab 10' Enter. Expected: A 12'6" × 10' room closes with no gap and shows its area.

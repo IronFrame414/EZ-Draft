@@ -1,6 +1,6 @@
 ## Phase 2 · Geometry core + plan editor
 
-Goal and Build gate: superseded by the re-cut (Q-0218). These tickets sit in the slices of `vault/tickets/PHASES.md`; each slice's goal, result and Josh's test script are there. **Phase 4 Build gate (Q-0570):** the Measurement entry, Room closure and Wall move tests of ACs EZD-201, 203, 205 pass as automated tests; frame times are a trend, not a gate (11 Performance). **Field check (Josh):** the Slice 4 test script; the Surface timing check waits for the benchmark page, EZD-237, phase 6.
+Goal and Build gate: superseded by the re-cut (Q-0218). These tickets sit in the slices of `vault/tickets/PHASES.md`; each slice's goal, result and Josh's test script are there. **Phase 4 Build gate (ACs of EZD-201, 203, 205; AC-EZD-207-5; 11 Performance):** the Measurement entry, Room closure and Wall move tests of ACs EZD-201, 203, 205 pass as automated tests; frame times are a trend, not a gate (11 Performance). **Field check (Josh):** the Slice 4 test script; the Surface timing check waits for the benchmark page, EZD-237, phase 6 (PHASES.md Slice 6).
 
 | ID | Ticket | Scope (what to build, concrete) | Done when (testable) | Depends on | Spec ref |
 | --- | --- | --- | --- | --- | --- |

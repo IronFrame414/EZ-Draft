@@ -1,6 +1,6 @@
 # Phase 4 spec gaps for Josh · Plan canvas and first walls
 
-Stage 0 (spec-check 4), 2026-11-04. Phase 4 is the re-cut phase (vault/tickets/PHASES.md, Q-0218): EZD-201, 203, 205, 236, 207, 209, 210, 221. Not the old file `vault/tickets/phases/phase-04.md`, which is spec phase 4 and is now phases 15 and 16. Phase-auditor run 1 (Opus 5.5; Fable 5.1 was out of credits) found 34 gaps against `vault/spec/READINESS.md`. Under batched sign-offs (`vault/spec/decisions/process.md`, 2026-11-03) only business, product and wording questions go to Josh; the rest are settled at the end of this file with a citation. Wording not on a mockup is proposed by the planner and approved at Stage 2 (PROCESS.md 3a), so it is not asked here. Items 11 to 15 are Q-0474 (AI drawing assistant).
+Stage 0 (spec-check 4), 2026-11-04. Phase 4 is the re-cut phase (vault/tickets/PHASES.md, Q-0218): EZD-201, 203, 205, 236, 207, 209, 210, 221, plus EZD-206 moved in from phase 5 (Q-0563). Not the old file `vault/tickets/phases/phase-04.md`, which is spec phase 4 and is now phases 15 and 16. Phase-auditor run 1 (Opus 5.5; Fable 5.1 was out of credits) found 34 gaps against `vault/spec/READINESS.md`. Under batched sign-offs (`vault/spec/decisions/process.md`, 2026-11-03) only business, product and wording questions go to Josh; the rest are settled at the end of this file with a citation. Wording not on a mockup is proposed by the planner and approved at Stage 2 (PROCESS.md 3a), so it is not asked here. Items 11 to 15 are Q-0474 (AI drawing assistant).
 
 ## For Josh
 
@@ -103,3 +103,7 @@ Round 1 answers differed from the recommendation on item 4 (no laser), item 10 a
 **4. Where the gap buttons go (gap 4).** S02 puts them in the inspector, phase 4 has none, and no board shows them.
 - Recommended: no new board (Q-0506 precedent); a small box near the gap holds the size and both buttons, and the inspector takes them over in phase 5. Wording is approved at Stage 2.
 - Alternative: draw a board first in Cowork.
+
+## Round 3 (phase-auditor run 3, Fable 5.1): 0 gaps
+
+Every round 2 fix is in place (Q-0569, Q-0570 in decisions files 03, 05, 07 and 09; 09j; 00e; the Phase 4 ACs; PHASES.md Slice 4; phase-02.md; tickets.json), and every 09j number was recomputed and is right. Two citations were fixed in place: the phase 4 build gate and the Surface timing line had cited Q-0570, which holds neither; they now cite the ACs, 11 Performance and Slice 6. The STATUS.md Depends and Phase columns for EZD-206 are D-066. Still owed, not holding up phase 4: board S03b, the conflict list (vault/handoff/board-S03b-conflict-list.md; EZD-299 stays blocked, Q-0510, Q-0567), and board S03c, the AI assistant (vault/handoff/board-S03c-ai-assistant.md; Q-0474, at phase 5 spec check).
