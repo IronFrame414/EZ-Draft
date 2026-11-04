@@ -1,6 +1,6 @@
 // EZD-025 T1 (Done when) and T12 (vault/plans/EZD-025.md Tests; Steps 4, 5, 6): the nightly files copy, the weekly
 // dump and the restore run as child processes against the stub bucket and the local stack; a deleted test project
-// comes back in the scratch stack (second Supabase stack, project_id ezdraft-restore, ports 55321/55322).
+// comes back in the scratch stack (second Supabase stack, project_id ezdraft-restore, ports 25321/25322).
 // Logs carry counts only (T12). The stub secret is `stub-secret-EZD025`. Expected values: plan T1 and T12.
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';

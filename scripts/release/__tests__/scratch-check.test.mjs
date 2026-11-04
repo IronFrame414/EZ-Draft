@@ -603,10 +603,10 @@ describe('EZD-153 scratch database migration check (unit)', () => {
     const nonComment = (text) => text.split('\n').filter((l) => !l.trimStart().startsWith('#'));
     const swaps = [
       ['ezdraft-restore', 'ezdraft-migcheck'],
-      ['55321', '56321'],
-      ['55322', '56322'],
-      ['55320', '56320'],
-      ['55329', '56329'],
+      ['25321', '26321'],
+      ['25322', '26322'],
+      ['25320', '26320'],
+      ['25329', '26329'],
     ];
     const expected = nonComment(read('scripts', 'backup', 'scratch', 'supabase', 'config.toml')).map((l) =>
       swaps.reduce((s, [from, to]) => s.replaceAll(from, to), l),

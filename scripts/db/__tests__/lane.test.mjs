@@ -129,7 +129,7 @@ describe('EZD-172 build lanes', () => {
     assert.equal(ports.length, 40);
     assert.equal(new Set(ports).size, 40, 'all 40 port values are distinct');
     const scratch = new Set();
-    for (const m of [0, 1, 2, 3]) for (let p = 55320; p <= 55329; p++) scratch.add(p + 100 * m);
+    for (const m of [0, 1, 2, 3]) for (let p = 25320; p <= 25329; p++) scratch.add(p + 100 * m);
     for (const p of ports) assert.ok(!scratch.has(p), `${p} is not a scratch port`);
   });
 
@@ -318,10 +318,10 @@ describe('EZD-172 build lanes', () => {
       dirs.push(w2);
       const cfg2 = readFileSync(path.join(w2, 'supabase', 'config.toml'), 'utf8');
       assert.match(cfg2, /^project_id = "ezdraft-restore-lane2"$/m);
-      assert.match(cfg2, /^port = 55521$/m);
-      assert.match(cfg2, /^port = 55522$/m);
-      assert.match(cfg2, /^shadow_port = 55520$/m);
-      assert.match(cfg2, /^port = 55529$/m);
+      assert.match(cfg2, /^port = 25521$/m);
+      assert.match(cfg2, /^port = 25522$/m);
+      assert.match(cfg2, /^shadow_port = 25520$/m);
+      assert.match(cfg2, /^port = 25529$/m);
       const w0 = await scratch.prepareWorkdir({ newestMigration: newest, lane: 0 });
       dirs.push(w0);
       assert.equal(

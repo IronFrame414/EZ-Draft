@@ -287,8 +287,8 @@ describe('EZD-025 T16 static checks and docs', () => {
     assert.ok(existsSync(path.join(REPO_ROOT, p)), `${p} exists`);
     const toml = read(p);
     assert.match(toml, /^\s*project_id\s*=\s*"ezdraft-restore"\s*$/m);
-    assert.equal(tomlValue(toml, 'api', 'port'), '55321');
-    assert.equal(tomlValue(toml, 'db', 'port'), '55322');
+    assert.equal(tomlValue(toml, 'api', 'port'), '25321');
+    assert.equal(tomlValue(toml, 'db', 'port'), '25322');
     assert.equal(tomlValue(toml, 'db.seed', 'enabled'), 'false');
   });
 
@@ -319,7 +319,7 @@ describe('EZD-025 T16 static checks and docs', () => {
     const runtime = section(arch, '## Runtime');
     const sub = section(runtime ?? '', '### Off-site backups and restore (EZD-025)');
     assert.ok(sub, '### Off-site backups and restore (EZD-025) is under ## Runtime');
-    for (const w of ['backup_run', 'files/', 'db/', 'manifest.json', 'versioning', '55321', 'sent/']) {
+    for (const w of ['backup_run', 'files/', 'db/', 'manifest.json', 'versioning', '25321', 'sent/']) {
       assert.ok(sub.includes(w), `section names ${w}`);
     }
     const row = arch.split(/\r?\n/).find((l) => l.startsWith('| `@aws-sdk/client-s3` |'));

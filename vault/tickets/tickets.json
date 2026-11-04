@@ -17869,6 +17869,7 @@
     "Off-site backups and restore (EZD-025)",
     "Release safety (EZD-023a)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
