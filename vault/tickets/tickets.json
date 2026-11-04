@@ -14301,9 +14301,9 @@
   {
    "id": "EZD-174",
    "phase": 1,
-   "title": "Parallel lanes: the launcher runs several units at once under boost",
-   "depends_raw": "EZD-172, EZD-173, EZD-175, EZD-262",
-   "spec_ref": "Josh 2026-10-24 (boost)",
+   "title": "Parallel lanes: the launcher runs several units at once when lanes are on",
+   "depends_raw": "EZD-172, EZD-173, EZD-175",
+   "spec_ref": "Josh 2026-10-24 (boost); Q-0555 (a)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
@@ -14317,8 +14317,7 @@
    "depends_on": [
     "EZD-172",
     "EZD-173",
-    "EZD-175",
-    "EZD-262"
+    "EZD-175"
    ],
    "build_position": 484,
    "acs": [
