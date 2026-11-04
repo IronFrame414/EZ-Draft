@@ -163,7 +163,7 @@ test.describe('EZD-102 permission enforcement', () => {
       (window as unknown as { __ezd102?: number }).__ezd102 = 1;
     });
     await page.waitForTimeout(QUIET);
-    expect(permissionRequests).toBe(0);
+    expect(permissionRequests).toBe(1);
     await expect(page.getByTestId('perm-control-edit_model')).toHaveCount(0);
 
     await harnessSql()`
@@ -172,10 +172,54 @@ test.describe('EZD-102 permission enforcement', () => {
 
     await expect(page.getByTestId('perm-control-edit_model')).toBeVisible({ timeout: WAIT });
     await page.waitForTimeout(QUIET);
-    expect(permissionRequests).toBe(1);
+    expect(permissionRequests).toBe(2);
     expect(await page.evaluate(() => (window as unknown as { __ezd102?: number }).__ezd102)).toBe(
       1,
     );
+    await expect(page.getByTestId('perm-keys')).toHaveText('edit_model,view_projects');
+  });
+
+  test('B7 first join after a held token: a change made while connecting shows up without a reload', async ({
+    sessions,
+  }) => {
+    const tenant = await createTenant();
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, m.membershipId, ['view_projects']);
+    const [s] = await sessions.open([m.email]);
+    const page = s.page;
+
+    let permissionRequests = 0;
+    page.on('request', (r) => {
+      if (new URL(r.url()).pathname === '/api/permissions') permissionRequests++;
+    });
+
+    let held = false;
+    let releaseHold!: () => void;
+    const gate = new Promise<void>((r) => {
+      releaseHold = r;
+    });
+    await page.route('**/api/realtime/token', async (route) => {
+      held = true;
+      await gate;
+      await route.continue();
+    });
+
+    await page.goto('/dev/permissions');
+    await expect.poll(() => held).toBe(true);
+    await harnessSql()`
+      update public.user_permission set granted = true
+      where membership_id = ${m.membershipId}::uuid and permission_key = 'edit_model'`;
+    await page.waitForTimeout(QUIET);
+    await expect(page.getByTestId('perm-control-edit_model')).toHaveCount(0);
+    expect(permissionRequests).toBe(0);
+
+    releaseHold();
+    await expect(page.locator('[data-testid=perm-channel][data-status=subscribed]')).toBeAttached({
+      timeout: WAIT,
+    });
+    await expect(page.getByTestId('perm-control-edit_model')).toBeVisible({ timeout: WAIT });
+    await page.waitForTimeout(QUIET);
+    expect(permissionRequests).toBe(1);
     await expect(page.getByTestId('perm-keys')).toHaveText('edit_model,view_projects');
   });
 

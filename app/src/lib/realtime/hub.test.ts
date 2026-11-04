@@ -1,3 +1,6 @@
+// EZD-318 (vault/plans/EZD-318.md section 4): every handle's onResync callbacks run once per SUBSCRIBED,
+// the first included, and once when a handle joins a channel already subscribed (T11, T14 edited; N1-N4
+// new); `ready` holds the latest outcome (T24 edited: refused after session.ended).
 // EZD-018 T10-T16, T24, T25 (vault/plans/EZD-018.md Tests; Step 5): the per-tab Realtime hub over the fake
 // adapter (app/test-harness/realtime/fake-adapter.ts), and toEventPayload. A join attempt is one status
 // delivered to a channel's subscribe callback (Step 5 adapter). env.online is createOnlineSource over a Node
@@ -91,8 +94,8 @@ describe('EZD-018 realtime hub', () => {
     });
     await flush();
     expect(h.status).toBe('subscribed');
-    expect(r1).toHaveBeenCalledTimes(0);
-    expect(r2).toHaveBeenCalledTimes(0);
+    expect(r1).toHaveBeenCalledTimes(1);
+    expect(r2).toHaveBeenCalledTimes(1);
 
     for (const cycle of [1, 2]) {
       const from = statuses.length;
@@ -101,8 +104,8 @@ describe('EZD-018 realtime hub', () => {
       adapter.openSocket();
       await flush();
       expect(h.status).toBe('subscribed');
-      expect(r1).toHaveBeenCalledTimes(cycle);
-      expect(r2).toHaveBeenCalledTimes(cycle);
+      expect(r1).toHaveBeenCalledTimes(cycle + 1);
+      expect(r2).toHaveBeenCalledTimes(cycle + 1);
       const seq = statuses.slice(from);
       const rec = seq.indexOf('reconnecting');
       expect(rec, `cycle ${cycle}: ${JSON.stringify(seq)}`).toBeGreaterThanOrEqual(0);
@@ -162,8 +165,8 @@ describe('EZD-018 realtime hub', () => {
     expect(h.status).toBe('subscribed');
     expect(fetchToken).toHaveBeenCalledTimes(2);
     expect(adapter.setAuthArgs.at(-1)).toBe('t2');
-    expect(r1).toHaveBeenCalledTimes(1);
-    expect(r2).toHaveBeenCalledTimes(1);
+    expect(r1).toHaveBeenCalledTimes(2);
+    expect(r2).toHaveBeenCalledTimes(2);
   });
 
   it('EZD-018 T15 (a) coming online reconnects once', async () => {
@@ -234,6 +237,9 @@ describe('EZD-018 realtime hub', () => {
       ).toHaveLength(1);
     }
     for (const h of [h1, h2, hu]) expect(h.status).toBe('closed');
+    expect(await h1.ready).toBe('refused');
+    expect(await h2.ready).toBe('refused');
+    expect(await hu.ready).toBe('refused');
     expect(onSessionEnded).toHaveBeenCalledTimes(1);
     expect(fetchToken).toHaveBeenCalledTimes(1);
 
@@ -384,5 +390,160 @@ describe('EZD-157 realtime hub keeps project and user channels apart', () => {
     expect(u.status).toBe('closed');
     expect(onSessionEnded).toHaveBeenCalledTimes(1);
     expect(adapter.removedFor(USER_TOPIC)).toBe(1);
+  });
+});
+
+// EZD-318 (vault/plans/EZD-318.md Tests N1-N4): own hubs, because setup()'s fetchToken cannot hold or reject.
+describe('EZD-318 realtime hub resyncs on every join', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function ownHub(fetchToken: () => Promise<RealtimeToken>) {
+    const adapter: FakeAdapter = createFakeAdapter();
+    const target = new EventTarget();
+    const nav = { onLine: true };
+    const hub = createRealtimeHub({
+      fetchToken,
+      adapter,
+      env: { online: createOnlineSource(target, nav) },
+      onSessionEnded: vi.fn(),
+    });
+    return { adapter, target, nav, hub };
+  }
+
+  it('EZD-318 N1 a change before the first join is picked up by one resync per handle', async () => {
+    let resolveToken!: (t: RealtimeToken) => void;
+    const fetchToken = vi.fn(
+      () =>
+        new Promise<RealtimeToken>((r) => {
+          resolveToken = r;
+        }),
+    );
+    const { hub } = ownHub(fetchToken);
+    let server = 1;
+    let seenP = 1;
+    let seenU = 1;
+    const rp = vi.fn(() => {
+      seenP = server;
+    });
+    const ru = vi.fn(() => {
+      seenU = server;
+    });
+    const p = hub.project(randomUUID());
+    const u = hub.user();
+    p.onResync(rp);
+    u.onResync(ru);
+    server = 2;
+    await flush();
+    expect(rp).toHaveBeenCalledTimes(0);
+    expect(ru).toHaveBeenCalledTimes(0);
+    expect(p.status).toBe('connecting');
+
+    resolveToken(token('t1'));
+    await flush();
+    expect(p.status).toBe('subscribed');
+    expect(u.status).toBe('subscribed');
+    expect(seenP).toBe(2);
+    expect(seenU).toBe(2);
+    expect(rp).toHaveBeenCalledTimes(1);
+    expect(ru).toHaveBeenCalledTimes(1);
+    expect(fetchToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('EZD-318 N2 a refused first token, then online: one resync per callback', async () => {
+    const P = randomUUID();
+    const fetchToken = vi
+      .fn<() => Promise<RealtimeToken>>()
+      .mockRejectedValueOnce(new Error('realtime_token_refused'))
+      .mockResolvedValueOnce(token('t2'));
+    const { adapter, target, nav, hub } = ownHub(fetchToken);
+    const r1 = vi.fn();
+    const r2 = vi.fn();
+    const r3 = vi.fn();
+    const p = hub.project(P);
+    p.onResync(r1);
+    p.onResync(r2);
+    const u = hub.user();
+    u.onResync(r3);
+    await flush();
+    expect(p.status).toBe('refused');
+    expect(await p.ready).toBe('refused');
+    for (const r of [r1, r2, r3]) expect(r).toHaveBeenCalledTimes(0);
+    expect(adapter.connectCalls).toHaveLength(0);
+    expect(adapter.channels).toHaveLength(0);
+
+    nav.onLine = false;
+    target.dispatchEvent(new Event('offline'));
+    nav.onLine = true;
+    target.dispatchEvent(new Event('online'));
+    await flush();
+    expect(fetchToken).toHaveBeenCalledTimes(2);
+    expect(p.status).toBe('subscribed');
+    expect(u.status).toBe('subscribed');
+    expect(await p.ready).toBe('subscribed');
+    expect(await u.ready).toBe('subscribed');
+    for (const r of [r1, r2, r3]) expect(r).toHaveBeenCalledTimes(1);
+    only(adapter, `project:${P}`);
+    only(adapter, USER_TOPIC);
+  });
+
+  it('EZD-318 N3 a handle that joins a subscribed channel is resynced once; a released one is not', async () => {
+    const { adapter, fetchToken, hub } = setup();
+    const r1 = vi.fn();
+    const r2 = vi.fn();
+    const r3 = vi.fn();
+    const h1 = hub.user();
+    h1.onResync(r1);
+    await flush();
+    const h2 = hub.user();
+    h2.onResync(r2);
+    const h3 = hub.user();
+    h3.onResync(r3);
+    h3.release();
+    await flush();
+    expect(r1).toHaveBeenCalledTimes(1);
+    expect(r2).toHaveBeenCalledTimes(1);
+    expect(r3).toHaveBeenCalledTimes(0);
+    expect(fetchToken).toHaveBeenCalledTimes(1);
+    expect(adapter.channels.filter((c) => c.topic === USER_TOPIC)).toHaveLength(1);
+
+    adapter.closeSocket();
+    await flush();
+    adapter.openSocket();
+    await flush();
+    expect(r1).toHaveBeenCalledTimes(2);
+    expect(r2).toHaveBeenCalledTimes(2);
+    expect(r3).toHaveBeenCalledTimes(0);
+  });
+
+  it('EZD-318 N4 a failed refresh leaves the subscribed channel alone and the refused one resyncs on rejoin', async () => {
+    const P1 = randomUUID();
+    const P2 = randomUUID();
+    const fetchToken = vi
+      .fn<() => Promise<RealtimeToken>>()
+      .mockResolvedValueOnce(token('t1'))
+      .mockRejectedValueOnce(new Error('realtime_token_refused'));
+    const { adapter, hub } = ownHub(fetchToken);
+    const ra = vi.fn();
+    const a = hub.project(P1);
+    a.onResync(ra);
+    const b = hub.project(P2);
+    await flush();
+    only(adapter, `project:${P1}`).deliver('CHANNEL_ERROR');
+    await flush();
+    expect(fetchToken).toHaveBeenCalledTimes(2);
+    expect(a.status).toBe('refused');
+    expect(await a.ready).toBe('refused');
+    expect(b.status).toBe('subscribed');
+    expect(await b.ready).toBe('subscribed');
+    expect(ra).toHaveBeenCalledTimes(1);
+
+    only(adapter, `project:${P1}`).deliver('SUBSCRIBED');
+    await flush();
+    expect(a.status).toBe('subscribed');
+    expect(await a.ready).toBe('subscribed');
+    expect(ra).toHaveBeenCalledTimes(2);
   });
 });
