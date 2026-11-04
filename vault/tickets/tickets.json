@@ -136,13 +136,13 @@
   "EZD-201",
   "EZD-203",
   "EZD-205",
+  "EZD-206",
   "EZD-236",
   "EZD-207",
   "EZD-209",
   "EZD-210",
   "EZD-221",
   "EZD-204",
-  "EZD-206",
   "EZD-208",
   "EZD-211",
   "EZD-212",
@@ -3716,7 +3716,10 @@
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md#Measurement entry",
     "spec/sections/12-build-phases-and-acceptance-tests.md#Measurement entry",
-    "spec/sections/01-how-to-use-this-spec.md"
+    "spec/sections/01-how-to-use-this-spec.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -3726,13 +3729,17 @@
    "build_position": 92,
    "acs": [
     "AC-EZD-201-1",
-    "AC-EZD-201-2"
+    "AC-EZD-201-2",
+    "AC-EZD-201-3",
+    "AC-EZD-201-4",
+    "AC-EZD-201-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/09-calculations-and-rules.md#Q-0207"
+    "spec/decisions/09-calculations-and-rules.md#Q-0207",
+    "spec/decisions/09-calculations-and-rules.md#Q-0568"
    ]
   },
   {
@@ -3780,7 +3787,10 @@
    "spec_ref": "Geometry and drafting rules; Acceptance · Wall move",
    "spec_files": [
     "spec/sections/09e-geometry-and-drafting.md#Geometry and drafting rules",
-    "spec/sections/12-build-phases-and-acceptance-tests.md#Wall move"
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Wall move",
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -3789,9 +3799,12 @@
    ],
    "build_position": 93,
    "acs": [
-    "AC-EZD-203-1"
+    "AC-EZD-203-1",
+    "AC-EZD-203-2",
+    "AC-EZD-203-3",
+    "AC-EZD-203-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md"
@@ -3832,7 +3845,10 @@
    "spec_files": [
     "spec/sections/09e-geometry-and-drafting.md",
     "spec/sections/screens/S02-import-review.md",
-    "spec/sections/12-build-phases-and-acceptance-tests.md#Room closure"
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Room closure",
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [
     "mockups/S02Import.png"
@@ -3843,9 +3859,12 @@
    ],
    "build_position": 94,
    "acs": [
-    "AC-EZD-205-1"
+    "AC-EZD-205-1",
+    "AC-EZD-205-2",
+    "AC-EZD-205-3",
+    "AC-EZD-205-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
@@ -3856,12 +3875,13 @@
   },
   {
    "id": "EZD-206",
-   "phase": 5,
+   "phase": 4,
    "title": "Snapping",
    "depends_raw": "EZD-203",
    "spec_ref": "S03 Snap",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Snap"
+    "spec/sections/screens/S03-plan-editor.md#Snap",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -3872,12 +3892,14 @@
    ],
    "build_position": 101,
    "acs": [
-    "AC-EZD-206-1"
+    "AC-EZD-206-1",
+    "AC-EZD-206-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/process.md#Q-0563"
    ]
   },
   {
@@ -3888,7 +3910,8 @@
    "spec_ref": "S03 Layout; Stack · 2D + 3D",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Layout",
-    "spec/sections/02-product-overview.md#2D + 3D"
+    "spec/sections/02-product-overview.md#2D + 3D",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -3902,14 +3925,22 @@
     "EZD-017",
     "EZD-020",
     "EZD-236",
-    "EZD-238"
+    "EZD-238",
+    "EZD-206"
    ],
    "build_position": 96,
    "acs": [
     "AC-EZD-207-1",
-    "AC-EZD-207-2"
+    "AC-EZD-207-2",
+    "AC-EZD-207-3",
+    "AC-EZD-207-4",
+    "AC-EZD-207-5",
+    "AC-EZD-207-6",
+    "AC-EZD-207-7",
+    "AC-EZD-207-8",
+    "AC-EZD-207-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -3951,7 +3982,8 @@
    "spec_ref": "S03 Typed dimension bar; App shell · Measurement entry",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Typed dimension bar",
-    "spec/sections/04-app-shell-and-global-ui.md#Measurement entry"
+    "spec/sections/04-app-shell-and-global-ui.md#Measurement entry",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -3963,13 +3995,18 @@
    ],
    "build_position": 97,
    "acs": [
-    "AC-EZD-209-1"
+    "AC-EZD-209-1",
+    "AC-EZD-209-2",
+    "AC-EZD-209-3",
+    "AC-EZD-209-4",
+    "AC-EZD-209-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/04-app-shell-and-global-ui.md"
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0560"
    ]
   },
   {
@@ -3980,7 +4017,8 @@
    "spec_ref": "S03 Wall, Room rectangle",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Wall",
-    "spec/sections/screens/S03-plan-editor.md#Room rectangle"
+    "spec/sections/screens/S03-plan-editor.md#Room rectangle",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -3988,16 +4026,28 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205",
-    "EZD-209"
+    "EZD-209",
+    "EZD-206"
    ],
    "build_position": 98,
    "acs": [
-    "AC-EZD-210-1"
+    "AC-EZD-210-1",
+    "AC-EZD-210-2",
+    "AC-EZD-210-3",
+    "AC-EZD-210-4",
+    "AC-EZD-210-5",
+    "AC-EZD-210-6",
+    "AC-EZD-210-7",
+    "AC-EZD-210-8",
+    "AC-EZD-210-9",
+    "AC-EZD-210-10",
+    "AC-EZD-210-11"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -4299,7 +4349,8 @@
    "spec_ref": "S01 Template picker; S03 States",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Template picker",
-    "spec/sections/screens/S03-plan-editor.md#States"
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [
     "mockups/S01Projects.png",
@@ -4312,12 +4363,19 @@
    ],
    "build_position": 99,
    "acs": [
-    "AC-EZD-221-1"
+    "AC-EZD-221-1",
+    "AC-EZD-221-2",
+    "AC-EZD-221-3",
+    "AC-EZD-221-4",
+    "AC-EZD-221-5",
+    "AC-EZD-221-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0566",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -4736,7 +4794,8 @@
    "depends_raw": "EZD-202, EZD-017, EZD-120",
    "spec_ref": "Non-functional · Performance",
    "spec_files": [
-    "spec/sections/11-non-functional-requirements.md#Performance"
+    "spec/sections/11-non-functional-requirements.md#Performance",
+    "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -4748,9 +4807,11 @@
    ],
    "build_position": 95,
    "acs": [
-    "AC-EZD-236-1"
+    "AC-EZD-236-1",
+    "AC-EZD-236-2",
+    "AC-EZD-236-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md"

@@ -10,6 +10,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
 - [Glossary addendum, Phase 1](sections/00b-glossary-phase-01.md) — Phase 1 terms added to glossary.md; Q-0231
 - [Glossary addendum, Phase 2](sections/00c-glossary-phase-02.md) — Phase 2 terms added to glossary.md; Q-0403
 - [Glossary addendum, Phase 3](sections/00d-glossary-phase-03.md) — Phase 3 terms added to glossary.md; Q-0507
+- [Glossary addendum, Phase 4](sections/00e-glossary-phase-04.md) — Phase 4 terms added to glossary.md; Q-0568
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
@@ -25,6 +26,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [01 · Projects](sections/screens/S01-projects.md) — board S01Projects, S01bWizard
   - [02 · Import review](sections/screens/S02-import-review.md) — board S02Import
   - [03 · Plan editor](sections/screens/S03-plan-editor.md) — board S03Plan
+  - [03c · AI assistant](sections/screens/S03c-ai-assistant.md) — boards S03c and S01g to be drawn (Q-0474)
   - [04 · Cabinet run + elevation](sections/screens/S04-cabinet-run-elevation.md) — board S04Cabinets
   - [04b · Countertops](sections/screens/S04b-countertops.md) — board S04bCountertops
   - [05 · Ceiling plan / RCP](sections/screens/S05-ceiling-plan-rcp.md) — board S05Ceiling
@@ -69,6 +71,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09g · Ceilings and lighting](sections/09g-ceilings-and-lighting.md)
   - [09h · Sheets and revisions](sections/09h-sheets-and-revisions.md)
   - [09i · Takeoff](sections/09i-takeoff.md)
+  - [09j · Walls, rooms and lengths: worked examples](sections/09j-walls-and-rooms-examples.md) — Q-0558 to Q-0562, Q-0568
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)

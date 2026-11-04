@@ -39,8 +39,8 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
 | 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
 | 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299, 238 | Adds Keep mine / Keep theirs (EZD-299, Q-0502). |
-| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 236, 207, 209, 210, 221 |  |
-| 5 | Openings, selection, move, inspector, undo | 5 | 204, 206, 208, 211, 212, 213, 217 |  |
+| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221 | Adds snapping from phase 5 (Q-0563). |
+| 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase follows; tickets at this phase's spec check (Q-0474). |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
@@ -294,36 +294,37 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 4 · Plan canvas and first walls (from spec phase 2)
 
 - **Goal:** Draw a closed room by typing lengths on the plan canvas and have it saved.
-- **User-visible result:** Plan tab with grid, pan, zoom, Fit and hover; Wall and Room rectangle tools with the typed dimension bar; rooms detected with area; blank templates (galley, L-kitchen, 5x8 bath, primary bath) in the new project wizard; the benchmark project generator.
-- **Spec files:** `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S02-import-review.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (8, build order):**
+- **User-visible result:** Plan tab with grid, pan, zoom, Fit and hover; Wall and Room rectangle tools with snapping and the typed dimension bar; rooms detected with area, and a gap shown with absorb or keep out of square; blank templates (galley, L-kitchen, 5x8 bath, primary bath, Empty) in the new project wizard; the benchmark project generator.
+- **Spec files:** `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S02-import-review.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/screens/S01-projects.md`, `spec/sections/09j-walls-and-rooms-examples.md`, `spec/sections/00e-glossary-phase-04.md`; decisions Q-0558 to Q-0568
+- **Tickets (9, build order):**
   - EZD-201 Length parse and format
   - EZD-203 Walls core — needs EZD-202 (s3)
   - EZD-205 Rooms and closure — after EZD-203
+  - EZD-206 Snapping — after EZD-203 (Q-0563)
   - EZD-236 Benchmark project generator — needs EZD-202 (s3), EZD-120a (s3), EZD-120b (s3)
-  - EZD-207 Plan canvas — after EZD-236; needs EZD-202 (s3), EZD-238 (s3)
+  - EZD-207 Plan canvas — after EZD-206, EZD-236; needs EZD-202 (s3), EZD-238 (s3)
   - EZD-209 Typed dimension bar — after EZD-201, EZD-207
   - EZD-210 Wall and Room rectangle tools — after EZD-205, EZD-209
   - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
 - **Depends on slices:** 2, 3
-- **Out of scope until later:** Doors and windows, selection, move and inspector (slice 5); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
+- **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
 - **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; this is the first field check on the Surface. The spike EZD-027 (plan canvas on the iPad) must have a go note.
 - **Josh's test script:**
-  1. New project → Standalone → L-kitchen template. Expected: The plan opens with the template walls.
+  1. New project → Blank → L-kitchen template. Expected: The plan opens with the template walls.
   2. Press R, click a start point, type 12'6" Tab 10' Enter. Expected: A 12'6" × 10' room closes with no gap and shows its area.
   3. Press W, draw a single wall chain and close on the start point. Expected: The chain closes and the room is detected.
-  4. Type 150" and 12.5' in the length box. Expected: Both read 12'6" after commit; a bad entry lists the accepted formats.
+  4. Type 150" and 12.5' in the length box. Expected: The typed bar reads 12' 6" for both after commit; a bad entry lists the accepted formats.
   5. Pan with space-drag and zoom toward the cursor, then Fit. Expected: The view follows the cursor and Fit frames the plan.
   6. Reload the project. Expected: The walls and room are still there.
+  7. Press W, type 12' Enter, 10' Enter, 12' Enter, 9' 11 1/2" Enter, Enter. Expected: A 1/2" gap shows with the two buttons; pick the 9' 11 1/2" wall and the room closes at 120 SF.
 
 ### Slice 5 · Openings, selection, move, inspector, undo (from spec phase 2)
 
 - **Goal:** Place doors and windows, select and move objects with typed distances, edit them in the inspector, and undo.
 - **User-visible result:** Door and Window tools with hover preview and typed offset; snapping with markers; click, cycle, Shift-click and box select; Move tool, resize handles and live distance chips; inspector fields with bulk edit; undo, redo, copy, paste, duplicate, delete.
 - **Spec files:** `spec/sections/03-data-model.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`
-- **Tickets (7, build order):**
+- **Tickets (6, build order):**
   - EZD-204 Openings core — needs EZD-203 (s4)
-  - EZD-206 Snapping — needs EZD-203 (s4)
   - EZD-208 Selection — needs EZD-207 (s4)
   - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4)
   - EZD-212 Move, handles, distance chips — after EZD-208
@@ -331,7 +332,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-217 Undo, redo and clipboard — after EZD-208
 - **Depends on slices:** 4
 - **Out of scope until later:** Status and phase switch, layers (slice 6); fixtures (slice 10); context menu, mirror, align, groups (slice 11).
-- **Risks and spikes:** EZD-206's spatial index also serves picking (EZD-208) and later reference snaps; the Selection acceptance test is only partly runnable until cabinets and outlets exist.
+- **Risks and spikes:** EZD-206's spatial index (now phase 4, Q-0563) also serves picking (EZD-208) and later reference snaps; the Selection acceptance test is only partly runnable until cabinets and outlets exist.
 - **Josh's test script:**
   1. Press D, hover a wall, type an offset of 36" from the corner. Expected: The door sits 36" from that corner; Space flips the swing.
   2. Place a window the same way. Expected: The window sits at its typed offset with the sill height in the inspector.
@@ -348,7 +349,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Spec files:** `spec/sections/11-non-functional-requirements.md`, `spec/decisions.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/screens/S01-projects.md`
 - **Tickets (8, build order):**
   - EZD-135 System status page — needs EZD-103 (s1)
-  - EZD-219 Status bar popovers — needs EZD-206 (s5)
+  - EZD-219 Status bar popovers — needs EZD-206 (s4)
   - EZD-214 Status and phase switch — needs EZD-213 (s5)
   - EZD-218 Left panel: Layers and Rooms — after EZD-214; needs EZD-132 (s1)
   - EZD-224 Plan thumbnail — needs EZD-207 (s4)
@@ -468,7 +469,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-222 Keyboard shortcuts and Help — needs EZD-116 (s8)
   - EZD-230 Default key map and full rail — after EZD-222
   - EZD-223 Sketch tool — needs EZD-207 (s4), EZD-108 (s2)
-  - EZD-231 Measure tool (plan) — needs EZD-206 (s5), EZD-207 (s4)
+  - EZD-231 Measure tool (plan) — needs EZD-206 (s4), EZD-207 (s4)
   - EZD-233 Context menu, mirror, align, groups — after EZD-131; needs EZD-217 (s5), EZD-234 (s10)
   - EZD-232 Manual revision cloud (plan) — needs EZD-216 (s6)
 - **Depends on slices:** 1, 2, 4, 5, 6, 8, 10
@@ -1501,8 +1502,8 @@ slices over 10: none   slices under 4: none
  1. Company settings and customers (phase 1) [6]: EZD-101, EZD-102, EZD-103, EZD-132, EZD-112, EZD-113
  2. Projects list and new project (phase 1) [5]: EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118
  3. Model store and editor route (phase 1,2) [5]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-238
- 4. Plan canvas and first walls (phase 2) [8]: EZD-201, EZD-203, EZD-205, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221
- 5. Openings, selection, move, inspector, undo (phase 2) [7]: EZD-204, EZD-206, EZD-208, EZD-211, EZD-212, EZD-213, EZD-217
+ 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221
+ 5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-217
  6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [8]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-235, EZD-216, EZD-237
  7. Users, roles, project scope, event log (phase 1) [6]: EZD-104, EZD-105, EZD-106, EZD-107, EZD-109, EZD-129
  8. Defaults, edit lock, project settings (phase 1,2) [6]: EZD-116, EZD-128, EZD-130, EZD-125, EZD-126, EZD-225
