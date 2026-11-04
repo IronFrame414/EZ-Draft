@@ -119,6 +119,8 @@ function commitHeldEntry() {
   const now = JSON.parse(text).tickets.find((x) => x.id === ticket);
   if (!now || JSON.stringify(now) === JSON.stringify(held.entry)) return false;
   stageEntry(text, held.entry);
+  // A plan already on develop goes with its entry, or develop's ledger check sees the two differ.
+  if (git('ls-files', '--error-unmatch', '--', planRel()).status === 0) git('add', '--', planRel());
   const c = git('commit', '-q', '-m', `docs(vault): ${ticket} tickets.json entry from its plan`);
   if (c.status) stop(`WORKTREE STOP: entry commit failed: ${firstLine(c)}`);
   console.log(`ENTRY ${ticket} committed on develop`);
@@ -143,6 +145,7 @@ function worktree() {
       const tests = subjects.some((s) => s.startsWith(`test(${ticket})`)) ? 'yes' : 'no';
       const wip = subjects.filter((s) => s.startsWith(`wip(${ticket})`)).length;
       if (entryCommitted) {
+        sh('git', ['-C', wt, 'checkout', '--', planRel()]); // the plan copy comes back below (copyPlan)
         const up = sh('git', ['-C', wt, 'merge', '-q', '--no-edit', 'develop']);
         if (up.status) { sh('git', ['-C', wt, 'merge', '--abort']); console.log(`WORKTREE NOTE: merge develop into ${rel} before the gate (${firstLine(up)})`); }
       }

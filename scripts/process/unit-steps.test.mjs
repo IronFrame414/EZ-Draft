@@ -327,6 +327,20 @@ test('Q-0544 the worktree step commits the plan entry on develop first, so the t
   assert.doesNotMatch(again.stdout, /ENTRY/);
 });
 
+test('Q-0544 an amended plan already on develop is committed with its entry, so the two never differ on develop', async () => {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const dir = fixture();
+  mkdirSync(path.join(dir, 'vault/plans'), { recursive: true });
+  commitIn(dir, 'vault/plans/EZD-002.md', '# plan one\n', 'docs: plan');
+  writeFileSync(path.join(dir, 'vault/plans/EZD-002.md'), '# plan two\n');
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan two\n', entry: { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture: ['Tests'] } }]);
+  db.close();
+  const r = run(dir, 'worktree', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(git(dir, 'show', 'develop:vault/plans/EZD-002.md').trim(), '# plan two');
+});
+
 test('2.12 U3 the feat commit writes the tickets.json entry the records database held for the ticket (D9 (a), 2026-11-02)', async () => {
   const { openRecords, applyOps } = await import(RECORDS);
   const dir = fixture();
