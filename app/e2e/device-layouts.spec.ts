@@ -53,6 +53,10 @@ const styleOf = (l: Locator, props: string[]): Promise<Record<string, string>> =
 const coarse = (page: Page): Promise<boolean> =>
   page.evaluate(() => window.matchMedia('(any-pointer: coarse)').matches);
 
+// EZD-324: WebKit reports a media-query change in its next rendering update, before animation-frame callbacks; wait for it.
+const nextFrame = (page: Page): Promise<void> =>
+  page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+
 type Dims = {
   W: number;
   H: number;
@@ -243,34 +247,39 @@ test.describe('EZD-014c device layouts', () => {
     ).toBeVisible();
   });
 
-  test('EZD-014c B5 layout switches live at 1024 px', { tag: ['@ipad'] }, async ({ page }) => {
-    await page.goto('/dev/device');
-    const url = page.url();
-    await page.evaluate(() => {
-      (window as unknown as Record<string, unknown>).__ezdMarker = 1;
-    });
-    const steps: Array<[number, number, 'full' | 'phone']> = [
-      [1024, 820, 'full'],
-      [1023, 820, 'phone'],
-      [1180, 820, 'full'],
-      [390, 844, 'phone'],
-      [1180, 820, 'full'],
-    ];
-    for (const [width, height, want] of steps) {
-      await page.setViewportSize({ width, height });
-      if (want === 'full') {
-        await expect(frame(page), `${width}`).toBeVisible();
-        await expect(phoneFrame(page), `${width}`).toHaveCount(0);
-      } else {
-        await expect(phoneFrame(page), `${width}`).toBeVisible();
-        await expect(frame(page), `${width}`).toHaveCount(0);
+  test(
+    'EZD-014c B5 layout switches live at 1024 px (EZD-324)',
+    { tag: ['@ipad'] },
+    async ({ page }) => {
+      await page.goto('/dev/device');
+      const url = page.url();
+      await page.evaluate(() => {
+        (window as unknown as Record<string, unknown>).__ezdMarker = 1;
+      });
+      const steps: Array<[number, number, 'full' | 'phone']> = [
+        [1024, 820, 'full'],
+        [1023, 820, 'phone'],
+        [1180, 820, 'full'],
+        [390, 844, 'phone'],
+        [1180, 820, 'full'],
+      ];
+      for (const [width, height, want] of steps) {
+        await page.setViewportSize({ width, height });
+        await nextFrame(page);
+        if (want === 'full') {
+          await expect(frame(page), `${width}`).toBeVisible();
+          await expect(phoneFrame(page), `${width}`).toHaveCount(0);
+        } else {
+          await expect(phoneFrame(page), `${width}`).toBeVisible();
+          await expect(frame(page), `${width}`).toHaveCount(0);
+        }
+        expect(page.url()).toBe(url);
+        expect(
+          await page.evaluate(() => (window as unknown as Record<string, unknown>).__ezdMarker),
+        ).toBe(1);
       }
-      expect(page.url()).toBe(url);
-      expect(
-        await page.evaluate(() => (window as unknown as Record<string, unknown>).__ezdMarker),
-      ).toBe(1);
-    }
-  });
+    },
+  );
 
   test('EZD-014c B6 no sticky hover after a tap', { tag: ['@ipad'] }, async ({ page }) => {
     await page.goto('/dev/device');
