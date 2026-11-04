@@ -7,6 +7,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, realpathSy
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { laneWorkdir, readLane } from '../lane.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const loadTemplates = () => import('../stack-templates.mjs');
@@ -189,6 +190,20 @@ describe('EZD-287', () => {
     assert.equal(checkD.count(), 1);
   });
 
+  test('EZD-172 a lane reads its own auth and kong containers', async () => {
+    const { checkTemplates } = await loadTemplates();
+    const f = fixture();
+    const inner = fakeDocker({ mounts: mountOf(f.source) });
+    const seen = [];
+    const docker = (args) => {
+      seen.push(...args.filter((a) => a.startsWith('supabase_')));
+      return inner(args.map((a) => a.replace('-lane2', '')));
+    };
+    const r = await checkTemplates({ docker, root: f.root, projectId: 'p', lane: 2 });
+    assert.deepEqual(r, { ok: true });
+    assert.deepEqual([...new Set(seen)].sort(), ['supabase_auth_p-lane2', 'supabase_kong_p-lane2']);
+  });
+
   test('T7 local.mjs passes checkTemplates to ensureStackCurrent and holds the section 6 strings', () => {
     const text = readFileSync(path.join(repo, 'scripts', 'db', 'local.mjs'), 'utf8');
     const at = text.indexOf('ensureStackCurrent({');
@@ -200,7 +215,9 @@ describe('EZD-287', () => {
 
   test('T8 live: checkTemplates on this repo against the root test stack is ok', async () => {
     const { checkTemplates, dockerCli } = await loadTemplates();
-    const r = await checkTemplates({ docker: dockerCli, root: repo, projectId: 'ezdraft' });
+    const lane = readLane();
+    const root = lane === 0 ? repo : laneWorkdir(repo, lane);
+    const r = await checkTemplates({ docker: dockerCli, root, projectId: 'ezdraft', lane });
     assert.deepEqual(r, { ok: true });
   });
 });

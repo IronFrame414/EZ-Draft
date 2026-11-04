@@ -56,7 +56,7 @@ function runGate(dir) {
   const tmp = path.join(dir, 'tmp');
   mkdirSync(tmp, { recursive: true });
   const env = { ...process.env, TMP: tmp, TEMP: tmp, TMPDIR: tmp };
-  for (const k of ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT']) delete env[k];
+  for (const k of ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT', 'EZD_LANE', 'SUPABASE_WORKDIR']) delete env[k];
   const r = spawnSync(process.execPath, [GATE, dir], { encoding: 'utf8', env });
   return { status: r.status, failures: readFileSync(path.join(dir, 'gate-failures.log'), 'utf8') };
 }

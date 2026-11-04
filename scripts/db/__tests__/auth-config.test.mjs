@@ -298,12 +298,17 @@ test('EZD-007c T33 local.mjs env prints the gate secret and refuses without it',
     );
     chmodSync(fake, 0o755);
     const secretFile = path.join(tmp, 'supabase', '.temp', 'ezd-api-gate-secret');
-    const runEnv = () =>
-      spawnSync(process.execPath, [path.join(dbDir, 'local.mjs'), 'env'], {
+    // EZD-172 E4: the copied repo has no lane folder, so the child runs without a lane.
+    const runEnv = () => {
+      const env = childEnv();
+      delete env.EZD_LANE;
+      delete env.SUPABASE_WORKDIR;
+      return spawnSync(process.execPath, [path.join(dbDir, 'local.mjs'), 'env'], {
         cwd: tmp,
         encoding: 'utf8',
-        env: childEnv(),
+        env,
       });
+    };
 
     // (a) no secret file
     const a = runEnv();

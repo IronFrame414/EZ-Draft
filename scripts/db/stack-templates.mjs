@@ -2,6 +2,7 @@
 // checkout's email templates. Node 22 built-ins only.
 
 import { spawnSync } from 'node:child_process';
+import { stackContainer } from './lane.mjs';
 import { readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 
@@ -45,11 +46,11 @@ function realOrSelf(p) {
 }
 
 /**
- * @param {{ docker: (args: string[]) => CliResult, root: string, projectId: string }} opts
+ * @param {{ docker: (args: string[]) => CliResult, root: string, projectId: string, lane?: number }} opts
  * @returns {TemplateCheck}
  */
-export function checkTemplates({ docker, root, projectId }) {
-  const env = inspectJson(docker, '{{json .Config.Env}}', `supabase_auth_${projectId}`);
+export function checkTemplates({ docker, root, projectId, lane = 0 }) {
+  const env = inspectJson(docker, '{{json .Config.Env}}', stackContainer('auth', projectId, lane));
   if (!env.value) return { ok: false, reason: 'docker_failed', template: '', result: env.result };
   const urls = env.value
     .filter((e) => typeof e === 'string' && e.startsWith(ENV_PREFIX) && e.includes('='))
@@ -57,7 +58,7 @@ export function checkTemplates({ docker, root, projectId }) {
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
   if (urls.length === 0) return { ok: true };
 
-  const mounts = inspectJson(docker, '{{json .Mounts}}', `supabase_kong_${projectId}`);
+  const mounts = inspectJson(docker, '{{json .Mounts}}', stackContainer('kong', projectId, lane));
   if (!mounts.value) return { ok: false, reason: 'docker_failed', template: '', result: mounts.result };
 
   const prefixes = [...new Set([path.join(root, 'supabase', 'templates'), path.join(realOrSelf(root), 'supabase', 'templates')])].map(
@@ -69,7 +70,7 @@ export function checkTemplates({ docker, root, projectId }) {
     if (!mount) return { ok: false, reason: 'unmounted', template: name };
     const source = String(mount.Source ?? '');
     if (!prefixes.some((p) => source.startsWith(p))) return { ok: false, reason: 'other_checkout', template: name };
-    const served = docker(['exec', `supabase_auth_${projectId}`, 'wget', '-q', '-O', '-', url]);
+    const served = docker(['exec', stackContainer('auth', projectId, lane), 'wget', '-q', '-O', '-', url]);
     let file = '';
     try {
       file = readFileSync(source, 'utf8');

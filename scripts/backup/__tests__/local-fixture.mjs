@@ -10,11 +10,15 @@ import { randomUUID } from 'node:crypto';
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readLane } from '../../db/lane.mjs';
+import { localDbContainer } from '../../db/sql.mjs';
+import { scratchDbContainer } from '../scratch.mjs';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const SUPABASE_BIN = path.join(REPO_ROOT, 'node_modules', '.bin', 'supabase');
-export const MAIN_DB_CONTAINER = 'supabase_db_ezdraft';
-export const SCRATCH_DB_CONTAINER = 'supabase_db_ezdraft-restore';
+// EZD-172 E7: the containers of the current lane (lane 0 = supabase_db_ezdraft / supabase_db_ezdraft-restore).
+export const MAIN_DB_CONTAINER = localDbContainer();
+export const SCRATCH_DB_CONTAINER = scratchDbContainer(readLane(process.env));
 
 /** True when the file's tests belong to the run scope (plan Step 8 scope guard; Q-0006). */
 export function inScope(ticket = 'EZD-025') {

@@ -2,7 +2,9 @@
 // in force before `pnpm db:up` returns. Node 22 built-ins only. `db reset` restarts Postgres but not
 // PostgREST, whose reconnect can reload its config without `pgrst.db_pre_request`; so `db:up` restarts
 // the PostgREST container (a fresh pool) and waits until a header-less request is refused by the gate.
+// EZD-172: the container is the current lane's (supabase_rest_ezdraft-lane<n> for lane n).
 import { spawn } from 'node:child_process';
+import { readLane, stackContainer } from './lane.mjs';
 import { projectId } from './sql.mjs';
 
 export const GATE_PROBE_PATH = '/rest/v1/project?select=id&limit=1';
@@ -60,8 +62,8 @@ export async function waitForApiGate({
   }
 }
 
-export function postgrestContainer() {
-  return `supabase_rest_${projectId()}`;
+export function postgrestContainer(env = process.env) {
+  return stackContainer('rest', projectId(), readLane(env));
 }
 
 function dockerRun(args) {
@@ -80,10 +82,11 @@ function dockerRun(args) {
   });
 }
 
-export async function restartPostgrest({ run = dockerRun } = {}) {
+export async function restartPostgrest({ run = dockerRun, env = process.env } = {}) {
+  const name = postgrestContainer(env);
   let result;
   try {
-    result = await run(['restart', postgrestContainer()]);
+    result = await run(['restart', name]);
   } catch {
     throw new Error('postgrest_restart_failed');
   }

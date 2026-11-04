@@ -67,4 +67,21 @@ describe('EZD-016a email lock', () => {
     expect(lockPathFor('A@X.test')).toBe(lockPathFor('a@x.test'));
     expect(path.basename(lockPathFor('A@X.test'))).toMatch(/^[0-9a-f]{16}\.lock$/);
   });
+
+  test('EZD-172 E9 the lock folder is lane-aware, read per call from EZD_LANE', () => {
+    const saved = process.env.EZD_LANE;
+    const folder = () => path.basename(path.dirname(lockPathFor('a@x.test')));
+    try {
+      delete process.env.EZD_LANE;
+      expect(folder()).toBe('ezdraft-e2e-locks');
+      process.env.EZD_LANE = '0';
+      expect(folder()).toBe('ezdraft-e2e-locks');
+      process.env.EZD_LANE = '2';
+      expect(folder()).toBe('ezdraft-e2e-locks-lane2');
+      expect(path.basename(lockPathFor('a@x.test'))).toMatch(/^[0-9a-f]{16}\.lock$/);
+    } finally {
+      if (saved === undefined) delete process.env.EZD_LANE;
+      else process.env.EZD_LANE = saved;
+    }
+  });
 });

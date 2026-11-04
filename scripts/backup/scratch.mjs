@@ -4,12 +4,13 @@
 // superuser: `postgres` may not set `session_replication_role` or disable a trigger on `storage.objects`), and
 // the off-site files are uploaded through scratch Storage. Child output is captured, never printed here.
 import { createHash } from 'node:crypto';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { childEnv, runChild } from '../release/dump.mjs';
+import { laneConfigToml, readLane, stackContainer } from '../db/lane.mjs';
 import { pickRestoreVersions } from './pick.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +19,10 @@ const SCRATCH_CONFIG = path.join(HERE, 'scratch', 'supabase', 'config.toml');
 const SUPABASE_BIN = path.join(REPO_ROOT, 'node_modules', '.bin', 'supabase');
 /** `supabase_db_<project_id>` (the name form of scripts/db/sql.mjs). */
 export const SCRATCH_DB_CONTAINER = 'supabase_db_ezdraft-restore';
+/** The scratch database container of a build lane (EZD-172): lane 0 is SCRATCH_DB_CONTAINER. */
+export function scratchDbContainer(lane) {
+  return stackContainer('db', 'ezdraft-restore', lane);
+}
 /** Containers the scratch stack does not start (pinned CLI 2.121.0 `supabase start --exclude` names). */
 export const SCRATCH_EXCLUDE = Object.freeze([
   'studio',
@@ -35,7 +40,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const failure = (code, r) => Object.assign(new Error(code), { code, stderr: r?.stderr ?? '' });
 
 /** A temporary workdir with the scratch config and every migration whose version is ≤ the dump's. */
-export async function prepareWorkdir({ newestMigration, repoRoot = REPO_ROOT }) {
+export async function prepareWorkdir({ newestMigration, repoRoot = REPO_ROOT, lane = readLane(process.env) }) {
   const dir = path.join(repoRoot, 'supabase', 'migrations');
   const files = readdirSync(dir).filter((f) => MIGRATION_RE.test(f));
   const versions = files.map((f) => MIGRATION_RE.exec(f)[1]);
@@ -44,7 +49,14 @@ export async function prepareWorkdir({ newestMigration, repoRoot = REPO_ROOT }) 
   }
   const workdir = mkdtempSync(path.join(os.tmpdir(), 'ezd025-scratch-'));
   mkdirSync(path.join(workdir, 'supabase', 'migrations'), { recursive: true });
-  copyFileSync(SCRATCH_CONFIG, path.join(workdir, 'supabase', 'config.toml'));
+  if (lane >= 1) {
+    writeFileSync(
+      path.join(workdir, 'supabase', 'config.toml'),
+      laneConfigToml(readFileSync(SCRATCH_CONFIG, 'utf8'), lane),
+    );
+  } else {
+    copyFileSync(SCRATCH_CONFIG, path.join(workdir, 'supabase', 'config.toml'));
+  }
   for (const f of files) {
     if (MIGRATION_RE.exec(f)[1] <= newestMigration) {
       copyFileSync(path.join(dir, f), path.join(workdir, 'supabase', 'migrations', f));
@@ -67,7 +79,7 @@ export async function startScratch(workdir) {
     apiUrl: json.API_URL,
     dbUrl: json.DB_URL,
     secretKey: json.SECRET_KEY || json.SERVICE_ROLE_KEY,
-    dbContainer: SCRATCH_DB_CONTAINER,
+    dbContainer: scratchDbContainer(readLane(process.env)),
   };
 }
 

@@ -16,7 +16,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSy
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const read = (...p) => readFileSync(path.join(repo, ...p), 'utf8');
@@ -176,7 +176,7 @@ test('EZD-004a T4 Health function is narrow', () => {
 
 // ---------- T6 ----------
 
-test('EZD-004a T6 Local env output', () => {
+test('EZD-004a T6 Local env output', async () => {
   const env = localEnv();
   assert.deepEqual(
     Object.keys(env).sort(),
@@ -192,7 +192,13 @@ test('EZD-004a T6 Local env output', () => {
   assert.ok(['127.0.0.1', 'localhost'].includes(url.hostname), `local hostname, got ${url.hostname}`);
   const apiPort = tomlValue(read('supabase', 'config.toml'), 'api', 'port');
   assert.ok(apiPort, 'supabase/config.toml has [api] port');
-  assert.equal(url.port, String(apiPort), 'URL port equals [api] port in supabase/config.toml');
+  // EZD-172 E3: the lane adds 100 x lane to the committed port (lane 0 = the committed port).
+  const { readLane, laneWorkdir } = await import(pathToFileURL(path.join(repo, 'scripts', 'db', 'lane.mjs')).href);
+  assert.equal(
+    url.port,
+    String(Number(apiPort) + 100 * readLane(process.env)),
+    'URL port equals [api] port in supabase/config.toml + 100 x lane',
+  );
   assert.equal(typeof env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, 'string');
   assert.equal(typeof env.SUPABASE_SECRET_KEY, 'string');
   assert.ok(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.length > 0, 'publishable key non-empty');
@@ -203,8 +209,16 @@ test('EZD-004a T6 Local env output', () => {
   assert.ok(env.SUPABASE_API_GATE_SECRET.length >= 43, 'gate secret at least 43 characters');
   assert.equal(
     env.SUPABASE_API_GATE_SECRET,
-    read('supabase', '.temp', 'ezd-api-gate-secret').trim(),
-    'gate secret equals the trimmed supabase/.temp/ezd-api-gate-secret',
+    readFileSync(
+      path.join(
+        laneWorkdir(repo, readLane(process.env)) ?? repo,
+        'supabase',
+        '.temp',
+        'ezd-api-gate-secret',
+      ),
+      'utf8',
+    ).trim(),
+    'gate secret equals the trimmed ezd-api-gate-secret of the lane workdir (lane 0: supabase/.temp)',
   );
 });
 

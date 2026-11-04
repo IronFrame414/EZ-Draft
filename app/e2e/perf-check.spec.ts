@@ -38,14 +38,19 @@ function findRepoRoot(): string {
   }
 }
 
-const BASE = 'http://127.0.0.1:3000';
-
 function runPerf(args: string[]): { status: number | null; stdout: string; out: string } {
   const root = findRepoRoot();
   const out = mkdtempSync(os.tmpdir() + '/ezd-perf-');
   const r = spawnSync(
     process.execPath,
-    [path.join(root, 'scripts', 'perf', 'run.mjs'), '--base-url', BASE, ...args, '--out', out],
+    [
+      path.join(root, 'scripts', 'perf', 'run.mjs'),
+      '--base-url',
+      String(test.info().project.use.baseURL),
+      ...args,
+      '--out',
+      out,
+    ],
     { cwd: root, encoding: 'utf8', timeout: 170000 },
   );
   return { status: r.status, stdout: (r.stdout ?? '') + (r.stderr ?? ''), out };

@@ -7,6 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { UsageError, runCheck, startAppServer } from '../check.mjs';
+import { readLane } from '../../db/lane.mjs';
 import { REPO_ROOT, hasLatest, runCli, tmpDir, writeConfig } from './helpers.mjs';
 
 // Written out here, never read from STRIPPED_ENV, so removing a name from the code fails T3 (plan section 1).
@@ -98,7 +99,7 @@ describe('EZD-156 perf check guards', () => {
     let server;
     try {
       server = await startAppServer(root);
-      assert.equal(server.baseUrl, 'http://127.0.0.1:3200');
+      assert.equal(server.baseUrl, `http://127.0.0.1:${3200 + 10 * readLane(process.env)}`);
       const r = await fetch(`${server.baseUrl}/dev/shell`);
       const keys = await r.json();
       assert.ok(Array.isArray(keys), 'the fake next answers a JSON array of env names');

@@ -17,6 +17,7 @@ import {
   MAIN_DB_CONTAINER,
   SUPABASE_BIN,
 } from '../../backup/__tests__/local-fixture.mjs';
+import { laneWorkdir, readLane } from '../../db/lane.mjs';
 import { holdRootDbShared } from '../../test-harness/db-lock.mjs';
 
 const loadDump = () => import('../dump.mjs');
@@ -80,9 +81,10 @@ describe('EZD-146 Supabase CLI push on the local stack', { skip: !inScope('EZD-1
     const localPassword = splitDbPassword(dbUrl).password;
     assert.notEqual(localPassword, '', 'precondition: the local URL has a password');
 
+    const workdir = laneWorkdir(REPO, readLane(process.env)) ?? REPO;
     const { runs, run } = realRecorder(runChild);
     const cli = createSupabaseCli({ run });
-    await cli.pushDryRun({ dbUrl, workdir: REPO });
+    await cli.pushDryRun({ dbUrl, workdir });
     assert.equal(runs.length, 1, 'one recorded run');
     assert.equal(new URL(runs[0].args[3]).password, '', '--db-url holds no password');
     assert.equal(runs[0].args.includes('--dry-run'), true, 'dry run');
@@ -91,7 +93,7 @@ describe('EZD-146 Supabase CLI push on the local stack', { skip: !inScope('EZD-1
     const w = new URL(dbUrl);
     w.password = 'wrong-ezd146';
     await assert.rejects(
-      () => cli.pushDryRun({ dbUrl: w.href, workdir: REPO }),
+      () => cli.pushDryRun({ dbUrl: w.href, workdir }),
       (err) =>
         err instanceof Error &&
         err.message === 'supabase db push exited 1' &&

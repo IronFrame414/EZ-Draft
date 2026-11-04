@@ -100,6 +100,8 @@ function fixture({ gateExit = 0, remote = false } = {}) {
 const envFor = (dir, extra = {}) => {
   const env = { ...process.env, EZD_ROOT: dir, EZD_RECORDS_DB: dbOf(dir), EZD_RESULTS_FILE: '', EZD_INFLIGHT_DIR: inflightFor(dir), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1', ...extra };
   delete env.EZD_UNIT_ID;
+  delete env.EZD_LANE;
+  delete env.SUPABASE_WORKDIR;
   if ('EZD_UNIT_ID' in extra) env.EZD_UNIT_ID = extra.EZD_UNIT_ID;
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
   return env;
@@ -305,7 +307,7 @@ L.withLedgerLock(root, { owner: 'k7 ' + ticket }, () => {
 `);
       const nt = pathToFileURL(path.join(vault, 'tools/next_ticket.mjs')).href;
       const calls = path.join(tmp('ezd173-calls-'), 'arch-calls.txt');
-      const rs = await Promise.all(['EZD-173', 'EZD-174'].map((t) => spawnP(process.execPath, [driver, pathToFileURL(LEDGER).href, nt, root, t, calls], { env: { ...process.env, EZD_INFLIGHT_DIR: inflightFor(root) } })));
+      const rs = await Promise.all(['EZD-173', 'EZD-174'].map((t) => spawnP(process.execPath, [driver, pathToFileURL(LEDGER).href, nt, root, t, calls], { env: { ...process.env, EZD_LANE: undefined, SUPABASE_WORKDIR: undefined, EZD_INFLIGHT_DIR: inflightFor(root) } })));
       rs.forEach((r) => assert.equal(r.status, 0, r.stdout + r.stderr));
       assert.deepEqual(new Set((existsSync(calls) ? readFileSync(calls, 'utf8') : '').split('\n').filter(Boolean)), new Set(['EZD-173', 'EZD-174']));
       for (const t of ['EZD-173', 'EZD-174']) {
@@ -919,7 +921,7 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     git(root, 'commit', '-qm', 'init');
     const r = spawnSync(process.execPath, [at('scripts/run.mjs'), '--once'], {
       encoding: 'utf8', timeout: 30000, cwd: root,
-      env: { ...process.env, EZD_INFLIGHT_DIR: tmp('ezd173-x1-inflight-'), EZD_ROOT: undefined },
+      env: { ...process.env, EZD_LANE: undefined, SUPABASE_WORKDIR: undefined, EZD_INFLIGHT_DIR: tmp('ezd173-x1-inflight-'), EZD_ROOT: undefined },
     });
     const out = `exit ${r.status}, signal ${r.signal}\n${r.stdout}\n${r.stderr}`;
     assert.ok(r.stdout.includes('plan file missing:'), out);

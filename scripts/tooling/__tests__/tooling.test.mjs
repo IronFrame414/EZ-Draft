@@ -33,6 +33,8 @@ function tmpDir(prefix) {
 function childEnv(extra = {}) {
   const env = { ...process.env, ...extra };
   if (!('EZD_TEST_GREP' in extra)) delete env.EZD_TEST_GREP;
+  delete env.EZD_LANE;
+  delete env.SUPABASE_WORKDIR;
   return env;
 }
 

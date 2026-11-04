@@ -14,7 +14,12 @@ const STALE_MS = 60_000;
 
 export function lockPathFor(email: string): string {
   const hash = createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 16);
-  return path.join(os.tmpdir(), 'ezdraft-e2e-locks', `${hash}.lock`);
+  const lane = process.env.EZD_LANE;
+  const folder =
+    lane === '1' || lane === '2' || lane === '3'
+      ? `ezdraft-e2e-locks-lane${lane}`
+      : 'ezdraft-e2e-locks';
+  return path.join(os.tmpdir(), folder, `${hash}.lock`);
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

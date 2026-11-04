@@ -4,6 +4,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
 type AnyRecord = Record<string, unknown>;
@@ -80,9 +81,19 @@ describe('EZD-016d harness config', () => {
       expect(config.retries).toBe(0);
       expect(config.timeout).toBe(60000);
       const topUse = (config.use ?? {}) as AnyRecord;
-      expect(topUse.baseURL).toBe('http://127.0.0.1:3000');
+      // EZD-172 E1: the web port is the lane's (3000 + 10 x lane; lane 0 = 3000).
+      const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+      const laneMod = (await import(
+        /* @vite-ignore */ pathToFileURL(path.join(repoRoot, 'scripts', 'db', 'lane.mjs')).href
+      )) as {
+        readLane: (env?: NodeJS.ProcessEnv) => number;
+        laneAppPorts: (lane: number) => { web: number; perf: number };
+      };
+      const web = laneMod.laneAppPorts(laneMod.readLane(process.env)).web;
+      expect(topUse.baseURL).toBe(`http://127.0.0.1:${web}`);
       const webServer = config.webServer as AnyRecord;
-      expect(webServer.url).toBe('http://127.0.0.1:3000/api/health');
+      expect(webServer.url).toBe(`http://127.0.0.1:${web}/api/health`);
+      expect(webServer.command).toBe(`pnpm start -p ${web} -H 127.0.0.1`);
       for (const key of ['testDir', 'outputDir', 'globalSetup']) {
         expect(typeof config[key]).toBe('string');
         expect(path.isAbsolute(config[key] as string)).toBe(true);

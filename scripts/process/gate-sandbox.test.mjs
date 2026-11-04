@@ -14,6 +14,8 @@ function fixture() {
   const root = mkdtempSync(path.join(os.tmpdir(), 'ezd-gate-sandbox-'));
   mkdirSync(path.join(root, 'scripts'));
   for (const f of ['gate.mjs', 'gate-summary.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
+  mkdirSync(path.join(root, 'scripts/db'));
+  copyFileSync(path.join(here, '..', 'db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
   mkdirSync(path.join(root, '.claude/agents'), { recursive: true });
   const dir = path.join(root, 'work');
   mkdirSync(dir);
