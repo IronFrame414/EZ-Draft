@@ -7,3 +7,8 @@ Opened 2026-11-01 by the orchestrator with Josh's yes in chat ("Yes, all of them
 - A stuck item (a guard or classifier refusal, a question for Josh, or two failed attempts) is skipped with its reason in vault/handoff/STAGE2-LOG.md, and the next independent item starts.
 - vault/handoff/STOP stays in place; no unit runs until Josh says resume.
 - This file is removed when Stage 2 is done; Josh confirms or reverts each commit (STAGE2-LOG.md lists them).
+
+## 2026-11-04 (session 1, Josh confirms or reverts)
+
+- Fault: a phase PR cannot auto-merge. main requires an up-to-date branch and takes merge commits only, so each phase PR leaves a commit develop does not have; PR 4 sat BEHIND on a1506abf. Fix: gate-phase step 6 merges origin/main first. The Stage 2 text above is finished history; STOP is not in place.
+- Fault: tickets EZD-172, 262, 256, 251, 252, 174 (parallel lanes, Josh: "lets start multiple ticket builds at the same time") have parts only fix mode may write.
