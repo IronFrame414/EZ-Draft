@@ -38,6 +38,7 @@ export const ICON_NAMES = [
   'search',
   'settings',
   'share',
+  'sort',
   'straighten',
   'sync_problem',
   'tune',

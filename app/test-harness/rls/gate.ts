@@ -65,4 +65,7 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'mark_all_notifications_read', args: {} },
   // EZD-140 section 3 (vault/plans/EZD-140.md): the notification settings save, authenticated only.
   { fn: 'save_my_notification_settings', args: { p_settings: [] } },
+  // EZD-117a section 3 (vault/plans/EZD-117a.md; E3): the Projects list and count, authenticated only.
+  { fn: 'list_projects', args: { p_sort: 'edited' } },
+  { fn: 'count_projects', args: {} },
 ];

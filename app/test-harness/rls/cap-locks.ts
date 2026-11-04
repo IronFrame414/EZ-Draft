@@ -20,7 +20,10 @@ export type ReadOnlyCounter = { fn: string; reason: string };
 
 // Non-volatile functions cannot write, so PostgreSQL refuses writes in them (planning probe of pg_proc).
 export const CAP_LOCK_READ_ONLY: readonly ReadOnlyCounter[] = [
-  { fn: 'private.custom_access_token_hook(jsonb)', reason: 'Token claim; stable (20261019170004).' },
+  {
+    fn: 'private.custom_access_token_hook(jsonb)',
+    reason: 'Token claim; stable (20261019170004).',
+  },
   {
     fn: 'public.list_customers(text, boolean, integer)',
     reason: 'Customers list totals; stable (20261026233829).',
@@ -28,6 +31,10 @@ export const CAP_LOCK_READ_ONLY: readonly ReadOnlyCounter[] = [
   {
     fn: 'public.list_notifications(timestamp with time zone, uuid)',
     reason: 'Notifications list counts; stable (20261102210539).',
+  },
+  {
+    fn: 'public.count_projects()',
+    reason: 'Projects tab counts; stable (20261104190002).',
   },
 ];
 
@@ -205,7 +212,9 @@ export function capLockProblems(
     if (!anyUnreadable && !counting.has(r.fn)) add(r.fn, 'stale_read_only_counter');
   }
 
-  const callers = [...countingNames].map((name) => new RegExp(`\\b${escapeRegExp(name)}\\s*\\(`, 'i'));
+  const callers = [...countingNames].map(
+    (name) => new RegExp(`\\b${escapeRegExp(name)}\\s*\\(`, 'i'),
+  );
   for (const p of policies) {
     let unreadable = false;
     let counts = false;

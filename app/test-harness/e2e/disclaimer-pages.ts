@@ -10,7 +10,7 @@ export type DisclaimerPage = {
 };
 
 export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
-  { file: 'src/app/page.tsx', path: '/', signedIn: true, placement: 'page' },
+  { file: 'src/app/(office)/page.tsx', path: '/', signedIn: true, placement: 'page' },
   { file: 'src/app/sign-in/page.tsx', path: '/sign-in', signedIn: false, placement: 'page' },
   {
     file: 'src/app/auth/confirm/page.tsx',

@@ -1,3 +1,5 @@
+// Moved from app/src/app/page.test.tsx by EZD-117a E5 (vault/plans/EZD-117a.md section 4): the home page is now
+// app/src/app/(office)/page.tsx; only the import and vi.mock paths changed, no assertion.
 // EZD-289 U1–U5 (vault/plans/EZD-289.md sections 1, 3, 4; AC-EZD-289-1, -2). Expected values: plan Decided
 // "Who sees the link", "Hidden, not disabled", "Load failure", "Order and place" and "Link text"; decisions/04
 // row 2026-11-02 (the link, its text "Settings", to users who may open Settings); Q-0223 (presets: Owner all,
@@ -7,20 +9,20 @@
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PERMISSION_KEYS, type PermissionKey } from '../lib/permissions/catalog';
-import type { PermissionContext } from '../server/permissions';
+import { PERMISSION_KEYS, type PermissionKey } from '../../lib/permissions/catalog';
+import type { PermissionContext } from '../../server/permissions';
 
 vi.mock('next/server', () => ({ connection: async () => {} }));
-vi.mock('../server/auth/session', () => ({
+vi.mock('../../server/auth/session', () => ({
   requireSession: async () => ({ authUserId: 'a1', appUserId: 'u1', email: 'josh@example.com' }),
 }));
-vi.mock('../server/permissions', async (orig) => ({
-  ...(await orig<typeof import('../server/permissions')>()),
+vi.mock('../../server/permissions', async (orig) => ({
+  ...(await orig<typeof import('../../server/permissions')>()),
   getPermissionContext: vi.fn(),
 }));
-vi.mock('../server/auth/supabase-server', () => ({ createSessionClient: () => ({}) }));
-vi.mock('../server/errors/report', () => ({ reportError: vi.fn(async () => ({})) }));
-vi.mock('../server/auth/actions', () => ({
+vi.mock('../../server/auth/supabase-server', () => ({ createSessionClient: () => ({}) }));
+vi.mock('../../server/errors/report', () => ({ reportError: vi.fn(async () => ({})) }));
+vi.mock('../../server/auth/actions', () => ({
   signOut: vi.fn(),
   requestSignIn: vi.fn(),
   verifySignInCode: vi.fn(),
@@ -29,8 +31,8 @@ vi.mock('../server/auth/actions', () => ({
   clearSignInEmail: vi.fn(),
 }));
 
-import { getPermissionContext } from '../server/permissions';
-import { reportError } from '../server/errors/report';
+import { getPermissionContext } from '../../server/permissions';
+import { reportError } from '../../server/errors/report';
 import Page from './page';
 
 const getCtx = vi.mocked(getPermissionContext);

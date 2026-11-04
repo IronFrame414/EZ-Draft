@@ -79,3 +79,6 @@ export { signInWithCode } from '../sign-in';
 export { countAuthEmails, emailSubjects, waitForAuthEmail, waitForRawEmail } from '../mail-catcher';
 // EZD-102 section 4: set a membership's 37 switches directly, so specs still import only from this file.
 export { setPermissions } from '../permissions/grant';
+// EZD-117a E4 (vault/plans/EZD-117a.md section 3): the signed-in bundle measurements, so specs still import only
+// from this file.
+export { signedInJsContents, signedInJsSize, type StorageState } from './js-contents';

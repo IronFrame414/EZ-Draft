@@ -1,0 +1,263 @@
+/* EZD-117a Step 11 (vault/plans/EZD-117a.md Decided "CSS"; board S01 vault/mockups/html/project/S01Projects.dc.html):
+   the Projects page. Colors, radii, shadow and fonts are tokens (check C10); spacing and sizes in plain px
+   (L-013). :hover styles only under @media (hover: hover) (ARCH Device layouts). */
+
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-canvas);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 7px 12px;
+  border-radius: var(--ez-radius-7);
+  font: 500 13px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.tab[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.count {
+  font-family: var(--ez-font-mono);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  font: 500 14px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .sortButton:hover {
+    border-color: var(--ez-border-hover);
+  }
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 6px;
+  z-index: 20;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}
+
+.menuItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: 500 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.menuItem:focus-visible {
+  background: var(--ez-hover);
+}
+
+@media (hover: hover) {
+  .menuItem:hover {
+    background: var(--ez-hover);
+  }
+}
+
+.menuItemOn {
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.settingsLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--ez-cobalt-link);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ez-ink);
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}
+
+.thumb {
+  height: 168px;
+  background-color: var(--ez-canvas);
+  background-image:
+    linear-gradient(var(--ez-canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ez-canvas-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pill {
+  font: 600 12px var(--ez-font-sans);
+  padding: 4px 9px;
+  border-radius: var(--ez-radius-999);
+  white-space: nowrap;
+}
+
+.pill[data-status='draft'] {
+  background: var(--ez-hover);
+  color: var(--ez-slate-500);
+}
+
+.pill[data-status='client_review'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.pill[data-status='permit_submitted'] {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.pill[data-status='approved'] {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.pill[data-status='in_build'] {
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+}
+
+.place {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.version {
+  font-family: var(--ez-font-mono);
+}
+
+.open {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+  color: var(--ez-slate-300);
+}
+
+.open[data-has-items='true'] {
+  color: var(--ez-amber-text);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-border);
+}
+
+.open[data-has-items='true'] .dot {
+  background: var(--ez-amber);
+}
+
+.more {
+  height: 1px;
+}
