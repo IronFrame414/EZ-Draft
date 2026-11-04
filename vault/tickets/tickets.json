@@ -3803,7 +3803,8 @@
     "AC-EZD-203-1",
     "AC-EZD-203-2",
     "AC-EZD-203-3",
-    "AC-EZD-203-4"
+    "AC-EZD-203-4",
+    "AC-EZD-203-5"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -3849,11 +3850,11 @@
     "spec/sections/12-build-phases-and-acceptance-tests.md#Room closure",
     "spec/sections/03f-model-json-objects.md",
     "spec/sections/09j-walls-and-rooms-examples.md",
-    "spec/sections/00e-glossary-phase-04.md"
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
    ],
-   "mockups": [
-    "mockups/S02Import.png"
-   ],
+   "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-203"
@@ -3863,7 +3864,9 @@
     "AC-EZD-205-1",
     "AC-EZD-205-2",
     "AC-EZD-205-3",
-    "AC-EZD-205-4"
+    "AC-EZD-205-4",
+    "AC-EZD-205-5",
+    "AC-EZD-205-6"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -3871,7 +3874,9 @@
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md#Q-0570",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0570"
    ]
   },
   {
@@ -3882,7 +3887,8 @@
    "spec_ref": "S03 Snap",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Snap",
-    "spec/sections/00e-glossary-phase-04.md"
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/09j-walls-and-rooms-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -3900,19 +3906,24 @@
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/process.md#Q-0563"
+    "spec/decisions/process.md#Q-0563",
+    "spec/decisions/09-calculations-and-rules.md#Q-0570"
    ]
   },
   {
    "id": "EZD-207",
    "phase": 4,
    "title": "Plan canvas",
-   "depends_raw": "EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238",
+   "depends_raw": "EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238, EZD-206",
    "spec_ref": "S03 Layout; Stack · 2D + 3D",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Layout",
     "spec/sections/02-product-overview.md#2D + 3D",
-    "spec/sections/00e-glossary-phase-04.md"
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/screens/S03-plan-editor.md#Permissions",
+    "spec/sections/11-non-functional-requirements.md#Performance"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -3939,13 +3950,18 @@
     "AC-EZD-207-6",
     "AC-EZD-207-7",
     "AC-EZD-207-8",
-    "AC-EZD-207-9"
+    "AC-EZD-207-9",
+    "AC-EZD-207-10"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/02-product-overview.md"
+    "spec/decisions/02-product-overview.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/09-calculations-and-rules.md#Q-0558",
+    "spec/decisions/process.md#Q-0563",
+    "spec/decisions/03-data-model.md#Q-0511"
    ]
   },
   {
@@ -3984,7 +4000,10 @@
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Typed dimension bar",
     "spec/sections/04-app-shell-and-global-ui.md#Measurement entry",
-    "spec/sections/00e-glossary-phase-04.md"
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/screens/S03-plan-editor.md#Tab",
+    "spec/sections/screens/S03-plan-editor.md#Validation & warnings",
+    "spec/sections/09j-walls-and-rooms-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -4014,15 +4033,22 @@
    "id": "EZD-210",
    "phase": 4,
    "title": "Wall and Room rectangle tools",
-   "depends_raw": "EZD-205, EZD-209",
+   "depends_raw": "EZD-205, EZD-209, EZD-206",
    "spec_ref": "S03 Wall, Room rectangle",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Wall",
     "spec/sections/screens/S03-plan-editor.md#Room rectangle",
-    "spec/sections/00e-glossary-phase-04.md"
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/screens/S02-import-review.md#Resolve the gap",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/screens/S03-plan-editor.md#Controls",
+    "spec/sections/screens/S03-plan-editor.md#Permissions",
+    "spec/sections/screens/S03-plan-editor.md#Snap"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4042,13 +4068,15 @@
     "AC-EZD-210-8",
     "AC-EZD-210-9",
     "AC-EZD-210-10",
-    "AC-EZD-210-11"
+    "AC-EZD-210-11",
+    "AC-EZD-210-12"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/09-calculations-and-rules.md"
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/process.md#Q-0563"
    ]
   },
   {
@@ -4351,11 +4379,13 @@
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Template picker",
     "spec/sections/screens/S03-plan-editor.md#States",
-    "spec/sections/00e-glossary-phase-04.md"
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/screens/S01-projects.md#Validation"
    ],
    "mockups": [
     "mockups/S01Projects.png",
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S01bWizard.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4369,14 +4399,16 @@
     "AC-EZD-221-3",
     "AC-EZD-221-4",
     "AC-EZD-221-5",
-    "AC-EZD-221-6"
+    "AC-EZD-221-6",
+    "AC-EZD-221-7"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0566",
-    "spec/decisions/09-calculations-and-rules.md"
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561"
    ]
   },
   {
@@ -4815,7 +4847,8 @@
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/05-screens.md#Q-0568"
    ]
   },
   {
@@ -17423,7 +17456,8 @@
     "AC-EZD-299-8",
     "AC-EZD-299-9",
     "AC-EZD-299-10",
-    "AC-EZD-299-11"
+    "AC-EZD-299-11",
+    "AC-EZD-299-12"
    ],
    "acs_source": "stage-0"
   },
