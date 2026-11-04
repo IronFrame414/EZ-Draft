@@ -3000,7 +3000,9 @@
     "Messages and language (t())",
     "Disclaimer (EZD-136)",
     "Design tokens, fonts and icons",
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Menus (EZD-108)",
+    "Device layouts (EZD-014)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -17698,7 +17700,12 @@
    "mockups": [],
    "architecture": [
     "Migrations",
-    "Row-level security (EZD-006)"
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Release safety (EZD-023a)",
+    "Notifications (EZD-110)",
+    "Server-only data access and can()",
+    "Auth and session (EZD-007)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
@@ -17712,6 +17719,53 @@
     "AC-EZD-323-2",
     "AC-EZD-323-3"
    ]
+  },
+  {
+   "id": "EZD-324",
+   "phase": 2,
+   "title": "Fix: the device layout test B5 does not fail at random in CI",
+   "depends_raw": "EZD-014c",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-014c"
+   ],
+   "build_position": 580,
+   "acs": [
+    "AC-EZD-324-1",
+    "AC-EZD-324-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-325",
+   "phase": 2,
+   "title": "Fix: the EZD-153 scratch database test does not fail at random in CI",
+   "depends_raw": "EZD-153",
+   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-153"
+   ],
+   "build_position": 581,
+   "acs": [
+    "AC-EZD-325-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
