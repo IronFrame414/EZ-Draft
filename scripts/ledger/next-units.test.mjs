@@ -200,7 +200,8 @@ test('EZD-174 N12 the records check retries a view, and lets a running unit hold
   const view = at('vault/tickets/STATUS.md');
   const good = readFileSync(view, 'utf8');
   writeFileSync(view, `${good}\nwrong\n`);
-  const healer = spawn(process.execPath, ['-e', 'setTimeout(() => require("fs").writeFileSync(process.env.F, process.env.T), 300)'], { env: { ...process.env, F: view, T: good }, stdio: 'ignore' });
+  writeFileSync(at('good-status.txt'), good);
+  const healer = spawn(process.execPath, ['-e', 'setTimeout(() => require("fs").copyFileSync(process.env.G, process.env.F), 300)'], { env: { ...process.env, F: view, G: at('good-status.txt') }, stdio: 'ignore' });
   const healed = new Promise((res) => healer.on('close', res));
   let r = await nt();
   await healed;

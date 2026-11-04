@@ -461,3 +461,4 @@ Cause: the plan named the main doc but did not search for every line that states
 Rule: when a ticket changes a stated behaviour, the plan lists each doc, skill and agent line found by grep for the old value in its Files table.
 Check: grep the repo for the old value; each hit is in the Files table or marked unchanged.
 Plan check: the plan shows the grep and its hits.
+2026-11-04 · EZD-174 · When a test expects a unit not to start yet, the plan states the lane limits that make it wait and works the input through the harness's run counting and the limit regexes by hand (plan-gap, E2/E3/E4/E6).
