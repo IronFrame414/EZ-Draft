@@ -11,3 +11,15 @@ Task (analysis and proposal only; change no rule, process file, skill, hook or l
 4. Write a one-page proposal for Josh (a general contractor, not a programmer) in plain words: the lean rule set, what changes first, the cost, the risks; ask him to approve, change or reject. Put the long analysis under vault/research/ and commit only your own files, by path.
 
 Constraints: other sessions and the launcher (launchd, lanes on) share this checkout. Never stop or restart the launcher, never edit STATUS.md or other generated views, never read .env files. EZD-279 and EZD-268 are mid-build in .claude/worktrees; don't touch those worktrees.
+
+## Josh's answers (interview, 2026-11-04)
+- Priority for the coming weeks: **quality first**. Keep today's level of checking on the product; the gain must come from removing blocks, delays and self-generated work, not from checking the app less.
+- His role: **a short daily check-in**: one short list of decisions per day; everything else runs on its own.
+- Build-system tickets (the ten unfrozen today): **the new session decides** which to keep, finish or drop, with the reason for each.
+- Scope: **a rewrite is allowed**: the session may propose replacing CLAUDE.md and PROCESS.md with a short new rule set and a simpler launcher flow (still proposal only until Josh approves).
+
+## State at hand-over (2026-11-04 ~23:45 UTC)
+- EZD-279: code and security reviews PASS; gate green except e2e EZD-289 E1, the develop defect EZD-330 (Projects tabs 30 px). Merge after EZD-330 lands (merge develop, gate, unit-steps merge).
+- EZD-268: tests 79e0d30d; test review r1 FAIL on one missing test edit (unit-steps-update.test.mjs:325); held blocked; no code yet.
+- Lanes on (2/2). Develop CI red since 88bbadd7 (EZD-330 fixes it; the launcher is planning it).
+- Full detail: vault/handoff/build-watch-2026-11-04.md.
