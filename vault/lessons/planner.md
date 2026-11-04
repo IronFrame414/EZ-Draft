@@ -364,3 +364,26 @@ When a plan's cleaner reports text positions, they come from the original string
 Before a plan reuses a component in an office part, check `eslint-rules/boundaries.mjs` (`components/shell/` is EDITOR_CODE, barred from the office entry) and rebuild its CSS from tokens instead; a step that runs a Node script needing the network inside a unit prefixes `NODE_USE_ENV_PROXY=1` (Node fetch ignores the sandbox proxy). (EZD-110b)
 - EZD-110b (2026-11-02): a popover list with a page of N rows states its maximum height and scroll area at the largest page in the smallest test window, and a store action that triggers a refetch says whether it waits for it before the UI reacts.
 When a ticket extends a test file that exports nothing, section 3 must say which file the helpers live in and whether they are exported, and must define every helper it names instead of saying 'as <other ticket> T1'.
+
+## L-044  areas: testing, realtime  seen: 1  status: candidate
+Ticket EZD-297, 2026-11-03
+Mistake: the plan's control row (N2) said "the N1 step-1 assert throws" without saying what value that assert expects; the test-author put a placeholder, so the inner check threw whether or not the event arrived. The plan's S1 upper-case case also used an id with no letters, so it could not test case.
+Cause: a negative-control row named the assert but not the expected value, and a case-change input was written without checking it differs from the original.
+Rule: a control row names the exact value the inner assert must expect (the id the step created), and a case, length or format test input is shown to differ from its original after the change.
+Check: for each control row, the plan review finds the expected value beside the assert; each case-change input contains a letter or character that changes.
+- EZD-295 re-validation (2026-11-03): when a ticket lowers a limit, list every earlier test fixture set just past the old limit (the *_PLUS_1 constants) as an edit, not only the tests that check the limit value.
+- EZD-295 plan-gap (2026-11-03): when a plan says an earlier test passes unedited, open its body and check every call against the new policy; a policy that narrows Storage operations needs every earlier test that signs uploads to that bucket listed with its replacement call.
+When a script runs outside the sandbox and takes a file path from a sandboxed caller, the plan names the one folder the file must be in, how symlinks and hard links are handled, and that the script reads the file itself rather than passing the path on; every child process gets a cwd outside any folder the sandbox can write (EZD-316 round 1).
+A plan for a script that runs outside the sandbox first lists every file and env var its child processes read, then chooses a design where none of them is sandbox-writable, instead of blocking one variant per review round (EZD-316 round 3).
+A plan that gates what a trusted script pushes names its trust anchor first: anything the sandbox can write is data, never authority (EZD-316 round 3).
+
+## L-045  areas: tooling, security  seen: 1  status: candidate
+Ticket EZD-316, 2026-11-03
+Mistake: a sandbox-guard plan listed three denied write paths and a check-then-commit step; three review rounds each found another path of the same class (git hooks, worktree config, a resumed merge that records without checking, develop moving between check and commit).
+Cause: the plan fixed the examples reviewers named instead of listing every file the unsandboxed step reads and every state it re-reads between check and use.
+Rule: for a guard on an unsandboxed step, the plan lists every file and ref that step reads, marks each denied or checked, and says what is re-verified at the moment of use (rule 18).
+Check: the plan has a read-list table with a decision per row and a test per check-then-use step.
+Plan check: every path an excluded command reads appears in the plan's read-list table.
+- EZD-298 (2026-11-03): when an AC says '(test)' but a ratified lesson forbids that test, section 4 says the AC is met by the code-reviewer's check under the Q-ID and names the ticket row line, so the test-author does not raise it as a gap.
+When a browser test changes server state after a click whose server function sends a Realtime event, put the clicked row in a state where the function sends no event and name the SQL line that proves it; never make the test wait for a number of responses (EZD-110b T19).
+When a component fetches on mount and also listens on a realtime channel, the plan says from the start how the gap before the first join is closed (refetch when ready resolves 'subscribed'), because the hub resyncs only on a re-subscribe (EZD-110b D16).
