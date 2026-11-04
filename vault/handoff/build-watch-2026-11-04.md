@@ -23,3 +23,7 @@ EZD-256 8a9d92cd · EZD-174 9b6706e3 (+ e1a6719e N12 E2BIG, 7533427f next_ticket
 - `pgrep -f "claude -p"` matches the watcher's own shell; anchor it (`^claude -p `).
 - I truncated vault/tickets/tickets.json once (write-before-read in a script) and rebuilt it from HEAD plus the records DB held entries (EZD-120a, 202, 238, 317, 320).
 - Debt rows added: D-073, D-074, D-077 to D-079, D-082 (questions loop), D-084.
+
+## Added at hand-over (from the "Phase 4 approval and build" session)
+- New rule-17 defect to file at the front, low, fix mode (Q-0580, answered-agent for Josh to confirm): EZD-256's K12 gate-lock tests ("two lane gates, one dead sweep lock", "dead lock take-over") failed with "Not a git repository" while lanes 2 and 3 ran gates in parallel during EZD-117b's gate; gate-lock.test.mjs alone passes 17/17. A flaky gate fails the gate, so it goes before the remaining fix-mode tickets. Queue the blocked hold before its worktree (D-084).
+- EZD-117b is blocked on Q-0579 (Josh: product/cost call on the page budget); leave it.
