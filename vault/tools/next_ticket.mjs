@@ -875,6 +875,11 @@ export function buildPool(B) {
   return pool;
 }
 
+// Units the launcher set aside after two runs without progress (Josh 2026-11-03): skipped until Josh clears the list. Only the main checkout has this file.
+function setAsideUnits() {
+  try { return new Set(JSON.parse(readFileSync(path.join(root, '.git', 'set-aside.json'), 'utf8'))); } catch { return new Set(); }
+}
+
 function nextUnit() {
   if (existsSync(path.join(vault, 'handoff/STOP'))) return 'none: vault/handoff/STOP exists';
   const problems = check();
@@ -886,6 +891,7 @@ function nextUnit() {
   if (phase === null) return 'none: every ticket is done';
   const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
   const B = blockingPhase();
+  const aside = setAsideUnits();
   // Every finished phase (all product tickets done or blocked; tooling tickets do not count, EZD-253) up to the working phase goes through gate -> PR merge -> wrap, in phase order, before the working phase runs (EZD-254; PROCESS.md sections 8-9). An earlier phase's blocked ticket does not stop a later finished phase's gate.
   for (const p of phases) {
     if (B !== null && p >= B) break;
@@ -893,6 +899,7 @@ function nextUnit() {
     // A ticket in review may already have its feat commit on develop (scripts/unit-steps.mjs), so it finishes before a gate.
     if (flying && status(flying.id) === 'review') return `build ${flying.id}`;
     const g = gateState(p);
+    if (aside.has(`gate-phase ${p}`) || aside.has(`wrap ${p}`)) continue;
     if (g.state === 'not-gated' || g.state === 'gating') return `gate-phase ${p}`;
     if (g.state === 'pr-open') {
       // EZD-250 D18 (Q-0379 (b)): a failed CI `gate` check on the phase PR is a repairable wait; any other CI state keeps the wait.
@@ -923,13 +930,13 @@ function nextUnit() {
     if (ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
     const st = (s) => ts.filter((t) => status(t.id) === s);
     // Stage 1
-    const planOrder = st('todo').sort(byPriority);
+    const planOrder = st('todo').filter((t) => !aside.has(`plan ${t.id}`)).sort(byPriority);
     if (planOrder.length) return `plan ${planOrder[0].id}`;
     const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(q)}.md`);
     const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
-    if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile)) return `review-plans ${q}`;
+    if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
     // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
-    if (questionsDue(q)) return `questions ${q}`;
+    if (questionsDue(q) && !aside.has(`questions ${q}`)) return `questions ${q}`;
     if (!inStage3 && (st('planned').length || st('questions').length) && reason === null) {
       const n = questionsForPhase(q);
       reason = n.escalated

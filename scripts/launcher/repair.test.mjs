@@ -2,7 +2,7 @@
 // The launcher runs only as a copy under a temporary root with a stub ledger tool, a fake claude and a stub notify command.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { makeLauncherRoot, runLauncher, readJson, why } from './test-utils/harness.mjs';
 import { fingerprint } from '../launcher-idle.mjs';
 
@@ -94,6 +94,15 @@ test('EZD-250 T30 failed state holds: the same wait after a failed repair keeps 
   assert.equal(copies[1].at, copies[0].at, why(r));
   assert.equal(copies[2].at, copies[0].at, why(r));
   assert.equal(r.prompts.filter((p) => p.startsWith('/repair')).length, 1, why(r));
+});
+
+test('Josh 2026-11-03 a unit that runs twice without progress goes on the set-aside list; it stops only if next_ticket still returns it', async () => {
+  const root = makeLauncherRoot({ stub: { next: [{ text: 'gate-phase 1' }] } });
+  mkdirSync(root.at('.git'), { recursive: true });
+  const r = await runLauncher(root);
+  assert.deepEqual(JSON.parse(readFileSync(root.at('.git', 'set-aside.json'), 'utf8')), ['gate-phase 1'], why(r));
+  assert.deepEqual(r.notified, ['EZ Draft: unit gate-phase 1 ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.'], why(r));
+  assert.equal(r.prompts.length, 2, why(r));
 });
 
 test('EZD-258 T10 repair cap: after 3 repair units in a row the launcher waits and notifies instead of a 4th (AC-EZD-258-1)', async () => {

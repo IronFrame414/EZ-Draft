@@ -214,6 +214,19 @@ function saveLimitText(unitName, arg, res, limit) {
   }
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// A build tables its ticket (blocked with a note); any other unit goes on the list next_ticket.mjs skips (.git/set-aside.json). Josh clears it.
+function setAside(unitName, arg, next) {
+  if (unitName === 'build') {
+    const t = spawnSync(process.execPath, [path.join(root, 'scripts/unit-steps.mjs'), 'table', arg], { encoding: 'utf8', cwd: root, env: { ...process.env, EZD_RESULTS_FILE: '', EZD_RECORDS_WRITER: String(process.pid) } });
+    return { ok: t.status === 0 && nextUnitText() !== next, text: `${t.stdout ?? ''}${t.stderr ?? ''}`.trim().split('\n')[0] };
+  }
+  try {
+    const file = path.join(root, '.git', 'set-aside.json');
+    const list = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : [];
+    writeFileSync(file, JSON.stringify([...new Set([...list, next])]) + '\n');
+    return { ok: nextUnitText() !== next, text: `SET ASIDE ${next}` }; // the same unit next would loop: only then does the launcher stop
+  } catch (e) { return { ok: false, text: e.message }; }
+}
 
 const resultsFile = (dir, id) => path.join(dir, `${id}.results.jsonl`);
 
@@ -591,22 +604,22 @@ async function main() {
     // After a normal unit a failed check only logs; the next pass starts a repair unit (EZD-250 D12a).
     if (chk.status !== 0) log(`ledger check failed:\n${chk.stdout}`);
     // No-progress guard (2026-10-19): a unit that ends ok but leaves STATUS.md and the next unit unchanged is not
-    // retried forever. A build that does it twice is tabled (blocked with a note) and the launcher moves on to the next
-    // ready ticket (Josh 2026-10-27: "override so it keeps moving forward"); any other unit, a failed table, or a third
-    // stuck build right after two tables (a systemic fault, not one ticket) still stop the launcher.
+    // retried forever. Any unit that does it twice is set aside until Josh is back, and the launcher goes on with other
+    // work (Josh 2026-10-27, 2026-11-03: "that item should just be set aside"). Only a set-aside that cannot be written
+    // stops it. Three in a row look like a fault in the system, not one item: the launcher pauses, then goes on.
     if (r.outcome === 'ok' && statusHash() === statusBefore && nextUnitText() === next) {
       noProgress++;
       log(`${next} ended ok but changed nothing in STATUS.md (${noProgress} in a row)`);
       if (noProgress >= 2) {
-        const t = unitName === 'build' && tabled < 2 ? spawnSync(process.execPath, [path.join(root, 'scripts/unit-steps.mjs'), 'table', arg], { encoding: 'utf8', cwd: root, env: { ...process.env, EZD_RESULTS_FILE: '', EZD_RECORDS_WRITER: String(process.pid) } }) : null;
-        if (t && t.status === 0) {
-          tabled++;
+        const aside = setAside(unitName, arg, next);
+        if (aside.ok) {
           noProgress = 0;
-          log(t.stdout.trim());
-          notify(`${arg} set aside (${/STATUS → todo/.test(t.stdout) ? 'back to todo: it had no plan' : 'blocked'}) after two builds without progress; the launcher goes on with the next ticket. See vault/handoff/CURRENT.md.`);
+          log(aside.text);
+          notify(`${next} set aside until Josh is back, after two runs without progress; the launcher goes on with other work.`);
+          if (++tabled >= 3) { log('three set aside in a row; pausing before the next unit'); tabled = 0; await sleep(config.aside_pause_ms ?? 1800000); }
           continue;
         }
-        if (t) log(`table ${arg} failed: ${(t.stdout + t.stderr).trim().split('\n')[0]}`);
+        log(`set aside ${next} failed: ${aside.text}`);
         notify(`unit ${next} ended twice without progress; launcher stopped. See vault/handoff/CURRENT.md.`);
         return;
       }
@@ -617,7 +630,15 @@ async function main() {
       if (/max_turns|budget/i.test(r.outcome) || r.outcome === 'error') {
         // One retry of the same unit (the worktree resumes); a second failure stops the loop.
         if (!main.retried) { main.retried = next; log(`retrying ${next} once`); continue; }
-        if (main.retried === next) { notify(`unit ${next} failed twice (${r.outcome}); launcher stopped.`); return; }
+        if (main.retried === next) {
+          const aside = setAside(unitName, arg, next);
+          if (!aside.ok) { notify(`unit ${next} failed twice (${r.outcome}); launcher stopped.`); return; }
+          main.retried = null;
+          log(aside.text);
+          notify(`${next} set aside until Josh is back, after failing twice (${r.outcome}); the launcher goes on with other work.`);
+          if (++tabled >= 3) { log('three set aside in a row; pausing before the next unit'); tabled = 0; await sleep(config.aside_pause_ms ?? 1800000); }
+          continue;
+        }
       }
     }
     main.retried = null;
