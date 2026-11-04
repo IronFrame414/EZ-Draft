@@ -491,7 +491,8 @@
   "EZD-287",
   "EZD-289",
   "EZD-290",
-  "EZD-291"
+  "EZD-291",
+  "EZD-328"
  ],
  "tickets": [
   {
@@ -17882,6 +17883,31 @@
    "build_position": 583,
    "acs": [
     "AC-EZD-327-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-328",
+   "phase": 1,
+   "title": "Fix: each lane's gate and database run outside the unit sandbox",
+   "depends_raw": "EZD-174",
+   "spec_ref": "Q-0556 (Josh 2026-11-04)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Local database",
+    "Tests"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-174"
+   ],
+   "build_position": 584,
+   "acs": [
+    "AC-EZD-328-1"
    ],
    "acs_source": "done-when"
   }
