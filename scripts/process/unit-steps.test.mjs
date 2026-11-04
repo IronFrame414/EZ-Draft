@@ -304,6 +304,29 @@ test('Q-0544 the feat commit takes only its own tickets.json entry; another tick
   assert.deepEqual(entry.architecture, ['Tests']);
 });
 
+test('Q-0544 the worktree step commits the plan entry on develop first, so the ticket gate reads it; another pending entry stays uncommitted', async () => {
+  const { openRecords, applyOps } = await import(RECORDS);
+  const dir = fixture();
+  const db = openRecords(dbOf(dir));
+  applyOps(db, [{ op: 'plan', ticket: 'EZD-002', text: '# plan\n', entry: { id: 'EZD-002', phase: 0, depends_on: ['EZD-001'], architecture: ['Tests'] } }]);
+  db.close();
+  const file = path.join(dir, 'vault/tickets/tickets.json');
+  const pending = JSON.parse(readFileSync(file, 'utf8'));
+  pending.tickets.push({ id: 'EZD-009', phase: 0, depends_on: [] });
+  writeFileSync(file, JSON.stringify(pending, null, 1) + '\n');
+  const r = run(dir, 'worktree', 'EZD-002');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const onDevelop = JSON.parse(git(dir, 'show', 'develop:vault/tickets/tickets.json')).tickets;
+  assert.deepEqual(onDevelop.map((x) => x.id), ['EZD-001', 'EZD-002']);
+  assert.deepEqual(onDevelop[1].architecture, ['Tests']);
+  const inWorktree = JSON.parse(readFileSync(path.join(dir, '.claude/worktrees/EZD-002/vault/tickets/tickets.json'), 'utf8')).tickets;
+  assert.deepEqual(inWorktree[1].architecture, ['Tests']);
+  assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')).tickets.map((x) => x.id), ['EZD-001', 'EZD-002', 'EZD-009']);
+  const again = run(dir, 'worktree', 'EZD-002');
+  assert.equal(again.status, 0, again.stdout + again.stderr);
+  assert.doesNotMatch(again.stdout, /ENTRY/);
+});
+
 test('2.12 U3 the feat commit writes the tickets.json entry the records database held for the ticket (D9 (a), 2026-11-02)', async () => {
   const { openRecords, applyOps } = await import(RECORDS);
   const dir = fixture();

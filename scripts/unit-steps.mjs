@@ -96,6 +96,35 @@ function mergedCommit() {
   return git('diff', '--quiet', sha, `t/${ticket}`, '--', '.', ':(exclude)vault').status === 0 ? sha : null;
 }
 
+// A planned ticket's tickets.json entry goes on develop before its worktree gate reads it (Q-0544): the commit holds this entry alone; other tickets still uncommitted in the checkout's file stay so.
+const TICKETS_REL = 'vault/tickets/tickets.json';
+const withEntry = (text, entry) => {
+  const d = JSON.parse(text);
+  d.tickets = d.tickets.map((x) => (x.id === ticket ? entry : x));
+  return JSON.stringify(d, null, 1) + '\n';
+};
+function stageEntry(text, entry) {
+  const blob = sh('git', ['hash-object', '-w', '--stdin'], { input: withEntry(text, entry) });
+  if (blob.status) stop(`STOP: tickets.json entry failed: ${firstLine(blob)}`);
+  const staged = git('update-index', '--cacheinfo', `100644,${blob.stdout.trim()},${TICKETS_REL}`);
+  if (staged.status) stop(`STOP: tickets.json entry failed: ${firstLine(staged)}`);
+  writeFileSync(path.join(root, TICKETS_REL), withEntry(readFileSync(path.join(root, TICKETS_REL), 'utf8'), entry));
+}
+function commitHeldEntry() {
+  const db = openRecords(dbPath());
+  let held;
+  try { held = planRecord(db, ticket); } finally { db.close(); }
+  if (!held?.entry) return false;
+  const text = git('show', `HEAD:${TICKETS_REL}`).stdout;
+  const now = JSON.parse(text).tickets.find((x) => x.id === ticket);
+  if (!now || JSON.stringify(now) === JSON.stringify(held.entry)) return false;
+  stageEntry(text, held.entry);
+  const c = git('commit', '-q', '-m', `docs(vault): ${ticket} tickets.json entry from its plan`);
+  if (c.status) stop(`WORKTREE STOP: entry commit failed: ${firstLine(c)}`);
+  console.log(`ENTRY ${ticket} committed on develop`);
+  return true;
+}
+
 function worktree() {
   withLedgerLock(root, { owner: owner() }, () => {
     const rel = `.claude/worktrees/${ticket}`;
@@ -106,12 +135,17 @@ function worktree() {
       console.log(`WORKTREE RESUME merged=yes commit=${merged.slice(0, 7)}: go to step 10 (merge resumes: clean up, done)`);
       return;
     }
+    const entryCommitted = commitHeldEntry();
     if (existsSync(wt) || branchExists) {
       if (!existsSync(wt)) { const r = git('worktree', 'add', rel, `t/${ticket}`); if (r.status) stop(`WORKTREE STOP: ${out(r)}`); }
       const log = out(sh('git', ['-C', wt, 'log', '--format=%s', `develop..HEAD`]));
       const subjects = log ? log.split('\n') : [];
       const tests = subjects.some((s) => s.startsWith(`test(${ticket})`)) ? 'yes' : 'no';
       const wip = subjects.filter((s) => s.startsWith(`wip(${ticket})`)).length;
+      if (entryCommitted) {
+        const up = sh('git', ['-C', wt, 'merge', '-q', '--no-edit', 'develop']);
+        if (up.status) { sh('git', ['-C', wt, 'merge', '--abort']); console.log(`WORKTREE NOTE: merge develop into ${rel} before the gate (${firstLine(up)})`); }
+      }
       console.log(`WORKTREE RESUME tests=${tests} wip=${wip} path=${wt}`);
     } else {
       // While a merge is in progress develop's tip is an ungated feat commit; branch from the commit under it instead.
@@ -258,18 +292,8 @@ function merge() {
         let held;
         try { held = planRecord(db, ticket); } finally { db.close(); }
         if (held?.entry) {
-          const ticketsRel = 'vault/tickets/tickets.json';
-          const withEntry = (text) => {
-            const d = JSON.parse(text);
-            d.tickets = d.tickets.map((x) => (x.id === ticket ? held.entry : x));
-            return JSON.stringify(d, null, 1) + '\n';
-          };
           // Commit this ticket's entry on the squash's own copy: another ticket still uncommitted in the checkout's file has no phase row yet on develop (Q-0544).
-          const blob = sh('git', ['hash-object', '-w', '--stdin'], { input: withEntry(git('show', `:${ticketsRel}`).stdout) });
-          if (blob.status) stop(`MERGE STOP: tickets.json entry failed: ${out(blob).split('\n')[0]}`);
-          const staged = git('update-index', '--cacheinfo', `100644,${blob.stdout.trim()},${ticketsRel}`);
-          if (staged.status) stop(`MERGE STOP: tickets.json entry failed: ${out(staged).split('\n')[0]}`);
-          writeFileSync(path.join(root, ticketsRel), withEntry(readFileSync(path.join(root, ticketsRel), 'utf8')));
+          stageEntry(git('show', `:${TICKETS_REL}`).stdout, held.entry);
         }
         const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
         if (c.status) stop(`MERGE STOP: commit failed: ${out(c).split('\n')[0]}`);
