@@ -2,6 +2,7 @@
 // exported method of every route, in the plan's order. Each request is the success request of that route's own
 // route.test.ts unless the plan says otherwise; the status is the plan's (200 when not shown). `after` keeps the
 // ids a later case needs in env.created. Test-only.
+import { randomUUID } from 'node:crypto';
 import { adminDb, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
@@ -380,5 +381,45 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: get('/api/projects/counts'),
     expectStatus: 200,
     note: 'EZD-117a: status tab counts only (no money)',
+  },
+  {
+    file: `${API}projects/[id]/objects/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/objects/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({
+          lockEpoch: 0,
+          changes: [
+            {
+              id: randomUUID(),
+              baseSeq: 0,
+              deleted: false,
+              type: 'wall',
+              schemaVersion: 1,
+              data: { n: 1 },
+            },
+          ],
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-120a: saves one object; 200 { objects: [{ id, updatedSeq }] } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/checkpoints/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/checkpoints/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/checkpoints`, {
+        method: 'POST',
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    note: 'EZD-120a: one checkpoint; 201 { version: { id } } (no money)',
   },
 ];

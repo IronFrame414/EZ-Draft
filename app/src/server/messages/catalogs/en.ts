@@ -49,6 +49,10 @@ export const en = {
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
   'error.project_not_found': "That project isn't available.",
+  'error.stale_lock_epoch':
+    "Someone else is editing this project now, so these changes weren't saved.",
+  'error.save_conflict':
+    "Someone else changed the same items first, so these changes weren't saved.",
   'error.notification_not_found': 'That notification no longer exists.',
   'error.invalid_email': 'Enter a valid email address.',
   'error.too_many_requests': 'Too many tries. Wait a minute and try again.',
@@ -229,7 +233,8 @@ export const en = {
   'office.new_project.customer': 'Customer',
   'office.new_project.customer_hint_before': 'Pick from the customer list or ',
   'office.new_project.customer_hint_link': 'add new',
-  'office.new_project.customer_hint_after': '. Optional now; required (with email) before the first send.',
+  'office.new_project.customer_hint_after':
+    '. Optional now; required (with email) before the first send.',
   'office.new_project.customer_placeholder': 'Pick a customer',
   'office.new_project.customer_none': 'No customer',
   'office.new_project.customer_more': 'Show more',

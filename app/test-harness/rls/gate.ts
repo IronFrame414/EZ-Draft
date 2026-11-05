@@ -80,4 +80,10 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_scope_of_work: null,
     },
   },
+  // EZD-120a section 3 (vault/plans/EZD-120a.md): the model save and checkpoint functions, authenticated only.
+  {
+    fn: 'save_objects',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_lock_epoch: 0, p_changes: [] },
+  },
+  { fn: 'create_checkpoint', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
 ];

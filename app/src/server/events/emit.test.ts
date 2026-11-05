@@ -44,8 +44,8 @@ describe('EZD-022 emit', () => {
     expect(short.actorId).toBeNull();
 
     const real = createEmitter({ sinks: [] });
-    const e1 = await real.emit('model.saved', {}, ctx);
-    const e2 = await real.emit('model.saved', {}, ctx);
+    const e1 = await real.emit('model.saved', { objectIds: [] }, ctx);
+    const e2 = await real.emit('model.saved', { objectIds: [] }, ctx);
     const v4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
     expect(e1.id).toMatch(v4);
     expect(e2.id).toMatch(v4);
@@ -86,7 +86,7 @@ describe('EZD-022 emit', () => {
         () => void bCalls++,
       ],
     });
-    const err = await emit('model.saved', {}, ctx).then(
+    const err = await emit('model.saved', { objectIds: [] }, ctx).then(
       () => null,
       (e: unknown) => e,
     );
