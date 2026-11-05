@@ -5,6 +5,7 @@
 // The first floor is the one made by the project's insert trigger; admin rows set updated_seq >= 1 and a
 // live non-floor `data.level` = that floor's object_id.
 import { randomUUID } from 'node:crypto';
+import { CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {
@@ -133,11 +134,25 @@ describe('EZD-120b loadModel', () => {
     expect(load?.objects.find((o) => o.id === floorId)?.type).toBe('floor');
     for (const r of rows) {
       const got = load?.objects.find((o) => o.id === r.object_id);
+      const data =
+        r.type === 'wall'
+          ? {
+              ...(r.data as Record<string, unknown>),
+              attributes: {
+                ...((r.data as Record<string, unknown>).attributes as Record<string, unknown>),
+                layers: [
+                  { material: 'drywall', thickness: 0.5 },
+                  { material: 'stud', thickness: 3.5 },
+                  { material: 'drywall', thickness: 0.5 },
+                ],
+              },
+            }
+          : r.data;
       expect(got).toEqual({
         id: r.object_id,
         type: r.type,
-        schemaVersion: 1,
-        data: r.data,
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        data,
         updatedSeq: r.updated_seq,
       });
     }

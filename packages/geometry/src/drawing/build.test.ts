@@ -52,6 +52,11 @@ function wall(
         height: 96,
         topCutToCeiling: false,
         bearing: false,
+        layers: [
+          { material: 'drywall', thickness: 0.5 },
+          { material: 'stud', thickness: 3.5 },
+          { material: 'drywall', thickness: 0.5 },
+        ],
       },
     },
   };

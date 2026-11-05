@@ -10,9 +10,11 @@ import {
 } from './migrate';
 import { parseStoredObject, type StoredObject } from './index';
 import v1 from './samples/v1.json';
+import v2 from './samples/v2.json';
 
 const STORED_SAMPLES: Record<number, { objects: StoredObject[] }> = {
   1: v1 as unknown as { objects: StoredObject[] },
+  2: v2 as unknown as { objects: StoredObject[] },
 };
 
 const keys = (r: Record<number, unknown>) => Object.keys(r).map(Number);
@@ -29,7 +31,7 @@ describe('EZD-202 schema migration', () => {
       }
       expect(sample).toEqual(before);
     }
-    expect(CURRENT_SCHEMA_VERSION).toBe(1);
+    expect(CURRENT_SCHEMA_VERSION).toBe(2);
     expect(
       migrationChainProblems(CURRENT_SCHEMA_VERSION, keys(MIGRATIONS), keys(STORED_SAMPLES)),
     ).toEqual([]);

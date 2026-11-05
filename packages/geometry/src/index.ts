@@ -3,3 +3,4 @@ export * from './drawing';
 export * from './length';
 export * from './schema';
 export * from './tolerance';
+export * from './walls';

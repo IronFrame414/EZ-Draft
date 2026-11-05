@@ -6,8 +6,8 @@
 // (`level_not_found` carries the id of the object naming the floor; a floor added, restored or deleted
 // together with its objects in one save passes), AC-4 and P120a M6 (checkpoint copies ids and data).
 import { randomUUID } from 'node:crypto';
-import { parseModelDocument } from '@ezdraft/geometry';
-import v1 from '../../../../packages/geometry/src/schema/samples/v1.json';
+import { CURRENT_SCHEMA_VERSION, parseModelDocument } from '@ezdraft/geometry';
+import v2 from '../../../../packages/geometry/src/schema/samples/v2.json';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { holdErrorAlertLock } from '../../../test-harness/errors/alert-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
@@ -97,10 +97,10 @@ async function post(
   return { res, json: JSON.parse(await res.text()) as unknown };
 }
 
-// Plan section 3 fixture row: every object is a copy of a Floor 1 object of samples/v1.json with a new id
+// Plan section 3 fixture row: every object is a copy of a Floor 1 object of samples/v2.json with a new id
 // (the caller's) and `level` set to the floor the test names.
 type V1Object = { id: string; type: string; data: Json };
-const V1 = (v1 as unknown as { objects: V1Object[] }).objects;
+const V1 = (v2 as unknown as { objects: V1Object[] }).objects;
 const FLOOR1 = V1.find((o) => o.type === 'floor' && o.data.name === 'Floor 1') as V1Object;
 const onFloor1 = (type: string) =>
   V1.find((o) => o.type === type && o.data.level === FLOOR1.id) as V1Object;
@@ -121,7 +121,13 @@ const openingData = (level: string, hostWallId: string): Json => {
 };
 const roomData = (level: string): Json => copyOf('room', level);
 
-const up = (id: string, type: string, data: Json, baseSeq = 0, schemaVersion = 1) => ({
+const up = (
+  id: string,
+  type: string,
+  data: Json,
+  baseSeq = 0,
+  schemaVersion = CURRENT_SCHEMA_VERSION,
+) => ({
   id,
   baseSeq,
   deleted: false,
@@ -208,7 +214,7 @@ describe('EZD-202 model object schema on save', () => {
     }
   }, 180000);
 
-  it('A1 valid save: a new floor with a wall, opening and room on it is stored as sent at version 1', async () => {
+  it('A1 valid save: a new floor with a wall, opening and room on it is stored as sent at the current version', async () => {
     const p = (await createProjects(tenant, 1))[0];
     const floor = randomUUID();
     const wall = randomUUID();
@@ -233,7 +239,7 @@ describe('EZD-202 model object schema on save', () => {
     for (const id of [floor, wall, opening, room]) {
       const row = stored.find((x) => x.object_id === id);
       expect(row, id).toBeDefined();
-      expect(row?.schema_version).toBe(1);
+      expect(row?.schema_version).toBe(CURRENT_SCHEMA_VERSION);
       expect(row?.data).toEqual(sent[id]);
     }
   }, 120000);
@@ -251,10 +257,10 @@ describe('EZD-202 model object schema on save', () => {
     }
   }, 120000);
 
-  it('A3 type, version: schemaVersion 2 and type beam are refused, nothing is written', async () => {
+  it('A3 type, version: schemaVersion 3 and type beam are refused, nothing is written', async () => {
     const before = await rows(project);
     const v = randomUUID();
-    expectRefused(await send(project, [up(v, 'wall', wallData(floor1), 0, 2)]), [
+    expectRefused(await send(project, [up(v, 'wall', wallData(floor1), 0, 3)]), [
       { id: v, issue: 'unknown_schema_version' },
     ]);
     const t = randomUUID();
