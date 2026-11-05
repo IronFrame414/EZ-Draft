@@ -44,8 +44,12 @@
 }
 
 .tab {
+  position: relative;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: baseline;
+  justify-content: center;
+  min-width: var(--ez-touch-target);
   gap: 4px;
   border: 0;
   background: transparent;
@@ -71,6 +75,7 @@
 }
 
 .sortButton {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -90,6 +95,17 @@
   }
 }
 
+/* EZD-330: 44 px tap areas with every pointer (11 Accessibility; EZD-289 E1 checks at desktop). */
+.tab::after,
+.sortButton::after {
+  content: '';
+  position: absolute;
+  top: min(0px, calc(50% - var(--ez-touch-target) / 2 - 2px));
+  bottom: min(0px, calc(50% - var(--ez-touch-target) / 2 - 2px));
+  left: min(0px, calc(50% - var(--ez-touch-target) / 2 - 2px));
+  right: min(0px, calc(50% - var(--ez-touch-target) / 2 - 2px));
+}
+
 .menu {
   display: flex;
   flex-direction: column;
@@ -103,8 +119,10 @@
 }
 
 .menuItem {
+  box-sizing: border-box;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  min-height: var(--ez-touch-target);
   gap: 12px;
   padding: 10px 12px;
   border: 0;
