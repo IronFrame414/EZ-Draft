@@ -1,0 +1,22 @@
+diff --git a/.claude/settings.json b/.claude/settings.json
+index 76369d1..fc641df 100644
+--- a/.claude/settings.json
++++ b/.claude/settings.json
+@@ -26,6 +26,7 @@
+       "Bash(git switch develop)",
+       "Bash(gh pr create *)",
+       "Bash(gh pr view *)",
++      "Bash(gh pr merge *)",
+       "Bash(gh api *)",
+       "Bash(supabase start*)",
+       "Bash(supabase stop*)",
+@@ -38,9 +39,6 @@
+       "Bash(pnpm supabase gen types*)",
+       "Bash(pnpm supabase migration new *)"
+     ],
+-    "ask": [
+-      "Bash(gh pr merge*)"
+-    ],
+     "deny": [
+       "Read(./.env)",
+       "Read(./.env.local)",
