@@ -25,7 +25,7 @@ function contents(entry, source) {
  * rule?; statistic?: 'p95' | 'max'; toleranceMs?; source } (section 3).
  */
 const ROWS = [
-  { id: 'download.projects-settings', kind: 'gate', unit: 'bytes', value: 200 * KB_BYTES, source: SIZE_SOURCE },
+  { id: 'download.projects-settings', kind: 'gate', unit: 'bytes', value: 220 * KB_BYTES, source: '11 Budgets Download size; Q-0071 (a); Q-0579 (b) 220 KB' },
   {
     id: 'download.editor',
     kind: 'gate',
