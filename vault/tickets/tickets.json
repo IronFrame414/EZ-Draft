@@ -3948,9 +3948,7 @@
    "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-202",
-    "EZD-201",
-    "EZD-238"
+    "EZD-202"
    ],
    "build_position": 95,
    "acs": [
