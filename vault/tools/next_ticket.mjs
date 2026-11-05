@@ -77,6 +77,9 @@ function writeAtomic(file, text) {
   try { writeFileSync(tmp, text); renameSync(tmp, file); } catch (e) { try { unlinkSync(tmp); } catch {} throw e; }
 }
 const data = JSON.parse(readFileSync(path.join(vault, 'tickets/tickets.json'), 'utf8'));
+// Lean process (Josh 2026-11-04): a plan unit's tickets.json entry waits in the records database for the feat commit
+// (D9 (a)); the ledger check reads it, so a fresh plan no longer fails the check until its ticket merges.
+const heldEntry = (t) => (recordsDb && records.planRecord(recordsDb, t.id)?.entry) || t;
 const tickets = new Map(data.tickets.map((t) => [t.id, t]));
 const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -155,13 +158,20 @@ function questionsWork(p) {
 // Loop guard (Q-0129): the launcher records the ledger fingerprint before and after each questions unit in
 // vault/handoff/.questions-last-run.json. A run that changed nothing is not repeated until the ledger changes.
 // Rows of all three questions files, sorted by Q-ID, so moving a row between files does not count as a change.
-export function questionsFingerprint() {
-  const rowsText = Object.values(Q_FILES).flatMap((f) => read(path.join(vault, f)).split(/\r?\n/).filter((l) => Q_ROW.test(l))).sort().join('\n');
-  return createHash('sha256').update(rowsText).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+// With a phase (D-082, lean process 2026-11-04): only that phase's question rows and ticket statuses, so another lane's
+// STATUS change does not reset the guard.
+export function questionsFingerprint(p) {
+  const all = Object.values(Q_FILES).flatMap((f) => read(path.join(vault, f)).split(/\r?\n/).filter((l) => Q_ROW.test(l)));
+  if (p === undefined) return createHash('sha256').update(all.sort().join('\n')).update(read(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
+  const mine = all.filter((l) => Number(l.split('|')[2]?.trim().split(/\s/)[0]) === p).sort().join('\n');
+  // Read fresh: the launcher imports this module once, so the STATUS rows parsed at import are stale there.
+  const st = read(path.join(vault, 'tickets/STATUS.md')).split(/\r?\n/).map((l) => l.split('|').map((c) => c.trim()))
+    .filter((c) => /^EZD-\d+[a-z]?$/.test(c[1] || '') && Number(c[2]) === p).map((c) => `${c[1]} ${c[4]}`).join('\n');
+  return createHash('sha256').update(mine).update(st).digest('hex');
 }
 function questionsGuarded(p) {
   let last; try { last = JSON.parse(read(path.join(vault, 'handoff/.questions-last-run.json'))); } catch { return false; }
-  return last?.phase === p && last.before === last.after && last.after === questionsFingerprint();
+  return last?.phase === p && last.before === last.after && last.after === questionsFingerprint(last.scope === 'phase' ? p : undefined);
 }
 const questionsDue = (p) => questionsWork(p) && !questionsGuarded(p);
 
@@ -417,14 +427,15 @@ function architectureProblems() {
   }
   for (const t of data.tickets) {
     if (!OPEN_STATUSES.includes(status(t.id))) continue;
-    if (t.architecture === undefined) { out.push(noList(t.id)); continue; }
+    const arch = heldEntry(t).architecture;
+    if (arch === undefined) { out.push(noList(t.id)); continue; }
     if (!doc) continue;
-    const e = entryProblem(t.id, t.architecture, doc.headings);
+    const e = entryProblem(t.id, arch, doc.headings);
     if (e) out.push(e);
     const planPath = path.join(vault, 'plans', `${t.id}.md`);
-    if (!existsSync(planPath) || !Array.isArray(t.architecture)) continue;
+    if (!existsSync(planPath) || !Array.isArray(arch)) continue;
     const a = planArchitecture(readFileSync(planPath, 'utf8'));
-    if (a.list && (a.list.length !== t.architecture.length || a.list.some((h, i) => h !== t.architecture[i])))
+    if (a.list && (a.list.length !== arch.length || a.list.some((h, i) => h !== arch[i])))
       out.push(`${t.id}: plan Architecture line differs from tickets.json (run --set-architecture ${t.id})`);
   }
   return out;
@@ -440,7 +451,8 @@ export function planTrack(planText) {
 const isTooling = (t) => t.track === 'tooling';
 function trackProblems() {
   const out = [];
-  for (const t of data.tickets) {
+  for (const t0 of data.tickets) {
+    const t = heldEntry(t0);
     const planPath = path.join(vault, 'plans', `${t.id}.md`);
     const plan = existsSync(planPath) ? readFileSync(planPath, 'utf8') : null;
     if ('track' in t && t.track !== 'tooling') { out.push(`${t.id}: track "${String(t.track)}" is not "tooling" (EZD-253)`); continue; }

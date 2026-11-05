@@ -25,7 +25,7 @@ For a question routed to you: answer only within permissions, roles, money visib
 
 **Batch** (a dispatch whose first line starts `Batch:`, dispatch.md Batch review dispatch): review each ticket against its own plan in its own worktree exactly as a single ticket; read a file named for several tickets once; every finding belongs to one ticket and never fails another. Output one block per ticket in the dispatch's order, each starting `VERDICT <ticket>: PASS` (zero findings) or `VERDICT <ticket>: FAIL`, then its numbered findings, 20 lines max per ticket.
 
-Output (20 lines max, no code): `VERDICT: PASS` only with zero findings, otherwise `VERDICT: FAIL` (any finding, *minor* included, fails: PROCESS.md rule 20, Q-0268), first, then numbered findings with file:line, the rule, the fix, and *minor* or *behavior*.
+Output (20 lines max, no code): `VERDICT: PASS` only with zero `in-place` and `defect` findings, otherwise `VERDICT: FAIL` (any such finding, *minor* included, fails: CLAUDE.md rule 17, lean process Josh 2026-11-04), first, then numbered findings with file:line, the rule, the fix, *minor* or *behavior*, and the kind (`in-place`, `defect`, `debt`, `note` or `question`, as CLAUDE.md rule 17 defines them). Every app security or data-isolation finding is `in-place` or `defect`, never `debt` or `note`.
 
 ## Honesty
 14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.

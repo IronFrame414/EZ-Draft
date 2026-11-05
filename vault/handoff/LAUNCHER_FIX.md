@@ -12,3 +12,7 @@ Opened 2026-11-01 by the orchestrator with Josh's yes in chat ("Yes, all of them
 
 - Fault: a phase PR cannot auto-merge. main requires an up-to-date branch and takes merge commits only, so each phase PR leaves a commit develop does not have; PR 4 sat BEHIND on a1506abf. Fix: gate-phase step 6 merges origin/main first. The Stage 2 text above is finished history; STOP is not in place.
 - Fault: tickets EZD-172, 262, 256, 251, 252, 174 (parallel lanes, Josh: "lets start multiple ticket builds at the same time") have parts only fix mode may write.
+
+## 2026-11-04 (session 5, lean process implementation)
+
+- Change: the lean process Josh approved in chat ("Approve"; vault/handoff/lean-process-proposal.md, brief vault/handoff/lean-process-implement-brief.md). Edits to CLAUDE.md, PROCESS.md, PROCESS-EZDRAFT.md and the skills, plus the tooling notes file. STOP set with Josh's yes in chat ("Authorized to exceed 30%", answering "pause, do it here").

@@ -1,5 +1,5 @@
 // Tests for EZD-000g (Item 7): lessons reach a dispatch only when ratified; --check fails on a lesson without a valid status;
-// the questions skill writes a "Rule candidates" section; the wrap skill automates ratified lessons only.
+// the questions skill decides lesson candidates itself (lean process, Josh 2026-11-04); the wrap skill automates ratified lessons only.
 // Runs on a temporary copy of vault/ so the real lessons are never touched.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -85,19 +85,21 @@ test('EZD-000g T5: a status only in the body does not count; --lessons skips bad
   } finally { cleanup('fixture-check.md'); }
 });
 
-test('EZD-000g T6: the questions skill writes a fourth section, Rule candidates, and records the answer (AC-3)', () => {
+test('EZD-000g T6 (lean process, Josh 2026-11-04): the questions skill writes three sections and decides lesson candidates itself (AC-3)', () => {
   const text = readFileSync(path.join(root, '.claude/skills/questions/SKILL.md'), 'utf8');
   const front = text.split('---')[1];
-  assert.ok(front.includes('rule candidates'));
+  assert.ok(!front.includes('rule candidates'));
   const lines = text.split('\n');
   const step3 = lines.find((l) => l.startsWith('3. '));
-  assert.ok(step3.includes('with four sections'));
-  assert.ok(!step3.includes('three sections'));
-  const item = lines.find((l) => l.startsWith('   4. **Rule candidates** - '));
-  assert.ok(item, 'item 4 missing');
-  for (const s of ['status: candidate', 'vault/lessons/', 'ratify', 'reject']) assert.ok(item.includes(s), `item 4 lacks ${s}`);
+  assert.ok(step3.includes('with three sections'));
+  assert.ok(!step3.includes('four sections'));
+  assert.ok(!lines.some((l) => l.startsWith('   4. **Rule candidates** - ')), 'no Rule candidates section for Josh');
+  const item = lines.find((l) => l.startsWith('   Lessons are not sent to Josh'));
+  assert.ok(item, 'lesson decision line missing');
+  for (const s of ['status: candidate', 'vault/lessons/', 'status: ratified', 'status: rejected', 'vault/lessons/INDEX.md', 'no questions row', 'phase PR']) assert.ok(item.includes(s), `lesson line lacks ${s}`);
   const step4 = lines.find((l) => l.startsWith('4. '));
-  for (const s of ['status: ratified', 'status: rejected', 'vault/lessons/INDEX.md', 'QUESTIONS.md', 'answered-josh', 'Q-ID', '<N> / L-nnn']) assert.ok(step4.includes(s), `step 4 lacks ${s}`);
+  for (const s of ['answered-josh', 'confirmed-josh']) assert.ok(step4.includes(s), `step 4 lacks ${s}`);
+  assert.ok(!step4.includes('<N> / L-nnn'), 'step 4 still records lesson answers from Josh');
 });
 
 test('EZD-000g T7: the wrap skill automates ratified lessons only (Scope)', () => {

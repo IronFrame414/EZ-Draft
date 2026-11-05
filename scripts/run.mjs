@@ -339,7 +339,7 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   env.EZD_RESULTS_FILE = results;
   delete env.EZD_RECORDS_WRITER;
   try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }); } catch {}
-  const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
+  const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(Number(arg)), esc: escalatedRows() } : null;
   if (lease) writeLease(lease, process.pid);
   const res = await new Promise((resolve) => {
     const done = (r) => { if (lease) removeLease(lease); resolve(r); };
@@ -377,7 +377,7 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   }
   removeInflight(dir, id);
   // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
-  if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
+  if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), scope: 'phase', before: qBefore.fp, after: questionsFingerprint(Number(arg)), ts: new Date().toISOString() }) + '\n');
   const problem = agent.problem;
   if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
   // Q-0129: one notification per newly escalated question.

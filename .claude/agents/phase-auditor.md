@@ -20,7 +20,7 @@ Report (mode B):
 4. Anything Josh should try during the Field check that the tests cannot catch.
 5. Risks this phase creates for later phases.
 
-Output: `VERDICT: READY` or `VERDICT: NOT READY` first, then numbered findings with sources, each marked *defect* (wrong app behaviour, a security or data problem, or a missed requirement; becomes a fix ticket, however small: PROCESS.md rule 20, Q-0268), *debt* (any other test, tooling or wording issue; a row on `vault/debt.md`) or *product judgment* (goes to Josh in the PR). `READY` only with zero defects. Keep it under one page.
+Output: `VERDICT: READY` or `VERDICT: NOT READY` first, then numbered findings with sources, each marked *defect* (wrong app behaviour, a security or data problem, or a missed requirement; becomes a fix ticket, however small: PROCESS.md rule 20, Q-0268), *debt* (an app wording, doc or warning issue that is not wrong behaviour; a row on `vault/debt.md`), *note* (a build-system, tooling or test-plumbing issue that has not failed the gate; a line in `vault/tooling-notes.md`, never blocking) or *product judgment* (goes to Josh in the PR). `READY` only with zero defects. Keep it under one page.
 
 ## Honesty
 14. Report only what a tool result in this session backs. A claim about our code is verified by reading it in the same action.
