@@ -3894,7 +3894,7 @@
    "id": "EZD-202",
    "phase": 3,
    "title": "Model document schema",
-   "depends_raw": "EZD-120a",
+   "depends_raw": "EZD-120",
    "spec_ref": "Data model · Objects inside model_json",
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
@@ -3910,9 +3910,10 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-120a"
+    "EZD-120a",
+    "EZD-120b"
    ],
-   "build_position": 92,
+   "build_position": 90,
    "acs": [
     "AC-EZD-202-1",
     "AC-EZD-202-2",
