@@ -18,16 +18,26 @@ Built the overseer Josh approved (decision row 2026-11-05 "Overseer repair unit 
 - So the overseer is built, not the fallback. No scheduled check-in session was made. The auto-mode classifier does not apply to launcher units (bypassPermissions); it applies only to interactive sessions.
 - The first real repair came straight after: the new log file was untracked, the ledger check failed, and `repair check` committed and pushed it (fc7d85f5) on its own.
 
-## For Josh (not design; only you can do these)
-1. **PR 5 auto-merge is not set**, so the launcher waits ("waiting for the phase 2 PR to auto-merge") even with a green CI.
-   - Why it is not set: `gh pr merge 5 --auto --merge` is an `ask` rule in `.claude/settings.json`, so units are refused. In this session the classifier refused both the settings change and the app's PR tool.
-   - Fix: run `gh pr merge 5 --auto --merge`.
-   - To let gate-phase do it next time: move `Bash(gh pr merge*)` from `ask` to `allow` in `.claude/settings.json`. guard-bash still refuses any merge without `--auto`.
-2. Watchdog alerts are unchanged: an idle launcher in state repair-failed still alerts after its threshold. That is a "build is stuck" alarm, not a question.
+## Round 2 (after 14:30 UTC): the PR wait gap, EZD-336 done a837cdaf
+- The gap: the launcher waited 3.5 hours on PR 5.
+  - Push run 42049298178 hit `timeout-minutes: 30` in the browser install, because the Ubuntu package mirror stalled. Its cancelled `gate` check kept the PR blocked although the pull_request run passed.
+  - Auto-merge was also off.
+- **PR 5 merged** at 18:49 UTC (bc9570d7) by auto-merge, after a green gate on a57931ba.
+- **EZD-336:** next_ticket.mjs reads the PR once (`gh pr view`).
+  - A failed, cancelled or timed-out `gate` run is a `repair ci` wait. The skill re-runs a cancelled run once when the cause is outside our code, and commits the fix-ticket rows it writes.
+  - Under Josh's rule a57931ba the launcher itself turns auto-merge back on, and merges a green but still open PR. It does this only for this repository's develop → main PR, once per wait, logged in the overseer log. A refused try sends one notice.
+  - code-reviewer and security-reviewer PASS after fixes.
+- **EZD-337 (defect, todo, planned):** an unattended phase PR merge should first get a security pass of production-sensitive files changed after the phase audit. Today auto-merge takes develop's tip.
+- Also fixed: the `repair ci` unit had left EZD-335's phase-file row uncommitted, which broke every clean copy's ledger check. It was committed in 3dac6d8e, and the skill now commits those rows.
+
+## For Josh (not design; only an admin can do these)
+1. **Settings:** `git apply vault/handoff/EZD-336-merge-allow.patch` moves `Bash(gh pr merge*)` from `ask` to `allow`, matching your 2026-11-05 rule. guard-bash still refuses a merge without `--auto`. The session classifier refused this edit here.
+2. **CI timeout:** `git apply vault/handoff/EZD-336-ci-timeout.patch` sets the job limit to 45 minutes; runs take 17-19. guard-paths keeps `.github/` from agents.
+   - Security-reviewer note: applying it while a phase PR is open sends ci.yml to main without the phase-gate pass (EZD-337 covers this).
+3. **GitHub ruleset 24926075:** pin the required `gate` check to the GitHub Actions app. The security reviewer says, from documentation rather than a live check, that without a source any commit status named `gate` could satisfy it. Only an admin can change it.
+4. Watchdog alerts are unchanged: an idle launcher in state repair-failed still alerts after its threshold. That is a "build is stuck" alarm, not a question.
 
 ## Open
-- PR 5 CI run 42042802420 (fc7d85f5): the root tests now pass (EZD-334). One e2e test failed: EZD-136 "every page shows the disclaimer" on `/`.
-  - The disclaimer was not in the viewport. That test passed on 571680ef, and no app code changed between the two runs, so it looks order- or data-dependent.
-  - The overseer handled it unattended: `repair ci` filed fix ticket EZD-335 at 14:33 and the launcher started planning it.
-  - EZD-335's row cites head 0c42907d; the run link in it is the right one.
+- EZD-335 (the disclaimer e2e fix the overseer filed) was built (1e9dbed4) and went to main with PR 5.
+- EZD-337 is next for the build-system queue. It touches scripts/gate.mjs, a repair hard limit, so it is built interactively in fix mode.
 - Rule 17 notes are in `vault/tooling-notes.md` (EZD-333, EZD-334 lines).
