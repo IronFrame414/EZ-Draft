@@ -18,6 +18,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 const EXPECTED_ICONS = [
   'add',
   'arrow_back',
+  'arrow_forward',
   'arrow_selector_tool',
   'assignment',
   'auto_awesome',

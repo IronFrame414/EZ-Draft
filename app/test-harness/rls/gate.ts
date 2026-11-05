@@ -69,4 +69,15 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-117b section 3 (vault/plans/EZD-117b.md; E3): both take p_search from M3.
   { fn: 'list_projects', args: { p_sort: 'edited', p_search: '' } },
   { fn: 'count_projects', args: { p_search: '' } },
+  // EZD-118 section 3
+  {
+    fn: 'create_project',
+    args: {
+      p_name: 'x',
+      p_address: 'x',
+      p_type: 'kitchen',
+      p_customer_id: null,
+      p_scope_of_work: null,
+    },
+  },
 ];

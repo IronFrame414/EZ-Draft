@@ -382,6 +382,11 @@ isOneToOne: false
             "count_projects":
 { Args: { "p_search"?: string }; Returns: Json
                            },
+"create_project":
+{ Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
+              "project_id": string,"tenant_id": string
+            }[]
+                           },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },

@@ -38,6 +38,7 @@ const EXPECTED_TABLES = [
   'user_permission',
 ];
 const GUARDED_FUNCTIONS = [
+  'create_project',
   'current_app_user_id',
   'enqueue_job',
   'error_tunnel_take',
@@ -223,6 +224,7 @@ describe('EZD-190 API gate backstop in the database', () => {
         'select * from public.link_app_user()',
         "select public.enqueue_job('test', null, '{}'::jsonb, 5, null)",
         "select * from public.update_tenant_identity('x', null, '{}'::jsonb, false, null)",
+        "select * from public.create_project('x', 'x', 'kitchen', null, null)",
       ]) {
         await expectGateRefusal(tx, text);
       }

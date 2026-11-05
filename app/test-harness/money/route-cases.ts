@@ -360,6 +360,20 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-117a: one keyset page; items carry id, name, clientName, address, status, openItems (no money)',
   },
   {
+    file: `${API}projects/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/route'),
+    request: sendJson('POST', '/api/projects', {
+      name: 'Money case project',
+      address: '1 Main St',
+      type: 'kitchen',
+      customerId: null,
+      scopeOfWork: '',
+    }),
+    expectStatus: 201,
+    note: 'EZD-118: creates one project; 201 { project: { id } } (no money)',
+  },
+  {
     file: `${API}projects/counts/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/projects/counts/route'),

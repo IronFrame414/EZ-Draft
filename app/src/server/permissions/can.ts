@@ -47,15 +47,20 @@ export function requirePermission(
   return null;
 }
 
+// EZD-118 Build step 5 (vault/plans/EZD-118.md Decided "Any-of check"): one key, or a non-empty list of which
+// any one suffices; the first listed key the context holds is used for the target check, none is the same 403.
 export async function requireApiPermission(
-  permission: PermissionKey,
+  permission: PermissionKey | readonly [PermissionKey, ...PermissionKey[]],
   target?: Target,
 ): Promise<Permitted | Response> {
   const session = await requireApiSession();
   if (session instanceof Response) return session;
   const ctx = await getPermissionContext();
   if (ctx === null) return permissionDenied();
-  const refused = requirePermission(ctx, permission, target);
+  const keys: readonly PermissionKey[] = typeof permission === 'string' ? [permission] : permission;
+  const held = keys.find((k) => ctx.permissions.has(k));
+  if (held === undefined) return permissionDenied();
+  const refused = requirePermission(ctx, held, target);
   if (refused) return refused;
   return { session, ctx };
 }

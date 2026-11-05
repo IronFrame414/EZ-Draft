@@ -2,9 +2,19 @@
 // keyset page of 48 projects. Order: 401, 403 (no View projects), 400 for a malformed query, then the session
 // client (RLS: the claim tenant and the viewer's scope).
 // EZD-117b Build step 5 (vault/plans/EZD-117b.md Decided "Routes"): `q` is the search; over 1000 characters is 400.
+// EZD-118 Build step 6 (vault/plans/EZD-118.md Decided "POST order"; Q-0413): New project. Order: 401, 403 (no
+// Create projects), 400 for an unreadable or invalid body, then `create_project` through the session client;
+// `project.created` is emitted after the write and a failed emit does not fail the create.
 import { createSessionClient } from '../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../server/errors/route-failure';
-import { listProjects, parseProjectListQuery, parseProjectSearch } from '../../../server/projects/projects';
+import { emit } from '../../../server/events';
+import {
+  createProject,
+  listProjects,
+  parseNewProject,
+  parseProjectListQuery,
+  parseProjectSearch,
+} from '../../../server/projects/projects';
 import { requireApiPermission } from '../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
@@ -30,6 +40,48 @@ export async function GET(request: Request): Promise<Response> {
     if (search === null) return fail(400, 'invalid_input');
     const page = await listProjects(createSessionClient(), query, search);
     return Response.json(page, { status: 200, headers });
+  } catch (e) {
+    await reportRouteFailure(e, ROUTE);
+    return fail(500, 'db_unavailable');
+  }
+}
+
+export async function POST(request: Request): Promise<Response> {
+  try {
+    const p = await requireApiPermission('create_projects');
+    if (p instanceof Response) {
+      p.headers.set('Cache-Control', 'no-store');
+      return p;
+    }
+    let raw: unknown;
+    try {
+      raw = await request.json();
+    } catch {
+      return fail(400, 'invalid_input');
+    }
+    const values = parseNewProject(raw);
+    if (values === null) return fail(400, 'invalid_input');
+    const result = await createProject(createSessionClient(), values);
+    if (!result.ok) {
+      if (result.code === 'permission_denied') {
+        return fail(403, 'permission_denied', 'error.not_authorized');
+      }
+      if (result.code === 'customer_unavailable') {
+        return fail(400, 'customer_unavailable', 'error.project_customer_unavailable');
+      }
+      return fail(400, 'invalid_input');
+    }
+    const { projectId, tenantId } = result;
+    try {
+      await emit(
+        'project.created',
+        { projectId, source: 'standalone' },
+        { tenantId, projectId, actorId: p.session.appUserId },
+      );
+    } catch {
+      // The project is committed; a failed emit does not fail the create (Decided "POST order").
+    }
+    return Response.json({ project: { id: projectId } }, { status: 201, headers });
   } catch (e) {
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');

@@ -6,6 +6,8 @@
 // EZD-117b Build step 7 (vault/plans/EZD-117b.md Decided "Store search", "`retry()`"; Q-0402; Q-0448): the
 // debounced search (page and counts follow it, the tab changes only the page), clear, clear filters and retry.
 // An empty search is never sent: no `search` key and no second fetchCounts argument.
+// EZD-118 Build step 11 (vault/plans/EZD-118.md Decided "`reset()`"; Q-0394): back to All, Last edited and no
+// search after a create, with a fresh page and counts; the old counts stay until the new ones arrive.
 import {
   SEARCH_DEBOUNCE_MS,
   projectCountsUrl,
@@ -48,6 +50,7 @@ export type ProjectListStore = {
   clearSearch(): void;
   clearFilters(): void;
   retry(): void;
+  reset(): void;
   dispose(): void;
 };
 
@@ -243,6 +246,21 @@ export function createProjectListStore(
         loadCounts();
       }
       if (moreStatus === 'error') store.loadMore();
+    },
+    reset() {
+      clearTimer();
+      set({
+        tab: 'all',
+        sort: 'edited',
+        search: '',
+        status: 'loading',
+        items: [],
+        next: null,
+        moreStatus: 'idle',
+        countsStatus: 'loading',
+      });
+      loadPage();
+      loadCounts();
     },
     dispose() {
       clearTimer();

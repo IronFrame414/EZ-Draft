@@ -7,6 +7,8 @@
 // "NewProjectButton"; section 3; S01 States; Q-0214; Q-0414): the header with the search, New project (Create
 // projects only; disabled offline), the offline banner, the error banners with Retry, six skeleton cards while
 // loading, and the empty and no-match blocks.
+// EZD-118 Build step 16 (vault/plans/EZD-118.md Decided "Entry", "After create"; Q-0394; Q-0410): both New project
+// buttons open the New project dialog; after a create the list goes back to All, Last edited and no search.
 import {
   useEffect,
   useRef,
@@ -36,6 +38,7 @@ import { NoAccess } from '../states/NoAccess';
 import { OfflineBanner } from '../states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../states/Skeleton';
 import { StateButton } from '../states/StateButton';
+import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectCard } from './ProjectCard';
 import { ProjectsHeader, type ProjectsAccount } from './ProjectsHeader';
 import styles from './Projects.module.css';
@@ -262,11 +265,9 @@ export function ProjectsBoard({
 export function ProjectsView({
   account,
   canCreate,
-  onNewProject,
 }: {
   account: ProjectsAccount;
   canCreate: boolean;
-  onNewProject?: () => void;
 }): ReactElement {
   const [store] = useState(() => createProjectListStore(projectHttpApi));
   useEffect(() => {
@@ -275,6 +276,7 @@ export function ProjectsView({
   }, [store]);
   const state = useSyncExternalStore(store.subscribe, store.get, store.get);
   const [text, setText] = useState('');
+  const [creating, setCreating] = useState(false);
   return (
     <>
       <ProjectsHeader
@@ -297,13 +299,23 @@ export function ProjectsView({
         onSort={store.setSort}
         onMore={store.loadMore}
         canCreate={canCreate}
-        onNewProject={onNewProject}
+        onNewProject={() => setCreating(true)}
         onRetry={() => store.retry()}
         onClearFilters={() => {
           setText('');
           store.clearFilters();
         }}
       />
+      {creating ? (
+        <NewProjectDialog
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            setCreating(false);
+            setText('');
+            store.reset();
+          }}
+        />
+      ) : null}
     </>
   );
 }

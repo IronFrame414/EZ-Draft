@@ -59,6 +59,7 @@ export const EVENTS = {
   'tenant.updated': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
+  'project.created': { kind: 'log_only' },
   'user.language_changed': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
@@ -125,5 +126,7 @@ export interface EventPayloads {
   'tenant.updated': { fields: TenantField[] };
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
+  // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).
+  'project.created': { projectId: string; source: 'standalone' };
   'user.language_changed': { appUserId: string; language: Language };
 }
