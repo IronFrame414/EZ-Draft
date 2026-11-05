@@ -68,3 +68,7 @@ Build-system, tooling and test-plumbing issues that have not failed the gate (CL
 - EZD-327 is `blocked` as a duplicate of EZD-326 and needs a ledger drop · phase-auditor, phase 2 gate, 2026-11-05
 - EZD-276 is blocked, so the perf check's `projects.first-cards` trend row is not measured; AC-EZD-117a-2's 1-second line rests on browser test B2 alone · phase-auditor, phase 2 gate, 2026-11-05
 - EZD-174 is done but lanes stay off until `node vault/tools/lanes.mjs on`; its P1-P6 process wording awaits your confirm (Q-0555 (a)); switch-on not to be forgotten · phase-auditor, phase 2 gate, 2026-11-05
+- EZD-333: a repair unit may still edit scripts/run.mjs and the files it loads (ledger.mjs, next_ticket.mjs, boost.mjs), so a weakened post-repair check would take effect at the next launcher start; skill step 4.5 makes such a change go through security review · code-reviewer and security-reviewer, EZD-333, 2026-11-05
+- EZD-333: the post-repair check reads git status of the checkout only; a shell write by a repair under .claude/worktrees/ or .lanes/ (git-ignored) is not seen; the skill text is the only control there · security-reviewer, EZD-333, 2026-11-05
+- EZD-333: TEST_FILE in scripts/launcher-idle.mjs copies isTest in .claude/hooks/guard-paths.mjs; the two patterns can drift · code-reviewer, EZD-333, 2026-11-05
+- Launcher units still start unsandboxed (scripts/run.mjs sandboxSettings is never passed); the overseer's post-repair check is an accident guard, not a sandbox · security-reviewer, EZD-333, 2026-11-05
