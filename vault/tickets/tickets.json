@@ -3838,7 +3838,9 @@
     "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Messages and language (t())"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-001"
