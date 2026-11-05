@@ -1,0 +1,22 @@
+/* EZD-120c Build step 6 (vault/plans/EZD-120c.md Decided "CSS"): the canvas state area. */
+
+.state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fill {
+  flex: 1;
+  display: flex;
+}
+
+/* Same as app/src/app/home.module.css .message. */
+.notice {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ez-ink);
+}

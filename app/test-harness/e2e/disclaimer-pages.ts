@@ -32,6 +32,12 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     placement: 'bar',
   },
   {
+    file: 'src/app/(editor)/projects/[id]/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
     file: 'src/app/(field)/dev/entry/field/page.tsx',
     path: '/dev/entry/field',
     signedIn: false,

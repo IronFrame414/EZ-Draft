@@ -158,16 +158,13 @@ test.describe('EZD-118 New project wizard', () => {
     await tid(page, 'new-project-address').fill('12 Oak Ave');
     await tid(page, 'new-project-scope').fill('Demo\nNew cabinets');
     await tid(page, 'new-project-create').click();
-    await expect(tid(page, 'new-project-dialog')).toHaveCount(0);
-    await expect(tid(page, 'projects-tab-all')).toHaveAttribute('aria-pressed', 'true');
-    await expect(tid(page, 'projects-search')).toHaveValue('');
-    await expect(tid(page, 'project-card')).toHaveCount(3);
-    await expect(tid(page, 'project-card-name').first()).toHaveText('Kitchen remodel');
-    await expect(tid(page, 'project-card').first()).toHaveAttribute('data-status', 'draft');
+    await expect.poll(() => projectCount(tenant)).toBe(1);
     const rows = await harnessSql()`
-      select type, address, scope_of_work, customer_id, status from public.project
+      select id, type, address, scope_of_work, customer_id, status from public.project
       where tenant_id = ${tenant}::uuid and name = 'Kitchen remodel'`;
     expect(rows).toHaveLength(1);
+    await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${rows[0].id}`);
+    await expect(page.getByText('Kitchen remodel')).toBeVisible();
     expect(rows[0].type).toBe('kitchen');
     expect(rows[0].address).toBe('12 Oak Ave');
     expect(rows[0].scope_of_work).toBe('Demo\nNew cabinets');
@@ -295,9 +292,11 @@ test.describe('EZD-118 New project wizard', () => {
     expect(await projectCount(tenant)).toBe(0);
     await page.unrouteAll({ behavior: 'ignoreErrors' });
     await tid(page, 'new-project-create').click();
-    await expect(tid(page, 'new-project-dialog')).toHaveCount(0);
-    await expect(tid(page, 'project-card')).toHaveCount(1);
-    expect(await projectCount(tenant)).toBe(1);
+    await expect.poll(() => projectCount(tenant)).toBe(1);
+    const created = await harnessSql()`
+      select id from public.project where tenant_id = ${tenant}::uuid`;
+    await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${created[0].id}`);
+    await expect(page.getByText('Kitchen remodel')).toBeVisible();
   });
 
   test(`EZD-118 B7 picker states: empty, load error with Retry, paging by 50, and no match (AC-4)`, async ({

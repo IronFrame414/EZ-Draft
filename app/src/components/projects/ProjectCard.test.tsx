@@ -1,7 +1,6 @@
 // EZD-117a U7 (vault/plans/EZD-117a.md section 4; AC-EZD-117a-4, -5). Expected values: Decided "Card" and
 // "Strings" (status label, "{client} · {address}" or the address alone, "Working copy", "{count} to review" or
-// "Nothing to review"), section 3 card testids and attributes, Q-0403 (empty thumbnail), Q-0394 (a card is not a
-// link: no <a>, href, role, tabindex or click handler). Renders in the real office catalog.
+// "Nothing to review"), section 3 card testids and attributes, Q-0403 (empty thumbnail), Q-0500 via EZD-120c E1 (a card is an <a href="/projects/<id>"; no role, tabindex or click handler). Renders in the real office catalog.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { ProjectSummary } from '../../lib/projects/projects';
@@ -48,7 +47,7 @@ const one = (html: string, id: string) => {
 };
 
 describe('EZD-117a project card markup', () => {
-  it('U7 a card shows name, status, place, version and open items, and is not a link', () => {
+  it('U7 a card shows name, status, place, version and open items, and is a link to the editor', () => {
     const html = render(P3);
     const card = one(html, 'project-card');
     expect(attr(card.attrs, 'data-project-id')).toBe(P3.id);
@@ -65,8 +64,8 @@ describe('EZD-117a project card markup', () => {
     expect(attr(open.attrs, 'data-open-items')).toBe('5');
     expect(one(html, 'project-card-thumb').inner).toBe('');
 
-    expect(html).not.toMatch(/<a[\s>]/i);
-    expect(html).not.toMatch(/href/i);
+    expect(card.tag).toBe('a');
+    expect(attr(card.attrs, 'href')).toBe(`/projects/${P3.id}`);
     expect(html).not.toMatch(/role=/i);
     expect(html).not.toMatch(/tabindex/i);
     expect(html).not.toMatch(/onclick/i);

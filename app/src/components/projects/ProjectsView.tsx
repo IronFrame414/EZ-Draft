@@ -9,6 +9,7 @@
 // loading, and the empty and no-match blocks.
 // EZD-118 Build step 16 (vault/plans/EZD-118.md Decided "Entry", "After create"; Q-0394; Q-0410): both New project
 // buttons open the New project dialog; after a create the list goes back to All, Last edited and no search.
+// EZD-120c Build step 9 (vault/plans/EZD-120c.md; Q-0500): after a create, the new project opens in the editor.
 import {
   useEffect,
   useRef,
@@ -17,6 +18,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   PROJECT_SORTS,
   PROJECT_TABS,
@@ -269,6 +271,7 @@ export function ProjectsView({
   account: ProjectsAccount;
   canCreate: boolean;
 }): ReactElement {
+  const router = useRouter();
   const [store] = useState(() => createProjectListStore(projectHttpApi));
   useEffect(() => {
     store.start();
@@ -309,11 +312,7 @@ export function ProjectsView({
       {creating ? (
         <NewProjectDialog
           onClose={() => setCreating(false)}
-          onCreated={() => {
-            setCreating(false);
-            setText('');
-            store.reset();
-          }}
+          onCreated={(id) => router.push('/projects/' + id)}
         />
       ) : null}
     </>

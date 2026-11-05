@@ -1,6 +1,7 @@
 'use client';
 // Editor frame: header slot, body (rail, left panel, canvas, inspector), status bar
 // (vault/plans/EZD-012b.md Step 1; 04 Frame and visual system).
+// EZD-120c Build step 1 (vault/plans/EZD-120c.md): each <aside> renders only when its label is given.
 import type { ReactNode } from 'react';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -10,10 +11,10 @@ export type EditorFrameProps = {
   header?: ReactNode;
   rail: ReactNode;
   leftPanel?: ReactNode;
-  leftPanelLabel: MessageKey;
+  leftPanelLabel?: MessageKey;
   canvas?: ReactNode;
   inspector?: ReactNode;
-  inspectorLabel: MessageKey;
+  inspectorLabel?: MessageKey;
   statusBar: ReactNode;
 };
 
@@ -33,23 +34,27 @@ export function EditorFrame({
       {header}
       <div className={styles.body} data-shell-region="body">
         {rail}
-        <aside
-          className={styles.leftPanel}
-          data-shell-region="left-panel"
-          aria-label={t(leftPanelLabel)}
-        >
-          {leftPanel}
-        </aside>
+        {leftPanelLabel ? (
+          <aside
+            className={styles.leftPanel}
+            data-shell-region="left-panel"
+            aria-label={t(leftPanelLabel)}
+          >
+            {leftPanel}
+          </aside>
+        ) : null}
         <main className={styles.canvas} data-shell-region="canvas">
           {canvas}
         </main>
-        <aside
-          className={styles.inspector}
-          data-shell-region="inspector"
-          aria-label={t(inspectorLabel)}
-        >
-          {inspector}
-        </aside>
+        {inspectorLabel ? (
+          <aside
+            className={styles.inspector}
+            data-shell-region="inspector"
+            aria-label={t(inspectorLabel)}
+          >
+            {inspector}
+          </aside>
+        ) : null}
       </div>
       {statusBar}
     </div>
