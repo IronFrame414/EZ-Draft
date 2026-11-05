@@ -386,26 +386,46 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     file: `${API}projects/[id]/objects/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/projects/[id]/objects/route'),
-    request: async (env) => ({
-      request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
-        method: 'POST',
-        headers: JSON_HEADERS,
-        body: JSON.stringify({
-          lockEpoch: 0,
-          changes: [
-            {
-              id: randomUUID(),
-              baseSeq: 0,
-              deleted: false,
-              type: 'wall',
-              schemaVersion: 1,
-              data: { n: 1 },
-            },
-          ],
+    // EZD-202 E1: the saved object is a valid wall on the project's first floor.
+    request: async (env) => {
+      const floor = await adminDb()
+        .from('model_object')
+        .select('object_id')
+        .eq('project_id', env.projectId)
+        .eq('type', 'floor')
+        .single();
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
+          method: 'POST',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({
+            lockEpoch: 0,
+            changes: [
+              {
+                id: randomUUID(),
+                baseSeq: 0,
+                deleted: false,
+                type: 'wall',
+                schemaVersion: 1,
+                data: {
+                  geometry: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+                  status: 'new',
+                  level: floor.data?.object_id,
+                  attributes: {
+                    thickness: 4.5,
+                    thicknessSide: 'right',
+                    height: 96,
+                    topCutToCeiling: false,
+                    bearing: false,
+                  },
+                },
+              },
+            ],
+          }),
         }),
-      }),
-      params: { id: env.projectId },
-    }),
+        params: { id: env.projectId },
+      };
+    },
     expectStatus: 200,
     note: 'EZD-120a: saves one object; 200 { objects: [{ id, updatedSeq }] } (no money)',
   },

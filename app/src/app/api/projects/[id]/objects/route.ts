@@ -55,6 +55,15 @@ export async function POST(
           return fail(404, 'project_not_found');
         case 'invalid_input':
           return fail(400, 'invalid_input');
+        case 'invalid_object':
+          // EZD-202 section 3: the refused objects and why, under the invalid-input wording.
+          return Response.json(
+            {
+              error: { code: 'invalid_object', message_key: 'error.invalid_input' },
+              invalid: result.invalid,
+            },
+            { status: 400, headers },
+          );
         case 'stale_lock_epoch':
           return fail(409, 'stale_lock_epoch', 'error.stale_lock_epoch');
         case 'save_conflict':

@@ -1,6 +1,7 @@
 // EZD-120a Build step 6 (vault/plans/EZD-120a.md section 1 M5, M6, Decided "parseSaveRequest", "Error mapping";
 // section 3 types; 03b rules 1, 5, 6, 9): server-only helpers for the working copy. Writes go through the
 // caller's session client to `save_objects` and `create_checkpoint`, which check the switch and scope again.
+import { CURRENT_SCHEMA_VERSION, parseStoredObject, type ObjectIssue } from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { Database, Json } from '../db/database.types';
@@ -24,7 +25,8 @@ export type SaveResult =
       ok: false;
       code: 'permission_denied' | 'project_not_found' | 'invalid_input' | 'stale_lock_epoch';
     }
-  | { ok: false; code: 'save_conflict'; conflicts: { id: string; serverSeq: number }[] };
+  | { ok: false; code: 'save_conflict'; conflicts: { id: string; serverSeq: number }[] }
+  | { ok: false; code: 'invalid_object'; invalid: ObjectIssue[] };
 
 export type CheckpointResult =
   { ok: true; versionId: string } | { ok: false; code: 'permission_denied' | 'project_not_found' };
@@ -74,7 +76,26 @@ export async function saveObjects(
   projectId: string,
   req: SaveRequest,
 ): Promise<SaveResult> {
-  const changes = req.changes.map((c) =>
+  // EZD-202 Decided "Save check": every upserted object is parsed before the rpc; any issue refuses the whole
+  // save, issues in change order. A parsed object is sent as parsed, at the current schema version.
+  const invalid: ObjectIssue[] = [];
+  const checked = req.changes.map((c): ObjectChange => {
+    if (c.deleted) return c;
+    const parsed = parseStoredObject({
+      id: c.id,
+      type: c.type,
+      schema_version: c.schemaVersion,
+      data: c.data,
+    });
+    if (!parsed.ok) {
+      invalid.push(parsed.issue);
+      return c;
+    }
+    return { ...c, schemaVersion: CURRENT_SCHEMA_VERSION, data: parsed.object.data };
+  });
+  if (invalid.length > 0) return { ok: false, code: 'invalid_object', invalid };
+
+  const changes = checked.map((c) =>
     c.deleted
       ? { id: c.id, base_seq: c.baseSeq, deleted: true }
       : {
@@ -92,6 +113,14 @@ export async function saveObjects(
     p_changes: changes as Json,
   });
   if (error) {
+    // EZD-202 M1: the deferred level check names the object at fault in `details`.
+    if (error.code === '23503' && error.message === 'level_not_found') {
+      return {
+        ok: false,
+        code: 'invalid_object',
+        invalid: [{ id: error.details, issue: 'level_not_found' }],
+      };
+    }
     if (error.code === '42501') return { ok: false, code: 'permission_denied' };
     if (error.code === 'P0002') return { ok: false, code: 'project_not_found' };
     if (error.code === '22023') return { ok: false, code: 'invalid_input' };

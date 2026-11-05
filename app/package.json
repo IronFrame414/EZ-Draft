@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.1.0",
+    "@ezdraft/geometry": "workspace:*",
     "@sentry/browser": "11.8.0",
     "@sentry/core": "11.8.0",
     "@sentry/nextjs": "11.8.0",

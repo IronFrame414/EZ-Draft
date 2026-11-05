@@ -28,13 +28,20 @@ type Saved = {
 
 const EDITOR = ['view_projects', 'edit_model'] as const;
 
-const upsert = (id: string, baseSeq: number, data: Record<string, unknown> = { n: 1 }): Change => ({
+// EZD-202 E1: a non-floor object must name a live floor of its project (model_object_level_check), so the
+// wall's data carries the project's first floor as `level`.
+const upsert = (
+  w: World,
+  id: string,
+  baseSeq: number,
+  data: Record<string, unknown> = { n: 1 },
+): Change => ({
   id,
   base_seq: baseSeq,
   deleted: false,
   type: 'wall',
   schema_version: 1,
-  data,
+  data: { ...data, level: w.floor },
 });
 const remove = (id: string, baseSeq: number): Change => ({ id, base_seq: baseSeq, deleted: true });
 
@@ -43,6 +50,7 @@ type World = {
   project: string;
   editor: Member;
   session: Session;
+  floor: string;
 };
 
 async function world(): Promise<World> {
@@ -51,7 +59,9 @@ async function world(): Promise<World> {
   const editor = await createMember({ tenantId: tenant, scope: 'all' });
   await setPermissions(tenant, editor.membershipId, [...EDITOR]);
   const session = await signIn(editor.email);
-  return { tenant, project, editor, session };
+  const [first] = await harnessSql()<{ object_id: string }[]>`
+    select object_id from public.model_object where project_id = ${project}::uuid and type = 'floor'`;
+  return { tenant, project, editor, session, floor: first.object_id };
 }
 
 const save = async (w: World, epoch: number, changes: unknown) => {
@@ -96,7 +106,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
     const first = await save(
       w,
       0,
-      ids.map((id, i) => upsert(id, 0, { n: i })),
+      ids.map((id, i) => upsert(w, id, 0, { n: i })),
     );
     expect(first.error).toBeNull();
     expect(first.data?.status).toBe('saved');
@@ -119,7 +129,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
     const second = await save(
       w,
       0,
-      edited.map((id) => upsert(id, 1, { n: 100, edited: true })),
+      edited.map((id) => upsert(w, id, 1, { n: 100, edited: true })),
     );
     expect(second.error).toBeNull();
     expect(second.data?.status).toBe('saved');
@@ -131,7 +141,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
     for (const id of edited) {
       const row = afterSecond.find((r) => r.object_id === id);
       expect(row?.updated_seq).toBe(2);
-      expect(row?.data).toEqual({ n: 100, edited: true });
+      expect(row?.data).toEqual({ n: 100, edited: true, level: w.floor });
       expect(row?.updated_by).toBe(w.editor.appUserId);
     }
     for (const row of afterFirst.filter((r) => !edited.includes(r.object_id as string))) {
@@ -150,7 +160,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
       on conflict (project_id) do update set lock_epoch = 1`;
     const before = await objectRows(w.project);
 
-    const a = await save(w, 0, [upsert(randomUUID(), 0)]);
+    const a = await save(w, 0, [upsert(w, randomUUID(), 0)]);
     expect(a.error).toBeNull();
     expect(a.data?.status).toBe('stale_lock_epoch');
     expect(await objectRows(w.project)).toEqual(before);
@@ -158,7 +168,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
     const other = await world();
     const otherBefore = await objectRows(other.project);
     expect(await lockRows(other.project)).toHaveLength(0);
-    const b = await save(other, 1, [upsert(randomUUID(), 0)]);
+    const b = await save(other, 1, [upsert(other, randomUUID(), 0)]);
     expect(b.error).toBeNull();
     expect(b.data?.status).toBe('stale_lock_epoch');
     expect(await objectRows(other.project)).toEqual(otherBefore);
@@ -169,21 +179,21 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
     const w = await world();
     const a = randomUUID();
     const b = randomUUID();
-    expect((await save(w, 0, [upsert(a, 0), upsert(b, 0)])).data?.status).toBe('saved');
-    expect((await save(w, 0, [upsert(a, 1, { n: 2 })])).data?.status).toBe('saved');
+    expect((await save(w, 0, [upsert(w, a, 0), upsert(w, b, 0)])).data?.status).toBe('saved');
+    expect((await save(w, 0, [upsert(w, a, 1, { n: 2 })])).data?.status).toBe('saved');
     const snapshot = await objectRows(w.project);
 
     const fresh = randomUUID();
     const unknown = randomUUID();
     const cases: [string, Change[], { object_id: string; server_seq: number }[]][] = [
-      ['base 1 on a seq-2 object', [upsert(a, 1)], [{ object_id: a, server_seq: 2 }]],
+      ['base 1 on a seq-2 object', [upsert(w, a, 1)], [{ object_id: a, server_seq: 2 }]],
       [
         'a conflict plus a valid new object',
-        [upsert(a, 1), upsert(fresh, 0)],
+        [upsert(w, a, 1), upsert(w, fresh, 0)],
         [{ object_id: a, server_seq: 2 }],
       ],
-      ['base 0 on a seq-1 object', [upsert(b, 0)], [{ object_id: b, server_seq: 1 }]],
-      ['base 1 on an unknown id', [upsert(unknown, 1)], [{ object_id: unknown, server_seq: 0 }]],
+      ['base 0 on a seq-1 object', [upsert(w, b, 0)], [{ object_id: b, server_seq: 1 }]],
+      ['base 1 on an unknown id', [upsert(w, unknown, 1)], [{ object_id: unknown, server_seq: 0 }]],
     ];
     for (const [name, changes, conflicts] of cases) {
       const r = await save(w, 0, changes);
@@ -202,7 +212,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
         await save(
           w,
           0,
-          ids.map((id, i) => upsert(id, 0, { n: i })),
+          ids.map((id, i) => upsert(w, id, 0, { n: i })),
         )
       ).data?.status,
     ).toBe('saved');
@@ -256,7 +266,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
       expect(v.version_no).toBeNull();
     }
 
-    expect((await save(w, 0, [upsert(ids[0], 1, { n: 'changed' })])).data?.status).toBe('saved');
+    expect((await save(w, 0, [upsert(w, ids[0], 1, { n: 'changed' })])).data?.status).toBe('saved');
     const sql = harnessSql();
     expect(
       await codeOf(
@@ -317,7 +327,11 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
       await setPermissions(tenantB, outsider.membershipId, [...EDITOR]);
       const outsiderSession = await signIn(outsider.email);
 
-      const args = { p_project: w.project, p_lock_epoch: 0, p_changes: [upsert(randomUUID(), 0)] };
+      const args = {
+        p_project: w.project,
+        p_lock_epoch: 0,
+        p_changes: [upsert(w, randomUUID(), 0)],
+      };
       const objectsBefore = await objectRows(w.project);
 
       for (const [name, db, code] of [
@@ -338,7 +352,7 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
 
     it('D5 an editor may not insert or update the three tables directly, and reads its own rows', async () => {
       const w = await world();
-      expect((await save(w, 0, [upsert(randomUUID(), 0)])).data?.status).toBe('saved');
+      expect((await save(w, 0, [upsert(w, randomUUID(), 0)])).data?.status).toBe('saved');
       expect((await checkpoint(w)).error).toBeNull();
       const objectsBefore = await objectRows(w.project);
       const versionsBefore = await versionRows(w.project);
@@ -388,8 +402,8 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
         project_id: ctx.projectIds[0],
         tenant_id: t,
         object_id: randomUUID(),
-        type: 'wall',
-        data: {},
+        type: 'floor',
+        data: { name: 'Floor 1', order: 1 },
         schema_version: 1,
         updated_seq: 1,
       }),
@@ -409,19 +423,19 @@ describe('EZD-120a model tables, save_objects and create_checkpoint', () => {
     const id = randomUUID();
     const before = await objectRows(w.project);
 
-    const negative = await save(w, -1, [upsert(id, 0)]);
+    const negative = await save(w, -1, [upsert(w, id, 0)]);
     expect(negative.error?.code).toBe('22023');
 
     const refused: [string, unknown][] = [
       ['changes an object', {}],
       ['empty changes', []],
-      ['extra change key', [{ ...upsert(id, 0), extra: 1 }]],
-      ['base_seq 1.5', [upsert(id, 1.5)]],
+      ['extra change key', [{ ...upsert(w, id, 0), extra: 1 }]],
+      ['base_seq 1.5', [upsert(w, id, 1.5)]],
       ['delete base_seq 0', [remove(id, 0)]],
-      ['type Wall', [{ ...upsert(id, 0), type: 'Wall' }]],
-      ['schema_version 0', [{ ...upsert(id, 0), schema_version: 0 }]],
-      ['data an array', [{ ...upsert(id, 0), data: [] }]],
-      ['repeated id', [upsert(id, 0), upsert(id, 0)]],
+      ['type Wall', [{ ...upsert(w, id, 0), type: 'Wall' }]],
+      ['schema_version 0', [{ ...upsert(w, id, 0), schema_version: 0 }]],
+      ['data an array', [{ ...upsert(w, id, 0), data: [] }]],
+      ['repeated id', [upsert(w, id, 0), upsert(w, id, 0)]],
     ];
     for (const [name, changes] of refused) {
       const r = await save(w, 0, changes);

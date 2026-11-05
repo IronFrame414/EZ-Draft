@@ -95,13 +95,27 @@ async function post(id: string, raw: string): Promise<{ res: Response; json: unk
   );
   return { res, json: await parse(res) };
 }
+// EZD-202 E1: the route validates each object (parseStoredObject), and a wall must name a live floor of its
+// project, so the data is a full wall on `project`'s first floor.
+let floorId = '';
 const upsertChange = (id: string, baseSeq: number) => ({
   id,
   baseSeq,
   deleted: false,
   type: 'wall',
   schemaVersion: 1,
-  data: { n: 1 },
+  data: {
+    geometry: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+    status: 'new',
+    level: floorId,
+    attributes: {
+      thickness: 4.5,
+      thicknessSide: 'right',
+      height: 96,
+      topCutToCeiling: false,
+      bearing: false,
+    },
+  },
 });
 const body = (lockEpoch: number, changes: unknown[]) => JSON.stringify({ lockEpoch, changes });
 const noStore = (r: Response) => expect(r.headers.get('cache-control') ?? '').toContain('no-store');
@@ -131,6 +145,11 @@ describe('EZD-120a save route', () => {
       listed: [project],
     });
     await setPermissions(tenant, listed.membershipId, ['view_projects', 'edit_model']);
+    floorId = (
+      await harnessSql()<{ object_id: string }[]>`
+        select object_id from public.model_object
+        where project_id = ${project}::uuid and type = 'floor'`
+    )[0].object_id;
     editorCookies = await cookiesFor(editor.email);
     plainCookies = await cookiesFor(plain.email);
     listedCookies = await cookiesFor(listed.email);
