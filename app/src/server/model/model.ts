@@ -1,10 +1,14 @@
 // EZD-120a Build step 6 (vault/plans/EZD-120a.md section 1 M5, M6, Decided "parseSaveRequest", "Error mapping";
 // section 3 types; 03b rules 1, 5, 6, 9): server-only helpers for the working copy. Writes go through the
 // caller's session client to `save_objects` and `create_checkpoint`, which check the switch and scope again.
+// EZD-120b Build step 9 (vault/plans/EZD-120b.md Decided "loadModel", "Object read", "canEdit"; 03b rules 1, 5):
+// `loadModel` reads the project, its lock generation and its live objects through the session client (RLS).
 import { CURRENT_SCHEMA_VERSION, parseStoredObject, type ObjectIssue } from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
 import type { Database, Json } from '../db/database.types';
+import { can, type PermissionContext } from '../permissions';
 
 export type ObjectChange =
   | { id: string; baseSeq: number; deleted: true }
@@ -157,4 +161,93 @@ export async function createCheckpoint(
   }
   if (typeof data !== 'string') throw new Error('create_checkpoint_unexpected_result');
   return { ok: true, versionId: data };
+}
+
+// supabase/config.toml max_rows: the most rows one select returns.
+const LOAD_PAGE = 1000;
+
+type ObjectRow = {
+  object_id: string;
+  type: string;
+  schema_version: number;
+  data: Json;
+  updated_seq: number;
+};
+
+export async function loadModel(
+  client: SupabaseClient<Database>,
+  projectId: string,
+  ctx: PermissionContext,
+): Promise<ModelLoad | null> {
+  const page = async (after: string | null): Promise<ObjectRow[]> => {
+    const base = client
+      .from('model_object')
+      .select('object_id, type, schema_version, data, updated_seq')
+      .eq('project_id', projectId)
+      .eq('deleted', false);
+    const { data, error } = await (after === null ? base : base.gt('object_id', after))
+      .order('object_id')
+      .limit(LOAD_PAGE);
+    if (error) throw error;
+    return data;
+  };
+
+  const [project, lock, firstPage] = await Promise.all([
+    client
+      .from('project')
+      .select('id, name, tenant_id, customer!project_customer_fk(name)')
+      .eq('id', projectId)
+      .maybeSingle(),
+    client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
+    page(null),
+  ]);
+  if (project.error) throw project.error;
+  if (lock.error) throw lock.error;
+  if (project.data === null) return null;
+
+  const rows = [...firstPage];
+  let last = firstPage;
+  while (last.length === LOAD_PAGE) {
+    last = await page(last[last.length - 1].object_id);
+    rows.push(...last);
+  }
+
+  const objects: LoadedObject[] = [];
+  const invalid: ObjectIssue[] = [];
+  for (const r of rows) {
+    const parsed = parseStoredObject({
+      id: r.object_id,
+      type: r.type,
+      schema_version: r.schema_version,
+      data: r.data,
+    });
+    if (!parsed.ok) {
+      invalid.push(parsed.issue);
+      continue;
+    }
+    objects.push({
+      id: r.object_id,
+      updatedSeq: r.updated_seq,
+      type: r.type,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: parsed.object.data,
+    });
+  }
+
+  return {
+    project: {
+      id: project.data.id,
+      name: project.data.name,
+      clientName: project.data.customer?.name ?? null,
+    },
+    viewer: {
+      appUserId: ctx.appUserId,
+      tenantId: project.data.tenant_id,
+      membershipId: ctx.membershipId,
+      canEdit: can(ctx, 'edit_model', { projectId }),
+    },
+    lockEpoch: lock.data?.lock_epoch ?? 0,
+    objects,
+    invalid,
+  };
 }

@@ -442,4 +442,15 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 201,
     note: 'EZD-120a: one checkpoint; 201 { version: { id } } (no money)',
   },
+  {
+    file: `${API}projects/[id]/model/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/model/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/model`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-120b: the project and its objects; 200 ModelLoad (no money)',
+  },
 ];
