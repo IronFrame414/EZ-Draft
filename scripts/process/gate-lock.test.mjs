@@ -46,6 +46,20 @@ const FAKE_LOCAL = [
 const HOLD =
   "const fs=require('fs');const t=Date.now();if(process.env.HOLD_TEST==='1'){while(!fs.existsSync(process.env.RELEASE_FILE)&&Date.now()-t<60000)Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20)}";
 
+// EZD-331: the fixture gates run their checks through a fixture-local npm (no machine npm, no PATH lookup of node).
+const FAKE_NPM = (fixtureDir) =>
+  [
+    '#!/bin/sh',
+    'printf \'%s\\n\' "$*" >> "$NPM_CALLS"',
+    'case "$1 $2" in',
+    `  'run test') exec "${process.execPath}" "${path.join(fixtureDir, 'hold.cjs')}" ;;`,
+    "  'run typecheck'|'run lint'|'run build') exit 0 ;;",
+    'esac',
+    'echo "fixture npm: unexpected arguments: $*" >&2',
+    'exit 2',
+    '',
+  ].join('\n');
+
 describe('EZD-256 dead lock take-over', { timeout: 300000 }, () => {
   let tmp;
   let fixture;
@@ -62,12 +76,16 @@ describe('EZD-256 dead lock take-over', { timeout: 300000 }, () => {
     writeFileSync(
       path.join(fixture, 'package.json'),
       JSON.stringify(
-        { name: 'ezd256-fixture', version: '0.0.0', private: true, scripts: { typecheck: ok, lint: ok, test: `node -e "${HOLD}"`, build: ok } },
+        { name: 'ezd256-fixture', version: '0.0.0', private: true, scripts: { typecheck: ok, lint: ok, test: 'node hold.cjs', build: ok } },
         null,
         2,
       ),
     );
     mkdirSync(path.join(fixture, 'node_modules'));
+    writeFileSync(path.join(fixture, 'hold.cjs'), HOLD);
+    mkdirSync(path.join(fixture, 'bin'));
+    writeFileSync(path.join(fixture, 'bin', 'npm'), FAKE_NPM(fixture));
+    chmodSync(path.join(fixture, 'bin', 'npm'), 0o755);
   };
   const cleanup = () => {
     if (tmp) rmSync(tmp, { recursive: true, force: true });
@@ -82,6 +100,8 @@ describe('EZD-256 dead lock take-over', { timeout: 300000 }, () => {
       TMPDIR: tmp,
       STOP_OUT: path.join(tmp, 'stop-out.txt'),
       RELEASE_FILE: path.join(tmp, 'release'),
+      NPM_CALLS: path.join(tmp, 'npm-calls.txt'),
+      ...(fixture ? { PATH: `${path.join(fixture, 'bin')}${path.delimiter}${process.env.PATH}` } : {}),
       ...extra,
     });
   const runGate = (extra = {}) => {
@@ -480,6 +500,33 @@ describe('EZD-256 dead lock take-over', { timeout: 300000 }, () => {
       assert.ok(r.out.includes('lane sweep: lane 1 skipped (sweep pid unknown)'), r.all);
       assert.equal(stopLines().includes('stop-lane 1'), false);
       assert.deepEqual(tmpLeft(), []);
+    } finally {
+      cleanup();
+    }
+  });
+
+  test('EZD-256 K18 fixture gates start no machine npm (EZD-331) AC-EZD-331-1', () => {
+    mk();
+    try {
+      mkFixture();
+      const r = runGate();
+      assert.equal(r.status, 0, r.all);
+      assert.ok(r.out.includes('GATE PASS'), r.all);
+      const calls = path.join(tmp, 'npm-calls.txt');
+      assert.ok(existsSync(calls), `no npm-calls.txt:\n${r.all}`);
+      assert.deepEqual(readFileSync(calls, 'utf8').split('\n').filter(Boolean), ['run typecheck', 'run lint', 'run test', 'run build']);
+    } finally {
+      cleanup();
+    }
+  });
+
+  test('EZD-256 K19 the fixture npm refuses other arguments (EZD-331) AC-EZD-331-1', () => {
+    mk();
+    try {
+      mkFixture();
+      const r = spawnSync(path.join(fixture, 'bin', 'npm'), ['ci'], { env: envFor(), encoding: 'utf8' });
+      assert.equal(r.status, 2);
+      assert.equal(r.stderr, 'fixture npm: unexpected arguments: ci\n');
     } finally {
       cleanup();
     }

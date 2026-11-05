@@ -289,7 +289,10 @@ const failures = [];
 const run = (cmdArgs, label) => {
   say(`\n=== ${label}: ${pm} ${cmdArgs.join(' ')} ===`);
   const r = spawnSync(pm, cmdArgs, { cwd: dir, encoding: 'utf8', shell, env, maxBuffer: 64 * 1024 * 1024 });
-  const out = `${r.stdout || ''}${r.stderr || ''}`;
+  const text = `${r.stdout || ''}${r.stderr || ''}`;
+  // EZD-331: a step that could not start or was killed says why (spawnSync error, signal), as laneFailure does.
+  const why = [...(r.error ? [r.error.message] : []), ...(r.signal ? [`signal ${r.signal}`] : [])];
+  const out = why.length ? `${text}${text && !text.endsWith('\n') ? '\n' : ''}${why.join('\n')}\n` : text;
   log(out);
   const ok = r.status === 0;
   if (ok) {
