@@ -2,9 +2,9 @@
 // test makes its own company (never tenant 1) and members; fixture S is app/test-harness/projects-fixture.ts.
 // Expected values: ticket row Done when (200 projects: two data requests, first cards within budget, no editor
 // code); Q-0450 (a) (exact match on every /api/ request); 11 Budgets "Projects page" (first cards 1000 ms) and
-// `download.projects-settings` (240,000 bytes; Q-0586 (a)); ENTRY_RULES.office; S01 Controls; Q-0394 (a card is not a link);
+// `download.projects-settings` (300,000 bytes; Q-0586, Josh 2026-11-05); ENTRY_RULES.office; S01 Controls; Q-0394 (a card is not a link);
 // Q-0202; S01 Permissions; Decided "CSS" (token pairs from the mockup `renderVals`, tokens.css).
-// B3 budget 240,000: Q-0586 (a).
+// B3 budget 300,000: Q-0586 (Josh 2026-11-05).
 // B1 source (EZD-117b E4): AC-EZD-117a-2; EZD-117a ticket row; EZD-110 D16; Q-0450 (a).
 import type { Locator, Page } from '@playwright/test';
 import {
@@ -152,7 +152,7 @@ test.describe('EZD-117a Projects page', () => {
     expect(ms as number).toBeLessThan(1000);
   });
 
-  test('EZD-117a B3 the page loads no editor code and stays within 240,000 compressed bytes', async ({
+  test('EZD-117a B3 the page loads no editor code and stays within 300,000 compressed bytes', async ({
     page,
     browser,
     signInAs,
@@ -168,7 +168,7 @@ test.describe('EZD-117a Projects page', () => {
     expect('value' in contents ? contents.value : -1).toBe(0);
     const size = await signedInJsSize(browser, state, '/');
     expect('error' in size).toBe(false);
-    expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(240000);
+    expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(300000);
   });
 
   // EZD-117b plan section 4 E10: no captureTraffic (same reason as B1). Source: EZD-117a B4 (6); EZD-110b D16; hub.ts header.
