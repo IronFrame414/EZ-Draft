@@ -72,7 +72,7 @@ Done once per project, before Stage 0 of phase 1. The orchestrator drafts `vault
 3. **Business and product decisions always go to Josh.** That covers scope, what a screen shows, workflow, and anything that costs money. User-visible wording follows rule 3a so it doesn't block tickets.
 4. **The spec is read-only once Josh signs it off.** Changes are recorded as Josh's answers in `vault/spec/decisions/` (one file per spec area), and those answers override the spec text.
 5. **Tests come before code, and the builder may not change tests.** A test whose behavior or expected values look wrong becomes a question. A test that fails only because of structure (a file name, an export, a signature, a route, a test ID) follows the structural-repair step in section 8.
-6. **One ticket = one branch = one commit on `develop`.** Nobody commits to `main`. `develop` → `main` goes only through the phase PR, once per phase; the gate-phase unit turns on GitHub auto-merge, so it merges when the CI `gate` check passes (Josh 2026-10-23, Q-0261: until Josh says the system works and turns it off; then he merges by hand again).
+6. **One ticket = one branch = one commit on `develop`.** Nobody commits to `main`. `develop` → `main` goes only through the phase PR, once per phase; the gate-phase unit turns on GitHub auto-merge, so it merges when the CI `gate` check passes (Josh 2026-10-23, Q-0261; Josh 2026-11-05: Claude Code always pushes, merges and completes its own PRs once the CI `gate` check is green; Josh never merges by hand).
 7. **The gate is a script, not an opinion.** A ticket can't be `done` while the gate is red.
 8. **Tests never call live services** (AI models, email, payments, outside APIs). Use stubs.
 9. **No new dependency without a line in `docs/architecture.md`,** added in the same commit.
@@ -302,7 +302,7 @@ Stage 3 ends when every product ticket in the phase is `done` or `blocked` (tool
    - `needs-josh-confirm` wording;
    - product judgments from the auditor;
    - lessons added this phase.
-6. The orchestrator turns on auto-merge (`gh pr merge <url> --auto --merge`); GitHub merges the PR when the required CI `gate` check passes (Josh 2026-10-23, Q-0261: until Josh says the system works and turns it off; then he merges by hand again). If the check fails, the launcher starts a repair unit, which adds a fix ticket (Q-0379). Josh works the punch list on the preview or the merged build afterwards; an unchecked item becomes a fix ticket in the next phase and does not hold the merge or the next phase.
+6. The orchestrator turns on auto-merge (`gh pr merge <url> --auto --merge`); GitHub merges the PR when the required CI `gate` check passes (Josh 2026-10-23, Q-0261; Josh 2026-11-05: Claude Code always pushes, merges and completes its own PRs once the CI `gate` check is green; Josh never merges by hand). If the check fails, the launcher starts a repair unit, which adds a fix ticket (Q-0379). Josh works the punch list on the preview or the merged build afterwards; an unchecked item becomes a fix ticket in the next phase and does not hold the merge or the next phase.
 
 On the first phase of a project, confirm the preview actually appears on the PR. If it doesn't, fix the hosting rule (section 12) before moving on.
 
