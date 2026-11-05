@@ -3039,7 +3039,7 @@
    "id": "EZD-117b",
    "phase": 2,
    "title": "Projects page: header, search and states",
-   "depends_raw": "EZD-117a, EZD-015, EZD-108, EZD-110",
+   "depends_raw": "EZD-117a, EZD-015, EZD-108, EZD-110, EZD-332",
    "spec_ref": "S01 Controls, States",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Controls",
@@ -3063,7 +3063,8 @@
     "EZD-015c",
     "EZD-108",
     "EZD-110a",
-    "EZD-110b"
+    "EZD-110b",
+    "EZD-332"
    ],
    "build_position": 84,
    "acs": [
