@@ -243,6 +243,17 @@ EZD-029 (vault/plans/EZD-029.md Steps 2-8); 02 Stack DXF in/out; 08 Imports, Arc
 - **Node built-ins** (for EZD-020 and EZD-913): neither installed package imports a Node built-in (`require` or `import` of any `module.builtinModules` name, scanned in the installed files).
 - **Writer** (for EZD-913 and EZD-911): writes `$ACADVER` `AC1021`, `$INSUNITS` 1, named layers, LINE, ARC, closed LWPOLYLINE, TEXT and a SOLID HATCH, read back in full by the parser, including the layer `Z-MARKUP-WP`. Recorded only (`spikes/EZD-029-dxf/src/write-room.mjs`): every written entity carries a handle (group 5); a LINE written with a colour carries group 62, and one written with a line weight carries no group 370. Not written or read back, only seen in the package's API: `addBlock` and `addInsert`, `addLinearDim`, `addPaperSpace` and 82 predefined hatch patterns besides SOLID; EZD-913 and EZD-911 prove what they use.
 
+### Drawing list (EZD-238)
+
+EZD-238 (vault/plans/EZD-238.md); 02 PDF out; 09h; Q-0507; Q-0508; Q-0574; Q-0575.
+
+- **Files.** `packages/geometry/src/drawing/`: `build.ts` (`buildDrawingList`), `hatch.ts` (`hatchSegments`), `text.ts` (`measureTextPt`, `DRAWING_FONTS`), `types.ts` (item types, `drawingViewSchema`, `dimensionInputSchema`, `DEFAULT_DOOR_SWING`), `font-metrics.generated.ts` (`DM_MONO_400_METRICS`); all exported from `@ezdraft/geometry`.
+- **Units.** Model inches, y up; angles in degrees, counter-clockwise from +x; text size and width in points. One floor per list (`view.level`); objects and dimensions on other floors make no items.
+- **Layers.** Walls and openings on their `status` (`existing`, `demo`, `new`); rooms on `rooms`; dimensions on `dimensions`.
+- **Roles.** `cut` (wall faces and jambs, door leaf), `beyond` (window lines, room hatch), `hidden` (door swing arc), `dimension` (dimension lines). The list carries no colours or line widths.
+- **Default door swing** (Q-0574): every door is hinged at the start end of its opening and opens to the left face (`DEFAULT_DOOR_SWING`).
+- **Font table.** Text is measured from the committed DM Mono 400 advance table; no font file is read at run time. Regenerate with `pnpm --filter @ezdraft/geometry fonts:metrics` (reads `app/src/styles/fonts/dm-mono-latin-400-normal.woff2` with `fontkit`).
+
 ## Dependencies
 
 Machine-read by check C1. One row per npm package; `Version` is one exact version, no range. `Used in` is one or more of `root`, `app`, `geometry`, `worker`, `spikes`. Versions are the newest stable releases on 2026-10-19 whose peer ranges fit each other, read from the npm registry: `react` 19.3.1 satisfies `next` (`^19.0.0`) and `@react-three/fiber` (`>=19 <19.4`); `three` 0.186.1 satisfies `@react-three/fiber` (`>=0.156`), `three-bvh-csg` (`>=0.179.0`) and `three-gpu-pathtracer` (`>=0.185.0`); `@sentry/nextjs` 11.x accepts `next` `^16`; `@supabase/ssr` 0.12.7 needs `@supabase/supabase-js` `^2.114.0`. `typescript` stays on the 5.x line: 7.0.2 (the registry's `latest` on 2026-10-24, R-024) has a new compiler and no registry evidence that `next` 16.4.2 builds with it; the ticket that moves to 7 edits this row. Most rows are installed by later tickets (EZD-001 and on); they are pinned here first (02 Named tools). EZD-001 (2026-10-19): `eslint` stays on 9.x because `eslint-config-next` 16.4.2 depends on `eslint-plugin-import`, `eslint-plugin-react` and `eslint-plugin-jsx-a11y`, whose peer ranges end at ESLint 9; `@eslint/js` matches the `eslint` major; `@types/node` is the newest 22.x so the types match the Node 22 runtime above (vitest 5.0.5 peers `^22.0.0 || >=24.0.0`).
@@ -287,14 +298,14 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `typescript-eslint` | `8.71.2` | root | Machine checks: TypeScript parser and recommended rules | EZD-001 |
 | `eslint-config-next` | `16.4.2` | root, app | Machine checks: Next.js lint rules for `app/**` only | EZD-001 |
 | `prettier` | `3.9.10` | root | Formatting (review, not gated): `format`, `format:check` | EZD-001 |
-| `@types/node` | `22.20.5` | app | Stack: App shell (Node types for `next.config.ts` and route handlers) | EZD-001 |
+| `@types/node` | `22.20.5` | app, geometry | Stack: App shell (Node types for `next.config.ts` and route handlers) | EZD-001 |
 | `@types/react` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `@types/react-dom` | `19.3.0` | app | Stack: App shell | EZD-001 |
 | `postgres` | `3.4.9` | root, app | Test harness: catalog queries and SQL-as-user for RLS tests (EZD-006); dev dependency, never imported by app code; ships its own types | EZD-006 |
 | `js-yaml` | `4.3.2` | root | Test harness: YAML parser that cross-checks the workflow line scanner (rules (j), (n), ci.test.mjs); dev dependency, never imported by app code; same version as the transitive copy under @eslint/eslintrc | EZD-188 |
 | `@aws-sdk/client-s3` | `3.1153.0` | root | Off-site bucket, S3-compatible API (release dumps EZD-023d; backups EZD-025) | EZD-023d |
 | `@supabase/realtime-js` | `2.118.0` | app | Browser Realtime client (EZD-018); no table-query API in the browser | EZD-018 |
-| `fontkit` | `2.0.4` | spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
+| `fontkit` | `2.0.4` | geometry, spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
 | `pdf-lib` | `1.17.1` | spikes | EZD-028 tests: PDF structure checks | EZD-028 |
 | `@types/three` | `0.186.0` | spikes | Types for three (EZD-030 spike) | EZD-030 |
 | `@anthropic-ai/sdk` | `1.1.0` | app | Stack · AI | EZD-021 |

@@ -9,10 +9,13 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.config.json",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "fonts:metrics": "node scripts/font-metrics.mjs"
   },
   "devDependencies": {
+    "@types/node": "22.20.5",
     "eslint": "9.39.5",
+    "fontkit": "2.0.4",
     "typescript": "5.9.3",
     "vitest": "5.0.5"
   },
