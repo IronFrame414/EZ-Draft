@@ -1,4 +1,4 @@
-// Tests for the Q-0128 (a) PA3 builder grant in .claude/hooks/guard-paths.mjs.
+// Tests for .claude/hooks/guard-paths.mjs: the PA3 builder grant is gone (EZD-154), and fix mode is for the interactive orchestrator only.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -6,8 +6,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const hook = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), '.claude/hooks/guard-paths.mjs');
-// The hook sees a fixed root outside any worktree, so the result does not depend on where the tests run (a ticket worktree
-// named EZD-000[b-i] would otherwise match the grant for every sample path) or on fix mode in the real checkout.
+// The hook sees a fixed root outside any worktree, so the result does not depend on where the tests run or on fix mode in
+// the real checkout.
 const root = '/ezd-guard-paths-test-root';
 
 function decide(agent, file) {
@@ -21,29 +21,35 @@ function decide(agent, file) {
 
 const wt = (t, f) => `.claude/worktrees/${t}/${f}`;
 
-test('Q-0128 grant: builder in EZD-000b..EZD-000j worktrees may edit tooling', () => {
-  for (const t of ['EZD-000b', 'EZD-000e', 'EZD-000i', 'EZD-000j']) {
-    for (const f of ['.claude/settings.json', '.claude/hooks/guard-reads.mjs', 'CLAUDE.md', 'scripts/statusline.mjs',
-      'vault/tools/outline.mjs', 'vault/research/INDEX.md', 'vault/research/pending/.gitkeep', 'vault/cost/usage.json']) {
+const pa3Trees = ['EZD-000b', 'EZD-000c', 'EZD-000e', 'EZD-000i', 'EZD-000j', 'ezd-000c'];
+const oldGrant = ['.claude/settings.json', '.claude/hooks/guard-reads.mjs', 'CLAUDE.md', 'scripts/statusline.mjs',
+  'vault/tools/outline.mjs', 'vault/research/INDEX.md', 'vault/research/pending/.gitkeep', 'vault/cost/usage.json',
+  'vault/cost/usage-raw-sample.json'];
+const stillDenied = ['scripts/gate.mjs', 'scripts/hooks/guard-paths.test.mjs', 'vault/PROCESS.md', 'vault/spec/INDEX.md',
+  'vault/plans/TEMPLATE.md', 'vault/budget.json'];
+
+test('EZD-154 T1: a builder in an EZD-000b..EZD-000j worktree is denied tooling and vault writes like any worktree (AC-EZD-154-1)', () => {
+  for (const t of [...pa3Trees, 'EZD-001']) {
+    for (const f of [...oldGrant, ...stillDenied]) {
+      assert.equal(decide('builder', wt(t, f)), 'deny', `${t} ${f}`);
+    }
+  }
+});
+
+test('EZD-154 T2: a normal builder write still passes in those worktrees (AC-EZD-154-2)', () => {
+  for (const t of [...pa3Trees, 'EZD-001']) {
+    for (const f of ['app/src/x.ts', 'scripts/conventions/check.mjs', '.github/workflows/new.yml']) {
       assert.equal(decide('builder', wt(t, f)), 'allow', `${t} ${f}`);
     }
   }
 });
 
-test('Q-0128 grant: tests, gate, PROCESS.md, spec and other vault files stay denied', () => {
-  for (const f of ['scripts/gate.mjs', 'scripts/hooks/guard-paths.test.mjs', '.claude/hooks/__tests__/x.test.mjs',
-    'vault/PROCESS.md', 'vault/spec/INDEX.md', 'vault/plans/TEMPLATE.md', 'vault/questions/QUESTIONS.md', 'vault/budget.json']) {
-    assert.equal(decide('builder', wt('EZD-000c', f)), 'deny', f);
+test('EZD-154 T3: guard-paths.mjs no longer holds the grant (AC-EZD-154-3)', async () => {
+  const fs = await import('node:fs');
+  const src = fs.readFileSync(hook, 'utf8');
+  for (const name of ['pa3Worktree', 'pa3Vault', 'pa3Grant', 'PA3 builder grant', 'realKey']) {
+    assert.ok(!src.includes(name), name);
   }
-});
-
-test('Q-0128 grant: no other worktree or agent gets it', () => {
-  for (const t of ['EZD-000', 'EZD-000k', 'EZD-001', 'EZD-000ba']) {
-    assert.equal(decide('builder', wt(t, '.claude/settings.json')), 'deny', t);
-  }
-  assert.equal(decide('builder', '.claude/settings.json'), 'deny', 'main checkout');
-  assert.equal(decide('test-author', wt('EZD-000b', 'scripts/statusline.mjs')), 'deny', 'test-author');
-  assert.equal(decide('builder', wt('EZD-001', 'scripts/conventions/check.mjs')), 'allow', 'Q-0124 unchanged');
 });
 
 // Fix mode is for the interactive orchestrator only; a launcher unit (EZD_UNIT_ID) never gets it (Josh 2026-11-02).

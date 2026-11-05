@@ -13983,7 +13983,7 @@
   {
    "id": "EZD-154",
    "phase": 1,
-   "title": "Fix: remove the PA3 grant and close the two guard-bash gaps",
+   "title": "Fix: remove the PA3 grant from the path guard",
    "depends_raw": "EZD-000c",
    "spec_ref": "Q-0268",
    "spec_files": [

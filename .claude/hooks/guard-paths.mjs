@@ -22,7 +22,6 @@ const fold = caseInsensitiveDisk(repoRoot());
 const asSent = input.cwd ? [file, input.cwd] : [file];
 if (fold && ![...asSent, rel, real].every((s) => printableAscii(s))) deny(`${agent}: writing to a path with a character outside plain ASCII is not allowed on a disk that ignores letter case (${file}).`);
 const key = pathKey(rel, fold);
-const realKey = pathKey(real, fold);
 const is = (p) => key === pathKey(p, fold);
 const under = (prefix) => key.startsWith(pathKey(prefix, fold));
 
@@ -55,16 +54,6 @@ function orchestratorSpecOk() {
   return false;
 }
 
-// PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000j worktrees (EZD-000j added by Q-0138 (a)) the builder may
-// edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
-// and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000j merges.
-const pa3Worktree = (fold ? /\/\.claude\/worktrees\/ezd-000[b-j]\// : /\/\.claude\/worktrees\/EZD-000[b-j]\//).test(realKey);
-const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
-function pa3Grant() {
-  if (!pa3Worktree || isTest || isSpec || is('vault/PROCESS.md') || is('scripts/gate.mjs')) return false;
-  return under('.claude/') || is('CLAUDE.md') || under('scripts/') || pa3Vault.some((p) => is(p) || (p.endsWith('/') && under(p)));
-}
-
 // Retrievers write only their report files (vault/PROCESS.md section 4 roster; EZD-000f).
 function retriever() {
   if (!under('vault/research/pending/')) return 'Retrievers write only research reports under vault/research/pending/ (vault/PROCESS.md section 4 roster).';
@@ -90,7 +79,6 @@ const rules = {
   },
   builder: () => {
     if (isTest) return 'The builder may not change tests or fixtures. If a test looks wrong, report it as a question.';
-    if (pa3Grant()) return;
     if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
     // Q-0124 (a), Josh 2026-10-19: scripts/conventions/ is the builder's (the conventions check, EZD-000 and later).
     // Q-0148 / Q-0125 (a), orchestrator 2026-10-19: scripts/db/ is the builder's (local Supabase and types scripts, EZD-004a and later).
