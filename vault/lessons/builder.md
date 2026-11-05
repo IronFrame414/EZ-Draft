@@ -23,7 +23,7 @@ Cause: the fake did more than the real tool does, hiding a precondition the code
 Rule: a fake for an external tool does only what the real tool does (no creating folders, files or state the tool expects to exist); the builder makes every precondition the real tool needs (folders, files) itself rather than relying on the fake.
 Check: the fake writes into a path it did not create and fails like the real tool when the path is missing.
 
-## L-022  areas: tooling, scripts  seen: 1  status: candidate
+## L-022  areas: tooling, scripts  seen: 1  status: ratified
 Ticket EZD-166, 2026-10-26
 Mistake: the builder added a try/catch fallback the plan did not list, and mapped every statSync error to "file missing".
 Cause: defensive handling written for cases the plan never named.
