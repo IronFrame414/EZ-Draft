@@ -3269,7 +3269,6 @@
     "Projects page (EZD-117a)",
     "Browser tests (EZD-016a)"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120b",
@@ -3337,7 +3336,6 @@
     "Auth and session (EZD-007)",
     "Browser tests (EZD-016a)"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120b",
