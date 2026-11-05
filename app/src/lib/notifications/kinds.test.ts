@@ -8,11 +8,11 @@ import { catalogFor, type MessageKey } from '../../server/messages/catalog';
 import {
   NOTIFICATION_KINDS,
   NOTIFICATION_PAGE_SIZE,
-  NOTIFICATION_PARAM_SCHEMAS,
   notificationTitle,
   type NotificationKind,
   type NotificationParams,
 } from './kinds';
+import { NOTIFICATION_PARAM_SCHEMAS } from './param-schemas';
 
 const t = createT<MessageKey>(
   'en',

@@ -5,10 +5,8 @@
 // does not reveal whether the project exists), then the insert and the job run kick; 201.
 // EZD-323: sendTestNotification runs with the secret-key client and the caller's membership id.
 import { z } from 'zod';
-import {
-  NOTIFICATION_KINDS,
-  NOTIFICATION_PARAM_SCHEMAS,
-} from '../../../../lib/notifications/kinds';
+import { NOTIFICATION_KINDS } from '../../../../lib/notifications/kinds';
+import { NOTIFICATION_PARAM_SCHEMAS } from '../../../../lib/notifications/param-schemas';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { createJobsDbClient } from '../../../../server/jobs/db';
 import { kickJobRunner } from '../../../../server/jobs/kick';
