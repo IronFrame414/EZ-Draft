@@ -312,6 +312,7 @@ export const en = {
   'office.notifications.time.yesterday': 'Yesterday {time}',
   'office.notifications.time.date': '{date}',
   'office.notifications.time.date_year': '{date}, {year}',
+  'office.length.refused': 'Use 12\'6", 12\' 6 1/2", 150" or 12.5\'',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
