@@ -1,4 +1,4 @@
-// EZD-136 B1-B6 (vault/plans/EZD-136.md sections 3, 4; AC-EZD-136-1). Untagged tests run in desktop
+// EZD-136 B1-B6 (vault/plans/EZD-136.md sections 3, 4; AC-EZD-136-1); EZD-335 B7 (vault/plans/EZD-335.md section 4). Untagged tests run in desktop
 // (1600 x 1000); @phone and @ipad route to those projects (EZD-016d projectGrep). Rows: DISCLAIMER_PAGES
 // (app/test-harness/e2e/disclaimer-pages.ts). Expected values: D-EN Q-0208; D-ES section 6 W1; N-EN Q-0273 (b);
 // N-ES section 6 W3; language rules Q-0229, R26 R17, Q-0305 (c), ARCH sign-in cookies; status bar 30 px (04
@@ -280,5 +280,34 @@ test.describe('EZD-136 disclaimer', () => {
     await expect(page.getByTestId('disclaimer')).toBeVisible();
     expect(await docWidth(page)).toBe(390);
     expect((await mainInner(page)).sort()).toEqual(['p:disclaimer', 'p:not-found']);
+  });
+
+  test('EZD-335 B7 Projects with a full first page: the line stays at the bottom of the view', async ({
+    page,
+  }) => {
+    await signInAsOwner(page);
+    await page.goto('/');
+    await expect(page.getByTestId('projects-grid')).toHaveAttribute('data-state', 'ready');
+    await expect(page.getByTestId('project-card')).toHaveCount(48);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeGreaterThan(2000);
+
+    const d = page.getByTestId('disclaimer');
+    const footer = page.getByTestId('projects-footer');
+    const expectInView = async (label: string) => {
+      await expect(d, label).toBeInViewport({ ratio: 1 });
+      expect(await followingText(page), label).toBe(0);
+      const box = await d.boundingBox();
+      if (!box) throw new Error(`${label}: disclaimer has no box`);
+      expect(Math.round(box.y + box.height), label).toBe(1000);
+    };
+
+    await expectInView('at scroll 0');
+    await expect(footer).toHaveCSS('position', 'sticky');
+    await expect(footer).toHaveCSS('bottom', '0px');
+    await expect(footer).toHaveCSS('background-color', 'rgb(246, 247, 249)');
+
+    await page.evaluate(() => window.scrollTo(0, 1000));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(1000);
+    await expectInView('after scroll to 1000');
   });
 });

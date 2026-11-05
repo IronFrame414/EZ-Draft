@@ -6,6 +6,7 @@
 // EZD-117b Build step 13 (vault/plans/EZD-117b.md Decided "Page server part", "Settings gear rule"; S01
 // Permissions): the header replaces both stand-ins (the settings gear and the avatar menu, which signs out);
 // the page passes the account and Create projects to the views.
+// EZD-335 (vault/plans/EZD-335.md Build step 2; Q-0229; AC-EZD-335-1): the disclaimer sits in a sticky footer so it stays in view over a long list.
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
 import { Disclaimer } from '../../components/disclaimer/Disclaimer';
@@ -50,7 +51,9 @@ export default async function ProjectsPage(): Promise<ReactElement> {
           ) : (
             <ProjectsNoAccessView account={account} />
           )}
-          <Disclaimer placement="page" />
+          <div className={styles.footer} data-testid="projects-footer">
+            <Disclaimer placement="page" />
+          </div>
         </div>
       </StateHost>
     </MessagesProvider>

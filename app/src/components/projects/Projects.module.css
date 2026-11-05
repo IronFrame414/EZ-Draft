@@ -23,6 +23,13 @@
   gap: 20px;
 }
 
+/* EZD-335 (vault/plans/EZD-335.md; Q-0229): the disclaimer line stays at the bottom of the view while the page scrolls. */
+.footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--ez-canvas);
+}
+
 .titleRow {
   display: flex;
   align-items: center;
