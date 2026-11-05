@@ -1,5 +1,7 @@
 # Proposal: a leaner build process (for Josh, 2026-11-04)
 
+**Status: approved by Josh in chat, 2026-11-04 ("Approve", session 5). Implementation brief: vault/handoff/lean-process-implement-brief.md.**
+
 Full numbers: vault/research/lean-process-analysis-2026-11-04.md.
 
 ## Short answer
