@@ -18275,6 +18275,34 @@
     "AC-EZD-333-7"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-334",
+   "phase": 2,
+   "title": "Fix: the phase 2 PR gate: ledger test copies drop live phase gate records, and B6 waits for the bell's landing requests",
+   "depends_raw": "EZD-174, EZD-254, EZD-117a",
+   "spec_ref": "Q-0261, rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-174",
+    "EZD-254",
+    "EZD-117a"
+   ],
+   "build_position": 591,
+   "acs": [
+    "AC-EZD-334-1",
+    "AC-EZD-334-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
