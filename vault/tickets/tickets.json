@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 601,
+ "count": 603,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -3160,7 +3160,14 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Events",
+    "Permission enforcement (EZD-102)",
+    "Migrations",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Messages and language (t())"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-005a",
@@ -3200,7 +3207,12 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Dependencies",
+    "Entry points and lazy modules (EZD-020)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Permission enforcement (EZD-102)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120a",
@@ -3247,7 +3259,17 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Shell header (EZD-011)",
+    "Editor shell (EZD-012)",
+    "State components (EZD-015)",
+    "Disclaimer (EZD-136)",
+    "Entry points and lazy modules (EZD-020)",
+    "Messages and language (t())",
+    "Projects page (EZD-117a)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120b",
@@ -3307,7 +3329,15 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Entry contents and bundle report (EZD-020)",
+    "State components (EZD-015)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Auth and session (EZD-007)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120b",
@@ -3874,7 +3904,12 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Migrations",
+    "Policy test harness (EZD-006)",
+    "Permission enforcement (EZD-102)",
+    "Dependencies"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-120a"
@@ -3915,7 +3950,9 @@
    "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-202"
+    "EZD-202",
+    "EZD-201",
+    "EZD-238"
    ],
    "build_position": 95,
    "acs": [
@@ -4130,7 +4167,12 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Messages and language (t())",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-201",
@@ -4511,7 +4553,14 @@
     "mockups/S03Plan.png",
     "mockups/S01bWizard.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Release safety (EZD-023a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-210",
@@ -4956,7 +5005,14 @@
     "spec/sections/00e-glossary-phase-04.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Permission enforcement (EZD-102)",
+    "Migrations",
+    "Release safety (EZD-023a)",
+    "Policy test harness (EZD-006)",
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202",
@@ -5020,7 +5076,11 @@
     "spec/sections/00d-glossary-phase-03.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Stack",
+    "Dependencies",
+    "Design tokens, fonts and icons"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202"
@@ -14003,7 +14063,8 @@
    "build_position": 465,
    "acs": [
     "AC-EZD-154-1",
-    "AC-EZD-154-2"
+    "AC-EZD-154-2",
+    "AC-EZD-154-3"
    ],
    "acs_source": "done-when"
   },
@@ -17767,9 +17828,7 @@
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
-   "depends_on": [
-    "EZD-316"
-   ],
+   "depends_on": [],
    "build_position": 575,
    "acs": [
     "AC-EZD-317-1",
@@ -17854,11 +17913,11 @@
     "EZD-132"
    ],
    "build_position": 578,
-   "acs_source": "done-when",
    "acs": [
     "AC-EZD-320-1",
     "AC-EZD-320-2"
-   ]
+   ],
+   "acs_source": "done-when"
   },
   {
    "id": "EZD-321",
@@ -18128,6 +18187,63 @@
    "build_position": 588,
    "acs": [
     "AC-EZD-330-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-331",
+   "phase": 1,
+   "title": "Fix: the dead-lock take-over tests pass while other lanes run their gates",
+   "depends_raw": "EZD-256",
+   "spec_ref": "Q-0580; CLAUDE.md rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-256"
+   ],
+   "build_position": 589,
+   "acs": [
+    "AC-EZD-331-1",
+    "AC-EZD-331-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-332",
+   "phase": 2,
+   "title": "Fix: the notification bell keeps zod out of the browser and loads its list on first open",
+   "depends_raw": "EZD-110b, EZD-117a",
+   "spec_ref": "Q-0579 (b); 11 Non-functional requirements (Budgets)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "spec/decisions/11-non-functional-requirements.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Notifications (EZD-110)",
+    "Entry contents and bundle report (EZD-020)",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-110b",
+    "EZD-117a"
+   ],
+   "build_position": 590,
+   "acs": [
+    "AC-EZD-332-1",
+    "AC-EZD-332-2"
    ],
    "acs_source": "done-when"
   }
