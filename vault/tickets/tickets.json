@@ -18303,6 +18303,60 @@
     "AC-EZD-334-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-335",
+   "phase": 2,
+   "title": "Fix: test:e2e: EZD-136 every page shows the disclaimer fails on / in CI (14 x locator resolved, assertion timed out)",
+   "depends_raw": "EZD-136, EZD-117a",
+   "spec_ref": "Q-0183, Q-0208, rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-136",
+    "EZD-117a"
+   ],
+   "build_position": 592,
+   "acs": [
+    "AC-EZD-335-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-336",
+   "phase": 1,
+   "title": "Overseer: a cancelled phase PR gate run or auto-merge being off no longer holds the launcher",
+   "depends_raw": "EZD-250, EZD-333",
+   "spec_ref": "Decision 2026-11-05 overseer (process.md), Q-0261, CLAUDE.md rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250",
+    "EZD-333"
+   ],
+   "build_position": 592,
+   "acs": [
+    "AC-EZD-336-1",
+    "AC-EZD-336-2",
+    "AC-EZD-336-3",
+    "AC-EZD-336-4"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
