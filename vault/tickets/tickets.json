@@ -18356,6 +18356,31 @@
     "AC-EZD-336-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-337",
+   "phase": 1,
+   "title": "Fix: a phase PR merges unattended only when what landed after the phase audit has had a security pass",
+   "depends_raw": "EZD-336",
+   "spec_ref": "Q-0112, decision 2026-11-05 a57931ba, rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-336"
+   ],
+   "build_position": 593,
+   "acs": [
+    "AC-EZD-337-1",
+    "AC-EZD-337-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
