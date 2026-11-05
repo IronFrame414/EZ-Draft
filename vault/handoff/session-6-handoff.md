@@ -14,7 +14,7 @@ Worked the session 5 "Open" list. Josh was present for the first part and then l
 - EZD-279 done 1b320982 (1898 tests).
 - EZD-154 done 31ade158 (1900): shrunk to removing the PA3 grant. The dropped guard-bash work is kept on t/EZD-154-dropped-guard-bash. The feat commit kept the old title; tickets.json and the phase row carry the new one.
 - EZD-280 done d058154c (1911): 2 rounds. Round 1 security FAIL (a wildcard `cd` target) was fixed in place.
-- EZD-331 (gate-lock test flake): tests, code and review PASS; V2 mutation run as the plan expects. See "Open" for its V1 soak.
+- EZD-331 done f7e7803a (1914): the gate-lock tests use their own npm stand-in, and a dead gate step says why. V2 mutation and V1 soak (10 of 10 with lanes 2 and 3 live) are recorded in its STATUS note.
 
 ## Item answers
 - 6 (one lane idle): the cause was the dependency chain. Every phase 3 ticket waited on EZD-117b, which waited on Q-0579. It was not a lane fault.
@@ -23,6 +23,7 @@ Worked the session 5 "Open" list. Josh was present for the first part and then l
 - 9: 2026-11-11 check is still due (product merges a day, Josh's questions a day; analysis section 1).
 
 ## Open
-- See the end of this file for EZD-331's merge state.
+- No fix-mode ticket is left open from this session. LAUNCHER_FIX.md is removed, so the next guarded-file change needs a new fix-mode note.
+- Launcher state at hand-over: lane 1 builds EZD-117b, lane 2 plans phase 4 (EZD-201, 203 and 205 planned; 206 in progress). Next in the chain: EZD-118, then phase 3 (EZD-120a and on).
 - Q-0579 needs no further step; EZD-332 and then EZD-117b carry it.
 - The live shell guard now refuses any command whose text names a secret file, including commit messages and ledger notes. Write around it (KNOWN-LIMITS shell-guard entry).
