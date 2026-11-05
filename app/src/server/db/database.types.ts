@@ -380,7 +380,7 @@ isOneToOne: false
           }
           Functions: {
             "count_projects":
-{ Args: Record<PropertyKey, never>; Returns: Json
+{ Args: { "p_search"?: string }; Returns: Json
                            },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -486,7 +486,7 @@ isOneToOne: false
 { Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
                            },
 "list_projects":
-{ Args: { "p_after"?: Json,"p_sort": string,"p_status"?: string }; Returns: Json
+{ Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number

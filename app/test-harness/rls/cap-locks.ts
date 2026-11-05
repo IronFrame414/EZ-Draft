@@ -33,8 +33,8 @@ export const CAP_LOCK_READ_ONLY: readonly ReadOnlyCounter[] = [
     reason: 'Notifications list counts; stable (20261102210539).',
   },
   {
-    fn: 'public.count_projects()',
-    reason: 'Projects tab counts; stable (20261104190002).',
+    fn: 'public.count_projects(text)',
+    reason: 'Projects tab counts with search; stable (EZD-117b M3).',
   },
 ];
 

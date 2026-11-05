@@ -1,6 +1,6 @@
 // EZD-330 sections 3 and 4 (vault/plans/EZD-330.md); AC-EZD-330-1. Untagged, so desktop 1600 x 1000. Each test makes
 // its own company (never tenant 1) and a member with only view_projects, on fixture S (app/test-harness/projects-fixture.ts).
-// Expected values: plan section 4 (counts from EZD-117a B5; 8 = 6 tabs + sort trigger + Sign out; 5 sort options from
+// Expected values: plan section 4 (counts from EZD-117a B5; 7 = 6 tabs + sort trigger in T1 (Sign out moved to the header avatar menu, outside main: EZD-117b plan section 3 'View wiring', 'Board states'); 8 in T2 = 7 + the Retry button of projects-error; 5 sort options from
 // PROJECT_SORTS); 44 px from 11 Non-functional requirements via expectTouchTargets (EZD-014c); paddings from the board
 // S01 CSS (vault/mockups/html/project/S01Projects.dc.html: `.b` line 19, `.ft` line 23).
 import {
@@ -45,7 +45,8 @@ test.describe('EZD-330 Projects page touch targets', () => {
     await page.goto('/');
 
     await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1']);
-    expect(await expectTouchTargets(page, page.locator('main'))).toBe(8);
+    // EZD-117b plan section 3 'Board states': main holds 6 tabs + sort (no projects-new for a viewer); header and avatar menu are outside main.
+    expect(await expectTouchTargets(page, page.locator('main'))).toBe(7);
 
     for (const tab of TAB_IDS) {
       const el = page.getByTestId(`projects-tab-${tab}`);
@@ -67,6 +68,8 @@ test.describe('EZD-330 Projects page touch targets', () => {
 
     await expect(page.getByTestId('project-card')).toHaveCount(6);
     await expect(page.getByTestId('projects-tab-count')).toHaveCount(0);
+    // EZD-117b plan section 3 'Board states': countsStatus 'error' shows projects-error with InlineError Retry in main: 6 tabs + sort + Retry.
+    await expect(page.getByTestId('projects-error')).toBeVisible();
     expect(await expectTouchTargets(page, page.locator('main'))).toBe(8);
   });
 

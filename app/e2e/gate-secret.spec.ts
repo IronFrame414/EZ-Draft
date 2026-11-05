@@ -36,7 +36,7 @@ test.describe('EZD-007f gate secret', () => {
     await page.goto('/sign-in');
     await signInWithCode(page, m.email);
     await page.goto('/');
-    await page.getByTestId('sign-out').waitFor({ state: 'visible' });
+    await page.getByTestId('avatar-menu-trigger').waitFor({ state: 'visible' });
     await page.goto('/auth/confirm?token_hash=x&type=email');
     await page.waitForLoadState('networkidle');
 

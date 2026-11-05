@@ -1,9 +1,12 @@
 // EZD-117a Step 5 (vault/plans/EZD-117a.md Decided "Query params", "Cursor", "listProjects", "countProjects";
 // S01 Controls, Data shown): server-only helpers for the Projects page. Reads go through the caller's session
 // client (RLS: the claim tenant and the viewer's scope), one rpc each, never `.from()`.
+// EZD-117b Build step 4 (vault/plans/EZD-117b.md Decided "parseProjectSearch", "RPC args"): the `q` search;
+// an empty search is never sent as `p_search`.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
+  PROJECT_SEARCH_MAX,
   PROJECT_SORTS,
   PROJECT_STATUSES,
   PROJECT_TABS,
@@ -89,6 +92,11 @@ export function parseProjectListQuery(params: URLSearchParams): ProjectListQuery
   return { tab, sort: order, after };
 }
 
+export function parseProjectSearch(params: URLSearchParams): string | null {
+  const search = (params.get('q') ?? '').trim();
+  return search.length > PROJECT_SEARCH_MAX ? null : search;
+}
+
 const pageSchema = z.object({
   items: z.array(
     z.object({
@@ -115,11 +123,13 @@ const countsSchema = z.strictObject({
 export async function listProjects(
   client: SupabaseClient<Database>,
   q: ProjectListQuery,
+  search?: string,
 ): Promise<ProjectPage> {
   const { data, error } = await client.rpc('list_projects', {
     p_sort: q.sort,
     ...(q.tab === 'all' ? {} : { p_status: q.tab }),
     ...(q.after === null ? {} : { p_after: q.after }),
+    ...(search ? { p_search: search } : {}),
   });
   if (error) throw error;
   const parsed = pageSchema.safeParse(data);
@@ -128,8 +138,13 @@ export async function listProjects(
   return { items, next: next === null ? null : encodeCursor(next) };
 }
 
-export async function countProjects(client: SupabaseClient<Database>): Promise<ProjectCounts> {
-  const { data, error } = await client.rpc('count_projects');
+export async function countProjects(
+  client: SupabaseClient<Database>,
+  search?: string,
+): Promise<ProjectCounts> {
+  const { data, error } = search
+    ? await client.rpc('count_projects', { p_search: search })
+    : await client.rpc('count_projects');
   if (error) throw error;
   const parsed = countsSchema.safeParse(data);
   if (!parsed.success) throw new Error('count_projects_bad_result');

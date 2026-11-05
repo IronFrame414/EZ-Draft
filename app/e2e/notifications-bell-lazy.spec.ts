@@ -46,7 +46,9 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
   }) => {
     test.setTimeout(120000);
     const { member } = await newMember();
+    const landing = countNotificationGets(page);
     await signInAs(member.email);
+    await expect.poll(landing).toBe(2);
 
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');
@@ -71,7 +73,9 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
     signInAs,
   }) => {
     const { member } = await newMember();
+    const landing = countNotificationGets(page);
     await signInAs(member.email);
+    await expect.poll(landing).toBe(2);
 
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');
@@ -114,7 +118,9 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
     signInAs,
   }) => {
     const { member } = await newMember();
+    const landing = countNotificationGets(page);
     await signInAs(member.email);
+    await expect.poll(landing).toBe(2);
 
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');

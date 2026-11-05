@@ -2,11 +2,12 @@
 // test makes its own company (never tenant 1) and members; fixture S is app/test-harness/projects-fixture.ts.
 // Expected values: ticket row Done when (200 projects: two data requests, first cards within budget, no editor
 // code); Q-0450 (a) (exact match on every /api/ request); 11 Budgets "Projects page" (first cards 1000 ms) and
-// `download.projects-settings` (220,000 bytes; Q-0579 (b)); ENTRY_RULES.office; S01 Controls; Q-0394 (a card is not a link);
+// `download.projects-settings` (240,000 bytes; Q-0586 (a)); ENTRY_RULES.office; S01 Controls; Q-0394 (a card is not a link);
 // Q-0202; S01 Permissions; Decided "CSS" (token pairs from the mockup `renderVals`, tokens.css).
+// B3 budget 240,000: Q-0586 (a).
+// B1 source (EZD-117b E4): AC-EZD-117a-2; EZD-117a ticket row; EZD-110 D16; Q-0450 (a).
 import type { Locator, Page } from '@playwright/test';
 import {
-  captureTraffic,
   cleanup,
   closeHarness,
   createMember,
@@ -53,6 +54,14 @@ const apiRequests = (page: Page): string[] => {
   });
   return urls;
 };
+// Landing settle (EZD-117b E11): count finished GET /api/notifications; the mount fetch and the first-join resync make 2.
+function countNotificationGets(page: Page): () => number {
+  let count = 0;
+  page.on('requestfinished', (req) => {
+    if (req.method() === 'GET' && new URL(req.url()).pathname === '/api/notifications') count++;
+  });
+  return () => count;
+}
 
 // The computed background and text colors of an element, and of a probe div styled with the token pair.
 async function colorsOf(el: Locator) {
@@ -86,23 +95,31 @@ test.describe('EZD-117a Projects page', () => {
     }
   });
 
-  test('EZD-117a B1 two data requests: 200 projects load 48 cards from /api/projects and /api/projects/counts only', async ({
+  // EZD-117b plan section 4 E4 (Q-0450 (a)): recorded with apiRequests (page.on('request')), not captureTraffic, which blocks the
+  // Realtime websocket and makes the hub refetch its token. Source: AC-EZD-117a-2; EZD-117a ticket row; EZD-110b D16 (two
+  // notification GETs when the user channel subscribes); hub.ts header (token on first connect only); Q-0450 (a).
+  test("EZD-117a B1 two data requests: 200 projects load 48 cards from /api/projects and /api/projects/counts, plus the bell's mount requests (/api/notifications twice, /api/realtime/token once), and nothing else", async ({
     page,
-    context,
     signInAs,
   }) => {
     const m = await bigCompany(200);
+    const landing = countNotificationGets(page);
     await signInAs(m.email);
-    const traffic = await captureTraffic(context);
+    await expect.poll(landing).toBe(2);
+    const urls = apiRequests(page);
     await page.goto('/');
     await expect(page.getByTestId('project-card')).toHaveCount(48);
-    const result = await traffic.settle();
-    const api = result.requests.map((r) => r.path).filter((p) => p.startsWith('/api/'));
-    expect([...api].sort()).toEqual(['/api/projects', '/api/projects/counts']);
-    const list = result.responses.find((r) => r.path === '/api/projects');
-    const body = JSON.parse(list?.body ?? '{}') as { items: unknown[]; next: string | null };
-    expect(body.items).toHaveLength(48);
-    expect(body.next).not.toBeNull();
+    await expect
+      .poll(() => urls.filter((u) => new URL(u).pathname === '/api/notifications').length)
+      .toBe(2);
+    expect(urls.map((u) => new URL(u).pathname).sort()).toEqual([
+      '/api/notifications',
+      '/api/notifications',
+      '/api/projects',
+      '/api/projects/counts',
+      '/api/realtime/token',
+    ]);
+    await expect(page.getByTestId('projects-more')).toHaveCount(1);
   });
 
   test('EZD-117a B2 the first cards show within 1,000 ms on a warm page', async ({
@@ -135,7 +152,7 @@ test.describe('EZD-117a Projects page', () => {
     expect(ms as number).toBeLessThan(1000);
   });
 
-  test('EZD-117a B3 the page loads no editor code and stays within 220,000 compressed bytes', async ({
+  test('EZD-117a B3 the page loads no editor code and stays within 240,000 compressed bytes', async ({
     page,
     browser,
     signInAs,
@@ -151,23 +168,27 @@ test.describe('EZD-117a Projects page', () => {
     expect('value' in contents ? contents.value : -1).toBe(0);
     const size = await signedInJsSize(browser, state, '/');
     expect('error' in size).toBe(false);
-    expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(220000);
+    expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(240000);
   });
 
-  test('EZD-117a B4 scrolling loads one page per step until all 200 cards show, with no other request', async ({
+  // EZD-117b plan section 4 E10: no captureTraffic (same reason as B1). Source: EZD-117a B4 (6); EZD-110b D16; hub.ts header.
+  test("EZD-117a B4 scrolling loads one page per step until all 200 cards show, with no other request than the bell's mount requests", async ({
     page,
-    context,
     signInAs,
   }) => {
     test.setTimeout(120000);
     const m = await bigCompany(200);
+    const landing = countNotificationGets(page);
     await signInAs(m.email);
-    const traffic = await captureTraffic(context);
+    await expect.poll(landing).toBe(2);
     const urls = apiRequests(page);
     await page.goto('/');
     const cards = page.getByTestId('project-card');
     const more = page.getByTestId('projects-more');
     await expect(cards).toHaveCount(48);
+    await expect
+      .poll(() => urls.filter((u) => new URL(u).pathname === '/api/notifications').length)
+      .toBe(2);
     for (const n of [96, 144, 192]) {
       await more.scrollIntoViewIfNeeded();
       await expect(cards).toHaveCount(n);
@@ -178,12 +199,13 @@ test.describe('EZD-117a Projects page', () => {
     await expect(more).toHaveCount(0);
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(500);
-    const result = await traffic.settle();
-    const paths = result.requests.map((r) => r.path).filter((p) => p.startsWith('/api/'));
+    const paths = urls.map((u) => new URL(u).pathname);
     expect(paths.filter((p) => p === '/api/projects')).toHaveLength(5);
     expect(paths.filter((p) => p === '/api/projects/counts')).toHaveLength(1);
     expect(urls.filter((u) => new URL(u).searchParams.has('after'))).toHaveLength(4);
-    expect(urls).toHaveLength(6);
+    expect(paths.filter((p) => p === '/api/notifications')).toHaveLength(2);
+    expect(paths.filter((p) => p === '/api/realtime/token')).toHaveLength(1);
+    expect(urls).toHaveLength(9);
   });
 
   test('EZD-117a B5 tabs, counts, sort and card content on fixture S', async ({
@@ -280,7 +302,7 @@ test.describe('EZD-117a Projects page', () => {
     await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '0', '0', '0', '1']);
   });
 
-  test('EZD-117a B8 a member without View projects sees the no-access line, Sign out, and no data request', async ({
+  test('EZD-117a B8 a member without View projects sees the no-access line, the avatar menu, and no data request', async ({
     page,
     signInAs,
   }) => {
@@ -289,8 +311,8 @@ test.describe('EZD-117a Projects page', () => {
     const urls = apiRequests(page);
     await page.goto('/');
     await expect(page.getByTestId('no-access')).toBeVisible();
-    await expect(page.getByTestId('sign-out')).toBeVisible();
-    await expect(page.getByTestId('home-settings')).toHaveCount(0);
+    await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
+    await expect(page.getByTestId('projects-settings')).toHaveCount(0);
     await expect(page.getByTestId('projects-grid')).toHaveCount(0);
     await page.waitForTimeout(500);
     expect(urls).toHaveLength(0);

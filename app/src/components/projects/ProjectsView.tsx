@@ -2,7 +2,11 @@
 // EZD-117a Step 13 (vault/plans/EZD-117a.md Decided "View wiring", "Board markup", "Tabs", "Sort menu",
 // "Scroll loading", "No-access view"; section 3; S01 Layout, Controls; Q-0402; Q-0403): the Projects page body.
 // The status tabs with counts, the sort menu (EZD-108 `Menu`), the 4-column cards and a sentinel that loads the
-// next 48 as it scrolls into view. Loading, error and empty states are EZD-117b's: the grid stays empty.
+// next 48 as it scrolls into view.
+// EZD-117b Build step 12 (vault/plans/EZD-117b.md Decided "View wiring", "No-access view", "Board states",
+// "NewProjectButton"; section 3; S01 States; Q-0214; Q-0414): the header with the search, New project (Create
+// projects only; disabled offline), the offline banner, the error banners with Retry, six skeleton cards while
+// loading, and the empty and no-match blocks.
 import {
   useEffect,
   useRef,
@@ -23,11 +27,17 @@ import {
   type ProjectListState,
 } from '../../lib/projects/projects-store';
 import { useT } from '../../lib/messages';
+import { useOnline } from '../../lib/network';
 import touch from '../../styles/touch.module.css';
 import { Icon } from '../icon/Icon';
 import { Menu, MenuItem } from '../menu/Menu';
-import { NoAccess } from '../states';
+import { InlineError } from '../states/InlineError';
+import { NoAccess } from '../states/NoAccess';
+import { OfflineBanner } from '../states/OfflineBanner';
+import { Skeleton, SkeletonGroup } from '../states/Skeleton';
+import { StateButton } from '../states/StateButton';
 import { ProjectCard } from './ProjectCard';
+import { ProjectsHeader, type ProjectsAccount } from './ProjectsHeader';
 import styles from './Projects.module.css';
 
 export type ProjectsBoardProps = {
@@ -36,7 +46,29 @@ export type ProjectsBoardProps = {
   onTab(tab: ProjectTab): void;
   onSort(sort: ProjectSort): void;
   onMore(): void;
+  canCreate?: boolean;
+  onNewProject?: () => void;
+  onRetry?: () => void;
+  onClearFilters?: () => void;
 };
+
+// New project: disabled offline (Q-0414); until EZD-118 passes onNewProject the click does nothing.
+function NewProjectButton({ testId, onNewProject }: { testId: string; onNewProject?: () => void }) {
+  const t = useT();
+  const online = useOnline();
+  return (
+    <StateButton
+      variant="primary"
+      className={styles.newButton}
+      data-testid={testId}
+      disabled={!online}
+      onClick={onNewProject}
+    >
+      <Icon name="add" size={18} />
+      {t('office.projects.new')}
+    </StateButton>
+  );
+}
 
 // Distance below the viewport at which the next page loads (the observer's bottom root margin).
 const MORE_MARGIN_PX = 400;
@@ -96,12 +128,24 @@ function MoreSentinel({
   );
 }
 
-export function ProjectsBoard({ state, actions, onTab, onSort, onMore }: ProjectsBoardProps) {
+export function ProjectsBoard({
+  state,
+  actions,
+  onTab,
+  onSort,
+  onMore,
+  canCreate = false,
+  onNewProject,
+  onRetry,
+  onClearFilters,
+}: ProjectsBoardProps) {
   const t = useT();
   const sortLabel = t(`office.projects.sort.${state.sort}`);
   const ready = state.status === 'ready';
+  const nothing = ready && state.items.length === 0;
   return (
     <main className={styles.main}>
+      <OfflineBanner />
       <div className={styles.titleRow}>
         <h1 className={styles.h1} data-testid="projects-title">
           {t('office.projects.title')}
@@ -150,16 +194,55 @@ export function ProjectsBoard({ state, actions, onTab, onSort, onMore }: Project
             </MenuItem>
           ))}
         </Menu>
+        {canCreate ? <NewProjectButton testId="projects-new" onNewProject={onNewProject} /> : null}
         {actions}
       </div>
+      {state.status === 'error' || state.countsStatus === 'error' ? (
+        <div className={styles.loadError} data-testid="projects-error">
+          <InlineError message="office.projects.load_error" onRetry={onRetry} />
+        </div>
+      ) : null}
       <div
         className={styles.grid}
         data-testid="projects-grid"
         data-state={state.status}
         aria-busy={state.status === 'loading'}
       >
+        {state.status === 'loading' ? (
+          <SkeletonGroup count={6} className={styles.skeletons}>
+            <div className={styles.skeletonCard} data-testid="projects-skeleton">
+              <Skeleton height="168px" radius="sm" />
+              <div className={styles.skeletonBody}>
+                <Skeleton width="55%" height="15px" />
+                <Skeleton width="75%" height="13px" />
+                <Skeleton width="35%" height="12px" />
+              </div>
+            </div>
+          </SkeletonGroup>
+        ) : null}
         {ready ? state.items.map((p) => <ProjectCard key={p.id} project={p} />) : null}
       </div>
+      {nothing && state.search === '' && state.tab === 'all' ? (
+        <div className={styles.empty} data-testid="projects-empty">
+          {t('office.projects.empty')}
+          {canCreate ? (
+            <NewProjectButton testId="projects-empty-new" onNewProject={onNewProject} />
+          ) : null}
+        </div>
+      ) : null}
+      {nothing && (state.search !== '' || state.tab !== 'all') ? (
+        <div className={styles.empty} data-testid="projects-no-match">
+          {t('office.projects.no_match')}
+          <button
+            type="button"
+            className={styles.linkButton}
+            data-testid="projects-clear-filter"
+            onClick={onClearFilters}
+          >
+            {t('office.projects.clear_filter')}
+          </button>
+        </div>
+      ) : null}
       {ready && state.next !== null ? (
         <MoreSentinel
           moreStatus={state.moreStatus}
@@ -167,40 +250,78 @@ export function ProjectsBoard({ state, actions, onTab, onSort, onMore }: Project
           onMore={onMore}
         />
       ) : null}
+      {state.moreStatus === 'error' ? (
+        <div className={styles.loadError} data-testid="projects-more-error">
+          <InlineError message="office.projects.load_error" onRetry={onRetry} />
+        </div>
+      ) : null}
     </main>
   );
 }
 
-export function ProjectsView({ actions }: { actions?: ReactNode }): ReactElement {
+export function ProjectsView({
+  account,
+  canCreate,
+  onNewProject,
+}: {
+  account: ProjectsAccount;
+  canCreate: boolean;
+  onNewProject?: () => void;
+}): ReactElement {
   const [store] = useState(() => createProjectListStore(projectHttpApi));
   useEffect(() => {
     store.start();
     return () => store.dispose();
   }, [store]);
   const state = useSyncExternalStore(store.subscribe, store.get, store.get);
+  const [text, setText] = useState('');
   return (
-    <ProjectsBoard
-      state={state}
-      actions={actions}
-      onTab={store.setTab}
-      onSort={store.setSort}
-      onMore={store.loadMore}
-    />
+    <>
+      <ProjectsHeader
+        account={account}
+        search={{
+          query: text,
+          onQuery: (v) => {
+            setText(v);
+            store.setQuery(v);
+          },
+          onClear: () => {
+            setText('');
+            store.clearSearch();
+          },
+        }}
+      />
+      <ProjectsBoard
+        state={state}
+        onTab={store.setTab}
+        onSort={store.setSort}
+        onMore={store.loadMore}
+        canCreate={canCreate}
+        onNewProject={onNewProject}
+        onRetry={() => store.retry()}
+        onClearFilters={() => {
+          setText('');
+          store.clearFilters();
+        }}
+      />
+    </>
   );
 }
 
-export function ProjectsNoAccessView({ actions }: { actions?: ReactNode }): ReactElement {
+export function ProjectsNoAccessView({ account }: { account: ProjectsAccount }): ReactElement {
   const t = useT();
   return (
-    <main className={styles.main}>
-      <div className={styles.titleRow}>
-        <h1 className={styles.h1} data-testid="projects-title">
-          {t('office.projects.title')}
-        </h1>
-        <span className={styles.spacer} />
-        {actions}
-      </div>
-      <NoAccess />
-    </main>
+    <>
+      <ProjectsHeader account={account} search={null} />
+      <main className={styles.main}>
+        <div className={styles.titleRow}>
+          <h1 className={styles.h1} data-testid="projects-title">
+            {t('office.projects.title')}
+          </h1>
+          <span className={styles.spacer} />
+        </div>
+        <NoAccess />
+      </main>
+    </>
   );
 }

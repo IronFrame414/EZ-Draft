@@ -74,6 +74,7 @@ describe('EZD-117a project list store', () => {
       moreStatus: 'idle',
       counts: null,
       countsStatus: 'loading',
+      search: '',
     });
     store.start();
     store.start();

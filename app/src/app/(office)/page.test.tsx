@@ -1,3 +1,5 @@
+// EZD-117b E7 (vault/plans/EZD-117b.md section 4): the link is the header gear `projects-settings`, Sign out is
+// the avatar menu; the header parts are stubs.
 // Moved from app/src/app/page.test.tsx by EZD-117a E5 (vault/plans/EZD-117a.md section 4): the home page is now
 // app/src/app/(office)/page.tsx; only the import and vi.mock paths changed, no assertion.
 // EZD-289 U1–U5 (vault/plans/EZD-289.md sections 1, 3, 4; AC-EZD-289-1, -2). Expected values: plan Decided
@@ -22,6 +24,23 @@ vi.mock('../../server/permissions', async (orig) => ({
 }));
 vi.mock('../../server/auth/supabase-server', () => ({ createSessionClient: () => ({}) }));
 vi.mock('../../server/errors/report', () => ({ reportError: vi.fn(async () => ({})) }));
+vi.mock('../../components/account/AvatarMenu', async () => {
+  const { createElement } = await import('react');
+  return { AvatarMenu: () => createElement('span', { 'data-testid': 'avatar-menu-trigger' }) };
+});
+vi.mock('../../components/notifications/NotificationBell', async () => {
+  const { createElement } = await import('react');
+  return {
+    NotificationBell: () => createElement('button', { 'data-testid': 'notification-bell' }),
+  };
+});
+vi.mock('../../server/projects/account', () => ({
+  loadProjectsAccount: async () => ({
+    name: 'Josh Bishop',
+    email: 'josh@example.com',
+    initials: 'JB',
+  }),
+}));
 vi.mock('../../server/auth/actions', () => ({
   signOut: vi.fn(),
   requestSignIn: vi.fn(),
@@ -50,9 +69,9 @@ const ctxWith = (keys: readonly PermissionKey[]): PermissionContext => ({
 
 const renderHome = async () => renderToStaticMarkup((await Page()) as ReactElement);
 
-// The Settings link element(s): every <a> carrying data-testid="home-settings".
+// The Settings link element(s): every opening <a> tag carrying data-testid="projects-settings".
 const settingsLinks = (html: string): string[] =>
-  html.match(/<a\b[^>]*data-testid="home-settings"[^>]*>[^<]*<\/a>/g) ?? [];
+  html.match(/<a\b[^>]*data-testid="projects-settings"[^>]*>/g) ?? [];
 
 describe('EZD-289 home page Settings link', () => {
   afterEach(() => {
@@ -60,39 +79,39 @@ describe('EZD-289 home page Settings link', () => {
     report.mockClear();
   });
 
-  it('U1 owner: one Settings link to /settings with the text Settings, before Sign out; no report', async () => {
+  it('U1 owner: one Settings link to /settings with the label Company settings, before the avatar menu; no report', async () => {
     getCtx.mockResolvedValue(ctxWith(PERMISSION_KEYS));
     const html = await renderHome();
     const links = settingsLinks(html);
     expect(links).toHaveLength(1);
     expect(links[0]).toContain('href="/settings"');
-    expect(/<a\b[^>]*>([^<]*)<\/a>/.exec(links[0])?.[1]).toBe('Settings');
-    expect(html.indexOf('data-testid="home-settings"')).toBeLessThan(
-      html.indexOf('data-testid="sign-out"'),
+    expect(links[0]).toContain('aria-label="Company settings"');
+    expect(html.indexOf('data-testid="projects-settings"')).toBeLessThan(
+      html.indexOf('data-testid="avatar-menu-trigger"'),
     );
     expect(report).not.toHaveBeenCalled();
   });
 
-  it('U2 crew: no Settings link; Sign out present', async () => {
+  it('U2 crew: no Settings link; avatar menu present', async () => {
     getCtx.mockResolvedValue(ctxWith(CREW));
     const html = await renderHome();
-    expect(html).not.toContain('data-testid="home-settings"');
-    expect(html).toContain('data-testid="sign-out"');
+    expect(html).not.toContain('data-testid="projects-settings"');
+    expect(html).toContain('data-testid="avatar-menu-trigger"');
   });
 
-  it('U3 no membership (null context): no Settings link; Sign out present; no report', async () => {
+  it('U3 no membership (null context): no Settings link; avatar menu present; no report', async () => {
     getCtx.mockResolvedValue(null);
     const html = await renderHome();
-    expect(html).not.toContain('data-testid="home-settings"');
-    expect(html).toContain('data-testid="sign-out"');
+    expect(html).not.toContain('data-testid="projects-settings"');
+    expect(html).toContain('data-testid="avatar-menu-trigger"');
     expect(report).not.toHaveBeenCalled();
   });
 
-  it('U4 load failure: no Settings link; Sign out and the disclaimer render; reported once', async () => {
+  it('U4 load failure: no Settings link; the avatar menu and the disclaimer render; reported once', async () => {
     getCtx.mockRejectedValue(new Error('x'));
     const html = await renderHome();
-    expect(html).not.toContain('data-testid="home-settings"');
-    expect(html).toContain('data-testid="sign-out"');
+    expect(html).not.toContain('data-testid="projects-settings"');
+    expect(html).toContain('data-testid="avatar-menu-trigger"');
     expect(html).toContain('data-testid="disclaimer"');
     expect(report).toHaveBeenCalledTimes(1);
     const [error, where] = report.mock.calls[0];

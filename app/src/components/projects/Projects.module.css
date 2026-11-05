@@ -1,6 +1,8 @@
 /* EZD-117a Step 11 (vault/plans/EZD-117a.md Decided "CSS"; board S01 vault/mockups/html/project/S01Projects.dc.html):
    the Projects page. Colors, radii, shadow and fonts are tokens (check C10); spacing and sizes in plain px
-   (L-013). :hover styles only under @media (hover: hover) (ARCH Device layouts). */
+   (L-013). :hover styles only under @media (hover: hover) (ARCH Device layouts).
+   EZD-117b Build step 10 (vault/plans/EZD-117b.md Decided "CSS"): the header (SettingsShell.module.css card and
+   header), the search field, the settings gear, the skeleton cards, the empty and no-match block. */
 
 .page {
   box-sizing: border-box;
@@ -95,9 +97,19 @@
   }
 }
 
+/* EZD-117b: the Retry buttons of the load-error banners and New project take the same tap area. */
+.loadError button,
+.newButton {
+  position: relative;
+}
+
 /* EZD-330: 44 px tap areas with every pointer (11 Accessibility; EZD-289 E1 checks at desktop). */
 .tab::after,
-.sortButton::after {
+.sortButton::after,
+.loadError button::after,
+.iconButton::after,
+.linkButton::after,
+.newButton::after {
   content: '';
   position: absolute;
   top: min(0px, calc(50% - var(--ez-touch-target) / 2 - 2px));
@@ -147,14 +159,6 @@
 .menuItemOn {
   color: var(--ez-cobalt-text);
   font-weight: 600;
-}
-
-.settingsLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font-size: 15px;
-  color: var(--ez-cobalt-link);
 }
 
 .grid {
@@ -278,4 +282,152 @@
 
 .more {
   height: 1px;
+}
+
+/* EZD-117b: header. After .card, so a header carrying both classes lays out as a row. */
+
+.header {
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+  box-sizing: border-box;
+  height: var(--ez-header-height);
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  margin: var(--ez-header-margin) var(--ez-header-margin) 0;
+  overflow: hidden;
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.accent {
+  color: var(--ez-cobalt);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--ez-border);
+}
+
+.headTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 340px;
+  height: 38px;
+  box-sizing: border-box;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  padding: 0 12px;
+  color: var(--ez-slate-500);
+}
+
+.search:focus-within {
+  outline: 2px solid var(--ez-cobalt);
+  outline-offset: 2px;
+}
+
+.searchInput {
+  border: 0;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  height: var(--ez-touch-target);
+}
+
+.chip {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-5);
+  padding: 1px 6px;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  font: 500 14px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+}
+
+@media (hover: hover) {
+  .iconButton:hover {
+    border-color: var(--ez-border-hover);
+  }
+}
+
+/* EZD-117b: states. */
+
+.skeletons {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}
+
+.skeletonBody {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 0;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.linkButton {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--ez-cobalt-link);
+  text-decoration: underline;
+  cursor: pointer;
+  position: relative;
 }

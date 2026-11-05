@@ -3,7 +3,12 @@
 // one page request and one counts request in parallel; a tab or sort change = one page request (counts
 // unchanged); scrolling = the next page by its cursor. A change aborts the page and more loads, and a response
 // from an older load (sequence number) is dropped; an AbortError changes nothing.
+// EZD-117b Build step 7 (vault/plans/EZD-117b.md Decided "Store search", "`retry()`"; Q-0402; Q-0448): the
+// debounced search (page and counts follow it, the tab changes only the page), clear, clear filters and retry.
+// An empty search is never sent: no `search` key and no second fetchCounts argument.
 import {
+  SEARCH_DEBOUNCE_MS,
+  projectCountsUrl,
   projectsUrl,
   type ProjectCounts,
   type ProjectPage,
@@ -14,10 +19,10 @@ import {
 
 export type ProjectListApi = {
   fetchPage(
-    q: { tab: ProjectTab; sort: ProjectSort; after: string | null },
+    q: { tab: ProjectTab; sort: ProjectSort; after: string | null; search?: string },
     signal: AbortSignal,
   ): Promise<ProjectPage>;
-  fetchCounts(signal: AbortSignal): Promise<ProjectCounts>;
+  fetchCounts(signal: AbortSignal, search?: string): Promise<ProjectCounts>;
 };
 
 export type ProjectListState = {
@@ -29,6 +34,7 @@ export type ProjectListState = {
   moreStatus: 'idle' | 'loading' | 'error';
   counts: ProjectCounts | null;
   countsStatus: 'loading' | 'ready' | 'error';
+  search: string;
 };
 
 export type ProjectListStore = {
@@ -38,12 +44,29 @@ export type ProjectListStore = {
   setTab(tab: ProjectTab): void;
   setSort(sort: ProjectSort): void;
   loadMore(): void;
+  setQuery(text: string): void;
+  clearSearch(): void;
+  clearFilters(): void;
+  retry(): void;
   dispose(): void;
+};
+
+export type SearchTimers = {
+  setTimeout: (run: () => void, ms: number) => unknown;
+  clearTimeout: (handle: unknown) => void;
+};
+
+const defaultTimers: SearchTimers = {
+  setTimeout: (run, ms) => globalThis.setTimeout(run, ms),
+  clearTimeout: (handle) => globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>),
 };
 
 const isAbort = (e: unknown) => e instanceof Error && e.name === 'AbortError';
 
-export function createProjectListStore(api: ProjectListApi): ProjectListStore {
+export function createProjectListStore(
+  api: ProjectListApi,
+  timers: SearchTimers = defaultTimers,
+): ProjectListStore {
   let state: ProjectListState = {
     status: 'loading',
     tab: 'all',
@@ -53,6 +76,7 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
     moreStatus: 'idle',
     counts: null,
     countsStatus: 'loading',
+    search: '',
   };
   const listeners = new Set<() => void>();
   let started = false;
@@ -60,10 +84,26 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
   let pageCtl: AbortController | null = null;
   let countsCtl: AbortController | null = null;
   let seq = 0;
+  let countsSeq = 0;
+  let timer: unknown = null;
 
   function set(patch: Partial<ProjectListState>) {
     state = { ...state, ...patch };
     for (const l of [...listeners]) l();
+  }
+
+  // The page query; `search` only when non-empty.
+  const pageQuery = (after: string | null) => ({
+    tab: state.tab,
+    sort: state.sort,
+    after,
+    ...(state.search === '' ? {} : { search: state.search }),
+  });
+
+  function clearTimer() {
+    if (timer === null) return;
+    timers.clearTimeout(timer);
+    timer = null;
   }
 
   function loadPage() {
@@ -71,7 +111,7 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
     const ctl = new AbortController();
     pageCtl = ctl;
     const mine = ++seq;
-    api.fetchPage({ tab: state.tab, sort: state.sort, after: null }, ctl.signal).then(
+    api.fetchPage(pageQuery(null), ctl.signal).then(
       (page) => {
         if (mine !== seq) return;
         set({ status: 'ready', items: page.items, next: page.next, moreStatus: 'idle' });
@@ -87,13 +127,16 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
     countsCtl?.abort();
     const ctl = new AbortController();
     countsCtl = ctl;
-    api.fetchCounts(ctl.signal).then(
+    const mine = ++countsSeq;
+    const request =
+      state.search === '' ? api.fetchCounts(ctl.signal) : api.fetchCounts(ctl.signal, state.search);
+    request.then(
       (counts) => {
-        if (countsCtl !== ctl) return;
+        if (mine !== countsSeq) return;
         set({ counts, countsStatus: 'ready' });
       },
       (e: unknown) => {
-        if (isAbort(e) || countsCtl !== ctl) return;
+        if (isAbort(e) || mine !== countsSeq) return;
         set({ countsStatus: 'error' });
       },
     );
@@ -104,7 +147,22 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
     loadPage();
   }
 
-  return {
+  // Search `s` (trimmed): a new page 1 and new counts; the old counts stay until the new ones arrive.
+  function apply(s: string) {
+    if (s === state.search) return;
+    set({
+      search: s,
+      status: 'loading',
+      items: [],
+      next: null,
+      moreStatus: 'idle',
+      countsStatus: 'loading',
+    });
+    loadPage();
+    loadCounts();
+  }
+
+  const store: ProjectListStore = {
     get: () => state,
     subscribe(cb) {
       listeners.add(cb);
@@ -132,7 +190,7 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
       const ctl = pageCtl;
       const mine = seq;
       set({ moreStatus: 'loading' });
-      api.fetchPage({ tab: state.tab, sort: state.sort, after: state.next }, ctl.signal).then(
+      api.fetchPage(pageQuery(state.next), ctl.signal).then(
         (page) => {
           if (mine !== seq) return;
           const listed = new Set(state.items.map((i) => i.id));
@@ -145,7 +203,49 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
         },
       );
     },
+    setQuery(text) {
+      clearTimer();
+      const s = text.trim();
+      if (s === state.search) return;
+      timer = timers.setTimeout(() => {
+        timer = null;
+        apply(s);
+      }, SEARCH_DEBOUNCE_MS);
+    },
+    clearSearch() {
+      clearTimer();
+      apply('');
+    },
+    clearFilters() {
+      clearTimer();
+      if (state.tab === 'all' && state.search === '') return;
+      const hadSearch = state.search !== '';
+      set({
+        tab: 'all',
+        search: '',
+        status: 'loading',
+        items: [],
+        next: null,
+        moreStatus: 'idle',
+        ...(hadSearch ? { countsStatus: 'loading' as const } : {}),
+      });
+      loadPage();
+      if (hadSearch) loadCounts();
+    },
+    retry() {
+      const { status, countsStatus, moreStatus } = state;
+      if (status === 'error') {
+        set({ status: 'loading', items: [], next: null, moreStatus: 'idle' });
+        loadPage();
+      }
+      if (countsStatus === 'error') {
+        set({ countsStatus: 'loading' });
+        loadCounts();
+      }
+      if (moreStatus === 'error') store.loadMore();
+    },
     dispose() {
+      clearTimer();
       started = false;
       seq++;
       pageCtl?.abort();
@@ -154,6 +254,7 @@ export function createProjectListStore(api: ProjectListApi): ProjectListStore {
       countsCtl = null;
     },
   };
+  return store;
 }
 
 export const projectHttpApi: ProjectListApi = {
@@ -166,8 +267,8 @@ export const projectHttpApi: ProjectListApi = {
     if (res.status !== 200) throw new Error('projects_load_failed');
     return (await res.json()) as ProjectPage;
   },
-  async fetchCounts(signal) {
-    const res = await fetch('/api/projects/counts', {
+  async fetchCounts(signal, search) {
+    const res = await fetch(projectCountsUrl(search), {
       cache: 'no-store',
       credentials: 'same-origin',
       signal,

@@ -20,6 +20,7 @@ const READY: ProjectListState = {
   moreStatus: 'idle',
   counts: { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1 },
   countsStatus: 'ready',
+  search: '',
 };
 const TABS = ['all', 'draft', 'client_review', 'permit_submitted', 'approved', 'in_build'];
 const LABELS = ['All', 'Draft', 'Client review', 'Permit submitted', 'Approved', 'In build'];
