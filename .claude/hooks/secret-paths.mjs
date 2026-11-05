@@ -1,4 +1,5 @@
 // Secret files for guard-reads.mjs (EZD-279; Q-0459 (b)): .env files (not .env.example), scripts/launcher.config.json and the Claude sign-in file, in folded case on every disk (pathKey(p, true)); glob name parts match as typed, case-insensitively. Grep and Glob are judged on folder and pattern (ripgrep -g overrides .gitignore; plan EZD-279 section 2); a Grep outside the main checkout and its ticket worktrees is refused (Q-0462 (a)).
+// Shell commands are judged word by word on the same rules (shellSecretReason, EZD-280; Q-0461 (a)).
 import { realpathSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -193,9 +194,10 @@ export function globReach(root, glob, ctx) {
     const T = compile(F);
     if (T === null) return 'unreadable';
     const at = (target) => (deep ? under(dir, target) : fold(dir) === fold(target));
-    if (T.match('.env') || prefixHit(T.toks, '.env.', '.env.example')) return 'env';
+    const dot = ctx.tool !== 'Bash' || F.startsWith('.');
+    if (dot && (T.match('.env') || prefixHit(T.toks, '.env.', '.env.example'))) return 'env';
     if (T.match('launcher.config.json') && ((ctx.repoRoot !== null && at(`${ctx.repoRoot}/scripts`)) || lastSeg(dir) === 'scripts')) return 'launcher';
-    if ((T.match('.credentials.json') || prefixHit(T.toks, '.cred')) && (at(`${ctx.home}/.claude`) || lastSeg(dir) === '.claude')) return 'signin';
+    if (dot && ((T.match('.credentials.json') || prefixHit(T.toks, '.cred')) && (at(`${ctx.home}/.claude`) || lastSeg(dir) === '.claude'))) return 'signin';
   }
   return null;
 }
@@ -239,4 +241,164 @@ export function secretReason(tool, ti, cwd) {
   }
   const pat = str(ti.pattern);
   return pat === null ? null : judge(pat);
+}
+
+// K: the words of a shell command line, POSIX quoting (EZD-280; KNOWN-LIMITS shell-guard entry): a list of commands, each a
+// list of words { text (after quote removal), glob (an unquoted *, ?, [ or {), unreadable ($'…' number or control escapes) }.
+const CTRL = { a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v' };
+export function shellWords(command) {
+  const s = String(command);
+  const out = [];
+  let cmd = [];
+  const fresh = () => ({ text: '', glob: false, unreadable: false });
+  let w = fresh();
+  // K1
+  const endWord = () => {
+    if (w.text !== '') { if (['[', '[[', '{', '}', '{}'].includes(w.text)) w.glob = false; cmd.push(w); }
+    w = fresh();
+  };
+  const endCmd = () => { endWord(); if (cmd.length) out.push(cmd); cmd = []; };
+  let i = 0;
+  // K5: inside "…", from after the opening quote; no closing quote runs to the end.
+  const dq = () => {
+    while (i < s.length && s[i] !== '"') {
+      if (s[i] === '\\' && i + 1 < s.length) {
+        const n = s[i + 1];
+        if ('$`"\\'.includes(n)) w.text += n;
+        else if (n !== '\n') w.text += `\\${n}`;
+        i += 2;
+        continue;
+      }
+      w.text += s[i];
+      i += 1;
+    }
+    i += 1;
+  };
+  // K6: inside $'…', from after the opening quote.
+  const ansi = () => {
+    while (i < s.length && s[i] !== "'") {
+      if (s[i] === '\\' && i + 1 < s.length) {
+        const n = s[i + 1];
+        if ('\\\'"?'.includes(n)) w.text += n;
+        else if (Object.hasOwn(CTRL, n)) w.text += CTRL[n];
+        else if (/[0-9xuUc]/.test(n)) { w.unreadable = true; w.text += `\\${n}`; }
+        else w.text += `\\${n}`;
+        i += 2;
+        continue;
+      }
+      w.text += s[i];
+      i += 1;
+    }
+    i += 1;
+  };
+  let afterDollar = false;
+  while (i < s.length) {
+    const c = s[i];
+    const wasDollar = afterDollar;
+    afterDollar = false;
+    // K2
+    if (c === ' ' || c === '\t') { endWord(); i += 1; continue; }
+    if (';&|()<>`\n\r'.includes(c)) { endCmd(); i += 1; continue; }
+    // K3
+    if (c === '\\') {
+      if (s[i + 1] === '\n') i += 2;
+      else if (i + 1 < s.length) { w.text += s[i + 1]; i += 2; }
+      else { w.text += '\\'; i += 1; }
+      continue;
+    }
+    // K4
+    if (c === "'") {
+      const j = s.indexOf("'", i + 1);
+      const end = j < 0 ? s.length : j;
+      w.text += s.slice(i + 1, end);
+      i = end + 1;
+      continue;
+    }
+    if (c === '"') { i += 1; dq(); continue; }
+    // K6
+    if (c === '$' && s[i + 1] === "'") { i += 2; ansi(); continue; }
+    if (c === '$' && s[i + 1] === '"') { i += 2; dq(); continue; }
+    // K7
+    if ('*?['.includes(c) || (c === '{' && !wasDollar)) w.glob = true;
+    w.text += c;
+    if (c === '$') afterDollar = true;
+    i += 1;
+  }
+  // K8
+  endCmd();
+  return out;
+}
+
+const B1 = (shown, k) => `Naming secret files in a shell command is not allowed: ${shown} is ${kindText[k]} (Q-0461).`;
+const B2 = (shown) => `Naming secret files in a shell command is not allowed: this word cannot be checked: ${shown} (Q-0461). Write it without $'…' number escapes or unbalanced brackets or braces.`;
+const B3 = (shown, k) => `Naming secret files in a shell command is not allowed: ${shown} can match ${kindText[k]} (Q-0461). Name the files without wildcards or braces.`;
+const REREAD = /[\s'"\\`$;&|<>()]/;
+
+// J: the deny reason for a shell command that names or can reach a secret file, else null (EZD-280; Q-0461 (a)).
+export function shellSecretReason(command, cwd) {
+  const home = realOr(os.homedir());
+  const rr = repoRoot();
+  const roots = [norm(cwd)];
+  let cur = norm(cwd);
+  let prev = cur;
+  // J2
+  function judgeWord(w, depth) {
+    // Round 1 code-review note 1: a word holding `$` also splits at `{`, `}`, `+`, `-`, so a written default `${X:-.env.local}` is judged.
+    const cands = [...new Set([w.text, ...w.text.split(w.text.includes('$') ? /[\s=:,{}+-]+/ : /[\s=:,]+/).filter((x) => x !== '')])];
+    for (const s of cands) {
+      for (const root of roots) for (const t of targets(s, root, home)) { const k = secretName(t); if (k) return B1(s, k); }
+    }
+    if (w.unreadable && depth === 0) return B2(w.text);
+    if (w.glob) {
+      let g = w.text;
+      if (g === '~') g = home;
+      else if (g.startsWith('~/')) g = home + g.slice(1);
+      for (const root of roots) {
+        const r = globReach(root, g, { tool: 'Bash', home, repoRoot: rr });
+        if (r === 'unreadable') { if (depth === 0) return B2(w.text); } else if (r) return B3(w.text, r);
+      }
+    }
+    if (REREAD.test(w.text)) {
+      const again = shellWords(w.text);
+      const same = again.length === 1 && again[0].length === 1 && again[0][0].text === w.text;
+      if (!same) {
+        if (depth >= 3) return B2(w.text);
+        const r = walkShell(w.text, depth + 1);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+  // J1, J3: roots and cur are shared by every level of this call.
+  function walkShell(text, depth) {
+    for (const c of shellWords(text)) {
+      const t = c.map((x) => x.text);
+      let exempt = null;
+      if (t.length === 3 && t[0] === 'test' && t[1] === '-f') exempt = c[2];
+      else if (t.length === 4 && t[0] === '[' && t[1] === '-f' && t[3] === ']') exempt = c[2];
+      if (t[0] === 'cd' || t[0] === 'pushd') {
+        const later = c.slice(1);
+        const plain = later.filter((x) => !x.text.startsWith('-'));
+        const a = plain.length ? plain.at(-1) : later.length === 1 && later[0].text === '-' ? later[0] : null;
+        // Round 1 security finding 1: a wildcard folder cannot be checked (`cd ~/.[c]laude` reaches the sign-in folder).
+        if (a !== null && a.glob) return B2(a.text);
+        let next;
+        if (a === null) next = home;
+        else if (a.text === '-') next = prev;
+        else if (/[$`]/.test(a.text)) next = cur;
+        else next = targets(a.text, cur, home)[0];
+        prev = cur;
+        cur = next;
+        if (!roots.includes(cur)) roots.push(cur);
+      }
+      for (const w of c) {
+        if (w === exempt) continue;
+        const r = judgeWord(w, depth);
+        if (r) return r;
+      }
+    }
+    // J4
+    return null;
+  }
+  return walkShell(command, 0);
 }

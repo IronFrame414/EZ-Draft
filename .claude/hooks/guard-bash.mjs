@@ -1,5 +1,5 @@
 // PreToolUse on Bash: backstop for the deny rules in settings.json (vault/PROCESS.md section 14, guard-bash).
-import { readInput, deny } from './lib.mjs';
+import { readInput, deny, projectDir } from './lib.mjs';
 
 const input = readInput();
 const agent = input.agent_type || 'orchestrator';
@@ -39,6 +39,16 @@ const noTests = raw
   .replace(/(^|\s)test\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)/g, '$1')
   .replace(/\[\s+-f\s+(?:"[^"]*"|'[^']*'|\S+)\s+\]/g, '');
 if (/\.credentials\.json|\.claude\/\.cred/i.test(noTests)) deny('The Claude sign-in file is never read from the shell. Only test -f <path> or [ -f <path> ] may name it (PA3 rule 8).');
+// Secret files named anywhere in the command, whatever the command word (EZD-280; Q-0461 (a)): every word is judged by the read guard's secretName in secret-paths.mjs, failing closed.
+let secretWhy = null;
+try {
+  const { shellSecretReason } = await import('./secret-paths.mjs');
+  secretWhy = shellSecretReason(cmd, input.cwd || projectDir());
+} catch (e) {
+  const msg = e && e.message ? e.message : String(e);
+  secretWhy = `The secret-file check could not run (${msg}); this command is refused (Q-0461).`;
+}
+if (secretWhy) deny(secretWhy);
 
 const readOnly = ['code-reviewer', 'calc-auditor', 'security-reviewer', 'phase-auditor', 'Explore'];
 if (readOnly.includes(agent)) {
