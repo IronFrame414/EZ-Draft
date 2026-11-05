@@ -18244,6 +18244,38 @@
     "AC-EZD-332-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-333",
+   "phase": 1,
+   "title": "Overseer: the repair unit makes guarded fixes itself in fix mode",
+   "depends_raw": "EZD-250, EZD-280",
+   "spec_ref": "Decision 2026-11-05 overseer (process.md), Q-0261, CLAUDE.md rules 3, 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-250",
+    "EZD-280"
+   ],
+   "build_position": 590,
+   "acs": [
+    "AC-EZD-333-1",
+    "AC-EZD-333-2",
+    "AC-EZD-333-3",
+    "AC-EZD-333-4",
+    "AC-EZD-333-5",
+    "AC-EZD-333-6",
+    "AC-EZD-333-7",
+    "AC-EZD-333-8"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
