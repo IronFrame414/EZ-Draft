@@ -26,4 +26,8 @@ Built the overseer Josh approved (decision row 2026-11-05 "Overseer repair unit 
 2. Watchdog alerts are unchanged: an idle launcher in state repair-failed still alerts after its threshold. That is a "build is stuck" alarm, not a question.
 
 ## Open
-- PR 5 CI: run 42042802420 on fc7d85f5 was pending at hand-over. EZD-334 fixes both earlier failures. Rule 17 notes are in `vault/tooling-notes.md` (EZD-333, EZD-334 lines).
+- PR 5 CI run 42042802420 (fc7d85f5): the root tests now pass (EZD-334). One e2e test failed: EZD-136 "every page shows the disclaimer" on `/`.
+  - The disclaimer was not in the viewport. That test passed on 571680ef, and no app code changed between the two runs, so it looks order- or data-dependent.
+  - The overseer handled it unattended: `repair ci` filed fix ticket EZD-335 at 14:33 and the launcher started planning it.
+  - EZD-335's row cites head 0c42907d; the run link in it is the right one.
+- Rule 17 notes are in `vault/tooling-notes.md` (EZD-333, EZD-334 lines).
