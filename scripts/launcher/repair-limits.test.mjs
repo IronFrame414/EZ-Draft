@@ -109,29 +109,20 @@ test('EZD-255 T3 repair, five-hour limit: the log names the repair unit (AC-EZD-
   assert.match(r.notified[0], LIMIT_NOTICE('repair check'), why(r));
 });
 
-test('EZD-255 T4 repair, per-unit cap: the notice names the repair unit and its reason (AC-EZD-255-1)', async () => {
+// EZD-333 (decision 2026-11-05 (1)): the notice of a failed repair is the overseer log line, not a notification.
+test('EZD-255 T4 repair, per-unit cap: the notice names the repair unit and its reason (AC-EZD-255-1, AC-EZD-333-5)', async () => {
   const { r } = await runRepairCap('error_max_budget_usd');
   assert.equal(r.status, 0, why(r));
-  assert.deepEqual(
-    r.notified,
-    [
-      `EZ Draft: repair failed for "${CHECK_FAILED}": repair check stopped at the per-unit cap (error:error_max_budget_usd). The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`,
-    ],
-    why(r),
-  );
+  assert.deepEqual(r.notified, [], why(r));
+  assert.deepEqual(r.overseer, ['repair check: FAILED: repair check stopped at the per-unit cap (error:error_max_budget_usd)'], why(r));
   assert.equal(r.repairState?.verdict, 'failed', why(r));
 });
 
-test('EZD-255 T5 repair, turn limit: the notice names the repair unit and its reason (AC-EZD-255-1)', async () => {
+test('EZD-255 T5 repair, turn limit: the notice names the repair unit and its reason (AC-EZD-255-1, AC-EZD-333-5)', async () => {
   const { r } = await runRepairCap('error_max_turns');
   assert.equal(r.status, 0, why(r));
-  assert.deepEqual(
-    r.notified,
-    [
-      `EZ Draft: repair failed for "${CHECK_FAILED}": repair check stopped at the turn limit (error:error_max_turns). The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`,
-    ],
-    why(r),
-  );
+  assert.deepEqual(r.notified, [], why(r));
+  assert.deepEqual(r.overseer, ['repair check: FAILED: repair check stopped at the turn limit (error:error_max_turns)'], why(r));
 });
 
 test('EZD-255 T6 normal, budget hold: the hold text is unchanged (AC-EZD-255-2)', async () => {
@@ -207,7 +198,7 @@ test('EZD-255 done when: a repair unit that hits a budget hold, plan limit, five
   assert.match(five.r.log, FIVE_HOUR_REPAIR, `repair five-hour pause\n${why(five.r)}`);
   const cap = await runRepairCap('error_max_budget_usd');
   assert.ok(
-    cap.r.notified[0]?.includes('repair check stopped at the per-unit cap (error:error_max_budget_usd)'),
+    cap.r.overseer[0]?.includes('repair check stopped at the per-unit cap (error:error_max_budget_usd)'),
     `repair per-unit cap\n${why(cap.r)}`,
   );
   const normal = await runNormalBudgetHold();

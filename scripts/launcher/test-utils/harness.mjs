@@ -250,6 +250,8 @@ export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = 
         state: readJson(root.at('logs/launcher-state.json')),
         repairState: readJson(root.at('logs/repair-state.json')),
         repairMd: readIfExists(root.at('vault/handoff/REPAIR.md')),
+        // EZD-333: the overseer log's entry lines, without the time stamp (`repair <kind>: <VERDICT>: <line>`).
+        overseer: lines(root.at('vault/handoff/overseer-log.md')).filter((l) => l.startsWith('- ')).map((l) => l.replace(/^- \S+ /, '')),
       });
     });
   });

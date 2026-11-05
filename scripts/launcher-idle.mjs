@@ -60,6 +60,50 @@ export function parseVerdict(text) {
   return m ? { verdict: m[1].toLowerCase(), line: m[2] } : { verdict: 'failed', line: 'no verdict line' };
 }
 
+// EZD-333 (decision 2026-11-05 "Overseer repair unit"): the launcher's repair units, the only units that get fix mode, and only
+// for the paths vault/handoff/LAUNCHER_FIX.md lists under `## Paths`. One list of hard limits, used by .claude/hooks/guard-paths.mjs
+// (Edit and Write) and by scripts/run.mjs after every repair (whatever wrote the file), so the two cannot drift. This file holds
+// the list, so it is on the list.
+export const REPAIR_UNIT_RE = /^repair-(check|waiting|ci|probe)$/;
+// The files the guards and the gate load are on it too (guard-reads loads vault/tools/outline.mjs; the gate loads gate-summary,
+// gate-lock and db/lane): a throw there would switch a guard or the gate off. overseer-limits.test.mjs follows those imports.
+// Josh-only files (budget, sign-off, hold) stay with guard-paths' joshOnly rule, so the launcher never undoes Josh's own edit.
+export const REPAIR_NEVER_FILES = ['.claude/settings.json', '.claude/settings.local.json', '.claude/agents/code-reviewer.md',
+  '.claude/agents/security-reviewer.md', 'scripts/unit-sandbox.json', 'scripts/gate.mjs', 'scripts/gate-summary.mjs',
+  'scripts/gate-lock.mjs', 'scripts/db/lane.mjs', 'vault/tools/outline.mjs', 'scripts/launcher-idle.mjs'];
+// Files that may hold Josh's own edits: the launcher watches them around a repair and stops, never restores, when one changes.
+export const REPAIR_JOSH_FILES = ['.claude/settings.local.json', 'vault/budget.json', 'vault/spec/SIGNOFF.md', 'vault/handoff/BUDGET_HOLD.md'];
+const REPAIR_NEVER_DIRS = ['.claude/hooks/', '.claude/skills/repair/', '.github/'];
+// The test-file pattern of guard-paths.mjs (isTest).
+const TEST_FILE = (k) => /(^|\/)(tests?|e2e|__tests__|fixtures|__fixtures__|test-utils|test-harness)\//.test(k)
+  || /\.(test|spec)\.[cm]?[jt]sx?$/.test(k)
+  || /(^|\/)(vitest|playwright)(\.workspace)?(\.config)?\.[cm]?[jt]s$/.test(k);
+export function repairForbidden(rel) {
+  const k = String(rel).replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\.claude\/worktrees\/[^/]+\//, '').toLowerCase();
+  if (REPAIR_NEVER_FILES.some((f) => k === f.toLowerCase())) return `${rel} is a hard limit of the repair unit (guards, settings, sandbox, gate, reviewers)`;
+  if (REPAIR_NEVER_DIRS.some((d) => k.startsWith(d))) return `${rel} is under a folder the repair unit never changes (hooks, its own skill, CI)`;
+  if (/(^|\/)package\.json$/.test(k)) return `${rel} holds the test and gate commands; the repair unit never changes it`;
+  if (TEST_FILE(k)) return `${rel} is a test file; the repair unit never changes, skips or narrows a test`;
+  if (/(^|\/)\.env(\.|$)/.test(k) && !k.endsWith('.env.example')) return `${rel} is an environment file`;
+  return null;
+}
+// The `- path` bullets under the `## Paths` heading (backticks dropped); a trailing `/` lists a folder.
+export function fixModePaths(text) {
+  const out = [];
+  let inPaths = false;
+  for (const raw of String(text ?? '').split('\n')) {
+    const l = raw.trim();
+    if (/^#{1,6}\s/.test(l)) { inPaths = /^##\s+Paths\s*$/i.test(l); continue; }
+    if (!inPaths) continue;
+    const m = l.match(/^-\s+`?([^`\s]+)`?\s*$/);
+    if (m) out.push(m[1].replace(/^\.\//, ''));
+  }
+  return out;
+}
+export const fixListed = (paths, rel) => paths.some((p) => (p.endsWith('/') ? rel.startsWith(p) : rel === p));
+// After a repair Josh hears only a design or user-interface question (standing rule 2026-11-05).
+export const joshQuestion = (line) => /^(design|ui):/i.test(String(line ?? '').trim());
+
 // EZD-255 D1: the unit a hold or limit text names: the repair unit while a repair runs, else the next unit.
 export function unitSubject(next, repair) {
   return repair ? `repair ${repair.kind} for "${repair.next}"` : next;

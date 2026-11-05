@@ -21,7 +21,7 @@
 //   records_db      the records database file (REMEDIATION-PLAN 2.12); default $EZD_RECORDS_DB, else ~/.ezdraft/records.db
 //   log_dir         where the launcher keeps its in-flight records (inflight/) and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
 //                   .launcher/ in the checkout elsewhere); scripts/launchd/install.mjs and scripts/watchdog.mjs use the same
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync, renameSync, appendFileSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -68,7 +68,7 @@ const { costEntry } = await import('./cost-log.mjs');
 const {
   idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
   isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
-  laneEnvFor, writeLease, removeLease, limitPause, neverRejects,
+  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES,
 } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 // Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
@@ -485,6 +485,121 @@ function writeRepairBrief({ kind, fp, next }) {
   writeFileSync(path.join(vault, 'handoff/REPAIR.md'), `# Repair · ${nowIso()}\n- Trigger: ${kind}\n- Fingerprint: ${fp}\n- Reason: ${next}\n\n## Ledger check output\n\`\`\`\n${(chk.stdout || '').trimEnd()}\n\`\`\`\n`);
 }
 
+// EZD-333 (decision 2026-11-05 "Overseer repair unit"): the repair unit may open fix mode, so after it the launcher checks every
+// file it changed against the hard limits (guard-paths sees only Edit and Write; a shell command can write too), undoes a repair
+// that touched one, closes a fix mode the repair left open and writes one line per repair to the overseer log for Josh.
+const fixFile = path.join(vault, 'handoff/LAUNCHER_FIX.md');
+const probeFile = path.join(vault, 'handoff/REPAIR_PROBE.md');
+const overseerLog = path.join(vault, 'handoff/overseer-log.md');
+const shortSha = (s) => String(s).slice(0, 8);
+const headSha = () => git('rev-parse', '-q', '--verify', 'HEAD').stdout.trim();
+const originSha = () => git('rev-parse', '-q', '--verify', 'refs/remotes/origin/develop').stdout.trim();
+// Changed and untracked files, one by one (-z: no quoting; a rename lists both paths).
+function changedFiles() {
+  const parts = (git('status', '--porcelain', '-z', '--untracked-files=all').stdout || '').split('\0');
+  const files = [];
+  for (let i = 0; i < parts.length; i++) {
+    const e = parts[i];
+    if (!e) continue;
+    files.push(e.slice(3));
+    if (/^[RC]/.test(e)) files.push(parts[++i]);
+  }
+  return files.filter(Boolean);
+}
+const blobOf = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '--', rel).stdout.trim() : 'absent');
+// -w keeps the content in the object store, so a file dirty before the repair (or ignored by git) can be put back exactly.
+const saveBlob = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '-w', '--', rel).stdout.trim() : 'absent');
+const blobAt = (rev, rel) => { const r = git('rev-parse', '-q', '--verify', `${rev}:${rel}`); return r.status === 0 ? r.stdout.trim() : 'absent'; };
+// Files the check watches: the hard limits, plus the files that may hold Josh's own edits (his local settings, the Josh-only
+// files). A change to one of Josh's is never overwritten: the launcher stops instead (code review round 2).
+const watched = (f) => repairForbidden(f) !== null || REPAIR_JOSH_FILES.includes(f);
+// What each watched file looked like before the repair: every named one (ignored ones too, such as .claude/settings.local.json)
+// and every one already changed, saved with -w; any other one is as the last commit had it.
+function repairSnapshot() {
+  const saved = new Map();
+  for (const f of [...REPAIR_NEVER_FILES, ...REPAIR_JOSH_FILES, ...changedFiles().filter(watched)]) saved.set(f, saveBlob(f));
+  return { head: headSha(), origin: originSha(), saved, fixBefore: existsSync(fixFile) };
+}
+const targetOf = (snap, f) => (snap.saved.has(f) ? snap.saved.get(f) : blobAt(snap.head, f));
+function repairChanges(snap, fp) {
+  const head = headSha();
+  const commits = [];
+  if (head && head !== snap.head) {
+    // Newest first; --no-renames lists both sides of a move, so a guard moved to an unlisted name still counts (code review 1).
+    for (const sha of git('rev-list', `${snap.head}..${head}`).stdout.split('\n').filter(Boolean)) {
+      const files = git('diff-tree', '--no-commit-id', '--name-only', '-r', '-m', '--no-renames', '-z', sha).stdout.split('\0').filter(Boolean);
+      const parents = git('rev-list', '--parents', '-n', '1', sha).stdout.trim().split(' ').length - 1;
+      commits.push({ sha, subject: git('log', '-1', '--format=%s', sha).stdout.trim(), merge: parents > 1, forbidden: files.filter(watched) });
+    }
+  }
+  const committed = [...new Set(commits.flatMap((c) => c.forbidden))];
+  const files = head && head !== snap.head ? git('diff', '--name-only', '--no-renames', '-z', `${snap.head}..${head}`).stdout.split('\0').filter(Boolean) : [];
+  const watch = [...new Set([...snap.saved.keys(), ...committed, ...changedFiles().filter(watched)])].sort();
+  const origin = originSha();
+  const originAway = origin !== snap.origin && origin !== '' && git('merge-base', '--is-ancestor', origin, head).status !== 0;
+  // A hard-limit change pushed to origin/develop counts even when the checkout's HEAD no longer has it (security re-review 1).
+  const pushed = origin !== snap.origin && origin !== '' && snap.origin !== ''
+    ? git('diff', '--name-only', '--no-renames', '-z', `${snap.origin}..${origin}`).stdout.split('\0').filter((f) => f && watched(f)) : [];
+  const bad = [...new Set([...committed, ...(originAway ? pushed : []), ...watch.filter((f) => blobOf(f) !== targetOf(snap, f))])].sort();
+  // A fix file opened during the repair that does not name it is someone else's (skill step 4.2: `Repair: <fingerprint>`).
+  let fixOther = false;
+  if (!snap.fixBefore && existsSync(fixFile)) {
+    let text = '';
+    try { text = readFileSync(fixFile, 'utf8'); } catch {}
+    fixOther = !text.split('\n').some((l) => l.trim() === `Repair: ${fp}`);
+  }
+  return { head, commits, files, watch, bad, originAway, fixOther };
+}
+// Undo a refused repair: the repair's own hard-limit commits reverted (pushed when it had pushed), then every hard-limit file put
+// back as it was before the repair, each overwritten copy kept in the object store and named in the log. What may not be the
+// repair's (an interactive fix open before or opened during it, a commit without the `fix(repair):` subject, a merge, origin moved
+// elsewhere, a change to one of Josh's files) is not undone: the launcher stops instead, so nobody's work is lost (code review 4, round 2).
+function undoRepair(snap, ch) {
+  const problems = [];
+  const kept = [];
+  if (snap.fixBefore) problems.push('an interactive fix was open, so the change may be its own');
+  if (ch.fixOther) problems.push('an interactive fix was opened during the repair, so the change may be its own');
+  for (const f of ch.bad) if (REPAIR_JOSH_FILES.includes(f)) problems.push(`${f} may hold Josh's own edit`);
+  for (const c of ch.commits) {
+    if (c.forbidden.length && (c.merge || !/^fix\(repair\):/.test(c.subject))) problems.push(`commit ${shortSha(c.sha)} "${c.subject}" is not the repair's`);
+  }
+  if (ch.originAway) problems.push('origin/develop moved to a commit the checkout does not have');
+  if (problems.length) return { problems, kept };
+  const keep = (f) => { const b = saveBlob(f); if (b !== 'absent') kept.push(`${f} kept as ${b}`); };
+  // A tracked hard-limit file changed since the last commit goes back to it first, so the revert applies.
+  for (const f of changedFiles().filter(watched)) if (blobAt('HEAD', f) !== 'absent') { keep(f); git('restore', '--source=HEAD', '--staged', '--worktree', '--', f); }
+  const own = ch.commits.filter((c) => c.forbidden.length);
+  for (const c of own) {
+    const rv = git('revert', '--no-edit', c.sha);
+    if (rv.status !== 0) { git('revert', '--abort'); problems.push(`git revert ${shortSha(c.sha)} failed: ${(rv.stderr || rv.stdout).trim().split('\n')[0]}`); break; }
+  }
+  if (!problems.length && own.length && originSha() !== snap.origin) {
+    const p = git('push', 'origin', 'develop');
+    if (p.status !== 0) problems.push(`the revert was not pushed: ${(p.stderr || '').trim().split('\n')[0]}`);
+  }
+  for (const f of ch.watch) {
+    const want = targetOf(snap, f);
+    if (blobOf(f) === want) continue;
+    const abs = path.join(root, f);
+    if (!kept.some((k) => k.startsWith(`${f} kept as `))) keep(f);
+    if (want === 'absent') { git('rm', '-q', '--cached', '--ignore-unmatch', '--', f); try { unlinkSync(abs); } catch {} continue; }
+    const body = spawnSync('git', ['-C', root, 'cat-file', 'blob', want]);
+    if (body.status !== 0) { problems.push(`${f}: saved copy not readable`); continue; }
+    mkdirSync(path.dirname(abs), { recursive: true });
+    writeFileSync(abs, body.stdout);
+    if (blobAt('HEAD', f) !== 'absent') git('restore', '--staged', '--', f);
+  }
+  const left = ch.watch.filter((f) => blobOf(f) !== targetOf(snap, f));
+  if (left.length) problems.push(`still changed: ${left.join(', ')}`);
+  return { problems, kept };
+}
+function overseerAppend(text) {
+  try {
+    if (!existsSync(overseerLog)) writeFileSync(overseerLog, '# Overseer log\n\nOne line per repair the launcher ran (EZD-333; decision 2026-11-05). Read at the daily check-in.\n\n');
+    appendFileSync(overseerLog, `- ${nowIso()} ${String(text).replace(/\s*\n\s*/g, ' ')}\n`);
+  } catch (e) { log(`overseer log not written: ${e.message}`); }
+}
+
 async function main() {
   if (statusOnly) {
     const b = budget(); const s = weekSpend(b); const m = await readMeters({ budget: b });
@@ -719,6 +834,15 @@ async function main() {
       if (!/^none:/.test(effective)) {
         try { unlinkSync(repairStateFile); } catch {}
         repairs = 0;
+      } else if (existsSync(probeFile)) {
+        // EZD-333: the one-shot probe (vault/handoff/REPAIR_PROBE.md) proves a launcher-started repair unit may edit a guarded
+        // file in fix mode. Any wait will do; it sets no repair state and counts toward no cap.
+        try { unlinkSync(probeFile); } catch {}
+        repair = { kind: 'probe', fp: 'probe', next: effective };
+        writeRepairBrief(repair);
+        unitName = 'repair';
+        arg = 'probe';
+        idle = { action: 'run' };
       } else {
         const d = repairDecision({ next: effective, state: readJson(repairStateFile, null), consecutive: repairs });
         if (d.action === 'repair') {
@@ -770,9 +894,37 @@ async function main() {
     const statusBefore = statusHash();
     setState({ state: 'unit', at: nowIso() });
     failedWait = null;
+    const snap = repair ? repairSnapshot() : null;
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
     setState({ state: 'after-unit', at: nowIso() });
+    // EZD-333: check what the repair changed before anything else, whatever its outcome (a limit can stop it half way).
+    let refusal = null;
+    let changes = null;
+    if (repair) {
+      changes = repairChanges(snap, repair.fp);
+      if (changes.bad.length) {
+        const { problems, kept } = undoRepair(snap, changes);
+        const keptText = kept.length ? `; overwritten copies: ${kept.join(', ')}` : '';
+        if (!problems.length) refusal = `changed ${changes.bad.join(', ')} (repair hard limits); the repair's change is undone${keptText}`;
+        else {
+          // A safety stop, not a question: a hard-limit change the launcher cannot safely undo must not run unattended.
+          refusal = `changed ${changes.bad.join(', ')} (repair hard limits); not undone: ${problems.join('; ')}${keptText}; STOP written`;
+          try { writeFileSync(stopFile, `# STOP · ${nowIso()}\nA repair run changed ${changes.bad.join(', ')} and the launcher did not undo it: ${problems.join('; ')}. See vault/handoff/overseer-log.md (EZD-333).\n`); } catch {}
+          notify(`launcher stopped: a repair run changed ${changes.bad.join(', ')} and it was not undone. See vault/handoff/overseer-log.md.`);
+        }
+        log(`repair ${repair.kind}: refused: ${refusal}`);
+      }
+      // Fix mode the repair opened (its file names this repair, skill step 4.2) is closed; any other is left and logged.
+      if (!snap.fixBefore && existsSync(fixFile)) {
+        let text = '';
+        try { text = readFileSync(fixFile, 'utf8'); } catch {}
+        if (text.split('\n').some((l) => l.trim() === `Repair: ${repair.fp}`)) {
+          try { unlinkSync(fixFile); log('the repair left vault/handoff/LAUNCHER_FIX.md open; removed'); } catch (e) { log(`LAUNCHER_FIX.md not removed: ${e.message}`); }
+        } else overseerAppend(`repair ${repair.kind}: NOTE: vault/handoff/LAUNCHER_FIX.md left open (it names no repair ${repair.fp}; an interactive fix?)`);
+      }
+      if (r.outcome.startsWith('limit-')) overseerAppend(`repair ${repair.kind}: ${refusal ? `REFUSED: ${refusal}` : `FAILED: stopped by a usage limit (${r.outcome}); the launcher retries it`}`);
+    }
     if (r.outcome.startsWith('limit-')) {
       if (r.limit.kind === 'five-hour') {
         const until = parseWhen(r.limit.until) || new Date(Date.now() + 30 * 60000);
@@ -788,16 +940,24 @@ async function main() {
     const chk = tool('--check');
     if (repair) {
       // EZD-250 D12a: a REPAIRED claim stands only if the ledger check passes and the wait it was started for is gone.
+      // EZD-333: Josh hears only a design or user-interface question; every outcome gets one overseer log line instead.
       const after = nextUnitText();
+      const probe = repair.kind === 'probe';
       let v = r.outcome === 'ok' ? parseVerdict(r.parsed?.result) : { verdict: 'failed', line: repairStopLine(repair.kind, r.outcome) };
-      if (v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
-      else if (v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
+      if (v.verdict === 'josh' && !joshQuestion(v.line)) v = { verdict: 'failed', line: `not a design or UI question: ${v.line}` };
+      if (refusal) v = { verdict: 'refused', line: refusal };
+      else if (!probe && v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
+      else if (!probe && v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
+      let entry = `repair ${repair.kind}: ${v.verdict.toUpperCase()}: ${v.line}`;
+      if (!refusal && changes.files.length) entry += `; commits ${shortSha(snap.head)}..${shortSha(changes.head)}; files: ${changes.files.join(', ')}`;
+      overseerAppend(entry);
+      if (probe) { log(`repair probe: ${v.verdict}: ${v.line}`); continue; }
       try { mkdirSync(logDir, { recursive: true }); writeFileSync(repairStateFile, JSON.stringify({ fp: repair.fp, verdict: v.verdict, at: nowIso() }) + '\n'); } catch (e) { log(`repair state not written: ${e.message}`); }
       repairs++;
       if (v.verdict === 'repaired') log(`repair ${repair.kind}: repaired: ${v.line}`);
       else if (v.verdict === 'josh') notify(`needs Josh: ${v.line} (vault/handoff/REPAIR.md)`);
       else {
-        notify(`repair failed for "${repair.next}": ${v.line}. The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`);
+        log(`repair ${repair.kind} ${v.verdict} for "${repair.next}": ${v.line} (vault/handoff/overseer-log.md)`);
         setState({ state: 'repair-failed', at: nowIso() });
         failedWait = repair.next;
       }

@@ -329,7 +329,7 @@ On the first phase of a project, confirm the preview actually appears on the PR.
 | `build <T>` | Stage 3 steps 1 to 10 for one ticket (also fix tickets) | No |
 | `gate-phase` | Phase gate steps 1 to 5 | No (Josh tests afterward) |
 | `wrap` | Lessons, cost report, progress | No |
-| `repair` | Repairs a ledger failure, an agent-fixable wait or a failed phase PR CI gate; started only by the launcher | No |
+| `repair` | The overseer (EZD-333; decision 2026-11-05): repairs a ledger failure, a wait or a failed phase PR CI gate, opening fix mode for the guarded paths it names; sends Josh only design or UI questions; one line per repair in `vault/handoff/overseer-log.md`; started only by the launcher (`vault/handoff/REPAIR_PROBE.md` starts the fix-mode probe) | No |
 
 Each unit has a skill in `.claude/skills/`. The names match the unit, except that unit `plan` uses skill `plan-ticket` and unit `build` uses skill `build-ticket`.
 
