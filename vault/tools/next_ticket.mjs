@@ -904,7 +904,7 @@ export function blockingPhase() {
   return ps.find((p) => phaseTickets(p).some((t) => !isTooling(t) && !['done', 'blocked'].includes(status(t.id)))) ?? null;
 }
 // EZD-253 D9, EZD-278: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies
-// done, by phase then priority; then, when B is signed off, B's ready product tickets; then, when the phase after B is signed off,
+// done, by phase then priority; then, when B is signed off, B's ready product tickets; then, for each of up to LOOKAHEAD signed-off phases after B (phasesAhead),
 // its ready product tickets (those numbered CHECKPOINT_FROM or higher only once the architecture checkpoint is met). nextUnit
 // builds the first one whose plan needs no guarded path, so the next phase builds only while B has none the launcher can build.
 export function buildPool(B) {
@@ -913,14 +913,23 @@ export function buildPool(B) {
     .sort((a, b) => a.phase - b.phase || byPriority(a, b));
   if (B !== null && signedOff(B)) {
     pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
-    const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
-    const next = phases.find((q) => q > B);
-    if (next !== undefined && signedOff(next)) {
-      const early = checkpointMissing().length > 0;
+    const early = checkpointMissing().length > 0;
+    for (const next of phasesAhead(B)) {
       pool.push(...candidates(next, true).filter((t) => !isTooling(t) && !(early && ticketNumber(t.id) >= CHECKPOINT_FROM)));
     }
   }
   return pool;
+}
+// Josh 2026-11-05 (chat: "I also authorize phase 4 to begin"; decisions/process.md): plans and builds look up to LOOKAHEAD
+// signed-off phases past B, in order, stopping at the first phase not signed off.
+const LOOKAHEAD = 2;
+function phasesAhead(B) {
+  const out = [];
+  for (const q of [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b).filter((q) => q > B)) {
+    if (out.length === LOOKAHEAD || !signedOff(q)) break;
+    out.push(q);
+  }
+  return out;
 }
 
 // Units the launcher set aside after two runs without progress (Josh 2026-11-03): skipped until Josh clears the list. Only the main checkout has this file.
@@ -1007,6 +1016,18 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
     return needs.get(t.id).length === 0;
   });
   if (free) return `build ${free.id}`;
+  // Josh 2026-11-05: the phases past `last` in the look-ahead (phasesAhead) run Stage 1-2 only when no build is free, so their plans fill an idle lane.
+  if (B !== null && signedOff(B)) {
+    for (const q of phasesAhead(B).filter((x) => x > last)) {
+      const ts = phaseTickets(q);
+      const st = (s) => ts.filter((t) => status(t.id) === s);
+      const planOrder = st('todo').filter((t) => !skip.has(t.id) && !aside.has(`plan ${t.id}`)).sort(byPriority);
+      if (planOrder.length) return `plan ${planOrder[0].id}`;
+      const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
+      if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(path.join(vault, 'plans', `review-phase-${pad2(q)}.md`)) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
+      if (questionsDue(q) && !aside.has(`questions ${q}`)) return `questions ${q}`;
+    }
+  }
   if (pool.length) return `none: waiting on Josh (guarded paths for ${pool.map((t) => `${t.id}: ${needs.get(t.id).join(', ')}`).join('; ')}; a change to them goes through fix mode)`;
   if (reason) return reason;
   if (B !== null) {
