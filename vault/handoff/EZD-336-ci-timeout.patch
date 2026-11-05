@@ -1,0 +1,15 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index b7618d5..e090a74 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -18,7 +18,9 @@ permissions:
+ jobs:
+   gate:
+     runs-on: ubuntu-latest
+-    timeout-minutes: 30
++    # EZD-336: 45, not 30. Runs take 17-19 minutes; on 2026-11-05 a stalled Ubuntu package mirror in the browser install held
++    # push run 42049298178 past 30 minutes, and its cancelled gate check blocked PR 5 for 3.5 hours.
++    timeout-minutes: 45
+     steps:
+       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+         with:
