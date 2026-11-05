@@ -67,3 +67,4 @@ Build-system, tooling and test-plumbing issues that have not failed the gate (CL
 - vault/tickets/phases/phase-02.md lines 1-3 are headed "Geometry core + plan editor" with a superseded Goal and Build gate; the ledger's phase 2 is the Projects slice (PHASES.md Slice 2) · phase-auditor, phase 2 gate, 2026-11-05
 - EZD-327 is `blocked` as a duplicate of EZD-326 and needs a ledger drop · phase-auditor, phase 2 gate, 2026-11-05
 - EZD-276 is blocked, so the perf check's `projects.first-cards` trend row is not measured; AC-EZD-117a-2's 1-second line rests on browser test B2 alone · phase-auditor, phase 2 gate, 2026-11-05
+- EZD-174 is done but lanes stay off until `node vault/tools/lanes.mjs on`; its P1-P6 process wording awaits your confirm (Q-0555 (a)); switch-on not to be forgotten · phase-auditor, phase 2 gate, 2026-11-05
