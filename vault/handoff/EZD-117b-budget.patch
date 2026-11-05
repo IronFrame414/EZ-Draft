@@ -1,0 +1,26 @@
+diff --git a/scripts/perf/__tests__/evaluate.test.mjs b/scripts/perf/__tests__/evaluate.test.mjs
+index 4269be01..255aeb77 100644
+--- a/scripts/perf/__tests__/evaluate.test.mjs
++++ b/scripts/perf/__tests__/evaluate.test.mjs
+@@ -12,7 +12,7 @@ const check = () => import('../check.mjs');
+ 
+ // Section 3 table B, row for row. EZD-020 Step 7: plus the five contents.* rows (EZD-020 Step 2 ENTRY_RULES, Step 6).
+ const TABLE_B = {
+-  'download.projects-settings': { kind: 'gate', unit: 'bytes', value: 220000 }, // Q-0579 (b)
++  'download.projects-settings': { kind: 'gate', unit: 'bytes', value: 240000 }, // Q-0586 (a)
+   'download.editor': { kind: 'gate', unit: 'bytes', value: 500000 },
+   'download.client-link': { kind: 'gate', unit: 'bytes', value: 200000 },
+   'download.field-pack': { kind: 'gate', unit: 'bytes', value: 200000 },
+diff --git a/scripts/perf/budgets.mjs b/scripts/perf/budgets.mjs
+index 35b5b674..6cc92e6a 100644
+--- a/scripts/perf/budgets.mjs
++++ b/scripts/perf/budgets.mjs
+@@ -25,7 +25,7 @@ function contents(entry, source) {
+  * rule?; statistic?: 'p95' | 'max'; toleranceMs?; source } (section 3).
+  */
+ const ROWS = [
+-  { id: 'download.projects-settings', kind: 'gate', unit: 'bytes', value: 220 * KB_BYTES, source: '11 Budgets Download size; Q-0071 (a); Q-0579 (b) 220 KB' },
++  { id: 'download.projects-settings', kind: 'gate', unit: 'bytes', value: 240 * KB_BYTES, source: '11 Budgets Download size; Q-0071 (a); Q-0579 (b); Q-0586 (a) 240 KB' },
+   {
+     id: 'download.editor',
+     kind: 'gate',
