@@ -186,8 +186,24 @@ test('EZD-278 O9 current phase unsigned (AC-EZD-278-3)', async () => {
   assert.deepEqual(await pool(), []);
 });
 
-test('EZD-278 O10 only the next phase (AC-EZD-278-3)', async () => {
+// Josh 2026-11-05 (chat, "I also authorize phase 4 to begin"; decisions/process.md): the look-ahead is two signed-off phases.
+test('EZD-278 O10 two phases ahead (AC-EZD-278-3; Josh 2026-11-05)', async () => {
   reset(); depsX1(); setStatus(P2, 'blocked'); setStatus(P2b, 'blocked'); setStatus(P3, 'ready');
+  assert.deepEqual(await pool(), [P3]);
+  assert.equal(nextUnit(), `build ${P3}`);
+});
+
+test('EZD-278 O10c a plan two phases ahead runs only when no build is free (Josh 2026-11-05)', () => {
+  reset(); depsX1();
+  assert.equal(nextUnit(), `build ${P2}`, 'a free build goes first (P3 is todo)');
+  setStatus(P2, 'blocked'); setStatus(P2b, 'blocked');
+  assert.equal(nextUnit(), `plan ${P3}`);
+  dropSignoff(3);
+  assert.ok(!nextUnit().startsWith('plan '), nextUnit());
+});
+
+test('EZD-278 O10b the look-ahead stops at an unsigned phase (Josh 2026-11-05)', async () => {
+  reset(); depsX1(); setStatus(P2, 'blocked'); setStatus(P2b, 'blocked'); setStatus(P3, 'ready'); dropSignoff(2);
   assert.deepEqual(await pool(), []);
   assert.ok(!nextUnit().startsWith('build '), nextUnit());
 });

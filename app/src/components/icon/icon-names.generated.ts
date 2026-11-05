@@ -2,6 +2,7 @@
 export const ICON_NAMES = [
   'add',
   'arrow_back',
+  'arrow_forward',
   'arrow_selector_tool',
   'assignment',
   'auto_awesome',
@@ -38,6 +39,7 @@ export const ICON_NAMES = [
   'search',
   'settings',
   'share',
+  'sort',
   'straighten',
   'sync_problem',
   'tune',

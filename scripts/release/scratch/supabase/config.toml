@@ -5,19 +5,19 @@ project_id = "ezdraft-migcheck"
 
 [api]
 enabled = true
-port = 56321
+port = 26321
 schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-port = 56322
-shadow_port = 56320
+port = 26322
+shadow_port = 26320
 major_version = 17
 
 [db.pooler]
 enabled = false
-port = 56329
+port = 26329
 
 [db.migrations]
 enabled = true

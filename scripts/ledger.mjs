@@ -13,6 +13,7 @@
 //   node scripts/ledger.mjs architecture <T>                                  the plan's Architecture line to tickets.json (EZD-244)
 //   node scripts/ledger.mjs handoff <T>                                      new vault/handoff/CURRENT.md on stdin
 //   node scripts/ledger.mjs research <T>                                      adopt this ticket's pending research reports
+//   node scripts/ledger.mjs entry <T>                                         new tickets.json entry, JSON on stdin (EZD-174 C18)
 //
 // Each command takes the ledger lock, writes, commits only its own files and prints one line. Exit 0 `LEDGER OK`,
 // 1 `LEDGER FAIL`, 2 `LEDGER USAGE`, 3 `LEDGER STOP` (lock). Env: EZD_ROOT (checkout; tests), EZD_INFLIGHT_DIR (tests).
@@ -483,6 +484,10 @@ export function launcherLogDir(root) {
 export function inflightDir({ root, env = process.env }) {
   return env.EZD_INFLIGHT_DIR || path.join(launcherLogDir(root), 'inflight');
 }
+// Where queued results files wait: running units' in-flight folder and the launcher's inbox (EZD-174 C16; debt D-071).
+export function queueDirs(root) {
+  return [inflightDir({ root }), path.join(launcherLogDir(root), 'inbox')];
+}
 
 // One launcher at a time (REMEDIATION-PLAN 2.4 as changed by AUDIT-ADDENDUM section 8; Josh 2026-11-01). Until the records
 // redesign (H1) and per-lane databases (EZD-172) land, a second launcher would run a second build on the one shared local
@@ -600,7 +605,7 @@ async function main(argv) {
       const { openRecords, dbPath, nextQuestionId } = await recordsModule();
       const db = openRecords(dbPath());
       let id;
-      try { id = nextQuestionId(db, process.env.EZD_RESULTS_FILE); } finally { db.close(); }
+      try { id = nextQuestionId(db, process.env.EZD_RESULTS_FILE, queueDirs(root)); } finally { db.close(); }
       const esc = (x) => String(x).replace(/\|/g, '\\|');
       const row = { id, phase_ticket: `${entry.phase ?? '?'} / ${ticket}`, asked_by: `${esc(askedBy)} (${new Date().toISOString().slice(0, 10)})`, question: esc(text), status: 'open', answered_by: '', answer: '', source: '' };
       return { ...(await rec(root, { op: 'question', row })), ok: id };
@@ -691,8 +696,23 @@ async function main(argv) {
       const fail = r.skipped.length ? `${ids}${r.skipped.map((s) => `; skipped pending/${s.file}: ${s.reason}`).join('')}` : null;
       return { ...r, ok: ids, fail };
     } };
+  } else if (cmd === 'entry') {
+    if (rest.length !== 1) return usage('entry <T> (tickets.json entry as JSON on stdin)');
+    const [ticket] = rest;
+    if (!isTicket(ticket)) return usage(`not a ticket: ${ticket}`);
+    let entry;
+    try { entry = JSON.parse(stdinText()); } catch { return usage('stdin is not JSON'); }
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry) || entry.id !== ticket) return usage(`stdin is not a tickets.json entry with id ${ticket}`);
+    // Two units adding tickets at once never lose one (EZD-174 C18): read, append and write under the ledger lock.
+    job = { arg: ticket, run: () => {
+      const data = JSON.parse(readText(root, 'vault/tickets/tickets.json') || '{"tickets":[]}');
+      if (data.tickets.some((t) => t.id === ticket)) throw new LedgerFail(`${ticket} already in tickets.json`);
+      data.tickets.push(entry);
+      writeFileAtomic(root, path.join(root, 'vault/tickets/tickets.json'), JSON.stringify(data, null, 1) + '\n');
+      return { paths: ['vault/tickets/tickets.json'], ok: `${ticket} entry` };
+    } };
   } else {
-    return usage(`unknown command: ${cmd ?? '(none)'} (status, ticket, question, answer, append, lesson, seen, lessons-index, architecture, handoff, research)`);
+    return usage(`unknown command: ${cmd ?? '(none)'} (status, ticket, question, answer, append, lesson, seen, lessons-index, architecture, handoff, research, entry)`);
   }
   try {
     const r = await withLedgerLock(root, { owner: `ledger ${cmd} ${job.arg}` }, async () => {

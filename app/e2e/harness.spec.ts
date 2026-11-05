@@ -44,14 +44,14 @@ test.describe('EZD-016a harness', () => {
   });
 
   // T1 (AC-EZD-016a-1): Done when; Q-0088; Q-0053; 04; S17/S18; EZD-005b seed ids; EZD-006 claims;
-  // EZD-007f `/`, `sign-out`; Q-0039 (c).
+  // EZD-007f `/`, `avatar-menu-trigger`; Q-0039 (c).
   test(
     'EZD-016a done when: a sample browser test signs in as the seeded owner @smoke',
     { tag: ['@desktop', '@ipad', '@surface', '@phone'] },
     async ({ page, browserName }, testInfo) => {
       const signed = await signInAsOwner(page);
       expect(pathOf(page.url())).toBe('/');
-      await expect(page.getByTestId('sign-out')).toBeVisible();
+      await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
 
       expect(signed.email).toBe('josh@example.com');
       expect(signed.app_user_id).toBe('00000000-0000-4000-8000-000000001001');
@@ -95,7 +95,7 @@ test.describe('EZD-016a harness', () => {
       const own = [a.appUserId, b.appUserId];
       for (const [i, s] of open.entries()) {
         expect(pathOf(s.page.url())).toBe('/');
-        await expect(s.page.getByTestId('sign-out')).toBeVisible();
+        await expect(s.page.getByTestId('avatar-menu-trigger')).toBeVisible();
         expect(s.claims.app_user_id).toBe(own[i]);
         expect(s.claims.tenant_id).toBe(tenantA);
         expect(s.page.viewportSize()).toEqual(testInfo.project.use.viewport);
@@ -170,7 +170,7 @@ test.describe('EZD-016a harness', () => {
 
     const signed = await signInAsOwner(page);
     await page.reload();
-    await page.getByTestId('sign-out').waitFor({ state: 'visible' });
+    await page.getByTestId('avatar-menu-trigger').waitFor({ state: 'visible' });
     const html = await page.evaluate(() => document.documentElement.outerHTML);
 
     const { requests, responses, cookieValues } = await traffic.settle();

@@ -158,16 +158,17 @@ describe('EZD-190 API request gate readiness', () => {
   });
 
   test('EZD-190 U5 postgrestContainer and restartPostgrest', async () => {
-    assert.equal(postgrestContainer(), 'supabase_rest_ezdraft');
+    assert.equal(postgrestContainer({}), 'supabase_rest_ezdraft');
     const calls = [];
     await restartPostgrest({
       run: async (args) => {
         calls.push(args);
         return { code: 0 };
       },
+      env: {},
     });
     assert.deepEqual(calls, [['restart', 'supabase_rest_ezdraft']]);
-    await assert.rejects(restartPostgrest({ run: async () => ({ code: 1 }) }), {
+    await assert.rejects(restartPostgrest({ run: async () => ({ code: 1 }), env: {} }), {
       message: 'postgrest_restart_failed',
     });
     await assert.rejects(
@@ -175,6 +176,7 @@ describe('EZD-190 API request gate readiness', () => {
         run: async () => {
           throw new Error('docker');
         },
+        env: {},
       }),
       { message: 'postgrest_restart_failed' },
     );

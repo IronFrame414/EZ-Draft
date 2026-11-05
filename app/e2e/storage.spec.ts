@@ -15,7 +15,6 @@ import {
 } from '../test-harness/e2e/test';
 
 const X_BYTES = 7340155;
-const APP_ORIGIN = 'http://127.0.0.1:3000';
 
 const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 
@@ -41,11 +40,12 @@ test.describe('EZD-132 file storage from the browser', () => {
     await signInAsOwner(page);
     await page.goto(`/dev/storage?project=${seedProjectId(1)}`);
 
+    const appOrigin = new URL(String(test.info().project.use.baseURL)).origin;
     const patches: string[] = [];
     const appBodies: Array<{ url: string; bytes: number }> = [];
     page.on('request', (request) => {
       if (request.method() === 'PATCH') patches.push(request.url());
-      if (request.url().startsWith(APP_ORIGIN)) {
+      if (request.url().startsWith(appOrigin)) {
         appBodies.push({ url: request.url(), bytes: request.postDataBuffer()?.length ?? 0 });
       }
     });

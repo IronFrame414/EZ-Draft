@@ -83,6 +83,8 @@ export const es = {
   'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
+  'error.project_customer_unavailable':
+    'Este cliente no está disponible. Elige otro cliente o deja Cliente vacío.',
   'error.password_too_short': 'Usa al menos 8 caracteres.',
   'error.password_too_long': 'Esa contraseña es demasiado larga.',
   'error.password_contains_app_name': 'No uses "ezdraft" en tu contraseña.',

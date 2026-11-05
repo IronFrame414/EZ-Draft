@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gateHash, newGateSecret, setHashSql } from './api-gate.mjs';
 import { projectId, runLocalSql } from './sql.mjs';
+import { checkLaneEnv, laneInfo, laneSuffixed, prepareLaneWorkdir, readLane } from './lane.mjs';
 import { ensureRealtimeBroadcastStream } from './realtime-warmup.mjs';
 // EZD-190 (vault/plans/EZD-190.md; Q-0330): restart PostgREST and wait until the API request gate is in force.
 import { ensureApiGateInForce } from './api-gate-ready.mjs';
@@ -22,7 +23,7 @@ import { checkTemplates, dockerCli } from './stack-templates.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const supabaseBin = path.join(repo, 'node_modules', '.bin', 'supabase');
-const gateSecretFile = path.join(repo, 'supabase', '.temp', 'ezd-api-gate-secret');
+let gateSecretFile = path.join(repo, 'supabase', '.temp', 'ezd-api-gate-secret');
 const DOCKER_MESSAGE = 'Local Supabase needs Docker running (start Docker Desktop).';
 
 function cli(args, { inherit = false } = {}) {
@@ -44,13 +45,19 @@ function fail(step, result) {
   process.exit(1);
 }
 
-async function up() {
-  const markerFile = path.join(sharedTempDir(repo), STACK_CONFIG_MARKER);
+async function up(lane) {
+  let workdir = null;
+  try {
+    workdir = prepareLaneWorkdir(repo, lane);
+  } catch (error) {
+    laneFail(error);
+  }
+  const markerFile = path.join(sharedTempDir(repo), laneSuffixed(STACK_CONFIG_MARKER, lane));
   const stack = ensureStackCurrent({
     cli,
-    root: repo,
+    root: workdir ?? repo,
     markerFile,
-    checkTemplates: () => checkTemplates({ docker: dockerCli, root: repo, projectId: projectId() }),
+    checkTemplates: () => checkTemplates({ docker: dockerCli, root: workdir ?? repo, projectId: projectId(), lane }),
   });
   if (stack.outcome === 'failed' && stack.step === 'templates') {
     const { reason, template } = stack.check;
@@ -101,7 +108,7 @@ function readGateSecret() {
     secret = '';
   }
   if (!secret) {
-    process.stderr.write('supabase/.temp/ezd-api-gate-secret is missing: run pnpm db:up\n');
+    process.stderr.write(`${path.relative(repo, gateSecretFile)} is missing: run pnpm db:up\n`);
     process.exit(1);
   }
   return secret;
@@ -141,10 +148,52 @@ function env() {
   process.exit(0);
 }
 
+function laneFail(error) {
+  process.stderr.write(`${error.message}\n`);
+  process.exit(1);
+}
+
 const command = process.argv[2];
-if (command === 'up') await up();
+if (command === 'lane') {
+  try {
+    process.stdout.write(`${JSON.stringify(laneInfo(repo, readLane(process.env)))}\n`);
+  } catch (error) {
+    laneFail(error);
+  }
+  process.exit(0);
+}
+let checked = { lane: 0, workdir: null };
+if (command === 'up' || command === 'env' || command === 'prepare' || command === 'stop-lane') {
+  try {
+    checked = checkLaneEnv(process.env, repo);
+  } catch (error) {
+    laneFail(error);
+  }
+  gateSecretFile = path.join(checked.workdir ?? repo, 'supabase', '.temp', 'ezd-api-gate-secret');
+}
+if (command === 'up') await up(checked.lane);
 else if (command === 'env') env();
-else {
-  process.stderr.write('usage: node scripts/db/local.mjs <up|env>\n');
+else if (command === 'prepare') {
+  try {
+    prepareLaneWorkdir(repo, checked.lane);
+  } catch (error) {
+    laneFail(error);
+  }
+  process.exit(0);
+} else if (command === 'stop-lane') {
+  if (checked.lane === 0) {
+    process.stderr.write("stop-lane is for lanes 1-3; lane 0's stack keeps running (pnpm db:stop stops it).\n");
+    process.exit(1);
+  }
+  try {
+    prepareLaneWorkdir(repo, checked.lane);
+  } catch (error) {
+    laneFail(error);
+  }
+  const r = cli(['stop', '--project-id', laneInfo(repo, checked.lane).projectId]);
+  if (!r.ok) fail('stop', r);
+  process.exit(0);
+} else {
+  process.stderr.write('usage: node scripts/db/local.mjs <up|env|prepare|lane|stop-lane>\n');
   process.exit(1);
 }

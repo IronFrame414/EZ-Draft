@@ -140,4 +140,25 @@ export default tseslint.config(
       ],
     },
   },
+  // EZD-133 Step 4 · browser code never queries tables (03b rule 1; R26 R1). Browser code: a 'use client' file, or a
+  // file outside serverPaths (vault/plans/EZD-133.md D1). Paths are relative to this file's folder, whatever the cwd.
+  {
+    files: ['app/src/**/*.{ts,tsx,js,jsx,mjs,cjs}', 'packages/*/src/**/*.{ts,tsx,js,mjs}'],
+    ignores: ['**/*.test.*', '**/*.spec.*', '**/test-utils/**', '**/test-harness/**', '**/e2e/**'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/no-browser-table-query': [
+        'error',
+        {
+          rootDir: path.dirname(fileURLToPath(import.meta.url)),
+          serverPaths: [
+            'app/src/server/',
+            'app/src/app/',
+            'app/src/proxy.ts',
+            'app/src/instrumentation.ts',
+          ],
+        },
+      ],
+    },
+  },
 );

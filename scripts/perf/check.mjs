@@ -14,6 +14,7 @@ import { bundleReport, writeBundleReport } from './bundle-report.mjs';
 import { measureJsContents } from './js-contents.mjs';
 import { measureJsSize } from './js-size.mjs';
 import { frameStats, runPan } from './pan-script.mjs';
+import { laneAppPorts, readLane } from '../db/lane.mjs';
 import { PROFILES } from './perf.config.mjs';
 import { MEASUREMENTS } from './registry.mjs';
 
@@ -28,7 +29,14 @@ class RunError extends Error {
   }
 }
 
-const SERVER_PORT = 3200;
+/** The port `next start` listens on: 3200 + 10 x lane (EZD-172); an invalid lane is a usage error (K4). */
+export function serverPort(env = process.env) {
+  try {
+    return laneAppPorts(readLane(env)).perf;
+  } catch (error) {
+    throw new UsageError(error.message);
+  }
+}
 const SERVER_READY_MS = 120000;
 const SERVER_POLL_MS = 500;
 const SERVER_KILL_MS = 5000;
@@ -278,7 +286,7 @@ export async function startAppServer(repoRoot) {
       path.join(appDir, 'node_modules', 'next', 'dist', 'bin', 'next'),
       'start',
       '-p',
-      String(SERVER_PORT),
+      String(serverPort()),
       '-H',
       '127.0.0.1',
     ],
@@ -302,7 +310,7 @@ export async function startAppServer(repoRoot) {
     await exitedPromise;
     clearTimeout(timer);
   };
-  const baseUrl = `http://127.0.0.1:${SERVER_PORT}`;
+  const baseUrl = `http://127.0.0.1:${serverPort()}`;
   const deadline = Date.now() + SERVER_READY_MS;
   while (!exited && Date.now() < deadline) {
     try {
@@ -331,6 +339,7 @@ export function writeResults(outDir, results) {
  */
 export async function runCheck(options) {
   const { repoRoot, cwd } = options;
+  serverPort(); // a bad EZD_LANE is a usage error before anything runs (K4)
   const configPath = options.configPath
     ? path.resolve(cwd, options.configPath)
     : path.join(repoRoot, 'scripts', 'perf', 'perf.config.mjs');

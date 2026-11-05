@@ -41,25 +41,24 @@ test('EZD-250 T5 repair ok: the launcher repairs, then goes on to build (AC-EZD-
   assert.ok(r.repairMd?.split('\n').includes('- Trigger: check'), `REPAIR.md lacks "- Trigger: check"\n${r.repairMd}`);
 });
 
-test('EZD-250 T6 repair failed: one notification, state repair-failed, one repair unit (AC-EZD-250-1)', async () => {
+// EZD-333 (decision 2026-11-05 (1)): a failed repair is logged in vault/handoff/overseer-log.md, not sent to Josh.
+test('EZD-250 T6 repair failed: one overseer log line, nothing sent, state repair-failed, one repair unit (AC-EZD-250-1, AC-EZD-333-5)', async () => {
   const root = failRoot('FAILED: cannot');
   const r = await runLauncher(root);
   assert.equal(r.status, 0, why(r));
-  assert.deepEqual(
-    r.notified,
-    [`EZ Draft: repair failed for "${CHECK_FAILED}": cannot. The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`],
-    why(r),
-  );
+  assert.deepEqual(r.notified, [], why(r));
+  assert.deepEqual(r.overseer, ['repair check: FAILED: cannot'], why(r));
   assert.equal(r.state?.state, 'repair-failed', why(r));
   assert.equal(r.repairState?.verdict, 'failed', why(r));
   assert.equal(r.prompts.filter((p) => p.startsWith('/repair')).length, 1, why(r));
 });
 
-test('EZD-250 T7 Josh: a JOSH verdict notifies once and is not a failed repair (AC-EZD-250-1)', async () => {
-  const root = failRoot('JOSH: set the key');
+// EZD-333: only a design or user-interface question reaches Josh (standing rule 2026-11-05); EZD-333 O4 covers the other JOSH lines.
+test('EZD-250 T7 Josh: a JOSH design verdict notifies once and is not a failed repair (AC-EZD-250-1, AC-EZD-333-4)', async () => {
+  const root = failRoot('JOSH: design: pick the icon');
   const r = await runLauncher(root);
   assert.equal(r.status, 0, why(r));
-  assert.deepEqual(r.notified, ['EZ Draft: needs Josh: set the key (vault/handoff/REPAIR.md)'], why(r));
+  assert.deepEqual(r.notified, ['EZ Draft: needs Josh: design: pick the icon (vault/handoff/REPAIR.md)'], why(r));
   assert.notEqual(r.state?.state, 'repair-failed', why(r));
 });
 
@@ -67,8 +66,8 @@ test('EZD-250 T8 claim checked: REPAIRED is not believed while the ledger check 
   const root = failRoot('REPAIRED: done');
   const r = await runLauncher(root);
   assert.equal(r.status, 0, why(r));
-  assert.equal(r.notified.length, 1, why(r));
-  assert.ok(r.notified[0].includes('the ledger check still fails after the repair'), `${r.notified[0]}\n${why(r)}`);
+  assert.deepEqual(r.notified, [], why(r));
+  assert.deepEqual(r.overseer, ['repair check: FAILED: the ledger check still fails after the repair'], why(r));
   assert.equal(r.repairState?.verdict, 'failed', why(r));
 });
 

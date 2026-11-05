@@ -37,3 +37,69 @@ GATE PASS
 48:=== install: pnpm install --frozen-lockfile ===
 53:=== lane sweep: stale stacks of the other lanes ===
 lane-0 gate after A1: GATE PASS
+
+
+EZD-172 A1 rerun 2026-11-04 at ad709fa0 (fresh lane-2 worktree), both lane gates 12:58:49 to 13:10:36 UTC, launcher running beside them.
+rest_ezdraft StartedAt before = after: 2026-11-04T12:14:50.018608796Z
+Before the gates a lane 1 stack was already up; lane 1's own lane stop closed it (l1 lane stop pass; l2 skipped lane 1, its gate live). After: no *_ezdraft-lane1 or -lane2 container; all 9 *_ezdraft names still listed.
+== lane 1
+=== GATE SUMMARY ===
+scope      full suite
+typecheck  pass
+lint       pass
+test       pass
+build      pass
+test:e2e   pass
+perf       pass
+lane sweep pass
+lane stop  pass
+security   15 flagged path(s): security review required
+log        /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172/gate.log
+failures   /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172/gate-failures.log
+GATE PASS
+== lane 2
+=== GATE SUMMARY ===
+scope      full suite
+typecheck  pass
+lint       pass
+test       pass
+build      pass
+test:e2e   pass
+perf       pass
+lane sweep pass
+lane stop  pass
+security   15 flagged path(s): security review required
+log        /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172-lane2/gate.log
+failures   /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-172-lane2/gate-failures.log
+GATE PASS
+=== install: pnpm install --frozen-lockfile ===
+=== lane sweep: stale stacks of the other lanes ===
+== docker ps before
+supabase_auth_ezdraft
+supabase_auth_ezdraft-lane1
+supabase_db_ezdraft
+supabase_db_ezdraft-lane1
+supabase_inbucket_ezdraft
+supabase_inbucket_ezdraft-lane1
+supabase_kong_ezdraft
+supabase_kong_ezdraft-lane1
+supabase_pg_meta_ezdraft
+supabase_pg_meta_ezdraft-lane1
+supabase_realtime_ezdraft
+supabase_realtime_ezdraft-lane1
+supabase_rest_ezdraft
+supabase_rest_ezdraft-lane1
+supabase_storage_ezdraft
+supabase_storage_ezdraft-lane1
+supabase_studio_ezdraft
+supabase_studio_ezdraft-lane1
+== docker ps after
+supabase_auth_ezdraft
+supabase_db_ezdraft
+supabase_inbucket_ezdraft
+supabase_kong_ezdraft
+supabase_pg_meta_ezdraft
+supabase_realtime_ezdraft
+supabase_rest_ezdraft
+supabase_storage_ezdraft
+supabase_studio_ezdraft

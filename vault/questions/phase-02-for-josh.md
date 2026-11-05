@@ -1,14 +1,22 @@
-# Phase 2 · for Josh (questions unit, 2026-11-02)
+# Phase 2 · for Josh (questions unit, 2026-11-04)
 
-One decision waits on you in section 1 (Q-0485, EZD-293). Q-0482 and Q-0481 are answered. Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
+No decision waits on you. Q-0579 is answered (Josh 2026-11-05: slim bell, EZD-332 first; the Projects budget was then set to 300,000 by Q-0586, Josh 2026-11-05). Q-0580 (gate test flake) and Q-0550 (EZD-110b, one more attempt) were settled by agents and are in section 2. Q-0485 (EZD-293) is answered (Josh 2026-11-03: accept all). Confirm the agent answers (section 2), the wording (section 3) and the rule candidates (section 4).
 
 ## 1. Decisions needed
 
-- **Q-0485 · EZD-293.** Q-0484 (a) moves the fix out of EZD-293, but AC-EZD-293-2 (a test shows the hub resyncs after a stopped stream) is still owned by EZD-293 with no test there. Options: (a) recommended: if your RESULT verdict is SILENT, AC-EZD-293-2 moves to the fix ticket planned from the report, and is voided if not (Q-0480 (a): "fixes it if real"); (b) keep the fix inside EZD-293 and re-plan after your run, which delays the ticket. It does not block the research part.
+None. (Q-0579 was answered by you on 2026-11-05: option (b), fix ticket EZD-332 first, then a Projects budget of 300,000 by Q-0586.)
+
+Q-0544 (develop gate red, EZD-108) was settled by an agent as a rule-17 defect and fixed; see section 2.
 
 ## 2. Agent answers to confirm
 
 Confirm or override each (answer; source).
+- **Q-0580 · EZD-117b (gate tooling).** The gate test EZD-256 K12 (lane-sweep, dead-lock take-over) failed once when lanes ran gates at the same time (alone 17 of 17). Answer: file one low defect ticket at the front so those tests are safe beside concurrent lane gates, built in fix mode. Source: CLAUDE.md rules 17, 18; Q-0571 precedent. Confirm or revert.
+- **Q-0578 · EZD-117a.** The plan is 48,239 characters, 3,239 (7%) over the 45,000 split line; the ticket is built, gated and passed both reviews on this text, so the overage is accepted rather than trimmed. Source: vault/PROCESS.md Ticket size; CLAUDE.md rules 17, 18. Confirm or override.
+- **Q-0554 · EZD-117a.** Blocked after round 2 with 4 rule-settled in-place findings (cursor u length bound, U2 cap test input, architecture.md figure, test header comment); resume with planner patch, test-author, builder, gate, re-review. Source: CLAUDE.md rule 17; vault/handoff/CURRENT.md. Confirm or override.
+- **Q-0550 · EZD-110b.** One more attempt past the round limit: one counter bumped by every state change, an older fetch applies only if it did not move, the test is an interleaving matrix, plan reviewed before tests, plan trimmed or split under 45,000 characters. Settled under your 2026-11-03 night instruction; Q-0543 is the precedent. Source: CLAUDE.md rules 17, 18; L-048. Confirm or revert.
+- **Q-0549 · EZD-110b.** After EZD-318 the hub resyncs on every first join; reset() keeps the shown items, dot and count until the first page arrives, then replaces them (same 2 requests; T14 step 6 final state unchanged). Source: spec silent on refetch display; T14. Confirm or override.
+- **Q-0544 · EZD-108.** Develop's gate was red (EZD-253 U7, U20) because two ledger test fixtures kept only phases 1 and 2 quiet, so the phase 3 sign-off blocked them. Fixed in fix mode as commit 06467c59: both now block every later signed-off phase; no assertion or expected value changed; CI gate run 41743175841 passed. No ticket needed. Source: CLAUDE.md rules 16, 17; PROCESS.md rule 19. Confirm or override.
 - **Q-0448 · EZD-117b.** Search delay 250 ms. A build choice; no source gives a delay (S01 "as you type"); settled as Q-0425.
 - **Q-0449 · EZD-117b.** Add fix ticket EZD-276 so the speed check can sign in and measure the first Projects cards; EZD-117b leaves `scripts/perf/` alone. Source: code-reviewer; CLAUDE.md rules 17, 18; scripts/perf/check.mjs:35-42.
 - **Q-0450 · EZD-117b.** The bell adds two requests on Projects (notifications and realtime token); AC-EZD-117a-2 now reads "two project data requests", and the page test expects exactly the four. Source: code-reviewer; S01 "Amber dot when unread items exist"; EZD-110 D16.
@@ -17,6 +25,10 @@ Confirm or override each (answer; source).
 - **Q-0403, Q-0413, Q-0414, Q-0422, Q-0425** (earlier phase 2 agent answers, in QUESTIONS-answered.md): confirm or override.
 - **Q-0483 · EZD-283.** The EZD-283 gate is red only because develop's ledger had uncommitted files (EZD-291 and EZD-292 plans, EZD-110b Architecture line); the launcher commits them at the unit boundary, then EZD-283 re-runs from the gate. The missing STATUS.md in worktrees is debt D-020. Source: CLAUDE.md rule 17; vault/handoff/CURRENT.md. Confirm or override.
 - **Q-0475 · EZD-283.** Keep EZD-283 as written (Company settings only) and add fix ticket EZD-288 for the same silent catch in the customers routes and the sign-in `user.joined` emit. Source: CLAUDE.md rule 17 (fix in place only in files already in the ticket; a defect gets its own ticket); Q-0268.
+
+- **Q-0545 and Q-0546 · EZD-110b.** Realtime hub race (first join and refused token, found in the bell review): new defect ticket EZD-318 at the front of the queue fixes both in `hub.ts`; EZD-110b resumes after it merges. Source: CLAUDE.md rules 17, 18; phase-02.md EZD-318. Confirm or override.
+
+- **Q-0547 · EZD-319.** EZD-319's gate is red only because its Architecture line (Migrations, Local database) sits uncommitted in the main checkout's tickets.json; the launcher or you commits it to develop, then EZD-319 rebuilds. The gap in the ledger drift check is debt D-040, not a ticket. Source: CLAUDE.md rules 17, 18; Q-0483. Confirm or override.
 
 - **Q-0484 · EZD-293.** AC-2's fix is a fix ticket planned from the RESULT report, not part of EZD-293 (tests cannot precede an undecided design). A browser timer or heartbeat would conflict with 11 rule 11 and comes back to you. Source: PROCESS.md rule 20; Q-0480 (a). Confirm or override.
 
@@ -105,7 +117,7 @@ Board keys: `office.notifications.title`, `.mark_all_read`, `.show_older`, `.emp
 
 ### EZD-276
 
-None (check output for agents). If you pick 1 in Q-0454, AC-EZD-276-2 is reworded to "is marked over budget".
+None (check output for agents). AC-EZD-276-2 reads "is marked over budget" (Q-0454 (b), Josh 2026-10-30).
 
 ### EZD-293
 
@@ -148,3 +160,16 @@ All recommended `ratify` (each is a planner or builder check that came from a re
 - **L-040** (EZD-277): a check that refuses may fold letters wider than the disk; a check that allows folds only plain ASCII; disk claims are tested on the disk. Ratify.
 - **L-042** (EZD-108, EZD-277): a plan that changes a type or needs non-ASCII test data lists the fixtures to update and the exact escape sequences. Ratify.
 - **L-043** (EZD-287): every function a plan step calls but does not create is named with its file path, found by grep at plan time. Ratify.
+- **L-044** (EZD-297): a control row names the exact value its inner assert expects, and a case, length or format test input is shown to differ from its original. Ratify.
+- **L-045** (EZD-316): a plan for a guard on an unsandboxed step has a read-list table (every file and ref the step reads, each denied or checked) and a test per check-then-use step. Ratify.
+- **L-046** (test-author, EZD-108 via Q-0544): a fixture over the live ledger never names the phases it keeps quiet; it blocks every later signed-off phase. Ratify.
+- **L-047** (planner, EZD-316): a plan that moves an action outside the sandbox has a table of unsandboxed commands by sandbox-writable input and closes the class before any single path. Ratify.
+- **L-048** (planner, EZD-110b): a store that drops stale async results states staleness once as an invariant (one counter bumped by every change) and tests a matrix of every change against every fetch kind. Ratify.
+- **L-049** (planner, EZD-140): when a plan adds an entry to a list tests enumerate exactly, the Tests table has an edit row for that test. Ratify.
+- **L-050** (planner): every stated check has a Tests row with an input a wrong implementation fails. Ratify.
+- **L-051** (planner): test rows that create files remove them in finally; browser tests wait for pending requests. Ratify.
+- **L-052** (planner): plans list empty, over-limit and malformed behaviour per input, and every caller of a changed signature. Ratify.
+- **L-053** (planner): plans list the gate parts touched and say to merge develop into the worktree first. Ratify.
+- **L-054** (planner): UI checklist rows give the mockup's measured edge, offset or icon name and a test. Ratify.
+- **L-055** (planner): when a ticket changes a stated behaviour, grep docs, skills and agents for the old value and list each hit. Ratify.
+- **L-056** (test-author, EZD-326): a test-author never links or copies node_modules into a worktree; the gate installs it. Ratify.

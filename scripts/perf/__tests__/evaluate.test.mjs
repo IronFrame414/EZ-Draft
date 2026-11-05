@@ -12,7 +12,7 @@ const check = () => import('../check.mjs');
 
 // Section 3 table B, row for row. EZD-020 Step 7: plus the five contents.* rows (EZD-020 Step 2 ENTRY_RULES, Step 6).
 const TABLE_B = {
-  'download.projects-settings': { kind: 'gate', unit: 'bytes', value: 200000 },
+  'download.projects-settings': { kind: 'gate', unit: 'bytes', value: 300000 }, // Q-0586 (Josh 2026-11-05)
   'download.editor': { kind: 'gate', unit: 'bytes', value: 500000 },
   'download.client-link': { kind: 'gate', unit: 'bytes', value: 200000 },
   'download.field-pack': { kind: 'gate', unit: 'bytes', value: 200000 },

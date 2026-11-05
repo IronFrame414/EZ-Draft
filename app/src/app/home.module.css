@@ -15,19 +15,3 @@
   line-height: 1.45;
   color: var(--ez-ink);
 }
-
-/* EZD-289 (vault/plans/EZD-289.md Decided "CSS"): the top row holds the Settings link and Sign out. Tokens for
-   color only; spacing and the 44 px touch target in plain px (11 Accessibility; L-013). */
-.top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.settingsLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font-size: 15px;
-  color: var(--ez-cobalt-link);
-}

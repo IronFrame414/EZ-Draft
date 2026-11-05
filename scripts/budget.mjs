@@ -122,6 +122,16 @@ export async function applyGates({ root = ROOT, now = new Date(), budget = {}, m
   return { start: true, reason: null, decision };
 }
 
+// The five-hour pause file (PROCESS.md section 11); also written by the lanes launcher when a unit hits the limit (EZD-174).
+export function writeWindowPause({ root = ROOT, now = new Date(), pause }) {
+  const file = handoff(root, 'WINDOW_PAUSE.md');
+  const t = thresholds(readJson(path.join(root, 'vault/budget.json'), {}));
+  const txt = `# Five-hour window pause\n\nWritten by scripts/run.mjs on ${now.toISOString()}.\n\n- Five-hour window: ${Math.round(pause.pct)}% used (pause at ${t.five_hour_pause_pct}%)\n- Resets at: ${pause.resets_at}\n- Resume at: ${pause.resume_at}\n\nThe launcher starts no unit until the resume time, then deletes this file and continues (PROCESS.md section 11). A unit already running is not interrupted. Nothing is needed from Josh.\n`;
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, txt);
+  return { pct: pause.pct, resets_at: pause.resets_at, resume_at: pause.resume_at };
+}
+
 export async function waitForWindow({ root = ROOT, now = new Date(), pause, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   const file = handoff(root, 'WINDOW_PAUSE.md');
   let ms;
@@ -130,10 +140,7 @@ export async function waitForWindow({ root = ROOT, now = new Date(), pause, slee
     const t = m ? Date.parse(m[1].trim()) : NaN;
     ms = Number.isNaN(t) ? 0 : Math.max(0, t - now.getTime());
   } else if (pause) {
-    const t = thresholds(readJson(path.join(root, 'vault/budget.json'), {}));
-    const txt = `# Five-hour window pause\n\nWritten by scripts/run.mjs on ${now.toISOString()}.\n\n- Five-hour window: ${Math.round(pause.pct)}% used (pause at ${t.five_hour_pause_pct}%)\n- Resets at: ${pause.resets_at}\n- Resume at: ${pause.resume_at}\n\nThe launcher starts no unit until the resume time, then deletes this file and continues (PROCESS.md section 11). A unit already running is not interrupted. Nothing is needed from Josh.\n`;
-    mkdirSync(path.dirname(file), { recursive: true });
-    writeFileSync(file, txt);
+    writeWindowPause({ root, now, pause });
     ms = Math.max(0, Date.parse(pause.resume_at) - now.getTime());
   } else return 0;
   await sleep(ms);

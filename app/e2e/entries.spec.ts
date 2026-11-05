@@ -31,7 +31,6 @@ function findRepoRoot(): string {
   }
 }
 
-const BASE = 'http://127.0.0.1:3000';
 const K = 1000;
 
 function runPerf(only: string): {
@@ -47,7 +46,7 @@ function runPerf(only: string): {
     [
       path.join(root, 'scripts', 'perf', 'run.mjs'),
       '--base-url',
-      BASE,
+      String(test.info().project.use.baseURL),
       '--only',
       only,
       '--out',

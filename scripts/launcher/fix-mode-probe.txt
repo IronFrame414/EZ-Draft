@@ -1,0 +1,1 @@
+Target of the repair probe (EZD-333): a launcher-started repair unit appends a line here in fix mode to prove it may edit a guarded file. The session that asked for the probe checks the line and reverts it.

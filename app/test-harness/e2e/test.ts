@@ -79,3 +79,11 @@ export { signInWithCode } from '../sign-in';
 export { countAuthEmails, emailSubjects, waitForAuthEmail, waitForRawEmail } from '../mail-catcher';
 // EZD-102 section 4: set a membership's 37 switches directly, so specs still import only from this file.
 export { setPermissions } from '../permissions/grant';
+// EZD-133 section 3 (vault/plans/EZD-133.md): the money page harness and registry for e2e/money-pages.spec.ts.
+export { MONEY_PAGE_CASES, type MoneyPageCase } from '../money/page-cases';
+export { listPages, pageViolations, PAGE_SCAN_TYPES, uncoveredPages } from '../money/pages';
+export { deniedMoneyClasses, MONEY_FIELDS } from '../../src/server/db/money-fields';
+export { PERMISSION_KEYS, type PermissionKey } from '../../src/lib/permissions/catalog';
+// EZD-117a E4 (vault/plans/EZD-117a.md section 3): the signed-in bundle measurements, so specs still import only
+// from this file.
+export { signedInJsContents, signedInJsSize, type StorageState } from './js-contents';

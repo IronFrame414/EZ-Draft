@@ -1,6 +1,6 @@
 // PreToolUse on Edit|Write|NotebookEdit: enforces who may write where (vault/PROCESS.md section 4 roster and section 14;
 // project write limits in vault/PROCESS-EZDRAFT.md section 3).
-import { existsSync, lstatSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { readInput, repoRelative, canonicalPath, repoRoot, deny, projectDir, caseInsensitiveDisk, pathKey, pathIn, printableAscii } from './lib.mjs';
 
 const input = readInput();
@@ -22,7 +22,6 @@ const fold = caseInsensitiveDisk(repoRoot());
 const asSent = input.cwd ? [file, input.cwd] : [file];
 if (fold && ![...asSent, rel, real].every((s) => printableAscii(s))) deny(`${agent}: writing to a path with a character outside plain ASCII is not allowed on a disk that ignores letter case (${file}).`);
 const key = pathKey(rel, fold);
-const realKey = pathKey(real, fold);
 const is = (p) => key === pathKey(p, fold);
 const under = (prefix) => key.startsWith(pathKey(prefix, fold));
 
@@ -43,7 +42,31 @@ if (joshOnly.some(is)) deny(`${rel} is written only by Josh (or scripts/budget.m
 // orchestrator may edit hooks, skills, scripts/, vault/tools/ and the process files to repair a broken run. The file names
 // the fault; the fix is committed with it and the handoff records it for Josh to confirm or revert. A launcher unit
 // (EZD_UNIT_ID set by scripts/run.mjs) never gets fix mode, so an open fix can run beside the build (Josh 2026-11-02).
-const fixMode = !process.env.EZD_UNIT_ID && existsSync(`${projectDir()}/vault/handoff/LAUNCHER_FIX.md`);
+// EZD-333 (decision 2026-11-05 "Overseer repair unit"): the one exception is a repair unit, and only for a path the file lists
+// under `## Paths`. A repair unit never writes a hard-limit path (scripts/launcher-idle.mjs repairForbidden, the list the
+// launcher also checks after the repair), and no other launcher unit writes the fix-mode file.
+const unitId = process.env.EZD_UNIT_ID || '';
+const fixFile = `${projectDir()}/vault/handoff/LAUNCHER_FIX.md`;
+const fixOpen = existsSync(fixFile);
+let fixMode = !unitId && fixOpen;
+let repairUnit = false;
+if (/^repair-/.test(unitId)) {
+  let lim;
+  try {
+    lim = await import(new URL('../../scripts/launcher-idle.mjs', import.meta.url).href);
+  } catch (e) {
+    deny(`${agent}: the repair unit's fix-mode limits could not load (${e?.message ?? e}); this write is refused (EZD-333).`);
+  }
+  repairUnit = lim.REPAIR_UNIT_RE.test(unitId);
+  if (repairUnit) {
+    const limit = lim.repairForbidden(key);
+    if (limit) deny(`Repair unit: ${limit}. It goes in the overseer log as FAILED, never around the limit (EZD-333).`);
+    let listed = [];
+    try { listed = fixOpen ? lim.fixModePaths(readFileSync(fixFile, 'utf8')) : []; } catch {}
+    fixMode = fixOpen && lim.fixListed(listed.map((p) => pathKey(p, fold)), key);
+  }
+}
+if (unitId && !repairUnit && is('vault/handoff/LAUNCHER_FIX.md')) deny('Only an interactive session or the repair unit opens fix mode (vault/handoff/LAUNCHER_FIX.md; EZD-333).');
 
 // Spec files the orchestrator may still write: decisions, the shared spec companions, and a section file that does not exist yet
 // (a Stage 0 gap filled from Josh's answer). Existing section and screen files are read-only (rule 4).
@@ -53,16 +76,6 @@ function orchestratorSpecOk() {
   if (specWritable.some(is)) return true;
   if (/^vault\/spec\/sections\/.+\.md$/.test(key) && !existsSync(`${projectDir()}/${rel}`)) return true;
   return false;
-}
-
-// PA3 builder grant (PA3-MECHANISMS.md rule 7; Q-0128 (a), 2026-10-19): in the EZD-000b..EZD-000j worktrees (EZD-000j added by Q-0138 (a)) the builder may
-// edit .claude/, CLAUDE.md, scripts/ (not gate.mjs), vault/tools/ and the vault files those tickets name. Tests, vault/PROCESS.md
-// and vault/spec/ stay denied. The orchestrator removes this exception when EZD-000j merges.
-const pa3Worktree = (fold ? /\/\.claude\/worktrees\/ezd-000[b-j]\// : /\/\.claude\/worktrees\/EZD-000[b-j]\//).test(realKey);
-const pa3Vault = ['vault/research/', 'vault/tools/', 'vault/cost/usage.json', 'vault/cost/usage-raw-sample.json'];
-function pa3Grant() {
-  if (!pa3Worktree || isTest || isSpec || is('vault/PROCESS.md') || is('scripts/gate.mjs')) return false;
-  return under('.claude/') || is('CLAUDE.md') || under('scripts/') || pa3Vault.some((p) => is(p) || (p.endsWith('/') && under(p)));
 }
 
 // Retrievers write only their report files (vault/PROCESS.md section 4 roster; EZD-000f).
@@ -90,7 +103,6 @@ const rules = {
   },
   builder: () => {
     if (isTest) return 'The builder may not change tests or fixtures. If a test looks wrong, report it as a question.';
-    if (pa3Grant()) return;
     if (isVault) return 'The builder does not write in vault/. Report questions to the orchestrator.';
     // Q-0124 (a), Josh 2026-10-19: scripts/conventions/ is the builder's (the conventions check, EZD-000 and later).
     // Q-0148 / Q-0125 (a), orchestrator 2026-10-19: scripts/db/ is the builder's (local Supabase and types scripts, EZD-004a and later).

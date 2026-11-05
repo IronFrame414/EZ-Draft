@@ -12,7 +12,8 @@ import type { NotificationItem } from '../../lib/notifications/kinds';
 import { createNotificationStore } from '../../lib/notifications/store';
 import type { NotificationApi, NotificationState } from '../../lib/notifications/store';
 import type { UserHandle } from '../../lib/realtime';
-import { NotificationPanelView, bellLabel, connectNotificationBell } from './NotificationBell';
+import { NotificationPanelFallback, bellLabel, connectNotificationBell } from './NotificationBell';
+import { NotificationPanelView } from '../../lazy/notification-panel';
 
 const makeItem = (n: number): NotificationItem => ({
   id: `i${n}`,
@@ -222,5 +223,30 @@ describe('EZD-110b notification bell wiring', () => {
       expect(w.fetchCalls(), 'e').toBe(1);
       expect(w.releases(), 'e releases').toBe(1);
     }
+  });
+});
+
+// EZD-332 U1 (vault/plans/EZD-332.md sections 1, 3, 4; AC-EZD-332-2): the panel fallback the bell shows while the
+// list code loads (failed false) and when that download fails (failed true). Decided "NotificationPanelFallback markup".
+describe('EZD-332 notification panel fallback', () => {
+  const renderFallback = (failed: boolean): string =>
+    renderToStaticMarkup(
+      <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+        <NotificationPanelFallback failed={failed} onRetry={noop} />
+      </MessagesProvider>,
+    );
+
+  it('EZD-332 U1 the panel fallback shows the skeleton while the list code loads and the inline error when it fails', () => {
+    const loading = renderFallback(false);
+    expect(loading).toContain('data-testid="notification-loading"');
+    expect(loading).toContain('>Notifications</h2>');
+    expect(loading).not.toContain('notification-error');
+    expect(loading).not.toContain('notification-mark-all');
+
+    const failed = renderFallback(true);
+    expect(failed).toContain('data-testid="notification-error"');
+    expect(failed).toContain('Notifications could not load');
+    expect(failed).toContain('Retry');
+    expect(failed).not.toContain('notification-loading');
   });
 });

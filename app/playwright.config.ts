@@ -45,6 +45,20 @@ if (envRun.status !== 0) {
   throw new Error('Local Supabase is not running: run pnpm db:up');
 }
 const values = JSON.parse(envRun.stdout.trim()) as Record<string, string>;
+
+// EZD-172: the build lane's web port (3000 + 10 x lane; lane 0 = 3000), from `local.mjs lane`.
+const laneRun = spawnSync(
+  process.execPath,
+  [path.join(repo, 'scripts', 'db', 'local.mjs'), 'lane'],
+  {
+    cwd: repo,
+    encoding: 'utf8',
+  },
+);
+if (laneRun.status !== 0) {
+  throw new Error((laneRun.stderr ?? '').trim() || 'local.mjs lane failed');
+}
+const web = (JSON.parse(laneRun.stdout.trim()) as { web: number }).web;
 const serverEnv: Record<string, string> = {};
 for (const name of NAMES) {
   process.env[name] = values[name];
@@ -97,7 +111,7 @@ export default defineConfig({
     ['html', { open: 'never', outputFolder: path.join(app, 'playwright-report') }],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: `http://127.0.0.1:${web}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -107,8 +121,8 @@ export default defineConfig({
     grep: projectGrep(name, process.env.EZD_TEST_GREP),
   })),
   webServer: {
-    command: 'pnpm start -p 3000',
-    url: 'http://127.0.0.1:3000/api/health',
+    command: `pnpm start -p ${web} -H 127.0.0.1`,
+    url: `http://127.0.0.1:${web}/api/health`,
     cwd: app,
     reuseExistingServer: !process.env.CI,
     env: {

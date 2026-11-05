@@ -8,6 +8,8 @@
 // Emails are read from the local mail catcher (CLAUDE.md rule 6); sends to one address 1,100 ms apart (D2).
 // Members are made fresh in fresh tenants; no seeded row changes. Expected values: section 4 Sources.
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -275,7 +277,25 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     expect(all[0]).toBe(mail.link);
     const hrefs = [...decoded.matchAll(/href\s*=\s*"([^"]*)"/g)].map((h) => h[1]);
     expect(hrefs.filter((h) => h === mail.link).length).toBe(2);
-    expect(mail.link.startsWith('http://127.0.0.1:3000/auth/confirm?')).toBe(true);
+    const laneMod = (await import(
+      /* @vite-ignore */ pathToFileURL(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          '..',
+          '..',
+          'scripts',
+          'db',
+          'lane.mjs',
+        ),
+      ).href
+    )) as {
+      readLane: (env?: NodeJS.ProcessEnv) => number;
+      laneAppPorts: (lane: number) => { web: number; perf: number };
+    };
+    const web = laneMod.laneAppPorts(laneMod.readLane(process.env)).web;
+    expect(mail.link.startsWith(`http://127.0.0.1:${web}/auth/confirm?`)).toBe(true);
     const link = new URL(mail.link);
     expect(link.searchParams.get('type')).toBe('email');
     expect((link.searchParams.get('token_hash') ?? '').length).toBeGreaterThan(0);

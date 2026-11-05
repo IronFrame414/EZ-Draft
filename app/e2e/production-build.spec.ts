@@ -110,13 +110,17 @@ test.describe('EZD-036 production build', () => {
     test.setTimeout(120000);
     const app = appDir();
     requireBuild(app);
+    const laneValue = process.env.EZD_LANE;
+    const lane =
+      laneValue === '1' || laneValue === '2' || laneValue === '3' ? Number(laneValue) : 0;
+    const port = 3036 + 10 * lane;
     const child = spawn(
       process.execPath,
       [
         path.join(app, 'node_modules', 'next', 'dist', 'bin', 'next'),
         'start',
         '-p',
-        '3036',
+        String(port),
         '-H',
         '127.0.0.1',
       ],
@@ -147,7 +151,7 @@ test.describe('EZD-036 production build', () => {
       let ready = false;
       while (Date.now() < deadline && !exited && !ready) {
         try {
-          const res = await fetch('http://127.0.0.1:3036/manifest.webmanifest');
+          const res = await fetch(`http://127.0.0.1:${port}/manifest.webmanifest`);
           ready = res.status === 200;
         } catch {
           // not up yet

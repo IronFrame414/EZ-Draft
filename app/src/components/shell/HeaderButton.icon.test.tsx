@@ -14,10 +14,11 @@ const classTokens = (html: string) =>
   (/class="([^"]*)"/.exec(html)?.[1] ?? '').split(' ').filter((c) => c.length > 0);
 const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-108 E1 (vault/plans/EZD-108.md section 4): EZD-113's 29 names plus logout, person and settings (32),
-// plus EZD-110 step 19's 12 names, 44 in all, sorted.
+// plus EZD-110 step 19's 12 names (44), plus EZD-117a E2 `sort` (45 in all), sorted.
 const EXPECTED_ICONS = [
   'add',
   'arrow_back',
+  'arrow_forward',
   'arrow_selector_tool',
   'assignment',
   'auto_awesome',
@@ -54,6 +55,7 @@ const EXPECTED_ICONS = [
   'search',
   'settings',
   'share',
+  'sort',
   'straighten',
   'sync_problem',
   'tune',

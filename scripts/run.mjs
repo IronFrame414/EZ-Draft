@@ -21,14 +21,14 @@
 //   records_db      the records database file (REMEDIATION-PLAN 2.12); default $EZD_RECORDS_DB, else ~/.ezdraft/records.db
 //   log_dir         where the launcher keeps its in-flight records (inflight/) and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
 //                   .launcher/ in the checkout elsewhere); scripts/launchd/install.mjs and scripts/watchdog.mjs use the same
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync, renameSync, appendFileSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
-  takeLauncherLock,
+  takeLauncherLock, withLedgerLock, LockError, queueDirs,
 } from './ledger.mjs';
 // The launcher is the only writer of the running records (REMEDIATION-PLAN 2.12; D1 (a), D2 (a)): a unit's tools queue ops
 // in its results file, and the launcher applies them with its own ops in one transaction, then re-exports the views.
@@ -63,10 +63,16 @@ const claudeBin = config.claude_bin || 'claude';
 const sandboxSettings = path.join(root, 'scripts/unit-sandbox.json');
 const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
-const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive } = await import('./budget.mjs');
+const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive, writeWindowPause } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
-const { idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState } = await import('./launcher-idle.mjs');
+const {
+  idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
+  isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
+  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES,
+} = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
+// Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
+const { lanesState, lanesFile, inProgressCount, turnOff: lanesOff } = await import(path.join(vault, 'tools/lanes.mjs'));
 
 // Process v2.4 (Josh 2026-10-22): every orchestrator unit runs Sonnet 5.5 at medium effort with the Opus 5.5 advisor from
 // .claude/settings.json advisorModel; plan and review-plans run as the Opus agent. Never change model or effort mid-session.
@@ -215,16 +221,17 @@ function saveLimitText(unitName, arg, res, limit) {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // A build tables its ticket (blocked with a note); any other unit goes on the list next_ticket.mjs skips (.git/set-aside.json). Josh clears it.
-function setAside(unitName, arg, next) {
+// isNext: whether the unit would still run next (lanes: whether it is still offered).
+function setAside(unitName, arg, next, isNext = () => nextUnitText() === next) {
   if (unitName === 'build') {
     const t = spawnSync(process.execPath, [path.join(root, 'scripts/unit-steps.mjs'), 'table', arg], { encoding: 'utf8', cwd: root, env: { ...process.env, EZD_RESULTS_FILE: '', EZD_RECORDS_WRITER: String(process.pid) } });
-    return { ok: t.status === 0 && nextUnitText() !== next, text: `${t.stdout ?? ''}${t.stderr ?? ''}`.trim().split('\n')[0] };
+    return { ok: t.status === 0 && !isNext(), text: `${t.stdout ?? ''}${t.stderr ?? ''}`.trim().split('\n')[0] };
   }
   try {
     const file = path.join(root, '.git', 'set-aside.json');
     const list = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : [];
     writeFileSync(file, JSON.stringify([...new Set([...list, next])]) + '\n');
-    return { ok: nextUnitText() !== next, text: `SET ASIDE ${next}` }; // the same unit next would loop: only then does the launcher stop
+    return { ok: !isNext(), text: `SET ASIDE ${next}` }; // the same unit next would loop: only then does the launcher stop
   } catch (e) { return { ok: false, text: e.message }; }
 }
 
@@ -269,7 +276,7 @@ function agentUnitOps(unitName, arg, res) {
     let firstId;
     try {
       if (!db.prepare('select 1 from tickets where id = ?').get(arg)) return { problem: `no STATUS.md row for ${arg}`, ops: [] };
-      firstId = nextQuestionId(db);
+      firstId = nextQuestionId(db, null, queueDirs(root));
     } finally { db.close(); }
     // EZD-244: the plan's Architecture line for tickets.json; a failure records nothing more. The entry and the plan's text
     // and hash wait in the records database for the ticket's feat commit (D9 (a), 2026-11-02).
@@ -300,7 +307,8 @@ function escalatedRows() {
 }
 
 
-async function runUnit(unitName, arg, meterSource = null) {
+// laneEnv: a lane build's database lane environment; lease: its database lane, held by the unit's pid while it runs (EZD-174).
+async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, lease = 0 } = {}) {
   const cmd = buildCommand(unitName, arg);
   // The scrub is set in api mode only (PROCESS.md section 11, Auth mode). Claude Code 2.1.303 forces the permission
   // mode to default whenever it is set, and with --permission-prompts none every write is then denied (2026-10-19 loop).
@@ -316,6 +324,7 @@ async function runUnit(unitName, arg, meterSource = null) {
   } else {
     delete env.ANTHROPIC_API_KEY; // plan auth: a stray key in the shell would silently move the spend
   }
+  Object.assign(env, laneEnv);
   const sessionId = flagSupported('--session-id') ? randomUUID() : null;
   if (sessionId) cmd.push('--session-id', sessionId);
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
@@ -330,14 +339,17 @@ async function runUnit(unitName, arg, meterSource = null) {
   env.EZD_RESULTS_FILE = results;
   delete env.EZD_RECORDS_WRITER;
   try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }); } catch {}
-  const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(), esc: escalatedRows() } : null;
+  const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(Number(arg)), esc: escalatedRows() } : null;
+  if (lease) writeLease(lease, process.pid);
   const res = await new Promise((resolve) => {
+    const done = (r) => { if (lease) removeLease(lease); resolve(r); };
     const child = spawn(claudeBin, cmd, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    if (lease && child.pid) writeLease(lease, child.pid);
     let out = '', err = '';
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { err += d; process.stderr.write(d); });
-    child.on('close', (code) => resolve({ code, out, err }));
-    child.on('error', (e) => resolve({ code: -1, out, err: String(e) }));
+    child.on('close', (code) => done({ code, out, err }));
+    child.on('error', (e) => done({ code: -1, out, err: String(e) }));
   });
   const parsed = parseResult(res.out);
   const { total, fable, models } = costOf(parsed);
@@ -350,12 +362,22 @@ async function runUnit(unitName, arg, meterSource = null) {
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
   if (limit) saveLimitText(unitName, arg, res, limit);
   const cost = { op: 'cost', entry: costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }) };
-  const agent = outcome === 'ok' && UNITS[unitName].as ? agentUnitOps(unitName, arg, parsed) : { problem: null, ops: [] };
-  // A plan problem records nothing more, but the cost row is still recorded (C13).
-  applyUnit(results, [cost, ...agent.ops]);
+  // A plan problem records nothing more, but the cost row is still recorded (C13). Under the ledger lock, so a Q-ID given
+  // here and a unit's `ledger.mjs question` never collide (EZD-174); a lock that stays busy is logged, never waited out.
+  const record = () => {
+    const a = outcome === 'ok' && UNITS[unitName].as ? agentUnitOps(unitName, arg, parsed) : { problem: null, ops: [] };
+    applyUnit(results, [cost, ...a.ops]);
+    return a;
+  };
+  let agent;
+  try { agent = withLedgerLock(root, { owner: `launcher apply ${id}`, timeoutMs: config.apply_lock_ms ?? 120000 }, record); } catch (e) {
+    if (!(e instanceof LockError)) throw e;
+    log(`results applied without the ledger lock: ${e.message}`);
+    agent = record();
+  }
   removeInflight(dir, id);
   // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
-  if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), before: qBefore.fp, after: questionsFingerprint(), ts: new Date().toISOString() }) + '\n');
+  if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), scope: 'phase', before: qBefore.fp, after: questionsFingerprint(Number(arg)), ts: new Date().toISOString() }) + '\n');
   const problem = agent.problem;
   if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
   // Q-0129: one notification per newly escalated question.
@@ -463,6 +485,121 @@ function writeRepairBrief({ kind, fp, next }) {
   writeFileSync(path.join(vault, 'handoff/REPAIR.md'), `# Repair · ${nowIso()}\n- Trigger: ${kind}\n- Fingerprint: ${fp}\n- Reason: ${next}\n\n## Ledger check output\n\`\`\`\n${(chk.stdout || '').trimEnd()}\n\`\`\`\n`);
 }
 
+// EZD-333 (decision 2026-11-05 "Overseer repair unit"): the repair unit may open fix mode, so after it the launcher checks every
+// file it changed against the hard limits (guard-paths sees only Edit and Write; a shell command can write too), undoes a repair
+// that touched one, closes a fix mode the repair left open and writes one line per repair to the overseer log for Josh.
+const fixFile = path.join(vault, 'handoff/LAUNCHER_FIX.md');
+const probeFile = path.join(vault, 'handoff/REPAIR_PROBE.md');
+const overseerLog = path.join(vault, 'handoff/overseer-log.md');
+const shortSha = (s) => String(s).slice(0, 8);
+const headSha = () => git('rev-parse', '-q', '--verify', 'HEAD').stdout.trim();
+const originSha = () => git('rev-parse', '-q', '--verify', 'refs/remotes/origin/develop').stdout.trim();
+// Changed and untracked files, one by one (-z: no quoting; a rename lists both paths).
+function changedFiles() {
+  const parts = (git('status', '--porcelain', '-z', '--untracked-files=all').stdout || '').split('\0');
+  const files = [];
+  for (let i = 0; i < parts.length; i++) {
+    const e = parts[i];
+    if (!e) continue;
+    files.push(e.slice(3));
+    if (/^[RC]/.test(e)) files.push(parts[++i]);
+  }
+  return files.filter(Boolean);
+}
+const blobOf = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '--', rel).stdout.trim() : 'absent');
+// -w keeps the content in the object store, so a file dirty before the repair (or ignored by git) can be put back exactly.
+const saveBlob = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '-w', '--', rel).stdout.trim() : 'absent');
+const blobAt = (rev, rel) => { const r = git('rev-parse', '-q', '--verify', `${rev}:${rel}`); return r.status === 0 ? r.stdout.trim() : 'absent'; };
+// Files the check watches: the hard limits, plus the files that may hold Josh's own edits (his local settings, the Josh-only
+// files). A change to one of Josh's is never overwritten: the launcher stops instead (code review round 2).
+const watched = (f) => repairForbidden(f) !== null || REPAIR_JOSH_FILES.includes(f);
+// What each watched file looked like before the repair: every named one (ignored ones too, such as .claude/settings.local.json)
+// and every one already changed, saved with -w; any other one is as the last commit had it.
+function repairSnapshot() {
+  const saved = new Map();
+  for (const f of [...REPAIR_NEVER_FILES, ...REPAIR_JOSH_FILES, ...changedFiles().filter(watched)]) saved.set(f, saveBlob(f));
+  return { head: headSha(), origin: originSha(), saved, fixBefore: existsSync(fixFile) };
+}
+const targetOf = (snap, f) => (snap.saved.has(f) ? snap.saved.get(f) : blobAt(snap.head, f));
+function repairChanges(snap, fp) {
+  const head = headSha();
+  const commits = [];
+  if (head && head !== snap.head) {
+    // Newest first; --no-renames lists both sides of a move, so a guard moved to an unlisted name still counts (code review 1).
+    for (const sha of git('rev-list', `${snap.head}..${head}`).stdout.split('\n').filter(Boolean)) {
+      const files = git('diff-tree', '--no-commit-id', '--name-only', '-r', '-m', '--no-renames', '-z', sha).stdout.split('\0').filter(Boolean);
+      const parents = git('rev-list', '--parents', '-n', '1', sha).stdout.trim().split(' ').length - 1;
+      commits.push({ sha, subject: git('log', '-1', '--format=%s', sha).stdout.trim(), merge: parents > 1, forbidden: files.filter(watched) });
+    }
+  }
+  const committed = [...new Set(commits.flatMap((c) => c.forbidden))];
+  const files = head && head !== snap.head ? git('diff', '--name-only', '--no-renames', '-z', `${snap.head}..${head}`).stdout.split('\0').filter(Boolean) : [];
+  const watch = [...new Set([...snap.saved.keys(), ...committed, ...changedFiles().filter(watched)])].sort();
+  const origin = originSha();
+  const originAway = origin !== snap.origin && origin !== '' && git('merge-base', '--is-ancestor', origin, head).status !== 0;
+  // A hard-limit change pushed to origin/develop counts even when the checkout's HEAD no longer has it (security re-review 1).
+  const pushed = origin !== snap.origin && origin !== '' && snap.origin !== ''
+    ? git('diff', '--name-only', '--no-renames', '-z', `${snap.origin}..${origin}`).stdout.split('\0').filter((f) => f && watched(f)) : [];
+  const bad = [...new Set([...committed, ...(originAway ? pushed : []), ...watch.filter((f) => blobOf(f) !== targetOf(snap, f))])].sort();
+  // A fix file opened during the repair that does not name it is someone else's (skill step 4.2: `Repair: <fingerprint>`).
+  let fixOther = false;
+  if (!snap.fixBefore && existsSync(fixFile)) {
+    let text = '';
+    try { text = readFileSync(fixFile, 'utf8'); } catch {}
+    fixOther = !text.split('\n').some((l) => l.trim() === `Repair: ${fp}`);
+  }
+  return { head, commits, files, watch, bad, originAway, fixOther };
+}
+// Undo a refused repair: the repair's own hard-limit commits reverted (pushed when it had pushed), then every hard-limit file put
+// back as it was before the repair, each overwritten copy kept in the object store and named in the log. What may not be the
+// repair's (an interactive fix open before or opened during it, a commit without the `fix(repair):` subject, a merge, origin moved
+// elsewhere, a change to one of Josh's files) is not undone: the launcher stops instead, so nobody's work is lost (code review 4, round 2).
+function undoRepair(snap, ch) {
+  const problems = [];
+  const kept = [];
+  if (snap.fixBefore) problems.push('an interactive fix was open, so the change may be its own');
+  if (ch.fixOther) problems.push('an interactive fix was opened during the repair, so the change may be its own');
+  for (const f of ch.bad) if (REPAIR_JOSH_FILES.includes(f)) problems.push(`${f} may hold Josh's own edit`);
+  for (const c of ch.commits) {
+    if (c.forbidden.length && (c.merge || !/^fix\(repair\):/.test(c.subject))) problems.push(`commit ${shortSha(c.sha)} "${c.subject}" is not the repair's`);
+  }
+  if (ch.originAway) problems.push('origin/develop moved to a commit the checkout does not have');
+  if (problems.length) return { problems, kept };
+  const keep = (f) => { const b = saveBlob(f); if (b !== 'absent') kept.push(`${f} kept as ${b}`); };
+  // A tracked hard-limit file changed since the last commit goes back to it first, so the revert applies.
+  for (const f of changedFiles().filter(watched)) if (blobAt('HEAD', f) !== 'absent') { keep(f); git('restore', '--source=HEAD', '--staged', '--worktree', '--', f); }
+  const own = ch.commits.filter((c) => c.forbidden.length);
+  for (const c of own) {
+    const rv = git('revert', '--no-edit', c.sha);
+    if (rv.status !== 0) { git('revert', '--abort'); problems.push(`git revert ${shortSha(c.sha)} failed: ${(rv.stderr || rv.stdout).trim().split('\n')[0]}`); break; }
+  }
+  if (!problems.length && own.length && originSha() !== snap.origin) {
+    const p = git('push', 'origin', 'develop');
+    if (p.status !== 0) problems.push(`the revert was not pushed: ${(p.stderr || '').trim().split('\n')[0]}`);
+  }
+  for (const f of ch.watch) {
+    const want = targetOf(snap, f);
+    if (blobOf(f) === want) continue;
+    const abs = path.join(root, f);
+    if (!kept.some((k) => k.startsWith(`${f} kept as `))) keep(f);
+    if (want === 'absent') { git('rm', '-q', '--cached', '--ignore-unmatch', '--', f); try { unlinkSync(abs); } catch {} continue; }
+    const body = spawnSync('git', ['-C', root, 'cat-file', 'blob', want]);
+    if (body.status !== 0) { problems.push(`${f}: saved copy not readable`); continue; }
+    mkdirSync(path.dirname(abs), { recursive: true });
+    writeFileSync(abs, body.stdout);
+    if (blobAt('HEAD', f) !== 'absent') git('restore', '--staged', '--', f);
+  }
+  const left = ch.watch.filter((f) => blobOf(f) !== targetOf(snap, f));
+  if (left.length) problems.push(`still changed: ${left.join(', ')}`);
+  return { problems, kept };
+}
+function overseerAppend(text) {
+  try {
+    if (!existsSync(overseerLog)) writeFileSync(overseerLog, '# Overseer log\n\nOne line per repair the launcher ran (EZD-333; decision 2026-11-05). Read at the daily check-in.\n\n');
+    appendFileSync(overseerLog, `- ${nowIso()} ${String(text).replace(/\s*\n\s*/g, ' ')}\n`);
+  } catch (e) { log(`overseer log not written: ${e.message}`); }
+}
+
 async function main() {
   if (statusOnly) {
     const b = budget(); const s = weekSpend(b); const m = await readMeters({ budget: b });
@@ -495,11 +632,191 @@ async function main() {
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   let failedWait = null; // the next-unit text a failed repair was started for; the same wait keeps state repair-failed (D7)
+  // Lanes (EZD-174): the running units (`<unit> <arg>` → { unit, arg, dbLane, resume, before, task }), the per-key guards,
+  // why the launcher stops once they end, and when a pause after three set-asides ends.
+  const running = new Map();
+  const guards = createGuards();
+  let stopping = null;
+  let asideUntil = 0;
+  let lastMeters = null;
+  const statusText = () => { try { return readFileSync(path.join(vault, 'tickets/STATUS.md'), 'utf8'); } catch { return ''; } };
+  const nextUnitsCall = () => {
+    const skip = [...running.values()].map((u) => u.arg);
+    const r = tool('--next-units', ...(skip.length ? ['--skip', skip.join(',')] : []));
+    let parsed = null;
+    try { parsed = JSON.parse(r.stdout); } catch {}
+    const ok = r.status === 0 && parsed && typeof parsed === 'object' && Array.isArray(parsed.units)
+      && parsed.units.every((u) => u && Object.hasOwn(UNITS, u.unit) && typeof u.arg === 'string');
+    return ok ? { ok, units: parsed.units, none: parsed.none ?? null } : { ok, line: firstLine(r.stderr) || firstLine(r.stdout) || `exit ${r.status}` };
+  };
+  // After a lane unit (synchronous; running already without it).
+  const afterUnit = (key, u, before, r) => {
+    const now = Date.now();
+    if (r.outcome === 'limit-five-hour') {
+      const pause = limitPause({ limit: { until: parseWhen(r.limit.until)?.toISOString() ?? null }, now });
+      const held = existsSync(windowPauseFile) ? Date.parse(readFileSync(windowPauseFile, 'utf8').match(/^- Resume at: (.+)$/m)?.[1]?.trim()) : NaN;
+      if (!(held > Date.parse(pause.resume_at))) writeWindowPause({ now: new Date(now), pause });
+      log(`five-hour limit during ${key}; no unit starts in any lane until ${pause.resume_at}`);
+    } else if (r.outcome === 'limit-weekly') {
+      if (!existsSync(holdFile)) {
+        writeHold({ reason: `plan limit error (${r.limit.note || 'weekly'})`, meters: lastMeters, budget: budget(), nextUnit: key });
+        notify(`plan limit reached during ${key}. Hold written; override with budget.mjs or wait for the weekly reset.`);
+      }
+      stopping = `plan limit reached during ${key}`;
+    } else {
+      const chk = tool('--check');
+      if (chk.status !== 0) log(`ledger check failed:\n${chk.stdout}`);
+      if (r.outcome !== 'ok') writeFileSync(failureFile, JSON.stringify({ ts: nowIso(), unit: key, outcome: r.outcome, note: r.note || r.parsed?.result?.slice?.(0, 500) }, null, 2));
+      // A failed call counts the unit as still offered (no progress); the next pass's own call stops the launcher.
+      const offeredKeys = () => {
+        const n = nextUnitsCall();
+        if (n.ok) return n.units.map((x) => `${x.unit} ${x.arg}`);
+        log(`--next-units failed after ${key}: ${n.line}`);
+        return [key];
+      };
+      const progress = unitProgress({ key, before, after: statusRow(statusText(), u.arg), offeredAfter: offeredKeys() });
+      const g = guardAfterUnit(guards, { key, outcome: r.outcome, progress });
+      if (g.action === 'aside') {
+        const aside = setAside(u.unit, u.arg, key, () => offeredKeys().includes(key));
+        if (aside.ok) {
+          log(aside.text);
+          notify(`${key} set aside until Josh is back, after ${g.why}; the launcher goes on with other work.`);
+          if (g.pause) { log('three set aside in a row; no new unit starts for a while'); asideUntil = Date.now() + (config.aside_pause_ms ?? 1800000); }
+        } else {
+          log(`set aside ${key} failed: ${aside.text}`);
+          notify(g.stopText);
+          stopping = g.stopText;
+        }
+      }
+    }
+    if (!running.size) setState({ state: 'after-unit', at: nowIso() });
+  };
+  // Starts ticket units side by side; never returns while one runs. 'exit' ends the launcher, 'sequential' hands the
+  // pass to the one-unit-at-a-time loop below (STOP, pause, none, repair, phase-wide units, the code restart).
+  const laneLoop = async () => {
+    let codeLogged = false;
+    let lastReason = null;
+    for (;;) {
+      const now = Date.now();
+      const drained = running.size === 0;
+      let go = true;
+      let limits = null;
+      if (stopping) { if (drained) { log(stopping); return 'exit'; } go = false; }
+      if (go) {
+        const st = lanesState({ root });
+        if (!st.on) { if (drained) return 'sequential'; go = false; } else limits = laneLimits(st);
+      }
+      if (go && continuous && codeFingerprint(root).hash !== codeAtStart.hash) {
+        if (!codeLogged) { log(`launcher code changed; waiting for ${running.size} running units`); codeLogged = true; }
+        if (drained) return 'sequential';
+        go = false;
+      }
+      if (go && existsSync(stopFile)) { if (drained) return 'sequential'; go = false; }
+      if (go && asideUntil > now) {
+        if (drained) { await sleep(asideUntil - now); continue; }
+        go = false;
+      }
+      if (go && !dryRun) for (const f of inboxFiles(logDir)) applyUnit(f, []);
+      let b = null;
+      let meters = null;
+      if (go) {
+        b = budget();
+        meters = await readMeters({ budget: b, fallback: oauthFallback });
+        lastMeters = meters;
+        if (meters.warning) log(meters.warning);
+        const decision = gateDecision(meters, b);
+        if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
+        process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
+        const fileText = existsSync(windowPauseFile) ? readFileSync(windowPauseFile, 'utf8') : '';
+        const pause = pauseFrom({ fileText, decision, now });
+        if (pause) {
+          if (dryRun) { log(`DRY-RUN PAUSE five-hour pause until ${pause.until}; no unit starts in any lane`); return 'exit'; }
+          if (drained) return 'sequential';
+          go = false;
+        }
+      }
+      let offered = [];
+      if (go) {
+        const n = nextUnitsCall();
+        if (!n.ok) {
+          log(n.line);
+          notify(`launcher stopped: --next-units failed: ${n.line}`);
+          stopping = `--next-units failed: ${n.line}`;
+          continue;
+        }
+        offered = n.units;
+        setState({ next: offered.length ? `${offered[0].unit} ${offered[0].arg}` : (n.none ?? 'none'), polledAt: nowIso() });
+        if (!offered.length) { if (drained) return 'sequential'; go = false; }
+      }
+      if (go) {
+        const busy = [...running.values()].map(({ unit, arg, dbLane }) => ({ unit, arg, dbLane }));
+        const { start, reason } = pickUnits({ offered, running: busy, limits });
+        if (reason !== lastReason && reason) log(reason);
+        lastReason = reason;
+        if (start.length && isPhaseWide(start[0].unit)) {
+          if (!dryRun) return 'sequential';
+          log(`DRY-RUN START ${start[0].unit} ${start[0].arg} db-lane=0`);
+          log(`DRY-RUN LANES lanes=${limits.lanes} build-lanes=${limits.buildLanes} started=1`);
+          return 'exit';
+        }
+        let refused = 0;
+        let started = 0;
+        for (const u of start) {
+          const key = `${u.unit} ${u.arg}`;
+          const gate = boostState({ root }).active ? { start: true, reason: null } : await applyGates({ budget: b, meters, nextUnit: key, inProgressBuild: u.resume, notify, dryRun });
+          if (!gate.start) {
+            log(gate.reason);
+            refused++;
+            if (/weekly_ceiling_usd_est/.test(gate.reason)) { notify(`launcher stopped: ${gate.reason}`); stopping = gate.reason; break; }
+            continue;
+          }
+          const dbLane = dbLaneFor({ unit: u.unit, running: busy, limits, lanesOn: true });
+          if (dbLane === null) continue;
+          busy.push({ unit: u.unit, arg: u.arg, dbLane });
+          started++;
+          if (dryRun) { await runUnit(u.unit, u.arg, meters.source); log(`DRY-RUN START ${key} db-lane=${dbLane}`); continue; }
+          const before = statusRow(statusText(), u.arg);
+          const task = neverRejects(async () => {
+            const r = await runUnit(u.unit, u.arg, meters.source, dbLane ? { env: laneEnvFor({ root, ticket: u.arg, lane: dbLane }), lease: dbLane } : {});
+            running.delete(key);
+            afterUnit(key, u, before, r);
+          }, (e) => {
+            log(`${key}: ${e?.stack || e}`);
+            notify(`launcher stopped: ${key}: ${e?.message ?? e}`);
+            running.delete(key);
+            stopping = stopping ?? `${key}: ${e?.message ?? e}`;
+          });
+          running.set(key, { unit: u.unit, arg: u.arg, dbLane, resume: u.resume, before, task });
+          repairs = 0;
+          try { unlinkSync(repairStateFile); } catch {}
+          waiting = null;
+          failedWait = null;
+          setState({ state: 'unit', at: nowIso() });
+          log(`lane: starting ${key}${dbLane ? ` on database lane ${dbLane}` : ''} (${running.size} running)`);
+        }
+        if (dryRun) { log(`DRY-RUN LANES lanes=${limits.lanes} build-lanes=${limits.buildLanes} started=${started}`); return 'exit'; }
+        if (!started && running.size === 0) return refused > 0 ? 'exit' : 'sequential';
+      }
+      let timer;
+      await Promise.race([...[...running.values()].map((x) => x.task), new Promise((r) => { timer = setTimeout(r, config.idle_poll_ms ?? LANE_POLL_MS); })]);
+      clearTimeout(timer);
+    }
+  };
   for (;;) {
     if (continuous) restartIfCodeChanged(codeAtStart);
     // Boost mode ends by itself at the weekly reset (Josh 2026-10-24): remove the switch, say so once.
     if (dryRun && boostState({ root }).expired) log('dry run: boost mode has expired; a real run would remove vault/handoff/BOOST.json');
     else if (boostState({ root }).expired && boostOff({ root })) { notify('boost mode ended (weekly usage reset): weekly hold and normal per-unit cap back'); }
+    // Lanes turned off: the file goes once at most one ticket is in progress (EZD-174; Q-0303 (a)).
+    if (existsSync(lanesFile(root)) && !lanesState({ root }).on && inProgressCount(statusText()) <= 1) {
+      if (dryRun) log('dry run: lanes are off; a real run would remove vault/handoff/LANES.json');
+      else { lanesOff({ root, force: true }); notify('lanes off: back to one unit at a time'); }
+    }
+    if (!once && lanesState({ root }).on) {
+      const r = await laneLoop();
+      if (r === 'exit') return;
+      if (continuous) restartIfCodeChanged(codeAtStart);
+    }
     const stopExists = existsSync(stopFile);
     // A dry run reports the pause and exits: it never writes WINDOW_PAUSE.md, waits or removes it (EZD-155; Q-0268 sweep item 25).
     if (!stopExists && dryRun && existsSync(windowPauseFile)) { log('dry run: vault/handoff/WINDOW_PAUSE.md is in place; a real run would wait until its resume time'); return; }
@@ -517,6 +834,15 @@ async function main() {
       if (!/^none:/.test(effective)) {
         try { unlinkSync(repairStateFile); } catch {}
         repairs = 0;
+      } else if (existsSync(probeFile)) {
+        // EZD-333: the one-shot probe (vault/handoff/REPAIR_PROBE.md) proves a launcher-started repair unit may edit a guarded
+        // file in fix mode. Any wait will do; it sets no repair state and counts toward no cap.
+        try { unlinkSync(probeFile); } catch {}
+        repair = { kind: 'probe', fp: 'probe', next: effective };
+        writeRepairBrief(repair);
+        unitName = 'repair';
+        arg = 'probe';
+        idle = { action: 'run' };
       } else {
         const d = repairDecision({ next: effective, state: readJson(repairStateFile, null), consecutive: repairs });
         if (d.action === 'repair') {
@@ -568,9 +894,37 @@ async function main() {
     const statusBefore = statusHash();
     setState({ state: 'unit', at: nowIso() });
     failedWait = null;
+    const snap = repair ? repairSnapshot() : null;
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
     setState({ state: 'after-unit', at: nowIso() });
+    // EZD-333: check what the repair changed before anything else, whatever its outcome (a limit can stop it half way).
+    let refusal = null;
+    let changes = null;
+    if (repair) {
+      changes = repairChanges(snap, repair.fp);
+      if (changes.bad.length) {
+        const { problems, kept } = undoRepair(snap, changes);
+        const keptText = kept.length ? `; overwritten copies: ${kept.join(', ')}` : '';
+        if (!problems.length) refusal = `changed ${changes.bad.join(', ')} (repair hard limits); the repair's change is undone${keptText}`;
+        else {
+          // A safety stop, not a question: a hard-limit change the launcher cannot safely undo must not run unattended.
+          refusal = `changed ${changes.bad.join(', ')} (repair hard limits); not undone: ${problems.join('; ')}${keptText}; STOP written`;
+          try { writeFileSync(stopFile, `# STOP · ${nowIso()}\nA repair run changed ${changes.bad.join(', ')} and the launcher did not undo it: ${problems.join('; ')}. See vault/handoff/overseer-log.md (EZD-333).\n`); } catch {}
+          notify(`launcher stopped: a repair run changed ${changes.bad.join(', ')} and it was not undone. See vault/handoff/overseer-log.md.`);
+        }
+        log(`repair ${repair.kind}: refused: ${refusal}`);
+      }
+      // Fix mode the repair opened (its file names this repair, skill step 4.2) is closed; any other is left and logged.
+      if (!snap.fixBefore && existsSync(fixFile)) {
+        let text = '';
+        try { text = readFileSync(fixFile, 'utf8'); } catch {}
+        if (text.split('\n').some((l) => l.trim() === `Repair: ${repair.fp}`)) {
+          try { unlinkSync(fixFile); log('the repair left vault/handoff/LAUNCHER_FIX.md open; removed'); } catch (e) { log(`LAUNCHER_FIX.md not removed: ${e.message}`); }
+        } else overseerAppend(`repair ${repair.kind}: NOTE: vault/handoff/LAUNCHER_FIX.md left open (it names no repair ${repair.fp}; an interactive fix?)`);
+      }
+      if (r.outcome.startsWith('limit-')) overseerAppend(`repair ${repair.kind}: ${refusal ? `REFUSED: ${refusal}` : `FAILED: stopped by a usage limit (${r.outcome}); the launcher retries it`}`);
+    }
     if (r.outcome.startsWith('limit-')) {
       if (r.limit.kind === 'five-hour') {
         const until = parseWhen(r.limit.until) || new Date(Date.now() + 30 * 60000);
@@ -586,16 +940,24 @@ async function main() {
     const chk = tool('--check');
     if (repair) {
       // EZD-250 D12a: a REPAIRED claim stands only if the ledger check passes and the wait it was started for is gone.
+      // EZD-333: Josh hears only a design or user-interface question; every outcome gets one overseer log line instead.
       const after = nextUnitText();
+      const probe = repair.kind === 'probe';
       let v = r.outcome === 'ok' ? parseVerdict(r.parsed?.result) : { verdict: 'failed', line: repairStopLine(repair.kind, r.outcome) };
-      if (v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
-      else if (v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
+      if (v.verdict === 'josh' && !joshQuestion(v.line)) v = { verdict: 'failed', line: `not a design or UI question: ${v.line}` };
+      if (refusal) v = { verdict: 'refused', line: refusal };
+      else if (!probe && v.verdict === 'repaired' && chk.status !== 0) v = { verdict: 'failed', line: 'the ledger check still fails after the repair' };
+      else if (!probe && v.verdict === 'repaired' && /^none:/.test(after) && fingerprint(after) === repair.fp) v = { verdict: 'failed', line: 'the same wait remains after the repair' };
+      let entry = `repair ${repair.kind}: ${v.verdict.toUpperCase()}: ${v.line}`;
+      if (!refusal && changes.files.length) entry += `; commits ${shortSha(snap.head)}..${shortSha(changes.head)}; files: ${changes.files.join(', ')}`;
+      overseerAppend(entry);
+      if (probe) { log(`repair probe: ${v.verdict}: ${v.line}`); continue; }
       try { mkdirSync(logDir, { recursive: true }); writeFileSync(repairStateFile, JSON.stringify({ fp: repair.fp, verdict: v.verdict, at: nowIso() }) + '\n'); } catch (e) { log(`repair state not written: ${e.message}`); }
       repairs++;
       if (v.verdict === 'repaired') log(`repair ${repair.kind}: repaired: ${v.line}`);
       else if (v.verdict === 'josh') notify(`needs Josh: ${v.line} (vault/handoff/REPAIR.md)`);
       else {
-        notify(`repair failed for "${repair.next}": ${v.line}. The launcher keeps waiting and re-checks. See vault/handoff/REPAIR.md.`);
+        log(`repair ${repair.kind} ${v.verdict} for "${repair.next}": ${v.line} (vault/handoff/overseer-log.md)`);
         setState({ state: 'repair-failed', at: nowIso() });
         failedWait = repair.next;
       }

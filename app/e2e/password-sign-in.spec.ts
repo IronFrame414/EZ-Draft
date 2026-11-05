@@ -86,13 +86,14 @@ test.describe('EZD-033 password sign-in', () => {
       await submitPassword(page, m.email, m.password);
       await page.waitForURL((u) => u.pathname === '/');
       expect(path(page)).toBe('/');
-      await expect(page.getByTestId('sign-out')).toBeVisible();
+      await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
       const cookies = await sbCookies(context);
       expect(cookies.filter((c) => c.httpOnly).length).toBeGreaterThanOrEqual(1);
       await sleep(3000);
       expect(await countAuthEmails(m.email, { after })).toBe(0);
 
-      await page.getByTestId('sign-out').click();
+      await page.getByTestId('avatar-menu-trigger').click();
+      await page.getByTestId('avatar-menu-sign-out').click();
       await page.waitForURL((u) => u.pathname === '/sign-in');
       expect(path(page)).toBe('/sign-in');
       expect(await sbCookies(context)).toHaveLength(0);
@@ -144,7 +145,8 @@ test.describe('EZD-033 password sign-in', () => {
     await sleep(1500); // Auth refuses a second email to one address within max_frequency (1 s)
     await signInWithCode(page, c.email);
     expect(path(page)).toBe('/');
-    await page.getByTestId('sign-out').click();
+    await page.getByTestId('avatar-menu-trigger').click();
+    await page.getByTestId('avatar-menu-sign-out').click();
     await page.waitForURL((u) => u.pathname === '/sign-in');
 
     await submitPassword(page, c.email, password);

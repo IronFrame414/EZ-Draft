@@ -16,7 +16,8 @@ export default defineConfig({
     globalSetup: ['test-harness/supabase-env.global-setup.ts'],
     testTimeout: 15000,
     // EZD-021 Step 2: the live-network guard in every test file; a blocked attempt fails the test.
-    setupFiles: ['test-harness/net-guard/vitest.setup.ts'],
+    // EZD-252 Step 9: the error-alert write guard in every test file, after the network guard (order fixed).
+    setupFiles: ['test-harness/net-guard/vitest.setup.ts', 'test-harness/errors/vitest.setup.ts'],
     // EZD-008a: tests send through the stub transport, never a live provider (CLAUDE.md rule 6).
     env: {
       EMAIL_TRANSPORT: 'stub',

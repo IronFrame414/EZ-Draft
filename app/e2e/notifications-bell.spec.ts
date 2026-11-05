@@ -101,7 +101,9 @@ test.describe('EZD-110b notifications bell', () => {
     const { tenant, member } = await newMember();
     const expected: string[] = [];
     for (let k = 0; k < 25; k++) expected.push(await insertRow(tenant, member.appUserId, null, k));
+    const landing = countNotificationGets(page);
     await signInAs(member.email);
+    await expect.poll(landing).toBe(2);
 
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');
@@ -143,7 +145,9 @@ test.describe('EZD-110b notifications bell', () => {
     const [goneProject, otherProject] = await createProjects(tenant, 2);
     const goneRow = await insertRow(tenant, member.appUserId, goneProject, 1, true);
     const lostRow = await insertRow(tenant, member.appUserId, otherProject, 0);
+    const landing = countNotificationGets(page);
     await signInAs(member.email);
+    await expect.poll(landing).toBe(2);
 
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');

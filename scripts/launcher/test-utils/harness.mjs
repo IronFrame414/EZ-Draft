@@ -74,7 +74,24 @@ export const STUB_NT = [
   '}',
   "const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);",
   "const argv = isMain ? process.argv.slice(2) : ['--imported'];",
-  "if (argv.includes('--next-unit')) {",
+  "if (argv.includes('--next-units')) {",
+  "  if (cfg.nextUnitsFail) { console.error(cfg.nextUnitsFail); process.exit(2); }",
+  "  const si = argv.indexOf('--skip');",
+  "  const skip = si >= 0 ? String(argv[si + 1] ?? '').split(',').filter(Boolean) : [];",
+  "  const readText = (f) => { try { return readFileSync(f, 'utf8'); } catch { return ''; } };",
+  "  let aside = [];",
+  "  try { aside = JSON.parse(readText(path.join(root, '.git', 'set-aside.json'))); } catch {}",
+  "  const statusText = readText(path.join(root, 'vault/tickets/STATUS.md'));",
+  "  const prompts = readText(path.join(root, 'calls.jsonl')).split('\\n').filter(Boolean).map((l) => JSON.parse(l).prompt);",
+  "  const units = (cfg.nextUnits ?? [])",
+  "    .filter((u) => !skip.includes(u.arg))",
+  "    .filter((u) => !aside.includes(u.unit + ' ' + u.arg))",
+  "    .filter((u) => !(u.unit === 'build' && statusText.split('\\n').some((l) => l.startsWith('| ' + u.arg + ' |') && l.includes('| blocked |'))))",
+  "    .filter((u) => prompts.filter((p) => p.split(/\\s+/).includes(u.arg)).length < (u.runs ?? 1))",
+  "    .map(({ runs, ...u }) => u);",
+  "  const none = units.length ? null : pick(cfg.next ?? [{ text: 'none: budget hold (test)' }], bump('next'), 'next').text;",
+  "  console.log(JSON.stringify({ units, none }));",
+  "} else if (argv.includes('--next-unit')) {",
   "  console.log(pick(cfg.next ?? [{ text: 'none: budget hold (test)' }], bump('next'), 'next').text);",
   "} else if (argv.includes('--check')) {",
   '  const k = cfg.check ?? {};',
@@ -116,7 +133,7 @@ const fakeClaude = () =>
 
 const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFile}"`, 'exit 1', ''].join('\n');
 
-const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'vault/tools/boost.mjs'];
+const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs'];
 
 // A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
 // with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules. config: spread last into
@@ -233,6 +250,8 @@ export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = 
         state: readJson(root.at('logs/launcher-state.json')),
         repairState: readJson(root.at('logs/repair-state.json')),
         repairMd: readIfExists(root.at('vault/handoff/REPAIR.md')),
+        // EZD-333: the overseer log's entry lines, without the time stamp (`repair <kind>: <VERDICT>: <line>`).
+        overseer: lines(root.at('vault/handoff/overseer-log.md')).filter((l) => l.startsWith('- ')).map((l) => l.replace(/^- \S+ /, '')),
       });
     });
   });

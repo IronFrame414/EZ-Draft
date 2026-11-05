@@ -14,7 +14,7 @@ Two boards on the EZ Draft design canvas (https://claude.ai/artifact/TTF8cGeHCB3
      - my change was a delete: Keep mine (deletes theirs) and Keep theirs;
      - project gone, project no longer open to me, or Edit model taken away: a line saying why, with only Remove;
      - a change the app built wrong (failed the data check): a line saying it was reported, with only Remove.
-   - no Show button yet: it arrives in phase 4 with the canvas (Q-0500, Q-0530);
+   - a Show button on each row whose object is still on the plan: it goes to that object on the canvas, which ships in phase 4 (Q-0511 b; spec-check 4);
    - a change from an older app version: a line asking to reload, with Reload (the change is sent again after it, Q-0511 e);
    - the list opens the same on any device (kept on the server too, Q-0531).
 2. **S01c state**: one notification row in the bell list (S01cNotifications) per project per sync, naming the project and every object; it fits online conflicts (two tabs) as well as offline ones, so propose new wording for the `sync_conflict` kind (today "Offline changes conflict with newer edits"); it opens the same list (Q-0530, Q-0531).

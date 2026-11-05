@@ -80,6 +80,7 @@ function makeRoot() {
     copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   }
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
+  copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger('build EZD-999'));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
   writeFileSync(at('vault/budget.json'), JSON.stringify({ meter_source: 'statusline', weekly_ceiling_usd_est: 1000 }));

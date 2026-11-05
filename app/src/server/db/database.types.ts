@@ -379,7 +379,15 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "current_app_user_id":
+            "count_projects":
+{ Args: { "p_search"?: string }; Returns: Json
+                           },
+"create_project":
+{ Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
+              "project_id": string,"tenant_id": string
+            }[]
+                           },
+"current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "current_permissions":
@@ -481,6 +489,9 @@ isOneToOne: false
                            },
 "list_notifications":
 { Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
+                           },
+"list_projects":
+{ Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number

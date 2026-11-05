@@ -3,10 +3,13 @@
 // EZD-113 Step 15 (vault/plans/EZD-113.md Decided "Dialog", "Dialog save", "Archive / Restore", "Offline";
 // S15a Customers; Q-0227; Q-0228): add or edit one customer. The dialog saves at once through its route;
 // archive and restore need no confirm (they are undoable). There is no delete (Q-0227).
+// EZD-118 Build step 12 (vault/plans/EZD-118.md Decided "`CustomerDialog` change"; Q-0413): `onDone` passes the
+// saved customer from the response, or null when the body has none; CustomersPanel ignores it.
 import { Dialog } from 'radix-ui';
 import { useState } from 'react';
 import {
   checkCustomerDraft,
+  type Customer,
   type CustomerDraft,
   type CustomerRow,
 } from '../../../lib/customers/customers';
@@ -20,7 +23,7 @@ import offline from './offline-input.module.css';
 export type CustomerDialogProps = {
   customer: CustomerRow | null;
   onClose: () => void;
-  onDone: () => void;
+  onDone: (saved: Customer | null) => void;
 };
 
 type FieldErrors = { name?: MessageKey; email?: MessageKey };
@@ -71,7 +74,12 @@ export function CustomerDialog({ customer, onClose, onDone }: CustomerDialogProp
         },
       );
       if (res.status === 200 || res.status === 201) {
-        onDone();
+        const body: unknown = await res.json().catch(() => null);
+        onDone(
+          body && typeof body === 'object' && 'customer' in body
+            ? (body as { customer: Customer }).customer
+            : null,
+        );
         return;
       }
       if (res.status === 404) {

@@ -3,7 +3,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, chmodSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -52,11 +52,13 @@ function makeFixture(name, { e2eOut, e2eCode, testOut = '', testCode = 0 }) {
 }
 
 // The outer gate holds its lock in os.tmpdir() and sets the scope variables; the fixture gate gets its own tmp dir and a clean scope.
-function runGate(dir) {
+function runGate(dir, extra = {}) {
   const tmp = path.join(dir, 'tmp');
   mkdirSync(tmp, { recursive: true });
   const env = { ...process.env, TMP: tmp, TEMP: tmp, TMPDIR: tmp };
-  for (const k of ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT']) delete env[k];
+  const keys = ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT', 'EZD_LANE', 'SUPABASE_WORKDIR'];
+  for (const k of keys) delete env[k];
+  Object.assign(env, extra);
   const r = spawnSync(process.execPath, [GATE, dir], { encoding: 'utf8', env });
   return { status: r.status, failures: readFileSync(path.join(dir, 'gate-failures.log'), 'utf8') };
 }
@@ -105,5 +107,27 @@ describe('EZD-192 gate failure list', () => {
     for (const want of ['FAIL  src/a.test.ts > EZD-1 a', '× EZD-1 b 3ms', '✖ EZD-1 c (2ms)']) {
       assert.ok(lines.includes(want), `missing "${want}" in:\n${failures}`);
     }
+  });
+
+  it('G4 a step that cannot start or is killed names why (EZD-331) AC-EZD-331-1', () => {
+    const afterTypecheck = (failures) => {
+      const lines = failures.split('\n');
+      const at = lines.indexOf('=== typecheck ===');
+      assert.ok(at >= 0, `typecheck heading missing in:\n${failures}`);
+      return lines[at + 1];
+    };
+    const base = { e2eOut: '  1 passed (1ms)\n', e2eCode: 0 };
+    const a = makeFixture('g4a', base);
+    mkdirSync(path.join(a, 'empty-bin'));
+    const ra = runGate(a, { PATH: path.join(a, 'empty-bin') });
+    assert.equal(ra.status, 1);
+    assert.equal(afterTypecheck(ra.failures), 'spawnSync npm ENOENT');
+    const b = makeFixture('g4b', base);
+    mkdirSync(path.join(b, 'kill-bin'));
+    writeFileSync(path.join(b, 'kill-bin', 'npm'), '#!/bin/sh\nkill -9 $$\n');
+    chmodSync(path.join(b, 'kill-bin', 'npm'), 0o755);
+    const rb = runGate(b, { PATH: `${path.join(b, 'kill-bin')}${path.delimiter}${process.env.PATH}` });
+    assert.equal(rb.status, 1);
+    assert.equal(afterTypecheck(rb.failures), 'signal SIGKILL');
   });
 });

@@ -8,6 +8,7 @@ import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readLane, stackContainer } from './lane.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const configPath = path.join(repo, 'supabase', 'config.toml');
@@ -20,8 +21,13 @@ export function projectId() {
   return m[1];
 }
 
+/** `supabase_db_<project_id>` of this process's lane (EZD-172). */
+export function localDbContainer(env = process.env) {
+  return stackContainer('db', projectId(), readLane(env));
+}
+
 export function runLocalSql(sqlText) {
-  const container = `supabase_db_${projectId()}`;
+  const container = localDbContainer();
   const args = ['exec', '-i', container, 'psql', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A'];
   return new Promise((resolve) => {
     let stdout = '';

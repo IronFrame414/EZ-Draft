@@ -81,11 +81,12 @@ test.describe('EZD-007f sign-in pages', () => {
       await page.getByTestId('confirm-submit').click();
       await page.waitForURL((u) => u.pathname === '/');
       expect(path(page)).toBe('/');
-      await expect(page.getByTestId('sign-out')).toBeVisible();
+      await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
       const signedIn = await sbCookies(context);
       expect(signedIn.filter((c) => c.httpOnly).length).toBeGreaterThanOrEqual(1);
 
-      await page.getByTestId('sign-out').click();
+      await page.getByTestId('avatar-menu-trigger').click();
+      await page.getByTestId('avatar-menu-sign-out').click();
       await page.waitForURL((u) => u.pathname === '/sign-in');
       expect(path(page)).toBe('/sign-in');
       await page.goto('/');
@@ -118,7 +119,7 @@ test.describe('EZD-007f sign-in pages', () => {
       await page.getByTestId('sign-in-code-submit').click();
       await page.waitForURL((u) => u.pathname === '/');
       expect(path(page)).toBe('/');
-      await expect(page.getByTestId('sign-out')).toBeVisible();
+      await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
       expect(requested.filter((p) => p === '/auth/confirm')).toHaveLength(0);
       await context.close();
     });
@@ -178,13 +179,14 @@ test.describe('EZD-007f sign-in pages', () => {
     await waitUntil(firstAt + EMAIL_GAP_MS);
     await signInWithCode(pageB, m.email);
 
-    await pageA.getByTestId('sign-out').click();
+    await pageA.getByTestId('avatar-menu-trigger').click();
+    await pageA.getByTestId('avatar-menu-sign-out').click();
     await pageA.waitForURL((u) => u.pathname === '/sign-in');
     expect(path(pageA)).toBe('/sign-in');
 
     await pageB.reload();
     expect(path(pageB)).toBe('/');
-    await expect(pageB.getByTestId('sign-out')).toBeVisible();
+    await expect(pageB.getByTestId('avatar-menu-trigger')).toBeVisible();
     await a.close();
     await b.close();
   });
@@ -236,7 +238,9 @@ test.describe('EZD-007f sign-in pages', () => {
     await expect(langBox(pageA)).toHaveAttribute('lang', 'es');
     const m = await activeMember();
     await signInWithCode(pageA, m.email);
-    await expect(pageA.getByTestId('sign-out')).toHaveText(text('en', 'common.sign_in.sign_out'));
+    await expect(pageA.getByTestId('projects-title')).toHaveText(
+      text('en', 'office.projects.title'),
+    );
     const { data, error } = await adminDb()
       .from('app_user')
       .select('language')

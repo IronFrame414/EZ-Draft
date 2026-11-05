@@ -67,9 +67,16 @@ Rule: never write a test that reads a document's wording or the live vault; test
 Check: grep the new test files for `docs/`, `CLAUDE.md` and `vault/` reads before committing.
 
 
-## L-046  areas: ledger, tests  seen: 1  status: candidate
+## L-046  areas: ledger, tests  seen: 1  status: ratified
 Q-0544, 2026-11-03
 Mistake: the phase 3 sign-off turned develop red and blocked every merge, because tooling-track.test.mjs named phases 1 and 2 in its fixture. EZD-278 and EZD-281 had already fixed the same gap in ledger-copy.mjs and priority.test.mjs, but not here.
 Cause: several ledger tests build their own copy of the ledger, each with its own rule for which phases stay quiet, so a fix to one did not reach the others.
 Rule: a fixture over the live ledger never names the phases it keeps quiet; it blocks every later phase signed off in the copy's SIGNOFF.md, and leaves unsigned phases alone.
 Check: grep new ledger test fixtures for `ph === 1`, `ph === 2` and `phase === 2`, and run them with an extra phase signed in a scratch copy.
+
+## L-056  areas: tooling, scripts  seen: 1  status: ratified
+Ticket EZD-326, 2026-11-04
+Mistake: the test-author symlinked node_modules into the ticket worktree, which broke pnpm there; the orchestrator removed the link.
+Cause: a shortcut to make the tests run without an install.
+Rule: a test-author never links or copies node_modules into a worktree; the gate installs it (pnpm install --frozen-lockfile).
+Check: `ls -la <worktree>/node_modules` is not a symlink before the gate runs.

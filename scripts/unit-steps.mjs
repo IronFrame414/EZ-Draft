@@ -70,8 +70,9 @@ function testCount(text) {
 function preflight() {
   const branch = out(git('rev-parse', '--abbrev-ref', 'HEAD'));
   if (branch !== 'develop') stop(`PREFLIGHT STOP: main checkout is on ${branch}, not develop`);
-  // Other lanes' uncommitted vault/ edits are not this unit's (EZD-173).
-  const dirty = out(git('status', '--porcelain', '--untracked-files=no', '--', '.', ':(exclude)vault'));
+  // Other lanes' uncommitted vault/ edits are not this unit's (EZD-173). Read under the ledger lock: another lane's merge
+  // stages its squash only inside its ledger hold, so this check never sees it half done (EZD-174).
+  const dirty = withLedgerLock(root, { owner: owner() }, () => out(git('status', '--porcelain', '--untracked-files=no', '--', '.', ':(exclude)vault')));
   if (dirty) stop(`PREFLIGHT STOP: develop has uncommitted changes:\n${dirty.split('\n').slice(0, 3).join('\n')}`);
   const check = sh(process.execPath, ['vault/tools/next_ticket.mjs', '--check']);
   if (check.status !== 0) stop(`PREFLIGHT STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
@@ -111,6 +112,41 @@ function stageEntry(text, entry) {
   if (staged.status) stop(`STOP: tickets.json entry failed: ${firstLine(staged)}`);
   writeFileSync(path.join(root, TICKETS_REL), withEntry(readFileSync(path.join(root, TICKETS_REL), 'utf8'), entry));
 }
+// The entry the merge commits (EZD-329): the held entry, else the given one, with the Architecture list of the plan text.
+function entryFor(base, planText) {
+  const db = openRecords(dbPath());
+  let held;
+  try { held = planRecord(db, ticket); } finally { db.close(); }
+  const planned = planText !== null ? planArchitecture(planText) : {};
+  return { ...(held?.entry ?? base), ...(planned.list ? { architecture: planned.list } : {}) };
+}
+// The worktree's tickets.json carries that entry, uncommitted and skip-worktree, so its gate sees plan and entry together
+// (a tooling mark waits for its plan, 3816452b) and no t/<T> commit takes it: the merge commits it once.
+const entryFail = (r) => stop(`STOP: tickets.json entry failed: ${firstLine(r)}`);
+function writeWorktreeEntry(wt) {
+  if (!existsSync(wt)) return;
+  const shown = sh('git', ['-C', wt, 'show', `:${TICKETS_REL}`]);
+  if (shown.status) entryFail(shown);
+  const base = JSON.parse(shown.stdout).tickets.find((x) => x.id === ticket);
+  if (!base) return;
+  const planFile = path.join(wt, planRel());
+  const entry = entryFor(base, existsSync(planFile) ? readFileSync(planFile, 'utf8') : null);
+  if (JSON.stringify(entry) === JSON.stringify(base)) return;
+  const flag = sh('git', ['-C', wt, 'update-index', '--skip-worktree', '--', TICKETS_REL]);
+  if (flag.status) entryFail(flag);
+  writeFileSync(path.join(wt, TICKETS_REL), withEntry(shown.stdout, entry));
+}
+// Before git merges into the worktree or removes it: the flag off and the file back to the index copy.
+function clearWorktreeEntry(wt) {
+  if (!existsSync(wt)) return;
+  const v = sh('git', ['-C', wt, 'ls-files', '-v', '--', TICKETS_REL]);
+  if (v.status) entryFail(v);
+  if (!out(v).startsWith('S ')) return;
+  for (const args of [['update-index', '--no-skip-worktree', '--', TICKETS_REL], ['checkout', '--', TICKETS_REL]]) {
+    const r = sh('git', ['-C', wt, ...args]);
+    if (r.status) entryFail(r);
+  }
+}
 function commitHeldEntry() {
   const db = openRecords(dbPath());
   let held;
@@ -118,10 +154,14 @@ function commitHeldEntry() {
   if (!held?.entry) return false;
   const text = git('show', `HEAD:${TICKETS_REL}`).stdout;
   const now = JSON.parse(text).tickets.find((x) => x.id === ticket);
-  if (!now || JSON.stringify(now) === JSON.stringify(held.entry)) return false;
-  stageEntry(text, held.entry);
+  // A tooling mark waits for its plan (the feat commit brings both): on develop alone it fails the ledger check, and any other session's push carries it (CI red at 973638e3).
+  const planTracked = git('ls-files', '--error-unmatch', '--', planRel()).status === 0;
+  const { track, ...unmarked } = held.entry;
+  const entry = planTracked ? held.entry : unmarked;
+  if (!now || JSON.stringify(now) === JSON.stringify(entry)) return false;
+  stageEntry(text, entry);
   // A plan already on develop goes with its entry, or develop's ledger check sees the two differ.
-  if (git('ls-files', '--error-unmatch', '--', planRel()).status === 0) git('add', '--', planRel());
+  if (planTracked) git('add', '--', planRel());
   const c = git('commit', '-q', '-m', `docs(vault): ${ticket} tickets.json entry from its plan`);
   if (c.status) stop(`WORKTREE STOP: entry commit failed: ${firstLine(c)}`);
   console.log(`ENTRY ${ticket} committed on develop`);
@@ -146,6 +186,7 @@ function worktree() {
       const tests = subjects.some((s) => s.startsWith(`test(${ticket})`)) ? 'yes' : 'no';
       const wip = subjects.filter((s) => s.startsWith(`wip(${ticket})`)).length;
       if (entryCommitted) {
+        clearWorktreeEntry(wt);
         sh('git', ['-C', wt, 'checkout', '--', planRel()]); // the plan copy comes back below (copyPlan)
         const up = sh('git', ['-C', wt, 'merge', '-q', '--no-edit', 'develop']);
         if (up.status) { sh('git', ['-C', wt, 'merge', '--abort']); console.log(`WORKTREE NOTE: merge develop into ${rel} before the gate (${firstLine(up)})`); }
@@ -165,6 +206,7 @@ function worktree() {
       }
     }
     copyPlan(wt);
+    writeWorktreeEntry(wt);
     if (rowOf(ticket).status === 'ready') { setStatus({ status: 'in-progress' }); console.log(`STATUS ${ticket} → in-progress`); }
     else console.log(`STATUS ${ticket} → ${rowOf(ticket).status}`);
   });
@@ -237,6 +279,7 @@ function updateBranch(t) {
       console.log(`MERGE UPDATE ${t}: ${br} already contains develop ${short}`);
       return 0;
     }
+    clearWorktreeEntry(wt);
     const mg = sh('git', ['-C', wt, 'merge', '--no-ff', '--no-edit', '-m', `chore(${t}): update from develop ${short}`, dev]);
     if (mg.status) {
       const u = out(sh('git', ['-C', wt, 'diff', '--name-only', '--diff-filter=U'])).split('\n').filter(Boolean);
@@ -244,17 +287,21 @@ function updateBranch(t) {
       if (u.length) {
         const denied = u.filter((f) => !builderMayWrite(t, f));
         if (!denied.length) {
+          writeWorktreeEntry(wt);
           console.log(`MERGE CLASH ${t}: merging develop ${short} into ${br} conflicts in ${listPaths(u)}; merge left open in .claude/worktrees/${t} for the builder; develop untouched.`);
           return 4;
         }
         sh('git', ['-C', wt, 'merge', '--abort']);
+        writeWorktreeEntry(wt);
         console.log(`MERGE STOP ${t}: merging develop ${short} into ${br} conflicts in ${listPaths(u)}; ${denied[0]} is not the builder's to write; merge aborted, develop untouched, worktree kept.`);
         return 3;
       }
       if (inMerge()) sh('git', ['-C', wt, 'merge', '--abort']);
+      writeWorktreeEntry(wt);
       console.log(`MERGE STOP ${t}: merging develop ${short} into ${br} failed: ${firstLine(mg)}; develop untouched`);
       return 3;
     }
+    writeWorktreeEntry(wt);
     console.log(`MERGE GATE ${t}: merged develop ${short} into ${br}; run node scripts/gate.mjs .claude/worktrees/${t}, then merge again; develop untouched.`);
     return 5;
   }
@@ -292,16 +339,12 @@ function merge() {
         // Research reports adopted during the build (ledger.mjs research) travel with the ticket too.
         git('add', '--', 'vault/research', ':(exclude)vault/research/pending');
         // The ticket's tickets.json entry (its Architecture line) waits in the records database until now (D9 (a)).
-        const db = openRecords(dbPath());
-        let held;
-        try { held = planRecord(db, ticket); } finally { db.close(); }
         // Commit this ticket's entry on the squash's own copy: another ticket still uncommitted in the checkout's file has no phase row yet on develop (Q-0544).
         // The Architecture list comes from the plan going into this commit: a plan amended during the unit is newer than the held entry (CI red at cd5ef475).
         const shown = git('show', `:${TICKETS_REL}`);
         const onDevelop = shown.status === 0 ? JSON.parse(shown.stdout).tickets.find((x) => x.id === ticket) : null;
         if (onDevelop) {
-          const planned = plan !== null ? planArchitecture(plan.toString('utf8')) : {};
-          const entry = { ...(held?.entry ?? onDevelop), ...(planned.list ? { architecture: planned.list } : {}) };
+          const entry = entryFor(onDevelop, plan !== null ? plan.toString('utf8') : null);
           if (JSON.stringify(entry) !== JSON.stringify(onDevelop)) stageEntry(shown.stdout, entry);
         }
         const c = git('commit', '-q', '-m', `feat(${ticket}): ${row.title}`);
@@ -319,6 +362,7 @@ function merge() {
       const wtDir = path.join(root, '.claude/worktrees', ticket);
       const wtPlan = path.join(wtDir, planRel());
       if (existsSync(wtPlan) && sh('git', ['-C', wtDir, 'ls-files', '--error-unmatch', '--', planRel()]).status !== 0) unlinkSync(wtPlan);
+      clearWorktreeEntry(wtDir);
       const removed = git('worktree', 'remove', `.claude/worktrees/${ticket}`);
       if (removed.status === 0) git('branch', '-D', `t/${ticket}`);
       setStatus({ status: 'done', commit: hash, tests });

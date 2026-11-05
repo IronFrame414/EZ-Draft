@@ -106,7 +106,7 @@ test('EZD-277 T6 write guard judges other spellings like the listed case (AC-EZD
   add('test-author', M, ['SRC/x.ts'], 'deny');
   add('ui-verifier', M, ['VAULT/plans/shots/a.png'], 'allow');
   add('retriever-digest', M, ['Vault/Research/Pending/r.md'], 'allow');
-  add('builder', M, ['.claude/worktrees/ezd-000b/.claude/settings.json'], 'allow');
+  add('builder', M, ['.claude/worktrees/ezd-000b/.claude/settings.json'], 'deny');
   add('builder', M, ['.claude/worktrees/EZD-000B/Scripts/Gate.mjs'], 'deny');
   add('builder', M, ['.claude/worktrees/ezd-000k/.claude/settings.json'], 'deny');
   assert.deepEqual(rows.map(([a, r, f]) => [a, f, decide(a, r, f).verdict]), rows.map(([a, , f, w]) => [a, f, w]));

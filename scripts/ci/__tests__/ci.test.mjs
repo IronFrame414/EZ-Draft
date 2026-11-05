@@ -891,6 +891,8 @@ function childEnv(tmp) {
   const env = { ...process.env };
   delete env.EZD_TEST_GREP;
   delete env.EZD_PHASE;
+  delete env.EZD_LANE; // lane stack env: the fixture gate checks lane 0 behavior
+  delete env.SUPABASE_WORKDIR;
   delete env.NODE_TEST_CONTEXT; // set by the outer node --test; a nested node --test must start clean
   if (tmp) { env.TMP = tmp; env.TEMP = tmp; env.TMPDIR = tmp; }
   return env;

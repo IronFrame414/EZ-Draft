@@ -49,6 +49,6 @@ test.describe('EZD-024 browser error reporting', () => {
     expect(events()).toHaveLength(2);
     expect(emails()).toHaveLength(1);
 
-    expect([...hosts]).toEqual(['127.0.0.1:3000']);
+    expect([...hosts]).toEqual([new URL(String(test.info().project.use.baseURL)).host]);
   });
 });

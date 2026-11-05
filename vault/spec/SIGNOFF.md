@@ -8,3 +8,4 @@
 | 1 | Josh | 2026-10-20 | Approved in chat after spec check (Q-0223 to Q-0235). |
 | 2 | Josh | 2026-10-29 | Approved in chat after spec check (Q-0390 to Q-0425; round 6 clean): "phase 2 is signed-off and approved". |
 | 3 | Josh | 2026-11-03 | Approved in chat after spec check (Q-0500 to Q-0540; round 8 clean): "Sign off phase 3". EZD-299 (conflict list) stays blocked until Josh approves board S03b (Q-0510). |
+| 4 | Josh | 2026-11-04 | Approved in chat after spec check (Q-0558 to Q-0570, Q-0474; round 3 clean, e831de5a): "phase 4 was approved. push it through." Boards S03b (conflict list, EZD-299) and S03c (AI assistant) are still owed from Cowork; neither holds up phase 4. |

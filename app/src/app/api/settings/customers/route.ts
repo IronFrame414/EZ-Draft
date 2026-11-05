@@ -3,6 +3,8 @@
 // Company settings switch), 400 (query or body), then the session client (RLS: the claim tenant). A
 // duplicate email in the company is 400 `customer_email_taken`. `customer.created` is emitted after the
 // insert; a failed emit does not fail the save.
+// EZD-118 Build step 7 (vault/plans/EZD-118.md Decided "Customers GET", "Customers POST"; Q-0400; Q-0414):
+// Company settings or Create projects opens both; the archived list stays with Company settings (Q-0227).
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { currentTenantId } from '../../../../server/company/company';
 import {
@@ -17,7 +19,7 @@ import { errorType } from '../../../../server/errors/fingerprint';
 import { reportError } from '../../../../server/errors/report';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { emit } from '../../../../server/events';
-import { requireApiPermission } from '../../../../server/permissions';
+import { can, requireApiPermission } from '../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,10 +32,13 @@ const fail = (status: number, code: string, messageKey = `error.${code}`) =>
 
 export async function GET(request: Request): Promise<Response> {
   try {
-    const p = await requireApiPermission('settings_company');
+    const p = await requireApiPermission(['settings_company', 'create_projects']);
     if (p instanceof Response) return p;
     const query = parseListQuery(new URL(request.url).searchParams);
     if (query === null) return fail(400, 'invalid_input');
+    if (query.archived && !can(p.ctx, 'settings_company')) {
+      return fail(403, 'permission_denied', 'error.not_authorized');
+    }
     const page = await listCustomers(createSessionClient(), query);
     return Response.json(page, { status: 200, headers });
   } catch (e) {
@@ -44,7 +49,7 @@ export async function GET(request: Request): Promise<Response> {
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const p = await requireApiPermission('settings_company');
+    const p = await requireApiPermission(['settings_company', 'create_projects']);
     if (p instanceof Response) return p;
 
     let raw: unknown;

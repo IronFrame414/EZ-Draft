@@ -16,6 +16,7 @@ import {
   createUnconfirmedPasswordUser,
   randomPassword,
 } from '../../../test-harness/auth-users';
+import { holdErrorAlertLock } from '../../../test-harness/errors/alert-lock';
 import { countAuthEmails, waitForRawEmail } from '../../../test-harness/mail-catcher';
 import {
   cleanup,
@@ -146,10 +147,15 @@ async function authUserRow(email: string) {
 
 describe('EZD-033 password sign-in actions', () => {
   let tenant: string;
+  // EZD-251 (C1): the Auth-outage branch (T18) writes error_alert rows (actions.ts line 141), so the file holds the
+  // error_alert test lock for its whole run (test-harness/errors/alert-lock.ts lines 1-6).
+  let releaseLock: () => Promise<void> = async () => {};
 
   beforeAll(async () => {
+    releaseLock = await holdErrorAlertLock();
+    await harnessSql()`delete from public.error_alert`;
     tenant = await createTenant();
-  });
+  }, 180000);
 
   beforeEach(() => {
     activate(newStore());
@@ -157,10 +163,15 @@ describe('EZD-033 password sign-in actions', () => {
   });
 
   afterAll(async () => {
-    await cleanupTestMembers();
-    await cleanup();
-    await closeHarness();
-  });
+    try {
+      await harnessSql()`delete from public.error_alert`;
+      await cleanupTestMembers();
+      await cleanup();
+      await closeHarness();
+    } finally {
+      await releaseLock();
+    }
+  }, 180000);
 
   it('EZD-033 T3 wrong password, unknown email and unconfirmed account give the same result', async () => {
     const wrong = { resolved: { error: 'password_wrong' } };
