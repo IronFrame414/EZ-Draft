@@ -271,9 +271,14 @@ test.describe('EZD-117a Projects page', () => {
 
   test('EZD-117a B6 a card is not a link: a click changes nothing', async ({ page, signInAs }) => {
     const { owner, ids } = await fixtureS();
+    // EZD-334: the landing settle (EZD-117b E11): the bell's mount GET and first-join resync, after sign-in and again after
+    // the page load, finish before the count starts, so only a request the click causes is counted.
+    const landing = countNotificationGets(page);
     await signInAs(owner.email);
+    await expect.poll(landing).toBe(2);
     await page.goto('/');
     await expect(page.getByTestId('project-card')).toHaveCount(6);
+    await expect.poll(landing).toBe(4);
     let navigations = 0;
     page.on('framenavigated', () => {
       navigations++;

@@ -2,7 +2,7 @@
 // Every phase 1 ticket that is not done is blocked (a blocked row needs a note), no open question row, no ticket in flight,
 // and the given synthetic phase 1 tickets (numbered above every real ticket) are added. The result never depends on where
 // the live ledger stands.
-import { cpSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync, rmSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -20,6 +20,8 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
   mkdirSync(path.join(dir, 'docs'), { recursive: true });
   cpSync(path.join(repo, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/LAUNCHER_FIX.md']) if (existsSync(file(f))) rmSync(file(f));
+  // EZD-334: the live gate records of phase 2 and up (an open phase PR) would hold every unit; a test that wants one writes its own.
+  for (const g of readdirSync(file('tickets/gates'))) if (/^phase-\d+\.md$/.test(g) && Number(g.slice(6, -3)) >= 2) rmSync(file(`tickets/gates/${g}`));
   const tool = (name, args, env = {}) => spawnSync(process.execPath, [file(`tools/${name}`), ...args], { encoding: 'utf8', cwd: dir, env: { ...process.env, ...env } });
   const tickets = () => JSON.parse(readFileSync(file('tickets/tickets.json'), 'utf8'));
   const setTickets = (data) => writeFileSync(file('tickets/tickets.json'), JSON.stringify(data, null, 1) + '\n');

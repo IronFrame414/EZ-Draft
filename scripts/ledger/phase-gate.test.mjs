@@ -4,7 +4,7 @@
 // reaches GitHub.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -93,6 +93,9 @@ function makeCopy({ later }) {
   // (6) phase 1 has no gate record and no cost file
   rmSync(file('cost/phase-01.md'), { force: true });
   rmSync(file('tickets/gates/phase-01.md'), { force: true });
+  // EZD-334: nor do the later phases: the live gate and cost records of phase 2 and up (an open phase PR) are not this test's state.
+  for (const [d, re] of [['tickets/gates', /^phase-\d+\.md$/], ['cost', /^phase-\d+\.md$/]])
+    for (const g of readdirSync(file(d))) if (re.test(g) && Number(g.slice(6, -3)) >= 2) rmSync(file(`${d}/${g}`), { force: true });
 
   // D7: run the tool in the copy with the gh shim first on PATH.
   const nt = (...args) => spawnSync(process.execPath, [file('tools/next_ticket.mjs'), ...args], {
