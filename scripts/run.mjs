@@ -68,7 +68,7 @@ const { costEntry } = await import('./cost-log.mjs');
 const {
   idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
   isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
-  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES,
+  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES, AUTO_MERGE_OFF_RE, PR_GREEN_OPEN_RE,
 } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 // Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
@@ -632,6 +632,7 @@ async function main() {
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   let failedWait = null; // the next-unit text a failed repair was started for; the same wait keeps state repair-failed (D7)
+  const prActionTried = new Set(); // EZD-336: PR wait texts the launcher already tried to clear
   // Lanes (EZD-174): the running units (`<unit> <arg>` → { unit, arg, dbLane, resume, before, task }), the per-key guards,
   // why the launcher stops once they end, and when a pause after three set-asides ends.
   const running = new Map();
@@ -834,6 +835,25 @@ async function main() {
       if (!/^none:/.test(effective)) {
         try { unlinkSync(repairStateFile); } catch {}
         repairs = 0;
+      } else if ((AUTO_MERGE_OFF_RE.test(effective) || PR_GREEN_OPEN_RE.test(effective)) && !prActionTried.has(effective)) {
+        // EZD-336 (Josh 2026-11-05, decisions process.md a57931ba: Claude Code completes its own PRs; a refused auto-merge or an
+        // open PR after a green gate is a stop cause the overseer clears). A unit meets the settings ask rule for `gh pr merge`,
+        // so the launcher does it, once per wait text, logs it for Josh and sends nothing. The gate stays required (rule 12):
+        // GitHub refuses either command while the required check is not green.
+        prActionTried.add(effective);
+        const off = AUTO_MERGE_OFF_RE.test(effective);
+        const url = (effective.match(AUTO_MERGE_OFF_RE) || effective.match(PR_GREEN_OPEN_RE))[1];
+        const what = off ? 'AUTO-MERGE' : 'MERGE';
+        const m = spawnSync('gh', ['pr', 'merge', url, ...(off ? ['--auto'] : []), '--merge'], { cwd: root, encoding: 'utf8', timeout: 60000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+        if (m.status === 0) { overseerAppend(`launcher: ${what}: ${off ? 'on for' : 'merged'} ${url}`); log(`${what.toLowerCase()} done for ${url}`); }
+        else {
+          const why = `${m.stderr || ''}\n${m.stdout || ''}`.split('\n').map((l) => l.trim()).find(Boolean) || (m.error ? `gh error ${m.error.code}` : `gh exited ${m.status}`);
+          overseerAppend(`launcher: ${what}: FAILED: ${why}`);
+          // Code review finding 3 (CLAUDE.md rule 17, third-party clause): a refused clear would hold the launcher, so Josh hears it once.
+          notify(`launcher waiting: ${effective.replace(/^none:\s*/, '')}; the launcher could not clear it: ${why}`);
+          log(`${what.toLowerCase()} for ${url} failed: ${why}`);
+        }
+        continue;
       } else if (existsSync(probeFile)) {
         // EZD-333: the one-shot probe (vault/handoff/REPAIR_PROBE.md) proves a launcher-started repair unit may edit a guarded
         // file in fix mode. Any wait will do; it sets no repair state and counts toward no cap.

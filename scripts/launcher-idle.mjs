@@ -24,7 +24,14 @@ export const JOSH_REASONS = [
   /^none: waiting on Josh \(tickets with open questions/,
   /^none: waiting on Josh \(guard grant/,
   /^none: waiting for the phase \d+ PR to auto-merge/,
+  // EZD-336 (Josh 2026-11-05, a57931ba): auto-merge off and a green gate on an open PR are cleared by the launcher itself
+  // (scripts/run.mjs; a unit meets the settings ask rule), never by a repair unit.
+  /^none: phase \d+ PR auto-merge is off/,
+  /^none: phase \d+ PR gate is green but not merged/,
 ];
+// EZD-336: the two PR waits the launcher clears itself; group 1 is the PR URL.
+export const AUTO_MERGE_OFF_RE = /^none: phase \d+ PR auto-merge is off \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+)\)$/;
+export const PR_GREEN_OPEN_RE = /^none: phase \d+ PR gate is green but not merged \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+)\)$/;
 
 export function idleAction({ stopExists, next, once = false }) {
   const none = /^none:/.test(next);
@@ -34,7 +41,8 @@ export function idleAction({ stopExists, next, once = false }) {
   const reason = next.replace(/^none:\s*/, '');
   if (/budget hold/.test(reason)) return { action: 'stop' };
   // A held ticket's guard grant already reached Josh as one patch notification (D11, D12d).
-  const notify = /^waiting on Josh \(guard grant/.test(reason) ? null : `launcher waiting: ${reason}`;
+  // EZD-336: the launcher clears the two PR waits itself and logs them (Josh 2026-11-05: Claude Code completes its own PRs).
+  const notify = /^waiting on Josh \(guard grant|^phase \d+ PR (auto-merge is off|gate is green but not merged)/.test(reason) ? null : `launcher waiting: ${reason}`;
   return { action: 'wait', ms: NONE_POLL_MS, why: `nothing to run: ${reason}; re-checking every 5 minutes`, notify };
 }
 
@@ -49,7 +57,7 @@ export function repairDecision({ next, state, consecutive }) {
   if (consecutive >= REPAIR_CAP) return { action: 'skip', why: 'cap' };
   const fp = fingerprint(next);
   if (state?.fp === fp) return { action: 'skip', why: 'tried' };
-  const kind = next.startsWith('none: ledger check failed') ? 'check' : /^none: phase \d+ PR CI gate check failed/.test(next) ? 'ci' : 'waiting';
+  const kind = next.startsWith('none: ledger check failed') ? 'check' : /^none: phase \d+ PR CI gate check (failed|cancelled)/.test(next) ? 'ci' : 'waiting';
   return { action: 'repair', fp, kind };
 }
 

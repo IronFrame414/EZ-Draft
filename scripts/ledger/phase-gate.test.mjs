@@ -21,9 +21,9 @@ const OPEN_PR = `PR: ${PR}\nDevelop at PR: 0000000\nMerged: no\n`;
 const MERGED = `PR: ${PR}\nDevelop at PR: 0000000\nMerged: yes\n`;
 const COST_01 = '# Phase 1 cost (test)\n';
 
-// D8: one gh shim per test file. `gh pr checks` gets one pending check and exits 8.
+// D8: one gh shim per test file. `gh pr view` gets one pending gate check with auto-merge on (EZD-336: one call, autoMergeRequest and statusCheckRollup).
 const shimDir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd254-gh-')));
-writeFileSync(path.join(shimDir, 'gh'), `#!/bin/sh\necho '[{"name":"gate","bucket":"pending","link":"x"}]'\nexit 8\n`);
+writeFileSync(path.join(shimDir, 'gh'), `#!/bin/sh\necho '{"autoMergeRequest":{"mergeMethod":"MERGE"},"statusCheckRollup":[{"__typename":"CheckRun","name":"gate","status":"IN_PROGRESS","conclusion":"","detailsUrl":"x"}]}'\nexit 0\n`);
 chmodSync(path.join(shimDir, 'gh'), 0o755);
 
 const copies = [];

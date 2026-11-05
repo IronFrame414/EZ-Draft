@@ -960,17 +960,38 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
     if (aside.has(`gate-phase ${p}`) || aside.has(`wrap ${p}`)) continue;
     if (g.state === 'not-gated' || g.state === 'gating') return `gate-phase ${p}`;
     if (g.state === 'pr-open') {
-      // EZD-250 D18 (Q-0379 (b)): a failed CI `gate` check on the phase PR is a repairable wait; any other CI state keeps the wait.
-      const r = spawnSync('gh', ['pr', 'checks', g.pr, '--json', 'name,bucket,link'], { cwd: root, encoding: 'utf8', timeout: 30000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
-      let checks = null;
-      try { checks = JSON.parse(r.stdout); } catch {}
-      if (!Array.isArray(checks)) {
+      // EZD-250 D18 (Q-0379 (b)): a failed CI `gate` check on the phase PR is a repairable wait. EZD-336: so is a cancelled or
+      // timed-out one (a push run cut off at its time limit held PR 5 for 3.5 hours on 2026-11-05), and auto-merge being off is
+      // its own wait, which the launcher clears itself (Q-0261). One read: the PR's auto-merge state and its check runs.
+      const r = spawnSync('gh', ['pr', 'view', g.pr, '--json', 'autoMergeRequest,statusCheckRollup,baseRefName,headRefName,url'], { cwd: root, encoding: 'utf8', timeout: 30000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+      let pr = null;
+      try { pr = JSON.parse(r.stdout); } catch {}
+      if (!pr || typeof pr !== 'object' || !Array.isArray(pr.statusCheckRollup)) {
         const detail = (r.stderr || '').split('\n').map((l) => l.trim()).find(Boolean)
           || (r.error?.code === 'ENOENT' ? 'gh not found' : r.error ? `gh error ${r.error.code}` : `gh exited ${r.status}`);
         return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr}; CI status unreadable: ${detail})`;
       }
-      const failed = checks.find((c) => c?.name === 'gate' && c?.bucket === 'fail');
-      if (failed) return `none: phase ${p} PR CI gate check failed (${g.pr}; ${typeof failed.link === 'string' && failed.link ? failed.link : 'no link'})`;
+      const gateRuns = pr.statusCheckRollup.filter((c) => c?.name === 'gate' && c?.__typename !== 'StatusContext' && c?.status === 'COMPLETED');
+      const linkOf = (c) => (typeof c.detailsUrl === 'string' && c.detailsUrl ? c.detailsUrl : 'no link');
+      const failed = gateRuns.find((c) => ['FAILURE', 'STARTUP_FAILURE', 'ACTION_REQUIRED'].includes(c.conclusion));
+      if (failed) return `none: phase ${p} PR CI gate check failed (${g.pr}; ${linkOf(failed)})`;
+      const cancelled = gateRuns.find((c) => ['CANCELLED', 'TIMED_OUT'].includes(c.conclusion));
+      if (cancelled) return `none: phase ${p} PR CI gate check cancelled (${g.pr}; ${linkOf(cancelled)})`;
+      // EZD-336 security review 1: the launcher clears only this repository's develop -> main PR, at the URL the gate record names.
+      const origin = spawnSync('git', ['-C', root, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).stdout.trim();
+      const repo = origin.match(/github\.com[:/]([\w.-]+\/[\w.-]+?)(?:\.git)?$/)?.[1];
+      const prefix = repo ? `https://github.com/${repo}/pull/` : null;
+      const urlOk = typeof pr.url === 'string' && pr.url === g.pr && !!prefix && pr.url.startsWith(prefix) && /^\d+$/.test(pr.url.slice(prefix.length));
+      const targetOk = pr.baseRefName === 'main' && pr.headRefName === 'develop' && urlOk;
+      // Only the two waits the launcher clears itself need the check; any other target keeps the plain wait, with the reason.
+      const unexpected = () => `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr}; PR target unexpected: ${
+        pr.baseRefName === 'main' && pr.headRefName === 'develop' ? `url ${pr.url}` : `base ${pr.baseRefName}, head ${pr.headRefName}`})`;
+      if (!pr.autoMergeRequest) return targetOk ? `none: phase ${p} PR auto-merge is off (${g.pr})` : unexpected();
+      // Josh 2026-11-05 (decisions process.md): an open PR after a green gate is a stop cause too; the launcher merges it.
+      const allGate = pr.statusCheckRollup.filter((c) => c?.name === 'gate' && c?.__typename !== 'StatusContext');
+      if (allGate.length && allGate.every((c) => c.status === 'COMPLETED' && ['SUCCESS', 'NEUTRAL', 'SKIPPED'].includes(c.conclusion))) {
+        return targetOk ? `none: phase ${p} PR gate is green but not merged (${g.pr})` : unexpected();
+      }
       return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr})`;
     }
     if (g.state === 'merged') return `wrap ${p}`;

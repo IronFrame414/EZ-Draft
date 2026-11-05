@@ -275,4 +275,4 @@ export const planText = (id, paths) =>
     '',
   ].join('\n');
 
-export const GH_ARGV = 'pr checks https://github.com/o/r/pull/5 --json name,bucket,link';
+export const GH_ARGV = 'pr view https://github.com/o/r/pull/5 --json autoMergeRequest,statusCheckRollup,baseRefName,headRefName,url';
