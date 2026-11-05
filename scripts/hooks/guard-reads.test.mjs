@@ -93,9 +93,9 @@ test('EZD-000c T10 settings register the hook and env; CLAUDE.md rule 10 has the
   const pre = s.hooks.PreToolUse;
   const mine = pre.filter((e) => e.hooks.some((h) => (h.args || []).some((a) => a.endsWith('/.claude/hooks/guard-reads.mjs'))));
   assert.equal(mine.length, 1);
-  assert.deepEqual(mine[0], { matcher: 'Read|Bash', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-reads.mjs'] }] });
+  assert.deepEqual(mine[0], { matcher: 'Read|Bash|Grep|Glob', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-reads.mjs'] }] });
   const re = new RegExp('^(?:' + mine[0].matcher + ')$');
-  assert.ok(re.test('Read') && re.test('Bash') && !re.test('Write') && !re.test('Edit'));
+  assert.ok(re.test('Read') && re.test('Bash') && re.test('Grep') && re.test('Glob') && !re.test('Write') && !re.test('Edit'));
   assert.deepEqual(pre.filter((e) => e !== mine[0]), [
     { matcher: 'Edit|Write|NotebookEdit', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-paths.mjs'] }] },
     { matcher: 'Bash', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.mjs'] }] },

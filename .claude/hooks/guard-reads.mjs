@@ -1,4 +1,4 @@
-// PreToolUse on Read and Bash: a text file over GUARD_WHOLE_READ_CHARS is not loaded whole; the caller gets its outline
+// PreToolUse on Read, Bash, Grep and Glob: a Read, Grep or Glob that names or can reach a secret file is denied first, failing closed (secret-paths.mjs, EZD-279). A text file over GUARD_WHOLE_READ_CHARS is not loaded whole; the caller gets its outline
 // and reads by range (vault/handoff/PA3-MECHANISMS.md Item 3; vault/PROCESS.md section 10). Fails open on any error.
 // A notebook (.ipynb) over the limit is denied even with offset, limit or pages, because the Read tool ignores them on
 // notebooks and returns every cell; its denial ends with NOTEBOOK_SENTENCE instead (EZD-198; vault/handoff/PILOT.md row 13).
@@ -231,6 +231,11 @@ function rangedReason(over, T) {
 try {
   const input = readInput();
   const tool = input.tool_name;
+  if (tool === 'Read' || tool === 'Grep' || tool === 'Glob') {
+    let why = null;
+    try { const { secretReason } = await import('./secret-paths.mjs'); why = secretReason(tool, input.tool_input || {}, input.cwd || projectDir()); } catch (e) { why = `The secret-file check could not run (${e && e.message ? e.message : String(e)}); this ${tool} call is refused (Q-0459).`; }
+    if (why) deny(why);
+  }
   if (tool === 'Read' || tool === 'Bash') {
     const cwd = input.cwd || projectDir();
     const T = threshold();

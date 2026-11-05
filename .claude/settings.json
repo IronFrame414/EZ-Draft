@@ -114,7 +114,7 @@
         ]
       },
       {
-        "matcher": "Read|Bash",
+        "matcher": "Read|Bash|Grep|Glob",
         "hooks": [
           { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-reads.mjs"] }
         ]
