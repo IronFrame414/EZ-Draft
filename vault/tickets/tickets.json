@@ -18833,6 +18833,39 @@
     "AC-EZD-353-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-354",
+   "phase": 1,
+   "title": "Build system: the gate's checks run as the separate ezdraft macOS user, so code they run cannot reach Josh's keychain or files",
+   "depends_raw": "EZD-344, EZD-345",
+   "spec_ref": "Q-0602; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Build lanes (EZD-172)",
+    "Local database"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-344",
+    "EZD-345"
+   ],
+   "build_position": 610,
+   "acs": [
+    "AC-EZD-354-1",
+    "AC-EZD-354-2",
+    "AC-EZD-354-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
