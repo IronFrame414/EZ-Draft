@@ -1,7 +1,7 @@
 // EZD-020 E1-E7 (vault/plans/EZD-020.md section 4). Untagged, so desktop only. Spawn-CLI tests request no page
 // fixture (one browser only; EZD-017 T1 pattern). No import.meta or __dirname (lesson L-017).
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { expect, test } from '../test-harness/e2e/test';
@@ -230,4 +230,84 @@ test.describe('EZD-020 entry points and lazy chunks', () => {
       }
     }
   });
+});
+
+test.describe('EZD-341 office entry size and Sentry start', () => {
+  const SIZE_IDS = [
+    'js-size:editor',
+    'js-size:sign-in',
+    'js-size:auth-confirm',
+    'js-size:projects-settings',
+    'js-size:field-pack',
+    'js-size:client-link',
+  ];
+  const DEFAULTS = [
+    'EventFilters',
+    'FunctionToString',
+    'ConversationId',
+    'BrowserApiErrors',
+    'Breadcrumbs',
+    'Console',
+    'HttpContext',
+    'CultureContext',
+    'BrowserSession',
+  ];
+  const BACKTICK = String.fromCharCode(96);
+  const quoted = (name: string, body: string) =>
+    ['"', "'", BACKTICK].some((q) => body.includes(q + name + q));
+
+  test('EZD-341 B1 office entry at or under 200,000 bytes and every size row within its budget', async () => {
+    test.setTimeout(180000);
+    const r = runPerf(SIZE_IDS.join(','));
+    try {
+      expect(r.status, r.stdout).toBe(0);
+      for (const id of SIZE_IDS) {
+        const row = rowOf(r.res, id);
+        expect(row.status, id).toBe('pass');
+        expect(row.value as number, id).toBeGreaterThan(0);
+        const budget = (row as unknown as Record<string, number>).budget;
+        expect(row.value as number, id).toBeLessThanOrEqual(budget);
+      }
+      const office = rowOf(r.res, 'js-size:projects-settings');
+      expect(office.details.url).toBe('/dev/entry/office');
+      expect(office.value as number).toBeLessThanOrEqual(200 * K);
+    } finally {
+      rmSync(r.out, { recursive: true, force: true });
+    }
+  });
+
+  for (const url of ['/dev/entry/office', '/dev/entry/field', '/dev/entry/client']) {
+    test(`EZD-341 B2 ${url} scripts carry no Sentry default integrations`, async ({ page }) => {
+      test.setTimeout(60000);
+      const bodies: string[] = [];
+      const pending: Promise<void>[] = [];
+      page.on('response', (resp) => {
+        const type = resp.headers()['content-type'] ?? '';
+        if (
+          new URL(resp.url()).pathname.startsWith('/_next/static/') &&
+          (resp.request().resourceType() === 'script' || /javascript/.test(type))
+        ) {
+          pending.push(
+            resp
+              .text()
+              .then((b) => {
+                bodies.push(b);
+              })
+              .catch(() => undefined),
+          );
+        }
+      });
+      await page.goto(url);
+      await page.waitForLoadState('load');
+      await page.waitForTimeout(1000);
+      await Promise.all(pending);
+      const joined = bodies.join('\n');
+      for (const n of ['GlobalHandlers', 'LinkedErrors', 'Dedupe']) {
+        expect(quoted(n, joined), `control ${n}`).toBe(true);
+      }
+      for (const n of DEFAULTS) {
+        expect(quoted(n, joined), n).toBe(false);
+      }
+    });
+  }
 });
