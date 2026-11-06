@@ -248,6 +248,17 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
   },
   {
+    file: `${API}dev/model/[id]/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/dev/model/[id]/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/dev/model/${env.projectId}`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-120d: the checkpoint count; 200 { checkpoints } (no money)',
+  },
+  {
     file: `${API}settings/customers/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/settings/customers/route'),
@@ -397,7 +408,7 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       return {
         request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
           method: 'POST',
-          headers: JSON_HEADERS,
+          headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
           body: JSON.stringify({
             lockEpoch: 0,
             changes: [

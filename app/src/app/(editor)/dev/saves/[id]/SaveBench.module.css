@@ -1,0 +1,15 @@
+/* EZD-120d Build step 18 (vault/plans/EZD-120d.md Decided "Test page"): the save test page's bar, from tokens. */
+.bar {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  box-shadow: var(--ez-shadow-floating);
+}

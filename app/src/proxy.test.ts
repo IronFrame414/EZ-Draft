@@ -138,3 +138,121 @@ describe('EZD-007d request gate', () => {
     expect(c.headers.get('cache-control')).toBe('private, no-store');
   });
 });
+
+// EZD-120d U9 (vault/plans/EZD-120d.md section 4; AC-EZD-120d-2; Q-0581): the signed-out marker. A request with
+// `ezd_signed_out` is signed out: the proxy deletes every `sb-` cookie and the marker from the request and the
+// browser (Max-Age 0), answers a gated page with the 307 to /sign-in, and never asks the auth server.
+describe('EZD-120d signed-out marker', () => {
+  afterEach(() => {
+    h.make = null;
+  });
+
+  const withCookies = (path: string, cookies: string) =>
+    proxy(new NextRequest(`http://localhost:3000${path}`, { headers: { cookie: cookies } }));
+  const MARKED = 'ezd_signed_out=1; sb-x-auth-token=a; sb-x-auth-token.0=b; keep=me';
+  const NAMES = ['sb-x-auth-token', 'sb-x-auth-token.0', 'ezd_signed_out'];
+
+  function expectDeleted(res: Response) {
+    for (const name of NAMES) {
+      const c = setCookie(res, name);
+      expect(c, name).toBeDefined();
+      expect(c, name).toMatch(/^[^=]+=;/);
+      expect(c, name).toContain('Max-Age=0');
+      expect(c, name).toContain('Path=/');
+    }
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+  }
+
+  it('EZD-120d U9 a marked request is signed out: deleted cookies, no auth call', async () => {
+    const getClaims = vi.fn(async () => WITH_SUB);
+    clientWith(getClaims);
+
+    const home = await withCookies('/', MARKED);
+    expectSignInRedirect(home);
+    expectDeleted(home);
+
+    const signIn = await withCookies('/sign-in', MARKED);
+    expectPassThrough(signIn);
+    expectDeleted(signIn);
+    const forwarded = signIn.headers.get('x-middleware-request-cookie') ?? '';
+    expect(forwarded).not.toContain('sb-');
+    expect(forwarded).not.toContain('ezd_signed_out');
+
+    const api = await withCookies('/api/projects/p/objects', MARKED);
+    expectPassThrough(api);
+    expectDeleted(api);
+    expect(api.headers.get('x-middleware-request-cookie') ?? '').not.toContain('sb-');
+
+    expect(getClaims).not.toHaveBeenCalled();
+  });
+
+  const withProto = (cookies: string) =>
+    proxy(
+      new NextRequest('http://localhost:3000/', {
+        headers: { cookie: cookies, 'x-forwarded-proto': 'https' },
+      }),
+    );
+  const HOST_MARKED = '__Host-ezd_signed_out=1; sb-x-auth-token=a; sb-x-auth-token.0=b; keep=me';
+  const HOST_NAMES = ['sb-x-auth-token', 'sb-x-auth-token.0', '__Host-ezd_signed_out'];
+
+  it('EZD-120d U9 (a) on https the __Host- marker signs out with Secure deletes', async () => {
+    const getClaims = vi.fn(async () => WITH_SUB);
+    clientWith(getClaims);
+    const res = await withProto(HOST_MARKED);
+    expectSignInRedirect(res);
+    for (const name of HOST_NAMES) {
+      const c = setCookie(res, name);
+      expect(c, name).toBeDefined();
+      expect(c, name).toMatch(/^[^=]+=;/);
+      expect(c, name).toContain('Max-Age=0');
+      expect(c, name).toContain('Secure');
+    }
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    expect(getClaims).not.toHaveBeenCalled();
+  });
+
+  it('EZD-120d U9 (a) the forwarded request of an https marked request has no sb- cookie', async () => {
+    clientWith(async () => WITH_SUB);
+    const res = await proxy(
+      new NextRequest('http://localhost:3000/sign-in', {
+        headers: { cookie: HOST_MARKED, 'x-forwarded-proto': 'https' },
+      }),
+    );
+    expectPassThrough(res);
+    expect(res.headers.get('x-middleware-request-cookie') ?? '').not.toContain('sb-');
+  });
+
+  const expectIgnored = (res: Response, getClaims: ReturnType<typeof vi.fn>) => {
+    expectPassThrough(res);
+    expect(getClaims).toHaveBeenCalledTimes(1);
+    for (const name of [...NAMES, ...HOST_NAMES]) {
+      const c = setCookie(res, name);
+      expect(c === undefined || !c.includes('Max-Age=0'), name).toBe(true);
+    }
+    const forwarded = res.headers.get('x-middleware-request-cookie') ?? '';
+    expect(forwarded).toContain('sb-x-auth-token=a');
+    expect(forwarded).toContain('sb-x-auth-token.0=b');
+  };
+
+  it('EZD-120d U9 (b) on https a plain ezd_signed_out is ignored', async () => {
+    const getClaims = vi.fn(async () => WITH_SUB);
+    clientWith(getClaims);
+    expectIgnored(await withProto(MARKED), getClaims);
+  });
+
+  it('EZD-120d U9 (c) on http a __Host- marker is ignored', async () => {
+    const getClaims = vi.fn(async () => WITH_SUB);
+    clientWith(getClaims);
+    expectIgnored(await withCookies('/', HOST_MARKED), getClaims);
+  });
+
+  it('EZD-120d U9 a request without the marker is unchanged', async () => {
+    const getClaims = vi.fn(async () => WITH_SUB);
+    clientWith(getClaims);
+    const res = await withCookies('/', 'sb-x-auth-token=a');
+    expectPassThrough(res);
+    expect(getClaims).toHaveBeenCalledTimes(1);
+    expect(setCookie(res, 'sb-x-auth-token')).toBeUndefined();
+    expect(setCookie(res, 'ezd_signed_out')).toBeUndefined();
+  });
+});

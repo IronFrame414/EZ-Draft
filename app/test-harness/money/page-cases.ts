@@ -9,6 +9,7 @@ export type MoneyPageCase = { file: string; paths: (env: { projectId: string }) 
 const PAGE_FILES = [
   'app/src/app/(client)/dev/entry/client/page.tsx',
   'app/src/app/(editor)/dev/entry/editor/page.tsx',
+  'app/src/app/(editor)/dev/saves/[id]/page.tsx',
   'app/src/app/(editor)/projects/[id]/page.tsx',
   'app/src/app/(field)/dev/entry/field/page.tsx',
   'app/src/app/(office)/dev/entry/office/page.tsx',

@@ -346,7 +346,10 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/lib/jobs/           job kinds and statuses, watchJob (browser and server; EZD-009)
   src/lib/storage/        bucket and source file kind lists, resumableEndpoint, uploadFile (browser and server; EZD-132)
   src/lib/errors/         scrubbing, browser Sentry options, captureBrowserError (EZD-024)
-  src/lib/outbox/         the model load and save client: load types, fetchModel, the device outbox (IndexedDB) and its sync (EZD-120b)
+  src/lib/outbox/         the model load and save client: load types, fetchModel, the device outbox (IndexedDB) and its sync (EZD-120b); device-db.ts, office-drain.ts: the queued count and the app-wide drain (EZD-120d)
+  src/lib/auth/           device-sign-out.ts: sign out when the server is unreachable, the signed-out marker (EZD-120d)
+  src/components/outbox/  OutboxDrain.tsx: the office drain and the sign-out check (EZD-120d)
+  src/server/outbox/      actor.ts: who is signed in, for the device outbox (EZD-120d)
   src/editor/model/       the open model's store: patches, undo and redo, changed ids (EZD-120b)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
@@ -615,6 +618,15 @@ EZD-120c (vault/plans/EZD-120c.md Build steps 1-10, section 3); 03a; S03 Permiss
 - **Save word** (`app/src/editor/save-state.ts`, `SaveStatus.tsx`). `saveWord(state, now, timeZone?)` gives the `office.editor.*` key: idle and saved without a time `saved`, pending and saving `saving`, offline `saved_on_device`, error `not_saved`, saved under a minute `saved_just_now`, under an hour `saved_min_ago` (`minutes`), else `saved_at` (`formatClock`, `en-US` h:mm AM/PM). `SaveStateText` (`save-state`, `data-save-status`) re-renders once when the word next changes (`nextSaveWordChangeMs`, one `setTimeout`), never on a tick.
 - **Test hook.** Ready, `canEdit` and `devHooks`: `window.__ezdraftEditor` (`EditorTestHook`: `objects()` lists the store's objects as `{ id, ...value }`, `edit(changes)` is `store.applyEdit`), removed on unmount. Never in production, never for view-only.
 - Strings are `office.editor.*` keys, `en` only.
+
+### Sign-out and app-wide drain (EZD-120d)
+
+EZD-120d (vault/plans/EZD-120d.md Build steps 1-20, section 3); Q-0503; Q-0507; Q-0581; Q-0048 (a); Q-0505; Q-0508.
+
+- **Drain.** The office layout (`app/src/app/(office)/layout.tsx`, async) loads the signed-in person with `loadOutboxActor()` (`app/src/server/outbox/actor.ts`) and wraps the page in `OutboxDrain` (`app/src/components/outbox/OutboxDrain.tsx`). With an actor and a queued count that is not 0, `app/src/lib/outbox/office-drain.ts` is loaded with `import()` and `startDrain` sends the outbox from any office page; with nothing queued it is never loaded. `countQueued` (`app/src/lib/outbox/device-db.ts`, which also holds `DEVICE_DB`, `OUTBOX_STORE`, `actorRange`) opens the device database with no version and never creates it.
+- **Sign-out.** `SignOutButton` and `AvatarMenu` run the caller's check, then `useOutboxSignOut().check()`: queued edits are sent first (`sendBeforeSignOut`, 10,000 ms), and when some stay, the dialog `office.outbox.sign_out_*` asks; the edits are never deleted. The next person to sign in on the device does not send them: a save carries `x-ezdraft-membership` (`MEMBERSHIP_HEADER`) and `POST /api/projects/[id]/objects` answers 401 `not_signed_in` when it is not the session's membership.
+- **Signed-out marker** (`app/src/lib/auth/device-sign-out.ts`; Q-0599). The name comes from `signedOutCookieName(secure)`: `__Host-ezd_signed_out` on https (`Path=/; Secure`, no `Domain`, so no subdomain or plain-http page can plant it), `ezd_signed_out` on http (local and test runs). When the sign-out cannot reach the server, `signOutOnDevice` writes this 400-day cookie (the httpOnly session cookies cannot be cleared by script; the browser picks the name by `location.protocol`) and goes to `/sign-in`; a Next redirect error (the real sign-out) is rethrown unchanged. `proxy.ts` picks the name with `isForwardedHttps(request)`, the same test as the session jar's `isHttps`, and honours only that name (the other is ignored). A request with the marker is signed out: it deletes every `sb-` cookie and the marker (`secure` on https), skips `getClaims`, and answers with `no-store`. The server session is not revoked (Q-0581).
+- **Test page.** `/dev/saves/<project id>` (`app/src/app/(editor)/dev/saves/[id]/`, not found in production) and `GET /api/dev/model/[id]` (checkpoint count).
 
 ### Company settings (EZD-112)
 

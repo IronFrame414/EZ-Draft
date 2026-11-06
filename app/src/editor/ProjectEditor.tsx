@@ -4,7 +4,7 @@
 // rail, panels or status items yet; the canvas area shows loading, a failed load with Retry, no access, not
 // found, or, for an editor, the offline and save-failed banners. The header names the project and, for an editor,
 // whether the work is saved.
-import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
 import { EditorFrame } from '../components/shell/EditorFrame';
@@ -19,12 +19,19 @@ import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
 import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
-import { openEditorSession, type OpenResult } from './editor-session';
+import { openEditorSession, type EditorSession, type OpenDeps, type OpenResult } from './editor-session';
 import type { Change } from './model/patches';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
 import styles from './ProjectEditor.module.css';
 
-export type ProjectEditorProps = { projectId: string; devHooks: boolean };
+// EZD-120d: `openDeps` is passed to openEditorSession (the test page injects a fault into the save); `onSession`
+// is told when the session is ready, then null when it is disposed.
+export type ProjectEditorProps = {
+  projectId: string;
+  devHooks: boolean;
+  openDeps?: OpenDeps;
+  onSession?: (session: EditorSession | null) => void;
+};
 
 export type EditorTestHook = {
   objects(): Array<{ id: string } & ObjectValue>;
@@ -36,20 +43,37 @@ type CanvasState = { kind: 'loading' } | OpenResult;
 const NO_VIEWS: EditorView[] = [];
 const noop = () => {};
 
-export function ProjectEditor({ projectId, devHooks }: ProjectEditorProps): ReactElement {
+export function ProjectEditor({
+  projectId,
+  devHooks,
+  openDeps,
+  onSession,
+}: ProjectEditorProps): ReactElement {
   const t = useT();
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
+  const openDepsRef = useRef(openDeps);
+  const onSessionRef = useRef(onSession);
+  useEffect(() => {
+    openDepsRef.current = openDeps;
+    onSessionRef.current = onSession;
+  });
 
   useEffect(() => {
     let live = true;
     let dispose: (() => void) | null = null;
-    void openEditorSession(projectId).then((result) => {
+    void openEditorSession(projectId, openDepsRef.current).then((result) => {
       if (!live) {
         if (result.kind === 'ready') result.session.dispose();
         return;
       }
-      if (result.kind === 'ready') dispose = () => result.session.dispose();
+      if (result.kind === 'ready') {
+        dispose = () => {
+          result.session.dispose();
+          onSessionRef.current?.(null);
+        };
+        onSessionRef.current?.(result.session);
+      }
       setState(result);
     });
     return () => {

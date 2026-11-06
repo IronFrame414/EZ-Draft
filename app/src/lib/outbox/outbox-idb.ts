@@ -7,9 +7,9 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Change } from '../../editor/model/patches';
 import type { LoadedObject, ObjectValue } from './model-api';
 import type { Actor, OutboxEntry, OutboxStorage } from './outbox';
+import { actorRange, DEVICE_DB, DEVICE_DB_VERSION, OUTBOX_STORE } from './device-db';
 
-const DEVICE_DB = 'ezdraft-device';
-const OUTBOX = 'outbox';
+const OUTBOX = OUTBOX_STORE;
 const WORKING_COPY = 'working_copy';
 
 type DeviceKey = [string, string, string, string];
@@ -29,12 +29,12 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
   const u = actor.appUserId;
   const t = actor.tenantId;
   const key = (projectId: string, id: string): DeviceKey => [u, t, projectId, id];
-  const range = () => IDBKeyRange.bound([u, t], [u, t, []]);
+  const range = () => actorRange(u, t);
   let connection: Promise<IDBPDatabase<DeviceDb>> | null = null;
 
   const db = (): Promise<IDBPDatabase<DeviceDb>> => {
     if (connection === null) {
-      const opening = openDB<DeviceDb>(DEVICE_DB, 1, {
+      const opening = openDB<DeviceDb>(DEVICE_DB, DEVICE_DB_VERSION, {
         upgrade(d) {
           d.createObjectStore(OUTBOX);
           d.createObjectStore(WORKING_COPY);

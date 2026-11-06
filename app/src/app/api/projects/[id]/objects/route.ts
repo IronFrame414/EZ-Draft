@@ -11,7 +11,8 @@ import { reportError } from '../../../../../server/errors/report';
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { parseSaveRequest, saveObjects } from '../../../../../server/model/model';
-import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
+import { MEMBERSHIP_HEADER } from '../../../../../lib/outbox/outbox';
+import { getPermissionContext, requireApiPermission, requirePermission } from '../../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,12 @@ export async function POST(
 ): Promise<Response> {
   try {
     const { id } = await params;
+    // EZD-120d Decided "Membership check": a save from a device whose signed-in person is not the one that
+    // queued it is refused before anything else.
+    const ctx = await getPermissionContext();
+    if (ctx !== null && request.headers.get(MEMBERSHIP_HEADER) !== ctx.membershipId) {
+      return fail(401, 'not_signed_in');
+    }
     const p = await requireApiPermission('edit_model');
     if (p instanceof Response) {
       p.headers.set('Cache-Control', 'no-store');

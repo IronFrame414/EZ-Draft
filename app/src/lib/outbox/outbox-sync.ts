@@ -8,6 +8,7 @@ import type { Change } from '../../editor/model/patches';
 import { createOnlineSource, type OnlineSource } from '../network';
 import {
   classifySave,
+  MEMBERSHIP_HEADER,
   pickBatch,
   type Actor,
   type Batch,
@@ -141,7 +142,7 @@ export function createOutboxSync(o: {
     try {
       const res = await fetchImpl(`/api/projects/${encodeURIComponent(batch.projectId)}/objects`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', [MEMBERSHIP_HEADER]: o.actor.membershipId },
         body: JSON.stringify({
           lockEpoch: batch.lockEpoch,
           changes: batch.send.map(toRequestChange),

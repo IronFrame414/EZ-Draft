@@ -4,6 +4,9 @@
 import type { Change } from '../../editor/model/patches';
 import type { LoadedObject, ObjectValue } from './model-api';
 
+// EZD-120d: the header every save carries, so the route can refuse a save from a different signed-in person.
+export const MEMBERSHIP_HEADER = 'x-ezdraft-membership';
+
 export type Actor = { appUserId: string; tenantId: string; membershipId: string };
 
 export type OutboxEntry = {

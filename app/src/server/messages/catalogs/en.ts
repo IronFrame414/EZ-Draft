@@ -146,6 +146,10 @@ export const en = {
   'office.settings.unsaved_title': 'Save your changes?',
   'office.settings.unsaved_save': 'Save',
   'office.settings.unsaved_discard': 'Discard',
+  'office.outbox.sign_out_title': 'Sign out with changes not sent?',
+  'office.outbox.sign_out_message':
+    'Some changes are saved only on this device. They will send the next time you sign in here.',
+  'office.outbox.sign_out_confirm': 'Sign out anyway',
   'office.settings.draft_restored': 'Your unsaved changes from last time are still here.',
   'office.company.subtitle':
     'Identity used on the title block, client pages, selections PDF and email.',

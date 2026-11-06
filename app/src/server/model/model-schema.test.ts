@@ -84,12 +84,13 @@ const invalidBody = (invalid: Issue[]) => ({
 async function post(
   project: string,
   changes: unknown[],
+  membershipId: string,
 ): Promise<{ res: Response; json: unknown }> {
   const { POST } = await import('../../app/api/projects/[id]/objects/route');
   const res = await POST(
     new Request(`http://localhost/api/projects/${project}/objects`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-ezdraft-membership': membershipId },
       body: JSON.stringify({ lockEpoch: 0, changes }),
     }),
     { params: Promise.resolve({ id: project }) },
@@ -172,7 +173,7 @@ describe('EZD-202 model object schema on save', () => {
   };
   const send = (p: string, changes: unknown[]) => {
     asEditor();
-    return post(p, changes);
+    return post(p, changes, editor.membershipId);
   };
   const expectRefused = (r: { res: Response; json: unknown }, invalid: Issue[]) => {
     expect(r.res.status).toBe(400);

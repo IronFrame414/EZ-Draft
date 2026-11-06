@@ -3,6 +3,7 @@
 // Missing env or an Auth error counts as no session; the gate never answers 500. A token refresh rewrites
 // the 400-day auth cookies here, so the 400 days count from the last use.
 import { NextResponse, type NextRequest } from 'next/server';
+import { signedOutCookieName } from './lib/auth/device-sign-out';
 import { isPublicPath } from './server/auth/public-paths';
 import { createSessionClient, type SessionCookieJar } from './server/auth/supabase-server';
 
@@ -12,7 +13,36 @@ export const config = {
 
 type Written = { name: string; value: string; options: Parameters<SessionCookieJar['set']>[2] };
 
+// The one https test: the session cookie jar and the signed-out marker both use it, so they cannot disagree.
+function isForwardedHttps(request: NextRequest): boolean {
+  return (request.headers.get('x-forwarded-proto') ?? '').split(',')[0].trim() === 'https';
+}
+
+// EZD-120d Decided "Signed-out marker" (Q-0581; Q-0599): a request with the marker is signed out. Only the
+// marker name for this scheme counts (`__Host-` on https, plain on http); the other name is ignored. Every `sb-`
+// cookie and the marker are deleted from the request and the browser, and the auth server is not asked.
+function signedOutMarked(request: NextRequest): NextResponse | null {
+  const https = isForwardedHttps(request);
+  const marker = signedOutCookieName(https);
+  if (!request.cookies.has(marker)) return null;
+  const names = request.cookies
+    .getAll()
+    .map((c) => c.name)
+    .filter((name) => name.startsWith('sb-'));
+  names.push(marker);
+  for (const name of names) request.cookies.delete(name);
+  const result = isPublicPath(request.nextUrl.pathname)
+    ? NextResponse.next({ request })
+    : NextResponse.redirect(new URL('/sign-in', request.nextUrl.origin), 307);
+  const deleted = https ? { path: '/', maxAge: 0, secure: true } : { path: '/', maxAge: 0 };
+  for (const name of names) result.cookies.set(name, '', deleted);
+  result.headers.set('Cache-Control', 'private, no-store');
+  return result;
+}
+
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const marked = signedOutMarked(request);
+  if (marked !== null) return marked;
   const response = NextResponse.next({ request });
   const written: Written[] = [];
 
@@ -23,8 +53,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       request.cookies.set(name, value);
       response.cookies.set(name, value, options);
     },
-    isHttps: () =>
-      (request.headers.get('x-forwarded-proto') ?? '').split(',')[0].trim() === 'https',
+    isHttps: () => isForwardedHttps(request),
   };
 
   let signedIn = false;

@@ -83,12 +83,20 @@ async function parse(res: Response): Promise<unknown> {
     return text;
   }
 }
-async function post(id: string, raw: string): Promise<{ res: Response; json: unknown }> {
+// EZD-120d (Decided "Membership check"): every signed-in save sends its member's id in this header.
+async function post(
+  id: string,
+  raw: string,
+  membershipId?: string,
+): Promise<{ res: Response; json: unknown }> {
   const { POST } = await import('./route');
   const res = await POST(
     new Request(`http://localhost/api/projects/${id}/objects`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        ...(membershipId === undefined ? {} : { 'x-ezdraft-membership': membershipId }),
+      },
       body: raw,
     }),
     { params: Promise.resolve({ id }) },
@@ -125,6 +133,8 @@ describe('EZD-120a save route', () => {
   let project = '';
   let unlistedProject = '';
   let editor: Member;
+  let plain: Member;
+  let listed: Member;
   let editorCookies: Map<string, string>;
   let plainCookies: Map<string, string>;
   let listedCookies: Map<string, string>;
@@ -137,9 +147,9 @@ describe('EZD-120a save route', () => {
     [project, unlistedProject] = await createProjects(tenant, 2);
     editor = await createMember({ tenantId: tenant, scope: 'all' });
     await setPermissions(tenant, editor.membershipId, ['view_projects', 'edit_model']);
-    const plain = await createMember({ tenantId: tenant, scope: 'all' });
+    plain = await createMember({ tenantId: tenant, scope: 'all' });
     await setPermissions(tenant, plain.membershipId, ['view_projects']);
-    const listed = await createMember({
+    listed = await createMember({
       tenantId: tenant,
       scope: 'listed',
       listed: [project],
@@ -187,31 +197,31 @@ describe('EZD-120a save route', () => {
     noStore(a.res);
 
     state.store = new Map(plainCookies);
-    const b = await post(project, valid);
+    const b = await post(project, valid, plain.membershipId);
     expect(b.res.status).toBe(403);
     expect(b.json).toEqual(FORBIDDEN);
     noStore(b.res);
 
     state.store = new Map(editorCookies);
-    const c = await post('nope', valid);
+    const c = await post('nope', valid, editor.membershipId);
     expect(c.res.status).toBe(404);
     expect(c.json).toEqual(err('project_not_found'));
     noStore(c.res);
 
     state.store = new Map(listedCookies);
-    const d = await post(unlistedProject, valid);
+    const d = await post(unlistedProject, valid, listed.membershipId);
     expect(d.res.status).toBe(404);
     expect(d.json).toEqual(err('project_not_found'));
     noStore(d.res);
 
     state.store = new Map(editorCookies);
-    const e = await post(project, 'this is not json');
+    const e = await post(project, 'this is not json', editor.membershipId);
     expect(e.res.status).toBe(400);
     expect(e.json).toEqual(err('invalid_input'));
     noStore(e.res);
 
     state.store = new Map(editorCookies);
-    const f = await post(project, JSON.stringify({ changes: [] }));
+    const f = await post(project, JSON.stringify({ changes: [] }), editor.membershipId);
     expect(f.res.status).toBe(400);
     expect(f.json).toEqual(err('invalid_input'));
     noStore(f.res);
@@ -225,7 +235,7 @@ describe('EZD-120a save route', () => {
   it('R1 saves with one model.saved event, answers 409 for a stale epoch and a conflict, and survives a failed emit', async () => {
     const id = randomUUID();
     state.store = new Map(editorCookies);
-    const ok = await post(project, body(0, [upsertChange(id, 0)]));
+    const ok = await post(project, body(0, [upsertChange(id, 0)]), editor.membershipId);
     expect(ok.res.status).toBe(200);
     expect(ok.json).toEqual({ objects: [{ id, updatedSeq: 1 }] });
     noStore(ok.res);
@@ -238,7 +248,11 @@ describe('EZD-120a save route', () => {
 
     emitMock.mockClear();
     state.store = new Map(editorCookies);
-    const stale = await post(project, body(1, [upsertChange(randomUUID(), 0)]));
+    const stale = await post(
+      project,
+      body(1, [upsertChange(randomUUID(), 0)]),
+      editor.membershipId,
+    );
     expect(stale.res.status).toBe(409);
     expect(stale.json).toEqual({
       error: { code: 'stale_lock_epoch', message_key: 'error.stale_lock_epoch' },
@@ -246,7 +260,7 @@ describe('EZD-120a save route', () => {
     noStore(stale.res);
 
     state.store = new Map(editorCookies);
-    const conflict = await post(project, body(0, [upsertChange(id, 0)]));
+    const conflict = await post(project, body(0, [upsertChange(id, 0)]), editor.membershipId);
     expect(conflict.res.status).toBe(409);
     expect(conflict.json).toEqual({
       error: { code: 'save_conflict', message_key: 'error.save_conflict' },
@@ -258,7 +272,7 @@ describe('EZD-120a save route', () => {
     const id2 = randomUUID();
     emitMock.mockRejectedValueOnce(new Error('ezd120a-probe'));
     state.store = new Map(editorCookies);
-    const survived = await post(project, body(0, [upsertChange(id2, 0)]));
+    const survived = await post(project, body(0, [upsertChange(id2, 0)]), editor.membershipId);
     expect(survived.res.status).toBe(200);
     expect(survived.json).toEqual({ objects: [{ id: id2, updatedSeq: 1 }] });
     noStore(survived.res);
