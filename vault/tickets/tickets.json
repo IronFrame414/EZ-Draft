@@ -18044,6 +18044,7 @@
    "mockups": [],
    "architecture": [
     "Browser tests (EZD-016a)",
+    "Test scope (Q-0006)",
     "CI"
    ],
    "priority": 1,
