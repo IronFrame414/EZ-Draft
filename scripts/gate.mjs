@@ -7,19 +7,20 @@
 // Runners read EZD_TEST_SCOPE, EZD_PHASE and EZD_TEST_GREP (see docs/architecture.md, Test scope).
 // One gate at a time per build lane (lane 0: Q-0019; lanes 1-3: EZD_LANE, EZD-172). A lane 1-3 gate stops the stale stacks of the other lanes when it starts (Q-0367 (b)) and its own lane's stack when it ends (Q-0354 (a)).
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
+// Every child process starts through scripts/gate-env.mjs (EZD-344): only the PASS_THROUGH variables, git's system and global config off, and the gate's own variables.
 // It also prints the paths the branch touched (git diff --name-only develop...HEAD) and a
 // "SECURITY FLAG: <path>" line for each one matching the production-sensitive list in vault/tools/security-paths.mjs, which the launcher's post-audit merge hold also uses (EZD-337). Flags never fail the gate;
 // they trigger the security review (vault/PROCESS.md section 8 steps 7-8). The list is the process default plus
 // EZ Draft's production-sensitive paths (Q-0112; vault/PROCESS-EZDRAFT.md section 7).
 // Full output of every check goes to <dir>/gate.log (gitignored); the console gets the summary (PROCESS.md section 8 step 7).
 import { existsSync, readFileSync, readdirSync, statSync, linkSync, unlinkSync, writeFileSync, appendFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarizeStep } from './gate-summary.mjs';
 import { isLive, removeDeadLock } from './gate-lock.mjs';
 import { readLane } from './db/lane.mjs';
+import { gateEnv, gateSpawn } from './gate-env.mjs';
 import { isSecurityPath, DIFF_NAMES_ARGS, splitNames } from '../vault/tools/security-paths.mjs';
 
 const args = process.argv.slice(2);
@@ -82,7 +83,7 @@ const scopeText = scope.mode === 'full' ? 'full suite' : `phase ${scope.phase} t
 
 // Touched paths and security flags. Printed first so they appear even when a check fails.
 function printTouched() {
-  const r = spawnSync('git', ['-C', dir, ...DIFF_NAMES_ARGS, 'develop...HEAD'], { encoding: 'utf8' });
+  const r = gateSpawn(env, 'git', ['-C', dir, ...DIFF_NAMES_ARGS, 'develop...HEAD'], { encoding: 'utf8' });
   if (r.status !== 0) { console.log(`TOUCHED PATHS: unavailable (${(r.stderr || '').trim().split('\n')[0] || 'git diff failed'})`); return []; }
   const files = splitNames(r.stdout);
   console.log(`TOUCHED PATHS (develop...HEAD): ${files.length}`);
@@ -98,15 +99,13 @@ if (args.includes('--print-scope')) {
 }
 
 // NO_COLOR (H7): output reads the same on a Mac inside an agent and on the CI runner.
-const env = { ...process.env, CI: '1', NO_COLOR: '1', EZD_TEST_SCOPE: scope.mode };
-delete env.EZD_TEST_GREP; delete env.EZD_PHASE; delete env.FORCE_COLOR;
-if (scope.mode === 'phase') { env.EZD_PHASE = String(scope.phase); env.EZD_TEST_GREP = scope.grep; }
-
-// Build lanes (EZD-172): EZD_LANE 1-3 gives the checks their own local stack and ports (scripts/db/lane.mjs).
 let lane;
 try { lane = readLane(process.env); } catch (e) { console.error(`GATE FAIL: ${e.message}`); process.exit(1); }
-if (lane === 0) delete env.SUPABASE_WORKDIR;
-else { env.EZD_LANE = String(lane); env.SUPABASE_WORKDIR = path.join(dir, '.lanes', `lane${lane}`); }
+const gateVars = { CI: '1', NO_COLOR: '1', EZD_TEST_SCOPE: scope.mode };
+if (scope.mode === 'phase') { gateVars.EZD_PHASE = String(scope.phase); gateVars.EZD_TEST_GREP = scope.grep; }
+// Build lanes (EZD-172): EZD_LANE 1-3 gives the checks their own local stack and ports (scripts/db/lane.mjs).
+if (lane >= 1) { gateVars.EZD_LANE = String(lane); gateVars.SUPABASE_WORKDIR = path.join(dir, '.lanes', `lane${lane}`); }
+const env = gateEnv(process.env, gateVars);
 
 // One gate at a time per lane (Q-0019, EZD-172). A lock appears by hard link from a temp file that already holds the pid, so a visible lock is never empty (Q-0381); a lock left by a dead process is taken over. Only the gate holding <lock>.takeover removes a dead lock, after reading it again (EZD-256, scripts/gate-lock.mjs).
 const lockPath = path.join(os.tmpdir(), lane === 0 ? 'ezdraft-gate.lock' : `ezdraft-gate-lane${lane}.lock`);
@@ -214,8 +213,8 @@ function sweepStaleLanes() {
     if (isLive(gatePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (gate pid ${gatePid})`); continue; }
     const leasePid = readPid(path.join(os.tmpdir(), `ezdraft-lane${m}.lease`));
     if (isLive(leasePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (lease pid ${leasePid})`); continue; }
-    const r = spawnSync(process.execPath, [script, 'stop-lane'], {
-      cwd: dir, env: { ...env, EZD_LANE: String(m), SUPABASE_WORKDIR: path.join(dir, '.lanes', `lane${m}`) }, encoding: 'utf8', timeout: 120000 });
+    const r = gateSpawn(gateEnv(process.env, { ...gateVars, EZD_LANE: String(m), SUPABASE_WORKDIR: path.join(dir, '.lanes', `lane${m}`) }),
+      process.execPath, [script, 'stop-lane'], { cwd: dir, encoding: 'utf8', timeout: 120000 });
     log(`${r.stdout || ''}${r.stderr || ''}`);
     const ok = r.status === 0;
     if (!ok) { failedAny = true; laneFailure(`lane sweep lane ${m}`, r); }
@@ -230,7 +229,7 @@ function stopLaneStack() {
   say('\n=== lane stop: node scripts/db/local.mjs stop-lane ===');
   const script = path.join(dir, 'scripts', 'db', 'local.mjs');
   if (!existsSync(script)) { say('lane stop: scripts/db/local.mjs is missing'); laneFailure('lane stop', { stdout: 'scripts/db/local.mjs is missing' }); return 'FAIL'; }
-  const r = spawnSync(process.execPath, [script, 'stop-lane'], { cwd: dir, env, encoding: 'utf8', timeout: 120000 });
+  const r = gateSpawn(env, process.execPath, [script, 'stop-lane'], { cwd: dir, encoding: 'utf8', timeout: 120000 });
   log(`${r.stdout || ''}${r.stderr || ''}`);
   if (r.status !== 0) laneFailure('lane stop', r);
   return r.status === 0 ? 'pass' : 'FAIL';
@@ -284,7 +283,7 @@ const pm = existsSync(path.join(dir, 'pnpm-lock.yaml')) || pkg.packageManager?.s
 const failures = [];
 const run = (cmdArgs, label) => {
   say(`\n=== ${label}: ${pm} ${cmdArgs.join(' ')} ===`);
-  const r = spawnSync(pm, cmdArgs, { cwd: dir, encoding: 'utf8', shell, env, maxBuffer: 64 * 1024 * 1024 });
+  const r = gateSpawn(env, pm, cmdArgs, { cwd: dir, encoding: 'utf8', shell, maxBuffer: 64 * 1024 * 1024 });
   const text = `${r.stdout || ''}${r.stderr || ''}`;
   // EZD-331: a step that could not start or was killed says why (spawnSync error, signal), as laneFailure does.
   const why = [...(r.error ? [r.error.message] : []), ...(r.signal ? [`signal ${r.signal}`] : [])];

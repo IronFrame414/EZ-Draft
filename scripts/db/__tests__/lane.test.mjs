@@ -338,10 +338,21 @@ describe('EZD-172 build lanes', () => {
     let tmp;
     const probeFile = () => path.join(tmp, 'probe-out.json');
 
+    // EZD-344: the gate gives its children an exact environment, so the fixture children find their files under os.tmpdir() (TMPDIR is tmp)
+    // and the fake stop's knobs through fake-knobs.json in tmp, not through variables.
+    const KNOB_KEYS = ['FAKE_STOP_NOISE', 'FAKE_STOP_SIGNAL', 'FAKE_STOP_LANE', 'FAKE_STOP_EXIT'];
+    const withKnobs = (extra) => {
+      const knobs = Object.fromEntries(Object.entries(extra).filter(([k]) => KNOB_KEYS.includes(k)));
+      const file = path.join(tmp, 'fake-knobs.json');
+      if (Object.keys(knobs).length) writeFileSync(file, JSON.stringify(knobs));
+      else rmSync(file, { force: true });
+      return Object.fromEntries(Object.entries(extra).filter(([k]) => !KNOB_KEYS.includes(k)));
+    };
+
     const runGate = (extra = {}) => {
       const r = spawnSync(process.execPath, [path.join(repo, 'scripts', 'gate.mjs'), fixture], {
         encoding: 'utf8',
-        env: cleanEnv({ TMP: tmp, TEMP: tmp, TMPDIR: tmp, PROBE_OUT: probeFile(), STOP_OUT: stopFile(), ...extra }),
+        env: cleanEnv({ TMP: tmp, TEMP: tmp, TMPDIR: tmp, ...withKnobs(extra) }),
         maxBuffer: 64 * 1024 * 1024,
       });
       return { status: r.status, out: r.stdout || '', err: r.stderr || '', all: (r.stdout || '') + (r.stderr || '') };
@@ -350,13 +361,18 @@ describe('EZD-172 build lanes', () => {
     const stopFile = () => path.join(tmp, 'stop-out.txt');
     const stopLines = () => readFileSync(stopFile(), 'utf8').split('\n').filter(Boolean);
     const FAKE_LOCAL = [
-      "import { appendFileSync, existsSync } from 'node:fs';",
-      'const probe = process.env.PROBE_OUT && existsSync(process.env.PROBE_OUT) ? "yes" : "no";',
-      'appendFileSync(process.env.STOP_OUT, `${process.argv[2]} ${process.env.EZD_LANE} ${process.env.SUPABASE_WORKDIR} probe=${probe}\\n`);',
-      "for (let i = 0; i < Number(process.env.FAKE_STOP_NOISE || 0); i += 1) console.log(`noise ${i}`);",
-      "if (process.env.FAKE_STOP_SIGNAL) process.kill(process.pid, process.env.FAKE_STOP_SIGNAL);",
-      'const only = process.env.FAKE_STOP_LANE;',
-      "process.exit(!only || only === process.env.EZD_LANE ? Number(process.env.FAKE_STOP_EXIT || 0) : 0);",
+      "import { appendFileSync, existsSync, readFileSync } from 'node:fs';",
+      "import os from 'node:os';",
+      "import path from 'node:path';",
+      "const probeFile = path.join(os.tmpdir(), 'probe-out.json');",
+      "const knobsFile = path.join(os.tmpdir(), 'fake-knobs.json');",
+      "const knobs = existsSync(knobsFile) ? JSON.parse(readFileSync(knobsFile, 'utf8')) : {};",
+      'const probe = existsSync(probeFile) ? "yes" : "no";',
+      "appendFileSync(path.join(os.tmpdir(), 'stop-out.txt'), `${process.argv[2]} ${process.env.EZD_LANE} ${process.env.SUPABASE_WORKDIR} probe=${probe}\\n`);",
+      "for (let i = 0; i < Number(knobs.FAKE_STOP_NOISE || 0); i += 1) console.log(`noise ${i}`);",
+      "if (knobs.FAKE_STOP_SIGNAL) process.kill(process.pid, knobs.FAKE_STOP_SIGNAL);",
+      'const only = knobs.FAKE_STOP_LANE;',
+      "process.exit(!only || only === process.env.EZD_LANE ? Number(knobs.FAKE_STOP_EXIT || 0) : 0);",
       '',
     ].join('\n');
 
@@ -365,7 +381,7 @@ describe('EZD-172 build lanes', () => {
       tmp = mkdtempSync(path.join(os.tmpdir(), 'ezd172-gate-tmp-'));
       const ok = 'node -e "process.exit(0)"';
       const probeBase =
-        'require(\'node:fs\').writeFileSync(process.env.PROBE_OUT, JSON.stringify([process.env.EZD_LANE || \'\', process.env.SUPABASE_WORKDIR || \'\']))';
+        'require(\'node:fs\').writeFileSync(require(\'node:path\').join(require(\'node:os\').tmpdir(), \'probe-out.json\'), JSON.stringify([process.env.EZD_LANE || \'\', process.env.SUPABASE_WORKDIR || \'\']))';
       const noise = noisyTest ? '; for (let i = 0; i < 120; i += 1) console.log(\'not ok \' + i + \' - x\'); process.exit(1)' : '';
       const probe = `node -e "${probeBase}${failTest ? '; process.exit(1)' : ''}${noise}"`;
       if (fake) {
@@ -765,7 +781,7 @@ describe('EZD-172 build lanes', () => {
         const lock = path.join(tmp, 'ezdraft-gate.lock');
         writeFileSync(lock, '');
         const child = spawn(process.execPath, [path.join(repo, 'scripts', 'gate.mjs'), fixture], {
-          env: cleanEnv({ TMP: tmp, TEMP: tmp, TMPDIR: tmp, PROBE_OUT: probeFile(), STOP_OUT: stopFile() }),
+          env: cleanEnv({ TMP: tmp, TEMP: tmp, TMPDIR: tmp, ...withKnobs({}) }),
         });
         let out = '';
         let err = '';
@@ -844,7 +860,7 @@ describe('EZD-172 build lanes', () => {
         '/bin/sh',
         ['-c', 'read line; exec "$@"', 'sh', process.execPath, path.join(repo, 'scripts', 'gate.mjs'), fixture],
         {
-          env: cleanEnv({ TMP: tmp, TEMP: tmp, TMPDIR: tmp, PROBE_OUT: probeFile(), STOP_OUT: stopFile(), ...extraEnv }),
+          env: cleanEnv({ TMP: tmp, TEMP: tmp, TMPDIR: tmp, ...withKnobs(extraEnv) }),
         },
       );
       let out = '';
