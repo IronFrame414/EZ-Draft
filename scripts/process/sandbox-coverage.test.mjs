@@ -103,3 +103,10 @@ test('EZD-316 T13 D-021 the sandbox cannot read the GitHub login or write the re
   assert.ok(write.includes('~/.ezdraft-github-ops'), 'denyWrite lacks ~/.ezdraft-github-ops');
   assert.ok(sandbox.excludedCommands.includes('node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs *'), 'excludedCommands lacks the github-ops command');
 });
+
+test('D-022 the launcher starts every unit with the sandbox settings and refuses to start one without them', () => {
+  const run = readFileSync(path.join(repo, 'scripts/run.mjs'), 'utf8');
+  assert.match(run, /const sandboxSettings = path\.join\(root, 'scripts\/unit-sandbox\.json'\);/);
+  assert.match(run, /'--settings', sandboxSettings,/);
+  assert.match(run, /if \(!existsSync\(sandboxSettings\)\) return \{ outcome: 'error'/);
+});
