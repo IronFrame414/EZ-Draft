@@ -4055,7 +4055,12 @@
     "spec/sections/07-hooks-events-and-integrations.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Events",
+    "Model working copy (EZD-120a)",
+    "Model schema (EZD-202)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205a",
@@ -4194,7 +4199,14 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Design tokens, fonts and icons",
+    "Editor shell (EZD-012)",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)",
+    "Drawing list (EZD-238)",
+    "Messages and language (t())"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207a",
@@ -4241,7 +4253,11 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Editor shell (EZD-012)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207b",
@@ -4360,7 +4376,11 @@
     "mockups/S03Plan.png",
     "mockups/S02Import.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Editor shell (EZD-012)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205a",
@@ -4414,7 +4434,13 @@
     "mockups/S03Plan.png",
     "mockups/S02Import.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Design tokens, fonts and icons",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)",
+    "Editor route (EZD-120c)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-210a",
@@ -19115,10 +19141,10 @@
    ],
    "mockups": [],
    "architecture": [
-    "Machine checks",
-    "Build lanes (EZD-172)",
-    "Local database"
+    "Local database",
+    "Build lanes (EZD-172)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
