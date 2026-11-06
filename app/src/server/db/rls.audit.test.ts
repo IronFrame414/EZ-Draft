@@ -175,7 +175,7 @@ describe('EZD-006 RLS audit', () => {
     }
   });
 
-  it('T18 exemption and grant lists match the catalog', async () => {
+  it('T18 exemption and grant lists match the catalog @smoke', async () => {
     const tables = await sql<{ table: string; columns: string[] }[]>`
       select c.relname::text as table,
         coalesce((select array_agg(a.attname::text) from pg_attribute a

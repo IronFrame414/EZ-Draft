@@ -33,7 +33,7 @@ describe('EZD-009 job handlers', () => {
     expect(Object.keys(getHandlers())).not.toContain('test');
   });
 
-  it('EZD-009 T19 every registered handler has a run-twice test', () => {
+  it('EZD-009 T19 every registered handler has a run-twice test @smoke', () => {
     delete process.env.VERCEL_ENV;
     const kinds = Object.keys(getHandlers()).sort();
     expect(kinds).toEqual(['ai_read', 'notification_email', 'test']);
