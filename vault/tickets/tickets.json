@@ -5259,9 +5259,6 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-202",
-    "EZD-203",
-    "EZD-205a",
-    "EZD-117b",
     "EZD-017",
     "EZD-120a",
     "EZD-120b",
