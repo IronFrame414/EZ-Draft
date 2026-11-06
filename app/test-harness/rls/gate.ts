@@ -86,4 +86,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_lock_epoch: 0, p_changes: [] },
   },
   { fn: 'create_checkpoint', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
+  // EZD-236 section 3 (vault/plans/EZD-236.md; E1): the benchmark project function, authenticated only.
+  { fn: 'create_benchmark_project', args: { p_changes: [] } },
 ];

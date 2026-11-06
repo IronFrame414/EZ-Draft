@@ -736,6 +736,16 @@ EZD-202 (vault/plans/EZD-202.md Build steps 1-16); 03f Objects inside model_json
 - **Read rule**: every reader of a `model_object` row or a `model_version.model_json` parses through `parseStoredObject` or `parseModelDocument` (issues `invalid_document`, `invalid_data`, `unknown_type`, `unknown_schema_version`, `duplicate_id`, `level_not_found`, each with the object's id, in object order).
 - **Save rule**: `saveObjects` parses every upserted change before `save_objects`; any issue refuses the whole save, 400 `{ error: { code: 'invalid_object', message_key: 'error.invalid_input' }, invalid: [{ id, issue }] }` with no write and no `model.saved`; a parsed object is stored as parsed at `CURRENT_SCHEMA_VERSION`. The deferred constraint trigger `model_object_level_check` (`private.model_object_level_check()`, definer, no grant) refuses at commit, `23503` `level_not_found` with the object's id in `detail`, a live non-floor object whose `data.level` is not a live floor of its project, and a floor deleted or retyped while a live object names it; a floor added, restored or deleted with its objects in one save passes. `saveObjects` maps it to the same 400.
 
+### Benchmark project (EZD-236)
+
+EZD-236 (vault/plans/EZD-236.md Build steps 1-9); 11 Budgets; Q-0211; Q-0568.
+
+- **Generator** `packages/geometry/src/benchmark/benchmark.ts` (exported from the package root): `generateBenchmarkModel()` returns the same 3,000 stored objects on every call (no randomness, clock or argument), `BENCHMARK_MIX` floor 2, wall 1,516, opening 762 (720 doors, 42 windows), room 720 (two floors, each an 18 × 20 grid of 120" rooms), ids `benchmarkObjectId(n)` = `b0000000-0000-4000-8000-<n as 12 hex digits>`, n 1-3000.
+- **Flag** `project.is_benchmark` (default false), at most one per tenant (unique partial index `project_benchmark_tenant_key`). The trigger `project_benchmark_guard` (`private.project_benchmark_guard()`, invoker, no grant) refuses `anon`, `authenticated` and `service_role` setting it on insert or changing it on update, `42501` `benchmark_flag_server_only`; only the definer function below sets it.
+- **Function** `public.create_benchmark_project(p_changes jsonb)` (definer, `authenticated` only, in `GATED_RPC_CALLS`): gate, then the System status switch (`42501`), then returns the tenant's benchmark project as is (`created` false) or makes it, replaces its first floor and writes `p_changes` through `save_objects` (Edit model and scope checked there); any error rolls back the whole call.
+- **Route** `POST /api/benchmark/project` (`app/src/app/api/benchmark/project/route.ts`, through `ensureBenchmarkProject` in `app/src/server/benchmark/benchmark-project.ts`): System status and Edit model, no body read; 201 `{ project: { id } }` made now, 200 already there, 401, 403 `permission_denied`, 500 `db_unavailable`, `Cache-Control: no-store`. Answers in production.
+- **Rule**: every project list or count excludes `is_benchmark` (`list_projects` and `count_projects` add `and not p.is_benchmark`).
+
 ### Rooms (EZD-205a)
 
 EZD-205a (vault/plans/EZD-205a.md); 09e; 09j; Q-0559; Q-0568; Q-0570.

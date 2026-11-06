@@ -464,4 +464,14 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-120b: the project and its objects; 200 ModelLoad (no money)',
   },
+  {
+    file: `${API}benchmark/project/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/benchmark/project/route'),
+    request: async () => ({
+      request: new Request(`${BASE}/api/benchmark/project`, { method: 'POST' }),
+    }),
+    expectStatus: 201,
+    note: 'EZD-236: makes the benchmark project; 201 { project: { id } } (no money)',
+  },
 ];
