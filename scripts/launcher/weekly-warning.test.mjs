@@ -66,10 +66,10 @@ let CHILD_ENV_BASE;
 function makeRoot() {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
-  for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) {
+  for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) {
     mkdirSync(at(d), { recursive: true });
   }
-  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) {
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) {
     copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   }
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
@@ -117,7 +117,7 @@ function writeUsage(root, sevenPct) {
 // One real `--once` run, with stdout and stderr appended to logs/launcher.log as launchd does (install.mjs:45-46, 60).
 function runOnce(root) {
   const fd = openSync(root.at('logs/launcher.log'), 'a');
-  const env = { ...CHILD_ENV_BASE, GIT_CEILING_DIRECTORIES: path.dirname(root.tmp) };
+  const env = { ...CHILD_ENV_BASE, GIT_CEILING_DIRECTORIES: path.dirname(root.tmp), EZD_GITHUB_OPS_HOME: root.at('ops-home') };
   const t0 = Date.now();
   let r;
   try {

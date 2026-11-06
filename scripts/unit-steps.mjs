@@ -11,23 +11,30 @@
 //                                                     and needs the worktree's passing gate.log on its last commit (exit 5 otherwise);
 //                                                     resumes after an interrupted unit (feat commit already on develop)
 //   node scripts/unit-steps.mjs finish <T> <outcome> [<vault path>...]
-//                                                     step 11: ledger check, report, push develop
+//                                                     step 11: ledger check, report (the push is github-ops.mjs push-develop)
+//   node scripts/unit-steps.mjs record-develop [<sha>] lists develop's commits and paths since the D-021 record; with develop's
+//                                                     current <sha>, records it (an interactive session or the launcher, unsandboxed)
 //
 // Records (REMEDIATION-PLAN 2.12; D1 (a), D2 (a)): rows are read from the records database and every STATUS change goes
 // through records.mjs record(), which queues it in the unit's results file for the launcher. No step commits records;
 // the only develop commit of a ticket is its feat commit, which also carries the ticket's plan.
 //
-// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_NO_PUSH=1,
+// Merges queue behind the merge lock (scripts/ledger.mjs). Env (tests only): EZD_ROOT (checkout), EZD_GITHUB_OPS_HOME,
 // EZD_INFLIGHT_DIR (in-flight records). EZD_UNIT_ID is set by scripts/run.mjs for the unit's session.
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, realpathSync, lstatSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withLedgerLock, withMergeLock, tryLock, readLock } from './ledger.mjs';
+import { withLedgerLock, withMergeLock, readLock } from './ledger.mjs';
 import { openRecords, dbPath, record, planRecord } from './records.mjs';
 import { planArchitecture } from '../vault/tools/outline.mjs';
+import { verifyDevelop, recordDevelop } from './release/github-ops.mjs';
 
 const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// D-021 record folder (D6): the real home; tests set EZD_GITHUB_OPS_HOME (also through a launcher they start), or with EZD_ROOT
+// and no EZD_GITHUB_OPS_HOME get none, so they never touch the real one (the launcher's own rule, scripts/run.mjs D14).
+const opsHome = process.env.EZD_GITHUB_OPS_HOME || (process.env.EZD_ROOT ? '' : os.userInfo().homedir);
 const statusPath = path.join(root, 'vault/tickets/STATUS.md');
 const [step, ticket, outcome, ...extraPaths] = process.argv.slice(2);
 
@@ -320,6 +327,11 @@ function merge() {
       if (!g.ok) { console.log(`MERGE GATE ${ticket}: ${g.why}; run node scripts/gate.mjs .claude/worktrees/${ticket}, then merge again; develop untouched.`); return 5; }
       gateLog = g.log;
     }
+    // D-021 (D9): only develop as the last unsandboxed step recorded it (plus plain vault/ files) is built on and pushed.
+    if (!mergedCommit() && opsHome) {
+      const v = verifyDevelop(root, opsHome, spawnSync);
+      if (v.refuse) { console.log(`MERGE STOP: ${v.refuse}; develop untouched; an interactive session checks it with node scripts/unit-steps.mjs record-develop`); return 3; }
+    }
     // Ledger hold 1: record the base, squash and commit.
     const { feat } = withLedgerLock(root, { owner: owner() }, () => {
       const row = rowOf(ticket);
@@ -365,6 +377,7 @@ function merge() {
       clearWorktreeEntry(wtDir);
       const removed = git('worktree', 'remove', `.claude/worktrees/${ticket}`);
       if (removed.status === 0) git('branch', '-D', `t/${ticket}`);
+      if (opsHome) recordDevelop(opsHome, out(git('rev-parse', feat)));
       setStatus({ status: 'done', commit: hash, tests });
       console.log(`MERGE OK ${ticket} commit=${hash} tests=${tests || '?'} (STATUS → done; add Notes, DONE.md line and lessons)`);
       if (removed.status) console.log(`MERGE NOTE ${ticket}: worktree and branch kept: ${firstLine(removed)}`);
@@ -383,19 +396,7 @@ function finish() {
     if (check.status !== 0) stop(`FINISH STOP: next_ticket.mjs --check failed\n${out(check).split('\n').slice(0, 3).join('\n')}`);
     sh(process.execPath, ['vault/tools/next_ticket.mjs', '--report']);
   });
-  let deferred = '';
-  if (!process.env.EZD_NO_PUSH) {
-    // A merge in progress has an ungated feat commit on develop; its own finish pushes later.
-    const pushLock = tryLock(root, 'merge', { owner: owner() });
-    if (!pushLock) deferred = ' push deferred: merge in progress';
-    else {
-      try {
-        const p = git('push', '-q', 'origin', 'develop');
-        if (p.status) stop(`FINISH STOP: push failed: ${out(p).split('\n')[0]}`);
-      } finally { pushLock.release(); }
-    }
-  }
-  console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})${deferred}`);
+  console.log(`FINISH OK ${ticket} ${outcome} (${out(git('rev-parse', '--short', 'HEAD'))})`);
   return 0;
 }
 
@@ -419,6 +420,43 @@ function table() {
   });
   console.log(`TABLE OK ${ticket} (STATUS → ${status})`);
 }
+
+// D7, D8 (D-021, Q-0543 (a)): show develop's commits and paths since the record; record only develop's current commit, given back.
+function recordDevelopStep(given) {
+  if (!opsHome) { console.log('RECORD STOP: no record folder (EZD_ROOT is set without EZD_GITHUB_OPS_HOME)'); return 2; }
+  const d = git('rev-parse', '--verify', '-q', 'refs/heads/develop');
+  if (d.status !== 0) { console.log('RECORD STOP: no develop branch'); return 2; }
+  const D = d.stdout.trim();
+  const D7 = D.slice(0, 7);
+  if (given) {
+    if (given !== D) { console.log(`RECORD STOP: develop is ${D7}, not ${given}`); return 2; }
+    recordDevelop(opsHome, D);
+    console.log(`RECORD OK develop ${D7}`);
+    return 0;
+  }
+  let old = null;
+  try {
+    const rec = path.join(opsHome, '.ezdraft-github-ops', 'develop');
+    if (lstatSync(rec).isFile()) {
+      const text = readFileSync(rec, 'utf8');
+      if (/^[0-9a-f]{40}\n?$/.test(text)) old = text.trim();
+    }
+  } catch { /* no record */ }
+  if (!old) console.log(`RECORD LIST (no earlier record) ${D7}`);
+  else {
+    console.log(`RECORD LIST ${old.slice(0, 7)}..${D7}`);
+    const log = git('log', '--format=%h %s', `${old}..${D}`);
+    const diff = git('diff', '--name-status', '--no-renames', old, D);
+    if (log.status !== 0 || diff.status !== 0) console.log(`RECORD LIST: cannot list from ${old.slice(0, 7)}`);
+    else {
+      for (const l of log.stdout.split('\n').filter(Boolean)) console.log(`commit ${l}`);
+      for (const l of diff.stdout.split('\n').filter(Boolean)) console.log(`change ${l}`);
+    }
+  }
+  console.log(`RECORD CHECK: to record develop, run node scripts/unit-steps.mjs record-develop ${D}`);
+  return 0;
+}
+if (step === 'record-develop') process.exit(recordDevelopStep(ticket));
 
 const steps = { preflight, worktree, merge, finish, table };
 if (!steps[step] || !/^EZD-[0-9A-Za-z]+$/.test(ticket || '')) {

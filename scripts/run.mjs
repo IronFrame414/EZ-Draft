@@ -26,6 +26,8 @@ import { spawnSync, spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
+import { verifyDevelop, developSha, recordDevelop } from './release/github-ops.mjs';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
   takeLauncherLock, withLedgerLock, LockError, queueDirs,
@@ -36,6 +38,9 @@ import {
 import { openRecords, dbPath, readQueue, applyOps, refreshViews, nextQuestionId, inboxFiles } from './records.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// EZD-316 D14: the D-021 record folder, as scripts/unit-steps.mjs D6: tests point EZD_GITHUB_OPS_HOME at a temp folder, or with
+// EZD_ROOT and no EZD_GITHUB_OPS_HOME get none (no record step), so they never touch the real one.
+const opsHome = process.env.EZD_GITHUB_OPS_HOME || (process.env.EZD_ROOT ? '' : os.userInfo().homedir);
 const vault = path.join(root, 'vault');
 const args = process.argv.slice(2);
 const once = args.includes('--once');
@@ -921,6 +926,10 @@ async function main() {
     setState({ state: 'unit', at: nowIso() });
     failedWait = null;
     const snap = repair ? repairSnapshot() : null;
+    // EZD-316 D14 (Q-0606 (b)): whether develop was on the D-021 record before the repair.
+    if (snap && opsHome) {
+      try { snap.verified = verifyDevelop(root, opsHome, spawnSync); } catch (e) { snap.verified = { refuse: e?.message ?? String(e) }; }
+    }
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
     setState({ state: 'after-unit', at: nowIso() });
@@ -940,6 +949,27 @@ async function main() {
           notify(`launcher stopped: a repair run changed ${changes.bad.join(', ')} and it was not undone. See vault/handoff/overseer-log.md.`);
         }
         log(`repair ${repair.kind}: refused: ${refusal}`);
+      }
+      // EZD-316 D14 (Q-0606 (b)): after a repair that passed the hard-limit check, the launcher records develop itself, but only
+      // the repair's own commits on top of a recorded develop, and only develop's current commit. Its own log only.
+      if (changes.bad.length === 0 && opsHome) {
+        let why = null;
+        if (!changes.head) why = 'no head commit';
+        else if (changes.head === snap.head) why = '';
+        else if (snap.verified?.sha !== snap.head) why = `develop was not on the record before the repair (${snap.verified?.refuse})`;
+        else {
+          const other = changes.commits.find((c) => c.merge || !c.subject.startsWith('fix(repair):'));
+          // Security review Part B, finding 1: a repair never blesses the push chain itself (github-ops runs with Josh's login).
+          const chain = changes.files.find((f) => f.startsWith('scripts/release/') || ['scripts/run.mjs', 'scripts/unit-steps.mjs', 'scripts/ledger.mjs'].includes(f));
+          if (other) why = `a commit is not the repair's (${other.sha.slice(0, 7)} "${other.subject}")`;
+          else if (chain) why = `a commit changes the push chain (${chain})`;
+          else if (developSha(path.join(root, '.git')) !== changes.head) why = 'develop is not the checkout\'s commit';
+          else {
+            try { recordDevelop(opsHome, changes.head); log(`repair ${repair.kind}: RECORDED: develop ${changes.head.slice(0, 7)}`); }
+            catch (e) { why = `record write failed: ${e?.message ?? e}`; }
+          }
+        }
+        if (why) log(`repair ${repair.kind}: NOTE: develop not recorded: ${why}`);
       }
       // Fix mode the repair opened (its file names this repair, skill step 4.2) is closed; any other is left and logged.
       if (!snap.fixBefore && existsSync(fixFile)) {

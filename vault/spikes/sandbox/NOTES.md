@@ -84,3 +84,18 @@ Third gap, same day: in EZD-108's second sandboxed run (session 131593f0) the ui
 
 ## Probe round 6 (2026-11-03, session ec665a73, settings `probe-settings-6.json`)
 Settings `env` `DO_NOT_TRACK=1`: `pnpm exec supabase --version` works with no prefix. `env` `npm_config_cache=/tmp/claude-501/npm-cache`: `npm cache verify` works. `env` `npm_config_store_dir`: no effect; inside the sandbox pnpm still uses `node_modules/.pnpm-store/v11` in the checkout (git-ignored; it keeps sandboxed installs out of the store unsandboxed runs use). `denyWrite: ["/Users/josh/Projects/ezdraft/scripts"]` (absolute): the main checkout's `scripts/` is refused, a worktree's `scripts/` and `app/` stay writable, and `node scripts/gate.mjs` still runs outside the sandbox in the foreground and the background. Applied to `scripts/unit-sandbox.json` (the env pair, the absolute denyWrite, `~/.supabase` dropped); asserted by `scripts/process/sandbox-coverage.test.mjs`.
+
+## Probe 7 (EZD-316, D-021)
+| # | Probe (sandboxed unless said) | Expect |
+| --- | --- | --- |
+| 1 | `gh auth status`; `cat ~/.config/gh/hosts.yml`; `cat ~/.netrc` | no login; reads denied |
+| 2 | `git push --dry-run origin develop` | fails: no credential |
+| 3 | `printf 'protocol=https\nhost=github.com\n\n' \| git credential fill` | no password printed |
+| 4 | `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs push-develop` as its own Bash call | runs outside the sandbox: exit 0, 2 or 3 with a GITHUB-OPS line, never SANDBOX STOP |
+| 5 | the same after `cd /tmp &&` | `GITHUB-OPS SANDBOX STOP`, exit 3 |
+| 6 | `git config --local x.y z`; `touch .git/config.worktree .git/commondir` | write denied |
+| 7 | `touch ~/.ezdraft-github-ops/x`; `node scripts/unit-steps.mjs record-develop <develop sha>` | write denied; nothing recorded |
+| 8 | `mv .git .git-probe`; `ln ~/.netrc /tmp/n` then `cat /tmp/n`; `mv` of a repo `.env` file to an unlisted path then read it | all fail; any that works: undo it and open a defect ticket |
+| 9 | `docker ps` | works (control) |
+| 10 | `curl -s https://api.github.com/repos/supabase/auth/issues/2852` | JSON with `state` (wrap step 4) |
+| 11 | `git fetch origin` | works (public repository; gate-phase 6, wrap 1) |

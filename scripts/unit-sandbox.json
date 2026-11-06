@@ -24,10 +24,18 @@
         "./**/.env.development",
         "~/.claude/.credentials.json",
         "~/.ssh",
-        "~/.aws"
+        "~/.aws",
+        "~/Library/Keychains",
+        "~/.config/gh",
+        "~/.git-credentials",
+        "~/.netrc"
       ],
       "denyWrite": [
-        "/Users/josh/Projects/ezdraft/scripts"
+        "/Users/josh/Projects/ezdraft/scripts",
+        "/Users/josh/Projects/ezdraft/.git/config",
+        "/Users/josh/Projects/ezdraft/.git/config.worktree",
+        "/Users/josh/Projects/ezdraft/.git/commondir",
+        "~/.ezdraft-github-ops"
       ]
     },
     "network": {
@@ -47,7 +55,8 @@
       "node scripts/gate.mjs *",
       "node scripts/unit-steps.mjs worktree *",
       "node scripts/unit-steps.mjs merge *",
-      "node scripts/ui-run.mjs *"
+      "node scripts/ui-run.mjs *",
+      "node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs *"
     ]
   }
 }

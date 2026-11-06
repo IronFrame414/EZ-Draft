@@ -13,7 +13,7 @@ const sandbox = JSON.parse(readFileSync(path.join(repo, 'scripts/unit-sandbox.js
 
 // The scripts that must run outside the sandbox, and the subcommands of each (null = every form). Each one stops with
 // "SANDBOX STOP" when it finds itself sandboxed.
-const OUTSIDE = { 'scripts/gate.mjs': null, 'scripts/unit-steps.mjs': ['worktree', 'merge'], 'scripts/ui-run.mjs': null };
+const OUTSIDE = { 'scripts/gate.mjs': null, 'scripts/unit-steps.mjs': ['worktree', 'merge'], 'scripts/ui-run.mjs': null, 'scripts/release/github-ops.mjs': null };
 
 // Bash permission-rule syntax: no wildcard = exact; a trailing " *" also matches the bare prefix.
 function covered(cmd) {
@@ -37,7 +37,7 @@ function instructionFiles() {
 }
 
 function mustRunOutside(cmd) {
-  const m = cmd.match(/^node (scripts\/[\w./-]+\.mjs)(?: (\S+))?/);
+  const m = cmd.match(/^node (?:\/Users\/josh\/Projects\/ezdraft\/)?(scripts\/[\w./-]+\.mjs)(?: (\S+))?/);
   if (!m || !(m[1] in OUTSIDE)) return false;
   return OUTSIDE[m[1]] === null || OUTSIDE[m[1]].includes(m[2]);
 }
@@ -46,7 +46,7 @@ test('D-022 every command the skills, agent files and architecture tell units to
   const missing = [];
   let seen = 0;
   for (const file of instructionFiles()) {
-    for (const m of readFileSync(file, 'utf8').matchAll(/`(node scripts\/[^`]+)`/g)) {
+    for (const m of readFileSync(file, 'utf8').matchAll(/`(node (?:\/Users\/josh\/Projects\/ezdraft\/)?scripts\/[^`]+)`/g)) {
       const cmd = m[1].trim();
       if (!mustRunOutside(cmd)) continue;
       seen++;
@@ -59,15 +59,15 @@ test('D-022 every command the skills, agent files and architecture tell units to
 
 test('D-022 every excluded command names a script on the list above, and every script that stops with SANDBOX STOP is on it', () => {
   for (const p of sandbox.excludedCommands) {
-    const m = p.match(/^node (scripts\/[\w./-]+\.mjs)(?: (\S+))? \*$/);
+    const m = p.match(/^node (?:\/Users\/josh\/Projects\/ezdraft\/)?(scripts\/[\w./-]+\.mjs)(?: (\S+))? \*$/);
     assert.ok(m, `excluded command not of the form "node scripts/<x>.mjs [sub] *": ${p}`);
     assert.ok(m[1] in OUTSIDE, `${p}: ${m[1]} is not on the OUTSIDE list`);
     assert.ok(existsSync(path.join(repo, m[1])), `${p}: ${m[1]} does not exist`);
     if (OUTSIDE[m[1]] !== null) assert.ok(OUTSIDE[m[1]].includes(m[2]), `${p}: subcommand ${m[2]} is not on the list`);
   }
-  const selfChecking = readdirSync(path.join(repo, 'scripts'))
-    .filter((f) => f.endsWith('.mjs') && readFileSync(path.join(repo, 'scripts', f), 'utf8').includes('SANDBOX STOP'))
-    .map((f) => `scripts/${f}`);
+  const selfChecking = ['scripts', 'scripts/release']
+    .flatMap((d) => readdirSync(path.join(repo, d)).filter((f) => f.endsWith('.mjs')).map((f) => `${d}/${f}`))
+    .filter((f) => readFileSync(path.join(repo, f), 'utf8').includes('SANDBOX STOP'));
   assert.deepEqual(selfChecking.sort(), Object.keys(OUTSIDE).sort());
 });
 
@@ -93,4 +93,13 @@ test('D-012, D-014 probe rounds 5 and 6: the main checkout scripts/ is write-den
   const env = JSON.parse(readFileSync(path.join(repo, 'scripts/unit-sandbox.json'), 'utf8')).env ?? {};
   assert.equal(env.DO_NOT_TRACK, '1', 'the Supabase CLI crashes on its telemetry write inside the sandbox without it (round 5, step 16)');
   assert.match(env.npm_config_cache ?? '', /^\/tmp\/claude-\d+\//, 'npm cannot write ~/.npm inside the sandbox (round 5, step 14)');
+});
+
+test('EZD-316 T13 D-021 the sandbox cannot read the GitHub login or write the repo git config', () => {
+  const read = sandbox.filesystem.denyRead;
+  for (const p of ['~/Library/Keychains', '~/.config/gh', '~/.git-credentials', '~/.netrc']) assert.ok(read.includes(p), `denyRead lacks ${p}`);
+  const write = sandbox.filesystem.denyWrite;
+  for (const p of ['.git/config', '.git/config.worktree', '.git/commondir']) assert.ok(write.includes(`/Users/josh/Projects/ezdraft/${p}`), `denyWrite lacks ${p}`);
+  assert.ok(write.includes('~/.ezdraft-github-ops'), 'denyWrite lacks ~/.ezdraft-github-ops');
+  assert.ok(sandbox.excludedCommands.includes('node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs *'), 'excludedCommands lacks the github-ops command');
 });

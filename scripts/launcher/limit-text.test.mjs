@@ -64,11 +64,11 @@ const stubLedger = (nextUnit) => [
 function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, sevenPct = 10, confirmed = false, handoffIsFile = false, apiKey = null, gitRepo = false }) {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
-  for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'fixtures']) mkdirSync(at(d), { recursive: true });
+  for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'fixtures']) mkdirSync(at(d), { recursive: true });
   // handoffIsFile: vault/handoff is a plain file, so no limit file can be written under it (T6).
   if (handoffIsFile) writeFileSync(at('vault/handoff'), 'not a folder\n');
   else mkdirSync(at('vault/handoff'), { recursive: true });
-  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(nextUnit));
@@ -126,12 +126,12 @@ function makeRoot({ out, err, exit, nextUnit = 'build EZD-999', fivePct = 50, se
 const launcher = (root) => path.join(root.tmp, 'scripts/run.mjs');
 const why = (r) => `exit ${r.status}, signal ${r.signal}\n${r.stdout}\n${r.stderr}`;
 function runOnce(root, env = process.env) {
-  return spawnSync(process.execPath, [launcher(root), '--once'], { encoding: 'utf8', timeout: 20000, env });
+  return spawnSync(process.execPath, [launcher(root), '--once'], { encoding: 'utf8', timeout: 20000, env: { ...env, EZD_GITHUB_OPS_HOME: path.join(root.tmp, 'ops-home') } });
 }
 // Starts the launcher without --once and stops it once `marker` is on stdout (the five-hour path then sleeps for half an hour).
 function runUntil(root, marker) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [launcher(root)], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [launcher(root)], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, EZD_GITHUB_OPS_HOME: path.join(root.tmp, 'ops-home') } });
     let out = '';
     let settled = false;
     const finish = (saw) => {

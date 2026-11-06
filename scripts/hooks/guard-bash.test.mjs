@@ -113,3 +113,38 @@ test('Stage 2 exceptions are gone: in fix mode the orchestrator is denied each f
     'EZD_SANDBOX_SPIKE=1 claude -p "probe" --settings vault/spikes/sandbox/settings.json',
   ]) assert.ok(runIn(fixRoot, null, cmd), cmd);
 });
+
+test('EZD-316 T15 guard-bash allows only the absolute github-ops path, for the orchestrator only', () => {
+  const G = 'node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs';
+  const REASON = "Release scripts are Josh's; agents never run them (EZD-023b).";
+  let checks = 0;
+  for (const agent of [undefined, 'orchestrator']) {
+    for (const cmd of [`${G} push-develop`, `${G} pr-view https://github.com/IronFrame414/EZ-Draft/pull/5`, `${G} run-log 42026026666`]) {
+      assert.equal(run(agent, cmd).denied, false, `${agent}: ${cmd}`);
+      checks++;
+    }
+  }
+  for (const cmd of [
+    'node scripts/release/github-ops.mjs push-develop',
+    'node .claude/worktrees/EZD-1/scripts/release/github-ops.mjs push-develop',
+    'node /tmp/x/scripts/release/github-ops.mjs push-develop',
+    'node /users/josh/projects/ezdraft/scripts/release/github-ops.mjs push-develop',
+    'node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs.bak x',
+    'node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs/../promote.mjs',
+    'node /Users/josh/Projects/ezdraft/scripts/release/promote.mjs',
+    `${G} push-develop; node scripts/release/tag.mjs`,
+    'pnpm release:promote',
+  ]) {
+    const r = run('orchestrator', cmd);
+    assert.equal(r.denied, true, cmd);
+    assert.equal(r.reason, REASON, cmd);
+    checks++;
+  }
+  for (const agent of ['builder', 'test-author', 'planner', 'code-reviewer']) {
+    const r = run(agent, `${G} push-develop`);
+    assert.equal(r.denied, true, agent);
+    assert.equal(r.reason, REASON, agent);
+    checks++;
+  }
+  assert.equal(checks, 19);
+});

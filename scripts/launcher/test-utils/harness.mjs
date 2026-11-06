@@ -133,7 +133,7 @@ const fakeClaude = () =>
 
 const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFile}"`, 'exit 1', ''].join('\n');
 
-const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs'];
+const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'scripts/release/github-ops.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs'];
 
 // A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
 // with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules. config: spread last into
@@ -223,6 +223,7 @@ export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = 
     PATH: `${root.at('bin')}${path.delimiter}${process.env.PATH ?? ''}`,
     EZD_RECORDS_DB: root.at('records.db'),
     EZD_RESULTS_FILE: '',
+    EZD_GITHUB_OPS_HOME: mkTmp('ezd316-ops-home-'),
     ...extraEnv,
   };
   const t0 = Date.now();

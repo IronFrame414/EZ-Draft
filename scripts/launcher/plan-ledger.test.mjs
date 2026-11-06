@@ -43,8 +43,8 @@ function makeRoot(result) {
   const tmp = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd244-')));
   made.push(tmp);
   const at = (...p) => path.join(tmp, ...p);
-  for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'vault/plans', 'logs', 'bin']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'vault/plans', 'logs', 'bin']) mkdirSync(at(d), { recursive: true });
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(at('arch-calls.txt'), result));
@@ -91,6 +91,7 @@ function runOnce(root) {
     ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_'))),
     GIT_CEILING_DIRECTORIES: path.dirname(root.tmp),
     PATH: `${root.at('bin')}${path.delimiter}${process.env.PATH ?? ''}`,
+    EZD_GITHUB_OPS_HOME: root.at('ops-home'),
   };
   try {
     return spawnSync(process.execPath, [root.at('scripts/run.mjs'), '--once'], { stdio: ['ignore', fd, fd], env, timeout: 20000 });

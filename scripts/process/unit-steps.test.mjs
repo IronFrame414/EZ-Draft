@@ -7,6 +7,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { recordDevelop } from '../release/github-ops.mjs';
 
 const SCRIPT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'unit-steps.mjs');
 const RECORDS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'records.mjs');
@@ -550,4 +551,113 @@ test('EZD-329 T9 a git failure clearing the flag stops the merge with develop, t
   assert.equal(readFileSync(path.join(wt, TJ), 'utf8'), wBefore);
   assert.ok(flagOf(wt).startsWith('S '), flagOf(wt));
   rmSync(dir, { recursive: true, force: true });
+});
+
+// EZD-316 (D6-D9): the record of develop lives in EZD_GITHUB_OPS_HOME (a temp folder here; never the real home).
+const runWith = (dir, extra, ...a) => spawnSync(process.execPath, [SCRIPT, ...a], {
+  encoding: 'utf8',
+  env: { ...process.env, EZD_ROOT: dir, EZD_RECORDS_DB: dbOf(dir), EZD_RESULTS_FILE: '', EZD_INFLIGHT_DIR: mkdtempSync(path.join(os.tmpdir(), 'ezd-steps-inflight-')), EZD_GATE_CMD: `node ${path.join(dir, 'gate-stub.mjs').replace(/\\/g, '/')}`, EZD_NO_PUSH: '1', EZD_GITHUB_OPS_HOME: undefined, ...extra },
+});
+const opsHome = () => mkdtempSync(path.join(os.tmpdir(), 'ezd-ops-home-'));
+const recordOf = (home) => path.join(home, '.ezdraft-github-ops', 'develop');
+const putRecord = (home, text) => { mkdirSync(path.dirname(recordOf(home)), { recursive: true }); writeFileSync(recordOf(home), text); };
+
+// verifyDevelop returns 'no recorded develop commit' before it spawns git, so this half runs everywhere.
+test('EZD-316 T11 merge record: a merge with no recorded develop stops with develop untouched (AC-EZD-316-2)', () => {
+  const dir = fixture();
+  const home = opsHome();
+  run(dir, 'worktree', 'EZD-002');
+  const wt = path.join(dir, '.claude/worktrees/EZD-002');
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(wt);
+  const develop = git(dir, 'rev-parse', 'develop');
+  const first = runWith(dir, { EZD_GITHUB_OPS_HOME: home }, 'merge', 'EZD-002');
+  assert.equal(first.status, 3, first.stdout + first.stderr);
+  assert.match(first.stdout, /MERGE STOP: no recorded develop commit; develop untouched/);
+  assert.equal(git(dir, 'rev-parse', 'develop'), develop);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+// With a recorded commit verifyDevelop spawns /opt/homebrew/bin/git (github-ops.mjs line 19), so this half needs that binary.
+test('EZD-316 T11 merge record: after recordDevelop the merge lands and records its feat commit (AC-EZD-316-2)', { skip: existsSync('/opt/homebrew/bin/git') ? false : 'needs /opt/homebrew/bin/git (verifyDevelop spawns it)' }, () => {
+  const dir = fixture();
+  const home = opsHome();
+  run(dir, 'worktree', 'EZD-002');
+  const wt = path.join(dir, '.claude/worktrees/EZD-002');
+  commitIn(wt, 'feature.mjs', 'export const x = 1;\n', 'wip(EZD-002): feature');
+  passGate(wt);
+  const develop = git(dir, 'rev-parse', 'develop');
+  recordDevelop(home, develop);
+  const second = runWith(dir, { EZD_GITHUB_OPS_HOME: home }, 'merge', 'EZD-002');
+  assert.equal(second.status, 0, second.stdout + second.stderr);
+  assert.match(second.stdout, /MERGE OK/);
+  assert.notEqual(git(dir, 'rev-parse', 'develop'), develop);
+  assert.equal(readFileSync(recordOf(home), 'utf8'), `${git(dir, 'rev-parse', 'develop')}\n`);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('EZD-316 T12 record-develop: lists what changed since the record, records only develop\'s own commit, and stops otherwise (AC-EZD-316-2)', () => {
+  const lines = (r) => r.stdout.trim().split('\n');
+  const check = (d) => `RECORD CHECK: to record develop, run node scripts/unit-steps.mjs record-develop ${d}`;
+  // (a) EZD_ROOT set, no record folder.
+  const fa = fixture();
+  const ra = runWith(fa, {}, 'record-develop');
+  assert.equal(ra.status, 2, ra.stdout + ra.stderr);
+  assert.match(ra.stdout, /RECORD STOP: no record folder \(EZD_ROOT is set without EZD_GITHUB_OPS_HOME\)/);
+  rmSync(fa, { recursive: true, force: true });
+
+  const dir = fixture();
+  const home = opsHome();
+  const ops = { EZD_GITHUB_OPS_HOME: home };
+  // (b) no record, no sha: lists the first line, records nothing.
+  let D = git(dir, 'rev-parse', 'develop');
+  const rb = runWith(dir, ops, 'record-develop');
+  assert.equal(rb.status, 0, rb.stdout + rb.stderr);
+  assert.equal(lines(rb)[0], `RECORD LIST (no earlier record) ${D.slice(0, 7)}`);
+  assert.equal(lines(rb).at(-1), check(D));
+  assert.ok(!existsSync(recordOf(home)));
+
+  // (c) record = develop^, one commit changing a.mjs: commit and change lines.
+  commitIn(dir, 'a.mjs', 'one\n', 'add a');
+  const old = git(dir, 'rev-parse', 'develop');
+  putRecord(home, `${old}\n`);
+  commitIn(dir, 'a.mjs', 'two\n', 'change a');
+  D = git(dir, 'rev-parse', 'develop');
+  const rc = runWith(dir, ops, 'record-develop');
+  assert.equal(rc.status, 0, rc.stdout + rc.stderr);
+  assert.deepEqual(lines(rc), [`RECORD LIST ${old.slice(0, 7)}..${D.slice(0, 7)}`, `commit ${git(dir, 'rev-parse', '--short', 'develop')} change a`, 'change M\ta.mjs', check(D)]);
+  assert.equal(readFileSync(recordOf(home), 'utf8'), `${old}\n`);
+
+  // (d) a sha that is not develop: stop, record unchanged.
+  const rd = runWith(dir, ops, 'record-develop', 'b'.repeat(40));
+  assert.equal(rd.status, 2, rd.stdout + rd.stderr);
+  assert.match(rd.stdout, new RegExp(`RECORD STOP: develop is ${D.slice(0, 7)}, not ${'b'.repeat(40)}`));
+  assert.equal(readFileSync(recordOf(home), 'utf8'), `${old}\n`);
+
+  // (e) develop's own sha: recorded.
+  const re = runWith(dir, ops, 'record-develop', D);
+  assert.equal(re.status, 0, re.stdout + re.stderr);
+  assert.match(re.stdout, new RegExp(`RECORD OK develop ${D.slice(0, 7)}`));
+  assert.equal(readFileSync(recordOf(home), 'utf8'), `${D}\n`);
+
+  // (g) an unreadable record file counts as no record.
+  putRecord(home, 'abc\n');
+  const rg = runWith(dir, ops, 'record-develop');
+  assert.equal(rg.status, 0, rg.stdout + rg.stderr);
+  assert.equal(lines(rg)[0], `RECORD LIST (no earlier record) ${D.slice(0, 7)}`);
+
+  // (h) a record naming a commit that does not exist: the list cannot be made.
+  putRecord(home, `${'c'.repeat(40)}\n`);
+  const rh = runWith(dir, ops, 'record-develop');
+  assert.equal(rh.status, 0, rh.stdout + rh.stderr);
+  assert.deepEqual(lines(rh), [`RECORD LIST ccccccc..${D.slice(0, 7)}`, 'RECORD LIST: cannot list from ccccccc', check(D)]);
+  rmSync(dir, { recursive: true, force: true });
+
+  // (f) no develop branch.
+  const ff = fixture();
+  git(ff, 'branch', '-m', 'develop', 'trunk');
+  const rf = runWith(ff, { EZD_GITHUB_OPS_HOME: opsHome() }, 'record-develop');
+  assert.equal(rf.status, 2, rf.stdout + rf.stderr);
+  assert.match(rf.stdout, /RECORD STOP: no develop branch/);
+  rmSync(ff, { recursive: true, force: true });
 });
