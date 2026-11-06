@@ -298,16 +298,20 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Goal:** Draw a closed room by typing lengths on the plan canvas and have it saved.
 - **User-visible result:** Plan tab with grid, pan, zoom, Fit and hover; Wall and Room rectangle tools with snapping and the typed dimension bar; rooms detected with area, and a gap shown with absorb or keep out of square; blank templates (galley, L-kitchen, 5x8 bath, primary bath, Empty) in the new project wizard; the benchmark project generator.
 - **Spec files:** `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S02-import-review.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/screens/S01-projects.md`, `spec/sections/09j-walls-and-rooms-examples.md`, `spec/sections/00e-glossary-phase-04.md`, `spec/sections/09e-geometry-and-drafting.md`, `spec/sections/03f-model-json-objects.md`, `spec/sections/03g-tolerance-and-rounding.md`; decisions Q-0558 to Q-0570
-- **Tickets (9, build order):**
+- **Tickets (13, build order):**
   - EZD-201 Length parse and format
   - EZD-203 Walls core — needs EZD-202 (s3)
-  - EZD-205 Rooms and closure — after EZD-203
+  - EZD-205a Room outlines, area, storage and label — after EZD-203; needs EZD-202 (s3), EZD-238 (s3)
+  - EZD-205b Closure gap, absorb and keep out of square — after EZD-205a; needs EZD-120a (s3), EZD-102 (s1)
   - EZD-206 Snapping — after EZD-203 (Q-0563)
   - EZD-236 Benchmark project generator — needs EZD-202 (s3), EZD-120a (s3), EZD-120b (s3)
-  - EZD-207 Plan canvas — after EZD-206, EZD-236; needs EZD-202 (s3), EZD-238 (s3)
-  - EZD-209 Typed dimension bar — after EZD-201, EZD-207
-  - EZD-210 Wall and Room rectangle tools — after EZD-205, EZD-209
-  - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
+  - EZD-207a Plan canvas: renderer, drawing, grid, pan and zoom — needs EZD-202 (s3), EZD-238 (s3), EZD-120c (s3)
+  - EZD-207b Plan canvas: zoom stack, hover and text — after EZD-207a, EZD-206, EZD-205a, EZD-205b
+  - EZD-207c Benchmark pan and zoom in the performance check — after EZD-207b, EZD-236; needs EZD-120c (s3)
+  - EZD-209 Typed dimension bar — after EZD-201, EZD-207a, EZD-207b, EZD-207c
+  - EZD-210a Wall and Room rectangle tool logic — after EZD-205a, EZD-205b, EZD-209, EZD-206, EZD-203, EZD-201; needs EZD-202 (s3), EZD-120b (s3)
+  - EZD-210b Drawing tools on the plan — after EZD-210a, EZD-207a, EZD-207b, EZD-209; needs EZD-120c (s3)
+  - EZD-221 Blank templates — after EZD-210a, EZD-210b; needs EZD-118 (s2)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
 - **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Slice 6 below; AC-EZD-207-5). The spike EZD-027 (plan canvas on the iPad) must have a go note.
