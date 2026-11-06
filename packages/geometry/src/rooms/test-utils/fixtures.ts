@@ -1,6 +1,7 @@
 // EZD-205a · test fixtures (vault/plans/EZD-205a.md section 3 "test helper" row; section 4). Walls are built with
-// `createWallData` (L-062). Nothing else is exported.
-import type { ClosureOverride, Point } from '../../schema';
+// `createWallData` (L-062). Nothing else is exported, apart from EZD-205b's `openChain` and `applyChanged`
+// (vault/plans/EZD-205b.md section 3 "test helper" rows).
+import type { ClosureOverride, ModelObject, Point } from '../../schema';
 import { createWallData, type WallObject } from '../../walls/wall';
 import type { RoomObject } from '../sync';
 
@@ -33,6 +34,25 @@ export function chain(
   level: string = F1,
 ): WallObject[] {
   return pts.map((p, i) => wallObj(uid(firstId + i), p, pts[(i + 1) % pts.length]!, side, level));
+}
+
+// EZD-205b: walls pts[i] -> pts[i + 1] for i < pts.length - 1, no closing wall.
+export function openChain(
+  firstId: number,
+  pts: Point[],
+  side: Side = 'right',
+  level: string = F1,
+): WallObject[] {
+  return pts.slice(0, -1).map((p, i) => wallObj(uid(firstId + i), p, pts[i + 1]!, side, level));
+}
+
+// EZD-205b: replaces objects by id (lower-case), keeps order, never mutates.
+export function applyChanged(
+  objects: readonly ModelObject[],
+  changed: readonly ModelObject[],
+): ModelObject[] {
+  const byId = new Map(changed.map((c) => [c.id.toLowerCase(), c]));
+  return objects.map((o) => byId.get(o.id.toLowerCase()) ?? o);
 }
 
 export function roomObj(

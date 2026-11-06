@@ -52,6 +52,7 @@ export const EVENTS = {
   'version.snapshot_named': { kind: 'internal' },
   'version.reverted': { kind: 'internal' },
   'cleanup.deleted': { kind: 'internal' },
+  'room.closure_overridden': { kind: 'internal' },
   // Canonical names: screen events that write the event log only (07 Hooks)
   'catalog_item.created': { kind: 'log_only' },
   'detail.placed': { kind: 'log_only' },
@@ -121,6 +122,7 @@ export interface EventPayloads {
   'version.snapshot_named': Record<string, unknown>;
   'version.reverted': Record<string, unknown>;
   'cleanup.deleted': Record<string, unknown>;
+  'room.closure_overridden': { roomId: string; gapIn: number; userId: string };
   'catalog_item.created': Record<string, unknown>;
   'detail.placed': Record<string, unknown>;
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };

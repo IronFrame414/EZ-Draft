@@ -4059,8 +4059,10 @@
    "architecture": [
     "Events",
     "Model working copy (EZD-120a)",
-    "Model schema (EZD-202)"
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205a",

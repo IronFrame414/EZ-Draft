@@ -3,7 +3,15 @@
 // caller's session client to `save_objects` and `create_checkpoint`, which check the switch and scope again.
 // EZD-120b Build step 9 (vault/plans/EZD-120b.md Decided "loadModel", "Object read", "canEdit"; 03b rules 1, 5):
 // `loadModel` reads the project, its lock generation and its live objects through the session client (RLS).
-import { CURRENT_SCHEMA_VERSION, parseStoredObject, type ObjectIssue } from '@ezdraft/geometry';
+// EZD-205b Build step 9 (vault/plans/EZD-205b.md Decided "Override check", "saveObjects order"; S02 Events;
+// Q-0570): a room whose closure override is new or changed must name the saving user; the stored rows are read for
+// those rooms only.
+import {
+  CURRENT_SCHEMA_VERSION,
+  parseStoredObject,
+  type ClosureOverride,
+  type ObjectIssue,
+} from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
@@ -24,7 +32,12 @@ export type ObjectChange =
 export type SaveRequest = { lockEpoch: number; changes: ObjectChange[] };
 
 export type SaveResult =
-  | { ok: true; tenantId: string; objects: { id: string; updatedSeq: number }[] }
+  | {
+      ok: true;
+      tenantId: string;
+      objects: { id: string; updatedSeq: number }[];
+      overridden: { roomId: string; gapIn: number }[];
+    }
   | {
       ok: false;
       code: 'permission_denied' | 'project_not_found' | 'invalid_input' | 'stale_lock_epoch';
@@ -75,10 +88,41 @@ type SavedJson = {
 type ConflictJson = { status: 'conflict'; conflicts: { object_id: string; server_seq: number }[] };
 type StaleJson = { status: 'stale_lock_epoch' };
 
+// Decided "Override check": `stored` is keyed by lower-case id; `null` = a row with no override (or deleted, not a
+// room, unreadable); no key = no row.
+export function closureOverrideCheck(
+  rooms: readonly { id: string; override: ClosureOverride | null }[],
+  stored: ReadonlyMap<string, ClosureOverride | null>,
+  appUserId: string,
+): { invalid: ObjectIssue[]; overridden: { roomId: string; gapIn: number }[] } {
+  const invalid: ObjectIssue[] = [];
+  const overridden: { roomId: string; gapIn: number }[] = [];
+  for (const { id, override } of rooms) {
+    if (override === null) continue;
+    const s = stored.get(id.toLowerCase());
+    const unchanged =
+      s !== undefined &&
+      s !== null &&
+      s.who.toLowerCase() === override.who.toLowerCase() &&
+      s.when === override.when &&
+      s.gap.x === override.gap.x &&
+      s.gap.y === override.gap.y;
+    if (unchanged) continue;
+    if (override.who.toLowerCase() !== appUserId.toLowerCase())
+      invalid.push({ id, issue: 'override_other_user' });
+    else overridden.push({ roomId: id, gapIn: Math.hypot(override.gap.x, override.gap.y) });
+  }
+  return { invalid, overridden };
+}
+
+// L-061: the most ids one stored-row read names.
+const OVERRIDE_READ_CHUNK = 100;
+
 export async function saveObjects(
   client: SupabaseClient<Database>,
   projectId: string,
   req: SaveRequest,
+  appUserId: string,
 ): Promise<SaveResult> {
   // EZD-202 Decided "Save check": every upserted object is parsed before the rpc; any issue refuses the whole
   // save, issues in change order. A parsed object is sent as parsed, at the current schema version.
@@ -98,6 +142,47 @@ export async function saveObjects(
     return { ...c, schemaVersion: CURRENT_SCHEMA_VERSION, data: parsed.object.data };
   });
   if (invalid.length > 0) return { ok: false, code: 'invalid_object', invalid };
+
+  // EZD-205b Decided "saveObjects order": the stored rows of rooms with an override, read before the rpc.
+  const rooms = checked.flatMap((c) =>
+    !c.deleted && c.type === 'room' && c.data.closureOverride !== null
+      ? [{ id: c.id, override: c.data.closureOverride as ClosureOverride }]
+      : [],
+  );
+  let overridden: { roomId: string; gapIn: number }[] = [];
+  if (rooms.length > 0) {
+    const stored = new Map<string, ClosureOverride | null>();
+    for (let i = 0; i < rooms.length; i += OVERRIDE_READ_CHUNK) {
+      const chunk = rooms.slice(i, i + OVERRIDE_READ_CHUNK).map((r) => r.id);
+      const { data, error } = await client
+        .from('model_object')
+        .select('object_id, type, schema_version, data, deleted')
+        .eq('project_id', projectId)
+        .in('object_id', chunk);
+      if (error) throw error;
+      for (const row of data) {
+        const key = row.object_id.toLowerCase();
+        if (row.deleted) {
+          stored.set(key, null);
+          continue;
+        }
+        const parsed = parseStoredObject({
+          id: row.object_id,
+          type: row.type,
+          schema_version: row.schema_version,
+          data: row.data,
+        });
+        stored.set(
+          key,
+          parsed.ok && parsed.object.type === 'room' ? parsed.object.data.closureOverride : null,
+        );
+      }
+    }
+    const check = closureOverrideCheck(rooms, stored, appUserId);
+    if (check.invalid.length > 0)
+      return { ok: false, code: 'invalid_object', invalid: check.invalid };
+    overridden = check.overridden;
+  }
 
   const changes = checked.map((c) =>
     c.deleted
@@ -136,6 +221,7 @@ export async function saveObjects(
       ok: true,
       tenantId: result.tenant_id,
       objects: result.objects.map((o) => ({ id: o.object_id, updatedSeq: o.updated_seq })),
+      overridden,
     };
   }
   if (result?.status === 'conflict') {

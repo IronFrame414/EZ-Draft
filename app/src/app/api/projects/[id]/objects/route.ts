@@ -4,6 +4,9 @@
 // under the member's session (it checks the switch and scope again). 200 `{ objects }`; 409 for a stale lock
 // generation or a sequence conflict. `model.saved` is emitted only on a save; a failed emit is reported
 // (EZD-283) and does not fail the save.
+// EZD-205b Build step 10 (vault/plans/EZD-205b.md Decided "Emit"; S02 Events; Q-0570): after `model.saved`, one
+// `room.closure_overridden` per room whose closure override is new or changed, in change order; a failed emit is
+// reported and does not fail the save.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { errorType } from '../../../../../server/errors/fingerprint';
@@ -23,6 +26,7 @@ export const dynamic = 'force-dynamic';
 const headers = { 'Cache-Control': 'no-store' };
 const ROUTE = '/api/projects/[id]/objects';
 const EMIT_FAILED = 'model_saved_event_failed';
+const CLOSURE_EMIT_FAILED = 'room_closure_overridden_event_failed';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -54,7 +58,7 @@ export async function POST(
     const req = parseSaveRequest(raw);
     if (req === null) return fail(400, 'invalid_input');
 
-    const result = await saveObjects(createSessionClient(), id, req);
+    const result = await saveObjects(createSessionClient(), id, req, p.session.appUserId);
     if (!result.ok) {
       switch (result.code) {
         case 'permission_denied':
@@ -101,6 +105,26 @@ export async function POST(
         });
       } catch {
         /* reportError never throws; guarded as route-failure.ts does */
+      }
+    }
+
+    for (const o of result.overridden) {
+      try {
+        await emit(
+          'room.closure_overridden',
+          { roomId: o.roomId, gapIn: o.gapIn, userId: p.session.appUserId },
+          { tenantId: result.tenantId, projectId: id, actorId: p.session.appUserId },
+        );
+      } catch (e) {
+        try {
+          await reportError(new Error(CLOSURE_EMIT_FAILED), {
+            source: 'function',
+            location: ROUTE,
+            tags: { 'ezd.cause': errorType(e) },
+          });
+        } catch {
+          /* reportError never throws; guarded as route-failure.ts does */
+        }
       }
     }
 

@@ -4,9 +4,21 @@
 // 09j Moving a wall row 1; 03g row 2.
 import { describe, expect, it, vi } from 'vitest';
 import type { ModelObject, Point } from '../schema';
-import { roomAreaSqFt } from './area';
-import { reconcileRooms } from './sync';
-import { chain, F1, F2, idSeq, roomObj, uid, wallObj } from './test-utils/fixtures';
+import { moveWall } from '../walls/move';
+import { outlineAreaSqIn, roomAreaSqFt } from './area';
+import { keepOutOfSquare } from './override';
+import { reconcileRooms, type RoomObject } from './sync';
+import {
+  applyChanged,
+  chain,
+  F1,
+  F2,
+  idSeq,
+  openChain,
+  roomObj,
+  uid,
+  wallObj,
+} from './test-utils/fixtures';
 
 const P = (x: number, y: number): Point => ({ x, y });
 const R = (w: number, d: number): Point[] => [P(0, 0), P(w, 0), P(w, d), P(0, d)];
@@ -140,18 +152,100 @@ describe('EZD-205a room reconcile', () => {
     expectBoundary(r.update[0]!.data.geometry.boundary, R(144, 120));
   });
 
-  it('EZD-205a T16 delete, scope, override: only free rooms of this level without an override are deleted', () => {
+  it('EZD-205a T16 delete, scope, override: free rooms of this level are deleted and a real outline clears an override', () => {
     const a = roomObj(uid(101), R(144, 120), 'A', F1, null);
     const b = roomObj(uid(102), R(144, 120), 'B', F1, OVERRIDE);
     const c = roomObj(uid(103), R(144, 120), 'C', F2);
     const open = chain(1, R(144, 120), 'right').slice(0, 3);
     const r = reconcileRooms([...open, a, b, c], F1, neverCalled());
-    expect(r.delete).toEqual([a.id]);
+    expect(r.delete).toEqual([a.id, b.id]);
     expect(r.create).toEqual([]);
     expect(r.update).toEqual([]);
 
     const newId = neverCalled();
-    expect(reconcileRooms([...chain(1, R(150, 120), 'right'), b], F1, newId)).toEqual(EMPTY);
+    const r2 = reconcileRooms([...chain(1, R(150, 120), 'right'), b], F1, newId);
+    expect(r2.create).toEqual([]);
+    expect(r2.delete).toEqual([]);
+    expect(r2.update).toHaveLength(1);
+    const u = r2.update[0]!;
+    expect(u.id).toBe(b.id);
+    expect(u.data.attributes.name).toBe('B');
+    expect(u.data.closureOverride).toBeNull();
+    expectBoundary(u.data.geometry.boundary, R(150, 120));
     expect(newId).not.toHaveBeenCalled();
+  });
+});
+
+// EZD-205b · SY1 to SY3: reconcileRooms with closure overrides (vault/plans/EZD-205b.md section 1 Decided "Reconcile
+// with gaps"; section 4; AC-EZD-205-4). Expected values: 09j Keep out of square; 09j Moving a wall row 1; 03g rows
+// 2-3; Q-0568; Q-0570.
+const ROW2_PTS = [P(0, 0), P(144, 0), P(144, 120), P(0, 120), P(0, 0.5)];
+const ROW2 = openChain(1, ROW2_PTS);
+const IDS4 = [uid(1), uid(2), uid(3), uid(4)];
+const row2Ending = (last: Point) => openChain(1, [...ROW2_PTS.slice(0, 4), last]);
+
+// The KP1 room: Keep out of square on ROW2 by uid(7), created as uid(900).
+function kp1Room(): RoomObject {
+  const r = keepOutOfSquare(ROW2, IDS4, uid(7), '2026-11-06T12:00:00.000Z', idSeq(900));
+  if (!r.ok || r.rooms.create.length !== 1)
+    throw new Error('KP1 room: keepOutOfSquare did not create one room');
+  return r.rooms.create[0]!;
+}
+
+describe('EZD-205b reconcile with closure overrides', () => {
+  it('SY1 an override is kept while the gap is unchanged, and a bare gap makes no room', () => {
+    const room = kp1Room();
+    const objs: ModelObject[] = [...ROW2, room];
+    expect(reconcileRooms(objs, F1, neverCalled()), '(a)').toEqual(EMPTY);
+
+    const moved = moveWall(objs, uid(2), { x: 6, y: 0 });
+    expect(moved.ok).toBe(true);
+    if (!moved.ok) return;
+    const b = reconcileRooms(applyChanged(objs, moved.changed), F1, neverCalled());
+    expect(b.update, '(b)').toHaveLength(1);
+    const u = b.update[0]!;
+    expect(u.id).toBe(room.id);
+    expect(u.data.attributes.name).toBe(room.data.attributes.name);
+    expect(u.data.closureOverride).toEqual(room.data.closureOverride);
+    expect(roomAreaSqFt(u.data.geometry.boundary)).toBe(125);
+
+    expect(reconcileRooms(ROW2, F1, neverCalled()), '(c)').toEqual(EMPTY);
+  });
+
+  it('SY2 a changed gap clears the override and keeps the room', () => {
+    const room = kp1Room();
+    const r = reconcileRooms([...row2Ending(P(0, 0.25)), room], F1, neverCalled());
+    expect(r.delete).toEqual([]);
+    expect(r.update).toHaveLength(1);
+    const u = r.update[0]!;
+    expect(u.id).toBe(room.id);
+    expect(u.data.attributes.name).toBe(room.data.attributes.name);
+    expect(u.data.closureOverride).toBeNull();
+    expect(outlineAreaSqIn(u.data.geometry.boundary)).toBeCloseTo(17280, 6);
+  });
+
+  it('SY3 a closed or broken chain, and the 1/64" gap comparison', () => {
+    const room = kp1Room();
+
+    const a = reconcileRooms([...row2Ending(P(0, 0)), room], F1, neverCalled());
+    expect(a.update, '(a)').toHaveLength(1);
+    expect(a.update[0]!.id).toBe(room.id);
+    expect(a.update[0]!.data.closureOverride).toBeNull();
+    expect(roomAreaSqFt(a.update[0]!.data.geometry.boundary)).toBe(120);
+
+    const b = reconcileRooms([...ROW2.slice(0, 3), room], F1, neverCalled());
+    expect(b.delete, '(b)').toEqual([uid(900)]);
+
+    const c = reconcileRooms([...row2Ending(P(0, 0.515625)), room], F1, neverCalled());
+    expect(c.delete, '(c)').toEqual([]);
+    expect(
+      [...c.create, ...c.update].filter((x) => x.data.closureOverride === null),
+      '(c)',
+    ).toEqual([]);
+
+    const d = reconcileRooms([...row2Ending(P(0, 0.53125)), room], F1, neverCalled());
+    expect(d.update, '(d)').toHaveLength(1);
+    expect(d.update[0]!.id).toBe(room.id);
+    expect(d.update[0]!.data.closureOverride).toBeNull();
   });
 });
