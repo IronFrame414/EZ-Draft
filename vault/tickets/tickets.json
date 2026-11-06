@@ -18655,7 +18655,14 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Design tokens, fonts and icons",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)",
+    "PWA (EZD-013)",
+    "Root config files",
+    "Machine checks"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
