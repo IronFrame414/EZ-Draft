@@ -18379,6 +18379,112 @@
     "AC-EZD-337-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-338",
+   "phase": 3,
+   "title": "Fix: the Projects page touch test counts the project cards that EZD-120c made links",
+   "depends_raw": "EZD-330, EZD-120c",
+   "spec_ref": "EZD-330 T1, T2; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-330",
+    "EZD-120c"
+   ],
+   "build_position": 594,
+   "acs": [
+    "AC-EZD-338-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-339",
+   "phase": 3,
+   "title": "Fix: the EZD-118 New project wizard tests B3 and B4 follow Create into the editor",
+   "depends_raw": "EZD-118, EZD-120c",
+   "spec_ref": "EZD-118 AC-4, AC-6; Q-0500; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-120c"
+   ],
+   "build_position": 595,
+   "acs": [
+    "AC-EZD-339-1",
+    "AC-EZD-339-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-340",
+   "phase": 3,
+   "title": "Fix: the EZD-136 disclaimer test passes on the /dev/saves test page (text follows the disclaimer)",
+   "depends_raw": "EZD-136, EZD-120d",
+   "spec_ref": "EZD-136 done-when; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-136",
+    "EZD-120d"
+   ],
+   "build_position": 596,
+   "acs": [
+    "AC-EZD-340-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-341",
+   "phase": 3,
+   "title": "Fix: the projects-settings entry stays within its 200 KB size budget",
+   "depends_raw": "EZD-020, EZD-120c, EZD-120d",
+   "spec_ref": "EZD-020 E4; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-020",
+    "EZD-120c",
+    "EZD-120d"
+   ],
+   "build_position": 597,
+   "acs": [
+    "AC-EZD-341-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
