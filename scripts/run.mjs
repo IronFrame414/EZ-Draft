@@ -68,7 +68,7 @@ const { costEntry } = await import('./cost-log.mjs');
 const {
   idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
   isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
-  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES, AUTO_MERGE_OFF_RE, PR_GREEN_OPEN_RE,
+  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES, AUTO_MERGE_ON_RE, PR_GREEN_OPEN_RE,
 } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 // Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
@@ -835,17 +835,23 @@ async function main() {
       if (!/^none:/.test(effective)) {
         try { unlinkSync(repairStateFile); } catch {}
         repairs = 0;
-      } else if ((AUTO_MERGE_OFF_RE.test(effective) || PR_GREEN_OPEN_RE.test(effective)) && !prActionTried.has(effective)) {
-        // EZD-336 (Josh 2026-11-05, decisions process.md a57931ba: Claude Code completes its own PRs; a refused auto-merge or an
-        // open PR after a green gate is a stop cause the overseer clears). A unit meets the settings ask rule for `gh pr merge`,
-        // so the launcher does it, once per wait text, logs it for Josh and sends nothing. The gate stays required (rule 12):
-        // GitHub refuses either command while the required check is not green.
+      } else if ((AUTO_MERGE_ON_RE.test(effective) || PR_GREEN_OPEN_RE.test(effective)) && !prActionTried.has(effective)) {
+        // EZD-336, EZD-337 (Q-0594 (a); Josh 2026-11-05 a57931ba: Claude Code completes its own PRs): GitHub auto-merge is not used.
+        // The launcher turns off auto-merge it finds on, and merges a green PR only at the head next_ticket.mjs checked for a post-audit
+        // security hold (--match-head-commit), once per wait text; it logs it and sends nothing. GitHub refuses the merge while the
+        // required gate check is not green or the head moved (rule 12).
         prActionTried.add(effective);
-        const off = AUTO_MERGE_OFF_RE.test(effective);
-        const url = (effective.match(AUTO_MERGE_OFF_RE) || effective.match(PR_GREEN_OPEN_RE))[1];
-        const what = off ? 'AUTO-MERGE' : 'MERGE';
-        const m = spawnSync('gh', ['pr', 'merge', url, ...(off ? ['--auto'] : []), '--merge'], { cwd: root, encoding: 'utf8', timeout: 60000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
-        if (m.status === 0) { overseerAppend(`launcher: ${what}: ${off ? 'on for' : 'merged'} ${url}`); log(`${what.toLowerCase()} done for ${url}`); }
+        const on = effective.match(AUTO_MERGE_ON_RE);
+        const green = effective.match(PR_GREEN_OPEN_RE);
+        const url = (on || green)[1];
+        const what = on ? 'AUTO-MERGE' : 'MERGE';
+        const ghArgs = on ? ['pr', 'merge', url, '--disable-auto'] : ['pr', 'merge', url, '--merge', '--match-head-commit', green[2]];
+        const m = spawnSync('gh', ghArgs, { cwd: root, encoding: 'utf8', timeout: 60000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+        if (m.status === 0) {
+          prActionTried.delete(effective);
+          overseerAppend(`launcher: ${what}: ${on ? `off for ${url}` : `merged ${url} at ${green[2]}`}`);
+          log(`${what.toLowerCase()} done for ${url}`);
+        }
         else {
           const why = `${m.stderr || ''}\n${m.stdout || ''}`.split('\n').map((l) => l.trim()).find(Boolean) || (m.error ? `gh error ${m.error.code}` : `gh exited ${m.status}`);
           overseerAppend(`launcher: ${what}: FAILED: ${why}`);

@@ -8,13 +8,10 @@
 // One gate at a time per build lane (lane 0: Q-0019; lanes 1-3: EZD_LANE, EZD-172). A lane 1-3 gate stops the stale stacks of the other lanes when it starts (Q-0367 (b)) and its own lane's stack when it ends (Q-0354 (a)).
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
 // It also prints the paths the branch touched (git diff --name-only develop...HEAD) and a
-// "SECURITY FLAG: <path>" line for each one matching SECURITY_PATHS. Flags never fail the gate;
+// "SECURITY FLAG: <path>" line for each one matching the production-sensitive list in vault/tools/security-paths.mjs, which the launcher's post-audit merge hold also uses (EZD-337). Flags never fail the gate;
 // they trigger the security review (vault/PROCESS.md section 8 steps 7-8). The list is the process default plus
 // EZ Draft's production-sensitive paths (Q-0112; vault/PROCESS-EZDRAFT.md section 7).
 // Full output of every check goes to <dir>/gate.log (gitignored); the console gets the summary (PROCESS.md section 8 step 7).
-const SECURITY_PATHS = ['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing',
-  '.github/workflows/', 'scripts/release/', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/',
-  'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'];
 import { existsSync, readFileSync, readdirSync, statSync, linkSync, unlinkSync, writeFileSync, appendFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
@@ -23,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { summarizeStep } from './gate-summary.mjs';
 import { isLive, removeDeadLock } from './gate-lock.mjs';
 import { readLane } from './db/lane.mjs';
+import { isSecurityPath, DIFF_NAMES_ARGS, splitNames } from '../vault/tools/security-paths.mjs';
 
 const args = process.argv.slice(2);
 const phaseIdx = args.indexOf('--phase');
@@ -83,15 +81,13 @@ const scope = scopeFor();
 const scopeText = scope.mode === 'full' ? 'full suite' : `phase ${scope.phase} tests + @smoke`;
 
 // Touched paths and security flags. Printed first so they appear even when a check fails.
-const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const securityRes = SECURITY_PATHS.map((p) => new RegExp(`(^|/)${escapeRe(p)}`, 'i'));
 function printTouched() {
-  const r = spawnSync('git', ['-C', dir, 'diff', '--name-only', 'develop...HEAD'], { encoding: 'utf8' });
+  const r = spawnSync('git', ['-C', dir, ...DIFF_NAMES_ARGS, 'develop...HEAD'], { encoding: 'utf8' });
   if (r.status !== 0) { console.log(`TOUCHED PATHS: unavailable (${(r.stderr || '').trim().split('\n')[0] || 'git diff failed'})`); return []; }
-  const files = r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  const files = splitNames(r.stdout);
   console.log(`TOUCHED PATHS (develop...HEAD): ${files.length}`);
   for (const f of files) console.log(`  ${f}`);
-  const flagged = files.filter((f) => securityRes.some((re) => re.test(f)));
+  const flagged = files.filter(isSecurityPath);
   for (const f of flagged) console.log(`SECURITY FLAG: ${f}`);
   return flagged;
 }

@@ -17,13 +17,13 @@ const WAIT = `none: waiting for the phase 1 PR to auto-merge on a green CI gate 
 const P2 = 'none: phase 2 spec not signed off (spec-check unit needs Josh)';
 // D9: gate record texts.
 const PENDING = 'Audit verdict: pending\n';
-const OPEN_PR = `PR: ${PR}\nDevelop at PR: 0000000\nMerged: no\n`;
+const openPr = (sha) => `PR: ${PR}\nDevelop at PR: ${sha}\nMerged: no\n`;
 const MERGED = `PR: ${PR}\nDevelop at PR: 0000000\nMerged: yes\n`;
 const COST_01 = '# Phase 1 cost (test)\n';
 
 // D8: one gh shim per test file. `gh pr view` gets one pending gate check with auto-merge on (EZD-336: one call, autoMergeRequest and statusCheckRollup).
 const shimDir = realpathSync(mkdtempSync(path.join(tmpdir(), 'ezd254-gh-')));
-writeFileSync(path.join(shimDir, 'gh'), `#!/bin/sh\necho '{"autoMergeRequest":{"mergeMethod":"MERGE"},"statusCheckRollup":[{"__typename":"CheckRun","name":"gate","status":"IN_PROGRESS","conclusion":"","detailsUrl":"x"}]}'\nexit 0\n`);
+writeFileSync(path.join(shimDir, 'gh'), `#!/bin/sh\necho '{"autoMergeRequest":null,"statusCheckRollup":[{"__typename":"CheckRun","name":"gate","status":"IN_PROGRESS","conclusion":"","detailsUrl":"x"}],"headRefOid":"'"$(cat "${shimDir}/head")"'"}'\nexit 0\n`);
 chmodSync(path.join(shimDir, 'gh'), 0o755);
 
 const copies = [];
@@ -41,6 +41,12 @@ function makeCopy({ later }) {
   // (1)
   cpSync(path.join(root, 'vault'), vault, { recursive: true, filter: (s) => !/[\\/]vault[\\/](mockups|archive)([\\/]|$)/.test(s) });
   seedRecordViews(vault); // the committed snapshot's records, not the checkout's (2.14, L-041)
+  // EZD-337 F2: the copy is a git repository with one empty commit c0, which the shim reports as the PR head.
+  const gitEnv = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@example.com', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@example.com', GIT_AUTHOR_DATE: '2026-01-01T00:00:00Z', GIT_COMMITTER_DATE: '2026-01-01T00:00:00Z' };
+  assert.equal(spawnSync('git', ['-C', dir, 'init', '-q'], { encoding: 'utf8', env: gitEnv }).status, 0, 'git init');
+  assert.equal(spawnSync('git', ['-C', dir, '-c', 'commit.gpgsign=false', 'commit', '-q', '--allow-empty', '-m', 'c0'], { encoding: 'utf8', env: gitEnv }).status, 0, 'git commit c0');
+  const head = spawnSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8', env: gitEnv }).stdout.trim();
+  writeFileSync(path.join(shimDir, 'head'), head);
   mkdirSync(path.join(dir, 'docs'), { recursive: true });
   cpSync(path.join(root, 'docs', 'architecture.md'), path.join(dir, 'docs', 'architecture.md'));
   for (const f of ['handoff/STOP', 'handoff/BUDGET_HOLD.md', 'handoff/LAUNCHER_FIX.md']) rmSync(file(f), { force: true });
@@ -110,6 +116,7 @@ function makeCopy({ later }) {
 
   return {
     dir,
+    head,
     file,
     nt,
     setStatus(id, st) {
@@ -140,7 +147,7 @@ test('EZD-254 T1 phase 1 gated, waited on, wrapped, then phase 2 (AC-EZD-254-1)'
   step(c, 'gate-phase 1', '(a) no gate record');
   writeFileSync(c.file('tickets/gates/phase-01.md'), PENDING);
   step(c, 'gate-phase 1', '(a2) gate record with Audit verdict pending');
-  writeFileSync(c.file('tickets/gates/phase-01.md'), OPEN_PR);
+  writeFileSync(c.file('tickets/gates/phase-01.md'), openPr(c.head));
   step(c, WAIT, '(b) open PR');
   writeFileSync(c.file('tickets/gates/phase-01.md'), MERGED);
   step(c, 'wrap 1', '(c) merged PR, not wrapped');

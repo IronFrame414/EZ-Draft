@@ -16,6 +16,8 @@ function fixture() {
   for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
   mkdirSync(path.join(root, 'scripts/db'));
   copyFileSync(path.join(here, '..', 'db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
+  mkdirSync(path.join(root, 'vault/tools'), { recursive: true });
+  copyFileSync(path.join(here, '../..', 'vault/tools/security-paths.mjs'), path.join(root, 'vault/tools/security-paths.mjs'));
   mkdirSync(path.join(root, '.claude/agents'), { recursive: true });
   const dir = path.join(root, 'work');
   mkdirSync(dir);

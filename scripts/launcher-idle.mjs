@@ -24,14 +24,15 @@ export const JOSH_REASONS = [
   /^none: waiting on Josh \(tickets with open questions/,
   /^none: waiting on Josh \(guard grant/,
   /^none: waiting for the phase \d+ PR to auto-merge/,
-  // EZD-336 (Josh 2026-11-05, a57931ba): auto-merge off and a green gate on an open PR are cleared by the launcher itself
-  // (scripts/run.mjs; a unit meets the settings ask rule), never by a repair unit.
-  /^none: phase \d+ PR auto-merge is off/,
+  // EZD-336, EZD-337 (Q-0594 (a)): auto-merge found on and a green gate on an open PR are cleared by the launcher itself
+  // (scripts/run.mjs: --disable-auto; a merge pinned to the checked head), never by a repair unit.
+  /^none: phase \d+ PR auto-merge is on/,
   /^none: phase \d+ PR gate is green but not merged/,
 ];
-// EZD-336: the two PR waits the launcher clears itself; group 1 is the PR URL.
-export const AUTO_MERGE_OFF_RE = /^none: phase \d+ PR auto-merge is off \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+)\)$/;
-export const PR_GREEN_OPEN_RE = /^none: phase \d+ PR gate is green but not merged \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+)\)$/;
+// EZD-337: the two PR waits the launcher clears itself; group 1 is the PR URL, PR_GREEN_OPEN_RE group 2 the checked head.
+export const AUTO_MERGE_ON_RE = /^none: phase \d+ PR auto-merge is on \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+)\)$/;
+export const PR_GREEN_OPEN_RE = /^none: phase \d+ PR gate is green but not merged \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+); head ([0-9a-f]{40})\)$/;
+export const SECURITY_HOLD_RE = /^none: phase \d+ PR merge held for a security pass of ([0-9a-f]{40})\.\.([0-9a-f]{40}) \((https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+)\)$/;
 
 export function idleAction({ stopExists, next, once = false }) {
   const none = /^none:/.test(next);
@@ -42,7 +43,7 @@ export function idleAction({ stopExists, next, once = false }) {
   if (/budget hold/.test(reason)) return { action: 'stop' };
   // A held ticket's guard grant already reached Josh as one patch notification (D11, D12d).
   // EZD-336: the launcher clears the two PR waits itself and logs them (Josh 2026-11-05: Claude Code completes its own PRs).
-  const notify = /^waiting on Josh \(guard grant|^phase \d+ PR (auto-merge is off|gate is green but not merged)/.test(reason) ? null : `launcher waiting: ${reason}`;
+  const notify = /^waiting on Josh \(guard grant|^phase \d+ PR (auto-merge is on|gate is green but not merged)/.test(reason) ? null : `launcher waiting: ${reason}`;
   return { action: 'wait', ms: NONE_POLL_MS, why: `nothing to run: ${reason}; re-checking every 5 minutes`, notify };
 }
 
@@ -57,7 +58,9 @@ export function repairDecision({ next, state, consecutive }) {
   if (consecutive >= REPAIR_CAP) return { action: 'skip', why: 'cap' };
   const fp = fingerprint(next);
   if (state?.fp === fp) return { action: 'skip', why: 'tried' };
-  const kind = next.startsWith('none: ledger check failed') ? 'check' : /^none: phase \d+ PR CI gate check (failed|cancelled)/.test(next) ? 'ci' : 'waiting';
+  const kind = next.startsWith('none: ledger check failed') ? 'check'
+    : /^none: phase \d+ PR merge held for a security pass of /.test(next) ? 'security'
+      : /^none: phase \d+ PR CI gate check (failed|cancelled)/.test(next) ? 'ci' : 'waiting';
   return { action: 'repair', fp, kind };
 }
 
@@ -78,7 +81,7 @@ export const REPAIR_UNIT_RE = /^repair-(check|waiting|ci|probe)$/;
 // Josh-only files (budget, sign-off, hold) stay with guard-paths' joshOnly rule, so the launcher never undoes Josh's own edit.
 export const REPAIR_NEVER_FILES = ['.claude/settings.json', '.claude/settings.local.json', '.claude/agents/code-reviewer.md',
   '.claude/agents/security-reviewer.md', 'scripts/unit-sandbox.json', 'scripts/gate.mjs', 'scripts/gate-summary.mjs',
-  'scripts/gate-lock.mjs', 'scripts/db/lane.mjs', 'vault/tools/outline.mjs', 'scripts/launcher-idle.mjs'];
+  'scripts/gate-lock.mjs', 'scripts/db/lane.mjs', 'vault/tools/outline.mjs', 'scripts/launcher-idle.mjs', 'vault/tools/security-paths.mjs'];
 // Files that may hold Josh's own edits: the launcher watches them around a repair and stops, never restores, when one changes.
 export const REPAIR_JOSH_FILES = ['.claude/settings.local.json', 'vault/budget.json', 'vault/spec/SIGNOFF.md', 'vault/handoff/BUDGET_HOLD.md'];
 const REPAIR_NEVER_DIRS = ['.claude/hooks/', '.claude/skills/repair/', '.github/'];
