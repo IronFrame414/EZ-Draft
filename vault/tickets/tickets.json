@@ -4129,7 +4129,14 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Editor route (EZD-120c)",
+    "Drawing list (EZD-238)",
+    "Entry points and lazy modules (EZD-020)",
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-012a",
