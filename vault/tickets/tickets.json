@@ -19104,6 +19104,11 @@
     "spec/decisions/process.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Build lanes (EZD-172)",
+    "Local database"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
