@@ -1,3 +1,0 @@
-- Why the session ended: questions unit for phase 1 complete.
-- Completed: Q-0609 (duplicate of Q-0610), Q-0610, Q-0611 answered-agent (build-system, orchestrator). EZD-354 plan QP text replaced by Q-IDs, lint OK, set ready.
-- Next: EZD-354 is built interactively in fix mode (plan rows O0/O1); Josh's setup steps 1-2 must be done before O1. Q-0611 listed in vault/questions/phase-01-for-josh.md for Josh to confirm.

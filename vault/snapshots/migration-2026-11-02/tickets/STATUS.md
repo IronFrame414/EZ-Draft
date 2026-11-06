@@ -176,12 +176,9 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-202 | 3 | Model document schema | todo |  | EZD-120 |  |  |  |
 | EZD-203 | 4 | Walls core | todo |  | EZD-202 |  |  |  |
 | EZD-204 | 5 | Openings core | todo |  | EZD-203 |  |  |  |
-| EZD-205 | 4 | Rooms and closure | todo |  | EZD-203 |  |  |  |
 | EZD-206 | 5 | Snapping | todo |  | EZD-203 |  |  |  |
-| EZD-207 | 4 | Plan canvas | todo |  | EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238 |  |  |  |
 | EZD-208 | 5 | Selection | todo |  | EZD-207 |  |  |  |
 | EZD-209 | 4 | Typed dimension bar | todo |  | EZD-201, EZD-207 |  |  |  |
-| EZD-210 | 4 | Wall and Room rectangle tools | todo |  | EZD-205, EZD-209 |  |  |  |
 | EZD-211 | 5 | Door and window tools | todo |  | EZD-204, EZD-209 |  |  |  |
 | EZD-212 | 5 | Move, handles, distance chips | todo |  | EZD-208 |  |  |  |
 | EZD-213 | 5 | Inspector fields | todo |  | EZD-208 |  |  |  |
