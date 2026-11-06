@@ -1151,6 +1151,8 @@ describe('EZD-172 L13-L15 restart marker and up()', () => {
       for (const f of readdirSync(srcDir).filter((n) => n.endsWith('.mjs'))) {
         if (statSync(path.join(srcDir, f)).isFile()) copyFileSync(path.join(srcDir, f), path.join(dbDir, f));
       }
+      mkdirSync(path.join(real, 'vault', 'tools'), { recursive: true });
+      copyFileSync(path.join(repo, 'vault', 'tools', 'trusted-git.mjs'), path.join(real, 'vault', 'tools', 'trusted-git.mjs')); // EZD-345 D16: stack-config.mjs imports it
       const binDir = path.join(real, 'node_modules', '.bin');
       mkdirSync(binDir, { recursive: true });
       const fake = path.join(binDir, 'supabase');
@@ -1195,6 +1197,8 @@ describe('EZD-172 L13-L15 restart marker and up()', () => {
       for (const f of readdirSync(srcDir).filter((n) => n.endsWith('.mjs'))) {
         if (statSync(path.join(srcDir, f)).isFile()) copyFileSync(path.join(srcDir, f), path.join(dbDir, f));
       }
+      mkdirSync(path.join(real, 'vault', 'tools'), { recursive: true });
+      copyFileSync(path.join(repo, 'vault', 'tools', 'trusted-git.mjs'), path.join(real, 'vault', 'tools', 'trusted-git.mjs')); // EZD-345 D16: stack-config.mjs imports it
       const called = path.join(real, 'cli-called');
       const binDir = path.join(real, 'node_modules', '.bin');
       mkdirSync(binDir, { recursive: true });

@@ -285,6 +285,8 @@ test('EZD-007c T33 local.mjs env prints the gate secret and refuses without it',
     for (const f of readdirSync(srcDir).filter((n) => n.endsWith('.mjs'))) {
       if (statSync(path.join(srcDir, f)).isFile()) copyFileSync(path.join(srcDir, f), path.join(dbDir, f));
     }
+    mkdirSync(path.join(tmp, 'vault', 'tools'), { recursive: true });
+    copyFileSync(path.join(repo, 'vault', 'tools', 'trusted-git.mjs'), path.join(tmp, 'vault', 'tools', 'trusted-git.mjs')); // EZD-345 D16: stack-config.mjs imports it
     const binDir = path.join(tmp, 'node_modules', '.bin');
     mkdirSync(binDir, { recursive: true });
     const fake = path.join(binDir, 'supabase');

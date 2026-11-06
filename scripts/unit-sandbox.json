@@ -35,7 +35,8 @@
         "/Users/josh/Projects/ezdraft/.git/config",
         "/Users/josh/Projects/ezdraft/.git/config.worktree",
         "/Users/josh/Projects/ezdraft/.git/commondir",
-        "~/.ezdraft-github-ops"
+        "~/.ezdraft-github-ops",
+        "/Users/josh/Projects/ezdraft/vault/tools"
       ]
     },
     "network": {

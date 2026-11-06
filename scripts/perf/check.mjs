@@ -1,7 +1,7 @@
 // EZD-017 Step 7 (vault/plans/EZD-017.md R0-R2, K1-K4, E1, P5): runs every measurement, evaluates it against
 // its budget and writes the results file on every run that passed validation. Node built-ins and the root
 // devDependency @playwright/test only.
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -17,6 +17,7 @@ import { frameStats, runPan } from './pan-script.mjs';
 import { laneAppPorts, readLane } from '../db/lane.mjs';
 import { PROFILES } from './perf.config.mjs';
 import { MEASUREMENTS } from './registry.mjs';
+import { trustedGit } from '../../vault/tools/trusted-git.mjs';
 
 /** K4: a bad flag or config; exit 2, no results file. */
 export class UsageError extends Error {}
@@ -255,7 +256,7 @@ async function readWebglRenderer(browser) {
 }
 
 function gitCommit(repoRoot) {
-  const r = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' });
+  const r = trustedGit(repoRoot, ['rev-parse', 'HEAD']);
   return r.status === 0 ? r.stdout.trim() || null : null;
 }
 

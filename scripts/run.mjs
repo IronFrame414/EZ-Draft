@@ -27,7 +27,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
-import { verifyDevelop, developSha, recordDevelop } from './release/github-ops.mjs';
+import { verifyDevelop, developSha, recordDevelop, inPushChain } from './release/github-ops.mjs';
+import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
   takeLauncherLock, withLedgerLock, LockError, queueDirs,
@@ -105,7 +106,7 @@ function notify(msg) {
 }
 const oauthFallback = createOAuthFallback({ notify, log });
 const tool = (...a) => spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), ...a], { encoding: 'utf8', cwd: root });
-const git = (...a) => spawnSync('git', ['-C', root, ...a], { encoding: 'utf8' });
+const git = (...a) => trustedGit(root, a);
 const nowIso = () => new Date().toISOString();
 const firstLine = (text) => String(text || '').split('\n').map((l) => l.trim()).find(Boolean) || '';
 // What the launcher is doing, for the watchdog (EZD-250 D7). Never written in a dry run.
@@ -511,9 +512,9 @@ function changedFiles() {
   }
   return files.filter(Boolean);
 }
-const blobOf = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '--', rel).stdout.trim() : 'absent');
+const blobOf = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '--no-filters', '--', rel).stdout.trim() : 'absent');
 // -w keeps the content in the object store, so a file dirty before the repair (or ignored by git) can be put back exactly.
-const saveBlob = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '-w', '--', rel).stdout.trim() : 'absent');
+const saveBlob = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '-w', '--no-filters', '--', rel).stdout.trim() : 'absent');
 const blobAt = (rev, rel) => { const r = git('rev-parse', '-q', '--verify', `${rev}:${rel}`); return r.status === 0 ? r.stdout.trim() : 'absent'; };
 // Files the check watches: the hard limits, plus the files that may hold Josh's own edits (his local settings, the Josh-only
 // files). A change to one of Josh's is never overwritten: the launcher stops instead (code review round 2).
@@ -579,7 +580,7 @@ function undoRepair(snap, ch) {
     if (rv.status !== 0) { git('revert', '--abort'); problems.push(`git revert ${shortSha(c.sha)} failed: ${(rv.stderr || rv.stdout).trim().split('\n')[0]}`); break; }
   }
   if (!problems.length && own.length && originSha() !== snap.origin) {
-    const p = git('push', 'origin', 'develop');
+    const p = git('push', 'origin', 'refs/heads/develop:refs/heads/develop');
     if (p.status !== 0) problems.push(`the revert was not pushed: ${(p.stderr || '').trim().split('\n')[0]}`);
   }
   for (const f of ch.watch) {
@@ -588,7 +589,7 @@ function undoRepair(snap, ch) {
     const abs = path.join(root, f);
     if (!kept.some((k) => k.startsWith(`${f} kept as `))) keep(f);
     if (want === 'absent') { git('rm', '-q', '--cached', '--ignore-unmatch', '--', f); try { unlinkSync(abs); } catch {} continue; }
-    const body = spawnSync('git', ['-C', root, 'cat-file', 'blob', want]);
+    const body = trustedGit(root, ['cat-file', 'blob', want], { encoding: 'buffer' });
     if (body.status !== 0) { problems.push(`${f}: saved copy not readable`); continue; }
     mkdirSync(path.dirname(abs), { recursive: true });
     writeFileSync(abs, body.stdout);
@@ -851,7 +852,7 @@ async function main() {
         const url = (on || green)[1];
         const what = on ? 'AUTO-MERGE' : 'MERGE';
         const ghArgs = on ? ['pr', 'merge', url, '--disable-auto'] : ['pr', 'merge', url, '--merge', '--match-head-commit', green[2]];
-        const m = spawnSync('gh', ghArgs, { cwd: root, encoding: 'utf8', timeout: 60000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+        const m = spawnSync('gh', ghArgs, { cwd: '/', encoding: 'utf8', timeout: 60000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
         if (m.status === 0) {
           prActionTried.delete(effective);
           overseerAppend(`launcher: ${what}: ${on ? `off for ${url}` : `merged ${url} at ${green[2]}`}`);
@@ -960,7 +961,7 @@ async function main() {
         else {
           const other = changes.commits.find((c) => c.merge || !c.subject.startsWith('fix(repair):'));
           // Security review Part B, finding 1: a repair never blesses the push chain itself (github-ops runs with Josh's login).
-          const chain = changes.files.find((f) => f.startsWith('scripts/release/') || ['scripts/run.mjs', 'scripts/unit-steps.mjs', 'scripts/ledger.mjs'].includes(f));
+          const chain = changes.files.find(inPushChain);
           if (other) why = `a commit is not the repair's (${other.sha.slice(0, 7)} "${other.subject}")`;
           else if (chain) why = `a commit changes the push chain (${chain})`;
           else if (developSha(path.join(root, '.git')) !== changes.head) why = 'develop is not the checkout\'s commit';

@@ -10,6 +10,7 @@ import { existsSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { trustedGit } from './trusted-git.mjs';
 
 export const QUEUE_FILES = ['vault/tickets/STATUS.md', 'vault/tickets/tickets.json', 'vault/spec/acceptance-criteria.md'];
 export const QUEUE_PREFIXES = ['vault/tickets/phases/', 'vault/questions/'];
@@ -17,7 +18,7 @@ const NAME_RE = /^\d{8}T\d{6}-[a-z0-9-]{1,40}$/;
 
 export const queueAllowed = (rel) => QUEUE_FILES.includes(rel) || QUEUE_PREFIXES.some((p) => rel.startsWith(p));
 
-const git = (cwd, ...a) => spawnSync('git', ['-C', cwd, ...a], { encoding: 'utf8' });
+const git = (cwd, ...a) => trustedGit(cwd, a);
 // A git step D10a does not handle: the caller (CLI `apply`) exits 1 with it.
 function must(r, what) {
   if (r.error || r.status !== 0) throw new Error(`git ${what} failed: ${(r.stderr || '').trim() || r.error?.message || `exit ${r.status}`}`);
@@ -56,12 +57,12 @@ export function applyQueue({ root }) {
   for (const b of branches) {
     const name = b.slice('queue/'.length);
     if (worktrees.includes(`branch refs/heads/${b}`)) continue;
-    if (must(git(root, 'rev-list', '--count', `develop..${b}`), 'rev-list').trim() === '0') continue;
-    const outside = must(git(root, 'diff', '--name-only', `develop...${b}`), 'diff').split('\n').filter(Boolean).find((p) => !queueAllowed(p));
+    if (must(git(root, 'rev-list', '--count', `refs/heads/develop..refs/heads/${b}`), 'rev-list').trim() === '0') continue;
+    const outside = must(git(root, 'diff', '--name-only', `refs/heads/develop...refs/heads/${b}`), 'diff').split('\n').filter(Boolean).find((p) => !queueAllowed(p));
     if (outside) { reject(name, `touches ${outside}`); continue; }
     const before = must(git(root, 'rev-parse', 'HEAD'), 'rev-parse').trim();
-    const base = must(git(root, 'merge-base', 'develop', b), 'merge-base').trim();
-    if (git(root, 'cherry-pick', `${base}..${b}`).status !== 0) {
+    const base = must(git(root, 'merge-base', 'refs/heads/develop', `refs/heads/${b}`), 'merge-base').trim();
+    if (git(root, 'cherry-pick', `${base}..refs/heads/${b}`).status !== 0) {
       must(git(root, 'cherry-pick', '--abort'), 'cherry-pick --abort');
       reject(name, 'conflicts with develop');
       continue;
@@ -102,7 +103,7 @@ if (isMain) {
     const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
     const name = `${stamp}-${slug}`;
     const rel = `.claude/worktrees/queue-${name}`;
-    const r = git(root, 'worktree', 'add', '-b', `queue/${name}`, rel, 'develop');
+    const r = git(root, 'worktree', 'add', '-b', `queue/${name}`, rel, 'refs/heads/develop');
     if (r.status !== 0) fail((r.stderr || '').trim() || `git worktree add failed (exit ${r.status})`);
     process.stdout.write(`QUEUE WORKTREE ${rel}\n`);
   } else if (cmd === 'submit') {

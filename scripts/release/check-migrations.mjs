@@ -6,7 +6,7 @@
 // Run by the root `lint` script, so every gate run and CI run it (docs/architecture.md ### Release safety).
 //
 // CLI: node scripts/release/check-migrations.mjs [--root <dir>] [--base <tag>] [--head <git ref>] [--no-fetch] [--no-db]
-import { spawnSync } from 'node:child_process';
+import { trustedGit } from '../../vault/tools/trusted-git.mjs';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -230,9 +230,8 @@ function invalidRef(argv, opts) {
 }
 
 function makeGit(root) {
-  const env = { ...process.env, GIT_TERMINAL_PROMPT: '0' };
   return (args, { timeout } = {}) => {
-    const r = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', env, timeout });
+    const r = trustedGit(root, args, { timeout });
     if (r.error) throw r.error;
     if (r.status !== 0) {
       throw new Error(`git ${args.join(' ')} exited ${r.status}: ${(r.stderr ?? '').trim()}`);

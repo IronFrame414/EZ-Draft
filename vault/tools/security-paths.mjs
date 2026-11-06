@@ -1,7 +1,7 @@
 // The production-sensitive path list (Q-0112; vault/PROCESS-EZDRAFT.md section 7), one source for the gate's SECURITY FLAG
 // lines (scripts/gate.mjs) and the launcher's post-audit merge hold (vault/tools/next_ticket.mjs, EZD-337, Q-0594 (a)), so the
-// two cannot drift. In vault/tools/ because the ledger test copies carry all of vault/. No relative imports.
-import { spawnSync } from 'node:child_process';
+// two cannot drift. In vault/tools/ because the ledger test copies carry all of vault/.
+import { trustedGit } from './trusted-git.mjs';
 
 export const SECURITY_PATHS = Object.freeze(['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing',
   '.github/workflows/', 'scripts/release/', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/',
@@ -30,7 +30,7 @@ export function reviewedBase(recordText) {
   return { sha: last ?? sha };
 }
 
-const git = (cwd, args) => spawnSync('git', ['-C', cwd, ...args], { encoding: 'utf8' });
+const git = (cwd, args) => trustedGit(cwd, args);
 const firstErr = (r) => (r.stderr || '').split('\n').map((l) => l.trim()).find(Boolean) || `exit ${r.status}`;
 
 // The files changed from base to the PR head, and which of them are production-sensitive. Synchronous; no fetch.

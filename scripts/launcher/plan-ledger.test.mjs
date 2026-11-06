@@ -46,6 +46,7 @@ function makeRoot(result) {
   for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'vault/plans', 'logs', 'bin']) mkdirSync(at(d), { recursive: true });
   for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
+  copyFileSync(path.join(repo, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs, ledger.mjs and github-ops.mjs import it
   copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(at('arch-calls.txt'), result));
   writeFileSync(at('vault/tickets/STATUS.md'), '| Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| EZD-999 | 1 | t | todo | | | | | |\n');

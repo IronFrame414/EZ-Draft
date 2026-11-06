@@ -7,7 +7,7 @@
 // Runners read EZD_TEST_SCOPE, EZD_PHASE and EZD_TEST_GREP (see docs/architecture.md, Test scope).
 // One gate at a time per build lane (lane 0: Q-0019; lanes 1-3: EZD_LANE, EZD-172). A lane 1-3 gate stops the stale stacks of the other lanes when it starts (Q-0367 (b)) and its own lane's stack when it ends (Q-0354 (a)).
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
-// Every child process starts through scripts/gate-env.mjs (EZD-344): only the PASS_THROUGH variables, git's system and global config off, and the gate's own variables.
+// Every check starts through scripts/gate-env.mjs (EZD-344); the touched-paths git call goes through vault/tools/trusted-git.mjs (EZD-345).
 // It also prints the paths the branch touched (git diff --name-only develop...HEAD) and a
 // "SECURITY FLAG: <path>" line for each one matching the production-sensitive list in vault/tools/security-paths.mjs, which the launcher's post-audit merge hold also uses (EZD-337). Flags never fail the gate;
 // they trigger the security review (vault/PROCESS.md section 8 steps 7-8). The list is the process default plus
@@ -21,6 +21,7 @@ import { summarizeStep } from './gate-summary.mjs';
 import { isLive, removeDeadLock } from './gate-lock.mjs';
 import { readLane } from './db/lane.mjs';
 import { gateEnv, gateSpawn } from './gate-env.mjs';
+import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import { isSecurityPath, DIFF_NAMES_ARGS, splitNames } from '../vault/tools/security-paths.mjs';
 
 const args = process.argv.slice(2);
@@ -83,7 +84,7 @@ const scopeText = scope.mode === 'full' ? 'full suite' : `phase ${scope.phase} t
 
 // Touched paths and security flags. Printed first so they appear even when a check fails.
 function printTouched() {
-  const r = gateSpawn(env, 'git', ['-C', dir, ...DIFF_NAMES_ARGS, 'develop...HEAD'], { encoding: 'utf8' });
+  const r = trustedGit(dir, [...DIFF_NAMES_ARGS, 'refs/heads/develop...HEAD'], { extraEnv: { GIT_CONFIG_GLOBAL: '/dev/null' } });
   if (r.status !== 0) { console.log(`TOUCHED PATHS: unavailable (${(r.stderr || '').trim().split('\n')[0] || 'git diff failed'})`); return []; }
   const files = splitNames(r.stdout);
   console.log(`TOUCHED PATHS (develop...HEAD): ${files.length}`);

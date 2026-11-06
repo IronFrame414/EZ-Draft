@@ -2,10 +2,10 @@
 // config or templates changed. Node 22 built-ins only. Auth reads supabase/config.toml and the templates
 // only at `supabase start`, so a changed file needs stop then start before the reset.
 
-import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { trustedGit } from '../../vault/tools/trusted-git.mjs';
 
 export const STACK_CONFIG_MARKER = 'ezd-stack-config-sha256';
 
@@ -56,9 +56,7 @@ export function stackConfigHash(root) {
 // supabase/.temp. Outside git, or when git does not answer, the folder itself is used.
 export function sharedTempDir(root) {
   const own = path.join(realpathSync(root), 'supabase', '.temp');
-  const r = spawnSync('git', ['-C', root, 'rev-parse', '--path-format=absolute', '--git-common-dir'], {
-    encoding: 'utf8',
-  });
+  const r = trustedGit(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']);
   if (r.error || r.status !== 0) return own;
   const common = String(r.stdout).trim();
   if (path.basename(common) !== '.git') return own;

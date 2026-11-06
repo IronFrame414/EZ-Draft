@@ -7,12 +7,14 @@ import {
   mkdtempSync, mkdirSync, writeFileSync, chmodSync, rmSync, readdirSync, readFileSync, statSync, symlinkSync, linkSync, realpathSync,
 } from 'node:fs';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { REPO_ROOT } from './git-fixture.mjs';
 
 const load = () => import('../github-ops.mjs');
+const loadTrusted = () => import(pathToFileURL(path.join(REPO_ROOT, 'vault', 'tools', 'trusted-git.mjs')).href);
 const LEDGER_URL = pathToFileURL(path.join(REPO_ROOT, 'scripts', 'ledger.mjs')).href;
 
 const REPO = 'IronFrame414/EZ-Draft';
@@ -26,7 +28,11 @@ const BODY_TEXT = '## Phase 3\nbody text\n';
 const base = (b) => path.basename(b);
 const joinArgs = (a) => (Array.isArray(a) ? a.join(' ') : a);
 
-const SHA_C = 'a'.repeat(40); // the recorded develop commit
+// EZD-345 C3 (D8, D9): the recorded develop commit is a real object id, sha-1 of `commit <len>\0BODY`, so the stub's
+// cat-file answer passes verifyObjects.
+const objId = (type, body) => createHash('sha1').update(`${type} ${Buffer.byteLength(body)}\0`).update(body).digest('hex');
+const BODY = 'EZD-345 recorded develop commit\n';
+const SHA_C = objId('commit', BODY); // the recorded develop commit
 const SHA_D = 'b'.repeat(40); // develop now
 const ZERO = '0'.repeat(40);
 
@@ -242,14 +248,19 @@ function makeHome({ record = SHA_C } = {}) {
   }
   return home;
 }
-// Recording stub. Answers like git: is-ancestor by status, diff-tree by its -z raw text, the push by childStatus.
+// Recording stub. Answers like git: is-ancestor by status, diff-tree by its -z raw text, rev-list and ls-tree with nothing,
+// cat-file --batch with the recorded commit (EZD-345 C3), the push by childStatus. stdout is a Buffer when the call asks for
+// encoding 'buffer', as spawnSync gives.
 function stubFor({ childStatus = 0, ancestor = 0, diff = '' } = {}) {
   const calls = [];
+  const out = (opts, text) => (opts && opts.encoding === 'buffer' ? Buffer.from(text) : text);
   const fn = (bin, args, opts) => {
     calls.push({ bin, args, opts });
     const text = args.join(' ');
-    if (text.includes('merge-base --is-ancestor')) return { status: ancestor, stdout: '', stderr: '' };
-    if (text.includes('diff-tree')) return { status: 0, stdout: diff, stderr: '' };
+    if (text.includes('merge-base --is-ancestor')) return { status: ancestor, stdout: out(opts, ''), stderr: '' };
+    if (text.includes('diff-tree')) return { status: 0, stdout: out(opts, diff), stderr: '' };
+    if (text.includes('rev-list') || text.includes('ls-tree')) return { status: 0, stdout: out(opts, ''), stderr: '' };
+    if (text.includes('cat-file')) return { status: 0, stdout: out(opts, `${SHA_C} commit ${Buffer.byteLength(BODY)}\n${BODY}\n`), stderr: '' };
     return { status: childStatus, stdout: '', stderr: '' };
   };
   fn.calls = calls;
@@ -326,17 +337,18 @@ describe('EZD-316 main (T8)', () => {
     } finally { holder.kill(); }
   });
 
-  test('a root .git/config with include.path does not stop the push (returns 0, three spawns)', async () => {
+  test('a root .git/config with include.path does not stop the push (returns 0, six spawns)', async () => {
     const { main } = await load();
     const root = makeRoot();
     writeFileSync(path.join(root, '.git', 'config'), '[include]\n\tpath = /somewhere/else\n');
     const stub = stubFor();
     assert.equal(main(['push-develop'], { root, spawn: stub, home: makeHome() }), 0);
-    assert.equal(stub.calls.length, 3);
+    assert.equal(stub.calls.length, 6); // EZD-345 C3: is-ancestor, diff-tree, rev-list, ls-tree, cat-file, push (D8, D9)
   });
 
-  test('push: is-ancestor, diff-tree, push, all in P with the exact env; child status returned', async () => {
+  test('push: is-ancestor, diff-tree, rev-list, ls-tree, cat-file, push, all in P with the exact env; child status returned', async () => {
     const { main, PUSH_ARGS } = await load();
+    const { TRUSTED_CONFIG } = await loadTrusted();
     const saved = {};
     const set = { GH_TOKEN: 'x', GH_HOST: 'x', GITHUB_TOKEN: 'x', GIT_DIR: '/nowhere', GIT_SSH_COMMAND: 'x', EZD_316_KEEP: 'keep' };
     for (const k of Object.keys(set)) { saved[k] = process.env[k]; process.env[k] = set[k]; }
@@ -347,19 +359,21 @@ describe('EZD-316 main (T8)', () => {
         const P = path.join(home, PUSH_DIR);
         const stub = stubFor({ childStatus: status });
         assert.equal(main(['push-develop'], { root, spawn: stub, home }), status);
-        assert.equal(stub.calls.length, 3);
-        const [anc, dt, push] = stub.calls;
+        assert.equal(stub.calls.length, 6); // EZD-345 C3 (D8, D9)
+        const [anc, dt, , , , push] = stub.calls;
         assert.equal(joinArgs(anc.args).includes(`merge-base --is-ancestor ${SHA_C} ${SHA_D}`), true);
         assert.equal(joinArgs(dt.args).includes(`diff-tree -r --no-renames -z ${SHA_C} ${SHA_D}`), true);
         assert.equal(base(push.bin), 'git');
-        assert.deepEqual(push.args, [...PUSH_ARGS, `${SHA_D}:refs/heads/develop`]);
+        assert.deepEqual(push.args, [...TRUSTED_CONFIG, ...PUSH_ARGS, `${SHA_D}:refs/heads/develop`]); // EZD-345 C2 (D5, D17)
+        // EZD-345 C2 (D2, D17): every git call runs through trustedGit in bare mode with GIT_CONFIG_GLOBAL=/dev/null.
         const env = {
-          PATH: '/opt/homebrew/bin:/usr/bin:/bin', HOME: home, USER: os.userInfo().username, LANG: 'en_US.UTF-8',
-          GH_PROMPT_DISABLED: '1', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_TERMINAL_PROMPT: '0', GIT_DIR: P,
+          PATH: '/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin', HOME: os.userInfo().homedir, USER: os.userInfo().username, LANG: 'en_US.UTF-8',
+          GIT_CONFIG_NOSYSTEM: '1', GIT_ATTR_NOSYSTEM: '1', GIT_TERMINAL_PROMPT: '0', GIT_DIR: P, GIT_CONFIG_GLOBAL: '/dev/null',
         };
         for (const c of stub.calls) {
           assert.equal(c.opts.cwd, P);
-          assert.equal(c.opts.encoding, 'utf8');
+          // EZD-345 C4 (D9): cat-file --batch reads raw object bytes; every other git call stays utf8.
+          assert.equal(c.opts.encoding, c.args.includes('cat-file') ? 'buffer' : 'utf8');
           assert.deepEqual(c.opts.env, env);
         }
         assert.deepEqual(push.opts.stdio, ['pipe', 'inherit', 'inherit']);

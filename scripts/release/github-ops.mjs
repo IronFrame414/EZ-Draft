@@ -5,7 +5,10 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { deflateSync } from 'node:zlib';
 import { tryLock } from '../ledger.mjs';
+import { GIT_BIN, trustedGit } from '../../vault/tools/trusted-git.mjs';
 
 export const REPO = 'IronFrame414/EZ-Draft';
 export const BODY_DIR = 'vault/handoff/pr-body';
@@ -16,7 +19,6 @@ export const PUSH_ARGS = [
   'push', '-q', 'https://github.com/IronFrame414/EZ-Draft.git',
 ];
 
-const GIT = '/opt/homebrew/bin/git';
 const GH = '/opt/homebrew/bin/gh';
 const TITLE_RE = /^Phase [1-9]\d*: .+$/;
 const URL_RE = /^https:\/\/github\.com\/IronFrame414\/EZ-Draft\/pull\/[1-9]\d*$/;
@@ -52,7 +54,7 @@ export function planOp(argv, root) {
   const need = (n) => rest.length === n;
   switch (op) {
     case 'push-develop':
-      return need(0) ? { bin: GIT, args: PUSH_ARGS } : refuse('push-develop takes no arguments');
+      return need(0) ? { bin: GIT_BIN, args: PUSH_ARGS } : refuse('push-develop takes no arguments');
     case 'pr-create': {
       if (!need(2)) return refuse('pr-create needs a title and a body file');
       const [title, file] = rest;
@@ -145,13 +147,49 @@ function allowedChange(mode, status, p) {
   return status === 'D' || mode === '100644';
 }
 
-// Develop may be pushed only if it is the recorded commit or a descendant that changes nothing but plain vault files.
-export function verifyDevelop(root, home, spawn) {
+// EZD-345 D18: the scripts the push path runs; a repair that changes one is never recorded by the launcher.
+export const PUSH_CHAIN = Object.freeze(['scripts/run.mjs', 'scripts/unit-steps.mjs', 'scripts/ledger.mjs', 'vault/tools/trusted-git.mjs']);
+export const inPushChain = (f) => f.startsWith('scripts/release/') || PUSH_CHAIN.includes(f);
+
+// Every git call of this script, in the script-made push folder (D17).
+const pushGit = (P, args, spawn, opts = {}) => trustedGit(P, args, { bare: true, spawn, extraEnv: { GIT_CONFIG_GLOBAL: '/dev/null' }, ...opts });
+
+// D9: one cat-file --batch child; each object's id must be the sha-1 of its header and body.
+function readObjects(gitDir, ids, spawn) {
+  const r = pushGit(gitDir, ['cat-file', '--batch'], spawn, { input: Buffer.from(ids.map((id) => `${id}\n`).join(''), 'utf8'), encoding: 'buffer', maxBuffer: 1024 * 1024 * 1024 });
+  const buf = Buffer.isBuffer(r.stdout) ? r.stdout : Buffer.from(String(r.stdout ?? ''), 'utf8');
+  const objects = [];
+  let at = 0;
+  for (const id of ids) {
+    const nl = buf.indexOf(0x0a, at);
+    if (nl < 0) return { refuse: `object ${id} is missing` };
+    const header = buf.subarray(at, nl).toString('utf8');
+    if (header === `${id} missing`) return { refuse: `object ${id} is missing` };
+    const m = header.match(/^([0-9a-f]{40}) (\w+) (\d+)$/);
+    if (!m || m[1] !== id) return { refuse: `object ${id} is missing` };
+    const size = Number(m[3]);
+    const body = buf.subarray(nl + 1, nl + 1 + size);
+    if (body.length < size) return { refuse: `object ${id} is missing` };
+    const store = Buffer.concat([Buffer.from(`${m[2]} ${size}\0`, 'utf8'), body]);
+    if (createHash('sha1').update(store).digest('hex') !== id) return { refuse: `object ${id} does not match its id` };
+    objects.push({ id, store });
+    at = nl + 1 + size + 1;
+  }
+  return { ok: true, objects };
+}
+export function verifyObjects(gitDir, ids, spawn) {
+  const r = readObjects(gitDir, ids, spawn);
+  return r.refuse ? { refuse: r.refuse } : { ok: true };
+}
+
+// D8: the record rule for one commit; every object it adds is checked and written as a loose object in the push folder,
+// so the push reads the checked bytes (local objects come before alternates).
+export function verifyCommit(root, home, sha, spawn) {
   const R = path.join(realpathSync(root), '.git');
   const P = path.join(home, PUSH_DIR);
-  writePushDir(P, path.join(R, 'objects'));
-  const sha = developSha(R);
-  if (!sha) return { refuse: 'no develop ref' };
+  let isDir = false;
+  try { isDir = lstatSync(P).isDirectory(); } catch { /* missing */ }
+  if (!isDir) writePushDir(P, path.join(R, 'objects'));
   let C = null;
   try {
     const rec = path.join(home, RECORD);
@@ -161,10 +199,9 @@ export function verifyDevelop(root, home, spawn) {
     }
   } catch { /* no record */ }
   if (!C) return { refuse: 'no recorded develop commit' };
-  const opts = { cwd: P, env: exactEnv(home, P), encoding: 'utf8' };
-  const anc = spawn(GIT, ['merge-base', '--is-ancestor', C, sha], opts);
+  const anc = pushGit(P, ['merge-base', '--is-ancestor', C, sha], spawn);
   if (anc.status !== 0) return { refuse: 'develop is not on the recorded commit' };
-  const diff = spawn(GIT, ['diff-tree', '-r', '--no-renames', '-z', C, sha], opts);
+  const diff = pushGit(P, ['diff-tree', '-r', '--no-renames', '-z', C, sha], spawn);
   if (diff.status !== 0) return { refuse: 'develop is not on the recorded commit' };
   const parts = String(diff.stdout || '').split('\0');
   for (let i = 0; i + 1 < parts.length; i += 2) {
@@ -173,7 +210,41 @@ export function verifyDevelop(root, home, spawn) {
     if (!allowedChange(meta[1], meta[4], p)) return { refuse: `unrecorded change: ${p}` };
   }
   if (parts.length > 1 && parts.length % 2 === 0 && parts[parts.length - 1] !== '') return { refuse: 'unrecorded change: (unreadable diff)' };
+  const ids = new Set([C]);
+  const objs = pushGit(P, ['rev-list', '--objects', '--no-object-names', `${C}..${sha}`], spawn);
+  if (objs.status !== 0) return { refuse: 'develop is not on the recorded commit' };
+  for (const l of String(objs.stdout || '').split('\n')) if (SHA_RE.test(l.trim())) ids.add(l.trim());
+  const trees = pushGit(P, ['ls-tree', '-r', '-t', '-z', '--full-tree', C], spawn);
+  if (trees.status !== 0) return { refuse: 'develop is not on the recorded commit' };
+  for (const entry of String(trees.stdout || '').split('\0')) {
+    const m = entry.match(/^\d+ tree ([0-9a-f]{40})\t/);
+    if (m) ids.add(m[1]);
+  }
+  const checked = readObjects(P, [...ids], spawn);
+  if (checked.refuse) return { refuse: checked.refuse };
+  for (const { id, store } of checked.objects) {
+    const dir = path.join(P, 'objects', id.slice(0, 2));
+    mkdirSync(dir, { recursive: true });
+    try { writeFileSync(path.join(dir, id.slice(2)), deflateSync(store), { flag: 'wx', mode: 0o444 }); } catch (e) { if (e.code !== 'EEXIST') throw e; }
+  }
   return { sha };
+}
+
+// Develop may be pushed only if it is the recorded commit or a descendant that changes nothing but plain vault files.
+export function verifyDevelop(root, home, spawn) {
+  const R = path.join(realpathSync(root), '.git');
+  writePushDir(path.join(home, PUSH_DIR), path.join(R, 'objects'));
+  const sha = developSha(R);
+  if (!sha) return { refuse: 'no develop ref' };
+  return verifyCommit(root, home, sha, spawn);
+}
+
+// D10 (contract): whether a merge's feat commit may be recorded.
+export function recordDecision({ feat, parents, selfVerify, parentVerify }) {
+  if (selfVerify?.sha) return 'record';
+  if (parents !== 1) return { refuse: `feat commit ${String(feat).slice(0, 7)} is not a single-parent commit` };
+  if (parentVerify?.refuse) return { refuse: parentVerify.refuse };
+  return 'record';
 }
 
 export function main(argv, { root, spawn, home = os.userInfo().homedir }) {
@@ -197,7 +268,7 @@ export function main(argv, { root, spawn, home = os.userInfo().homedir }) {
   if (!gitOk) return stop('.git is not a plain folder');
   const plan = planOp(argv, root);
   if (plan.refuse) return stop(plan.refuse);
-  const isGit = plan.bin === GIT;
+  const isGit = plan.bin === GIT_BIN;
   if (!isGit) {
     if (plan.runCheck) {
       const chk = spawn(GH, ['api', `repos/${REPO}/actions/runs/${plan.runCheck}`, '--jq', '.head_repository.full_name'], { cwd: '/', env: exactEnv(home), encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], input: '' });
@@ -215,7 +286,7 @@ export function main(argv, { root, spawn, home = os.userInfo().homedir }) {
     const v = verifyDevelop(root, home, spawn);
     if (v.refuse) return stop(v.refuse);
     const P = path.join(home, PUSH_DIR);
-    const child = spawn(plan.bin, [...plan.args, `${v.sha}:refs/heads/develop`], { cwd: P, env: exactEnv(home, P), encoding: 'utf8', stdio: ['pipe', 'inherit', 'inherit'], input: plan.input ?? '' });
+    const child = pushGit(P, [...plan.args, `${v.sha}:refs/heads/develop`], spawn, { stdio: ['pipe', 'inherit', 'inherit'], input: plan.input ?? '' });
     return child.status === null || child.status === undefined ? 1 : child.status;
   } finally {
     lock.release();

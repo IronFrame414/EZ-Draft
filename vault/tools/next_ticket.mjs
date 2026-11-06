@@ -33,6 +33,7 @@ import { guardedPaths, planPaths } from './plan-paths.mjs';
 import { findingProblems } from './findings.mjs';
 import { inProgressLimit } from './lanes.mjs';
 import { reviewedBase, postAuditDelta } from './security-paths.mjs';
+import { trustedGit } from './trusted-git.mjs';
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -768,7 +769,7 @@ function recordsProblems() {
   }
   // 2.14: the only untracked vault files are the plans of open tickets and the review and for-josh files of open phases;
   // they reach git with the ticket's feat commit or the phase snapshot (D9 (a), 2026-11-02).
-  const g = spawnSync('git', ['-C', root, 'ls-files', '--others', '--exclude-standard', '--', 'vault'], { encoding: 'utf8' });
+  const g = trustedGit(root, ['ls-files', '--others', '--exclude-standard', '--', 'vault']);
   const openPhases = new Set([...rows.values()].filter((r) => r.status !== 'done').map((r) => Number(r.phase)));
   for (const f of g.status === 0 ? g.stdout.split('\n').filter(Boolean) : []) {
     const plan = f.match(/^vault\/plans\/(EZD-[0-9A-Za-z]+)\.md$/);
@@ -891,8 +892,8 @@ function gateState(p) {
   if (/^Merged:\s*yes/im.test(txt)) return { state: 'merged', pr };
   if (sha) {
     // Q-0261: the launcher merges the PR on GitHub (Q-0594), so refresh origin/main before checking (quiet; offline keeps the old ref).
-    spawnSync('git', ['-C', root, 'fetch', '--quiet', 'origin', 'main'], { encoding: 'utf8', timeout: 30000, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
-    const r = spawnSync('git', ['-C', root, 'merge-base', '--is-ancestor', sha, 'origin/main'], { encoding: 'utf8' });
+    trustedGit(root, ['fetch', '--quiet', 'origin', 'main'], { timeout: 30000 });
+    const r = trustedGit(root, ['merge-base', '--is-ancestor', sha, 'refs/remotes/origin/main']);
     if (r.status === 0) return { state: 'merged', pr, detected: true };
   }
   return { state: pr ? 'pr-open' : 'gating', pr, record: txt };
@@ -965,7 +966,7 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
       // timed-out one (a push run cut off at its time limit held PR 5 for 3.5 hours on 2026-11-05), and EZD-337 (Q-0594 (a)):
       // auto-merge stays off; found on, the launcher turns it off; it merges a green PR only at the head checked here for a post-audit
       // security hold. One read: the PR's auto-merge state, its check runs and its head.
-      const r = spawnSync('gh', ['pr', 'view', g.pr, '--json', 'autoMergeRequest,statusCheckRollup,baseRefName,headRefName,url,headRefOid'], { cwd: root, encoding: 'utf8', timeout: 30000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+      const r = spawnSync('gh', ['pr', 'view', g.pr, '--json', 'autoMergeRequest,statusCheckRollup,baseRefName,headRefName,url,headRefOid'], { cwd: '/', encoding: 'utf8', timeout: 30000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
       let pr = null;
       try { pr = JSON.parse(r.stdout); } catch {}
       if (!pr || typeof pr !== 'object' || !Array.isArray(pr.statusCheckRollup)) {
@@ -974,7 +975,7 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
         return `none: waiting for the phase ${p} PR to auto-merge on a green CI gate (${g.pr}; CI status unreadable: ${detail})`;
       }
       // EZD-336 security review 1: the launcher clears only this repository's develop -> main PR, at the URL the gate record names.
-      const origin = spawnSync('git', ['-C', root, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).stdout.trim();
+      const origin = trustedGit(root, ['remote', 'get-url', 'origin']).stdout.trim();
       const repo = origin.match(/github\.com[:/]([\w.-]+\/[\w.-]+?)(?:\.git)?$/)?.[1];
       const prefix = repo ? `https://github.com/${repo}/pull/` : null;
       const urlOk = typeof pr.url === 'string' && pr.url === g.pr && !!prefix && pr.url.startsWith(prefix) && /^\d+$/.test(pr.url.slice(prefix.length));

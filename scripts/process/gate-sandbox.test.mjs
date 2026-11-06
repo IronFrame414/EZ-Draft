@@ -18,6 +18,7 @@ function fixture() {
   copyFileSync(path.join(here, '..', 'db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
   mkdirSync(path.join(root, 'vault/tools'), { recursive: true });
   copyFileSync(path.join(here, '../..', 'vault/tools/security-paths.mjs'), path.join(root, 'vault/tools/security-paths.mjs'));
+  copyFileSync(path.join(here, '../..', 'vault/tools/trusted-git.mjs'), path.join(root, 'vault/tools/trusted-git.mjs')); // EZD-345 D16: gate.mjs and security-paths.mjs import it
   mkdirSync(path.join(root, '.claude/agents'), { recursive: true });
   const dir = path.join(root, 'work');
   mkdirSync(dir);

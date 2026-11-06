@@ -8,7 +8,7 @@
 // `runRelease(opts, deps)` reads `deps.processEnv` one name at a time, never enumerating it, and reads no
 // release name and not GITHUB_TOKEN before the context guards pass (AC-EZD-023b-2). No log line is written
 // before step 2's masking except the refusal lines of steps 1–2 (archived plan Step 4 "Masking").
-import { spawnSync } from 'node:child_process';
+import { trustedGit } from '../../vault/tools/trusted-git.mjs';
 import { appendFileSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -124,9 +124,8 @@ function httpStatusOf(err) {
 
 /** Runs `git -C <root> …` synchronously with no terminal prompt; returns stdout, throws on a non-zero exit. */
 export function createGit(root) {
-  const env = { ...process.env, GIT_TERMINAL_PROMPT: '0' };
   return (args) => {
-    const r = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', env, timeout: 30_000 });
+    const r = trustedGit(root, args, { timeout: 30_000 });
     if (r.error) throw r.error;
     if (r.status !== 0) throw new Error(`git ${args.join(' ')} exited ${r.status}`);
     return r.stdout ?? '';

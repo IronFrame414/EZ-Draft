@@ -20,7 +20,7 @@
 import {
   closeSync, existsSync, linkSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync, writeSync,
 } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -212,7 +212,7 @@ function needLedger(root, what) {
 }
 
 // ---- Commits (C3) ----
-const git = (root, ...args) => spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+const git = (root, ...args) => trustedGit(root, args, { maxBuffer: 64 * 1024 * 1024 });
 const firstLine = (r) => `${r.stderr || ''}${r.stdout || ''}`.trim().split('\n')[0];
 
 export function commitPaths(root, paths, msg) {

@@ -17,6 +17,7 @@ function makeQueueRepo() {
   mkdirSync(at('vault/tools'), { recursive: true });
   mkdirSync(at('vault/tickets'), { recursive: true });
   copyFileSync(path.join(repo, 'vault/tools/ledger-queue.mjs'), at('vault/tools/ledger-queue.mjs'));
+  copyFileSync(path.join(repo, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: ledger-queue.mjs imports it
   writeFileSync(at('vault/tools/next_ticket.mjs'), STUB_NT);
   writeFileSync(at('vault/tools/stub-config.json'), JSON.stringify({ check: { failIfStatusContains: 'BAD' } }));
   writeFileSync(at('vault/tickets/STATUS.md'), STATUS);
