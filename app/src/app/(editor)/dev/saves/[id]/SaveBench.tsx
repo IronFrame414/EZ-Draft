@@ -156,7 +156,7 @@ export function SaveBench({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <ProjectEditor projectId={projectId} devHooks openDeps={openDeps} onSession={setSession} />
+      {/* EZD-340: the bar comes before the editor so the status-bar disclaimer stays last on the page (EZD-136, Q-0229). */}
       <div className={styles.bar}>
         <button type="button" data-testid="bench-fifty" disabled={off} onClick={() => void run('fifty')}>
           50 edits
@@ -178,6 +178,7 @@ export function SaveBench({ projectId }: { projectId: string }) {
               : `Rows written: ${result.rows} of ${result.objects} · Checkpoints made: ${result.checkpoints}`}
         </span>
       </div>
+      <ProjectEditor projectId={projectId} devHooks openDeps={openDeps} onSession={setSession} />
     </>
   );
 }
