@@ -95,8 +95,8 @@ test.describe('EZD-117a Projects page', () => {
     }
   });
 
-  // EZD-117b plan section 4 E4 (Q-0450 (a)): recorded with apiRequests (page.on('request')), not captureTraffic, which blocks the
-  // Realtime websocket and makes the hub refetch its token. Source: AC-EZD-117a-2; EZD-117a ticket row; EZD-110b D16 (two
+  // EZD-117b plan section 4 E4 (Q-0450 (a)): recorded with apiRequests (page.on('request')); EZD-353 T1 (traffic.spec.ts)
+  // proves captureTraffic counts the same requests. Source: AC-EZD-117a-2; EZD-117a ticket row; EZD-110b D16 (two
   // notification GETs when the user channel subscribes); hub.ts header (token on first connect only); Q-0450 (a).
   test("EZD-117a B1 two data requests: 200 projects load 48 cards from /api/projects and /api/projects/counts, plus the bell's mount requests (/api/notifications twice, /api/realtime/token once), and nothing else", async ({
     page,
@@ -171,7 +171,7 @@ test.describe('EZD-117a Projects page', () => {
     expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(300000);
   });
 
-  // EZD-117b plan section 4 E10: no captureTraffic (same reason as B1). Source: EZD-117a B4 (6); EZD-110b D16; hub.ts header.
+  // EZD-117b plan section 4 E10: recorded with apiRequests, as B1. Source: EZD-117a B4 (6); EZD-110b D16; hub.ts header.
   test("EZD-117a B4 scrolling loads one page per step until all 200 cards show, with no other request than the bell's mount requests", async ({
     page,
     signInAs,

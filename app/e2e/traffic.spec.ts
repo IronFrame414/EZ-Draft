@@ -4,7 +4,16 @@
 // settle() by name. Untagged: desktop (Chromium) only, which R1's CDP session needs. A local node:http server
 // on 127.0.0.1 (allowed by the net guard) serves the hanging and the slow response (section 1, R2-R5 row).
 import { createServer, type Server } from 'node:http';
-import { captureTraffic, expect, test } from '../test-harness/e2e/test';
+import type { Page } from '@playwright/test';
+import {
+  captureTraffic,
+  cleanup,
+  closeHarness,
+  createTenant,
+  expect,
+  test,
+} from '../test-harness/e2e/test';
+import { viewerMember } from '../test-harness/projects-search-fixture';
 
 // Tests of one file run in order in one worker (no fullyParallel), and R2, R3 compare with their own before.
 let port = 0;
@@ -173,5 +182,65 @@ test.describe('EZD-163 traffic capture', () => {
           r.body === 'ezd163-slow-body',
       ).length >= 1,
     ).toBe(true);
+  });
+});
+
+// Landing settle (EZD-117b E11): count finished GET /api/notifications; the mount fetch and the first-join resync make 2.
+// Copy of app/e2e/projects.spec.ts countNotificationGets.
+function countNotificationGets(page: Page): () => number {
+  let count = 0;
+  page.on('requestfinished', (req) => {
+    if (req.method() === 'GET' && new URL(req.url()).pathname === '/api/notifications') count++;
+  });
+  return () => count;
+}
+
+test.describe('EZD-353 traffic capture keeps the Realtime socket', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  // EZD-353 T1 (AC-EZD-353-1): plan section 4. Expected: socketErrors empty; /api/realtime/token once; /api/notifications GET twice.
+  // Sources: hub.ts header (token on first connect only); projects.spec.ts B1/B4 (EZD-117b E4, E10; Q-0450 (a)); EZD-110b D16; P1.
+  test('EZD-353 T1 under captureTraffic the Realtime websocket connects and /api/realtime/token is fetched once', async ({
+    page,
+    context,
+    signInAs,
+  }) => {
+    const m = await viewerMember(await createTenant());
+    const landing = countNotificationGets(page);
+    await signInAs(m.email);
+    await expect.poll(landing).toBe(2);
+    let frames = 0;
+    const socketErrors: string[] = [];
+    const gets = countNotificationGets(page);
+    // The adapter opens its socket at /realtime/v1 (app/src/lib/realtime/adapter.ts line 50).
+    page.on('websocket', (ws) => {
+      if (!new URL(ws.url()).pathname.startsWith('/realtime/v1')) return;
+      ws.on('framereceived', () => {
+        frames += 1;
+      });
+      ws.on('socketerror', (error) => {
+        socketErrors.push(error);
+      });
+    });
+    const traffic = await captureTraffic(context);
+    await page.goto('/');
+    await expect(page.getByTestId('notification-bell')).toBeVisible();
+    await expect.poll(() => frames).toBeGreaterThan(0);
+    await expect.poll(gets).toBe(2);
+    // Late refetch window, as projects.spec.ts B4.
+    await page.waitForTimeout(500);
+    const result = await traffic.settle();
+
+    expect(socketErrors).toEqual([]);
+    expect(result.requests.filter((r) => r.path === '/api/realtime/token')).toHaveLength(1);
+    expect(
+      result.requests.filter((r) => r.method === 'GET' && r.path === '/api/notifications'),
+    ).toHaveLength(2);
   });
 });
