@@ -17809,7 +17809,7 @@
    "id": "EZD-317",
    "phase": 1,
    "title": "Fix: a sandboxed command cannot run a writable copy of an excluded script outside the sandbox",
-   "depends_raw": "",
+   "depends_raw": "EZD-316",
    "spec_ref": "Q-0541, D-021, rules 17, 18",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -17824,7 +17824,9 @@
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
-   "depends_on": [],
+   "depends_on": [
+    "EZD-316"
+   ],
    "build_position": 575,
    "acs": [
     "AC-EZD-317-1",
