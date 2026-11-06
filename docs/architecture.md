@@ -307,7 +307,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@supabase/realtime-js` | `2.118.0` | app | Browser Realtime client (EZD-018); no table-query API in the browser | EZD-018 |
 | `fontkit` | `2.0.4` | geometry, spikes | EZD-028 text metrics from bundled font files (02 PDF out); same version as pdfkit's | EZD-028 |
 | `pdf-lib` | `1.17.1` | spikes | EZD-028 tests: PDF structure checks | EZD-028 |
-| `@types/three` | `0.186.0` | spikes | Types for three (EZD-030 spike) | EZD-030 |
+| `@types/three` | `0.186.0` | app, spikes | Types for three (EZD-030 spike); EZD-207a plan canvas | EZD-030 |
 | `@anthropic-ai/sdk` | `1.1.0` | app | Stack · AI | EZD-021 |
 | `tsx` | `4.23.15` | spikes | EZD-031: run the spike's TypeScript, which imports EZD-021's adapters | EZD-031 |
 | `fake-indexeddb` | `6.2.7` | app | Unit tests: IndexedDB in Vitest; dev dependency, never imported by app code | EZD-120b |
@@ -479,7 +479,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - `EditorFrame` renders, in order: the header slot, the body (rail, left panel, canvas, inspector), the status bar. Regions carry `data-shell-region`: `frame`, `body`, `rail`, `left-panel`, `canvas`, `inspector`, `status-bar`. Status bar parts carry `data-status` (`start`, `end`), `data-status-item`, `data-status-label`, `data-status-value`. Do not rename them; EZD-012c, EZD-014 and EZD-032 select on them.
 - The header slot is unwrapped: `HeaderCard` owns its height and margin, so the frame adds none.
 - Sizes are the 04 sizes, border-box, taken from the frame tokens in `tokens.css` (left panel 248, inspector 336, status bar 30, grid 32, body padding and gap 16).
-- The grid is CSS on the frame root until EZD-207 decides how its WebGL grid meets it.
+- With `backdrop` the frame drops its CSS grid and the plan canvas draws it (EZD-207a).
 - Rail entries are props. EZD-230 owns the tool list, the "More tools" flyout and the per-user order (Q-0038 (b), Q-0122 (a)); a tool appears only when its feature exists. The tooltip is CSS only (EZD-012a).
 - Status bar readouts that change per pointer move write through a ref, never React state (11 rule 4). The disclaimer line goes in the status bar (EZD-136, Q-0229).
 - The left panel and the inspector `<aside>` render only when their label (`leftPanelLabel`, `inspectorLabel`) is given; an aside always has a label (EZD-120c).
@@ -619,6 +619,17 @@ EZD-120c (vault/plans/EZD-120c.md Build steps 1-10, section 3); 03a; S03 Permiss
 - **Save word** (`app/src/editor/save-state.ts`, `SaveStatus.tsx`). `saveWord(state, now, timeZone?)` gives the `office.editor.*` key: idle and saved without a time `saved`, pending and saving `saving`, offline `saved_on_device`, error `not_saved`, saved under a minute `saved_just_now`, under an hour `saved_min_ago` (`minutes`), else `saved_at` (`formatClock`, `en-US` h:mm AM/PM). `SaveStateText` (`save-state`, `data-save-status`) re-renders once when the word next changes (`nextSaveWordChangeMs`, one `setTimeout`), never on a tick.
 - **Test hook.** Ready, `canEdit` and `devHooks`: `window.__ezdraftEditor` (`EditorTestHook`: `objects()` lists the store's objects as `{ id, ...value }`, `edit(changes)` is `store.applyEdit`), removed on unmount. Never in production, never for view-only.
 - Strings are `office.editor.*` keys, `en` only.
+
+### Plan canvas (EZD-207a)
+
+EZD-207a (vault/plans/EZD-207a.md Build steps 1-17, section 3); S03 Layout, Canvas interactions; 02 Stack 2D + 3D; 11 rule 4; R-054; Q-0568; Q-0214.
+
+- **Files** in `app/src/editor/plan/`: `color.ts` (token colours as sRGB 0..1), `view.ts` (the view maths, no DOM), `batches.ts` (open floor's drawing list into batches), `scene.ts` (batch objects and the grid shader), `input.ts` (pointer, wheel and key input), `controller.ts` (`createPlanController`, the handle; no React), `render-root.ts` (the React Three Fiber root), `PlanCanvas.tsx` (`PlanCanvas`, `PlanInputSurface`).
+- **Handle** (`PlanCanvasHandle`): `getCursor`, `getPixelsPerInch`, `getView`, `setView`, `fit`, `modelToScreen`, `screenToModel`, `onCameraChange`, `setPointerReceiver`. Screen = region px (CSS px from the top-left of `main[data-shell-region="canvas"]`); read and called synchronously, never through React. Pans go to the view; other left input goes to the pointer receiver.
+- **View.** Model inches, +x east, +y north. 100% = 32 CSS px per foot (`ZOOM_100_PPI` 8/3 px per inch), limits 5% and 1600%. The first view fits the drawing once the region has a size; edits and resizes never refit. A pan or zoom changes only the camera and the grid uniforms, rebuilds no buffer and makes no React commit; frames are drawn on demand (`frameloop: 'demand'`).
+- **Grid.** Drawn by a shader on the one `<canvas>` (`--ez-canvas-grid` on `--ez-canvas`), steps 1", 1', 10', 100' (the first at least 16 px apart). The canvas fills the frame's `backdrop`, behind header, cards and status bar.
+- **Batches.** One buffer per layer and kind (segments also per role) in status colours; a batch is re-uploaded only when its positions change, and only when the model's objects change.
+- **Test hook.** Ready and `devHooks`: `window.__ezdraftPlan` (`{ handle, stats() }`, stats `frames`, `drawCalls`, `bufferUploads`, `contexts`), for editors and view-only alike; removed on unmount. Never in production.
 
 ### Sign-out and app-wide drain (EZD-120d)
 

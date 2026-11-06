@@ -117,6 +117,7 @@ export const en = {
   'office.editor.save_failed': 'Changes not saved',
   'office.editor.load_failed': "Couldn't load this project.",
   'office.editor.offline': 'Offline. Changes are saved on this device and will sync.',
+  'office.plan.canvas_failed': "Couldn't show the plan.",
   'office.settings.title': 'Settings',
   'office.settings.back': 'Projects',
   'office.settings.nav_label': 'Company settings',
