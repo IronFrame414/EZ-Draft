@@ -18703,6 +18703,126 @@
    ],
    "build_position": 604,
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-349",
+   "phase": 4,
+   "title": "Fix: every 401 from requireApiSession carries Cache-Control: no-store",
+   "depends_raw": "EZD-110a",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-110a"
+   ],
+   "build_position": 605,
+   "acs": [
+    "AC-EZD-349-1",
+    "AC-EZD-349-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-350",
+   "phase": 4,
+   "title": "Fix: tests that pin app-wide lists run in every scoped gate",
+   "depends_raw": "EZD-292",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-292"
+   ],
+   "build_position": 606,
+   "acs": [
+    "AC-EZD-350-1",
+    "AC-EZD-350-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-351",
+   "phase": 4,
+   "title": "Fix: rls.audit T18 and handlers T19 do not count another worktree's database rows",
+   "depends_raw": "EZD-110b",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-110b"
+   ],
+   "build_position": 607,
+   "acs": [
+    "AC-EZD-351-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-352",
+   "phase": 4,
+   "title": "Fix: the Realtime failover check does not call a failed database send a silent gap",
+   "depends_raw": "EZD-293",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-293"
+   ],
+   "build_position": 608,
+   "acs": [
+    "AC-EZD-352-1",
+    "AC-EZD-352-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-353",
+   "phase": 4,
+   "title": "Fix: captureTraffic does not block the page's loopback Realtime websocket",
+   "depends_raw": "EZD-117a, EZD-117b",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-117b"
+   ],
+   "build_position": 609,
+   "acs": [
+    "AC-EZD-353-1",
+    "AC-EZD-353-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
