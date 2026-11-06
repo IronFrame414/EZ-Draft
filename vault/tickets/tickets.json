@@ -18763,7 +18763,11 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Local database",
+    "Build lanes (EZD-172)"
+   ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -18786,7 +18790,11 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
