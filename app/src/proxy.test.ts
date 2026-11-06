@@ -2,9 +2,18 @@
 // request gate. createSessionClient is mocked (vi.mock of app/src/server/auth/supabase-server.ts); the mock
 // receives the jar the proxy passes, so a case can write cookies through it as a token refresh would.
 // SESSION_COOKIE_OPTIONS is the real export (EZD-007c, Q-0048 (a)). No database, no network.
-import { NextRequest } from 'next/server';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { NextRequest, NextResponse } from 'next/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SESSION_COOKIE_OPTIONS, type SessionCookieJar } from './server/auth/supabase-server';
+import { uncoveredWriteRoutes, writeRoutes } from '../test-harness/same-origin/write-routes';
+import { CROSS_ORIGIN_REFUSED, SAME_ORIGIN_EXCEPTIONS } from './server/auth/same-origin';
+import {
+  createSessionClient,
+  SESSION_COOKIE_OPTIONS,
+  type SessionCookieJar,
+} from './server/auth/supabase-server';
 import { config, proxy } from './proxy';
 
 type Claims = { data: { claims: Record<string, unknown> } | null; error: unknown };
@@ -117,7 +126,8 @@ describe('EZD-007d request gate', () => {
     expect(setCookie(hRes, 'sb-test-auth-token') ?? '').toContain('Max-Age=0');
 
     // (i) matcher
-    expect(config.matcher).toEqual(['/((?!_next/static|_next/image|.*\\..*).*)']);
+    // EZD-346 E1 (Decided "Matcher"): the matcher gains the /api entry.
+    expect(config.matcher).toEqual(['/((?!_next/static|_next/image|.*\\..*).*)', '/api/:path*']);
   });
 
   it('EZD-007d T37 written cookies: no cache, seen by the render', async () => {
@@ -383,5 +393,212 @@ describe('EZD-342 request gate cookie names', () => {
     const d = await httpsCall('/', '__Host-sb-x-auth-token=c; keep=me');
     expect(d.headers.getSetCookie()).toEqual([]);
     expect(d.headers.get('cache-control')).toBeNull();
+  });
+});
+
+// EZD-346 S1-S13, W1-W3 (vault/plans/EZD-346.md section 4; AC-EZD-346-1 to -4; Q-0599): every /api write is
+// same-origin or refused first. The own origin is http://localhost:3000 (the NextRequest url below).
+const ID0 = '00000000-0000-4000-8000-000000000000';
+const CK = `/api/projects/${ID0}/checkpoints`;
+const OB = `/api/projects/${ID0}/objects`;
+const RA = '/api/notifications/read-all';
+const CROSS = { 'sec-fetch-site': 'cross-site', origin: 'https://attacker.example' };
+const SIBLING = { 'sec-fetch-site': 'same-site', origin: 'https://other.ezcontractorbinder.com' };
+
+const callAs = (p: string, method: string, headers?: HeadersInit) =>
+  proxy(new NextRequest(`http://localhost:3000${p}`, { method, headers }));
+
+async function expectRefused(res: Response, label: string) {
+  expect(res.status, label).toBe(403);
+  expect(await res.json(), label).toEqual(CROSS_ORIGIN_REFUSED);
+  expect(res.headers.get('cache-control'), label).toContain('no-store');
+  expect(res.headers.get('set-cookie'), label).toBeNull();
+  expect(res.headers.get('location'), label).toBeNull();
+}
+
+// A refusal must not build the session client.
+async function refusedCall(p: string, method: string, headers?: HeadersInit, label = p) {
+  clientWith(async () => WITH_SUB);
+  vi.mocked(createSessionClient).mockClear();
+  const res = await callAs(p, method, headers);
+  await expectRefused(res, label);
+  expect(createSessionClient, label).not.toHaveBeenCalled();
+}
+
+async function passingCall(p: string, method: string, headers?: HeadersInit, label = p) {
+  clientWith(async () => WITH_SUB);
+  const res = await callAs(p, method, headers);
+  expect(res.status, label).not.toBe(403);
+  expectPassThrough(res);
+}
+
+async function loadMatcher() {
+  (globalThis as { AsyncLocalStorage?: unknown }).AsyncLocalStorage ??= AsyncLocalStorage;
+  const { unstable_doesMiddlewareMatch } = await import('next/experimental/testing/server');
+  return (url: string) => unstable_doesMiddlewareMatch({ config, url });
+}
+
+describe('EZD-346 same-origin writes', () => {
+  afterEach(() => {
+    h.make = null;
+  });
+
+  it('S1 cross-site POST refused', async () => {
+    for (const p of [CK, OB, RA]) await refusedCall(p, 'POST', CROSS, `POST ${p}`);
+  });
+
+  it('S2 sibling-subdomain POST refused', async () => {
+    for (const p of [CK, OB, RA]) await refusedCall(p, 'POST', SIBLING, `POST ${p}`);
+  });
+
+  it('S3 same-origin header passes', async () => {
+    const same = { 'sec-fetch-site': 'same-origin', origin: 'http://localhost:3000' };
+    for (const p of [CK, OB, RA]) await passingCall(p, 'POST', same, `POST ${p}`);
+    await passingCall(RA, 'POST', { 'sec-fetch-site': 'same-origin' }, 'POST RA header only');
+  });
+
+  it('S4 Origin fallback passes', async () => {
+    for (const p of [CK, OB, RA]) {
+      await passingCall(p, 'POST', { origin: 'http://localhost:3000' }, `POST ${p}`);
+    }
+  });
+
+  it('S5 Origin fallback refusals', async () => {
+    const cases: Array<Record<string, string>> = [
+      {},
+      { origin: 'null' },
+      { origin: 'https://localhost:3000' },
+      { origin: 'http://localhost:3001' },
+      { origin: 'http://localhost:3000/' },
+      { origin: 'https://ezdraft.ezcontractorbinder.com' },
+    ];
+    for (const headers of cases) await refusedCall(RA, 'POST', headers, JSON.stringify(headers));
+  });
+
+  it('S6 Sec-Fetch-Site forms refused', async () => {
+    for (const site of ['none', 'Same-Origin', '', 'same-site']) {
+      await refusedCall(
+        RA,
+        'POST',
+        { 'sec-fetch-site': site, origin: 'http://localhost:3000' },
+        `sec-fetch-site "${site}"`,
+      );
+    }
+    const twice = new Headers();
+    twice.append('sec-fetch-site', 'same-origin');
+    twice.append('sec-fetch-site', 'cross-site');
+    await refusedCall(RA, 'POST', twice, 'sec-fetch-site appended twice');
+  });
+
+  it('S7 every write method refused', async () => {
+    for (const m of ['PUT', 'PATCH', 'DELETE', 'OPTIONS', 'PURGE']) {
+      await refusedCall(RA, m, CROSS, m);
+    }
+  });
+
+  it('S8 GET and HEAD unchanged', async () => {
+    for (const m of ['GET', 'HEAD']) {
+      for (const p of [RA, '/api/projects']) {
+        clientWith(async () => WITH_SUB);
+        vi.mocked(createSessionClient).mockClear();
+        const res = await callAs(p, m, CROSS);
+        expect(res.status, `${m} ${p}`).not.toBe(403);
+        expectPassThrough(res);
+        expect(createSessionClient, `${m} ${p}`).toHaveBeenCalledTimes(1);
+      }
+    }
+  });
+
+  it('S9 exceptions list', async () => {
+    await passingCall('/api/monitoring', 'POST', undefined, 'monitoring no headers');
+    await passingCall('/api/monitoring', 'POST', CROSS, 'monitoring cross');
+    await refusedCall('/api/monitoring/', 'POST', undefined, '/api/monitoring/');
+    await refusedCall('/api/monitoring/x', 'POST', undefined, '/api/monitoring/x');
+  });
+
+  it('S10 path class', async () => {
+    for (const p of [
+      '/API/notifications/read-all',
+      '/%61pi/notifications/read-all',
+      '//api/notifications/read-all',
+      '/api%2Fnotifications/read-all',
+      '/%E0%A4%A',
+    ]) {
+      await refusedCall(p, 'POST', undefined, p);
+    }
+    await passingCall('/apix', 'POST', CROSS, '/apix');
+    await passingCall('/projects', 'POST', CROSS, '/projects');
+  });
+
+  it('S11 matcher', async () => {
+    expect(config.matcher).toEqual(['/((?!_next/static|_next/image|.*\\..*).*)', '/api/:path*']);
+    const matches = await loadMatcher();
+    expect(matches('http://localhost:3000/api/projects/a.b/checkpoints')).toBe(true);
+    expect(matches('http://localhost:3000/api/x.json')).toBe(true);
+    expect(matches('http://localhost:3000/icons/sprite.svg')).toBe(false);
+    expect(matches('http://localhost:3000/sw.js')).toBe(false);
+  });
+
+  it('S12 refusal before the marker', async () => {
+    await refusedCall(RA, 'POST', { ...CROSS, cookie: 'ezd_signed_out=1' }, 'marked cross-site');
+  });
+
+  it('S13 exceptions list is exact', () => {
+    expect(SAME_ORIGIN_EXCEPTIONS).toEqual([
+      {
+        path: '/api/monitoring',
+        reason:
+          'Error-report tunnel (EZD-024 Step 7): public, reads no session; scripts/errors/live-check.mjs posts to it from outside a browser.',
+      },
+    ]);
+  });
+});
+
+describe('EZD-346 every write route is checked', () => {
+  afterEach(() => {
+    h.make = null;
+  });
+
+  const appSrc = path.dirname(fileURLToPath(import.meta.url));
+  const exceptionPaths = () => SAME_ORIGIN_EXCEPTIONS.map((e) => e.path);
+
+  it('W1 every write route is covered', async () => {
+    clientWith(async () => WITH_SUB);
+    const routes = writeRoutes(appSrc);
+    expect(
+      await uncoveredWriteRoutes(routes, proxy, await loadMatcher(), exceptionPaths()),
+    ).toEqual([]);
+    for (const [method, url] of [
+      ['POST', CK],
+      ['POST', OB],
+      ['POST', RA],
+      ['POST', '/api/monitoring'],
+    ]) {
+      expect(routes, `${method} ${url}`).toEqual(
+        expect.arrayContaining([expect.objectContaining({ method, url })]),
+      );
+    }
+  });
+
+  it('W2 the walk fails on unchecked writes', async () => {
+    const routes = writeRoutes(appSrc);
+    const out = await uncoveredWriteRoutes(
+      routes,
+      async () => NextResponse.next(),
+      await loadMatcher(),
+      exceptionPaths(),
+    );
+    expect(out).toEqual(
+      routes.filter((r) => r.url !== '/api/monitoring').map((r) => `${r.method} ${r.file}`),
+    );
+    expect(out.length).toBeGreaterThanOrEqual(18);
+  });
+
+  it('W3 no stale exception', () => {
+    const urls = writeRoutes(appSrc).map((r) => r.url);
+    for (const e of SAME_ORIGIN_EXCEPTIONS) {
+      expect(urls, e.path).toContain(e.path);
+      expect(e.reason.trim().length, e.path).toBeGreaterThan(0);
+    }
   });
 });

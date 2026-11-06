@@ -4,14 +4,16 @@
 // the 400-day auth cookies here, so the 400 days count from the last use.
 // EZD-342 (vault/plans/EZD-342.md; Q-0600): the https test and the session-cookie names come from cookie-names.ts.
 // On https an unmarked request's plain session cookies are deleted (host-only, Max-Age=0, Secure, Path=/).
+// EZD-346 (vault/plans/EZD-346.md; Q-0599): a write to /api that is not same-origin is refused first.
 import { NextResponse, type NextRequest } from 'next/server';
 import { HOST_COOKIE_PREFIX, isForwardedHttps, isSessionCookieName } from './lib/auth/cookie-names';
 import { signedOutCookieName } from './lib/auth/device-sign-out';
 import { isPublicPath } from './server/auth/public-paths';
+import { refuseCrossOriginWrite } from './server/auth/same-origin';
 import { createSessionClient, type SessionCookieJar } from './server/auth/supabase-server';
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image|.*\\..*).*)', '/api/:path*'],
 };
 
 type Written = { name: string; value: string; options: Parameters<SessionCookieJar['set']>[2] };
@@ -40,6 +42,8 @@ function signedOutMarked(request: NextRequest): NextResponse | null {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const refused = refuseCrossOriginWrite(request);
+  if (refused !== null) return refused;
   const marked = signedOutMarked(request);
   if (marked !== null) return marked;
   const stale = isForwardedHttps(request.headers)
