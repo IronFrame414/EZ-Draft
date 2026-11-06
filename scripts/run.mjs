@@ -65,7 +65,7 @@ export const logDir = launcherLogDir(root);
 const legacyInflightFile = path.join(logDir, 'inflight.json');
 const claudeBin = config.claude_bin || 'claude';
 // Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; Josh 2026-11-02: option 3 now, option 1 with the lanes work; vault/spikes/sandbox/NOTES.md).
-// Units start unsandboxed until every unit type has had a sandboxed dry run (Josh 2026-11-03; vault/spikes/sandbox/NOTES.md).
+// Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; back on after probe rounds 5 and 6, the audit vault/handoff/SANDBOX-AUDIT-2026-11-03.md, and D-021 closed by EZD-316 and EZD-345; Josh 2026-11-06).
 const sandboxSettings = path.join(root, 'scripts/unit-sandbox.json');
 const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = await import(path.join(vault, 'tools/next_ticket.mjs'));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
@@ -152,6 +152,7 @@ function buildCommand(unitName, arg) {
     '--effort', u.effort,
     '--permission-mode', 'bypassPermissions',
     '--name', `${arg} ${unitName}`,
+    '--settings', sandboxSettings,
   ];
   const b = budget();
   // Boost raises the per-unit cap to $80 (Josh 2026-10-24); never lowers a higher configured cap.
@@ -333,6 +334,8 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   Object.assign(env, laneEnv);
   const sessionId = flagSupported('--session-id') ? randomUUID() : null;
   if (sessionId) cmd.push('--session-id', sessionId);
+  if (!existsSync(sandboxSettings)) return { outcome: 'error', note: 'scripts/unit-sandbox.json missing: no unit starts unsandboxed' };
+  log(`sandboxed start (scripts/unit-sandbox.json): ${unitName} ${arg}`);
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
