@@ -9,3 +9,4 @@ Security review: PASS; Production-sensitive changes: PASS.
 Phase audit (Fable): READY.
 Fix tickets created: none. Debt added: D-090, D-091 (low). Tooling notes: two lines added.
 Open overdue medium debt from phase 2 (D-016 x2, D-019, D-037, D-085) listed in the PR body.
+Security pass at: f657623656c3c0b4d16fb38dfd92402367bbde12
