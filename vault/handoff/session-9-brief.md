@@ -69,3 +69,15 @@ Session 8's record: this file, the overseer log (`vault/handoff/overseer-log.md`
 - After each unit: `node vault/tools/next_ticket.mjs --check` and `--next-unit`, and a short look at `vault/handoff/CURRENT.md` and the overseer log.
 - A set-aside (`.git/set-aside.json`) or a tabled ticket needs a cause found and fixed, then clearing. Session 8 cleared `gate-phase 3` after fixing its own ledger slip.
 - Send Josh a PushNotification only for things he'd want now: a phase merged to main, a stop that needs him.
+
+## Added after hand-over (session 8, 2026-11-06 ~11:30 UTC)
+- **The unit sandbox is ON** for every launcher unit, both lanes (023476e9; Josh: "switch sandbox on. i will watch").
+  - Probe 7 passed: no GitHub login or keychain from inside the sandbox; github-ops works outside it (`vault/spikes/sandbox/NOTES.md`).
+  - Units so far ran cleanly: questions, repair waiting, plan, build. Expect `GITHUB-OPS SANDBOX STOP` when a unit pipes an excluded command; it recovers.
+  - Still to watch: the first sandboxed gate-phase and wrap, and the first build that runs the gate and merges.
+- **EZD-317 next** (Q-0541: fix before the sandbox is on, done in this order on Josh's word): the excluded commands for gate, unit-steps and ui-run are relative, so `cd` into a worktree runs its editable copy outside the sandbox. Its plan exists; it depends on EZD-316 (done). Build it interactively in fix mode.
+- **EZD-351** is blocked: its five-run lane-gate check cannot run inside a unit. Run it as an interactive procedure (five lane gates beside another lane's gate; then fix or close debt D-019 with the evidence), or re-plan it.
+- **EZD-354** (the gate's checks run as the `ezdraft` user; Josh created it, uid 502, Standard) is planned (`vault/plans/EZD-354.md`) with QP Q-0609.
+  - Josh's three steps are in the plan's "Josh's steps": close his home to ezdraft (chmod +a deny), one sudoers line, and narrowing Docker file sharing after the build creates /Users/ezdraft/gate.
+  - Ask Josh for his yes (rule 18) if he hasn't given it, then give him each step as one command.
+  - A launcher plan unit started on EZD-354 at 11:28 before its status reached the records; compare its plan with c86f68c8 and keep the better one.
