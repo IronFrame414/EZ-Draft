@@ -83,7 +83,7 @@ describe('EZD-014b HeaderButton icon form', () => {
     expect(html).toContain(iconSpan);
     expect(count(html, '<svg')).toBe(1);
     expect(html).toContain('width="18"');
-    expect(html).toContain('<use href="/icons/sprite.svg#share"');
+    expect(html).toContain('<use href="#ez-icon-share"');
     expect(html).toContain(labelSpan);
     expect(html.indexOf(iconSpan)).toBeLessThan(html.indexOf(labelSpan));
   });
@@ -97,7 +97,7 @@ describe('EZD-014b HeaderButton icon form', () => {
     expect(classTokens(html)).toEqual([styles.button, styles.primary]);
     expect(html).toContain('aria-label="Export"');
     expect(html).toContain('title="Export"');
-    expect(html).toContain('#download');
+    expect(html).toContain('#ez-icon-download');
   });
 
   it('T3 (4): explicit aria-label and title win, each once', () => {

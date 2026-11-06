@@ -313,7 +313,7 @@ test.describe('EZD-014c device layouts', () => {
         await expect(b.locator('[data-header-button-icon]')).toBeVisible();
         await expect(b.locator('[data-header-button-icon] use')).toHaveAttribute(
           'href',
-          `/icons/sprite.svg#${icon}`,
+          `#ez-icon-${icon}`,
         );
         await expect(b).toHaveAttribute('aria-label', T[key]);
         await expect(b).toHaveAttribute('title', T[key]);

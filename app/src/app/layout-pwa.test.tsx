@@ -21,6 +21,8 @@ describe('EZD-013 root layout install metadata', () => {
     });
     expect(viewport.themeColor).toBe('#f6f7f9');
     const html = renderToStaticMarkup(RootLayout({ children: <p /> }));
-    expect(html).toMatch(/<body[^>]*><p><\/p><\/body>/);
+    expect(html).toMatch(
+      /<body[^>]*><svg display="none" aria-hidden="true" focusable="false" data-testid="icon-sprite">[\s\S]*?<\/svg><p><\/p><\/body>/,
+    );
   });
 });

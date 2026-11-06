@@ -83,9 +83,7 @@ describe('EZD-010c token test page', () => {
     );
 
     // (d) first icon.
-    expect(html).toMatch(
-      /data-icon="expand_more"[\s\S]{0,400}?<use href="\/icons\/sprite\.svg#expand_more"/,
-    );
+    expect(html).toMatch(/data-icon="expand_more"[\s\S]{0,400}?<use href="#ez-icon-expand_more"/);
   });
 
   it('EZD-010c T4 (a): the page is not found when VERCEL_ENV is production', () => {

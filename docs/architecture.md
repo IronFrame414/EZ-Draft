@@ -356,8 +356,8 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026c)
   src/workers/            Web Workers, files named *.worker.ts (11 rule 3)
   src/lib/realtime/       browser Realtime hub; adapter.ts is the only importer of @supabase/realtime-js (EZD-018)
-  src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b)
-  public/icons/sprite.svg the generated icon sprite, served at /icons/sprite.svg (EZD-010b)
+  src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b); IconSprite.tsx (the in-page sprite the root layout renders) and icon-symbols.generated.ts (EZD-347)
+  public/icons/sprite.svg the generated icon sprite file, served at /icons/sprite.svg; the app draws icons from the in-page copy (EZD-347)
   src/lib/pwa/            app name and colour, service worker registration (EZD-013)
   src/components/pwa/     the registration component (EZD-013)
   src/pwa/                icon master page app-icon.html (EZD-013)
@@ -417,7 +417,8 @@ EZD-010a (vault/plans/EZD-010a.md Step 4); 04 Frame and visual system (Studio); 
 - `tokens.css` is excluded from Prettier, because Prettier rewrites `rgba(20,30,50,.05)` to `rgba(20, 30, 50, 0.05)` and the values must stay the spec text (`.prettierignore`).
 - Icons (EZD-010b; vault/plans/EZD-010b.md): source `github.com/google/material-design-icons`, folder `symbols/web/<name>/materialsymbolsoutlined/`, pinned commit `49d4db35df873165d6bd6ba09b063c7dafbac2f4` (`ICON_COMMIT` in `app/scripts/icons-fetch.mjs`), Apache-2.0.
 - Icon style: Outlined, weight 400, grade 0, optical size 20; FILL 0, with `<name>-fill` for FILL 1.
-- To add an icon: run `pnpm --filter @ezdraft/app icons:fetch <name>`, add the name to `icons.json` in sorted order, run `pnpm --filter @ezdraft/app icons:build`, then commit the SVG, the sprite and the names file. `icons.test.ts` (T8) fails otherwise.
+- Icons draw from the in-page sprite (EZD-347; D-088): the root layout renders `IconSprite` first in `<body>` (`<svg display="none">`, one `<symbol id="ez-icon-<name>">` per `ICON_NAMES` entry from `icon-symbols.generated.ts`), and `Icon` uses `<use href="#ez-icon-<name>">`, so an icon first drawn offline makes no request. Only `IconSprite.tsx` imports `icon-symbols.generated.ts` and only `app/src/app/layout.tsx` imports `IconSprite` (`IconSprite.test.tsx` U4).
+- To add an icon: run `pnpm --filter @ezdraft/app icons:fetch <name>`, add the name to `icons.json` in sorted order, run `pnpm --filter @ezdraft/app icons:build`, then commit the SVG, the sprite, the names file and the symbols file. `icons.test.ts` (T8) fails otherwise.
 - To check the committed files against `ICON_COMMIT`: `pnpm --filter @ezdraft/app icons:verify` (network; never in tests or the gate; EZD-171); a converted icon is checked through its kept original in `__fixtures__/legacy/`, and `CONVERTED.md` is skipped.
 - Legacy-format icons (Q-0322): an upstream file without a viewBox is refused by `icons:build`; convert it with `pnpm --filter @ezdraft/app icons:convert-legacy <in> <out>` (M/L/H/V/Z only; absolute x × 48, y × 48 − 960; relative deltas × 48), keep the fetched original under `src/components/icon/__fixtures__/legacy/` with a byte-equality test, and list it in `svg/CONVERTED.md` (Apache-2.0 4(b)). `icons:fetch <name>` overwrites the converted file and `icons:build` then exits 1: run the converter again. Converted: `auto_awesome` (EZD-103a).
 - `Icon` is decorative, so the button around it carries the label and tooltip (11 Accessibility).
@@ -1120,6 +1121,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | C10 | No literal color (hex or color function) in a declaration of a CSS file under app/src/ other than app/src/styles/tokens.css | same | EZD-010a |
 | — | Named colors in CSS and colors in TSX style props | review | EZD-010a |
 | — | Icon sprite and names file match icons.json; icons:build is byte-stable and refuses missing, repeated or unsorted names | app/src/components/icon/icons.test.ts (T8, T9) | EZD-010b |
+| — | Icons draw from the in-page sprite; its data reaches only IconSprite and the root layout | app/src/components/icon/IconSprite.test.tsx (U1–U5) | EZD-347 |
 | — | No icon font, no Google Fonts reference; woff2 files only in app/src/styles/fonts/ | app/src/styles/no-icon-font.test.ts (T7) | EZD-010c |
 | — | Browser table query lint; money fields only with their permission | eslint-rules/no-browser-table-query.mjs; app/src/server/db/money-routes.test.ts; app/e2e/money-pages.spec.ts | EZD-133 |
 | — | RLS policy and tenant/project index on every table; explicit per-table grants | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`) | EZD-006 |

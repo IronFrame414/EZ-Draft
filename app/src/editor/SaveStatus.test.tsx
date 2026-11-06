@@ -65,3 +65,12 @@ describe('EZD-120c save status markup', () => {
     }
   });
 });
+
+describe('EZD-347 save-failed banner icon', () => {
+  it('EZD-347 U6: the save-failed banner keeps its 20 px error icon', () => {
+    const html = render(<SaveFailedBanner sync={syncWith({ status: 'error' })} />);
+    const icon =
+      '<svg width="20" height="20" aria-hidden="true" focusable="false" fill="currentColor"><use href="#ez-icon-error"></use></svg>';
+    expect(html.split(icon).length - 1).toBe(1);
+  });
+});
