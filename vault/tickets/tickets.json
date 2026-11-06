@@ -18689,9 +18689,7 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Browser tests (EZD-016a)",
-    "Root config files",
-    "Machine checks"
+    "Browser tests (EZD-016a)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
