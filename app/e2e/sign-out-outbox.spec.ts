@@ -2,7 +2,7 @@
 // makes its own company (never tenant 1) with fixture S, members A and B (view_projects, edit_model) and its own
 // context. Expected values: plan section 4 rows (Q-0503, Q-0507, Q-0581) and the section 6 dialog texts.
 // The edit is the dev hook renaming the floor "Floor A"; "blocked" aborts the save route.
-import type { Page } from '@playwright/test';
+import type { Frame, Page } from '@playwright/test';
 import {
   adminDb,
   cleanup,
@@ -117,6 +117,17 @@ function watchSignInCookies(page: Page): () => string[] {
 const isSave = (r: { url(): string; method(): string }) =>
   r.method() === 'POST' && /\/api\/projects\/[^/]+\/objects$/.test(new URL(r.url()).pathname);
 
+// Chrome's error page for a navigation that fails offline (EZD-348).
+const CHROME_ERROR_URL = 'chrome-error://chromewebdata/';
+
+// Resolves with the main frame once it has loaded Chrome's error page. Set up before the offline sign-out click,
+// so the test can wait for the failed /sign-in navigation to finish before it leaves the page (EZD-348).
+function offlineErrorPage(page: Page): Promise<Frame> {
+  return page.waitForEvent('framenavigated', {
+    predicate: (frame) => frame === page.mainFrame() && frame.url() === CHROME_ERROR_URL,
+  });
+}
+
 test.describe('EZD-120d sign-out with queued edits', () => {
   test.afterAll(async () => {
     try {
@@ -194,9 +205,11 @@ test.describe('EZD-120d sign-out with queued edits', () => {
     await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
     const signInCookies = watchSignInCookies(page);
     await network.set(page, 'off');
+    const errorPage = offlineErrorPage(page);
     await signOut(page);
     await page.locator('[data-confirm]').getByRole('button', { name: 'Sign out anyway' }).click();
     await expect.poll(() => signInCookies().some((c) => c.includes('ezd_signed_out=1'))).toBe(true);
+    await errorPage;
     await page.goto('about:blank');
     await network.set(page, 'on');
     await page.goto('/settings');
@@ -219,9 +232,11 @@ test.describe('EZD-120d sign-out with queued edits', () => {
     await page.goto('/settings');
     const signInCookies = watchSignInCookies(page);
     await network.set(page, 'off');
+    const errorPage = offlineErrorPage(page);
     await signOut(page);
     await page.locator('[data-confirm]').getByRole('button', { name: 'Sign out anyway' }).click();
     await expect.poll(() => signInCookies().some((c) => c.includes('ezd_signed_out=1'))).toBe(true);
+    await errorPage;
     await page.goto('about:blank');
     await network.set(page, 'on');
     await page.goto('/settings');
