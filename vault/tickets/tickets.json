@@ -19090,6 +19090,33 @@
     "AC-EZD-354-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-355",
+   "phase": 1,
+   "title": "Build system: gate and unit Docker calls go through a policy relay that acts only on objects it created",
+   "depends_raw": "EZD-354",
+   "spec_ref": "Q-0614; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-354"
+   ],
+   "build_position": 611,
+   "acs": [
+    "AC-EZD-355-1",
+    "AC-EZD-355-2",
+    "AC-EZD-355-3",
+    "AC-EZD-355-4"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
