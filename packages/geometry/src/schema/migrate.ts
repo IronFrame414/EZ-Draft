@@ -3,10 +3,12 @@
 // valid keeps the version; any other raises CURRENT_SCHEMA_VERSION, adds MIGRATIONS[old] and samples/v<new>.json.
 // EZD-203 Build step 5 (vault/plans/EZD-203.md section 1, Decided "Migration of a v1 wall"; Q-0558): v1 to v2
 // gives every wall `attributes.layers`.
+// EZD-205a Build step 2 (vault/plans/EZD-205a.md section 1, Decided "v2 → v3 step"; Q-0558; Q-0570): v2 to v3
+// gives every room `status: 'existing'` and `closureOverride: null`.
 import { coordsEqual } from '../tolerance';
 import type { StoredObject } from './index';
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 // Takes an object at `schema_version` n and returns a new object at n + 1; never mutates its input.
 export type MigrateStep = (obj: Readonly<StoredObject>) => StoredObject;
@@ -42,7 +44,24 @@ const migrateV1ToV2: MigrateStep = (obj) => {
   return { id: obj.id, type: obj.type, schema_version: 2, data };
 };
 
-export const MIGRATIONS: Readonly<Record<number, MigrateStep>> = { 1: migrateV1ToV2 };
+// Copies `data` only (one level); every other subtree is shared by reference.
+const migrateV2ToV3: MigrateStep = (obj) => {
+  const data = obj.data;
+  if (obj.type === 'room' && isRecord(data)) {
+    return {
+      id: obj.id,
+      type: obj.type,
+      schema_version: 3,
+      data: { ...data, status: 'existing', closureOverride: null },
+    };
+  }
+  return { id: obj.id, type: obj.type, schema_version: 3, data };
+};
+
+export const MIGRATIONS: Readonly<Record<number, MigrateStep>> = {
+  1: migrateV1ToV2,
+  2: migrateV2ToV3,
+};
 
 // null when the version is not an integer in 1..CURRENT_SCHEMA_VERSION or a step is missing; an object already
 // at the current version is returned as is.

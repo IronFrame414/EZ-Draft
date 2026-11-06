@@ -249,10 +249,10 @@ EZD-238 (vault/plans/EZD-238.md); 02 PDF out; 09h; Q-0507; Q-0508; Q-0574; Q-057
 
 - **Files.** `packages/geometry/src/drawing/`: `build.ts` (`buildDrawingList`), `hatch.ts` (`hatchSegments`), `text.ts` (`measureTextPt`, `DRAWING_FONTS`), `types.ts` (item types, `drawingViewSchema`, `dimensionInputSchema`, `DEFAULT_DOOR_SWING`), `font-metrics.generated.ts` (`DM_MONO_400_METRICS`); all exported from `@ezdraft/geometry`.
 - **Units.** Model inches, y up; angles in degrees, counter-clockwise from +x; text size and width in points. One floor per list (`view.level`); objects and dimensions on other floors make no items.
-- **Layers.** Walls and openings on their `status` (`existing`, `demo`, `new`); rooms on `rooms`; dimensions on `dimensions`.
+- **Layers.** Walls and openings on their `status` (`existing`, `demo`, `new`); rooms on `rooms`, room labels (`NAME · N SF`, Instrument Sans 600) included; dimensions on `dimensions`.
 - **Roles.** `cut` (wall faces and jambs, door leaf), `beyond` (window lines, room hatch), `hidden` (door swing arc), `dimension` (dimension lines). The list carries no colours or line widths.
 - **Default door swing** (Q-0574): every door is hinged at the start end of its opening and opens to the left face (`DEFAULT_DOOR_SWING`).
-- **Font table.** Text is measured from the committed DM Mono 400 advance table; no font file is read at run time. Regenerate with `pnpm --filter @ezdraft/geometry fonts:metrics` (reads `app/src/styles/fonts/dm-mono-latin-400-normal.woff2` with `fontkit`).
+- **Font table.** Text is measured from the committed DM Mono 400 and Instrument Sans 600 advance tables (`DM_MONO_400_METRICS`, `INSTRUMENT_SANS_600_METRICS`, one generated file); no font file is read at run time. Regenerate with `pnpm --filter @ezdraft/geometry fonts:metrics` (reads `app/src/styles/fonts/dm-mono-latin-400-normal.woff2` and `app/src/styles/fonts/instrument-sans-latin-600-normal.woff2` with `fontkit`).
 
 ## Dependencies
 
@@ -714,11 +714,20 @@ EZD-120a (vault/plans/EZD-120a.md Build steps 1-10); 03b rules 1, 5, 6, 7, 9; 03
 
 EZD-202 (vault/plans/EZD-202.md Build steps 1-16); 03f Objects inside model_json; 03g; 03b rule 5; Q-0508; Q-0530; Q-0540; Q-0575.
 
-- **Files** (`packages/geometry/src/`, exported from the package root): `schema/common.ts` (`pointSchema` in inches, `type Point`, `OBJECT_STATUSES` `existing`/`demo`/`new`, `objectStatusSchema`, `levelSchema` = a floor's uuid), one file per object type with its `<type>DataSchema` and `type <Type>Data` (`floor.ts` flat `{ name, order }`, `wall.ts`, `opening.ts`, `room.ts`; every object strict, so an unknown key is refused), `schema/migrate.ts` (`CURRENT_SCHEMA_VERSION`, `MIGRATIONS`, `migrateStoredObject`, `migrationChainProblems`), `schema/index.ts` (`OBJECT_TYPES`, `StoredObject`, `ModelObject`, `ObjectIssue`, `parseStoredObject`, `parseModelDocument`), `schema/samples/v<n>.json` (one stored document per version, never edited after merge) and `tolerance.ts` (`COMPARISON_TOLERANCE_IN` 1/64", `coordsEqual`, `pointsEqual`; the schema never rounds). The app takes the package as `workspace:*` and builds it through `transpilePackages`.
+- **Files** (`packages/geometry/src/`, exported from the package root): `schema/common.ts` (`pointSchema` in inches, `type Point`, `OBJECT_STATUSES` `existing`/`demo`/`new`, `objectStatusSchema`, `levelSchema` = a floor's uuid), one file per object type with its `<type>DataSchema` and `type <Type>Data` (`floor.ts` flat `{ name, order }`, `wall.ts`, `opening.ts`, `room.ts` (holds `status` and `closureOverride`; version 3, EZD-205a); every object strict, so an unknown key is refused), `schema/migrate.ts` (`CURRENT_SCHEMA_VERSION`, `MIGRATIONS`, `migrateStoredObject`, `migrationChainProblems`), `schema/index.ts` (`OBJECT_TYPES`, `StoredObject`, `ModelObject`, `ObjectIssue`, `parseStoredObject`, `parseModelDocument`), `schema/samples/v<n>.json` (one stored document per version, never edited after merge) and `tolerance.ts` (`COMPARISON_TOLERANCE_IN` 1/64", `coordsEqual`, `pointsEqual`; the schema never rounds). The app takes the package as `workspace:*` and builds it through `transpilePackages`.
 - **Version rule**: a change that keeps every stored object valid (a new optional field, type or enum value) keeps the version; any other raises `CURRENT_SCHEMA_VERSION`, adds `MIGRATIONS[old]` (one step to old + 1, never mutating) and `samples/v<new>.json`. `migrate.test.ts` fails on a missing step or sample.
 - **Wall line**: `start`→`end` is the line drawn, the inside finished face; `thicknessSide` puts the thickness `left` or `right` seen walking start→end, or `center` (±thickness/2). Closing a chain changes only `thicknessSide`; a thickness change never moves `start` or `end`.
 - **Read rule**: every reader of a `model_object` row or a `model_version.model_json` parses through `parseStoredObject` or `parseModelDocument` (issues `invalid_document`, `invalid_data`, `unknown_type`, `unknown_schema_version`, `duplicate_id`, `level_not_found`, each with the object's id, in object order).
 - **Save rule**: `saveObjects` parses every upserted change before `save_objects`; any issue refuses the whole save, 400 `{ error: { code: 'invalid_object', message_key: 'error.invalid_input' }, invalid: [{ id, issue }] }` with no write and no `model.saved`; a parsed object is stored as parsed at `CURRENT_SCHEMA_VERSION`. The deferred constraint trigger `model_object_level_check` (`private.model_object_level_check()`, definer, no grant) refuses at commit, `23503` `level_not_found` with the object's id in `detail`, a live non-floor object whose `data.level` is not a live floor of its project, and a floor deleted or retyped while a live object names it; a floor added, restored or deleted with its objects in one save passes. `saveObjects` maps it to the same 400.
+
+### Rooms (EZD-205a)
+
+EZD-205a (vault/plans/EZD-205a.md); 09e; 09j; Q-0559; Q-0568; Q-0570.
+
+- **Files** (`packages/geometry/src/rooms/`, exported from the package root): `area.ts` (`ringSignedAreaSqIn`, `outlineAreaSqIn`, `roomAreaSqFt`, `pointInRing`, `interiorPoint`, `sameBoundary`, `roomLabelText`), `outlines.ts` (`findRoomOutlines`), `sync.ts` (`reconcileRooms`).
+- **Outlines** run on the walls' inside finished faces.
+- **Area** is derived from the outline in whole square feet, never stored.
+- **Reconcile**: every wall-changing tool calls `reconcileRooms` so the stored rooms stay matched to the outlines.
 
 ## Server-only data access and can()
 

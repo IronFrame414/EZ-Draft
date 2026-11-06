@@ -11,6 +11,7 @@ import { CURRENT_SCHEMA_VERSION, migrateStoredObject } from './migrate';
 import { parseModelDocument, parseStoredObject, type StoredObject } from './index';
 import v1 from './samples/v1.json';
 import v2 from './samples/v2.json';
+import v3 from './samples/v3.json';
 
 type Rec = Record<string, unknown>;
 type Layer = { material: string; thickness: number };
@@ -80,7 +81,7 @@ describe('EZD-203 walls core: wall layers schema', () => {
     const mOpening = migrateStoredObject(opening);
     const mNull = migrateStoredObject(nullData);
 
-    for (const m of [m45, m6, mNear, mOpening, mNull]) expect(m?.schema_version).toBe(2);
+    for (const m of [m45, m6, mNear, mOpening, mNull]) expect(m?.schema_version).toBe(3);
     expect(layersOf(m45)).toEqual(DEFAULT_LAYERS);
     expect(layersOf(m6)).toEqual([{ material: 'stud', thickness: 6 }]);
     expect(layersOf(mNear)).toEqual(DEFAULT_LAYERS);
@@ -90,10 +91,10 @@ describe('EZD-203 walls core: wall layers schema', () => {
       ok: false,
       issue: { id: nullData.id, issue: 'invalid_data' },
     });
-    expect(CURRENT_SCHEMA_VERSION).toBe(2);
+    expect(CURRENT_SCHEMA_VERSION).toBe(3);
   });
 
-  it('EZD-203 T23 samples: v2.json parses with 16 objects and layered walls; v1.json migrates to it', () => {
+  it('EZD-203 T23 samples: v2.json parses with 16 objects and layered walls; v1.json migrates to v3.json', () => {
     const r = parseModelDocument(structuredClone(v2));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -115,7 +116,7 @@ describe('EZD-203 walls core: wall layers schema', () => {
     const fromV1 = structuredClone((v1 as unknown as { objects: StoredObject[] }).objects).map(
       (o) => migrateStoredObject(o),
     );
-    expect(fromV1).toEqual(v2Objects());
+    expect(fromV1).toEqual(structuredClone((v3 as unknown as { objects: StoredObject[] }).objects));
   });
 
   it('EZD-203 T25 deep data: 100,000-deep save data is refused as invalid_data without a throw; migration shares it', () => {

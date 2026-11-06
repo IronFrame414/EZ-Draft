@@ -12,6 +12,7 @@ import {
   type ModelObject,
   type Point,
 } from '../index';
+import { roomObj, uid } from '../rooms/test-utils/fixtures';
 
 const F1 = '11111111-1111-4111-8111-111111111111';
 const F2 = '22222222-2222-4222-8222-222222222222';
@@ -102,8 +103,10 @@ function fx(w1Side: Side = 'right', extra: ModelObject[] = []): ModelDocument {
         type: 'room',
         data: {
           geometry: { boundary: [P(0, 0), P(144, 0), P(144, 120), P(0, 120)] },
+          status: 'existing',
           level: F1,
           attributes: { name: 'R1' },
+          closureOverride: null,
         },
       },
       wall(W5, F2, P(0, 0), P(120, 0), 'new'),
@@ -121,6 +124,7 @@ const V1: DrawingView = {
   level: F1,
   dimensionTextPt: 6.75,
   roomHatch: { angleDeg: 45, spacingIn: 6 },
+  roomLabelPt: 11.25,
 };
 
 const build = (doc: ModelDocument = fx(), view: DrawingView = V1): DrawingList =>
@@ -273,7 +277,7 @@ describe('EZD-238 drawing list', () => {
     expect(l.items.some((i) => i.objectId === W5 || i.objectId === 'M3')).toBe(false);
 
     const upper = build(fx(), { ...V1, level: F1.toUpperCase() });
-    expect(upper.items).toHaveLength(33);
+    expect(upper.items).toHaveLength(34);
     expect(upper.items.map((i) => i.kind)).toEqual(l.items.map((i) => i.kind));
 
     const f2 = build(fx(), { ...V1, level: F2 });
@@ -338,9 +342,10 @@ describe('EZD-238 drawing list', () => {
       'text',
       'line',
       'text',
+      'text',
     ];
     expect(l.items.map((i) => i.kind)).toEqual(want);
-    expect(l.items).toHaveLength(33);
+    expect(l.items).toHaveLength(34);
   });
 
   it('EZD-238 T12 invalid view', () => {
@@ -376,5 +381,66 @@ describe('EZD-238 drawing list', () => {
     ]);
     expectLine(lines(l, D1)[0], 30, 2.25, 30, 38.25);
     expectPt(arcs(l, D1)[0].center, 30, 2.25);
+  });
+});
+
+// EZD-205a · T19, T20 (vault/plans/EZD-205a.md section 1 Decided "Label", "roomLabelText", "roomLabelPt"; section
+// 4). Expected values: Q-0576 (a); Q-0568; Q-0570 (capitals); 09j rows 3, 5, 6; board S03 (0.1 em spacing); the
+// Instrument Sans 600 advances in plan section 2. The middle dot is written as its escape (L-042).
+type LabelItem = Extract<DrawingItem, { kind: 'text'; font: 'instrument-sans-600' }>;
+const labels = (l: DrawingList, id: string) =>
+  l.items.filter(
+    (i): i is LabelItem =>
+      i.kind === 'text' && i.font === 'instrument-sans-600' && i.objectId === id,
+  );
+const RECT = (w: number, d: number): Point[] => [P(0, 0), P(w, 0), P(w, d), P(0, d)];
+
+describe('EZD-205a room labels', () => {
+  it('EZD-205a T19 room label: each room gets NAME \u00b7 N SF in Instrument Sans 600 after the other items', () => {
+    const l = build();
+    const last = l.items[l.items.length - 1] as LabelItem;
+    expect(last.kind).toBe('text');
+    expect(last.layer).toBe('rooms');
+    expect(last.objectId).toBe(R1);
+    expect(last.text).toBe('R1 \u00b7 120 SF');
+    expect(last.font).toBe('instrument-sans-600');
+    expect(last.sizePt).toBeCloseTo(11.25, 9);
+    expect(last.letterSpacingPt).toBeCloseTo(1.125, 9);
+    expect(last.widthPt).toBeCloseTo(63.2925, 9);
+    expectPt(last.at, 72, 60);
+    expect(last.rotationDeg).toBeCloseTo(0, 9);
+    expect(last.align).toBe('center');
+  });
+
+  it('EZD-205a T20 label forms: capitals, comma groups, whole feet; label at the inside point; label size required', () => {
+    const L_SHAPE = [P(0, 0), P(144, 0), P(144, 84), P(96, 84), P(96, 120), P(0, 120)];
+    const rooms: [string, Point[], string][] = [
+      [uid(1), RECT(141.5, 168), 'Kitchen'],
+      [uid(2), RECT(48, 48), 'PANTRY'],
+      [uid(3), RECT(2400, 2400), 'Big'],
+      [uid(4), RECT(6, 6), 'Tiny'],
+      [uid(5), L_SHAPE, 'L'],
+    ];
+    const l = build(
+      fx(
+        'right',
+        rooms.map(([id, b, name]) => roomObj(id, b, name)),
+      ),
+    );
+    const labelOf = (id: string): LabelItem => {
+      const got = labels(l, id);
+      expect(got, id).toHaveLength(1);
+      return got[0]!;
+    };
+    expect(labelOf(uid(1)).text).toBe('KITCHEN \u00b7 165 SF');
+    expect(labelOf(uid(2)).text).toBe('PANTRY \u00b7 16 SF');
+    expect(labelOf(uid(3)).text).toBe('BIG \u00b7 40,000 SF');
+    expect(labelOf(uid(4)).text).toBe('TINY \u00b7 0 SF');
+    expectPt(labelOf(uid(5)).at, 200 / 3, 166 / 3);
+
+    expect(() => build(fx(), { ...V1, roomLabelPt: 0 })).toThrow(z.ZodError);
+    const noLabel: Partial<DrawingView> = { ...V1 };
+    delete noLabel.roomLabelPt;
+    expect(() => build(fx(), noLabel as DrawingView)).toThrow(z.ZodError);
   });
 });

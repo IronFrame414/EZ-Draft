@@ -4016,6 +4016,7 @@
     "Model schema (EZD-202)",
     "Drawing list (EZD-238)"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-203",

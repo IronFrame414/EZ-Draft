@@ -6,7 +6,12 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { DM_MONO_400_METRICS, measureTextPt } from '../index';
+import {
+  DM_MONO_400_METRICS,
+  DRAWING_FONTS,
+  INSTRUMENT_SANS_600_METRICS,
+  measureTextPt,
+} from '../index';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const script = path.resolve(here, '..', '..', 'scripts', 'font-metrics.mjs');
@@ -41,5 +46,20 @@ describe('EZD-238 drawing text', () => {
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+// EZD-205a · T21 (vault/plans/EZD-205a.md section 1 Decided "Font table"; section 4). Expected values: the
+// Instrument Sans 600 font file numbers in plan section 2 (fontkit 2.0.4, planner 2026-11-06).
+describe('EZD-205a room label font table', () => {
+  it('EZD-205a T21 font table: Instrument Sans 600 advances sit beside DM Mono', () => {
+    const it600 = INSTRUMENT_SANS_600_METRICS;
+    expect(it600.unitsPerEm).toBe(1000);
+    expect(it600.notdefAdvance).toBe(665);
+    expect(it600.advances[82]).toBe(664);
+    expect(it600.advances[0xb7]).toBe(144);
+    expect(Object.keys(it600.advances)).toHaveLength(209);
+    expect(measureTextPt(it600, 'R1 \u00b7 120 SF', 11.25)).toBeCloseTo(52.0425, 9);
+    expect(Object.keys(DRAWING_FONTS)).toEqual(['dm-mono-400', 'instrument-sans-600']);
   });
 });

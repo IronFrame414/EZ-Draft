@@ -1,9 +1,12 @@
 // EZD-238 Build step 8 (vault/plans/EZD-238.md section 1 Decided table; 09h; Q-0507; Q-0508; Q-0574; Q-0575):
 // one floor of the model document as a list of drawing items in model inches, y up, for the PDF writer and DXF out.
+// EZD-205a Build step 13 (vault/plans/EZD-205a.md section 1, Decided "Label"; Q-0568; Q-0570; Q-0576 (a)): one
+// NAME \u00b7 N SF label per room, after the dimension items.
 import type { ModelDocument, ModelObject, Point } from '../schema';
 import { coordsEqual, pointsEqual } from '../tolerance';
+import { interiorPoint, roomLabelText } from '../rooms/area';
 import { hatchSegments } from './hatch';
-import { DRAWING_FONTS, measureTextPt } from './text';
+import { DRAWING_FONTS, measureTextPt, ROOM_LABEL_LETTER_SPACING_EM } from './text';
 import {
   dimensionInputSchema,
   drawingViewSchema,
@@ -237,6 +240,28 @@ export function buildDrawingList(
     });
   }
 
+  const labelItems: DrawingItem[] = [];
+  const labelFont = DRAWING_FONTS['instrument-sans-600'];
+  for (const r of rooms) {
+    const boundary = r.data.geometry.boundary;
+    const text = roomLabelText(r.data.attributes.name, boundary);
+    const sizePt = v.roomLabelPt;
+    const letterSpacingPt = sizePt * ROOM_LABEL_LETTER_SPACING_EM;
+    labelItems.push({
+      kind: 'text',
+      layer: 'rooms',
+      objectId: r.id,
+      text,
+      font: 'instrument-sans-600',
+      sizePt,
+      letterSpacingPt,
+      widthPt: measureTextPt(labelFont, text, sizePt) + letterSpacingPt * ([...text].length - 1),
+      at: interiorPoint(boundary),
+      rotationDeg: 0,
+      align: 'center',
+    });
+  }
+
   const omitted: OmittedObject[] = onFloor.flatMap((o) => {
     const reason = reasons.get(o.id);
     return reason === undefined ? [] : [{ id: o.id, reason }];
@@ -244,7 +269,15 @@ export function buildDrawingList(
 
   return {
     level: v.level,
-    items: [...roomFills, ...roomHatches, ...wallFills, ...wallLines, ...symbols, ...dimItems],
+    items: [
+      ...roomFills,
+      ...roomHatches,
+      ...wallFills,
+      ...wallLines,
+      ...symbols,
+      ...dimItems,
+      ...labelItems,
+    ],
     omitted: [...omitted, ...dimOmitted],
   };
 }

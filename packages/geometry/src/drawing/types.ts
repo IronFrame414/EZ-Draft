@@ -1,5 +1,6 @@
 // EZD-238 Build step 6 (vault/plans/EZD-238.md section 3; 09h; Q-0507; Q-0574): the drawing list types and the
 // view and dimension inputs. Model inches, y up; angles in degrees, counter-clockwise from +x.
+// EZD-205a Build step 12 (vault/plans/EZD-205a.md section 3): the room label text member and `roomLabelPt`.
 import { z } from 'zod';
 import { pointSchema, type Point } from '../schema';
 
@@ -29,6 +30,17 @@ export type DrawingItem =
       at: Point;
       rotationDeg: number;
       align: 'center';
+    })
+  | (ItemBase & {
+      kind: 'text';
+      text: string;
+      font: 'instrument-sans-600';
+      sizePt: number;
+      letterSpacingPt: number;
+      widthPt: number;
+      at: Point;
+      rotationDeg: number;
+      align: 'center';
     });
 
 export type OmittedObject = {
@@ -41,6 +53,7 @@ export const drawingViewSchema = z.strictObject({
   level: z.uuid(),
   dimensionTextPt: z.number().positive(),
   roomHatch: z.strictObject({ angleDeg: z.number(), spacingIn: z.number().positive() }).nullable(),
+  roomLabelPt: z.number().positive(),
 });
 export type DrawingView = z.infer<typeof drawingViewSchema>;
 
