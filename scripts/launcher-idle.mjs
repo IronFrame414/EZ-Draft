@@ -77,11 +77,11 @@ export function parseVerdict(text) {
 // the list, so it is on the list.
 export const REPAIR_UNIT_RE = /^repair-(check|waiting|ci|probe)$/;
 // The files the guards and the gate load are on it too (guard-reads loads vault/tools/outline.mjs; the gate loads gate-summary,
-// gate-lock, gate-env and db/lane): a throw there would switch a guard or the gate off. overseer-limits.test.mjs follows those imports.
+// gate-lock, gate-env, excluded-form and db/lane): a throw there would switch a guard or the gate off. overseer-limits.test.mjs follows those imports.
 // Josh-only files (budget, sign-off, hold) stay with guard-paths' joshOnly rule, so the launcher never undoes Josh's own edit.
 export const REPAIR_NEVER_FILES = ['.claude/settings.json', '.claude/settings.local.json', '.claude/agents/code-reviewer.md',
   '.claude/agents/security-reviewer.md', 'scripts/unit-sandbox.json', 'scripts/gate.mjs', 'scripts/gate-summary.mjs',
-  'scripts/gate-lock.mjs', 'scripts/db/lane.mjs', 'vault/tools/outline.mjs', 'scripts/launcher-idle.mjs', 'vault/tools/security-paths.mjs', 'scripts/gate-env.mjs', 'vault/tools/trusted-git.mjs'];
+  'scripts/gate-lock.mjs', 'scripts/db/lane.mjs', 'vault/tools/outline.mjs', 'scripts/launcher-idle.mjs', 'vault/tools/security-paths.mjs', 'scripts/gate-env.mjs', 'vault/tools/trusted-git.mjs', 'scripts/excluded-form.mjs'];
 // Files that may hold Josh's own edits: the launcher watches them around a repair and stops, never restores, when one changes.
 export const REPAIR_JOSH_FILES = ['.claude/settings.local.json', 'vault/budget.json', 'vault/spec/SIGNOFF.md', 'vault/handoff/BUDGET_HOLD.md'];
 const REPAIR_NEVER_DIRS = ['.claude/hooks/', '.claude/skills/repair/', '.github/'];

@@ -31,6 +31,7 @@ import { openRecords, dbPath, record, planRecord } from './records.mjs';
 import { planArchitecture } from '../vault/tools/outline.mjs';
 import { verifyDevelop, recordDevelop, verifyCommit, recordDecision } from './release/github-ops.mjs';
 import { trustedGit, revParseCommit } from '../vault/tools/trusted-git.mjs';
+import { excludedPrefix } from './excluded-form.mjs';
 
 const root = process.env.EZD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // D-021 record folder (D6): the real home; tests set EZD_GITHUB_OPS_HOME (also through a launcher they start), or with EZD_ROOT
@@ -489,7 +490,7 @@ function sandboxCheck() {
     unlinkSync(probe);
   } catch (e) {
     if (e.code !== 'EPERM' && e.code !== 'EACCES') throw e;
-    stop(`SANDBOX STOP: ${step} cannot write .claude/ here (the unit sandbox protects it); nothing changed. Run \`node scripts/unit-steps.mjs ${step} ${ticket}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect.`);
+    stop(`SANDBOX STOP: ${step} cannot write .claude/ here (the unit sandbox protects it); nothing changed. Run \`${excludedPrefix(path.join(root, 'scripts'), `unit-steps.mjs ${step}`)} ${ticket}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect.`);
   }
 }
 try {

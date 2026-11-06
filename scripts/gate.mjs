@@ -23,6 +23,7 @@ import { readLane } from './db/lane.mjs';
 import { gateEnv, gateSpawn } from './gate-env.mjs';
 import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import { isSecurityPath, DIFF_NAMES_ARGS, splitNames } from '../vault/tools/security-paths.mjs';
+import { excludedPrefix } from './excluded-form.mjs';
 
 const args = process.argv.slice(2);
 const phaseIdx = args.indexOf('--phase');
@@ -49,7 +50,7 @@ const say = (text) => { console.log(text); log(text); };
     unlinkSync(probe);
   } catch (e) {
     if (e.code === 'EPERM' || e.code === 'EACCES') {
-      say(`GATE SANDBOX STOP: the gate ran inside the unit sandbox, so its result would say nothing about the code. Run \`node scripts/gate.mjs ${args.join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout. A run longer than 10 minutes goes in the background with the Bash tool's run_in_background setting, not with & or a redirect.`);
+      say(`GATE SANDBOX STOP: the gate ran inside the unit sandbox, so its result would say nothing about the code. Run \`${excludedPrefix(path.dirname(fileURLToPath(import.meta.url)), 'gate.mjs')} ${args.join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout. A run longer than 10 minutes goes in the background with the Bash tool's run_in_background setting, not with & or a redirect.`);
       process.exit(3);
     }
   }

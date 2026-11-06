@@ -57,7 +57,7 @@ Write limits beyond the roster table: the orchestrator may also write `CLAUDE.md
 
 ## 4. Gate scope and test runs (Q-0006, Q-0019, Q-0114)
 
-- In a ticket worktree, `scripts/gate.mjs` runs the phase's tests plus the `@smoke` set; at the repo root or with `--full` it runs the full suite (the phase gate and CI). After each squash merge the orchestrator runs `node scripts/gate.mjs . --phase <N>` on `develop`. This is Josh's refinement of PROCESS.md section 8 step 7 for this project (Q-0006, Josh, Oct 11).
+- In a ticket worktree, `scripts/gate.mjs` runs the phase's tests plus the `@smoke` set; at the repo root or with `--full` it runs the full suite (the phase gate and CI). After each squash merge the orchestrator runs `node /Users/josh/Projects/ezdraft/scripts/gate.mjs . --phase <N>` on `develop`. This is Josh's refinement of PROCESS.md section 8 step 7 for this project (Q-0006, Josh, Oct 11).
 - Only one gate runs at a time on the machine (the gate script holds a lock).
 - Playwright workers = 4 on the Mac mini (Q-0114, Josh, Oct 17; replaces the Windows answer of 2 in Q-0019). Plans that cite Q-0019 for the worker count read it as 4.
 - The gate writes `gate.log` in the worktree and prints the summary; reviewers read the summary.
