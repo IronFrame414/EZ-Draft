@@ -4338,7 +4338,8 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-201",
-    "EZD-207"
+    "EZD-207",
+    "EZD-356"
    ],
    "build_position": 99,
    "acs": [
@@ -19157,6 +19158,34 @@
     "AC-EZD-355-2",
     "AC-EZD-355-3",
     "AC-EZD-355-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-356",
+   "title": "Fix: the iPad long-task count during pan stays at 0 in the gate run",
+   "phase": 4,
+   "depends_raw": "EZD-207c",
+   "spec_ref": "EZD-209 gate failure (3 runs); EZD-207c plan Residual cost; rule 17",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Tab"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "build_position": 99,
+   "acs": [
+    "AC-EZD-356-1",
+    "AC-EZD-356-2",
+    "AC-EZD-356-3"
    ],
    "acs_source": "done-when"
   }
