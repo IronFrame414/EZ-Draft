@@ -18490,6 +18490,125 @@
     "AC-EZD-341-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-342",
+   "phase": 3,
+   "title": "Fix: every cookie the app sets is host-only by name (`__Host-` prefix on https)",
+   "depends_raw": "EZD-007c, EZD-007d, EZD-120d",
+   "spec_ref": "Q-0600; Q-0599; spec 11 Security and audit; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Sign-out and app-wide drain (EZD-120d)",
+    "Password sign-in (EZD-033)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-007c",
+    "EZD-007d",
+    "EZD-120d"
+   ],
+   "build_position": 598,
+   "acs": [
+    "AC-EZD-342-1",
+    "AC-EZD-342-2",
+    "AC-EZD-342-3",
+    "AC-EZD-342-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-343",
+   "phase": 3,
+   "title": "Fix: the EZD-289 home-settings test E1 finds the Settings link with the owner's 200 seed projects",
+   "depends_raw": "EZD-289, EZD-120c, EZD-335",
+   "spec_ref": "EZD-289; Q-0601; rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points",
+    "spec/sections/10-permissions-and-settings.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-289",
+    "EZD-120c",
+    "EZD-335"
+   ],
+   "build_position": 599,
+   "acs": [
+    "AC-EZD-343-1",
+    "AC-EZD-343-2",
+    "AC-EZD-343-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-344",
+   "phase": 1,
+   "title": "Fix: the gate runs a worktree's code with an exact environment, so builder code cannot reach Josh's credentials",
+   "depends_raw": "EZD-316",
+   "spec_ref": "Q-0548; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-316"
+   ],
+   "build_position": 600,
+   "acs": [
+    "AC-EZD-344-1",
+    "AC-EZD-344-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-345",
+   "phase": 1,
+   "title": "Build system: commands outside the unit sandbox trust no git state the sandbox can write",
+   "depends_raw": "EZD-316",
+   "spec_ref": "Q-0548; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-316"
+   ],
+   "build_position": 601,
+   "acs": [
+    "AC-EZD-345-1",
+    "AC-EZD-345-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
