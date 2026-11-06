@@ -37,6 +37,7 @@ vault/DONE.md
 vault/cost/log.jsonl
 vault/handoff/CURRENT.md
 vault/handoff/log/
+vault/handoff/pr-body/
 vault/handoff/.questions-last-run.json
 vault/handoff/STOP
 vault/lessons/findings.jsonl
