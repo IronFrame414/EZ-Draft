@@ -18392,7 +18392,8 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Test scope (Q-0006)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
