@@ -9,3 +9,4 @@ Fix: vault/plans/EZD-354.md rows 1-6, built interactively by the orchestrator (s
 - scripts/gate.mjs
 - scripts/launcher-idle.mjs
 - vault/tools/trusted-git.mjs
+- docs/runbook.md
