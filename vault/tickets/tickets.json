@@ -18472,7 +18472,11 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Error reporting (EZD-024)",
+    "Dependencies",
+    "Performance check (EZD-017)",
+    "Entry contents and bundle report (EZD-020)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
