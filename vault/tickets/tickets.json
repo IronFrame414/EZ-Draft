@@ -18676,6 +18676,35 @@
    ],
    "acs_source": "done-when",
    "build_position": 603
+  },
+  {
+   "id": "EZD-348",
+   "title": "Fix: the EZD-120d B4 sign-out test passes in the CI gate run",
+   "phase": 3,
+   "depends_raw": "EZD-120d, EZD-342",
+   "spec_ref": "phase 3 PR CI gate failure (run 42183681444); rule 17",
+   "spec_files": [
+    "spec/sections/03a-working-copy-and-saves.md#Working copy and saves"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Root config files",
+    "Machine checks"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120d",
+    "EZD-342"
+   ],
+   "acs": [
+    "AC-EZD-348-1",
+    "AC-EZD-348-2"
+   ],
+   "build_position": 604,
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
