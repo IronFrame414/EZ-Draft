@@ -34,7 +34,20 @@ import { emit } from '../events';
 import { createSessionClient, type SessionCookieJar } from './supabase-server';
 import { getSession, requireApiSession } from './session';
 import { completeSignIn } from './complete-sign-in';
-import { confirmSignInLink, requestSignIn, setSignInLanguage, verifySignInCode } from './actions';
+import {
+  clearSignInEmail,
+  confirmSignInLink,
+  requestSignIn,
+  setSignInLanguage,
+  verifySignInCode,
+} from './actions';
+import {
+  appCookieName,
+  isSessionCookieName,
+  SIGN_IN_EMAIL_COOKIE,
+} from '../../lib/auth/cookie-names';
+import { readAppCookie } from './request-cookies';
+import { getSignInLanguage } from './sign-in-language';
 
 type Write = { name: string; value: string; options: Record<string, unknown>; deleted: boolean };
 type Store = { map: Map<string, string>; writes: Write[] };
@@ -206,7 +219,7 @@ async function membershipRow(id: string): Promise<{ status: string; invited_at: 
 
 const writesOf = (store: Store, name: string) => store.writes.filter((w) => w.name === name);
 const sbWrites = (store: Store) =>
-  store.writes.filter((w) => w.name.startsWith('sb-') && w.value !== '');
+  store.writes.filter((w) => isSessionCookieName(w.name) && w.value !== '');
 
 type StubResult = { data: unknown; error: unknown };
 
@@ -496,7 +509,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
       const store = newStore();
       const { result, before } = await request(store, m.email);
       expect(result).toEqual({ step: 'code' });
-      const emailWrites = writesOf(store, SIGN_IN_EMAIL);
+      const emailWrites = writesOf(store, appCookieName(SIGN_IN_EMAIL, secure));
       expect(emailWrites.length).toBeGreaterThanOrEqual(1);
       const set = emailWrites[emailWrites.length - 1];
       expect(set.value).toBe(m.email.toLowerCase());
@@ -518,9 +531,11 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
         expect(w.options.maxAge).toBe(34560000);
         expect(w.options.secure).toBe(secure);
       }
-      expect(store.writes.slice(mark).some((w) => w.name === SIGN_IN_EMAIL && w.deleted)).toBe(
-        true,
-      );
+      expect(
+        store.writes
+          .slice(mark)
+          .some((w) => w.name === appCookieName(SIGN_IN_EMAIL, secure) && w.deleted),
+      ).toBe(true);
     }
   }, 60000);
 
@@ -732,4 +747,132 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
       fetchSpy.mockRestore();
     }
   }, 60000);
+});
+
+// EZD-342 A1-A6 (vault/plans/EZD-342.md section 4; AC-EZD-342-1 to 3; Q-0600; Q-0047 (a); Q-0049): the sign-in
+// cookies on https are `__Host-` host-only cookies; the plain names are not read there.
+describe('EZD-342 sign-in cookies on https', () => {
+  let tenant: string;
+  const HOST_EMAIL = '__Host-ezd_sign_in_email';
+  const HOST_LANG = '__Host-ezd_sign_in_lang';
+  const FLAGS = { httpOnly: true, sameSite: 'lax', path: '/' };
+
+  beforeAll(async () => {
+    tenant = await createTenant();
+  });
+
+  beforeEach(() => {
+    state.proto = null;
+    activate(newStore());
+  });
+
+  afterAll(async () => {
+    await cleanupTestMembers();
+    await cleanup();
+    await closeHarness();
+  });
+
+  it('A1 the language writer on https', async () => {
+    state.proto = 'https';
+    const store = newStore();
+    await run(store, () => setSignInLanguage(form({ lang: 'es' })));
+    expect(store.writes).toHaveLength(1);
+    expect(store.writes[0].name).toBe(HOST_LANG);
+    expect(store.writes[0].value).toBe('es');
+    expect(store.writes[0].deleted).toBe(false);
+    expect(store.writes[0].options).toEqual({ ...FLAGS, secure: true, maxAge: 34560000 });
+    expect(writesOf(store, 'ezd_sign_in_lang')).toEqual([]);
+  });
+
+  it('A2 clearing the email cookie on https and on http', async () => {
+    state.proto = 'https';
+    const secureStore = newStore();
+    await run(secureStore, () => clearSignInEmail());
+    expect(secureStore.writes).toHaveLength(1);
+    expect(secureStore.writes[0].name).toBe(HOST_EMAIL);
+    expect(secureStore.writes[0].value).toBe('');
+    expect(secureStore.writes[0].options).toEqual({ ...FLAGS, secure: true, maxAge: 0 });
+
+    state.proto = null;
+    const plainStore = newStore();
+    await run(plainStore, () => clearSignInEmail());
+    expect(plainStore.writes).toHaveLength(1);
+    expect(plainStore.writes[0].name).toBe('ezd_sign_in_email');
+    expect(plainStore.writes[0].value).toBe('');
+    expect(plainStore.writes[0].options).toEqual({ ...FLAGS, secure: false, maxAge: 0 });
+  });
+
+  it('A3 the code sign-in writes only __Host- cookies on https', async () => {
+    const m = await createTestMember({ tenantId: tenant, status: 'active' });
+    state.proto = 'https';
+    const store = newStore();
+    const { result, before } = await request(store, m.email);
+    expect(result).toEqual({ step: 'code' });
+
+    const emailWrite = writesOf(store, HOST_EMAIL).filter((w) => !w.deleted);
+    expect(emailWrite).toHaveLength(1);
+    expect(emailWrite[0].value).toBe(m.email.toLowerCase());
+    expect(emailWrite[0].options.maxAge).toBe(900);
+    expect(emailWrite[0].options.secure).toBe(true);
+    expect(emailWrite[0].options.path).toBe('/');
+    expect('domain' in emailWrite[0].options).toBe(false);
+
+    const mail = await waitForAuthEmail(m.email, { after: before });
+    const mark = store.writes.length;
+    const out = await run(store, () => verifySignInCode(form({ code: mail.code })));
+    expect(out).toEqual({ redirect: '/' });
+
+    const after = store.writes.slice(mark);
+    const sb = after.filter((w) => w.name.startsWith('__Host-sb-') && w.value !== '');
+    expect(sb.length).toBeGreaterThanOrEqual(1);
+    for (const w of sb) {
+      expect(w.options.secure).toBe(true);
+      expect('domain' in w.options).toBe(false);
+    }
+    const cleared = after.filter((w) => w.name === HOST_EMAIL && w.options.maxAge === 0);
+    expect(cleared.length).toBeGreaterThanOrEqual(1);
+    for (const w of cleared) expect(w.options.secure).toBe(true);
+    for (const w of store.writes) {
+      expect(w.name.startsWith('sb-'), w.name).toBe(false);
+      expect(w.name, w.name).not.toBe('ezd_sign_in_email');
+    }
+  }, 60000);
+
+  it('A4 the language reader honours only the scheme-matching name', async () => {
+    const read = async (entries: [string, string][], proto: string | null) => {
+      state.proto = proto;
+      return run(newStore(entries), () => getSignInLanguage());
+    };
+    expect(await read([['ezd_sign_in_lang', 'es']], 'https')).toEqual({ resolved: 'en' });
+    expect(await read([[HOST_LANG, 'es']], 'https')).toEqual({ resolved: 'es' });
+    expect(await read([['ezd_sign_in_lang', 'es']], null)).toEqual({ resolved: 'es' });
+    expect(await read([[HOST_LANG, 'es']], null)).toEqual({ resolved: 'en' });
+  });
+
+  it('A5 a plain email cookie on https is not used', async () => {
+    const m = await createTestMember({ tenantId: tenant, status: 'active' });
+    state.proto = 'https';
+    const store = newStore();
+    const { result, before } = await request(store, m.email);
+    expect(result).toEqual({ step: 'code' });
+    const mail = await waitForAuthEmail(m.email, { after: before });
+
+    const store2 = newStore([['ezd_sign_in_email', m.email.toLowerCase()]]);
+    expect(await run(store2, () => verifySignInCode(form({ code: mail.code })))).toEqual({
+      resolved: { error: 'code_invalid' },
+    });
+    expect(await run(store, () => verifySignInCode(form({ code: mail.code })))).toEqual({
+      redirect: '/',
+    });
+  }, 60000);
+
+  it('A6 the page email reader honours only the scheme-matching name', async () => {
+    const read = async (entries: [string, string][], proto: string | null) => {
+      state.proto = proto;
+      return run(newStore(entries), () => readAppCookie(SIGN_IN_EMAIL_COOKIE));
+    };
+    expect(await read([['ezd_sign_in_email', 'a@b.co']], 'https')).toEqual({ resolved: undefined });
+    expect(await read([[HOST_EMAIL, 'a@b.co']], 'https')).toEqual({ resolved: 'a@b.co' });
+    expect(await read([['ezd_sign_in_email', 'a@b.co']], null)).toEqual({ resolved: 'a@b.co' });
+  });
 });

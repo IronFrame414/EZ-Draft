@@ -78,3 +78,17 @@ describe('EZD-120d device sign-out', () => {
     expect(f.replace).toHaveBeenCalledWith('/sign-in');
   });
 });
+
+// EZD-342 D1 (vault/plans/EZD-342.md section 4; AC-EZD-342-1; Q-0599; EZD-120d U8): the marker writer on https.
+describe('EZD-342 marker name', () => {
+  it('D1 the https marker write is exactly the __Host- cookie, with no Domain', async () => {
+    const f = fakeEnv('https:');
+    await signOutOnDevice(async () => {
+      throw new Error('offline');
+    }, f.env);
+    expect(f.writes).toEqual([
+      '__Host-ezd_signed_out=1; Path=/; Secure; Max-Age=34560000; SameSite=Lax',
+    ]);
+    expect(f.writes[0]).not.toContain('Domain');
+  });
+});

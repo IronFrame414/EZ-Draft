@@ -22,6 +22,7 @@ import {
 import { en } from '../messages/catalogs/en';
 import { es } from '../messages/catalogs/es';
 import { serverGateSecret } from '../db/env';
+import { appCookieName, isSessionCookieName } from '../../lib/auth/cookie-names';
 import { createSessionClient, type SessionCookieJar } from './supabase-server';
 import { getSession, requireApiSession, requireSession } from './session';
 
@@ -355,7 +356,7 @@ describe('EZD-007c session client and API gate secret', () => {
       [recA, false],
       [recB, true],
     ] as const) {
-      expect(rec.filter((s) => s.name.startsWith('sb-')).length).toBeGreaterThanOrEqual(1);
+      expect(rec.filter((s) => isSessionCookieName(s.name)).length).toBeGreaterThanOrEqual(1);
       for (const s of rec.filter((r) => r.value !== '')) {
         expect(s.options?.httpOnly).toBe(true);
         expect(s.options?.sameSite).toBe('lax');
@@ -366,7 +367,7 @@ describe('EZD-007c session client and API gate secret', () => {
     }
 
     // (c) local sign-out on the (a) jar clears every sb- cookie it set
-    const namesA = [...new Set(recA.filter((s) => s.name.startsWith('sb-')).map((s) => s.name))];
+    const namesA = [...new Set(recA.filter((s) => isSessionCookieName(s.name)).map((s) => s.name))];
     const mark = recA.length;
     await clientA.auth.signOut({ scope: 'local' });
     await macrotask();
@@ -377,5 +378,94 @@ describe('EZD-007c session client and API gate secret', () => {
         `${name} cleared`,
       ).toBe(true);
     }
+  });
+});
+
+// EZD-342 S1-S3 (vault/plans/EZD-342.md section 4; AC-EZD-342-1 to 3; Q-0600; Q-0048 (a)).
+describe('EZD-342 session cookies on https', () => {
+  let tenantId: string;
+  let m: Member;
+  let mCookies: Map<string, string>;
+
+  beforeAll(async () => {
+    tenantId = await createTenant();
+    m = await createMember({ tenantId, scope: 'all' });
+    mCookies = await cookiesFor(m.email);
+  });
+
+  afterEach(() => {
+    state.store = new Map();
+    state.sets = [];
+    state.proto = null;
+  });
+
+  afterAll(async () => {
+    await cleanup();
+    await closeHarness();
+  });
+
+  const renamed = (cookies: Map<string, string>) =>
+    new Map([...cookies].map(([name, value]) => [appCookieName(name, true), value]));
+
+  it('S1 session writes on https are __Host- host-only cookies', async () => {
+    const store = new Map<string, string>();
+    const rec: CookieSet[] = [];
+    const client = await signInThrough(m.email, jarOver(store, true, rec));
+
+    expect(rec.length).toBeGreaterThanOrEqual(1);
+    for (const s of rec) expect(s.name.startsWith('__Host-sb-'), s.name).toBe(true);
+    for (const s of rec.filter((r) => r.value !== '')) {
+      expect(s.options?.httpOnly).toBe(true);
+      expect(s.options?.sameSite).toBe('lax');
+      expect(s.options?.path).toBe('/');
+      expect(s.options?.secure).toBe(true);
+      expect(s.options?.maxAge).toBe(34560000);
+      expect('domain' in (s.options ?? {})).toBe(false);
+    }
+    for (const name of store.keys()) expect(name.startsWith('__Host-'), name).toBe(true);
+
+    const names = [...new Set(rec.map((s) => s.name))];
+    const mark = rec.length;
+    await client.auth.signOut({ scope: 'local' });
+    await macrotask();
+    const after = rec.slice(mark);
+    for (const name of names) {
+      expect(
+        after.some(
+          (s) =>
+            s.name === name &&
+            (s.options?.maxAge === 0 || s.value === '') &&
+            s.options?.secure === true,
+        ),
+        `${name} cleared`,
+      ).toBe(true);
+    }
+  });
+
+  it('S2 a plain sb- cookie on https is signed out', async () => {
+    const expected = { authUserId: m.authUserId, appUserId: m.appUserId, email: m.email };
+
+    useCookies(mCookies);
+    state.proto = 'https';
+    await expect(getSession()).resolves.toBeNull();
+
+    const claims = await createSessionClient(jarOver(new Map(mCookies), true)).auth.getClaims();
+    expect(claims.data?.claims?.sub).toBeUndefined();
+
+    useCookies(renamed(mCookies));
+    state.proto = 'https';
+    await expect(getSession()).resolves.toEqual(expected);
+  });
+
+  it('S3 the http names are unchanged', async () => {
+    const expected = { authUserId: m.authUserId, appUserId: m.appUserId, email: m.email };
+
+    useCookies(mCookies);
+    state.proto = null;
+    await expect(getSession()).resolves.toEqual(expected);
+
+    useCookies(renamed(mCookies));
+    state.proto = null;
+    await expect(getSession()).resolves.toBeNull();
   });
 });

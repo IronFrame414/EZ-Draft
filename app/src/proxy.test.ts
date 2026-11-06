@@ -237,7 +237,26 @@ describe('EZD-120d signed-out marker', () => {
   it('EZD-120d U9 (b) on https a plain ezd_signed_out is ignored', async () => {
     const getClaims = vi.fn(async () => WITH_SUB);
     clientWith(getClaims);
-    expectIgnored(await withProto(MARKED), getClaims);
+    // EZD-342 P3 (Decided "Old plain session cookies on https"): on https the plain sb- cookies get the stale
+    // delete; the plain marker itself is still ignored.
+    const res = await withProto(MARKED);
+    expectPassThrough(res);
+    expect(getClaims).toHaveBeenCalledTimes(1);
+    for (const name of ['ezd_signed_out', '__Host-ezd_signed_out']) {
+      const c = setCookie(res, name);
+      expect(c === undefined || !c.includes('Max-Age=0'), name).toBe(true);
+    }
+    for (const name of ['sb-x-auth-token', 'sb-x-auth-token.0']) {
+      const c = setCookie(res, name);
+      expect(c, name).toBeDefined();
+      expect(c, name).toMatch(/^[^=]+=;/);
+      expect(c, name).toContain('Max-Age=0');
+      expect(c, name).toContain('Path=/');
+      expect(c, name).toContain('Secure');
+    }
+    const forwarded = res.headers.get('x-middleware-request-cookie') ?? '';
+    expect(forwarded).toContain('sb-x-auth-token=a');
+    expect(forwarded).toContain('sb-x-auth-token.0=b');
   });
 
   it('EZD-120d U9 (c) on http a __Host- marker is ignored', async () => {
@@ -254,5 +273,115 @@ describe('EZD-120d signed-out marker', () => {
     expect(getClaims).toHaveBeenCalledTimes(1);
     expect(setCookie(res, 'sb-x-auth-token')).toBeUndefined();
     expect(setCookie(res, 'ezd_signed_out')).toBeUndefined();
+  });
+});
+
+// EZD-342 P1, P2, P3 (vault/plans/EZD-342.md section 4; AC-EZD-342-1, 2, 3, 4; Q-0600; Q-0599): the request
+// gate's cookie names. A marked https request deletes both name forms of the session cookie; the gate's jar
+// answers isHttps with the one shared x-forwarded-proto test; an unmarked https request deletes old plain
+// session cookies.
+describe('EZD-342 request gate cookie names', () => {
+  afterEach(() => {
+    h.make = null;
+  });
+
+  const httpsCall = (path: string, cookies: string) =>
+    proxy(
+      new NextRequest(`http://localhost:3000${path}`, {
+        headers: { cookie: cookies, 'x-forwarded-proto': 'https' },
+      }),
+    );
+  const MARKED =
+    '__Host-ezd_signed_out=1; __Host-sb-x-auth-token=a; __Host-sb-x-auth-token.0=b; sb-x-auth-token=c; keep=me';
+  const DELETED = [
+    '__Host-sb-x-auth-token',
+    '__Host-sb-x-auth-token.0',
+    'sb-x-auth-token',
+    '__Host-ezd_signed_out',
+  ];
+
+  it('P1 a marked request on https deletes both name forms', async () => {
+    const getClaims = vi.fn(async () => WITH_SUB);
+    clientWith(getClaims);
+
+    const home = await httpsCall('/', MARKED);
+    expectSignInRedirect(home);
+    for (const name of DELETED) {
+      const c = setCookie(home, name);
+      expect(c, name).toBeDefined();
+      expect(c, name).toMatch(/^[^=]+=;/);
+      expect(c, name).toContain('Max-Age=0');
+      expect(c, name).toContain('Path=/');
+      expect(c, name).toContain('Secure');
+      expect(c, name).not.toContain('Domain');
+    }
+    expect(setCookie(home, 'keep')).toBeUndefined();
+
+    const signIn = await httpsCall('/sign-in', MARKED);
+    expectPassThrough(signIn);
+    expect(signIn.headers.get('x-middleware-request-cookie') ?? '').not.toContain('sb-');
+
+    expect(getClaims).not.toHaveBeenCalled();
+  });
+
+  it('P2 the gate jar uses the shared https test', async () => {
+    const seen = new Array<boolean>();
+    clientWith(async (jar) => {
+      seen.push(await jar.isHttps());
+      return WITH_SUB;
+    });
+    for (const proto of ['https', 'http, https', undefined]) {
+      const headers: Record<string, string> =
+        proto === undefined ? {} : { 'x-forwarded-proto': proto };
+      await proxy(new NextRequest('http://localhost:3000/', { headers }));
+    }
+    expect(seen).toEqual([true, false, false]);
+  });
+
+  // P3 (Decided "Old plain session cookies on https"; security-reviewer round 1 finding 1; proxy.ts delete
+  // options and no-store on any Set-Cookie; AC-EZD-342-3: on http the plain names are live and kept).
+  it('P3 an unmarked request on https deletes old plain session cookies', async () => {
+    const PLAIN = 'sb-x-auth-token=a; sb-x-auth-token.0=b; __Host-sb-x-auth-token=c; keep=me';
+    const STALE = ['sb-x-auth-token', 'sb-x-auth-token.0'];
+    const expectStaleDeleted = (res: Response) => {
+      for (const name of STALE) {
+        const c = setCookie(res, name);
+        expect(c, name).toBeDefined();
+        expect(c, name).toMatch(/^[^=]+=;/);
+        expect(c, name).toContain('Max-Age=0');
+        expect(c, name).toContain('Path=/');
+        expect(c, name).toContain('Secure');
+        expect(c, name).not.toContain('Domain');
+      }
+      expect(setCookie(res, '__Host-sb-x-auth-token')).toBeUndefined();
+      expect(setCookie(res, 'keep')).toBeUndefined();
+    };
+
+    // (a) signed in, https
+    clientWith(async () => WITH_SUB);
+    const a = await httpsCall('/', PLAIN);
+    expectPassThrough(a);
+    expectStaleDeleted(a);
+    expect(a.headers.get('cache-control')).toBe('private, no-store');
+
+    // (b) signed out, https
+    clientWith(async () => NO_CLAIMS);
+    const b = await httpsCall('/', PLAIN);
+    expectSignInRedirect(b);
+    expectStaleDeleted(b);
+
+    // (c) the same cookies on http: nothing deleted
+    clientWith(async () => WITH_SUB);
+    const c = await proxy(
+      new NextRequest('http://localhost:3000/', { headers: { cookie: PLAIN } }),
+    );
+    expectPassThrough(c);
+    expect(c.headers.getSetCookie()).toEqual([]);
+
+    // (d) https with no plain session cookie: no delete, no no-store
+    clientWith(async () => WITH_SUB);
+    const d = await httpsCall('/', '__Host-sb-x-auth-token=c; keep=me');
+    expect(d.headers.getSetCookie()).toEqual([]);
+    expect(d.headers.get('cache-control')).toBeNull();
   });
 });

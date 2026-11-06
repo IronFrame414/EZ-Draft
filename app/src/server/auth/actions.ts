@@ -5,34 +5,22 @@
 // EZD-033 Step 3 (vault/plans/EZD-033.md; Q-0091; Q-0094; Q-0104): password sign-in, and the app throttle
 // on every action that reaches Supabase Auth. A slot is taken before Auth is called; a refused slot calls
 // nothing. The password is never logged, put in an Error, returned or written to a cookie.
+// EZD-342 (vault/plans/EZD-342.md; Q-0600): the sign-in cookies go only through request-cookies.ts.
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { SIGN_IN_EMAIL_COOKIE, SIGN_IN_LANG_COOKIE } from '../../lib/auth/cookie-names';
 import { PASSWORD_MAX_BYTES } from '../../lib/auth/password-rules';
 import type { Database } from '../db/database.types';
 import { reportError } from '../errors/report';
 import { completeSignIn } from './complete-sign-in';
+import { clearAppCookie, readAppCookie, setAppCookie } from './request-cookies';
 import { createSessionClient } from './supabase-server';
 import { clientIp, throttleKey, throttleSettle, throttleTake, type ThrottleKind } from './throttle';
 
 const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
 const CODE_PATTERN = /^\d{6}$/;
-
-async function isHttps(): Promise<boolean> {
-  const proto = (await headers()).get('x-forwarded-proto');
-  return (proto ?? '').split(',')[0].trim() === 'https';
-}
-
-async function cookieOptions(maxAge: number) {
-  return {
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    path: '/',
-    secure: await isHttps(),
-    maxAge,
-  };
-}
 
 function parseEmail(value: FormDataEntryValue | null | undefined): string | null {
   const parsed = EmailSchema.safeParse(typeof value === 'string' ? value : '');
@@ -152,7 +140,7 @@ export async function signInWithPassword(formData: FormData): Promise<{
 
   await settle(slot);
   if ((await completeSignIn(slot.client)) === 'no_access') return { error: 'no_access' };
-  (await cookies()).delete('ezd_sign_in_email');
+  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
   redirect('/');
 }
 
@@ -193,7 +181,7 @@ export async function requestSignIn(formData: FormData): Promise<
     if (status !== 403 && status !== 429) throw new Error('sign_in_request_failed');
   }
 
-  (await cookies()).set('ezd_sign_in_email', email, await cookieOptions(900));
+  await setAppCookie(SIGN_IN_EMAIL_COOKIE, email, 900);
   return { step: 'code' };
 }
 
@@ -206,10 +194,9 @@ export async function verifySignInCode(formData: FormData): Promise<{
     | 'ip_throttled'
     | 'unavailable';
 }> {
-  const jar = await cookies();
   const field = formData.get('email');
   const email = parseEmail(
-    typeof field === 'string' && field !== '' ? field : jar.get('ezd_sign_in_email')?.value,
+    typeof field === 'string' && field !== '' ? field : await readAppCookie(SIGN_IN_EMAIL_COOKIE),
   );
   const codeField = formData.get('code');
   const code = typeof codeField === 'string' ? codeField.trim() : '';
@@ -237,7 +224,7 @@ export async function verifySignInCode(formData: FormData): Promise<{
 
   await settle(slot);
   if ((await completeSignIn(slot.client)) === 'no_access') return { error: 'no_access' };
-  jar.delete('ezd_sign_in_email');
+  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
   redirect('/');
 }
 
@@ -271,7 +258,7 @@ export async function confirmSignInLink(formData: FormData): Promise<{
 
   await settle(slot);
   if ((await completeSignIn(slot.client)) === 'no_access') return { error: 'no_access' };
-  (await cookies()).delete('ezd_sign_in_email');
+  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
   redirect('/');
 }
 
@@ -286,10 +273,10 @@ export async function signOut(): Promise<never> {
 
 export async function setSignInLanguage(formData: FormData): Promise<void> {
   const lang = formData.get('lang') === 'es' ? 'es' : 'en';
-  (await cookies()).set('ezd_sign_in_lang', lang, await cookieOptions(34560000));
+  await setAppCookie(SIGN_IN_LANG_COOKIE, lang, 34560000);
 }
 
 // EZD-007f Step 3 (vault/plans/EZD-007f.md F2): "Use a different email" deletes the email cookie.
 export async function clearSignInEmail(): Promise<void> {
-  (await cookies()).delete('ezd_sign_in_email');
+  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
 }
