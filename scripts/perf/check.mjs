@@ -56,7 +56,6 @@ const STRIPPED_ENV = [
  */
 export function evaluate(rows, budgets = BUDGETS, profile = 'desktop') {
   void profile;
-  const frame = budgets['frame.desktop'];
   const frameMax = budgets['frame.max'];
   const out = rows.map((input) => {
     const b = budgets[input.budgetId];
@@ -84,9 +83,8 @@ export function evaluate(rows, budgets = BUDGETS, profile = 'desktop') {
     } else {
       row.status = 'trend';
       if (value === null) row.withinBudget = null;
-      else if (input.budgetId === 'frame.desktop')
-        row.withinBudget =
-          value <= frame.value + frame.toleranceMs && details.stats.max <= frameMax.value;
+      else if (input.budgetId === 'frame.desktop' || input.budgetId === 'frame.ipad')
+        row.withinBudget = value <= b.value + b.toleranceMs && details.stats.max <= frameMax.value;
       else row.withinBudget = b.value === null ? null : value <= b.value;
     }
     return row;
@@ -155,29 +153,45 @@ function contextOptions(profile) {
 }
 
 /** P5, H1, P3, P4: the InputRow fields of one pan row from the pan's outcome. */
-function panInput(id, pan) {
-  if (pan.unexpected) return { error: 'unexpected_error', details: {} };
+function panInput(id, pan, name) {
+  if (pan.unexpected) return { error: 'unexpected_error', details: { profile: name } };
   if (pan.error !== undefined) {
-    return { error: pan.error, details: { status: pan.status, reactDetected: pan.reactDetected } };
+    return {
+      error: pan.error,
+      details: { status: pan.status, reactDetected: pan.reactDetected, profile: name },
+    };
   }
-  switch (id) {
+  switch (id.split(':')[0]) {
     case 'react-commits-during-pan': {
       const details = {
         reactDetected: pan.reactDetected,
         renderers: pan.renderers,
         pointerMoves: pan.pointerMoves,
+        wheelSteps: pan.wheelSteps,
+        profile: name,
       };
       return pan.reactDetected
         ? { value: pan.commits, details }
         : { error: 'react_not_detected', details };
     }
     case 'long-tasks-during-pan':
-      return { value: pan.longTasksPan, details: {} };
+      return { value: pan.longTasksPan, details: { profile: name } };
     case 'long-tasks-during-load':
-      return { value: pan.longTasksLoad, details: {} };
+      return { value: pan.longTasksLoad, details: { profile: name } };
     case 'frame-times-during-pan': {
       const stats = frameStats(pan.intervals);
-      return { value: stats.p95, details: { stats } };
+      const p = PROFILES[name];
+      return {
+        value: stats.p95,
+        details: {
+          stats,
+          profile: name,
+          viewport: p.viewport,
+          deviceScaleFactor: p.deviceScaleFactor,
+          cpuThrottleRate: p.cpuThrottleRate,
+          durationMs: pan.durationMs,
+        },
+      };
     }
     default:
       throw new Error(`no pan value for ${id}`);
@@ -187,14 +201,21 @@ function panInput(id, pan) {
 const logStack = (e) => process.stderr.write(`${e?.stack ?? e}\n`);
 
 async function collect(browser, profile, baseUrl, panUrl, plan) {
-  let pan = null;
-  if (plan.some((r) => r.status === 'active' && r.collector === 'pan')) {
-    const context = await browser.newContext(contextOptions(profile));
+  const pans = new Map();
+  const panProfiles = [
+    ...new Set(
+      plan.filter((r) => r.status === 'active' && r.collector === 'pan').map((r) => r.profile),
+    ),
+  ];
+  for (const name of panProfiles) {
+    const pp = PROFILES[name];
+    if (!pp) throw new Error(`no profile ${name}`);
+    const context = await browser.newContext(contextOptions(pp));
     try {
-      pan = await runPan(context, baseUrl, panUrl);
+      pans.set(name, await runPan(context, baseUrl, panUrl, pp));
     } catch (e) {
       logStack(e);
-      pan = { unexpected: true };
+      pans.set(name, { unexpected: true });
     } finally {
       await context.close();
     }
@@ -205,7 +226,7 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
     if (r.status === 'pending') {
       inputs.push({ ...base, pending: true });
     } else if (r.collector === 'pan') {
-      inputs.push({ ...base, ...panInput(r.id, pan) });
+      inputs.push({ ...base, ...panInput(r.id, pans.get(r.profile), r.profile) });
     } else if (r.collector === 'js-size') {
       if (!r.url) {
         inputs.push({ ...base, error: 'no_url' });

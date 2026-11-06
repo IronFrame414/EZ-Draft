@@ -19,6 +19,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/page.tsx',
   'app/src/app/(office)/settings/page.tsx',
   'app/src/app/auth/confirm/page.tsx',
+  'app/src/app/dev/benchmark-plan/page.tsx',
   'app/src/app/dev/captcha/page.tsx',
   'app/src/app/dev/cloud-check/page.tsx',
   'app/src/app/dev/device/page.tsx',

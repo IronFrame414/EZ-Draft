@@ -25,3 +25,16 @@ describe('EZD-017 perf profile', () => {
     expect(profile.browser).toBe('chromium');
   });
 });
+
+describe('EZD-207c perf iPad profile', () => {
+  test('EZD-207c V5 iPad size equals harness', () => {
+    const ipad = DEVICE_PROJECTS.find((p) => p.name === 'ipad-landscape');
+    expect(ipad).toBeDefined();
+    const use = ipad!.use;
+    expect(PROFILES.ipad.viewport).toEqual(use.viewport);
+    expect(PROFILES.ipad.viewport).toEqual({ width: 1180, height: 820 });
+    expect(PROFILES.ipad.deviceScaleFactor).toBe(use.deviceScaleFactor);
+    expect(PROFILES.ipad.deviceScaleFactor).toBe(2);
+    expect(PROFILES.ipad.browser).toBe('chromium');
+  });
+});

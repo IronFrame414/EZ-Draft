@@ -7,7 +7,21 @@ const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
 
 const PAN_PX = 300;
 const STEPS = 45;
-const STEP_WAIT_MS = 16;
+export const STEP_WAIT_MS = 16;
+export const WHEEL_STEPS = 4;
+export const WHEEL_DELTA_PX = 100;
+// EZD-207c D-Gesture: two sweeps of 2 x STEPS moves each, then WHEEL_STEPS wheel steps in and out, 16 ms apart.
+export const GESTURE_MS = (4 * STEPS + 2 * WHEEL_STEPS) * STEP_WAIT_MS;
+export const PLAN_READY_MS = 30000;
+export const PLAN_POLL_MS = 100;
+export const PLAN_READY_SELECTOR = '[data-testid="plan-canvas"][data-plan-state="ready"]';
+
+/** EZD-207c D-Throttle: slows the page's CPU by `rate` (1 = none); the session lives until the page closes. */
+export async function applyCpuThrottle(context, page, rate) {
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate });
+  return cdp;
+}
 
 /** P4: nearest-rank percentile of a sorted array. */
 const rank = (sorted, p) => sorted[Math.ceil((p / 100) * sorted.length) - 1];
@@ -65,12 +79,13 @@ async function sweep(page, cx, cy) {
 }
 
 /**
- * Runs the pan on baseUrl + panUrl in `context` (desktop profile). Resolves PanResult, or PanFailure
+ * Runs the pan on baseUrl + panUrl in `context` under `profile` (CPU throttle set before the page loads). Resolves PanResult, or PanFailure
  * `{ error, status, reactDetected }` when the page does not load or has no canvas region (P1, P5).
  */
-export async function runPan(context, baseUrl, panUrl) {
+export async function runPan(context, baseUrl, panUrl, profile) {
   await context.addInitScript({ path: HOOKS_PATH });
   const page = await context.newPage();
+  const cdp = await applyCpuThrottle(context, page, profile.cpuThrottleRate);
   try {
     let response;
     try {
@@ -83,6 +98,22 @@ export async function runPan(context, baseUrl, panUrl) {
     if (status !== 200) return { error: `http_${status}`, status, reactDetected: false };
 
     await settlePage(page);
+    if ((await page.$('[data-perf-wait-plan]')) !== null) {
+      try {
+        // EZD-207c D-Wait: the plan is ready and its text is uploaded.
+        await page.waitForFunction(
+          (sel) =>
+            document.querySelector(sel) !== null &&
+            window.__ezdraftPlan !== undefined &&
+            window.__ezdraftPlan.stats().glyphs > 0,
+          PLAN_READY_SELECTOR,
+          { timeout: PLAN_READY_MS, polling: PLAN_POLL_MS },
+        );
+      } catch {
+        const renderers = await page.evaluate(() => window.__EZD_PERF__.renderers);
+        return { error: 'plan_not_ready', status: 200, reactDetected: renderers >= 1 };
+      }
+    }
     const canvas = await page.$('[data-shell-region="canvas"]');
     const box = canvas ? await canvas.boundingBox() : null;
     if (!box) {
@@ -111,6 +142,15 @@ export async function runPan(context, baseUrl, panUrl) {
     await page.mouse.up();
     await page.keyboard.up('Space');
 
+    let wheelSteps = 0;
+    for (const delta of [-WHEEL_DELTA_PX, WHEEL_DELTA_PX]) {
+      for (let k = 0; k < WHEEL_STEPS; k++) {
+        await page.mouse.wheel(0, delta);
+        wheelSteps++;
+        await page.waitForTimeout(STEP_WAIT_MS);
+      }
+    }
+
     await twoFrames(page);
     const end = await page.evaluate(() => {
       const p = window.__EZD_PERF__;
@@ -133,12 +173,15 @@ export async function runPan(context, baseUrl, panUrl) {
       renderers: end.renderers,
       commits: end.commits - startCommits,
       pointerMoves,
+      wheelSteps,
+      durationMs: end.panEnd - end.panStart,
       longTasksPan: end.longTasks.filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
         .length,
       longTasksLoad: end.longTasks.filter((t) => t.startTime < end.panStart).length,
       intervals,
     };
   } finally {
+    await cdp.detach().catch(() => {});
     await page.close();
   }
 }

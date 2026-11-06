@@ -37,6 +37,7 @@ describe('EZD-016d harness config', () => {
         'ipad-landscape',
         'surface',
         'phone',
+        'perf',
       ]);
       const useOf = (name: string) => projects.find((p) => p.name === name)!.use as AnyRecord;
 
@@ -72,8 +73,21 @@ describe('EZD-016d harness config', () => {
       for (const p of projects) {
         expect(p.grep).toBeInstanceOf(RegExp);
         expect((p.grep as RegExp).source).toBe(
-          devicesMod.projectGrep(p.name as 'desktop', grepAtImport).source,
+          devicesMod.projectGrep(
+            (p.name === 'perf' ? 'desktop' : p.name) as 'desktop',
+            grepAtImport,
+          ).source,
         );
+      }
+
+      // (b2) EZD-207c D-Isolate: the perf project runs the perf specs alone, after the device projects
+      const perf = projects.find((p) => p.name === 'perf')!;
+      expect(perf.testMatch).toBe(devicesMod.PERF_SPECS);
+      expect(perf.workers).toBe(1);
+      expect(perf.dependencies).toEqual(['desktop', 'ipad-landscape', 'surface', 'phone']);
+      expect(perf.use).toEqual(useOf('desktop'));
+      for (const p of projects.filter((q) => q.name !== 'perf')) {
+        expect(p.testIgnore, String(p.name)).toBe(devicesMod.PERF_SPECS);
       }
 
       // (c) runner

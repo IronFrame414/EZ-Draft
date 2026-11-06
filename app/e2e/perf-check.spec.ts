@@ -1,5 +1,5 @@
 // EZD-017 T1, T2 (vault/plans/EZD-017.md section 4; T-a). Runs the perf CLI against the harness server on
-// 127.0.0.1:3000. Untagged, so desktop only. No import.meta or __dirname (lesson L-017); no page or browser
+// 127.0.0.1:3000. Playwright project `perf`. No import.meta or __dirname (lesson L-017); no page or browser
 // fixture is requested. Budgets: table B (editor 500,000; sign-in pages 200,000; commits 0; long tasks 0);
 // 180 pointer moves = 2 x 90 (P2); pending rows from table R.
 import { spawnSync } from 'node:child_process';
@@ -106,7 +106,8 @@ test.describe('EZD-017 performance check', () => {
 
     // (d)
     const editor = rowOf(res, 'js-size:editor');
-    expect(editor.details.url).toBe('/dev/shell');
+    // EZD-207c: the editor entry measures the benchmark plan page (no database).
+    expect(editor.details.url).toBe('/dev/benchmark-plan');
     expect(editor.status).toBe('pass');
     expect(editor.value as number).toBeGreaterThan(0);
     expect(editor.value as number).toBeLessThanOrEqual(500000);
