@@ -1,7 +1,9 @@
 // EZD-207a Build step 8 (vault/plans/EZD-207a.md Decided "Wheel", "Pan", "Space", "Context menu", "Pointer
 // hand-off", "Pointer capture", "Cursor", "Region rect"; S03 Canvas interactions; 11 rule 4): pointer, wheel and
 // key input on the canvas region. Pans and zooms go straight to `setView`; other left input goes to the receiver.
-// No React; the region rect is read on down, enter and wheel only, never per move.
+// No React; the region rect is read on down, enter and wheel only, never per move. EZD-207b Build step 6
+// (vault/plans/EZD-207b.md Decided "Input hover"; C9): mouse and pen moves that are not panning go to `onHover`,
+// and leaving the region or starting a pan clears it; touch never hovers.
 import type { Point } from '@ezdraft/geometry';
 import { panBy, regionToModel, wheelZoomFactor, zoomAt, type PlanView } from './view';
 
@@ -27,6 +29,7 @@ export type PlanInputOptions = {
   getView(): PlanView;
   setView(view: PlanView): void;
   getReceiver(): PlanPointerReceiver | null;
+  onHover?(screen: Point | null): void;
 };
 export type PlanInput = { getCursor(): Point | null; dispose(): void };
 
@@ -116,6 +119,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
       return;
     }
     if (e.button === 2 || (e.button === 0 && spaceHeld)) {
+      o.onHover?.(null);
       pans.set(e.pointerId, p);
       return;
     }
@@ -164,6 +168,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     }
     if (delivered !== null && delivered.id === e.pointerId) delivered.at = p;
     deliver('move', p, e);
+    o.onHover?.(p);
   };
 
   const end = (kind: 'up' | 'cancel') => (event: Event) => {
@@ -188,6 +193,11 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
 
   const onEnter = () => {
     rect = surface.getBoundingClientRect();
+  };
+
+  const onLeave = (event: Event) => {
+    if (isTouch(event as unknown as Pointerish)) return;
+    o.onHover?.(null);
   };
 
   const onWheel = (event: Event) => {
@@ -220,6 +230,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     ['pointerup', onUp],
     ['pointercancel', onCancel],
     ['pointerenter', onEnter],
+    ['pointerleave', onLeave],
     ['click', onClick],
     ['dblclick', onDblClick],
     ['contextmenu', onContextMenu],

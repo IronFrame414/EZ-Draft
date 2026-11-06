@@ -8,6 +8,18 @@
   gap: 8px;
 }
 
+/* EZD-207b (S03 States: Retry stays usable): while the zoom stack is shown, banners end 8px left of it
+   (stack right 16 + width 40, or 46 under a coarse pointer; ZoomStack.module.css). */
+.besideStack {
+  right: 64px;
+}
+
+@media (any-pointer: coarse) {
+  .besideStack {
+    right: 70px;
+  }
+}
+
 .fill {
   flex: 1;
   display: flex;

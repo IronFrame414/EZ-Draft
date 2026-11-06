@@ -33,9 +33,12 @@ import {
   createPlanController,
   type PlanCanvasHandle,
   type PlanController,
+  type PlanStats,
 } from './plan/controller';
+import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
+import { ZoomStack } from './plan/ZoomStack';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
 import styles from './ProjectEditor.module.css';
 
@@ -55,7 +58,7 @@ export type EditorTestHook = {
 
 type PlanTestHook = {
   handle: PlanCanvasHandle;
-  stats(): { frames: number; drawCalls: number; bufferUploads: number; contexts: number };
+  stats(): PlanStats & { contexts: number };
 };
 
 type CanvasState =
@@ -95,7 +98,7 @@ export function ProjectEditor({
       if (result.kind === 'ready') {
         const plan = createPlanController(
           { store: result.session.store },
-          { createRoot: createR3fRoot },
+          { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
         dispose = () => {
           plan.dispose();
@@ -210,15 +213,20 @@ export function ProjectEditor({
     );
   }
 
+  const showPlan = plan !== null && !canvasFailed;
   const stateArea = (
-    <div className={styles.state} data-testid="editor-state" data-editor-state={state.kind}>
+    <div
+      className={showPlan ? `${styles.state} ${styles.besideStack}` : styles.state}
+      data-testid="editor-state"
+      data-editor-state={state.kind}
+    >
       {body}
     </div>
   );
-  const showPlan = plan !== null && !canvasFailed;
   const canvas = showPlan ? (
     <>
       <PlanInputSurface controller={plan} />
+      <ZoomStack handle={plan.handle} />
       {stateArea}
     </>
   ) : (

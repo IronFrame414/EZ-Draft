@@ -4207,7 +4207,8 @@
     "Device layouts (EZD-014)",
     "Browser tests (EZD-016a)",
     "Drawing list (EZD-238)",
-    "Messages and language (t())"
+    "Messages and language (t())",
+    "Plan canvas (EZD-207a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [

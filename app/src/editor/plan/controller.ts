@@ -1,9 +1,20 @@
 // EZD-207a Build step 9 (vault/plans/EZD-207a.md section 3 C1, C4; Decided "View changes", "First view", "Start
 // failure", "Model changes", "Camera"; 11 rules 1, 4; Q-0214): the plan canvas without React. It owns the view,
 // the scene and the input, rebuilds batches only when the model's objects change, and draws only on demand.
-import type { Point } from '@ezdraft/geometry';
+// EZD-207b Build step 8 (vault/plans/EZD-207b.md Decided "Zoom step", "Controller hover", "Hover triggers",
+// "wallAt", "showObject", "Atlas in controller", "Stats"; C1, C7, C8, C13): step zoom, wall hover through the
+// hover index, Show for one object, and the drawing list's text once the glyph atlas is made.
+import type { DrawingList, Point } from '@ezdraft/geometry';
 import type { ModelStore } from '../model/model-store';
-import { buildPlanBatches, drawingBounds, planDrawingList } from './batches';
+import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
+import { layoutText } from './glyph-atlas';
+import {
+  HOVER_CAPTURE_PX,
+  createHoverIndex,
+  highlightPositions,
+  pickWall,
+  type HoverMode,
+} from './hover';
 import {
   createPlanInput,
   type InputSurface,
@@ -19,13 +30,21 @@ import {
   gridStepIn,
   modelToRegion,
   regionToModel,
+  zoomAt,
   type Bounds,
   type CameraFrame,
   type PlanView,
   type Size,
 } from './view';
 
-export type PlanStats = { frames: number; drawCalls: number; bufferUploads: number };
+export type PlanStats = {
+  frames: number;
+  drawCalls: number;
+  bufferUploads: number;
+  glyphs: number;
+  highlightUploads: number;
+};
+export const ZOOM_STEP_FACTOR = 1.25;
 export type RenderRoot = {
   start(size: Size): Promise<void>;
   resize(size: Size): void;
@@ -47,6 +66,12 @@ export type PlanCanvasHandle = {
   screenToModel(p: Point): Point;
   onCameraChange(listener: (view: PlanView) => void): () => void;
   setPointerReceiver(receiver: PlanPointerReceiver | null): void;
+  zoomIn(): void;
+  zoomOut(): void;
+  showObject(id: string): boolean;
+  setHoverMode(mode: HoverMode): void;
+  getHoveredWallId(): string | null;
+  wallAt(screen: Point): string | null;
 };
 
 export type PlanController = {
@@ -75,7 +100,12 @@ function unmountQuietly(root: RenderRoot): void {
 
 export function createPlanController(
   o: { store: Pick<ModelStore, 'getState' | 'subscribe'> },
-  deps: { createRoot: CreateRenderRoot; keys?: EventTarget; report?: (error: unknown) => void },
+  deps: {
+    createRoot: CreateRenderRoot;
+    keys?: EventTarget;
+    report?: (error: unknown) => void;
+    createAtlas?: () => Promise<HTMLCanvasElement>;
+  },
 ): PlanController {
   const report = deps.report ?? ((error: unknown) => void reportDefault(error));
   const scene = createPlanScene();
@@ -91,16 +121,53 @@ export function createPlanController(
   let input: PlanInput | null = null;
   let receiver: PlanPointerReceiver | null = null;
   const listeners: Array<{ fn: (view: PlanView) => void }> = [];
+  let list: DrawingList | null = null;
+  let disposed = false;
+  let atlasRequested = false;
+  let atlasSet = false;
+  let glyphs = 0;
+  let highlightUploads = 0;
+  let mode: HoverMode = 'wall';
+  let hoverScreen: Point | null = null;
+  let hoveredId: string | null = null;
+  const hover = createHoverIndex();
+  const NO_HIGHLIGHT = new Float32Array(0);
 
   const rebuild = (): number => {
-    const list = planDrawingList(o.store.getState().objects);
+    list = planDrawingList(o.store.getState().objects);
     bounds = drawingBounds(list);
     const before = scene.objectCount();
     const uploaded = scene.setBatches(buildPlanBatches(list));
     bufferUploads += uploaded;
     return uploaded > 0 || scene.objectCount() !== before ? 1 : 0;
   };
+  hover.sync(o.store.getState().objects, openFloorId(o.store.getState().objects), []);
   rebuild();
+
+  const tolerance = () => HOVER_CAPTURE_PX / view.ppi;
+
+  const updateHover = (force: boolean): boolean => {
+    const id =
+      mode === 'wall' && hoverScreen !== null
+        ? pickWall(hover.index, regionToModel(view, hoverScreen), tolerance())
+        : null;
+    if (id === hoveredId && !force) return false;
+    const changed = id !== hoveredId;
+    hoveredId = id;
+    const uploaded = scene.setHighlight(id !== null ? highlightPositions(list, id) : NO_HIGHLIGHT);
+    highlightUploads += uploaded;
+    return changed || uploaded > 0;
+  };
+
+  // The text step: true when the text mesh was uploaded or removed, so a redraw is due.
+  const textStep = (): boolean => {
+    const batch = layoutText(list);
+    const u = scene.setText(batch);
+    bufferUploads += u;
+    const removed = glyphs > 0 && batch.glyphs === 0;
+    glyphs = batch.glyphs;
+    return u === 1 || removed;
+  };
 
   const regionSize = (): Size | null =>
     regionRect !== null && regionRect.width > 0 && regionRect.height > 0
@@ -132,14 +199,29 @@ export function createPlanController(
     if (next.x === view.x && next.y === view.y && ppi === view.ppi) return;
     view = { x: next.x, y: next.y, ppi };
     updateCamera();
+    updateHover(false);
     redraw();
     for (const l of [...listeners]) l.fn({ ...view });
   };
 
   const unsubscribe = o.store.subscribe((state, prev) => {
     if (state.objects === prev.objects) return;
-    if (rebuild() > 0) redraw();
+    hover.sync(state.objects, openFloorId(state.objects), state.lastChangedIds);
+    const rebuilt = rebuild() > 0;
+    const texted = atlasSet ? textStep() : false;
+    const hovered = hoveredId !== null ? hoveredId.toLowerCase() : null;
+    const force =
+      hovered !== null && state.lastChangedIds.some((id) => id.toLowerCase() === hovered);
+    const hoverChanged = updateHover(force);
+    if (rebuilt || texted || hoverChanged) redraw();
   });
+
+  const zoomBy = (factor: number) => {
+    const size = regionSize();
+    if (size === null) return;
+    if (clampPpi(view.ppi * factor) === view.ppi) return;
+    setView(zoomAt(view, { x: size.width / 2, y: size.height / 2 }, factor));
+  };
 
   const handle: PlanCanvasHandle = {
     getCursor: () => input?.getCursor() ?? null,
@@ -163,6 +245,45 @@ export function createPlanController(
     setPointerReceiver(next) {
       receiver = next;
     },
+    zoomIn: () => zoomBy(ZOOM_STEP_FACTOR),
+    zoomOut: () => zoomBy(1 / ZOOM_STEP_FACTOR),
+    showObject(id) {
+      if (list === null) return false;
+      const want = id.toLowerCase();
+      const objectBounds = drawingBounds({
+        ...list,
+        items: list.items.filter((i) => i.objectId.toLowerCase() === want),
+      });
+      const size = regionSize();
+      if (objectBounds === null || size === null) return false;
+      setView(fitView(objectBounds, size));
+      return true;
+    },
+    setHoverMode(next) {
+      if ((next !== 'wall' && next !== 'off') || next === mode) return;
+      mode = next;
+      if (updateHover(false)) redraw();
+    },
+    getHoveredWallId: () => hoveredId,
+    wallAt(screen) {
+      if (!Number.isFinite(screen.x) || !Number.isFinite(screen.y)) return null;
+      return pickWall(hover.index, regionToModel(view, screen), tolerance());
+    },
+  };
+
+  const requestAtlas = (createAtlas: () => Promise<HTMLCanvasElement>) => {
+    atlasRequested = true;
+    createAtlas().then(
+      (canvas) => {
+        if (disposed) return;
+        scene.setAtlas(canvas);
+        atlasSet = true;
+        if (textStep()) redraw();
+      },
+      (error: unknown) => {
+        report(new Error('plan.glyph_atlas', { cause: error }));
+      },
+    );
   };
 
   const detachCanvas = () => {
@@ -206,6 +327,7 @@ export function createPlanController(
       }
       updateCamera();
       redraw();
+      if (!atlasRequested && deps.createAtlas !== undefined) requestAtlas(deps.createAtlas);
       return 'ready';
     },
     detachCanvas,
@@ -219,6 +341,10 @@ export function createPlanController(
         getView: () => view,
         setView,
         getReceiver: () => receiver,
+        onHover(screen) {
+          hoverScreen = screen;
+          if (updateHover(false)) redraw();
+        },
       });
     },
     setCanvasRect(rect) {
@@ -243,9 +369,10 @@ export function createPlanController(
     },
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };
-      return { frames: s.frames, drawCalls: s.drawCalls, bufferUploads };
+      return { frames: s.frames, drawCalls: s.drawCalls, bufferUploads, glyphs, highlightUploads };
     },
     dispose() {
+      disposed = true;
       unsubscribe();
       input?.dispose();
       input = null;

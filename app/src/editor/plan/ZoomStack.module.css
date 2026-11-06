@@ -1,0 +1,31 @@
+/* EZD-207b Build step 9 (vault/plans/EZD-207b.md Decided "Stack CSS", "Touch size"; board S03Plan lines 39,
+   137-141): the zoom stack at the canvas's top right. Colours and radius are tokens; lengths are plain px. */
+.stack {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+}
+
+.button {
+  box-sizing: border-box;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ez-slate-700);
+  cursor: pointer;
+}
+
+.button:not(:last-child) {
+  border-bottom: 1px solid var(--ez-divider);
+}

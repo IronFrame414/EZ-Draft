@@ -15,6 +15,7 @@ const classTokens = (html: string) =>
 const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-108 E1 (vault/plans/EZD-108.md section 4): EZD-113's 29 names plus logout, person and settings (32),
 // plus EZD-110 step 19's 12 names (44), plus EZD-117a E2 `sort` (45 in all), sorted.
+// EZD-207b: fit_screen, remove.
 const EXPECTED_ICONS = [
   'add',
   'arrow_back',
@@ -37,6 +38,7 @@ const EXPECTED_ICONS = [
   'error',
   'event',
   'expand_more',
+  'fit_screen',
   'gavel',
   'group',
   'help',
@@ -52,6 +54,7 @@ const EXPECTED_ICONS = [
   'person',
   'person_book',
   'photo_camera',
+  'remove',
   'search',
   'settings',
   'share',

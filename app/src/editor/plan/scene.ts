@@ -1,9 +1,12 @@
 // EZD-207a Build step 7 (vault/plans/EZD-207a.md Decided "Grid", "Materials", "Upload rule"; C5; 11 rules 2, 4):
 // the plan scene. One object per batch, re-uploaded only when its positions change, and a full-screen grid
-// shader whose uniforms follow the view, so a pan or zoom rebuilds no buffer.
+// shader whose uniforms follow the view, so a pan or zoom rebuilds no buffer. EZD-207b Build step 5
+// (vault/plans/EZD-207b.md Decided "Text material", "Text uploads", "Highlight"; C6): one text mesh on one atlas
+// texture, and one translucent hover highlight; neither counts as a batch object.
 import {
   BufferAttribute,
   BufferGeometry,
+  CanvasTexture,
   Color,
   DoubleSide,
   Group,
@@ -19,12 +22,17 @@ import {
 } from 'three';
 import type { PlanBatch } from './batches';
 import { tokenRgb } from './color';
+import type { PlanTextBatch } from './glyph-atlas';
+import { HIGHLIGHT_RENDER_ORDER, HOVER_FILL_OPACITY } from './hover';
 
 export type PlanScene = {
   group: Group;
   setBatches(batches: PlanBatch[]): number;
   setGrid(g: { originX: number; originY: number; ppi: number; stepIn: number }): void;
   setViewport(v: { dpr: number; bufferHeight: number }): void;
+  setAtlas(image: HTMLCanvasElement | OffscreenCanvas): void;
+  setText(batch: PlanTextBatch): number;
+  setHighlight(positions: Float32Array): number;
   objectCount(): number;
   dispose(): void;
 };
@@ -110,6 +118,23 @@ export function createPlanScene(): PlanScene {
 
   const entries = new Map<string, Entry>();
 
+  let atlas: CanvasTexture<HTMLCanvasElement | OffscreenCanvas> | null = null;
+  let text: { mesh: Mesh; batch: PlanTextBatch } | null = null;
+  const removeText = () => {
+    if (text === null) return;
+    group.remove(text.mesh);
+    disposeObject(text.mesh);
+    text = null;
+  };
+  const cobalt = tokenRgb('--ez-cobalt');
+  let highlight: { mesh: Mesh; positions: Float32Array } | null = null;
+  const removeHighlight = () => {
+    if (highlight === null) return;
+    group.remove(highlight.mesh);
+    disposeObject(highlight.mesh);
+    highlight = null;
+  };
+
   return {
     group,
     setBatches(batches) {
@@ -148,10 +173,96 @@ export function createPlanScene(): PlanScene {
       uniforms.uDpr.value = v.dpr;
       uniforms.uBufferHeight.value = v.bufferHeight;
     },
+    setAtlas(image) {
+      atlas?.dispose();
+      const texture = new CanvasTexture<HTMLCanvasElement | OffscreenCanvas>(image);
+      texture.flipY = false;
+      atlas = texture;
+      if (text !== null) {
+        const material = text.mesh.material as MeshBasicMaterial;
+        material.alphaMap = texture;
+        material.needsUpdate = true;
+      }
+    },
+    setText(batch) {
+      if (atlas === null) throw new Error('glyph atlas not set');
+      if (batch.glyphs === 0) {
+        removeText();
+        return 0;
+      }
+      if (
+        text !== null &&
+        samePositions(text.batch.positions, batch.positions) &&
+        samePositions(text.batch.uvs, batch.uvs) &&
+        samePositions(text.batch.colors, batch.colors)
+      ) {
+        return 0;
+      }
+      const geometry = new BufferGeometry();
+      geometry.setAttribute('position', new BufferAttribute(batch.positions, 3));
+      geometry.setAttribute('uv', new BufferAttribute(batch.uvs, 2));
+      geometry.setAttribute('color', new BufferAttribute(batch.colors, 3));
+      if (text === null) {
+        const mesh = new Mesh(
+          geometry,
+          new MeshBasicMaterial({
+            alphaMap: atlas,
+            vertexColors: true,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false,
+            toneMapped: false,
+          }),
+        );
+        mesh.renderOrder = 5;
+        group.add(mesh);
+        text = { mesh, batch };
+      } else {
+        const old = text.mesh.geometry;
+        text.mesh.geometry = geometry;
+        old.dispose();
+        text.batch = batch;
+      }
+      return 1;
+    },
+    setHighlight(positions) {
+      if (positions.length === 0) {
+        removeHighlight();
+        return 0;
+      }
+      if (highlight !== null && samePositions(highlight.positions, positions)) return 0;
+      if (highlight === null) {
+        const mesh = new Mesh(
+          geometryOf(positions),
+          new MeshBasicMaterial({
+            color: new Color().setRGB(cobalt.r, cobalt.g, cobalt.b, SRGBColorSpace),
+            transparent: true,
+            opacity: HOVER_FILL_OPACITY,
+            side: DoubleSide,
+            depthTest: false,
+            depthWrite: false,
+            toneMapped: false,
+          }),
+        );
+        mesh.renderOrder = HIGHLIGHT_RENDER_ORDER;
+        group.add(mesh);
+        highlight = { mesh, positions };
+      } else {
+        const old = highlight.mesh.geometry;
+        highlight.mesh.geometry = geometryOf(positions);
+        old.dispose();
+        highlight.positions = positions;
+      }
+      return 1;
+    },
     objectCount() {
       return entries.size;
     },
     dispose() {
+      removeText();
+      removeHighlight();
+      atlas?.dispose();
+      atlas = null;
       for (const entry of entries.values()) {
         group.remove(entry.object);
         disposeObject(entry.object);

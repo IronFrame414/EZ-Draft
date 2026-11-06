@@ -246,3 +246,43 @@ describe('EZD-207a input', () => {
     expect(control.views).toHaveLength(count);
   });
 });
+
+// EZD-207b U12 (vault/plans/EZD-207b.md section 4; Decided "Input hover"; AC-EZD-207-3).
+describe('EZD-207b input hover', () => {
+  test('EZD-207b U12 onHover gets mouse and pen moves, null on leave and pan start, nothing for touch or during a pan', () => {
+    const surface = makeSurface();
+    const onHover = vi.fn();
+    let view = START;
+    createPlanInput({
+      surface,
+      keys: new EventTarget(),
+      getView: () => view,
+      setView: (v) => {
+        view = v;
+      },
+      getReceiver: () => null,
+      onHover,
+    });
+    pointer(surface, 'pointermove', 600, 210);
+    pointer(surface, 'pointermove', 610, 212, { pointerType: 'pen' });
+    fire(surface, 'pointerleave', {
+      ...base,
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 616,
+      clientY: 302,
+    });
+    expect(onHover.mock.calls).toEqual([[{ x: 600, y: 210 }], [{ x: 610, y: 212 }], [null]]);
+
+    pointer(surface, 'pointerdown', 600, 210, { button: 2 });
+    expect(onHover).toHaveBeenCalledTimes(4);
+    expect(onHover).toHaveBeenLastCalledWith(null);
+    pointer(surface, 'pointermove', 620, 220, { button: 2 });
+    pointer(surface, 'pointermove', 640, 230, { button: 2 });
+    pointer(surface, 'pointerup', 640, 230, { button: 2 });
+    expect(onHover).toHaveBeenCalledTimes(4);
+
+    pointer(surface, 'pointermove', 600, 210, touch(7));
+    expect(onHover).toHaveBeenCalledTimes(4);
+  });
+});
