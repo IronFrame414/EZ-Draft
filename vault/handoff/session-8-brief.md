@@ -22,6 +22,7 @@ Session 8 is Josh's main contact while he is away overnight and tomorrow morning
 - Overseer log: four repairs since 14:33, all REPAIRED (fix ticket EZD-335, research report commit, a tickets.json dependency, STATUS rows for EZD-338 to EZD-341).
 - One question escalated to Josh: Q-0548 (EZD-316, a sandbox reviewer-rounds decision) in `vault/questions/QUESTIONS.md`. It was escalated before the standing rule. Settle it under rule 3 if it is not design or UI.
 - Josh's admin item: pin GitHub ruleset 24926075's required `gate` check to the GitHub Actions app. Today it is `{"context":"gate"}` with no source.
+- Josh's admin item (Q-0602, 2026-11-06): create a separate macOS user for the gate's checks, with no access to Josh's keychain or home folder. It is the strongest fix for builder code reaching Josh's credentials. EZD-344 closes the environment and git-config routes; the OS-level reach (keychain tools, ssh agent, launchd, Docker socket) stays in vault/KNOWN-LIMITS.md until that user exists.
 
 ## First task: EZD-337
 Build EZD-337 to a merged, green-gate commit on develop.
