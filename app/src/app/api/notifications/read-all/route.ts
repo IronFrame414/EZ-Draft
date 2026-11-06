@@ -17,11 +17,7 @@ const fail = (status: number, code: string, messageKey = `error.${code}`) =>
 export async function POST(_request: Request): Promise<Response> {
   try {
     const p = await requireApiPermission('view_projects');
-    // D8: no-store on every response, the guard's 401 included.
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     const marked = await markAllNotificationsRead(createSessionClient());
     return Response.json({ marked }, { status: 200, headers });
   } catch (e) {

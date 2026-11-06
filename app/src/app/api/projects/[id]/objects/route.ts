@@ -12,7 +12,11 @@ import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { parseSaveRequest, saveObjects } from '../../../../../server/model/model';
 import { MEMBERSHIP_HEADER } from '../../../../../lib/outbox/outbox';
-import { getPermissionContext, requireApiPermission, requirePermission } from '../../../../../server/permissions';
+import {
+  getPermissionContext,
+  requireApiPermission,
+  requirePermission,
+} from '../../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,10 +40,7 @@ export async function POST(
       return fail(401, 'not_signed_in');
     }
     const p = await requireApiPermission('edit_model');
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     if (!z.uuid().safeParse(id).success) return fail(404, 'project_not_found');
     const denied = requirePermission(p.ctx, 'edit_model', { projectId: id });
     if (denied) return denied;
