@@ -18560,8 +18560,8 @@
    "id": "EZD-344",
    "phase": 1,
    "title": "Fix: the gate runs a worktree's code with an exact environment, so builder code cannot reach Josh's credentials",
-   "depends_raw": "EZD-316",
-   "spec_ref": "Q-0548; rules 17, 18",
+   "depends_raw": "",
+   "spec_ref": "Q-0548; Q-0603; rules 17, 18",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
@@ -18573,9 +18573,7 @@
    "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
-   "depends_on": [
-    "EZD-316"
-   ],
+   "depends_on": [],
    "build_position": 600,
    "acs": [
     "AC-EZD-344-1",
