@@ -16,3 +16,5 @@ One line per repair the launcher ran (EZD-333; decision 2026-11-05). Read at the
 - 2026-11-06T06:25:13.000Z interactive (session 8): EZD-316 live: develop recorded at fa4d0b39 and pushed through github-ops.mjs; round trip (vault-only commit, verify, push) checked.
 - 2026-11-06T08:14:48.294Z repair ci: REPAIRED: fix ticket EZD-348 for the failed `test:e2e` step on the phase 3 PR.; commits c2839986..bc056236; files: vault/spec/acceptance-criteria.md, vault/tickets/phases/phase-01.md, vault/tickets/tickets.json
 - 2026-11-06T09:10:20.000Z interactive (session 8): FIXED: commands outside the unit sandbox trusted git state the sandbox can write (Q-0548 (a)): EZD-345 5c0b5c7e (vault/tools/trusted-git.mjs; push reads hash-checked objects; merge records one commit on a recorded develop).
+- 2026-11-06T09:14:48.333Z repair security: REPAIRED: security pass of a3ad5dd..f657623; commits f6576236..a77cafee; files: vault/tickets/gates/phase-03.md, vault/tooling-notes.md
+- 2026-11-06T09:40:07.324Z launcher: MERGE: merged https://github.com/IronFrame414/EZ-Draft/pull/6 at 6236f1a5790ccf90f9062d8e1ca011ef25939b83

@@ -438,7 +438,7 @@ Rule: for each input the plan lists empty, over-limit and malformed behaviour wi
 Check: grep for callers of each changed export and compare with the Files table.
 Plan check: each input row has empty, maximum and malformed cases.
 
-## L-053  areas: ci, tooling  seen: 1  status: ratified
+## L-053  areas: ci, tooling  seen: 2  status: ratified
 Phase 1 wrap, 2026-11-04 (category gate-red; EZD-110b, EZD-298, EZD-117a, EZD-323)
 Mistake: gate failures a plan could foresee: a client hook imported into a server component, a new counting SQL function against the cap-lock audit, ledger fixtures stale on a worktree behind develop.
 Cause: the plan did not name which gate parts the change can turn red.
@@ -454,7 +454,7 @@ Rule: each checklist row gives the mockup's measured edge, offset or icon name a
 Check: no checklist row says only "matches the mockup".
 Plan check: every visual row has a number or a named element.
 
-## L-055  areas: docs  seen: 1  status: ratified
+## L-055  areas: docs  seen: 2  status: ratified
 Phase 1 wrap, 2026-11-04 (category docs; EZD-268, EZD-300, EZD-316, EZD-117a)
 Mistake: nine findings in four tickets: a doc line, skill step or table still described the behaviour the ticket changed.
 Cause: the plan named the main doc but did not search for every line that states the old behaviour.
@@ -474,7 +474,7 @@ A plan that adds controls on a phone or iPad screen sets their 44 px tap areas a
 A plan that adds an API route lists an E-row for each test or harness that counts every route (money/route-cases.ts, EZD-133 C1), with the new case written out.
 When a one-step dialog is cut out of a multi-column board, work out its width from the footer row's content (hint, buttons, gaps), not from an existing dialog's width.
 
-## L-057  areas: tooling, docs, testing  seen: 1  status: candidate
+## L-057  areas: tooling, docs, testing  seen: 1  status: ratified
 Tickets EZD-316, EZD-332, EZD-201, 2026-11-05
 Mistake: a part of the change the plan named was left out (patch hunks, a comment about moved code, escape sequences in a test file).
 Cause: the plan described the change in prose, so no single list let the builder or reviewer tick every piece off.
@@ -482,7 +482,7 @@ Rule: a plan ends with a done-when list of every artifact the change touches (ea
 Check: the reviewer walks the done-when list against the diff; the plan-checker fails a plan that moves code or issues a patch without that list.
 Plan check: the plan has a done-when list with one line per hunk, comment and escaped literal it mentions.
 
-## L-058  areas: tooling, testing, scripts  seen: 1  status: candidate
+## L-058  areas: tooling, testing, scripts  seen: 1  status: ratified
 Tickets EZD-172, EZD-174, 2026-11-04
 Mistake: the contract left a failure entry, a return value or a conflicting row undecided, and the code and tests disagreed with it.
 Cause: rows written at different times contradicted each other (L8 against C11), and failure output the gate asserts had no row.
@@ -490,7 +490,7 @@ Rule: the interface contract lists every return value and every failure or log e
 Check: the reviewer compares each function's return with the contract row; the plan-checker pairs rows on the same input.
 Plan check: every function in the contract has a return value, every failure entry has its text and cap, and no two rows answer one input differently.
 
-## L-059  areas: tooling, scripts, security  seen: 1  status: candidate
+## L-059  areas: tooling, scripts, security  seen: 2  status: ratified
 Tickets EZD-256, EZD-174, EZD-279, 2026-11-04
 Mistake: a failure path was hidden or made a wrong state (a read error treated as an empty lock, a cleanup skipped when a call threw, a hook that exits 1 and lets the call through).
 Cause: the plan described the success path and named no outcome for a throw or a load failure.
@@ -498,7 +498,7 @@ Rule: for each step that reads, deletes, loads a module or calls a helper that c
 Check: the reviewer forces each throw in a test; the plan-checker looks for an outcome per failing call.
 Plan check: every I/O or import step has a stated outcome for an error other than not-found, and a guard fails closed.
 
-## L-060  areas: migrations, ui, testing  seen: 1  status: candidate
+## L-060  areas: migrations, ui, testing  seen: 1  status: ratified
 Tickets EZD-117a, EZD-117b, 2026-11-05
 Mistake: a new migration sorted before develop's newest, and new links and icon buttons were under the 44 px touch target.
 Cause: the plan named the migration by a fixed timestamp and listed the controls without the touch-target list.
@@ -506,10 +506,41 @@ Rule: a plan that adds a migration says its timestamp is taken after the newest 
 Check: the dev push must not need --include-all; the touch-target test covers every control.
 Plan check: each new migration says it follows develop's newest, and each new interactive control is in the tap-area list with a test.
 
-## L-061  areas: security, api, tooling  seen: 1  status: candidate
+## L-061  areas: security, api, tooling  seen: 1  status: ratified
 Tickets EZD-117a, EZD-256, EZD-279, 2026-11-04
 Mistake: input or path forms that the code did not bound got through (a cursor value the database cast rejects, a symlinked folder followed, a glob class folded wrongly).
 Cause: the plan fixed the cases found and not the whole class.
 Rule: for an input that reaches a database cast, a path or a pattern, the plan states the bound or form for the class (type range, no link followed, case-fold applied after parsing) and has a Tests row with a boundary value and a link or class case.
 Check: the security-reviewer tries the boundary value; the plan-checker finds a bound for each input class.
 Plan check: every input that reaches SQL, the file system or a pattern has its bound stated and a boundary test row.
+- EZD-120a lessons: list every gate-wide registry a new table/trigger/route/error report must join (one-table-per-file check, SEEDED_BY_TRIGGER, MONEY_ROUTE_CASES, error-alert lock); pick seq/counter columns as integer when the interface types them as number (harness returns bigint as string).
+EZD-238 · 2026-11-05 · When a plan matches ids across objects, state how the dependency compares them (EZD-202 compares ids lower-cased); EZD-238 needed Q-0595 (a).
+Plan-gap lesson: put the module of every shared type (Change, Objects, OutboxStorage) in section 3, and say what each control method (retry, flush) does to state and drain timing.
+Plan gap (EZD-120b): for every storage write the sync engine makes, state where the change is held when the write fails, replay order in retry(), and that a saved result is stored before anything is sent again.
+
+## L-062  areas: data-model, testing  seen: 1  status: ratified
+Tickets EZD-202, EZD-120b, 2026-11-05
+Mistake: plans' Tests rows named timing, ordering and race cases loosely (counts, "at most one in flight", "next 2,000 ms", a put failing during an await), so tests passed on nothing or dropped a planned case, and the drain race needed an extra round (Q-0597).
+Cause: the Tests row did not state the interleaving (which await is held, which call rejects meanwhile) or the exact expected counts and orders.
+Rule: for every async or ordered behaviour, the plan's Tests row names the held await, the event injected during it, and the exact expected counts or call order; a row that cannot fail on the old behaviour is rewritten.
+Check: each timing or race row names a held promise or fake timer and an assertion that fails without the fix.
+Plan check: grep the Tests rows for "at most", "before", "after" and confirm each names the interleaving.
+Plan lint: when a plan adds an entry to a page, route or path list, grep that list's users for hard-coded counts (toBe(N), EXPECTED_* = N, 'N pages' in titles/comments) and list each as a test-author edit with new value and source. (EZD-120c, E7/E8)
+EZD-203 plan-gap round 1 (2026-11-05): say up front whether a crossing is a join (00e Join, Q-0570); a migration never deep-copies untrusted stored data, it copies only the levels the step changes.
+EZD-120d: when a plan writes literal model objects (test data), build them from the geometry package defaults (DEFAULT_WALL_LAYERS, CURRENT_SCHEMA_VERSION), not hand-listed fields, so a later schema change cannot make the server reject them.
+EZD-120d: when a helper has an exception path (a rethrown framework error) or loads a module lazily, the plan states up front what happens when it rejects or the load fails, and how a test reaches that path without a DOM.
+A fix ticket for a spec in another phase must name node scripts/ui-run.mjs <T> <spec> as its proof, because the ticket gate (phase scope plus @smoke) never runs that spec. A touch-target check copied from an @ipad test must keep the tag or be dropped, because the bell and avatar are 44 px only under (any-pointer: coarse). (EZD-343)
+When a cookie is renamed, the plan should decide up front how the old-named cookies get cleared on the scheme where they are no longer read, not leave them to expire.
+
+## L-063  areas: auth, security  seen: 2  status: ratified
+When a plan changes a cookie's name or attributes, list the old-name cookies too: say whether the request gate deletes stale and planted copies, and give a test row for each (EZD-120d planted marker; EZD-342 old plain sb- cookies left after deploy).
+Plan check: does the plan name what happens to the cookie under its previous name and under a planted Domain= copy?
+EZD-346: when a check compares against request.nextUrl.origin, a test helper builds its expected origin with new NextRequest(url).nextUrl.origin, not new URL(url).origin (Next rewrites 127.0.0.1 and [::1] to localhost; Playwright baseURL is 127.0.0.1).
+
+## L-064  areas: testing, ui  seen: 2  status: candidate
+Tickets EZD-202 and EZD-343, 2026-11-06
+Mistake: EZD-202's tests wrote inline object data where the plan's fixture row said to copy v1.json objects, and EZD-343's E1 touch-target test had no run proof because the gate's e2e scope excludes phase 1 specs, so it failed when run.
+Cause: the plan named the fixture's content but not its source file, and named a browser test without saying which gate scope runs it.
+Rule: a Tests row names the file a fixture is copied from and what changes in the copy (ids, level), and a browser test row names the Playwright project or tag that runs it and the command that proves it passes.
+Check: the plan review lists each fixture row's source file and each browser test's project or tag.
+Plan check: every fixture row names its source file and edits; every e2e row names its project or tag and run command.
