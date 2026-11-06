@@ -18613,6 +18613,59 @@
     "AC-EZD-345-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-346",
+   "title": "Fix: every state-changing /api request is same-origin (one check in proxy.ts)",
+   "phase": 3,
+   "depends_raw": "EZD-120a, EZD-342",
+   "spec_ref": "Q-0599; spec 11 Security and audit; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-342"
+   ],
+   "acs": [
+    "AC-EZD-346-1",
+    "AC-EZD-346-2",
+    "AC-EZD-346-3",
+    "AC-EZD-346-4"
+   ],
+   "acs_source": "done-when",
+   "build_position": 602
+  },
+  {
+   "id": "EZD-347",
+   "title": "Fix: the offline banner shows its cloud_off icon",
+   "phase": 3,
+   "depends_raw": "EZD-015a, EZD-120c",
+   "spec_ref": "D-088; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-015a",
+    "EZD-120c"
+   ],
+   "acs": [
+    "AC-EZD-347-1",
+    "AC-EZD-347-2",
+    "AC-EZD-347-3"
+   ],
+   "acs_source": "done-when",
+   "build_position": 603
   }
  ],
  "recut_applied": "2026-10-20"
