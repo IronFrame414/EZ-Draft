@@ -4060,7 +4060,6 @@
     "Model working copy (EZD-120a)",
     "Model schema (EZD-202)"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205a",
