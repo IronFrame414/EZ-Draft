@@ -5,7 +5,8 @@
 // Sign out asks `beforeSignOut` first (the Settings unsaved-edits check) and signs out only on true. The My
 // profile dialog is a lazy module (app/src/lazy/my-profile/), fetched when the menu opens.
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { signOutOnDevice } from '../../lib/auth/device-sign-out';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { useT } from '../../lib/messages';
 import { signOut } from '../../server/auth/actions';
@@ -13,6 +14,7 @@ import touch from '../../styles/touch.module.css';
 import { confirmSignOut } from '../auth/SignOutButton';
 import { Icon } from '../icon/Icon';
 import { Menu, MenuItem, MenuSeparator } from '../menu/Menu';
+import { useOutboxSignOut } from '../outbox/OutboxDrain';
 import { useToast } from '../states/ToastProvider';
 import styles from './account.module.css';
 
@@ -65,20 +67,30 @@ export function AvatarMenu({
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [, startTransition] = useTransition();
+  const { check, dialog } = useOutboxSignOut();
+  const checkingRef = useRef(false);
 
   const onCompanySettings = () => {
     if (onNavigate) onNavigate('/settings');
     else router.push('/settings');
   };
 
+  // EZD-120d Decided "Sign-out order": the caller's check, then queued edits are sent first or asked about,
+  // then the sign-out. A press during the check is ignored.
   const onSignOut = () => {
-    void confirmSignOut(beforeSignOut).then((ok) => {
-      if (ok) {
+    if (checkingRef.current) return;
+    checkingRef.current = true;
+    void (async () => {
+      try {
+        if (!(await confirmSignOut(beforeSignOut))) return;
+        if (!(await check())) return;
         startTransition(async () => {
-          await signOut();
+          await signOutOnDevice(signOut);
         });
+      } finally {
+        checkingRef.current = false;
       }
-    });
+    })();
   };
 
   const itemClass = `${styles.menuItem} ${touch.target}`;
@@ -144,6 +156,7 @@ export function AvatarMenu({
         </MenuItem>
       </Menu>
       {profileOpen ? <ProfileLoader onClose={() => setProfileOpen(false)} /> : null}
+      {dialog}
     </>
   );
 }

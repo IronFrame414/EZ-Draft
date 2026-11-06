@@ -2,7 +2,7 @@
 
 PR: https://github.com/IronFrame414/EZ-Draft/pull/5
 Develop at PR: 0c42907dd3bcc3d860265511fd2e47cf6d324b11
-Merged: no
+Merged: yes
 
 Auto-merge: NOT enabled. `gh pr merge 5 --auto --merge` was denied by the session's permission layer (no approval surface). Josh enables auto-merge or merges by hand.
 

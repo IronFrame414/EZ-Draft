@@ -73,7 +73,7 @@ describe('EZD-012a ToolRail markup', () => {
     expect(count(html, '<svg')).toBe(3);
     expect(count(html, 'width="21"')).toBe(3);
     for (const n of ['arrow_selector_tool', 'kitchen', 'help']) {
-      expect(html).toContain(`<use href="/icons/sprite.svg#${n}"`);
+      expect(html).toContain(`<use href="#ez-icon-${n}"`);
     }
     expect(count(html, 'role="separator"')).toBe(1);
     expect(html).toMatch(/<span(?=[^>]*data-rail="separator")(?=[^>]*role="separator")[^>]*>/);

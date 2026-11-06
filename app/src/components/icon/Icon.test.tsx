@@ -6,7 +6,7 @@ import { Icon } from './Icon';
 describe('EZD-010b Icon component', () => {
   it('T10 (a): markup is exactly the sprite reference at size 20', () => {
     expect(renderToStaticMarkup(<Icon name="expand_more" size={20} />)).toBe(
-      '<svg width="20" height="20" aria-hidden="true" focusable="false" fill="currentColor"><use href="/icons/sprite.svg#expand_more"></use></svg>',
+      '<svg width="20" height="20" aria-hidden="true" focusable="false" fill="currentColor"><use href="#ez-icon-expand_more"></use></svg>',
     );
   });
 

@@ -7,6 +7,10 @@ const cmd = String(input.tool_input?.command || '');
 const raw = cmd.replace(/\s+/g, ' ');
 // Quoted text (commit messages, echo strings) is ignored when matching commands.
 const c = raw.replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""');
+// EZD-316 D16: a unit's own orchestrator session may run exactly the absolute github-ops path; every other release call stays denied.
+const RELEASE_RE = agent === 'orchestrator'
+  ? /\bpnpm\s+(run\s+)?release:|\bnode\s+(?!\/Users\/josh\/Projects\/ezdraft\/scripts\/release\/github-ops\.mjs(?: |$))\S*scripts[\\/]release[\\/]/
+  : /\bpnpm\s+(run\s+)?release:|\bnode\s+\S*scripts[\\/]release[\\/]/;
 
 const always = [
   [/\bgit\b[^;&|]*\bpush\b[^;&|]*(--force\b|-f\b|--force-with-lease|\+)/, 'Force push is not allowed.'],
@@ -19,8 +23,8 @@ const always = [
   [/\b(npm|pnpm|yarn)\s+publish\b/, 'Publishing packages is not allowed.'],
   [/\bsupabase\b.*\b(db push|link)\b/, 'Remote database changes are Josh\'s. Use the local Supabase only.'],
   [/(cat|type|more|less|head|tail|bat)\s+[^|;&]*\.env(?!\.example)\b/i, 'Reading .env files is not allowed.'],
-  [/\bgh\s+pr\s+merge\b(?![^;&|]*--auto\b)/, 'Agents merge the phase PR only with --auto, so GitHub waits for the required gate check (Q-0261).'],
-  [/\bpnpm\s+(run\s+)?release:|\bnode\s+\S*scripts[\\/]release[\\/]/, 'Release scripts are Josh\'s; agents never run them (EZD-023b).'],
+  [/\bgh\s+pr\s+merge\b(?![^;&|]*--disable-auto\b)/, 'Sessions never merge the phase PR or turn on auto-merge; the launcher merges it after its post-audit security check (Q-0594). Allowed: gh pr merge <url> --disable-auto.'],
+  [RELEASE_RE, 'Release scripts are Josh\'s; agents never run them (EZD-023b).'],
   [/\bnode\s+\S*scripts[\\/](run|budget)\.mjs/, 'The launcher and the budget script are run by Josh, never from inside a session.'],
   [/(^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*=\S*\s+)*claude(\s|$)/,'Do not start claude from inside a session (no nested sessions; PROCESS.md rule 15). The launcher starts sessions.'],
 ];

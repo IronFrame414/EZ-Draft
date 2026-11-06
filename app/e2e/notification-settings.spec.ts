@@ -15,6 +15,7 @@ import {
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
+import { appOriginHeaders } from '../test-harness/e2e/same-origin';
 
 const KINDS = [
   'client_response',
@@ -63,7 +64,10 @@ async function startAt(page: Page, signInAs: (email: string) => Promise<unknown>
 }
 
 async function send(page: Page, kind: string, params: Record<string, string> = {}) {
-  const res = await page.request.post('/api/dev/notifications', { data: { kind, params } });
+  const res = await page.request.post('/api/dev/notifications', {
+    data: { kind, params },
+    headers: appOriginHeaders(),
+  });
   expect(res.status()).toBe(201);
   return ((await res.json()) as { notification: { id: string } }).notification.id;
 }

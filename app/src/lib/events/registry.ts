@@ -92,7 +92,8 @@ export interface EventPayloads {
   'lock.auto_released': Record<string, unknown>;
   'lock.request_declined': Record<string, unknown>;
   'lock.conflict': Record<string, unknown>;
-  'model.saved': Record<string, unknown>;
+  // EZD-120a Build step 5: the ids of the objects one save wrote.
+  'model.saved': { objectIds: string[] };
   'import.completed': Record<string, unknown>;
   'import.ready': Record<string, unknown>;
   'reference.version_uploaded': Record<string, unknown>;

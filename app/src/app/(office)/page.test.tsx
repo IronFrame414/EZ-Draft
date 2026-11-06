@@ -15,6 +15,7 @@ import { PERMISSION_KEYS, type PermissionKey } from '../../lib/permissions/catal
 import type { PermissionContext } from '../../server/permissions';
 
 vi.mock('next/server', () => ({ connection: async () => {} }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('../../server/auth/session', () => ({
   requireSession: async () => ({ authUserId: 'a1', appUserId: 'u1', email: 'josh@example.com' }),
 }));

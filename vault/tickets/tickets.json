@@ -3912,7 +3912,7 @@
    "depends_on": [
     "EZD-120a"
    ],
-   "build_position": 92,
+   "build_position": 90,
    "acs": [
     "AC-EZD-202-1",
     "AC-EZD-202-2",
@@ -3948,9 +3948,7 @@
    "architecture": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-202",
-    "EZD-201",
-    "EZD-238"
+    "EZD-202"
    ],
    "build_position": 95,
    "acs": [
@@ -5083,7 +5081,7 @@
    "depends_on": [
     "EZD-202"
    ],
-   "build_position": 93,
+   "build_position": 91,
    "acs": [
     "AC-EZD-238-1",
     "AC-EZD-238-2",
@@ -17797,6 +17795,7 @@
    ],
    "mockups": [],
    "architecture": [],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [],
@@ -17811,7 +17810,7 @@
    "id": "EZD-317",
    "phase": 1,
    "title": "Fix: a sandboxed command cannot run a writable copy of an excluded script outside the sandbox",
-   "depends_raw": "",
+   "depends_raw": "EZD-316",
    "spec_ref": "Q-0541, D-021, rules 17, 18",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
@@ -17826,7 +17825,9 @@
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
-   "depends_on": [],
+   "depends_on": [
+    "EZD-316"
+   ],
    "build_position": 575,
    "acs": [
     "AC-EZD-317-1",
@@ -18353,8 +18354,473 @@
    "acs": [
     "AC-EZD-336-1",
     "AC-EZD-336-2",
-    "AC-EZD-336-3",
-    "AC-EZD-336-4"
+    "AC-EZD-336-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-337",
+   "phase": 1,
+   "title": "Fix: a phase PR merges unattended only when what landed after the phase audit has had a security pass",
+   "depends_raw": "EZD-336",
+   "spec_ref": "Q-0112, decision 2026-11-05 a57931ba, rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-336"
+   ],
+   "build_position": 593,
+   "acs": [
+    "AC-EZD-337-1",
+    "AC-EZD-337-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-338",
+   "phase": 3,
+   "title": "Fix: the Projects page touch test counts the project cards that EZD-120c made links",
+   "depends_raw": "EZD-330, EZD-120c",
+   "spec_ref": "EZD-330 T1, T2; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Test scope (Q-0006)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-330",
+    "EZD-120c"
+   ],
+   "build_position": 594,
+   "acs": [
+    "AC-EZD-338-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-339",
+   "phase": 3,
+   "title": "Fix: the EZD-118 New project wizard tests B3 and B4 follow Create into the editor",
+   "depends_raw": "EZD-118, EZD-120c",
+   "spec_ref": "EZD-118 AC-4, AC-6; Q-0500; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-120c"
+   ],
+   "build_position": 595,
+   "acs": [
+    "AC-EZD-339-1",
+    "AC-EZD-339-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-340",
+   "phase": 3,
+   "title": "Fix: the EZD-136 disclaimer test passes on the /dev/saves test page (text follows the disclaimer)",
+   "depends_raw": "EZD-136, EZD-120d",
+   "spec_ref": "EZD-136 done-when; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-136",
+    "EZD-120d"
+   ],
+   "build_position": 596,
+   "acs": [
+    "AC-EZD-340-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-341",
+   "phase": 3,
+   "title": "Fix: the projects-settings entry stays within its 200 KB size budget",
+   "depends_raw": "EZD-020, EZD-120c, EZD-120d",
+   "spec_ref": "EZD-020 E4; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Error reporting (EZD-024)",
+    "Dependencies",
+    "Performance check (EZD-017)",
+    "Entry contents and bundle report (EZD-020)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-020",
+    "EZD-120c",
+    "EZD-120d"
+   ],
+   "build_position": 597,
+   "acs": [
+    "AC-EZD-341-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-342",
+   "phase": 3,
+   "title": "Fix: every cookie the app sets is host-only by name (`__Host-` prefix on https)",
+   "depends_raw": "EZD-007c, EZD-007d, EZD-120d",
+   "spec_ref": "Q-0600; Q-0599; spec 11 Security and audit; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security and audit"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Sign-out and app-wide drain (EZD-120d)",
+    "Password sign-in (EZD-033)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-007c",
+    "EZD-007d",
+    "EZD-120d"
+   ],
+   "build_position": 598,
+   "acs": [
+    "AC-EZD-342-1",
+    "AC-EZD-342-2",
+    "AC-EZD-342-3",
+    "AC-EZD-342-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-343",
+   "phase": 3,
+   "title": "Fix: the EZD-289 home-settings test E1 finds the Settings link with the owner's 200 seed projects",
+   "depends_raw": "EZD-289, EZD-120c, EZD-335",
+   "spec_ref": "EZD-289; Q-0601; rule 17",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Entry points",
+    "spec/sections/10-permissions-and-settings.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-289",
+    "EZD-120c",
+    "EZD-335"
+   ],
+   "build_position": 599,
+   "acs": [
+    "AC-EZD-343-1",
+    "AC-EZD-343-2",
+    "AC-EZD-343-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-344",
+   "phase": 1,
+   "title": "Fix: the gate runs a worktree's code with an exact environment, so builder code cannot reach Josh's credentials",
+   "depends_raw": "",
+   "spec_ref": "Q-0548; Q-0603; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 600,
+   "acs": [
+    "AC-EZD-344-1",
+    "AC-EZD-344-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-345",
+   "phase": 1,
+   "title": "Build system: commands outside the unit sandbox trust no git state the sandbox can write",
+   "depends_raw": "EZD-316",
+   "spec_ref": "Q-0548; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-316"
+   ],
+   "build_position": 601,
+   "acs": [
+    "AC-EZD-345-1",
+    "AC-EZD-345-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-346",
+   "title": "Fix: every state-changing /api request is same-origin (one check in proxy.ts)",
+   "phase": 3,
+   "depends_raw": "EZD-120a, EZD-342",
+   "spec_ref": "Q-0599; spec 11 Security and audit; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-342"
+   ],
+   "acs": [
+    "AC-EZD-346-1",
+    "AC-EZD-346-2",
+    "AC-EZD-346-3",
+    "AC-EZD-346-4"
+   ],
+   "acs_source": "done-when",
+   "build_position": 602
+  },
+  {
+   "id": "EZD-347",
+   "title": "Fix: the offline banner shows its cloud_off icon",
+   "phase": 3,
+   "depends_raw": "EZD-015a, EZD-120c",
+   "spec_ref": "D-088; rule 17",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Design tokens, fonts and icons",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)",
+    "PWA (EZD-013)",
+    "Root config files",
+    "Machine checks"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-015a",
+    "EZD-120c"
+   ],
+   "acs": [
+    "AC-EZD-347-1",
+    "AC-EZD-347-2",
+    "AC-EZD-347-3"
+   ],
+   "acs_source": "done-when",
+   "build_position": 603
+  },
+  {
+   "id": "EZD-348",
+   "title": "Fix: the EZD-120d B4 sign-out test passes in the CI gate run",
+   "phase": 3,
+   "depends_raw": "EZD-120d, EZD-342",
+   "spec_ref": "phase 3 PR CI gate failure (run 42183681444); rule 17",
+   "spec_files": [
+    "spec/sections/03a-working-copy-and-saves.md#Working copy and saves"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120d",
+    "EZD-342"
+   ],
+   "acs": [
+    "AC-EZD-348-1",
+    "AC-EZD-348-2"
+   ],
+   "build_position": 604,
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-349",
+   "phase": 4,
+   "title": "Fix: every 401 from requireApiSession carries Cache-Control: no-store",
+   "depends_raw": "EZD-110a",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-110a"
+   ],
+   "build_position": 605,
+   "acs": [
+    "AC-EZD-349-1",
+    "AC-EZD-349-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-350",
+   "phase": 4,
+   "title": "Fix: tests that pin app-wide lists run in every scoped gate",
+   "depends_raw": "EZD-292",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-292"
+   ],
+   "build_position": 606,
+   "acs": [
+    "AC-EZD-350-1",
+    "AC-EZD-350-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-351",
+   "phase": 4,
+   "title": "Fix: rls.audit T18 and handlers T19 do not count another worktree's database rows",
+   "depends_raw": "EZD-110b",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-110b"
+   ],
+   "build_position": 607,
+   "acs": [
+    "AC-EZD-351-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-352",
+   "phase": 4,
+   "title": "Fix: the Realtime failover check does not call a failed database send a silent gap",
+   "depends_raw": "EZD-293",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-293"
+   ],
+   "build_position": 608,
+   "acs": [
+    "AC-EZD-352-1",
+    "AC-EZD-352-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-353",
+   "phase": 4,
+   "title": "Fix: captureTraffic does not block the page's loopback Realtime websocket",
+   "depends_raw": "EZD-117a, EZD-117b",
+   "spec_ref": "rule 17 (overdue debt)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-117a",
+    "EZD-117b"
+   ],
+   "build_position": 609,
+   "acs": [
+    "AC-EZD-353-1",
+    "AC-EZD-353-2"
    ],
    "acs_source": "done-when"
   }

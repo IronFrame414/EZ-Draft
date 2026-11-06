@@ -37,20 +37,25 @@ const startSleeper = () => spawn(process.execPath, ['-e', 'setInterval(() => {},
 const isDeadText = (t) => !isLive(Number(t) || 0);
 
 const FAKE_LOCAL = [
-  "import { appendFileSync, existsSync } from 'node:fs';",
-  'appendFileSync(process.env.STOP_OUT, `${process.argv[2]} ${process.env.EZD_LANE}\\n`);',
+  "import { appendFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';",
+  "import os from 'node:os';",
+  "import path from 'node:path';",
+  // EZD-344: the gate gives its children an exact environment, so knobs and file names travel through os.tmpdir() (the gate passes TMPDIR).
+  "appendFileSync(path.join(os.tmpdir(), 'stop-out.txt'), `${process.argv[2]} ${process.env.EZD_LANE}\\n`);",
   'const t = Date.now();',
-  "if (process.argv[2] === 'stop-lane' && process.env.EZD_LANE === '1' && process.env.HOLD_STOP === '1') while (!existsSync(process.env.RELEASE_FILE) && Date.now() - t < 60000) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);",
+  // The held stop is lane 1's, started by the gate of lane 2 or 3, so it reads the knob files of every gate lane.
+  "const holdStop = readdirSync(os.tmpdir()).filter((f) => /^fake-knobs-\\d+\\.json$/.test(f)).some((f) => JSON.parse(readFileSync(path.join(os.tmpdir(), f), 'utf8')).HOLD_STOP === '1');",
+  "if (process.argv[2] === 'stop-lane' && process.env.EZD_LANE === '1' && holdStop) while (!existsSync(path.join(os.tmpdir(), 'release')) && Date.now() - t < 60000) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);",
   '',
 ].join('\n');
 const HOLD =
-  "const fs=require('fs');const t=Date.now();if(process.env.HOLD_TEST==='1'){while(!fs.existsSync(process.env.RELEASE_FILE)&&Date.now()-t<60000)Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20)}";
+  "const fs=require('fs');const os=require('os');const path=require('path');const t=Date.now();const kf=path.join(os.tmpdir(),'fake-knobs-'+(process.env.EZD_LANE||'0')+'.json');const knobs=fs.existsSync(kf)?JSON.parse(fs.readFileSync(kf,'utf8')):{};if(knobs.HOLD_TEST==='1'){while(!fs.existsSync(path.join(os.tmpdir(),'release'))&&Date.now()-t<60000)Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20)}";
 
 // EZD-331: the fixture gates run their checks through a fixture-local npm (no machine npm, no PATH lookup of node).
 const FAKE_NPM = (fixtureDir) =>
   [
     '#!/bin/sh',
-    'printf \'%s\\n\' "$*" >> "$NPM_CALLS"',
+    'printf \'%s\\n\' "$*" >> "$TMPDIR/npm-calls.txt"',
     'case "$1 $2" in',
     `  'run test') exec "${process.execPath}" "${path.join(fixtureDir, 'hold.cjs')}" ;;`,
     "  'run typecheck'|'run lint'|'run build') exit 0 ;;",
@@ -93,17 +98,25 @@ describe('EZD-256 dead lock take-over', { timeout: 300000 }, () => {
     tmp = null;
     fixture = null;
   };
-  const envFor = (extra = {}) =>
-    cleanEnv({
+  // EZD-344: HOLD_TEST and HOLD_STOP reach the fixture children through fake-knobs-<lane>.json in tmp, not the environment.
+  const KNOB_KEYS = ['HOLD_TEST', 'HOLD_STOP'];
+  const writeKnobs = (extra) => {
+    const file = path.join(tmp, `fake-knobs-${extra.EZD_LANE || '0'}.json`);
+    const knobs = Object.fromEntries(KNOB_KEYS.filter((k) => k in extra).map((k) => [k, extra[k]]));
+    if (Object.keys(knobs).length) writeFileSync(file, JSON.stringify(knobs));
+    else rmSync(file, { force: true });
+  };
+  const envFor = (extra = {}) => {
+    writeKnobs(extra);
+    const rest = Object.fromEntries(Object.entries(extra).filter(([k]) => !KNOB_KEYS.includes(k)));
+    return cleanEnv({
       TMP: tmp,
       TEMP: tmp,
       TMPDIR: tmp,
-      STOP_OUT: path.join(tmp, 'stop-out.txt'),
-      RELEASE_FILE: path.join(tmp, 'release'),
-      NPM_CALLS: path.join(tmp, 'npm-calls.txt'),
       ...(fixture ? { PATH: `${path.join(fixture, 'bin')}${path.delimiter}${process.env.PATH}` } : {}),
-      ...extra,
+      ...rest,
     });
+  };
   const runGate = (extra = {}) => {
     const r = spawnSync(process.execPath, [path.join(repo, 'scripts', 'gate.mjs'), fixture], {
       encoding: 'utf8',
@@ -117,7 +130,7 @@ describe('EZD-256 dead lock take-over', { timeout: 300000 }, () => {
   const stopLines = () => (existsSync(stopFile()) ? readFileSync(stopFile(), 'utf8').split('\n').filter(Boolean) : []);
   const L = () => path.join(tmp, 'x.lock');
 
-  // Starts two gates one after the other; waits for the first close (at most 20000 ms), writes RELEASE_FILE, awaits the second.
+  // Starts two gates one after the other; waits for the first close (at most 20000 ms), writes the release file, awaits the second.
   const round = async (extras) => {
     const kids = extras.map((extra) => {
       const child = spawn(process.execPath, [path.join(repo, 'scripts', 'gate.mjs'), fixture], {

@@ -361,7 +361,7 @@ describe('EZD-166 db:up restarts the stack on config change', () => {
     writeFileSync(path.join(folder, 'README.md'), 'x\n');
     git(folder, 'add', 'README.md');
     git(folder, 'commit', '-m', 'init');
-    const wt = path.join(folder, 'wt');
+    const wt = path.join(folder, '.claude', 'worktrees', 'wt'); // EZD-345 D3: linked worktrees live under <main>/.claude/worktrees/
     git(folder, 'worktree', 'add', '--detach', wt);
 
     const mainReal = realpathSync(folder);

@@ -104,7 +104,7 @@ describe('EZD-011b EditorHeader', () => {
     expect(classTokens(nameHit.open)).toEqual([styles.name]);
     const nameEl = outerAt(html, nameHit.index);
     expect(text(nameEl)).toBe('P1');
-    expect(nameEl).toContain('<use href="/icons/sprite.svg#expand_more"');
+    expect(nameEl).toContain('<use href="#ez-icon-expand_more"');
     expect(nameEl).toContain('width="18"');
 
     const subHit = findByClass(html, styles.subtitle)!;

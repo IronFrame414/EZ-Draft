@@ -53,6 +53,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"edit_lock": {
+                  Row: {
+                    "lock_epoch": number,"project_id": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "lock_epoch"?: number,"project_id": string,"tenant_id": string
+                  }
+                  Update: {
+                    "lock_epoch"?: number,"project_id"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "edit_lock_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "edit_lock_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"error_alert": {
                   Row: {
                     "email_claim": string | null,"emailed_at": string | null,"fingerprint": string,"first_seen_at": string,"id": string,"kind": string,"last_seen_at": string,"occurrences": number,"project_id": string | null,"ref": string | null,"source": string,"tenant_id": string | null,"title": string
@@ -183,6 +209,70 @@ isOneToOne: false
       referencedColumns: ["id","tenant_id"]
     },{
       foreignKeyName: "membership_project_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"model_object": {
+                  Row: {
+                    "created_at": string,"data": NonNullable<Json>,"deleted": boolean,"object_id": string,"project_id": string,"schema_version": number,"tenant_id": string,"type": string,"updated_at": string,"updated_by": string | null,"updated_seq": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"data": NonNullable<Json>,"deleted"?: boolean,"object_id": string,"project_id": string,"schema_version": number,"tenant_id": string,"type": string,"updated_at"?: string,"updated_by"?: string | null,"updated_seq": number
+                  }
+                  Update: {
+                    "created_at"?: string,"data"?: NonNullable<Json>,"deleted"?: boolean,"object_id"?: string,"project_id"?: string,"schema_version"?: number,"tenant_id"?: string,"type"?: string,"updated_at"?: string,"updated_by"?: string | null,"updated_seq"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "model_object_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "model_object_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "model_object_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"model_version": {
+                  Row: {
+                    "cleanup_shown_at": string | null,"created_at": string,"created_by": string | null,"id": string,"is_sent": boolean,"is_snapshot": boolean,"keep": boolean,"label": string | null,"model_json": NonNullable<Json>,"parent_version_id": string | null,"preview_path": string | null,"project_id": string,"schema_version": number,"sent_at": string | null,"sent_to": string | null,"tenant_id": string,"version_no": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json": NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id": string,"schema_version": number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id": string,"version_no"?: number | null
+                  }
+                  Update: {
+                    "cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json"?: NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id"?: string,"schema_version"?: number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id"?: string,"version_no"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "model_version_parent_version_id_fkey"
+      columns: ["parent_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "model_version_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "model_version_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
@@ -382,6 +472,9 @@ isOneToOne: false
             "count_projects":
 { Args: { "p_search"?: string }; Returns: Json
                            },
+"create_checkpoint":
+{ Args: { "p_project": string }; Returns: string
+                           },
 "create_project":
 { Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
               "project_id": string,"tenant_id": string
@@ -511,6 +604,9 @@ isOneToOne: false
                            },
 "save_my_notification_settings":
 { Args: { "p_settings": Json }; Returns: undefined
+                           },
+"save_objects":
+{ Args: { "p_changes": Json,"p_lock_epoch": number,"p_project": string }; Returns: Json
                            },
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string

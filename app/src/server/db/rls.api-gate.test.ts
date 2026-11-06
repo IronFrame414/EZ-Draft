@@ -25,7 +25,8 @@ import { GATED_RPC_CALLS } from '../../../test-harness/rls/gate';
 const PRIVILEGE = '42501';
 const CREATED_BY_TEST = ['project', 'membership', 'membership_project'];
 // Seeded by the EZD-101 tenant trigger: exactly the four presets, checked separately.
-const SEEDED_BY_TRIGGER = ['role'];
+// model_object: one floor per project from the EZD-120a project trigger (M4)
+const SEEDED_BY_TRIGGER = ['role', 'model_object'];
 
 describe('EZD-006 API request gate', () => {
   let sql: Sql;

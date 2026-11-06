@@ -2,6 +2,7 @@
 // exported method of every route, in the plan's order. Each request is the success request of that route's own
 // route.test.ts unless the plan says otherwise; the status is the plan's (200 when not shown). `after` keeps the
 // ids a later case needs in env.created. Test-only.
+import { randomUUID } from 'node:crypto';
 import { adminDb, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
@@ -247,6 +248,17 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
   },
   {
+    file: `${API}dev/model/[id]/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/dev/model/[id]/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/dev/model/${env.projectId}`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-120d: the checkpoint count; 200 { checkpoints } (no money)',
+  },
+  {
     file: `${API}settings/customers/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/settings/customers/route'),
@@ -380,5 +392,76 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: get('/api/projects/counts'),
     expectStatus: 200,
     note: 'EZD-117a: status tab counts only (no money)',
+  },
+  {
+    file: `${API}projects/[id]/objects/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/objects/route'),
+    // EZD-202 E1: the saved object is a valid wall on the project's first floor.
+    request: async (env) => {
+      const floor = await adminDb()
+        .from('model_object')
+        .select('object_id')
+        .eq('project_id', env.projectId)
+        .eq('type', 'floor')
+        .single();
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
+          method: 'POST',
+          headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+          body: JSON.stringify({
+            lockEpoch: 0,
+            changes: [
+              {
+                id: randomUUID(),
+                baseSeq: 0,
+                deleted: false,
+                type: 'wall',
+                schemaVersion: 1,
+                data: {
+                  geometry: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+                  status: 'new',
+                  level: floor.data?.object_id,
+                  attributes: {
+                    thickness: 4.5,
+                    thicknessSide: 'right',
+                    height: 96,
+                    topCutToCeiling: false,
+                    bearing: false,
+                  },
+                },
+              },
+            ],
+          }),
+        }),
+        params: { id: env.projectId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-120a: saves one object; 200 { objects: [{ id, updatedSeq }] } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/checkpoints/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/checkpoints/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/checkpoints`, {
+        method: 'POST',
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    note: 'EZD-120a: one checkpoint; 201 { version: { id } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/model/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/model/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/model`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-120b: the project and its objects; 200 ModelLoad (no money)',
   },
 ];

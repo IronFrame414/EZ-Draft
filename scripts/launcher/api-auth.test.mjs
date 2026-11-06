@@ -54,9 +54,10 @@ const fakeClaude = (root) => [
 function makeRoot() {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
-  for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs']) mkdirSync(at(d), { recursive: true });
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
+  copyFileSync(path.join(repo, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs, ledger.mjs and github-ops.mjs import it
   copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger('build EZD-999'));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
@@ -92,7 +93,7 @@ function initRepo(tmp) {
 const setBudget = (root, obj) => writeFileSync(root.at('vault/budget.json'), JSON.stringify(obj));
 const readBudget = (root) => JSON.parse(readFileSync(root.at('vault/budget.json'), 'utf8'));
 const budgetCli = (root, ...args) => spawnSync(process.execPath, [root.at('scripts/budget.mjs'), ...args], { encoding: 'utf8', timeout: 20000 });
-const runOnce = (root, env) => spawnSync(process.execPath, [root.at('scripts/run.mjs'), '--once'], { encoding: 'utf8', timeout: 20000, env });
+const runOnce = (root, env) => spawnSync(process.execPath, [root.at('scripts/run.mjs'), '--once'], { encoding: 'utf8', timeout: 20000, env: { ...env, EZD_GITHUB_OPS_HOME: root.at('ops-home') } });
 const why = (r) => `exit ${r.status}, signal ${r.signal}\n${r.stdout}\n${r.stderr}`;
 
 // What the run left behind: the fake's environment record, the in-flight record as the fake saw it, the cost rows and the raw log.

@@ -1,6 +1,8 @@
 // EZD-117a Step 12 (vault/plans/EZD-117a.md Decided "Card", "Strings"; section 3 card testids; S01 Controls,
-// Data shown; Q-0394; Q-0403): one project card. The thumbnail slot is empty (CSS grid only); the card is not a
-// link (no <a>, href, role, tabIndex or click handler).
+// Data shown; Q-0394; Q-0403): one project card. The thumbnail slot is empty (CSS grid only).
+// EZD-120c Build step 8 (vault/plans/EZD-120c.md; Q-0500; ARCH Entry points): the card is a link that opens the
+// project in the editor, without prefetch (no role, tabIndex or click handler).
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import type { ProjectSummary } from '../../lib/projects/projects';
 import { useT } from '../../lib/messages';
@@ -10,7 +12,9 @@ export function ProjectCard({ project }: { project: ProjectSummary }): ReactElem
   const t = useT();
   const hasItems = project.openItems > 0;
   return (
-    <article
+    <Link
+      href={'/projects/' + project.id}
+      prefetch={false}
       className={styles.card}
       data-testid="project-card"
       data-project-id={project.id}
@@ -55,6 +59,6 @@ export function ProjectCard({ project }: { project: ProjectSummary }): ReactElem
           </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

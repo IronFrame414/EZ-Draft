@@ -73,7 +73,8 @@ function recordsRoot({ stub, rules = [], copy = [], extraVault = {} }) {
 const records = (root, fn) => { const db = openRecords(root.at('records.db')); try { return fn(db); } finally { db.close(); } };
 const count = (root) => Number(git(root.tmp, 'rev-list', '--count', 'HEAD').stdout.trim());
 const porcelain = (root) => git(root.tmp, 'status', '--porcelain', '--untracked-files=all').stdout;
-const unitEnv = (root) => ({ EZD_GATE_CMD: `${process.execPath} ${root.at('gate-stub.mjs')}`, EZD_NO_PUSH: '1' });
+// No record folder means the D-021 verify and record steps are skipped (scripts/unit-steps.mjs D6).
+const unitEnv = (root) => ({ EZD_GATE_CMD: `${process.execPath} ${root.at('gate-stub.mjs')}`, EZD_NO_PUSH: '1', EZD_ROOT: root.tmp, EZD_GITHUB_OPS_HOME: '' });
 
 test('2.12 W1 proof: a launcher run of one build ticket makes exactly 1 commit, the feat commit, and records everything in the database', async () => {
   const root = recordsRoot({ stub: { next: [{ text: 'build EZD-900' }] }, rules: [{ prompt: '/build-ticket EZD-900', script: 'proof.mjs' }] });

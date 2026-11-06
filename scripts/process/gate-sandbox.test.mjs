@@ -1,5 +1,5 @@
 // D-008 (2026-11-02): scripts/gate.mjs stops with GATE SANDBOX STOP before any check when it cannot write .claude/agents
-// (the unit sandbox), and runs on when it can. Each test copies gate.mjs, gate-summary.mjs and gate-lock.mjs into a throwaway root.
+// (the unit sandbox), and runs on when it can. Each test copies gate.mjs, gate-summary.mjs, gate-lock.mjs and gate-env.mjs into a throwaway root.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -13,9 +13,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 function fixture() {
   const root = mkdtempSync(path.join(os.tmpdir(), 'ezd-gate-sandbox-'));
   mkdirSync(path.join(root, 'scripts'));
-  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
+  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
   mkdirSync(path.join(root, 'scripts/db'));
   copyFileSync(path.join(here, '..', 'db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
+  mkdirSync(path.join(root, 'vault/tools'), { recursive: true });
+  copyFileSync(path.join(here, '../..', 'vault/tools/security-paths.mjs'), path.join(root, 'vault/tools/security-paths.mjs'));
+  copyFileSync(path.join(here, '../..', 'vault/tools/trusted-git.mjs'), path.join(root, 'vault/tools/trusted-git.mjs')); // EZD-345 D16: gate.mjs and security-paths.mjs import it
   mkdirSync(path.join(root, '.claude/agents'), { recursive: true });
   const dir = path.join(root, 'work');
   mkdirSync(dir);

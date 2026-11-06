@@ -73,7 +73,7 @@ describe('EZD-015a state components markup', () => {
     expect(withRetry).toContain('role="alert"');
     expect(withRetry).toContain('data-state="error"');
     expect(withRetry).toContain(E['dev.messages.sample']);
-    expect(withRetry).toContain('<use href="/icons/sprite.svg#error">');
+    expect(withRetry).toContain('<use href="#ez-icon-error">');
     expect(count(withRetry, '<button')).toBe(1);
     expect(withRetry).toContain('type="button"');
     expect(withRetry).toContain(`>${E['common.retry']}</button>`);
@@ -92,7 +92,7 @@ describe('EZD-015a state components markup', () => {
     expect(view).toContain('data-state="offline"');
     expect(view).toContain(E['common.offline']);
     expect(E['common.offline']).toBe('Offline');
-    expect(view).toContain('<use href="/icons/sprite.svg#cloud_off">');
+    expect(view).toContain('<use href="#ez-icon-cloud_off">');
     const custom = text(
       wrap(<OfflineBannerView message="dev.messages.greeting" params={{ name: 'Ana' }} />),
     );
@@ -227,7 +227,7 @@ describe('EZD-015b toast and confirm markup', () => {
     );
     expect(btns[1]).toContain('aria-label="Close"');
     expect(btns[1]).toContain('title="Close"');
-    expect(parts[1]).toContain('<use href="/icons/sprite.svg#close"');
+    expect(parts[1]).toContain('<use href="#ez-icon-close"');
   });
 
   it('U21 providers', () => {

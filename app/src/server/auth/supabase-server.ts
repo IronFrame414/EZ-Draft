@@ -1,10 +1,14 @@
 // EZD-007c Step 3 (vault/plans/EZD-007c.md): the only session client server code uses to reach
 // Supabase. Every PostgREST request carries the API gate header (Q-0087 (ii); EZD-006 request gate).
+// EZD-342 (vault/plans/EZD-342.md; Q-0600): the cookie adapter names the session cookies from one awaited
+// jar.isHttps() answer: host-only prefixed on https (a plain name there is not read), unchanged on http; no Domain.
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
+import { appCookieName, readableCookies } from '../../lib/auth/cookie-names';
 import type { Database } from '../db/database.types';
 import { readPublicDbEnv, serverGateSecret } from '../db/env';
+import { requestIsHttps } from './request-cookies';
 
 export const API_GATE_HEADER = 'x-ezd-api-gate';
 
@@ -35,10 +39,7 @@ const nextHeadersJar: SessionCookieJar = {
       // Server Component: cookies are read-only here (C3).
     }
   },
-  async isHttps() {
-    const proto = (await headers()).get('x-forwarded-proto');
-    return (proto ?? '').split(',')[0].trim() === 'https';
-  },
+  isHttps: requestIsHttps,
 };
 
 export function createSessionClient(
@@ -50,12 +51,14 @@ export function createSessionClient(
     global: { headers: { [API_GATE_HEADER]: secret } },
     cookieOptions: SESSION_COOKIE_OPTIONS,
     cookies: {
-      getAll: () => jar.getAll(),
+      getAll: async () => readableCookies(await jar.getAll(), await jar.isHttps()),
       setAll: async (toSet) => {
         const secure = await jar.isHttps();
         for (const { name, value, options } of toSet) {
-          await jar.set(name, value, {
-            ...options,
+          const opts = { ...options };
+          delete opts.domain;
+          await jar.set(appCookieName(name, secure), value, {
+            ...opts,
             httpOnly: true,
             sameSite: 'lax',
             path: '/',

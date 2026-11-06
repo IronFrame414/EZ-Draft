@@ -6,24 +6,43 @@
 // AC-EZD-289-1, -2; decisions/04 row 2026-11-02 (the text link lasts until the Projects page replaces the home
 // page). EZD-117b E6 (vault/plans/EZD-117b.md section 4): the link is the header gear `projects-settings`, Sign out
 // is the avatar menu.
+// EZD-343 (Q-0601): E1 runs on its own company (fixture H, 5 projects, an owner-preset member, ownerMember) because
+// tenant 1's 200 seed projects put card links below the 1000 px viewport. The header (Settings gear, bell, avatar) is
+// touch-checked on iPad by EZD-117b B13. Josh as owner stays in the done-when test.
 import {
   CREW_EMAIL,
   FOREMAN_EMAIL,
   JOSH_EMAIL,
+  cleanup,
+  closeHarness,
+  createTenant,
   expect,
   expectTouchTargets,
-  signInAsOwner,
   test,
 } from '../test-harness/e2e/test';
+import { ownerMember, seedFixtureH } from '../test-harness/projects-search-fixture';
 
 const pathOf = (url: string) => new URL(url).pathname;
 
 test.describe('EZD-289 home Settings link', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
   test('E1 owner: the Settings link is visible, passes the touch-target check, and one click opens Settings', async ({
     page,
+    signInAs,
   }) => {
-    await signInAsOwner(page);
+    const tenant = await createTenant();
+    await seedFixtureH(tenant);
+    const owner = await ownerMember(tenant);
+    await signInAs(owner.email);
     await page.goto('/');
+    await expect(page.getByTestId('project-card')).toHaveCount(5);
     const link = page.getByTestId('projects-settings');
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('aria-label', 'Company settings');

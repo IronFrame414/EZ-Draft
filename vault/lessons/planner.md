@@ -275,7 +275,7 @@ Rule: when a plan changes what a shared test helper does, it names the helper's 
 Check: the reviewer greps the helper's old option and old comment text and finds no caller or comment left.
 Plan check: a plan that changes a shared test helper lists each option and comment it removes or rewrites, and a grep command that finds none left.
 
-## L-034  areas: tooling, scripts, testing  seen: 1  status: ratified
+## L-034  areas: tooling, scripts, testing  seen: 2  status: ratified
 Tickets EZD-246, EZD-254, 2026-10-29
 Mistake: reviewers found added work beyond the plan twice (a sentence in a skill file; a fourth test and extra fixture helpers beyond the D6 shape) because the plan did not say the list was complete.
 Cause: the test table and exact-text blocks gave what to write but never said that nothing else is wanted.
@@ -414,7 +414,7 @@ Rule: when a plan adds an entry to a list the tests enumerate exactly (TABLE_GRA
 Check: grep the tests for the list's name and confirm each hit has a row.
 Plan check: every harness-list addition in the Interface section has a matching test edit row.
 
-## L-050  areas: testing  seen: 1  status: ratified
+## L-050  areas: testing  seen: 3  status: ratified
 Phase 1 wrap, 2026-11-04 (categories test-missing, test-weak; EZD-253, EZD-108, EZD-110a, EZD-110b, EZD-117a)
 Mistake: tests skipped checks the plan stated (icons draw, Cache-Control, a fall-through message) or passed for a wrong implementation (a per-caller queue passed the one-refresh test; 'A'.repeat(8201) failed JSON.parse before reaching the cap).
 Cause: the Tests table did not map each plan check to a row, and gave no input that only the correct code rejects.
@@ -473,3 +473,43 @@ When a plan adds a tap area, list every control in each region an existing touch
 A plan that adds controls on a phone or iPad screen sets their 44 px tap areas and a touch-target test up front (11 Accessibility; the EZD-117b review failed on this).
 A plan that adds an API route lists an E-row for each test or harness that counts every route (money/route-cases.ts, EZD-133 C1), with the new case written out.
 When a one-step dialog is cut out of a multi-column board, work out its width from the footer row's content (hint, buttons, gaps), not from an existing dialog's width.
+
+## L-057  areas: tooling, docs, testing  seen: 1  status: candidate
+Tickets EZD-316, EZD-332, EZD-201, 2026-11-05
+Mistake: a part of the change the plan named was left out (patch hunks, a comment about moved code, escape sequences in a test file).
+Cause: the plan described the change in prose, so no single list let the builder or reviewer tick every piece off.
+Rule: a plan ends with a done-when list of every artifact the change touches (each patch hunk by file and step, each comment or header that describes moved code, each literal the plan says to escape); a patch plan names the develop commit it applies to.
+Check: the reviewer walks the done-when list against the diff; the plan-checker fails a plan that moves code or issues a patch without that list.
+Plan check: the plan has a done-when list with one line per hunk, comment and escaped literal it mentions.
+
+## L-058  areas: tooling, testing, scripts  seen: 1  status: candidate
+Tickets EZD-172, EZD-174, 2026-11-04
+Mistake: the contract left a failure entry, a return value or a conflicting row undecided, and the code and tests disagreed with it.
+Cause: rows written at different times contradicted each other (L8 against C11), and failure output the gate asserts had no row.
+Rule: the interface contract lists every return value and every failure or log entry (exact text, caps, the case where its dependency is missing); the planner reads the rows pairwise and removes any two that give different answers for one input.
+Check: the reviewer compares each function's return with the contract row; the plan-checker pairs rows on the same input.
+Plan check: every function in the contract has a return value, every failure entry has its text and cap, and no two rows answer one input differently.
+
+## L-059  areas: tooling, scripts, security  seen: 1  status: candidate
+Tickets EZD-256, EZD-174, EZD-279, 2026-11-04
+Mistake: a failure path was hidden or made a wrong state (a read error treated as an empty lock, a cleanup skipped when a call threw, a hook that exits 1 and lets the call through).
+Cause: the plan described the success path and named no outcome for a throw or a load failure.
+Rule: for each step that reads, deletes, loads a module or calls a helper that can throw, the plan says the outcome on a non-not-found error and on a throw: what is cleaned up (in finally), which message is printed, and whether the check fails closed.
+Check: the reviewer forces each throw in a test; the plan-checker looks for an outcome per failing call.
+Plan check: every I/O or import step has a stated outcome for an error other than not-found, and a guard fails closed.
+
+## L-060  areas: migrations, ui, testing  seen: 1  status: candidate
+Tickets EZD-117a, EZD-117b, 2026-11-05
+Mistake: a new migration sorted before develop's newest, and new links and icon buttons were under the 44 px touch target.
+Cause: the plan named the migration by a fixed timestamp and listed the controls without the touch-target list.
+Rule: a plan that adds a migration says its timestamp is taken after the newest migration on develop at merge time; a plan that adds a link or icon button lists it in the touch-target list and names the test that renders it under expectTouchTargets.
+Check: the dev push must not need --include-all; the touch-target test covers every control.
+Plan check: each new migration says it follows develop's newest, and each new interactive control is in the tap-area list with a test.
+
+## L-061  areas: security, api, tooling  seen: 1  status: candidate
+Tickets EZD-117a, EZD-256, EZD-279, 2026-11-04
+Mistake: input or path forms that the code did not bound got through (a cursor value the database cast rejects, a symlinked folder followed, a glob class folded wrongly).
+Cause: the plan fixed the cases found and not the whole class.
+Rule: for an input that reaches a database cast, a path or a pattern, the plan states the bound or form for the class (type range, no link followed, case-fold applied after parsing) and has a Tests row with a boundary value and a link or class case.
+Check: the security-reviewer tries the boundary value; the plan-checker finds a bound for each input class.
+Plan check: every input that reaches SQL, the file system or a pattern has its bound stated and a boundary test row.

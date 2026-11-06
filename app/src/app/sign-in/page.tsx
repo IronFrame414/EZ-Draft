@@ -1,12 +1,14 @@
 // EZD-007f Step 6 (vault/plans/EZD-007f.md section 3; Q-0047; Q-0039 (c)): the sign-in page. Public
 // (EZD-007d PUBLIC_PATHS); a signed-in visitor goes to /. Language is the device's choice (getSignInLanguage).
-import { cookies } from 'next/headers';
+// EZD-342 (vault/plans/EZD-342.md; Q-0600): the email cookie is read through request-cookies.ts.
 import { redirect } from 'next/navigation';
 import { LanguageSwitch } from '../../components/auth/LanguageSwitch';
 import styles from '../../components/auth/auth.module.css';
 import { Disclaimer } from '../../components/disclaimer/Disclaimer';
+import { SIGN_IN_EMAIL_COOKIE } from '../../lib/auth/cookie-names';
 import { MessagesProvider } from '../../lib/messages';
 import { captchaConfig } from '../../server/auth/captcha-config';
+import { readAppCookie } from '../../server/auth/request-cookies';
 import { getSession } from '../../server/auth/session';
 import { getSignInLanguage } from '../../server/auth/sign-in-language';
 import { catalogFor } from '../../server/messages/catalog';
@@ -21,7 +23,7 @@ export default async function SignInPage({
   if (await getSession()) redirect('/');
   const language = await getSignInLanguage();
   const { e } = await searchParams;
-  const initialEmail = (await cookies()).get('ezd_sign_in_email')?.value || null;
+  const initialEmail = (await readAppCookie(SIGN_IN_EMAIL_COOKIE)) || null;
   const t = getT('sign_in', language);
   // EZD-034 Step 6: the security check, only when the site key is set (read per request).
   const base = captchaConfig(process.env);

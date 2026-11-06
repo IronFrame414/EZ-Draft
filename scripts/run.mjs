@@ -26,6 +26,9 @@ import { spawnSync, spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
+import { verifyDevelop, developSha, recordDevelop, inPushChain } from './release/github-ops.mjs';
+import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
   takeLauncherLock, withLedgerLock, LockError, queueDirs,
@@ -36,6 +39,9 @@ import {
 import { openRecords, dbPath, readQueue, applyOps, refreshViews, nextQuestionId, inboxFiles } from './records.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// EZD-316 D14: the D-021 record folder, as scripts/unit-steps.mjs D6: tests point EZD_GITHUB_OPS_HOME at a temp folder, or with
+// EZD_ROOT and no EZD_GITHUB_OPS_HOME get none (no record step), so they never touch the real one.
+const opsHome = process.env.EZD_GITHUB_OPS_HOME || (process.env.EZD_ROOT ? '' : os.userInfo().homedir);
 const vault = path.join(root, 'vault');
 const args = process.argv.slice(2);
 const once = args.includes('--once');
@@ -68,7 +74,7 @@ const { costEntry } = await import('./cost-log.mjs');
 const {
   idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
   isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
-  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES,
+  laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES, AUTO_MERGE_ON_RE, PR_GREEN_OPEN_RE,
 } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 // Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
@@ -100,7 +106,7 @@ function notify(msg) {
 }
 const oauthFallback = createOAuthFallback({ notify, log });
 const tool = (...a) => spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs'), ...a], { encoding: 'utf8', cwd: root });
-const git = (...a) => spawnSync('git', ['-C', root, ...a], { encoding: 'utf8' });
+const git = (...a) => trustedGit(root, a);
 const nowIso = () => new Date().toISOString();
 const firstLine = (text) => String(text || '').split('\n').map((l) => l.trim()).find(Boolean) || '';
 // What the launcher is doing, for the watchdog (EZD-250 D7). Never written in a dry run.
@@ -506,9 +512,9 @@ function changedFiles() {
   }
   return files.filter(Boolean);
 }
-const blobOf = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '--', rel).stdout.trim() : 'absent');
+const blobOf = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '--no-filters', '--', rel).stdout.trim() : 'absent');
 // -w keeps the content in the object store, so a file dirty before the repair (or ignored by git) can be put back exactly.
-const saveBlob = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '-w', '--', rel).stdout.trim() : 'absent');
+const saveBlob = (rel) => (existsSync(path.join(root, rel)) ? git('hash-object', '-w', '--no-filters', '--', rel).stdout.trim() : 'absent');
 const blobAt = (rev, rel) => { const r = git('rev-parse', '-q', '--verify', `${rev}:${rel}`); return r.status === 0 ? r.stdout.trim() : 'absent'; };
 // Files the check watches: the hard limits, plus the files that may hold Josh's own edits (his local settings, the Josh-only
 // files). A change to one of Josh's is never overwritten: the launcher stops instead (code review round 2).
@@ -574,7 +580,7 @@ function undoRepair(snap, ch) {
     if (rv.status !== 0) { git('revert', '--abort'); problems.push(`git revert ${shortSha(c.sha)} failed: ${(rv.stderr || rv.stdout).trim().split('\n')[0]}`); break; }
   }
   if (!problems.length && own.length && originSha() !== snap.origin) {
-    const p = git('push', 'origin', 'develop');
+    const p = git('push', 'origin', 'refs/heads/develop:refs/heads/develop');
     if (p.status !== 0) problems.push(`the revert was not pushed: ${(p.stderr || '').trim().split('\n')[0]}`);
   }
   for (const f of ch.watch) {
@@ -583,7 +589,7 @@ function undoRepair(snap, ch) {
     const abs = path.join(root, f);
     if (!kept.some((k) => k.startsWith(`${f} kept as `))) keep(f);
     if (want === 'absent') { git('rm', '-q', '--cached', '--ignore-unmatch', '--', f); try { unlinkSync(abs); } catch {} continue; }
-    const body = spawnSync('git', ['-C', root, 'cat-file', 'blob', want]);
+    const body = trustedGit(root, ['cat-file', 'blob', want], { encoding: 'buffer' });
     if (body.status !== 0) { problems.push(`${f}: saved copy not readable`); continue; }
     mkdirSync(path.dirname(abs), { recursive: true });
     writeFileSync(abs, body.stdout);
@@ -632,6 +638,7 @@ async function main() {
   const statusHash = () => createHash('sha256').update(readFileSync(path.join(vault, 'tickets/STATUS.md'))).digest('hex');
   let waiting = null; // the reason the launcher is idle, so it logs and notifies once per reason (Q-0233)
   let failedWait = null; // the next-unit text a failed repair was started for; the same wait keeps state repair-failed (D7)
+  const prActionTried = new Set(); // EZD-336: PR wait texts the launcher already tried to clear
   // Lanes (EZD-174): the running units (`<unit> <arg>` → { unit, arg, dbLane, resume, before, task }), the per-key guards,
   // why the launcher stops once they end, and when a pause after three set-asides ends.
   const running = new Map();
@@ -834,6 +841,31 @@ async function main() {
       if (!/^none:/.test(effective)) {
         try { unlinkSync(repairStateFile); } catch {}
         repairs = 0;
+      } else if ((AUTO_MERGE_ON_RE.test(effective) || PR_GREEN_OPEN_RE.test(effective)) && !prActionTried.has(effective)) {
+        // EZD-336, EZD-337 (Q-0594 (a); Josh 2026-11-05 a57931ba: Claude Code completes its own PRs): GitHub auto-merge is not used.
+        // The launcher turns off auto-merge it finds on, and merges a green PR only at the head next_ticket.mjs checked for a post-audit
+        // security hold (--match-head-commit), once per wait text; it logs it and sends nothing. GitHub refuses the merge while the
+        // required gate check is not green or the head moved (rule 12).
+        prActionTried.add(effective);
+        const on = effective.match(AUTO_MERGE_ON_RE);
+        const green = effective.match(PR_GREEN_OPEN_RE);
+        const url = (on || green)[1];
+        const what = on ? 'AUTO-MERGE' : 'MERGE';
+        const ghArgs = on ? ['pr', 'merge', url, '--disable-auto'] : ['pr', 'merge', url, '--merge', '--match-head-commit', green[2]];
+        const m = spawnSync('gh', ghArgs, { cwd: '/', encoding: 'utf8', timeout: 60000, env: { ...process.env, GH_PROMPT_DISABLED: '1' } });
+        if (m.status === 0) {
+          prActionTried.delete(effective);
+          overseerAppend(`launcher: ${what}: ${on ? `off for ${url}` : `merged ${url} at ${green[2]}`}`);
+          log(`${what.toLowerCase()} done for ${url}`);
+        }
+        else {
+          const why = `${m.stderr || ''}\n${m.stdout || ''}`.split('\n').map((l) => l.trim()).find(Boolean) || (m.error ? `gh error ${m.error.code}` : `gh exited ${m.status}`);
+          overseerAppend(`launcher: ${what}: FAILED: ${why}`);
+          // Code review finding 3 (CLAUDE.md rule 17, third-party clause): a refused clear would hold the launcher, so Josh hears it once.
+          notify(`launcher waiting: ${effective.replace(/^none:\s*/, '')}; the launcher could not clear it: ${why}`);
+          log(`${what.toLowerCase()} for ${url} failed: ${why}`);
+        }
+        continue;
       } else if (existsSync(probeFile)) {
         // EZD-333: the one-shot probe (vault/handoff/REPAIR_PROBE.md) proves a launcher-started repair unit may edit a guarded
         // file in fix mode. Any wait will do; it sets no repair state and counts toward no cap.
@@ -895,6 +927,10 @@ async function main() {
     setState({ state: 'unit', at: nowIso() });
     failedWait = null;
     const snap = repair ? repairSnapshot() : null;
+    // EZD-316 D14 (Q-0606 (b)): whether develop was on the D-021 record before the repair.
+    if (snap && opsHome) {
+      try { snap.verified = verifyDevelop(root, opsHome, spawnSync); } catch (e) { snap.verified = { refuse: e?.message ?? String(e) }; }
+    }
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
     setState({ state: 'after-unit', at: nowIso() });
@@ -914,6 +950,27 @@ async function main() {
           notify(`launcher stopped: a repair run changed ${changes.bad.join(', ')} and it was not undone. See vault/handoff/overseer-log.md.`);
         }
         log(`repair ${repair.kind}: refused: ${refusal}`);
+      }
+      // EZD-316 D14 (Q-0606 (b)): after a repair that passed the hard-limit check, the launcher records develop itself, but only
+      // the repair's own commits on top of a recorded develop, and only develop's current commit. Its own log only.
+      if (changes.bad.length === 0 && opsHome) {
+        let why = null;
+        if (!changes.head) why = 'no head commit';
+        else if (changes.head === snap.head) why = '';
+        else if (snap.verified?.sha !== snap.head) why = `develop was not on the record before the repair (${snap.verified?.refuse})`;
+        else {
+          const other = changes.commits.find((c) => c.merge || !c.subject.startsWith('fix(repair):'));
+          // Security review Part B, finding 1: a repair never blesses the push chain itself (github-ops runs with Josh's login).
+          const chain = changes.files.find(inPushChain);
+          if (other) why = `a commit is not the repair's (${other.sha.slice(0, 7)} "${other.subject}")`;
+          else if (chain) why = `a commit changes the push chain (${chain})`;
+          else if (developSha(path.join(root, '.git')) !== changes.head) why = 'develop is not the checkout\'s commit';
+          else {
+            try { recordDevelop(opsHome, changes.head); log(`repair ${repair.kind}: RECORDED: develop ${changes.head.slice(0, 7)}`); }
+            catch (e) { why = `record write failed: ${e?.message ?? e}`; }
+          }
+        }
+        if (why) log(`repair ${repair.kind}: NOTE: develop not recorded: ${why}`);
       }
       // Fix mode the repair opened (its file names this repair, skill step 4.2) is closed; any other is left and logged.
       if (!snap.fixBefore && existsSync(fixFile)) {

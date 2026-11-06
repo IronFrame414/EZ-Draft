@@ -10,6 +10,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runChild } from '../release/dump.mjs';
+import { gitCommand } from '../../vault/tools/trusted-git.mjs';
 import { redactUrl, safeLines } from '../release/redact.mjs';
 import { RELEASE_TAG_RE } from '../release/tags.mjs';
 import { configValues, loadBackupConfig } from './config.mjs';
@@ -212,7 +213,8 @@ export function createGit(repoRoot) {
   return {
     async migrationsAt(tag) {
       if (!RELEASE_TAG_RE.test(tag)) return [];
-      const r = await runChild('git', ['-C', repoRoot, 'ls-tree', '-r', '--name-only', tag, '--', 'supabase/migrations']);
+      const c = gitCommand(repoRoot, ['ls-tree', '-r', '--name-only', tag, '--', 'supabase/migrations']);
+      const r = await runChild(c.file, c.args, c.options);
       if (r.code !== 0) return [];
       return r.stdout.split('\n').filter(Boolean);
     },

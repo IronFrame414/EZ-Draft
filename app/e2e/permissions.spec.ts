@@ -17,6 +17,7 @@ import {
   signInAsOwner,
   test,
 } from '../test-harness/e2e/test';
+import { appOriginHeaders } from '../test-harness/e2e/same-origin';
 
 const WAIT = 10_000;
 const QUIET = 3_000;
@@ -53,7 +54,10 @@ test.describe('EZD-102 permission enforcement', () => {
     await setPermissions(tenant, m.membershipId, ['view_projects']);
     const [s] = await sessions.open([m.email]);
 
-    const res = await s.page.request.patch(renamePath(p), { data: { name: RENAMED } });
+    const res = await s.page.request.patch(renamePath(p), {
+      data: { name: RENAMED },
+      headers: appOriginHeaders(),
+    });
     expect(res.status()).toBe(403);
     expect(await res.json()).toEqual({
       error: { code: 'permission_denied', message_key: 'error.not_authorized' },
@@ -76,7 +80,10 @@ test.describe('EZD-102 permission enforcement', () => {
     await setPermissions(tenant, m.membershipId, ['view_projects']);
 
     const [first] = await sessions.open([m.email]);
-    const refused = await first.page.request.patch(renamePath(p), { data: { name: RENAMED } });
+    const refused = await first.page.request.patch(renamePath(p), {
+      data: { name: RENAMED },
+      headers: appOriginHeaders(),
+    });
     expect(refused.status()).toBe(403);
     expect(await refused.json()).toEqual({
       error: { code: 'permission_denied', message_key: 'error.not_authorized' },
@@ -85,19 +92,28 @@ test.describe('EZD-102 permission enforcement', () => {
 
     await setPermissions(tenant, m.membershipId, ['view_projects', 'edit_model']);
     const [second] = await sessions.open([m.email]);
-    const outside = await second.page.request.patch(renamePath(q), { data: { name: RENAMED } });
+    const outside = await second.page.request.patch(renamePath(q), {
+      data: { name: RENAMED },
+      headers: appOriginHeaders(),
+    });
     expect(outside.status()).toBe(404);
     expect(await outside.json()).toEqual({
       error: { code: 'project_not_found', message_key: 'error.project_not_found' },
     });
     expect(await projectName(q)).toBe(qName);
 
-    const renamed = await second.page.request.patch(renamePath(p), { data: { name: RENAMED } });
+    const renamed = await second.page.request.patch(renamePath(p), {
+      data: { name: RENAMED },
+      headers: appOriginHeaders(),
+    });
     expect(renamed.status()).toBe(200);
     expect(await renamed.json()).toEqual({ project: { id: p, name: RENAMED } });
     expect(await projectName(p)).toBe(RENAMED);
 
-    const signedOut = await request.patch(renamePath(p), { data: { name: 'EZD-102 signed out' } });
+    const signedOut = await request.patch(renamePath(p), {
+      data: { name: 'EZD-102 signed out' },
+      headers: appOriginHeaders(),
+    });
     expect(signedOut.status()).toBe(401);
     expect(await signedOut.json()).toEqual({
       error: { code: 'not_signed_in', message_key: 'error.not_signed_in' },

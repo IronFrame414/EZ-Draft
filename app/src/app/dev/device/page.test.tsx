@@ -30,7 +30,7 @@ describe('EZD-014c device test page', () => {
     expect(html.match(/<header/g)).toHaveLength(1);
     expect(html.match(/data-rail-tool=/g)).toHaveLength(3);
     expect(html.match(/data-header-button-icon/g)).toHaveLength(2);
-    expect(html).toContain('/icons/sprite.svg#share');
-    expect(html).toContain('/icons/sprite.svg#download');
+    expect(html).toContain('#ez-icon-share');
+    expect(html).toContain('#ez-icon-download');
   });
 });

@@ -34,13 +34,14 @@ export async function signedInJsContents(
   browser: Browser,
   storageState: StorageState,
   url: string,
+  entry: 'office' | 'editor' = 'office',
 ): Promise<Measured> {
   const { measureJsContents } = await perf('js-contents.mjs');
   const { PROFILES } = await perf('perf.config.mjs');
   return (await measureJsContents(
     { browser: wrap(browser, storageState), profile: PROFILES.desktop, baseUrl: BASE_URL },
     url,
-    'office',
+    entry,
   )) as Measured;
 }
 

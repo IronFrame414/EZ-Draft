@@ -38,9 +38,10 @@ const BOOST_ACTIVE = '{"until":"2099-01-01T00:00:00.000Z"}\n';
 function makeRoot({ fivePct, sevenPct = 10, pauseFile = false, nextUnit = 'plan EZD-999', boostExpired = false, boostActive = false }) {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
-  for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
-  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
+  for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
+  copyFileSync(path.join(repo, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs, ledger.mjs and github-ops.mjs import it
   copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(nextUnit));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
@@ -70,7 +71,7 @@ function makeRoot({ fivePct, sevenPct = 10, pauseFile = false, nextUnit = 'plan 
   return { tmp, fiveHourResetsAt, pauseText, handoff: at('vault/handoff'), notified: at('notified.txt'), pauseFile: at('vault/handoff/WINDOW_PAUSE.md'), boostFile: at('vault/handoff/BOOST.json') };
 }
 
-const runLauncher = (root, flag) => spawnSync(process.execPath, [path.join(root.tmp, 'scripts/run.mjs'), flag], { encoding: 'utf8', timeout: 20000 });
+const runLauncher = (root, flag) => spawnSync(process.execPath, [path.join(root.tmp, 'scripts/run.mjs'), flag], { encoding: 'utf8', timeout: 20000, env: { ...process.env, EZD_GITHUB_OPS_HOME: path.join(root.tmp, 'ops-home') } });
 const why = (r) => `exit ${r.status}, signal ${r.signal}\n${r.stdout}\n${r.stderr}`;
 const has = (r, s) => assert.ok(r.stdout.includes(s), `stdout lacks "${s}"\n${why(r)}`);
 const lacks = (r, s) => assert.ok(!r.stdout.includes(s), `stdout holds "${s}"\n${why(r)}`);

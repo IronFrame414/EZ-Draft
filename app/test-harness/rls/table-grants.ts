@@ -72,6 +72,18 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       'Members read their own notification settings; rows are written only by save_my_notification_settings (EZD-140)',
   },
+  edit_lock: {
+    privileges: ['SELECT'],
+    reason: 'Written only by the EZD-120a functions',
+  },
+  model_object: {
+    privileges: ['SELECT'],
+    reason: 'Written only by the EZD-120a functions',
+  },
+  model_version: {
+    privileges: ['SELECT'],
+    reason: 'Written only by the EZD-120a functions',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

@@ -20,6 +20,9 @@ vi.mock('next/navigation', async (orig) => ({
   useRouter: () => ({ push() {}, replace() {}, refresh() {} }),
 }));
 
+// EZD-120d (vault/plans/EZD-120d.md section 4): the office layout loads the outbox actor; it has no session here.
+vi.mock('../server/outbox/actor', () => ({ loadOutboxActor: async () => null }));
+
 const NOT_FOUND = 'NEXT_HTTP_ERROR_FALLBACK;404';
 
 async function notFoundDigest(fn: () => unknown): Promise<string | undefined> {

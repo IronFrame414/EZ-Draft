@@ -748,7 +748,7 @@ test('2.12 L1: ledger.mjs status and question inside a unit queue ops; STATUS.md
   assert.equal(git(dir, 'rev-parse', 'HEAD'), head);
 });
 
-describe('EZD-173 M: merge lock, worktree base, push, preflight', () => {
+describe('EZD-173 M: merge lock, worktree base, preflight', () => {
   test('M1: two merges together queue under the merge lock, run no gate, and both land after each worktree is gated (Josh 2026-11-02)', async () => {
     const dir = fixture();
     const runs = path.join(tmp('ezd173-state-'), 'gate.runs');
@@ -805,25 +805,6 @@ console.log('ℹ pass 1');
     assert.equal(r2.status, 0, r2.stdout + r2.stderr);
     assert.ok(!/merge in progress/.test(r2.stdout));
     assert.equal(git(dir, 'rev-parse', 't/EZD-003'), develop);
-  });
-
-  test('M4: finish pushes develop only when no merge is in progress', () => {
-    const dir = fixture({ remote: true });
-    const origin = originOf.get(dir);
-    const originHead = () => git(origin, 'rev-parse', 'develop');
-    const start = originHead();
-    writeLock(dir, 'merge', { pid: process.pid, owner: 'test', base: null });
-    writeFileSync(path.join(dir, 'vault/handoff/CURRENT.md'), 'change a\n');
-    let r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_NO_PUSH: undefined });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
-    assert.match(r.stdout.trim(), /FINISH OK EZD-002 done \(\w+\).* push deferred: merge in progress$/);
-    assert.equal(originHead(), start);
-    rmSync(lockPath(dir, 'merge'));
-    writeFileSync(path.join(dir, 'vault/handoff/CURRENT.md'), 'change b\n');
-    r = us(dir, ['finish', 'EZD-002', 'done'], { EZD_NO_PUSH: undefined });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
-    assert.ok(!/push deferred/.test(r.stdout));
-    assert.equal(originHead(), git(dir, 'rev-parse', 'HEAD'));
   });
 
   test('M5: preflight ignores uncommitted vault/ changes but stops on any other', () => {
@@ -909,10 +890,11 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
   test('X1: run.mjs --once with a missing plan file prints the problem and records its cost row, with no commit (2.12; D1 (a), D2 (a))', async () => {
     const root = tmp('ezd173-x1-');
     const at = (...p) => path.join(root, ...p);
-    for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
-    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
+    for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
+    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
     cpSync(path.join(REPO, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
     cpSync(path.join(REPO, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
+    cpSync(path.join(REPO, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs and ledger.mjs import it
     cpSync(path.join(REPO, 'vault/tools/questions-files.mjs'), at('vault/tools/questions-files.mjs'));
     writeFileSync(at('vault/tools/next_ticket.mjs'), [
       "export const weekStart = () => new Date('2030-01-07T07:00:00.000Z');",
@@ -950,7 +932,7 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     git(root, 'commit', '-qm', 'init');
     const r = spawnSync(process.execPath, [at('scripts/run.mjs'), '--once'], {
       encoding: 'utf8', timeout: 30000, cwd: root,
-      env: { ...process.env, EZD_LANE: undefined, SUPABASE_WORKDIR: undefined, EZD_INFLIGHT_DIR: tmp('ezd173-x1-inflight-'), EZD_ROOT: undefined },
+      env: { ...process.env, EZD_LANE: undefined, SUPABASE_WORKDIR: undefined, EZD_INFLIGHT_DIR: tmp('ezd173-x1-inflight-'), EZD_ROOT: undefined, EZD_GITHUB_OPS_HOME: at('ops-home') },
     });
     const out = `exit ${r.status}, signal ${r.signal}\n${r.stdout}\n${r.stderr}`;
     assert.ok(r.stdout.includes('plan file missing:'), out);

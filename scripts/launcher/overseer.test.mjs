@@ -271,3 +271,79 @@ test('EZD-333 O11 pushed then hidden: a hard-limit commit on origin that HEAD la
   assert.match(res.notified[0], /^EZ Draft: launcher stopped: .*\.claude\/hooks\/guard-bash\.mjs/, why(res));
   assert.match(res.overseer[0] ?? '', /^repair check: REFUSED: .*origin\/develop.*STOP written/, res.overseer.join('\n'));
 });
+
+// EZD-316 T14 (D14; Q-0606 (b)): after a repair the launcher records develop's new commit only when develop was on the record
+// before the repair and every new commit is the repair's own. The record lives in EZD_GITHUB_OPS_HOME (a temp folder here).
+test('EZD-316 T14 repair record: the launcher records develop after a clean repair commit, and says why when it does not (AC-EZD-316-2)', async (t) => {
+  // A record in place makes verifyDevelop run /opt/homebrew/bin/git (github-ops.mjs line 19), which Linux CI lacks.
+  const needsGit = { skip: existsSync('/opt/homebrew/bin/git') ? false : 'needs /opt/homebrew/bin/git (verifyDevelop spawns it)' };
+  const recordFile = (home) => path.join(home, '.ezdraft-github-ops', 'develop');
+  const setup = (subject, { guard = false, record = true, chain = false } = {}) => {
+    const lines = ["put('scripts/perf/x.mjs', 'fixed\\n');", "g('add', '--', 'scripts/perf/x.mjs');"];
+    if (chain) lines.unshift("fs.appendFileSync('scripts/release/github-ops.mjs', '\\n// repair\\n');", "g('add', '--', 'scripts/release/github-ops.mjs');");
+    if (guard) lines.unshift("put('.claude/hooks/guard-bash.mjs', 'weakened\\n');", "g('add', '--', '.claude/hooks/guard-bash.mjs');");
+    lines.push(`g('commit', '-q', '-m', '${subject}');`);
+    const r = withScript(root({ result: 'REPAIRED: applied the budget patch', script: true }), lines);
+    const home = mkTmp('ezd316-home-');
+    const before = git(r.tmp, 'rev-parse', 'HEAD').stdout.trim();
+    if (record) {
+      mkdirSync(path.dirname(recordFile(home)), { recursive: true });
+      writeFileSync(recordFile(home), `${before}\n`);
+    }
+    return { r, home, before };
+  };
+  const head = (r) => git(r.tmp, 'rev-parse', 'HEAD').stdout.trim();
+  const logLine = (res, text) => res.log.split('\n').find((l) => l.includes(text));
+
+  // (a) develop was the record: the repair's commit is recorded.
+  await t.test('(a) recorded', needsGit, async () => {
+    const a = setup('fix(repair): x');
+    const ra = await runLauncher(a.r, { env: { EZD_GITHUB_OPS_HOME: a.home } });
+    assert.equal(ra.status, 0, why(ra));
+    assert.equal(readFileSync(recordFile(a.home), 'utf8'), `${head(a.r)}\n`, why(ra));
+    assert.notEqual(head(a.r), a.before);
+    assert.ok(logLine(ra, 'repair check: RECORDED: develop ')?.endsWith(`RECORDED: develop ${head(a.r).slice(0, 7)}`), why(ra));
+    assert.equal(logLines(a.r).length, 1, logLines(a.r).join('\n'));
+  });
+
+  // (b) no record before the repair: nothing recorded (no git runs, so this runs everywhere).
+  await t.test('(b) no record', async () => {
+    const b = setup('fix(repair): x', { record: false });
+    const rb = await runLauncher(b.r, { env: { EZD_GITHUB_OPS_HOME: b.home } });
+    assert.equal(rb.status, 0, why(rb));
+    assert.ok(!existsSync(recordFile(b.home)), why(rb));
+    assert.ok(logLine(rb, 'repair check: NOTE: develop not recorded: ')?.endsWith('develop not recorded: develop was not on the record before the repair (no recorded develop commit)'), why(rb));
+    assert.equal(logLines(b.r).length, 1, logLines(b.r).join('\n'));
+  });
+
+  // (c) a commit that is not the repair's: nothing recorded.
+  await t.test('(c) not the repair\'s commit', needsGit, async () => {
+    const c = setup('chore: x');
+    const rc = await runLauncher(c.r, { env: { EZD_GITHUB_OPS_HOME: c.home } });
+    assert.equal(rc.status, 0, why(rc));
+    assert.equal(readFileSync(recordFile(c.home), 'utf8'), `${c.before}\n`, why(rc));
+    assert.ok(logLine(rc, 'repair check: NOTE: develop not recorded: ')?.endsWith(`a commit is not the repair's (${head(c.r).slice(0, 7)} "chore: x")`), why(rc));
+    assert.equal(logLines(c.r).length, 1, logLines(c.r).join('\n'));
+  });
+
+  // (d) the repair also changed a guard (refused and reverted): nothing recorded. The assertions hold with or without git.
+  await t.test('(d) refused guard change', async () => {
+    const d = setup('fix(repair): weaken', { guard: true });
+    const rd = await runLauncher(d.r, { env: { EZD_GITHUB_OPS_HOME: d.home } });
+    assert.equal(rd.status, 0, why(rd));
+    assert.equal(readFileSync(recordFile(d.home), 'utf8'), `${d.before}\n`, why(rd));
+    assert.ok(!rd.log.includes('RECORDED'), why(rd));
+    assert.equal(logLines(d.r).length, 1, logLines(d.r).join('\n'));
+    assert.match(logLines(d.r)[0], LINE('check', 'REFUSED'));
+  });
+
+  // (e) security finding 1: a clean fix(repair) commit that changes a push-chain file is not recorded.
+  await t.test('(e) push chain', needsGit, async () => {
+    const e = setup('fix(repair): chain', { chain: true });
+    const re = await runLauncher(e.r, { env: { EZD_GITHUB_OPS_HOME: e.home } });
+    assert.equal(re.status, 0, why(re));
+    assert.equal(readFileSync(recordFile(e.home), 'utf8'), `${e.before}\n`, why(re));
+    assert.ok(!re.log.includes('RECORDED'), why(re));
+    assert.ok(logLine(re, 'repair check: NOTE: develop not recorded: ')?.endsWith('develop not recorded: a commit changes the push chain (scripts/release/github-ops.mjs)'), why(re));
+  });
+});
