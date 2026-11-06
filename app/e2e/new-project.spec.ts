@@ -1,7 +1,7 @@
 // EZD-118 B1-B8 (vault/plans/EZD-118.md section 4; AC-EZD-118-1 to -8). Untagged, so desktop 1600 x 1000; B8 is
 // @ipad. Every test makes its own company (never tenant 1). "Creator" = keys view_projects + create_projects, no
-// settings_company (Q-0400). Expected values: S01 New project wizard and Validation; Q-0394 (after create the
-// list reloads on All, Last edited, no search, the new Draft card first); Q-0396 (Scope of work); Q-0401, Q-0410,
+// settings_company (Q-0400). Expected values: S01 New project wizard and Validation; Q-0500 (Create opens the new
+// project in the editor, whose header names the client; EZD-339); Q-0396 (Scope of work); Q-0401, Q-0410,
 // Q-0411 (one step, no menu, no EZ Binder or step-2 parts); Q-0400, Q-0413 (picker and add new); Q-0203 (create
 // failure keeps the dialog); 11 Accessibility and input (44 px, Q-0593 (a)).
 import type { Page } from '@playwright/test';
@@ -142,7 +142,7 @@ test.describe('EZD-118 New project wizard', () => {
     await expect(tid(page, 'new-project-create')).toBeEnabled();
   });
 
-  test(`EZD-118 done when B3: Create makes the project with the default name, closes the dialog and shows the new Draft card first on All (AC-6)`, async ({
+  test(`EZD-118 done when B3: Create makes the project with the default name and opens it in the editor (AC-6; Q-0500)`, async ({
     page,
     signInAs,
   }) => {
@@ -158,7 +158,7 @@ test.describe('EZD-118 New project wizard', () => {
     await tid(page, 'new-project-address').fill('12 Oak Ave');
     await tid(page, 'new-project-scope').fill('Demo\nNew cabinets');
     await tid(page, 'new-project-create').click();
-    await expect.poll(() => projectCount(tenant)).toBe(1);
+    await expect.poll(() => projectCount(tenant)).toBe(3);
     const rows = await harnessSql()`
       select id, type, address, scope_of_work, customer_id, status from public.project
       where tenant_id = ${tenant}::uuid and name = 'Kitchen remodel'`;
@@ -220,10 +220,11 @@ test.describe('EZD-118 New project wizard', () => {
       select id from public.customer where tenant_id = ${tenant}::uuid and email = 'dee@example.test'`;
     expect(dee).toHaveLength(1);
     const made = await harnessSql()`
-      select customer_id from public.project where tenant_id = ${tenant}::uuid and address = '7 Elm Ct'`;
+      select id, customer_id from public.project where tenant_id = ${tenant}::uuid and address = '7 Elm Ct'`;
     expect(made).toHaveLength(1);
     expect(made[0].customer_id).toBe(dee[0].id);
-    await expect(tid(page, 'project-card-place').first()).toContainText('Dee New');
+    await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${made[0].id}`);
+    await expect(page.getByText('Dee New · Working copy')).toBeVisible();
   });
 
   test(`EZD-118 B5 cancel: an untouched dialog closes at once; an edited one asks Discard or Keep editing, also on Esc (AC-7)`, async ({
