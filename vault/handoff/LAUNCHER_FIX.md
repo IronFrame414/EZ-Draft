@@ -19,3 +19,4 @@ Fix: EZD-317 (vault/plans/EZD-317.md), built interactively by the orchestrator i
 - .claude/skills/gate-phase/SKILL.md
 - vault/PROCESS.md
 - vault/PROCESS-EZDRAFT.md
+- CLAUDE.md (line 17 only; Josh's yes 2026-11-06, chat)
