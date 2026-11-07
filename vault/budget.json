@@ -79,7 +79,7 @@
     {
       "date": "2026-11-06",
       "by": "Josh chat",
-      "note": "remove all usage limits; this account can be used to 100%; Fable work uses Opus",
+      "note": "TEMPORARY override: remove all usage limits; this account can be used to 100%; Fable work uses Opus. Restore from the was values.",
       "was": {
         "five_hour_pause_pct": 100,
         "warn_at_pct": null,
