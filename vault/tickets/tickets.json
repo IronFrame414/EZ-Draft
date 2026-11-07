@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 638,
+ "count": 639,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -19456,6 +19456,34 @@
     "AC-EZD-355-2",
     "AC-EZD-355-3",
     "AC-EZD-355-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-360",
+   "phase": 1,
+   "title": "Build system: phase 56 ranks right after phase 5 in the ledger tools and release order",
+   "depends_raw": "none",
+   "spec_ref": "Q-0630; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 612,
+   "acs": [
+    "AC-EZD-360-1",
+    "AC-EZD-360-2",
+    "AC-EZD-360-3"
    ],
    "acs_source": "done-when"
   },
