@@ -4024,7 +4024,8 @@
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/03-data-model.md"
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -4580,7 +4581,8 @@
     "AC-EZD-211-15",
     "AC-EZD-211-16",
     "AC-EZD-211-17",
-    "AC-EZD-211-18"
+    "AC-EZD-211-18",
+    "AC-EZD-211-19"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4650,7 +4652,7 @@
    "id": "EZD-213",
    "phase": 5,
    "title": "Inspector fields",
-   "depends_raw": "EZD-208, EZD-204",
+   "depends_raw": "EZD-208, EZD-204, EZD-294",
    "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
@@ -4694,7 +4696,10 @@
     "AC-EZD-213-18",
     "AC-EZD-213-19",
     "AC-EZD-213-20",
-    "AC-EZD-213-21"
+    "AC-EZD-213-21",
+    "AC-EZD-213-22",
+    "AC-EZD-213-23",
+    "AC-EZD-213-24"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4798,7 +4803,7 @@
    "id": "EZD-217",
    "phase": 5,
    "title": "Undo, redo and clipboard",
-   "depends_raw": "EZD-208, EZD-204",
+   "depends_raw": "EZD-208, EZD-204, EZD-294",
    "spec_ref": "S03 Context menu, Decisions; App shell · Selection, undo and flags",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Context menu",
@@ -4814,7 +4819,8 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-208",
-    "EZD-204"
+    "EZD-204",
+    "EZD-294"
    ],
    "build_position": 108,
    "acs": [
@@ -4833,7 +4839,8 @@
     "AC-EZD-217-13",
     "AC-EZD-217-14",
     "AC-EZD-217-15",
-    "AC-EZD-217-16"
+    "AC-EZD-217-16",
+    "AC-EZD-217-17"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -19762,7 +19769,8 @@
     "AC-EZD-5602-10",
     "AC-EZD-5602-11",
     "AC-EZD-5602-12",
-    "AC-EZD-5602-13"
+    "AC-EZD-5602-13",
+    "AC-EZD-5602-14"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19806,7 +19814,8 @@
     "AC-EZD-5603-10",
     "AC-EZD-5603-11",
     "AC-EZD-5603-12",
-    "AC-EZD-5603-13"
+    "AC-EZD-5603-13",
+    "AC-EZD-5603-14"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19847,7 +19856,9 @@
     "AC-EZD-5604-5",
     "AC-EZD-5604-6",
     "AC-EZD-5604-7",
-    "AC-EZD-5604-8"
+    "AC-EZD-5604-8",
+    "AC-EZD-5604-9",
+    "AC-EZD-5604-10"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19887,7 +19898,8 @@
     "AC-EZD-5605-4",
     "AC-EZD-5605-5",
     "AC-EZD-5605-6",
-    "AC-EZD-5605-7"
+    "AC-EZD-5605-7",
+    "AC-EZD-5605-8"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,

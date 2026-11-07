@@ -341,7 +341,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4), EZD-294 (s4)
   - EZD-212 Move, handles, distance chips — after EZD-208
   - EZD-213 Inspector fields — after EZD-208; needs EZD-294 (s4) (Q-0633)
-  - EZD-217 Undo, redo and clipboard — after EZD-208
+  - EZD-217 Undo, redo and clipboard — after EZD-208; needs EZD-294 (s4) (Q-0640)
 - **Depends on slices:** 4
 - **Out of scope until later:** Status and phase switch, layers (slice 6); fixtures (slice 10); context menu, mirror, align, groups (slice 11).
 - **Risks and spikes:** EZD-206's spatial index (now phase 4, Q-0563) also serves picking (EZD-208) and later reference snaps; the Selection acceptance test is only partly runnable until cabinets and outlets exist.
