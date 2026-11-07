@@ -22,3 +22,11 @@ Added by spec-check 5 (Q-0630, settled row 31). Definitions only, each from the 
 | Hinge dot | The dot at a door's hinge end; a tap on a selected door's dot flips its hand. | none yet (EZD-211 plan names it) | S03d W11, W12; Q-0633 |
 | Next field | The tablet chip button that does what Tab does. | none yet (EZD-212 plan names it) | S03d E T2 |
 | Tablet | A device whose main pointer is coarse. | `COARSE_POINTER_QUERY` | device-layout.ts:6; Q-0633 |
+| Assistant | The panel on the plan where a user types prompts and gets a preview of changes. | none yet (EZD-5603 plan names it) | S03c; Q-0474 |
+| AI preview | The changes a reply proposes, drawn on the plan and not saved. Not a Vercel Preview. | none yet (EZD-5604 plan names it) | S03c; Q-0638 |
+| Accept, Adjust, Reject | Save the preview as one undo step; edit it by hand first; clear it. | none yet (EZD-5605 plan names them) | S03c; Q-0638 |
+| Ref | A short name such as w1, good for one request, that stands for an object sent to the AI. | none yet (EZD-5602 plan names it) | Q-0637 |
+| Send list | The object fields sent to the AI. | none yet (EZD-5602 plan names it) | Q-0637 |
+| AI key | The user's own Anthropic API key, stored encrypted. | `user_ai_key` | Q-0637 |
+| AI usage | The record of who, when, model and cost for a prompt. | `ai_usage` | Q-0637 |
+| Session (Assistant) | This editor page load; its total is on the cost line. | none yet (EZD-5603 plan names it) | Q-0638 |

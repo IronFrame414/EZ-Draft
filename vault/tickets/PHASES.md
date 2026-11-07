@@ -358,10 +358,10 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 - **Goal:** A user with their own Anthropic key asks for changes to walls, doors and windows, sees a preview, and accepts, adjusts or rejects it.
 - **User-visible result:** Assistant button and panel; key in My profile; photo with a prompt; blue and red dashed preview; Accept, Adjust, Reject; cost line.
-- **Spec files:** `spec/sections/screens/S03c-ai-assistant.md`, `spec/sections/09l-ai-assistant-cost-examples.md`, boards S03c, S01g and their wording file
+- **Spec files:** `spec/sections/screens/S03c-ai-assistant.md`, `spec/sections/09l-ai-assistant-cost-examples.md`, boards S03c, S01g and their wording file, photo rules in `S03dSelectedObjects-wording.md`
 - **Tickets (5, build order):**
   - EZD-5601 AI key storage and My profile — needs EZD-108, EZD-021
-  - EZD-5602 Assistant call path, send list, stub and cost — after EZD-5601; needs EZD-204
+  - EZD-5602 Assistant call path, send list, stub and cost — after EZD-5601; needs EZD-204, EZD-205a, EZD-294
   - EZD-5603 Assistant panel, states and photo — after EZD-5602; needs EZD-213
   - EZD-5604 Assistant change format and preview — after EZD-5603; needs EZD-211
   - EZD-5605 Assistant Accept, Adjust, Reject and events — after EZD-5604; needs EZD-217

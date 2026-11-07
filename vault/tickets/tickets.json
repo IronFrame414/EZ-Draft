@@ -19667,7 +19667,7 @@
    "phase": 56,
    "title": "AI key storage and My profile",
    "depends_raw": "EZD-108, EZD-021",
-   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19688,7 +19688,10 @@
     "AC-EZD-5601-4",
     "AC-EZD-5601-5",
     "AC-EZD-5601-6",
-    "AC-EZD-5601-7"
+    "AC-EZD-5601-7",
+    "AC-EZD-5601-8",
+    "AC-EZD-5601-9",
+    "AC-EZD-5601-10"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19701,8 +19704,8 @@
    "id": "EZD-5602",
    "phase": 56,
    "title": "Assistant call path, send list, stub and cost",
-   "depends_raw": "EZD-5601, EZD-021, EZD-204",
-   "spec_ref": "S03c; Q-0474; Q-0637",
+   "depends_raw": "EZD-5601, EZD-021, EZD-204, EZD-205a, EZD-294",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19712,7 +19715,9 @@
    "depends_on": [
     "EZD-5601",
     "EZD-021",
-    "EZD-204"
+    "EZD-204",
+    "EZD-205a",
+    "EZD-294"
    ],
    "build_position": 614,
    "acs": [
@@ -19725,7 +19730,10 @@
     "AC-EZD-5602-7",
     "AC-EZD-5602-8",
     "AC-EZD-5602-9",
-    "AC-EZD-5602-10"
+    "AC-EZD-5602-10",
+    "AC-EZD-5602-11",
+    "AC-EZD-5602-12",
+    "AC-EZD-5602-13"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19739,7 +19747,7 @@
    "phase": 56,
    "title": "Assistant panel, states and photo",
    "depends_raw": "EZD-5602, EZD-213",
-   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19766,7 +19774,10 @@
     "AC-EZD-5603-7",
     "AC-EZD-5603-8",
     "AC-EZD-5603-9",
-    "AC-EZD-5603-10"
+    "AC-EZD-5603-10",
+    "AC-EZD-5603-11",
+    "AC-EZD-5603-12",
+    "AC-EZD-5603-13"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19780,7 +19791,7 @@
    "phase": 56,
    "title": "Assistant change format and preview",
    "depends_raw": "EZD-5602, EZD-5603, EZD-211, EZD-213",
-   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19805,7 +19816,9 @@
     "AC-EZD-5604-3",
     "AC-EZD-5604-4",
     "AC-EZD-5604-5",
-    "AC-EZD-5604-6"
+    "AC-EZD-5604-6",
+    "AC-EZD-5604-7",
+    "AC-EZD-5604-8"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -19819,7 +19832,7 @@
    "phase": 56,
    "title": "Assistant Accept, Adjust, Reject and events",
    "depends_raw": "EZD-5604, EZD-217, EZD-213, EZD-211",
-   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19843,7 +19856,9 @@
     "AC-EZD-5605-2",
     "AC-EZD-5605-3",
     "AC-EZD-5605-4",
-    "AC-EZD-5605-5"
+    "AC-EZD-5605-5",
+    "AC-EZD-5605-6",
+    "AC-EZD-5605-7"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,

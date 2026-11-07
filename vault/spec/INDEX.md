@@ -27,7 +27,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [01 · Projects](sections/screens/S01-projects.md) — board S01Projects, S01bWizard
   - [02 · Import review](sections/screens/S02-import-review.md) — board S02Import
   - [03 · Plan editor](sections/screens/S03-plan-editor.md) — board S03Plan
-  - [03c · AI assistant](sections/screens/S03c-ai-assistant.md) — boards S03c and S01g to be drawn (Q-0474)
+  - [03c · AI assistant](sections/screens/S03c-ai-assistant.md) — boards S03c and S01g approved (Q-0474, Q-0630)
   - [04 · Cabinet run + elevation](sections/screens/S04-cabinet-run-elevation.md) — board S04Cabinets
   - [04b · Countertops](sections/screens/S04b-countertops.md) — board S04bCountertops
   - [05 · Ceiling plan / RCP](sections/screens/S05-ceiling-plan-rcp.md) — board S05Ceiling
