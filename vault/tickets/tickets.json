@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 644,
+ "count": 645,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -19511,6 +19511,32 @@
     "AC-EZD-360-1",
     "AC-EZD-360-2",
     "AC-EZD-360-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-361",
+   "phase": 1,
+   "title": "Fix: the EZD-360 phase order test holds with real phase 56 tickets",
+   "depends_raw": "EZD-360",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-360"
+   ],
+   "build_position": 618,
+   "acs": [
+    "AC-EZD-361-1"
    ],
    "acs_source": "done-when"
   },
