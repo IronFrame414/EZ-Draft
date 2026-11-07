@@ -3989,9 +3989,14 @@
    ],
    "build_position": 102,
    "acs": [
-    "AC-EZD-204-1"
+    "AC-EZD-204-1",
+    "AC-EZD-204-2",
+    "AC-EZD-204-3",
+    "AC-EZD-204-4",
+    "AC-EZD-204-5",
+    "AC-EZD-204-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md"
@@ -4306,9 +4311,18 @@
    ],
    "build_position": 104,
    "acs": [
-    "AC-EZD-208-1"
+    "AC-EZD-208-1",
+    "AC-EZD-208-2",
+    "AC-EZD-208-3",
+    "AC-EZD-208-4",
+    "AC-EZD-208-5",
+    "AC-EZD-208-6",
+    "AC-EZD-208-7",
+    "AC-EZD-208-8",
+    "AC-EZD-208-9",
+    "AC-EZD-208-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md"
@@ -4500,9 +4514,19 @@
    ],
    "build_position": 105,
    "acs": [
-    "AC-EZD-211-1"
+    "AC-EZD-211-1",
+    "AC-EZD-211-2",
+    "AC-EZD-211-3",
+    "AC-EZD-211-4",
+    "AC-EZD-211-5",
+    "AC-EZD-211-6",
+    "AC-EZD-211-7",
+    "AC-EZD-211-8",
+    "AC-EZD-211-9",
+    "AC-EZD-211-10",
+    "AC-EZD-211-11"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md"
@@ -4526,9 +4550,20 @@
    ],
    "build_position": 106,
    "acs": [
-    "AC-EZD-212-1"
+    "AC-EZD-212-1",
+    "AC-EZD-212-2",
+    "AC-EZD-212-3",
+    "AC-EZD-212-4",
+    "AC-EZD-212-5",
+    "AC-EZD-212-6",
+    "AC-EZD-212-7",
+    "AC-EZD-212-8",
+    "AC-EZD-212-9",
+    "AC-EZD-212-10",
+    "AC-EZD-212-11",
+    "AC-EZD-212-12"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md"
@@ -4554,9 +4589,19 @@
    "build_position": 107,
    "acs": [
     "AC-EZD-213-1",
-    "AC-EZD-213-2"
+    "AC-EZD-213-2",
+    "AC-EZD-213-3",
+    "AC-EZD-213-4",
+    "AC-EZD-213-5",
+    "AC-EZD-213-6",
+    "AC-EZD-213-7",
+    "AC-EZD-213-8",
+    "AC-EZD-213-9",
+    "AC-EZD-213-10",
+    "AC-EZD-213-11",
+    "AC-EZD-213-12"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -4673,9 +4718,16 @@
    "build_position": 108,
    "acs": [
     "AC-EZD-217-1",
-    "AC-EZD-217-2"
+    "AC-EZD-217-2",
+    "AC-EZD-217-3",
+    "AC-EZD-217-4",
+    "AC-EZD-217-5",
+    "AC-EZD-217-6",
+    "AC-EZD-217-7",
+    "AC-EZD-217-8",
+    "AC-EZD-217-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
