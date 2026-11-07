@@ -17940,7 +17940,9 @@
     "spec/decisions/03-data-model.md#Q-0540"
    ],
    "mockups": [
-    "mockups/S01cNotifications.png"
+    "mockups/S01cNotifications.png",
+    "mockups/S03bConflictList.png",
+    "mockups/S01cConflictNotification.png"
    ],
    "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",

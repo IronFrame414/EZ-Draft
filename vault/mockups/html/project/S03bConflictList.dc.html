@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft plan view · changes not saved</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bs{padding:7px 12px;font-size:13px}
+.ht{display:flex;align-items:center;padding:0 14px;color:#5e6672;font-size:14px;text-decoration:none}
+.hton{font-weight:600;color:oklch(0.5 0.17 262);box-shadow:inset 0 -2px 0 oklch(0.55 0.17 262)}
+.rev{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:oklch(0.48 0.13 65);background:oklch(0.96 0.04 80);border-radius:999px;border:0;cursor:pointer;font-family:'Instrument Sans',sans-serif}
+.rb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:21px}
+.rb:hover{background:#f2f4f7}
+.rbon{background:oklch(0.55 0.17 262);color:#fff}
+.rbon:hover{background:oklch(0.55 0.17 262)}
+.rs{width:24px;height:1px;background:#dfe2e6;margin:6px 0}
+.seg{flex:1;text-align:center;padding:7px;color:#5e6672;border-radius:7px;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer}
+.segon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px}
+.row:hover{background:#f2f4f7}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.zb{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#3b424d;cursor:pointer;font-size:20px}
+.sl{color:#9aa3af}
+.sv{color:#14171c}
+.ssg{display:flex;padding:2px;gap:2px;background:#f2f4f7;border-radius:6px}
+.ssi{border:0;background:transparent;font:400 12px 'DM Mono',monospace;color:#5e6672;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ssion{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.pw{text-decoration:underline dotted oklch(0.66 0.15 60);text-decoration-thickness:2px;text-underline-offset:3px}
+.pn{display:inline-block;margin-left:5px;padding:0 4px;font:500 10px/16px 'DM Mono',monospace;color:oklch(0.43 0.12 60);background:oklch(0.95 0.05 80);border-radius:3px;vertical-align:1px;text-decoration:none}
+.ic{width:32px;height:32px;flex:none;border-radius:8px;background:#f2f4f7;color:#3b424d;display:flex;align-items:center;justify-content:center;font-size:18px}
+.gl{display:flex;align-items:center;gap:6px;padding:10px 18px 8px;font-size:12px;font-weight:600;color:#5e6672;background:#fafbfc;border-top:1px solid #eef0f3}
+.cr{display:flex;gap:12px;padding:12px 18px;border-top:1px solid #eef0f3}
+.cc{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.ct{display:flex;align-items:baseline;gap:6px;font-size:14px}
+.cs{color:#5e6672;font-size:13px}
+.vv{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vy{display:inline-flex;gap:6px;align-items:baseline;padding:3px 8px;border-radius:6px;background:#eef1ff;color:oklch(0.42 0.17 262);font-size:12px}
+.vs{display:inline-flex;gap:6px;align-items:baseline;padding:3px 8px;border-radius:6px;background:#f2f4f7;color:#3b424d;font-size:12px}
+.vb{font:500 13px 'DM Mono',monospace}
+.meta{font:400 12px 'DM Mono',monospace;color:#6b7280}
+.why{display:flex;gap:6px;align-items:flex-start;color:#3b424d;font-size:13px;line-height:1.4}
+.hint{color:#5e6672;font-size:12px}
+.ca{flex:none;display:flex;justify-content:flex-end;gap:6px;align-items:flex-start;width:300px}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px">Kitchen remodel<span class="ms" style="font-size: 18px; color: #5e6672">expand_more</span></span><span style="font-size: 12px; color: #5e6672">Hendricks residence · Working copy · Rev 0 issued · Saved 2 min ago</span></div>
+<nav aria-label="Views" style="flex: 1; display: flex; justify-content: center; gap: 4px; align-self: stretch"><a href="#" class="ht hton" aria-current="page">Plan</a><a href="#" class="ht">3D</a><a href="#" class="ht">Sheets</a><a href="#" class="ht">Render</a></nav>
+<button class="rev"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span>2 to review</button>
+<button class="b">Share</button>
+<button class="b">Export</button>
+<button class="b bp">Issue set</button>
+</header>
+<div role="status" style="flex: none; height: 48px; box-sizing: border-box; margin: 12px 16px 0; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 14px; background: oklch(0.97 0.03 80); border: 1px solid oklch(0.86 0.07 75); border-radius: 10px; font-size: 14px">
+<span class="ms" aria-hidden="true" style="font-size: 20px; color: oklch(0.5 0.13 60)">sync_problem</span>
+<span style="font-weight: 600"><span class="pw">Couldn't save 5 changes to Kitchen remodel.</span><span class="pn">P1</span></span>
+<span style="color: #3b424d"><span class="pw">Your other edits are saved.</span><span class="pn">P2</span></span>
+<span style="flex: 1"></span>
+<button class="b bs" aria-expanded="true" aria-controls="changes-not-saved"><span class="pw">Review changes</span><span class="pn">P3</span></button>
+</div>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px; align-items: flex-start">
+<nav class="card" aria-label="Tools" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; align-self: stretch; box-sizing: border-box">
+<button class="rb ms" aria-label="Select (V)">arrow_selector_tool</button>
+<button class="rb ms" aria-label="Move (M)">open_with</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Wall (W)">view_column_2</button>
+<button class="rb ms" aria-label="Door (D)">door_front</button>
+<button class="rb ms" aria-label="Window">window</button>
+<button class="rb rbon ms" aria-label="Cabinets (C)" aria-pressed="true">kitchen</button>
+<button class="rb ms" aria-label="Fixtures">countertops</button>
+<button class="rb ms" aria-label="Electrical (E)">bolt</button>
+<button class="rb ms" aria-label="Ceiling">roofing</button>
+<span class="rs"></span>
+<button class="rb ms" aria-label="Dimension (L)">straighten</button>
+<button class="rb ms" aria-label="Text (T)">title</button>
+<button class="rb ms" aria-label="Sketch">draw</button>
+<button class="rb ms" aria-label="Detail callout">zoom_in</button>
+<span style="flex: 1"></span>
+<button class="rb ms" aria-label="Check code (run)" title="Check">rule</button><button class="rb ms" aria-label="Help">help</button>
+</nav>
+<aside class="card" aria-label="Layers" style="width: 248px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px">
+<div style="display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid #dfe2e6"><button class="seg segon">Layers</button><button class="seg">Rooms</button><button class="seg">Versions</button></div>
+<span class="lbl">Phase</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px">
+<div class="row"><span class="dot" style="background: #7a828e"></span><span style="flex: 1">Existing</span><span class="ms" style="font-size: 18px">visibility</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.6 0.19 28)"></span><span style="flex: 1">Demo</span><span class="ms" style="font-size: 18px">visibility</span></div>
+<div class="row"><span class="dot" style="background: oklch(0.55 0.17 262)"></span><span style="flex: 1">New</span><span class="ms" style="font-size: 18px">visibility</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Overlays</span>
+<div style="display: flex; flex-direction: column; padding: 0 6px">
+<div class="row" style="color: #9aa3af"><span class="ms" style="font-size: 18px">bolt</span><span style="flex: 1">Electrical</span><span class="ms" style="font-size: 18px">visibility_off</span></div>
+<div class="row" style="color: #9aa3af"><span class="ms" style="font-size: 18px">roofing</span><span style="flex: 1">Ceiling</span><span class="ms" style="font-size: 18px">visibility_off</span></div>
+<div class="row"><span class="ms" style="font-size: 18px">straighten</span><span style="flex: 1">Dimensions</span><span class="ms" style="font-size: 18px">visibility</span></div>
+<div class="row" style="color: #9aa3af"><span class="ms" style="font-size: 18px">layers</span><span style="flex: 1">Architect DXF</span><span class="mono" style="font-size: 11px; border: 1px solid #dfe2e6; border-radius: 4px; padding: 1px 5px">REF</span><span class="ms" style="font-size: 18px">visibility_off</span></div>
+</div>
+<span class="lbl" style="border-top: 1px solid #eef0f3; margin-top: 8px">Rooms</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 6px 12px">
+<div style="display: flex; justify-content: space-between; padding: 8px; background: #f2f4f7; border-radius: 7px; font-weight: 500"><span>Kitchen</span><span class="mono" style="font-size: 13px; color: #5e6672">165 sf</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px"><span>Laundry</span><span class="mono" style="font-size: 13px; color: #5e6672">38 sf</span></div>
+</div>
+</aside>
+<div style="flex: 1; align-self: stretch; position: relative">
+<svg viewBox="0 0 1000 680" role="img" aria-label="Kitchen plan, 11 ft 9 1/2 in by 14 ft, with the island run selected" style="position: absolute; left: 10px; top: 40px; width: 880px; height: 600px; font-family: 'DM Mono', monospace">
+<line x1="300" y1="40" x2="752.8" y2="40" style="stroke: #7a828e"></line><line x1="300" y1="32" x2="300" y2="48" style="stroke: #7a828e"></line><line x1="752.8" y1="32" x2="752.8" y2="48" style="stroke: #7a828e"></line>
+<rect x="480" y="28" width="96" height="24" style="fill: #f6f7f9"></rect><text x="528" y="45" style="font-size: 14px; fill: #14171c; text-anchor: middle">11' 9 1/2"</text>
+<line x1="250" y1="80" x2="250" y2="617.6" style="stroke: #7a828e"></line><line x1="242" y1="80" x2="258" y2="80" style="stroke: #7a828e"></line><line x1="242" y1="617.6" x2="258" y2="617.6" style="stroke: #7a828e"></line>
+<rect x="238" y="314" width="24" height="72" style="fill: #f6f7f9"></rect><text x="255" y="350" transform="rotate(-90 250 350)" style="font-size: 14px; fill: #14171c; text-anchor: middle">14' 0"</text>
+<path d="M293 464 V73 H759.8 V624.6" style="fill: none; stroke: #3b424d; stroke-width: 14"></path><path d="M293 579.2 V624.6 H400" style="fill: none; stroke: #3b424d; stroke-width: 14"></path>
+<line x1="400" y1="617.6" x2="752.8" y2="617.6" style="stroke: #9aa3af; stroke-width: 2; stroke-dasharray: 10 6"></line><text x="576" y="645" style="font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: 1px; fill: #9aa3af; text-anchor: middle">OPEN TO FAMILY ROOM</text>
+<line x1="300" y1="579.2" x2="415.2" y2="579.2" style="stroke: #14171c; stroke-width: 2"></line><path d="M300 464 A115.2 115.2 0 0 1 415.2 579.2" style="fill: none; stroke: #9aa3af; stroke-dasharray: 3 3"></path>
+<rect x="508.8" y="67" width="120" height="12" style="fill: #fff; stroke: #3b424d; stroke-width: 1.5"></rect><line x1="508.8" y1="73" x2="628.8" y2="73" style="stroke: #3b424d"></line>
+<rect x="300" y="80" width="76.8" height="134.4" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect><line x1="300" y1="80" x2="376.8" y2="156.8" style="stroke: #dfe2e6"></line><line x1="376.8" y1="80" x2="300" y2="156.8" style="stroke: #dfe2e6"></line>
+<rect x="300" y="214.4" width="76.8" height="96" style="fill: #f6f7f9; stroke: #7a828e; stroke-width: 1.5"></rect><circle cx="320" cy="240" r="10" style="fill: none; stroke: #9aa3af"></circle><circle cx="356" cy="240" r="10" style="fill: none; stroke: #9aa3af"></circle><circle cx="320" cy="284" r="10" style="fill: none; stroke: #9aa3af"></circle><circle cx="356" cy="284" r="10" style="fill: none; stroke: #9aa3af"></circle>
+<rect x="300" y="310.4" width="76.8" height="48" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="376.8" y="80" width="9.6" height="76.8" style="fill: #f6f7f9; stroke: #9aa3af; stroke-dasharray: 3 2"></rect>
+<rect x="386.4" y="80" width="48" height="76.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="434.4" y="80" width="76.8" height="76.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="511.2" y="80" width="115.2" height="76.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="626.4" y="80" width="57.6" height="76.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="684" y="80" width="67.2" height="76.8" style="fill: #fff; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="538.8" y="93" width="60" height="32" rx="8" style="fill: none; stroke: #7a828e; stroke-width: 1.5"></rect>
+<rect x="656.8" y="176" width="96" height="115.2" style="fill: #fff; stroke: #9aa3af; stroke-dasharray: 5 3"></rect><line x1="656.8" y1="176" x2="752.8" y2="291.2" style="stroke: #dfe2e6"></line><line x1="752.8" y1="176" x2="656.8" y2="291.2" style="stroke: #dfe2e6"></line>
+<text x="410.4" y="124" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B15</text><text x="472.8" y="124" style="font-size: 12px; fill: #5e6672; text-anchor: middle">DW24</text><text x="568.8" y="148" style="font-size: 10px; fill: #5e6672; text-anchor: middle">SB36</text><text x="655.2" y="124" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B18</text><text x="717.6" y="124" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B21</text><text x="338.4" y="200" style="font-size: 12px; fill: #5e6672; text-anchor: middle">BBC42</text><text x="338.4" y="266" style="font-size: 12px; fill: #5e6672; text-anchor: middle">RNG30</text><text x="338.4" y="339" style="font-size: 12px; fill: #5e6672; text-anchor: middle">B15</text><text x="704.8" y="238" style="font-size: 12px; fill: #5e6672; text-anchor: middle">REF</text>
+<text x="430" y="330" style="font-family: 'Instrument Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; fill: #9aa3af">KITCHEN · 165 SF</text>
+<rect x="436.8" y="382.4" width="244.8" height="120" style="fill: none; stroke: oklch(0.55 0.17 262)"></rect>
+<rect x="444" y="387.2" width="76.8" height="76.8" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect>
+<rect x="520.8" y="387.2" width="76.8" height="76.8" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect>
+<rect x="597.6" y="387.2" width="76.8" height="76.8" style="fill: oklch(0.95 0.03 262); stroke: oklch(0.55 0.17 262); stroke-width: 2"></rect>
+<text x="482.4" y="431" style="font-size: 13px; font-weight: 500; fill: oklch(0.42 0.17 262); text-anchor: middle">B24</text><text x="559.2" y="431" style="font-size: 13px; font-weight: 500; fill: oklch(0.42 0.17 262); text-anchor: middle">DB24</text><text x="636" y="431" style="font-size: 13px; font-weight: 500; fill: oklch(0.42 0.17 262); text-anchor: middle">B24</text>
+</svg>
+<div style="position: absolute; left: 16px; top: 12px; max-width: 470px; display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; background: #fffaf0; border: 1.5px dashed oklch(0.72 0.13 65); border-radius: 8px; font-size: 12px; line-height: 1.45; color: #3b424d">
+<span class="mono" style="font-weight: 500; color: oklch(0.43 0.12 60)">NOTE</span>
+<span>Text with a dotted orange underline and a P number is proposed wording, not approved. Object names, sizes, [Name], times and projects are sample data.</span>
+</div>
+<div style="position: absolute; right: 16px; top: 16px; display: flex; flex-direction: column; background: #fff; border: 1px solid #dfe2e6; border-radius: 10px">
+<button class="zb ms" aria-label="Zoom in" style="border-bottom: 1px solid #eef0f3">add</button>
+<button class="zb ms" aria-label="Zoom out" style="border-bottom: 1px solid #eef0f3">remove</button>
+<button class="zb ms" aria-label="Fit to screen">fit_screen</button>
+</div>
+</div>
+<aside class="card" aria-label="Inspector" style="width: 336px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; align-self: stretch">
+<div style="padding: 18px 18px 14px; display: flex; justify-content: space-between; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 18px; font-weight: 600">Island run</span><span style="font-size: 13px; color: #5e6672">3 boxes · 2 end panels</span></div></div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">View</span><div class="ssg" role="group" aria-label="Phase view"><button class="ssi">Existing</button><button class="ssi ssion">Proposed</button></div></div>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Scale</span><span class="sv">1/2" = 1'-0"</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Snap</span><span class="sv">1/2"</span></div>
+<span style="flex: 1"></span>
+<div style="display: flex; align-items: center; gap: 6px"><span class="sl">Cursor</span><span class="sv">8' 2" , 4' 7 1/2"</span></div>
+<span class="sv">100%</span>
+</footer>
+
+<section id="changes-not-saved" class="card" role="dialog" aria-labelledby="cns-title" style="position: absolute; right: 16px; top: 152px; bottom: 62px; width: 720px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 16px 48px rgba(10,15,30,.18); font-size: 13px">
+<div style="padding: 16px 18px 12px; display: flex; align-items: flex-start; gap: 12px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px"><h2 id="cns-title" style="margin: 0; font-size: 18px; font-weight: 600"><span class="pw">Changes not saved</span><span class="pn">P4</span></h2><span class="mono" style="font-size: 12px; padding: 1px 7px; border-radius: 999px; background: oklch(0.96 0.04 80); color: oklch(0.43 0.12 60)">6</span></div>
+<span style="color: #5e6672"><span class="pw">This list is kept with your account, so it's the same on every device.</span><span class="pn">P5</span></span>
+</div>
+<button class="b ms" aria-label="Close" style="width: 36px; height: 36px; justify-content: center; padding: 0; font-size: 20px">close</button>
+</div>
+<div style="flex: 1; min-height: 0; overflow: auto">
+
+<div class="gl"><span class="pw">This project</span><span class="pn">P6</span><span>· Kitchen remodel</span><span class="mono" style="font-weight: 400">5</span></div>
+
+<div class="cr">
+<span class="ic ms" aria-hidden="true">view_column_2</span>
+<div class="cc">
+<div class="ct"><span style="font-weight: 600">Wall 4</span><span class="cs">· Length</span></div>
+<div class="vv"><span class="vy"><span class="pw">Yours</span><span class="pn" style="margin-left: 0">P7</span><span class="vb">12' 6"</span></span><span class="vs"><span class="pw">Saved</span><span class="vb">12' 0"</span></span><span class="meta">[Name] · 10:42 AM</span></div>
+</div>
+<div class="ca"><button class="b bs"><span class="ms" aria-hidden="true" style="font-size: 16px">my_location</span>Show</button><button class="b bs">Keep mine</button><button class="b bs">Keep theirs</button></div>
+</div>
+
+<div class="cr">
+<span class="ic ms" aria-hidden="true">door_front</span>
+<div class="cc">
+<div class="ct"><span style="font-weight: 600">Door 2</span><span class="cs">· Width</span></div>
+<span class="why"><span class="pw">Someone else deleted this door after you changed it.</span><span class="pn">P8</span></span>
+<div class="vv"><span class="vy"><span class="pw">Yours</span><span class="vb">3' 0"</span></span><span class="vs"><span class="pw">Saved</span><span class="vb pw">Deleted</span></span><span class="meta">[Name] · 10:44 AM</span></div>
+<span class="hint"><span class="pw">Keep mine brings it back.</span><span class="pn">P9</span></span>
+</div>
+<div class="ca"><button class="b bs">Keep mine</button><button class="b bs">Keep theirs</button></div>
+</div>
+
+<div class="cr">
+<span class="ic ms" aria-hidden="true">window</span>
+<div class="cc">
+<div class="ct"><span style="font-weight: 600">Window 3</span><span class="cs">· Width</span></div>
+<span class="why"><span class="pw">You deleted this window, but someone else had changed it.</span><span class="pn">P10</span></span>
+<div class="vv"><span class="vy"><span class="pw">Yours</span><span class="vb pw">Deleted</span></span><span class="vs"><span class="pw">Saved</span><span class="vb">3' 6"</span></span><span class="meta">[Name] · 10:44 AM</span></div>
+<span class="hint"><span class="pw">Keep mine deletes their version.</span><span class="pn">P11</span></span>
+</div>
+<div class="ca"><button class="b bs"><span class="ms" aria-hidden="true" style="font-size: 16px">my_location</span>Show</button><button class="b bs">Keep mine</button><button class="b bs">Keep theirs</button></div>
+</div>
+
+<div class="cr">
+<span class="ic ms" aria-hidden="true">view_column_2</span>
+<div class="cc">
+<div class="ct"><span style="font-weight: 600">Wall 6</span><span class="cs">· Height</span></div>
+<span class="why"><span class="ms" aria-hidden="true" style="font-size: 16px; color: oklch(0.5 0.13 60)">report</span><span><span class="pw">EZ Draft built this change wrong, so it can't be saved. We've reported the problem.</span><span class="pn">P12</span></span></span>
+<div class="vv"><span class="vy"><span class="pw">Yours</span><span class="vb">8' 0"</span></span></div>
+</div>
+<div class="ca"><button class="b bs"><span class="ms" aria-hidden="true" style="font-size: 16px">my_location</span>Show</button><button class="b bs">Remove</button></div>
+</div>
+
+<div class="cr">
+<span class="ic ms" aria-hidden="true">view_column_2</span>
+<div class="cc">
+<div class="ct"><span style="font-weight: 600">Wall 7</span><span class="cs">· Thickness</span></div>
+<span class="why"><span class="ms" aria-hidden="true" style="font-size: 16px; color: #5e6672">update</span><span><span class="pw">This change was made in an older version of EZ Draft. Reload to send it again.</span><span class="pn">P13</span></span></span>
+<div class="vv"><span class="vy"><span class="pw">Yours</span><span class="vb">6"</span></span></div>
+</div>
+<div class="ca"><button class="b bs"><span class="ms" aria-hidden="true" style="font-size: 16px">my_location</span>Show</button><button class="b bs"><span class="ms" aria-hidden="true" style="font-size: 16px">refresh</span>Reload</button></div>
+</div>
+
+<div class="gl"><span class="pw">Other projects</span><span class="pn">P6</span><span class="mono" style="font-weight: 400">1</span></div>
+
+<div class="cr">
+<span class="ic ms" aria-hidden="true">view_column_2</span>
+<div class="cc">
+<div class="ct"><span style="font-weight: 600">Wall 2</span><span class="cs">· Length · Primary bath · [Client B]</span></div>
+<span class="why"><span class="ms" aria-hidden="true" style="font-size: 16px; color: #5e6672">block</span><span><span class="pw">This project was deleted, so this change can't be saved.</span><span class="pn">P14</span></span></span>
+<div class="vv"><span class="vy"><span class="pw">Yours</span><span class="vb">9' 4"</span></span></div>
+</div>
+<div class="ca"><button class="b bs">Remove</button></div>
+</div>
+
+</div>
+<div style="border-top: 1px solid #eef0f3; padding: 12px 18px; display: flex; gap: 8px; align-items: center; color: #5e6672">
+<span class="ms" aria-hidden="true" style="font-size: 16px">info</span>
+<span><span class="pw">Keep mine saves your change over the saved one. Keep theirs drops your change.</span><span class="pn">P15</span></span>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

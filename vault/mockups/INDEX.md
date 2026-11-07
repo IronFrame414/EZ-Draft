@@ -15,6 +15,7 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S01 | Projects | [S01Projects.png](S01Projects.png) | [html/project/S01Projects.dc.html](html/project/S01Projects.dc.html) |
 | S02 | Import review | [S02Import.png](S02Import.png) | [html/project/S02Import.dc.html](html/project/S02Import.dc.html) |
 | S03 | Plan editor | [S03Plan.png](S03Plan.png) | [html/project/S03Plan.dc.html](html/project/S03Plan.dc.html) |
+| S03b | Plan editor: conflict list | [S03bConflictList.png](S03bConflictList.png) | [html/project/S03bConflictList.dc.html](html/project/S03bConflictList.dc.html) |
 | S04 | Cabinet run + elevation | [S04Cabinets.png](S04Cabinets.png) | [html/project/S04Cabinets.dc.html](html/project/S04Cabinets.dc.html) |
 | S04b | Countertops | [S04bCountertops.png](S04bCountertops.png) | [html/project/S04bCountertops.dc.html](html/project/S04bCountertops.dc.html) |
 | S05 | Ceiling plan / RCP | [S05Ceiling.png](S05Ceiling.png) | [html/project/S05Ceiling.dc.html](html/project/S05Ceiling.dc.html) |
@@ -49,8 +50,11 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S21 | Field measurements review | [S21FieldMeasReview.png](S21FieldMeasReview.png) | [html/project/S21FieldMeasReview.dc.html](html/project/S21FieldMeasReview.dc.html) |
 | S22 | Field tasks | [S22FieldTasks.png](S22FieldTasks.png) | [html/project/S22FieldTasks.dc.html](html/project/S22FieldTasks.dc.html) |
 | S01c | Notification list | [S01cNotifications.png](S01cNotifications.png) | [html/project/S01cNotifications.dc.html](html/project/S01cNotifications.dc.html) |
+| S01c state | Notification list: changes not saved | [S01cConflictNotification.png](S01cConflictNotification.png) | [html/project/S01cConflictNotification.dc.html](html/project/S01cConflictNotification.dc.html) |
 | S01d | Avatar menu | [S01dAvatarMenu.png](S01dAvatarMenu.png) | [html/project/S01dAvatarMenu.dc.html](html/project/S01dAvatarMenu.dc.html) |
 | S01e | My profile | [S01eMyProfile.png](S01eMyProfile.png) | [html/project/S01eMyProfile.dc.html](html/project/S01eMyProfile.dc.html) |
 | S01f | My profile: notifications | [S01fMyNotifications.png](S01fMyNotifications.png) | [html/project/S01fMyNotifications.dc.html](html/project/S01fMyNotifications.dc.html) |
 
 S01c to S01f added 2026-10-28 for phase 2 (Q-0391): drawn on the same design canvas and approved by Josh; PNGs rendered from the canvas HTML with its own runtime at 1600 × 1000.
+
+S03b and the S01c state added 2026-11-07 for EZD-299 (Q-0510): drawn in Cowork and approved by Josh with all their wording, listed in [S03bConflictList-wording.md](S03bConflictList-wording.md); the boards' notes still say "proposed", and that list is what counts. HTML copied unchanged from the canvas. PNGs rendered at 1600 × 1000 without the canvas runtime, so in the S03b PNG the Close button shows the word "close" where the HTML means its icon, and the Other projects row (P6, P14) sits below the fold of the scrolling list; read the HTML for those.
