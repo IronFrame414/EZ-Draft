@@ -3988,7 +3988,11 @@
     "spec/sections/09k-openings-and-moves-examples.md",
     "spec/sections/03g-tolerance-and-rounding.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-203"
@@ -4317,7 +4321,11 @@
     "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4530,7 +4538,10 @@
     "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dWindowSelected.png",
+    "mockups/S03dStates.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4576,7 +4587,10 @@
    ],
    "mockups": [
     "mockups/S03Plan.png",
-    "mockups/S02Import.png"
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4626,7 +4640,10 @@
    ],
    "mockups": [
     "mockups/S03Plan.png",
-    "mockups/S02Import.png"
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4764,7 +4781,8 @@
     "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S03dTablet.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [

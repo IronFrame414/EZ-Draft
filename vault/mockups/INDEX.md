@@ -20,6 +20,12 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S03c state | AI assistant: no key | [S03cAIAssistantNoKey.png](S03cAIAssistantNoKey.png) | [html/project/S03cAIAssistantNoKey.dc.html](html/project/S03cAIAssistantNoKey.dc.html) |
 | S03c state | AI assistant: key refused or out of credit | [S03cAIAssistantKeyError.png](S03cAIAssistantKeyError.png) | [html/project/S03cAIAssistantKeyError.dc.html](html/project/S03cAIAssistantKeyError.dc.html) |
 | S03c state | AI assistant: render | [S03cAIAssistantRender.png](S03cAIAssistantRender.png) | [html/project/S03cAIAssistantRender.dc.html](html/project/S03cAIAssistantRender.dc.html) |
+| S03c state | AI assistant: photo attached | [S03cAIAssistantPhoto.png](S03cAIAssistantPhoto.png) | [html/project/S03cAIAssistantPhoto.dc.html](html/project/S03cAIAssistantPhoto.dc.html) |
+| S03d | Plan editor: wall selected | [S03dWallSelected.png](S03dWallSelected.png) | [html/project/S03dWallSelected.dc.html](html/project/S03dWallSelected.dc.html) |
+| S03d | Plan editor: door selected | [S03dDoorSelected.png](S03dDoorSelected.png) | [html/project/S03dDoorSelected.dc.html](html/project/S03dDoorSelected.dc.html) |
+| S03d | Plan editor: window selected | [S03dWindowSelected.png](S03dWindowSelected.png) | [html/project/S03dWindowSelected.dc.html](html/project/S03dWindowSelected.dc.html) |
+| S03d | Plan editor: smaller states | [S03dStates.png](S03dStates.png) | [html/project/S03dStates.dc.html](html/project/S03dStates.dc.html) |
+| S03d | Plan editor: tablet, no keyboard | [S03dTablet.png](S03dTablet.png) | [html/project/S03dTablet.dc.html](html/project/S03dTablet.dc.html) |
 | S04 | Cabinet run + elevation | [S04Cabinets.png](S04Cabinets.png) | [html/project/S04Cabinets.dc.html](html/project/S04Cabinets.dc.html) |
 | S04b | Countertops | [S04bCountertops.png](S04bCountertops.png) | [html/project/S04bCountertops.dc.html](html/project/S04bCountertops.dc.html) |
 | S05 | Ceiling plan / RCP | [S05Ceiling.png](S05Ceiling.png) | [html/project/S05Ceiling.dc.html](html/project/S05Ceiling.dc.html) |
@@ -65,3 +71,5 @@ S01c to S01f added 2026-10-28 for phase 2 (Q-0391): drawn on the same design can
 S03b and the S01c state added 2026-11-07 for EZD-299 (Q-0510): drawn in Cowork and approved by Josh with all their wording, listed in [S03bConflictList-wording.md](S03bConflictList-wording.md); the boards' notes still say "proposed", and that list is what counts. HTML copied unchanged from the canvas. PNGs rendered at 1600 × 1000 without the canvas runtime, so in the S03b PNG the Close button shows the word "close" where the HTML means its icon, and the Other projects row (P6, P14) sits below the fold of the scrolling list; read the HTML for those.
 
 S03c and S01g added 2026-11-07 (Q-0474): drawn 2026-11-04 in Cowork and approved by Josh with their wording, listed in S03cAIAssistant-wording.md; the boards' labels still say "for approval", and that list is what counts. HTML copied unchanged from the canvas; PNGs rendered at 1600 × 1000 without the canvas runtime. The Nov 4 canvas also holds an older S03b and S01c state; the Nov 7 ones above replace them.
+
+S03d and the S03c photo state added 2026-11-07 (Q-0630): drawn in Cowork and approved by Josh with their wording, listed in S03dSelectedObjects-wording.md; board notes still say "proposed", and that list is what counts. HTML copied unchanged from the canvas; PNGs rendered at 1600 × 1000 without the canvas runtime and not yet looked at.
