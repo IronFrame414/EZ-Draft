@@ -13,8 +13,10 @@ const R = 4;
 
 const M = '<main data-shell-region="canvas" style="position:fixed;inset:0"></main>';
 const B60 = 'var t=performance.now();while(performance.now()-t<60){}';
+const B200 = 'var t=performance.now();while(performance.now()-t<200){}';
 
-const WHEEL_HTML = `<!doctype html><html><head></head><body>${M}<script>addEventListener('wheel',function(){${B60}})</script></body></html>`;
+const WHEEL_HTML = `<!doctype html><html><head></head><body>${M}<script>addEventListener('wheel',function(){${B200}})</script></body></html>`;
+const WAIT_HTML = `<!doctype html><html><head></head><body>${M}<script>addEventListener('wheel',function(){var x=new XMLHttpRequest();x.open('GET','/slow',false);x.send()})</script></body></html>`;
 const LATE_HTML = `<!doctype html><html><head></head><body data-perf-wait-plan="">${M}<script>setTimeout(function(){window.__ezdraftPlan={stats:function(){return{glyphs:1}}}},1000);setTimeout(function(){${B60}},2500);setTimeout(function(){var d=document.createElement('div');d.setAttribute('data-testid','plan-canvas');d.setAttribute('data-plan-state','ready');document.body.appendChild(d)},3000)</script></body></html>`;
 const NEVER_HTML = `<!doctype html><html><head></head><body data-perf-wait-plan="">${M}</body></html>`;
 
@@ -26,6 +28,8 @@ before(async () => {
   server = await startFixtureServer({
     '/pan.html': { body: PAN_HTML },
     '/wheel.html': { body: WHEEL_HTML },
+    '/wait.html': { body: WAIT_HTML },
+    '/slow': { body: 'ok', type: 'text/plain; charset=utf-8', delayMs: 100 },
     '/late.html': { body: LATE_HTML },
     '/never.html': { body: NEVER_HTML },
     '/notext.html': { body: NOTEXT_HTML },
@@ -48,7 +52,11 @@ async function runPanCli(panUrl, only) {
     } catch {
       latest = undefined;
     }
-    return { r, latest };
+    let diag = `${r.stdout}${r.stderr}`;
+    for (const m of (latest?.measurements ?? []).filter((x) => String(x.id).startsWith('long-tasks-during-pan'))) {
+      diag += `\n${m.id} status=${m.status} value=${m.value} details=${JSON.stringify(m.details)}`;
+    }
+    return { r, latest, diag };
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -142,7 +150,8 @@ describe('EZD-356 long-task list on the pan rows', () => {
     for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
       const row = rowOf(latest, id);
       assert.equal(row.value, 8, id);
-      assert.deepEqual(Object.keys(row.details), ['profile', 'tasks', 'load1'], id);
+      assert.deepEqual(Object.keys(row.details), ['profile', 'tasks', 'waits', 'load1'], id);
+      assert.deepEqual(row.details.waits, [], id);
       assert.equal(row.details.tasks.length, 8, id);
       let prev = 0;
       for (const t of row.details.tasks) {
@@ -162,5 +171,47 @@ describe('EZD-356 long-task list on the pan rows', () => {
     assert.equal(row.value, 0);
     assert.deepEqual(row.details.tasks, []);
     assert.equal(row.details.profile, 'desktop');
+  });
+});
+
+describe('EZD-359 pan task attribution', () => {
+  test('EZD-359 I1 pan tasks carry trace attribution', { timeout: 200000 }, async () => {
+    const { r, latest } = await runPanCli('/wheel.html', [
+      'long-tasks-during-pan',
+      'long-tasks-during-pan:ipad',
+    ]);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
+      const row = rowOf(latest, id);
+      assert.ok(row.details.tasks.length >= 1, `${id} tasks`);
+      for (const t of row.details.tasks) {
+        assert.deepEqual(Object.keys(t), ['at', 'ms', 'cpu', 'gc', 'top'], id);
+        assert.ok(Number.isInteger(t.cpu) && t.cpu >= 0, `${id} cpu ${t.cpu}`);
+        assert.ok(Number.isInteger(t.gc) && t.gc >= 0 && t.gc <= t.ms, `${id} gc ${t.gc}`);
+        assert.ok(typeof t.top === 'string' && t.top.length > 0, `${id} top ${t.top}`);
+        if (row.details.profile === 'desktop') assert.ok(t.cpu >= 50, `${id} cpu ${t.cpu}`);
+      }
+    }
+  });
+
+  test('EZD-359 I2 a waiting task is listed, not counted', { timeout: 200000 }, async () => {
+    const { r, latest, diag } = await runPanCli('/wait.html', [
+      'long-tasks-during-pan',
+      'long-tasks-during-pan:ipad',
+    ]);
+    assert.equal(r.status, 0, diag);
+    for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
+      const row = rowOf(latest, id);
+      const rate = row.details.profile === 'ipad-1x' ? 4 : 1;
+      assert.equal(row.status, 'pass', `${id}\n${diag}`);
+      assert.equal(row.value, 0, `${id}\n${diag}`);
+      assert.deepEqual(row.details.tasks, [], `${id}\n${diag}`);
+      assert.ok(row.details.waits.length >= 1, `${id} waits`);
+      for (const w of row.details.waits) {
+        assert.ok(w.ms >= 50, `${id} ms ${w.ms}`);
+        assert.ok(Number.isInteger(w.cpu), `${id} cpu ${w.cpu}`);
+        assert.ok(w.cpu * rate - w.ms * (rate - 1) <= 50, `${id} cpu ${w.cpu} ms ${w.ms} rate ${rate}`);
+      }
+    }
   });
 });

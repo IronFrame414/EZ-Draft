@@ -1,9 +1,11 @@
 // EZD-017 Step 5 (vault/plans/EZD-017.md P1-P5, H1, H2): the scripted pan. Counts React commits, long tasks and
 // animation frame intervals between the pan-start and pan-end marks (11 rule 4; Q-0073 (a)).
 // EZD-356: the pan rows also list each pan long task (at = ms after pan-start, ms = its length) and the 1-minute load average.
+// EZD-359: the pan is traced; each pan long task carries cpu, gc and top.
 import os from 'node:os';
 import path from 'node:path';
 import { settlePage } from './js-size.mjs';
+import { TRACE_CATEGORIES, TRACE_STOP_MS, attributeTasks, readTraceEvents, splitTasks } from './trace-tasks.mjs';
 
 const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
 
@@ -23,6 +25,24 @@ export async function applyCpuThrottle(context, page, rate) {
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate });
   return cdp;
+}
+
+/** EZD-359 D-Trace: stops the browser's trace within TRACE_STOP_MS; its events, or [] on any throw or timeout. */
+async function stopTrace(browser) {
+  let timer;
+  try {
+    const buffer = await Promise.race([
+      browser.stopTracing(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('trace_stop_timeout')), TRACE_STOP_MS);
+      }),
+    ]);
+    return readTraceEvents(buffer);
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** P4: nearest-rank percentile of a sorted array. */
@@ -88,6 +108,8 @@ export async function runPan(context, baseUrl, panUrl, profile) {
   await context.addInitScript({ path: HOOKS_PATH });
   const page = await context.newPage();
   const cdp = await applyCpuThrottle(context, page, profile.cpuThrottleRate);
+  const browser = context.browser();
+  let tracing = false;
   try {
     let response;
     try {
@@ -129,6 +151,14 @@ export async function runPan(context, baseUrl, panUrl, profile) {
     await page.mouse.move(cx, cy);
     await twoFrames(page);
     const load1 = Math.round(os.loadavg()[0] * 100) / 100;
+    if (browser !== null) {
+      try {
+        await browser.startTracing(page, { categories: TRACE_CATEGORIES });
+        tracing = true;
+      } catch {
+        tracing = false;
+      }
+    }
     const startCommits = await page.evaluate(() => {
       window.__EZD_PERF__.mark('pan-start');
       return window.__EZD_PERF__.commits;
@@ -167,10 +197,18 @@ export async function runPan(context, baseUrl, panUrl, profile) {
         panEnd: p.panEnd,
       };
     });
+    const events = tracing ? await stopTrace(browser) : [];
+    tracing = false;
 
     // P3
     const intervals = [];
     for (let i = 1; i < end.rafTimes.length; i++) intervals.push(end.rafTimes[i] - end.rafTimes[i - 1]);
+    const raw = end.longTasks
+      .filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
+      .map((t) => ({ at: Math.round(t.startTime - end.panStart), ms: Math.round(t.duration) }))
+      .sort((a, b) => a.at - b.at);
+    // EZD-359 branch H: own work (cpu × rate − ms × (rate − 1)) of 50 ms or less is a wait: listed, not counted.
+    const split = splitTasks(attributeTasks(events, raw), profile.cpuThrottleRate);
     return {
       reactDetected: end.renderers >= 1,
       renderers: end.renderers,
@@ -178,17 +216,15 @@ export async function runPan(context, baseUrl, panUrl, profile) {
       pointerMoves,
       wheelSteps,
       durationMs: end.panEnd - end.panStart,
-      longTasksPan: end.longTasks.filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
-        .length,
+      longTasksPan: split.counted.length,
       longTasksLoad: end.longTasks.filter((t) => t.startTime < end.panStart).length,
-      panTasks: end.longTasks
-        .filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
-        .map((t) => ({ at: Math.round(t.startTime - end.panStart), ms: Math.round(t.duration) }))
-        .sort((a, b) => a.at - b.at),
+      panTasks: split.counted,
+      panWaits: split.waits,
       load1,
       intervals,
     };
   } finally {
+    if (tracing) await stopTrace(browser);
     await cdp.detach().catch(() => {});
     await page.close();
   }

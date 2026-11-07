@@ -11,9 +11,10 @@
     rafTimes: [],
     panStart: null,
     panEnd: null,
+    // EZD-359: pan-start is also a user-timing mark, the anchor for the pan's trace.
     mark: function mark(name) {
       if (name === 'pan-start') {
-        perf.panStart = performance.now();
+        perf.panStart = performance.mark('ezd-pan-start').startTime;
         rafRunning = true;
         requestAnimationFrame(onFrame);
       } else if (name === 'pan-end') {
