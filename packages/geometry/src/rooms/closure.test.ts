@@ -136,3 +136,24 @@ describe('EZD-205b closure reports', () => {
     expect(findClosures(openChain(1, ROW2_PTS, 'right', F2), F1)).toEqual([]);
   });
 });
+
+// EZD-357 · the 12" gap limit allows 1/64" (vault/plans/EZD-357.md sections 3-4; AC-EZD-357-1, AC-EZD-357-2).
+// Sources: 09j Closure rows 4-5; Q-0568 (12" limit inclusive, 1/64" comparison inclusive); 03g rows 2-3.
+describe('EZD-357 gap limit allowance', () => {
+  it('GL1 the 12" limit allows 1/64": 12.000000000000014 and 12.015625 show, 12.03125 does not', () => {
+    // 12.000000000000014 is the float miss of a typed 12', 10', 12', 9' chain (vault/plans/EZD-357.md section 2).
+    const a = onlyGap(findClosures(withLast(P(0, 12.000000000000014)), F1), 'GL1 (a)');
+    expect(a.wallIds).toEqual(IDS4);
+    expect(a.sizeIn).toBeCloseTo(12, 12);
+    expect(a.displayIn).toBe(12);
+    expect(a.parallelWallIds).toEqual([uid(2), uid(4)]);
+
+    const b = onlyGap(findClosures(withLast(P(0, 12.015625)), F1), 'GL1 (b)');
+    expect(b.sizeIn).toBe(12.015625);
+    expect(b.displayIn).toBe(12);
+
+    const c = onlyOpen(findClosures(withLast(P(0, 12.03125)), F1), 'GL1 (c)');
+    expect(c.wallIds).toEqual(IDS4);
+    expect(c.sizeIn).toBe(12.03125);
+  });
+});

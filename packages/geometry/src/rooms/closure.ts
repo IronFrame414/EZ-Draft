@@ -154,7 +154,8 @@ export function findClosures(walls: readonly WallObject[], level: string): Closu
     const gap = { x: p0.x - pn.x, y: p0.y - pn.y };
     const sizeIn = Math.hypot(gap.x, gap.y);
     const open = { kind: 'open' as const, wallIds, gap, sizeIn };
-    if (chainWalls.length < 3 || sizeIn > GAP_LIMIT_IN) return open;
+    // EZD-357 (vault/plans/EZD-357.md): the 12" limit is inclusive within the fixed 1/64" tolerance (Q-0568; 03g), as wallLengthProblem does at 200'.
+    if (chainWalls.length < 3 || sizeIn - GAP_LIMIT_IN > COMPARISON_TOLERANCE_IN) return open;
 
     const virtual: WallObject = {
       id: GAP_WALL_ID,

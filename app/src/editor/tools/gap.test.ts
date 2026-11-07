@@ -230,3 +230,37 @@ describe('EZD-210a gap box, pick, absorb and keep', () => {
     });
   });
 });
+
+// EZD-357 · a typed chain that closes at exactly 12" shows its gap box (vault/plans/EZD-357.md sections 3-4;
+// AC-EZD-357-1, AC-EZD-357-2). Sources: 09j Closure rows 4-5 and Typed lengths row 6; Q-0562; Q-0568; 205b Decided "Gap".
+describe('EZD-357 typed chain at the 12" limit', () => {
+  it("EZD-357 done when: the typed 12', 10', 12', 9' chain shows one 12\" gap box", () => {
+    const objects = drawWithWall(
+      baseObjects(),
+      [...typedEnws([144, 120, 144, 108]), { type: 'enter' }],
+      1,
+    ).objects;
+    const boxes = gapBoxes(objects, F1, EDIT);
+    expect(boxes).toHaveLength(1);
+    const box = boxes[0]!;
+    expect(box.wallIds).toEqual([uid(1), uid(2), uid(3), uid(4)]);
+    expect(box.sizeIn).toBeCloseTo(12, 9);
+    expect(box.gap.x).toBeCloseTo(0, 9);
+    expect(box.gap.y).toBeCloseTo(-12, 9);
+    expect(box.displayIn).toBe(12);
+    expect(box.sizeText).toBe('12"');
+    expect(box.actions).toEqual(['absorb', 'keep']);
+    expect(box.note).toBeNull();
+    expect(roomsOf(objects)).toHaveLength(0);
+  });
+
+  it("EZD-357 done when: the typed 12', 10', 12', 8' 11 15/16\" chain shows no gap box", () => {
+    const objects = drawWithWall(
+      baseObjects(),
+      [...typedEnws([144, 120, 144, 107.9375]), { type: 'enter' }],
+      1,
+    ).objects;
+    expect(gapBoxes(objects, F1, EDIT)).toEqual([]);
+    expect(roomsOf(objects)).toHaveLength(0);
+  });
+});
