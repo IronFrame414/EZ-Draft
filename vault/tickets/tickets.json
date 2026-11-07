@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 603,
+ "count": 604,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -30,7 +30,8 @@
   "EZD-103 split into EZD-103a, EZD-103b on 2026-10-24 (planner proposal, plan over 45,000 characters after tightening; orchestrator applied, Q-0309); every dependent of EZD-103 depends on both. The stage-0 ACs keep their IDs: AC-EZD-103-1 to -4 and -6 on EZD-103a, AC-EZD-103-5 on EZD-103b.",
   "EZD-110 split into EZD-110a, EZD-110b on 2026-10-30 (planner proposal, plan over 45,000 characters; orchestrator applied at questions 2); every dependent of EZD-110 depends on both. The stage-0 ACs keep their IDs: AC-EZD-110-5, -6 and -8 on EZD-110a, AC-EZD-110-1, -2, -3, -4 and -7 on EZD-110b.",
   "EZD-120b split into EZD-120b, EZD-120c, EZD-120d on 2026-11-04 (planner split proposal vault/plans/split-EZD-120b.md, orchestrator applied); EZD-202 depends only on EZD-120a and builds before EZD-120b (Q-0573 (a)); dependents of base EZD-120 expand to every part; EZD-299 needs all three, EZD-1020 the editor (120c).",
-  "EZD-205, EZD-207 and EZD-210 split on 2026-11-06 into EZD-205a, EZD-205b; EZD-207a, EZD-207b, EZD-207c; EZD-210a, EZD-210b (planner split proposals vault/plans/EZD-205.md, EZD-207.md, EZD-210.md, each over the PROCESS.md section 6 file and test counts; orchestrator applied); every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs: AC-EZD-205-1 and -5 on EZD-205a, -2, -3, -4 and -6 on EZD-205b; AC-EZD-207-1, -4, -6, -7, -8 and -9 on EZD-207a, -2, -3, -4, -8 and -10 on EZD-207b, -5 on EZD-207c; AC-EZD-210-1, -2, -3, -4, -6, -8, -9, -10 and -12 on EZD-210a, AC-EZD-210-1, -2, -3, -5, -7, -8, -9, -10 and -11 plus AC-EZD-207-6 and -7 (the tools and rail clauses) on EZD-210b."
+  "EZD-205, EZD-207 and EZD-210 split on 2026-11-06 into EZD-205a, EZD-205b; EZD-207a, EZD-207b, EZD-207c; EZD-210a, EZD-210b (planner split proposals vault/plans/EZD-205.md, EZD-207.md, EZD-210.md, each over the PROCESS.md section 6 file and test counts; orchestrator applied); every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs: AC-EZD-205-1 and -5 on EZD-205a, -2, -3, -4 and -6 on EZD-205b; AC-EZD-207-1, -4, -6, -7, -8 and -9 on EZD-207a, -2, -3, -4, -8 and -10 on EZD-207b, -5 on EZD-207c; AC-EZD-210-1, -2, -3, -4, -6, -8, -9, -10 and -12 on EZD-210a, AC-EZD-210-1, -2, -3, -5, -7, -8, -9, -10 and -11 plus AC-EZD-207-6 and -7 (the tools and rail clauses) on EZD-210b.",
+  "EZD-221 split on 2026-11-07 into EZD-221a, EZD-221b (planner split proposal vault/plans/EZD-221.md, over the PROCESS.md section 6 file count; overwatch session applied). The stage-0 ACs keep their IDs."
  ],
  "checks": {
   "cycles": 0,
@@ -149,7 +150,8 @@
   "EZD-209",
   "EZD-210a",
   "EZD-210b",
-  "EZD-221",
+  "EZD-221a",
+  "EZD-221b",
   "EZD-204",
   "EZD-208",
   "EZD-211",
@@ -4772,11 +4774,11 @@
    ]
   },
   {
-   "id": "EZD-221",
+   "id": "EZD-221a",
    "phase": 4,
-   "title": "Blank templates",
-   "depends_raw": "EZD-210, EZD-118",
-   "spec_ref": "S01 Template picker; S03 States",
+   "title": "Template objects on the server",
+   "depends_raw": "EZD-118, EZD-120a, EZD-201, EZD-202, EZD-203, EZD-205a",
+   "spec_ref": "S01 Template picker; split of EZD-221 (proposal vault/plans/EZD-221.md)",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Template picker",
     "spec/sections/screens/S03-plan-editor.md#States",
@@ -4798,19 +4800,70 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-210a",
-    "EZD-210b",
-    "EZD-118"
+    "EZD-118",
+    "EZD-120a",
+    "EZD-201",
+    "EZD-202",
+    "EZD-203",
+    "EZD-205a"
    ],
    "build_position": 101,
    "acs": [
     "AC-EZD-221-1",
     "AC-EZD-221-2",
     "AC-EZD-221-3",
-    "AC-EZD-221-4",
     "AC-EZD-221-5",
     "AC-EZD-221-6",
     "AC-EZD-221-7"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0566",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561"
+   ]
+  },
+  {
+   "id": "EZD-221b",
+   "phase": 4,
+   "title": "Wizard step 2, template picker and empty hint",
+   "depends_raw": "EZD-221a, EZD-210a, EZD-210b, EZD-118, EZD-120b, EZD-120c, EZD-201, EZD-207a",
+   "spec_ref": "S01 Template picker; S03 States; split of EZD-221 (proposal vault/plans/EZD-221.md)",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md#Template picker",
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/screens/S01-projects.md#Validation"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S03Plan.png",
+    "mockups/S01bWizard.png"
+   ],
+   "architecture": [
+    "Release safety (EZD-023a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-221a",
+    "EZD-210a",
+    "EZD-210b",
+    "EZD-118",
+    "EZD-120b",
+    "EZD-120c",
+    "EZD-201",
+    "EZD-207a"
+   ],
+   "build_position": 101.5,
+   "acs": [
+    "AC-EZD-221-4"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,

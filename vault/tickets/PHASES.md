@@ -311,7 +311,8 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-209 Typed dimension bar — after EZD-201, EZD-207a, EZD-207b, EZD-207c
   - EZD-210a Wall and Room rectangle tool logic — after EZD-205a, EZD-205b, EZD-209, EZD-206, EZD-203, EZD-201; needs EZD-202 (s3), EZD-120b (s3)
   - EZD-210b Drawing tools on the plan — after EZD-210a, EZD-207a, EZD-207b, EZD-209; needs EZD-120c (s3)
-  - EZD-221 Blank templates — after EZD-210a, EZD-210b; needs EZD-118 (s2)
+  - EZD-221a Template objects on the server — after EZD-205a, EZD-203, EZD-201; needs EZD-118 (s2), EZD-120a (s3), EZD-202 (s3)
+  - EZD-221b Wizard step 2, template picker and empty hint — after EZD-221a, EZD-210a, EZD-210b, EZD-207a; needs EZD-118 (s2), EZD-120b (s3), EZD-120c (s3)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
 - **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Slice 6 below; AC-EZD-207-5). The spike EZD-027 (plan canvas on the iPad) must have a go note.
@@ -1508,7 +1509,7 @@ slices over 10: none   slices under 4: none
  1. Company settings and customers (phase 1) [6]: EZD-101, EZD-102, EZD-103, EZD-132, EZD-112, EZD-113
  2. Projects list and new project (phase 1) [5]: EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118
  3. Model store and editor route (phase 1,2) [5]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-238
- 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221
+ 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221a, EZD-221b
  5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-217
  6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [8]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-235, EZD-216, EZD-237
  7. Users, roles, project scope, event log (phase 1) [6]: EZD-104, EZD-105, EZD-106, EZD-107, EZD-109, EZD-129
