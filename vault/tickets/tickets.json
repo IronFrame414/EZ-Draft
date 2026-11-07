@@ -4010,7 +4010,9 @@
     "AC-EZD-204-9",
     "AC-EZD-204-10",
     "AC-EZD-204-11",
-    "AC-EZD-204-12"
+    "AC-EZD-204-12",
+    "AC-EZD-204-13",
+    "AC-EZD-204-14"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4349,7 +4351,11 @@
     "AC-EZD-208-11",
     "AC-EZD-208-12",
     "AC-EZD-208-13",
-    "AC-EZD-208-14"
+    "AC-EZD-208-14",
+    "AC-EZD-208-15",
+    "AC-EZD-208-16",
+    "AC-EZD-208-17",
+    "AC-EZD-208-18"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4541,7 +4547,8 @@
     "mockups/S03Plan.png",
     "mockups/S03dDoorSelected.png",
     "mockups/S03dWindowSelected.png",
-    "mockups/S03dStates.png"
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4564,7 +4571,9 @@
     "AC-EZD-211-11",
     "AC-EZD-211-12",
     "AC-EZD-211-13",
-    "AC-EZD-211-14"
+    "AC-EZD-211-14",
+    "AC-EZD-211-15",
+    "AC-EZD-211-16"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4590,7 +4599,8 @@
     "mockups/S02Import.png",
     "mockups/S03dWallSelected.png",
     "mockups/S03dDoorSelected.png",
-    "mockups/S03dStates.png"
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4616,7 +4626,10 @@
     "AC-EZD-212-15",
     "AC-EZD-212-16",
     "AC-EZD-212-17",
-    "AC-EZD-212-18"
+    "AC-EZD-212-18",
+    "AC-EZD-212-19",
+    "AC-EZD-212-20",
+    "AC-EZD-212-21"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4643,12 +4656,14 @@
     "mockups/S02Import.png",
     "mockups/S03dWallSelected.png",
     "mockups/S03dDoorSelected.png",
-    "mockups/S03dStates.png"
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-208",
-    "EZD-204"
+    "EZD-204",
+    "EZD-294"
    ],
    "build_position": 107,
    "acs": [
@@ -4667,7 +4682,11 @@
     "AC-EZD-213-13",
     "AC-EZD-213-14",
     "AC-EZD-213-15",
-    "AC-EZD-213-16"
+    "AC-EZD-213-16",
+    "AC-EZD-213-17",
+    "AC-EZD-213-18",
+    "AC-EZD-213-19",
+    "AC-EZD-213-20"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4803,7 +4822,10 @@
     "AC-EZD-217-10",
     "AC-EZD-217-11",
     "AC-EZD-217-12",
-    "AC-EZD-217-13"
+    "AC-EZD-217-13",
+    "AC-EZD-217-14",
+    "AC-EZD-217-15",
+    "AC-EZD-217-16"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -19610,8 +19632,10 @@
    "architecture": [
     "Model working copy (EZD-120a)",
     "Rooms (EZD-205a)",
+    "Drawing tools (EZD-210)",
     "Migrations",
-    "Local database"
+    "Local database",
+    "Release safety (EZD-023a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [

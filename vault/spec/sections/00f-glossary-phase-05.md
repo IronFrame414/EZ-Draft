@@ -16,3 +16,9 @@ Added by spec-check 5 (Q-0630, settled row 31). Definitions only, each from the 
 | Mixed | What a shared inspector field reads when the selected objects' values differ. | none yet (EZD-213 plan names it) | S03 Bulk edit; 04 Left panel and inspector |
 | Not on a wall | The flag on an opening left off every wall; the opening turns error red and the words show in the inspector on click. | none yet (EZD-204 plan names it) | S03 Validation; 04 Selection, undo and flags; Q-0630 rows 5 and 27 |
 | Canvas selection | The objects picked on the plan with Select. Not the same as Selection in `glossary.md` line 17, a client's recorded choice. | none yet (EZD-208 plan names it) | S03 Canvas interactions; glossary.md:17 |
+| Select more | The tablet toggle: while it is on, each tap adds or removes an object. | none yet (EZD-208 plan names it) | S03d E T1, T4 |
+| Bar | The on-screen row of Undo, Redo, Delete, Duplicate, Select more, Select all, Copy and Paste on a tablet. | none yet (EZD-217 plan names it) | S03d E; Q-0633 |
+| Arc | The curved line of a door on the plan; a tap on a selected door's arc flips its swing. | none yet (EZD-211 plan names it) | S03d W11, W12; Q-0633 |
+| Hinge dot | The dot at a door's hinge end; a tap on a selected door's dot flips its hand. | none yet (EZD-211 plan names it) | S03d W11, W12; Q-0633 |
+| Next field | The tablet chip button that does what Tab does. | none yet (EZD-212 plan names it) | S03d E T2 |
+| Tablet | A device whose main pointer is coarse. | `COARSE_POINTER_QUERY` | device-layout.ts:6; Q-0633 |

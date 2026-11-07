@@ -330,6 +330,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 ### Slice 5 · Openings, selection, move, inspector, undo (from spec phase 2)
 
+- **Spec check 2026-11-07 (Q-0630, Q-0633):** spec files also `spec/sections/09k-openings-and-moves-examples.md`, `spec/sections/00f-glossary-phase-05.md` and boards S03d. Where the script below differs from Q-0630 row 21 or row 27, the row wins. Every action also works on a tablet with no keyboard (S03d E). Phase 56 (AI assistant) follows this slice; slice 6 waits for it.
 - **Goal:** Place doors and windows, select and move objects with typed distances, edit them in the inspector, and undo.
 - **User-visible result:** Door and Window tools with hover preview and typed offset; click, cycle, Shift-click and box select; Move tool, resize handles and live distance chips; inspector fields with bulk edit; undo, redo, copy, paste, duplicate, delete.
 - **Spec files:** `spec/sections/03-data-model.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`
@@ -338,7 +339,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-208 Selection — needs EZD-207 (s4)
   - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4), EZD-294 (s4)
   - EZD-212 Move, handles, distance chips — after EZD-208
-  - EZD-213 Inspector fields — after EZD-208
+  - EZD-213 Inspector fields — after EZD-208; needs EZD-294 (s4) (Q-0633)
   - EZD-217 Undo, redo and clipboard — after EZD-208
 - **Depends on slices:** 4
 - **Out of scope until later:** Status and phase switch, layers (slice 6); fixtures (slice 10); context menu, mirror, align, groups (slice 11).
