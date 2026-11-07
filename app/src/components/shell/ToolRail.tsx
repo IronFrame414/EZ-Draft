@@ -10,11 +10,13 @@ export function ToolRail({
   bottom,
   activeId,
   onSelect,
+  disabled,
 }: {
   top: RailEntry[];
   bottom: RailTool[];
   activeId: string | null;
   onSelect: (id: string) => void;
+  disabled?: boolean;
 }) {
   const t = useT();
   const renderTool = (tool: RailTool) => (
@@ -26,6 +28,7 @@ export function ToolRail({
         aria-label={t(tool.label)}
         aria-keyshortcuts={tool.shortcut}
         aria-pressed={tool.id === activeId}
+        disabled={disabled}
         onClick={() => onSelect(tool.id)}
       >
         <Icon name={tool.icon} size={21} />

@@ -155,7 +155,7 @@ test.describe('EZD-120c editor route', () => {
     expect(urls.map((u) => new URL(u).pathname)).toEqual([`/api/projects/${ids.P1}/model`]);
   });
 
-  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with no rail, panels or status items', async ({
+  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, no panels or status items', async ({
     page,
     signInAs,
   }) => {
@@ -164,7 +164,9 @@ test.describe('EZD-120c editor route', () => {
     await openReady(page, ids.P1);
     await expect(saveState(page).locator('xpath=..')).toHaveText('Zed Co · Working copy · Saved');
     await expect(page.locator('header nav button')).toHaveCount(1);
-    for (const region of ['rail', 'left-panel', 'inspector'])
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    for (const region of ['left-panel', 'inspector'])
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
     await expect(page.locator('[data-status-item]')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="canvas"]')).toHaveText('');

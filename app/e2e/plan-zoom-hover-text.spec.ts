@@ -309,7 +309,7 @@ test.describe('EZD-207b plan canvas', () => {
     await page.mouse.move(from.x + 200, from.y, { steps: 5 });
     await page.mouse.up({ button: 'right' });
     await button(page, 'Fit to screen').click();
-    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(1472 / 120, 3);
+    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(1400 / 120, 3);
     const fitted = await toScreen(page, { x: 60, y: -2.25 });
     expect(Math.abs(fitted.x - centre.x)).toBeLessThanOrEqual(0.5);
     expect(Math.abs(fitted.y - centre.y)).toBeLessThanOrEqual(0.5);

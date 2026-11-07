@@ -395,6 +395,11 @@ export const en = {
   'office.tools.gap.gone': 'This gap has changed. Check the walls again.',
   'office.tools.gap.keep_failed': "Couldn't keep the room out of square. Try again.",
   'office.tools.gap.fix_later': 'This gap runs both ways. Fix the walls once Move is available.',
+  'office.tools.gap.size': '{size} gap',
+  'office.tools.gap.title': 'Resolve the gap',
+  'office.tools.gap.pick': 'Pick the wall that absorbs it',
+  'office.tools.gap.keep': 'Keep the room out of square',
+  'office.tools.gap.pick_hint': 'Click a wall of this room, or press Esc to go back',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

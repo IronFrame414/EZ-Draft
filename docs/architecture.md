@@ -497,10 +497,14 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 
 ### Drawing tools (EZD-210)
 
-- `app/src/editor/tools/` holds pure tool modules: no React or DOM.
+- `app/src/editor/tools/` holds the pure tool modules (no React or DOM), exported from `index.ts`; `DrawingTools.tsx`, `GapBoxes.tsx` and `overlay.ts` beside them are the React and DOM side, never exported from `index.ts` (EZD-210b).
 - Reducers take `ToolInput` in model inches after snapping and return the walls to save; they never touch the store.
 - Every wall edit goes through `wallEditChanges`, which appends the room reconcile.
 - The gap box is derived from the walls on every call (`gapBoxes`), never stored.
+- `drawing-controller.ts` owns tool state, the snap index and the pointer receiver outside React; `getUi()` changes on tool, pick, gap and last-length changes, never per pointer move (EZD-210b).
+- `overlay.ts` writes the SVG band and marker attributes directly on pointer moves and camera changes (EZD-210b).
+- W, R, Esc, Enter come from one `window` bubble `keydown` listener in `DrawingLayer`, skipped when `defaultPrevented` or `isTypingTarget`, after EZD-209's capture listener (EZD-210b).
+- The rail is disabled while loading and absent without Edit model (EZD-210b).
 
 ### Device layouts (EZD-014)
 

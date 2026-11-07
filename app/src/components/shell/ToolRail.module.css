@@ -52,6 +52,13 @@
   color: var(--ez-surface);
 }
 
+.tool:disabled,
+.tool:disabled:hover {
+  background: transparent;
+  color: var(--ez-slate-300);
+  cursor: default;
+}
+
 .tool:focus-visible {
   outline: 2px solid var(--ez-cobalt);
   outline-offset: 2px;

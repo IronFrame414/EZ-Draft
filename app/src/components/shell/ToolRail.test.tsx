@@ -10,6 +10,7 @@ import { MessagesProvider } from '../../lib/messages';
 import { catalogFor } from '../../server/messages/catalog';
 import { ToolRail } from './index';
 import type { RailEntry, RailTool } from './rail-types';
+import { DRAWING_RAIL_TOOLS } from '../../editor/tools';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fn = () => {};
@@ -173,5 +174,31 @@ describe('EZD-012a ToolRail CSS', () => {
     const key = block('.key');
     expect(key).toContain('font-family: var(--ez-font-mono)');
     expect(key).toContain('color: var(--ez-slate-300)');
+  });
+});
+
+describe('EZD-210b ToolRail disabled', () => {
+  it('R1 disabled renders every button disabled; without it nothing is disabled; the CSS greys it', () => {
+    const drawing = [...DRAWING_RAIL_TOOLS];
+    const off = render(
+      <ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} disabled />,
+    );
+    expect(count(off, '<button')).toBe(2);
+    expect(count(off, 'disabled=""')).toBe(2);
+    const on = render(<ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} />);
+    expect(count(on, '<button')).toBe(2);
+    expect(count(on, 'disabled=""')).toBe(0);
+    const css = squash(readFileSync(path.join(here, 'ToolRail.module.css'), 'utf8'));
+    const rule = [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)].find(
+      (r) => squash(r[1]) === '.tool:disabled, .tool:disabled:hover',
+    );
+    expect(rule).toBeDefined();
+    const decls = rule![2]
+      .split(';')
+      .map((d) => squash(d))
+      .filter((d) => d.length > 0);
+    expect(decls).toContain('background: transparent');
+    expect(decls).toContain('color: var(--ez-slate-300)');
+    expect(decls).toContain('cursor: default');
   });
 });

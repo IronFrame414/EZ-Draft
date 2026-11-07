@@ -1,0 +1,89 @@
+/* EZD-210b Build step 9 (vault/plans/EZD-210b.md Decided "CSS"; S02B :71, :96-97): the drawing layer over the
+   canvas region, the rubber band and snap marker, and the gap box. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.band {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+}
+
+.marker {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.box {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-red);
+  color: var(--ez-surface);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-floating);
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.panel .action {
+  justify-content: flex-start;
+}
+
+.hint,
+.note {
+  margin: 0;
+  max-width: 260px;
+  font-size: 13px;
+  color: var(--ez-slate-700);
+}
+
+.alert {
+  margin: 0;
+  max-width: 260px;
+  font-size: 13px;
+  color: var(--ez-red);
+}

@@ -7,6 +7,8 @@
 // EZD-207a Build step 16 (vault/plans/EZD-207a.md Decided "Editor wiring", "Test hook"; Q-0568; Q-0500; Q-0214):
 // ready, the plan canvas fills the frame behind the cards and the Plan tab is the one view; a canvas that cannot
 // start shows an inline error with Retry.
+// EZD-210b Build step 12 (vault/plans/EZD-210b.md Decided "Rail mode", "Editor wiring", "Messages"; Q-0568): the
+// drawing rail (disabled while loading, absent without Edit model) and, over the plan, the drawing layer.
 import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
@@ -20,8 +22,10 @@ import { InlineError } from '../components/states/InlineError';
 import { NoAccess } from '../components/states/NoAccess';
 import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
+import { useToast } from '../components/states/ToastProvider';
 import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
+import type { MessageKey } from '../server/messages/catalog';
 import {
   openEditorSession,
   type EditorSession,
@@ -40,6 +44,12 @@ import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
+import {
+  createDrawingController,
+  railMode,
+  type DrawingController,
+} from './tools/drawing-controller';
+import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import styles from './ProjectEditor.module.css';
 
 // EZD-120d: `openDeps` is passed to openEditorSession (the test page injects a fault into the save); `onSession`
@@ -64,7 +74,7 @@ type PlanTestHook = {
 type CanvasState =
   | { kind: 'loading' }
   | Exclude<OpenResult, { kind: 'ready' }>
-  | { kind: 'ready'; session: EditorSession; plan: PlanController };
+  | { kind: 'ready'; session: EditorSession; plan: PlanController; drawing: DrawingController };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
 const noop = () => {};
@@ -82,10 +92,15 @@ export function ProjectEditor({
   const [canvasAttempt, setCanvasAttempt] = useState(0);
   const openDepsRef = useRef(openDeps);
   const onSessionRef = useRef(onSession);
+  const messageRef = useRef<(key: MessageKey) => void>(noop);
+  const toast = useToast();
   useEffect(() => {
     openDepsRef.current = openDeps;
     onSessionRef.current = onSession;
   });
+  useEffect(() => {
+    messageRef.current = (key) => toast.show({ message: key });
+  }, [toast]);
 
   useEffect(() => {
     let live = true;
@@ -100,13 +115,20 @@ export function ProjectEditor({
           { store: result.session.store },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
+        const drawing = createDrawingController({
+          handle: plan.handle,
+          store: result.session.store,
+          viewer: result.session.model.viewer,
+          onMessage: (key) => messageRef.current(key),
+        });
         dispose = () => {
+          drawing.dispose();
           plan.dispose();
           result.session.dispose();
           onSessionRef.current?.(null);
         };
         onSessionRef.current?.(result.session);
-        setState({ kind: 'ready', session: result.session, plan });
+        setState({ kind: 'ready', session: result.session, plan, drawing });
         return;
       }
       setState(result);
@@ -119,6 +141,7 @@ export function ProjectEditor({
 
   const session = state.kind === 'ready' ? state.session : null;
   const plan = state.kind === 'ready' ? state.plan : null;
+  const drawing = state.kind === 'ready' ? state.drawing : null;
   const sync = session?.sync ?? null;
 
   useEffect(() => {
@@ -223,10 +246,22 @@ export function ProjectEditor({
       {body}
     </div>
   );
+  const canEdit = session?.model.viewer.canEdit ?? false;
+  const mode = railMode({
+    editor: state.kind,
+    canEdit,
+    canvasFailed,
+    controllerEnabled: drawing?.getUi().enabled ?? false,
+  });
+  const rail =
+    mode === 'hidden' ? null : <DrawingRail controller={drawing} disabled={mode === 'disabled'} />;
   const canvas = showPlan ? (
     <>
       <PlanInputSurface controller={plan} />
       <ZoomStack handle={plan.handle} />
+      {drawing !== null ? (
+        <DrawingLayer controller={drawing} handle={plan.handle} canEdit={canEdit} />
+      ) : null}
       {stateArea}
     </>
   ) : (
@@ -241,7 +276,7 @@ export function ProjectEditor({
       full={
         <EditorFrame
           header={header}
-          rail={null}
+          rail={rail}
           canvas={canvas}
           statusBar={<StatusBar />}
           backdrop={backdrop}

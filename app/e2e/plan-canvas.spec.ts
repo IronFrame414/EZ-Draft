@@ -332,7 +332,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect.poll(async () => (await getView(page)).ppi).not.toBe(panned.ppi);
   });
 
-  test('EZD-207a B5 while the model loads there is the skeleton and no canvas, surface or rail', async ({
+  test('EZD-207a B5 while the model loads there is the skeleton, the disabled rail and no canvas or surface', async ({
     page,
     signInAs,
   }) => {
@@ -351,7 +351,11 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(editorState(page).locator('[data-skeleton]').first()).toBeVisible();
     await expect(page.getByTestId('plan-canvas')).toHaveCount(0);
     await expect(page.getByTestId('plan-input')).toHaveCount(0);
-    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    const tools = page.locator('[data-shell-region="rail"] [data-rail-tool]');
+    await expect(tools).toHaveCount(2);
+    await expect(tools.first()).toBeDisabled();
+    await expect(tools.last()).toBeDisabled();
     release();
     await expect(editorState(page)).toHaveAttribute('data-editor-state', 'ready');
   });
@@ -403,8 +407,10 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(tabs).toHaveCount(1);
     await expect(tabs).toHaveText('Plan');
     await expect(tabs).toHaveAttribute('aria-current', 'page');
-    for (const region of ['left-panel', 'inspector', 'rail'])
+    for (const region of ['left-panel', 'inspector'])
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
     await expect(page.locator('[data-status-item]')).toHaveCount(0);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });

@@ -17,8 +17,10 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // plus EZD-110 step 19's 12 names (44), plus EZD-117a E2 `sort` (45 in all), sorted.
 // EZD-207b: fit_screen, remove.
 // EZD-210a: rectangle, view_column_2.
+// EZD-210b: ads_click, rotate_right (E1).
 const EXPECTED_ICONS = [
   'add',
+  'ads_click',
   'arrow_back',
   'arrow_forward',
   'arrow_selector_tool',
@@ -57,6 +59,7 @@ const EXPECTED_ICONS = [
   'photo_camera',
   'rectangle',
   'remove',
+  'rotate_right',
   'search',
   'settings',
   'share',
