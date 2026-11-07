@@ -4382,7 +4382,9 @@
    "architecture": [
     "Design tokens, fonts and icons",
     "Messages and language (t())",
-    "Editor shell (EZD-012)"
+    "Editor shell (EZD-012)",
+    "Typed dimension bar (EZD-209)",
+    "Rooms (EZD-205a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
