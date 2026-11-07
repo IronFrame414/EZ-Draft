@@ -37,6 +37,7 @@ export const ICON_NAMES = [
   'person',
   'person_book',
   'photo_camera',
+  'rectangle',
   'remove',
   'search',
   'settings',
@@ -47,6 +48,7 @@ export const ICON_NAMES = [
   'tune',
   'upload',
   'verified_user',
+  'view_column_2',
   'view_quilt',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

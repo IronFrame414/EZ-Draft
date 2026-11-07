@@ -330,6 +330,8 @@ export const en = {
   'office.profile.notifications.load_failed': "Couldn't load your notification settings.",
   'office.tool.select': 'Select',
   'office.tool.cabinets': 'Cabinets',
+  'office.tool.wall': 'Wall',
+  'office.tool.room_rect': 'Room rectangle',
   'office.tool.help': 'Help',
   'office.alert.error.subject': 'New EZ Draft error: {title}',
   'office.alert.error.body':
@@ -377,6 +379,22 @@ export const en = {
   'office.typed.hint_angle': 'Type an angle',
   'office.typed.tab': 'Tab',
   'office.typed.angle_refused': 'Use a turn from 0 up to but not including 180',
+  'office.typed.field.width': 'Width',
+  'office.typed.field.depth': 'Depth',
+  'office.tools.too_long': 'A wall can be at most 200\' 0"',
+  'office.tools.wall.click_start': 'Click where the wall starts',
+  'office.tools.wall.no_direction': 'Point the cursor where the wall goes',
+  'office.tools.room_rect.click_corner': 'Click a corner first',
+  'office.tools.room_rect.flat': 'Give the room a width and a depth',
+  'office.tools.gap.across':
+    'That wall runs across the gap. Pick a wall that runs the same way as the gap.',
+  'office.tools.gap.not_in_room': 'Pick a wall of this room',
+  'office.tools.gap.zero_length': 'That wall would end up 0" long',
+  'office.tools.gap.too_long': 'That wall would end up longer than 200\' 0"',
+  'office.tools.gap.join_lost': "That wall can't change without pulling a corner apart",
+  'office.tools.gap.gone': 'This gap has changed. Check the walls again.',
+  'office.tools.gap.keep_failed': "Couldn't keep the room out of square. Try again.",
+  'office.tools.gap.fix_later': 'This gap runs both ways. Fix the walls once Move is available.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

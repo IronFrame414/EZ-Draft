@@ -495,6 +495,13 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - Tool shortcuts must skip events whose target passes `isTypingTarget`.
 - Test page: `/dev/typed-bar` (`?edit=0` hides the layer; not found in production).
 
+### Drawing tools (EZD-210)
+
+- `app/src/editor/tools/` holds pure tool modules: no React or DOM.
+- Reducers take `ToolInput` in model inches after snapping and return the walls to save; they never touch the store.
+- Every wall edit goes through `wallEditChanges`, which appends the room reconcile.
+- The gap box is derived from the walls on every call (`gapBoxes`), never stored.
+
 ### Device layouts (EZD-014)
 
 EZD-014a, EZD-014b, EZD-014c (vault/plans/EZD-014a.md, EZD-014b.md, EZD-014c.md); 02 Platform; 11 Accessibility and input; Q-0053; Q-0054 (a); Q-0055 (a); Q-0056 (a); Q-0088; Q-0098 (a); Q-0245.

@@ -16,6 +16,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-108 E1 (vault/plans/EZD-108.md section 4): EZD-113's 29 names plus logout, person and settings (32),
 // plus EZD-110 step 19's 12 names (44), plus EZD-117a E2 `sort` (45 in all), sorted.
 // EZD-207b: fit_screen, remove.
+// EZD-210a: rectangle, view_column_2.
 const EXPECTED_ICONS = [
   'add',
   'arrow_back',
@@ -54,6 +55,7 @@ const EXPECTED_ICONS = [
   'person',
   'person_book',
   'photo_camera',
+  'rectangle',
   'remove',
   'search',
   'settings',
@@ -64,6 +66,7 @@ const EXPECTED_ICONS = [
   'tune',
   'upload',
   'verified_user',
+  'view_column_2',
   'view_quilt',
 ];
 
