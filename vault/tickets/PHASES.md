@@ -38,8 +38,8 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | --- | --- | --- | --- | --- |
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
 | 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
-| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299, 238 | Adds Keep mine / Keep theirs (EZD-299, Q-0502). |
-| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221 | Adds snapping from phase 5 (Q-0563). |
+| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299a, 299b, 299, 238 | Adds Keep mine / Keep theirs (EZD-299a, EZD-299b, EZD-299, Q-0502). |
+| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221, 294 | Adds snapping from phase 5 (Q-0563). |
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase follows; tickets at this phase's spec check (Q-0474). |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
@@ -281,7 +281,9 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-120b Patch store, outbox and autosave — after EZD-120a, EZD-202 (Q-0530, Q-0573)
   - EZD-120c Editor route, save state and banners — after EZD-120b; needs EZD-117a (s2), EZD-117b (s2), EZD-118 (s2)
   - EZD-120d Sign-out with queued edits, app-wide drain and the test page — after EZD-120b, EZD-120c
-  - EZD-299 Conflict list: Keep mine / Keep theirs — after EZD-120b, EZD-120c, EZD-120d, EZD-202; needs EZD-110b (s2), EZD-140 (s2) (Q-0530); blocked until board S03b is approved (Q-0510)
+  - EZD-299a Conflict list: server copy, save refusals and the notification — after EZD-120a, EZD-120d, EZD-202; needs EZD-110a (s2), EZD-140 (s2), EZD-133 (s3)
+  - EZD-299b Conflict list: refused changes leave the outbox; Keep mine, Keep theirs, Remove — after EZD-299a, EZD-120b, EZD-120d, EZD-202
+  - EZD-299 Conflict list: banner, list (board S03b), Show and "make a conflict" — after EZD-299b, EZD-120c, EZD-120d, EZD-110b, EZD-207a, EZD-207b, EZD-201, EZD-016a, EZD-294; Show and the object numbers need slice 4 (EZD-207a, EZD-207b, EZD-294); board S03b approved 2026-11-07 (Q-0510)
   - EZD-238 Drawing list — after EZD-202
 - **Depends on slices:** 1, 2
 - **Out of scope until later:** Any drawing tool (slice 4); edit lock (slice 8); versions panel (slice 9); the full offline mode (phases 14 and 44); floor tools (phase 6, Q-0509).
@@ -313,6 +315,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-210b Drawing tools on the plan — after EZD-210a, EZD-207a, EZD-207b, EZD-209; needs EZD-120c (s3)
   - EZD-221a Template objects on the server — after EZD-205a, EZD-203, EZD-201; needs EZD-118 (s2), EZD-120a (s3), EZD-202 (s3)
   - EZD-221b Wizard step 2, template picker and empty hint — after EZD-221a, EZD-210a, EZD-210b, EZD-207a; needs EZD-118 (s2), EZD-120b (s3), EZD-120c (s3)
+  - EZD-294 Object numbers — after EZD-203, EZD-210a, EZD-221a; needs EZD-202 (s3) (Q-0625)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
 - **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Slice 6 below; AC-EZD-207-5). The spike EZD-027 (plan canvas on the iPad) must have a go note.
@@ -333,7 +336,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Tickets (6, build order):**
   - EZD-204 Openings core — needs EZD-203 (s4)
   - EZD-208 Selection — needs EZD-207 (s4)
-  - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4)
+  - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4), EZD-294 (s4)
   - EZD-212 Move, handles, distance chips — after EZD-208
   - EZD-213 Inspector fields — after EZD-208
   - EZD-217 Undo, redo and clipboard — after EZD-208
@@ -1508,8 +1511,8 @@ slices over 10: none   slices under 4: none
 
  1. Company settings and customers (phase 1) [6]: EZD-101, EZD-102, EZD-103, EZD-132, EZD-112, EZD-113
  2. Projects list and new project (phase 1) [5]: EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118
- 3. Model store and editor route (phase 1,2) [5]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-238
- 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221a, EZD-221b
+ 3. Model store and editor route (phase 1,2) [7]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-299a, EZD-299b, EZD-299, EZD-238
+ 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221a, EZD-221b, EZD-294
  5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-217
  6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [8]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-235, EZD-216, EZD-237
  7. Users, roles, project scope, event log (phase 1) [6]: EZD-104, EZD-105, EZD-106, EZD-107, EZD-109, EZD-129
