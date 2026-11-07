@@ -34,6 +34,10 @@ import { findingProblems } from './findings.mjs';
 import { inProgressLimit } from './lanes.mjs';
 import { reviewedBase, postAuditDelta } from './security-paths.mjs';
 import { trustedGit } from './trusted-git.mjs';
+import { comparePhases, phaseRank } from './phase-rank.mjs';
+
+const firstPhase = (ps) => [...ps].sort(comparePhases)[0];
+const lastPhase = (ps) => [...ps].sort(comparePhases).at(-1);
 
 const vault = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = path.resolve(vault, '..');
@@ -858,15 +862,15 @@ function check() {
 
 function currentPhase() {
   const open = data.tickets.filter((t) => status(t.id) !== 'done');
-  return open.length ? Math.min(...open.map((t) => t.phase)) : null;
+  return open.length ? firstPhase(open.map((t) => t.phase)) : null;
 }
 // The phase with work left: a phase whose tickets are all done or blocked is finished for Stage 3 (its gate decides the rest).
 function workingPhase() {
   const phase = currentPhase();
   let p = phase;
   while (p !== null && phaseTickets(p).every((t) => ['done', 'blocked'].includes(status(t.id)))) {
-    const next = data.tickets.filter((t) => t.phase > p && status(t.id) !== 'done');
-    p = next.length ? Math.min(...next.map((t) => t.phase)) : null;
+    const next = data.tickets.filter((t) => comparePhases(t.phase, p) > 0 && status(t.id) !== 'done');
+    p = next.length ? firstPhase(next.map((t) => t.phase)) : null;
   }
   return { phase, p };
 }
@@ -902,7 +906,7 @@ const wrapped = (p) => existsSync(path.join(vault, 'cost', `phase-${pad2(p)}.md`
 
 // EZD-253 D6: the first phase, ascending, with a product ticket (no tooling mark) not done or blocked; null when none.
 export function blockingPhase() {
-  const ps = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  const ps = [...new Set(data.tickets.map((t) => t.phase))].sort(comparePhases);
   return ps.find((p) => phaseTickets(p).some((t) => !isTooling(t) && !['done', 'blocked'].includes(status(t.id)))) ?? null;
 }
 // EZD-253 D9, EZD-278: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies
@@ -910,9 +914,9 @@ export function blockingPhase() {
 // its ready product tickets (those numbered CHECKPOINT_FROM or higher only once the architecture checkpoint is met). nextUnit
 // builds the first one whose plan needs no guarded path, so the next phase builds only while B has none the launcher can build.
 export function buildPool(B) {
-  const cap = B ?? Math.max(...data.tickets.map((t) => t.phase));
-  const pool = data.tickets.filter((t) => isTooling(t) && t.phase <= cap && status(t.id) === 'ready' && depsDone(t))
-    .sort((a, b) => a.phase - b.phase || byPriority(a, b));
+  const cap = B ?? lastPhase(data.tickets.map((t) => t.phase));
+  const pool = data.tickets.filter((t) => isTooling(t) && comparePhases(t.phase, cap) <= 0 && status(t.id) === 'ready' && depsDone(t))
+    .sort((a, b) => comparePhases(a.phase, b.phase) || byPriority(a, b));
   if (B !== null && signedOff(B)) {
     pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
     const early = checkpointMissing().length > 0;
@@ -927,7 +931,7 @@ export function buildPool(B) {
 const LOOKAHEAD = 2;
 function phasesAhead(B) {
   const out = [];
-  for (const q of [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b).filter((q) => q > B)) {
+  for (const q of [...new Set(data.tickets.map((t) => t.phase))].sort(comparePhases).filter((q) => comparePhases(q, B) > 0)) {
     if (out.length === LOOKAHEAD || !signedOff(q)) break;
     out.push(q);
   }
@@ -949,12 +953,12 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
   if (existsSync(path.join(vault, 'handoff/BUDGET_HOLD.md'))) return flying ? `build ${flying.id}` : 'none: budget hold (vault/handoff/BUDGET_HOLD.md); no ticket in progress';
   const phase = currentPhase();
   if (phase === null) return 'none: every ticket is done';
-  const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  const phases = [...new Set(data.tickets.map((t) => t.phase))].sort(comparePhases);
   const B = blockingPhase();
   const aside = setAsideUnits();
   // Every finished phase (all product tickets done or blocked; tooling tickets do not count, EZD-253) up to the working phase goes through gate -> PR merge -> wrap, in phase order, before the working phase runs (EZD-254; PROCESS.md sections 8-9). An earlier phase's blocked ticket does not stop a later finished phase's gate.
   for (const p of phases) {
-    if (B !== null && p >= B) break;
+    if (B !== null && comparePhases(p, B) >= 0) break;
     if (wrapped(p)) continue;
     // A ticket in review may already have its feat commit on develop (scripts/unit-steps.mjs), so it finishes before a gate.
     if (flying && status(flying.id) === 'review') return `build ${flying.id}`;
@@ -1014,10 +1018,10 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
 
   // EZD-253 D8: Stage 1-2 of every signed-off phase up to `last` (B's next phase once B is signed off) comes before any
   // build (Q-0129; Q-0388). A phase whose Stage 1-2 waits on Josh keeps its text as the first fall-through reason.
-  const last = B === null ? phases[phases.length - 1] : !signedOff(B) ? B : (phases.find((q) => q > B) ?? B);
+  const last = B === null ? phases[phases.length - 1] : !signedOff(B) ? B : (phases.find((q) => comparePhases(q, B) > 0) ?? B);
   let reason = null;
   for (const q of phases) {
-    if (q > last) break;
+    if (comparePhases(q, last) > 0) break;
     if (!signedOff(q)) continue;
     const ts = phaseTickets(q);
     if (ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
@@ -1053,7 +1057,7 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
   if (free) return `build ${free.id}`;
   // Josh 2026-11-05: the phases past `last` in the look-ahead (phasesAhead) run Stage 1-2 only when no build is free, so their plans fill an idle lane.
   if (B !== null && signedOff(B)) {
-    for (const q of phasesAhead(B).filter((x) => x > last)) {
+    for (const q of phasesAhead(B).filter((x) => comparePhases(x, last) > 0)) {
       const ts = phaseTickets(q);
       const st = (s) => ts.filter((t) => status(t.id) === s);
       const planOrder = st('todo').filter((t) => !skip.has(t.id) && !aside.has(`plan ${t.id}`)).sort(byPriority);
@@ -1080,7 +1084,7 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
   }
   const open = data.tickets.filter((t) => status(t.id) !== 'done');
   if (open.every((t) => status(t.id) === 'blocked')) return `none: only blocked tickets left (from phase ${phase}); see STATUS.md notes`;
-  const ids = open.filter((t) => status(t.id) !== 'blocked').sort((a, b) => a.phase - b.phase || num(a.id) - num(b.id)).map((t) => t.id);
+  const ids = open.filter((t) => status(t.id) !== 'blocked').sort((a, b) => comparePhases(a.phase, b.phase) || num(a.id) - num(b.id)).map((t) => t.id);
   return `none: no tooling ticket is ready; waiting on dependencies or questions (open: ${ids.join(', ')})`;
 }
 
@@ -1088,7 +1092,7 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
 const PHASE_WIDE = ['questions', 'review-plans', 'gate-phase', 'wrap'];
 export function nextUnits(skip = []) {
   // While a phase PR is open, lanes wait and the launcher runs one unit at a time (gate-phase steps 6-9; Q-0261).
-  for (const p of [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b)) {
+  for (const p of [...new Set(data.tickets.map((t) => t.phase))].sort(comparePhases)) {
     if (!wrapped(p) && gateState(p).state === 'pr-open') return { units: [], none: `none: phase ${p} PR open; lanes wait, one unit at a time` };
   }
   const seen = new Set(skip);
@@ -1157,7 +1161,7 @@ function report() {
     return out;
   };
   let trace = '# Trace: acceptance criteria → ticket → tests\n\nGenerated by `node vault/tools/next_ticket.mjs --report`; never hand-edited. Tests are the rows of the ticket plan\'s Tests table (none until the ticket is planned). An AC is covered when its ticket is `done`.\n\n';
-  const phases = [...new Set(data.tickets.map((t) => t.phase))].sort((a, b) => a - b);
+  const phases = [...new Set(data.tickets.map((t) => t.phase))].sort(comparePhases);
   let uncovered = 0;
   for (const p of phases) {
     trace += `## Phase ${p}\n\n| AC | Ticket | Status | Tests (from the plan) |\n| --- | --- | --- | --- |\n`;
@@ -1275,7 +1279,7 @@ if (isMain) {
   if (args.includes('--tooling')) {
     const n = args[args.indexOf('--tooling') + 1];
     if (!/^\d+$/.test(n || '')) { console.error('usage: --tooling <phase number>'); process.exit(2); }
-    const list = data.tickets.filter((t) => isTooling(t) && t.phase <= Number(n)).sort((a, b) => a.phase - b.phase || num(a.id) - num(b.id));
+    const list = data.tickets.filter((t) => isTooling(t) && phaseRank(t.phase) <= phaseRank(Number(n))).sort((a, b) => comparePhases(a.phase, b.phase) || num(a.id) - num(b.id));
     for (const t of list) console.log(`${t.id}\t${t.phase}\t${status(t.id)}\t${rows.get(t.id)?.commit || '-'}\t${t.title}`);
     process.exit(0);
   }

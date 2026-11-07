@@ -1,6 +1,7 @@
 // EZD-023a Step 1 (vault/plans/EZD-023a.md): release tag names and order. Node 22 built-ins only.
 // `phase-<N>` is the release at the end of phase N; `phase-<N>.<k>` (k >= 1) a release Josh approves between
 // phase gates (11 Operations). Tags are created only by EZD-023b's release workflow on GitHub (Q-0106).
+import { comparePhases } from '../../vault/tools/phase-rank.mjs';
 
 export const RELEASE_TAG_RE = /^phase-(0|[1-9]\d*)(?:\.([1-9]\d*))?$/;
 
@@ -11,12 +12,12 @@ export function parseReleaseTag(name) {
   return { phase: Number(m[1]), patch: m[2] === undefined ? 0 : Number(m[2]) };
 }
 
-/** Negative, zero or positive: by phase, then by patch. Both names must parse. */
+/** Negative, zero or positive: by phase order (phase-rank.mjs: phase 56 follows phase 5), then by patch. Both names must parse. */
 export function compareReleaseTags(a, b) {
   const pa = parseReleaseTag(a);
   const pb = parseReleaseTag(b);
   if (!pa || !pb) throw new Error(`not a release tag: ${pa ? b : a}`);
-  return pa.phase - pb.phase || pa.patch - pb.patch;
+  return comparePhases(pa.phase, pb.phase) || pa.patch - pb.patch;
 }
 
 /**

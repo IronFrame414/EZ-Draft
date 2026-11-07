@@ -4,7 +4,7 @@
 import { trustedGit } from './trusted-git.mjs';
 
 export const SECURITY_PATHS = Object.freeze(['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing',
-  '.github/workflows/', 'scripts/release/', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/',
+  '.github/workflows/', 'scripts/release/', 'vault/tools/phase-rank.mjs', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/',
   'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']);
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

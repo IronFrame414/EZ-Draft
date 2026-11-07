@@ -29,13 +29,13 @@ const put = (dir, rel, text) => {
 test('EZD-337 S1 list: the shared production-sensitive list (AC-EZD-337-1)', async () => {
   const { SECURITY_PATHS } = await sp();
   assert.deepEqual([...SECURITY_PATHS], ['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing', '.github/workflows/', 'scripts/release/',
-    'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']);
+    'vault/tools/phase-rank.mjs', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']);
   assert.equal(Object.isFrozen(SECURITY_PATHS), true);
 });
 
 test('EZD-337 S2 matcher: isSecurityPath (AC-EZD-337-1)', async () => {
   const { isSecurityPath } = await sp();
-  for (const f of ['supabase/migrations/1.sql', 'app/src/auth/x.ts', 'AUTH/x.ts', '.github/workflows/ci.yml', 'app/package.json', 'scripts/release/a.mjs'])
+  for (const f of ['supabase/migrations/1.sql', 'app/src/auth/x.ts', 'AUTH/x.ts', '.github/workflows/ci.yml', 'app/package.json', 'scripts/release/a.mjs', 'vault/tools/phase-rank.mjs'])
     assert.equal(isSecurityPath(f), true, f);
   for (const f of ['vault/tickets/gates/phase-02.md', 'app/src/author/x.ts', 'app/src/oauth/x.ts', 'docs/architecture.md'])
     assert.equal(isSecurityPath(f), false, f);
