@@ -189,7 +189,6 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-218 | 6 | Left panel: Layers and Rooms | todo |  | EZD-214, EZD-132 |  |  |  |
 | EZD-219 | 6 | Status bar popovers | todo |  | EZD-206 |  |  |  |
 | EZD-220 | 10 | Existing-condition pins | todo |  | EZD-213, EZD-132 |  |  |  |
-| EZD-221 | 4 | Blank templates | todo |  | EZD-210, EZD-118 |  |  |  |
 | EZD-222 | 11 | Keyboard shortcuts and Help | todo |  | EZD-116, EZD-012 |  |  |  |
 | EZD-223 | 11 | Sketch tool | todo |  | EZD-207, EZD-108 |  |  |  |
 | EZD-224 | 6 | Plan thumbnail | todo |  | EZD-207 |  |  |  |
