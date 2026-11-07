@@ -18072,7 +18072,17 @@
     "spec/decisions/03-data-model.md#Q-0540"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Patch store and outbox (EZD-120b)",
+    "Notifications (EZD-110)",
+    "Notification settings (EZD-140)",
+    "Server-only data access and can()",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Messages and language (t())",
+    "Environments and releases (EZD-023b)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120a",
@@ -18115,7 +18125,11 @@
     "spec/decisions/03-data-model.md#Q-0540"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Patch store and outbox (EZD-120b)",
+    "Sign-out and app-wide drain (EZD-120d)",
+    "Model working copy (EZD-120a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-299a",
@@ -18162,7 +18176,15 @@
     "mockups/S03bConflictList.png",
     "mockups/S01cConflictNotification.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Editor route (EZD-120c)",
+    "Plan canvas (EZD-207a)",
+    "Notifications (EZD-110)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)",
+    "State components (EZD-015)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-299b",

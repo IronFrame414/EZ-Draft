@@ -30,7 +30,7 @@ Cause: SQL contract text in the plan was written from memory and never run again
 Rule: SQL that a plan fixes as contract text (policy templates, function signatures a test types in) is run once on the pinned local stack by the planner, or marked "confirm on pinned version" so the test-author verifies it before committing.
 Check: the plan review lists every SQL fragment a test copies verbatim and names where it was run or marked.
 
-## L-012  areas: tooling, scripts  seen: 1  status: ratified
+## L-012  areas: tooling, scripts  seen: 2  status: ratified
 Ticket EZD-010b, 2026-10-19
 Mistake: plan Step 2 said an unknown flag or a flag with no value fails, but no test in section 4 checked it; builder round 1 accepted `--names --list` and `--constructor x` with exit 0, and the code-reviewer failed it (one extra round, builder tier up).
 Cause: a rule written in the Approach prose had no matching Tests row, so the gate could not catch it and the builder worked to the tests.
@@ -482,7 +482,7 @@ Rule: a plan ends with a done-when list of every artifact the change touches (ea
 Check: the reviewer walks the done-when list against the diff; the plan-checker fails a plan that moves code or issues a patch without that list.
 Plan check: the plan has a done-when list with one line per hunk, comment and escaped literal it mentions.
 
-## L-058  areas: tooling, testing, scripts  seen: 1  status: ratified
+## L-058  areas: tooling, testing, scripts  seen: 2  status: ratified
 Tickets EZD-172, EZD-174, 2026-11-04
 Mistake: the contract left a failure entry, a return value or a conflicting row undecided, and the code and tests disagreed with it.
 Cause: rows written at different times contradicted each other (L8 against C11), and failure output the gate asserts had no row.
@@ -537,10 +537,22 @@ When a plan changes a cookie's name or attributes, list the old-name cookies too
 Plan check: does the plan name what happens to the cookie under its previous name and under a planted Domain= copy?
 EZD-346: when a check compares against request.nextUrl.origin, a test helper builds its expected origin with new NextRequest(url).nextUrl.origin, not new URL(url).origin (Next rewrites 127.0.0.1 and [::1] to localhost; Playwright baseURL is 127.0.0.1).
 
-## L-064  areas: testing, ui  seen: 2  status: candidate
+## L-064  areas: testing, ui  seen: 2  status: ratified
 Tickets EZD-202 and EZD-343, 2026-11-06
 Mistake: EZD-202's tests wrote inline object data where the plan's fixture row said to copy v1.json objects, and EZD-343's E1 touch-target test had no run proof because the gate's e2e scope excludes phase 1 specs, so it failed when run.
 Cause: the plan named the fixture's content but not its source file, and named a browser test without saying which gate scope runs it.
 Rule: a Tests row names the file a fixture is copied from and what changes in the copy (ids, level), and a browser test row names the Playwright project or tag that runs it and the command that proves it passes.
 Check: the plan review lists each fixture row's source file and each browser test's project or tag.
 Plan check: every fixture row names its source file and edits; every e2e row names its project or tag and run command.
+- EZD-207a (2026-11-06): when a Decided row says what happens while an async start is pending, give each thing that can change during the wait (detach, resize) its own test row with exact call counts.
+- EZD-207a (2026-11-06): a plan that builds a view for another package's schema should list every member that schema has, including members open dependency plans add, each with its value and source.
+A plan that checks a timing budget inside the browser suite must say up front that the measuring spec runs alone (Playwright runs 4 workers), and that the pan waits for the canvas's last async step (text), not only its ready attribute. (EZD-207c)
+- EZD-209 (2026-11-06, L-049 again): a plan that adds a page file under app/src/app/ names the EZD-133 money page list edits (page-cases.ts PAGE_FILES, money-routes.test.ts C4 count, money-pages.spec.ts EXPECTED_PATHS) as test-author edit rows; and an empty-markup assertion rendered through MessagesProvider expects the provider's own wrapper, never '' (L-020).
+- EZD-209 plan-gap (2026-11-06): a plan that adds a dev page and says "no test lists dev routes" must grep the tests for page-count and page-list inventories (EZD-133 C4 money page list, e2e EXPECTED_PATHS) and name each edit with its owner, or the builder meets a structural repair; see the EZD-136 re-validation line.
+- EZD-358 (2026-11-06): a plan whose proof runs one spec through ui-run.mjs must check that spec's Playwright project for dependencies; if present the whole suite runs, so count by test title and state what happens when other tests fail.
+- EZD-210b (2026-11-06): run every expected browser coordinate through snap (0.5 in length rounding, 5 degree angle capture) before it goes in a plan; pick points snap leaves unchanged. A test polls a count until stable, never a fixed wait.
+- EZD-210b (2026-11-07): a test value computed from an angled or turned wall (cos/sin) is checked with toBeCloseTo(..., 9), not toBe; the plan says whether a derived length is stored rounded (03g: computed values are not).
+EZD-359: when a run series has an evidence threshold, state up front what happens if it ends short, and reset the shared database before every full-suite run.
+EZD-359: before a plan names a database command, read what the package.json script runs; reset-before-run means pnpm db:up, because bare db:reset wipes the API gate secret and breaks sign-in.
+EZD-359: before a rule uses CPU time under emulated throttling, check how the throttle shows in thread time; Chromium's POSIX throttle spins on the main thread and does not suspend it.
+Before naming a database reset command in a plan, read what it does in scripts/db/local.mjs. Use pnpm db:up, which resets the database and stores the API gate, never bare pnpm db:reset. (EZD-358)
