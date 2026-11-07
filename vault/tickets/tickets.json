@@ -4338,7 +4338,9 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-201",
-    "EZD-207"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 99,
    "acs": [
