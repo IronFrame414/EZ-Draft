@@ -1,6 +1,6 @@
 // EZD-360 T3-T5 (vault/plans/EZD-360.md section 4): phase 56 ranks right after phase 5 and before phase 6 in `--next-unit`.
 // Runs on a temporary copy of vault/ (the scripts/ledger/phase-overlap.test.mjs pattern): phases 5, 56 and 6 are signed off and
-// hold synthetic tickets; every real ticket of phases 1 to 6 that is not done is blocked; phases 0 to 4 are wrapped. Each test resets the state first.
+// hold synthetic tickets; every real ticket of phases 1 to 6 and 56 that is not done is blocked; phases 0 to 4 are wrapped. Each test resets the state first.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, appendFileSync, existsSync, realpathSync, rmSync } from 'node:fs';
@@ -76,8 +76,8 @@ before(async () => {
   writeFileSync(file('questions/QUESTIONS.md'), readFileSync(file('questions/QUESTIONS.md'), 'utf8')
     .replace(/^(\|\s*Q-\d{4}\s*\|[^|]*\|[^|]*\|[^|]*\|\s*)open(\s*\|)/gm, '$1answered-agent$2'));
 
-  // Every real ticket of phases 1 to 6 that is not done is blocked (a blocked row needs a note); other in-progress/review tickets are ready.
-  const quiet = (ph) => ph >= 1 && ph <= 6;
+  // Every real ticket of phases 1 to 6 and 56 that is not done is blocked (a blocked row needs a note); other in-progress/review tickets are ready.
+  const quiet = (ph) => (ph >= 1 && ph <= 6) || ph === 56;
   const phaseOf = new Map(data.tickets.map((t) => [t.id, t.phase]));
   writeFileSync(file('tickets/STATUS.md'), readFileSync(file('tickets/STATUS.md'), 'utf8').split('\n').map((line) => {
     const m = line.match(/^\| (EZD-\w+) \|(.*)\|$/);
@@ -95,9 +95,9 @@ before(async () => {
     if (!('track' in t) && typeof planTrack === 'function' && existsSync(planFile) && planTrack(readFileSync(planFile, 'utf8')) === 'tooling') t.track = 'tooling';
   }
 
-  // The synthetic tickets, their STATUS rows, phase file rows and plans. Phase 56 has no phase file in the repo yet; the copy gets one.
+  // The synthetic tickets, their STATUS rows, phase file rows and plans. The synthetic row is appended to the real phase 56 file; the copy gets a new one only when the repo has none.
   const model = (ph) => data.tickets.find((t) => t.phase === ph) ?? data.tickets.find((t) => t.phase === 5);
-  writeFileSync(file('tickets/phases/phase-56.md'), '## Phase 56 · AI assistant (EZD-360 test)\n\n| ID | Ticket | Scope (what to build, concrete) | Done when (testable) | Depends on | Spec ref |\n| --- | --- | --- | --- | --- | --- |\n');
+  if (!existsSync(file('tickets/phases/phase-56.md'))) writeFileSync(file('tickets/phases/phase-56.md'), '## Phase 56 · AI assistant (EZD-360 test)\n\n| ID | Ticket | Scope (what to build, concrete) | Done when (testable) | Depends on | Spec ref |\n| --- | --- | --- | --- | --- | --- |\n');
   for (const id of Object.keys(PHASE)) {
     const ph = PHASE[id];
     const m = model(ph);
