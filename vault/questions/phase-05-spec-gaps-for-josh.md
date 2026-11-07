@@ -95,3 +95,5 @@ Changed by Josh later the same day (chat, 2026-11-07, relayed by the orchestrato
 
 ## Round 2 (phase-auditor on Opus, 2026-11-07)
 For Josh (design): G1 Q-0634 door placing on a tablet; G2 Q-0635 what Edit layers does; G3 Q-0636 door bar's field order. The rest (G4 to G15) are settled as Q-0633 in decisions/05-screens.md and the ACs. The sign-off row waits for these three.
+
+Josh, chat, 2026-11-07: "Yes, all four" to G1, G2, G3 and phase 56 gap 1 as recommended (Q-0634, Q-0635, Q-0636, Q-0639).
