@@ -1,6 +1,7 @@
 // EZD-207c E1-E3 (vault/plans/EZD-207c.md section 4; AC-EZD-207-5). Untagged, so Playwright project `perf`.
 // E1 and E2 run the perf CLI against the harness server (copy of app/e2e/perf-check.spec.ts runPerf, latestOf,
 // rowOf). E3 opens the benchmark page signed out and records every request. No import.meta or __dirname (L-017).
+import type { Page } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import os from 'node:os';
@@ -75,6 +76,21 @@ function rowOf(res: Results, id: string): Row {
   return row as Row;
 }
 
+type DrawStats = { drawCalls: number; contexts: number };
+
+// EZD-358: the plan reports ready before its first frame is drawn (attachCanvas only schedules it); wait for a draw.
+async function firstDrawStats(page: Page, timeout: number): Promise<DrawStats> {
+  const handle = await page.waitForFunction(
+    () => {
+      const s = (window as unknown as { __ezdraftPlan?: { stats(): DrawStats } }).__ezdraftPlan?.stats();
+      return s !== undefined && s.drawCalls >= 1 ? { drawCalls: s.drawCalls, contexts: s.contexts } : null;
+    },
+    undefined,
+    { timeout },
+  );
+  return (await handle.jsonValue()) as DrawStats;
+}
+
 test.describe('EZD-207c benchmark pan', () => {
   test('EZD-207c done when: the benchmark pan and zoom makes no React commits at desktop and throttled iPad size, frame times a trend', async () => {
     test.setTimeout(180000);
@@ -143,7 +159,7 @@ test.describe('EZD-207c benchmark pan', () => {
     }
   });
 
-  test('EZD-207c E3 page with no database', async ({ page }) => {
+  test('EZD-207c E3 page with no database (EZD-358)', async ({ page }) => {
     test.setTimeout(90000);
     const baseURL = String(test.info().project.use.baseURL);
     const urls: string[] = [];
@@ -157,13 +173,7 @@ test.describe('EZD-207c benchmark pan', () => {
       'data-benchmark-objects',
       '3000',
     );
-    const stats = await page.evaluate(() =>
-      (
-        window as unknown as {
-          __ezdraftPlan: { stats(): { drawCalls: number; contexts: number } };
-        }
-      ).__ezdraftPlan.stats(),
-    );
+    const stats = await firstDrawStats(page, 30000);
     expect(stats.drawCalls).toBeGreaterThanOrEqual(1);
     expect(stats.contexts).toBe(1);
     await page.waitForFunction(
@@ -181,5 +191,37 @@ test.describe('EZD-207c benchmark pan', () => {
       expect(u.startsWith(baseURL), u).toBe(true);
       expect(new URL(u).pathname.startsWith('/api/'), u).toBe(false);
     }
+  });
+});
+
+test.describe('EZD-358 first-draw wait', () => {
+  test('EZD-358 the first-draw wait fails when the plan never draws', async ({ page }) => {
+    test.setTimeout(90000);
+    await page.addInitScript(() => {
+      type Hook = { stats(): Record<string, unknown> };
+      let hook: Hook | undefined;
+      Object.defineProperty(window, '__ezdraftPlan', {
+        configurable: true,
+        get: () => hook,
+        set: (v: Hook) => {
+          hook = { ...v, stats: () => ({ ...v.stats(), drawCalls: 0 }) };
+        },
+      });
+    });
+    await page.goto('/dev/benchmark-plan');
+    await expect(page.locator('[data-testid="plan-canvas"][data-plan-state="ready"]')).toBeAttached(
+      { timeout: 30000 },
+    );
+    await page.waitForFunction(
+      () =>
+        (
+          window as unknown as { __ezdraftPlan: { stats(): { frames: number } } }
+        ).__ezdraftPlan.stats().frames >= 1,
+      undefined,
+      { timeout: 30000 },
+    );
+    const t0 = Date.now();
+    await expect(firstDrawStats(page, 2000)).rejects.toThrow(/Timeout 2000ms exceeded/);
+    expect(Date.now() - t0).toBeGreaterThanOrEqual(2000);
   });
 });
