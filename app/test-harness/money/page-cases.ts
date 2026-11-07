@@ -39,6 +39,7 @@ const PAGE_FILES = [
   'app/src/app/dev/storage/page.tsx',
   'app/src/app/dev/sw-offline/shell/page.tsx',
   'app/src/app/dev/tokens/page.tsx',
+  'app/src/app/dev/typed-bar/page.tsx',
   'app/src/app/sign-in/page.tsx',
   'app/src/app/terms/page.tsx',
 ] as const;

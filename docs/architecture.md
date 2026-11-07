@@ -487,6 +487,14 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - The left panel and the inspector `<aside>` render only when their label (`leftPanelLabel`, `inspectorLabel`) is given; an aside always has a label (EZD-120c).
 - The shell adds no pointer, scroll or resize listener.
 
+### Typed dimension bar (EZD-209)
+
+- Files: `packages/geometry/src/turn.ts` (`parseTurnAngle`, `resolveTurnDirection`), `app/src/editor/typed-entry/typed-entry.ts` (pure reducer, field consts, `isOpenKey`, `isTypingTarget`), `TypedEntryLayer.tsx` and its CSS module. Not mounted in the real editor; EZD-210 mounts it with the first real tools.
+- `TypedEntryLayer` props: `tool`, `canEdit`, `lastValues`, `getCursor` (CSS px from the container's top-left), `onCommit`. It renders nothing when `tool` is null or `canEdit` is false, and goes inside a positioned container (the canvas region).
+- Key rule: one capture-phase `keydown` listener on `window` while a tool is active; a key the layer handles gets `stopPropagation()` and `preventDefault()` and never reaches other listeners.
+- Tool shortcuts must skip events whose target passes `isTypingTarget`.
+- Test page: `/dev/typed-bar` (`?edit=0` hides the layer; not found in production).
+
 ### Device layouts (EZD-014)
 
 EZD-014a, EZD-014b, EZD-014c (vault/plans/EZD-014a.md, EZD-014b.md, EZD-014c.md); 02 Platform; 11 Accessibility and input; Q-0053; Q-0054 (a); Q-0055 (a); Q-0056 (a); Q-0088; Q-0098 (a); Q-0245.

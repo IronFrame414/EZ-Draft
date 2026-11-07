@@ -1,0 +1,21 @@
+.stage {
+  position: absolute;
+  inset: 0;
+}
+
+.toggle {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 2;
+}
+
+.log {
+  position: absolute;
+  left: 16px;
+  top: 56px;
+  z-index: 2;
+  margin: 0;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+}

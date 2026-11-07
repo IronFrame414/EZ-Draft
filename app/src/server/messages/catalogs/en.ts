@@ -371,6 +371,12 @@ export const en = {
   'office.notifications.time.date': '{date}',
   'office.notifications.time.date_year': '{date}, {year}',
   'office.length.refused': 'Use 12\'6", 12\' 6 1/2", 150" or 12.5\'',
+  'office.typed.field.length': 'Length',
+  'office.typed.field.angle': 'Angle',
+  'office.typed.hint_length': 'Type a size',
+  'office.typed.hint_angle': 'Type an angle',
+  'office.typed.tab': 'Tab',
+  'office.typed.angle_refused': 'Use a turn from 0 up to but not including 180',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
