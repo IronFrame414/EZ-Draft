@@ -95,7 +95,10 @@ test.describe('EZD-207c benchmark pan', () => {
       const row = rowOf(res, id);
       expect(row.status, id).toBe('pass');
       expect(row.value, id).toBe(0);
+      expect(row.details.tasks, id).toEqual([]);
+      expect(typeof row.details.load1, id).toBe('number');
     }
+    expect(rowOf(res, 'long-tasks-during-pan:ipad').details.profile).toBe('ipad-1x');
     for (const id of ['long-tasks-during-load', 'long-tasks-during-load:ipad']) {
       expect(rowOf(res, id).status, id).toBe('trend');
     }

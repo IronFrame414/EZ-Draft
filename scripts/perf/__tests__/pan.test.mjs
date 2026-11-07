@@ -131,3 +131,36 @@ describe('EZD-207c pan on fixture pages', () => {
     assert.equal(row.details.profile, 'desktop');
   });
 });
+
+describe('EZD-356 long-task list on the pan rows', () => {
+  test('EZD-356 T1 pan rows list each long task and the load', { timeout: 200000 }, async () => {
+    const { r, latest } = await runPanCli('/wheel.html', [
+      'long-tasks-during-pan',
+      'long-tasks-during-pan:ipad',
+    ]);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
+      const row = rowOf(latest, id);
+      assert.equal(row.value, 8, id);
+      assert.deepEqual(Object.keys(row.details), ['profile', 'tasks', 'load1'], id);
+      assert.equal(row.details.tasks.length, 8, id);
+      let prev = 0;
+      for (const t of row.details.tasks) {
+        assert.ok(Number.isInteger(t.ms) && t.ms >= 50, `${id} ms ${t.ms}`);
+        assert.ok(Number.isInteger(t.at) && t.at >= 0, `${id} at ${t.at}`);
+        assert.ok(t.at >= prev, `${id} at ${t.at} before ${prev}`);
+        prev = t.at;
+      }
+      assert.ok(Number.isFinite(row.details.load1) && row.details.load1 >= 0, `${id} load1`);
+    }
+  });
+
+  test('EZD-356 T2 tasks before pan-start are not listed', { timeout: 200000 }, async () => {
+    const { r, latest } = await runPanCli('/late.html', ['long-tasks-during-pan']);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const row = rowOf(latest, 'long-tasks-during-pan');
+    assert.equal(row.value, 0);
+    assert.deepEqual(row.details.tasks, []);
+    assert.equal(row.details.profile, 'desktop');
+  });
+});

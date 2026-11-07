@@ -174,8 +174,12 @@ function panInput(id, pan, name) {
         ? { value: pan.commits, details }
         : { error: 'react_not_detected', details };
     }
+    // EZD-356: each pan long task and the load average, so a red run shows when it happened and under what load.
     case 'long-tasks-during-pan':
-      return { value: pan.longTasksPan, details: { profile: name } };
+      return {
+        value: pan.longTasksPan,
+        details: { profile: name, tasks: pan.panTasks, load1: pan.load1 },
+      };
     case 'long-tasks-during-load':
       return { value: pan.longTasksLoad, details: { profile: name } };
     case 'frame-times-during-pan': {

@@ -1,5 +1,7 @@
 // EZD-017 Step 5 (vault/plans/EZD-017.md P1-P5, H1, H2): the scripted pan. Counts React commits, long tasks and
 // animation frame intervals between the pan-start and pan-end marks (11 rule 4; Q-0073 (a)).
+// EZD-356: the pan rows also list each pan long task (at = ms after pan-start, ms = its length) and the 1-minute load average.
+import os from 'node:os';
 import path from 'node:path';
 import { settlePage } from './js-size.mjs';
 
@@ -80,7 +82,7 @@ async function sweep(page, cx, cy) {
 
 /**
  * Runs the pan on baseUrl + panUrl in `context` under `profile` (CPU throttle set before the page loads). Resolves PanResult, or PanFailure
- * `{ error, status, reactDetected }` when the page does not load or has no canvas region (P1, P5).
+ * `{ error, status, reactDetected }` when the page does not load, the plan is not ready (`plan_not_ready`) or it has no canvas region (P1, P5).
  */
 export async function runPan(context, baseUrl, panUrl, profile) {
   await context.addInitScript({ path: HOOKS_PATH });
@@ -126,6 +128,7 @@ export async function runPan(context, baseUrl, panUrl, profile) {
     // P2: the one move to the start position and any commit it causes land before pan-start.
     await page.mouse.move(cx, cy);
     await twoFrames(page);
+    const load1 = Math.round(os.loadavg()[0] * 100) / 100;
     const startCommits = await page.evaluate(() => {
       window.__EZD_PERF__.mark('pan-start');
       return window.__EZD_PERF__.commits;
@@ -178,6 +181,11 @@ export async function runPan(context, baseUrl, panUrl, profile) {
       longTasksPan: end.longTasks.filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
         .length,
       longTasksLoad: end.longTasks.filter((t) => t.startTime < end.panStart).length,
+      panTasks: end.longTasks
+        .filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
+        .map((t) => ({ at: Math.round(t.startTime - end.panStart), ms: Math.round(t.duration) }))
+        .sort((a, b) => a.at - b.at),
+      load1,
       intervals,
     };
   } finally {

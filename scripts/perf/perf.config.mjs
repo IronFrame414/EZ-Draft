@@ -22,6 +22,14 @@ export const PROFILES = {
     isMobile: false,
     cpuThrottleRate: IPAD_CPU_THROTTLE,
   },
+  'ipad-1x': {
+    browser: 'chromium',
+    viewport: { width: 1180, height: 820 },
+    deviceScaleFactor: 1,
+    hasTouch: false,
+    isMobile: false,
+    cpuThrottleRate: IPAD_CPU_THROTTLE,
+  },
 };
 
 export default {

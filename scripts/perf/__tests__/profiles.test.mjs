@@ -16,7 +16,15 @@ const pan = () => import('../pan-script.mjs');
 describe('EZD-207c perf profiles and gesture', () => {
   test('EZD-207c N1 profiles and config', async () => {
     const { PROFILES, default: cfg } = await config();
-    assert.deepEqual(Object.keys(PROFILES), ['desktop', 'ipad']);
+    assert.deepEqual(Object.keys(PROFILES), ['desktop', 'ipad', 'ipad-1x']);
+    assert.deepEqual(PROFILES['ipad-1x'], {
+      browser: 'chromium',
+      viewport: { width: 1180, height: 820 },
+      deviceScaleFactor: 1,
+      hasTouch: false,
+      isMobile: false,
+      cpuThrottleRate: R,
+    });
     assert.deepEqual(PROFILES.ipad, {
       browser: 'chromium',
       viewport: { width: 1180, height: 820 },
@@ -73,7 +81,7 @@ describe('EZD-207c perf profiles and gesture', () => {
     panRows.forEach((m, i) => {
       assert.equal(m.status, 'active', m.id);
       assert.equal(m.collector, 'pan', m.id);
-      assert.equal(m.profile, i % 2 === 0 ? 'desktop' : 'ipad', m.id);
+      assert.equal(m.profile, i % 2 === 0 ? 'desktop' : i === 7 ? 'ipad' : 'ipad-1x', m.id);
     });
     for (const m of MEASUREMENTS) {
       if (!panRows.includes(m)) assert.equal(m.profile, null, m.id);
