@@ -39,6 +39,7 @@ const EXPECTED_TABLES = [
 ];
 const GUARDED_FUNCTIONS = [
   'create_project',
+  'create_project_with_objects',
   'current_app_user_id',
   'enqueue_job',
   'error_tunnel_take',

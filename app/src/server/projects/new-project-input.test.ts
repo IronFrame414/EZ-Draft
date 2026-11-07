@@ -22,6 +22,7 @@ describe('EZD-118 parseNewProject', () => {
       type: 'kitchen',
       customerId: null,
       scopeOfWork: null,
+      template: null,
     });
     expect(parseNewProject({ ...valid, customerId: UUID, scopeOfWork: ' Demo ' })).toEqual({
       name: 'Kitchen remodel',
@@ -29,6 +30,7 @@ describe('EZD-118 parseNewProject', () => {
       type: 'kitchen',
       customerId: UUID,
       scopeOfWork: 'Demo',
+      template: null,
     });
 
     expect(parseNewProject({ ...valid, name: '   ' })).toBeNull();

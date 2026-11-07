@@ -5,6 +5,7 @@
 // an empty search is never sent as `p_search`.
 // EZD-118 Build step 4 (vault/plans/EZD-118.md Decided "`parseNewProject`", "`createProject`"; Q-0396): the New
 // project body and the one write, `public.create_project` (M1), through the caller's session client.
+// EZD-221a Build step 6 (vault/plans/EZD-221a.md Decided "parseNewProject", "createProject"; Q-0566): a template goes through create_project_with_objects.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
@@ -24,7 +25,9 @@ import {
   SCOPE_OF_WORK_MAX,
   type ProjectType,
 } from '../../lib/projects/new-project';
+import { TEMPLATE_KEYS, isTemplateSize, type TemplateBody } from '../../lib/projects/templates';
 import type { Database } from '../db/database.types';
+import { buildTemplateObjects } from './template-objects';
 
 export type ProjectCursor = {
   id: string;
@@ -166,7 +169,10 @@ export type NewProjectValues = {
   type: ProjectType;
   customerId: string | null;
   scopeOfWork: string | null;
+  template: TemplateBody | null;
 };
+
+const size = z.number().refine(isTemplateSize);
 
 const newProjectSchema = z.strictObject({
   name: z.string().max(PROJECT_NAME_MAX),
@@ -174,6 +180,10 @@ const newProjectSchema = z.strictObject({
   type: z.enum(PROJECT_TYPES),
   customerId: z.uuid().nullable(),
   scopeOfWork: z.string().max(SCOPE_OF_WORK_MAX),
+  template: z
+    .strictObject({ key: z.enum(TEMPLATE_KEYS), width: size, length: size, ceilingHeight: size })
+    .nullable()
+    .optional(),
 });
 
 export function parseNewProject(body: unknown): NewProjectValues | null {
@@ -189,6 +199,7 @@ export function parseNewProject(body: unknown): NewProjectValues | null {
     type: parsed.data.type,
     customerId: parsed.data.customerId,
     scopeOfWork: scope === '' ? null : scope,
+    template: parsed.data.template ?? null,
   };
 }
 
@@ -197,6 +208,8 @@ export type CreateProjectResult =
   | { ok: false; code: 'permission_denied' | 'invalid_input' | 'customer_unavailable' };
 
 type CreateProjectArgs = Database['public']['Functions']['create_project']['Args'];
+type CreateProjectWithObjectsArgs =
+  Database['public']['Functions']['create_project_with_objects']['Args'];
 
 export async function createProject(
   client: SupabaseClient<Database>,
@@ -209,8 +222,14 @@ export async function createProject(
     p_type: v.type,
     p_customer_id: v.customerId,
     p_scope_of_work: v.scopeOfWork,
-  } as unknown as CreateProjectArgs;
-  const { data, error } = await client.rpc('create_project', args);
+  };
+  const { data, error } =
+    v.template === null
+      ? await client.rpc('create_project', args as unknown as CreateProjectArgs)
+      : await client.rpc('create_project_with_objects', {
+          ...args,
+          p_objects: buildTemplateObjects(v.template),
+        } as unknown as CreateProjectWithObjectsArgs);
   if (error) {
     if (error.code === '42501') return { ok: false, code: 'permission_denied' };
     if (error.code === '22023') {

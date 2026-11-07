@@ -80,6 +80,18 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_scope_of_work: null,
     },
   },
+  // EZD-221a section 3 (vault/plans/EZD-221a.md): the template create function, authenticated only.
+  {
+    fn: 'create_project_with_objects',
+    args: {
+      p_name: 'x',
+      p_address: 'x',
+      p_type: 'kitchen',
+      p_customer_id: null,
+      p_scope_of_work: null,
+      p_objects: [],
+    },
+  },
   // EZD-120a section 3 (vault/plans/EZD-120a.md): the model save and checkpoint functions, authenticated only.
   {
     fn: 'save_objects',

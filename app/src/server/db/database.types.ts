@@ -483,6 +483,11 @@ isOneToOne: false
               "project_id": string,"tenant_id": string
             }[]
                            },
+"create_project_with_objects":
+{ Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_objects": Json,"p_scope_of_work": string,"p_type": string }; Returns: {
+              "project_id": string,"tenant_id": string
+            }[]
+                           },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },

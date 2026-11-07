@@ -2,6 +2,7 @@
 // "`toCreateBody`", "Input limits"; S01 New project wizard; AC-EZD-118-2, -3, -6, -7): the New project dialog's
 // draft and its request body, shared by the browser and the server. No React, no zod, no Supabase.
 import type { Customer } from '../customers/customers';
+import type { TemplateBody } from './templates';
 
 export const PROJECT_TYPES = ['kitchen', 'bath', 'whole_home_interior'] as const;
 export type ProjectType = (typeof PROJECT_TYPES)[number];
@@ -16,6 +17,7 @@ export type NewProjectBody = {
   type: ProjectType;
   customerId: string | null;
   scopeOfWork: string;
+  template?: TemplateBody | null;
 };
 
 export type NewProjectDraft = {
