@@ -31,3 +31,11 @@ Josh's words: the build runs unattended and must keep moving; an oversight agent
 5. Phase 5 tickets: `depends_on` for EZD-211 needs EZD-294 in `tickets.json` as well as the phase file; verify.
 6. Still blocked, by Josh's hand or a third party: EZD-276, 264, 191 and the frozen build-system list; EZD-141 waits on Supabase; EZD-327 is a duplicate; EZD-003 waits on launch. 16 of the 23 blocked rows were not read; read them.
 7. Notes: usage meter unreadable on this account; `mediaanalysisd` under ezdraft runs over 200% CPU; EZD-356 may partly fix a failure session 10's overlapping gates caused.
+
+## Session 11 state, 2026-11-07 16:10 UTC
+- Weekly limit hit on launcher units at 15:21 UTC ("resets Nov 9 at 1am"). WINDOW_PAUSE until 2026-11-09 06:05 UTC. The launcher sleeps through a pause without rereading the file: to resume early, have Josh switch accounts, then `launchctl kickstart -k gui/$(id -u)/com.ezdraft.launcher` after removing the file. The launcher reads this limit as an ordinary failure and restarts every 3 s, so if it recurs write the pause at once.
+- Queued records apply only between passes: touch STOP, kickstart, and they apply; a pause never applies them.
+- Merged: EZD-360 (3ef2fd41), EZD-361 (47e113df). Develop pushed. EZD-299a is at review; it resumes at the pause's end.
+- Waiting on Josh (design): Q-0634 door placing on tablet, Q-0635 Edit layers, Q-0636 door bar order, Q-0639 Adjust on a preview. Recommendations are in the questions. On his answer: record, then for phase 5 add the SIGNOFF row (his 2026-11-07 yes, "#6 yes"); for phase 56 run a round 2 phase-auditor first, then its SIGNOFF row. Record S01g/S03c wording in ACs as settled (Q-0637, Q-0638).
+- Open list items left: rest of board images (S03c, S03dStates, S03dWall, S03dWindow), EZD-327 dropped as duplicate, EZD-355 split under STOP, EZD-328 now its sandbox is back.
+- Do not hand-edit vault/DONE.md (view; use `ledger.mjs append`). Do not leave reports in research/pending (use research.mjs adopt).
