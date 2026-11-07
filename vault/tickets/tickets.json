@@ -4845,13 +4845,13 @@
     "mockups/S01bWizard.png"
    ],
    "architecture": [
-    "Release safety (EZD-023a)",
     "Entry points and lazy modules (EZD-020)",
     "Design tokens, fonts and icons",
     "Messages and language (t())",
-    "Policy test harness (EZD-006)",
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "New project wizard (EZD-118)"
    ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-221a",
