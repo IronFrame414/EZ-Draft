@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 604,
+ "count": 638,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -31,7 +31,8 @@
   "EZD-110 split into EZD-110a, EZD-110b on 2026-10-30 (planner proposal, plan over 45,000 characters; orchestrator applied at questions 2); every dependent of EZD-110 depends on both. The stage-0 ACs keep their IDs: AC-EZD-110-5, -6 and -8 on EZD-110a, AC-EZD-110-1, -2, -3, -4 and -7 on EZD-110b.",
   "EZD-120b split into EZD-120b, EZD-120c, EZD-120d on 2026-11-04 (planner split proposal vault/plans/split-EZD-120b.md, orchestrator applied); EZD-202 depends only on EZD-120a and builds before EZD-120b (Q-0573 (a)); dependents of base EZD-120 expand to every part; EZD-299 needs all three, EZD-1020 the editor (120c).",
   "EZD-205, EZD-207 and EZD-210 split on 2026-11-06 into EZD-205a, EZD-205b; EZD-207a, EZD-207b, EZD-207c; EZD-210a, EZD-210b (planner split proposals vault/plans/EZD-205.md, EZD-207.md, EZD-210.md, each over the PROCESS.md section 6 file and test counts; orchestrator applied); every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs: AC-EZD-205-1 and -5 on EZD-205a, -2, -3, -4 and -6 on EZD-205b; AC-EZD-207-1, -4, -6, -7, -8 and -9 on EZD-207a, -2, -3, -4, -8 and -10 on EZD-207b, -5 on EZD-207c; AC-EZD-210-1, -2, -3, -4, -6, -8, -9, -10 and -12 on EZD-210a, AC-EZD-210-1, -2, -3, -5, -7, -8, -9, -10 and -11 plus AC-EZD-207-6 and -7 (the tools and rail clauses) on EZD-210b.",
-  "EZD-221 split on 2026-11-07 into EZD-221a, EZD-221b (planner split proposal vault/plans/EZD-221.md, over the PROCESS.md section 6 file count; overwatch session applied). The stage-0 ACs keep their IDs."
+  "EZD-221 split on 2026-11-07 into EZD-221a, EZD-221b (planner split proposal vault/plans/EZD-221.md, over the PROCESS.md section 6 file count; overwatch session applied). The stage-0 ACs keep their IDs.",
+  "EZD-299 split on 2026-11-07 into EZD-299a, EZD-299b, EZD-299 (planner split proposal vault/plans/EZD-299.md; the last part keeps the base ID, as EZD-026a did; orchestrator applied at questions 3). New ticket EZD-294 Object numbers (Q-0625 (a)): EZD-299 and EZD-211 depend on it. The stage-0 ACs keep their IDs; AC-EZD-299-13 to -18 and AC-EZD-294-1 to -3 are added by hand."
  ],
  "checks": {
   "cycles": 0,
@@ -136,7 +137,8 @@
   "EZD-120b",
   "EZD-120c",
   "EZD-120d",
-  "EZD-299",
+  "EZD-299a",
+  "EZD-299b",
   "EZD-238",
   "EZD-201",
   "EZD-203",
@@ -152,6 +154,8 @@
   "EZD-210b",
   "EZD-221a",
   "EZD-221b",
+  "EZD-294",
+  "EZD-299",
   "EZD-204",
   "EZD-208",
   "EZD-211",
@@ -4498,7 +4502,7 @@
    "id": "EZD-211",
    "phase": 5,
    "title": "Door and window tools",
-   "depends_raw": "EZD-204, EZD-209",
+   "depends_raw": "EZD-204, EZD-209, EZD-294",
    "spec_ref": "S03 Door, Window",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Door",
@@ -4510,7 +4514,8 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-204",
-    "EZD-209"
+    "EZD-209",
+    "EZD-294"
    ],
    "build_position": 105,
    "acs": [
@@ -17970,11 +17975,97 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-299a",
+   "phase": 3,
+   "title": "Conflict list: server copy, save refusals and the notification",
+   "depends_raw": "EZD-120a, EZD-120d, EZD-202, EZD-110a, EZD-140, EZD-133, EZD-006",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540; split of EZD-299 (proposal vault/plans/EZD-299.md)",
+   "spec_files": [
+    "spec/sections/03b-architecture-rules.md#Architecture rules",
+    "spec/sections/00d-glossary-phase-03.md",
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications"
+   ],
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/05-screens.md#Q-0510",
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0393",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-120d",
+    "EZD-202",
+    "EZD-110a",
+    "EZD-140",
+    "EZD-133",
+    "EZD-006"
+   ],
+   "build_position": 568,
+   "acs": [
+    "AC-EZD-299-11",
+    "AC-EZD-299-13",
+    "AC-EZD-299-14",
+    "AC-EZD-299-15"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-299b",
+   "phase": 3,
+   "title": "Conflict list: refused changes leave the outbox; Keep mine, Keep theirs, Remove",
+   "depends_raw": "EZD-299a, EZD-120b, EZD-120d, EZD-202",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540; split of EZD-299 (proposal vault/plans/EZD-299.md)",
+   "spec_files": [
+    "spec/sections/03b-architecture-rules.md#Architecture rules",
+    "spec/sections/00d-glossary-phase-03.md",
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications"
+   ],
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/05-screens.md#Q-0510",
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0393",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-299a",
+    "EZD-120b",
+    "EZD-120d",
+    "EZD-202"
+   ],
+   "build_position": 568.2,
+   "acs": [
+    "AC-EZD-299-2",
+    "AC-EZD-299-3",
+    "AC-EZD-299-4",
+    "AC-EZD-299-9",
+    "AC-EZD-299-16",
+    "AC-EZD-299-17",
+    "AC-EZD-299-18"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
    "id": "EZD-299",
    "phase": 3,
-   "title": "Conflict list: Keep mine / Keep theirs",
-   "depends_raw": "EZD-120b, EZD-120c, EZD-120d, EZD-202, EZD-110b, EZD-140",
-   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540",
+   "title": "Conflict list: banner, list (board S03b), Show and \"make a conflict\"",
+   "depends_raw": "EZD-299b, EZD-120c, EZD-120d, EZD-110b, EZD-207a, EZD-207b, EZD-201, EZD-016a, EZD-294",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540; last part of the split of EZD-299 (proposal vault/plans/EZD-299.md)",
    "spec_files": [
     "spec/sections/03b-architecture-rules.md#Architecture rules",
     "spec/sections/00d-glossary-phase-03.md",
@@ -17999,26 +18090,24 @@
    "architecture": [],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-120b",
+    "EZD-299b",
     "EZD-120c",
     "EZD-120d",
-    "EZD-202",
     "EZD-110b",
-    "EZD-140"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-201",
+    "EZD-016a",
+    "EZD-294"
    ],
-   "build_position": 568,
+   "build_position": 568.4,
    "acs": [
     "AC-EZD-299-1",
-    "AC-EZD-299-2",
-    "AC-EZD-299-3",
-    "AC-EZD-299-4",
     "AC-EZD-299-5",
     "AC-EZD-299-6",
     "AC-EZD-299-7",
     "AC-EZD-299-8",
-    "AC-EZD-299-9",
     "AC-EZD-299-10",
-    "AC-EZD-299-11",
     "AC-EZD-299-12"
    ],
    "acs_source": "stage-0"
@@ -19380,6 +19469,44 @@
     "AC-EZD-359-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-294",
+   "phase": 4,
+   "title": "Object numbers",
+   "depends_raw": "EZD-202, EZD-203, EZD-210a, EZD-221a",
+   "spec_ref": "Q-0625 (a); Q-0511 (b); Q-0531",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/09j-walls-and-rooms-examples.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Rooms (EZD-205a)",
+    "Migrations",
+    "Local database"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-202",
+    "EZD-203",
+    "EZD-210a",
+    "EZD-221a"
+   ],
+   "build_position": 101.7,
+   "acs": [
+    "AC-EZD-294-1",
+    "AC-EZD-294-2",
+    "AC-EZD-294-3"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/03-data-model.md#Q-0531"
+   ]
   }
  ],
  "recut_applied": "2026-10-20"
