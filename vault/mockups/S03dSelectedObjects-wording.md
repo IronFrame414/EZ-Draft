@@ -32,3 +32,18 @@ Design choices: box select left to right is a solid cobalt box and takes what is
 - A5 Too big: "That photo is over 20 MB. Attach a smaller one."
 
 Approved rules: accept JPG, PNG, HEIC and WebP, up to 20 MB each, one photo per prompt. EZ Draft shrinks the photo before sending and converts HEIC to JPG. It strips location data (GPS) from the photo. A photo goes only with the prompt it is attached to.
+
+## S03d E tablet, no keyboard
+Josh approved this on 2026-11-07 (chat: "Yes, approved"). The board's label still says "for approval"; this list is what counts.
+- T1 Button: "Select more" (a toggle)
+- T2 Typed-length chip button: "Next field"
+- T3 Chip button: "Cancel"
+- T4 Banner while Select more is on: "Tap objects to add or remove them."
+- T5 Banner button: "Done"
+- T6 Empty inspector hint on tablets (desktop keeps W16): "Tap Select more, or drag a box, to select more than one."
+
+Josh's own words: Undo, Redo, Delete, Duplicate, Select all, Copy, Paste.
+
+Touch for each key: Esc is Cancel on the chip whenever a tool is active; it cancels and returns to Select, and tapping the Select tool does the same. Tab is Next field on the chip. Space is a tap on the arc to flip the swing, or on the hinge dot to flip the hand, with a tap area of at least 44 px round each. Shift-click is Select more: while it is on, each tap adds or removes an object, and Done turns it off. Box select is one finger dragged from empty plan, with the same left and right rules as S03d D. Two fingers pan and zoom. Select all, Copy and Paste are buttons in the same bar.
+
+The bar stays on screen on tablets, even after a long-press menu arrives. Undo and Redo grey out when there is nothing to undo or redo; Delete, Duplicate and Copy grey out when nothing is selected; Paste greys out when nothing has been copied.
