@@ -74,6 +74,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09i · Takeoff](sections/09i-takeoff.md)
   - [09j · Walls, rooms and lengths: worked examples](sections/09j-walls-and-rooms-examples.md) — Q-0558 to Q-0562, Q-0568
   - [09k · Openings and moves: worked examples](sections/09k-openings-and-moves-examples.md) — Q-0630
+  - [09l · AI assistant cost line: worked examples](sections/09l-ai-assistant-cost-examples.md) — Q-0637
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)

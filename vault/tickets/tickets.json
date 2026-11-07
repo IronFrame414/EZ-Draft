@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 639,
+ "count": 644,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -506,7 +506,12 @@
   "EZD-289",
   "EZD-290",
   "EZD-291",
-  "EZD-328"
+  "EZD-328",
+  "EZD-5601",
+  "EZD-5602",
+  "EZD-5603",
+  "EZD-5604",
+  "EZD-5605"
  ],
  "tickets": [
   {
@@ -19655,6 +19660,196 @@
    "decisions": [
     "spec/decisions/03-data-model.md#Q-0511",
     "spec/decisions/03-data-model.md#Q-0531"
+   ]
+  },
+  {
+   "id": "EZD-5601",
+   "phase": 56,
+   "title": "AI key storage and My profile",
+   "depends_raw": "EZD-108, EZD-021",
+   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S01gMyProfileAI.png"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-108",
+    "EZD-021"
+   ],
+   "build_position": 613,
+   "acs": [
+    "AC-EZD-5601-1",
+    "AC-EZD-5601-2",
+    "AC-EZD-5601-3",
+    "AC-EZD-5601-4",
+    "AC-EZD-5601-5",
+    "AC-EZD-5601-6",
+    "AC-EZD-5601-7"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5602",
+   "phase": 56,
+   "title": "Assistant call path, send list, stub and cost",
+   "depends_raw": "EZD-5601, EZD-021, EZD-204",
+   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5601",
+    "EZD-021",
+    "EZD-204"
+   ],
+   "build_position": 614,
+   "acs": [
+    "AC-EZD-5602-1",
+    "AC-EZD-5602-2",
+    "AC-EZD-5602-3",
+    "AC-EZD-5602-4",
+    "AC-EZD-5602-5",
+    "AC-EZD-5602-6",
+    "AC-EZD-5602-7",
+    "AC-EZD-5602-8",
+    "AC-EZD-5602-9",
+    "AC-EZD-5602-10"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5603",
+   "phase": 56,
+   "title": "Assistant panel, states and photo",
+   "depends_raw": "EZD-5602, EZD-213",
+   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5602",
+    "EZD-213"
+   ],
+   "build_position": 615,
+   "acs": [
+    "AC-EZD-5603-1",
+    "AC-EZD-5603-2",
+    "AC-EZD-5603-3",
+    "AC-EZD-5603-4",
+    "AC-EZD-5603-5",
+    "AC-EZD-5603-6",
+    "AC-EZD-5603-7",
+    "AC-EZD-5603-8",
+    "AC-EZD-5603-9",
+    "AC-EZD-5603-10"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5604",
+   "phase": 56,
+   "title": "Assistant change format and preview",
+   "depends_raw": "EZD-5602, EZD-5603, EZD-211, EZD-213",
+   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5602",
+    "EZD-5603",
+    "EZD-211",
+    "EZD-213"
+   ],
+   "build_position": 616,
+   "acs": [
+    "AC-EZD-5604-1",
+    "AC-EZD-5604-2",
+    "AC-EZD-5604-3",
+    "AC-EZD-5604-4",
+    "AC-EZD-5604-5",
+    "AC-EZD-5604-6"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5605",
+   "phase": 56,
+   "title": "Assistant Accept, Adjust, Reject and events",
+   "depends_raw": "EZD-5604, EZD-217, EZD-213, EZD-211",
+   "spec_ref": "S03c; Q-0474; Q-0637",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5604",
+    "EZD-217",
+    "EZD-213",
+    "EZD-211"
+   ],
+   "build_position": 617,
+   "acs": [
+    "AC-EZD-5605-1",
+    "AC-EZD-5605-2",
+    "AC-EZD-5605-3",
+    "AC-EZD-5605-4",
+    "AC-EZD-5605-5"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
    ]
   }
  ],

@@ -1,0 +1,18 @@
+---
+title: Anthropic API prices for Sonnet 5.5 and Opus 5.5, and vision image token rules
+scope: Official Anthropic pricing and vision docs (platform.claude.com/docs, claude.com/pricing)
+ticket: none given
+---
+
+Read 2026-11-07.
+
+- Claude Sonnet 5.5 (claude-sonnet-5-5): $2 per million input tokens, $10 per million output tokens. Cache read $0.10/MTok, cache write $2.50/MTok. Source: https://claude.com/pricing and https://platform.claude.com/docs/en/models/overview
+- Claude Opus 5.5 (claude-opus-5-5): $4 per million input tokens, $20 per million output tokens. Cache read $0.20/MTok, cache write $5/MTok. Source: https://claude.com/pricing and https://platform.claude.com/docs/en/models/overview
+- Batch API: 50% off base price per the models overview; per-model batch rates for these two models are not listed on either page. Source: https://platform.claude.com/docs/en/models/overview
+- Image token formula: ceil(width / 28) x ceil(height / 28) visual tokens, one per 28x28 patch. Source: https://platform.claude.com/docs/en/build-with-claude/vision
+- Resolution tier for claude-opus-5-5 and claude-sonnet-5-5 (Claude 4.7 and later): high-resolution, max long edge 2,576 px, max 4,784 visual tokens; no opt-in needed. Other models: 1,568 px and 1,568 tokens. Source: https://platform.claude.com/docs/en/build-with-claude/vision
+- Images above the tier limits are downscaled, except computer-use and browser-use tool_result images, which are rejected. Source: https://platform.claude.com/docs/en/build-with-claude/vision
+- Max image dimensions: 8000 x 8000 px. Max file size: 10 MB base64-encoded on the Claude API. Request size: 128 MB on the first-party API. Source: https://platform.claude.com/docs/en/build-with-claude/vision
+- Many-image requests (more than 20 images): every image must be 3,000 px or less on each side, or keep the request to 20 or fewer image and document blocks. Source: https://platform.claude.com/docs/en/build-with-claude/vision
+- Images per request: 100 for 200k-context models, 600 for others. Source: https://platform.claude.com/docs/en/build-with-claude/vision
+- Docs example: at $4/MTok, a 1000x1000 image costs about $5.18 per thousand images on the high-resolution tier. Source: https://platform.claude.com/docs/en/build-with-claude/vision

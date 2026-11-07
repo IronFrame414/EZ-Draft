@@ -957,6 +957,22 @@
     "EZD-1709b",
     "EZD-1709c"
    ]
+  },
+  {
+   "n": 56,
+   "name": "AI assistant",
+   "draft_slice": 56,
+   "from_phases": [
+    56
+   ],
+   "tickets": [
+    "EZD-5601",
+    "EZD-5602",
+    "EZD-5603",
+    "EZD-5604",
+    "EZD-5605"
+   ],
+   "note": "Built after slice 5 (Q-0630)."
   }
  ]
 }

@@ -40,7 +40,8 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
 | 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299a, 299b, 299, 238 | Adds Keep mine / Keep theirs (EZD-299a, EZD-299b, EZD-299, Q-0502). |
 | 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221, 294 | Adds snapping from phase 5 (Q-0563). |
-| 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase follows; tickets at this phase's spec check (Q-0474). |
+| 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase 56 follows (Q-0630). |
+| 56 | AI assistant | 56 | 5601, 5602, 5603, 5604, 5605 | Numbered 56, built right after phase 5 and before phase 6; no renumbering (Q-0630, phase-rank.mjs). |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
@@ -352,6 +353,27 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   5. Select two walls and change the thickness in the inspector. Expected: Both change; a field with different values reads “Mixed”.
   6. Click a distance chip, type 24", Enter. Expected: The object sits exactly 24" from the neighbor.
   7. Delete a wall, Ctrl+Z, Ctrl+Y. Expected: The wall returns, then goes again; a pasted wall gets a new id.
+
+### Slice 56 · AI assistant (Q-0474, Q-0630; built after slice 5)
+
+- **Goal:** A user with their own Anthropic key asks for changes to walls, doors and windows, sees a preview, and accepts, adjusts or rejects it.
+- **User-visible result:** Assistant button and panel; key in My profile; photo with a prompt; blue and red dashed preview; Accept, Adjust, Reject; cost line.
+- **Spec files:** `spec/sections/screens/S03c-ai-assistant.md`, `spec/sections/09l-ai-assistant-cost-examples.md`, boards S03c, S01g and their wording file
+- **Tickets (5, build order):**
+  - EZD-5601 AI key storage and My profile — needs EZD-108, EZD-021
+  - EZD-5602 Assistant call path, send list, stub and cost — after EZD-5601; needs EZD-204
+  - EZD-5603 Assistant panel, states and photo — after EZD-5602; needs EZD-213
+  - EZD-5604 Assistant change format and preview — after EZD-5603; needs EZD-211
+  - EZD-5605 Assistant Accept, Adjust, Reject and events — after EZD-5604; needs EZD-217
+- **Depends on slices:** 5
+- **Out of scope until later:** the render state (render phase, Q-0500); AI commands for other tools (each tool's phase, Q-0474).
+- **Josh's test script:**
+  1. Add your Anthropic key in My profile. Expected: it shows "Key saved · ends in" and the last 4; Remove clears it.
+  2. Open the Assistant on a plan and ask for a 3' door on a wall. Expected: a blue preview with Accept, Adjust and Reject, and a cost line.
+  3. Press Accept, then Undo. Expected: the door appears, then all of it is gone with one Undo.
+  4. Ask again, press Adjust, drag the door, press Accept. Expected: your position is kept.
+  5. Attach a photo with a prompt. Expected: it goes with that prompt only; a 25 MB file shows the too-big line.
+  6. Remove the key and open the Assistant. Expected: the No key note with Open My profile; hand drawing works.
 
 ### Slice 6 · Phase switch, layers, dimensions, thumbnails, benchmark page (from spec phase 1, 2)
 
