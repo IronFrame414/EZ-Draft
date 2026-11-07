@@ -19192,6 +19192,83 @@
     "AC-EZD-356-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-357",
+   "phase": 4,
+   "title": "Fix: a typed chain that closes at exactly 12 inches shows its gap box",
+   "depends_raw": "EZD-205b",
+   "spec_ref": "09j Closure row 4; 03g; Q-0568",
+   "spec_files": [
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/09e-geometry-and-drafting.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Rooms (EZD-205a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-205b"
+   ],
+   "acs": [
+    "AC-EZD-357-1",
+    "AC-EZD-357-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-358",
+   "phase": 4,
+   "title": "Fix: the EZD-207c E3 no-database test waits for the first draw before reading draw calls",
+   "depends_raw": "EZD-207c",
+   "spec_ref": "rule 17 (flaky gate failure is a defect); EZD-207c plan",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-358-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-359",
+   "phase": 4,
+   "title": "Fix: the EZD-207c done-when test long-tasks-during-pan fails at random in the full browser suite",
+   "depends_raw": "EZD-207c",
+   "spec_ref": "rule 17 (a gate failure is a defect); EZD-358 builder run 1, 2026-11-06",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-359-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
