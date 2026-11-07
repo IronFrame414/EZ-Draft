@@ -3984,7 +3984,9 @@
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/04-app-shell-and-global-ui.md#Selection",
-    "spec/sections/04-app-shell-and-global-ui.md#undo and flags"
+    "spec/sections/04-app-shell-and-global-ui.md#undo and flags",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -3998,12 +4000,20 @@
     "AC-EZD-204-3",
     "AC-EZD-204-4",
     "AC-EZD-204-5",
-    "AC-EZD-204-6"
+    "AC-EZD-204-6",
+    "AC-EZD-204-7",
+    "AC-EZD-204-8",
+    "AC-EZD-204-9",
+    "AC-EZD-204-10",
+    "AC-EZD-204-11",
+    "AC-EZD-204-12"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/04-app-shell-and-global-ui.md"
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -4298,11 +4308,13 @@
    "id": "EZD-208",
    "phase": 5,
    "title": "Selection",
-   "depends_raw": "EZD-207",
+   "depends_raw": "EZD-207, EZD-204",
    "spec_ref": "S03 Canvas interactions; Acceptance · Selection",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
-    "spec/sections/12-build-phases-and-acceptance-tests.md#Selection"
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Selection",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -4311,7 +4323,8 @@
    "depends_on": [
     "EZD-207a",
     "EZD-207b",
-    "EZD-207c"
+    "EZD-207c",
+    "EZD-204"
    ],
    "build_position": 104,
    "acs": [
@@ -4324,12 +4337,18 @@
     "AC-EZD-208-7",
     "AC-EZD-208-8",
     "AC-EZD-208-9",
-    "AC-EZD-208-10"
+    "AC-EZD-208-10",
+    "AC-EZD-208-11",
+    "AC-EZD-208-12",
+    "AC-EZD-208-13",
+    "AC-EZD-208-14"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -4506,7 +4525,9 @@
    "spec_ref": "S03 Door, Window",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Door",
-    "spec/sections/screens/S03-plan-editor.md#Window"
+    "spec/sections/screens/S03-plan-editor.md#Window",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -4529,29 +4550,38 @@
     "AC-EZD-211-8",
     "AC-EZD-211-9",
     "AC-EZD-211-10",
-    "AC-EZD-211-11"
+    "AC-EZD-211-11",
+    "AC-EZD-211-12",
+    "AC-EZD-211-13",
+    "AC-EZD-211-14"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-212",
    "phase": 5,
    "title": "Move, handles, distance chips",
-   "depends_raw": "EZD-208",
+   "depends_raw": "EZD-208, EZD-204",
    "spec_ref": "S03 Move; Live distance chips",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Move"
+    "spec/sections/screens/S03-plan-editor.md#Move",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208"
+    "EZD-208",
+    "EZD-204"
    ],
    "build_position": 106,
    "acs": [
@@ -4566,30 +4596,42 @@
     "AC-EZD-212-9",
     "AC-EZD-212-10",
     "AC-EZD-212-11",
-    "AC-EZD-212-12"
+    "AC-EZD-212-12",
+    "AC-EZD-212-13",
+    "AC-EZD-212-14",
+    "AC-EZD-212-15",
+    "AC-EZD-212-16",
+    "AC-EZD-212-17",
+    "AC-EZD-212-18"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-213",
    "phase": 5,
    "title": "Inspector fields",
-   "depends_raw": "EZD-208",
+   "depends_raw": "EZD-208, EZD-204",
    "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
-    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector"
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208"
+    "EZD-208",
+    "EZD-204"
    ],
    "build_position": 107,
    "acs": [
@@ -4604,13 +4646,19 @@
     "AC-EZD-213-9",
     "AC-EZD-213-10",
     "AC-EZD-213-11",
-    "AC-EZD-213-12"
+    "AC-EZD-213-12",
+    "AC-EZD-213-13",
+    "AC-EZD-213-14",
+    "AC-EZD-213-15",
+    "AC-EZD-213-16"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/04-app-shell-and-global-ui.md"
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -4706,19 +4754,22 @@
    "id": "EZD-217",
    "phase": 5,
    "title": "Undo, redo and clipboard",
-   "depends_raw": "EZD-208",
+   "depends_raw": "EZD-208, EZD-204",
    "spec_ref": "S03 Context menu, Decisions; App shell · Selection, undo and flags",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Context menu",
     "spec/sections/04-app-shell-and-global-ui.md#Selection",
-    "spec/sections/04-app-shell-and-global-ui.md#undo and flags"
+    "spec/sections/04-app-shell-and-global-ui.md#undo and flags",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208"
+    "EZD-208",
+    "EZD-204"
    ],
    "build_position": 108,
    "acs": [
@@ -4730,7 +4781,11 @@
     "AC-EZD-217-6",
     "AC-EZD-217-7",
     "AC-EZD-217-8",
-    "AC-EZD-217-9"
+    "AC-EZD-217-9",
+    "AC-EZD-217-10",
+    "AC-EZD-217-11",
+    "AC-EZD-217-12",
+    "AC-EZD-217-13"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4738,7 +4793,9 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/04-app-shell-and-global-ui.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {

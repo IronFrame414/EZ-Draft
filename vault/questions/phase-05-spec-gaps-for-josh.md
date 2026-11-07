@@ -88,3 +88,7 @@ Audit by phase-auditor (Opus, read-only). Josh 2026-11-07 authorised running thi
 - 6: The AI phase is signed off on the same terms as phase 5.
 - Number: the AI phase is phase 5.1; no phase is renumbered. This replaces the renumbering method in the AI section above.
 - 1: not answered yet.
+Changed by Josh later the same day (chat, 2026-11-07, relayed by the orchestrator); these replace the matching lines above.
+- 1: New door and window sizes approved as listed in question 1.
+- 3: "add those items to the screen. most tablet users will be working without a keyboard in the field so the app needs to function without a keyboard, even after phase 11". An on-screen group of Undo, Redo, Delete and Duplicate is added now, placed on board S03d. Standing rule: every action on a tablet must work without a keyboard, in every phase.
+- Number: "just name the ai phase 56 and build after 5". No renumbering; this replaces 5.1. Phase 6 does not start before phase 56 is done. Tickets are not written in this pass.

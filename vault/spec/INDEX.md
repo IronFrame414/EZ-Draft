@@ -11,6 +11,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
 - [Glossary addendum, Phase 2](sections/00c-glossary-phase-02.md) — Phase 2 terms added to glossary.md; Q-0403
 - [Glossary addendum, Phase 3](sections/00d-glossary-phase-03.md) — Phase 3 terms added to glossary.md; Q-0507
 - [Glossary addendum, Phase 4](sections/00e-glossary-phase-04.md) — Phase 4 terms added to glossary.md; Q-0568
+- [Glossary addendum, Phase 5](sections/00f-glossary-phase-05.md) — Phase 5 terms added to glossary.md; Q-0630
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
@@ -72,6 +73,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09h · Sheets and revisions](sections/09h-sheets-and-revisions.md)
   - [09i · Takeoff](sections/09i-takeoff.md)
   - [09j · Walls, rooms and lengths: worked examples](sections/09j-walls-and-rooms-examples.md) — Q-0558 to Q-0562, Q-0568
+  - [09k · Openings and moves: worked examples](sections/09k-openings-and-moves-examples.md) — Q-0630
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)
