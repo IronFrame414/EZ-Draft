@@ -78,3 +78,13 @@ Audit by phase-auditor (Opus, read-only). Josh 2026-11-07 authorised running thi
 - Readiness gaps blocking its planning: A1 architecture.md:111 "AI only inside jobs", T19, EZD-021 "key from env" against per-user keys. A2 key table, usage table, encryption secret, tenant rules. A3 no formula, price source or rounding for the cost line; a web retriever supplies cited prices. A4 no stub sample or response list. A5 change-format schema, stale preview, Adjust, Accept as one undo step. A6 send-to-AI allow-list; room names. A7 photos (Josh, question 5).
 - Settled: render state waits for the render phase (Q-0500; S03c Scope). "Marked as AI" emits through the event registry now (Q-0568). Edit model alone suffices until the edit lock (Q-0568). No shortcut on the Assistant button, as on the approved board.
 - Proposed tickets: key storage and My profile (S01g); call path, stub and cost; panel and states (S03c); change schema and preview; Accept, Adjust, Reject and events. Depend on EZD-108, EZD-021, EZD-204, EZD-211, EZD-213, EZD-217.
+
+## Josh's answers (chat, 2026-11-07)
+"#2 add b", "#3 B", "#4 A", "#5 add photo. give prompt for cowork session to add", "#6 yes", "Don't renumber everything from phase 6 and up. number the ai phase 5.1".
+- 2: CAD style by drag direction: left to right takes what is fully inside; right to left takes anything it touches.
+- 3: Keyboard only for now. Touch Delete and Duplicate come with the long-press menu in phase 11; Undo and Redo have no touch control in any phase yet.
+- 4: One new board for the wall and door panels, selected look, handles, door preview and red door. Only EZD-204 proceeds until it is approved.
+- 5: Photos are in the first AI phase; the S03c boards gain the control in Cowork.
+- 6: The AI phase is signed off on the same terms as phase 5.
+- Number: the AI phase is phase 5.1; no phase is renumbered. This replaces the renumbering method in the AI section above.
+- 1: not answered yet.
