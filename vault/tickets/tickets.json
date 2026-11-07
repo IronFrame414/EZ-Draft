@@ -19258,7 +19258,8 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Browser tests (EZD-016a)"
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
