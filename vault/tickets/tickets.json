@@ -32,7 +32,8 @@
   "EZD-120b split into EZD-120b, EZD-120c, EZD-120d on 2026-11-04 (planner split proposal vault/plans/split-EZD-120b.md, orchestrator applied); EZD-202 depends only on EZD-120a and builds before EZD-120b (Q-0573 (a)); dependents of base EZD-120 expand to every part; EZD-299 needs all three, EZD-1020 the editor (120c).",
   "EZD-205, EZD-207 and EZD-210 split on 2026-11-06 into EZD-205a, EZD-205b; EZD-207a, EZD-207b, EZD-207c; EZD-210a, EZD-210b (planner split proposals vault/plans/EZD-205.md, EZD-207.md, EZD-210.md, each over the PROCESS.md section 6 file and test counts; orchestrator applied); every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs: AC-EZD-205-1 and -5 on EZD-205a, -2, -3, -4 and -6 on EZD-205b; AC-EZD-207-1, -4, -6, -7, -8 and -9 on EZD-207a, -2, -3, -4, -8 and -10 on EZD-207b, -5 on EZD-207c; AC-EZD-210-1, -2, -3, -4, -6, -8, -9, -10 and -12 on EZD-210a, AC-EZD-210-1, -2, -3, -5, -7, -8, -9, -10 and -11 plus AC-EZD-207-6 and -7 (the tools and rail clauses) on EZD-210b.",
   "EZD-221 split on 2026-11-07 into EZD-221a, EZD-221b (planner split proposal vault/plans/EZD-221.md, over the PROCESS.md section 6 file count; overwatch session applied). The stage-0 ACs keep their IDs.",
-  "EZD-299 split on 2026-11-07 into EZD-299a, EZD-299b, EZD-299 (planner split proposal vault/plans/EZD-299.md; the last part keeps the base ID, as EZD-026a did; orchestrator applied at questions 3). New ticket EZD-294 Object numbers (Q-0625 (a)): EZD-299 and EZD-211 depend on it. The stage-0 ACs keep their IDs; AC-EZD-299-13 to -18 and AC-EZD-294-1 to -3 are added by hand."
+  "EZD-299 split on 2026-11-07 into EZD-299a, EZD-299b, EZD-299 (planner split proposal vault/plans/EZD-299.md; the last part keeps the base ID, as EZD-026a did; orchestrator applied at questions 3). New ticket EZD-294 Object numbers (Q-0625 (a)): EZD-299 and EZD-211 depend on it. The stage-0 ACs keep their IDs; AC-EZD-299-13 to -18 and AC-EZD-294-1 to -3 are added by hand.",
+  "EZD-355 split on 2026-11-07 into EZD-355a, EZD-355b (Q-0615, planner split proposal); EZD-327 removed as a duplicate of EZD-326 (session 11)."
  ],
  "checks": {
   "cycles": 0,
@@ -18689,29 +18690,6 @@
    "acs_source": "done-when"
   },
   {
-   "id": "EZD-327",
-   "phase": 2,
-   "title": "Fix: the EZD-025 files backup test T3 does not fail at random in CI",
-   "depends_raw": "EZD-025",
-   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
-   "spec_files": [
-    "spec/sections/11-non-functional-requirements.md#Operations"
-   ],
-   "decisions": [],
-   "mockups": [],
-   "architecture": [],
-   "priority": 1,
-   "phase_file": "tickets/phases/phase-02.md",
-   "depends_on": [
-    "EZD-025"
-   ],
-   "build_position": 585,
-   "acs": [
-    "AC-EZD-327-1"
-   ],
-   "acs_source": "done-when"
-  },
-  {
    "id": "EZD-328",
    "phase": 1,
    "title": "Fix: each lane's gate and database run outside the unit sandbox",
@@ -19467,11 +19445,11 @@
    "acs_source": "done-when"
   },
   {
-   "id": "EZD-355",
+   "id": "EZD-355a",
    "phase": 1,
-   "title": "Build system: gate and unit Docker calls go through a policy relay that acts only on objects it created",
+   "title": "Build system: the gate's Docker calls go through a policy relay that acts only on objects it created",
    "depends_raw": "EZD-354",
-   "spec_ref": "Q-0614; rules 17, 18",
+   "spec_ref": "Q-0614; Q-0615; rules 17, 18",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
@@ -19479,22 +19457,46 @@
     "spec/decisions/process.md"
    ],
    "mockups": [],
-   "architecture": [
-    "Local database",
-    "Build lanes (EZD-172)"
-   ],
-   "track": "tooling",
+   "architecture": [],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-354"
    ],
-   "build_position": 611,
+   "build_position": 619,
    "acs": [
-    "AC-EZD-355-1",
-    "AC-EZD-355-2",
-    "AC-EZD-355-3",
-    "AC-EZD-355-4"
+    "AC-EZD-355a-1",
+    "AC-EZD-355a-2",
+    "AC-EZD-355a-3",
+    "AC-EZD-355a-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-355b",
+   "phase": 1,
+   "title": "Build system: sandboxed units reach Docker only through the policy relay",
+   "depends_raw": "EZD-355a",
+   "spec_ref": "Q-0614; Q-0615; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-355a"
+   ],
+   "build_position": 620,
+   "acs": [
+    "AC-EZD-355b-1",
+    "AC-EZD-355b-2",
+    "AC-EZD-355b-3",
+    "AC-EZD-355b-4"
    ],
    "acs_source": "done-when"
   },
