@@ -266,3 +266,25 @@ This restarts ezdraft-dev; the live address is down a few minutes. Never on ezdr
 3. Run node app/scripts/realtime-failover-check.mjs; type the ref if it is ezdraft-dev's.
 4. When asked, restart the project, then press Return (about 15 minutes in all).
 5. Send the RESULT line (no secret) to the orchestrator; close Terminal. On failed: token_expiring, wait 30 minutes, start over.
+
+## Gate user (EZD-354)
+
+Redo after a macOS reinstall or a Node or pnpm bump. The gate checks these on every run (vault/plans/EZD-354.md).
+
+Only Josh can do these (account, sudo, Docker Desktop settings). Order: steps 1 and 2 before the build; step 3 after the orchestrator's row O1. State when planned (2026-11-06): none was done yet (`ls -led /Users/josh` has only `group:everyone deny delete`; `/etc/sudoers.d` is empty).
+
+1. **Close your home folder to ezdraft.** Both users are in group `staff` and `/Users/josh` is `drwxr-x---` josh:staff (`~/.claude` is `drwxr-xr-x`), so ezdraft can list and read most of it. In Terminal (no sudo; you own the folder):
+   `chmod +a "user:ezdraft deny list,search,add_file,add_subdirectory,delete_child,readattr,readextattr,readsecurity" /Users/josh`
+   Check: `ls -led /Users/josh` shows a `user:ezdraft deny list,add_file,search,…` line.
+2. **Let the gate switch to ezdraft without a password, for one command only.** `sudo visudo -f /etc/sudoers.d/ezdraft-gate`, type exactly this line, save:
+   `josh ALL=(root) NOPASSWD: /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env *`
+   Check: `sudo -n /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env -i /usr/bin/id -un` prints `ezdraft`. Then check it allows nothing else: `sudo -n /bin/launchctl asuser 502 /bin/sh -c id` must be refused (`sudo: a password is required`), and `sudo -n -l` shows no `NOPASSWD` line but this one.
+3. **Limit what Docker containers can see** (after the orchestrator says row O1 is done). Docker Desktop → Settings (gear) → Resources → File sharing: remove `/Users`, `/Volumes`, `/private`, `/tmp`, `/var/folders`; add `/Users/josh/Projects/ezdraft/.claude/worktrees` and `/Users/ezdraft/gate`; click Apply & restart. Why: the Docker VM mounts exactly the listed folders (probe 2026-11-06: a privileged container saw `/host_mnt/Users`, `/Volumes`, `/private`, `/tmp`, `/var/folders`), so today any container reads your whole home.
+4. **Log ezdraft in after every restart.** The gate's iPad and phone browser tests need ezdraft logged in behind your account, and FileVault rules out auto-login, so a restart ends that session. Until you do this the gate stops with `ezdraft is not logged in`.
+   - From your menu bar's user icon choose ezdraft and type its password.
+   - As soon as its desktop shows, press Control + Command + Q. Press this before anything else, even if a password prompt or Switch User screen is already showing.
+   - On the screen that follows, click Switch User, choose your name and type your password. Never type your own password on a prompt that was already showing in ezdraft's session: code a gate left behind could draw a fake one.
+   - Never Log Out of either account.
+   - ezdraft's password must be as strong as yours and not reused, because it can unlock this Mac's disk. Never sign ezdraft in with an Apple ID.
+
+Orchestrator setup (row O1), after step 2: each as ezdraft through `S` = `/usr/bin/sudo -n /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env -i HOME=/Users/ezdraft PATH=/opt/homebrew/bin:/usr/bin:/bin`, run from `/`: (a) `S /bin/mkdir -p -m 0755 /Users/ezdraft/gate`; (b) `S FNM_DIR=/Users/ezdraft/.local/share/fnm /opt/homebrew/bin/fnm install v22.23.3`; (c) `S PATH=<B>:/usr/bin:/bin <B>/npm install -g pnpm@12.14.0` with `<B>` = `/Users/ezdraft/.local/share/fnm/node-versions/v22.23.3/installation/bin`; then Josh does step 3. Checks: (d) `S /usr/bin/id -u` prints `502`; (e) `S /bin/cat /Users/josh/.zprofile` exits non-zero with `Permission denied`; (f) `S /bin/launchctl print gui/501` exits non-zero.

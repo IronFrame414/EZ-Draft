@@ -894,6 +894,7 @@ function childEnv(tmp) {
   delete env.EZD_LANE; // lane stack env: the fixture gate checks lane 0 behavior
   delete env.SUPABASE_WORKDIR;
   delete env.NODE_TEST_CONTEXT; // set by the outer node --test; a nested node --test must start clean
+  env.EZD_GATE_AS_SELF = '1'; // EZD-354 D4: a fixture gate runs as itself
   if (tmp) { env.TMP = tmp; env.TEMP = tmp; env.TMPDIR = tmp; }
   return env;
 }

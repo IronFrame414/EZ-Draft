@@ -24,7 +24,7 @@ test('EZD-333 L1e: every file the hooks and the gate load is a hard limit (AC-EZ
       if (existsSync(path.join(repo, next))) todo.push(next);
     }
   }
-  for (const must of ['vault/tools/outline.mjs', 'scripts/gate-lock.mjs', 'scripts/launcher-idle.mjs', '.claude/hooks/secret-paths.mjs']) assert.ok(seen.has(must), must);
+  for (const must of ['vault/tools/outline.mjs', 'scripts/gate-lock.mjs', 'scripts/launcher-idle.mjs', '.claude/hooks/secret-paths.mjs', 'scripts/gate-user.mjs', 'scripts/gate-docker-relay.mjs']) assert.ok(seen.has(must), must);
   for (const rel of [...seen].sort()) assert.equal(typeof idle.repairForbidden(rel), 'string', rel);
 });
 

@@ -905,6 +905,8 @@ EZD-004a (vault/plans/EZD-004a.md Steps 2–6); 02 Named tools; 11 Operations "l
 
 Cloud dev: `.github/workflows/supabase-dev.yml` applies `supabase/migrations/` to the cloud project `ezdraft-dev` through `node scripts/db/dev-push.mjs` (EZD-146: the release's `createSupabaseCli().push` with `MIGRATION_TIMEOUTS`; `--db-url` without the password, the password only in `PGPASSWORD`) on each develop push that changes them and by Run workflow (Q-0107); without the `SUPABASE_DEV_DB_URL` secret it ends green and pushes nothing. Agents never run `db push` or `link` themselves (`.claude/hooks/guard-bash.mjs`). Josh's setup: `docs/runbook.md`, Supabase cloud projects.
 
+On Josh's Mac a local gate's stack runs from the run copy `/Users/ezdraft/gate/lane<n>/tree`, as the ezdraft user (EZD-354, Gate user); builders' own `pnpm db:up` still runs from their worktree.
+
 ### Build lanes (EZD-172)
 
 EZD-172 (vault/plans/EZD-172.md Steps 1-9); Josh 2026-10-24 (boost).
@@ -916,6 +918,8 @@ EZD-172 (vault/plans/EZD-172.md Steps 1-9); Josh 2026-10-24 (boost).
 - **Env check.** `up`, `env`, `prepare` and `stop-lane` refuse (exit 1) when `SUPABASE_WORKDIR` does not match `EZD_LANE`. The gate sets both for lane n and clears `SUPABASE_WORKDIR` for lane 0.
 - **Gate lock.** One gate per lane: `ezdraft-gate.lock` (lane 0, Q-0019) or `ezdraft-gate-lane<n>.lock` in the temp folder. Lane stacks 1-3 stop at the end of every gate (`node scripts/db/local.mjs stop-lane`, Q-0354 (a)), because Supabase CLI 2.121.0 publishes every stack port on all addresses and has no setting to bind them to 127.0.0.1; lane 0's stack keeps running; `pnpm db:stop` stops the current lane's stack. A gate or sweep lock holds its owner's pid from the moment it appears: the pid is written to `<lock>.<pid>.tmp` and that file is hard-linked to the lock name (Q-0381). A gate that finds an empty gate lock (an older gate script opens the file before it writes the pid) reads it again every 50 ms for up to 2,000 ms before it treats the lock as dead. Only one gate at a time removes a dead gate or sweep lock (EZD-256): it first takes the lock's take-over folder `<lock>.takeover` by renaming a temp folder `<lock>.takeover.<pid>.tmp` that holds one file `<pid>-<uuid>` onto that name, which works only while the folder is missing or empty; it then reads the lock again, removes it only when it still holds the text it judged dead, and frees the folder. A take-over folder whose file names a dead process is emptied by the next gate; while a live gate holds it, a gate refuses as it does for a held lock and a sweep skips that lane. A file holding the reader's own pid counts as dead. A holder file whose pid now belongs to another process counts as live until that process ends; gates refuse meanwhile and nothing is removed. Code: `scripts/gate-lock.mjs`.
 - **Stale lane stacks.** A lane 1-3 gate, after its install step, stops the stack of each other lane 1-3 that no live gate holds (`ezdraft-gate-lane<m>.lock`) and no live lane lease holds (`ezdraft-lane<m>.lease` in the temp folder, holding the pid of the process using the lane; the launcher writes it, EZD-174), so a stack left by a killed gate or a crash (Docker restarts it, restart policy `unless-stopped`) closes at the next lane gate (Q-0367 (b)). Lane 0 gates never do this. Run a lane by hand outside a gate only with that lease file holding your shell's pid.
+
+A local lane gate's stack runs from `/Users/ezdraft/gate/lane<n>/tree` (EZD-354), so its `SUPABASE_WORKDIR` is `<that tree>/.lanes/lane<n>`; the lane lock and lease rules are unchanged.
 
 ### Tenancy tables (EZD-005)
 
@@ -1261,6 +1265,17 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 | — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |
 | — | Email subject characters, https links on Vercel, stub outbox cap, alert subject line | `app/src/server/email/input-checks.test.ts`, `app/src/server/errors/alert-email.test.ts` | EZD-151 |
 | — | Every open ticket lists its architecture sections; every listed and core heading exists, is unique and holds no ' or ; | `node vault/tools/next_ticket.mjs --check`, `scripts/ledger/architecture-map.test.mjs` | EZD-244 |
+
+### Gate user (EZD-354)
+On macOS `scripts/gate.mjs` runs every check as the Standard user `ezdraft` (uid 502), so code a check runs cannot reach Josh's keychain, ssh agent, launchd session or home folder (Q-0602 (a); vault/plans/EZD-354.md). Setup: docs/runbook.md, Gate user.
+- User mode (D4): macOS, unless `EZD_GATE_AS_SELF=1` or the gate already runs as ezdraft; Linux (CI) is unchanged.
+- The switch (D5): one sudo rule, `launchctl asuser 502` then `sudo -u ezdraft`, an exact environment (`gateUserEnv`), cwd `/` on Josh's side.
+- Order (D6): preflight P1-P6 (user exists, relay folder, canary in Josh's home unreadable by ezdraft, the switch, node and pnpm versions), snapshot, run copy, Docker relay, then the checks. Every check goes through one spawner that refuses to start before the preflight passed (D15, `createCheckSpawner`).
+- Run copy (D7, D8): `/Users/ezdraft/gate/lane<n>/tree`, a git snapshot of tracked plus untracked-not-ignored files (no `.env`, no `node_modules`), pushed as ezdraft; secret names, hard links and special files refuse the gate.
+- Install (D9): the run copy installs every gate and, with browser tests, installs ezdraft's own Chromium and WebKit.
+- Docker (D10): ezdraft reaches Josh's Docker Desktop through a plain forwarder (`scripts/gate-docker-relay.mjs`), bounded by Docker Desktop file sharing; the policy relay is EZD-355 (Q-0614).
+- Josh's side (D11): git, locks, leases, logs, the summary, the relay and the canary stay as Josh; results come back only as ezdraft's stdout (D12, `copyBack`).
+- Stacks (D16): `scripts/db/*` is unchanged; a lane 0 gate restarts the lane 0 stack once per gate.
 
 ### CI
 

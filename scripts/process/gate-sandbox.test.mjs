@@ -13,7 +13,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 function fixture() {
   const root = mkdtempSync(path.join(os.tmpdir(), 'ezd-gate-sandbox-'));
   mkdirSync(path.join(root, 'scripts'));
-  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs', 'excluded-form.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
+  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs', 'gate-user.mjs', 'excluded-form.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
   mkdirSync(path.join(root, 'scripts/db'));
   copyFileSync(path.join(here, '..', 'db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
   mkdirSync(path.join(root, 'vault/tools'), { recursive: true });
@@ -25,7 +25,7 @@ function fixture() {
   writeFileSync(path.join(dir, 'package.json'), '{"name":"x","scripts":{}}');
   return { root, dir };
 }
-const gate = (f) => spawnSync(process.execPath, [path.join(f.root, 'scripts/gate.mjs'), f.dir, '--print-scope'], { encoding: 'utf8' });
+const gate = (f) => spawnSync(process.execPath, [path.join(f.root, 'scripts/gate.mjs'), f.dir, '--print-scope'], { encoding: 'utf8', env: { ...process.env, EZD_GATE_AS_SELF: '1' } }); // EZD-354 D4
 
 test('D-008 the gate stops with GATE SANDBOX STOP and the exact command when .claude/agents is not writable', { skip: process.getuid?.() === 0 }, () => {
   const f = fixture();

@@ -7,20 +7,24 @@
 // Runners read EZD_TEST_SCOPE, EZD_PHASE and EZD_TEST_GREP (see docs/architecture.md, Test scope).
 // One gate at a time per build lane (lane 0: Q-0019; lanes 1-3: EZD_LANE, EZD-172). A lane 1-3 gate stops the stale stacks of the other lanes when it starts (Q-0367 (b)) and its own lane's stack when it ends (Q-0354 (a)).
 // Exits 0 only if every check that exists passes. Same script runs locally, in review, and in CI.
-// Every check starts through scripts/gate-env.mjs (EZD-344); the touched-paths git call goes through vault/tools/trusted-git.mjs (EZD-345).
+// Every check starts through scripts/gate-env.mjs (EZD-344); the touched-paths git call goes through vault/tools/trusted-git.mjs (EZD-345); on macOS the checks run as the ezdraft user from a run copy (scripts/gate-user.mjs, EZD-354).
 // It also prints the paths the branch touched (git diff --name-only develop...HEAD) and a
 // "SECURITY FLAG: <path>" line for each one matching the production-sensitive list in vault/tools/security-paths.mjs, which the launcher's post-audit merge hold also uses (EZD-337). Flags never fail the gate;
 // they trigger the security review (vault/PROCESS.md section 8 steps 7-8). The list is the process default plus
 // EZ Draft's production-sensitive paths (Q-0112; vault/PROCESS-EZDRAFT.md section 7).
 // Full output of every check goes to <dir>/gate.log (gitignored); the console gets the summary (PROCESS.md section 8 step 7).
-import { existsSync, readFileSync, readdirSync, statSync, linkSync, unlinkSync, writeFileSync, appendFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, linkSync, unlinkSync, writeFileSync, appendFileSync, mkdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarizeStep } from './gate-summary.mjs';
 import { isLive, removeDeadLock } from './gate-lock.mjs';
 import { readLane } from './db/lane.mjs';
-import { gateEnv, gateSpawn } from './gate-env.mjs';
+import { gateEnv, gateSpawn, gateUserEnv } from './gate-env.mjs';
+import {
+  RUN_ROOT, RELAY_DIR, CANARY_NAME, CANARY_TEXT, SETUP_ENV, RUN_TREE_ENV, preflightLines, userMode, lookupUid, loginwindowRunning, userSpawn, toolBin,
+  receivePackCommand, makeSnapshot, checkRelayDir, syncRunTree, copyBack, runPreflight, createCheckSpawner, startRelayProcess,
+} from './gate-user.mjs';
 import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import { isSecurityPath, DIFF_NAMES_ARGS, splitNames } from '../vault/tools/security-paths.mjs';
 import { excludedPrefix } from './excluded-form.mjs';
@@ -107,7 +111,22 @@ const gateVars = { CI: '1', NO_COLOR: '1', EZD_TEST_SCOPE: scope.mode };
 if (scope.mode === 'phase') { gateVars.EZD_PHASE = String(scope.phase); gateVars.EZD_TEST_GREP = scope.grep; }
 // Build lanes (EZD-172): EZD_LANE 1-3 gives the checks their own local stack and ports (scripts/db/lane.mjs).
 if (lane >= 1) { gateVars.EZD_LANE = String(lane); gateVars.SUPABASE_WORKDIR = path.join(dir, '.lanes', `lane${lane}`); }
-const env = gateEnv(process.env, gateVars);
+// EZD-354 D4, D7, D15: on macOS the checks run as ezdraft from the lane's run copy, through one spawner that refuses to
+// start a check before the preflight passed (scripts/gate-user.mjs). Linux (CI) and EZD_GATE_AS_SELF=1 run as today.
+const gateUid = process.platform === 'darwin' && process.env.EZD_GATE_AS_SELF !== '1' ? lookupUid('ezdraft') : null;
+const userOn = userMode({ platform: process.platform, uid: process.getuid?.(), env: process.env, gateUid });
+const laneRoot = path.join(RUN_ROOT, `lane${lane}`);
+const runTree = path.join(laneRoot, 'tree');
+const checkDir = userOn ? runTree : dir;
+const tools = toolBin(process.version);
+const checkSpawner = createCheckSpawner({
+  active: userOn, toolBin: tools, execPath: process.execPath,
+  buildEnv: (set) => gateUserEnv(process.env, set, { toolBin: tools, tmp: path.join(laneRoot, 'tmp') }),
+  spawnPlain: (set, file, a, o) => gateSpawn(gateEnv(process.env, set), file, a, o),
+});
+let armed = !userOn;
+let userVars = null;
+let relay = null;
 
 // One gate at a time per lane (Q-0019, EZD-172). A lock appears by hard link from a temp file that already holds the pid, so a visible lock is never empty (Q-0381); a lock left by a dead process is taken over. Only the gate holding <lock>.takeover removes a dead lock, after reading it again (EZD-256, scripts/gate-lock.mjs).
 const lockPath = path.join(os.tmpdir(), lane === 0 ? 'ezdraft-gate.lock' : `ezdraft-gate-lane${lane}.lock`);
@@ -215,8 +234,8 @@ function sweepStaleLanes() {
     if (isLive(gatePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (gate pid ${gatePid})`); continue; }
     const leasePid = readPid(path.join(os.tmpdir(), `ezdraft-lane${m}.lease`));
     if (isLive(leasePid)) { releaseSweepLock(); say(`lane sweep: lane ${m} skipped (lease pid ${leasePid})`); continue; }
-    const r = gateSpawn(gateEnv(process.env, { ...gateVars, EZD_LANE: String(m), SUPABASE_WORKDIR: path.join(dir, '.lanes', `lane${m}`) }),
-      process.execPath, [script, 'stop-lane'], { cwd: dir, encoding: 'utf8', timeout: 120000 });
+    const r = checkSpawner.run({ ...(userVars ?? gateVars), EZD_LANE: String(m), SUPABASE_WORKDIR: path.join(checkDir, '.lanes', `lane${m}`) },
+      process.execPath, [path.join(checkDir, 'scripts', 'db', 'local.mjs'), 'stop-lane'], { cwd: checkDir, encoding: 'utf8', timeout: 120000 });
     log(`${r.stdout || ''}${r.stderr || ''}`);
     const ok = r.status === 0;
     if (!ok) { failedAny = true; laneFailure(`lane sweep lane ${m}`, r); }
@@ -231,7 +250,7 @@ function stopLaneStack() {
   say('\n=== lane stop: node scripts/db/local.mjs stop-lane ===');
   const script = path.join(dir, 'scripts', 'db', 'local.mjs');
   if (!existsSync(script)) { say('lane stop: scripts/db/local.mjs is missing'); laneFailure('lane stop', { stdout: 'scripts/db/local.mjs is missing' }); return 'FAIL'; }
-  const r = gateSpawn(env, process.execPath, [script, 'stop-lane'], { cwd: dir, encoding: 'utf8', timeout: 120000 });
+  const r = checkSpawner.run(userVars ?? gateVars, process.execPath, [path.join(checkDir, 'scripts', 'db', 'local.mjs'), 'stop-lane'], { cwd: checkDir, encoding: 'utf8', timeout: 120000 });
   log(`${r.stdout || ''}${r.stderr || ''}`);
   if (r.status !== 0) laneFailure('lane stop', r);
   return r.status === 0 ? 'pass' : 'FAIL';
@@ -249,7 +268,9 @@ function releaseLock() {
 }
 process.on('exit', () => {
   releaseSweepLock();
-  if (lane >= 1 && lockHeld && !laneStopped) say(`lane stop  ${stopLaneStack()}`);
+  // A user-mode gate stopped before the preflight passed started nothing as ezdraft, so it has no lane stack to stop.
+  if (lane >= 1 && lockHeld && !laneStopped && armed) say(`lane stop  ${stopLaneStack()}`);
+  if (relay) relay.kill('SIGTERM');
   releaseLock();
 });
 process.on('SIGINT', () => process.exit(130));
@@ -282,10 +303,42 @@ console.log(`GATE: ${dir} · scope: ${scopeText}${lane ? ` · lane ${lane}` : ''
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 const scripts = pkg.scripts || {};
 const pm = existsSync(path.join(dir, 'pnpm-lock.yaml')) || pkg.packageManager?.startsWith('pnpm') ? 'pnpm' : 'npm';
+// EZD-354 D6: the preflight (P1-P6), the snapshot (P7), the run copy (P8) and the Docker relay (P9), before any check.
+if (userOn) {
+  const canary = path.join(os.homedir(), CANARY_NAME);
+  const wantPnpm = pm === 'pnpm' && typeof pkg.packageManager === 'string' && pkg.packageManager.startsWith('pnpm@') ? pkg.packageManager.slice('pnpm@'.length) : null;
+  const pre = runPreflight({
+    lookup: () => gateUid,
+    relayDirOk: () => {
+      try { mkdirSync(RELAY_DIR, { mode: 0o755 }); } catch (e) { if (e?.code !== 'EEXIST') return false; }
+      return checkRelayDir(RELAY_DIR, process.getuid());
+    },
+    loggedIn: () => loginwindowRunning(),
+    writeCanary: () => {
+      try { unlinkSync(canary); } catch (e) { if (e?.code !== 'ENOENT') throw e; }
+      writeFileSync(canary, CANARY_TEXT, { flag: 'wx', mode: 0o644 });
+    },
+    spawnAs: (uid, file, a) => userSpawn(uid, SETUP_ENV, '/', file, a, { encoding: 'utf8', timeout: 60000 }),
+    canary, wantNode: process.version, wantPnpm, toolBin: tools,
+  });
+  if (!pre.ok) { say(pre.line); process.exit(1); }
+  userVars = { ...gateVars, DOCKER_HOST: `unix://${RELAY_DIR}/docker-lane${lane}.sock`, EZD_GATE_USER: 'ezdraft', EZD_GATE_UID: String(pre.gateUid), EZD_GATE_JOSH_UID: String(process.getuid()), EZD_GATE_CANARY: canary };
+  if (lane >= 1) userVars.SUPABASE_WORKDIR = path.join(runTree, '.lanes', `lane${lane}`);
+  let sha;
+  try { sha = makeSnapshot(dir); } catch (e) { say(e?.reason ? preflightLines.F8(e.reason, e.path) : preflightLines.F9(e?.message)); process.exit(1); }
+  try {
+    syncRunTree({ dir, lane, sha, asUser: (file, a, cwd) => userSpawn(pre.gateUid, RUN_TREE_ENV, cwd, file, a, { encoding: 'utf8', timeout: 600000 }), receivePack: receivePackCommand(pre.gateUid) });
+  } catch (e) { say(preflightLines.F9(e?.message)); process.exit(1); }
+  relay = startRelayProcess(lane);
+  if (!relay) { say(preflightLines.F7); process.exit(1); }
+  checkSpawner.arm(pre.gateUid);
+  armed = true;
+  say(`gate user  ezdraft (uid ${pre.gateUid})`);
+}
 const failures = [];
 const run = (cmdArgs, label) => {
   say(`\n=== ${label}: ${pm} ${cmdArgs.join(' ')} ===`);
-  const r = gateSpawn(env, pm, cmdArgs, { cwd: dir, encoding: 'utf8', shell, maxBuffer: 64 * 1024 * 1024 });
+  const r = checkSpawner.run(userVars ?? gateVars, pm, cmdArgs, { cwd: checkDir, encoding: 'utf8', shell, maxBuffer: 64 * 1024 * 1024 });
   const text = `${r.stdout || ''}${r.stderr || ''}`;
   // EZD-331: a step that could not start or was killed says why (spawnSync error, signal), as laneFailure does.
   const why = [...(r.error ? [r.error.message] : []), ...(r.signal ? [`signal ${r.signal}`] : [])];
@@ -309,7 +362,16 @@ const run = (cmdArgs, label) => {
   return ok;
 };
 
-if (!existsSync(path.join(dir, 'node_modules'))) {
+const userRows = [];
+if (userOn) {
+  // EZD-354 D9: the run copy installs every gate, then ezdraft's own browsers when there are browser tests.
+  if (!run(pm === 'pnpm' ? ['install', '--frozen-lockfile'] : ['ci'], 'install')) { console.error('GATE FAIL: install'); process.exit(1); }
+  userRows.push(['install', 'pass']);
+  if (scripts['test:e2e']) {
+    if (!run(['exec', 'playwright', 'install', 'chromium', 'webkit'], 'browsers')) { console.error('GATE FAIL: browsers'); process.exit(1); }
+    userRows.push(['browsers', 'pass']);
+  }
+} else if (!existsSync(path.join(dir, 'node_modules'))) {
   if (!run(pm === 'pnpm' ? ['install', '--frozen-lockfile'] : ['ci'], 'install')) { console.error('GATE FAIL: install'); process.exit(1); }
 }
 // The sweep runs the worktree's own CLI from node_modules, so it follows the install (a fresh lane worktree has none).
@@ -318,13 +380,25 @@ if (lane >= 1) sweepResult = sweepStaleLanes();
 // Order matters: cheap checks first. "test:e2e" and "perf" join once EZD-016 / EZD-017 add them.
 const checks = ['typecheck', 'lint', 'test', 'build', 'test:e2e', 'perf'];
 const required = ['typecheck', 'lint', 'test', 'build'];
-const results = [];
+const results = [...userRows];
 for (const name of checks) {
   if (!scripts[name]) { results.push([name, required.includes(name) ? 'MISSING' : 'not yet']); continue; }
   results.push([name, run(['run', name], name) ? 'pass' : 'FAIL']);
 }
+// EZD-354 D12: perf results come back through ezdraft's stdout into the worktree's perf-results, never by opening its files.
+if (userOn) {
+  try {
+    copyBack((name) => userSpawn(gateUid, SETUP_ENV, runTree, '/bin/cat', [`perf-results/${name}`], { encoding: 'utf8', maxBuffer: 8388608, timeout: 60000 }), path.join(dir, 'perf-results'));
+    results.push(['results', 'pass']);
+  } catch (e) {
+    log(`results: ${e?.message}`);
+    results.push(['results', 'FAIL']);
+  }
+}
 if (lane >= 1) results.push(['lane sweep', sweepResult]);
 if (lane >= 1) results.push(['lane stop', stopLaneStack()]);
+// C19: the relay stops with the checks; a live child would keep the gate from exiting after its summary.
+if (relay) { relay.kill('SIGTERM'); relay = null; }
 
 say('\n=== GATE SUMMARY ===');
 say(`scope      ${scopeText}`);

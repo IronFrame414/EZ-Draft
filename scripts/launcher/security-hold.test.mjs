@@ -61,7 +61,7 @@ test('EZD-337 S4 gate flags: the real gate flags sensitive files by raw name and
   git(fx, 'add', '-A');
   git(fx, 'commit', '-q', '-m', 'change');
   const t = tmp('ezd337-gt-');
-  const env = { ...process.env, TMP: t, TEMP: t, TMPDIR: t };
+  const env = { ...process.env, TMP: t, TEMP: t, TMPDIR: t, EZD_GATE_AS_SELF: '1' }; // EZD-354 D4
   for (const k of ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT', 'EZD_LANE', 'SUPABASE_WORKDIR']) delete env[k];
   const r = spawnSync(process.execPath, [path.join(repo, 'scripts/gate.mjs'), fx], { encoding: 'utf8', env });
   assert.equal(r.status, 0, r.stdout + r.stderr);

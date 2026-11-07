@@ -51,7 +51,7 @@ function cleanEnv(extra = {}) {
   delete env.NODE_TEST_CONTEXT;
   delete env.EZD_LANE;
   delete env.SUPABASE_WORKDIR;
-  return { ...env, ...extra };
+  return { ...env, EZD_GATE_AS_SELF: '1', ...extra }; // EZD-354 D4: a fixture gate runs as itself
 }
 
 const expectedPorts = (n) =>
