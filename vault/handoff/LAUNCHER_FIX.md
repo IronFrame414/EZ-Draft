@@ -2,3 +2,4 @@
 
 ## Paths
 - scripts/launcher/test-utils/ledger-copy.mjs
+- scripts/ledger/priority.test.mjs
