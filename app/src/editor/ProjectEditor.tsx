@@ -11,6 +11,8 @@
 // drawing rail (disabled while loading, absent without Edit model) and, over the plan, the drawing layer.
 // EZD-299 Build step 9 (vault/plans/EZD-299.md Decided D-Editor, D-Banner, D-Show; C9; Q-0511 a): the conflict
 // banner under the header card and "Changes not saved" over the canvas; `conflictsOpen` opens the list at start.
+// EZD-221b Build step 13 (vault/plans/EZD-221b.md Decided "Empty hint"; S03 States; Q-0591 (a)): a plan with no
+// walls shows the draw-walls hint over the canvas, for an editor only.
 import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
@@ -35,6 +37,7 @@ import {
   type OpenDeps,
   type OpenResult,
 } from './editor-session';
+import { EmptyPlanHint } from './EmptyPlanHint';
 import type { Change } from './model/patches';
 import {
   createPlanController,
@@ -301,6 +304,7 @@ export function ProjectEditor({
       {drawing !== null ? (
         <DrawingLayer controller={drawing} handle={plan.handle} canEdit={canEdit} />
       ) : null}
+      {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}
       {stateArea}
       {panel}
     </>

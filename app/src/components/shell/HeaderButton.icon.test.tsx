@@ -18,6 +18,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-207b: fit_screen, remove.
 // EZD-210a: rectangle, view_column_2.
 // EZD-210b: ads_click, rotate_right (E1).
+// EZD-221b E3: check, dashboard, radio_button_checked.
 // EZD-299: block, category, door_front, info, layers, my_location, refresh, report, update, window (D-Icons).
 const EXPECTED_ICONS = [
   'add',
@@ -32,11 +33,13 @@ const EXPECTED_ICONS = [
   'block',
   'category',
   'chat_bubble',
+  'check',
   'check_circle',
   'close',
   'cloud_off',
   'compare_arrows',
   'contact_mail',
+  'dashboard',
   'description',
   'domain',
   'door_front',
@@ -64,6 +67,7 @@ const EXPECTED_ICONS = [
   'person',
   'person_book',
   'photo_camera',
+  'radio_button_checked',
   'rectangle',
   'refresh',
   'remove',

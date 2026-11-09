@@ -158,12 +158,14 @@
   border-top: 1px solid var(--ez-border);
 }
 
+/* One line in the 540 px step 1 footer as on the board's footer (S01bWizard.dc.html :186-193). */
 .ready {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 12px;
   color: var(--ez-slate-400);
+  white-space: nowrap;
 }
 
 .ready svg {
@@ -267,4 +269,260 @@
   padding: 10px 12px;
   font-size: 13px;
   color: var(--ez-slate-500);
+}
+
+/* EZD-221b Build step 9 (vault/plans/EZD-221b.md Decided "CSS (dialog, picker)", "Step 2 header", "Step 2
+   columns"; board S01bWizard.dc.html :35-38, :47, :90-189): step 2's wide dialog, header steps, three
+   columns and footer step text. */
+
+.contentWide {
+  width: min(1408px, calc(100vw - 32px));
+  height: min(920px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+}
+
+.steps {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.stepDone,
+.stepOn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 12px var(--ez-font-mono);
+}
+
+.stepDone {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.stepOn {
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.stepDoneLabel {
+  color: var(--ez-ink);
+  font-weight: 500;
+}
+
+.stepOnLabel {
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.stepLine {
+  width: 48px;
+  height: 1px;
+  background: var(--ez-border-hover);
+}
+
+.stepText {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+  white-space: nowrap;
+}
+
+.cols {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.col1 {
+  width: 420px;
+  flex: none;
+  border-right: 1px solid var(--ez-border);
+  padding: 20px 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--ez-surface-sunken);
+  overflow-y: auto;
+}
+
+.col2 {
+  flex: 1;
+  min-width: 0;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.col3 {
+  width: 340px;
+  flex: none;
+  border-left: 1px solid var(--ez-border);
+  padding: 20px 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.secRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sec {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.recapBox {
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  min-height: 38px;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recapScope {
+  white-space: pre-wrap;
+}
+
+.sourceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.source {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--ez-cobalt);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+  text-align: left;
+  font-family: var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.sourceTop {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sourceIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sourceRadio {
+  display: inline-flex;
+  color: var(--ez-cobalt);
+}
+
+.sourceName {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sourceSub {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.block {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.blockHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.blockTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.blockSub {
+  font-size: 12px;
+  color: var(--ez-slate-400);
+}
+
+.unitsBox {
+  background: var(--ez-canvas);
+  color: var(--ez-slate-500);
+  justify-content: space-between;
+}
+
+.unitsPrecision {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+}
+
+.createWill {
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-cobalt-tint);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.createWillTitle {
+  font-weight: 600;
+  color: var(--ez-cobalt-text);
+}
+
+.createWillRow {
+  display: flex;
+  gap: 6px;
+  color: var(--ez-slate-700);
 }

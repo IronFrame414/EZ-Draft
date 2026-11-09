@@ -172,7 +172,15 @@ test.describe('EZD-120c editor route', () => {
     for (const region of ['left-panel', 'inspector'])
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
     await expect(page.locator('[data-status-item]')).toHaveCount(0);
-    await expect(page.locator('[data-shell-region="canvas"]')).toHaveText('');
+    await expect(page.getByTestId('plan-empty-hint')).toHaveText(
+      'Draw walls with Wall (W) or Room rectangle (R).',
+    );
+    const text = await page.locator('[data-shell-region="canvas"]').evaluate((el) => {
+      const c = el.cloneNode(true) as HTMLElement;
+      c.querySelector('[data-testid="plan-empty-hint"]')?.remove();
+      return (c.textContent ?? '').trim();
+    });
+    expect(text).toBe('');
   });
 
   test('EZD-120c B3 an edit shows Saving…, then Saved just now with the change in the database, then Saved 1 min ago', async ({

@@ -66,7 +66,7 @@ test.describe('EZD-118 New project wizard', () => {
     }
   });
 
-  test(`EZD-118 B1 opens: a one-step dialog with the five fields in order, no Binder, step or menu parts (AC-1, AC-2, AC-5)`, async ({
+  test(`EZD-118 B1 opens: step 1 with the five fields in order and Next, no Binder or menu parts (AC-1, AC-2, AC-5)`, async ({
     page,
     signInAs,
   }) => {
@@ -90,7 +90,8 @@ test.describe('EZD-118 New project wizard', () => {
       'Bath',
       'Whole-home interior',
     ]);
-    await expect(tid(page, 'new-project-create')).toBeDisabled();
+    await expect(tid(page, 'new-project-next')).toBeDisabled();
+    await expect(tid(page, 'new-project-step')).toHaveText('Step 1 of 2');
     for (const word of [
       'EZ Binder',
       'Property appraiser',
@@ -100,8 +101,6 @@ test.describe('EZD-118 New project wizard', () => {
       'Code edition',
       'Submittal profile',
       'Back',
-      'Next',
-      'Step',
     ]) {
       expect(text, word).not.toContain(word);
     }
@@ -124,18 +123,20 @@ test.describe('EZD-118 New project wizard', () => {
     await openDialog(page);
     await tid(page, 'new-project-type').selectOption({ label: 'Bath' });
     await expect(tid(page, 'new-project-name')).toHaveValue('Bath remodel');
-    await expect(tid(page, 'new-project-create')).toBeDisabled();
+    await expect(tid(page, 'new-project-next')).toBeDisabled();
     await expect(tid(page, 'new-project-ready')).toHaveCount(0);
     await tid(page, 'new-project-address').fill('1 Main St');
-    await expect(tid(page, 'new-project-create')).toBeEnabled();
+    await expect(tid(page, 'new-project-next')).toBeEnabled();
     await expect(tid(page, 'new-project-ready')).toBeVisible();
     await tid(page, 'new-project-name').fill('');
-    await expect(tid(page, 'new-project-create')).toBeDisabled();
+    await expect(tid(page, 'new-project-next')).toBeDisabled();
     await expect(tid(page, 'new-project-ready')).toHaveCount(0);
     await tid(page, 'new-project-name').fill('Smith bath');
-    await expect(tid(page, 'new-project-create')).toBeEnabled();
+    await expect(tid(page, 'new-project-next')).toBeEnabled();
     await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
     await expect(tid(page, 'new-project-name')).toHaveValue('Smith bath');
+    await tid(page, 'new-project-next').click();
+    await expect(tid(page, 'new-project-template-block')).toHaveAttribute('data-state', 'ready');
     await network.set(page, 'off');
     await expect(tid(page, 'new-project-create')).toBeDisabled();
     await network.set(page, 'on');
@@ -157,6 +158,7 @@ test.describe('EZD-118 New project wizard', () => {
     await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
     await tid(page, 'new-project-address').fill('12 Oak Ave');
     await tid(page, 'new-project-scope').fill('Demo\nNew cabinets');
+    await tid(page, 'new-project-next').click();
     await tid(page, 'new-project-create').click();
     await expect.poll(() => projectCount(tenant)).toBe(3);
     const rows = await harnessSql()`
@@ -214,6 +216,7 @@ test.describe('EZD-118 New project wizard', () => {
 
     await tid(page, 'new-project-type').selectOption({ label: 'Bath' });
     await tid(page, 'new-project-address').fill('7 Elm Ct');
+    await tid(page, 'new-project-next').click();
     await tid(page, 'new-project-create').click();
     await expect(tid(page, 'new-project-dialog')).toHaveCount(0);
     const dee = await harnessSql()`
@@ -280,11 +283,14 @@ test.describe('EZD-118 New project wizard', () => {
             })
           : route.fallback(),
     );
+    await tid(page, 'new-project-next').click();
     await tid(page, 'new-project-create').click();
     await expect(tid(page, 'new-project-error')).toHaveText(
       "Couldn't create the project. Try again.",
     );
     await expect(tid(page, 'new-project-dialog')).toBeVisible();
+    await expect(tid(page, 'new-project-dialog')).toHaveAttribute('data-step', '2');
+    await tid(page, 'new-project-back').click();
     await expect(tid(page, 'new-project-customer')).toContainText('Ann Lee');
     await expect(tid(page, 'new-project-name')).toHaveValue('Kitchen remodel');
     await expect(tid(page, 'new-project-type')).toHaveValue('kitchen');
@@ -292,6 +298,7 @@ test.describe('EZD-118 New project wizard', () => {
     await expect(tid(page, 'new-project-scope')).toHaveValue('Demo');
     expect(await projectCount(tenant)).toBe(0);
     await page.unrouteAll({ behavior: 'ignoreErrors' });
+    await tid(page, 'new-project-next').click();
     await tid(page, 'new-project-create').click();
     await expect.poll(() => projectCount(tenant)).toBe(1);
     const created = await harnessSql()`
