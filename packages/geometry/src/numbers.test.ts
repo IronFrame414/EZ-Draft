@@ -46,7 +46,7 @@ const numberIn = (o: Like): unknown => (o.data as { attributes: Rec }).attribute
 
 describe('EZD-294 numbers', () => {
   test('EZD-294 G1 wall number in the schema', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(3);
+    expect(CURRENT_SCHEMA_VERSION).toBe(4);
     expect(NUMBER_KEYS).toEqual(['wall', 'door', 'window']);
     const wall = sample('wall');
     const kept = parseStoredObject(withNumber(wall, 3));

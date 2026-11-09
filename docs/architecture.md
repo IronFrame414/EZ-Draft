@@ -811,7 +811,7 @@ EZD-299a (vault/plans/EZD-299a.md Build steps 4, 5, 9, 14; Decided D-Build, D-Or
 
 EZD-202 (vault/plans/EZD-202.md Build steps 1-16); 03f Objects inside model_json; 03g; 03b rule 5; Q-0508; Q-0530; Q-0540; Q-0575.
 
-- **Files** (`packages/geometry/src/`, exported from the package root): `schema/common.ts` (`pointSchema` in inches, `type Point`, `OBJECT_STATUSES` `existing`/`demo`/`new`, `objectStatusSchema`, `levelSchema` = a floor's uuid), one file per object type with its `<type>DataSchema` and `type <Type>Data` (`floor.ts` flat `{ name, order }`, `wall.ts`, `opening.ts`, `room.ts` (holds `status` and `closureOverride`; version 3, EZD-205a); every object strict, so an unknown key is refused), `schema/migrate.ts` (`CURRENT_SCHEMA_VERSION`, `MIGRATIONS`, `migrateStoredObject`, `migrationChainProblems`), `schema/index.ts` (`OBJECT_TYPES`, `StoredObject`, `ModelObject`, `ObjectIssue`, `parseStoredObject`, `parseModelDocument`), `schema/samples/v<n>.json` (one stored document per version, never edited after merge) and `tolerance.ts` (`COMPARISON_TOLERANCE_IN` 1/64", `coordsEqual`, `pointsEqual`; the schema never rounds). The app takes the package as `workspace:*` and builds it through `transpilePackages`.
+- **Files** (`packages/geometry/src/`, exported from the package root): `schema/common.ts` (`pointSchema` in inches, `type Point`, `OBJECT_STATUSES` `existing`/`demo`/`new`, `objectStatusSchema`, `levelSchema` = a floor's uuid), one file per object type with its `<type>DataSchema` and `type <Type>Data` (`floor.ts` flat `{ name, order }`, `wall.ts`, `opening.ts` (version 4, EZD-204a: `axis`, `swing`, `hand`, `impactRating`, `shutterType`, `roughOpeningMode`), `room.ts` (holds `status` and `closureOverride`; version 3, EZD-205a); every object strict, so an unknown key is refused), `schema/migrate.ts` (`CURRENT_SCHEMA_VERSION`, `MIGRATIONS`, `migrateStoredObject`, `migrationChainProblems`), `schema/index.ts` (`OBJECT_TYPES`, `StoredObject`, `ModelObject`, `ObjectIssue`, `parseStoredObject`, `parseModelDocument`), `schema/samples/v<n>.json` (one stored document per version, never edited after merge) and `tolerance.ts` (`COMPARISON_TOLERANCE_IN` 1/64", `coordsEqual`, `pointsEqual`; the schema never rounds). The app takes the package as `workspace:*` and builds it through `transpilePackages`.
 - **Version rule**: a change that keeps every stored object valid (a new optional field, type or enum value) keeps the version; any other raises `CURRENT_SCHEMA_VERSION`, adds `MIGRATIONS[old]` (one step to old + 1, never mutating) and `samples/v<new>.json`. `migrate.test.ts` fails on a missing step or sample.
 - **Wall line**: `start`→`end` is the line drawn, the inside finished face; `thicknessSide` puts the thickness `left` or `right` seen walking start→end, or `center` (±thickness/2). Closing a chain changes only `thicknessSide`; a thickness change never moves `start` or `end`.
 - **Read rule**: every reader of a `model_object` row or a `model_version.model_json` parses through `parseStoredObject` or `parseModelDocument` (issues `invalid_document`, `invalid_data`, `unknown_type`, `unknown_schema_version`, `duplicate_id`, `level_not_found`, each with the object's id, in object order).
@@ -835,6 +835,13 @@ EZD-205a (vault/plans/EZD-205a.md); 09e; 09j; Q-0559; Q-0568; Q-0570.
 - **Outlines** run on the walls' inside finished faces.
 - **Area** is derived from the outline in whole square feet, never stored.
 - **Reconcile**: every wall-changing tool calls `reconcileRooms` so the stored rooms stay matched to the outlines.
+
+### Openings (EZD-204)
+
+EZD-204a (vault/plans/EZD-204a.md); 03f; Q-0630; Q-0633; Q-0640; Q-0641; Q-0642.
+
+- **Files** (`packages/geometry/src/openings/`, exported from the package root): `opening.ts` (`OpeningObject`, `DEFAULT_DOOR_SIZE`, `DEFAULT_WINDOW_SIZE`, `DEFAULT_WINDOW_SILL_IN`, `autoRoughOpening`, `createOpeningData`, `flipSwing`, `flipHand`, `isOpeningFlagged`, `isVerticalLine`, `leftEndIsLow`).
+- **Flag**: `hostWallId` null is Not on a wall (`isOpeningFlagged`); `axis` is null while hosted and, while flagged, the unit start→end direction of the last host.
 
 ## Server-only data access and can()
 

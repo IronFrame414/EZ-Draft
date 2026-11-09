@@ -7,7 +7,7 @@
 // together with its objects in one save passes), AC-4 and P120a M6 (checkpoint copies ids and data).
 import { randomUUID } from 'node:crypto';
 import { CURRENT_SCHEMA_VERSION, parseModelDocument } from '@ezdraft/geometry';
-import v3 from '../../../../packages/geometry/src/schema/samples/v3.json';
+import v4 from '../../../../packages/geometry/src/schema/samples/v4.json';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { holdErrorAlertLock } from '../../../test-harness/errors/alert-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
@@ -103,10 +103,10 @@ async function post(
   return { res, json: JSON.parse(await res.text()) as unknown };
 }
 
-// Plan section 3 fixture row: every object is a copy of a Floor 1 object of samples/v3.json with a new id
+// Plan section 3 fixture row: every object is a copy of a Floor 1 object of samples/v4.json with a new id
 // (the caller's) and `level` set to the floor the test names.
 type V1Object = { id: string; type: string; data: Json };
-const V1 = (v3 as unknown as { objects: V1Object[] }).objects;
+const V1 = (v4 as unknown as { objects: V1Object[] }).objects;
 const FLOOR1 = V1.find((o) => o.type === 'floor' && o.data.name === 'Floor 1') as V1Object;
 const onFloor1 = (type: string) =>
   V1.find((o) => o.type === type && o.data.level === FLOOR1.id) as V1Object;
@@ -273,10 +273,10 @@ describe('EZD-202 model object schema on save', () => {
     }
   }, 120000);
 
-  it('A3 type, version: schemaVersion 4 and type beam are refused, nothing is written', async () => {
+  it('A3 type, version: schemaVersion 5 and type beam are refused, nothing is written', async () => {
     const before = await rows(project);
     const v = randomUUID();
-    expectRefused(await send(project, [up(v, 'wall', wallData(floor1), 0, 4)]), [
+    expectRefused(await send(project, [up(v, 'wall', wallData(floor1), 0, 5)]), [
       { id: v, issue: 'unknown_schema_version' },
     ]);
     const t = randomUUID();

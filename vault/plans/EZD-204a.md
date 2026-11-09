@@ -71,7 +71,7 @@ Architecture: Model schema (EZD-202); Rooms (EZD-205a)
 | dependents | 204b, 208a, 211a, 212a, 213a, 217, 5602 | 204b sets `axis` and re-hosts; 211a places with `createOpeningData` and flips with `flipSwing`/`flipHand`; 213a labels Hinge left/top with `leftEndIsLow` + `isVerticalLine` and keeps `roughOpeningMode` (Q-0642 row 4); 5602 never sends `axis` or `roughOpeningMode` (Q-0640 row 7) |
 
 ## 4. Tests
-7 new tests and 9 edit rows. Nothing else. Fixtures from `G/walls/test-utils/fixtures.ts` (`roomWalls(144,120)`: W1 (0,0)→(144,0); `LEVEL_1`; `ID`; `deepFreeze`). New-file tests sit in `describe('EZD-204a …')`.
+7 new tests and 11 edit rows. Nothing else. Fixtures from `G/walls/test-utils/fixtures.ts` (`roomWalls(144,120)`: W1 (0,0)→(144,0); `LEVEL_1`; `ID`; `deepFreeze`). New-file tests sit in `describe('EZD-204a …')`.
 
 | Test | AC | Type | Input | Expected value | Source of the expected value |
 | --- | --- | --- | --- | --- | --- |
@@ -88,11 +88,13 @@ Architecture: Model schema (EZD-202); Rooms (EZD-205a)
 | E4 edit `G/drawing/build.test.ts` | 15 | edit | the `opening()` helper only: geometry adds `axis: null`; attributes add `swing`, `hand` (`'left'` for a door, null for a window), `impactRating 'not_rated'`, `shutterType null`, `roughOpeningMode 'typed'`; T5 and T10 unchanged | passes (typecheck and `src/drawing`) | step 1 (`ModelObject` type) |
 | E5 edit `G/walls/test-utils/fixtures.ts` | — | edit | `door()` and `windowObj()` gain the E4 fields | `src/walls` passes | step 1 |
 | E6 edit `G/benchmark/benchmark.test.ts` | — | edit | G1 `expect(CURRENT_SCHEMA_VERSION).toBe(3)` → `toBe(4)`; G4 door and window `attributes` `toEqual` gain the Decided "Benchmark" fields | passes | step 7 |
-| E7 edit `A/server/model/model-schema.test.ts` | — | edit | the fixture source `v3.json` → `v4.json` (the import and the comment above `V1`) | passes | step 3 |
+| E7 edit `A/server/model/model-schema.test.ts` (and EZD-202 A3) | — | edit | the fixture source `v3.json` → `v4.json` (the import and the comment above `V1`); A3: the unknown version `4` in `up(v, 'wall', wallData(floor1), 0, 4)` → `5`, and the title's `schemaVersion 4` → `schemaVersion 5`; its expected `unknown_schema_version` stays | passes | step 3; section 3 (`CURRENT_SCHEMA_VERSION` 4, so 4 is now valid and 5 is the first unknown version) |
 | E8 edit `G/numbers.test.ts` G1 | — | edit | `expect(CURRENT_SCHEMA_VERSION).toBe(3)` → `toBe(4)`; nothing else (its samples stay `v3.json`, upgraded on read) | passes | step 2 |
 | E9 edit `A/server/model/object-numbers.db.test.ts` | — | edit | `openingData(level, kind, number?)` is rebuilt from the package (lesson EZD-120d): `d = createOpeningData({ kind, host: { id: randomUUID(), type: 'wall', data: <createWallData({ start: at(0), end: at(120), level }) data> }, center: { x: 60, y: 0 } })`, returned as `{ ...d, geometry: { ...d.geometry, hostWallId: null }, status: 'new' }` with `number` added to `attributes` when given (the old status, host and centre; no assertion reads sizes). It saves at `CURRENT_SCHEMA_VERSION`, so the v3 shape would be refused | passes | step 4; ARCH Model schema Save rule |
+| E10 edit `G/schema/schema.test.ts` G5 (EZD-202) | — | edit | value only: `schema_version: 4` in the `type: 'beam'` call → `5`; the loop `[4, 0, 1.5]` → `[5, 0, 1.5]`; both expected `unknown_schema_version` results stay | passes | section 3 (`CURRENT_SCHEMA_VERSION` 4; 5 is the first unknown version); ARCH Model schema Read rule (version is checked before type) |
+| E11 edit `A/app/api/sync-conflicts/route.test.ts` T12 (EZD-299a) | — | edit | value only: in the `first.items[0]` `toMatchObject`, `saved: { …, schemaVersion: 3 }` → `schemaVersion: 4`; `mine`'s `schemaVersion: 3` stays (the recorded value is stored as sent) | passes | `A/server/conflicts/conflicts.ts:170-190` (`toSaved` returns a parsed saved value at `CURRENT_SCHEMA_VERSION`); section 3 (4) |
 
-Edit rows E1–E9 sit in phase 3 and 4 files the ticket gate's phase scope skips, so the test-author runs `pnpm --filter @ezdraft/geometry exec vitest run src` and, after `pnpm db:up`, `pnpm --filter @ezdraft/app exec vitest run src/server/model`, with `EZD_TEST_GREP` unset. Then `grep -rn "sillHeight" packages/geometry/src app/src` lists only files named in this section, `conflict-view.ts`, `conflict-view.test.ts` and `ConflictPanel.test.tsx` (the last three hold unparsed conflict values and stay as they are).
+Edit rows E1–E11 sit in earlier-phase files the ticket gate's phase scope skips, so the test-author runs `pnpm --filter @ezdraft/geometry exec vitest run src` and, after `pnpm db:up`, `pnpm --filter @ezdraft/app exec vitest run src/server/model src/app/api/sync-conflicts`, with `EZD_TEST_GREP` unset. Checked on `20cefb0a`: every other test literal `schemaVersion`/`schema_version` 3 is an input that is upgraded on read or stored raw by `record_sync_conflicts`/`save_objects` without a version assertion, so it stays. Then `grep -rn "sillHeight" packages/geometry/src app/src` lists only files named in this section, `conflict-view.ts`, `conflict-view.test.ts` and `ConflictPanel.test.tsx` (the last three hold unparsed conflict values and stay as they are).
 
 ## 5. Visual checklist
 None. No screen changes; EZD-211 places openings and EZD-225 tests the flag in the browser.
@@ -110,10 +112,11 @@ high: it raises the stored schema version with a migration, a sample and edits t
 ## 9. Dependencies
 - EZD-203 (row), done `0f726433`: `WallObject`, `WallLine`, `coordsEqual`, the fixtures.
 - EZD-294 (row), done `5cc18fae`: `attributes.number` kept; its `numbers.test.ts` and `object-numbers.db.test.ts` need E8 and E9 (missing from the EZD-204 split's file list).
+- EZD-202, done `a0c9e51a`, and EZD-299a (done): their `schema.test.ts` G5, `model-schema.test.ts` A3 and `sync-conflicts/route.test.ts` T12 hardcode version 3 or 4 and need E7, E10 and E11 (missing from the EZD-204 split's file list; found by the builder's PLAN-GAP).
 - Not needed: EZD-016a (no visual checklist).
 - Risks: (1) a test merged after 2026-11-09 that saves openings at `CURRENT_SCHEMA_VERSION` or types them as `ModelObject` needs the new fields (section 4 grep); (2) the refine is O(1) per opening on load and save (762 in the benchmark; 11 Performance "Open a project"); (3) EZD-204b builds on `axis` and `isOpeningFlagged` as defined here.
 
-Done-when list: steps 1–8 in the diff; `v4.json` from the Decided command plus prettier; tests O1–O6, S1; edits E1–E9.
+Done-when list: steps 1–8 in the diff; `v4.json` from the Decided command plus prettier; tests O1–O6, S1; edits E1–E11.
 
 ## 10. Open questions
 None.

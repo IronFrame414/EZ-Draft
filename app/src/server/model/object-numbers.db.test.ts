@@ -2,7 +2,7 @@
 // "Backfill"; Q-0625 (a); Q-0629 (b); AC-EZD-294-1, -2). Local database, real sign-in (as load-model.db.test.ts, L-051).
 // Admin rows set updated_seq >= 1 and a live non-floor `data.level` = the project's first floor.
 import { randomUUID } from 'node:crypto';
-import { createWallData, CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
+import { createOpeningData, createWallData, CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setPermissions } from '../../../test-harness/permissions/grant';
@@ -57,18 +57,18 @@ function wallData(level: string, n: number, number?: number): Rec {
     : { ...data, attributes: { ...data.attributes, number } };
 }
 function openingData(level: string, kind: 'door' | 'window', number?: number): Rec {
+  const w = createWallData({ start: at(0), end: at(120), level });
+  if (!w.ok) throw new Error('createWallData refused the test wall');
+  const d = createOpeningData({
+    kind,
+    host: { id: randomUUID(), type: 'wall', data: w.data },
+    center: { x: 60, y: 0 },
+  });
   return {
-    geometry: { center: { x: 60, y: 0 }, hostWallId: null },
+    ...d,
+    geometry: { ...d.geometry, hostWallId: null },
     status: 'new',
-    level,
-    attributes: {
-      kind,
-      width: 36,
-      height: 80,
-      roughOpening: { width: 38, height: 82 },
-      sillHeight: 0,
-      ...(number === undefined ? {} : { number }),
-    },
+    attributes: { ...d.attributes, ...(number === undefined ? {} : { number }) },
   };
 }
 const roomData = (level: string): Rec => ({

@@ -71,7 +71,7 @@ describe('EZD-236 benchmark generator', () => {
     expect(a[0]!.id).toBe('b0000000-0000-4000-8000-000000000001');
     expect(a[2999]!.id).toBe('b0000000-0000-4000-8000-000000000bb8');
     for (const o of a) expect(o.schema_version).toBe(CURRENT_SCHEMA_VERSION);
-    expect(CURRENT_SCHEMA_VERSION).toBe(3);
+    expect(CURRENT_SCHEMA_VERSION).toBe(4);
     for (const n of [0, 3001, 1.5])
       expect(() => benchmarkObjectId(n)).toThrow(
         expect.objectContaining({ name: 'RangeError', message: 'benchmark_id_range' }),
@@ -131,6 +131,11 @@ describe('EZD-236 benchmark generator', () => {
           height: 80,
           roughOpening: { width: 34, height: 82 },
           sillHeight: 0,
+          swing: 'left',
+          hand: 'left',
+          impactRating: 'not_rated',
+          shutterType: null,
+          roughOpeningMode: 'typed',
         });
         expect(door.data.geometry.center).toEqual(pt(120 * c, 120 * r + 60));
         const host = wallAt(380 + r * 21 + c);
@@ -156,6 +161,11 @@ describe('EZD-236 benchmark generator', () => {
           height: 48,
           roughOpening: { width: 36.5, height: 48.5 },
           sillHeight: 36,
+          swing: null,
+          hand: null,
+          impactRating: 'not_rated',
+          shutterType: null,
+          roughOpeningMode: 'typed',
         });
         const center = k < 20 ? pt(120 * k + 60, 0) : pt(2400, 60);
         expect(win.data.geometry.center).toEqual(center);

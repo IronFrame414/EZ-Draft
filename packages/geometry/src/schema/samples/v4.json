@@ -1,0 +1,536 @@
+{
+  "objects": [
+    {
+      "id": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+      "type": "floor",
+      "schema_version": 4,
+      "data": {
+        "name": "Floor 1",
+        "order": 1
+      }
+    },
+    {
+      "id": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+      "type": "floor",
+      "schema_version": 4,
+      "data": {
+        "name": "Floor 2",
+        "order": 2
+      }
+    },
+    {
+      "id": "aaf876ba-3f51-4bdc-a79b-74af4fe95f45",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 0,
+            "y": 0
+          },
+          "end": {
+            "x": 120,
+            "y": 0
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dd95bb08-124b-4347-9069-a741a3766dc8",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 120,
+            "y": 0
+          },
+          "end": {
+            "x": 120,
+            "y": 96
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "09b59d6e-533b-46c4-8bb8-16d36a317520",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 120,
+            "y": 96
+          },
+          "end": {
+            "x": 0,
+            "y": 96
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "f13937da-4cb2-441d-b2e5-53a53715307b",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 0,
+            "y": 96
+          },
+          "end": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "05339e81-17bb-4a72-a80a-f0dba166d978",
+      "type": "opening",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "center": {
+            "x": 60,
+            "y": 0
+          },
+          "hostWallId": "aaf876ba-3f51-4bdc-a79b-74af4fe95f45",
+          "axis": null
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "door",
+          "width": 36,
+          "height": 80,
+          "roughOpening": {
+            "width": 38,
+            "height": 82
+          },
+          "sillHeight": 0,
+          "swing": "left",
+          "hand": "left",
+          "impactRating": "not_rated",
+          "shutterType": null,
+          "roughOpeningMode": "typed"
+        }
+      }
+    },
+    {
+      "id": "0236f1bd-ff22-4297-bdbb-98ec96f4ffae",
+      "type": "opening",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "center": {
+            "x": 120,
+            "y": 48
+          },
+          "hostWallId": "dd95bb08-124b-4347-9069-a741a3766dc8",
+          "axis": null
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "window",
+          "width": 36,
+          "height": 48,
+          "roughOpening": {
+            "width": 38,
+            "height": 50
+          },
+          "sillHeight": 36,
+          "swing": null,
+          "hand": null,
+          "impactRating": "not_rated",
+          "shutterType": null,
+          "roughOpeningMode": "typed"
+        }
+      }
+    },
+    {
+      "id": "6a5bae36-e7f4-4459-a3b8-b1528fbd8a21",
+      "type": "room",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "boundary": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 120,
+              "y": 0
+            },
+            {
+              "x": 120,
+              "y": 96
+            },
+            {
+              "x": 0,
+              "y": 96
+            }
+          ]
+        },
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "name": "Kitchen"
+        },
+        "status": "existing",
+        "closureOverride": null
+      }
+    },
+    {
+      "id": "5c32e94e-e652-43f5-844f-f635f1ff4cd1",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 0,
+            "y": 0
+          },
+          "end": {
+            "x": 120,
+            "y": 0
+          }
+        },
+        "status": "new",
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "90d0b82d-ca2e-4675-bb7c-88898b4654ba",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 120,
+            "y": 0
+          },
+          "end": {
+            "x": 120,
+            "y": 96
+          }
+        },
+        "status": "new",
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c8784cfc-faa3-4bd2-b34a-51d5d1e05abd",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 120,
+            "y": 96
+          },
+          "end": {
+            "x": 0,
+            "y": 96
+          }
+        },
+        "status": "new",
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3038d0a7-b7c3-4182-9516-0821d4694eec",
+      "type": "wall",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "start": {
+            "x": 0,
+            "y": 96
+          },
+          "end": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "status": "new",
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "thickness": 4.5,
+          "thicknessSide": "right",
+          "height": 96,
+          "topCutToCeiling": false,
+          "bearing": false,
+          "layers": [
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            },
+            {
+              "material": "stud",
+              "thickness": 3.5
+            },
+            {
+              "material": "drywall",
+              "thickness": 0.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "463188df-740c-4397-a6e0-f936dece2ec8",
+      "type": "opening",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "center": {
+            "x": 60,
+            "y": 0
+          },
+          "hostWallId": "5c32e94e-e652-43f5-844f-f635f1ff4cd1",
+          "axis": null
+        },
+        "status": "new",
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "kind": "door",
+          "width": 36,
+          "height": 80,
+          "roughOpening": {
+            "width": 38,
+            "height": 82
+          },
+          "sillHeight": 0,
+          "swing": "left",
+          "hand": "left",
+          "impactRating": "not_rated",
+          "shutterType": null,
+          "roughOpeningMode": "typed"
+        }
+      }
+    },
+    {
+      "id": "7b111136-bd25-4656-83a4-0a25d3470de1",
+      "type": "opening",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "center": {
+            "x": 120,
+            "y": 48
+          },
+          "hostWallId": "90d0b82d-ca2e-4675-bb7c-88898b4654ba",
+          "axis": null
+        },
+        "status": "new",
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "kind": "window",
+          "width": 36,
+          "height": 48,
+          "roughOpening": {
+            "width": 38,
+            "height": 50
+          },
+          "sillHeight": 36,
+          "swing": null,
+          "hand": null,
+          "impactRating": "not_rated",
+          "shutterType": null,
+          "roughOpeningMode": "typed"
+        }
+      }
+    },
+    {
+      "id": "6d904aa9-17cb-4796-9806-7c8cfee9ca62",
+      "type": "room",
+      "schema_version": 4,
+      "data": {
+        "geometry": {
+          "boundary": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 120,
+              "y": 0
+            },
+            {
+              "x": 120,
+              "y": 96
+            },
+            {
+              "x": 0,
+              "y": 96
+            }
+          ]
+        },
+        "level": "3917dda6-80b4-45ae-8bc0-59144aa66585",
+        "attributes": {
+          "name": "Kitchen"
+        },
+        "status": "existing",
+        "closureOverride": null
+      }
+    }
+  ]
+}

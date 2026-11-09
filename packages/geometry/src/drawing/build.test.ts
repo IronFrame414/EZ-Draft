@@ -73,7 +73,7 @@ function opening(
     id,
     type: 'opening',
     data: {
-      geometry: { center, hostWallId },
+      geometry: { center, hostWallId, axis: null },
       status,
       level: F1,
       attributes: {
@@ -82,6 +82,11 @@ function opening(
         height: 80,
         roughOpening: { width: 38, height: 82 },
         sillHeight: kind === 'door' ? 0 : 36,
+        swing: kind === 'door' ? 'left' : null,
+        hand: kind === 'door' ? 'left' : null,
+        impactRating: 'not_rated',
+        shutterType: null,
+        roughOpeningMode: 'typed',
       },
     },
   };

@@ -1,6 +1,8 @@
 // EZD-236 Build step 1 (vault/plans/EZD-236.md section 1 Decided "Mix", "Coordinates", "Walls", "Thickness side",
 // "Rooms", "Room data", "Doors", "Windows", "Status", "Names", "Order", "Ids", "Determinism"; 11 Budgets; Q-0568):
 // the benchmark project's whole-home model of 3,000 objects. No randomness, clock or argument.
+// EZD-204a Build step 7 (vault/plans/EZD-204a.md section 1, Decided "Benchmark"; EZD-236; Q-0642 row 2): doors and
+// windows carry the v4 opening fields at their upgrade values and `axis: null`.
 import {
   CURRENT_SCHEMA_VERSION,
   OBJECT_STATUSES,
@@ -42,6 +44,11 @@ const DOOR: OpeningData['attributes'] = {
   height: 80,
   roughOpening: { width: 34, height: 82 },
   sillHeight: 0,
+  swing: 'left',
+  hand: 'left',
+  impactRating: 'not_rated',
+  shutterType: null,
+  roughOpeningMode: 'typed',
 };
 const WINDOW: OpeningData['attributes'] = {
   kind: 'window',
@@ -49,6 +56,11 @@ const WINDOW: OpeningData['attributes'] = {
   height: 48,
   roughOpening: { width: 36.5, height: 48.5 },
   sillHeight: 36,
+  swing: null,
+  hand: null,
+  impactRating: 'not_rated',
+  shutterType: null,
+  roughOpeningMode: 'typed',
 };
 
 export function generateBenchmarkModel(): StoredObject[] {
@@ -122,7 +134,7 @@ export function generateBenchmarkModel(): StoredObject[] {
 
     const opening = (center: Point, hostWallId: string, attributes: OpeningData['attributes']) => {
       const data: OpeningData = {
-        geometry: { center, hostWallId },
+        geometry: { center, hostWallId, axis: null },
         status: status(),
         level,
         attributes: { ...attributes, roughOpening: { ...attributes.roughOpening } },

@@ -80,11 +80,11 @@ describe('EZD-202 model document schema', () => {
       ok: false,
       issue: { id: wall.id, issue: 'unknown_type' },
     });
-    expect(parseStoredObject({ ...wall, type: 'beam', schema_version: 4 })).toEqual({
+    expect(parseStoredObject({ ...wall, type: 'beam', schema_version: 5 })).toEqual({
       ok: false,
       issue: { id: wall.id, issue: 'unknown_schema_version' },
     });
-    for (const version of [4, 0, 1.5]) {
+    for (const version of [5, 0, 1.5]) {
       expect(parseStoredObject({ ...wall, schema_version: version }), String(version)).toEqual({
         ok: false,
         issue: { id: wall.id, issue: 'unknown_schema_version' },

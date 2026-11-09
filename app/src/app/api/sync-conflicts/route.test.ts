@@ -142,7 +142,7 @@ describe('EZD-299a list route', () => {
       reason: 'conflict',
       baseSeq: 1,
       mine: { deleted: false, type: 'floor', schemaVersion: 3, data: { name: 'Floor 1b', order: 1 } },
-      saved: { updatedSeq: 1, deleted: false, type: 'floor', schemaVersion: 3 },
+      saved: { updatedSeq: 1, deleted: false, type: 'floor', schemaVersion: 4 },
     });
 
     await setPermissions(tenant, member.membershipId, ['view_projects']);
