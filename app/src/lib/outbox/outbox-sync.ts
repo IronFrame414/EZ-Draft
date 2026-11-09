@@ -5,6 +5,7 @@
 // the browser's tabs.
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Change } from '../../editor/model/patches';
+import { APP_BUILD_HEADER, appBuild } from '../app-version';
 import { createOnlineSource, type OnlineSource } from '../network';
 import {
   classifySave,
@@ -142,7 +143,12 @@ export function createOutboxSync(o: {
     try {
       const res = await fetchImpl(`/api/projects/${encodeURIComponent(batch.projectId)}/objects`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', [MEMBERSHIP_HEADER]: o.actor.membershipId },
+        // EZD-299a Build step 14 (Q-0626): every save names the app build it came from.
+        headers: {
+          'Content-Type': 'application/json',
+          [MEMBERSHIP_HEADER]: o.actor.membershipId,
+          [APP_BUILD_HEADER]: String(appBuild()),
+        },
         body: JSON.stringify({
           lockEpoch: batch.lockEpoch,
           changes: batch.send.map(toRequestChange),

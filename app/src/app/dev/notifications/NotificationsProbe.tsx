@@ -15,7 +15,7 @@ export const DEV_SAMPLE_PARAMS: Record<NotificationKind, NotificationParams> = {
   field_measurements_received: {},
   render_finished: {},
   edit_request: { name: 'Test User' },
-  sync_conflict: {},
+  sync_conflict: { count: '2', names: 'Wall 4, Door 2', more: '0' },
   cleanup_due: {},
   render_allowance_refilled: {},
   field_pack_issued: {},

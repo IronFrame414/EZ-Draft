@@ -423,6 +423,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"sync_conflict": {
+                  Row: {
+                    "base_seq": number,"created_at": string,"data": Json | null,"deleted": boolean,"id": string,"object_id": string,"project_id": string,"reason": string,"schema_version": number | null,"tenant_id": string,"type": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base_seq": number,"created_at"?: string,"data"?: Json | null,"deleted": boolean,"id"?: string,"object_id": string,"project_id": string,"reason": string,"schema_version"?: number | null,"tenant_id": string,"type"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "base_seq"?: number,"created_at"?: string,"data"?: Json | null,"deleted"?: boolean,"id"?: string,"object_id"?: string,"project_id"?: string,"reason"?: string,"schema_version"?: number | null,"tenant_id"?: string,"type"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sync_conflict_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "sync_conflict_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sync_conflict_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tenant": {
                   Row: {
                     "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
@@ -498,6 +530,9 @@ isOneToOne: false
                            },
 "current_user_has_password":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"delete_my_sync_conflict":
+{ Args: { "p_id": string }; Returns: boolean
                            },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
@@ -588,6 +623,9 @@ isOneToOne: false
 "list_customers":
 { Args: { "p_archived": boolean,"p_page": number,"p_search": string }; Returns: Json
                            },
+"list_my_sync_conflicts":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "list_notifications":
 { Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
                            },
@@ -607,6 +645,9 @@ isOneToOne: false
               "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
             }[]
                            },
+"record_sync_conflicts":
+{ Args: { "p_changes": Json,"p_payload": Json,"p_project": string }; Returns: Json
+                           },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            },
@@ -615,6 +656,9 @@ isOneToOne: false
                            },
 "save_objects":
 { Args: { "p_changes": Json,"p_lock_epoch": number,"p_project": string }; Returns: Json
+                           },
+"save_objects_resolving":
+{ Args: { "p_changes": Json,"p_lock_epoch": number,"p_project": string,"p_resolves": (string)[] }; Returns: Json
                            },
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string

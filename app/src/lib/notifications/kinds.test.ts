@@ -12,6 +12,7 @@ import {
   type NotificationKind,
   type NotificationParams,
 } from './kinds';
+import { DEV_SAMPLE_PARAMS } from '../../app/dev/notifications/NotificationsProbe';
 import { NOTIFICATION_PARAM_SCHEMAS } from './param-schemas';
 
 const t = createT<MessageKey>(
@@ -30,7 +31,7 @@ const SAMPLES: Array<[NotificationKind, NotificationParams, string]> = [
   ['field_measurements_received', {}, 'Field measurements received'],
   ['render_finished', {}, 'Photoreal render finished'],
   ['edit_request', { name: 'Test User' }, 'Test User asked to edit'],
-  ['sync_conflict', {}, 'Offline changes conflict with newer edits'],
+  ['sync_conflict', {}, "Couldn't save 0 changes: "],
   ['cleanup_due', {}, 'Version cleanup due'],
   ['render_allowance_refilled', {}, 'Render allowance refilled'],
   ['field_pack_issued', {}, 'New field pack issued'],
@@ -73,5 +74,40 @@ describe('EZD-110a notification kinds', () => {
     expect(ok('client_response', { action: 'approved', version: 'v'.repeat(41) })).toBe(false);
     expect(ok('render_finished', {})).toBe(true);
     expect(ok('render_finished', { a: 'b' })).toBe(false);
+  });
+});
+
+// EZD-299a T16 (vault/plans/EZD-299a.md sections 4 and 6; AC-EZD-299-15). Expected values: section 6 (N1, N1b,
+// Q-0627), Decided D-Title (an old `{}` row renders with count 0), step 15 (the param schema), step 17 (the
+// dev sample).
+describe('EZD-299a sync_conflict title', () => {
+  it('EZD-299a T16 (a) the title names the count and the objects, with "and N more" past the cap', () => {
+    const title = (params: NotificationParams) => {
+      const { key, params: messageParams } = notificationTitle('sync_conflict', params);
+      return t(key, messageParams);
+    };
+    expect(title({ count: '1', names: 'Wall 2', more: '0' })).toBe(
+      "Couldn't save 1 change: Wall 2",
+    );
+    expect(title({ count: '5', names: 'Wall 4, Door 2', more: '0' })).toBe(
+      "Couldn't save 5 changes: Wall 4, Door 2",
+    );
+    expect(title({ count: '1000', names: 'Wall 1', more: '999' })).toBe(
+      "Couldn't save 1000 changes: Wall 1 and 999 more",
+    );
+    expect(title({})).toBe("Couldn't save 0 changes: ");
+  });
+
+  it('EZD-299a T16 (b) the param schema takes count, names and more as strings', () => {
+    const ok = (v: unknown) => NOTIFICATION_PARAM_SCHEMAS.sync_conflict.safeParse(v).success;
+    expect(ok({})).toBe(false);
+    expect(ok({ count: '0', names: 'Wall 2', more: '0' })).toBe(false);
+    expect(ok({ count: '1', names: 'Wall 2', more: '0' })).toBe(true);
+  });
+
+  it('EZD-299a T16 (c) the dev sample passes the schema', () => {
+    expect(
+      NOTIFICATION_PARAM_SCHEMAS.sync_conflict.safeParse(DEV_SAMPLE_PARAMS.sync_conflict).success,
+    ).toBe(true);
   });
 });

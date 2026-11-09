@@ -408,7 +408,12 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       return {
         request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
           method: 'POST',
-          headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+          headers: {
+            ...JSON_HEADERS,
+            'x-ezdraft-membership': env.member.membershipId,
+            // EZD-299a D-Order: a save names its app build; Vitest leaves the build at 0.
+            'x-ezdraft-app-build': '0',
+          },
           body: JSON.stringify({
             lockEpoch: 0,
             changes: [
@@ -473,5 +478,62 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 201,
     note: 'EZD-236: makes the benchmark project; 201 { project: { id } } (no money)',
+  },
+  // EZD-299a section 4 T18 (vault/plans/EZD-299a.md): the sync conflict routes.
+  {
+    file: `${API}sync-conflicts/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/sync-conflicts/route'),
+    request: get('/api/sync-conflicts'),
+    expectStatus: 200,
+    note: "EZD-299a: the caller's refused changes; 200 { items } (no money)",
+  },
+  {
+    file: `${API}projects/[id]/sync-conflicts/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/sync-conflicts/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/sync-conflicts`, {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+        body: JSON.stringify({
+          changes: [
+            {
+              id: randomUUID(),
+              baseSeq: 0,
+              reason: 'conflict',
+              deleted: false,
+              type: 'wall',
+              schemaVersion: 3,
+              data: { attributes: { number: 4 } },
+            },
+          ],
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    after: (body, env) => {
+      const ids = (body as { ids?: unknown }).ids;
+      if (!Array.isArray(ids) || typeof ids[0] !== 'string') {
+        throw new Error('response has no ids[0] string');
+      }
+      env.created.set('syncConflictId', ids[0]);
+    },
+    note: 'EZD-299a: records one refused change; 201 { ids, notificationId } (no money)',
+  },
+  {
+    file: `${API}sync-conflicts/[conflictId]/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/sync-conflicts/[conflictId]/route'),
+    request: async (env) => {
+      const id = made(env, 'syncConflictId');
+      return {
+        request: new Request(`${BASE}/api/sync-conflicts/${id}`, { method: 'DELETE' }),
+        params: { conflictId: id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-299a: removes that row; 200 { removed: true } (no money)',
   },
 ];

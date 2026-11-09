@@ -22,6 +22,7 @@ import {
   signIn,
   type Member,
 } from '../../../test-harness/rls/fixtures';
+import { APP_BUILD_HEADER, appBuild } from '../../lib/app-version';
 import { createSessionClient, type SessionCookieJar } from '../auth/supabase-server';
 import { emit } from '../events';
 
@@ -90,7 +91,11 @@ async function post(
   const res = await POST(
     new Request(`http://localhost/api/projects/${project}/objects`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-ezdraft-membership': membershipId },
+      headers: {
+        'content-type': 'application/json',
+        [APP_BUILD_HEADER]: String(appBuild()),
+        'x-ezdraft-membership': membershipId,
+      },
       body: JSON.stringify({ lockEpoch: 0, changes }),
     }),
     { params: Promise.resolve({ id: project }) },

@@ -21,6 +21,7 @@ import {
   createSessionClient,
   type SessionCookieJar,
 } from '../../../../../server/auth/supabase-server';
+import { APP_BUILD_HEADER, appBuild } from '../../../../../lib/app-version';
 import { emit } from '../../../../../server/events';
 
 vi.mock('../../../../../server/events', async (importOriginal) => {
@@ -95,6 +96,7 @@ async function post(
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        [APP_BUILD_HEADER]: String(appBuild()),
         ...(membershipId === undefined ? {} : { 'x-ezdraft-membership': membershipId }),
       },
       body: raw,

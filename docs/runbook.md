@@ -182,7 +182,7 @@ From the second release on, while the migrations run, the release adds temporary
 
 ### Rollback
 1. **Automatic.** When the checks after going live fail, the release puts the previous build back. The run is red, and the summary says `verify_failed` and that the previous build was put back.
-2. **By hand** (a problem found later). In Vercel → **Deployments**, open the previous production deployment (its commit carries the previous `phase-…` tag) and use **Instant Rollback**.
+2. **By hand** (a problem found later). In Vercel → **Deployments**, open the previous production deployment (its commit carries the previous `phase-…` tag) and use **Instant Rollback**. Roll back only this way: deploying old code again makes a new build with a newer app number, so every open device's saves are refused until it reloads (Q-0626).
 3. **Leave the database alone.** Never revert, edit or delete a migration. The previous build works with the current database, because migrations add before they remove.
 4. **Check.** Run `node scripts/hosting/check-live.mjs`. `/api/health` still shows the newer `schema_version`; that is expected.
 5. **Fix forward.** Fix on `develop`, open a pull request to `main` and merge it; the release names it `phase-N.k`.

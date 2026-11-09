@@ -84,6 +84,11 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: ['SELECT'],
     reason: 'Written only by the EZD-120a functions',
   },
+  sync_conflict: {
+    privileges: ['SELECT'],
+    reason:
+      'Members read their own refused changes; rows are written only by the EZD-299a definer functions',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

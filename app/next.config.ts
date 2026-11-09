@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: process.env.VERCEL !== '1',
   // EZD-202 Build step 13 (vault/plans/EZD-202.md): the geometry package ships TypeScript source.
   transpilePackages: ['@ezdraft/geometry'],
+  // EZD-299a Build step 5 (vault/plans/EZD-299a.md Decided D-Build; Q-0626): one build number per build, inlined
+  // into the browser and server bundles, so a save from an older app is refused (app/src/lib/app-version.ts).
+  env: { EZD_APP_BUILD: String(Math.floor(Date.now() / 1000)) },
   // EZD-007f Step 9 (vault/plans/EZD-007f.md F3): the confirm page's token_hash never leaves in a Referer.
   async headers() {
     return [

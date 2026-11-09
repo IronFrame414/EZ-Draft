@@ -20,6 +20,7 @@ import {
   createSessionClient,
   type SessionCookieJar,
 } from '../../../../../server/auth/supabase-server';
+import { APP_BUILD_HEADER, appBuild } from '../../../../../lib/app-version';
 import { emit } from '../../../../../server/events';
 
 vi.mock('../../../../../server/events', async (importOriginal) => {
@@ -121,7 +122,11 @@ describe('EZD-205b room.closure_overridden on save', () => {
     const res = await POST(
       new Request(`http://localhost/api/projects/${project}/objects`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-ezdraft-membership': as.membershipId },
+        headers: {
+          'content-type': 'application/json',
+          [APP_BUILD_HEADER]: String(appBuild()),
+          'x-ezdraft-membership': as.membershipId,
+        },
         body: JSON.stringify({ lockEpoch: 0, changes }),
       }),
       { params: Promise.resolve({ id: project }) },
@@ -262,6 +267,7 @@ describe('EZD-205b room.closure_overridden on save', () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          [APP_BUILD_HEADER]: String(appBuild()),
           'x-ezdraft-membership': editor.membershipId,
         },
         body: JSON.stringify({ lockEpoch: 0, changes: [roomChange(E, 0, ov(me))] }),

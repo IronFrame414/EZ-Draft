@@ -60,6 +60,8 @@ export const es = {
   'error.save_conflict':
     'Otra persona cambió los mismos elementos primero, así que estos cambios no se guardaron.',
   'error.notification_not_found': 'Esa notificación ya no existe.',
+  'error.app_outdated': 'EZ Draft se actualizó. Recarga para seguir guardando tus cambios.',
+  'error.sync_conflict_not_found': 'Ese cambio ya no está en la lista.',
   'error.invalid_email': 'Escribe un correo electrónico válido.',
   'error.too_many_requests': 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
   'error.code_invalid': 'Ese código es incorrecto o ya venció.',

@@ -56,3 +56,13 @@ describe('EZD-120b outbox rules', () => {
     expect(classifySave(502, null)).toEqual({ kind: 'failed' });
   });
 });
+
+// EZD-299a T14 (vault/plans/EZD-299a.md section 3 outbox row; AC-EZD-299-14).
+describe('EZD-299a app_outdated answer', () => {
+  it('EZD-299a T14 a 409 app_outdated is a refusal with that code', () => {
+    expect(classifySave(409, { error: { code: 'app_outdated' } })).toEqual({
+      kind: 'refused',
+      code: 'app_outdated',
+    });
+  });
+});

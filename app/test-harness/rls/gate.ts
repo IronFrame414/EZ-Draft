@@ -98,6 +98,22 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_lock_epoch: 0, p_changes: [] },
   },
   { fn: 'create_checkpoint', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
+  // EZD-299a section 4 T17 (vault/plans/EZD-299a.md): the sync conflict functions, authenticated only.
+  {
+    fn: 'record_sync_conflicts',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_changes: [], p_payload: {} },
+  },
+  { fn: 'list_my_sync_conflicts', args: {} },
+  { fn: 'delete_my_sync_conflict', args: { p_id: '00000000-0000-4000-8000-000000000000' } },
+  {
+    fn: 'save_objects_resolving',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_lock_epoch: 0,
+      p_changes: [],
+      p_resolves: [],
+    },
+  },
   // EZD-236 section 3 (vault/plans/EZD-236.md; E1): the benchmark project function, authenticated only.
   { fn: 'create_benchmark_project', args: { p_changes: [] } },
 ];

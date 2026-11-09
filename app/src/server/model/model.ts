@@ -29,7 +29,9 @@ export type ObjectChange =
       data: Record<string, unknown>;
     };
 
-export type SaveRequest = { lockEpoch: number; changes: ObjectChange[] };
+// EZD-299a Build step 7 (vault/plans/EZD-299a.md Decided D-Resolves): `resolves` names the caller's recorded
+// refused changes this save settles; the save then answers which of them it removed.
+export type SaveRequest = { lockEpoch: number; changes: ObjectChange[]; resolves?: string[] };
 
 export type SaveResult =
   | {
@@ -37,6 +39,7 @@ export type SaveResult =
       tenantId: string;
       objects: { id: string; updatedSeq: number }[];
       overridden: { roomId: string; gapIn: number }[];
+      resolved?: string[];
     }
   | {
       ok: false;
@@ -51,25 +54,28 @@ export type CheckpointResult =
 // Decided "Seq type": updated_seq is a PostgreSQL integer.
 const SEQ_MAX = 2147483647;
 
-const changeSchema = z.discriminatedUnion('deleted', [
-  z.strictObject({
-    id: z.uuid(),
-    baseSeq: z.number().int().min(1).max(SEQ_MAX),
-    deleted: z.literal(true),
-  }),
-  z.strictObject({
-    id: z.uuid(),
-    baseSeq: z.number().int().min(0).max(SEQ_MAX),
-    deleted: z.literal(false),
-    type: z.string().regex(/^[a-z][a-z0-9_]*$/),
-    schemaVersion: z.number().int().min(1),
-    data: z.record(z.string(), z.unknown()),
-  }),
-]);
+// EZD-299a Build step 7: the two branches of the change schema, exported for the record route.
+export const deleteChangeSchema = z.strictObject({
+  id: z.uuid(),
+  baseSeq: z.number().int().min(1).max(SEQ_MAX),
+  deleted: z.literal(true),
+});
+
+export const upsertChangeSchema = z.strictObject({
+  id: z.uuid(),
+  baseSeq: z.number().int().min(0).max(SEQ_MAX),
+  deleted: z.literal(false),
+  type: z.string().regex(/^[a-z][a-z0-9_]*$/),
+  schemaVersion: z.number().int().min(1),
+  data: z.record(z.string(), z.unknown()),
+});
+
+const changeSchema = z.discriminatedUnion('deleted', [deleteChangeSchema, upsertChangeSchema]);
 
 const requestSchema = z.strictObject({
   lockEpoch: z.number().int().min(0),
   changes: z.array(changeSchema).min(1),
+  resolves: z.array(z.uuid()).min(1).optional(),
 });
 
 export function parseSaveRequest(body: unknown): SaveRequest | null {
@@ -77,6 +83,12 @@ export function parseSaveRequest(body: unknown): SaveRequest | null {
   if (!parsed.success) return null;
   const ids = new Set(parsed.data.changes.map((c) => c.id.toLowerCase()));
   if (ids.size !== parsed.data.changes.length) return null;
+  // EZD-299a Decided D-Resolves: 1 to changes.length ids, no repeats (case-insensitive).
+  const { resolves } = parsed.data;
+  if (resolves !== undefined) {
+    if (resolves.length > parsed.data.changes.length) return null;
+    if (new Set(resolves.map((r) => r.toLowerCase())).size !== resolves.length) return null;
+  }
   return parsed.data;
 }
 
@@ -84,6 +96,7 @@ type SavedJson = {
   status: 'saved';
   tenant_id: string;
   objects: { object_id: string; updated_seq: number }[];
+  resolved?: string[];
 };
 type ConflictJson = { status: 'conflict'; conflicts: { object_id: string; server_seq: number }[] };
 type StaleJson = { status: 'stale_lock_epoch' };
@@ -196,11 +209,20 @@ export async function saveObjects(
           data: c.data,
         },
   );
-  const { data, error } = await client.rpc('save_objects', {
-    p_project: projectId,
-    p_lock_epoch: req.lockEpoch,
-    p_changes: changes as Json,
-  });
+  // EZD-299a Build step 7: a save that settles recorded refused changes removes them in the same transaction.
+  const { data, error } =
+    req.resolves === undefined
+      ? await client.rpc('save_objects', {
+          p_project: projectId,
+          p_lock_epoch: req.lockEpoch,
+          p_changes: changes as Json,
+        })
+      : await client.rpc('save_objects_resolving', {
+          p_project: projectId,
+          p_lock_epoch: req.lockEpoch,
+          p_changes: changes as Json,
+          p_resolves: req.resolves,
+        });
   if (error) {
     // EZD-202 M1: the deferred level check names the object at fault in `details`.
     if (error.code === '23503' && error.message === 'level_not_found') {
@@ -222,6 +244,7 @@ export async function saveObjects(
       tenantId: result.tenant_id,
       objects: result.objects.map((o) => ({ id: o.object_id, updatedSeq: o.updated_seq })),
       overridden,
+      ...(result.resolved === undefined ? {} : { resolved: result.resolved }),
     };
   }
   if (result?.status === 'conflict') {

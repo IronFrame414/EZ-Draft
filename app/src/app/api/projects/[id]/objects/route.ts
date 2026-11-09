@@ -7,6 +7,9 @@
 // EZD-205b Build step 10 (vault/plans/EZD-205b.md Decided "Emit"; S02 Events; Q-0570): after `model.saved`, one
 // `room.closure_overridden` per room whose closure override is new or changed, in change order; a failed emit is
 // reported and does not fail the save.
+// EZD-299a Build step 9 (vault/plans/EZD-299a.md Decided D-Order, D-Resolves; Q-0626): after the body is parsed, a
+// save from an older app build is 409 `app_outdated` with the server's build in `x-ezdraft-app-build`; a save
+// naming `resolves` answers which recorded refused changes it removed.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { errorType } from '../../../../../server/errors/fingerprint';
@@ -14,6 +17,7 @@ import { reportError } from '../../../../../server/errors/report';
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { parseSaveRequest, saveObjects } from '../../../../../server/model/model';
+import { APP_BUILD_HEADER, appBuild, isOlderBuild } from '../../../../../lib/app-version';
 import { MEMBERSHIP_HEADER } from '../../../../../lib/outbox/outbox';
 import {
   getPermissionContext,
@@ -57,6 +61,14 @@ export async function POST(
     }
     const req = parseSaveRequest(raw);
     if (req === null) return fail(400, 'invalid_input');
+
+    // EZD-299a Decided D-Order (Q-0626): a save from an older app build is refused before anything is written.
+    if (isOlderBuild(request.headers.get(APP_BUILD_HEADER), appBuild())) {
+      return Response.json(
+        { error: { code: 'app_outdated', message_key: 'error.app_outdated' } },
+        { status: 409, headers: { ...headers, [APP_BUILD_HEADER]: String(appBuild()) } },
+      );
+    }
 
     const result = await saveObjects(createSessionClient(), id, req, p.session.appUserId);
     if (!result.ok) {
@@ -128,7 +140,13 @@ export async function POST(
       }
     }
 
-    return Response.json({ objects: result.objects }, { status: 200, headers });
+    // EZD-299a section 3: `resolved` only when the request named `resolves`.
+    return Response.json(
+      req.resolves === undefined
+        ? { objects: result.objects }
+        : { objects: result.objects, resolved: result.resolved ?? [] },
+      { status: 200, headers },
+    );
   } catch (e) {
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');

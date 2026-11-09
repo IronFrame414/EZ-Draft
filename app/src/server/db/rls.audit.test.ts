@@ -218,6 +218,7 @@ describe('EZD-006 RLS audit', () => {
       'notification_setting',
       'sign_in_throttle',
       'source_file',
+      'sync_conflict',
       'tenant',
       'user_permission',
     ]);

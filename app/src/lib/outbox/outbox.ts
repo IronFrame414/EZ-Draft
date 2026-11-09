@@ -26,14 +26,21 @@ export type RefusedCode =
   | 'permission_denied'
   | 'project_not_found'
   | 'stale_lock_epoch'
-  | 'save_conflict';
+  | 'save_conflict'
+  // EZD-299a Build step 13 (Q-0626): a save from an older app build.
+  | 'app_outdated';
 
 export type SaveOutcome =
   | { kind: 'saved'; objects: { id: string; updatedSeq: number }[] }
   | { kind: 'refused'; code: RefusedCode }
   | { kind: 'failed' };
 
-export type Batch = { projectId: string; lockEpoch: number; send: OutboxEntry[]; drop: OutboxEntry[] };
+export type Batch = {
+  projectId: string;
+  lockEpoch: number;
+  send: OutboxEntry[];
+  drop: OutboxEntry[];
+};
 
 export type OutboxStorage = {
   put(projectId: string, lockEpoch: number, changes: Change[], now: number): Promise<void>;
@@ -82,6 +89,7 @@ const REFUSED_CODES: readonly RefusedCode[] = [
   'project_not_found',
   'stale_lock_epoch',
   'save_conflict',
+  'app_outdated',
 ];
 
 // The code each refusing status answers with when its body names none of the known codes.
