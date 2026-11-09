@@ -11,6 +11,7 @@ import {
 import { describe, expect, test } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
+import { tokenRgb } from './color';
 
 const F0 = '00000000-0000-4000-8000-000000000001';
 const F1 = '00000000-0000-4000-8000-000000000002';
@@ -191,5 +192,38 @@ describe('EZD-207a batches', () => {
     expect(drawingBounds(FX)).toEqual({ minX: -10, minY: -48, maxX: 120, maxY: 36 });
     expect(buildPlanBatches(null)).toEqual([]);
     expect(drawingBounds(null)).toBeNull();
+  });
+});
+
+// EZD-204b B1 (vault/plans/EZD-204b.md sections 3, 4; Decided "Colour"; AC-EZD-204-4; `A/styles/tokens.css:17`).
+describe('EZD-204b flagged layer', () => {
+  test('EZD-204b B1 the flagged layer draws in error red', () => {
+    const batches = buildPlanBatches({
+      level: L,
+      omitted: [],
+      items: [
+        {
+          kind: 'line',
+          layer: 'flagged',
+          objectId: 'o9',
+          role: 'cut',
+          from: p(0, 0),
+          to: p(36, 0),
+        },
+      ],
+    });
+    expect(batches).toHaveLength(1);
+    const b = batches[0]!;
+    expect([b.key, b.kind, b.layer, b.role, b.order]).toEqual([
+      'flagged:segments:cut',
+      'segments',
+      'flagged',
+      'cut',
+      3,
+    ]);
+    expect(Math.abs(b.color.r - red.r) <= 0.001, 'r').toBe(true);
+    expect(Math.abs(b.color.g - red.g) <= 0.001, 'g').toBe(true);
+    expect(Math.abs(b.color.b - red.b) <= 0.001, 'b').toBe(true);
+    expect(b.color).toEqual(tokenRgb('--ez-red'));
   });
 });

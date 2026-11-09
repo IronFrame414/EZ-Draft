@@ -2,7 +2,11 @@
 // one floor of the model document as a list of drawing items in model inches, y up, for the PDF writer and DXF out.
 // EZD-205a Build step 13 (vault/plans/EZD-205a.md section 1, Decided "Label"; Q-0568; Q-0570; Q-0576 (a)): one
 // NAME \u00b7 N SF label per room, after the dimension items.
-import type { ModelDocument, ModelObject, Point } from '../schema';
+// EZD-204b Build step 5 (vault/plans/EZD-204b.md section 1, Decided "Door symbol", "Flagged opening", "Frame";
+// Q-0642 rows 2-3; Q-0641 row 1; Q-0630 row 27): each door drawn from its own hand and swing; an opening off every
+// wall drawn where it stands on the `flagged` layer.
+import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
+import { isVerticalLine, leftEndIsLow } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
 import { interiorPoint, roomLabelText } from '../rooms/area';
 import { hatchSegments } from './hatch';
@@ -30,6 +34,7 @@ type Frame = {
   oL: number;
   oR: number;
   gaps: [number, number][];
+  vertical: boolean;
 };
 
 const add = (p: Point, v: Point, k: number): Point => ({ x: p.x + v.x * k, y: p.y + v.y * k });
@@ -42,6 +47,38 @@ function unit(from: Point, to: Point): { d: Point; n: Point; length: number } {
 }
 
 const degrees = (v: Point): number => (Math.atan2(v.y, v.x) * 180) / Math.PI;
+
+function doorItems(
+  base: { layer: DrawingItem['layer']; objectId: string },
+  f: Frame,
+  sc: number,
+  w: number,
+  hand: DoorHand,
+  swing: DoorSwing,
+): DrawingItem[] {
+  const hingeLow = (hand === 'left') === leftEndIsLow(f.d, f.vertical);
+  const sh = hingeLow ? sc - w / 2 : sc + w / 2;
+  const face = swing === 'left' ? f.oL : f.oR;
+  const k = swing === 'left' ? 1 : -1;
+  const hinge = at(f, sh, face);
+  const u = hingeLow ? f.d : { x: -f.d.x, y: -f.d.y };
+  const v = { x: k * f.n.x, y: k * f.n.y };
+  let startAngle = degrees(u.x * v.y - u.y * v.x > 0 ? u : v);
+  if (startAngle < 0) startAngle += 360;
+  if (startAngle >= 360) startAngle -= 360;
+  return [
+    { ...base, kind: 'line', role: 'cut', from: hinge, to: add(hinge, f.n, k * w) },
+    {
+      ...base,
+      kind: 'arc',
+      role: 'hidden',
+      center: hinge,
+      radius: w,
+      startAngle,
+      endAngle: startAngle + 90,
+    },
+  ];
+}
 
 function faceOffsets(wall: WallObject): { oL: number; oR: number } {
   const t = wall.data.attributes.thickness;
@@ -99,16 +136,23 @@ export function buildDrawingList(
       reasons.set(w.id, 'zero_length');
       continue;
     }
-    const f: Frame = { start, ...unit(start, end), ...faceOffsets(w), gaps: [] };
+    const f: Frame = {
+      start,
+      ...unit(start, end),
+      ...faceOffsets(w),
+      gaps: [],
+      vertical: isVerticalLine(w.data.geometry),
+    };
     frames.set(w.id.toLowerCase(), f);
     wallFrames.push([w, f]);
   }
 
   const placed: [OpeningObject, Frame, number][] = [];
+  const flaggedOpenings: OpeningObject[] = [];
   for (const o of openings) {
     const host = o.data.geometry.hostWallId;
     if (host === null) {
-      reasons.set(o.id, 'not_on_wall');
+      flaggedOpenings.push(o);
       continue;
     }
     const f = frames.get(host.toLowerCase());
@@ -174,22 +218,10 @@ export function buildDrawingList(
   for (const [o, f, sc] of placed) {
     const base = { layer: o.data.status, objectId: o.id };
     const w = o.data.attributes.width;
-    if (o.data.attributes.kind === 'door') {
-      // DEFAULT_DOOR_SWING: hinged at the start end of the opening, opening to the left face.
-      const hinge = at(f, sc - w / 2, f.oL);
-      let startAngle = degrees(f.d);
-      if (startAngle < 0) startAngle += 360;
-      if (startAngle >= 360) startAngle -= 360;
-      symbols.push({ ...base, kind: 'line', role: 'cut', from: hinge, to: add(hinge, f.n, w) });
-      symbols.push({
-        ...base,
-        kind: 'arc',
-        role: 'hidden',
-        center: hinge,
-        radius: w,
-        startAngle,
-        endAngle: startAngle + 90,
-      });
+    const a = o.data.attributes;
+    if (a.kind === 'door') {
+      // EZD-204b door symbol: hinge end from hand, leaf side from swing.
+      symbols.push(...doorItems(base, f, sc, w, a.hand!, a.swing!));
     } else {
       for (const off of [f.oL, f.oR, (f.oL + f.oR) / 2]) {
         symbols.push({
@@ -201,6 +233,29 @@ export function buildDrawingList(
         });
       }
     }
+  }
+
+  const flaggedItems: DrawingItem[] = [];
+  for (const o of flaggedOpenings) {
+    const base = { layer: 'flagged' as const, objectId: o.id };
+    const a = o.data.attributes;
+    const w = a.width;
+    const d = o.data.geometry.axis ?? { x: 1, y: 0 };
+    const center = o.data.geometry.center;
+    const from = add(center, d, -w / 2);
+    const to = add(center, d, w / 2);
+    const f: Frame = {
+      start: center,
+      d,
+      n: { x: -d.y, y: d.x },
+      length: w,
+      oL: 0,
+      oR: 0,
+      gaps: [],
+      vertical: isVerticalLine({ start: from, end: to }),
+    };
+    flaggedItems.push({ ...base, kind: 'line', role: 'cut', from, to });
+    if (a.kind === 'door') flaggedItems.push(...doorItems(base, f, 0, w, a.hand!, a.swing!));
   }
 
   const dimItems: DrawingItem[] = [];
@@ -275,6 +330,7 @@ export function buildDrawingList(
       ...wallFills,
       ...wallLines,
       ...symbols,
+      ...flaggedItems,
       ...dimItems,
       ...labelItems,
     ],

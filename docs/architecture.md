@@ -247,11 +247,11 @@ EZD-029 (vault/plans/EZD-029.md Steps 2-8); 02 Stack DXF in/out; 08 Imports, Arc
 
 EZD-238 (vault/plans/EZD-238.md); 02 PDF out; 09h; Q-0507; Q-0508; Q-0574; Q-0575.
 
-- **Files.** `packages/geometry/src/drawing/`: `build.ts` (`buildDrawingList`), `hatch.ts` (`hatchSegments`), `text.ts` (`measureTextPt`, `DRAWING_FONTS`), `types.ts` (item types, `drawingViewSchema`, `dimensionInputSchema`, `DEFAULT_DOOR_SWING`), `font-metrics.generated.ts` (`DM_MONO_400_METRICS`); all exported from `@ezdraft/geometry`.
+- **Files.** `packages/geometry/src/drawing/`: `build.ts` (`buildDrawingList`), `hatch.ts` (`hatchSegments`), `text.ts` (`measureTextPt`, `DRAWING_FONTS`), `types.ts` (item types, `drawingViewSchema`, `dimensionInputSchema`), `font-metrics.generated.ts` (`DM_MONO_400_METRICS`); all exported from `@ezdraft/geometry`.
 - **Units.** Model inches, y up; angles in degrees, counter-clockwise from +x; text size and width in points. One floor per list (`view.level`); objects and dimensions on other floors make no items.
-- **Layers.** Walls and openings on their `status` (`existing`, `demo`, `new`); rooms on `rooms`, room labels (`NAME · N SF`, Instrument Sans 600) included; dimensions on `dimensions`.
+- **Layers.** Walls and openings on their `status` (`existing`, `demo`, `new`); rooms on `rooms`, room labels (`NAME · N SF`, Instrument Sans 600) included; dimensions on `dimensions`. An opening off every wall (`hostWallId` null) is drawn where it stands on `flagged` (EZD-204b).
 - **Roles.** `cut` (wall faces and jambs, door leaf), `beyond` (window lines, room hatch), `hidden` (door swing arc), `dimension` (dimension lines). The list carries no colours or line widths.
-- **Default door swing** (Q-0574): every door is hinged at the start end of its opening and opens to the left face (`DEFAULT_DOOR_SWING`).
+- **Door swing and hand** (EZD-204b; Q-0642): each door is drawn from its own `hand` (hinge end) and `swing` (the side it opens to).
 - **Font table.** Text is measured from the committed DM Mono 400 and Instrument Sans 600 advance tables (`DM_MONO_400_METRICS`, `INSTRUMENT_SANS_600_METRICS`, one generated file); no font file is read at run time. Regenerate with `pnpm --filter @ezdraft/geometry fonts:metrics` (reads `app/src/styles/fonts/dm-mono-latin-400-normal.woff2` and `app/src/styles/fonts/instrument-sans-latin-600-normal.woff2` with `fontkit`).
 
 ## Dependencies
@@ -501,7 +501,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 
 - `app/src/editor/tools/` holds the pure tool modules (no React or DOM), exported from `index.ts`; `DrawingTools.tsx`, `GapBoxes.tsx` and `overlay.ts` beside them are the React and DOM side, never exported from `index.ts` (EZD-210b).
 - Reducers take `ToolInput` in model inches after snapping and return the walls to save; they never touch the store.
-- Every wall edit goes through `wallEditChanges`, which appends the room reconcile.
+- Every wall edit goes through `wallEditChanges`, which appends the room reconcile and the opening host updates (EZD-204b).
 - The gap box is derived from the walls on every call (`gapBoxes`), never stored.
 - `drawing-controller.ts` owns tool state, the snap index and the pointer receiver outside React; `getUi()` changes on tool, pick, gap and last-length changes, never per pointer move (EZD-210b).
 - `overlay.ts` writes the SVG band and marker attributes directly on pointer moves and camera changes (EZD-210b).
@@ -676,7 +676,7 @@ EZD-207a (vault/plans/EZD-207a.md Build steps 1-17, section 3); S03 Layout, Canv
 - **Handle** (`PlanCanvasHandle`): `getCursor`, `getPixelsPerInch`, `getView`, `setView`, `fit`, `modelToScreen`, `screenToModel`, `onCameraChange`, `setPointerReceiver`, and from EZD-207b `zoomIn`, `zoomOut`, `showObject`, `setHoverMode`, `getHoveredWallId`, `wallAt`. Screen = region px (CSS px from the top-left of `main[data-shell-region="canvas"]`); read and called synchronously, never through React. Pans go to the view; other left input goes to the pointer receiver.
 - **View.** Model inches, +x east, +y north. 100% = 32 CSS px per foot (`ZOOM_100_PPI` 8/3 px per inch), limits 5% and 1600%. The first view fits the drawing once the region has a size; edits and resizes never refit. A pan or zoom changes only the camera and the grid uniforms, rebuilds no buffer and makes no React commit; frames are drawn on demand (`frameloop: 'demand'`).
 - **Grid.** Drawn by a shader on the one `<canvas>` (`--ez-canvas-grid` on `--ez-canvas`), steps 1", 1', 10', 100' (the first at least 16 px apart). The canvas fills the frame's `backdrop`, behind header, cards and status bar.
-- **Batches.** One buffer per layer and kind (segments also per role) in status colours; a batch is re-uploaded only when its positions change, and only when the model's objects change.
+- **Batches.** One buffer per layer and kind (segments also per role) in status colours; a batch is re-uploaded only when its positions change, and only when the model's objects change. The `flagged` layer draws in `--ez-red` (EZD-204b).
 - **Zoom stack (EZD-207b).** `ZoomStack` (`data-testid="zoom-stack"`): Zoom in, Zoom out, Fit to screen at the canvas region's top right, after `plan-input`, for editors and view-only users; absent while loading and when the canvas failed. A step is `ZOOM_STEP_FACTOR` 1.25 about the region centre; at a limit it does nothing. Buttons are 38 px, 44 px under a coarse pointer (`touch.module.css`).
 - **Hover (EZD-207b).** `HoverMode` `'wall' | 'off'` (`setHoverMode`, set by the drawing tools). Mouse and pen moves that are not panning pick the wall under the cursor through the EZD-206 wall snap index (one query, `HOVER_CAPTURE_PX` 10 px, the wall's quad); the index is kept current per changed wall (`createHoverIndex().sync`) and rebuilt when the open floor changes. The highlight is one translucent `--ez-cobalt` mesh (opacity 0.35, render order 2.5), uploaded only when the hovered wall or its shape changes; no React commit. `wallAt(screen)` is the same pick for touch.
 - **Glyph atlas (EZD-207b).** All plan text comes from one 1024 px atlas texture holding both drawing fonts (`ATLAS_CHARS`: U+0020 to U+007E and U+00B7, 64 px cells, 40 px font), drawn once per controller with the fonts named by `--ez-font-mono` and `--ez-font-sans` (no font file URL). White glyphs on black, read as the text mesh's `alphaMap`; one mesh with vertex colours (`--ez-ink` dimensions, `--ez-slate-300` room labels). Text is model geometry (1 pt = 0.5 model inch), so it scales with the zoom and is never rebuilt on a pan or zoom. A failed atlas is reported as `plan.glyph_atlas` and the plan draws without text.
@@ -838,10 +838,12 @@ EZD-205a (vault/plans/EZD-205a.md); 09e; 09j; Q-0559; Q-0568; Q-0570.
 
 ### Openings (EZD-204)
 
-EZD-204a (vault/plans/EZD-204a.md); 03f; Q-0630; Q-0633; Q-0640; Q-0641; Q-0642.
+EZD-204a (vault/plans/EZD-204a.md); EZD-204b (vault/plans/EZD-204b.md); 03f; Q-0630; Q-0633; Q-0640; Q-0641; Q-0642.
 
-- **Files** (`packages/geometry/src/openings/`, exported from the package root): `opening.ts` (`OpeningObject`, `DEFAULT_DOOR_SIZE`, `DEFAULT_WINDOW_SIZE`, `DEFAULT_WINDOW_SILL_IN`, `autoRoughOpening`, `createOpeningData`, `flipSwing`, `flipHand`, `isOpeningFlagged`, `isVerticalLine`, `leftEndIsLow`).
+- **Files** (`packages/geometry/src/openings/`, exported from the package root): `opening.ts` (`OpeningObject`, `DEFAULT_DOOR_SIZE`, `DEFAULT_WINDOW_SIZE`, `DEFAULT_WINDOW_SILL_IN`, `autoRoughOpening`, `createOpeningData`, `flipSwing`, `flipHand`, `isOpeningFlagged`, `isVerticalLine`, `leftEndIsLow`); `offsets.ts` (`HostCorner`, `OpeningOffsets`, `PlaceAtOffsetInput`, `PlaceAtOffsetResult`, `hostCorners`, `openingSpan`, `openingOnWall`, `openingOffsets`, `placeAtOffset`); `hosting.ts` (`openingHostUpdates`).
 - **Flag**: `hostWallId` null is Not on a wall (`isOpeningFlagged`); `axis` is null while hosted and, while flagged, the unit start→end direction of the last host.
+- **Drawing.** An opening with `hostWallId` null is drawn on the `flagged` layer along `axis` (+x when null).
+- **Rule.** Every wall edit's `wallEditChanges` appends `openingHostUpdates`; EZD-217's delete and paste must call it too.
 
 ## Server-only data access and can()
 

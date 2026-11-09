@@ -1,6 +1,7 @@
 // EZD-207a Build step 6 (vault/plans/EZD-207a.md Decided "Drawing list", "Batches", "Colours"; 11 rule 4; ARCH
 // Drawing list (EZD-238); Q-0530; Q-0558): the open floor's drawing list, merged into one vertex buffer per layer
 // and kind (segments also per role), in draw order and status colour. No DOM.
+// EZD-204b Build step 6 (vault/plans/EZD-204b.md Decided "Colour"; AC-EZD-204-4): the `flagged` layer in error red.
 import {
   buildDrawingList,
   parseStoredObject,
@@ -35,6 +36,7 @@ const LAYER_TOKEN: Record<DrawingLayer, `--ez-${string}`> = {
   new: '--ez-cobalt',
   rooms: '--ez-slate-300',
   dimensions: '--ez-slate-400',
+  flagged: '--ez-red',
 };
 
 const STATUS_LAYERS: ReadonlySet<DrawingLayer> = new Set(['existing', 'demo', 'new']);

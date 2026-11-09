@@ -4,12 +4,14 @@
 import {
   CURRENT_SCHEMA_VERSION,
   NO_NUMBERS,
+  createOpeningData,
   createWallData,
   type Point,
   type WallObject,
 } from '@ezdraft/geometry';
 import { describe, expect, it } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
+import { createModelStore } from '../model/model-store';
 import {
   initialRoomRectState,
   newObjectId,
@@ -191,5 +193,69 @@ describe('EZD-294 object numbers in wall edits', () => {
     expect(numberOf(high.find((c) => c.id === uid(20))!.value)).toBe(10);
     const low = wallEditChanges(objects, F1, [wall], idSeq(30), NO_NUMBERS);
     expect(numberOf(low.find((c) => c.id === uid(20))!.value)).toBe(4);
+  });
+});
+
+// EZD-204b M1, M2 (vault/plans/EZD-204b.md sections 3, 4; Decided "wallEditChanges"; AC-EZD-204-1, -12): a wall
+// edit appends the opening host updates, in the same undo step.
+function hostedDoorObjects(): Map<string, ObjectValue> {
+  const objects = withWalls(baseObjects(), 1, [p(0, 0), p(144, 0), p(144, 120), p(0, 120)], true);
+  const host = toModelObjects(objects, F1).find((o) => o.id === uid(1));
+  if (host === undefined || host.type !== 'wall') throw new Error('wall uid(1) missing');
+  objects.set(uid(50), {
+    type: 'opening',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: createOpeningData({ kind: 'door', host, center: p(72, 0) }) as unknown as Record<
+      string,
+      unknown
+    >,
+  });
+  return objects;
+}
+
+function movedW1(): WallObject[] {
+  const r = createWallData({ start: p(0, -6), end: p(144, -6), level: F1 });
+  if (!r.ok) throw new Error('createWallData refused the test wall');
+  return [{ id: uid(1), type: 'wall', data: r.data }];
+}
+
+describe('EZD-204b opening hosting', () => {
+  it('EZD-204b M1 a wall edit flags its door in the same undo step', () => {
+    const objects = hostedDoorObjects();
+    const changes = wallEditChanges(objects, F1, movedW1(), idSeq(100), NO_NUMBERS);
+    expect(changes[0]!.id).toBe(uid(1));
+    const door = changes.filter((c) => c.id === uid(50));
+    expect(door).toHaveLength(1);
+    expect(door[0]!.value!.data.geometry).toEqual({
+      center: { x: 72, y: 0 },
+      hostWallId: null,
+      axis: { x: 1, y: 0 },
+    });
+
+    const store = createModelStore({ objects });
+    store.applyEdit(changes);
+    expect(store.getState().past.length).toBe(1);
+    store.undo();
+    const back = store.getState().objects.get(uid(50))!;
+    expect((back.data.geometry as { hostWallId: unknown }).hostWallId).toBe(uid(1));
+  });
+
+  it('EZD-204b M2 bad and other-floor openings are skipped', () => {
+    const objects = hostedDoorObjects();
+    objects.set(uid(51), {
+      type: 'opening',
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: { level: F1 },
+    });
+    const good = objects.get(uid(50))!;
+    objects.set(uid(52), { ...good, data: { ...good.data, level: F2 } });
+
+    let changes: ReturnType<typeof wallEditChanges> = [];
+    expect(() => {
+      changes = wallEditChanges(objects, F1, movedW1(), idSeq(100), NO_NUMBERS);
+    }).not.toThrow();
+    const openings = changes.filter((c) => c.value?.type === 'opening');
+    expect(openings.map((c) => c.id)).toEqual([uid(50)]);
+    expect(changes.some((c) => c.id === uid(51) || c.id === uid(52))).toBe(false);
   });
 });
