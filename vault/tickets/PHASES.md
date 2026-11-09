@@ -336,11 +336,18 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **User-visible result:** Door and Window tools with hover preview and typed offset; click, cycle, Shift-click and box select; Move tool, resize handles and live distance chips; inspector fields with bulk edit; undo, redo, copy, paste, duplicate, delete.
 - **Spec files:** `spec/sections/03-data-model.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`
 - **Tickets (6, build order):**
-  - EZD-204 Openings core — needs EZD-203 (s4)
-  - EZD-208 Selection — needs EZD-207 (s4)
-  - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4), EZD-294 (s4)
-  - EZD-212 Move, handles, distance chips — after EZD-208
-  - EZD-213 Inspector fields — after EZD-208; needs EZD-294 (s4) (Q-0633)
+  - EZD-204a Opening data v4 — after EZD-203, EZD-294
+  - EZD-204b Offsets, hosting and the Not on a wall flag — after EZD-204a, EZD-203, EZD-294, EZD-238, EZD-207a, EZD-210a
+  - EZD-208a Selection logic and drawing — after EZD-207a, EZD-207b, EZD-207c, EZD-204a, EZD-204b, EZD-206, EZD-209, EZD-210b
+  - EZD-208b Selection on the plan, rail and tablet — after EZD-208a, EZD-016a, EZD-014a, EZD-010b
+  - EZD-211a Door and window geometry and tool logic — after EZD-204a, EZD-204b, EZD-294, EZD-209, EZD-210a, EZD-201, EZD-010b
+  - EZD-211b Door and window tools on the plan — after EZD-211a, EZD-208a, EZD-208b, EZD-016a, EZD-207a, EZD-207b, EZD-209, EZD-210b
+  - EZD-212a Move, resize and chip geometry — after EZD-204a, EZD-204b, EZD-203, EZD-205b, EZD-201
+  - EZD-212b Move tool and dragging — after EZD-212a, EZD-208a, EZD-208b, EZD-206, EZD-209, EZD-210b, EZD-294, EZD-010b, EZD-016a
+  - EZD-212c Handles, distance chips and tablet chip buttons — after EZD-212b, EZD-208a, EZD-208b, EZD-209, EZD-210b, EZD-014a, EZD-016a
+  - EZD-213a Inspector edits and view rules — after EZD-204a, EZD-204b, EZD-294, EZD-212a, EZD-201, EZD-203, EZD-205a, EZD-120b, EZD-210a
+  - EZD-213b Inspector panel: wall, door, window and bulk edit — after EZD-213a, EZD-208a, EZD-208b, EZD-204a, EZD-204b, EZD-294, EZD-120c, EZD-014a, EZD-016a, EZD-010b
+  - EZD-213c Resolve the gap in the inspector — after EZD-213b, EZD-208a, EZD-208b, EZD-212b, EZD-210b, EZD-205b, EZD-016a
   - EZD-217 Undo, redo and clipboard — after EZD-208; needs EZD-294 (s4) (Q-0640)
 - **Depends on slices:** 4
 - **Out of scope until later:** Status and phase switch, layers (slice 6); fixtures (slice 10); context menu, mirror, align, groups (slice 11).
@@ -362,8 +369,10 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Tickets (5, build order):**
   - EZD-5601 AI key storage and My profile — needs EZD-108, EZD-021
   - EZD-5602 Assistant call path, send list, stub and cost — after EZD-5601; needs EZD-204, EZD-205a, EZD-294
-  - EZD-5603 Assistant panel, states and photo — after EZD-5602; needs EZD-213
-  - EZD-5604 Assistant change format and preview — after EZD-5603; needs EZD-211
+  - EZD-5603a Assistant panel, picker, states and cost line — after EZD-5602, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-5601, EZD-108, EZD-120c, EZD-016a, EZD-010b, EZD-014c
+  - EZD-5603b Assistant photo: control, browser shrink, server strip — after EZD-5603a, EZD-5602, EZD-016a
+  - EZD-5604a Assistant change format, apply and check — after EZD-5602, EZD-211a, EZD-211b, EZD-213a, EZD-204a, EZD-204b, EZD-217, EZD-294, EZD-210a, EZD-120b
+  - EZD-5604b Assistant preview on the canvas and in the panel — after EZD-5604a, EZD-5603a, EZD-5603b, EZD-211a, EZD-211b, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-016a
   - EZD-5605 Assistant Accept, Adjust, Reject and events — after EZD-5604; needs EZD-217
 - **Depends on slices:** 5
 - **Out of scope until later:** the render state (render phase, Q-0500); AI commands for other tools (each tool's phase, Q-0474).
@@ -1536,7 +1545,7 @@ slices over 10: none   slices under 4: none
  2. Projects list and new project (phase 1) [5]: EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118
  3. Model store and editor route (phase 1,2) [7]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-299a, EZD-299b, EZD-299, EZD-238
  4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221a, EZD-221b, EZD-294
- 5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-217
+ 5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204a, EZD-204b, EZD-208a, EZD-208b, EZD-211a, EZD-211b, EZD-212a, EZD-212b, EZD-212c, EZD-213a, EZD-213b, EZD-213c, EZD-217
  6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [8]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-235, EZD-216, EZD-237
  7. Users, roles, project scope, event log (phase 1) [6]: EZD-104, EZD-105, EZD-106, EZD-107, EZD-109, EZD-129
  8. Defaults, edit lock, project settings (phase 1,2) [6]: EZD-116, EZD-128, EZD-130, EZD-125, EZD-126, EZD-225

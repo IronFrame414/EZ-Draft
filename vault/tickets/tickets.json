@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 646,
+ "count": 656,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -33,7 +33,8 @@
   "EZD-205, EZD-207 and EZD-210 split on 2026-11-06 into EZD-205a, EZD-205b; EZD-207a, EZD-207b, EZD-207c; EZD-210a, EZD-210b (planner split proposals vault/plans/EZD-205.md, EZD-207.md, EZD-210.md, each over the PROCESS.md section 6 file and test counts; orchestrator applied); every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs: AC-EZD-205-1 and -5 on EZD-205a, -2, -3, -4 and -6 on EZD-205b; AC-EZD-207-1, -4, -6, -7, -8 and -9 on EZD-207a, -2, -3, -4, -8 and -10 on EZD-207b, -5 on EZD-207c; AC-EZD-210-1, -2, -3, -4, -6, -8, -9, -10 and -12 on EZD-210a, AC-EZD-210-1, -2, -3, -5, -7, -8, -9, -10 and -11 plus AC-EZD-207-6 and -7 (the tools and rail clauses) on EZD-210b.",
   "EZD-221 split on 2026-11-07 into EZD-221a, EZD-221b (planner split proposal vault/plans/EZD-221.md, over the PROCESS.md section 6 file count; overwatch session applied). The stage-0 ACs keep their IDs.",
   "EZD-299 split on 2026-11-07 into EZD-299a, EZD-299b, EZD-299 (planner split proposal vault/plans/EZD-299.md; the last part keeps the base ID, as EZD-026a did; orchestrator applied at questions 3). New ticket EZD-294 Object numbers (Q-0625 (a)): EZD-299 and EZD-211 depend on it. The stage-0 ACs keep their IDs; AC-EZD-299-13 to -18 and AC-EZD-294-1 to -3 are added by hand.",
-  "EZD-355 split on 2026-11-07 into EZD-355a, EZD-355b (Q-0615, planner split proposal); EZD-327 removed as a duplicate of EZD-326 (session 11)."
+  "EZD-355 split on 2026-11-07 into EZD-355a, EZD-355b (Q-0615, planner split proposal); EZD-327 removed as a duplicate of EZD-326 (session 11).",
+  "EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-5603 and EZD-5604 split on 2026-11-09 into EZD-204a, EZD-204b; EZD-208a, EZD-208b; EZD-211a, EZD-211b; EZD-212a, EZD-212b, EZD-212c; EZD-213a, EZD-213b, EZD-213c; EZD-5603a, EZD-5603b; EZD-5604a, EZD-5604b (planner split proposals vault/plans/<base>.md, each over the PROCESS.md section 6 size rule; overwatch session applied under STOP, Josh chat; data vault/handoff/split-2026-11-09.json). Each part depends on its proposal Depends on list; every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs; an AC split by clause is listed on each part that proves a clause."
  ],
  "checks": {
   "cycles": 0,
@@ -157,11 +158,18 @@
   "EZD-221b",
   "EZD-294",
   "EZD-299",
-  "EZD-204",
-  "EZD-208",
-  "EZD-211",
-  "EZD-212",
-  "EZD-213",
+  "EZD-204a",
+  "EZD-204b",
+  "EZD-208a",
+  "EZD-208b",
+  "EZD-211a",
+  "EZD-211b",
+  "EZD-212a",
+  "EZD-212b",
+  "EZD-212c",
+  "EZD-213a",
+  "EZD-213b",
+  "EZD-213c",
   "EZD-217",
   "EZD-135",
   "EZD-214",
@@ -510,8 +518,10 @@
   "EZD-328",
   "EZD-5601",
   "EZD-5602",
-  "EZD-5603",
-  "EZD-5604",
+  "EZD-5603a",
+  "EZD-5603b",
+  "EZD-5604a",
+  "EZD-5604b",
   "EZD-5605"
  ],
  "tickets": [
@@ -3982,11 +3992,11 @@
    ]
   },
   {
-   "id": "EZD-204",
+   "id": "EZD-204a",
    "phase": 5,
-   "title": "Openings core",
-   "depends_raw": "EZD-203",
-   "spec_ref": "Objects; App shell · Selection, undo and flags",
+   "title": "Opening data v4",
+   "depends_raw": "EZD-203, EZD-294",
+   "spec_ref": "Objects; App shell · Selection, undo and flags; split of EZD-204 (proposal vault/plans/EZD-204.md)",
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/04-app-shell-and-global-ui.md#Selection",
@@ -3999,26 +4009,61 @@
     "mockups/S03dDoorSelected.png",
     "mockups/S03dStates.png"
    ],
-   "architecture": [
-    "Model schema (EZD-202)",
-    "Drawing list (EZD-238)",
-    "Drawing tools (EZD-210)",
-    "Plan canvas (EZD-207a)",
-    "Rooms (EZD-205a)"
-   ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-203"
+    "EZD-203",
+    "EZD-294"
    ],
    "build_position": 102,
+   "acs": [
+    "AC-EZD-204-5",
+    "AC-EZD-204-6",
+    "AC-EZD-204-10",
+    "AC-EZD-204-14",
+    "AC-EZD-204-15"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
+   ]
+  },
+  {
+   "id": "EZD-204b",
+   "phase": 5,
+   "title": "Offsets, hosting and the Not on a wall flag",
+   "depends_raw": "EZD-204a, EZD-203, EZD-294, EZD-238, EZD-207a, EZD-210a",
+   "spec_ref": "Objects; App shell · Selection, undo and flags; split of EZD-204 (proposal vault/plans/EZD-204.md)",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/04-app-shell-and-global-ui.md#Selection",
+    "spec/sections/04-app-shell-and-global-ui.md#undo and flags",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204a",
+    "EZD-203",
+    "EZD-294",
+    "EZD-238",
+    "EZD-207a",
+    "EZD-210a"
+   ],
+   "build_position": 102.3,
    "acs": [
     "AC-EZD-204-1",
     "AC-EZD-204-2",
     "AC-EZD-204-3",
     "AC-EZD-204-4",
-    "AC-EZD-204-5",
-    "AC-EZD-204-6",
     "AC-EZD-204-7",
     "AC-EZD-204-8",
     "AC-EZD-204-9",
@@ -4026,7 +4071,6 @@
     "AC-EZD-204-11",
     "AC-EZD-204-12",
     "AC-EZD-204-13",
-    "AC-EZD-204-14",
     "AC-EZD-204-15"
    ],
    "acs_source": "stage-0",
@@ -4327,11 +4371,11 @@
    ]
   },
   {
-   "id": "EZD-208",
+   "id": "EZD-208a",
    "phase": 5,
-   "title": "Selection",
-   "depends_raw": "EZD-207, EZD-204",
-   "spec_ref": "S03 Canvas interactions; Acceptance · Selection",
+   "title": "Selection logic and drawing",
+   "depends_raw": "EZD-207a, EZD-207b, EZD-207c, EZD-204a, EZD-204b, EZD-206, EZD-209, EZD-210b",
+   "spec_ref": "S03 Canvas interactions; Acceptance · Selection; split of EZD-208 (proposal vault/plans/EZD-208.md)",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
     "spec/sections/12-build-phases-and-acceptance-tests.md#Selection",
@@ -4345,41 +4389,74 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
-   "architecture": [
-    "Plan canvas (EZD-207a)",
-    "Drawing tools (EZD-210)",
-    "Design tokens, fonts and icons",
-    "Device layouts (EZD-014)",
-    "Messages and language (t())"
-   ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207a",
     "EZD-207b",
     "EZD-207c",
-    "EZD-204"
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-206",
+    "EZD-209",
+    "EZD-210b"
    ],
    "build_position": 104,
+   "acs": [
+    "AC-EZD-208-4",
+    "AC-EZD-208-10",
+    "AC-EZD-208-11",
+    "AC-EZD-208-12",
+    "AC-EZD-208-18"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-208b",
+   "phase": 5,
+   "title": "Selection on the plan, rail and tablet",
+   "depends_raw": "EZD-208a, EZD-016a, EZD-014a, EZD-010b",
+   "spec_ref": "S03 Canvas interactions; Acceptance · Selection; split of EZD-208 (proposal vault/plans/EZD-208.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Selection",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208a",
+    "EZD-016a",
+    "EZD-014a",
+    "EZD-010b"
+   ],
+   "build_position": 104.3,
    "acs": [
     "AC-EZD-208-1",
     "AC-EZD-208-2",
     "AC-EZD-208-3",
-    "AC-EZD-208-4",
     "AC-EZD-208-5",
     "AC-EZD-208-6",
     "AC-EZD-208-7",
     "AC-EZD-208-8",
     "AC-EZD-208-9",
-    "AC-EZD-208-10",
-    "AC-EZD-208-11",
-    "AC-EZD-208-12",
     "AC-EZD-208-13",
     "AC-EZD-208-14",
     "AC-EZD-208-15",
     "AC-EZD-208-16",
-    "AC-EZD-208-17",
-    "AC-EZD-208-18"
+    "AC-EZD-208-17"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4556,11 +4633,11 @@
    ]
   },
   {
-   "id": "EZD-211",
+   "id": "EZD-211a",
    "phase": 5,
-   "title": "Door and window tools",
-   "depends_raw": "EZD-204, EZD-209, EZD-294",
-   "spec_ref": "S03 Door, Window",
+   "title": "Door and window geometry and tool logic",
+   "depends_raw": "EZD-204a, EZD-204b, EZD-294, EZD-209, EZD-210a, EZD-201, EZD-010b",
+   "spec_ref": "S03 Door, Window; split of EZD-211 (proposal vault/plans/EZD-211.md)",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Door",
     "spec/sections/screens/S03-plan-editor.md#Window",
@@ -4574,20 +4651,75 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
-   "architecture": [
-    "Drawing tools (EZD-210)",
-    "Typed dimension bar (EZD-209)",
-    "Plan canvas (EZD-207a)",
-    "Design tokens, fonts and icons"
-   ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-204",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294",
     "EZD-209",
-    "EZD-294"
+    "EZD-210a",
+    "EZD-201",
+    "EZD-010b"
    ],
    "build_position": 105,
+   "acs": [
+    "AC-EZD-211-1",
+    "AC-EZD-211-3",
+    "AC-EZD-211-4",
+    "AC-EZD-211-5",
+    "AC-EZD-211-7",
+    "AC-EZD-211-8",
+    "AC-EZD-211-9",
+    "AC-EZD-211-10",
+    "AC-EZD-211-12",
+    "AC-EZD-211-13",
+    "AC-EZD-211-14",
+    "AC-EZD-211-15",
+    "AC-EZD-211-16",
+    "AC-EZD-211-17",
+    "AC-EZD-211-18",
+    "AC-EZD-211-19",
+    "AC-EZD-211-20"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-211b",
+   "phase": 5,
+   "title": "Door and window tools on the plan",
+   "depends_raw": "EZD-211a, EZD-208a, EZD-208b, EZD-016a, EZD-207a, EZD-207b, EZD-209, EZD-210b",
+   "spec_ref": "S03 Door, Window; split of EZD-211 (proposal vault/plans/EZD-211.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Door",
+    "spec/sections/screens/S03-plan-editor.md#Window",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dWindowSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-211a",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-016a",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-209",
+    "EZD-210b"
+   ],
+   "build_position": 105.3,
    "acs": [
     "AC-EZD-211-1",
     "AC-EZD-211-2",
@@ -4619,11 +4751,11 @@
    ]
   },
   {
-   "id": "EZD-212",
+   "id": "EZD-212a",
    "phase": 5,
-   "title": "Move, handles, distance chips",
-   "depends_raw": "EZD-208, EZD-204",
-   "spec_ref": "S03 Move; Live distance chips",
+   "title": "Move, resize and chip geometry",
+   "depends_raw": "EZD-204a, EZD-204b, EZD-203, EZD-205b, EZD-201",
+   "spec_ref": "S03 Move; Live distance chips; split of EZD-212 (proposal vault/plans/EZD-212.md)",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Move",
     "spec/sections/09k-openings-and-moves-examples.md",
@@ -4637,43 +4769,22 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
-   "architecture": [
-    "Drawing tools (EZD-210)",
-    "Typed dimension bar (EZD-209)",
-    "Plan canvas (EZD-207a)",
-    "Device layouts (EZD-014)",
-    "Design tokens, fonts and icons",
-    "Messages and language (t())",
-    "Rooms (EZD-205a)",
-    "Model schema (EZD-202)",
-    "Browser tests (EZD-016a)"
-   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208",
-    "EZD-204"
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-203",
+    "EZD-205b",
+    "EZD-201"
    ],
    "build_position": 106,
    "acs": [
-    "AC-EZD-212-1",
-    "AC-EZD-212-2",
-    "AC-EZD-212-3",
     "AC-EZD-212-4",
     "AC-EZD-212-5",
-    "AC-EZD-212-6",
-    "AC-EZD-212-7",
-    "AC-EZD-212-8",
     "AC-EZD-212-9",
-    "AC-EZD-212-10",
     "AC-EZD-212-11",
-    "AC-EZD-212-12",
-    "AC-EZD-212-13",
     "AC-EZD-212-14",
-    "AC-EZD-212-15",
-    "AC-EZD-212-16",
     "AC-EZD-212-17",
-    "AC-EZD-212-18",
-    "AC-EZD-212-19",
     "AC-EZD-212-20",
     "AC-EZD-212-21"
    ],
@@ -4686,11 +4797,106 @@
    ]
   },
   {
-   "id": "EZD-213",
+   "id": "EZD-212b",
    "phase": 5,
-   "title": "Inspector fields",
-   "depends_raw": "EZD-208, EZD-204, EZD-294",
-   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector",
+   "title": "Move tool and dragging",
+   "depends_raw": "EZD-212a, EZD-208a, EZD-208b, EZD-206, EZD-209, EZD-210b, EZD-294, EZD-010b, EZD-016a",
+   "spec_ref": "S03 Move; Live distance chips; split of EZD-212 (proposal vault/plans/EZD-212.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Move",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-212a",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-206",
+    "EZD-209",
+    "EZD-210b",
+    "EZD-294",
+    "EZD-010b",
+    "EZD-016a"
+   ],
+   "build_position": 106.3,
+   "acs": [
+    "AC-EZD-212-3",
+    "AC-EZD-212-6",
+    "AC-EZD-212-7",
+    "AC-EZD-212-15",
+    "AC-EZD-212-16",
+    "AC-EZD-212-18"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-212c",
+   "phase": 5,
+   "title": "Handles, distance chips and tablet chip buttons",
+   "depends_raw": "EZD-212b, EZD-208a, EZD-208b, EZD-209, EZD-210b, EZD-014a, EZD-016a",
+   "spec_ref": "S03 Move; Live distance chips; split of EZD-212 (proposal vault/plans/EZD-212.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Move",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-212b",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-209",
+    "EZD-210b",
+    "EZD-014a",
+    "EZD-016a"
+   ],
+   "build_position": 106.6,
+   "acs": [
+    "AC-EZD-212-1",
+    "AC-EZD-212-2",
+    "AC-EZD-212-8",
+    "AC-EZD-212-10",
+    "AC-EZD-212-12",
+    "AC-EZD-212-13",
+    "AC-EZD-212-19"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-213a",
+   "phase": 5,
+   "title": "Inspector edits and view rules",
+   "depends_raw": "EZD-204a, EZD-204b, EZD-294, EZD-212a, EZD-201, EZD-203, EZD-205a, EZD-120b, EZD-210a",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector; split of EZD-213 (proposal vault/plans/EZD-213.md)",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
     "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
@@ -4705,26 +4911,71 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
-   "architecture": [
-    "Editor shell (EZD-012)",
-    "Plan canvas (EZD-207a)",
-    "Drawing tools (EZD-210)",
-    "Patch store and outbox (EZD-120b)",
-    "Editor route (EZD-120c)",
-    "Model schema (EZD-202)",
-    "Rooms (EZD-205a)",
-    "Device layouts (EZD-014)",
-    "Design tokens, fonts and icons",
-    "Messages and language (t())",
-    "Browser tests (EZD-016a)"
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294",
+    "EZD-212a",
+    "EZD-201",
+    "EZD-203",
+    "EZD-205a",
+    "EZD-120b",
+    "EZD-210a"
+   ],
+   "build_position": 107,
+   "acs": [
+    "AC-EZD-213-8",
+    "AC-EZD-213-13",
+    "AC-EZD-213-14",
+    "AC-EZD-213-20",
+    "AC-EZD-213-22",
+    "AC-EZD-213-23",
+    "AC-EZD-213-24"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-213b",
+   "phase": 5,
+   "title": "Inspector panel: wall, door, window and bulk edit",
+   "depends_raw": "EZD-213a, EZD-208a, EZD-208b, EZD-204a, EZD-204b, EZD-294, EZD-120c, EZD-014a, EZD-016a, EZD-010b",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector; split of EZD-213 (proposal vault/plans/EZD-213.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208",
-    "EZD-204",
-    "EZD-294"
+    "EZD-213a",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294",
+    "EZD-120c",
+    "EZD-014a",
+    "EZD-016a",
+    "EZD-010b"
    ],
-   "build_position": 107,
+   "build_position": 107.3,
    "acs": [
     "AC-EZD-213-1",
     "AC-EZD-213-2",
@@ -4733,23 +4984,59 @@
     "AC-EZD-213-5",
     "AC-EZD-213-6",
     "AC-EZD-213-7",
-    "AC-EZD-213-8",
     "AC-EZD-213-9",
     "AC-EZD-213-10",
-    "AC-EZD-213-11",
     "AC-EZD-213-12",
-    "AC-EZD-213-13",
-    "AC-EZD-213-14",
-    "AC-EZD-213-15",
     "AC-EZD-213-16",
     "AC-EZD-213-17",
     "AC-EZD-213-18",
     "AC-EZD-213-19",
-    "AC-EZD-213-20",
     "AC-EZD-213-21",
-    "AC-EZD-213-22",
-    "AC-EZD-213-23",
-    "AC-EZD-213-24"
+    "AC-EZD-213-23"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-213c",
+   "phase": 5,
+   "title": "Resolve the gap in the inspector",
+   "depends_raw": "EZD-213b, EZD-208a, EZD-208b, EZD-212b, EZD-210b, EZD-205b, EZD-016a",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector; split of EZD-213 (proposal vault/plans/EZD-213.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213b",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-212b",
+    "EZD-210b",
+    "EZD-205b",
+    "EZD-016a"
+   ],
+   "build_position": 107.6,
+   "acs": [
+    "AC-EZD-213-11",
+    "AC-EZD-213-15"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4776,7 +5063,9 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c"
    ],
    "build_position": 110,
    "acs": [
@@ -4804,7 +5093,9 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213",
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
     "EZD-132"
    ],
    "build_position": 135,
@@ -4878,8 +5169,10 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208",
-    "EZD-204",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-204a",
+    "EZD-204b",
     "EZD-294"
    ],
    "build_position": 108,
@@ -4989,7 +5282,9 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213",
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
     "EZD-132"
    ],
    "build_position": 136,
@@ -5218,7 +5513,8 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-126",
-    "EZD-204"
+    "EZD-204a",
+    "EZD-204b"
    ],
    "build_position": 129,
    "acs": [
@@ -5483,7 +5779,9 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c"
    ],
    "build_position": 138,
    "acs": [
@@ -6363,7 +6661,8 @@
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
     "EZD-402",
-    "EZD-204"
+    "EZD-204a",
+    "EZD-204b"
    ],
    "build_position": 181,
    "acs": [
@@ -7720,7 +8019,9 @@
    "depends_on": [
     "EZD-611a",
     "EZD-130",
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c"
    ],
    "build_position": 225,
    "acs": [
@@ -19860,7 +20161,8 @@
    "depends_on": [
     "EZD-5601",
     "EZD-021",
-    "EZD-204",
+    "EZD-204a",
+    "EZD-204b",
     "EZD-205a",
     "EZD-294"
    ],
@@ -19889,11 +20191,11 @@
    ]
   },
   {
-   "id": "EZD-5603",
+   "id": "EZD-5603a",
    "phase": 56,
-   "title": "Assistant panel, states and photo",
-   "depends_raw": "EZD-5602, EZD-213",
-   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
+   "title": "Assistant panel, picker, states and cost line",
+   "depends_raw": "EZD-5602, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-5601, EZD-108, EZD-120c, EZD-016a, EZD-010b, EZD-014c",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5603 (proposal vault/plans/EZD-5603.md)",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19904,20 +20206,20 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
-   "architecture": [
-    "Entry points and lazy modules (EZD-020)",
-    "Editor shell (EZD-012)",
-    "Messages and language (t())",
-    "Design tokens, fonts and icons",
-    "Browser tests (EZD-016a)",
-    "AI (EZD-021)",
-    "AI stubs and the network guard (EZD-021)",
-    "Dependencies"
-   ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5602",
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-5601",
+    "EZD-108",
+    "EZD-120c",
+    "EZD-016a",
+    "EZD-010b",
+    "EZD-014c"
    ],
    "build_position": 615,
    "acs": [
@@ -19926,10 +20228,46 @@
     "AC-EZD-5603-3",
     "AC-EZD-5603-4",
     "AC-EZD-5603-5",
+    "AC-EZD-5603-9",
+    "AC-EZD-5603-10",
+    "AC-EZD-5603-12",
+    "AC-EZD-5603-13",
+    "AC-EZD-5603-14"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5603b",
+   "phase": 56,
+   "title": "Assistant photo: control, browser shrink, server strip",
+   "depends_raw": "EZD-5603a, EZD-5602, EZD-016a",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5603 (proposal vault/plans/EZD-5603.md)",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5603a",
+    "EZD-5602",
+    "EZD-016a"
+   ],
+   "build_position": 615.3,
+   "acs": [
     "AC-EZD-5603-6",
     "AC-EZD-5603-7",
     "AC-EZD-5603-8",
-    "AC-EZD-5603-9",
     "AC-EZD-5603-10",
     "AC-EZD-5603-11",
     "AC-EZD-5603-12",
@@ -19944,11 +20282,11 @@
    ]
   },
   {
-   "id": "EZD-5604",
+   "id": "EZD-5604a",
    "phase": 56,
-   "title": "Assistant change format and preview",
-   "depends_raw": "EZD-5602, EZD-5603, EZD-211, EZD-213",
-   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
+   "title": "Assistant change format, apply and check",
+   "depends_raw": "EZD-5602, EZD-211a, EZD-211b, EZD-213a, EZD-204a, EZD-204b, EZD-217, EZD-294, EZD-210a, EZD-120b",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5604 (proposal vault/plans/EZD-5604.md)",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
     "spec/sections/09l-ai-assistant-cost-examples.md"
@@ -19959,35 +20297,74 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
-   "architecture": [
-    "AI (EZD-021)",
-    "AI stubs and the network guard (EZD-021)",
-    "Model working copy (EZD-120a)",
-    "Model schema (EZD-202)",
-    "Plan canvas (EZD-207a)",
-    "Editor shell (EZD-012)",
-    "Messages and language (t())",
-    "Browser tests (EZD-016a)"
-   ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5602",
-    "EZD-5603",
-    "EZD-211",
-    "EZD-213"
+    "EZD-211a",
+    "EZD-211b",
+    "EZD-213a",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-217",
+    "EZD-294",
+    "EZD-210a",
+    "EZD-120b"
    ],
    "build_position": 616,
    "acs": [
     "AC-EZD-5604-1",
     "AC-EZD-5604-2",
-    "AC-EZD-5604-3",
-    "AC-EZD-5604-4",
-    "AC-EZD-5604-5",
     "AC-EZD-5604-6",
-    "AC-EZD-5604-7",
     "AC-EZD-5604-8",
     "AC-EZD-5604-9",
     "AC-EZD-5604-10"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5604b",
+   "phase": 56,
+   "title": "Assistant preview on the canvas and in the panel",
+   "depends_raw": "EZD-5604a, EZD-5603a, EZD-5603b, EZD-211a, EZD-211b, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-016a",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5604 (proposal vault/plans/EZD-5604.md)",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5604a",
+    "EZD-5603a",
+    "EZD-5603b",
+    "EZD-211a",
+    "EZD-211b",
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-016a"
+   ],
+   "build_position": 616.3,
+   "acs": [
+    "AC-EZD-5604-1",
+    "AC-EZD-5604-3",
+    "AC-EZD-5604-4",
+    "AC-EZD-5604-5",
+    "AC-EZD-5604-7",
+    "AC-EZD-5604-8",
+    "AC-EZD-5604-9"
    ],
    "acs_source": "stage-0",
    "spec_phase": 56,
@@ -20022,10 +20399,14 @@
    "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
-    "EZD-5604",
+    "EZD-5604a",
+    "EZD-5604b",
     "EZD-217",
-    "EZD-213",
-    "EZD-211"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-211a",
+    "EZD-211b"
    ],
    "build_position": 617,
    "acs": [
