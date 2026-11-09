@@ -2,6 +2,7 @@
 // patches.ts, `type ObjectValue` from model-api.ts and the tools index.
 import {
   CURRENT_SCHEMA_VERSION,
+  NO_NUMBERS,
   createWallData,
   parseStoredObject,
   type ClosureOverride,
@@ -159,7 +160,7 @@ function draw<S>(
   for (const input of inputs) {
     const ctx: ToolContext = { level: F1, newId, objects: toModelObjects(current, F1) };
     const step = reduce(state, input, ctx);
-    const ch = wallEditChanges(current, F1, step.walls, newId);
+    const ch = wallEditChanges(current, F1, step.walls, newId, NO_NUMBERS);
     current = applyChanges(current, ch);
     state = step.state;
     steps.push(step);

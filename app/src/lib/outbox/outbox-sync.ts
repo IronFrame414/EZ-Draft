@@ -3,6 +3,8 @@
 // Q-0507 gaps 4, 5): autosave. Each change is written to the device outbox first; 2,000 ms after the last one
 // the outbox is sent to the objects route one request at a time, under one lock per user and company across
 // the browser's tabs.
+// EZD-294 Build step 10 (vault/plans/EZD-294.md section 3 createOutboxSync row; Q-0629 (b)): each saved answer is
+// handed to `onSaved` before it is written to the device storage.
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Change } from '../../editor/model/patches';
 import { APP_BUILD_HEADER, appBuild } from '../app-version';
@@ -27,6 +29,7 @@ import {
   type OutboxEntry,
   type OutboxStorage,
   type RefusedCode,
+  type SavedObject,
   type SaveOutcome,
 } from './outbox';
 
@@ -87,7 +90,7 @@ function toRequestChange(e: OutboxEntry) {
 
 type PendingWrite =
   | { projectId: string; lockEpoch: number; changes: Change[]; now: number }
-  | { projectId: string; sent: OutboxEntry[]; saved: { id: string; updatedSeq: number }[] };
+  | { projectId: string; sent: OutboxEntry[]; saved: SavedObject[] };
 
 async function reportAt(error: unknown, location: string): Promise<void> {
   const { captureBrowserError } = await import('../errors/capture');
@@ -124,6 +127,7 @@ export function createOutboxSync(o: {
   lock?: TabLock;
   online?: OnlineSource;
   debounceMs?: number;
+  onSaved?: (projectId: string, saved: SavedObject[]) => void;
 }): OutboxSync {
   const storage = o.storage;
   const fetchImpl = o.fetchImpl ?? fetch;
@@ -412,6 +416,7 @@ export function createOutboxSync(o: {
         schedule(RETRY_DELAYS_MS[Math.min(failures, RETRY_DELAYS_MS.length) - 1]);
         return;
       }
+      o.onSaved?.(batch.projectId, outcome.objects);
       try {
         await storage.commit(batch.projectId, batch.send, outcome.objects);
       } catch (error) {

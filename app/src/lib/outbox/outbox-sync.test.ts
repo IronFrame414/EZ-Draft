@@ -462,3 +462,38 @@ describe('EZD-120b storage failure recovery', () => {
     sync.dispose();
   });
 });
+
+// EZD-294 Y1 (vault/plans/EZD-294.md section 4 and step 10; AC-EZD-294-2).
+describe('EZD-294 outbox sync saved numbers', () => {
+  it('EZD-294 Y1 the sync hands each saved answer to onSaved', async () => {
+    const run = async (answer: () => Response) => {
+      const onSaved = vi.fn();
+      const fetchImpl = vi.fn(async () => answer());
+      const sync = createOutboxSync({
+        actor,
+        storage: createMemoryStorage(),
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        lock: alwaysLock,
+        onSaved,
+      });
+      void sync.enqueue(P, 0, [change(1)]);
+      await vi.advanceTimersByTimeAsync(2000);
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      sync.dispose();
+      return onSaved;
+    };
+    const ok = await run(() =>
+      Response.json({ objects: [{ id: idOf(1), updatedSeq: 1, number: 6 }] }),
+    );
+    expect(ok).toHaveBeenCalledTimes(1);
+    expect(ok).toHaveBeenCalledWith(P, [{ id: idOf(1), updatedSeq: 1, number: 6 }]);
+    const conflict = await run(() =>
+      Response.json({ error: { code: 'save_conflict' } }, { status: 409 }),
+    );
+    expect(conflict).not.toHaveBeenCalled();
+    const down = await run(() =>
+      Response.json({ error: { code: 'db_unavailable' } }, { status: 500 }),
+    );
+    expect(down).not.toHaveBeenCalled();
+  });
+});

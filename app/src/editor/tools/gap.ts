@@ -2,11 +2,14 @@
 // "Gap box", "Gap size text", "Pick mode", "pickWall", "Refusal keys", "keepGap"; 00e Pick mode; S02 Esc;
 // Q-0562; Q-0568; Q-0569 (b), (c); Q-0570; P205b). The gap box is derived from the walls on every call, never
 // stored. Pure.
+// EZD-294 Build step 14 (vault/plans/EZD-294.md Decided "gap.ts"): absorb changes only walls already in the model,
+// which keep their stored numbers.
 import {
   absorbGap,
   findClosures,
   formatLength,
   keepOutOfSquare,
+  NO_NUMBERS,
   pointsEqual,
   sameBoundary,
   type AbsorbResult,
@@ -160,7 +163,7 @@ export function pickWall(
         now.data.attributes.thicknessSide !== before.data.attributes.thicknessSide,
     )
     .map(({ now }) => now);
-  return { ok: true, changes: wallEditChanges(objects, level, [...changed, ...others], newId) };
+  return { ok: true, changes: wallEditChanges(objects, level, [...changed, ...others], newId, NO_NUMBERS) };
 }
 
 export function keepGap(

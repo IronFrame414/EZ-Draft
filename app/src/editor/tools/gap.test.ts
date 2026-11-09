@@ -264,3 +264,27 @@ describe('EZD-357 typed chain at the 12" limit', () => {
     expect(roomsOf(objects)).toHaveLength(0);
   });
 });
+
+// EZD-294 T5 (vault/plans/EZD-294.md section 4; Decided "gap.ts"; 09j Absorbing row 1; AC-EZD-294-1).
+describe('EZD-294 object numbers in gap absorb', () => {
+  it('EZD-294 T5 absorbing a gap keeps every wall number', () => {
+    const gapPoints = [p(0, 0), p(144, 0), p(144, 120), p(0, 120), p(0, 0.5)];
+    const base = withWalls(baseObjects(), 1, gapPoints, false);
+    const objects = new Map<string, ObjectValue>(base);
+    [1, 2, 3, 4].forEach((k) => {
+      const v = base.get(uid(k))!;
+      const attrs = (v.data as { attributes: Record<string, unknown> }).attributes;
+      objects.set(uid(k), { ...v, data: { ...v.data, attributes: { ...attrs, number: k } } });
+    });
+    const r = pickWall(objects, F1, onlyBox(objects).wallIds, uid(4), idSeq(50));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const walls = r.changes.filter((c) => c.value?.type === 'wall');
+    expect(walls.length).toBeGreaterThan(0);
+    for (const c of walls) {
+      const k = parseInt(c.id.slice(-12), 16);
+      const attrs = (c.value!.data as { attributes: Record<string, unknown> }).attributes;
+      expect(attrs.number).toBe(k);
+    }
+  });
+});

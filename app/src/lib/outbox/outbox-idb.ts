@@ -3,6 +3,9 @@
 // start with the app user and the company, and a storage reads only its own range, so one person's or one
 // company's edits are never seen under another. One connection, opened on first use. Errors are thrown to the
 // caller (outbox-sync.ts reports them).
+// EZD-294 Build step 9 (vault/plans/EZD-294.md section 1; Q-0629 (b)): `commit` writes a saved number into the
+// mirror value; a still-queued newer entry keeps its value (the trigger keeps the stored number).
+import { withObjectNumber } from '@ezdraft/geometry';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Change } from '../../editor/model/patches';
 import type { LoadedObject, ObjectValue } from './model-api';
@@ -127,7 +130,11 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
         if (now && now.rev === s.rev) await outbox.delete(k);
         else if (now) await outbox.put({ ...now, baseSeq: hit.updatedSeq }, k);
         if (s.value === null) await mirror.delete(k);
-        else await mirror.put({ value: s.value, updatedSeq: hit.updatedSeq }, k);
+        else {
+          // EZD-294 Build step 9: the mirror keeps the number the server stored.
+          const value = hit.number === undefined ? s.value : withObjectNumber(s.value, hit.number);
+          await mirror.put({ value, updatedSeq: hit.updatedSeq }, k);
+        }
         // EZD-299b Decided D-Resolves: the requeued row at a saved key goes in the same transaction.
         const ck = conflictKey(projectId, s.id);
         const row = (await outbox.get(ck)) as DeviceConflict | undefined;

@@ -127,3 +127,18 @@ describe('EZD-221a buildTemplateObjects', () => {
     }
   });
 });
+
+// EZD-294 P1 (vault/plans/EZD-294.md section 4; Decided "Template numbers"; AC-EZD-294-3).
+describe('EZD-294 template numbers', () => {
+  it('EZD-294 P1 template walls are numbered 1 to 4', () => {
+    const rows = buildTemplateObjects(
+      { key: 'l_kitchen' as const, width: 141.5, length: 168, ceilingHeight: 108 },
+      makeIdSeq(),
+    );
+    const attrs = (i: number) =>
+      (rows[i]!.data as unknown as { attributes: Record<string, unknown> }).attributes;
+    expect(rows.slice(0, 4).map((_, i) => attrs(i).number)).toEqual([1, 2, 3, 4]);
+    expect(rows[4]!.type).toBe('room');
+    expect(attrs(4)).toEqual({ name: 'L-kitchen' });
+  });
+});

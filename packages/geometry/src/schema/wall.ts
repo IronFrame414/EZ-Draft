@@ -2,6 +2,8 @@
 // `start` to `end` is the inside finished face; `thicknessSide` is where the thickness lies walking start to end.
 // EZD-203 Build step 4 (vault/plans/EZD-203.md section 3 `schema/wall.ts`): `layers` listed from the left face to
 // the right face walking start to end; their thicknesses add up to `thickness` within 1/64".
+// EZD-294 Build step 1 (vault/plans/EZD-294.md Decided "Where the number lives", "Valid number"; Q-0625 (a)):
+// `number` is the wall's fixed number in its project, optional so stored v3 documents without it still parse.
 import { z } from 'zod';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
@@ -28,6 +30,7 @@ export const wallDataSchema = z
       topCutToCeiling: z.boolean(),
       bearing: z.boolean(),
       layers: z.array(wallLayerSchema).min(1),
+      number: z.int().min(1).optional(),
     }),
   })
   .refine(

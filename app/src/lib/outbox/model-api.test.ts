@@ -16,6 +16,7 @@ const LOAD: ModelLoad = {
     { id: 'B', updatedSeq: 2, ...v(2) },
   ],
   invalid: [],
+  numberHighs: { wall: 0, door: 0, window: 0 },
 };
 const entry = (id: string, value: OutboxEntry['value']): OutboxEntry => ({
   projectId: P,

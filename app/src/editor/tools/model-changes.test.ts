@@ -3,6 +3,7 @@
 // SPLIT (v4 ids); AC-EZD-210-2, -3.
 import {
   CURRENT_SCHEMA_VERSION,
+  NO_NUMBERS,
   createWallData,
   type Point,
   type WallObject,
@@ -18,7 +19,19 @@ import {
   type ToolContext,
   type ToolInput,
 } from './index';
-import { F1, F2, baseObjects, idSeq, roomValue, uid } from './test-utils/fixtures';
+import {
+  F1,
+  F2,
+  baseObjects,
+  drawWithRect,
+  drawWithWall,
+  idSeq,
+  roomValue,
+  typedEnws,
+  uid,
+  wallsOf,
+  withWalls,
+} from './test-utils/fixtures';
 
 const p = (x: number, y: number): Point => ({ x, y });
 const V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -55,13 +68,20 @@ describe('EZD-210a model changes', () => {
   it('EZD-210a M1 changes for walls and rooms', () => {
     const data = wallOn(F1);
     const one: WallObject = { id: uid(1), type: 'wall', data };
-    expect(wallEditChanges(baseObjects(), F1, [one], idSeq(9))).toEqual([
-      { id: uid(1), value: { type: 'wall', schemaVersion: CURRENT_SCHEMA_VERSION, data } },
+    expect(wallEditChanges(baseObjects(), F1, [one], idSeq(9), NO_NUMBERS)).toEqual([
+      {
+        id: uid(1),
+        value: {
+          type: 'wall',
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          data: { ...data, attributes: { ...data.attributes, number: 1 } },
+        },
+      },
     ]);
-    expect(wallEditChanges(baseObjects(), F1, [], idSeq(9))).toEqual([]);
+    expect(wallEditChanges(baseObjects(), F1, [], idSeq(9), NO_NUMBERS)).toEqual([]);
     const walls = r2Walls();
     expect(walls.map((w) => w.id)).toEqual([uid(1), uid(2), uid(3), uid(4)]);
-    const changes = wallEditChanges(baseObjects(), F1, walls, idSeq(5));
+    const changes = wallEditChanges(baseObjects(), F1, walls, idSeq(5), NO_NUMBERS);
     expect(changes).toHaveLength(5);
     expect(changes.slice(0, 4).map((c) => c.id)).toEqual([uid(1), uid(2), uid(3), uid(4)]);
     for (const c of changes.slice(0, 4)) {
@@ -104,5 +124,72 @@ describe('EZD-210a model changes', () => {
     ]);
     expect(objects.size).toBe(7);
     expect([...objects]).toEqual(snapshot);
+  });
+});
+
+// EZD-294 T1-T4 (vault/plans/EZD-294.md section 4; Decided "wallEditChanges numbers"; AC-EZD-294-1, -3).
+const numberOf = (v: { data: Record<string, unknown> } | null | undefined): unknown =>
+  (v?.data.attributes as Record<string, unknown> | undefined)?.number;
+
+function numbered(id: number, n: number | undefined): ObjectValue {
+  const w = withWalls(baseObjects(), id, [p(0, 0), p(144, 0)], false).get(uid(id))!;
+  if (n === undefined) return w;
+  const d = w.data as { attributes: Record<string, unknown> };
+  return { ...w, data: { ...w.data, attributes: { ...d.attributes, number: n } } };
+}
+
+describe('EZD-294 object numbers in wall edits', () => {
+  it('EZD-294 T1 the Room rectangle numbers its four walls', () => {
+    const got = drawWithRect(
+      baseObjects(),
+      [
+        { type: 'press', at: p(0, 0) },
+        { type: 'release', at: p(0, 0) },
+        { type: 'typed', values: { width: 144, depth: 120 } },
+      ],
+      1,
+    );
+    const byId = new Map(wallsOf(got.objects).map((w) => [w.id, w]));
+    expect([1, 2, 3, 4].map((k) => byId.get(uid(k))!.data.attributes.number)).toEqual([1, 2, 3, 4]);
+    const room = got.objects.get(uid(5))!;
+    expect(room.type).toBe('room');
+    expect('number' in (room.data.attributes as Record<string, unknown>)).toBe(false);
+  });
+
+  it('EZD-294 T2 the Wall tool numbers each wall and keeps them when the chain closes', () => {
+    const got = drawWithWall(baseObjects(), typedEnws([144, 120, 144, 120]), 1);
+    const byId = new Map(wallsOf(got.objects).map((w) => [w.id, w]));
+    expect([1, 2, 3, 4].map((k) => byId.get(uid(k))!.data.attributes.number)).toEqual([1, 2, 3, 4]);
+    for (const step of got.changes) {
+      for (const c of step) {
+        if (c.value?.type !== 'wall') continue;
+        const k = parseInt(c.id.slice(-12), 16);
+        expect(numberOf(c.value)).toBe(k);
+      }
+    }
+  });
+
+  it('EZD-294 T3 a wall already saved keeps its stored number', () => {
+    const objects = new Map(baseObjects());
+    objects.set(uid(1), numbered(1, 7));
+    const moved = createWallData({ start: p(10, 0), end: p(154, 0), level: F1 });
+    if (!moved.ok) throw new Error('createWallData refused the test wall');
+    const wall: WallObject = { id: uid(1), type: 'wall', data: moved.data };
+    const changes = wallEditChanges(objects, F1, [wall], idSeq(9), NO_NUMBERS);
+    expect(numberOf(changes.find((c) => c.id === uid(1))!.value)).toBe(7);
+  });
+
+  it('EZD-294 T4 a new wall gets the highest + 1 from highs and objects', () => {
+    const objects = new Map(baseObjects());
+    objects.set(uid(1), numbered(1, 1));
+    objects.set(uid(2), numbered(2, 2));
+    objects.set(uid(3), numbered(3, 3));
+    const fresh = createWallData({ start: p(0, 50), end: p(144, 50), level: F1 });
+    if (!fresh.ok) throw new Error('createWallData refused the test wall');
+    const wall: WallObject = { id: uid(20), type: 'wall', data: fresh.data };
+    const high = wallEditChanges(objects, F1, [wall], idSeq(30), { wall: 9, door: 0, window: 0 });
+    expect(numberOf(high.find((c) => c.id === uid(20))!.value)).toBe(10);
+    const low = wallEditChanges(objects, F1, [wall], idSeq(30), NO_NUMBERS);
+    expect(numberOf(low.find((c) => c.id === uid(20))!.value)).toBe(4);
   });
 });

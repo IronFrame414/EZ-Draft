@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
 import type { Change } from './model/patches';
 import type { ModelLoad } from '../lib/outbox/model-api';
-import type { Actor, OutboxEntry, OutboxStorage } from '../lib/outbox/outbox';
+import type { Actor, OutboxEntry, OutboxStorage, SavedObject } from '../lib/outbox/outbox';
 import type { OutboxSync, SyncState } from '../lib/outbox/outbox-sync';
 import type { ConflictList, ConflictListState } from '../lib/conflicts/conflict-list';
 
@@ -36,6 +36,7 @@ const modelOf = (canEdit: boolean): ModelLoad => ({
   lockEpoch: 0,
   objects: [{ id: FLOOR, ...floor('Floor 1'), updatedSeq: 1 }],
   invalid: [],
+  numberHighs: { wall: 0, door: 0, window: 0 },
 });
 
 const entry = (projectId: string, name: string): OutboxEntry => ({
@@ -190,6 +191,40 @@ describe('EZD-120c editor session', () => {
     expect(rc.session.store.getState().objects.get(FLOOR)?.data.name).toBe('Floor 1');
     await vi.waitFor(() => expect(captureBrowserError).toHaveBeenCalledTimes(1));
     expect(vi.mocked(captureBrowserError).mock.calls[0][1]).toBe('editor.device_copy');
+  });
+  // EZD-294 W1 (vault/plans/EZD-294.md section 4 and step 12; Q-0629 (b); AC-EZD-294-2).
+  it('EZD-294 W1 the session applies saved numbers of its own project', async () => {
+    const WALL = '77777777-7777-4777-8777-777777777777';
+    const model: ModelLoad = {
+      ...modelOf(true),
+      objects: [
+        { id: FLOOR, ...floor('Floor 1'), updatedSeq: 1 },
+        {
+          id: WALL,
+          type: 'wall',
+          schemaVersion: 3,
+          data: { attributes: { number: 5 } },
+          updatedSeq: 1,
+        },
+      ],
+    };
+    let onSaved: ((projectId: string, saved: SavedObject[]) => void) | undefined;
+    const createSync = vi.fn((o: { onSaved?: (projectId: string, saved: SavedObject[]) => void }) => {
+      onSaved = o.onSaved;
+      return fakeSync();
+    });
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: respond(model),
+      createStorage: () => fakeStorage(async () => []),
+      createSync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    expect(onSaved).toBeDefined();
+    onSaved!(PROJECT, [{ id: WALL, updatedSeq: 2, number: 6 }]);
+    onSaved!('other', [{ id: WALL, updatedSeq: 3, number: 9 }]);
+    const stored = result.session.store.getState().objects.get(WALL)!;
+    expect((stored.data.attributes as Record<string, unknown>).number).toBe(6);
+    expect(result.session.store.getState().numberHighs.wall).toBe(6);
   });
 });
 

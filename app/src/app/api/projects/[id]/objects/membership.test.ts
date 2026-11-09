@@ -173,7 +173,7 @@ describe('EZD-120d save route membership check', () => {
     state.store = new Map(editorCookies);
     const c = await post(own, editor.membershipId);
     expect(c.res.status).toBe(200);
-    expect(c.json).toEqual({ objects: [{ id: own, updatedSeq: 1 }] });
+    expect(c.json).toEqual({ objects: [{ id: own, updatedSeq: 1, number: 1 }] });
     expect(await stored(own)).toHaveLength(1);
   }, 120000);
 });

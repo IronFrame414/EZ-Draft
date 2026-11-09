@@ -1,7 +1,9 @@
 // EZD-120b Build step 3 (vault/plans/EZD-120b.md section 3 model-api row; Decided "Reopen"; AC-EZD-120b-4, -5):
 // the model load answer shared by the browser and the server, the browser's load request and the working copy
 // rebuilt from a load and the device outbox. No React, no IndexedDB.
-import type { ObjectIssue } from '@ezdraft/geometry';
+// EZD-294 Build step 7 (vault/plans/EZD-294.md section 3 ModelLoad row; Q-0625 (a)): the load answers each number
+// key's highest stored number.
+import type { NumberHighs, ObjectIssue } from '@ezdraft/geometry';
 import type { OutboxEntry } from './outbox';
 
 export type ObjectValue = { type: string; schemaVersion: number; data: Record<string, unknown> };
@@ -14,6 +16,7 @@ export type ModelLoad = {
   lockEpoch: number;
   objects: LoadedObject[];
   invalid: ObjectIssue[];
+  numberHighs: NumberHighs;
 };
 
 export type ModelLoadResult =

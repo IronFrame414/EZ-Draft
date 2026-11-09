@@ -275,7 +275,16 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }): void {
     if (step.walls.length > 0 && level !== null) {
       const last = step.walls[step.walls.length - 1]!;
-      store.applyEdit(wallEditChanges(store.getState().objects, level, step.walls, newId));
+      // EZD-294 Build step 15: new walls are numbered from the store's highs.
+      store.applyEdit(
+        wallEditChanges(
+          store.getState().objects,
+          level,
+          step.walls,
+          newId,
+          store.getState().numberHighs,
+        ),
+      );
       setUi({ lastLength: wallLength(last.data.geometry) });
     }
     refreshDrawingIds();

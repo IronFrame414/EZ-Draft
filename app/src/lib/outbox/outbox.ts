@@ -1,6 +1,8 @@
 // EZD-120b Build step 4 (vault/plans/EZD-120b.md section 3 outbox and storage rows; Decided "Batch",
 // "Request", "classifySave"; 03b rules 6, 9; Q-0503): the device outbox's types and the pure rules the sync
 // uses. No React, no IndexedDB; the storage is passed in (outbox-idb.ts in the browser).
+// EZD-294 Build step 8 (vault/plans/EZD-294.md section 3 SavedObject row; Q-0629 (b)): a saved answer may carry the
+// object's number, a whole number >= 1.
 import type { Change } from '../../editor/model/patches';
 import type { LoadedObject, ObjectValue } from './model-api';
 
@@ -68,8 +70,10 @@ export type ConflictOrphan = ConflictKey & { serverId: string | null };
 // EZD-299b Decided D-Guard: a delete guarded by the refusal it was read at (absent deletes what is stored).
 export type ConflictDelete = ConflictKey & { refusedAt?: number | null };
 
+export type SavedObject = { id: string; updatedSeq: number; number?: number };
+
 export type SaveOutcome =
-  | { kind: 'saved'; objects: { id: string; updatedSeq: number }[] }
+  | { kind: 'saved'; objects: SavedObject[] }
   | {
       kind: 'refused';
       code: RefusedCode;
@@ -89,11 +93,7 @@ export type Batch = {
 export type OutboxStorage = {
   put(projectId: string, lockEpoch: number, changes: Change[], now: number): Promise<void>;
   list(): Promise<OutboxEntry[]>;
-  commit(
-    projectId: string,
-    sent: OutboxEntry[],
-    saved: { id: string; updatedSeq: number }[],
-  ): Promise<void>;
+  commit(projectId: string, sent: OutboxEntry[], saved: SavedObject[]): Promise<void>;
   drop(entries: OutboxEntry[]): Promise<void>;
   replaceMirror(projectId: string, objects: LoadedObject[]): Promise<void>;
   // EZD-299b section 3 storage row: the conflict list on the device.
@@ -160,14 +160,18 @@ const STATUS_CODES: Record<number, RefusedCode> = {
 const isRefusedCode = (c: unknown): c is RefusedCode =>
   typeof c === 'string' && (REFUSED_CODES as readonly string[]).includes(c);
 
-const isSavedList = (o: unknown): o is { id: string; updatedSeq: number }[] =>
+const isSavedNumber = (n: unknown): boolean =>
+  n === undefined || (Number.isSafeInteger(n) && (n as number) >= 1);
+
+const isSavedList = (o: unknown): o is SavedObject[] =>
   Array.isArray(o) &&
   o.every(
     (x: unknown) =>
       typeof x === 'object' &&
       x !== null &&
       typeof (x as { id?: unknown }).id === 'string' &&
-      typeof (x as { updatedSeq?: unknown }).updatedSeq === 'number',
+      typeof (x as { updatedSeq?: unknown }).updatedSeq === 'number' &&
+      isSavedNumber((x as { number?: unknown }).number),
   );
 
 const isConflictList = (o: unknown): o is { id: string; serverSeq: number }[] =>

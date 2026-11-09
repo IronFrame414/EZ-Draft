@@ -13,6 +13,8 @@ const GATE =
 const POLICY_HELPER = 'RLS helper called by table policies as the querying user (EZD-006 Step 3).';
 const ONE_OFF =
   'RLS helper granted to authenticated by EZD-006 for one-off checks (docs/architecture.md Row-level security, Helpers).';
+const OBJECT_NUMBER_INDEX =
+  'Evaluated as the writing role by the model_object_number_idx index on every model_object insert and update; service_role holds insert and update on model_object (EZD-294).';
 const REALTIME_POLICY = 'Called by the realtime.messages policies as the joining user (EZD-018).';
 
 export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = {
@@ -44,5 +46,9 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
     { fn: 'private.tenant_id()', reason: POLICY_HELPER },
     { fn: 'private.tenant_user_ids()', reason: POLICY_HELPER },
   ],
-  service_role: [{ fn: 'private.api_request_gate()', reason: GATE }],
+  service_role: [
+    { fn: 'private.api_request_gate()', reason: GATE },
+    { fn: 'private.object_number(text, jsonb)', reason: OBJECT_NUMBER_INDEX },
+    { fn: 'private.object_number_key(text, jsonb)', reason: OBJECT_NUMBER_INDEX },
+  ],
 };

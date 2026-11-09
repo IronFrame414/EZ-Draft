@@ -6,6 +6,7 @@ import {
   CURRENT_SCHEMA_VERSION,
   createWallData,
   roomAreaSqFt,
+  type NumberHighs,
   type Point,
 } from '@ezdraft/geometry';
 import { createModelStore } from '../model/model-store';
@@ -79,8 +80,12 @@ function ke(key: string, over: Partial<ToolKeyEvent> = {}): ToolKeyEvent {
 const GAP_POINTS = [pt(0, 0), pt(144, 0), pt(144, 120), pt(0, 120), pt(0, 0.5)];
 const gapObjects = () => withWalls(baseObjects(), 1, GAP_POINTS, false);
 
-function setup(objects: Map<string, ObjectValue> = baseObjects(), canEdit = true) {
-  const store = createModelStore({ objects });
+function setup(
+  objects: Map<string, ObjectValue> = baseObjects(),
+  canEdit = true,
+  numberHighs?: NumberHighs,
+) {
+  const store = createModelStore({ objects, numberHighs });
   const h = fakeHandle();
   const msgs: string[] = [];
   const controller = createDrawingController({
@@ -404,5 +409,21 @@ describe('EZD-210b drawing controller', () => {
     expect(railMode({ ...ready, canvasFailed: true })).toBe('disabled');
     expect(railMode({ ...ready, controllerEnabled: false })).toBe('disabled');
     expect(railMode(ready)).toBe('enabled');
+  });
+});
+
+// EZD-294 C1 (vault/plans/EZD-294.md section 4; Decided "Store highs"; AC-EZD-294-1).
+describe('EZD-294 drawing controller numbers', () => {
+  it("EZD-294 C1 the controller numbers from the store's highs", () => {
+    const { controller, click, walls, store } = setup(baseObjects(), true, {
+      wall: 12,
+      door: 0,
+      window: 0,
+    });
+    controller.selectTool('room-rect');
+    click(0, 0);
+    controller.typed({ width: 144, depth: 120 });
+    expect(walls().map((w) => w.data.attributes.number)).toEqual([13, 14, 15, 16]);
+    expect(store.getState().numberHighs.wall).toBe(16);
   });
 });

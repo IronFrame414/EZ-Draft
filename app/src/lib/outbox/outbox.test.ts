@@ -57,6 +57,23 @@ describe('EZD-120b outbox rules', () => {
   });
 });
 
+// EZD-294 O1 (vault/plans/EZD-294.md section 4 and step 8; AC-EZD-294-2).
+describe('EZD-294 saved numbers in classifySave', () => {
+  it('EZD-294 O1 classifySave keeps a saved number', () => {
+    const objects = [
+      { id: 'a', updatedSeq: 2, number: 6 },
+      { id: 'b', updatedSeq: 1 },
+    ];
+    expect(classifySave(200, { objects })).toEqual({ kind: 'saved', objects });
+    for (const bad of [0, 1.5, '6', null]) {
+      expect(
+        classifySave(200, { objects: [{ id: 'a', updatedSeq: 2, number: bad }] }),
+        String(bad),
+      ).toEqual({ kind: 'failed' });
+    }
+  });
+});
+
 // EZD-299a T14 (vault/plans/EZD-299a.md section 3 outbox row; AC-EZD-299-14).
 describe('EZD-299a app_outdated answer', () => {
   it('EZD-299a T14 a 409 app_outdated is a refusal with that code', () => {

@@ -6,9 +6,13 @@
 // EZD-205b Build step 9 (vault/plans/EZD-205b.md Decided "Override check", "saveObjects order"; S02 Events;
 // Q-0570): a room whose closure override is new or changed must name the saving user; the stored rows are read for
 // those rooms only.
+// EZD-294 Build step 6 (vault/plans/EZD-294.md Decided "loadModel numbers", "Saved number"; Q-0625 (a); Q-0629 (b)):
+// the load answers each key's highest number of live and deleted rows; a save answers each saved object's number.
 import {
   CURRENT_SCHEMA_VERSION,
+  NO_NUMBERS,
   parseStoredObject,
+  raiseNumberHighs,
   type ClosureOverride,
   type ObjectIssue,
 } from '@ezdraft/geometry';
@@ -37,7 +41,7 @@ export type SaveResult =
   | {
       ok: true;
       tenantId: string;
-      objects: { id: string; updatedSeq: number }[];
+      objects: { id: string; updatedSeq: number; number?: number }[];
       overridden: { roomId: string; gapIn: number }[];
       resolved?: string[];
     }
@@ -95,7 +99,7 @@ export function parseSaveRequest(body: unknown): SaveRequest | null {
 type SavedJson = {
   status: 'saved';
   tenant_id: string;
-  objects: { object_id: string; updated_seq: number }[];
+  objects: { object_id: string; updated_seq: number; number: number | null }[];
   resolved?: string[];
 };
 type ConflictJson = { status: 'conflict'; conflicts: { object_id: string; server_seq: number }[] };
@@ -242,7 +246,11 @@ export async function saveObjects(
     return {
       ok: true,
       tenantId: result.tenant_id,
-      objects: result.objects.map((o) => ({ id: o.object_id, updatedSeq: o.updated_seq })),
+      objects: result.objects.map((o) =>
+        typeof o.number === 'number'
+          ? { id: o.object_id, updatedSeq: o.updated_seq, number: o.number }
+          : { id: o.object_id, updatedSeq: o.updated_seq },
+      ),
       overridden,
       ...(result.resolved === undefined ? {} : { resolved: result.resolved }),
     };
@@ -283,6 +291,8 @@ type ObjectRow = {
   updated_seq: number;
 };
 
+type NumberRow = { object_id: string; type: string; number: unknown; kind: string | null };
+
 export async function loadModel(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -301,7 +311,22 @@ export async function loadModel(
     return data;
   };
 
-  const [project, lock, firstPage] = await Promise.all([
+  // Decided "loadModel numbers": the number and kind of each deleted wall and opening, paged as `page()`.
+  const deletedPage = async (after: string | null): Promise<NumberRow[]> => {
+    const base = client
+      .from('model_object')
+      .select('object_id, type, number:data->attributes->number, kind:data->attributes->>kind')
+      .eq('project_id', projectId)
+      .eq('deleted', true)
+      .in('type', ['wall', 'opening']);
+    const { data, error } = await (after === null ? base : base.gt('object_id', after))
+      .order('object_id')
+      .limit(LOAD_PAGE);
+    if (error) throw error;
+    return data as unknown as NumberRow[];
+  };
+
+  const [project, lock, firstPage, firstDeleted] = await Promise.all([
     client
       .from('project')
       .select('id, name, tenant_id, customer!project_customer_fk(name)')
@@ -309,6 +334,7 @@ export async function loadModel(
       .maybeSingle(),
     client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
     page(null),
+    deletedPage(null),
   ]);
   if (project.error) throw project.error;
   if (lock.error) throw lock.error;
@@ -320,6 +346,21 @@ export async function loadModel(
     last = await page(last[last.length - 1].object_id);
     rows.push(...last);
   }
+
+  const deleted = [...firstDeleted];
+  let lastDeleted = firstDeleted;
+  while (lastDeleted.length === LOAD_PAGE) {
+    lastDeleted = await deletedPage(lastDeleted[lastDeleted.length - 1].object_id);
+    deleted.push(...lastDeleted);
+  }
+
+  const numberHighs = raiseNumberHighs(NO_NUMBERS, [
+    ...rows.map((r) => ({ type: r.type, data: r.data })),
+    ...deleted.map((r) => ({
+      type: r.type,
+      data: { attributes: { kind: r.kind, number: r.number } },
+    })),
+  ]);
 
   const objects: LoadedObject[] = [];
   const invalid: ObjectIssue[] = [];
@@ -358,5 +399,6 @@ export async function loadModel(
     lockEpoch: lock.data?.lock_epoch ?? 0,
     objects,
     invalid,
+    numberHighs,
   };
 }

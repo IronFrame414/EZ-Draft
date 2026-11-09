@@ -246,7 +246,17 @@ describe('EZD-202 model object schema on save', () => {
       const row = stored.find((x) => x.object_id === id);
       expect(row, id).toBeDefined();
       expect(row?.schema_version).toBe(CURRENT_SCHEMA_VERSION);
-      expect(row?.data).toEqual(sent[id]);
+      // EZD-294 Decided "Number trigger": a new wall and a new opening in a fresh project are stored with number 1.
+      const numbered = id === wall || id === opening;
+      const sentData = sent[id] as Record<string, unknown>;
+      expect(row?.data).toEqual(
+        numbered
+          ? {
+              ...sentData,
+              attributes: { ...(sentData.attributes as Record<string, unknown>), number: 1 },
+            }
+          : sentData,
+      );
     }
   }, 120000);
 

@@ -2,6 +2,7 @@
 export * from './benchmark/benchmark';
 export * from './drawing';
 export * from './length';
+export * from './numbers';
 export * from './rooms';
 export * from './schema';
 export * from './snap/index';
