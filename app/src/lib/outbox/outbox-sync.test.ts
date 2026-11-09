@@ -293,6 +293,12 @@ function flaky(opts: { rejectPut?: number[]; rejectCommit?: number[] }) {
     list: () => real.list(),
     drop: (e) => real.drop(e),
     replaceMirror: (p, o) => real.replaceMirror(p, o),
+    moveToConflicts: (m, n) => real.moveToConflicts(m, n),
+    listConflicts: () => real.listConflicts(),
+    setConflictServer: (u) => real.setConflictServer(u),
+    deleteConflicts: (k) => real.deleteConflicts(k),
+    requeue: (r, b, n) => real.requeue(r, b, n),
+    setMirror: (p, o, v, u) => real.setMirror(p, o, v, u),
     close: () => real.close(),
   };
   return { storage, calls };

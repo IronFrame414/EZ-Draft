@@ -10,6 +10,7 @@ export type ModelStore = StoreApi<ModelState> & {
   applyEdit(changes: Change[]): string[];
   undo(): string[];
   redo(): string[];
+  applyRemote(changes: Change[]): string[];
 };
 
 export function createModelStore(o: {
@@ -61,6 +62,16 @@ export function createModelStore(o: {
       const edit = future.at(-1);
       if (edit === undefined) return [];
       return commit(edit, 'forward', [...past, edit], future.slice(0, -1));
+    },
+    // EZD-299b Build step 6 (vault/plans/EZD-299b.md Decided D-Remote): a change from the server, with no undo
+    // step and no onCommit (nothing is queued).
+    applyRemote(changes) {
+      if (changes.length === 0) return [];
+      const { objects } = store.getState();
+      const edit = makeEdit(objects, changes);
+      const ids = edit.patches.map((p) => p.id);
+      store.setState({ objects: applyEditTo(objects, edit, 'forward'), lastChangedIds: ids });
+      return ids;
     },
   };
 }

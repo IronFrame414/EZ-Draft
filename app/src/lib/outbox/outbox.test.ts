@@ -66,3 +66,42 @@ describe('EZD-299a app_outdated answer', () => {
     });
   });
 });
+
+// EZD-299b T2 (vault/plans/EZD-299b.md section 4; AC-EZD-299-16; Decided D-Classify).
+describe('EZD-299b classifySave lists', () => {
+  it('EZD-299b T2 adds conflicts and invalid only for the matching answer and shape', () => {
+    expect(
+      classifySave(409, {
+        error: { code: 'save_conflict' },
+        conflicts: [{ id: 'a', serverSeq: 2 }],
+      }),
+    ).toStrictEqual({
+      kind: 'refused',
+      code: 'save_conflict',
+      conflicts: [{ id: 'a', serverSeq: 2 }],
+    });
+    expect(classifySave(409, { error: { code: 'save_conflict' }, conflicts: 'x' })).toStrictEqual({
+      kind: 'refused',
+      code: 'save_conflict',
+    });
+    expect(
+      classifySave(400, {
+        error: { code: 'invalid_object' },
+        invalid: [{ id: 'b', issue: 'invalid_data' }],
+      }),
+    ).toStrictEqual({
+      kind: 'refused',
+      code: 'invalid_object',
+      invalid: [{ id: 'b', issue: 'invalid_data' }],
+    });
+    expect(
+      classifySave(400, { error: { code: 'invalid_object' }, invalid: [{ id: 1 }] }),
+    ).toStrictEqual({ kind: 'refused', code: 'invalid_object' });
+    expect(
+      classifySave(409, {
+        error: { code: 'app_outdated' },
+        conflicts: [{ id: 'a', serverSeq: 2 }],
+      }),
+    ).toStrictEqual({ kind: 'refused', code: 'app_outdated' });
+  });
+});

@@ -97,3 +97,38 @@ describe('EZD-120b model store', () => {
     expect(store.getState().past).toHaveLength(before.past.length);
   });
 });
+
+// EZD-299b T5 (vault/plans/EZD-299b.md section 4; AC-EZD-299-2; Decided D-Remote): a change that came from the
+// server goes into the objects without an edit, a queue entry or an undo step.
+describe('EZD-299b model store applyRemote', () => {
+  it('EZD-299b T5 applies remote changes with no undo step and no onCommit, and refuses a repeated id', () => {
+    const onCommit = vi.fn();
+    const store = createModelStore({ objects: new Map([['A', v(1)]]), onCommit });
+    store.applyEdit([{ id: 'A', value: v(2) }]);
+    onCommit.mockClear();
+    expect(store.getState().past).toHaveLength(1);
+
+    const returned = store.applyRemote([
+      { id: 'A', value: v(9) },
+      { id: 'B', value: null },
+    ]);
+    expect(returned).toEqual(['A', 'B']);
+    expect(store.getState().objects.get('A')).toEqual(v(9));
+    expect(store.getState().lastChangedIds).toEqual(['A', 'B']);
+    expect(store.getState().past).toHaveLength(1);
+    expect(store.getState().future).toHaveLength(0);
+    expect(onCommit).toHaveBeenCalledTimes(0);
+
+    const state = store.getState();
+    expect(store.applyRemote([])).toEqual([]);
+    expect(store.getState()).toBe(state);
+
+    expect(() =>
+      store.applyRemote([
+        { id: 'A', value: v(3) },
+        { id: 'A', value: v(4) },
+      ]),
+    ).toThrow('duplicate_object_id');
+    expect(onCommit).toHaveBeenCalledTimes(0);
+  });
+});

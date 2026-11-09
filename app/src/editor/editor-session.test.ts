@@ -8,6 +8,7 @@ import type { Change } from './model/patches';
 import type { ModelLoad } from '../lib/outbox/model-api';
 import type { Actor, OutboxEntry, OutboxStorage } from '../lib/outbox/outbox';
 import type { OutboxSync, SyncState } from '../lib/outbox/outbox-sync';
+import type { ConflictList, ConflictListState } from '../lib/conflicts/conflict-list';
 
 vi.mock('../lib/errors/capture', () => ({ captureBrowserError: vi.fn() }));
 
@@ -54,6 +55,12 @@ function fakeStorage(list: () => Promise<OutboxEntry[]>) {
     commit: vi.fn(async () => {}),
     drop: vi.fn(async () => {}),
     replaceMirror: vi.fn(async () => {}),
+    moveToConflicts: vi.fn(async () => {}),
+    listConflicts: vi.fn(async () => []),
+    setConflictServer: vi.fn(async () => []),
+    deleteConflicts: vi.fn(async () => []),
+    requeue: vi.fn(async () => ({ kept: false })),
+    setMirror: vi.fn(async () => {}),
     close: vi.fn(),
   };
   return storage satisfies OutboxStorage;
@@ -65,9 +72,11 @@ function fakeSync(): OutboxSync {
     failures: 0,
     problem: null,
     lastSavedAt: null,
+    conflictRev: 0,
   }));
   return {
     ...store,
+    keepMine: vi.fn(async () => ({ kept: false })),
     enqueue: vi.fn(async () => {}),
     flush: vi.fn(async () => {}),
     retry: vi.fn(),
@@ -181,5 +190,65 @@ describe('EZD-120c editor session', () => {
     expect(rc.session.store.getState().objects.get(FLOOR)?.data.name).toBe('Floor 1');
     await vi.waitFor(() => expect(captureBrowserError).toHaveBeenCalledTimes(1));
     expect(vi.mocked(captureBrowserError).mock.calls[0][1]).toBe('editor.device_copy');
+  });
+});
+
+// EZD-299b T9 (vault/plans/EZD-299b.md section 4; AC-EZD-299-9; Decided D-Session).
+function fakeConflicts(): ConflictList {
+  const store = createStore<ConflictListState>()(() => ({ rows: [], server: 'idle' }));
+  return {
+    ...store,
+    refresh: vi.fn(async () => {}),
+    keepMine: vi.fn(async () => ({ ok: true }) as const),
+    keepTheirs: vi.fn(async () => ({ ok: true }) as const),
+    remove: vi.fn(async () => ({ ok: true }) as const),
+    dispose: vi.fn(),
+  };
+}
+
+describe('EZD-299b editor session conflicts', () => {
+  it('EZD-299b T9 builds the conflict list over the storage and sync, refreshes it and disposes it first', async () => {
+    const storage = fakeStorage(async () => []);
+    const sync = fakeSync();
+    const conflicts = fakeConflicts();
+    const createConflicts = vi.fn(() => conflicts);
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: respond(modelOf(true)),
+      createStorage: () => storage,
+      createSync: () => sync,
+      createConflicts,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    const { session } = result;
+
+    expect(createConflicts).toHaveBeenCalledTimes(1);
+    expect(createConflicts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        storage,
+        sync,
+        editor: expect.objectContaining({ projectId: PROJECT, lockEpoch: 0 }),
+      }),
+    );
+    expect(session.conflicts).toBe(conflicts);
+    expect(conflicts.refresh).toHaveBeenCalledTimes(1);
+
+    session.dispose();
+    expect(conflicts.dispose).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(conflicts.dispose).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(sync.dispose).mock.invocationCallOrder[0],
+    );
+  });
+
+  it('EZD-299b T9 a view-only session builds the list with no sync', async () => {
+    const createConflicts = vi.fn(() => fakeConflicts());
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: respond(modelOf(false)),
+      createStorage: () => fakeStorage(async () => []),
+      createSync: () => fakeSync(),
+      createConflicts,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    expect(createConflicts).toHaveBeenCalledTimes(1);
+    expect(createConflicts).toHaveBeenCalledWith(expect.objectContaining({ sync: null }));
   });
 });

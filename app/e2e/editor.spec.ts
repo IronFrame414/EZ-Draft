@@ -136,7 +136,7 @@ test.describe('EZD-120c editor route', () => {
     }
   });
 
-  test('EZD-120c B1 a project card opens the editor, which asks for the model and nothing else', async ({
+  test('EZD-120c B1 a project card opens the editor, which asks for the model and the conflict list and nothing else', async ({
     page,
     signInAs,
   }) => {
@@ -152,7 +152,10 @@ test.describe('EZD-120c editor route', () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${ids.P1}`);
     await expect(page.getByText('bravo')).toBeVisible();
     await page.waitForTimeout(500);
-    expect(urls.map((u) => new URL(u).pathname)).toEqual([`/api/projects/${ids.P1}/model`]);
+    expect(urls.map((u) => new URL(u).pathname)).toEqual([
+      `/api/projects/${ids.P1}/model`,
+      '/api/sync-conflicts',
+    ]);
   });
 
   test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, no panels or status items', async ({
