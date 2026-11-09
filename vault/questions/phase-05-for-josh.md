@@ -1,0 +1,24 @@
+# Phase 5 · for Josh (questions unit, 2026-11-09)
+
+Nothing waits on you for phase 5. Agents settled all eight questions (section 2).
+
+## 1. Decisions needed
+
+None.
+
+## 2. Agent answers to confirm
+
+Confirm or override each.
+- **Q-0643 · EZD-211.** Both Offset left and Offset right typed: accepted only when left + width + right equals the space between the corners within 1/64", else refused ("Those offsets and the width don't add up to the wall."), nothing saved. Source: phase-auditor; 09k rows 9-14, 23; 03g; Q-0636.
+- **Q-0644 · EZD-213.** The clause "a bearing wall still deletes" is proved by EZD-217's delete test, not by EZD-213. Source: code-reviewer; EZD-217 plan C4 (c); Q-0630 row 15.
+- **Q-0645 · EZD-213.** Several doors or windows share Size, Rough opening and Impact rating (Sill height only when all are windows); Swing and Hand and Offset from corner stay single-object; walls mixed with openings show only the title and subtitle. Source: phase-auditor; S03:115,117; wording W4, W5, W8, W9, W14. Design note: a mixed wall-and-door selection shows no fields; tell me if you want something there.
+- **Q-0646 · EZD-217.** Paste and Duplicate land the copied objects' bounding-box centre on the cursor (or view centre), not snapped. Source: phase-auditor; Q-0630 rows 10, 19; S03:72.
+- **Q-0647 · EZD-217.** Undo, Redo, Paste and Duplicate pressed during the Wall or Room tool or a gap pick first end the tool (as tapping Select does), then act. Source: phase-auditor; S03:36, 78-79; Q-0630 rows 24, 28.
+- **Q-0657 · EZD-212a.** A door or window that is Not on a wall can still be resized: the chosen jamb stays fixed along its stored direction. Typing an Offset still needs a wall. Source: phase-auditor; S03dStates board (editable Width on the flagged door); Q-0630 rows 11, 76.
+- **Q-0658 · EZD-213a.** With more than one stud layer, a typed Thickness changes the first stud layer (left face to right face). Source: phase-auditor; Q-0630 row 13; 09k Thickness.
+- **Q-0659 · EZD-213a.** The inspector shows Height, door and window Width and Height, Rough opening and Sill height to 1/16", like Thickness; Length and Offset stay at 1/2". Source: phase-auditor; 03g; 09j rows 15-16; Q-0635. Note: the approved door and window boards show Offset from corner finer than 1/2" (sample data, not a decision).
+
+## 3. Proposed wording
+
+- **EZD-211:** refusal "Those offsets and the width don't add up to the wall."; the rest per its plan section 3.
+- **EZD-213, EZD-217, EZD-204, EZD-208:** see section 3 of each plan; nothing new from these answers.

@@ -4009,6 +4009,11 @@
     "mockups/S03dDoorSelected.png",
     "mockups/S03dStates.png"
    ],
+   "architecture": [
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-203",
@@ -4049,6 +4054,13 @@
     "mockups/S03dDoorSelected.png",
     "mockups/S03dStates.png"
    ],
+   "architecture": [
+    "Drawing list (EZD-238)",
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-204a",
@@ -4389,6 +4401,11 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207a",
@@ -4434,6 +4451,14 @@
     "mockups/S03dDoorSelected.png",
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Design tokens, fonts and icons",
+    "Device layouts (EZD-014)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4651,6 +4676,12 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Drawing list (EZD-238)",
+    "Typed dimension bar (EZD-209)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-204a",
@@ -4708,6 +4739,14 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Typed dimension bar (EZD-209)",
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-211a",
@@ -4769,6 +4808,11 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Rooms (EZD-205a)",
+    "Model schema (EZD-202)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-204a",
@@ -4815,6 +4859,15 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Typed dimension bar (EZD-209)",
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-212a",
@@ -4863,6 +4916,16 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Typed dimension bar (EZD-209)",
+    "Device layouts (EZD-014)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Plan canvas (EZD-207a)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-212b",
@@ -4911,6 +4974,13 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Patch store and outbox (EZD-120b)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-204a",
@@ -4961,6 +5031,18 @@
     "mockups/S03dDoorSelected.png",
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)",
+    "Editor route (EZD-120c)",
+    "Patch store and outbox (EZD-120b)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Performance check (EZD-017)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -5023,6 +5105,15 @@
     "mockups/S03dStates.png",
     "mockups/S03dTablet.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Editor shell (EZD-012)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-213b",
@@ -20205,6 +20296,15 @@
     "mockups/S03cAIAssistantNoKey.png",
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Entry points and lazy modules (EZD-020)",
+    "Menus (EZD-108)",
+    "Browser tests (EZD-016a)",
+    "AI stubs and the network guard (EZD-021)"
    ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
