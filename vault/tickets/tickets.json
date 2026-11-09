@@ -19798,6 +19798,20 @@
    "mockups": [
     "mockups/S01gMyProfileAI.png"
    ],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "My profile (EZD-108)",
+    "Email (EZD-008)",
+    "Row-level security (EZD-006)",
+    "Environment variables",
+    "Environments and releases (EZD-023b)",
+    "Messages and language (t())",
+    "Background jobs (EZD-009)",
+    "Error reporting (EZD-024)",
+    "Migrations",
+    "Design tokens, fonts and icons"
+   ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-108",
@@ -19834,6 +19848,14 @@
     "spec/sections/09l-ai-assistant-cost-examples.md"
    ],
    "mockups": [],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Server-only data access and can()",
+    "Messages and language (t())",
+    "Row-level security (EZD-006)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5601",
@@ -19881,6 +19903,16 @@
     "mockups/S03cAIAssistantNoKey.png",
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Editor shell (EZD-012)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)",
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Dependencies"
    ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
@@ -19994,6 +20026,32 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md"
    ]
+  },
+  {
+   "id": "EZD-363",
+   "phase": 4,
+   "title": "Fix: the disabled tool button rule in ToolRail.module.css keeps its hover inside the hover media query",
+   "depends_raw": "EZD-210b, EZD-014b",
+   "spec_ref": "rule 17 (gate defect); EZD-014b touch-css test T2 (f) hover; EZD-210b",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md#Accessibility"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-210b",
+    "EZD-014b"
+   ],
+   "acs": [
+    "AC-EZD-363-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
