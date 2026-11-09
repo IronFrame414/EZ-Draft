@@ -53,7 +53,7 @@
 }
 
 .tool:disabled,
-.tool:disabled:hover {
+.tool[aria-pressed='true']:disabled {
   background: transparent;
   color: var(--ez-slate-300);
   cursor: default;

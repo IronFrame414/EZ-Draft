@@ -190,7 +190,7 @@ describe('EZD-210b ToolRail disabled', () => {
     expect(count(on, 'disabled=""')).toBe(0);
     const css = squash(readFileSync(path.join(here, 'ToolRail.module.css'), 'utf8'));
     const rule = [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)].find(
-      (r) => squash(r[1]) === '.tool:disabled, .tool:disabled:hover',
+      (r) => squash(r[1]) === ".tool:disabled, .tool[aria-pressed='true']:disabled",
     );
     expect(rule).toBeDefined();
     const decls = rule![2]
