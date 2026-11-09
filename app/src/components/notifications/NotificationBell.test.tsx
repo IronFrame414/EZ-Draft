@@ -14,6 +14,7 @@ import type { NotificationApi, NotificationState } from '../../lib/notifications
 import type { UserHandle } from '../../lib/realtime';
 import { NotificationPanelFallback, bellLabel, connectNotificationBell } from './NotificationBell';
 import { NotificationPanelView } from '../../lazy/notification-panel';
+import styles from './NotificationBell.module.css';
 
 const makeItem = (n: number): NotificationItem => ({
   id: `i${n}`,
@@ -248,5 +249,26 @@ describe('EZD-332 notification panel fallback', () => {
     expect(failed).toContain('Notifications could not load');
     expect(failed).toContain('Retry');
     expect(failed).not.toContain('notification-loading');
+  });
+});
+
+// EZD-299 U11 (vault/plans/EZD-299.md section 4; AC-EZD-299-7; Decided D-Bell): a sync_conflict row has the amber
+// icon box; every other kind keeps the plain one.
+describe('EZD-299 notification bell conflict icon', () => {
+  it('U11 only the sync_conflict row adds iconBoxWarn', () => {
+    const conflict: NotificationItem = {
+      ...makeItem(2),
+      kind: 'sync_conflict',
+      params: { count: '1', names: 'Wall 4', more: '0' },
+    };
+    const html = render({ ...base, items: [conflict, makeItem(1)], unreadCount: 2 });
+    const blocks = itemBlocks(html);
+    expect(blocks.length).toBe(2);
+    const iconClasses = (block: string) => {
+      const m = /<span class="([^"]*)"[^>]*><svg/.exec(block);
+      return (m?.[1] ?? '').split(' ').filter((c) => c.length > 0);
+    };
+    expect(iconClasses(blocks[0])).toEqual([styles.iconBox, styles.iconBoxWarn]);
+    expect(iconClasses(blocks[1])).toEqual([styles.iconBox]);
   });
 });

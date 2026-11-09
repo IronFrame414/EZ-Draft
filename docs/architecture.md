@@ -352,6 +352,8 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/components/outbox/  OutboxDrain.tsx: the office drain and the sign-out check (EZD-120d)
   src/server/outbox/      actor.ts: who is signed in, for the device outbox (EZD-120d)
   src/editor/model/       the open model's store: patches, undo and redo, changed ids (EZD-120b)
+  src/editor/conflicts/   the conflict banner and list (EZD-299)
+  src/lib/conflicts/      sync conflict types and labels, the list store and its calls (EZD-299a, EZD-299b); conflict-view.ts: the list's rows, groups and pages (EZD-299)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026c)
@@ -650,6 +652,20 @@ EZD-120c (vault/plans/EZD-120c.md Build steps 1-10, section 3); 03a; S03 Permiss
 - **Save word** (`app/src/editor/save-state.ts`, `SaveStatus.tsx`). `saveWord(state, now, timeZone?)` gives the `office.editor.*` key: idle and saved without a time `saved`, pending and saving `saving`, offline `saved_on_device`, error `not_saved`, saved under a minute `saved_just_now`, under an hour `saved_min_ago` (`minutes`), else `saved_at` (`formatClock`, `en-US` h:mm AM/PM). `SaveStateText` (`save-state`, `data-save-status`) re-renders once when the word next changes (`nextSaveWordChangeMs`, one `setTimeout`), never on a tick.
 - **Test hook.** Ready, `canEdit` and `devHooks`: `window.__ezdraftEditor` (`EditorTestHook`: `objects()` lists the store's objects as `{ id, ...value }`, `edit(changes)` is `store.applyEdit`), removed on unmount. Never in production, never for view-only.
 - Strings are `office.editor.*` keys, `en` only.
+
+### Conflict list screens (EZD-299)
+
+EZD-299 (vault/plans/EZD-299.md Build steps 1-14, section 3); board S03b; Q-0502; Q-0508; Q-0511; Q-0540; Q-0628 (b); Q-0631 (b); Q-0632 (a).
+
+- **Rows** (`app/src/lib/conflicts/conflict-view.ts`, pure, never throws). `conflictRowView` reads mine and saved raw: label (`objectLabel`), noun and icon by type, the changed fields (wall length, thickness, height, or position when the length is the same; opening width, height, sill height, position; else Details; lengths and points compared at 1/64"), the Yours and Saved chips (`formatLength` at 1/2"; Saved only for reason `conflict`), and why plus hint. `groupConflicts` groups rows as this project, other projects and projects no longer open (reason `not_open`, never a project name), pages them 50 at a time (`CONFLICT_PAGE_SIZE`; Show more adds 50) and counts each group in full; `countForProject` counts this project's rows.
+- **Outdated rows.** While the sync's problem is `app_outdated`, `useConflictInputs` (`app/src/editor/conflicts/use-conflicts.ts`) reads `EditorSession.queued()` (the device outbox, every project) when the problem starts and each time the list opens; `outdatedInputs` makes one row per entry, newest first, key `outdated:<projectId>/<id>`, action Reload only. The save-failed banner is hidden while such rows exist.
+- **Banner** (`ConflictBanner.tsx`, `conflict-banner`): under the header card when this project has rows; "Your other edits are saved." unless the sync is in error or offline; Review changes opens the list.
+- **List** (`ConflictPanel.tsx`: `ConflictPanelView` pure, `ConflictPanel` the container; `conflict-panel`, `section#changes-not-saved`, `role="dialog"`, not modal): the right 720 px of the canvas region, last child of the canvas. Opening it refreshes the conflict list. Keep mine, Keep theirs and Remove call `session.conflicts`; a row is disabled while its action runs; not allowed and failed show a toast, not found refreshes. Reload reloads the page. The saved-by line (conflict rows with a saved time) uses the bell's relative time.
+- **Show.** A row of the open project whose object is in the open model, while the plan canvas is up: closes the list, then `plan.handle.showObject(id)`.
+- **Link.** `/projects/<id>?conflicts=open` (exactly `open`) opens the editor with the list open (`ProjectEditorProps.conflictsOpen`); the notification link uses it.
+- **Bell.** A `sync_conflict` item's icon box is amber (`.iconBoxWarn`).
+- **Save bench.** `/dev/saves/<id>` has Make a conflict (`bench-conflict`): `createConflictFault` sends "their" version of the next objects save first (each wall's height + 1, same headers), so the edit is refused; `waitForConflict` waits for its row; `bench-result` `data-target` names the wall.
+- Strings are `office.conflicts.*` keys, `en` only.
 
 ### Plan canvas (EZD-207a)
 

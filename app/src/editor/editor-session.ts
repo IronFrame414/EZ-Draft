@@ -30,6 +30,8 @@ export type EditorSession = {
   store: ModelStore;
   sync: OutboxSync | null;
   conflicts: ConflictList;
+  // EZD-299 C4: the device outbox of this actor, every project.
+  queued(): Promise<OutboxEntry[]>;
   dispose(): void;
 };
 
@@ -101,6 +103,7 @@ export async function openEditorSession(projectId: string, deps?: OpenDeps): Pro
       store,
       sync,
       conflicts,
+      queued: () => storage.list(),
       dispose() {
         conflicts.dispose();
         sync?.dispose();

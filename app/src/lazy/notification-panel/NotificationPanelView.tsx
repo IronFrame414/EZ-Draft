@@ -54,7 +54,11 @@ function Row({
       data-unread={unread ? 'true' : 'false'}
       onClick={() => onOpen(item.id)}
     >
-      <span className={styles.iconBox}>
+      <span
+        className={
+          item.kind === 'sync_conflict' ? `${styles.iconBox} ${styles.iconBoxWarn}` : styles.iconBox
+        }
+      >
         <Icon name={notificationIcon(item.kind, item.params)} size={18} />
       </span>
       <span className={styles.text}>

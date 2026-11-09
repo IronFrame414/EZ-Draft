@@ -125,6 +125,12 @@
   color: var(--ez-slate-700);
 }
 
+/* EZD-299 D-Bell: a sync_conflict row (board S01c state). */
+.iconBoxWarn {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
 .text {
   display: flex;
   flex: 1;

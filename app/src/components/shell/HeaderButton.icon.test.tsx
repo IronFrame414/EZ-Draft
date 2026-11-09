@@ -18,6 +18,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-207b: fit_screen, remove.
 // EZD-210a: rectangle, view_column_2.
 // EZD-210b: ads_click, rotate_right (E1).
+// EZD-299: block, category, door_front, info, layers, my_location, refresh, report, update, window (D-Icons).
 const EXPECTED_ICONS = [
   'add',
   'ads_click',
@@ -28,6 +29,8 @@ const EXPECTED_ICONS = [
   'auto_awesome',
   'autorenew',
   'badge',
+  'block',
+  'category',
   'chat_bubble',
   'check_circle',
   'close',
@@ -36,6 +39,7 @@ const EXPECTED_ICONS = [
   'contact_mail',
   'description',
   'domain',
+  'door_front',
   'download',
   'edit',
   'error',
@@ -46,19 +50,24 @@ const EXPECTED_ICONS = [
   'group',
   'help',
   'history',
+  'info',
   'inventory_2',
   'kitchen',
+  'layers',
   'library_books',
   'logout',
   'monitor_heart',
   'more_horiz',
+  'my_location',
   'notifications',
   'notifications_off',
   'person',
   'person_book',
   'photo_camera',
   'rectangle',
+  'refresh',
   'remove',
+  'report',
   'rotate_right',
   'search',
   'settings',
@@ -67,10 +76,12 @@ const EXPECTED_ICONS = [
   'straighten',
   'sync_problem',
   'tune',
+  'update',
   'upload',
   'verified_user',
   'view_column_2',
   'view_quilt',
+  'window',
 ];
 
 describe('EZD-014b HeaderButton icon form', () => {

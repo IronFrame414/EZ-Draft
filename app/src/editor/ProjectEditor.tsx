@@ -9,6 +9,8 @@
 // start shows an inline error with Retry.
 // EZD-210b Build step 12 (vault/plans/EZD-210b.md Decided "Rail mode", "Editor wiring", "Messages"; Q-0568): the
 // drawing rail (disabled while loading, absent without Edit model) and, over the plan, the drawing layer.
+// EZD-299 Build step 9 (vault/plans/EZD-299.md Decided D-Editor, D-Banner, D-Show; C9; Q-0511 a): the conflict
+// banner under the header card and "Changes not saved" over the canvas; `conflictsOpen` opens the list at start.
 import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
@@ -23,6 +25,7 @@ import { NoAccess } from '../components/states/NoAccess';
 import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
 import { useToast } from '../components/states/ToastProvider';
+import { countForProject } from '../lib/conflicts/conflict-view';
 import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import type { MessageKey } from '../server/messages/catalog';
@@ -43,6 +46,9 @@ import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
+import { ConflictBanner } from './conflicts/ConflictBanner';
+import { ConflictPanel } from './conflicts/ConflictPanel';
+import { useConflictInputs } from './conflicts/use-conflicts';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
 import {
   createDrawingController,
@@ -59,6 +65,7 @@ export type ProjectEditorProps = {
   devHooks: boolean;
   openDeps?: OpenDeps;
   onSession?: (session: EditorSession | null) => void;
+  conflictsOpen?: boolean;
 };
 
 export type EditorTestHook = {
@@ -84,12 +91,14 @@ export function ProjectEditor({
   devHooks,
   openDeps,
   onSession,
+  conflictsOpen,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const [canvasAttempt, setCanvasAttempt] = useState(0);
+  const [listOpen, setListOpen] = useState(conflictsOpen === true);
   const openDepsRef = useRef(openDeps);
   const onSessionRef = useRef(onSession);
   const messageRef = useRef<(key: MessageKey) => void>(noop);
@@ -143,6 +152,12 @@ export function ProjectEditor({
   const plan = state.kind === 'ready' ? state.plan : null;
   const drawing = state.kind === 'ready' ? state.drawing : null;
   const sync = session?.sync ?? null;
+  const conflicts = useConflictInputs(session, projectId, listOpen);
+
+  // D-Editor: each time the list opens (and at start with `conflictsOpen`), the list is read again.
+  useEffect(() => {
+    if (listOpen && session !== null) void session.conflicts.refresh();
+  }, [listOpen, session]);
 
   useEffect(() => {
     if (session === null || sync === null || !devHooks) return;
@@ -183,20 +198,32 @@ export function ProjectEditor({
     setAttempt((n) => n + 1);
   };
 
+  const conflictCount = countForProject(conflicts.inputs, projectId);
   const header =
     session === null ? (
       <HeaderCard>
         <Wordmark href="/" />
       </HeaderCard>
     ) : (
-      <EditorHeader
-        projectsHref="/"
-        projectName={session.model.project.name}
-        subtitle={subtitle}
-        activeView="plan"
-        views={PLAN_VIEWS}
-        onViewChange={noop}
-      />
+      <>
+        <EditorHeader
+          projectsHref="/"
+          projectName={session.model.project.name}
+          subtitle={subtitle}
+          activeView="plan"
+          views={PLAN_VIEWS}
+          onViewChange={noop}
+        />
+        {conflictCount > 0 ? (
+          <ConflictBanner
+            count={conflictCount}
+            projectName={session.model.project.name}
+            othersSaved={conflicts.othersSaved}
+            expanded={listOpen}
+            onReview={() => setListOpen(true)}
+          />
+        ) : null}
+      </>
     );
 
   let body: ReactNode = null;
@@ -226,7 +253,8 @@ export function ProjectEditor({
         {sync !== null ? (
           <>
             <OfflineBanner message="office.editor.offline" />
-            <SaveFailedBanner sync={sync} />
+            {/* D-Editor: outdated rows exist only while the problem is app_outdated; they say Reload. */}
+            {conflicts.outdatedCount > 0 ? null : <SaveFailedBanner sync={sync} />}
           </>
         ) : null}
         {canvasFailed ? (
@@ -255,6 +283,17 @@ export function ProjectEditor({
   });
   const rail =
     mode === 'hidden' ? null : <DrawingRail controller={drawing} disabled={mode === 'disabled'} />;
+  const panel =
+    session !== null && listOpen ? (
+      <ConflictPanel
+        session={session}
+        projectId={projectId}
+        inputs={conflicts.inputs}
+        server={conflicts.server}
+        plan={showPlan ? plan : null}
+        onClose={() => setListOpen(false)}
+      />
+    ) : null;
   const canvas = showPlan ? (
     <>
       <PlanInputSurface controller={plan} />
@@ -263,9 +302,13 @@ export function ProjectEditor({
         <DrawingLayer controller={drawing} handle={plan.handle} canEdit={canEdit} />
       ) : null}
       {stateArea}
+      {panel}
     </>
   ) : (
-    stateArea
+    <>
+      {stateArea}
+      {panel}
+    </>
   );
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />

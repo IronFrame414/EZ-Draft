@@ -44,3 +44,29 @@ describe('EZD-120c editor page', () => {
     expect(vi.mocked(ProjectEditor).mock.calls[0][0]).toEqual({ projectId: ID, devHooks: true });
   });
 });
+
+// EZD-299 U7 (vault/plans/EZD-299.md section 4; AC-EZD-299-7; Decided D-Page): `?conflicts=open` opens the list; any
+// other value, an array or no query leaves the props exactly as before.
+describe('EZD-299 editor page conflicts query', () => {
+  it('U7 only the exact string open adds conflictsOpen', async () => {
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    const propsFor = async (searchParams: Record<string, string | string[] | undefined>) => {
+      vi.mocked(ProjectEditor).mockClear();
+      renderToStaticMarkup(
+        (await EditorPage({
+          params: Promise.resolve({ id: ID }),
+          searchParams: Promise.resolve(searchParams),
+        })) as ReactElement,
+      );
+      return vi.mocked(ProjectEditor).mock.calls[0][0];
+    };
+    expect(await propsFor({ conflicts: 'open' })).toEqual({
+      projectId: ID,
+      devHooks: true,
+      conflictsOpen: true,
+    });
+    expect(await propsFor({ conflicts: ['open'] })).toEqual({ projectId: ID, devHooks: true });
+    expect(await propsFor({ conflicts: 'OPEN' })).toEqual({ projectId: ID, devHooks: true });
+    expect(await propsFor({})).toEqual({ projectId: ID, devHooks: true });
+  });
+});

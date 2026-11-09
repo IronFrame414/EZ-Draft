@@ -61,4 +61,11 @@ export const TOKENS: readonly {
   // S01f .row border, .kn shadow; EZD-140
   { name: '--ez-divider-row', value: '#f0f2f5', group: 'color' },
   { name: '--ez-shadow-switch-knob', value: '0 1px 2px rgba(0,0,0,.2)', group: 'shadow' },
+  // S03b banner, list; EZD-299
+  { name: '--ez-amber-banner', value: 'oklch(0.97 0.03 80)', group: 'color' },
+  { name: '--ez-amber-border', value: 'oklch(0.86 0.07 75)', group: 'color' },
+  { name: '--ez-amber-icon', value: 'oklch(0.5 0.13 60)', group: 'color' },
+  { name: '--ez-amber-strong', value: 'oklch(0.43 0.12 60)', group: 'color' },
+  { name: '--ez-cobalt-deep', value: 'oklch(0.42 0.17 262)', group: 'color' },
+  { name: '--ez-group-band', value: '#fafbfc', group: 'color' },
 ];

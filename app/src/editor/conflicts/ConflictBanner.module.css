@@ -1,0 +1,52 @@
+/* EZD-299 Build step 7 (vault/plans/EZD-299.md Decided D-CSS): board S03b banner, div[role="status"] and .b.bs. */
+.banner {
+  flex: none;
+  height: 48px;
+  box-sizing: border-box;
+  margin: 12px 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 0 14px;
+  background: var(--ez-amber-banner);
+  border: 1px solid var(--ez-amber-border);
+  border-radius: var(--ez-radius-10);
+  font-size: 14px;
+}
+
+.icon {
+  display: flex;
+  color: var(--ez-amber-icon);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.saved {
+  color: var(--ez-slate-700);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font: 500 13px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    border-color: var(--ez-border-hover);
+  }
+}

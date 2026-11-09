@@ -287,3 +287,23 @@ describe('EZD-299b editor session conflicts', () => {
     expect(createConflicts).toHaveBeenCalledWith(expect.objectContaining({ sync: null }));
   });
 });
+
+// EZD-299 U10 (vault/plans/EZD-299.md section 4; AC-EZD-299-6; interface C4): the device outbox of this actor, every
+// project.
+describe('EZD-299 editor session queued', () => {
+  it('U10 queued() returns storage.list(), the entries of every project', async () => {
+    const entries = [entry(OTHER, 'Floor Z'), entry(PROJECT, 'Floor A')];
+    const storage = fakeStorage(async () => entries);
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: respond(modelOf(true)),
+      createStorage: () => storage,
+      createSync: () => fakeSync(),
+      createConflicts: () => fakeConflicts(),
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    const listed = await result.session.queued();
+    expect(listed).toEqual(entries);
+    expect(listed.map((e) => e.projectId).sort()).toEqual([PROJECT, OTHER].sort());
+    expect(storage.list).toHaveBeenCalled();
+  });
+});

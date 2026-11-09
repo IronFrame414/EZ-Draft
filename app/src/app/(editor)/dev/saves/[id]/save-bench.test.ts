@@ -2,9 +2,19 @@
 // P202). The pure parts of the save test page: the sample walls, the 50 edits, the written-row count and the
 // fault that fails the next save. Expected values come from the plan's Decided rows, not from running the code.
 import { CURRENT_SCHEMA_VERSION, parseStoredObject } from '@ezdraft/geometry';
-import { describe, expect, it, vi } from 'vitest';
+import { createStore } from 'zustand/vanilla';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { ConflictListState, ConflictRow } from '../../../../../lib/conflicts/conflict-list';
 import type { ObjectValue } from '../../../../../lib/outbox/model-api';
-import { benchTargets, benchWalls, countWritten, createSaveFault, fiftyEdits } from './save-bench';
+import {
+  benchTargets,
+  benchWalls,
+  countWritten,
+  createConflictFault,
+  createSaveFault,
+  fiftyEdits,
+  waitForConflict,
+} from './save-bench';
 
 const FLOOR = '99999999-9999-4999-8999-999999999999';
 
@@ -130,5 +140,133 @@ describe('EZD-120d save bench', () => {
     expect(fault.armed()).toBe(false);
     const after = await fault.fetchImpl('/api/projects/p1/objects', { method: 'POST' });
     expect(await after.text()).toBe('base');
+  });
+});
+
+// EZD-299 U8, U9 (vault/plans/EZD-299.md section 4; AC-EZD-299-1; Decided D-Fault, D-Wait; Q-0508).
+const URL_OBJECTS = '/api/projects/p/objects';
+const wallChange = (height: number) => ({
+  id: 'w',
+  baseSeq: 1,
+  deleted: false,
+  type: 'wall',
+  schemaVersion: 1,
+  data: { attributes: { height, thickness: 4.5 } },
+});
+const deleteChange = { id: 'd', baseSeq: 1, deleted: true };
+const ORIGINAL = JSON.stringify({
+  lockEpoch: 0,
+  changes: [wallChange(97), deleteChange],
+  resolves: ['r'],
+});
+const HEADERS = { 'content-type': 'application/json', 'x-ezdraft-membership': 'm1' };
+
+describe('EZD-299 conflict fault', () => {
+  it('U8 armed: sends their version first, then the original, once', async () => {
+    const base = vi
+      .fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValueOnce(new Response('theirs', { status: 200 }))
+      .mockResolvedValueOnce(new Response('stale', { status: 409 }));
+    const fault = createConflictFault(base as unknown as typeof fetch);
+    expect(fault.armed()).toBe(false);
+    fault.arm();
+    expect(fault.armed()).toBe(true);
+    const res = await fault.fetchImpl(URL_OBJECTS, {
+      method: 'POST',
+      headers: HEADERS,
+      body: ORIGINAL,
+    });
+    expect(res.status).toBe(409);
+    expect(base).toHaveBeenCalledTimes(2);
+    const first = base.mock.calls[0];
+    const second = base.mock.calls[1];
+    expect(first[0]).toBe(URL_OBJECTS);
+    expect(first[1]?.method).toBe('POST');
+    expect(first[1]?.headers).toEqual(HEADERS);
+    expect(JSON.parse(first[1]?.body as string)).toEqual({
+      lockEpoch: 0,
+      changes: [wallChange(98), deleteChange],
+    });
+    expect(second[0]).toBe(URL_OBJECTS);
+    expect(second[1]?.body).toBe(ORIGINAL);
+    expect(second[1]?.headers).toEqual(HEADERS);
+    expect(fault.armed()).toBe(false);
+  });
+
+  it('U8 their version not accepted: that answer is returned and the original is not sent', async () => {
+    const base = vi
+      .fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValueOnce(new Response('down', { status: 500 }));
+    const fault = createConflictFault(base as unknown as typeof fetch);
+    fault.arm();
+    const res = await fault.fetchImpl(URL_OBJECTS, { method: 'POST', body: ORIGINAL });
+    expect(res.status).toBe(500);
+    expect(base).toHaveBeenCalledTimes(1);
+    expect(fault.armed()).toBe(false);
+  });
+
+  it('U8 disarmed, another method or a body that is not JSON passes through once', async () => {
+    const base = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response('base', { status: 200 }));
+    const fault = createConflictFault(base as unknown as typeof fetch);
+    await fault.fetchImpl(URL_OBJECTS, { method: 'POST', body: ORIGINAL });
+    expect(base).toHaveBeenCalledTimes(1);
+    expect(base.mock.calls[0][1]?.body).toBe(ORIGINAL);
+
+    fault.arm();
+    await fault.fetchImpl(URL_OBJECTS, { method: 'GET' });
+    expect(base).toHaveBeenCalledTimes(2);
+    expect(fault.armed()).toBe(true);
+
+    await fault.fetchImpl(URL_OBJECTS, { method: 'POST', body: 'x' });
+    expect(base).toHaveBeenCalledTimes(3);
+    expect(base.mock.calls[2][1]?.body).toBe('x');
+  });
+});
+
+describe('EZD-299 wait for conflict', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function fakeList() {
+    const store = createStore<ConflictListState>()(() => ({ rows: [], server: 'idle' }));
+    let unsubscribes = 0;
+    const list = {
+      getState: store.getState,
+      subscribe: (listener: Parameters<typeof store.subscribe>[0]) => {
+        const off = store.subscribe(listener);
+        return () => {
+          unsubscribes += 1;
+          off();
+        };
+      },
+    };
+    return { store, list, unsubscribes: () => unsubscribes };
+  }
+
+  it('U9 true when the row arrives later (key compared in lower case), then unsubscribes', async () => {
+    vi.useFakeTimers();
+    const { store, list, unsubscribes } = fakeList();
+    const done = waitForConflict(list, 'p1/abc', 30_000);
+    await vi.advanceTimersByTimeAsync(100);
+    store.setState({ rows: [{ key: 'P1/ABC' } as unknown as ConflictRow] });
+    await expect(done).resolves.toBe(true);
+    expect(unsubscribes()).toBe(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('U9 false at the timeout, with one unsubscribe and no timer left', async () => {
+    vi.useFakeTimers();
+    const { list, unsubscribes } = fakeList();
+    let result: boolean | null = null;
+    void waitForConflict(list, 'p1/abc', 30_000).then((v) => {
+      result = v;
+    });
+    await vi.advanceTimersByTimeAsync(29_999);
+    expect(result).toBeNull();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(result).toBe(false);
+    expect(unsubscribes()).toBe(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

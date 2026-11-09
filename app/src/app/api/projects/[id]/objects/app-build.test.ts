@@ -186,7 +186,7 @@ describe('EZD-299a objects route app build check', () => {
   }, 120000);
 
   it('EZD-299a T9 accepts an equal or newer build', async () => {
-    for (const build of ['200', '201']) {
+    for (const [i, build] of ['200', '201'].entries()) {
       state.store = new Map(cookies);
       const id = randomUUID();
       const { res, json } = await post(
@@ -196,7 +196,7 @@ describe('EZD-299a objects route app build check', () => {
         build,
       );
       expect(res.status, `header ${build}`).toBe(200);
-      expect(json).toEqual({ objects: [{ id, updatedSeq: 1 }] });
+      expect(json).toEqual({ objects: [{ id, updatedSeq: 1, number: i + 1 }] });
     }
   }, 120000);
 
@@ -254,6 +254,9 @@ describe('EZD-299a objects route app build check', () => {
       '200',
     );
     expect(ok.res.status).toBe(200);
-    expect(ok.json).toEqual({ objects: [{ id: wallId, updatedSeq: 1 }], resolved: [rowId] });
+    expect(ok.json).toEqual({
+      objects: [{ id: wallId, updatedSeq: 1, number: expect.any(Number) }],
+      resolved: [rowId],
+    });
   }, 120000);
 });
