@@ -19959,6 +19959,16 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Model working copy (EZD-120a)",
+    "Model schema (EZD-202)",
+    "Plan canvas (EZD-207a)",
+    "Editor shell (EZD-012)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5602",
@@ -20002,6 +20012,14 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
+   "architecture": [
+    "Events",
+    "Patch store and outbox (EZD-120b)",
+    "Model working copy (EZD-120a)",
+    "Plan canvas (EZD-207a)",
+    "Messages and language (t())"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5604",
