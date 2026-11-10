@@ -145,7 +145,7 @@ describe('EZD-210b drawing controller', () => {
 
     controller.keyDown(ke('Escape'));
     expect(controller.getUi().tool).toBeNull();
-    expect(h.modes).toEqual(['off', 'wall']);
+    expect(h.modes).toEqual(['off', 'select']);
     expect(h.receiver()).toBeNull();
 
     const v = setup(baseObjects(), false);
@@ -382,6 +382,14 @@ describe('EZD-210b drawing controller', () => {
     expect(controller.getUi().pick).toBeNull();
     expect(controller.getUi().boxes).toEqual([]);
     expect(h.receiver()).toBeNull();
+  });
+
+  it('EZD-208a DC1 the hover mode returns to select', () => {
+    // EZD-208a DC1 (vault/plans/EZD-208a.md section 4; section 1 R13; AC-EZD-208-9).
+    const { controller, h } = setup(gapObjects());
+    controller.startPick(controller.getUi().boxes[0]!.wallIds);
+    expect(controller.keyDown(ke('Escape'))).toBe(true);
+    expect(h.modes).toEqual(['wall', 'select']);
   });
 
   it('D10 keeping the room out of square stores who and when; a viewer sees the box with no actions', () => {

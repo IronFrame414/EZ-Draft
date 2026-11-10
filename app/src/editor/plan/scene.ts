@@ -3,6 +3,8 @@
 // shader whose uniforms follow the view, so a pan or zoom rebuilds no buffer. EZD-207b Build step 5
 // (vault/plans/EZD-207b.md Decided "Text material", "Text uploads", "Highlight"; C6): one text mesh on one atlas
 // texture, and one translucent hover highlight; neither counts as a batch object.
+// EZD-208a Build step 4 (vault/plans/EZD-208a.md section 3 A4-A5; section 1 R11): hover lines, and the selection's
+// opaque fill, opening bodies and lines; none counts as a batch object.
 import {
   BufferAttribute,
   BufferGeometry,
@@ -23,7 +25,15 @@ import {
 import type { PlanBatch } from './batches';
 import { tokenRgb } from './color';
 import type { PlanTextBatch } from './glyph-atlas';
-import { HIGHLIGHT_RENDER_ORDER, HOVER_FILL_OPACITY } from './hover';
+import {
+  HIGHLIGHT_LINE_RENDER_ORDER,
+  HIGHLIGHT_RENDER_ORDER,
+  HOVER_FILL_OPACITY,
+  type ObjectGeometry,
+} from './hover';
+
+export const SELECTION_FILL_RENDER_ORDER = 3.5;
+export const SELECTION_LINE_RENDER_ORDER = 3.55;
 
 export type PlanScene = {
   group: Group;
@@ -32,7 +42,8 @@ export type PlanScene = {
   setViewport(v: { dpr: number; bufferHeight: number }): void;
   setAtlas(image: HTMLCanvasElement | OffscreenCanvas): void;
   setText(batch: PlanTextBatch): number;
-  setHighlight(positions: Float32Array): number;
+  setHighlight(fill: Float32Array, segments?: Float32Array): number;
+  setSelection(g: ObjectGeometry): number;
   objectCount(): number;
   dispose(): void;
 };
@@ -127,12 +138,85 @@ export function createPlanScene(): PlanScene {
     text = null;
   };
   const cobalt = tokenRgb('--ez-cobalt');
+  const cobaltTint = tokenRgb('--ez-cobalt-tint');
   let highlight: { mesh: Mesh; positions: Float32Array } | null = null;
   const removeHighlight = () => {
     if (highlight === null) return;
     group.remove(highlight.mesh);
     disposeObject(highlight.mesh);
     highlight = null;
+  };
+  let highlightLines: { object: LineSegments; positions: Float32Array } | null = null;
+  const removeHighlightLines = () => {
+    if (highlightLines === null) return;
+    group.remove(highlightLines.object);
+    disposeObject(highlightLines.object);
+    highlightLines = null;
+  };
+
+  type Slot = { object: LineSegments | Mesh; positions: Float32Array } | null;
+  const selection: { body: Slot; fill: Slot; segments: Slot } = {
+    body: null,
+    fill: null,
+    segments: null,
+  };
+  const removeSlot = (key: keyof typeof selection) => {
+    const slot = selection[key];
+    if (slot === null) return;
+    group.remove(slot.object);
+    disposeObject(slot.object);
+    selection[key] = null;
+  };
+  const makeSelectionObject = (
+    key: keyof typeof selection,
+    positions: Float32Array,
+  ): LineSegments | Mesh => {
+    if (key === 'segments') {
+      const object = new LineSegments(
+        geometryOf(positions),
+        new LineBasicMaterial({
+          color: new Color().setRGB(cobalt.r, cobalt.g, cobalt.b, SRGBColorSpace),
+          depthTest: false,
+          depthWrite: false,
+          toneMapped: false,
+        }),
+      );
+      object.renderOrder = SELECTION_LINE_RENDER_ORDER;
+      return object;
+    }
+    const c = key === 'body' ? cobaltTint : cobalt;
+    const object = new Mesh(
+      geometryOf(positions),
+      new MeshBasicMaterial({
+        color: new Color().setRGB(c.r, c.g, c.b, SRGBColorSpace),
+        side: DoubleSide,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    );
+    object.renderOrder = SELECTION_FILL_RENDER_ORDER;
+    return object;
+  };
+  const setSlot = (key: keyof typeof selection, positions: Float32Array): number => {
+    const slot = selection[key];
+    if (positions.length === 0) {
+      if (slot === null) return 0;
+      removeSlot(key);
+      return 1;
+    }
+    if (slot === null) {
+      const object = makeSelectionObject(key, positions);
+      group.add(object);
+      selection[key] = { object, positions };
+      return 1;
+    }
+    if (samePositions(slot.positions, positions)) return 0;
+    const old = slot.object.geometry;
+    slot.object.geometry = geometryOf(positions);
+    old.dispose();
+    slot.positions = positions;
+    return 1;
   };
 
   return {
@@ -225,35 +309,68 @@ export function createPlanScene(): PlanScene {
       }
       return 1;
     },
-    setHighlight(positions) {
+    setHighlight(positions, segments) {
+      let uploaded = 0;
       if (positions.length === 0) {
         removeHighlight();
-        return 0;
+      } else if (highlight === null || !samePositions(highlight.positions, positions)) {
+        if (highlight === null) {
+          const mesh = new Mesh(
+            geometryOf(positions),
+            new MeshBasicMaterial({
+              color: new Color().setRGB(cobalt.r, cobalt.g, cobalt.b, SRGBColorSpace),
+              transparent: true,
+              opacity: HOVER_FILL_OPACITY,
+              side: DoubleSide,
+              depthTest: false,
+              depthWrite: false,
+              toneMapped: false,
+            }),
+          );
+          mesh.renderOrder = HIGHLIGHT_RENDER_ORDER;
+          group.add(mesh);
+          highlight = { mesh, positions };
+        } else {
+          const old = highlight.mesh.geometry;
+          highlight.mesh.geometry = geometryOf(positions);
+          old.dispose();
+          highlight.positions = positions;
+        }
+        uploaded = 1;
       }
-      if (highlight !== null && samePositions(highlight.positions, positions)) return 0;
-      if (highlight === null) {
-        const mesh = new Mesh(
-          geometryOf(positions),
-          new MeshBasicMaterial({
-            color: new Color().setRGB(cobalt.r, cobalt.g, cobalt.b, SRGBColorSpace),
-            transparent: true,
-            opacity: HOVER_FILL_OPACITY,
-            side: DoubleSide,
-            depthTest: false,
-            depthWrite: false,
-            toneMapped: false,
-          }),
-        );
-        mesh.renderOrder = HIGHLIGHT_RENDER_ORDER;
-        group.add(mesh);
-        highlight = { mesh, positions };
-      } else {
-        const old = highlight.mesh.geometry;
-        highlight.mesh.geometry = geometryOf(positions);
-        old.dispose();
-        highlight.positions = positions;
+      if (segments === undefined || segments.length === 0) {
+        removeHighlightLines();
+      } else if (highlightLines === null || !samePositions(highlightLines.positions, segments)) {
+        if (highlightLines === null) {
+          const object = new LineSegments(
+            geometryOf(segments),
+            new LineBasicMaterial({
+              color: new Color().setRGB(cobalt.r, cobalt.g, cobalt.b, SRGBColorSpace),
+              transparent: true,
+              opacity: HOVER_FILL_OPACITY,
+              depthTest: false,
+              depthWrite: false,
+              toneMapped: false,
+            }),
+          );
+          object.renderOrder = HIGHLIGHT_LINE_RENDER_ORDER;
+          group.add(object);
+          highlightLines = { object, positions: segments };
+        } else {
+          const old = highlightLines.object.geometry;
+          highlightLines.object.geometry = geometryOf(segments);
+          old.dispose();
+          highlightLines.positions = segments;
+        }
+        uploaded = 1;
       }
-      return 1;
+      return uploaded;
+    },
+    setSelection(g) {
+      const body = setSlot('body', g.body);
+      const fill = setSlot('fill', g.fill);
+      const segments = setSlot('segments', g.segments);
+      return body + fill + segments > 0 ? 1 : 0;
     },
     objectCount() {
       return entries.size;
@@ -261,6 +378,10 @@ export function createPlanScene(): PlanScene {
     dispose() {
       removeText();
       removeHighlight();
+      removeHighlightLines();
+      removeSlot('body');
+      removeSlot('fill');
+      removeSlot('segments');
       atlas?.dispose();
       atlas = null;
       for (const entry of entries.values()) {

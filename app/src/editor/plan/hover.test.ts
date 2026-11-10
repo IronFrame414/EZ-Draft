@@ -1,14 +1,17 @@
 // EZD-207b U8, U9 (vault/plans/EZD-207b.md section 4; Decided "Hit test", "Quad", "Tolerance", "Index sync";
 // AC-EZD-207-3).
+// EZD-208a H1 (vault/plans/EZD-208a.md section 4; section 3 A3; AC-EZD-208-9): objectGeometry.
 import {
   CURRENT_SCHEMA_VERSION,
   createWallData,
   createWallSnapIndex,
+  type DrawingItem,
+  type DrawingList,
   type WallObject,
 } from '@ezdraft/geometry';
 import { describe, expect, test, vi } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
-import { createHoverIndex, pickWall } from './hover';
+import { createHoverIndex, objectGeometry, pickWall } from './hover';
 
 const F1 = '11111111-1111-4111-8111-111111111111';
 const F2 = '22222222-2222-4222-8222-222222222222';
@@ -93,5 +96,64 @@ describe('EZD-207b hover index', () => {
     expect(h.sync(renamed, F1, [F1])).toBe(0);
 
     expect(h.sync(renamed, F2, [])).toBe(1);
+  });
+});
+
+describe('EZD-208a object geometry', () => {
+  test('EZD-208a H1 object geometry', () => {
+    const p = (x: number, y: number) => ({ x, y });
+    const items: DrawingItem[] = [
+      {
+        kind: 'fill',
+        layer: 'existing',
+        objectId: 'W',
+        points: [p(0, 0), p(10, 0), p(10, 4), p(0, 4)],
+      },
+      { kind: 'line', layer: 'existing', objectId: 'W', role: 'cut', from: p(0, 0), to: p(10, 0) },
+      {
+        kind: 'line',
+        layer: 'dimensions',
+        objectId: 'W',
+        role: 'dimension',
+        from: p(0, 0),
+        to: p(10, 0),
+      },
+      {
+        kind: 'fill',
+        layer: 'rooms',
+        objectId: 'W',
+        points: [p(0, 0), p(10, 0), p(10, 4), p(0, 4)],
+      },
+      {
+        kind: 'arc',
+        layer: 'flagged',
+        objectId: 'D',
+        role: 'hidden',
+        center: p(0, 0),
+        radius: 10,
+        startAngle: 0,
+        endAngle: 90,
+      },
+    ];
+    const list: DrawingList = { level: 'L', items, omitted: [] };
+
+    const w = objectGeometry(list, new Set(['w']), null);
+    expect(w.fill).toHaveLength(18);
+    expect(w.body).toHaveLength(0);
+    expect(w.segments).toHaveLength(6);
+
+    const bodyOf = (id: string) =>
+      id === 'd' ? [p(0, 0), p(4, 0), p(4, 2), p(0, 2)] : null;
+    const d = objectGeometry(list, new Set(['d']), bodyOf);
+    expect(d.fill).toHaveLength(0);
+    expect(d.body).toHaveLength(18);
+    expect(Array.from(d.body.slice(0, 9))).toEqual([0, 0, 0, 4, 0, 0, 4, 2, 0]);
+    expect(d.segments).toHaveLength(132);
+
+    const none = objectGeometry(null, new Set(['w']), null);
+    expect(none.fill).toHaveLength(0);
+    expect(none.body).toHaveLength(0);
+    expect(none.segments).toHaveLength(0);
+    expect(objectGeometry(list, new Set(), null).fill).toHaveLength(0);
   });
 });

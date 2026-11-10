@@ -1,25 +1,38 @@
 // EZD-207b Build step 4 (vault/plans/EZD-207b.md section 1 Decided "Hit test", "Quad", "Tolerance", "Index sync",
 // "Highlight shape"; C3-C5; P206 seam "EZD-207 hover"; Q-0563; 11 rule 4): the wall under a point through the
 // EZD-206 spatial index (one query, never a scan), the index kept current per changed wall, and the highlight fill.
+// EZD-208a Build step 3 (vault/plans/EZD-208a.md section 3 A1-A3; section 1 R11): the hover modes, the picker and
+// body lookup types, and one object set's drawn geometry for the selection and the hover.
 import {
   SNAP_CAPTURE_PX,
   createWallSnapIndex,
   parseStoredObject,
   pointInRing,
   wallFaceLines,
+  type DrawingLayer,
   type DrawingList,
   type Point,
   type WallObject,
   type WallSnapIndex,
 } from '@ezdraft/geometry';
-import { ShapeUtils, Vector2 } from 'three';
 import type { Objects } from '../model/patches';
+import { buildPlanBatches } from './batches';
 
 export const HOVER_CAPTURE_PX = SNAP_CAPTURE_PX;
 export const HOVER_FILL_OPACITY = 0.35;
 export const HIGHLIGHT_RENDER_ORDER = 2.5;
 
-export type HoverMode = 'wall' | 'off';
+export const HIGHLIGHT_LINE_RENDER_ORDER = 3.6;
+
+export type HoverMode = 'wall' | 'select' | 'off';
+
+export type HoverPicker = (screen: Point) => string | null;
+
+export type BodyLookup = (id: string) => readonly Point[] | null;
+
+export type ObjectGeometry = { fill: Float32Array; body: Float32Array; segments: Float32Array };
+
+const OBJECT_LAYERS: ReadonlySet<DrawingLayer> = new Set(['existing', 'demo', 'new', 'flagged']);
 
 export function wallQuad(wall: WallObject): Point[] {
   const { left, right } = wallFaceLines(wall.data);
@@ -56,20 +69,48 @@ export function pickWall(index: WallSnapIndex, p: Point, toleranceIn: number): s
   return best === null ? null : best.id;
 }
 
-export function highlightPositions(list: DrawingList | null, id: string): Float32Array {
-  if (list === null) return new Float32Array(0);
-  const want = id.toLowerCase();
-  const values: number[] = [];
-  for (const item of list.items) {
-    if (item.kind !== 'fill') continue;
-    if (item.layer !== 'existing' && item.layer !== 'demo' && item.layer !== 'new') continue;
-    if (item.objectId.toLowerCase() !== want || item.points.length < 3) continue;
-    const contour = item.points.map((q) => new Vector2(q.x, q.y));
-    for (const triangle of ShapeUtils.triangulateShape(contour, [])) {
-      for (const index of triangle) values.push(contour[index].x, contour[index].y, 0);
+export function objectGeometry(
+  list: DrawingList | null,
+  ids: ReadonlySet<string>,
+  bodyOf: BodyLookup | null,
+): ObjectGeometry {
+  if (list === null || ids.size === 0) {
+    return { fill: new Float32Array(0), body: new Float32Array(0), segments: new Float32Array(0) };
+  }
+  const kept = list.items.filter(
+    (item) =>
+      (item.kind === 'line' || item.kind === 'arc' || item.kind === 'fill') &&
+      OBJECT_LAYERS.has(item.layer) &&
+      ids.has(item.objectId.toLowerCase()),
+  );
+  const fill: number[] = [];
+  const segments: number[] = [];
+  for (const batch of buildPlanBatches({ ...list, items: kept })) {
+    const target = batch.kind === 'fill' ? fill : segments;
+    for (const v of batch.positions) target.push(v);
+  }
+  const body: number[] = [];
+  if (bodyOf !== null) {
+    for (const id of ids) {
+      const q = bodyOf(id);
+      if (q === null) continue;
+      const [p0, p1, p2, p3] = q as readonly [Point, Point, Point, Point];
+      for (const v of [p0, p1, p2, p0, p2, p3]) body.push(v.x, v.y, 0);
+      for (const [a, b] of [
+        [p0, p1],
+        [p1, p2],
+        [p2, p3],
+        [p3, p0],
+      ] as const) {
+        segments.push(a.x, a.y, 0, b.x, b.y, 0);
+      }
     }
   }
-  return Float32Array.from(values);
+  return {
+    fill: Float32Array.from(fill),
+    body: Float32Array.from(body),
+    segments: Float32Array.from(segments),
+  };
 }
 
 export type HoverIndex = {

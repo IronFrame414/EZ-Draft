@@ -468,3 +468,62 @@ describe('EZD-207b controller', () => {
     expect(d.fake.invalidate.mock.calls.length).toBe(calls);
   });
 });
+
+// EZD-208a K1, K2 (vault/plans/EZD-208a.md section 4; section 1 R10-R12; section 3 A6, A7; AC-EZD-208-3, -9).
+// Fixtures F1b, W1b, W2b, setupB and mouse are the EZD-207b ones above.
+describe('EZD-208a controller selection seams', () => {
+  test('EZD-208a K1 select hover mode', async () => {
+    const { controller, surface } = setupB();
+    expect(await controller.attachCanvas({} as HTMLCanvasElement)).toBe('ready');
+    const { handle } = controller;
+    handle.setView({ x: -24, y: 24, ppi: 8 });
+
+    handle.setHoverMode('select');
+    mouse(surface, 'pointermove', 600, 210);
+    expect(handle.getHoveredId()).toBe(W1b);
+    expect(handle.getHoveredWallId()).toBe(W1b);
+    const uploads0 = controller.stats().highlightUploads;
+
+    handle.setHoverPicker(() => W2b);
+    expect(handle.getHoveredId()).toBe(W2b);
+    expect(handle.getHoveredWallId()).toBeNull();
+
+    handle.setHoverPicker(null);
+    expect(handle.getHoveredId()).toBe(W1b);
+    expect(handle.getHoveredWallId()).toBe(W1b);
+    expect(controller.stats().highlightUploads).toBe(uploads0 + 2);
+
+    handle.setHoverMode('off');
+    expect(handle.getHoveredId()).toBeNull();
+    expect(handle.getHoveredWallId()).toBeNull();
+  });
+
+  test('EZD-208a K2 selection uploads only on change', async () => {
+    const { controller, store, fake } = setupB();
+    expect(await controller.attachCanvas({} as HTMLCanvasElement)).toBe('ready');
+    const { handle } = controller;
+    handle.setView({ x: -24, y: 24, ppi: 8 });
+    const invalidates = () => fake.invalidate.mock.calls.length;
+    const buffers0 = controller.stats().bufferUploads;
+    expect(controller.stats().selectionUploads).toBe(0);
+
+    let calls = invalidates();
+    handle.setSelectedIds([W1b]);
+    expect(controller.stats().selectionUploads).toBe(1);
+    expect(invalidates() - calls).toBe(1);
+
+    calls = invalidates();
+    handle.setSelectedIds([W1b.toUpperCase()]);
+    expect(controller.stats().selectionUploads).toBe(1);
+    expect(invalidates() - calls).toBe(0);
+    expect(controller.stats().bufferUploads).toBe(buffers0);
+
+    store.applyEdit([{ id: W1b, value: wallB({ x: 0, y: -60 }, { x: 120, y: -60 }) }]);
+    expect(controller.stats().selectionUploads).toBe(2);
+
+    calls = invalidates();
+    handle.setSelectedIds([]);
+    expect(controller.stats().selectionUploads).toBe(3);
+    expect(invalidates() - calls).toBe(1);
+  });
+});

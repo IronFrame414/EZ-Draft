@@ -3,6 +3,8 @@
 // "Pick", "Keep", "Boxes", "Frame", "Messages", "lastValues", "Rail mode"; Q-0564; Q-0568; Q-0570; Q-0589 (a);
 // 11 rule 4). A plain module over the plan canvas handle: it owns the tool state, the snap index and the pointer
 // receiver outside React. `getUi()` changes on tool, pick, gap and last-length changes, never per pointer move.
+// EZD-208a Build step 6 (vault/plans/EZD-208a.md section 1 R13; Q-0570): the hover mode is 'select' unless a tool
+// is on ('off') or a gap pick is on ('wall'), and follows every ui change.
 import {
   createWallSnapIndex,
   snap,
@@ -150,7 +152,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let touchPoint: Point | null = null;
   let lastSnap: SnapResult | null = null;
   let lastContext: SnapContext = NO_CONTEXT;
-  let hoverMode: HoverMode = 'wall';
+  let hoverMode: HoverMode = 'select';
   let receiverSet = false;
   let disposed = false;
   let drawingIds: readonly string[] = [];
@@ -188,6 +190,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (sameBoxes(next.boxes, ui.boxes)) next = { ...next, boxes: ui.boxes };
     ui = next;
     syncReceiver();
+    syncHover();
     for (const l of [...uiListeners]) l();
   };
 
@@ -202,7 +205,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function syncHover(): void {
-    const mode: HoverMode = ui.tool !== null ? 'off' : 'wall';
+    const mode: HoverMode = ui.tool !== null ? 'off' : ui.pick !== null ? 'wall' : 'select';
     if (mode === hoverMode) return;
     hoverMode = mode;
     handle.setHoverMode(mode);

@@ -1,7 +1,15 @@
 // EZD-207a U8 (vault/plans/EZD-207a.md section 4; Decided "Upload rule", "Materials"; AC-EZD-207-4).
 // The seven batches are the ones U7 expects for the fixture list FX (same keys, orders and vertex counts).
 import type { DrawingItem } from '@ezdraft/geometry';
-import { Color, SRGBColorSpace, type Mesh, type MeshBasicMaterial } from 'three';
+import {
+  Color,
+  DoubleSide,
+  SRGBColorSpace,
+  type LineBasicMaterial,
+  type LineSegments,
+  type Mesh,
+  type MeshBasicMaterial,
+} from 'three';
 import { describe, expect, test } from 'vitest';
 import type { PlanBatch } from './batches';
 import { tokenRgb } from './color';
@@ -163,5 +171,78 @@ describe('EZD-207b scene text and highlight', () => {
     expect(scene.setHighlight(new Float32Array(0))).toBe(0);
     expect(scene.group.children.find((c2) => c2.renderOrder === 2.5)).toBeUndefined();
     expect(scene.objectCount()).toBe(0);
+  });
+});
+
+// EZD-208a SC1, SC2 (vault/plans/EZD-208a.md section 4; section 3 A4, A5; AC-EZD-208-3, -9; 04:8 cobalt and tint).
+describe('EZD-208a scene selection and hover lines', () => {
+  const tris = () => Float32Array.from([0, 0, 0, 10, 0, 0, 10, 4, 0, 0, 0, 0, 10, 4, 0, 0, 4, 0]);
+  const segs = () => Float32Array.from([0, 0, 0, 10, 0, 0]);
+  const rgb = (token: `--ez-${string}`) => {
+    const c = tokenRgb(token);
+    return new Color().setRGB(c.r, c.g, c.b, SRGBColorSpace);
+  };
+  const atOrder = (scene: ReturnType<typeof createPlanScene>, order: number) =>
+    scene.group.children.filter((c) => c.renderOrder === order);
+  const colorMatches = (m: { color: Color }, want: Color) =>
+    Math.abs(m.color.r - want.r) < 1e-6 &&
+    Math.abs(m.color.g - want.g) < 1e-6 &&
+    Math.abs(m.color.b - want.b) < 1e-6;
+
+  test('EZD-208a SC1 hover lines', () => {
+    const scene = createPlanScene();
+    expect(scene.setHighlight(tris(), segs())).toBe(1);
+    expect(scene.setHighlight(tris(), segs())).toBe(0);
+    const lines = atOrder(scene, 3.6);
+    expect(lines).toHaveLength(1);
+    const line = lines[0] as LineSegments<never, LineBasicMaterial>;
+    expect((line as unknown as { isLineSegments: boolean }).isLineSegments).toBe(true);
+    expect(line.material.opacity).toBeCloseTo(0.35, 9);
+    expect(line.material.transparent).toBe(true);
+    expect(colorMatches(line.material, rgb('--ez-cobalt'))).toBe(true);
+    expect(atOrder(scene, 2.5)).toHaveLength(1);
+
+    expect(scene.setHighlight(tris())).toBe(0);
+    expect(atOrder(scene, 3.6)).toHaveLength(0);
+    expect(atOrder(scene, 2.5)).toHaveLength(1);
+    expect(scene.objectCount()).toBe(0);
+  });
+
+  test('EZD-208a SC2 selection meshes', () => {
+    const scene = createPlanScene();
+    const geometry = () => ({ fill: tris(), body: tris(), segments: segs() });
+    expect(scene.setSelection(geometry())).toBe(1);
+    expect(scene.setSelection(geometry())).toBe(0);
+    expect(scene.objectCount()).toBe(0);
+
+    const meshes = atOrder(scene, 3.5) as Array<Mesh<never, MeshBasicMaterial>>;
+    expect(meshes).toHaveLength(2);
+    for (const m of meshes) {
+      expect(m.material.opacity).toBe(1);
+      expect(m.material.transparent).toBe(false);
+      expect(m.material.side).toBe(DoubleSide);
+    }
+    expect(meshes.filter((m) => colorMatches(m.material, rgb('--ez-cobalt')))).toHaveLength(1);
+    expect(meshes.filter((m) => colorMatches(m.material, rgb('--ez-cobalt-tint')))).toHaveLength(1);
+    const lines = atOrder(scene, 3.55) as Array<LineSegments<never, LineBasicMaterial>>;
+    expect(lines).toHaveLength(1);
+    expect(colorMatches(lines[0].material, rgb('--ez-cobalt'))).toBe(true);
+    expect(lines[0].material.transparent).toBe(false);
+
+    const empty = () => ({
+      fill: new Float32Array(0),
+      body: new Float32Array(0),
+      segments: new Float32Array(0),
+    });
+    expect(scene.setSelection(empty())).toBe(1);
+    expect(scene.setSelection(empty())).toBe(0);
+    expect(atOrder(scene, 3.5)).toHaveLength(0);
+    expect(atOrder(scene, 3.55)).toHaveLength(0);
+
+    expect(scene.setSelection(geometry())).toBe(1);
+    expect(atOrder(scene, 3.5)).toHaveLength(2);
+    scene.dispose();
+    expect(atOrder(scene, 3.5)).toHaveLength(0);
+    expect(atOrder(scene, 3.55)).toHaveLength(0);
   });
 });

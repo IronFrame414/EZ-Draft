@@ -4,6 +4,8 @@
 // EZD-207b Build step 8 (vault/plans/EZD-207b.md Decided "Zoom step", "Controller hover", "Hover triggers",
 // "wallAt", "showObject", "Atlas in controller", "Stats"; C1, C7, C8, C13): step zoom, wall hover through the
 // hover index, Show for one object, and the drawing list's text once the glyph atlas is made.
+// EZD-208a Build step 5 (vault/plans/EZD-208a.md section 3 A6-A7; section 1 R10-R12): the select hover mode with
+// its picker, the body lookup, and the selection drawn and redrawn on change.
 import type { DrawingList, Point } from '@ezdraft/geometry';
 import type { ModelStore } from '../model/model-store';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
@@ -11,9 +13,12 @@ import { layoutText } from './glyph-atlas';
 import {
   HOVER_CAPTURE_PX,
   createHoverIndex,
-  highlightPositions,
+  objectGeometry,
   pickWall,
+  type BodyLookup,
   type HoverMode,
+  type HoverPicker,
+  type ObjectGeometry,
 } from './hover';
 import {
   createPlanInput,
@@ -43,6 +48,7 @@ export type PlanStats = {
   bufferUploads: number;
   glyphs: number;
   highlightUploads: number;
+  selectionUploads: number;
 };
 export const ZOOM_STEP_FACTOR = 1.25;
 export type RenderRoot = {
@@ -72,6 +78,10 @@ export type PlanCanvasHandle = {
   setHoverMode(mode: HoverMode): void;
   getHoveredWallId(): string | null;
   wallAt(screen: Point): string | null;
+  setHoverPicker(picker: HoverPicker | null): void;
+  setBodyLookup(lookup: BodyLookup | null): void;
+  setSelectedIds(ids: readonly string[]): void;
+  getHoveredId(): string | null;
 };
 
 export type PlanController = {
@@ -130,8 +140,27 @@ export function createPlanController(
   let mode: HoverMode = 'wall';
   let hoverScreen: Point | null = null;
   let hoveredId: string | null = null;
+  let hoveredFromWall = false;
+  let picker: HoverPicker | null = null;
+  let bodyLookup: BodyLookup | null = null;
+  let selectedIds: ReadonlySet<string> = new Set();
+  let selectionUploads = 0;
   const hover = createHoverIndex();
   const NO_HIGHLIGHT = new Float32Array(0);
+
+  const joined = (g: ObjectGeometry): Float32Array => {
+    const out = new Float32Array(g.fill.length + g.body.length);
+    out.set(g.fill, 0);
+    out.set(g.body, g.fill.length);
+    return out;
+  };
+
+  // The selection step: true when the selection drawing was created, replaced or removed, so a redraw is due.
+  const selectionStep = (): boolean => {
+    const uploaded = scene.setSelection(objectGeometry(list, selectedIds, bodyLookup));
+    selectionUploads += uploaded;
+    return uploaded > 0;
+  };
 
   const rebuild = (): number => {
     list = planDrawingList(o.store.getState().objects);
@@ -147,14 +176,27 @@ export function createPlanController(
   const tolerance = () => HOVER_CAPTURE_PX / view.ppi;
 
   const updateHover = (force: boolean): boolean => {
-    const id =
-      mode === 'wall' && hoverScreen !== null
-        ? pickWall(hover.index, regionToModel(view, hoverScreen), tolerance())
-        : null;
+    let id: string | null = null;
+    let fromWall = false;
+    if (mode !== 'off' && hoverScreen !== null) {
+      if (mode === 'select' && picker !== null) {
+        id = picker(hoverScreen);
+      } else {
+        id = pickWall(hover.index, regionToModel(view, hoverScreen), tolerance());
+        fromWall = true;
+      }
+    }
+    hoveredFromWall = fromWall;
     if (id === hoveredId && !force) return false;
     const changed = id !== hoveredId;
     hoveredId = id;
-    const uploaded = scene.setHighlight(id !== null ? highlightPositions(list, id) : NO_HIGHLIGHT);
+    let uploaded: number;
+    if (id === null) {
+      uploaded = scene.setHighlight(NO_HIGHLIGHT);
+    } else {
+      const g = objectGeometry(list, new Set([id.toLowerCase()]), bodyLookup);
+      uploaded = scene.setHighlight(joined(g), g.segments);
+    }
     highlightUploads += uploaded;
     return changed || uploaded > 0;
   };
@@ -208,12 +250,13 @@ export function createPlanController(
     if (state.objects === prev.objects) return;
     hover.sync(state.objects, openFloorId(state.objects), state.lastChangedIds);
     const rebuilt = rebuild() > 0;
+    const selected = selectedIds.size > 0 ? selectionStep() : false;
     const texted = atlasSet ? textStep() : false;
     const hovered = hoveredId !== null ? hoveredId.toLowerCase() : null;
     const force =
       hovered !== null && state.lastChangedIds.some((id) => id.toLowerCase() === hovered);
     const hoverChanged = updateHover(force);
-    if (rebuilt || texted || hoverChanged) redraw();
+    if (rebuilt || selected || texted || hoverChanged) redraw();
   });
 
   const zoomBy = (factor: number) => {
@@ -260,15 +303,32 @@ export function createPlanController(
       return true;
     },
     setHoverMode(next) {
-      if ((next !== 'wall' && next !== 'off') || next === mode) return;
+      if ((next !== 'wall' && next !== 'select' && next !== 'off') || next === mode) return;
       mode = next;
       if (updateHover(false)) redraw();
     },
-    getHoveredWallId: () => hoveredId,
+    getHoveredWallId: () => (hoveredFromWall ? hoveredId : null),
     wallAt(screen) {
       if (!Number.isFinite(screen.x) || !Number.isFinite(screen.y)) return null;
       return pickWall(hover.index, regionToModel(view, screen), tolerance());
     },
+    setHoverPicker(next) {
+      picker = next;
+      if (updateHover(false)) redraw();
+    },
+    setBodyLookup(next) {
+      bodyLookup = next;
+      const selected = selectionStep();
+      const hoverChanged = updateHover(true);
+      if (selected || hoverChanged) redraw();
+    },
+    setSelectedIds(ids) {
+      selectedIds = new Set(ids.map((id) => id.toLowerCase()));
+      const selected = selectionStep();
+      const hoverChanged = updateHover(true);
+      if (selected || hoverChanged) redraw();
+    },
+    getHoveredId: () => hoveredId,
   };
 
   const requestAtlas = (createAtlas: () => Promise<HTMLCanvasElement>) => {
@@ -369,7 +429,14 @@ export function createPlanController(
     },
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };
-      return { frames: s.frames, drawCalls: s.drawCalls, bufferUploads, glyphs, highlightUploads };
+      return {
+        frames: s.frames,
+        drawCalls: s.drawCalls,
+        bufferUploads,
+        glyphs,
+        highlightUploads,
+        selectionUploads,
+      };
     },
     dispose() {
       disposed = true;
