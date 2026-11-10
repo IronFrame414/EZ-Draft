@@ -4,6 +4,8 @@ Session 16, 2026-11-10. This is a read-only audit of what has been built (phases
 
 ---
 
+> **Update, 2026-11-10 (after Josh's reply).** Josh answered the decisions below: yes to the design question and to recommendations 2 to 6, the full check "2 at a time", and the second account to be switched automatically. He also asked for much more planning before each ticket is built. The answers and the design for each, the new planning method (five checked steps, and a template that covers what a ticket must do, what it connects to, its design and its database), and the order of work are in **[PLANNING-REDESIGN.md](PLANNING-REDESIGN.md)**. That file supersedes recommendations 3, 4 and 5 below where they differ.
+
 ## Summary for Josh (one page, plain words)
 
 **What is solid**
