@@ -26,3 +26,5 @@ Confirm or override each. Nothing waits on these.
 - **Snap increments:** 1/16", 1/8", 1/4", 1/2", 1", 6", 12"; default 1/2". **Plan scales:** 1/8" to 1" = 1'-0"; default 1/2". **Zoom:** 5% to 1600%. Source: phase-auditor; Q-0569; 09h; view.ts.
 - **Text on the plan:** notes print at 3/32" and labels and dimension text at 1/8", the same size on paper at any zoom. Source: phase-auditor; 09h.
 - Worked examples for all of these are in `vault/spec/sections/09m-phase-switch-and-view-examples.md`.
+
+Boards for questions 1 and 2: design session brief in `vault/questions/phase-06-design-brief.md`.
