@@ -2,6 +2,9 @@
 // "Backfill"; Q-0625 (a); Q-0629 (b); AC-EZD-294-1, -2). Local database, real sign-in (as load-model.db.test.ts, L-051).
 // Admin rows set updated_seq >= 1 and a live non-floor `data.level` = the project's first floor.
 import { randomUUID } from 'node:crypto';
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createOpeningData, createWallData, CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -123,6 +126,11 @@ const insertRow = async (
       ${CURRENT_SCHEMA_VERSION}, 1, ${deleted})`;
 };
 
+afterAll(async () => {
+  await cleanup();
+  await closeHarness();
+});
+
 describe('EZD-294 object numbers (database)', () => {
   let tenant = '';
   let a: Who;
@@ -133,11 +141,6 @@ describe('EZD-294 object numbers (database)', () => {
     a = await editor(tenant);
     b = await editor(tenant);
   }, 180000);
-
-  afterAll(async () => {
-    await cleanup();
-    await closeHarness();
-  });
 
   it('EZD-294 R1 the load counts live and deleted numbers of its own project', async () => {
     const [pa, pb, pc] = await createProjects(tenant, 3);
@@ -270,8 +273,8 @@ describe('EZD-294 object numbers (database)', () => {
     const one = async (id: string, n: number, number?: number) =>
       numberOfAnswer(await save(a, p, [upsert(id, 'wall', wallData(floor, n, number))]), id);
     expect(await one(w, 1, 3)).toBe(3);
-    expect(await one(wa, 2, 2 ** 53 - 1)).toBe(4);
-    expect(await one(wc, 3, 2147483648)).toBe(5);
+    await insertRow(p, tenant, wa, 'wall', wallData(floor, 2, 2 ** 53 - 1), false);
+    await insertRow(p, tenant, wc, 'wall', wallData(floor, 3, 2147483648), false);
     expect(await one(wb, 4)).toBe(6);
     expect(await one(wd, 5, 2147483647)).toBe(2147483647);
 
@@ -400,55 +403,159 @@ describe('EZD-294 object numbers (database)', () => {
     const load = await loadModel(dbOf(a.session), p, ctxOf(a.member));
     expect(load?.numberHighs.wall).toBe(8);
   }, 120000);
+});
 
-  it("EZD-294 R10 a save is refused when a key's numbers are used up to 2147483647", async () => {
-    const [p] = await createProjects(tenant, 1);
-    const floor = await floorOf(p);
-    const ids = {
+// EZD-366 D1-D4 (vault/plans/EZD-366.md sections 3 and 4; Decided "Recovery rule", "Sent number rule",
+// "Update rule", "Deleted rows", "Migration contents"; D-099; AC-EZD-366-1, -2).
+describe('EZD-366 a crafted number cannot stop new numbers (database)', () => {
+  let tenant = '';
+  let a: Who;
+
+  beforeAll(async () => {
+    tenant = await createTenant();
+    a = await editor(tenant);
+  }, 180000);
+
+  async function oneProject() {
+    const made = await createProjects(tenant, 1);
+    const p = made.at(0) as string;
+    return { p, floor: await floorOf(p) };
+  }
+  const wallSave = async (p: string, floor: string, id: string, n: number, number?: number) =>
+    numberOfAnswer(await save(a, p, [upsert(id, 'wall', wallData(floor, n, number))]), id);
+
+  it('EZD-366 D1 a wall sent as 2147483647 leaves the project able to take new walls', async () => {
+    const { p, floor } = await oneProject();
+    const id = {
+      w1: randomUUID(),
+      w2: randomUUID(),
+      wx: randomUUID(),
+      w3: randomUUID(),
+      w4: randomUUID(),
+      w5: randomUUID(),
+      w6: randomUUID(),
+      dx: randomUUID(),
+      d1: randomUUID(),
+    };
+    expect(await wallSave(p, floor, id.w1, 1)).toBe(1);
+    expect(await wallSave(p, floor, id.w2, 2)).toBe(2);
+    expect(await wallSave(p, floor, id.wx, 3, 2147483647)).toBe(2147483647);
+    expect(await wallSave(p, floor, id.w3, 4)).toBe(3);
+    expect(await wallSave(p, floor, id.w4, 5, 2147483647)).toBe(4);
+    const pair = await save(a, p, [
+      upsert(id.w5, 'wall', wallData(floor, 6)),
+      upsert(id.w6, 'wall', wallData(floor, 7)),
+    ]);
+    expect(
+      [numberOfAnswer(pair, id.w5), numberOfAnswer(pair, id.w6)].sort(
+        (x, y) => (x ?? 0) - (y ?? 0),
+      ),
+    ).toEqual([5, 6]);
+    const dxAnswer = await save(a, p, [
+      upsert(id.dx, 'opening', openingData(floor, 'door', 2147483647)),
+    ]);
+    expect(numberOfAnswer(dxAnswer, id.dx)).toBe(2147483647);
+    const d1Answer = await save(a, p, [upsert(id.d1, 'opening', openingData(floor, 'door'))]);
+    expect(numberOfAnswer(d1Answer, id.d1)).toBe(1);
+    expect((await storedAttrs(p, id.wx)).number).toBe(2147483647);
+    const load = await loadModel(dbOf(a.session), p, ctxOf(a.member));
+    expect(load?.numberHighs).toEqual({ wall: 2147483647, door: 2147483647, window: 0 });
+  }, 120000);
+
+  it('EZD-366 D2 the free number counts deleted rows and skips used numbers', async () => {
+    const { p, floor } = await oneProject();
+    const id = {
+      a1: randomUUID(),
+      b3: randomUUID(),
+      cx: randomUUID(),
       d: randomUUID(),
       e: randomUUID(),
-      f: randomUUID(),
+      f6: randomUUID(),
       g: randomUUID(),
       h: randomUUID(),
-      r: randomUUID(),
     };
-    const refused = (changes: ObjectChange[]) =>
-      saveObjects(dbOf(a.session), p, { lockEpoch: 0, changes }, a.member.appUserId);
-    const first = await save(a, p, [upsert(ids.d, 'wall', wallData(floor, 1, 2147483647))]);
-    expect(numberOfAnswer(first, ids.d)).toBe(2147483647);
-    expect(await refused([upsert(ids.e, 'wall', wallData(floor, 2))])).toEqual({
-      ok: false,
-      code: 'invalid_input',
-    });
-    expect(
-      await refused([
-        upsert(ids.f, 'wall', wallData(floor, 3, 2147483647)),
-        upsert(ids.r, 'room', roomData(floor)),
-      ]),
-    ).toEqual({ ok: false, code: 'invalid_input' });
-    expect(await refused([upsert(ids.g, 'wall', wallData(floor, 4, 2147483648))])).toEqual({
-      ok: false,
-      code: 'invalid_input',
-    });
-    const moved = await save(a, p, [upsert(ids.d, 'wall', wallData(floor, 9), 1)]);
-    expect(numberOfAnswer(moved, ids.d)).toBe(2147483647);
-    const door = await save(a, p, [upsert(ids.h, 'opening', openingData(floor, 'door'))]);
-    expect(numberOfAnswer(door, ids.h)).toBe(1);
+    expect(await wallSave(p, floor, id.a1, 1, 1)).toBe(1);
+    expect(await wallSave(p, floor, id.b3, 2, 3)).toBe(3);
+    expect(await wallSave(p, floor, id.cx, 3, 2147483647)).toBe(2147483647);
+    await save(a, p, [removal(id.b3, 1)]);
+    expect(await wallSave(p, floor, id.d, 4)).toBe(2);
+    expect(await wallSave(p, floor, id.e, 5)).toBe(4);
+    expect(await wallSave(p, floor, id.f6, 6, 6)).toBe(6);
+    expect(await wallSave(p, floor, id.g, 7)).toBe(5);
+    expect(await wallSave(p, floor, id.h, 8)).toBe(7);
+  }, 120000);
 
-    const sql = harnessSql();
-    const refusedIds = [ids.e, ids.f, ids.g, ids.r];
-    const absent = await sql<{ n: number }[]>`
+  it('EZD-366 D3 existing numbers are unchanged', async () => {
+    const { p, floor } = await oneProject();
+    const id = { x1: randomUUID(), xx: randomUUID(), x2: randomUUID(), y: randomUUID() };
+    expect(await wallSave(p, floor, id.x1, 1)).toBe(1);
+    expect(await wallSave(p, floor, id.xx, 2, 2147483647)).toBe(2147483647);
+    expect(await wallSave(p, floor, id.x2, 3)).toBe(2);
+    const update = await save(a, p, [
+      upsert(id.x1, 'wall', wallData(floor, 10, 9), 1),
+      upsert(id.xx, 'wall', wallData(floor, 11), 1),
+      upsert(id.x2, 'wall', wallData(floor, 12, 2147483647), 1),
+    ]);
+    expect(numberOfAnswer(update, id.x1)).toBe(1);
+    expect(numberOfAnswer(update, id.xx)).toBe(2147483647);
+    expect(numberOfAnswer(update, id.x2)).toBe(2);
+    expect((await storedAttrs(p, id.x1)).number).toBe(1);
+    expect((await storedAttrs(p, id.xx)).number).toBe(2147483647);
+    expect((await storedAttrs(p, id.x2)).number).toBe(2);
+    const refused = await saveObjects(
+      dbOf(a.session),
+      p,
+      { lockEpoch: 0, changes: [upsert(id.y, 'wall', wallData(floor, 4, 2147483648))] },
+      a.member.appUserId,
+    );
+    expect(refused).toEqual({
+      ok: false,
+      code: 'invalid_object',
+      invalid: [{ id: id.y, issue: 'invalid_data' }],
+    });
+    const rows = await harnessSql()<{ n: number }[]>`
       select count(*)::int as n from public.model_object
-      where project_id = ${p}::uuid and object_id::text = any(${refusedIds}::text[])`;
-    expect(absent[0].n).toBe(0);
-    const over = await sql<{ n: number }[]>`
-      select count(*)::int as n from public.model_object
-      where project_id = ${p}::uuid
-        and jsonb_typeof(data->'attributes'->'number') = 'number'
-        and (data->'attributes'->>'number')::numeric > 2147483647`;
-    expect(over[0].n).toBe(0);
-    expect((await storedAttrs(p, ids.d)).number).toBe(2147483647);
-    const load = await loadModel(dbOf(a.session), p, ctxOf(a.member));
-    expect(load?.numberHighs).toEqual({ wall: 2147483647, door: 1, window: 0 });
+      where project_id = ${p}::uuid and object_id = ${id.y}::uuid`;
+    expect(rows.at(0)?.n).toBe(0);
+  }, 120000);
+
+  it('EZD-366 D4 the migration renumbers no stored row', async () => {
+    const { p, floor } = await oneProject();
+    await wallSave(p, floor, randomUUID(), 1);
+    await wallSave(p, floor, randomUUID(), 2, 2147483647);
+    await wallSave(p, floor, randomUUID(), 3);
+    await save(a, p, [upsert(randomUUID(), 'room', roomData(floor))]);
+    const dir = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '..',
+      '..',
+      '..',
+      '..',
+      'supabase',
+      'migrations',
+    );
+    const files = readdirSync(dir).filter((f) => f.endsWith('_object_number_free_fallback.sql'));
+    expect(files).toHaveLength(1);
+    const text = readFileSync(path.join(dir, files.at(0) as string), 'utf8');
+    const SENTINEL = 'EZD-366 D4 rollback';
+    type Row = { object_id: string; data: unknown };
+    const reads: Row[][] = [];
+    try {
+      await harnessSql().begin(async (tx) => {
+        const read = () =>
+          tx<Row[]>`
+            select object_id, data from public.model_object
+            where project_id = ${p}::uuid order by object_id`;
+        reads.push(Array.from(await read()));
+        await tx.unsafe(text);
+        reads.push(Array.from(await read()));
+        throw new Error(SENTINEL);
+      });
+    } catch (e) {
+      expect((e as Error).message).toBe(SENTINEL);
+    }
+    expect(reads).toHaveLength(2);
+    expect(reads.at(0)?.length).toBeGreaterThan(0);
+    expect(reads.at(1)).toEqual(reads.at(0));
   }, 120000);
 });

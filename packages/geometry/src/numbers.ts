@@ -2,6 +2,9 @@
 // Q-0625 (a)): each wall and door/window opening keeps one whole number >= 1 per project and key; a new object gets
 // the key's highest number + 1, so none is reused. Pure; never mutates its input.
 
+// EZD-366 Build step 1 (vault/plans/EZD-366.md; D-099): the largest number a wall or opening can hold (the PostgreSQL integer maximum).
+export const NUMBER_MAX = 2147483647;
+
 export const NUMBER_KEYS = ['wall', 'door', 'window'] as const;
 export type NumberKey = (typeof NUMBER_KEYS)[number];
 
@@ -54,6 +57,15 @@ export function withObjectNumber<T extends NumberedLike>(o: T, n: number): T {
   return { ...o, data: { ...data, attributes: { ...(data.attributes as Rec), number: n } } };
 }
 
+function withoutObjectNumber<T extends NumberedLike>(o: T): T {
+  const data = o.data as Rec;
+  const attributes = data.attributes as Rec;
+  if (!Object.hasOwn(attributes, 'number')) return o;
+  const rest: Rec = { ...attributes };
+  delete rest.number;
+  return { ...o, data: { ...data, attributes: rest } };
+}
+
 export function numberNewObjects<T extends NumberedLike>(
   objects: readonly T[],
   highs: NumberHighs,
@@ -62,6 +74,7 @@ export function numberNewObjects<T extends NumberedLike>(
   const out = objects.map((o) => {
     const key = numberKeyOf(o);
     if (key === null) return o;
+    if (next[key] >= NUMBER_MAX) return withoutObjectNumber(o);
     next[key] += 1;
     return withObjectNumber(o, next[key]);
   });

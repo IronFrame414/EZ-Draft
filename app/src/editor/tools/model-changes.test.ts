@@ -6,6 +6,7 @@ import {
   NO_NUMBERS,
   createOpeningData,
   createWallData,
+  parseStoredObject,
   type Point,
   type WallObject,
 } from '@ezdraft/geometry';
@@ -193,6 +194,29 @@ describe('EZD-294 object numbers in wall edits', () => {
     expect(numberOf(high.find((c) => c.id === uid(20))!.value)).toBe(10);
     const low = wallEditChanges(objects, F1, [wall], idSeq(30), NO_NUMBERS);
     expect(numberOf(low.find((c) => c.id === uid(20))!.value)).toBe(4);
+  });
+});
+
+describe('EZD-366 new wall past the number bound', () => {
+  it('EZD-366 T1 a new wall past 2147483647 is sent unnumbered and passes the schema', () => {
+    const fresh = createWallData({ start: p(0, 50), end: p(144, 50), level: F1 });
+    if (!fresh.ok) throw new Error('createWallData refused the test wall');
+    const wall: WallObject = { id: uid(20), type: 'wall', data: fresh.data };
+    const changes = wallEditChanges(new Map(baseObjects()), F1, [wall], idSeq(30), {
+      wall: 2147483647,
+      door: 0,
+      window: 0,
+    });
+    const value = changes.find((c) => c.id === uid(20))!.value!;
+    expect(numberOf(value)).toBeUndefined();
+    expect(
+      parseStoredObject({
+        id: uid(20),
+        type: 'wall',
+        schema_version: CURRENT_SCHEMA_VERSION,
+        data: value.data,
+      }).ok,
+    ).toBe(true);
   });
 });
 

@@ -5,6 +5,7 @@
 // EZD-294 Build step 1 (vault/plans/EZD-294.md Decided "Where the number lives", "Valid number"; Q-0625 (a)):
 // `number` is the wall's fixed number in its project, optional so stored v3 documents without it still parse.
 import { z } from 'zod';
+import { NUMBER_MAX } from '../numbers';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
@@ -30,7 +31,8 @@ export const wallDataSchema = z
       topCutToCeiling: z.boolean(),
       bearing: z.boolean(),
       layers: z.array(wallLayerSchema).min(1),
-      number: z.int().min(1).optional(),
+      // EZD-366 Build step 2 (vault/plans/EZD-366.md; D-099): no number above NUMBER_MAX.
+      number: z.int().min(1).max(NUMBER_MAX).optional(),
     }),
   })
   .refine(

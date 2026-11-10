@@ -6,6 +6,7 @@
 // G11; Q-0640 rows 2, 7; Q-0508): version 4 adds `axis`, `swing`, `hand`, `impactRating`, `shutterType` and
 // `roughOpeningMode`, with one refine over doors, shutters and the flagged axis.
 import { z } from 'zod';
+import { NUMBER_MAX } from '../numbers';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const DOOR_SWINGS = ['left', 'right'] as const;
@@ -41,7 +42,8 @@ export const openingDataShape = z.strictObject({
     height: z.number().positive(),
     roughOpening: z.strictObject({ width: z.number().positive(), height: z.number().positive() }),
     sillHeight: z.number().min(0),
-    number: z.int().min(1).optional(),
+    // EZD-366 Build step 3 (vault/plans/EZD-366.md; D-099): no number above NUMBER_MAX.
+    number: z.int().min(1).max(NUMBER_MAX).optional(),
     swing: z.enum(DOOR_SWINGS).nullable(),
     hand: z.enum(DOOR_HANDS).nullable(),
     impactRating: z.enum(IMPACT_RATINGS),

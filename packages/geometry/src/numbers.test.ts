@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import {
   NO_NUMBERS,
   NUMBER_KEYS,
+  NUMBER_MAX,
   numberKeyOf,
   numberNewObjects,
   objectNumber,
@@ -145,5 +146,39 @@ describe('EZD-294 numbers', () => {
     expect(wall).toEqual(copy);
     const room = roomLike();
     expect(withObjectNumber(room, 7)).toBe(room);
+  });
+});
+
+describe('EZD-366 number bound', () => {
+  test('EZD-366 B1 the schema refuses a wall or opening number above 2147483647', () => {
+    expect(NUMBER_MAX).toBe(2147483647);
+    for (const base of [sample('wall'), sample('opening', 'door')]) {
+      const kept = parseStoredObject(withNumber(base, 2147483647));
+      expect(kept.ok).toBe(true);
+      if (kept.ok)
+        expect((kept.object.data as unknown as { attributes: Rec }).attributes.number).toBe(
+          2147483647,
+        );
+      expect(parseStoredObject(withNumber(base, 2147483648))).toEqual({
+        ok: false,
+        issue: { id: base.id, issue: 'invalid_data' },
+      });
+    }
+  });
+
+  test('EZD-366 B2 numberNewObjects leaves a new object unnumbered past 2147483647', () => {
+    const input: Like[] = [wallLike(), wallLike(), openingLike('door'), wallLike(7)];
+    const copy = structuredClone(input);
+    const highs = { wall: 2147483646, door: 0, window: 0 };
+    const out = numberNewObjects(input, highs);
+    expect(out.objects).toHaveLength(4);
+    expect(numberIn(out.objects[0]!)).toBe(2147483647);
+    expect('number' in (out.objects[1]!.data as { attributes: Rec }).attributes).toBe(false);
+    expect(numberIn(out.objects[2]!)).toBe(1);
+    expect('number' in (out.objects[3]!.data as { attributes: Rec }).attributes).toBe(false);
+    expect(out.highs).toEqual({ wall: 2147483647, door: 1, window: 0 });
+    expect(numberIn(input[3]!)).toBe(7);
+    expect(input).toEqual(copy);
+    expect(highs).toEqual({ wall: 2147483646, door: 0, window: 0 });
   });
 });
