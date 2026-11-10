@@ -21014,6 +21014,75 @@
     "AC-EZD-372-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-373",
+   "phase": 4,
+   "title": "Fix: the plan draws no text on CI, so 9 browser tests fail only on CI",
+   "depends_raw": "EZD-207b",
+   "spec_ref": "rule 17 (CI gate defect, build audit 2026-11 A3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207b"
+   ],
+   "acs": [
+    "AC-EZD-373-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-374",
+   "phase": 4,
+   "title": "Fix: the pan and load perf checks fail on CI (plan_not_ready, EZD-207c P2 pan counts)",
+   "depends_raw": "EZD-373, EZD-207c",
+   "spec_ref": "rule 17 (CI gate defect, build audit 2026-11 A3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-373",
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-374-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-375",
+   "phase": 4,
+   "title": "Fix: an angled wall shows its length 1/2 inch short after rounding",
+   "depends_raw": "EZD-209",
+   "spec_ref": "09j row 12; 03g; AC-EZD-209-1; rule 17",
+   "spec_files": [
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/screens/S03-plan-editor.md#Typed dimension bar"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-209"
+   ],
+   "acs": [
+    "AC-EZD-375-1",
+    "AC-EZD-375-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
