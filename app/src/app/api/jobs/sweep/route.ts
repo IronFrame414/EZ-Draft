@@ -3,6 +3,8 @@
 // so the runner's secret key is allowed here. maxDuration is the function time limit (Q-0027 (a)), written
 // as a literal; config.test.ts (T9) keeps it equal to JOB_FUNCTION_MAX_SECONDS.
 import { timingSafeEqual } from 'node:crypto';
+import { reportError } from '../../../../server/errors/report';
+import { rewrapStaleAiKeys } from '../../../../server/jobs/ai-key-rewrap';
 import { defaultJobHooks } from '../../../../server/jobs/default-hooks';
 import { runJobs } from '../../../../server/jobs/runner';
 
@@ -27,5 +29,15 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
   const summary = await runJobs({ ...defaultJobHooks() });
+  // EZD-5601 Step 17 ("D-Rewrap"; Q-0638 rotation): one pass of the AI key rewrap per sweep; a failure is
+  // reported by code and does not change the answer.
+  try {
+    await rewrapStaleAiKeys();
+  } catch {
+    await reportError(new Error('ai_key_rewrap_failed'), {
+      source: 'job',
+      location: '/api/jobs/sweep',
+    });
+  }
   return Response.json({ ran: summary.claimed }, { status: 200, headers });
 }

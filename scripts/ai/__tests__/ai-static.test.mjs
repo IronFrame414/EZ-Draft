@@ -50,8 +50,14 @@ function specifiers(text) {
 test('EZD-021 T19 AI code is imported only from jobs, keys are read only in config.ts, the SDK only in anthropic.ts', () => {
   const aiDir = path.join(repo, 'app/src/server/ai');
   const jobsDir = path.join(repo, 'app/src/server/jobs');
+  const assistantDir = path.join(repo, 'app/src/server/assistant');
   for (const f of sources()) {
     const text = readFileSync(f, 'utf8');
+    // EZD-5601 E3 (Q-0637 call path): the assistant code never takes the provider key or the jobs path.
+    if (f.startsWith(assistantDir + path.sep)) {
+      for (const name of ['getProviderKey', 'createJobsDbClient', 'enqueueJob'])
+        assert.ok(!text.includes(name), `${name} named in ${rel(f)}`);
+    }
     for (const spec of specifiers(text)) {
       if (spec.startsWith('.')) {
         const target = path.resolve(path.dirname(f), spec);
@@ -59,9 +65,10 @@ test('EZD-021 T19 AI code is imported only from jobs, keys are read only in conf
         if (!intoAi) continue;
         const insideAi = f.startsWith(aiDir + path.sep);
         const insideJobs = f.startsWith(jobsDir + path.sep);
+        const insideAssistant = f.startsWith(assistantDir + path.sep);
         assert.ok(
-          insideAi || insideJobs,
-          `${rel(f)} imports server/ai but is outside server/ai and server/jobs`,
+          insideAi || insideJobs || insideAssistant,
+          `${rel(f)} imports server/ai but is outside server/ai, server/jobs and server/assistant`,
         );
         assert.ok(
           !/^\s*['"]use client['"]/m.test(text),

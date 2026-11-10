@@ -27,6 +27,8 @@ export default defineConfig({
       ALERT_EMAIL_TO: 'owner@example.test',
       // EZD-021 Step 3: tests run AI on the stub providers (CLAUDE.md rule 6).
       AI_MODE: 'stub',
+      // EZD-5601 step 1: the test-only key set (version 1, 32 zero bytes).
+      AI_KEY_ENCRYPTION_KEYS: '1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
     },
   },
 });

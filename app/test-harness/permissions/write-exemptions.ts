@@ -19,6 +19,11 @@ export const WRITE_PERMISSION_EXEMPTIONS: ReadonlyArray<{ path: string; reason: 
     reason: 'own password; every signed-in user, Q-0096 P6 (EZD-108)',
   },
   {
+    path: 'app/src/app/api/profile/ai-key/route.ts',
+    reason:
+      'own Anthropic key; every signed-in user, because Edit model is per project (Q-0638; EZD-5601)',
+  },
+  {
     path: 'app/src/app/api/profile/notifications/route.ts',
     reason:
       'every user changes their own notification settings; no permission switch (S15; Q-0393; EZD-140)',

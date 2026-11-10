@@ -27,6 +27,8 @@ const NAMES = [
   'ALERT_EMAIL_TO',
   // EZD-021 Step 6 (V8)
   'AI_MODE',
+  // EZD-5601 step 23
+  'AI_KEY_ENCRYPTION_KEYS',
 ];
 
 function namesFileLines() {
@@ -36,7 +38,7 @@ function namesFileLines() {
     .filter((l) => l !== '' && !l.startsWith('#'));
 }
 
-test('EZD-004b T7 names file holds exactly the thirteen names with empty values', () => {
+test('EZD-004b T7 names file holds exactly the fourteen names with empty values', () => {
   assert.deepEqual(
     namesFileLines(),
     NAMES.map((n) => `${n}=`),

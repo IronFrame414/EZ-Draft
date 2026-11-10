@@ -102,6 +102,17 @@ export const es = {
     'Demasiadas contraseñas incorrectas. Inténtalo de nuevo en 15 minutos.',
   'error.password_same': 'Elige una contraseña distinta de la actual.',
   'error.password_breached': 'Esta contraseña apareció en una filtración de datos. Elige otra.',
+  'error.ai_key_invalid':
+    'Eso no parece una clave de API de Anthropic. Las claves empiezan con sk-ant-.',
+  'error.ai_key_refused':
+    'Anthropic no aceptó esta clave. No se guardó nada. Revisa la clave y pégala de nuevo.',
+  'error.ai_key_out_of_credit':
+    'Tu cuenta de Anthropic no tiene crédito. No se guardó nada. Agrega crédito en Anthropic y vuelve a agregar la clave.',
+  'error.ai_key_check_failed':
+    'No se pudo verificar la clave con Anthropic. No se guardó nada. Inténtalo de nuevo en un minuto.',
+  'error.ai_key_throttled': 'Demasiados intentos. Inténtalo de nuevo en 15 minutos.',
+  'error.ai_key_unavailable':
+    'Ahora no se pueden guardar claves. No se guardó nada. Inténtalo más tarde.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

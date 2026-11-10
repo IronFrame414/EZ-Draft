@@ -55,6 +55,7 @@ const EXPECTED_ICONS = [
   'history',
   'info',
   'inventory_2',
+  'key',
   'kitchen',
   'layers',
   'library_add_check',

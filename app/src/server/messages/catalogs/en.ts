@@ -93,6 +93,15 @@ export const en = {
   'error.current_password_throttled': 'Too many wrong passwords. Try again in 15 minutes.',
   'error.password_same': "Choose a password that's different from your current one.",
   'error.password_breached': 'This password has shown up in a data leak. Choose a different one.',
+  'error.ai_key_invalid': "That doesn't look like an Anthropic API key. Keys start with sk-ant-.",
+  'error.ai_key_refused':
+    "Anthropic didn't accept this key. Nothing was saved. Check the key and paste it again.",
+  'error.ai_key_out_of_credit':
+    'Your Anthropic account is out of credit. Nothing was saved. Add credit with Anthropic, then add the key again.',
+  'error.ai_key_check_failed':
+    "Couldn't check the key with Anthropic. Nothing was saved. Try again in a minute.",
+  'error.ai_key_throttled': 'Too many tries. Try again in 15 minutes.',
+  'error.ai_key_unavailable': "Keys can't be saved right now. Nothing was saved. Try again later.",
   'field.device.editor_on_phone':
     'Editing is done on an iPad or a computer. Open this project there.',
   'office.header.wordmark_ez': 'ez',
@@ -366,6 +375,26 @@ export const en = {
   'office.profile.email_set_body':
     "A password was just set for your EZ Draft account ({email}). You can now sign in with your email and this password. If you didn't do this, tell your company's EZ Draft owner right away.",
   'office.profile.email_link': 'Open EZ Draft',
+  'office.profile.ai_heading': 'AI assistant',
+  'office.profile.ai_key_label': 'Anthropic API key',
+  'office.profile.ai_key_placeholder': 'sk-ant-…',
+  'office.profile.ai_key_add': 'Add',
+  'office.profile.ai_key_help_lead': 'Get a key at',
+  'office.profile.ai_key_help_link': 'console.anthropic.com',
+  'office.profile.ai_key_help_tail':
+    '. Anthropic bills you directly; EZ Draft never charges for the assistant.',
+  'office.profile.ai_key_saved': 'Key saved · ends in',
+  'office.profile.ai_key_remove': 'Remove',
+  'office.profile.ai_key_saved_help':
+    'Anthropic bills you directly for each prompt. The key is never shown again.',
+  'office.profile.email_ai_key_added_subject':
+    'An Anthropic API key was added to your EZ Draft account',
+  'office.profile.email_ai_key_added_body':
+    "An Anthropic API key ending in {last4} was just added to your EZ Draft account ({email}) for the AI assistant. If you didn't do this, remove it in My profile and tell your company's EZ Draft owner right away.",
+  'office.profile.email_ai_key_removed_subject':
+    'The Anthropic API key was removed from your EZ Draft account',
+  'office.profile.email_ai_key_removed_body':
+    "The Anthropic API key ending in {last4} was just removed from your EZ Draft account ({email}). The AI assistant needs a key again before it works. If you didn't do this, tell your company's EZ Draft owner right away.",
   'office.profile.notifications.help':
     'Choose what reaches you. Each email has a link that opens the same item.',
   'office.profile.notifications.col_kind': 'Notification',

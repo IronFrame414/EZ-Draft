@@ -34,6 +34,7 @@ export const ICON_NAMES = [
   'history',
   'info',
   'inventory_2',
+  'key',
   'kitchen',
   'layers',
   'library_add_check',

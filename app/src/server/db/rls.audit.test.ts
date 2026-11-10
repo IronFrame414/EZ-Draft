@@ -203,6 +203,7 @@ describe('EZD-006 RLS audit', () => {
     }
 
     expect(Object.keys(TABLE_GRANTS).sort()).toEqual([
+      'ai_key_attempt',
       'app_user',
       'backup_run',
       'customer',
@@ -220,6 +221,7 @@ describe('EZD-006 RLS audit', () => {
       'source_file',
       'sync_conflict',
       'tenant',
+      'user_ai_key',
       'user_permission',
     ]);
     for (const [table, grant] of Object.entries(TABLE_GRANTS)) {
@@ -227,7 +229,11 @@ describe('EZD-006 RLS audit', () => {
       // EZD-025 Step 1: backup_run is server-only too. EZD-143 D11: error_tunnel_throttle as well.
       // EZD-132 section 3: source_file rows are written by members but never deleted (03c; 11 Data retention).
       expect(grant.privileges, table).toEqual(
-        table === 'sign_in_throttle' || table === 'backup_run' || table === 'error_tunnel_throttle'
+        table === 'sign_in_throttle' ||
+          table === 'backup_run' ||
+          table === 'error_tunnel_throttle' ||
+          table === 'user_ai_key' ||
+          table === 'ai_key_attempt'
           ? []
           : table === 'source_file' || table === 'customer'
             ? ['SELECT', 'INSERT', 'UPDATE']

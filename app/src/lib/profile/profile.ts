@@ -5,6 +5,7 @@
 // password does not keep them.
 import { z } from 'zod';
 import { validateNewPassword } from '../auth/password-rules';
+import type { AiKeyState } from './ai-key';
 
 export type Language = 'en' | 'es';
 export type IpadDrawing = 'finger' | 'pencil';
@@ -19,7 +20,11 @@ export type Profile = {
 
 export type ProfileCaptcha = { siteKey: string; scriptUrl: string };
 
-export type ProfileResponse = { profile: Profile; captcha: ProfileCaptcha | null };
+export type ProfileResponse = {
+  profile: Profile;
+  captcha: ProfileCaptcha | null;
+  aiKey: AiKeyState;
+};
 
 export function ipadDrawingOf(v: string | null): IpadDrawing {
   return v === 'pencil' ? 'pencil' : 'finger';

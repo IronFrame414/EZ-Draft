@@ -348,6 +348,26 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
   },
   {
+    file: `${API}profile/ai-key/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/profile/ai-key/route'),
+    request: sendJson('POST', '/api/profile/ai-key', {
+      key: 'sk-ant-api03-EZD5601MONEY' + randomUUID().replaceAll('-', ''),
+    }),
+    expectStatus: 200,
+    note: 'EZD-5601: the built-in key-check recording answers 200, so the key is stored (E4)',
+  },
+  {
+    file: `${API}profile/ai-key/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/profile/ai-key/route'),
+    request: async () => ({
+      request: new Request(`${BASE}/api/profile/ai-key`, { method: 'DELETE' }),
+    }),
+    expectStatus: 200,
+    note: 'EZD-5601: removes the key the case before stored (E4)',
+  },
+  {
     file: `${API}profile/password/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/profile/password/route'),

@@ -89,6 +89,16 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       'Members read their own refused changes; rows are written only by the EZD-299a definer functions',
   },
+  user_ai_key: {
+    privileges: [],
+    reason:
+      "Ciphertext of each user's own Anthropic key; reached only through the *_my_ai_key definer functions (EZD-5601; Q-0637)",
+  },
+  ai_key_attempt: {
+    privileges: [],
+    reason:
+      'Per-user count of key checks; written only by take_ai_key_attempt (EZD-5601; AC-EZD-5601-7)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

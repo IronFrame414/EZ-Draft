@@ -5,6 +5,24 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-5601 step 2 (vault/plans/EZD-5601.md): the user's own Anthropic key functions, authenticated only.
+  { fn: 'get_my_ai_key', args: {} },
+  {
+    fn: 'save_my_ai_key',
+    args: {
+      p_tenant_id: null,
+      p_app_user_id: null,
+      p_ciphertext: null,
+      p_secret_version: null,
+      p_last4: null,
+    },
+  },
+  { fn: 'delete_my_ai_key', args: {} },
+  { fn: 'take_ai_key_attempt', args: {} },
+  {
+    fn: 'rewrap_my_ai_key',
+    args: { p_old_version: null, p_ciphertext: null, p_secret_version: null },
+  },
   // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
   { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
   { fn: 'current_user_has_password', args: {} },

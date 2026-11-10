@@ -131,6 +131,14 @@ Josh's steps with the AI providers and in Vercel. Set them before launch, as par
 7. **If a release stops on it.** After launch, the release workflow's step "Check the Vercel environment values" accepts Preview `AI_MODE` = `stub` or `live` and refuses a missing or other value (and Production needs an `AI_MODE` value). If it refuses, the release stops before anything changes and the live site stays as it was: fix the value in Vercel, then press **Re-run jobs** on that run.
 8. **Names to leave unset.** Never add these names in Vercel, for Production or Preview: `ANTHROPIC_CUSTOM_HEADERS`, `ANTHROPIC_LOG`, `ANTHROPIC_OPEN_TELEMETRY`, `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION`, `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` and `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES`. The Claude library EZ Draft uses reads them each time it calls Claude: the first adds its headers to every Claude request, the second makes the library write its own log lines, and the others change its tracing. EZ Draft passes the key and the address itself, so `ANTHROPIC_API_KEY` is the only `ANTHROPIC_` name to set.
 
+## AI assistant keys (EZD-5601)
+
+Each person's own Anthropic key is stored encrypted with a value only Vercel holds. Agents never change Vercel settings; never paste the value into chat, a ticket or a file in the repo.
+
+1. **Make the values.** In Terminal run `openssl rand -base64 32` twice: one value for Production, a different one for Preview.
+2. **Vercel.** In the `ezdraft` project: Settings, Environment Variables. Add `AI_KEY_ENCRYPTION_KEYS` = `1:<first value>` for Production and `1:<second value>` for Preview, each marked Sensitive.
+3. **Rotate.** Make a new value as in step 1 and append it, `1:<old value>,2:<new value>`, then redeploy. Remove the old entry after 30 days.
+
 ## Environments and releases (EZD-023)
 
 How production changes. Merging a pull request into `main` starts Actions → **Release** (`.github/workflows/release.yml`). It saves a copy of the production database to Backblaze under `releases/`, applies the migrations, sets up Worth Properties and your owner account on the first release, tags the commit (`phase-N` or `phase-N.k`), makes that commit's own build live and checks the site. If anything fails before the build goes live, the live site does not change. If the checks after going live fail, it puts the previous build back. Agents never see the production secrets; they live only in the GitHub environment `release`.

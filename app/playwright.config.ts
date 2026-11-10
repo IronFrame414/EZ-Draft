@@ -152,6 +152,8 @@ export default defineConfig({
       ALERT_EMAIL_TO: 'owner@example.test',
       // EZD-021 Step 2: AI stub mode, the guard preload and the settings that keep harmless calls quiet.
       AI_MODE: 'stub',
+      // EZD-5601 step 1: the test-only key set (version 1, 32 zero bytes).
+      AI_KEY_ENCRYPTION_KEYS: '1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
       AI_STUB_DIR: aiStub,
       EZD_NET_GUARD_LOG: guardLog,
       NODE_OPTIONS: `--import ${preloadUrl}`,

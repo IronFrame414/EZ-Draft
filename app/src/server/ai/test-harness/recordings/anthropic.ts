@@ -28,4 +28,31 @@ const recording = (purpose: string, text: string): Recording => ({
 export const anthropicRecordings: Record<string, Recording> = {
   'anthropic/test.echo': recording('test.echo', 'EZD-021 stub response'),
   'anthropic/test.json': recording('test.json', '```json\n{"name":"stub","count":3}\n```'),
+  // EZD-5601 step 10 (shape R-055): the answer to GET /v1/models for a user key check.
+  'anthropic/key-check': {
+    provider: 'anthropic',
+    purpose: 'key-check',
+    source: 'synthetic',
+    exchanges: [
+      {
+        match: { method: 'GET', url: 'https://api.anthropic.com/v1/models*' },
+        response: {
+          status: 200,
+          json: {
+            data: [
+              {
+                type: 'model',
+                id: 'claude-sonnet-5-5',
+                display_name: 'Claude Sonnet 5.5',
+                created_at: '2026-01-01T00:00:00Z',
+              },
+            ],
+            first_id: 'claude-sonnet-5-5',
+            has_more: false,
+            last_id: 'claude-sonnet-5-5',
+          },
+        },
+      },
+    ],
+  },
 };

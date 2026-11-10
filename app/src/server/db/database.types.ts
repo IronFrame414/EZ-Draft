@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "app_user": {
+            "ai_key_attempt": {
+                  Row: {
+                    "app_user_id": string,"at": string,"id": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"at"?: string,"id"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"at"?: string,"id"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_key_attempt_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_key_attempt_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"app_user": {
                   Row: {
                     "auth_user_id": string | null,"created_at": string,"email": string,"id": string,"ipad_input_mode": string | null,"language": string,"name": string | null,"role_preset": string | null,"updated_at": string
                   }
@@ -469,6 +495,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"user_ai_key": {
+                  Row: {
+                    "app_user_id": string,"ciphertext": string,"created_at": string,"last4": string,"secret_version": number,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"ciphertext": string,"created_at"?: string,"last4": string,"secret_version": number,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"ciphertext"?: string,"created_at"?: string,"last4"?: string,"secret_version"?: number,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_ai_key_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "user_ai_key_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"user_permission": {
                   Row: {
                     "granted": boolean,"membership_id": string,"permission_key": string,"tenant_id": string
@@ -531,6 +583,11 @@ isOneToOne: false
 "current_user_has_password":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"delete_my_ai_key":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "deleted": boolean,"last4": string
+            }[]
+                           },
 "delete_my_sync_conflict":
 { Args: { "p_id": string }; Returns: boolean
                            },
@@ -539,6 +596,11 @@ isOneToOne: false
                            },
 "error_tunnel_take":
 { Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
+                           },
+"get_my_ai_key":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "app_user_id": string,"ciphertext": string,"last4": string,"secret_version": number,"tenant_id": string
+            }[]
                            },
 "health":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -651,6 +713,12 @@ isOneToOne: false
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            },
+"rewrap_my_ai_key":
+{ Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_my_ai_key":
+{ Args: { "p_app_user_id": string,"p_ciphertext": string,"p_last4": string,"p_secret_version": number,"p_tenant_id": string }; Returns: undefined
+                           },
 "save_my_notification_settings":
 { Args: { "p_settings": Json }; Returns: undefined
                            },
@@ -673,6 +741,9 @@ isOneToOne: false
 { Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
               "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
             }[]
+                           },
+"take_ai_key_attempt":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "update_my_profile":
 { Args: { "p_ipad_input_mode": string,"p_language": string }; Returns: {
