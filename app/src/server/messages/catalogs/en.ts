@@ -374,6 +374,8 @@ export const en = {
   'office.tool.cabinets': 'Cabinets',
   'office.tool.wall': 'Wall',
   'office.tool.room_rect': 'Room rectangle',
+  'office.tool.door': 'Door',
+  'office.tool.window': 'Window',
   'office.tool.help': 'Help',
   'office.alert.error.subject': 'New EZ Draft error: {title}',
   'office.alert.error.body':
@@ -489,6 +491,8 @@ export const en = {
   'office.typed.angle_refused': 'Use a turn from 0 up to but not including 180',
   'office.typed.field.width': 'Width',
   'office.typed.field.depth': 'Depth',
+  'office.typed.field.offset_left': 'Offset left',
+  'office.typed.field.offset_right': 'Offset right',
   'office.tools.too_long': 'A wall can be at most 200\' 0"',
   'office.tools.wall.click_start': 'Click where the wall starts',
   'office.tools.wall.no_direction': 'Point the cursor where the wall goes',
@@ -508,6 +512,12 @@ export const en = {
   'office.tools.gap.pick': 'Pick the wall that absorbs it',
   'office.tools.gap.keep': 'Keep the room out of square',
   'office.tools.gap.pick_hint': 'Click a wall of this room, or press Esc to go back',
+  'office.tools.opening.door_tip_swing': 'Click to flip swing',
+  'office.tools.opening.door_tip_hand': 'Click to flip hand',
+  'office.tools.opening.past_corner': 'That runs past the corner. Try a smaller offset or width.',
+  'office.tools.opening.overlap': 'That overlaps another door or window',
+  'office.tools.opening.no_wall': 'Point at a wall first',
+  'office.tools.opening.offsets_mismatch': "Those offsets and the width don't add up to the wall",
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

@@ -12,6 +12,13 @@ import {
   WALL_TOOL,
   WIDTH_FIELD,
 } from './index';
+import {
+  DOOR_TOOL,
+  OFFSET_LEFT_FIELD,
+  OFFSET_RIGHT_FIELD,
+  OPENING_WIDTH_FIELD,
+  WINDOW_TOOL,
+} from './tool-defs';
 
 // Section 6, in order.
 const WORDING: [string, string][] = [
@@ -79,5 +86,61 @@ describe('EZD-210a tool definitions', () => {
     expect(names).toContain('rectangle');
     const catalog = catalogFor('office', 'en') as Readonly<Record<string, unknown>>;
     for (const [key, text] of WORDING) expect({ key, text: catalog[key] }).toEqual({ key, text });
+  });
+});
+
+// EZD-211a D1 (vault/plans/EZD-211a.md sections 1 Decided "Fields and tools", 3, 4, 6). Sources: Q-0636 (order);
+// Q-0630 09 row 14; board S03 rail; section 6 wording.
+const OPENING_WORDING: [string, string][] = [
+  ['office.tool.door', 'Door'],
+  ['office.tool.window', 'Window'],
+  ['office.typed.field.offset_left', 'Offset left'],
+  ['office.typed.field.offset_right', 'Offset right'],
+  ['office.tools.opening.door_tip_swing', 'Click to flip swing'],
+  ['office.tools.opening.door_tip_hand', 'Click to flip hand'],
+  ['office.tools.opening.past_corner', 'That runs past the corner. Try a smaller offset or width.'],
+  ['office.tools.opening.overlap', 'That overlaps another door or window'],
+  ['office.tools.opening.no_wall', 'Point at a wall first'],
+  ['office.tools.opening.offsets_mismatch', "Those offsets and the width don't add up to the wall"],
+];
+
+describe('EZD-211a opening tool definitions', () => {
+  it('EZD-211a D1 tool definitions and wording', () => {
+    expect(OFFSET_LEFT_FIELD).toEqual({
+      id: 'offsetLeft',
+      label: 'office.typed.field.offset_left',
+      kind: 'length',
+      lengthKind: 'other',
+      optional: true,
+    });
+    expect(OFFSET_RIGHT_FIELD).toEqual({
+      id: 'offsetRight',
+      label: 'office.typed.field.offset_right',
+      kind: 'length',
+      lengthKind: 'other',
+      optional: true,
+    });
+    expect(OPENING_WIDTH_FIELD).toEqual({
+      id: 'width',
+      label: 'office.typed.field.width',
+      kind: 'length',
+      lengthKind: 'positive',
+      optional: true,
+    });
+    expect(DOOR_TOOL).toEqual({
+      id: 'door',
+      icon: 'door_front',
+      fields: [OFFSET_LEFT_FIELD, OFFSET_RIGHT_FIELD, OPENING_WIDTH_FIELD],
+    });
+    expect(WINDOW_TOOL).toEqual({
+      id: 'window',
+      icon: 'window',
+      fields: [OFFSET_LEFT_FIELD, OFFSET_RIGHT_FIELD, OPENING_WIDTH_FIELD],
+    });
+    for (const tool of [DOOR_TOOL, WINDOW_TOOL])
+      expect(tool.fields.map((f) => f.id)).toEqual(['offsetLeft', 'offsetRight', 'width']);
+    const catalog = catalogFor('office', 'en') as Readonly<Record<string, unknown>>;
+    for (const [key, text] of OPENING_WORDING)
+      expect({ key, text: catalog[key] }).toEqual({ key, text });
   });
 });

@@ -39,6 +39,40 @@ export const ROOM_RECT_TOOL: TypedTool = {
   fields: [WIDTH_FIELD, DEPTH_FIELD],
 };
 
+// EZD-211a Build step 7 (vault/plans/EZD-211a.md section 1 Decided "Fields and tools"; Q-0636; Q-0630 09 row 14).
+export const OFFSET_LEFT_FIELD: TypedLengthField = {
+  id: 'offsetLeft',
+  label: 'office.typed.field.offset_left',
+  kind: 'length',
+  lengthKind: 'other',
+  optional: true,
+};
+export const OFFSET_RIGHT_FIELD: TypedLengthField = {
+  id: 'offsetRight',
+  label: 'office.typed.field.offset_right',
+  kind: 'length',
+  lengthKind: 'other',
+  optional: true,
+};
+export const OPENING_WIDTH_FIELD: TypedLengthField = {
+  id: 'width',
+  label: 'office.typed.field.width',
+  kind: 'length',
+  lengthKind: 'positive',
+  optional: true,
+};
+
+export const DOOR_TOOL: TypedTool = {
+  id: 'door',
+  icon: 'door_front',
+  fields: [OFFSET_LEFT_FIELD, OFFSET_RIGHT_FIELD, OPENING_WIDTH_FIELD],
+};
+export const WINDOW_TOOL: TypedTool = {
+  id: 'window',
+  icon: 'window',
+  fields: [OFFSET_LEFT_FIELD, OFFSET_RIGHT_FIELD, OPENING_WIDTH_FIELD],
+};
+
 export const DRAWING_TOOLS: Readonly<Record<DrawingToolId, TypedTool>> = {
   wall: WALL_TOOL,
   'room-rect': ROOM_RECT_TOOL,

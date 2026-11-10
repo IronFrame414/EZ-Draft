@@ -5,8 +5,10 @@
 // EZD-204b Build step 5 (vault/plans/EZD-204b.md section 1, Decided "Door symbol", "Flagged opening", "Frame";
 // Q-0642 rows 2-3; Q-0641 row 1; Q-0630 row 27): each door drawn from its own hand and swing; an opening off every
 // wall drawn where it stands on the `flagged` layer.
+// EZD-211a: door symbol from G/openings/door-symbol.ts.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
-import { isVerticalLine, leftEndIsLow } from '../openings/opening';
+import { doorSymbolInFrame } from '../openings/door-symbol';
+import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
 import { interiorPoint, roomLabelText } from '../rooms/area';
 import { hatchSegments } from './hatch';
@@ -56,26 +58,17 @@ function doorItems(
   hand: DoorHand,
   swing: DoorSwing,
 ): DrawingItem[] {
-  const hingeLow = (hand === 'left') === leftEndIsLow(f.d, f.vertical);
-  const sh = hingeLow ? sc - w / 2 : sc + w / 2;
-  const face = swing === 'left' ? f.oL : f.oR;
-  const k = swing === 'left' ? 1 : -1;
-  const hinge = at(f, sh, face);
-  const u = hingeLow ? f.d : { x: -f.d.x, y: -f.d.y };
-  const v = { x: k * f.n.x, y: k * f.n.y };
-  let startAngle = degrees(u.x * v.y - u.y * v.x > 0 ? u : v);
-  if (startAngle < 0) startAngle += 360;
-  if (startAngle >= 360) startAngle -= 360;
+  const { hinge, leafEnd, radius, startAngle, endAngle } = doorSymbolInFrame(f, sc, w, hand, swing);
   return [
-    { ...base, kind: 'line', role: 'cut', from: hinge, to: add(hinge, f.n, k * w) },
+    { ...base, kind: 'line', role: 'cut', from: hinge, to: leafEnd },
     {
       ...base,
       kind: 'arc',
       role: 'hidden',
       center: hinge,
-      radius: w,
+      radius,
       startAngle,
-      endAngle: startAngle + 90,
+      endAngle,
     },
   ];
 }

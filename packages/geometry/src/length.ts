@@ -1,6 +1,6 @@
-// Length reader and writer (EZD-201). Pure TypeScript: no imports, no DOM, no Node APIs.
+// Length reader and writer (EZD-201). EZD-211a: the 'positive' kind refuses 0 after rounding, no maximum. Pure TypeScript: no imports, no DOM, no Node APIs.
 
-export type LengthFieldKind = 'wall_room' | 'other';
+export type LengthFieldKind = 'wall_room' | 'other' | 'positive';
 export type LengthRefusalReason = 'format' | 'not_positive' | 'over_max';
 export const LENGTH_REFUSED_MESSAGE_KEY = 'office.length.refused' as const;
 export type ParseLengthResult =
@@ -57,6 +57,7 @@ export function parseLength(text: string, kind: LengthFieldKind): ParseLengthRes
     if (inches <= 0) return refuse('not_positive');
     if (inches > MAX_WALL_LENGTH_IN) return refuse('over_max');
   }
+  if (kind === 'positive' && inches <= 0) return refuse('not_positive');
   return { ok: true, inches };
 }
 

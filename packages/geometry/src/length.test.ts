@@ -211,3 +211,14 @@ describe('EZD-201 length parse and format', () => {
     expect(DETAIL_DISPLAY_DENOMINATOR).toBe(16);
   }, 20000);
 });
+
+// EZD-211a G8 (vault/plans/EZD-211a.md sections 1 step 1, 4). Sources: Q-0630 09 row 14; 03g (1/64 rounds to 0).
+describe('EZD-211a positive length kind', () => {
+  test('EZD-211a G8 positive length kind', () => {
+    expect(parseLength('0', 'positive')).toEqual(no('not_positive'));
+    expect(parseLength('1/64"', 'positive')).toEqual(no('not_positive'));
+    expect(parseLength('1/16"', 'positive')).toEqual(ok(0.0625));
+    expect(parseLength("300'", 'positive')).toEqual(ok(3600));
+    expect(parseLength('abc', 'positive')).toEqual(no('format'));
+  });
+});

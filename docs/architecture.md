@@ -507,6 +507,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - `overlay.ts` writes the SVG band and marker attributes directly on pointer moves and camera changes (EZD-210b).
 - W, R, Esc, Enter come from one `window` bubble `keydown` listener in `DrawingLayer`, skipped when `defaultPrevented` or `isTypingTarget`, after EZD-209's capture listener (EZD-210b).
 - The rail is disabled while loading and absent without Edit model (EZD-210b).
+- Door and Window (EZD-211a): `opening-tool.ts` is a pure reducer like the wall tools but takes `OpeningInput` without snapping (the pointer is projected on the host wall) and returns the openings to save; `G/openings/placement.ts` holds its geometry.
 
 ### Selection (EZD-208)
 
@@ -849,7 +850,7 @@ EZD-205a (vault/plans/EZD-205a.md); 09e; 09j; Q-0559; Q-0568; Q-0570.
 
 EZD-204a (vault/plans/EZD-204a.md); EZD-204b (vault/plans/EZD-204b.md); 03f; Q-0630; Q-0633; Q-0640; Q-0641; Q-0642.
 
-- **Files** (`packages/geometry/src/openings/`, exported from the package root): `opening.ts` (`OpeningObject`, `DEFAULT_DOOR_SIZE`, `DEFAULT_WINDOW_SIZE`, `DEFAULT_WINDOW_SILL_IN`, `autoRoughOpening`, `createOpeningData`, `flipSwing`, `flipHand`, `isOpeningFlagged`, `isVerticalLine`, `leftEndIsLow`); `offsets.ts` (`HostCorner`, `OpeningOffsets`, `PlaceAtOffsetInput`, `PlaceAtOffsetResult`, `hostCorners`, `openingSpan`, `openingOnWall`, `openingOffsets`, `placeAtOffset`); `hosting.ts` (`openingHostUpdates`).
+- **Files** (`packages/geometry/src/openings/`, exported from the package root): `opening.ts` (`OpeningObject`, `DEFAULT_DOOR_SIZE`, `DEFAULT_WINDOW_SIZE`, `DEFAULT_WINDOW_SILL_IN`, `autoRoughOpening`, `createOpeningData`, `flipSwing`, `flipHand`, `isOpeningFlagged`, `isVerticalLine`, `leftEndIsLow`); `offsets.ts` (`HostCorner`, `OpeningOffsets`, `PlaceAtOffsetInput`, `PlaceAtOffsetResult`, `hostCorners`, `openingSpan`, `openingOnWall`, `openingOffsets`, `placeAtOffset`); `hosting.ts` (`openingHostUpdates`); `door-symbol.ts` (`DoorFrame`, `DoorSymbol`, `doorSymbolInFrame`, `doorSymbol`: the one door-arc rule `build.ts` draws with) and `placement.ts` (`DOOR_TARGET_PX`, `PRESS_MOVE_PX`, `OpeningFailure`, `swingSideOf`, `OpeningPreviewInput`, `openingPreview`, `withOpeningSize`, `doorTargetAt`, `openingOwnedAt`) (EZD-211a).
 - **Flag**: `hostWallId` null is Not on a wall (`isOpeningFlagged`); `axis` is null while hosted and, while flagged, the unit start→end direction of the last host.
 - **Drawing.** An opening with `hostWallId` null is drawn on the `flagged` layer along `axis` (+x when null).
 - **Rule.** Every wall edit's `wallEditChanges` appends `openingHostUpdates`; EZD-217's delete and paste must call it too.
