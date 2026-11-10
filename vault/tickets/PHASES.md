@@ -42,7 +42,7 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221, 294 | Adds snapping from phase 5 (Q-0563). |
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase 56 follows (Q-0630). |
 | 56 | AI assistant | 56 | 5601, 5602, 5603, 5604, 5605 | Numbered 56, built right after phase 5 and before phase 6; no renumbering (Q-0630, phase-rank.mjs). |
-| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
+| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 6001, 224, 235, 216, 237 | Adds the floor tools, EZD-6001 (Q-0509, Q-0664). |
 | 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
 | 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139, 137 | EZD-137 moved from phase 2 (Q-0395). |
@@ -389,11 +389,12 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Goal:** Work in Existing and Proposed views with auto dimensions, the Layers and Rooms panel, project thumbnails and the benchmark page.
 - **User-visible result:** Existing/Proposed toggle and Set status; Layers and Rooms tabs; Dimension and Text tools with auto overall and room dimensions; Scale and Snap popovers and typed zoom; project cards show a plan thumbnail; Settings → System status with Run benchmark.
 - **Spec files:** `spec/sections/11-non-functional-requirements.md`, `spec/decisions.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (8, build order):**
+- **Tickets (9, build order):**
   - EZD-135 System status page — needs EZD-103 (s1)
   - EZD-219 Status bar popovers — needs EZD-206 (s4)
   - EZD-214 Status and phase switch — needs EZD-213 (s5)
-  - EZD-218 Left panel: Layers and Rooms — after EZD-214; needs EZD-132 (s1)
+  - EZD-218 Left panel: Layers and Rooms — after EZD-214 (photos and EZD-132 dropped, Q-0664)
+  - EZD-6001 Floor switcher and floor tools — after EZD-218; needs EZD-202, EZD-120b (Q-0509, Q-0664; placement waits for Josh, Q-0666)
   - EZD-224 Plan thumbnail — needs EZD-207 (s4)
   - EZD-235 Derived values and workers — needs EZD-205 (s4), EZD-207 (s4)
   - EZD-216 Dimensions and text — after EZD-235; needs EZD-207 (s4)

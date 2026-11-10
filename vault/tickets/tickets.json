@@ -174,6 +174,7 @@
   "EZD-135",
   "EZD-214",
   "EZD-218",
+  "EZD-6001",
   "EZD-219",
   "EZD-224",
   "EZD-235",
@@ -3868,9 +3869,12 @@
    ],
    "build_position": 109,
    "acs": [
-    "AC-EZD-135-1"
+    "AC-EZD-135-1",
+    "AC-EZD-135-2",
+    "AC-EZD-135-3",
+    "AC-EZD-135-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
@@ -5161,9 +5165,15 @@
    "build_position": 110,
    "acs": [
     "AC-EZD-214-1",
-    "AC-EZD-214-2"
+    "AC-EZD-214-2",
+    "AC-EZD-214-3",
+    "AC-EZD-214-4",
+    "AC-EZD-214-5",
+    "AC-EZD-214-6",
+    "AC-EZD-214-7",
+    "AC-EZD-214-8"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -5223,9 +5233,15 @@
    ],
    "build_position": 115,
    "acs": [
-    "AC-EZD-216-1"
+    "AC-EZD-216-1",
+    "AC-EZD-216-2",
+    "AC-EZD-216-3",
+    "AC-EZD-216-4",
+    "AC-EZD-216-5",
+    "AC-EZD-216-6",
+    "AC-EZD-216-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md"
@@ -5317,14 +5333,50 @@
    "build_position": 111,
    "acs": [
     "AC-EZD-218-1",
-    "AC-EZD-218-2"
+    "AC-EZD-218-2",
+    "AC-EZD-218-3",
+    "AC-EZD-218-4",
+    "AC-EZD-218-5",
+    "AC-EZD-218-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md"
+   ]
+  },
+  {
+   "id": "EZD-6001",
+   "phase": 6,
+   "title": "Floor switcher and floor tools",
+   "depends_raw": "EZD-218, EZD-202, EZD-120b",
+   "spec_ref": "Q-0509; Q-0508; Q-0504; Glossary 00d Floor; Q-0664",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/00d-glossary-phase-03.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-218",
+    "EZD-202",
+    "EZD-120b"
+   ],
+   "build_position": 111.5,
+   "acs": [
+    "AC-EZD-6001-1",
+    "AC-EZD-6001-2",
+    "AC-EZD-6001-3"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -5345,9 +5397,13 @@
    ],
    "build_position": 112,
    "acs": [
-    "AC-EZD-219-1"
+    "AC-EZD-219-1",
+    "AC-EZD-219-2",
+    "AC-EZD-219-3",
+    "AC-EZD-219-4",
+    "AC-EZD-219-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -5580,9 +5636,11 @@
    "build_position": 113,
    "acs": [
     "AC-EZD-224-1",
-    "AC-EZD-224-2"
+    "AC-EZD-224-2",
+    "AC-EZD-224-3",
+    "AC-EZD-224-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -5904,9 +5962,11 @@
    ],
    "build_position": 114,
    "acs": [
-    "AC-EZD-235-1"
+    "AC-EZD-235-1",
+    "AC-EZD-235-2",
+    "AC-EZD-235-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md"
@@ -5976,7 +6036,7 @@
     "AC-EZD-237-1",
     "AC-EZD-237-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
