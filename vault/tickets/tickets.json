@@ -20802,6 +20802,32 @@
     "AC-EZD-364-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-365",
+   "phase": 1,
+   "title": "Fix: the full gate tests the committed commit only, never other units uncommitted files",
+   "depends_raw": "EZD-364",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Gate user (EZD-354)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-364"
+   ],
+   "build_position": 623,
+   "acs": [
+    "AC-EZD-365-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
