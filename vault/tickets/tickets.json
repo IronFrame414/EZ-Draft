@@ -20975,6 +20975,10 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "My profile (EZD-108)",
+    "Browser tests (EZD-016a)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
