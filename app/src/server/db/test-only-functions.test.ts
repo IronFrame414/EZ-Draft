@@ -204,7 +204,7 @@ describe('EZD-323 test-only database functions', () => {
     });
   });
 
-  it('EZD-323 T8 only the job runner files and the dev route use the secret-key client', () => {
+  it('EZD-323 T8 only the job runner files and the dev route use the secret-key client (EZD-370)', () => {
     const users = walk(appSrc)
       .filter((f) => /\.tsx?$/.test(f) && !isTestFile(f))
       .filter((f) => readFileSync(f, 'utf8').includes('createJobsDbClient'))
@@ -212,6 +212,8 @@ describe('EZD-323 test-only database functions', () => {
       .sort();
     expect(users).toEqual([
       'app/src/app/api/dev/notifications/route.ts',
+      // EZD-370: the sweep's AI key rewrap (ai-key-rewrap.ts line 26, called from api/jobs/sweep/route.ts line 35) reads every tenant's user_ai_key rows, granted to service_role only (EZD-5601; Q-0638).
+      'app/src/server/jobs/ai-key-rewrap.ts',
       'app/src/server/jobs/db.ts',
       'app/src/server/jobs/default-hooks.ts',
       'app/src/server/jobs/handlers/notification-email.ts',
