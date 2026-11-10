@@ -21170,6 +21170,7 @@
    "architecture": [
     "Machine checks"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
