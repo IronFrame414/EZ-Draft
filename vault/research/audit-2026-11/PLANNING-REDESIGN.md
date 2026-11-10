@@ -175,6 +175,7 @@ The usage meter has been unreadable since 11-09 (OAuth 401, B6). That could be a
 - The documentation does not say whether switching between two of your own subscriptions in an automated build is allowed. The lookup could not settle it.
 - **Before the build relies on switching, Josh may want to ask Anthropic** (https://www.anthropic.com/contact-sales) and keep their answer. The documented route for automation is an API key, billed per use with no weekly cap.
 - The same design works with an API key as the second "account": the folder holds a key instead of a login. If Josh chooses that, only step 1 changes.
+- **Josh's decision (2026-11-10, chat):** "i believe it is allowed. i have done it already and read that countless others do it as well". The build goes ahead with switching between his two subscriptions, as designed above.
 
 ---
 
