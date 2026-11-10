@@ -61,3 +61,5 @@ One line per repair the launcher ran (EZD-333; decision 2026-11-05). Read at the
 - 2026-11-10T14:44:58.000Z interactive (session 13): CHANGED: 520aa8ba gate.mjs ports diagnostic (EZD-366 gate saw port 3210 held, free when checked at 14:46 UTC from both stacks); EZD-366 set ready to rerun its gate.
 - 2026-11-10T16:32:33Z overwatch: CLEARED: EZD-217 needs-network stall; fetched undo, redo, delete, content_copy, content_paste, content_paste_go, icons:build, committed d06bb7f7 in its worktree; set ready to resume at step 7 (gate)
 - 2026-11-10T18:02:38.000Z interactive (session 13): CHANGED: e9e61366 gate.mjs ports sweep connect-only (false 3210 holds on EZD-366 and EZD-367); EZD-367 set ready.
+- 2026-11-10T18:26:07.840Z repair check: FAILED: the ledger check cannot pass inside this unit, so the repair is not complete.
+- 2026-11-10T18:44:53.000Z interactive (session 13): CHANGED: phase 6 held (Josh chat 2026-11-10: off the build list while he reevaluates the process in a new session): EZD-135, 214, 216, 218, 224, 235, 237, 6001 set blocked with 'Held by Josh' notes keeping their prior status; overwatch told never to release them (b71b09ae).
