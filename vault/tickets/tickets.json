@@ -20357,6 +20357,15 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)",
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Dependencies"
+   ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5603a",
@@ -20397,6 +20406,15 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Patch store and outbox (EZD-120b)",
+    "Model schema (EZD-202)",
+    "Drawing tools (EZD-210)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5602",
@@ -20442,6 +20460,14 @@
     "mockups/S03cAIAssistantKeyError.png",
     "mockups/S03cAIAssistantPhoto.png"
    ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5604a",
@@ -20549,6 +20575,34 @@
    ],
    "acs": [
     "AC-EZD-363-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-364",
+   "phase": 1,
+   "title": "Fix: launcher units keep long background gates, and a gate clears the leftover app server on its lane",
+   "depends_raw": "EZD-354",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Gate user (EZD-354)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-354"
+   ],
+   "build_position": 622,
+   "acs": [
+    "AC-EZD-364-1",
+    "AC-EZD-364-2"
    ],
    "acs_source": "done-when"
   }
