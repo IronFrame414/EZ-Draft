@@ -3880,7 +3880,8 @@
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/13b-round-26.md#R12",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/11-non-functional-requirements.md#Q-0211"
+    "spec/decisions/11-non-functional-requirements.md#Q-0211",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -5151,7 +5152,8 @@
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Status bar",
     "spec/sections/screens/S03-plan-editor.md",
-    "spec/sections/01-how-to-use-this-spec.md"
+    "spec/sections/01-how-to-use-this-spec.md",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -5171,14 +5173,16 @@
     "AC-EZD-214-5",
     "AC-EZD-214-6",
     "AC-EZD-214-7",
-    "AC-EZD-214-8"
+    "AC-EZD-214-8",
+    "AC-EZD-214-9"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -5219,7 +5223,8 @@
    "spec_ref": "S03 Dimension, Text",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Dimension",
-    "spec/sections/screens/S03-plan-editor.md#Text"
+    "spec/sections/screens/S03-plan-editor.md#Text",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -5239,12 +5244,15 @@
     "AC-EZD-216-4",
     "AC-EZD-216-5",
     "AC-EZD-216-6",
-    "AC-EZD-216-7"
+    "AC-EZD-216-7",
+    "AC-EZD-216-8"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -5317,7 +5325,7 @@
    "id": "EZD-218",
    "phase": 6,
    "title": "Left panel: Layers and Rooms",
-   "depends_raw": "EZD-214, EZD-132",
+   "depends_raw": "EZD-214",
    "spec_ref": "S03 Controls — left panel; Decisions",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Controls — left panel"
@@ -5327,8 +5335,7 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-214",
-    "EZD-132"
+    "EZD-214"
    ],
    "build_position": 111,
    "acs": [
@@ -5344,7 +5351,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -5370,7 +5378,8 @@
    "acs": [
     "AC-EZD-6001-1",
     "AC-EZD-6001-2",
-    "AC-EZD-6001-3"
+    "AC-EZD-6001-3",
+    "AC-EZD-6001-4"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -5386,7 +5395,8 @@
    "depends_raw": "EZD-206",
    "spec_ref": "S03 Controls — status bar; Decisions",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Controls — status bar"
+    "spec/sections/screens/S03-plan-editor.md#Controls — status bar",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -5408,7 +5418,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -5622,7 +5633,8 @@
    "depends_raw": "EZD-207",
    "spec_ref": "S01 Card thumbnail; R24 #4",
    "spec_files": [
-    "spec/sections/screens/S01-projects.md#Card thumbnail"
+    "spec/sections/screens/S01-projects.md#Card thumbnail",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -5638,13 +5650,16 @@
     "AC-EZD-224-1",
     "AC-EZD-224-2",
     "AC-EZD-224-3",
-    "AC-EZD-224-4"
+    "AC-EZD-224-4",
+    "AC-EZD-224-5"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -5969,7 +5984,8 @@
    "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -6020,7 +6036,8 @@
    "depends_raw": "EZD-207, EZD-236, EZD-135",
    "spec_ref": "Non-functional · Performance; R26 R10",
    "spec_files": [
-    "spec/sections/11-non-functional-requirements.md#Performance"
+    "spec/sections/11-non-functional-requirements.md#Performance",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -6041,7 +6058,9 @@
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/13b-round-26.md#R10",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
