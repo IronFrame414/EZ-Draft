@@ -21194,6 +21194,10 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Build lanes (EZD-172)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
@@ -21215,6 +21219,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Build lanes (EZD-172)",
+    "Hosting"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
