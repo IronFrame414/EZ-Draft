@@ -894,6 +894,7 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs', 'launcher/unit-env.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
     cpSync(path.join(REPO, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
     cpSync(path.join(REPO, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
+    cpSync(path.join(REPO, 'vault/tools/limit-message.mjs'), at('vault/tools/limit-message.mjs'));
     cpSync(path.join(REPO, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs and ledger.mjs import it
     cpSync(path.join(REPO, 'vault/tools/questions-files.mjs'), at('vault/tools/questions-files.mjs'));
     writeFileSync(at('vault/tools/next_ticket.mjs'), [
@@ -915,7 +916,7 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
       read_at: iso(now),
       source: 'statusline',
     }));
-    const result = '{"type":"result","subtype":"success","is_error":false,"result":"ok","num_turns":1,"total_cost_usd":0}';
+    const result = '{"type":"result","subtype":"success","is_error":false,"result":"ok","num_turns":2,"total_cost_usd":0}';
     writeFileSync(at('fake-claude'), `#!/bin/sh\ncase "$*" in *--help*) echo "--max-turns --session-id --permission-prompts";; *) echo '${result}';; esac\nexit 0\n`, { mode: 0o755 });
     writeFileSync(at('scripts/launcher.config.json'), JSON.stringify({
       claude_bin: at('fake-claude'),

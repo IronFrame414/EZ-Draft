@@ -15,8 +15,11 @@
 //   extra_args      array of extra flags for every run
 //   max_turns       { build: 150, plan: 60, "review-plans": 60, questions: 80, "gate-phase": 150, wrap: 60 }
 //   limit_formats_confirmed   true once the pilot (section 15) confirmed the limit-error message formats; until then every
-//                   limit error is treated as the weekly case (section 11). Either way the raw output of every limit error is saved
+//                   limit error that is not one of Claude Code's documented messages (vault/tools/limit-message.mjs) is treated as
+//                   the weekly case (section 11); a documented message is classified by its own words whatever this flag says.
+//                   Either way the raw output of every limit error is saved
 //                   to vault/handoff/limit-error-<time>.txt and Josh is told its name (EZD-193; Q-0299 (b))
+//   quick_pause_ms  how long no unit starts after a unit that ended in under 30 s with under $0.01 and at most 1 turn (default 1800000; EZD-377)
 //   prompt_style    "slash" (default: the prompt is `/<skill> <arg>`) or "ask" (plain sentence naming the skill)
 //   records_db      the records database file (REMEDIATION-PLAN 2.12); default $EZD_RECORDS_DB, else ~/.ezdraft/records.db
 //   log_dir         where the launcher keeps its in-flight records (inflight/) and the launchd logs (default ~/Library/Logs/ezdraft on macOS,
@@ -29,6 +32,7 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { verifyDevelop, developSha, recordDevelop, inPushChain } from './release/github-ops.mjs';
 import { trustedGit } from '../vault/tools/trusted-git.mjs';
+import { matchLimit } from '../vault/tools/limit-message.mjs';
 import {
   launcherLogDir, inflightDir, unitId, writeInflight, removeInflight, listInflight, launcherHandoffText, writeFileAtomic,
   takeLauncherLock, withLedgerLock, LockError, queueDirs,
@@ -83,6 +87,7 @@ const {
   idleAction, repairDecision, parseVerdict, unitSubject, repairStopLine, fingerprint, codeFingerprint, writeLauncherState,
   isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
   laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES, AUTO_MERGE_ON_RE, PR_GREEN_OPEN_RE,
+  quickEmpty, QUICK_PAUSE_MS, recordStart, startStopText,
 } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 // Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
@@ -191,9 +196,10 @@ function costOf(res) {
   for (const [m, v] of Object.entries(mu)) { models.push(m); if (/fable/i.test(m)) fable += Number(v?.costUSD ?? v?.cost_usd ?? 0) || 0; }
   return { total, fable, models };
 }
-const LIMIT_RE = /(usage|rate) limit|limit (reached|exceeded|hit)|out of (extra )?usage|too many requests|quota/i;
 function classifyLimit(text) {
-  if (!LIMIT_RE.test(text)) return null;
+  const m0 = matchLimit(text);
+  if (!m0) return null;
+  if (m0.documented) return { kind: m0.kind, until: m0.until, note: m0.text };
   if (!config.limit_formats_confirmed) return { kind: 'weekly', note: 'formats not yet confirmed (section 11): treated as weekly' };
   const m = text.match(/(?:resets?|try again|available)\s+(?:at|after|in)\s+([^\n.]+)/i);
   if (/5-hour|five-hour|session limit/i.test(text) || (m && !/week/i.test(text))) return { kind: 'five-hour', until: m ? m[1].trim() : null };
@@ -370,6 +376,7 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
     child.on('close', (code) => done({ code, out, err }));
     child.on('error', (e) => done({ code: -1, out, err: String(e) }));
   });
+  const endedMs = Date.now();
   const parsed = parseResult(res.out);
   const { total, fable, models } = costOf(parsed);
   const text = `${parsed?.result || ''}\n${res.err}`;
@@ -398,10 +405,10 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
   if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), scope: 'phase', before: qBefore.fp, after: questionsFingerprint(Number(arg)), ts: new Date().toISOString() }) + '\n');
   const problem = agent.problem;
-  if (problem) { log(problem); return { outcome: 'error', note: problem, limit }; }
+  if (problem) { log(problem); return { outcome: 'error', note: problem, limit, wallMs: endedMs - started, usd: total, turns: parsed?.num_turns ?? null }; }
   // Q-0129: one notification per newly escalated question.
   if (qBefore) for (const [qid, text] of escalatedRows()) if (!qBefore.esc.has(qid)) notify(`question for Josh: ${qid} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
-  return { outcome, limit, parsed };
+  return { outcome, limit, parsed, wallMs: endedMs - started, usd: total, turns: parsed?.num_turns ?? null };
 }
 
 // A unit whose launcher died before its cost row (its in-flight record still there, its pid dead): price its transcripts
@@ -658,6 +665,8 @@ async function main() {
   const guards = createGuards();
   let stopping = null;
   let asideUntil = 0;
+  let quickUntil = 0;
+  const quickPauseMs = config.quick_pause_ms ?? QUICK_PAUSE_MS;
   let lastMeters = null;
   const statusText = () => { try { return readFileSync(path.join(vault, 'tickets/STATUS.md'), 'utf8'); } catch { return ''; } };
   // EZD-369: after every unit except a stop that is not its fault (strikeExempt), one strike verdict for its key; at the third
@@ -684,6 +693,10 @@ async function main() {
   // After a lane unit (synchronous; running already without it).
   const afterUnit = (key, u, before, r) => {
     const now = Date.now();
+    if (quickEmpty(r)) {
+      quickUntil = Math.max(quickUntil, Date.now() + quickPauseMs);
+      log(`quick empty unit ${key}: ${r.wallMs} ms, $${r.usd.toFixed(2)}, ${r.turns ?? 0} turns; no unit starts until ${new Date(quickUntil).toISOString()}`);
+    }
     if (r.outcome === 'limit-five-hour') {
       const pause = limitPause({ limit: { until: parseWhen(r.limit.until)?.toISOString() ?? null }, now });
       const held = existsSync(windowPauseFile) ? Date.parse(readFileSync(windowPauseFile, 'utf8').match(/^- Resume at: (.+)$/m)?.[1]?.trim()) : NaN;
@@ -753,6 +766,16 @@ async function main() {
         if (drained) { await sleep(asideUntil - now); continue; }
         go = false;
       }
+      if (go && quickUntil > now) {
+        if (drained) {
+          const until = new Date(quickUntil).toISOString();
+          log(`paused after a quick empty unit until ${until}`);
+          setState({ state: 'limit-wait', at: nowIso(), until });
+          await sleep(quickUntil - now);
+          continue;
+        }
+        go = false;
+      }
       if (go && !dryRun) for (const f of inboxFiles(logDir)) applyUnit(f, []);
       let b = null;
       let meters = null;
@@ -809,6 +832,10 @@ async function main() {
           }
           const dbLane = dbLaneFor({ unit: u.unit, running: busy, limits, lanesOn: true });
           if (dbLane === null) continue;
+          if (!dryRun) {
+            const sg = recordStart(logDir, key, Date.now());
+            if (!sg.allow) { const text = startStopText(key, sg.count); log(text); notify(text); stopping = text; refused++; break; }
+          }
           busy.push({ unit: u.unit, arg: u.arg, dbLane });
           started++;
           if (dryRun) { await runUnit(u.unit, u.arg, meters.source); log(`DRY-RUN START ${key} db-lane=${dbLane}`); continue; }
@@ -928,6 +955,14 @@ async function main() {
       continue;
     }
     if (waiting) { log('resuming'); waiting = null; }
+    if (quickUntil > Date.now()) {
+      if (once) { log(`${subject}: not restarted after a quick empty unit (--once)`); return; }
+      const until = new Date(quickUntil).toISOString();
+      log(`paused after a quick empty unit until ${until}; then ${subject}`);
+      setState({ state: 'limit-wait', at: nowIso(), until });
+      await sleep(quickUntil - Date.now());
+      continue;
+    }
     const inProgressBuild = unitName === 'build' && /\b(in-progress|review)\b/.test(spawnSync(process.execPath, [path.join(vault, 'tools/next_ticket.mjs')], { encoding: 'utf8', cwd: root }).stdout);
     const b = budget();
     const meters = await readMeters({ budget: b, fallback: oauthFallback });
@@ -953,6 +988,11 @@ async function main() {
     // Fable fallback flag for the orchestrator (section 4): exported so the skill can read it.
     if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
     process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
+    if (!dryRun) {
+      const k = `${unitName} ${arg}`;
+      const sg = recordStart(logDir, k, Date.now());
+      if (!sg.allow) { const text = startStopText(k, sg.count); log(text); notify(text); return; }
+    }
     const statusBefore = statusHash();
     setState({ state: 'unit', at: nowIso() });
     failedWait = null;
@@ -963,6 +1003,10 @@ async function main() {
     }
     const r = await runUnit(unitName, arg, meters.source);
     if (dryRun) return;
+    if (quickEmpty(r)) {
+      quickUntil = Math.max(quickUntil, Date.now() + quickPauseMs);
+      log(`quick empty unit ${unitName} ${arg}: ${r.wallMs} ms, $${r.usd.toFixed(2)}, ${r.turns ?? 0} turns; no unit starts until ${new Date(quickUntil).toISOString()}`);
+    }
     setState({ state: 'after-unit', at: nowIso() });
     // EZD-333: check what the repair changed before anything else, whatever its outcome (a limit can stop it half way).
     let refusal = null;

@@ -268,3 +268,48 @@ export function limitPause({ limit, now }) {
 }
 
 export const neverRejects = (fn, onError) => Promise.resolve().then(fn).catch(onError);
+
+// EZD-377 D-Quick, D-Pause: a unit that ended in under 30 s with under $0.01 and at most 1 turn did nothing; the launcher
+// pauses every lane for QUICK_PAUSE_MS (config quick_pause_ms) instead of starting it again at once.
+export const QUICK_UNIT = Object.freeze({ maxMs: 30_000, maxUsd: 0.01, maxTurns: 1 });
+export const QUICK_PAUSE_MS = 1_800_000;
+export function quickEmpty({ outcome, wallMs, usd, turns } = {}) {
+  if (!Number.isFinite(wallMs) || typeof outcome !== 'string') return false;
+  if (outcome.startsWith('limit-') || outcome === 'dry-run' || outcome === 'interrupted') return false;
+  return wallMs < QUICK_UNIT.maxMs && (Number(usd) || 0) < QUICK_UNIT.maxUsd && (Number(turns) || 0) <= QUICK_UNIT.maxTurns;
+}
+
+// EZD-377 D-Start, D-StartFile, D-Text: a unit key started more than START_LIMIT times in START_WINDOW_MS is refused, and the
+// launcher stops with one notice. The starts live in <log_dir>/unit-starts.json, so a restart of the launcher keeps them.
+export const START_LIMIT = 3;
+export const START_WINDOW_MS = 600_000;
+export function startGuard(starts, key, now) {
+  const src = starts !== null && typeof starts === 'object' && !Array.isArray(starts) ? starts : {};
+  const out = {};
+  for (const [k, v] of Object.entries(src)) {
+    const kept = (Array.isArray(v) ? v : []).filter((t) => typeof t === 'number' && Number.isFinite(t) && now - t < START_WINDOW_MS);
+    if (kept.length) out[k] = kept;
+  }
+  const mine = out[key] ?? [];
+  if (mine.length > START_LIMIT) {
+    delete out[key];
+    return { allow: false, count: mine.length, starts: out };
+  }
+  out[key] = [...mine, now];
+  return { allow: true, count: out[key].length, starts: out };
+}
+export function recordStart(dir, key, now = Date.now()) {
+  const file = path.join(dir, 'unit-starts.json');
+  let cur = {};
+  try {
+    cur = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    cur = {};
+  }
+  const { allow, count, starts } = startGuard(cur, key, now);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(`${file}.tmp`, JSON.stringify(starts) + '\n');
+  renameSync(`${file}.tmp`, file);
+  return { allow, count };
+}
+export const startStopText = (key, count) => `launcher stopped: ${key} started ${count} times in 10 minutes; no new unit starts until the launcher is restarted`;

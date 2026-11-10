@@ -48,6 +48,7 @@ function makeRoot(result) {
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
   copyFileSync(path.join(repo, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs, ledger.mjs and github-ops.mjs import it
   copyFileSync(path.join(repo, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
+  copyFileSync(path.join(repo, 'vault/tools/limit-message.mjs'), at('vault/tools/limit-message.mjs'));
   writeFileSync(at('vault/tools/next_ticket.mjs'), stubLedger(at('arch-calls.txt'), result));
   writeFileSync(at('vault/tickets/STATUS.md'), '| Ticket | Phase | Title | Status | Complexity | Depends on | Commit | Tests | Notes |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| EZD-999 | 1 | t | todo | | | | | |\n');
   writeFileSync(at('vault/plans/EZD-999.md'), '# EZD-999 · Sample\n\n- **Complexity:** low\n\n## 1. What to build\nx\n');

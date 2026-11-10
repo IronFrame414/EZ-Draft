@@ -437,7 +437,7 @@ A run that ends on a plan limit error is not a bug. The launcher classifies it:
 - Five-hour session limit (rare once the pause above is working): wait until the reset time in the message, then resume the same ticket from its worktree.
 - Weekly limit, or any message it can't classify: treat it like the budget hold (write `BUDGET_HOLD.md`, notify, exit). The same three overrides apply; `--api-until-reset` is the one that lets work continue before the reset.
 
-Until the message formats are confirmed in the pilot (section 15), every limit error is treated as the weekly case. Leave `autoContinueAtUsageLimit` unset for build machines so a weekly limit never leaves a session silently waiting for days.
+Claude Code's documented limit messages (vault/tools/limit-message.mjs, EZD-377) are classified by their own words: a session limit waits for its reset time, every other one is treated as the weekly case. Until the other message formats are confirmed in the pilot (section 15), every other limit error is treated as the weekly case. Leave `autoContinueAtUsageLimit` unset for build machines so a weekly limit never leaves a session silently waiting for days.
 
 ### Notification channel
 

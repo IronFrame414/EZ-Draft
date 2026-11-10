@@ -1286,6 +1286,8 @@ Three strikes (EZD-369):
 - **Strikes and resets:** a failed run, a run without progress, or a build left `blocked` is a strike. A build reaching `done`, a phase gate that wrote its record, or another unit's progress resets the count.
 - **The hold:** at three strikes, `next_ticket.mjs` skips the key. `strikeHolds` is joined to the set-aside list and to build selection. The hold lasts until `vault/handoff/assessments/<key>.md` has `Verdict: ready` and `Covers strikes: n`, with n at least the count. Edits to set-aside.json or STATUS never release it.
 
+Limit messages and restart loops (EZD-377): `matchLimit` in `vault/tools/limit-message.mjs` is the one limit matcher; `classifyLimit` in `scripts/run.mjs` and `strikeExempt` both call it; `strikeExempt` exempts a failed unit only for a documented message, and when a text holds several documented messages the first one that is not a session limit wins. Claude Code's documented messages ("You've hit your session limit · resets 3:45pm", weekly, Opus, Sonnet, spend and budget) are classified whatever `limit_formats_confirmed` says: session waits for its reset time, the rest write the hold. A unit that ends in under 30 s with under $0.01 and at most 1 turn starts a 30-minute pause of every lane (`quickEmpty`, `quick_pause_ms`). A unit key started more than 3 times in 10 minutes (`<log_dir>/unit-starts.json`) stops the launcher with one notice.
+
 Launcher units run with `UNIT_ENV_LIMITS` (`scripts/launcher/unit-env.mjs`, EZD-364): `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` and `BASH_MAX_TIMEOUT_MS=7200000`, so a full gate started with `run_in_background` is not stopped at Claude Code's 10-minute background deadline.
 
 | ID | Rule | Check | Built by |

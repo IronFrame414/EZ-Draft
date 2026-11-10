@@ -35,6 +35,7 @@ import { inProgressLimit } from './lanes.mjs';
 import { reviewedBase, postAuditDelta } from './security-paths.mjs';
 import { trustedGit } from './trusted-git.mjs';
 import { comparePhases, phaseRank } from './phase-rank.mjs';
+import { matchLimit } from './limit-message.mjs';
 
 const firstPhase = (ps) => [...ps].sort(comparePhases)[0];
 const lastPhase = (ps) => [...ps].sort(comparePhases).at(-1);
@@ -958,7 +959,8 @@ const readStrikes = () => {
 // D-Exempt: stops that are not the unit's fault.
 export function strikeExempt({ outcome, note } = {}) {
   if (['limit-five-hour', 'limit-weekly', 'interrupted', 'dry-run'].includes(outcome)) return true;
-  return /hit your (weekly|five-hour|5-hour) limit/i.test(String(note ?? ''));
+  // EZD-377: only a documented message exempts; a launcher problem note can quote plan text (security review finding 1).
+  return outcome !== 'ok' && matchLimit(note)?.documented === true;
 }
 // D-Strike, D-Reset.
 export function strikeVerdict({ unit, outcome, progress, statusAfter, gateRecord } = {}) {

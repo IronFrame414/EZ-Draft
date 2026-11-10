@@ -9,7 +9,7 @@
 //          it also writes the marker markers/<writes>. copyState: each time the entry answers, logs/launcher-state.json is
 //          copied to state-copies/<list>-<n>.json (n = the entry's own answer number; `null` when the file is absent).
 //   check: { failUntil?: marker, failIfStatusContains?: text, output? }: exit 1 until the marker exists / while STATUS.md has the text.
-// Fake claude reads fake-rules.json: rules { prompt (prefix), writes: [markers], result, subtype (default 'success'), exit (default 0), append: [{ file, text }], script }.
+// Fake claude reads fake-rules.json: rules { prompt (prefix), writes: [markers], result, subtype (default 'success'), exit (default 0), append: [{ file, text }], script, turns (default 2), usd (default 0) }.
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync, chmodSync, rmSync, realpathSync, openSync, closeSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -125,7 +125,7 @@ const fakeClaude = () =>
     "for (const a of rule.append || []) { fs.mkdirSync(path.dirname(path.join(root, a.file)), { recursive: true }); fs.appendFileSync(path.join(root, a.file), a.text); }",
     "if (rule.script) spawnSync(process.execPath, [path.join(root, rule.script)], { cwd: root, stdio: 'ignore', env: { ...process.env, FAKE_ROOT: root } });",
     "for (const m of rule.writes || []) { fs.mkdirSync(path.join(root, 'markers'), { recursive: true }); fs.writeFileSync(path.join(root, 'markers', m), 'x'); }",
-    "console.log(JSON.stringify({ type: 'result', subtype: rule.subtype || 'success', is_error: false, result: rule.result || 'fake unit done', session_id: 'ezd250-fake-session', num_turns: 1, duration_ms: 5, total_cost_usd: 0, modelUsage: {} }));",
+    "console.log(JSON.stringify({ type: 'result', subtype: rule.subtype || 'success', is_error: false, result: rule.result || 'fake unit done', session_id: 'ezd250-fake-session', num_turns: rule.turns ?? 2, duration_ms: 5, total_cost_usd: rule.usd ?? 0, modelUsage: {} }));",
     // The exit code is set, not passed to process.exit, so the piped result line is flushed before the process ends.
     "process.exitCode = rule.exit || 0;",
     '',
@@ -133,7 +133,7 @@ const fakeClaude = () =>
 
 const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFile}"`, 'exit 1', ''].join('\n');
 
-const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'scripts/release/github-ops.mjs', 'scripts/launcher/unit-env.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs', 'vault/tools/trusted-git.mjs'];
+const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'scripts/release/github-ops.mjs', 'scripts/launcher/unit-env.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs', 'vault/tools/limit-message.mjs', 'vault/tools/trusted-git.mjs'];
 
 // A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
 // with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules. config: spread last into
