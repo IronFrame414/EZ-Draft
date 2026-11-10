@@ -20776,6 +20776,31 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-366",
+   "phase": 4,
+   "title": "Fix: a crafted wall or opening number cannot stop a project from taking new walls",
+   "depends_raw": "EZD-294",
+   "spec_ref": "rule 17 (defect D-099, phase 4 gate audit); Q-0625, Q-0629, Q-0650; EZD-294",
+   "spec_files": [
+    "spec/sections/03-data-model.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-294"
+   ],
+   "acs": [
+    "AC-EZD-366-1",
+    "AC-EZD-366-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
    "id": "EZD-364",
    "phase": 1,
    "title": "Fix: launcher units keep long background gates, and a gate clears the leftover app server on its lane",
