@@ -58,3 +58,4 @@ One line per repair the launcher ran (EZD-333; decision 2026-11-05). Read at the
 - 2026-11-10T07:03:23.015Z repair waiting: FAILED: EZD-208b and EZD-212a are blocked at merge, and I can't clear them from this unit. The cause is not an app problem.
 - 2026-11-10T13:06:05.768Z repair check: FAILED: no verdict line
 - 2026-11-10T13:50:24.000Z interactive (session 13): CHANGED: overwatch runbook .claude/skills/overwatch/SKILL.md committed 459e2cb3 (Josh chat 2026-11-10: rule for an agent to resolve what held up the build); scheduled task ezdraft-overwatch runs it every 30 minutes.
+- 2026-11-10T14:44:58.000Z interactive (session 13): CHANGED: 520aa8ba gate.mjs ports diagnostic (EZD-366 gate saw port 3210 held, free when checked at 14:46 UTC from both stacks); EZD-366 set ready to rerun its gate.
