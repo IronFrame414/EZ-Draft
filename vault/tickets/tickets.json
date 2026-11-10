@@ -5260,6 +5260,21 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Model schema (EZD-202)",
+    "Drawing list (EZD-238)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Selection (EZD-208)",
+    "Typed dimension bar (EZD-209)",
+    "Rooms (EZD-205a)",
+    "Model working copy (EZD-120a)",
+    "Patch store and outbox (EZD-120b)",
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207a",
@@ -5409,6 +5424,16 @@
    ],
    "mockups": [
     "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Patch store and outbox (EZD-120b)",
+    "Plan canvas (EZD-207a)",
+    "Selection (EZD-208)",
+    "Editor shell (EZD-012)",
+    "State components (EZD-015)",
+    "Model schema (EZD-202)",
+    "Drawing tools (EZD-210)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -6037,6 +6062,17 @@
     "spec/sections/11-non-functional-requirements.md#Performance"
    ],
    "mockups": [],
+   "architecture": [
+    "Rooms (EZD-205a)",
+    "Plan canvas (EZD-207a)",
+    "Patch store and outbox (EZD-120b)",
+    "Model schema (EZD-202)",
+    "Benchmark project (EZD-236)",
+    "Performance check (EZD-017)",
+    "Entry points and lazy modules (EZD-020)",
+    "Dependencies"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205a",
@@ -6110,6 +6146,18 @@
     "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Benchmark project (EZD-236)",
+    "App version (EZD-299a)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)",
+    "Settings shell (EZD-103a)",
+    "Permission enforcement (EZD-102)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-207a",
