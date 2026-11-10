@@ -21107,6 +21107,60 @@
     "AC-EZD-376-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-377",
+   "phase": 1,
+   "title": "Fix: the launcher recognises the documented limit messages and never restarts a unit in a loop",
+   "depends_raw": "EZD-369",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-369"
+   ],
+   "acs": [
+    "AC-EZD-377-1",
+    "AC-EZD-377-2",
+    "AC-EZD-377-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-378",
+   "phase": 1,
+   "title": "Fix: the launcher switches between Josh's two accounts automatically",
+   "depends_raw": "EZD-377",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-377"
+   ],
+   "acs": [
+    "AC-EZD-378-1",
+    "AC-EZD-378-2",
+    "AC-EZD-378-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
