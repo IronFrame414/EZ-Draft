@@ -408,7 +408,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   3. Open Rooms, set a room type to Bath, reload. Expected: Bath persists; clicking the row zooms to the room.
   4. Move a wall. Expected: The auto overall and room dimensions update.
   5. Change the snap increment in the Snap popover and drag a wall. Expected: The wall snaps at the new increment.
-  6. Stop editing (checkpoint) and return to Projects. Expected: The card shows the plan thumbnail (under 40 KB).
+  6. Moved to the Stop editing slice (slice 8, EZD-125; Q-0681): the slice 6 field check runs the dev hook `__ezdraftEditor.checkpoint()` and the thumbnail is under 40 KB.
   7. Settings → System status → Run benchmark. Expected: A benchmark_run row is written with frame times, memory, device and app version; the history list shows it.
 
 ### Slice 7 · Users, roles, project scope, event log (from spec phase 1)

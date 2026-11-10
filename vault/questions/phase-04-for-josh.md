@@ -1,4 +1,4 @@
-# Phase 4 · for Josh (questions unit, rerun 2026-11-09, fifth pass)
+# Phase 4 · for Josh (questions unit, rerun 2026-11-10, sixth pass)
 
 Nothing waits on you for phase 4. Agents settled everything else (section 2).
 
@@ -20,6 +20,7 @@ Confirm or override each.
 - **Q-0613 · EZD-205a.** When a partition splits a room, the larger part keeps the id and name and the other is a new room; on a merge the larger stored room keeps its name. New rooms are numbered one more than the highest `Room N`, never reused. No source names which part keeps the name (reversible with the EZD-218 rename). Source: phase-auditor; Q-0570; Q-0592 (a); Q-0568.
 - **Q-0621 · EZD-359.** The pan long-task gate counts a task only when its CPU time × the profile's throttle rate is over 50 ms (or unknown); tasks the Mac's other lanes merely stretched are listed in `details.waits`. Budget 0, the 50 ms line and the 4× iPad throttle stay. Cost: a block that burns no CPU (sync request, alert) would be listed, not counted; none is on the pan path today. Source: phase-auditor; Q-0073 (a); Q-0619; spec 11. Confirm or override.
 - **Q-0629 · EZD-294.** The server numbers every new wall and opening that arrives without a number or with one the project already used (insert trigger plus one index); the save answer carries the stored number back to the device. Closes the Keep mine, two-people-editing and old-app-deploy duplicates. Cost: the 3,000-object benchmark save does 3,000 index lookups (67 ms measured) and benchmark objects become numbered. Source: phase-auditor; 03b rules 6, 9; Q-0511; Q-0531; Q-0568; Q-0625 (a); rule 18. Confirm or override.
+- **Q-0691 · EZD-367.** A member without Edit model keeps Select on their rail (no Wall or Room rectangle); "no tool rail" in AC-EZD-367-1 reads "no drawing tools", so the stale EZD-221b B6 test line is edited, not the app. Source: orchestrator; Q-0630 row 9 (05-screens.md:60). Confirm or override.
 - Earlier phase 4 spec-gap answers (Q-0570 and its neighbours) stand; confirm or override on the phase 4 spec-gap file.
 
 ## 3. Proposed wording
