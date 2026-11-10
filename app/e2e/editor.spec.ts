@@ -168,7 +168,7 @@ test.describe('EZD-120c editor route', () => {
     await expect(saveState(page).locator('xpath=..')).toHaveText('Zed Co · Working copy · Saved');
     await expect(page.locator('header nav button')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(3);
     for (const region of ['left-panel', 'inspector'])
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
     await expect(page.locator('[data-status-item]')).toHaveCount(4);

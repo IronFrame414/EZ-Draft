@@ -4,33 +4,44 @@
 // The rail reads the controller's ui; the layer holds the overlay SVG, the gap boxes and the typed dimension bar.
 // Pointer moves and camera changes write the overlay and box positions straight onto the elements, never
 // through React state.
+// EZD-208b Build step 6 (vault/plans/EZD-208b.md section 3 C4; DB1, DB2): the rail takes `editorRail`'s tools with
+// Select first and on by default; the keys moved to `SelectionLayer`, so the layer keeps no key listener.
 import { useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
+import type { RailTool } from '../../components/shell/rail-types';
 import { ToolRail } from '../../components/shell/ToolRail';
 import type { PlanCanvasHandle } from '../plan/controller';
+import type { SelectionController } from '../selection/selection-controller';
 import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
 import type { DrawingController, DrawingUi } from './drawing-controller';
 import { GapBoxes } from './GapBoxes';
 import { createToolOverlay } from './overlay';
-import { DRAWING_RAIL_TOOLS, DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
+import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
 
 const noSubscribe = () => () => {};
 
-export type DrawingRailProps = { controller: DrawingController | null; disabled: boolean };
+export type DrawingRailProps = {
+  drawing: DrawingController | null;
+  selection: SelectionController | null;
+  rail: { tools: readonly RailTool[]; disabled: boolean };
+};
 
-export function DrawingRail({ controller, disabled }: DrawingRailProps) {
+export function DrawingRail({ drawing, selection, rail }: DrawingRailProps) {
   const ui = useSyncExternalStore<DrawingUi | null>(
-    controller ? controller.subscribe : noSubscribe,
-    () => controller?.getUi() ?? null,
-    () => controller?.getUi() ?? null,
+    drawing ? drawing.subscribe : noSubscribe,
+    () => drawing?.getUi() ?? null,
+    () => drawing?.getUi() ?? null,
   );
   return (
     <ToolRail
-      top={[...DRAWING_RAIL_TOOLS]}
+      top={[...rail.tools]}
       bottom={[]}
-      activeId={ui?.tool ?? null}
-      onSelect={(id) => controller?.selectTool(id as DrawingToolId)}
-      disabled={disabled}
+      activeId={ui?.tool ?? 'select'}
+      onSelect={(id) => {
+        if (id === 'select') selection?.selectTool();
+        else drawing?.selectTool(id as DrawingToolId);
+      }}
+      disabled={rail.disabled}
     />
   );
 }
@@ -84,15 +95,6 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
     boxesRef.current = ui.boxes;
     place();
   }, [ui.boxes, place]);
-
-  useEffect(() => {
-    if (!ui.enabled) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (controller.keyDown(e)) e.preventDefault();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [controller, ui.enabled]);
 
   const lastValues: Readonly<Record<string, number>> =
     ui.lastLength === null ? {} : { length: ui.lastLength };

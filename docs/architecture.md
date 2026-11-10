@@ -505,8 +505,8 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - The gap box is derived from the walls on every call (`gapBoxes`), never stored.
 - `drawing-controller.ts` owns tool state, the snap index and the pointer receiver outside React; `getUi()` changes on tool, pick, gap and last-length changes, never per pointer move (EZD-210b).
 - `overlay.ts` writes the SVG band and marker attributes directly on pointer moves and camera changes (EZD-210b).
-- W, R, Esc, Enter come from one `window` bubble `keydown` listener in `DrawingLayer`, skipped when `defaultPrevented` or `isTypingTarget`, after EZD-209's capture listener (EZD-210b).
-- The rail is disabled while loading and absent without Edit model (EZD-210b).
+- V, W, R, Esc, Enter and Ctrl/Cmd+A come from one `window` bubble `keydown` listener in `SelectionLayer`, skipped when `defaultPrevented` or `isTypingTarget`, after EZD-209's capture listener; keys Select does not use go on to the drawing controller (EZD-210b, EZD-208b).
+- The rail is `editorRail` (EZD-208a): Select, Wall and Room rectangle, disabled while loading; Select only without Edit model; none when the project failed, is not found or not allowed (EZD-208b).
 - Door and Window (EZD-211a): `opening-tool.ts` is a pure reducer like the wall tools but takes `OpeningInput` without snapping (the pointer is projected on the host wall) and returns the openings to save; `G/openings/placement.ts` holds its geometry.
 
 ### Selection (EZD-208)
@@ -517,6 +517,7 @@ EZD-208a (vault/plans/EZD-208a.md); S03 Canvas interactions; Q-0630; Q-0633; 11 
 - **Pick.** Drawn walls and openings on the open floor are the candidates (never rooms): those under the cursor, else those within 10 px, smallest area first, then by id.
 - **State.** Session only, never saved; `getUi()` changes only on the ids or Select more; the box goes to `onBox` per move, never through React.
 - **Pointer.** `shareReceiver`: the drawing receiver wins over the selection receiver.
+- **Screen (EZD-208b).** `app/src/editor/selection/SelectionLayer.tsx`: `SelectionLayer` (the key listener and the box `rect`, written from `onBox`, never through React; inside solid `--ez-cobalt`, touch dashed `--ez-box-touch-stroke`) and `EditBar` (Select more, Select all; shown when `useCoarsePointer()` is true, first in the canvas state column so banners stack under it). `window.__ezdraftSelection` (`ids`, `hoveredId`) with `devHooks`, every viewer.
 
 ### Status bar popovers (EZD-219)
 
@@ -538,6 +539,7 @@ EZD-014a, EZD-014b, EZD-014c (vault/plans/EZD-014a.md, EZD-014b.md, EZD-014c.md)
 - 44 px targets: `--ez-touch-target` applies under `@media (any-pointer: coarse)`; `touch.module.css` `.target` and `.hitArea` serve later controls; `:hover` styles sit only under `@media (hover: hover)`, except the rail pressed rule; the rail tooltip also shows on focus (Q-0245). `expectTouchTargets(page, root)` in `app/test-harness/touch-targets.ts` measures them. The Projects page tabs and sort button add an invisible 48 px hit area and its sort menu items are 44 px tall with every pointer (`Projects.module.css`, EZD-330), because EZD-289 E1 runs the check there at desktop size.
 - Header: only the title block shrinks. Below 1600 px `HeaderButton` with `icon` shows the icon (Share `share`, Export `download`, EZD-126 `edit`); Issue set keeps its text.
 - The test page is `/dev/device` (`?lang=es` shows the phone notice in Spanish; not found in production).
+- `useCoarsePointer()` (`app/src/lib/device/useDeviceLayout.ts`, EZD-208b) is `COARSE_POINTER_QUERY` as a hook; true means a tablet (Q-0633).
 
 ### State components (EZD-015)
 

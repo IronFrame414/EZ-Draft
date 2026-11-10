@@ -318,7 +318,12 @@ test.describe('EZD-207a plan canvas', () => {
     const { ids, user } = await fixtureS(VIEWER);
     await signInAs(user.email);
     await openReady(page, ids.P1);
-    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+      'data-rail-tool',
+      'select',
+    );
     expect(await page.evaluate(() => '__ezdraftEditor' in window)).toBe(false);
 
     const start = await getView(page);
@@ -353,7 +358,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(page.getByTestId('plan-input')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     const tools = page.locator('[data-shell-region="rail"] [data-rail-tool]');
-    await expect(tools).toHaveCount(2);
+    await expect(tools).toHaveCount(3);
     await expect(tools.first()).toBeDisabled();
     await expect(tools.last()).toBeDisabled();
     release();
@@ -410,7 +415,7 @@ test.describe('EZD-207a plan canvas', () => {
     for (const region of ['left-panel', 'inspector'])
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(3);
     await expect(page.locator('[data-status-item]')).toHaveCount(4);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });

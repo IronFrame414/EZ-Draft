@@ -390,6 +390,11 @@ export const en = {
   'office.tool.door': 'Door',
   'office.tool.window': 'Window',
   'office.tool.help': 'Help',
+  'office.selection.bar': 'Edit',
+  'office.selection.select_more': 'Select more',
+  'office.selection.select_all': 'Select all',
+  'office.selection.more_banner': 'Tap objects to add or remove them.',
+  'office.selection.done': 'Done',
   'office.alert.error.subject': 'New EZ Draft error: {title}',
   'office.alert.error.body':
     'A new error was reported in EZ Draft ({source}, {location}). You get one email per new error; repeats are counted but not emailed.',

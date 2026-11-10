@@ -56,7 +56,7 @@ const editorState = (page: Page) => page.getByTestId('editor-state');
 const id = (page: Page, testId: string): Locator => page.getByTestId(testId);
 const canvasRegion = (page: Page) => page.locator('[data-shell-region="canvas"]');
 const rail = (page: Page) => page.locator('[data-shell-region="rail"]');
-const tool = (page: Page, which: 'wall' | 'room-rect') =>
+const tool = (page: Page, which: 'select' | 'wall' | 'room-rect') =>
   page.locator(`[data-rail-tool="${which}"]`);
 
 async function openReady(page: Page, projectId: string) {
@@ -199,7 +199,7 @@ test.describe('EZD-210b drawing tools', () => {
     }
   });
 
-  test('EZD-210b B1 the rail has Wall and Room rectangle; W, R, Esc and a click pick the tool', async ({
+  test('EZD-210b B1 the rail has Select, Wall and Room rectangle; W, R, Esc and a click pick the tool', async ({
     page,
     signInAs,
   }) => {
@@ -208,9 +208,11 @@ test.describe('EZD-210b drawing tools', () => {
     await openReady(page, ids.P1);
     await expect(rail(page)).toHaveCount(1);
     const tools = rail(page).locator('[data-rail-tool]');
-    await expect(tools).toHaveCount(2);
-    await expect(tools.nth(0)).toHaveAttribute('data-rail-tool', 'wall');
-    await expect(tools.nth(1)).toHaveAttribute('data-rail-tool', 'room-rect');
+    await expect(tools).toHaveCount(3);
+    await expect(tools.nth(0)).toHaveAttribute('data-rail-tool', 'select');
+    await expect(tools.nth(1)).toHaveAttribute('data-rail-tool', 'wall');
+    await expect(tools.nth(2)).toHaveAttribute('data-rail-tool', 'room-rect');
+    await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');
     await expect(tool(page, 'wall')).toHaveAttribute('aria-label', 'Wall');
     await expect(tool(page, 'room-rect')).toHaveAttribute('aria-label', 'Room rectangle');
     await expect(tool(page, 'wall')).toHaveAttribute('aria-keyshortcuts', 'W');
@@ -231,6 +233,7 @@ test.describe('EZD-210b drawing tools', () => {
     await expect(tool(page, 'wall')).toHaveAttribute('aria-pressed', 'false');
     await expect(id(page, 'typed-bar-label')).toHaveText('Width');
     await page.keyboard.press('Escape');
+    await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');
     await expect(tool(page, 'wall')).toHaveAttribute('aria-pressed', 'false');
     await expect(tool(page, 'room-rect')).toHaveAttribute('aria-pressed', 'false');
     await expect(id(page, 'typed-bar')).toHaveCount(0);
@@ -266,7 +269,7 @@ test.describe('EZD-210b drawing tools', () => {
     await expect(tool(page, 'room-rect')).toBeEnabled();
   });
 
-  test('EZD-210b B3 a view-only member has no rail and no tools, and still sees the gap', async ({
+  test('EZD-210b B3 a view-only member has only Select on the rail, no drawing tools, and still sees the gap', async ({
     page,
     signInAs,
   }) => {
@@ -279,7 +282,9 @@ test.describe('EZD-210b drawing tools', () => {
     await page.reload();
     await openReady(page, ids.P1);
     await page.keyboard.press('w');
-    await expect(rail(page)).toHaveCount(0);
+    await expect(rail(page)).toHaveCount(1);
+    await expect(rail(page).locator('[data-rail-tool]')).toHaveCount(1);
+    await expect(tool(page, 'wall')).toHaveCount(0);
     await expect(id(page, 'typed-bar')).toHaveCount(0);
     await expect(id(page, 'gap-box')).toHaveCount(1);
     await expect(id(page, 'gap-pill')).toHaveText('1/2" gap');
@@ -297,7 +302,7 @@ test.describe('EZD-210b drawing tools', () => {
     await view(page);
     await page.keyboard.press('r');
     await clickAt(page, 0, 0);
-    await page.keyboard.type("12'6\"");
+    await page.keyboard.type('12\'6"');
     await page.keyboard.press('Tab');
     await page.keyboard.type("10'");
     await page.keyboard.press('Enter');
@@ -390,7 +395,7 @@ test.describe('EZD-210b drawing tools', () => {
     await openReady(page, ids.P1);
     await view(page);
     await typedChainStart(page);
-    await page.keyboard.type("9' 11 1/2\"");
+    await page.keyboard.type('9\' 11 1/2"');
     await page.keyboard.press('Tab');
     await page.keyboard.type('90');
     await page.keyboard.press('Enter');
@@ -472,8 +477,7 @@ test.describe('EZD-210b drawing tools', () => {
     await view(page);
     await page.keyboard.press('w');
     await clickAt(page, 0, 0);
-    const commits = () =>
-      page.evaluate(() => (window as unknown as Window2).__EZD_PERF__.commits);
+    const commits = () => page.evaluate(() => (window as unknown as Window2).__EZD_PERF__.commits);
     // Stable read: two reads in a row equal, polled every 100 ms for up to 5000 ms.
     const stable = async (): Promise<number> => {
       let last = -1;
@@ -505,7 +509,7 @@ test.describe('EZD-210b drawing tools', () => {
       await openReady(page, ids.P1);
       await addGap(page);
       await view(page);
-      expect(await expectTouchTargets(page, rail(page))).toBe(2);
+      expect(await expectTouchTargets(page, rail(page))).toBe(3);
       expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(2);
     },
   );

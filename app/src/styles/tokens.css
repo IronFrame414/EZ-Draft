@@ -69,4 +69,7 @@
   --ez-amber-strong: oklch(0.43 0.12 60);
   --ez-cobalt-deep: oklch(0.42 0.17 262);
   --ez-group-band: #fafbfc;
+  /* S03dStates box select right to left; EZD-208b */
+  --ez-box-touch-stroke: oklch(0.5 0.12 160);
+  --ez-box-touch-fill: oklch(0.72 0.12 160);
 }

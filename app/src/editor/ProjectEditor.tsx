@@ -13,6 +13,9 @@
 // banner under the header card and "Changes not saved" over the canvas; `conflictsOpen` opens the list at start.
 // EZD-221b Build step 13 (vault/plans/EZD-221b.md Decided "Empty hint"; S03 States; Q-0591 (a)): a plan with no
 // walls shows the draw-walls hint over the canvas, for an editor only.
+// EZD-208b Build step 7 (vault/plans/EZD-208b.md section 3; DB1, DB3, DB7, DB11, DB15; Q-0630 rows 9, 28; Q-0633 G9):
+// selection for every viewer: the rail from `editorRail` with Select first, the selection layer over the plan, the
+// tablet edit bar first in the canvas state column, and `window.__ezdraftSelection` with `devHooks`.
 // EZD-219 Build step 15 (vault/plans/EZD-219.md Decided "Editor wiring"; Q-0568; Q-0680 (b)): ready, the status bar
 // shows Scale, Snap, Cursor and Zoom; the project's plan scale is held in a ScaleSetting that the plan follows, and
 // a failed scale save shows its own "Changes not saved" banner unless the model's shows.
@@ -31,6 +34,7 @@ import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
 import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-view';
+import { useCoarsePointer } from '../lib/device/useDeviceLayout';
 import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
@@ -56,14 +60,17 @@ import { ZoomStack } from './plan/ZoomStack';
 import { ConflictBanner } from './conflicts/ConflictBanner';
 import { ConflictPanel } from './conflicts/ConflictPanel';
 import { useConflictInputs } from './conflicts/use-conflicts';
+import { EditBar, SelectionLayer } from './selection/SelectionLayer';
+import {
+  createSelectionController,
+  editorRail,
+  shareReceiver,
+  type SelectionController,
+} from './selection/selection-controller';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
 import { PlanScaleFailedBanner, PlanStatusEnd, PlanStatusStart } from './status/PlanStatus';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
-import {
-  createDrawingController,
-  railMode,
-  type DrawingController,
-} from './tools/drawing-controller';
+import { createDrawingController, type DrawingController } from './tools/drawing-controller';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import styles from './ProjectEditor.module.css';
 
@@ -87,6 +94,11 @@ type PlanTestHook = {
   stats(): PlanStats & { contexts: number };
 };
 
+type SelectionTestHook = {
+  ids(): string[];
+  hoveredId(): string | null;
+};
+
 type CanvasState =
   | { kind: 'loading' }
   | Exclude<OpenResult, { kind: 'ready' }>
@@ -95,6 +107,7 @@ type CanvasState =
       session: EditorSession;
       plan: PlanController;
       drawing: DrawingController;
+      selection: SelectionController;
       scale: ScaleSetting;
     };
 
@@ -145,15 +158,23 @@ export function ProjectEditor({
           { store: result.session.store, scale: scale.get() },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
+        const slots = shareReceiver(plan.handle.setPointerReceiver);
         const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
         const drawing = createDrawingController({
-          handle: plan.handle,
+          handle: { ...plan.handle, setPointerReceiver: slots.drawing },
           store: result.session.store,
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
           snapSettings: () => deviceSnapSettings.get(),
         });
+        const selection = createSelectionController({
+          handle: plan.handle,
+          store: result.session.store,
+          drawing,
+          setReceiver: slots.selection,
+        });
         dispose = () => {
+          selection.dispose();
           unsubscribeScale();
           scale.dispose();
           drawing.dispose();
@@ -162,7 +183,7 @@ export function ProjectEditor({
           onSessionRef.current?.(null);
         };
         onSessionRef.current?.(result.session);
-        setState({ kind: 'ready', session: result.session, plan, drawing, scale });
+        setState({ kind: 'ready', session: result.session, plan, drawing, selection, scale });
         return;
       }
       setState(result);
@@ -176,6 +197,8 @@ export function ProjectEditor({
   const session = state.kind === 'ready' ? state.session : null;
   const plan = state.kind === 'ready' ? state.plan : null;
   const drawing = state.kind === 'ready' ? state.drawing : null;
+  const selection = state.kind === 'ready' ? state.selection : null;
+  const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
   const sync = session?.sync ?? null;
   const conflicts = useConflictInputs(session, projectId, listOpen);
@@ -211,6 +234,19 @@ export function ProjectEditor({
       delete w.__ezdraftPlan;
     };
   }, [plan, devHooks]);
+
+  useEffect(() => {
+    if (selection === null || plan === null || !devHooks) return;
+    const hook: SelectionTestHook = {
+      ids: () => [...selection.getUi().ids],
+      hoveredId: () => plan.handle.getHoveredId(),
+    };
+    const w = window as unknown as { __ezdraftSelection?: SelectionTestHook };
+    w.__ezdraftSelection = hook;
+    return () => {
+      delete w.__ezdraftSelection;
+    };
+  }, [selection, plan, devHooks]);
 
   const workingCopy = t('office.editor.working_copy');
   const clientName = session?.model.project.clientName ?? null;
@@ -252,6 +288,7 @@ export function ProjectEditor({
       </>
     );
 
+  const showPlan = plan !== null && !canvasFailed;
   let body: ReactNode = null;
   if (state.kind === 'loading') {
     body = (
@@ -276,6 +313,7 @@ export function ProjectEditor({
     };
     body = (
       <>
+        {showPlan && coarse && selection !== null ? <EditBar selection={selection} /> : null}
         {sync !== null ? (
           <>
             <OfflineBanner message="office.editor.offline" />
@@ -293,7 +331,6 @@ export function ProjectEditor({
     );
   }
 
-  const showPlan = plan !== null && !canvasFailed;
   const stateArea = (
     <div
       className={showPlan ? `${styles.state} ${styles.besideStack}` : styles.state}
@@ -304,14 +341,14 @@ export function ProjectEditor({
     </div>
   );
   const canEdit = session?.model.viewer.canEdit ?? false;
-  const mode = railMode({
+  const spec = editorRail({
     editor: state.kind,
     canEdit,
     canvasFailed,
     controllerEnabled: drawing?.getUi().enabled ?? false,
   });
   const rail =
-    mode === 'hidden' ? null : <DrawingRail controller={drawing} disabled={mode === 'disabled'} />;
+    spec === null ? null : <DrawingRail drawing={drawing} selection={selection} rail={spec} />;
   const panel =
     session !== null && listOpen ? (
       <ConflictPanel
@@ -330,6 +367,7 @@ export function ProjectEditor({
       {drawing !== null ? (
         <DrawingLayer controller={drawing} handle={plan.handle} canEdit={canEdit} />
       ) : null}
+      {selection !== null ? <SelectionLayer selection={selection} /> : null}
       {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}
       {stateArea}
       {panel}

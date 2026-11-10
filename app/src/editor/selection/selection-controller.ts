@@ -2,6 +2,7 @@
 // interactions; Q-0630 rows 7, 9, 28, 33, 35, 36; Q-0633 G12; 11 rule 4): canvas selection outside React. Click,
 // repeated click, Shift and Select more, the box by direction, Esc, V and Select all; session state only. The box
 // goes to `onBox` per move, never through `getUi()`.
+// EZD-208b Build step 4a (DB20; B9)
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -132,8 +133,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     }
     const i =
       cycle !== null && distance(p.screen, cycle.at) <= SAME_SPOT_PX ? (cycle.i + 1) % c.length : 0;
-    setUi([c[i]!]);
+    // Cycle first: setUi re-runs the hover picker, which reads it (R10, R12).
     cycle = { at: p.screen, i };
+    setUi([c[i]!]);
   };
 
   const boxMode = (from: Point, to: Point): SelectionBox['mode'] =>

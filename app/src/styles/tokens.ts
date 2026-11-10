@@ -68,4 +68,7 @@ export const TOKENS: readonly {
   { name: '--ez-amber-strong', value: 'oklch(0.43 0.12 60)', group: 'color' },
   { name: '--ez-cobalt-deep', value: 'oklch(0.42 0.17 262)', group: 'color' },
   { name: '--ez-group-band', value: '#fafbfc', group: 'color' },
+  // S03dStates box select right to left; EZD-208b
+  { name: '--ez-box-touch-stroke', value: 'oklch(0.5 0.12 160)', group: 'color' },
+  { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
 ];

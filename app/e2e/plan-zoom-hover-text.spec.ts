@@ -38,6 +38,7 @@ type PlanHook = {
     setView(v: View): void;
     modelToScreen(p: Pt): Pt;
     getHoveredWallId(): string | null;
+    getHoveredId(): string | null;
   };
   stats(): {
     frames: number;
@@ -80,7 +81,7 @@ const getView = (page: Page) =>
 const toScreen = (page: Page, p: Pt) =>
   page.evaluate((q) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(q), p);
 const hovered = (page: Page) =>
-  page.evaluate(() => (window as unknown as Window2).__ezdraftPlan.handle.getHoveredWallId());
+  page.evaluate(() => (window as unknown as Window2).__ezdraftPlan.handle.getHoveredId());
 
 async function waitForFrameAbove(page: Page, before: number) {
   await expect

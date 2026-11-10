@@ -1,0 +1,104 @@
+/* EZD-208b Build step 5 (vault/plans/EZD-208b.md section 3 C3; DB5, DB8, DB9; S03dStates box tile, S03dTablet
+   .bar, .ab, .abon, .tb, .tbd): the selection layer and box, the tablet edit bar and the Select more banner. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.box[data-box-mode='inside'] {
+  fill: var(--ez-cobalt);
+  fill-opacity: 0.08;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+}
+
+.box[data-box-mode='touch'] {
+  fill: var(--ez-box-touch-fill);
+  fill-opacity: 0.12;
+  stroke: var(--ez-box-touch-stroke);
+  stroke-width: 1.5px;
+  stroke-dasharray: 6 4;
+}
+
+.bar {
+  align-self: flex-start;
+  margin: 14px 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}
+
+.button {
+  box-sizing: border-box;
+  width: 62px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.button[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  box-shadow: inset 0 0 0 1.5px var(--ez-cobalt);
+}
+
+.banner {
+  align-self: flex-start;
+  margin: 2px 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 14px;
+  font-size: 13px;
+  color: var(--ez-ink);
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-floating);
+}
+
+.done {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--ez-surface);
+  background: var(--ez-ink);
+  border: 1px solid var(--ez-ink);
+  border-radius: var(--ez-radius-8);
+  cursor: pointer;
+}
