@@ -372,13 +372,20 @@ test.describe('EZD-207b plan canvas', () => {
     await expect(planCanvas(page)).toHaveAttribute('data-plan-state', 'ready');
     expect(await page.evaluate(() => '__ezdraftEditor' in window)).toBe(false);
     await expect(stack(page)).toBeVisible();
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+      'data-rail-tool',
+      'select',
+    );
 
     await setViewAndWait(page, { x: -24, y: 24, ppi: 8 });
     await moveTo(page, 600, 210);
     await expect.poll(() => hovered(page)).toBe(w1);
 
     await button(page, 'Fit to screen').click();
-    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(1472 / 120, 3);
+    // View-only users have Select on the rail (Q-0630 row 9), so the region is the editor's: (1600 - 32 - 56 - 16 - 96) / 120 (EZD-368).
+    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(1400 / 120, 3);
   });
 
   test('EZD-207b B4 a room label is drawn from the atlas in the label colour and nothing redraws while idle', async ({

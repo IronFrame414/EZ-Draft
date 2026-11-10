@@ -330,9 +330,42 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${id}`);
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
-    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+      'data-rail-tool',
+      'select',
+    );
+    await expect(page.locator('[data-rail-tool="wall"]')).toHaveCount(0);
+    await expect(page.locator('[data-rail-tool="room-rect"]')).toHaveCount(0);
     await expect(tid(page, 'plan-empty-hint')).toHaveCount(0);
     await expect.poll(() => typeCounts(tenant)).toEqual({ floor: 1, wall: 4, room: 1 });
+  });
+
+  test(`EZD-367 done when: a member without Edit model sees a Select-only rail with no drawing tools, no save state and no empty hint (AC-EZD-367-1, AC-EZD-221-6)`, async ({
+    page,
+    signInAs,
+  }) => {
+    const { tenant, email } = await foreman();
+    await signInAs(email);
+    await step1(page);
+    await step2(page);
+    await tile(page, 'l_kitchen').click();
+    await tid(page, 'new-project-create').click();
+    await expect.poll(() => projectCount(tenant)).toBe(1);
+    const id = await projectId(tenant);
+    await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${id}`);
+    await expectReady(page);
+    await expect(tid(page, 'save-state')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+      'data-rail-tool',
+      'select',
+    );
+    await expect(page.locator('[data-rail-tool="wall"]')).toHaveCount(0);
+    await expect(page.locator('[data-rail-tool="room-rect"]')).toHaveCount(0);
+    await expect(tid(page, 'plan-empty-hint')).toHaveCount(0);
   });
 
   test(`EZD-221b B7 load error: the template block shows its error with Retry, then the tiles (AC-EZD-221-2)`, async ({
