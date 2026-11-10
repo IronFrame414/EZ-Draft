@@ -80,3 +80,38 @@ Counted with awk over the STATUS Notes cells, by phase column. A deviation is co
 7. `push-develop` blocked by the EZD-023b hook inside overwatch (3 runs, commits left local).
 8. A repair report with no verdict line.
 9. Failures that happen only on CI (the missing plan text).
+
+## Added from the agent's second pass
+
+**B2, one more row.** No total attempt count: a released hold reset the no-progress counter (EZD-369 section 1, run.mjs:1036), so gate-phase 4 ran 22 times, mostly at $0.12-$0.63 each, one at $5.77. Fixed by 20acdd99 (EZD-369), which closes it for a single unit key.
+
+**B3, limits of the counts.**
+- The split-part counts include parts made when a ticket was created, not only splits after planning. Phase 4's 9 include the 11-06 splits of EZD-205, 207 and 210 (TN:108). Phase 5's 12 include the 11-09 splits (OL 18:16).
+- "Questions-unit plan edits" is a loose pattern and probably undercounts.
+- EZD-117a grew past the split threshold only after re-validation (TN D-060).
+
+**B4, stall table** (OL times, 2026):
+
+| When | Repair kind | Reported | Why it could not finish | Cleared by / when | Stall |
+| --- | --- | --- | --- | --- | --- |
+| 11-06 11:18 | waiting | FAILED: no verdict line | report format | next unit | n/a |
+| 11-06 12:32 | check | "REPAIRED", ledger still red | fix only queued; the inbox is applied between units (TN:109) | interactive `records.mjs apply` | 13 min |
+| 11-06 13:53 | waiting | FAILED: fix mode needed (EZD-354, 8 guarded paths) | repair never edits guarded paths while fix mode is open | session 10, 58d117c6, 11-07 02:14 | about 12.4 h |
+| 11-06 23:43 and 11-07 02:15 | waiting | ledger still fails | the same queue limit | 02:16 repair check | about 2.5 h |
+| 11-07 02:54 | waiting | FAILED: the sandbox has no network (EZD-210a) | `ENOTFOUND raw.githubusercontent.com` | session 10, 03:08 | 14 min |
+| 11-07 05:06 | check | FAILED: no verdict line | report format | n/a | n/a |
+| 11-09 13:54 | waiting | "REPAIRED", queued, not applied | the queue limit | a later unit boundary | n/a |
+| 11-09 ~16:43 | none ran | port 3000 held by an ezdraft process | killing it was refused in session 13 (OL 18:16) | Josh `sudo kill`, by 21:40 | about 5 h |
+| 11-10 07:03 | waiting | FAILED: EZD-208b and EZD-212a blocked at merge | a merge stop needs an unsandboxed session | builds restarted 13:06 (L); overwatch made 13:50 (459e2cb3) | 6.0 h |
+| 11-10 13:06 | check | FAILED: no verdict line | report format | n/a | n/a |
+| 11-10 18:26 | check | FAILED: the ledger check cannot pass inside the unit | the queue limit / the untracked EZD-372 plan | overwatch set it aside at 19:32 | open |
+
+**Why the weekly-limit loop happened, and why it is probably still open.** The orchestrator read the code:
+- A unit's outcome is `limit-<kind>` only when `classifyLimit(text)` matches `LIMIT_RE` (scripts/run.mjs:378-379). Otherwise it is `error:<subtype>`.
+- `LIMIT_RE` is `/(usage|rate) limit|limit (reached|exceeded|hit)|out of (extra )?usage|too many requests|quota/i` (run.mjs:194). It has not changed since de5030c1 (2026-10-18).
+- The loop units ended `error:success`, so the limit reply did not match. The launcher saw an ordinary error, not a limit, and restarted the unit at once.
+- EZD-369's `strikeExempt` exempts outcomes `limit-weekly` and `limit-five-hour`, and any note matching `/hit your (weekly|five-hour|5-hour) limit/i` (vault/tools/next_ticket.mjs:959-961).
+- **If the reply was worded "...hit your weekly limit..." (what the EZD-369 regex expects), EZD-369 would exempt it from strikes too, and the same loop would run again.** `classifyLimit` was never taught that wording.
+- The loop's reply text is not in launcher.log or the cost log, so this is unconfirmed. Settling it needs one probe in fix mode: replay a recorded limit reply through `classifyLimit` and `strikeExempt`. The only record is a tooling note (d0eb766d), which never blocks under rule 17.
+
+**Correction to the agent's row 9 (the weekly-limit loop).** The agent dated the loop 11-09 05:35-09:49, about 4.2 h, from the undated launcher.log. The cost log gives the dates: build EZD-299a looped from 11-07 15:21:26Z to 11-09 09:49:40Z, and plan EZD-217 from 11-08 05:35:40Z to 11-09 09:49:43Z (`grep '"outcome":"error:success"' vault/cost/log.jsonl | grep '"ticket":"<id>"' | sed -n '1p;$p'`). The table above uses those dates.
