@@ -100,6 +100,23 @@ Audit 2026-11, session 16. **Mechanical pass, all 298 rows** (done and blocked, 
 | 5 | audit | none | The phase-auditor may not start calc-auditor (hook), so the numeric audit was not obtained this way. | dispatch refusal | note |
 | 6 | EZD-372 | none | The D-Busy step hard-codes one Mac temp folder path. | EZD-372.md:43 | note |
 
+**Calc-auditor (dispatched by the orchestrator): `CALC: 1 issue`. One defect; everything else passes.**
+
+| AC | Expected (source) | Result | Test | Verdict |
+| --- | --- | --- | --- | --- |
+| 209 / 09j typed rows 1-24, 03g rows 6-9 | the 24 typed-length rows, e.g. 12.33' = 147.9375 shown 12' 4"; 0 1/64" refused; 200' 0 1/32" refused | all match (`parseLength`/`formatLength`, length.ts:35-88) | length.test.ts:45-96, 160-186 | PASS |
+| 12" carry | 5' 11 15/16" + 1/16" → 6' 0" | carries in whole sixteenths (length.ts:73-77) | length.test.ts:160-186 | PASS |
+| 209-4 turn angle | 0, 45, 90, 12.5 accepted; 180, 200, -90 refused | turn.ts:16-22 | turn.test.ts:13-72 | PASS |
+| 210-3 | a 12'×10' typed chain closes to 120 SF | closes within 2e-14 | drawing-controller.test.ts:256 | PASS |
+| 205-1, 205-5 | L 108, triangle 60, split rooms 48 and 68 SF (09j) | `floor((A+72)/144)` (area.ts:31), with a 1e-6 margin | outlines.test.ts:34-35, 74-77, 104-120 | PASS |
+| 205-2, 205-3, 205-4 | closure gaps, absorb, keep out of square (09j rows) | closure.ts:29-30, 158, 177-186; absorb.ts:74-128 | closure.test.ts:46-134; absorb.test.ts:52-122 | PASS |
+| **209-1 / 09j row 12** | a typed 12' 6 1/4" (150.25") wall must show **12' 6 1/2"** (a halfway value rounds up, 03g) | **FAIL.** The bar shows the length worked out from the drawn end points (`wallLength`, a hypot; drawing-controller.ts:443) through `formatLength`, and length.ts:73 rounds with `Math.floor(inches*d + 0.5)` and no margin for floating-point error. From (150,0) at 45°: length 150.24999999999997, ×2 + 0.5 = 300.99999999999994 → floor 300 → **12' 6"**. **The orchestrator re-ran this exact case with `node -p` and got the same values.** 724 of 9,620 start/angle pairs on the 1/2" grid show the wrong length. | TypedEntryLayer.test.tsx:71 passes the exact 150.25, so the hypot path is never tested | **defect** (shown length off by 1/2" on angled walls) |
+
+The spec does not settle three length inputs. They are for the orchestrator to settle, not issues:
+- `5' 13"` is accepted and gives 73".
+- `1/3"` is accepted and rounds to 0.3125".
+- `.5"` is refused.
+
 - **Numbers spot-checked by the phase auditor; all hold:**
   - 141.5" × 168" = 165.08 SF, shown as 165.
   - 147" × 120" = 122.5 SF, rounded half up to 123.
