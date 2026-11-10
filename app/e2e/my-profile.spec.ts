@@ -398,7 +398,9 @@ test.describe('EZD-108 my profile', () => {
     await openProfile(page);
     const dialog = tid(page, 'my-profile-dialog');
     await expect(tid(page, 'profile-password-heading')).toHaveText('Set password');
-    await expect(dialog.locator('input[type="password"]')).toHaveCount(2);
+    await expect(
+      dialog.getByTestId('profile-password-section').locator('input[type="password"]'),
+    ).toHaveCount(2);
     await expect(tid(page, 'profile-current-password')).toHaveCount(0);
 
     await fillPasswords(page, null, password);

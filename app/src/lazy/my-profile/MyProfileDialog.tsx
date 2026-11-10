@@ -214,7 +214,7 @@ function PasswordSection({
   const heading = hasPassword ? 'office.profile.change_password' : 'office.profile.set_password';
 
   return (
-    <div className={styles.section}>
+    <div data-testid="profile-password-section" className={styles.section}>
       <h3 data-testid="profile-password-heading" className={styles.label}>
         {t(heading)}
       </h3>
