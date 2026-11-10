@@ -382,22 +382,24 @@ if (userOn) {
     ports: [web, perf],
     exec: (file, a) => checkSpawner.run(userVars ?? gateVars, file, a, { cwd: checkDir, encoding: 'utf8', timeout: 30000 }),
     gateUser: GATE_USER, runTree, sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
-    // D-Hidden: lsof as ezdraft sees only ezdraft's processes. From Josh's side the port is in use when a loopback connect is
-    // answered (a listener on 127.0.0.1, 0.0.0.0 or ::, such as `next dev`) or a 127.0.0.1 bind fails for any reason (rule 16:
-    // an error is never read as free). No 0.0.0.0 bind, so no firewall prompt on an unattended Mac.
+    // D-Hidden: lsof as ezdraft sees only ezdraft's processes. From Josh's side a real holder answers a loopback connect
+    // (a listener on 127.0.0.1, 0.0.0.0, :: or ::1, such as `next dev`). ECONNREFUSED is free; any other error or a timeout
+    // counts as in use (rule 16). No bind test: a port bound for a moment without listening failed it (EADDRINUSE) while the
+    // gate's own perf server then started on that port (EZD-366, EZD-367 on 3210, 2026-11-10).
     portInUse: async (port) => {
-      const answered = (host) => new Promise((resolve) => {
+      const probe = (host) => new Promise((resolve) => {
         const s = net.connect({ port, host });
-        s.setTimeout(1000, () => { s.destroy(); resolve(false); });
-        s.once('connect', () => { s.destroy(); resolve(true); });
-        s.once('error', () => resolve(false));
+        s.setTimeout(1000, () => { s.destroy(); resolve('timeout'); });
+        s.once('connect', () => { s.destroy(); resolve('answered'); });
+        s.once('error', (e) => resolve(e?.code ?? 'error'));
       });
-      for (const host of ['127.0.0.1', '::1']) if (await answered(host)) { say(`port ${port}: a connect to ${host} was answered`); return true; }
-      return new Promise((resolve) => {
-        const srv = net.createServer();
-        srv.once('error', (e) => { say(`port ${port}: a 127.0.0.1 bind failed (${e?.code ?? e?.message ?? 'error'})`); resolve(true); });
-        srv.listen(port, '127.0.0.1', () => srv.close(() => resolve(false)));
-      });
+      for (const host of ['127.0.0.1', '::1']) {
+        const r = await probe(host);
+        if (r === 'ECONNREFUSED' || (host === '::1' && r === 'EADDRNOTAVAIL')) continue;
+        say(`port ${port}: a connect to ${host} gave ${r}`);
+        return true;
+      }
+      return false;
     },
   });
   for (const l of freed.lines) say(l);
