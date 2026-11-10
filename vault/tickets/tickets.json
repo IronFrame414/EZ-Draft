@@ -3860,6 +3860,19 @@
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
    "mockups": [],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Company settings (EZD-112)",
+    "Customers (EZD-113)",
+    "Off-site backups and restore (EZD-025)",
+    "Error reporting (EZD-024)",
+    "Server-only data access and can()",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)",
+    "State components (EZD-015)",
+    "Messages and language (t())"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103a",
@@ -5158,6 +5171,23 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Plan canvas (EZD-207a)",
+    "Selection (EZD-208)",
+    "Drawing tools (EZD-210)",
+    "Patch store and outbox (EZD-120b)",
+    "Editor route (EZD-120c)",
+    "Model working copy (EZD-120a)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)",
+    "Openings (EZD-204)",
+    "Permission enforcement (EZD-102)",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-213a",
@@ -5333,6 +5363,17 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Selection (EZD-208)",
+    "Plan canvas (EZD-207a)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)",
+    "Patch store and outbox (EZD-120b)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-214"
@@ -5400,6 +5441,22 @@
    ],
    "mockups": [
     "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Editor route (EZD-120c)",
+    "Model working copy (EZD-120a)",
+    "Permission enforcement (EZD-102)",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Menus (EZD-108)",
+    "Browser tests (EZD-016a)",
+    "Device layouts (EZD-014)",
+    "Disclaimer (EZD-136)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -5638,6 +5695,18 @@
    ],
    "mockups": [
     "mockups/S01Projects.png"
+   ],
+   "architecture": [
+    "Storage buckets and paths",
+    "Model working copy (EZD-120a)",
+    "Plan canvas (EZD-207a)",
+    "Editor route (EZD-120c)",
+    "Projects page (EZD-117a)",
+    "Entry contents and bundle report (EZD-020)",
+    "Browser tests (EZD-016a)",
+    "Row-level security (EZD-006)",
+    "Benchmark project (EZD-236)",
+    "Dependencies"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
