@@ -4829,7 +4829,8 @@
    ],
    "architecture": [
     "Rooms (EZD-205a)",
-    "Model schema (EZD-202)"
+    "Model schema (EZD-202)",
+    "Openings (EZD-204)"
    ],
    "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
