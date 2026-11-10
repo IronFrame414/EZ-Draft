@@ -5,13 +5,14 @@
 // key's highest stored number.
 import type { NumberHighs, ObjectIssue } from '@ezdraft/geometry';
 import type { OutboxEntry } from './outbox';
+import type { PlanScale } from '../plan/plan-scale';
 
 export type ObjectValue = { type: string; schemaVersion: number; data: Record<string, unknown> };
 
 export type LoadedObject = ObjectValue & { id: string; updatedSeq: number };
 
 export type ModelLoad = {
-  project: { id: string; name: string; clientName: string | null };
+  project: { id: string; name: string; clientName: string | null; planScale: PlanScale };
   viewer: { appUserId: string; tenantId: string; membershipId: string; canEdit: boolean };
   lockEpoch: number;
   objects: LoadedObject[];

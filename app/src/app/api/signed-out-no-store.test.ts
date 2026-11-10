@@ -88,6 +88,20 @@ const calls: Call[] = [
       );
     },
   },
+  // EZD-219 (vault/plans/EZD-219.md section 4): the plan scale route.
+  {
+    route: 'PUT /api/projects/<id>/plan-scale',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/plan-scale/route')).PUT(
+        new Request(`${ORIGIN}/api/projects/${id}/plan-scale`, {
+          method: 'PUT',
+          body: JSON.stringify({ scale: 0.5 }),
+        }),
+        withParams(id),
+      );
+    },
+  },
   {
     route: 'POST /api/projects/<id>/objects',
     run: async () => {

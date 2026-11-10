@@ -5,13 +5,17 @@
 // receiver outside React. `getUi()` changes on tool, pick, gap and last-length changes, never per pointer move.
 // EZD-208a Build step 6 (vault/plans/EZD-208a.md section 1 R13; Q-0570): the hover mode is 'select' unless a tool
 // is on ('off') or a gap pick is on ('wall'), and follows every ui change.
+// EZD-219 Build step 11 (vault/plans/EZD-219.md Decided "Every snap call"; AC-EZD-219-1): every snap call takes the
+// status bar's snap settings.
 import {
+  DEFAULT_SNAP_SETTINGS,
   createWallSnapIndex,
   snap,
   wallLength,
   type ModelObject,
   type Point,
   type SnapResult,
+  type SnapSettings,
   type WallObject,
   type WallSnapIndex,
 } from '@ezdraft/geometry';
@@ -95,6 +99,7 @@ export type DrawingDeps = {
   onMessage: (key: MessageKey) => void;
   newId?: () => string;
   now?: () => string;
+  snapSettings?: () => Readonly<SnapSettings>;
 };
 
 export type DrawingController = {
@@ -141,6 +146,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const { handle, store, viewer } = deps;
   const newId = deps.newId ?? newObjectId;
   const now = deps.now ?? (() => new Date().toISOString());
+  const snapSettings = deps.snapSettings ?? (() => DEFAULT_SNAP_SETTINGS);
 
   let objects: Objects = store.getState().objects;
   let level: string | null = openFloorId(objects);
@@ -338,6 +344,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       pixelsPerInch: handle.getPixelsPerInch(),
       anchor: context.anchor,
       referenceDirection: context.referenceDirection,
+      settings: snapSettings(),
     });
     lastSnap = result;
     lastContext = context;

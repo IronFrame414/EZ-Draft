@@ -4,6 +4,8 @@
 // No React; the region rect is read on down, enter and wheel only, never per move. EZD-207b Build step 6
 // (vault/plans/EZD-207b.md Decided "Input hover"; C9): mouse and pen moves that are not panning go to `onHover`,
 // and leaving the region or starting a pan clears it; touch never hovers.
+// EZD-219 Build step 8 (vault/plans/EZD-219.md Decided "Controller"): zooms use the scale's 100% (`getZoom100`);
+// each new cursor point goes to `onCursor`, and a non-touch leave sends null.
 import type { Point } from '@ezdraft/geometry';
 import { panBy, regionToModel, wheelZoomFactor, zoomAt, type PlanView } from './view';
 
@@ -30,6 +32,8 @@ export type PlanInputOptions = {
   setView(view: PlanView): void;
   getReceiver(): PlanPointerReceiver | null;
   onHover?(screen: Point | null): void;
+  getZoom100(): number;
+  onCursor?(screen: Point | null): void;
 };
 export type PlanInput = { getCursor(): Point | null; dispose(): void };
 
@@ -98,6 +102,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     rect = surface.getBoundingClientRect();
     const p = toRegion(e);
     cursor = p;
+    o.onCursor?.(p);
     try {
       surface.setPointerCapture?.(e.pointerId);
     } catch {
@@ -133,6 +138,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     const e = event as unknown as Pointerish;
     const p = toRegion(e);
     cursor = p;
+    o.onCursor?.(p);
     if (isTouch(e)) {
       const last = touches.get(e.pointerId);
       if (last === undefined) return;
@@ -150,7 +156,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
           afterCentre.x - beforeCentre.x,
           afterCentre.y - beforeCentre.y,
         );
-        o.setView(zoomAt(panned, afterCentre, ratio));
+        o.setView(zoomAt(panned, afterCentre, ratio, o.getZoom100()));
         return;
       }
       touches.set(e.pointerId, p);
@@ -198,6 +204,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
   const onLeave = (event: Event) => {
     if (isTouch(event as unknown as Pointerish)) return;
     o.onHover?.(null);
+    o.onCursor?.(null);
   };
 
   const onWheel = (event: Event) => {
@@ -206,7 +213,10 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     rect = surface.getBoundingClientRect();
     const p = toRegion(e);
     cursor = p;
-    o.setView(zoomAt(o.getView(), p, wheelZoomFactor(e.deltaY, e.deltaMode, e.ctrlKey)));
+    o.onCursor?.(p);
+    o.setView(
+      zoomAt(o.getView(), p, wheelZoomFactor(e.deltaY, e.deltaMode, e.ctrlKey), o.getZoom100()),
+    );
   };
 
   const onContextMenu = (event: Event) => {

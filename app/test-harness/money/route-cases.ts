@@ -54,7 +54,9 @@ const field = (body: unknown, ...keys: string[]): string => {
 
 const KIND = NOTIFICATION_KINDS[0];
 const ALL_ON = NOTIFICATION_KINDS.map((kind) => ({ kind, inApp: true, email: true }));
-const SETTINGS_CHANGED = ALL_ON.map((s) => (s.kind === 'edit_request' ? { ...s, inApp: false } : s));
+const SETTINGS_CHANGED = ALL_ON.map((s) =>
+  s.kind === 'edit_request' ? { ...s, inApp: false } : s,
+);
 const ANN = {
   name: 'Ann Lee',
   email: 'ann@example.test',
@@ -184,7 +186,7 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     load: () => import('../../src/app/api/jobs/sweep/route'),
     request: get('/api/jobs/sweep'),
     expectStatus: 401,
-    note: 'sent without an authorization header: the success request would sweep other tests\' jobs',
+    note: "sent without an authorization header: the success request would sweep other tests' jobs",
   },
   {
     file: `${API}monitoring/route.ts`,
@@ -238,11 +240,9 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     method: 'PATCH',
     load: () => import('../../src/app/api/dev/permissions/projects/[id]/route'),
     request: async (env) => ({
-      ...(await sendJson(
-        'PATCH',
-        `/api/dev/permissions/projects/${env.projectId}`,
-        { name: 'Money check' },
-      )()),
+      ...(await sendJson('PATCH', `/api/dev/permissions/projects/${env.projectId}`, {
+        name: 'Money check',
+      })()),
       params: { id: env.projectId },
     }),
     expectStatus: 200,
@@ -457,6 +457,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 201,
     note: 'EZD-120a: one checkpoint; 201 { version: { id } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/plan-scale/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/plan-scale/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/plan-scale`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ scale: 0.5 }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-219: the plan scale; 200 { scale } (no money)',
   },
   {
     file: `${API}projects/[id]/model/route.ts`,

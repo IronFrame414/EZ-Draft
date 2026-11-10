@@ -13,6 +13,9 @@
 // banner under the header card and "Changes not saved" over the canvas; `conflictsOpen` opens the list at start.
 // EZD-221b Build step 13 (vault/plans/EZD-221b.md Decided "Empty hint"; S03 States; Q-0591 (a)): a plan with no
 // walls shows the draw-walls hint over the canvas, for an editor only.
+// EZD-219 Build step 15 (vault/plans/EZD-219.md Decided "Editor wiring"; Q-0568; Q-0680 (b)): ready, the status bar
+// shows Scale, Snap, Cursor and Zoom; the project's plan scale is held in a ScaleSetting that the plan follows, and
+// a failed scale save shows its own "Changes not saved" banner unless the model's shows.
 import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
@@ -30,6 +33,7 @@ import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-view';
 import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
+import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
 import {
   openEditorSession,
@@ -53,6 +57,8 @@ import { ConflictBanner } from './conflicts/ConflictBanner';
 import { ConflictPanel } from './conflicts/ConflictPanel';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
+import { PlanScaleFailedBanner, PlanStatusEnd, PlanStatusStart } from './status/PlanStatus';
+import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
 import {
   createDrawingController,
   railMode,
@@ -84,7 +90,13 @@ type PlanTestHook = {
 type CanvasState =
   | { kind: 'loading' }
   | Exclude<OpenResult, { kind: 'ready' }>
-  | { kind: 'ready'; session: EditorSession; plan: PlanController; drawing: DrawingController };
+  | {
+      kind: 'ready';
+      session: EditorSession;
+      plan: PlanController;
+      drawing: DrawingController;
+      scale: ScaleSetting;
+    };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
 const noop = () => {};
@@ -123,24 +135,34 @@ export function ProjectEditor({
         return;
       }
       if (result.kind === 'ready') {
+        const loaded = result.session.model.project.planScale;
+        const scale = createScaleSetting({
+          scale: isPlanScale(loaded) ? loaded : DEFAULT_PLAN_SCALE,
+          canEdit: result.session.model.viewer.canEdit,
+          save: (s) => savePlanScale(projectId, s),
+        });
         const plan = createPlanController(
-          { store: result.session.store },
+          { store: result.session.store, scale: scale.get() },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
+        const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
         const drawing = createDrawingController({
           handle: plan.handle,
           store: result.session.store,
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
+          snapSettings: () => deviceSnapSettings.get(),
         });
         dispose = () => {
+          unsubscribeScale();
+          scale.dispose();
           drawing.dispose();
           plan.dispose();
           result.session.dispose();
           onSessionRef.current?.(null);
         };
         onSessionRef.current?.(result.session);
-        setState({ kind: 'ready', session: result.session, plan, drawing });
+        setState({ kind: 'ready', session: result.session, plan, drawing, scale });
         return;
       }
       setState(result);
@@ -154,6 +176,7 @@ export function ProjectEditor({
   const session = state.kind === 'ready' ? state.session : null;
   const plan = state.kind === 'ready' ? state.plan : null;
   const drawing = state.kind === 'ready' ? state.drawing : null;
+  const scale = state.kind === 'ready' ? state.scale : null;
   const sync = session?.sync ?? null;
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
@@ -258,6 +281,9 @@ export function ProjectEditor({
             <OfflineBanner message="office.editor.offline" />
             {/* D-Editor: outdated rows exist only while the problem is app_outdated; they say Reload. */}
             {conflicts.outdatedCount > 0 ? null : <SaveFailedBanner sync={sync} />}
+            {conflicts.outdatedCount > 0 || scale === null ? null : (
+              <PlanScaleFailedBanner scale={scale} sync={sync} />
+            )}
           </>
         ) : null}
         {canvasFailed ? (
@@ -325,7 +351,16 @@ export function ProjectEditor({
           header={header}
           rail={rail}
           canvas={canvas}
-          statusBar={<StatusBar />}
+          statusBar={
+            <StatusBar
+              start={
+                showPlan && scale ? (
+                  <PlanStatusStart scale={scale} snap={deviceSnapSettings} />
+                ) : undefined
+              }
+              end={showPlan ? <PlanStatusEnd handle={plan.handle} /> : undefined}
+            />
+          }
           backdrop={backdrop}
         />
       }

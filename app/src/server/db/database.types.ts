@@ -663,6 +663,9 @@ isOneToOne: false
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
                            },
+"set_plan_scale":
+{ Args: { "p_project": string,"p_scale": number }; Returns: number
+                           },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
                            },

@@ -39,6 +39,7 @@ function setup(withReceiver = false) {
       views.push(v);
     },
     getReceiver: () => receiver,
+    getZoom100: () => 8 / 3,
   });
   return {
     surface,
@@ -262,6 +263,7 @@ describe('EZD-207b input hover', () => {
       },
       getReceiver: () => null,
       onHover,
+      getZoom100: () => 8 / 3,
     });
     pointer(surface, 'pointermove', 600, 210);
     pointer(surface, 'pointermove', 610, 212, { pointerType: 'pen' });

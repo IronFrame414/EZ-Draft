@@ -4,10 +4,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   CURRENT_SCHEMA_VERSION,
+  DEFAULT_SNAP_SETTINGS,
   createWallData,
   roomAreaSqFt,
   type NumberHighs,
   type Point,
+  type SnapSettings,
 } from '@ezdraft/geometry';
 import { createModelStore } from '../model/model-store';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
@@ -19,7 +21,17 @@ import {
   type DrawingHandle,
   type ToolKeyEvent,
 } from './drawing-controller';
-import { baseObjects, F1, idSeq, roomsOf, uid, wallsOf, WHEN, WHO, withWalls } from './test-utils/fixtures';
+import {
+  baseObjects,
+  F1,
+  idSeq,
+  roomsOf,
+  uid,
+  wallsOf,
+  WHEN,
+  WHO,
+  withWalls,
+} from './test-utils/fixtures';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 
 const PPI = 8 / 3;
@@ -51,7 +63,12 @@ function fakeHandle() {
   };
 }
 
-function ev(kind: PlanPointerEvent['kind'], x: number, y: number, pointerType = 'mouse'): PlanPointerEvent {
+function ev(
+  kind: PlanPointerEvent['kind'],
+  x: number,
+  y: number,
+  pointerType = 'mouse',
+): PlanPointerEvent {
   return {
     kind,
     model: pt(x, y),
@@ -84,6 +101,7 @@ function setup(
   objects: Map<string, ObjectValue> = baseObjects(),
   canEdit = true,
   numberHighs?: NumberHighs,
+  snapSettings?: () => Readonly<SnapSettings>,
 ) {
   const store = createModelStore({ objects, numberHighs });
   const h = fakeHandle();
@@ -95,6 +113,7 @@ function setup(
     onMessage: (key) => void msgs.push(key),
     newId: idSeq(100),
     now: () => WHEN,
+    ...(snapSettings ? { snapSettings } : {}),
   });
   const send = (e: PlanPointerEvent) => {
     const r = h.receiver();
@@ -408,7 +427,12 @@ describe('EZD-210b drawing controller', () => {
   });
 
   it('D11 railMode: hidden, disabled or enabled', () => {
-    const ready = { editor: 'ready', canEdit: true, canvasFailed: false, controllerEnabled: true } as const;
+    const ready = {
+      editor: 'ready',
+      canEdit: true,
+      canvasFailed: false,
+      controllerEnabled: true,
+    } as const;
     expect(railMode({ ...ready, editor: 'loading' })).toBe('disabled');
     expect(railMode({ ...ready, editor: 'failed' })).toBe('hidden');
     expect(railMode({ ...ready, editor: 'no-access' })).toBe('hidden');
@@ -433,5 +457,25 @@ describe('EZD-294 drawing controller numbers', () => {
     controller.typed({ width: 144, depth: 120 });
     expect(walls().map((w) => w.data.attributes.number)).toEqual([13, 14, 15, 16]);
     expect(store.getState().numberHighs.wall).toBe(16);
+  });
+});
+
+// EZD-219 U13 (vault/plans/EZD-219.md section 4; 09m Snap row 5; Q-0569 (a); Decided "Every snap call").
+describe('EZD-219 drawing uses the snap settings', () => {
+  it('EZD-219 U13 the drawing controller snaps with the given increment', () => {
+    const twelve = setup(baseObjects(), true, undefined, () => ({
+      ...DEFAULT_SNAP_SETTINGS,
+      incrementIn: 12,
+    }));
+    twelve.controller.selectTool('wall');
+    twelve.click(0, 0);
+    twelve.send(ev('move', 37.3, 0));
+    near(twelve.controller.getFrame()!.to!, pt(36, 0));
+
+    const control = setup();
+    control.controller.selectTool('wall');
+    control.click(0, 0);
+    control.send(ev('move', 37.3, 0));
+    near(control.controller.getFrame()!.to!, pt(37.5, 0));
   });
 });

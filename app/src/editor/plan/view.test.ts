@@ -5,17 +5,20 @@ import {
   FIT_MARGIN_PX,
   GRID_MIN_PX,
   GRID_STEPS_IN,
-  MAX_PPI,
-  MIN_PPI,
-  ZOOM_100_PPI,
+  MAX_ZOOM_PERCENT,
+  MIN_ZOOM_PERCENT,
   cameraFrame,
+  clampPpi,
   fitView,
   gridStepIn,
   modelToRegion,
   panBy,
+  parseZoomPercent,
   regionToModel,
   wheelZoomFactor,
+  zoom100Ppi,
   zoomAt,
+  zoomPercent,
 } from './view';
 
 describe('EZD-207a view maths', () => {
@@ -45,47 +48,50 @@ describe('EZD-207a view maths', () => {
   test('EZD-207a U3 zoomAt keeps the model point under the cursor and clamps to the limits', () => {
     const start = { x: 0, y: 0, ppi: 8 / 3 };
     const at = { x: 400, y: 300 };
-    expect(ZOOM_100_PPI).toBeCloseTo(8 / 3, 9);
-    expect(MAX_PPI).toBeCloseTo(128 / 3, 9);
-    expect(MIN_PPI).toBeCloseTo(2 / 15, 9);
-    const zoomed = zoomAt(start, at, 2);
+    expect(MIN_ZOOM_PERCENT).toBe(5);
+    expect(MAX_ZOOM_PERCENT).toBe(1600);
+    const zoomed = zoomAt(start, at, 2, 8 / 3);
     const m = regionToModel(zoomed, at);
     expect(m.x).toBeCloseTo(150, 9);
     expect(m.y).toBeCloseTo(-112.5, 9);
     expect(zoomed.ppi).toBeCloseTo(16 / 3, 9);
-    expect(zoomAt(start, at, 1e9).ppi).toBeCloseTo(MAX_PPI, 9);
-    expect(zoomAt(start, at, 1e-9).ppi).toBeCloseTo(MIN_PPI, 9);
-    expect(zoomAt(start, at, 0)).toBe(start);
-    expect(zoomAt(start, at, Number.NaN)).toBe(start);
+    expect(zoomAt(start, at, 1e9, 8 / 3).ppi).toBeCloseTo(128 / 3, 9);
+    expect(zoomAt(start, at, 1e-9, 8 / 3).ppi).toBeCloseTo(2 / 15, 9);
+    expect(zoomAt(start, at, 0, 8 / 3)).toBe(start);
+    expect(zoomAt(start, at, Number.NaN, 8 / 3)).toBe(start);
   });
 
   test('EZD-207a U4 fitView centres the bounds inside the margin and clamps the zoom', () => {
     const region = { width: 1568, height: 862 };
     const centre = { x: 784, y: 431 };
     expect(FIT_MARGIN_PX).toBe(48);
-    const first = fitView({ minX: 0, minY: -4.5, maxX: 120, maxY: 0 }, region);
+    const first = fitView({ minX: 0, minY: -4.5, maxX: 120, maxY: 0 }, region, 8 / 3);
     expect(first.ppi).toBeCloseTo(1472 / 120, 9);
     const at = modelToRegion(first, { x: 60, y: -2.25 });
     expect(at.x).toBeCloseTo(centre.x, 9);
     expect(at.y).toBeCloseTo(centre.y, 9);
 
-    const empty = fitView(null, region);
+    const empty = fitView(null, region, 8 / 3);
     expect(empty.ppi).toBeCloseTo(8 / 3, 9);
     const origin = modelToRegion(empty, { x: 0, y: 0 });
     expect(origin.x).toBeCloseTo(centre.x, 9);
     expect(origin.y).toBeCloseTo(centre.y, 9);
 
-    const point = fitView({ minX: 10, minY: 10, maxX: 10, maxY: 10 }, region);
+    const point = fitView({ minX: 10, minY: 10, maxX: 10, maxY: 10 }, region, 8 / 3);
     expect(point.ppi).toBeCloseTo(8 / 3, 9);
     const p = modelToRegion(point, { x: 10, y: 10 });
     expect(p.x).toBeCloseTo(centre.x, 9);
     expect(p.y).toBeCloseTo(centre.y, 9);
 
-    const wide = fitView({ minX: 0, minY: 0, maxX: 240, maxY: 0 }, region);
+    const wide = fitView({ minX: 0, minY: 0, maxX: 240, maxY: 0 }, region, 8 / 3);
     expect(wide.ppi).toBeCloseTo(1472 / 240, 9);
 
-    const none = fitView({ minX: 0, minY: -4.5, maxX: 120, maxY: 0 }, { width: 0, height: 0 });
-    expect(none.ppi).toBeCloseTo(MIN_PPI, 9);
+    const none = fitView(
+      { minX: 0, minY: -4.5, maxX: 120, maxY: 0 },
+      { width: 0, height: 0 },
+      8 / 3,
+    );
+    expect(none.ppi).toBeCloseTo(2 / 15, 9);
   });
 
   test('EZD-207a U5 wheel factors, grid steps and the camera frame', () => {
@@ -113,5 +119,49 @@ describe('EZD-207a view maths', () => {
     expect(frame.zoom).toBeCloseTo(8 / 3, 9);
     expect(frame.halfWidth).toBeCloseTo(800, 9);
     expect(frame.halfHeight).toBeCloseTo(500, 9);
+  });
+});
+
+// EZD-219 U3-U5 (vault/plans/EZD-219.md section 4; 09m Scale rows 1-5, Typed zoom rows 1-7;
+// Q-0664; Decided "100% zoom", "Typed zoom parse").
+describe('EZD-219 zoom follows the plan scale', () => {
+  test('EZD-219 U3 100% zoom per scale', () => {
+    expect([0.125, 0.25, 0.5, 0.1875, 1].map((s) => zoom100Ppi(s))).toEqual([1, 2, 4, 1.5, 8]);
+    expect([0.125, 0.25, 0.5, 0.1875, 1].map((s) => 120 * zoom100Ppi(s))).toEqual([
+      120, 240, 480, 180, 960,
+    ]);
+  });
+
+  test('EZD-219 U4 zoom limits follow the scale', () => {
+    expect(clampPpi(1000, 4)).toBeCloseTo(64, 9);
+    expect(clampPpi(0.01, 4)).toBeCloseTo(0.2, 9);
+    expect(clampPpi(Number.NaN, 8)).toBe(8);
+    expect(clampPpi(0.01, 1)).toBeCloseTo(0.05, 9);
+    expect(zoomAt({ x: 0, y: 0, ppi: 8 }, { x: 400, y: 300 }, 1e9, 8).ppi).toBeCloseTo(128, 9);
+    expect(fitView(null, { width: 1568, height: 862 }, 1).ppi).toBeCloseTo(1, 9);
+    expect(zoomPercent(64, 4)).toBe(1600);
+    expect(zoomPercent(1.32, 4)).toBe(33);
+  });
+
+  test('EZD-219 U5 typed zoom parse', () => {
+    const cases: [string, number | null][] = [
+      ['5', 5],
+      ['1600', 1600],
+      ['4', 5],
+      ['2000', 1600],
+      ['33.3', 33],
+      ['0', 5],
+      ['', null],
+      ['abc', null],
+      [' 250% ', 250],
+      ['-5', 5],
+      ['33.5', 34],
+      ['1e3', null],
+      ['12.5.1', null],
+      ['%', null],
+    ];
+    for (const [text, expected] of cases) {
+      expect(parseZoomPercent(text), text).toBe(expected);
+    }
   });
 });

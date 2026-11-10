@@ -155,7 +155,7 @@ function fakeSync(kept = false) {
 }
 
 const modelWith = (objects: unknown[]) => ({
-  project: { id: P, name: 'Kitchen', clientName: null },
+  project: { id: P, name: 'Kitchen', clientName: null, planScale: 0.5 },
   viewer: { appUserId: 'u1', tenantId: 't1', membershipId: 'm1', canEdit: true },
   lockEpoch: 0,
   objects,

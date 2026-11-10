@@ -31,7 +31,7 @@ const floor = (name: string) => ({
 });
 
 const modelOf = (canEdit: boolean): ModelLoad => ({
-  project: { id: PROJECT, name: 'bravo', clientName: 'Zed Co' },
+  project: { id: PROJECT, name: 'bravo', clientName: 'Zed Co', planScale: 0.5 },
   viewer: { ...ACTOR, canEdit },
   lockEpoch: 0,
   objects: [{ id: FLOOR, ...floor('Floor 1'), updatedSeq: 1 }],

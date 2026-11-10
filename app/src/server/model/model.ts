@@ -8,6 +8,7 @@
 // those rooms only.
 // EZD-294 Build step 6 (vault/plans/EZD-294.md Decided "loadModel numbers", "Saved number"; Q-0625 (a); Q-0629 (b)):
 // the load answers each key's highest number of live and deleted rows; a save answers each saved object's number.
+// EZD-219 Build step 5 (vault/plans/EZD-219.md section 3): the load answers the project's plan scale; `setPlanScale`.
 import {
   CURRENT_SCHEMA_VERSION,
   NO_NUMBERS,
@@ -19,6 +20,7 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
+import { planScaleFromSettings, type PlanScale } from '../../lib/plan/plan-scale';
 import type { Database, Json } from '../db/database.types';
 import { can, type PermissionContext } from '../permissions';
 
@@ -280,6 +282,24 @@ export async function createCheckpoint(
   return { ok: true, versionId: data };
 }
 
+// EZD-219 step 5: the project's plan scale through set_plan_scale (definer; 42501, P0002, 22023).
+export async function setPlanScale(
+  client: SupabaseClient<Database>,
+  projectId: string,
+  scale: PlanScale,
+): Promise<
+  { ok: true } | { ok: false; code: 'permission_denied' | 'project_not_found' | 'invalid_input' }
+> {
+  const { error } = await client.rpc('set_plan_scale', { p_project: projectId, p_scale: scale });
+  if (error) {
+    if (error.code === '42501') return { ok: false, code: 'permission_denied' };
+    if (error.code === 'P0002') return { ok: false, code: 'project_not_found' };
+    if (error.code === '22023') return { ok: false, code: 'invalid_input' };
+    throw error;
+  }
+  return { ok: true };
+}
+
 // supabase/config.toml max_rows: the most rows one select returns.
 const LOAD_PAGE = 1000;
 
@@ -329,7 +349,7 @@ export async function loadModel(
   const [project, lock, firstPage, firstDeleted] = await Promise.all([
     client
       .from('project')
-      .select('id, name, tenant_id, customer!project_customer_fk(name)')
+      .select('id, name, tenant_id, settings, customer!project_customer_fk(name)')
       .eq('id', projectId)
       .maybeSingle(),
     client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
@@ -389,6 +409,7 @@ export async function loadModel(
       id: project.data.id,
       name: project.data.name,
       clientName: project.data.customer?.name ?? null,
+      planScale: planScaleFromSettings(project.data.settings),
     },
     viewer: {
       appUserId: ctx.appUserId,

@@ -411,7 +411,7 @@ test.describe('EZD-207a plan canvas', () => {
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
-    await expect(page.locator('[data-status-item]')).toHaveCount(0);
+    await expect(page.locator('[data-status-item]')).toHaveCount(4);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });
 

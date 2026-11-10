@@ -6,7 +6,10 @@
 // hover index, Show for one object, and the drawing list's text once the glyph atlas is made.
 // EZD-208a Build step 5 (vault/plans/EZD-208a.md section 3 A6-A7; section 1 R10-R12): the select hover mode with
 // its picker, the body lookup, and the selection drawn and redrawn on change.
+// EZD-219 Build step 9 (vault/plans/EZD-219.md Decided "Scale change", "Typed zoom apply", "Controller"): the plan
+// scale sets what 100% zoom means; typed zoom; the cursor's model point for the status bar.
 import type { DrawingList, Point } from '@ezdraft/geometry';
+import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import type { ModelStore } from '../model/model-store';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
 import { layoutText } from './glyph-atlas';
@@ -28,14 +31,17 @@ import {
 } from './input';
 import { createPlanScene, type PlanScene } from './scene';
 import {
-  ZOOM_100_PPI,
+  MAX_ZOOM_PERCENT,
+  MIN_ZOOM_PERCENT,
   cameraFrame,
   clampPpi,
   fitView,
   gridStepIn,
   modelToRegion,
   regionToModel,
+  zoom100Ppi,
   zoomAt,
+  zoomPercent,
   type Bounds,
   type CameraFrame,
   type PlanView,
@@ -82,6 +88,11 @@ export type PlanCanvasHandle = {
   setBodyLookup(lookup: BodyLookup | null): void;
   setSelectedIds(ids: readonly string[]): void;
   getHoveredId(): string | null;
+  getScale(): PlanScale;
+  setScale(scale: PlanScale): void;
+  getZoomPercent(): number;
+  setZoomPercent(percent: number): void;
+  onCursorChange(listener: (model: Point | null) => void): () => void;
 };
 
 export type PlanController = {
@@ -109,7 +120,7 @@ function unmountQuietly(root: RenderRoot): void {
 }
 
 export function createPlanController(
-  o: { store: Pick<ModelStore, 'getState' | 'subscribe'> },
+  o: { store: Pick<ModelStore, 'getState' | 'subscribe'>; scale?: PlanScale },
   deps: {
     createRoot: CreateRenderRoot;
     keys?: EventTarget;
@@ -119,7 +130,9 @@ export function createPlanController(
 ): PlanController {
   const report = deps.report ?? ((error: unknown) => void reportDefault(error));
   const scene = createPlanScene();
-  let view: PlanView = { x: 0, y: 0, ppi: ZOOM_100_PPI };
+  let scale: PlanScale = o.scale ?? DEFAULT_PLAN_SCALE;
+  const zoom100 = () => zoom100Ppi(scale);
+  let view: PlanView = { x: 0, y: 0, ppi: zoom100() };
   let bounds: Bounds | null = null;
   let bufferUploads = 0;
   let canvasRect: ClientRect | null = null;
@@ -131,6 +144,8 @@ export function createPlanController(
   let input: PlanInput | null = null;
   let receiver: PlanPointerReceiver | null = null;
   const listeners: Array<{ fn: (view: PlanView) => void }> = [];
+  const cursorListeners: Array<{ fn: (model: Point | null) => void }> = [];
+  let cursorScreen: Point | null = null;
   let list: DrawingList | null = null;
   let disposed = false;
   let atlasRequested = false;
@@ -237,13 +252,28 @@ export function createPlanController(
 
   const setView = (next: PlanView) => {
     if (!Number.isFinite(next.x) || !Number.isFinite(next.y) || !Number.isFinite(next.ppi)) return;
-    const ppi = clampPpi(next.ppi);
+    const ppi = clampPpi(next.ppi, zoom100());
     if (next.x === view.x && next.y === view.y && ppi === view.ppi) return;
     view = { x: next.x, y: next.y, ppi };
     updateCamera();
     updateHover(false);
     redraw();
     for (const l of [...listeners]) l.fn({ ...view });
+    if (cursorScreen !== null) emitCursor();
+  };
+
+  const emitCursor = () => {
+    const model = cursorScreen === null ? null : regionToModel(view, cursorScreen);
+    for (const l of [...cursorListeners]) l.fn(model === null ? null : { ...model });
+  };
+
+  // The view at `ppi` with the model point under the region centre kept; null without a region size.
+  const aboutCentre = (ppi: number): PlanView | null => {
+    const size = regionSize();
+    if (size === null) return null;
+    const c = { x: size.width / 2, y: size.height / 2 };
+    const anchor = regionToModel(view, c);
+    return { x: anchor.x - c.x / ppi, y: anchor.y + c.y / ppi, ppi };
   };
 
   const unsubscribe = o.store.subscribe((state, prev) => {
@@ -262,8 +292,8 @@ export function createPlanController(
   const zoomBy = (factor: number) => {
     const size = regionSize();
     if (size === null) return;
-    if (clampPpi(view.ppi * factor) === view.ppi) return;
-    setView(zoomAt(view, { x: size.width / 2, y: size.height / 2 }, factor));
+    if (clampPpi(view.ppi * factor, zoom100()) === view.ppi) return;
+    setView(zoomAt(view, { x: size.width / 2, y: size.height / 2 }, factor, zoom100()));
   };
 
   const handle: PlanCanvasHandle = {
@@ -273,7 +303,7 @@ export function createPlanController(
     setView,
     fit() {
       const size = regionSize();
-      if (size !== null) setView(fitView(bounds, size));
+      if (size !== null) setView(fitView(bounds, size, zoom100()));
     },
     modelToScreen: (p) => modelToRegion(view, p),
     screenToModel: (p) => regionToModel(view, p),
@@ -299,7 +329,7 @@ export function createPlanController(
       });
       const size = regionSize();
       if (objectBounds === null || size === null) return false;
-      setView(fitView(objectBounds, size));
+      setView(fitView(objectBounds, size, zoom100()));
       return true;
     },
     setHoverMode(next) {
@@ -329,6 +359,30 @@ export function createPlanController(
       if (selected || hoverChanged) redraw();
     },
     getHoveredId: () => hoveredId,
+    getScale: () => scale,
+    setScale(next) {
+      if (!isPlanScale(next) || next === scale) return;
+      const ppi = (view.ppi / zoom100()) * zoom100Ppi(next);
+      scale = next;
+      setView(aboutCentre(ppi) ?? { x: view.x, y: view.y, ppi });
+    },
+    getZoomPercent: () => zoomPercent(view.ppi, zoom100()),
+    setZoomPercent(percent) {
+      if (!Number.isFinite(percent)) return;
+      const p = Math.min(MAX_ZOOM_PERCENT, Math.max(MIN_ZOOM_PERCENT, percent));
+      const ppi = clampPpi((zoom100() * p) / 100, zoom100());
+      if (ppi === view.ppi) return;
+      const next = aboutCentre(ppi);
+      if (next !== null) setView(next);
+    },
+    onCursorChange(fn) {
+      const entry = { fn };
+      cursorListeners.push(entry);
+      return () => {
+        const i = cursorListeners.indexOf(entry);
+        if (i >= 0) cursorListeners.splice(i, 1);
+      };
+    },
   };
 
   const requestAtlas = (createAtlas: () => Promise<HTMLCanvasElement>) => {
@@ -405,6 +459,11 @@ export function createPlanController(
           hoverScreen = screen;
           if (updateHover(false)) redraw();
         },
+        getZoom100: zoom100,
+        onCursor(screen) {
+          cursorScreen = screen;
+          emitCursor();
+        },
       });
     },
     setCanvasRect(rect) {
@@ -421,7 +480,7 @@ export function createPlanController(
       const size = regionSize();
       if (!fitted && size !== null) {
         fitted = true;
-        setView(fitView(bounds, size));
+        setView(fitView(bounds, size, zoom100()));
         return;
       }
       updateCamera();
@@ -445,6 +504,7 @@ export function createPlanController(
       input = null;
       detachCanvas();
       listeners.length = 0;
+      cursorListeners.length = 0;
       scene.dispose();
     },
   };

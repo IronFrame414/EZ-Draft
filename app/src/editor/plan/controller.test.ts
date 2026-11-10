@@ -6,7 +6,6 @@ import type { ObjectValue } from '../../lib/outbox/model-api';
 import { createModelStore } from '../model/model-store';
 import { createPlanController } from './controller';
 import type { InputSurface } from './input';
-import { MAX_PPI } from './view';
 
 const F1 = '00000000-0000-4000-8000-000000000002';
 const W1 = '00000000-0000-4000-8000-000000000011';
@@ -368,7 +367,7 @@ describe('EZD-207b controller', () => {
     handle.zoomOut();
     expect(handle.getPixelsPerInch()).toBeCloseTo(32 / 15, 9);
 
-    handle.setView({ x: 0, y: 0, ppi: MAX_PPI });
+    handle.setView({ x: 0, y: 0, ppi: 64 });
     const atMax = handle.getView();
     const calls = fake.invalidate.mock.calls.length;
     handle.zoomIn();
@@ -525,5 +524,106 @@ describe('EZD-208a controller selection seams', () => {
     handle.setSelectedIds([]);
     expect(controller.stats().selectionUploads).toBe(3);
     expect(invalidates() - calls).toBe(1);
+  });
+});
+
+// EZD-219 U6-U8 (vault/plans/EZD-219.md section 4; 09m Scale; Q-0664; Decided "Scale change", "Typed zoom apply",
+// "Controller"). Fixtures setupB and mouse are the EZD-207b ones above. Region centre (784, 431).
+describe('EZD-219 controller scale, typed zoom and cursor', () => {
+  const span = (h: { modelToScreen(p: { x: number; y: number }): { x: number; y: number } }) =>
+    h.modelToScreen({ x: 120, y: 0 }).x - h.modelToScreen({ x: 0, y: 0 }).x;
+
+  test('EZD-219 U6 a scale change keeps the zoom percent and moves nothing', async () => {
+    const { controller, store } = setupB();
+    await controller.attachCanvas({} as HTMLCanvasElement);
+    const { handle } = controller;
+    handle.setZoomPercent(100);
+    expect(span(handle)).toBeCloseTo(480, 9);
+
+    const centre = handle.screenToModel({ x: 784, y: 431 });
+    const objects = store.getState().objects;
+    handle.setScale(0.25);
+    expect(span(handle)).toBeCloseTo(240, 9);
+    expect(handle.getZoomPercent()).toBe(100);
+    const after = handle.screenToModel({ x: 784, y: 431 });
+    expect(Math.abs(after.x - centre.x)).toBeLessThanOrEqual(1e-9);
+    expect(Math.abs(after.y - centre.y)).toBeLessThanOrEqual(1e-9);
+    expect(store.getState().objects).toBe(objects);
+
+    handle.setScale(1);
+    expect(span(handle)).toBeCloseTo(960, 9);
+    handle.setScale(0.1875);
+    expect(span(handle)).toBeCloseTo(180, 9);
+    handle.setScale(0.125);
+    expect(span(handle)).toBeCloseTo(120, 9);
+
+    handle.setScale(0.25);
+    const camera = vi.fn();
+    handle.onCameraChange(camera);
+    handle.setScale(0.25);
+    handle.setScale(0.3 as never);
+    expect(camera).not.toHaveBeenCalled();
+    expect(handle.getScale()).toBe(0.25);
+  });
+
+  test('EZD-219 U7 setZoomPercent sets the zoom about the region centre within the limits', async () => {
+    const { controller } = setupB();
+    await controller.attachCanvas({} as HTMLCanvasElement);
+    const { handle } = controller;
+    const centre = handle.screenToModel({ x: 784, y: 431 });
+    handle.setZoomPercent(33);
+    expect(handle.getPixelsPerInch()).toBeCloseTo(1.32, 9);
+    expect(handle.getZoomPercent()).toBe(33);
+    const kept = handle.screenToModel({ x: 784, y: 431 });
+    expect(kept.x).toBeCloseTo(centre.x, 9);
+    expect(kept.y).toBeCloseTo(centre.y, 9);
+
+    handle.setZoomPercent(2000);
+    expect(handle.getPixelsPerInch()).toBeCloseTo(64, 9);
+    expect(handle.getZoomPercent()).toBe(1600);
+    handle.setZoomPercent(4);
+    expect(handle.getPixelsPerInch()).toBeCloseTo(0.2, 9);
+    expect(handle.getZoomPercent()).toBe(5);
+
+    const camera = vi.fn();
+    handle.onCameraChange(camera);
+    handle.setZoomPercent(Number.NaN);
+    expect(camera).not.toHaveBeenCalled();
+    handle.setZoomPercent(5);
+    expect(camera).not.toHaveBeenCalled();
+
+    handle.setZoomPercent(100);
+    handle.zoomIn();
+    expect(handle.getZoomPercent()).toBe(125);
+  });
+
+  test('EZD-219 U8 the cursor follows the pointer and the camera', async () => {
+    const { controller, surface } = setupB();
+    await controller.attachCanvas({} as HTMLCanvasElement);
+    const { handle } = controller;
+    const fn = vi.fn();
+    const off = handle.onCursorChange(fn);
+
+    mouse(surface, 'pointermove', 400, 300);
+    const before = handle.screenToModel({ x: 400, y: 300 });
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn.mock.calls[0]![0].x).toBeCloseTo(before.x, 9);
+    expect(fn.mock.calls[0]![0].y).toBeCloseTo(before.y, 9);
+
+    handle.setView({ ...handle.getView(), x: handle.getView().x + 10 });
+    const moved = handle.screenToModel({ x: 400, y: 300 });
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn.mock.calls[1]![0].x).toBeCloseTo(moved.x, 9);
+    expect(fn.mock.calls[1]![0].y).toBeCloseTo(moved.y, 9);
+
+    mouse(surface, 'pointerleave', 400, 300);
+    expect(fn).toHaveBeenCalledTimes(3);
+    expect(fn.mock.calls[2]![0]).toBeNull();
+    handle.setView({ ...handle.getView(), x: handle.getView().x + 10 });
+    expect(fn).toHaveBeenCalledTimes(3);
+
+    off();
+    mouse(surface, 'pointermove', 400, 300);
+    expect(fn).toHaveBeenCalledTimes(3);
   });
 });
