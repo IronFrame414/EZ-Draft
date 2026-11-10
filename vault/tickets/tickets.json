@@ -20787,7 +20787,8 @@
    "decisions": [],
    "mockups": [],
    "architecture": [
-    "Browser tests (EZD-016a)"
+    "Model working copy (EZD-120a)",
+    "Migrations"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
