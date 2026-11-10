@@ -20782,7 +20782,7 @@
    "depends_raw": "EZD-294",
    "spec_ref": "rule 17 (defect D-099, phase 4 gate audit); Q-0625, Q-0629, Q-0650; EZD-294",
    "spec_files": [
-    "spec/sections/03d-tables-rounds-24-25.md"
+    "spec/sections/03-data-model.md"
    ],
    "decisions": [],
    "mockups": [],
