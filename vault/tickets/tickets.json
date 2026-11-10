@@ -21083,6 +21083,30 @@
     "AC-EZD-375-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-376",
+   "phase": 4,
+   "title": "Fix: the plan tells the user when it cannot draw its text",
+   "depends_raw": "EZD-373",
+   "spec_ref": "Q-0692; rule 17 (no silent failure, build audit 2026-11 PLANNING-REDESIGN Part 2)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Validation & warnings"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-373"
+   ],
+   "acs": [
+    "AC-EZD-376-1",
+    "AC-EZD-376-2"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
