@@ -392,10 +392,10 @@ if (userOn) {
         s.once('connect', () => { s.destroy(); resolve(true); });
         s.once('error', () => resolve(false));
       });
-      if ((await answered('127.0.0.1')) || (await answered('::1'))) return true;
+      for (const host of ['127.0.0.1', '::1']) if (await answered(host)) { say(`port ${port}: a connect to ${host} was answered`); return true; }
       return new Promise((resolve) => {
         const srv = net.createServer();
-        srv.once('error', () => resolve(true));
+        srv.once('error', (e) => { say(`port ${port}: a 127.0.0.1 bind failed (${e?.code ?? e?.message ?? 'error'})`); resolve(true); });
         srv.listen(port, '127.0.0.1', () => srv.close(() => resolve(false)));
       });
     },
