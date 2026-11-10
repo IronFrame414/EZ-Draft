@@ -890,8 +890,8 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
   test('X1: run.mjs --once with a missing plan file prints the problem and records its cost row, with no commit (2.12; D1 (a), D2 (a))', async () => {
     const root = tmp('ezd173-x1-');
     const at = (...p) => path.join(root, ...p);
-    for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
-    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
+    for (const d of ['scripts', 'scripts/release', 'scripts/launcher', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
+    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs', 'launcher/unit-env.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
     cpSync(path.join(REPO, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
     cpSync(path.join(REPO, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
     cpSync(path.join(REPO, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs and ledger.mjs import it

@@ -14,7 +14,7 @@ const secret = ['x', '.env'].join('/');
 function fixture(overrides) {
   const root = mkdtempSync(path.join(os.tmpdir(), 'ezd354-g1-'));
   mkdirSync(path.join(root, 'scripts/db'), { recursive: true });
-  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs', 'excluded-form.mjs']) copyFileSync(path.join(repo, 'scripts', f), path.join(root, 'scripts', f));
+  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs', 'gate-port.mjs', 'excluded-form.mjs']) copyFileSync(path.join(repo, 'scripts', f), path.join(root, 'scripts', f));
   copyFileSync(path.join(repo, 'scripts/db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
   mkdirSync(path.join(root, 'vault/tools'), { recursive: true });
   for (const f of ['security-paths.mjs', 'trusted-git.mjs']) copyFileSync(path.join(repo, 'vault/tools', f), path.join(root, 'vault/tools', f));

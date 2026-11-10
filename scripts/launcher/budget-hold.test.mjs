@@ -73,10 +73,10 @@ let CHILD_ENV;
 function makeRoot() {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
-  for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs', 'bin']) {
+  for (const d of ['scripts', 'scripts/release', 'scripts/launcher', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs', 'bin']) {
     mkdirSync(at(d), { recursive: true });
   }
-  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) {
+  for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs', 'launcher/unit-env.mjs']) {
     copyFileSync(path.join(repo, 'scripts', f), at('scripts', f));
   }
   copyFileSync(path.join(repo, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));

@@ -15,14 +15,16 @@
 // Full output of every check goes to <dir>/gate.log (gitignored); the console gets the summary (PROCESS.md section 8 step 7).
 import { existsSync, readFileSync, readdirSync, statSync, linkSync, unlinkSync, writeFileSync, appendFileSync, mkdirSync } from 'node:fs';
 import os from 'node:os';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarizeStep } from './gate-summary.mjs';
 import { isLive, removeDeadLock } from './gate-lock.mjs';
-import { readLane } from './db/lane.mjs';
+import { readLane, laneAppPorts } from './db/lane.mjs';
+import { freeLanePorts } from './gate-port.mjs';
 import { gateEnv, gateSpawn, gateUserEnv } from './gate-env.mjs';
 import {
-  RUN_ROOT, RELAY_DIR, CANARY_NAME, CANARY_TEXT, SETUP_ENV, RUN_TREE_ENV, preflightLines, userMode, lookupUid, loginwindowRunning, userSpawn, toolBin,
+  GATE_USER, RUN_ROOT, RELAY_DIR, CANARY_NAME, CANARY_TEXT, SETUP_ENV, RUN_TREE_ENV, preflightLines, userMode, lookupUid, loginwindowRunning, userSpawn, toolBin,
   receivePackCommand, makeSnapshot, checkRelayDir, syncRunTree, copyBack, runPreflight, createCheckSpawner, startRelayProcess,
 } from './gate-user.mjs';
 import { trustedGit } from '../vault/tools/trusted-git.mjs';
@@ -371,6 +373,36 @@ if (userOn) {
     if (!run(['exec', 'playwright', 'install', 'chromium', 'webkit'], 'browsers')) { console.error('GATE FAIL: browsers'); process.exit(1); }
     userRows.push(['browsers', 'pass']);
   }
+  // EZD-364: a gate stopped mid e2e leaves Playwright's app server (its own process group) on the lane's port, and the next
+  // e2e fails "is already used". This gate holds the lane lock, so a server there is a dead gate's: stop it, as ezdraft.
+  // Any other listener fails the gate untouched (scripts/gate-port.mjs D-Match, D-Foreign).
+  say('\n=== ports: leftover gate app servers ===');
+  const { web, perf } = laneAppPorts(lane);
+  const freed = await freeLanePorts({
+    ports: [web, perf],
+    exec: (file, a) => checkSpawner.run(userVars ?? gateVars, file, a, { cwd: checkDir, encoding: 'utf8', timeout: 30000 }),
+    gateUser: GATE_USER, runTree, sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+    // D-Hidden: lsof as ezdraft sees only ezdraft's processes. From Josh's side the port is in use when a loopback connect is
+    // answered (a listener on 127.0.0.1, 0.0.0.0 or ::, such as `next dev`) or a 127.0.0.1 bind fails for any reason (rule 16:
+    // an error is never read as free). No 0.0.0.0 bind, so no firewall prompt on an unattended Mac.
+    portInUse: async (port) => {
+      const answered = (host) => new Promise((resolve) => {
+        const s = net.connect({ port, host });
+        s.setTimeout(1000, () => { s.destroy(); resolve(false); });
+        s.once('connect', () => { s.destroy(); resolve(true); });
+        s.once('error', () => resolve(false));
+      });
+      if ((await answered('127.0.0.1')) || (await answered('::1'))) return true;
+      return new Promise((resolve) => {
+        const srv = net.createServer();
+        srv.once('error', () => resolve(true));
+        srv.listen(port, '127.0.0.1', () => srv.close(() => resolve(false)));
+      });
+    },
+  });
+  for (const l of freed.lines) say(l);
+  if (!freed.ok) laneFailure('ports', { stdout: freed.lines.join('\n') });
+  userRows.push(['ports', freed.ok ? 'pass' : 'FAIL']);
 } else if (!existsSync(path.join(dir, 'node_modules'))) {
   if (!run(pm === 'pnpm' ? ['install', '--frozen-lockfile'] : ['ci'], 'install')) { console.error('GATE FAIL: install'); process.exit(1); }
 }

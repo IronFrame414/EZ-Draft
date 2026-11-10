@@ -37,6 +37,7 @@ import {
 // in its results file, and the launcher applies them with its own ops in one transaction, then re-exports the views.
 // Nothing here commits records.
 import { openRecords, dbPath, readQueue, applyOps, refreshViews, nextQuestionId, inboxFiles } from './records.mjs';
+import { UNIT_ENV_LIMITS } from './launcher/unit-env.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // EZD-316 D14: the D-021 record folder, as scripts/unit-steps.mjs D6: tests point EZD_GITHUB_OPS_HOME at a temp folder, or with
@@ -323,7 +324,9 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   delete env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB;
   // A -p session stops background subagents 10 minutes after its last turn ("Background tasks still running 10m after the
   // last turn"), which killed the EZD-017 and EZD-018 builders on 2026-10-22. 0 = wait for them indefinitely.
-  env.CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS = '0';
+  // EZD-364: a run_in_background command is also stopped at BASH_MAX_TIMEOUT_MS (default 10 minutes), which cut gate-phase 4's
+  // full gate mid e2e on 2026-11-09 and left its app server on the port; units get 2 hours (scripts/launcher/unit-env.mjs).
+  Object.assign(env, UNIT_ENV_LIMITS);
   if (authMode() === 'api') {
     if (!config.api_key) return { outcome: 'error', note: 'auth_mode api but no api_key in launcher.config.json' };
     env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = '1';
