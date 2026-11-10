@@ -20989,6 +20989,27 @@
     "AC-EZD-371-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-372",
+   "phase": 4,
+   "title": "Fix: the long-tasks-during-pan perf check still fails at random on a lane gate (desktop, 1 long task)",
+   "depends_raw": "EZD-359",
+   "spec_ref": "rule 17 (gate defect, EZD-367 gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-359"
+   ],
+   "acs": [
+    "AC-EZD-372-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
