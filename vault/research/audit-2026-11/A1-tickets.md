@@ -69,3 +69,44 @@ Audit 2026-11, session 16. **Mechanical pass, all 298 rows** (done and blocked, 
 
 - **Deep-checked (read, not run):** EZD-279, 280, 260, 277, 267/250/282 (the removal commit), 323 via 370, 344 (test list and notes), 354.
 - **Not reached:** EZD-256, 331, 337, 316, 317, 345, 333, 336, 290, 295, 296, 320, 321, 322, 298, 326, 241, 257, 266, 361, 362, and the plan-against-commit comparison for the rest.
+
+## Phases 2 and 3 (38 done, live): 5 gaps, 0 defects; 8 deep-checked
+
+| Ticket | AC | Gap | Evidence | Kind |
+| --- | --- | --- | --- | --- |
+| EZD-117a | AC-EZD-117a-5 | The AC still says "A project card is not a link and opens nothing (Q-0394)". Q-0500 replaced that, and test B6 now checks that the card *is* a link. The AC row was never marked as replaced. | acceptance-criteria.md:625; decisions/05-screens.md:39; app/e2e/projects.spec.ts:272 | debt (doc) |
+| EZD-118 | AC-EZD-118-6 | The AC says Create "returns to Projects". Q-0500 sends Create to the editor (EZD-339). | acceptance-criteria.md:639 | debt (doc) |
+| EZD-120d | AC-EZD-120d-3 | "Nothing is sent while another user is signed in" is shown by a fixed 5 s wait and then posts===0. A later check partly backs it up. | app/e2e/sign-out-outbox.spec.ts:251-253, 263 | note |
+| TRACE | all ACs of EZD-117a, 120b, 120d, 299b | TRACE gives every AC its ticket's whole test list, so it cannot show which test proves which AC. "Covered" counts tickets, not ACs. | TRACE.md:625, 627, 681, 684, 726, 727 | note (see A2) |
+| gate scope | EZD-108 T18, EZD-299a T9, EZD-014b | A later ticket broke an earlier phase's test, and its own ticket gate could not see it. The EZD-371 plan says its own ticket gate "does not run T18". | vault/plans/EZD-371.md (Decided); A3 | note (class; see C) |
+
+- **EZD-371 is a real fix.** The locator at app/e2e/my-profile.spec.ts:401 now searches inside a new `profile-password-section` hook, and the expected count stays 2. The third match was EZD-5601's AI-key input, which is meant to be type=password. What was lost: a stray password field outside that section would no longer be caught.
+- **EZD-299a T9 (CI 11-09 14:13Z) broke deterministically, not by chance.** The save response gained `number` (EZD-294), and 61ebd7a0 (an EZD-299 commit) changed the expected JSON in an EZD-299a test. No fix ticket was opened. The resolves case is looser now (`number: expect.any(Number)`).
+- **EZD-014b (touch CSS)** was red in 8 CI runs over about 2 days, then cleared. That pattern fits a deterministic break. The cause was not found, and there is no fix ticket.
+- **The 2 uncovered phase 2 ACs** are AC-EZD-276-1 and -2: the one blocked phase 2 ticket, EZD-276, which Josh put off on 2026-11-03 (STATUS.md:618). The 1 s first-cards budget is still checked by app/e2e/projects.spec.ts:152.
+- **Deep-checked, strong tests:** EZD-120a (stale lock, conflicts, refusals; model.db.test.ts:155-351), EZD-133 (money routes with a leaking canary that must be caught; money-routes.test.ts:141-187), EZD-299a (T1, T9, T12), EZD-120d B5, EZD-120b U4 (by name only), EZD-108 T18. Only 2 phase 2/3 tests read source text.
+- **Not reached:** EZD-110a, 110b, 117b, 140, 283, 288, 292-335, 120c, 202, 238, the ACs of EZD-299 and 299b, and EZD-338 to 348.
+
+## Phase 4 (29 done, gate not passed): 6 gaps, 3 defects; 7 deep-checked
+
+**CI on develop is red because the plan draws no text on the CI machine, not only because of the pan count. EZD-372 fixes neither.** The orchestrator checked this against CI run 42888313901's artifacts (`gh run download 42888313901` → gate-logs/gate.log, perf-results/latest.json).
+
+| # | Ticket | AC | Gap | Evidence | Kind |
+| --- | --- | --- | --- | --- | --- |
+| 1 | EZD-207b, 210b, 208b, 120c, **133** | AC-EZD-210-3, -11 and others | **The same 9 browser tests fail on CI in every run and pass on the Mac.** In the plan-text tests, `glyphs` reads 0 where 11 or 13 are expected. EZD-208b B5/B9 see extra React commits. EZD-120c B1 sees one extra request. **EZD-133 W1/W2, the money-pages @smoke tests, fail on a 5.0 min timeout.** Every pan and load row in the CI perf results is `error: plan_not_ready` (16 rows). When the text sheet fails, the app only logs `plan.glyph_atlas` and shows the user nothing. | CI gate.log list `1) ... 9)`; drawing-tools.spec.ts:321, 341, 437; plan-zoom-hover-text.spec.ts:413; scripts/perf/pan-script.mjs:132, 138; app/src/editor/plan/controller.ts:405-416; glyph-atlas-canvas.ts:70, 81; local gate.log GATE PASS on 45146b1c | **defect** (cause not yet known: CI browser setup, or a real app bug that could reach a user's device) |
+| 2 | EZD-207c, 356 | AC-EZD-207-5 | The perf tool's own fixture test expects exactly 8 long tasks on the iPad row (4x CPU slowdown). CI counts 4 or 5. | scripts/perf/__tests__/pan.test.mjs:15-18, 100-111; CI gate.log:6590-6592 `4 !== 8` | **defect** (fails the merge gate) |
+| 3 | EZD-372 (planned) | AC-EZD-372-1 | Its evidence is one long task on a Mac lane gate, and its done-when is "10 consecutive lane gates" on the Mac. It freezes every existing expected value, so P2/T1 keep expecting 8. Nothing in it addresses `plan_not_ready` or glyphs 0 on CI. **No ticket owns "CI green".** | vault/plans/EZD-372.md:10-14, 42, 48, 52 | **defect** |
+| 4 | EZD-207b | none found | If the text sheet fails, the plan shows no text and no message. Not checked against the spec. | controller.ts:414-416 | product question (design/UI, may go to Josh) |
+| 5 | audit | none | The phase-auditor may not start calc-auditor (hook), so the numeric audit was not obtained this way. | dispatch refusal | note |
+| 6 | EZD-372 | none | The D-Busy step hard-codes one Mac temp folder path. | EZD-372.md:43 | note |
+
+- **Numbers spot-checked by the phase auditor; all hold:**
+  - 141.5" × 168" = 165.08 SF, shown as 165.
+  - 147" × 120" = 122.5 SF, rounded half up to 123.
+  - A shown gap is never 0" (floored at 1/16", rooms/closure.ts:30).
+  - The 12" limit includes the 1/64" tolerance (closure.ts:158).
+- **Deep-checked, strong tests:** EZD-205a (area.test.ts:39-71, rotated shapes too), EZD-205b (closure.test.ts:112, 143), EZD-209 (typed-entry.test.ts:47-105), EZD-366 (object-numbers.db.test.ts:427-462; numbers.test.ts:152-169), EZD-221a (route.templates.test.ts:149-156). The EZD-210a/b browser tests are real checks but red on CI (row 1).
+- **Not reached:**
+  - AC-EZD-205-3 to -6; AC-EZD-209-1, -2, -5; most of AC-EZD-210 and AC-EZD-221.
+  - EZD-201, 203, 207a, 236, 349-353, 357-359, 363, 367, 368, 370, 371.
+  - The root cause of row 1. The next step is to read the CI browser console for `plan.glyph_atlas`.
