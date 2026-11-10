@@ -327,7 +327,8 @@ if (userOn) {
   userVars = { ...gateVars, DOCKER_HOST: `unix://${RELAY_DIR}/docker-lane${lane}.sock`, EZD_GATE_USER: 'ezdraft', EZD_GATE_UID: String(pre.gateUid), EZD_GATE_JOSH_UID: String(process.getuid()), EZD_GATE_CANARY: canary };
   if (lane >= 1) userVars.SUPABASE_WORKDIR = path.join(runTree, '.lanes', `lane${lane}`);
   let sha;
-  try { sha = makeSnapshot(dir); } catch (e) { say(e?.reason ? preflightLines.F8(e.reason, e.path) : preflightLines.F9(e?.message)); process.exit(1); }
+  try { sha = makeSnapshot(dir, undefined, { committedOnly: scope.mode === 'full' }); } catch (e) { say(e?.reason ? preflightLines.F8(e.reason, e.path) : preflightLines.F9(e?.message)); process.exit(1); }
+  if (scope.mode === 'full') say(`snapshot   committed HEAD ${sha.slice(0, 8)} (uncommitted files are not tested)`);
   try {
     syncRunTree({ dir, lane, sha, asUser: (file, a, cwd) => userSpawn(pre.gateUid, RUN_TREE_ENV, cwd, file, a, { encoding: 'utf8', timeout: 600000 }), receivePack: receivePackCommand(pre.gateUid) });
   } catch (e) { say(preflightLines.F9(e?.message)); process.exit(1); }

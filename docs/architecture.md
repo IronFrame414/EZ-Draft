@@ -1411,6 +1411,7 @@ On macOS `scripts/gate.mjs` runs every check as the Standard user `ezdraft` (uid
 - Docker (D10): ezdraft reaches Josh's Docker Desktop through a plain forwarder (`scripts/gate-docker-relay.mjs`), bounded by Docker Desktop file sharing; the policy relay is EZD-355 (Q-0614).
 - Josh's side (D11): git, locks, leases, logs, the summary, the relay and the canary stay as Josh; results come back only as ezdraft's stdout (D12, `copyBack`).
 - Stacks (D16): `scripts/db/*` is unchanged; a lane 0 gate restarts the lane 0 stack once per gate.
+- Snapshot (EZD-365): the full gate (`--full`, or a folder that is not a ticket worktree) runs on the committed HEAD only (`makeSnapshot(dir, git, { committedOnly: true })`), so files other units leave uncommitted in the main checkout are never tested; a ticket worktree's gate still snapshots its working tree.
 - Ports (EZD-364): after install and browsers, holding the lane lock, the gate stops a dead gate's app server on the lane's web and perf ports (`scripts/gate-port.mjs` `freeLanePorts`, as ezdraft: user ezdraft, a Next server, cwd in the lane's run tree; TERM then KILL to its process group). Any other listener is a `ports FAIL` and is never signalled.
 
 ### CI

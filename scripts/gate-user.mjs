@@ -120,12 +120,19 @@ export function checkSnapshotPaths(dir, paths, lstat = lstatSync) {
 }
 
 // C9
-export function makeSnapshot(dir, git = trustedGit) {
-  const list = git(dir, ['ls-files', '-z', '-c', '-o', '--exclude-standard']);
+// EZD-365: committedOnly (the full gate on the main checkout) tests exactly the committed HEAD, never the in-flight files
+// other launcher units leave uncommitted there; the secret refusal still runs on the tracked paths.
+export function makeSnapshot(dir, git = trustedGit, { committedOnly = false } = {}) {
+  const list = git(dir, committedOnly ? ['ls-files', '-z', '-c'] : ['ls-files', '-z', '-c', '-o', '--exclude-standard']);
   if (list.status !== 0) throw new GateUserError(`gate user: snapshot ls-files: ${why(list)}`);
   const paths = String(list.stdout).split('\0').filter(Boolean);
   const check = checkSnapshotPaths(dir, paths);
   if (!check.ok) throw new GateUserError('gate user: snapshot refused', { reason: check.reason, path: check.path });
+  if (committedOnly) {
+    const head = git(dir, ['rev-parse', '--verify', 'HEAD^{commit}']);
+    if (head.status !== 0) throw new GateUserError(`gate user: snapshot HEAD: ${String(head.stderr ?? '').split('\n')[0]}`);
+    return String(head.stdout ?? '').trim();
+  }
   const tmp = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'ezdraft-gate-index-'));
   try {
     const extraEnv = { GIT_INDEX_FILE: path.join(tmp, 'index'), GIT_CONFIG_GLOBAL: '/dev/null' };
