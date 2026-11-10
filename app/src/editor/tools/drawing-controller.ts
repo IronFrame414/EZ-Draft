@@ -7,12 +7,24 @@
 // is on ('off') or a gap pick is on ('wall'), and follows every ui change.
 // EZD-219 Build step 11 (vault/plans/EZD-219.md Decided "Every snap call"; AC-EZD-219-1): every snap call takes the
 // status bar's snap settings.
+// EZD-211b (vault/plans/EZD-211b.md): door and window branch, Space tap, Select seam
 import {
   DEFAULT_SNAP_SETTINGS,
+  DOOR_TARGET_PX,
+  PRESS_MOVE_PX,
   createWallSnapIndex,
+  doorTargetAt,
+  flipHand,
+  flipSwing,
+  openingOffsets,
   snap,
+  swingSideOf,
   wallLength,
+  type DoorSwing,
   type ModelObject,
+  type OpeningData,
+  type OpeningObject,
+  type OpeningOffsets,
   type Point,
   type SnapResult,
   type SnapSettings,
@@ -26,14 +38,19 @@ import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import type { HoverMode } from '../plan/hover';
+import type { SelectionController } from '../selection/selection-controller';
 import { isTypingTarget, type TypedValues } from '../typed-entry/typed-entry';
 import {
   gapBoxes,
+  initialOpeningToolState,
   initialRoomRectState,
   initialWallChainState,
   keepGap,
   newObjectId,
+  openingChange,
+  openingsOn,
   pickWall,
+  reduceOpeningTool,
   reducePick,
   reduceRoomRect,
   reduceWallChain,
@@ -43,6 +60,9 @@ import {
   wallSnapContext,
   type DrawingToolId,
   type GapBox,
+  type OpeningInput,
+  type OpeningStep,
+  type OpeningToolState,
   type PickState,
   type RoomRectState,
   type SnapMarker,
@@ -59,7 +79,20 @@ export type DrawingFrame = {
   anchor: Point | null;
   referenceDirection: Point | null;
   wallDirection: Point | null;
+  opening: OpeningFrame | null;
 };
+
+export type OpeningFrame = {
+  data: OpeningData;
+  host: WallObject;
+  offsets: OpeningOffsets | null;
+  owned: boolean;
+  chipSide: DoorSwing;
+  dot: boolean;
+  chips: boolean;
+};
+
+export type SelectionLink = Pick<SelectionController, 'getUi' | 'select' | 'subscribe'>;
 
 export type DrawingUi = {
   readonly enabled: boolean;
@@ -68,6 +101,8 @@ export type DrawingUi = {
   readonly boxes: readonly GapBox[];
   readonly gapMessage: { readonly wallIds: readonly string[]; readonly key: MessageKey } | null;
   readonly lastLength: number | null;
+  readonly doorTarget: 'arc' | 'dot' | null;
+  readonly openingWidth: number | null;
 };
 
 export type ToolKeyEvent = {
@@ -112,6 +147,9 @@ export type DrawingController = {
   keyDown(e: ToolKeyEvent): boolean;
   startPick(wallIds: readonly string[]): void;
   keep(wallIds: readonly string[]): void;
+  spaceTap(): boolean;
+  attachSelection(link: SelectionLink | null): void;
+  claimSelectPointer(event: PlanPointerEvent): boolean;
   dispose(): void;
 };
 
@@ -127,7 +165,15 @@ export function railMode(o: {
   return 'enabled';
 }
 
-type ToolState = { id: 'wall'; state: WallChainState } | { id: 'room-rect'; state: RoomRectState };
+type ToolState =
+  | { id: 'wall'; state: WallChainState }
+  | { id: 'room-rect'; state: RoomRectState }
+  | { id: 'door' | 'window'; state: OpeningToolState };
+
+type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
+
+const isOpeningTool = (t: ToolState | null): t is OpeningTool =>
+  t !== null && (t.id === 'door' || t.id === 'window');
 
 type SnapContext = { anchor: Point | null; referenceDirection: Point | null };
 
@@ -142,6 +188,9 @@ const sameBoxes = (a: readonly GapBox[], b: readonly GapBox[]) =>
 const wallsIn = (models: readonly ModelObject[]): WallObject[] =>
   models.filter((o): o is WallObject => o.type === 'wall');
 
+const lower = (id: string) => id.toLowerCase();
+const otherSide = (side: DoorSwing | null): DoorSwing => (side === 'left' ? 'right' : 'left');
+
 export function createDrawingController(deps: DrawingDeps): DrawingController {
   const { handle, store, viewer } = deps;
   const newId = deps.newId ?? newObjectId;
@@ -152,6 +201,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let level: string | null = openFloorId(objects);
   let models: ModelObject[] = level === null ? [] : toModelObjects(objects, level);
   let index: WallSnapIndex = createWallSnapIndex(wallsIn(models));
+  let walls: WallObject[] = wallsIn(models);
+  let openings: OpeningObject[] = level === null ? [] : openingsOn(objects, level);
   const enabled = viewer.canEdit && level !== null;
 
   let tool: ToolState | null = null;
@@ -162,6 +213,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let receiverSet = false;
   let disposed = false;
   let drawingIds: readonly string[] = [];
+  let lastPoint: Point | null = null;
+  let link: SelectionLink | null = null;
+  let unsubscribeLink: (() => void) | null = null;
+  let claim: { target: 'arc' | 'dot'; screen: Point; moved: boolean } | null = null;
 
   const uiListeners = new Set<() => void>();
   const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
@@ -178,6 +233,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     boxes: computeBoxes(),
     gapMessage: null,
     lastLength: null,
+    doorTarget: null,
+    openingWidth: null,
   };
 
   const setUi = (patch: Partial<DrawingUi>) => {
@@ -191,6 +248,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       next.pick !== ui.pick ||
       next.gapMessage !== ui.gapMessage ||
       next.lastLength !== ui.lastLength ||
+      next.doorTarget !== ui.doorTarget ||
+      next.openingWidth !== ui.openingWidth ||
       !sameBoxes(next.boxes, ui.boxes);
     if (!changed) return;
     if (sameBoxes(next.boxes, ui.boxes)) next = { ...next, boxes: ui.boxes };
@@ -233,6 +292,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     objects = state.objects;
     level = openFloorId(objects);
     models = level === null ? [] : toModelObjects(objects, level);
+    walls = wallsIn(models);
+    openings = level === null ? [] : openingsOn(objects, level);
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(wallsIn(models));
     } else {
@@ -246,15 +307,99 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     drawingIds = currentDrawingIds();
     setUi({ boxes: computeBoxes() });
+    if (isOpeningTool(tool) || (tool === null && link !== null)) emitFrame();
   });
 
   function snapContext(): SnapContext {
     if (tool === null || tool.id === 'room-rect') return NO_CONTEXT;
+    if (isOpeningTool(tool)) return NO_CONTEXT;
     return wallSnapContext(tool.state);
   }
 
+  const findOpening = (id: string): OpeningObject | null =>
+    openings.find((o) => lower(o.id) === lower(id)) ?? null;
+
+  const findWall = (id: string | null): WallObject | null =>
+    id === null ? null : (walls.find((w) => lower(w.id) === lower(id)) ?? null);
+
+  // The opening the tool owns, when it is still in the model.
+  const ownedOpening = (t: OpeningTool): OpeningObject | null =>
+    t.state.owned === null ? null : findOpening(t.state.owned.id);
+
+  // The one selected door under Select (D:Select seam).
+  function selectedDoor(): OpeningObject | null {
+    if (link === null) return null;
+    const ids = link.getUi().ids;
+    if (ids.length !== 1) return null;
+    const o = findOpening(ids[0]!);
+    return o !== null && o.data.attributes.kind === 'door' ? o : null;
+  }
+
+  function chipSideOf(data: OpeningData, host: WallObject): DoorSwing {
+    if (data.attributes.kind === 'door') return otherSide(data.attributes.swing);
+    return lastPoint === null ? 'right' : otherSide(swingSideOf(host, lastPoint));
+  }
+
+  function openingFrame(t: OpeningTool): OpeningFrame | null {
+    const owned = ownedOpening(t);
+    const ownedHost = owned === null ? null : findWall(owned.data.geometry.hostWallId);
+    if (owned !== null && ownedHost !== null) {
+      return {
+        data: owned.data,
+        host: ownedHost,
+        offsets: openingOffsets(owned, ownedHost, walls),
+        owned: true,
+        chipSide: chipSideOf(owned.data, ownedHost),
+        dot: owned.data.attributes.kind === 'door',
+        chips: true,
+      };
+    }
+    const preview = t.state.preview;
+    const previewHost = preview === null ? null : findWall(preview.geometry.hostWallId);
+    if (preview !== null && previewHost !== null) {
+      const wrapped: OpeningObject = { id: '', type: 'opening', data: preview };
+      return {
+        data: preview,
+        host: previewHost,
+        offsets: openingOffsets(wrapped, previewHost, walls),
+        owned: false,
+        chipSide: chipSideOf(preview, previewHost),
+        dot: false,
+        chips: true,
+      };
+    }
+    return null;
+  }
+
+  const EMPTY_FRAME = {
+    rect: false,
+    from: null,
+    to: null,
+    marker: null,
+    anchor: null,
+    referenceDirection: null,
+    wallDirection: null,
+  } as const;
+
   function buildFrame(): DrawingFrame | null {
-    if (tool === null) return null;
+    if (tool === null) {
+      const door = selectedDoor();
+      const host = door === null ? null : findWall(door.data.geometry.hostWallId);
+      if (door === null || host === null) return null;
+      return {
+        ...EMPTY_FRAME,
+        opening: {
+          data: door.data,
+          host,
+          offsets: openingOffsets(door, host, walls),
+          owned: true,
+          chipSide: chipSideOf(door.data, host),
+          dot: true,
+          chips: false,
+        },
+      };
+    }
+    if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
     const marker = lastSnap === null ? null : snapMarker(lastSnap, lastContext);
     const wall = marker?.wallId ? index.getWall(marker.wallId) : undefined;
     const g = wall?.data.geometry;
@@ -267,6 +412,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       anchor: lastContext.anchor,
       referenceDirection: lastContext.referenceDirection,
       wallDirection: g ? { x: g.end.x - g.start.x, y: g.end.y - g.start.y } : null,
+      opening: null,
     };
   }
 
@@ -308,10 +454,71 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       const step = reduceWallChain(tool.state, i, ctx);
       tool = { id: 'wall', state: step.state };
       finishStep(step);
-    } else {
+    } else if (tool.id === 'room-rect') {
       const step = reduceRoomRect(tool.state, i, ctx);
       tool = { id: 'room-rect', state: step.state };
       finishStep(step);
+    }
+  }
+
+  // D:openingWidth: the preview width, else the owned opening's width, else null.
+  function openingWidthNow(): number | null {
+    if (!isOpeningTool(tool)) return null;
+    if (tool.state.preview !== null) return tool.state.preview.attributes.width;
+    return ownedOpening(tool)?.data.attributes.width ?? null;
+  }
+
+  // D:Apply step.
+  function applyOpeningStep(step: OpeningStep): void {
+    if (step.save.length > 0) store.applyEdit(step.save.map(openingChange));
+    if (step.select !== null) link?.select([step.select]);
+    setUi({ openingWidth: openingWidthNow() });
+    if (step.message !== null) deps.onMessage(step.message);
+    if (step.exit) selectTool(null);
+    emitFrame();
+  }
+
+  function openingInput(i: OpeningInput): OpeningStep | null {
+    if (!isOpeningTool(tool) || level === null) return null;
+    const step = reduceOpeningTool(tool.state, i, {
+      newId,
+      walls,
+      openings,
+      highs: store.getState().numberHighs,
+      pixelsPerInch: handle.getPixelsPerInch(),
+    });
+    tool = { id: tool.id, state: step.state };
+    applyOpeningStep(step);
+    return step;
+  }
+
+  function onOpeningPointer(event: PlanPointerEvent): void {
+    const kind = event.kind;
+    if (kind === 'click' || kind === 'dblclick') return;
+    lastPoint = event.model;
+    const touch = event.pointerType === 'touch';
+    openingInput({
+      type: 'pointer',
+      kind,
+      at: event.model,
+      screen: event.screen,
+      touch,
+      wallId: handle.wallAt(event.screen),
+    });
+    if (touch) {
+      setUi({ doorTarget: null });
+    } else if (kind === 'move' && isOpeningTool(tool)) {
+      const owned = ownedOpening(tool);
+      const target =
+        owned === null
+          ? null
+          : doorTargetAt(
+              owned,
+              findWall(owned.data.geometry.hostWallId),
+              event.model,
+              DOOR_TARGET_PX / handle.getPixelsPerInch(),
+            );
+      setUi({ doorTarget: target });
     }
   }
 
@@ -338,6 +545,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return;
     }
     if (tool === null) return;
+    if (isOpeningTool(tool)) {
+      onOpeningPointer(event);
+      return;
+    }
     const context = snapContext();
     const result = snap(index, {
       cursor: event.model,
@@ -373,12 +584,22 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         ? null
         : id === 'wall'
           ? { id, state: initialWallChainState() }
-          : { id, state: initialRoomRectState() };
+          : id === 'room-rect'
+            ? { id, state: initialRoomRectState() }
+            : { id, state: initialOpeningToolState(id) };
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
+    lastPoint = null;
     drawingIds = currentDrawingIds();
-    setUi({ tool: id, pick: null, gapMessage: null, boxes: computeBoxes() });
+    setUi({
+      tool: id,
+      pick: null,
+      gapMessage: null,
+      boxes: computeBoxes(),
+      doorTarget: null,
+      openingWidth: openingWidthNow(),
+    });
     syncHover();
     syncReceiver();
     emitFrame();
@@ -386,6 +607,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function typed(values: TypedValues): void {
     if (disposed || !enabled || tool === null) return;
+    if (isOpeningTool(tool)) {
+      openingInput({ type: 'typed', values, screen: handle.getCursor() });
+      return;
+    }
     input({ type: 'typed', values });
     emitFrame();
   }
@@ -398,6 +623,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         setUi({ pick: reducePick(ui.pick, { type: 'escape' }).state, gapMessage: null });
         return true;
       }
+      if (isOpeningTool(tool)) {
+        openingInput({ type: 'escape' });
+        return true;
+      }
       if (tool !== null) {
         input({ type: 'escape' });
         emitFrame();
@@ -406,7 +635,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return false;
     }
     if (e.key === 'Enter') {
-      if (tool === null) return false;
+      if (tool === null || isOpeningTool(tool)) return false;
       input({ type: 'enter' });
       emitFrame();
       return true;
@@ -419,6 +648,96 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (key === 'r') {
       selectTool('room-rect');
+      return true;
+    }
+    if (key === 'd') {
+      selectTool('door');
+      return true;
+    }
+    if (key === 'n') {
+      selectTool('window');
+      return true;
+    }
+    return false;
+  }
+
+  // D:spaceTap.
+  function spaceTap(): boolean {
+    if (disposed || !enabled) return false;
+    if (isOpeningTool(tool)) {
+      const before = tool.state.flipped;
+      const step = openingInput({ type: 'space' });
+      return step !== null && (step.save.length > 0 || step.state.flipped !== before);
+    }
+    if (tool !== null) return false;
+    const door = selectedDoor();
+    if (door === null) return false;
+    const flipped = flipSwing(door);
+    if (flipped === null) return false;
+    store.applyEdit([openingChange(flipped)]);
+    emitFrame();
+    return true;
+  }
+
+  // D:Select seam.
+  function attachSelection(next: SelectionLink | null): void {
+    unsubscribeLink?.();
+    unsubscribeLink = null;
+    link = next;
+    if (next === null || disposed) return;
+    unsubscribeLink = next.subscribe(() => {
+      if (disposed) return;
+      claim = null;
+      setUi({ doorTarget: null });
+      if (isOpeningTool(tool) || tool === null) emitFrame();
+    });
+  }
+
+  function claimSelectPointer(event: PlanPointerEvent): boolean {
+    if (disposed || !enabled || tool !== null || ui.pick !== null || link === null) {
+      claim = null;
+      return false;
+    }
+    const door = selectedDoor();
+    if (door === null) {
+      claim = null;
+      return false;
+    }
+    const host = findWall(door.data.geometry.hostWallId);
+    const tol = DOOR_TARGET_PX / handle.getPixelsPerInch();
+    const touch = event.pointerType === 'touch';
+    if (touch) setUi({ doorTarget: null });
+    if (claim === null) {
+      if (event.kind === 'move' && !touch) {
+        setUi({ doorTarget: doorTargetAt(door, host, event.model, tol) });
+        return false;
+      }
+      if (event.kind === 'down') {
+        const target = doorTargetAt(door, host, event.model, tol);
+        if (target === null) return false;
+        claim = { target, screen: { x: event.screen.x, y: event.screen.y }, moved: false };
+        return true;
+      }
+      return false;
+    }
+    const pressed = claim;
+    if (event.kind === 'move') {
+      const d = Math.hypot(event.screen.x - pressed.screen.x, event.screen.y - pressed.screen.y);
+      if (!pressed.moved && d > PRESS_MOVE_PX) pressed.moved = true;
+      return true;
+    }
+    if (event.kind === 'up') {
+      claim = null;
+      setUi({ doorTarget: null });
+      if (!pressed.moved) {
+        const f = pressed.target === 'arc' ? flipSwing(door) : flipHand(door);
+        if (f !== null) store.applyEdit([openingChange(f)]);
+      }
+      return true;
+    }
+    if (event.kind === 'cancel') {
+      claim = null;
+      setUi({ doorTarget: null });
       return true;
     }
     return false;
@@ -464,6 +783,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     keyDown,
     startPick,
     keep,
+    spaceTap,
+    attachSelection,
+    claimSelectPointer,
     dispose() {
       if (disposed) return;
       disposed = true;

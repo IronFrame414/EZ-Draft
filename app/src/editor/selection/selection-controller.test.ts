@@ -124,6 +124,8 @@ function fakeDrawing(o: { tool: DrawingToolId | null; pick: PickState }) {
       boxes: [],
       gapMessage: null,
       lastLength: null,
+      doorTarget: null,
+      openingWidth: null,
     }),
     keyDown: (e) => {
       keys.push(e);
@@ -354,7 +356,7 @@ describe('EZD-208a selection controller', () => {
       }
     }
     const edit = editorRail({ ...base, editor: 'ready', canEdit: true });
-    expect(edit?.tools.map((t) => t.id)).toEqual(['select', 'wall', 'room-rect']);
+    expect(edit?.tools.map((t) => t.id)).toEqual(['select', 'wall', 'room-rect', 'door', 'window']);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });
     expect(off?.tools).toEqual(all);

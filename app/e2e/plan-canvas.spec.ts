@@ -358,7 +358,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(page.getByTestId('plan-input')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     const tools = page.locator('[data-shell-region="rail"] [data-rail-tool]');
-    await expect(tools).toHaveCount(3);
+    await expect(tools).toHaveCount(5);
     await expect(tools.first()).toBeDisabled();
     await expect(tools.last()).toBeDisabled();
     release();
@@ -415,7 +415,7 @@ test.describe('EZD-207a plan canvas', () => {
     for (const region of ['left-panel', 'inspector'])
       await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(3);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(5);
     await expect(page.locator('[data-status-item]')).toHaveCount(4);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });

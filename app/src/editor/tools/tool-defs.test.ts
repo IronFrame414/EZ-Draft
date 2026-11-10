@@ -70,7 +70,12 @@ describe('EZD-210a tool definitions', () => {
       icon: 'rectangle',
       fields: [WIDTH_FIELD, DEPTH_FIELD],
     });
-    expect(DRAWING_TOOLS).toEqual({ wall: WALL_TOOL, 'room-rect': ROOM_RECT_TOOL });
+    expect(DRAWING_TOOLS).toEqual({
+      wall: WALL_TOOL,
+      'room-rect': ROOM_RECT_TOOL,
+      door: DOOR_TOOL,
+      window: WINDOW_TOOL,
+    });
     expect(DRAWING_RAIL_TOOLS).toEqual([
       { kind: 'tool', id: 'wall', icon: 'view_column_2', label: 'office.tool.wall', shortcut: 'W' },
       {
@@ -80,6 +85,8 @@ describe('EZD-210a tool definitions', () => {
         label: 'office.tool.room_rect',
         shortcut: 'R',
       },
+      { kind: 'tool', id: 'door', icon: 'door_front', label: 'office.tool.door', shortcut: 'D' },
+      { kind: 'tool', id: 'window', icon: 'window', label: 'office.tool.window', shortcut: 'N' },
     ]);
     const names: readonly string[] = ICON_NAMES;
     expect(names).toContain('view_column_2');

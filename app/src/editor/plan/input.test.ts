@@ -288,3 +288,45 @@ describe('EZD-207b input hover', () => {
     expect(onHover).toHaveBeenCalledTimes(4);
   });
 });
+
+describe('EZD-211b input space tap', () => {
+  test('EZD-211b I1 a Space tap calls onSpaceTap once; a Space drag or a Space typed in an input does not', () => {
+    const make = () => {
+      const surface = makeSurface();
+      const keys = new EventTarget();
+      const onSpaceTap = vi.fn();
+      const views: PlanView[] = [];
+      let view = START;
+      createPlanInput({
+        surface,
+        keys,
+        getView: () => view,
+        setView: (v) => {
+          view = v;
+          views.push(v);
+        },
+        getReceiver: () => null,
+        onSpaceTap,
+        getZoom100: () => 8 / 3,
+      });
+      return { surface, keys, onSpaceTap, views };
+    };
+
+    const a = make();
+    key(a.keys, 'keydown');
+    key(a.keys, 'keyup');
+    expect(a.onSpaceTap).toHaveBeenCalledTimes(1);
+
+    const b = make();
+    key(b.keys, 'keydown');
+    drag(b.surface);
+    key(b.keys, 'keyup');
+    expect(b.views.length).toBeGreaterThan(0);
+    expect(b.onSpaceTap).toHaveBeenCalledTimes(0);
+
+    const c = make();
+    key(c.keys, 'keydown', 'INPUT');
+    key(c.keys, 'keyup', 'INPUT');
+    expect(c.onSpaceTap).toHaveBeenCalledTimes(0);
+  });
+});

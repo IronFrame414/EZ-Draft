@@ -6,6 +6,8 @@
 // and leaving the region or starting a pan clears it; touch never hovers.
 // EZD-219 Build step 8 (vault/plans/EZD-219.md Decided "Controller"): zooms use the scale's 100% (`getZoom100`);
 // each new cursor point goes to `onCursor`, and a non-touch leave sends null.
+// EZD-211b: Space tap (vault/plans/EZD-211b.md Decided "Space tap"): a Space press and release with no pan between
+// goes to `onSpaceTap`.
 import type { Point } from '@ezdraft/geometry';
 import { panBy, regionToModel, wheelZoomFactor, zoomAt, type PlanView } from './view';
 
@@ -34,6 +36,7 @@ export type PlanInputOptions = {
   onHover?(screen: Point | null): void;
   getZoom100(): number;
   onCursor?(screen: Point | null): void;
+  onSpaceTap?(): void;
 };
 export type PlanInput = { getCursor(): Point | null; dispose(): void };
 
@@ -68,6 +71,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
   let rect = surface.getBoundingClientRect();
   let cursor: Point | null = null;
   let spaceHeld = false;
+  let spaceCandidate = false;
   // Mouse or pen pointers that are panning, with their last region point.
   const pans = new Map<number, Point>();
   // At most two touch pointers, with their last region point.
@@ -124,6 +128,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
       return;
     }
     if (e.button === 2 || (e.button === 0 && spaceHeld)) {
+      spaceCandidate = false;
       o.onHover?.(null);
       pans.set(e.pointerId, p);
       return;
@@ -225,13 +230,22 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
 
   const onKeyDown = (event: Event) => {
     const e = event as KeyboardEvent;
-    if (e.key === ' ' && !isTypingTarget(e.target)) spaceHeld = true;
+    if (e.key === ' ' && !isTypingTarget(e.target)) {
+      spaceHeld = true;
+      if (!e.repeat) spaceCandidate = true;
+    }
   };
   const onKeyUp = (event: Event) => {
-    if ((event as KeyboardEvent).key === ' ') spaceHeld = false;
+    if ((event as KeyboardEvent).key !== ' ') return;
+    if (spaceCandidate) {
+      spaceCandidate = false;
+      o.onSpaceTap?.();
+    }
+    spaceHeld = false;
   };
   const onBlur = () => {
     spaceHeld = false;
+    spaceCandidate = false;
   };
 
   const surfaceListeners: Array<[string, (e: Event) => void]> = [

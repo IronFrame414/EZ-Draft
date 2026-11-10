@@ -1,10 +1,17 @@
 // EZD-210b O1, O2 (vault/plans/EZD-210b.md section 4; Decided "Overlay shapes", "Overlay writes"; Q-0589 (a)).
 // The expected path strings are the plan's, derived from toScreen p -> (2 p.x, -2 p.y) and the sizes in the plan.
 import { describe, expect, it } from 'vitest';
-import type { Point } from '@ezdraft/geometry';
-import { createToolOverlay, overlayShapes } from './overlay';
-import type { DrawingFrame } from './drawing-controller';
+import {
+  createOpeningData,
+  doorSymbol,
+  openingOffsets,
+  type OpeningObject,
+  type Point,
+} from '@ezdraft/geometry';
+import { createToolOverlay, openingOverlay, overlayShapes } from './overlay';
+import type { DrawingFrame, OpeningFrame } from './drawing-controller';
 import type { SnapMarker } from './snap-marker';
+import { baseObjects, uid, wallsOf, withWalls } from './test-utils/fixtures';
 
 const toScreen = (p: Point): Point => ({ x: 2 * p.x, y: -2 * p.y });
 const pt = (x: number, y: number): Point => ({ x, y });
@@ -18,6 +25,7 @@ function frame(over: Partial<DrawingFrame>): DrawingFrame {
     anchor: null,
     referenceDirection: null,
     wallDirection: null,
+    opening: null,
     ...over,
   };
 }
@@ -90,5 +98,119 @@ describe('EZD-210b overlay', () => {
     expect(markerEl.attrs.get('display')).toBe('none');
     expect(markerEl.attrs.has('data-snap-kind')).toBe(false);
     expect(markerEl.attrs.has('data-shape')).toBe(false);
+  });
+});
+
+// EZD-211b O1 (vault/plans/EZD-211b.md section 4, Decided "openingOverlay"). toScreen p -> (8/3 p.x, -8/3 p.y).
+// The door symbol strings are built here by the plan's formula from the shared `doorSymbol`.
+describe('EZD-211b opening overlay', () => {
+  const PPI = 8 / 3;
+  const toScreenP = (p: Point): Point => ({ x: p.x * PPI, y: -p.y * PPI });
+  const round1 = (v: number): string => String(Math.round(v * 10) / 10);
+  const xy1 = (p: Point): string => `${round1(p.x)} ${round1(p.y)}`;
+
+  const walls = wallsOf(
+    withWalls(baseObjects(), 1, [pt(0, 0), pt(144, 0), pt(144, 120), pt(0, 120)], true),
+  );
+  const host = walls.find((w) => w.id === uid(1))!;
+
+  function openingOf(kind: 'door' | 'window', cx: number): OpeningObject {
+    return {
+      id: uid(50),
+      type: 'opening',
+      data: createOpeningData({ kind, host, center: pt(cx, 0), swing: 'left' }),
+    };
+  }
+
+  function frameOf(o: OpeningObject, over: Partial<OpeningFrame> = {}): OpeningFrame {
+    return {
+      data: o.data,
+      host,
+      offsets: openingOffsets(o, host, walls),
+      owned: false,
+      chipSide: 'right',
+      dot: true,
+      chips: true,
+      ...over,
+    };
+  }
+
+  it('EZD-211b O1 openingOverlay: span, leaf, arc, dims, ticks, chips and dot in screen px', () => {
+    const door = openingOf('door', 54);
+    const A = frameOf(door);
+    expect(A.offsets?.left).toBeCloseTo(36, 9);
+    expect(A.offsets?.right).toBeCloseTo(72, 9);
+
+    const sym = doorSymbol(door, host)!;
+    const H = toScreenP(sym.hinge);
+    const E = toScreenP(sym.leafEnd);
+    const onCircle = (deg: number): Point => ({
+      x: sym.hinge.x + sym.radius * Math.cos((deg * Math.PI) / 180),
+      y: sym.hinge.y + sym.radius * Math.sin((deg * Math.PI) / 180),
+    });
+    const cands = [toScreenP(onCircle(sym.startAngle)), toScreenP(onCircle(sym.endAngle))];
+    const dist = (p: Point) => Math.hypot(p.x - E.x, p.y - E.y);
+    const C = dist(cands[0]!) >= dist(cands[1]!) ? cands[0]! : cands[1]!;
+    const edge = toScreenP({ x: sym.hinge.x + sym.radius, y: sym.hinge.y });
+    const r = Math.hypot(edge.x - H.x, edge.y - H.y);
+    const cross = (C.x - H.x) * (E.y - H.y) - (C.y - H.y) * (E.x - H.x);
+    const leaf = `M ${xy1(H)} L ${xy1(E)}`;
+    const arc = `M ${xy1(C)} A ${round1(r)} ${round1(r)} 0 0 ${cross > 0 ? 1 : 0} ${xy1(E)}`;
+
+    const DIMS = 'M 0 36 L 96 36 M 384 36 L 192 36';
+    const TICKS = 'M 0 28 L 0 44 M 96 28 L 96 44 M 384 28 L 384 44 M 192 28 L 192 44';
+    const SPAN = 'M 96 0 L 192 0 L 192 12 L 96 12 Z';
+
+    const a = openingOverlay(A, toScreenP)!;
+    expect(a.dims).toBe(DIMS);
+    expect(a.ticks).toBe(TICKS);
+    expect(a.left!.x).toBeCloseTo(48, 9);
+    expect(a.left!.y).toBeCloseTo(36, 9);
+    expect(a.left!.text).toBe('3\' 0"');
+    expect(a.right!.x).toBeCloseTo(288, 9);
+    expect(a.right!.y).toBeCloseTo(36, 9);
+    expect(a.right!.text).toBe('6\' 0"');
+    expect(a.span).toBe(SPAN);
+    expect(a.leaf).toBe(leaf);
+    expect(a.arc).toBe(arc);
+    expect(a.arc).toMatch(/^M .+ A 96 96 0 0 [01] .+$/);
+    expect(a.dot!.x).toBeCloseTo(H.x, 9);
+    expect(a.dot!.y).toBeCloseTo(H.y, 9);
+
+    const b = openingOverlay(frameOf(door, { owned: true }), toScreenP)!;
+    expect(b.span).toBe('');
+    expect(b.leaf).toBeNull();
+    expect(b.arc).toBeNull();
+    expect(b.dims).toBe(DIMS);
+
+    const c = openingOverlay(frameOf(door, { chips: false }), toScreenP)!;
+    expect(c.dims).toBe('');
+    expect(c.ticks).toBe('');
+    expect(c.left).toBeNull();
+    expect(c.right).toBeNull();
+    expect(c.span).toBe(SPAN);
+    expect(c.leaf).toBe(leaf);
+    expect(c.arc).toBe(arc);
+    expect(c.dot!.x).toBeCloseTo(H.x, 9);
+    expect(c.dot!.y).toBeCloseTo(H.y, 9);
+
+    const d = openingOverlay(frameOf(openingOf('window', 54), { dot: false }), toScreenP)!;
+    expect(d.leaf).toBeNull();
+    expect(d.arc).toBeNull();
+    expect(d.dot).toBeNull();
+    expect(d.span).toBe(SPAN);
+
+    const e = openingOverlay(
+      frameOf(door, {
+        offsets: { ...A.offsets!, left: 24, leftCorner: { at: 12, wallId: null } },
+      }),
+      toScreenP,
+    )!;
+    expect(e.dims.startsWith('M 32 36 L 96 36')).toBe(true);
+    expect(e.left!.x).toBeCloseTo(64, 9);
+    expect(e.left!.y).toBeCloseTo(36, 9);
+    expect(e.left!.text).toBe('2\' 0"');
+
+    expect(openingOverlay(frameOf(door, { offsets: null }), toScreenP)).toBeNull();
   });
 });

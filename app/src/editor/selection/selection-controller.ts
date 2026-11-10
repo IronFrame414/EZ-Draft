@@ -44,6 +44,7 @@ export type SelectionDeps = {
   store: Pick<ModelStore, 'getState' | 'subscribe'>;
   drawing: Pick<DrawingController, 'getUi' | 'keyDown' | 'selectTool'> | null;
   setReceiver: (r: PlanPointerReceiver | null) => void;
+  claim?: (event: PlanPointerEvent) => boolean;
 };
 
 export type ReceiverSlots = {
@@ -142,6 +143,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     to.x >= from.x ? 'inside' : 'touch';
 
   const receiver: PlanPointerReceiver = (e: PlanPointerEvent) => {
+    if (deps.claim?.(e) === true) return;
     if (disposed) return;
     if (e.kind === 'down') {
       if (press !== null) dropPress();

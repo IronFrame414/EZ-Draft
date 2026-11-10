@@ -11,7 +11,7 @@ import {
   type TypedValues,
 } from '../typed-entry/typed-entry';
 
-export type DrawingToolId = 'wall' | 'room-rect';
+export type DrawingToolId = 'wall' | 'room-rect' | 'door' | 'window';
 
 export const WIDTH_FIELD: TypedLengthField = {
   id: 'width',
@@ -76,6 +76,8 @@ export const WINDOW_TOOL: TypedTool = {
 export const DRAWING_TOOLS: Readonly<Record<DrawingToolId, TypedTool>> = {
   wall: WALL_TOOL,
   'room-rect': ROOM_RECT_TOOL,
+  door: DOOR_TOOL,
+  window: WINDOW_TOOL,
 };
 
 export const DRAWING_RAIL_TOOLS: readonly RailTool[] = [
@@ -87,6 +89,8 @@ export const DRAWING_RAIL_TOOLS: readonly RailTool[] = [
     label: 'office.tool.room_rect',
     shortcut: 'R',
   },
+  { kind: 'tool', id: 'door', icon: 'door_front', label: 'office.tool.door', shortcut: 'D' },
+  { kind: 'tool', id: 'window', icon: 'window', label: 'office.tool.window', shortcut: 'N' },
 ];
 
 // `at` is the snapped model point; `enter` and `escape` arrive only when the typed layer did not handle them.

@@ -331,10 +331,12 @@ test.describe('EZD-208b selection', () => {
     const { ids: pids, user } = await fixtureS();
     await signInAs(user.email);
     await openReady(page, pids.P1);
-    await expect(railTools(page)).toHaveCount(3);
+    await expect(railTools(page)).toHaveCount(5);
     await expect(railTools(page).nth(0)).toHaveAttribute('data-rail-tool', 'select');
     await expect(railTools(page).nth(1)).toHaveAttribute('data-rail-tool', 'wall');
     await expect(railTools(page).nth(2)).toHaveAttribute('data-rail-tool', 'room-rect');
+    await expect(railTools(page).nth(3)).toHaveAttribute('data-rail-tool', 'door');
+    await expect(railTools(page).nth(4)).toHaveAttribute('data-rail-tool', 'window');
     await expect(tool(page, 'select')).toHaveAttribute('aria-label', 'Select');
     await expect(tool(page, 'select')).toHaveAttribute('aria-keyshortcuts', 'V');
     await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');

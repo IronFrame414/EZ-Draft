@@ -176,7 +176,9 @@ export function ProjectEditor({
           store: result.session.store,
           drawing,
           setReceiver: slots.selection,
+          claim: drawing.claimSelectPointer,
         });
+        drawing.attachSelection(selection);
         const edit = createEditController({
           store: result.session.store,
           selection,
@@ -185,6 +187,7 @@ export function ProjectEditor({
           canEdit: result.session.model.viewer.canEdit,
         });
         dispose = () => {
+          drawing.attachSelection(null);
           edit.dispose();
           selection.dispose();
           unsubscribeScale();

@@ -1,5 +1,7 @@
 /* EZD-210b Build step 9 (vault/plans/EZD-210b.md Decided "CSS"; S02B :71, :96-97): the drawing layer over the
-   canvas region, the rubber band and snap marker, and the gap box. */
+   canvas region, the rubber band and snap marker, and the gap box.
+   EZD-211b Build step 10 (vault/plans/EZD-211b.md Decided "CSS"): the opening preview, dims, ticks, hinge dot,
+   offset chips and door tooltip. */
 
 .layer {
   position: absolute;
@@ -86,4 +88,81 @@
   max-width: 260px;
   font-size: 13px;
   color: var(--ez-red);
+}
+
+.span {
+  fill: var(--ez-surface);
+  fill-opacity: 0.7;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.leaf {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.arc {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
+}
+
+.dims {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+}
+
+.ticks {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+}
+
+.dot {
+  fill: var(--ez-cobalt);
+  stroke: var(--ez-surface);
+  stroke-width: 2px;
+}
+
+.chips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chipSlot {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font: 400 13px var(--ez-font-mono);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.tooltip {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
 }

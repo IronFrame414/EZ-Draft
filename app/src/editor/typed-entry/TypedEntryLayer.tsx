@@ -1,6 +1,7 @@
 'use client';
 // Typed dimension bar and inline box (EZD-209; S03 Typed dimension bar; 04 Measurement entry).
 // Not mounted in the real editor: EZD-210 mounts it with the first real tools.
+// EZD-211b Build step 7 (vault/plans/EZD-211b.md Decided "openAt"; Q-0634): `openAt` opens the box at a field.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, Ref } from 'react';
 import { PLAN_DISPLAY_DENOMINATOR, formatLength } from '@ezdraft/geometry';
@@ -116,6 +117,7 @@ type LayerProps = {
   lastValues: Readonly<Record<string, number>>;
   getCursor: () => { x: number; y: number } | null;
   onCommit: (values: TypedValues) => void;
+  openAt?: { field: number; seq: number } | null;
 };
 
 export function TypedEntryLayer(props: LayerProps) {
@@ -129,6 +131,7 @@ function LayerInner({
   lastValues,
   getCursor,
   onCommit,
+  openAt,
 }: LayerProps & { tool: TypedTool }) {
   const [state, setState] = useState<TypedEntryState>(() => initialTypedEntryState(tool));
   const stateRef = useRef(state);
@@ -151,6 +154,19 @@ function LayerInner({
     },
     [tool],
   );
+
+  const seen = useRef(openAt?.seq ?? null);
+  const openSeq = openAt?.seq;
+  useEffect(() => {
+    if (openAt === undefined || openAt === null || openAt.seq === seen.current) return;
+    seen.current = openAt.seq;
+    if (stateRef.current.open) dispatch({ type: 'escape' });
+    dispatch({ type: 'open', text: '', anchor: 'bar' });
+    for (let i = 0; i < openAt.field; i++) dispatch({ type: 'tab', back: false });
+    inputRef.current?.focus();
+    // Runs on a new `openAt.seq` only (D:openAt).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSeq]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

@@ -8,6 +8,7 @@
 // its picker, the body lookup, and the selection drawn and redrawn on change.
 // EZD-219 Build step 9 (vault/plans/EZD-219.md Decided "Scale change", "Typed zoom apply", "Controller"): the plan
 // scale sets what 100% zoom means; typed zoom; the cursor's model point for the status bar.
+// EZD-211b Build step 6 (vault/plans/EZD-211b.md Decided "Space tap"): `onSpaceTap` listeners.
 import type { DrawingList, Point } from '@ezdraft/geometry';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import type { ModelStore } from '../model/model-store';
@@ -94,6 +95,7 @@ export type PlanCanvasHandle = {
   getZoomPercent(): number;
   setZoomPercent(percent: number): void;
   onCursorChange(listener: (model: Point | null) => void): () => void;
+  onSpaceTap(listener: () => void): () => void;
 };
 
 export type PlanController = {
@@ -146,6 +148,7 @@ export function createPlanController(
   let receiver: PlanPointerReceiver | null = null;
   const listeners: Array<{ fn: (view: PlanView) => void }> = [];
   const cursorListeners: Array<{ fn: (model: Point | null) => void }> = [];
+  const spaceTapListeners: Array<{ fn: () => void }> = [];
   let cursorScreen: Point | null = null;
   let list: DrawingList | null = null;
   let disposed = false;
@@ -321,6 +324,14 @@ export function createPlanController(
         if (i >= 0) listeners.splice(i, 1);
       };
     },
+    onSpaceTap(fn) {
+      const entry = { fn };
+      spaceTapListeners.push(entry);
+      return () => {
+        const i = spaceTapListeners.indexOf(entry);
+        if (i >= 0) spaceTapListeners.splice(i, 1);
+      };
+    },
     setPointerReceiver(next) {
       receiver = next;
     },
@@ -470,6 +481,9 @@ export function createPlanController(
           cursorScreen = screen;
           emitCursor();
         },
+        onSpaceTap() {
+          for (const l of [...spaceTapListeners]) l.fn();
+        },
       });
     },
     setCanvasRect(rect) {
@@ -511,6 +525,7 @@ export function createPlanController(
       detachCanvas();
       listeners.length = 0;
       cursorListeners.length = 0;
+      spaceTapListeners.length = 0;
       scene.dispose();
     },
   };
