@@ -21005,6 +21005,7 @@
     "Performance check (EZD-017)",
     "Build lanes (EZD-172)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
@@ -21026,6 +21027,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
@@ -21047,6 +21053,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)",
+    "Runtime"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
@@ -21073,6 +21084,10 @@
     "spec/decisions/09-calculations-and-rules.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Typed dimension bar (EZD-209)",
+    "Drawing tools (EZD-210)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
@@ -21096,6 +21111,12 @@
    "decisions": [],
    "mockups": [
     "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Editor route (EZD-120c)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
@@ -21158,6 +21179,48 @@
     "AC-EZD-378-1",
     "AC-EZD-378-2",
     "AC-EZD-378-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-379",
+   "phase": 4,
+   "title": "Fix: the EZD-207b B2 hover test sees a React commit when another lane runs a gate",
+   "depends_raw": "EZD-207b",
+   "spec_ref": "rule 17 (gate defect, EZD-372 D-Runs 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207b"
+   ],
+   "acs": [
+    "AC-EZD-379-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-380",
+   "phase": 4,
+   "title": "Fix: the EZD-133 W1 money-pages smoke test fails with ECONNRESET when another lane runs a gate",
+   "depends_raw": "EZD-133",
+   "spec_ref": "rule 17 (gate defect, EZD-372 D-Runs 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-133"
+   ],
+   "acs": [
+    "AC-EZD-380-1"
    ],
    "acs_source": "done-when"
   }
