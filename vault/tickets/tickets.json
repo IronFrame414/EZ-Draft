@@ -20937,6 +20937,50 @@
     "AC-EZD-369-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-370",
+   "phase": 4,
+   "title": "Fix: the secret-key client list matches its users after EZD-5601 (EZD-323 T8)",
+   "depends_raw": "EZD-323, EZD-5601",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-323",
+    "EZD-5601"
+   ],
+   "acs": [
+    "AC-EZD-370-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-371",
+   "phase": 4,
+   "title": "Fix: My profile set password finds one control after EZD-5601 (EZD-108 T18)",
+   "depends_raw": "EZD-108, EZD-5601",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-108",
+    "EZD-5601"
+   ],
+   "acs": [
+    "AC-EZD-371-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
