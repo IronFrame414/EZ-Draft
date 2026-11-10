@@ -19,6 +19,7 @@ How the full suite was measured. I did not start my own suite. Lane 0 is reserve
 
 | Failing test | Ticket and phase | Runs it fails in (of the 26 failures listed) | Notes |
 | --- | --- | --- | --- |
+| **9 browser tests that fail only on CI**: EZD-210b B4, B5, B7; EZD-207b B4 (plan text `glyphs` 0); EZD-208b B5, B9; EZD-120c B1; EZD-133 W1, W2 (money pages @smoke, 5.0 min timeout, "browser has been closed": they never reached their check) | phases 3 and 4 | both runs checked from their artifacts (42882716995, 42888313901). The grep above missed Playwright's list format, so the other runs were not checked for these. | See A1-tickets.md, phase 4 row 1. The CI perf rows are all `plan_not_ready`. |
 | `EZD-207c pan on fixture pages` / `EZD-207c P2 wheel steps reach the page` | EZD-207c, phase 4 | every product-commit run from 11-07 14:41Z to 11-10 19:44Z | Perf/benchmark check. Fix tickets EZD-356, EZD-358 and EZD-359 (all phase 4, done) did not make it pass in CI. EZD-372 is the fourth fix ticket on the same check. |
 | `EZD-356 long-task list on the pan rows` / `EZD-356 T1 pan rows list each long task and the load` | EZD-356, phase 4 | same runs, up to 11-10 19:11Z | |
 | `EZD-359 pan task attribution` / `EZD-359 I1`, `I2` | EZD-359, phase 4 | 11-09 16:34Z, 21:49Z, 23:35Z | Random. |
