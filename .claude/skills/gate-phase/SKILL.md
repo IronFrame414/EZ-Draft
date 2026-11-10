@@ -5,6 +5,13 @@ description: Unit `gate-phase <N>` - phase gate: ledger check, full gate on deve
 
 Run the phase gate of `vault/PROCESS.md` (section 9) for phase $ARGUMENTS, with the additions in `vault/PROCESS-EZDRAFT.md` section 7. You are the orchestrator. Every product ticket in the phase must be `done` or `blocked`; tooling tickets (`"track": "tooling"` in `tickets.json`, EZD-253) may be in any status and do not hold the gate, the PR or wrap. **Advisor (process v2.4):** you run on Sonnet 5.5 with an Opus 5.5 advisor. Consult it before opening the phase PR, before marking a ticket `blocked` and when a decision is not covered by PROCESS.md or the spec; not otherwise (each call re-reads the whole transcript).
 
+0. **Quick checks before the full gate (EZD-369; Josh 2026-11-10: no gate runs a fourth time on a known red).** Run each as a short command. If any is red, fix it first, or stop the unit with a handoff that names it; do not start the 30-minute gate:
+   - Copy `vault/` and `docs/architecture.md` to a scratch folder and run `node vault/tools/next_ticket.mjs --check` there. That is how the gate's fixtures see the checkout, untracked files included.
+   - `node scripts/unit-steps.mjs record-develop` lists no unrecorded change.
+   - `vault/handoff/LAUNCHER_FIX.md` does not exist.
+   - Every product ticket of phase $ARGUMENTS is `done` or `blocked`; none is `in-progress` or `review`.
+   - If `vault/handoff/assessments/gate-phase-$ARGUMENTS.md` exists, every cause it lists is fixed.
+   When the full gate is red, file every defect as step 5 says, one fix ticket per failing test. A handoff line alone is not enough.
 1. `node vault/tools/next_ticket.mjs --check` passes. On `develop`: `node /Users/josh/Projects/ezdraft/scripts/gate.mjs . --full` as its own Bash call with `run_in_background` and the Bash tool's `timeout` parameter set to 7200000 (it takes longer than 10 minutes; without that parameter a background command is stopped at 10 minutes, EZD-364), exactly so written: no `cd`, no chaining, no pipe, no redirect, no `timeout` command; any other form runs inside the unit sandbox and prints GATE SANDBOX STOP. Plus the phase's Build gate test named in `vault/tickets/phases/phase-NN.md`. Red → stop, handoff, report.
 2. `node vault/tools/next_ticket.mjs --report` (fresh `TRACE.md` and `PROGRESS.md`).
 3. Note `git rev-parse develop`: the security review and the audit run on that commit, and step 8 records it. Dispatch `security-reviewer` over the phase diff (`git diff origin/main...develop`) with the gate summary. It also writes the "Production-sensitive changes: PASS / FAIL" section (Q-0112); a FAIL blocks the PR.

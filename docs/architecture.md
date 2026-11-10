@@ -1281,6 +1281,11 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 
 `node scripts/conventions/check.mjs [rootDir]` runs C1–C10 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/gate.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
 
+Three strikes (EZD-369):
+- **Recording:** after every unit, the launcher records a verdict for the unit's key in `.git/unit-strikes.json`, using `strikeVerdict` and `recordStrike` in `vault/tools/next_ticket.mjs`. A stop that is not the unit's fault records nothing (`strikeExempt`: a limit, an interrupted run, a dry run).
+- **Strikes and resets:** a failed run, a run without progress, or a build left `blocked` is a strike. A build reaching `done`, a phase gate that wrote its record, or another unit's progress resets the count.
+- **The hold:** at three strikes, `next_ticket.mjs` skips the key. `strikeHolds` is joined to the set-aside list and to build selection. The hold lasts until `vault/handoff/assessments/<key>.md` has `Verdict: ready` and `Covers strikes: n`, with n at least the count. Edits to set-aside.json or STATUS never release it.
+
 Launcher units run with `UNIT_ENV_LIMITS` (`scripts/launcher/unit-env.mjs`, EZD-364): `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` and `BASH_MAX_TIMEOUT_MS=7200000`, so a full gate started with `run_in_background` is not stopped at Claude Code's 10-minute background deadline.
 
 | ID | Rule | Check | Built by |

@@ -40,11 +40,24 @@ E. **Needs the network** (a note naming `icons:fetch`, `needs network`, or `raw.
 
 F. **Truly blocked: set it aside and move on.** For a ticket, run `node scripts/ledger.mjs status <T> status=blocked "notes=<cause>; set aside by overwatch <time>"`. For a unit, add `"<unit> <arg>"` to `.git/set-aside.json`. A design or UI question goes to `vault/questions/QUESTIONS.md` as Josh's, through `node scripts/ledger.mjs question`.
 
-G. **A unit on `.git/set-aside.json`, or a build tabled with `TABLE OK` / `two runs without progress`.** Find why. For a phase gate, read `vault/handoff/CURRENT.md` and the unit's last report: the newest `~/.claude/projects/-Users-josh-Projects-ezdraft/*.jsonl` that contains `/gate-phase <N>`, last assistant text, read with `python3 -I`. For a build, read its STATUS note. If the cause is A to E, fix it. Then remove the unit from `.git/set-aside.json` (write the remaining JSON array), or set the ticket back to `ready`. If you cannot find a cause you can fix, leave it set aside and write `SET ASIDE` with the reason.
+G. **A unit on `.git/set-aside.json`, or a build tabled with `TABLE OK` / `two runs without progress`.** Find why. For a phase gate, read `vault/handoff/CURRENT.md` and the unit's last report: the newest `~/.claude/projects/-Users-josh-Projects-ezdraft/*.jsonl` that contains `/gate-phase <N>`, last assistant text, read with `python3 -I`. For a build, read its STATUS note. If the cause is A to E, fix it. Then remove the unit from `.git/set-aside.json` (write the remaining JSON array), or set the ticket back to `ready`. If you cannot find a cause you can fix, leave it set aside and write `SET ASIDE` with the reason. A key with three strikes goes to step K, never to this step.
 
 H. **Over the lane limit** (`more than N ticket in progress`): set the newest extra tickets to `ready`, keeping their notes.
 
 I. **A leftover app server on a gate port** (`is already used`): the gate clears its own lane's dead server since EZD-364. If a holder survives, write `FAILED: port <p> held by pid <pid> (<user>, <command>)` and a `JOSH:` line. Never kill a process yourself.
+
+K. **A key held by three strikes (EZD-369).** The log says `STRIKE 3`, or a `node -e` call to `strikeHolds()` in `vault/tools/next_ticket.mjs` lists the key. Editing `.git/set-aside.json` or STATUS never releases it; never try. Write the full assessment to `vault/handoff/assessments/<slug>.md`, where the slug is the key in lower case with spaces as `-`, for example `gate-phase-4.md` or `build-ezd-212a.md`. It contains:
+   - every attempt in the key's `history` in `.git/unit-strikes.json`, and each run's report (`~/.claude/projects/-Users-josh-Projects-ezdraft/*.jsonl`, `gate-failures.log`, STATUS notes);
+   - each distinct cause, its fix and the commit of that fix;
+   - evidence that each fix holds, from a cheap targeted check:
+     - the failing test files run with `node --test`, or the failing e2e specs run alone;
+     - the ledger check on a vault copy with untracked files;
+     - `record-develop` clean;
+     - the lane ports free;
+     - `LAUNCHER_FIX.md` absent;
+     - for a phase gate, every ticket of the phase `done` or `blocked`;
+   - the line `Covers strikes: <count>`, then `Verdict: ready` only when every cause has passing evidence. Otherwise `Verdict: not ready`, with what is left. Write each of those two lines on its own, starting at the left margin, with no bullet or indent; the check reads only plain lines.
+   Commit the assessment by path, record develop and push. A cause you cannot fix goes to step F.
 
 J. **The weekly usage limit** (`hit your weekly limit`): a KEEP stop. Change nothing; write one line saying when it resets.
 

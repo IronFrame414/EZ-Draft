@@ -878,13 +878,14 @@ function candidates(p, wantReady) {
   return phaseTickets(p)
     .filter((t) => !['done', 'blocked', 'in-progress', 'review'].includes(status(t.id)))
     .filter((t) => !wantReady || status(t.id) === 'ready')
+    .filter((t) => !heldBuild(t.id))
     .filter(depsDone)
     .sort(byPriority);
 }
 // A ticket with "priority": 1 in tickets.json is planned and built before the others of its phase, then by number
 // (Josh 2026-10-27: the usage-saving fix tickets go first).
 const byPriority = (a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0) || num(a.id) - num(b.id);
-const inFlight = (skip = new Set()) => data.tickets.find((t) => !skip.has(t.id) && ['in-progress', 'review'].includes(status(t.id)));
+const inFlight = (skip = new Set()) => data.tickets.find((t) => !skip.has(t.id) && ['in-progress', 'review'].includes(status(t.id)) && !heldBuild(t.id));
 
 // Phase gate state, from the gate record the gate-phase unit writes (vault/tickets/gates/phase-NN.md).
 function gateState(p) {
@@ -915,7 +916,7 @@ export function blockingPhase() {
 // builds the first one whose plan needs no guarded path, so the next phase builds only while B has none the launcher can build.
 export function buildPool(B) {
   const cap = B ?? lastPhase(data.tickets.map((t) => t.phase));
-  const pool = data.tickets.filter((t) => isTooling(t) && comparePhases(t.phase, cap) <= 0 && status(t.id) === 'ready' && depsDone(t))
+  const pool = data.tickets.filter((t) => isTooling(t) && comparePhases(t.phase, cap) <= 0 && status(t.id) === 'ready' && depsDone(t) && !heldBuild(t.id))
     .sort((a, b) => comparePhases(a.phase, b.phase) || byPriority(a, b));
   if (B !== null && signedOff(B)) {
     pool.push(...candidates(B, true).filter((t) => !isTooling(t)));
@@ -939,9 +940,65 @@ function phasesAhead(B) {
 }
 
 // Units the launcher set aside after two runs without progress (Josh 2026-11-03): skipped until Josh clears the list. Only the main checkout has this file.
+// EZD-369: plus every unit key held by three strikes (strikeHolds), which editing set-aside.json never releases.
 function setAsideUnits() {
-  try { return new Set(JSON.parse(readFileSync(path.join(root, '.git', 'set-aside.json'), 'utf8'))); } catch { return new Set(); }
+  let listed = [];
+  try { listed = JSON.parse(readFileSync(path.join(root, '.git', 'set-aside.json'), 'utf8')); } catch {}
+  return new Set([...(Array.isArray(listed) ? listed : []), ...strikeHolds()]);
 }
+
+// EZD-369 (Josh 2026-11-10: "After something fails 3 times, it should be stripped down and fully assessed"): a strike ledger per
+// unit key (`<unit> <arg>`) in .git/unit-strikes.json that a release of set-aside.json or a STATUS change never resets. At
+// STRIKE_LIMIT strikes the key is held until vault/handoff/assessments/<slug>.md says `Verdict: ready` and covers the count.
+export const STRIKE_LIMIT = 3;
+const strikesFile = () => path.join(root, '.git', 'unit-strikes.json');
+const readStrikes = () => {
+  try { const j = JSON.parse(readFileSync(strikesFile(), 'utf8')); return j && typeof j === 'object' && !Array.isArray(j) ? j : {}; } catch { return {}; }
+};
+// D-Exempt: stops that are not the unit's fault.
+export function strikeExempt({ outcome, note } = {}) {
+  if (['limit-five-hour', 'limit-weekly', 'interrupted', 'dry-run'].includes(outcome)) return true;
+  return /hit your (weekly|five-hour|5-hour) limit/i.test(String(note ?? ''));
+}
+// D-Strike, D-Reset.
+export function strikeVerdict({ unit, outcome, progress, statusAfter, gateRecord } = {}) {
+  if (outcome !== 'ok' || !progress || (unit === 'build' && statusAfter === 'blocked')) return 'strike';
+  if (unit === 'build') return statusAfter === 'done' ? 'reset' : 'none';
+  if (unit === 'gate-phase') return gateRecord ? 'reset' : 'none';
+  return 'reset';
+}
+// D-File: 'strike' adds one (with its history line), 'reset' deletes the key, anything else changes nothing.
+export function recordStrike(key, verdict, info = {}) {
+  const all = readStrikes();
+  if (verdict !== 'strike' && verdict !== 'reset') return Number(all[key]?.count) || 0;
+  if (verdict === 'reset') { if (!(key in all)) return 0; delete all[key]; }
+  else {
+    const cur = all[key] && typeof all[key] === 'object' ? all[key] : { count: 0, history: [] };
+    const history = Array.isArray(cur.history) ? cur.history : [];
+    history.push({ at: new Date().toISOString(), outcome: String(info.outcome ?? ''), note: String(info.note ?? '').slice(0, 200) });
+    all[key] = { count: (Number(cur.count) || 0) + 1, history };
+  }
+  const file = strikesFile();
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeAtomic(file, `${JSON.stringify(all, null, 1)}\n`);
+  return Number(all[key]?.count) || 0;
+}
+// The slug keeps only a-z, 0-9 and '-' (security review): no key can name a path outside vault/handoff/assessments.
+export const assessmentPath = (key) => path.join(vault, 'handoff', 'assessments', `${String(key).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}.md`);
+// D-Hold: keys at the limit without a ready assessment that covers every strike so far.
+export function strikeHolds() {
+  const held = new Set();
+  for (const [key, v] of Object.entries(readStrikes())) {
+    const count = Number(v?.count) || 0;
+    if (count < STRIKE_LIMIT) continue;
+    let text = '';
+    try { text = readFileSync(assessmentPath(key), 'utf8'); } catch {}
+    const covers = Number(text.match(/^Covers strikes:\s*(\d+)\s*$/m)?.[1] ?? -1);
+    if (!(/^Verdict:\s*ready\s*$/m.test(text) && covers >= count)) held.add(key);
+  }
+  return held;
+}
+const heldBuild = (id) => strikeHolds().has(`build ${id}`);
 
 // skip: tickets already offered or running (nextUnits); checked: the ledger check already ran in this call (EZD-174).
 function nextUnit(skip = new Set(), { checked = false } = {}) {

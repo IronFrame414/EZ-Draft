@@ -68,7 +68,14 @@ const claudeBin = config.claude_bin || 'claude';
 // Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; Josh 2026-11-02: option 3 now, option 1 with the lanes work; vault/spikes/sandbox/NOTES.md).
 // Every unit runs its shell commands in the OS sandbox (REMEDIATION 2.7; back on after probe rounds 5 and 6, the audit vault/handoff/SANDBOX-AUDIT-2026-11-03.md, and D-021 closed by EZD-316 and EZD-345; Josh 2026-11-06).
 const sandboxSettings = path.join(root, 'scripts/unit-sandbox.json');
-const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const ntModule = await import(path.join(vault, 'tools/next_ticket.mjs'));
+const { weekSpend, questionsFingerprint, planQuestionRows, architectureEntry } = ntModule;
+// EZD-369: a ledger tool without the strike exports (an older copy, a test stub) records no strikes.
+const strikeExempt = ntModule.strikeExempt ?? (() => true);
+const strikeVerdict = ntModule.strikeVerdict ?? (() => 'none');
+const recordStrike = ntModule.recordStrike ?? (() => 0);
+const STRIKE_LIMIT = ntModule.STRIKE_LIMIT ?? 3;
+const assessmentPath = ntModule.assessmentPath ?? ((key) => path.join(vault, 'handoff', 'assessments', `${key}.md`));
 const { createOAuthFallback } = await import('./oauth-usage.mjs');
 const { readMeters, gateDecision, applyGates, waitForWindow, writeHold, overrideActive, writeWindowPause } = await import('./budget.mjs');
 const { costEntry } = await import('./cost-log.mjs');
@@ -653,6 +660,18 @@ async function main() {
   let asideUntil = 0;
   let lastMeters = null;
   const statusText = () => { try { return readFileSync(path.join(vault, 'tickets/STATUS.md'), 'utf8'); } catch { return ''; } };
+  // EZD-369: after every unit except a stop that is not its fault (strikeExempt), one strike verdict for its key; at the third
+  // strike next_ticket.mjs holds the key until an assessment covers it, whatever set-aside.json or STATUS say.
+  const strikeVerdictFor = ({ unit, arg, outcome, progress }) => {
+    const statusAfter = statusRow(statusText(), arg).split('|')[4]?.trim() ?? '';
+    const gateRecord = unit === 'gate-phase' && existsSync(path.join(vault, 'tickets/gates', `phase-${String(arg).padStart(2, '0')}.md`));
+    return strikeVerdict({ unit, outcome, progress, statusAfter, gateRecord });
+  };
+  const strikeLog = (key, verdict, count) => {
+    if (verdict !== 'strike' || count < STRIKE_LIMIT) return;
+    log(`STRIKE ${count} ${key}: held for an assessment (${path.relative(root, assessmentPath(key))})`);
+    if (count === STRIKE_LIMIT) notify(`${key} failed ${count} times and is held until it is fully assessed (${path.relative(root, assessmentPath(key))}); the launcher goes on with other work.`);
+  };
   const nextUnitsCall = () => {
     const skip = [...running.values()].map((u) => u.arg);
     const r = tool('--next-units', ...(skip.length ? ['--skip', skip.join(',')] : []));
@@ -688,6 +707,11 @@ async function main() {
         return [key];
       };
       const progress = unitProgress({ key, before, after: statusRow(statusText(), u.arg), offeredAfter: offeredKeys() });
+      const strikeNote = r.note || r.parsed?.result;
+      if (!strikeExempt({ outcome: r.outcome, note: strikeNote })) {
+        const verdict = strikeVerdictFor({ unit: u.unit, arg: u.arg, outcome: r.outcome, progress });
+        strikeLog(key, verdict, recordStrike(key, verdict, { outcome: r.outcome, note: strikeNote }));
+      }
       const g = guardAfterUnit(guards, { key, outcome: r.outcome, progress });
       if (g.action === 'aside') {
         const aside = setAside(u.unit, u.arg, key, () => offeredKeys().includes(key));
@@ -1032,6 +1056,11 @@ async function main() {
     // retried forever. Any unit that does it twice is set aside until Josh is back, and the launcher goes on with other
     // work (Josh 2026-10-27, 2026-11-03: "that item should just be set aside"). Only a set-aside that cannot be written
     // stops it. Three in a row look like a fault in the system, not one item: the launcher pauses, then goes on.
+    const strikeNote = r.note || r.parsed?.result;
+    if (!strikeExempt({ outcome: r.outcome, note: strikeNote })) {
+      const verdict = strikeVerdictFor({ unit: unitName, arg, outcome: r.outcome, progress: !(statusHash() === statusBefore && nextUnitText() === next) });
+      strikeLog(next, verdict, recordStrike(next, verdict, { outcome: r.outcome, note: strikeNote }));
+    }
     if (r.outcome === 'ok' && statusHash() === statusBefore && nextUnitText() === next) {
       noProgress++;
       log(`${next} ended ok but changed nothing in STATUS.md (${noProgress} in a row)`);
