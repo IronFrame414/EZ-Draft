@@ -54,6 +54,7 @@ J. **The weekly usage limit** (`hit your weekly limit`): a KEEP stop. Change not
 - Never merge to main, merge a PR, enable auto-merge, or delete a branch or worktree.
 - Commit only by path. Push develop only with `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs push-develop`.
 - Never edit `vault/tickets/STATUS.md` or other record views by hand.
+- Never release, resume or change a ticket whose note starts `Held by Josh`, and never plan, question or build phase 6 while its tickets carry that hold (Josh 2026-11-10: phase 6 is off the build list during his process review).
 
 ## 4. End
 Commit `vault/handoff/overseer-log.md` and anything else you wrote, by path (`docs(vault): overwatch <time>`), and push develop. End with at most 10 lines: `OVERWATCH <CLEARED n | FAILED n | OK>`, then one line per action.
