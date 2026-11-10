@@ -65,7 +65,7 @@ const roomChange = (room: RoomObject): Change => ({
   },
 });
 
-function openingsOn(objects: Objects, level: string): OpeningObject[] {
+export function openingsOn(objects: Objects, level: string): OpeningObject[] {
   const lvl = level.toLowerCase();
   const out: OpeningObject[] = [];
   for (const [id, v] of objects) {
@@ -85,7 +85,7 @@ function openingsOn(objects: Objects, level: string): OpeningObject[] {
   return out;
 }
 
-const openingChange = (o: OpeningObject): Change => ({
+export const openingChange = (o: OpeningObject): Change => ({
   id: o.id,
   value: {
     type: 'opening',

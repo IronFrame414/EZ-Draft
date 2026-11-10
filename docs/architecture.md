@@ -521,6 +521,14 @@ EZD-208a (vault/plans/EZD-208a.md); S03 Canvas interactions; Q-0630; Q-0633; 11 
 - **Pointer.** `shareReceiver`: the drawing receiver wins over the selection receiver.
 - **Screen (EZD-208b).** `app/src/editor/selection/SelectionLayer.tsx`: `SelectionLayer` (the key listener and the box `rect`, written from `onBox`, never through React; inside solid `--ez-cobalt`, touch dashed `--ez-box-touch-stroke`) and `EditBar` (Select more, Select all; shown when `useCoarsePointer()` is true, first in the canvas state column so banners stack under it). `window.__ezdraftSelection` (`ids`, `hoveredId`) with `devHooks`, every viewer.
 
+### Edit commands (EZD-217)
+
+EZD-217 (vault/plans/EZD-217.md Build steps 1-9, section 3); 04 Selection, undo and flags; Q-0630 rows 19-21; Q-0646 (a); Q-0647 (a).
+
+- **Files.** `app/src/editor/edit/`: `edit-changes.ts` (pure: `copyItems`, `clipCenter`, `deleteChanges`, `pasteChanges`) and `edit-controller.ts` (`createEditController`, no React).
+- **Rules.** One command = one `applyEdit` = one undo step; delete calls `openingHostUpdates`; paste walls go through `wallEditChanges`; the clipboard is in memory per open project, never the system clipboard.
+- **Keys and bar.** Delete/Backspace, Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z, Ctrl/Cmd+C and Ctrl/Cmd+V come through `SelectionLayer`'s one `keydown` listener, edit first; on coarse pointers `EditBar` shows Undo, Redo, Delete, Duplicate, Copy and Paste to editors.
+
 ### Status bar popovers (EZD-219)
 
 EZD-219 (vault/plans/EZD-219.md section 1 steps 3, 6, 10, 14, section 3); S03 Controls — status bar; 09m; Q-0664; Q-0680; 11 rule 4.

@@ -627,3 +627,15 @@ describe('EZD-219 controller scale, typed zoom and cursor', () => {
     expect(fn).toHaveBeenCalledTimes(3);
   });
 });
+
+// EZD-217 V1 (vault/plans/EZD-217.md section 4; Decided "getViewCenter"; AC-EZD-217-14): the model point at the
+// centre of the measured region, from `view.ts` regionToModel at (width / 2, height / 2).
+describe('EZD-217 getViewCenter', () => {
+  test('EZD-217 V1 getViewCenter', () => {
+    const { controller } = setup();
+    controller.handle.setView({ x: -48, y: 144, ppi: 8 / 3 });
+    expect(controller.handle.getViewCenter()).toEqual({ x: 246, y: -17.625 });
+    controller.setRegionRect({ left: 16, top: 92, width: 0, height: 862 });
+    expect(controller.handle.getViewCenter()).toBeNull();
+  });
+});

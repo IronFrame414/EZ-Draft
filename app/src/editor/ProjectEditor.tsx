@@ -19,6 +19,8 @@
 // EZD-219 Build step 15 (vault/plans/EZD-219.md Decided "Editor wiring"; Q-0568; Q-0680 (b)): ready, the status bar
 // shows Scale, Snap, Cursor and Zoom; the project's plan scale is held in a ScaleSetting that the plan follows, and
 // a failed scale save shows its own "Changes not saved" banner unless the model's shows.
+// EZD-217 Build step 8 (vault/plans/EZD-217.md Decided "Editor wiring"): the edit controller (Delete, Copy, Paste,
+// Duplicate, Undo, Redo) beside the selection, given to the selection layer and the tablet edit bar.
 import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
@@ -45,6 +47,7 @@ import {
   type OpenDeps,
   type OpenResult,
 } from './editor-session';
+import { createEditController, type EditController } from './edit/edit-controller';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import type { Change } from './model/patches';
 import {
@@ -108,6 +111,7 @@ type CanvasState =
       plan: PlanController;
       drawing: DrawingController;
       selection: SelectionController;
+      edit: EditController;
       scale: ScaleSetting;
     };
 
@@ -173,7 +177,15 @@ export function ProjectEditor({
           drawing,
           setReceiver: slots.selection,
         });
+        const edit = createEditController({
+          store: result.session.store,
+          selection,
+          drawing,
+          handle: plan.handle,
+          canEdit: result.session.model.viewer.canEdit,
+        });
         dispose = () => {
+          edit.dispose();
           selection.dispose();
           unsubscribeScale();
           scale.dispose();
@@ -183,7 +195,15 @@ export function ProjectEditor({
           onSessionRef.current?.(null);
         };
         onSessionRef.current?.(result.session);
-        setState({ kind: 'ready', session: result.session, plan, drawing, selection, scale });
+        setState({
+          kind: 'ready',
+          session: result.session,
+          plan,
+          drawing,
+          selection,
+          edit,
+          scale,
+        });
         return;
       }
       setState(result);
@@ -198,6 +218,7 @@ export function ProjectEditor({
   const plan = state.kind === 'ready' ? state.plan : null;
   const drawing = state.kind === 'ready' ? state.drawing : null;
   const selection = state.kind === 'ready' ? state.selection : null;
+  const edit = state.kind === 'ready' ? state.edit : null;
   const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
   const sync = session?.sync ?? null;
@@ -313,7 +334,9 @@ export function ProjectEditor({
     };
     body = (
       <>
-        {showPlan && coarse && selection !== null ? <EditBar selection={selection} /> : null}
+        {showPlan && coarse && selection !== null ? (
+          <EditBar selection={selection} edit={edit} />
+        ) : null}
         {sync !== null ? (
           <>
             <OfflineBanner message="office.editor.offline" />
@@ -367,7 +390,7 @@ export function ProjectEditor({
       {drawing !== null ? (
         <DrawingLayer controller={drawing} handle={plan.handle} canEdit={canEdit} />
       ) : null}
-      {selection !== null ? <SelectionLayer selection={selection} /> : null}
+      {selection !== null ? <SelectionLayer selection={selection} edit={edit} /> : null}
       {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}
       {stateArea}
       {panel}

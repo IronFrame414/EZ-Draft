@@ -731,9 +731,10 @@ test.describe('EZD-208b selection', () => {
       if (!bar) throw new Error('no edit-bar box');
       expect(Math.abs(bar.x - region.x - 16)).toBeLessThanOrEqual(0.5);
       expect(Math.abs(bar.y - region.y - 14)).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(bar.width - 140)).toBeLessThanOrEqual(0.5);
+      // Editor bar (EZD-217 plan B4): 8 buttons x 62 + 10 gaps x 2 + 3 separators x (1 + 8 margin) + 12 padding + 2 border = 557.
+      expect(Math.abs(bar.width - 557)).toBeLessThanOrEqual(0.5);
       expect(Math.abs(bar.height - 66)).toBeLessThanOrEqual(0.5);
-      expect(await expectTouchTargets(page, id(page, 'edit-bar'))).toBe(2);
+      expect(await expectTouchTargets(page, id(page, 'edit-bar'))).toBe(8);
 
       await id(page, 'select-more').tap();
       const banner = await id(page, 'select-more-banner').boundingBox();

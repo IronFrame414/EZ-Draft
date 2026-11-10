@@ -5,19 +5,40 @@
 import { useEffect, useRef, useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
+// EZD-217 Build step 7 (vault/plans/EZD-217.md section 3 B1, B2; Decided "Keys wiring", "Bar", "Bar actions"; Q-0633
+// G13): the edit controller takes each key first; editors get Undo, Redo, Delete, Duplicate, Copy and Paste on the bar.
+import type { IconName } from '../../components/icon/icon-names.generated';
+import type { MessageKey } from '../../server/messages/catalog';
+import type { EditController, EditUi } from '../edit/edit-controller';
 import type { SelectionBox, SelectionController } from './selection-controller';
 import styles from './SelectionLayer.module.css';
 
-export function SelectionLayer({ selection }: { selection: SelectionController }): ReactElement {
+type LayerProps = { selection: SelectionController; edit?: EditController | null };
+
+const NO_UI: EditUi = Object.freeze({
+  canEdit: false,
+  canUndo: false,
+  canRedo: false,
+  hasSelection: false,
+  hasClip: false,
+});
+const noUi = () => NO_UI;
+const noSub = () => () => {};
+
+export function SelectionLayer({ selection, edit = null }: LayerProps): ReactElement {
   const boxRef = useRef<SVGRectElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (edit?.keyDown(e)) {
+        e.preventDefault();
+        return;
+      }
       if (selection.keyDown(e)) e.preventDefault();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selection]);
+  }, [selection, edit]);
 
   useEffect(() => {
     const rect = boxRef.current;
@@ -48,13 +69,37 @@ export function SelectionLayer({ selection }: { selection: SelectionController }
   );
 }
 
-export function EditBar({ selection }: { selection: SelectionController }): ReactElement {
+export function EditBar({ selection, edit = null }: LayerProps): ReactElement {
   const t = useT();
   const selectMore = useSyncExternalStore(
     selection.subscribe,
     () => selection.getUi().selectMore,
     () => false,
   );
+  const ui = useSyncExternalStore(
+    edit ? edit.subscribe : noSub,
+    edit ? edit.getUi : noUi,
+    edit ? edit.getUi : noUi,
+  );
+  const command = (
+    name: 'undo' | 'redo' | 'delete' | 'duplicate' | 'copy' | 'paste',
+    icon: IconName,
+    label: MessageKey,
+    enabled: boolean,
+    run: () => void,
+  ) => (
+    <button
+      type="button"
+      data-testid={`edit-${name}`}
+      className={styles.button}
+      disabled={!enabled}
+      onClick={run}
+    >
+      <Icon name={icon} size={22} />
+      <span>{t(label)}</span>
+    </button>
+  );
+  const separator = <span aria-hidden="true" className={styles.separator} />;
   return (
     <>
       <div
@@ -63,6 +108,24 @@ export function EditBar({ selection }: { selection: SelectionController }): Reac
         data-testid="edit-bar"
         className={styles.bar}
       >
+        {ui.canEdit && edit !== null ? (
+          <>
+            {command('undo', 'undo', 'office.selection.undo', ui.canUndo, () => edit.undo())}
+            {command('redo', 'redo', 'office.selection.redo', ui.canRedo, () => edit.redo())}
+            {separator}
+            {command('delete', 'delete', 'office.selection.delete', ui.hasSelection, () =>
+              edit.deleteSelection(),
+            )}
+            {command(
+              'duplicate',
+              'content_copy',
+              'office.selection.duplicate',
+              ui.hasSelection,
+              () => edit.duplicate('center'),
+            )}
+            {separator}
+          </>
+        ) : null}
         <button
           type="button"
           data-testid="select-more"
@@ -82,6 +145,17 @@ export function EditBar({ selection }: { selection: SelectionController }): Reac
           <Icon name="select_all" size={22} />
           <span>{t('office.selection.select_all')}</span>
         </button>
+        {ui.canEdit && edit !== null ? (
+          <>
+            {separator}
+            {command('copy', 'content_paste_go', 'office.selection.copy', ui.hasSelection, () =>
+              edit.copy(),
+            )}
+            {command('paste', 'content_paste', 'office.selection.paste', ui.hasClip, () =>
+              edit.paste('center'),
+            )}
+          </>
+        ) : null}
       </div>
       {selectMore ? (
         <div className={styles.banner} data-testid="select-more-banner">

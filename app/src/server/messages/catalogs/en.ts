@@ -424,6 +424,12 @@ export const en = {
   'office.selection.select_all': 'Select all',
   'office.selection.more_banner': 'Tap objects to add or remove them.',
   'office.selection.done': 'Done',
+  'office.selection.undo': 'Undo',
+  'office.selection.redo': 'Redo',
+  'office.selection.delete': 'Delete',
+  'office.selection.duplicate': 'Duplicate',
+  'office.selection.copy': 'Copy',
+  'office.selection.paste': 'Paste',
   'office.alert.error.subject': 'New EZ Draft error: {title}',
   'office.alert.error.body':
     'A new error was reported in EZ Draft ({source}, {location}). You get one email per new error; repeats are counted but not emailed.',

@@ -76,6 +76,7 @@ export type PlanCanvasHandle = {
   fit(): void;
   modelToScreen(p: Point): Point;
   screenToModel(p: Point): Point;
+  getViewCenter(): Point | null;
   onCameraChange(listener: (view: PlanView) => void): () => void;
   setPointerReceiver(receiver: PlanPointerReceiver | null): void;
   zoomIn(): void;
@@ -307,6 +308,11 @@ export function createPlanController(
     },
     modelToScreen: (p) => modelToRegion(view, p),
     screenToModel: (p) => regionToModel(view, p),
+    // EZD-217 Build step 5 (Decided "getViewCenter"): the model point at the region centre.
+    getViewCenter() {
+      const size = regionSize();
+      return size === null ? null : regionToModel(view, { x: size.width / 2, y: size.height / 2 });
+    },
     onCameraChange(fn) {
       const entry = { fn };
       listeners.push(entry);
