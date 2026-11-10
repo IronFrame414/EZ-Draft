@@ -20857,6 +20857,86 @@
     "AC-EZD-365-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-367",
+   "phase": 4,
+   "title": "Fix: a member without Edit model creating a project from a template still sees no tool rail (AC-EZD-221-6)",
+   "depends_raw": "EZD-221b, EZD-208b",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-221b",
+    "EZD-208b"
+   ],
+   "acs": [
+    "AC-EZD-367-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-368",
+   "phase": 4,
+   "title": "Fix: Fit to screen for a view-only member gives the same zoom as the editor view (EZD-207b B3)",
+   "depends_raw": "EZD-207b, EZD-208b",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207b",
+    "EZD-208b"
+   ],
+   "acs": [
+    "AC-EZD-368-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-369",
+   "phase": 1,
+   "title": "Fix: three strikes, then a full assessment before a unit runs again",
+   "depends_raw": "EZD-364",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-364"
+   ],
+   "build_position": 624,
+   "acs": [
+    "AC-EZD-369-1",
+    "AC-EZD-369-2",
+    "AC-EZD-369-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
