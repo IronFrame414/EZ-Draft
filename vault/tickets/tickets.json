@@ -5323,6 +5323,8 @@
     "Patch store and outbox (EZD-120b)",
     "Drawing tools (EZD-210)",
     "Plan canvas (EZD-207a)",
+    "Selection (EZD-208)",
+    "Editor route (EZD-120c)",
     "Device layouts (EZD-014)",
     "Design tokens, fonts and icons",
     "Messages and language (t())",
