@@ -40,3 +40,8 @@ Confirm or override each. Nothing waits on these.
 - **Snapshot names** can't be empty; repeats are allowed.
 
 Worked examples: `vault/spec/sections/09p-versions-and-cleanup-examples.md`. Glossary: `vault/spec/sections/00j-glossary-phase-09.md`.
+
+## 3. Added after your sign-off (round 2, Q-0708)
+
+- **With cleanup grace set to 0,** old versions are deleted at the next daily run, so the cleanup list still shows once.
+- **Delete, archive, restore, rename, status change, mark complete and reopen** are each written to the event log.

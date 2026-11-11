@@ -27,3 +27,9 @@ Confirm or override each. Nothing waits on these.
 - **Users page wording** follows your board where the thing still exists. Things removed since the board was drawn (Approve translations, Manage users and settings, the EZ Binder sync line) stay off until phase 35.
 
 Worked examples: `vault/spec/sections/09n-users-and-invites-examples.md`. Glossary: `vault/spec/sections/00h-glossary-phase-07.md`.
+
+## 3. Added after your sign-off (round 2, Q-0706)
+
+- **Copy link on a pending invite** shows only to whoever last sent it and to Owners, matching your Q-0216. Anyone else with the Users page switch can press Resend, which makes them the sender.
+- **Last active wording:** "Now", "12 min ago", "3 hr ago" (same day), "Yesterday" (the previous calendar day), then the date.
+- Deactivate, reactivate, remove and switch changes are each written to the event log.

@@ -32,3 +32,8 @@ Confirm or override each. Nothing waits on these.
 - **Every lock event** (take, request, cancel, keep, release, auto release) is written to the event log.
 
 Worked examples: `vault/spec/sections/09o-edit-lock-and-defaults-examples.md`. Glossary: `vault/spec/sections/00i-glossary-phase-08.md`.
+
+## 3. Added after your sign-off (round 2, Q-0706)
+
+- **Day values in Defaults** are whole numbers from 1 to 365. Version cleanup age and grace may also be 0.
+- **The share-link reminder** must come before the link expires. For example, a 7-day reminder works on a 30-day link; a 30-day reminder on a 30-day link is refused.
