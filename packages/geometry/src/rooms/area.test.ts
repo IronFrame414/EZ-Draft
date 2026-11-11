@@ -94,3 +94,20 @@ describe('EZD-205a room area', () => {
     expect(sameBoundary([], r)).toBe(false);
   });
 });
+
+// EZD-235 A1 (vault/plans/EZD-235.md section 4; D-Label). The middle dot is written as its escape (L-042).
+import { formatRoomLabel } from './area';
+
+describe('EZD-235 formatRoomLabel', () => {
+  it('EZD-235 A1 formatRoomLabel: capitals, middle dot, comma groups, and only whole areas of 0 or more', () => {
+    expect(formatRoomLabel('Kitchen', 40000)).toBe('KITCHEN \u00b7 40,000 SF');
+    expect(formatRoomLabel('bath', 0)).toBe('BATH \u00b7 0 SF');
+    expect(formatRoomLabel('Den', 1234567)).toBe('DEN \u00b7 1,234,567 SF');
+    expect(formatRoomLabel('Room 2', 73)).toBe('ROOM 2 \u00b7 73 SF');
+    expect(formatRoomLabel('', 120)).toBe(' \u00b7 120 SF');
+    for (const bad of [-1, 1.5, NaN, Infinity, 2 ** 53]) {
+      expect(() => formatRoomLabel('A', bad)).toThrow(RangeError);
+      expect(() => formatRoomLabel('A', bad)).toThrow('room_area');
+    }
+  });
+});

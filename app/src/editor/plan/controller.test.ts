@@ -754,3 +754,55 @@ describe('EZD-217 getViewCenter', () => {
     expect(controller.handle.getViewCenter()).toBeNull();
   });
 });
+
+// EZD-235 C1, C2 (vault/plans/EZD-235.md section 4; D-Plan, D-Prune; AC-EZD-235-1, -2). The fake root is the file's
+// `makeFakeRoot` (review-plans 6 finding 7).
+import { createModelDerived } from '../derived/model-derived';
+import { EAST_ROOM, EAST_WALL, moveChanges, twoRoomObjects } from '../derived/test-utils/two-room';
+
+describe('EZD-235 controller derived values', () => {
+  const mk = (derived?: ReturnType<typeof createModelDerived>) => {
+    const store = createModelStore({ objects: twoRoomObjects() });
+    const controller = createPlanController(
+      { store, ...(derived === undefined ? {} : { derived }) },
+      { createRoot: () => makeFakeRoot(), keys: new EventTarget() },
+    );
+    return { store, controller };
+  };
+
+  test("EZD-235 C1 the plan controller recomputes the moved wall's room only and prunes a deleted room", () => {
+    const { store, controller } = mk();
+    expect(controller.derivedStats()).toEqual({
+      computes: { 'room-area': 2 },
+      hits: {},
+      entries: 2,
+    });
+    store.applyEdit(moveChanges(store.getState().objects, EAST_WALL, { x: 6, y: 0 }));
+    expect(controller.derivedStats()).toEqual({
+      computes: { 'room-area': 3 },
+      hits: { 'room-area': 1 },
+      entries: 2,
+    });
+    store.applyEdit([{ id: EAST_ROOM, value: null }]);
+    expect(controller.derivedStats()).toEqual({
+      computes: { 'room-area': 3 },
+      hits: { 'room-area': 2 },
+      entries: 1,
+    });
+  });
+
+  test('EZD-235 C2 a given ModelDerived is used, and after dispose an edit computes nothing', () => {
+    const store = createModelStore({ objects: twoRoomObjects() });
+    const d = createModelDerived(store);
+    const controller = createPlanController(
+      { store, derived: d },
+      { createRoot: () => makeFakeRoot(), keys: new EventTarget() },
+    );
+    const before = { computes: { 'room-area': 2 }, hits: {}, entries: 2 };
+    expect(d.stats()).toEqual(before);
+    expect(controller.derivedStats()).toEqual(d.stats());
+    controller.dispose();
+    store.applyEdit(moveChanges(store.getState().objects, EAST_WALL, { x: 6, y: 0 }));
+    expect(d.stats()).toEqual(before);
+  });
+});

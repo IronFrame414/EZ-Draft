@@ -1,6 +1,7 @@
 // EZD-205a Build step 4 (vault/plans/EZD-205a.md section 3, Decided "Area", "pointInRing", "interiorPoint",
 // "sameBoundary", "roomLabelText", "Empty and degenerate input"; Q-0207; Q-0568; Q-0570; 03g; 09j Room area): room
 // area in whole square feet, an inside point and the boundary compare. Area is derived, never stored.
+// EZD-235 Build step 1 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): formatRoomLabel, the label from a given area.
 import type { Point } from '../schema';
 import { pointsEqual } from '../tolerance';
 
@@ -117,8 +118,14 @@ export function sameBoundary(a: readonly Point[], b: readonly Point[]): boolean 
   return false;
 }
 
-// `NAME \u00b7 N SF`: the name in capitals (never the locale form), N whole square feet grouped by commas.
-export function roomLabelText(name: string, boundary: readonly Point[]): string {
-  const n = String(roomAreaSqFt(boundary)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+// `NAME \u00b7 N SF`: the name in capitals (never the locale form), N whole square feet grouped by commas; throws RangeError('room_area') unless the area is a safe whole number of 0 or more (Number.isSafeInteger).
+export function formatRoomLabel(name: string, areaSqFt: number): string {
+  if (!Number.isSafeInteger(areaSqFt) || areaSqFt < 0) throw new RangeError('room_area');
+  const n = String(areaSqFt).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return `${name.toUpperCase()} \u00b7 ${n} SF`;
+}
+
+// The label for a boundary: formatRoomLabel with roomAreaSqFt.
+export function roomLabelText(name: string, boundary: readonly Point[]): string {
+  return formatRoomLabel(name, roomAreaSqFt(boundary));
 }

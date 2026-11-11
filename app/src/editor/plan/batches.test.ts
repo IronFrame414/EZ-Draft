@@ -227,3 +227,20 @@ describe('EZD-204b flagged layer', () => {
     expect(b.color).toEqual(tokenRgb('--ez-red'));
   });
 });
+
+// EZD-235 P1 (vault/plans/EZD-235.md section 4; step 7; 09j Room area row 1). Middle dot as its escape (L-042).
+import { label } from '../derived/test-utils/two-room';
+import { baseObjects, roomValue, uid as fixtureUid } from '../tools/test-utils/fixtures';
+
+describe('EZD-235 planDrawingList options', () => {
+  test('EZD-235 P1 planDrawingList passes its options to the drawing list', () => {
+    const m = new Map([
+      ...baseObjects(),
+      [fixtureUid(10), roomValue([p(0, 0), p(144, 0), p(144, 120), p(0, 120)], 'Kitchen', null)],
+    ]);
+    expect(label(planDrawingList(m, { roomAreaSqFt: () => 7 }), fixtureUid(10))).toBe(
+      'KITCHEN \u00b7 7 SF',
+    );
+    expect(label(planDrawingList(m), fixtureUid(10))).toBe('KITCHEN \u00b7 120 SF');
+  });
+});

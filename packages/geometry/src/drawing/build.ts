@@ -6,11 +6,13 @@
 // Q-0642 rows 2-3; Q-0641 row 1; Q-0630 row 27): each door drawn from its own hand and swing; an opening off every
 // wall drawn where it stands on the `flagged` layer.
 // EZD-211a: door symbol from G/openings/door-symbol.ts.
+// EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
-import { interiorPoint, roomLabelText } from '../rooms/area';
+import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
+import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
 import { DRAWING_FONTS, measureTextPt, ROOM_LABEL_LETTER_SPACING_EM } from './text';
 import {
@@ -104,10 +106,13 @@ function pieces(f: Frame): [number, number][] {
   return out.filter(([a, b]) => !coordsEqual(a, b));
 }
 
+export type DrawingListOptions = { roomAreaSqFt?: (room: RoomObject) => number };
+
 export function buildDrawingList(
   document: ModelDocument,
   view: DrawingView,
   dimensions: readonly DimensionInput[] = [],
+  options: DrawingListOptions = {},
 ): DrawingList {
   const v = drawingViewSchema.parse(view);
   const dims = dimensions.map((d) => dimensionInputSchema.parse(d));
@@ -292,7 +297,10 @@ export function buildDrawingList(
   const labelFont = DRAWING_FONTS['instrument-sans-600'];
   for (const r of rooms) {
     const boundary = r.data.geometry.boundary;
-    const text = roomLabelText(r.data.attributes.name, boundary);
+    const text = formatRoomLabel(
+      r.data.attributes.name,
+      options.roomAreaSqFt?.(r) ?? roomAreaSqFt(boundary),
+    );
     const sizePt = v.roomLabelPt;
     const letterSpacingPt = sizePt * ROOM_LABEL_LETTER_SPACING_EM;
     labelItems.push({

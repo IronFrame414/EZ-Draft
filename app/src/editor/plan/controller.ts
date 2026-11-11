@@ -10,8 +10,10 @@
 // scale sets what 100% zoom means; typed zoom; the cursor's model point for the status bar.
 // EZD-211b Build step 6 (vault/plans/EZD-211b.md Decided "Space tap"): `onSpaceTap` listeners.
 // EZD-376 Build step 5 (vault/plans/EZD-376.md; Q-0692): a failed atlas also turns `atlasFailed()` on and tells its listeners once.
-import type { DrawingList, Point } from '@ezdraft/geometry';
+// EZD-235 Build step 8 (vault/plans/EZD-235.md Decided "D-Plan"; 11 rule 2): room areas through the model's derived values.
+import type { DerivedStats, DrawingList, Point } from '@ezdraft/geometry';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
+import { createModelDerived, type ModelDerived } from '../derived/model-derived';
 import type { ModelStore } from '../model/model-store';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
 import { layoutText } from './glyph-atlas';
@@ -107,6 +109,7 @@ export type PlanController = {
   setCanvasRect(rect: ClientRect): void;
   setRegionRect(rect: ClientRect): void;
   stats(): PlanStats;
+  derivedStats(): DerivedStats;
   atlasFailed(): boolean;
   subscribeAtlasFailed(listener: () => void): () => void;
   dispose(): void;
@@ -126,7 +129,11 @@ function unmountQuietly(root: RenderRoot): void {
 }
 
 export function createPlanController(
-  o: { store: Pick<ModelStore, 'getState' | 'subscribe'>; scale?: PlanScale },
+  o: {
+    store: Pick<ModelStore, 'getState' | 'subscribe'>;
+    scale?: PlanScale;
+    derived?: ModelDerived;
+  },
   deps: {
     createRoot: CreateRenderRoot;
     keys?: EventTarget;
@@ -136,6 +143,7 @@ export function createPlanController(
 ): PlanController {
   const report = deps.report ?? ((error: unknown) => void reportDefault(error));
   const scene = createPlanScene();
+  const derived = o.derived ?? createModelDerived(o.store);
   let scale: PlanScale = o.scale ?? DEFAULT_PLAN_SCALE;
   const zoom100 = () => zoom100Ppi(scale);
   let view: PlanView = { x: 0, y: 0, ppi: zoom100() };
@@ -187,7 +195,8 @@ export function createPlanController(
   };
 
   const rebuild = (): number => {
-    list = planDrawingList(o.store.getState().objects);
+    list = planDrawingList(o.store.getState().objects, { roomAreaSqFt: derived.roomAreaSqFt });
+    derived.prune();
     bounds = drawingBounds(list);
     const before = scene.objectCount();
     const uploaded = scene.setBatches(buildPlanBatches(list));
@@ -523,6 +532,7 @@ export function createPlanController(
         if (i >= 0) atlasFailedListeners.splice(i, 1);
       };
     },
+    derivedStats: () => derived.stats(),
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };
       return {

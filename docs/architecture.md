@@ -248,7 +248,7 @@ EZD-029 (vault/plans/EZD-029.md Steps 2-8); 02 Stack DXF in/out; 08 Imports, Arc
 
 EZD-238 (vault/plans/EZD-238.md); 02 PDF out; 09h; Q-0507; Q-0508; Q-0574; Q-0575.
 
-- **Files.** `packages/geometry/src/drawing/`: `build.ts` (`buildDrawingList`), `hatch.ts` (`hatchSegments`), `text.ts` (`measureTextPt`, `DRAWING_FONTS`), `types.ts` (item types, `drawingViewSchema`, `dimensionInputSchema`), `font-metrics.generated.ts` (`DM_MONO_400_METRICS`); all exported from `@ezdraft/geometry`.
+- **Files.** `packages/geometry/src/drawing/`: `build.ts` (`buildDrawingList`, `DrawingListOptions`: `roomAreaSqFt` gives the room label's area, EZD-235), `hatch.ts` (`hatchSegments`), `text.ts` (`measureTextPt`, `DRAWING_FONTS`), `types.ts` (item types, `drawingViewSchema`, `dimensionInputSchema`), `font-metrics.generated.ts` (`DM_MONO_400_METRICS`); all exported from `@ezdraft/geometry`.
 - **Units.** Model inches, y up; angles in degrees, counter-clockwise from +x; text size and width in points. One floor per list (`view.level`); objects and dimensions on other floors make no items.
 - **Layers.** Walls and openings on their `status` (`existing`, `demo`, `new`); rooms on `rooms`, room labels (`NAME · N SF`, Instrument Sans 600) included; dimensions on `dimensions`. An opening off every wall (`hostWallId` null) is drawn where it stands on `flagged` (EZD-204b).
 - **Roles.** `cut` (wall faces and jambs, door leaf), `beyond` (window lines, room hatch), `hidden` (door swing arc), `dimension` (dimension lines). The list carries no colours or line widths.
@@ -354,6 +354,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/components/outbox/  OutboxDrain.tsx: the office drain and the sign-out check (EZD-120d)
   src/server/outbox/      actor.ts: who is signed in, for the device outbox (EZD-120d)
   src/editor/model/       the open model's store: patches, undo and redo, changed ids (EZD-120b)
+  src/editor/derived/     the open model's derived values: ModelDerived over the store (EZD-235)
   src/editor/conflicts/   the conflict banner and list (EZD-299)
   src/lib/conflicts/      sync conflict types and labels, the list store and its calls (EZD-299a, EZD-299b); conflict-view.ts: the list's rows, groups and pages (EZD-299)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
@@ -377,6 +378,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   test-harness/e2e/       browser test harness: devices.ts (DEVICE_PROJECTS, projectGrep), global-setup.ts (EZD-016d)
   playwright.config.ts    the Playwright config (EZD-007f; EZD-016d extends it)
 packages/geometry/        @ezdraft/geometry — pure TypeScript, no UI; model schema in src/schema/<object-type>.ts (03 rule 5); drawing list (02 PDF out); calculations re-run on the server (11 Where each output is produced)
+  src/derived/            derived values: the cache and ROOM_AREA (EZD-235)
 worker/                   @ezdraft/worker — the local GPU render worker (02 Named tools; EZD-1104). Not Web Workers, not job handlers
 spikes/EZD-0nn-<slug>/    throwaway spike code and its test file (vault/spikes/TEMPLATE.md); never imported by app, packages or worker; excluded from the root gate's typecheck, lint and test (PROCESS.md Special tickets); run with `pnpm --filter ./spikes/<dir> <script>`
 scripts/db/               local stack and types scripts: local.mjs (`db:up`, `db:env`), gen-types.mjs (`db:types`) (EZD-004a)
@@ -705,7 +707,7 @@ EZD-299 (vault/plans/EZD-299.md Build steps 1-14, section 3); board S03b; Q-0502
 EZD-207a (vault/plans/EZD-207a.md Build steps 1-17, section 3); S03 Layout, Canvas interactions; 02 Stack 2D + 3D; 11 rule 4; R-054; Q-0568; Q-0214.
 
 - **Files** in `app/src/editor/plan/`: `color.ts` (token colours as sRGB 0..1), `view.ts` (the view maths, no DOM), `batches.ts` (open floor's drawing list into batches), `scene.ts` (batch objects and the grid shader), `input.ts` (pointer, wheel and key input), `controller.ts` (`createPlanController`, the handle; no React), `render-root.ts` (the React Three Fiber root), `PlanCanvas.tsx` (`PlanCanvas`, `PlanInputSurface`); EZD-207b adds `glyph-atlas.ts` (atlas cells and text layout), `glyph-atlas-canvas.ts` (draws the atlas), `hover.ts` (wall hit test, hover index, highlight shape), `ZoomStack.tsx` (the zoom stack).
-- **Handle** (`PlanCanvasHandle`): `getCursor`, `getPixelsPerInch`, `getView`, `setView`, `fit`, `modelToScreen`, `screenToModel`, `onCameraChange`, `setPointerReceiver`, and from EZD-207b `zoomIn`, `zoomOut`, `showObject`, `setHoverMode`, `getHoveredWallId`, `wallAt`. Screen = region px (CSS px from the top-left of `main[data-shell-region="canvas"]`); read and called synchronously, never through React. Pans go to the view; other left input goes to the pointer receiver. EZD-208a adds `setHoverPicker`, `setBodyLookup`, `setSelectedIds`, `getHoveredId`. EZD-219 adds `getScale`, `setScale`, `getZoomPercent`, `setZoomPercent`, `onCursorChange` (`createPlanController({ store, scale? })`), and from EZD-211b `onSpaceTap`.
+- **Handle** (`PlanCanvasHandle`): `getCursor`, `getPixelsPerInch`, `getView`, `setView`, `fit`, `modelToScreen`, `screenToModel`, `onCameraChange`, `setPointerReceiver`, and from EZD-207b `zoomIn`, `zoomOut`, `showObject`, `setHoverMode`, `getHoveredWallId`, `wallAt`. Screen = region px (CSS px from the top-left of `main[data-shell-region="canvas"]`); read and called synchronously, never through React. Pans go to the view; other left input goes to the pointer receiver. EZD-208a adds `setHoverPicker`, `setBodyLookup`, `setSelectedIds`, `getHoveredId`. EZD-219 adds `getScale`, `setScale`, `getZoomPercent`, `setZoomPercent`, `onCursorChange` (`createPlanController({ store, scale? })`; EZD-235 adds `derived?` and `derivedStats()`), and from EZD-211b `onSpaceTap`.
 - **View.** Model inches, +x east, +y north. 100% = 96 × scale ÷ 12 CSS px per inch for the plan scale (`zoom100Ppi`, EZD-219; 4 px per inch at the default 1/2" = 1'-0"), limits 5% and 1600% (`MIN_ZOOM_PERCENT`, `MAX_ZOOM_PERCENT`); a scale change keeps the zoom percent and moves no object. The first view fits the drawing once the region has a size; edits and resizes never refit. A pan or zoom changes only the camera and the grid uniforms, rebuilds no buffer and makes no React commit; frames are drawn on demand (`frameloop: 'demand'`).
 - **Grid.** Drawn by a shader on the one `<canvas>` (`--ez-canvas-grid` on `--ez-canvas`), steps 1", 1', 10', 100' (the first at least 16 px apart). The canvas fills the frame's `backdrop`, behind header, cards and status bar.
 - **Batches.** One buffer per layer and kind (segments also per role) in status colours; a batch is re-uploaded only when its positions change, and only when the model's objects change. The `flagged` layer draws in `--ez-red` (EZD-204b).
@@ -867,11 +869,21 @@ EZD-236 (vault/plans/EZD-236.md Build steps 1-9); 11 Budgets; Q-0211; Q-0568.
 - **Route** `POST /api/benchmark/project` (`app/src/app/api/benchmark/project/route.ts`, through `ensureBenchmarkProject` in `app/src/server/benchmark/benchmark-project.ts`): System status and Edit model, no body read; 201 `{ project: { id } }` made now, 200 already there, 401, 403 `permission_denied`, 500 `db_unavailable`, `Cache-Control: no-store`. Answers in production.
 - **Rule**: every project list or count excludes `is_benchmark` (`list_projects` and `count_projects` add `and not p.is_benchmark`).
 
+### Derived values and workers (EZD-235)
+
+EZD-235 (vault/plans/EZD-235.md Build steps 1-9); 11 rules 2 and 3; 11 Where each output is produced; Q-0207; Q-0568; Q-0664.
+
+- **Files.** `packages/geometry/src/derived/derived.ts` (exported from the package root): `createDerivedCache`, `ROOM_AREA` and the types `DerivedDef`, `DerivedSource`, `DerivedCache`, `DerivedStats`, `DerivedObjectType`, `ObjectOf`. `app/src/editor/derived/model-derived.ts`: `createModelDerived(store)` (`ModelDerived`), `objectsSource`.
+- **Pull.** A derived value is computed only inside `get`; an edit computes nothing. It is cached per definition name and key with the objects and lists its compute read through the `DerivedSource`, and stays valid while each read object is the same reference and each read list holds the same references in the same order. A source never changes; a changed model is a new source.
+- **Counts.** `stats()` gives computes and hits per definition name and the entry count; `prune(source)` drops entries that are no longer valid or that read an object that is gone.
+- **Store binding.** `ModelDerived` parses each stored value once per value and id, and makes a new source only when the store's `objects` map changes; it never reads `lastChangedIds`. `roomAreaSqFt(room)` is the stored room's cached area by id, or the given boundary's area when no stored room has that id.
+- **Plan.** The plan controller asks for the room areas of the open floor on each rebuild and prunes after it; a pan or zoom rebuilds nothing, so it computes nothing.
+
 ### Rooms (EZD-205a)
 
 EZD-205a (vault/plans/EZD-205a.md); 09e; 09j; Q-0559; Q-0568; Q-0570.
 
-- **Files** (`packages/geometry/src/rooms/`, exported from the package root): `area.ts` (`ringSignedAreaSqIn`, `outlineAreaSqIn`, `roomAreaSqFt`, `pointInRing`, `interiorPoint`, `sameBoundary`, `roomLabelText`), `outlines.ts` (`findRoomOutlines`), `sync.ts` (`reconcileRooms`), `closure.ts` (`findClosures`: closed, gap up to 12", open, per wall chain), `absorb.ts` (`absorbGap`), `override.ts` (`keepOutOfSquare`); `reconcileRooms` keeps an override while its gap is unchanged (EZD-205b).
+- **Files** (`packages/geometry/src/rooms/`, exported from the package root): `area.ts` (`ringSignedAreaSqIn`, `outlineAreaSqIn`, `roomAreaSqFt`, `pointInRing`, `interiorPoint`, `sameBoundary`, `roomLabelText`, `formatRoomLabel`), `outlines.ts` (`findRoomOutlines`), `sync.ts` (`reconcileRooms`), `closure.ts` (`findClosures`: closed, gap up to 12", open, per wall chain), `absorb.ts` (`absorbGap`), `override.ts` (`keepOutOfSquare`); `reconcileRooms` keeps an override while its gap is unchanged (EZD-205b).
 - **Outlines** run on the walls' inside finished faces.
 - **Area** is derived from the outline in whole square feet, never stored.
 - **Reconcile**: every wall-changing tool calls `reconcileRooms` so the stored rooms stay matched to the outlines.

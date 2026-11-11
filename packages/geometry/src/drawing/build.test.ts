@@ -547,3 +547,19 @@ describe('EZD-204b door symbol and flag', () => {
     }
   });
 });
+
+// EZD-235 B1 (vault/plans/EZD-235.md section 4; D-Label; 09j Room area row 1). Middle dot as its escape (L-042).
+describe('EZD-235 drawing list options', () => {
+  it("EZD-235 B1 the roomAreaSqFt option sets the label's area and gets the room", () => {
+    const calls: { id: string; type: string }[] = [];
+    const spy = (room: { id: string; type: string }): number => {
+      calls.push({ id: room.id, type: room.type });
+      return 40000;
+    };
+    const withSpy = buildDrawingList(fx(), V1, [], { roomAreaSqFt: spy });
+    expect(labels(withSpy, R1)[0]!.text).toBe('R1 \u00b7 40,000 SF');
+    expect(calls).toEqual([{ id: R1, type: 'room' }]);
+    expect(labels(buildDrawingList(fx(), V1, [], {}), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
+    expect(labels(buildDrawingList(fx(), V1, []), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
+  });
+});

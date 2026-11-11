@@ -2,8 +2,10 @@
 // Drawing list (EZD-238); Q-0530; Q-0558): the open floor's drawing list, merged into one vertex buffer per layer
 // and kind (segments also per role), in draw order and status colour. No DOM.
 // EZD-204b Build step 6 (vault/plans/EZD-204b.md Decided "Colour"; AC-EZD-204-4): the `flagged` layer in error red.
+// EZD-235 Build step 7 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): `planDrawingList` passes `options` on.
 import {
   buildDrawingList,
+  type DrawingListOptions,
   parseStoredObject,
   type DrawingLayer,
   type DrawingList,
@@ -71,7 +73,10 @@ export function openFloorId(objects: Objects): string | null {
   return lowestFloor(parsedObjects(objects));
 }
 
-export function planDrawingList(objects: Objects): DrawingList | null {
+export function planDrawingList(
+  objects: Objects,
+  options: DrawingListOptions = {},
+): DrawingList | null {
   const parsed = parsedObjects(objects);
   const level = lowestFloor(parsed);
   if (level === null) return null;
@@ -83,6 +88,8 @@ export function planDrawingList(objects: Objects): DrawingList | null {
       roomHatch: null,
       roomLabelPt: PLAN_ROOM_LABEL_PT,
     },
+    [],
+    options,
   );
 }
 
