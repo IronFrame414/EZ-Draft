@@ -1,10 +1,15 @@
-# Launcher fix mode (session 15): EZD-377, EZD-378
+# Launcher fix mode (session 17): EZD-382 to EZD-385, the planning method
 
-EZD-377 (2026-11-10): the launcher recognises the documented limit messages and never restarts a unit in a loop (Josh, Q-0693).
-EZD-378 (2026-11-10): the launcher switches between the two accounts automatically (Josh, Q-0693; PLANNING-REDESIGN.md 2.1).
+EZD-377 and EZD-378 (session 15) are merged. Session 17 keeps fix mode open for the planning-method tickets (Josh 2026-11-10 Q-0693; 2026-11-11: "this is the most important thing to fix"; PLANNING-REDESIGN.md Part 1).
+EZD-382 (2026-11-11): plan template v2, plan_lint v2 rules and the planner limits.
 
 ## Paths
-- scripts/run.mjs
+- vault/tools/plan_lint.mjs
 - vault/tools/next_ticket.mjs
-- vault/tools/limit-message.mjs
-- scripts/launcher-idle.mjs
+- vault/tools/outline.mjs
+- .claude/agents/planner.md
+- .claude/agents/plan-checker.md
+- .claude/skills/plan-ticket/SKILL.md
+- .claude/skills/questions/SKILL.md
+- vault/PROCESS.md
+- vault/plans/TEMPLATE.md
