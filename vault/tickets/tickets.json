@@ -3631,7 +3631,8 @@
     "EZD-121",
     "EZD-224",
     "EZD-225",
-    "EZD-125"
+    "EZD-125",
+    "EZD-224b"
    ],
    "build_position": 132,
    "acs": [
@@ -3677,7 +3678,8 @@
     "EZD-110b",
     "EZD-116",
     "EZD-224",
-    "EZD-125"
+    "EZD-125",
+    "EZD-224b"
    ],
    "build_position": 133,
    "acs": [
@@ -3783,7 +3785,8 @@
     "EZD-110b",
     "EZD-116",
     "EZD-018",
-    "EZD-224"
+    "EZD-224",
+    "EZD-224b"
    ],
    "build_position": 125,
    "acs": [
@@ -5757,7 +5760,8 @@
    "depends_on": [
     "EZD-218",
     "EZD-202",
-    "EZD-120b"
+    "EZD-120b",
+    "EZD-235"
    ],
    "build_position": 111.5,
    "acs": [
@@ -6042,7 +6046,7 @@
   {
    "id": "EZD-224",
    "phase": 6,
-   "title": "Plan thumbnail",
+   "title": "Plan thumbnail: storage, routes and project card",
    "depends_raw": "EZD-207",
    "spec_ref": "S01 Card thumbnail; R24 #4",
    "spec_files": [
@@ -6075,8 +6079,7 @@
     "AC-EZD-224-1",
     "AC-EZD-224-2",
     "AC-EZD-224-3",
-    "AC-EZD-224-4",
-    "AC-EZD-224-5"
+    "AC-EZD-224-4"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -6427,7 +6430,7 @@
   {
    "id": "EZD-235",
    "phase": 6,
-   "title": "Derived values and workers",
+   "title": "Derived values",
    "depends_raw": "EZD-205, EZD-207",
    "spec_ref": "Non-functional · Performance (rules 2 and 3)",
    "spec_files": [
@@ -6439,12 +6442,12 @@
     "Plan canvas (EZD-207a)",
     "Patch store and outbox (EZD-120b)",
     "Model schema (EZD-202)",
+    "Drawing list (EZD-238)",
     "Benchmark project (EZD-236)",
     "Performance check (EZD-017)",
     "Entry points and lazy modules (EZD-020)",
     "Dependencies"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-205a",
@@ -6456,8 +6459,7 @@
    "build_position": 114,
    "acs": [
     "AC-EZD-235-1",
-    "AC-EZD-235-2",
-    "AC-EZD-235-3"
+    "AC-EZD-235-2"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -9432,7 +9434,8 @@
    "depends_on": [
     "EZD-702a",
     "EZD-235",
-    "EZD-238"
+    "EZD-238",
+    "EZD-235b"
    ],
    "build_position": 237,
    "acs": [
@@ -10818,7 +10821,8 @@
     "EZD-207b",
     "EZD-207c",
     "EZD-235",
-    "EZD-017"
+    "EZD-017",
+    "EZD-235b"
    ],
    "build_position": 352,
    "acs": [
@@ -11537,7 +11541,8 @@
     "EZD-207c",
     "EZD-020",
     "EZD-235",
-    "EZD-030"
+    "EZD-030",
+    "EZD-235b"
    ],
    "build_position": 295,
    "acs": [
@@ -14432,7 +14437,8 @@
    "depends_on": [
     "EZD-235",
     "EZD-226",
-    "EZD-116"
+    "EZD-116",
+    "EZD-235b"
    ],
    "build_position": 424,
    "acs": [
@@ -21816,6 +21822,64 @@
     "AC-EZD-387-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-224b",
+   "phase": 6,
+   "title": "Plan thumbnail: checkpoint capture and encode",
+   "depends_raw": "EZD-224, EZD-207",
+   "spec_ref": "S01 Card thumbnail; R24 #4",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md#Card thumbnail",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-224",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
+    "EZD-120c",
+    "EZD-120b",
+    "EZD-236",
+    "EZD-016a"
+   ],
+   "acs": [
+    "AC-EZD-224-1",
+    "AC-EZD-224-3",
+    "AC-EZD-224-5"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-235b",
+   "phase": 6,
+   "title": "Worker pool and the worker check",
+   "depends_raw": "EZD-235",
+   "spec_ref": "Non-functional · Performance (rules 2 and 3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-235",
+    "EZD-017",
+    "EZD-359",
+    "EZD-356",
+    "EZD-236",
+    "EZD-207c",
+    "EZD-024"
+   ],
+   "acs": [
+    "AC-EZD-235-3"
+   ],
+   "acs_source": "stage-0"
   }
  ],
  "recut_applied": "2026-10-20"

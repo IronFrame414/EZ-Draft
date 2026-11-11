@@ -395,8 +395,10 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-214 Status and phase switch — needs EZD-213 (s5)
   - EZD-218 Left panel: Layers and Rooms — after EZD-214 (photos and EZD-132 dropped, Q-0664)
   - EZD-6001 Floor switcher and floor tools — after EZD-218; needs EZD-202, EZD-120b (Q-0509, Q-0664; placement waits for Josh, Q-0666)
-  - EZD-224 Plan thumbnail — needs EZD-207 (s4)
-  - EZD-235 Derived values and workers — needs EZD-205 (s4), EZD-207 (s4)
+  - EZD-224 Plan thumbnail: storage, routes and project card — needs EZD-207 (s4)
+  - EZD-224b Plan thumbnail: checkpoint capture and encode — after EZD-224; needs EZD-207 (s4)
+  - EZD-235 Derived values — needs EZD-205 (s4), EZD-207 (s4)
+  - EZD-235b Worker pool and the worker check — after EZD-235
   - EZD-216 Dimensions and text — after EZD-235; needs EZD-207 (s4)
   - EZD-237 Benchmark page — after EZD-135; needs EZD-207 (s4), EZD-236 (s4)
 - **Depends on slices:** 1, 4, 5
@@ -1551,7 +1553,7 @@ slices over 10: none   slices under 4: none
  3. Model store and editor route (phase 1,2) [7]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-299a, EZD-299b, EZD-299, EZD-238
  4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221a, EZD-221b, EZD-294
  5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204a, EZD-204b, EZD-208a, EZD-208b, EZD-211a, EZD-211b, EZD-212a, EZD-212b, EZD-212c, EZD-213a, EZD-213b, EZD-213c, EZD-217
- 6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [8]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-235, EZD-216, EZD-237
+ 6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [10]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-224b, EZD-235, EZD-235b, EZD-216, EZD-237
  7. Users, roles, project scope, event log (phase 1) [6]: EZD-104, EZD-105, EZD-106, EZD-107, EZD-109, EZD-129
  8. Defaults, edit lock, project settings (phase 1,2) [6]: EZD-116, EZD-128, EZD-130, EZD-125, EZD-126, EZD-225
  9. Versions, sends and the project card menu (phase 1) [5]: EZD-111, EZD-121, EZD-122, EZD-123, EZD-124
