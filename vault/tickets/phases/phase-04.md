@@ -1,5 +1,7 @@
 ## Phase 4 · Cabinets + countertops
 
+**Read first (gate-phase 4, session 17, 2026-11-11):** this file is spec phase 4 (cabinets and countertops). After the re-cut (Q-0218, vault/tickets/PHASES.md "Phases after the re-cut"), cabinets are ledger phases 15 and 16. **Ledger phase 4 is "Plan canvas and first walls"** (re-cut slice 4): its tickets live in vault/tickets/phases/phase-02.md, plus the phase 4 fix tickets at the end of this file (EZD-3xx rows). Its build gate is the Josh's test script of "Slice 4 · Plan canvas and first walls" in vault/tickets/PHASES.md, with the full gate green. The Build gate line just below is spec phase 4's (cabinets), not ledger phase 4's.
+
 Goal: build cabinet runs from real boxes with elevations and a schedule, then countertops with overhangs, seams, cutouts and edge profiles.
 
 **Build gate:** the Cabinets and Countertops acceptance tests pass (auto-fill of a 117 1/2" wall gives 3" boxes plus filler with total vs wall; trace creates pieces; a 12" seating side shows the brackets notice; exposed LF matches the fixture's hand count). **Field check (Josh):** reproduce a past kitchen's cabinet order.
