@@ -9,6 +9,7 @@
 // EZD-219 Build step 9 (vault/plans/EZD-219.md Decided "Scale change", "Typed zoom apply", "Controller"): the plan
 // scale sets what 100% zoom means; typed zoom; the cursor's model point for the status bar.
 // EZD-211b Build step 6 (vault/plans/EZD-211b.md Decided "Space tap"): `onSpaceTap` listeners.
+// EZD-376 Build step 5 (vault/plans/EZD-376.md; Q-0692): a failed atlas also turns `atlasFailed()` on and tells its listeners once.
 import type { DrawingList, Point } from '@ezdraft/geometry';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import type { ModelStore } from '../model/model-store';
@@ -106,6 +107,8 @@ export type PlanController = {
   setCanvasRect(rect: ClientRect): void;
   setRegionRect(rect: ClientRect): void;
   stats(): PlanStats;
+  atlasFailed(): boolean;
+  subscribeAtlasFailed(listener: () => void): () => void;
   dispose(): void;
 };
 
@@ -154,6 +157,8 @@ export function createPlanController(
   let disposed = false;
   let atlasRequested = false;
   let atlasSet = false;
+  let textFailed = false;
+  const atlasFailedListeners: Array<{ fn: () => void }> = [];
   let glyphs = 0;
   let highlightUploads = 0;
   let mode: HoverMode = 'wall';
@@ -413,6 +418,9 @@ export function createPlanController(
       },
       (error: unknown) => {
         report(new Error('plan.glyph_atlas', { cause: error }));
+        if (disposed) return;
+        textFailed = true;
+        for (const l of [...atlasFailedListeners]) l.fn();
       },
     );
   };
@@ -506,6 +514,15 @@ export function createPlanController(
       updateCamera();
       redraw();
     },
+    atlasFailed: () => textFailed,
+    subscribeAtlasFailed(fn) {
+      const entry = { fn };
+      atlasFailedListeners.push(entry);
+      return () => {
+        const i = atlasFailedListeners.indexOf(entry);
+        if (i >= 0) atlasFailedListeners.splice(i, 1);
+      };
+    },
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };
       return {
@@ -525,6 +542,7 @@ export function createPlanController(
       detachCanvas();
       listeners.length = 0;
       cursorListeners.length = 0;
+      atlasFailedListeners.length = 0;
       spaceTapListeners.length = 0;
       scene.dispose();
     },

@@ -7,6 +7,7 @@
 // EZD-207a Build step 16 (vault/plans/EZD-207a.md Decided "Editor wiring", "Test hook"; Q-0568; Q-0500; Q-0214):
 // ready, the plan canvas fills the frame behind the cards and the Plan tab is the one view; a canvas that cannot
 // start shows an inline error with Retry.
+// EZD-376 Build step 7 (vault/plans/EZD-376.md; Q-0692): ready, a plan whose text atlas failed shows the text-failed banner in the state column, for every viewer.
 // EZD-210b Build step 12 (vault/plans/EZD-210b.md Decided "Rail mode", "Editor wiring", "Messages"; Q-0568): the
 // drawing rail (disabled while loading, absent without Edit model) and, over the plan, the drawing layer.
 // EZD-299 Build step 9 (vault/plans/EZD-299.md Decided D-Editor, D-Banner, D-Show; C9; Q-0511 a): the conflict
@@ -58,6 +59,7 @@ import {
 } from './plan/controller';
 import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
+import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import { ConflictBanner } from './conflicts/ConflictBanner';
@@ -353,6 +355,7 @@ export function ProjectEditor({
         {canvasFailed ? (
           <InlineError message="office.plan.canvas_failed" onRetry={retryCanvas} />
         ) : null}
+        {showPlan ? <PlanTextFailedBanner controller={plan} /> : null}
       </>
     );
   }

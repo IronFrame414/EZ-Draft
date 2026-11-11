@@ -129,6 +129,8 @@ export const en = {
   'office.editor.load_failed': "Couldn't load this project.",
   'office.editor.offline': 'Offline. Changes are saved on this device and will sync.',
   'office.plan.canvas_failed': "Couldn't show the plan.",
+  'office.plan.text_failed':
+    "Couldn't show the room names and measurements on the plan. Reload the page to try again.",
   'office.plan.zoom_in': 'Zoom in',
   'office.plan.zoom_out': 'Zoom out',
   'office.plan.fit': 'Fit to screen',

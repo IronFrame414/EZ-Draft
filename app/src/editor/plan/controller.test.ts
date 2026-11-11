@@ -468,6 +468,121 @@ describe('EZD-207b controller', () => {
   });
 });
 
+// EZD-376 U1-U4 (vault/plans/EZD-376.md section 4; AC-EZD-376-1, -2). Fixtures setupB, flush, fakeAtlas, R1b, roomB are
+// the EZD-207b ones above.
+function heldRejecting() {
+  let reject: (e: Error) => void = () => {};
+  const createAtlas = vi.fn(
+    () =>
+      new Promise<HTMLCanvasElement>((_resolve, rej) => {
+        reject = rej;
+      }),
+  );
+  return { createAtlas, reject: (e: Error) => reject(e) };
+}
+
+describe('EZD-376 controller atlas failure', () => {
+  test('EZD-376 U1 a failed atlas is reported once as plan.glyph_atlas, turns atlasFailed on and tells each listener once', async () => {
+    const held = heldRejecting();
+    const report = vi.fn();
+    const { controller } = setupB({
+      withRoom: true,
+      withWalls: false,
+      report,
+      createAtlas: held.createAtlas,
+    });
+    const listener = vi.fn();
+    controller.subscribeAtlasFailed(listener);
+    await controller.attachCanvas({} as HTMLCanvasElement);
+    await flush();
+    expect(controller.atlasFailed()).toBe(false);
+    expect(listener).toHaveBeenCalledTimes(0);
+    expect(report).toHaveBeenCalledTimes(0);
+
+    held.reject(new Error('y'));
+    await flush();
+    expect(report).toHaveBeenCalledTimes(1);
+    const err = report.mock.calls[0][0] as Error & { cause?: Error };
+    expect(err.message).toBe('plan.glyph_atlas');
+    expect(err.cause?.message).toBe('y');
+    expect(controller.atlasFailed()).toBe(true);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(controller.stats().glyphs).toBe(0);
+
+    controller.detachCanvas();
+    expect(await controller.attachCanvas({} as HTMLCanvasElement)).toBe('ready');
+    await flush();
+    expect(held.createAtlas).toHaveBeenCalledTimes(1);
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(controller.atlasFailed()).toBe(true);
+  });
+
+  test('EZD-376 U2 a loaded atlas, or none, leaves atlasFailed off and calls no listener', async () => {
+    const a = setupB({
+      withRoom: true,
+      withWalls: false,
+      createAtlas: () => Promise.resolve(fakeAtlas()),
+    });
+    const listener = vi.fn();
+    a.controller.subscribeAtlasFailed(listener);
+    await a.controller.attachCanvas({} as HTMLCanvasElement);
+    await flush();
+    expect(a.controller.atlasFailed()).toBe(false);
+    expect(listener).toHaveBeenCalledTimes(0);
+    expect(a.controller.stats().glyphs).toBe(13);
+
+    const b = setupB({ withRoom: true, withWalls: false });
+    await b.controller.attachCanvas({} as HTMLCanvasElement);
+    await flush();
+    expect(b.controller.atlasFailed()).toBe(false);
+  });
+
+  test('EZD-376 U3 a removed listener is not called and removing twice is harmless', async () => {
+    const held = heldRejecting();
+    const { controller } = setupB({
+      withRoom: true,
+      withWalls: false,
+      report: vi.fn(),
+      createAtlas: held.createAtlas,
+    });
+    const a = vi.fn();
+    const b = vi.fn();
+    const offA = controller.subscribeAtlasFailed(a);
+    controller.subscribeAtlasFailed(b);
+    await controller.attachCanvas({} as HTMLCanvasElement);
+    await flush();
+    offA();
+    expect(() => offA()).not.toThrow();
+    held.reject(new Error('y'));
+    await flush();
+    expect(a).toHaveBeenCalledTimes(0);
+    expect(b).toHaveBeenCalledTimes(1);
+  });
+
+  test('EZD-376 U4 a rejection after dispose is still reported but sets nothing', async () => {
+    const held = heldRejecting();
+    const report = vi.fn();
+    const { controller } = setupB({
+      withRoom: true,
+      withWalls: false,
+      report,
+      createAtlas: held.createAtlas,
+    });
+    const listener = vi.fn();
+    controller.subscribeAtlasFailed(listener);
+    await controller.attachCanvas({} as HTMLCanvasElement);
+    await flush();
+    controller.dispose();
+    held.reject(new Error('z'));
+    await flush();
+    expect(report).toHaveBeenCalledTimes(1);
+    expect((report.mock.calls[0][0] as Error).message).toBe('plan.glyph_atlas');
+    expect(listener).toHaveBeenCalledTimes(0);
+    expect(controller.atlasFailed()).toBe(false);
+  });
+});
+
 // EZD-208a K1, K2 (vault/plans/EZD-208a.md section 4; section 1 R10-R12; section 3 A6, A7; AC-EZD-208-3, -9).
 // Fixtures F1b, W1b, W2b, setupB and mouse are the EZD-207b ones above.
 describe('EZD-208a controller selection seams', () => {
