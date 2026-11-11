@@ -103,6 +103,11 @@ function makeFixture() {
   writeFile(dir, 'app/test-harness/net-guard/preload.mjs', '');
   writeFile(dir, 'scripts/x/root.test.mjs', ROOT_TEST_SOURCE);
   writeFile(dir, 'scripts/x/hook.test.mjs', HOOK_TEST_SOURCE);
+  writeFile(
+    dir,
+    'scripts/perf/__tests__/pan.test.mjs',
+    "import { test } from 'node:test';\ntest('pan fixture', () => {});\n",
+  );
   writeFile(dir, REPORTER_PATH, readFileSync(path.join(repo, REPORTER_PATH), 'utf8'));
   return dir;
 }

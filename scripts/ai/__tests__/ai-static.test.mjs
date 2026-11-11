@@ -176,7 +176,7 @@ test('EZD-021 T19 docs, env names, dependency row, root test script and conventi
   const test = JSON.parse(read('package.json')).scripts.test;
   for (const token of [
     '--import ./app/test-harness/net-guard/preload.mjs',
-    'scripts/**/*.test.mjs',
+    'scripts/**/!(pan).test.mjs',
     '--test-concurrency=4',
   ]) {
     assert.ok(test.includes(token), `root test has ${token}`);

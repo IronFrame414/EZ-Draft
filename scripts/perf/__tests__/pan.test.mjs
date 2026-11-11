@@ -98,15 +98,15 @@ describe('EZD-207c pan on fixture pages', () => {
   });
 
   test('EZD-207c P2 wheel steps reach the page', { timeout: 200000 }, async () => {
-    const { r, latest } = await runPanCli('/wheel.html', [
+    const { r, latest, diag } = await runPanCli('/wheel.html', [
       'long-tasks-during-pan',
       'long-tasks-during-pan:ipad',
     ]);
     assert.equal(r.status, 1, r.stdout + r.stderr);
     for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
       const row = rowOf(latest, id);
-      assert.equal(row.status, 'fail', id);
-      assert.equal(row.value, 8, id);
+      assert.equal(row.status, 'fail', `${id}\n${diag}`);
+      assert.equal(row.value, 8, `${id}\n${diag}`);
     }
   });
 

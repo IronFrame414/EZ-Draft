@@ -319,7 +319,7 @@ test('EZD-004a T14 Root scripts', () => {
   // the step exits 0 only when both parts exited 0.
   assert.equal(
     s.test,
-    'pnpm run db:up && { node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 --test-reporter=tap --test-reporter-destination=stdout --test-reporter=./scripts/test-harness/hook-fail-reporter.mjs --test-reporter-destination=stderr "scripts/**/*.test.mjs"; root=$?; pnpm -r --no-bail --if-present --filter "!./spikes/**" run test; pkgs=$?; [ $root -eq 0 ] && [ $pkgs -eq 0 ]; }',
+    'pnpm run db:up && { node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 --test-reporter=tap --test-reporter-destination=stdout --test-reporter=./scripts/test-harness/hook-fail-reporter.mjs --test-reporter-destination=stderr "scripts/**/!(pan).test.mjs"; root=$?; node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=1 --test-reporter=tap --test-reporter-destination=stdout --test-reporter=./scripts/test-harness/hook-fail-reporter.mjs --test-reporter-destination=stderr "scripts/perf/__tests__/pan.test.mjs"; serial=$?; pnpm -r --no-bail --if-present --filter "!./spikes/**" run test; pkgs=$?; [ $root -eq 0 ] && [ $serial -eq 0 ] && [ $pkgs -eq 0 ]; }',
     'test script equals S (EZD-187 section 1; EZD-286 section 1 adds the reporters F)',
   );
   assert.ok(String(s.lint ?? '').includes('scripts/conventions/check.mjs'), 'lint still runs check.mjs');
