@@ -8,9 +8,12 @@ Done:
 - EZD-377 (limit loop) merged 06d354ff, recorded, pushed. Launcher restarts when EZD-373's build ends.
 - Fix mode OPEN again: vault/handoff/LAUNCHER_FIX.md (EZD-377, EZD-378).
 
-In progress:
-- EZD-378 (account switching): plan on develop f2f6dbd6; worktree .claude/worktrees/EZD-378 (t/EZD-378); tests 58331c6c, test review PASS (note: readAccountState treats any read error, EISDIR included, as empty). Next: the orchestrator builds the non-test files in fix mode (the builder role is blocked by guard-paths), then the regression run, gate (detached nohup, free lane 1-3), code and security reviews, merge.
-- EZD-378 merge rule: merge the code with scripts/launcher-accounts.json absent, so units keep running as today; add the accounts file only after Josh signs in once in each folder (plan section 9). Then the live check: guard hooks load under an account folder.
+Done since:
+- EZD-378 (account switching) merged 512b6574, recorded, pushed. Off until scripts/launcher-accounts.json exists (D-Off).
+- EZD-379 and EZD-380 filed (load defects from EZD-372's D-Runs); EZD-373 merged 7f51349b by the launcher.
+
+Waiting on Josh:
+- One-time sign-in in ~/.claude-acct-1 and ~/.claude-acct-2 (plan EZD-378 section 9). Then the orchestrator runs the live hook check (plan section 9), commits scripts/launcher-accounts.json (D-File text), records develop and pushes; the launcher reads the file on its next restart (it needs a restart: the file is .json, not in codeFingerprint).
 
 Next after EZD-378 (audit Part 3 order): stop the line (overwatch reads develop CI), full gate after every 2nd merge, honest repairs and hand-off, then the planning method (template, plan_lint, connections check, planner maxTurns 40 to 100), pilot on phase 6.
 
