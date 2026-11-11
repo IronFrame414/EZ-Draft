@@ -21578,6 +21578,29 @@
     "AC-EZD-385-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-386",
+   "phase": 1,
+   "title": "Fix: plans and builds look ahead to every signed-off phase, not only two",
+   "depends_raw": "EZD-382",
+   "spec_ref": "Josh 2026-11-11 (session 18 chat); rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-382"
+   ],
+   "acs": [
+    "AC-EZD-386-1",
+    "AC-EZD-386-2",
+    "AC-EZD-386-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
