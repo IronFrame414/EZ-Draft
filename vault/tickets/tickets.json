@@ -6320,7 +6320,8 @@
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/03-data-model.md",
     "spec/decisions/09-calculations-and-rules.md"
-   ]
+   ],
+   "priority": 1
   },
   {
    "id": "EZD-235",
