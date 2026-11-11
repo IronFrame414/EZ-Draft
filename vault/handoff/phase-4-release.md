@@ -23,3 +23,11 @@ gate-phase 4 stays on `.git/set-aside.json` until every line below is checked. T
 - [ ] Quick checks pass: a vault-copy `next_ticket.mjs --check`; record-develop clean; no LAUNCHER_FIX.md; every phase 4 product ticket done or blocked; no `vault/handoff/assessments/gate-phase-4.md` with open causes.
 - [ ] Remove `gate-phase 4` from `.git/set-aside.json`.
 - Expect a large phase PR. The diff from origin/main to develop now also carries phases 5, 6 and 7 work merged early (for example the EZD-224 storage policies), so the security review and phase audit are big. That is by design (EZD-278).
+
+## Update 18:40 UTC
+- EZD-380: series c passed, 10 counting gates out of 13, every one green (test-results/d380c/runs.txt). The merge is in progress (fresh gate on lane 2, then unit-steps merge).
+- EZD-388: done (merged 64734653).
+- EZD-372: series c stopped at run 1. The pan test N5 ("throttle slows the page") failed, which is EZD-388's area, and this worktree did not have EZD-388 yet. The develop merge then clashed in scripts/perf (EZD-388 changed the same files). A builder (Opus high, Q-0310) is resolving the clash. Then the series runs again on lane 3.
+- **New cause 7: the launcher can never build EZD-381.** Its plan's step 5 is an orchestrator step on the `.claude/worktrees/EZD-212a` path, which counts as a guarded path, so next_ticket.mjs holds the ticket for Josh. It is built interactively now: worktree .claude/worktrees/EZD-381, test-author steps 1 to 3, then the test review, D-Runs (10 consecutive gates where B9 runs; no load needed), merge, and step 5 (resume EZD-212a).
+- LANES.json build_lanes is 1 while interactive gates use lanes 2 and 3. Set it back to 2 when they are done.
+- EZD-224b (phase 6) is blocked on a merge clash with EZD-235's controller changes. That is not a phase 4 blocker; it is resolved after phase 4.
