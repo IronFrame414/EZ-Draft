@@ -21,3 +21,14 @@ Done tickets, phases 2 to 5, from vault/tickets/STATUS.md on 2026-11-11 (status 
 
 ## What the pilot records for each phase 6 ticket
 Deviations of each kind (a to i) from its STATUS note and plan, PLAN-GAPs, re-plans, re-validations, fix tickets it causes, and est_usd for its plan units and build. Pass mark: kinds c + d + e + i per done ticket at 0.50 or below.
+
+## Running log (session 17)
+| Ticket | Template | Planner turns | Plan size | Plan-checker gaps | Deviations at build | Fix tickets caused | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| EZD-382 | v1 (built the v2 template) | 40 + resume | 29k | 2 (r1), READY r2 | 1 (a test pin the plan missed, kind c) | 0 | gate red 4 times for causes outside the ticket |
+| EZD-386 | v1 | 40 + resume | 15.5k | READY r1 | 1 (a Verify-with claim, kind f) | 0 | |
+| EZD-387 | v1 | under 40 | 11k | READY r2 | 0 | 0 | |
+| EZD-383 | v2 (first) | 100 + resume | 93k | 18 (r1) | 2 in-place minor (kind i), 2 notes | 0 | contract and connections checks passed on its own plan |
+
+Launcher plans dated 2026-11-11 (after EZD-382): every full plan carries the v2 marker; 4 of 11 were split proposals (EZD-105, 106, 116, 125), found only after a planner run (P1 is EZD-384).
+Phase 6 pilot: EZD-135, 224 and 235 re-planned now (every dependency done); EZD-214, 216, 218, 237 and 6001 wait for their dependencies, then the code-bound step.
