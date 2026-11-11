@@ -38,3 +38,4 @@ EZD-384 (2026-11-11): the brief-and-size step (P1). Paths above plus:
 - .claude/skills/review-plans/SKILL.md
 - scripts/process/plan-brief.test.mjs
 - scripts/ledger/plan-steps.test.mjs
+- .claude/agents/code-reviewer.md
