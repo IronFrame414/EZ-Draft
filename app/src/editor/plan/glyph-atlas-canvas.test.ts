@@ -1,6 +1,11 @@
 // EZD-207b U6, U7 (vault/plans/EZD-207b.md section 4; Decided "Atlas drawing", "Font strings", "Atlas cells").
-import { describe, expect, test, vi } from 'vitest';
-import { drawGlyphAtlas, type AtlasCanvas } from './glyph-atlas-canvas';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import {
+  createGlyphAtlas,
+  drawGlyphAtlas,
+  firstFontFamily,
+  type AtlasCanvas,
+} from './glyph-atlas-canvas';
 
 type Call = { name: string; args: unknown[]; fill: unknown; font: unknown; baseline: unknown };
 const FAMILIES = { 'dm-mono-400': 'MonoF', 'instrument-sans-600': 'SansF' };
@@ -105,5 +110,94 @@ describe('EZD-207b glyph atlas drawing', () => {
       }),
     ).rejects.toEqual(new Error('x'));
     expect(bad.calls.filter((c) => c.name === 'fillText')).toHaveLength(0);
+  });
+});
+
+// EZD-373 U1-U5 (vault/plans/EZD-373.md section 4).
+describe('EZD-373 glyph atlas font loading', () => {
+  const DEFAULT_VARS: Record<string, string> = {
+    '--ez-font-mono': '"dmMono", "dmMono Fallback", monospace',
+    '--ez-font-sans': '"instrumentSans", "instrumentSans Fallback", sans-serif',
+  };
+  const MONO = '400 40px "dmMono"';
+  const SANS = '600 40px "instrumentSans"';
+
+  function setup(load: (font: string) => Promise<unknown[]>, vars: Record<string, string>) {
+    const f = fake();
+    const loadMock = vi.fn(load);
+    const createElement = vi.fn(() => f.canvas);
+    vi.stubGlobal('getComputedStyle', () => ({
+      getPropertyValue: (n: string) => vars[n] ?? '',
+    }));
+    vi.stubGlobal('document', {
+      documentElement: {},
+      createElement,
+      fonts: { load: loadMock },
+    });
+    return { f, load: loadMock, createElement };
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test.each([
+    ['"dmMono", "dmMono Fallback", monospace', '"dmMono"'],
+    ["'dmMono', 'dmMono Fallback', monospace", "'dmMono'"],
+    ['  Inter , Arial', 'Inter'],
+    ['"A, B", C', '"A, B"'],
+    ['monospace', 'monospace'],
+    ['', ''],
+    ['   ', ''],
+    [', Arial', ''],
+    ['"dmMono', ''],
+  ])(
+    'EZD-373 U1 firstFontFamily keeps the first family of a font-family list, quotes and all (%j)',
+    (input, expected) => {
+      expect(firstFontFamily(input)).toBe(expected);
+    },
+  );
+
+  test('EZD-373 U2 the atlas loads and draws only the first family of each font variable', async () => {
+    const { f, load, createElement } = setup(async () => [], DEFAULT_VARS);
+    const out = await createGlyphAtlas();
+    expect(out).toBe(f.canvas);
+    expect(load.mock.calls.map((c) => c[0])).toEqual([MONO, SANS]);
+    const texts = f.calls.filter((c) => c.name === 'fillText');
+    expect(texts).toHaveLength(192);
+    expect(texts.slice(0, 96).every((t) => t.font === MONO)).toBe(true);
+    expect(texts.slice(96).every((t) => t.font === SANS)).toBe(true);
+    expect(createElement).toHaveBeenCalledTimes(1);
+    expect(createElement).toHaveBeenCalledWith('canvas');
+  });
+
+  test('EZD-373 U3 a fallback face that cannot load does not stop the atlas', async () => {
+    const { f } = setup(async (font) => {
+      if (font.includes('Fallback')) throw new Error('NetworkError');
+      return [];
+    }, DEFAULT_VARS);
+    const out = await createGlyphAtlas();
+    expect(out).toBe(f.canvas);
+    expect(f.calls.filter((c) => c.name === 'fillText')).toHaveLength(192);
+  });
+
+  test('EZD-373 U4 a font variable with no first family rejects as missing', async () => {
+    for (const mono of ', "dmMono Fallback", monospace|'.split('|')) {
+      const { load } = setup(async () => [], { ...DEFAULT_VARS, '--ez-font-mono': mono });
+      await expect(createGlyphAtlas()).rejects.toThrow('font variable missing: --ez-font-mono');
+      expect(load).toHaveBeenCalledTimes(0);
+      vi.unstubAllGlobals();
+    }
+  });
+
+  test('EZD-373 U5 a first family that cannot load still rejects', async () => {
+    const e = new Error('NetworkError');
+    const { f, load } = setup(async (font) => {
+      if (font === MONO) throw e;
+      return [];
+    }, DEFAULT_VARS);
+    await expect(createGlyphAtlas()).rejects.toBe(e);
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(f.calls.filter((c) => c.name === 'fillText')).toHaveLength(0);
   });
 });

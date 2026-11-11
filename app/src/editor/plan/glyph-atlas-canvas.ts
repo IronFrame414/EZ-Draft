@@ -1,6 +1,7 @@
 // EZD-207b Build step 3 (vault/plans/EZD-207b.md section 1 Decided "Atlas drawing", "Font strings", "Browser atlas";
 // C5; 11 rules 4, 8; ARCH Design tokens): draws the one glyph atlas, white glyphs on opaque black, with the fonts
 // the page already loaded (their families from the CSS variables), never a second copy of a font file.
+// EZD-373: only the first family of each variable is loaded and drawn (vault/plans/EZD-373.md)
 import {
   ATLAS_BASELINE_PX,
   ATLAS_CELL_PX,
@@ -31,6 +32,17 @@ const FONT_VARIABLE: Record<AtlasFont, string> = {
 
 export function atlasFontString(font: AtlasFont, family: string): string {
   return `${FONT_WEIGHT[font]} ${ATLAS_FONT_PX}px ${family}`;
+}
+
+export function firstFontFamily(list: string): string {
+  const text = list.trimStart();
+  const quote = text[0];
+  if (quote === '"' || quote === "'") {
+    const close = text.indexOf(quote, 1);
+    return close === -1 ? '' : text.slice(0, close + 1);
+  }
+  const comma = text.indexOf(',');
+  return (comma === -1 ? text : text.slice(0, comma)).trim();
 }
 
 export async function drawGlyphAtlas<C extends AtlasCanvas>(deps: {
@@ -66,7 +78,7 @@ export function createGlyphAtlas(): Promise<HTMLCanvasElement> {
   const families = {} as Record<AtlasFont, string>;
   for (const f of ATLAS_FONTS) {
     const name = FONT_VARIABLE[f];
-    const family = style.getPropertyValue(name).trim();
+    const family = firstFontFamily(style.getPropertyValue(name));
     if (family === '') return Promise.reject(new Error(`font variable missing: ${name}`));
     families[f] = family;
   }
