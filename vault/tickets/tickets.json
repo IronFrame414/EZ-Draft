@@ -22056,7 +22056,9 @@
    "title": "Every email a user's action sends also goes to that user",
    "depends_raw": "EZD-008a",
    "spec_ref": "Q-0701; R26",
-   "spec_files": [],
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
    "decisions": [
     "spec/decisions/07-hooks-events-and-integrations.md"
    ],
