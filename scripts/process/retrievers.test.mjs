@@ -111,7 +111,7 @@ test('EZD-000e T3 AC-EZD-000e-1: retriever bodies match the contract', () => {
 });
 
 const DISPATCHERS = {
-  planner: { tools: ['Read', 'Grep', 'Glob', 'Write', 'Edit', 'Bash', 'Agent'], model: 'claude-opus-5-5', effort: 'high', maxTurns: '40' },
+  planner: { tools: ['Read', 'Grep', 'Glob', 'Write', 'Edit', 'Bash', 'Agent'], model: 'claude-opus-5-5', effort: 'high', maxTurns: '100' }, // EZD-382 D-Planner
   'code-reviewer': { tools: ['Read', 'Grep', 'Glob', 'Bash', 'Agent'], model: 'claude-opus-5-5', effort: 'high', maxTurns: '30' },
   'security-reviewer': { tools: ['Read', 'Grep', 'Glob', 'Bash', 'Agent'], model: 'claude-opus-5-5', effort: 'high', maxTurns: '30' },
   'phase-auditor': { tools: ['Read', 'Grep', 'Glob', 'Bash', 'Agent'], model: 'claude-fable-5-1', effort: 'high', maxTurns: '40' },

@@ -664,7 +664,7 @@ export function dispatchFor(id, role, round = 1) {
     case 'planner': case 'planner-re-validation': return route('planner', M.opus, 'high');
     case 'phase-auditor': return route('phase-auditor', fableOr(), 'high');
     case 'ui-verifier': return route('ui-verifier', M.sonnet, 'low');
-    case 'plan-checker': return route('plan-checker', M.sonnet, 'low');
+    case 'plan-checker': return route('plan-checker', M.opus, 'high');
     case 'explore': case 'retriever-digest': case 'retriever-web': case 'log-summarizer':
       return route(key === 'explore' ? 'Explore' : key, M.haiku, 'low');
     default: throw new Error(`unknown role "${role}"`);

@@ -13,7 +13,7 @@
 //   api_key         the Console API key for api mode. Never committed; never passed to agents (subprocess env scrub).
 //   claude_bin      path to the claude binary (default "claude")
 //   extra_args      array of extra flags for every run
-//   max_turns       { build: 150, plan: 60, "review-plans": 60, questions: 80, "gate-phase": 150, wrap: 60 }
+//   max_turns       { build: 150, plan: 100, "review-plans": 60, questions: 80, "gate-phase": 150, wrap: 60 }
 //   limit_formats_confirmed   true once the pilot (section 15) confirmed the limit-error message formats; until then every
 //                   limit error that is not one of Claude Code's documented messages (vault/tools/limit-message.mjs) is treated as
 //                   the weekly case (section 11); a documented message is classified by its own words whatever this flag says.
@@ -100,7 +100,7 @@ const MODELS = { orchestrator: 'claude-sonnet-5-5', planner: 'claude-opus-5-5', 
 const UNITS = {
   // unit: how it runs. `as` = the session runs as that agent (no orchestrator in front); effort per section 10.
   build: { skill: 'build-ticket', effort: 'medium', model: MODELS.orchestrator, turns: 150 },
-  plan: { skill: 'plan-ticket', effort: 'high', model: MODELS.planner, turns: 60, as: 'planner' },
+  plan: { skill: 'plan-ticket', effort: 'high', model: MODELS.planner, turns: 100, as: 'planner' },
   'review-plans': { skill: 'review-plans', effort: 'high', model: MODELS['code-reviewer'], turns: 60, as: 'code-reviewer' },
   questions: { skill: 'questions', effort: 'medium', model: MODELS.orchestrator, turns: 80 },
   'gate-phase': { skill: 'gate-phase', effort: 'medium', model: MODELS.orchestrator, turns: 150 },

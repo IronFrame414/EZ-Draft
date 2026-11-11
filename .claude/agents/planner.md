@@ -4,7 +4,7 @@ description: Stage 1 planner. Writes vault/plans/EZD-xxx.md for one ticket from 
 tools: Read, Grep, Glob, Write, Edit, Bash, Agent
 model: claude-opus-5-5
 effort: high
-maxTurns: 40
+maxTurns: 100
 ---
 
 **Advisor (process v2.4):** you run on Opus 5.5. Do not call the advisor tool.
@@ -19,7 +19,7 @@ Read, in this order and nothing more:
 5. The Studio mockup for any screen the ticket touches (`vault/mockups/INDEX.md`). Never use Polished, Refined or Layout C boards.
 6. Existing code, and the `docs/architecture.md` sections for anything the ticket extends: the core on your dispatch's `Architecture:` line, then others from `node vault/tools/outline.mjs docs/architecture.md --headings`, printed with `--section '<heading>'`; never the whole file. End section 2 with `Architecture: <heading>; <heading>` (beyond the core) or `Architecture: none beyond the core` (EZD-244). The plans of the tickets this one depends on: their interface contracts only, printed with `node vault/tools/outline.mjs <plan> --section 3`; never read another plan whole.
 
-Write `vault/plans/EZD-xxx.md` from `vault/plans/TEMPLATE.md` (header: ACs, complexity, Areas, user-visible result; ten sections). Requirements:
+Write `vault/plans/EZD-xxx.md` from `vault/plans/TEMPLATE.md` (header: ACs, complexity, Areas, user-visible result; ten sections; template v2: the `- Template: v2` header line and every v2 table, with rows or `None: <reason>`). Requirements:
 - **Areas and lessons:** write the header's `- **Areas:** <a>, <b>` line first (lower-case, from the areas `vault/lessons/INDEX.md` lists; a new lower-case word only for an area no lesson has yet), then run `node vault/tools/next_ticket.mjs --lessons planner <areas>` and apply every lesson it prints.
 - Every statement of what to build cites its source (spec section, decision ID, Q-ID, file path).
 - Every number a test will check has an expected value and the source of that value. If no source gives the value, that is a question.
@@ -32,8 +32,8 @@ Write `vault/plans/EZD-xxx.md` from `vault/plans/TEMPLATE.md` (header: ACs, comp
 - Mark which reviewers the ticket needs.
 - **Complexity** (PROCESS.md section 4): low, medium or high, with one sentence of reasoning and the suggested test-author and builder models.
 - **No size caps (lean process, Josh 2026-11-04):** the H2 caps and their "worth it?" questions are dropped. The build system is frozen (CLAUDE.md rule 18): plan no new build-system ticket without Josh's recorded yes.
-- **Size:** target 25,000 characters (`node vault/tools/outline.mjs <plan> --sizes`). Over it, tighten first: section 1 as steps and the file table, no narrative, sources cited by ID instead of repeated, nothing said twice; drop no requirement, test row, source or question.
-- Split only when the plan is still over 45,000 characters after tightening, or would touch more than about 20 files or need more than about 25 tests (Josh, 2026-10-22: each part pays the whole per-ticket overhead again, so fewer, fuller tickets). Then write a split proposal into lettered parts (scope, Done-when and ACs for each) instead of a plan.
+- **Size:** no character target (EZD-382): a plan is as long as its template v2 tables need.
+- Split only when the ticket would touch more than about 20 files or need more than about 25 tests (Josh, 2026-10-22: each part pays the whole per-ticket overhead again, so fewer, fuller tickets). Then write a split proposal into lettered parts (scope, Done-when and ACs for each) instead of a plan.
 - **Readiness check before you return** (plan-ticket step 3): `node vault/tools/plan_lint.mjs <plan> --allow-questions` until it prints OK, then dispatch `plan-checker` (the one agent besides retrievers you may dispatch; guard-agents.mjs) once with the Plan-checker dispatch block of `.claude/skills/build-ticket/dispatch.md` (the output of `node vault/tools/next_ticket.mjs --reads <T> plan-checker`, which starts with the `Plan:` line); resolve each gap it lists in the plan (or as a QP question) and dispatch it once more if you changed section 1, 3 or 4. Two rounds at most; list any gap still open as a QP question.
 - Code-rule tickets take their numbers from the catalog's check text in `vault/spec/code-rules.json`, never from code text. Mockup sample data is not a decision.
 

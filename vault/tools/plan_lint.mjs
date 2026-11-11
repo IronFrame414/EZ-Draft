@@ -4,7 +4,7 @@
 //   node vault/tools/plan_lint.mjs <plan> [--allow-questions]   prints PLAN LINT OK, or PLAN LINT FAIL and one problem per line
 // --allow-questions: the planner's own check at plan time (QP questions go to the questions unit). Without it (before
 // `ready`), any QP question left in section 10 fails.
-import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { architectureHeadings, planArchitecture } from './outline.mjs';
@@ -45,8 +45,9 @@ const table = (text) => tables(text)[0] || { head: [], body: [] };
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const ARCH_DOC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs', 'architecture.md');
+const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'supabase', 'migrations');
 
-export function lintPlan(text, { allowQuestions = false, headings = null } = {}) {
+export function lintPlan(text, { allowQuestions = false, headings = null, migrationsDir = MIGRATIONS_DIR } = {}) {
   const problems = [];
   const s = sections(text);
   const arch = planArchitecture(text);
@@ -94,6 +95,93 @@ export function lintPlan(text, { allowQuestions = false, headings = null } = {})
 
   const qp = [...new Set((s[10] || '').match(/QP-\d+/g) || [])];
   if (qp.length && !allowQuestions) problems.push(`section 10: open questions remain: ${qp.join(', ')}`);
+  if (templateVersion(text) === 2) problems.push(...lintV2(s, migrationsDir));
+  return problems;
+}
+
+// Template v2 (EZD-382; PLANNING-REDESIGN.md 1.3 A to H): the required tables, as `### <title>` blocks inside sections 1 to 10.
+const B = (section, title, columns) => Object.freeze({ section, title, columns: Object.freeze(columns) });
+export const V2_BLOCKS = Object.freeze([
+  B(1, 'Behaviour per role', ['AC', 'Role', 'Behaviour']),
+  B(1, 'Failure and edge cases', ['Function or action', 'Case', 'Behaviour', 'What the user sees']),
+  B(1, 'Database columns', ['Table', 'Column', 'Type', 'Null', 'Default', 'Check', 'Upper bound']),
+  B(1, 'RLS policies', ['Table', 'Command', 'Policy text', 'Tenant and role checks']),
+  B(1, 'Grants', ['Object', 'anon', 'authenticated', 'service_role']),
+  B(1, 'Database functions', ['Function', 'Signature', 'Security definer', 'Checks inside']),
+  B(1, 'Migrations', ['Migration file', 'Order', 'Type regeneration', 'Backfill']),
+  B(3, 'Connections', ['Kind', 'Name', 'File:line', 'What changes']),
+  B(3, 'Shared lists', ['List', 'Test file', 'Current value', 'New value']),
+  B(3, 'Data flow', ['Hop', 'From', 'To', 'Exact name']),
+  B(3, 'Live site', ['Database object', "Main's caller", 'How main keeps working']),
+  B(4, 'Tests', ['Test', 'AC', 'Type', 'Input', 'Expected value', 'Source of the expected value', 'Fixture', 'Wait method', 'Gate scope', 'CI']),
+  B(4, 'Regression list', ['Test file', 'Test name', 'Why']),
+  B(5, 'Component tree', ['Component', 'New / change', 'Copies', 'Parent']),
+  B(5, 'Screen states', ['Screen', 'State', 'Mockup', 'What shows']),
+  B(5, 'Interactions', ['Control', 'Input', 'Behaviour', 'Drag threshold', 'Size and position', 'Tap area']),
+  B(5, 'Neighbours', ['Element', 'Owner ticket', 'How it sits']),
+  B(5, 'Viewports', ['Viewport', 'Size', 'Applies']),
+  B(9, 'Risks', ['Risk', 'What could break', 'Gate notices it', 'Covered by']),
+]);
+
+// D-Marker: v2 only when the header (the text before the first `## ` line) has the line `- Template: v2`.
+export function templateVersion(text) {
+  const first = /^## /m.exec(text);
+  const header = first ? text.slice(0, first.index) : text;
+  return /^- Template: v2[ \t]*$/m.test(header) ? 2 : 1;
+}
+
+const INT_TYPE = /\b(smallint|integer|int|bigint|int2|int4|int8|serial|smallserial|bigserial)\b/i;
+const MIG_NAME = /\b\d{14}_[A-Za-z0-9_]+\.sql\b/g;
+
+function lintV2(s, migrationsDir) {
+  const problems = [];
+  for (const { section: n, title, columns } of V2_BLOCKS) {
+    const text = block(s[n] || '', title);
+    if (text === null) { problems.push(`section ${n}: no "### ${title}" table (template v2)`); continue; }
+    const { head, body } = table(text);
+    if (body.length) {
+      const missing = columns.filter((c) => !head.includes(c));
+      if (missing.length) problems.push(`section ${n}: ${title} table lacks column(s) ${missing.join(', ')}`);
+      else {
+        const cell = (row, c) => (row[head.indexOf(c)] || '').trim();
+        if (title === 'Database columns') {
+          for (const row of body) if (INT_TYPE.test(cell(row, 'Type')) && !/\d/.test(cell(row, 'Upper bound')))
+            problems.push(`section 1: Database columns: ${cell(row, 'Table')}.${cell(row, 'Column')} (${cell(row, 'Type')}) has no upper bound (L-061)`);
+        }
+        if (title === 'Interactions') {
+          for (const row of body) if (!/\d+(\.\d+)?\s*px\b/i.test(cell(row, 'Tap area')))
+            problems.push(`section 5: Interactions: ${cell(row, 'Control')} / ${cell(row, 'Input')} has no tap-area size in px (44 px rule)`);
+        }
+        if (title === 'Migrations') problems.push(...lintMigrations(body.map((row) => cell(row, 'Migration file')), migrationsDir));
+      }
+    } else if (!/^None:[ \t]*\S/m.test(text)) {
+      problems.push(/^None\b/m.test(text)
+        ? `section ${n}: ${title}: "None" needs a reason ("None: <reason>")`
+        : `section ${n}: ${title} table has no rows (write "None: <reason>" when there is nothing)`);
+    }
+    if (title === 'Connections' && /PLAN-GAP/i.test(text))
+      problems.push('section 3: Connections names PLAN-GAP: give each connection its file:line from a grep at develop HEAD');
+  }
+  return problems;
+}
+
+// D-Mig (L-060, L-059): each new migration sorts after the newest one already in the folder; an unreadable folder fails.
+function lintMigrations(cells, dir) {
+  const problems = [];
+  const names = [];
+  cells.forEach((c, i) => {
+    const found = c.match(MIG_NAME) || [];
+    if (!found.length) problems.push(`section 1: Migrations: row ${i + 1} names no <YYYYMMDDHHMMSS>_<name>.sql file`);
+    names.push(...found);
+  });
+  if (!names.length) return problems;
+  if (!existsSync(dir)) { problems.push(`section 1: Migrations: no migrations folder at ${dir} (L-060)`); return problems; }
+  let entries;
+  try { entries = readdirSync(dir); } catch (e) { problems.push(`section 1: Migrations: cannot read ${dir}: ${e.code || e.message} (L-060)`); return problems; }
+  const existing = entries.filter((f) => f.endsWith('.sql') && !names.includes(f));
+  if (!existing.length) return problems;
+  const newest = existing.reduce((a, b) => (b > a ? b : a));
+  for (const name of names) if (!(name > newest)) problems.push(`section 1: Migrations: ${name} does not sort after the newest migration ${newest} (L-060)`);
   return problems;
 }
 
