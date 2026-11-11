@@ -502,7 +502,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   1. Press F and place a sink, a range and a refrigerator; add a gas and a drain utility point. Expected: Each places with its attributes; moving the range lists the utilities that must move.
   2. In Existing view add a moisture pin with a photo; switch to Proposed. Expected: The pin persists and shows only in Existing.
   3. Set a 3/4" floor-level step on a room. Expected: A transition draws on the plan and shows in the room inspector.
-  4. Mark a wall bearing and press Delete. Expected: Deletes; the warning “Engineer required” stays on the project until a note with name and approval is attached; both write an event-log row (Q-0205, Q-0704).
+  4. Mark a wall bearing and press Delete. Expected: Deletes; the warning “Engineer required” stays on the project until a note with name and approval has “Engineer letter on file” ticked; both write an event-log row (Q-0205, Q-0704, Q-0708).
   5. In a 5x8 bath draw a shower with curb, niche and linear drain; reload. Expected: It draws in plan and survives reload.
   6. Place grab-bar blocking on a bath wall and move the wall. Expected: The blocking follows the hosted-item rules.
 
