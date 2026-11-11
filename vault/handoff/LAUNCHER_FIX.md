@@ -13,3 +13,7 @@ EZD-382 (2026-11-11): plan template v2, plan_lint v2 rules and the planner limit
 - .claude/skills/questions/SKILL.md
 - vault/PROCESS.md
 - vault/plans/TEMPLATE.md
+- scripts/run.mjs
+- scripts/process/plan-lint.test.mjs
+- scripts/process/planner-limits.test.mjs
+- scripts/process/fixtures/plan-lint-v1-baseline.json
