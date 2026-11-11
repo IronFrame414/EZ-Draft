@@ -71,6 +71,14 @@ function reset() {
   setRow(D, 'planned', 'low'); put(D, LEGACY(D, PATHS[D]));
   setRow(E, 'blocked'); put(E, LEGACY(E, PATHS[E]));
   setRow(G, 'blocked');
+  // EZD-384b: no synthetic ticket keeps a dependency from an earlier test.
+  const tj = l.file('tickets/tickets.json');
+  const data = JSON.parse(readFileSync(tj, 'utf8'));
+  let changed = false;
+  for (const t of data.tickets) {
+    if (SYNTH.includes(t.id) && !(Array.isArray(t.depends_on) && t.depends_on.length === 0)) { t.depends_on = []; changed = true; }
+  }
+  if (changed) writeFileSync(tj, JSON.stringify(data, null, 1) + '\n');
 }
 
 before(async () => {
@@ -142,7 +150,7 @@ const errIs = (args, line) => {
   assert.equal(r.stdout, `${line}\n`);
 };
 const SPLIT_WAIT = (ids) => `none: split proposal waiting to be applied for ${ids} (.claude/skills/plan-ticket/SKILL.md ledger step)`;
-const DRAFT = 'unknown plan step "draft" in vault/plans/EZD-9842.md; the steps are brief and code-bound';
+const DRAFT = 'unknown plan step "draft" in vault/plans/EZD-9842.md; the steps are brief, design and code-bound';
 const NO_ROWS = 'the brief in vault/plans/EZD-9842.md has no readable Files (estimate), Tests (estimate) or Split row; run plan_lint on it';
 const noFiles = (text) => text.replace(/^\| Files \(estimate\) \|.*\n/m, '');
 
@@ -152,9 +160,9 @@ test('EZD-384 P1 --plan-step names the step for each state', () => {
     [() => put(A, LEGACY(A, PATHS[A])), A, 'STEP brief'],
     [() => put(A, BRIEF(A, 3, 4, 'no')), A, 'STEP brief'],
     [() => put(A, CB(A)), A, 'STEP code-bound'],
-    [() => {}, B, 'STEP code-bound'],
-    [() => setRow(B, 'questions'), B, 'STEP code-bound'],
-    [() => put(B, BRIEF(B, 20, 25, 'no')), B, 'STEP code-bound'],
+    [() => {}, B, 'STEP design'],
+    [() => setRow(B, 'questions'), B, 'STEP design'],
+    [() => put(B, BRIEF(B, 20, 25, 'no')), B, 'STEP design'],
     [() => put(B, BRIEF(B, 21, 25, 'no')), B, 'STEP split 21 files, 25 tests'],
     [() => put(B, BRIEF(B, 20, 26, 'no')), B, 'STEP split 20 files, 26 tests'],
     [() => {}, C, 'STEP split 21 files, 25 tests'],
@@ -315,4 +323,135 @@ test('EZD-384 N11 the look-ahead plans a brief in a later phase', async () => {
   const fp = questionsFingerprint(Pa);
   writeFileSync(l.file('handoff/.questions-last-run.json'), JSON.stringify({ phase: Pa, scope: 'phase', before: fp, after: fp }));
   assert.equal(nextUnit(), `plan ${B}`);
+});
+
+// EZD-384b (vault/plans/EZD-384b.md, section 4): the design step, the wait and the dependency rules in next_ticket.mjs.
+const DESIGN = (id) =>
+  `# ${id} · plan-steps fixture\n\n- **Complexity:** medium\n- Template: v2\n- Plan step: design\n\n${briefTable(3, 4, 'no')}\n## 1. What to build\n### Build steps\nNone: written at the code-bound step (P3)\n\n## 2. Sources\nArchitecture: none beyond the core\n\n## 10. Open questions\nNone\n`;
+const deps = (id, list) => {
+  const f = l.file('tickets/tickets.json');
+  const data = JSON.parse(readFileSync(f, 'utf8'));
+  data.tickets.find((x) => x.id === id).depends_on = list;
+  writeFileSync(f, JSON.stringify(data, null, 1) + '\n');
+};
+const designB = (list) => { setRow(B, 'planned', 'medium'); put(B, DESIGN(B)); deps(B, list); };
+
+test('EZD-384b S1 --plan-step for the design states', () => {
+  const cases = [
+    [() => {}, B, 'STEP design'],
+    [() => designB([]), B, 'STEP code-bound'],
+    [() => designB(['EZD-001']), B, 'STEP code-bound'],
+    [() => designB(['EZD-001', A]), B, `STEP wait ${A} (todo)`],
+    [() => designB([A, D]), B, `STEP wait ${A} (todo), ${D} (planned)`],
+    [() => { designB([A, D]); setRow(B, 'questions', 'medium'); }, B, `STEP wait ${A} (todo), ${D} (planned)`],
+    [() => put(A, DESIGN(A)), A, 'STEP design'],
+    [() => { put(A, CODE_BOUND(A, 'app/src/a.ts')); deps(A, [D]); }, A, 'STEP design'],
+    [() => { setRow(A, 'ready', 'low'); put(A, DESIGN(A)); }, A, 'STEP none (status ready)'],
+    [() => designB(['EZD-001', 'EZD-9999']), B, 'STEP wait EZD-9999 (no row)'],
+  ];
+  for (const [edit, id, line] of cases) {
+    reset();
+    edit();
+    stepIs(id, line);
+  }
+});
+
+test('EZD-384b S2 the code-bound unit is offered only when every dependency is done', () => {
+  reset();
+  for (const id of [A, C, D]) setRow(id, 'blocked');
+  designB(['EZD-001']);
+  assert.equal(nextUnit(), `plan ${B}`);
+  deps(B, [A]);
+  assert.equal(nextUnit(), `review-plans ${U}`);
+});
+
+test('EZD-384b S3 brief to design, then design to code-bound, before review-plans', () => {
+  reset();
+  for (const id of [A, C]) setRow(id, 'blocked');
+  setRow(D, 'planned', 'medium'); put(D, DESIGN(D)); deps(D, []);
+  assert.equal(nextUnit(), `plan ${B}`);
+  setRow(B, 'blocked');
+  assert.equal(nextUnit(), `plan ${D}`);
+});
+
+test('EZD-384b S4 a waiting design plan does not make questions due', () => {
+  reset();
+  review(U);
+  for (const id of [A, C, D]) setRow(id, 'blocked');
+  designB([A]);
+  const wait = nextUnit();
+  assert.equal(wait, `none: waiting for the code-bound step: ${B} waits for ${A} (blocked)`);
+  assert.equal(repairable(wait), true);
+  put(B, LEGACY(B, PATHS[B]));
+  assert.equal(nextUnit(), `questions ${U}`);
+});
+
+test('EZD-384b S5 PROGRESS.md lists waiting plans only while they wait', () => {
+  reset();
+  designB([A, 'EZD-001']);
+  const r1 = run('--report');
+  assert.equal(r1.status, 0, r1.stdout + r1.stderr);
+  const lines1 = readFileSync(l.file('PROGRESS.md'), 'utf8').split('\n');
+  const W = '## Waiting for the code-bound step';
+  assert.ok(lines1.includes(W));
+  assert.ok(lines1.includes('| Ticket | Phase | Not done yet |'));
+  assert.ok(lines1.includes(`| ${B} | ${U} | ${A} (todo) |`));
+  const iSplit = lines1.indexOf('## Split proposals waiting to be applied');
+  const iWait = lines1.indexOf(W);
+  const iMerges = lines1.indexOf('## Last ten merges');
+  assert.ok(iSplit >= 0 && iMerges >= 0);
+  assert.ok(iSplit < iWait && iWait < iMerges, `order ${iSplit} ${iWait} ${iMerges}`);
+  deps(B, ['EZD-001']);
+  const r2 = run('--report');
+  assert.equal(r2.status, 0, r2.stdout + r2.stderr);
+  assert.ok(!readFileSync(l.file('PROGRESS.md'), 'utf8').split('\n').includes(W));
+});
+
+test('EZD-384b S6 a tooling ticket keeps its mark at step design', () => {
+  reset();
+  setRow(E, 'planned', 'medium'); put(E, DESIGN(E));
+  const check = run('--check');
+  assert.equal(check.status, 0, check.stdout + check.stderr);
+  assert.ok(check.stdout.startsWith('LEDGER OK'), check.stdout);
+  const set = run('--set-architecture', E);
+  assert.equal(set.status, 0, set.stdout + set.stderr);
+  assert.equal(set.stdout.trim(), `ARCHITECTURE SET ${E}: 0 section(s)`);
+  assert.equal(ticketE().track, 'tooling');
+});
+
+test('EZD-384b S7 a set-aside design plan is not listed as waiting on questions', () => {
+  reset();
+  review(U);
+  for (const id of [A, C, D]) setRow(id, 'blocked');
+  designB(['EZD-001']);
+  mkdirSync(path.join(l.dir, '.git'), { recursive: true });
+  writeFileSync(path.join(l.dir, '.git', 'set-aside.json'), JSON.stringify([`plan ${B}`]));
+  const out = nextUnit();
+  assert.ok(out.startsWith('none: waiting on Josh (blocked: '), out);
+  assert.ok(out.endsWith(`; nothing else is ready in phase ${U}`), out);
+});
+
+test('EZD-384b S8 the look-ahead offers a code-bound unit only when its dependencies are done', async () => {
+  reset();
+  for (const id of [A, C, D]) setRow(id, 'blocked');
+  designB(['EZD-001']);
+  setRow(G, 'questions'); put(G, LEGACY(G, PATHS[G]));
+  review(Pa);
+  const { questionsFingerprint } = await import(`${pathToFileURL(l.file('tools/next_ticket.mjs')).href}?s8=${Date.now()}`);
+  const fp = questionsFingerprint(Pa);
+  writeFileSync(l.file('handoff/.questions-last-run.json'), JSON.stringify({ phase: Pa, scope: 'phase', before: fp, after: fp }));
+  assert.equal(nextUnit(), `plan ${B}`);
+  deps(B, [A]);
+  assert.equal(nextUnit(), `review-plans ${U}`);
+});
+
+test('EZD-384b S9 build and questions run beside a waiting design plan', () => {
+  reset();
+  review(U);
+  setRow(A, 'ready', 'low'); put(A, CB(A));
+  designB([A]);
+  for (const id of [C, D]) setRow(id, 'blocked');
+  assert.equal(nextUnit(), `build ${A}`);
+  setRow(D, 'planned', 'low'); put(D, LEGACY(D, PATHS[D]));
+  assert.equal(nextUnit(), `questions ${U}`);
 });

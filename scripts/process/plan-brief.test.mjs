@@ -72,7 +72,7 @@ test('EZD-384 B2 estimate, split and limit readers', () => {
   assert.equal(PL.overLimit({ files: 21, tests: 25 }), true);
   assert.equal(PL.overLimit({ files: 20, tests: 26 }), true);
   assert.equal(PL.overLimit({ files: 0, tests: 0 }), false);
-  assert.deepEqual(PL.PLAN_STEPS, ['brief', 'code-bound']);
+  assert.deepEqual(PL.PLAN_STEPS, ['brief', 'design', 'code-bound']);
   assert.deepEqual(PL.SIZE_LIMIT, { files: 20, tests: 25 });
   assert.deepEqual(PL.BRIEF_ROWS, ITEMS);
   for (const c of [PL.PLAN_STEPS, PL.SIZE_LIMIT, PL.BRIEF_ROWS]) assert.equal(Object.isFrozen(c), true);
@@ -131,7 +131,7 @@ test('EZD-384 B8 what a whole plan must carry', () => {
 
 test('EZD-384 B9 bad step lines', () => {
   assert.deepEqual(PL.lintPlan(planV2().replace('- Template: v2\n', '- Template: v2\n- Plan step: draft\n'), OPTS),
-    ['header: unknown plan step "draft"; the steps are brief and code-bound (EZD-384)']);
+    ['header: unknown plan step "draft"; the steps are brief, design and code-bound (EZD-384)']);
   assert.deepEqual(PL.lintPlan(brief().replace('- Plan step: brief\n', '- Plan step: brief\n- Plan step: brief\n'), OPTS),
     ['header: more than one "- Plan step:" line (EZD-384)']);
 });
@@ -172,4 +172,93 @@ test('EZD-384 B12 a brief cannot go ready', (t) => {
   assert.deepEqual(readyProblems(dir, 'EZD-9842'), stop);
   writeFileSync(plan, planV2({ v1: true }));
   assert.deepEqual(readyProblems(dir, 'EZD-9842'), []);
+});
+
+// EZD-384b (vault/plans/EZD-384b.md, section 4): the design step and the code-bound None line.
+const NONE = 'None: written at the code-bound step (P3)';
+const swap = (t, from, to, repl) => {
+  const i = t.indexOf(from);
+  assert.notEqual(i, -1, `design(): marker ${from} not found`);
+  const j = t.indexOf(to, i);
+  assert.notEqual(j, -1, `design(): marker ${to} not found`);
+  return t.slice(0, i) + repl + t.slice(j);
+};
+const design = (o = {}) => {
+  let t = full(o);
+  assert.equal(t.split('- Plan step: code-bound').length, 2, 'design(): marker - Plan step: code-bound not found');
+  t = t.replace('- Plan step: code-bound', '- Plan step: design');
+  t = swap(t, '### Build steps', '### Behaviour per role', `### Build steps\n${NONE}\n### Decided for the builder\n${NONE}\n### Do not touch\n${NONE}\n`);
+  t = swap(t, '## 3. Interface contract', '## 5. Visual checklist', `## 3. Interface contract\n${NONE}\n\n## 4. Tests\n${NONE}\n\n`);
+  t = swap(t, '### Risks', '## 10. Open questions', `### Risks\n${NONE}\n\n`);
+  return t;
+};
+const edit = (t, from, to) => {
+  assert.equal(t.split(from).length, 2, `edit: ${from} not found once`);
+  return t.replace(from, to);
+};
+
+test('EZD-384b L1 a good design plan passes; the constants', (t) => {
+  assert.deepEqual(PL.lintPlan(design(), OPTS), []);
+  assert.equal(PL.planStep(design()), 'design');
+  assert.equal(PL.CODE_BOUND_NONE, NONE);
+  assert.deepEqual(PL.CODE_BOUND_PARTS, [
+    { section: 1, title: 'Build steps' }, { section: 1, title: 'Decided for the builder' }, { section: 1, title: 'Do not touch' },
+    { section: 3, title: null }, { section: 4, title: null }, { section: 9, title: 'Risks' },
+  ]);
+  assert.equal(Object.isFrozen(PL.CODE_BOUND_PARTS), true);
+  for (const p of PL.CODE_BOUND_PARTS) assert.equal(Object.isFrozen(p), true);
+  const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'ezd384b-design-')));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const file = path.join(dir, 'design.md');
+  writeFileSync(file, design());
+  const r = spawnSync(process.execPath, [LINT, file, '--allow-questions'], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(r.stdout, `PLAN LINT OK ${file}\n`);
+});
+
+test('EZD-384b L2 what a design plan must carry', () => {
+  assert.deepEqual(PL.lintPlan(design().replace('- **Complexity:** medium\n', ''), OPTS),
+    ['header: no "**Complexity:** low|medium|high" line; a plan at step design sets it (EZD-384)']);
+  assert.deepEqual(PL.lintPlan(design().replace('- Template: v2\n', ''), OPTS),
+    ['header: a plan at step design is a template v2 plan (the "- Template: v2" line; EZD-382)']);
+  assert.deepEqual(PL.lintPlan(design({ table: false }), OPTS), [NO_TABLE]);
+  assert.deepEqual(PL.lintPlan(design({ split: 'yes' }), OPTS),
+    ['brief: Split is yes at step design: write the plan back as a brief with its split proposal (EZD-384)']);
+  assert.deepEqual(PL.lintPlan(design({ files: 21, tests: 25 }), OPTS), [over(21, 25, OVER_FULL)]);
+  assert.deepEqual(PL.lintPlan(design({ files: 20, tests: 25 }), OPTS), []);
+  const qp = edit(design(), '## 10. Open questions\nNone', '## 10. Open questions\nQP-1: which?');
+  assert.deepEqual(PL.lintPlan(qp, OPTS), ['section 10: open questions remain: QP-1']);
+  assert.deepEqual(PL.lintPlan(qp, { ...OPTS, allowQuestions: true }), []);
+});
+
+test('EZD-384b L3 each code-bound part reads exactly the None line', () => {
+  const d = design();
+  assert.deepEqual(PL.lintPlan(edit(d, `### Build steps\n${NONE}\n`, '### Build steps\n| 1 | x | change | none | none | none |\n'), OPTS),
+    [`section 1: Build steps must read exactly "${NONE}" at step design (EZD-384b)`]);
+  assert.deepEqual(PL.lintPlan(edit(d, `### Risks\n${NONE}\n`, ''), OPTS),
+    [`section 9: no "### Risks" block; at step design it reads "${NONE}" (EZD-384b)`]);
+  assert.deepEqual(PL.lintPlan(edit(d, `## 4. Tests\n${NONE}\n`, `## 4. Tests\n${NONE}\nMore tests later.\n`), OPTS),
+    [`section 4: the whole section must read exactly "${NONE}" at step design (EZD-384b)`]);
+  assert.deepEqual(PL.lintPlan(edit(d, `## 3. Interface contract\n${NONE}\n`, `## 3. Interface contract\n${NONE}.\n`), OPTS),
+    [`section 3: the whole section must read exactly "${NONE}" at step design (EZD-384b)`]);
+  assert.deepEqual(PL.lintPlan(edit(d, `### Decided for the builder\n${NONE}\n`, `### Decided for the builder\n${NONE}  \n`), OPTS), []);
+  const i = d.indexOf('### Behaviour per role');
+  const j = d.indexOf('### Failure and edge cases');
+  assert.ok(i !== -1 && j > i, 'design(): Behaviour per role block not found');
+  assert.deepEqual(PL.lintPlan(d.slice(0, i) + d.slice(j), OPTS), ['section 1: no "### Behaviour per role" table (template v2)']);
+});
+
+test('EZD-384b L4 the None line at step code-bound', () => {
+  const risks = (t) => {
+    const i = t.indexOf('### Risks');
+    assert.notEqual(i, -1, 'Risks block not found');
+    const j = t.indexOf('None: fixture', i);
+    assert.notEqual(j, -1, 'Risks None line not found');
+    return t.slice(0, j) + NONE + t.slice(j + 'None: fixture'.length);
+  };
+  const s9 = `section 9: still reads "${NONE}" at step code-bound; write that block (EZD-384b)`;
+  const s1 = `section 1: still reads "${NONE}" at step code-bound; write that block (EZD-384b)`;
+  assert.deepEqual(PL.lintPlan(risks(full()), OPTS), [s9]);
+  assert.deepEqual(PL.lintPlan(edit(risks(full()), '### Decided for the builder\nNone\n', `### Decided for the builder\n${NONE}\n`), OPTS), [s1, s9]);
+  assert.deepEqual(PL.lintPlan(risks(planV2()), OPTS), []);
 });

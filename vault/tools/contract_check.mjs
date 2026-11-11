@@ -182,6 +182,25 @@ function headParams(text, name) {
   return null;
 }
 
+// EZD-384b C-Rows: the file, export and signature rows of section 3's Interface contract, shared by both checks.
+export function contractRows(text) {
+  const ct = contractTable(sections(String(text))[3] ?? '');
+  if (!ct) return { error: 'section 3: Interface contract: no table before the first ### block', rows: [] };
+  const ik = ct.head.findIndex((x) => /^Kind/.test(x));
+  const iname = col(ct.head, 'Name or path');
+  if (ik < 0 || iname < 0) return { error: 'section 3: Interface contract table lacks the Kind or Name or path column', rows: [] };
+  const rows = [];
+  ct.body.forEach((row, k) => {
+    const kc = unBacktick(row[ik] || '').toLowerCase();
+    const word = kc.split(/[\s(]/)[0];
+    if (!['file', 'export', 'signature'].includes(word)) return;
+    const m = /^(file|export|signature) ?\((new|exists)\)$/.exec(kc);
+    const cell = row[iname] || '';
+    rows.push({ i: k + 1, word, mark: m ? m[2] : null, cell, parsed: word === 'file' ? null : parseName(word, cell) });
+  });
+  return { error: null, rows };
+}
+
 export function checkContract(text, { root = ROOT, head = null } = {}) {
   if (templateVersion(text) !== 2) return [];
   const h = head || readHead(root);
@@ -221,29 +240,19 @@ export function checkContract(text, { root = ROOT, head = null } = {}) {
 
   // (2) Interface contract.
   const s3 = s[3] || '';
-  const ct = contractTable(s3);
-  if (!ct) problems.push('section 3: Interface contract: no table before the first ### block');
-  else {
-    const ik = ct.head.findIndex((x) => /^Kind/.test(x));
-    const iname = col(ct.head, 'Name or path');
-    if (ik < 0 || iname < 0) problems.push('section 3: Interface contract table lacks the Kind or Name or path column');
-    else ct.body.forEach((row, k) => {
-      const i = k + 1;
-      const kc = unBacktick(row[ik] || '').toLowerCase();
-      const word = kc.split(/[\s(]/)[0];
-      if (!['file', 'export', 'signature'].includes(word)) return;
-      const m = /^(file|export|signature) ?\((new|exists)\)$/.exec(kc);
-      if (!m) { problems.push(`section 3: Interface contract row ${i}: ${word} row needs (new) or (exists) in its Kind cell`); return; }
-      const mark = m[2];
-      const cell = row[iname] || '';
-      if (word === 'file') {
-        const p = cellPath(cell);
-        if (p === null) { problems.push(`section 3: Interface contract row ${i}: "${token(cell)}" is not a repo-relative file path`); return; }
-        if (mark === 'new' && h.has(p)) problems.push(`section 3: Interface contract row ${i}: file ${p} is marked new but is at HEAD`);
-        if (mark === 'exists' && !h.has(p)) problems.push(`section 3: Interface contract row ${i}: file ${p} is marked exists but is not at HEAD`);
-        return;
-      }
-      const parsed = parseName(word, cell);
+  const cr = contractRows(text);
+  if (cr.error) problems.push(cr.error);
+  else for (const r of cr.rows) {
+    const { i, word, mark, cell, parsed } = r;
+    if (!mark) { problems.push(`section 3: Interface contract row ${i}: ${word} row needs (new) or (exists) in its Kind cell`); continue; }
+    if (word === 'file') {
+      const p = cellPath(cell);
+      if (p === null) { problems.push(`section 3: Interface contract row ${i}: "${token(cell)}" is not a repo-relative file path`); continue; }
+      if (mark === 'new' && h.has(p)) problems.push(`section 3: Interface contract row ${i}: file ${p} is marked new but is at HEAD`);
+      if (mark === 'exists' && !h.has(p)) problems.push(`section 3: Interface contract row ${i}: file ${p} is marked exists but is not at HEAD`);
+      continue;
+    }
+    ((row) => {
       if (!parsed) { problems.push(`section 3: Interface contract row ${i}: Name "${cell.trim()}" is not \`name\` from path (an export) or \`name(params)\` from path (a signature)`); return; }
       const { name, path: p } = parsed;
       if (!isRepoPath(p)) { problems.push(`section 3: Interface contract row ${i}: "${p}" is not a repo-relative file path`); return; }
@@ -261,7 +270,7 @@ export function checkContract(text, { root = ROOT, head = null } = {}) {
         const a = paramCount(hp); const b = paramCount(parsed.params);
         if (a !== b) problems.push(`section 3: Interface contract row ${i}: ${name} takes ${a} parameters at HEAD; the plan gives ${b}`);
       }
-    });
+    })(r);
   }
 
   // (3) Connections, (4) Shared lists, (5) Regression list.

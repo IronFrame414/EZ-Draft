@@ -1015,4 +1015,20 @@ describe('EZD-383 R: ledger status=ready runs the plan checks', () => {
     assert.equal(rb.stdout, 'LEDGER OK EZD-005 status\n');
     assert.deepEqual(await queued(b), [['status', 'EZD-005', 'ready']]);
   });
+
+  test('EZD-384b R5 the ledger refuses ready at step brief or design', () => {
+    const dir = fixture();
+    plan(dir, { kind: 'change' });
+    const file = path.join(dir, 'vault/plans/EZD-004.md');
+    const base = readFileSync(file, 'utf8');
+    assert.equal(base.split('- Template: v2\n').length, 2, 'the fixture plan carries one Template line');
+    for (const [step, tail] of [['design', 'the code-bound step has not run (EZD-384b)'], ['brief', 'the whole plan is not written yet (EZD-384)']]) {
+      writeFileSync(file, base.replace('- Template: v2\n', `- Template: v2\n- Plan step: ${step}\n`));
+      const results = RESULTS();
+      const r = ready(dir, results);
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.equal(r.stdout, `LEDGER FAIL: EZD-004 not set ready: 1 plan check problem\n- plan step: ${step}; ${tail}\n`);
+      assert.equal(existsSync(results), false);
+    }
+  });
 });

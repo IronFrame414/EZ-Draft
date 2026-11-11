@@ -63,7 +63,10 @@ function archProblems(text, headings) {
   return problems;
 }
 
-export const PLAN_STEPS = Object.freeze(['brief', 'code-bound']);
+export const PLAN_STEPS = Object.freeze(['brief', 'design', 'code-bound']);
+// EZD-384b C-Steps: the line every code-bound block reads at step design, and the blocks it applies to (title null = the whole section).
+export const CODE_BOUND_NONE = 'None: written at the code-bound step (P3)';
+export const CODE_BOUND_PARTS = Object.freeze([{ section: 1, title: 'Build steps' }, { section: 1, title: 'Decided for the builder' }, { section: 1, title: 'Do not touch' }, { section: 3, title: null }, { section: 4, title: null }, { section: 9, title: 'Risks' }].map(Object.freeze));
 export const SIZE_LIMIT = Object.freeze({ files: 20, tests: 25 });
 export const BRIEF_ROWS = Object.freeze(['Plain words', 'ACs', 'Screens', 'Tables', 'Routes', 'Files (estimate)', 'Tests (estimate)', 'Split']);
 
@@ -144,14 +147,15 @@ function briefLint(text, { allowQuestions, headings }) {
   return problems;
 }
 
-function fullLint(text) {
+// EZD-384b C-Whole: the whole-plan rules, shared by the design and code-bound steps.
+function fullLint(text, step) {
   const problems = [];
-  if (templateVersion(text) !== 2) problems.push('header: a plan at step code-bound is a template v2 plan (the "- Template: v2" line; EZD-382)');
-  if (!/\*\*Complexity:\*\*\s*(low|medium|high)\b/i.test(headerOf(text))) problems.push('header: no "**Complexity:** low|medium|high" line; a plan at step code-bound sets it (EZD-384)');
+  if (templateVersion(text) !== 2) problems.push(`header: a plan at step ${step} is a template v2 plan (the "- Template: v2" line; EZD-382)`);
+  if (!/\*\*Complexity:\*\*\s*(low|medium|high)\b/i.test(headerOf(text))) problems.push(`header: no "**Complexity:** low|medium|high" line; a plan at step ${step} sets it (EZD-384)`);
   problems.push(...briefRowProblems(text));
   const split = briefSplit(text);
   const est = briefEstimate(text);
-  if (split === 'yes') problems.push('brief: Split is yes at step code-bound: write the plan back as a brief with its split proposal (EZD-384)');
+  if (split === 'yes') problems.push(`brief: Split is yes at step ${step}: write the plan back as a brief with its split proposal (EZD-384)`);
   if (est && split === 'no' && overLimit(est)) problems.push(`brief: estimate ${est.files} files, ${est.tests} tests is over the size limit ${LIMIT_TEXT}: write the plan back as a brief with Split yes and its split proposal (EZD-384)`);
   return problems;
 }
@@ -161,11 +165,54 @@ export function lintPlan(text, opts = {}) {
   const lines = stepLines(text);
   const step = lines.length ? lines[0] : null;
   const problems = [];
-  if (step !== null && !PLAN_STEPS.includes(step)) problems.push(`header: unknown plan step "${step}"; the steps are brief and code-bound (EZD-384)`);
+  if (step !== null && !PLAN_STEPS.includes(step)) problems.push(`header: unknown plan step "${step}"; the steps are brief, design and code-bound (EZD-384)`);
   if (lines.length > 1) problems.push('header: more than one "- Plan step:" line (EZD-384)');
   if (step === 'brief') return [...problems, ...briefLint(text, { allowQuestions, headings })];
+  if (step === 'design') return [...problems, ...designLint(text, opts)];
   problems.push(...legacyLint(text, opts));
-  if (step === 'code-bound') problems.push(...fullLint(text));
+  if (step === 'code-bound') problems.push(...fullLint(text, 'code-bound'), ...leftNoneProblems(text));
+  return problems;
+}
+
+// EZD-384b C-DesignLint: a plan at step design (code-bound blocks read the None line; their rules are waived).
+function designLint(text, { allowQuestions = false, headings = null, migrationsDir = MIGRATIONS_DIR } = {}) {
+  const s = sections(text);
+  const problems = [...archProblems(text, headings)];
+  for (let n = 1; n <= 10; n++) if (s[n] === undefined) problems.push(`section ${n} missing`);
+  problems.push(...fullLint(text, 'design'));
+  for (const { section: n, title } of CODE_BOUND_PARTS) {
+    const sec = s[n];
+    if (sec === undefined) continue;
+    const part = title === null ? sec : block(sec, title);
+    if (part === null) { problems.push(`section ${n}: no "### ${title}" block; at step design it reads "${CODE_BOUND_NONE}" (EZD-384b)`); continue; }
+    const lines = part.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (!(lines.length === 1 && lines[0] === CODE_BOUND_NONE)) problems.push(`section ${n}: ${title === null ? 'the whole section' : title} must read exactly "${CODE_BOUND_NONE}" at step design (EZD-384b)`);
+  }
+  problems.push(...vagueProblems(s));
+  const skipCodeBound = (b) => b.section === 3 || b.section === 4 || (b.section === 9 && b.title === 'Risks');
+  if (templateVersion(text) === 2) problems.push(...lintV2(s, migrationsDir, skipCodeBound));
+  problems.push(...qpProblems(s, allowQuestions));
+  return problems;
+}
+
+// EZD-384b C-FullLint: a code-bound block left as the design-step None line.
+function leftNoneProblems(text) {
+  const s = sections(text);
+  const out = [];
+  for (let n = 1; n <= 10; n++) if (s[n] !== undefined && s[n].split('\n').some((l) => l.trim() === CODE_BOUND_NONE)) out.push(`section ${n}: still reads "${CODE_BOUND_NONE}" at step code-bound; write that block (EZD-384b)`);
+  return out;
+}
+
+// EZD-384b C-Vague: the vague-word rule of sections 1, 3 and 4.
+function vagueProblems(s) {
+  const problems = [];
+  for (const n of [1, 3, 4]) {
+    const body = (s[n] || '').replace(/`[^`\n]*`/g, '');
+    for (const w of VAGUE) {
+      const re = new RegExp(`(^|[^A-Za-z])${esc(w)}(?![A-Za-z])`, w === w.toUpperCase() ? '' : 'i');
+      if (re.test(body)) problems.push(`section ${n}: vague "${w}": decide it, cite the source, or make it a QP question`);
+    }
+  }
   return problems;
 }
 
@@ -190,13 +237,7 @@ function legacyLint(text, { allowQuestions = false, headings = null, migrationsD
   if (block(s1, 'Decided for the builder') === null) problems.push('section 1: no "### Decided for the builder" block (table, or "None")');
   if (block(s1, 'Do not touch') === null) problems.push('section 1: no "### Do not touch" block (list, or "None")');
 
-  for (const n of [1, 3, 4]) {
-    const body = (s[n] || '').replace(/`[^`\n]*`/g, '');
-    for (const w of VAGUE) {
-      const re = new RegExp(`(^|[^A-Za-z])${esc(w)}(?![A-Za-z])`, w === w.toUpperCase() ? '' : 'i');
-      if (re.test(body)) problems.push(`section ${n}: vague "${w}": decide it, cite the source, or make it a QP question`);
-    }
-  }
+  problems.push(...vagueProblems(s));
 
   const t4 = tables(s[4] || '');
   if (t4.length && !t4.some((t) => t.head.some((h) => /^Expected/i.test(h)))) problems.push('section 4: no Tests table with an "Expected value" column');
@@ -245,9 +286,11 @@ export function templateVersion(text) {
 const INT_TYPE = /\b(smallint|integer|int|bigint|int2|int4|int8|serial|smallserial|bigserial)\b/i;
 const MIG_NAME = /\b\d{14}_[A-Za-z0-9_]+\.sql\b/g;
 
-function lintV2(s, migrationsDir) {
+function lintV2(s, migrationsDir, skip = () => false) {
   const problems = [];
-  for (const { section: n, title, columns } of V2_BLOCKS) {
+  for (const b of V2_BLOCKS) {
+    if (skip(b)) continue;
+    const { section: n, title, columns } = b;
     const text = block(s[n] || '', title);
     if (text === null) { problems.push(`section ${n}: no "### ${title}" table (template v2)`); continue; }
     const { head, body } = table(text);

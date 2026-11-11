@@ -1,6 +1,6 @@
 # EZD-xxx · <ticket title>
 Every v2 table has rows or `None: <reason>`; `plan_lint.mjs` checks them on a plan with the `- Template: v2` line (EZD-382).
-A plan is written in two plan units (EZD-384): first the brief, then this whole plan. `node vault/tools/next_ticket.mjs --plan-step <T>` names the step; the `- Plan step:` header line records the step the file is at.
+A plan is written in three plan units (EZD-384, EZD-384b): the brief, then the design, then the code-bound blocks, written against develop's code once every `depends_on` ticket is done. The code-bound blocks are Build steps, Decided for the builder and Do not touch in section 1, the whole of sections 3 and 4, and Risks in section 9; at step design each of them is the one line `None: written at the code-bound step (P3)`, which `plan_lint.mjs` refuses at step code-bound. `node vault/tools/next_ticket.mjs --plan-step <T>` names the step; the `- Plan step:` header line records the step the file is at.
 
 - **ACs:** AC-EZD-xxx-1, AC-EZD-xxx-2 … (from `vault/spec/acceptance-criteria.md`; one per testable sentence of the ticket's Done-when until the phase has Stage 0 ACs)
 - **Complexity:** low | medium | high (PROCESS.md section 4; one sentence of reasoning in section 8 below)
