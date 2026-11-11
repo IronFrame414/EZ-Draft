@@ -912,7 +912,7 @@ export function blockingPhase() {
   return ps.find((p) => phaseTickets(p).some((t) => !isTooling(t) && !['done', 'blocked'].includes(status(t.id)))) ?? null;
 }
 // EZD-253 D9, EZD-278: the build pool. Tooling tickets of phases up to B (the highest when B is null), ready with dependencies
-// done, by phase then priority; then, when B is signed off, B's ready product tickets; then, for each of up to LOOKAHEAD signed-off phases after B (phasesAhead),
+// done, by phase then priority; then, when B is signed off, B's ready product tickets; then, for each signed-off phase after B up to the first one not signed off (phasesAhead),
 // its ready product tickets (those numbered CHECKPOINT_FROM or higher only once the architecture checkpoint is met). nextUnit
 // builds the first one whose plan needs no guarded path, so the next phase builds only while B has none the launcher can build.
 export function buildPool(B) {
@@ -928,13 +928,12 @@ export function buildPool(B) {
   }
   return pool;
 }
-// Josh 2026-11-05 (chat: "I also authorize phase 4 to begin"; decisions/process.md): plans and builds look up to LOOKAHEAD
-// signed-off phases past B, in order, stopping at the first phase not signed off.
-const LOOKAHEAD = 2;
+// Josh 2026-11-11 (chat, signing off phases 7, 8 and 9; EZD-386), replacing the two-phase look-ahead of Josh 2026-11-05: plans and builds
+// look ahead to every signed-off phase past B, in phase order, stopping at the first phase not signed off.
 function phasesAhead(B) {
   const out = [];
   for (const q of [...new Set(data.tickets.map((t) => t.phase))].sort(comparePhases).filter((q) => comparePhases(q, B) > 0)) {
-    if (out.length === LOOKAHEAD || !signedOff(q)) break;
+    if (!signedOff(q)) break;
     out.push(q);
   }
   return out;
