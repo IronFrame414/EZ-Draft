@@ -731,6 +731,9 @@ isOneToOne: false
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
                            },
+"set_checkpoint_thumbnail":
+{ Args: { "p_project": string,"p_version": string }; Returns: string
+                           },
 "set_plan_scale":
 { Args: { "p_project": string,"p_scale": number }; Returns: number
                            },
@@ -741,6 +744,9 @@ isOneToOne: false
 { Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
               "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
             }[]
+                           },
+"start_checkpoint_thumbnail":
+{ Args: { "p_project": string,"p_version": string }; Returns: string
                            },
 "take_ai_key_attempt":
 { Args: Record<PropertyKey, never>; Returns: boolean

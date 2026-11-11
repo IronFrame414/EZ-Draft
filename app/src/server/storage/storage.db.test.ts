@@ -48,12 +48,13 @@ const PDF = 'application/pdf';
 const RLS_REFUSED = 'new row violates row-level security policy';
 const NOT_FOUND = 'Object not found';
 const FIVE_BUCKETS = ['sources', 'renders', 'exports', 'media', 'jobs'];
-const FIVE_POLICIES = [
+const STORAGE_POLICIES = [
   'storage_sources_select',
   'storage_sources_insert',
   'storage_media_select',
   'storage_media_insert',
   'storage_media_delete',
+  'storage_media_thumb_insert',
 ];
 
 const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
@@ -175,7 +176,11 @@ describe('EZD-132 file storage', () => {
     >`
       select policyname, cmd, roles::text[] as roles, qual, with_check
       from pg_policies where schemaname = 'storage' and tablename = 'objects'`;
-    expect(policies.map((p) => p.policyname).sort()).toEqual([...FIVE_POLICIES].sort());
+    // EZD-224 (vault/plans/EZD-224.md section 3 Shared lists; L-024, dated 2026-11-11, newest migration
+    // 20261110130000): six policies, storage_media_thumb_insert added.
+    const names = policies.map((p) => p.policyname);
+    for (const name of STORAGE_POLICIES) expect(names).toContain(name);
+    expect(names).toHaveLength(6);
     for (const p of policies) {
       expect(['UPDATE', 'ALL'], p.policyname).not.toContain(p.cmd);
       const text = `${p.qual ?? ''} ${p.with_check ?? ''}`;

@@ -7,6 +7,8 @@ import { adminDb, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
 import { logoPathFor } from '../../src/server/company/company';
+import { uploadFile, type SignedUpload } from '../../src/lib/storage/upload';
+import { THUMB_WEBP } from '../thumbnail/fixture';
 import type { HttpMethod } from './routes';
 
 export type CaseEnv = {
@@ -476,7 +478,60 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       params: { id: env.projectId },
     }),
     expectStatus: 201,
+    after: (body, env) => env.created.set('thumbVersionId', field(body, 'version', 'id')),
     note: 'EZD-120a: one checkpoint; 201 { version: { id } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/thumbnail/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/thumbnail/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/thumbnail`,
+          { method: 'POST' },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    after: (body, env) => {
+      env.created.set('thumbUpload', JSON.stringify((body as { upload: unknown }).upload));
+      env.created.set('thumbPath', field(body, 'upload', 'path'));
+    },
+    note: 'EZD-224: signs one thumbnail upload; 200 { upload } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/thumbnail/complete/route.ts`,
+    method: 'POST',
+    load: () =>
+      import('../../src/app/api/projects/[id]/versions/[versionId]/thumbnail/complete/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      const upload = JSON.parse(made(env, 'thumbUpload')) as SignedUpload;
+      await uploadFile(upload, new Blob([THUMB_WEBP]), { contentType: 'image/webp' });
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/thumbnail/complete`,
+          { method: 'POST' },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-224: records the thumbnail; 200 { thumbnail: { versionId } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/thumbnail/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/thumbnail/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/thumbnail`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 302,
+    note: 'EZD-224: the card image; 302 to a signed link, empty body (no money)',
   },
   {
     file: `${API}projects/[id]/plan-scale/route.ts`,

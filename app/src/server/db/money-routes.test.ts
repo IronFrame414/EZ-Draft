@@ -122,7 +122,7 @@ describe('EZD-133 money fields only with their permission', () => {
       for (const u of [noCost, noSell]) {
         if (!u) continue;
         const sources = [u.env.created.get('storagePath')].filter((p): p is string => !!p);
-        const media = ['checkedLogoPath', 'logoPath']
+        const media = ['checkedLogoPath', 'logoPath', 'thumbPath']
           .map((k) => u.env.created.get(k))
           .filter((p): p is string => !!p);
         if (sources.length) await adminDb().storage.from('sources').remove(sources);

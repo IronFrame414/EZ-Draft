@@ -49,6 +49,9 @@ export const en = {
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
   'error.project_not_found': "That project isn't available.",
+  'error.version_not_found': "That version isn't available.",
+  'error.thumbnail_invalid': "That plan image couldn't be saved.",
+  'error.thumbnail_not_found': "That plan image isn't available.",
   'error.stale_lock_epoch':
     "Someone else is editing this project now, so these changes weren't saved.",
   'error.save_conflict':

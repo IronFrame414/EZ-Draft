@@ -118,6 +118,7 @@ const pageSchema = z.object({
       address: z.string(),
       status: z.enum(PROJECT_STATUSES),
       openItems: z.number().int().nonnegative(),
+      hasThumbnail: z.boolean(),
     }),
   ),
   next: cursorSchema.nullable(),

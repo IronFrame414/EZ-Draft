@@ -116,6 +116,21 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_lock_epoch: 0, p_changes: [] },
   },
   { fn: 'create_checkpoint', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
+  // EZD-224 C5 (vault/plans/EZD-224.md): the checkpoint thumbnail functions, authenticated only.
+  {
+    fn: 'start_checkpoint_thumbnail',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_version: '00000000-0000-4000-8000-000000000000',
+    },
+  },
+  {
+    fn: 'set_checkpoint_thumbnail',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_version: '00000000-0000-4000-8000-000000000000',
+    },
+  },
   // EZD-219 step 1 (vault/plans/EZD-219.md): the plan scale setter, authenticated only.
   {
     fn: 'set_plan_scale',

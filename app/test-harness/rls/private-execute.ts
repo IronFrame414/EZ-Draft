@@ -45,6 +45,10 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
     },
     { fn: 'private.tenant_id()', reason: POLICY_HELPER },
     { fn: 'private.tenant_user_ids()', reason: POLICY_HELPER },
+    {
+      fn: 'private.thumbnail_upload_allowed(text)',
+      reason: 'Called by the media thumb insert policy as the signing member (EZD-224).',
+    },
   ],
   service_role: [
     { fn: 'private.api_request_gate()', reason: GATE },

@@ -72,6 +72,7 @@ const item = (id: string): ProjectSummary => ({
   address: `${id} Reset St`,
   status: 'draft',
   openItems: 0,
+  hasThumbnail: false,
 });
 const COUNTS: ProjectCounts = {
   all: 6,

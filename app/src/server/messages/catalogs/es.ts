@@ -55,6 +55,9 @@ export const es = {
     'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
   'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
   'error.project_not_found': 'Ese proyecto no está disponible.',
+  'error.version_not_found': 'Esa versión no está disponible.',
+  'error.thumbnail_invalid': 'No se pudo guardar esa imagen del plano.',
+  'error.thumbnail_not_found': 'Esa imagen del plano no está disponible.',
   'error.stale_lock_epoch':
     'Otra persona está editando este proyecto ahora, así que estos cambios no se guardaron.',
   'error.save_conflict':

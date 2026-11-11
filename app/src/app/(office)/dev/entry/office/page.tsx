@@ -3,14 +3,26 @@
 // EZD-103a: the Settings shell, so the perf check measures it.
 // EZD-103b: the unsaved-edits guard and draft store, so the perf check measures them.
 // EZD-108: the avatar menu, so the perf check measures it.
+// EZD-224: one project card, so the perf check measures the card's code (no editor code).
 import { notFound } from 'next/navigation';
 import { MessagesProvider } from '../../../../../lib/messages';
 import { catalogFor } from '../../../../../server/messages/catalog';
 import { StateHost } from '../../../../../components/states/StateHost';
 import { SettingsShell } from '../../../../../components/settings/SettingsShell';
+import { ProjectCard } from '../../../../../components/projects/ProjectCard';
+import type { ProjectSummary } from '../../../../../lib/projects/projects';
 import type { SettingsSectionId } from '../../../../../lib/settings/sections';
 
 const NO_SECTIONS: readonly SettingsSectionId[] = [];
+const ENTRY_CARD: ProjectSummary = {
+  id: '00000000-0000-4000-8000-000000000000',
+  name: 'Entry',
+  clientName: null,
+  address: 'Entry',
+  status: 'draft',
+  openItems: 0,
+  hasThumbnail: false,
+};
 
 export default function Page() {
   if (process.env.VERCEL_ENV === 'production') notFound();
@@ -25,7 +37,9 @@ export default function Page() {
           draftScope=""
           account={{ name: null, email: '', showCompanySettings: false }}
         >
-          <main data-entry-placeholder="office" />
+          <main data-entry-placeholder="office">
+            <ProjectCard project={ENTRY_CARD} />
+          </main>
         </SettingsShell>
       </StateHost>
     </MessagesProvider>

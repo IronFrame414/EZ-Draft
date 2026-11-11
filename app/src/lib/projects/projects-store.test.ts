@@ -50,6 +50,7 @@ const item = (id: string, name = id): ProjectSummary => ({
   address: `${id} Sort St`,
   status: 'draft',
   openItems: 0,
+  hasThumbnail: false,
 });
 const COUNTS: ProjectCounts = {
   all: 6,
