@@ -1,6 +1,6 @@
 // EZD-360 T3-T5 (vault/plans/EZD-360.md section 4): phase 56 ranks right after phase 5 and before phase 6 in `--next-unit`.
 // Runs on a temporary copy of vault/ (the scripts/ledger/phase-overlap.test.mjs pattern): phases 5, 56 and 6 are signed off and
-// hold synthetic tickets; every real ticket of phases 1 to 6 and 56 that is not done is blocked; phases 0 to 4 are wrapped. Each test resets the state first.
+// hold synthetic tickets; every real ticket of phases 1 to 6, 56 and every later signed-off phase that is not done is blocked; phases 0 to 4 are wrapped. Each test resets the state first.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, appendFileSync, existsSync, realpathSync, rmSync } from 'node:fs';
@@ -76,8 +76,9 @@ before(async () => {
   writeFileSync(file('questions/QUESTIONS.md'), readFileSync(file('questions/QUESTIONS.md'), 'utf8')
     .replace(/^(\|\s*Q-\d{4}\s*\|[^|]*\|[^|]*\|[^|]*\|\s*)open(\s*\|)/gm, '$1answered-agent$2'));
 
-  // Every real ticket of phases 1 to 6 and 56 that is not done is blocked (a blocked row needs a note); other in-progress/review tickets are ready.
-  const quiet = (ph) => (ph >= 1 && ph <= 6) || ph === 56;
+  // Every real ticket of phases 1 to 6, 56 and every later phase signed off in the copy's SIGNOFF.md that is not done is blocked (a blocked row needs a note); other in-progress/review tickets are ready.
+  const signedPhases = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
+  const quiet = (ph) => (ph >= 1 && ph <= 6) || ph === 56 || signedPhases.has(ph) && ph > 6;
   const phaseOf = new Map(data.tickets.map((t) => [t.id, t.phase]));
   writeFileSync(file('tickets/STATUS.md'), readFileSync(file('tickets/STATUS.md'), 'utf8').split('\n').map((line) => {
     const m = line.match(/^\| (EZD-\w+) \|(.*)\|$/);
