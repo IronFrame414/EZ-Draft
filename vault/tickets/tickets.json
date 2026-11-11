@@ -2758,6 +2758,22 @@
    "mockups": [
     "mockups/S15Settings.png"
    ],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "My profile (EZD-108)",
+    "Email (EZD-008)",
+    "Events",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Menus (EZD-108)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-106",
@@ -2776,22 +2792,6 @@
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/03-data-model.md",
     "spec/decisions/05-screens.md"
-   ],
-   "architecture": [
-    "Auth and session (EZD-007)",
-    "Password sign-in (EZD-033)",
-    "My profile (EZD-108)",
-    "Email (EZD-008)",
-    "Events",
-    "Server-only data access and can()",
-    "Permission enforcement (EZD-102)",
-    "Messages and language (t())",
-    "State components (EZD-015)",
-    "Menus (EZD-108)",
-    "Row-level security (EZD-006)",
-    "Policy test harness (EZD-006)",
-    "Migrations",
-    "Browser tests (EZD-016a)"
    ]
   },
   {
@@ -2808,6 +2808,22 @@
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Release safety (EZD-023a)",
+    "Migrations",
+    "State components (EZD-015)",
+    "Customers (EZD-113)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2827,22 +2843,6 @@
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/03-data-model.md"
-   ],
-   "architecture": [
-    "Events",
-    "Messages and language (t())",
-    "Settings shell (EZD-103a)",
-    "Unsaved edits and drafts (EZD-103b)",
-    "Server-only data access and can()",
-    "Permission enforcement (EZD-102)",
-    "Permissions and roles (EZD-101)",
-    "Row-level security (EZD-006)",
-    "Policy test harness (EZD-006)",
-    "Release safety (EZD-023a)",
-    "Migrations",
-    "State components (EZD-015)",
-    "Customers (EZD-113)",
-    "Browser tests (EZD-016a)"
    ]
   },
   {
@@ -3987,6 +3987,24 @@
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "Row-level security (EZD-006)",
+    "Permission enforcement (EZD-102)",
+    "Server-only data access and can()",
+    "Tenancy tables (EZD-005)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "New project wizard (EZD-118)",
+    "Projects page (EZD-117a)",
+    "Blank templates (EZD-221)",
+    "Benchmark project (EZD-236)",
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-106",
@@ -4006,24 +4024,6 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0202",
     "spec/decisions/03-data-model.md"
-   ],
-   "architecture": [
-    "Row-level security (EZD-006)",
-    "Permission enforcement (EZD-102)",
-    "Server-only data access and can()",
-    "Tenancy tables (EZD-005)",
-    "Policy test harness (EZD-006)",
-    "Migrations",
-    "New project wizard (EZD-118)",
-    "Projects page (EZD-117a)",
-    "Blank templates (EZD-221)",
-    "Benchmark project (EZD-236)",
-    "Events",
-    "Messages and language (t())",
-    "Settings shell (EZD-103a)",
-    "Unsaved edits and drafts (EZD-103b)",
-    "State components (EZD-015)",
-    "Browser tests (EZD-016a)"
    ]
   },
   {
@@ -4224,7 +4224,11 @@
     "Policy test harness (EZD-006)",
     "Browser tests (EZD-016a)",
     "State components (EZD-015)",
-    "Messages and language (t())"
+    "Messages and language (t())",
+    "Background jobs (EZD-009)",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Migrations"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -6109,14 +6113,11 @@
    "architecture": [
     "Storage buckets and paths",
     "Model working copy (EZD-120a)",
-    "Plan canvas (EZD-207a)",
-    "Editor route (EZD-120c)",
     "Projects page (EZD-117a)",
     "Entry contents and bundle report (EZD-020)",
     "Browser tests (EZD-016a)",
     "Row-level security (EZD-006)",
-    "Benchmark project (EZD-236)",
-    "Dependencies"
+    "Migrations"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -6494,9 +6495,7 @@
     "Model schema (EZD-202)",
     "Drawing list (EZD-238)",
     "Benchmark project (EZD-236)",
-    "Performance check (EZD-017)",
-    "Entry points and lazy modules (EZD-020)",
-    "Dependencies"
+    "Entry points and lazy modules (EZD-020)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -21778,7 +21777,7 @@
   {
    "id": "EZD-384",
    "phase": 1,
-   "title": "Planning method 3: brief-and-size (P1) and code-bound plan (P3) as their own launcher units, and the phase dependency check (P5)",
+   "title": "Planning method 3a: the brief-and-size step (P1)",
    "depends_raw": "EZD-383",
    "spec_ref": "Q-0693; rule 17",
    "spec_files": [
@@ -21794,7 +21793,9 @@
    "acs": [
     "AC-EZD-384-1",
     "AC-EZD-384-2",
-    "AC-EZD-384-3"
+    "AC-EZD-384-3",
+    "AC-EZD-384-4",
+    "AC-EZD-384-5"
    ],
    "acs_source": "done-when"
   },
@@ -21812,7 +21813,8 @@
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-383"
+    "EZD-383",
+    "EZD-384b"
    ],
    "acs": [
     "AC-EZD-385-1",
@@ -21930,6 +21932,34 @@
     "AC-EZD-235-3"
    ],
    "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-384b",
+   "phase": 1,
+   "title": "Planning method 3b: the code-bound step (P3) and the phase dependency check (P5)",
+   "depends_raw": "EZD-384",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-384"
+   ],
+   "acs": [
+    "AC-EZD-384b-1",
+    "AC-EZD-384b-2",
+    "AC-EZD-384b-3",
+    "AC-EZD-384b-4",
+    "AC-EZD-384b-5",
+    "AC-EZD-384b-6",
+    "AC-EZD-384b-7",
+    "AC-EZD-384b-8"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
