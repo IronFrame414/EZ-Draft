@@ -2959,10 +2959,12 @@
    "id": "EZD-111",
    "phase": 9,
    "title": "Send dialog with Copy link",
-   "depends_raw": "EZD-110, EZD-120",
+   "depends_raw": "EZD-110, EZD-120, EZD-116 (Q-0700)",
    "spec_ref": "R24 #15; Data model · sent_package",
    "spec_files": [
-    "spec/sections/03d-tables-rounds-24-25.md#sent_package"
+    "spec/sections/03d-tables-rounds-24-25.md#sent_package",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
@@ -2972,17 +2974,29 @@
     "EZD-120a",
     "EZD-120b",
     "EZD-120c",
-    "EZD-120d"
+    "EZD-120d",
+    "EZD-116"
    ],
    "build_position": 130,
    "acs": [
-    "AC-EZD-111-1"
+    "AC-EZD-111-1",
+    "AC-EZD-111-2",
+    "AC-EZD-111-3",
+    "AC-EZD-111-4",
+    "AC-EZD-111-5",
+    "AC-EZD-111-6",
+    "AC-EZD-111-7",
+    "AC-EZD-111-8",
+    "AC-EZD-111-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0213"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0213",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -3494,7 +3508,9 @@
    "spec_ref": "R24 #4a, #16, #26; Revisions · Version rules",
    "spec_files": [
     "spec/sections/screens/S20-revisions-version-history.md#Version rules",
-    "spec/sections/13-decisions-and-remaining-items.md"
+    "spec/sections/13-decisions-and-remaining-items.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S20Versions.png"
@@ -3510,26 +3526,35 @@
    "build_position": 131,
    "acs": [
     "AC-EZD-121-1",
-    "AC-EZD-121-2"
+    "AC-EZD-121-2",
+    "AC-EZD-121-3",
+    "AC-EZD-121-4",
+    "AC-EZD-121-5",
+    "AC-EZD-121-6",
+    "AC-EZD-121-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/05-screens.md#Q-0200"
+    "spec/decisions/05-screens.md#Q-0200",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-122",
    "phase": 9,
    "title": "Versions panel",
-   "depends_raw": "EZD-121",
+   "depends_raw": "EZD-121, EZD-224 (Q-0700), EZD-225 (Q-0700), EZD-125 (Q-0700)",
    "spec_ref": "Revisions / version history; S03 Tab: Versions",
    "spec_files": [
     "spec/sections/screens/S20-revisions-version-history.md",
-    "spec/sections/screens/S03-plan-editor.md#Tab: Versions"
+    "spec/sections/screens/S03-plan-editor.md#Tab: Versions",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S03Plan.png",
@@ -3537,28 +3562,44 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-121"
+    "EZD-121",
+    "EZD-224",
+    "EZD-225",
+    "EZD-125"
    ],
    "build_position": 132,
    "acs": [
-    "AC-EZD-122-1"
+    "AC-EZD-122-1",
+    "AC-EZD-122-2",
+    "AC-EZD-122-3",
+    "AC-EZD-122-4",
+    "AC-EZD-122-5",
+    "AC-EZD-122-6",
+    "AC-EZD-122-7",
+    "AC-EZD-122-8",
+    "AC-EZD-122-9",
+    "AC-EZD-122-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-123",
    "phase": 9,
    "title": "Version cleanup",
-   "depends_raw": "EZD-122, EZD-110, EZD-116",
+   "depends_raw": "EZD-122, EZD-110, EZD-116, EZD-224 (Q-0700), EZD-125 (Q-0700)",
    "spec_ref": "W15; R24 #4; Revisions · Cleanup sheet",
    "spec_files": [
     "spec/sections/06-workflows.md",
     "spec/sections/screens/S20-revisions-version-history.md#Cleanup sheet",
-    "spec/sections/13-decisions-and-remaining-items.md"
+    "spec/sections/13-decisions-and-remaining-items.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S20Versions.png"
@@ -3568,19 +3609,31 @@
     "EZD-122",
     "EZD-110a",
     "EZD-110b",
-    "EZD-116"
+    "EZD-116",
+    "EZD-224",
+    "EZD-125"
    ],
    "build_position": 133,
    "acs": [
     "AC-EZD-123-1",
-    "AC-EZD-123-2"
+    "AC-EZD-123-2",
+    "AC-EZD-123-3",
+    "AC-EZD-123-4",
+    "AC-EZD-123-5",
+    "AC-EZD-123-6",
+    "AC-EZD-123-7",
+    "AC-EZD-123-8",
+    "AC-EZD-123-9",
+    "AC-EZD-123-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3591,7 +3644,9 @@
    "spec_ref": "S01 Card overflow menu; S01 Decisions",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Card overflow menu",
-    "spec/sections/screens/S01-projects.md"
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -3605,9 +3660,15 @@
    "build_position": 134,
    "acs": [
     "AC-EZD-124-1",
-    "AC-EZD-124-2"
+    "AC-EZD-124-2",
+    "AC-EZD-124-3",
+    "AC-EZD-124-4",
+    "AC-EZD-124-5",
+    "AC-EZD-124-6",
+    "AC-EZD-124-7",
+    "AC-EZD-124-8"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -3616,7 +3677,8 @@
     "spec/decisions/05-screens.md#Q-0191",
     "spec/decisions/05-screens.md#Q-0199",
     "spec/decisions/05-screens.md#Q-0201",
-    "spec/decisions/10-permissions-and-settings.md#Q-0202"
+    "spec/decisions/10-permissions-and-settings.md#Q-0202",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -16523,7 +16585,9 @@
    "depends_raw": "EZD-117a, EZD-117b, EZD-102, EZD-124",
    "spec_ref": "Q-0191, Q-0199; S01 Projects",
    "spec_files": [
-    "spec/sections/screens/S01-projects.md#Projects"
+    "spec/sections/screens/S01-projects.md#Projects",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -16538,15 +16602,19 @@
    "build_position": 86,
    "acs": [
     "AC-EZD-137-1",
-    "AC-EZD-137-2"
+    "AC-EZD-137-2",
+    "AC-EZD-137-3",
+    "AC-EZD-137-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/05-screens.md#Q-0191",
     "spec/decisions/05-screens.md#Q-0199",
-    "spec/decisions/05-screens.md#Q-0395"
+    "spec/decisions/05-screens.md#Q-0395",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -17097,10 +17165,15 @@
    "depends_raw": "EZD-122, EZD-121",
    "spec_ref": "Q-0220; S20 Revisions / version history",
    "spec_files": [
-    "spec/sections/02-product-overview.md"
+    "spec/sections/02-product-overview.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "decisions": [
-    "spec/decisions/02-product-overview.md#Q-0220"
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
@@ -17110,9 +17183,12 @@
    ],
    "build_position": 0,
    "acs": [
-    "AC-EZD-139-1"
+    "AC-EZD-139-1",
+    "AC-EZD-139-2",
+    "AC-EZD-139-3",
+    "AC-EZD-139-4"
    ],
-   "acs_source": "done-when"
+   "acs_source": "stage-0"
   },
   {
    "id": "EZD-140",

@@ -15,6 +15,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
 - [Glossary addendum, Phase 6](sections/00g-glossary-phase-06.md) — Phase 6 terms added to glossary.md; Q-0664
 - [Glossary addendum, Phase 7](sections/00h-glossary-phase-07.md) — Phase 7 terms added to glossary.md; Q-0695
 - [Glossary addendum, Phase 8](sections/00i-glossary-phase-08.md) — Phase 8 terms added to glossary.md; Q-0697
+- [Glossary addendum, Phase 9](sections/00j-glossary-phase-09.md) — Phase 9 terms added to glossary.md; Q-0700
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
@@ -81,6 +82,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09m · Phase switch, snap, scale, zoom, dimensions, text, thumbnail, benchmark: worked examples](sections/09m-phase-switch-and-view-examples.md) — Q-0664
   - [09n · Users, switches, invites and project scope: worked examples](sections/09n-users-and-invites-examples.md) — Q-0695
   - [09o · Edit lock and Defaults: worked examples](sections/09o-edit-lock-and-defaults-examples.md) — Q-0697
+  - [09p · Versions, sends, cleanup and the project card: worked examples](sections/09p-versions-and-cleanup-examples.md) — Q-0700
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)

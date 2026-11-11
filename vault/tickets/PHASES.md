@@ -463,23 +463,25 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 - **Goal:** Every send freezes a numbered version that can be reopened, named, reverted and cleaned up.
 - **User-visible result:** Shared Send dialog with Copy link; Version N numbering and header version label; Versions panel (Sent, Named snapshots, Working) with read-only open, Name snapshot and Revert; daily cleanup job and sheet; project card menu (Rename, Set status, Archive, Unarchive, Delete before any send).
-- **Spec files:** `spec/decisions.md`, `spec/sections/03-data-model.md`, `spec/sections/13-decisions-and-remaining-items.md`, `spec/sections/screens/X-revisions-version-history-not-in-mockup.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/06-workflows.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (5, build order):**
+- **Spec files:** `vault/spec/decisions/` (03, 05, 10; Q-0700), `spec/sections/09p-versions-and-cleanup-examples.md`, `spec/sections/00j-glossary-phase-09.md`, `spec/sections/03-data-model.md`, `spec/sections/13-decisions-and-remaining-items.md`, `spec/sections/screens/X-revisions-version-history-not-in-mockup.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/06-workflows.md`, `spec/sections/screens/S01-projects.md`
+- **Tickets (7, build order):**
   - EZD-111 Send dialog with Copy link — needs EZD-110 (s2), EZD-120a (s3), EZD-120b (s3)
   - EZD-121 Sent versions and numbering — after EZD-111; needs EZD-120a (s3), EZD-120b (s3)
   - EZD-122 Versions panel — after EZD-121
   - EZD-123 Version cleanup — after EZD-122; needs EZD-110 (s2), EZD-116 (s8)
   - EZD-124 Project card menu — after EZD-121; needs EZD-117a (s2), EZD-117b (s2)
+  - EZD-137 Mark complete and Completed filter — after EZD-124 (Q-0191, Q-0395)
+  - EZD-139 Visual diff of an old version — after EZD-122 (Q-0220, Q-0700)
 - **Depends on slices:** 2, 3, 8
 - **Out of scope until later:** Sheets and permit revisions Rev N (slice 23); client page the link opens (slice 33); change orders (slice 36).
 - **Risks and spikes:** EZD-121 frozen rows must reject writes at the database; EZD-123's cleanup deletes data after the grace period, so its job needs the dry-run path tested first.
 - **Josh's test script:**
-  1. Open the Send dialog from a project, add a recipient, Send. Expected: The stub transport records the email; Copy link opens the same item; the header reads “Working copy · Version 1 sent”.
+  1. Open the Send dialog on a project whose client has an email (the To line shows the client, Q-0700), Send. Expected: The stub transport records the email; Copy link opens the same item; the header reads “Working copy · Version 1 sent”.
   2. Edit a wall and send again. Expected: Version 2 is created; Version 1 is unchanged.
   3. Open Version 1 from the Versions panel. Expected: It opens read-only with the “Version 1” label.
   4. Name snapshot on the working copy, then Revert to Version 1. Expected: A new working version appears; sent versions stay.
   5. Run the cleanup job with the Defaults age set to 0 days. Expected: The cleanup sheet lists unsent working versions with Keep and Name; a notification with Copy link arrives.
-  6. Projects → card menu on a project with a sent version. Expected: Delete is absent; Archive removes it from every tab and Show archived brings it back.
+  6. Projects → card menu on a project with a sent version. Expected: Delete asks for the project name and removes the project; Archive moves it to Archived and Restore brings it back (Q-0201, Q-0700).
 
 ### Slice 10 · Fixtures, existing conditions, showers, bearing walls (from spec phase 2)
 
