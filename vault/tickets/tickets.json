@@ -22122,6 +22122,27 @@
     "AC-EZD-391-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-392",
+   "phase": 4,
+   "title": "Fix: the EZD-207c N5 throttle test fails under load (throttled time under twice the plain time)",
+   "depends_raw": "EZD-207c",
+   "spec_ref": "rule 17; EZD-207c",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-392-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
