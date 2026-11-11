@@ -77,6 +77,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
   { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
+  // EZD-104 (vault/plans/EZD-104.md): the Users page functions, authenticated only.
+  { fn: 'list_users', args: { p_search: '', p_page: 1 } },
+  { fn: 'touch_last_active', args: {} },
   // EZD-110a section 3 (vault/plans/EZD-110a.md): the notification functions, authenticated only.
   { fn: 'list_notifications', args: { p_before_created_at: null, p_before_id: null } },
   { fn: 'open_notification', args: { p_id: '00000000-0000-4000-8000-000000000000' } },

@@ -66,6 +66,8 @@ const EXPECTED_ICONS = [
   'library_add_check',
   'library_books',
   'logout',
+  // EZD-104 (vault/plans/EZD-104.md): pending invite avatar.
+  'mail',
   'monitor_heart',
   'more_horiz',
   'my_location',

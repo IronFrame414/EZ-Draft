@@ -694,6 +694,9 @@ isOneToOne: false
 "list_projects":
 { Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
+"list_users":
+{ Args: { "p_page": number,"p_search": string }; Returns: Json
+                           },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
@@ -749,6 +752,9 @@ isOneToOne: false
 { Args: { "p_project": string,"p_version": string }; Returns: string
                            },
 "take_ai_key_attempt":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"touch_last_active":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "update_my_profile":

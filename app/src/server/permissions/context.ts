@@ -8,6 +8,7 @@ import { isPermissionKey, type PermissionKey } from '../../lib/permissions/catal
 import { getSession } from '../auth/session';
 import { createSessionClient } from '../auth/supabase-server';
 import type { Database } from '../db/database.types';
+import { touchLastActive } from '../users/users';
 
 export type PermissionContext = {
   appUserId: string;
@@ -38,9 +39,18 @@ export async function loadPermissionContext(
   };
 }
 
+// EZD-104 Build step 5 (vault/plans/EZD-104.md Decided "Where the touch runs"; Q-0695 03-data-model row 34):
+// every signed-in request also moves the member's own last_active_at, in parallel on the same session
+// client; touchLastActive never rejects, so it never changes the context.
 export const getPermissionContext = cache(async (): Promise<PermissionContext | null> => {
   const s = await getSession();
-  return s ? loadPermissionContext(createSessionClient(), s.appUserId) : null;
+  if (!s) return null;
+  const client = createSessionClient();
+  const [ctx] = await Promise.all([
+    loadPermissionContext(client, s.appUserId),
+    touchLastActive(client),
+  ]);
+  return ctx;
 });
 
 export function permissionList(ctx: PermissionContext | null): PermissionKey[] {

@@ -289,6 +289,13 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
   },
   {
+    file: `${API}settings/users/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/users/route'),
+    request: get('/api/settings/users'),
+    expectStatus: 200,
+  },
+  {
     file: `${API}settings/company/route.ts`,
     method: 'PATCH',
     load: () => import('../../src/app/api/settings/company/route'),

@@ -28,6 +28,7 @@ export const CAP_LOCK_READ_ONLY: readonly ReadOnlyCounter[] = [
     fn: 'public.list_customers(text, boolean, integer)',
     reason: 'Customers list totals; stable (20261026233829).',
   },
+  { fn: 'public.list_users(text, integer)', reason: 'Users list totals; stable (EZD-104).' },
   {
     fn: 'public.list_notifications(timestamp with time zone, uuid)',
     reason: 'Notifications list counts; stable (20261102210539).',

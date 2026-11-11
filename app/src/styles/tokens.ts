@@ -71,4 +71,6 @@ export const TOKENS: readonly {
   // S03dStates box select right to left; EZD-208b
   { name: '--ez-box-touch-stroke', value: 'oklch(0.5 0.12 160)', group: 'color' },
   { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
+  // S15 .tron; EZD-104
+  { name: '--ez-row-selected', value: '#f5f7ff', group: 'color' },
 ];

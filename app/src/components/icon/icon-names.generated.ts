@@ -44,6 +44,7 @@ export const ICON_NAMES = [
   'library_add_check',
   'library_books',
   'logout',
+  'mail',
   'monitor_heart',
   'more_horiz',
   'my_location',

@@ -72,4 +72,6 @@
   /* S03dStates box select right to left; EZD-208b */
   --ez-box-touch-stroke: oklch(0.5 0.12 160);
   --ez-box-touch-fill: oklch(0.72 0.12 160);
+  /* S15 .tron; EZD-104 */
+  --ez-row-selected: #f5f7ff;
 }

@@ -39,3 +39,46 @@ describe('EZD-112 SettingsMain subtitle and flush', () => {
     expect(html).not.toContain(`class="${styles.mainBody}"`);
   });
 });
+
+// EZD-104 U7 (vault/plans/EZD-104.md section 4; AC-EZD-104-1). Expected values: Decided "Main head with
+// actions": with `actions` the head is div.mainHead.mainHeadRow holding div.mainHeadText (h1 and subtitle p)
+// then div.mainActions with the node; without `actions` the EZD-112 T10 markup is unchanged. Class names come
+// from the CSS module (`styles`); each element is anchored on its own tag (L-020).
+describe('EZD-104 SettingsMain actions', () => {
+  it('U7 actions render in mainActions after mainHeadText; without actions the head is unchanged', () => {
+    const withActions = render(
+      <SettingsMain
+        section="users"
+        title="office.settings.section.users"
+        subtitle="office.users.subtitle"
+        flush
+        actions={<i data-probe="" />}
+      >
+        <b />
+      </SettingsMain>,
+    );
+    const head = new RegExp(
+      `<div class="${styles.mainHead} ${styles.mainHeadRow}"><div class="${styles.mainHeadText}">` +
+        `<h1 [^>]*>[^<]*</h1><p class="${styles.mainSubtitle}">[^<]*</p></div>` +
+        `<div class="${styles.mainActions}"><i data-probe=""></i></div></div>`,
+    );
+    expect(withActions).toMatch(head);
+
+    const without = render(
+      <SettingsMain
+        section="users"
+        title="office.settings.section.users"
+        subtitle="office.users.subtitle"
+        flush
+      >
+        <b />
+      </SettingsMain>,
+    );
+    expect(without).toMatch(
+      new RegExp(
+        `<div class="${styles.mainHead}"><h1 [^>]*>[^<]*</h1><p class="${styles.mainSubtitle}">[^<]*</p></div>`,
+      ),
+    );
+    expect(without).not.toContain('data-probe');
+  });
+});

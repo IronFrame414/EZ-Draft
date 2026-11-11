@@ -179,21 +179,33 @@ export function SettingsMain({
   title,
   subtitle,
   flush,
+  actions,
   children,
 }: {
   section?: SettingsSectionId;
   title?: MessageKey;
   subtitle?: MessageKey;
   flush?: boolean;
+  actions?: ReactNode;
   children?: ReactNode;
 }) {
   const t = useT();
+  const heading =
+    title === undefined ? null : (
+      <>
+        <h1 className={styles.mainTitle}>{t(title)}</h1>
+        {subtitle === undefined ? null : <p className={styles.mainSubtitle}>{t(subtitle)}</p>}
+      </>
+    );
   return (
     <main data-settings-page={section} className={`${styles.card} ${styles.main}`}>
-      {title === undefined ? null : (
-        <div className={styles.mainHead}>
-          <h1 className={styles.mainTitle}>{t(title)}</h1>
-          {subtitle === undefined ? null : <p className={styles.mainSubtitle}>{t(subtitle)}</p>}
+      {title === undefined ? null : actions === undefined ? (
+        <div className={styles.mainHead}>{heading}</div>
+      ) : (
+        // EZD-104 (vault/plans/EZD-104.md Decided "Main head with actions"): text left, actions right.
+        <div className={`${styles.mainHead} ${styles.mainHeadRow}`}>
+          <div className={styles.mainHeadText}>{heading}</div>
+          <div className={styles.mainActions}>{actions}</div>
         </div>
       )}
       {flush ? (
