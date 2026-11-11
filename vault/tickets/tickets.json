@@ -22092,6 +22092,13 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Error reporting (EZD-024)",
+    "Sync conflicts on the device (EZD-299b)",
+    "Sync conflicts (EZD-299a)",
+    "CI",
+    "Build lanes (EZD-172)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
