@@ -2776,6 +2776,22 @@
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/03-data-model.md",
     "spec/decisions/05-screens.md"
+   ],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "My profile (EZD-108)",
+    "Email (EZD-008)",
+    "Events",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Menus (EZD-108)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "Browser tests (EZD-016a)"
    ]
   },
   {
@@ -2811,6 +2827,22 @@
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/03-data-model.md"
+   ],
+   "architecture": [
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Release safety (EZD-023a)",
+    "Migrations",
+    "State components (EZD-015)",
+    "Customers (EZD-113)",
+    "Browser tests (EZD-016a)"
    ]
   },
   {
@@ -3974,6 +4006,24 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0202",
     "spec/decisions/03-data-model.md"
+   ],
+   "architecture": [
+    "Row-level security (EZD-006)",
+    "Permission enforcement (EZD-102)",
+    "Server-only data access and can()",
+    "Tenancy tables (EZD-005)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "New project wizard (EZD-118)",
+    "Projects page (EZD-117a)",
+    "Blank templates (EZD-221)",
+    "Benchmark project (EZD-236)",
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
    ]
   },
   {
