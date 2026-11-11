@@ -43,3 +43,8 @@ Brief: vault/handoff/session-17-brief.md. Josh's list for the morning: vault/han
 - The overwatch missed a strike hold (tooling note). Check node -e strikeHolds() yourself.
 - v2 plans run past the agent turn limits: planner 100, plan-checker 60, security-reviewer 30. Resume them with a short finishing brief.
 - Write and Bash heredocs of code are blocked outside vault/. Build JSON with jq --arg, and edit with the Edit tool.
+
+## Update about 10:10 UTC
+- EZD-384 (P1 brief and size) merged bdd94b3a and develop recorded. EZD-384b's v2 plan is written (untracked) and its planner is re-validating it against develop; then the plan-checker, the build, and EZD-385.
+- Phase 6: questions 6 set EZD-224, 224b, 235 and 235b ready, and EZD-135 is planned (Q-0665). review-plans 6 never ran because the phase is already building (EZD-219 done) and an old review file existed. The old review is archived (1324239a), and the code-reviewer is running review-plans 6 by hand. build EZD-224 had already started (09:14Z) and is left to finish. Builds of EZD-135, 224b, 235 and 235b are on .git/set-aside.json until the review passes. Take them off after a PASS, or after its findings are fixed.
+- EZD-380: lane 3 series, 2 counting gates so far (run 2 counted; runs 1 and 3 did not). It runs only when a launcher gate is live on lane 1 or 2 (background loop; record test-results/d380/runs.txt).
