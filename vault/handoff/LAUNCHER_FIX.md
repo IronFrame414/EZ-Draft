@@ -20,3 +20,15 @@ EZD-382 (2026-11-11): plan template v2, plan_lint v2 rules and the planner limit
 
 EZD-386 (2026-11-11): look-ahead to every signed-off phase (Josh 2026-11-11). Paths above plus:
 - scripts/ledger/phase-overlap.test.mjs
+
+EZD-383 (2026-11-11): contract check, connections check and the shared-list register. Paths:
+- vault/tools/contract_check.mjs
+- vault/tools/connections_check.mjs
+- vault/tools/plan_ready.mjs
+- scripts/ledger.mjs
+- vault/shared-lists.json
+- .claude/skills/questions/SKILL.md
+- scripts/process/fixtures/plan-checks.mjs
+- scripts/process/contract-check.test.mjs
+- scripts/process/connections-check.test.mjs
+- scripts/process/ledger-lock.test.mjs

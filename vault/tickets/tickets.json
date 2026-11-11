@@ -21586,6 +21586,14 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Folder layout",
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging",
+    "Adding a dependency"
+   ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
