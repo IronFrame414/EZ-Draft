@@ -487,7 +487,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 - **Goal:** Record what exists in a bath or kitchen: fixtures, appliances, utility points, condition pins and a custom tile shower.
 - **User-visible result:** Fixtures tool with generic plumbing fixtures, appliances and utility points; existing-condition pins with photos; floor levels, transitions, attic access, soffits, registers and detectors as existing objects; bearing wall rule with engineer note; custom tile shower object; grab-bar blocking.
-- **Spec files:** `spec/sections/06-workflows.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/03-data-model.md`
+- **Spec files:** `spec/sections/06-workflows.md`, `spec/sections/09e-geometry-and-drafting.md`, `vault/spec/decisions/` (03, 05, 09, 10; Q-0704), `spec/sections/09q-existing-conditions-examples.md`, `spec/sections/00k-glossary-phase-10.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/03-data-model.md`
 - **Tickets (6, build order):**
   - EZD-215 Bearing wall rule — needs EZD-213 (s5), EZD-132 (s1)
   - EZD-220 Existing-condition pins — needs EZD-213 (s5), EZD-132 (s1)
@@ -502,7 +502,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   1. Press F and place a sink, a range and a refrigerator; add a gas and a drain utility point. Expected: Each places with its attributes; moving the range lists the utilities that must move.
   2. In Existing view add a moisture pin with a photo; switch to Proposed. Expected: The pin persists and shows only in Existing.
   3. Set a 3/4" floor-level step on a room. Expected: A transition draws on the plan and shows in the room inspector.
-  4. Mark a wall bearing and press Delete. Expected: Blocked with “Engineer required”; after attaching a note with name and approval it deletes and the event log has a row.
+  4. Mark a wall bearing and press Delete. Expected: Deletes; the warning “Engineer required” stays on the project until a note with name and approval is attached; both write an event-log row (Q-0205, Q-0704).
   5. In a 5x8 bath draw a shower with curb, niche and linear drain; reload. Expected: It draws in plan and survives reload.
   6. Place grab-bar blocking on a bath wall and move the wall. Expected: The blocking follows the hosted-item rules.
 

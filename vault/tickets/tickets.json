@@ -5419,11 +5419,13 @@
    "id": "EZD-215",
    "phase": 10,
    "title": "Bearing wall rule",
-   "depends_raw": "EZD-213, EZD-132",
+   "depends_raw": "EZD-213, EZD-132, EZD-234 (Q-0704), EZD-109 (Q-0704), EZD-214 (Q-0704), EZD-212a (Q-0704)",
    "spec_ref": "Geometry rules; W3",
    "spec_files": [
     "spec/sections/09e-geometry-and-drafting.md",
-    "spec/sections/06-workflows.md"
+    "spec/sections/06-workflows.md",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -5431,18 +5433,29 @@
     "EZD-213a",
     "EZD-213b",
     "EZD-213c",
-    "EZD-132"
+    "EZD-132",
+    "EZD-234",
+    "EZD-109",
+    "EZD-214",
+    "EZD-212a"
    ],
    "build_position": 135,
    "acs": [
     "AC-EZD-215-1",
-    "AC-EZD-215-2"
+    "AC-EZD-215-2",
+    "AC-EZD-215-3",
+    "AC-EZD-215-4",
+    "AC-EZD-215-5",
+    "AC-EZD-215-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/09-calculations-and-rules.md#Q-0205"
+    "spec/decisions/09-calculations-and-rules.md#Q-0205",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -5710,14 +5723,16 @@
    "id": "EZD-220",
    "phase": 10,
    "title": "Existing-condition pins",
-   "depends_raw": "EZD-213, EZD-132",
+   "depends_raw": "EZD-213, EZD-132, EZD-234 (Q-0704), EZD-214 (Q-0704)",
    "spec_ref": "Objects inside model_json; S03 Fixtures, Validation; W3",
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/03f-model-json-objects.md#inside model_json",
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
     "spec/sections/screens/S03-plan-editor.md#Validation",
-    "spec/sections/06-workflows.md"
+    "spec/sections/06-workflows.md",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -5727,16 +5742,26 @@
     "EZD-213a",
     "EZD-213b",
     "EZD-213c",
-    "EZD-132"
+    "EZD-132",
+    "EZD-234",
+    "EZD-214"
    ],
    "build_position": 136,
    "acs": [
-    "AC-EZD-220-1"
+    "AC-EZD-220-1",
+    "AC-EZD-220-2",
+    "AC-EZD-220-3",
+    "AC-EZD-220-4",
+    "AC-EZD-220-5",
+    "AC-EZD-220-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -6003,7 +6028,9 @@
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
-    "spec/sections/09e-geometry-and-drafting.md#Geometry and drafting rules"
+    "spec/sections/09e-geometry-and-drafting.md#Geometry and drafting rules",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -6014,13 +6041,17 @@
    ],
    "build_position": 139,
    "acs": [
-    "AC-EZD-226-1"
+    "AC-EZD-226-1",
+    "AC-EZD-226-2",
+    "AC-EZD-226-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/09-calculations-and-rules.md"
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -6030,7 +6061,9 @@
    "depends_raw": "EZD-234",
    "spec_ref": "Data model · Objects (Fixtures)",
    "spec_files": [
-    "spec/sections/03f-model-json-objects.md#Objects inside model_json"
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -6040,11 +6073,17 @@
    "build_position": 140,
    "acs": [
     "AC-EZD-227-1",
-    "AC-EZD-227-2"
+    "AC-EZD-227-2",
+    "AC-EZD-227-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
-   "decisions": []
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md"
+   ]
   },
   {
    "id": "EZD-228",
@@ -6080,24 +6119,36 @@
    "id": "EZD-229",
    "phase": 10,
    "title": "Existing-condition details",
-   "depends_raw": "EZD-220",
+   "depends_raw": "EZD-220, EZD-234 (Q-0704), EZD-218 (Q-0704)",
    "spec_ref": "Data model · Existing-condition pins (Rounds 1–2)",
    "spec_files": [
-    "spec/sections/03f-model-json-objects.md#Existing-condition pins"
+    "spec/sections/03f-model-json-objects.md#Existing-condition pins",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-220"
+    "EZD-220",
+    "EZD-234",
+    "EZD-218"
    ],
    "build_position": 137,
    "acs": [
     "AC-EZD-229-1",
-    "AC-EZD-229-2"
+    "AC-EZD-229-2",
+    "AC-EZD-229-3",
+    "AC-EZD-229-4",
+    "AC-EZD-229-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
-   "decisions": []
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md"
+   ]
   },
   {
    "id": "EZD-230",
@@ -6236,7 +6287,9 @@
     "spec/sections/03f-model-json-objects.md#inside model_json",
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
     "spec/sections/screens/S03-plan-editor.md#Validation",
-    "spec/sections/06-workflows.md"
+    "spec/sections/06-workflows.md",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -6249,12 +6302,19 @@
    ],
    "build_position": 138,
    "acs": [
-    "AC-EZD-234-1"
+    "AC-EZD-234-1",
+    "AC-EZD-234-2",
+    "AC-EZD-234-3",
+    "AC-EZD-234-4",
+    "AC-EZD-234-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
