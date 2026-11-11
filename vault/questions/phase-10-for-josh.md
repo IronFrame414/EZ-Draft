@@ -13,7 +13,7 @@ Phase 10: fixtures, existing conditions, the tile shower, grab-bar blocking and 
 
 Confirm or override each. Nothing waits on these.
 
-- **Bearing walls follow your Q-0205.** Deleting, demolishing or cutting a new or wider opening into a bearing wall is allowed, but it raises "Engineer required". The warning stays on the project until an engineer's name and what they approved are entered, with an optional letter. This replaces the older spec text that blocked the delete.
+- **Bearing walls follow your Q-0205.** Deleting, demolishing or cutting a new or wider opening into a bearing wall is allowed, but it raises "Engineer required". The warning stays on the project until "Engineer letter on file" is ticked, your own words in Q-0205. Ticking it needs the engineer's name and what they approved; attaching the letter itself is optional. This replaces the older spec text that blocked the delete.
 - **The fixture list is only what the spec names:** toilet, lavatory, tub, prefab shower, sink, cooktop, range, hood, refrigerator, dishwasher, disposal, washer, dryer and water heater. Anything else waits for the catalog.
 - **Utility points:** electric (120 or 240 V and amps), gas, water or drain, each linked to one appliance. Moving an appliance lists the points that now need to move. It only warns, never blocks.
 - **Pins show only in the Existing view.** A photo is optional. If the photo upload fails, the pin is kept and you can retry.

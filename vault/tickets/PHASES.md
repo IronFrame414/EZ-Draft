@@ -462,7 +462,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 9 · Versions, sends and the project card menu (from spec phase 1)
 
 - **Goal:** Every send freezes a numbered version that can be reopened, named, reverted and cleaned up.
-- **User-visible result:** Shared Send dialog with Copy link; Version N numbering and header version label; Versions panel (Sent, Named snapshots, Working) with read-only open, Name snapshot and Revert; daily cleanup job and sheet; project card menu (Rename, Set status, Archive, Unarchive, Delete before any send).
+- **User-visible result:** Shared Send dialog with Copy link; Version N numbering and header version label; Versions panel (Sent, Named snapshots, Working) with read-only open, Name snapshot and Revert; daily cleanup job and sheet; project card menu (Rename, Set status, Mark complete, Archive, Restore, and Delete at any time after typing the project name; Q-0201, Q-0700).
 - **Spec files:** `vault/spec/decisions/` (03, 05, 10; Q-0700), `spec/sections/09p-versions-and-cleanup-examples.md`, `spec/sections/00j-glossary-phase-09.md`, `spec/sections/03-data-model.md`, `spec/sections/13-decisions-and-remaining-items.md`, `spec/sections/screens/X-revisions-version-history-not-in-mockup.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/06-workflows.md`, `spec/sections/screens/S01-projects.md`
 - **Tickets (7, build order):**
   - EZD-111 Send dialog with Copy link — needs EZD-110 (s2), EZD-120a (s3), EZD-120b (s3)

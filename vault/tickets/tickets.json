@@ -3678,7 +3678,8 @@
     "spec/decisions/05-screens.md#Q-0199",
     "spec/decisions/05-screens.md#Q-0201",
     "spec/decisions/10-permissions-and-settings.md#Q-0202",
-    "spec/decisions/03-data-model.md"
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/07-hooks-events-and-integrations.md"
    ]
   },
   {
@@ -5425,7 +5426,8 @@
     "spec/sections/09e-geometry-and-drafting.md",
     "spec/sections/06-workflows.md",
     "spec/sections/09q-existing-conditions-examples.md",
-    "spec/sections/00k-glossary-phase-10.md"
+    "spec/sections/00k-glossary-phase-10.md",
+    "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -5455,7 +5457,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0205",
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/03-data-model.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/07-hooks-events-and-integrations.md"
    ]
   },
   {
@@ -6063,7 +6066,8 @@
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/09q-existing-conditions-examples.md",
-    "spec/sections/00k-glossary-phase-10.md"
+    "spec/sections/00k-glossary-phase-10.md",
+    "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -6124,7 +6128,8 @@
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Existing-condition pins",
     "spec/sections/09q-existing-conditions-examples.md",
-    "spec/sections/00k-glossary-phase-10.md"
+    "spec/sections/00k-glossary-phase-10.md",
+    "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -16674,7 +16679,8 @@
     "spec/decisions/05-screens.md#Q-0199",
     "spec/decisions/05-screens.md#Q-0395",
     "spec/decisions/10-permissions-and-settings.md",
-    "spec/decisions/03-data-model.md"
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/07-hooks-events-and-integrations.md"
    ]
   },
   {
