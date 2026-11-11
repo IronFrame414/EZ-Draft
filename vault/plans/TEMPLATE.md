@@ -1,5 +1,6 @@
 # EZD-xxx · <ticket title>
 Every v2 table has rows or `None: <reason>`; `plan_lint.mjs` checks them on a plan with the `- Template: v2` line (EZD-382).
+A plan is written in two plan units (EZD-384): first the brief, then this whole plan. `node vault/tools/next_ticket.mjs --plan-step <T>` names the step; the `- Plan step:` header line records the step the file is at.
 
 - **ACs:** AC-EZD-xxx-1, AC-EZD-xxx-2 … (from `vault/spec/acceptance-criteria.md`; one per testable sentence of the ticket's Done-when until the phase has Stage 0 ACs)
 - **Complexity:** low | medium | high (PROCESS.md section 4; one sentence of reasoning in section 8 below)
@@ -7,6 +8,20 @@ Every v2 table has rows or `None: <reason>`; `plan_lint.mjs` checks them on a pl
 - **User-visible result:** one line, plain words: what now works for Josh.
 - Phase: N · Planned by: planner · Date: YYYY-MM-DD · Status: planned | questions
 - Template: v2
+- Plan step: code-bound
+
+## Brief
+Written first, at step brief (EZD-384; PLANNING-REDESIGN.md 1.2 P1). A brief file is the header above without the Complexity and Template lines and with `- Plan step: brief`, then this section, section 2 (ending with its `Architecture:` line) and section 10, nothing else. The whole plan keeps this section, with `Files (estimate)` set to its Build steps row count and `Tests (estimate)` to its test count. Both are whole numbers from 0 to 999. Over 20 files or over 25 tests (PROCESS.md section 6 "Ticket size") means `Split` is `yes`, a `## Split proposal` section (lettered parts, each with scope, Done-when and ACs) follows this one, and no whole plan is written. `plan_lint.mjs` checks the rows, the number range, the Split value, that a `## Split proposal` is present when Split is yes, and the size limit.
+| Item | Value |
+| --- | --- |
+| Plain words | what the ticket must do, in plain words |
+| ACs | AC-EZD-xxx-1, AC-EZD-xxx-2 … |
+| Screens | the screens it touches, or none |
+| Tables | the tables it touches, or none |
+| Routes | the routes it touches, or none |
+| Files (estimate) | a whole number |
+| Tests (estimate) | a whole number |
+| Split | no, or yes |
 
 ## 1. What to build
 Execution-grade (token diet, Josh 2026-10-22): a Sonnet test-author and builder carry this out without making design choices; anything they would have to decide is decided here or is a QP question. No narrative, and no text copied from the sources (cite them by ID). `node vault/tools/plan_lint.mjs <plan> --allow-questions` checks the three blocks below and, on a v2 plan, every v2 table.

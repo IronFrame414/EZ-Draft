@@ -2,7 +2,7 @@
 // connections check, run against HEAD of the checkout. scripts/ledger.mjs loads this module lazily on `status=ready`.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { templateVersion } from './plan_lint.mjs';
+import { templateVersion, planStep } from './plan_lint.mjs';
 import { readHead, checkContract } from './contract_check.mjs';
 import { checkConnections } from './connections_check.mjs';
 
@@ -11,6 +11,7 @@ export function readyProblems(root, ticket) {
   let text;
   try { text = readFileSync(path.join(root, 'vault', 'plans', `${ticket}.md`), 'utf8'); }
   catch (e) { if (e.code === 'ENOENT') return []; throw e; }
+  if (planStep(text) === 'brief') return ['plan step: brief; the whole plan is not written yet (EZD-384)'];
   if (templateVersion(text) !== 2) return [];
   const head = readHead(root);
   return [

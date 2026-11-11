@@ -47,9 +47,8 @@ const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const ARCH_DOC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs', 'architecture.md');
 const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'supabase', 'migrations');
 
-export function lintPlan(text, { allowQuestions = false, headings = null, migrationsDir = MIGRATIONS_DIR } = {}) {
+function archProblems(text, headings) {
   const problems = [];
-  const s = sections(text);
   const arch = planArchitecture(text);
   if (arch.error === 'no Architecture line in section 2') problems.push('section 2: no "Architecture:" line (headings beyond the core, or "none beyond the core"; EZD-244)');
   else if (arch.error) problems.push('section 2: empty "Architecture:" line');
@@ -61,6 +60,119 @@ export function lintPlan(text, { allowQuestions = false, headings = null, migrat
     }
     if (known) for (const h of arch.list) if (!known.includes(h)) problems.push(`section 2: Architecture section "${h}" is not a heading in docs/architecture.md`);
   }
+  return problems;
+}
+
+export const PLAN_STEPS = Object.freeze(['brief', 'code-bound']);
+export const SIZE_LIMIT = Object.freeze({ files: 20, tests: 25 });
+export const BRIEF_ROWS = Object.freeze(['Plain words', 'ACs', 'Screens', 'Tables', 'Routes', 'Files (estimate)', 'Tests (estimate)', 'Split']);
+
+const headerOf = (text) => { const first = /^## /m.exec(text); return first ? text.slice(0, first.index) : text; };
+const stepLines = (text) => [...headerOf(text).matchAll(/^- Plan step:(.*)$/gm)].map((m) => m[1].replace(/^[ \t]+|[ \t]+$/g, ''));
+
+export function planStep(text) {
+  const l = stepLines(text);
+  return l.length ? l[0] : null;
+}
+
+function briefTable(text) {
+  const m = /^## Brief[ \t]*$/m.exec(text);
+  if (!m) return null;
+  const rest = text.slice(m.index + m[0].length);
+  const next = /^## /m.exec(rest);
+  const t = tables(next ? rest.slice(0, next.index) : rest)[0];
+  if (!t || !t.head.includes('Item') || !t.head.includes('Value')) return null;
+  const ii = t.head.indexOf('Item');
+  const iv = t.head.indexOf('Value');
+  return t.body.map((r) => ({ item: (r[ii] || '').trim(), value: (r[iv] || '').trim() }));
+}
+const NUM_RE = /^(0|[1-9][0-9]{0,2})$/;
+const one = (rows, name) => { const f = rows.filter((r) => r.item === name); return f.length === 1 ? f[0].value : null; };
+
+export function briefEstimate(text) {
+  const rows = briefTable(text);
+  if (!rows) return null;
+  const f = one(rows, 'Files (estimate)');
+  const t = one(rows, 'Tests (estimate)');
+  if (f === null || t === null || !NUM_RE.test(f) || !NUM_RE.test(t)) return null;
+  return { files: Number(f), tests: Number(t) };
+}
+
+export function briefSplit(text) {
+  const rows = briefTable(text);
+  if (!rows) return null;
+  const v = one(rows, 'Split');
+  return v === 'yes' || v === 'no' ? v : null;
+}
+
+export function overLimit(est) {
+  return est.files > SIZE_LIMIT.files || est.tests > SIZE_LIMIT.tests;
+}
+
+function briefRowProblems(text) {
+  const rows = briefTable(text);
+  if (!rows) return ['brief: no "## Brief" section with an "| Item | Value |" table (EZD-384)'];
+  const problems = [];
+  for (const name of BRIEF_ROWS) {
+    const f = rows.filter((r) => r.item === name);
+    if (!f.length) problems.push(`brief: no "${name}" row (EZD-384)`);
+    else if (f.length > 1) problems.push(`brief: "${name}" row appears more than once (EZD-384)`);
+    else if (!f[0].value) problems.push(`brief: "${name}" is empty (write "none" when there is nothing)`);
+    else if ((name === 'Files (estimate)' || name === 'Tests (estimate)') && !NUM_RE.test(f[0].value)) problems.push(`brief: "${name}" must be a whole number from 0 to 999, not "${f[0].value}"`);
+    else if (name === 'Split' && f[0].value !== 'yes' && f[0].value !== 'no') problems.push(`brief: "Split" must be yes or no, not "${f[0].value}"`);
+  }
+  return problems;
+}
+
+const LIMIT_TEXT = `(${SIZE_LIMIT.files} files, ${SIZE_LIMIT.tests} tests; PROCESS.md section 6 "Ticket size")`;
+const qpProblems = (s, allowQuestions) => {
+  const qp = [...new Set((s[10] || '').match(/QP-\d+/g) || [])];
+  return qp.length && !allowQuestions ? [`section 10: open questions remain: ${qp.join(', ')}`] : [];
+};
+
+function briefLint(text, { allowQuestions, headings }) {
+  const s = sections(text);
+  const problems = [...archProblems(text, headings)];
+  for (const n of [2, 10]) if (s[n] === undefined) problems.push(`section ${n} missing`);
+  problems.push(...briefRowProblems(text));
+  const split = briefSplit(text);
+  const est = briefEstimate(text);
+  if (split === 'yes' && !/^## Split proposal[ \t]*$/m.test(text)) problems.push('brief: Split is yes but there is no "## Split proposal" section (EZD-384)');
+  if (est && split === 'no' && overLimit(est)) problems.push(`brief: estimate ${est.files} files, ${est.tests} tests is over the size limit ${LIMIT_TEXT}: set Split to yes and add the split proposal (EZD-384)`);
+  if (/\*\*Complexity:\*\*/.test(text)) problems.push('brief: a brief carries no "**Complexity:**" line; the full plan sets it (EZD-384)');
+  problems.push(...qpProblems(s, allowQuestions));
+  return problems;
+}
+
+function fullLint(text) {
+  const problems = [];
+  if (templateVersion(text) !== 2) problems.push('header: a plan at step code-bound is a template v2 plan (the "- Template: v2" line; EZD-382)');
+  if (!/\*\*Complexity:\*\*\s*(low|medium|high)\b/i.test(headerOf(text))) problems.push('header: no "**Complexity:** low|medium|high" line; a plan at step code-bound sets it (EZD-384)');
+  problems.push(...briefRowProblems(text));
+  const split = briefSplit(text);
+  const est = briefEstimate(text);
+  if (split === 'yes') problems.push('brief: Split is yes at step code-bound: write the plan back as a brief with its split proposal (EZD-384)');
+  if (est && split === 'no' && overLimit(est)) problems.push(`brief: estimate ${est.files} files, ${est.tests} tests is over the size limit ${LIMIT_TEXT}: write the plan back as a brief with Split yes and its split proposal (EZD-384)`);
+  return problems;
+}
+
+export function lintPlan(text, opts = {}) {
+  const { allowQuestions = false, headings = null } = opts;
+  const lines = stepLines(text);
+  const step = lines.length ? lines[0] : null;
+  const problems = [];
+  if (step !== null && !PLAN_STEPS.includes(step)) problems.push(`header: unknown plan step "${step}"; the steps are brief and code-bound (EZD-384)`);
+  if (lines.length > 1) problems.push('header: more than one "- Plan step:" line (EZD-384)');
+  if (step === 'brief') return [...problems, ...briefLint(text, { allowQuestions, headings })];
+  problems.push(...legacyLint(text, opts));
+  if (step === 'code-bound') problems.push(...fullLint(text));
+  return problems;
+}
+
+function legacyLint(text, { allowQuestions = false, headings = null, migrationsDir = MIGRATIONS_DIR } = {}) {
+  const problems = [];
+  const s = sections(text);
+  problems.push(...archProblems(text, headings));
   for (let n = 1; n <= 10; n++) if (s[n] === undefined) problems.push(`section ${n} missing`);
   const s1 = s[1] || '';
 

@@ -3,6 +3,7 @@
 //   node vault/tools/next_ticket.mjs                 -> the next ticket to work on, any stage (phases in order; dependencies first)
 //   node vault/tools/next_ticket.mjs --ready         -> the next `ready` ticket whose dependencies are all done (Stage 3)
 //   node vault/tools/next_ticket.mjs --next-unit     -> the next unit for the launcher: `<unit> <ticket-or-phase>` or `none: <reason>`
+//   node vault/tools/next_ticket.mjs --plan-step <ticket> -> the plan step its next plan unit writes: STEP brief, code-bound, split, none (EZD-384)
 //   node vault/tools/next_ticket.mjs --next-units [--skip EZD-a,EZD-b]  -> every unit lanes may start now, one JSON line (EZD-174)
 //   node vault/tools/next_ticket.mjs --check         -> validates the ledger (exit 1 on any problem)
 //   node vault/tools/next_ticket.mjs --report        -> regenerates vault/PROGRESS.md and vault/tickets/TRACE.md
@@ -28,6 +29,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { architectureHeadings, coreSections, planArchitecture } from './outline.mjs';
+import { planStep, briefEstimate, briefSplit, overLimit, PLAN_STEPS, SIZE_LIMIT } from './plan_lint.mjs';
 import { Q_FILES, questionMax } from './questions-files.mjs';
 import { guardedPaths, planPaths } from './plan-paths.mjs';
 import { findingProblems } from './findings.mjs';
@@ -105,6 +107,31 @@ const ticketNumber = (id) => Number(id.match(/EZD-(\d+)/)[1]);
 const status = (id) => rows.get(id)?.status;
 const depsDone = (t) => t.depends_on.every((d) => status(d) === 'done');
 const phaseTickets = (p) => data.tickets.filter((t) => t.phase === p);
+export function planStepFor(id) {
+  const err = (m) => ({ next: 'error', line: `ERROR ${id}: ${m}`, atBrief: false, estimate: null });
+  const none = (why, extra = {}) => ({ next: 'none', line: `STEP none (${why})`, atBrief: false, estimate: null, ...extra });
+  if (!data.tickets.some((t) => t.id === id)) return err('not in vault/tickets/tickets.json');
+  const row = rows.get(id);
+  if (!row) return err('no row in vault/tickets/STATUS.md');
+  const st = row.status;
+  if (!['todo', 'planned', 'questions'].includes(st)) return none(`status ${st}`);
+  let text = null;
+  try { text = readFileSync(path.join(vault, 'plans', `${id}.md`), 'utf8'); }
+  catch (e) { if (e.code !== 'ENOENT') return err(`cannot read vault/plans/${id}.md (${e.code || e.message})`); }
+  const step = text === null ? null : planStep(text);
+  if (step !== null && !PLAN_STEPS.includes(step)) return err(`unknown plan step "${step}" in vault/plans/${id}.md; the steps are brief and code-bound`);
+  if (st === 'todo') return step === 'code-bound'
+    ? { next: 'code-bound', line: 'STEP code-bound', atBrief: false, estimate: null }
+    : { next: 'brief', line: 'STEP brief', atBrief: step === 'brief', estimate: null };
+  if (text === null) return err(`${st} but vault/plans/${id}.md does not exist`);
+  if (step === null) return none('legacy plan, no step line');
+  if (step === 'code-bound') return none('plan written at step code-bound');
+  const est = briefEstimate(text);
+  const split = briefSplit(text);
+  if (est === null || split === null) return { ...err(`the brief in vault/plans/${id}.md has no readable Files (estimate), Tests (estimate) or Split row; run plan_lint on it`), atBrief: true, estimate: est };
+  if (split === 'yes' || overLimit(est)) return { next: 'split', line: `STEP split ${est.files} files, ${est.tests} tests`, atBrief: true, estimate: est };
+  return { next: 'code-bound', line: 'STEP code-bound', atBrief: true, estimate: est };
+}
 
 function spikeNote(id) {
   const f = path.join(vault, 'spikes', `${id}.md`);
@@ -159,7 +186,7 @@ function questionRows() {
 function questionsWork(p) {
   if (questionsForPhase(p).open) return true;
   const rows = questionRows();
-  return phaseTickets(p).filter((t) => ['planned', 'questions'].includes(status(t.id)))
+  return phaseTickets(p).filter((t) => ['planned', 'questions'].includes(status(t.id)) && !planStepFor(t.id).atBrief)
     .some((t) => !rows.some((r) => r.tickets.has(t.id) && r.status === 'escalated'));
 }
 // Loop guard (Q-0129): the launcher records the ledger fingerprint before and after each questions unit in
@@ -464,6 +491,7 @@ function trackProblems() {
     const plan = existsSync(planPath) ? readFileSync(planPath, 'utf8') : null;
     if ('track' in t && t.track !== 'tooling') { out.push(`${t.id}: track "${String(t.track)}" is not "tooling" (EZD-253)`); continue; }
     if (isTooling(t)) {
+      if (plan !== null && planStep(plan) === 'brief') continue;
       const paths = plan === null ? [] : planPaths(plan);
       const product = paths.find(isProductPath);
       if (!paths.length) out.push(`${t.id}: tooling mark but its plan lists no Build steps files (EZD-253)`);
@@ -475,8 +503,9 @@ function trackProblems() {
   }
   return out;
 }
-// D3: the ticket with `track` set from its plan (right after `architecture`, else after `mockups`) or removed.
+// D3: the ticket with `track` set from its plan (right after `architecture`, else after `mockups`) or removed; a brief keeps it as it is (EZD-384).
 function withTrack(t, plan) {
+  if (planStep(plan) === 'brief') return { ...t };
   const tooling = planTrack(plan) === 'tooling';
   const out = {};
   let placed = false;
@@ -815,6 +844,16 @@ function queuedTickets() {
   }
   return ids;
 }
+function planStepProblems() {
+  const out = [];
+  for (const t of data.tickets) {
+    if (!['todo', 'planned', 'questions'].includes(status(t.id))) continue;
+    if (!existsSync(path.join(vault, 'plans', `${t.id}.md`))) continue;
+    const r = planStepFor(t.id);
+    if (r.next === 'error') out.push(`${r.line.replace(/^ERROR /, '')} (EZD-384)`);
+  }
+  return out;
+}
 function check() {
   const problems = [...recordsProblems(), ...questionProblems()];
   const queued = queuedTickets();
@@ -858,6 +897,7 @@ function check() {
   problems.push(...readingProblems());
   problems.push(...architectureProblems());
   problems.push(...trackProblems());
+  problems.push(...planStepProblems());
   return problems;
 }
 
@@ -1001,6 +1041,16 @@ export function strikeHolds() {
 }
 const heldBuild = (id) => strikeHolds().has(`build ${id}`);
 
+function stage1(ts, skip, aside) {
+  const open = (t) => !skip.has(t.id) && !aside.has(`plan ${t.id}`);
+  const pq = ts.filter((t) => ['planned', 'questions'].includes(status(t.id))).map((t) => ({ t, r: planStepFor(t.id) }));
+  return {
+    todo: ts.filter((t) => status(t.id) === 'todo' && open(t)).sort(byPriority),
+    full: pq.filter(({ t, r }) => r.atBrief && r.next === 'code-bound' && open(t)).map(({ t }) => t).sort(byPriority),
+    plans: pq.filter(({ r }) => !r.atBrief).map(({ t }) => t),
+    splits: pq.filter(({ r }) => r.next === 'split').map(({ t }) => t).sort(byPriority),
+  };
+}
 // skip: tickets already offered or running (nextUnits); checked: the ledger check already ran in this call (EZD-174).
 function nextUnit(skip = new Set(), { checked = false } = {}) {
   if (existsSync(path.join(vault, 'handoff/STOP'))) return 'none: vault/handoff/STOP exists';
@@ -1083,21 +1133,22 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
     if (!signedOff(q)) continue;
     const ts = phaseTickets(q);
     if (ts.every((t) => ['done', 'blocked'].includes(status(t.id)))) continue;
-    const st = (s) => ts.filter((t) => status(t.id) === s);
     // Stage 1
-    const planOrder = st('todo').filter((t) => !skip.has(t.id) && !aside.has(`plan ${t.id}`)).sort(byPriority);
-    if (planOrder.length) return `plan ${planOrder[0].id}`;
+    const s1 = stage1(ts, skip, aside);
+    if (s1.todo.length) return `plan ${s1.todo[0].id}`;
+    if (s1.full.length) return `plan ${s1.full[0].id}`;
     const reviewFile = path.join(vault, 'plans', `review-phase-${pad2(q)}.md`);
     const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
-    if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(reviewFile) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
+    if (!inStage3 && s1.plans.length && !existsSync(reviewFile) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
     // Stage 2, and Q-0129: questions are answered before any build, in any stage of the phase
     if (questionsDue(q) && !aside.has(`questions ${q}`)) return `questions ${q}`;
-    if (!inStage3 && (st('planned').length || st('questions').length) && reason === null) {
+    if (!inStage3 && s1.plans.length && reason === null) {
       const n = questionsForPhase(q);
       reason = n.escalated
         ? `none: waiting on Josh (${n.escalated} escalated question${n.escalated === 1 ? '' : 's'} for phase ${q}; vault/questions/phase-${pad2(q)}-for-josh.md)`
         : `none: the last questions ${q} unit changed nothing (loop guard, Q-0129); see vault/handoff/CURRENT.md`;
     }
+    if (s1.splits.length && reason === null) reason = `none: split proposal waiting to be applied for ${s1.splits.map((t) => t.id).join(', ')} (.claude/skills/plan-ticket/SKILL.md ledger step)`;
   }
 
   // EZD-253 D9: Stage 3. Tooling tickets first, then B's product tickets; tickets still in `questions` wait on their own answer.
@@ -1117,11 +1168,11 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
   if (B !== null && signedOff(B)) {
     for (const q of phasesAhead(B).filter((x) => comparePhases(x, last) > 0)) {
       const ts = phaseTickets(q);
-      const st = (s) => ts.filter((t) => status(t.id) === s);
-      const planOrder = st('todo').filter((t) => !skip.has(t.id) && !aside.has(`plan ${t.id}`)).sort(byPriority);
-      if (planOrder.length) return `plan ${planOrder[0].id}`;
+      const s1 = stage1(ts, skip, aside);
+      if (s1.todo.length) return `plan ${s1.todo[0].id}`;
+      if (s1.full.length) return `plan ${s1.full[0].id}`;
       const inStage3 = ts.some((t) => ['ready', 'in-progress', 'review', 'done'].includes(status(t.id)));
-      if (!inStage3 && (st('planned').length || st('questions').length) && !existsSync(path.join(vault, 'plans', `review-phase-${pad2(q)}.md`)) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
+      if (!inStage3 && s1.plans.length && !existsSync(path.join(vault, 'plans', `review-phase-${pad2(q)}.md`)) && !aside.has(`review-plans ${q}`)) return `review-plans ${q}`;
       if (questionsDue(q) && !aside.has(`questions ${q}`)) return `questions ${q}`;
     }
   }
@@ -1131,7 +1182,7 @@ function nextUnit(skip = new Set(), { checked = false } = {}) {
     if (!signedOff(B)) return `none: phase ${B} spec not signed off (spec-check unit needs Josh)`;
     const ts = phaseTickets(B);
     const st = (s) => ts.filter((t) => status(t.id) === s);
-    const waiting = [...st('questions'), ...st('planned')].map((t) => t.id);
+    const waiting = [...st('questions'), ...st('planned')].filter((t) => !planStepFor(t.id).atBrief).map((t) => t.id);
     if (waiting.length) {
       if (questionsGuarded(B)) return `none: the last questions ${B} unit changed nothing (loop guard, Q-0129); waiting: ${waiting.join(', ')}`;
       return `none: waiting on Josh (tickets with open questions: ${waiting.join(', ')}); nothing else is ready in phase ${B}`;
@@ -1254,6 +1305,12 @@ function report() {
     const acDone = d.reduce((n, t) => n + (t.acs?.length || 0), 0);
     md += `| ${p} | ${ts.length} | ${d.length} | ${b.length} | ${ts.length - d.length - b.length} | ${acDone} / ${acTotal} |\n`;
   }
+  const splitBriefs = data.tickets.filter((t) => ['planned', 'questions'].includes(status(t.id)) && planStepFor(t.id).next === 'split')
+    .sort((a, b) => comparePhases(a.phase, b.phase) || num(a.id) - num(b.id));
+  if (splitBriefs.length) {
+    md += `\n## Split proposals waiting to be applied\n\nEach brief below is over the size limit (${SIZE_LIMIT.files} files, ${SIZE_LIMIT.tests} tests) or says Split: yes; the ledger step of .claude/skills/plan-ticket/SKILL.md applies the split.\n\n| Ticket | Phase | Estimate | Plan |\n| --- | --- | --- | --- |\n`;
+    for (const t of splitBriefs) { const e = planStepFor(t.id).estimate; md += `| ${t.id} | ${t.phase} | ${e.files} files, ${e.tests} tests | vault/plans/${t.id}.md |\n`; }
+  }
   md += `\n## Last ten merges\n\n${done.slice(-10).reverse().map((l) => (l.startsWith('- ') ? l : `- ${l}`)).join('\n') || '(none yet)'}\n\n`;
   md += `## Questions\n\nOpen: ${openQ} · Escalated to Josh: ${escQ} (\`vault/questions/QUESTIONS.md\`)\n\n`;
   let usage = null;
@@ -1320,6 +1377,13 @@ if (isMain) {
     if (p.length) { console.log(`LEDGER INVALID (${p.length})`); p.forEach((x) => console.log(`- ${x}`)); process.exit(1); }
     console.log(`LEDGER OK: ${rows.size} tickets`);
     process.exit(0);
+  }
+  if (args.includes('--plan-step')) {
+    const id = args[args.indexOf('--plan-step') + 1];
+    if (!/^EZD-\d+[a-z]?$/.test(id || '')) { console.error('usage: --plan-step <ticket>'); process.exit(2); }
+    const r = planStepFor(id);
+    console.log(r.line);
+    process.exit(r.next === 'error' ? 2 : 0);
   }
   if (args.includes('--next-units')) {
     const usage = () => { console.error('usage: --next-units [--skip EZD-x,EZD-y]'); process.exit(2); };
