@@ -21669,6 +21669,29 @@
     "AC-EZD-386-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-387",
+   "phase": 1,
+   "title": "Fix: the phase-rank test blocks the real tickets of every signed-off phase, so a new sign-off cannot turn the gate red",
+   "depends_raw": "EZD-360",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-360"
+   ],
+   "acs": [
+    "AC-EZD-387-1",
+    "AC-EZD-387-2",
+    "AC-EZD-387-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
