@@ -525,6 +525,8 @@ export const en = {
   'office.conflicts.saved_by': '{name} · {time}',
   'office.notifications.project_line': '{project} · {client}',
   'office.notifications.email_link': 'Open EZ Draft',
+  'office.email.copy_subject': 'Copy: {subject}',
+  'office.email.copy_note': "This is your copy of the email sent to {to}. If they can't find it, ask them to check their spam folder, or forward this email to them.",
   'office.notifications.title': 'Notifications',
   'office.notifications.mark_all_read': 'Mark all read',
   'office.notifications.show_older': 'Show older',

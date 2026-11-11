@@ -2,7 +2,7 @@
 // Q-0096 P5): server-only helpers for the signed-in user's own profile. Reads and the write go through the
 // caller's session client (RLS: the caller's own app_user row; update_my_profile and
 // current_user_has_password touch only the caller's rows). The password email is English (Q-0121 (a)),
-// sent by the system (no `company`), and a failed send does not fail the caller.
+// sent with no `company` and with the signed-in user as `sentBy`, who is also its recipient, so no copy is sent (EZD-389 D4), and a failed send does not fail the caller.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   ipadDrawingOf,
@@ -80,6 +80,7 @@ export async function sendPasswordEmail(
     await sendEmail(
       {
         to,
+        sentBy: { email: to },
         subject,
         paragraphs: [body],
         link: { url: appOrigin(env), label: t('office.profile.email_link') },

@@ -90,6 +90,7 @@ describe('EZD-024 email failures, kick and instrumentation', () => {
     const result = await sendEmail(
       {
         to: recipient,
+        sentBy: null,
         subject: 'EZD-024 probe',
         paragraphs: ['probe'],
         link: { url: linkUrl, label: 'Open' },

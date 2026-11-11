@@ -241,6 +241,7 @@ export async function sendAiKeyEmail(
     await sendEmail(
       {
         to,
+        sentBy: { email: to },
         subject,
         paragraphs: [body],
         link: { url: appOrigin(env), label: t('office.profile.email_link') },

@@ -1,7 +1,9 @@
 // EZD-008a Step 6 · send helper. The link is in every result, sent or failed. Nothing is logged.
 import { z } from 'zod';
 import { captureToSentry } from '../errors/sentry';
+import { getT } from '../messages/get-t';
 import { buildEmailBody } from './body';
+import { senderCopyOn } from './sender-copy';
 import { getEmailTransport } from './transport';
 import type { EmailMessage, SendEmailInput, SendEmailResult } from './types';
 
@@ -39,6 +41,7 @@ function cleanName(name: string): string {
 
 const inputSchema = z.object({
   to: z.email(),
+  sentBy: z.object({ email: z.email() }).nullable(),
   subject: z
     .string()
     .min(1)
@@ -62,6 +65,15 @@ const inputSchema = z.object({
 // (docs/architecture.md Errors and logging). No alert row: the email path itself failed.
 function reportSendFailure(code: string): void {
   captureToSentry(new Error(code), { source: 'function', location: 'email.send' });
+}
+
+// EZD-389 D10: a failed copy goes to Sentry with its cause code only, never an address or the link.
+function reportCopyFailure(cause: string): void {
+  captureToSentry(new Error('email_copy_failed'), {
+    source: 'function',
+    location: 'email.send.copy',
+    tags: { 'ezd.cause': cause },
+  });
 }
 
 export async function sendEmail(
@@ -126,11 +138,42 @@ export async function sendEmail(
       errorCode: res.code,
     };
   }
-  return {
+  const result: SendEmailResult = {
     link,
     status: 'sent',
     transport: chosen.transport.name,
     messageId: res.messageId,
     errorCode: null,
   };
+  // EZD-389 (Q-0701): the acting user's copy, sent only after the recipient's send succeeded (D2).
+  if (
+    senderCopyOn() &&
+    input.sentBy !== null &&
+    input.sentBy.email.toLowerCase() !== input.to.toLowerCase()
+  ) {
+    const t = getT('office', 'en');
+    const copyBody = buildEmailBody({
+      paragraphs: [t('office.email.copy_note', { to: input.to }), ...input.paragraphs],
+      link: input.link,
+      lang: input.lang,
+    });
+    const copy: EmailMessage = {
+      from,
+      to: input.sentBy.email,
+      ...(replyTo !== undefined ? { replyTo } : {}),
+      subject: t('office.email.copy_subject', { subject: input.subject }),
+      text: copyBody.text,
+      html: copyBody.html,
+    };
+    try {
+      const c = await chosen.transport.send(
+        copy,
+        input.idempotencyKey ? { idempotencyKey: input.idempotencyKey + ':copy' } : undefined,
+      );
+      if (!c.ok) reportCopyFailure(c.code);
+    } catch {
+      reportCopyFailure('email_copy_threw');
+    }
+  }
+  return result;
 }

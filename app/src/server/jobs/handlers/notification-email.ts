@@ -4,6 +4,7 @@
 // already emailed notification sends nothing again (safe to run twice; the send also carries an idempotency
 // key from the job id). The email is English with no company (a system email, ARCH Email); its link is the
 // notification's stored link on the app address. A failed send is retried by the job queue.
+// It has no acting user, so sentBy is null and no sender copy is sent (EZD-389, Q-0739).
 import { z } from 'zod';
 import {
   notificationTitle,
@@ -119,6 +120,7 @@ export const notificationEmailHandler: JobHandler<
 
     const result = await sendEmail({
       to: user.email,
+      sentBy: null,
       subject: toSubjectLine(titleText),
       paragraphs,
       link: { url: appOrigin(process.env) + row.link, label: t('office.notifications.email_link') },
