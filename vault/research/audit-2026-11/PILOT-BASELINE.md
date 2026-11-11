@@ -32,3 +32,18 @@ Deviations of each kind (a to i) from its STATUS note and plan, PLAN-GAPs, re-pl
 
 Launcher plans dated 2026-11-11 (after EZD-382): every full plan carries the v2 marker; 4 of 11 were split proposals (EZD-105, 106, 116, 125), found only after a planner run (P1 is EZD-384).
 Phase 6 pilot: EZD-135, 224 and 235 re-planned now (every dependency done); EZD-214, 216, 218, 237 and 6001 wait for their dependencies, then the code-bound step.
+
+### Phase 6 re-plan (session 17, 2026-11-11)
+| Ticket | Result | Planner turns | Plan size | Checks found and fixed | Plan-checker gaps (r1, r2) | Security read at plan stage | Connections the v1 plan missed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| EZD-135 | full v2 plan | about 112 plus 2 resumes | 74.7k | contract 8, connections 9 | 13, 9 | PASS (1 note) | money page count 35 to 36; DISCLAIMER_PAGES row |
+| EZD-224 | split, then part a v2 plan | 24 (split) + about 115 plus 4 resumes | 25k split; 80.5k part a | lint 1, contract 12, connections 10 | 12, 8 | FAIL then fixed: type check only with a declared type; leftover object owner (EZD-123 row edited); writer guard trigger; then tenancy.test.ts:199 | stale hook location; card needs 'use client' |
+| EZD-235 | split, then part a v2 plan | 38 (split) + about 60 plus 2 resumes | 22.6k split; about 60k part a | none on first run | 7, 4 | not needed (no database) | money page count if a dev page is added (avoided); 3 pinned perf counts; createPlanController scale option |
+| EZD-384 | split proposal (tooling) | one run | | | | | |
+
+Findings for the next audit:
+- v2 product plans need more than 100 planner turns; the plan-checker's 60 and the security-reviewer's 30 are also too few for 60-80k plans.
+- Launcher v2 plans cost about $10 to $15 each (EZD-104, 105b, 111, 126, 128), against a $3.81 median before.
+- Split proposals are common (6 of about 16 tonight); P1 (EZD-384) should find them before a full plan.
+- The plan-stage security read found 3 real defects in EZD-224 before any code: the method's intended gain.
+- Lettered test cases make test counts rise (EZD-135: 46); the 25-test split line needs a counting rule.
