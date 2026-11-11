@@ -36,16 +36,17 @@ test('OPT-C1 T1: probe expiry line says expired or valid from the credentials, n
 
 test('OPT-C1 T2: cost-log row keeps the old fields and adds wall_ms, meter_source and process_rev', () => {
   const parsed = { session_id: 's1', num_turns: 8, duration_ms: 90_000 };
-  const row = costEntry({ ts: '2026-10-20T10:24:38.381Z', unit: 'build', ticket: 'EZD-007a', models: ['m'], total: 15.36, fable: 13.5, outcome: 'ok', parsed, startedMs: 1_000, endedMs: 1_341_000, auth: 'plan', meterSource: 'proxy', processRev: '8e656fb' });
+  const row = costEntry({ ts: '2026-10-20T10:24:38.381Z', unit: 'build', ticket: 'EZD-007a', models: ['m'], total: 15.36, fable: 13.5, outcome: 'ok', parsed, startedMs: 1_000, endedMs: 1_341_000, auth: 'plan', account: 'acct-1', meterSource: 'proxy', processRev: '8e656fb' });
   assert.deepEqual(row, {
     ts: '2026-10-20T10:24:38.381Z', unit: 'build', ticket: 'EZD-007a', models: ['m'], est_usd: 15.36, fable_est_usd: 13.5, outcome: 'ok',
-    session_id: 's1', num_turns: 8, duration_ms: 90_000, auth: 'plan', wall_ms: 1_340_000, meter_source: 'proxy', process_rev: '8e656fb',
+    session_id: 's1', num_turns: 8, duration_ms: 90_000, auth: 'plan', account: 'acct-1', wall_ms: 1_340_000, meter_source: 'proxy', process_rev: '8e656fb',
   });
   const bare = costEntry({ ts: 't', unit: 'plan', ticket: 'EZD-1', models: [], total: 0, fable: 0, outcome: 'error', parsed: null, startedMs: 0, endedMs: 5_000, auth: 'plan', meterSource: 'oauth', processRev: null });
   assert.equal(bare.duration_ms, 5_000);
   assert.equal(bare.wall_ms, 5_000);
   assert.equal(bare.process_rev, null);
   assert.equal(bare.session_id, undefined);
+  assert.equal(bare.account, undefined);
 });
 
 const proxyMeters = { source: 'proxy', read_at: NOW.toISOString(), five_hour: null, seven_day: { pct: 119, resets_at: '2026-10-26T06:00:00.000Z' }, fable_seven_day: null };

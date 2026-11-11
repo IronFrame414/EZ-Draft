@@ -439,6 +439,8 @@ A run that ends on a plan limit error is not a bug. The launcher classifies it:
 
 Claude Code's documented limit messages (vault/tools/limit-message.mjs, EZD-377) are classified by their own words: a session limit waits for its reset time, every other one is treated as the weekly case. Until the other message formats are confirmed in the pilot (section 15), every other limit error is treated as the weekly case. Leave `autoContinueAtUsageLimit` unset for build machines so a weekly limit never leaves a session silently waiting for days.
 
+With two accounts (scripts/launcher-accounts.json, EZD-378), a limit message rests only the account the unit ran on until its reset time (30 minutes when it names none), and the next unit goes to another account with no strike; the hold and the five-hour wait above apply only without that file or in api mode. When no account can start a unit, the launcher waits for the earliest reset and tells Josh once.
+
 ### Notification channel
 
 The launcher calls a notify command, kept in an untracked config. Josh uses the ntfy app, so the command posts to his ntfy topic (for example `curl -d "<message>" https://ntfy.sh/<topic>`). Use a long random topic name: on the public ntfy.sh server anyone who knows the topic can read it. It is called when the launcher stops for any reason that needs Josh: budget hold, waiting on questions, spec sign-off, a blocked phase, a failed ledger check, or a built phase. The `/remote-control` mobile push only works for interactive sessions, so it doesn't cover the launcher.

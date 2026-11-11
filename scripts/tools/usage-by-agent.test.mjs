@@ -173,3 +173,11 @@ test('a worktree maps to the main checkout\'s project folder', () => {
   assert.equal(projectsDirFor('/Users/x/Projects/ezdraft/.claude/worktrees/brave-1'), path.join(os.homedir(), '.claude/projects/-Users-x-Projects-ezdraft'));
   assert.equal(projectsDirFor('/Users/x/Projects/ezdraft'), path.join(os.homedir(), '.claude/projects/-Users-x-Projects-ezdraft'));
 });
+
+test('EZD-378 M2 a config folder moves the projects folder; a list of folders is searched in order (AC-EZD-378-1)', () => {
+  assert.equal(projectsDirFor('/Users/x/Projects/ezdraft', '/c'), '/c/projects/-Users-x-Projects-ezdraft');
+  const { proj, log } = fixtureProject();
+  const empty = tmp();
+  const rows = loadRows(log);
+  assert.deepEqual(analyze(rows, [empty, proj]), analyze(rows, proj));
+});

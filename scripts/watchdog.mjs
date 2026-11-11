@@ -25,6 +25,8 @@ const WAITING_RE = /waiting|none:|paused|retrying|until |budget hold|resuming|ST
 // The launcher's idle poll (scripts/launcher-idle.mjs), so a fresh poll that found nothing is not called idle. Loaded
 // without failing when the watchdog runs as a lone copy (EZD-178); then every ready idle counts.
 const NONE_POLL_MS = await import('./launcher-idle.mjs').then((m) => m.NONE_POLL_MS, () => null);
+// EZD-378: unit transcripts also live under each launcher account's folder (scripts/launcher-accounts.json).
+const readAccounts = await import('./launcher-idle.mjs').then((m) => m.readAccounts ?? null, () => null);
 const minutesSince = (iso, now) => {
   const t = typeof iso === 'string' ? Date.parse(iso) : NaN;
   return Number.isNaN(t) ? null : (now - t) / 60000;
@@ -79,7 +81,9 @@ function main() {
   // Last activity: the launcher log, and every transcript in this project's Claude Code folder (sessions and their
   // subagents write to them continuously while they work).
   let last = existsSync(launcherLog) ? statSync(launcherLog).mtimeMs : 0;
-  const projects = path.join(os.homedir(), '.claude/projects', root.replace(/[^A-Za-z0-9]/g, '-'));
+  const name = root.replace(/[^A-Za-z0-9]/g, '-');
+  const acc = readAccounts ? readAccounts(root) : { on: false };
+  const projectDirs = [path.join(os.homedir(), '.claude/projects', name), ...(acc.accounts ?? []).map((a) => path.join(a.path, 'projects', name))];
   const walk = (dir, depth) => {
     let names = [];
     try { names = readdirSync(dir); } catch { return; }
@@ -89,7 +93,7 @@ function main() {
       if (st.isDirectory()) { if (depth < 2) walk(p, depth + 1); } else if (n.endsWith('.jsonl') && st.mtimeMs > last) last = st.mtimeMs;
     }
   };
-  walk(projects, 0);
+  for (const d of projectDirs) walk(d, 0);
   const idleMin = last ? (now - last) / 60000 : Infinity;
   const logTail = existsSync(launcherLog) ? readFileSync(launcherLog, 'utf8').split('\n').slice(-60).join('\n') : '';
 

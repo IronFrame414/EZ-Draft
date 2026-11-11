@@ -88,6 +88,7 @@ const {
   isPhaseWide, LANE_POLL_MS, laneLimits, pickUnits, dbLaneFor, pauseFrom, statusRow, unitProgress, createGuards, guardAfterUnit,
   laneEnvFor, writeLease, removeLease, limitPause, neverRejects, repairForbidden, joshQuestion, REPAIR_NEVER_FILES, REPAIR_JOSH_FILES, AUTO_MERGE_ON_RE, PR_GREEN_OPEN_RE,
   quickEmpty, QUICK_PAUSE_MS, recordStart, startStopText,
+  readAccounts, recoveredAccount, unitAuthEnv, signInVerdict, parseReset, accountSpend, pickAccount, readAccountState, restAccount, accountSignInText, accountsPausedText, ACCOUNT_REST_UNKNOWN_MS, SIGNIN_RECHECK_MS,
 } = await import('./launcher-idle.mjs');
 const { boostState, BOOST_UNIT_CAP_USD, turnOff: boostOff } = await import(path.join(vault, 'tools/boost.mjs'));
 // Lanes (EZD-174): several units at once while vault/handoff/LANES.json is on.
@@ -329,29 +330,30 @@ function escalatedRows() {
 
 
 // laneEnv: a lane build's database lane environment; lease: its database lane, held by the unit's pid while it runs (EZD-174).
-async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, lease = 0 } = {}) {
+async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, lease = 0, account = null } = {}) {
   const cmd = buildCommand(unitName, arg);
+  const mode = authMode();
+  if (mode === 'api' && !config.api_key) return { outcome: 'error', note: 'auth_mode api but no api_key in launcher.config.json' };
+  // EZD-378 D-Env: no unit's environment carries a sign-in override (AUTH_OVERRIDE_VARS, CLAUDE_CONFIG_DIR); plan auth gets
+  // the chosen account's folder, api mode gets the key. A stray key in the shell would silently move the spend.
   // The scrub is set in api mode only (PROCESS.md section 11, Auth mode). Claude Code 2.1.303 forces the permission
   // mode to default whenever it is set, and with --permission-prompts none every write is then denied (2026-10-19 loop).
-  const env = { ...process.env };
+  const env = unitAuthEnv(process.env, { mode, account: mode === 'api' ? null : account, apiKey: config.api_key });
   delete env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB;
   // A -p session stops background subagents 10 minutes after its last turn ("Background tasks still running 10m after the
   // last turn"), which killed the EZD-017 and EZD-018 builders on 2026-10-22. 0 = wait for them indefinitely.
   // EZD-364: a run_in_background command is also stopped at BASH_MAX_TIMEOUT_MS (default 10 minutes), which cut gate-phase 4's
   // full gate mid e2e on 2026-11-09 and left its app server on the port; units get 2 hours (scripts/launcher/unit-env.mjs).
   Object.assign(env, UNIT_ENV_LIMITS);
-  if (authMode() === 'api') {
-    if (!config.api_key) return { outcome: 'error', note: 'auth_mode api but no api_key in launcher.config.json' };
-    env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = '1';
-    env.ANTHROPIC_API_KEY = config.api_key;
-  } else {
-    delete env.ANTHROPIC_API_KEY; // plan auth: a stray key in the shell would silently move the spend
-  }
+  if (mode === 'api') env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = '1';
+  const used = mode === 'api' ? null : account;
+  const accountId = mode === 'api' ? 'api' : (account?.id ?? 'default');
   Object.assign(env, laneEnv);
   const sessionId = flagSupported('--session-id') ? randomUUID() : null;
   if (sessionId) cmd.push('--session-id', sessionId);
   if (!existsSync(sandboxSettings)) return { outcome: 'error', note: 'scripts/unit-sandbox.json missing: no unit starts unsandboxed' };
   log(`sandboxed start (scripts/unit-sandbox.json): ${unitName} ${arg}`);
+  if (used) log(`${unitName} ${arg} on account ${used.id}`);
   log(`${unitName} ${arg}: ${claudeBin} ${cmd.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' ')}`);
   if (dryRun) return { outcome: 'dry-run' };
   const started = Date.now();
@@ -363,7 +365,7 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   const results = resultsFile(dir, id);
   env.EZD_RESULTS_FILE = results;
   delete env.EZD_RECORDS_WRITER;
-  try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: authMode(), meterSource, processRev }); } catch {}
+  try { writeInflight(dir, { id, pid: process.pid, unit: unitName, ticket: arg, skill: UNITS[unitName].skill, session_id: sessionId, startedMs: started, auth: mode, account: accountId, configDir: used?.path ?? null, meterSource, processRev }); } catch {}
   const qBefore = unitName === 'questions' ? { fp: questionsFingerprint(Number(arg)), esc: escalatedRows() } : null;
   if (lease) writeLease(lease, process.pid);
   const res = await new Promise((resolve) => {
@@ -387,7 +389,7 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   if (!parsed) log(`no JSON result parsed (exit ${res.code}); raw tail: ${res.out.slice(-400).replace(/\n/g, ' ')}`);
   else log(`${unitName} ${arg} → ${outcome}; est $${total.toFixed(2)}${fable ? ` (Fable $${fable.toFixed(2)})` : ''}; turns ${parsed.num_turns ?? '?'}`);
   if (limit) saveLimitText(unitName, arg, res, limit);
-  const cost = { op: 'cost', entry: costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: authMode(), meterSource, processRev }) };
+  const cost = { op: 'cost', entry: costEntry({ ts: new Date().toISOString(), unit: unitName, ticket: arg, models, total, fable, outcome, parsed, startedMs: started, endedMs: Date.now(), auth: mode, account: accountId, meterSource, processRev }) };
   // A plan problem records nothing more, but the cost row is still recorded (C13). Under the ledger lock, so a Q-ID given
   // here and a unit's `ledger.mjs question` never collide (EZD-174); a lock that stays busy is logged, never waited out.
   const record = () => {
@@ -405,10 +407,10 @@ async function runUnit(unitName, arg, meterSource = null, { env: laneEnv = {}, l
   // Q-0129: the fingerprints feed the loop guard in next_ticket.mjs.
   if (qBefore) writeFileAtomic(root, path.join(vault, 'handoff/.questions-last-run.json'), JSON.stringify({ phase: Number(arg), scope: 'phase', before: qBefore.fp, after: questionsFingerprint(Number(arg)), ts: new Date().toISOString() }) + '\n');
   const problem = agent.problem;
-  if (problem) { log(problem); return { outcome: 'error', note: problem, limit, wallMs: endedMs - started, usd: total, turns: parsed?.num_turns ?? null }; }
+  if (problem) { log(problem); return { outcome: 'error', note: problem, limit, wallMs: endedMs - started, usd: total, turns: parsed?.num_turns ?? null, account: used }; }
   // Q-0129: one notification per newly escalated question.
   if (qBefore) for (const [qid, text] of escalatedRows()) if (!qBefore.esc.has(qid)) notify(`question for Josh: ${qid} (${text.slice(0, 300)}). vault/questions/phase-${String(arg).padStart(2, '0')}-for-josh.md`);
-  return { outcome, limit, parsed, wallMs: endedMs - started, usd: total, turns: parsed?.num_turns ?? null };
+  return { outcome, limit, parsed, wallMs: endedMs - started, usd: total, turns: parsed?.num_turns ?? null, account: used };
 }
 
 // A unit whose launcher died before its cost row (its in-flight record still there, its pid dead): price its transcripts
@@ -430,10 +432,11 @@ async function recoverInflight() {
   }
 }
 async function recoverOne(f, remove) {
+  const ra = recoveredAccount(f, readAccounts(root).accounts ?? []);
   let est = 0, fable = 0, models = new Set(), sessionId = f.session_id, last = f.startedMs;
   try {
     const u = await import(path.join(vault, 'tools/usage-by-agent.mjs'));
-    const dir = u.projectsDirFor(root);
+    const dir = u.projectsDirFor(root, ra.configDir);
     if (!sessionId && existsSync(dir)) {
       // No --session-id on this CLI: the newest transcript started after the unit whose opening prompt names it.
       const want = `/${f.skill} ${f.ticket}`;
@@ -452,7 +455,7 @@ async function recoverOne(f, remove) {
     }
   } catch (e) { log(`interrupted unit: could not price its transcripts (${e.message})`); }
   // The dead unit's results file is applied with its cost row, so a unit killed after its squash still lands done (2.12).
-  const entry = JSON.parse(JSON.stringify({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev }));
+  const entry = JSON.parse(JSON.stringify({ ts: new Date().toISOString(), unit: f.unit, ticket: f.ticket, models: [...models], est_usd: est, fable_est_usd: fable, outcome: 'interrupted', session_id: sessionId || undefined, num_turns: null, duration_ms: last - f.startedMs, auth: f.auth, account: ra.account, wall_ms: last - f.startedMs, meter_source: f.meterSource, process_rev: f.processRev }));
   applyUnit(resultsFile(inflightDir({ root }), f.id || unitId(f.unit, f.ticket)), [{ op: 'cost', entry }]);
   remove();
   log(`previous launcher stopped during ${f.unit} ${f.ticket}; cost row written (est ${est.toFixed(2)}); resuming`);
@@ -647,6 +650,51 @@ async function main() {
     // place (D9) keeps the pid, so the first caffeinate still watches it.
     try { const c = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }); c.unref(); } catch {}
   }
+  // EZD-378 D-Run2: the accounts file is read once at start; a bad file stops the launcher before any unit starts.
+  const accounts = readAccounts(root);
+  if (accounts.problem) { const t = `launcher stopped: scripts/launcher-accounts.json: ${accounts.problem}`; log(t); notify(t); return; }
+  if (accounts.on) log(`accounts: ${accounts.accounts.map((a) => `${a.id} (${a.dir})`).join(', ')}`);
+  const signedIn = new Set();
+  const blocked = {};
+  const signInNoticed = new Set();
+  let accountPauseNoticed = false;
+  const costLines = () => {
+    let db = null;
+    try {
+      db = openRecords(dbPath());
+      return db.prepare('select line from cost').all().map((r) => r.line);
+    } catch (e) {
+      log(`account spend not read: ${e.message}`);
+      return [];
+    } finally {
+      try { db?.close(); } catch {}
+    }
+  };
+  // D-Check: `claude auth status` in the unit's own environment, before the first unit on an account in this process.
+  const checkSignIn = (account) => {
+    const r = spawnSync(claudeBin, ['auth', 'status'], { cwd: root, env: unitAuthEnv(process.env, { mode: 'plan', account }), encoding: 'utf8', timeout: 30000 });
+    return signInVerdict({ status: r.status, stdout: r.stdout ?? '', error: r.error }, account);
+  };
+  // D-Run3: the account for the next unit; off without the accounts file or in api mode.
+  const chooseAccount = (running = {}) => {
+    if (!accounts.on || authMode() === 'api') return { off: true, account: null };
+    for (;;) {
+      const now = Date.now();
+      const pick = pickAccount({ accounts: accounts.accounts, state: readAccountState(logDir), spend: accountSpend(costLines(), now), running, blocked, now });
+      if (!pick.account || dryRun || signedIn.has(pick.account.id)) return pick;
+      const v = checkSignIn(pick.account);
+      if (v.ok) {
+        signedIn.add(pick.account.id);
+        delete blocked[pick.account.id];
+        signInNoticed.delete(pick.account.id);
+        return pick;
+      }
+      blocked[pick.account.id] = now + SIGNIN_RECHECK_MS;
+      const t = accountSignInText(pick.account, v.why);
+      log(t);
+      if (!signInNoticed.has(pick.account.id)) { notify(t); signInNoticed.add(pick.account.id); }
+    }
+  };
   if (!dryRun) await recoverInflight();
   // EZD-250 D8: the continuous run also restarts on new code, applies queued ledger edits and repairs.
   const continuous = !once && !dryRun;
@@ -697,7 +745,19 @@ async function main() {
       quickUntil = Math.max(quickUntil, Date.now() + quickPauseMs);
       log(`quick empty unit ${key}: ${r.wallMs} ms, $${r.usd.toFixed(2)}, ${r.turns ?? 0} turns; no unit starts until ${new Date(quickUntil).toISOString()}`);
     }
-    if (r.outcome === 'limit-five-hour') {
+    // EZD-378 D-Run9: a limit on an account rests only that account; no hold, wait, ledger check, strike or guard.
+    if (r.account && r.outcome.startsWith('limit-')) {
+      const until = parseReset(r.limit.until, Date.now()) ?? Date.now() + ACCOUNT_REST_UNKNOWN_MS;
+      try {
+        restAccount(logDir, r.account.id, until, r.limit.note ?? r.outcome);
+        log(`account ${r.account.id} hit a ${r.limit.kind} limit during ${key}; resting until ${new Date(until).toISOString()}; the next unit goes to another account`);
+      } catch (e) {
+        const t = `launcher stopped: account state not written (${e.message})`;
+        log(t);
+        notify(t);
+        stopping = t;
+      }
+    } else if (r.outcome === 'limit-five-hour') {
       const pause = limitPause({ limit: { until: parseWhen(r.limit.until)?.toISOString() ?? null }, now });
       const held = existsSync(windowPauseFile) ? Date.parse(readFileSync(windowPauseFile, 'utf8').match(/^- Resume at: (.+)$/m)?.[1]?.trim()) : NaN;
       if (!(held > Date.parse(pause.resume_at))) writeWindowPause({ now: new Date(now), pause });
@@ -809,7 +869,7 @@ async function main() {
         if (!offered.length) { if (drained) return 'sequential'; go = false; }
       }
       if (go) {
-        const busy = [...running.values()].map(({ unit, arg, dbLane }) => ({ unit, arg, dbLane }));
+        const busy = [...running.values()].map(({ unit, arg, dbLane, account }) => ({ unit, arg, dbLane, account }));
         const { start, reason } = pickUnits({ offered, running: busy, limits });
         if (reason !== lastReason && reason) log(reason);
         lastReason = reason;
@@ -820,6 +880,7 @@ async function main() {
           return 'exit';
         }
         let refused = 0;
+        let noAccount = null;
         let started = 0;
         for (const u of start) {
           const key = `${u.unit} ${u.arg}`;
@@ -832,16 +893,22 @@ async function main() {
           }
           const dbLane = dbLaneFor({ unit: u.unit, running: busy, limits, lanesOn: true });
           if (dbLane === null) continue;
+          // EZD-378 D-Run7: the account for this unit; none free ends this pass (D-Run8 pauses when nothing runs).
+          const counts = {};
+          for (const x of busy) if (x.account) counts[x.account] = (counts[x.account] ?? 0) + 1;
+          const pick = chooseAccount(counts);
+          if (!pick.off && !pick.account) { noAccount = pick; break; }
           if (!dryRun) {
             const sg = recordStart(logDir, key, Date.now());
             if (!sg.allow) { const text = startStopText(key, sg.count); log(text); notify(text); stopping = text; refused++; break; }
           }
-          busy.push({ unit: u.unit, arg: u.arg, dbLane });
+          busy.push({ unit: u.unit, arg: u.arg, dbLane, account: pick.account?.id ?? null });
           started++;
-          if (dryRun) { await runUnit(u.unit, u.arg, meters.source); log(`DRY-RUN START ${key} db-lane=${dbLane}`); continue; }
+          accountPauseNoticed = false;
+          if (dryRun) { await runUnit(u.unit, u.arg, meters.source, { account: pick.account }); log(`DRY-RUN START ${key} db-lane=${dbLane}`); continue; }
           const before = statusRow(statusText(), u.arg);
           const task = neverRejects(async () => {
-            const r = await runUnit(u.unit, u.arg, meters.source, dbLane ? { env: laneEnvFor({ root, ticket: u.arg, lane: dbLane }), lease: dbLane } : {});
+            const r = await runUnit(u.unit, u.arg, meters.source, { ...(dbLane ? { env: laneEnvFor({ root, ticket: u.arg, lane: dbLane }), lease: dbLane } : {}), account: pick.account });
             running.delete(key);
             afterUnit(key, u, before, r);
           }, (e) => {
@@ -850,13 +917,23 @@ async function main() {
             running.delete(key);
             stopping = stopping ?? `${key}: ${e?.message ?? e}`;
           });
-          running.set(key, { unit: u.unit, arg: u.arg, dbLane, resume: u.resume, before, task });
+          running.set(key, { unit: u.unit, arg: u.arg, dbLane, account: pick.account?.id ?? null, resume: u.resume, before, task });
           repairs = 0;
           try { unlinkSync(repairStateFile); } catch {}
           waiting = null;
           failedWait = null;
           setState({ state: 'unit', at: nowIso() });
           log(`lane: starting ${key}${dbLane ? ` on database lane ${dbLane}` : ''} (${running.size} running)`);
+        }
+        // EZD-378 D-Run8: no account can start a unit and nothing runs: wait for the earliest account, one notice.
+        if (noAccount && !started && running.size === 0) {
+          const text = accountsPausedText(noAccount.parts, noAccount.until);
+          if (dryRun) { log(`DRY-RUN PAUSE ${text}`); return 'exit'; }
+          log(text);
+          if (!accountPauseNoticed) { notify(text); accountPauseNoticed = true; }
+          setState({ state: 'limit-wait', at: nowIso(), until: new Date(noAccount.until).toISOString() });
+          await sleep(Math.max(60000, noAccount.until - Date.now() + 60000));
+          continue;
         }
         if (dryRun) { log(`DRY-RUN LANES lanes=${limits.lanes} build-lanes=${limits.buildLanes} started=${started}`); return 'exit'; }
         if (!started && running.size === 0) return refused > 0 ? 'exit' : 'sequential';
@@ -988,6 +1065,17 @@ async function main() {
     // Fable fallback flag for the orchestrator (section 4): exported so the skill can read it.
     if (decision.fable === 'opus') log(`Fable weekly window at ${Math.round(meters.fable_seven_day.pct)}%: Fable dispatches use Opus 5.5 until ${meters.fable_seven_day.resets_at.slice(0, 16).replace('T', ' ')} UTC`);
     process.env.EZD_FABLE_ALLOWED = decision.fable === 'fable' ? '1' : '0';
+    // EZD-378 D-Run5: the account for this unit; none free waits for the earliest one, with one notice.
+    const pick = chooseAccount();
+    if (!pick.off && !pick.account) {
+      const text = accountsPausedText(pick.parts, pick.until);
+      if (once || dryRun) { log(`${subject}: not started: ${text} (${dryRun ? '--dry-run' : '--once'})`); return; }
+      log(text);
+      if (!accountPauseNoticed) { notify(text); accountPauseNoticed = true; }
+      setState({ state: 'limit-wait', at: nowIso(), until: new Date(pick.until).toISOString() });
+      await sleep(Math.max(60000, pick.until - Date.now() + 60000));
+      continue;
+    }
     if (!dryRun) {
       const k = `${unitName} ${arg}`;
       const sg = recordStart(logDir, k, Date.now());
@@ -1001,7 +1089,8 @@ async function main() {
     if (snap && opsHome) {
       try { snap.verified = verifyDevelop(root, opsHome, spawnSync); } catch (e) { snap.verified = { refuse: e?.message ?? String(e) }; }
     }
-    const r = await runUnit(unitName, arg, meters.source);
+    accountPauseNoticed = false;
+    const r = await runUnit(unitName, arg, meters.source, { account: pick.account });
     if (dryRun) return;
     if (quickEmpty(r)) {
       quickUntil = Math.max(quickUntil, Date.now() + quickPauseMs);
@@ -1057,6 +1146,15 @@ async function main() {
       if (r.outcome.startsWith('limit-')) overseerAppend(`repair ${repair.kind}: ${refusal ? `REFUSED: ${refusal}` : `FAILED: stopped by a usage limit (${r.outcome}); the launcher retries it`}`);
     }
     if (r.outcome.startsWith('limit-')) {
+      // EZD-378 D-Run6: a limit on an account rests only that account; the unit is offered again as it was, with no
+      // hold, wait, strike, failure file, retry count or set-aside.
+      if (r.account) {
+        const until = parseReset(r.limit.until, Date.now()) ?? Date.now() + ACCOUNT_REST_UNKNOWN_MS;
+        try { restAccount(logDir, r.account.id, until, r.limit.note ?? r.outcome); } catch (e) { const t = `launcher stopped: account state not written (${e.message})`; log(t); notify(t); return; }
+        log(`account ${r.account.id} hit a ${r.limit.kind} limit during ${subject}; resting until ${new Date(until).toISOString()}; the next unit goes to another account`);
+        if (once) return;
+        continue;
+      }
       if (r.limit.kind === 'five-hour') {
         const until = parseWhen(r.limit.until) || new Date(Date.now() + 30 * 60000);
         log(`five-hour limit; waiting until ${until.toISOString()} then resuming ${subject}`);

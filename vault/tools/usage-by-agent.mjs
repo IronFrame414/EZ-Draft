@@ -175,7 +175,9 @@ export function analyze(rows, projectsDir) {
     const ticket = r.ticket ?? '';
     const tk = add(tickets, ticket, () => ({ ticket, usd: 0, byUnit: {}, runs: 0, tokens: 0, advisor: 0, dispatches: [] }));
     tk.runs += 1;
-    const files = sessionFiles(projectsDir, r.session_id);
+    // EZD-378: one folder or a list (the default folder, then each account folder); the first folder that has the session wins.
+    let files = null;
+    for (const d of Array.isArray(projectsDir) ? projectsDir : [projectsDir]) { files = sessionFiles(d, r.session_id); if (files) break; }
     if (!files) {
       missing.push(r.session_id);
       continue;
@@ -297,19 +299,19 @@ export function parseArgs(argv) {
 
 // Claude Code's project folder name: the main checkout's path with every non-alphanumeric character as "-". Launcher
 // runs start in the main checkout, so a worktree maps back to it.
-export function projectsDirFor(repo) {
+export function projectsDirFor(repo, configDir = path.join(os.homedir(), '.claude')) {
   const main = repo.replace(/\/\.claude\/worktrees\/[^/]+\/?$/, '');
-  return path.join(os.homedir(), '.claude/projects', main.replace(/[^A-Za-z0-9]/g, '-'));
+  return path.join(configDir, 'projects', main.replace(/[^A-Za-z0-9]/g, '-'));
 }
 
-function main() {
+async function main() {
   const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
   const o = parseArgs(process.argv.slice(2));
   const rows = loadRows(o.log || path.join(repo, 'vault/cost/log.jsonl'), o);
   const scope = [o.since && `since ${o.since}`, o.until && `until ${o.until}`, o.rev && `process_rev ${o.rev}`].filter(Boolean).join(', ');
   let a;
   try {
-    a = analyze(rows, o.projects || projectsDirFor(repo));
+    a = analyze(rows, o.projects || (await defaultProjects(repo)));
   } catch (e) {
     if (e instanceof MissingRateError) {
       console.error(`usage-by-agent: stopped: ${e.message}. Add the rate from the claude-api skill's pricing reference; never guess one.`);
@@ -320,6 +322,13 @@ function main() {
   const md = render(a, { title: o.title, scope: scope ? `Log rows ${scope}.` : '' });
   if (o.out) fs.writeFileSync(o.out, md + '\n');
   else process.stdout.write(md + '\n');
+}
+
+// EZD-378 D-Usage: the default folder, then each launcher account's folder (scripts/launcher-accounts.json).
+async function defaultProjects(repo) {
+  let accounts = [];
+  try { accounts = (await import(path.join(repo, 'scripts/launcher-idle.mjs'))).readAccounts(repo).accounts ?? []; } catch { accounts = []; }
+  return [projectsDirFor(repo), ...accounts.map((a) => projectsDirFor(repo, a.path))];
 }
 
 const isMain = (() => { try { return !!process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();

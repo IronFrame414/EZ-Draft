@@ -23,6 +23,8 @@
         "./**/.env.production",
         "./**/.env.development",
         "~/.claude/.credentials.json",
+        "~/.claude-acct-1/.credentials.json",
+        "~/.claude-acct-2/.credentials.json",
         "~/.ssh",
         "~/.aws",
         "~/Library/Keychains",
