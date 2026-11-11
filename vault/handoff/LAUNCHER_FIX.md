@@ -44,3 +44,11 @@ EZD-384b (2026-11-11): the code-bound step (P3) and the phase dependency check (
 - vault/tools/dep_check.mjs
 - vault/tools/contract_check.mjs (already listed)
 - scripts/process/dep-check.test.mjs
+
+EZD-385 (2026-11-11): the plan stays true at merge. Paths above plus:
+- vault/tools/merge_check.mjs
+- vault/tools/connections_check.mjs (already listed)
+- scripts/unit-steps.mjs
+- .claude/skills/build-ticket/SKILL.md
+- scripts/process/merge-check.test.mjs
+- scripts/process/unit-steps-plan.test.mjs
