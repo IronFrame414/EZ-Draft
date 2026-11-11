@@ -157,4 +157,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-236 section 3 (vault/plans/EZD-236.md; E1): the benchmark project function, authenticated only.
   { fn: 'create_benchmark_project', args: { p_changes: [] } },
+  // EZD-135 section 3 (vault/plans/EZD-135.md): the System status backup function, authenticated only.
+  { fn: 'system_backup_status', args: {} },
 ];

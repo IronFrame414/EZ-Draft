@@ -289,6 +289,14 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
   },
   {
+    file: `${API}settings/system-status/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/system-status/route'),
+    request: get('/api/settings/system-status?part=jobs&page=1'),
+    expectStatus: 200,
+    note: 'EZD-135: failed jobs of the last 30 days; 200 StatusPage (no money)',
+  },
+  {
     file: `${API}settings/users/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/settings/users/route'),

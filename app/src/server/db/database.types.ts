@@ -751,6 +751,11 @@ isOneToOne: false
 "start_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string
                            },
+"system_backup_status":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "bytes_copied": number,"finished_at": string,"kind": string,"location": string,"status": string
+            }[]
+                           },
 "take_ai_key_attempt":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
