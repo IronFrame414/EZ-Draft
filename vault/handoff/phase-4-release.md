@@ -42,3 +42,9 @@ Every distinct failure in the gate-logs artifacts of the last 10 failed develop 
 - **New EZD-392:** EZD-207c N5 throttle test fails under load (EZD-372 series c run 1 and series d run 2).
 - The tooling-test failures in runs 42991903837 (fixture LEDGER INVALID) and 42959076382 (EZD-360 T10) have not come back in the 8 runs since. They need no ticket (rule 17 note).
 - Release step added: EZD-390, EZD-391 and EZD-392 done. The launcher plans and builds them (phase 4, priority 1).
+
+## Stop the line (Josh 2026-11-11 ~22:10 UTC, chat: "Yes, stop the line")
+- `.git/set-aside.json` now also holds `plan` and `build` for every open ticket outside phase 4 (379 tickets), and `questions`, `review-plans`, `gate-phase` and `wrap` for every phase but 4. Its first entry is a note telling the overwatch not to remove them. The added keys are listed in `.git/ezdraft-tmp/stl-added.json`, and the list before the change is in `.git/ezdraft-tmp/set-aside-before-stl.json`.
+- No launcher restart was needed (the list is read each poll). LANES.json build_lanes goes to 3 when the interactive EZD-372 and EZD-212a merge gates (lanes 2 and 3) finish, so EZD-390, 391 and 392 build and prove at once.
+- Release after phase 4 merges: restore `.git/set-aside.json` to the before-list minus `gate-phase 4` (and minus the planning-method entries that are done), then set build_lanes 2.
+- Already done: EZD-381 merged (55743611), EZD-372 passed 10 counting gates (test-results/d372d/runs.txt) and is in its merge gate.
