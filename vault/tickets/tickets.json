@@ -21270,6 +21270,11 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
