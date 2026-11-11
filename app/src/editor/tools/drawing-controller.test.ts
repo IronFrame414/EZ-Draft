@@ -6,6 +6,9 @@ import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_SNAP_SETTINGS,
   createWallData,
+  formatLength,
+  parseLength,
+  PLAN_DISPLAY_DENOMINATOR,
   roomAreaSqFt,
   type NumberHighs,
   type Point,
@@ -477,5 +480,40 @@ describe('EZD-219 drawing uses the snap settings', () => {
     control.click(0, 0);
     control.send(ev('move', 37.3, 0));
     near(control.controller.getFrame()!.to!, pt(37.5, 0));
+  });
+});
+
+// EZD-375 D1, D2 (vault/plans/EZD-375.md section 4; AC-EZD-375-1, -2; 09j rows 11, 12; Q-0560, Q-0570).
+describe('EZD-375 typed angled wall length', () => {
+  it('EZD-375 D1 done when: a wall typed 12\' 6 1/4" at 45 degrees from (150, 0) shows 12\' 6 1/2"', () => {
+    expect(parseLength('12\' 6 1/4"', 'wall_room')).toEqual({ ok: true, inches: 150.25 });
+    const { controller, click, send, walls } = setup();
+    controller.selectTool('wall');
+    click(150, 0);
+    send(ev('move', 200, 50));
+    controller.typed({ length: 150.25, angle: 45 });
+    expect(walls()).toHaveLength(1);
+    const g = walls()[0]!.data.geometry;
+    near(g.start, pt(150, 0));
+    near(g.end, pt(256.24279387327874, 106.24279387327876));
+    const last = controller.getUi().lastLength;
+    expect(last).toBeLessThan(150.25);
+    expect(last).toBeCloseTo(150.25, 9);
+    expect(formatLength(last!, PLAN_DISPLAY_DENOMINATOR)).toBe('12\' 6 1/2"');
+  });
+
+  it('EZD-375 D2 a wall typed 11\' 11 3/4" at 10 degrees shows 12\' 0"', () => {
+    expect(parseLength('11\' 11 3/4"', 'wall_room')).toEqual({ ok: true, inches: 143.75 });
+    const { controller, click, send, walls } = setup();
+    controller.selectTool('wall');
+    click(150, 0);
+    send(ev('move', 200, 50));
+    controller.typed({ length: 143.75, angle: 10 });
+    expect(walls()).toHaveLength(1);
+    near(walls()[0]!.data.geometry.end, pt(291.5661144955049, 24.961925539621234));
+    const last = controller.getUi().lastLength;
+    expect(last).toBeLessThan(143.75);
+    expect(last).toBeCloseTo(143.75, 9);
+    expect(formatLength(last!, 2)).toBe('12\' 0"');
   });
 });

@@ -61,6 +61,9 @@ export function parseLength(text: string, kind: LengthFieldKind): ParseLengthRes
   return { ok: true, inches };
 }
 
+// EZD-375 (vault/plans/EZD-375.md): added before the half-up floor so float noise in a computed length (an angled wall's hypot) cannot drop an exact half (09j row 12; 03g); far below 1/64" (03g), so no real length moves.
+const DISPLAY_ROUNDING_MARGIN_IN = 1e-6;
+
 function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b);
 }
@@ -70,7 +73,7 @@ export function formatLength(inches: number, denominator: DisplayDenominator): s
     throw new RangeError('inches must be finite and not negative');
   if (denominator !== 2 && denominator !== 16) throw new RangeError('denominator must be 2 or 16');
   const d = denominator;
-  const n = Math.floor(inches * d + 0.5);
+  const n = Math.floor((inches + DISPLAY_ROUNDING_MARGIN_IN) * d + 0.5);
   const feet = Math.floor(n / (12 * d));
   const rem = n - feet * 12 * d;
   const whole = Math.floor(rem / d);

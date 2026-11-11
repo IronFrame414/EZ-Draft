@@ -96,3 +96,15 @@ describe('EZD-209 typed entry layer markup', () => {
     expect(input).toContain('aria-label="Angle"');
   });
 });
+
+// EZD-375 M1 (vault/plans/EZD-375.md section 4; AC-EZD-375-1; 09j rows 11, 12).
+describe('EZD-375 typed bar rounding', () => {
+  it('EZD-375 M1 the bar shows the rounded-up half for a computed length', () => {
+    expect(textOf(layer(STUB, true, { length: 150.24999999999997 }), 'typed-bar-value')).toBe(
+      "12' 6 1/2\"",
+    );
+    expect(textOf(layer(STUB, true, { length: 143.74999999999997 }), 'typed-bar-value')).toBe(
+      "12' 0\"",
+    );
+  });
+});
