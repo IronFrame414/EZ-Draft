@@ -1,0 +1,34 @@
+# Session 17 brief: take over as orchestrator from session 15 (2026-11-11 about 02:40 UTC)
+
+You are the orchestrator for the EZ Draft build. Read `CLAUDE.md` first, then this file, then `vault/handoff/session-15-state.md` (detail and gotchas). Josh is a general contractor, not a programmer. Only design and UI questions go to him (CLAUDE.md rule 3). Josh asked for this to be a top-level session, not a sub-session.
+
+## 1. State now
+- **Live:** phases 0 to 3. **Phase 4:** product tickets done; `gate-phase 4` stays on `.git/set-aside.json` until the fix tickets below are done, then take it off (overwatch step G) and the launcher runs the phase gate. The phase 4 PR also needs the GitHub CI `gate` check green (EZD-373 and EZD-374 fixed the two CI causes the audit found; confirm on the next develop CI run with `gh run list --branch develop --workflow CI`).
+- **Phase 4 fix tickets:** EZD-373, 374, 375, 376 done. EZD-379 (207b B2 hover under load) building on lane 1. EZD-380 (money-pages W1 ECONNRESET under load) ready; it waits for EZD-379 because both plans name `app/playwright.config.ts` (launcher file-overlap rule). EZD-372 blocked: set it ready after EZD-379 and EZD-380 merge, for a fresh D-Runs series.
+- **Load lane:** D-Runs tickets (EZD-372, 379, 380) count a gate only while another lane runs a gate. Session 15 runs back-to-back load gates on lane 3: a nohup loop in `test-results/d372/` using worktree `.claude/worktrees/EZD-376` (log `test-results/d372/load.txt`). Stop it with `touch /Users/josh/Projects/ezdraft/test-results/d372/STOP` once no D-Runs ticket needs it; then `git worktree remove .claude/worktrees/EZD-376`.
+- **Phase 5:** EZD-212a blocked on EZD-381 (new fix ticket, planned; `questions 5` runs next).
+- **Phase 6:** RELEASED by Josh 2026-11-11 ("phase 6 should be released now that the new build process was set"). Its 8 tickets are back at their pre-hold status (EZD-224 and EZD-235 ready; the rest at questions). Their plans were written under the old planning method.
+- **Phases 7 to 10:** not signed off (vault/spec/SIGNOFF.md ends at phase 6).
+
+## 2. Build-machine changes Josh approved (Q-0693; vault/research/audit-2026-11/PLANNING-REDESIGN.md Part 3)
+Done:
+- EZD-377 (`06d354ff`): documented limit messages, quick-empty-unit pause, start limit.
+- EZD-378 (`512b6574`): automatic switching between the two accounts. Built, gated, reviewed, merged. NOT turned on: `scripts/launcher-accounts.json` (plan EZD-378 D-File text) is deliberately not committed. From the orchestrator's shell, `CLAUDE_CONFIG_DIR=$HOME/.claude-acct-N claude auth status` reports `loggedIn: false` for both folders, though each folder's `.claude.json` has an `oauthAccount` entry (Josh signed in twice). Ask Josh what that command prints in his own Terminal. Only when both show `"loggedIn": true` and `"authMethod": "claude.ai"`: run plan EZD-378 section 9's live check if the hooks allow it (they block nested claude from the orchestrator's shell; if so, ask Josh to run it), commit the file by path, `record-develop`, push. The launcher reads it at its next start (a `.json` change does not restart it); a forced restart needs Josh's yes.
+Not started, in this order (each a phase 1 tooling ticket built interactively in fix mode, like EZD-377/378: file ticket, plan with the planner, tests with test-author, then the orchestrator builds the non-test files itself because guard-paths gives fix mode only to the orchestrator; code-reviewer and security-reviewer; gate as detached nohup on a free lane; squash-merge; ledger done; record-develop; push):
+1. Stop the line: overwatch reads develop's latest CI run; red → one defect ticket, no product merge until green, phone notice after 2 hours; add the missing runbook patterns (B2-B4-process.md B4, plus the new ones in session-15-state.md Gotchas and overseer-log.md).
+2. Full gate after every 2nd product merge, plus each ticket's regression list (Josh: "Yes, but 2 at a time").
+3. Honest repairs and hand-off (repair verdicts as strikes; stall over 2 hours opens an interactive session and notifies Josh).
+4. The planning method (Part 1: template, plan_lint rules, contract and connections checks, shared-list register, P1/P3 units, planner maxTurns 40 to 100, plan-checker upgrade). Then pilot it. Josh released phase 6 before it exists; offer him once to re-plan phase 6's not-yet-built tickets with it when it lands.
+Fix mode is OPEN (`vault/handoff/LAUNCHER_FIX.md` names EZD-377/378 paths). Update its paths for each new ticket; close it (git rm, commit, record-develop, push) when the last one merges.
+
+## 3. Start the phase-prep sub-session (Josh 2026-11-11: "launch a sub-session to prep 4 more phases")
+Start it with `mcp__ccd_session__start_session`: initiation `user_asked`, context `fresh`, `use_worktree: false`, title `18 · Prep phases 7 to 10 (spec-check and sign-off)`, with this brief:
+
+> Prepare phases 7, 8, 9 and 10 of EZ Draft so planning never runs dry. Read `CLAUDE.md`, `.claude/skills/spec-check/SKILL.md`, `vault/PROCESS.md` (Stage 0 sections, by range after `node vault/tools/outline.mjs`), `vault/tickets/PHASES.md` (phase rows 7 to 10) and `vault/spec/READINESS.md`. For each phase in order, run the spec-check unit: audit the phase's spec files against READINESS.md, turn every gap into a question, and settle each one per CLAUDE.md rule 3 (only design and UI questions go to Josh; the rest are answered by Opus or a Fable/Opus reviewer with a cited source and recorded as answered-agent). Batch Josh's design/UI questions into one plain-words list per phase, with a recommended answer for each. Record answers through `node scripts/ledger.mjs question/answer`, commit by path, and record sign-off in `vault/spec/SIGNOFF.md` on Josh's yes (or "Agent, on Josh's yes" if he says to proceed). Do not plan or build tickets and do not touch the launcher; the launcher plans a phase once it is signed off. Never leave vault files untracked: an untracked file under vault/ fails the ledger check and stops the launcher, so commit each file as soon as it is written. Run long commands as detached `nohup` Bash, never in a Terminal tab. End with a 20-line summary: phases signed off, questions answered by whom, anything open for Josh.
+
+Note: an older linked session `phase6-spec-check` (local_339b516b-4dc1-47da-8a48-ca99328badb0) is idle; it is not needed.
+
+## 4. Keep doing
+- Watch the launcher (Monitor on `~/Library/Logs/ezdraft/launcher.log`, 30-minute expiry, re-arm) or rely on the scheduled `ezdraft-overwatch` task. Apply the overwatch runbook fixes; log each in `vault/handoff/overseer-log.md`.
+- After any commit touching `.claude/`, `scripts/`, `vault/tools/` or the process files: `node scripts/unit-steps.mjs record-develop <full sha>` at once, then push.
+- Never use `run_in_terminal` (Josh does not want approval prompts).
