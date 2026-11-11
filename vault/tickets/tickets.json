@@ -3061,7 +3061,9 @@
    "depends_raw": "EZD-103",
    "spec_ref": "S15d; R24 “Values”",
    "spec_files": [
-    "spec/sections/screens/S15d-settings-defaults.md"
+    "spec/sections/screens/S15d-settings-defaults.md",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S15dDefaults.png"
@@ -3073,15 +3075,25 @@
    ],
    "build_position": 124,
    "acs": [
-    "AC-EZD-116-1"
+    "AC-EZD-116-1",
+    "AC-EZD-116-2",
+    "AC-EZD-116-3",
+    "AC-EZD-116-4",
+    "AC-EZD-116-5",
+    "AC-EZD-116-6",
+    "AC-EZD-116-7",
+    "AC-EZD-116-8",
+    "AC-EZD-116-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0188",
-    "spec/decisions/09-calculations-and-rules.md#Q-0207"
+    "spec/decisions/09-calculations-and-rules.md#Q-0207",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -3611,10 +3623,12 @@
    "id": "EZD-125",
    "phase": 8,
    "title": "Edit lock service",
-   "depends_raw": "EZD-120, EZD-109, EZD-110, EZD-116, EZD-018",
+   "depends_raw": "EZD-120, EZD-109, EZD-110, EZD-116, EZD-018, EZD-224 (Q-0697)",
    "spec_ref": "S06 Edit lock; R24 #16, #17",
    "spec_files": [
-    "spec/sections/screens/S06-electrical-edit-lock.md#Edit lock"
+    "spec/sections/screens/S06-electrical-edit-lock.md#Edit lock",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S06Electrical.png"
@@ -3629,21 +3643,30 @@
     "EZD-110a",
     "EZD-110b",
     "EZD-116",
-    "EZD-018"
+    "EZD-018",
+    "EZD-224"
    ],
    "build_position": 125,
    "acs": [
     "AC-EZD-125-1",
     "AC-EZD-125-2",
-    "AC-EZD-125-3"
+    "AC-EZD-125-3",
+    "AC-EZD-125-4",
+    "AC-EZD-125-5",
+    "AC-EZD-125-6",
+    "AC-EZD-125-7",
+    "AC-EZD-125-8",
+    "AC-EZD-125-9",
+    "AC-EZD-125-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0188",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0206"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0206",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3654,7 +3677,9 @@
    "spec_ref": "S06 Controls; Acceptance tests · Edit lock",
    "spec_files": [
     "spec/sections/screens/S06-electrical-edit-lock.md#Controls",
-    "spec/sections/12-build-phases-and-acceptance-tests.md#Edit lock"
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Edit lock",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S06Electrical.png"
@@ -3668,12 +3693,21 @@
    ],
    "build_position": 126,
    "acs": [
-    "AC-EZD-126-1"
+    "AC-EZD-126-1",
+    "AC-EZD-126-2",
+    "AC-EZD-126-3",
+    "AC-EZD-126-4",
+    "AC-EZD-126-5",
+    "AC-EZD-126-6",
+    "AC-EZD-126-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -3705,11 +3739,13 @@
    "id": "EZD-128",
    "phase": 8,
    "title": "Project switcher",
-   "depends_raw": "EZD-117",
+   "depends_raw": "EZD-117, EZD-125 (Q-0697)",
    "spec_ref": "App shell · Header card; S01 Entry points",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md#Header card",
-    "spec/sections/screens/S01-projects.md#Entry points"
+    "spec/sections/screens/S01-projects.md#Entry points",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -3717,17 +3753,23 @@
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-117a",
-    "EZD-117b"
+    "EZD-117b",
+    "EZD-125"
    ],
    "build_position": 127,
    "acs": [
-    "AC-EZD-128-1"
+    "AC-EZD-128-1",
+    "AC-EZD-128-2",
+    "AC-EZD-128-3",
+    "AC-EZD-128-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3771,12 +3813,14 @@
    "id": "EZD-130",
    "phase": 8,
    "title": "Project settings dialog",
-   "depends_raw": "EZD-118, EZD-116, EZD-128",
+   "depends_raw": "EZD-118, EZD-116, EZD-128, EZD-125 (Q-0697)",
    "spec_ref": "S15d Decisions; S15c Decisions; S15g Decisions",
    "spec_files": [
     "spec/sections/screens/S15d-settings-defaults.md",
     "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md",
-    "spec/sections/screens/S15g-settings-code-edition.md"
+    "spec/sections/screens/S15g-settings-code-edition.md",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S15dDefaults.png",
@@ -3787,20 +3831,27 @@
    "depends_on": [
     "EZD-118",
     "EZD-116",
-    "EZD-128"
+    "EZD-128",
+    "EZD-125"
    ],
    "build_position": 128,
    "acs": [
     "AC-EZD-130-1",
-    "AC-EZD-130-2"
+    "AC-EZD-130-2",
+    "AC-EZD-130-3",
+    "AC-EZD-130-4",
+    "AC-EZD-130-5",
+    "AC-EZD-130-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0202"
+    "spec/decisions/10-permissions-and-settings.md#Q-0202",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -5852,7 +5903,9 @@
    "depends_raw": "EZD-126, EZD-204",
    "spec_ref": "S03 States",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#States"
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -5868,13 +5921,15 @@
     "AC-EZD-225-1",
     "AC-EZD-225-2",
     "AC-EZD-225-3",
-    "AC-EZD-225-4",
-    "AC-EZD-225-5"
+    "AC-EZD-225-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
