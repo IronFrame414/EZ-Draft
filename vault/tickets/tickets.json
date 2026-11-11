@@ -21233,6 +21233,31 @@
     "AC-EZD-380-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-381",
+   "phase": 5,
+   "title": "Fix: the EZD-208b B9 hover test counts 14 React commits where 17 are expected after develop merges in",
+   "depends_raw": "EZD-208b",
+   "spec_ref": "rule 17 (gate defect, EZD-212a gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Build lanes (EZD-172)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208b"
+   ],
+   "acs": [
+    "AC-EZD-381-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
