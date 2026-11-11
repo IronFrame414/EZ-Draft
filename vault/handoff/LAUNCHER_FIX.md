@@ -17,3 +17,6 @@ EZD-382 (2026-11-11): plan template v2, plan_lint v2 rules and the planner limit
 - scripts/process/plan-lint.test.mjs
 - scripts/process/planner-limits.test.mjs
 - scripts/process/fixtures/plan-lint-v1-baseline.json
+
+EZD-386 (2026-11-11): look-ahead to every signed-off phase (Josh 2026-11-11). Paths above plus:
+- scripts/ledger/phase-overlap.test.mjs
