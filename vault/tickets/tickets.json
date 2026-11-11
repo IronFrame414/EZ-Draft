@@ -22080,6 +22080,48 @@
     "AC-EZD-389-3"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-390",
+   "phase": 4,
+   "title": "Fix: the EZD-299b conflict-list database test writes an error alert on CI without the alert lock",
+   "depends_raw": "EZD-299b",
+   "spec_ref": "rule 17; EZD-252",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-299b"
+   ],
+   "acs": [
+    "AC-EZD-390-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-391",
+   "phase": 4,
+   "title": "Fix: the EZD-033 T13 sign-in throttle test counts 4 emails where 5 are expected on CI",
+   "depends_raw": "EZD-033",
+   "spec_ref": "rule 17; EZD-033",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-033"
+   ],
+   "acs": [
+    "AC-EZD-391-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
