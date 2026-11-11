@@ -32,3 +32,9 @@ EZD-383 (2026-11-11): contract check, connections check and the shared-list regi
 - scripts/process/contract-check.test.mjs
 - scripts/process/connections-check.test.mjs
 - scripts/process/ledger-lock.test.mjs
+
+EZD-384 (2026-11-11): the brief-and-size step (P1). Paths above plus:
+- vault/tools/plan_ready.mjs (already listed)
+- .claude/skills/review-plans/SKILL.md
+- scripts/process/plan-brief.test.mjs
+- scripts/ledger/plan-steps.test.mjs

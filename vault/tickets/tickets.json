@@ -2916,6 +2916,14 @@
     "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Events",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Auth and session (EZD-007)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-005a",
@@ -21785,6 +21793,8 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -21889,6 +21899,15 @@
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Editor route (EZD-120c)",
+    "Benchmark project (EZD-236)",
+    "Browser tests (EZD-016a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Dependencies",
+    "Storage buckets and paths"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-224",
@@ -21918,6 +21937,12 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Entry points and lazy modules (EZD-020)",
+    "Benchmark project (EZD-236)",
+    "Error reporting (EZD-024)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-235",
