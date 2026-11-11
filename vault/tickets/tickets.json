@@ -22049,6 +22049,28 @@
     "AC-EZD-388-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-389",
+   "phase": 5,
+   "title": "Every email a user's action sends also goes to that user",
+   "depends_raw": "EZD-008a",
+   "spec_ref": "Q-0701; R26",
+   "spec_files": [],
+   "decisions": [
+    "spec/decisions/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-008a"
+   ],
+   "acs": [
+    "AC-EZD-389-1",
+    "AC-EZD-389-2",
+    "AC-EZD-389-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
