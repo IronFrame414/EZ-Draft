@@ -22066,6 +22066,10 @@
     "spec/decisions/07-hooks-events-and-integrations.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Email (EZD-008)",
+    "Messages and language (t())"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-008a"
