@@ -36,6 +36,7 @@ Brief: vault/handoff/session-17-brief.md. Josh's list for the morning: vault/han
 - The lane 3 load loop (test-results/d372/, worktree EZD-376) is still needed for EZD-380 and then EZD-372.
 
 ## Gotchas found tonight
+- Interactive gates use lane 3 only: the launcher builds on database lanes 1 and 2, and a lane-1 gate lost its database to build EZD-104 at 08:38Z.
 - An interactive merge races the half-hourly overwatch commit. Merge develop, sleep 2, gate, then merge at once in one background loop, started right after an overwatch commit.
 - `node scripts/ledger.mjs architecture <T>` on a plan a planner is still writing leaves the ledger check red until the next record. Record only finished plans. The launcher applies records only between its units (40 s to several minutes).
 - A fork cannot write in fix mode (guard-paths, by design). The orchestrator builds fix-mode files itself.
