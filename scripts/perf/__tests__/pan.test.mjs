@@ -260,3 +260,235 @@ describe('EZD-388 iPad pan row counted by CPU time', () => {
     }
   });
 });
+
+// EZD-235b W1-W8 (vault/plans/EZD-235b.md section 4; AC-EZD-235-3; Q-0664): the worker-job collector on fixture
+// pages served by this describe's own server. Matches exit codes, ids, statuses, numbers and error codes, never wording.
+const MARK = '<div data-testid="worker-probe" data-worker-probe="ready" hidden></div>';
+const jobPage = (body) => `<!doctype html><html><head></head><body>${body}</body></html>`;
+const hook = (run) => `<script>window.__ezdraftWorkerProbe={run:function(){${run}}}</script>`;
+const WORKER_SRC =
+  'onmessage=function(){var t=performance.now();while(performance.now()-t<500){}postMessage(performance.now()-t)}';
+const JOB_PAGES = {
+  '/job-worker.html': jobPage(
+    `${MARK}<script>var w=new Worker(URL.createObjectURL(new Blob(["${WORKER_SRC}"],{type:'text/javascript'})));</script>` +
+      hook(
+        "return new Promise(function(res){var s=performance.now();w.onmessage=function(e){res({rooms:0,passes:1,ranMs:e.data,where:'worker',jobMs:performance.now()-s})};w.postMessage(1)})",
+      ),
+  ),
+  '/job-main.html': jobPage(
+    MARK +
+      hook(
+        `return new Promise(function(res){setTimeout(function(){${B200}res({rooms:0,passes:1,ranMs:500,where:'worker',jobMs:200})},0)})`,
+      ),
+  ),
+  '/job-reject.html': jobPage(MARK + hook("return Promise.reject(new Error('probe'))")),
+  '/job-hang.html': jobPage(MARK + hook('return new Promise(function(){})')),
+  '/job-short.html': jobPage(
+    MARK + hook("return Promise.resolve({rooms:0,passes:1,ranMs:10,where:'worker',jobMs:10})"),
+  ),
+  '/job-inline.html': jobPage(
+    MARK +
+      hook(
+        "return new Promise(function(res){setTimeout(function(){res({rooms:0,passes:1,ranMs:500,where:'main',jobMs:500})},500)})",
+      ),
+  ),
+  '/job-never.html': jobPage(''),
+  '/job-failed.html': jobPage('<div data-testid="worker-probe" data-worker-probe="failed" hidden></div>'),
+  '/job-reload.html': jobPage(
+    MARK + hook("location.href='/job-never.html';return new Promise(function(){})"),
+  ),
+  '/job-null.html': jobPage(MARK + hook('return Promise.resolve(null)')),
+  '/job-nan.html': jobPage(
+    MARK + hook("return Promise.resolve({rooms:0,passes:1,ranMs:NaN,where:'worker',jobMs:1})"),
+  ),
+};
+const D = 'long-tasks-worker-job';
+const I = 'long-tasks-worker-job:ipad';
+const DETAIL_KEYS = ['profile', 'tasks', 'waits', 'load1', 'rooms', 'passes', 'ranMs', 'jobMs', 'where'];
+
+describe('EZD-235b worker job on fixture pages', () => {
+  let jobServer;
+  before(async () => {
+    const files = { '/pan.html': { body: PAN_HTML } };
+    for (const [p, body] of Object.entries(JOB_PAGES)) files[p] = { body };
+    jobServer = await startFixtureServer(files);
+  });
+  after(async () => {
+    await jobServer?.close();
+  });
+
+  async function runJobCli(measurements, only) {
+    const dir = tmpDir();
+    try {
+      const out = path.join(dir, 'out');
+      const cfg = writeConfig(dir, measurements, '/pan.html');
+      const r = await runCli([
+        '--config',
+        cfg,
+        '--base-url',
+        jobServer.baseUrl,
+        '--out',
+        out,
+        '--only',
+        only.join(','),
+      ]);
+      let latest;
+      try {
+        latest = readLatest(out);
+      } catch {
+        latest = undefined;
+      }
+      let diag = `${r.stdout}${r.stderr}`;
+      for (const m of (latest?.measurements ?? []).filter((x) => String(x.id).startsWith('long-tasks-worker-job'))) {
+        diag += `\n${m.id} status=${m.status} value=${m.value} error=${m.error} details=${JSON.stringify(m.details)}`;
+      }
+      return { r, latest, diag };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  test(
+    'EZD-235b W1 done when: a job in a worker leaves no main-thread long task on both rows',
+    { timeout: 200000 },
+    async () => {
+      const { r, latest, diag } = await runJobCli(
+        [
+          { id: D, url: '/job-worker.html' },
+          { id: I, url: '/job-worker.html' },
+        ],
+        [D, I],
+      );
+      assert.equal(r.status, 0, diag);
+      assert.deepEqual(
+        latest.measurements.map((m) => m.id),
+        [D, I],
+        diag,
+      );
+      for (const [id, profile] of [
+        [D, 'desktop'],
+        [I, 'ipad-1x'],
+      ]) {
+        const row = rowOf(latest, id);
+        assert.equal(row.status, 'pass', `${id}\n${diag}`);
+        assert.equal(row.value, 0, `${id}\n${diag}`);
+        assert.equal(row.budgetId, 'long-tasks.worker-job', id);
+        assert.equal(row.budget, 0, id);
+        assert.deepEqual(row.details.tasks, [], `${id}\n${diag}`);
+        assert.equal(row.details.where, 'worker', id);
+        assert.ok(row.details.ranMs >= 500, `${id} ranMs ${row.details.ranMs}`);
+        assert.deepEqual(Object.keys(row.details), DETAIL_KEYS, id);
+        assert.equal(row.details.profile, profile, id);
+      }
+    },
+  );
+
+  test('EZD-235b W2 a main-thread job is counted on both rows', { timeout: 200000 }, async () => {
+    const { r, latest, diag } = await runJobCli(
+      [
+        { id: D, url: '/job-main.html' },
+        { id: I, url: '/job-main.html' },
+      ],
+      [D, I],
+    );
+    assert.equal(r.status, 1, diag);
+    for (const id of [D, I]) {
+      const row = rowOf(latest, id);
+      assert.equal(row.status, 'fail', `${id}\n${diag}`);
+      assert.equal(row.value, 1, `${id}\n${diag}`);
+      assert.equal(row.details.tasks.length, 1, `${id}\n${diag}`);
+      const ms = row.details.tasks[0].ms;
+      assert.ok(Number.isInteger(ms) && ms >= 50, `${id} ms ${ms}`);
+    }
+  });
+
+  test('EZD-235b W3 a job that rejects or never settles is probe_failed', { timeout: 200000 }, async () => {
+    const { r, latest, diag } = await runJobCli(
+      [
+        { id: D, url: '/job-reject.html' },
+        { id: I, url: '/job-hang.html' },
+      ],
+      [D, I],
+    );
+    assert.equal(r.status, 1, diag);
+    const d = rowOf(latest, D);
+    const i = rowOf(latest, I);
+    assert.equal(d.status, 'error', diag);
+    assert.equal(d.error, 'probe_failed', diag);
+    assert.deepEqual(d.details, { profile: 'desktop' }, diag);
+    assert.equal(i.status, 'error', diag);
+    assert.equal(i.error, 'probe_failed', diag);
+    assert.deepEqual(i.details, { profile: 'ipad-1x' }, diag);
+  });
+
+  test('EZD-235b W4 a job that ran too short or not in a worker is refused', { timeout: 200000 }, async () => {
+    const { r, latest, diag } = await runJobCli(
+      [
+        { id: D, url: '/job-short.html' },
+        { id: I, url: '/job-inline.html' },
+      ],
+      [D, I],
+    );
+    assert.equal(r.status, 1, diag);
+    assert.equal(rowOf(latest, D).error, 'probe_too_short', diag);
+    assert.equal(rowOf(latest, I).error, 'probe_not_worker', diag);
+  });
+
+  test('EZD-235b W5 a probe that never gets ready or failed to start is reported', { timeout: 200000 }, async () => {
+    const { r, latest, diag } = await runJobCli(
+      [
+        { id: D, url: '/job-never.html' },
+        { id: I, url: '/job-failed.html' },
+      ],
+      [D, I],
+    );
+    assert.equal(r.status, 1, diag);
+    assert.equal(rowOf(latest, D).error, 'probe_not_ready', diag);
+    assert.equal(rowOf(latest, I).error, 'probe_start_failed', diag);
+  });
+
+  test(
+    'EZD-235b W6 a worker row with no url is no_url, and a run that resolves null is probe_not_worker',
+    { timeout: 120000 },
+    async () => {
+      const { r, latest, diag } = await runJobCli([{ id: I, url: '/job-null.html' }], [D, I]);
+      assert.equal(r.status, 1, diag);
+      const d = rowOf(latest, D);
+      assert.equal(d.status, 'error', diag);
+      assert.equal(d.error, 'no_url', diag);
+      assert.deepEqual(d.details, {}, diag);
+      const i = rowOf(latest, I);
+      assert.equal(i.error, 'probe_not_worker', diag);
+      assert.deepEqual(i.details, { profile: 'ipad-1x' }, diag);
+    },
+  );
+
+  test('EZD-235b W7 navigation and HTTP failures are reported', { timeout: 120000 }, async () => {
+    const { r, latest, diag } = await runJobCli(
+      [
+        { id: D, url: ':0' },
+        { id: I, url: '/missing.html' },
+      ],
+      [D, I],
+    );
+    assert.equal(r.status, 1, diag);
+    assert.equal(rowOf(latest, D).error, 'navigation_failed', diag);
+    assert.equal(rowOf(latest, I).error, 'http_404', diag);
+  });
+
+  test('EZD-235b W8 a page that navigates away during the job is unexpected_error', { timeout: 120000 }, async () => {
+    const { r, latest, diag } = await runJobCli(
+      [
+        { id: D, url: '/job-reload.html' },
+        { id: I, url: '/job-nan.html' },
+      ],
+      [D, I],
+    );
+    assert.equal(r.status, 1, diag);
+    const d = rowOf(latest, D);
+    assert.equal(d.status, 'error', diag);
+    assert.equal(d.error, 'unexpected_error', diag);
+    assert.deepEqual(d.details, { profile: 'desktop' }, diag);
+    assert.equal(rowOf(latest, I).error, 'probe_too_short', diag);
+  });
+});

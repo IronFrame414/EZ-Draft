@@ -38,3 +38,28 @@ describe('EZD-017 perf probe page', () => {
     expect(digest).toBe('NEXT_HTTP_ERROR_FALLBACK;404');
   });
 });
+
+describe('EZD-235b perf probe worker job', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('EZD-235b R1 inject=worker-job mounts the hidden worker probe and nothing else changes', async () => {
+    vi.stubEnv('VERCEL_ENV', '');
+    delete process.env.VERCEL_ENV;
+    const html = renderToStaticMarkup(
+      await Page({ searchParams: Promise.resolve({ inject: 'worker-job' }) }),
+    );
+    expect(html).toContain('data-shell-region="frame"');
+    expect(html).toContain('data-testid="worker-probe"');
+    expect(html).toContain('data-worker-probe="starting"');
+    expect(html).not.toContain('data-perf-probe-count');
+    const others: Array<{ inject?: string }> = [{}, { inject: 'pan-commit' }];
+    for (const searchParams of others) {
+      const other = renderToStaticMarkup(
+        await Page({ searchParams: Promise.resolve(searchParams) }),
+      );
+      expect(other).not.toContain('data-testid="worker-probe"');
+    }
+  });
+});

@@ -1,6 +1,7 @@
 // EZD-017 Step 7 (vault/plans/EZD-017.md R0-R2, K1-K4, E1, P5): runs every measurement, evaluates it against
 // its budget and writes the results file on every run that passed validation. Node built-ins and the root
 // devDependency @playwright/test only.
+// EZD-235b Build step 13: the worker-job collector branch (runWorkerJob).
 import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -14,6 +15,7 @@ import { bundleReport, writeBundleReport } from './bundle-report.mjs';
 import { measureJsContents } from './js-contents.mjs';
 import { measureJsSize } from './js-size.mjs';
 import { frameStats, runPan } from './pan-script.mjs';
+import { runWorkerJob, workerJobInput } from './worker-job.mjs';
 import { laneAppPorts, readLane } from '../db/lane.mjs';
 import { PROFILES } from './perf.config.mjs';
 import { MEASUREMENTS } from './registry.mjs';
@@ -254,6 +256,22 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
       } catch (e) {
         logStack(e);
         inputs.push({ ...base, error: 'unexpected_error' });
+      }
+    } else if (r.collector === 'worker-job') {
+      if (!r.url) {
+        inputs.push({ ...base, error: 'no_url' });
+        continue;
+      }
+      const pp = PROFILES[r.profile];
+      if (!pp) throw new Error(`no profile ${r.profile}`);
+      const context = await browser.newContext(contextOptions(pp));
+      try {
+        inputs.push({ ...base, ...workerJobInput(await runWorkerJob(context, baseUrl, r.url, pp), r.profile) });
+      } catch (e) {
+        logStack(e);
+        inputs.push({ ...base, error: 'unexpected_error', details: { profile: r.profile } });
+      } finally {
+        await context.close();
       }
     } else {
       throw new Error(`active measurement ${r.id} has no collector`);

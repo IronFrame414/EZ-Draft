@@ -53,13 +53,17 @@ describe('EZD-207c perf profiles and gesture', () => {
     assert.equal(cfg.profile, 'desktop');
     assert.equal(cfg.panUrl, '/dev/benchmark-plan');
     assert.equal(cfg.measurements.find((m) => m.id === 'js-size:editor').url, '/dev/benchmark-plan');
-    assert.equal(cfg.measurements.length, 11);
+    // EZD-235b E1: the two worker rows are configured (13 entries, was 11).
+    assert.equal(cfg.measurements.length, 13);
+    for (const id of ['long-tasks-worker-job', 'long-tasks-worker-job:ipad']) {
+      assert.equal(cfg.measurements.find((m) => m.id === id)?.url, '/dev/perf-probe?inject=worker-job', id);
+    }
   });
 
   test('EZD-207c N2 registry rows', async () => {
     const { MEASUREMENTS } = await registry();
     const { BUDGETS } = await budgets();
-    assert.equal(MEASUREMENTS.length, 27);
+    assert.equal(MEASUREMENTS.length, 29);
     const panRows = MEASUREMENTS.filter((m) => m.id.includes('-during-'));
     assert.deepEqual(
       panRows.map((m) => m.id),
@@ -92,8 +96,23 @@ describe('EZD-207c perf profiles and gesture', () => {
       assert.equal(m.collector, 'pan', m.id);
       assert.equal(m.profile, i % 2 === 0 ? 'desktop' : i === 7 ? 'ipad' : i === 3 ? 'ipad-cpu' : 'ipad-1x', m.id);
     });
+    // EZD-235b E2: the two worker rows sit right after frame-times-during-pan:ipad, on desktop and ipad-1x.
+    const WORKER_IDS = ['long-tasks-worker-job', 'long-tasks-worker-job:ipad'];
+    const ids = MEASUREMENTS.map((m) => m.id);
+    const at = ids.indexOf('frame-times-during-pan:ipad');
+    assert.equal(ids[at + 1], WORKER_IDS[0]);
+    assert.equal(ids[at + 2], WORKER_IDS[1]);
+    const { PROFILES: ALL_PROFILES } = await config();
+    WORKER_IDS.forEach((id, k) => {
+      const m = MEASUREMENTS.find((x) => x.id === id);
+      assert.equal(m.status, 'active', id);
+      assert.equal(m.collector, 'worker-job', id);
+      assert.equal(m.budget, 'long-tasks.worker-job', id);
+      assert.equal(m.profile, k === 0 ? 'desktop' : 'ipad-1x', id);
+      assert.ok(Object.hasOwn(ALL_PROFILES, m.profile), `${id} profile ${m.profile}`);
+    });
     for (const m of MEASUREMENTS) {
-      if (!panRows.includes(m)) assert.equal(m.profile, null, m.id);
+      if (!panRows.includes(m) && !WORKER_IDS.includes(m.id)) assert.equal(m.profile, null, m.id);
       assert.ok(Object.hasOwn(BUDGETS, m.budget), `${m.id} budget ${m.budget}`);
     }
     assert.equal(MEASUREMENTS.find((m) => m.id === 'draw-calls-per-frame').status, 'pending');

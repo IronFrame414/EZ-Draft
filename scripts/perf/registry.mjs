@@ -1,6 +1,7 @@
 // EZD-017 Step 3 (vault/plans/EZD-017.md section 3 table R): every measurement the check reports, in order.
 // A later ticket adds its collector in scripts/perf/ and switches its row from pending to active. Owner text is
 // guidance for later planners, not a contract.
+// EZD-235b Build step 9: the two worker-job long-task rows.
 
 const row = (id, budget, status, collector, owner, profile = null) =>
   Object.freeze({ id, budget, status, owner, collector, profile });
@@ -42,6 +43,15 @@ export const MEASUREMENTS = Object.freeze([
   ),
   row('frame-times-during-pan', 'frame.desktop', 'active', 'pan', 'EZD-017; EZD-207c', 'desktop'),
   row('frame-times-during-pan:ipad', 'frame.ipad', 'active', 'pan', 'EZD-207c', 'ipad'),
+  row('long-tasks-worker-job', 'long-tasks.worker-job', 'active', 'worker-job', 'EZD-235b (Q-0664)', 'desktop'),
+  row(
+    'long-tasks-worker-job:ipad',
+    'long-tasks.worker-job',
+    'active',
+    'worker-job',
+    'EZD-235b (Q-0664); counts at 1x as EZD-356 (R26 R10)',
+    'ipad-1x',
+  ),
   row(
     'js-size:editor',
     'download.editor',

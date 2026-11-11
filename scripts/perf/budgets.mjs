@@ -1,6 +1,7 @@
 // EZD-017 Step 1 (vault/plans/EZD-017.md section 3 table B): every performance budget, the only place budget
 // numbers live, each with its source. Node built-ins only. `11` = vault/spec/sections/11-non-functional-requirements.md.
 // Gate rows fail the check; trend rows are recorded and never fail (G1; 11 opening paragraph; R26 R10).
+// EZD-235b Build step 8: the worker-job long-task budget (Q-0664).
 import zlib from 'node:zlib';
 import { ENTRY_RULES } from '../../eslint-rules/boundaries.mjs';
 
@@ -45,6 +46,13 @@ const ROWS = [
   { id: 'react-commits.pan', kind: 'gate', unit: 'count', value: 0, source: '11 rule 4; EZD-207 row' },
   { id: 'long-tasks.pan', kind: 'gate', unit: 'count', value: 0, source: 'Q-0073 (a); 11 opening paragraph' },
   { id: 'long-tasks.load', kind: 'trend', unit: 'count', value: null, source: 'Q-0073 (a)' },
+  {
+    id: 'long-tasks.worker-job',
+    kind: 'gate',
+    unit: 'count',
+    value: 0,
+    source: 'Q-0664 (worker check); 11 rule 3; EZD-235b',
+  },
   {
     id: 'frame.desktop',
     kind: 'trend',

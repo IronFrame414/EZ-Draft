@@ -58,5 +58,8 @@ export default {
     { id: 'entry-contents:field-pack', url: '/dev/entry/field' },
     { id: 'entry-contents:client-link', url: '/dev/entry/client' },
     { id: 'entry-contents:sign-in', url: '/sign-in' },
+    // EZD-235b Build step 10: the worker check runs on the perf probe page (no new page).
+    { id: 'long-tasks-worker-job', url: '/dev/perf-probe?inject=worker-job' },
+    { id: 'long-tasks-worker-job:ipad', url: '/dev/perf-probe?inject=worker-job' },
   ],
 };
