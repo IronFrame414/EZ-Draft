@@ -920,6 +920,13 @@ EZD-204a (vault/plans/EZD-204a.md); EZD-204b (vault/plans/EZD-204b.md); 03f; Q-0
 - **Drawing.** An opening with `hostWallId` null is drawn on the `flagged` layer along `axis` (+x when null).
 - **Rule.** Every wall edit's `wallEditChanges` appends `openingHostUpdates`; EZD-217's delete and paste must call it too.
 
+### Moves (EZD-212a)
+
+EZD-212a (vault/plans/EZD-212a.md); Q-0630 rows 10, 11, 12, 14, 35; 09k.
+
+- **Files** (`packages/geometry/src/moves/`, exported from the package root): `selection.ts` (`typedMoveDelta`, `moveSelection`), `slide.ts` (`placeOnWall`, `slideOpening`), `resize-wall.ts` (`endDragLength`, `resizeWall`), `resize-opening.ts` (`resizeOpening`), `chips.ts` (`wallChips`, `openingChips`, `selectionChips`, `formatChipDistance`, `applyChip`); `walls/move.ts` gains `moveWalls`.
+- **Rule.** These return changed objects only; the caller runs `wallEditChanges` so rooms reconcile and openings re-host.
+
 ## Server-only data access and can()
 
 03 rules 1–2, 11; R26 R1, R2, R14. Documented here; implemented by EZD-102 (helper, server-route pattern, UI hook) and EZD-133 (browser-query lint rule, money registry `app/src/server/db/money-fields.ts`).

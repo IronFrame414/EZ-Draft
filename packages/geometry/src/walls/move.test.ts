@@ -5,7 +5,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ModelObject } from '../schema';
 import { pointsEqual } from '../tolerance';
-import { moveWall, type MoveWallResult } from './move';
+import { moveWall, moveWalls, type MoveWallResult } from './move';
+import { uid } from '../rooms/test-utils/fixtures';
+import { openingObj } from '../moves/test-utils/fixtures';
 import { wallLength, type WallObject } from './wall';
 import {
   deepFreeze,
@@ -244,5 +246,48 @@ describe('EZD-203 walls core: move', () => {
       reason: 'join_lost',
       wallId: X,
     });
+  });
+});
+
+// EZD-212a · M1, M2 (vault/plans/EZD-212a.md section 4; AC-EZD-212-4, -5): moving several walls at once. Expected
+// values: plan Decided "`moveWalls` order of checks", "`moveWalls` algorithm"; 09e; 03g row 2 (1/64" inclusive);
+// L-052 (non-finite input).
+describe('EZD-212a moveWalls', () => {
+  it('EZD-212a moveWalls moves two walls and stretches the rest', () => {
+    const room = deepFreeze(roomWalls(144, 120));
+    const changed = changedOf(moveWalls(room, [W2, W4], { x: 0, y: 6 }));
+    expect(ids(changed)).toEqual([W2, W4, W1, W3]);
+    expectLine(get(changed, W1), 0, 6, 144, 6);
+    expectLine(get(changed, W2), 144, 6, 144, 126);
+    expectLine(get(changed, W3), 144, 126, 0, 126);
+    expectLine(get(changed, W4), 0, 126, 0, 6);
+  });
+
+  it('EZD-212a moveWalls refusals and no-ops', () => {
+    const room = deepFreeze(roomWalls(144, 120));
+    expect(moveWalls(room, [], { x: 6, y: 0 })).toEqual({ ok: true, changed: [] });
+    expect(moveWalls(room, [uid(0xff)], { x: 6, y: 0 })).toEqual({
+      ok: false,
+      reason: 'wall_not_found',
+      wallId: uid(0xff),
+    });
+    const withDoor: ModelObject[] = deepFreeze([
+      ...roomWalls(144, 120),
+      openingObj(D1, 'door', get(roomWalls(144, 120), W2), { x: 144, y: 60 }),
+    ]);
+    expect(moveWalls(withDoor, [D1], { x: 6, y: 0 })).toEqual({
+      ok: false,
+      reason: 'wall_not_found',
+      wallId: D1,
+    });
+    expect(moveWalls(room, [W2], { x: NaN, y: 0 })).toEqual({
+      ok: false,
+      reason: 'invalid_delta',
+      wallId: W2,
+    });
+    expect(moveWalls(room, [W2], { x: 0.015625, y: 0 })).toEqual({ ok: true, changed: [] });
+    const twice = changedOf(moveWalls(room, [W2, W2.toUpperCase()], { x: 6, y: 0 }));
+    expect(twice.filter((w) => w.id.toLowerCase() === W2.toLowerCase())).toHaveLength(1);
+    expectLine(get(twice, W2), 150, 0, 150, 120);
   });
 });
