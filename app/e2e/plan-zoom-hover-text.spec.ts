@@ -266,6 +266,9 @@ test.describe('EZD-207b plan canvas', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await addW1(page);
+    await expect(page.getByTestId('save-state')).toHaveAttribute('data-save-status', 'saved', {
+      timeout: 15_000,
+    });
 
     const region = await regionBox(page);
     const box = await stack(page).boundingBox();
@@ -327,6 +330,9 @@ test.describe('EZD-207b plan canvas', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     const w1 = await addW1(page);
+    await expect(page.getByTestId('save-state')).toHaveAttribute('data-save-status', 'saved', {
+      timeout: 15_000,
+    });
     await setViewAndWait(page, { x: -24, y: 24, ppi: 8 });
     const region = await regionBox(page);
     const at = (png: Buffer, x: number, y: number) => pixel(page, png, region.x + x, region.y + y);
