@@ -2593,6 +2593,17 @@
    "mockups": [
     "mockups/S15Settings.png"
    ],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Company settings (EZD-112)",
+    "Customers (EZD-113)",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103a",
@@ -2629,6 +2640,23 @@
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Email (EZD-008)",
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "Tenancy tables (EZD-005)",
+    "Row-level security (EZD-006)",
+    "Permissions and roles (EZD-101)",
+    "Migrations",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)",
+    "State components (EZD-015)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2673,6 +2701,24 @@
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Company settings (EZD-112)",
+    "Events",
+    "Messages and language (t())",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Auth and session (EZD-007)",
+    "Tenancy tables (EZD-005)",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Policy test harness (EZD-006)",
+    "AI assistant keys (EZD-5601)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2967,6 +3013,14 @@
     "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Email (EZD-008)",
+    "Server-only data access and can()",
+    "Row-level security (EZD-006)",
+    "Editor route (EZD-120c)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-110a",
@@ -3081,6 +3135,18 @@
    ],
    "mockups": [
     "mockups/S15dDefaults.png"
+   ],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Company settings (EZD-112)",
+    "New project wizard (EZD-118)",
+    "Events",
+    "Editor route (EZD-120c)",
+    "Realtime (EZD-018)",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -3696,6 +3762,16 @@
    "mockups": [
     "mockups/S06Electrical.png"
    ],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Realtime (EZD-018)",
+    "Background jobs (EZD-009)",
+    "Notifications (EZD-110)",
+    "Events",
+    "Patch store and outbox (EZD-120b)",
+    "Editor route (EZD-120c)",
+    "Sign-out and app-wide drain (EZD-120d)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-120a",
@@ -3746,6 +3822,19 @@
    ],
    "mockups": [
     "mockups/S06Electrical.png"
+   ],
+   "architecture": [
+    "Shell header (EZD-011)",
+    "Editor shell (EZD-012)",
+    "Device layouts (EZD-014)",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Realtime (EZD-018)",
+    "Editor route (EZD-120c)",
+    "Patch store and outbox (EZD-120b)",
+    "Permission enforcement (EZD-102)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -3812,6 +3901,18 @@
    ],
    "mockups": [
     "mockups/S01Projects.png"
+   ],
+   "architecture": [
+    "Shell header (EZD-011)",
+    "Menus (EZD-108)",
+    "Status bar popovers (EZD-219)",
+    "Editor route (EZD-120c)",
+    "Sign-out and app-wide drain (EZD-120d)",
+    "Projects page (EZD-117a)",
+    "Row-level security (EZD-006)",
+    "Model working copy (EZD-120a)",
+    "Migrations",
+    "Entry points and lazy modules (EZD-020)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -16697,6 +16798,17 @@
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "Captcha (EZD-034)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Permissions and roles (EZD-101)",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
