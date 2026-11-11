@@ -2,10 +2,11 @@
 // animation frame intervals between the pan-start and pan-end marks (11 rule 4; Q-0073 (a)).
 // EZD-356: the pan rows also list each pan long task (at = ms after pan-start, ms = its length) and the 1-minute load average.
 // EZD-359: the pan is traced; each pan long task carries cpu, gc and top.
+// EZD-388: a profile with cpuCountScale counts the trace's top-level tasks by CPU time × cpuCountScale (countByCpu); no trace is trace_missing.
 import os from 'node:os';
 import path from 'node:path';
 import { settlePage } from './js-size.mjs';
-import { TRACE_CATEGORIES, TRACE_STOP_MS, attributeTasks, readTraceEvents, splitTasks } from './trace-tasks.mjs';
+import { TRACE_CATEGORIES, TRACE_STOP_MS, attributeTasks, countByCpu, readTraceEvents, splitTasks } from './trace-tasks.mjs';
 
 const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
 
@@ -207,8 +208,9 @@ export async function runPan(context, baseUrl, panUrl, profile) {
       .filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
       .map((t) => ({ at: Math.round(t.startTime - end.panStart), ms: Math.round(t.duration) }))
       .sort((a, b) => a.at - b.at);
-    // EZD-359 branch H: own work (cpu × rate − ms × (rate − 1)) of 50 ms or less is a wait: listed, not counted.
-    const split = splitTasks(attributeTasks(events, raw), profile.cpuThrottleRate);
+    // EZD-359 branch H: own work (cpu × rate − ms × (rate − 1)) of 50 ms or less is a wait: listed, not counted. EZD-388: a profile with cpuCountScale counts by trace CPU time instead (Q-0737 (a)).
+    const split = profile.cpuCountScale === undefined ? splitTasks(attributeTasks(events, raw), profile.cpuThrottleRate) : countByCpu(events, raw, profile.cpuCountScale, end.panEnd - end.panStart);
+    if (split === null) return { error: 'trace_missing', status: 200, reactDetected: end.renderers >= 1 };
     return {
       reactDetected: end.renderers >= 1,
       renderers: end.renderers,

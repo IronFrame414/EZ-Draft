@@ -1,9 +1,10 @@
 // EZD-359 U1-U6 (vault/plans/EZD-359.md section 4; AC-EZD-359-1). node:test, pure. Expected values come from the
 // plan's fixture F and D-Attr, D-Read, D-Split.
+// EZD-388 U7-U11 (vault/plans/EZD-388.md section 4): the iPad pan row counted by CPU time × scale.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { attributeTasks, readTraceEvents, splitTasks } from '../trace-tasks.mjs';
+import { attributeTasks, countByCpu, readTraceEvents, splitTasks } from '../trace-tasks.mjs';
 
 const base = { pid: 7, tid: 9 };
 const A = { ...base, name: 'ezd-pan-start', cat: 'blink.user_timing', ph: 'R', ts: 1000000 };
@@ -83,5 +84,77 @@ describe('EZD-359 trace attribution', () => {
     const list = [a, b, c, d, e, f, g];
     assert.deepEqual(splitTasks(list, 1), { counted: [a, e, f, g], waits: [b, c, d] });
     assert.deepEqual(splitTasks(list, 4), { counted: [e, f], waits: [a, b, c, d, g] });
+  });
+});
+
+const task13 = (name, ts, dur, tdur, extra = {}) => ({ ...base, name, cat: 'toplevel', ph: 'X', ts, dur, ...(tdur === undefined ? {} : { tdur }), ...extra });
+const K0 = task13('RunTask', 1000000, 13000, 13000);
+const K1 = task13('ThreadControllerImpl::RunTask', 1100000, 200000, 150000);
+const K1n = task13('RunTask', 1100050, 199000, 149000);
+const K1e = { ...base, name: 'EventDispatch', cat: 'devtools.timeline', ph: 'X', ts: 1100100, dur: 198000, tdur: 148000 };
+const K1g = { ...base, name: 'MinorGC', cat: 'devtools.timeline,v8', ph: 'X', ts: 1150000, dur: 2000, tdur: 1400 };
+const K2 = task13('RunTask', 1400000, 20000, 12501);
+const K3 = { ...K2, ts: 1500000, tdur: 12500 };
+const K4 = task13('RunTask', 1600000, 100000, 2000);
+const K5 = task13('RunTask', 1700000, 15000);
+const K6 = task13('RunTask', 900000, 90000, 90000);
+const K7 = { ...K6, ts: 2040000 };
+const K8 = { ...K6, tid: 10, ts: 1800000 };
+const K9 = task13('RunTask', 2000000, 30000, 30000);
+const K = [A, K0, K1, K1n, K1e, K1g, K2, K3, K4, K5, K6, K7, K8, K9];
+const OBS = [
+  { at: 100, ms: 200 },
+  { at: 600, ms: 100 },
+  { at: 900, ms: 80 },
+];
+
+describe('EZD-388 count by CPU time', () => {
+  test('EZD-388 U7 counts trace tasks by CPU time', () => {
+    assert.deepEqual(countByCpu(K, OBS, 4, 1000), {
+      counted: [
+        { at: 0, ms: 13, cpu: 13, gc: 0, top: 'ezd-pan-start' },
+        { at: 100, ms: 200, cpu: 150, gc: 1, top: 'EventDispatch' },
+        { at: 400, ms: 20, cpu: 13, gc: 0, top: null },
+        { at: 700, ms: 15, cpu: null, gc: 0, top: null },
+        { at: 900, ms: 80, cpu: null, gc: null, top: null },
+        { at: 1000, ms: 30, cpu: 30, gc: 0, top: null },
+      ],
+      waits: [{ at: 600, ms: 100, cpu: 2, gc: 0, top: null }],
+    });
+  });
+
+  test('EZD-388 U8 no anchor', () => {
+    assert.equal(
+      countByCpu(
+        K.filter((e) => e !== A),
+        OBS,
+        4,
+        1000,
+      ),
+      null,
+    );
+  });
+
+  test('EZD-388 U9 empty input', () => {
+    assert.equal(countByCpu([], [], 4, 1000), null);
+    assert.deepEqual(countByCpu([A], [], 4, 1000), { counted: [], waits: [] });
+  });
+
+  test('EZD-388 U10 the scale sets the line', () => {
+    assert.deepEqual(countByCpu(K, OBS, 1, 1000), {
+      counted: [
+        { at: 100, ms: 200, cpu: 150, gc: 1, top: 'EventDispatch' },
+        { at: 900, ms: 80, cpu: null, gc: null, top: null },
+      ],
+      waits: [{ at: 600, ms: 100, cpu: 2, gc: 0, top: null }],
+    });
+  });
+
+  test('EZD-388 U11 an observed task matched just outside the window', () => {
+    const X = { ...base, name: 'RunTask', cat: 'toplevel', ph: 'X', ts: 2002000, dur: 60000, tdur: 60000 };
+    assert.deepEqual(countByCpu([A, X], [{ at: 1000, ms: 60 }], 4, 1000), {
+      counted: [{ at: 1000, ms: 60, cpu: 60, gc: 0, top: null }],
+      waits: [],
+    });
   });
 });

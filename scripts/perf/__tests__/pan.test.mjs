@@ -1,10 +1,14 @@
 // EZD-207c P1-P4 (vault/plans/EZD-207c.md section 4; AC-EZD-207-5). node:test. Runs the perf CLI against inline
 // fixture pages on the in-memory fixture server (async spawn, L-021). Matches exit codes, ids, statuses and
 // numbers, never wording. Temp folders are removed in `finally` (L-051).
+// EZD-388 C1, C2 and the I2 edit (vault/plans/EZD-388.md section 4): the iPad pan row on ipad-cpu.
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
 import path from 'node:path';
+import { chromium } from '@playwright/test';
+import { runPan } from '../pan-script.mjs';
+import { PROFILES } from '../perf.config.mjs';
 import { startFixtureServer } from './fixture-server.mjs';
 import { PAN_HTML, readLatest, rowOf, runCli, tmpDir, writeConfig } from './helpers.mjs';
 
@@ -13,9 +17,11 @@ const R = 4;
 
 const M = '<main data-shell-region="canvas" style="position:fixed;inset:0"></main>';
 const B60 = 'var t=performance.now();while(performance.now()-t<60){}';
+const B40 = 'var t=performance.now();while(performance.now()-t<40){}';
 const B200 = 'var t=performance.now();while(performance.now()-t<200){}';
 
 const WHEEL_HTML = `<!doctype html><html><head></head><body>${M}<script>addEventListener('wheel',function(){${B200}})</script></body></html>`;
+const SHORT_HTML = `<!doctype html><html><head></head><body>${M}<script>addEventListener('wheel',function(){${B40}})</script></body></html>`;
 const WAIT_HTML = `<!doctype html><html><head></head><body>${M}<script>addEventListener('wheel',function(){var x=new XMLHttpRequest();x.open('GET','/slow',false);x.send()})</script></body></html>`;
 const LATE_HTML = `<!doctype html><html><head></head><body data-perf-wait-plan="">${M}<script>setTimeout(function(){window.__ezdraftPlan={stats:function(){return{glyphs:1}}}},1000);setTimeout(function(){${B60}},2500);setTimeout(function(){var d=document.createElement('div');d.setAttribute('data-testid','plan-canvas');d.setAttribute('data-plan-state','ready');document.body.appendChild(d)},3000)</script></body></html>`;
 const NEVER_HTML = `<!doctype html><html><head></head><body data-perf-wait-plan="">${M}</body></html>`;
@@ -28,6 +34,7 @@ before(async () => {
   server = await startFixtureServer({
     '/pan.html': { body: PAN_HTML },
     '/wheel.html': { body: WHEEL_HTML },
+    '/short.html': { body: SHORT_HTML },
     '/wait.html': { body: WAIT_HTML },
     '/slow': { body: 'ok', type: 'text/plain; charset=utf-8', delayMs: 100 },
     '/late.html': { body: LATE_HTML },
@@ -202,7 +209,8 @@ describe('EZD-359 pan task attribution', () => {
     assert.equal(r.status, 0, diag);
     for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
       const row = rowOf(latest, id);
-      const rate = row.details.profile === 'ipad-1x' ? 4 : 1;
+      assert.equal(row.details.profile, id === 'long-tasks-during-pan' ? 'desktop' : 'ipad-cpu', id);
+      const maxCpu = row.details.profile === 'ipad-cpu' ? 13 : 50;
       assert.equal(row.status, 'pass', `${id}\n${diag}`);
       assert.equal(row.value, 0, `${id}\n${diag}`);
       assert.deepEqual(row.details.tasks, [], `${id}\n${diag}`);
@@ -210,8 +218,45 @@ describe('EZD-359 pan task attribution', () => {
       for (const w of row.details.waits) {
         assert.ok(w.ms >= 50, `${id} ms ${w.ms}`);
         assert.ok(Number.isInteger(w.cpu), `${id} cpu ${w.cpu}`);
-        assert.ok(w.cpu * rate - w.ms * (rate - 1) <= 50, `${id} cpu ${w.cpu} ms ${w.ms} rate ${rate}`);
+        assert.ok(w.cpu <= maxCpu, `${id} cpu ${w.cpu} maxCpu ${maxCpu} ms ${w.ms}`);
       }
+    }
+  });
+});
+
+describe('EZD-388 iPad pan row counted by CPU time', () => {
+  test('EZD-388 C1 a short CPU task counts on the iPad row', { timeout: 200000 }, async () => {
+    const { r, latest, diag } = await runPanCli('/short.html', [
+      'long-tasks-during-pan',
+      'long-tasks-during-pan:ipad',
+    ]);
+    assert.equal(r.status, 1, diag);
+    const d = rowOf(latest, 'long-tasks-during-pan');
+    assert.equal(d.status, 'pass', diag);
+    assert.equal(d.value, 0, diag);
+    assert.deepEqual(d.details.tasks, [], diag);
+    const i = rowOf(latest, 'long-tasks-during-pan:ipad');
+    assert.equal(i.status, 'fail', diag);
+    assert.equal(i.value, 8, diag);
+    assert.equal(i.details.profile, 'ipad-cpu', diag);
+    assert.equal(i.details.tasks.length, 8, diag);
+    for (const t of i.details.tasks) {
+      assert.ok(Number.isInteger(t.cpu) && t.cpu >= 13, `cpu ${t.cpu}\n${diag}`);
+    }
+  });
+
+  test('EZD-388 C2 no trace is an error on the iPad row', { timeout: 120000 }, async () => {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const context = await browser.newContext({
+        viewport: { width: 1180, height: 820 },
+        deviceScaleFactor: 1,
+      });
+      await browser.startTracing();
+      const res = await runPan(context, server.baseUrl, '/wheel.html', PROFILES['ipad-cpu']);
+      assert.deepEqual(res, { error: 'trace_missing', status: 200, reactDetected: false });
+    } finally {
+      await browser.close();
     }
   });
 });

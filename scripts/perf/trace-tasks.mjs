@@ -1,4 +1,5 @@
 // EZD-359 (vault/plans/EZD-359.md D-Attr, D-Split): each pan long task's main-thread CPU time, GC time and longest inner event, from the pan's Chrome trace.
+// EZD-388 (vault/plans/EZD-388.md D-Count): the iPad pan row counts the trace's own tasks by CPU time × 4 (Q-0737 (a)).
 
 /** D-Anchor: the user-timing mark page-hooks.browser.js makes at pan-start (same literal there; an init script cannot import). */
 export const PAN_START_MARK = 'ezd-pan-start';
@@ -54,39 +55,79 @@ export function attributeTasks(events, tasks) {
   const anchor = events.find((e) => e.name === PAN_START_MARK);
   if (anchor === undefined) return tasks.map(none);
   const thread = events.filter((e) => e.pid === anchor.pid && e.tid === anchor.tid);
-  const top = outermost(
+  const long = outermost(
     thread.filter((e) => e.ph === 'X' && catOf(e).split(',').includes('toplevel')),
   ).filter((e) => durOf(e) > 50000);
   return tasks.map((t) => {
-    let match = null;
-    let best = Infinity;
-    for (const e of top) {
-      const diff = Math.abs((e.ts - anchor.ts) / 1000 - t.at);
-      if (diff > 3) continue;
-      if (diff < best || (diff === best && e.ts < match.ts)) {
-        match = e;
-        best = diff;
-      }
-    }
-    if (match === null) return none(t);
-    const start = match.ts;
-    const stop = match.ts + durOf(match);
-    const inside = thread.filter((e) => e.ts >= start && e.ts + durOf(e) <= stop);
-    const gcEvents = outermost(inside.filter((e) => e.ph === 'X' && typeof e.name === 'string' && e.name.includes('GC')));
-    const gcUs = gcEvents.reduce((s, e) => s + (typeof e.tdur === 'number' ? e.tdur : durOf(e)), 0);
-    let longest = null;
-    for (const e of inside) {
-      if (catOf(e).includes('toplevel')) continue;
-      if (longest === null || durOf(e) > durOf(longest)) longest = e;
-    }
-    return {
-      at: t.at,
-      ms: t.ms,
-      cpu: typeof match.tdur === 'number' ? Math.round(match.tdur / 1000) : null,
-      gc: Math.round(gcUs / 1000),
-      top: longest === null ? null : longest.name,
-    };
+    const m = matchTop(long, anchor, t);
+    return m === null ? none(t) : { at: t.at, ms: t.ms, ...taskDetail(thread, m) };
   });
+}
+
+function matchTop(long, anchor, t) {
+  let match = null;
+  let best = Infinity;
+  for (const e of long) {
+    const diff = Math.abs((e.ts - anchor.ts) / 1000 - t.at);
+    if (diff > 3) continue;
+    if (diff < best || (diff === best && e.ts < match.ts)) {
+      match = e;
+      best = diff;
+    }
+  }
+  return match;
+}
+
+function taskDetail(thread, e) {
+  const start = e.ts;
+  const stop = e.ts + durOf(e);
+  const inside = thread.filter((x) => x.ts >= start && x.ts + durOf(x) <= stop);
+  const gcEvents = outermost(inside.filter((x) => x.ph === 'X' && typeof x.name === 'string' && x.name.includes('GC')));
+  const gcUs = gcEvents.reduce((s, x) => s + (typeof x.tdur === 'number' ? x.tdur : durOf(x)), 0);
+  let longest = null;
+  for (const x of inside) {
+    if (catOf(x).includes('toplevel')) continue;
+    if (longest === null || durOf(x) > durOf(longest)) longest = x;
+  }
+  return {
+    cpu: typeof e.tdur === 'number' ? Math.round(e.tdur / 1000) : null,
+    gc: Math.round(gcUs / 1000),
+    top: longest === null ? null : longest.name,
+  };
+}
+
+/** EZD-388 D-Count (Q-0737 (a)): the pan's top-level main-thread trace tasks whose CPU time × scale is over 50 ms, of any length (length when the trace gives no CPU time), plus each observed long task the trace has no task for or whose trace task is over the line; an observed long task whose trace task is under the line is a wait. null when the trace has no pan-start mark. */
+export function countByCpu(events, tasks, scale, panMs) {
+  const anchor = events.find((e) => e.name === PAN_START_MARK);
+  if (anchor === undefined) return null;
+  const thread = events.filter((e) => e.pid === anchor.pid && e.tid === anchor.tid);
+  const top = outermost(thread.filter((e) => e.ph === 'X' && catOf(e).split(',').includes('toplevel')));
+  const inWindow = (e) => e.ts - anchor.ts >= 0 && e.ts - anchor.ts <= panMs * 1000;
+  const over = (e) => (typeof e.tdur === 'number' ? e.tdur : durOf(e)) * scale > 50000;
+  const counted = [];
+  const seen = new Set();
+  for (const e of top) {
+    if (!inWindow(e) || !over(e)) continue;
+    counted.push({ at: Math.round((e.ts - anchor.ts) / 1000), ms: Math.round(durOf(e) / 1000), ...taskDetail(thread, e) });
+    seen.add(e);
+  }
+  const long = top.filter((e) => durOf(e) > 50000);
+  const waits = [];
+  for (const t of tasks) {
+    const m = matchTop(long, anchor, t);
+    if (m === null) {
+      counted.push({ at: t.at, ms: t.ms, cpu: null, gc: null, top: null });
+    } else if (seen.has(m)) {
+      continue;
+    } else if (over(m)) {
+      counted.push({ at: t.at, ms: t.ms, ...taskDetail(thread, m) });
+      seen.add(m);
+    } else {
+      waits.push({ at: t.at, ms: t.ms, ...taskDetail(thread, m) });
+    }
+  }
+  counted.sort((a, b) => a.at - b.at);
+  return { counted, waits };
 }
 
 /** D-Split (Q-0623): a task counts when its CPU time is unknown or cpu × rate − ms × (rate − 1) is over 50 ms (the throttle's spin shows as CPU time); the rest are waits. Input order kept. */

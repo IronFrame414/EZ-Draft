@@ -30,6 +30,16 @@ export const PROFILES = {
     isMobile: false,
     cpuThrottleRate: IPAD_CPU_THROTTLE,
   },
+  // EZD-388: the iPad pan long-task row runs unthrottled and counts CPU time × the iPad rate (Q-0737 (a)).
+  'ipad-cpu': {
+    browser: 'chromium',
+    viewport: { width: 1180, height: 820 },
+    deviceScaleFactor: 1,
+    hasTouch: false,
+    isMobile: false,
+    cpuThrottleRate: 1,
+    cpuCountScale: IPAD_CPU_THROTTLE,
+  },
 };
 
 export default {

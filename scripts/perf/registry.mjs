@@ -28,8 +28,8 @@ export const MEASUREMENTS = Object.freeze([
     'long-tasks.pan',
     'active',
     'pan',
-    'EZD-207c; EZD-356 counts at 1x (R26 R10)',
-    'ipad-1x',
+    'EZD-207c; EZD-388 counts CPU time × 4 unthrottled (Q-0737)',
+    'ipad-cpu',
   ),
   row('long-tasks-during-load', 'long-tasks.load', 'active', 'pan', 'EZD-017', 'desktop'),
   row(
