@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft settings · role editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none;white-space:nowrap}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.bd{opacity:.45;cursor:default}
+.bs{padding:6px 10px;font-size:13px}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.in{display:flex;align-items:center;gap:8px;min-height:38px;box-sizing:border-box;padding:0 10px;border:1px solid #dfe2e6;border-radius:8px;background:#fff;font:400 14px 'Instrument Sans',sans-serif;color:#14171c}
+.inf{border-color:oklch(0.55 0.17 262);box-shadow:0 0 0 3px #eef1ff}
+.ine{border-color:oklch(0.55 0.19 28);box-shadow:0 0 0 3px oklch(0.96 0.03 28)}
+.ph{color:#7a828e}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:6px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#3b424d;text-decoration:none}
+.nv:hover{background:#f2f4f7;color:#14171c}
+.nv .ms{font-size:19px;color:#7a828e}
+.nvon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.nvon .ms{color:oklch(0.5 0.17 262)}
+.nvs{margin-left:auto;font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.th{font-size:12px;font-weight:600;color:#5e6672;text-align:left;padding:10px 12px;border-bottom:1px solid #dfe2e6;background:#fbfbfc;white-space:nowrap}
+.td{padding:12px;border-bottom:1px solid #eef0f3;font-size:14px;vertical-align:middle}
+.tdc{padding:9px 12px;border-bottom:1px solid #eef0f3;font-size:13px;vertical-align:middle}
+.tr:hover .td{background:#f8f9fb}
+.tron .td{background:#f5f7ff}
+.av{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif;flex:none}
+.pill{font:600 12px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.lg{font:500 11px 'DM Mono',monospace;padding:3px 7px;border-radius:5px;border:1px solid #dfe2e6;color:#3b424d}
+.sw{width:34px;height:20px;border-radius:999px;background:#dfe2e6;position:relative;flex:none;border:0;padding:0;cursor:pointer}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(20,30,50,.25)}
+.swon{background:oklch(0.55 0.17 262)}
+.swon::after{left:16px}
+.swro{background:#c9ced5}
+.swro.swon{background:#9aa3af}
+.pg{grid-column:1 / -1;font-size:10.5px;font-weight:600;color:#9aa3af;padding:5px 0 0;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between}
+.pg .mono{text-transform:none;letter-spacing:0;font-weight:500}
+.pc{display:flex;align-items:center;gap:6px;padding:1px 0;font-size:11.5px;line-height:1.15;color:#3b424d;min-height:17px}
+.sws{width:26px;height:15px}
+.sws::after{top:2px;left:2px;width:11px;height:11px}
+.sws.swon::after{left:13px}
+.pw{text-decoration:underline dotted oklch(0.66 0.15 60);text-decoration-thickness:2px;text-underline-offset:3px}
+.pn{display:inline-block;margin-left:5px;padding:0 4px;font:500 10px/16px 'DM Mono',monospace;color:oklch(0.43 0.12 60);background:oklch(0.95 0.05 80);border-radius:3px;vertical-align:1px;text-decoration:none;font-style:normal;font-weight:500;letter-spacing:0;text-transform:none}
+.note{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#fffaf0;border:1.5px dashed oklch(0.72 0.13 65);border-radius:8px;font-size:12px;line-height:1.45;color:#3b424d}
+.nk{font:500 12px 'DM Mono',monospace;color:oklch(0.43 0.12 60)}
+.sh{font-size:12px;font-weight:600;color:#5e6672;display:flex;justify-content:space-between;align-items:center}
+.stl{font:500 11px 'DM Mono',monospace;letter-spacing:.06em;color:#5e6672;text-transform:uppercase}
+.hint{font-size:12px;color:#5e6672;line-height:1.4}
+.err{font-size:12px;color:oklch(0.5 0.19 28);line-height:1.4;display:flex;gap:5px;align-items:flex-start}
+.ck{display:flex;align-items:center;gap:10px;font-size:14px}
+.cb{width:18px;height:18px;border-radius:4px;border:1.5px solid #c9ced5;display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;background:#fff}
+.cbon{background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.sec{flex:none;border:1px solid #dfe2e6;border-radius:10px;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.sech{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eef0f3}
+.secn{font-size:15px;font-weight:600}
+.cnt{font:400 12px 'DM Mono',monospace;color:#5e6672}
+.em{padding:22px 16px;font-size:13px;color:#5e6672;display:flex;align-items:center;gap:8px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0}
+.kv .k{color:#5e6672}
+.ok{background:oklch(0.95 0.05 150);color:oklch(0.4 0.12 150)}
+.bad{background:oklch(0.95 0.035 28);color:oklch(0.48 0.17 28)}
+.warn{background:oklch(0.96 0.04 80);color:oklch(0.46 0.13 65)}
+.sk{background:#eef0f3;border-radius:5px;height:12px}
+.pager{display:flex;align-items:center;gap:8px;padding:9px 16px;font:400 12px 'DM Mono',monospace;color:#5e6672;border-top:1px solid #eef0f3;margin-top:auto}
+.ib{width:28px;height:28px;border:1px solid #dfe2e6;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#3b424d;cursor:pointer;padding:0}
+.tile{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.tileh{padding:10px 16px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;gap:8px;flex:none}
+.dim{position:absolute;inset:0;background:rgba(20,23,28,.38)}
+.menu{background:#fff;border:1px solid #dfe2e6;border-radius:10px;box-shadow:0 12px 32px rgba(20,30,50,.16);padding:5px;display:flex;flex-direction:column;min-width:190px}
+.mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;font-size:14px;color:#14171c}
+.mi .ms{font-size:18px;color:#7a828e}
+.mion{background:#f2f4f7}
+.mh{font-size:11px;font-weight:600;color:#9aa3af;padding:8px 10px 4px;text-transform:uppercase;letter-spacing:.04em}
+.code{font:500 26px 'DM Mono',monospace;letter-spacing:.12em;color:#14171c}
+.bar{height:6px;border-radius:999px;background:#eef0f3;overflow:hidden}
+.bari{height:100%;background:oklch(0.55 0.17 262);border-radius:999px}
+.toast{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#14171c;color:#fff;border-radius:10px;font-size:13px;box-shadow:0 12px 32px rgba(20,30,50,.25)}
+
+.tight .sech{padding:9px 14px}
+.tight .em{padding:12px 14px}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<header class="card" style="height: 60px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; margin: 16px 16px 0; overflow: hidden">
+<div style="display: flex; align-items: baseline; gap: 1px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div>
+<span style="width: 1px; height: 24px; background: #dfe2e6"></span>
+<span style="font-size: 15px; font-weight: 600">Settings</span>
+<a href="#" style="font-size: 13px; color: #5e6672; text-decoration: none; display: flex; align-items: center; gap: 4px"><span class="ms" style="font-size: 16px">arrow_back</span>Projects</a>
+<div style="flex: 1"></div>
+<span style="font-size: 13px; color: #5e6672">Worth Properties</span>
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #14171c; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">JB</span>
+</header>
+<div style="flex: 1; display: flex; min-height: 0; padding: 16px; gap: 16px">
+<nav class="card" aria-label="Settings sections" style="width: 248px; flex: none; display: flex; flex-direction: column; overflow: hidden">
+<span class="lbl" style="padding-top: 16px">Company settings</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 8px">
+<a href="#" class="nv"><span class="ms">domain</span>Company</a>
+<a href="#" class="nv nvon" aria-current="page"><span class="ms">group</span>Users + permissions<span class="nvs" style="color: oklch(0.5 0.17 262)">4</span></a>
+<a href="#" class="nv"><span class="ms">view_quilt</span>Title block</a>
+<a href="#" class="nv"><span class="ms">description</span>Sheet presets</a>
+<a href="#" class="nv"><span class="ms">tune</span>Defaults<span class="nvs">ft-in</span></a>
+<a href="#" class="nv"><span class="ms">inventory_2</span>Catalog<span class="nvs">426</span></a>
+<a href="#" class="nv"><span class="ms">auto_awesome</span>Render models</a>
+<a href="#" class="nv"><span class="ms">gavel</span>Code edition</a>
+<a href="#" class="nv"><span class="ms">library_books</span>Libraries</a>
+<a href="#" class="nv"><span class="ms">monitor_heart</span><span class="pw">System status</span><span class="pn">W14</span></a>
+</div>
+</nav>
+<main class="card" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 22px 16px; display: flex; align-items: flex-end; gap: 16px; border-bottom: 1px solid #eef0f3">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Users + permissions</h1>
+<span style="font-size: 13px; color: #5e6672">Each person sees the field pack, notes and tasks in their own language. Controls a user lacks are hidden.</span>
+</div>
+<span class="in" style="width: 220px; color: #5e6672"><span class="ms" style="font-size: 19px">search</span><span class="ph">Search users</span></span>
+<button class="b bp"><span class="ms" style="font-size: 18px">person_add</span>Invite user</button>
+</div>
+<table style="width: 100%; border-collapse: collapse">
+<thead><tr><th class="th" style="padding-left: 22px">Name</th><th class="th">Role</th><th class="th">Language</th><th class="th">Permissions</th><th class="th">Last active</th><th class="th" style="width: 40px"></th></tr></thead>
+<tbody>
+<tr class="tr"><td class="td" style="padding-left: 22px"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="background: #14171c; color: #fff">JB</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">Josh Bishop</span><span style="font-size: 12px; color: #5e6672">josh@worthprop.com</span></span></span></td><td class="td"><span class="pill" style="background: #14171c; color: #fff">Owner</span></td><td class="td"><span class="lg">EN</span></td><td class="td"><span class="mono" style="font-size: 13px">37 / 37</span></td><td class="td" style="font-size: 13px; color: #5e6672">Now</td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 22px"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="background: #eef1ff; color: oklch(0.45 0.17 262)">DS</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">[Name]</span><span style="font-size: 12px; color: #5e6672">[email]</span></span></span></td><td class="td"><span class="pill" style="background: #eef1ff; color: oklch(0.45 0.17 262)">Designer</span></td><td class="td"><span class="lg">EN</span></td><td class="td"><span class="mono" style="font-size: 13px">26 / 37</span></td><td class="td" style="font-size: 13px; color: #5e6672">12 min ago</td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 22px"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">FM</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">[Name]</span><span style="font-size: 12px; color: #5e6672">[email]</span></span></span></td><td class="td"><span class="pill" style="background: oklch(0.95 0.05 150); color: oklch(0.42 0.12 150)">Foreman</span></td><td class="td"><span class="lg">ES</span></td><td class="td"><span class="mono" style="font-size: 13px">11 / 37</span></td><td class="td" style="font-size: 13px; color: #5e6672">Yesterday</td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 22px"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="background: #f2f4f7; color: #5e6672">CR</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">[Name]</span><span style="font-size: 12px; color: #5e6672">[email]</span></span></span></td><td class="td"><span class="pill" style="background: #f2f4f7; color: #5e6672">Crew</span></td><td class="td"><span class="lg">ES</span></td><td class="td"><span class="mono" style="font-size: 13px">4 / 37</span></td><td class="td" style="font-size: 13px; color: #5e6672">3 days ago</td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr>
+<tr class="tr"><td class="td" style="padding-left: 22px; color: #9aa3af"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="border: 1.5px dashed #c9ced5; color: #9aa3af; box-sizing: border-box"><span class="ms" style="font-size: 18px">mail</span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500; color: #5e6672">Invite pending</span><span style="font-size: 12px">[email] · sent Nov 9</span></span></span></td><td class="td"><span class="pill" style="background: #fff; border: 1px dashed #c9ced5; color: #7a828e">Crew</span></td><td class="td"><span class="lg" style="color: #9aa3af">ES</span></td><td class="td" style="color: #9aa3af"><span class="mono" style="font-size: 13px">4 / 37</span></td><td class="td"><a href="#" style="font-size: 13px; text-decoration: none">Resend</a> · <a href="#" style="font-size: 13px; text-decoration: none">Copy link</a></td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr>
+</tbody>
+</table>
+<div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 600; color: #5e6672"><span class="pw">Roles</span><span class="pn">W19</span></span><span style="font-size: 12px; color: #9aa3af">No user limit</span></div>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px">
+<button style="border: 1px solid #dfe2e6; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: left; background-color: #fff; font-family: inherit; cursor: pointer"><span style="font-weight: 600; font-size: 14px; color: #14171c">Owner</span><span style="font-size: 12px; color: #5e6672">Everything, incl. users and settings</span></button>
+<button style="border: 1px solid #dfe2e6; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: left; background-color: #fff; font-family: inherit; cursor: pointer"><span style="font-weight: 600; font-size: 14px; color: #14171c">Designer</span><span style="font-size: 12px; color: #5e6672">All but delete, issue, users</span></button>
+<button style="border: 1px solid #dfe2e6; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: left; background-color: #fff; font-family: inherit; cursor: pointer"><span style="font-weight: 600; font-size: 14px; color: #14171c">Foreman</span><span style="font-size: 12px; color: #5e6672">Field, fast renders, export</span></button>
+<button style="border: 1px solid #dfe2e6; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: left; background-color: #fff; font-family: inherit; cursor: pointer"><span style="font-weight: 600; font-size: 14px; color: #14171c">Crew</span><span style="font-size: 12px; color: #5e6672">Tasks, photos, measure, flag</span></button>
+<button style="border: 1px solid oklch(0.55 0.17 262); box-shadow: 0 0 0 1px oklch(0.55 0.17 262); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: left; background: #f5f7ff; font-family: inherit; cursor: pointer"><span style="font-weight: 600; font-size: 14px; color: #14171c">Lead carpenter</span><span style="font-size: 12px; color: #5e6672"><span class="pw">Custom</span><span class="pn">W18</span> · 14 of 37</span></button>
+<button class="b" style="border-style: dashed; border-radius: 10px; justify-content: center; color: oklch(0.45 0.17 262); font-weight: 600"><span class="ms" style="font-size: 18px">add</span>New role</button>
+</div>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #f6f7f9; color: #3b424d; font-size: 13px; line-height: 1.4; margin-top: 4px"><span class="ms" style="font-size: 18px; color: #7a828e">info</span><span>Company costs are hidden everywhere for users without "See company costs", and sell prices, markup and totals for users without "See sell prices", including exports and the field pack.</span></div>
+</div>
+</main>
+<aside class="card" aria-label="Role" style="width: 450px; flex: none; overflow: hidden; display: flex; flex-direction: column; font-size: 14px">
+<div style="padding: 16px 18px 12px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #eef0f3">
+<span style="width: 42px; height: 42px; border-radius: 10px; background: #eef1ff; color: oklch(0.45 0.17 262); display: flex; align-items: center; justify-content: center"><span class="ms" style="font-size: 22px">badge</span></span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 18px; font-weight: 600">Lead carpenter</span><span style="font-size: 13px; color: #5e6672"><span class="pw">Custom role</span><span class="pn">W1</span> · <span class="pw">3 people</span><span class="pn">W2</span></span></div>
+<span class="ms" style="font-size: 20px; color: #9aa3af">close</span>
+</div>
+<div style="padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #eef0f3">
+<div class="fl"><span style="display: flex; justify-content: space-between"><span><span class="pw">Role name</span><span class="pn">W3</span></span></span><span class="in"><span class="" style="flex: 1">Lead carpenter</span></span></div>
+<span class="hint" style="display: flex; gap: 6px; align-items: flex-start"><span class="ms" style="font-size: 16px; color: #7a828e">info</span><span class="pw">Changes here set the switches for people you give this role from now on. People who already hold it keep theirs.</span><span class="pn">W4</span></span>
+</div>
+<div style="padding: 10px 18px 4px; display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 600; color: #5e6672">Permissions</span><span class="mono" style="font-size: 12px; color: #5e6672">16 of 37</span></div>
+<div style="padding: 0 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; overflow: hidden">
+<span class="pg"><span>Projects</span><span class="mono">6 of 7</span></span>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">View projects</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="View projects"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Create projects</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Create projects"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Edit model</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Edit model"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Delete projects</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Delete projects"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Upload references</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Upload references"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Add markup</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Add markup"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Run code check</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Run code check"></button></div>
+<span class="pg"><span>Renders</span><span class="mono">2 of 5</span></span>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Run fast renders</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Run fast renders"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Run standard renders<span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.16 65); flex: none"></span></span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Run standard renders"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Run photoreal renders</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Run photoreal renders"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Approve renders</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Approve renders"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Mark client-ready</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Mark client-ready"></button></div>
+<span class="pg"><span>Money</span><span class="mono">1 of 5</span></span>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">See company costs<span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.16 65); flex: none"></span></span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="See company costs"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">See sell prices</span><button class="sw sws" role="switch" aria-checked="false" aria-label="See sell prices"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Edit catalog</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Edit catalog"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Create change orders</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Create change orders"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Flag to supplier</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Flag to supplier"></button></div>
+<span class="pg"><span>Issue and send</span><span class="mono">1 of 4</span></span>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Issue permit sets</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Issue permit sets"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Issue revisions</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Issue revisions"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Send to client</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Send to client"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Export</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Export"></button></div>
+<span class="pg"><span>Field</span><span class="mono">5 of 6</span></span>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Edit field tasks</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Edit field tasks"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Check off tasks</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Check off tasks"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Photo notes</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Photo notes"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Flag conflict</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Flag conflict"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px">Send field measurement</span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Send field measurement"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px">Approve field measurements</span><button class="sw sws" role="switch" aria-checked="false" aria-label="Approve field measurements"></button></div>
+<span class="pg"><span>Admin</span><span class="mono">1 of 10</span></span>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Company</span><span class="pn">W5</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Company"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Users</span><span class="pn">W6</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Users"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Title block</span><span class="pn">W7</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Title block"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Sheet presets</span><span class="pn">W8</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Sheet presets"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Defaults</span><span class="pn">W9</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Defaults"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Catalog</span><span class="pn">W10</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Catalog"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Render models</span><span class="pn">W11</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Render models"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">Code edition</span><span class="pn">W12</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="Code edition"></button></div>
+<div class="pc"><span style="flex: 1; font-weight: 500; display: flex; align-items: center; gap: 4px"><span class="pw">Libraries</span><span class="pn">W13</span></span><button class="sw sws swon" role="switch" aria-checked="true" aria-label="Libraries"></button></div>
+<div class="pc"><span style="flex: 1; display: flex; align-items: center; gap: 4px"><span class="pw">System status</span><span class="pn">W14</span></span><button class="sw sws" role="switch" aria-checked="false" aria-label="System status"></button></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 12px 18px 14px; border-top: 1px solid #eef0f3; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: oklch(0.48 0.13 65); display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.72 0.16 65)"></span><span class="pw">Unsaved: 2 changes</span><span class="pn">W15</span></span><span class="hint" style="display: flex; gap: 5px"><span class="ms" style="font-size: 15px; color: #9aa3af">block</span><span class="pw">Can't delete: 3 people hold this role. Move them first.</span><span class="pn">W17</span></span><div style="display: flex; gap: 8px"><button class="b bd" style="justify-content: center; padding: 9px; color: oklch(0.55 0.19 28)" disabled><span class="ms" style="font-size: 17px">delete</span><span class="pw">Delete</span><span class="pn">W16</span></button><span style="flex: 1"></span><button class="b" style="padding: 9px 12px">Cancel</button><button class="b bp" style="padding: 9px 14px">Save</button></div></div>
+</aside>
+</div>
+<footer style="height: 30px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #fff; margin: 0 16px 16px; border: 1px solid #dfe2e6; border-radius: 8px; font-size: 12px; color: #5e6672; font-family: 'DM Mono', monospace">
+<div style="display: flex; gap: 6px"><span class="sl">Company</span><span class="sv">Worth Properties</span></div><div style="display: flex; gap: 6px"><span class="sl">Users</span><span class="sv">4 active · 1 invited</span></div><div style="display: flex; gap: 6px"><span class="sl">Languages</span><span class="sv">EN 2 · ES 3</span></div>
+<span style="flex: 1"></span>
+<span class="sv">Settings · Users</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EZ Draft · pending invite + invite code sign-in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..400,0..1,0">
+<style>
+body{margin:0}
+a{color:oklch(0.5 0.17 262)}a:hover{color:oklch(0.42 0.17 262)}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+.mono{font-family:'DM Mono',monospace}
+.card{background:#fff;border:1px solid #dfe2e6;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.07)}
+.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font:500 14px 'Instrument Sans',sans-serif;border:1px solid #dfe2e6;border-radius:8px;background:#fff;color:#14171c;cursor:pointer;text-decoration:none;white-space:nowrap}
+.b:hover{border-color:#c9ced5}
+.bp{padding:9px 16px;font-weight:600;background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.bp:hover{background:oklch(0.5 0.17 262)}
+.bd{opacity:.45;cursor:default}
+.bs{padding:6px 10px;font-size:13px}
+.lbl{font-size:12px;font-weight:600;color:#5e6672;padding:14px 14px 6px}
+.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#5e6672}
+.in{display:flex;align-items:center;gap:8px;min-height:38px;box-sizing:border-box;padding:0 10px;border:1px solid #dfe2e6;border-radius:8px;background:#fff;font:400 14px 'Instrument Sans',sans-serif;color:#14171c}
+.inf{border-color:oklch(0.55 0.17 262);box-shadow:0 0 0 3px #eef1ff}
+.ine{border-color:oklch(0.55 0.19 28);box-shadow:0 0 0 3px oklch(0.96 0.03 28)}
+.ph{color:#7a828e}
+.tg{display:flex;padding:3px;gap:2px;background:#f2f4f7;border-radius:8px}
+.tgi{flex:1;border:0;background:transparent;font:500 13px 'Instrument Sans',sans-serif;color:#5e6672;padding:6px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+.tgon{background:#fff;color:#14171c;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.sl{color:#9aa3af}.sv{color:#14171c}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#3b424d;text-decoration:none}
+.nv:hover{background:#f2f4f7;color:#14171c}
+.nv .ms{font-size:19px;color:#7a828e}
+.nvon{background:#eef1ff;color:oklch(0.45 0.17 262);font-weight:600}
+.nvon .ms{color:oklch(0.5 0.17 262)}
+.nvs{margin-left:auto;font:400 11px 'DM Mono',monospace;color:#9aa3af}
+.th{font-size:12px;font-weight:600;color:#5e6672;text-align:left;padding:10px 12px;border-bottom:1px solid #dfe2e6;background:#fbfbfc;white-space:nowrap}
+.td{padding:12px;border-bottom:1px solid #eef0f3;font-size:14px;vertical-align:middle}
+.tdc{padding:9px 12px;border-bottom:1px solid #eef0f3;font-size:13px;vertical-align:middle}
+.tr:hover .td{background:#f8f9fb}
+.tron .td{background:#f5f7ff}
+.av{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif;flex:none}
+.pill{font:600 12px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.lg{font:500 11px 'DM Mono',monospace;padding:3px 7px;border-radius:5px;border:1px solid #dfe2e6;color:#3b424d}
+.sw{width:34px;height:20px;border-radius:999px;background:#dfe2e6;position:relative;flex:none;border:0;padding:0;cursor:pointer}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(20,30,50,.25)}
+.swon{background:oklch(0.55 0.17 262)}
+.swon::after{left:16px}
+.swro{background:#c9ced5}
+.swro.swon{background:#9aa3af}
+.pg{grid-column:1 / -1;font-size:10.5px;font-weight:600;color:#9aa3af;padding:5px 0 0;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between}
+.pg .mono{text-transform:none;letter-spacing:0;font-weight:500}
+.pc{display:flex;align-items:center;gap:6px;padding:1px 0;font-size:11.5px;line-height:1.15;color:#3b424d;min-height:17px}
+.sws{width:26px;height:15px}
+.sws::after{top:2px;left:2px;width:11px;height:11px}
+.sws.swon::after{left:13px}
+.pw{text-decoration:underline dotted oklch(0.66 0.15 60);text-decoration-thickness:2px;text-underline-offset:3px}
+.pn{display:inline-block;margin-left:5px;padding:0 4px;font:500 10px/16px 'DM Mono',monospace;color:oklch(0.43 0.12 60);background:oklch(0.95 0.05 80);border-radius:3px;vertical-align:1px;text-decoration:none;font-style:normal;font-weight:500;letter-spacing:0;text-transform:none}
+.note{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#fffaf0;border:1.5px dashed oklch(0.72 0.13 65);border-radius:8px;font-size:12px;line-height:1.45;color:#3b424d}
+.nk{font:500 12px 'DM Mono',monospace;color:oklch(0.43 0.12 60)}
+.sh{font-size:12px;font-weight:600;color:#5e6672;display:flex;justify-content:space-between;align-items:center}
+.stl{font:500 11px 'DM Mono',monospace;letter-spacing:.06em;color:#5e6672;text-transform:uppercase}
+.hint{font-size:12px;color:#5e6672;line-height:1.4}
+.err{font-size:12px;color:oklch(0.5 0.19 28);line-height:1.4;display:flex;gap:5px;align-items:flex-start}
+.ck{display:flex;align-items:center;gap:10px;font-size:14px}
+.cb{width:18px;height:18px;border-radius:4px;border:1.5px solid #c9ced5;display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;background:#fff}
+.cbon{background:oklch(0.55 0.17 262);border-color:oklch(0.55 0.17 262);color:#fff}
+.sec{flex:none;border:1px solid #dfe2e6;border-radius:10px;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.sech{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eef0f3}
+.secn{font-size:15px;font-weight:600}
+.cnt{font:400 12px 'DM Mono',monospace;color:#5e6672}
+.em{padding:22px 16px;font-size:13px;color:#5e6672;display:flex;align-items:center;gap:8px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0}
+.kv .k{color:#5e6672}
+.ok{background:oklch(0.95 0.05 150);color:oklch(0.4 0.12 150)}
+.bad{background:oklch(0.95 0.035 28);color:oklch(0.48 0.17 28)}
+.warn{background:oklch(0.96 0.04 80);color:oklch(0.46 0.13 65)}
+.sk{background:#eef0f3;border-radius:5px;height:12px}
+.pager{display:flex;align-items:center;gap:8px;padding:9px 16px;font:400 12px 'DM Mono',monospace;color:#5e6672;border-top:1px solid #eef0f3;margin-top:auto}
+.ib{width:28px;height:28px;border:1px solid #dfe2e6;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#3b424d;cursor:pointer;padding:0}
+.tile{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.tileh{padding:10px 16px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;gap:8px;flex:none}
+.dim{position:absolute;inset:0;background:rgba(20,23,28,.38)}
+.menu{background:#fff;border:1px solid #dfe2e6;border-radius:10px;box-shadow:0 12px 32px rgba(20,30,50,.16);padding:5px;display:flex;flex-direction:column;min-width:190px}
+.mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;font-size:14px;color:#14171c}
+.mi .ms{font-size:18px;color:#7a828e}
+.mion{background:#f2f4f7}
+.mh{font-size:11px;font-weight:600;color:#9aa3af;padding:8px 10px 4px;text-transform:uppercase;letter-spacing:.04em}
+.code{font:500 26px 'DM Mono',monospace;letter-spacing:.12em;color:#14171c}
+.bar{height:6px;border-radius:999px;background:#eef0f3;overflow:hidden}
+.bari{height:100%;background:oklch(0.55 0.17 262);border-radius:999px}
+.toast{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#14171c;color:#fff;border-radius:10px;font-size:13px;box-shadow:0 12px 32px rgba(20,30,50,.25)}
+
+.tight .sech{padding:9px 14px}
+.tight .em{padding:12px 14px}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; position: relative; overflow: hidden; background-color: #f6f7f9; background-image: linear-gradient(#e6e9ed 1px, transparent 1px), linear-gradient(90deg, #e6e9ed 1px, transparent 1px); background-size: 32px 32px; font-family: 'Instrument Sans', sans-serif; color: #14171c; display: flex; flex-direction: column">
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 28px 32px; box-sizing: border-box; gap: 18px"><div style="display: flex; align-items: flex-start; gap: 24px; flex: none"><div style="display: flex; flex-direction: column; gap: 4px"><h1 style="margin: 0; font-size: 22px; font-weight: 600">S15j · Pending invite and invite code</h1><span style="font-size: 13px; color: #5e6672">The pending row on Settings · Users, and the invite code on the sign-in page.</span></div><span style="flex: 1"></span><div class="note" style="max-width: 600px"><span class="nk">NOTE</span><span>Text with a dotted orange underline and a W number is proposed wording for approval. Names, emails, projects, dates and sizes are sample data. Resend makes the person who pressed it the sender, so they then see Copy link and the code. The locked code opens again only after Resend; the link in the email still works.</span></div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: none">
+<section class="card tile" style=""><div class="tileh"><span class="stl">Pending row · seen by the last sender and by Owners</span></div><div style="flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative"><div style="padding: 14px"><div class="card" style="overflow: hidden; box-shadow: none"><table style="width: 100%; border-collapse: collapse"><thead><tr><th class="th" style="padding-left: 16px">Name</th><th class="th">Role</th><th class="th">Last active</th><th class="th" style="width: 40px"></th></tr></thead><tbody><tr class="tr"><td class="td" style="padding-left: 16px; color: #9aa3af"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="border: 1.5px dashed #c9ced5; color: #9aa3af; box-sizing: border-box"><span class="ms" style="font-size: 18px">mail</span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500; color: #5e6672">Invite pending</span><span style="font-size: 12px">luis.ortega@example.com · sent Nov 11</span></span></span></td><td class="td"><span class="pill" style="background: #fff; border: 1px dashed #c9ced5; color: #7a828e">Foreman</span></td><td class="td" style="white-space: nowrap"><a href="#" style="font-size: 13px; text-decoration: none">Resend</a> · <a href="#" style="font-size: 13px; text-decoration: none">Copy link</a> · <span style="font-size: 13px; color: #5e6672"><span class="pw">Code</span><span class="pn">W1</span> <span class="mono" style="color: #14171c">482 913</span></span> · <a href="#" style="font-size: 13px; text-decoration: none; color: oklch(0.55 0.19 28)"><span class="pw">Cancel invite</span><span class="pn">W2</span></a></td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr></tbody></table></div></div></div></section>
+<section class="card tile" style=""><div class="tileh"><span class="stl">Pending row · seen by anyone else with the Users switch</span></div><div style="flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative"><div style="padding: 14px"><div class="card" style="overflow: hidden; box-shadow: none"><table style="width: 100%; border-collapse: collapse"><thead><tr><th class="th" style="padding-left: 16px">Name</th><th class="th">Role</th><th class="th">Last active</th><th class="th" style="width: 40px"></th></tr></thead><tbody><tr class="tr"><td class="td" style="padding-left: 16px; color: #9aa3af"><span style="display: flex; align-items: center; gap: 10px"><span class="av" style="border: 1.5px dashed #c9ced5; color: #9aa3af; box-sizing: border-box"><span class="ms" style="font-size: 18px">mail</span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500; color: #5e6672">Invite pending</span><span style="font-size: 12px">luis.ortega@example.com · sent Nov 11</span></span></span></td><td class="td"><span class="pill" style="background: #fff; border: 1px dashed #c9ced5; color: #7a828e">Foreman</span></td><td class="td" style="white-space: nowrap"><a href="#" style="font-size: 13px; text-decoration: none">Resend</a> · <a href="#" style="font-size: 13px; text-decoration: none; color: oklch(0.55 0.19 28)"><span class="pw">Cancel invite</span><span class="pn">W2</span></a></td><td class="td"><span class="ms" style="font-size: 20px; color: #9aa3af">more_horiz</span></td></tr></tbody></table></div></div></div></section>
+</div><div style="flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px"><section class="card tile" style=""><div class="tileh"><span class="stl">Sign-in page · new link</span></div><div style="flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative"><div style="flex: 1; min-height: 0; padding: 22px; background: #eef0f3; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden"><div class="card" style="width: 300px; padding: 22px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: baseline; gap: 1px; font-size: 20px; font-weight: 600"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div><span style="font-size: 18px; font-weight: 600">Sign in</span>
+<div style="display: flex; flex-direction: column; gap: 10px; opacity: .5"><div class="fl"><span style="display: flex; justify-content: space-between"><span>Email</span></span><span class="in"><span class="ph" style="flex: 1"></span></span></div><button class="b bp" style="justify-content: center">Sign in</button></div>
+<span style="font-size: 11px; color: #9aa3af" class="mono">EXISTING SIGN-IN · UNCHANGED</span>
+<div style="border-top: 1px solid #eef0f3; padding-top: 12px; text-align: center"><a href="#" style="font-size: 13px; text-decoration: none"><span class="pw">Have an invite code?</span><span class="pn">W3</span></a></div></div></div></div></section><section class="card tile" style=""><div class="tileh"><span class="stl">Invite code · open</span></div><div style="flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative"><div style="flex: 1; min-height: 0; padding: 22px; background: #eef0f3; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden"><div class="card" style="width: 300px; padding: 22px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: baseline; gap: 1px; font-size: 20px; font-weight: 600"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div><span style="font-size: 18px; font-weight: 600"><span class="pw">Join with an invite code</span><span class="pn">W4</span></span>
+<span class="hint"><span class="pw">Use the email the invite was sent to and the 6-digit code from the invite email.</span><span class="pn">W5</span></span>
+
+<div class="fl"><span style="display: flex; justify-content: space-between"><span>Email</span></span><span class="in"><span class="" style="flex: 1">luis.ortega@example.com</span></span></div>
+<div class="fl"><span style="display: flex; justify-content: space-between"><span><span class="pw">Invite code</span><span class="pn">W6</span></span></span><span class="in inf"><span class="" style="flex: 1; font-family: DM Mono, monospace; font-size: 13px">482 9</span></span></div>
+<button class="b bp" style="justify-content: center"><span class="pw">Join</span><span class="pn">W7</span></button>
+<a href="#" style="font-size: 13px; text-decoration: none; text-align: center"><span class="pw">Back to sign in</span><span class="pn">W8</span></a></div></div></div></section><section class="card tile" style=""><div class="tileh"><span class="stl">Wrong email or wrong code · one message</span></div><div style="flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative"><div style="flex: 1; min-height: 0; padding: 22px; background: #eef0f3; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden"><div class="card" style="width: 300px; padding: 22px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: baseline; gap: 1px; font-size: 20px; font-weight: 600"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div><span style="font-size: 18px; font-weight: 600"><span class="pw">Join with an invite code</span><span class="pn">W4</span></span>
+<span class="hint"><span class="pw">Use the email the invite was sent to and the 6-digit code from the invite email.</span><span class="pn">W5</span></span>
+<div class="banner bad" style="padding: 8px 10px; font-size: 12.5px"><span class="ms" style="font-size: 17px">error</span><span><span class="pw">That email and code don't match an open invite. Check both and try again.</span><span class="pn">W9</span></span></div>
+<div class="fl"><span style="display: flex; justify-content: space-between"><span>Email</span></span><span class="in"><span class="" style="flex: 1">luis.ortega@example.com</span></span></div>
+<div class="fl"><span style="display: flex; justify-content: space-between"><span><span class="pw">Invite code</span><span class="pn">W6</span></span></span><span class="in"><span class="" style="flex: 1; font-family: DM Mono, monospace; font-size: 13px">482 913</span></span></div>
+<button class="b bp" style="justify-content: center"><span class="pw">Join</span><span class="pn">W7</span></button>
+<a href="#" style="font-size: 13px; text-decoration: none; text-align: center"><span class="pw">Back to sign in</span><span class="pn">W8</span></a></div></div></div></section><section class="card tile" style=""><div class="tileh"><span class="stl">Locked after 5 wrong codes</span></div><div style="flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative"><div style="flex: 1; min-height: 0; padding: 22px; background: #eef0f3; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden"><div class="card" style="width: 300px; padding: 22px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: baseline; gap: 1px; font-size: 20px; font-weight: 600"><span>ez</span><span style="color: oklch(0.55 0.17 262)">draft</span></div><span style="font-size: 18px; font-weight: 600"><span class="pw">Join with an invite code</span><span class="pn">W4</span></span>
+<span class="hint"><span class="pw">Use the email the invite was sent to and the 6-digit code from the invite email.</span><span class="pn">W5</span></span>
+<div class="banner bad" style="padding: 8px 10px; font-size: 12.5px"><span class="ms" style="font-size: 17px">lock</span><span><span class="pw">Too many wrong codes. This code is locked. Ask the person who invited you to resend the invite.</span><span class="pn">W10</span></span></div>
+<div class="fl"><span style="display: flex; justify-content: space-between"><span>Email</span></span><span class="in"><span class="" style="flex: 1">luis.ortega@example.com</span></span></div>
+<div class="fl"><span style="display: flex; justify-content: space-between"><span><span class="pw">Invite code</span><span class="pn">W6</span></span></span><span class="in"><span class="" style="flex: 1; font-family: DM Mono, monospace; font-size: 13px">482 913</span></span></div>
+<button class="b bp bd" style="justify-content: center"><span class="pw">Join</span><span class="pn">W7</span></button>
+<a href="#" style="font-size: 13px; text-decoration: none; text-align: center"><span class="pw">Back to sign in</span><span class="pn">W8</span></a></div></div></div></section></div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
