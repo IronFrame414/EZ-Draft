@@ -39,3 +39,8 @@ EZD-384 (2026-11-11): the brief-and-size step (P1). Paths above plus:
 - scripts/process/plan-brief.test.mjs
 - scripts/ledger/plan-steps.test.mjs
 - .claude/agents/code-reviewer.md
+
+EZD-384b (2026-11-11): the code-bound step (P3) and the phase dependency check (P5). Paths above plus:
+- vault/tools/dep_check.mjs
+- vault/tools/contract_check.mjs (already listed)
+- scripts/process/dep-check.test.mjs
