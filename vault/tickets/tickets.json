@@ -22028,6 +22028,27 @@
     "AC-EZD-135-3"
    ],
    "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-388",
+   "phase": 4,
+   "title": "Fix: the pan.test P2 iPad pan count fails under load (6 where 8 are expected)",
+   "depends_raw": "EZD-359",
+   "spec_ref": "rule 17; Q-0623",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-359"
+   ],
+   "acs": [
+    "AC-EZD-388-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
