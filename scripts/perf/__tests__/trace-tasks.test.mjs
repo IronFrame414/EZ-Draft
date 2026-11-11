@@ -1,10 +1,11 @@
+// EZD-372 V1-V5, M1-M4 (vault/plans/EZD-372.md section 4): the 50 ms line and miss evidence.
 // EZD-359 U1-U6 (vault/plans/EZD-359.md section 4; AC-EZD-359-1). node:test, pure. Expected values come from the
 // plan's fixture F and D-Attr, D-Read, D-Split.
 // EZD-388 U7-U11 (vault/plans/EZD-388.md section 4): the iPad pan row counted by CPU time × scale.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { attributeTasks, countByCpu, readTraceEvents, splitTasks } from '../trace-tasks.mjs';
+import { attributeTasks, countByCpu, describeMisses, readTraceEvents, splitTasks } from '../trace-tasks.mjs';
 
 const base = { pid: 7, tid: 9 };
 const A = { ...base, name: 'ezd-pan-start', cat: 'blink.user_timing', ph: 'R', ts: 1000000 };
@@ -84,6 +85,110 @@ describe('EZD-359 trace attribution', () => {
     const list = [a, b, c, d, e, f, g];
     assert.deepEqual(splitTasks(list, 1), { counted: [a, e, f, g], waits: [b, c, d] });
     assert.deepEqual(splitTasks(list, 4), { counted: [e, f], waits: [a, b, c, d, g] });
+  });
+});
+
+const B50 = { ...base, ph: 'X', name: 'ThreadControllerImpl::RunTask', cat: 'toplevel', ts: 1202000, dur: 49900, tdur: 1200 };
+const B47 = { ...B50, dur: 47000 };
+const B46 = { ...B50, dur: 46999 };
+const Fb = { ...base, ph: 'X', name: 'FireAnimationFrame', cat: 'devtools.timeline', ts: 1202100, dur: 49000, tdur: 1000 };
+function top(ts, dur, tdur) {
+  const e = { ...base, ph: 'X', name: 'ThreadControllerImpl::RunTask', cat: 'toplevel', ts, dur };
+  if (tdur !== undefined) e.tdur = tdur;
+  return e;
+}
+
+describe('EZD-372 trace match at the 50 ms line', () => {
+  test('EZD-372 V1 a 50 ms task whose slice is under 50 ms matches', () => {
+    assert.deepEqual(attributeTasks([A, B50, Fb], [{ at: 202, ms: 50 }]), [
+      { at: 202, ms: 50, cpu: 1, gc: 0, top: 'FireAnimationFrame' },
+    ]);
+  });
+
+  test('EZD-372 V2 the length floor is ms minus 3', () => {
+    assert.deepEqual(attributeTasks([A, B47, Fb], [{ at: 202, ms: 50 }]), [
+      { at: 202, ms: 50, cpu: 1, gc: 0, top: null },
+    ]);
+    assert.deepEqual(attributeTasks([A, B46, Fb], [{ at: 202, ms: 50 }]), [
+      { at: 202, ms: 50, cpu: null, gc: null, top: null },
+    ]);
+  });
+
+  test('EZD-372 V3 the start window still applies', () => {
+    assert.deepEqual(attributeTasks([A, B50, Fb], [{ at: 206, ms: 50 }]), [
+      { at: 206, ms: 50, cpu: null, gc: null, top: null },
+    ]);
+  });
+
+  test('EZD-372 V4 a long task matches as before', () => {
+    assert.deepEqual(attributeTasks(F, [{ at: 202, ms: 82 }]), [
+      { at: 202, ms: 82, cpu: 3, gc: 1, top: 'FireAnimationFrame' },
+    ]);
+  });
+
+  test('EZD-372 V5 a short slice is not a match on start alone', () => {
+    assert.deepEqual(attributeTasks([A, S], [{ at: 202, ms: 50 }]), [
+      { at: 202, ms: 50, cpu: null, gc: null, top: null },
+    ]);
+  });
+});
+
+describe('EZD-372 miss evidence', () => {
+  test('EZD-372 M1 lists near top-level slices of the main thread for a null-cpu task', () => {
+    const events = [
+      A,
+      top(1285000, 10000, 9040),
+      top(1305300, 40240, undefined),
+      top(1400000, 5000, 4000),
+      top(1380000, 1000, 500),
+      top(1279000, 1000, 500),
+      { ...base, tid: 10, name: 'ThreadControllerImpl::RunTask', cat: 'toplevel', ph: 'X', ts: 1300000, dur: 60000, tdur: 50000 },
+      { ...base, name: 'FireAnimationFrame', cat: 'devtools.timeline', ph: 'X', ts: 1306000, dur: 30000, tdur: 1000 },
+    ];
+    const tasks = [
+      { at: 300, ms: 60, cpu: null, gc: null, top: null },
+      { at: 500, ms: 70, cpu: 4, gc: 0, top: 'x' },
+    ];
+    assert.deepEqual(describeMisses(events, tasks), [
+      {
+        at: 300,
+        ms: 60,
+        anchor: true,
+        events: 8,
+        near: [
+          { dt: -15, dur: 10, tdur: 9 },
+          { dt: 5.3, dur: 40.2, tdur: null },
+        ],
+      },
+    ]);
+  });
+
+  test('EZD-372 M2 keeps the 10 nearest slices, sorted by start', () => {
+    const events = [A];
+    for (let k = 0; k < 12; k++) events.push(top(1000000 + (280 + 2 * k) * 1000, 1000, 500));
+    const out = describeMisses(events, [{ at: 300, ms: 50, cpu: null, gc: null, top: null }]);
+    assert.deepEqual(out, [
+      {
+        at: 300,
+        ms: 50,
+        anchor: true,
+        events: 13,
+        near: [-16, -14, -12, -10, -8, -6, -4, -2, 0, 2].map((dt) => ({ dt, dur: 1, tdur: 0.5 })),
+      },
+    ]);
+  });
+
+  test('EZD-372 M3 without the anchor the entry says so', () => {
+    const t = { at: 300, ms: 60, cpu: null, gc: null, top: null };
+    assert.deepEqual(describeMisses([top(1285000, 10000, 9040)], [t]), [
+      { at: 300, ms: 60, anchor: false, events: 1, near: [] },
+    ]);
+    assert.deepEqual(describeMisses([], [t]), [{ at: 300, ms: 60, anchor: false, events: 0, near: [] }]);
+  });
+
+  test('EZD-372 M4 tasks with cpu give nothing', () => {
+    assert.deepEqual(describeMisses(F, []), []);
+    assert.deepEqual(describeMisses(F, [{ at: 202, ms: 78, cpu: 3, gc: 1, top: 'FireAnimationFrame' }]), []);
   });
 });
 

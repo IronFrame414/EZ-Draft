@@ -157,7 +157,8 @@ describe('EZD-356 long-task list on the pan rows', () => {
     for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
       const row = rowOf(latest, id);
       assert.equal(row.value, 8, id);
-      assert.deepEqual(Object.keys(row.details), ['profile', 'tasks', 'waits', 'load1'], id);
+      assert.deepEqual(Object.keys(row.details), ['profile', 'tasks', 'waits', 'load1', 'misses'], id);
+      assert.equal(row.details.misses.length, row.details.tasks.filter((t) => t.cpu === null).length, id);
       assert.deepEqual(row.details.waits, [], id);
       assert.equal(row.details.tasks.length, 8, id);
       let prev = 0;
@@ -191,6 +192,7 @@ describe('EZD-359 pan task attribution', () => {
     for (const id of ['long-tasks-during-pan', 'long-tasks-during-pan:ipad']) {
       const row = rowOf(latest, id);
       assert.ok(row.details.tasks.length >= 1, `${id} tasks`);
+      assert.deepEqual(row.details.misses, [], id);
       for (const t of row.details.tasks) {
         assert.deepEqual(Object.keys(t), ['at', 'ms', 'cpu', 'gc', 'top'], id);
         assert.ok(Number.isInteger(t.cpu) && t.cpu >= 0, `${id} cpu ${t.cpu}`);
@@ -214,6 +216,7 @@ describe('EZD-359 pan task attribution', () => {
       assert.equal(row.status, 'pass', `${id}\n${diag}`);
       assert.equal(row.value, 0, `${id}\n${diag}`);
       assert.deepEqual(row.details.tasks, [], `${id}\n${diag}`);
+      assert.deepEqual(row.details.misses, [], `${id}\n${diag}`);
       assert.ok(row.details.waits.length >= 1, `${id} waits`);
       for (const w of row.details.waits) {
         assert.ok(w.ms >= 50, `${id} ms ${w.ms}`);

@@ -2,12 +2,13 @@
 // animation frame intervals between the pan-start and pan-end marks (11 rule 4; Q-0073 (a)).
 // EZD-356: the pan rows also list each pan long task (at = ms after pan-start, ms = its length) and the 1-minute load average.
 // EZD-359: the pan is traced; each pan long task carries cpu, gc and top.
+// EZD-372: each counted pan task with no CPU time carries its trace evidence (panMisses).
 // EZD-388: a profile with cpuCountScale counts the trace's top-level tasks by CPU time × cpuCountScale (countByCpu); no trace is trace_missing.
 // EZD-235b Build step 11: HOOKS_PATH, stopTrace and twoFrames are exported for the worker-job collector.
 import os from 'node:os';
 import path from 'node:path';
 import { settlePage } from './js-size.mjs';
-import { TRACE_CATEGORIES, TRACE_STOP_MS, attributeTasks, countByCpu, readTraceEvents, splitTasks } from './trace-tasks.mjs';
+import { TRACE_CATEGORIES, TRACE_STOP_MS, attributeTasks, countByCpu, describeMisses, readTraceEvents, splitTasks } from './trace-tasks.mjs';
 
 export const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
 
@@ -223,6 +224,7 @@ export async function runPan(context, baseUrl, panUrl, profile) {
       longTasksLoad: end.longTasks.filter((t) => t.startTime < end.panStart).length,
       panTasks: split.counted,
       panWaits: split.waits,
+      panMisses: describeMisses(events, split.counted),
       load1,
       intervals,
     };

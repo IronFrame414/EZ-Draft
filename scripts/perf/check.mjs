@@ -180,7 +180,7 @@ function panInput(id, pan, name) {
     case 'long-tasks-during-pan':
       return {
         value: pan.longTasksPan,
-        details: { profile: name, tasks: pan.panTasks, waits: pan.panWaits, load1: pan.load1 },
+        details: { profile: name, tasks: pan.panTasks, waits: pan.panWaits, load1: pan.load1, misses: pan.panMisses },
       };
     case 'long-tasks-during-load':
       return { value: pan.longTasksLoad, details: { profile: name } };

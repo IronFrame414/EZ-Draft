@@ -1,4 +1,5 @@
 // EZD-359 (vault/plans/EZD-359.md D-Attr, D-Split): each pan long task's main-thread CPU time, GC time and longest inner event, from the pan's Chrome trace.
+// EZD-372: the 50 ms line (D-Match) and miss evidence (D-Miss).
 // EZD-388 (vault/plans/EZD-388.md D-Count): the iPad pan row counts the trace's own tasks by CPU time × 4 (Q-0737 (a)).
 
 /** D-Anchor: the user-timing mark page-hooks.browser.js makes at pan-start (same literal there; an init script cannot import). */
@@ -46,20 +47,27 @@ function outermost(events) {
   return out;
 }
 
+/** D-Shared: the thread's outermost top-level slices. */
+function topLevel(thread) {
+  return outermost(thread.filter((e) => e.ph === 'X' && catOf(e).split(',').includes('toplevel')));
+}
+
 /**
  * D-Attr: each pan long task `{ at, ms }` gains `cpu` (its main-thread CPU time), `gc` (its garbage-collection time) and `top`
- * (its longest inner non-top-level event), whole ms, from the trace's top-level task within 3 ms of `at`; null when none matches.
+ * (its longest inner non-top-level event), whole ms, from the trace's top-level task that starts within 3 ms of `at` and lasts over 50 ms or at least `ms` − 3 ms (EZD-372); null when none matches.
  */
 export function attributeTasks(events, tasks) {
   const none = (t) => ({ at: t.at, ms: t.ms, cpu: null, gc: null, top: null });
   const anchor = events.find((e) => e.name === PAN_START_MARK);
   if (anchor === undefined) return tasks.map(none);
   const thread = events.filter((e) => e.pid === anchor.pid && e.tid === anchor.tid);
-  const long = outermost(
-    thread.filter((e) => e.ph === 'X' && catOf(e).split(',').includes('toplevel')),
-  ).filter((e) => durOf(e) > 50000);
+  const top = topLevel(thread);
   return tasks.map((t) => {
-    const m = matchTop(long, anchor, t);
+    const m = matchTop(
+      top.filter((e) => durOf(e) > 50000 || durOf(e) >= (t.ms - 3) * 1000),
+      anchor,
+      t,
+    );
     return m === null ? none(t) : { at: t.at, ms: t.ms, ...taskDetail(thread, m) };
   });
 }
@@ -128,6 +136,36 @@ export function countByCpu(events, tasks, scale, panMs) {
   }
   counted.sort((a, b) => a.at - b.at);
   return { counted, waits };
+}
+
+const MISS_REACH_MS = 20;
+const MISS_MAX = 10;
+
+/**
+ * EZD-372 D-Miss: for each task with cpu null, whether the trace has the pan-start mark, its event count, and up to 10 top-level tasks within 20 ms of it (dt, dur, tdur in ms to one decimal).
+ */
+export function describeMisses(events, tasks) {
+  const anchor = events.find((e) => e.name === PAN_START_MARK);
+  const slices = anchor === undefined ? [] : topLevel(events.filter((e) => e.pid === anchor.pid && e.tid === anchor.tid));
+  return tasks
+    .filter((t) => t.cpu === null)
+    .map((t) => {
+      if (anchor === undefined) return { at: t.at, ms: t.ms, anchor: false, events: events.length, near: [] };
+      const lo = anchor.ts + (t.at - MISS_REACH_MS) * 1000;
+      const hi = anchor.ts + (t.at + t.ms + MISS_REACH_MS) * 1000;
+      const gap = (e) => Math.abs(e.ts - anchor.ts - t.at * 1000);
+      const near = slices
+        .filter((e) => e.ts < hi && e.ts + durOf(e) > lo)
+        .sort((a, b) => gap(a) - gap(b) || a.ts - b.ts)
+        .slice(0, MISS_MAX)
+        .sort((a, b) => a.ts - b.ts)
+        .map((e) => ({
+          dt: Math.round((e.ts - anchor.ts - t.at * 1000) / 100) / 10,
+          dur: Math.round(durOf(e) / 100) / 10,
+          tdur: typeof e.tdur === 'number' ? Math.round(e.tdur / 100) / 10 : null,
+        }));
+      return { at: t.at, ms: t.ms, anchor: true, events: events.length, near };
+    });
 }
 
 /** D-Split (Q-0623): a task counts when its CPU time is unknown or cpu × rate − ms × (rate − 1) is over 50 ms (the throttle's spin shows as CPU time); the rest are waits. Input order kept. */
