@@ -31,3 +31,14 @@ gate-phase 4 stays on `.git/set-aside.json` until every line below is checked. T
 - **New cause 7: the launcher can never build EZD-381.** Its plan's step 5 is an orchestrator step on the `.claude/worktrees/EZD-212a` path, which counts as a guarded path, so next_ticket.mjs holds the ticket for Josh. It is built interactively now: worktree .claude/worktrees/EZD-381, test-author steps 1 to 3, then the test review, D-Runs (10 consecutive gates where B9 runs; no load needed), merge, and step 5 (resume EZD-212a).
 - LANES.json build_lanes is 1 while interactive gates use lanes 2 and 3. Set it back to 2 when they are done.
 - EZD-224b (phase 6) is blocked on a merge clash with EZD-235's controller changes. That is not a phase 4 blocker; it is resolved after phase 4.
+
+## Update 21:30 UTC: cause 8, intermittents with no ticket
+Every distinct failure in the gate-logs artifacts of the last 10 failed develop CI runs (43076535554 through 42959076382, plus 43087689467), and in EZD-372's proof gates, now has a ticket:
+- EZD-208b B5 and B9 (every run): EZD-381. Merge in progress.
+- long-tasks-during-pan perf rows (runs 43076535554, 42971310637): EZD-372, at 6 of 10 counting gates.
+- EZD-207b B2 (run 42962322507): EZD-379, done.
+- **New EZD-390:** outbox-sync-conflicts.db.test.ts records an error alert without the alert lock (run 43087689467).
+- **New EZD-391:** EZD-033 T13 throttle counts 4 emails where 5 are expected (run 43030292777).
+- **New EZD-392:** EZD-207c N5 throttle test fails under load (EZD-372 series c run 1 and series d run 2).
+- The tooling-test failures in runs 42991903837 (fixture LEDGER INVALID) and 42959076382 (EZD-360 T10) have not come back in the 8 runs since. They need no ticket (rule 17 note).
+- Release step added: EZD-390, EZD-391 and EZD-392 done. The launcher plans and builds them (phase 4, priority 1).
