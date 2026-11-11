@@ -5,7 +5,7 @@ You are the orchestrator for the EZ Draft build. Read `CLAUDE.md` first, then th
 ## 0. Unattended (Josh 2026-11-11)
 Josh: "the session will be unattended from the moment it starts. everything must run with bypass permissions and continue without my oversight. anything that comes up with the phase prep will wait until tomorrow."
 - Never stop to ask Josh anything, and never wait on him. Every decision that is not design or UI is settled per CLAUDE.md rule 3 and the work goes on. A design or UI question goes into `vault/questions/` through `node scripts/ledger.mjs question` and into one list for him, `vault/handoff/for-josh-2026-11-11.md` (plain words, a recommended answer for each, committed by path). Then move on to the next item.
-- Anything that truly needs Josh waits in that file until tomorrow: his Terminal check of the account sign-in, a launcher restart, phase sign-offs, and the phase 6 re-plan offer. Don't send phone notices for these.
+- Anything that truly needs Josh waits in that file until tomorrow: his Terminal check of the account sign-in, a launcher restart, and phase sign-offs. Re-planning phase 6 is not a question for him (section 2 item 1). Don't send phone notices for these.
 - Use no tool that prompts for approval: no `run_in_terminal`, no AskUserQuestion. Run long commands as detached `nohup` Bash. Start every session with `permission_mode: "bypassPermissions"`.
 - When an item is blocked, set it aside (overwatch step F) and continue with the next one. When everything left needs Josh, keep the launcher unblocked with the overwatch runbook until he is back.
 
@@ -14,7 +14,7 @@ Josh: "the session will be unattended from the moment it starts. everything must
 - **Phase 4 fix tickets:** EZD-373, 374, 375, 376 done. EZD-379 (207b B2 hover under load) building on lane 1. EZD-380 (money-pages W1 ECONNRESET under load) ready; it waits for EZD-379 because both plans name `app/playwright.config.ts` (launcher file-overlap rule). EZD-372 blocked: set it ready after EZD-379 and EZD-380 merge, for a fresh D-Runs series.
 - **Load lane:** D-Runs tickets (EZD-372, 379, 380) count a gate only while another lane runs a gate. Session 15 runs back-to-back load gates on lane 3: a nohup loop in `test-results/d372/` using worktree `.claude/worktrees/EZD-376` (log `test-results/d372/load.txt`). Stop it with `touch /Users/josh/Projects/ezdraft/test-results/d372/STOP` once no D-Runs ticket needs it; then `git worktree remove .claude/worktrees/EZD-376`.
 - **Phase 5:** EZD-212a blocked on EZD-381 (new fix ticket, planned; `questions 5` runs next).
-- **Phase 6:** RELEASED by Josh 2026-11-11 ("phase 6 should be released now that the new build process was set"). Its 8 tickets are back at their pre-hold status (EZD-224 and EZD-235 ready; the rest at questions). Their plans were written under the old planning method.
+- **Phase 6:** HELD AGAIN until re-planned under the new planning method. Josh released it on 2026-11-11, then said of the old plans: "this is the most important thing to fix. there was a full new build process and audit done with the intention of having less blocks and issues and planning more thoroughly". All 8 tickets are `blocked`, and each note keeps its status before the hold (EZD-224 and EZD-235 were ready; the rest were at questions). `.git/set-aside.json` also holds `build EZD-224`, `build EZD-235` and `questions 6` as a guard. Remove those three entries once STATUS shows the 8 as blocked.
 - **Phases 7 to 10:** not signed off (vault/spec/SIGNOFF.md ends at phase 6).
 
 ## 2. Build-machine changes Josh approved (Q-0693; vault/research/audit-2026-11/PLANNING-REDESIGN.md Part 3)
@@ -22,10 +22,19 @@ Done:
 - EZD-377 (`06d354ff`): documented limit messages, quick-empty-unit pause, start limit.
 - EZD-378 (`512b6574`): automatic switching between the two accounts. Built, gated, reviewed, merged. NOT turned on: `scripts/launcher-accounts.json` (plan EZD-378 D-File text) is deliberately not committed. From the orchestrator's shell, `CLAUDE_CONFIG_DIR=$HOME/.claude-acct-N claude auth status` reports `loggedIn: false` for both folders, though each folder's `.claude.json` has an `oauthAccount` entry (Josh signed in twice). Do not ask now (section 0): put "what does `CLAUDE_CONFIG_DIR=~/.claude-acct-1 claude auth status` (and -2) print in your Terminal?" on tomorrow's list and leave switching off. Only when both show `"loggedIn": true` and `"authMethod": "claude.ai"`: run plan EZD-378 section 9's live check if the hooks allow it (they block nested claude from the orchestrator's shell; if so, ask Josh to run it), commit the file by path, `record-develop`, push. The launcher reads it at its next start (a `.json` change does not restart it); a forced restart needs Josh's yes.
 Not started, in this order (each a phase 1 tooling ticket built interactively in fix mode, like EZD-377/378: file ticket, plan with the planner, tests with test-author, then the orchestrator builds the non-test files itself because guard-paths gives fix mode only to the orchestrator; code-reviewer and security-reviewer; gate as detached nohup on a free lane; squash-merge; ledger done; record-develop; push):
-1. Stop the line: overwatch reads develop's latest CI run; red → one defect ticket, no product merge until green, phone notice after 2 hours; add the missing runbook patterns (B2-B4-process.md B4, plus the new ones in session-15-state.md Gotchas and overseer-log.md).
-2. Full gate after every 2nd product merge, plus each ticket's regression list (Josh: "Yes, but 2 at a time").
-3. Honest repairs and hand-off (repair verdicts as strikes; stall over 2 hours opens an interactive session and notifies Josh).
-4. The planning method (Part 1: template, plan_lint rules, contract and connections checks, shared-list register, P1/P3 units, planner maxTurns 40 to 100, plan-checker upgrade). Then pilot it. Josh released phase 6 before it exists; offer him once to re-plan phase 6's not-yet-built tickets with it when it lands.
+1. **FIRST, and the most important (Josh 2026-11-11): the planning method**, from PLANNING-REDESIGN.md Part 1 (read it whole, by range). It covers:
+   - the five checked planning steps per ticket;
+   - the plan template's new required sections: connections and callers by file:line, data flow, database, UI states and events, failure and edge cases, other tickets' tests it could break;
+   - plan_lint rules that refuse a plan missing them;
+   - the contract check across a phase's plans, the connections check against develop, and the shared-list register;
+   - P1 (size check before the full plan) and P3 as their own units;
+   - planner maxTurns 40 to 100 (EZD-377 and EZD-378's planners both stopped at 40), and the plan-checker upgrade;
+   - every PLAN-GAP and re-validation patch committed back to the plan before merge.
+   Split it into tickets of medium size or less. Then **re-plan phase 6**: rerun the plan unit for each of its 8 tickets under the new method, then review-plans 6 and questions 6, then release each ticket to the status its new plan earns. That release does not need Josh: he asked for exactly this. Measure it (deviations per ticket, PLAN-GAPs, re-plans) for the next audit.
+2. Stop the line: overwatch reads develop's latest CI run; red → one defect ticket, no product merge until green, phone notice after 2 hours; add the missing runbook patterns (B2-B4-process.md B4, plus the new ones in session-15-state.md Gotchas and overseer-log.md).
+3. Full gate after every 2nd product merge, plus each ticket's regression list (Josh: "Yes, but 2 at a time").
+4. Honest repairs and hand-off (repair verdicts as strikes; stall over 2 hours opens an interactive session and notifies Josh).
+Phases 7 to 10, prepared by the section 3 sub-session, are also planned under the new method once it lands and Josh signs them off.
 Fix mode is OPEN (`vault/handoff/LAUNCHER_FIX.md` names EZD-377/378 paths). Update its paths for each new ticket; close it (git rm, commit, record-develop, push) when the last one merges.
 
 ## 3. Start the phase-prep sub-session (Josh 2026-11-11: "launch a sub-session to prep 4 more phases")
