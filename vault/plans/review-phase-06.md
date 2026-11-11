@@ -1,0 +1,22 @@
+# Plan review · phase 6
+
+Written by the launcher from the code-reviewer's final report (2026-11-10T04:58:20.240Z).
+
+VERDICT: FAIL. Phase 6 has nine plans: EZD-135, 214, 216, 218, 6001, 219, 224, 235 and 237. Three conflicts between tickets would break typecheck or tests when built, and three tickets are split proposals with no part plans yet.
+
+1. **in-place, behavior. EZD-6001 against EZD-235** (`vault/plans/EZD-6001.md` section 1 step 2, section 4 U7 and E1, section 9). EZD-6001 makes the chosen floor the required *last* parameter of `planDrawingList` and `openFloorId`, but its own U7 and E1 call `(objs, F2)` and `(x, null)`. EZD-235 (K7, step 6) makes the second parameter `options: DrawingListOptions`. EZD-235's K10 and its tests M1–M4 and C1 call `planDrawingList(objects, { roomAreaSqFt })` and `openFloorId(objects)`; today's code takes one argument (`batches.ts:70,74`). Fix: add EZD-235 to EZD-6001's dependencies, rewrite U7 and E1 to EZD-235's signature, and list `model-derived.test.ts` and `controller.test.ts` as test-author edits.
+2. **in-place, behavior. EZD-237 against EZD-219** (`EZD-237.md` D-Zoom and T6; `EZD-219.md` step 7). EZD-219 removes `MAX_PPI` and adds a required fourth argument to `zoomAt` (`view.ts:20,43` today). EZD-237 calls `zoomAt(view0, p, factor)` and relies on the `MAX_PPI` clamp. Neither plan depends on the other. Fix: EZD-237 depends on EZD-219, D-Zoom passes `zoom100Ppi(handle.getScale())` (add `getScale` to its `handle` Pick), and T6 is rechecked. EZD-219 section 9 names EZD-237 as a dependent.
+3. **in-place, behavior. EZD-214a against EZD-219** (`EZD-214.md` Part 214a; `EZD-219.md` steps 4 and 15, B6, the test-author edits). Both fill StatusBar `start` and both widen `ModelLoad.project` (`phaseDefault` and `planScale`; EZD-219 step 4 writes out the whole type). Nothing sets their order. EZD-219's `[data-status-item]` 0→4 edits and its B6 closed-bar count of 3 break if EZD-214a lands first. Fix: EZD-214a depends on EZD-219, and its part plan keeps `planScale` and updates those counts. EZD-6001's D-Mount option (a) needs the same treatment when it is re-validated.
+4. **in-place, minor. EZD-224 is over the size line with no split proposal** (`EZD-224.md` section 1). Steps 1–20 touch about 22 source files, plus the lockfile and generated types, and it has 25 tests. Fix: add a split proposal (for example, capture and encode as one part, Storage, routes and card as the other) or a recorded reason to keep it whole.
+5. **in-place, minor. EZD-235's split status contradicts itself** (`EZD-235.md` header against section 8). The header proposes splitting into 235a and 235b, section 8 says "kept whole", and STATUS says `planned`. Fix: drop the stale section 8 sentence; the orchestrator then applies the split, and EZD-216 can narrow to EZD-235a. Also, step 20 adds no Folder layout line for `app/src/workers/`, which only EZD-224 adds.
+6. **in-place, behavior. 23 ACs have no plan** (EZD-214, 216, 218). These three are split proposals only, so AC-EZD-214-1..9, 216-1..8 and 218-1..6 have no test row (TRACE: "no plan yet"). Each AC map does cover every AC, and every part carries `security-review`, complexity, ACs and EZD-016a. Part plans are owed after Q-0668–0671, Q-0673–0679 and Q-0682–0687. Under the standing rule, the non-design ones (for example Q-0670, 0671, 0685–0687) are settled by agents. For EZD-218b, read room areas through EZD-235's `ModelDerived.roomAreaSqFt` (EZD-235 section 9 risk).
+7. **in-place, minor. EZD-237 is slightly over the line**: 26 tests and about 28 files including tests. Add a split line or a reason when it is re-planned.
+
+**Checked and correct:**
+- **EZD-135** (medium, so its tests were checked here): all U, D and B expected values. D3 holds because the API gate passes raw SQL and `bytes_copied` defaults to 0; B3's count of 2 holds because disabled buttons still count as touch targets; the 26 message keys, slug and permission exist in code.
+- **Other plans:** EZD-219 U3–U13 and B6; EZD-224 T-U2 and T-U4; EZD-235 D5, M1, M2, J1 and P5; EZD-237 T1–T7 and T15.
+- **Requirements:** every full plan's ACs have test rows. Every visual checklist depends on EZD-016a. All off-mockup text is under Proposed wording.
+
+**Re-dispatch to the planner:** EZD-6001, EZD-237, EZD-219 (dependents line), EZD-224 and EZD-235 (text), then the part plans for 214a/b, 216a/b/c and 218a/b once the splits are applied.
+
+I ran `node vault/tools/next_ticket.mjs --report`, which rewrote `vault/PROGRESS.md` and `vault/tickets/TRACE.md`.
