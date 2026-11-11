@@ -183,6 +183,7 @@
   "EZD-104",
   "EZD-105",
   "EZD-106",
+  "EZD-105b",
   "EZD-107",
   "EZD-109",
   "EZD-129",
@@ -2585,7 +2586,9 @@
    "depends_raw": "EZD-103",
    "spec_ref": "S15 Controls",
    "spec_files": [
-    "spec/sections/screens/S15-settings-users-permissions.md#Controls"
+    "spec/sections/screens/S15-settings-users-permissions.md#Controls",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
@@ -2598,12 +2601,19 @@
    "build_position": 117,
    "acs": [
     "AC-EZD-104-1",
-    "AC-EZD-104-2"
+    "AC-EZD-104-2",
+    "AC-EZD-104-3",
+    "AC-EZD-104-4",
+    "AC-EZD-104-5",
+    "AC-EZD-104-6",
+    "AC-EZD-104-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -2613,7 +2623,9 @@
    "depends_raw": "EZD-104, EZD-008",
    "spec_ref": "S15 Invite user; R24 #14, #15",
    "spec_files": [
-    "spec/sections/screens/S15-settings-users-permissions.md#Invite user"
+    "spec/sections/screens/S15-settings-users-permissions.md#Invite user",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
@@ -2629,15 +2641,22 @@
     "AC-EZD-105-1",
     "AC-EZD-105-2",
     "AC-EZD-105-3",
-    "AC-EZD-105-4"
+    "AC-EZD-105-4",
+    "AC-EZD-105-5",
+    "AC-EZD-105-6",
+    "AC-EZD-105-7",
+    "AC-EZD-105-8",
+    "AC-EZD-105-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0187",
-    "spec/decisions/10-permissions-and-settings.md#Q-0216"
+    "spec/decisions/10-permissions-and-settings.md#Q-0216",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -2648,7 +2667,9 @@
    "spec_ref": "S15 Controls, Validation",
    "spec_files": [
     "spec/sections/screens/S15-settings-users-permissions.md#Controls",
-    "spec/sections/screens/S15-settings-users-permissions.md#Validation"
+    "spec/sections/screens/S15-settings-users-permissions.md#Validation",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
@@ -2660,11 +2681,54 @@
    "build_position": 119,
    "acs": [
     "AC-EZD-106-1",
-    "AC-EZD-106-2"
+    "AC-EZD-106-2",
+    "AC-EZD-106-3",
+    "AC-EZD-106-4",
+    "AC-EZD-106-5",
+    "AC-EZD-106-6",
+    "AC-EZD-106-7",
+    "AC-EZD-106-8",
+    "AC-EZD-106-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-105b",
+   "phase": 7,
+   "title": "Owner-set password",
+   "depends_raw": "EZD-106, EZD-033",
+   "spec_ref": "Q-0096 P3, P4, P5, P7, P10; Q-0695",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Controls",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-106",
+    "EZD-033"
+   ],
+   "build_position": 119.5,
+   "acs": [
+    "AC-EZD-105b-1",
+    "AC-EZD-105b-2",
+    "AC-EZD-105b-3",
+    "AC-EZD-105b-4"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 1,
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
     "spec/decisions/05-screens.md"
    ]
   },
@@ -2676,7 +2740,9 @@
    "spec_ref": "S15 Role card, New role; R24 Permissions and users",
    "spec_files": [
     "spec/sections/screens/S15-settings-users-permissions.md#Role card",
-    "spec/sections/screens/S15-settings-users-permissions.md#New role"
+    "spec/sections/screens/S15-settings-users-permissions.md#New role",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
@@ -2687,13 +2753,18 @@
    ],
    "build_position": 120,
    "acs": [
-    "AC-EZD-107-1"
+    "AC-EZD-107-1",
+    "AC-EZD-107-2",
+    "AC-EZD-107-3",
+    "AC-EZD-107-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -2762,7 +2833,9 @@
    "spec_ref": "Data model · event_log; Non-functional · Security",
    "spec_files": [
     "spec/sections/03c-tables.md#event_log",
-    "spec/sections/11-non-functional-requirements.md#Security"
+    "spec/sections/11-non-functional-requirements.md#Security",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
@@ -2773,12 +2846,18 @@
    ],
    "build_position": 121,
    "acs": [
-    "AC-EZD-109-1"
+    "AC-EZD-109-1",
+    "AC-EZD-109-2",
+    "AC-EZD-109-3",
+    "AC-EZD-109-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -3660,7 +3739,9 @@
    "spec_files": [
     "spec/sections/10-permissions-and-settings.md#Company settings",
     "spec/sections/03c-tables.md#membership",
-    "spec/sections/screens/S01-projects.md#Permissions"
+    "spec/sections/screens/S01-projects.md#Permissions",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -3672,14 +3753,18 @@
    ],
    "build_position": 122,
    "acs": [
-    "AC-EZD-129-1"
+    "AC-EZD-129-1",
+    "AC-EZD-129-2",
+    "AC-EZD-129-3",
+    "AC-EZD-129-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/05-screens.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0202"
+    "spec/decisions/10-permissions-and-settings.md#Q-0202",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -16416,7 +16501,9 @@
    "depends_raw": "EZD-105, EZD-007d",
    "spec_ref": "Q-0187, Q-0216; S15 Users + permissions",
    "spec_files": [
-    "spec/sections/screens/S15-settings-users-permissions.md#Users + permissions"
+    "spec/sections/screens/S15-settings-users-permissions.md#Users + permissions",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
@@ -16430,14 +16517,18 @@
    "acs": [
     "AC-EZD-138-1",
     "AC-EZD-138-2",
-    "AC-EZD-138-3"
+    "AC-EZD-138-3",
+    "AC-EZD-138-4",
+    "AC-EZD-138-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0187",
-    "spec/decisions/10-permissions-and-settings.md#Q-0216"
+    "spec/decisions/10-permissions-and-settings.md#Q-0216",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {

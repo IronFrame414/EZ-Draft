@@ -13,6 +13,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
 - [Glossary addendum, Phase 4](sections/00e-glossary-phase-04.md) — Phase 4 terms added to glossary.md; Q-0568
 - [Glossary addendum, Phase 5](sections/00f-glossary-phase-05.md) — Phase 5 terms added to glossary.md; Q-0630
 - [Glossary addendum, Phase 6](sections/00g-glossary-phase-06.md) — Phase 6 terms added to glossary.md; Q-0664
+- [Glossary addendum, Phase 7](sections/00h-glossary-phase-07.md) — Phase 7 terms added to glossary.md; Q-0695
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
@@ -77,6 +78,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09k · Openings and moves: worked examples](sections/09k-openings-and-moves-examples.md) — Q-0630
   - [09l · AI assistant cost line: worked examples](sections/09l-ai-assistant-cost-examples.md) — Q-0637
   - [09m · Phase switch, snap, scale, zoom, dimensions, text, thumbnail, benchmark: worked examples](sections/09m-phase-switch-and-view-examples.md) — Q-0664
+  - [09n · Users, switches, invites and project scope: worked examples](sections/09n-users-and-invites-examples.md) — Q-0695
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)

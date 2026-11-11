@@ -43,7 +43,7 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase 56 follows (Q-0630). |
 | 56 | AI assistant | 56 | 5601, 5602, 5603, 5604, 5605 | Numbered 56, built right after phase 5 and before phase 6; no renumbering (Q-0630, phase-rank.mjs). |
 | 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 6001, 224, 235, 216, 237 | Adds the floor tools, EZD-6001 (Q-0509, Q-0664). |
-| 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
+| 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 105b, 107, 109, 129, 138 | Adds EZD-105b Owner-set password (Q-0096, Q-0695). |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
 | 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139, 137 | EZD-137 moved from phase 2 (Q-0395). |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 10 | 215, 220, 229, 234, 226, 227 |  |
@@ -414,24 +414,26 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 7 · Users, roles, project scope, event log (from spec phase 1)
 
 - **Goal:** Josh invites his team, sets their permissions and project scope, and every permission change is logged.
-- **User-visible result:** Users table with search; Invite user by magic link with Copy link; user inspector with 28 switches, role select, language, Reset to role, Deactivate, Remove; custom roles; Project access (All or Listed projects); event_log rows for permission changes.
-- **Spec files:** `spec/sections/screens/S15-settings-users-permissions.md`, `spec/decisions.md`, `spec/sections/03-data-model.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/10-permissions-and-settings.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (6, build order):**
+- **User-visible result:** Users table with search; Invite user by magic link with Copy link; user inspector with 37 switches, role select, language, Reset to role, Deactivate, Remove; custom roles; Project access (All or Listed projects); event_log rows for permission changes.
+- **Spec files:** `spec/sections/screens/S15-settings-users-permissions.md`, `vault/spec/decisions/` (10, 03, 05; Q-0695), `spec/sections/09n-users-and-invites-examples.md`, `spec/sections/00h-glossary-phase-07.md`, `spec/sections/03-data-model.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/10-permissions-and-settings.md`, `spec/sections/screens/S01-projects.md`
+- **Tickets (8, build order):**
   - EZD-104 Users table — needs EZD-103 (s1)
   - EZD-105 Invite user — after EZD-104
   - EZD-106 User inspector — after EZD-104
+  - EZD-105b Owner-set password — after EZD-106; needs EZD-033 (s0) (Q-0096, Q-0695)
   - EZD-107 Custom roles — after EZD-106
   - EZD-109 Event log — after EZD-106
   - EZD-129 User project scope — after EZD-106
+  - EZD-138 Invite link and code for the sender — after EZD-105 (Q-0216, Q-0695)
 - **Depends on slices:** 1
 - **Out of scope until later:** Customer and user sync from EZ Binder (slice 35); Spanish UI for crew (slice 48); the System status page is in slice 6.
 - **Risks and spikes:** EZD-105's 7-day app invite token must survive an email scanner opening the link. EZD-129 scoping affects the Projects query, the field pack and the API; its zero-rows test must stay in the suite.
 - **Josh's test script:**
   1. Settings → Users → Invite user with a valid new email, Foreman role, Spanish. Expected: A pending row appears with Resend, Copy link and Cancel; the stub transport records the email.
   2. Open the copied link in another browser and accept. Expected: The row turns active.
-  3. Open the user, untick one switch, Save. Expected: The role pill reads “Modified”; n / 28 drops by one; an event_log row has actor and IP.
+  3. Open the user, untick one switch, Save. Expected: The role pill reads “Modified”; n / 37 drops by one; an event_log row has actor and IP.
   4. Save as new role from that user and assign it to another user. Expected: The new role appears on the Roles cards and on the second user.
-  5. Try to remove Manage users and settings from the only user who holds it. Expected: Refused.
+  5. Try to untick the Users page switch (settings_users) on the only active user who holds it (Q-0695). Expected: Refused.
   6. Set the Foreman to Listed projects with one project and sign in as them. Expected: Projects shows only that project; the API returns zero rows for any other project.
 
 ### Slice 8 · Defaults, edit lock, project settings (from spec phase 1, 2)
