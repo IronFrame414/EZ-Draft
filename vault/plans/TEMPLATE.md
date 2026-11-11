@@ -14,6 +14,7 @@ Execution-grade (token diet, Josh 2026-10-22): a Sonnet test-author and builder 
 ### Build steps
 In build order. One row per file. "Exports and signatures": the exact exported names and TypeScript signatures (or `none`). "Copy the pattern from": an existing file in the repo the builder mirrors (or `none (first of its kind)` plus the pattern in one line). "Verify with": the command that proves the step (a test name, `pnpm run typecheck`).
 A step the orchestrator does, not the builder: put `(orchestrator ...)` after the path in its Path cell (EZD-300 hold: only a path the guard denies the orchestrator then holds the ticket for Josh).
+"New / change": `new` (the path is not at HEAD) or `change` (it is). The Path cell names one repo path in backticks; "Copy the pattern from" starts with an existing repo path or with `none`. On a v2 plan `node vault/tools/contract_check.mjs <plan>` checks all three against HEAD (EZD-383).
 | # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |
 | --- | --- | --- | --- | --- | --- |
 
@@ -67,11 +68,13 @@ Spec sections (`vault/spec/sections/...` with headings), decision IDs (R24 #n, R
 
 ## 3. Interface contract
 What tests and code are both written to. Dependents must match it.
+A `file`, `export` or `signature` row puts `(new)` or `(exists)` in its Kind cell (`export (exists)`). An export row's Name is the name in backticks, then "from", then the path (`` `V2_BLOCKS` from `vault/tools/plan_lint.mjs` ``); a signature row's is the call in backticks, then "from", then the path, with `\|` for a `|` inside it. `node vault/tools/contract_check.mjs <plan>` checks each against HEAD: a path or export marked exists is there, one marked new is not, and an existing signature takes as many parameters as the plan says (EZD-383).
 | Kind (file / export / signature / route / props / data-testid) | Name or path | Details |
 | --- | --- | --- |
 
 ### Connections
 One row for each caller, consumer, route, event, job, other screen and other phase's test the change reaches, with file:line found by grep at develop HEAD. A gap marker instead of a file:line fails plan_lint.
+File:line is `path:line` or `path:line-line`, several split by commas, each at HEAD. Each entry of the shared-list register `vault/shared-lists.json` whose `reaches` globs match a Build steps path needs a row with the entry's `id` in Name and its `test` file in File:line; `node vault/tools/connections_check.mjs <plan>` checks it (EZD-383).
 | Kind | Name | File:line | What changes |
 | --- | --- | --- | --- |
 

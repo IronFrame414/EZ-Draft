@@ -1,0 +1,294 @@
+{
+  "version": 1,
+  "lists": [
+    {
+      "id": "rls-table-grants",
+      "list": "TABLE_GRANTS and TENANTLESS_TABLES table names",
+      "test": "app/src/server/db/rls.audit.test.ts",
+      "pin": "T18 exemption and grant lists match the catalog",
+      "reaches": [
+        "supabase/migrations/*.sql",
+        "app/test-harness/rls/table-grants.ts",
+        "app/test-harness/rls/tenancy-exemptions.ts"
+      ],
+      "read": "the sorted name arrays in T18's toEqual after TENANTLESS_TABLES and Object.keys(TABLE_GRANTS)",
+      "sources": [
+        "L-024",
+        "L-049",
+        "EZD-292",
+        "EZD-350",
+        "EZD-351"
+      ]
+    },
+    {
+      "id": "private-execute",
+      "list": "PRIVATE_EXECUTE private functions per API role",
+      "test": "app/src/server/db/rls.audit.test.ts",
+      "pin": "EZD-168 private function execute audit",
+      "reaches": [
+        "supabase/migrations/*.sql",
+        "app/test-harness/rls/private-execute.ts"
+      ],
+      "read": "the PRIVATE_EXECUTE entries in app/test-harness/rls/private-execute.ts",
+      "sources": [
+        "L-024",
+        "L-064"
+      ]
+    },
+    {
+      "id": "seeded-by-trigger",
+      "list": "SEEDED_BY_TRIGGER tables of the API gate test",
+      "test": "app/src/server/db/rls.api-gate.test.ts",
+      "pin": "SEEDED_BY_TRIGGER",
+      "reaches": [
+        "supabase/migrations/*.sql"
+      ],
+      "read": "the array literal assigned to SEEDED_BY_TRIGGER",
+      "sources": [
+        "L-061"
+      ]
+    },
+    {
+      "id": "cap-lock-read-only",
+      "list": "CAP_LOCK_READ_ONLY counting functions",
+      "test": "app/src/server/db/cap-locks.db.test.ts",
+      "pin": "EZD-321 every counting function locks first or is a listed read-only counter",
+      "reaches": [
+        "supabase/migrations/*.sql",
+        "app/test-harness/rls/cap-locks.ts"
+      ],
+      "read": "the CAP_LOCK_READ_ONLY entries in app/test-harness/rls/cap-locks.ts",
+      "sources": [
+        "L-048"
+      ]
+    },
+    {
+      "id": "job-kinds",
+      "list": "registered job kinds",
+      "test": "app/src/server/jobs/handlers.test.ts",
+      "pin": "EZD-009 T19 every registered handler has a run-twice test",
+      "reaches": [
+        "app/src/server/jobs/handlers.ts",
+        "app/src/server/jobs/handlers/*.ts",
+        "app/src/lib/jobs/kinds.ts"
+      ],
+      "read": "the kinds array in T19's toEqual",
+      "sources": [
+        "EZD-292",
+        "EZD-350",
+        "EZD-351"
+      ]
+    },
+    {
+      "id": "money-page-count",
+      "list": "page files with a money page case (count)",
+      "test": "app/src/server/db/money-routes.test.ts",
+      "pin": "C4 every page file has a money page case and every case names a real page",
+      "reaches": [
+        "app/src/app/**/page.tsx",
+        "app/test-harness/money/page-cases.ts"
+      ],
+      "read": "the toBe(N) after listPages(APP_SRC).length in C4, and the count in C4's title",
+      "sources": [
+        "L-064"
+      ]
+    },
+    {
+      "id": "money-page-paths",
+      "list": "money page paths opened by the browser test (count)",
+      "test": "app/e2e/money-pages.spec.ts",
+      "pin": "const EXPECTED_PATHS =",
+      "reaches": [
+        "app/src/app/**/page.tsx",
+        "app/test-harness/money/page-cases.ts"
+      ],
+      "read": "the number assigned to EXPECTED_PATHS",
+      "sources": [
+        "L-064"
+      ]
+    },
+    {
+      "id": "money-route-cases",
+      "list": "MONEY_ROUTE_CASES route methods",
+      "test": "app/src/server/db/money-routes.test.ts",
+      "pin": "C1 every exported route method has a money case and every case names a real method",
+      "reaches": [
+        "app/src/app/**/route.ts",
+        "app/test-harness/money/route-cases.ts"
+      ],
+      "read": "the MONEY_ROUTE_CASES entries in app/test-harness/money/route-cases.ts",
+      "sources": [
+        "L-061"
+      ]
+    },
+    {
+      "id": "disclaimer-pages",
+      "list": "DISCLAIMER_PAGES page and not-found files",
+      "test": "app/src/components/disclaimer/disclaimer-pages.test.ts",
+      "pin": "U6 every page listed",
+      "reaches": [
+        "app/src/app/**/page.tsx",
+        "app/src/app/**/not-found.tsx",
+        "app/test-harness/e2e/disclaimer-pages.ts"
+      ],
+      "read": "the DISCLAIMER_PAGES rows in app/test-harness/e2e/disclaimer-pages.ts",
+      "sources": [
+        "EZD-340"
+      ]
+    },
+    {
+      "id": "projects-touch-counts",
+      "list": "Projects page touch-target counts",
+      "test": "app/e2e/projects-touch.spec.ts",
+      "pin": "T1 EZD-330 counts shown",
+      "reaches": [
+        "app/src/components/projects/**",
+        "app/test-harness/touch-targets.ts"
+      ],
+      "read": "the toBe(N) on the expectTouchTargets count in T1 and T2",
+      "sources": [
+        "EZD-338",
+        "L-064"
+      ]
+    },
+    {
+      "id": "header-icons",
+      "list": "icon name list",
+      "test": "app/src/components/shell/HeaderButton.icon.test.tsx",
+      "pin": "T3 (5): ICON_NAMES and icons.json",
+      "reaches": [
+        "app/src/components/icon/icons.json",
+        "app/src/components/icon/icon-names.generated.ts"
+      ],
+      "read": "the EXPECTED_ICONS array of the test",
+      "sources": [
+        "L-021"
+      ]
+    },
+    {
+      "id": "smoke-lists",
+      "list": "full names of the T18 and T19 smoke tests",
+      "test": "scripts/tooling/__tests__/smoke-lists.test.mjs",
+      "pin": "EZD-350 done when: T18 and T19 run in a phase-scoped gate of any phase",
+      "reaches": [
+        "app/src/server/db/rls.audit.test.ts",
+        "app/src/server/jobs/handlers.test.ts"
+      ],
+      "read": "the TAGGED and CONTROLS constants of the test",
+      "sources": [
+        "EZD-350"
+      ]
+    },
+    {
+      "id": "failover-verdicts",
+      "list": "realtime failover check verdicts",
+      "test": "app/src/lib/realtime/failover-check.test.ts",
+      "pin": "T2 verdicts: classify, first match wins",
+      "reaches": [
+        "app/scripts/realtime-failover-check.mjs"
+      ],
+      "read": "the VERDICTS array in T2",
+      "sources": [
+        "EZD-352"
+      ]
+    },
+    {
+      "id": "template-rail-counts",
+      "list": "template step rail and object type counts",
+      "test": "app/e2e/new-project-templates.spec.ts",
+      "pin": "EZD-221b B6 foreman",
+      "reaches": [
+        "app/src/editor/tools/tool-defs.ts",
+        "app/src/components/shell/ToolRail.tsx",
+        "app/src/editor/ProjectEditor.tsx",
+        "app/src/editor/EmptyPlanHint.tsx",
+        "app/src/editor/selection/selection-controller.ts"
+      ],
+      "read": "the toHaveCount values and the floor, wall and room counts in B6",
+      "sources": [
+        "EZD-367"
+      ]
+    },
+    {
+      "id": "secret-key-clients",
+      "list": "files that use the secret-key client createJobsDbClient",
+      "test": "app/src/server/db/test-only-functions.test.ts",
+      "pin": "EZD-323 T8 only the job runner files and the dev route use the secret-key client",
+      "reaches": [
+        "app/src/server/**",
+        "app/src/app/api/**"
+      ],
+      "read": "the sorted file array in T8's toEqual",
+      "sources": [
+        "EZD-370"
+      ]
+    },
+    {
+      "id": "profile-password-fields",
+      "list": "password fields in the profile password section (count)",
+      "test": "app/e2e/my-profile.spec.ts",
+      "pin": "T18 set password",
+      "reaches": [
+        "app/src/lazy/my-profile/**"
+      ],
+      "read": "the toHaveCount(N) on input[type=\"password\"] in T18",
+      "sources": [
+        "EZD-371"
+      ]
+    },
+    {
+      "id": "perf-budgets",
+      "list": "performance budget rows",
+      "test": "scripts/perf/__tests__/evaluate.test.mjs",
+      "pin": "EZD-017 T7 Budgets table",
+      "reaches": [
+        "scripts/perf/budgets.mjs"
+      ],
+      "read": "Object.keys(BUDGETS).length and the TABLE_B rows in T7",
+      "sources": [
+        "EZD-383"
+      ]
+    },
+    {
+      "id": "released-migration",
+      "list": "the released guard migration's bytes",
+      "test": "scripts/conventions/__tests__/released-migration.test.mjs",
+      "pin": "EZD-298 T1 released guard migration is byte-identical to origin/main",
+      "reaches": [
+        "supabase/migrations/20261020101101_create_unconfirmed_password_guard.sql"
+      ],
+      "read": "the byte length, git blob id and SHA-256 in T1",
+      "sources": [
+        "L-041"
+      ]
+    },
+    {
+      "id": "dispatch-text",
+      "list": "retriever brief lines of dispatch.md",
+      "test": "scripts/process/retrievers.test.mjs",
+      "pin": "EZD-000e T7",
+      "reaches": [
+        ".claude/skills/build-ticket/dispatch.md"
+      ],
+      "read": "the lines T7 compares",
+      "sources": [
+        "L-027",
+        "L-041"
+      ]
+    },
+    {
+      "id": "plan-lint-v1-baseline",
+      "list": "lint result of every v1 plan",
+      "test": "scripts/process/plan-lint.test.mjs",
+      "pin": "EZD-382 V1 every current plan lints as before the change",
+      "reaches": [
+        "vault/tools/plan_lint.mjs",
+        "vault/tools/outline.mjs"
+      ],
+      "read": "the sha256 of each plan's text and lint result, and its count, in scripts/process/fixtures/plan-lint-v1-baseline.json",
+      "sources": [
+        "EZD-382"
+      ]
+    }
+  ]
+}

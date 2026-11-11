@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
+import { connRow as L, contractRow as C, planV2, stepRow as S, writeRegister } from './fixtures/plan-checks.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const LEDGER = path.join(REPO, 'scripts/ledger.mjs');
@@ -943,5 +944,75 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     assert.deepEqual(db.prepare('select line from cost').all().map((c) => [JSON.parse(c.line).unit, JSON.parse(c.line).ticket]), [['plan', 'EZD-999'], ['plan', 'EZD-999']], 'one cost row per run (the launcher retries a failed unit once)');
     db.close();
     assert.equal(git(root, 'status', '--porcelain', '--', 'vault'), '', out);
+  });
+});
+
+// EZD-383 R1-R4 (vault/plans/EZD-383.md section 4): `ledger.mjs status <T> status=ready` runs the plan checks on a template v2 plan.
+describe('EZD-383 R: ledger status=ready runs the plan checks', () => {
+  const REG = { version: 1, lists: [{ id: 'fx-gate', list: 'fixture gate list', test: 'gate-stub.mjs', pin: 'process.exit', reaches: ['gate-stub.mjs'], read: 'the exit code', sources: ['L-049'] }] };
+  const RESULTS = () => path.join(tmp('ezd383-results-'), 'unit.results.jsonl');
+  // The R1 failing plan: gate-stub.mjs is marked new but is committed. Options change what the plan says.
+  const plan = (dir, { kind = 'new', connections = [L('shared list fx-gate', 'gate-stub.mjs:1')], v1 = false, ticket = 'EZD-004' } = {}) => {
+    writeFileSync(path.join(dir, `vault/plans/${ticket}.md`), planV2({ v1, steps: [S(1, 'gate-stub.mjs', kind, 'vault/tickets/tickets.json')], contract: [C('file (exists)', 'vault/tickets/tickets.json')], connections, shared: 'None: fixture', regression: 'None: fixture' }));
+    writeRegister(dir, REG);
+  };
+  const ready = (dir, results, ticket = 'EZD-004', status = 'ready') => cli(dir, ['status', ticket, `status=${status}`], { env: { EZD_RESULTS_FILE: results } });
+  const queued = async (results) => (await import(pathToFileURL(RECORDS).href)).readQueue(results).map((o) => [o.op, o.ticket, o.changes.status]);
+
+  test('R1 the ledger refuses ready on a contract failure', () => {
+    const dir = fixture();
+    plan(dir);
+    const results = RESULTS();
+    const r = ready(dir, results);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.equal(r.stdout, 'LEDGER FAIL: EZD-004 not set ready: 1 plan check problem\n- contract: section 1: Build steps row 1: gate-stub.mjs is marked new but is at HEAD\n');
+    assert.equal(existsSync(results), false);
+  });
+
+  test('R2 the ledger refuses ready on a connections failure and when the checks cannot run', () => {
+    const dir = fixture();
+    plan(dir, { kind: 'change', connections: [L('c', 'vault/tickets/tickets.json:1')] });
+    const a = RESULTS();
+    const ra = ready(dir, a);
+    assert.equal(ra.status, 1, ra.stdout + ra.stderr);
+    assert.equal(ra.stdout, 'LEDGER FAIL: EZD-004 not set ready: 1 plan check problem\n- connections: section 3: Connections: shared list fx-gate (fixture gate list) is reached by gate-stub.mjs; add a Connections row naming fx-gate in Name and gate-stub.mjs:<line> in File:line (pin "process.exit")\n');
+    assert.equal(existsSync(a), false);
+    plan(dir, { kind: 'change' });
+    rmSync(path.join(dir, 'vault/shared-lists.json'));
+    const b = RESULTS();
+    const rb = ready(dir, b);
+    assert.equal(rb.status, 1, rb.stdout + rb.stderr);
+    assert.ok(rb.stdout.startsWith('LEDGER FAIL: EZD-004 not set ready: the plan checks could not run: cannot read the register '), rb.stdout);
+    assert.equal(existsSync(b), false);
+  });
+
+  test('R3 a passing v2 plan is set ready; other statuses are not checked', async () => {
+    const dir = fixture();
+    plan(dir, { kind: 'change' });
+    const a = RESULTS();
+    const ra = ready(dir, a);
+    assert.equal(ra.status, 0, ra.stdout + ra.stderr);
+    assert.equal(ra.stdout, 'LEDGER OK EZD-004 status\n');
+    assert.deepEqual(await queued(a), [['status', 'EZD-004', 'ready']]);
+    plan(dir);
+    const b = RESULTS();
+    const rb = ready(dir, b, 'EZD-004', 'blocked');
+    assert.equal(rb.status, 0, rb.stdout + rb.stderr);
+    assert.deepEqual(await queued(b), [['status', 'EZD-004', 'blocked']]);
+  });
+
+  test('R4 a v1 plan and a ticket without a plan keep the old behaviour', async () => {
+    const dir = fixture();
+    plan(dir, { v1: true });
+    const a = RESULTS();
+    const ra = ready(dir, a);
+    assert.equal(ra.status, 0, ra.stdout + ra.stderr);
+    assert.equal(ra.stdout, 'LEDGER OK EZD-004 status\n');
+    assert.deepEqual(await queued(a), [['status', 'EZD-004', 'ready']]);
+    const b = RESULTS();
+    const rb = ready(dir, b, 'EZD-005');
+    assert.equal(rb.status, 0, rb.stdout + rb.stderr);
+    assert.equal(rb.stdout, 'LEDGER OK EZD-005 status\n');
+    assert.deepEqual(await queued(b), [['status', 'EZD-005', 'ready']]);
   });
 });

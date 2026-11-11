@@ -15,14 +15,14 @@ const VAGUE = ['TBD', 'TODO', 'as appropriate', 'as needed', 'if needed', 'where
   'at your discretion', 'if possible', 'ideally'];
 const STEP_COLS = ['Path', 'New / change', 'Exports and signatures', 'Copy the pattern from', 'Verify with'];
 
-function sections(text) {
+export function sections(text) {
   const out = {};
   const re = /^## (\d+)\. .*$/gm;
   const heads = [...text.matchAll(re)];
   heads.forEach((m, i) => { out[m[1]] = text.slice(m.index + m[0].length, i + 1 < heads.length ? heads[i + 1].index : text.length); });
   return out;
 }
-function block(sec, title) {
+export function block(sec, title) {
   const m = new RegExp(`^### ${title}\\s*$`, 'm').exec(sec);
   if (!m) return null;
   const rest = sec.slice(m.index + m[0].length);
@@ -30,7 +30,7 @@ function block(sec, title) {
   return next ? rest.slice(0, next.index) : rest;
 }
 // Every markdown table in the text, each as { head, body }; a table is a run of consecutive lines starting with "|".
-function tables(text) {
+export function tables(text) {
   const out = [];
   let run = [];
   const flush = () => { if (run.length >= 2) out.push({ head: run[0], body: run.slice(2) }); run = []; };
