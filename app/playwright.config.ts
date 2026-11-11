@@ -133,7 +133,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm start -p ${web} -H 127.0.0.1`,
+    // EZD-380: idle connections stay open for an hour, longer than any run (CI job cap 45 min), so the server never closes one that route.fetch or the browser is about to reuse (Node's 6 s close reset W1 with ECONNRESET).
+    command: `pnpm start -p ${web} -H 127.0.0.1 --keepAliveTimeout 3600000`,
     url: `http://127.0.0.1:${web}/api/health`,
     cwd: app,
     reuseExistingServer: !process.env.CI,

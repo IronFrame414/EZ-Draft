@@ -107,7 +107,10 @@ describe('EZD-016d harness config', () => {
       expect(topUse.baseURL).toBe(`http://127.0.0.1:${web}`);
       const webServer = config.webServer as AnyRecord;
       expect(webServer.url).toBe(`http://127.0.0.1:${web}/api/health`);
-      expect(webServer.command).toBe(`pnpm start -p ${web} -H 127.0.0.1`);
+      // EZD-380: the web server keeps idle connections for 3600000 ms (vault/plans/EZD-380.md D-Keep).
+      expect(webServer.command).toBe(
+        `pnpm start -p ${web} -H 127.0.0.1 --keepAliveTimeout 3600000`,
+      );
       for (const key of ['testDir', 'outputDir', 'globalSetup']) {
         expect(typeof config[key]).toBe('string');
         expect(path.isAbsolute(config[key] as string)).toBe(true);
