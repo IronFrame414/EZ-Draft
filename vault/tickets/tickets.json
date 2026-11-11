@@ -21258,6 +21258,99 @@
     "AC-EZD-381-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-382",
+   "phase": 1,
+   "title": "Planning method 1: plan template v2, plan_lint v2 rules and the planner limits",
+   "depends_raw": "EZD-378",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-378"
+   ],
+   "acs": [
+    "AC-EZD-382-1",
+    "AC-EZD-382-2",
+    "AC-EZD-382-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-383",
+   "phase": 1,
+   "title": "Planning method 2: contract check, connections check and the shared-list register",
+   "depends_raw": "EZD-382",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-382"
+   ],
+   "acs": [
+    "AC-EZD-383-1",
+    "AC-EZD-383-2",
+    "AC-EZD-383-3",
+    "AC-EZD-383-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-384",
+   "phase": 1,
+   "title": "Planning method 3: brief-and-size (P1) and code-bound plan (P3) as their own launcher units, and the phase dependency check (P5)",
+   "depends_raw": "EZD-383",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-383"
+   ],
+   "acs": [
+    "AC-EZD-384-1",
+    "AC-EZD-384-2",
+    "AC-EZD-384-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-385",
+   "phase": 1,
+   "title": "Planning method 4: the plan stays true at merge",
+   "depends_raw": "EZD-383",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-383"
+   ],
+   "acs": [
+    "AC-EZD-385-1",
+    "AC-EZD-385-2",
+    "AC-EZD-385-3"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
