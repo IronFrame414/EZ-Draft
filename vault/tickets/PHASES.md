@@ -449,7 +449,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-126 Edit lock UI — after EZD-125
   - EZD-225 Editor states — after EZD-126; needs EZD-204 (s5)
 - **Depends on slices:** 1, 2, 3, 5, 7
-- **Out of scope until later:** Offline editing and conflict list (slice 40); Keyboard shortcuts page rows (slice 11); code data fields in Project settings (slice 20).
+- **Out of scope until later:** Offline auto-release conflicts (EZD-1403, phase 44; the conflict list EZD-299 is done in phase 3); Keyboard shortcuts page rows (EZD-222, phase 11); code data fields in Project settings (EZD-620, phase 21) (Q-0706).
 - **Risks and spikes:** EZD-125 is the Edit lock acceptance test with two browser sessions; the 5-minute auto release reads from Defaults so tests can shorten it. lock_epoch must be the only thing that decides whether a save is accepted.
 - **Josh's test script:**
   1. Settings → Defaults. Expected: Every registry row shows; an empty one reads “Not set”.
