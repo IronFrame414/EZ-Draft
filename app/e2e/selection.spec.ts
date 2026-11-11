@@ -411,6 +411,7 @@ test.describe('EZD-208b selection', () => {
     await signInAs(user.email);
     await openReady(page, pids.P1);
     await addSel(page);
+    await saved(page);
     await view(page);
     const attr = async (name: string) => Number(await boxEl(page).getAttribute(name));
     const css = (prop: string) =>
@@ -578,6 +579,7 @@ test.describe('EZD-208b selection', () => {
     await signInAs(user.email);
     await openReady(page, pids.P1);
     const { w1, d1 } = await addSel(page);
+    await saved(page);
     await view(page);
     const region = await canvasRegion(page).boundingBox();
     if (!region) throw new Error('no region');
