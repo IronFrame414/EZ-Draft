@@ -6,7 +6,9 @@ import {
   NO_NUMBERS,
   createOpeningData,
   createWallData,
+  moveSelection,
   parseStoredObject,
+  type OpeningObject,
   type Point,
   type WallObject,
 } from '@ezdraft/geometry';
@@ -15,7 +17,9 @@ import type { ObjectValue } from '../../lib/outbox/model-api';
 import { createModelStore } from '../model/model-store';
 import {
   initialRoomRectState,
+  moveEditChanges,
   newObjectId,
+  openingsOn,
   reduceRoomRect,
   toModelObjects,
   wallEditChanges,
@@ -24,15 +28,19 @@ import {
 } from './index';
 import {
   F1,
+  DOOR,
   F2,
+  ROOM,
   baseObjects,
   drawWithRect,
   drawWithWall,
   idSeq,
+  objs,
   roomValue,
   typedEnws,
   uid,
   wallsOf,
+  withOpening,
   withWalls,
 } from './test-utils/fixtures';
 
@@ -281,5 +289,72 @@ describe('EZD-204b opening hosting', () => {
     const openings = changes.filter((c) => c.value?.type === 'opening');
     expect(openings.map((c) => c.id)).toEqual([uid(50)]);
     expect(changes.some((c) => c.id === uid(51) || c.id === uid(52))).toBe(false);
+  });
+});
+
+// EZD-212b T8-T10 (vault/plans/EZD-212b.md section 4, D6; AC-EZD-212-6, -15, -16). Sources: ARCH Drawing tools; 204b
+// openingHostUpdates; model-store.ts (one applyEdit = one undo step); Q-0630 row 11.
+describe('EZD-212b moveEditChanges', () => {
+  const doorOf = (objects: Map<string, ObjectValue>, id: string): OpeningObject =>
+    openingsOn(objects, F1).find((o) => o.id === id)!;
+  const withCenter = (o: OpeningObject, center: Point): OpeningObject => ({
+    ...o,
+    data: { ...o.data, geometry: { ...o.data.geometry, center } },
+  });
+  const near = (a: Point, b: Point) => {
+    expect(a.x).toBeCloseTo(b.x, 9);
+    expect(a.y).toBeCloseTo(b.y, 9);
+  };
+
+  it('EZD-212b T8 moveEditChanges moves a door along its wall', () => {
+    const O = withOpening(ROOM, 50, 'door', 1, p(72, 0));
+    const changed = [withCenter(doorOf(O, uid(50)), p(100, 0))];
+    const changes = moveEditChanges(O, F1, changed, idSeq(100), NO_NUMBERS);
+    expect(changes).toHaveLength(1);
+    const c = changes[0]!;
+    expect(c.id).toBe(uid(50));
+    expect(c.value?.type).toBe('opening');
+    expect(c.value?.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    const g = (c.value!.data as { geometry: { center: Point; hostWallId: string | null } })
+      .geometry;
+    near(g.center, p(100, 0));
+    expect(g.hostWallId).toBe(uid(1));
+  });
+
+  it('EZD-212b T9 a door moved off every wall is flagged', () => {
+    const O = withOpening(ROOM, 50, 'door', 1, p(72, 0));
+    const changed = [withCenter(doorOf(O, uid(50)), p(72, 30))];
+    const changes = moveEditChanges(O, F1, changed, idSeq(100), NO_NUMBERS);
+    expect(changes).toHaveLength(1);
+    expect(changes[0]!.id).toBe(uid(50));
+    const g = (
+      changes[0]!.value!.data as {
+        geometry: { center: Point; hostWallId: string | null; axis: Point | null };
+      }
+    ).geometry;
+    near(g.center, p(72, 30));
+    expect(g.hostWallId).toBeNull();
+    near(g.axis!, p(1, 0));
+  });
+
+  it('EZD-212b T10 wall and door move together in one undo step', () => {
+    const O = withOpening(DOOR, 51, 'window', 1, p(72, 0));
+    const moved = moveSelection(objs(O), [uid(2), uid(50)], p(6, 0));
+    if (!moved.ok) throw new Error('move refused');
+    const changes = moveEditChanges(O, F1, moved.changed, idSeq(100), NO_NUMBERS);
+    const count = (id: string) => changes.filter((c) => c.id === id).length;
+    for (const id of [uid(2), uid(1), uid(3), uid(50)]) expect(count(id)).toBe(1);
+    expect(count(uid(51))).toBe(0);
+    const door = changes.find((c) => c.id === uid(50))!;
+    const g = (door.value!.data as { geometry: { center: Point; hostWallId: string | null } })
+      .geometry;
+    near(g.center, p(150, 60));
+    expect(g.hostWallId).toBe(uid(2));
+
+    const store = createModelStore({ objects: O });
+    store.applyEdit(changes);
+    expect(store.getState().past).toHaveLength(1);
+    store.undo();
+    near(doorOf(store.getState().objects as Map<string, ObjectValue>, uid(50)).data.geometry.center, p(144, 60));
   });
 });

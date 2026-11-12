@@ -1,5 +1,6 @@
 // Drawing tool definitions (EZD-210a; vault/plans/EZD-210a.md section 3 C1-C8; 04 Tool rail; Q-0570; Q-0588 (a)).
 // Pure: no React, no DOM.
+// EZD-212b (vault/plans/EZD-212b.md D1).
 import type { ModelObject, Point, WallObject } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -11,7 +12,7 @@ import {
   type TypedValues,
 } from '../typed-entry/typed-entry';
 
-export type DrawingToolId = 'wall' | 'room-rect' | 'door' | 'window';
+export type DrawingToolId = 'wall' | 'room-rect' | 'door' | 'window' | 'move';
 
 export const WIDTH_FIELD: TypedLengthField = {
   id: 'width',
@@ -73,14 +74,34 @@ export const WINDOW_TOOL: TypedTool = {
   fields: [OFFSET_LEFT_FIELD, OFFSET_RIGHT_FIELD, OPENING_WIDTH_FIELD],
 };
 
+export const DISTANCE_FIELD: TypedLengthField = {
+  id: 'distance',
+  label: 'office.typed.field.distance',
+  kind: 'length',
+  lengthKind: 'other',
+  optional: false,
+};
+
+export const MOVE_TOOL: TypedTool = { id: 'move', icon: 'open_with', fields: [DISTANCE_FIELD] };
+
+export const MOVE_RAIL_TOOL: RailTool = {
+  kind: 'tool',
+  id: 'move',
+  icon: 'open_with',
+  label: 'office.tool.move',
+  shortcut: 'M',
+};
+
 export const DRAWING_TOOLS: Readonly<Record<DrawingToolId, TypedTool>> = {
   wall: WALL_TOOL,
   'room-rect': ROOM_RECT_TOOL,
   door: DOOR_TOOL,
   window: WINDOW_TOOL,
+  move: MOVE_TOOL,
 };
 
 export const DRAWING_RAIL_TOOLS: readonly RailTool[] = [
+  MOVE_RAIL_TOOL,
   { kind: 'tool', id: 'wall', icon: 'view_column_2', label: 'office.tool.wall', shortcut: 'W' },
   {
     kind: 'tool',

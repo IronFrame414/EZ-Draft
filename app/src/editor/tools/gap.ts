@@ -4,6 +4,7 @@
 // stored. Pure.
 // EZD-294 Build step 14 (vault/plans/EZD-294.md Decided "gap.ts"): absorb changes only walls already in the model,
 // which keep their stored numbers.
+// EZD-212b (vault/plans/EZD-212b.md D12).
 import {
   absorbGap,
   findClosures,
@@ -91,7 +92,7 @@ export function gapBoxes(
       displayIn: report.displayIn,
       sizeText: gapSizeText(report.displayIn),
       actions,
-      note: opts.canEdit && actions.length === 1 ? 'office.tools.gap.fix_later' : null,
+      note: opts.canEdit && actions.length === 1 ? 'office.tools.gap.use_move' : null,
     });
   }
   return boxes;

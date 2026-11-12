@@ -183,10 +183,10 @@ describe('EZD-210b ToolRail disabled', () => {
     const off = render(
       <ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} disabled />,
     );
-    expect(count(off, '<button')).toBe(4);
-    expect(count(off, 'disabled=""')).toBe(4);
+    expect(count(off, '<button')).toBe(5);
+    expect(count(off, 'disabled=""')).toBe(5);
     const on = render(<ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} />);
-    expect(count(on, '<button')).toBe(4);
+    expect(count(on, '<button')).toBe(5);
     expect(count(on, 'disabled=""')).toBe(0);
     const css = squash(readFileSync(path.join(here, 'ToolRail.module.css'), 'utf8'));
     const rule = [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)].find(

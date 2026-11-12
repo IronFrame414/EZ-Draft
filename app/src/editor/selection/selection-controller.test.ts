@@ -15,8 +15,13 @@ import { createModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import type { DrawingUi, ToolKeyEvent } from '../tools/drawing-controller';
-import { DRAWING_RAIL_TOOLS, type DrawingToolId, type PickState } from '../tools/index';
-import { baseObjects, F1, uid, withWalls } from '../tools/test-utils/fixtures';
+import {
+  DRAWING_RAIL_TOOLS,
+  MOVE_DRAG_PX,
+  type DrawingToolId,
+  type PickState,
+} from '../tools/index';
+import { DOOR, baseObjects, F1, uid, withWalls } from '../tools/test-utils/fixtures';
 import {
   SAME_SPOT_PX,
   SELECT_RAIL_TOOL,
@@ -110,15 +115,24 @@ function fakeHandle() {
 }
 
 // The plan's local fake: a drawing controller whose tool and pick state the test sets.
-function fakeDrawing(o: { tool: DrawingToolId | null; pick: PickState }) {
+// EZD-212b T20 (vault/plans/EZD-212b.md section 4): options `enabled` (default true) and `drag` (default false; when
+// true the fake also has startDrag and dragPointer, recorded in `starts` and `drags`).
+function fakeDrawing(o: {
+  tool: DrawingToolId | null;
+  pick: PickState;
+  enabled?: boolean;
+  drag?: boolean;
+}) {
   let tool = o.tool;
   let pick = o.pick;
   let toolEscSeen = false;
   const keys: ToolKeyEvent[] = [];
   const selected: Array<DrawingToolId | null> = [];
+  const starts: Array<{ ids: readonly string[]; press: Point }> = [];
+  const drags: PlanPointerEvent[] = [];
   const drawing: NonNullable<SelectionDeps['drawing']> = {
     getUi: (): DrawingUi => ({
-      enabled: true,
+      enabled: o.enabled ?? true,
       tool,
       pick,
       boxes: [],
@@ -147,8 +161,14 @@ function fakeDrawing(o: { tool: DrawingToolId | null; pick: PickState }) {
       selected.push(id);
       tool = id;
     },
+    ...(o.drag === true
+      ? {
+          startDrag: (ids: readonly string[], press: Point) => void starts.push({ ids, press }),
+          dragPointer: (event: PlanPointerEvent) => void drags.push(event),
+        }
+      : {}),
   };
-  return { drawing, keys, selected };
+  return { drawing, keys, selected, starts, drags };
 }
 
 function setup(o: { objects?: Map<string, ObjectValue>; drawing?: SelectionDeps['drawing'] } = {}) {
@@ -356,7 +376,7 @@ describe('EZD-208a selection controller', () => {
       }
     }
     const edit = editorRail({ ...base, editor: 'ready', canEdit: true });
-    expect(edit?.tools.map((t) => t.id)).toEqual(['select', 'wall', 'room-rect', 'door', 'window']);
+    expect(edit?.tools.map((t) => t.id)).toEqual(['select', 'move', 'wall', 'room-rect', 'door', 'window']);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });
     expect(off?.tools).toEqual(all);
@@ -469,5 +489,50 @@ describe('EZD-208a selection controller', () => {
     expect(s.h.setSelected.length).toBe(afterDispose);
     expect(notified).toBe(heard);
     expect(s.controller.keyDown(ke('Escape'))).toBe(false);
+  });
+
+  // EZD-212b T20, T21 (vault/plans/EZD-212b.md section 4, D3, D8; AC-EZD-212-15, -16; Q-0630 row 35; Q-0214).
+  it('EZD-212b T20 Select drag hands over after 10 px', () => {
+    const f = fakeDrawing({ tool: null, pick: null, drag: true });
+    const s = setup({ objects: DOOR, drawing: f.drawing });
+    s.send(ev('down', 144, 60));
+    s.send(ev('move', 144 + 5 / PPI, 60));
+    expect(f.starts).toHaveLength(0);
+    s.send(ev('move', 144 + 20 / PPI, 60));
+    expect(s.ids()).toEqual([uid(50)]);
+    expect(f.starts).toHaveLength(1);
+    expect(f.starts[0]!.ids).toEqual([uid(50)]);
+    expect(f.starts[0]!.press).toEqual(pt(144, 60));
+    s.send(ev('move', 144 + 30 / PPI, 60));
+    s.send(ev('up', 144 + 30 / PPI, 60));
+    expect(f.drags.slice(-2).map((e) => e.kind)).toEqual(['move', 'up']);
+    expect(f.starts).toHaveLength(1);
+    expect(s.ids()).toEqual([uid(50)]);
+  });
+
+  it('EZD-212b T21 a drag moves the selection, needs Edit model; pickAt', () => {
+    const f = fakeDrawing({ tool: null, pick: null, drag: true });
+    const s = setup({ objects: DOOR, drawing: f.drawing });
+    s.controller.select([uid(2), uid(50)]);
+    const picked = s.ids();
+    expect([...picked].sort()).toEqual([uid(2), uid(50)].sort());
+    s.send(ev('down', 144, 100));
+    s.send(ev('move', 144 + 20 / PPI, 100));
+    expect(f.starts).toHaveLength(1);
+    expect(f.starts[0]!.ids).toEqual(picked);
+    expect(s.ids()).toEqual(picked);
+
+    const off = fakeDrawing({ tool: null, pick: null, drag: true, enabled: false });
+    const t = setup({ objects: DOOR, drawing: off.drawing });
+    t.controller.select([uid(2), uid(50)]);
+    const before = t.ids();
+    t.send(ev('down', 144, 100));
+    t.send(ev('move', 144 + 20 / PPI, 100));
+    t.send(ev('up', 144 + 20 / PPI, 100));
+    expect(off.starts).toHaveLength(0);
+    expect(t.ids()).toEqual(before);
+
+    expect(s.controller.pickAt(pt(144, 60))).toEqual([uid(50), uid(2)]);
+    expect(MOVE_DRAG_PX).toBe(SAME_SPOT_PX);
   });
 });

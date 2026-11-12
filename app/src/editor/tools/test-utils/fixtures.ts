@@ -3,9 +3,11 @@
 import {
   CURRENT_SCHEMA_VERSION,
   NO_NUMBERS,
+  createOpeningData,
   createWallData,
   parseStoredObject,
   type ClosureOverride,
+  type ModelObject,
   type Point,
   type RoomObject,
   type WallObject,
@@ -15,6 +17,7 @@ import type { ObjectValue } from '../../../lib/outbox/model-api';
 import {
   initialRoomRectState,
   initialWallChainState,
+  openingsOn,
   reduceRoomRect,
   reduceWallChain,
   toModelObjects,
@@ -183,4 +186,48 @@ export function drawWithRect(
   firstId: number,
 ): Drawn<RoomRectState> {
   return draw(objects, inputs, firstId, initialRoomRectState(), reduceRoomRect);
+}
+
+// EZD-212b (vault/plans/EZD-212b.md section 3 "test helper", section 4 Fixtures). An opening with id `uid(n)` on the
+// wall `uid(hostN ?? 2)`; `hostN === null` flags it (no host, axis (0, 1)), the EZD-204b M1 pattern.
+export function withOpening(
+  objects: Objects,
+  n: number,
+  kind: 'door' | 'window',
+  hostN: number | null,
+  center: Point,
+  level: string = F1,
+): Map<string, ObjectValue> {
+  const hostId = uid(hostN ?? 2);
+  const host = toModelObjects(objects, level).find(
+    (o): o is WallObject => o.type === 'wall' && o.id === hostId,
+  );
+  if (host === undefined) throw new Error(`withOpening: no wall ${hostId}`);
+  const data = createOpeningData({ kind, host, center });
+  if (hostN === null) {
+    data.geometry.hostWallId = null;
+    data.geometry.axis = { x: 0, y: 1 };
+  }
+  const next = new Map(objects);
+  next.set(uid(n), {
+    type: 'opening',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: data as unknown as Record<string, unknown>,
+  });
+  return next;
+}
+
+const p0 = (x: number, y: number): Point => ({ x, y });
+
+// ROOM: uid(1) S, uid(2) E (144,0)->(144,120), uid(3) N, uid(4) W; DOOR: a 36" door uid(50) on E at (144,60).
+export const ROOM: Map<string, ObjectValue> = withWalls(
+  baseObjects(),
+  1,
+  [p0(0, 0), p0(144, 0), p0(144, 120), p0(0, 120)],
+  true,
+);
+export const DOOR: Map<string, ObjectValue> = withOpening(ROOM, 50, 'door', 2, p0(144, 60));
+
+export function objs(o: Objects): ModelObject[] {
+  return [...toModelObjects(o, F1), ...openingsOn(o, F1)];
 }

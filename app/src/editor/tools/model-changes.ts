@@ -3,6 +3,7 @@
 // EZD-294 Build step 13 (vault/plans/EZD-294.md Decided "wallEditChanges numbers"; Q-0625 (a); AC-EZD-294-3).
 // EZD-204b Build step 7 (vault/plans/EZD-204b.md Decided "wallEditChanges"; AC-EZD-204-12): every wall edit appends
 // the opening host updates of its level, in the same edit (one undo step).
+// EZD-212b (vault/plans/EZD-212b.md D6).
 import {
   CURRENT_SCHEMA_VERSION,
   numberNewObjects,
@@ -140,4 +141,48 @@ export function wallEditChanges(
     openings: openingsOn(objects, level),
   });
   return [...numbered.map(wallChange), ...roomChanges(rec), ...hosts.map(openingChange)];
+}
+
+// EZD-212b D6: one Move as one edit (one undo step). Walls go through `wallEditChanges`; moved openings are written
+// with their re-hosting, and a door moved off every wall is flagged.
+export function moveEditChanges(
+  objects: Objects,
+  level: string,
+  changed: readonly ModelObject[],
+  newId: () => string,
+  highs: NumberHighs,
+): Change[] {
+  if (changed.length === 0) return [];
+  const walls = changed.filter((o): o is WallObject => o.type === 'wall');
+  const openings = changed.filter((o): o is OpeningObject => o.type === 'opening');
+  const next = new Map<string, ObjectValue>(objects);
+  const keyOf = new Map<string, string>();
+  for (const id of next.keys()) keyOf.set(id.toLowerCase(), id);
+  for (const o of openings) {
+    next.set(keyOf.get(o.id.toLowerCase()) ?? o.id, {
+      type: 'opening',
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: o.data as unknown as Record<string, unknown>,
+    });
+  }
+  if (walls.length > 0) {
+    const base = wallEditChanges(next, level, walls, newId, highs);
+    const inBase = new Set(base.map((c) => c.id.toLowerCase()));
+    return [...base, ...openings.filter((o) => !inBase.has(o.id.toLowerCase())).map(openingChange)];
+  }
+  const levelWalls = toModelObjects(objects, level).filter(
+    (o): o is WallObject => o.type === 'wall',
+  );
+  const hosts = openingHostUpdates({
+    level,
+    walls: levelWalls,
+    previousWalls: levelWalls,
+    openings: openingsOn(next, level),
+  });
+  const hostOf = new Map(hosts.map((h) => [h.id.toLowerCase(), h]));
+  const own = new Set(openings.map((o) => o.id.toLowerCase()));
+  return [
+    ...openings.map((o) => openingChange(hostOf.get(o.id.toLowerCase()) ?? o)),
+    ...hosts.filter((h) => !own.has(h.id.toLowerCase())).map(openingChange),
+  ];
 }

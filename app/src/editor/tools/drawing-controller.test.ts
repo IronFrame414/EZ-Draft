@@ -10,6 +10,7 @@ import {
   parseLength,
   PLAN_DISPLAY_DENOMINATOR,
   roomAreaSqFt,
+  wallLength,
   type NumberHighs,
   type Point,
   type SnapSettings,
@@ -24,15 +25,19 @@ import {
   type DrawingHandle,
   type ToolKeyEvent,
 } from './drawing-controller';
+import { openingsOn } from './model-changes';
 import {
   baseObjects,
+  DOOR,
   F1,
   idSeq,
+  ROOM,
   roomsOf,
   uid,
   wallsOf,
   WHEN,
   WHO,
+  withOpening,
   withWalls,
 } from './test-utils/fixtures';
 import type { ObjectValue } from '../../lib/outbox/model-api';
@@ -515,5 +520,226 @@ describe('EZD-375 typed angled wall length', () => {
     expect(last).toBeLessThan(143.75);
     expect(last).toBeCloseTo(143.75, 9);
     expect(formatLength(last!, 2)).toBe('12\' 0"');
+  });
+});
+
+// EZD-212b T12-T19 (vault/plans/EZD-212b.md section 4, D7; AC-EZD-212-3, -6, -7, -15, -16, -18). Real model store over
+// the fixtures; a fake selection link (ids, pickAt) passed to attachSelection. Expected values: the plan's rows and
+// their cited sources (09j rows 1, 3; 09k On a wall, Typed move; Q-0630 rows 11, 35; Q-0570; Q-0214), never the code.
+describe('EZD-212b Move tool and drags in the drawing controller', () => {
+  function withLink(
+    objects: Map<string, ObjectValue>,
+    ids: string[],
+    picked: string[] = [],
+    canEdit = true,
+  ) {
+    const a = setup(objects, canEdit);
+    let current = ids;
+    const selects: string[][] = [];
+    const link = {
+      getUi: () => ({ ids: current, selectMore: false }),
+      select: (records: readonly string[]) => {
+        selects.push([...records]);
+        current = [...records];
+      },
+      subscribe: () => () => {},
+      pickAt: () => picked,
+    };
+    a.controller.attachSelection(
+      link as unknown as Parameters<typeof a.controller.attachSelection>[0],
+    );
+    return { ...a, selects };
+  }
+  const wall = (a: Pick<ReturnType<typeof setup>, 'store'>, id: string) =>
+    wallsOf(a.store.getState().objects).find((w) => w.id === id)!;
+  const door = (a: Pick<ReturnType<typeof setup>, 'store'>, id = uid(50)) =>
+    openingsOn(a.store.getState().objects, F1).find((o) => o.id === id)!;
+  const pastLen = (a: Pick<ReturnType<typeof setup>, 'store'>) =>
+    a.store.getState().past.length;
+  const dragEv = (a: ReturnType<typeof setup>, kind: PlanPointerEvent['kind'], x: number, y: number) =>
+    a.controller.dragPointer(ev(kind, x, y));
+
+  it('EZD-212b T12 M picks Move and hovers what a click selects', () => {
+    const a = setup(ROOM);
+    expect(a.controller.keyDown(ke('w'))).toBe(true);
+    expect(a.controller.keyDown(ke('m'))).toBe(true);
+    expect(a.controller.getUi().tool).toBe('move');
+    expect(a.h.receiver()).not.toBeNull();
+    expect(a.h.modes.slice(-2)).toEqual(['off', 'select']);
+
+    const v = setup(ROOM, false);
+    expect(v.controller.keyDown(ke('m'))).toBe(false);
+    expect(v.controller.getUi().tool).toBeNull();
+  });
+
+  it('EZD-212b T13 base point then target point', () => {
+    const a = withLink(DOOR, [], [uid(2)]);
+    a.controller.keyDown(ke('m'));
+    a.click(144, 100);
+    expect(a.selects).toEqual([[uid(2)]]);
+    expect(pastLen(a)).toBe(0);
+    a.click(144, 100);
+    a.send(ev('move', 150, 100));
+    a.click(150, 100);
+    near(wall(a, uid(2)).data.geometry.start, pt(150, 0));
+    near(wall(a, uid(2)).data.geometry.end, pt(150, 120));
+    near(wall(a, uid(1)).data.geometry.end, pt(150, 0));
+    near(wall(a, uid(3)).data.geometry.start, pt(150, 120));
+    near(wall(a, uid(4)).data.geometry.start, pt(0, 120));
+    near(wall(a, uid(4)).data.geometry.end, pt(0, 0));
+    const o = door(a);
+    near(o.data.geometry.center, pt(144, 60));
+    expect(o.data.geometry.hostWallId).toBeNull();
+    near(o.data.geometry.axis!, pt(0, 1));
+    expect(pastLen(a)).toBe(1);
+    expect(a.controller.getUi().tool).toBe('move');
+  });
+
+  it('EZD-212b T14 typed move uses the snapped direction', () => {
+    const a = withLink(ROOM, [uid(2)]);
+    a.controller.keyDown(ke('m'));
+    a.click(144, 100);
+    a.send(ev('move', 150, 100));
+    const six = parseLength('6 1/32"', 'other');
+    if (!six.ok) throw new Error('parse');
+    a.controller.typed({ distance: six.inches });
+    expect(wall(a, uid(2)).data.geometry.start.x).toBeCloseTo(150.0625, 9);
+    near(wall(a, uid(2)).data.geometry.start, pt(150.0625, 0));
+    expect(formatLength(wallLength(wall(a, uid(1)).data.geometry), 2)).toBe('12\' 6"');
+    expect(Math.round(roomAreaSqFt(a.rooms()[0]!.data.geometry.boundary))).toBe(125);
+
+    const b = withLink(ROOM, [uid(2)]);
+    b.controller.keyDown(ke('m'));
+    b.click(144, 100);
+    b.send(ev('move', 150, 100));
+    const tiny = parseLength('1/64"', 'other');
+    if (!tiny.ok) throw new Error('parse');
+    expect(tiny.inches).toBe(0);
+    b.controller.typed({ distance: tiny.inches });
+    expect(pastLen(b)).toBe(0);
+
+    const c = withLink(ROOM, [uid(2)]);
+    c.controller.keyDown(ke('m'));
+    c.click(144, 100);
+    c.send(ev('move', 100, 103));
+    c.controller.typed({ distance: 6 });
+    near(wall(c, uid(2)).data.geometry.start, pt(138, 0));
+    near(wall(c, uid(2)).data.geometry.end, pt(138, 120));
+  });
+
+  it('EZD-212b T15 snaps and the marker while moving', () => {
+    const a = withLink(ROOM, [uid(2)]);
+    a.controller.keyDown(ke('m'));
+    a.click(144, 100);
+    a.send(ev('move', 150, 100));
+    const first = a.controller.getFrame()!;
+    near(first.from!, pt(144, 100));
+    near(first.to!, pt(150, 100));
+    expect(first.marker?.kind).toBe('angle');
+    expect(first.marker?.shape).toBe('arc');
+    expect(first.preview).toHaveLength(3);
+    a.send(ev('move', 144, 118));
+    const next = a.controller.getFrame()!;
+    expect(next.marker?.kind).toBe('endpoint');
+    expect(next.marker?.shape).toBe('square');
+    near(next.marker!.at, pt(144, 120));
+  });
+
+  it('EZD-212b T16 Select drag slides a door, holds it, re-hosts it', () => {
+    const a = setup(DOOR);
+    a.controller.startDrag([uid(50)], pt(144, 60));
+    dragEv(a, 'move', 146, 80);
+    dragEv(a, 'up', 146, 80);
+    near(door(a).data.geometry.center, pt(144, 80));
+    expect(door(a).data.geometry.hostWallId).toBe(uid(2));
+
+    a.controller.startDrag([uid(50)], pt(144, 80));
+    dragEv(a, 'move', 144, 100);
+    dragEv(a, 'move', 200, 100);
+    dragEv(a, 'up', 200, 100);
+    near(door(a).data.geometry.center, pt(144, 100));
+    expect(door(a).data.geometry.hostWallId).toBe(uid(2));
+
+    a.controller.startDrag([uid(50)], pt(144, 100));
+    dragEv(a, 'move', 100, 118);
+    dragEv(a, 'up', 100, 118);
+    near(door(a).data.geometry.center, pt(100, 120));
+    expect(door(a).data.geometry.hostWallId).toBe(uid(3));
+    expect(pastLen(a)).toBe(3);
+  });
+
+  it('EZD-212b T17 a flagged door follows the cursor until on a wall', () => {
+    const a = setup(withOpening(ROOM, 52, 'door', null, pt(72, 60)));
+    a.controller.startDrag([uid(52)], pt(72, 60));
+    dragEv(a, 'move', 80, 60);
+    dragEv(a, 'up', 80, 60);
+    near(door(a, uid(52)).data.geometry.center, pt(80, 60));
+    expect(door(a, uid(52)).data.geometry.hostWallId).toBeNull();
+
+    a.controller.startDrag([uid(52)], pt(80, 60));
+    dragEv(a, 'move', 142, 60);
+    dragEv(a, 'move', 120, 60);
+    dragEv(a, 'up', 120, 60);
+    near(door(a, uid(52)).data.geometry.center, pt(144, 60));
+    expect(door(a, uid(52)).data.geometry.hostWallId).toBe(uid(2));
+  });
+
+  it('EZD-212b T18 selected wall and door move, unselected window stays', () => {
+    const O = withOpening(DOOR, 51, 'window', 1, pt(72, 0));
+    const a = setup(O);
+    a.controller.startDrag([uid(2), uid(50)], pt(144, 100));
+    dragEv(a, 'move', 150, 100);
+    dragEv(a, 'up', 150, 100);
+    expect(wall(a, uid(2)).data.geometry.start.x).toBeCloseTo(150, 9);
+    near(door(a).data.geometry.center, pt(150, 60));
+    expect(door(a).data.geometry.hostWallId).toBe(uid(2));
+    near(door(a, uid(51)).data.geometry.center, pt(72, 0));
+    expect(door(a, uid(51)).data.geometry.hostWallId).toBe(uid(1));
+    expect(pastLen(a)).toBe(1);
+  });
+
+  it('EZD-212b T19 refusals, messages, Esc and view-only', () => {
+    const a = withLink(ROOM, [uid(2)]);
+    a.controller.keyDown(ke('m'));
+    a.controller.typed({ distance: 6 });
+    expect(a.msgs).toEqual(['office.tools.move.click_base']);
+
+    const b = withLink(ROOM, [uid(2)]);
+    b.controller.keyDown(ke('m'));
+    b.click(144, 100);
+    b.send(ev('move', 100, 100));
+    b.controller.typed({ distance: 144 });
+    expect(b.msgs).toEqual(['office.tools.gap.zero_length']);
+    expect(pastLen(b)).toBe(0);
+
+    const c = withLink(ROOM, [uid(2)]);
+    c.controller.keyDown(ke('m'));
+    c.click(144, 100);
+    expect(c.controller.getFrame()!.from).not.toBeNull();
+    expect(c.controller.keyDown(ke('Escape'))).toBe(true);
+    expect(c.controller.getUi().tool).toBe('move');
+    expect(c.controller.getFrame()!.from).toBeNull();
+    c.controller.keyDown(ke('Escape'));
+    expect(c.controller.getUi().tool).toBeNull();
+
+    const v = setup(ROOM, false);
+    v.controller.startDrag([uid(2)], pt(144, 100));
+    dragEv(v, 'move', 150, 100);
+    dragEv(v, 'up', 150, 100);
+    expect(pastLen(v)).toBe(0);
+    expect(v.controller.getFrame()).toBeNull();
+
+    const d = setup(ROOM);
+    dragEv(d, 'up', 150, 100);
+    expect(pastLen(d)).toBe(0);
+    d.controller.startDrag([], pt(144, 100));
+    dragEv(d, 'up', 150, 100);
+    expect(pastLen(d)).toBe(0);
+
+    const e = setup(ROOM);
+    e.controller.selectTool('move');
+    e.controller.startDrag([uid(2)], pt(144, 100));
+    dragEv(e, 'up', 150, 100);
+    expect(pastLen(e)).toBe(0);
   });
 });

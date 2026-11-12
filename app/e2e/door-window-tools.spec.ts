@@ -175,8 +175,8 @@ test.describe('EZD-211b door and window tools', () => {
     const wallId = await addW(page);
     await view(page);
     const tools = rail(page).locator('[data-rail-tool]');
-    await expect(tools.nth(3)).toHaveAttribute('data-rail-tool', 'door');
-    await expect(tools.nth(4)).toHaveAttribute('data-rail-tool', 'window');
+    await expect(tools.nth(4)).toHaveAttribute('data-rail-tool', 'door');
+    await expect(tools.nth(5)).toHaveAttribute('data-rail-tool', 'window');
     await expect(tool(page, 'door')).toHaveAttribute('aria-label', 'Door');
     await expect(tool(page, 'door')).toHaveAttribute('aria-keyshortcuts', 'D');
     await expect(tool(page, 'window')).toHaveAttribute('aria-label', 'Window');
@@ -317,7 +317,7 @@ test.describe('EZD-211b door and window tools', () => {
       const o = await opening(page);
       near(center(o).x, 90);
       near(center(o).y, 0);
-      expect(await expectTouchTargets(page, rail(page))).toBe(5);
+      expect(await expectTouchTargets(page, rail(page))).toBe(6);
       expect(await expectTouchTargets(page, id(page, 'opening-chips'))).toBe(2);
       await id(page, 'opening-chip-left').tap();
       await expect(id(page, 'typed-box')).toBeVisible();

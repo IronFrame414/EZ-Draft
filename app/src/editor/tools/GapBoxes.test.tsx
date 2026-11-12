@@ -79,7 +79,7 @@ describe('EZD-210b gap boxes', () => {
 
   it('G2 keep-only shows the note, view-only shows the pill alone, pick mode shows the hint and the refusal', () => {
     const keepOnly = show(
-      { ...BOX, actions: ['keep'], note: 'office.tools.gap.fix_later' },
+      { ...BOX, actions: ['keep'], note: 'office.tools.gap.use_move' },
       null,
       null,
     );
@@ -87,7 +87,7 @@ describe('EZD-210b gap boxes', () => {
     expect(count(keepOnly, 'data-testid="gap-keep"')).toBe(1);
     expect(count(keepOnly, 'data-testid="gap-pick"')).toBe(0);
     expect(textOf(keepOnly, 'gap-note')).toBe(
-      'This gap runs both ways. Fix the walls once Move is available.',
+      'This gap runs both ways. Move a wall to close it.',
     );
 
     const viewOnly = show({ ...BOX, actions: [] }, null, null);

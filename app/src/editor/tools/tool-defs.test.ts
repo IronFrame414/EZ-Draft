@@ -6,8 +6,10 @@ import { catalogFor } from '../../server/messages/catalog';
 import { TURN_ANGLE_FIELD, WALL_LENGTH_FIELD } from '../typed-entry/typed-entry';
 import {
   DEPTH_FIELD,
+  DISTANCE_FIELD,
   DRAWING_RAIL_TOOLS,
   DRAWING_TOOLS,
+  MOVE_TOOL,
   ROOM_RECT_TOOL,
   WALL_TOOL,
   WIDTH_FIELD,
@@ -41,7 +43,12 @@ const WORDING: [string, string][] = [
   ['office.tools.gap.join_lost', "That wall can't change without pulling a corner apart"],
   ['office.tools.gap.gone', 'This gap has changed. Check the walls again.'],
   ['office.tools.gap.keep_failed', "Couldn't keep the room out of square. Try again."],
-  ['office.tools.gap.fix_later', 'This gap runs both ways. Fix the walls once Move is available.'],
+  ['office.tools.gap.use_move', 'This gap runs both ways. Move a wall to close it.'],
+  ['office.tool.move', 'Move'],
+  ['office.typed.field.distance', 'Distance'],
+  ['office.tools.move.click_base', 'Click a base point first'],
+  ['office.tools.move.no_direction', 'Point the cursor where the selection goes'],
+  ['office.tools.move.failed', "Couldn't move the selection. Try again."],
 ];
 
 describe('EZD-210a tool definitions', () => {
@@ -75,8 +82,25 @@ describe('EZD-210a tool definitions', () => {
       'room-rect': ROOM_RECT_TOOL,
       door: DOOR_TOOL,
       window: WINDOW_TOOL,
+      move: MOVE_TOOL,
     });
+    // EZD-212b E1 (vault/plans/EZD-212b.md D1).
+    expect(DISTANCE_FIELD).toEqual({
+      id: 'distance',
+      label: 'office.typed.field.distance',
+      kind: 'length',
+      lengthKind: 'other',
+      optional: false,
+    });
+    expect(MOVE_TOOL).toEqual({ id: 'move', icon: 'open_with', fields: [DISTANCE_FIELD] });
     expect(DRAWING_RAIL_TOOLS).toEqual([
+      {
+        kind: 'tool',
+        id: 'move',
+        icon: 'open_with',
+        label: 'office.tool.move',
+        shortcut: 'M',
+      },
       { kind: 'tool', id: 'wall', icon: 'view_column_2', label: 'office.tool.wall', shortcut: 'W' },
       {
         kind: 'tool',
@@ -91,6 +115,7 @@ describe('EZD-210a tool definitions', () => {
     const names: readonly string[] = ICON_NAMES;
     expect(names).toContain('view_column_2');
     expect(names).toContain('rectangle');
+    expect(names).toContain('open_with');
     const catalog = catalogFor('office', 'en') as Readonly<Record<string, unknown>>;
     for (const [key, text] of WORDING) expect({ key, text: catalog[key] }).toEqual({ key, text });
   });

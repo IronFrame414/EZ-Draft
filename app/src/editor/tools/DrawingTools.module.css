@@ -1,7 +1,8 @@
 /* EZD-210b Build step 9 (vault/plans/EZD-210b.md Decided "CSS"; S02B :71, :96-97): the drawing layer over the
    canvas region, the rubber band and snap marker, and the gap box.
    EZD-211b Build step 10 (vault/plans/EZD-211b.md Decided "CSS"): the opening preview, dims, ticks, hinge dot,
-   offset chips and door tooltip. */
+   offset chips and door tooltip.
+   EZD-212b (vault/plans/EZD-212b.md D10; board S03dStates): the dashed Move preview. */
 
 .layer {
   position: absolute;
@@ -22,6 +23,13 @@
   fill: none;
   stroke: var(--ez-cobalt);
   stroke-width: 1.5px;
+}
+
+.preview {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
 }
 
 .marker {

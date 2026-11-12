@@ -21,6 +21,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-221b E3: check, dashboard, radio_button_checked.
 // EZD-217 E1: content_copy, content_paste, content_paste_go, delete, redo, undo.
 // EZD-299: block, category, door_front, info, layers, my_location, refresh, report, update, window (D-Icons).
+// EZD-212b: open_with.
 const EXPECTED_ICONS = [
   'add',
   'ads_click',
@@ -73,6 +74,7 @@ const EXPECTED_ICONS = [
   'my_location',
   'notifications',
   'notifications_off',
+  'open_with',
   'person',
   'person_book',
   'photo_camera',

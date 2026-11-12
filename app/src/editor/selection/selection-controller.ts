@@ -3,6 +3,7 @@
 // repeated click, Shift and Select more, the box by direction, Esc, V and Select all; session state only. The box
 // goes to `onBox` per move, never through `getUi()`.
 // EZD-208b Build step 4a (DB20; B9)
+// EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -42,7 +43,10 @@ export type SelectionHandle = Pick<
 export type SelectionDeps = {
   handle: SelectionHandle;
   store: Pick<ModelStore, 'getState' | 'subscribe'>;
-  drawing: Pick<DrawingController, 'getUi' | 'keyDown' | 'selectTool'> | null;
+  drawing:
+    | (Pick<DrawingController, 'getUi' | 'keyDown' | 'selectTool'> &
+        Partial<Pick<DrawingController, 'startDrag' | 'dragPointer'>>)
+    | null;
   setReceiver: (r: PlanPointerReceiver | null) => void;
   claim?: (event: PlanPointerEvent) => boolean;
 };
@@ -63,10 +67,17 @@ export type SelectionController = {
   setSelectMore(on: boolean): void;
   select(ids: readonly string[]): void;
   clear(): void;
+  pickAt(model: Point): string[];
   dispose(): void;
 };
 
-type Press = { screen: Point; model: Point; candidates: string[]; dragged: boolean };
+type Press = {
+  screen: Point;
+  model: Point;
+  candidates: string[];
+  dragged: boolean;
+  dragging: boolean;
+};
 
 const ESCAPE: ToolKeyEvent = {
   key: 'Escape',
@@ -139,6 +150,19 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     setUi([c[i]!]);
   };
 
+  // D8: the drag moves the selection when a candidate is in it, else the first candidate alone.
+  const handOver = (p: Press) => {
+    if (drawing === null || !drawing.getUi().enabled || drawing.startDrag === undefined) return;
+    const c = p.candidates;
+    const inSelection = c.some((id) => ui.ids.some((s) => s.toLowerCase() === id.toLowerCase()));
+    if (!inSelection) {
+      cycle = null;
+      setUi([c[0]!]);
+    }
+    p.dragging = true;
+    drawing.startDrag(ui.ids, p.model);
+  };
+
   const boxMode = (from: Point, to: Point): SelectionBox['mode'] =>
     to.x >= from.x ? 'inside' : 'touch';
 
@@ -152,13 +176,28 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
         model: e.model,
         candidates: index.pick(e.model, tolerance()),
         dragged: false,
+        dragging: false,
       };
+      return;
+    }
+    // D8: a handed-over drag gets every later move, up and cancel; up and cancel end the press with no click.
+    if (press !== null && press.dragging) {
+      if (e.kind === 'move' || e.kind === 'up' || e.kind === 'cancel') {
+        drawing?.dragPointer?.(e);
+        if (e.kind !== 'move') {
+          press = null;
+          cycle = null;
+        }
+      }
       return;
     }
     if (e.kind === 'move') {
       if (cycle !== null && distance(e.screen, cycle.at) > SAME_SPOT_PX) cycle = null;
       if (press === null) return;
-      if (!press.dragged && distance(e.screen, press.screen) > SAME_SPOT_PX) press.dragged = true;
+      if (!press.dragged && distance(e.screen, press.screen) > SAME_SPOT_PX) {
+        press.dragged = true;
+        if (press.candidates.length > 0) handOver(press);
+      }
       if (press.dragged && press.candidates.length === 0) {
         setBox({ from: press.screen, to: e.screen, mode: boxMode(press.screen, e.screen) });
       }
@@ -316,6 +355,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (disposed) return;
       clearSelection();
     },
+    pickAt: (model) => index.pick(model, tolerance()),
     dispose() {
       if (disposed) return;
       disposed = true;

@@ -50,6 +50,7 @@ export const ICON_NAMES = [
   'my_location',
   'notifications',
   'notifications_off',
+  'open_with',
   'person',
   'person_book',
   'photo_camera',

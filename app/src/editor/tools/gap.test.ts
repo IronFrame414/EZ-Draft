@@ -99,7 +99,7 @@ describe('EZD-210a gap box, pick, absorb and keep', () => {
       open([p(0, 0), p(144, 0), p(144, 120), p(0.5, 120), p(0.5, 0.5)]),
       '11/16"',
       ['keep'],
-      'office.tools.gap.fix_later',
+      'office.tools.gap.use_move',
     ); // row 6
     expect(gapBoxes(open([p(0, 0), p(6, 0), p(6, 6)]), F1, EDIT)).toEqual([]); // row 9
     expect(gapBoxes(baseObjects(), F1, EDIT)).toEqual([]);

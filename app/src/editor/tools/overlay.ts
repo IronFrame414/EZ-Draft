@@ -3,6 +3,7 @@
 // straight onto the elements on pointer moves and camera changes. No React.
 // EZD-211b: opening preview, dims, ticks, chips, hinge dot (vault/plans/EZD-211b.md Decided "openingOverlay",
 // "Overlay writes").
+// EZD-212b (vault/plans/EZD-212b.md D9): the dashed Move preview path.
 import {
   doorSymbol,
   formatLength,
@@ -10,6 +11,7 @@ import {
   PLAN_DISPLAY_DENOMINATOR,
   wallFaceLines,
   type OpeningObject,
+  type PickShape,
   type Point,
   type SnapKind,
 } from '@ezdraft/geometry';
@@ -257,13 +259,41 @@ function drawOpening(
   showChip(els.chips[1], shapes.right);
 }
 
+export function previewPath(
+  shapes: readonly PickShape[],
+  toScreen: (p: Point) => Point,
+): string | null {
+  if (shapes.length === 0) return null;
+  return shapes
+    .map((s) =>
+      s.kind === 'quad'
+        ? `M ${s.points.map((q) => xy(toScreen(q))).join(' L ')} Z`
+        : `M ${xy(toScreen(s.from))} L ${xy(toScreen(s.to))}`,
+    )
+    .join(' ');
+}
+
 export function createToolOverlay(
-  els: { band: OverlayElement; marker: OverlayElement; opening?: OpeningElements },
+  els: {
+    band: OverlayElement;
+    marker: OverlayElement;
+    opening?: OpeningElements;
+    preview?: OverlayElement;
+  },
   toScreen: (p: Point) => Point,
 ): { draw(frame: DrawingFrame | null): void } {
   return {
     draw(frame) {
       if (els.opening !== undefined) drawOpening(els.opening, frame, toScreen);
+      if (els.preview !== undefined) {
+        const d = previewPath(frame?.preview ?? [], toScreen);
+        if (d === null) {
+          els.preview.setAttribute('display', 'none');
+        } else {
+          els.preview.setAttribute('d', d);
+          els.preview.removeAttribute('display');
+        }
+      }
       const shapes = overlayShapes(frame, toScreen);
       if (shapes.band === null) {
         els.band.setAttribute('display', 'none');

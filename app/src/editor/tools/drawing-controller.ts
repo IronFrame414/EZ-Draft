@@ -8,10 +8,12 @@
 // EZD-219 Build step 11 (vault/plans/EZD-219.md Decided "Every snap call"; AC-EZD-219-1): every snap call takes the
 // status bar's snap settings.
 // EZD-211b (vault/plans/EZD-211b.md): door and window branch, Space tap, Select seam
+// EZD-212b (vault/plans/EZD-212b.md D7): the Move tool branch and every object drag.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
   PRESS_MOVE_PX,
+  SNAP_CAPTURE_PX,
   createWallSnapIndex,
   doorTargetAt,
   flipHand,
@@ -25,6 +27,7 @@ import {
   type OpeningData,
   type OpeningObject,
   type OpeningOffsets,
+  type PickShape,
   type Point,
   type SnapResult,
   type SnapSettings,
@@ -41,7 +44,16 @@ import type { HoverMode } from '../plan/hover';
 import type { SelectionController } from '../selection/selection-controller';
 import { isTypingTarget, type TypedValues } from '../typed-entry/typed-entry';
 import {
+  MOVE_DRAG_PX,
+  clickOutcome,
+  dragOutcome,
+  dragTo,
   gapBoxes,
+  initialMoveToolState,
+  moveEditChanges,
+  previewShapes,
+  reduceMoveTool,
+  startMoveDrag,
   initialOpeningToolState,
   initialRoomRectState,
   initialWallChainState,
@@ -60,6 +72,10 @@ import {
   wallSnapContext,
   type DrawingToolId,
   type GapBox,
+  type MoveDrag,
+  type MoveInput,
+  type MoveOutcome,
+  type MoveToolState,
   type OpeningInput,
   type OpeningStep,
   type OpeningToolState,
@@ -80,6 +96,7 @@ export type DrawingFrame = {
   referenceDirection: Point | null;
   wallDirection: Point | null;
   opening: OpeningFrame | null;
+  preview?: readonly PickShape[];
 };
 
 export type OpeningFrame = {
@@ -92,7 +109,8 @@ export type OpeningFrame = {
   chips: boolean;
 };
 
-export type SelectionLink = Pick<SelectionController, 'getUi' | 'select' | 'subscribe'>;
+export type SelectionLink = Pick<SelectionController, 'getUi' | 'select' | 'subscribe'> &
+  Partial<Pick<SelectionController, 'pickAt'>>;
 
 export type DrawingUi = {
   readonly enabled: boolean;
@@ -150,6 +168,8 @@ export type DrawingController = {
   spaceTap(): boolean;
   attachSelection(link: SelectionLink | null): void;
   claimSelectPointer(event: PlanPointerEvent): boolean;
+  startDrag(ids: readonly string[], press: Point): void;
+  dragPointer(event: PlanPointerEvent): void;
   dispose(): void;
 };
 
@@ -168,7 +188,8 @@ export function railMode(o: {
 type ToolState =
   | { id: 'wall'; state: WallChainState }
   | { id: 'room-rect'; state: RoomRectState }
-  | { id: 'door' | 'window'; state: OpeningToolState };
+  | { id: 'door' | 'window'; state: OpeningToolState }
+  | { id: 'move'; state: MoveToolState };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -217,6 +238,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let link: SelectionLink | null = null;
   let unsubscribeLink: (() => void) | null = null;
   let claim: { target: 'arc' | 'dot'; screen: Point; moved: boolean } | null = null;
+  // EZD-212b D7: the Move press (region px, drag past MOVE_DRAG_PX), the live drag and the cached move models.
+  let movePress: { screen: Point; dragged: boolean } | null = null;
+  let drag: MoveDrag | null = null;
+  let moveCache: ModelObject[] | null = null;
 
   const uiListeners = new Set<() => void>();
   const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
@@ -270,7 +295,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function syncHover(): void {
-    const mode: HoverMode = ui.tool !== null ? 'off' : ui.pick !== null ? 'wall' : 'select';
+    const mode: HoverMode =
+      ui.tool === 'move'
+        ? 'select'
+        : ui.tool !== null
+          ? 'off'
+          : ui.pick !== null
+            ? 'wall'
+            : 'select';
     if (mode === hoverMode) return;
     hoverMode = mode;
     handle.setHoverMode(mode);
@@ -294,6 +326,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     models = level === null ? [] : toModelObjects(objects, level);
     walls = wallsIn(models);
     openings = level === null ? [] : openingsOn(objects, level);
+    moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(wallsIn(models));
     } else {
@@ -307,11 +340,23 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     drawingIds = currentDrawingIds();
     setUi({ boxes: computeBoxes() });
-    if (isOpeningTool(tool) || (tool === null && link !== null)) emitFrame();
+    if (
+      isOpeningTool(tool) ||
+      (tool === null && link !== null) ||
+      tool?.id === 'move' ||
+      drag !== null
+    )
+      emitFrame();
   });
 
+  // D7 (a): the walls and openings a move reads.
+  function moveModels(): ModelObject[] {
+    if (moveCache === null) moveCache = [...models, ...openings];
+    return moveCache;
+  }
+
   function snapContext(): SnapContext {
-    if (tool === null || tool.id === 'room-rect') return NO_CONTEXT;
+    if (tool === null || tool.id === 'room-rect' || tool.id === 'move') return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
     return wallSnapContext(tool.state);
   }
@@ -381,8 +426,38 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     wallDirection: null,
   } as const;
 
+  // D7 (i): the Move tool or Select drag frame.
+  function moveFrame(base: Point | null, ids: readonly string[]): DrawingFrame {
+    const marker = lastSnap === null ? null : snapMarker(lastSnap, lastContext);
+    const wall = marker?.wallId ? index.getWall(marker.wallId) : undefined;
+    const g = wall?.data.geometry;
+    const to = lastSnap === null ? null : lastSnap.point;
+    let outcome: MoveOutcome | null = null;
+    if (base !== null && to !== null && level !== null) {
+      outcome =
+        drag !== null
+          ? dragOutcome(drag, { objects: moveModels(), at: to })
+          : clickOutcome(moveModels(), ids, { x: to.x - base.x, y: to.y - base.y });
+    }
+    return {
+      rect: false,
+      from: base,
+      to,
+      marker,
+      anchor: base,
+      referenceDirection: null,
+      wallDirection: g ? { x: g.end.x - g.start.x, y: g.end.y - g.start.y } : null,
+      opening: null,
+      preview:
+        outcome !== null && outcome.ok && level !== null
+          ? previewShapes(moveModels(), level, outcome.changed)
+          : [],
+    };
+  }
+
   function buildFrame(): DrawingFrame | null {
     if (tool === null) {
+      if (drag !== null) return moveFrame(drag.base, drag.ids);
       const door = selectedDoor();
       const host = door === null ? null : findWall(door.data.geometry.hostWallId);
       if (door === null || host === null) return null;
@@ -399,6 +474,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         },
       };
     }
+    if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
     const marker = lastSnap === null ? null : snapMarker(lastSnap, lastContext);
     const wall = marker?.wallId ? index.getWall(marker.wallId) : undefined;
@@ -545,6 +621,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return;
     }
     if (tool === null) return;
+    if (tool.id === 'move') {
+      onMovePointer(event, tool.state);
+      return;
+    }
     if (isOpeningTool(tool)) {
       onOpeningPointer(event);
       return;
@@ -576,9 +656,150 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     emitFrame();
   }
 
+  // D7 (d): snap under Move or a drag; sets the marker's snap and context.
+  function moveSnap(cursor: Point, anchor: Point | null, excludeIds: readonly string[]): Point {
+    const result = snap(index, {
+      cursor,
+      pixelsPerInch: handle.getPixelsPerInch(),
+      anchor,
+      referenceDirection: null,
+      excludeIds,
+      settings: snapSettings(),
+    });
+    lastSnap = result;
+    lastContext = { anchor, referenceDirection: null };
+    return result.point;
+  }
+
+  const captureIn = () => SNAP_CAPTURE_PX / handle.getPixelsPerInch();
+
+  // D7 (e): one move as one edit; a refusal is shown.
+  function applyMove(outcome: MoveOutcome): void {
+    if (level === null) return;
+    if (!outcome.ok) {
+      deps.onMessage(outcome.message);
+      return;
+    }
+    if (outcome.changed.length === 0) return;
+    store.applyEdit(
+      moveEditChanges(
+        store.getState().objects,
+        level,
+        outcome.changed,
+        newId,
+        store.getState().numberHighs,
+      ),
+    );
+  }
+
+  function finishDrag(d: MoveDrag, at: Point): void {
+    if (level === null) return;
+    const done = dragTo(d, { objects: moveModels(), level, at, captureIn: captureIn() });
+    drag = null;
+    applyMove(dragOutcome(done, { objects: moveModels(), at }));
+  }
+
+  // D7 (e): apply a Move step.
+  function moveInput(i: MoveInput, at: Point | null = null): void {
+    if (tool === null || tool.id !== 'move') return;
+    const step = reduceMoveTool(tool.state, i);
+    tool = { id: 'move', state: step.state };
+    if (step.select !== null) link?.select(step.select);
+    if (step.commit !== null) {
+      const c = step.commit;
+      const d = drag;
+      if (c.drag && d !== null && at !== null) finishDrag(d, at);
+      else {
+        drag = null;
+        applyMove(clickOutcome(moveModels(), c.ids, c.delta));
+      }
+    }
+    if (i.type === 'escape' || i.type === 'cancel') drag = null;
+    if (step.message !== null) deps.onMessage(step.message);
+    if (step.exit) selectTool(null);
+    emitFrame();
+  }
+
+  function onMovePointer(event: PlanPointerEvent, state: MoveToolState): void {
+    const kind = event.kind;
+    if (kind === 'click' || kind === 'dblclick') return;
+    const at = moveSnap(event.model, state.base, state.base === null ? [] : state.ids);
+    if (kind === 'down') {
+      movePress = { screen: { x: event.screen.x, y: event.screen.y }, dragged: false };
+      moveInput({
+        type: 'press',
+        at,
+        selected: link?.getUi().ids ?? [],
+        picked: link?.pickAt?.(event.model) ?? [],
+      });
+    } else if (kind === 'move') {
+      let started = false;
+      if (movePress !== null && !movePress.dragged) {
+        const d = Math.hypot(
+          event.screen.x - movePress.screen.x,
+          event.screen.y - movePress.screen.y,
+        );
+        if (d > MOVE_DRAG_PX) {
+          movePress.dragged = true;
+          started = true;
+        }
+      }
+      const held = state.held === 'select' || state.held === 'base';
+      if (held && state.base !== null && level !== null) {
+        if (started) drag = startMoveDrag(moveModels(), state.ids, state.base);
+        else if (drag !== null)
+          drag = dragTo(drag, { objects: moveModels(), level, at, captureIn: captureIn() });
+      }
+      moveInput({ type: 'move', at });
+    } else if (kind === 'up') {
+      const dragged = movePress?.dragged ?? false;
+      movePress = null;
+      moveInput({ type: 'release', at, dragged }, at);
+    } else if (kind === 'cancel') {
+      movePress = null;
+      moveInput({ type: 'cancel' });
+    }
+  }
+
+  // D7 (h): a Select drag handed over by the selection controller.
+  function startDrag(ids: readonly string[], press: Point): void {
+    if (disposed || !enabled || level === null || tool !== null || ids.length === 0) return;
+    const base = moveSnap(press, null, []);
+    drag = startMoveDrag(moveModels(), ids, base);
+    emitFrame();
+  }
+
+  function dragPointer(event: PlanPointerEvent): void {
+    if (disposed || drag === null || level === null) return;
+    const d = drag;
+    const at = moveSnap(event.model, d.base, d.ids);
+    if (event.kind === 'move') {
+      drag = dragTo(d, { objects: moveModels(), level, at, captureIn: captureIn() });
+    } else if (event.kind === 'up') {
+      finishDrag(d, at);
+      lastSnap = null;
+      lastContext = NO_CONTEXT;
+    } else if (event.kind === 'cancel') {
+      drag = null;
+      lastSnap = null;
+      lastContext = NO_CONTEXT;
+    }
+    emitFrame();
+  }
+
   function selectTool(id: DrawingToolId | null): void {
     if (disposed || !enabled) return;
-    if (id === (tool?.id ?? null)) return;
+    const hadDrag = drag !== null;
+    drag = null;
+    movePress = null;
+    if (id === (tool?.id ?? null)) {
+      if (hadDrag) {
+        lastSnap = null;
+        lastContext = NO_CONTEXT;
+        emitFrame();
+      }
+      return;
+    }
     tool =
       id === null
         ? null
@@ -586,7 +807,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           ? { id, state: initialWallChainState() }
           : id === 'room-rect'
             ? { id, state: initialRoomRectState() }
-            : { id, state: initialOpeningToolState(id) };
+            : id === 'move'
+              ? { id, state: initialMoveToolState() }
+              : { id, state: initialOpeningToolState(id) };
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -607,6 +830,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function typed(values: TypedValues): void {
     if (disposed || !enabled || tool === null) return;
+    if (tool.id === 'move') {
+      moveInput({ type: 'typed', distance: values.distance ?? null });
+      return;
+    }
     if (isOpeningTool(tool)) {
       openingInput({ type: 'typed', values, screen: handle.getCursor() });
       return;
@@ -627,6 +854,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         openingInput({ type: 'escape' });
         return true;
       }
+      if (tool !== null && tool.id === 'move') {
+        moveInput({ type: 'escape' });
+        return true;
+      }
       if (tool !== null) {
         input({ type: 'escape' });
         emitFrame();
@@ -635,7 +866,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return false;
     }
     if (e.key === 'Enter') {
-      if (tool === null || isOpeningTool(tool)) return false;
+      if (tool === null || isOpeningTool(tool) || tool.id === 'move') return false;
       input({ type: 'enter' });
       emitFrame();
       return true;
@@ -656,6 +887,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (key === 'n') {
       selectTool('window');
+      return true;
+    }
+    if (key === 'm') {
+      selectTool('move');
       return true;
     }
     return false;
@@ -786,6 +1021,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     spaceTap,
     attachSelection,
     claimSelectPointer,
+    startDrag,
+    dragPointer,
     dispose() {
       if (disposed) return;
       disposed = true;

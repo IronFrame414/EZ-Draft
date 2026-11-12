@@ -6,9 +6,10 @@ import {
   doorSymbol,
   openingOffsets,
   type OpeningObject,
+  type PickShape,
   type Point,
 } from '@ezdraft/geometry';
-import { createToolOverlay, openingOverlay, overlayShapes } from './overlay';
+import { createToolOverlay, openingOverlay, overlayShapes, previewPath } from './overlay';
 import type { DrawingFrame, OpeningFrame } from './drawing-controller';
 import type { SnapMarker } from './snap-marker';
 import { baseObjects, uid, wallsOf, withWalls } from './test-utils/fixtures';
@@ -212,5 +213,47 @@ describe('EZD-211b opening overlay', () => {
     expect(e.left!.text).toBe('2\' 0"');
 
     expect(openingOverlay(frameOf(door, { offsets: null }), toScreenP)).toBeNull();
+  });
+});
+
+// EZD-212b T11 (vault/plans/EZD-212b.md section 4, D9). Strings are the plan's: path numbers have one decimal.
+describe('EZD-212b move preview overlay', () => {
+  it('EZD-212b T11 preview path', () => {
+    const quad: PickShape = {
+      kind: 'quad',
+      points: [pt(0, 0), pt(10, 0), pt(10, 5), pt(0, 5)],
+      area: 50,
+    };
+    const bar: PickShape = { kind: 'bar', from: pt(1, 1), to: pt(2, 2), area: 0 };
+    expect(previewPath([quad, bar], (q) => q)).toBe('M 0 0 L 10 0 L 10 5 L 0 5 Z M 1 1 L 2 2');
+    expect(previewPath([], (q) => q)).toBeNull();
+
+    const fake = () => {
+      const attrs = new Map<string, string>();
+      return {
+        attrs,
+        setAttribute(name: string, value: string) {
+          attrs.set(name, value);
+        },
+        removeAttribute(name: string) {
+          attrs.delete(name);
+        },
+      };
+    };
+    const band = fake();
+    const markerEl = fake();
+    const preview = fake();
+    for (const e of [band, markerEl, preview]) e.attrs.set('display', 'none');
+    const overlay = createToolOverlay({ band, marker: markerEl, preview }, toScreen);
+
+    overlay.draw(frame({ preview: [quad] }));
+    expect(preview.attrs.get('d')).toEqual(expect.any(String));
+    expect(preview.attrs.get('d')!.startsWith('M ')).toBe(true);
+    expect(preview.attrs.has('display')).toBe(false);
+
+    overlay.draw(frame({}));
+    expect(preview.attrs.get('display')).toBe('none');
+    overlay.draw(null);
+    expect(preview.attrs.get('display')).toBe('none');
   });
 });

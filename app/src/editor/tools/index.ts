@@ -6,3 +6,4 @@ export * from './room-rect';
 export * from './opening-tool';
 export * from './gap';
 export * from './snap-marker';
+export * from './move-tool';

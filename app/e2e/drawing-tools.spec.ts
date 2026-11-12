@@ -208,12 +208,13 @@ test.describe('EZD-210b drawing tools', () => {
     await openReady(page, ids.P1);
     await expect(rail(page)).toHaveCount(1);
     const tools = rail(page).locator('[data-rail-tool]');
-    await expect(tools).toHaveCount(5);
+    await expect(tools).toHaveCount(6);
     await expect(tools.nth(0)).toHaveAttribute('data-rail-tool', 'select');
-    await expect(tools.nth(1)).toHaveAttribute('data-rail-tool', 'wall');
-    await expect(tools.nth(2)).toHaveAttribute('data-rail-tool', 'room-rect');
-    await expect(tools.nth(3)).toHaveAttribute('data-rail-tool', 'door');
-    await expect(tools.nth(4)).toHaveAttribute('data-rail-tool', 'window');
+    await expect(tools.nth(1)).toHaveAttribute('data-rail-tool', 'move');
+    await expect(tools.nth(2)).toHaveAttribute('data-rail-tool', 'wall');
+    await expect(tools.nth(3)).toHaveAttribute('data-rail-tool', 'room-rect');
+    await expect(tools.nth(4)).toHaveAttribute('data-rail-tool', 'door');
+    await expect(tools.nth(5)).toHaveAttribute('data-rail-tool', 'window');
     await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');
     await expect(tool(page, 'wall')).toHaveAttribute('aria-label', 'Wall');
     await expect(tool(page, 'room-rect')).toHaveAttribute('aria-label', 'Room rectangle');
@@ -511,7 +512,7 @@ test.describe('EZD-210b drawing tools', () => {
       await openReady(page, ids.P1);
       await addGap(page);
       await view(page);
-      expect(await expectTouchTargets(page, rail(page))).toBe(5);
+      expect(await expectTouchTargets(page, rail(page))).toBe(6);
       expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(2);
     },
   );

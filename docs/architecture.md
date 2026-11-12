@@ -515,6 +515,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - The rail is `editorRail` (EZD-208a): Select, Wall and Room rectangle, disabled while loading; Select only without Edit model; none when the project failed, is not found or not allowed (EZD-208b).
 - Door and Window (EZD-211a): `opening-tool.ts` is a pure reducer like the wall tools but takes `OpeningInput` without snapping (the pointer is projected on the host wall) and returns the openings to save; `G/openings/placement.ts` holds its geometry.
 - Door and Window (EZD-211b): `PlanCanvasHandle.onSpaceTap` (no tap after a space-drag); the just-placed or one selected door owns Space, arc, dot and chips (Q-0641, Q-0642); under Select the drawing controller claims arc and dot presses through `SelectionDeps.claim`.
+- **Move (EZD-212b).** Tool `move` (M). `move-tool.ts` holds the pure Move reducer, the drag session and `previewShapes`; the drawing controller runs Move and every object drag (the selection controller hands a Select drag over through `startDrag`/`dragPointer`; Move reads the selection and `pickAt` through `attachSelection`). A move is one `applyEdit` of `moveEditChanges`; the dashed preview is the `move-preview` path written by `overlay.ts`.
 
 ### Selection (EZD-208)
 

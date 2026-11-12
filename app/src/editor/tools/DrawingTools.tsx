@@ -8,6 +8,7 @@
 // Select first and on by default; the keys moved to `SelectionLayer`, so the layer keeps no key listener.
 // EZD-211b Build step 9 (vault/plans/EZD-211b.md Decided "Layer"): the opening preview, dims, ticks, hinge dot and
 // offset chips, the door tooltip, and Space taps to the controller.
+// EZD-212b (vault/plans/EZD-212b.md D10): the dashed Move preview path.
 import {
   useCallback,
   useEffect,
@@ -68,6 +69,7 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
   const t = useT();
   const ui = useSyncExternalStore(controller.subscribe, controller.getUi, controller.getUi);
   const bandRef = useRef<SVGPathElement>(null);
+  const previewRef = useRef<SVGPathElement>(null);
   const markerRef = useRef<SVGPathElement>(null);
   const groupRef = useRef<SVGGElement>(null);
   const spanRef = useRef<SVGPathElement>(null);
@@ -112,6 +114,7 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
     const rightSlot = rightSlotRef.current;
     const leftChip = leftChipRef.current;
     const rightChip = rightChipRef.current;
+    const preview = previewRef.current;
     if (
       band === null ||
       marker === null ||
@@ -125,7 +128,8 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
       leftSlot === null ||
       rightSlot === null ||
       leftChip === null ||
-      rightChip === null
+      rightChip === null ||
+      preview === null
     )
       return;
     const overlay = createToolOverlay(
@@ -145,6 +149,7 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
             { slot: rightSlot, button: rightChip },
           ],
         },
+        preview,
       },
       handle.modelToScreen,
     );
@@ -190,6 +195,12 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
   return (
     <div className={styles.layer} data-testid="drawing-layer">
       <svg className={styles.overlay} data-testid="tool-overlay" aria-hidden="true">
+        <path
+          ref={previewRef}
+          className={styles.preview}
+          data-testid="move-preview"
+          display="none"
+        />
         <path ref={bandRef} className={styles.band} data-testid="tool-band" display="none" />
         <path ref={markerRef} className={styles.marker} data-testid="snap-marker" display="none" />
         <g ref={groupRef} data-testid="opening-preview" display="none">
