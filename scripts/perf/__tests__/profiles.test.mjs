@@ -1,5 +1,6 @@
 // EZD-207c N1-N5 (vault/plans/EZD-207c.md section 4; AC-EZD-207-5). node:test. Profiles, registry rows, the iPad
 // frame rule, the gesture constants and the CPU throttle. Matches numbers and ids, never wording.
+// EZD-392: N5 compares main-thread CPU time from one Chrome trace, plain and throttled runs alternated (Q-0743 (b)).
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
@@ -12,6 +13,7 @@ const registry = () => import('../registry.mjs');
 const budgets = () => import('../budgets.mjs');
 const check = () => import('../check.mjs');
 const pan = () => import('../pan-script.mjs');
+const trace = () => import('../trace-tasks.mjs');
 
 describe('EZD-207c perf profiles and gesture', () => {
   test('EZD-207c N1 profiles and config', async () => {
@@ -159,32 +161,41 @@ describe('EZD-207c perf profiles and gesture', () => {
   });
 
   test('EZD-207c N5 throttle slows the page', { timeout: 120000 }, async () => {
-    const { applyCpuThrottle } = await pan();
+    const { applyCpuThrottle, stopTrace } = await pan();
+    const { TRACE_CATEGORIES, markTaskCpu } = await trace();
     const browser = await chromium.launch({ headless: true });
     try {
-      const work = () => {
+      const work = (name) => {
+        performance.mark(name);
         let x = 0;
         for (let i = 0; i < 2e7; i++) x += i % 7;
         return x;
       };
-      const median = async (page) => {
-        await page.evaluate(work);
-        const times = [];
-        for (let i = 0; i < 3; i++) {
-          const t = Date.now();
-          await page.evaluate(work);
-          times.push(Date.now() - t);
-        }
-        return times.sort((a, b) => a - b)[1];
-      };
       const ctxA = await browser.newContext();
       const pageA = await ctxA.newPage();
-      const a = await median(pageA);
       const ctxB = await browser.newContext();
       const pageB = await ctxB.newPage();
-      await applyCpuThrottle(ctxB, pageB, 4);
-      const b = await median(pageB);
-      assert.ok(b >= 2 * a, `throttled median ${b} ms vs plain ${a} ms`);
+      await applyCpuThrottle(ctxB, pageB, R);
+      await pageA.evaluate(work, 'ezd-n5-warm');
+      await pageB.evaluate(work, 'ezd-n5-warm');
+      await browser.startTracing(undefined, { categories: TRACE_CATEGORIES });
+      for (let i = 0; i < 5; i++) {
+        await pageA.evaluate(work, 'ezd-n5-a');
+        await pageB.evaluate(work, 'ezd-n5-b');
+      }
+      const events = await stopTrace(browser);
+      const med = (xs, label) => {
+        assert.equal(xs.length, 5, `${label}: ${xs.length} marked tasks in the trace`);
+        assert.ok(
+          xs.every((x) => typeof x === 'number'),
+          `${label}: a marked task has no CPU time`,
+        );
+        return [...xs].sort((p, q) => p - q)[2];
+      };
+      const a = med(markTaskCpu(events, 'ezd-n5-a'), 'plain');
+      const b = med(markTaskCpu(events, 'ezd-n5-b'), 'throttled');
+      assert.ok(a > 0, `plain CPU median ${a} ms`);
+      assert.ok(b >= 2 * a, `throttled CPU median ${b.toFixed(1)} ms vs plain ${a.toFixed(1)} ms`);
     } finally {
       await browser.close();
     }

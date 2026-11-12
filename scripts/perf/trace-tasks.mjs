@@ -1,6 +1,7 @@
 // EZD-359 (vault/plans/EZD-359.md D-Attr, D-Split): each pan long task's main-thread CPU time, GC time and longest inner event, from the pan's Chrome trace.
 // EZD-372: the 50 ms line (D-Match) and miss evidence (D-Miss).
 // EZD-388 (vault/plans/EZD-388.md D-Count): the iPad pan row counts the trace's own tasks by CPU time × 4 (Q-0737 (a)).
+// EZD-392 (vault/plans/EZD-392.md D-Mark): the CPU time of the trace task around each named user-timing mark (profiles.test.mjs N5).
 
 /** D-Anchor: the user-timing mark page-hooks.browser.js makes at pan-start (same literal there; an init script cannot import). */
 export const PAN_START_MARK = 'ezd-pan-start';
@@ -177,4 +178,14 @@ export function splitTasks(tasks, rate) {
     else waits.push(t);
   }
   return { counted, waits };
+}
+
+/** EZD-392 D-Mark (Q-0743 (b)): for each event named `name`, in ts order, the main-thread CPU time in ms (tdur / 1000, not rounded) of the outermost top-level task on the mark's thread whose span holds the mark; null when there is no such task or it has no tdur. */
+export function markTaskCpu(events, name) {
+  const marks = events.filter((e) => e.name === name).sort((a, b) => a.ts - b.ts);
+  return marks.map((m) => {
+    const top = outermost(events.filter((e) => e.pid === m.pid && e.tid === m.tid && e.ph === 'X' && catOf(e).split(',').includes('toplevel')));
+    const t = top.find((x) => x.ts <= m.ts && m.ts <= x.ts + durOf(x));
+    return t !== undefined && typeof t.tdur === 'number' ? t.tdur / 1000 : null;
+  });
 }

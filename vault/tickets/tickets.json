@@ -22145,6 +22145,7 @@
     "Performance check (EZD-017)",
     "Build lanes (EZD-172)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [

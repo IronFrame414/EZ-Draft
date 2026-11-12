@@ -2,10 +2,11 @@
 // EZD-359 U1-U6 (vault/plans/EZD-359.md section 4; AC-EZD-359-1). node:test, pure. Expected values come from the
 // plan's fixture F and D-Attr, D-Read, D-Split.
 // EZD-388 U7-U11 (vault/plans/EZD-388.md section 4): the iPad pan row counted by CPU time × scale.
+// EZD-392 M1-M5 (vault/plans/EZD-392.md section 4): the CPU time of the trace task around each named mark.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { attributeTasks, countByCpu, describeMisses, readTraceEvents, splitTasks } from '../trace-tasks.mjs';
+import { attributeTasks, countByCpu, describeMisses, markTaskCpu, readTraceEvents, splitTasks } from '../trace-tasks.mjs';
 
 const base = { pid: 7, tid: 9 };
 const A = { ...base, name: 'ezd-pan-start', cat: 'blink.user_timing', ph: 'R', ts: 1000000 };
@@ -261,5 +262,39 @@ describe('EZD-388 count by CPU time', () => {
       counted: [{ at: 1000, ms: 60, cpu: 60, gc: 0, top: null }],
       waits: [],
     });
+  });
+});
+
+describe('EZD-392 CPU time of marked tasks', () => {
+  const MkP = { ...base, name: 'RunTask', cat: 'toplevel', ph: 'X', ts: 1500000, dur: 12000, tdur: 11500 };
+  const MkA1 = { ...base, name: 'ezd-n5-a', cat: 'blink.user_timing', ph: 'R', ts: 1202500 };
+  const MkA2 = { ...base, name: 'ezd-n5-a', cat: 'blink.user_timing', ph: 'R', ts: 1500100 };
+  const MkB = { ...base, tid: 10, name: 'ezd-n5-b', cat: 'blink.user_timing', ph: 'R', ts: 1202500 };
+  const MkC = { ...base, name: 'ezd-n5-c', cat: 'blink.user_timing', ph: 'R', ts: 1285000 };
+
+  test('EZD-392 M1 the outermost top-level task around each mark, in ts order', () => {
+    assert.deepEqual(markTaskCpu([MkP, MkA2, T, Tn, Fa, MkA1, O], 'ezd-n5-a'), [3, 11.5]);
+  });
+
+  test("EZD-392 M2 only the mark's own thread and name", () => {
+    assert.deepEqual(markTaskCpu([T, Tn, O, MkA1, MkB], 'ezd-n5-b'), [85]);
+    assert.deepEqual(markTaskCpu([T, Tn, O, MkC], 'ezd-n5-c'), [null]);
+  });
+
+  test('EZD-392 M3 no CPU time is null', () => {
+    assert.deepEqual(markTaskCpu([without(MkP, 'tdur'), MkA2], 'ezd-n5-a'), [null]);
+    assert.deepEqual(markTaskCpu([Fa, MkA1], 'ezd-n5-a'), [null]);
+  });
+
+  test('EZD-392 M4 no mark', () => {
+    assert.deepEqual(markTaskCpu([], 'ezd-n5-a'), []);
+    assert.deepEqual(markTaskCpu([T, MkA1], 'ezd-n5-b'), []);
+  });
+
+  test("EZD-392 M5 a mark on a task's edge is inside", () => {
+    assert.deepEqual(
+      markTaskCpu([MkP, { ...MkA2, ts: 1512001 }, { ...MkA2, ts: 1512000 }, { ...MkA2, ts: 1500000 }], 'ezd-n5-a'),
+      [11.5, 11.5, null],
+    );
   });
 });
