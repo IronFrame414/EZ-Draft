@@ -22257,7 +22257,8 @@
    "architecture": [
     "Browser tests (EZD-016a)",
     "Plan canvas (EZD-207a)",
-    "Inspector (EZD-213a)"
+    "Inspector (EZD-213a)",
+    "Editor shell (EZD-012)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
