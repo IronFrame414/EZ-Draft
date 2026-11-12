@@ -20894,7 +20894,7 @@
    "id": "EZD-5602",
    "phase": 56,
    "title": "Assistant call path, send list, stub and cost",
-   "depends_raw": "EZD-5601, EZD-021, EZD-204, EZD-205a, EZD-294",
+   "depends_raw": "EZD-5601, EZD-021, EZD-204a, EZD-205a, EZD-294",
    "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
    "spec_files": [
     "spec/sections/screens/S03c-ai-assistant.md",
@@ -20903,6 +20903,7 @@
    "mockups": [],
    "architecture": [
     "AI (EZD-021)",
+    "AI assistant keys (EZD-5601)",
     "AI stubs and the network guard (EZD-021)",
     "Server-only data access and can()",
     "Messages and language (t())",
@@ -20913,7 +20914,7 @@
    "depends_on": [
     "EZD-5601",
     "EZD-021",
-    "EZD-204",
+    "EZD-204a",
     "EZD-205a",
     "EZD-294"
    ],
