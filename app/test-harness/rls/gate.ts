@@ -23,6 +23,10 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'rewrap_my_ai_key',
     args: { p_old_version: null, p_ciphertext: null, p_secret_version: null },
   },
+  // EZD-5602 E2 (vault/plans/EZD-5602.md section 4): the assistant's slot and usage functions, authenticated only.
+  { fn: 'take_ai_assistant_slot', args: {} },
+  { fn: 'release_ai_assistant_slot', args: { p_slot_id: null } },
+  { fn: 'record_ai_usage', args: { p_model: null, p_cost_usd: null } },
   // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
   { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
   { fn: 'current_user_has_password', args: {} },

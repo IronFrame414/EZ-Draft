@@ -99,6 +99,17 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     reason:
       'Per-user count of key checks; written only by take_ai_key_attempt (EZD-5601; AC-EZD-5601-7)',
   },
+  // EZD-5602 E1 (vault/plans/EZD-5602.md section 4): reached only through the assistant's definer functions.
+  ai_usage: {
+    privileges: [],
+    reason:
+      'Who, when, model and cost of each assistant prompt; written only by record_ai_usage (EZD-5602; Q-0637)',
+  },
+  ai_assistant_slot: {
+    privileges: [],
+    reason:
+      'Assistant call slots for the in-flight and per-minute limits; written only by take/release_ai_assistant_slot (EZD-5602)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

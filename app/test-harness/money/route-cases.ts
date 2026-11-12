@@ -384,6 +384,34 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-5601: removes the key the case before stored (E4)',
   },
+  // EZD-5602 E4 (vault/plans/EZD-5602.md section 4): after the DELETE above, so the money user has no key.
+  {
+    file: `${API}projects/[id]/assistant/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/assistant/route'),
+    request: async (env) => {
+      const form = new FormData();
+      form.append(
+        'request',
+        JSON.stringify({
+          prompt: 'Add a door',
+          history: [],
+          model: 'sonnet',
+          floorId: randomUUID(),
+          selectedIds: [],
+        }),
+      );
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/assistant`, {
+          method: 'POST',
+          body: form,
+        }),
+        params: { id: env.projectId },
+      };
+    },
+    expectStatus: 400,
+    note: 'no key; the 200 body is EZD-5602 T15',
+  },
   {
     file: `${API}profile/password/route.ts`,
     method: 'POST',

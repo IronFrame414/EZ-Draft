@@ -2,11 +2,20 @@
 // Q-0076), then the real adapter with either the stub key and a recorded fetch (stub) or the provider key and
 // the global fetch read at call time (live). The call never outlives the job slice: its signal ends at
 // min(ctx.timeLeft(), JOB_RUN_BUDGET_MS).
+// EZD-5602 Build step 7 (vault/plans/EZD-5602.md Decided "D-Call"; Q-0637 call path; AC-EZD-5602-1): the AI
+// assistant's one call inside its request, on the signed-in user's own key. No job row, no operator key, no retry.
 import type { ZodType } from 'zod';
+import type { TokenUsage } from '../../lib/assistant/cost';
 import { JOB_RUN_BUDGET_MS } from '../jobs/config';
 import { getAiMode, getProviderBaseUrl, getProviderKey, STUB_KEY, type AiMode } from './config';
 import { AiError } from './errors';
-import { anthropicMessage } from './providers/anthropic';
+import type { UserAiKey } from './key-check';
+import {
+  AnthropicCallError,
+  anthropicMessage,
+  anthropicUserKeyMessage,
+  type AnthropicErrorClass,
+} from './providers/anthropic';
 import { bflEditImage } from './providers/bfl';
 import { geminiEditImage } from './providers/gemini';
 import type { AdapterContext } from './providers/http';
@@ -139,4 +148,73 @@ export async function editImage(
     return openaiEditImage(adapter, req);
   });
   return { ...result, provider: req.provider, modelId: req.model, mode };
+}
+
+export type UserKeyCallContext = { signal: AbortSignal; budgetMs: number };
+export type UserKeyFailure = AnthropicErrorClass | 'timeout';
+export type UserKeyCallResult =
+  | {
+      ok: true;
+      text: string;
+      modelId: string;
+      stopReason: string | null;
+      usage: TokenUsage | null;
+      requestId: string | null;
+      mode: AiMode;
+    }
+  | { ok: false; failure: UserKeyFailure };
+
+export async function callClaudeWithUserKey(
+  ctx: UserKeyCallContext,
+  req: ClaudeRequest,
+  key: UserAiKey,
+  opts: CallOptions = {},
+): Promise<UserKeyCallResult> {
+  const env = opts.env ?? process.env;
+  validateClaudeRequest(req);
+  const mode = getAiMode(env);
+  if (ctx.budgetMs <= 0) return { ok: false, failure: 'timeout' };
+
+  let callFetch: typeof fetch;
+  let mismatch = false;
+  if (mode === 'stub') {
+    const recorded = createRecordedFetch(getStubRecording('anthropic', req.purpose, env)).fetch;
+    callFetch = (async (input: string | URL | Request, init?: RequestInit) => {
+      try {
+        return await recorded(input, init);
+      } catch (error) {
+        if (error instanceof StubMismatchError) mismatch = true;
+        throw error;
+      }
+    }) as typeof fetch;
+  } else {
+    const live = globalThis.fetch;
+    callFetch = ((input: string | URL | Request, init?: RequestInit) =>
+      live(input, init)) as typeof fetch;
+  }
+
+  const budgetMs = ctx.budgetMs;
+  const signal = AbortSignal.any([ctx.signal, AbortSignal.timeout(budgetMs)]);
+  const started = Date.now();
+  const adapter: AdapterContext = {
+    apiKey: key.reveal(),
+    fetch: callFetch,
+    signal,
+    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    timeLeft: () => Math.max(0, budgetMs - (Date.now() - started)),
+    budgetMs,
+  };
+
+  try {
+    const result = await anthropicUserKeyMessage(adapter, req);
+    return { ok: true, ...result, mode };
+  } catch (error) {
+    if (mismatch) throw new AiError('ai_stub_mismatch', { retry: false, provider: 'anthropic' });
+    if (error instanceof AiError && error.code === 'ai_stub_no_recording') throw error;
+    if (signal.aborted || (error instanceof AiError && error.code === 'ai_provider_timeout')) {
+      return { ok: false, failure: 'timeout' };
+    }
+    if (error instanceof AnthropicCallError) return { ok: false, failure: error.errorClass };
+    return { ok: false, failure: 'unavailable' };
+  }
 }

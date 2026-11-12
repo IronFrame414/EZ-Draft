@@ -105,6 +105,26 @@ export const en = {
     "Couldn't check the key with Anthropic. Nothing was saved. Try again in a minute.",
   'error.ai_key_throttled': 'Too many tries. Try again in 15 minutes.',
   'error.ai_key_unavailable': "Keys can't be saved right now. Nothing was saved. Try again later.",
+  // EZD-5602 Build step 13 (vault/plans/EZD-5602.md section 6): the assistant's errors.
+  'error.assistant_no_key': 'Add your Anthropic API key to use the assistant.',
+  'error.assistant_key_refused':
+    "Anthropic didn't accept your API key. Nothing on the drawing changed. Check or replace it in My profile.",
+  'error.assistant_out_of_credit':
+    'Your Anthropic account is out of credit. Nothing on the drawing changed. Add credit with Anthropic, then send again.',
+  'error.assistant_busy':
+    'The assistant is still answering your last prompt. Wait for the answer, then send again.',
+  'error.assistant_rate_limited':
+    'You sent a lot of prompts in the last minute. Wait a minute, then send again.',
+  'error.assistant_provider_rate_limited':
+    'Anthropic is getting too many requests on your key. Nothing on the drawing changed. Wait a moment, then send again.',
+  'error.assistant_request_refused':
+    'Anthropic refused this request. Nothing on the drawing changed. Try wording the prompt another way.',
+  'error.assistant_unavailable':
+    "Anthropic isn't responding right now. Nothing on the drawing changed. Send again in a minute.",
+  'error.assistant_drawing_too_large':
+    'This drawing is too large to send to the assistant. Nothing on the drawing changed.',
+  'error.assistant_invalid_reply':
+    "The assistant's answer couldn't be read. Nothing on the drawing changed. Send again.",
   'field.device.editor_on_phone':
     'Editing is done on an iPad or a computer. Open this project there.',
   'office.header.wordmark_ez': 'ez',
@@ -565,7 +585,8 @@ export const en = {
   'office.notifications.project_line': '{project} · {client}',
   'office.notifications.email_link': 'Open EZ Draft',
   'office.email.copy_subject': 'Copy: {subject}',
-  'office.email.copy_note': "This is your copy of the email sent to {to}. If they can't find it, ask them to check their spam folder, or forward this email to them.",
+  'office.email.copy_note':
+    "This is your copy of the email sent to {to}. If they can't find it, ask them to check their spam folder, or forward this email to them.",
   'office.notifications.title': 'Notifications',
   'office.notifications.mark_all_read': 'Mark all read',
   'office.notifications.show_older': 'Show older',

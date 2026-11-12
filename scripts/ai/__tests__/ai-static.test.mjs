@@ -102,6 +102,24 @@ test('EZD-021 T19 AI code is imported only from jobs, keys are read only in conf
   );
 });
 
+// EZD-5602 T24 (vault/plans/EZD-5602.md section 4; Q-0637 "the AI assistant alone calls"): the user-key call is
+// named only by the AI client and the assistant, and the assistant does call it.
+test('EZD-5602 T24 callClaudeWithUserKey is named only under server/ai and server/assistant', () => {
+  const allowed = ['app/src/server/ai/', 'app/src/server/assistant/'];
+  const naming = sources()
+    .filter((f) => readFileSync(f, 'utf8').includes('callClaudeWithUserKey'))
+    .map(rel);
+  for (const f of naming)
+    assert.ok(
+      allowed.some((dir) => f.startsWith(dir)),
+      `callClaudeWithUserKey named in ${f}`,
+    );
+  assert.ok(
+    naming.includes('app/src/server/assistant/assistant.ts'),
+    'the assistant calls callClaudeWithUserKey',
+  );
+});
+
 test('EZD-021 T19 docs, env names, dependency row, root test script and conventions check', () => {
   const arch = read('docs/architecture.md');
   const runtime = section(arch, '## Runtime');

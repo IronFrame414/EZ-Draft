@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "ai_key_attempt": {
+            "ai_assistant_slot": {
+                  Row: {
+                    "app_user_id": string,"finished_at": string | null,"id": string,"started_at": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"finished_at"?: string | null,"id"?: string,"started_at"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"finished_at"?: string | null,"id"?: string,"started_at"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_assistant_slot_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_assistant_slot_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_key_attempt": {
                   Row: {
                     "app_user_id": string,"at": string,"id": string,"tenant_id": string
                   }
@@ -25,6 +51,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "ai_key_attempt_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_usage": {
+                  Row: {
+                    "app_user_id": string,"cost_usd": number,"created_at": string,"id": string,"model": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"cost_usd": number,"created_at"?: string,"id"?: string,"model": string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"cost_usd"?: number,"created_at"?: string,"id"?: string,"model"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_usage_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_usage_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
@@ -705,6 +757,9 @@ isOneToOne: false
               "link": string,"project_id": string,"project_state": string
             }[]
                            },
+"record_ai_usage":
+{ Args: { "p_cost_usd": number,"p_model": string }; Returns: undefined
+                           },
 "record_error_alert":
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {
               "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
@@ -712,6 +767,9 @@ isOneToOne: false
                            },
 "record_sync_conflicts":
 { Args: { "p_changes": Json,"p_payload": Json,"p_project": string }; Returns: Json
+                           },
+"release_ai_assistant_slot":
+{ Args: { "p_slot_id": string }; Returns: undefined
                            },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
@@ -754,6 +812,11 @@ isOneToOne: false
 "system_backup_status":
 { Args: Record<PropertyKey, never>; Returns: {
               "bytes_copied": number,"finished_at": string,"kind": string,"location": string,"status": string
+            }[]
+                           },
+"take_ai_assistant_slot":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "refused": string,"slot_id": string
             }[]
                            },
 "take_ai_key_attempt":

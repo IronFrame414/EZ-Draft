@@ -203,7 +203,9 @@ describe('EZD-006 RLS audit', () => {
     }
 
     expect(Object.keys(TABLE_GRANTS).sort()).toEqual([
+      'ai_assistant_slot',
       'ai_key_attempt',
+      'ai_usage',
       'app_user',
       'backup_run',
       'customer',
@@ -233,7 +235,10 @@ describe('EZD-006 RLS audit', () => {
           table === 'backup_run' ||
           table === 'error_tunnel_throttle' ||
           table === 'user_ai_key' ||
-          table === 'ai_key_attempt'
+          table === 'ai_key_attempt' ||
+          // EZD-5602 E1: the assistant's usage and slot tables are reached only through definer functions.
+          table === 'ai_usage' ||
+          table === 'ai_assistant_slot'
           ? []
           : table === 'source_file' || table === 'customer'
             ? ['SELECT', 'INSERT', 'UPDATE']

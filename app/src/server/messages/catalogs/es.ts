@@ -116,6 +116,26 @@ export const es = {
   'error.ai_key_throttled': 'Demasiados intentos. Inténtalo de nuevo en 15 minutos.',
   'error.ai_key_unavailable':
     'Ahora no se pueden guardar claves. No se guardó nada. Inténtalo más tarde.',
+  // EZD-5602 Build step 13 (vault/plans/EZD-5602.md section 6): the assistant's errors.
+  'error.assistant_no_key': 'Agrega tu clave de API de Anthropic para usar el asistente.',
+  'error.assistant_key_refused':
+    'Anthropic no aceptó tu clave de API. No cambió nada en el dibujo. Revísala o cámbiala en Mi perfil.',
+  'error.assistant_out_of_credit':
+    'Tu cuenta de Anthropic no tiene crédito. No cambió nada en el dibujo. Agrega crédito en Anthropic y vuelve a enviar.',
+  'error.assistant_busy':
+    'El asistente todavía está respondiendo tu último mensaje. Espera la respuesta y vuelve a enviar.',
+  'error.assistant_rate_limited':
+    'Enviaste muchos mensajes en el último minuto. Espera un minuto y vuelve a enviar.',
+  'error.assistant_provider_rate_limited':
+    'Anthropic está recibiendo demasiadas solicitudes con tu clave. No cambió nada en el dibujo. Espera un momento y vuelve a enviar.',
+  'error.assistant_request_refused':
+    'Anthropic rechazó esta solicitud. No cambió nada en el dibujo. Intenta escribir el mensaje de otra forma.',
+  'error.assistant_unavailable':
+    'Anthropic no responde en este momento. No cambió nada en el dibujo. Vuelve a enviar en un minuto.',
+  'error.assistant_drawing_too_large':
+    'Este dibujo es demasiado grande para enviarlo al asistente. No cambió nada en el dibujo.',
+  'error.assistant_invalid_reply':
+    'No se pudo leer la respuesta del asistente. No cambió nada en el dibujo. Vuelve a enviar.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;
