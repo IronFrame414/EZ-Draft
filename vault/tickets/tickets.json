@@ -22402,6 +22402,32 @@
     "AC-EZD-400-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-420",
+   "phase": 4,
+   "title": "Fix: the EZD-009 jobs browser test failed in the phase 4 PR CI gate (test:e2e) with no error text kept",
+   "depends_raw": "EZD-009, EZD-035",
+   "spec_ref": "rule 17; EZD-009; EZD-035",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Background jobs (EZD-009)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-009",
+    "EZD-035"
+   ],
+   "acs": [
+    "AC-EZD-420-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
