@@ -50,6 +50,16 @@
   position: relative;
 }
 
+.frame[data-backdrop] {
+  background-image: none;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
 @media (width < 1024px) {
   .frame {
     display: none;

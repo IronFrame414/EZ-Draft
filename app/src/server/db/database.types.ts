@@ -5,7 +5,85 @@ export type Database = {
   
   "public": {
           Tables: {
-            "app_user": {
+            "ai_assistant_slot": {
+                  Row: {
+                    "app_user_id": string,"finished_at": string | null,"id": string,"started_at": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"finished_at"?: string | null,"id"?: string,"started_at"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"finished_at"?: string | null,"id"?: string,"started_at"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_assistant_slot_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_assistant_slot_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_key_attempt": {
+                  Row: {
+                    "app_user_id": string,"at": string,"id": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"at"?: string,"id"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"at"?: string,"id"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_key_attempt_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_key_attempt_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_usage": {
+                  Row: {
+                    "app_user_id": string,"cost_usd": number,"created_at": string,"id": string,"model": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"cost_usd": number,"created_at"?: string,"id"?: string,"model": string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"cost_usd"?: number,"created_at"?: string,"id"?: string,"model"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_usage_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_usage_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"app_user": {
                   Row: {
                     "auth_user_id": string | null,"created_at": string,"email": string,"id": string,"ipad_input_mode": string | null,"language": string,"name": string | null,"role_preset": string | null,"updated_at": string
                   }
@@ -333,14 +411,14 @@ isOneToOne: false
                   ]
                 },"project": {
                   Row: {
-                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"name": string,"open_items_count": number,"phase_default": string | null,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
+                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"phase_default": string | null,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name": string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
+                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name": string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"name"?: string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
+                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name"?: string,"open_items_count"?: number,"phase_default"?: string | null,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -423,6 +501,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"sync_conflict": {
+                  Row: {
+                    "base_seq": number,"created_at": string,"data": Json | null,"deleted": boolean,"id": string,"object_id": string,"project_id": string,"reason": string,"schema_version": number | null,"tenant_id": string,"type": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base_seq": number,"created_at"?: string,"data"?: Json | null,"deleted": boolean,"id"?: string,"object_id": string,"project_id": string,"reason": string,"schema_version"?: number | null,"tenant_id": string,"type"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "base_seq"?: number,"created_at"?: string,"data"?: Json | null,"deleted"?: boolean,"id"?: string,"object_id"?: string,"project_id"?: string,"reason"?: string,"schema_version"?: number | null,"tenant_id"?: string,"type"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sync_conflict_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "sync_conflict_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sync_conflict_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tenant": {
                   Row: {
                     "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
@@ -436,6 +546,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"user_ai_key": {
+                  Row: {
+                    "app_user_id": string,"ciphertext": string,"created_at": string,"last4": string,"secret_version": number,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"ciphertext": string,"created_at"?: string,"last4": string,"secret_version": number,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"ciphertext"?: string,"created_at"?: string,"last4"?: string,"secret_version"?: number,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_ai_key_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "user_ai_key_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"user_permission": {
                   Row: {
@@ -472,11 +608,19 @@ isOneToOne: false
             "count_projects":
 { Args: { "p_search"?: string }; Returns: Json
                            },
+"create_benchmark_project":
+{ Args: { "p_changes": Json }; Returns: Json
+                           },
 "create_checkpoint":
 { Args: { "p_project": string }; Returns: string
                            },
 "create_project":
 { Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
+              "project_id": string,"tenant_id": string
+            }[]
+                           },
+"create_project_with_objects":
+{ Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_objects": Json,"p_scope_of_work": string,"p_type": string }; Returns: {
               "project_id": string,"tenant_id": string
             }[]
                            },
@@ -491,11 +635,24 @@ isOneToOne: false
 "current_user_has_password":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"delete_my_ai_key":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "deleted": boolean,"last4": string
+            }[]
+                           },
+"delete_my_sync_conflict":
+{ Args: { "p_id": string }; Returns: boolean
+                           },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },
 "error_tunnel_take":
 { Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
+                           },
+"get_my_ai_key":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "app_user_id": string,"ciphertext": string,"last4": string,"secret_version": number,"tenant_id": string
+            }[]
                            },
 "health":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -580,11 +737,17 @@ isOneToOne: false
 "list_customers":
 { Args: { "p_archived": boolean,"p_page": number,"p_search": string }; Returns: Json
                            },
+"list_my_sync_conflicts":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "list_notifications":
 { Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
                            },
 "list_projects":
 { Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
+                           },
+"list_users":
+{ Args: { "p_page": number,"p_search": string }; Returns: Json
                            },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -594,13 +757,28 @@ isOneToOne: false
               "link": string,"project_id": string,"project_state": string
             }[]
                            },
+"record_ai_usage":
+{ Args: { "p_cost_usd": number,"p_model": string }; Returns: undefined
+                           },
 "record_error_alert":
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {
               "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
             }[]
                            },
+"record_sync_conflicts":
+{ Args: { "p_changes": Json,"p_payload": Json,"p_project": string }; Returns: Json
+                           },
+"release_ai_assistant_slot":
+{ Args: { "p_slot_id": string }; Returns: undefined
+                           },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
+                           },
+"rewrap_my_ai_key":
+{ Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_my_ai_key":
+{ Args: { "p_app_user_id": string,"p_ciphertext": string,"p_last4": string,"p_secret_version": number,"p_tenant_id": string }; Returns: undefined
                            },
 "save_my_notification_settings":
 { Args: { "p_settings": Json }; Returns: undefined
@@ -608,8 +786,17 @@ isOneToOne: false
 "save_objects":
 { Args: { "p_changes": Json,"p_lock_epoch": number,"p_project": string }; Returns: Json
                            },
+"save_objects_resolving":
+{ Args: { "p_changes": Json,"p_lock_epoch": number,"p_project": string,"p_resolves": (string)[] }; Returns: Json
+                           },
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
+                           },
+"set_checkpoint_thumbnail":
+{ Args: { "p_project": string,"p_version": string }; Returns: string
+                           },
+"set_plan_scale":
+{ Args: { "p_project": string,"p_scale": number }; Returns: number
                            },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
@@ -618,6 +805,25 @@ isOneToOne: false
 { Args: { "p_email_key": string,"p_ip_key": string,"p_kind": string }; Returns: {
               "allowed": boolean,"attempt_id": string,"ip_attempt_id": string,"limited_by": string
             }[]
+                           },
+"start_checkpoint_thumbnail":
+{ Args: { "p_project": string,"p_version": string }; Returns: string
+                           },
+"system_backup_status":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "bytes_copied": number,"finished_at": string,"kind": string,"location": string,"status": string
+            }[]
+                           },
+"take_ai_assistant_slot":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "refused": string,"slot_id": string
+            }[]
+                           },
+"take_ai_key_attempt":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"touch_last_active":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "update_my_profile":
 { Args: { "p_ipad_input_mode": string,"p_language": string }; Returns: {

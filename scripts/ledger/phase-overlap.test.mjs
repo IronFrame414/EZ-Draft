@@ -27,10 +27,10 @@ const tickets = () => JSON.parse(readFileSync(file('tickets/tickets.json'), 'utf
 const setTickets = (data) => writeFileSync(file('tickets/tickets.json'), JSON.stringify(data, null, 1) + '\n');
 const editTicket = (id, fn) => { const d = tickets(); fn(d.tickets.find((t) => t.id === id)); setTickets(d); };
 
-const [P1, X1, P2, P2b, P3, T1] = ['EZD-9970', 'EZD-9971', 'EZD-9972', 'EZD-9973', 'EZD-9974', 'EZD-9975'];
-const PHASE = { [P1]: 1, [X1]: 1, [P2]: 2, [P2b]: 2, [P3]: 3, [T1]: 1 };
-const BASE_STATUS = { [P1]: 'ready', [X1]: 'blocked', [P2]: 'ready', [P2b]: 'ready', [P3]: 'todo', [T1]: 'blocked' };
-const BASE_PATH = { [P1]: 'app/src/a.ts', [X1]: 'app/src/b.ts', [P2]: 'app/src/c.ts', [P2b]: 'app/src/d.ts', [P3]: 'app/src/e.ts', [T1]: 'vault/tools/x.mjs' };
+const [P1, X1, P2, P2b, P3, T1, P4] = ['EZD-9970', 'EZD-9971', 'EZD-9972', 'EZD-9973', 'EZD-9974', 'EZD-9975', 'EZD-9976'];
+const PHASE = { [P1]: 1, [X1]: 1, [P2]: 2, [P2b]: 2, [P3]: 3, [T1]: 1, [P4]: 4 };
+const BASE_STATUS = { [P1]: 'ready', [X1]: 'blocked', [P2]: 'ready', [P2b]: 'ready', [P3]: 'todo', [T1]: 'blocked', [P4]: 'blocked' };
+const BASE_PATH = { [P1]: 'app/src/a.ts', [X1]: 'app/src/b.ts', [P2]: 'app/src/c.ts', [P2b]: 'app/src/d.ts', [P3]: 'app/src/e.ts', [T1]: 'vault/tools/x.mjs', [P4]: 'app/src/f.ts' };
 const BASE_TRACK = { [T1]: 'tooling' };
 const planText = (cell) => `## 1. What to build\n### Build steps\n| # | Path | New / change | Exports and signatures | Copy the pattern from | Verify with |\n| --- | --- | --- | --- | --- | --- |\n| 1 | ${cell} | new | none | none | none |\n`;
 const writePlan = (id, cell) => writeFileSync(file(`plans/${id}.md`), planText(cell));
@@ -186,7 +186,7 @@ test('EZD-278 O9 current phase unsigned (AC-EZD-278-3)', async () => {
   assert.deepEqual(await pool(), []);
 });
 
-// Josh 2026-11-05 (chat, "I also authorize phase 4 to begin"; decisions/process.md): the look-ahead is two signed-off phases.
+// Josh 2026-11-05 (chat, "I also authorize phase 4 to begin"): two phases ahead; Josh 2026-11-11 (EZD-386): every signed-off phase up to the first unsigned one.
 test('EZD-278 O10 two phases ahead (AC-EZD-278-3; Josh 2026-11-05)', async () => {
   reset(); depsX1(); setStatus(P2, 'blocked'); setStatus(P2b, 'blocked'); setStatus(P3, 'ready');
   assert.deepEqual(await pool(), [P3]);
@@ -230,4 +230,27 @@ test('EZD-278 O13 gate-phase text (AC-EZD-278-1)', () => {
 test('EZD-278 O14 phase-auditor text (AC-EZD-278-1)', () => {
   const text = readFileSync(path.join(root, '.claude/agents/phase-auditor.md'), 'utf8');
   assert.ok(text.includes(". Product tickets of a later phase that the orchestrator lists as in this PR are not audited here; their own phase's gate audits them, with their plan and commit (EZD-278)."), 'missing D8');
+});
+
+// EZD-386 (Josh 2026-11-11): the look-ahead is every signed-off phase after B, up to the first phase not signed off, not two.
+test('EZD-386 L1 a ready ticket three signed-off phases ahead builds after the earlier phases (AC-EZD-386-1; Josh 2026-11-11)', async () => {
+  reset(); depsX1(); setStatus(P3, 'ready'); setStatus(P4, 'ready');
+  assert.deepEqual(await pool(), [P2, P2b, P3, P4], 'phase 4 after phases 2 and 3');
+  setStatus(P2, 'blocked'); setStatus(P2b, 'blocked'); setStatus(P3, 'blocked');
+  assert.equal(nextUnit(), `build ${P4}`, 'phase 4 builds when nothing earlier can');
+});
+
+test('EZD-386 L2 a plan three phases ahead runs only when no build is free (Josh 2026-11-11)', () => {
+  reset(); depsX1(); setStatus(P3, 'blocked'); setStatus(P4, 'todo');
+  assert.equal(nextUnit(), `build ${P2}`, 'a free build goes first (P4 is todo)');
+  setStatus(P2, 'blocked'); setStatus(P2b, 'blocked');
+  assert.equal(nextUnit(), `plan ${P4}`, 'phase 4 plans when no build is free');
+});
+
+test('EZD-386 L3 the look-ahead stops at the first unsigned phase though a later one is signed off (AC-EZD-386-2; Josh 2026-11-11)', async () => {
+  reset(); depsX1(); setStatus(P2, 'blocked'); setStatus(P2b, 'blocked'); setStatus(P4, 'ready');
+  assert.deepEqual(await pool(), [P4], 'control: phase 4 reachable while phase 3 is signed off');
+  dropSignoff(3);
+  assert.deepEqual(await pool(), [], 'phase 3 unsigned stops the look-ahead before phase 4');
+  assert.ok(!nextUnit().startsWith('build '), nextUnit());
 });

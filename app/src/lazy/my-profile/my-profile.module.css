@@ -180,6 +180,48 @@
   color: var(--ez-red);
 }
 
+/* EZD-5601 D-Style (board S01g): the AI assistant section. */
+.divider + .section.aiSection {
+  gap: 8px;
+}
+
+.keyRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.keyRow .input {
+  flex: 1;
+}
+
+.saved {
+  flex: 1;
+  height: 38px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface-sunken);
+  font-size: 14px;
+}
+
+.savedIcon {
+  color: var(--ez-green);
+}
+
+.last4 {
+  font-family: var(--ez-font-mono);
+}
+
+.link {
+  color: var(--ez-cobalt-link);
+  text-decoration: none;
+}
+
 .footer {
   display: flex;
   justify-content: flex-end;

@@ -45,12 +45,13 @@ before(() => {
 
   // No ticket in flight, and every real phase 1 ticket that is not done is blocked (a blocked row needs a note).
   const phase1 = new Set(data.tickets.filter((t) => t.phase === 1).map((t) => t.id));
+  const blockedIds = new Set(); // every ticket this copy sets to blocked (EZD-362 D-List)
   writeFileSync(file('tickets/STATUS.md'), readFileSync(file('tickets/STATUS.md'), 'utf8').split('\n').map((line) => {
     const m = line.match(/^\| (EZD-\w+) \|(.*)\|$/);
     if (!m) return line;
     const c = m[2].split('|');
     const st = c[2].trim();
-    if (phase1.has(m[1]) && st !== 'done') { c[2] = ' blocked '; if (!c[7].trim()) c[7] = ' priority test '; }
+    if (phase1.has(m[1]) && st !== 'done') { c[2] = ' blocked '; blockedIds.add(m[1]); if (!c[7].trim()) c[7] = ' priority test '; }
     else if (st === 'in-progress' || st === 'review') c[2] = ' ready ';
     return `| ${m[1]} |${c.join('|')}|`;
   }).join('\n'));
@@ -66,7 +67,7 @@ before(() => {
     if (!m) return line;
     const c = m[2].split('|');
     if (!(Number(c[0]) > 1) || !signed.has(Number(c[0])) || !['todo', 'planned', 'questions', 'ready', 'in-progress', 'review'].includes(c[2].trim())) return line;
-    c[2] = ' blocked '; if (!c[7].trim()) c[7] = ' priority test fixture ';
+    c[2] = ' blocked '; blockedIds.add(m[1]); if (!c[7].trim()) c[7] = ' priority test fixture ';
     return `| ${m[1]} |${c.join('|')}|`;
   }).join('\n'));
 
@@ -76,6 +77,7 @@ before(() => {
     data.tickets.push({ id, phase: 1, title: `Priority test ${id}`, spec_files: model.spec_files, decisions: model.decisions, mockups: [],
       phase_file: 'tickets/phases/phase-01.md', depends_on: [], acs: [], architecture: [] });
   }
+  for (const t of data.tickets) if (blockedIds.has(t.id) && !Array.isArray(t.architecture)) t.architecture = [];
   setTickets(data);
   // A ticket past todo has a plan (next_ticket.mjs --check, D-004).
   for (const [id, st] of SYNTHETIC) if (st !== 'todo') writeFileSync(file(`plans/${id}.md`), `# ${id} · synthetic test plan\n`);

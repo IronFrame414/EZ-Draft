@@ -2,7 +2,7 @@
 // conventions check; reads scripts/gate.mjs without changing it.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { globSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
@@ -102,5 +102,37 @@ describe('EZD-017 wiring', () => {
     assert.ok(m, 'gate.mjs checks list found');
     const checks = [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]);
     assert.ok(checks.includes('perf'), 'gate checks contain perf');
+  });
+});
+
+// EZD-374 S1-S3 (vault/plans/EZD-374.md sections 3 and 4; AC-EZD-374-1).
+const PASS1_GLOB = '"scripts/**/!(pan).test.mjs"';
+const SERIAL_PASS =
+  'node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=1 --test-reporter=tap --test-reporter-destination=stdout --test-reporter=./scripts/test-harness/hook-fail-reporter.mjs --test-reporter-destination=stderr "scripts/perf/__tests__/pan.test.mjs"; serial=$?;';
+const PAN_TEST = 'scripts/perf/__tests__/pan.test.mjs';
+
+describe('EZD-374 root test script and the pan fixture test', () => {
+  test('EZD-374 S1 only the perf pan fixture test is named pan.test.mjs', () => {
+    assert.deepEqual(globSync('scripts/**/pan.test.mjs', { cwd: REPO_ROOT }), [PAN_TEST]);
+  });
+
+  test('EZD-374 S2 the first pass matches every repo test file except the pan fixture test', () => {
+    const all = globSync('scripts/**/*.test.mjs', { cwd: REPO_ROOT }).sort();
+    const pass1 = globSync('scripts/**/!(pan).test.mjs', { cwd: REPO_ROOT }).sort();
+    assert.ok(all.includes(PAN_TEST));
+    assert.deepEqual(
+      pass1,
+      all.filter((f) => f !== PAN_TEST),
+    );
+  });
+
+  test('EZD-374 S3 the root test script runs the pan fixture test alone after the other repo tests', () => {
+    const s = JSON.parse(read('package.json')).scripts.test;
+    assert.equal(s.split(PASS1_GLOB + '; root=$?;').length, 2, 'pass 1 glob and exit code');
+    assert.equal(s.split(SERIAL_PASS).length, 2, 'serial pass');
+    assert.ok(s.indexOf('root=$?;') < s.indexOf(SERIAL_PASS), 'serial after pass 1');
+    assert.ok(s.indexOf(SERIAL_PASS) < s.indexOf('pnpm -r --no-bail'), 'serial before packages');
+    assert.ok(s.endsWith('[ $root -eq 0 ] && [ $serial -eq 0 ] && [ $pkgs -eq 0 ]; }'), 'exit codes joined');
+    assert.equal(s.includes('"scripts/**/*.test.mjs"'), false, 'old glob gone');
   });
 });

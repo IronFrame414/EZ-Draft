@@ -122,7 +122,7 @@ describe('EZD-133 money fields only with their permission', () => {
       for (const u of [noCost, noSell]) {
         if (!u) continue;
         const sources = [u.env.created.get('storagePath')].filter((p): p is string => !!p);
-        const media = ['checkedLogoPath', 'logoPath']
+        const media = ['checkedLogoPath', 'logoPath', 'thumbPath']
           .map((k) => u.env.created.get(k))
           .filter((p): p is string => !!p);
         if (sources.length) await adminDb().storage.from('sources').remove(sources);
@@ -144,11 +144,11 @@ describe('EZD-133 money fields only with their permission', () => {
     expect(result.stale).toEqual([]);
   });
 
-  it('C4 every page file has a money page case and every case names a real page; there are 33 pages @smoke', () => {
+  it('C4 every page file has a money page case and every case names a real page; there are 36 pages @smoke', () => {
     const result = uncoveredPages(APP_SRC, MONEY_PAGE_CASES);
     expect(result.missing).toEqual([]);
     expect(result.stale).toEqual([]);
-    expect(listPages(APP_SRC).length).toBe(33);
+    expect(listPages(APP_SRC).length).toBe(36);
   });
 
   it('K1 the canary route leaks its cost key and the scan reports it @smoke', async () => {

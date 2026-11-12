@@ -1,0 +1,443 @@
+/* EZD-213b Build step 5 (vault/plans/EZD-213b.md section 1, Decided "D-CSS"; boards S03dWallSelected,
+   S03dDoorSelected, S03dWindowSelected, S03dStates style blocks; 04 Frame radii; ARCH Device layouts; L-060): the
+   inspector panel. Each class copies the board rule named in D-CSS with every literal swapped for its token (C10). */
+
+.panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+/* Boards W, D, N, S: the header block. */
+.header {
+  padding: 18px 18px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+/* Board W: the 3-column Length, Thickness, Height grid; board S: the 2-column bulk grid. */
+.grid3 {
+  padding: 0 18px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.grid2 {
+  padding: 0 18px 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Boards D, N: the Size grid inside its section. */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* .fl */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+/* .fl input, .fl select */
+.input,
+.select {
+  font: 400 14px var(--ez-font-mono);
+  color: var(--ez-ink);
+  padding: 9px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+}
+
+/* .fl input::placeholder */
+.input::placeholder {
+  color: var(--ez-slate-450);
+  font-style: italic;
+  font-family: var(--ez-font-sans);
+}
+
+/* .sec */
+.section {
+  border-top: 1px solid var(--ez-divider);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.first {
+  border-top: 0;
+}
+
+.flush {
+  padding-top: 0;
+}
+
+/* Board S view-only: Status and Bearing side by side. */
+.side {
+  flex-direction: row;
+  gap: 24px;
+}
+
+/* .sh */
+.head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+/* Board W: the Layers head row and the Rough opening head row. */
+.headRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.headRowCenter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Board W layers box. */
+.layers {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+}
+
+/* .ly, .ly + .ly */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--ez-divider);
+}
+
+.row .select {
+  width: auto;
+  flex: 1;
+}
+
+.row .input {
+  width: 96px;
+  flex: none;
+}
+
+.total {
+  color: var(--ez-slate-500);
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+}
+
+/* .b with board W's Edit layers padding and size. */
+.small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font: 500 13px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.small[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  box-shadow: inset 0 0 0 1.5px var(--ez-cobalt);
+}
+
+/* .ro */
+.readOnly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px dashed var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: 400 14px var(--ez-font-mono);
+  color: var(--ez-ink);
+  background: var(--ez-group-band);
+}
+
+.readOnlyLock {
+  margin-left: auto;
+  display: flex;
+  color: var(--ez-slate-300);
+}
+
+/* .dot */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--ez-radius-999);
+  flex: none;
+}
+
+.dotExisting {
+  background: var(--ez-slate-400);
+}
+
+.dotDemo {
+  background: var(--ez-red);
+}
+
+.dotNew {
+  background: var(--ez-cobalt);
+}
+
+/* .ck, .ck input */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--ez-cobalt);
+}
+
+/* .hint */
+.hint {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+  line-height: 1.4;
+}
+
+/* .tg; the badge adds flex and a gap. */
+.tag,
+.badge {
+  font: 500 11px var(--ez-font-mono);
+  color: var(--ez-slate-500);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-5);
+  padding: 1px 5px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* .sg */
+.segments {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--ez-hover);
+  border-radius: var(--ez-radius-10);
+}
+
+/* .seg and .sg .seg */
+.segment {
+  flex: 1;
+  text-align: center;
+  padding: 7px 4px;
+  color: var(--ez-slate-500);
+  border-radius: var(--ez-radius-7);
+  border: 0;
+  background: transparent;
+  font: 500 13px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+/* .sgon */
+.segment[aria-checked='true'] {
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-weight: 600;
+  box-shadow: var(--ez-shadow-segment);
+}
+
+/* Board D: the Swing and Hand grid. */
+.swing {
+  display: grid;
+  grid-template-columns: 64px repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.center {
+  text-align: center;
+}
+
+/* .gt */
+.tile {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ez-slate-700);
+}
+
+/* .gton */
+.tile[aria-checked='true'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  box-shadow: 0 0 0 1px var(--ez-cobalt);
+  color: var(--ez-cobalt);
+}
+
+.tileWall {
+  stroke: var(--ez-slate-700);
+  stroke-width: 8;
+}
+
+.tileLeaf {
+  stroke: currentColor;
+  stroke-width: 2.5;
+}
+
+.tileArc {
+  fill: none;
+  stroke: currentColor;
+  stroke-dasharray: 3 2;
+}
+
+.tileDot {
+  fill: currentColor;
+}
+
+.result {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* .pt */
+.plain {
+  display: block;
+  font-size: 14px;
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+}
+
+.layerLine {
+  font-size: 13px;
+}
+
+.mixed {
+  font-style: italic;
+}
+
+.readOnlyMixed {
+  font-family: var(--ez-font-sans);
+  color: var(--ez-slate-450);
+  font-style: italic;
+}
+
+/* Board S: the Not on a wall block. */
+.flag {
+  margin: 0 16px;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-red-tint);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flagTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ez-red-text);
+}
+
+.flagHint {
+  color: var(--ez-slate-700);
+}
+
+/* Board S: Nothing selected. */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: flex;
+  color: var(--ez-slate-300);
+}
+
+.emptyText {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+@media (any-pointer: coarse) {
+  .input,
+  .select,
+  .small,
+  .segment {
+    min-height: var(--ez-touch-target);
+  }
+
+  .check input {
+    width: var(--ez-touch-target);
+    height: var(--ez-touch-target);
+  }
+}

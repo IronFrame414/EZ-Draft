@@ -36,6 +36,7 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
   );
   const phase0 = new Set(data.tickets.filter((t) => t.phase === 0).map((t) => t.id));
   const phase1 = new Set(data.tickets.filter((t) => t.phase === 1).map((t) => t.id));
+  const blockedIds = new Set(); // every ticket the fixture sets to blocked (EZD-362)
   const signedPhases = new Set(readFileSync(file('spec/SIGNOFF.md'), 'utf8').split(/\r?\n/).map((l) => l.match(/^\|\s*(\d+)\s*\|/)).filter(Boolean).map((m) => Number(m[1])));
   writeFileSync(
     file('tickets/STATUS.md'),
@@ -50,16 +51,22 @@ export function makeLedgerCopy({ synthetic = [], phaseZeroDone = false } = {}) {
         else if (Number(c[0]) > 1 && signedPhases.has(Number(c[0])) && ['todo', 'planned', 'questions', 'ready', 'in-progress', 'review'].includes(st)) {
           // Later signed-off phases stay quiet (EZD-281 D3, EZD-278): every ticket there not done or blocked is blocked; unsigned phases are left alone.
           c[2] = ' blocked ';
+          blockedIds.add(m[1]);
           if (!c[7].trim()) c[7] = ' ezd-250 fixture ';
         }
         else if (phase1.has(m[1]) && st !== 'done') {
           c[2] = ' blocked ';
+          blockedIds.add(m[1]);
           if (!c[7].trim()) c[7] = ' ezd-250 test ';
         } else if (st === 'in-progress' || st === 'review') c[2] = ' ready ';
         return `| ${m[1]} |${c.join('|')}|`;
       })
       .join('\n'),
   );
+  // A blocked ticket needs an architecture list in the ledger (EZD-362 D-List); the copy's tickets.json is written whenever the fixture changed it (D-Write).
+  let changed = false;
+  for (const t of data.tickets) if (blockedIds.has(t.id) && !Array.isArray(t.architecture)) { t.architecture = []; changed = true; }
+  if (changed && !synthetic.length) setTickets(data);
   if (synthetic.length) {
     const model = data.tickets.find((t) => t.phase === 1);
     for (const [id] of synthetic) {

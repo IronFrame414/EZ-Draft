@@ -16,6 +16,7 @@ const FROM = 'EZ Draft Test <test@example.test>';
 const ENV_STUB = { EMAIL_TRANSPORT: 'stub', EMAIL_FROM: FROM };
 const INPUT = {
   to: TO,
+  sentBy: null,
   subject: 'Test subject',
   paragraphs: ['Line one', 'Line two'],
   link: { url: LINK, label: 'Open' },

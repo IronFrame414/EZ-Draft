@@ -1,0 +1,240 @@
+/* EZD-299 Build step 8 (vault/plans/EZD-299.md Decided D-CSS): board S03b section#changes-not-saved, its head, body
+   and footer, rows .gl .cr .ic .cc .ct .cs .why .vv .vy .vs .vb .meta .hint .ca and buttons .b.bs. The list sits in
+   the canvas region (right 720 px). */
+.panel {
+  composes: card from '../../components/shell/card.module.css';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(720px, 100%);
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--ez-shadow-popover);
+  font-size: 13px;
+}
+
+.head {
+  padding: 16px 18px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.headText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.count {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-strong);
+}
+
+.note {
+  color: var(--ez-slate-500);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.state {
+  padding: 12px 18px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--ez-slate-500);
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  background: var(--ez-group-band);
+  border-top: 1px solid var(--ez-divider);
+}
+
+.groupCount {
+  font-family: var(--ez-font-mono);
+  font-weight: 400;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.rowIcon {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-hover);
+  color: var(--ez-slate-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rowBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rowTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.rowName {
+  font-weight: 600;
+}
+
+.rowDetail {
+  color: var(--ez-slate-500);
+  font-size: 13px;
+}
+
+.why {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  color: var(--ez-slate-700);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.whyIcon {
+  display: flex;
+  flex: none;
+  color: var(--ez-slate-500);
+}
+
+.whyIconWarn {
+  display: flex;
+  flex: none;
+  color: var(--ez-amber-icon);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.yours {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 8px;
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-deep);
+  font-size: 12px;
+}
+
+.saved {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 8px;
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-hover);
+  color: var(--ez-slate-700);
+  font-size: 12px;
+}
+
+.value {
+  font: 500 13px var(--ez-font-mono);
+}
+
+.meta {
+  font: 400 12px var(--ez-font-mono);
+  color: var(--ez-slate-450);
+}
+
+.hint {
+  color: var(--ez-slate-500);
+  font-size: 12px;
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  align-items: flex-start;
+  width: 300px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font: 500 13px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    border-color: var(--ez-border-hover);
+  }
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.footer {
+  border-top: 1px solid var(--ez-divider);
+  padding: 12px 18px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--ez-slate-500);
+}

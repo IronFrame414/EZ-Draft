@@ -28,11 +28,7 @@ const fail = (status: number, code: string, messageKey = `error.${code}`) =>
 export async function GET(request: Request): Promise<Response> {
   try {
     const p = await requireApiPermission('view_projects');
-    // EZD-110a D8: no-store on every response, the guard's 401 included.
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     const params = new URL(request.url).searchParams;
     const query = parseProjectListQuery(params);
     if (query === null) return fail(400, 'invalid_input');
@@ -49,10 +45,7 @@ export async function GET(request: Request): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   try {
     const p = await requireApiPermission('create_projects');
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     let raw: unknown;
     try {
       raw = await request.json();

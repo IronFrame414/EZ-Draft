@@ -1,9 +1,20 @@
 // EZD-238 Build step 8 (vault/plans/EZD-238.md section 1 Decided table; 09h; Q-0507; Q-0508; Q-0574; Q-0575):
 // one floor of the model document as a list of drawing items in model inches, y up, for the PDF writer and DXF out.
-import type { ModelDocument, ModelObject, Point } from '../schema';
+// EZD-205a Build step 13 (vault/plans/EZD-205a.md section 1, Decided "Label"; Q-0568; Q-0570; Q-0576 (a)): one
+// NAME \u00b7 N SF label per room, after the dimension items.
+// EZD-204b Build step 5 (vault/plans/EZD-204b.md section 1, Decided "Door symbol", "Flagged opening", "Frame";
+// Q-0642 rows 2-3; Q-0641 row 1; Q-0630 row 27): each door drawn from its own hand and swing; an opening off every
+// wall drawn where it stands on the `flagged` layer.
+// EZD-211a: door symbol from G/openings/door-symbol.ts.
+// EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
+import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
+import { doorSymbolInFrame } from '../openings/door-symbol';
+import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
+import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
+import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
-import { DRAWING_FONTS, measureTextPt } from './text';
+import { DRAWING_FONTS, measureTextPt, ROOM_LABEL_LETTER_SPACING_EM } from './text';
 import {
   dimensionInputSchema,
   drawingViewSchema,
@@ -27,6 +38,7 @@ type Frame = {
   oL: number;
   oR: number;
   gaps: [number, number][];
+  vertical: boolean;
 };
 
 const add = (p: Point, v: Point, k: number): Point => ({ x: p.x + v.x * k, y: p.y + v.y * k });
@@ -39,6 +51,29 @@ function unit(from: Point, to: Point): { d: Point; n: Point; length: number } {
 }
 
 const degrees = (v: Point): number => (Math.atan2(v.y, v.x) * 180) / Math.PI;
+
+function doorItems(
+  base: { layer: DrawingItem['layer']; objectId: string },
+  f: Frame,
+  sc: number,
+  w: number,
+  hand: DoorHand,
+  swing: DoorSwing,
+): DrawingItem[] {
+  const { hinge, leafEnd, radius, startAngle, endAngle } = doorSymbolInFrame(f, sc, w, hand, swing);
+  return [
+    { ...base, kind: 'line', role: 'cut', from: hinge, to: leafEnd },
+    {
+      ...base,
+      kind: 'arc',
+      role: 'hidden',
+      center: hinge,
+      radius,
+      startAngle,
+      endAngle,
+    },
+  ];
+}
 
 function faceOffsets(wall: WallObject): { oL: number; oR: number } {
   const t = wall.data.attributes.thickness;
@@ -71,10 +106,13 @@ function pieces(f: Frame): [number, number][] {
   return out.filter(([a, b]) => !coordsEqual(a, b));
 }
 
+export type DrawingListOptions = { roomAreaSqFt?: (room: RoomObject) => number };
+
 export function buildDrawingList(
   document: ModelDocument,
   view: DrawingView,
   dimensions: readonly DimensionInput[] = [],
+  options: DrawingListOptions = {},
 ): DrawingList {
   const v = drawingViewSchema.parse(view);
   const dims = dimensions.map((d) => dimensionInputSchema.parse(d));
@@ -96,16 +134,23 @@ export function buildDrawingList(
       reasons.set(w.id, 'zero_length');
       continue;
     }
-    const f: Frame = { start, ...unit(start, end), ...faceOffsets(w), gaps: [] };
+    const f: Frame = {
+      start,
+      ...unit(start, end),
+      ...faceOffsets(w),
+      gaps: [],
+      vertical: isVerticalLine(w.data.geometry),
+    };
     frames.set(w.id.toLowerCase(), f);
     wallFrames.push([w, f]);
   }
 
   const placed: [OpeningObject, Frame, number][] = [];
+  const flaggedOpenings: OpeningObject[] = [];
   for (const o of openings) {
     const host = o.data.geometry.hostWallId;
     if (host === null) {
-      reasons.set(o.id, 'not_on_wall');
+      flaggedOpenings.push(o);
       continue;
     }
     const f = frames.get(host.toLowerCase());
@@ -171,22 +216,10 @@ export function buildDrawingList(
   for (const [o, f, sc] of placed) {
     const base = { layer: o.data.status, objectId: o.id };
     const w = o.data.attributes.width;
-    if (o.data.attributes.kind === 'door') {
-      // DEFAULT_DOOR_SWING: hinged at the start end of the opening, opening to the left face.
-      const hinge = at(f, sc - w / 2, f.oL);
-      let startAngle = degrees(f.d);
-      if (startAngle < 0) startAngle += 360;
-      if (startAngle >= 360) startAngle -= 360;
-      symbols.push({ ...base, kind: 'line', role: 'cut', from: hinge, to: add(hinge, f.n, w) });
-      symbols.push({
-        ...base,
-        kind: 'arc',
-        role: 'hidden',
-        center: hinge,
-        radius: w,
-        startAngle,
-        endAngle: startAngle + 90,
-      });
+    const a = o.data.attributes;
+    if (a.kind === 'door') {
+      // EZD-204b door symbol: hinge end from hand, leaf side from swing.
+      symbols.push(...doorItems(base, f, sc, w, a.hand!, a.swing!));
     } else {
       for (const off of [f.oL, f.oR, (f.oL + f.oR) / 2]) {
         symbols.push({
@@ -198,6 +231,29 @@ export function buildDrawingList(
         });
       }
     }
+  }
+
+  const flaggedItems: DrawingItem[] = [];
+  for (const o of flaggedOpenings) {
+    const base = { layer: 'flagged' as const, objectId: o.id };
+    const a = o.data.attributes;
+    const w = a.width;
+    const d = o.data.geometry.axis ?? { x: 1, y: 0 };
+    const center = o.data.geometry.center;
+    const from = add(center, d, -w / 2);
+    const to = add(center, d, w / 2);
+    const f: Frame = {
+      start: center,
+      d,
+      n: { x: -d.y, y: d.x },
+      length: w,
+      oL: 0,
+      oR: 0,
+      gaps: [],
+      vertical: isVerticalLine({ start: from, end: to }),
+    };
+    flaggedItems.push({ ...base, kind: 'line', role: 'cut', from, to });
+    if (a.kind === 'door') flaggedItems.push(...doorItems(base, f, 0, w, a.hand!, a.swing!));
   }
 
   const dimItems: DrawingItem[] = [];
@@ -237,6 +293,31 @@ export function buildDrawingList(
     });
   }
 
+  const labelItems: DrawingItem[] = [];
+  const labelFont = DRAWING_FONTS['instrument-sans-600'];
+  for (const r of rooms) {
+    const boundary = r.data.geometry.boundary;
+    const text = formatRoomLabel(
+      r.data.attributes.name,
+      options.roomAreaSqFt?.(r) ?? roomAreaSqFt(boundary),
+    );
+    const sizePt = v.roomLabelPt;
+    const letterSpacingPt = sizePt * ROOM_LABEL_LETTER_SPACING_EM;
+    labelItems.push({
+      kind: 'text',
+      layer: 'rooms',
+      objectId: r.id,
+      text,
+      font: 'instrument-sans-600',
+      sizePt,
+      letterSpacingPt,
+      widthPt: measureTextPt(labelFont, text, sizePt) + letterSpacingPt * ([...text].length - 1),
+      at: interiorPoint(boundary),
+      rotationDeg: 0,
+      align: 'center',
+    });
+  }
+
   const omitted: OmittedObject[] = onFloor.flatMap((o) => {
     const reason = reasons.get(o.id);
     return reason === undefined ? [] : [{ id: o.id, reason }];
@@ -244,7 +325,16 @@ export function buildDrawingList(
 
   return {
     level: v.level,
-    items: [...roomFills, ...roomHatches, ...wallFills, ...wallLines, ...symbols, ...dimItems],
+    items: [
+      ...roomFills,
+      ...roomHatches,
+      ...wallFills,
+      ...wallLines,
+      ...symbols,
+      ...flaggedItems,
+      ...dimItems,
+      ...labelItems,
+    ],
     omitted: [...omitted, ...dimOmitted],
   };
 }

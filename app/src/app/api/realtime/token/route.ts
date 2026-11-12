@@ -21,11 +21,7 @@ const notSignedIn = () =>
 export async function GET(): Promise<Response> {
   try {
     const s = await requireApiSession();
-    if (s instanceof Response) {
-      const res = new Response(s.body, { status: s.status, headers: s.headers });
-      res.headers.set('Cache-Control', 'no-store');
-      return res;
-    }
+    if (s instanceof Response) return s;
     const { data, error } = await createSessionClient().auth.getSession();
     if (error) throw error;
     if (!data.session) return notSignedIn();

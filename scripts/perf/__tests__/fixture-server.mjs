@@ -18,7 +18,7 @@ function typeFor(p) {
 }
 
 /**
- * @param {Record<string, { body: string | Buffer; type?: string; gzip?: boolean; status?: number }>} files
+ * @param {Record<string, { body: string | Buffer; type?: string; gzip?: boolean; status?: number; delayMs?: number }>} files
  * @returns {Promise<{ baseUrl: string; close(): Promise<void>; requests: string[] }>}
  */
 export function startFixtureServer(files) {
@@ -40,8 +40,12 @@ export function startFixtureServer(files) {
       headers['Content-Encoding'] = 'gzip';
     }
     headers['Content-Length'] = String(body.length);
-    res.writeHead(f.status ?? 200, headers);
-    res.end(req.method === 'HEAD' ? undefined : body);
+    const send = () => {
+      res.writeHead(f.status ?? 200, headers);
+      res.end(req.method === 'HEAD' ? undefined : body);
+    };
+    if (typeof f.delayMs === 'number') setTimeout(send, f.delayMs);
+    else send();
   });
   const sockets = new Set();
   server.on('connection', (s) => {

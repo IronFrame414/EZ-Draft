@@ -2,6 +2,7 @@
 // Editor frame: header slot, body (rail, left panel, canvas, inspector), status bar
 // (vault/plans/EZD-012b.md Step 1; 04 Frame and visual system).
 // EZD-120c Build step 1 (vault/plans/EZD-120c.md): each <aside> renders only when its label is given.
+// EZD-207a Build step 13 (vault/plans/EZD-207a.md C6): `backdrop` fills the frame behind every card.
 import type { ReactNode } from 'react';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -16,6 +17,7 @@ export type EditorFrameProps = {
   inspector?: ReactNode;
   inspectorLabel?: MessageKey;
   statusBar: ReactNode;
+  backdrop?: ReactNode;
 };
 
 export function EditorFrame({
@@ -27,10 +29,20 @@ export function EditorFrame({
   inspector,
   inspectorLabel,
   statusBar,
+  backdrop,
 }: EditorFrameProps) {
   const t = useT();
   return (
-    <div className={styles.frame} data-shell-region="frame">
+    <div
+      className={styles.frame}
+      data-shell-region="frame"
+      data-backdrop={backdrop === undefined ? undefined : ''}
+    >
+      {backdrop === undefined ? null : (
+        <div className={styles.backdrop} data-shell-region="backdrop">
+          {backdrop}
+        </div>
+      )}
       {header}
       <div className={styles.body} data-shell-region="body">
         {rail}

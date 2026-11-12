@@ -1,0 +1,137 @@
+/* EZD-221b Build step 5 (vault/plans/EZD-221b.md Decided "CSS (dialog, picker)"; board S01bWizard.dc.html
+   :32-34, :43-45, :146-158): the template tiles, the size fields and the hint or error line. Colors, radii and
+   shadows from tokens only (check C10; L-013); sizes, spacing and font sizes in px. */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.tile[data-selected='true'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-unread-tint);
+}
+
+.pic {
+  height: 74px;
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile[data-selected='true'] .pic {
+  background: var(--ez-cobalt-tint);
+}
+
+.wall {
+  fill: none;
+  stroke: var(--ez-slate-700);
+  stroke-width: 3;
+}
+
+/* Board :148 name row: the name, then check_circle 16 cobalt when selected. */
+.name {
+  display: flex;
+  justify-content: space-between;
+}
+
+.name svg {
+  color: var(--ez-cobalt);
+}
+
+.size {
+  font-family: var(--ez-font-mono);
+  font-size: 11px;
+  color: var(--ez-slate-400);
+}
+
+.sizes {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 150px;
+  gap: 10px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+  font-weight: 500;
+}
+
+.input {
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+/* As NewProject.module.css: .input loads after touch.module.css, so its 38px min-height would win over
+   touch.target's on a touch screen (Q-0593 (a)). */
+@media (any-pointer: coarse) {
+  .input {
+    min-height: var(--ez-touch-target);
+  }
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+.area {
+  font-family: var(--ez-font-mono);
+  font-size: 18px;
+  color: var(--ez-ink);
+  padding: 7px 0;
+}
+
+.accepts {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-slate-400);
+}
+
+/* Board :158: each accepted form in the hint is mono, slate-700. */
+.example {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-slate-700);
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}

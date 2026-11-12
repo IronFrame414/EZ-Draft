@@ -18,6 +18,12 @@ Confirm or override each.
 - **Q-0576 · EZD-205.** (a) The room label ("KITCHEN · 165 SF") is built in EZD-205, not EZD-238. EZD-205's plan must add it; not yet planned. Source: code-reviewer; Q-0568; AC-EZD-205-1.
 - **Q-0599 · EZD-120d (security).** The "signed out" marker cookie is named `__Host-ezd_signed_out` on https (no Domain, Secure) so no sibling subdomain can plant it; each side honours only its own scheme's name. Source: Fable security-reviewer 2026-11-05; Q-0581; docs/architecture.md Auth and session. Confirm or override.
 - **Q-0600 · new ticket EZD-342 (security defect).** The session cookies (`sb-…`) and the sign-in email and language cookies can still be planted from a sibling subdomain (session fixation). Fix: on https every app-set cookie gets the `__Host-` prefix, one shared name function, an old plain-named session cookie on https counts as signed out. Cost: everyone signs in once at deploy. Filed as a rule-17 defect at the front of the queue. Source: Fable security-reviewer 2026-11-05; CLAUDE.md rules 17, 18. Confirm or override.
+- **Q-0625 · EZD-299 (object numbers).** (a) Walls, doors and windows get a stored number per type and project (openings per kind), never reused, highest + 1 like "Room N", so "Wall 4" is the same on every device. Needs a new ticket "Object numbers" (schema field, numbering helper, creation sites, one-time backfill in save order) before EZD-299c. Source: phase-auditor; Q-0511 (b), Q-0531, Q-0568, Q-0613. Confirm or override.
+- **Q-0626 · EZD-299 (older app version).** (a) A whole build number is fixed at each build; a save with a lower or missing number is refused and writes nothing; EZD-134 uses the same number. Roll back by promoting the previous build, never by redeploying old code. Source: code-reviewer; docs/architecture.md (Environments and releases); Q-0530, Q-0540. Confirm or override.
+- **Q-0627 · EZD-299 (long notification).** (a) The notification names objects until its 4,096-byte payload is full, then "and N more"; one notification per sync; its link opens the full list. Source: code-reviewer; Q-0531, Q-0540; EZD-110a. Confirm or override.
+- **Q-0628 · EZD-299 (security).** (b) A row for a project you can no longer open shows a generic group label and no project name; the server adds names only after a fresh access check. Source: security-reviewer; Q-0540, Q-0502; AC-EZD-299-8. Confirm or override.
+- **Q-0631 · EZD-299b (security).** (b) One device reason `not_open` for a deleted project and one no longer open, shown with P14b ("You no longer have access to this project"). No new presence route: it would tell any user whether a project they cannot see exists. Board S03b's P14 ("This project was deleted") is therefore never shown. Source: security-reviewer; docs/architecture.md Errors and logging; Q-0502, Q-0540, Q-0628. Confirm or override.
+- **Q-0632 · EZD-299a/299b/299.** (a) Each conflict row shows "[Name] · time" and, for other projects, the client after the project name, as on your approved board S03b. Read at list time after the access check; a project you can no longer open returns none of them; the name shows only if the saver is still in the company. Source: phase-auditor; S03bConflictList.dc.html; Q-0540, Q-0628, EZD-110a. Confirm or override.
 - **Q-0507, Q-0508, Q-0530, Q-0540** (phase 3 spec-gap answers by the orchestrator; in QUESTIONS-answered.md): confirm or override.
 
 ## 3. Proposed wording
@@ -28,6 +34,7 @@ Confirm or override each.
   - First floor name: "Floor 1"
 - **EZD-120c, EZD-120d:** wording follows the plan files (section 3 of each); EZD-120d follows the plan with Q-0581 (c).
 - **EZD-120b (split proposal, not yet planned in full):** the "Changes not saved" banner's longer text if any, the clock-time form after 59 minutes, the failed-load line, the sign-out warning title, message and confirm label, and the test page's labels and counts lines. Spanish of any new key.
+- **EZD-299 (new, from Q-0627 and Q-0628):** "and N more" at the end of a long list of object names in the notification (N = names not listed; used only past about 400 names); and the group label for rows of projects you can no longer open (exact text proposed in the plan's section 3).
 - EZD-133, EZD-202, EZD-238, EZD-346, EZD-347: none (EZD-346 reuses `error.not_authorized`).
 
 ## 4. Rule candidates
@@ -69,3 +76,8 @@ L-062 (a plan's timing and race test rows name the held await, the injected even
 - **L-056** (EZD-326, test-author): never link or copy node_modules into a worktree; the gate installs it. Ratify.
 
 Note: L-022 to L-056 each have seen: 1 except where marked; I recommend ratify for all because each is a specific, checkable rule with a named check and none contradicts the spec or CLAUDE.md. Reject any you find too heavy for a plan.
+
+## Ticket changes made for these answers (information only)
+- EZD-299 split into EZD-299a (server copy, refusals, notification), EZD-299b (device: Keep mine / Keep theirs / Remove) and EZD-299 (the screens: banner, list, Show, "make a conflict"), per the planner's split proposal (vault/plans/EZD-299.md; 20-file and 25-test limit).
+- New ticket EZD-294 Object numbers (Q-0625 (a)), slice 4. EZD-299 and EZD-211 depend on it.
+- Build effect: EZD-299 (the screens) waits for slice-4 tickets EZD-207a/b (Show, Q-0568) and EZD-294, all but EZD-294 already done. Slice 3 closes after it.

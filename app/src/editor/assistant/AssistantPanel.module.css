@@ -1,0 +1,358 @@
+/* EZD-5603a Build step 10 (vault/plans/EZD-5603a.md section 5; Decided "CSS"): board S03cAIAssistant.dc.html lines
+   18, 25-30, 45-51, 150-168, S03cAIAssistantNoKey and S03cAIAssistantKeyError. The aside (336 px card) is the
+   frame's inspector; the panel fills it. */
+.panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.head {
+  padding: 16px 14px 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.titleIcon {
+  display: inline-flex;
+  color: var(--ez-cobalt);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.close {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--ez-hover);
+}
+
+.conversation {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.conversationNoKey {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bubble {
+  align-self: flex-end;
+  max-width: 240px;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-ink);
+  padding: 9px 12px;
+  border-radius: var(--ez-radius-12) var(--ez-radius-12) var(--ez-radius-4) var(--ez-radius-12);
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.waiting {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ez-slate-500);
+}
+
+.reply {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ez-ink);
+}
+
+.replyText {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cost {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+  padding-top: 8px;
+  border-top: 1px dashed var(--ez-border);
+}
+
+.alert {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-amber-alert);
+  border: 1px solid var(--ez-amber-alert-border);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.alertIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--ez-amber-icon);
+}
+
+.alertBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  color: var(--ez-cobalt-link);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.noKey {
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.keyTile {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-link);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.noKeyHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.noKeyBody {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ez-slate-700);
+  line-height: 1.5;
+}
+
+.promptArea {
+  position: relative;
+  border-top: 1px solid var(--ez-divider);
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.promptOff {
+  opacity: 0.55;
+}
+
+.promptLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.textarea {
+  resize: none;
+  font-family: var(--ez-font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ez-ink);
+  padding: 10px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.promptRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.picker {
+  display: flex;
+}
+
+.modelButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font-family: var(--ez-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ez-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modelButton:disabled {
+  cursor: default;
+}
+
+.modelChevron {
+  display: inline-flex;
+  color: var(--ez-slate-500);
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 1px solid var(--ez-cobalt);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  cursor: pointer;
+}
+
+.send:disabled {
+  cursor: default;
+}
+
+.modelList {
+  composes: card from '../../components/shell/card.module.css';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(100% + 8px);
+  padding: 6px;
+  box-shadow: var(--ez-shadow-picker);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+}
+
+.modelHeading {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 6px 10px 4px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--ez-radius-7);
+  background: transparent;
+  text-align: left;
+  font-family: var(--ez-font-sans);
+  font-size: 13px;
+  color: var(--ez-ink);
+  cursor: pointer;
+  width: 100%;
+}
+
+.optionOn {
+  background: var(--ez-cobalt-tint);
+}
+
+.optionText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionName {
+  font-weight: 500;
+}
+
+.optionNameOn {
+  font-weight: 600;
+}
+
+.optionCost {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.optionCheck {
+  display: inline-flex;
+  color: var(--ez-cobalt-link);
+}

@@ -136,7 +136,7 @@ test.describe('EZD-120c editor route', () => {
     }
   });
 
-  test('EZD-120c B1 a project card opens the editor, which asks for the model and nothing else', async ({
+  test('EZD-120c B1 a project card opens the editor, which asks for the model and the conflict list and nothing else', async ({
     page,
     signInAs,
   }) => {
@@ -152,10 +152,13 @@ test.describe('EZD-120c editor route', () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${ids.P1}`);
     await expect(page.getByText('bravo')).toBeVisible();
     await page.waitForTimeout(500);
-    expect(urls.map((u) => new URL(u).pathname)).toEqual([`/api/projects/${ids.P1}/model`]);
+    expect(urls.map((u) => new URL(u).pathname)).toEqual([
+      `/api/projects/${ids.P1}/model`,
+      '/api/sync-conflicts',
+    ]);
   });
 
-  test('EZD-120c B2 the editor shows the project, the client, the working copy and Saved, with no rail, panels or status items', async ({
+  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and no left panel', async ({
     page,
     signInAs,
   }) => {
@@ -163,11 +166,29 @@ test.describe('EZD-120c editor route', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await expect(saveState(page).locator('xpath=..')).toHaveText('Zed Co · Working copy · Saved');
-    await expect(page.locator('header nav button')).toHaveCount(0);
-    for (const region of ['rail', 'left-panel', 'inspector'])
-      await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
-    await expect(page.locator('[data-status-item]')).toHaveCount(0);
-    await expect(page.locator('[data-shell-region="canvas"]')).toHaveText('');
+    await expect(page.locator('header nav button')).toHaveCount(1);
+    await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
+    await expect(
+      page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
+    ).toHaveCount(6);
+    await expect(
+      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
+    ).toHaveCount(1);
+    await expect(
+      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
+    ).toHaveAttribute('data-rail-tool', 'assistant');
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
+    await expect(page.locator('[data-status-item]')).toHaveCount(4);
+    await expect(page.getByTestId('plan-empty-hint')).toHaveText(
+      'Draw walls with Wall (W) or Room rectangle (R).',
+    );
+    const text = await page.locator('[data-shell-region="canvas"]').evaluate((el) => {
+      const c = el.cloneNode(true) as HTMLElement;
+      c.querySelector('[data-testid="plan-empty-hint"]')?.remove();
+      return (c.textContent ?? '').trim();
+    });
+    expect(text).toBe('');
   });
 
   test('EZD-120c B3 an edit shows Saving…, then Saved just now with the change in the database, then Saved 1 min ago', async ({

@@ -91,6 +91,7 @@ function runGate(fx, extra) {
     TMP: fx.tmp,
     TEMP: fx.tmp,
     GIT_CONFIG_SYSTEM: fx.sys,
+    EZD_GATE_AS_SELF: '1', // EZD-354 D4: a fixture gate runs as itself
     ...canaries(),
     ...extra,
   };
@@ -101,7 +102,7 @@ function runGate(fx, extra) {
 test('EZD-344 E1 exact env', () => {
   assert.deepEqual([...PASS_THROUGH], ['PATH', 'HOME', 'LANG', 'TMPDIR', 'TMP', 'TEMP', 'GITHUB_ACTIONS', 'XDG_CACHE_HOME', 'PLAYWRIGHT_BROWSERS_PATH'], 'PASS_THROUGH (D1)');
   assert.deepEqual({ ...GIT_ISOLATION }, { GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_TERMINAL_PROMPT: '0' }, 'GIT_ISOLATION (D2)');
-  assert.deepEqual([...GATE_SET], ['CI', 'NO_COLOR', 'EZD_TEST_SCOPE', 'EZD_PHASE', 'EZD_TEST_GREP', 'EZD_LANE', 'SUPABASE_WORKDIR'], 'GATE_SET (D3)');
+  assert.deepEqual([...GATE_SET], ['CI', 'NO_COLOR', 'EZD_TEST_SCOPE', 'EZD_PHASE', 'EZD_TEST_GREP', 'EZD_LANE', 'SUPABASE_WORKDIR', 'DOCKER_HOST', 'EZD_GATE_USER', 'EZD_GATE_UID', 'EZD_GATE_CANARY', 'EZD_GATE_JOSH_UID'], 'GATE_SET (D3)');
   assert.ok(Object.isFrozen(PASS_THROUGH) && Object.isFrozen(GIT_ISOLATION) && Object.isFrozen(GATE_SET), 'the three exports are frozen');
   const passed = Object.fromEntries(PASS_THROUGH.map((n) => [n, `v-${n}`]));
   const result = gateEnv({ ...passed, ...canaries(), GIT_CONFIG_SYSTEM: 'x' }, { CI: '1', NO_COLOR: '1', EZD_TEST_SCOPE: 'full' });

@@ -5,7 +5,8 @@
 // redirect is not mocked: a success is a rejection whose digest URL part is the target. Throttle keys come
 // from the gate secret the Vitest global setup sets. The IP tests use their own TEST-NET-3 addresses
 // (RFC 5737) and clear their rows before and after, so no bucket is shared with another test.
-// Sends to one address are spaced by the local [auth.email] max_frequency (supabase/config.toml) plus 100 ms.
+// Sends to one address are spaced by the local [auth.email] max_frequency (supabase/config.toml) plus 100 ms,
+// counted from the moment the previous send to that address returned (EZD-391).
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -149,13 +150,18 @@ function maxFrequencyMs(): number {
 }
 
 const lastSend = new Map<string, number>();
-async function spaced(email: string, gapMs: number) {
+async function spaced<T>(email: string, gapMs: number, send: () => Promise<T>): Promise<T> {
   const last = lastSend.get(email);
   if (last !== undefined) {
-    const wait = last + gapMs - Date.now();
-    if (wait > 0) await sleep(wait);
+    let wait = last + gapMs - performance.now();
+    while (wait > 0) {
+      await sleep(wait);
+      wait = last + gapMs - performance.now();
+    }
   }
-  lastSend.set(email, Date.now());
+  const out = await send();
+  lastSend.set(email, performance.now());
+  return out;
 }
 
 const IP_A = '203.0.113.7';
@@ -208,9 +214,10 @@ describe('EZD-033 sign-in throttle', () => {
     expect(await throttleRows('password', throttleKey('email', w.email))).toBe(5);
 
     // The code stays open while passwords are throttled.
-    await spaced(w.email, gap());
     const before = new Date();
-    expect(await run(store, () => requestSignIn(form({ email: w.email })))).toEqual({
+    expect(
+      await spaced(w.email, gap(), () => run(store, () => requestSignIn(form({ email: w.email })))),
+    ).toEqual({
       resolved: { step: 'code' },
     });
     const mail = await waitForAuthEmail(w.email, { after: before });
@@ -239,9 +246,10 @@ describe('EZD-033 sign-in throttle', () => {
   it('EZD-033 T12 wrong codes are throttled per email; the password stays open', async () => {
     const k = await createPasswordMember({ tenantId: tenant });
     const store = newStore();
-    await spaced(k.email, gap());
     const before = new Date();
-    expect(await run(store, () => requestSignIn(form({ email: k.email })))).toEqual({
+    expect(
+      await spaced(k.email, gap(), () => run(store, () => requestSignIn(form({ email: k.email })))),
+    ).toEqual({
       resolved: { step: 'code' },
     });
     const { code } = await waitForAuthEmail(k.email, { after: before });
@@ -264,14 +272,15 @@ describe('EZD-033 sign-in throttle', () => {
     ).toEqual({ redirect: '/' });
   }, 120000);
 
-  it('EZD-033 T13 sign-in emails are throttled per email, the same for an unknown address', async () => {
+  it('EZD-033 T13 EZD-391 sign-in emails are throttled per email, the same for an unknown address', async () => {
     const e = await createTestMember({ tenantId: tenant, status: 'active' });
     const ghost = unknownEmail();
     for (const email of [e.email, ghost]) {
       const store = newStore();
       for (let i = 1; i <= 6; i += 1) {
-        await spaced(email, gap());
-        const out = await run(store, () => requestSignIn(form({ email })));
+        const out = await spaced(email, gap(), () =>
+          run(store, () => requestSignIn(form({ email }))),
+        );
         expect(out, `${i}`).toEqual({
           resolved: i <= 5 ? { step: 'code' } : { error: 'email_throttled' },
         });
@@ -521,4 +530,26 @@ describe('EZD-033 sign-in throttle', () => {
     const read = await session.browserDb.from('sign_in_throttle').select();
     expect(read.error?.code).toBe('42501');
   }, 60000);
+});
+
+describe('EZD-391 send spacing', () => {
+  it('EZD-391 S1 the next send to an address starts the gap after the previous send returned', async () => {
+    const email = `spacing-${randomUUID().slice(0, 12)}@example.test`;
+    let end1 = 0;
+    let start2 = 0;
+    expect(
+      await spaced(email, 200, async () => {
+        await sleep(500);
+        end1 = performance.now();
+        return 'first';
+      }),
+    ).toBe('first');
+    expect(
+      await spaced(email, 200, async () => {
+        start2 = performance.now();
+        return 'second';
+      }),
+    ).toBe('second');
+    expect(start2 - end1).toBeGreaterThanOrEqual(200);
+  });
 });

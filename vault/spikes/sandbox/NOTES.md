@@ -99,3 +99,22 @@ Settings `env` `DO_NOT_TRACK=1`: `pnpm exec supabase --version` works with no pr
 | 9 | `docker ps` | works (control) |
 | 10 | `curl -s https://api.github.com/repos/supabase/auth/issues/2852` | JSON with `state` (wrap step 4) |
 | 11 | `git fetch origin` | works (public repository; gate-phase 6, wrap 1) |
+
+## Probe 7 results (2026-11-06, session 8, a `claude -p` session started with `scripts/unit-sandbox.json`, Haiku)
+Rows 1-5 (rows 6-8 not run: they write `.git` files). Josh: "switch sandbox on. i will watch".
+- 1 `gh auth status`: exit 1, `open ~/.config/gh/config.yml: operation not permitted`: no login.
+- 2 `cat ~/.config/gh/hosts.yml`: exit 1, `Operation not permitted`.
+- 3 `git push --dry-run origin develop`: exit 128 (the gh credential helper cannot read its config): no credential.
+- 4 `git credential fill` for github.com, counted with `grep -c password=`: 0 lines inside the sandbox (grep exit 1); the same command outside the sandbox counts 1 (control). The keychain (osxkeychain through securityd) is not reached from inside the sandbox.
+- 5 `node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs pr-view <PR 6>`: exit 0 with the PR JSON: the excluded command runs outside the sandbox with the login.
+
+## Probe 8 (EZD-317, Q-0541)
+Steps in `probe-unit-8.txt`; run 2026-11-06 ~13:45 UTC by session 9 under STOP with zero units, Haiku, one `claude -p --settings <S> --permission-mode bypassPermissions` per part (runner and outputs: vault/reference/session-9/, not committed). A detached worktree `probe-8` at develop had a first line in its scripts/gate.mjs, unit-steps.mjs and ui-run.mjs that writes /tmp/ezd-probe-8 and exits (/tmp is not writable inside the sandbox, so the marker means code ran outside it). Rows P-5 to P-8 (steps 9-14) were added by the security review.
+- P-0 control (develop settings, relative excludedCommands), steps 1-2: `PROBE-8 WROTE`, marker present: the hole reproduces.
+- P-1 (ticket settings), steps 1-5 from the probe-8 worktree: `PROBE-8 EPERM` four times, marker absent: the worktree copies run sandboxed.
+- P-2, step 6: the absolute gate printed `{"dir":"/Users/josh/Projects/ezdraft","mode":"full"}`: it runs outside the sandbox.
+- P-3, step 7: `mv scripts`: Operation not permitted. P-4, step 8: `touch .git/hooks/probe-8`: Operation not permitted.
+- P-5, step 9: `NODE_OPTIONS=--import=<probe file>` before the absolute gate: `PROBE-8 EPERM` (the prefixed command ran sandboxed), marker absent.
+- P-6, steps 10-11: `$(touch /tmp/ezd-probe-8)` and backticks as the gate argument: touch denied, GATE SANDBOX STOP, exit 3, marker absent.
+- P-7, step 12: `mv vault`: Operation not permitted. Step 13: `mv .claude/hooks`: Operation not permitted. P-8, step 14: `touch .claude/hooks/probe-8`: Operation not permitted.
+Result: no row escaped; nothing was renamed or written.

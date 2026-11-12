@@ -23,11 +23,7 @@ export async function POST(
 ): Promise<Response> {
   try {
     const p = await requireApiPermission('view_projects');
-    // D8: no-store on every response, the guard's 401 included.
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     const { id } = await params;
     if (!z.uuid().safeParse(id).success) return fail(404, 'notification_not_found');
     const opened = await openNotification(createSessionClient(), id);

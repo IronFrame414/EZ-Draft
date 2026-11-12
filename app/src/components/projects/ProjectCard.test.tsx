@@ -16,6 +16,7 @@ const P3: ProjectSummary = {
   address: '3 Sort St',
   status: 'draft',
   openItems: 5,
+  hasThumbnail: false,
 };
 const P1: ProjectSummary = {
   id: '11111111-1111-4111-8111-111111111111',
@@ -24,6 +25,7 @@ const P1: ProjectSummary = {
   address: '1 Sort St',
   status: 'approved',
   openItems: 0,
+  hasThumbnail: false,
 };
 const P2: ProjectSummary = {
   id: '22222222-2222-4222-8222-222222222222',
@@ -32,6 +34,7 @@ const P2: ProjectSummary = {
   address: '2 Sort St',
   status: 'draft',
   openItems: 2,
+  hasThumbnail: false,
 };
 
 const render = (project: ProjectSummary) =>
@@ -75,5 +78,22 @@ describe('EZD-117a project card markup', () => {
     expect(textOf(open1.inner)).toBe('Nothing to review');
     expect(attr(open1.attrs, 'data-has-items')).toBe('false');
     expect(textOf(one(render(P2), 'project-card-place').inner)).toBe('2 Sort St');
+  });
+  // EZD-224 U5 (vault/plans/EZD-224.md section 4; Decided "Card image"; Q-0403; AC-EZD-224-2, -3).
+  it('EZD-224 U5 a card with a thumbnail shows one lazy 220 x 128 image; without one the slot is empty', () => {
+    const withThumb = render({ ...P3, hasThumbnail: true });
+    expect(elements(withThumb, 'project-card-thumb-img')).toHaveLength(1);
+    const img = one(withThumb, 'project-card-thumb-img');
+    expect(img.tag).toBe('img');
+    expect(attr(img.attrs, 'src')).toBe(`/api/projects/${P3.id}/thumbnail`);
+    expect(attr(img.attrs, 'loading')).toBe('lazy');
+    expect(attr(img.attrs, 'width')).toBe('220');
+    expect(attr(img.attrs, 'height')).toBe('128');
+    expect(attr(img.attrs, 'alt')).toBe('');
+    expect(one(withThumb, 'project-card-thumb').inner).toContain('project-card-thumb-img');
+
+    const without = render({ ...P3, hasThumbnail: false });
+    expect(elements(without, 'project-card-thumb-img')).toHaveLength(0);
+    expect(one(without, 'project-card-thumb').inner).toBe('');
   });
 });

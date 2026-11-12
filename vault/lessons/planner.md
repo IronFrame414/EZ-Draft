@@ -30,7 +30,7 @@ Cause: SQL contract text in the plan was written from memory and never run again
 Rule: SQL that a plan fixes as contract text (policy templates, function signatures a test types in) is run once on the pinned local stack by the planner, or marked "confirm on pinned version" so the test-author verifies it before committing.
 Check: the plan review lists every SQL fragment a test copies verbatim and names where it was run or marked.
 
-## L-012  areas: tooling, scripts  seen: 1  status: ratified
+## L-012  areas: tooling, scripts  seen: 2  status: ratified
 Ticket EZD-010b, 2026-10-19
 Mistake: plan Step 2 said an unknown flag or a flag with no value fails, but no test in section 4 checked it; builder round 1 accepted `--names --list` and `--constructor x` with exit 0, and the code-reviewer failed it (one extra round, builder tier up).
 Cause: a rule written in the Approach prose had no matching Tests row, so the gate could not catch it and the builder worked to the tests.
@@ -438,7 +438,7 @@ Rule: for each input the plan lists empty, over-limit and malformed behaviour wi
 Check: grep for callers of each changed export and compare with the Files table.
 Plan check: each input row has empty, maximum and malformed cases.
 
-## L-053  areas: ci, tooling  seen: 1  status: ratified
+## L-053  areas: ci, tooling  seen: 2  status: ratified
 Phase 1 wrap, 2026-11-04 (category gate-red; EZD-110b, EZD-298, EZD-117a, EZD-323)
 Mistake: gate failures a plan could foresee: a client hook imported into a server component, a new counting SQL function against the cap-lock audit, ledger fixtures stale on a worktree behind develop.
 Cause: the plan did not name which gate parts the change can turn red.
@@ -454,7 +454,7 @@ Rule: each checklist row gives the mockup's measured edge, offset or icon name a
 Check: no checklist row says only "matches the mockup".
 Plan check: every visual row has a number or a named element.
 
-## L-055  areas: docs  seen: 1  status: ratified
+## L-055  areas: docs  seen: 2  status: ratified
 Phase 1 wrap, 2026-11-04 (category docs; EZD-268, EZD-300, EZD-316, EZD-117a)
 Mistake: nine findings in four tickets: a doc line, skill step or table still described the behaviour the ticket changed.
 Cause: the plan named the main doc but did not search for every line that states the old behaviour.
@@ -474,7 +474,7 @@ A plan that adds controls on a phone or iPad screen sets their 44 px tap areas a
 A plan that adds an API route lists an E-row for each test or harness that counts every route (money/route-cases.ts, EZD-133 C1), with the new case written out.
 When a one-step dialog is cut out of a multi-column board, work out its width from the footer row's content (hint, buttons, gaps), not from an existing dialog's width.
 
-## L-057  areas: tooling, docs, testing  seen: 1  status: candidate
+## L-057  areas: tooling, docs, testing  seen: 1  status: ratified
 Tickets EZD-316, EZD-332, EZD-201, 2026-11-05
 Mistake: a part of the change the plan named was left out (patch hunks, a comment about moved code, escape sequences in a test file).
 Cause: the plan described the change in prose, so no single list let the builder or reviewer tick every piece off.
@@ -482,7 +482,7 @@ Rule: a plan ends with a done-when list of every artifact the change touches (ea
 Check: the reviewer walks the done-when list against the diff; the plan-checker fails a plan that moves code or issues a patch without that list.
 Plan check: the plan has a done-when list with one line per hunk, comment and escaped literal it mentions.
 
-## L-058  areas: tooling, testing, scripts  seen: 1  status: candidate
+## L-058  areas: tooling, testing, scripts  seen: 2  status: ratified
 Tickets EZD-172, EZD-174, 2026-11-04
 Mistake: the contract left a failure entry, a return value or a conflicting row undecided, and the code and tests disagreed with it.
 Cause: rows written at different times contradicted each other (L8 against C11), and failure output the gate asserts had no row.
@@ -490,7 +490,7 @@ Rule: the interface contract lists every return value and every failure or log e
 Check: the reviewer compares each function's return with the contract row; the plan-checker pairs rows on the same input.
 Plan check: every function in the contract has a return value, every failure entry has its text and cap, and no two rows answer one input differently.
 
-## L-059  areas: tooling, scripts, security  seen: 1  status: candidate
+## L-059  areas: tooling, scripts, security  seen: 2  status: ratified
 Tickets EZD-256, EZD-174, EZD-279, 2026-11-04
 Mistake: a failure path was hidden or made a wrong state (a read error treated as an empty lock, a cleanup skipped when a call threw, a hook that exits 1 and lets the call through).
 Cause: the plan described the success path and named no outcome for a throw or a load failure.
@@ -498,7 +498,7 @@ Rule: for each step that reads, deletes, loads a module or calls a helper that c
 Check: the reviewer forces each throw in a test; the plan-checker looks for an outcome per failing call.
 Plan check: every I/O or import step has a stated outcome for an error other than not-found, and a guard fails closed.
 
-## L-060  areas: migrations, ui, testing  seen: 1  status: candidate
+## L-060  areas: migrations, ui, testing  seen: 1  status: ratified
 Tickets EZD-117a, EZD-117b, 2026-11-05
 Mistake: a new migration sorted before develop's newest, and new links and icon buttons were under the 44 px touch target.
 Cause: the plan named the migration by a fixed timestamp and listed the controls without the touch-target list.
@@ -506,10 +506,86 @@ Rule: a plan that adds a migration says its timestamp is taken after the newest 
 Check: the dev push must not need --include-all; the touch-target test covers every control.
 Plan check: each new migration says it follows develop's newest, and each new interactive control is in the tap-area list with a test.
 
-## L-061  areas: security, api, tooling  seen: 1  status: candidate
+## L-061  areas: security, api, tooling  seen: 1  status: ratified
 Tickets EZD-117a, EZD-256, EZD-279, 2026-11-04
 Mistake: input or path forms that the code did not bound got through (a cursor value the database cast rejects, a symlinked folder followed, a glob class folded wrongly).
 Cause: the plan fixed the cases found and not the whole class.
 Rule: for an input that reaches a database cast, a path or a pattern, the plan states the bound or form for the class (type range, no link followed, case-fold applied after parsing) and has a Tests row with a boundary value and a link or class case.
 Check: the security-reviewer tries the boundary value; the plan-checker finds a bound for each input class.
 Plan check: every input that reaches SQL, the file system or a pattern has its bound stated and a boundary test row.
+- EZD-120a lessons: list every gate-wide registry a new table/trigger/route/error report must join (one-table-per-file check, SEEDED_BY_TRIGGER, MONEY_ROUTE_CASES, error-alert lock); pick seq/counter columns as integer when the interface types them as number (harness returns bigint as string).
+EZD-238 · 2026-11-05 · When a plan matches ids across objects, state how the dependency compares them (EZD-202 compares ids lower-cased); EZD-238 needed Q-0595 (a).
+Plan-gap lesson: put the module of every shared type (Change, Objects, OutboxStorage) in section 3, and say what each control method (retry, flush) does to state and drain timing.
+Plan gap (EZD-120b): for every storage write the sync engine makes, state where the change is held when the write fails, replay order in retry(), and that a saved result is stored before anything is sent again.
+
+## L-062  areas: data-model, testing  seen: 1  status: ratified
+Tickets EZD-202, EZD-120b, 2026-11-05
+Mistake: plans' Tests rows named timing, ordering and race cases loosely (counts, "at most one in flight", "next 2,000 ms", a put failing during an await), so tests passed on nothing or dropped a planned case, and the drain race needed an extra round (Q-0597).
+Cause: the Tests row did not state the interleaving (which await is held, which call rejects meanwhile) or the exact expected counts and orders.
+Rule: for every async or ordered behaviour, the plan's Tests row names the held await, the event injected during it, and the exact expected counts or call order; a row that cannot fail on the old behaviour is rewritten.
+Check: each timing or race row names a held promise or fake timer and an assertion that fails without the fix.
+Plan check: grep the Tests rows for "at most", "before", "after" and confirm each names the interleaving.
+Plan lint: when a plan adds an entry to a page, route or path list, grep that list's users for hard-coded counts (toBe(N), EXPECTED_* = N, 'N pages' in titles/comments) and list each as a test-author edit with new value and source. (EZD-120c, E7/E8)
+EZD-203 plan-gap round 1 (2026-11-05): say up front whether a crossing is a join (00e Join, Q-0570); a migration never deep-copies untrusted stored data, it copies only the levels the step changes.
+EZD-120d: when a plan writes literal model objects (test data), build them from the geometry package defaults (DEFAULT_WALL_LAYERS, CURRENT_SCHEMA_VERSION), not hand-listed fields, so a later schema change cannot make the server reject them.
+EZD-120d: when a helper has an exception path (a rethrown framework error) or loads a module lazily, the plan states up front what happens when it rejects or the load fails, and how a test reaches that path without a DOM.
+A fix ticket for a spec in another phase must name node scripts/ui-run.mjs <T> <spec> as its proof, because the ticket gate (phase scope plus @smoke) never runs that spec. A touch-target check copied from an @ipad test must keep the tag or be dropped, because the bell and avatar are 44 px only under (any-pointer: coarse). (EZD-343)
+When a cookie is renamed, the plan should decide up front how the old-named cookies get cleared on the scheme where they are no longer read, not leave them to expire.
+
+## L-063  areas: auth, security  seen: 2  status: ratified
+When a plan changes a cookie's name or attributes, list the old-name cookies too: say whether the request gate deletes stale and planted copies, and give a test row for each (EZD-120d planted marker; EZD-342 old plain sb- cookies left after deploy).
+Plan check: does the plan name what happens to the cookie under its previous name and under a planted Domain= copy?
+EZD-346: when a check compares against request.nextUrl.origin, a test helper builds its expected origin with new NextRequest(url).nextUrl.origin, not new URL(url).origin (Next rewrites 127.0.0.1 and [::1] to localhost; Playwright baseURL is 127.0.0.1).
+
+## L-064  areas: testing, ui  seen: 2  status: ratified
+Tickets EZD-202 and EZD-343, 2026-11-06
+Mistake: EZD-202's tests wrote inline object data where the plan's fixture row said to copy v1.json objects, and EZD-343's E1 touch-target test had no run proof because the gate's e2e scope excludes phase 1 specs, so it failed when run.
+Cause: the plan named the fixture's content but not its source file, and named a browser test without saying which gate scope runs it.
+Rule: a Tests row names the file a fixture is copied from and what changes in the copy (ids, level), and a browser test row names the Playwright project or tag that runs it and the command that proves it passes.
+Check: the plan review lists each fixture row's source file and each browser test's project or tag.
+Plan check: every fixture row names its source file and edits; every e2e row names its project or tag and run command.
+- EZD-207a (2026-11-06): when a Decided row says what happens while an async start is pending, give each thing that can change during the wait (detach, resize) its own test row with exact call counts.
+- EZD-207a (2026-11-06): a plan that builds a view for another package's schema should list every member that schema has, including members open dependency plans add, each with its value and source.
+A plan that checks a timing budget inside the browser suite must say up front that the measuring spec runs alone (Playwright runs 4 workers), and that the pan waits for the canvas's last async step (text), not only its ready attribute. (EZD-207c)
+- EZD-209 (2026-11-06, L-049 again): a plan that adds a page file under app/src/app/ names the EZD-133 money page list edits (page-cases.ts PAGE_FILES, money-routes.test.ts C4 count, money-pages.spec.ts EXPECTED_PATHS) as test-author edit rows; and an empty-markup assertion rendered through MessagesProvider expects the provider's own wrapper, never '' (L-020).
+- EZD-209 plan-gap (2026-11-06): a plan that adds a dev page and says "no test lists dev routes" must grep the tests for page-count and page-list inventories (EZD-133 C4 money page list, e2e EXPECTED_PATHS) and name each edit with its owner, or the builder meets a structural repair; see the EZD-136 re-validation line.
+- EZD-358 (2026-11-06): a plan whose proof runs one spec through ui-run.mjs must check that spec's Playwright project for dependencies; if present the whole suite runs, so count by test title and state what happens when other tests fail.
+- EZD-210b (2026-11-06): run every expected browser coordinate through snap (0.5 in length rounding, 5 degree angle capture) before it goes in a plan; pick points snap leaves unchanged. A test polls a count until stable, never a fixed wait.
+- EZD-210b (2026-11-07): a test value computed from an angled or turned wall (cos/sin) is checked with toBeCloseTo(..., 9), not toBe; the plan says whether a derived length is stored rounded (03g: computed values are not).
+EZD-359: when a run series has an evidence threshold, state up front what happens if it ends short, and reset the shared database before every full-suite run.
+EZD-359: before a plan names a database command, read what the package.json script runs; reset-before-run means pnpm db:up, because bare db:reset wipes the API gate secret and breaks sign-in.
+EZD-359: before a rule uses CPU time under emulated throttling, check how the throttle shows in thread time; Chromium's POSIX throttle spins on the main thread and does not suspend it.
+Before naming a database reset command in a plan, read what it does in scripts/db/local.mjs. Use pnpm db:up, which resets the database and stores the API gate, never bare pnpm db:reset. (EZD-358)
+EZD-294: an expression index runs its functions as the writing role, so a plan that indexes a private function must grant execute to every role with insert or update on the table (check role_table_grants) and add the PRIVATE_EXECUTE entries.
+- EZD-299b (2026-11-09): device writes after an await on a list row (delete, requeue) are checked against the row version field (refusedAt) inside their own transaction; the plan names the field, how merged server rows carry it, and the result on mismatch.
+EZD-294: when a plan says a counter only rises, list every store method that writes values (including ones another ticket adds), and bound every client-sent number by the limit the save path already uses.
+EZD-294: when a plan bounds numbers the client sends, apply the same bound to stored values a backfill reads.
+EZD-294: when a trigger keeps a stored value on update, the plan must say the upper bound applies to the kept value too, and check any backfill that runs while the trigger is on against that rule.
+Planner EZD-294 (round 3): when a number is capped, state what happens when highest+1 passes the cap, for both trigger and backfill.
+EZD-299 re-validation (2026-11-09): a plan whose browser tests call an API route directly should send every header the app's own client sends for that route family (the membership header), so a security fix to the route does not break the tests; name the fix ticket as a dependency up front.
+- 2026-11-09 EZD-204a: when a plan raises CURRENT_SCHEMA_VERSION, grep every test for the old and new version numbers, including tests using the next version as the unknown one and responses upgraded to current; list each hit as an edit row up front.
+Cite merged-code line numbers only after the dependency merges; a plan written against planned deps should cite them by plan section, not by file:line, so re-validation does not have to chase them.
+- When a test checks a value that a merged dependency's code computes (e.g. hover after a click), trace that code path in re-validation, including the order of state changes inside a call with side effects, and name any fix in section 1 instead of listing the file under Do not touch. (EZD-208b)
+- L-next candidate: when a plan puts an existing component into a server page, decide the 'use client' directive on the component itself if it uses hooks (EZD-224).
+EZD-217 re-validation: when a dependency's plan is split, cite the part plan's merged contract rows (e.g. P208b C1, C2, DB7), not the parent's props, and take each import's source file from a merged file that already imports it.
+EZD-217 plan-gap: when a fixture calls a merged helper, write its exact signature in the plan, including which argument it reads (withObjectNumber takes { type, data }, not data).
+
+## L-065  areas: ui, migrations, security, api, testing, data-model  seen: 1  status: ratified
+Rule: A plan re-planned or split after a worktree holds wip commits makes that build stale; the unit resumes (RESUME wip=N) and the gate passes on the old plan's tests. Say in the plan header "discard branch t/<T>; rebuild from develop".
+Plan check: when re-planning a ticket with an existing t/<T> branch, the plan names the branch as discarded.
+Sources: EZD-224 round 1 (code-reviewer and security-reviewer FAIL on a green gate).
+EZD-224b 2026-11-11: when a plan adds a package, read the whole installed dependency tree at its resolved versions (not only the package's own files) for forms the bundler cannot build (import.source, data-URL wasm), and pin a bad transitive version in the first plan version.
+EZD-388: a test's library-behaviour assumption (persistent context browser() is null) was written from API docs, not the installed Playwright source; C2 could never pass and hung the file. Cite the installed library source line in the Tests row (L-021).
+When a plan's iPad touch-target test checks buttons in a table that scrolls on its own, say in Decided CSS how the table scrolls and have the test scroll it to the row before the check; the harness hit-tests, and a row cut off by the table reads as covered.
+EZD-390: a load-conditioned run series must say how to wait for the load (start a gate only when another lane is live) and how the streak resumes in a later dispatch on the same commit, so idle gates never use up the cap.
+Sibling ticket merged first on the same files (EZD-211b): re-read its section 3 for ports it added and reuse them instead of planning a second seam (EZD-212b vs EZD-211b attachSelection).
+Name every helper a plan step uses by its exporting file, found by grep at plan time (EZD-213a: openingChange was already exported by EZD-204b).
+L: re-validation should also re-check E-row line numbers and existing test titles, since other merges move them.
+Name a dependency's seam by grepping the merged code for the exported name. Never take it from a dependency plan's summary, and cite the file:line.
+EZD-5602: a plan written before its dependency is built should give that dependency's pattern as the merged function to copy (checkAnthropicKey, anthropicListModels), not plan step numbers.
+
+## L-066  areas: tooling, tests, process  seen: 1  status: candidate
+Rule: A load-only flake fix is proved by 5 counting lane gates (another lane running a gate), and open flake fixes prove together, each the other's load (Josh Q-0748 (b), 2026-11-12). Never plan 10.
+Plan check: the D-Runs row of a flake ticket asks for 5 counting gates and cites Q-0748 (b).
+Rule: Before calling a failure a load flake, check its value across runs. A constant received value (EZD-207b B1/B3 at 8.7333 in every gate after EZD-213b) is a regression from a merge and holds the release (EZD-396); only a value that moves with load goes to the next phase under Q-0748 (a).
+Sources: Q-0748; EZD-393, EZD-396 (phase 4 release review 2026-11-12).

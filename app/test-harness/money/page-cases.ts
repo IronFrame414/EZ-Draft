@@ -1,6 +1,6 @@
 // EZD-133 section 3 harness row `money/page-cases.ts` (vault/plans/EZD-133.md; C4): one case per page file, in
 // listPages order. The path is the file less `app/src/app`, `(group)` segments and `/page.tsx`; `[section]`
-// becomes each Settings slug but `company` (which has its own page), `[id]` the dev permissions project, and
+// becomes each Settings slug but `company` and `users` (which have their own pages), `[id]` the dev permissions project, and
 // two dev pages take `?project=`. Test-only.
 import { SETTINGS_SECTIONS } from '../../src/lib/settings/sections';
 
@@ -18,7 +18,9 @@ const PAGE_FILES = [
   'app/src/app/(office)/settings/company/page.tsx',
   'app/src/app/(office)/page.tsx',
   'app/src/app/(office)/settings/page.tsx',
+  'app/src/app/(office)/settings/users/page.tsx',
   'app/src/app/auth/confirm/page.tsx',
+  'app/src/app/dev/benchmark-plan/page.tsx',
   'app/src/app/dev/captcha/page.tsx',
   'app/src/app/dev/cloud-check/page.tsx',
   'app/src/app/dev/device/page.tsx',
@@ -38,6 +40,7 @@ const PAGE_FILES = [
   'app/src/app/dev/storage/page.tsx',
   'app/src/app/dev/sw-offline/shell/page.tsx',
   'app/src/app/dev/tokens/page.tsx',
+  'app/src/app/dev/typed-bar/page.tsx',
   'app/src/app/sign-in/page.tsx',
   'app/src/app/terms/page.tsx',
 ] as const;
@@ -59,7 +62,7 @@ function basePath(file: string): string {
 function pathsFor(file: string, env: { projectId: string }): string[] {
   const base = basePath(file);
   if (base.includes('[section]')) {
-    return SETTINGS_SECTIONS.filter((s) => s.slug !== 'company').map((s) =>
+    return SETTINGS_SECTIONS.filter((s) => s.slug !== 'company' && s.slug !== 'users').map((s) =>
       base.replace('[section]', s.slug),
     );
   }

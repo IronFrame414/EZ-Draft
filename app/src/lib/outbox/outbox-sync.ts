@@ -3,8 +3,18 @@
 // Q-0507 gaps 4, 5): autosave. Each change is written to the device outbox first; 2,000 ms after the last one
 // the outbox is sent to the objects route one request at a time, under one lock per user and company across
 // the browser's tabs.
+// EZD-294 Build step 10 (vault/plans/EZD-294.md section 3 createOutboxSync row; Q-0629 (b)): each saved answer is
+// handed to `onSaved` before it is written to the device storage.
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Change } from '../../editor/model/patches';
+import { APP_BUILD_HEADER, appBuild } from '../app-version';
+import { postConflicts, removeServerConflict } from '../conflicts/conflict-api';
+import {
+  MAX_RECORD_CHANGES,
+  MAX_RECORD_DATA_BYTES,
+  type RecordedChange,
+  type SyncConflictReason,
+} from '../conflicts/conflicts';
 import { createOnlineSource, type OnlineSource } from '../network';
 import {
   classifySave,
@@ -12,9 +22,14 @@ import {
   pickBatch,
   type Actor,
   type Batch,
+  type ConflictMove,
+  type ConflictServerUpdate,
+  type DeviceConflict,
+  type DeviceConflictReason,
   type OutboxEntry,
   type OutboxStorage,
   type RefusedCode,
+  type SavedObject,
   type SaveOutcome,
 } from './outbox';
 
@@ -27,12 +42,16 @@ export type SyncState = {
   failures: number;
   problem: RefusedCode | 'storage_failed' | null;
   lastSavedAt: number | null;
+  // EZD-299b Build step 5: bumped whenever the device conflict list changes.
+  conflictRev: number;
 };
 
 export type OutboxSync = StoreApi<SyncState> & {
   enqueue(projectId: string, lockEpoch: number, changes: Change[]): Promise<void>;
   flush(): Promise<void>;
   retry(): void;
+  // EZD-299b Decided D-KeepMine (sync): the row's change goes back in the outbox at this base.
+  keepMine(row: DeviceConflict, baseSeq: number): Promise<{ kept: boolean }>;
   dispose(): void;
 };
 
@@ -71,12 +90,35 @@ function toRequestChange(e: OutboxEntry) {
 
 type PendingWrite =
   | { projectId: string; lockEpoch: number; changes: Change[]; now: number }
-  | { projectId: string; sent: OutboxEntry[]; saved: { id: string; updatedSeq: number }[] };
+  | { projectId: string; sent: OutboxEntry[]; saved: SavedObject[] };
+
+async function reportAt(error: unknown, location: string): Promise<void> {
+  const { captureBrowserError } = await import('../errors/capture');
+  captureBrowserError(error, location);
+}
 
 async function reportStorage(error: unknown): Promise<void> {
-  const { captureBrowserError } = await import('../errors/capture');
-  captureBrowserError(error, 'outbox.storage');
+  await reportAt(error, 'outbox.storage');
 }
+
+// EZD-299b Decided D-Record: the change a conflict row records on the server.
+function toRecordedChange(r: DeviceConflict): RecordedChange {
+  const reason = r.reason as SyncConflictReason;
+  return r.value === null
+    ? { id: r.objectId, baseSeq: r.baseSeq, reason, deleted: true }
+    : {
+        id: r.objectId,
+        baseSeq: r.baseSeq,
+        reason,
+        deleted: false,
+        type: r.value.type,
+        schemaVersion: r.value.schemaVersion,
+        data: r.value.data,
+      };
+}
+
+const dataBytes = (r: DeviceConflict): number =>
+  r.value === null ? 0 : new TextEncoder().encode(JSON.stringify(r.value.data)).length;
 
 export function createOutboxSync(o: {
   actor: Actor;
@@ -85,6 +127,7 @@ export function createOutboxSync(o: {
   lock?: TabLock;
   online?: OnlineSource;
   debounceMs?: number;
+  onSaved?: (projectId: string, saved: SavedObject[]) => void;
 }): OutboxSync {
   const storage = o.storage;
   const fetchImpl = o.fetchImpl ?? fetch;
@@ -98,6 +141,7 @@ export function createOutboxSync(o: {
     failures: 0,
     problem: null,
     lastSavedAt: null,
+    conflictRev: 0,
   }));
 
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -138,15 +182,24 @@ export function createOutboxSync(o: {
     await reportStorage(error);
   };
 
-  const send = async (batch: Batch): Promise<SaveOutcome> => {
+  const bumpConflicts = () => set({ conflictRev: store.getState().conflictRev + 1 });
+
+  const send = async (batch: Batch, resolves: string[]): Promise<SaveOutcome> => {
     try {
       const res = await fetchImpl(`/api/projects/${encodeURIComponent(batch.projectId)}/objects`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', [MEMBERSHIP_HEADER]: o.actor.membershipId },
-        body: JSON.stringify({
-          lockEpoch: batch.lockEpoch,
-          changes: batch.send.map(toRequestChange),
-        }),
+        // EZD-299a Build step 14 (Q-0626): every save names the app build it came from.
+        headers: {
+          'Content-Type': 'application/json',
+          [MEMBERSHIP_HEADER]: o.actor.membershipId,
+          [APP_BUILD_HEADER]: String(appBuild()),
+        },
+        // EZD-299b Decided D-Resolves: `resolves` only when a sent change settles a listed conflict.
+        body: JSON.stringify(
+          resolves.length > 0
+            ? { lockEpoch: batch.lockEpoch, changes: batch.send.map(toRequestChange), resolves }
+            : { lockEpoch: batch.lockEpoch, changes: batch.send.map(toRequestChange) },
+        ),
       });
       let body: unknown = null;
       try {
@@ -157,6 +210,129 @@ export function createOutboxSync(o: {
       return classifySave(res.status, body);
     } catch {
       return { kind: 'failed' };
+    }
+  };
+
+  // EZD-299b Decided D-Settle: the changes a refusal for good moves to the conflict list; none blocks as before.
+  const settle = async (
+    batch: Batch,
+    outcome: Extract<SaveOutcome, { kind: 'refused' }>,
+  ): Promise<ConflictMove[]> => {
+    if (outcome.code === 'save_conflict' && outcome.conflicts) {
+      const listed = outcome.conflicts;
+      const moves: ConflictMove[] = [];
+      for (const entry of batch.send) {
+        const hit = listed.find((c) => c.id === entry.id);
+        if (hit) moves.push({ entry, reason: 'conflict', serverSeq: hit.serverSeq });
+      }
+      return moves;
+    }
+    if (outcome.code === 'invalid_object' && outcome.invalid) {
+      const listed = outcome.invalid;
+      return batch.send
+        .filter((entry) => listed.some((c) => c.id === entry.id))
+        .map((entry) => ({ entry, reason: 'invalid' as const, serverSeq: null }));
+    }
+    let reason: DeviceConflictReason;
+    if (outcome.code === 'permission_denied') reason = 'not_editable';
+    else if (outcome.code === 'project_not_found') reason = 'not_open';
+    else return [];
+    const ofProject = (await storage.list()).filter((e) => e.projectId === batch.projectId);
+    const unsent = ofProject.filter((e) => e.value === null && e.baseSeq === 0);
+    if (unsent.length > 0) await storage.drop(unsent);
+    return ofProject
+      .filter((e) => !(e.value === null && e.baseSeq === 0))
+      .map((entry) => ({ entry, reason, serverSeq: null }));
+  };
+
+  // EZD-299b Decided D-Record: the listed rows not yet on the server, one record call per project and chunk.
+  const recordPending = async (): Promise<void> => {
+    if (disposed || !isOnline()) return;
+    try {
+      let rows: DeviceConflict[];
+      try {
+        rows = await storage.listConflicts();
+      } catch (error) {
+        await storageFailed(error);
+        return;
+      }
+      const updates: ConflictServerUpdate[] = [];
+      const groups = new Map<string, DeviceConflict[]>();
+      for (const r of rows) {
+        if (r.state !== 'listed' || r.server !== 'pending') continue;
+        if (dataBytes(r) > MAX_RECORD_DATA_BYTES) {
+          updates.push({
+            projectId: r.projectId,
+            objectId: r.objectId,
+            refusedAt: r.refusedAt,
+            server: 'device',
+            serverId: null,
+          });
+          continue;
+        }
+        const group = groups.get(r.projectId);
+        if (group) group.push(r);
+        else groups.set(r.projectId, [r]);
+      }
+      send: for (const [projectId, group] of groups) {
+        for (let i = 0; i < group.length; i += MAX_RECORD_CHANGES) {
+          const chunk = group.slice(i, i + MAX_RECORD_CHANGES);
+          const answer = await postConflicts(
+            fetchImpl,
+            o.actor.membershipId,
+            projectId,
+            chunk.map(toRecordedChange),
+          );
+          if (answer.kind === 'failed') break send;
+          if (answer.kind === 'recorded') {
+            chunk.forEach((r, n) =>
+              updates.push({
+                projectId: r.projectId,
+                objectId: r.objectId,
+                refusedAt: r.refusedAt,
+                server: 'recorded',
+                serverId: answer.ids[n],
+              }),
+            );
+          } else if (answer.status === 404) {
+            for (const r of chunk) {
+              updates.push({
+                projectId: r.projectId,
+                objectId: r.objectId,
+                refusedAt: r.refusedAt,
+                server: 'device',
+                serverId: null,
+                reason: 'not_open',
+              });
+            }
+          } else if (answer.status === 400) {
+            for (const r of chunk) {
+              updates.push({
+                projectId: r.projectId,
+                objectId: r.objectId,
+                refusedAt: r.refusedAt,
+                server: 'device',
+                serverId: null,
+              });
+            }
+            await reportAt(new Error('sync_conflict_record_refused'), 'outbox.record');
+          }
+        }
+      }
+      if (updates.length === 0) return;
+      let orphans: Awaited<ReturnType<OutboxStorage['setConflictServer']>>;
+      try {
+        orphans = await storage.setConflictServer(updates);
+      } catch (error) {
+        await storageFailed(error);
+        return;
+      }
+      for (const orphan of orphans) {
+        if (orphan.serverId !== null) await removeServerConflict(fetchImpl, orphan.serverId);
+      }
+      bumpConflicts();
+    } catch (error) {
+      await reportAt(error, 'outbox.record');
     }
   };
 
@@ -178,9 +354,19 @@ export function createOutboxSync(o: {
       }
       rerun = false;
       let batch: Batch | null;
+      const resolves: string[] = [];
       try {
         batch = pickBatch(await storage.list());
         if (batch !== null && batch.drop.length > 0) await storage.drop(batch.drop);
+        if (batch !== null && batch.send.length > 0) {
+          const rows = await storage.listConflicts();
+          for (const e of batch.send) {
+            const row = rows.find(
+              (r) => r.projectId === e.projectId && r.objectId === e.id && r.state === 'requeued',
+            );
+            if (row?.serverId) resolves.push(row.serverId);
+          }
+        }
       } catch (error) {
         await storageFailed(error);
         return;
@@ -197,11 +383,31 @@ export function createOutboxSync(o: {
       if (batch.send.length === 0) continue;
 
       set({ status: 'saving' });
-      const outcome = await send(batch);
+      const outcome = await send(batch, resolves);
       if (outcome.kind === 'refused') {
-        // An unstored write keeps problem storage_failed: retry() must run it first.
-        set({ status: 'error', problem: unstored.length > 0 ? 'storage_failed' : outcome.code });
-        return;
+        let moves: ConflictMove[];
+        try {
+          moves = await settle(batch, outcome);
+        } catch (error) {
+          await storageFailed(error);
+          return;
+        }
+        if (moves.length === 0) {
+          // An unstored write keeps problem storage_failed: retry() must run it first.
+          set({ status: 'error', problem: unstored.length > 0 ? 'storage_failed' : outcome.code });
+          return;
+        }
+        try {
+          await storage.moveToConflicts(moves, Date.now());
+        } catch (error) {
+          await storageFailed(error);
+          return;
+        }
+        if (outcome.code === 'invalid_object') {
+          await reportAt(new Error('invalid_object'), 'outbox.invalid_object');
+        }
+        set({ failures: 0, conflictRev: store.getState().conflictRev + 1 });
+        continue;
       }
       if (outcome.kind === 'failed') {
         const failures = store.getState().failures + 1;
@@ -210,6 +416,7 @@ export function createOutboxSync(o: {
         schedule(RETRY_DELAYS_MS[Math.min(failures, RETRY_DELAYS_MS.length) - 1]);
         return;
       }
+      o.onSaved?.(batch.projectId, outcome.objects);
       try {
         await storage.commit(batch.projectId, batch.send, outcome.objects);
       } catch (error) {
@@ -237,7 +444,13 @@ export function createOutboxSync(o: {
     }
     const run = (async () => {
       try {
-        const result = await lock.tryRun(lockName, loop);
+        const result = await lock.tryRun(lockName, async () => {
+          try {
+            await loop();
+          } finally {
+            await recordPending();
+          }
+        });
         if (!result.ran) schedule(LOCK_BUSY_RETRY_MS);
       } finally {
         running = null;
@@ -327,6 +540,28 @@ export function createOutboxSync(o: {
         }
         resume();
       });
+    },
+    keepMine(row, baseSeq) {
+      const p = writes.then(async () => {
+        let result: { kept: boolean };
+        try {
+          result = await storage.requeue(row, baseSeq, Date.now());
+        } catch (error) {
+          await storageFailed(error);
+          throw error;
+        }
+        // Q-0648 (b): a newer refusal at the key kept the row; nothing changed, nothing to send.
+        if (result.kept) return { kept: true };
+        bumpConflicts();
+        clearTimer();
+        void drain();
+        return { kept: false };
+      });
+      writes = p.then(
+        () => {},
+        () => {},
+      );
+      return p;
     },
     dispose() {
       disposed = true;

@@ -144,6 +144,7 @@ describe('EZD-108 profile routes', () => {
         hasPassword: false,
       },
       captcha: null,
+      aiKey: null,
     });
 
     vi.stubEnv('TURNSTILE_SITE_KEY', TURNSTILE_TEST_SITE_KEY);

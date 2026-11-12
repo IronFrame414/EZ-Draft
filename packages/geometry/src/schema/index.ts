@@ -31,7 +31,8 @@ export type ObjectIssueCode =
   | 'unknown_type'
   | 'unknown_schema_version'
   | 'duplicate_id'
-  | 'level_not_found';
+  | 'level_not_found'
+  | 'override_other_user';
 export type ObjectIssue = { id: string; issue: ObjectIssueCode };
 
 export type ModelDocument = { objects: ModelObject[] };

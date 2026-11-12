@@ -261,7 +261,7 @@ test('EZD-008b done when: the live check never runs in the gate', async () => {
   const gate = read('scripts', 'gate.mjs');
   assert.ok(!gate.includes('send-test') && !gate.includes('scripts/email'));
   assert.ok(gate.includes("CI: '1'"));
-  assert.ok(JSON.parse(read('package.json')).scripts.test.includes('"scripts/**/*.test.mjs"'));
+  assert.ok(JSON.parse(read('package.json')).scripts.test.includes('"scripts/**/!(pan).test.mjs"'));
   assert.ok(!path.basename('scripts/email/send-test.mjs').endsWith('.test.mjs'));
 
   const realFetch = globalThis.fetch;

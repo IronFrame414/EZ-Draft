@@ -196,7 +196,7 @@ describe('EZD-005a tenancy tables', () => {
       phase_default: 'x',
       scope_of_work: 'Remodel',
       settings: { b: 2 },
-      thumbnail_path: `${suffix}/thumb.png`,
+      thumbnail_path: null,
       open_items_count: 3,
       archived_at: now,
       created_at: now,

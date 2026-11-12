@@ -8,6 +8,18 @@
   gap: 8px;
 }
 
+/* EZD-207b (S03 States: Retry stays usable): while the zoom stack is shown, banners end 8px left of it
+   (stack right 16 + width 40, or 46 under a coarse pointer; ZoomStack.module.css). */
+.besideStack {
+  right: 64px;
+}
+
+@media (any-pointer: coarse) {
+  .besideStack {
+    right: 70px;
+  }
+}
+
 .fill {
   flex: 1;
   display: flex;
@@ -19,4 +31,14 @@
   font-size: 15px;
   line-height: 1.45;
   color: var(--ez-ink);
+}
+
+/* EZD-207a Build step 17 (vault/plans/EZD-207a.md Decided "CSS"): when ready, pointers pass to the plan input
+   below except over a banner. */
+.state[data-editor-state='ready'] {
+  pointer-events: none;
+}
+
+.state[data-editor-state='ready'] > * {
+  pointer-events: auto;
 }

@@ -28,7 +28,12 @@ export type ProjectSummary = {
   address: string;
   status: ProjectStatus;
   openItems: number;
+  hasThumbnail: boolean;
 };
+
+export function projectThumbnailSrc(projectId: string): string {
+  return `/api/projects/${projectId}/thumbnail`;
+}
 
 export type ProjectPage = { items: ProjectSummary[]; next: string | null };
 

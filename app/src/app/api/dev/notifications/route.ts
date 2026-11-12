@@ -40,11 +40,7 @@ export async function POST(request: Request): Promise<Response> {
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }
-  // D8: no-store on every response, the guard's 401 included.
-  if (p instanceof Response) {
-    p.headers.set('Cache-Control', 'no-store');
-    return p;
-  }
+  if (p instanceof Response) return p;
 
   const body = bodySchema.safeParse(await request.json().catch(() => null));
   if (!body.success) return fail(400, 'invalid_input');

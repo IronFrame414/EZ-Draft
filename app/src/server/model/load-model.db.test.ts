@@ -37,7 +37,10 @@ const wallData = (level: string) => ({
   },
 });
 
-const ctxOf = (m: { appUserId: string; membershipId: string }, canEdit: boolean): PermissionContext => ({
+const ctxOf = (
+  m: { appUserId: string; membershipId: string },
+  canEdit: boolean,
+): PermissionContext => ({
   appUserId: m.appUserId,
   membershipId: m.membershipId,
   scope: 'all',
@@ -74,7 +77,8 @@ describe('EZD-120b loadModel', () => {
       .insert({ tenant_id: tenant, name: 'Ann Lee', email: 'ann@example.test' })
       .select('id')
       .single();
-    if (customer.error || !customer.data) throw new Error(`customer insert failed: ${customer.error?.message}`);
+    if (customer.error || !customer.data)
+      throw new Error(`customer insert failed: ${customer.error?.message}`);
     const linked = await adminDb()
       .from('project')
       .update({ customer_id: customer.data.id })
@@ -109,8 +113,12 @@ describe('EZD-120b loadModel', () => {
 
   it('R1 loads the project, its live valid objects and the viewer, and lists a bad object as invalid', async () => {
     const sql = harnessSql();
-    const [project] = await sql<{ name: string }[]>`select name from public.project where id = ${small}::uuid`;
-    const rows = await sql<{ object_id: string; type: string; data: unknown; updated_seq: number }[]>`
+    const [project] = await sql<
+      { name: string }[]
+    >`select name from public.project where id = ${small}::uuid`;
+    const rows = await sql<
+      { object_id: string; type: string; data: unknown; updated_seq: number }[]
+    >`
       select object_id, type, data, updated_seq from public.model_object
       where project_id = ${small}::uuid and deleted = false and object_id <> ${badFloor}::uuid
       order by object_id`;
@@ -121,7 +129,12 @@ describe('EZD-120b loadModel', () => {
       ctxOf(editor, true),
     );
     expect(load).not.toBeNull();
-    expect(load?.project).toEqual({ id: small, name: project.name, clientName: 'Ann Lee' });
+    expect(load?.project).toEqual({
+      id: small,
+      name: project.name,
+      clientName: 'Ann Lee',
+      planScale: 0.5,
+    });
     expect(load?.viewer).toEqual({
       appUserId: editor.appUserId,
       tenantId: tenant,

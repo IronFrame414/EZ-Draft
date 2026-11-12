@@ -7,6 +7,8 @@ import { adminDb, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
 import { logoPathFor } from '../../src/server/company/company';
+import { uploadFile, type SignedUpload } from '../../src/lib/storage/upload';
+import { THUMB_WEBP } from '../thumbnail/fixture';
 import type { HttpMethod } from './routes';
 
 export type CaseEnv = {
@@ -54,7 +56,9 @@ const field = (body: unknown, ...keys: string[]): string => {
 
 const KIND = NOTIFICATION_KINDS[0];
 const ALL_ON = NOTIFICATION_KINDS.map((kind) => ({ kind, inApp: true, email: true }));
-const SETTINGS_CHANGED = ALL_ON.map((s) => (s.kind === 'edit_request' ? { ...s, inApp: false } : s));
+const SETTINGS_CHANGED = ALL_ON.map((s) =>
+  s.kind === 'edit_request' ? { ...s, inApp: false } : s,
+);
 const ANN = {
   name: 'Ann Lee',
   email: 'ann@example.test',
@@ -184,7 +188,7 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     load: () => import('../../src/app/api/jobs/sweep/route'),
     request: get('/api/jobs/sweep'),
     expectStatus: 401,
-    note: 'sent without an authorization header: the success request would sweep other tests\' jobs',
+    note: "sent without an authorization header: the success request would sweep other tests' jobs",
   },
   {
     file: `${API}monitoring/route.ts`,
@@ -238,11 +242,9 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     method: 'PATCH',
     load: () => import('../../src/app/api/dev/permissions/projects/[id]/route'),
     request: async (env) => ({
-      ...(await sendJson(
-        'PATCH',
-        `/api/dev/permissions/projects/${env.projectId}`,
-        { name: 'Money check' },
-      )()),
+      ...(await sendJson('PATCH', `/api/dev/permissions/projects/${env.projectId}`, {
+        name: 'Money check',
+      })()),
       params: { id: env.projectId },
     }),
     expectStatus: 200,
@@ -284,6 +286,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
         params: { id },
       };
     },
+    expectStatus: 200,
+  },
+  {
+    file: `${API}settings/system-status/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/system-status/route'),
+    request: get('/api/settings/system-status?part=jobs&page=1'),
+    expectStatus: 200,
+    note: 'EZD-135: failed jobs of the last 30 days; 200 StatusPage (no money)',
+  },
+  {
+    file: `${API}settings/users/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/users/route'),
+    request: get('/api/settings/users'),
     expectStatus: 200,
   },
   {
@@ -348,6 +365,54 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
   },
   {
+    file: `${API}profile/ai-key/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/profile/ai-key/route'),
+    request: sendJson('POST', '/api/profile/ai-key', {
+      key: 'sk-ant-api03-EZD5601MONEY' + randomUUID().replaceAll('-', ''),
+    }),
+    expectStatus: 200,
+    note: 'EZD-5601: the built-in key-check recording answers 200, so the key is stored (E4)',
+  },
+  {
+    file: `${API}profile/ai-key/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/profile/ai-key/route'),
+    request: async () => ({
+      request: new Request(`${BASE}/api/profile/ai-key`, { method: 'DELETE' }),
+    }),
+    expectStatus: 200,
+    note: 'EZD-5601: removes the key the case before stored (E4)',
+  },
+  // EZD-5602 E4 (vault/plans/EZD-5602.md section 4): after the DELETE above, so the money user has no key.
+  {
+    file: `${API}projects/[id]/assistant/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/assistant/route'),
+    request: async (env) => {
+      const form = new FormData();
+      form.append(
+        'request',
+        JSON.stringify({
+          prompt: 'Add a door',
+          history: [],
+          model: 'sonnet',
+          floorId: randomUUID(),
+          selectedIds: [],
+        }),
+      );
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/assistant`, {
+          method: 'POST',
+          body: form,
+        }),
+        params: { id: env.projectId },
+      };
+    },
+    expectStatus: 400,
+    note: 'no key; the 200 body is EZD-5602 T15',
+  },
+  {
     file: `${API}profile/password/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/profile/password/route'),
@@ -408,7 +473,12 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       return {
         request: new Request(`${BASE}/api/projects/${env.projectId}/objects`, {
           method: 'POST',
-          headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+          headers: {
+            ...JSON_HEADERS,
+            'x-ezdraft-membership': env.member.membershipId,
+            // EZD-299a D-Order: a save names its app build; Vitest leaves the build at 0.
+            'x-ezdraft-app-build': '0',
+          },
           body: JSON.stringify({
             lockEpoch: 0,
             changes: [
@@ -451,7 +521,75 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       params: { id: env.projectId },
     }),
     expectStatus: 201,
+    after: (body, env) => env.created.set('thumbVersionId', field(body, 'version', 'id')),
     note: 'EZD-120a: one checkpoint; 201 { version: { id } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/thumbnail/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/thumbnail/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/thumbnail`,
+          { method: 'POST' },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    after: (body, env) => {
+      env.created.set('thumbUpload', JSON.stringify((body as { upload: unknown }).upload));
+      env.created.set('thumbPath', field(body, 'upload', 'path'));
+    },
+    note: 'EZD-224: signs one thumbnail upload; 200 { upload } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/thumbnail/complete/route.ts`,
+    method: 'POST',
+    load: () =>
+      import('../../src/app/api/projects/[id]/versions/[versionId]/thumbnail/complete/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      const upload = JSON.parse(made(env, 'thumbUpload')) as SignedUpload;
+      await uploadFile(upload, new Blob([THUMB_WEBP]), { contentType: 'image/webp' });
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/thumbnail/complete`,
+          { method: 'POST' },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-224: records the thumbnail; 200 { thumbnail: { versionId } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/thumbnail/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/thumbnail/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/thumbnail`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 302,
+    note: 'EZD-224: the card image; 302 to a signed link, empty body (no money)',
+  },
+  {
+    file: `${API}projects/[id]/plan-scale/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/plan-scale/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/plan-scale`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ scale: 0.5 }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-219: the plan scale; 200 { scale } (no money)',
   },
   {
     file: `${API}projects/[id]/model/route.ts`,
@@ -463,5 +601,72 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-120b: the project and its objects; 200 ModelLoad (no money)',
+  },
+  {
+    file: `${API}benchmark/project/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/benchmark/project/route'),
+    request: async () => ({
+      request: new Request(`${BASE}/api/benchmark/project`, { method: 'POST' }),
+    }),
+    expectStatus: 201,
+    note: 'EZD-236: makes the benchmark project; 201 { project: { id } } (no money)',
+  },
+  // EZD-299a section 4 T18 (vault/plans/EZD-299a.md): the sync conflict routes.
+  {
+    file: `${API}sync-conflicts/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/sync-conflicts/route'),
+    request: get('/api/sync-conflicts'),
+    expectStatus: 200,
+    note: "EZD-299a: the caller's refused changes; 200 { items } (no money)",
+  },
+  {
+    file: `${API}projects/[id]/sync-conflicts/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/sync-conflicts/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/sync-conflicts`, {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+        body: JSON.stringify({
+          changes: [
+            {
+              id: randomUUID(),
+              baseSeq: 0,
+              reason: 'conflict',
+              deleted: false,
+              type: 'wall',
+              schemaVersion: 3,
+              data: { attributes: { number: 4 } },
+            },
+          ],
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    after: (body, env) => {
+      const ids = (body as { ids?: unknown }).ids;
+      if (!Array.isArray(ids) || typeof ids[0] !== 'string') {
+        throw new Error('response has no ids[0] string');
+      }
+      env.created.set('syncConflictId', ids[0]);
+    },
+    note: 'EZD-299a: records one refused change; 201 { ids, notificationId } (no money)',
+  },
+  {
+    file: `${API}sync-conflicts/[conflictId]/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/sync-conflicts/[conflictId]/route'),
+    request: async (env) => {
+      const id = made(env, 'syncConflictId');
+      return {
+        request: new Request(`${BASE}/api/sync-conflicts/${id}`, { method: 'DELETE' }),
+        params: { conflictId: id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-299a: removes that row; 200 { removed: true } (no money)',
   },
 ];

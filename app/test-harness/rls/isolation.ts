@@ -33,6 +33,9 @@ export type IsolationOptions = {
   makeRow: (tenantId: string, ctx: IsolationContext) => Row | Promise<Row>;
   // Columns to set in the update attempt; default: the first non-key column of the row, to its own value.
   update?: Row;
+  // EZD-5601 step 2: 'rls' (default) expects the other tenant's select to return no row; 'none' is for a table
+  // with no API grant at all (reached only through definer functions): the select expects error code 42501.
+  apiAccess?: 'rls' | 'none';
 };
 
 const PRIVILEGE = '42501';
@@ -84,6 +87,10 @@ export function describeTenantIsolation(table: string, options: IsolationOptions
 
     it(`select by key as another tenant's member returns no row (${table})`, async () => {
       const { data, error } = await b.serverDb.from(table).select('*').match(key);
+      if (options.apiAccess === 'none') {
+        expect(error?.code).toBe(PRIVILEGE);
+        return;
+      }
       expect(error).toBeNull();
       expect(data).toEqual([]);
     });

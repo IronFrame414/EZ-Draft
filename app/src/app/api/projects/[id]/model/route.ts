@@ -23,10 +23,7 @@ export async function GET(
   try {
     const { id } = await params;
     const p = await requireApiPermission('view_projects');
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     if (!z.uuid().safeParse(id).success) return fail(404, 'project_not_found');
     const denied = requirePermission(p.ctx, 'view_projects', { projectId: id });
     if (denied) return denied;

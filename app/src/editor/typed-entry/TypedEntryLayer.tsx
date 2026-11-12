@@ -1,0 +1,332 @@
+'use client';
+// Typed dimension bar and inline box (EZD-209; S03 Typed dimension bar; 04 Measurement entry).
+// Not mounted in the real editor: EZD-210 mounts it with the first real tools.
+// EZD-211b Build step 7 (vault/plans/EZD-211b.md Decided "openAt"; Q-0634): `openAt` opens the box at a field.
+// EZD-212c (vault/plans/EZD-212c.md D15-D17): the tablet bar's Next field and Cancel, `openOnMount`.
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, Ref } from 'react';
+import { PLAN_DISPLAY_DENOMINATOR, formatLength } from '@ezdraft/geometry';
+import { Icon } from '../../components/icon/Icon';
+import { useT } from '../../lib/messages';
+import touch from '../../styles/touch.module.css';
+import {
+  initialTypedEntryState,
+  isOpenKey,
+  isTypingTarget,
+  reduceTypedEntry,
+  type TypedEntryAction,
+  type TypedEntryState,
+  type TypedTool,
+  type TypedValues,
+} from './typed-entry';
+import styles from './TypedEntryLayer.module.css';
+
+export function TypedBar({
+  tool,
+  state,
+  lastValues,
+  onFieldPress,
+  coarse,
+  onNext,
+  onCancel,
+}: {
+  tool: TypedTool;
+  state: TypedEntryState;
+  lastValues: Readonly<Record<string, number>>;
+  onFieldPress: () => void;
+  coarse?: boolean;
+  onNext?: () => void;
+  onCancel?: () => void;
+}) {
+  const t = useT();
+  const field = tool.fields[state.active] ?? tool.fields[0];
+  const last = lastValues[field.id];
+  const chip = (
+    <button
+      type="button"
+      className={`${styles.chip} ${touch.hitArea}`}
+      data-testid="typed-bar-field"
+      onClick={onFieldPress}
+    >
+      <Icon name={tool.icon} size={16} />
+      <span className={styles.chipLabel} data-testid="typed-bar-label">
+        {t(field.label)}
+      </span>
+      {field.kind === 'length' && last !== undefined ? (
+        <span className={styles.chipValue} data-testid="typed-bar-value">
+          {formatLength(last, PLAN_DISPLAY_DENOMINATOR)}
+        </span>
+      ) : null}
+    </button>
+  );
+  if (coarse === true) {
+    return (
+      <div className={`${styles.bar} ${styles.coarse}`} data-testid="typed-bar" data-coarse="true">
+        {chip}
+        {state.error !== null ? (
+          <span className={styles.error} role="alert" data-testid="typed-bar-error">
+            {t(state.error)}
+          </span>
+        ) : null}
+        <div className={styles.buttons}>
+          <button type="button" className={styles.tb} data-testid="typed-bar-next" onClick={onNext}>
+            <Icon name="keyboard_tab" size={18} />
+            <span>{t('office.typed.next_field')}</span>
+          </button>
+          <button
+            type="button"
+            className={styles.tb}
+            data-testid="typed-bar-cancel"
+            onClick={onCancel}
+          >
+            <Icon name="close" size={18} />
+            <span>{t('common.cancel')}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.bar} data-testid="typed-bar">
+      {chip}
+      {state.error !== null ? (
+        <span className={styles.error} role="alert" data-testid="typed-bar-error">
+          {t(state.error)}
+        </span>
+      ) : (
+        <span className={styles.hint} data-testid="typed-bar-hint">
+          {t(field.kind === 'length' ? 'office.typed.hint_length' : 'office.typed.hint_angle')}
+        </span>
+      )}
+      {tool.fields.length > 1 ? (
+        <span className={styles.tab} data-testid="typed-bar-tab">
+          {t('office.typed.tab')}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+export function InlineBox({
+  tool,
+  state,
+  onEdit,
+  onKeyDown,
+  inputRef,
+  boxRef,
+}: {
+  tool: TypedTool;
+  state: TypedEntryState;
+  onEdit: (text: string) => void;
+  onKeyDown: (e: ReactKeyboardEvent<HTMLInputElement>) => void;
+  inputRef?: Ref<HTMLInputElement>;
+  boxRef?: Ref<HTMLDivElement>;
+}) {
+  const t = useT();
+  const field = tool.fields[state.active] ?? tool.fields[0];
+  return (
+    <div className={styles.box} data-testid="typed-box" ref={boxRef}>
+      <span data-testid="typed-box-label">{t(field.label)}</span>
+      <input
+        ref={inputRef}
+        className={styles.boxInput}
+        data-testid="typed-box-input"
+        type="text"
+        inputMode="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        maxLength={32}
+        aria-label={t(field.label)}
+        aria-invalid={state.error !== null}
+        value={state.texts[state.active] ?? ''}
+        onChange={(e) => onEdit(e.target.value)}
+        onKeyDown={onKeyDown}
+      />
+    </div>
+  );
+}
+
+type LayerProps = {
+  tool: TypedTool | null;
+  canEdit: boolean;
+  lastValues: Readonly<Record<string, number>>;
+  getCursor: () => { x: number; y: number } | null;
+  onCommit: (values: TypedValues) => void;
+  openAt?: { field: number; seq: number } | null;
+  coarse?: boolean;
+  onCancel?: () => void;
+  openOnMount?: boolean;
+  onEscape?: () => void;
+};
+
+export function TypedEntryLayer(props: LayerProps) {
+  const { tool, canEdit } = props;
+  if (tool === null || !canEdit) return null;
+  return <LayerInner key={tool.id} {...props} tool={tool} />;
+}
+
+function LayerInner({
+  tool,
+  lastValues,
+  getCursor,
+  onCommit,
+  openAt,
+  coarse,
+  onCancel,
+  openOnMount,
+  onEscape,
+}: LayerProps & { tool: TypedTool }) {
+  const [state, setState] = useState<TypedEntryState>(() =>
+    openOnMount === true
+      ? reduceTypedEntry(tool, initialTypedEntryState(tool), {
+          type: 'open',
+          text: '',
+          anchor: 'bar',
+        }).state
+      : initialTypedEntryState(tool),
+  );
+  const stateRef = useRef(state);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const getCursorRef = useRef(getCursor);
+  const onCommitRef = useRef(onCommit);
+  const onCancelRef = useRef(onCancel);
+  const onEscapeRef = useRef(onEscape);
+  useLayoutEffect(() => {
+    getCursorRef.current = getCursor;
+    onCommitRef.current = onCommit;
+    onCancelRef.current = onCancel;
+    onEscapeRef.current = onEscape;
+  });
+
+  const dispatch = useCallback(
+    (action: TypedEntryAction) => {
+      const step = reduceTypedEntry(tool, stateRef.current, action);
+      stateRef.current = step.state;
+      setState(step.state);
+      if (step.commit !== null) onCommitRef.current(step.commit);
+    },
+    [tool],
+  );
+
+  const seen = useRef(openAt?.seq ?? null);
+  const openSeq = openAt?.seq;
+  useEffect(() => {
+    if (openAt === undefined || openAt === null || openAt.seq === seen.current) return;
+    seen.current = openAt.seq;
+    if (stateRef.current.open) dispatch({ type: 'escape' });
+    dispatch({ type: 'open', text: '', anchor: 'bar' });
+    for (let i = 0; i < openAt.field; i++) dispatch({ type: 'tab', back: false });
+    inputRef.current?.focus();
+    // Runs on a new `openAt.seq` only (D:openAt).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSeq]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target === inputRef.current) return;
+      const typing = isTypingTarget(e.target);
+      let action: TypedEntryAction | null = null;
+      if (!stateRef.current.open) {
+        if (isOpenKey(e) && !typing) action = { type: 'open', text: e.key, anchor: 'cursor' };
+      } else if (!typing) {
+        if (isOpenKey(e)) action = { type: 'append', text: e.key };
+        else if (e.key === 'Tab') action = { type: 'tab', back: e.shiftKey };
+        else if (e.key === 'Enter') action = { type: 'enter' };
+        else if (e.key === 'Escape') action = { type: 'escape' };
+      }
+      if (action === null) return;
+      e.preventDefault();
+      e.stopPropagation();
+      dispatch(action);
+      if (action.type === 'append') inputRef.current?.focus();
+      // EZD-212c: an Esc that closes the box is told to the owner too.
+      if (action.type === 'escape') onEscapeRef.current?.();
+    };
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => window.removeEventListener('keydown', onKey, { capture: true });
+  }, [dispatch]);
+
+  useLayoutEffect(() => {
+    if (!state.open) return;
+    inputRef.current?.focus();
+    const root = rootRef.current;
+    const box = boxRef.current;
+    const bar = root?.querySelector<HTMLElement>('[data-testid="typed-bar"]') ?? null;
+    if (root === null || box === null || bar === null) return;
+    const W = root.clientWidth;
+    const H = root.clientHeight;
+    const w = box.offsetWidth;
+    const h = box.offsetHeight;
+    const p = state.anchor === 'cursor' ? getCursorRef.current() : null;
+    let left: number;
+    let top: number;
+    if (p === null) {
+      left = Math.round((W - w) / 2);
+      top = bar.offsetTop - h - 8;
+    } else {
+      left = Math.max(8, Math.min(p.x + 12, W - w - 8));
+      top = Math.max(8, Math.min(p.y + 12, H - h - 8));
+    }
+    box.style.left = `${left}px`;
+    box.style.top = `${top}px`;
+    // Positioned only when the box opens, not on Tab (D-Pos).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.open]);
+
+  const onInputKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    let action: TypedEntryAction | null = null;
+    if (e.key === 'Tab') action = { type: 'tab', back: e.shiftKey };
+    else if (e.key === 'Enter') action = { type: 'enter' };
+    else if (e.key === 'Escape') action = { type: 'escape' };
+    e.stopPropagation();
+    if (action === null) return;
+    e.preventDefault();
+    dispatch(action);
+    if (action.type === 'escape') onEscapeRef.current?.();
+  };
+
+  const onFieldPress = () => {
+    if (stateRef.current.open) inputRef.current?.focus();
+    else dispatch({ type: 'open', text: '', anchor: 'bar' });
+  };
+
+  // D17: Next field is the Tab chip; Cancel is Esc.
+  const onNext = () => {
+    if (!stateRef.current.open) dispatch({ type: 'open', text: '', anchor: 'bar' });
+    dispatch({ type: 'tab', back: false });
+    inputRef.current?.focus();
+  };
+
+  const onCancelPress = () => {
+    dispatch({ type: 'escape' });
+    onCancelRef.current?.();
+  };
+
+  return (
+    <div className={styles.root} data-testid="typed-entry-layer" ref={rootRef}>
+      <TypedBar
+        tool={tool}
+        state={state}
+        lastValues={lastValues}
+        onFieldPress={onFieldPress}
+        coarse={coarse}
+        onNext={onNext}
+        onCancel={onCancelPress}
+      />
+      {state.open ? (
+        <InlineBox
+          tool={tool}
+          state={state}
+          onEdit={(text) => dispatch({ type: 'edit', text })}
+          onKeyDown={onInputKeyDown}
+          inputRef={inputRef}
+          boxRef={boxRef}
+        />
+      ) : null}
+    </div>
+  );
+}

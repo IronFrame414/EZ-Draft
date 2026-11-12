@@ -49,7 +49,21 @@ export function notificationTitle(
       key: `office.notifications.kind.client_response.${params.action}` as MessageKey,
       params,
     };
+  // EZD-299a Build step 16 (vault/plans/EZD-299a.md Decided D-Title; N1, N1b; Q-0627): the plural needs a
+  // numeric count; an old `{}` row renders with count 0.
+  if (kind === 'sync_conflict') {
+    const count = toCount(params.count);
+    const more = toCount(params.more);
+    const names = params.names ?? '';
+    return more > 0
+      ? { key: 'office.notifications.kind.sync_conflict_more', params: { count, names, more } }
+      : { key: 'office.notifications.kind.sync_conflict', params: { count, names } };
+  }
   return { key: `office.notifications.kind.${kind}` as MessageKey, params };
+}
+
+function toCount(value: string | undefined): number {
+  return value !== undefined && /^[0-9]+$/.test(value) ? Number(value) : 0;
 }
 
 // EZD-110b Step 7 (vault/plans/EZD-110b.md section 3 "kinds.ts"; board 01c): the icon of a notification.

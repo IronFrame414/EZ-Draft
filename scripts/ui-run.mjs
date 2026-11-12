@@ -11,6 +11,7 @@ import { existsSync, realpathSync, writeFileSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { excludedPrefix } from './excluded-form.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [ticket, spec, ...rest] = process.argv.slice(2);
@@ -29,7 +30,7 @@ try {
   unlinkSync(probe);
 } catch (e) {
   if (e.code === 'EPERM' || e.code === 'EACCES') {
-    console.log(`UI-RUN SANDBOX STOP: ui-run ran inside the unit sandbox, where Chromium cannot start. Run \`node scripts/ui-run.mjs ${process.argv.slice(2).join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout.`);
+    console.log(`UI-RUN SANDBOX STOP: ui-run ran inside the unit sandbox, where Chromium cannot start. Run \`${excludedPrefix(path.join(root, 'scripts'), 'ui-run.mjs')} ${process.argv.slice(2).join(' ')}\` again as its own Bash call, exactly so written: no cd, no &&, no ;, no pipe, no redirect, no timeout.`);
     process.exit(3);
   }
 }

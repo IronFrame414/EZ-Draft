@@ -4,8 +4,10 @@
 // kept) and "commit, drop".
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
+import { openDB } from 'idb';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { v } from '../../../test-harness/outbox/sync-support';
+import { DEVICE_DB } from './device-db';
 import { createIdbOutboxStorage } from './outbox-idb';
 import type { Actor } from './outbox';
 
@@ -101,6 +103,43 @@ describe('EZD-120b device outbox storage', () => {
     expect(await s.list()).toEqual([]);
     await s.put('p', 0, [{ id: 'A', value: v(1) }], 200);
     expect((await s.list())[0].baseSeq).toBe(0);
+    s.close();
+  });
+});
+
+// EZD-294 I1 (vault/plans/EZD-294.md section 4 and step 9; AC-EZD-294-2).
+describe('EZD-294 device mirror numbers', () => {
+  it('EZD-294 I1 commit writes the server number into the mirror', async () => {
+    const wall = {
+      type: 'wall',
+      schemaVersion: 3,
+      data: { attributes: { number: 5 } },
+    };
+    const room = { type: 'room', schemaVersion: 3, data: { attributes: { name: 'Room 1' } } };
+    const s = createIdbOutboxStorage(U1T1);
+    await s.put(
+      'p',
+      0,
+      [
+        { id: 'W', value: wall },
+        { id: 'R', value: room },
+      ],
+      100,
+    );
+    const sent = await s.list();
+    await s.commit('p', sent, [
+      { id: 'W', updatedSeq: 1, number: 6 },
+      { id: 'R', updatedSeq: 1 },
+    ]);
+    expect(await s.list()).toEqual([]);
+    const db = await openDB(DEVICE_DB);
+    const mirrorW = (await db.get('working_copy', ['u1', 't1', 'p', 'W'])) as {
+      value: { data: { attributes: Record<string, unknown> } };
+    };
+    const mirrorR = (await db.get('working_copy', ['u1', 't1', 'p', 'R'])) as { value: unknown };
+    db.close();
+    expect(mirrorW.value.data.attributes.number).toBe(6);
+    expect(mirrorR.value).toEqual(room);
     s.close();
   });
 });

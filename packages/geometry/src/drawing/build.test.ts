@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 import {
   buildDrawingList,
-  DEFAULT_DOOR_SWING,
   type DimensionInput,
   type DrawingItem,
   type DrawingList,
@@ -12,6 +11,7 @@ import {
   type ModelObject,
   type Point,
 } from '../index';
+import { roomObj, uid } from '../rooms/test-utils/fixtures';
 
 const F1 = '11111111-1111-4111-8111-111111111111';
 const F2 = '22222222-2222-4222-8222-222222222222';
@@ -72,7 +72,7 @@ function opening(
     id,
     type: 'opening',
     data: {
-      geometry: { center, hostWallId },
+      geometry: { center, hostWallId, axis: null },
       status,
       level: F1,
       attributes: {
@@ -81,6 +81,11 @@ function opening(
         height: 80,
         roughOpening: { width: 38, height: 82 },
         sillHeight: kind === 'door' ? 0 : 36,
+        swing: kind === 'door' ? 'left' : null,
+        hand: kind === 'door' ? 'left' : null,
+        impactRating: 'not_rated',
+        shutterType: null,
+        roughOpeningMode: 'typed',
       },
     },
   };
@@ -102,8 +107,10 @@ function fx(w1Side: Side = 'right', extra: ModelObject[] = []): ModelDocument {
         type: 'room',
         data: {
           geometry: { boundary: [P(0, 0), P(144, 0), P(144, 120), P(0, 120)] },
+          status: 'existing',
           level: F1,
           attributes: { name: 'R1' },
+          closureOverride: null,
         },
       },
       wall(W5, F2, P(0, 0), P(120, 0), 'new'),
@@ -121,6 +128,7 @@ const V1: DrawingView = {
   level: F1,
   dimensionTextPt: 6.75,
   roomHatch: { angleDeg: 45, spacingIn: 6 },
+  roomLabelPt: 11.25,
 };
 
 const build = (doc: ModelDocument = fx(), view: DrawingView = V1): DrawingList =>
@@ -205,7 +213,6 @@ describe('EZD-238 drawing list', () => {
   });
 
   it('EZD-238 T5 door swing arc', () => {
-    expect(DEFAULT_DOOR_SWING).toEqual({ hinge: 'start', opensTo: 'left' });
     const l = build();
     const leaf = lines(l, D1);
     expect(leaf).toHaveLength(1);
@@ -273,7 +280,7 @@ describe('EZD-238 drawing list', () => {
     expect(l.items.some((i) => i.objectId === W5 || i.objectId === 'M3')).toBe(false);
 
     const upper = build(fx(), { ...V1, level: F1.toUpperCase() });
-    expect(upper.items).toHaveLength(33);
+    expect(upper.items).toHaveLength(34);
     expect(upper.items.map((i) => i.kind)).toEqual(l.items.map((i) => i.kind));
 
     const f2 = build(fx(), { ...V1, level: F2 });
@@ -311,13 +318,14 @@ describe('EZD-238 drawing list', () => {
     ]);
     const l = build(doc);
     expect(l.omitted).toEqual([
-      { id: D2, reason: 'not_on_wall' },
       { id: D3, reason: 'host_not_found' },
       { id: W6, reason: 'zero_length' },
     ]);
-    expect(l.items.some((i) => i.objectId === D2 || i.objectId === D3 || i.objectId === W6)).toBe(
-      false,
-    );
+    expect(l.items.some((i) => i.objectId === D3 || i.objectId === W6)).toBe(false);
+    // EZD-204b E4 (vault/plans/EZD-204b.md section 4; Decided "Flagged opening"): D2 is drawn on 'flagged'.
+    const d2 = l.items.filter((i) => i.objectId === D2);
+    expect(d2.length).toBeGreaterThanOrEqual(1);
+    expect(d2.every((i) => i.layer === 'flagged')).toBe(true);
   });
 
   it('EZD-238 T11 order and count', () => {
@@ -338,9 +346,10 @@ describe('EZD-238 drawing list', () => {
       'text',
       'line',
       'text',
+      'text',
     ];
     expect(l.items.map((i) => i.kind)).toEqual(want);
-    expect(l.items).toHaveLength(33);
+    expect(l.items).toHaveLength(34);
   });
 
   it('EZD-238 T12 invalid view', () => {
@@ -376,5 +385,181 @@ describe('EZD-238 drawing list', () => {
     ]);
     expectLine(lines(l, D1)[0], 30, 2.25, 30, 38.25);
     expectPt(arcs(l, D1)[0].center, 30, 2.25);
+  });
+});
+
+// EZD-205a · T19, T20 (vault/plans/EZD-205a.md section 1 Decided "Label", "roomLabelText", "roomLabelPt"; section
+// 4). Expected values: Q-0576 (a); Q-0568; Q-0570 (capitals); 09j rows 3, 5, 6; board S03 (0.1 em spacing); the
+// Instrument Sans 600 advances in plan section 2. The middle dot is written as its escape (L-042).
+type LabelItem = Extract<DrawingItem, { kind: 'text'; font: 'instrument-sans-600' }>;
+const labels = (l: DrawingList, id: string) =>
+  l.items.filter(
+    (i): i is LabelItem =>
+      i.kind === 'text' && i.font === 'instrument-sans-600' && i.objectId === id,
+  );
+const RECT = (w: number, d: number): Point[] => [P(0, 0), P(w, 0), P(w, d), P(0, d)];
+
+describe('EZD-205a room labels', () => {
+  it('EZD-205a T19 room label: each room gets NAME \u00b7 N SF in Instrument Sans 600 after the other items', () => {
+    const l = build();
+    const last = l.items[l.items.length - 1] as LabelItem;
+    expect(last.kind).toBe('text');
+    expect(last.layer).toBe('rooms');
+    expect(last.objectId).toBe(R1);
+    expect(last.text).toBe('R1 \u00b7 120 SF');
+    expect(last.font).toBe('instrument-sans-600');
+    expect(last.sizePt).toBeCloseTo(11.25, 9);
+    expect(last.letterSpacingPt).toBeCloseTo(1.125, 9);
+    expect(last.widthPt).toBeCloseTo(63.2925, 9);
+    expectPt(last.at, 72, 60);
+    expect(last.rotationDeg).toBeCloseTo(0, 9);
+    expect(last.align).toBe('center');
+  });
+
+  it('EZD-205a T20 label forms: capitals, comma groups, whole feet; label at the inside point; label size required', () => {
+    const L_SHAPE = [P(0, 0), P(144, 0), P(144, 84), P(96, 84), P(96, 120), P(0, 120)];
+    const rooms: [string, Point[], string][] = [
+      [uid(1), RECT(141.5, 168), 'Kitchen'],
+      [uid(2), RECT(48, 48), 'PANTRY'],
+      [uid(3), RECT(2400, 2400), 'Big'],
+      [uid(4), RECT(6, 6), 'Tiny'],
+      [uid(5), L_SHAPE, 'L'],
+    ];
+    const l = build(
+      fx(
+        'right',
+        rooms.map(([id, b, name]) => roomObj(id, b, name)),
+      ),
+    );
+    const labelOf = (id: string): LabelItem => {
+      const got = labels(l, id);
+      expect(got, id).toHaveLength(1);
+      return got[0]!;
+    };
+    expect(labelOf(uid(1)).text).toBe('KITCHEN \u00b7 165 SF');
+    expect(labelOf(uid(2)).text).toBe('PANTRY \u00b7 16 SF');
+    expect(labelOf(uid(3)).text).toBe('BIG \u00b7 40,000 SF');
+    expect(labelOf(uid(4)).text).toBe('TINY \u00b7 0 SF');
+    expectPt(labelOf(uid(5)).at, 200 / 3, 166 / 3);
+
+    expect(() => build(fx(), { ...V1, roomLabelPt: 0 })).toThrow(z.ZodError);
+    const noLabel: Partial<DrawingView> = { ...V1 };
+    delete noLabel.roomLabelPt;
+    expect(() => build(fx(), noLabel as DrawingView)).toThrow(z.ZodError);
+  });
+});
+
+// EZD-204b D1, D2 (vault/plans/EZD-204b.md sections 3, 4; AC-EZD-204-4, -10, -15). Expected values: plan Decided
+// "Flagged opening", "Door symbol"; Q-0630 row 27; Q-0642 rows 2-3; Q-0641 row 1.
+const N2 = '52222222-2222-4222-8222-222222222222';
+type Hand = 'left' | 'right';
+
+function withGeometry(o: ModelObject, g: Record<string, unknown>): ModelObject {
+  if (o.type !== 'opening') throw new Error('not an opening');
+  return { ...o, data: { ...o.data, geometry: { ...o.data.geometry, ...g } } } as ModelObject;
+}
+function withHandSwing(o: ModelObject, hand: Hand, swing: Hand): ModelObject {
+  if (o.type !== 'opening') throw new Error('not an opening');
+  return {
+    ...o,
+    data: { ...o.data, attributes: { ...o.data.attributes, hand, swing } },
+  } as ModelObject;
+}
+
+describe('EZD-204b door symbol and flag', () => {
+  it('EZD-204b D1 a flagged opening is drawn red in place', () => {
+    const doc = fx('right', [
+      withGeometry(opening(D2, 'door', P(72, 0), null, 'new'), { axis: { x: 1, y: 0 } }),
+      opening(N2, 'window', P(72, 200), null, 'new'),
+    ]);
+    const l = build(doc);
+
+    const d2 = l.items.filter((i) => i.objectId === D2);
+    expect(d2.map((i) => i.kind)).toEqual(['line', 'line', 'arc']);
+    const cutBar = d2[0] as LineItem;
+    const leaf = d2[1] as LineItem;
+    const arc = d2[2] as ArcItem;
+    expect(cutBar.role).toBe('cut');
+    expectLine(cutBar, 54, 0, 90, 0);
+    expect(leaf.role).toBe('cut');
+    expectLine(leaf, 54, 0, 54, 36);
+    expect(arc.role).toBe('hidden');
+    expectPt(arc.center, 54, 0);
+    expect(arc.radius).toBeCloseTo(36, 9);
+    expect(arc.startAngle).toBeCloseTo(0, 9);
+    expect(arc.endAngle).toBeCloseTo(90, 9);
+
+    const n2 = l.items.filter((i) => i.objectId === N2);
+    expect(n2).toHaveLength(1);
+    expect(n2[0]!.kind).toBe('line');
+    expect((n2[0] as LineItem).role).toBe('cut');
+    expectLine(n2[0] as LineItem, 54, 200, 90, 200);
+
+    for (const i of [...d2, ...n2]) expect(i.layer).toBe('flagged');
+    expect(l.omitted.some((o) => o.id === D2 || o.id === N2)).toBe(false);
+
+    const idx = (pred: (i: DrawingItem) => boolean) =>
+      l.items.flatMap((i, k) => (pred(i) ? [k] : []));
+    const flaggedIdx = idx((i) => i.objectId === D2 || i.objectId === N2);
+    const hostedIdx = idx((i) => i.objectId === D1 || i.objectId === N1);
+    const dimIdx = idx((i) => i.layer === 'dimensions');
+    expect(hostedIdx.length).toBeGreaterThan(0);
+    expect(dimIdx.length).toBeGreaterThan(0);
+    expect(Math.min(...flaggedIdx)).toBeGreaterThan(Math.max(...hostedIdx));
+    expect(Math.max(...flaggedIdx)).toBeLessThan(Math.min(...dimIdx));
+  });
+
+  it('EZD-204b D2 door leaf and arc follow hand and swing', () => {
+    const fxWith = (hand: Hand, swing: Hand): ModelDocument => ({
+      objects: fx().objects.map((o) => (o.id === D1 ? withHandSwing(o, hand, swing) : o)),
+    });
+    const reversed: ModelDocument = {
+      objects: [
+        wall(W6, F1, P(144, 0), P(0, 0), 'existing'),
+        opening(D1, 'door', P(48, 0), W6, 'new'),
+      ],
+    };
+    const vertical: ModelDocument = {
+      objects: [
+        wall(W6, F1, P(0, 0), P(0, 120), 'existing'),
+        opening(D1, 'door', P(0, 60), W6, 'new'),
+      ],
+    };
+    const cases: [string, ModelDocument, Seg, number][] = [
+      ['left,left', fxWith('left', 'left'), [30, 0, 30, 36], 0],
+      ['right,left', fxWith('right', 'left'), [66, 0, 66, 36], 90],
+      ['left,right', fxWith('left', 'right'), [30, -4.5, 30, -40.5], 270],
+      ['right,right', fxWith('right', 'right'), [66, -4.5, 66, -40.5], 180],
+      ['reversed wall', reversed, [30, 0, 30, -36], 270],
+      ['vertical wall', vertical, [0, 78, -36, 78], 180],
+    ];
+    for (const [name, doc, seg, start] of cases) {
+      const l = build(doc);
+      const got = lines(l, D1);
+      expect(got, name).toHaveLength(1);
+      expectLine(got[0]!, seg[0], seg[1], seg[2], seg[3]);
+      const a = arcs(l, D1);
+      expect(a, name).toHaveLength(1);
+      expect(a[0]!.startAngle, name).toBeCloseTo(start, 9);
+      expect(a[0]!.endAngle, name).toBeCloseTo(start + 90, 9);
+      expectPt(a[0]!.center, seg[0], seg[1]);
+      expect(a[0]!.radius, name).toBeCloseTo(36, 9);
+    }
+  });
+});
+
+// EZD-235 B1 (vault/plans/EZD-235.md section 4; D-Label; 09j Room area row 1). Middle dot as its escape (L-042).
+describe('EZD-235 drawing list options', () => {
+  it("EZD-235 B1 the roomAreaSqFt option sets the label's area and gets the room", () => {
+    const calls: { id: string; type: string }[] = [];
+    const spy = (room: { id: string; type: string }): number => {
+      calls.push({ id: room.id, type: room.type });
+      return 40000;
+    };
+    const withSpy = buildDrawingList(fx(), V1, [], { roomAreaSqFt: spy });
+    expect(labels(withSpy, R1)[0]!.text).toBe('R1 \u00b7 40,000 SF');
+    expect(calls).toEqual([{ id: R1, type: 'room' }]);
+    expect(labels(buildDrawingList(fx(), V1, [], {}), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
+    expect(labels(buildDrawingList(fx(), V1, []), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
   });
 });

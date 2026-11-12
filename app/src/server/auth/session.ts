@@ -33,12 +33,15 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
+const headers = { 'Cache-Control': 'no-store' };
+
+// EZD-349 (D-016): the 401 carries Cache-Control: no-store, as the 403 and 404 in can.ts do.
 export async function requireApiSession(): Promise<Session | Response> {
   const session = await getSession();
   if (session === null) {
     return Response.json(
       { error: { code: 'not_signed_in', message_key: 'error.not_signed_in' } },
-      { status: 401 },
+      { status: 401, headers },
     );
   }
   return session;

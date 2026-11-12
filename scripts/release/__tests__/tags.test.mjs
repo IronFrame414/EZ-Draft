@@ -36,4 +36,26 @@ describe('EZD-023a release tags', () => {
     assert.ok(compareReleaseTags('phase-1.2', 'phase-1') > 0, 'phase-1.2 after phase-1');
     assert.equal(compareReleaseTags('phase-1', 'phase-1'), 0);
   });
+
+  // EZD-360 (vault/plans/EZD-360.md section 4, T6-T9): phase 56 sorts between phase 5 and phase 6 (D-Tags).
+  test('EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)', async () => {
+    const { compareReleaseTags } = await load();
+    const sorted = ['phase-6', 'phase-56.2', 'phase-5', 'phase-56', 'phase-5.3'].sort(compareReleaseTags);
+    assert.deepEqual(sorted, ['phase-5', 'phase-5.3', 'phase-56', 'phase-56.2', 'phase-6']);
+  });
+
+  test('EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)', async () => {
+    const { releaseTagFor } = await import('../release-name.mjs');
+    assert.deepEqual(releaseTagFor({ prTitle: 'Phase 6: x', tags: ['phase-5', 'phase-56'], tagsOnSha: [] }), { tag: 'phase-6', resume: false });
+  });
+
+  test('EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)', async () => {
+    const { releaseTagFor } = await import('../release-name.mjs');
+    assert.deepEqual(releaseTagFor({ prTitle: 'Phase 56: x', tags: ['phase-5'], tagsOnSha: [] }), { tag: 'phase-56', resume: false });
+  });
+
+  test('EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)', async () => {
+    const { releaseTagFor } = await import('../release-name.mjs');
+    assert.deepEqual(releaseTagFor({ prTitle: 'Phase 56: x', tags: ['phase-6'], tagsOnSha: [] }), { code: 'not_newer' });
+  });
 });

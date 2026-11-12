@@ -55,11 +55,16 @@ export const es = {
     'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
   'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
   'error.project_not_found': 'Ese proyecto no está disponible.',
+  'error.version_not_found': 'Esa versión no está disponible.',
+  'error.thumbnail_invalid': 'No se pudo guardar esa imagen del plano.',
+  'error.thumbnail_not_found': 'Esa imagen del plano no está disponible.',
   'error.stale_lock_epoch':
     'Otra persona está editando este proyecto ahora, así que estos cambios no se guardaron.',
   'error.save_conflict':
     'Otra persona cambió los mismos elementos primero, así que estos cambios no se guardaron.',
   'error.notification_not_found': 'Esa notificación ya no existe.',
+  'error.app_outdated': 'EZ Draft se actualizó. Recarga para seguir guardando tus cambios.',
+  'error.sync_conflict_not_found': 'Ese cambio ya no está en la lista.',
   'error.invalid_email': 'Escribe un correo electrónico válido.',
   'error.too_many_requests': 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
   'error.code_invalid': 'Ese código es incorrecto o ya venció.',
@@ -100,6 +105,37 @@ export const es = {
     'Demasiadas contraseñas incorrectas. Inténtalo de nuevo en 15 minutos.',
   'error.password_same': 'Elige una contraseña distinta de la actual.',
   'error.password_breached': 'Esta contraseña apareció en una filtración de datos. Elige otra.',
+  'error.ai_key_invalid':
+    'Eso no parece una clave de API de Anthropic. Las claves empiezan con sk-ant-.',
+  'error.ai_key_refused':
+    'Anthropic no aceptó esta clave. No se guardó nada. Revisa la clave y pégala de nuevo.',
+  'error.ai_key_out_of_credit':
+    'Tu cuenta de Anthropic no tiene crédito. No se guardó nada. Agrega crédito en Anthropic y vuelve a agregar la clave.',
+  'error.ai_key_check_failed':
+    'No se pudo verificar la clave con Anthropic. No se guardó nada. Inténtalo de nuevo en un minuto.',
+  'error.ai_key_throttled': 'Demasiados intentos. Inténtalo de nuevo en 15 minutos.',
+  'error.ai_key_unavailable':
+    'Ahora no se pueden guardar claves. No se guardó nada. Inténtalo más tarde.',
+  // EZD-5602 Build step 13 (vault/plans/EZD-5602.md section 6): the assistant's errors.
+  'error.assistant_no_key': 'Agrega tu clave de API de Anthropic para usar el asistente.',
+  'error.assistant_key_refused':
+    'Anthropic no aceptó tu clave de API. No cambió nada en el dibujo. Revísala o cámbiala en Mi perfil.',
+  'error.assistant_out_of_credit':
+    'Tu cuenta de Anthropic no tiene crédito. No cambió nada en el dibujo. Agrega crédito en Anthropic y vuelve a enviar.',
+  'error.assistant_busy':
+    'El asistente todavía está respondiendo tu último mensaje. Espera la respuesta y vuelve a enviar.',
+  'error.assistant_rate_limited':
+    'Enviaste muchos mensajes en el último minuto. Espera un minuto y vuelve a enviar.',
+  'error.assistant_provider_rate_limited':
+    'Anthropic está recibiendo demasiadas solicitudes con tu clave. No cambió nada en el dibujo. Espera un momento y vuelve a enviar.',
+  'error.assistant_request_refused':
+    'Anthropic rechazó esta solicitud. No cambió nada en el dibujo. Intenta escribir el mensaje de otra forma.',
+  'error.assistant_unavailable':
+    'Anthropic no responde en este momento. No cambió nada en el dibujo. Vuelve a enviar en un minuto.',
+  'error.assistant_drawing_too_large':
+    'Este dibujo es demasiado grande para enviarlo al asistente. No cambió nada en el dibujo.',
+  'error.assistant_invalid_reply':
+    'No se pudo leer la respuesta del asistente. No cambió nada en el dibujo. Vuelve a enviar.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

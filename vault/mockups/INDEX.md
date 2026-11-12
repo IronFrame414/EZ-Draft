@@ -15,6 +15,17 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S01 | Projects | [S01Projects.png](S01Projects.png) | [html/project/S01Projects.dc.html](html/project/S01Projects.dc.html) |
 | S02 | Import review | [S02Import.png](S02Import.png) | [html/project/S02Import.dc.html](html/project/S02Import.dc.html) |
 | S03 | Plan editor | [S03Plan.png](S03Plan.png) | [html/project/S03Plan.dc.html](html/project/S03Plan.dc.html) |
+| S03b | Plan editor: conflict list | [S03bConflictList.png](S03bConflictList.png) | [html/project/S03bConflictList.dc.html](html/project/S03bConflictList.dc.html) |
+| S03c | AI assistant: preview | [S03cAIAssistant.png](S03cAIAssistant.png) | [html/project/S03cAIAssistant.dc.html](html/project/S03cAIAssistant.dc.html) |
+| S03c state | AI assistant: no key | [S03cAIAssistantNoKey.png](S03cAIAssistantNoKey.png) | [html/project/S03cAIAssistantNoKey.dc.html](html/project/S03cAIAssistantNoKey.dc.html) |
+| S03c state | AI assistant: key refused or out of credit | [S03cAIAssistantKeyError.png](S03cAIAssistantKeyError.png) | [html/project/S03cAIAssistantKeyError.dc.html](html/project/S03cAIAssistantKeyError.dc.html) |
+| S03c state | AI assistant: render | [S03cAIAssistantRender.png](S03cAIAssistantRender.png) | [html/project/S03cAIAssistantRender.dc.html](html/project/S03cAIAssistantRender.dc.html) |
+| S03c state | AI assistant: photo attached | [S03cAIAssistantPhoto.png](S03cAIAssistantPhoto.png) | [html/project/S03cAIAssistantPhoto.dc.html](html/project/S03cAIAssistantPhoto.dc.html) |
+| S03d | Plan editor: wall selected | [S03dWallSelected.png](S03dWallSelected.png) | [html/project/S03dWallSelected.dc.html](html/project/S03dWallSelected.dc.html) |
+| S03d | Plan editor: door selected | [S03dDoorSelected.png](S03dDoorSelected.png) | [html/project/S03dDoorSelected.dc.html](html/project/S03dDoorSelected.dc.html) |
+| S03d | Plan editor: window selected | [S03dWindowSelected.png](S03dWindowSelected.png) | [html/project/S03dWindowSelected.dc.html](html/project/S03dWindowSelected.dc.html) |
+| S03d | Plan editor: smaller states | [S03dStates.png](S03dStates.png) | [html/project/S03dStates.dc.html](html/project/S03dStates.dc.html) |
+| S03d | Plan editor: tablet, no keyboard | [S03dTablet.png](S03dTablet.png) | [html/project/S03dTablet.dc.html](html/project/S03dTablet.dc.html) |
 | S04 | Cabinet run + elevation | [S04Cabinets.png](S04Cabinets.png) | [html/project/S04Cabinets.dc.html](html/project/S04Cabinets.dc.html) |
 | S04b | Countertops | [S04bCountertops.png](S04bCountertops.png) | [html/project/S04bCountertops.dc.html](html/project/S04bCountertops.dc.html) |
 | S05 | Ceiling plan / RCP | [S05Ceiling.png](S05Ceiling.png) | [html/project/S05Ceiling.dc.html](html/project/S05Ceiling.dc.html) |
@@ -49,8 +60,29 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S21 | Field measurements review | [S21FieldMeasReview.png](S21FieldMeasReview.png) | [html/project/S21FieldMeasReview.dc.html](html/project/S21FieldMeasReview.dc.html) |
 | S22 | Field tasks | [S22FieldTasks.png](S22FieldTasks.png) | [html/project/S22FieldTasks.dc.html](html/project/S22FieldTasks.dc.html) |
 | S01c | Notification list | [S01cNotifications.png](S01cNotifications.png) | [html/project/S01cNotifications.dc.html](html/project/S01cNotifications.dc.html) |
+| S01c state | Notification list: changes not saved | [S01cConflictNotification.png](S01cConflictNotification.png) | [html/project/S01cConflictNotification.dc.html](html/project/S01cConflictNotification.dc.html) |
+| S01g | My profile: AI assistant | [S01gMyProfileAI.png](S01gMyProfileAI.png) | [html/project/S01gMyProfileAI.dc.html](html/project/S01gMyProfileAI.dc.html) |
 | S01d | Avatar menu | [S01dAvatarMenu.png](S01dAvatarMenu.png) | [html/project/S01dAvatarMenu.dc.html](html/project/S01dAvatarMenu.dc.html) |
 | S01e | My profile | [S01eMyProfile.png](S01eMyProfile.png) | [html/project/S01eMyProfile.dc.html](html/project/S01eMyProfile.dc.html) |
 | S01f | My profile: notifications | [S01fMyNotifications.png](S01fMyNotifications.png) | [html/project/S01fMyNotifications.dc.html](html/project/S01fMyNotifications.dc.html) |
+| S15i | Settings: System status | [S15iSystemStatus.png](S15iSystemStatus.png) | [html/project/S15iSystemStatus.dc.html](html/project/S15iSystemStatus.dc.html) |
+| S15i state | System status: states | [S15iStates.png](S15iStates.png) | [html/project/S15iStates.dc.html](html/project/S15iStates.dc.html) |
+| S15i | System status: iPad | [S15iTablet.png](S15iTablet.png) | [html/project/S15iTablet.dc.html](html/project/S15iTablet.dc.html) |
+| S15j | Users: Invite user dialog | [S15jInvite.png](S15jInvite.png) | [html/project/S15jInvite.dc.html](html/project/S15jInvite.dc.html) |
+| S15j state | Invite user: states | [S15jInviteStates.png](S15jInviteStates.png) | [html/project/S15jInviteStates.dc.html](html/project/S15jInviteStates.dc.html) |
+| S15j | Pending invite row + sign-in with an invite code | [S15jPendingSignIn.png](S15jPendingSignIn.png) | [html/project/S15jPendingSignIn.dc.html](html/project/S15jPendingSignIn.dc.html) |
+| S15k | Users: role editor | [S15kRoleEditor.png](S15kRoleEditor.png) | [html/project/S15kRoleEditor.dc.html](html/project/S15kRoleEditor.dc.html) |
+| S15k state | Role editor: states | [S15kRoleStates.png](S15kRoleStates.png) | [html/project/S15kRoleStates.dc.html](html/project/S15kRoleStates.dc.html) |
+| S15 addition | Project access + Set password | [S15AccessPassword.png](S15AccessPassword.png) | [html/project/S15AccessPassword.dc.html](html/project/S15AccessPassword.dc.html) |
+| S01b addition | New project: Foreman picker | [S01bForeman.png](S01bForeman.png) | [html/project/S01bForeman.dc.html](html/project/S01bForeman.dc.html) |
+| S01b state | Foreman picker: states | [S01bForemanStates.png](S01bForemanStates.png) | [html/project/S01bForemanStates.dc.html](html/project/S01bForemanStates.dc.html) |
 
 S01c to S01f added 2026-10-28 for phase 2 (Q-0391): drawn on the same design canvas and approved by Josh; PNGs rendered from the canvas HTML with its own runtime at 1600 × 1000.
+
+S03b and the S01c state added 2026-11-07 for EZD-299 (Q-0510): drawn in Cowork and approved by Josh with all their wording, listed in [S03bConflictList-wording.md](S03bConflictList-wording.md); the boards' notes still say "proposed", and that list is what counts. HTML copied unchanged from the canvas. PNGs rendered at 1600 × 1000 without the canvas runtime, so in the S03b PNG the Close button shows the word "close" where the HTML means its icon, and the Other projects row (P6, P14) sits below the fold of the scrolling list; read the HTML for those.
+
+S03c and S01g added 2026-11-07 (Q-0474): drawn 2026-11-04 in Cowork and approved by Josh with their wording, listed in S03cAIAssistant-wording.md; the boards' labels still say "for approval", and that list is what counts. HTML copied unchanged from the canvas; PNGs rendered at 1600 × 1000 without the canvas runtime. The Nov 4 canvas also holds an older S03b and S01c state; the Nov 7 ones above replace them.
+
+S03d and the S03c photo state added 2026-11-07 (Q-0630): drawn in Cowork and approved by Josh with their wording, listed in S03dSelectedObjects-wording.md; board notes still say "proposed", and that list is what counts. HTML copied unchanged from the canvas; PNGs rendered at 1600 × 1000 without the canvas runtime and not yet looked at.
+
+S15i, S15j, S15k and the S15 and S01b additions added 2026-11-11 (Q-0665, Q-0696; brief vault/questions/design-brief-2026-11-11.md): drawn in Cowork and approved by Josh on 2026-11-11 with their wording and design choices (chat: "these all look good. follow your recommendation for all open questions"). Each board's approved wording and design choices are in the wording file next to its PNG (for example S15iSystemStatus-wording.md). The boards' NOTE boxes still say "proposed"; the wording files are what counts. Approved design choices: the user inspector and the role panel are 450 px wide, so all 37 switches show without scrolling; the benchmark runs with its progress shown in the Benchmark card; on iPad the Settings menu is a strip of icons, and System status is one scrolling column with backup and restore drill first; admin switches are named by their Settings page; the invite code button reads "Join"; Translations and the EZ Binder sync box are off the Settings menu. PNGs were rendered at 1600 × 1000 without the canvas runtime.

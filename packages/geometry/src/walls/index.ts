@@ -2,3 +2,4 @@
 export * from './wall';
 export * from './joins';
 export * from './move';
+export * from './edit';

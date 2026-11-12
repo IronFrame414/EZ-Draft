@@ -27,7 +27,7 @@ Rules:
 - Mockup names, prices and numbers are sample data, not decisions (except the load calc).
 - **Wording:** user-visible text on the mockup or in the plan's Proposed wording is used exactly. Text that neither covers (an error, empty state, toast, label): write it in the same style as the approved wording, keep going, and list it in your report under `needs-josh-confirm` (file:line and the text). It does not block the ticket.
 - Performance rules in `vault/spec/sections/11-non-functional-requirements.md` apply to every change.
-- When done, run `node scripts/gate.mjs <worktree>` and fix until it exits 0. Run it as its own command, exactly so written (no `cd`, no `&&`): it is the one command outside the unit sandbox, and any other form runs inside it, where the browser tests cannot start.
+- When done, run `node /Users/josh/Projects/ezdraft/scripts/gate.mjs <worktree>` and fix until it exits 0. Run it as its own Bash call, exactly so written: no `cd`, no `&&` or `;`, no pipe, no redirect, no `timeout`, no `NAME=value` in front. Only that form runs outside the unit sandbox; any other form prints GATE SANDBOX STOP. A run longer than 10 minutes goes in the background with the Bash tool's `run_in_background`, which keeps it outside the sandbox, and the Bash tool's `timeout` parameter set to 7200000 (without it a background command is stopped at 10 minutes, EZD-364).
 
 Commit work in progress on the ticket branch in the worktree as you go, `wip(EZD-xxx): <what>`, so a restart resumes instead of starting over (the orchestrator squashes the branch at merge).
 

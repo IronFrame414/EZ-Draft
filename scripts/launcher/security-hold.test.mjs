@@ -29,13 +29,13 @@ const put = (dir, rel, text) => {
 test('EZD-337 S1 list: the shared production-sensitive list (AC-EZD-337-1)', async () => {
   const { SECURITY_PATHS } = await sp();
   assert.deepEqual([...SECURITY_PATHS], ['auth/', 'api/', 'db/', 'middleware', 'migrations', 'billing', '.github/workflows/', 'scripts/release/',
-    'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']);
+    'vault/tools/phase-rank.mjs', 'scripts/backup/', 'scripts/hosting/', 'supabase/migrations/', 'supabase/bootstrap/', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']);
   assert.equal(Object.isFrozen(SECURITY_PATHS), true);
 });
 
 test('EZD-337 S2 matcher: isSecurityPath (AC-EZD-337-1)', async () => {
   const { isSecurityPath } = await sp();
-  for (const f of ['supabase/migrations/1.sql', 'app/src/auth/x.ts', 'AUTH/x.ts', '.github/workflows/ci.yml', 'app/package.json', 'scripts/release/a.mjs'])
+  for (const f of ['supabase/migrations/1.sql', 'app/src/auth/x.ts', 'AUTH/x.ts', '.github/workflows/ci.yml', 'app/package.json', 'scripts/release/a.mjs', 'vault/tools/phase-rank.mjs'])
     assert.equal(isSecurityPath(f), true, f);
   for (const f of ['vault/tickets/gates/phase-02.md', 'app/src/author/x.ts', 'app/src/oauth/x.ts', 'docs/architecture.md'])
     assert.equal(isSecurityPath(f), false, f);
@@ -61,7 +61,7 @@ test('EZD-337 S4 gate flags: the real gate flags sensitive files by raw name and
   git(fx, 'add', '-A');
   git(fx, 'commit', '-q', '-m', 'change');
   const t = tmp('ezd337-gt-');
-  const env = { ...process.env, TMP: t, TEMP: t, TMPDIR: t };
+  const env = { ...process.env, TMP: t, TEMP: t, TMPDIR: t, EZD_GATE_AS_SELF: '1' }; // EZD-354 D4
   for (const k of ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT', 'EZD_LANE', 'SUPABASE_WORKDIR']) delete env[k];
   const r = spawnSync(process.execPath, [path.join(repo, 'scripts/gate.mjs'), fx], { encoding: 'utf8', env });
   assert.equal(r.status, 0, r.stdout + r.stderr);

@@ -20,6 +20,7 @@ import {
   createSessionClient,
   type SessionCookieJar,
 } from '../../../../../server/auth/supabase-server';
+import { APP_BUILD_HEADER, appBuild } from '../../../../../lib/app-version';
 import { emit } from '../../../../../server/events';
 
 vi.mock('../../../../../server/events', async (importOriginal) => {
@@ -107,6 +108,7 @@ describe('EZD-120d save route membership check', () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          [APP_BUILD_HEADER]: String(appBuild()),
           ...(header === undefined ? {} : { 'x-ezdraft-membership': header }),
         },
         body: JSON.stringify({ lockEpoch: 0, changes: [wall(changeId)] }),
@@ -171,7 +173,7 @@ describe('EZD-120d save route membership check', () => {
     state.store = new Map(editorCookies);
     const c = await post(own, editor.membershipId);
     expect(c.res.status).toBe(200);
-    expect(c.json).toEqual({ objects: [{ id: own, updatedSeq: 1 }] });
+    expect(c.json).toEqual({ objects: [{ id: own, updatedSeq: 1, number: 1 }] });
     expect(await stored(own)).toHaveLength(1);
   }, 120000);
 });

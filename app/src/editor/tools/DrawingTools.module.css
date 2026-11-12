@@ -1,0 +1,173 @@
+/* EZD-210b Build step 9 (vault/plans/EZD-210b.md Decided "CSS"; S02B :71, :96-97): the drawing layer over the
+   canvas region, the rubber band and snap marker, and the gap box.
+   EZD-211b Build step 10 (vault/plans/EZD-211b.md Decided "CSS"): the opening preview, dims, ticks, hinge dot,
+   offset chips and door tooltip.
+   EZD-212b (vault/plans/EZD-212b.md D10; board S03dStates): the dashed Move preview.
+   EZD-212c (vault/plans/EZD-212c.md D20; boards S03dWallSelected, S03dDoorSelected): resize handles, chip leaders
+   and ticks, text chips.
+   EZD-213c D-Marker (vault/plans/EZD-213c.md): the pill is a button; the gap panel rules moved to ResolveGap.module.css. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.band {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+}
+
+.preview {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
+}
+
+.marker {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.box {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-red);
+  color: var(--ez-surface);
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.span {
+  fill: var(--ez-surface);
+  fill-opacity: 0.7;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.leaf {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.arc {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
+}
+
+.dims {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+}
+
+.ticks {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+}
+
+.dot {
+  fill: var(--ez-cobalt);
+  stroke: var(--ez-surface);
+  stroke-width: 2px;
+}
+
+.chips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chipSlot {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font: 400 13px var(--ez-font-mono);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.handle {
+  fill: var(--ez-surface);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.handle[data-active='true'] {
+  fill: var(--ez-cobalt);
+}
+
+.leaders {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+}
+
+.chipTicks {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+}
+
+.chipText {
+  cursor: default;
+  pointer-events: none;
+}
+
+.tooltip {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}

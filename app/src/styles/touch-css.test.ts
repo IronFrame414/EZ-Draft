@@ -180,3 +180,32 @@ describe('EZD-014b touch and hover CSS', () => {
     ]);
   });
 });
+
+describe('EZD-363 disabled tool rule', () => {
+  it('EZD-363 done when: the disabled tool rule has no hover selector, sits outside every media block and comes after the hover and pressed rules', () => {
+    const rail = cssRules(read(FILES[0]));
+
+    // (a) one disabled rule, outside every media block, with the pressed selector
+    const dis = rail.filter((r) => r.sel.includes(':disabled'));
+    expect(dis.length).toBe(1);
+    expect(dis[0].sel).toBe(".tool:disabled, .tool[aria-pressed='true']:disabled");
+    expect(dis[0].media).toBeNull();
+
+    // (b) the disabled look is unchanged
+    for (const d of ['background: transparent', 'color: var(--ez-slate-300)', 'cursor: default']) {
+      expect(dis[0].decls).toContain(d);
+    }
+
+    // (c) source order: after the hover rule and after the pressed rule
+    const hov = idx(rail, '.tool:hover', HOVER);
+    const prs = idx(rail, ".tool[aria-pressed='true'], .tool[aria-pressed='true']:hover", null);
+    const d = rail.indexOf(dis[0]);
+    expect(hov).toBeGreaterThan(-1);
+    expect(prs).toBeGreaterThan(-1);
+    expect(d).toBeGreaterThan(hov);
+    expect(d).toBeGreaterThan(prs);
+
+    // (d) no rule combines :hover with :disabled
+    expect(rail.some((r) => r.sel.includes(':hover') && r.sel.includes(':disabled'))).toBe(false);
+  });
+});

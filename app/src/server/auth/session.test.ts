@@ -24,7 +24,7 @@ import { es } from '../messages/catalogs/es';
 import { serverGateSecret } from '../db/env';
 import { appCookieName, isSessionCookieName } from '../../lib/auth/cookie-names';
 import { createSessionClient, type SessionCookieJar } from './supabase-server';
-import { getSession, requireApiSession, requireSession } from './session';
+import { getSession, requireApiSession, requireSession, type Session } from './session';
 
 type CookieOptionsArg = Parameters<SessionCookieJar['set']>[2];
 type CookieSet = { name: string; value: string; options: CookieOptionsArg };
@@ -467,5 +467,102 @@ describe('EZD-342 session cookies on https', () => {
     useCookies(renamed(mCookies));
     state.proto = null;
     await expect(getSession()).resolves.toBeNull();
+  });
+});
+
+// EZD-349 (vault/plans/EZD-349.md sections 3 and 4; AC-EZD-349-1, AC-EZD-349-2; D-016): every 401 from the guard
+// carries Cache-Control: no-store. Fixtures and helpers as the EZD-007c describe above (its member is out of
+// reach from a sibling describe, so this one makes its own member with the same createMember pattern).
+describe('EZD-349 requireApiSession 401 no-store', () => {
+  let tenantId: string;
+  let m: Member;
+  let mCookies: Map<string, string>;
+
+  beforeAll(async () => {
+    tenantId = await createTenant();
+    m = await createMember({ tenantId, scope: 'all' });
+    mCookies = await cookiesFor(m.email);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+    state.store = new Map();
+    state.sets = [];
+    state.proto = null;
+  });
+
+  afterAll(async () => {
+    await cleanup();
+    await closeHarness();
+  });
+
+  // The guard's 401: a Response, status 401, Cache-Control no-store, the not_signed_in body (plan section 3).
+  async function expectNotSignedIn401(res: Session | Response) {
+    expect(res).toBeInstanceOf(Response);
+    const response = res as Response;
+    expect(response.status).toBe(401);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(await response.json()).toEqual(NOT_SIGNED_IN_BODY);
+  }
+
+  it('EZD-349 T1 every 401 from requireApiSession carries Cache-Control: no-store', async () => {
+    // (a) empty cookie store
+    useCookies(new Map());
+    await expectNotSignedIn401(await requireApiSession());
+
+    // (b) member cookies, API gate secret one character short of the 43-character format
+    useCookies(mCookies);
+    vi.stubEnv('SUPABASE_API_GATE_SECRET', 'a'.repeat(42));
+    await expectNotSignedIn401(await requireApiSession());
+    vi.unstubAllEnvs();
+
+    // (c) member cookies, public URL missing
+    useCookies(mCookies);
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', undefined);
+    await expectNotSignedIn401(await requireApiSession());
+    vi.unstubAllEnvs();
+
+    // (d) an unlinked auth user's cookies
+    const unlinked = await createUnlinkedAuthUser();
+    useCookies(await cookiesFor(unlinked.email));
+    await expectNotSignedIn401(await requireApiSession());
+
+    // (e) a member deactivated after sign-in
+    const n = await createMember({ tenantId, scope: 'all' });
+    const nCookies = await cookiesFor(n.email);
+    await harnessSql()`
+      update public.membership set status = 'deactivated' where id = ${n.membershipId}::uuid`;
+    useCookies(nCookies);
+    await expectNotSignedIn401(await requireApiSession());
+  });
+
+  it('EZD-349 T2 a signed-in member still gets the session, and a failed session read still rejects', async () => {
+    // (a) signed-in member: the session, not a Response
+    const expected = { authUserId: m.authUserId, appUserId: m.appUserId, email: m.email };
+    useCookies(mCookies);
+    const session = await requireApiSession();
+    expect(session).not.toBeInstanceOf(Response);
+    expect(session).toEqual(expected);
+
+    // (b) the current_app_user_id request answers 503 (as EZD-007c (g)): the guard rejects
+    useCookies(mCookies);
+    const realFetch = globalThis.fetch;
+    const target = `${url()}/rest/v1/rpc/current_app_user_id`;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const req = new Request(input as RequestInfo | URL, init as RequestInit | undefined);
+      if (req.url.startsWith(target)) return new Response('', { status: 503 });
+      return realFetch(input, init);
+    });
+    const outcome = await requireApiSession().then(
+      (value) => ({ rejected: false as const, value }),
+      (reason: unknown) => ({ rejected: true as const, reason }),
+    );
+    expect(outcome.rejected).toBe(true);
+  });
+
+  it('EZD-349 done when: every 401 from requireApiSession carries Cache-Control: no-store', async () => {
+    useCookies(new Map());
+    await expectNotSignedIn401(await requireApiSession());
   });
 });

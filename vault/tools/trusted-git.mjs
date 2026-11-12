@@ -27,6 +27,14 @@ export const TRUSTED_CONFIG = Object.freeze([
 const EXTRA_KEYS = ['GIT_AUTHOR_NAME', 'GIT_AUTHOR_EMAIL', 'GIT_AUTHOR_DATE', 'GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL', 'GIT_COMMITTER_DATE'];
 
 // D2: built from nothing, never from process.env.
+// EZD-354 D3: the gate snapshot's own index, <real tmpdir>/ezdraft-gate-index-*/index, and no other path.
+function gateIndexFile(value) {
+  if (typeof value !== 'string' || !path.isAbsolute(value)) return false;
+  const parent = path.dirname(value);
+  if (path.basename(value) !== 'index' || !path.basename(parent).startsWith('ezdraft-gate-index-')) return false;
+  try { return path.dirname(parent) === realpathSync(os.tmpdir()); } catch { return false; }
+}
+
 export function exactEnvFor(repo, extraEnv = {}) {
   const u = os.userInfo();
   const env = {
@@ -39,7 +47,7 @@ export function exactEnvFor(repo, extraEnv = {}) {
     if (repo.commonDir) env.GIT_COMMON_DIR = repo.commonDir;
   }
   for (const [key, value] of Object.entries(extraEnv || {})) {
-    const ok = EXTRA_KEYS.includes(key) || (key === 'GIT_CONFIG_GLOBAL' && value === '/dev/null');
+    const ok = EXTRA_KEYS.includes(key) || (key === 'GIT_CONFIG_GLOBAL' && value === '/dev/null') || (key === 'GIT_INDEX_FILE' && gateIndexFile(value));
     if (!ok || typeof value !== 'string') throw new TrustedGitError(`env key not allowed: ${key}`);
     env[key] = value;
   }

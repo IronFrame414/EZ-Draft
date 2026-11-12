@@ -8,7 +8,7 @@ import type { OutboxEntry } from './outbox';
 
 const P = '11111111-1111-4111-8111-111111111111';
 const LOAD: ModelLoad = {
-  project: { id: P, name: 'Kitchen', clientName: null },
+  project: { id: P, name: 'Kitchen', clientName: null, planScale: 0.5 },
   viewer: { appUserId: 'u1', tenantId: 't1', membershipId: 'm1', canEdit: true },
   lockEpoch: 0,
   objects: [
@@ -16,6 +16,7 @@ const LOAD: ModelLoad = {
     { id: 'B', updatedSeq: 2, ...v(2) },
   ],
   invalid: [],
+  numberHighs: { wall: 0, door: 0, window: 0 },
 };
 const entry = (id: string, value: OutboxEntry['value']): OutboxEntry => ({
   projectId: P,

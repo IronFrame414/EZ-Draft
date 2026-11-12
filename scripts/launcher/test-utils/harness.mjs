@@ -9,7 +9,8 @@
 //          it also writes the marker markers/<writes>. copyState: each time the entry answers, logs/launcher-state.json is
 //          copied to state-copies/<list>-<n>.json (n = the entry's own answer number; `null` when the file is absent).
 //   check: { failUntil?: marker, failIfStatusContains?: text, output? }: exit 1 until the marker exists / while STATUS.md has the text.
-// Fake claude reads fake-rules.json: rules { prompt (prefix), writes: [markers], result, subtype (default 'success'), exit (default 0), append: [{ file, text }], script }.
+// `claude auth status` answers from fake-auth.json ({ <dir>: { exit?, authMethod?, configDirectory? } }, default claude.ai) and logs to auth-calls.jsonl.
+// Fake claude reads fake-rules.json: rules { prompt (prefix), configDir (match only when CLAUDE_CONFIG_DIR equals it), writes: [markers], result, subtype (default 'success'), exit (default 0), append: [{ file, text }], script, turns (default 2), usd (default 0) }.
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync, chmodSync, rmSync, realpathSync, openSync, closeSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -114,31 +115,44 @@ const fakeClaude = () =>
     "const { spawnSync } = require('child_process');",
     'const args = process.argv.slice(2);',
     "if (args[0] === '--help') { console.log('--max-turns --session-id --permission-prompts'); process.exit(0); }",
+    "const AUTH = ['CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_PROFILE'];",
+    'const authVars = AUTH.filter((k) => process.env[k] !== undefined);',
+    'const configDir = process.env.CLAUDE_CONFIG_DIR ?? null;',
     'const root = __dirname;',
+    "if (args[0] === 'auth' && args[1] === 'status') {",
+    "  fs.appendFileSync(path.join(root, 'auth-calls.jsonl'), JSON.stringify({ configDir, authVars }) + '\\n');",
+    '  let auth = {};',
+    "  try { auth = JSON.parse(fs.readFileSync(path.join(root, 'fake-auth.json'), 'utf8')); } catch {}",
+    '  const a = (configDir && auth[configDir]) || {};',
+    "  if (a.exit) { console.log(JSON.stringify({ authMethod: 'none', configDirectory: configDir })); process.exitCode = a.exit; }",
+    "  else console.log(JSON.stringify({ authMethod: a.authMethod ?? 'claude.ai', configDirectory: a.configDirectory ?? configDir }));",
+    '} else {',
     "const prompt = args[args.indexOf('-p') + 1] || '';",
     "const markers = fs.existsSync(path.join(root, 'markers')) ? fs.readdirSync(path.join(root, 'markers')).sort() : [];",
     "fs.appendFileSync(path.join(root, 'prompts.txt'), prompt + '\\n');",
-    "fs.appendFileSync(path.join(root, 'calls.jsonl'), JSON.stringify({ prompt, markers }) + '\\n');",
+    "fs.appendFileSync(path.join(root, 'calls.jsonl'), JSON.stringify({ prompt, markers, configDir, authVars }) + '\\n');",
     'let rules = [];',
     "try { rules = JSON.parse(fs.readFileSync(path.join(root, 'fake-rules.json'), 'utf8')); } catch {}",
-    'const rule = rules.find((r) => prompt.startsWith(r.prompt)) || {};',
+    'const rule = rules.find((r) => prompt.startsWith(r.prompt) && (r.configDir === undefined || r.configDir === configDir)) || {};',
     "for (const a of rule.append || []) { fs.mkdirSync(path.dirname(path.join(root, a.file)), { recursive: true }); fs.appendFileSync(path.join(root, a.file), a.text); }",
     "if (rule.script) spawnSync(process.execPath, [path.join(root, rule.script)], { cwd: root, stdio: 'ignore', env: { ...process.env, FAKE_ROOT: root } });",
     "for (const m of rule.writes || []) { fs.mkdirSync(path.join(root, 'markers'), { recursive: true }); fs.writeFileSync(path.join(root, 'markers', m), 'x'); }",
-    "console.log(JSON.stringify({ type: 'result', subtype: rule.subtype || 'success', is_error: false, result: rule.result || 'fake unit done', session_id: 'ezd250-fake-session', num_turns: 1, duration_ms: 5, total_cost_usd: 0, modelUsage: {} }));",
+    "console.log(JSON.stringify({ type: 'result', subtype: rule.subtype || 'success', is_error: false, result: rule.result || 'fake unit done', session_id: 'ezd250-fake-session', num_turns: rule.turns ?? 2, duration_ms: 5, total_cost_usd: rule.usd ?? 0, modelUsage: {} }));",
     // The exit code is set, not passed to process.exit, so the piped result line is flushed before the process ends.
     "process.exitCode = rule.exit || 0;",
+    '}',
     '',
   ].join('\n');
 
 const pathShim = (callsFile) => ['#!/bin/sh', `printf '%s\\n' "$*" >> "${callsFile}"`, 'exit 1', ''].join('\n');
 
-const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'scripts/release/github-ops.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs', 'vault/tools/trusted-git.mjs'];
+const BASE_COPY = ['scripts/run.mjs', 'scripts/unit-sandbox.json', 'scripts/budget.mjs', 'scripts/oauth-usage.mjs', 'scripts/cost-log.mjs', 'scripts/launcher-idle.mjs', 'scripts/ledger.mjs', 'scripts/records.mjs', 'scripts/release/github-ops.mjs', 'scripts/launcher/unit-env.mjs', 'vault/tools/boost.mjs', 'vault/tools/lanes.mjs', 'vault/tools/limit-message.mjs', 'vault/tools/trusted-git.mjs'];
 
 // A temporary launcher root. copy: more repo files to copy to the same relative path. Every root is a git repository on develop
 // with scripts/ and vault/ committed. stub: the stub ledger tool's config. rules: fake claude rules. config: spread last into
 // launcher.config.json. weeklyPct: the seven_day.pct in vault/cost/usage.json (default 10: below every hold).
-export function makeLauncherRoot({ stub = {}, rules = [], copy = [], config = {}, weeklyPct = 10 } = {}) {
+// ntExtra: text appended to the stub ledger tool. files: (at) => ({ <relative path>: text }), written after the config and before gitInit (EZD-378).
+export function makeLauncherRoot({ stub = {}, rules = [], copy = [], config = {}, weeklyPct = 10, ntExtra = '', files = () => ({}) } = {}) {
   const tmp = mkTmp();
   const at = (...p) => path.join(tmp, ...p);
   for (const d of ['scripts', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff', 'logs', 'bin', 'markers']) mkdirSync(at(d), { recursive: true });
@@ -146,7 +160,7 @@ export function makeLauncherRoot({ stub = {}, rules = [], copy = [], config = {}
     mkdirSync(path.dirname(at(f)), { recursive: true });
     copyFileSync(path.join(repo, f), at(f));
   }
-  writeFileSync(at('vault/tools/next_ticket.mjs'), STUB_NT);
+  writeFileSync(at('vault/tools/next_ticket.mjs'), STUB_NT + ntExtra);
   writeFileSync(at('vault/tools/stub-config.json'), JSON.stringify(stub));
   writeFileSync(at('vault/tickets/STATUS.md'), 'stub\n');
   writeFileSync(at('vault/budget.json'), JSON.stringify({ meter_source: 'statusline', weekly_ceiling_usd_est: 1000 }));
@@ -181,6 +195,10 @@ export function makeLauncherRoot({ stub = {}, rules = [], copy = [], config = {}
   // The record files the launcher exports from its database are git-ignored, as in the checkout (REMEDIATION-PLAN 2.12, 2.14).
   // STATUS.md stays tracked here for the queue tests until 2.15 removes the ledger queue.
   writeFileSync(at('.gitignore'), ['vault/cost/log.jsonl', 'vault/lessons/findings.jsonl', 'vault/DONE.md', 'vault/handoff/CURRENT.md', 'vault/PROGRESS.md', 'vault/tickets/TRACE.md', 'records.db*', ''].join('\n'));
+  for (const [rel, text] of Object.entries(files(at))) {
+    mkdirSync(path.dirname(at(rel)), { recursive: true });
+    writeFileSync(at(rel), text);
+  }
   // Every root is a git repository: run.mjs imports ledger.mjs, whose lock needs .git (plan C9, Decided "Launcher test roots").
   gitInit(tmp, ['scripts', 'vault']);
   return { tmp, at };
@@ -248,6 +266,8 @@ export function runLauncher(root, { args = [], timeout = 25000, env: extraEnv = 
         notified: lines(root.at('notified.txt')),
         prompts: lines(root.at('prompts.txt')),
         calls: lines(root.at('calls.jsonl')).map((l) => JSON.parse(l)),
+        authCalls: lines(root.at('auth-calls.jsonl')).map((l) => JSON.parse(l)),
+        strikes: lines(root.at('strikes.jsonl')).map((l) => JSON.parse(l)),
         state: readJson(root.at('logs/launcher-state.json')),
         repairState: readJson(root.at('logs/repair-state.json')),
         repairMd: readIfExists(root.at('vault/handoff/REPAIR.md')),

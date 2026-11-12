@@ -175,16 +175,8 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-201 | 4 | Length parse and format | todo |  | EZD-001 |  |  |  |
 | EZD-202 | 3 | Model document schema | todo |  | EZD-120 |  |  |  |
 | EZD-203 | 4 | Walls core | todo |  | EZD-202 |  |  |  |
-| EZD-204 | 5 | Openings core | todo |  | EZD-203 |  |  |  |
-| EZD-205 | 4 | Rooms and closure | todo |  | EZD-203 |  |  |  |
 | EZD-206 | 5 | Snapping | todo |  | EZD-203 |  |  |  |
-| EZD-207 | 4 | Plan canvas | todo |  | EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238 |  |  |  |
-| EZD-208 | 5 | Selection | todo |  | EZD-207 |  |  |  |
 | EZD-209 | 4 | Typed dimension bar | todo |  | EZD-201, EZD-207 |  |  |  |
-| EZD-210 | 4 | Wall and Room rectangle tools | todo |  | EZD-205, EZD-209 |  |  |  |
-| EZD-211 | 5 | Door and window tools | todo |  | EZD-204, EZD-209 |  |  |  |
-| EZD-212 | 5 | Move, handles, distance chips | todo |  | EZD-208 |  |  |  |
-| EZD-213 | 5 | Inspector fields | todo |  | EZD-208 |  |  |  |
 | EZD-214 | 6 | Status and phase switch | todo |  | EZD-213 |  |  |  |
 | EZD-215 | 10 | Bearing wall rule | todo |  | EZD-213, EZD-132 |  |  |  |
 | EZD-216 | 6 | Dimensions and text | todo |  | EZD-207, EZD-235 |  |  |  |
@@ -192,7 +184,6 @@ A ticket starts only when every ticket in its `depends_on` (in `tickets.json`, b
 | EZD-218 | 6 | Left panel: Layers and Rooms | todo |  | EZD-214, EZD-132 |  |  |  |
 | EZD-219 | 6 | Status bar popovers | todo |  | EZD-206 |  |  |  |
 | EZD-220 | 10 | Existing-condition pins | todo |  | EZD-213, EZD-132 |  |  |  |
-| EZD-221 | 4 | Blank templates | todo |  | EZD-210, EZD-118 |  |  |  |
 | EZD-222 | 11 | Keyboard shortcuts and Help | todo |  | EZD-116, EZD-012 |  |  |  |
 | EZD-223 | 11 | Sketch tool | todo |  | EZD-207, EZD-108 |  |  |  |
 | EZD-224 | 6 | Plan thumbnail | todo |  | EZD-207 |  |  |  |

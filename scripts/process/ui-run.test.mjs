@@ -15,6 +15,7 @@ function fixture() {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'ezd-ui-run-'));
   mkdirSync(path.join(dir, 'scripts'));
   copyFileSync(SCRIPT, path.join(dir, 'scripts/ui-run.mjs'));
+  copyFileSync(path.join(path.dirname(SCRIPT), 'excluded-form.mjs'), path.join(dir, 'scripts/excluded-form.mjs')); // EZD-317 C2
   const app = path.join(dir, '.claude/worktrees/EZD-002/app');
   mkdirSync(path.join(app, 'e2e'), { recursive: true });
   writeFileSync(path.join(app, 'e2e/shots.spec.ts'), '');
@@ -73,6 +74,23 @@ test('D-023 ui-run stops with UI-RUN SANDBOX STOP and the exact command, and run
     const r = run(f, 'EZD-002', 'e2e/shots.spec.ts');
     assert.equal(r.status, 3, r.stdout + r.stderr);
     assert.match(r.stdout, /^UI-RUN SANDBOX STOP: .*`node scripts\/ui-run\.mjs EZD-002 e2e\/shots\.spec\.ts` again as its own Bash call/m);
+    assert.ok(!existsSync(f.ran));
+  } finally {
+    chmodSync(agents, 0o755);
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test('EZD-317 T5b the UI-RUN SANDBOX STOP names the excluded command from unit-sandbox.json', { skip: process.getuid?.() === 0 }, () => {
+  const f = fixture();
+  writeFileSync(path.join(f.dir, 'scripts/unit-sandbox.json'), '{"sandbox":{"excludedCommands":["node /fx/scripts/ui-run.mjs *"]}}');
+  const agents = path.join(f.dir, '.claude/agents');
+  mkdirSync(agents, { recursive: true });
+  chmodSync(agents, 0o555);
+  try {
+    const r = run(f, 'EZD-002', 'e2e/shots.spec.ts');
+    assert.equal(r.status, 3, r.stdout + r.stderr);
+    assert.ok(r.stdout.includes('`node /fx/scripts/ui-run.mjs EZD-002 e2e/shots.spec.ts` again'), r.stdout);
     assert.ok(!existsSync(f.ran));
   } finally {
     chmodSync(agents, 0o755);

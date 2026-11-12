@@ -56,3 +56,69 @@ describe('EZD-120b outbox rules', () => {
     expect(classifySave(502, null)).toEqual({ kind: 'failed' });
   });
 });
+
+// EZD-294 O1 (vault/plans/EZD-294.md section 4 and step 8; AC-EZD-294-2).
+describe('EZD-294 saved numbers in classifySave', () => {
+  it('EZD-294 O1 classifySave keeps a saved number', () => {
+    const objects = [
+      { id: 'a', updatedSeq: 2, number: 6 },
+      { id: 'b', updatedSeq: 1 },
+    ];
+    expect(classifySave(200, { objects })).toEqual({ kind: 'saved', objects });
+    for (const bad of [0, 1.5, '6', null]) {
+      expect(
+        classifySave(200, { objects: [{ id: 'a', updatedSeq: 2, number: bad }] }),
+        String(bad),
+      ).toEqual({ kind: 'failed' });
+    }
+  });
+});
+
+// EZD-299a T14 (vault/plans/EZD-299a.md section 3 outbox row; AC-EZD-299-14).
+describe('EZD-299a app_outdated answer', () => {
+  it('EZD-299a T14 a 409 app_outdated is a refusal with that code', () => {
+    expect(classifySave(409, { error: { code: 'app_outdated' } })).toEqual({
+      kind: 'refused',
+      code: 'app_outdated',
+    });
+  });
+});
+
+// EZD-299b T2 (vault/plans/EZD-299b.md section 4; AC-EZD-299-16; Decided D-Classify).
+describe('EZD-299b classifySave lists', () => {
+  it('EZD-299b T2 adds conflicts and invalid only for the matching answer and shape', () => {
+    expect(
+      classifySave(409, {
+        error: { code: 'save_conflict' },
+        conflicts: [{ id: 'a', serverSeq: 2 }],
+      }),
+    ).toStrictEqual({
+      kind: 'refused',
+      code: 'save_conflict',
+      conflicts: [{ id: 'a', serverSeq: 2 }],
+    });
+    expect(classifySave(409, { error: { code: 'save_conflict' }, conflicts: 'x' })).toStrictEqual({
+      kind: 'refused',
+      code: 'save_conflict',
+    });
+    expect(
+      classifySave(400, {
+        error: { code: 'invalid_object' },
+        invalid: [{ id: 'b', issue: 'invalid_data' }],
+      }),
+    ).toStrictEqual({
+      kind: 'refused',
+      code: 'invalid_object',
+      invalid: [{ id: 'b', issue: 'invalid_data' }],
+    });
+    expect(
+      classifySave(400, { error: { code: 'invalid_object' }, invalid: [{ id: 1 }] }),
+    ).toStrictEqual({ kind: 'refused', code: 'invalid_object' });
+    expect(
+      classifySave(409, {
+        error: { code: 'app_outdated' },
+        conflicts: [{ id: 'a', serverSeq: 2 }],
+      }),
+    ).toStrictEqual({ kind: 'refused', code: 'app_outdated' });
+  });
+});

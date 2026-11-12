@@ -1,0 +1,357 @@
+/* EZD-104 Build step 18 (vault/plans/EZD-104.md Decided "CSS", "Custom-role pill"; section 5 Visual
+   checklist; board S15): the Users + permissions table, its footer note and the selected-user card. Colors
+   from tokens only (check C10); spacing and font sizes in px. The table box scrolls inside the main card, so
+   it stays inside the viewport on a 50-row page. */
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 220px;
+  height: 38px;
+  box-sizing: border-box;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  padding: 0 12px;
+  color: var(--ez-slate-500);
+}
+
+.search:focus-within {
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+.searchInput {
+  border: 0;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  background: transparent;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 22px;
+}
+
+.table {
+  display: block;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table:focus-visible {
+  outline: 2px solid var(--ez-cobalt);
+  outline-offset: -2px;
+}
+
+.th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  text-align: left;
+  white-space: nowrap;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ez-border);
+  background: var(--ez-surface-sunken);
+}
+
+.td {
+  padding: 12px;
+  border-bottom: 1px solid var(--ez-divider);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.th:first-child,
+.td:first-child {
+  padding-left: 22px;
+}
+
+/* The name column takes the free width of the table. */
+.nameCol {
+  width: 100%;
+}
+
+@media (hover: hover) {
+  .tr:hover .td {
+    background: var(--ez-row-hover);
+  }
+}
+
+.tr.tron .td {
+  background: var(--ez-row-selected);
+}
+
+.tr.tron .td:first-child {
+  box-shadow: inset 3px 0 0 var(--ez-cobalt);
+}
+
+.tr.tron .lang {
+  border-color: var(--ez-cobalt);
+  color: var(--ez-cobalt-text);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sub {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+  overflow-wrap: anywhere;
+}
+
+.av {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font: 600 12px var(--ez-font-sans);
+}
+
+.avLarge {
+  width: 42px;
+  height: 42px;
+  font-size: 14px;
+}
+
+.avPending {
+  border: 1.5px dashed var(--ez-border-hover);
+  color: var(--ez-slate-300);
+}
+
+.pill {
+  box-sizing: border-box;
+  font: 600 12px var(--ez-font-sans);
+  padding: 4px 9px;
+  border-radius: var(--ez-radius-999);
+  white-space: nowrap;
+}
+
+/* Tones: the pill and the avatar share them (section 5 "Role pill", "Avatar"). */
+.owner {
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+}
+
+.designer {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.foreman {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.crew {
+  background: var(--ez-hover);
+  color: var(--ez-slate-500);
+}
+
+.custom {
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border-hover);
+  color: var(--ez-slate-700);
+}
+
+.pending {
+  background: var(--ez-surface);
+  border: 1px dashed var(--ez-border-hover);
+  color: var(--ez-slate-400);
+}
+
+.lang {
+  font: 500 11px var(--ez-font-mono);
+  padding: 3px 7px;
+  border-radius: var(--ez-radius-5);
+  border: 1px solid var(--ez-border);
+  color: var(--ez-slate-700);
+}
+
+.count {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+.lastActive {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+/* Pending row (board S15 row 5). */
+.invitedRow .nameCol {
+  color: var(--ez-slate-300);
+}
+
+.invitedRow .name {
+  font-weight: 500;
+  color: var(--ez-slate-500);
+}
+
+.invitedRow .sub {
+  color: var(--ez-slate-300);
+}
+
+.invitedRow .lang,
+.invitedRow .count {
+  color: var(--ez-slate-300);
+}
+
+.links {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+  white-space: nowrap;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-cobalt-link);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pager {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.invite {
+  flex: none;
+  padding: 16px 22px;
+}
+
+.empty {
+  flex: none;
+  padding: 16px 22px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.footer {
+  flex: none;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  margin-top: 4px;
+  background: var(--ez-canvas);
+  color: var(--ez-slate-700);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.note svg {
+  flex: none;
+  color: var(--ez-slate-400);
+}
+
+.inspector {
+  box-sizing: border-box;
+  width: var(--ez-inspector-width);
+  flex: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-card);
+}
+
+.inspectorHead {
+  padding: 18px 18px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.inspectorText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.inspectorName {
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.inspectorSub {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ez-slate-300);
+  cursor: pointer;
+}
+
+.inspectorEmpty {
+  margin: auto;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+  text-align: center;
+}

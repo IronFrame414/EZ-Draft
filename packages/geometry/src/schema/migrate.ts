@@ -3,10 +3,15 @@
 // valid keeps the version; any other raises CURRENT_SCHEMA_VERSION, adds MIGRATIONS[old] and samples/v<new>.json.
 // EZD-203 Build step 5 (vault/plans/EZD-203.md section 1, Decided "Migration of a v1 wall"; Q-0558): v1 to v2
 // gives every wall `attributes.layers`.
+// EZD-205a Build step 2 (vault/plans/EZD-205a.md section 1, Decided "v2 → v3 step"; Q-0558; Q-0570): v2 to v3
+// gives every room `status: 'existing'` and `closureOverride: null`.
+// EZD-204a Build step 2 (vault/plans/EZD-204a.md section 1, Decided "v3 → v4 step"; AC-EZD-204-6, -15; Q-0642
+// row 2; Q-0641 row 3): v3 to v4 gives every opening `axis: null`, Hinge left and swing left for a door, Not
+// rated, no shutter and a typed rough opening.
 import { coordsEqual } from '../tolerance';
 import type { StoredObject } from './index';
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 // Takes an object at `schema_version` n and returns a new object at n + 1; never mutates its input.
 export type MigrateStep = (obj: Readonly<StoredObject>) => StoredObject;
@@ -42,7 +47,56 @@ const migrateV1ToV2: MigrateStep = (obj) => {
   return { id: obj.id, type: obj.type, schema_version: 2, data };
 };
 
-export const MIGRATIONS: Readonly<Record<number, MigrateStep>> = { 1: migrateV1ToV2 };
+// Copies `data` only (one level); every other subtree is shared by reference.
+const migrateV2ToV3: MigrateStep = (obj) => {
+  const data = obj.data;
+  if (obj.type === 'room' && isRecord(data)) {
+    return {
+      id: obj.id,
+      type: obj.type,
+      schema_version: 3,
+      data: { ...data, status: 'existing', closureOverride: null },
+    };
+  }
+  return { id: obj.id, type: obj.type, schema_version: 3, data };
+};
+
+// Copies `data`, `data.geometry` and `data.attributes` only; every other subtree is shared by reference.
+const migrateV3ToV4: MigrateStep = (obj) => {
+  const data = obj.data;
+  if (
+    obj.type === 'opening' &&
+    isRecord(data) &&
+    isRecord(data.geometry) &&
+    isRecord(data.attributes)
+  ) {
+    const d = data.attributes.kind === 'door' ? 'left' : null;
+    return {
+      id: obj.id,
+      type: obj.type,
+      schema_version: 4,
+      data: {
+        ...data,
+        geometry: { ...data.geometry, axis: null },
+        attributes: {
+          ...data.attributes,
+          swing: d,
+          hand: d,
+          impactRating: 'not_rated',
+          shutterType: null,
+          roughOpeningMode: 'typed',
+        },
+      },
+    };
+  }
+  return { id: obj.id, type: obj.type, schema_version: 4, data };
+};
+
+export const MIGRATIONS: Readonly<Record<number, MigrateStep>> = {
+  1: migrateV1ToV2,
+  2: migrateV2ToV3,
+  3: migrateV3ToV4,
+};
 
 // null when the version is not an integer in 1..CURRENT_SCHEMA_VERSION or a step is missing; an object already
 // at the current version is returned as is.

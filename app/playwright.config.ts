@@ -13,7 +13,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
-import { DEVICE_PROJECTS, projectGrep } from './test-harness/e2e/devices';
+import { DEVICE_PROJECTS, PERF_SPECS, projectGrep } from './test-harness/e2e/devices';
 import { installNetGuard } from './test-harness/net-guard/net-guard.mjs';
 
 const NAMES = [
@@ -115,13 +115,26 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: DEVICE_PROJECTS.map(({ name, use }) => ({
-    name,
-    use,
-    grep: projectGrep(name, process.env.EZD_TEST_GREP),
-  })),
+  projects: [
+    ...DEVICE_PROJECTS.map(({ name, use }) => ({
+      name,
+      use,
+      grep: projectGrep(name, process.env.EZD_TEST_GREP),
+      testIgnore: PERF_SPECS,
+    })),
+    // EZD-207c D-Isolate: the perf specs run alone, after every device project.
+    {
+      name: 'perf',
+      use: DEVICE_PROJECTS.find((p) => p.name === 'desktop')!.use,
+      grep: projectGrep('desktop', process.env.EZD_TEST_GREP),
+      testMatch: PERF_SPECS,
+      workers: 1,
+      dependencies: DEVICE_PROJECTS.map((p) => p.name),
+    },
+  ],
   webServer: {
-    command: `pnpm start -p ${web} -H 127.0.0.1`,
+    // EZD-380: idle connections stay open for an hour, longer than any run (CI job cap 45 min), so the server never closes one that route.fetch or the browser is about to reuse (Node's 6 s close reset W1 with ECONNRESET).
+    command: `pnpm start -p ${web} -H 127.0.0.1 --keepAliveTimeout 3600000`,
     url: `http://127.0.0.1:${web}/api/health`,
     cwd: app,
     reuseExistingServer: !process.env.CI,
@@ -140,6 +153,8 @@ export default defineConfig({
       ALERT_EMAIL_TO: 'owner@example.test',
       // EZD-021 Step 2: AI stub mode, the guard preload and the settings that keep harmless calls quiet.
       AI_MODE: 'stub',
+      // EZD-5601 step 1: the test-only key set (version 1, 32 zero bytes).
+      AI_KEY_ENCRYPTION_KEYS: '1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
       AI_STUB_DIR: aiStub,
       EZD_NET_GUARD_LOG: guardLog,
       NODE_OPTIONS: `--import ${preloadUrl}`,

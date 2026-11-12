@@ -20,6 +20,7 @@ const TABLE_B = {
   'react-commits.pan': { kind: 'gate', unit: 'count', value: 0 },
   'long-tasks.pan': { kind: 'gate', unit: 'count', value: 0 },
   'long-tasks.load': { kind: 'trend', unit: 'count', value: null },
+  'long-tasks.worker-job': { kind: 'gate', unit: 'count', value: 0 }, // EZD-235b D-Budget (Q-0664)
   'frame.desktop': { kind: 'trend', unit: 'ms', value: 1000 / 60, statistic: 'p95', toleranceMs: 1 },
   'frame.ipad': { kind: 'trend', unit: 'ms', value: 1000 / 30, statistic: 'p95', toleranceMs: 1 },
   'frame.max': { kind: 'trend', unit: 'ms', value: 100, statistic: 'max', toleranceMs: 0 },
@@ -49,7 +50,7 @@ describe('EZD-017 budgets, frame statistics and evaluate', () => {
     assert.equal(buf.length, 10000);
     assert.equal(compressedSize(buf), zlib.gzipSync(buf, { level: 6 }).length);
 
-    assert.equal(Object.keys(BUDGETS).length, 26);
+    assert.equal(Object.keys(BUDGETS).length, 27);
     assert.deepEqual(Object.keys(BUDGETS).sort(), Object.keys(TABLE_B).sort());
     for (const [id, want] of Object.entries(TABLE_B)) {
       const b = BUDGETS[id];

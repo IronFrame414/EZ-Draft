@@ -50,8 +50,14 @@ function specifiers(text) {
 test('EZD-021 T19 AI code is imported only from jobs, keys are read only in config.ts, the SDK only in anthropic.ts', () => {
   const aiDir = path.join(repo, 'app/src/server/ai');
   const jobsDir = path.join(repo, 'app/src/server/jobs');
+  const assistantDir = path.join(repo, 'app/src/server/assistant');
   for (const f of sources()) {
     const text = readFileSync(f, 'utf8');
+    // EZD-5601 E3 (Q-0637 call path): the assistant code never takes the provider key or the jobs path.
+    if (f.startsWith(assistantDir + path.sep)) {
+      for (const name of ['getProviderKey', 'createJobsDbClient', 'enqueueJob'])
+        assert.ok(!text.includes(name), `${name} named in ${rel(f)}`);
+    }
     for (const spec of specifiers(text)) {
       if (spec.startsWith('.')) {
         const target = path.resolve(path.dirname(f), spec);
@@ -59,9 +65,10 @@ test('EZD-021 T19 AI code is imported only from jobs, keys are read only in conf
         if (!intoAi) continue;
         const insideAi = f.startsWith(aiDir + path.sep);
         const insideJobs = f.startsWith(jobsDir + path.sep);
+        const insideAssistant = f.startsWith(assistantDir + path.sep);
         assert.ok(
-          insideAi || insideJobs,
-          `${rel(f)} imports server/ai but is outside server/ai and server/jobs`,
+          insideAi || insideJobs || insideAssistant,
+          `${rel(f)} imports server/ai but is outside server/ai, server/jobs and server/assistant`,
         );
         assert.ok(
           !/^\s*['"]use client['"]/m.test(text),
@@ -92,6 +99,24 @@ test('EZD-021 T19 AI code is imported only from jobs, keys are read only in conf
   assert.ok(
     !/NEXT_PUBLIC_[A-Z0-9_]*(ANTHROPIC|GEMINI|OPENAI|BFL)[A-Z0-9_]*/.test(everything),
     'no NEXT_PUBLIC_ name for a provider',
+  );
+});
+
+// EZD-5602 T24 (vault/plans/EZD-5602.md section 4; Q-0637 "the AI assistant alone calls"): the user-key call is
+// named only by the AI client and the assistant, and the assistant does call it.
+test('EZD-5602 T24 callClaudeWithUserKey is named only under server/ai and server/assistant', () => {
+  const allowed = ['app/src/server/ai/', 'app/src/server/assistant/'];
+  const naming = sources()
+    .filter((f) => readFileSync(f, 'utf8').includes('callClaudeWithUserKey'))
+    .map(rel);
+  for (const f of naming)
+    assert.ok(
+      allowed.some((dir) => f.startsWith(dir)),
+      `callClaudeWithUserKey named in ${f}`,
+    );
+  assert.ok(
+    naming.includes('app/src/server/assistant/assistant.ts'),
+    'the assistant calls callClaudeWithUserKey',
   );
 });
 
@@ -169,7 +194,7 @@ test('EZD-021 T19 docs, env names, dependency row, root test script and conventi
   const test = JSON.parse(read('package.json')).scripts.test;
   for (const token of [
     '--import ./app/test-harness/net-guard/preload.mjs',
-    'scripts/**/*.test.mjs',
+    'scripts/**/!(pan).test.mjs',
     '--test-concurrency=4',
   ]) {
     assert.ok(test.includes(token), `root test has ${token}`);

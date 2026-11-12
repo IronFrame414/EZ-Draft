@@ -136,3 +136,88 @@ export function moveWall(
     }),
   };
 }
+
+// EZD-212a Build step 1 (vault/plans/EZD-212a.md section 1, Decided "`moveWalls` order of checks", "`moveWalls`
+// algorithm"; 09e; Q-0570; Q-0598 (b)): several walls move together; the walls joined to them and not selected
+// stretch. Reads and returns only wall objects; never mutates its input.
+export function moveWalls(
+  objects: readonly ModelObject[],
+  wallIds: readonly string[],
+  delta: { x: number; y: number },
+): MoveWallResult {
+  if (wallIds.length === 0) return { ok: true, changed: [] };
+  const selected = new Set<WallObject>();
+  for (const id of wallIds) {
+    const wall = objects.find((o): o is WallObject => isWall(o) && sameId(o.id, id));
+    if (wall === undefined) return { ok: false, reason: 'wall_not_found', wallId: id };
+    selected.add(wall);
+  }
+  if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y))
+    return { ok: false, reason: 'invalid_delta', wallId: wallIds[0]! };
+  if (pointsEqual(delta, { x: 0, y: 0 })) return { ok: true, changed: [] };
+
+  const levels = new Set([...selected].map((w) => w.data.level.toLowerCase()));
+  const walls = objects.filter(
+    (o): o is WallObject => isWall(o) && levels.has(o.data.level.toLowerCase()),
+  );
+  const selectedIds = new Set([...selected].map((w) => w.id.toLowerCase()));
+  const byId = (id: string) => walls.find((w) => sameId(w.id, id));
+
+  const lines = new Map<WallObject, WallLine>();
+  const lineOf = (w: WallObject): WallLine => lines.get(w) ?? w.data.geometry;
+
+  for (const s of selected) {
+    const g = s.data.geometry;
+    lines.set(s, { start: add(g.start, delta), end: add(g.end, delta) });
+  }
+  for (const s of selected) {
+    const movedLine = lineOf(s);
+    for (const join of findWallJoins(walls, s.id)) {
+      if (join.kind === 'tee-into' || join.kind === 'cross') continue;
+      if (selectedIds.has(join.otherId.toLowerCase())) continue;
+      const other = byId(join.otherId);
+      if (other === undefined) continue;
+      const point =
+        join.kind === 'corner'
+          ? { x: movedLine[join.end].x, y: movedLine[join.end].y }
+          : add(other.data.geometry[join.otherEnd], delta);
+      lines.set(other, { ...lineOf(other), [join.otherEnd]: point });
+    }
+  }
+
+  const changedWalls = [
+    ...walls.filter((w) => selected.has(w)),
+    ...walls.filter((w) => !selected.has(w) && lines.has(w)),
+  ];
+
+  for (const w of changedWalls) {
+    const problem = wallLengthProblem(wallLength(lineOf(w)));
+    if (problem !== null) return { ok: false, reason: problem, wallId: w.id };
+  }
+
+  for (const w of changedWalls) {
+    for (const join of findWallJoins(walls, w.id)) {
+      const other = byId(join.otherId);
+      if (other === undefined || !joinHolds(lineOf(w), join, lineOf(other)))
+        return { ok: false, reason: 'join_lost', wallId: w.id };
+    }
+  }
+
+  return {
+    ok: true,
+    changed: changedWalls.map((w) => {
+      const line = lineOf(w);
+      return {
+        id: w.id,
+        type: 'wall',
+        data: {
+          ...w.data,
+          geometry: {
+            start: { x: line.start.x, y: line.start.y },
+            end: { x: line.end.x, y: line.end.y },
+          },
+        },
+      };
+    }),
+  };
+}

@@ -267,6 +267,7 @@ describe('EZD-293 realtime failover check (unit)', () => {
       'system_only',
       'silent_stop',
       'silent_gap',
+      'send_failed',
       'unaffected',
     ]);
     expect([...SILENT]).toEqual(['system_only', 'silent_stop', 'silent_gap']);
@@ -432,5 +433,91 @@ describe('EZD-293 realtime failover check main (unit)', () => {
     );
     expect(exit).toBe(1);
     expect(n.lines()).toContain('Result: baseline_failed');
+  });
+});
+
+// EZD-352 (D-037; vault/plans/EZD-352.md sections 3-4): a probe whose database send failed is its own verdict.
+// Fakes only, as above. Probe shorthand: S a→b = a sent probe; F a→b = a probe whose send failed.
+describe('EZD-352 failover check: a failed send is its own verdict (unit)', () => {
+  const S = (sentAt: number, arrivedAt: number | null): Probe => ({
+    sentAt,
+    arrivedAt,
+    sendFailed: false,
+  });
+  const F = (sentAt: number, arrivedAt: number | null): Probe => ({
+    sentAt,
+    arrivedAt,
+    sendFailed: true,
+  });
+  const silentList: readonly string[] = SILENT;
+  const verdictList: readonly string[] = VERDICTS;
+
+  it('EZD-352 N1 classify: a failed send is never silent_stop or silent_gap', () => {
+    const v = (probes: Probe[]) => classify(obs({ probes }));
+    expect(v([S(2000, 2010), F(32000, null)])).toBe('send_failed'); // (a) old: silent_stop
+    expect(v([F(2000, null), S(32000, 32010)])).toBe('send_failed'); // (b) old: silent_gap
+    expect(v([F(2000, null), F(32000, null)])).toBe('send_failed'); // (c) old: silent_stop
+    expect(v([S(2000, 2010), F(32000, 32010)])).toBe('send_failed'); // (d) old: unaffected
+    expect(v([S(2000, null), S(32000, 32010), F(62000, null)])).toBe('silent_gap'); // (e) old: silent_stop
+    expect(v([S(2000, 2010), S(32000, null), F(62000, null)])).toBe('silent_stop'); // (f) old: silent_stop
+    expect(v([S(2000, null), F(32000, null), S(62000, 62010)])).toBe('silent_gap'); // (g) old: silent_gap
+  });
+
+  it('EZD-352 N2 classify: earlier verdicts still win over send_failed', () => {
+    const failed = [F(2000, null)];
+    expect(
+      classify(
+        obs({
+          probes: failed,
+          statuses: [
+            { at: 0, status: 'SUBSCRIBED' },
+            { at: 1500, status: 'CHANNEL_ERROR' },
+          ],
+        }),
+      ),
+    ).toBe('visible_drop');
+    expect(
+      classify(obs({ probes: failed, systems: [{ at: 1500, payload: { status: 'error' } }] })),
+    ).toBe('system_only');
+    expect(classify(obs({ probes: failed, dbBackAt: null }))).toBe('db_not_back');
+    expect(silentList.includes('send_failed')).toBe(false);
+    expect(verdictList.indexOf('send_failed')).toBe(6);
+  });
+
+  it('EZD-352 N3 run: one failed window send and nothing lost gives send_failed', async () => {
+    const seq = order();
+    const run1: Obs = await runCheck(fakeDeps({ sendFails: (n) => seq(n) === 21 }).deps);
+    expect(run1.probes.length).toBe(21);
+    expect(run1.probes[20].sendFailed).toBe(true);
+    expect(run1.probes.filter((p: Probe) => p.sendFailed).length).toBe(1);
+    expect(classify(run1)).toBe('send_failed'); // old: silent_stop
+    expect(run1.control.received).toBe(true);
+
+    const seq2 = order();
+    const run2: Obs = await runCheck(fakeDeps({ sendFails: (n) => seq2(n) === 5 }).deps);
+    expect(run2.probes[4].sendFailed).toBe(true);
+    expect(classify(run2)).toBe('send_failed'); // old: silent_gap
+    expect(run2.control.received).toBe(true);
+  });
+
+  it('EZD-352 N4 main: prints send_failed, not silent, exit 1', async () => {
+    const m = makeIo();
+    const seq = order();
+    const exit = await main(
+      [],
+      validEnv(),
+      m.io,
+      (a: { ask: (t: string) => Promise<string> }) =>
+        fakeDeps({ sendFails: (n) => seq(n) === 5, askVia: a.ask }).deps,
+    );
+    expect(exit).toBe(1); // Q-0608
+    expect(m.lines()).toContain('Result: send_failed');
+    expect(m.lines()).not.toContain('Result: silent_gap');
+    const line = m.lines().find((l) => l.startsWith('RESULT '));
+    expect(line).toBeDefined();
+    const json = JSON.parse((line as string).slice('RESULT '.length));
+    expect(json.verdict).toBe('send_failed');
+    expect(json.silent).toBe(false);
+    expect(json.probes.filter((p: Probe) => p.sendFailed).length).toBe(1);
   });
 });

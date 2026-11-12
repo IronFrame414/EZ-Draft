@@ -90,6 +90,11 @@ export function evaluateVercelEnv({ envs, requiredNames, prodRef }) {
   ];
   if (required.includes('SUPABASE_API_GATE_SECRET')) previewNames.push('SUPABASE_API_GATE_SECRET');
   for (const name of previewNames) if (of(name, 'preview').length === 0) add('missing', name, 'preview');
+  // 3b (EZD-5601 Step 22; Q-0637 "Preview has its own value"): when AI_KEY_ENCRYPTION_KEYS is a required name,
+  // Preview has an entry too. The value is Sensitive, so it is never read back (not in DECRYPTED_ENTRIES).
+  if (required.includes('AI_KEY_ENCRYPTION_KEYS') && of('AI_KEY_ENCRYPTION_KEYS', 'preview').length === 0) {
+    add('missing', 'AI_KEY_ENCRYPTION_KEYS', 'preview');
+  }
   // 4 and 5
   if (refKnown) {
     for (const e of of('NEXT_PUBLIC_SUPABASE_URL', 'production')) {

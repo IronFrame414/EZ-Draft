@@ -7,6 +7,7 @@
 import { captchaConfig } from '../../../server/auth/captcha-config';
 import { requireApiSession } from '../../../server/auth/session';
 import { createSessionClient } from '../../../server/auth/supabase-server';
+import { getMyAiKeyState } from '../../../server/assistant/user-key';
 import { currentTenantId } from '../../../server/company/company';
 import { reportError } from '../../../server/errors/report';
 import { reportRouteFailure } from '../../../server/errors/route-failure';
@@ -26,8 +27,14 @@ export async function GET(_request: Request): Promise<Response> {
   try {
     const session = await requireApiSession();
     if (session instanceof Response) return fail(401, 'not_signed_in');
-    const profile = await loadProfile(createSessionClient(), session);
-    const body: ProfileResponse = { profile, captcha: captchaConfig(process.env) };
+    const client = createSessionClient();
+    const profile = await loadProfile(client, session);
+    // EZD-5601 Step 15: the user's own AI key state, last 4 characters only (Q-0637).
+    const body: ProfileResponse = {
+      profile,
+      captcha: captchaConfig(process.env),
+      aiKey: await getMyAiKeyState(client),
+    };
     return Response.json(body, { status: 200, headers });
   } catch (e) {
     await reportRouteFailure(e, ROUTE);

@@ -661,3 +661,24 @@ test('EZD-316 T12 record-develop: lists what changed since the record, records o
   assert.match(rf.stdout, /RECORD STOP: no develop branch/);
   rmSync(ff, { recursive: true, force: true });
 });
+
+test('EZD-317 T5c the unit-steps SANDBOX STOP names the excluded command from unit-sandbox.json', { skip: process.getuid?.() === 0 }, () => {
+  const dir = fixture();
+  const entries = ['node /fx/scripts/unit-steps.mjs worktree *', 'node /fx/scripts/unit-steps.mjs merge *'];
+  writeFileSync(path.join(dir, 'scripts/unit-sandbox.json'), JSON.stringify({ sandbox: { excludedCommands: entries } }));
+  const agents = path.join(dir, '.claude/agents');
+  mkdirSync(agents, { recursive: true });
+  chmodSync(agents, 0o555);
+  try {
+    for (const s of ['worktree', 'merge']) {
+      const r = run(dir, s, 'EZD-002');
+      assert.equal(r.status, 3, r.stdout + r.stderr);
+      assert.ok(r.stdout.includes(`\`node /fx/scripts/unit-steps.mjs ${s} EZD-002\` again`), r.stdout);
+    }
+    assert.equal(git(dir, 'branch', '--list', 't/EZD-002'), '');
+    assert.match(row(dir, 'EZD-002'), /\| ready \|/);
+  } finally {
+    chmodSync(agents, 0o755);
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

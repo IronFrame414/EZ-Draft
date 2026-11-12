@@ -1,13 +1,52 @@
 // EZD-017 Step 5 (vault/plans/EZD-017.md P1-P5, H1, H2): the scripted pan. Counts React commits, long tasks and
 // animation frame intervals between the pan-start and pan-end marks (11 rule 4; Q-0073 (a)).
+// EZD-356: the pan rows also list each pan long task (at = ms after pan-start, ms = its length) and the 1-minute load average.
+// EZD-359: the pan is traced; each pan long task carries cpu, gc and top.
+// EZD-372: each counted pan task with no CPU time carries its trace evidence (panMisses).
+// EZD-388: a profile with cpuCountScale counts the trace's top-level tasks by CPU time × cpuCountScale (countByCpu); no trace is trace_missing.
+// EZD-235b Build step 11: HOOKS_PATH, stopTrace and twoFrames are exported for the worker-job collector.
+import os from 'node:os';
 import path from 'node:path';
 import { settlePage } from './js-size.mjs';
+import { TRACE_CATEGORIES, TRACE_STOP_MS, attributeTasks, countByCpu, describeMisses, readTraceEvents, splitTasks } from './trace-tasks.mjs';
 
-const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
+export const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
 
 const PAN_PX = 300;
 const STEPS = 45;
-const STEP_WAIT_MS = 16;
+export const STEP_WAIT_MS = 16;
+export const WHEEL_STEPS = 4;
+export const WHEEL_DELTA_PX = 100;
+// EZD-207c D-Gesture: two sweeps of 2 x STEPS moves each, then WHEEL_STEPS wheel steps in and out, 16 ms apart.
+export const GESTURE_MS = (4 * STEPS + 2 * WHEEL_STEPS) * STEP_WAIT_MS;
+export const PLAN_READY_MS = 30000;
+export const PLAN_POLL_MS = 100;
+export const PLAN_READY_SELECTOR = '[data-testid="plan-canvas"][data-plan-state="ready"]';
+
+/** EZD-207c D-Throttle: slows the page's CPU by `rate` (1 = none); the session lives until the page closes. */
+export async function applyCpuThrottle(context, page, rate) {
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate });
+  return cdp;
+}
+
+/** EZD-359 D-Trace: stops the browser's trace within TRACE_STOP_MS; its events, or [] on any throw or timeout. */
+export async function stopTrace(browser) {
+  let timer;
+  try {
+    const buffer = await Promise.race([
+      browser.stopTracing(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('trace_stop_timeout')), TRACE_STOP_MS);
+      }),
+    ]);
+    return readTraceEvents(buffer);
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /** P4: nearest-rank percentile of a sorted array. */
 const rank = (sorted, p) => sorted[Math.ceil((p / 100) * sorted.length) - 1];
@@ -43,7 +82,7 @@ export function frameStats(intervals) {
   };
 }
 
-const twoFrames = (page) =>
+export const twoFrames = (page) =>
   page.evaluate(
     () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );
@@ -65,12 +104,15 @@ async function sweep(page, cx, cy) {
 }
 
 /**
- * Runs the pan on baseUrl + panUrl in `context` (desktop profile). Resolves PanResult, or PanFailure
- * `{ error, status, reactDetected }` when the page does not load or has no canvas region (P1, P5).
+ * Runs the pan on baseUrl + panUrl in `context` under `profile` (CPU throttle set before the page loads). Resolves PanResult, or PanFailure
+ * `{ error, status, reactDetected }` when the page does not load, the plan is not ready (`plan_not_ready`) or it has no canvas region (P1, P5).
  */
-export async function runPan(context, baseUrl, panUrl) {
+export async function runPan(context, baseUrl, panUrl, profile) {
   await context.addInitScript({ path: HOOKS_PATH });
   const page = await context.newPage();
+  const cdp = await applyCpuThrottle(context, page, profile.cpuThrottleRate);
+  const browser = context.browser();
+  let tracing = false;
   try {
     let response;
     try {
@@ -83,6 +125,22 @@ export async function runPan(context, baseUrl, panUrl) {
     if (status !== 200) return { error: `http_${status}`, status, reactDetected: false };
 
     await settlePage(page);
+    if ((await page.$('[data-perf-wait-plan]')) !== null) {
+      try {
+        // EZD-207c D-Wait: the plan is ready and its text is uploaded.
+        await page.waitForFunction(
+          (sel) =>
+            document.querySelector(sel) !== null &&
+            window.__ezdraftPlan !== undefined &&
+            window.__ezdraftPlan.stats().glyphs > 0,
+          PLAN_READY_SELECTOR,
+          { timeout: PLAN_READY_MS, polling: PLAN_POLL_MS },
+        );
+      } catch {
+        const renderers = await page.evaluate(() => window.__EZD_PERF__.renderers);
+        return { error: 'plan_not_ready', status: 200, reactDetected: renderers >= 1 };
+      }
+    }
     const canvas = await page.$('[data-shell-region="canvas"]');
     const box = canvas ? await canvas.boundingBox() : null;
     if (!box) {
@@ -95,6 +153,15 @@ export async function runPan(context, baseUrl, panUrl) {
     // P2: the one move to the start position and any commit it causes land before pan-start.
     await page.mouse.move(cx, cy);
     await twoFrames(page);
+    const load1 = Math.round(os.loadavg()[0] * 100) / 100;
+    if (browser !== null) {
+      try {
+        await browser.startTracing(page, { categories: TRACE_CATEGORIES });
+        tracing = true;
+      } catch {
+        tracing = false;
+      }
+    }
     const startCommits = await page.evaluate(() => {
       window.__EZD_PERF__.mark('pan-start');
       return window.__EZD_PERF__.commits;
@@ -111,6 +178,15 @@ export async function runPan(context, baseUrl, panUrl) {
     await page.mouse.up();
     await page.keyboard.up('Space');
 
+    let wheelSteps = 0;
+    for (const delta of [-WHEEL_DELTA_PX, WHEEL_DELTA_PX]) {
+      for (let k = 0; k < WHEEL_STEPS; k++) {
+        await page.mouse.wheel(0, delta);
+        wheelSteps++;
+        await page.waitForTimeout(STEP_WAIT_MS);
+      }
+    }
+
     await twoFrames(page);
     const end = await page.evaluate(() => {
       const p = window.__EZD_PERF__;
@@ -124,21 +200,37 @@ export async function runPan(context, baseUrl, panUrl) {
         panEnd: p.panEnd,
       };
     });
+    const events = tracing ? await stopTrace(browser) : [];
+    tracing = false;
 
     // P3
     const intervals = [];
     for (let i = 1; i < end.rafTimes.length; i++) intervals.push(end.rafTimes[i] - end.rafTimes[i - 1]);
+    const raw = end.longTasks
+      .filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
+      .map((t) => ({ at: Math.round(t.startTime - end.panStart), ms: Math.round(t.duration) }))
+      .sort((a, b) => a.at - b.at);
+    // EZD-359 branch H: own work (cpu × rate − ms × (rate − 1)) of 50 ms or less is a wait: listed, not counted. EZD-388: a profile with cpuCountScale counts by trace CPU time instead (Q-0737 (a)).
+    const split = profile.cpuCountScale === undefined ? splitTasks(attributeTasks(events, raw), profile.cpuThrottleRate) : countByCpu(events, raw, profile.cpuCountScale, end.panEnd - end.panStart);
+    if (split === null) return { error: 'trace_missing', status: 200, reactDetected: end.renderers >= 1 };
     return {
       reactDetected: end.renderers >= 1,
       renderers: end.renderers,
       commits: end.commits - startCommits,
       pointerMoves,
-      longTasksPan: end.longTasks.filter((t) => t.startTime >= end.panStart && t.startTime <= end.panEnd)
-        .length,
+      wheelSteps,
+      durationMs: end.panEnd - end.panStart,
+      longTasksPan: split.counted.length,
       longTasksLoad: end.longTasks.filter((t) => t.startTime < end.panStart).length,
+      panTasks: split.counted,
+      panWaits: split.waits,
+      panMisses: describeMisses(events, split.counted),
+      load1,
       intervals,
     };
   } finally {
+    if (tracing) await stopTrace(browser);
+    await cdp.detach().catch(() => {});
     await page.close();
   }
 }

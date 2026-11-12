@@ -10,6 +10,7 @@ import { MessagesProvider } from '../../lib/messages';
 import { catalogFor } from '../../server/messages/catalog';
 import { ToolRail } from './index';
 import type { RailEntry, RailTool } from './rail-types';
+import { DRAWING_RAIL_TOOLS } from '../../editor/tools';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fn = () => {};
@@ -173,5 +174,66 @@ describe('EZD-012a ToolRail CSS', () => {
     const key = block('.key');
     expect(key).toContain('font-family: var(--ez-font-mono)');
     expect(key).toContain('color: var(--ez-slate-300)');
+  });
+});
+
+describe('EZD-210b ToolRail disabled', () => {
+  it('R1 disabled renders every button disabled; without it nothing is disabled; the CSS greys it', () => {
+    const drawing = [...DRAWING_RAIL_TOOLS];
+    const off = render(
+      <ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} disabled />,
+    );
+    expect(count(off, '<button')).toBe(5);
+    expect(count(off, 'disabled=""')).toBe(5);
+    const on = render(<ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} />);
+    expect(count(on, '<button')).toBe(5);
+    expect(count(on, 'disabled=""')).toBe(0);
+    const css = squash(readFileSync(path.join(here, 'ToolRail.module.css'), 'utf8'));
+    const rule = [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)].find(
+      (r) => squash(r[1]) === ".tool:disabled, .tool[aria-pressed='true']:disabled",
+    );
+    expect(rule).toBeDefined();
+    const decls = rule![2]
+      .split(';')
+      .map((d) => squash(d))
+      .filter((d) => d.length > 0);
+    expect(decls).toContain('background: transparent');
+    expect(decls).toContain('color: var(--ez-slate-300)');
+    expect(decls).toContain('cursor: default');
+  });
+});
+
+// EZD-5603a T21 (vault/plans/EZD-5603a.md section 4; AC-EZD-5603-1; board S03cAIAssistant.dc.html:83; Decided
+// "Rail button"). The tool is imported inside the test so the describes above keep running.
+describe('EZD-5603a ToolRail assistant toggle', () => {
+  const tipOf = (html: string, id: string) => {
+    const at = html.indexOf(`data-rail-tool="${id}"`);
+    const m = /<span[^>]*data-rail-tooltip=""[^>]*>([\s\S]*?)<\/span>/.exec(html.slice(at));
+    return m ? m[1]! : '';
+  };
+
+  it('T21 pressedIds presses the assistant button; no shortcut; tooltip is "Assistant" alone', async () => {
+    const { ASSISTANT_RAIL_TOOL } = await import('../../editor/assistant/assistant-ui');
+    const on = render(
+      <ToolRail
+        top={top}
+        bottom={[ASSISTANT_RAIL_TOOL]}
+        activeId="select"
+        pressedIds={['assistant']}
+        onSelect={fn}
+      />,
+    );
+    const btn = buttonFor(on, 'assistant');
+    expect(btn).toContain('aria-pressed="true"');
+    expect(btn).not.toContain('aria-keyshortcuts');
+    expect(tipOf(on, 'assistant')).toBe('Assistant');
+    expect(tipOf(on, 'assistant')).not.toContain('<kbd');
+    expect(buttonFor(on, 'select')).toContain('aria-pressed="true"');
+
+    const off = render(
+      <ToolRail top={top} bottom={[ASSISTANT_RAIL_TOOL]} activeId="select" onSelect={fn} />,
+    );
+    expect(buttonFor(off, 'assistant')).toContain('aria-pressed="false"');
+    expect(buttonFor(off, 'select')).toContain('aria-pressed="true"');
   });
 });

@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { seedRecordViews } from '../launcher/test-utils/record-views.mjs';
+import { connRow as L, contractRow as C, planV2, stepRow as S, writeRegister } from './fixtures/plan-checks.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const LEDGER = path.join(REPO, 'scripts/ledger.mjs');
@@ -890,10 +891,11 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
   test('X1: run.mjs --once with a missing plan file prints the problem and records its cost row, with no commit (2.12; D1 (a), D2 (a))', async () => {
     const root = tmp('ezd173-x1-');
     const at = (...p) => path.join(root, ...p);
-    for (const d of ['scripts', 'scripts/release', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
-    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
+    for (const d of ['scripts', 'scripts/release', 'scripts/launcher', 'vault/tools', 'vault/tickets', 'vault/cost', 'vault/handoff']) mkdirSync(at(d), { recursive: true });
+    for (const f of ['run.mjs', 'unit-sandbox.json', 'budget.mjs', 'oauth-usage.mjs', 'cost-log.mjs', 'launcher-idle.mjs', 'ledger.mjs', 'records.mjs', 'release/github-ops.mjs', 'launcher/unit-env.mjs']) cpSync(path.join(REPO, 'scripts', f), at('scripts', f));
     cpSync(path.join(REPO, 'vault/tools/boost.mjs'), at('vault/tools/boost.mjs'));
     cpSync(path.join(REPO, 'vault/tools/lanes.mjs'), at('vault/tools/lanes.mjs'));
+    cpSync(path.join(REPO, 'vault/tools/limit-message.mjs'), at('vault/tools/limit-message.mjs'));
     cpSync(path.join(REPO, 'vault/tools/trusted-git.mjs'), at('vault/tools/trusted-git.mjs')); // EZD-345 D16: run.mjs and ledger.mjs import it
     cpSync(path.join(REPO, 'vault/tools/questions-files.mjs'), at('vault/tools/questions-files.mjs'));
     writeFileSync(at('vault/tools/next_ticket.mjs'), [
@@ -915,7 +917,7 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
       read_at: iso(now),
       source: 'statusline',
     }));
-    const result = '{"type":"result","subtype":"success","is_error":false,"result":"ok","num_turns":1,"total_cost_usd":0}';
+    const result = '{"type":"result","subtype":"success","is_error":false,"result":"ok","num_turns":2,"total_cost_usd":0}';
     writeFileSync(at('fake-claude'), `#!/bin/sh\ncase "$*" in *--help*) echo "--max-turns --session-id --permission-prompts";; *) echo '${result}';; esac\nexit 0\n`, { mode: 0o755 });
     writeFileSync(at('scripts/launcher.config.json'), JSON.stringify({
       claude_bin: at('fake-claude'),
@@ -942,5 +944,91 @@ describe('EZD-173 X: the launcher with a plan problem', () => {
     assert.deepEqual(db.prepare('select line from cost').all().map((c) => [JSON.parse(c.line).unit, JSON.parse(c.line).ticket]), [['plan', 'EZD-999'], ['plan', 'EZD-999']], 'one cost row per run (the launcher retries a failed unit once)');
     db.close();
     assert.equal(git(root, 'status', '--porcelain', '--', 'vault'), '', out);
+  });
+});
+
+// EZD-383 R1-R4 (vault/plans/EZD-383.md section 4): `ledger.mjs status <T> status=ready` runs the plan checks on a template v2 plan.
+describe('EZD-383 R: ledger status=ready runs the plan checks', () => {
+  const REG = { version: 1, lists: [{ id: 'fx-gate', list: 'fixture gate list', test: 'gate-stub.mjs', pin: 'process.exit', reaches: ['gate-stub.mjs'], read: 'the exit code', sources: ['L-049'] }] };
+  const RESULTS = () => path.join(tmp('ezd383-results-'), 'unit.results.jsonl');
+  // The R1 failing plan: gate-stub.mjs is marked new but is committed. Options change what the plan says.
+  const plan = (dir, { kind = 'new', connections = [L('shared list fx-gate', 'gate-stub.mjs:1')], v1 = false, ticket = 'EZD-004' } = {}) => {
+    writeFileSync(path.join(dir, `vault/plans/${ticket}.md`), planV2({ v1, steps: [S(1, 'gate-stub.mjs', kind, 'vault/tickets/tickets.json')], contract: [C('file (exists)', 'vault/tickets/tickets.json')], connections, shared: 'None: fixture', regression: 'None: fixture' }));
+    writeRegister(dir, REG);
+  };
+  const ready = (dir, results, ticket = 'EZD-004', status = 'ready') => cli(dir, ['status', ticket, `status=${status}`], { env: { EZD_RESULTS_FILE: results } });
+  const queued = async (results) => (await import(pathToFileURL(RECORDS).href)).readQueue(results).map((o) => [o.op, o.ticket, o.changes.status]);
+
+  test('R1 the ledger refuses ready on a contract failure', () => {
+    const dir = fixture();
+    plan(dir);
+    const results = RESULTS();
+    const r = ready(dir, results);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.equal(r.stdout, 'LEDGER FAIL: EZD-004 not set ready: 1 plan check problem\n- contract: section 1: Build steps row 1: gate-stub.mjs is marked new but is at HEAD\n');
+    assert.equal(existsSync(results), false);
+  });
+
+  test('R2 the ledger refuses ready on a connections failure and when the checks cannot run', () => {
+    const dir = fixture();
+    plan(dir, { kind: 'change', connections: [L('c', 'vault/tickets/tickets.json:1')] });
+    const a = RESULTS();
+    const ra = ready(dir, a);
+    assert.equal(ra.status, 1, ra.stdout + ra.stderr);
+    assert.equal(ra.stdout, 'LEDGER FAIL: EZD-004 not set ready: 1 plan check problem\n- connections: section 3: Connections: shared list fx-gate (fixture gate list) is reached by gate-stub.mjs; add a Connections row naming fx-gate in Name and gate-stub.mjs:<line> in File:line (pin "process.exit")\n');
+    assert.equal(existsSync(a), false);
+    plan(dir, { kind: 'change' });
+    rmSync(path.join(dir, 'vault/shared-lists.json'));
+    const b = RESULTS();
+    const rb = ready(dir, b);
+    assert.equal(rb.status, 1, rb.stdout + rb.stderr);
+    assert.ok(rb.stdout.startsWith('LEDGER FAIL: EZD-004 not set ready: the plan checks could not run: cannot read the register '), rb.stdout);
+    assert.equal(existsSync(b), false);
+  });
+
+  test('R3 a passing v2 plan is set ready; other statuses are not checked', async () => {
+    const dir = fixture();
+    plan(dir, { kind: 'change' });
+    const a = RESULTS();
+    const ra = ready(dir, a);
+    assert.equal(ra.status, 0, ra.stdout + ra.stderr);
+    assert.equal(ra.stdout, 'LEDGER OK EZD-004 status\n');
+    assert.deepEqual(await queued(a), [['status', 'EZD-004', 'ready']]);
+    plan(dir);
+    const b = RESULTS();
+    const rb = ready(dir, b, 'EZD-004', 'blocked');
+    assert.equal(rb.status, 0, rb.stdout + rb.stderr);
+    assert.deepEqual(await queued(b), [['status', 'EZD-004', 'blocked']]);
+  });
+
+  test('R4 a v1 plan and a ticket without a plan keep the old behaviour', async () => {
+    const dir = fixture();
+    plan(dir, { v1: true });
+    const a = RESULTS();
+    const ra = ready(dir, a);
+    assert.equal(ra.status, 0, ra.stdout + ra.stderr);
+    assert.equal(ra.stdout, 'LEDGER OK EZD-004 status\n');
+    assert.deepEqual(await queued(a), [['status', 'EZD-004', 'ready']]);
+    const b = RESULTS();
+    const rb = ready(dir, b, 'EZD-005');
+    assert.equal(rb.status, 0, rb.stdout + rb.stderr);
+    assert.equal(rb.stdout, 'LEDGER OK EZD-005 status\n');
+    assert.deepEqual(await queued(b), [['status', 'EZD-005', 'ready']]);
+  });
+
+  test('EZD-384b R5 the ledger refuses ready at step brief or design', () => {
+    const dir = fixture();
+    plan(dir, { kind: 'change' });
+    const file = path.join(dir, 'vault/plans/EZD-004.md');
+    const base = readFileSync(file, 'utf8');
+    assert.equal(base.split('- Template: v2\n').length, 2, 'the fixture plan carries one Template line');
+    for (const [step, tail] of [['design', 'the code-bound step has not run (EZD-384b)'], ['brief', 'the whole plan is not written yet (EZD-384)']]) {
+      writeFileSync(file, base.replace('- Template: v2\n', `- Template: v2\n- Plan step: ${step}\n`));
+      const results = RESULTS();
+      const r = ready(dir, results);
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.equal(r.stdout, `LEDGER FAIL: EZD-004 not set ready: 1 plan check problem\n- plan step: ${step}; ${tail}\n`);
+      assert.equal(existsSync(results), false);
+    }
   });
 });

@@ -1,0 +1,350 @@
+ 2026-11-10T20:40:49Z 42897650540 docs(vault): close launcher fix mode (EZD-365, EZD
+cancelled 2026-11-10T20:40:45Z 42897637954 feat(EZD-369): Fix: three strikes, then a full ass
+cancelled 2026-11-10T20:27:33Z 42895475773 feat(EZD-365): Fix: the full gate tests the commit
+cancelled 2026-11-10T20:26:04Z 42895237116 feat(EZD-211b): Door and window tools on the plan
+failure 2026-11-10T19:44:41Z 42888313901 docs(vault): session 15 handoff with the build aud
+failure 2026-11-10T19:11:12Z 42882716995 feat(EZD-371): Fix: My profile set password finds 
+cancelled 2026-11-10T18:58:28Z 42880563530 feat(EZD-370): Fix: the secret-key client list mat
+cancelled 2026-11-10T18:45:19Z 42878384446 docs(vault): session 13 brief for Josh's build-pro
+cancelled 2026-11-10T18:44:57Z 42878318303 docs(vault): overseer line for the phase 6 hold
+cancelled 2026-11-10T18:37:37Z 42877106133 docs(vault): EZD-367 plan (ticket closed; change c
+cancelled 2026-11-10T18:37:29Z 42877083822 docs(vault): EZD-367 closed (its change is on deve
+cancelled 2026-11-10T18:16:12Z 42873465732 docs(vault): phase 4 fix tickets EZD-370 (secret-k
+cancelled 2026-11-10T18:15:08Z 42873277754 docs(vault): commit unit-left vault edits (phase 4
+cancelled 2026-11-10T18:15:00Z 42873254068 docs(vault): EZD-369 fix ticket: three strikes, th
+cancelled 2026-11-10T18:02:41Z 42871099494 docs(vault): overseer line for the connect-only po
+cancelled 2026-11-10T17:45:54Z 42868266612 feat(EZD-366): Fix: a crafted wall or opening numb
+cancelled 2026-11-10T17:35:07Z 42866455260 feat(EZD-368): Fix: Fit to screen for a view-only 
+cancelled 2026-11-10T17:12:30Z 42862540393 feat(EZD-217): Undo, redo and clipboard
+failure 2026-11-10T16:43:50Z 42857494095 feat(EZD-5601): AI key storage and My profile
+failure 2026-11-10T15:54:16Z 42849226474 docs(vault): EZD-217 tickets.json entry from its p
+failure 2026-11-10T14:45:02Z 42837242800 docs(vault): overseer line for the ports diagnosti
+cancelled 2026-11-10T14:31:27Z 42834937565 feat(EZD-208b): Selection on the plan, rail and ta
+failure 2026-11-10T13:50:32Z 42828227905 docs(vault): overseer line for the overwatch runbo
+cancelled 2026-11-10T13:37:48Z 42826274326 docs(vault): EZD-212a plan as built (branch versio
+cancelled 2026-11-10T13:15:42Z 42822903495 feat(EZD-219): Status bar popovers
+failure 2026-11-10T03:20:07Z 42748754185 docs(vault): commit phase 6 plans 216, 235, 237, 6
+failure 2026-11-10T01:49:14Z 42738459854 docs(vault): commit phase 6 plans 135, 214, 218, 2
+cancelled 2026-11-10T01:28:06Z 42735982143 docs(vault): close fix mode for EZD-364; security 
+failure 2026-11-10T00:42:08Z 42730297151 feat(EZD-208a): Selection logic and drawing
+failure 2026-11-09T23:35:29Z 42721691862 feat(EZD-204b): Offsets, hosting and the Not on a 
+failure 2026-11-09T22:43:07Z 42714352614 feat(EZD-204a): Opening data v4
+failure 2026-11-09T21:49:18Z 42706107487 docs(vault): R-057 research report and index row
+cancelled 2026-11-09T21:33:58Z 42703694085 docs(vault): commit the split parts' plans, archit
+failure 2026-11-09T20:13:23Z 42690866264 docs(vault): phase 4 for-josh file (ledger check: 
+cancelled 2026-11-09T20:12:57Z 42690800136 docs(vault): EZD-221b ui-verifier screenshots
+failure 2026-11-09T16:34:35Z 42656161666 feat(EZD-363): Fix: the disabled tool button rule 
+failure 2026-11-09T15:31:13Z 42645479631 docs(vault): commit phase 3 plan review
+cancelled 2026-11-09T15:30:38Z 42645376397 feat(EZD-299): Conflict list: Keep mine / Keep the
+failure 2026-11-09T14:12:35Z 42632420620 feat(EZD-294): Object numbers
+failure 2026-11-09T12:58:44Z 42621460511 docs(vault): architecture lists for EZD-204, 208, 
+cancelled 2026-11-09T12:29:57Z 42617507652 docs(vault): phase 5 split-proposal plans for 204,
+failure 2026-11-09T12:07:41Z 42614410218 docs(vault): architecture lists for phase 5 and 56
+cancelled 2026-11-09T11:54:19Z 42612668996 feat(EZD-299b): Conflict list: refused changes lea
+failure 2026-11-09T10:02:00Z 42597869841 feat(EZD-299a): Conflict list: server copy, save r
+failure 2026-11-08T05:12:15Z 42449838777 docs(vault): close fix mode for EZD-362; overseer 
+failure 2026-11-08T00:28:54Z 42429932161 docs(vault): lift the weekly-limit pause; CLI sign
+failure 2026-11-07T23:47:53Z 42426857560 docs(vault): session 12 brief
+cancelled 2026-11-07T23:45:57Z 42426716807 docs(vault): overseer line for the split and drop
+failure 2026-11-07T19:16:29Z 42405396717 docs(vault): sign off phases 5 and 56 on Josh's 20
+failure 2026-11-07T15:54:32Z 42388637205 docs(vault): session 11 state at the weekly limit 
+cancelled 2026-11-07T15:54:00Z 42388596530 feat(EZD-361): Fix: the EZD-360 phase order test h
+cancelled 2026-11-07T15:43:30Z 42387758517 docs(vault): tooling note and overseer line, EZD-3
+failure 2026-11-07T14:41:38Z 42382789079 docs(vault): close fix mode for EZD-360; tooling n
+failure 2026-11-07T12:35:48Z 42373194213 docs(vault): session 11 handoff; pause until 9:10 
+cancelled 2026-11-07T12:26:57Z 42372527317 docs(vault): spec-check phase 5: Q-0630 decisions,
+failure 2026-11-07T11:57:14Z 42370335324 docs(vault): EZD-294 and EZD-299a plans and ticket
+failure 2026-11-07T11:19:53Z 42367719591 feat(EZD-221a): Template objects on the server
+cancelled 2026-11-07T10:57:09Z 42366086650 docs(vault): boards S03c and S01g, approved by Jos
+failure 2026-11-07T10:37:11Z 42364719971 docs(vault): board S03b and the S01c state, approv
+failure 2026-11-07T10:31:45Z 42364330789 docs(vault): overseer line: EZD-221a resumed, set-
+failure 2026-11-07T10:28:41Z 42364109054 docs(vault): EZD-221a tickets.json entry from its 
+failure 2026-11-07T09:34:19Z 42360299450 docs(vault): split EZD-221 into EZD-221a, EZD-221b
+cancelled 2026-11-07T09:33:37Z 42360249355 feat(EZD-358): Fix: the EZD-207c E3 no-database te
+failure 2026-11-07T08:42:43Z 42356632098 feat(EZD-210b): Drawing tools on the plan
+failure 2026-11-07T08:01:50Z 42353712665 feat(EZD-359): Fix: the EZD-207c done-when test lo
+failure 2026-11-07T05:26:28Z 42342738449 docs(vault): EZD-358 plan: reset before each proof
+failure 2026-11-07T04:26:39Z 42338482473 docs(vault): EZD-359 fix ticket row, tickets.json,
+cancelled 2026-11-07T04:26:01Z 42338437134 feat(EZD-357): Fix: a typed chain that closes at e
+failure 2026-11-07T03:47:31Z 42335583074 feat(EZD-210a): Wall and Room rectangle tool logic
+failure 2026-11-07T03:09:11Z 42332649533 docs(vault): EZD-210a and EZD-210b plans, overseer
+cancelled 2026-11-07T03:06:19Z 42332421986 docs(vault): PROCESS.md: temporary override of the
+cancelled 2026-11-07T02:46:33Z 42330878736 docs(vault): EZD-210a tickets.json architecture li
+cancelled 2026-11-07T02:45:50Z 42330822096 docs(vault): overseer line: usage and context limi
+cancelled 2026-11-07T02:35:10Z 42329977044 docs(vault): EZD-209 depends on EZD-207a, b, c (th
+cancelled 2026-11-07T02:16:15Z 42328386712 docs(vault): EZD-209 depends on every EZD-207 part
+cancelled 2026-11-07T02:14:41Z 42328243807 docs(vault): EZD-354 done: close fix mode, oversee
+cancelled 2026-11-07T01:54:42Z 42326529773 feat(EZD-356): Fix: the iPad long-task count durin
+failure 2026-11-06T23:42:54Z 42313718964 docs(vault): EZD-356 defect ticket for the EZD-209
+cancelled 2026-11-06T23:41:47Z 42313598527 docs(vault): EZD-209 tickets.json entry from its p
+cancelled 2026-11-06T20:52:01Z 42291944950 feat(EZD-207c): Benchmark pan and zoom in the perf
+failure 2026-11-06T19:51:58Z 42283368851 feat(EZD-236): Benchmark project generator
+failure 2026-11-06T19:14:22Z 42277853448 docs(vault): EZD-236 depends_on gains EZD-203, EZD
+cancelled 2026-11-06T19:13:36Z 42277742601 feat(EZD-207b): Plan canvas: zoom stack, hover and
+success 2026-11-06T18:27:37Z 42270896570 feat(EZD-205b): Closure gap, absorb and keep out o
+success 2026-11-06T15:34:18Z 42244275694 feat(EZD-207a): Plan canvas: renderer, drawing, gr
+cancelled 2026-11-06T15:03:53Z 42239531349 feat(EZD-205a): Room outlines, area, storage and l
+success 2026-11-06T14:27:35Z 42234098362 docs(vault): EZD-205b is a product ticket (no tool
+success 2026-11-06T13:50:21Z 42228731798 docs(vault): EZD-317 done (overseer log); close in
+success 2026-11-06T13:06:44Z 42222856576 docs(vault): EZD-355 architecture list until its p
+cancelled 2026-11-06T12:53:20Z 42221102709 docs(vault): session 9 brief: Josh's yes for EZD-3
+cancelled 2026-11-06T12:41:28Z 42219598343 docs(vault): tooling note: queued ledger ops are n
+cancelled 2026-11-06T12:17:52Z 42216582291 feat(EZD-351): Fix: rls.audit T18 and handlers T19
+cancelled 2026-11-06T12:10:52Z 42215692570 docs(vault): commit research report R-054 (EZD-207
+cancelled 2026-11-06T11:56:53Z 42213957354 docs(vault): drop the split bases EZD-205, EZD-207
+failure 2026-11-06T11:44:44Z 42212502604 docs(vault): split EZD-205, EZD-207, EZD-210 into 
+cancelled 2026-11-06T11:30:33Z 42210765109 docs(vault): session 9 brief: sandbox on, EZD-317 
+cancelled 2026-11-06T11:28:13Z 42210477144 docs(vault): EZD-354 the gate's checks run as the 
+cancelled 2026-11-06T11:18:44Z 42209296012 docs(vault): tooling notes from the first sandboxe
+cancelled 2026-11-06T11:17:44Z 42209174822 docs(vault): EZD-351 plan step 2 names no guarded 
+cancelled 2026-11-06T11:15:07Z 42208844356 feat(EZD-353): Fix: captureTraffic does not block 
+failure 2026-11-06T11:03:05Z 42207289566 docs(vault): unit sandbox back on (overseer log); 
+failure 2026-11-06T10:42:24Z 42204702188 docs(vault): session 9 brief: main session role, s
+cancelled 2026-11-06T10:38:33Z 42204221960 feat(EZD-350): Fix: tests that pin app-wide lists 
+cancelled 2026-11-06T10:22:37Z 42202191483 feat(EZD-349): Fix: every 401 from requireApiSessi
+success 2026-11-06T09:43:15Z 42197144853 docs(vault): wrap phase 3
+success 2026-11-06T09:16:18Z 42193771893 Phase 3: Model store and editor route
+success 2026-11-06T09:16:15Z 42193764626 docs(vault): fix tickets EZD-349 to EZD-353 for th
+cancelled 2026-11-06T09:14:40Z 42193555507 Phase 3: Model store and editor route
+cancelled 2026-11-06T09:14:37Z 42193549280 docs(vault): phase 3 security pass of a3ad5dd..f65
+cancelled 2026-11-06T09:10:35Z 42193036209 Phase 3: Model store and editor route
+cancelled 2026-11-06T09:10:32Z 42193028704 docs(vault): EZD-345 notes and overseer log; close
+cancelled 2026-11-06T09:10:27Z 42193018453 Phase 3: Model store and editor route
+cancelled 2026-11-06T09:10:23Z 42193009428 feat(EZD-345): Build system: commands outside the 
+cancelled 2026-11-06T09:00:14Z 42191725902 Phase 3: Model store and editor route
+cancelled 2026-11-06T09:00:11Z 42191717245 feat(EZD-348): Fix: the EZD-120d B4 sign-out test 
+failure 2026-11-06T08:14:41Z 42186281548 Phase 3: Model store and editor route
+failure 2026-11-06T08:14:38Z 42186274923 fix(repair): ticket EZD-348 for the phase 3 CI e2e
+failure 2026-11-06T07:52:00Z 42183681444 Phase 3: Model store and editor route
+failure 2026-11-06T07:51:56Z 42183674335 docs(vault): phase 3 records snapshot
+cancelled 2026-11-06T07:51:55Z 42183671825 Phase 3: Model store and editor route
+cancelled 2026-11-06T07:51:50Z 42183664423 chore: preview
+cancelled 2026-11-06T07:51:33Z 42183633694 Phase 3: Model store and editor route
+cancelled 2026-11-06T07:51:01Z 42183575098 docs(vault): phase 3 gate findings
+failure 2026-11-06T07:26:28Z 42180887203 docs(vault): EZD-347 ui-verifier screenshots
+cancelled 2026-11-06T07:06:51Z 42178728287 feat(EZD-346): Fix: every state-changing /api requ
+cancelled 2026-11-06T06:25:16Z 42174311879 docs(vault): EZD-316 live push through github-ops 
+cancelled 2026-11-06T06:25:06Z 42174294422 docs(vault): EZD-316 overseer log; close interacti
+failure 2026-11-06T05:35:21Z 42169308966 feat(EZD-342): Fix: every cookie the app sets is h
+cancelled 2026-11-06T05:31:08Z 42168883694 docs(vault): EZD-316 Part B adds the guard-bash ro
+success 2026-11-06T05:09:49Z 42166745452 docs(vault): EZD-316 re-planned under Q-0548 (a), 
+cancelled 2026-11-06T04:59:50Z 42165731289 docs(vault): EZD-317 depends on EZD-316 (its plan 
+cancelled 2026-11-06T04:49:32Z 42164766523 docs(vault): EZD-344 notes and overseer log; close
+success 2026-11-06T04:02:02Z 42160050683 docs(vault): tooling note: architecture lists must
+cancelled 2026-11-06T03:51:39Z 42159049983 docs(vault): EZD-344 Architecture list in tickets.
+failure 2026-11-06T03:27:31Z 42156669743 docs(vault): EZD-344 and EZD-345 plans with Q-0602
+cancelled 2026-11-06T03:17:16Z 42155612324 docs(vault): session 8 brief: Josh admin item for 
+cancelled 2026-11-06T02:57:49Z 42153583949 docs(vault): EZD-337 notes and overseer log; close
+success 2026-11-06T02:34:02Z 42151135152 feat(EZD-341): Fix: the projects-settings entry st
+cancelled 2026-11-06T02:26:43Z 42150360835 feat(EZD-340): Fix: the EZD-136 disclaimer test pa
+failure 2026-11-06T02:08:08Z 42148359210 docs(vault): session 8 hand-over: main session for
+cancelled 2026-11-06T02:05:08Z 42148024692 feat(EZD-343): Fix: the EZD-289 home-settings test
+failure 2026-11-06T00:44:51Z 42139061757 docs(vault): phase 3 gate fix tickets EZD-338 to E
+cancelled 2026-11-06T00:30:05Z 42137264990 docs(vault): EZD-120d ui-verifier screenshots
+failure 2026-11-05T23:09:55Z 42127469845 feat(EZD-203): Walls core
+cancelled 2026-11-05T22:59:00Z 42125985227 docs(vault): EZD-120c ui-verifier screenshots
+cancelled 2026-11-05T22:26:40Z 42121536202 feat(EZD-120b): Patch store, outbox and autosave
+success 2026-11-05T21:25:20Z 42112488065 feat(EZD-238): Drawing list
+cancelled 2026-11-05T21:06:20Z 42109548836 docs(vault): EZD-202 depends on EZD-120a only (Q-0
+cancelled 2026-11-05T21:05:39Z 42109438187 feat(EZD-202): Model document schema
+success 2026-11-05T20:42:02Z 42105801452 feat(EZD-120a): Model tables, save function and ch
+success 2026-11-05T19:25:50Z 42093802127 docs(vault): commit research report R-053 (EZD-337
+success 2026-11-05T19:08:35Z 42091032229 docs(vault): wrap phase 2
+cancelled 2026-11-05T19:05:55Z 42090600524 docs(vault): remove the applied EZD-336 CI timeout
+cancelled 2026-11-05T19:05:48Z 42090581443 ci: gate job timeout 45 minutes (EZD-336 patch; a 
+cancelled 2026-11-05T19:03:45Z 42090241391 docs(vault): EZD-336 notes, overseer log line, ses
+success 2026-11-05T18:27:39Z 42084434259 Phase 2: Projects list and new project
+success 2026-11-05T18:27:36Z 42084427135 docs(process): Claude Code merges and completes it
+success 2026-11-05T14:52:54Z 42049310266 Phase 2: Projects list and new project
+cancelled 2026-11-05T14:52:49Z 42049298178 feat(EZD-335): Fix: test:e2e: EZD-136 every page s
+success 2026-11-05T14:34:32Z 42046320541 Phase 2: Projects list and new project
+success 2026-11-05T14:34:30Z 42046315140 docs(vault): session 7 hand-over: PR 5 status, EZD
+failure 2026-11-05T14:12:46Z 42042802420 Phase 2: Projects list and new project
+success 2026-11-05T14:12:42Z 42042791999 docs(vault): overseer log
+cancelled 2026-11-05T14:11:26Z 42042591844 Phase 2: Projects list and new project
+cancelled 2026-11-05T14:11:23Z 42042583762 docs(vault): EZD-333 notes; close interactive fix 
+cancelled 2026-11-05T13:53:50Z 42039849731 Phase 2: Projects list and new project
+cancelled 2026-11-05T13:53:46Z 42039841558 feat(EZD-334): Fix: the phase 2 PR gate: ledger te
+failure 2026-11-05T13:07:11Z 42032932112 Phase 2: Projects list and new project
+failure 2026-11-05T13:07:08Z 42032925058 fix(vault): CI ledger check: EZD-120c and EZD-120d
+failure 2026-11-05T12:19:13Z 42026117918 Phase 2: Projects list and new project
+failure 2026-11-05T12:19:07Z 42026106069 docs(vault): phase 2 records snapshot
+cancelled 2026-11-05T12:18:55Z 42026077668 Phase 2: Projects list and new project
+cancelled 2026-11-05T12:18:51Z 42026067828 chore: preview
+cancelled 2026-11-05T12:18:32Z 42026026666 Phase 2: Projects list and new project
+cancelled 2026-11-05T12:18:17Z 42025992261 docs(vault): phase 2 PR body
+failure 2026-11-05T12:11:52Z 42025095401 Merge remote-tracking branch 'origin/main' into de
+cancelled 2026-11-05T12:11:37Z 42025061909 docs(vault): phase 2 gate findings (budget wording
+success 2026-11-05T11:36:37Z 42020355742 feat(EZD-118): New project wizard
+success 2026-11-05T10:34:36Z 42011848761 feat(EZD-117b): Projects page: header, search and 
+failure 2026-11-05T04:04:36Z 41965507597 feat(EZD-201): Length parse and format
+failure 2026-11-05T02:44:22Z 41957139505 docs(vault): session 6 hand-over (draft; EZD-331 s
+success 2026-11-05T02:19:04Z 41954396583 feat(EZD-332): Fix: the notification bell keeps zo
+failure 2026-11-05T00:48:14Z 41944019312 feat(EZD-330): Fix: the Projects page tabs and oth
+failure 2026-11-04T23:40:55Z 41935630125 docs(vault): hand-over: Q-0580 gate-lock flake def
+cancelled 2026-11-04T23:40:24Z 41935561535 docs(vault): lean process brief: Josh's interview 
+cancelled 2026-11-04T23:28:04Z 41933931215 docs(vault): brief for the lean build process reas
+cancelled 2026-11-04T23:27:18Z 41933834271 docs(vault): build-watch hand-over: EZD-268 test r
+cancelled 2026-11-04T23:27:09Z 41933814380 docs(vault): build-watch hand-over 2026-11-04; deb
+cancelled 2026-11-04T23:10:43Z 41931599680 docs(vault): EZD-133 merge leftovers: debt D-083 (
+cancelled 2026-11-04T23:03:29Z 41930577079 docs(vault): EZD-330 defect at the front: the Proj
+cancelled 2026-11-04T23:02:16Z 41930404635 docs(vault): split EZD-120b into EZD-120b, EZD-120
+failure 2026-11-04T22:27:05Z 41925378649 docs(vault): debt row for the /questions 3 rerun l
+cancelled 2026-11-04T22:26:44Z 41925328860 feat(EZD-117a): Projects page: query and cards
+success 2026-11-04T21:52:44Z 41920150287 feat(EZD-325): Fix: the EZD-153 scratch database t
+success 2026-11-04T18:41:16Z 41889595200 feat(EZD-252): Fix: a test file that writes error_
+cancelled 2026-11-04T18:31:56Z 41888069808 docs(vault): debt D-075 closed by 7533427f; EZD-32
+cancelled 2026-11-04T18:31:41Z 41888028373 docs(vault): EZD-329 debt D-075 to D-077
+cancelled 2026-11-04T18:20:50Z 41886238165 fix(EZD-174): next_ticket.mjs reads in-flight and 
+cancelled 2026-11-04T18:15:54Z 41885409547 docs(vault): EZD-251 debt rows D-075, D-076
+cancelled 2026-11-04T18:15:44Z 41885378893 feat(EZD-251): Fix: the health timeout test (EZD-1
+success 2026-11-04T15:51:11Z 41862012036 docs(vault): EZD-329 defect at the front of phase 
+cancelled 2026-11-04T15:48:56Z 41861642467 docs(vault): EZD-326 merge leftovers: debt D-074 (
+success 2026-11-04T15:29:23Z 41858259751 fix(EZD-174): N12's healer copies a file instead o
+failure 2026-11-04T15:09:39Z 41854828435 feat(EZD-174): Parallel lanes: the launcher runs s
+success 2026-11-04T14:50:38Z 41851616299 feat(EZD-256): Fix: only one gate at a time takes 
+failure 2026-11-04T14:26:44Z 41847614070 fix(vault): phase 4 tickets get an empty architect
+failure 2026-11-04T14:05:41Z 41844142811 docs(vault): phase 4 signed off (Josh, chat: "phas
+cancelled 2026-11-04T14:03:57Z 41843862322 docs(vault): spec-check phase 4 round 3: 0 gaps; t
+cancelled 2026-11-04T13:52:14Z 41842049038 docs(vault): EZD-328 lane gates outside the sandbo
+cancelled 2026-11-04T13:49:01Z 41841557705 fix(unit-steps): a tooling mark waits for its plan
+failure 2026-11-04T13:44:59Z 41840935073 docs(vault): EZD-174 re-validated for today's code
+success 2026-11-04T13:27:28Z 41838259036 docs(vault): EZD-172 A1 rerun evidence
+success 2026-11-04T12:32:56Z 41830221490 Phase 1: Company settings and customers
+success 2026-11-04T12:32:54Z 41830215685 fix(process): the set-aside test does not read pha
+failure 2026-11-04T12:16:16Z 41827818980 Phase 1: Company settings and customers
+failure 2026-11-04T12:16:13Z 41827811336 merge main into develop so PR 4 is up to date (mai
+cancelled 2026-11-04T12:08:08Z 41826651763 Phase 1: Company settings and customers
+cancelled 2026-11-04T12:08:06Z 41826646111 fix(vault): EZD-326's phase row reaches develop an
+cancelled 2026-11-04T12:07:34Z 41826568465 Phase 1: Company settings and customers
+cancelled 2026-11-04T12:07:31Z 41826562471 docs(vault): defect ticket for EZD-025 T3 failing 
+success 2026-11-04T11:07:37Z 41818776740 Phase 1: Company settings and customers
+failure 2026-11-04T11:07:06Z 41818712171 docs(vault): phase 1 gate debt rows D-061 to D-063
+success 2026-11-04T10:12:32Z 41812639228 CI
+cancelled 2026-11-04T10:08:32Z 41812185707 fix(vault): EZD-140's tickets.json entry matches i
+failure 2026-11-04T10:01:58Z 41811448690 feat(EZD-140): Notification settings per user
+success 2026-11-04T08:52:52Z 41802901642 feat(EZD-324): Fix: the device layout test B5 does
+success 2026-11-04T08:11:09Z 41797559600 fix(unit-steps): an amended plan already on develo
+cancelled 2026-11-04T08:10:09Z 41797428963 fix(vault): EZD-117a's amended plan matches its ti
+failure 2026-11-04T08:08:15Z 41797192770 docs(vault): defect tickets for two CI gate failur
+failure 2026-11-04T07:25:58Z 41792230950 feat(EZD-110b): Notifications: bell and list
+success 2026-11-04T06:44:16Z 41787521707 feat(EZD-322): Fix: a project member without See c
+success 2026-11-04T05:24:18Z 41779040855 feat(EZD-321): Fix: every cap that counts rows bef
+success 2026-11-04T05:04:00Z 41776939965 feat(EZD-320): Fix: a project member cannot comple
+success 2026-11-04T03:12:48Z 41765691600 feat(EZD-319): Fix: the my-profile migration runs 
+cancelled 2026-11-04T03:05:03Z 41764845914 feat(launcher): a unit that runs twice without pro
+cancelled 2026-11-04T02:54:40Z 41763755050 fix(unit-steps): a planned ticket's tickets.json e
+cancelled 2026-11-04T02:49:43Z 41763241545 fix(vault): EZD-319's architecture list matches it
+cancelled 2026-11-04T02:49:27Z 41763214469 docs(vault): Josh's answer Q-0543 (EZD-316 gets a 
+failure 2026-11-04T02:23:46Z 41760462033 docs(vault): debt D-037: no local check for a migr
+success 2026-11-04T02:03:30Z 41758208661 docs(vault): defect ticket EZD-319: the dev migrat
+cancelled 2026-11-04T02:03:21Z 41758193566 feat(EZD-293): Research: Realtime keeps live updat
+cancelled 2026-11-04T01:45:50Z 41756259668 feat(EZD-108): Avatar menu and My profile
+cancelled 2026-11-04T01:38:03Z 41755382855 feat(EZD-318): Fix: the realtime hub resyncs on a 
+cancelled 2026-11-04T01:27:33Z 41754191761 docs(vault): hand-off: develop fixes after 06467c5
+cancelled 2026-11-04T01:26:25Z 41754067386 docs(process): the bar for a new ticket and batche
+cancelled 2026-11-04T01:25:22Z 41753945862 fix(unit-steps): a merge commits only its own tick
+cancelled 2026-11-04T01:23:48Z 41753761251 fix(vault): lessons index matches the lesson files
+cancelled 2026-11-04T01:21:29Z 41753493750 fix(vault): EZD-318's phase file row and acceptanc
+failure 2026-11-04T00:44:44Z 41749107008 docs(vault): lesson L-046: a ledger fixture never 
+failure 2026-11-04T00:34:19Z 41747822854 feat(EZD-298): Fix: released migration 20261020101
+success 2026-11-03T23:57:35Z 41743175841 fix(tests): tooling-track and phase-overlap fixtur
+failure 2026-11-03T21:14:13Z 41719939318 docs(vault): hand-off: develop red on the ledger-c
+failure 2026-11-03T20:43:12Z 41715144877 fix(vault): EZD-120a, 120b, 133, 202, 238 get empt
+cancelled 2026-11-03T20:41:32Z 41714888195 docs(vault): hand-off update 20:31 UTC (EZD-316 Q-
+failure 2026-11-03T19:53:52Z 41707531484 docs(vault): fix ticket EZD-317 (probe 5.12: exclu
+failure 2026-11-03T19:33:57Z 41704431826 docs(vault): sign off phase 3 (Josh)
+cancelled 2026-11-03T19:33:36Z 41704375536 fix(guard): ui-verifier may write its spec app/e2e
+cancelled 2026-11-03T19:31:57Z 41704119052 feat(EZD-296): Fix: the sources bucket limits file
+success 2026-11-03T17:55:12Z 41688836621 docs(vault): fix ticket EZD-316 (D-021: sandboxed 
+cancelled 2026-11-03T17:49:00Z 41687867931 feat(EZD-295): Fix: only the server writes and del
+success 2026-11-03T17:28:08Z 41684526035 docs(vault): spec-check phase 3 round 8 clean
+cancelled 2026-11-03T17:27:15Z 41684387666 docs(vault): debt row for STATUS Depends on drift 
+cancelled 2026-11-03T17:26:53Z 41684327587 docs(vault): spec-check phase 3 round 7 fixes; deb
+cancelled 2026-11-03T17:23:50Z 41683840238 docs(vault): spec-check phase 3 round 6: EZD-134 s
+cancelled 2026-11-03T17:21:52Z 41683519632 docs(vault): spec-check phase 3 round 5: EZD-134 a
+cancelled 2026-11-03T17:18:55Z 41683030416 docs(vault): spec-check phase 3 round 4 (Q-0540), 
+cancelled 2026-11-03T17:15:14Z 41682415581 docs(vault): spec-check phase 3 round 3: Q-0530, Q
+failure 2026-11-03T14:38:25Z 41655681285 feat(EZD-300): Fix: the CI checkout does not keep 
+failure 2026-11-03T14:10:55Z 41651154761 fix(launcher): a plan step given to the orchestrat
+cancelled 2026-11-03T14:07:11Z 41650554424 ci: checkout keeps no repository token (EZD-300 st
+success 2026-11-03T06:28:11Z 41590068041 feat(EZD-288): Fix: a failed customer.created, cus
+cancelled 2026-11-03T06:17:48Z 41588984575 feat(EZD-283): Fix: a failed tenant.updated event 
+failure 2026-11-03T06:01:20Z 41587285613 docs(vault): EZD-108 guard patch so the ui-verifie
+cancelled 2026-11-03T06:00:32Z 41587193222 feat(EZD-297): Fix: the realtime event tests in re
+success 2026-11-03T04:06:34Z 41576148866 docs(vault): gate phase 1 round 2 findings; fix ti
+failure 2026-11-03T03:43:44Z 41573913318 feat(EZD-292): Fix: the RLS audit and job handler 
+cancelled 2026-11-03T03:33:14Z 41572885694 docs(vault): spec-check phase 3 round 3 question
+cancelled 2026-11-03T03:28:48Z 41572438729 docs(vault): spec-check phase 3: EZD-294 (Q-0488, 
+cancelled 2026-11-03T03:28:38Z 41572423122 docs(vault): debt D-025 (inbox question and ticket
+cancelled 2026-11-03T03:28:17Z 41572389695 docs(vault): spec-check phase 3 conflict-list tick
+cancelled 2026-11-03T03:27:48Z 41572341726 docs(vault): spec-check phase 3 questions renumber
+cancelled 2026-11-03T03:26:34Z 41572224019 feat(EZD-291): Fix: the EZD-102 D5 permissions rea
+failure 2026-11-03T02:54:31Z 41568971977 docs(vault): debt D-024 (ledger-queue submit canno
+cancelled 2026-11-03T02:52:07Z 41568731334 docs(vault): spec-check phase 3 round 2 answers (Q
+cancelled 2026-11-03T02:47:54Z 41568308661 docs(vault): spec-check phase 3 round 2 questions
+cancelled 2026-11-03T02:41:14Z 41567641276 docs(vault): spec-check phase 3 answers (Q-0486 to
+cancelled 2026-11-03T02:36:31Z 41567174690 docs(vault): resume hand-off for 2026-11-03
+cancelled 2026-11-03T02:35:31Z 41567072118 docs(vault): sandbox back on tomorrow, watched (Jo
+cancelled 2026-11-03T02:34:33Z 41566969528 docs(vault): sandbox-on patch for Josh (re-enable,
+cancelled 2026-11-03T02:33:08Z 41566822148 fix(sandbox): DO_NOT_TRACK and a writable npm cach
+cancelled 2026-11-03T02:30:24Z 41566531779 docs(vault): sandbox probe round 5 results; round 
+cancelled 2026-11-03T02:28:56Z 41566379590 docs(vault): spec-check phase 3 gap list for Josh
+cancelled 2026-11-03T02:26:24Z 41566123659 docs(vault): EZD-292 moves to phase 1: it fixes th
+cancelled 2026-11-03T02:23:16Z 41565787979 fix(sandbox): ui-run stops with UI-RUN SANDBOX STO
+cancelled 2026-11-03T02:18:28Z 41565280561 docs(vault): sandbox audit (2026-11-03); debt D-02
+cancelled 2026-11-03T02:14:03Z 41564821379 chore(launcher): units start unsandboxed until eve
+cancelled 2026-11-03T02:13:36Z 41564774496 chore(gate): the gate stops with GATE SANDBOX STOP
+cancelled 2026-11-03T02:12:22Z 41564646612 docs(vault): optional patch for Josh: units start 
+cancelled 2026-11-03T02:10:38Z 41564464801 docs(vault): patch for Josh: the gate stops with G
+failure 2026-11-03T00:07:56Z 41550606002 feat(EZD-284): Fix: the CI workflow installs the p
+failure 2026-11-02T23:09:33Z 41543190518 chore(ci): ci.yml installs pnpm@12.14.0, the packa
+cancelled 2026-11-02T23:05:24Z 41542616532 docs(vault): commit the plan, tickets.json, debt a
+failure 2026-11-02T22:27:35Z 41537438379 docs(vault): debt D-016 (scoped gates skip app-wid
+cancelled 2026-11-02T22:27:16Z 41537395535 docs(vault): fix ticket EZD-292 (CI red on dd1e24c
+cancelled 2026-11-02T22:19:41Z 41536302898 docs(vault): sandbox hole (6) ui-run; D-013 patche
+cancelled 2026-11-02T22:17:48Z 41536027735 docs(vault): debt D-015 (gate run triggers macOS i
+failure 2026-11-02T21:36:04Z 41529825645 feat(EZD-110a): Notifications: table, email and ro
+success 2026-11-02T21:07:18Z 41525417234 fix(unit-steps): the merge removes the worktree's 
+cancelled 2026-11-02T21:05:25Z 41525120600 fix(records): a checkout reading the records snaps
+failure 2026-11-02T19:52:22Z 41513946517 fix(sandbox): Supabase CLI may write ~/.supabase; 
+failure 2026-11-02T19:30:16Z 41510528108 fix(sandbox): units may write their results file i
+failure 2026-11-02T19:08:37Z 41507166694 docs(vault): Josh approves the Stage 2 confirm lis
+success 2026-11-02T18:01:46Z 41496657332 feat(EZD-289): Fix: the signed-in home page has a 
+cancelled 2026-11-02T17:47:58Z 41494533990 feat(EZD-285): Fix: the EZD-102 D3 permissions que
+success 2026-11-02T17:04:56Z 41487684700 Revert "feat(launcher): start every unit with the 
+cancelled 2026-11-02T17:01:27Z 41487115175 docs(vault): remove vault/handoff/STOP (resume aft
+success 2026-11-02T15:13:51Z 41469524478 docs(vault): resume hand-off final (CI green on 2a
+success 2026-11-02T14:48:56Z 41465530458 fix(tests): no test reads the git-ignored record v
+cancelled 2026-11-02T14:36:56Z 41463632338 docs(vault): resume hand-off after Stage 2 (CI fix
+cancelled 2026-11-02T14:33:07Z 41463023320 docs(vault): sandbox option 3 decision, log and de
+failure 2026-11-02T14:01:02Z 41457992149 docs(vault): records migration snapshot (REMEDIATI
+cancelled 2026-11-02T13:50:41Z 41456490234 docs(vault): EZD-287 done
+success 2026-11-02T11:37:11Z 41438252894 docs(vault): phase 1 PR auto-merges and Josh walks
+success 2026-11-02T10:32:36Z 41429638801 docs(vault): Stage 2 log, launcher restart and the
+cancelled 2026-11-02T10:32:18Z 41429599558 fix(launcher): a ready ticket that builds twice wi
+cancelled 2026-11-02T10:32:06Z 41429570922 docs(vault): plan EZD-284
+cancelled 2026-11-02T10:15:46Z 41427373642 docs(vault): fix ticket EZD-289, a Settings link o
+cancelled 2026-11-02T10:12:39Z 41426938660 docs(vault): phase 1 punch list walk; M10 still op
+success 2026-11-02T06:48:25Z 41402241213 fix(ledger): a ticket past todo must have a plan (
+cancelled 2026-11-02T06:37:58Z 41401137069 chore(guards): remove the builder guard grants and
+cancelled 2026-11-02T06:22:59Z 41399549540 docs(vault): fix tickets EZD-284 to EZD-287 back t
+success 2026-11-02T06:02:48Z 41397508801 docs(vault): EZD-259 done
+success 2026-11-02T05:26:02Z 41393997389 docs(vault): gate phase 1 handoff
+cancelled 2026-11-02T05:25:55Z 41393986457 docs(vault): gate phase 1 findings; fix tickets EZ
+success 2026-11-02T05:05:18Z 41391974038 fix(guards): fix mode and the Stage 2 shell except
+cancelled 2026-11-02T04:53:49Z 41390944439 docs(vault): resume; triaged tickets set aside; sa
+success 2026-11-02T03:22:08Z 41382716034 docs(vault): Stage 2 morning summary for Josh
+cancelled 2026-11-02T03:21:29Z 41382658163 docs(vault): Stage 2 log, records and cleanup done
+success 2026-11-02T02:59:10Z 41380573835 docs(spikes): 2.6 sandbox spike results; 2.7 to 2.
+cancelled 2026-11-02T02:52:33Z 41380018417 docs(vault): Stage 2 log, Group A done
+cancelled 2026-11-02T02:52:03Z 41379976595 Merge branch 's2/guard-exceptions' into s2/group-a
+failure 2026-11-02T02:30:59Z 41378145192 docs(vault): Stage 2 overnight approvals; fix mode
+cancelled 2026-11-02T02:30:20Z 41378084333 fix(ci): H7 CI gate green on Linux; CI runs on eve
+failure 2026-11-02T00:26:06Z 41367125677 Audit preview: phase 1 walkthrough (do not merge)
+success 2026-10-24T10:22:07Z 40085629165 Phase 0: Setup
+failure 2026-10-24T10:12:35Z 40084997367 Phase 0: Setup
+failure 2026-10-24T02:38:26Z 40055008998 Phase 0: Setup
+cancelled 2026-10-24T02:38:13Z 40054995876 Phase 0: Setup
+failure 2026-10-21T00:35:19Z 39522218868 CI
+success 2026-10-12T00:13:47Z 38187202908 Build kit

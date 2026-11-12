@@ -180,6 +180,7 @@ describe('EZD-117a list and count projects', () => {
       address: '3 Sort St',
       status: 'draft',
       openItems: 5,
+      hasThumbnail: false,
     });
     expect(p2?.clientName).toBeNull();
     expect(rpc).toHaveBeenCalledTimes(1);

@@ -18,7 +18,7 @@
 // Each command takes the ledger lock, writes, commits only its own files and prints one line. Exit 0 `LEDGER OK`,
 // 1 `LEDGER FAIL`, 2 `LEDGER USAGE`, 3 `LEDGER STOP` (lock). Env: EZD_ROOT (checkout; tests), EZD_INFLIGHT_DIR (tests).
 import {
-  closeSync, existsSync, linkSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync, writeSync,
+  closeSync, existsSync, linkSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync, writeSync,
 } from 'node:fs';
 import { trustedGit } from '../vault/tools/trusted-git.mjs';
 import os from 'node:os';
@@ -580,6 +580,22 @@ async function main(argv) {
       if (key === 'status' && !STATUSES.includes(value)) return usage(`status must be one of ${STATUSES.join(', ')}`);
       if (key === 'complexity' && !COMPLEXITY.includes(value)) return usage(`complexity must be one of ${COMPLEXITY.join(', ')}`);
       changes[key] = value;
+    }
+    // EZD-383 (D-Gate): a v2 plan's ticket is set ready only when the contract and connections checks pass (fails closed).
+    if (changes.status === 'ready') {
+      let planThere = false;
+      try { lstatSync(path.join(root, 'vault', 'plans', `${ticket}.md`)); planThere = true; }
+      catch (e) { if (e.code !== 'ENOENT') { console.log(`LEDGER FAIL: ${ticket} not set ready: the plan checks could not run: ${e.code || e.message}`); return 1; } }
+      if (planThere) {
+        let problems;
+        try { problems = (await import(pathToFileURL(path.join(REPO, 'vault/tools/plan_ready.mjs')).href)).readyProblems(root, ticket); }
+        catch (e) { console.log(`LEDGER FAIL: ${ticket} not set ready: the plan checks could not run: ${e.message}`); return 1; }
+        if (problems.length) {
+          console.log(`LEDGER FAIL: ${ticket} not set ready: ${problems.length} plan check ${problems.length === 1 ? 'problem' : 'problems'}`);
+          for (const p of problems) console.log(`- ${p}`);
+          return 1;
+        }
+      }
     }
     job = { arg: ticket, run: async () => ({ ...(await rec(root, { op: 'status', ticket, changes })), ok: `${ticket} status` }) };
   } else if (cmd === 'ticket') {

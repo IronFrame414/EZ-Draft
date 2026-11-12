@@ -38,11 +38,12 @@ Data: `vault/tickets/recut.json` (validated by `node vault/tools/apply_recut.mjs
 | --- | --- | --- | --- | --- |
 | 1 | Company settings and customers | 1 | 101, 102, 103, 132, 112, 113, 1704, 1707, 136 | Adds terms, disclaimer (Q-0183) and backups from draft slice 52 (Q-0184). |
 | 2 | Projects list and new project | 2 | 108, 110, 117a, 117b, 118, 140 | Adds Mark complete (Q-0191); Scope of work and Foreman are EZD-118 changes (Q-0186, Q-0202). |
-| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299, 238 | Adds Keep mine / Keep theirs (EZD-299, Q-0502). |
-| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221 | Adds snapping from phase 5 (Q-0563). |
-| 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase follows; tickets at this phase's spec check (Q-0474). |
-| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 224, 235, 216, 237 |  |
-| 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 107, 109, 129, 138 |  |
+| 3 | Model store and editor route | 3 | 133, 120a, 120b, 202, 299a, 299b, 299, 238 | Adds Keep mine / Keep theirs (EZD-299a, EZD-299b, EZD-299, Q-0502). |
+| 4 | Plan canvas and first walls | 4 | 201, 203, 205, 206, 236, 207, 209, 210, 221, 294 | Adds snapping from phase 5 (Q-0563). |
+| 5 | Openings, selection, move, inspector, undo | 5 | 204, 208, 211, 212, 213, 217 | Snapping moved to phase 4 (Q-0563). AI assistant phase 56 follows (Q-0630). |
+| 56 | AI assistant | 56 | 5601, 5602, 5603, 5604, 5605 | Numbered 56, built right after phase 5 and before phase 6; no renumbering (Q-0630, phase-rank.mjs). |
+| 6 | Phase switch, layers, dimensions, thumbnails, benchmark page | 6 | 135, 219, 214, 218, 6001, 224, 235, 216, 237 | Adds the floor tools, EZD-6001 (Q-0509, Q-0664). |
+| 7 | Users, roles, project scope, event log | 7 | 104, 105, 106, 105b, 107, 109, 129, 138 | Adds EZD-105b Owner-set password (Q-0096, Q-0695). |
 | 8 | Defaults, edit lock, project settings | 8 | 116, 128, 130, 125, 126, 225 |  |
 | 9 | Versions, sends and the project card menu | 9 | 111, 121, 122, 123, 124, 139, 137 | EZD-137 moved from phase 2 (Q-0395). |
 | 10 | Fixtures, existing conditions, showers, bearing walls | 10 | 215, 220, 229, 234, 226, 227 |  |
@@ -281,7 +282,9 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-120b Patch store, outbox and autosave — after EZD-120a, EZD-202 (Q-0530, Q-0573)
   - EZD-120c Editor route, save state and banners — after EZD-120b; needs EZD-117a (s2), EZD-117b (s2), EZD-118 (s2)
   - EZD-120d Sign-out with queued edits, app-wide drain and the test page — after EZD-120b, EZD-120c
-  - EZD-299 Conflict list: Keep mine / Keep theirs — after EZD-120b, EZD-120c, EZD-120d, EZD-202; needs EZD-110b (s2), EZD-140 (s2) (Q-0530); blocked until board S03b is approved (Q-0510)
+  - EZD-299a Conflict list: server copy, save refusals and the notification — after EZD-120a, EZD-120d, EZD-202; needs EZD-110a (s2), EZD-140 (s2), EZD-133 (s3)
+  - EZD-299b Conflict list: refused changes leave the outbox; Keep mine, Keep theirs, Remove — after EZD-299a, EZD-120b, EZD-120d, EZD-202
+  - EZD-299 Conflict list: banner, list (board S03b), Show and "make a conflict" — after EZD-299b, EZD-120c, EZD-120d, EZD-110b, EZD-207a, EZD-207b, EZD-201, EZD-016a, EZD-294; Show and the object numbers need slice 4 (EZD-207a, EZD-207b, EZD-294); board S03b approved 2026-11-07 (Q-0510)
   - EZD-238 Drawing list — after EZD-202
 - **Depends on slices:** 1, 2
 - **Out of scope until later:** Any drawing tool (slice 4); edit lock (slice 8); versions panel (slice 9); the full offline mode (phases 14 and 44); floor tools (phase 6, Q-0509).
@@ -298,16 +301,22 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 - **Goal:** Draw a closed room by typing lengths on the plan canvas and have it saved.
 - **User-visible result:** Plan tab with grid, pan, zoom, Fit and hover; Wall and Room rectangle tools with snapping and the typed dimension bar; rooms detected with area, and a gap shown with absorb or keep out of square; blank templates (galley, L-kitchen, 5x8 bath, primary bath, Empty) in the new project wizard; the benchmark project generator.
 - **Spec files:** `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S02-import-review.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/02-product-overview.md`, `spec/sections/screens/S01-projects.md`, `spec/sections/09j-walls-and-rooms-examples.md`, `spec/sections/00e-glossary-phase-04.md`, `spec/sections/09e-geometry-and-drafting.md`, `spec/sections/03f-model-json-objects.md`, `spec/sections/03g-tolerance-and-rounding.md`; decisions Q-0558 to Q-0570
-- **Tickets (9, build order):**
+- **Tickets (13, build order):**
   - EZD-201 Length parse and format
   - EZD-203 Walls core — needs EZD-202 (s3)
-  - EZD-205 Rooms and closure — after EZD-203
+  - EZD-205a Room outlines, area, storage and label — after EZD-203; needs EZD-202 (s3), EZD-238 (s3)
+  - EZD-205b Closure gap, absorb and keep out of square — after EZD-205a; needs EZD-120a (s3), EZD-102 (s1)
   - EZD-206 Snapping — after EZD-203 (Q-0563)
   - EZD-236 Benchmark project generator — needs EZD-202 (s3), EZD-120a (s3), EZD-120b (s3)
-  - EZD-207 Plan canvas — after EZD-206, EZD-236; needs EZD-202 (s3), EZD-238 (s3)
-  - EZD-209 Typed dimension bar — after EZD-201, EZD-207
-  - EZD-210 Wall and Room rectangle tools — after EZD-205, EZD-209
-  - EZD-221 Blank templates — after EZD-210; needs EZD-118 (s2)
+  - EZD-207a Plan canvas: renderer, drawing, grid, pan and zoom — needs EZD-202 (s3), EZD-238 (s3), EZD-120c (s3)
+  - EZD-207b Plan canvas: zoom stack, hover and text — after EZD-207a, EZD-206, EZD-205a, EZD-205b
+  - EZD-207c Benchmark pan and zoom in the performance check — after EZD-207b, EZD-236; needs EZD-120c (s3)
+  - EZD-209 Typed dimension bar — after EZD-201, EZD-207a, EZD-207b, EZD-207c
+  - EZD-210a Wall and Room rectangle tool logic — after EZD-205a, EZD-205b, EZD-209, EZD-206, EZD-203, EZD-201; needs EZD-202 (s3), EZD-120b (s3)
+  - EZD-210b Drawing tools on the plan — after EZD-210a, EZD-207a, EZD-207b, EZD-209; needs EZD-120c (s3)
+  - EZD-221a Template objects on the server — after EZD-205a, EZD-203, EZD-201; needs EZD-118 (s2), EZD-120a (s3), EZD-202 (s3)
+  - EZD-221b Wizard step 2, template picker and empty hint — after EZD-221a, EZD-210a, EZD-210b, EZD-207a; needs EZD-118 (s2), EZD-120b (s3), EZD-120c (s3)
+  - EZD-294 Object numbers — after EZD-203, EZD-210a, EZD-221a; needs EZD-202 (s3) (Q-0625)
 - **Depends on slices:** 2, 3
 - **Out of scope until later:** Doors and windows, selection, move, undo, delete and inspector (slice 5, Q-0564); any laser work (Q-0561); dimensions and layers (slice 6); snapping popover (slice 6); benchmark page (slice 6).
 - **Risks and spikes:** EZD-207 is the performance core: drawn on demand, no React render per pointer event, one persistent renderer. Run the EZD-017 check on the benchmark project before closing the slice; the first Surface timing check waits for the benchmark page, EZD-237, phase 6 (Slice 6 below; AC-EZD-207-5). The spike EZD-027 (plan canvas on the iPad) must have a go note.
@@ -322,16 +331,24 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 
 ### Slice 5 · Openings, selection, move, inspector, undo (from spec phase 2)
 
+- **Spec check 2026-11-07 (Q-0630, Q-0633):** spec files also `spec/sections/09k-openings-and-moves-examples.md`, `spec/sections/00f-glossary-phase-05.md` and boards S03d. Where the script below differs from Q-0630 row 21 or row 27, the row wins. Every action also works on a tablet with no keyboard (S03d E). Phase 56 (AI assistant) follows this slice; slice 6 waits for it.
 - **Goal:** Place doors and windows, select and move objects with typed distances, edit them in the inspector, and undo.
 - **User-visible result:** Door and Window tools with hover preview and typed offset; click, cycle, Shift-click and box select; Move tool, resize handles and live distance chips; inspector fields with bulk edit; undo, redo, copy, paste, duplicate, delete.
 - **Spec files:** `spec/sections/03-data-model.md`, `spec/sections/04-app-shell-and-global-ui.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/12-build-phases-and-acceptance-tests.md`
 - **Tickets (6, build order):**
-  - EZD-204 Openings core — needs EZD-203 (s4)
-  - EZD-208 Selection — needs EZD-207 (s4)
-  - EZD-211 Door and window tools — after EZD-204; needs EZD-209 (s4)
-  - EZD-212 Move, handles, distance chips — after EZD-208
-  - EZD-213 Inspector fields — after EZD-208
-  - EZD-217 Undo, redo and clipboard — after EZD-208
+  - EZD-204a Opening data v4 — after EZD-203, EZD-294
+  - EZD-204b Offsets, hosting and the Not on a wall flag — after EZD-204a, EZD-203, EZD-294, EZD-238, EZD-207a, EZD-210a
+  - EZD-208a Selection logic and drawing — after EZD-207a, EZD-207b, EZD-207c, EZD-204a, EZD-204b, EZD-206, EZD-209, EZD-210b
+  - EZD-208b Selection on the plan, rail and tablet — after EZD-208a, EZD-016a, EZD-014a, EZD-010b
+  - EZD-211a Door and window geometry and tool logic — after EZD-204a, EZD-204b, EZD-294, EZD-209, EZD-210a, EZD-201, EZD-010b
+  - EZD-211b Door and window tools on the plan — after EZD-211a, EZD-208a, EZD-208b, EZD-016a, EZD-207a, EZD-207b, EZD-209, EZD-210b
+  - EZD-212a Move, resize and chip geometry — after EZD-204a, EZD-204b, EZD-203, EZD-205b, EZD-201
+  - EZD-212b Move tool and dragging — after EZD-212a, EZD-208a, EZD-208b, EZD-206, EZD-209, EZD-210b, EZD-294, EZD-010b, EZD-016a
+  - EZD-212c Handles, distance chips and tablet chip buttons — after EZD-212b, EZD-208a, EZD-208b, EZD-209, EZD-210b, EZD-014a, EZD-016a
+  - EZD-213a Inspector edits and view rules — after EZD-204a, EZD-204b, EZD-294, EZD-212a, EZD-201, EZD-203, EZD-205a, EZD-120b, EZD-210a
+  - EZD-213b Inspector panel: wall, door, window and bulk edit — after EZD-213a, EZD-208a, EZD-208b, EZD-204a, EZD-204b, EZD-294, EZD-120c, EZD-014a, EZD-016a, EZD-010b
+  - EZD-213c Resolve the gap in the inspector — after EZD-213b, EZD-208a, EZD-208b, EZD-212b, EZD-210b, EZD-205b, EZD-016a
+  - EZD-217 Undo, redo and clipboard — after EZD-208; needs EZD-294 (s4) (Q-0640)
 - **Depends on slices:** 4
 - **Out of scope until later:** Status and phase switch, layers (slice 6); fixtures (slice 10); context menu, mirror, align, groups (slice 11).
 - **Risks and spikes:** EZD-206's spatial index (now phase 4, Q-0563) also serves picking (EZD-208) and later reference snaps; the Selection acceptance test is only partly runnable until cabinets and outlets exist.
@@ -344,18 +361,44 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   6. Click a distance chip, type 24", Enter. Expected: The object sits exactly 24" from the neighbor.
   7. Delete a wall, Ctrl+Z, Ctrl+Y. Expected: The wall returns, then goes again; a pasted wall gets a new id.
 
+### Slice 56 · AI assistant (Q-0474, Q-0630; built after slice 5)
+
+- **Goal:** A user with their own Anthropic key asks for changes to walls, doors and windows, sees a preview, and accepts, adjusts or rejects it.
+- **User-visible result:** Assistant button and panel; key in My profile; photo with a prompt; blue and red dashed preview; Accept, Adjust, Reject; cost line.
+- **Spec files:** `spec/sections/screens/S03c-ai-assistant.md`, `spec/sections/09l-ai-assistant-cost-examples.md`, boards S03c, S01g and their wording file, photo rules in `S03dSelectedObjects-wording.md`
+- **Tickets (5, build order):**
+  - EZD-5601 AI key storage and My profile — needs EZD-108, EZD-021
+  - EZD-5602 Assistant call path, send list, stub and cost — after EZD-5601; needs EZD-204, EZD-205a, EZD-294
+  - EZD-5603a Assistant panel, picker, states and cost line — after EZD-5602, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-5601, EZD-108, EZD-120c, EZD-016a, EZD-010b, EZD-014c
+  - EZD-5603b Assistant photo: control, browser shrink, server strip — after EZD-5603a, EZD-5602, EZD-016a
+  - EZD-5604a Assistant change format, apply and check — after EZD-5602, EZD-211a, EZD-211b, EZD-213a, EZD-204a, EZD-204b, EZD-217, EZD-294, EZD-210a, EZD-120b
+  - EZD-5604b Assistant preview on the canvas and in the panel — after EZD-5604a, EZD-5603a, EZD-5603b, EZD-211a, EZD-211b, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-016a
+  - EZD-5605 Assistant Accept, Adjust, Reject and events — after EZD-5604; needs EZD-217
+- **Depends on slices:** 5
+- **Out of scope until later:** the render state (render phase, Q-0500); AI commands for other tools (each tool's phase, Q-0474).
+- **Josh's test script:**
+  1. Add your Anthropic key in My profile. Expected: it shows "Key saved · ends in" and the last 4; Remove clears it.
+  2. Open the Assistant on a plan and ask for a 3' door on a wall. Expected: a blue preview with Accept, Adjust and Reject, and a cost line.
+  3. Press Accept, then Undo. Expected: the door appears, then all of it is gone with one Undo.
+  4. Ask again, press Adjust, drag the door, press Accept. Expected: your position is kept.
+  5. Attach a photo with a prompt. Expected: it goes with that prompt only; a 25 MB file shows the too-big line.
+  6. Remove the key and open the Assistant. Expected: the No key note with Open My profile; hand drawing works.
+
 ### Slice 6 · Phase switch, layers, dimensions, thumbnails, benchmark page (from spec phase 1, 2)
 
 - **Goal:** Work in Existing and Proposed views with auto dimensions, the Layers and Rooms panel, project thumbnails and the benchmark page.
 - **User-visible result:** Existing/Proposed toggle and Set status; Layers and Rooms tabs; Dimension and Text tools with auto overall and room dimensions; Scale and Snap popovers and typed zoom; project cards show a plan thumbnail; Settings → System status with Run benchmark.
 - **Spec files:** `spec/sections/11-non-functional-requirements.md`, `spec/decisions.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/01-how-to-use-this-spec.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (8, build order):**
+- **Tickets (9, build order):**
   - EZD-135 System status page — needs EZD-103 (s1)
   - EZD-219 Status bar popovers — needs EZD-206 (s4)
   - EZD-214 Status and phase switch — needs EZD-213 (s5)
-  - EZD-218 Left panel: Layers and Rooms — after EZD-214; needs EZD-132 (s1)
-  - EZD-224 Plan thumbnail — needs EZD-207 (s4)
-  - EZD-235 Derived values and workers — needs EZD-205 (s4), EZD-207 (s4)
+  - EZD-218 Left panel: Layers and Rooms — after EZD-214 (photos and EZD-132 dropped, Q-0664)
+  - EZD-6001 Floor switcher and floor tools — after EZD-218; needs EZD-202, EZD-120b (Q-0509, Q-0664; placement waits for Josh, Q-0666)
+  - EZD-224 Plan thumbnail: storage, routes and project card — needs EZD-207 (s4)
+  - EZD-224b Plan thumbnail: checkpoint capture and encode — after EZD-224; needs EZD-207 (s4)
+  - EZD-235 Derived values — needs EZD-205 (s4), EZD-207 (s4)
+  - EZD-235b Worker pool and the worker check — after EZD-235
   - EZD-216 Dimensions and text — after EZD-235; needs EZD-207 (s4)
   - EZD-237 Benchmark page — after EZD-135; needs EZD-207 (s4), EZD-236 (s4)
 - **Depends on slices:** 1, 4, 5
@@ -367,30 +410,32 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   3. Open Rooms, set a room type to Bath, reload. Expected: Bath persists; clicking the row zooms to the room.
   4. Move a wall. Expected: The auto overall and room dimensions update.
   5. Change the snap increment in the Snap popover and drag a wall. Expected: The wall snaps at the new increment.
-  6. Stop editing (checkpoint) and return to Projects. Expected: The card shows the plan thumbnail (under 40 KB).
+  6. Moved to the Stop editing slice (slice 8, EZD-125; Q-0681): the slice 6 field check runs the dev hook `__ezdraftEditor.checkpoint()` and the thumbnail is under 40 KB.
   7. Settings → System status → Run benchmark. Expected: A benchmark_run row is written with frame times, memory, device and app version; the history list shows it.
 
 ### Slice 7 · Users, roles, project scope, event log (from spec phase 1)
 
 - **Goal:** Josh invites his team, sets their permissions and project scope, and every permission change is logged.
-- **User-visible result:** Users table with search; Invite user by magic link with Copy link; user inspector with 28 switches, role select, language, Reset to role, Deactivate, Remove; custom roles; Project access (All or Listed projects); event_log rows for permission changes.
-- **Spec files:** `spec/sections/screens/S15-settings-users-permissions.md`, `spec/decisions.md`, `spec/sections/03-data-model.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/10-permissions-and-settings.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (6, build order):**
+- **User-visible result:** Users table with search; Invite user by magic link with Copy link; user inspector with 37 switches, role select, language, Reset to role, Deactivate, Remove; custom roles; Project access (All or Listed projects); event_log rows for permission changes.
+- **Spec files:** `spec/sections/screens/S15-settings-users-permissions.md`, `vault/spec/decisions/` (10, 03, 05; Q-0695), `spec/sections/09n-users-and-invites-examples.md`, `spec/sections/00h-glossary-phase-07.md`, `spec/sections/03-data-model.md`, `spec/sections/11-non-functional-requirements.md`, `spec/sections/10-permissions-and-settings.md`, `spec/sections/screens/S01-projects.md`
+- **Tickets (8, build order):**
   - EZD-104 Users table — needs EZD-103 (s1)
   - EZD-105 Invite user — after EZD-104
   - EZD-106 User inspector — after EZD-104
+  - EZD-105b Owner-set password — after EZD-106; needs EZD-033 (s0) (Q-0096, Q-0695)
   - EZD-107 Custom roles — after EZD-106
   - EZD-109 Event log — after EZD-106
   - EZD-129 User project scope — after EZD-106
+  - EZD-138 Invite link and code for the sender — after EZD-105 (Q-0216, Q-0695)
 - **Depends on slices:** 1
 - **Out of scope until later:** Customer and user sync from EZ Binder (slice 35); Spanish UI for crew (slice 48); the System status page is in slice 6.
 - **Risks and spikes:** EZD-105's 7-day app invite token must survive an email scanner opening the link. EZD-129 scoping affects the Projects query, the field pack and the API; its zero-rows test must stay in the suite.
 - **Josh's test script:**
   1. Settings → Users → Invite user with a valid new email, Foreman role, Spanish. Expected: A pending row appears with Resend, Copy link and Cancel; the stub transport records the email.
   2. Open the copied link in another browser and accept. Expected: The row turns active.
-  3. Open the user, untick one switch, Save. Expected: The role pill reads “Modified”; n / 28 drops by one; an event_log row has actor and IP.
+  3. Open the user, untick one switch, Save. Expected: The role pill reads “Modified”; n / 37 drops by one; an event_log row has actor and IP.
   4. Save as new role from that user and assign it to another user. Expected: The new role appears on the Roles cards and on the second user.
-  5. Try to remove Manage users and settings from the only user who holds it. Expected: Refused.
+  5. Try to untick the Users page switch (settings_users) on the only active user who holds it (Q-0695). Expected: Refused.
   6. Set the Foreman to Listed projects with one project and sign in as them. Expected: Projects shows only that project; the API returns zero rows for any other project.
 
 ### Slice 8 · Defaults, edit lock, project settings (from spec phase 1, 2)
@@ -406,7 +451,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   - EZD-126 Edit lock UI — after EZD-125
   - EZD-225 Editor states — after EZD-126; needs EZD-204 (s5)
 - **Depends on slices:** 1, 2, 3, 5, 7
-- **Out of scope until later:** Offline editing and conflict list (slice 40); Keyboard shortcuts page rows (slice 11); code data fields in Project settings (slice 20).
+- **Out of scope until later:** Offline auto-release conflicts (EZD-1403, phase 44; the conflict list EZD-299 is done in phase 3); Keyboard shortcuts page rows (EZD-222, phase 11); code data fields in Project settings (EZD-620, phase 21) (Q-0706).
 - **Risks and spikes:** EZD-125 is the Edit lock acceptance test with two browser sessions; the 5-minute auto release reads from Defaults so tests can shorten it. lock_epoch must be the only thing that decides whether a save is accepted.
 - **Josh's test script:**
   1. Settings → Defaults. Expected: Every registry row shows; an empty one reads “Not set”.
@@ -419,30 +464,32 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
 ### Slice 9 · Versions, sends and the project card menu (from spec phase 1)
 
 - **Goal:** Every send freezes a numbered version that can be reopened, named, reverted and cleaned up.
-- **User-visible result:** Shared Send dialog with Copy link; Version N numbering and header version label; Versions panel (Sent, Named snapshots, Working) with read-only open, Name snapshot and Revert; daily cleanup job and sheet; project card menu (Rename, Set status, Archive, Unarchive, Delete before any send).
-- **Spec files:** `spec/decisions.md`, `spec/sections/03-data-model.md`, `spec/sections/13-decisions-and-remaining-items.md`, `spec/sections/screens/X-revisions-version-history-not-in-mockup.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/06-workflows.md`, `spec/sections/screens/S01-projects.md`
-- **Tickets (5, build order):**
+- **User-visible result:** Shared Send dialog with Copy link; Version N numbering and header version label; Versions panel (Sent, Named snapshots, Working) with read-only open, Name snapshot and Revert; daily cleanup job and sheet; project card menu (Rename, Set status, Mark complete, Archive, Restore, and Delete at any time after typing the project name; Q-0201, Q-0700).
+- **Spec files:** `vault/spec/decisions/` (03, 05, 10; Q-0700), `spec/sections/09p-versions-and-cleanup-examples.md`, `spec/sections/00j-glossary-phase-09.md`, `spec/sections/03-data-model.md`, `spec/sections/13-decisions-and-remaining-items.md`, `spec/sections/screens/X-revisions-version-history-not-in-mockup.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/06-workflows.md`, `spec/sections/screens/S01-projects.md`
+- **Tickets (7, build order):**
   - EZD-111 Send dialog with Copy link — needs EZD-110 (s2), EZD-120a (s3), EZD-120b (s3)
   - EZD-121 Sent versions and numbering — after EZD-111; needs EZD-120a (s3), EZD-120b (s3)
   - EZD-122 Versions panel — after EZD-121
   - EZD-123 Version cleanup — after EZD-122; needs EZD-110 (s2), EZD-116 (s8)
   - EZD-124 Project card menu — after EZD-121; needs EZD-117a (s2), EZD-117b (s2)
+  - EZD-137 Mark complete and Completed filter — after EZD-124 (Q-0191, Q-0395)
+  - EZD-139 Visual diff of an old version — after EZD-122 (Q-0220, Q-0700)
 - **Depends on slices:** 2, 3, 8
 - **Out of scope until later:** Sheets and permit revisions Rev N (slice 23); client page the link opens (slice 33); change orders (slice 36).
 - **Risks and spikes:** EZD-121 frozen rows must reject writes at the database; EZD-123's cleanup deletes data after the grace period, so its job needs the dry-run path tested first.
 - **Josh's test script:**
-  1. Open the Send dialog from a project, add a recipient, Send. Expected: The stub transport records the email; Copy link opens the same item; the header reads “Working copy · Version 1 sent”.
+  1. Open the Send dialog on a project whose client has an email (the To line shows the client, Q-0700), Send. Expected: The stub transport records the email; Copy link opens the same item; the header reads “Working copy · Version 1 sent”.
   2. Edit a wall and send again. Expected: Version 2 is created; Version 1 is unchanged.
   3. Open Version 1 from the Versions panel. Expected: It opens read-only with the “Version 1” label.
   4. Name snapshot on the working copy, then Revert to Version 1. Expected: A new working version appears; sent versions stay.
   5. Run the cleanup job with the Defaults age set to 0 days. Expected: The cleanup sheet lists unsent working versions with Keep and Name; a notification with Copy link arrives.
-  6. Projects → card menu on a project with a sent version. Expected: Delete is absent; Archive removes it from every tab and Show archived brings it back.
+  6. Projects → card menu on a project with a sent version. Expected: Delete asks for the project name and removes the project; Archive moves it to Archived and Restore brings it back (Q-0201, Q-0700).
 
 ### Slice 10 · Fixtures, existing conditions, showers, bearing walls (from spec phase 2)
 
 - **Goal:** Record what exists in a bath or kitchen: fixtures, appliances, utility points, condition pins and a custom tile shower.
 - **User-visible result:** Fixtures tool with generic plumbing fixtures, appliances and utility points; existing-condition pins with photos; floor levels, transitions, attic access, soffits, registers and detectors as existing objects; bearing wall rule with engineer note; custom tile shower object; grab-bar blocking.
-- **Spec files:** `spec/sections/06-workflows.md`, `spec/sections/09-calculations-and-rules.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/03-data-model.md`
+- **Spec files:** `spec/sections/06-workflows.md`, `spec/sections/09e-geometry-and-drafting.md`, `vault/spec/decisions/` (03, 05, 09, 10; Q-0704), `spec/sections/09q-existing-conditions-examples.md`, `spec/sections/00k-glossary-phase-10.md`, `spec/sections/screens/S03-plan-editor.md`, `spec/sections/03-data-model.md`
 - **Tickets (6, build order):**
   - EZD-215 Bearing wall rule — needs EZD-213 (s5), EZD-132 (s1)
   - EZD-220 Existing-condition pins — needs EZD-213 (s5), EZD-132 (s1)
@@ -457,7 +504,7 @@ Placement notes: EZD-127 (Review pill) moves to slice 16 (first user: the RCP). 
   1. Press F and place a sink, a range and a refrigerator; add a gas and a drain utility point. Expected: Each places with its attributes; moving the range lists the utilities that must move.
   2. In Existing view add a moisture pin with a photo; switch to Proposed. Expected: The pin persists and shows only in Existing.
   3. Set a 3/4" floor-level step on a room. Expected: A transition draws on the plan and shows in the room inspector.
-  4. Mark a wall bearing and press Delete. Expected: Blocked with “Engineer required”; after attaching a note with name and approval it deletes and the event log has a row.
+  4. Mark a wall bearing and press Delete. Expected: Deletes; the warning “Engineer required” stays on the project until a note with name and approval has “Engineer letter on file” ticked; both write an event-log row (Q-0205, Q-0704, Q-0708).
   5. In a 5x8 bath draw a shower with curb, niche and linear drain; reload. Expected: It draws in plan and survives reload.
   6. Place grab-bar blocking on a bath wall and move the wall. Expected: The blocking follows the hosted-item rules.
 
@@ -1503,10 +1550,10 @@ slices over 10: none   slices under 4: none
 
  1. Company settings and customers (phase 1) [6]: EZD-101, EZD-102, EZD-103, EZD-132, EZD-112, EZD-113
  2. Projects list and new project (phase 1) [5]: EZD-108, EZD-110, EZD-117a, EZD-117b, EZD-118
- 3. Model store and editor route (phase 1,2) [5]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-238
- 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221
- 5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-217
- 6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [8]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-235, EZD-216, EZD-237
+ 3. Model store and editor route (phase 1,2) [7]: EZD-133, EZD-120a, EZD-120b, EZD-202, EZD-299a, EZD-299b, EZD-299, EZD-238
+ 4. Plan canvas and first walls (phase 2) [9]: EZD-201, EZD-203, EZD-205, EZD-206, EZD-236, EZD-207, EZD-209, EZD-210, EZD-221a, EZD-221b, EZD-294
+ 5. Openings, selection, move, inspector, undo (phase 2) [6]: EZD-204a, EZD-204b, EZD-208a, EZD-208b, EZD-211a, EZD-211b, EZD-212a, EZD-212b, EZD-212c, EZD-213a, EZD-213b, EZD-213c, EZD-217
+ 6. Phase switch, layers, dimensions, thumbnails, benchmark page (phase 1,2) [10]: EZD-135, EZD-219, EZD-214, EZD-218, EZD-224, EZD-224b, EZD-235, EZD-235b, EZD-216, EZD-237
  7. Users, roles, project scope, event log (phase 1) [6]: EZD-104, EZD-105, EZD-106, EZD-107, EZD-109, EZD-129
  8. Defaults, edit lock, project settings (phase 1,2) [6]: EZD-116, EZD-128, EZD-130, EZD-125, EZD-126, EZD-225
  9. Versions, sends and the project card menu (phase 1) [5]: EZD-111, EZD-121, EZD-122, EZD-123, EZD-124

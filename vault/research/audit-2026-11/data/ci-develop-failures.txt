@@ -1,0 +1,246 @@
+## 42888313901 2026-11-10T19:44:41Z docs(vault): session 15 handoff with the build audit brief (
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  230 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (684ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+## 42882716995 2026-11-10T19:11:12Z feat(EZD-371): Fix: My profile set password finds one contro
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  230 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (650ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42857494095 2026-11-10T16:43:50Z feat(EZD-5601): AI key storage and My profile
+        14 × locator resolved to 1 element
+        14 × locator resolved to 3 elements
+     × EZD-323 T8 only the job runner files and the dev route use the secret-key client 27ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in 1 packages
+  ✓  234 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (745ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42849226474 2026-11-10T15:54:16Z docs(vault): EZD-217 tickets.json entry from its plan
+        14 × locator resolved to 1 element
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  ✓  232 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (558ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42837242800 2026-11-10T14:45:02Z docs(vault): overseer line for the ports diagnostic
+        14 × locator resolved to 1 element
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  ✓  231 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (595ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42828227905 2026-11-10T13:50:32Z docs(vault): overseer line for the overwatch runbook
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  221 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (427ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42748754185 2026-11-10T03:20:07Z docs(vault): commit phase 6 plans 216, 235, 237, 6001 with t
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  222 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (850ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42738459854 2026-11-10T01:49:14Z docs(vault): commit phase 6 plans 135, 214, 218, 219, 224 wi
+     × EZD-033 T13 sign-in emails are throttled per email, the same for an unknown address 14035ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  221 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (772ms)
+GATE FAIL: test, test:e2e, perf
+not ok 706 - EZD-207c pan on fixture pages
+not ok 707 - EZD-356 long-task list on the pan rows
+## 42730297151 2026-11-10T00:42:08Z feat(EZD-208a): Selection logic and drawing
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  222 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (831ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42721691862 2026-11-09T23:35:29Z feat(EZD-204b): Offsets, hosting and the Not on a wall flag
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+    not ok 2 - EZD-359 I2 a waiting task is listed, not counted
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  222 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (1.0s)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+not ok 706 - EZD-359 pan task attribution
+## 42714352614 2026-11-09T22:43:07Z feat(EZD-204a): Opening data v4
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  222 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (665ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42706107487 2026-11-09T21:49:18Z docs(vault): R-057 research report and index row
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 1 - EZD-359 I1 pan tasks carry trace attribution
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+    not ok 2 - EZD-356 T2 tasks before pan-start are not listed
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  222 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (652ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+not ok 706 - EZD-359 pan task attribution
+## 42690866264 2026-11-09T20:13:23Z docs(vault): phase 4 for-josh file (ledger check: untracked)
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  222 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (816ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42656161666 2026-11-09T16:34:35Z feat(EZD-363): Fix: the disabled tool button rule in ToolRai
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 1 - EZD-359 I1 pan tasks carry trace attribution
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  213 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (823ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+not ok 706 - EZD-359 pan task attribution
+## 42645479631 2026-11-09T15:31:13Z docs(vault): commit phase 3 plan review
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 24ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  213 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (861ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42632420620 2026-11-09T14:12:35Z feat(EZD-294): Object numbers
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 19ms
+     × EZD-299a T9 accepts an equal or newer build 56ms
+     × EZD-299a T9 refuses a bad resolves list, then resolves one recorded row 230ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  203 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (981ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42621460511 2026-11-09T12:58:44Z docs(vault): architecture lists for EZD-204, 208, 212 from t
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 18ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (545ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42614410218 2026-11-09T12:07:41Z docs(vault): architecture lists for phase 5 and 56 tickets
+## 42597869841 2026-11-09T10:02:00Z feat(EZD-299a): Conflict list: server copy, save refusals an
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 33ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  203 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (996ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42449838777 2026-11-08T05:12:15Z docs(vault): close fix mode for EZD-362; overseer line
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 21ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (628ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42429932161 2026-11-08T00:28:54Z docs(vault): lift the weekly-limit pause; CLI signed in to t
+    not ok 129 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+    not ok 130 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+    not ok 222 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+    not ok 223 - EZD-267 N2 hold names paths: the held next-unit text lists the files (AC-EZD-267-2)
+    not ok 325 - EZD-174 N1 --next-units lists plans before builds, then by number, none null (AC-EZD-174-1)
+    not ok 326 - EZD-174 N2 a questions unit is offered alone, only when no plan is startable (AC-EZD-174-1)
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (1.1s)
+GATE FAIL: test, test:e2e, perf
+not ok 422 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+not ok 423 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+not ok 515 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+## 42426857560 2026-11-07T23:47:53Z docs(vault): session 12 brief
+    not ok 129 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+    not ok 130 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+    not ok 222 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+    not ok 223 - EZD-267 N2 hold names paths: the held next-unit text lists the files (AC-EZD-267-2)
+    not ok 325 - EZD-174 N1 --next-units lists plans before builds, then by number, none null (AC-EZD-174-1)
+    not ok 326 - EZD-174 N2 a questions unit is offered alone, only when no plan is startable (AC-EZD-174-1)
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (864ms)
+GATE FAIL: test, test:e2e, perf
+not ok 422 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+not ok 423 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+not ok 515 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+## 42405396717 2026-11-07T19:16:29Z docs(vault): sign off phases 5 and 56 on Josh's 2026-11-07 y
+    not ok 129 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+    not ok 130 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+    not ok 222 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+    not ok 223 - EZD-267 N2 hold names paths: the held next-unit text lists the files (AC-EZD-267-2)
+    not ok 325 - EZD-174 N1 --next-units lists plans before builds, then by number, none null (AC-EZD-174-1)
+    not ok 326 - EZD-174 N2 a questions unit is offered alone, only when no plan is startable (AC-EZD-174-1)
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (884ms)
+GATE FAIL: test, test:e2e, perf
+not ok 422 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+not ok 423 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+not ok 515 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+## 42388637205 2026-11-07T15:54:32Z docs(vault): session 11 state at the weekly limit pause
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 13ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  203 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (825ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42382789079 2026-11-07T14:41:38Z docs(vault): close fix mode for EZD-360; tooling notes
+     × EZD-014b done when: coarse-pointer 44 px targets, hover only where the device can hover, icon-only header buttons below 1600 px 19ms
+    not ok 1 - EZD-356 T1 pan rows list each long task and the load
+    not ok 2 - EZD-207c P2 wheel steps reach the page
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  × "pnpm recursive run" failed in 1 packages
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (822ms)
+GATE FAIL: test, test:e2e, perf
+not ok 704 - EZD-207c pan on fixture pages
+not ok 705 - EZD-356 long-task list on the pan rows
+## 42373194213 2026-11-07T12:35:48Z docs(vault): session 11 handoff; pause until 9:10 on Josh's
+    not ok 129 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+    not ok 130 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+    not ok 222 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)
+    not ok 223 - EZD-267 N2 hold names paths: the held next-unit text lists the files (AC-EZD-267-2)
+    not ok 325 - EZD-174 N1 --next-units lists plans before builds, then by number, none null (AC-EZD-174-1)
+    not ok 326 - EZD-174 N2 a questions unit is offered alone, only when no plan is startable (AC-EZD-174-1)
+  × "pnpm recursive run" failed in /home/runner/work/EZ-Draft/EZ-Draft/app
+  ✓  204 [desktop] › e2e/shell-frame.spec.ts:79:7 › EZD-012c shell frame › EZD-012c done when: empty editor at 1600 × 1000 matches the frame sizes (778ms)
+GATE FAIL: test, test:e2e, perf
+not ok 422 - EZD-250 T26 CI check: only a failed gate check makes the wait repairable (AC-EZD-250-1)
+not ok 423 - EZD-337 C1 hold via next-unit: a sensitive change since the phase audit holds the merge until a pass is recorded (AC-EZD-337-1, AC-EZD-337-2)
+not ok 515 - EZD-250 T20 next unit: a ticket whose plan needs a guarded path is held while another builds, and Josh is named when all are held (AC-EZD-250-4)

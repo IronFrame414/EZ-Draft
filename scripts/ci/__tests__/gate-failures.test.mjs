@@ -58,6 +58,7 @@ function runGate(dir, extra = {}) {
   const env = { ...process.env, TMP: tmp, TEMP: tmp, TMPDIR: tmp };
   const keys = ['EZD_TEST_GREP', 'EZD_PHASE', 'EZD_TEST_SCOPE', 'NODE_TEST_CONTEXT', 'EZD_LANE', 'SUPABASE_WORKDIR'];
   for (const k of keys) delete env[k];
+  env.EZD_GATE_AS_SELF = '1'; // EZD-354 D4: a fixture gate runs as itself
   Object.assign(env, extra);
   const r = spawnSync(process.execPath, [GATE, dir], { encoding: 'utf8', env });
   return { status: r.status, failures: readFileSync(path.join(dir, 'gate-failures.log'), 'utf8') };

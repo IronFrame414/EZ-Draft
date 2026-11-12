@@ -1,0 +1,35 @@
+{
+ "date": "2026-11-09",
+ "splits": {
+  "EZD-204": [
+   {"id": "EZD-204a", "title": "Opening data v4", "deps": ["EZD-203", "EZD-294"], "acs": [5, 6, 10, 14, 15], "scope": "opening data v4 (Swing, Hand, rough opening, sill, impact), the v3 to v4 step and createOpeningData", "done": "A stored v3 door loads with Hinge left, swing left, Not rated and a typed rough opening, and its stored row is not rewritten. A new door or window is Existing with the Q-0630 sizes."},
+   {"id": "EZD-204b", "title": "Offsets, hosting and the Not on a wall flag", "deps": ["EZD-204a", "EZD-203", "EZD-294", "EZD-238", "EZD-207a", "EZD-210a"], "acs": [1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 15], "scope": "offsets, hosting and the Not on a wall flag drawn on the flagged layer", "done": "Unit test: moving a wall away flags the opening red."}
+  ],
+  "EZD-208": [
+   {"id": "EZD-208a", "title": "Selection logic and drawing", "deps": ["EZD-207a", "EZD-207b", "EZD-207c", "EZD-204a", "EZD-204b", "EZD-206", "EZD-209", "EZD-210b"], "acs": [4, 10, 11, 12, 18], "scope": "pick shapes, the pick index, the selection controller and the canvas seams that draw selection and hover", "done": "Repeated clicks at one spot on a door in a wall select the door, then the wall, then the door again, and a pointer move over 10 px resets the cycle."},
+   {"id": "EZD-208b", "title": "Selection on the plan, rail and tablet", "deps": ["EZD-208a", "EZD-016a", "EZD-014a", "EZD-010b"], "acs": [1, 2, 3, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17], "scope": "the rail Select tool, the key listener, the box overlay, the tablet bar and the editor wiring", "done": "Selection acceptance test passes in the browser."}
+  ],
+  "EZD-211": [
+   {"id": "EZD-211a", "title": "Door and window geometry and tool logic", "deps": ["EZD-204a", "EZD-204b", "EZD-294", "EZD-209", "EZD-210a", "EZD-201", "EZD-010b"], "acs": [1, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20], "scope": "door symbol, preview, size, hit and ownership geometry, the offset and width fields and the opening tool reducer", "done": "In the reducer, a door on a 144 inch wall with Offset left typed as 36 places a door with offsets 36 and 72."},
+   {"id": "EZD-211b", "title": "Door and window tools on the plan", "deps": ["EZD-211a", "EZD-208a", "EZD-208b", "EZD-016a", "EZD-207a", "EZD-207b", "EZD-209", "EZD-210b"], "acs": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], "scope": "the Door and Window tools on the rail, the drawing controller branch, Space flip and the preview overlay", "done": "A door placed at a typed offset sits at that offset after a reload."}
+  ],
+  "EZD-212": [
+   {"id": "EZD-212a", "title": "Move, resize and chip geometry", "deps": ["EZD-204a", "EZD-204b", "EZD-203", "EZD-205b", "EZD-201"], "acs": [4, 5, 9, 11, 14, 17, 20, 21], "scope": "move, resize and distance chip geometry", "done": "Unit tests pass for wall moves, typed move limits and the areas they give."},
+   {"id": "EZD-212b", "title": "Move tool and dragging", "deps": ["EZD-212a", "EZD-208a", "EZD-208b", "EZD-206", "EZD-209", "EZD-210b", "EZD-294", "EZD-010b", "EZD-016a"], "acs": [3, 6, 7, 15, 16, 18], "scope": "the Move tool, dragging, base and target points and typed moves", "done": "M or the Move button moves the selection by dragging or by a base point then a target point."},
+   {"id": "EZD-212c", "title": "Handles, distance chips and tablet chip buttons", "deps": ["EZD-212b", "EZD-208a", "EZD-208b", "EZD-209", "EZD-210b", "EZD-014a", "EZD-016a"], "acs": [1, 2, 8, 10, 12, 13, 19], "scope": "resize handles, live distance chips and the tablet chip buttons", "done": "Clicking a chip and typing sets the exact distance."}
+  ],
+  "EZD-213": [
+   {"id": "EZD-213a", "title": "Inspector edits and view rules", "deps": ["EZD-204a", "EZD-204b", "EZD-294", "EZD-212a", "EZD-201", "EZD-203", "EZD-205a", "EZD-120b", "EZD-210a"], "acs": [8, 13, 14, 20, 22, 23, 24], "scope": "the inspector edits and view rules behind the panel", "done": "Inspector edits give the values, refusals and one undo step of the plan."},
+   {"id": "EZD-213b", "title": "Inspector panel: wall, door, window and bulk edit", "deps": ["EZD-213a", "EZD-208a", "EZD-208b", "EZD-204a", "EZD-204b", "EZD-294", "EZD-120c", "EZD-014a", "EZD-016a", "EZD-010b"], "acs": [1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 16, 17, 18, 19, 21, 23], "scope": "the inspector panel for walls, doors and windows and bulk edit with Mixed", "done": "A bulk edit changes every selected object; mixed values read Mixed."},
+   {"id": "EZD-213c", "title": "Resolve the gap in the inspector", "deps": ["EZD-213b", "EZD-208a", "EZD-208b", "EZD-212b", "EZD-210b", "EZD-205b", "EZD-016a"], "acs": [11, 15], "scope": "resolving a closure gap from the inspector", "done": "A gap is resolved from the inspector."}
+  ],
+  "EZD-5603": [
+   {"id": "EZD-5603a", "title": "Assistant panel, picker, states and cost line", "deps": ["EZD-5602", "EZD-213a", "EZD-213b", "EZD-213c", "EZD-208a", "EZD-208b", "EZD-5601", "EZD-108", "EZD-120c", "EZD-016a", "EZD-010b", "EZD-014c"], "acs": [1, 2, 3, 4, 5, 9, 10, 12, 13, 14], "scope": "the Assistant panel, model picker, states and cost line", "done": "The Assistant panel opens in the inspector place with its states and cost line."},
+   {"id": "EZD-5603b", "title": "Assistant photo: control, browser shrink, server strip", "deps": ["EZD-5603a", "EZD-5602", "EZD-016a"], "acs": [6, 7, 8, 10, 11, 12, 13, 14], "scope": "the Photo control, the browser shrink and the server strip", "done": "A photo sent with a prompt is shrunk in the browser and stripped on the server."}
+  ],
+  "EZD-5604": [
+   {"id": "EZD-5604a", "title": "Assistant change format, apply and check", "deps": ["EZD-5602", "EZD-211a", "EZD-211b", "EZD-213a", "EZD-204a", "EZD-204b", "EZD-217", "EZD-294", "EZD-210a", "EZD-120b"], "acs": [1, 2, 6, 8, 9, 10], "scope": "the reply change format, its validation and apply", "done": "A reply change list is checked by the same validators as hand drawing and refused whole when one row fails."},
+   {"id": "EZD-5604b", "title": "Assistant preview on the canvas and in the panel", "deps": ["EZD-5604a", "EZD-5603a", "EZD-5603b", "EZD-211a", "EZD-211b", "EZD-213a", "EZD-213b", "EZD-213c", "EZD-208a", "EZD-208b", "EZD-016a"], "acs": [1, 3, 4, 5, 7, 8, 9], "scope": "the preview on the canvas and in the panel", "done": "The preview shows new shapes blue and old shapes red dashed."}
+  ]
+ }
+}

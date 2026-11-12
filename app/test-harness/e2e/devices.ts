@@ -40,6 +40,10 @@ export const DEVICE_PROJECTS: ReadonlyArray<{
   },
 ];
 
+// EZD-207c D-Isolate: specs that assert a perf CLI budget; the device projects ignore them and the `perf`
+// project runs them alone after every other browser test.
+export const PERF_SPECS = '**/perf-*.spec.ts';
+
 const BODY: Record<DeviceName, string> = {
   desktop: '(?:(?=[\\s\\S]*@desktop\\b)|(?![\\s\\S]*@(?:ipad|surface|phone)\\b))',
   'ipad-landscape': '(?=[\\s\\S]*@ipad\\b)',

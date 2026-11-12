@@ -1,0 +1,60 @@
+42897650540  2026-11-10T20:40:49Z docs(vault): close launcher fix mode (EZD-365, EZD-369 merge
+42897637954 cancelled 2026-11-10T20:40:45Z feat(EZD-369): Fix: three strikes, then a full assessment be
+42895475773 cancelled 2026-11-10T20:27:33Z feat(EZD-365): Fix: the full gate tests the committed commit
+42895237116 cancelled 2026-11-10T20:26:04Z feat(EZD-211b): Door and window tools on the plan
+42888313901 failure 2026-11-10T19:44:41Z docs(vault): session 15 handoff with the build audit brief (
+42882716995 failure 2026-11-10T19:11:12Z feat(EZD-371): Fix: My profile set password finds one contro
+42880563530 cancelled 2026-11-10T18:58:28Z feat(EZD-370): Fix: the secret-key client list matches its u
+42878384446 cancelled 2026-11-10T18:45:19Z docs(vault): session 13 brief for Josh's build-process revie
+42878318303 cancelled 2026-11-10T18:44:57Z docs(vault): overseer line for the phase 6 hold
+42877106133 cancelled 2026-11-10T18:37:37Z docs(vault): EZD-367 plan (ticket closed; change carried by 
+42877083822 cancelled 2026-11-10T18:37:29Z docs(vault): EZD-367 closed (its change is on develop via EZ
+42873465732 cancelled 2026-11-10T18:16:12Z docs(vault): phase 4 fix tickets EZD-370 (secret-key client 
+42873277754 cancelled 2026-11-10T18:15:08Z docs(vault): commit unit-left vault edits (phase 4 fix-ticke
+42873254068 cancelled 2026-11-10T18:15:00Z docs(vault): EZD-369 fix ticket: three strikes, then a full 
+42871099494 cancelled 2026-11-10T18:02:41Z docs(vault): overseer line for the connect-only ports sweep
+42868266632 success 2026-11-10T17:45:54Z feat(EZD-366): Fix: a crafted wall or opening number cannot 
+42868266612 cancelled 2026-11-10T17:45:54Z feat(EZD-366): Fix: a crafted wall or opening number cannot 
+42866455260 cancelled 2026-11-10T17:35:07Z feat(EZD-368): Fix: Fit to screen for a view-only member giv
+42862540393 cancelled 2026-11-10T17:12:30Z feat(EZD-217): Undo, redo and clipboard
+42857494095 failure 2026-11-10T16:43:50Z feat(EZD-5601): AI key storage and My profile
+42857493538 success 2026-11-10T16:43:50Z feat(EZD-5601): AI key storage and My profile
+42849226474 failure 2026-11-10T15:54:16Z docs(vault): EZD-217 tickets.json entry from its plan
+42837242800 failure 2026-11-10T14:45:02Z docs(vault): overseer line for the ports diagnostic
+42834937565 cancelled 2026-11-10T14:31:27Z feat(EZD-208b): Selection on the plan, rail and tablet
+42828227905 failure 2026-11-10T13:50:32Z docs(vault): overseer line for the overwatch runbook
+42826274326 cancelled 2026-11-10T13:37:48Z docs(vault): EZD-212a plan as built (branch version) with it
+42822903478 success 2026-11-10T13:15:42Z feat(EZD-219): Status bar popovers
+42822903495 cancelled 2026-11-10T13:15:42Z feat(EZD-219): Status bar popovers
+42748754185 failure 2026-11-10T03:20:07Z docs(vault): commit phase 6 plans 216, 235, 237, 6001 with t
+42738459854 failure 2026-11-10T01:49:14Z docs(vault): commit phase 6 plans 135, 214, 218, 219, 224 wi
+42735982143 cancelled 2026-11-10T01:28:06Z docs(vault): close fix mode for EZD-364; security note
+42730297151 failure 2026-11-10T00:42:08Z feat(EZD-208a): Selection logic and drawing
+42721691862 failure 2026-11-09T23:35:29Z feat(EZD-204b): Offsets, hosting and the Not on a wall flag
+42714352614 failure 2026-11-09T22:43:07Z feat(EZD-204a): Opening data v4
+42706107487 failure 2026-11-09T21:49:18Z docs(vault): R-057 research report and index row
+42703694085 cancelled 2026-11-09T21:33:58Z docs(vault): commit the split parts' plans, architecture lis
+42690866264 failure 2026-11-09T20:13:23Z docs(vault): phase 4 for-josh file (ledger check: untracked)
+42690800136 cancelled 2026-11-09T20:12:57Z docs(vault): EZD-221b ui-verifier screenshots
+42656161666 failure 2026-11-09T16:34:35Z feat(EZD-363): Fix: the disabled tool button rule in ToolRai
+42645479631 failure 2026-11-09T15:31:13Z docs(vault): commit phase 3 plan review
+42645376397 cancelled 2026-11-09T15:30:38Z feat(EZD-299): Conflict list: Keep mine / Keep theirs
+42632420291 success 2026-11-09T14:12:35Z feat(EZD-294): Object numbers
+42632420620 failure 2026-11-09T14:12:35Z feat(EZD-294): Object numbers
+42621460511 failure 2026-11-09T12:58:44Z docs(vault): architecture lists for EZD-204, 208, 212 from t
+42617507652 cancelled 2026-11-09T12:29:57Z docs(vault): phase 5 split-proposal plans for 204, 208, 211,
+42614410218 failure 2026-11-09T12:07:41Z docs(vault): architecture lists for phase 5 and 56 tickets
+42612668996 cancelled 2026-11-09T11:54:19Z feat(EZD-299b): Conflict list: refused changes leave the out
+42597869899 success 2026-11-09T10:02:00Z feat(EZD-299a): Conflict list: server copy, save refusals an
+42597869841 failure 2026-11-09T10:02:00Z feat(EZD-299a): Conflict list: server copy, save refusals an
+42449838777 failure 2026-11-08T05:12:15Z docs(vault): close fix mode for EZD-362; overseer line
+42429932161 failure 2026-11-08T00:28:54Z docs(vault): lift the weekly-limit pause; CLI signed in to t
+42426857560 failure 2026-11-07T23:47:53Z docs(vault): session 12 brief
+42426716807 cancelled 2026-11-07T23:45:57Z docs(vault): overseer line for the split and drop
+42405396717 failure 2026-11-07T19:16:29Z docs(vault): sign off phases 5 and 56 on Josh's 2026-11-07 y
+42388637205 failure 2026-11-07T15:54:32Z docs(vault): session 11 state at the weekly limit pause
+42388596530 cancelled 2026-11-07T15:54:00Z feat(EZD-361): Fix: the EZD-360 phase order test holds with 
+42387758517 cancelled 2026-11-07T15:43:30Z docs(vault): tooling note and overseer line, EZD-361, weekly
+42382789079 failure 2026-11-07T14:41:38Z docs(vault): close fix mode for EZD-360; tooling notes
+42373194213 failure 2026-11-07T12:35:48Z docs(vault): session 11 handoff; pause until 9:10 on Josh's 
+42372527317 cancelled 2026-11-07T12:26:57Z docs(vault): spec-check phase 5: Q-0630 decisions, 09k, 00f,

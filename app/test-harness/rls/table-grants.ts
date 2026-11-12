@@ -84,6 +84,32 @@ export const TABLE_GRANTS: Record<string, TableGrant> = {
     privileges: ['SELECT'],
     reason: 'Written only by the EZD-120a functions',
   },
+  sync_conflict: {
+    privileges: ['SELECT'],
+    reason:
+      'Members read their own refused changes; rows are written only by the EZD-299a definer functions',
+  },
+  user_ai_key: {
+    privileges: [],
+    reason:
+      "Ciphertext of each user's own Anthropic key; reached only through the *_my_ai_key definer functions (EZD-5601; Q-0637)",
+  },
+  ai_key_attempt: {
+    privileges: [],
+    reason:
+      'Per-user count of key checks; written only by take_ai_key_attempt (EZD-5601; AC-EZD-5601-7)',
+  },
+  // EZD-5602 E1 (vault/plans/EZD-5602.md section 4): reached only through the assistant's definer functions.
+  ai_usage: {
+    privileges: [],
+    reason:
+      'Who, when, model and cost of each assistant prompt; written only by record_ai_usage (EZD-5602; Q-0637)',
+  },
+  ai_assistant_slot: {
+    privileges: [],
+    reason:
+      'Assistant call slots for the in-flight and per-minute limits; written only by take/release_ai_assistant_slot (EZD-5602)',
+  },
 };
 
 export function expectedAuthenticatedPrivileges(table: string): TablePrivilege[] {

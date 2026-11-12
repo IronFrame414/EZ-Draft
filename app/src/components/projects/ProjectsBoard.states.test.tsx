@@ -23,8 +23,8 @@ const READY: ProjectListState = {
   search: '',
 };
 const ITEMS: ProjectListState['items'] = [
-  { id: 'a', name: 'Alpha', clientName: null, address: '1 A St', status: 'draft', openItems: 0 },
-  { id: 'b', name: 'Beta', clientName: null, address: '2 B St', status: 'draft', openItems: 0 },
+  { id: 'a', name: 'Alpha', clientName: null, address: '1 A St', status: 'draft', openItems: 0, hasThumbnail: false },
+  { id: 'b', name: 'Beta', clientName: null, address: '2 B St', status: 'draft', openItems: 0, hasThumbnail: false },
 ];
 
 const render = (state: ProjectListState, canCreate: boolean) =>

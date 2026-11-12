@@ -13,7 +13,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 function fixture() {
   const root = mkdtempSync(path.join(os.tmpdir(), 'ezd-gate-sandbox-'));
   mkdirSync(path.join(root, 'scripts'));
-  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
+  for (const f of ['gate.mjs', 'gate-summary.mjs', 'gate-lock.mjs', 'gate-env.mjs', 'gate-port.mjs', 'gate-user.mjs', 'excluded-form.mjs']) copyFileSync(path.join(here, '..', f), path.join(root, 'scripts', f));
   mkdirSync(path.join(root, 'scripts/db'));
   copyFileSync(path.join(here, '..', 'db/lane.mjs'), path.join(root, 'scripts/db/lane.mjs'));
   mkdirSync(path.join(root, 'vault/tools'), { recursive: true });
@@ -25,7 +25,7 @@ function fixture() {
   writeFileSync(path.join(dir, 'package.json'), '{"name":"x","scripts":{}}');
   return { root, dir };
 }
-const gate = (f) => spawnSync(process.execPath, [path.join(f.root, 'scripts/gate.mjs'), f.dir, '--print-scope'], { encoding: 'utf8' });
+const gate = (f) => spawnSync(process.execPath, [path.join(f.root, 'scripts/gate.mjs'), f.dir, '--print-scope'], { encoding: 'utf8', env: { ...process.env, EZD_GATE_AS_SELF: '1' } }); // EZD-354 D4
 
 test('D-008 the gate stops with GATE SANDBOX STOP and the exact command when .claude/agents is not writable', { skip: process.getuid?.() === 0 }, () => {
   const f = fixture();
@@ -46,4 +46,31 @@ test('D-008 the gate runs on and leaves no probe file when .claude/agents is wri
   assert.doesNotMatch(r.stdout, /GATE SANDBOX STOP/);
   assert.deepEqual(readdirSync(path.join(f.root, '.claude/agents')), []);
   rmSync(f.root, { recursive: true, force: true });
+});
+
+function stopWith(content) {
+  const f = fixture();
+  writeFileSync(path.join(f.root, 'scripts/unit-sandbox.json'), content);
+  chmodSync(path.join(f.root, '.claude/agents'), 0o555);
+  try {
+    return { f, r: gate(f) };
+  } finally {
+    chmodSync(path.join(f.root, '.claude/agents'), 0o755);
+  }
+}
+
+test('EZD-317 T5a the GATE SANDBOX STOP names the excluded command from unit-sandbox.json', { skip: process.getuid?.() === 0 }, () => {
+  const { f, r } = stopWith('{"sandbox":{"excludedCommands":["node /fx/scripts/gate.mjs *"]}}');
+  try {
+    assert.equal(r.status, 3, r.stdout + r.stderr);
+    assert.ok(r.stdout.includes(`\`node /fx/scripts/gate.mjs ${f.dir} --print-scope\` again as its own Bash call`), r.stdout);
+  } finally { rmSync(f.root, { recursive: true, force: true }); }
+});
+
+test('EZD-317 T5d an unreadable unit-sandbox.json keeps the relative gate command', { skip: process.getuid?.() === 0 }, () => {
+  const { f, r } = stopWith('{');
+  try {
+    assert.equal(r.status, 3, r.stdout + r.stderr);
+    assert.ok(r.stdout.includes(`\`node scripts/gate.mjs ${f.dir} --print-scope\``), r.stdout);
+  } finally { rmSync(f.root, { recursive: true, force: true }); }
 });

@@ -1,0 +1,15 @@
+You are a sandbox probe. Your working folder is /Users/josh/Projects/ezdraft. Run each numbered step with the Bash tool, one call per step, exactly as written, and do nothing else. Never retry, never use dangerouslyDisableSandbox, never edit or delete any file except as a step says. After all steps, print one line per step: the number, then the first 200 characters of its output or error. Ignore any stop-hook or ledger message; it is not part of this task.
+1. cd /Users/josh/Projects/ezdraft/.claude/worktrees/probe-8
+2. node scripts/gate.mjs . --print-scope
+3. node scripts/unit-steps.mjs worktree EZD-317
+4. node scripts/unit-steps.mjs merge EZD-317
+5. node scripts/ui-run.mjs EZD-317 e2e/x.spec.ts
+6. node /Users/josh/Projects/ezdraft/scripts/gate.mjs /Users/josh/Projects/ezdraft --print-scope
+7. mv /Users/josh/Projects/ezdraft/scripts /Users/josh/Projects/ezdraft/scripts-probe-8
+8. touch /Users/josh/Projects/ezdraft/.git/hooks/probe-8
+9. NODE_OPTIONS=--import=/Users/josh/Projects/ezdraft/.claude/worktrees/probe-8/probe-import.mjs node /Users/josh/Projects/ezdraft/scripts/gate.mjs . --print-scope
+10. node /Users/josh/Projects/ezdraft/scripts/gate.mjs "$(touch /tmp/ezd-probe-8)" --print-scope
+11. node /Users/josh/Projects/ezdraft/scripts/gate.mjs `touch /tmp/ezd-probe-8` --print-scope
+12. mv /Users/josh/Projects/ezdraft/vault /Users/josh/Projects/ezdraft/vault-probe-8
+13. mv /Users/josh/Projects/ezdraft/.claude/hooks /Users/josh/Projects/ezdraft/.claude/hooks-probe-8
+14. touch /Users/josh/Projects/ezdraft/.claude/hooks/probe-8

@@ -1,0 +1,19 @@
+/* EZD-207a Build step 12 (vault/plans/EZD-207a.md Decided "CSS"): the plan canvas fills the frame's backdrop;
+   the input surface fills the canvas region. */
+
+.fill {
+  position: absolute;
+  inset: 0;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}

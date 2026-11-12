@@ -6,6 +6,8 @@
 // without a prompt. Office text only (English, Q-0121 (a)).
 // EZD-140 Step 12 (vault/plans/EZD-140.md Decided D8-D10, D15): a Notifications tab; one footer saves both
 // tabs (the profile, then the notification settings); both tab panels stay mounted so a switch keeps edits.
+// EZD-5601 Step 20 (vault/plans/EZD-5601.md "D-View"; board S01g): the AI assistant section between iPad drawing
+// and the password; Add and Remove act at once, apart from Save.
 import { Dialog, Tabs } from 'radix-ui';
 import { useCallback, useState } from 'react';
 import { useT } from '../../lib/messages';
@@ -19,6 +21,7 @@ import {
   type ProfileCaptcha,
   type ProfileResponse,
 } from '../../lib/profile/profile';
+import type { AiKeyState } from '../../lib/profile/ai-key';
 import type { NotificationKind } from '../../lib/notifications/kinds';
 import {
   fetchNotificationSettings,
@@ -36,6 +39,7 @@ import { StateButton } from '../../components/states/StateButton';
 import { useToast } from '../../components/states/ToastProvider';
 import touch from '../../styles/touch.module.css';
 import styles from './my-profile.module.css';
+import { AiKeySection } from './AiKeySection';
 import { NotificationSettingsTab } from './NotificationSettingsTab';
 
 export type MyProfileDialogProps = { onClose: () => void };
@@ -210,7 +214,7 @@ function PasswordSection({
   const heading = hasPassword ? 'office.profile.change_password' : 'office.profile.set_password';
 
   return (
-    <div className={styles.section}>
+    <div data-testid="profile-password-section" className={styles.section}>
       <h3 data-testid="profile-password-heading" className={styles.label}>
         {t(heading)}
       </h3>
@@ -295,6 +299,7 @@ function PasswordSection({
 function ProfileForm({
   profile,
   captcha,
+  aiKey,
   language,
   ipadDrawing,
   onLanguage,
@@ -302,6 +307,7 @@ function ProfileForm({
 }: {
   profile: Profile;
   captcha: ProfileCaptcha | null;
+  aiKey: AiKeyState;
   language: Language;
   ipadDrawing: IpadDrawing;
   onLanguage: (v: Language) => void;
@@ -332,6 +338,8 @@ function ProfileForm({
         />
         <p className={styles.help}>{t('office.profile.ipad_help')}</p>
       </div>
+      <span aria-hidden="true" className={styles.divider} />
+      <AiKeySection initial={aiKey} />
       <span aria-hidden="true" className={styles.divider} />
       <PasswordSection email={profile.email} initial={profile.hasPassword} captcha={captcha} />
     </div>
@@ -480,6 +488,7 @@ export function MyProfileDialog({ onClose }: MyProfileDialogProps) {
                   <ProfileForm
                     profile={loaded.profile}
                     captcha={loaded.captcha}
+                    aiKey={loaded.aiKey}
                     language={language ?? loaded.profile.language}
                     ipadDrawing={ipadDrawing ?? loaded.profile.ipadDrawing}
                     onLanguage={setLanguage}

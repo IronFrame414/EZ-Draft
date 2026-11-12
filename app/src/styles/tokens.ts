@@ -61,4 +61,25 @@ export const TOKENS: readonly {
   // S01f .row border, .kn shadow; EZD-140
   { name: '--ez-divider-row', value: '#f0f2f5', group: 'color' },
   { name: '--ez-shadow-switch-knob', value: '0 1px 2px rgba(0,0,0,.2)', group: 'shadow' },
+  // S03b banner, list; EZD-299
+  { name: '--ez-amber-banner', value: 'oklch(0.97 0.03 80)', group: 'color' },
+  { name: '--ez-amber-border', value: 'oklch(0.86 0.07 75)', group: 'color' },
+  { name: '--ez-amber-icon', value: 'oklch(0.5 0.13 60)', group: 'color' },
+  { name: '--ez-amber-strong', value: 'oklch(0.43 0.12 60)', group: 'color' },
+  { name: '--ez-cobalt-deep', value: 'oklch(0.42 0.17 262)', group: 'color' },
+  { name: '--ez-group-band', value: '#fafbfc', group: 'color' },
+  // S03dStates Not on a wall, S03dDoorSelected .sgon; Q-0037 (b) precedent; EZD-213b
+  { name: '--ez-red-tint', value: 'oklch(0.97 0.02 28)', group: 'color' },
+  { name: '--ez-red-text', value: 'oklch(0.5 0.19 28)', group: 'color' },
+  { name: '--ez-shadow-segment', value: '0 1px 2px rgba(20,30,50,.12)', group: 'shadow' },
+  // S03dStates box select right to left; EZD-208b
+  { name: '--ez-box-touch-stroke', value: 'oklch(0.5 0.12 160)', group: 'color' },
+  { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
+  // S15 .tron; EZD-104
+  { name: '--ez-row-selected', value: '#f5f7ff', group: 'color' },
+  // S03c alert box, model list; EZD-5603a
+  { name: '--ez-amber-alert', value: 'oklch(0.97 0.035 80)', group: 'color' },
+  { name: '--ez-amber-alert-border', value: 'oklch(0.87 0.07 75)', group: 'color' },
+  { name: '--ez-shadow-picker', value: '0 12px 32px rgba(10,15,30,.16)', group: 'shadow' },
+  { name: '--ez-radius-4', value: '4px', group: 'radius' },
 ];

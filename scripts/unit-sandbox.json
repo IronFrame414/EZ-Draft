@@ -23,6 +23,8 @@
         "./**/.env.production",
         "./**/.env.development",
         "~/.claude/.credentials.json",
+        "~/.claude-acct-1/.credentials.json",
+        "~/.claude-acct-2/.credentials.json",
         "~/.ssh",
         "~/.aws",
         "~/Library/Keychains",
@@ -53,10 +55,10 @@
       ]
     },
     "excludedCommands": [
-      "node scripts/gate.mjs *",
-      "node scripts/unit-steps.mjs worktree *",
-      "node scripts/unit-steps.mjs merge *",
-      "node scripts/ui-run.mjs *",
+      "node /Users/josh/Projects/ezdraft/scripts/gate.mjs *",
+      "node /Users/josh/Projects/ezdraft/scripts/unit-steps.mjs worktree *",
+      "node /Users/josh/Projects/ezdraft/scripts/unit-steps.mjs merge *",
+      "node /Users/josh/Projects/ezdraft/scripts/ui-run.mjs *",
       "node /Users/josh/Projects/ezdraft/scripts/release/github-ops.mjs *"
     ]
   }

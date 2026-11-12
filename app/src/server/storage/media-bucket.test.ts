@@ -52,12 +52,17 @@ describe('EZD-290 media bucket limits', () => {
     return session.serverDb.storage.from('media').upload(path, bytes, { contentType });
   };
 
-  it('T6 the media bucket holds a 4,000,000-byte limit and three image types, and refuses others', async () => {
+  it('T6 the media bucket holds a 4,000,000-byte limit and four image types, and refuses others', async () => {
     const rows = await harnessSql()`
       select file_size_limit, allowed_mime_types from storage.buckets where id = 'media'`;
     expect(rows).toHaveLength(1);
     expect(Number(rows[0].file_size_limit)).toBe(4000000);
-    expect(rows[0].allowed_mime_types).toEqual(['image/png', 'image/jpeg', 'image/svg+xml']);
+    // EZD-224 (vault/plans/EZD-224.md section 3 Shared lists; L-024, dated 2026-11-11, newest migration
+    // 20261110130000): the three logo types plus image/webp.
+    for (const type of ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']) {
+      expect(rows[0].allowed_mime_types).toContain(type);
+    }
+    expect(rows[0].allowed_mime_types).toHaveLength(4);
 
     const html = logoPath('png');
     const htmlPut = await put(html, new Uint8Array(10).fill(0x61), 'text/html');

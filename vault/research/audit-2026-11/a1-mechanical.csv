@@ -1,0 +1,299 @@
+id,phase,status,sha,ancestor_of_develop,feat_commit_by_subject,test_file_mentions,notes_has_deviation,plan_exists,commit_subject
+EZD-001,0,done,3b1037c,yes,3b1037c9,94,Y,Y,feat(EZD-001): Repo and tooling
+EZD-002,0,done,562313f,yes,562313f0,356,Y,Y,feat(EZD-002): CI
+EZD-003,0,blocked,dc6e8e6,yes,dc6e8e63,103,Y,Y,feat(EZD-003): Hosting and subdomain
+EZD-004a,0,done,78b3103,yes,78b3103e,19,Y,Y,feat(EZD-004a): Local Supabase and migrations in the gate
+EZD-004b,0,done,22b6f0a,yes,22b6f0af,26,Y,Y,feat(EZD-004b): App reads the health row
+EZD-004c,0,done,ea665d3,yes,ea665d3f,16,Y,Y,feat(EZD-004c): Cloud dev migrations workflow
+EZD-005a,0,done,f5aed49,yes,f5aed49b,25,Y,Y,feat(EZD-005a): Tenancy tables
+EZD-005b,0,done,92e848d,yes,92e848d7,23,Y,Y,feat(EZD-005b): Tenant 1 and Josh: seed and cloud setup file
+EZD-006,0,done,0ff28b9,yes,0ff28b91,72,Y,Y,feat(EZD-006): Row-level security
+EZD-007a,0,done,805167a,yes,805167aa,26,Y,Y,feat(EZD-007a): Magic-link sign-in: account gate and local Auth config
+EZD-007b,0,done,bdcf29f,yes,bdcf29f1,16,Y,Y,feat(EZD-007b): Magic-link sign-in: linking and access functions
+EZD-007c,0,done,0163869,yes,01638690,32,Y,Y,feat(EZD-007c): Magic-link sign-in: session client and API gate secret
+EZD-007d,0,done,276a86a,yes,276a86ae,41,Y,Y,feat(EZD-007d): Magic-link sign-in: sign-in actions; invite acceptance
+EZD-007e,0,done,718cb53,yes,718cb531,11,Y,Y,feat(EZD-007e): Magic-link sign-in: sign-in messages and lint
+EZD-007f,0,done,b0f5e1a,yes,b0f5e1a4,45,Y,Y,feat(EZD-007f): Magic-link sign-in: sign-in pages and browser tests
+EZD-008a,0,done,fce41c2,yes,fce41c20,9,Y,Y,feat(EZD-008a): Send helper and transports
+EZD-008b,0,done,e77273a,yes,e77273a8,8,Y,Y,feat(EZD-008b): Email setup: names; docs; runbook and live check
+EZD-009,0,done,0c5e8c3,yes,0c5e8c39,105,Y,Y,feat(EZD-009): Background job queue
+EZD-010a,0,done,485a54c,yes,485a54c0,18,Y,Y,feat(EZD-010a): Token files and check C10
+EZD-010b,0,done,69443f9,yes,69443f9e,21,Y,Y,feat(EZD-010b): Icon sprite and Icon component
+EZD-010c,0,done,ea641d4,yes,ea641d40,25,Y,Y,feat(EZD-010c): Fonts; root layout and token test page
+EZD-011a,0,done,529269c,yes,529269cd,24,Y,Y,feat(EZD-011a): Shell: header card; header button and card surface
+EZD-011b,0,done,ffe274d,yes,ffe274db,15,Y,Y,feat(EZD-011b): Shell: editor header content and labels
+EZD-011c,0,done,ac88f71,yes,ac88f714,11,Y,Y,feat(EZD-011c): Shell: header test page and Done-when browser test
+EZD-012a,0,done,5c362eb,yes,5c362eb3,10,Y,Y,feat(EZD-012a): Shell: tool rail and tooltip
+EZD-012b,0,done,fdb9ff6,yes,fdb9ff6f,16,Y,Y,feat(EZD-012b): Shell: frame; status bar and empty editor
+EZD-012c,0,done,cdc640a,yes,cdc640a3,18,N,Y,feat(EZD-012c): Shell: test pages and Done-when browser test
+EZD-013,0,done,8637f96,yes,8637f96a,31,Y,Y,feat(EZD-013): PWA install
+EZD-014a,0,done,19c0e2c,yes,19c0e2c0,20,Y,Y,feat(EZD-014a): Device layouts: device switch and phone layout
+EZD-014b,0,done,40304d4,yes,40304d4a,11,Y,Y,feat(EZD-014b): Device layouts: touch targets and icon-only header but
+EZD-014c,0,done,6338851,yes,63388517,28,Y,Y,feat(EZD-014c): Device layouts: test page; browser tests and docs
+EZD-015a,0,done,3910274,yes,3910274a,40,Y,Y,feat(EZD-015a): Shared state components: online status; skeleton; asyn
+EZD-015b,0,done,28a0330,yes,28a03305,17,Y,Y,feat(EZD-015b): Shared state components: toast and confirm dialog
+EZD-015c,0,done,2d76bc4,yes,2d76bc41,25,Y,Y,feat(EZD-015c): Shared state components: test page; browser tests and 
+EZD-016c,0,done,67d1ec8,yes,67d1ec8a,8,Y,Y,feat(EZD-016c): Test harness: seed rows for browser tests
+EZD-016d,0,done,76b7557,yes,76b75575,19,Y,Y,feat(EZD-016d): Test harness: device projects and runner config
+EZD-016a,0,done,3ab81ab,yes,3ab81abf,50,Y,Y,feat(EZD-016a): Test harness: sign-in; session and network helpers
+EZD-016b,0,done,e006b76,yes,e006b768,16,Y,Y,feat(EZD-016b): Fixtures
+EZD-017,0,done,453e9f9,yes,453e9f91,48,Y,Y,feat(EZD-017): Performance budgets and benchmark
+EZD-018,0,done,da0db65,yes,da0db65a,67,Y,Y,feat(EZD-018): Realtime channels
+EZD-020,0,done,160f0ed,yes,160f0ed2,62,Y,Y,feat(EZD-020): Entry points and lazy chunks
+EZD-021,0,done,a82762c,yes,a82762c4,67,Y,Y,feat(EZD-021): AI client and stubs
+EZD-022,0,done,ffbd8d0,yes,ffbd8d0e,7,Y,Y,feat(EZD-022): Event registry
+EZD-000,0,done,1739318,yes,1739318a,79,Y,Y,feat(EZD-000): Architecture conventions
+EZD-000b,0,done,2929564,yes,2929564c,14,Y,Y,feat(EZD-000b): hidden-token settings and honesty rules
+EZD-000c,0,done,3b7c7c1,yes,3b7c7c13,17,Y,Y,feat(EZD-000c): whole-read guard and outline tool
+EZD-000d,0,done,ffa76d7,yes,ffa76d76,12,Y,Y,feat(EZD-000d): research report store
+EZD-000e,0,done,89d95e9,yes,89d95e9e,15,Y,Y,feat(EZD-000e): Retriever agents and dispatch brief (Item 4; agent fil
+EZD-000f,0,done,5a8ebe3,yes,5a8ebe3b,12,Y,Y,feat(EZD-000f): Retriever spawn limits (Item 4; enforcement)
+EZD-000g,0,done,23a06c2,yes,23a06c29,9,Y,Y,feat(EZD-000g): Lesson ratification (Item 7)
+EZD-000h,0,done,4296a46,yes,4296a464,17,Y,Y,feat(EZD-000h): Usage meters; five-hour pause and weekly gate (Item 1a
+EZD-000i,0,done,883a54f,yes,883a54f3,34,Y,Y,feat(EZD-000i): OAuth usage fallback (Item 1b)
+EZD-000j,0,done,ea0b79d,yes,ea0b79dc,6,Y,Y,feat(EZD-000j): OAuth usage fallback reads `utilization` (Q-0138)
+EZD-023a,0,done,b8b5913,yes,b8b5913e,48,Y,Y,feat(EZD-023a): Release safety: migration check
+EZD-023b,0,done,238bd8c,yes,238bd8cb,38,Y,Y,feat(EZD-023b): Release guards and naming
+EZD-023c,0,done,bc1d307,yes,bc1d3077,21,Y,Y,feat(EZD-023c): Vercel build and environment checks
+EZD-023d,0,done,732fc00,yes,732fc002,23,Y,Y,feat(EZD-023d): Dump; migrations and tenant 1
+EZD-023e,0,done,ea9274b,yes,ea9274b4,30,Y,Y,feat(EZD-023e): Go live; rollback; workflow and docs
+EZD-024,0,done,9749819,yes,9749819f,88,Y,Y,feat(EZD-024): Error reporting
+EZD-025,0,done,485b9de,yes,485b9de6,94,Y,Y,feat(EZD-025): Off-site backups and restore script
+EZD-026c,0,done,8b71166,yes,8b711665,5,Y,Y,feat(EZD-026c): Message helper: t() core
+EZD-026d,0,done,3c83933,yes,3c839332,18,Y,Y,feat(EZD-026d): Message helper: catalogs and test-page component
+EZD-026a,0,done,5bd63e6,yes,5bd63e6e,18,Y,Y,feat(EZD-026a): Message helper: phone-screen lint and docs
+EZD-026b,0,done,137b588,yes,137b5884,20,Y,Y,feat(EZD-026b): Message helper: language from the user record
+EZD-027,0,done,661bd4a,yes,661bd4a4,21,Y,Y,feat(EZD-027): Spike: plan canvas on the iPad
+EZD-028,0,done,f47bc2d,yes,f47bc2db,23,Y,Y,feat(EZD-028): Spike: PDF from a drawing list
+EZD-029,0,done,cf0d50d,yes,cf0d50d1,51,N,Y,feat(EZD-029): Spike: DXF parser
+EZD-030,0,done,c29ffae,yes,c29ffaea,6,Y,Y,feat(EZD-030): Spike: wall openings and sloped ceiling
+EZD-031,0,done,4cbf838,yes,4cbf8387,21,Y,Y,feat(EZD-031): Spike: render trial
+EZD-032,0,done,127fc3f,yes,127fc3f2,15,Y,Y,feat(EZD-032): Phase 0 build-gate test
+EZD-033,0,done,489640a,yes,489640a0,68,Y,Y,feat(EZD-033): Password sign-in
+EZD-101,1,done,5f2989c,yes,5f2989cb,27,Y,Y,feat(EZD-101): Permission and role tables
+EZD-102,1,done,f6c255c,yes,f6c255ce,44,Y,Y,feat(EZD-102): Permission enforcement
+EZD-103a,1,done,7bc0ad1,yes,7bc0ad10,32,Y,Y,feat(EZD-103a): Settings shell
+EZD-103b,1,done,4e8fd07,yes,4e8fd07f,33,Y,Y,feat(EZD-103b): Settings shell: unsaved edits and drafts
+EZD-108,2,done,f8904f94,yes,f8904f94,33,N,Y,feat(EZD-108): Avatar menu and My profile
+EZD-110a,2,done,dd1e24c3,yes,dd1e24c3,51,Y,Y,feat(EZD-110a): Notifications: table; email and routes
+EZD-110b,2,done,232e1372,yes,232e1372,45,Y,Y,feat(EZD-110b): Notifications: bell and list
+EZD-112,1,done,69241cd,yes,69241cdb,94,Y,Y,feat(EZD-112): Company settings: identity
+EZD-113,1,done,8047e76,yes,8047e763,32,Y,Y,feat(EZD-113): Customers
+EZD-117a,2,done,f880bc59,yes,f880bc59,49,N,Y,feat(EZD-117a): Projects page: query and cards
+EZD-117b,2,done,39c6bc9a,yes,39c6bc9a,64,Y,Y,feat(EZD-117b): Projects page: header; search and states
+EZD-118,2,done,c9498cb0,yes,c9498cb0,60,Y,Y,feat(EZD-118): New project wizard
+EZD-120a,3,done,f8bd91f1,yes,f8bd91f1,20,Y,Y,feat(EZD-120a): Model tables; save function and checkpoints
+EZD-120b,3,done,e8e27a5b,yes,e8e27a5b,40,Y,Y,feat(EZD-120b): Patch store; outbox and autosave
+EZD-132,1,done,77c9085,yes,77c9085a,50,Y,Y,feat(EZD-132): File storage
+EZD-133,3,done,97e1ca98,yes,97e1ca98,23,N,Y,feat(EZD-133): Access and money-field harness
+EZD-201,4,done,d14e0c7b,yes,d14e0c7b,10,Y,Y,feat(EZD-201): Length parse and format
+EZD-202,3,done,a0c9e51a,yes,a0c9e51a,19,Y,Y,feat(EZD-202): Model document schema
+EZD-203,4,done,0f726433,yes,0f726433,41,Y,Y,feat(EZD-203): Walls core
+EZD-205a,4,done,b1ce6b81,yes,b1ce6b81,39,Y,Y,feat(EZD-205a): Room outlines; area; storage and label
+EZD-205b,4,done,44cd595f,yes,44cd595f,18,Y,Y,feat(EZD-205b): Closure gap; absorb and keep out of square
+EZD-207a,4,done,8a55e56a,yes,8a55e56a,46,Y,Y,feat(EZD-207a): Plan canvas: renderer; drawing; grid; pan and zoom
+EZD-207b,4,done,94299813,yes,94299813,52,Y,Y,feat(EZD-207b): Plan canvas: zoom stack; hover and text
+EZD-207c,4,done,d45ae74a,yes,d45ae74a,37,Y,Y,feat(EZD-207c): Benchmark pan and zoom in the performance check
+EZD-209,4,done,4deba37d,yes,4deba37d,36,Y,Y,feat(EZD-209): Typed dimension bar
+EZD-210a,4,done,f2bb394c,yes,f2bb394c,44,Y,Y,feat(EZD-210a): Wall and Room rectangle tool logic
+EZD-210b,4,done,a34868ee,yes,a34868ee,24,Y,Y,feat(EZD-210b): Drawing tools on the plan
+EZD-221a,4,done,715ce230,yes,715ce230,30,Y,Y,feat(EZD-221a): Template objects on the server
+EZD-221b,4,done,28aa89f7,yes,28aa89f7,22,Y,Y,feat(EZD-221b): Wizard step 2; template picker and empty hint
+EZD-236,4,done,a68f0013,yes,a68f0013,44,N,Y,feat(EZD-236): Benchmark project generator
+EZD-238,3,done,81f887f2,yes,81f887f2,26,Y,Y,feat(EZD-238): Drawing list
+EZD-1704,1,done,8d4286d,yes,8d4286d4,33,Y,Y,feat(EZD-1704): Backups
+EZD-1707,1,done,903a2cb,yes,903a2cbb,21,Y,Y,feat(EZD-1707): Terms of service
+EZD-136,1,done,49ce103,yes,49ce1034,38,Y,Y,feat(EZD-136): On-screen disclaimer
+EZD-141,1,blocked,,no-sha,,0,N,Y,
+EZD-142,1,done,a46de18,yes,a46de18b,25,Y,Y,feat(EZD-142): Fix: error scrubbing covers every event field and runs 
+EZD-143,1,done,97e72f6,yes,97e72f60,28,Y,Y,feat(EZD-143): Fix: error tunnel limits each caller
+EZD-144,1,done,202588f,yes,202588f1,10,Y,Y,feat(EZD-144): Fix: error_alert refuses a project without a company
+EZD-145,1,done,9d4d6a5,yes,9d4d6a5c,12,Y,Y,feat(EZD-145): Fix: job routes check permissions with can()
+EZD-146,1,done,8f3a8e3,yes,8f3a8e3a,21,Y,Y,feat(EZD-146): Fix: dev migration push and release push pass the passw
+EZD-147,1,done,908a39d,yes,908a39da,24,Y,Y,feat(EZD-147): Fix: CI workflow least rights and SHA pins
+EZD-148,1,done,5bc995d,yes,5bc995d9,37,Y,Y,feat(EZD-148): Fix: repo rule tests catch the remaining bypass forms
+EZD-149,1,done,1a00650,yes,1a006502,22,Y,Y,feat(EZD-149): Fix: hosting live check and preview rule match what the
+EZD-150,1,done,081d38a,yes,081d38a6,9,Y,Y,feat(EZD-150): Fix: health check gives up on a slow database
+EZD-151,1,done,646e642,yes,646e642b,17,Y,Y,feat(EZD-151): Fix: email input checks; preview stub outbox and email 
+EZD-152,1,done,4f86fe0,yes,4f86fe01,26,Y,Y,feat(EZD-152): Fix: release and restore failure lines say why without 
+EZD-153,1,done,5649bd3,yes,5649bd37,37,Y,Y,feat(EZD-153): Fix: migration check flags objects created in dynamic S
+EZD-154,1,done,31ade158,yes,31ade158,7,Y,Y,feat(EZD-154): Fix: remove the PA3 grant and close the two guard-bash 
+EZD-155,1,done,f8c1540,yes,f8c1540f,41,Y,Y,feat(EZD-155): Fix: gate summary and launcher tools report what really
+EZD-156,1,done,d9bbd87,yes,d9bbd87b,6,Y,Y,feat(EZD-156): Fix: perf check refuses an empty selection and proves i
+EZD-157,1,done,29cfe91,yes,29cfe912,9,Y,Y,feat(EZD-157): Fix: realtime hub keeps project and user channels apart
+EZD-158,1,done,599b0c8,yes,599b0c83,15,Y,Y,feat(EZD-158): Fix: phase 0 test gaps
+EZD-159,1,done,1f90754,yes,1f90754a,13,Y,Y,feat(EZD-159): Fix: test network guard also blocks sockets
+EZD-160,1,done,54bb4d4,yes,54bb4d44,11,N,Y,feat(EZD-160): Fix: architecture and runbook say only what is true
+EZD-161,1,done,a4e1b73,yes,a4e1b737,8,Y,Y,feat(EZD-161): Fix: geometry tests are type-checked
+EZD-162,1,done,d2d328d,yes,,0,N,Y,fix(EZD-162): vault wording and TRACE titles
+EZD-163,1,done,d8cc9bb1,yes,d8cc9bb1,14,Y,Y,feat(EZD-163): Fix: find and remove the cause of the harness T12 "Work
+EZD-164,1,done,d7fcca6,yes,d7fcca6c,34,Y,Y,feat(EZD-164): Spike: WebKit offline service-worker test
+EZD-165,1,done,3e92a7a,yes,3e92a7a1,5,Y,Y,feat(EZD-165): Fix: membership end-sessions trigger covers user and co
+EZD-166,1,done,0b3fba0,yes,0b3fba04,17,Y,Y,feat(EZD-166): Fix: db:up restarts the local stack when the Auth confi
+EZD-167,1,done,f379552,yes,f379552d,10,Y,Y,feat(EZD-167): Fix: path alias cannot bypass the import-boundaries lin
+EZD-168,1,done,f2e5b18,yes,f2e5b18e,3,Y,Y,feat(EZD-168): Fix: audit refuses a private function executable by an 
+EZD-169,1,done,4146521,yes,4146521e,24,Y,Y,feat(EZD-169): Fix: every 500 catch in a route reports the error
+EZD-170,1,done,bfca341,yes,,0,Y,Y,fix(EZD-170): record every pilot check result
+EZD-171,1,done,6905dbf,yes,6905dbfe,45,Y,Y,feat(EZD-171): Fix: prove the cloud-only behaviours on the dev project
+EZD-172,1,done,bb5d102f,yes,bb5d102f,59,Y,Y,feat(EZD-172): Parallel lanes: each build lane gets its own local data
+EZD-173,1,done,7a3bd64a,yes,7a3bd64a,40,Y,Y,feat(EZD-173): Parallel lanes: ledger; commits and merges never collid
+EZD-174,1,done,9b6706e3,yes,9b6706e3,86,Y,Y,feat(EZD-174): Parallel lanes: the launcher runs several units at once
+EZD-175,1,done,80747c50,yes,80747c50,19,Y,Y,feat(EZD-175): Parallel lanes: a ticket branch is brought up to date w
+EZD-176,1,done,e66b5a7,yes,e66b5a7b,9,Y,Y,feat(EZD-176): Fix: release; backup and dev-migration workflows leave 
+EZD-177,1,done,fd5b147,yes,fd5b1476,47,Y,Y,feat(EZD-177): Fix: repo rule tests refuse pnpm_config_* environment n
+EZD-178,1,done,0d27a16,yes,0d27a16f,10,Y,Y,feat(EZD-178): Fix: six more tools work when run through a symlinked p
+EZD-179,1,done,ea03a44,yes,ea03a449,10,Y,Y,feat(EZD-179): Fix: app Vitest config loads without the CommonJS warni
+EZD-180,1,done,04dd279,yes,04dd2795,9,Y,Y,feat(EZD-180): Fix: EZD-005b T17 (e) passes in any run order
+EZD-181,1,done,17bb02a,yes,17bb02ae,7,Y,Y,feat(EZD-181): Fix: a health check that times out reports the error
+EZD-182,1,done,a1b9fbed,yes,a1b9fbed,66,Y,Y,feat(EZD-182): Fix: repo rule tests refuse pnpm flags that turn on dep
+EZD-183,1,done,bd73807,yes,bd738071,11,Y,Y,feat(EZD-183): Fix: error tunnel forwards only a well-formed envelope 
+EZD-184,1,done,c3cb996,yes,c3cb996d,9,Y,Y,feat(EZD-184): Fix: the two ESLint warnings from our code on develop
+EZD-185,1,blocked,,no-sha,,0,N,Y,
+EZD-186,1,done,a6f5849,yes,a6f58496,7,Y,Y,feat(EZD-186): Fix: no "React version detect" warning when lint runs f
+EZD-187,1,done,01c6395,yes,01c63955,18,Y,Y,feat(EZD-187): Fix: the root `test` step runs the package tests even w
+EZD-188,1,done,2f4cd6f,yes,2f4cd6fc,24,N,Y,feat(EZD-188): Fix: production workflows use only listed actions
+EZD-189,1,done,4c7e85f,yes,4c7e85fd,2,Y,Y,feat(EZD-189): Fix: the policy check allows a Storage policy to read i
+EZD-190,1,done,bb15791,yes,bb157915,16,Y,Y,feat(EZD-190): Fix: the API request gate is in force as soon as the lo
+EZD-191,1,blocked,,no-sha,,0,N,Y,
+EZD-192,1,done,c7520163,yes,c7520163,2,Y,Y,feat(EZD-192): Fix: the net-guard browser test EZD-159 T7 does not fai
+EZD-193,1,done,87177229,yes,87177229,31,Y,Y,feat(EZD-193): Fix: the launcher saves the raw text of any limit error
+EZD-194,1,done,75bcfc9,yes,75bcfc9d,16,Y,Y,feat(EZD-194): Fix: switching to API credits is proven with a fake cla
+EZD-195,1,done,f7422ad,yes,,0,Y,Y,fix(EZD-195): record the live spawn refusal (pilot row 14)
+EZD-196,1,done,c33c465,yes,,0,N,Y,fix(EZD-196): record the live retriever write refusal (pilot row 15)
+EZD-197,1,done,8658b0b,yes,8658b0be,11,Y,Y,feat(EZD-197): Fix: the 70% weekly warning is proven to notify (pilot 
+EZD-198,1,done,94920f33,yes,94920f33,6,Y,Y,feat(EZD-198): Fix: the whole-read guard and notebooks over its limit 
+EZD-199,1,done,2cbea034,yes,2cbea034,4,Y,Y,feat(EZD-199): Fix: the whole-read guard refuses a ranged read whose s
+EZD-200,1,done,76c2cae,yes,76c2cae0,17,Y,Y,feat(EZD-200): Fix: the EZD-025 T16 type check names its failure and n
+EZD-100,1,done,0b987c5,yes,0b987c5b,12,Y,Y,feat(EZD-100): Fix: a real budget hold is proven to write its file; no
+EZD-239,1,done,b6cd069e,yes,b6cd069e,8,Y,Y,feat(EZD-239): Fix: the budget status printout shows no override from 
+EZD-240,1,done,f527aabc,yes,f527aabc,8,Y,Y,feat(EZD-240): Fix: the status line saves its raw sample only from a p
+EZD-241,1,done,b61252e6,yes,b61252e6,54,Y,Y,feat(EZD-241): Fix: the release stops a migration that drops or rename
+EZD-242,1,done,2dc131fb,yes,2dc131fb,12,Y,Y,feat(EZD-242): Fix: Company settings inputs look read-only while offli
+EZD-243,1,done,f19f5ec1,yes,864c546d,11,Y,Y,docs(vault): record Josh's answer to Q-0371 (new fix ticket EZD-247)
+EZD-244,1,done,5a11ac4b,yes,5a11ac4b,32,Y,Y,feat(EZD-244): Fix: every agent loads only the architecture sections i
+EZD-245,1,done,13b078c9,yes,13b078c9,53,Y,Y,feat(EZD-245): Fix: recurring review findings become lessons and plan 
+EZD-246,1,done,630e0e89,yes,630e0e89,10,Y,Y,feat(EZD-246): Fix: one review pass covers two or three related ticket
+EZD-247,1,done,fdf4ef97,yes,fdf4ef97,9,Y,Y,feat(EZD-247): Fix: runbook and architecture match Q-0264 (remaining l
+EZD-248,1,blocked,,no-sha,,0,N,Y,
+EZD-249,1,blocked,,no-sha,,0,N,Y,
+EZD-250,1,done,fe81ba48,yes,fe81ba48,70,Y,Y,feat(EZD-250): Fix: the launcher never waits on a stop an agent can fi
+EZD-251,1,done,b5e87df1,yes,b5e87df1,5,Y,Y,feat(EZD-251): Fix: the health timeout test (EZD-181 T3) passes when t
+EZD-252,1,done,9fc24411,yes,9fc24411,9,Y,Y,feat(EZD-252): Fix: a test file that writes error_alert rows must hold
+EZD-253,1,done,03546b0b,yes,03546b0b,54,Y,Y,feat(EZD-253): Fix: build-system tickets run on their own track beside
+EZD-254,1,done,85392b0c,yes,85392b0c,11,Y,Y,feat(EZD-254): Fix: a finished phase is gated even while an earlier ph
+EZD-255,1,done,cbee4d96,yes,cbee4d96,28,Y,Y,feat(EZD-255): Fix: a hold or limit message names the repair unit when
+EZD-256,1,done,8a9d92cd,yes,8a9d92cd,22,Y,Y,feat(EZD-256): Fix: only one gate at a time takes over a dead lock
+EZD-257,1,done,69dc70cb,yes,69dc70cb,7,Y,Y,feat(EZD-257): Fix: the release T8 test cannot fail on hash text
+EZD-258,1,done,086bdbbc,yes,086bdbbc,16,Y,Y,feat(EZD-258): Fix: failing-input tests for EZD-250's rules that have 
+EZD-259,1,done,7024ee42,yes,7024ee42,20,Y,Y,feat(EZD-259): Fix: the EZD-153 scratch database starts reliably durin
+EZD-260,1,done,a5d1e087,yes,a5d1e087,30,Y,Y,feat(EZD-260): Fix: the write and read guards resolve symlinks before 
+EZD-261,1,blocked,,no-sha,,0,N,Y,
+EZD-262,1,done,f82b0110,yes,,2,N,Y,feat(records): 2.12 and 2.13 the launcher is the only writer of the ru
+EZD-263,1,blocked,,no-sha,,0,N,Y,
+EZD-264,1,blocked,,no-sha,,0,Y,Y,
+EZD-265,1,blocked,,no-sha,,0,N,Y,
+EZD-266,1,done,7eb76cb1,yes,7eb76cb1,8,Y,Y,feat(EZD-266): Fix: EZD-173 K7 takes its expected question IDs from al
+EZD-267,1,done,93059726,yes,93059726,3,Y,Y,feat(EZD-267): Fix: the launcher applies the guard grant for the files
+EZD-268,1,blocked,,no-sha,,0,N,Y,
+EZD-269,1,blocked,,no-sha,,0,N,Y,
+EZD-270,1,blocked,,no-sha,,0,N,Y,
+EZD-271,1,blocked,,no-sha,,0,N,Y,
+EZD-272,1,blocked,,no-sha,,0,N,Y,
+EZD-273,1,blocked,,no-sha,,0,N,Y,
+EZD-274,1,blocked,,no-sha,,0,N,Y,
+EZD-275,1,blocked,,no-sha,,0,N,Y,
+EZD-277,1,done,41de137d,yes,41de137d,24,Y,Y,feat(EZD-277): Fix: the write and read guards compare paths case-insen
+EZD-278,1,done,380ab95c,yes,380ab95c,38,Y,Y,feat(EZD-278): Fix: the next signed-off phase builds while the current
+EZD-279,1,done,1b320982,yes,1b320982,40,N,Y,feat(EZD-279): Fix: the read guard denies a Read; Grep or Glob of the 
+EZD-280,1,done,d058154c,yes,d058154c,29,N,Y,feat(EZD-280): Fix: the shell guard denies any command that names a se
+EZD-281,1,done,028399de,yes,028399de,9,Y,Y,feat(EZD-281): Fix: tests that pin live state read it from their own t
+EZD-282,1,done,26ba6dee,yes,,0,N,Y,chore(guards): remove the builder guard grants and the Stage 2 shell e
+EZD-287,1,done,558dd0f2,yes,558dd0f2,3,Y,Y,feat(EZD-287): Fix: pnpm db:up leaves the local stack templates curren
+EZD-289,1,done,525a9595,yes,525a9595,14,Y,Y,feat(EZD-289): Fix: the signed-in home page has a Settings link
+EZD-286,1,done,b03eed8b,yes,b03eed8b,22,Y,Y,feat(EZD-286): Fix: root test files that write the local database no l
+EZD-285,1,done,bbe8d073,yes,bbe8d073,9,Y,Y,feat(EZD-285): Fix: the EZD-102 D3 permissions query test does not dep
+EZD-284,1,done,a3607e5b,yes,a3607e5b,20,Y,Y,feat(EZD-284): Fix: the CI workflow installs the pinned pnpm version
+EZD-283,2,done,8db3bef6,yes,8db3bef6,14,Y,Y,feat(EZD-283): Fix: a failed tenant.updated event after a Company sett
+EZD-288,2,done,5e6be990,yes,5e6be990,16,Y,Y,feat(EZD-288): Fix: a failed customer.created; customer.updated or use
+EZD-276,2,blocked,,no-sha,,0,N,Y,
+EZD-140,2,done,cd5ef475,yes,cd5ef475,46,Y,Y,feat(EZD-140): Notification settings per user
+EZD-034,0,done,ca0fc63,yes,ca0fc63a,50,Y,Y,feat(EZD-034): Captcha on sign-in
+EZD-035,0,done,a8de11a,yes,a8de11a3,18,Y,Y,feat(EZD-035): Fix: job progress browser test misses the queued event 
+EZD-036,0,done,c992937,yes,c992937f,27,Y,Y,feat(EZD-036): Fix: test-harness stubs and Sentry diagnostics warnings
+EZD-037,0,done,096079b,yes,096079be,0,Y,Y,feat(EZD-037): Fix: EZD-002 done-when text still says every push
+EZD-038,0,done,bd59bab,yes,bd59bab9,0,Y,Y,feat(EZD-038): Fix: EZD-002 Scope cell still says every push
+EZD-039,0,done,9c1b6f0,yes,,0,N,Y,fix(EZD-039): TRACE reads only Test tables; EZD-000b..j test titles
+EZD-040,0,done,bc49700,yes,bc497008,15,Y,Y,feat(EZD-040): Fix: error tunnel scrubs tags and contexts
+EZD-041,0,done,541d261,yes,541d2615,10,Y,Y,feat(EZD-041): Fix: release bootstrap passes the production database U
+EZD-042,0,done,4d7ff54,yes,4d7ff54f,14,Y,Y,feat(EZD-042): Fix: Supabase CLI dump and push pass the production dat
+EZD-290,1,done,3c11c25f,yes,3c11c25f,33,Y,Y,feat(EZD-290): Fix: a company logo is accepted only after an allowlist
+EZD-291,1,done,d75b2b30,yes,d75b2b30,6,Y,Y,feat(EZD-291): Fix: the EZD-102 D5 permissions realtime test does not 
+EZD-292,2,done,73a1e2a4,yes,73a1e2a4,0,Y,Y,feat(EZD-292): Fix: the RLS audit and job handler tests list the notif
+EZD-293,2,done,1cb78993,yes,1cb78993,10,Y,Y,feat(EZD-293): Research: Realtime keeps live updates after a hosted da
+EZD-299,3,done,61ebd7a0,yes,61ebd7a0,68,Y,Y,feat(EZD-299): Conflict list: Keep mine / Keep theirs
+EZD-295,1,done,7ea0aa17,yes,7ea0aa17,13,Y,Y,feat(EZD-295): Fix: only the server writes and deletes company logo fi
+EZD-296,1,done,23f9ed97,yes,23f9ed97,5,Y,Y,feat(EZD-296): Fix: the sources bucket limits file types and size
+EZD-297,1,done,0ba2bf4b,yes,0ba2bf4b,4,Y,Y,feat(EZD-297): Fix: the realtime event tests in realtime-auth; the job
+EZD-298,1,done,575037ff,yes,575037ff,4,Y,Y,feat(EZD-298): Fix: released migration 20261020101101 is restored to i
+EZD-300,1,done,648b6e15,yes,648b6e15,15,N,Y,feat(EZD-300): Fix: the CI checkout does not keep the repository token
+EZD-316,1,done,673624ea,yes,673624ea,21,Y,Y,feat(EZD-316): Fix: sandboxed commands cannot use Josh's GitHub login;
+EZD-317,1,done,3f01104a,yes,3f01104a,12,N,Y,feat(EZD-317): Fix: a sandboxed command cannot run a writable copy of 
+EZD-318,2,done,0bd4bc20,yes,0bd4bc20,11,Y,Y,feat(EZD-318): Fix: the realtime hub resyncs on a subscriber's first j
+EZD-319,2,done,1382b768,yes,1382b768,8,Y,Y,feat(EZD-319): Fix: the my-profile migration runs after every migratio
+EZD-320,1,done,8b513d31,yes,8b513d31,11,Y,Y,feat(EZD-320): Fix: a project member cannot complete or orphan another
+EZD-321,1,done,e9dce837,yes,e9dce837,14,Y,Y,feat(EZD-321): Fix: every cap that counts rows before inserting takes 
+EZD-322,1,done,493918a4,yes,493918a4,25,Y,Y,feat(EZD-322): Fix: a project member without See company costs cannot 
+EZD-323,1,done,1c487463,yes,1c487463,15,Y,Y,feat(EZD-323): Fix: no test-only database function can be run by a sig
+EZD-324,2,done,e9b43882,yes,e9b43882,2,Y,Y,feat(EZD-324): Fix: the device layout test B5 does not fail at random 
+EZD-325,2,done,12ef30c2,yes,12ef30c2,4,Y,Y,feat(EZD-325): Fix: the EZD-153 scratch database test does not fail at
+EZD-326,1,done,35fdefa1,yes,35fdefa1,7,N,Y,feat(EZD-326): Fix: test: EZD-025 T3 versioning and Object Lock must b
+EZD-328,1,blocked,,no-sha,,0,N,N,
+EZD-329,1,done,86671a64,yes,86671a64,10,Y,Y,feat(EZD-329): Fix: a tooling ticket's worktree gets its held tickets.
+EZD-120c,3,done,2d5ed1f0,yes,2d5ed1f0,39,Y,Y,feat(EZD-120c): Editor route; save state and banners
+EZD-120d,3,done,531c3720,yes,531c3720,75,Y,Y,feat(EZD-120d): Sign-out with queued edits; app-wide drain and the tes
+EZD-330,2,done,9f815787,yes,9f815787,7,Y,Y,feat(EZD-330): Fix: the Projects page tabs and other controls meet the
+EZD-331,1,done,f7e7803a,yes,f7e7803a,7,N,Y,feat(EZD-331): Fix: the dead-lock take-over tests pass while other lan
+EZD-332,2,done,26e41274,yes,26e41274,12,Y,Y,feat(EZD-332): Fix: the notification bell keeps zod out of the browser
+EZD-333,1,done,cf0cdfcd,yes,cf0cdfcd,59,Y,Y,feat(EZD-333): Overseer: the repair unit makes guarded fixes itself in
+EZD-334,2,done,b89471a3,yes,b89471a3,3,N,Y,feat(EZD-334): Fix: the phase 2 PR gate: ledger test copies drop live 
+EZD-335,2,done,1e9dbed4,yes,1e9dbed4,3,Y,Y,feat(EZD-335): Fix: test:e2e: EZD-136 every page shows the disclaimer 
+EZD-336,1,done,a837cdaf,yes,a837cdaf,8,Y,Y,feat(EZD-336): Overseer: a cancelled phase PR gate run or auto-merge b
+EZD-337,1,done,5dd9bc0b,yes,5dd9bc0b,32,Y,Y,feat(EZD-337): Fix: a phase PR merges unattended only when what landed
+EZD-338,3,done,40a04a06,yes,40a04a06,7,Y,Y,feat(EZD-338): Fix: the Projects page touch test counts the project ca
+EZD-339,3,done,908f8a1d,yes,908f8a1d,1,Y,Y,feat(EZD-339): Fix: the EZD-118 New project wizard tests B3 and B4 fol
+EZD-340,3,done,66d2aeb9,yes,66d2aeb9,5,Y,Y,feat(EZD-340): Fix: the EZD-136 disclaimer test passes on the /dev/sav
+EZD-341,3,done,727a842c,yes,727a842c,8,Y,Y,feat(EZD-341): Fix: the projects-settings entry stays within its 200 K
+EZD-342,3,done,f24e9f2f,yes,f24e9f2f,22,Y,Y,feat(EZD-342): Fix: every cookie the app sets is host-only by name (__
+EZD-343,3,done,2fa7d025,yes,2fa7d025,1,Y,Y,feat(EZD-343): Fix: the EZD-289 home-settings test E1 finds the Settin
+EZD-344,1,done,c9e024ef,yes,c9e024ef,13,Y,Y,feat(EZD-344): Fix: the gate runs a worktree's code with an exact envi
+EZD-345,1,done,5c0b5c7e,yes,5c0b5c7e,47,Y,Y,feat(EZD-345): Build system: commands outside the unit sandbox trust n
+EZD-346,3,done,d6d88b3c,yes,d6d88b3c,17,Y,Y,feat(EZD-346): Fix: every state-changing /api request is same-origin (
+EZD-347,3,done,2c781992,yes,2c781992,22,Y,Y,feat(EZD-347): Fix: the offline banner shows its cloud_off icon
+EZD-348,3,done,f4e0f0b0,yes,f4e0f0b0,2,Y,Y,feat(EZD-348): Fix: the EZD-120d B4 sign-out test passes in the CI gat
+EZD-349,4,done,85092584,yes,85092584,14,Y,Y,feat(EZD-349): Fix: every 401 from requireApiSession carries Cache-Con
+EZD-350,4,done,e8edea67,yes,e8edea67,6,Y,Y,feat(EZD-350): Fix: tests that pin app-wide lists run in every scoped 
+EZD-351,4,done,aa09f6bf,yes,aa09f6bf,0,N,Y,feat(EZD-351): Fix: rls.audit T18 and handlers T19 do not count anothe
+EZD-352,4,done,e8edea67,yes,,7,Y,Y,feat(EZD-350): Fix: tests that pin app-wide lists run in every scoped 
+EZD-353,4,done,d1638bd5,yes,d1638bd5,14,Y,Y,feat(EZD-353): Fix: captureTraffic does not block the page's loopback 
+EZD-354,1,done,58d117c6,yes,58d117c6,38,N,Y,feat(EZD-354): Build system: the gate's checks run as the separate ezd
+EZD-355a,1,blocked,,no-sha,,0,N,N,
+EZD-355b,1,blocked,,no-sha,,0,N,N,
+EZD-356,4,done,523cd691,yes,523cd691,3,Y,Y,feat(EZD-356): Fix: the iPad long-task count during pan stays at 0 in 
+EZD-357,4,done,c9782e45,yes,c9782e45,13,Y,Y,feat(EZD-357): Fix: a typed chain that closes at exactly 12 inches sho
+EZD-358,4,done,cf9593e5,yes,cf9593e5,4,N,Y,feat(EZD-358): Fix: the EZD-207c E3 no-database test waits for the fir
+EZD-359,4,done,1b3abcd9,yes,1b3abcd9,13,Y,Y,feat(EZD-359): Fix: the EZD-207c done-when test long-tasks-during-pan 
+EZD-294,4,done,5cc18fae,yes,5cc18fae,75,Y,Y,feat(EZD-294): Object numbers
+EZD-299a,3,done,11d4b66d,yes,11d4b66d,69,Y,Y,feat(EZD-299a): Conflict list: server copy; save refusals and the noti
+EZD-299b,3,done,d334acca,yes,d334acca,67,Y,Y,feat(EZD-299b): Conflict list: refused changes leave the outbox; Keep 
+EZD-360,1,done,3ef2fd41,yes,3ef2fd41,28,N,Y,feat(EZD-360): Build system: phase 56 ranks right after phase 5 in the
+EZD-361,1,done,47e113df,yes,47e113df,0,N,Y,feat(EZD-361): Fix: the EZD-360 phase order test holds with real phase
+EZD-362,1,done,6dd451f9,yes,6dd451f9,1,N,Y,feat(EZD-362): Fix: the ledger-copy fixture gives every ticket it bloc
+EZD-363,4,done,a3e761fb,yes,a3e761fb,8,Y,Y,feat(EZD-363): Fix: the disabled tool button rule in ToolRail.module.c
+EZD-364,1,done,cb46ac83,yes,cb46ac83,6,Y,Y,feat(EZD-364): Fix: launcher units keep long background gates; and a g
+EZD-365,1,blocked,,no-sha,beca1e89,6,N,Y,
+EZD-366,4,done,63e5c705,yes,63e5c705,14,Y,Y,feat(EZD-366): Fix: a crafted wall or opening number cannot stop a pro
+EZD-367,4,done,2c6d9909,yes,,2,N,Y,feat(EZD-368): Fix: Fit to screen for a view-only member gives the sam
+EZD-368,4,done,2c6d9909,yes,2c6d9909,1,Y,Y,feat(EZD-368): Fix: Fit to screen for a view-only member gives the sam
+EZD-369,1,blocked,,no-sha,20acdd99,2,N,Y,
+EZD-370,4,done,9aff3804,yes,9aff3804,2,Y,Y,feat(EZD-370): Fix: the secret-key client list matches its users after
+EZD-371,4,done,45146b1c,yes,45146b1c,0,Y,Y,feat(EZD-371): Fix: My profile set password finds one control after EZ

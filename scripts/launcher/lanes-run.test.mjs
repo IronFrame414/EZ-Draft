@@ -205,7 +205,7 @@ test('EZD-174 E2 a build with no progress twice is set aside alone; without the 
     return root;
   };
   const count = (r, id) => r.prompts.filter((p) => p.endsWith(id)).length;
-  let root = mk({ units: [b(901, { runs: 3 }), b(902, { runs: 1 })], copy: ['scripts/unit-steps.mjs'] });
+  let root = mk({ units: [b(901, { runs: 3 }), b(902, { runs: 1 })], copy: ['scripts/unit-steps.mjs', 'scripts/excluded-form.mjs'] });
   let r = await run(root);
   assert.equal(r.status, 0, why(r));
   assert.equal(row(root, 'EZD-901').status, 'blocked', why(r));
@@ -216,7 +216,7 @@ test('EZD-174 E2 a build with no progress twice is set aside alone; without the 
   r = await run(root);
   assert.equal(r.status, 0, why(r));
   assert.ok(r.notified.some((n) => n.includes(STOP)), why(r));
-  root = mk({ buildLanes: 1, copy: ['scripts/unit-steps.mjs'], units: [b(901, { runs: 3 }), b(902, { runs: 3 }), b(903, { runs: 3 }), b(904, { runs: 1 })], config: { aside_pause_ms: 60000 } });
+  root = mk({ buildLanes: 1, copy: ['scripts/unit-steps.mjs', 'scripts/excluded-form.mjs'], units: [b(901, { runs: 3 }), b(902, { runs: 3 }), b(903, { runs: 3 }), b(904, { runs: 1 })], config: { aside_pause_ms: 60000 } });
   r = await run(root, { timeout: 8000 });
   assert.equal(count(r, 'EZD-904'), 0, why(r));
   assert.equal(r.notified.filter((n) => n.includes('set aside until Josh is back')).length, 3, why(r));
@@ -267,7 +267,7 @@ test('EZD-174 E4 a changed launcher file waits for both running builds, then res
 });
 
 test('EZD-174 E5 preflight does not see another lane\'s staged squash (AC-EZD-174-1)', async () => {
-  const root = recordsRoot({ ids: ['EZD-900'], copy: ['scripts/unit-steps.mjs'] });
+  const root = recordsRoot({ ids: ['EZD-900'], copy: ['scripts/unit-steps.mjs', 'scripts/excluded-form.mjs'] });
   const h = holder(root, "fs.writeFileSync(R + '/staged.txt', 'x'); spawnSync('git', ['add', 'staged.txt'], { cwd: R }); mark('held'); sleep(500); spawnSync('git', ['reset', '-q'], { cwd: R });");
   assert.ok(await until(() => existsSync(root.at('markers/held'))), 'holder did not start');
   const r = await exec(process.execPath, [root.at('scripts/unit-steps.mjs'), 'preflight', 'EZD-900'], { cwd: root.tmp, env: { EZD_RECORDS_DB: root.at('records.db'), EZD_RESULTS_FILE: '', GIT_CEILING_DIRECTORIES: path.dirname(root.tmp) } });
@@ -391,7 +391,7 @@ test('EZD-174 E14 two builds record and cover findings at once; both files apply
   const finding = (n) => `const x${n} = [sh('vault/tools/findings.mjs', ['record', 'EZD-${n}', '1', 'code-reviewer', 'calc', 'calc ${n}']).status];`;
   const cover = (n) => `x${n}.push(sh('vault/tools/findings.mjs', ['cover', 'docs', 'L-901']).status); op({ op: 'status', ticket: 'EZD-${n}', changes: { notes: 'e14 ${n}' } });`;
   const root = recordsRoot({
-    ids: ['EZD-901', 'EZD-902'], units: [b(901), b(902)], copy: ['vault/tools/findings.mjs', 'scripts/unit-steps.mjs'],
+    ids: ['EZD-901', 'EZD-902'], units: [b(901), b(902)], copy: ['vault/tools/findings.mjs', 'scripts/unit-steps.mjs', 'scripts/excluded-form.mjs'],
     rules: [{ prompt: '/build-ticket EZD-901', script: 'u901.cjs' }, { prompt: '/build-ticket EZD-902', script: 'u902.cjs' }],
     scripts: {
       'u901.cjs': `${finding(901)} waitMarker('902-covered'); ${cover(901)} const f = sh('scripts/unit-steps.mjs', ['finish', 'EZD-901', 'done'], { EZD_NO_PUSH: '1' }); fs.writeFileSync(R + '/out-901.json', JSON.stringify({ codes: x901, finish: f.status, stdout: f.stdout }));`,

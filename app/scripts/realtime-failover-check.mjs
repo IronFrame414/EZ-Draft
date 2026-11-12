@@ -31,6 +31,7 @@ export const VERDICTS = [
   'system_only',
   'silent_stop',
   'silent_gap',
+  'send_failed',
   'unaffected',
 ];
 export const SILENT = ['system_only', 'silent_stop', 'silent_gap'];
@@ -125,9 +126,12 @@ export function classify(obs) {
     return 'visible_drop';
   }
   if (obs.systems.some((s) => s.payload?.status === 'error' && after(s.at))) return 'system_only';
-  const last = obs.probes[obs.probes.length - 1];
+  // EZD-352 (D-037): a probe whose database send failed is not a Realtime loss; it reports send_failed.
+  const sent = obs.probes.filter((p) => p.sendFailed !== true);
+  const last = sent[sent.length - 1];
   if (last !== undefined && last.arrivedAt === null) return 'silent_stop';
-  if (obs.probes.some((p) => p.arrivedAt === null)) return 'silent_gap';
+  if (sent.some((p) => p.arrivedAt === null)) return 'silent_gap';
+  if (obs.probes.some((p) => p.sendFailed === true)) return 'send_failed';
   return 'unaffected';
 }
 
@@ -456,7 +460,9 @@ export async function main(argv, env, io = defaultIo(), makeDeps = createLiveDep
         ...obs,
       })}`,
     );
-    if (verdict === 'baseline_failed' || verdict === 'db_not_back') exit = 1;
+    if (verdict === 'baseline_failed' || verdict === 'db_not_back' || verdict === 'send_failed') {
+      exit = 1;
+    }
   } catch (e) {
     err(`failed: ${codeOf(e)}`);
     exit = 1;

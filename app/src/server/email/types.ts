@@ -19,6 +19,8 @@ export interface EmailTransport {
 
 export type SendEmailInput = {
   to: string;
+  // EZD-389 (Q-0701): the acting user's sign-in email, or null for a system email (D3).
+  sentBy: { email: string } | null;
   subject: string;
   paragraphs: string[];
   link: { url: string; label: string };

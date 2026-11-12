@@ -10,6 +10,18 @@ export function actorRange(appUserId: string, tenantId: string): IDBKeyRange {
   return IDBKeyRange.bound([appUserId, tenantId], [appUserId, tenantId, []]);
 }
 
+// EZD-299b Build step 1 (vault/plans/EZD-299b.md Decided D-Key): conflict rows live in the outbox store under
+// keys that start with this part, so they sit outside every actor's range.
+export const CONFLICT_KEY_PART = 'conflict';
+
+// One actor's conflict rows: keys conflict, user, company, project, object.
+export function conflictRange(appUserId: string, tenantId: string): IDBKeyRange {
+  return IDBKeyRange.bound(
+    [CONFLICT_KEY_PART, appUserId, tenantId],
+    [CONFLICT_KEY_PART, appUserId, tenantId, []],
+  );
+}
+
 // null when the count cannot be read (an error or a blocked open); 0 when there is no database or no store.
 export function countQueued(
   appUserId: string,

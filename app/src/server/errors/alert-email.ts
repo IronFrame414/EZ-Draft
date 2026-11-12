@@ -2,6 +2,7 @@
 // sendEmail per recipient, English office wording (R26 R17), no company (an alert is sent by the system, so
 // From is EMAIL_FROM). No person presses Send, so there is no sender screen for the copy link of Q-0035;
 // sendEmail still returns the link and this module ignores it.
+// No acting user, so sentBy is null and no sender copy is sent (EZD-389, Q-0701).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../db/database.types';
 import { sendEmail, toSubjectLine } from '../email/send';
@@ -123,7 +124,7 @@ export async function sendOwnerAlert(input: {
         : `alert-${input.alertId}-${recipient.userId}`;
     try {
       const result = await sendEmail(
-        { to: recipient.email, subject, paragraphs, link, lang: 'en', idempotencyKey },
+        { to: recipient.email, sentBy: null, subject, paragraphs, link, lang: 'en', idempotencyKey },
         { env: input.env },
       );
       if (result.status === 'sent') sent += 1;

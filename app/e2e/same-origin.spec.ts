@@ -151,7 +151,11 @@ test.describe('EZD-346 same-origin writes in the browser', () => {
                   body: JSON.stringify(json),
                 }),
           });
-          return { status: res.status, body: await res.json() };
+          return {
+            status: res.status,
+            body: await res.json(),
+            build: res.headers.get('x-ezdraft-app-build'),
+          };
         },
         { url, json, extra },
       );
@@ -160,8 +164,21 @@ test.describe('EZD-346 same-origin writes in the browser', () => {
     expect(checkpoint.status).toBe(201);
     expect(await versionCount(P1)).toBe(versionsBefore + 1);
 
+    // EZD-299a T19 (D-Build): a save without the app build header is refused with the server's own number,
+    // which proves the value next.config.ts inlines; the same save with that number is accepted.
+    const outdated = await post(`/api/projects/${P1}/objects`, body, {
+      'x-ezdraft-membership': m.membershipId,
+    });
+    expect(outdated.status).toBe(409);
+    expect(outdated.body).toEqual({
+      error: { code: 'app_outdated', message_key: 'error.app_outdated' },
+    });
+    expect(outdated.build).toMatch(/^[1-9][0-9]{9}$/);
+    expect((await floorRow(P1)).data.name).not.toBe(RENAMED);
+
     const saved = await post(`/api/projects/${P1}/objects`, body, {
       'x-ezdraft-membership': m.membershipId,
+      'x-ezdraft-app-build': outdated.build as string,
     });
     expect(saved.status).toBe(200);
     expect((await floorRow(P1)).data.name).toBe(RENAMED);

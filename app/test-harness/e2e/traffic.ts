@@ -7,6 +7,11 @@
 // traffic.spec.ts R4 fails by name if an upgrade removes it). A non-loopback request falls through to the
 // net guard of EZD-021 and is marked external. Labels carry the path only, never the query (a query can hold
 // a token_hash).
+// EZD-353 (vault/plans/EZD-353.md; debt D-085): a document fulfilled from Node has no IP address, so Chromium puts it in
+// the public address space and its Local Network Access check refuses the page's loopback Realtime websocket
+// (net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS). On Chromium, captureTraffic first grants local-network-access to the
+// context, which gives the routed page the loopback reach an unrouted 127.0.0.1 page has. WebKit has no such check and
+// refuses the permission name, so it gets no grant.
 import type { BrowserContext, Request, Route } from '@playwright/test';
 import { isLoopback } from '../net-guard/net-guard.mjs';
 
@@ -80,6 +85,10 @@ export async function captureTraffic(
   context: BrowserContext,
   opts: TrafficOptions = {},
 ): Promise<Traffic> {
+  // EZD-353: see the header (Chromium Local Network Access).
+  if (context.browser()?.browserType().name() === 'chromium') {
+    await context.grantPermissions(['local-network-access']);
+  }
   const fetchLimit = opts.fetchTimeoutMs ?? TRAFFIC_FETCH_TIMEOUT_MS;
   const settleLimit = opts.settleTimeoutMs ?? TRAFFIC_SETTLE_TIMEOUT_MS;
   let recording = true;

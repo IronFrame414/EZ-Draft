@@ -1,6 +1,6 @@
-// Length reader and writer (EZD-201). Pure TypeScript: no imports, no DOM, no Node APIs.
+// Length reader and writer (EZD-201). EZD-211a: the 'positive' kind refuses 0 after rounding, no maximum. Pure TypeScript: no imports, no DOM, no Node APIs.
 
-export type LengthFieldKind = 'wall_room' | 'other';
+export type LengthFieldKind = 'wall_room' | 'other' | 'positive';
 export type LengthRefusalReason = 'format' | 'not_positive' | 'over_max';
 export const LENGTH_REFUSED_MESSAGE_KEY = 'office.length.refused' as const;
 export type ParseLengthResult =
@@ -57,8 +57,12 @@ export function parseLength(text: string, kind: LengthFieldKind): ParseLengthRes
     if (inches <= 0) return refuse('not_positive');
     if (inches > MAX_WALL_LENGTH_IN) return refuse('over_max');
   }
+  if (kind === 'positive' && inches <= 0) return refuse('not_positive');
   return { ok: true, inches };
 }
+
+// EZD-375 (vault/plans/EZD-375.md): added before the half-up floor so float noise in a computed length (an angled wall's hypot) cannot drop an exact half (09j row 12; 03g); far below 1/64" (03g), so no real length moves.
+const DISPLAY_ROUNDING_MARGIN_IN = 1e-6;
 
 function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b);
@@ -69,7 +73,7 @@ export function formatLength(inches: number, denominator: DisplayDenominator): s
     throw new RangeError('inches must be finite and not negative');
   if (denominator !== 2 && denominator !== 16) throw new RangeError('denominator must be 2 or 16');
   const d = denominator;
-  const n = Math.floor(inches * d + 0.5);
+  const n = Math.floor((inches + DISPLAY_ROUNDING_MARGIN_IN) * d + 0.5);
   const feet = Math.floor(n / (12 * d));
   const rem = n - feet * 12 * d;
   const whole = Math.floor(rem / d);

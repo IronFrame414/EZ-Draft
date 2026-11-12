@@ -1,0 +1,16 @@
+/* EZD-221b Build step 12 (vault/plans/EZD-221b.md Decided "Empty hint"): the draw-walls hint, centred over the
+   canvas region (main.canvas is position: relative) and never catching the pointer. */
+
+.hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  max-width: 320px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ez-slate-500);
+  pointer-events: none;
+}

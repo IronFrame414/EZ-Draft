@@ -32,11 +32,7 @@ function parseCursor(params: URLSearchParams): { cursor: NotificationCursor | nu
 export async function GET(request: Request): Promise<Response> {
   try {
     const p = await requireApiPermission('view_projects');
-    // D8: no-store on every response, the guard's 401 included.
-    if (p instanceof Response) {
-      p.headers.set('Cache-Control', 'no-store');
-      return p;
-    }
+    if (p instanceof Response) return p;
     const parsed = parseCursor(new URL(request.url).searchParams);
     if (parsed === null) return fail(400, 'invalid_input');
     const page = await listNotifications(createSessionClient(), parsed.cursor);

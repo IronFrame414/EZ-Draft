@@ -48,7 +48,7 @@ step('scripts/unit-steps.mjs', ['finish', 'EZD-900', 'done']);
 
 // A harness root whose running records are git-ignored and live in the root's temp database.
 function recordsRoot({ stub, rules = [], copy = [], extraVault = {} }) {
-  const root = makeLauncherRoot({ stub, rules, copy: ['vault/tools/outline.mjs', 'scripts/unit-steps.mjs', ...copy] });
+  const root = makeLauncherRoot({ stub, rules, copy: ['vault/tools/outline.mjs', 'scripts/unit-steps.mjs', 'scripts/excluded-form.mjs', ...copy] });
   const { tmp, at } = root;
   writeFileSync(at('.gitignore'), [...RUNNING, ...HARNESS, '.claude/', ''].join('\n'));
   git(tmp, 'rm', '-q', '-r', '--cached', 'vault/tickets/STATUS.md', 'vault/cost');

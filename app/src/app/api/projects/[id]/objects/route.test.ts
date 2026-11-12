@@ -21,6 +21,7 @@ import {
   createSessionClient,
   type SessionCookieJar,
 } from '../../../../../server/auth/supabase-server';
+import { APP_BUILD_HEADER, appBuild } from '../../../../../lib/app-version';
 import { emit } from '../../../../../server/events';
 
 vi.mock('../../../../../server/events', async (importOriginal) => {
@@ -95,6 +96,7 @@ async function post(
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        [APP_BUILD_HEADER]: String(appBuild()),
         ...(membershipId === undefined ? {} : { 'x-ezdraft-membership': membershipId }),
       },
       body: raw,
@@ -237,7 +239,7 @@ describe('EZD-120a save route', () => {
     state.store = new Map(editorCookies);
     const ok = await post(project, body(0, [upsertChange(id, 0)]), editor.membershipId);
     expect(ok.res.status).toBe(200);
-    expect(ok.json).toEqual({ objects: [{ id, updatedSeq: 1 }] });
+    expect(ok.json).toEqual({ objects: [{ id, updatedSeq: 1, number: 1 }] });
     noStore(ok.res);
     expect(emitMock).toHaveBeenCalledTimes(1);
     expect(emitMock).toHaveBeenCalledWith(
@@ -274,7 +276,7 @@ describe('EZD-120a save route', () => {
     state.store = new Map(editorCookies);
     const survived = await post(project, body(0, [upsertChange(id2, 0)]), editor.membershipId);
     expect(survived.res.status).toBe(200);
-    expect(survived.json).toEqual({ objects: [{ id: id2, updatedSeq: 1 }] });
+    expect(survived.json).toEqual({ objects: [{ id: id2, updatedSeq: 1, number: 2 }] });
     noStore(survived.res);
     expect(emitMock).toHaveBeenCalledTimes(1);
     const stored = await harnessSql()`select 1 from public.model_object

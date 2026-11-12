@@ -318,7 +318,7 @@ describe('EZD-001 repo tooling', () => {
       }
     }
     assert.ok(rootPkg.scripts.lint.includes('scripts/conventions/check.mjs'), 'root lint runs the conventions check');
-    assert.ok(rootPkg.scripts.test.includes('scripts/**/*.test.mjs'), 'root test runs the repo node:test files');
+    assert.ok(rootPkg.scripts.test.includes('scripts/**/!(pan).test.mjs'), 'root test runs the repo node:test files');
     assert.ok(rootPkg.scripts.test.includes('--test-concurrency=4'), 'root test sets --test-concurrency=4 (Q-0019 read as 4, Q-0114)');
     assert.equal(typeof rootPkg.scripts.format, 'string', 'root format script');
     assert.equal(typeof rootPkg.scripts['format:check'], 'string', 'root format:check script');

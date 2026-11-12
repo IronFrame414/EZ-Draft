@@ -9,6 +9,8 @@ import {
   DETAIL_DISPLAY_DENOMINATOR,
 } from './length';
 import type { LengthFieldKind, LengthRefusalReason } from './length';
+import { resolveTurnDirection } from './turn';
+import { wallLength } from './walls/wall';
 
 const ok = (inches: number) => ({ ok: true, inches });
 const no = (reason: LengthRefusalReason) => ({
@@ -210,4 +212,89 @@ describe('EZD-201 length parse and format', () => {
     expect(PLAN_DISPLAY_DENOMINATOR).toBe(2);
     expect(DETAIL_DISPLAY_DENOMINATOR).toBe(16);
   }, 20000);
+});
+
+// EZD-211a G8 (vault/plans/EZD-211a.md sections 1 step 1, 4). Sources: Q-0630 09 row 14; 03g (1/64 rounds to 0).
+describe('EZD-211a positive length kind', () => {
+  test('EZD-211a G8 positive length kind', () => {
+    expect(parseLength('0', 'positive')).toEqual(no('not_positive'));
+    expect(parseLength('1/64"', 'positive')).toEqual(no('not_positive'));
+    expect(parseLength('1/16"', 'positive')).toEqual(ok(0.0625));
+    expect(parseLength("300'", 'positive')).toEqual(ok(3600));
+    expect(parseLength('abc', 'positive')).toEqual(no('format'));
+  });
+});
+
+// EZD-375 L1-L5 (vault/plans/EZD-375.md section 4). Sources: 09j rows 11, 12; 03g; Q-0207; Q-0568.
+const PLAN_ROWS: Array<[number, string]> = [
+  [150, '12\' 6"'],
+  [150.5, '12\' 6 1/2"'],
+  [120, '10\' 0"'],
+  [6.5, '6 1/2"'],
+  [147.9375, '12\' 4"'],
+  [143.75, '12\' 0"'],
+  [150.25, '12\' 6 1/2"'],
+  [2400, '200\' 0"'],
+  [12.5, '1\' 0 1/2"'],
+];
+
+describe('EZD-375 display rounding margin', () => {
+  test('EZD-375 L1 float noise below a plan half rounds up', () => {
+    expect(150.24999999999997).toBeLessThan(150.25);
+    expect(143.74999999999997).toBeLessThan(143.75);
+    expect(formatLength(150.24999999999997, 2)).toBe('12\' 6 1/2"');
+    expect(formatLength(143.74999999999997, 2)).toBe('12\' 0"');
+  });
+
+  test('EZD-375 L2 float noise below a detail half rounds up', () => {
+    expect(150.03124999999997).toBeLessThan(150.03125);
+    expect(formatLength(150.03124999999997, 16)).toBe('12\' 6 1/16"');
+  });
+
+  test('EZD-375 L3 the margin is far below 1/64 inch', () => {
+    expect(formatLength(150.2499, 2)).toBe('12\' 6"');
+    expect(formatLength(150.02, 16)).toBe('12\' 6"');
+    expect(formatLength(150.24999, 2)).toBe('12\' 6"');
+    expect(formatLength(150.2499999, 2)).toBe('12\' 6 1/2"');
+  });
+
+  test('EZD-375 L4 exact values keep their text', () => {
+    expect(formatLength(150.25000000000003, 2)).toBe('12\' 6 1/2"');
+    for (const [stored, shown] of PLAN_ROWS) expect(formatLength(stored, 2)).toBe(shown);
+    const detail: Array<[number, string, string]> = [
+      [123.3125, '10\' 3 5/16"', '10\' 3 1/2"'],
+      [150, '12\' 6"', '12\' 6"'],
+      [150.0625, '12\' 6 1/16"', '12\' 6"'],
+      [0, '0"', '0"'],
+    ];
+    for (const [stored, at16, at2] of detail) {
+      expect(formatLength(stored, 16)).toBe(at16);
+      expect(formatLength(stored, 2)).toBe(at2);
+    }
+  });
+
+  test('EZD-375 L5 done when: every 09j typed length drawn at any whole-degree turn shows its plan text', () => {
+    let cases = 0;
+    const wrong: Array<[number, number, number, string]> = [];
+    for (const [L, shown] of PLAN_ROWS) {
+      for (let i = 0; i <= 600; i++) {
+        const x = i / 2;
+        for (let deg = 0; deg < 180; deg++) {
+          const dir = resolveTurnDirection({
+            previous: null,
+            toCursor: { x: 1, y: 1 },
+            turnDeg: deg,
+          });
+          const end = { x: x + dir!.x * L, y: dir!.y * L };
+          const len = wallLength({ start: { x, y: 0 }, end });
+          const text = formatLength(len, PLAN_DISPLAY_DENOMINATOR);
+          cases++;
+          if (text !== shown) wrong.push([L, x, deg, text]);
+        }
+      }
+    }
+    expect(cases).toBe(973620);
+    expect(wrong.length).toBe(0);
+    expect(wrong.slice(0, 10)).toEqual([]);
+  }, 60000);
 });

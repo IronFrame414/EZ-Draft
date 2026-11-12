@@ -57,7 +57,7 @@ export function door(): ModelObject {
     id: ID.D1,
     type: 'opening',
     data: {
-      geometry: { center: { x: 144, y: 60 }, hostWallId: ID.W2 },
+      geometry: { center: { x: 144, y: 60 }, hostWallId: ID.W2, axis: null },
       status: 'new',
       level: LEVEL_1,
       attributes: {
@@ -66,6 +66,11 @@ export function door(): ModelObject {
         height: 80,
         roughOpening: { width: 38, height: 82 },
         sillHeight: 0,
+        swing: 'left',
+        hand: 'left',
+        impactRating: 'not_rated',
+        shutterType: null,
+        roughOpeningMode: 'typed',
       },
     },
   };
@@ -76,7 +81,7 @@ export function windowObj(): ModelObject {
     id: ID.N1,
     type: 'opening',
     data: {
-      geometry: { center: { x: 72, y: 0 }, hostWallId: ID.W1 },
+      geometry: { center: { x: 72, y: 0 }, hostWallId: ID.W1, axis: null },
       status: 'new',
       level: LEVEL_1,
       attributes: {
@@ -85,6 +90,11 @@ export function windowObj(): ModelObject {
         height: 48,
         roughOpening: { width: 36.5, height: 48.5 },
         sillHeight: 36,
+        swing: null,
+        hand: null,
+        impactRating: 'not_rated',
+        shutterType: null,
+        roughOpeningMode: 'typed',
       },
     },
   };

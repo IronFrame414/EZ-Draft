@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 603,
+ "count": 656,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -29,7 +29,12 @@
   "2026-10-20: EZD-034 Captcha on sign-in added to phase 0 (Q-0175 (b), Josh).",
   "EZD-103 split into EZD-103a, EZD-103b on 2026-10-24 (planner proposal, plan over 45,000 characters after tightening; orchestrator applied, Q-0309); every dependent of EZD-103 depends on both. The stage-0 ACs keep their IDs: AC-EZD-103-1 to -4 and -6 on EZD-103a, AC-EZD-103-5 on EZD-103b.",
   "EZD-110 split into EZD-110a, EZD-110b on 2026-10-30 (planner proposal, plan over 45,000 characters; orchestrator applied at questions 2); every dependent of EZD-110 depends on both. The stage-0 ACs keep their IDs: AC-EZD-110-5, -6 and -8 on EZD-110a, AC-EZD-110-1, -2, -3, -4 and -7 on EZD-110b.",
-  "EZD-120b split into EZD-120b, EZD-120c, EZD-120d on 2026-11-04 (planner split proposal vault/plans/split-EZD-120b.md, orchestrator applied); EZD-202 depends only on EZD-120a and builds before EZD-120b (Q-0573 (a)); dependents of base EZD-120 expand to every part; EZD-299 needs all three, EZD-1020 the editor (120c)."
+  "EZD-120b split into EZD-120b, EZD-120c, EZD-120d on 2026-11-04 (planner split proposal vault/plans/split-EZD-120b.md, orchestrator applied); EZD-202 depends only on EZD-120a and builds before EZD-120b (Q-0573 (a)); dependents of base EZD-120 expand to every part; EZD-299 needs all three, EZD-1020 the editor (120c).",
+  "EZD-205, EZD-207 and EZD-210 split on 2026-11-06 into EZD-205a, EZD-205b; EZD-207a, EZD-207b, EZD-207c; EZD-210a, EZD-210b (planner split proposals vault/plans/EZD-205.md, EZD-207.md, EZD-210.md, each over the PROCESS.md section 6 file and test counts; orchestrator applied); every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs: AC-EZD-205-1 and -5 on EZD-205a, -2, -3, -4 and -6 on EZD-205b; AC-EZD-207-1, -4, -6, -7, -8 and -9 on EZD-207a, -2, -3, -4, -8 and -10 on EZD-207b, -5 on EZD-207c; AC-EZD-210-1, -2, -3, -4, -6, -8, -9, -10 and -12 on EZD-210a, AC-EZD-210-1, -2, -3, -5, -7, -8, -9, -10 and -11 plus AC-EZD-207-6 and -7 (the tools and rail clauses) on EZD-210b.",
+  "EZD-221 split on 2026-11-07 into EZD-221a, EZD-221b (planner split proposal vault/plans/EZD-221.md, over the PROCESS.md section 6 file count; overwatch session applied). The stage-0 ACs keep their IDs.",
+  "EZD-299 split on 2026-11-07 into EZD-299a, EZD-299b, EZD-299 (planner split proposal vault/plans/EZD-299.md; the last part keeps the base ID, as EZD-026a did; orchestrator applied at questions 3). New ticket EZD-294 Object numbers (Q-0625 (a)): EZD-299 and EZD-211 depend on it. The stage-0 ACs keep their IDs; AC-EZD-299-13 to -18 and AC-EZD-294-1 to -3 are added by hand.",
+  "EZD-355 split on 2026-11-07 into EZD-355a, EZD-355b (Q-0615, planner split proposal); EZD-327 removed as a duplicate of EZD-326 (session 11).",
+  "EZD-204, EZD-208, EZD-211, EZD-212, EZD-213, EZD-5603 and EZD-5604 split on 2026-11-09 into EZD-204a, EZD-204b; EZD-208a, EZD-208b; EZD-211a, EZD-211b; EZD-212a, EZD-212b, EZD-212c; EZD-213a, EZD-213b, EZD-213c; EZD-5603a, EZD-5603b; EZD-5604a, EZD-5604b (planner split proposals vault/plans/<base>.md, each over the PROCESS.md section 6 size rule; overwatch session applied under STOP, Josh chat; data vault/handoff/split-2026-11-09.json). Each part depends on its proposal Depends on list; every dependent of a base number depends on all its parts. The stage-0 ACs keep their IDs; an AC split by clause is listed on each part that proves a clause."
  ],
  "checks": {
   "cycles": 0,
@@ -134,26 +139,42 @@
   "EZD-120b",
   "EZD-120c",
   "EZD-120d",
-  "EZD-299",
+  "EZD-299a",
+  "EZD-299b",
   "EZD-238",
   "EZD-201",
   "EZD-203",
-  "EZD-205",
+  "EZD-205a",
+  "EZD-205b",
   "EZD-206",
   "EZD-236",
-  "EZD-207",
+  "EZD-207a",
+  "EZD-207b",
+  "EZD-207c",
   "EZD-209",
-  "EZD-210",
-  "EZD-221",
-  "EZD-204",
-  "EZD-208",
-  "EZD-211",
-  "EZD-212",
-  "EZD-213",
+  "EZD-210a",
+  "EZD-210b",
+  "EZD-221a",
+  "EZD-221b",
+  "EZD-294",
+  "EZD-299",
+  "EZD-204a",
+  "EZD-204b",
+  "EZD-208a",
+  "EZD-208b",
+  "EZD-211a",
+  "EZD-211b",
+  "EZD-212a",
+  "EZD-212b",
+  "EZD-212c",
+  "EZD-213a",
+  "EZD-213b",
+  "EZD-213c",
   "EZD-217",
   "EZD-135",
   "EZD-214",
   "EZD-218",
+  "EZD-6001",
   "EZD-219",
   "EZD-224",
   "EZD-235",
@@ -162,6 +183,7 @@
   "EZD-104",
   "EZD-105",
   "EZD-106",
+  "EZD-105b",
   "EZD-107",
   "EZD-109",
   "EZD-129",
@@ -495,7 +517,14 @@
   "EZD-289",
   "EZD-290",
   "EZD-291",
-  "EZD-328"
+  "EZD-328",
+  "EZD-5601",
+  "EZD-5602",
+  "EZD-5603a",
+  "EZD-5603b",
+  "EZD-5604a",
+  "EZD-5604b",
+  "EZD-5605"
  ],
  "tickets": [
   {
@@ -2557,10 +2586,23 @@
    "depends_raw": "EZD-103",
    "spec_ref": "S15 Controls",
    "spec_files": [
-    "spec/sections/screens/S15-settings-users-permissions.md#Controls"
+    "spec/sections/screens/S15-settings-users-permissions.md#Controls",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Company settings (EZD-112)",
+    "Customers (EZD-113)",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2570,12 +2612,19 @@
    "build_position": 117,
    "acs": [
     "AC-EZD-104-1",
-    "AC-EZD-104-2"
+    "AC-EZD-104-2",
+    "AC-EZD-104-3",
+    "AC-EZD-104-4",
+    "AC-EZD-104-5",
+    "AC-EZD-104-6",
+    "AC-EZD-104-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -2585,10 +2634,29 @@
    "depends_raw": "EZD-104, EZD-008",
    "spec_ref": "S15 Invite user; R24 #14, #15",
    "spec_files": [
-    "spec/sections/screens/S15-settings-users-permissions.md#Invite user"
+    "spec/sections/screens/S15-settings-users-permissions.md#Invite user",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Email (EZD-008)",
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "Tenancy tables (EZD-005)",
+    "Row-level security (EZD-006)",
+    "Permissions and roles (EZD-101)",
+    "Migrations",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)",
+    "State components (EZD-015)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2601,15 +2669,22 @@
     "AC-EZD-105-1",
     "AC-EZD-105-2",
     "AC-EZD-105-3",
-    "AC-EZD-105-4"
+    "AC-EZD-105-4",
+    "AC-EZD-105-5",
+    "AC-EZD-105-6",
+    "AC-EZD-105-7",
+    "AC-EZD-105-8",
+    "AC-EZD-105-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0187",
-    "spec/decisions/10-permissions-and-settings.md#Q-0216"
+    "spec/decisions/10-permissions-and-settings.md#Q-0216",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -2620,10 +2695,30 @@
    "spec_ref": "S15 Controls, Validation",
    "spec_files": [
     "spec/sections/screens/S15-settings-users-permissions.md#Controls",
-    "spec/sections/screens/S15-settings-users-permissions.md#Validation"
+    "spec/sections/screens/S15-settings-users-permissions.md#Validation",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Company settings (EZD-112)",
+    "Events",
+    "Messages and language (t())",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Auth and session (EZD-007)",
+    "Tenancy tables (EZD-005)",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Policy test harness (EZD-006)",
+    "AI assistant keys (EZD-5601)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2632,11 +2727,70 @@
    "build_position": 119,
    "acs": [
     "AC-EZD-106-1",
-    "AC-EZD-106-2"
+    "AC-EZD-106-2",
+    "AC-EZD-106-3",
+    "AC-EZD-106-4",
+    "AC-EZD-106-5",
+    "AC-EZD-106-6",
+    "AC-EZD-106-7",
+    "AC-EZD-106-8",
+    "AC-EZD-106-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-105b",
+   "phase": 7,
+   "title": "Owner-set password",
+   "depends_raw": "EZD-106, EZD-033",
+   "spec_ref": "Q-0096 P3, P4, P5, P7, P10; Q-0695",
+   "spec_files": [
+    "spec/sections/screens/S15-settings-users-permissions.md#Controls",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "My profile (EZD-108)",
+    "Email (EZD-008)",
+    "Events",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "State components (EZD-015)",
+    "Menus (EZD-108)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-106",
+    "EZD-033"
+   ],
+   "build_position": 119.5,
+   "acs": [
+    "AC-EZD-105b-1",
+    "AC-EZD-105b-2",
+    "AC-EZD-105b-3",
+    "AC-EZD-105b-4"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 1,
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
     "spec/decisions/05-screens.md"
    ]
   },
@@ -2648,10 +2802,28 @@
    "spec_ref": "S15 Role card, New role; R24 Permissions and users",
    "spec_files": [
     "spec/sections/screens/S15-settings-users-permissions.md#Role card",
-    "spec/sections/screens/S15-settings-users-permissions.md#New role"
+    "spec/sections/screens/S15-settings-users-permissions.md#New role",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Release safety (EZD-023a)",
+    "Migrations",
+    "State components (EZD-015)",
+    "Customers (EZD-113)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2659,13 +2831,18 @@
    ],
    "build_position": 120,
    "acs": [
-    "AC-EZD-107-1"
+    "AC-EZD-107-1",
+    "AC-EZD-107-2",
+    "AC-EZD-107-3",
+    "AC-EZD-107-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -2734,9 +2911,19 @@
    "spec_ref": "Data model · event_log; Non-functional · Security",
    "spec_files": [
     "spec/sections/03c-tables.md#event_log",
-    "spec/sections/11-non-functional-requirements.md#Security"
+    "spec/sections/11-non-functional-requirements.md#Security",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Events",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Auth and session (EZD-007)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-005a",
@@ -2745,12 +2932,18 @@
    ],
    "build_position": 121,
    "acs": [
-    "AC-EZD-109-1"
+    "AC-EZD-109-1",
+    "AC-EZD-109-2",
+    "AC-EZD-109-3",
+    "AC-EZD-109-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -2852,12 +3045,22 @@
    "id": "EZD-111",
    "phase": 9,
    "title": "Send dialog with Copy link",
-   "depends_raw": "EZD-110, EZD-120",
+   "depends_raw": "EZD-110, EZD-120, EZD-116 (Q-0700)",
    "spec_ref": "R24 #15; Data model · sent_package",
    "spec_files": [
-    "spec/sections/03d-tables-rounds-24-25.md#sent_package"
+    "spec/sections/03d-tables-rounds-24-25.md#sent_package",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Email (EZD-008)",
+    "Server-only data access and can()",
+    "Row-level security (EZD-006)",
+    "Editor route (EZD-120c)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-110a",
@@ -2865,17 +3068,29 @@
     "EZD-120a",
     "EZD-120b",
     "EZD-120c",
-    "EZD-120d"
+    "EZD-120d",
+    "EZD-116"
    ],
    "build_position": 130,
    "acs": [
-    "AC-EZD-111-1"
+    "AC-EZD-111-1",
+    "AC-EZD-111-2",
+    "AC-EZD-111-3",
+    "AC-EZD-111-4",
+    "AC-EZD-111-5",
+    "AC-EZD-111-6",
+    "AC-EZD-111-7",
+    "AC-EZD-111-8",
+    "AC-EZD-111-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0213"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0213",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -2954,10 +3169,24 @@
    "depends_raw": "EZD-103",
    "spec_ref": "S15d; R24 “Values”",
    "spec_files": [
-    "spec/sections/screens/S15d-settings-defaults.md"
+    "spec/sections/screens/S15d-settings-defaults.md",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S15dDefaults.png"
+   ],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "Company settings (EZD-112)",
+    "New project wizard (EZD-118)",
+    "Events",
+    "Editor route (EZD-120c)",
+    "Realtime (EZD-018)",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -2966,15 +3195,25 @@
    ],
    "build_position": 124,
    "acs": [
-    "AC-EZD-116-1"
+    "AC-EZD-116-1",
+    "AC-EZD-116-2",
+    "AC-EZD-116-3",
+    "AC-EZD-116-4",
+    "AC-EZD-116-5",
+    "AC-EZD-116-6",
+    "AC-EZD-116-7",
+    "AC-EZD-116-8",
+    "AC-EZD-116-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0188",
-    "spec/decisions/09-calculations-and-rules.md#Q-0207"
+    "spec/decisions/09-calculations-and-rules.md#Q-0207",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -3375,7 +3614,9 @@
    "spec_ref": "R24 #4a, #16, #26; Revisions · Version rules",
    "spec_files": [
     "spec/sections/screens/S20-revisions-version-history.md#Version rules",
-    "spec/sections/13-decisions-and-remaining-items.md"
+    "spec/sections/13-decisions-and-remaining-items.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S20Versions.png"
@@ -3391,26 +3632,35 @@
    "build_position": 131,
    "acs": [
     "AC-EZD-121-1",
-    "AC-EZD-121-2"
+    "AC-EZD-121-2",
+    "AC-EZD-121-3",
+    "AC-EZD-121-4",
+    "AC-EZD-121-5",
+    "AC-EZD-121-6",
+    "AC-EZD-121-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/05-screens.md#Q-0200"
+    "spec/decisions/05-screens.md#Q-0200",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-122",
    "phase": 9,
    "title": "Versions panel",
-   "depends_raw": "EZD-121",
+   "depends_raw": "EZD-121, EZD-224 (Q-0700), EZD-225 (Q-0700), EZD-125 (Q-0700)",
    "spec_ref": "Revisions / version history; S03 Tab: Versions",
    "spec_files": [
     "spec/sections/screens/S20-revisions-version-history.md",
-    "spec/sections/screens/S03-plan-editor.md#Tab: Versions"
+    "spec/sections/screens/S03-plan-editor.md#Tab: Versions",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S03Plan.png",
@@ -3418,28 +3668,45 @@
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-121"
+    "EZD-121",
+    "EZD-224",
+    "EZD-225",
+    "EZD-125",
+    "EZD-224b"
    ],
    "build_position": 132,
    "acs": [
-    "AC-EZD-122-1"
+    "AC-EZD-122-1",
+    "AC-EZD-122-2",
+    "AC-EZD-122-3",
+    "AC-EZD-122-4",
+    "AC-EZD-122-5",
+    "AC-EZD-122-6",
+    "AC-EZD-122-7",
+    "AC-EZD-122-8",
+    "AC-EZD-122-9",
+    "AC-EZD-122-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-123",
    "phase": 9,
    "title": "Version cleanup",
-   "depends_raw": "EZD-122, EZD-110, EZD-116",
+   "depends_raw": "EZD-122, EZD-110, EZD-116, EZD-224 (Q-0700), EZD-125 (Q-0700)",
    "spec_ref": "W15; R24 #4; Revisions · Cleanup sheet",
    "spec_files": [
     "spec/sections/06-workflows.md",
     "spec/sections/screens/S20-revisions-version-history.md#Cleanup sheet",
-    "spec/sections/13-decisions-and-remaining-items.md"
+    "spec/sections/13-decisions-and-remaining-items.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S20Versions.png"
@@ -3449,19 +3716,32 @@
     "EZD-122",
     "EZD-110a",
     "EZD-110b",
-    "EZD-116"
+    "EZD-116",
+    "EZD-224",
+    "EZD-125",
+    "EZD-224b"
    ],
    "build_position": 133,
    "acs": [
     "AC-EZD-123-1",
-    "AC-EZD-123-2"
+    "AC-EZD-123-2",
+    "AC-EZD-123-3",
+    "AC-EZD-123-4",
+    "AC-EZD-123-5",
+    "AC-EZD-123-6",
+    "AC-EZD-123-7",
+    "AC-EZD-123-8",
+    "AC-EZD-123-9",
+    "AC-EZD-123-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3472,7 +3752,9 @@
    "spec_ref": "S01 Card overflow menu; S01 Decisions",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Card overflow menu",
-    "spec/sections/screens/S01-projects.md"
+    "spec/sections/screens/S01-projects.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -3486,9 +3768,15 @@
    "build_position": 134,
    "acs": [
     "AC-EZD-124-1",
-    "AC-EZD-124-2"
+    "AC-EZD-124-2",
+    "AC-EZD-124-3",
+    "AC-EZD-124-4",
+    "AC-EZD-124-5",
+    "AC-EZD-124-6",
+    "AC-EZD-124-7",
+    "AC-EZD-124-8"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -3497,20 +3785,34 @@
     "spec/decisions/05-screens.md#Q-0191",
     "spec/decisions/05-screens.md#Q-0199",
     "spec/decisions/05-screens.md#Q-0201",
-    "spec/decisions/10-permissions-and-settings.md#Q-0202"
+    "spec/decisions/10-permissions-and-settings.md#Q-0202",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/07-hooks-events-and-integrations.md"
    ]
   },
   {
    "id": "EZD-125",
    "phase": 8,
    "title": "Edit lock service",
-   "depends_raw": "EZD-120, EZD-109, EZD-110, EZD-116, EZD-018",
+   "depends_raw": "EZD-120, EZD-109, EZD-110, EZD-116, EZD-018, EZD-224 (Q-0697)",
    "spec_ref": "S06 Edit lock; R24 #16, #17",
    "spec_files": [
-    "spec/sections/screens/S06-electrical-edit-lock.md#Edit lock"
+    "spec/sections/screens/S06-electrical-edit-lock.md#Edit lock",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S06Electrical.png"
+   ],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Realtime (EZD-018)",
+    "Background jobs (EZD-009)",
+    "Notifications (EZD-110)",
+    "Events",
+    "Patch store and outbox (EZD-120b)",
+    "Editor route (EZD-120c)",
+    "Sign-out and app-wide drain (EZD-120d)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -3522,21 +3824,31 @@
     "EZD-110a",
     "EZD-110b",
     "EZD-116",
-    "EZD-018"
+    "EZD-018",
+    "EZD-224",
+    "EZD-224b"
    ],
    "build_position": 125,
    "acs": [
     "AC-EZD-125-1",
     "AC-EZD-125-2",
-    "AC-EZD-125-3"
+    "AC-EZD-125-3",
+    "AC-EZD-125-4",
+    "AC-EZD-125-5",
+    "AC-EZD-125-6",
+    "AC-EZD-125-7",
+    "AC-EZD-125-8",
+    "AC-EZD-125-9",
+    "AC-EZD-125-10"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0188",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0206"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0206",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3547,10 +3859,25 @@
    "spec_ref": "S06 Controls; Acceptance tests · Edit lock",
    "spec_files": [
     "spec/sections/screens/S06-electrical-edit-lock.md#Controls",
-    "spec/sections/12-build-phases-and-acceptance-tests.md#Edit lock"
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Edit lock",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S06Electrical.png"
+   ],
+   "architecture": [
+    "Shell header (EZD-011)",
+    "Editor shell (EZD-012)",
+    "Device layouts (EZD-014)",
+    "State components (EZD-015)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Realtime (EZD-018)",
+    "Editor route (EZD-120c)",
+    "Patch store and outbox (EZD-120b)",
+    "Permission enforcement (EZD-102)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -3561,12 +3888,21 @@
    ],
    "build_position": 126,
    "acs": [
-    "AC-EZD-126-1"
+    "AC-EZD-126-1",
+    "AC-EZD-126-2",
+    "AC-EZD-126-3",
+    "AC-EZD-126-4",
+    "AC-EZD-126-5",
+    "AC-EZD-126-6",
+    "AC-EZD-126-7"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -3598,29 +3934,49 @@
    "id": "EZD-128",
    "phase": 8,
    "title": "Project switcher",
-   "depends_raw": "EZD-117",
+   "depends_raw": "EZD-117, EZD-125 (Q-0697)",
    "spec_ref": "App shell · Header card; S01 Entry points",
    "spec_files": [
     "spec/sections/04-app-shell-and-global-ui.md#Header card",
-    "spec/sections/screens/S01-projects.md#Entry points"
+    "spec/sections/screens/S01-projects.md#Entry points",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "Shell header (EZD-011)",
+    "Menus (EZD-108)",
+    "Status bar popovers (EZD-219)",
+    "Editor route (EZD-120c)",
+    "Sign-out and app-wide drain (EZD-120d)",
+    "Projects page (EZD-117a)",
+    "Row-level security (EZD-006)",
+    "Model working copy (EZD-120a)",
+    "Migrations",
+    "Entry points and lazy modules (EZD-020)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-117a",
-    "EZD-117b"
+    "EZD-117b",
+    "EZD-125"
    ],
    "build_position": 127,
    "acs": [
-    "AC-EZD-128-1"
+    "AC-EZD-128-1",
+    "AC-EZD-128-2",
+    "AC-EZD-128-3",
+    "AC-EZD-128-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3632,10 +3988,30 @@
    "spec_files": [
     "spec/sections/10-permissions-and-settings.md#Company settings",
     "spec/sections/03c-tables.md#membership",
-    "spec/sections/screens/S01-projects.md#Permissions"
+    "spec/sections/screens/S01-projects.md#Permissions",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
+   ],
+   "architecture": [
+    "Row-level security (EZD-006)",
+    "Permission enforcement (EZD-102)",
+    "Server-only data access and can()",
+    "Tenancy tables (EZD-005)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "New project wizard (EZD-118)",
+    "Projects page (EZD-117a)",
+    "Blank templates (EZD-221)",
+    "Benchmark project (EZD-236)",
+    "Events",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Unsaved edits and drafts (EZD-103b)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -3644,50 +4020,73 @@
    ],
    "build_position": 122,
    "acs": [
-    "AC-EZD-129-1"
+    "AC-EZD-129-1",
+    "AC-EZD-129-2",
+    "AC-EZD-129-3",
+    "AC-EZD-129-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/10-permissions-and-settings.md",
     "spec/decisions/05-screens.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0202"
+    "spec/decisions/10-permissions-and-settings.md#Q-0202",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-130",
    "phase": 8,
    "title": "Project settings dialog",
-   "depends_raw": "EZD-118, EZD-116, EZD-128",
+   "depends_raw": "EZD-118, EZD-116, EZD-128, EZD-125 (Q-0697)",
    "spec_ref": "S15d Decisions; S15c Decisions; S15g Decisions",
    "spec_files": [
     "spec/sections/screens/S15d-settings-defaults.md",
     "spec/sections/screens/S15c-settings-sheet-presets-submittal-profiles.md",
-    "spec/sections/screens/S15g-settings-code-edition.md"
+    "spec/sections/screens/S15g-settings-code-edition.md",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S15dDefaults.png",
     "mockups/S15cSubmittal.png",
     "mockups/S15gCode.png"
    ],
+   "architecture": [
+    "New project wizard (EZD-118)",
+    "Customers (EZD-113)",
+    "Model working copy (EZD-120a)",
+    "Editor route (EZD-120c)",
+    "Events",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-118",
     "EZD-116",
-    "EZD-128"
+    "EZD-128",
+    "EZD-125"
    ],
    "build_position": 128,
    "acs": [
     "AC-EZD-130-1",
-    "AC-EZD-130-2"
+    "AC-EZD-130-2",
+    "AC-EZD-130-3",
+    "AC-EZD-130-4",
+    "AC-EZD-130-5",
+    "AC-EZD-130-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0202"
+    "spec/decisions/10-permissions-and-settings.md#Q-0202",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -3825,13 +4224,27 @@
   {
    "id": "EZD-135",
    "phase": 6,
-   "title": "System status page",
+   "title": "System status data and route",
    "depends_raw": "EZD-103, EZD-024, EZD-025",
    "spec_ref": "Non-functional · Operations; R26 R12",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Operations"
    ],
    "mockups": [],
+   "architecture": [
+    "Customers (EZD-113)",
+    "Off-site backups and restore (EZD-025)",
+    "Error reporting (EZD-024)",
+    "Background jobs (EZD-009)",
+    "Benchmark project (EZD-236)",
+    "Server-only data access and can()",
+    "Permission enforcement (EZD-102)",
+    "Permissions and roles (EZD-101)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Migrations",
+    "Local database"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-103a",
@@ -3841,15 +4254,18 @@
    ],
    "build_position": 109,
    "acs": [
-    "AC-EZD-135-1"
+    "AC-EZD-135-1",
+    "AC-EZD-135-2",
+    "AC-EZD-135-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/13b-round-26.md#R12",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/11-non-functional-requirements.md#Q-0211"
+    "spec/decisions/11-non-functional-requirements.md#Q-0211",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -3965,37 +4381,114 @@
    ]
   },
   {
-   "id": "EZD-204",
+   "id": "EZD-204a",
    "phase": 5,
-   "title": "Openings core",
-   "depends_raw": "EZD-203",
-   "spec_ref": "Objects; App shell · Selection, undo and flags",
+   "title": "Opening data v4",
+   "depends_raw": "EZD-203, EZD-294",
+   "spec_ref": "Objects; App shell · Selection, undo and flags; split of EZD-204 (proposal vault/plans/EZD-204.md)",
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/04-app-shell-and-global-ui.md#Selection",
-    "spec/sections/04-app-shell-and-global-ui.md#undo and flags"
+    "spec/sections/04-app-shell-and-global-ui.md#undo and flags",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
-   "mockups": [],
+   "mockups": [
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png"
+   ],
+   "architecture": [
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-203"
+    "EZD-203",
+    "EZD-294"
    ],
    "build_position": 102,
    "acs": [
-    "AC-EZD-204-1"
+    "AC-EZD-204-5",
+    "AC-EZD-204-6",
+    "AC-EZD-204-10",
+    "AC-EZD-204-14",
+    "AC-EZD-204-15"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/04-app-shell-and-global-ui.md"
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
-   "id": "EZD-205",
+   "id": "EZD-204b",
+   "phase": 5,
+   "title": "Offsets, hosting and the Not on a wall flag",
+   "depends_raw": "EZD-204a, EZD-203, EZD-294, EZD-238, EZD-207a, EZD-210a",
+   "spec_ref": "Objects; App shell · Selection, undo and flags; split of EZD-204 (proposal vault/plans/EZD-204.md)",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/04-app-shell-and-global-ui.md#Selection",
+    "spec/sections/04-app-shell-and-global-ui.md#undo and flags",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png"
+   ],
+   "architecture": [
+    "Drawing list (EZD-238)",
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204a",
+    "EZD-203",
+    "EZD-294",
+    "EZD-238",
+    "EZD-207a",
+    "EZD-210a"
+   ],
+   "build_position": 102.3,
+   "acs": [
+    "AC-EZD-204-1",
+    "AC-EZD-204-2",
+    "AC-EZD-204-3",
+    "AC-EZD-204-4",
+    "AC-EZD-204-7",
+    "AC-EZD-204-8",
+    "AC-EZD-204-9",
+    "AC-EZD-204-10",
+    "AC-EZD-204-11",
+    "AC-EZD-204-12",
+    "AC-EZD-204-13",
+    "AC-EZD-204-15"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
+   ]
+  },
+  {
+   "id": "EZD-205a",
    "phase": 4,
-   "title": "Rooms and closure",
-   "depends_raw": "EZD-203",
-   "spec_ref": "Geometry rules; S02 Decisions; Acceptance · Room closure",
+   "title": "Room outlines, area, storage and label",
+   "depends_raw": "EZD-203, EZD-202, EZD-238",
+   "spec_ref": "Geometry rules; S02 Decisions; Acceptance · Room closure; split of EZD-205 (proposal vault/plans/EZD-205.md)",
    "spec_files": [
     "spec/sections/09e-geometry-and-drafting.md",
     "spec/sections/screens/S02-import-review.md",
@@ -4007,18 +4500,70 @@
     "spec/sections/07-hooks-events-and-integrations.md"
    ],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Model schema (EZD-202)",
+    "Drawing list (EZD-238)"
+   ],
+   "track": "tooling",
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-203"
+    "EZD-203",
+    "EZD-202",
+    "EZD-238"
    ],
    "build_position": 96,
    "acs": [
     "AC-EZD-205-1",
+    "AC-EZD-205-5"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md#Q-0570",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0570"
+   ]
+  },
+  {
+   "id": "EZD-205b",
+   "phase": 4,
+   "title": "Closure gap, absorb and keep out of square",
+   "depends_raw": "EZD-205a, EZD-120a, EZD-022, EZD-102, EZD-024",
+   "spec_ref": "Geometry rules; S02 Decisions; Acceptance · Room closure; split of EZD-205 (proposal vault/plans/EZD-205.md)",
+   "spec_files": [
+    "spec/sections/09e-geometry-and-drafting.md",
+    "spec/sections/screens/S02-import-review.md",
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Room closure",
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Events",
+    "Model working copy (EZD-120a)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-205a",
+    "EZD-120a",
+    "EZD-022",
+    "EZD-102",
+    "EZD-024"
+   ],
+   "build_position": 96,
+   "acs": [
     "AC-EZD-205-2",
     "AC-EZD-205-3",
     "AC-EZD-205-4",
-    "AC-EZD-205-5",
     "AC-EZD-205-6"
    ],
    "acs_source": "stage-0",
@@ -4065,11 +4610,11 @@
    ]
   },
   {
-   "id": "EZD-207",
+   "id": "EZD-207a",
    "phase": 4,
-   "title": "Plan canvas",
-   "depends_raw": "EZD-012, EZD-202, EZD-017, EZD-020, EZD-236, EZD-238, EZD-206",
-   "spec_ref": "S03 Layout; Stack · 2D + 3D",
+   "title": "Plan canvas: renderer, drawing, grid, pan and zoom",
+   "depends_raw": "EZD-012, EZD-202, EZD-238, EZD-017, EZD-020, EZD-120c, EZD-015, EZD-016a, EZD-027",
+   "spec_ref": "S03 Layout; Stack · 2D + 3D; split of EZD-207 (proposal vault/plans/EZD-207.md)",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Layout",
     "spec/sections/02-product-overview.md#2D + 3D",
@@ -4082,30 +4627,92 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Editor route (EZD-120c)",
+    "Drawing list (EZD-238)",
+    "Entry points and lazy modules (EZD-020)",
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-012a",
     "EZD-012b",
     "EZD-012c",
     "EZD-202",
+    "EZD-238",
     "EZD-017",
     "EZD-020",
-    "EZD-236",
-    "EZD-238",
-    "EZD-206"
+    "EZD-120c",
+    "EZD-015a",
+    "EZD-015b",
+    "EZD-015c",
+    "EZD-016a",
+    "EZD-027"
    ],
    "build_position": 98,
    "acs": [
     "AC-EZD-207-1",
-    "AC-EZD-207-2",
-    "AC-EZD-207-3",
     "AC-EZD-207-4",
-    "AC-EZD-207-5",
     "AC-EZD-207-6",
     "AC-EZD-207-7",
     "AC-EZD-207-8",
-    "AC-EZD-207-9",
+    "AC-EZD-207-9"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/02-product-overview.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/09-calculations-and-rules.md#Q-0558",
+    "spec/decisions/process.md#Q-0563",
+    "spec/decisions/03-data-model.md#Q-0511"
+   ]
+  },
+  {
+   "id": "EZD-207b",
+   "phase": 4,
+   "title": "Plan canvas: zoom stack, hover and text",
+   "depends_raw": "EZD-207a, EZD-206, EZD-205, EZD-010b, EZD-016a",
+   "spec_ref": "S03 Layout; Stack · 2D + 3D; split of EZD-207 (proposal vault/plans/EZD-207.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/02-product-overview.md#2D + 3D",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/screens/S03-plan-editor.md#Permissions",
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Design tokens, fonts and icons",
+    "Editor shell (EZD-012)",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)",
+    "Drawing list (EZD-238)",
+    "Messages and language (t())",
+    "Plan canvas (EZD-207a)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207a",
+    "EZD-206",
+    "EZD-205a",
+    "EZD-205b",
+    "EZD-010b",
+    "EZD-016a"
+   ],
+   "build_position": 98,
+   "acs": [
+    "AC-EZD-207-2",
+    "AC-EZD-207-3",
+    "AC-EZD-207-4",
+    "AC-EZD-207-8",
     "AC-EZD-207-10"
    ],
    "acs_source": "stage-0",
@@ -4120,30 +4727,158 @@
    ]
   },
   {
-   "id": "EZD-208",
-   "phase": 5,
-   "title": "Selection",
-   "depends_raw": "EZD-207",
-   "spec_ref": "S03 Canvas interactions; Acceptance · Selection",
+   "id": "EZD-207c",
+   "phase": 4,
+   "title": "Benchmark pan and zoom in the performance check",
+   "depends_raw": "EZD-207b, EZD-236, EZD-017, EZD-120c",
+   "spec_ref": "S03 Layout; Stack · 2D + 3D; split of EZD-207 (proposal vault/plans/EZD-207.md)",
    "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/02-product-overview.md#2D + 3D",
+    "spec/sections/00e-glossary-phase-04.md",
     "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
-    "spec/sections/12-build-phases-and-acceptance-tests.md#Selection"
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/screens/S03-plan-editor.md#Permissions",
+    "spec/sections/11-non-functional-requirements.md#Performance"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Editor shell (EZD-012)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-207"
+    "EZD-207b",
+    "EZD-236",
+    "EZD-017",
+    "EZD-120c"
+   ],
+   "build_position": 98,
+   "acs": [
+    "AC-EZD-207-5"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/02-product-overview.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/09-calculations-and-rules.md#Q-0558",
+    "spec/decisions/process.md#Q-0563",
+    "spec/decisions/03-data-model.md#Q-0511"
+   ]
+  },
+  {
+   "id": "EZD-208a",
+   "phase": 5,
+   "title": "Selection logic and drawing",
+   "depends_raw": "EZD-207a, EZD-207b, EZD-207c, EZD-204a, EZD-204b, EZD-206, EZD-209, EZD-210b",
+   "spec_ref": "S03 Canvas interactions; Acceptance · Selection; split of EZD-208 (proposal vault/plans/EZD-208.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Selection",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-206",
+    "EZD-209",
+    "EZD-210b"
    ],
    "build_position": 104,
    "acs": [
-    "AC-EZD-208-1"
+    "AC-EZD-208-4",
+    "AC-EZD-208-10",
+    "AC-EZD-208-11",
+    "AC-EZD-208-12",
+    "AC-EZD-208-18"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-208b",
+   "phase": 5,
+   "title": "Selection on the plan, rail and tablet",
+   "depends_raw": "EZD-208a, EZD-016a, EZD-014a, EZD-010b",
+   "spec_ref": "S03 Canvas interactions; Acceptance · Selection; split of EZD-208 (proposal vault/plans/EZD-208.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/12-build-phases-and-acceptance-tests.md#Selection",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Selection (EZD-208)",
+    "Design tokens, fonts and icons",
+    "Device layouts (EZD-014)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208a",
+    "EZD-016a",
+    "EZD-014a",
+    "EZD-010b"
+   ],
+   "build_position": 104.3,
+   "acs": [
+    "AC-EZD-208-1",
+    "AC-EZD-208-2",
+    "AC-EZD-208-3",
+    "AC-EZD-208-5",
+    "AC-EZD-208-6",
+    "AC-EZD-208-7",
+    "AC-EZD-208-8",
+    "AC-EZD-208-9",
+    "AC-EZD-208-13",
+    "AC-EZD-208-14",
+    "AC-EZD-208-15",
+    "AC-EZD-208-16",
+    "AC-EZD-208-17"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -4172,7 +4907,9 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-201",
-    "EZD-207"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 99,
    "acs": [
@@ -4191,11 +4928,11 @@
    ]
   },
   {
-   "id": "EZD-210",
+   "id": "EZD-210a",
    "phase": 4,
-   "title": "Wall and Room rectangle tools",
-   "depends_raw": "EZD-205, EZD-209, EZD-206",
-   "spec_ref": "S03 Wall, Room rectangle",
+   "title": "Wall and Room rectangle tool logic",
+   "depends_raw": "EZD-205, EZD-209, EZD-206, EZD-203, EZD-201, EZD-202, EZD-120b, EZD-012a",
+   "spec_ref": "S03 Wall, Room rectangle; split of EZD-210 (proposal vault/plans/EZD-210.md)",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Wall",
     "spec/sections/screens/S03-plan-editor.md#Room rectangle",
@@ -4211,12 +4948,24 @@
     "mockups/S03Plan.png",
     "mockups/S02Import.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Editor shell (EZD-012)",
+    "Typed dimension bar (EZD-209)",
+    "Rooms (EZD-205a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-205",
+    "EZD-205a",
+    "EZD-205b",
     "EZD-209",
-    "EZD-206"
+    "EZD-206",
+    "EZD-203",
+    "EZD-201",
+    "EZD-202",
+    "EZD-120b",
+    "EZD-012a"
    ],
    "build_position": 100,
    "acs": [
@@ -4224,13 +4973,10 @@
     "AC-EZD-210-2",
     "AC-EZD-210-3",
     "AC-EZD-210-4",
-    "AC-EZD-210-5",
     "AC-EZD-210-6",
-    "AC-EZD-210-7",
     "AC-EZD-210-8",
     "AC-EZD-210-9",
     "AC-EZD-210-10",
-    "AC-EZD-210-11",
     "AC-EZD-210-12"
    ],
    "acs_source": "stage-0",
@@ -4242,86 +4988,545 @@
    ]
   },
   {
-   "id": "EZD-211",
-   "phase": 5,
-   "title": "Door and window tools",
-   "depends_raw": "EZD-204, EZD-209",
-   "spec_ref": "S03 Door, Window",
+   "id": "EZD-210b",
+   "phase": 4,
+   "title": "Drawing tools on the plan",
+   "depends_raw": "EZD-210a, EZD-207a, EZD-207b, EZD-209, EZD-120c, EZD-010b, EZD-016a",
+   "spec_ref": "S03 Wall, Room rectangle; split of EZD-210 (proposal vault/plans/EZD-210.md)",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Door",
-    "spec/sections/screens/S03-plan-editor.md#Window"
+    "spec/sections/screens/S03-plan-editor.md#Wall",
+    "spec/sections/screens/S03-plan-editor.md#Room rectangle",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/screens/S02-import-review.md#Resolve the gap",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/screens/S03-plan-editor.md#Controls",
+    "spec/sections/screens/S03-plan-editor.md#Permissions",
+    "spec/sections/screens/S03-plan-editor.md#Snap"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Design tokens, fonts and icons",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)",
+    "Editor route (EZD-120c)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-204",
-    "EZD-209"
+    "EZD-210a",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-209",
+    "EZD-120c",
+    "EZD-010b",
+    "EZD-016a"
    ],
-   "build_position": 105,
+   "build_position": 100,
    "acs": [
-    "AC-EZD-211-1"
+    "AC-EZD-207-6",
+    "AC-EZD-207-7",
+    "AC-EZD-210-1",
+    "AC-EZD-210-2",
+    "AC-EZD-210-3",
+    "AC-EZD-210-5",
+    "AC-EZD-210-7",
+    "AC-EZD-210-8",
+    "AC-EZD-210-9",
+    "AC-EZD-210-10",
+    "AC-EZD-210-11"
    ],
-   "acs_source": "done-when",
-   "spec_phase": 2,
-   "decisions": [
-    "spec/decisions/05-screens.md"
-   ]
-  },
-  {
-   "id": "EZD-212",
-   "phase": 5,
-   "title": "Move, handles, distance chips",
-   "depends_raw": "EZD-208",
-   "spec_ref": "S03 Move; Live distance chips",
-   "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Move"
-   ],
-   "mockups": [
-    "mockups/S03Plan.png"
-   ],
-   "phase_file": "tickets/phases/phase-02.md",
-   "depends_on": [
-    "EZD-208"
-   ],
-   "build_position": 106,
-   "acs": [
-    "AC-EZD-212-1"
-   ],
-   "acs_source": "done-when",
-   "spec_phase": 2,
-   "decisions": [
-    "spec/decisions/05-screens.md"
-   ]
-  },
-  {
-   "id": "EZD-213",
-   "phase": 5,
-   "title": "Inspector fields",
-   "depends_raw": "EZD-208",
-   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector",
-   "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
-    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector"
-   ],
-   "mockups": [
-    "mockups/S03Plan.png"
-   ],
-   "phase_file": "tickets/phases/phase-02.md",
-   "depends_on": [
-    "EZD-208"
-   ],
-   "build_position": 107,
-   "acs": [
-    "AC-EZD-213-1",
-    "AC-EZD-213-2"
-   ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/04-app-shell-and-global-ui.md"
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/process.md#Q-0563"
+   ]
+  },
+  {
+   "id": "EZD-211a",
+   "phase": 5,
+   "title": "Door and window geometry and tool logic",
+   "depends_raw": "EZD-204a, EZD-204b, EZD-294, EZD-209, EZD-210a, EZD-201, EZD-010b",
+   "spec_ref": "S03 Door, Window; split of EZD-211 (proposal vault/plans/EZD-211.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Door",
+    "spec/sections/screens/S03-plan-editor.md#Window",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dWindowSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Drawing list (EZD-238)",
+    "Typed dimension bar (EZD-209)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294",
+    "EZD-209",
+    "EZD-210a",
+    "EZD-201",
+    "EZD-010b"
+   ],
+   "build_position": 105,
+   "acs": [
+    "AC-EZD-211-1",
+    "AC-EZD-211-3",
+    "AC-EZD-211-4",
+    "AC-EZD-211-5",
+    "AC-EZD-211-7",
+    "AC-EZD-211-8",
+    "AC-EZD-211-9",
+    "AC-EZD-211-10",
+    "AC-EZD-211-12",
+    "AC-EZD-211-13",
+    "AC-EZD-211-14",
+    "AC-EZD-211-15",
+    "AC-EZD-211-16",
+    "AC-EZD-211-17",
+    "AC-EZD-211-18",
+    "AC-EZD-211-19",
+    "AC-EZD-211-20"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-211b",
+   "phase": 5,
+   "title": "Door and window tools on the plan",
+   "depends_raw": "EZD-211a, EZD-208a, EZD-208b, EZD-016a, EZD-207a, EZD-207b, EZD-209, EZD-210b",
+   "spec_ref": "S03 Door, Window; split of EZD-211 (proposal vault/plans/EZD-211.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Door",
+    "spec/sections/screens/S03-plan-editor.md#Window",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dWindowSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Typed dimension bar (EZD-209)",
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-211a",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-016a",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-209",
+    "EZD-210b"
+   ],
+   "build_position": 105.3,
+   "acs": [
+    "AC-EZD-211-1",
+    "AC-EZD-211-2",
+    "AC-EZD-211-3",
+    "AC-EZD-211-4",
+    "AC-EZD-211-5",
+    "AC-EZD-211-6",
+    "AC-EZD-211-7",
+    "AC-EZD-211-8",
+    "AC-EZD-211-9",
+    "AC-EZD-211-10",
+    "AC-EZD-211-11",
+    "AC-EZD-211-12",
+    "AC-EZD-211-13",
+    "AC-EZD-211-14",
+    "AC-EZD-211-15",
+    "AC-EZD-211-16",
+    "AC-EZD-211-17",
+    "AC-EZD-211-18",
+    "AC-EZD-211-19",
+    "AC-EZD-211-20"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-212a",
+   "phase": 5,
+   "title": "Move, resize and chip geometry",
+   "depends_raw": "EZD-204a, EZD-204b, EZD-203, EZD-205b, EZD-201",
+   "spec_ref": "S03 Move; Live distance chips; split of EZD-212 (proposal vault/plans/EZD-212.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Move",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Rooms (EZD-205a)",
+    "Model schema (EZD-202)",
+    "Openings (EZD-204)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-203",
+    "EZD-205b",
+    "EZD-201"
+   ],
+   "build_position": 106,
+   "acs": [
+    "AC-EZD-212-4",
+    "AC-EZD-212-5",
+    "AC-EZD-212-9",
+    "AC-EZD-212-11",
+    "AC-EZD-212-14",
+    "AC-EZD-212-17",
+    "AC-EZD-212-20",
+    "AC-EZD-212-21"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-212b",
+   "phase": 5,
+   "title": "Move tool and dragging",
+   "depends_raw": "EZD-212a, EZD-208a, EZD-208b, EZD-206, EZD-209, EZD-210b, EZD-294, EZD-010b, EZD-016a",
+   "spec_ref": "S03 Move; Live distance chips; split of EZD-212 (proposal vault/plans/EZD-212.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Move",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Typed dimension bar (EZD-209)",
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-212a",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-206",
+    "EZD-209",
+    "EZD-210b",
+    "EZD-294",
+    "EZD-010b",
+    "EZD-016a"
+   ],
+   "build_position": 106.3,
+   "acs": [
+    "AC-EZD-212-3",
+    "AC-EZD-212-6",
+    "AC-EZD-212-7",
+    "AC-EZD-212-15",
+    "AC-EZD-212-16",
+    "AC-EZD-212-18"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-212c",
+   "phase": 5,
+   "title": "Handles, distance chips and tablet chip buttons",
+   "depends_raw": "EZD-212b, EZD-208a, EZD-208b, EZD-209, EZD-210b, EZD-014a, EZD-016a",
+   "spec_ref": "S03 Move; Live distance chips; split of EZD-212 (proposal vault/plans/EZD-212.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Move",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Typed dimension bar (EZD-209)",
+    "Device layouts (EZD-014)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Plan canvas (EZD-207a)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-212b",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-209",
+    "EZD-210b",
+    "EZD-014a",
+    "EZD-016a"
+   ],
+   "build_position": 106.6,
+   "acs": [
+    "AC-EZD-212-1",
+    "AC-EZD-212-2",
+    "AC-EZD-212-8",
+    "AC-EZD-212-10",
+    "AC-EZD-212-12",
+    "AC-EZD-212-13",
+    "AC-EZD-212-19"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-213a",
+   "phase": 5,
+   "title": "Inspector edits and view rules",
+   "depends_raw": "EZD-204a, EZD-204b, EZD-294, EZD-212a, EZD-201, EZD-203, EZD-205a, EZD-120b, EZD-210a",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector; split of EZD-213 (proposal vault/plans/EZD-213.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Patch store and outbox (EZD-120b)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294",
+    "EZD-212a",
+    "EZD-201",
+    "EZD-203",
+    "EZD-205a",
+    "EZD-120b",
+    "EZD-210a"
+   ],
+   "build_position": 107,
+   "acs": [
+    "AC-EZD-213-8",
+    "AC-EZD-213-13",
+    "AC-EZD-213-14",
+    "AC-EZD-213-20",
+    "AC-EZD-213-22",
+    "AC-EZD-213-23",
+    "AC-EZD-213-24"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-213b",
+   "phase": 5,
+   "title": "Inspector panel: wall, door, window and bulk edit",
+   "depends_raw": "EZD-213a, EZD-208a, EZD-208b, EZD-204a, EZD-204b, EZD-294, EZD-120c, EZD-014a, EZD-016a, EZD-010b",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector; split of EZD-213 (proposal vault/plans/EZD-213.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)",
+    "Editor route (EZD-120c)",
+    "Patch store and outbox (EZD-120b)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Performance check (EZD-017)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213a",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294",
+    "EZD-120c",
+    "EZD-014a",
+    "EZD-016a",
+    "EZD-010b"
+   ],
+   "build_position": 107.3,
+   "acs": [
+    "AC-EZD-213-1",
+    "AC-EZD-213-2",
+    "AC-EZD-213-3",
+    "AC-EZD-213-4",
+    "AC-EZD-213-5",
+    "AC-EZD-213-6",
+    "AC-EZD-213-7",
+    "AC-EZD-213-9",
+    "AC-EZD-213-10",
+    "AC-EZD-213-12",
+    "AC-EZD-213-16",
+    "AC-EZD-213-17",
+    "AC-EZD-213-18",
+    "AC-EZD-213-19",
+    "AC-EZD-213-21",
+    "AC-EZD-213-23"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-213c",
+   "phase": 5,
+   "title": "Resolve the gap in the inspector",
+   "depends_raw": "EZD-213b, EZD-208a, EZD-208b, EZD-212b, EZD-210b, EZD-205b, EZD-016a",
+   "spec_ref": "S03 Controls — inspector; App shell · Left panel and inspector; split of EZD-213 (proposal vault/plans/EZD-213.md)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Controls — inspector",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S02Import.png",
+    "mockups/S03dWallSelected.png",
+    "mockups/S03dDoorSelected.png",
+    "mockups/S03dStates.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Editor shell (EZD-012)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Device layouts (EZD-014)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-213b",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-212b",
+    "EZD-210b",
+    "EZD-205b",
+    "EZD-016a"
+   ],
+   "build_position": 107.6,
+   "acs": [
+    "AC-EZD-213-11",
+    "AC-EZD-213-15"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -4333,54 +5538,99 @@
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Status bar",
     "spec/sections/screens/S03-plan-editor.md",
-    "spec/sections/01-how-to-use-this-spec.md"
+    "spec/sections/01-how-to-use-this-spec.md",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Plan canvas (EZD-207a)",
+    "Selection (EZD-208)",
+    "Drawing tools (EZD-210)",
+    "Patch store and outbox (EZD-120b)",
+    "Editor route (EZD-120c)",
+    "Model working copy (EZD-120a)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)",
+    "Openings (EZD-204)",
+    "Permission enforcement (EZD-102)",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c"
    ],
    "build_position": 110,
    "acs": [
     "AC-EZD-214-1",
-    "AC-EZD-214-2"
+    "AC-EZD-214-2",
+    "AC-EZD-214-3",
+    "AC-EZD-214-4",
+    "AC-EZD-214-5",
+    "AC-EZD-214-6",
+    "AC-EZD-214-7",
+    "AC-EZD-214-8",
+    "AC-EZD-214-9"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-215",
    "phase": 10,
    "title": "Bearing wall rule",
-   "depends_raw": "EZD-213, EZD-132",
+   "depends_raw": "EZD-213, EZD-132, EZD-234 (Q-0704), EZD-109 (Q-0704), EZD-214 (Q-0704), EZD-212a (Q-0704)",
    "spec_ref": "Geometry rules; W3",
    "spec_files": [
     "spec/sections/09e-geometry-and-drafting.md",
-    "spec/sections/06-workflows.md"
+    "spec/sections/06-workflows.md",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md",
+    "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213",
-    "EZD-132"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-132",
+    "EZD-234",
+    "EZD-109",
+    "EZD-214",
+    "EZD-212a"
    ],
    "build_position": 135,
    "acs": [
     "AC-EZD-215-1",
-    "AC-EZD-215-2"
+    "AC-EZD-215-2",
+    "AC-EZD-215-3",
+    "AC-EZD-215-4",
+    "AC-EZD-215-5",
+    "AC-EZD-215-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/09-calculations-and-rules.md#Q-0205"
+    "spec/decisions/09-calculations-and-rules.md#Q-0205",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/07-hooks-events-and-integrations.md"
    ]
   },
   {
@@ -4391,63 +5641,126 @@
    "spec_ref": "S03 Dimension, Text",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Dimension",
-    "spec/sections/screens/S03-plan-editor.md#Text"
+    "spec/sections/screens/S03-plan-editor.md#Text",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Model schema (EZD-202)",
+    "Drawing list (EZD-238)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Selection (EZD-208)",
+    "Typed dimension bar (EZD-209)",
+    "Rooms (EZD-205a)",
+    "Model working copy (EZD-120a)",
+    "Patch store and outbox (EZD-120b)",
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-235"
    ],
    "build_position": 115,
    "acs": [
-    "AC-EZD-216-1"
+    "AC-EZD-216-1",
+    "AC-EZD-216-2",
+    "AC-EZD-216-3",
+    "AC-EZD-216-4",
+    "AC-EZD-216-5",
+    "AC-EZD-216-6",
+    "AC-EZD-216-7",
+    "AC-EZD-216-8"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
    "id": "EZD-217",
    "phase": 5,
    "title": "Undo, redo and clipboard",
-   "depends_raw": "EZD-208",
+   "depends_raw": "EZD-208, EZD-204, EZD-294",
    "spec_ref": "S03 Context menu, Decisions; App shell · Selection, undo and flags",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Context menu",
     "spec/sections/04-app-shell-and-global-ui.md#Selection",
-    "spec/sections/04-app-shell-and-global-ui.md#undo and flags"
+    "spec/sections/04-app-shell-and-global-ui.md#undo and flags",
+    "spec/sections/09k-openings-and-moves-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md"
    ],
    "mockups": [
-    "mockups/S03Plan.png"
+    "mockups/S03Plan.png",
+    "mockups/S03dTablet.png"
+   ],
+   "architecture": [
+    "Patch store and outbox (EZD-120b)",
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)",
+    "Selection (EZD-208)",
+    "Editor route (EZD-120c)",
+    "Device layouts (EZD-014)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Rooms (EZD-205a)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-208"
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-294"
    ],
    "build_position": 108,
    "acs": [
     "AC-EZD-217-1",
-    "AC-EZD-217-2"
+    "AC-EZD-217-2",
+    "AC-EZD-217-3",
+    "AC-EZD-217-4",
+    "AC-EZD-217-5",
+    "AC-EZD-217-6",
+    "AC-EZD-217-7",
+    "AC-EZD-217-8",
+    "AC-EZD-217-9",
+    "AC-EZD-217-10",
+    "AC-EZD-217-11",
+    "AC-EZD-217-12",
+    "AC-EZD-217-13",
+    "AC-EZD-217-14",
+    "AC-EZD-217-15",
+    "AC-EZD-217-16",
+    "AC-EZD-217-17"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/04-app-shell-and-global-ui.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
    "id": "EZD-218",
    "phase": 6,
    "title": "Left panel: Layers and Rooms",
-   "depends_raw": "EZD-214, EZD-132",
+   "depends_raw": "EZD-214",
    "spec_ref": "S03 Controls — left panel; Decisions",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Controls — left panel"
@@ -4455,22 +5768,81 @@
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Selection (EZD-208)",
+    "Plan canvas (EZD-207a)",
+    "Model schema (EZD-202)",
+    "Rooms (EZD-205a)",
+    "Patch store and outbox (EZD-120b)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-214",
-    "EZD-132"
+    "EZD-214"
    ],
    "build_position": 111,
    "acs": [
     "AC-EZD-218-1",
-    "AC-EZD-218-2"
+    "AC-EZD-218-2",
+    "AC-EZD-218-3",
+    "AC-EZD-218-4",
+    "AC-EZD-218-5",
+    "AC-EZD-218-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md"
+   ]
+  },
+  {
+   "id": "EZD-6001",
+   "phase": 6,
+   "title": "Floor switcher and floor tools",
+   "depends_raw": "EZD-218, EZD-202, EZD-120b",
+   "spec_ref": "Q-0509; Q-0508; Q-0504; Glossary 00d Floor; Q-0664",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/00d-glossary-phase-03.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Patch store and outbox (EZD-120b)",
+    "Plan canvas (EZD-207a)",
+    "Selection (EZD-208)",
+    "Editor shell (EZD-012)",
+    "State components (EZD-015)",
+    "Model schema (EZD-202)",
+    "Drawing tools (EZD-210)",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-218",
+    "EZD-202",
+    "EZD-120b",
+    "EZD-235"
+   ],
+   "build_position": 111.5,
+   "acs": [
+    "AC-EZD-6001-1",
+    "AC-EZD-6001-2",
+    "AC-EZD-6001-3",
+    "AC-EZD-6001-4"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -4480,10 +5852,27 @@
    "depends_raw": "EZD-206",
    "spec_ref": "S03 Controls — status bar; Decisions",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#Controls — status bar"
+    "spec/sections/screens/S03-plan-editor.md#Controls — status bar",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Editor route (EZD-120c)",
+    "Model working copy (EZD-120a)",
+    "Permission enforcement (EZD-102)",
+    "Row-level security (EZD-006)",
+    "Migrations",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Menus (EZD-108)",
+    "Browser tests (EZD-016a)",
+    "Device layouts (EZD-014)",
+    "Disclaimer (EZD-136)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -4491,53 +5880,72 @@
    ],
    "build_position": 112,
    "acs": [
-    "AC-EZD-219-1"
+    "AC-EZD-219-1",
+    "AC-EZD-219-2",
+    "AC-EZD-219-3",
+    "AC-EZD-219-4",
+    "AC-EZD-219-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
    "id": "EZD-220",
    "phase": 10,
    "title": "Existing-condition pins",
-   "depends_raw": "EZD-213, EZD-132",
+   "depends_raw": "EZD-213, EZD-132, EZD-234 (Q-0704), EZD-214 (Q-0704)",
    "spec_ref": "Objects inside model_json; S03 Fixtures, Validation; W3",
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/03f-model-json-objects.md#inside model_json",
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
     "spec/sections/screens/S03-plan-editor.md#Validation",
-    "spec/sections/06-workflows.md"
+    "spec/sections/06-workflows.md",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213",
-    "EZD-132"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-132",
+    "EZD-234",
+    "EZD-214"
    ],
    "build_position": 136,
    "acs": [
-    "AC-EZD-220-1"
+    "AC-EZD-220-1",
+    "AC-EZD-220-2",
+    "AC-EZD-220-3",
+    "AC-EZD-220-4",
+    "AC-EZD-220-5",
+    "AC-EZD-220-6"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
-   "id": "EZD-221",
+   "id": "EZD-221a",
    "phase": 4,
-   "title": "Blank templates",
-   "depends_raw": "EZD-210, EZD-118",
-   "spec_ref": "S01 Template picker; S03 States",
+   "title": "Template objects on the server",
+   "depends_raw": "EZD-118, EZD-120a, EZD-201, EZD-202, EZD-203, EZD-205a",
+   "spec_ref": "S01 Template picker; split of EZD-221 (proposal vault/plans/EZD-221.md)",
    "spec_files": [
     "spec/sections/screens/S01-projects.md#Template picker",
     "spec/sections/screens/S03-plan-editor.md#States",
@@ -4550,27 +5958,81 @@
     "mockups/S01bWizard.png"
    ],
    "architecture": [
+    "New project wizard (EZD-118)",
+    "Model working copy (EZD-120a)",
+    "Rooms (EZD-205a)",
+    "Migrations",
+    "Local database",
     "Release safety (EZD-023a)",
-    "Entry points and lazy modules (EZD-020)",
-    "Design tokens, fonts and icons",
-    "Messages and language (t())",
     "Policy test harness (EZD-006)",
-    "Browser tests (EZD-016a)"
+    "Messages and language (t())"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-210",
-    "EZD-118"
+    "EZD-118",
+    "EZD-120a",
+    "EZD-201",
+    "EZD-202",
+    "EZD-203",
+    "EZD-205a"
    ],
    "build_position": 101,
    "acs": [
     "AC-EZD-221-1",
     "AC-EZD-221-2",
     "AC-EZD-221-3",
-    "AC-EZD-221-4",
     "AC-EZD-221-5",
     "AC-EZD-221-6",
     "AC-EZD-221-7"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0566",
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561"
+   ]
+  },
+  {
+   "id": "EZD-221b",
+   "phase": 4,
+   "title": "Wizard step 2, template picker and empty hint",
+   "depends_raw": "EZD-221a, EZD-210a, EZD-210b, EZD-118, EZD-120b, EZD-120c, EZD-201, EZD-207a",
+   "spec_ref": "S01 Template picker; S03 States; split of EZD-221 (proposal vault/plans/EZD-221.md)",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md#Template picker",
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/screens/S01-projects.md#Validation"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png",
+    "mockups/S03Plan.png",
+    "mockups/S01bWizard.png"
+   ],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)",
+    "New project wizard (EZD-118)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-221a",
+    "EZD-210a",
+    "EZD-210b",
+    "EZD-118",
+    "EZD-120b",
+    "EZD-120c",
+    "EZD-201",
+    "EZD-207a"
+   ],
+   "build_position": 101.5,
+   "acs": [
+    "AC-EZD-221-4"
    ],
    "acs_source": "stage-0",
    "spec_phase": 2,
@@ -4630,7 +6092,9 @@
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-108"
    ],
    "build_position": 143,
@@ -4650,29 +6114,45 @@
   {
    "id": "EZD-224",
    "phase": 6,
-   "title": "Plan thumbnail",
+   "title": "Plan thumbnail: storage, routes and project card",
    "depends_raw": "EZD-207",
    "spec_ref": "S01 Card thumbnail; R24 #4",
    "spec_files": [
-    "spec/sections/screens/S01-projects.md#Card thumbnail"
+    "spec/sections/screens/S01-projects.md#Card thumbnail",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
    ],
+   "architecture": [
+    "Storage buckets and paths",
+    "Model working copy (EZD-120a)",
+    "Projects page (EZD-117a)",
+    "Entry contents and bundle report (EZD-020)",
+    "Browser tests (EZD-016a)",
+    "Row-level security (EZD-006)",
+    "Migrations"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-207"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 113,
    "acs": [
     "AC-EZD-224-1",
-    "AC-EZD-224-2"
+    "AC-EZD-224-2",
+    "AC-EZD-224-3",
+    "AC-EZD-224-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -4682,28 +6162,42 @@
    "depends_raw": "EZD-126, EZD-204",
    "spec_ref": "S03 States",
    "spec_files": [
-    "spec/sections/screens/S03-plan-editor.md#States"
+    "spec/sections/screens/S03-plan-editor.md#States",
+    "spec/sections/09o-edit-lock-and-defaults-examples.md",
+    "spec/sections/00i-glossary-phase-08.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Drawing tools (EZD-210)",
+    "Selection (EZD-208)",
+    "Editor route (EZD-120c)",
+    "State components (EZD-015)",
+    "Realtime (EZD-018)",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-126",
-    "EZD-204"
+    "EZD-204a",
+    "EZD-204b"
    ],
    "build_position": 129,
    "acs": [
     "AC-EZD-225-1",
     "AC-EZD-225-2",
     "AC-EZD-225-3",
-    "AC-EZD-225-4",
-    "AC-EZD-225-5"
+    "AC-EZD-225-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
    ]
   },
   {
@@ -4715,7 +6209,9 @@
    "spec_files": [
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
-    "spec/sections/09e-geometry-and-drafting.md#Geometry and drafting rules"
+    "spec/sections/09e-geometry-and-drafting.md#Geometry and drafting rules",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
@@ -4726,13 +6222,17 @@
    ],
    "build_position": 139,
    "acs": [
-    "AC-EZD-226-1"
+    "AC-EZD-226-1",
+    "AC-EZD-226-2",
+    "AC-EZD-226-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/09-calculations-and-rules.md"
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -4742,7 +6242,10 @@
    "depends_raw": "EZD-234",
    "spec_ref": "Data model · Objects (Fixtures)",
    "spec_files": [
-    "spec/sections/03f-model-json-objects.md#Objects inside model_json"
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md",
+    "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
@@ -4752,11 +6255,17 @@
    "build_position": 140,
    "acs": [
     "AC-EZD-227-1",
-    "AC-EZD-227-2"
+    "AC-EZD-227-2",
+    "AC-EZD-227-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
-   "decisions": []
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md"
+   ]
   },
   {
    "id": "EZD-228",
@@ -4792,24 +6301,37 @@
    "id": "EZD-229",
    "phase": 10,
    "title": "Existing-condition details",
-   "depends_raw": "EZD-220",
+   "depends_raw": "EZD-220, EZD-234 (Q-0704), EZD-218 (Q-0704)",
    "spec_ref": "Data model · Existing-condition pins (Rounds 1–2)",
    "spec_files": [
-    "spec/sections/03f-model-json-objects.md#Existing-condition pins"
+    "spec/sections/03f-model-json-objects.md#Existing-condition pins",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md",
+    "spec/sections/screens/S03-plan-editor.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-220"
+    "EZD-220",
+    "EZD-234",
+    "EZD-218"
    ],
    "build_position": 137,
    "acs": [
     "AC-EZD-229-1",
-    "AC-EZD-229-2"
+    "AC-EZD-229-2",
+    "AC-EZD-229-3",
+    "AC-EZD-229-4",
+    "AC-EZD-229-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
-   "decisions": []
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md"
+   ]
   },
   {
    "id": "EZD-230",
@@ -4857,7 +6379,9 @@
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-206",
-    "EZD-207"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 145,
    "acs": [
@@ -4946,48 +6470,74 @@
     "spec/sections/03f-model-json-objects.md#inside model_json",
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
     "spec/sections/screens/S03-plan-editor.md#Validation",
-    "spec/sections/06-workflows.md"
+    "spec/sections/06-workflows.md",
+    "spec/sections/09q-existing-conditions-examples.md",
+    "spec/sections/00k-glossary-phase-10.md"
    ],
    "mockups": [
     "mockups/S03Plan.png"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c"
    ],
    "build_position": 138,
    "acs": [
-    "AC-EZD-234-1"
+    "AC-EZD-234-1",
+    "AC-EZD-234-2",
+    "AC-EZD-234-3",
+    "AC-EZD-234-4",
+    "AC-EZD-234-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/05-screens.md"
-   ]
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/09-calculations-and-rules.md"
+   ],
+   "priority": 1
   },
   {
    "id": "EZD-235",
    "phase": 6,
-   "title": "Derived values and workers",
+   "title": "Derived values",
    "depends_raw": "EZD-205, EZD-207",
    "spec_ref": "Non-functional · Performance (rules 2 and 3)",
    "spec_files": [
     "spec/sections/11-non-functional-requirements.md#Performance"
    ],
    "mockups": [],
+   "architecture": [
+    "Rooms (EZD-205a)",
+    "Plan canvas (EZD-207a)",
+    "Patch store and outbox (EZD-120b)",
+    "Model schema (EZD-202)",
+    "Drawing list (EZD-238)",
+    "Benchmark project (EZD-236)",
+    "Entry points and lazy modules (EZD-020)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-205",
-    "EZD-207"
+    "EZD-205a",
+    "EZD-205b",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 114,
    "acs": [
-    "AC-EZD-235-1"
+    "AC-EZD-235-1",
+    "AC-EZD-235-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/09-calculations-and-rules.md"
    ]
   },
   {
@@ -5038,26 +6588,44 @@
    "depends_raw": "EZD-207, EZD-236, EZD-135",
    "spec_ref": "Non-functional · Performance; R26 R10",
    "spec_files": [
-    "spec/sections/11-non-functional-requirements.md#Performance"
+    "spec/sections/11-non-functional-requirements.md#Performance",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
    ],
    "mockups": [],
+   "architecture": [
+    "Benchmark project (EZD-236)",
+    "App version (EZD-299a)",
+    "Plan canvas (EZD-207a)",
+    "Drawing tools (EZD-210)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)",
+    "Settings shell (EZD-103a)",
+    "Permission enforcement (EZD-102)"
+   ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-236",
-    "EZD-135"
+    "EZD-135",
+    "EZD-135b"
    ],
    "build_position": 116,
    "acs": [
     "AC-EZD-237-1",
     "AC-EZD-237-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 2,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/13b-round-26.md#R10",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ]
   },
   {
@@ -5414,7 +6982,8 @@
    "phase_file": "tickets/phases/phase-03.md",
    "depends_on": [
     "EZD-310",
-    "EZD-205"
+    "EZD-205a",
+    "EZD-205b"
    ],
    "build_position": 155,
    "acs": [
@@ -5652,7 +7221,9 @@
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
     "EZD-402",
-    "EZD-207"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 174,
    "acs": [
@@ -5825,7 +7396,8 @@
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
     "EZD-402",
-    "EZD-204"
+    "EZD-204a",
+    "EZD-204b"
    ],
    "build_position": 181,
    "acs": [
@@ -6133,7 +7705,9 @@
    ],
    "phase_file": "tickets/phases/phase-05.md",
    "depends_on": [
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-501",
     "EZD-127"
    ],
@@ -6566,7 +8140,9 @@
    ],
    "phase_file": "tickets/phases/phase-06.md",
    "depends_on": [
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-202"
    ],
    "build_position": 208,
@@ -7178,7 +8754,9 @@
    "depends_on": [
     "EZD-611a",
     "EZD-130",
-    "EZD-213"
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c"
    ],
    "build_position": 225,
    "acs": [
@@ -7929,7 +9507,8 @@
    "depends_on": [
     "EZD-702a",
     "EZD-235",
-    "EZD-238"
+    "EZD-238",
+    "EZD-235b"
    ],
    "build_position": 237,
    "acs": [
@@ -9079,7 +10658,9 @@
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
     "EZD-802",
-    "EZD-207"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c"
    ],
    "build_position": 279,
    "acs": [
@@ -9309,9 +10890,12 @@
    "phase_file": "tickets/phases/phase-09.md",
    "depends_on": [
     "EZD-901a",
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-235",
-    "EZD-017"
+    "EZD-017",
+    "EZD-235b"
    ],
    "build_position": 352,
    "acs": [
@@ -10025,10 +11609,13 @@
    ],
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
-    "EZD-207",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
     "EZD-020",
     "EZD-235",
-    "EZD-030"
+    "EZD-030",
+    "EZD-235b"
    ],
    "build_position": 295,
    "acs": [
@@ -12923,7 +14510,8 @@
    "depends_on": [
     "EZD-235",
     "EZD-226",
-    "EZD-116"
+    "EZD-116",
+    "EZD-235b"
    ],
    "build_position": 424,
    "acs": [
@@ -15243,7 +16831,9 @@
    "depends_raw": "EZD-117a, EZD-117b, EZD-102, EZD-124",
    "spec_ref": "Q-0191, Q-0199; S01 Projects",
    "spec_files": [
-    "spec/sections/screens/S01-projects.md#Projects"
+    "spec/sections/screens/S01-projects.md#Projects",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "mockups": [
     "mockups/S01Projects.png"
@@ -15258,15 +16848,20 @@
    "build_position": 86,
    "acs": [
     "AC-EZD-137-1",
-    "AC-EZD-137-2"
+    "AC-EZD-137-2",
+    "AC-EZD-137-3",
+    "AC-EZD-137-4"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/05-screens.md#Q-0191",
     "spec/decisions/05-screens.md#Q-0199",
-    "spec/decisions/05-screens.md#Q-0395"
+    "spec/decisions/05-screens.md#Q-0395",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/07-hooks-events-and-integrations.md"
    ]
   },
   {
@@ -15276,10 +16871,23 @@
    "depends_raw": "EZD-105, EZD-007d",
    "spec_ref": "Q-0187, Q-0216; S15 Users + permissions",
    "spec_files": [
-    "spec/sections/screens/S15-settings-users-permissions.md#Users + permissions"
+    "spec/sections/screens/S15-settings-users-permissions.md#Users + permissions",
+    "spec/sections/09n-users-and-invites-examples.md",
+    "spec/sections/00h-glossary-phase-07.md"
    ],
    "mockups": [
     "mockups/S15Settings.png"
+   ],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Password sign-in (EZD-033)",
+    "Captcha (EZD-034)",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Permissions and roles (EZD-101)",
+    "Messages and language (t())",
+    "Settings shell (EZD-103a)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
@@ -15290,14 +16898,18 @@
    "acs": [
     "AC-EZD-138-1",
     "AC-EZD-138-2",
-    "AC-EZD-138-3"
+    "AC-EZD-138-3",
+    "AC-EZD-138-4",
+    "AC-EZD-138-5"
    ],
-   "acs_source": "done-when",
+   "acs_source": "stage-0",
    "spec_phase": 1,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0187",
-    "spec/decisions/10-permissions-and-settings.md#Q-0216"
+    "spec/decisions/10-permissions-and-settings.md#Q-0216",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md"
    ]
   },
   {
@@ -15811,10 +17423,15 @@
    "depends_raw": "EZD-122, EZD-121",
    "spec_ref": "Q-0220; S20 Revisions / version history",
    "spec_files": [
-    "spec/sections/02-product-overview.md"
+    "spec/sections/02-product-overview.md",
+    "spec/sections/09p-versions-and-cleanup-examples.md",
+    "spec/sections/00j-glossary-phase-09.md"
    ],
    "decisions": [
-    "spec/decisions/02-product-overview.md#Q-0220"
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/10-permissions-and-settings.md",
+    "spec/decisions/03-data-model.md",
+    "spec/decisions/05-screens.md"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-01.md",
@@ -15824,9 +17441,12 @@
    ],
    "build_position": 0,
    "acs": [
-    "AC-EZD-139-1"
+    "AC-EZD-139-1",
+    "AC-EZD-139-2",
+    "AC-EZD-139-3",
+    "AC-EZD-139-4"
    ],
-   "acs_source": "done-when"
+   "acs_source": "stage-0"
   },
   {
    "id": "EZD-140",
@@ -17599,11 +19219,111 @@
    "acs_source": "done-when"
   },
   {
+   "id": "EZD-299a",
+   "phase": 3,
+   "title": "Conflict list: server copy, save refusals and the notification",
+   "depends_raw": "EZD-120a, EZD-120d, EZD-202, EZD-110a, EZD-140, EZD-133, EZD-006",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540; split of EZD-299 (proposal vault/plans/EZD-299.md)",
+   "spec_files": [
+    "spec/sections/03b-architecture-rules.md#Architecture rules",
+    "spec/sections/00d-glossary-phase-03.md",
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications"
+   ],
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/05-screens.md#Q-0510",
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0393",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Patch store and outbox (EZD-120b)",
+    "Notifications (EZD-110)",
+    "Notification settings (EZD-140)",
+    "Server-only data access and can()",
+    "Row-level security (EZD-006)",
+    "Policy test harness (EZD-006)",
+    "Messages and language (t())",
+    "Environments and releases (EZD-023b)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-120a",
+    "EZD-120d",
+    "EZD-202",
+    "EZD-110a",
+    "EZD-140",
+    "EZD-133",
+    "EZD-006"
+   ],
+   "build_position": 568,
+   "acs": [
+    "AC-EZD-299-11",
+    "AC-EZD-299-13",
+    "AC-EZD-299-14",
+    "AC-EZD-299-15"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-299b",
+   "phase": 3,
+   "title": "Conflict list: refused changes leave the outbox; Keep mine, Keep theirs, Remove",
+   "depends_raw": "EZD-299a, EZD-120b, EZD-120d, EZD-202",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540; split of EZD-299 (proposal vault/plans/EZD-299.md)",
+   "spec_files": [
+    "spec/sections/03b-architecture-rules.md#Architecture rules",
+    "spec/sections/00d-glossary-phase-03.md",
+    "spec/sections/04-app-shell-and-global-ui.md#Notifications"
+   ],
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0502",
+    "spec/decisions/03-data-model.md#Q-0508",
+    "spec/decisions/05-screens.md#Q-0510",
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/02-product-overview.md#Q-0220",
+    "spec/decisions/05-screens.md#Q-0393",
+    "spec/decisions/03-data-model.md#Q-0530",
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Patch store and outbox (EZD-120b)",
+    "Sign-out and app-wide drain (EZD-120d)",
+    "Model working copy (EZD-120a)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-299a",
+    "EZD-120b",
+    "EZD-120d",
+    "EZD-202"
+   ],
+   "build_position": 568.2,
+   "acs": [
+    "AC-EZD-299-2",
+    "AC-EZD-299-3",
+    "AC-EZD-299-4",
+    "AC-EZD-299-9",
+    "AC-EZD-299-16",
+    "AC-EZD-299-17",
+    "AC-EZD-299-18"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
    "id": "EZD-299",
    "phase": 3,
-   "title": "Conflict list: Keep mine / Keep theirs",
-   "depends_raw": "EZD-120b, EZD-120c, EZD-120d, EZD-202, EZD-110b, EZD-140",
-   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540",
+   "title": "Conflict list: banner, list (board S03b), Show and \"make a conflict\"",
+   "depends_raw": "EZD-299b, EZD-120c, EZD-120d, EZD-110b, EZD-207a, EZD-207b, EZD-201, EZD-016a, EZD-294",
+   "spec_ref": "Data model · Architecture rule 9; Q-0502, Q-0511, Q-0530, Q-0531, Q-0540; last part of the split of EZD-299 (proposal vault/plans/EZD-299.md)",
    "spec_files": [
     "spec/sections/03b-architecture-rules.md#Architecture rules",
     "spec/sections/00d-glossary-phase-03.md",
@@ -17621,31 +19341,39 @@
     "spec/decisions/03-data-model.md#Q-0540"
    ],
    "mockups": [
-    "mockups/S01cNotifications.png"
+    "mockups/S01cNotifications.png",
+    "mockups/S03bConflictList.png",
+    "mockups/S01cConflictNotification.png"
    ],
-   "architecture": [],
+   "architecture": [
+    "Editor route (EZD-120c)",
+    "Plan canvas (EZD-207a)",
+    "Notifications (EZD-110)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)",
+    "State components (EZD-015)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
-    "EZD-120b",
+    "EZD-299b",
     "EZD-120c",
     "EZD-120d",
-    "EZD-202",
     "EZD-110b",
-    "EZD-140"
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-201",
+    "EZD-016a",
+    "EZD-294"
    ],
-   "build_position": 568,
+   "build_position": 568.4,
    "acs": [
     "AC-EZD-299-1",
-    "AC-EZD-299-2",
-    "AC-EZD-299-3",
-    "AC-EZD-299-4",
     "AC-EZD-299-5",
     "AC-EZD-299-6",
     "AC-EZD-299-7",
     "AC-EZD-299-8",
-    "AC-EZD-299-9",
     "AC-EZD-299-10",
-    "AC-EZD-299-11",
     "AC-EZD-299-12"
    ],
    "acs_source": "stage-0"
@@ -17821,6 +19549,7 @@
    "mockups": [],
    "architecture": [
     "Browser tests (EZD-016a)",
+    "Test scope (Q-0006)",
     "CI"
    ],
    "priority": 1,
@@ -18086,29 +19815,6 @@
    "acs": [
     "AC-EZD-326-1",
     "AC-EZD-326-2"
-   ],
-   "acs_source": "done-when"
-  },
-  {
-   "id": "EZD-327",
-   "phase": 2,
-   "title": "Fix: the EZD-025 files backup test T3 does not fail at random in CI",
-   "depends_raw": "EZD-025",
-   "spec_ref": "CLAUDE.md rule 17 (Josh 2026-11-03)",
-   "spec_files": [
-    "spec/sections/11-non-functional-requirements.md#Operations"
-   ],
-   "decisions": [],
-   "mockups": [],
-   "architecture": [],
-   "priority": 1,
-   "phase_file": "tickets/phases/phase-02.md",
-   "depends_on": [
-    "EZD-025"
-   ],
-   "build_position": 585,
-   "acs": [
-    "AC-EZD-327-1"
    ],
    "acs_source": "done-when"
   },
@@ -18763,7 +20469,11 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Local database",
+    "Build lanes (EZD-172)"
+   ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -18786,7 +20496,11 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -18810,7 +20524,9 @@
    ],
    "decisions": [],
    "mockups": [],
-   "architecture": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -18821,6 +20537,1895 @@
    "acs": [
     "AC-EZD-353-1",
     "AC-EZD-353-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-354",
+   "phase": 1,
+   "title": "Build system: the gate's checks run as the separate ezdraft macOS user, so code they run cannot reach Josh's keychain or files",
+   "depends_raw": "EZD-344, EZD-345",
+   "spec_ref": "Q-0602; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Build lanes (EZD-172)",
+    "Local database"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-344",
+    "EZD-345"
+   ],
+   "build_position": 610,
+   "acs": [
+    "AC-EZD-354-1",
+    "AC-EZD-354-2",
+    "AC-EZD-354-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-355a",
+   "phase": 1,
+   "title": "Build system: the gate's Docker calls go through a policy relay that acts only on objects it created",
+   "depends_raw": "EZD-354",
+   "spec_ref": "Q-0614; Q-0615; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-354"
+   ],
+   "build_position": 619,
+   "acs": [
+    "AC-EZD-355a-1",
+    "AC-EZD-355a-2",
+    "AC-EZD-355a-3",
+    "AC-EZD-355a-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-355b",
+   "phase": 1,
+   "title": "Build system: sandboxed units reach Docker only through the policy relay",
+   "depends_raw": "EZD-355a",
+   "spec_ref": "Q-0614; Q-0615; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-355a"
+   ],
+   "build_position": 620,
+   "acs": [
+    "AC-EZD-355b-1",
+    "AC-EZD-355b-2",
+    "AC-EZD-355b-3",
+    "AC-EZD-355b-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-360",
+   "phase": 1,
+   "title": "Build system: phase 56 ranks right after phase 5 in the ledger tools and release order",
+   "depends_raw": "none",
+   "spec_ref": "Q-0630; rules 17, 18",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [],
+   "build_position": 612,
+   "acs": [
+    "AC-EZD-360-1",
+    "AC-EZD-360-2",
+    "AC-EZD-360-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-361",
+   "phase": 1,
+   "title": "Fix: the EZD-360 phase order test holds with real phase 56 tickets",
+   "depends_raw": "EZD-360",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-360"
+   ],
+   "build_position": 618,
+   "acs": [
+    "AC-EZD-361-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-362",
+   "phase": 1,
+   "title": "Fix: the ledger-copy fixture gives every ticket it blocks an architecture list",
+   "depends_raw": "EZD-361",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-361"
+   ],
+   "build_position": 621,
+   "acs": [
+    "AC-EZD-362-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-356",
+   "title": "Fix: the iPad long-task count during pan stays at 0 in the gate run",
+   "phase": 4,
+   "depends_raw": "EZD-207c",
+   "spec_ref": "EZD-209 gate failure (3 runs); EZD-207c plan Residual cost; rule 17",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Tab"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "build_position": 99,
+   "acs": [
+    "AC-EZD-356-1",
+    "AC-EZD-356-2",
+    "AC-EZD-356-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-357",
+   "phase": 4,
+   "title": "Fix: a typed chain that closes at exactly 12 inches shows its gap box",
+   "depends_raw": "EZD-205b",
+   "spec_ref": "09j Closure row 4; 03g; Q-0568",
+   "spec_files": [
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/09e-geometry-and-drafting.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Rooms (EZD-205a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-205b"
+   ],
+   "acs": [
+    "AC-EZD-357-1",
+    "AC-EZD-357-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-358",
+   "phase": 4,
+   "title": "Fix: the EZD-207c E3 no-database test waits for the first draw before reading draw calls",
+   "depends_raw": "EZD-207c",
+   "spec_ref": "rule 17 (flaky gate failure is a defect); EZD-207c plan",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-358-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-359",
+   "phase": 4,
+   "title": "Fix: the EZD-207c done-when test long-tasks-during-pan fails at random in the full browser suite",
+   "depends_raw": "EZD-207c",
+   "spec_ref": "rule 17 (a gate failure is a defect); EZD-358 builder run 1, 2026-11-06",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-359-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-294",
+   "phase": 4,
+   "title": "Object numbers",
+   "depends_raw": "EZD-202, EZD-203, EZD-210a, EZD-221a",
+   "spec_ref": "Q-0625 (a); Q-0511 (b); Q-0531",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/00e-glossary-phase-04.md",
+    "spec/sections/09j-walls-and-rooms-examples.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Rooms (EZD-205a)",
+    "Drawing tools (EZD-210)",
+    "Migrations",
+    "Local database",
+    "Release safety (EZD-023a)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-202",
+    "EZD-203",
+    "EZD-210a",
+    "EZD-221a"
+   ],
+   "build_position": 101.7,
+   "acs": [
+    "AC-EZD-294-1",
+    "AC-EZD-294-2",
+    "AC-EZD-294-3"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 2,
+   "decisions": [
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/03-data-model.md#Q-0531"
+   ]
+  },
+  {
+   "id": "EZD-5601",
+   "phase": 56,
+   "title": "AI key storage and My profile",
+   "depends_raw": "EZD-108, EZD-021",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S01gMyProfileAI.png"
+   ],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "My profile (EZD-108)",
+    "Email (EZD-008)",
+    "Row-level security (EZD-006)",
+    "Environment variables",
+    "Environments and releases (EZD-023b)",
+    "Messages and language (t())",
+    "Background jobs (EZD-009)",
+    "Error reporting (EZD-024)",
+    "Migrations",
+    "Design tokens, fonts and icons"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-108",
+    "EZD-021"
+   ],
+   "build_position": 613,
+   "acs": [
+    "AC-EZD-5601-1",
+    "AC-EZD-5601-2",
+    "AC-EZD-5601-3",
+    "AC-EZD-5601-4",
+    "AC-EZD-5601-5",
+    "AC-EZD-5601-6",
+    "AC-EZD-5601-7",
+    "AC-EZD-5601-8",
+    "AC-EZD-5601-9",
+    "AC-EZD-5601-10"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5602",
+   "phase": 56,
+   "title": "Assistant call path, send list, stub and cost",
+   "depends_raw": "EZD-5601, EZD-021, EZD-204a, EZD-205a, EZD-294",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI assistant keys (EZD-5601)",
+    "AI stubs and the network guard (EZD-021)",
+    "Server-only data access and can()",
+    "Messages and language (t())",
+    "Row-level security (EZD-006)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5601",
+    "EZD-021",
+    "EZD-204a",
+    "EZD-205a",
+    "EZD-294"
+   ],
+   "build_position": 614,
+   "acs": [
+    "AC-EZD-5602-1",
+    "AC-EZD-5602-2",
+    "AC-EZD-5602-3",
+    "AC-EZD-5602-4",
+    "AC-EZD-5602-5",
+    "AC-EZD-5602-6",
+    "AC-EZD-5602-7",
+    "AC-EZD-5602-8",
+    "AC-EZD-5602-9",
+    "AC-EZD-5602-10",
+    "AC-EZD-5602-11",
+    "AC-EZD-5602-12",
+    "AC-EZD-5602-13",
+    "AC-EZD-5602-14"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5603a",
+   "phase": 56,
+   "title": "Assistant panel, picker, states and cost line",
+   "depends_raw": "EZD-5602, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-5601, EZD-108, EZD-120c, EZD-016a, EZD-010b, EZD-014c",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5603 (proposal vault/plans/EZD-5603.md)",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Entry points and lazy modules (EZD-020)",
+    "Menus (EZD-108)",
+    "Browser tests (EZD-016a)",
+    "AI stubs and the network guard (EZD-021)"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5602",
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-5601",
+    "EZD-108",
+    "EZD-120c",
+    "EZD-016a",
+    "EZD-010b",
+    "EZD-014c"
+   ],
+   "build_position": 615,
+   "acs": [
+    "AC-EZD-5603-1",
+    "AC-EZD-5603-2",
+    "AC-EZD-5603-3",
+    "AC-EZD-5603-4",
+    "AC-EZD-5603-5",
+    "AC-EZD-5603-9",
+    "AC-EZD-5603-10",
+    "AC-EZD-5603-12",
+    "AC-EZD-5603-13",
+    "AC-EZD-5603-14"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5603b",
+   "phase": 56,
+   "title": "Assistant photo: control, browser shrink, server strip",
+   "depends_raw": "EZD-5603a, EZD-5602, EZD-016a",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5603 (proposal vault/plans/EZD-5603.md)",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "Entry points and lazy modules (EZD-020)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)",
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Dependencies",
+    "AI assistant call path (EZD-5602)"
+   ],
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5603a",
+    "EZD-5602",
+    "EZD-016a"
+   ],
+   "build_position": 615.3,
+   "acs": [
+    "AC-EZD-5603-6",
+    "AC-EZD-5603-7",
+    "AC-EZD-5603-8",
+    "AC-EZD-5603-10",
+    "AC-EZD-5603-11",
+    "AC-EZD-5603-12",
+    "AC-EZD-5603-13",
+    "AC-EZD-5603-14"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5604a",
+   "phase": 56,
+   "title": "Assistant change format, apply and check",
+   "depends_raw": "EZD-5602, EZD-211a, EZD-211b, EZD-213a, EZD-204a, EZD-204b, EZD-217, EZD-294, EZD-210a, EZD-120b",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5604 (proposal vault/plans/EZD-5604.md)",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "AI (EZD-021)",
+    "AI stubs and the network guard (EZD-021)",
+    "Patch store and outbox (EZD-120b)",
+    "Model schema (EZD-202)",
+    "Drawing tools (EZD-210)",
+    "Rooms (EZD-205a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5602",
+    "EZD-211a",
+    "EZD-211b",
+    "EZD-213a",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-217",
+    "EZD-294",
+    "EZD-210a",
+    "EZD-120b"
+   ],
+   "build_position": 616,
+   "acs": [
+    "AC-EZD-5604-1",
+    "AC-EZD-5604-2",
+    "AC-EZD-5604-6",
+    "AC-EZD-5604-8",
+    "AC-EZD-5604-9",
+    "AC-EZD-5604-10"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5604b",
+   "phase": 56,
+   "title": "Assistant preview on the canvas and in the panel",
+   "depends_raw": "EZD-5604a, EZD-5603a, EZD-5603b, EZD-211a, EZD-211b, EZD-213a, EZD-213b, EZD-213c, EZD-208a, EZD-208b, EZD-016a",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638; split of EZD-5604 (proposal vault/plans/EZD-5604.md)",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5604a",
+    "EZD-5603a",
+    "EZD-5603b",
+    "EZD-211a",
+    "EZD-211b",
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-016a"
+   ],
+   "build_position": 616.3,
+   "acs": [
+    "AC-EZD-5604-1",
+    "AC-EZD-5604-3",
+    "AC-EZD-5604-4",
+    "AC-EZD-5604-5",
+    "AC-EZD-5604-7",
+    "AC-EZD-5604-8",
+    "AC-EZD-5604-9"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-5605",
+   "phase": 56,
+   "title": "Assistant Accept, Adjust, Reject and events",
+   "depends_raw": "EZD-5604, EZD-217, EZD-213, EZD-211",
+   "spec_ref": "S03c; Q-0474; Q-0637; Q-0638",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md",
+    "spec/sections/09l-ai-assistant-cost-examples.md"
+   ],
+   "mockups": [
+    "mockups/S03cAIAssistant.png",
+    "mockups/S03cAIAssistantNoKey.png",
+    "mockups/S03cAIAssistantKeyError.png",
+    "mockups/S03cAIAssistantPhoto.png"
+   ],
+   "architecture": [
+    "Events",
+    "Patch store and outbox (EZD-120b)",
+    "Model working copy (EZD-120a)",
+    "Plan canvas (EZD-207a)",
+    "Messages and language (t())"
+   ],
+   "track": "tooling",
+   "phase_file": "tickets/phases/phase-56.md",
+   "depends_on": [
+    "EZD-5604a",
+    "EZD-5604b",
+    "EZD-217",
+    "EZD-213a",
+    "EZD-213b",
+    "EZD-213c",
+    "EZD-211a",
+    "EZD-211b"
+   ],
+   "build_position": 617,
+   "acs": [
+    "AC-EZD-5605-1",
+    "AC-EZD-5605-2",
+    "AC-EZD-5605-3",
+    "AC-EZD-5605-4",
+    "AC-EZD-5605-5",
+    "AC-EZD-5605-6",
+    "AC-EZD-5605-7",
+    "AC-EZD-5605-8"
+   ],
+   "acs_source": "stage-0",
+   "spec_phase": 56,
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md"
+   ]
+  },
+  {
+   "id": "EZD-363",
+   "phase": 4,
+   "title": "Fix: the disabled tool button rule in ToolRail.module.css keeps its hover inside the hover media query",
+   "depends_raw": "EZD-210b, EZD-014b",
+   "spec_ref": "rule 17 (gate defect); EZD-014b touch-css test T2 (f) hover; EZD-210b",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md#Accessibility"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-210b",
+    "EZD-014b"
+   ],
+   "acs": [
+    "AC-EZD-363-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-366",
+   "phase": 4,
+   "title": "Fix: a crafted wall or opening number cannot stop a project from taking new walls",
+   "depends_raw": "EZD-294",
+   "spec_ref": "rule 17 (defect D-099, phase 4 gate audit); Q-0625, Q-0629, Q-0650; EZD-294",
+   "spec_files": [
+    "spec/sections/03d-tables-rounds-24-25.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Model working copy (EZD-120a)",
+    "Migrations"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-294"
+   ],
+   "acs": [
+    "AC-EZD-366-1",
+    "AC-EZD-366-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-364",
+   "phase": 1,
+   "title": "Fix: launcher units keep long background gates, and a gate clears the leftover app server on its lane",
+   "depends_raw": "EZD-354",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks",
+    "Gate user (EZD-354)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-354"
+   ],
+   "build_position": 622,
+   "acs": [
+    "AC-EZD-364-1",
+    "AC-EZD-364-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-365",
+   "phase": 1,
+   "title": "Fix: the full gate tests the committed commit only, never other units uncommitted files",
+   "depends_raw": "EZD-364",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Gate user (EZD-354)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-364"
+   ],
+   "build_position": 623,
+   "acs": [
+    "AC-EZD-365-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-367",
+   "phase": 4,
+   "title": "Fix: a member without Edit model creating a project from a template still sees no tool rail (AC-EZD-221-6)",
+   "depends_raw": "EZD-221b, EZD-208b",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-221b",
+    "EZD-208b"
+   ],
+   "acs": [
+    "AC-EZD-367-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-368",
+   "phase": 4,
+   "title": "Fix: Fit to screen for a view-only member gives the same zoom as the editor view (EZD-207b B3)",
+   "depends_raw": "EZD-207b, EZD-208b",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Drawing tools (EZD-210)",
+    "Plan canvas (EZD-207a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207b",
+    "EZD-208b"
+   ],
+   "acs": [
+    "AC-EZD-368-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-369",
+   "phase": 1,
+   "title": "Fix: three strikes, then a full assessment before a unit runs again",
+   "depends_raw": "EZD-364",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-364"
+   ],
+   "build_position": 624,
+   "acs": [
+    "AC-EZD-369-1",
+    "AC-EZD-369-2",
+    "AC-EZD-369-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-370",
+   "phase": 4,
+   "title": "Fix: the secret-key client list matches its users after EZD-5601 (EZD-323 T8)",
+   "depends_raw": "EZD-323, EZD-5601",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Server-only data access and can()",
+    "Background jobs (EZD-009)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-323",
+    "EZD-5601"
+   ],
+   "acs": [
+    "AC-EZD-370-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-371",
+   "phase": 4,
+   "title": "Fix: My profile set password finds one control after EZD-5601 (EZD-108 T18)",
+   "depends_raw": "EZD-108, EZD-5601",
+   "spec_ref": "rule 17 (gate defect, phase 4 full gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "My profile (EZD-108)",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-108",
+    "EZD-5601"
+   ],
+   "acs": [
+    "AC-EZD-371-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-372",
+   "phase": 4,
+   "title": "Fix: the long-tasks-during-pan perf check still fails at random on a lane gate (desktop, 1 long task)",
+   "depends_raw": "EZD-359",
+   "spec_ref": "rule 17 (gate defect, EZD-367 gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Build lanes (EZD-172)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-359"
+   ],
+   "acs": [
+    "AC-EZD-372-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-373",
+   "phase": 4,
+   "title": "Fix: the plan draws no text on CI, so 9 browser tests fail only on CI",
+   "depends_raw": "EZD-207b",
+   "spec_ref": "rule 17 (CI gate defect, build audit 2026-11 A3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Design tokens, fonts and icons",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207b"
+   ],
+   "acs": [
+    "AC-EZD-373-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-374",
+   "phase": 4,
+   "title": "Fix: the pan and load perf checks fail on CI (plan_not_ready, EZD-207c P2 pan counts)",
+   "depends_raw": "EZD-373, EZD-207c",
+   "spec_ref": "rule 17 (CI gate defect, build audit 2026-11 A3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Browser tests (EZD-016a)",
+    "Runtime"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-373",
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-374-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-375",
+   "phase": 4,
+   "title": "Fix: an angled wall shows its length 1/2 inch short after rounding",
+   "depends_raw": "EZD-209",
+   "spec_ref": "09j row 12; 03g; AC-EZD-209-1; rule 17",
+   "spec_files": [
+    "spec/sections/09j-walls-and-rooms-examples.md",
+    "spec/sections/03g-tolerance-and-rounding.md",
+    "spec/sections/screens/S03-plan-editor.md#Typed dimension bar"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Typed dimension bar (EZD-209)",
+    "Drawing tools (EZD-210)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-209"
+   ],
+   "acs": [
+    "AC-EZD-375-1",
+    "AC-EZD-375-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-376",
+   "phase": 4,
+   "title": "Fix: the plan tells the user when it cannot draw its text",
+   "depends_raw": "EZD-373",
+   "spec_ref": "Q-0692; rule 17 (no silent failure, build audit 2026-11 PLANNING-REDESIGN Part 2)",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Validation & warnings"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Editor route (EZD-120c)",
+    "State components (EZD-015)",
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-373"
+   ],
+   "acs": [
+    "AC-EZD-376-1",
+    "AC-EZD-376-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-377",
+   "phase": 1,
+   "title": "Fix: the launcher recognises the documented limit messages and never restarts a unit in a loop",
+   "depends_raw": "EZD-369",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-369"
+   ],
+   "acs": [
+    "AC-EZD-377-1",
+    "AC-EZD-377-2",
+    "AC-EZD-377-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-378",
+   "phase": 1,
+   "title": "Fix: the launcher switches between Josh's two accounts automatically",
+   "depends_raw": "EZD-377",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Machine checks"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-377"
+   ],
+   "acs": [
+    "AC-EZD-378-1",
+    "AC-EZD-378-2",
+    "AC-EZD-378-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-379",
+   "phase": 4,
+   "title": "Fix: the EZD-207b B2 hover test sees a React commit when another lane runs a gate",
+   "depends_raw": "EZD-207b",
+   "spec_ref": "rule 17 (gate defect, EZD-372 D-Runs 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Build lanes (EZD-172)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207b"
+   ],
+   "acs": [
+    "AC-EZD-379-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-380",
+   "phase": 4,
+   "title": "Fix: the EZD-133 W1 money-pages smoke test fails with ECONNRESET when another lane runs a gate",
+   "depends_raw": "EZD-133",
+   "spec_ref": "rule 17 (gate defect, EZD-372 D-Runs 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Build lanes (EZD-172)",
+    "Hosting"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-133"
+   ],
+   "acs": [
+    "AC-EZD-380-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-381",
+   "phase": 5,
+   "title": "Fix: the EZD-208b B9 hover test counts 14 React commits where 17 are expected after develop merges in",
+   "depends_raw": "EZD-208b",
+   "spec_ref": "rule 17 (gate defect, EZD-212a gate 2026-11-10)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-208b"
+   ],
+   "acs": [
+    "AC-EZD-381-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-382",
+   "phase": 1,
+   "title": "Planning method 1: plan template v2, plan_lint v2 rules and the planner limits",
+   "depends_raw": "EZD-378",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-378"
+   ],
+   "acs": [
+    "AC-EZD-382-1",
+    "AC-EZD-382-2",
+    "AC-EZD-382-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-383",
+   "phase": 1,
+   "title": "Planning method 2: contract check, connections check and the shared-list register",
+   "depends_raw": "EZD-382",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Folder layout",
+    "Tests",
+    "Test scope (Q-0006)",
+    "Errors and logging",
+    "Adding a dependency"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-382"
+   ],
+   "acs": [
+    "AC-EZD-383-1",
+    "AC-EZD-383-2",
+    "AC-EZD-383-3",
+    "AC-EZD-383-4"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-384",
+   "phase": 1,
+   "title": "Planning method 3a: the brief-and-size step (P1)",
+   "depends_raw": "EZD-383",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-383"
+   ],
+   "acs": [
+    "AC-EZD-384-1",
+    "AC-EZD-384-2",
+    "AC-EZD-384-3",
+    "AC-EZD-384-4",
+    "AC-EZD-384-5"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-385",
+   "phase": 1,
+   "title": "Planning method 4: the plan stays true at merge",
+   "depends_raw": "EZD-383",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-383",
+    "EZD-384b"
+   ],
+   "acs": [
+    "AC-EZD-385-1",
+    "AC-EZD-385-2",
+    "AC-EZD-385-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-386",
+   "phase": 1,
+   "title": "Fix: plans and builds look ahead to every signed-off phase, not only two",
+   "depends_raw": "EZD-382",
+   "spec_ref": "Josh 2026-11-11 (session 18 chat); rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-382"
+   ],
+   "acs": [
+    "AC-EZD-386-1",
+    "AC-EZD-386-2",
+    "AC-EZD-386-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-387",
+   "phase": 1,
+   "title": "Fix: the phase-rank test blocks the real tickets of every signed-off phase, so a new sign-off cannot turn the gate red",
+   "depends_raw": "EZD-360",
+   "spec_ref": "rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Tests"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-360"
+   ],
+   "acs": [
+    "AC-EZD-387-1",
+    "AC-EZD-387-2",
+    "AC-EZD-387-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-224b",
+   "phase": 6,
+   "title": "Plan thumbnail: checkpoint capture and encode",
+   "depends_raw": "EZD-224, EZD-207",
+   "spec_ref": "S01 Card thumbnail; R24 #4",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md#Card thumbnail",
+    "spec/sections/09m-phase-switch-and-view-examples.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "architecture": [
+    "Plan canvas (EZD-207a)",
+    "Editor route (EZD-120c)",
+    "Benchmark project (EZD-236)",
+    "Browser tests (EZD-016a)",
+    "Entry points and lazy modules (EZD-020)",
+    "Dependencies",
+    "Storage buckets and paths"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-224",
+    "EZD-207a",
+    "EZD-207b",
+    "EZD-207c",
+    "EZD-120c",
+    "EZD-120b",
+    "EZD-236",
+    "EZD-016a"
+   ],
+   "acs": [
+    "AC-EZD-224-1",
+    "AC-EZD-224-3",
+    "AC-EZD-224-5"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-235b",
+   "phase": 6,
+   "title": "Worker pool and the worker check",
+   "depends_raw": "EZD-235",
+   "spec_ref": "Non-functional · Performance (rules 2 and 3)",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Entry points and lazy modules (EZD-020)",
+    "Benchmark project (EZD-236)",
+    "Error reporting (EZD-024)"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-235",
+    "EZD-017",
+    "EZD-359",
+    "EZD-356",
+    "EZD-236",
+    "EZD-207c",
+    "EZD-024"
+   ],
+   "acs": [
+    "AC-EZD-235-3"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-384b",
+   "phase": 1,
+   "title": "Planning method 3b: the code-bound step (P3) and the phase dependency check (P5)",
+   "depends_raw": "EZD-384",
+   "spec_ref": "Q-0693; rule 17",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-384"
+   ],
+   "acs": [
+    "AC-EZD-384b-1",
+    "AC-EZD-384b-2",
+    "AC-EZD-384b-3",
+    "AC-EZD-384b-4",
+    "AC-EZD-384b-5",
+    "AC-EZD-384b-6",
+    "AC-EZD-384b-7",
+    "AC-EZD-384b-8"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-135b",
+   "phase": 6,
+   "title": "System status page, cards and alert link",
+   "depends_raw": "EZD-135",
+   "spec_ref": "Non-functional · Operations; R26 R12",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/13b-round-26.md#R12",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/11-non-functional-requirements.md#Q-0211",
+    "spec/decisions/03-data-model.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Settings shell (EZD-103a)",
+    "Company settings (EZD-112)",
+    "Customers (EZD-113)",
+    "State components (EZD-015)",
+    "Messages and language (t())",
+    "Design tokens, fonts and icons",
+    "Error reporting (EZD-024)",
+    "Off-site backups and restore (EZD-025)",
+    "Background jobs (EZD-009)",
+    "Permission enforcement (EZD-102)",
+    "Server-only data access and can()",
+    "Browser tests (EZD-016a)"
+   ],
+   "phase_file": "tickets/phases/phase-01.md",
+   "depends_on": [
+    "EZD-135"
+   ],
+   "acs": [
+    "AC-EZD-135-1",
+    "AC-EZD-135-2",
+    "AC-EZD-135-3"
+   ],
+   "acs_source": "stage-0"
+  },
+  {
+   "id": "EZD-388",
+   "phase": 4,
+   "title": "Fix: the pan.test P2 iPad pan count fails under load (6 where 8 are expected)",
+   "depends_raw": "EZD-359",
+   "spec_ref": "rule 17; Q-0623",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-359"
+   ],
+   "acs": [
+    "AC-EZD-388-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-389",
+   "phase": 5,
+   "title": "Every email a user's action sends also goes to that user",
+   "depends_raw": "EZD-008a",
+   "spec_ref": "Q-0701; R26",
+   "spec_files": [
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "decisions": [
+    "spec/decisions/07-hooks-events-and-integrations.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Email (EZD-008)",
+    "Messages and language (t())"
+   ],
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-008a"
+   ],
+   "acs": [
+    "AC-EZD-389-1",
+    "AC-EZD-389-2",
+    "AC-EZD-389-3"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-390",
+   "phase": 4,
+   "title": "Fix: the EZD-299b conflict-list database test writes an error alert on CI without the alert lock",
+   "depends_raw": "EZD-299b",
+   "spec_ref": "rule 17; EZD-252",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Error reporting (EZD-024)",
+    "Sync conflicts on the device (EZD-299b)",
+    "Sync conflicts (EZD-299a)",
+    "CI",
+    "Build lanes (EZD-172)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-299b"
+   ],
+   "acs": [
+    "AC-EZD-390-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-391",
+   "phase": 4,
+   "title": "Fix: the EZD-033 T13 sign-in throttle test counts 4 emails where 5 are expected on CI",
+   "depends_raw": "EZD-033",
+   "spec_ref": "rule 17; EZD-033",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Security"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Email (EZD-008)",
+    "Build lanes (EZD-172)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-033"
+   ],
+   "acs": [
+    "AC-EZD-391-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-392",
+   "phase": 4,
+   "title": "Fix: the EZD-207c N5 throttle test fails under load (throttled time under twice the plain time)",
+   "depends_raw": "EZD-207c",
+   "spec_ref": "rule 17; EZD-207c",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "Build lanes (EZD-172)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-207c"
+   ],
+   "acs": [
+    "AC-EZD-392-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-393",
+   "phase": 5,
+   "title": "Fix: the EZD-356 T1 pan-row test finds a wait during the fixture pan under load",
+   "depends_raw": "EZD-372",
+   "spec_ref": "rule 17; EZD-356",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)"
+   ],
+   "track": "tooling",
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-372"
+   ],
+   "acs": [
+    "AC-EZD-393-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-394",
+   "phase": 5,
+   "title": "Fix: the EZD-000b T4 skill-file test fails when the gate's write probe appears in .claude/agents",
+   "depends_raw": "EZD-000b",
+   "spec_ref": "rule 17; EZD-000b",
+   "spec_files": [
+    "PROCESS.md"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Build lanes (EZD-172)",
+    "Gate user (EZD-354)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-000b"
+   ],
+   "acs": [
+    "AC-EZD-394-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-395",
+   "phase": 5,
+   "title": "Fix: an ended session can get a 500 and an alert instead of 401 when its token refresh fails",
+   "depends_raw": "EZD-349",
+   "spec_ref": "rule 17; Q-0052",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-349"
+   ],
+   "acs": [
+    "AC-EZD-395-1",
+    "AC-EZD-395-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-396",
+   "phase": 4,
+   "title": "Fix: Fit to screen in the EZD-207b B1 and B3 tests gives a smaller zoom since the inspector is always shown",
+   "depends_raw": "EZD-213b, EZD-207b",
+   "spec_ref": "rule 17; EZD-207b; EZD-213b; EZD-368",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Plan canvas (EZD-207a)",
+    "Inspector (EZD-213a)",
+    "Editor shell (EZD-012)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-213b",
+    "EZD-207b"
+   ],
+   "acs": [
+    "AC-EZD-396-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-397",
+   "phase": 5,
+   "title": "Fix: the EZD-117a B2 warm Projects page test takes just over 1,000 ms on CI",
+   "depends_raw": "EZD-117a",
+   "spec_ref": "rule 17; EZD-117a; Q-0748",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md#States",
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-117a"
+   ],
+   "acs": [
+    "AC-EZD-397-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-398",
+   "phase": 5,
+   "title": "Fix: the long-tasks-during-pan:ipad perf check finds one long task on CI after EZD-372",
+   "depends_raw": "EZD-372",
+   "spec_ref": "rule 17; EZD-372; Q-0748",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-372"
+   ],
+   "acs": [
+    "AC-EZD-398-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-399",
+   "phase": 5,
+   "title": "Fix: the EZD-207c N5 throttle test finds a marked task with no CPU time on CI",
+   "depends_raw": "EZD-392",
+   "spec_ref": "rule 17; EZD-207c; Q-0748",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-392"
+   ],
+   "acs": [
+    "AC-EZD-399-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-400",
+   "phase": 4,
+   "title": "Fix: six rail tests count 6 tools where an editor rail now has the Assistant button as a 7th",
+   "depends_raw": "EZD-5603a, EZD-210b",
+   "spec_ref": "rule 17; EZD-207b; EZD-213b; EZD-368",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Plan canvas (EZD-207a)",
+    "Inspector (EZD-213a)",
+    "Editor shell (EZD-012)",
+    "Drawing tools (EZD-210)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-5603a",
+    "EZD-210b"
+   ],
+   "acs": [
+    "AC-EZD-400-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-420",
+   "phase": 4,
+   "title": "Fix: the EZD-009 jobs browser test failed in the phase 4 PR CI gate (test:e2e) with no error text kept",
+   "depends_raw": "EZD-009, EZD-035",
+   "spec_ref": "rule 17; EZD-009; EZD-035",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Operations"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Background jobs (EZD-009)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-009",
+    "EZD-035"
+   ],
+   "acs": [
+    "AC-EZD-420-1"
    ],
    "acs_source": "done-when"
   }

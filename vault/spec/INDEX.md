@@ -11,6 +11,12 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
 - [Glossary addendum, Phase 2](sections/00c-glossary-phase-02.md) — Phase 2 terms added to glossary.md; Q-0403
 - [Glossary addendum, Phase 3](sections/00d-glossary-phase-03.md) — Phase 3 terms added to glossary.md; Q-0507
 - [Glossary addendum, Phase 4](sections/00e-glossary-phase-04.md) — Phase 4 terms added to glossary.md; Q-0568
+- [Glossary addendum, Phase 5](sections/00f-glossary-phase-05.md) — Phase 5 terms added to glossary.md; Q-0630
+- [Glossary addendum, Phase 6](sections/00g-glossary-phase-06.md) — Phase 6 terms added to glossary.md; Q-0664
+- [Glossary addendum, Phase 7](sections/00h-glossary-phase-07.md) — Phase 7 terms added to glossary.md; Q-0695
+- [Glossary addendum, Phase 8](sections/00i-glossary-phase-08.md) — Phase 8 terms added to glossary.md; Q-0697
+- [Glossary addendum, Phase 9](sections/00j-glossary-phase-09.md) — Phase 9 terms added to glossary.md; Q-0700
+- [Glossary addendum, Phase 10](sections/00k-glossary-phase-10.md) — Phase 10 terms added to glossary.md; Q-0704
 - [How to use this spec](sections/01-how-to-use-this-spec.md)
 - [Product overview](sections/02-product-overview.md)
 - [Data model](sections/03-data-model.md) — pointer; the text is in:
@@ -26,7 +32,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [01 · Projects](sections/screens/S01-projects.md) — board S01Projects, S01bWizard
   - [02 · Import review](sections/screens/S02-import-review.md) — board S02Import
   - [03 · Plan editor](sections/screens/S03-plan-editor.md) — board S03Plan
-  - [03c · AI assistant](sections/screens/S03c-ai-assistant.md) — boards S03c and S01g to be drawn (Q-0474)
+  - [03c · AI assistant](sections/screens/S03c-ai-assistant.md) — boards S03c and S01g approved (Q-0474, Q-0630)
   - [04 · Cabinet run + elevation](sections/screens/S04-cabinet-run-elevation.md) — board S04Cabinets
   - [04b · Countertops](sections/screens/S04b-countertops.md) — board S04bCountertops
   - [05 · Ceiling plan / RCP](sections/screens/S05-ceiling-plan-rcp.md) — board S05Ceiling
@@ -72,6 +78,13 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09h · Sheets and revisions](sections/09h-sheets-and-revisions.md)
   - [09i · Takeoff](sections/09i-takeoff.md)
   - [09j · Walls, rooms and lengths: worked examples](sections/09j-walls-and-rooms-examples.md) — Q-0558 to Q-0562, Q-0568
+  - [09k · Openings and moves: worked examples](sections/09k-openings-and-moves-examples.md) — Q-0630
+  - [09l · AI assistant cost line: worked examples](sections/09l-ai-assistant-cost-examples.md) — Q-0637
+  - [09m · Phase switch, snap, scale, zoom, dimensions, text, thumbnail, benchmark: worked examples](sections/09m-phase-switch-and-view-examples.md) — Q-0664
+  - [09n · Users, switches, invites and project scope: worked examples](sections/09n-users-and-invites-examples.md) — Q-0695
+  - [09o · Edit lock and Defaults: worked examples](sections/09o-edit-lock-and-defaults-examples.md) — Q-0697
+  - [09p · Versions, sends, cleanup and the project card: worked examples](sections/09p-versions-and-cleanup-examples.md) — Q-0700
+  - [09q · Fixtures, existing conditions, tile shower, blocking and bearing walls: worked examples](sections/09q-existing-conditions-examples.md) — Q-0704
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)

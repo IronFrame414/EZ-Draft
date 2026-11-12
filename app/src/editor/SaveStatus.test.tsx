@@ -17,10 +17,12 @@ function syncWith(state: Partial<SyncState>): OutboxSync {
     failures: 0,
     problem: null,
     lastSavedAt: null,
+    conflictRev: 0,
     ...state,
   }));
   return {
     ...store,
+    keepMine: vi.fn(async () => ({ kept: false })),
     enqueue: vi.fn(async () => {}),
     flush: vi.fn(async () => {}),
     retry: vi.fn(),

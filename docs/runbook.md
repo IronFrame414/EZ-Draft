@@ -131,6 +131,14 @@ Josh's steps with the AI providers and in Vercel. Set them before launch, as par
 7. **If a release stops on it.** After launch, the release workflow's step "Check the Vercel environment values" accepts Preview `AI_MODE` = `stub` or `live` and refuses a missing or other value (and Production needs an `AI_MODE` value). If it refuses, the release stops before anything changes and the live site stays as it was: fix the value in Vercel, then press **Re-run jobs** on that run.
 8. **Names to leave unset.** Never add these names in Vercel, for Production or Preview: `ANTHROPIC_CUSTOM_HEADERS`, `ANTHROPIC_LOG`, `ANTHROPIC_OPEN_TELEMETRY`, `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION`, `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` and `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES`. The Claude library EZ Draft uses reads them each time it calls Claude: the first adds its headers to every Claude request, the second makes the library write its own log lines, and the others change its tracing. EZ Draft passes the key and the address itself, so `ANTHROPIC_API_KEY` is the only `ANTHROPIC_` name to set.
 
+## AI assistant keys (EZD-5601)
+
+Each person's own Anthropic key is stored encrypted with a value only Vercel holds. Agents never change Vercel settings; never paste the value into chat, a ticket or a file in the repo.
+
+1. **Make the values.** In Terminal run `openssl rand -base64 32` twice: one value for Production, a different one for Preview.
+2. **Vercel.** In the `ezdraft` project: Settings, Environment Variables. Add `AI_KEY_ENCRYPTION_KEYS` = `1:<first value>` for Production and `1:<second value>` for Preview, each marked Sensitive.
+3. **Rotate.** Make a new value as in step 1 and append it, `1:<old value>,2:<new value>`, then redeploy. Remove the old entry after 30 days.
+
 ## Environments and releases (EZD-023)
 
 How production changes. Merging a pull request into `main` starts Actions → **Release** (`.github/workflows/release.yml`). It saves a copy of the production database to Backblaze under `releases/`, applies the migrations, sets up Worth Properties and your owner account on the first release, tags the commit (`phase-N` or `phase-N.k`), makes that commit's own build live and checks the site. If anything fails before the build goes live, the live site does not change. If the checks after going live fail, it puts the previous build back. Agents never see the production secrets; they live only in the GitHub environment `release`.
@@ -182,7 +190,7 @@ From the second release on, while the migrations run, the release adds temporary
 
 ### Rollback
 1. **Automatic.** When the checks after going live fail, the release puts the previous build back. The run is red, and the summary says `verify_failed` and that the previous build was put back.
-2. **By hand** (a problem found later). In Vercel → **Deployments**, open the previous production deployment (its commit carries the previous `phase-…` tag) and use **Instant Rollback**.
+2. **By hand** (a problem found later). In Vercel → **Deployments**, open the previous production deployment (its commit carries the previous `phase-…` tag) and use **Instant Rollback**. Roll back only this way: deploying old code again makes a new build with a newer app number, so every open device's saves are refused until it reloads (Q-0626).
 3. **Leave the database alone.** Never revert, edit or delete a migration. The previous build works with the current database, because migrations add before they remove.
 4. **Check.** Run `node scripts/hosting/check-live.mjs`. `/api/health` still shows the newer `schema_version`; that is expected.
 5. **Fix forward.** Fix on `develop`, open a pull request to `main` and merge it; the release names it `phase-N.k`.
@@ -266,3 +274,25 @@ This restarts ezdraft-dev; the live address is down a few minutes. Never on ezdr
 3. Run node app/scripts/realtime-failover-check.mjs; type the ref if it is ezdraft-dev's.
 4. When asked, restart the project, then press Return (about 15 minutes in all).
 5. Send the RESULT line (no secret) to the orchestrator; close Terminal. On failed: token_expiring, wait 30 minutes, start over.
+
+## Gate user (EZD-354)
+
+Redo after a macOS reinstall or a Node or pnpm bump. The gate checks these on every run (vault/plans/EZD-354.md).
+
+Only Josh can do these (account, sudo, Docker Desktop settings). Order: steps 1 and 2 before the build; step 3 after the orchestrator's row O1. State when planned (2026-11-06): none was done yet (`ls -led /Users/josh` has only `group:everyone deny delete`; `/etc/sudoers.d` is empty).
+
+1. **Close your home folder to ezdraft.** Both users are in group `staff` and `/Users/josh` is `drwxr-x---` josh:staff (`~/.claude` is `drwxr-xr-x`), so ezdraft can list and read most of it. In Terminal (no sudo; you own the folder):
+   `chmod +a "user:ezdraft deny list,search,add_file,add_subdirectory,delete_child,readattr,readextattr,readsecurity" /Users/josh`
+   Check: `ls -led /Users/josh` shows a `user:ezdraft deny list,add_file,search,…` line.
+2. **Let the gate switch to ezdraft without a password, for one command only.** `sudo visudo -f /etc/sudoers.d/ezdraft-gate`, type exactly this line, save:
+   `josh ALL=(root) NOPASSWD: /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env *`
+   Check: `sudo -n /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env -i /usr/bin/id -un` prints `ezdraft`. Then check it allows nothing else: `sudo -n /bin/launchctl asuser 502 /bin/sh -c id` must be refused (`sudo: a password is required`), and `sudo -n -l` shows no `NOPASSWD` line but this one.
+3. **Limit what Docker containers can see** (after the orchestrator says row O1 is done). Docker Desktop → Settings (gear) → Resources → File sharing: remove `/Users`, `/Volumes`, `/private`, `/tmp`, `/var/folders`; add `/Users/josh/Projects/ezdraft/.claude/worktrees` and `/Users/ezdraft/gate`; click Apply & restart. Why: the Docker VM mounts exactly the listed folders (probe 2026-11-06: a privileged container saw `/host_mnt/Users`, `/Volumes`, `/private`, `/tmp`, `/var/folders`), so today any container reads your whole home.
+4. **Log ezdraft in after every restart.** The gate's iPad and phone browser tests need ezdraft logged in behind your account, and FileVault rules out auto-login, so a restart ends that session. Until you do this the gate stops with `ezdraft is not logged in`.
+   - From your menu bar's user icon choose ezdraft and type its password.
+   - As soon as its desktop shows, press Control + Command + Q. Press this before anything else, even if a password prompt or Switch User screen is already showing.
+   - On the screen that follows, click Switch User, choose your name and type your password. Never type your own password on a prompt that was already showing in ezdraft's session: code a gate left behind could draw a fake one.
+   - Never Log Out of either account.
+   - ezdraft's password must be as strong as yours and not reused, because it can unlock this Mac's disk. Never sign ezdraft in with an Apple ID.
+
+Orchestrator setup (row O1), after step 2: each as ezdraft through `S` = `/usr/bin/sudo -n /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env -i HOME=/Users/ezdraft PATH=/opt/homebrew/bin:/usr/bin:/bin`, run from `/`: (a) `S /bin/mkdir -p -m 0755 /Users/ezdraft/gate`; (b) `S FNM_DIR=/Users/ezdraft/.local/share/fnm /opt/homebrew/bin/fnm install v22.23.3`; (c) `S PATH=<B>:/usr/bin:/bin <B>/npm install -g pnpm@12.14.0` with `<B>` = `/Users/ezdraft/.local/share/fnm/node-versions/v22.23.3/installation/bin`; then Josh does step 3. Checks: (d) `S /usr/bin/id -u` prints `502`; (e) `S /bin/cat /Users/josh/.zprofile` exits non-zero with `Permission denied`; (f) `S /bin/launchctl print gui/501` exits non-zero.
