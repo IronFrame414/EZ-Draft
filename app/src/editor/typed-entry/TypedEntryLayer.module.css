@@ -65,6 +65,34 @@
   padding: 2px 6px;
 }
 
+.coarse {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.tb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  font: 500 14px var(--ez-font-sans);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .box {
   position: absolute;
   left: 0;

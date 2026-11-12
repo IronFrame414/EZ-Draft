@@ -2,6 +2,7 @@
 // Typed dimension bar and inline box (EZD-209; S03 Typed dimension bar; 04 Measurement entry).
 // Not mounted in the real editor: EZD-210 mounts it with the first real tools.
 // EZD-211b Build step 7 (vault/plans/EZD-211b.md Decided "openAt"; Q-0634): `openAt` opens the box at a field.
+// EZD-212c (vault/plans/EZD-212c.md D15-D17): the tablet bar's Next field and Cancel, `openOnMount`.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, Ref } from 'react';
 import { PLAN_DISPLAY_DENOMINATOR, formatLength } from '@ezdraft/geometry';
@@ -25,33 +26,69 @@ export function TypedBar({
   state,
   lastValues,
   onFieldPress,
+  coarse,
+  onNext,
+  onCancel,
 }: {
   tool: TypedTool;
   state: TypedEntryState;
   lastValues: Readonly<Record<string, number>>;
   onFieldPress: () => void;
+  coarse?: boolean;
+  onNext?: () => void;
+  onCancel?: () => void;
 }) {
   const t = useT();
   const field = tool.fields[state.active] ?? tool.fields[0];
   const last = lastValues[field.id];
-  return (
-    <div className={styles.bar} data-testid="typed-bar">
-      <button
-        type="button"
-        className={`${styles.chip} ${touch.hitArea}`}
-        data-testid="typed-bar-field"
-        onClick={onFieldPress}
-      >
-        <Icon name={tool.icon} size={16} />
-        <span className={styles.chipLabel} data-testid="typed-bar-label">
-          {t(field.label)}
+  const chip = (
+    <button
+      type="button"
+      className={`${styles.chip} ${touch.hitArea}`}
+      data-testid="typed-bar-field"
+      onClick={onFieldPress}
+    >
+      <Icon name={tool.icon} size={16} />
+      <span className={styles.chipLabel} data-testid="typed-bar-label">
+        {t(field.label)}
+      </span>
+      {field.kind === 'length' && last !== undefined ? (
+        <span className={styles.chipValue} data-testid="typed-bar-value">
+          {formatLength(last, PLAN_DISPLAY_DENOMINATOR)}
         </span>
-        {field.kind === 'length' && last !== undefined ? (
-          <span className={styles.chipValue} data-testid="typed-bar-value">
-            {formatLength(last, PLAN_DISPLAY_DENOMINATOR)}
+      ) : null}
+    </button>
+  );
+  if (coarse === true) {
+    return (
+      <div className={`${styles.bar} ${styles.coarse}`} data-testid="typed-bar" data-coarse="true">
+        {chip}
+        {state.error !== null ? (
+          <span className={styles.error} role="alert" data-testid="typed-bar-error">
+            {t(state.error)}
           </span>
         ) : null}
-      </button>
+        <div className={styles.buttons}>
+          <button type="button" className={styles.tb} data-testid="typed-bar-next" onClick={onNext}>
+            <Icon name="keyboard_tab" size={18} />
+            <span>{t('office.typed.next_field')}</span>
+          </button>
+          <button
+            type="button"
+            className={styles.tb}
+            data-testid="typed-bar-cancel"
+            onClick={onCancel}
+          >
+            <Icon name="close" size={18} />
+            <span>{t('common.cancel')}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.bar} data-testid="typed-bar">
+      {chip}
       {state.error !== null ? (
         <span className={styles.error} role="alert" data-testid="typed-bar-error">
           {t(state.error)}
@@ -118,6 +155,10 @@ type LayerProps = {
   getCursor: () => { x: number; y: number } | null;
   onCommit: (values: TypedValues) => void;
   openAt?: { field: number; seq: number } | null;
+  coarse?: boolean;
+  onCancel?: () => void;
+  openOnMount?: boolean;
+  onEscape?: () => void;
 };
 
 export function TypedEntryLayer(props: LayerProps) {
@@ -132,17 +173,33 @@ function LayerInner({
   getCursor,
   onCommit,
   openAt,
+  coarse,
+  onCancel,
+  openOnMount,
+  onEscape,
 }: LayerProps & { tool: TypedTool }) {
-  const [state, setState] = useState<TypedEntryState>(() => initialTypedEntryState(tool));
+  const [state, setState] = useState<TypedEntryState>(() =>
+    openOnMount === true
+      ? reduceTypedEntry(tool, initialTypedEntryState(tool), {
+          type: 'open',
+          text: '',
+          anchor: 'bar',
+        }).state
+      : initialTypedEntryState(tool),
+  );
   const stateRef = useRef(state);
   const rootRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const getCursorRef = useRef(getCursor);
   const onCommitRef = useRef(onCommit);
+  const onCancelRef = useRef(onCancel);
+  const onEscapeRef = useRef(onEscape);
   useLayoutEffect(() => {
     getCursorRef.current = getCursor;
     onCommitRef.current = onCommit;
+    onCancelRef.current = onCancel;
+    onEscapeRef.current = onEscape;
   });
 
   const dispatch = useCallback(
@@ -186,6 +243,8 @@ function LayerInner({
       e.stopPropagation();
       dispatch(action);
       if (action.type === 'append') inputRef.current?.focus();
+      // EZD-212c: an Esc that closes the box is told to the owner too.
+      if (action.type === 'escape') onEscapeRef.current?.();
     };
     window.addEventListener('keydown', onKey, { capture: true });
     return () => window.removeEventListener('keydown', onKey, { capture: true });
@@ -227,6 +286,7 @@ function LayerInner({
     if (action === null) return;
     e.preventDefault();
     dispatch(action);
+    if (action.type === 'escape') onEscapeRef.current?.();
   };
 
   const onFieldPress = () => {
@@ -234,9 +294,29 @@ function LayerInner({
     else dispatch({ type: 'open', text: '', anchor: 'bar' });
   };
 
+  // D17: Next field is the Tab chip; Cancel is Esc.
+  const onNext = () => {
+    if (!stateRef.current.open) dispatch({ type: 'open', text: '', anchor: 'bar' });
+    dispatch({ type: 'tab', back: false });
+    inputRef.current?.focus();
+  };
+
+  const onCancelPress = () => {
+    dispatch({ type: 'escape' });
+    onCancelRef.current?.();
+  };
+
   return (
     <div className={styles.root} data-testid="typed-entry-layer" ref={rootRef}>
-      <TypedBar tool={tool} state={state} lastValues={lastValues} onFieldPress={onFieldPress} />
+      <TypedBar
+        tool={tool}
+        state={state}
+        lastValues={lastValues}
+        onFieldPress={onFieldPress}
+        coarse={coarse}
+        onNext={onNext}
+        onCancel={onCancelPress}
+      />
       {state.open ? (
         <InlineBox
           tool={tool}

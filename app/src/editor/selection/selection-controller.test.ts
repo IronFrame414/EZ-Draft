@@ -140,6 +140,7 @@ function fakeDrawing(o: {
       lastLength: null,
       doorTarget: null,
       openingWidth: null,
+      entry: null,
     }),
     keyDown: (e) => {
       keys.push(e);

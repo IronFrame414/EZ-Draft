@@ -22,6 +22,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-217 E1: content_copy, content_paste, content_paste_go, delete, redo, undo.
 // EZD-299: block, category, door_front, info, layers, my_location, refresh, report, update, window (D-Icons).
 // EZD-212b: open_with.
+// EZD-212c E1: keyboard_tab.
 const EXPECTED_ICONS = [
   'add',
   'ads_click',
@@ -62,6 +63,7 @@ const EXPECTED_ICONS = [
   'info',
   'inventory_2',
   'key',
+  'keyboard_tab',
   'kitchen',
   'layers',
   'library_add_check',

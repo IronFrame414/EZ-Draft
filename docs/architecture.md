@@ -498,7 +498,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 ### Typed dimension bar (EZD-209)
 
 - Files: `packages/geometry/src/turn.ts` (`parseTurnAngle`, `resolveTurnDirection`), `app/src/editor/typed-entry/typed-entry.ts` (pure reducer, field consts, `isOpenKey`, `isTypingTarget`), `TypedEntryLayer.tsx` and its CSS module. Not mounted in the real editor; EZD-210 mounts it with the first real tools.
-- `TypedEntryLayer` props: `tool`, `canEdit`, `lastValues`, `getCursor` (CSS px from the container's top-left), `onCommit`. It renders nothing when `tool` is null or `canEdit` is false, and goes inside a positioned container (the canvas region).
+- `TypedEntryLayer` props: `tool`, `canEdit`, `lastValues`, `getCursor` (CSS px from the container's top-left), `onCommit`. It renders nothing when `tool` is null or `canEdit` is false, and goes inside a positioned container (the canvas region). EZD-212c adds `coarse`, `onCancel`, `openOnMount`.
 - Key rule: one capture-phase `keydown` listener on `window` while a tool is active; a key the layer handles gets `stopPropagation()` and `preventDefault()` and does not reach listeners later in the event path (bubble-phase listeners and other targets); it does not stop another capture-phase listener on `window`, so tool shortcut and Esc listeners register in the bubble phase, never capture on `window`.
 - Tool shortcuts must skip events whose target passes `isTypingTarget`.
 - Test page: `/dev/typed-bar` (`?edit=0` hides the layer; not found in production).
@@ -516,6 +516,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - Door and Window (EZD-211a): `opening-tool.ts` is a pure reducer like the wall tools but takes `OpeningInput` without snapping (the pointer is projected on the host wall) and returns the openings to save; `G/openings/placement.ts` holds its geometry.
 - Door and Window (EZD-211b): `PlanCanvasHandle.onSpaceTap` (no tap after a space-drag); the just-placed or one selected door owns Space, arc, dot and chips (Q-0641, Q-0642); under Select the drawing controller claims arc and dot presses through `SelectionDeps.claim`.
 - **Move (EZD-212b).** Tool `move` (M). `move-tool.ts` holds the pure Move reducer, the drag session and `previewShapes`; the drawing controller runs Move and every object drag (the selection controller hands a Select drag over through `startDrag`/`dragPointer`; Move reads the selection and `pickAt` through `attachSelection`). A move is one `applyEdit` of `moveEditChanges`; the dashed preview is the `move-preview` path written by `overlay.ts`.
+- **Handles and chips (EZD-212c).** `selection-edit.ts` is pure; handle presses come through `claimSelectPointer`; the typed bar shows under Select only during a handle drag or chip entry (`DrawingUi.entry`); `overlay.ts` draws `DrawingFrame.selection`.
 
 ### Selection (EZD-208)
 

@@ -108,3 +108,45 @@ describe('EZD-375 typed bar rounding', () => {
     );
   });
 });
+
+// EZD-212c T1, T2 (vault/plans/EZD-212c.md section 4, D15-D17; AC-EZD-212-19, -1).
+describe('EZD-212c typed bar on a tablet', () => {
+  const tablet = (tool: TypedTool, over: { coarse?: boolean; openOnMount?: boolean } = {}) =>
+    render(
+      <TypedEntryLayer
+        tool={tool}
+        canEdit={true}
+        lastValues={{}}
+        getCursor={() => null}
+        onCommit={fn}
+        onCancel={fn}
+        {...over}
+      />,
+    );
+
+  it('EZD-212c T1 tablet bar', () => {
+    const a = tablet(STUB, { coarse: true });
+    expect(tagOf(a, 'typed-bar')).toContain('data-coarse="true"');
+    expect(textOf(a, 'typed-bar-next')).toBe('Next field');
+    expect(textOf(a, 'typed-bar-cancel')).toBe('Cancel');
+    expect(count(a, 'typed-bar-tab')).toBe(0);
+    expect(count(a, 'typed-bar-hint')).toBe(0);
+
+    const b = tablet(ONE, { coarse: true });
+    expect(count(b, 'typed-bar-next')).toBe(1);
+
+    const c = tablet(STUB);
+    expect(count(c, 'typed-bar-next')).toBe(0);
+    expect(count(c, 'typed-bar-cancel')).toBe(0);
+    expect(textOf(c, 'typed-bar-tab')).toBe('Tab');
+    expect(tagOf(c, 'typed-bar')).not.toContain('data-coarse');
+  });
+
+  it('EZD-212c T2 open on mount', () => {
+    const a = tablet(STUB, { openOnMount: true });
+    expect(count(a, 'typed-box')).toBe(1);
+    expect(textOf(a, 'typed-box-label')).toBe('Length');
+    const b = tablet(STUB);
+    expect(count(b, 'typed-box')).toBe(0);
+  });
+});

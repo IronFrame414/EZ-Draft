@@ -22,6 +22,7 @@
 // a failed scale save shows its own "Changes not saved" banner unless the model's shows.
 // EZD-217 Build step 8 (vault/plans/EZD-217.md Decided "Editor wiring"): the edit controller (Delete, Copy, Paste,
 // Duplicate, Undo, Redo) beside the selection, given to the selection layer and the tablet edit bar.
+// EZD-212c (vault/plans/EZD-212c.md D21): the drawing layer's tablet Cancel turns the tool off.
 import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
@@ -394,7 +395,12 @@ export function ProjectEditor({
       <PlanInputSurface controller={plan} />
       <ZoomStack handle={plan.handle} />
       {drawing !== null ? (
-        <DrawingLayer controller={drawing} handle={plan.handle} canEdit={canEdit} />
+        <DrawingLayer
+          controller={drawing}
+          handle={plan.handle}
+          canEdit={canEdit}
+          onCancel={() => (selection !== null ? selection.selectTool() : drawing.selectTool(null))}
+        />
       ) : null}
       {selection !== null ? <SelectionLayer selection={selection} edit={edit} /> : null}
       {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}

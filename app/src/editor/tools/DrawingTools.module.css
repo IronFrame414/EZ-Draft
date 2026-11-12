@@ -2,7 +2,9 @@
    canvas region, the rubber band and snap marker, and the gap box.
    EZD-211b Build step 10 (vault/plans/EZD-211b.md Decided "CSS"): the opening preview, dims, ticks, hinge dot,
    offset chips and door tooltip.
-   EZD-212b (vault/plans/EZD-212b.md D10; board S03dStates): the dashed Move preview. */
+   EZD-212b (vault/plans/EZD-212b.md D10; board S03dStates): the dashed Move preview.
+   EZD-212c (vault/plans/EZD-212c.md D20; boards S03dWallSelected, S03dDoorSelected): resize handles, chip leaders
+   and ticks, text chips. */
 
 .layer {
   position: absolute;
@@ -162,6 +164,34 @@
   white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
+}
+
+.handle {
+  fill: var(--ez-surface);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.handle[data-active='true'] {
+  fill: var(--ez-cobalt);
+}
+
+.leaders {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+}
+
+.chipTicks {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+}
+
+.chipText {
+  cursor: default;
+  pointer-events: none;
 }
 
 .tooltip {

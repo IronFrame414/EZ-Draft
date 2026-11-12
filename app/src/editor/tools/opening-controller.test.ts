@@ -200,7 +200,7 @@ describe('EZD-211b opening controller', () => {
     selection.select([doorId]);
     expect(selection.getUi().ids).toEqual([doorId]);
     expect(drawing.getFrame()?.opening?.dot).toBe(true);
-    expect(drawing.getFrame()?.opening?.chips).toBe(false);
+    expect(drawing.getFrame()?.opening?.chips).toBe(true);
 
     // (4) a click on the arc flips the swing, in one edit, and the door stays selected.
     const s0 = symbol();
@@ -218,14 +218,20 @@ describe('EZD-211b opening controller', () => {
     expect(store.getState().past).toHaveLength(past0 + 1);
     expect(selection.getUi().ids).toEqual([doorId]);
 
-    // (5) a press on the hinge dot that moves 11 px (+4.125 in x) saves nothing and flips nothing.
+    // (5) a press on the hinge dot that moves 11 px resizes the door (Q-0633 G6) and flips nothing (EZD-212c E2).
     const hinge = symbol().hinge;
     const past1 = store.getState().past.length;
+    const jambBefore = door().data.geometry.center.x + door().data.attributes.width / 2;
     send(ev('down', hinge.x, hinge.y));
     send(ev('move', hinge.x + 4.125, hinge.y));
     send(ev('up', hinge.x + 4.125, hinge.y));
-    expect(store.getState().past).toHaveLength(past1);
+    expect(store.getState().past).toHaveLength(past1 + 1);
     expect(door().data.attributes.hand).toBe('left');
+    expect(door().data.attributes.width).toBeCloseTo(32, 9);
+    expect(door().data.geometry.center.x + door().data.attributes.width / 2).toBeCloseTo(
+      jambBefore,
+      9,
+    );
 
     // (6) Space flips the swing back.
     expect(drawing.spaceTap()).toBe(true);

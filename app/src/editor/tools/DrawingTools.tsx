@@ -9,6 +9,8 @@
 // EZD-211b Build step 9 (vault/plans/EZD-211b.md Decided "Layer"): the opening preview, dims, ticks, hinge dot and
 // offset chips, the door tooltip, and Space taps to the controller.
 // EZD-212b (vault/plans/EZD-212b.md D10): the dashed Move preview path.
+// EZD-212c (vault/plans/EZD-212c.md D18-D20): resize handles, wall chip leaders, selection and size chips, chips as
+// text without Edit model, the typed bar for a handle drag or chip entry, and the tablet Cancel.
 import {
   useCallback,
   useEffect,
@@ -18,8 +20,10 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import type { RefObject } from 'react';
 import type { RailTool } from '../../components/shell/rail-types';
 import { ToolRail } from '../../components/shell/ToolRail';
+import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { useT } from '../../lib/messages';
 import touch from '../../styles/touch.module.css';
 import type { PlanCanvasHandle } from '../plan/controller';
@@ -28,6 +32,7 @@ import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
 import type { DrawingController, DrawingUi } from './drawing-controller';
 import { GapBoxes } from './GapBoxes';
 import { createToolOverlay } from './overlay';
+import { entryTool } from './selection-edit';
 import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
 
@@ -63,11 +68,22 @@ export type DrawingLayerProps = {
   controller: DrawingController;
   handle: PlanCanvasHandle;
   canEdit: boolean;
+  onCancel: () => void;
 };
 
-export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps) {
+// D19: how the chips draw: text without Edit model, entry buttons under Select, the opening tools' own buttons.
+function chipModeOf(ui: DrawingUi): 'text' | 'entry' | 'tool' {
+  if (!ui.enabled) return 'text';
+  if (ui.tool === null) return 'entry';
+  if (ui.tool === 'door' || ui.tool === 'window') return 'tool';
+  return 'text';
+}
+
+export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingLayerProps) {
   const t = useT();
   const ui = useSyncExternalStore(controller.subscribe, controller.getUi, controller.getUi);
+  const coarse = useCoarsePointer();
+  const chipMode = chipModeOf(ui);
   const bandRef = useRef<SVGPathElement>(null);
   const previewRef = useRef<SVGPathElement>(null);
   const markerRef = useRef<SVGPathElement>(null);
@@ -80,8 +96,18 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
   const dotRef = useRef<SVGCircleElement>(null);
   const leftSlotRef = useRef<HTMLDivElement>(null);
   const rightSlotRef = useRef<HTMLDivElement>(null);
-  const leftChipRef = useRef<HTMLButtonElement>(null);
-  const rightChipRef = useRef<HTMLButtonElement>(null);
+  const leftChipRef = useRef<HTMLElement>(null);
+  const rightChipRef = useRef<HTMLElement>(null);
+  const leadersRef = useRef<SVGPathElement>(null);
+  const chipTicksRef = useRef<SVGPathElement>(null);
+  const handle0Ref = useRef<SVGCircleElement>(null);
+  const handle1Ref = useRef<SVGCircleElement>(null);
+  const selLeftSlotRef = useRef<HTMLDivElement>(null);
+  const selRightSlotRef = useRef<HTMLDivElement>(null);
+  const selLeftChipRef = useRef<HTMLElement>(null);
+  const selRightChipRef = useRef<HTMLElement>(null);
+  const sizeSlotRef = useRef<HTMLDivElement>(null);
+  const sizeChipRef = useRef<HTMLSpanElement>(null);
   const [openAt, setOpenAt] = useState<{ field: number; seq: number } | null>(null);
   const boxEls = useRef(new Map<string, HTMLDivElement>());
   const boxesRef = useRef(ui.boxes);
@@ -115,6 +141,16 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
     const leftChip = leftChipRef.current;
     const rightChip = rightChipRef.current;
     const preview = previewRef.current;
+    const leaders = leadersRef.current;
+    const chipTicks = chipTicksRef.current;
+    const handle0 = handle0Ref.current;
+    const handle1 = handle1Ref.current;
+    const selLeftSlot = selLeftSlotRef.current;
+    const selRightSlot = selRightSlotRef.current;
+    const selLeftChip = selLeftChipRef.current;
+    const selRightChip = selRightChipRef.current;
+    const sizeSlot = sizeSlotRef.current;
+    const sizeChip = sizeChipRef.current;
     if (
       band === null ||
       marker === null ||
@@ -129,7 +165,17 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
       rightSlot === null ||
       leftChip === null ||
       rightChip === null ||
-      preview === null
+      preview === null ||
+      leaders === null ||
+      chipTicks === null ||
+      handle0 === null ||
+      handle1 === null ||
+      selLeftSlot === null ||
+      selRightSlot === null ||
+      selLeftChip === null ||
+      selRightChip === null ||
+      sizeSlot === null ||
+      sizeChip === null
     )
       return;
     const overlay = createToolOverlay(
@@ -150,6 +196,16 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
           ],
         },
         preview,
+        selection: {
+          handles: [handle0, handle1],
+          leaders,
+          ticks: chipTicks,
+          chips: [
+            { slot: selLeftSlot, button: selLeftChip },
+            { slot: selRightSlot, button: selRightChip },
+          ],
+          size: { slot: sizeSlot, button: sizeChip },
+        },
       },
       handle.modelToScreen,
     );
@@ -164,7 +220,8 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
       offFrame();
       offCamera();
     };
-  }, [controller, handle, place]);
+    // D19: the chip elements change with the chip mode, so the refs are bound again.
+  }, [controller, handle, place, chipMode]);
 
   useEffect(
     () =>
@@ -185,12 +242,18 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
     [ui.doorTarget, handle],
   );
 
+  // D20: under Select the typed bar is the handle drag's or chip entry's; an Esc that closes its box ends the
+  // entry (D14, S03:76; round 2).
+  const entryTyped = useMemo(() => (ui.entry ? entryTool(ui.entry) : null), [ui.entry]);
+
   const lastValues: Readonly<Record<string, number>> =
-    ui.openingWidth !== null
-      ? { width: ui.openingWidth }
-      : ui.lastLength === null
-        ? {}
-        : { length: ui.lastLength };
+    ui.tool === null
+      ? {}
+      : ui.openingWidth !== null
+        ? { width: ui.openingWidth }
+        : ui.lastLength === null
+          ? {}
+          : { length: ui.lastLength };
 
   return (
     <div className={styles.layer} data-testid="drawing-layer">
@@ -203,6 +266,34 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
         />
         <path ref={bandRef} className={styles.band} data-testid="tool-band" display="none" />
         <path ref={markerRef} className={styles.marker} data-testid="snap-marker" display="none" />
+        <path
+          ref={leadersRef}
+          data-testid="chip-leaders"
+          className={styles.leaders}
+          display="none"
+        />
+        <path
+          ref={chipTicksRef}
+          data-testid="chip-ticks"
+          className={styles.chipTicks}
+          display="none"
+        />
+        <circle
+          ref={handle0Ref}
+          data-testid="resize-handle"
+          data-index="0"
+          r="5"
+          className={styles.handle}
+          display="none"
+        />
+        <circle
+          ref={handle1Ref}
+          data-testid="resize-handle"
+          data-index="1"
+          r="5"
+          className={styles.handle}
+          display="none"
+        />
         <g ref={groupRef} data-testid="opening-preview" display="none">
           <path ref={spanRef} className={styles.span} data-part="span" display="none" />
           <path ref={leafRef} className={styles.leaf} data-part="leaf" display="none" />
@@ -228,21 +319,88 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
       />
       <div data-testid="opening-chips" className={styles.chips}>
         <div ref={leftSlotRef} className={styles.chipSlot} style={{ display: 'none' }}>
-          <button
-            ref={leftChipRef}
-            type="button"
-            data-testid="opening-chip-left"
-            className={`${styles.chip} ${touch.hitArea}`}
-            onClick={() => setOpenAt((p) => ({ field: 0, seq: (p?.seq ?? 0) + 1 }))}
-          />
+          {chipMode === 'text' ? (
+            <span
+              ref={leftChipRef}
+              data-testid="opening-chip-left"
+              className={`${styles.chip} ${styles.chipText}`}
+            />
+          ) : (
+            <button
+              ref={leftChipRef as RefObject<HTMLButtonElement>}
+              type="button"
+              data-testid="opening-chip-left"
+              className={`${styles.chip} ${touch.hitArea}`}
+              onClick={() =>
+                chipMode === 'entry'
+                  ? controller.startChipEntry('left')
+                  : setOpenAt((p) => ({ field: 0, seq: (p?.seq ?? 0) + 1 }))
+              }
+            />
+          )}
         </div>
         <div ref={rightSlotRef} className={styles.chipSlot} style={{ display: 'none' }}>
-          <button
-            ref={rightChipRef}
-            type="button"
-            data-testid="opening-chip-right"
-            className={`${styles.chip} ${touch.hitArea}`}
-            onClick={() => setOpenAt((p) => ({ field: 1, seq: (p?.seq ?? 0) + 1 }))}
+          {chipMode === 'text' ? (
+            <span
+              ref={rightChipRef}
+              data-testid="opening-chip-right"
+              className={`${styles.chip} ${styles.chipText}`}
+            />
+          ) : (
+            <button
+              ref={rightChipRef as RefObject<HTMLButtonElement>}
+              type="button"
+              data-testid="opening-chip-right"
+              className={`${styles.chip} ${touch.hitArea}`}
+              onClick={() =>
+                chipMode === 'entry'
+                  ? controller.startChipEntry('right')
+                  : setOpenAt((p) => ({ field: 1, seq: (p?.seq ?? 0) + 1 }))
+              }
+            />
+          )}
+        </div>
+      </div>
+      <div data-testid="selection-chips" className={styles.chips}>
+        <div ref={selLeftSlotRef} className={styles.chipSlot} style={{ display: 'none' }}>
+          {chipMode === 'text' ? (
+            <span
+              ref={selLeftChipRef}
+              data-testid="selection-chip-left"
+              className={`${styles.chip} ${styles.chipText}`}
+            />
+          ) : (
+            <button
+              ref={selLeftChipRef as RefObject<HTMLButtonElement>}
+              type="button"
+              data-testid="selection-chip-left"
+              className={`${styles.chip} ${touch.hitArea}`}
+              onClick={() => controller.startChipEntry('left')}
+            />
+          )}
+        </div>
+        <div ref={selRightSlotRef} className={styles.chipSlot} style={{ display: 'none' }}>
+          {chipMode === 'text' ? (
+            <span
+              ref={selRightChipRef}
+              data-testid="selection-chip-right"
+              className={`${styles.chip} ${styles.chipText}`}
+            />
+          ) : (
+            <button
+              ref={selRightChipRef as RefObject<HTMLButtonElement>}
+              type="button"
+              data-testid="selection-chip-right"
+              className={`${styles.chip} ${touch.hitArea}`}
+              onClick={() => controller.startChipEntry('right')}
+            />
+          )}
+        </div>
+        <div ref={sizeSlotRef} className={styles.chipSlot} style={{ display: 'none' }}>
+          <span
+            ref={sizeChipRef}
+            data-testid="size-chip"
+            className={`${styles.chip} ${styles.chipText}`}
           />
         </div>
       </div>
@@ -262,12 +420,19 @@ export function DrawingLayer({ controller, handle, canEdit }: DrawingLayerProps)
       ) : null}
       {canEdit ? (
         <TypedEntryLayer
-          tool={ui.tool ? DRAWING_TOOLS[ui.tool] : null}
+          tool={ui.tool ? DRAWING_TOOLS[ui.tool] : entryTyped}
           canEdit={ui.enabled}
           lastValues={lastValues}
           getCursor={handle.getCursor}
           onCommit={controller.typed}
           openAt={openAt}
+          coarse={coarse}
+          onCancel={() => {
+            controller.cancelEntry();
+            onCancel();
+          }}
+          openOnMount={ui.entry?.kind === 'chip'}
+          onEscape={ui.tool === null ? controller.cancelEntry : undefined}
         />
       ) : null}
     </div>

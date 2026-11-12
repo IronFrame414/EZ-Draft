@@ -9,6 +9,8 @@
 // status bar's snap settings.
 // EZD-211b (vault/plans/EZD-211b.md): door and window branch, Space tap, Select seam
 // EZD-212b (vault/plans/EZD-212b.md D7): the Move tool branch and every object drag.
+// EZD-212c (vault/plans/EZD-212c.md D9-D14): the selection frame, handle presses and drags, typed handle and chip
+// entries.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -18,10 +20,14 @@ import {
   doorTargetAt,
   flipHand,
   flipSwing,
+  formatChipDistance,
   openingOffsets,
   snap,
+  selectionChips,
   swingSideOf,
+  wallChips,
   wallLength,
+  type ChipSide,
   type DoorSwing,
   type ModelObject,
   type OpeningData,
@@ -85,6 +91,19 @@ import {
   type ToolContext,
   type ToolInput,
   type WallChainState,
+  chipEntryOutcome,
+  entryValue,
+  fixedPoint,
+  handleAt,
+  hingeHandle,
+  resizeByPoint,
+  resizeBySize,
+  resizeHandles,
+  sizeChipNormal,
+  type ResizeHandle,
+  type ResizeOutcome,
+  type SelectionEntry,
+  type SelectionFrame,
 } from './index';
 
 export type DrawingFrame = {
@@ -97,6 +116,7 @@ export type DrawingFrame = {
   wallDirection: Point | null;
   opening: OpeningFrame | null;
   preview?: readonly PickShape[];
+  selection?: SelectionFrame | null;
 };
 
 export type OpeningFrame = {
@@ -121,6 +141,7 @@ export type DrawingUi = {
   readonly lastLength: number | null;
   readonly doorTarget: 'arc' | 'dot' | null;
   readonly openingWidth: number | null;
+  readonly entry: SelectionEntry | null;
 };
 
 export type ToolKeyEvent = {
@@ -170,6 +191,8 @@ export type DrawingController = {
   claimSelectPointer(event: PlanPointerEvent): boolean;
   startDrag(ids: readonly string[], press: Point): void;
   dragPointer(event: PlanPointerEvent): void;
+  startChipEntry(side: ChipSide): void;
+  cancelEntry(): void;
   dispose(): void;
 };
 
@@ -237,7 +260,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let lastPoint: Point | null = null;
   let link: SelectionLink | null = null;
   let unsubscribeLink: (() => void) | null = null;
-  let claim: { target: 'arc' | 'dot'; screen: Point; moved: boolean } | null = null;
+  // EZD-212c D11: a press under Select on the door's arc or dot, or on a resize handle.
+  let claim: {
+    screen: Point;
+    target: 'arc' | 'dot' | null;
+    handle: ResizeHandle | null;
+    moved: boolean;
+    done: boolean;
+    outcome: ResizeOutcome | null;
+  } | null = null;
   // EZD-212b D7: the Move press (region px, drag past MOVE_DRAG_PX), the live drag and the cached move models.
   let movePress: { screen: Point; dragged: boolean } | null = null;
   let drag: MoveDrag | null = null;
@@ -260,6 +291,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     lastLength: null,
     doorTarget: null,
     openingWidth: null,
+    entry: null,
   };
 
   const setUi = (patch: Partial<DrawingUi>) => {
@@ -275,6 +307,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       next.lastLength !== ui.lastLength ||
       next.doorTarget !== ui.doorTarget ||
       next.openingWidth !== ui.openingWidth ||
+      next.entry !== ui.entry ||
       !sameBoxes(next.boxes, ui.boxes);
     if (!changed) return;
     if (sameBoxes(next.boxes, ui.boxes)) next = { ...next, boxes: ui.boxes };
@@ -439,7 +472,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           ? dragOutcome(drag, { objects: moveModels(), at: to })
           : clickOutcome(moveModels(), ids, { x: to.x - base.x, y: to.y - base.y });
     }
-    return {
+    const result: DrawingFrame = {
       rect: false,
       from: base,
       to,
@@ -453,26 +486,119 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           ? previewShapes(moveModels(), level, outcome.changed)
           : [],
     };
+    // EZD-212c D10: one moved object shows its chips where the move puts it.
+    if (ids.length !== 1) return result;
+    const id = ids[0]!;
+    const after = afterOf(outcome !== null && outcome.ok ? outcome.changed : []);
+    const o = after.find((x) => lower(x.id) === lower(id));
+    if (o?.type === 'wall') {
+      return {
+        ...result,
+        opening: null,
+        selection: { handles: [], active: null, wallChips: wallChips(after, o.id), size: null },
+      };
+    }
+    if (o?.type === 'opening') {
+      return { ...result, opening: selectedOpeningFrame(o, after, false), selection: null };
+    }
+    return result;
+  }
+
+  // EZD-212c D10: the move models with an outcome's changed objects swapped in by id.
+  function afterOf(changed: readonly ModelObject[]): ModelObject[] {
+    const from = moveModels();
+    if (changed.length === 0) return from;
+    const byId = new Map(changed.map((o) => [lower(o.id), o]));
+    return from.map((o) => byId.get(lower(o.id)) ?? o);
+  }
+
+  // EZD-212c D9, D10: P211b's opening frame of one selected opening, its host and offsets read from `from`.
+  function selectedOpeningFrame(
+    o: OpeningObject,
+    from: readonly ModelObject[],
+    dot: boolean,
+  ): OpeningFrame | null {
+    const fromWalls = wallsIn(from);
+    const hostId = o.data.geometry.hostWallId;
+    const host =
+      hostId === null ? null : (fromWalls.find((w) => lower(w.id) === lower(hostId)) ?? null);
+    if (host === null) return null;
+    return {
+      data: o.data,
+      host,
+      offsets: openingOffsets(o, host, fromWalls),
+      owned: true,
+      chipSide: chipSideOf(o.data, host),
+      dot,
+      chips: true,
+    };
+  }
+
+  // EZD-212c D9: one selected wall or opening at rest.
+  function restFrame(): DrawingFrame | null {
+    if (link === null || level === null) return null;
+    const ids = link.getUi().ids;
+    if (ids.length !== 1) return null;
+    const id = ids[0]!;
+    const from = moveModels();
+    const o = from.find(
+      (x) => (x.type === 'wall' || x.type === 'opening') && lower(x.id) === lower(id),
+    );
+    if (o === undefined) return null;
+    const selection: SelectionFrame = {
+      handles: enabled ? resizeHandles(from, ids).map((h) => h.at) : [],
+      active: null,
+      wallChips: o.type === 'wall' ? wallChips(from, o.id) : [],
+      size: null,
+    };
+    const opening =
+      o.type === 'opening'
+        ? selectedOpeningFrame(o, from, o.data.attributes.kind === 'door' && enabled)
+        : null;
+    return { ...EMPTY_FRAME, preview: [], opening, selection };
+  }
+
+  // EZD-212c D12: a handle drag.
+  function handleFrame(outcome: ResizeOutcome | null, h: ResizeHandle): DrawingFrame {
+    const marker = lastSnap === null ? null : snapMarker(lastSnap, lastContext);
+    const wall = marker?.wallId ? index.getWall(marker.wallId) : undefined;
+    const g = wall?.data.geometry;
+    const changed = outcome !== null && outcome.ok ? outcome.changed : null;
+    const after = afterOf(changed ?? []);
+    let size: SelectionFrame['size'] = null;
+    if (h.kind === 'opening' && changed !== null && outcome !== null) {
+      const o = changed.find((x) => x.type === 'opening' && lower(x.id) === lower(h.id));
+      const normal = sizeChipNormal(after, h.id);
+      if (o !== undefined && o.type === 'opening' && normal !== null)
+        size = { at: o.data.geometry.center, normal, text: formatChipDistance(outcome.size) };
+    }
+    const active = h.kind === 'wall' ? (h.end === 'start' ? 0 : 1) : h.jamb === 'lo' ? 0 : 1;
+    return {
+      rect: false,
+      from: null,
+      to: null,
+      marker,
+      anchor: fixedPoint(moveModels(), h),
+      referenceDirection: null,
+      wallDirection: g ? { x: g.end.x - g.start.x, y: g.end.y - g.start.y } : null,
+      preview:
+        changed !== null && level !== null ? previewShapes(moveModels(), level, changed) : [],
+      opening: null,
+      selection: {
+        handles: resizeHandles(after, [h.id]).map((x) => x.at),
+        active,
+        wallChips: h.kind === 'wall' ? wallChips(after, h.id) : [],
+        size,
+      },
+    };
   }
 
   function buildFrame(): DrawingFrame | null {
     if (tool === null) {
       if (drag !== null) return moveFrame(drag.base, drag.ids);
-      const door = selectedDoor();
-      const host = door === null ? null : findWall(door.data.geometry.hostWallId);
-      if (door === null || host === null) return null;
-      return {
-        ...EMPTY_FRAME,
-        opening: {
-          data: door.data,
-          host,
-          offsets: openingOffsets(door, host, walls),
-          owned: true,
-          chipSide: chipSideOf(door.data, host),
-          dot: true,
-          chips: false,
-        },
-      };
+      if (claim !== null && claim.handle !== null && claim.moved && !claim.done)
+        return handleFrame(claim.outcome, claim.handle);
+      return restFrame();
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
@@ -789,6 +915,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function selectTool(id: DrawingToolId | null): void {
     if (disposed || !enabled) return;
+    cancelEntry();
     const hadDrag = drag !== null;
     drag = null;
     movePress = null;
@@ -829,7 +956,11 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function typed(values: TypedValues): void {
-    if (disposed || !enabled || tool === null) return;
+    if (disposed || !enabled) return;
+    if (tool === null) {
+      typedEntry(values);
+      return;
+    }
     if (tool.id === 'move') {
       moveInput({ type: 'typed', distance: values.distance ?? null });
       return;
@@ -842,9 +973,56 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     emitFrame();
   }
 
+  // EZD-212c D13: a size typed during a handle drag, or a chip's typed distance.
+  function typedEntry(values: TypedValues): void {
+    const entry = ui.entry;
+    if (entry === null) return;
+    const v = entryValue(entry, values);
+    if (entry.kind === 'handle') {
+      const c = claim;
+      if (v === null || c === null || c.handle === null) return;
+      const r = resizeBySize(moveModels(), c.handle, v);
+      c.done = true;
+      setUi({ entry: null });
+      applyMove(r);
+      emitFrame();
+      return;
+    }
+    const r = chipEntryOutcome(moveModels(), entry, v);
+    setUi({ entry: null });
+    if (r !== null) applyMove(r);
+    emitFrame();
+  }
+
+  function startChipEntry(side: ChipSide): void {
+    if (disposed || !enabled || tool !== null || ui.pick !== null || claim !== null) return;
+    if (link === null) return;
+    const ids = link.getUi().ids;
+    if (ids.length !== 1) return;
+    const from = moveModels();
+    if (!selectionChips(from, ids).some((c) => c.side === side)) return;
+    const o = from.find((x) => lower(x.id) === lower(ids[0]!));
+    if (o === undefined) return;
+    const objectKind =
+      o.type === 'wall' ? 'wall' : o.type === 'opening' ? o.data.attributes.kind : null;
+    if (objectKind === null) return;
+    setUi({ entry: { kind: 'chip', id: o.id, objectKind, side } });
+  }
+
+  function cancelEntry(): void {
+    if (disposed) return;
+    claim = null;
+    setUi({ entry: null });
+    emitFrame();
+  }
+
   function keyDown(e: ToolKeyEvent): boolean {
     if (disposed || !enabled) return false;
     if (e.defaultPrevented || isTypingTarget(e.target)) return false;
+    if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
+      cancelEntry();
+      return true;
+    }
     if (e.key === 'Escape') {
       if (ui.pick !== null) {
         setUi({ pick: reducePick(ui.pick, { type: 'escape' }).state, gapMessage: null });
@@ -924,6 +1102,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       if (disposed) return;
       claim = null;
       setUi({ doorTarget: null });
+      // EZD-212c D14: an entry ends when the selection is no longer its one object, and a handle entry always.
+      const entry = ui.entry;
+      if (entry !== null) {
+        const ids = next.getUi().ids;
+        const same = ids.length === 1 && lower(ids[0]!) === lower(entry.id);
+        if (!same || entry.kind === 'handle') cancelEntry();
+      }
       if (isOpeningTool(tool) || tool === null) emitFrame();
     });
   }
@@ -933,49 +1118,102 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       claim = null;
       return false;
     }
-    const door = selectedDoor();
-    if (door === null) {
+    // D11: one selected wall or opening.
+    const ids = link.getUi().ids;
+    const from = moveModels();
+    const one =
+      ids.length === 1
+        ? from.find(
+            (x) => (x.type === 'wall' || x.type === 'opening') && lower(x.id) === lower(ids[0]!),
+          )
+        : undefined;
+    if (one === undefined) {
       claim = null;
       return false;
     }
-    const host = findWall(door.data.geometry.hostWallId);
+    const door = selectedDoor();
+    const host = door === null ? null : findWall(door.data.geometry.hostWallId);
     const tol = DOOR_TARGET_PX / handle.getPixelsPerInch();
     const touch = event.pointerType === 'touch';
     if (touch) setUi({ doorTarget: null });
     if (claim === null) {
       if (event.kind === 'move' && !touch) {
-        setUi({ doorTarget: doorTargetAt(door, host, event.model, tol) });
+        if (door !== null) setUi({ doorTarget: doorTargetAt(door, host, event.model, tol) });
         return false;
       }
       if (event.kind === 'down') {
-        const target = doorTargetAt(door, host, event.model, tol);
-        if (target === null) return false;
-        claim = { target, screen: { x: event.screen.x, y: event.screen.y }, moved: false };
-        return true;
+        const screen = { x: event.screen.x, y: event.screen.y };
+        const t = door === null ? null : doorTargetAt(door, host, event.model, tol);
+        const press = { screen, moved: false, done: false, outcome: null };
+        if (t === 'dot' && door !== null) {
+          claim = { ...press, target: 'dot', handle: hingeHandle(from, door.id) };
+          return true;
+        }
+        const h = handleAt(resizeHandles(from, ids), event.screen, handle.modelToScreen);
+        if (h !== null) {
+          claim = { ...press, target: t, handle: h };
+          return true;
+        }
+        if (t === 'arc') {
+          claim = { ...press, target: 'arc', handle: null };
+          return true;
+        }
+        return false;
       }
       return false;
     }
     const pressed = claim;
     if (event.kind === 'move') {
+      if (pressed.done) return true;
       const d = Math.hypot(event.screen.x - pressed.screen.x, event.screen.y - pressed.screen.y);
-      if (!pressed.moved && d > PRESS_MOVE_PX) pressed.moved = true;
+      const h = pressed.handle;
+      if (!pressed.moved && d > PRESS_MOVE_PX) {
+        pressed.moved = true;
+        if (h !== null) {
+          const objectKind =
+            one.type === 'wall' ? 'wall' : one.type === 'opening' ? one.data.attributes.kind : null;
+          if (objectKind !== null) setUi({ entry: { kind: 'handle', id: h.id, objectKind } });
+        }
+      }
+      if (pressed.moved && h !== null) {
+        const fixed = fixedPoint(from, h);
+        const exclude =
+          h.kind === 'wall'
+            ? [h.id]
+            : one.type === 'opening' && one.data.geometry.hostWallId !== null
+              ? [one.data.geometry.hostWallId]
+              : [];
+        const p = moveSnap(event.model, fixed, exclude);
+        pressed.outcome = resizeByPoint(from, h, p);
+        emitFrame();
+      }
       return true;
     }
     if (event.kind === 'up') {
       claim = null;
-      setUi({ doorTarget: null });
+      setUi({ doorTarget: null, entry: null });
       if (!pressed.moved) {
-        const f = pressed.target === 'arc' ? flipSwing(door) : flipHand(door);
-        if (f !== null) store.applyEdit([openingChange(f)]);
+        if (door !== null && pressed.target !== null) {
+          const f = pressed.target === 'arc' ? flipSwing(door) : flipHand(door);
+          if (f !== null) store.applyEdit([openingChange(f)]);
+        }
+      } else if (!pressed.done && pressed.handle !== null && pressed.outcome !== null) {
+        applyMove(pressed.outcome);
       }
+      lastSnap = null;
+      lastContext = NO_CONTEXT;
+      emitFrame();
       return true;
     }
     if (event.kind === 'cancel') {
       claim = null;
-      setUi({ doorTarget: null });
+      setUi({ doorTarget: null, entry: null });
+      lastSnap = null;
+      lastContext = NO_CONTEXT;
+      emitFrame();
       return true;
     }
-    return false;
+    return true;
   }
 
   function startPick(wallIds: readonly string[]): void {
@@ -1023,6 +1261,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     claimSelectPointer,
     startDrag,
     dragPointer,
+    startChipEntry,
+    cancelEntry,
     dispose() {
       if (disposed) return;
       disposed = true;

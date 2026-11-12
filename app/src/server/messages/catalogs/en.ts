@@ -587,6 +587,7 @@ export const en = {
   'office.typed.hint_length': 'Type a size',
   'office.typed.hint_angle': 'Type an angle',
   'office.typed.tab': 'Tab',
+  'office.typed.next_field': 'Next field',
   'office.typed.angle_refused': 'Use a turn from 0 up to but not including 180',
   'office.typed.field.width': 'Width',
   'office.typed.field.depth': 'Depth',
@@ -601,6 +602,7 @@ export const en = {
   'office.tools.move.click_base': 'Click a base point first',
   'office.tools.move.no_direction': 'Point the cursor where the selection goes',
   'office.tools.move.failed': "Couldn't move the selection. Try again.",
+  'office.tools.resize.failed': "Couldn't change the size. Try again.",
   'office.tools.gap.across':
     'That wall runs across the gap. Pick a wall that runs the same way as the gap.',
   'office.tools.gap.not_in_room': 'Pick a wall of this room',

@@ -4,8 +4,10 @@
 // EZD-211b: opening preview, dims, ticks, chips, hinge dot (vault/plans/EZD-211b.md Decided "openingOverlay",
 // "Overlay writes").
 // EZD-212b (vault/plans/EZD-212b.md D9): the dashed Move preview path.
+// EZD-212c (vault/plans/EZD-212c.md D8): resize handles, wall chip leaders and ticks, chips and the size chip.
 import {
   doorSymbol,
+  formatChipDistance,
   formatLength,
   openingSpan,
   PLAN_DISPLAY_DENOMINATOR,
@@ -16,6 +18,7 @@ import {
   type SnapKind,
 } from '@ezdraft/geometry';
 import type { DrawingFrame, OpeningFrame } from './drawing-controller';
+import { SIZE_CHIP_OFFSET_PX, type SelectionFrame } from './selection-edit';
 import type { SnapMarkerShape } from './snap-marker';
 
 export type OverlayElement = {
@@ -55,6 +58,24 @@ export type OpeningElements = {
   ticks: OverlayElement;
   dot: OverlayElement;
   chips: readonly [ChipElements, ChipElements];
+};
+
+export type SelectionShapes = {
+  handles: readonly Point[];
+  active: number | null;
+  leaders: string;
+  ticks: string;
+  left: ChipPlace | null;
+  right: ChipPlace | null;
+  size: ChipPlace | null;
+};
+
+export type SelectionElements = {
+  handles: readonly [OverlayElement, OverlayElement];
+  leaders: OverlayElement;
+  ticks: OverlayElement;
+  chips: readonly [ChipElements, ChipElements];
+  size: ChipElements;
 };
 
 const n = (v: number): string => String(Math.round(v * 10) / 10);
@@ -259,6 +280,89 @@ function drawOpening(
   showChip(els.chips[1], shapes.right);
 }
 
+// D8: the selection's handles, wall chip leaders with 12 px end ticks, chips and size chip in region px.
+export function selectionShapes(
+  sel: SelectionFrame | null | undefined,
+  toScreen: (p: Point) => Point,
+): SelectionShapes {
+  if (sel === null || sel === undefined)
+    return {
+      handles: [],
+      active: null,
+      leaders: '',
+      ticks: '',
+      left: null,
+      right: null,
+      size: null,
+    };
+  const leaderParts: string[] = [];
+  const tickParts: string[] = [];
+  let left: ChipPlace | null = null;
+  let right: ChipPlace | null = null;
+  for (const chip of sel.wallChips) {
+    const a = toScreen(chip.from);
+    const b = toScreen(chip.to);
+    const L = Math.hypot(b.x - a.x, b.y - a.y);
+    if (L >= 0.5) {
+      leaderParts.push(`M ${xy(a)} L ${xy(b)}`);
+      const u = { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
+      const v = { x: -u.y, y: u.x };
+      for (const q of [a, b]) tickParts.push(`M ${xy(add(q, v, -6))} L ${xy(add(q, v, 6))}`);
+    }
+    const place = {
+      x: (a.x + b.x) / 2,
+      y: (a.y + b.y) / 2,
+      text: formatChipDistance(chip.distance),
+    };
+    if (chip.side === 'left') left = place;
+    else right = place;
+  }
+  let size: ChipPlace | null = null;
+  if (sel.size !== null) {
+    const s = toScreen(sel.size.at);
+    const u = screenUnit(sel.size.normal, toScreen);
+    size = {
+      x: s.x + SIZE_CHIP_OFFSET_PX * u.x,
+      y: s.y + SIZE_CHIP_OFFSET_PX * u.y,
+      text: sel.size.text,
+    };
+  }
+  return {
+    handles: sel.handles.map(toScreen),
+    active: sel.active,
+    leaders: leaderParts.join(' '),
+    ticks: tickParts.join(' '),
+    left,
+    right,
+    size,
+  };
+}
+
+function drawSelection(
+  els: SelectionElements,
+  frame: DrawingFrame | null,
+  toScreen: (p: Point) => Point,
+): void {
+  const shapes = selectionShapes(frame?.selection, toScreen);
+  els.handles.forEach((el, i) => {
+    const p = shapes.handles[i];
+    if (p === undefined) {
+      el.setAttribute('display', 'none');
+      return;
+    }
+    el.setAttribute('cx', n(p.x));
+    el.setAttribute('cy', n(p.y));
+    if (i === shapes.active) el.setAttribute('data-active', 'true');
+    else el.removeAttribute('data-active');
+    el.removeAttribute('display');
+  });
+  showPath(els.leaders, shapes.leaders);
+  showPath(els.ticks, shapes.ticks);
+  showChip(els.chips[0], shapes.left);
+  showChip(els.chips[1], shapes.right);
+  showChip(els.size, shapes.size);
+}
+
 export function previewPath(
   shapes: readonly PickShape[],
   toScreen: (p: Point) => Point,
@@ -279,12 +383,14 @@ export function createToolOverlay(
     marker: OverlayElement;
     opening?: OpeningElements;
     preview?: OverlayElement;
+    selection?: SelectionElements;
   },
   toScreen: (p: Point) => Point,
 ): { draw(frame: DrawingFrame | null): void } {
   return {
     draw(frame) {
       if (els.opening !== undefined) drawOpening(els.opening, frame, toScreen);
+      if (els.selection !== undefined) drawSelection(els.selection, frame, toScreen);
       if (els.preview !== undefined) {
         const d = previewPath(frame?.preview ?? [], toScreen);
         if (d === null) {

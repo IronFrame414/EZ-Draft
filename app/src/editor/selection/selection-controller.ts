@@ -4,6 +4,7 @@
 // goes to `onBox` per move, never through `getUi()`.
 // EZD-208b Build step 4a (DB20; B9)
 // EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
+// EZD-212c (vault/plans/EZD-212c.md step 6b, D14): Esc asks the drawing first while a handle or chip entry is open.
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -255,7 +256,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     }
     if (drawing !== null) {
       const before = drawing.getUi();
-      if (before.tool !== null || before.pick !== null) {
+      if (before.tool !== null || before.pick !== null || before.entry !== null) {
         const r = drawing.keyDown(e);
         if (before.tool !== null && drawing.getUi().tool === null) clearSelection();
         return r;

@@ -1,15 +1,18 @@
 // EZD-210b D1-D11 (vault/plans/EZD-210b.md section 4; AC-EZD-207-6, -7, AC-EZD-210-1 to -10). Real model store over
 // the P210a fixtures; the canvas handle is a local fake. Expected values: the plan's rows and their cited sources
 // (09j, Q-0568 rounding, Q-0570, P210a messages). No browser, no live service.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_SNAP_SETTINGS,
   createWallData,
+  doorSymbol,
   formatLength,
+  moveSelection,
   parseLength,
   PLAN_DISPLAY_DENOMINATOR,
   roomAreaSqFt,
+  wallChips,
   wallLength,
   type NumberHighs,
   type Point,
@@ -25,12 +28,14 @@ import {
   type DrawingHandle,
   type ToolKeyEvent,
 } from './drawing-controller';
-import { openingsOn } from './model-changes';
+import { moveEditChanges, openingsOn } from './model-changes';
+import { createSelectionController, shareReceiver } from '../selection/selection-controller';
 import {
   baseObjects,
   DOOR,
   F1,
   idSeq,
+  objs,
   ROOM,
   roomsOf,
   uid,
@@ -741,5 +746,316 @@ describe('EZD-212b Move tool and drags in the drawing controller', () => {
     e.controller.startDrag([uid(2)], pt(144, 100));
     dragEv(e, 'up', 150, 100);
     expect(pastLen(e)).toBe(0);
+  });
+});
+
+// EZD-212c C1-C9 (vault/plans/EZD-212c.md section 4, D9-D14; AC-EZD-212-1, -2, -8, -10, -12, -13). Real model store over
+// the fixtures; a fake selection link whose ids the test changes. Expected values: the plan's rows and their cited
+// sources (09k, Q-0630, Q-0633, Q-0746, 03g), never the code.
+describe('EZD-212c handles and chips in the drawing controller', () => {
+  const PART = withWalls(ROOM, 5, [pt(60, 0), pt(60, 120)], false, 'center');
+  const DOORF = withOpening(ROOM, 50, 'door', 1, pt(54, 0));
+  const WIN = withOpening(ROOM, 51, 'window', 3, pt(100, 120));
+  const FLAG = withOpening(ROOM, 52, 'door', null, pt(54, 0));
+
+  function mkLink(initial: string[]) {
+    let ids = initial;
+    const set = new Set<() => void>();
+    const link = {
+      getUi: () => ({ ids, selectMore: false }),
+      select: vi.fn(),
+      subscribe: (l: () => void) => {
+        set.add(l);
+        return () => void set.delete(l);
+      },
+    };
+    const notify = () => {
+      for (const l of [...set]) l();
+    };
+    return {
+      link,
+      notify,
+      setIds: (next: string[]) => {
+        ids = next;
+        notify();
+      },
+    };
+  }
+  function withSel(objects: Map<string, ObjectValue>, ids: string[], canEdit = true) {
+    const a = setup(objects, canEdit);
+    const l = mkLink(ids);
+    a.controller.attachSelection(
+      l.link as unknown as Parameters<typeof a.controller.attachSelection>[0],
+    );
+    l.notify();
+    return { ...a, ...l };
+  }
+  const wallOf = (a: Pick<ReturnType<typeof setup>, 'store'>, id: string) =>
+    wallsOf(a.store.getState().objects).find((w) => w.id === id)!;
+  const openingOf = (a: Pick<ReturnType<typeof setup>, 'store'>, id: string) =>
+    openingsOn(a.store.getState().objects, F1).find((o) => o.id === id)!;
+  const claimEv = (a: ReturnType<typeof setup>, kind: PlanPointerEvent['kind'], x: number, y: number) =>
+    a.controller.claimSelectPointer(ev(kind, x, y));
+  const distOf = (chips: readonly { side: string; distance: number }[] | undefined, side: string) =>
+    chips?.find((c) => c.side === side)?.distance;
+  // C3's start: the end handle of E at (146.25, 120), the first move 13.3 px away, the second to (144, 132).
+  function toFirstMove(a: ReturnType<typeof setup>) {
+    expect(claimEv(a, 'down', 146.25, 120)).toBe(true);
+    expect(claimEv(a, 'move', 146.25, 125)).toBe(true);
+  }
+
+  it('EZD-212c C1 frame at rest', () => {
+    const a = withSel(PART, [uid(5)]);
+    const s = a.controller.getFrame()?.selection;
+    expect(s).toBeTruthy();
+    expect(s!.handles).toHaveLength(2);
+    near(s!.handles[0]!, pt(60, 0));
+    near(s!.handles[1]!, pt(60, 120));
+    expect(s!.active).toBeNull();
+    expect(distOf(s!.wallChips, 'left')).toBeCloseTo(57.75, 9);
+    expect(distOf(s!.wallChips, 'right')).toBeCloseTo(81.75, 9);
+    expect(s!.size).toBeNull();
+
+    a.setIds([uid(5), uid(2)]);
+    expect(a.controller.getFrame()?.selection ?? null).toBeNull();
+
+    const v = withSel(PART, [uid(5)], false);
+    const vs = v.controller.getFrame()?.selection;
+    expect(vs).toBeTruthy();
+    expect(vs!.handles).toEqual([]);
+    expect(distOf(vs!.wallChips, 'left')).toBeCloseTo(57.75, 9);
+    expect(distOf(vs!.wallChips, 'right')).toBeCloseTo(81.75, 9);
+  });
+
+  it('EZD-212c C2 opening frames at rest', () => {
+    const d = withSel(DOORF, [uid(50)]);
+    const df = d.controller.getFrame();
+    expect(df?.opening?.owned).toBe(true);
+    expect(df?.opening?.chips).toBe(true);
+    expect(df?.opening?.dot).toBe(true);
+
+    const w = withSel(WIN, [uid(51)]);
+    expect(w.controller.getFrame()?.opening?.chips).toBe(true);
+    expect(w.controller.getFrame()?.opening?.dot).toBe(false);
+
+    const v = withSel(DOORF, [uid(50)], false);
+    expect(v.controller.getFrame()?.opening?.dot).toBe(false);
+    expect(v.controller.getFrame()?.opening?.chips).toBe(true);
+
+    const f = withSel(FLAG, [uid(52)]);
+    const ff = f.controller.getFrame();
+    expect(ff?.opening ?? null).toBeNull();
+    expect(ff?.selection?.handles).toHaveLength(2);
+    near(ff!.selection!.handles[0]!, pt(54, -18));
+    near(ff!.selection!.handles[1]!, pt(54, 18));
+    expect(ff!.selection!.wallChips).toEqual([]);
+  });
+
+  it('EZD-212c C3 handle drag saves one edit', () => {
+    const a = withSel(ROOM, [uid(2)]);
+    const spy = vi.spyOn(a.store, 'applyEdit');
+    toFirstMove(a);
+    expect(a.controller.getUi().entry).toEqual({ kind: 'handle', id: uid(2), objectKind: 'wall' });
+    expect(claimEv(a, 'move', 144, 132)).toBe(true);
+    const s = a.controller.getFrame()?.selection;
+    expect(s?.active).toBe(1);
+    near(s!.handles[0]!, pt(146.25, 0));
+    near(s!.handles[1]!, pt(146.25, 132));
+    expect(spy).not.toHaveBeenCalled();
+    expect(claimEv(a, 'up', 144, 132)).toBe(true);
+    expect(spy).toHaveBeenCalledTimes(1);
+    near(wallOf(a, uid(2)).data.geometry.end, pt(144, 132));
+    near(wallOf(a, uid(3)).data.geometry.start, pt(144, 132));
+    near(wallOf(a, uid(3)).data.geometry.end, pt(0, 132));
+    expect(a.controller.getUi().entry).toBeNull();
+  });
+
+  it('EZD-212c C4 size typed during the drag', () => {
+    const a = withSel(ROOM, [uid(2)]);
+    const spy = vi.spyOn(a.store, 'applyEdit');
+    toFirstMove(a);
+    a.controller.typed({ length: 156 });
+    expect(spy).toHaveBeenCalledTimes(1);
+    near(wallOf(a, uid(2)).data.geometry.end, pt(144, 156));
+    expect(a.controller.getUi().entry).toBeNull();
+    expect(claimEv(a, 'move', 144, 140)).toBe(true);
+    expect(claimEv(a, 'up', 144, 140)).toBe(true);
+    expect(spy).toHaveBeenCalledTimes(1);
+    near(wallOf(a, uid(2)).data.geometry.end, pt(144, 156));
+  });
+
+  it('EZD-212c C5 Esc, no move, several, view-only', () => {
+    const a = withSel(ROOM, [uid(2)]);
+    const spy = vi.spyOn(a.store, 'applyEdit');
+    toFirstMove(a);
+    expect(a.controller.keyDown(ke('Escape'))).toBe(true);
+    expect(a.controller.getUi().entry).toBeNull();
+    claimEv(a, 'up', 146.25, 125);
+    expect(spy).not.toHaveBeenCalled();
+    near(wallOf(a, uid(2)).data.geometry.end, pt(144, 120));
+
+    const b = withSel(ROOM, [uid(2)]);
+    const bSpy = vi.spyOn(b.store, 'applyEdit');
+    expect(claimEv(b, 'down', 146.25, 120)).toBe(true);
+    expect(claimEv(b, 'up', 146.25, 120)).toBe(true);
+    expect(bSpy).not.toHaveBeenCalled();
+
+    const c = withSel(ROOM, [uid(2), uid(3)]);
+    expect(claimEv(c, 'down', 146.25, 120)).toBe(false);
+
+    const d = withSel(ROOM, [uid(2)], false);
+    expect(claimEv(d, 'down', 146.25, 120)).toBe(false);
+
+    // (e) the real selection controller over a real drawing controller.
+    let current: PlanPointerReceiver | null = null;
+    const slots = shareReceiver((r) => {
+      current = r;
+    });
+    const store = createModelStore({ objects: ROOM });
+    const handle: DrawingHandle = {
+      getCursor: () => null,
+      getPixelsPerInch: () => PPI,
+      modelToScreen: toScreen,
+      onCameraChange: () => () => {},
+      setPointerReceiver: slots.drawing,
+      setHoverMode: () => {},
+      getHoveredWallId: () => null,
+      wallAt: () => null,
+    };
+    const drawing = createDrawingController({
+      handle,
+      store,
+      viewer: { appUserId: WHO, canEdit: true },
+      onMessage: () => {},
+      newId: idSeq(100),
+      now: () => WHEN,
+    });
+    const selection = createSelectionController({
+      handle: {
+        getPixelsPerInch: () => PPI,
+        screenToModel: (s: Point): Point => ({ x: s.x / PPI, y: -s.y / PPI }),
+        setHoverMode: () => {},
+        setHoverPicker: () => {},
+        setBodyLookup: () => {},
+        setSelectedIds: () => {},
+      },
+      store,
+      drawing,
+      setReceiver: slots.selection,
+      claim: drawing.claimSelectPointer,
+    });
+    drawing.attachSelection(selection);
+    const eSpy = vi.spyOn(store, 'applyEdit');
+    const send = (e: PlanPointerEvent) => {
+      if (current === null) throw new Error('no pointer receiver set');
+      (current as PlanPointerReceiver)(e);
+    };
+    selection.select([uid(2)]);
+    send(ev('down', 146.25, 120));
+    send(ev('move', 146.25, 125));
+    expect(drawing.getUi().entry).not.toBeNull();
+    selection.keyDown(ke('Escape'));
+    expect(drawing.getUi().entry).toBeNull();
+    expect(selection.getUi().ids).toEqual([uid(2)]);
+    expect(eSpy).not.toHaveBeenCalled();
+    selection.keyDown(ke('Escape'));
+    expect(selection.getUi().ids).toEqual([]);
+  });
+
+  it('EZD-212c C6 hinge dot drag resizes', () => {
+    const a = withSel(DOORF, [uid(50)]);
+    const spy = vi.spyOn(a.store, 'applyEdit');
+    const host = wallOf(a, uid(1));
+    const h = doorSymbol(openingOf(a, uid(50)), host)!.hinge;
+    claimEv(a, 'down', h.x, h.y);
+    claimEv(a, 'move', h.x - 5, h.y);
+    claimEv(a, 'move', 24, h.y);
+    claimEv(a, 'up', 24, h.y);
+    expect(spy).toHaveBeenCalledTimes(1);
+    const o = openingOf(a, uid(50));
+    expect(o.data.attributes.width).toBeCloseTo(48, 9);
+    near(o.data.geometry.center, pt(48, 0));
+    expect(o.data.attributes.hand).toBe('left');
+  });
+
+  it('EZD-212c C7 chip entry', () => {
+    const a = withSel(PART, [uid(5)]);
+    a.controller.startChipEntry('left');
+    expect(a.controller.getUi().entry).toEqual({
+      kind: 'chip',
+      id: uid(5),
+      objectKind: 'wall',
+      side: 'left',
+    });
+    a.controller.typed({ distance: 60 });
+    near(wallOf(a, uid(5)).data.geometry.start, pt(62.25, 0));
+    near(wallOf(a, uid(5)).data.geometry.end, pt(62.25, 120));
+    expect(a.controller.getUi().entry).toBeNull();
+    expect(a.msgs).toEqual([]);
+
+    const b = withSel(DOORF, [uid(50)]);
+    b.controller.startChipEntry('left');
+    b.controller.typed({ offsetLeft: 109 });
+    near(openingOf(b, uid(50)).data.geometry.center, pt(54, 0));
+    expect(b.msgs).toEqual(['office.tools.opening.past_corner']);
+    expect(b.controller.getUi().entry).toBeNull();
+
+    const c = withSel(ROOM, [uid(2)]);
+    c.controller.startChipEntry('right');
+    expect(c.controller.getUi().entry).toBeNull();
+
+    const d = withSel(PART, [uid(5), uid(2)]);
+    d.controller.startChipEntry('left');
+    expect(d.controller.getUi().entry).toBeNull();
+  });
+
+  it('EZD-212c C8 chips while dragging', () => {
+    const a = withSel(PART, [uid(5)]);
+    a.controller.startDrag([uid(5)], pt(60, 60));
+    a.controller.dragPointer(ev('move', 66, 60));
+    const s = a.controller.getFrame()?.selection;
+    expect(distOf(s?.wallChips, 'left')).toBeCloseTo(63.75, 9);
+    expect(distOf(s?.wallChips, 'right')).toBeCloseTo(75.75, 9);
+  });
+
+  it('EZD-212c C9 entry ends; frame follows the model', () => {
+    const a = withSel(PART, [uid(5)]);
+    a.controller.startChipEntry('left');
+    expect(a.controller.getUi().entry).not.toBeNull();
+    a.setIds([uid(2)]);
+    expect(a.controller.getUi().entry).toBeNull();
+
+    const b = withSel(PART, [uid(5)]);
+    b.controller.startChipEntry('left');
+    b.controller.selectTool('wall');
+    expect(b.controller.getUi().entry).toBeNull();
+
+    const c = withSel(PART, [uid(5)]);
+    c.controller.selectTool('wall');
+    c.setIds([uid(5)]);
+    c.controller.startChipEntry('left');
+    expect(c.controller.getUi().entry).toBeNull();
+
+    const d = withSel(PART, [uid(2)]);
+    toFirstMove(d);
+    d.controller.startChipEntry('left');
+    expect(d.controller.getUi().entry).toEqual({ kind: 'handle', id: uid(2), objectKind: 'wall' });
+
+    const e = withSel(PART, [uid(5)]);
+    const moved = moveSelection(objs(PART), [uid(5)], pt(6, 0));
+    if (!moved.ok) throw new Error('moveSelection refused');
+    e.store.applyEdit(
+      moveEditChanges(
+        e.store.getState().objects,
+        F1,
+        moved.changed,
+        idSeq(200),
+        e.store.getState().numberHighs,
+      ),
+    );
+    const s = e.controller.getFrame()?.selection;
+    expect(distOf(s?.wallChips, 'left')).toBeCloseTo(63.75, 9);
+    expect(distOf(s?.wallChips, 'right')).toBeCloseTo(75.75, 9);
+    expect(wallChips(objs(e.store.getState().objects), uid(5))).toHaveLength(2);
   });
 });

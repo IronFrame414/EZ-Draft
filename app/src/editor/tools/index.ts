@@ -7,3 +7,4 @@ export * from './opening-tool';
 export * from './gap';
 export * from './snap-marker';
 export * from './move-tool';
+export * from './selection-edit';
