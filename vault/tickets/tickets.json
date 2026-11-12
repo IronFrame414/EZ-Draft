@@ -22120,6 +22120,12 @@
    ],
    "decisions": [],
    "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Email (EZD-008)",
+    "Build lanes (EZD-172)",
+    "CI"
+   ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
