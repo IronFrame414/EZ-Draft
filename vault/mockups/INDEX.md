@@ -65,6 +65,17 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 | S01d | Avatar menu | [S01dAvatarMenu.png](S01dAvatarMenu.png) | [html/project/S01dAvatarMenu.dc.html](html/project/S01dAvatarMenu.dc.html) |
 | S01e | My profile | [S01eMyProfile.png](S01eMyProfile.png) | [html/project/S01eMyProfile.dc.html](html/project/S01eMyProfile.dc.html) |
 | S01f | My profile: notifications | [S01fMyNotifications.png](S01fMyNotifications.png) | [html/project/S01fMyNotifications.dc.html](html/project/S01fMyNotifications.dc.html) |
+| S15i | Settings: System status | [S15iSystemStatus.png](S15iSystemStatus.png) | [html/project/S15iSystemStatus.dc.html](html/project/S15iSystemStatus.dc.html) |
+| S15i state | System status: states | [S15iStates.png](S15iStates.png) | [html/project/S15iStates.dc.html](html/project/S15iStates.dc.html) |
+| S15i | System status: iPad | [S15iTablet.png](S15iTablet.png) | [html/project/S15iTablet.dc.html](html/project/S15iTablet.dc.html) |
+| S15j | Users: Invite user dialog | [S15jInvite.png](S15jInvite.png) | [html/project/S15jInvite.dc.html](html/project/S15jInvite.dc.html) |
+| S15j state | Invite user: states | [S15jInviteStates.png](S15jInviteStates.png) | [html/project/S15jInviteStates.dc.html](html/project/S15jInviteStates.dc.html) |
+| S15j | Pending invite row + sign-in with an invite code | [S15jPendingSignIn.png](S15jPendingSignIn.png) | [html/project/S15jPendingSignIn.dc.html](html/project/S15jPendingSignIn.dc.html) |
+| S15k | Users: role editor | [S15kRoleEditor.png](S15kRoleEditor.png) | [html/project/S15kRoleEditor.dc.html](html/project/S15kRoleEditor.dc.html) |
+| S15k state | Role editor: states | [S15kRoleStates.png](S15kRoleStates.png) | [html/project/S15kRoleStates.dc.html](html/project/S15kRoleStates.dc.html) |
+| S15 addition | Project access + Set password | [S15AccessPassword.png](S15AccessPassword.png) | [html/project/S15AccessPassword.dc.html](html/project/S15AccessPassword.dc.html) |
+| S01b addition | New project: Foreman picker | [S01bForeman.png](S01bForeman.png) | [html/project/S01bForeman.dc.html](html/project/S01bForeman.dc.html) |
+| S01b state | Foreman picker: states | [S01bForemanStates.png](S01bForemanStates.png) | [html/project/S01bForemanStates.dc.html](html/project/S01bForemanStates.dc.html) |
 
 S01c to S01f added 2026-10-28 for phase 2 (Q-0391): drawn on the same design canvas and approved by Josh; PNGs rendered from the canvas HTML with its own runtime at 1600 × 1000.
 
@@ -73,3 +84,5 @@ S03b and the S01c state added 2026-11-07 for EZD-299 (Q-0510): drawn in Cowork a
 S03c and S01g added 2026-11-07 (Q-0474): drawn 2026-11-04 in Cowork and approved by Josh with their wording, listed in S03cAIAssistant-wording.md; the boards' labels still say "for approval", and that list is what counts. HTML copied unchanged from the canvas; PNGs rendered at 1600 × 1000 without the canvas runtime. The Nov 4 canvas also holds an older S03b and S01c state; the Nov 7 ones above replace them.
 
 S03d and the S03c photo state added 2026-11-07 (Q-0630): drawn in Cowork and approved by Josh with their wording, listed in S03dSelectedObjects-wording.md; board notes still say "proposed", and that list is what counts. HTML copied unchanged from the canvas; PNGs rendered at 1600 × 1000 without the canvas runtime and not yet looked at.
+
+S15i, S15j, S15k and the S15 and S01b additions added 2026-11-11 (Q-0665, Q-0696; brief vault/questions/design-brief-2026-11-11.md): drawn in Cowork and approved by Josh on 2026-11-11 with their wording and design choices (chat: "these all look good. follow your recommendation for all open questions"). Each board's approved wording and design choices are in the wording file next to its PNG (for example S15iSystemStatus-wording.md). The boards' NOTE boxes still say "proposed"; the wording files are what counts. Approved design choices: the user inspector and the role panel are 450 px wide, so all 37 switches show without scrolling; the benchmark runs with its progress shown in the Benchmark card; on iPad the Settings menu is a strip of icons, and System status is one scrolling column with backup and restore drill first; admin switches are named by their Settings page; the invite code button reads "Join"; Translations and the EZ Binder sync box are off the Settings menu. PNGs were rendered at 1600 × 1000 without the canvas runtime.
