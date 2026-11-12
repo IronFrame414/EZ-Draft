@@ -6,10 +6,13 @@
 // Q-0531 (a refused Keep mine returns to the list and notifies again). Done when: the second person's change
 // moves to the list and its later edits save; Keep theirs leaves the server value, Keep mine writes the queued
 // value.
+// EZD-390 (vault/plans/EZD-390.md D-Harness, D-Route, D-Settle, D-Control; AC-EZD-390-1): each route call reads its own copy of the person's cookies, and every hook first waits for every route call to end.
 import 'fake-indexeddb/auto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomUUID } from 'node:crypto';
 import { IDBFactory } from 'fake-indexeddb';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { alertWriteGuardState } from '../../../test-harness/errors/alert-write-guard';
 import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import { createOnline } from '../../../test-harness/outbox/sync-support';
 import { setPermissions } from '../../../test-harness/permissions/grant';
@@ -29,22 +32,43 @@ import { fetchModel } from './model-api';
 import { createIdbOutboxStorage } from './outbox-idb';
 import { createOutboxSync } from './outbox-sync';
 
-const state = vi.hoisted(() => ({ store: new Map<string, string>() }));
+const state = vi.hoisted(() => ({
+  scope: null as null | { getStore(): Map<string, string> | undefined },
+}));
 const kick = vi.hoisted(() => ({ fn: vi.fn() }));
 
 vi.mock('../../server/jobs/kick', () => ({ kickJobRunner: kick.fn }));
 
 vi.mock('next/headers', () => ({
-  cookies: async () => ({
-    getAll: () => [...state.store].map(([name, value]) => ({ name, value })),
-    set: (name: string, value: string, options: unknown) => {
-      const maxAge = (options as { maxAge?: number } | undefined)?.maxAge;
-      if (value === '' || maxAge === 0) state.store.delete(name);
-      else state.store.set(name, value);
-    },
-  }),
+  cookies: async () => {
+    const store = state.scope?.getStore() ?? new Map<string, string>();
+    return {
+      getAll: () => [...store].map(([name, value]) => ({ name, value })),
+      set: (name: string, value: string, options: unknown) => {
+        const maxAge = (options as { maxAge?: number } | undefined)?.maxAge;
+        if (value === '' || maxAge === 0) store.delete(name);
+        else store.set(name, value);
+      },
+    };
+  },
   headers: async () => new Headers(),
 }));
+
+const cookieScope = new AsyncLocalStorage<Map<string, string>>();
+state.scope = cookieScope;
+const pending = new Set<Promise<Response>>();
+
+async function settleRouteCalls(): Promise<void> {
+  let quiet = false;
+  while (!quiet) {
+    if (pending.size > 0) {
+      await Promise.allSettled([...pending]);
+    } else {
+      await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      quiet = pending.size === 0;
+    }
+  }
+}
 
 function jarOver(store: Map<string, string>): SessionCookieJar {
   return {
@@ -90,40 +114,53 @@ const wall = (level: string, height: number) => ({
   },
 });
 
-// The route a person's fetch reaches: the handler for the method and path, under that person's cookies.
+// The route a person's fetch reaches: the handler for the method and path, under a copy of that person's cookies held for that call only (EZD-390 D-Route).
+async function handle(
+  input: unknown,
+  init: RequestInit | undefined,
+  calls: { method: string; path: string }[],
+): Promise<Response> {
+  const url = new URL(String(input), 'http://localhost');
+  const method = init?.method ?? 'GET';
+  const parts = url.pathname.split('/');
+  calls.push({ method, path: url.pathname });
+  const request = new Request(url, init);
+  if (parts[2] === 'projects' && parts[4] === 'objects' && method === 'POST') {
+    const { POST } = await import('../../app/api/projects/[id]/objects/route');
+    return POST(request, { params: Promise.resolve({ id: parts[3] }) });
+  }
+  if (parts[2] === 'projects' && parts[4] === 'sync-conflicts' && method === 'POST') {
+    const { POST } = await import('../../app/api/projects/[id]/sync-conflicts/route');
+    return POST(request, { params: Promise.resolve({ id: parts[3] }) });
+  }
+  if (parts[2] === 'projects' && parts[4] === 'model' && method === 'GET') {
+    const { GET } = await import('../../app/api/projects/[id]/model/route');
+    return GET(request, { params: Promise.resolve({ id: parts[3] }) });
+  }
+  if (parts[2] === 'sync-conflicts' && parts.length === 3 && method === 'GET') {
+    const { GET } = await import('../../app/api/sync-conflicts/route');
+    return GET(request);
+  }
+  if (parts[2] === 'sync-conflicts' && parts.length === 4 && method === 'DELETE') {
+    const { DELETE } = await import('../../app/api/sync-conflicts/[conflictId]/route');
+    return DELETE(request, { params: Promise.resolve({ conflictId: parts[3] }) });
+  }
+  throw new Error(`unrouted ${method} ${url.pathname}`);
+}
+
 function routeFor(cookies: Map<string, string>, calls: { method: string; path: string }[]) {
-  return (async (input: unknown, init?: RequestInit): Promise<Response> => {
-    state.store = new Map(cookies);
-    const url = new URL(String(input), 'http://localhost');
-    const method = init?.method ?? 'GET';
-    const parts = url.pathname.split('/');
-    calls.push({ method, path: url.pathname });
-    const request = new Request(url, init);
-    if (parts[2] === 'projects' && parts[4] === 'objects' && method === 'POST') {
-      const { POST } = await import('../../app/api/projects/[id]/objects/route');
-      return POST(request, { params: Promise.resolve({ id: parts[3] }) });
-    }
-    if (parts[2] === 'projects' && parts[4] === 'sync-conflicts' && method === 'POST') {
-      const { POST } = await import('../../app/api/projects/[id]/sync-conflicts/route');
-      return POST(request, { params: Promise.resolve({ id: parts[3] }) });
-    }
-    if (parts[2] === 'projects' && parts[4] === 'model' && method === 'GET') {
-      const { GET } = await import('../../app/api/projects/[id]/model/route');
-      return GET(request, { params: Promise.resolve({ id: parts[3] }) });
-    }
-    if (parts[2] === 'sync-conflicts' && parts.length === 3 && method === 'GET') {
-      const { GET } = await import('../../app/api/sync-conflicts/route');
-      return GET(request);
-    }
-    if (parts[2] === 'sync-conflicts' && parts.length === 4 && method === 'DELETE') {
-      const { DELETE } = await import('../../app/api/sync-conflicts/[conflictId]/route');
-      return DELETE(request, { params: Promise.resolve({ conflictId: parts[3] }) });
-    }
-    throw new Error(`unrouted ${method} ${url.pathname}`);
+  return ((input: unknown, init?: RequestInit): Promise<Response> => {
+    const call = cookieScope.run(new Map(cookies), () => handle(input, init, calls));
+    pending.add(call);
+    const settle = () => {
+      pending.delete(call);
+    };
+    call.then(settle, settle);
+    return call;
   }) as unknown as typeof fetch;
 }
 
-describe('EZD-299b two people save one wall', () => {
+describe('EZD-299b EZD-390 two people save one wall', () => {
   let release: () => Promise<void>;
   let tenant = '';
   let projects: string[] = [];
@@ -148,14 +185,13 @@ describe('EZD-299b two people save one wall', () => {
   beforeEach(() => {
     globalThis.indexedDB = new IDBFactory();
   });
-  afterEach(() => {
-    state.store = new Map();
-  });
+  afterEach(settleRouteCalls, 30000);
   afterAll(async () => {
+    await settleRouteCalls();
     await cleanup();
     await closeHarness();
     await release();
-  });
+  }, 60000);
 
   async function floorOf(project: string): Promise<string> {
     const [first] = await harnessSql()<{ object_id: string }[]>`
@@ -379,5 +415,57 @@ describe('EZD-299b two people save one wall', () => {
       p.sync.dispose();
       p.storage.close();
     }
+  }, 120000);
+
+  it('EZD-390 C1 a route call keeps its own sign-in while a signed-out call starts during it', async () => {
+    const before = alertWriteGuardState().violations.length;
+    const origin = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL as string).origin;
+    const realFetch = globalThis.fetch;
+    let markReached: () => void = () => {};
+    const reached = new Promise<void>((resolve) => {
+      markReached = resolve;
+    });
+    let open: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    let held = false;
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = input instanceof Request ? input.url : String(input);
+      if (!held && url.startsWith(origin)) {
+        held = true;
+        markReached();
+        await gate;
+      }
+      return realFetch(input as RequestInfo | URL, init);
+    });
+    try {
+      const bCall = routeFor(cookiesB, [])('/api/sync-conflicts');
+      await reached;
+      const out = await routeFor(new Map(), [])('/api/sync-conflicts');
+      open();
+      const b = await bCall;
+      expect(out.status).toBe(401);
+      expect(b.status).toBe(200);
+      expect(Array.isArray(((await b.json()) as { items: unknown }).items)).toBe(true);
+      expect(alertWriteGuardState().violations.length).toBe(before);
+    } finally {
+      open();
+      spy.mockRestore();
+    }
+  }, 120000);
+
+  it('EZD-390 C2 the hook wait ends only after a route call started by another one has answered', async () => {
+    let secondStatus = 0;
+    const first = routeFor(cookiesB, [])('/api/sync-conflicts');
+    const chained = first.then(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 10));
+      const res = await routeFor(cookiesB, [])('/api/sync-conflicts');
+      secondStatus = res.status;
+    });
+    await settleRouteCalls();
+    expect(pending.size).toBe(0);
+    expect(secondStatus).toBe(200);
+    await chained;
   }, 120000);
 });
