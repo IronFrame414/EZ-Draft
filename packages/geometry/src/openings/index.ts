@@ -6,3 +6,5 @@ export * from './offsets';
 export * from './hosting';
 export * from './door-symbol';
 export * from './placement';
+export * from './edit';
+export * from './rough-opening';

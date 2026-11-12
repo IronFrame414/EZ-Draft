@@ -358,6 +358,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/editor/derived/     the open model's derived values: ModelDerived over the store (EZD-235)
   src/editor/workers/     the Web Worker pool: createWorkerPool, one job per worker (EZD-235b)
   src/editor/conflicts/   the conflict banner and list (EZD-299)
+  src/editor/inspector/   the inspector's pure edit and view rules (EZD-213a)
   src/lib/conflicts/      sync conflict types and labels, the list store and its calls (EZD-299a, EZD-299b); conflict-view.ts: the list's rows, groups and pages (EZD-299)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
@@ -928,6 +929,13 @@ EZD-212a (vault/plans/EZD-212a.md); Q-0630 rows 10, 11, 12, 14, 35; 09k.
 
 - **Files** (`packages/geometry/src/moves/`, exported from the package root): `selection.ts` (`typedMoveDelta`, `moveSelection`), `slide.ts` (`placeOnWall`, `slideOpening`), `resize-wall.ts` (`endDragLength`, `resizeWall`), `resize-opening.ts` (`resizeOpening`), `chips.ts` (`wallChips`, `openingChips`, `selectionChips`, `formatChipDistance`, `applyChip`); `walls/move.ts` gains `moveWalls`.
 - **Rule.** These return changed objects only; the caller runs `wallEditChanges` so rooms reconcile and openings re-host.
+
+### Inspector (EZD-213a)
+
+EZD-213a (vault/plans/EZD-213a.md); S03 Controls — inspector; Q-0630; Q-0635; Q-0640; Q-0641; Q-0642; Q-0645.
+
+- **Files**: `packages/geometry/src/walls/edit.ts`, `packages/geometry/src/openings/edit.ts`, `packages/geometry/src/openings/rough-opening.ts` (exported from `@ezdraft/geometry`); `app/src/editor/inspector/inspector-edits.ts` (`inspectorEditChanges`, `levelModelObjects`), `inspector-view.ts` (`inspectorView`).
+- **Rule.** One field commit over the whole selection is one `Change[]` for one `applyEdit` (one undo step); wall fields go through `wallEditChanges`; Length and Width reuse `resizeWall` and `resizeOpening`.
 
 ## Server-only data access and can()
 
