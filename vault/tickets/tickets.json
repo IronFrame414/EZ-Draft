@@ -22161,6 +22161,27 @@
     "AC-EZD-392-1"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-393",
+   "phase": 4,
+   "title": "Fix: the EZD-356 T1 pan-row test finds a wait during the fixture pan under load",
+   "depends_raw": "EZD-372",
+   "spec_ref": "rule 17; EZD-356",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-372"
+   ],
+   "acs": [
+    "AC-EZD-393-1"
+   ],
+   "acs_source": "done-when"
   }
  ],
  "recut_applied": "2026-10-20"
