@@ -15,6 +15,8 @@ import type { Objects } from '../model/patches';
 import {
   absorbRefusalKey,
   gapBoxes,
+  gapLastWallId,
+  gapSection,
   gapSizeText,
   keepGap,
   pickWall,
@@ -286,5 +288,31 @@ describe('EZD-294 object numbers in gap absorb', () => {
       const attrs = (c.value!.data as { attributes: Record<string, unknown> }).attributes;
       expect(attrs.number).toBe(k);
     }
+  });
+});
+
+// EZD-213c U1 (vault/plans/EZD-213c.md section 4; D-Last, D-Section; closure.ts:148-155).
+describe('EZD-213c gap section helpers', () => {
+  it('EZD-213c U1 gapLastWallId and gapSection', () => {
+    const GAP = open([p(0, 0), p(144, 0), p(144, 120), p(0, 120), p(0, 0.5)]);
+    const box = gapBoxes(GAP, F1, { canEdit: true, drawingWallIds: [] })[0]!;
+    expect(gapLastWallId(box)).toBe(uid(4));
+    expect(gapLastWallId({ ...box, wallIds: [] })).toBeNull();
+
+    const base = { boxes: [box], pick: null, gapMessage: null };
+    const plain = { box, picking: false, alert: null };
+    expect(gapSection(base, uid(2))).toEqual(plain);
+    expect(gapSection(base, uid(2).toUpperCase())).toEqual(plain);
+    expect(gapSection(base, uid(99))).toBeNull();
+    expect(gapSection({ ...base, pick: { gapWallIds: box.wallIds } }, uid(2))?.picking).toBe(true);
+    expect(gapSection({ ...base, pick: { gapWallIds: [uid(9)] } }, uid(2))?.picking).toBe(false);
+    const across = 'office.tools.gap.across' as never;
+    expect(
+      gapSection({ ...base, gapMessage: { wallIds: box.wallIds, key: across } }, uid(2))?.alert,
+    ).toBe('office.tools.gap.across');
+    expect(
+      gapSection({ ...base, gapMessage: { wallIds: [uid(9)], key: across } }, uid(2))?.alert,
+    ).toBeNull();
+    expect(gapSection({ boxes: [], pick: null, gapMessage: null }, uid(2))).toBeNull();
   });
 });

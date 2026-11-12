@@ -359,7 +359,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/editor/derived/     the open model's derived values: ModelDerived over the store (EZD-235)
   src/editor/workers/     the Web Worker pool: createWorkerPool, one job per worker (EZD-235b)
   src/editor/conflicts/   the conflict banner and list (EZD-299)
-  src/editor/inspector/   the inspector's pure edit and view rules (EZD-213a); InspectorPanel.tsx and inspector-input.ts: the panel and its commits (EZD-213b)
+  src/editor/inspector/   the inspector's pure edit and view rules (EZD-213a); InspectorPanel.tsx and inspector-input.ts: the panel and its commits (EZD-213b); ResolveGap.tsx: the Resolve the gap section (EZD-213c)
   src/lib/conflicts/      sync conflict types and labels, the list store and its calls (EZD-299a, EZD-299b); conflict-view.ts: the list's rows, groups and pages (EZD-299)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
@@ -511,6 +511,7 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - Reducers take `ToolInput` in model inches after snapping and return the walls to save; they never touch the store.
 - Every wall edit goes through `wallEditChanges`, which appends the room reconcile and the opening host updates (EZD-204b).
 - The gap box is derived from the walls on every call (`gapBoxes`), never stored.
+- `GapBoxes` draws only the red size marker, a button that selects the chain's last wall (`showGap`). The size, buttons, pick hint, refusal and note are the inspector's Resolve the gap section (`ResolveGap.tsx`), shown for one selected wall of the chain. Finishing a chain with a gap selects its last wall (EZD-213c).
 - `drawing-controller.ts` owns tool state, the snap index and the pointer receiver outside React; `getUi()` changes on tool, pick, gap and last-length changes, never per pointer move (EZD-210b).
 - `overlay.ts` writes the SVG band and marker attributes directly on pointer moves and camera changes (EZD-210b).
 - V, W, R, Esc, Enter and Ctrl/Cmd+A come from one `window` bubble `keydown` listener in `SelectionLayer`, skipped when `defaultPrevented` or `isTypingTarget`, after EZD-209's capture listener; keys Select does not use go on to the drawing controller (EZD-210b, EZD-208b).

@@ -638,6 +638,7 @@ export const en = {
   'office.tools.gap.pick': 'Pick the wall that absorbs it',
   'office.tools.gap.keep': 'Keep the room out of square',
   'office.tools.gap.pick_hint': 'Click a wall of this room, or press Esc to go back',
+  'office.tools.gap.pick_hint_touch': 'Tap a wall of this room, or tap Select to go back',
   // EZD-213b inspector (S03dSelectedObjects-wording.md W1-W17, T6; plan section 6)
   'office.inspector.empty': 'Select something on the plan to see its details here.',
   'office.inspector.empty_hint': 'Shift-click or drag a box to select more than one.',

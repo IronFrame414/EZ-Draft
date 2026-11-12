@@ -55,6 +55,7 @@ import {
   dragOutcome,
   dragTo,
   gapBoxes,
+  gapLastWallId,
   initialMoveToolState,
   moveEditChanges,
   previewShapes,
@@ -186,6 +187,7 @@ export type DrawingController = {
   keyDown(e: ToolKeyEvent): boolean;
   startPick(wallIds: readonly string[]): void;
   keep(wallIds: readonly string[]): void;
+  showGap(wallIds: readonly string[]): void;
   spaceTap(): boolean;
   attachSelection(link: SelectionLink | null): void;
   claimSelectPointer(event: PlanPointerEvent): boolean;
@@ -630,6 +632,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     message: MessageKey | null;
     exit: boolean;
   }): void {
+    const before = drawingIds; // EZD-213c D-Finish
     if (step.walls.length > 0 && level !== null) {
       const last = step.walls[step.walls.length - 1]!;
       // EZD-294 Build step 15: new walls are numbered from the store's highs.
@@ -645,6 +648,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       setUi({ lastLength: wallLength(last.data.geometry) });
     }
     refreshDrawingIds();
+    // EZD-213c D-Finish: a chain that ended and left a gap selects the gap's last wall.
+    const lastDrawn = before[before.length - 1];
+    if (lastDrawn !== undefined && !drawingIds.some((id) => lower(id) === lower(lastDrawn))) {
+      const box = ui.boxes.find((b) => b.wallIds.some((id) => lower(id) === lower(lastDrawn)));
+      const id = box === undefined ? null : gapLastWallId(box);
+      if (id !== null) link?.select([id]);
+    }
     if (step.message !== null) deps.onMessage(step.message);
     if (step.exit) selectTool(null);
   }
@@ -1238,6 +1248,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
   }
 
+  // EZD-213c D-Show: selects the gap's last wall so the inspector shows the section; no `enabled` check (view-only too).
+  function showGap(wallIds: readonly string[]): void {
+    if (disposed) return;
+    const last = wallIds[wallIds.length - 1];
+    if (last !== undefined) link?.select([last]);
+  }
+
   return {
     getUi: () => ui,
     subscribe(listener) {
@@ -1256,6 +1273,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     keyDown,
     startPick,
     keep,
+    showGap,
     spaceTap,
     attachSelection,
     claimSelectPointer,

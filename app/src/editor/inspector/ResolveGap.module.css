@@ -1,0 +1,45 @@
+/* EZD-213c D-Section CSS (vault/plans/EZD-213c.md; S02 board right panel): the Resolve the gap section. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.size {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.sizeIcon {
+  display: inline-flex;
+  color: var(--ez-red);
+}
+
+.section .action {
+  justify-content: flex-start;
+}
+
+.hint,
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-slate-700);
+}
+
+.alert {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-red);
+}

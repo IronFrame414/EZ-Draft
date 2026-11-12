@@ -291,7 +291,7 @@ test.describe('EZD-210b drawing tools', () => {
     await expect(id(page, 'typed-bar')).toHaveCount(0);
     await expect(id(page, 'gap-box')).toHaveCount(1);
     await expect(id(page, 'gap-pill')).toHaveText('1/2" gap');
-    await expect(id(page, 'gap-box').getByRole('button')).toHaveCount(0);
+    await expect(id(page, 'gap-box').getByRole('button')).toHaveCount(1);
     await expect(id(page, 'gap-title')).toHaveCount(0);
   });
 
@@ -417,6 +417,7 @@ test.describe('EZD-210b drawing tools', () => {
     await page.reload();
     await openReady(page, ids.P1);
     await view(page);
+    await id(page, 'gap-pill').click();
     await gapShown();
 
     await id(page, 'gap-pick').click();
@@ -449,6 +450,7 @@ test.describe('EZD-210b drawing tools', () => {
     await openReady(page, ids.P1);
     await view(page);
     await addGap(page);
+    await id(page, 'gap-pill').click();
     await id(page, 'gap-keep').click();
     await expect.poll(async () => roomsIn(await objects(page)).length).toBe(1);
     await saved(page);
@@ -513,7 +515,7 @@ test.describe('EZD-210b drawing tools', () => {
       await addGap(page);
       await view(page);
       expect(await expectTouchTargets(page, rail(page))).toBe(6);
-      expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(2);
+      expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(1);
     },
   );
 });

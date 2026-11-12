@@ -311,10 +311,7 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
       </svg>
       <GapBoxes
         boxes={ui.boxes}
-        pick={ui.pick}
-        message={ui.gapMessage}
-        onPick={(box) => controller.startPick(box.wallIds)}
-        onKeep={(box) => controller.keep(box.wallIds)}
+        onShow={(box) => controller.showGap(box.wallIds)}
         boxRef={boxRef}
       />
       <div data-testid="opening-chips" className={styles.chips}>

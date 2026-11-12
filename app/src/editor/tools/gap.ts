@@ -182,3 +182,33 @@ export function keepGap(
     messageKey: r.reason === 'no_gap' ? 'office.tools.gap.gone' : 'office.tools.gap.keep_failed',
   };
 }
+
+// EZD-213c D-Last, D-Section (vault/plans/EZD-213c.md): the inspector's Resolve the gap section reads the gap of the
+// selected wall; the last wall of the chain is the one a finished chain or a marker click selects.
+export type GapUiSlice = {
+  readonly boxes: readonly GapBox[];
+  readonly pick: PickState;
+  readonly gapMessage: { readonly wallIds: readonly string[]; readonly key: MessageKey } | null;
+};
+
+export type GapSectionState = { box: GapBox; picking: boolean; alert: MessageKey | null };
+
+const sameIds = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((id, i) => id === b[i]);
+
+export function gapLastWallId(box: GapBox): string | null {
+  return box.wallIds[box.wallIds.length - 1] ?? null;
+}
+
+export function gapSection(ui: GapUiSlice, wallId: string): GapSectionState | null {
+  const box = ui.boxes.find((b) => b.wallIds.some((id) => sameId(id, wallId)));
+  if (box === undefined) return null;
+  return {
+    box,
+    picking: ui.pick !== null && sameIds(ui.pick.gapWallIds, box.wallIds),
+    alert:
+      ui.gapMessage !== null && sameIds(ui.gapMessage.wallIds, box.wallIds)
+        ? ui.gapMessage.key
+        : null,
+  };
+}

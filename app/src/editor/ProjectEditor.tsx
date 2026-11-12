@@ -417,7 +417,12 @@ export function ProjectEditor({
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
   const inspector =
     showPlan && session !== null && selection !== null ? (
-      <InspectorPanel store={session.store} selection={selection} canEdit={canEdit} />
+      <InspectorPanel
+        store={session.store}
+        selection={selection}
+        canEdit={canEdit}
+        drawing={drawing}
+      />
     ) : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />

@@ -15,7 +15,17 @@ import type { Objects } from '../model/patches';
 import { inspectorEditChanges, type InspectorEdit } from './inspector-edits';
 import { inspectorView, type InspectorView } from './inspector-view';
 import { InspectorContent } from './InspectorPanel';
-import { F1, houseObjects, idSeq, loneObjects, uid } from './test-utils/fixtures';
+import type { GapBox } from '../tools/gap';
+import type { ResolveGapProps } from './ResolveGap';
+import {
+  baseObjects,
+  F1,
+  houseObjects,
+  idSeq,
+  loneObjects,
+  uid,
+  withWalls,
+} from './test-utils/fixtures';
 
 const DOT = '\u00b7';
 const TIMES = '\u00d7';
@@ -364,5 +374,73 @@ describe('EZD-213b inspector panel', () => {
     }
     expect(textOf(html, 'inspector-layers-total')).toContain('4 1/2"');
     expect(count(html, '<button')).toBe(1);
+  });
+});
+
+// EZD-213c P1 (vault/plans/EZD-213c.md section 4; D-When, D-Place; Q-0570).
+describe('EZD-213c inspector gap section', () => {
+  const GAP = withWalls(
+    baseObjects(),
+    1,
+    [
+      { x: 0, y: 0 },
+      { x: 144, y: 0 },
+      { x: 144, y: 120 },
+      { x: 0, y: 120 },
+      { x: 0, y: 0.5 },
+    ],
+    false,
+  );
+  const BOX: GapBox = {
+    wallIds: [uid(1), uid(2), uid(3), uid(4)],
+    at: { x: 0, y: 0.25 },
+    gap: { x: 0, y: -0.5 },
+    sizeIn: 0.5,
+    displayIn: 0.5,
+    sizeText: '1/2"',
+    actions: ['absorb', 'keep'],
+    note: null,
+  };
+  const gapProps = (box: GapBox = BOX): ResolveGapProps => ({
+    box,
+    picking: false,
+    alert: null,
+    coarse: false,
+    onPick: fn,
+    onKeep: fn,
+  });
+  function renderGap(v: InspectorView, canEdit: boolean, gap?: ResolveGapProps): string {
+    return renderToStaticMarkup(
+      <MessagesProvider language="en" messages={catalogFor('office', 'en') as never}>
+        <InspectorContent
+          view={v}
+          canEdit={canEdit}
+          coarse={false}
+          layersEditing={false}
+          onToggleLayers={fn}
+          onCommit={() => null}
+          onLayerMaterial={() => null}
+          {...(gap ? { gap } : {})}
+        />
+      </MessagesProvider>,
+    );
+  }
+
+  it("EZD-213c P1 the section is the wall panel's last part and only on one wall", () => {
+    const one = viewOf(GAP, [uid(4)]);
+    const a = renderGap(one, true, gapProps());
+    expect(count(a, 'data-testid="inspector-gap"')).toBe(1);
+    expect(a.indexOf('data-testid="inspector-gap"')).toBeGreaterThan(
+      a.indexOf('data-testid="inspector-bearing"'),
+    );
+    expect(has(renderGap(one, true), 'inspector-gap')).toBe(false);
+    expect(has(renderGap(viewOf(GAP, [uid(1), uid(2)]), true, gapProps()), 'inspector-gap')).toBe(
+      false,
+    );
+    const d = renderGap(one, false, gapProps({ ...BOX, actions: [] }));
+    expect(has(d, 'inspector-gap')).toBe(true);
+    expect(has(d, 'gap-size')).toBe(true);
+    const section = d.slice(d.indexOf('data-testid="inspector-gap"'));
+    expect(count(section, '<button')).toBe(0);
   });
 });

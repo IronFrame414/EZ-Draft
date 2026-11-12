@@ -31,6 +31,8 @@ import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
+import type { DrawingController } from '../tools/drawing-controller';
+import { gapSection } from '../tools/gap';
 import { newObjectId } from '../tools/model-changes';
 import type { InspectorEdit } from './inspector-edits';
 import {
@@ -52,6 +54,7 @@ import {
   type Shared,
   type SideLabel,
 } from './inspector-view';
+import { ResolveGap, type ResolveGapProps } from './ResolveGap';
 import styles from './InspectorPanel.module.css';
 
 // D-Text: sub-line and view-only layer parts are joined by this constant.
@@ -71,6 +74,8 @@ export type InspectorPanelProps = {
   store: ModelStore;
   selection: Pick<SelectionController, 'getUi' | 'subscribe' | 'onDoubleClick'>;
   canEdit: boolean;
+  // EZD-213c D-Panel: the gap state and its two actions.
+  drawing: Pick<DrawingController, 'getUi' | 'subscribe' | 'startPick' | 'keep'> | null;
 };
 
 export type InspectorContentProps = {
@@ -82,9 +87,19 @@ export type InspectorContentProps = {
   onCommit: (edits: readonly InspectorEdit[]) => MessageKey | null;
   onLayerMaterial: (index: number, material: WallLayer['material']) => MessageKey | null;
   lengthRef?: Ref<HTMLInputElement>;
+  // EZD-213c D-Place: the Resolve the gap section, last in the wall view.
+  gap?: ResolveGapProps | null;
 };
 
-export function InspectorPanel({ store, selection, canEdit }: InspectorPanelProps): ReactElement {
+// EZD-213c D-Panel: no drawing controller, nothing to subscribe to.
+const noSubscribe = () => () => {};
+
+export function InspectorPanel({
+  store,
+  selection,
+  canEdit,
+  drawing,
+}: InspectorPanelProps): ReactElement {
   const objects = useSyncExternalStore(
     store.subscribe,
     () => store.getState().objects,
@@ -101,6 +116,25 @@ export function InspectorPanel({ store, selection, canEdit }: InspectorPanelProp
     [objects, level, ui.ids],
   );
   const idsKey = ui.ids.join(' ');
+
+  // EZD-213c D-Panel: the gap of the one selected wall.
+  const drawingUi = useSyncExternalStore(
+    drawing ? drawing.subscribe : noSubscribe,
+    () => drawing?.getUi() ?? null,
+    () => drawing?.getUi() ?? null,
+  );
+  const state = view.kind === 'wall' && drawingUi !== null ? gapSection(drawingUi, view.id) : null;
+  const gap: ResolveGapProps | null =
+    state === null || drawing === null
+      ? null
+      : {
+          box: state.box,
+          picking: state.picking,
+          alert: state.alert,
+          coarse,
+          onPick: () => drawing.startPick(state.box.wallIds),
+          onKeep: () => drawing.keep(state.box.wallIds),
+        };
 
   // D-Edit layers.
   // Reset on a selection change while rendering, not in an effect (react-hooks/set-state-in-effect).
@@ -164,6 +198,7 @@ export function InspectorPanel({ store, selection, canEdit }: InspectorPanelProp
       onCommit={onCommit}
       onLayerMaterial={onLayerMaterial}
       lengthRef={lengthRef}
+      gap={gap}
     />
   );
 }
@@ -692,6 +727,7 @@ function WallPanel(props: InspectorContentProps & { view: WallView }) {
           </div>
         </>
       )}
+      {props.gap != null ? <ResolveGap {...props.gap} /> : null}
     </div>
   );
 }

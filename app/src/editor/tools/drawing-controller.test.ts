@@ -1059,3 +1059,111 @@ describe('EZD-212c handles and chips in the drawing controller', () => {
     expect(wallChips(objs(e.store.getState().objects), uid(5))).toHaveLength(2);
   });
 });
+
+// EZD-213c U2-U4 (vault/plans/EZD-213c.md section 4; D-Show, D-Finish; Q-0630 rows 9, 24; wall-chain.ts:137-142).
+describe("EZD-213c finishing a chain and showGap select the gap's last wall", () => {
+  function withSelectLink(objects: Map<string, ObjectValue> = baseObjects(), canEdit = true) {
+    const a = setup(objects, canEdit);
+    const selected: string[][] = [];
+    const link = {
+      getUi: () => ({ ids: [] as string[], selectMore: false }),
+      select: (ids: readonly string[]) => void selected.push([...ids]),
+      subscribe: () => () => {},
+      pickAt: () => [] as string[],
+    };
+    const attach = () =>
+      a.controller.attachSelection(
+        link as unknown as Parameters<typeof a.controller.attachSelection>[0],
+      );
+    attach();
+    return { ...a, selected, attach };
+  }
+
+  // The D5 typed steps with the fourth length 119.5 (9' 11 1/2"), or 120 to close the room.
+  function gapChain(a: ReturnType<typeof setup>, fourth = 119.5) {
+    const { controller, click, send } = a;
+    controller.selectTool('wall');
+    click(0, 0);
+    send(ev('move', 60, 0));
+    controller.typed({ length: 144, angle: null });
+    send(ev('move', 144, 50));
+    controller.typed({ length: 120, angle: 90 });
+    send(ev('move', 94, 120));
+    controller.typed({ length: 144, angle: 90 });
+    send(ev('move', 0, 70));
+    controller.typed({ length: fourth, angle: 90 });
+  }
+  const lastId = (a: ReturnType<typeof setup>) =>
+    a
+      .walls()
+      .find(
+        (w) =>
+          Math.abs(w.data.geometry.start.x) < 0.01 &&
+          Math.abs(w.data.geometry.start.y - 120) < 0.01,
+      )!.id;
+
+  it('EZD-213c U2 finishing a chain with a gap selects its last wall', () => {
+    const a = withSelectLink();
+    gapChain(a);
+    expect(a.selected).toEqual([]);
+    expect(a.controller.keyDown(ke('Enter'))).toBe(true);
+    const L = lastId(a);
+    expect(L).toBe(a.controller.getUi().boxes[0]!.wallIds[3]);
+    expect(a.selected).toEqual([[L]]);
+    a.controller.keyDown(ke('Enter'));
+    expect(a.selected).toEqual([[L]]);
+  });
+
+  it('EZD-213c U3 Esc and double-click end a chain with its last wall selected; no gap, no selection', () => {
+    const esc = withSelectLink();
+    gapChain(esc);
+    esc.controller.keyDown(ke('Escape'));
+    expect(esc.selected).toEqual([[lastId(esc)]]);
+    expect(esc.controller.getUi().tool).toBe('wall');
+
+    const dbl = withSelectLink();
+    gapChain(dbl);
+    dbl.send(ev('dblclick', 0, 0.5));
+    expect(dbl.selected).toEqual([[lastId(dbl)]]);
+
+    const closed = withSelectLink();
+    gapChain(closed, 120);
+    closed.controller.keyDown(ke('Enter'));
+    expect(closed.selected).toEqual([]);
+
+    const two = withSelectLink();
+    two.controller.selectTool('wall');
+    two.click(0, 0);
+    two.send(ev('move', 60, 0));
+    two.controller.typed({ length: 144, angle: null });
+    two.send(ev('move', 144, 50));
+    two.controller.typed({ length: 120, angle: 90 });
+    two.controller.keyDown(ke('Enter'));
+    expect(two.selected).toEqual([]);
+
+    const none = withSelectLink();
+    gapChain(none);
+    none.controller.attachSelection(null);
+    expect(() => none.controller.keyDown(ke('Enter'))).not.toThrow();
+  });
+
+  it("EZD-213c U4 showGap selects the gap's last wall for every viewer", () => {
+    for (const canEdit of [false, true]) {
+      const a = withSelectLink(withWalls(baseObjects(), 1, GAP_POINTS, false), canEdit);
+      const ui = a.controller.getUi();
+      const ids = ui.boxes[0]!.wallIds;
+      a.controller.showGap(ids);
+      expect(a.selected).toEqual([[uid(4)]]);
+      a.controller.showGap([]);
+      expect(a.selected).toEqual([[uid(4)]]);
+      expect(a.controller.getUi()).toBe(ui);
+      a.controller.attachSelection(null);
+      expect(() => a.controller.showGap(ids)).not.toThrow();
+      expect(a.selected).toEqual([[uid(4)]]);
+      a.attach();
+      a.controller.dispose();
+      a.controller.showGap(ids);
+      expect(a.selected).toEqual([[uid(4)]]);
+    }
+  });
+});

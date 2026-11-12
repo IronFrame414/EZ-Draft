@@ -4,7 +4,8 @@
    offset chips and door tooltip.
    EZD-212b (vault/plans/EZD-212b.md D10; board S03dStates): the dashed Move preview.
    EZD-212c (vault/plans/EZD-212c.md D20; boards S03dWallSelected, S03dDoorSelected): resize handles, chip leaders
-   and ticks, text chips. */
+   and ticks, text chips.
+   EZD-213c D-Marker (vault/plans/EZD-213c.md): the pill is a button; the gap panel rules moved to ResolveGap.module.css. */
 
 .layer {
   position: absolute;
@@ -59,45 +60,11 @@
   border-radius: var(--ez-radius-999);
   background: var(--ez-red);
   color: var(--ez-surface);
+  border: 0;
+  font: inherit;
   font-size: 12px;
+  cursor: pointer;
   white-space: nowrap;
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  padding: 12px 14px;
-  background: var(--ez-surface);
-  border: 1px solid var(--ez-border);
-  border-radius: var(--ez-radius-12);
-  box-shadow: var(--ez-shadow-floating);
-}
-
-.title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ez-slate-500);
-}
-
-.panel .action {
-  justify-content: flex-start;
-}
-
-.hint,
-.note {
-  margin: 0;
-  max-width: 260px;
-  font-size: 13px;
-  color: var(--ez-slate-700);
-}
-
-.alert {
-  margin: 0;
-  max-width: 260px;
-  font-size: 13px;
-  color: var(--ez-red);
 }
 
 .span {
