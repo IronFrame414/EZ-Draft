@@ -1,6 +1,6 @@
 # Phase 5 · for Josh (questions unit, 2026-11-09)
 
-Nothing waits on you for phase 5. Agents settled all eight questions (section 2).
+Nothing waits on you for phase 5. Agents settled all ten questions (section 2).
 
 ## 1. Decisions needed
 
@@ -17,8 +17,10 @@ Confirm or override each.
 - **Q-0657 · EZD-212a.** A door or window that is Not on a wall can still be resized: the chosen jamb stays fixed along its stored direction. Typing an Offset still needs a wall. Source: phase-auditor; S03dStates board (editable Width on the flagged door); Q-0630 rows 11, 76.
 - **Q-0658 · EZD-213a.** With more than one stud layer, a typed Thickness changes the first stud layer (left face to right face). Source: phase-auditor; Q-0630 row 13; 09k Thickness.
 - **Q-0659 · EZD-213a.** The inspector shows Height, door and window Width and Height, Rough opening and Sill height to 1/16", like Thickness; Length and Offset stay at 1/2". Source: phase-auditor; 03g; 09j rows 15-16; Q-0635. Note: the approved door and window boards show Offset from corner finer than 1/2" (sample data, not a decision).
+- **Q-0739 · EZD-389.** Notification emails (the bell-list kinds, such as an edit request) go only to their recipient; the person whose action triggered the notification gets no copy (the copy rule in Q-0701 covers emails a user sends, such as client sends and invites). Source: phase-auditor; Q-0701; glossary 00c:7; 03c-tables:49; phase-02.md:74. Confirm or override.
 
 ## 3. Proposed wording
 
 - **EZD-211:** refusal "Those offsets and the width don't add up to the wall."; the rest per its plan section 3.
 - **EZD-213, EZD-217, EZD-204, EZD-208:** see section 3 of each plan; nothing new from these answers.
+- **EZD-389** (the copy of an email sent to the person who sent it; English): subject "Copy: {subject}"; first line "This is your copy of the email sent to {to}. If they can't find it, ask them to check their spam folder, or forward this email to them."

@@ -22418,6 +22418,7 @@
     "Browser tests (EZD-016a)",
     "Background jobs (EZD-009)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
