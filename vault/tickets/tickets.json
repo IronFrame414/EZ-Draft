@@ -22164,7 +22164,7 @@
   },
   {
    "id": "EZD-393",
-   "phase": 4,
+   "phase": 5,
    "title": "Fix: the EZD-356 T1 pan-row test finds a wait during the fixture pan under load",
    "depends_raw": "EZD-372",
    "spec_ref": "rule 17; EZD-356",
@@ -22177,12 +22177,148 @@
     "Performance check (EZD-017)"
    ],
    "priority": 1,
-   "phase_file": "tickets/phases/phase-04.md",
+   "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
     "EZD-372"
    ],
    "acs": [
     "AC-EZD-393-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-394",
+   "phase": 5,
+   "title": "Fix: the EZD-000b T4 skill-file test fails when the gate's write probe appears in .claude/agents",
+   "depends_raw": "EZD-000b",
+   "spec_ref": "rule 17; EZD-000b",
+   "spec_files": [
+    "PROCESS.md"
+   ],
+   "decisions": [
+    "spec/decisions/process.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Build lanes (EZD-172)",
+    "Gate user (EZD-354)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-000b"
+   ],
+   "acs": [
+    "AC-EZD-394-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-395",
+   "phase": 5,
+   "title": "Fix: an ended session can get a 500 and an alert instead of 401 when its token refresh fails",
+   "depends_raw": "EZD-349",
+   "spec_ref": "rule 17; Q-0052",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-349"
+   ],
+   "acs": [
+    "AC-EZD-395-1",
+    "AC-EZD-395-2"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-396",
+   "phase": 4,
+   "title": "Fix: Fit to screen in the EZD-207b B1 and B3 tests gives a smaller zoom since the inspector is always shown",
+   "depends_raw": "EZD-213b, EZD-207b",
+   "spec_ref": "rule 17; EZD-207b; EZD-213b; EZD-368",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Plan canvas (EZD-207a)",
+    "Inspector (EZD-213a)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-213b",
+    "EZD-207b"
+   ],
+   "acs": [
+    "AC-EZD-396-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-397",
+   "phase": 5,
+   "title": "Fix: the EZD-117a B2 warm Projects page test takes just over 1,000 ms on CI",
+   "depends_raw": "EZD-117a",
+   "spec_ref": "rule 17; EZD-117a; Q-0748",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md#States",
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Performance check (EZD-017)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-117a"
+   ],
+   "acs": [
+    "AC-EZD-397-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-398",
+   "phase": 5,
+   "title": "Fix: the long-tasks-during-pan:ipad perf check finds one long task on CI after EZD-372",
+   "depends_raw": "EZD-372",
+   "spec_ref": "rule 17; EZD-372; Q-0748",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-372"
+   ],
+   "acs": [
+    "AC-EZD-398-1"
    ],
    "acs_source": "done-when"
   }

@@ -569,3 +569,23 @@ Cite merged-code line numbers only after the dependency merges; a plan written a
 - L-next candidate: when a plan puts an existing component into a server page, decide the 'use client' directive on the component itself if it uses hooks (EZD-224).
 EZD-217 re-validation: when a dependency's plan is split, cite the part plan's merged contract rows (e.g. P208b C1, C2, DB7), not the parent's props, and take each import's source file from a merged file that already imports it.
 EZD-217 plan-gap: when a fixture calls a merged helper, write its exact signature in the plan, including which argument it reads (withObjectNumber takes { type, data }, not data).
+
+## L-065  areas: ui, migrations, security, api, testing, data-model  seen: 1  status: ratified
+Rule: A plan re-planned or split after a worktree holds wip commits makes that build stale; the unit resumes (RESUME wip=N) and the gate passes on the old plan's tests. Say in the plan header "discard branch t/<T>; rebuild from develop".
+Plan check: when re-planning a ticket with an existing t/<T> branch, the plan names the branch as discarded.
+Sources: EZD-224 round 1 (code-reviewer and security-reviewer FAIL on a green gate).
+EZD-224b 2026-11-11: when a plan adds a package, read the whole installed dependency tree at its resolved versions (not only the package's own files) for forms the bundler cannot build (import.source, data-URL wasm), and pin a bad transitive version in the first plan version.
+EZD-388: a test's library-behaviour assumption (persistent context browser() is null) was written from API docs, not the installed Playwright source; C2 could never pass and hung the file. Cite the installed library source line in the Tests row (L-021).
+When a plan's iPad touch-target test checks buttons in a table that scrolls on its own, say in Decided CSS how the table scrolls and have the test scroll it to the row before the check; the harness hit-tests, and a row cut off by the table reads as covered.
+EZD-390: a load-conditioned run series must say how to wait for the load (start a gate only when another lane is live) and how the streak resumes in a later dispatch on the same commit, so idle gates never use up the cap.
+Sibling ticket merged first on the same files (EZD-211b): re-read its section 3 for ports it added and reuse them instead of planning a second seam (EZD-212b vs EZD-211b attachSelection).
+Name every helper a plan step uses by its exporting file, found by grep at plan time (EZD-213a: openingChange was already exported by EZD-204b).
+L: re-validation should also re-check E-row line numbers and existing test titles, since other merges move them.
+Name a dependency's seam by grepping the merged code for the exported name. Never take it from a dependency plan's summary, and cite the file:line.
+EZD-5602: a plan written before its dependency is built should give that dependency's pattern as the merged function to copy (checkAnthropicKey, anthropicListModels), not plan step numbers.
+
+## L-066  areas: tooling, tests, process  seen: 1  status: candidate
+Rule: A load-only flake fix is proved by 5 counting lane gates (another lane running a gate), and open flake fixes prove together, each the other's load (Josh Q-0748 (b), 2026-11-12). Never plan 10.
+Plan check: the D-Runs row of a flake ticket asks for 5 counting gates and cites Q-0748 (b).
+Rule: Before calling a failure a load flake, check its value across runs. A constant received value (EZD-207b B1/B3 at 8.7333 in every gate after EZD-213b) is a regression from a merge and holds the release (EZD-396); only a value that moves with load goes to the next phase under Q-0748 (a).
+Sources: Q-0748; EZD-393, EZD-396 (phase 4 release review 2026-11-12).
