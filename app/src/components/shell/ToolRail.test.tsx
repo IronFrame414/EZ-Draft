@@ -202,3 +202,38 @@ describe('EZD-210b ToolRail disabled', () => {
     expect(decls).toContain('cursor: default');
   });
 });
+
+// EZD-5603a T21 (vault/plans/EZD-5603a.md section 4; AC-EZD-5603-1; board S03cAIAssistant.dc.html:83; Decided
+// "Rail button"). The tool is imported inside the test so the describes above keep running.
+describe('EZD-5603a ToolRail assistant toggle', () => {
+  const tipOf = (html: string, id: string) => {
+    const at = html.indexOf(`data-rail-tool="${id}"`);
+    const m = /<span[^>]*data-rail-tooltip=""[^>]*>([\s\S]*?)<\/span>/.exec(html.slice(at));
+    return m ? m[1]! : '';
+  };
+
+  it('T21 pressedIds presses the assistant button; no shortcut; tooltip is "Assistant" alone', async () => {
+    const { ASSISTANT_RAIL_TOOL } = await import('../../editor/assistant/assistant-ui');
+    const on = render(
+      <ToolRail
+        top={top}
+        bottom={[ASSISTANT_RAIL_TOOL]}
+        activeId="select"
+        pressedIds={['assistant']}
+        onSelect={fn}
+      />,
+    );
+    const btn = buttonFor(on, 'assistant');
+    expect(btn).toContain('aria-pressed="true"');
+    expect(btn).not.toContain('aria-keyshortcuts');
+    expect(tipOf(on, 'assistant')).toBe('Assistant');
+    expect(tipOf(on, 'assistant')).not.toContain('<kbd');
+    expect(buttonFor(on, 'select')).toContain('aria-pressed="true"');
+
+    const off = render(
+      <ToolRail top={top} bottom={[ASSISTANT_RAIL_TOOL]} activeId="select" onSelect={fn} />,
+    );
+    expect(buttonFor(off, 'assistant')).toContain('aria-pressed="false"');
+    expect(buttonFor(off, 'select')).toContain('aria-pressed="true"');
+  });
+});

@@ -23,7 +23,17 @@
 // EZD-217 Build step 8 (vault/plans/EZD-217.md Decided "Editor wiring"): the edit controller (Delete, Copy, Paste,
 // Duplicate, Undo, Redo) beside the selection, given to the selection layer and the tablet edit bar.
 // EZD-212c (vault/plans/EZD-212c.md D21): the drawing layer's tablet Cancel turns the tool off.
-import { useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
+// EZD-5603a Build step 12 (vault/plans/EZD-5603a.md Decided "Editor wiring", "Rail button"): for an editor, one
+// Assistant session per page load; its rail toggle opens the Assistant panel in the inspector place.
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
 import { EditorFrame } from '../components/shell/EditorFrame';
@@ -43,6 +53,9 @@ import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
+import { AssistantPanel } from './assistant/AssistantPanel';
+import { createAssistantSession, type AssistantSession } from './assistant/assistant-session';
+import { assistantShown } from './assistant/assistant-ui';
 import {
   openEditorSession,
   type EditorSession,
@@ -59,6 +72,7 @@ import {
   type PlanController,
   type PlanStats,
 } from './plan/controller';
+import { openFloorId } from './plan/batches';
 import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
@@ -117,10 +131,12 @@ type CanvasState =
       selection: SelectionController;
       edit: EditController;
       scale: ScaleSetting;
+      assistant: AssistantSession | null;
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
 const noop = () => {};
+const noSubscribe = () => noop;
 
 export function ProjectEditor({
   projectId,
@@ -190,7 +206,19 @@ export function ProjectEditor({
           handle: plan.handle,
           canEdit: result.session.model.viewer.canEdit,
         });
+        // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
+        const sync = result.session.sync;
+        const assistant =
+          sync === null
+            ? null
+            : createAssistantSession({
+                projectId,
+                sync,
+                getFloorId: () => openFloorId(result.session.store.getState().objects),
+                getSelectedIds: () => selection.getUi().ids,
+              });
         dispose = () => {
+          assistant?.dispose();
           drawing.attachSelection(null);
           edit.dispose();
           selection.dispose();
@@ -210,6 +238,7 @@ export function ProjectEditor({
           selection,
           edit,
           scale,
+          assistant,
         });
         return;
       }
@@ -228,6 +257,14 @@ export function ProjectEditor({
   const edit = state.kind === 'ready' ? state.edit : null;
   const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
+  const assistant = state.kind === 'ready' ? state.assistant : null;
+  // Only `open` is read here, so typing in the panel does not render the whole editor again (11 Performance).
+  const readAssistantOpen = () => assistant?.getUi().open ?? false;
+  const assistantOpen = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readAssistantOpen,
+    readAssistantOpen,
+  );
   const sync = session?.sync ?? null;
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
@@ -378,8 +415,16 @@ export function ProjectEditor({
     canvasFailed,
     controllerEnabled: drawing?.getUi().enabled ?? false,
   });
+  const shown = assistant !== null && assistantShown({ canEdit, view: 'plan' }) ? assistant : null;
   const rail =
-    spec === null ? null : <DrawingRail drawing={drawing} selection={selection} rail={spec} />;
+    spec === null ? null : (
+      <DrawingRail
+        drawing={drawing}
+        selection={selection}
+        rail={spec}
+        assistant={shown !== null ? { open: assistantOpen, onToggle: shown.toggle } : null}
+      />
+    );
   const panel =
     session !== null && listOpen ? (
       <ConflictPanel
@@ -424,6 +469,7 @@ export function ProjectEditor({
         drawing={drawing}
       />
     ) : null;
+  const openAssistant = shown !== null && assistantOpen ? shown : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
   ) : undefined;
@@ -435,8 +481,20 @@ export function ProjectEditor({
           header={header}
           rail={rail}
           canvas={canvas}
-          inspector={inspector ?? undefined}
-          inspectorLabel={inspector === null ? undefined : 'office.shell.inspector'}
+          inspector={
+            openAssistant !== null ? (
+              <AssistantPanel session={openAssistant} />
+            ) : (
+              (inspector ?? undefined)
+            )
+          }
+          inspectorLabel={
+            openAssistant !== null
+              ? 'office.assistant.title'
+              : inspector === null
+                ? undefined
+                : 'office.shell.inspector'
+          }
           statusBar={
             <StatusBar
               start={

@@ -78,4 +78,9 @@
   --ez-box-touch-fill: oklch(0.72 0.12 160);
   /* S15 .tron; EZD-104 */
   --ez-row-selected: #f5f7ff;
+  /* S03c alert box, model list; EZD-5603a */
+  --ez-amber-alert: oklch(0.97 0.035 80);
+  --ez-amber-alert-border: oklch(0.87 0.07 75);
+  --ez-shadow-picker: 0 12px 32px rgba(10,15,30,.16);
+  --ez-radius-4: 4px;
 }

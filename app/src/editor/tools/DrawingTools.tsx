@@ -11,6 +11,7 @@
 // EZD-212b (vault/plans/EZD-212b.md D10): the dashed Move preview path.
 // EZD-212c (vault/plans/EZD-212c.md D18-D20): resize handles, wall chip leaders, selection and size chips, chips as
 // text without Edit model, the typed bar for a handle drag or chip entry, and the tablet Cancel.
+// EZD-5603a Build step 11 (vault/plans/EZD-5603a.md Decided "Rail button"): the Assistant toggle in the bottom group.
 import {
   useCallback,
   useEffect,
@@ -27,6 +28,7 @@ import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { useT } from '../../lib/messages';
 import touch from '../../styles/touch.module.css';
 import type { PlanCanvasHandle } from '../plan/controller';
+import { ASSISTANT_RAIL_TOOL } from '../assistant/assistant-ui';
 import type { SelectionController } from '../selection/selection-controller';
 import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
 import type { DrawingController, DrawingUi } from './drawing-controller';
@@ -42,9 +44,10 @@ export type DrawingRailProps = {
   drawing: DrawingController | null;
   selection: SelectionController | null;
   rail: { tools: readonly RailTool[]; disabled: boolean };
+  assistant?: { open: boolean; onToggle: () => void } | null;
 };
 
-export function DrawingRail({ drawing, selection, rail }: DrawingRailProps) {
+export function DrawingRail({ drawing, selection, rail, assistant }: DrawingRailProps) {
   const ui = useSyncExternalStore<DrawingUi | null>(
     drawing ? drawing.subscribe : noSubscribe,
     () => drawing?.getUi() ?? null,
@@ -53,10 +56,12 @@ export function DrawingRail({ drawing, selection, rail }: DrawingRailProps) {
   return (
     <ToolRail
       top={[...rail.tools]}
-      bottom={[]}
+      bottom={assistant ? [ASSISTANT_RAIL_TOOL] : []}
       activeId={ui?.tool ?? 'select'}
+      pressedIds={assistant ? (assistant.open ? ['assistant'] : []) : undefined}
       onSelect={(id) => {
-        if (id === 'select') selection?.selectTool();
+        if (assistant && id === 'assistant') assistant.onToggle();
+        else if (id === 'select') selection?.selectTool();
         else drawing?.selectTool(id as DrawingToolId);
       }}
       disabled={rail.disabled}

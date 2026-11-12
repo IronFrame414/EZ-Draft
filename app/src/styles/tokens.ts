@@ -77,4 +77,9 @@ export const TOKENS: readonly {
   { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
   // S15 .tron; EZD-104
   { name: '--ez-row-selected', value: '#f5f7ff', group: 'color' },
+  // S03c alert box, model list; EZD-5603a
+  { name: '--ez-amber-alert', value: 'oklch(0.97 0.035 80)', group: 'color' },
+  { name: '--ez-amber-alert-border', value: 'oklch(0.87 0.07 75)', group: 'color' },
+  { name: '--ez-shadow-picker', value: '0 12px 32px rgba(10,15,30,.16)', group: 'shadow' },
+  { name: '--ez-radius-4', value: '4px', group: 'radius' },
 ];

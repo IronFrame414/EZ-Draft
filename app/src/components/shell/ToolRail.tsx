@@ -9,12 +9,14 @@ export function ToolRail({
   top,
   bottom,
   activeId,
+  pressedIds,
   onSelect,
   disabled,
 }: {
   top: RailEntry[];
   bottom: RailTool[];
   activeId: string | null;
+  pressedIds?: readonly string[];
   onSelect: (id: string) => void;
   disabled?: boolean;
 }) {
@@ -27,7 +29,7 @@ export function ToolRail({
         data-rail-tool={tool.id}
         aria-label={t(tool.label)}
         aria-keyshortcuts={tool.shortcut}
-        aria-pressed={tool.id === activeId}
+        aria-pressed={tool.id === activeId || (pressedIds ?? []).includes(tool.id)}
         disabled={disabled}
         onClick={() => onSelect(tool.id)}
       >
@@ -35,7 +37,7 @@ export function ToolRail({
       </button>
       <span className={styles.tip} data-rail-tooltip="" aria-hidden="true">
         {t(tool.label)}
-        <kbd className={styles.key}>{tool.shortcut}</kbd>
+        {tool.shortcut !== undefined && <kbd className={styles.key}>{tool.shortcut}</kbd>}
       </span>
     </div>
   );

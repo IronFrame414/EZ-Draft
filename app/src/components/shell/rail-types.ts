@@ -7,7 +7,7 @@ export type RailTool = {
   id: string;
   icon: IconName;
   label: MessageKey;
-  shortcut: string;
+  shortcut?: string;
 };
 
 export type RailSeparator = { kind: 'separator' };

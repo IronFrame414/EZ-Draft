@@ -23,12 +23,14 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-299: block, category, door_front, info, layers, my_location, refresh, report, update, window (D-Icons).
 // EZD-212b: open_with.
 // EZD-212c E1: keyboard_tab.
+// EZD-5603a step 1: arrow_upward, expand_less (check and key were already listed).
 const EXPECTED_ICONS = [
   'add',
   'ads_click',
   'arrow_back',
   'arrow_forward',
   'arrow_selector_tool',
+  'arrow_upward',
   'assignment',
   'auto_awesome',
   'autorenew',
@@ -54,6 +56,7 @@ const EXPECTED_ICONS = [
   'edit',
   'error',
   'event',
+  'expand_less',
   'expand_more',
   'fit_screen',
   'gavel',
