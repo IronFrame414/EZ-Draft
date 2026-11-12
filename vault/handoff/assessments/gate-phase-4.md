@@ -31,8 +31,16 @@ Each time, a develop commit landed after the last record and before the unit's s
   - gate-phase 4 is on `.git/set-aside.json` until EZD-400 is merged, so it cannot run on a known open fix ticket.
 - Prevention: LANES.json build_lanes is 1, so no other early-phase build merges between EZD-400 and the gate. This rule comes from the two release-time regressions from early merges, EZD-396 and EZD-400.
 
-## Open causes
-None. The gate is released only after EZD-400 is done.
+## Strike 5 (2026-11-12 19:55:54Z): a misread, not a red check
+- Develop 8a4673c (feat(EZD-400)) was recorded at 19:55:04Z, and the unit started at 19:55:24Z. With nothing to record, `node scripts/unit-steps.mjs record-develop` prints:
+  `RECORD LIST 8a4673c..8a4673c`
+  `RECORD CHECK: to record develop, run node scripts/unit-steps.mjs record-develop <sha>`
+  The second line is printed on every run (scripts/unit-steps.mjs:473), even when nothing is unrecorded. The unit read it as "develop not recorded".
+- **How to read it (step 0):** develop is recorded when the `RECORD LIST <a>..<b>` range has the same sha on both sides and no `commit` or `change` lines follow. The `RECORD CHECK` line is a standing hint, not a red check. Develop is unrecorded only when `commit ...` lines are listed.
+- Tooling note in vault/tooling-notes.md. A wording fix to unit-steps.mjs is build-system work (rule 18) and is not made here.
 
-Covers strikes: 4
+## Open causes
+None.
+
+Covers strikes: 5
 Verdict: ready
