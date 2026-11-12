@@ -22224,6 +22224,7 @@
     "Build lanes (EZD-172)",
     "Gate user (EZD-354)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -22307,7 +22308,8 @@
    "architecture": [
     "Browser tests (EZD-016a)",
     "Performance check (EZD-017)",
-    "CI"
+    "CI",
+    "Test scope (Q-0006)"
    ],
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
@@ -22359,6 +22361,7 @@
     "Performance check (EZD-017)",
     "CI"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -22427,6 +22430,33 @@
    ],
    "acs": [
     "AC-EZD-420-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-421",
+   "phase": 5,
+   "title": "Fix: route bodies that call an RPC after the session read can answer 500 and alert for an ended session",
+   "depends_raw": "EZD-395",
+   "spec_ref": "rule 17; Q-0052; Q-0753",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Auth and session (EZD-007)",
+    "Error reporting (EZD-024)",
+    "Permission enforcement (EZD-102)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-395"
+   ],
+   "acs": [
+    "AC-EZD-421-1",
+    "AC-EZD-421-2"
    ],
    "acs_source": "done-when"
   }
