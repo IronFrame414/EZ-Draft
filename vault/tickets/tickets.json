@@ -4052,6 +4052,16 @@
     "mockups/S15cSubmittal.png",
     "mockups/S15gCode.png"
    ],
+   "architecture": [
+    "New project wizard (EZD-118)",
+    "Customers (EZD-113)",
+    "Model working copy (EZD-120a)",
+    "Editor route (EZD-120c)",
+    "Events",
+    "Permission enforcement (EZD-102)",
+    "Messages and language (t())",
+    "Browser tests (EZD-016a)"
+   ],
    "phase_file": "tickets/phases/phase-01.md",
    "depends_on": [
     "EZD-118",
@@ -6158,6 +6168,15 @@
    ],
    "mockups": [
     "mockups/S03Plan.png"
+   ],
+   "architecture": [
+    "Editor shell (EZD-012)",
+    "Drawing tools (EZD-210)",
+    "Selection (EZD-208)",
+    "Editor route (EZD-120c)",
+    "State components (EZD-015)",
+    "Realtime (EZD-018)",
+    "Browser tests (EZD-016a)"
    ],
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -22176,6 +22195,7 @@
    "architecture": [
     "Performance check (EZD-017)"
    ],
+   "track": "tooling",
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
@@ -22320,6 +22340,31 @@
    ],
    "acs": [
     "AC-EZD-398-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-399",
+   "phase": 5,
+   "title": "Fix: the EZD-207c N5 throttle test finds a marked task with no CPU time on CI",
+   "depends_raw": "EZD-392",
+   "spec_ref": "rule 17; EZD-207c; Q-0748",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md#Performance"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "architecture": [
+    "Performance check (EZD-017)",
+    "CI"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-392"
+   ],
+   "acs": [
+    "AC-EZD-399-1"
    ],
    "acs_source": "done-when"
   }
