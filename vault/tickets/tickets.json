@@ -21044,7 +21044,8 @@
     "Browser tests (EZD-016a)",
     "AI (EZD-021)",
     "AI stubs and the network guard (EZD-021)",
-    "Dependencies"
+    "Dependencies",
+    "AI assistant call path (EZD-5602)"
    ],
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
@@ -22365,6 +22366,39 @@
    ],
    "acs": [
     "AC-EZD-399-1"
+   ],
+   "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-400",
+   "phase": 4,
+   "title": "Fix: six rail tests count 6 tools where an editor rail now has the Assistant button as a 7th",
+   "depends_raw": "EZD-5603a, EZD-210b",
+   "spec_ref": "rule 17; EZD-207b; EZD-213b; EZD-368",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/screens/S03-plan-editor.md#Canvas interactions",
+    "spec/sections/04-app-shell-and-global-ui.md#Left panel and inspector"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md"
+   ],
+   "mockups": [],
+   "architecture": [
+    "Browser tests (EZD-016a)",
+    "Plan canvas (EZD-207a)",
+    "Inspector (EZD-213a)",
+    "Editor shell (EZD-012)"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-04.md",
+   "depends_on": [
+    "EZD-5603a",
+    "EZD-210b"
+   ],
+   "acs": [
+    "AC-EZD-400-1"
    ],
    "acs_source": "done-when"
   }
