@@ -331,13 +331,19 @@ test.describe('EZD-208b selection', () => {
     const { ids: pids, user } = await fixtureS();
     await signInAs(user.email);
     await openReady(page, pids.P1);
-    await expect(railTools(page)).toHaveCount(6);
-    await expect(railTools(page).nth(0)).toHaveAttribute('data-rail-tool', 'select');
-    await expect(railTools(page).nth(1)).toHaveAttribute('data-rail-tool', 'move');
-    await expect(railTools(page).nth(2)).toHaveAttribute('data-rail-tool', 'wall');
-    await expect(railTools(page).nth(3)).toHaveAttribute('data-rail-tool', 'room-rect');
-    await expect(railTools(page).nth(4)).toHaveAttribute('data-rail-tool', 'door');
-    await expect(railTools(page).nth(5)).toHaveAttribute('data-rail-tool', 'window');
+    const topTools = page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]');
+    const bottomTools = page.locator(
+      '[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]',
+    );
+    await expect(topTools).toHaveCount(6);
+    await expect(bottomTools).toHaveCount(1);
+    await expect(bottomTools).toHaveAttribute('data-rail-tool', 'assistant');
+    await expect(topTools.nth(0)).toHaveAttribute('data-rail-tool', 'select');
+    await expect(topTools.nth(1)).toHaveAttribute('data-rail-tool', 'move');
+    await expect(topTools.nth(2)).toHaveAttribute('data-rail-tool', 'wall');
+    await expect(topTools.nth(3)).toHaveAttribute('data-rail-tool', 'room-rect');
+    await expect(topTools.nth(4)).toHaveAttribute('data-rail-tool', 'door');
+    await expect(topTools.nth(5)).toHaveAttribute('data-rail-tool', 'window');
     await expect(tool(page, 'select')).toHaveAttribute('aria-label', 'Select');
     await expect(tool(page, 'select')).toHaveAttribute('aria-keyshortcuts', 'V');
     await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');

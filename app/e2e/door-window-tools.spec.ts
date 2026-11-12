@@ -317,7 +317,8 @@ test.describe('EZD-211b door and window tools', () => {
       const o = await opening(page);
       near(center(o).x, 90);
       near(center(o).y, 0);
-      expect(await expectTouchTargets(page, rail(page))).toBe(6);
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(6);
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(1);
       expect(await expectTouchTargets(page, id(page, 'opening-chips'))).toBe(2);
       await id(page, 'opening-chip-left').tap();
       await expect(id(page, 'typed-box')).toBeVisible();

@@ -207,8 +207,11 @@ test.describe('EZD-210b drawing tools', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await expect(rail(page)).toHaveCount(1);
-    const tools = rail(page).locator('[data-rail-tool]');
+    const tools = rail(page).locator('[data-rail="top"] [data-rail-tool]');
+    const bottom = rail(page).locator('[data-rail="bottom"] [data-rail-tool]');
     await expect(tools).toHaveCount(6);
+    await expect(bottom).toHaveCount(1);
+    await expect(bottom).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(tools.nth(0)).toHaveAttribute('data-rail-tool', 'select');
     await expect(tools.nth(1)).toHaveAttribute('data-rail-tool', 'move');
     await expect(tools.nth(2)).toHaveAttribute('data-rail-tool', 'wall');
@@ -514,7 +517,8 @@ test.describe('EZD-210b drawing tools', () => {
       await openReady(page, ids.P1);
       await addGap(page);
       await view(page);
-      expect(await expectTouchTargets(page, rail(page))).toBe(6);
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(6);
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(1);
       expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(1);
     },
   );
