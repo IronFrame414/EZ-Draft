@@ -231,6 +231,11 @@ async function moveTo(page: Page, x: number, y: number) {
   await page.mouse.move(p.x, p.y);
 }
 
+// EZD-396: Fit's zoom for W1 in the measured canvas region (fitView, view.ts:78-98): margin 48 px (FIT_MARGIN_PX), W1's bounds 120 x 4.5 in.
+function fitPpiW1(region: { width: number; height: number }): number {
+  return Math.min((region.width - 2 * 48) / 120, (region.height - 2 * 48) / 4.5);
+}
+
 // Repo root: nearest folder upward from the working directory holding pnpm-workspace.yaml (Q-0197 (b)).
 function repoRoot(): string {
   let dir = process.cwd();
@@ -313,7 +318,7 @@ test.describe('EZD-207b plan canvas', () => {
     await page.mouse.move(from.x + 200, from.y, { steps: 5 });
     await page.mouse.up({ button: 'right' });
     await button(page, 'Fit to screen').click();
-    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(1400 / 120, 3);
+    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(fitPpiW1(region), 3);
     const fitted = await toScreen(page, { x: 60, y: -2.25 });
     expect(Math.abs(fitted.x - centre.x)).toBeLessThanOrEqual(0.5);
     expect(Math.abs(fitted.y - centre.y)).toBeLessThanOrEqual(0.5);
@@ -388,10 +393,11 @@ test.describe('EZD-207b plan canvas', () => {
     await setViewAndWait(page, { x: -24, y: 24, ppi: 8 });
     await moveTo(page, 600, 210);
     await expect.poll(() => hovered(page)).toBe(w1);
+    const region = await regionBox(page);
 
     await button(page, 'Fit to screen').click();
-    // View-only users have Select on the rail (Q-0630 row 9), so the region is the editor's: (1600 - 32 - 56 - 16 - 96) / 120 (EZD-368).
-    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(1400 / 120, 3);
+    // Same region as the editor's (Q-0630 row 9; EZD-368): the canvas region beside the inspector (EZD-396).
+    await expect.poll(async () => (await getView(page)).ppi).toBeCloseTo(fitPpiW1(region), 3);
   });
 
   test('EZD-207b B4 a room label is drawn from the atlas in the label colour and nothing redraws while idle', async ({
