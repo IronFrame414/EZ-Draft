@@ -44,6 +44,7 @@ export const ICON_NAMES = [
   'layers',
   'library_add_check',
   'library_books',
+  'lock',
   'logout',
   'mail',
   'monitor_heart',
@@ -76,6 +77,7 @@ export const ICON_NAMES = [
   'verified_user',
   'view_column_2',
   'view_quilt',
+  'visibility',
   'window',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

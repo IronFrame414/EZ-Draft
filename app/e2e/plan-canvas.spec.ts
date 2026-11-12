@@ -412,8 +412,8 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(tabs).toHaveCount(1);
     await expect(tabs).toHaveText('Plan');
     await expect(tabs).toHaveAttribute('aria-current', 'page');
-    for (const region of ['left-panel', 'inspector'])
-      await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(6);
     await expect(page.locator('[data-status-item]')).toHaveCount(4);

@@ -377,7 +377,14 @@ describe('EZD-208a selection controller', () => {
       }
     }
     const edit = editorRail({ ...base, editor: 'ready', canEdit: true });
-    expect(edit?.tools.map((t) => t.id)).toEqual(['select', 'move', 'wall', 'room-rect', 'door', 'window']);
+    expect(edit?.tools.map((t) => t.id)).toEqual([
+      'select',
+      'move',
+      'wall',
+      'room-rect',
+      'door',
+      'window',
+    ]);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });
     expect(off?.tools).toEqual(all);
@@ -535,5 +542,50 @@ describe('EZD-208a selection controller', () => {
 
     expect(s.controller.pickAt(pt(144, 60))).toEqual([uid(50), uid(2)]);
     expect(MOVE_DRAG_PX).toBe(SAME_SPOT_PX);
+  });
+  // EZD-213b SC1 (vault/plans/EZD-213b.md section 4; AC-EZD-213-16; Q-0630 row 33; Decided "D-Dblclick"; P208a C1).
+  it('EZD-213b SC1 a double-click selects the smallest object and reports it', () => {
+    const a = setup();
+    const heardA: string[] = [];
+    a.controller.onDoubleClick((id) => void heardA.push(id));
+    a.click(72, 0);
+    expect(a.ids()).toEqual([uid(2)]);
+    a.click(72, 0);
+    expect(a.ids()).toEqual([uid(1)]);
+    a.send(ev('dblclick', 72, 0));
+    expect(a.ids()).toEqual([uid(2)]);
+    expect(heardA).toEqual([uid(2)]);
+
+    const b = setup();
+    const heardB: string[] = [];
+    b.controller.onDoubleClick((id) => void heardB.push(id));
+    b.send(ev('dblclick', 20, 0));
+    expect(b.ids()).toEqual([uid(1)]);
+    expect(heardB).toEqual([uid(1)]);
+
+    const c = setup();
+    const heardC: string[] = [];
+    c.controller.onDoubleClick((id) => void heardC.push(id));
+    c.click(20, 0);
+    expect(c.ids()).toEqual([uid(1)]);
+    c.send(ev('dblclick', 72, 0, { shiftKey: true }));
+    expect(c.ids()).toEqual([uid(1)]);
+    expect(heardC).toEqual([]);
+
+    c.send(ev('dblclick', 72, 60));
+    expect(c.ids()).toEqual([uid(1)]);
+    expect(heardC).toEqual([]);
+
+    const e = setup();
+    const receiver = e.receivers.at(-1)!;
+    e.controller.dispose();
+    const heardE: string[] = [];
+    let remove: unknown;
+    expect(() => {
+      remove = e.controller.onDoubleClick((id) => void heardE.push(id));
+    }).not.toThrow();
+    expect(typeof remove).toBe('function');
+    expect(() => receiver(ev('dblclick', 72, 0))).not.toThrow();
+    expect(heardE).toEqual([]);
   });
 });

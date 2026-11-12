@@ -224,8 +224,8 @@ test.describe('EZD-210b drawing tools', () => {
       await expect(tool(page, which)).toHaveAttribute('aria-pressed', 'false');
       await expect(tool(page, which)).toBeEnabled();
     }
-    for (const region of ['left-panel', 'inspector'])
-      await expect(page.locator(`[data-shell-region="${region}"]`)).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
 
     await page.keyboard.press('w');
     await expect(tool(page, 'wall')).toHaveAttribute('aria-pressed', 'true');

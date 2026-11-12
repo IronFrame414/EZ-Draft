@@ -358,7 +358,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/editor/derived/     the open model's derived values: ModelDerived over the store (EZD-235)
   src/editor/workers/     the Web Worker pool: createWorkerPool, one job per worker (EZD-235b)
   src/editor/conflicts/   the conflict banner and list (EZD-299)
-  src/editor/inspector/   the inspector's pure edit and view rules (EZD-213a)
+  src/editor/inspector/   the inspector's pure edit and view rules (EZD-213a); InspectorPanel.tsx and inspector-input.ts: the panel and its commits (EZD-213b)
   src/lib/conflicts/      sync conflict types and labels, the list store and its calls (EZD-299a, EZD-299b); conflict-view.ts: the list's rows, groups and pages (EZD-299)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
@@ -528,6 +528,7 @@ EZD-208a (vault/plans/EZD-208a.md); S03 Canvas interactions; Q-0630; Q-0633; 11 
 - **State.** Session only, never saved; `getUi()` changes only on the ids or Select more; the box goes to `onBox` per move, never through React.
 - **Pointer.** `shareReceiver`: the drawing receiver wins over the selection receiver.
 - **Screen (EZD-208b).** `app/src/editor/selection/SelectionLayer.tsx`: `SelectionLayer` (the key listener and the box `rect`, written from `onBox`, never through React; inside solid `--ez-cobalt`, touch dashed `--ez-box-touch-stroke`) and `EditBar` (Select more, Select all; shown when `useCoarsePointer()` is true, first in the canvas state column so banners stack under it). `window.__ezdraftSelection` (`ids`, `hoveredId`) with `devHooks`, every viewer.
+- EZD-213b: a `dblclick` selects the smallest object under it and tells `onDoubleClick` listeners; the inspector then focuses a wall's Length.
 
 ### Edit commands (EZD-217)
 
@@ -936,6 +937,7 @@ EZD-213a (vault/plans/EZD-213a.md); S03 Controls — inspector; Q-0630; Q-0635; 
 
 - **Files**: `packages/geometry/src/walls/edit.ts`, `packages/geometry/src/openings/edit.ts`, `packages/geometry/src/openings/rough-opening.ts` (exported from `@ezdraft/geometry`); `app/src/editor/inspector/inspector-edits.ts` (`inspectorEditChanges`, `levelModelObjects`), `inspector-view.ts` (`inspectorView`).
 - **Rule.** One field commit over the whole selection is one `Change[]` for one `applyEdit` (one undo step); wall fields go through `wallEditChanges`; Length and Width reuse `resizeWall` and `resizeOpening`.
+- **Panel (EZD-213b)**: `InspectorPanel` fills the inspector aside for every viewer of a ready plan; `commitInspectorEdits` makes one field, or one swing-and-hand tile, one `applyEdit`; view-only is plain text; keys `office.inspector.*`, English only.
 
 ## Server-only data access and can()
 

@@ -5,6 +5,7 @@
 // EZD-208b Build step 4a (DB20; B9)
 // EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
 // EZD-212c (vault/plans/EZD-212c.md step 6b, D14): Esc asks the drawing first while a handle or chip entry is open.
+// EZD-213b (vault/plans/EZD-213b.md step 7, D-Dblclick): a dblclick selects the smallest object and tells onDoubleClick.
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -69,6 +70,7 @@ export type SelectionController = {
   select(ids: readonly string[]): void;
   clear(): void;
   pickAt(model: Point): string[];
+  onDoubleClick(listener: (id: string) => void): () => void;
   dispose(): void;
 };
 
@@ -107,6 +109,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   let disposed = false;
   const uiListeners = new Set<() => void>();
   const boxListeners = new Set<(box: SelectionBox | null) => void>();
+  const doubleClickListeners = new Set<(id: string) => void>();
 
   const tolerance = () => HOVER_CAPTURE_PX / handle.getPixelsPerInch();
 
@@ -229,8 +232,17 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (e.kind === 'cancel') {
       if (press === null) return;
       dropPress();
+      return;
     }
-    // `click` and `dblclick` are ignored (R4).
+    if (e.kind === 'dblclick') {
+      if (e.shiftKey || ui.selectMore) return;
+      const c = index.pick(e.model, tolerance());
+      if (c.length === 0) return;
+      cycle = { at: e.screen, i: 0 };
+      setUi([c[0]!]);
+      for (const l of [...doubleClickListeners]) l(c[0]!);
+    }
+    // `click` is ignored (R4).
   };
 
   const picker: HoverPicker = (screen) => {
@@ -357,6 +369,11 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       clearSelection();
     },
     pickAt: (model) => index.pick(model, tolerance()),
+    onDoubleClick(listener) {
+      if (disposed) return noop;
+      doubleClickListeners.add(listener);
+      return () => void doubleClickListeners.delete(listener);
+    },
     dispose() {
       if (disposed) return;
       disposed = true;
@@ -369,6 +386,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       setReceiver(null);
       uiListeners.clear();
       boxListeners.clear();
+      doubleClickListeners.clear();
     },
   };
 }

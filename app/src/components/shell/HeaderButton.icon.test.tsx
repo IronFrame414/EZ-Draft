@@ -68,6 +68,7 @@ const EXPECTED_ICONS = [
   'layers',
   'library_add_check',
   'library_books',
+  'lock',
   'logout',
   // EZD-104 (vault/plans/EZD-104.md): pending invite avatar.
   'mail',
@@ -101,6 +102,7 @@ const EXPECTED_ICONS = [
   'verified_user',
   'view_column_2',
   'view_quilt',
+  'visibility',
   'window',
 ];
 

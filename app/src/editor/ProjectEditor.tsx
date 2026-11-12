@@ -51,6 +51,7 @@ import {
 } from './editor-session';
 import { createEditController, type EditController } from './edit/edit-controller';
 import { EmptyPlanHint } from './EmptyPlanHint';
+import { InspectorPanel } from './inspector/InspectorPanel';
 import type { Change } from './model/patches';
 import {
   createPlanController,
@@ -413,6 +414,11 @@ export function ProjectEditor({
       {panel}
     </>
   );
+  // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
+  const inspector =
+    showPlan && session !== null && selection !== null ? (
+      <InspectorPanel store={session.store} selection={selection} canEdit={canEdit} />
+    ) : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
   ) : undefined;
@@ -424,6 +430,8 @@ export function ProjectEditor({
           header={header}
           rail={rail}
           canvas={canvas}
+          inspector={inspector ?? undefined}
+          inspectorLabel={inspector === null ? undefined : 'office.shell.inspector'}
           statusBar={
             <StatusBar
               start={

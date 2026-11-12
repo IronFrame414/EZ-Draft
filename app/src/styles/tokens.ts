@@ -68,6 +68,10 @@ export const TOKENS: readonly {
   { name: '--ez-amber-strong', value: 'oklch(0.43 0.12 60)', group: 'color' },
   { name: '--ez-cobalt-deep', value: 'oklch(0.42 0.17 262)', group: 'color' },
   { name: '--ez-group-band', value: '#fafbfc', group: 'color' },
+  // S03dStates Not on a wall, S03dDoorSelected .sgon; Q-0037 (b) precedent; EZD-213b
+  { name: '--ez-red-tint', value: 'oklch(0.97 0.02 28)', group: 'color' },
+  { name: '--ez-red-text', value: 'oklch(0.5 0.19 28)', group: 'color' },
+  { name: '--ez-shadow-segment', value: '0 1px 2px rgba(20,30,50,.12)', group: 'shadow' },
   // S03dStates box select right to left; EZD-208b
   { name: '--ez-box-touch-stroke', value: 'oklch(0.5 0.12 160)', group: 'color' },
   { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
