@@ -6,6 +6,8 @@ import { coordsEqual, pointsEqual } from '../tolerance';
 import { pointInRing } from '../rooms/area';
 import { wallFaceLines, type WallObject } from '../walls/wall';
 import type { OpeningObject } from '../openings/opening';
+import { utilityMark } from '../drawing/build';
+import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
 
 export type PickShape =
   | { kind: 'quad'; points: readonly [Point, Point, Point, Point]; area: number }
@@ -169,4 +171,16 @@ export function shapeTouchesRect(shape: PickShape, rect: Rect): boolean {
   if (shape.kind === 'quad' && corners.some((c) => shapeDistance(shape, c) === 0)) return true;
   const rectEdges: [Point, Point][] = corners.map((c, i) => [c, corners[(i + 1) % 4]!]);
   return edges(shape).some(([a, b]) => rectEdges.some(([c, d]) => segmentsMeet(a, b, c, d)));
+}
+
+// EZD-234 Build (S03 Select "smallest object under the cursor"): a fixture picks by its outline, a utility point by
+// the diamond it draws.
+export function fixturePickShape(o: FixtureObject): PickShape {
+  const points = fixtureOutline(o.data);
+  return { kind: 'quad', points, area: shoelace(points) };
+}
+
+export function utilityPointPickShape(o: UtilityPointObject): PickShape {
+  const points = utilityMark(o.data.geometry.point);
+  return { kind: 'quad', points, area: shoelace(points) };
 }

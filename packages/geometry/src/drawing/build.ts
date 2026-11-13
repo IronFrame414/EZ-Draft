@@ -7,10 +7,13 @@
 // wall drawn where it stands on the `flagged` layer.
 // EZD-211a: door symbol from G/openings/door-symbol.ts.
 // EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
+// EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its outline with both
+// diagonals, a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
+import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
 import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
 import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
@@ -318,6 +321,28 @@ export function buildDrawingList(
     });
   }
 
+  const fixtureItems: DrawingItem[] = [];
+  for (const o of onFloor) {
+    if (o.type !== 'fixture' && o.type !== 'utility_point') continue;
+    const base = { layer: o.data.status, objectId: o.id };
+    const line = (from: Point, to: Point): DrawingItem => ({
+      ...base,
+      kind: 'line',
+      role: 'beyond',
+      from,
+      to,
+    });
+    const ring =
+      o.type === 'fixture'
+        ? fixtureOutline((o as FixtureObject).data)
+        : utilityMark((o as UtilityPointObject).data.geometry.point);
+    for (let i = 0; i < 4; i++) fixtureItems.push(line(ring[i]!, ring[(i + 1) % 4]!));
+    if (o.type === 'fixture') {
+      fixtureItems.push(line(ring[0], ring[2]));
+      fixtureItems.push(line(ring[1], ring[3]));
+    }
+  }
+
   const omitted: OmittedObject[] = onFloor.flatMap((o) => {
     const reason = reasons.get(o.id);
     return reason === undefined ? [] : [{ id: o.id, reason }];
@@ -331,10 +356,24 @@ export function buildDrawingList(
       ...wallFills,
       ...wallLines,
       ...symbols,
+      ...fixtureItems,
       ...flaggedItems,
       ...dimItems,
       ...labelItems,
     ],
     omitted: [...omitted, ...dimOmitted],
   };
+}
+
+export const UTILITY_MARK_IN = 6;
+
+// The diamond drawn for a utility point: right, top, left, bottom corners.
+export function utilityMark(p: Point): [Point, Point, Point, Point] {
+  const h = UTILITY_MARK_IN / 2;
+  return [
+    { x: p.x + h, y: p.y },
+    { x: p.x, y: p.y + h },
+    { x: p.x - h, y: p.y },
+    { x: p.x, y: p.y - h },
+  ];
 }

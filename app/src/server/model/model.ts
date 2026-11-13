@@ -9,12 +9,18 @@
 // EZD-294 Build step 6 (vault/plans/EZD-294.md Decided "loadModel numbers", "Saved number"; Q-0625 (a); Q-0629 (b)):
 // the load answers each key's highest number of live and deleted rows; a save answers each saved object's number.
 // EZD-219 Build step 5 (vault/plans/EZD-219.md section 3): the load answers the project's plan scale; `setPlanScale`.
+// EZD-234 Build (Q-0704 03-data-model row 3 "File references are checked on save"): one generic pass over every
+// source_file id the saved objects hold (`fileRefs`), read through the caller's client: each must name a row of this
+// project, of a kind the field allows, whose upload has completed; otherwise the object is refused `file_not_found`.
 import {
   CURRENT_SCHEMA_VERSION,
+  fileRefs,
   NO_NUMBERS,
   parseStoredObject,
   raiseNumberHighs,
   type ClosureOverride,
+  type FileRef,
+  type ModelObject,
   type ObjectIssue,
 } from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -23,6 +29,7 @@ import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
 import { planScaleFromSettings, type PlanScale } from '../../lib/plan/plan-scale';
 import type { Database, Json } from '../db/database.types';
 import { can, type PermissionContext } from '../permissions';
+import { readSourceFileRefs, type StoredFileRef } from '../storage/source-files';
 
 export type ObjectChange =
   | { id: string; baseSeq: number; deleted: true }
@@ -137,6 +144,29 @@ export function closureOverrideCheck(
 // L-061: the most ids one stored-row read names.
 const OVERRIDE_READ_CHUNK = 100;
 
+// `files` is keyed by lower-case source_file id; a missing key is a row the caller cannot read or that does not exist.
+// One issue per object, in object order.
+export function fileRefCheck(
+  objects: readonly { id: string; refs: readonly FileRef[] }[],
+  files: ReadonlyMap<string, StoredFileRef>,
+  projectId: string,
+): ObjectIssue[] {
+  const invalid: ObjectIssue[] = [];
+  for (const { id, refs } of objects) {
+    const bad = refs.some((r) => {
+      const f = files.get(r.fileId.toLowerCase());
+      return (
+        f === undefined ||
+        f.projectId.toLowerCase() !== projectId.toLowerCase() ||
+        !f.uploaded ||
+        !r.kinds.includes(f.kind)
+      );
+    });
+    if (bad) invalid.push({ id, issue: 'file_not_found' });
+  }
+  return invalid;
+}
+
 export async function saveObjects(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -146,6 +176,7 @@ export async function saveObjects(
   // EZD-202 Decided "Save check": every upserted object is parsed before the rpc; any issue refuses the whole
   // save, issues in change order. A parsed object is sent as parsed, at the current schema version.
   const invalid: ObjectIssue[] = [];
+  const parsedObjects: ModelObject[] = [];
   const checked = req.changes.map((c): ObjectChange => {
     if (c.deleted) return c;
     const parsed = parseStoredObject({
@@ -158,9 +189,20 @@ export async function saveObjects(
       invalid.push(parsed.issue);
       return c;
     }
+    parsedObjects.push(parsed.object);
     return { ...c, schemaVersion: CURRENT_SCHEMA_VERSION, data: parsed.object.data };
   });
   if (invalid.length > 0) return { ok: false, code: 'invalid_object', invalid };
+
+  // EZD-234: the file reference check, before the rpc.
+  const withRefs = parsedObjects
+    .map((o) => ({ id: o.id, refs: fileRefs(o) }))
+    .filter((o) => o.refs.length > 0);
+  if (withRefs.length > 0) {
+    const ids = [...new Set(withRefs.flatMap((o) => o.refs.map((r) => r.fileId.toLowerCase())))];
+    const bad = fileRefCheck(withRefs, await readSourceFileRefs(client, ids), projectId);
+    if (bad.length > 0) return { ok: false, code: 'invalid_object', invalid: bad };
+  }
 
   // EZD-205b Decided "saveObjects order": the stored rows of rooms with an override, read before the rpc.
   const rooms = checked.flatMap((c) =>

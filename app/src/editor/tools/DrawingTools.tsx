@@ -12,6 +12,8 @@
 // EZD-212c (vault/plans/EZD-212c.md D18-D20): resize handles, wall chip leaders, selection and size chips, chips as
 // text without Edit model, the typed bar for a handle drag or chip entry, and the tablet Cancel.
 // EZD-5603a Build step 11 (vault/plans/EZD-5603a.md Decided "Rail button"): the Assistant toggle in the bottom group.
+// EZD-234 Build: the Fixtures panel while the Fixtures tool is on, and the utilities-to-move card after a move, both
+// loaded through lazyModule on first use (11 rule 7), showing nothing until the code is there.
 import {
   useCallback,
   useEffect,
@@ -32,6 +34,8 @@ import { ASSISTANT_RAIL_TOOL } from '../assistant/assistant-ui';
 import type { SelectionController } from '../selection/selection-controller';
 import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
 import type { DrawingController, DrawingUi } from './drawing-controller';
+import type { FixturesPanelProps, UtilitiesToMoveProps } from '../../lazy/fixtures-panel';
+import { fixturesModule } from './fixtures-module';
 import { GapBoxes } from './GapBoxes';
 import { createToolOverlay } from './overlay';
 import { entryTool } from './selection-edit';
@@ -39,6 +43,35 @@ import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
 
 const noSubscribe = () => () => {};
+
+// Loads the module on first render, then renders it; a failed load shows nothing and is tried again on the next mount.
+function useFixturesModule() {
+  const [mod, setMod] = useState(() => fixturesModule.peek());
+  useEffect(() => {
+    if (mod) return;
+    let live = true;
+    fixturesModule.load().then(
+      (m) => {
+        if (live) setMod(m);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [mod]);
+  return mod;
+}
+
+function LazyFixturesPanel(props: FixturesPanelProps) {
+  const mod = useFixturesModule();
+  return mod ? <mod.FixturesPanel {...props} /> : null;
+}
+
+function LazyUtilitiesToMove(props: UtilitiesToMoveProps) {
+  const mod = useFixturesModule();
+  return mod ? <mod.UtilitiesToMove {...props} /> : null;
+}
 
 export type DrawingRailProps = {
   drawing: DrawingController | null;
@@ -420,9 +453,15 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
           )}
         </div>
       ) : null}
+      {ui.tool === 'fixtures' && ui.fixtureChoice !== null ? (
+        <LazyFixturesPanel choice={ui.fixtureChoice} onChoose={controller.setFixtureChoice} />
+      ) : null}
+      {ui.utilities !== null ? (
+        <LazyUtilitiesToMove moved={ui.utilities} onClose={controller.dismissUtilities} />
+      ) : null}
       {canEdit ? (
         <TypedEntryLayer
-          tool={ui.tool ? DRAWING_TOOLS[ui.tool] : entryTyped}
+          tool={ui.tool !== null && ui.tool !== 'fixtures' ? DRAWING_TOOLS[ui.tool] : entryTyped}
           canEdit={ui.enabled}
           lastValues={lastValues}
           getCursor={handle.getCursor}

@@ -3,7 +3,9 @@
 import {
   moveSelection,
   openingHostUpdates,
+  fixturePickShape,
   openingPickShape,
+  utilityPointPickShape,
   pointsEqual,
   slideOpening,
   typedMoveDelta,
@@ -211,6 +213,8 @@ export function previewShapes(
   for (const o of changed) {
     let shape: PickShape | null = null;
     if (o.type === 'wall') shape = wallPickShape(o);
+    else if (o.type === 'fixture') shape = fixturePickShape(o);
+    else if (o.type === 'utility_point') shape = utilityPointPickShape(o);
     else if (o.type === 'opening') {
       const placed =
         openingHostUpdates({ level, walls: afterWalls, previousWalls, openings: [o] })[0] ?? o;

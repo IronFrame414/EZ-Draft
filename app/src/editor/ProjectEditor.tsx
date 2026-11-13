@@ -25,6 +25,7 @@
 // EZD-212c (vault/plans/EZD-212c.md D21): the drawing layer's tablet Cancel turns the tool off.
 // EZD-5603a Build step 12 (vault/plans/EZD-5603a.md Decided "Editor wiring", "Rail button"): for an editor, one
 // Assistant session per page load; its rail toggle opens the Assistant panel in the inspector place.
+// EZD-234 Build (11 Budgets editor download size): the conflict list panel loads through lazyModule when first opened.
 import {
   useEffect,
   useMemo,
@@ -79,7 +80,8 @@ import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import { ConflictBanner } from './conflicts/ConflictBanner';
-import { ConflictPanel } from './conflicts/ConflictPanel';
+import type { ConflictPanelProps } from '../lazy/conflict-panel';
+import { lazyModule } from '../lib/lazy/lazy-module';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { EditBar, SelectionLayer } from './selection/SelectionLayer';
 import {
@@ -427,7 +429,7 @@ export function ProjectEditor({
     );
   const panel =
     session !== null && listOpen ? (
-      <ConflictPanel
+      <LazyConflictPanel
         session={session}
         projectId={projectId}
         inputs={conflicts.inputs}
@@ -511,4 +513,25 @@ export function ProjectEditor({
       phone={<EditorPhoneNotice />}
     />
   );
+}
+
+const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+
+// Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.
+function LazyConflictPanel(props: ConflictPanelProps) {
+  const [mod, setMod] = useState(() => conflictPanelModule.peek());
+  useEffect(() => {
+    if (mod) return;
+    let live = true;
+    conflictPanelModule.load().then(
+      (m) => {
+        if (live) setMod(m);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [mod]);
+  return mod ? <mod.ConflictPanel {...props} /> : null;
 }

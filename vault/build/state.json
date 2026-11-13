@@ -332,7 +332,8 @@
     "EZD-109",
     "EZD-421",
     "EZD-105",
-    "EZD-129"
+    "EZD-129",
+    "EZD-138"
   ],
   "seeded_done": 324,
   "merged": [
@@ -391,17 +392,31 @@
       "commit": "195e3ff7",
       "ts": "2026-11-13T14:03:34Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-138",
+      "title": "Invite link and code for the sender",
+      "commit": "911b08ee",
+      "ts": "2026-11-13T14:51:43Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
   "current": null,
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": false,
   "idle_logged": false,
   "retries": {
     "EZD-105": 1,
     "EZD-105b": 1,
-    "EZD-421": 1
+    "EZD-421": 1,
+    "EZD-116": 1
+  },
+  "retry_log": {
+    "EZD-116": {
+      "ts": "2026-11-13T15:54:00Z",
+      "reason": "check red after a review fix"
+    }
   }
 }

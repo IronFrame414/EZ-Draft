@@ -82,7 +82,7 @@ async function addR1(page: Page): Promise<void> {
             },
             status: 'existing',
             level,
-            attributes: { name: 'Kitchen' },
+            attributes: { name: 'Kitchen', floorLevel: 0, photos: [] },
             closureOverride: null,
           },
         },

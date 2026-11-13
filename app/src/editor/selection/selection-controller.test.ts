@@ -141,6 +141,8 @@ function fakeDrawing(o: {
       doorTarget: null,
       openingWidth: null,
       entry: null,
+      fixtureChoice: null,
+      utilities: null,
     }),
     keyDown: (e) => {
       keys.push(e);
@@ -384,6 +386,7 @@ describe('EZD-208a selection controller', () => {
       'room-rect',
       'door',
       'window',
+      'fixtures',
     ]);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });

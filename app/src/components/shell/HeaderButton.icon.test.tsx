@@ -109,6 +109,7 @@ const EXPECTED_ICONS = [
   'view_column_2',
   'view_quilt',
   'visibility',
+  'wash',
   'window',
 ];
 

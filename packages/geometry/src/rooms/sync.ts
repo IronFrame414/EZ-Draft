@@ -3,7 +3,7 @@
 // level matched to the outlines the walls make. Returns new objects; never mutates its input.
 // EZD-205b Build step 4 (vault/plans/EZD-205b.md Decided "nextRoomNumber", "Reconcile with gaps"; AC-EZD-205-4; 09j
 // Keep out of square; Q-0570): gap outlines join the outline list; an override is kept while its gap is unchanged.
-import type { ModelObject } from '../schema';
+import { newRoomAttributes, type ModelObject } from '../schema';
 import { pointsEqual } from '../tolerance';
 import type { WallObject } from '../walls/wall';
 import { interiorPoint, outlineAreaSqIn, pointInRing, sameBoundary } from './area';
@@ -91,7 +91,7 @@ export function reconcileRooms(
         geometry: { boundary: o.boundary.map((p) => ({ x: p.x, y: p.y })) },
         status: 'existing',
         level,
-        attributes: { name: `Room ${n}` },
+        attributes: newRoomAttributes(`Room ${n}`),
         closureOverride: null,
       },
     });

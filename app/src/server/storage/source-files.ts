@@ -210,3 +210,29 @@ export async function completeSourceFileUpload(
   }
   return toView(updated.data);
 }
+
+// EZD-234 Build (Q-0704 03-data-model row 3 "File references are checked on save"): the rows of `ids` the caller's
+// client can read, keyed by lower-case id, in reads of at most READ_CHUNK ids. A row it cannot read is absent.
+export type StoredFileRef = { projectId: string; kind: string; uploaded: boolean };
+const READ_CHUNK = 100;
+
+export async function readSourceFileRefs(
+  client: DbClient,
+  ids: readonly string[],
+): Promise<Map<string, StoredFileRef>> {
+  const files = new Map<string, StoredFileRef>();
+  for (let i = 0; i < ids.length; i += READ_CHUNK) {
+    const { data, error } = await client
+      .from('source_file')
+      .select('id, project_id, kind, uploaded_at')
+      .in('id', ids.slice(i, i + READ_CHUNK));
+    if (error) throw error;
+    for (const row of data)
+      files.set(row.id.toLowerCase(), {
+        projectId: row.project_id,
+        kind: row.kind,
+        uploaded: row.uploaded_at !== null,
+      });
+  }
+  return files;
+}

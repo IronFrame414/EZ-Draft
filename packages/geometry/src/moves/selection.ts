@@ -2,6 +2,9 @@
 // hosted opening in a move"; Q-0630 rows 8, 11, 14, 35; Q-0570; S03 Move; 03g): the Move tool's geometry. Selected
 // walls move and stretch their neighbours; a selected door moves with its selected wall, and a lone hosted door
 // slides along its wall. Reads and returns only changed wall and opening objects; never mutates its input.
+// EZD-234 Build (S03 Move, Fixtures; 09e:7): selected fixtures and utility points move by the delta; a fixture's
+// utility points stay put unless they are selected too.
+import type { FixtureObject, UtilityPointObject } from '../fixtures/fixtures';
 import type { OpeningObject } from '../openings/opening';
 import type { ModelObject, Point } from '../schema';
 import { COMPARISON_TOLERANCE_IN, pointsEqual } from '../tolerance';
@@ -23,6 +26,23 @@ const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
 const isOpening = (o: ModelObject): o is OpeningObject => o.type === 'opening';
 
+const isLoose = (o: ModelObject): o is FixtureObject | UtilityPointObject =>
+  o.type === 'fixture' || o.type === 'utility_point';
+
+const shift = (p: Point, d: Point): Point => ({ x: p.x + d.x, y: p.y + d.y });
+
+function moveLoose(o: FixtureObject | UtilityPointObject, d: Point): ModelObject {
+  if (o.type === 'fixture')
+    return {
+      ...o,
+      data: {
+        ...o.data,
+        geometry: { ...o.data.geometry, center: shift(o.data.geometry.center, d) },
+      },
+    };
+  return { ...o, data: { ...o.data, geometry: { point: shift(o.data.geometry.point, d) } } };
+}
+
 export function typedMoveDelta(distance: number, direction: Point): Point | null {
   if (!Number.isFinite(distance) || !Number.isFinite(direction.x) || !Number.isFinite(direction.y))
     return null;
@@ -43,10 +63,14 @@ export function moveSelection(
   // (2) Every id names a wall or an opening.
   const wallIds: string[] = [];
   const openingIds = new Set<string>();
+  const looseIds = new Set<string>();
   for (const id of ids) {
-    const o = objects.find((x) => (isWall(x) || isOpening(x)) && lower(x.id) === lower(id));
+    const o = objects.find(
+      (x) => (isWall(x) || isOpening(x) || isLoose(x)) && lower(x.id) === lower(id),
+    );
     if (o === undefined) return { ok: false, reason: 'not_found', id };
     if (isWall(o)) wallIds.push(o.id);
+    else if (isLoose(o)) looseIds.add(lower(o.id));
     else openingIds.add(lower(o.id));
   }
   // (3), (4) The delta.
@@ -85,6 +109,9 @@ export function moveSelection(
       data: { ...o.data, geometry: { ...o.data.geometry, center: { x: next.x, y: next.y } } },
     });
   }
-  // (7) Walls first, then openings in model order.
-  return { ok: true, changed: [...walls, ...openings] };
+  // (7) Walls first, then openings, then fixtures and utility points, each in model order.
+  const loose = objects.filter((o) => isLoose(o) && looseIds.has(lower(o.id))) as (
+    FixtureObject | UtilityPointObject
+  )[];
+  return { ok: true, changed: [...walls, ...openings, ...loose.map((o) => moveLoose(o, delta))] };
 }

@@ -1,21 +1,26 @@
 // EZD-208a Build step 7 (vault/plans/EZD-208a.md section 3 A8-A9; section 1 R1, R17; Q-0630 rows 7, 8; 11 rule 4):
 // the walls and openings a click or a box can select on the open floor, on the EZD-206 spatial index (one query per
 // pick, never a scan), kept current per changed object and per opening hosted on a changed wall.
+// EZD-234 Build (S03 Fixtures, Select): fixtures and utility points pick too, each by its own shape.
 import {
   createSpatialIndex,
+  fixturePickShape,
   openingPickShape,
   parseStoredObject,
   shapeBounds,
   shapeDistance,
   shapeInRect,
   shapeTouchesRect,
+  utilityPointPickShape,
   wallPickShape,
+  type FixtureObject,
   type ModelObject,
   type OpeningObject,
   type PickShape,
   type Point,
   type Rect,
   type SpatialIndex,
+  type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
 import type { Objects } from '../model/patches';
@@ -68,6 +73,7 @@ export function createPickIndex(): PickIndex {
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
   let openings = new Map<string, OpeningObject>();
+  let loose = new Map<string, FixtureObject | UtilityPointObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
 
@@ -85,8 +91,11 @@ export function createPickIndex(): PickIndex {
   // Records the parsed object under its lower-cased key (walls and openings only); anything else is dropped.
   const record = (key: string, object: ModelObject | null) => {
     walls.delete(key);
+    loose.delete(key);
     dropOpening(key);
-    if (object !== null && object.type === 'wall') {
+    if (object !== null && (object.type === 'fixture' || object.type === 'utility_point')) {
+      loose.set(key, object);
+    } else if (object !== null && object.type === 'wall') {
       walls.set(key, object);
     } else if (object !== null && object.type === 'opening') {
       openings.set(key, object);
@@ -108,6 +117,11 @@ export function createPickIndex(): PickIndex {
     if (wall !== undefined) {
       const shape = wallPickShape(wall);
       return shape === null ? null : { id: wall.id, shape, hosted: false };
+    }
+    const free = loose.get(key);
+    if (free !== undefined) {
+      const shape = free.type === 'fixture' ? fixturePickShape(free) : utilityPointPickShape(free);
+      return { id: free.id, shape, hosted: false };
     }
     const opening = openings.get(key);
     if (opening === undefined) return null;
@@ -155,12 +169,14 @@ export function createPickIndex(): PickIndex {
         entries = new Map();
         walls = new Map();
         openings = new Map();
+        loose = new Map();
         hostOf = new Map();
         byHost = new Map();
         for (const id of objects.keys())
           record(id.toLowerCase(), parseOnFloor(id, objects, floorId));
         let count = 0;
-        for (const key of [...walls.keys(), ...openings.keys()]) if (place(key)) count += 1;
+        for (const key of [...walls.keys(), ...openings.keys(), ...loose.keys()])
+          if (place(key)) count += 1;
         return count;
       }
       const affected = new Set<string>();

@@ -4,6 +4,7 @@
 // EZD-204b Build step 7 (vault/plans/EZD-204b.md Decided "wallEditChanges"; AC-EZD-204-12): every wall edit appends
 // the opening host updates of its level, in the same edit (one undo step).
 // EZD-212b (vault/plans/EZD-212b.md D6).
+// EZD-234 Build (S03 Move, Fixtures; 09e:7): moved fixtures and utility points are written in the same edit.
 import {
   CURRENT_SCHEMA_VERSION,
   numberNewObjects,
@@ -13,11 +14,13 @@ import {
   raiseNumberHighs,
   reconcileRooms,
   withObjectNumber,
+  type FixtureObject,
   type ModelObject,
   type NumberHighs,
   type OpeningObject,
   type RoomObject,
   type RoomReconcile,
+  type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
@@ -86,6 +89,36 @@ export function openingsOn(objects: Objects, level: string): OpeningObject[] {
   return out;
 }
 
+export type LooseObject = FixtureObject | UtilityPointObject;
+
+// EZD-234: the fixtures and utility points of a level.
+export function looseOn(objects: Objects, level: string): LooseObject[] {
+  const lvl = level.toLowerCase();
+  const out: LooseObject[] = [];
+  for (const [id, v] of objects) {
+    if (v.type !== 'fixture' && v.type !== 'utility_point') continue;
+    if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
+    if (r.ok && (r.object.type === 'fixture' || r.object.type === 'utility_point'))
+      out.push(r.object);
+  }
+  return out;
+}
+
+export const looseChange = (o: LooseObject): Change => ({
+  id: o.id,
+  value: {
+    type: o.type,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
 export const openingChange = (o: OpeningObject): Change => ({
   id: o.id,
   value: {
@@ -144,7 +177,8 @@ export function wallEditChanges(
 }
 
 // EZD-212b D6: one Move as one edit (one undo step). Walls go through `wallEditChanges`; moved openings are written
-// with their re-hosting, and a door moved off every wall is flagged.
+// with their re-hosting, and a door moved off every wall is flagged. EZD-234: moved fixtures and utility points
+// follow.
 export function moveEditChanges(
   objects: Objects,
   level: string,
@@ -153,8 +187,22 @@ export function moveEditChanges(
   highs: NumberHighs,
 ): Change[] {
   if (changed.length === 0) return [];
+  const loose = changed
+    .filter((o): o is LooseObject => o.type === 'fixture' || o.type === 'utility_point')
+    .map(looseChange);
+  return [...wallAndOpeningMoves(objects, level, changed, newId, highs), ...loose];
+}
+
+function wallAndOpeningMoves(
+  objects: Objects,
+  level: string,
+  changed: readonly ModelObject[],
+  newId: () => string,
+  highs: NumberHighs,
+): Change[] {
   const walls = changed.filter((o): o is WallObject => o.type === 'wall');
   const openings = changed.filter((o): o is OpeningObject => o.type === 'opening');
+  if (walls.length === 0 && openings.length === 0) return [];
   const next = new Map<string, ObjectValue>(objects);
   const keyOf = new Map<string, string>();
   for (const id of next.keys()) keyOf.set(id.toLowerCase(), id);

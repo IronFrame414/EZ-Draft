@@ -83,6 +83,7 @@ export const ICON_NAMES = [
   'view_column_2',
   'view_quilt',
   'visibility',
+  'wash',
   'window',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

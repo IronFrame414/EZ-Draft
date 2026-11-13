@@ -109,7 +109,7 @@ function fx(w1Side: Side = 'right', extra: ModelObject[] = []): ModelDocument {
           geometry: { boundary: [P(0, 0), P(144, 0), P(144, 120), P(0, 120)] },
           status: 'existing',
           level: F1,
-          attributes: { name: 'R1' },
+          attributes: { name: 'R1', floorLevel: 0, photos: [] },
           closureOverride: null,
         },
       },

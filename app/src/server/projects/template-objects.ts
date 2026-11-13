@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import {
   CURRENT_SCHEMA_VERSION,
   createWallData,
+  newRoomAttributes,
   NO_NUMBERS,
   numberNewObjects,
   thicknessSideFor,
@@ -55,7 +56,7 @@ export function buildTemplateObjects(
       geometry: { boundary: c.map((p) => ({ x: p.x, y: p.y })) },
       status: 'existing',
       level: TEMPLATE_LEVEL_PLACEHOLDER,
-      attributes: { name: TEMPLATE_ROOM_NAMES[t.key] },
+      attributes: newRoomAttributes(TEMPLATE_ROOM_NAMES[t.key]),
       closureOverride: null,
     },
   });

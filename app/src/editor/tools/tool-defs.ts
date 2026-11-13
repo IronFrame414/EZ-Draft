@@ -1,6 +1,8 @@
 // Drawing tool definitions (EZD-210a; vault/plans/EZD-210a.md section 3 C1-C8; 04 Tool rail; Q-0570; Q-0588 (a)).
 // Pure: no React, no DOM.
 // EZD-212b (vault/plans/EZD-212b.md D1).
+// EZD-234 Build (S03 Fixtures; phase-02.md EZD-234; AC-EZD-234-2): the Fixtures tool (F), placed from its panel with no
+// typed bar.
 import type { ModelObject, Point, WallObject } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -12,7 +14,8 @@ import {
   type TypedValues,
 } from '../typed-entry/typed-entry';
 
-export type DrawingToolId = 'wall' | 'room-rect' | 'door' | 'window' | 'move';
+export type DrawingToolId = 'wall' | 'room-rect' | 'door' | 'window' | 'move' | 'fixtures';
+export type TypedDrawingToolId = Exclude<DrawingToolId, 'fixtures'>;
 
 export const WIDTH_FIELD: TypedLengthField = {
   id: 'width',
@@ -92,7 +95,7 @@ export const MOVE_RAIL_TOOL: RailTool = {
   shortcut: 'M',
 };
 
-export const DRAWING_TOOLS: Readonly<Record<DrawingToolId, TypedTool>> = {
+export const DRAWING_TOOLS: Readonly<Record<TypedDrawingToolId, TypedTool>> = {
   wall: WALL_TOOL,
   'room-rect': ROOM_RECT_TOOL,
   door: DOOR_TOOL,
@@ -112,6 +115,7 @@ export const DRAWING_RAIL_TOOLS: readonly RailTool[] = [
   },
   { kind: 'tool', id: 'door', icon: 'door_front', label: 'office.tool.door', shortcut: 'D' },
   { kind: 'tool', id: 'window', icon: 'window', label: 'office.tool.window', shortcut: 'N' },
+  { kind: 'tool', id: 'fixtures', icon: 'wash', label: 'office.tool.fixtures', shortcut: 'F' },
 ];
 
 // `at` is the snapped model point; `enter` and `escape` arrive only when the typed layer did not handle them.

@@ -11,6 +11,11 @@
 // EZD-212b (vault/plans/EZD-212b.md D7): the Move tool branch and every object drag.
 // EZD-212c (vault/plans/EZD-212c.md D9-D14): the selection frame, handle presses and drags, typed handle and chip
 // entries.
+// EZD-234 Build (S03 Fixtures, Validation; 09e:7; Q-0704 05-screens; AC-EZD-234-1, -2, -5): the Fixtures tool (F)
+// places the panel's choice at each click; fixtures and utility points move with Move and Select drags; after a move,
+// the moved appliances' linked utility points that stayed are listed in `ui.utilities` until the next edit or Close.
+// Placing and the list run in `fixturesModule`, loaded when the tool is turned on or a fixture first moves; a click
+// before it is there places nothing.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -39,6 +44,7 @@ import {
   type SnapSettings,
   type WallObject,
   type WallSnapIndex,
+  type UtilityToMove,
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
@@ -105,7 +111,11 @@ import {
   type ResizeOutcome,
   type SelectionEntry,
   type SelectionFrame,
+  looseOn,
+  type FixtureChoice,
+  type LooseObject,
 } from './index';
+import { fixturesModule } from './fixtures-module';
 
 export type DrawingFrame = {
   rect: boolean;
@@ -143,6 +153,13 @@ export type DrawingUi = {
   readonly doorTarget: 'arc' | 'dot' | null;
   readonly openingWidth: number | null;
   readonly entry: SelectionEntry | null;
+  readonly fixtureChoice: FixtureChoice | null;
+  readonly utilities: readonly UtilitiesMoved[] | null;
+};
+
+export type UtilitiesMoved = {
+  readonly fixtureId: string;
+  readonly utilities: readonly UtilityToMove[];
 };
 
 export type ToolKeyEvent = {
@@ -195,6 +212,8 @@ export type DrawingController = {
   dragPointer(event: PlanPointerEvent): void;
   startChipEntry(side: ChipSide): void;
   cancelEntry(): void;
+  setFixtureChoice(choice: FixtureChoice): void;
+  dismissUtilities(): void;
   dispose(): void;
 };
 
@@ -214,7 +233,8 @@ type ToolState =
   | { id: 'wall'; state: WallChainState }
   | { id: 'room-rect'; state: RoomRectState }
   | { id: 'door' | 'window'; state: OpeningToolState }
-  | { id: 'move'; state: MoveToolState };
+  | { id: 'move'; state: MoveToolState }
+  | { id: 'fixtures'; state: null };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -249,6 +269,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let index: WallSnapIndex = createWallSnapIndex(wallsIn(models));
   let walls: WallObject[] = wallsIn(models);
   let openings: OpeningObject[] = level === null ? [] : openingsOn(objects, level);
+  let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
   const enabled = viewer.canEdit && level !== null;
 
   let tool: ToolState | null = null;
@@ -275,6 +296,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let movePress: { screen: Point; dragged: boolean } | null = null;
   let drag: MoveDrag | null = null;
   let moveCache: ModelObject[] | null = null;
+  // EZD-234: a list computed after a later move, placement or Close is dropped.
+  let utilitiesSeq = 0;
 
   const uiListeners = new Set<() => void>();
   const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
@@ -294,6 +317,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     doorTarget: null,
     openingWidth: null,
     entry: null,
+    fixtureChoice: null,
+    utilities: null,
   };
 
   const setUi = (patch: Partial<DrawingUi>) => {
@@ -310,6 +335,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       next.doorTarget !== ui.doorTarget ||
       next.openingWidth !== ui.openingWidth ||
       next.entry !== ui.entry ||
+      next.fixtureChoice !== ui.fixtureChoice ||
+      next.utilities !== ui.utilities ||
       !sameBoxes(next.boxes, ui.boxes);
     if (!changed) return;
     if (sameBoxes(next.boxes, ui.boxes)) next = { ...next, boxes: ui.boxes };
@@ -361,6 +388,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     models = level === null ? [] : toModelObjects(objects, level);
     walls = wallsIn(models);
     openings = level === null ? [] : openingsOn(objects, level);
+    loose = level === null ? [] : looseOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(wallsIn(models));
@@ -386,12 +414,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings];
+    if (moveCache === null) moveCache = [...models, ...openings, ...loose];
     return moveCache;
   }
 
   function snapContext(): SnapContext {
-    if (tool === null || tool.id === 'room-rect' || tool.id === 'move') return NO_CONTEXT;
+    if (tool === null || tool.id === 'room-rect' || tool.id === 'move' || tool.id === 'fixtures')
+      return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
     return wallSnapContext(tool.state);
   }
@@ -604,6 +633,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
+    if (tool.id === 'fixtures')
+      return {
+        ...EMPTY_FRAME,
+        marker: lastSnap === null ? null : snapMarker(lastSnap, NO_CONTEXT),
+        opening: null,
+      };
     const marker = lastSnap === null ? null : snapMarker(lastSnap, lastContext);
     const wall = marker?.wallId ? index.getWall(marker.wallId) : undefined;
     const g = wall?.data.geometry;
@@ -761,6 +796,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onMovePointer(event, tool.state);
       return;
     }
+    if (tool.id === 'fixtures') {
+      onFixturePointer(event);
+      return;
+    }
     if (isOpeningTool(tool)) {
       onOpeningPointer(event);
       return;
@@ -792,6 +831,58 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     emitFrame();
   }
 
+  // EZD-234: a mouse press, or a touch lift, places the panel's choice at the snapped point.
+  function onFixturePointer(event: PlanPointerEvent): void {
+    if (level === null) return;
+    const result = snap(index, {
+      cursor: event.model,
+      pixelsPerInch: handle.getPixelsPerInch(),
+      anchor: null,
+      referenceDirection: null,
+      settings: snapSettings(),
+    });
+    lastSnap = result;
+    lastContext = NO_CONTEXT;
+    const place = event.pointerType === 'touch' ? event.kind === 'up' : event.kind === 'down';
+    const mod = fixturesModule.peek();
+    if (place && mod !== undefined && ui.fixtureChoice !== null) {
+      const change = mod.placeFixture(ui.fixtureChoice, result.point, {
+        level,
+        objects: loose,
+        newId,
+      });
+      if (change === null) deps.onMessage('office.fixtures.invalid');
+      else {
+        utilitiesSeq += 1;
+        store.applyEdit([change]);
+        setUi({ utilities: null });
+      }
+    }
+    emitFrame();
+  }
+
+  function setFixtureChoice(choice: FixtureChoice): void {
+    if (disposed) return;
+    setUi({ fixtureChoice: choice });
+  }
+
+  function dismissUtilities(): void {
+    if (disposed) return;
+    utilitiesSeq += 1;
+    setUi({ utilities: null });
+  }
+
+  // The panel's starting choice comes with the module.
+  function loadFixtures(): void {
+    fixturesModule.load().then(
+      (m) => {
+        if (!disposed && ui.fixtureChoice === null)
+          setUi({ fixtureChoice: m.DEFAULT_FIXTURE_CHOICE });
+      },
+      () => {},
+    );
+  }
+
   // D7 (d): snap under Move or a drag; sets the marker's snap and context.
   function moveSnap(cursor: Point, anchor: Point | null, excludeIds: readonly string[]): Point {
     const result = snap(index, {
@@ -817,6 +908,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return;
     }
     if (outcome.changed.length === 0) return;
+    const before = moveModels();
+    const swapped = new Map(outcome.changed.map((o) => [lower(o.id), o]));
+    const after = before.map((o) => swapped.get(lower(o.id)) ?? o);
+    const fixtureMoved = outcome.changed.some((o) => o.type === 'fixture');
     store.applyEdit(
       moveEditChanges(
         store.getState().objects,
@@ -826,6 +921,18 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         store.getState().numberHighs,
       ),
     );
+    setUi({ utilities: null });
+    if (fixtureMoved) {
+      const seq = ++utilitiesSeq;
+      fixturesModule.load().then(
+        (m) => {
+          if (disposed || seq !== utilitiesSeq) return;
+          const moved = m.utilitiesToMove(before, after);
+          setUi({ utilities: moved.length > 0 ? moved : null });
+        },
+        () => {},
+      );
+    }
   }
 
   function finishDrag(d: MoveDrag, at: Point): void {
@@ -946,7 +1053,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
             ? { id, state: initialRoomRectState() }
             : id === 'move'
               ? { id, state: initialMoveToolState() }
-              : { id, state: initialOpeningToolState(id) };
+              : id === 'fixtures'
+                ? { id, state: null }
+                : { id, state: initialOpeningToolState(id) };
+    if (id === 'fixtures') loadFixtures();
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -1046,6 +1156,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         moveInput({ type: 'escape' });
         return true;
       }
+      if (tool !== null && tool.id === 'fixtures') {
+        selectTool(null);
+        return true;
+      }
       if (tool !== null) {
         input({ type: 'escape' });
         emitFrame();
@@ -1054,7 +1168,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return false;
     }
     if (e.key === 'Enter') {
-      if (tool === null || isOpeningTool(tool) || tool.id === 'move') return false;
+      if (tool === null || isOpeningTool(tool) || tool.id === 'move' || tool.id === 'fixtures')
+        return false;
       input({ type: 'enter' });
       emitFrame();
       return true;
@@ -1079,6 +1194,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (key === 'm') {
       selectTool('move');
+      return true;
+    }
+    if (key === 'f') {
+      selectTool('fixtures');
       return true;
     }
     return false;
@@ -1281,6 +1400,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     dragPointer,
     startChipEntry,
     cancelEntry,
+    setFixtureChoice,
+    dismissUtilities,
     dispose() {
       if (disposed) return;
       disposed = true;

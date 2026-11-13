@@ -83,7 +83,7 @@ describe('EZD-221a buildTemplateObjects', () => {
       },
       status: 'existing',
       level: TEMPLATE_LEVEL_PLACEHOLDER,
-      attributes: { name: 'L-kitchen' },
+      attributes: { name: 'L-kitchen', floorLevel: 0, photos: [] },
       closureOverride: null,
     });
 
@@ -139,6 +139,6 @@ describe('EZD-294 template numbers', () => {
       (rows[i]!.data as unknown as { attributes: Record<string, unknown> }).attributes;
     expect(rows.slice(0, 4).map((_, i) => attrs(i).number)).toEqual([1, 2, 3, 4]);
     expect(rows[4]!.type).toBe('room');
-    expect(attrs(4)).toEqual({ name: 'L-kitchen' });
+    expect(attrs(4)).toEqual({ name: 'L-kitchen', floorLevel: 0, photos: [] });
   });
 });
