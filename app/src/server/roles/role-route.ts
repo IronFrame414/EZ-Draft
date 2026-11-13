@@ -13,6 +13,7 @@ import { emit } from '../events';
 import type { Permitted } from '../permissions/can';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isRoleId, type RoleRefusal } from './roles';
+import { endedSessionResponse } from '../auth/ended-session';
 
 export const headers = { 'Cache-Control': 'no-store' };
 
@@ -73,6 +74,8 @@ export async function runRoleWrite(
     }
     return Response.json(out.body, { status: out.status, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, route);
     return roleFail(500, 'db_unavailable');
   }

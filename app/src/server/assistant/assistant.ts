@@ -264,7 +264,7 @@ export async function runAssistantPrompt(
   const key = load.key;
 
   const taken = await client.rpc('take_ai_assistant_slot');
-  if (taken.error) throw new Error('take_ai_assistant_slot_failed');
+  if (taken.error) throw new Error('take_ai_assistant_slot_failed', { cause: taken.error });
   const slot = (taken.data as SlotRow[] | null)?.[0];
   if (slot?.refused === 'in_flight') return fail(429, 'assistant_busy');
   if (slot?.refused === 'rate_limited') return fail(429, 'assistant_rate_limited');

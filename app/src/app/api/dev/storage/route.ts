@@ -10,6 +10,7 @@ import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { requireApiPermission, type Permitted } from '../../../../server/permissions';
 import { startSourceFileUpload, StorageError } from '../../../../server/storage';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     s = await requireApiSession();
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
@@ -68,6 +71,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     permitted = await requireApiPermission('edit_model', { projectId: body.data.projectId });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
@@ -81,6 +86,8 @@ export async function POST(request: Request): Promise<Response> {
   } catch (e) {
     if (e instanceof StorageError && e.code === 'permission_denied') return permissionDenied();
     if (e instanceof StorageError && INPUT_CODES.has(e.code)) return invalidInput(e.code);
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }

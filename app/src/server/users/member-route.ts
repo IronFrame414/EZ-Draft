@@ -13,6 +13,7 @@ import { emit } from '../events';
 import type { Permitted } from '../permissions/can';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isMembershipId, type MemberRefusal } from './members';
+import { endedSessionResponse } from '../auth/ended-session';
 
 const headers = { 'Cache-Control': 'no-store' };
 
@@ -73,6 +74,8 @@ export async function runMemberWrite(
     }
     return Response.json(out.body, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, route);
     return memberFail(500, 'db_unavailable');
   }

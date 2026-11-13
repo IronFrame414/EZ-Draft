@@ -14,6 +14,7 @@ import {
   signedDownloadUrl,
   StorageError,
 } from '../../../../../../server/storage';
+import { endedSessionResponse } from '../../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +49,8 @@ export async function POST(
   try {
     s = await requireApiSession();
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
@@ -58,6 +61,8 @@ export async function POST(
   try {
     permitted = await requireApiPermission('edit_model');
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
@@ -72,6 +77,8 @@ export async function POST(
     return Response.json({ sourceFile, downloadUrl }, { status: 200, headers });
   } catch (e) {
     if (e instanceof StorageError && INPUT_CODES.has(e.code)) return invalidInput(e.code);
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }

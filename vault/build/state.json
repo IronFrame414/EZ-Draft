@@ -328,7 +328,8 @@
     "EZD-397",
     "EZD-135b",
     "EZD-106",
-    "EZD-107"
+    "EZD-107",
+    "EZD-109"
   ],
   "seeded_done": 324,
   "merged": [
@@ -358,6 +359,13 @@
       "title": "Custom roles",
       "commit": "895c1115",
       "ts": "2026-11-13T11:05:12Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-109",
+      "title": "Event log",
+      "commit": "5d76d8f0",
+      "ts": "2026-11-13T11:48:27Z",
       "kind": "ticket"
     }
   ],

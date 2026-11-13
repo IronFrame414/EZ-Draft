@@ -7,6 +7,7 @@ import { createSessionClient } from '../../../../../server/auth/supabase-server'
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { loadModel } from '../../../../../server/model/model';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,8 @@ export async function GET(
     if (model === null) return fail(404, 'project_not_found');
     return Response.json(model, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

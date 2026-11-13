@@ -7,6 +7,7 @@ import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { requireApiPermission } from '../../../../server/permissions';
 import { headers, roleFail, runRoleWrite } from '../../../../server/roles/role-route';
 import { createRole, listRoles, parseRoleInput } from '../../../../server/roles/roles';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,8 @@ export async function GET(): Promise<Response> {
     const roles = await listRoles(createSessionClient());
     return Response.json({ roles }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return roleFail(500, 'db_unavailable');
   }

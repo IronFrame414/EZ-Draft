@@ -7,6 +7,7 @@ import { requireApiSession } from '../../../../server/auth/session';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { addUserAiKey, removeUserAiKey } from '../../../../server/assistant/user-key';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,8 @@ export async function POST(request: Request): Promise<Response> {
     }
     return fail(result.status, result.code);
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }
@@ -54,6 +57,8 @@ export async function DELETE(_request: Request): Promise<Response> {
     if (result.status === 200) return Response.json({ aiKey: null }, { status: 200, headers });
     return fail(result.status, result.code);
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

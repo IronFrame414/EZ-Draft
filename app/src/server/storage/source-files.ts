@@ -133,7 +133,7 @@ export async function startSourceFileUpload(
     .select('id, tenant_id')
     .eq('id', v.projectId)
     .maybeSingle();
-  if (project.error) throw new StorageError('storage_unavailable');
+  if (project.error) throw new StorageError('storage_unavailable', { cause: project.error });
   if (!project.data) throw new StorageError('project_not_found');
 
   const id = randomUUID();
@@ -176,7 +176,7 @@ export async function completeSourceFileUpload(
     .select(VIEW_COLUMNS)
     .eq('id', sourceFileId)
     .maybeSingle();
-  if (found.error) throw new StorageError('storage_unavailable');
+  if (found.error) throw new StorageError('storage_unavailable', { cause: found.error });
   if (!found.data) throw new StorageError('source_file_not_found');
   const row = toView(found.data);
   if (row.uploadedAt !== null) return row;
@@ -195,7 +195,9 @@ export async function completeSourceFileUpload(
   if (updated.error) {
     // No row under .single() (PGRST116): a concurrent complete stamped it first. Re-read the row by id and
     // return it when uploaded_at is set (Decided completeSourceFileUpload).
-    if (updated.error.code !== 'PGRST116') throw new StorageError('storage_unavailable');
+    if (updated.error.code !== 'PGRST116') {
+      throw new StorageError('storage_unavailable', { cause: updated.error });
+    }
     const again = await client
       .from('source_file')
       .select(VIEW_COLUMNS)
