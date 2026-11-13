@@ -38,14 +38,20 @@ function run(name, cmd, argv) {
     const started = Date.now();
     log.write(`\n===== ${name}: ${cmd} ${argv.join(' ')}\n`);
     const tail = [];
+    const keyLines = [];
     const p = spawn(cmd, argv, { cwd: dir, env, stdio: ['ignore', 'pipe', 'pipe'] });
     const onData = (d) => {
       log.write(d);
-      for (const line of d.toString().split('\n')) { tail.push(line); if (tail.length > 150) tail.shift(); }
+      for (const raw of d.toString().split('\n')) {
+        const line = raw.replace(/\x1b\[[0-9;]*m/g, '');
+        if (!line.trim() || /^\s*✓/.test(line)) continue;
+        tail.push(line); if (tail.length > 400) tail.shift();
+        if (/(FAIL|✗|×|Error|AssertionError|expected|Expected|Received|failed)/.test(line) && keyLines.length < 120) keyLines.push(line);
+      }
     };
     p.stdout.on('data', onData);
     p.stderr.on('data', onData);
-    p.on('close', (code) => resolve({ code, secs: Math.round((Date.now() - started) / 1000), tail }));
+    p.on('close', (code) => resolve({ code, secs: Math.round((Date.now() - started) / 1000), tail, keyLines }));
     p.on('error', (e) => resolve({ code: 1, secs: 0, tail: [String(e)] }));
   });
 }
@@ -61,7 +67,7 @@ for (const [name, cmd, argv] of steps) {
   }
   console.log(`${r.code === 0 ? 'ok  ' : 'FAIL'} ${name} (${r.secs}s)`);
   if (r.code !== 0) {
-    writeFileSync(failPath, `step: ${name}\ncommand: ${cmd} ${argv.join(' ')}\n\n${r.tail.join('\n')}\n`);
+    writeFileSync(failPath, `step: ${name}\ncommand: ${cmd} ${argv.join(' ')}\nfull log: ${logPath}\n\n== failure lines ==\n${(r.keyLines || []).join('\n')}\n\n== last lines ==\n${r.tail.slice(-200).join('\n')}\n`);
     log.end();
     console.log(`CHECK FAIL at ${name} after ${Math.round((Date.now() - t0) / 1000)}s; details: ${failPath}`);
     process.exit(1);

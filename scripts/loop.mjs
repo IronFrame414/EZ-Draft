@@ -161,7 +161,7 @@ function check(cwd) {
   const r = spawnSync('node', [path.join(ROOT, 'scripts/check.mjs'), cwd], { cwd, encoding: 'utf8', env: { ...process.env, EZD_LANE: cfg().lane }, timeout: 60 * 60000 });
   const pass = r.status === 0 && /CHECK PASS/.test(r.stdout || '');
   let detail = (r.stdout || '').trim();
-  if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(-6000); } catch {} }
+  if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(0, 9000); } catch {} }
   return { pass, detail };
 }
 
@@ -187,7 +187,7 @@ function builderPrompt(t, plan, reads) {
 }
 function fixPrompt(kind, detail) {
   return kind === 'check'
-    ? `The full check (node scripts/check.mjs) failed after your work. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(-8000)}`
+    ? `The full check (node scripts/check.mjs) failed after your work. The failing lines are below; the full output is in check.log in this folder. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(0, 9000)}`
     : `An independent reviewer found blocking problems. Fix each one, rerun the full check (node scripts/check.mjs) until it passes, and commit. If you believe a finding is wrong, say why in one line instead of changing code.\n\n${detail}`;
 }
 function reviewerPrompt(t, security, plan) {
