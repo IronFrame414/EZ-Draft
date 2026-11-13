@@ -74,6 +74,12 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     placement: 'bar',
   },
   {
+    file: 'src/app/(office)/settings/system-status/page.tsx',
+    path: '/settings/system-status',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
     file: 'src/app/(office)/settings/[section]/page.tsx',
     path: '/settings/title-block',
     signedIn: true,

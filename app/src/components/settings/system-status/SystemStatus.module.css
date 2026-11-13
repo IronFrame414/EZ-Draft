@@ -1,0 +1,262 @@
+/* EZD-135b Build step 3 (vault/plans/EZD-135b.md; S15i System status, S15i states, S15i iPad): the System status
+   cards. Colors from tokens only (check C10); sizes in px. */
+
+/* Desktop: Job failures on the left, backup, restore drill and webhooks on the right (S15i). The DOM order is the
+   iPad order (backup and restore drill first, S15i iPad), placed by grid areas. */
+.cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-areas:
+    'jobs backups'
+    'jobs drill'
+    'jobs webhooks';
+  grid-template-rows: auto auto 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.backups {
+  grid-area: backups;
+}
+
+.drill {
+  grid-area: drill;
+}
+
+.webhooks {
+  grid-area: webhooks;
+}
+
+.jobs {
+  grid-area: jobs;
+}
+
+/* iPad landscape (1180 px) and narrower: one scrolling column (S15i iPad). */
+@media (width < 1280px) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'backups' 'drill' 'webhooks' 'jobs';
+    grid-template-rows: none;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.scope {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.body {
+  min-width: 0;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ez-border);
+  background: var(--ez-surface-sunken);
+  white-space: nowrap;
+}
+
+.th:first-child,
+.td:first-child {
+  padding-left: 16px;
+}
+
+.th:last-child,
+.td:last-child {
+  padding-right: 16px;
+}
+
+.td {
+  padding: 12px;
+  border-bottom: 1px solid var(--ez-divider);
+  font-size: 14px;
+  color: var(--ez-ink);
+  vertical-align: middle;
+}
+
+@media (hover: hover) {
+  .tr:hover .td {
+    background: var(--ez-row-hover);
+  }
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+  color: var(--ez-slate-700);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+}
+
+.range {
+  flex: 1;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 22px 16px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.empty svg {
+  flex: none;
+  color: var(--ez-slate-400);
+}
+
+.emptyOk svg {
+  color: var(--ez-green);
+}
+
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-divider);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface-sunken);
+}
+
+.blockHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.blockName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.schedule {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 13px;
+}
+
+.key {
+  color: var(--ez-slate-500);
+}
+
+.value {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-ink);
+  text-align: right;
+}
+
+.drillLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  font-size: 13px;
+}
+
+.drillTime {
+  flex: 1;
+  font-family: var(--ez-font-mono);
+  color: var(--ez-ink);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--ez-radius-999);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.passed {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.failed {
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+}
+
+.refresh {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.updated {
+  display: flex;
+  gap: 6px;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}

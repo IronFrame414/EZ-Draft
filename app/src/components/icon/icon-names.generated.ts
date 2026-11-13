@@ -16,6 +16,8 @@ export const ICON_NAMES = [
   'chat_bubble',
   'check',
   'check_circle',
+  'chevron_left',
+  'chevron_right',
   'close',
   'cloud_off',
   'compare_arrows',

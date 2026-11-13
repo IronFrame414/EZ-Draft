@@ -41,6 +41,8 @@ const EXPECTED_ICONS = [
   'chat_bubble',
   'check',
   'check_circle',
+  'chevron_left',
+  'chevron_right',
   'close',
   'cloud_off',
   'compare_arrows',

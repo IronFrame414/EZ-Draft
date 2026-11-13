@@ -304,10 +304,19 @@ describe('EZD-5603b assistant route photo', () => {
       image: last.content.find((c) => c.type === 'image'),
     };
   };
+  // Scoped to this test's tenant (every Storage path starts `<tenant_id>/`, ARCH Storage buckets and paths;
+  // every job row carries tenant_id): any photo write by the route lands there, and test files running in
+  // parallel cannot move the counts.
   const storageCount = async () =>
-    (await sql()<{ n: number }[]>`select count(*)::int as n from storage.objects`)[0].n;
+    (
+      await sql()<{ n: number }[]>`
+        select count(*)::int as n from storage.objects where name like ${tenant + '/%'}`
+    )[0].n;
   const allJobs = async () =>
-    (await sql()<{ n: number }[]>`select count(*)::int as n from public.job`)[0].n;
+    (
+      await sql()<{ n: number }[]>`
+        select count(*)::int as n from public.job where tenant_id = ${tenant}::uuid`
+    )[0].n;
 
   it('T17 a body of exactly 4,000,000 bytes with a 3,500,000-byte photo is accepted and sent as one 1568 x 1176 image', async () => {
     stubWith('text_only');
