@@ -335,7 +335,7 @@ test.describe('EZD-208b selection', () => {
     const bottomTools = page.locator(
       '[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]',
     );
-    await expect(topTools).toHaveCount(7);
+    await expect(topTools).toHaveCount(8);
     await expect(bottomTools).toHaveCount(1);
     await expect(bottomTools).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(topTools.nth(0)).toHaveAttribute('data-rail-tool', 'select');

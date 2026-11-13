@@ -8,6 +8,8 @@
 // each new cursor point goes to `onCursor`, and a non-touch leave sends null.
 // EZD-211b: Space tap (vault/plans/EZD-211b.md Decided "Space tap"): a Space press and release with no pan between
 // goes to `onSpaceTap`.
+// EZD-223 (S03 Sketch, Pencil only): a touch that lands while a pen or mouse stroke is delivered (a palm on the
+// screen) is not delivered, so the stroke keeps its own move and up.
 import type { Point } from '@ezdraft/geometry';
 import { panBy, regionToModel, wheelZoomFactor, zoomAt, type PlanView } from './view';
 
@@ -116,7 +118,8 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     if (isTouch(e)) {
       if (touches.size >= 2) return;
       touches.set(e.pointerId, p);
-      if (touches.size === 1) {
+      const penHeld = delivered !== null && !touches.has(delivered.id);
+      if (touches.size === 1 && !penHeld) {
         if (deliver('down', p, e)) {
           delivered = { id: e.pointerId, at: p };
           lastDownDelivered = true;

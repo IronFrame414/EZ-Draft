@@ -14,6 +14,7 @@
 // EZD-5603a Build step 11 (vault/plans/EZD-5603a.md Decided "Rail button"): the Assistant toggle in the bottom group.
 // EZD-234 Build: the Fixtures panel while the Fixtures tool is on, and the utilities-to-move card after a move, both
 // loaded through lazyModule on first use (11 rule 7), showing nothing until the code is there.
+// EZD-223 (S03 Sketch): the sketch strokes path; the Sketch tool shows no typed bar.
 import {
   useCallback,
   useEffect,
@@ -124,6 +125,7 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
   const chipMode = chipModeOf(ui);
   const bandRef = useRef<SVGPathElement>(null);
   const previewRef = useRef<SVGPathElement>(null);
+  const sketchRef = useRef<SVGPathElement>(null);
   const markerRef = useRef<SVGPathElement>(null);
   const groupRef = useRef<SVGGElement>(null);
   const spanRef = useRef<SVGPathElement>(null);
@@ -234,6 +236,7 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
           ],
         },
         preview,
+        sketch: sketchRef.current ?? undefined,
         selection: {
           handles: [handle0, handle1],
           leaders,
@@ -296,6 +299,7 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
   return (
     <div className={styles.layer} data-testid="drawing-layer">
       <svg className={styles.overlay} data-testid="tool-overlay" aria-hidden="true">
+        <path ref={sketchRef} className={styles.sketch} data-testid="sketch-strokes" display="none" />
         <path
           ref={previewRef}
           className={styles.preview}
@@ -461,7 +465,9 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
       ) : null}
       {canEdit ? (
         <TypedEntryLayer
-          tool={ui.tool !== null && ui.tool !== 'fixtures' ? DRAWING_TOOLS[ui.tool] : entryTyped}
+          tool={ui.tool !== null && ui.tool !== 'fixtures' && ui.tool !== 'sketch'
+              ? DRAWING_TOOLS[ui.tool]
+              : entryTyped}
           canEdit={ui.enabled}
           lastValues={lastValues}
           getCursor={handle.getCursor}

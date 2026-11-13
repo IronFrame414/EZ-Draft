@@ -170,7 +170,7 @@ test.describe('EZD-120c editor route', () => {
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
-    ).toHaveCount(7);
+    ).toHaveCount(8);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveCount(1);

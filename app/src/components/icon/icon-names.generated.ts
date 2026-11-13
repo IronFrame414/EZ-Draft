@@ -31,6 +31,7 @@ export const ICON_NAMES = [
   'domain',
   'door_front',
   'download',
+  'draw',
   'edit',
   'error',
   'event',

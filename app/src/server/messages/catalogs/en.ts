@@ -833,6 +833,7 @@ export const en = {
   // EZD-234 Build (S03 Fixtures, Validation; vault/build/assumptions.md EZD-234 wording): the Fixtures panel and the
   // utilities-to-move list.
   'office.tool.fixtures': 'Fixtures',
+  'office.tool.sketch': 'Sketch',
   'office.fixtures.title': 'Fixtures',
   'office.fixtures.section_fixtures': 'Fixtures and appliances',
   'office.fixtures.section_utilities': 'Utility points',

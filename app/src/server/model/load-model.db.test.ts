@@ -140,6 +140,7 @@ describe('EZD-120b loadModel', () => {
       tenantId: tenant,
       membershipId: editor.membershipId,
       canEdit: true,
+      ipadDrawing: 'finger',
     });
     expect(load?.lockEpoch).toBe(0);
     expect(load?.objects).toHaveLength(3);

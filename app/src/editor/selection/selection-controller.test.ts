@@ -387,6 +387,7 @@ describe('EZD-208a selection controller', () => {
       'door',
       'window',
       'fixtures',
+      'sketch',
     ]);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });

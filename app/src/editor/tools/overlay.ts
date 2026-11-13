@@ -5,15 +5,18 @@
 // "Overlay writes").
 // EZD-212b (vault/plans/EZD-212b.md D9): the dashed Move preview path.
 // EZD-212c (vault/plans/EZD-212c.md D8): resize handles, wall chip leaders and ticks, chips and the size chip.
+// EZD-223 (S03 Sketch): the page's sketch strokes and the stroke being drawn, as one path.
 import {
   doorSymbol,
   formatChipDistance,
   formatLength,
   openingSpan,
+  sketchPoints,
   PLAN_DISPLAY_DENOMINATOR,
   wallFaceLines,
   type OpeningObject,
   type PickShape,
+  type SketchShape,
   type Point,
   type SnapKind,
 } from '@ezdraft/geometry';
@@ -377,6 +380,19 @@ export function previewPath(
     .join(' ');
 }
 
+export function sketchPath(
+  shapes: readonly SketchShape[],
+  live: readonly Point[] | null,
+  toScreen: (p: Point) => Point,
+): string | null {
+  const runs = shapes.map((s) => sketchPoints(s));
+  if (live !== null && live.length > 0) runs.push([...live]);
+  const parts = runs
+    .filter((r) => r.length > 0)
+    .map((r) => `M ${r.map((p) => xy(toScreen(p))).join(' L ')}`);
+  return parts.length === 0 ? null : parts.join(' ');
+}
+
 export function createToolOverlay(
   els: {
     band: OverlayElement;
@@ -384,6 +400,7 @@ export function createToolOverlay(
     opening?: OpeningElements;
     preview?: OverlayElement;
     selection?: SelectionElements;
+    sketch?: OverlayElement;
   },
   toScreen: (p: Point) => Point,
 ): { draw(frame: DrawingFrame | null): void } {
@@ -391,6 +408,14 @@ export function createToolOverlay(
     draw(frame) {
       if (els.opening !== undefined) drawOpening(els.opening, frame, toScreen);
       if (els.selection !== undefined) drawSelection(els.selection, frame, toScreen);
+      if (els.sketch !== undefined) {
+        const d = sketchPath(frame?.sketch?.shapes ?? [], frame?.sketch?.live ?? null, toScreen);
+        if (d === null) els.sketch.setAttribute('display', 'none');
+        else {
+          els.sketch.setAttribute('d', d);
+          els.sketch.removeAttribute('display');
+        }
+      }
       if (els.preview !== undefined) {
         const d = previewPath(frame?.preview ?? [], toScreen);
         if (d === null) {

@@ -28,6 +28,7 @@ import { z } from 'zod';
 import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
 import { planScaleFromSettings, type PlanScale } from '../../lib/plan/plan-scale';
 import type { Database, Json } from '../db/database.types';
+import { ipadDrawingOf } from '../../lib/profile/profile';
 import { can, type PermissionContext } from '../permissions';
 import { readSourceFileRefs, type StoredFileRef } from '../storage/source-files';
 
@@ -388,7 +389,8 @@ export async function loadModel(
     return data as unknown as NumberRow[];
   };
 
-  const [project, lock, firstPage, firstDeleted] = await Promise.all([
+  // EZD-223: the viewer's own iPad drawing setting rides with the load for the Sketch tool.
+  const [project, lock, firstPage, firstDeleted, me] = await Promise.all([
     client
       .from('project')
       .select('id, name, tenant_id, settings, customer!project_customer_fk(name)')
@@ -397,9 +399,11 @@ export async function loadModel(
     client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
     page(null),
     deletedPage(null),
+    client.from('app_user').select('ipad_input_mode').eq('id', ctx.appUserId).maybeSingle(),
   ]);
   if (project.error) throw project.error;
   if (lock.error) throw lock.error;
+  if (me.error) throw me.error;
   if (project.data === null) return null;
 
   const rows = [...firstPage];
@@ -458,6 +462,7 @@ export async function loadModel(
       tenantId: project.data.tenant_id,
       membershipId: ctx.membershipId,
       canEdit: can(ctx, 'edit_model', { projectId }),
+      ipadDrawing: ipadDrawingOf(me.data?.ipad_input_mode ?? null),
     },
     lockEpoch: lock.data?.lock_epoch ?? 0,
     objects,

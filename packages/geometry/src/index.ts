@@ -14,6 +14,7 @@ export * from './openings';
 export * from './rooms';
 export * from './schema';
 export * from './selection';
+export * from './sketch';
 export * from './snap/index';
 export * from './tolerance';
 export * from './walls';

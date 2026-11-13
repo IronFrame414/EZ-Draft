@@ -26,6 +26,7 @@
 // EZD-5603a Build step 12 (vault/plans/EZD-5603a.md Decided "Editor wiring", "Rail button"): for an editor, one
 // Assistant session per page load; its rail toggle opens the Assistant panel in the inspector place.
 // EZD-234 Build (11 Budgets editor download size): the conflict list panel loads through lazyModule when first opened.
+// EZD-223 (S03 Sketch; Q-0392): the drawing controller reads the viewer's iPad drawing setting from the load.
 import {
   useEffect,
   useMemo,
@@ -191,6 +192,7 @@ export function ProjectEditor({
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
           snapSettings: () => deviceSnapSettings.get(),
+          ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
         });
         const selection = createSelectionController({
           handle: plan.handle,

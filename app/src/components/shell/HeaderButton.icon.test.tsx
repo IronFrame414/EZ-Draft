@@ -56,6 +56,8 @@ const EXPECTED_ICONS = [
   'domain',
   'door_front',
   'download',
+  // EZD-223: the Sketch rail button.
+  'draw',
   'edit',
   'error',
   'event',

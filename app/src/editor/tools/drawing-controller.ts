@@ -16,6 +16,9 @@
 // the moved appliances' linked utility points that stayed are listed in `ui.utilities` until the next edit or Close.
 // Placing and the list run in `fixturesModule`, loaded when the tool is turned on or a fixture first moves; a click
 // before it is there places nothing.
+// EZD-223 (S03 Sketch; S15d iPad input mode; Q-0392; AC-EZD-223-1 to -4): the Sketch tool (S) draws freehand strokes
+// that clean up on lift (`reduceSketch`); the strokes are kept on this page's markup layer and sent in every frame.
+// Under Pencil only (`ipadDrawing`) a touch never draws. No snapping: a sketch is freehand.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -45,7 +48,9 @@ import {
   type WallObject,
   type WallSnapIndex,
   type UtilityToMove,
+  type SketchShape,
 } from '@ezdraft/geometry';
+import type { IpadDrawing } from '../../lib/profile/profile';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
@@ -117,6 +122,8 @@ import {
   type LooseObject,
 } from './index';
 import { fixturesModule } from './fixtures-module';
+import { sketchModule } from './sketch-module';
+import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
 
 export type DrawingFrame = {
   rect: boolean;
@@ -129,6 +136,13 @@ export type DrawingFrame = {
   opening: OpeningFrame | null;
   preview?: readonly PickShape[];
   selection?: SelectionFrame | null;
+  sketch?: SketchFrame;
+};
+
+// EZD-223: the page's sketch strokes and the stroke being drawn, in model inches.
+export type SketchFrame = {
+  shapes: readonly SketchShape[];
+  live: readonly Point[] | null;
 };
 
 export type OpeningFrame = {
@@ -193,6 +207,9 @@ export type DrawingDeps = {
   newId?: () => string;
   now?: () => string;
   snapSettings?: () => Readonly<SnapSettings>;
+  // EZD-223: the user's iPad drawing setting (null in the database reads as finger), and a millisecond clock.
+  ipadDrawing?: () => IpadDrawing;
+  clock?: () => number;
 };
 
 export type DrawingController = {
@@ -235,7 +252,8 @@ type ToolState =
   | { id: 'room-rect'; state: RoomRectState }
   | { id: 'door' | 'window'; state: OpeningToolState }
   | { id: 'move'; state: MoveToolState }
-  | { id: 'fixtures'; state: null };
+  | { id: 'fixtures'; state: null }
+  | { id: 'sketch'; state: SketchState };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -263,6 +281,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const newId = deps.newId ?? newObjectId;
   const now = deps.now ?? (() => new Date().toISOString());
   const snapSettings = deps.snapSettings ?? (() => DEFAULT_SNAP_SETTINGS);
+  const ipadDrawing = deps.ipadDrawing ?? (() => 'finger' as const);
+  const clock = deps.clock ?? (() => performance.now());
 
   let objects: Objects = store.getState().objects;
   let level: string | null = openFloorId(objects);
@@ -301,6 +321,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let moveCache: ModelObject[] | null = null;
   // EZD-234: a list computed after a later move, placement or Close is dropped.
   let utilitiesSeq = 0;
+  // EZD-223: the sketch strokes drawn on this page.
+  let sketches: SketchShape[] = [];
 
   const uiListeners = new Set<() => void>();
   const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
@@ -423,7 +445,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function snapContext(): SnapContext {
-    if (tool === null || tool.id === 'room-rect' || tool.id === 'move' || tool.id === 'fixtures')
+    if (
+      tool === null ||
+      tool.id === 'room-rect' ||
+      tool.id === 'move' ||
+      tool.id === 'fixtures' ||
+      tool.id === 'sketch'
+    )
       return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
     return wallSnapContext(tool.state);
@@ -628,7 +656,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     };
   }
 
+  // EZD-223: every frame carries the sketch strokes once there are any.
   function buildFrame(): DrawingFrame | null {
+    const base = toolFrame();
+    const live = tool !== null && tool.id === 'sketch' ? (tool.state.stroke?.points ?? null) : null;
+    if (sketches.length === 0 && live === null) return base;
+    return { ...(base ?? { ...EMPTY_FRAME, opening: null }), sketch: { shapes: sketches, live } };
+  }
+
+  function toolFrame(): DrawingFrame | null {
     if (tool === null) {
       if (drag !== null) return moveFrame(drag.base, drag.ids);
       if (claim !== null && claim.handle !== null && claim.moved && !claim.done)
@@ -637,6 +673,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
+    if (tool.id === 'sketch') return null;
     if (tool.id === 'fixtures')
       return {
         ...EMPTY_FRAME,
@@ -804,6 +841,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onFixturePointer(event);
       return;
     }
+    if (tool.id === 'sketch') {
+      onSketchPointer(event, tool.state);
+      return;
+    }
     if (isOpeningTool(tool)) {
       onOpeningPointer(event);
       return;
@@ -832,6 +873,40 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     else if (event.kind === 'up') input({ type: 'release', at });
     else if (event.kind === 'move') input({ type: 'move', at });
     else if (event.kind === 'dblclick') input({ type: 'double' });
+    emitFrame();
+  }
+
+  // EZD-223: one pointer step of the stroke; a lift adds the cleaned (or held raw) shape to the page's strokes.
+  function onSketchPointer(event: PlanPointerEvent, state: SketchState): void {
+    const kind = event.kind;
+    if (kind === 'click' || kind === 'dblclick') return;
+    const step = reduceSketch(
+      state,
+      { kind, model: event.model, screen: event.screen, pointerType: event.pointerType, time: clock() },
+      ipadDrawing(),
+    );
+    if (step.state === state && step.done === null) return;
+    tool = { id: 'sketch', state: step.state };
+    const done = step.done;
+    if (done !== null) {
+      // A held stroke stays raw; otherwise it is cleaned once the clean-up code is there.
+      const mod = sketchModule.peek();
+      if (done.held) sketches = [...sketches, { kind: 'raw', points: [...done.points] }];
+      else if (mod !== undefined) sketches = [...sketches, mod.cleanStroke(done.points)];
+      else
+        sketchModule.load().then(
+          (m) => {
+            if (disposed) return;
+            sketches = [...sketches, m.cleanStroke(done.points)];
+            emitFrame();
+          },
+          () => {
+            if (disposed) return;
+            sketches = [...sketches, { kind: 'raw', points: [...done.points] }];
+            emitFrame();
+          },
+        );
+    }
     emitFrame();
   }
 
@@ -1063,8 +1138,11 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
               ? { id, state: initialMoveToolState() }
               : id === 'fixtures'
                 ? { id, state: null }
-                : { id, state: initialOpeningToolState(id) };
+                : id === 'sketch'
+                  ? { id, state: initialSketchState() }
+                  : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
+    if (id === 'sketch') sketchModule.preload();
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -1168,6 +1246,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         selectTool(null);
         return true;
       }
+      // EZD-223: Esc drops the stroke being drawn, else ends the tool.
+      if (tool !== null && tool.id === 'sketch') {
+        if (tool.state.stroke !== null) {
+          tool = { id: 'sketch', state: initialSketchState() };
+          emitFrame();
+        } else selectTool(null);
+        return true;
+      }
       if (tool !== null) {
         input({ type: 'escape' });
         emitFrame();
@@ -1176,7 +1262,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return false;
     }
     if (e.key === 'Enter') {
-      if (tool === null || isOpeningTool(tool) || tool.id === 'move' || tool.id === 'fixtures')
+      if (
+        tool === null ||
+        isOpeningTool(tool) ||
+        tool.id === 'move' ||
+        tool.id === 'fixtures' ||
+        tool.id === 'sketch'
+      )
         return false;
       input({ type: 'enter' });
       emitFrame();
@@ -1206,6 +1298,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (key === 'f') {
       selectTool('fixtures');
+      return true;
+    }
+    if (key === 's') {
+      selectTool('sketch');
       return true;
     }
     return false;
