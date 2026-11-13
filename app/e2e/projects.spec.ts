@@ -1,4 +1,4 @@
-// EZD-117a B1-B8 (vault/plans/EZD-117a.md section 4; AC-EZD-117a-1 to -7). Untagged, so desktop 1600 x 1000. Every
+// EZD-117a B1-B8 (vault/plans/EZD-117a.md section 4; AC-EZD-117a-1 to -7); B2 is in perf-projects-warm.spec.ts (EZD-397). Untagged, so desktop 1600 x 1000. Every
 // test makes its own company (never tenant 1) and members; fixture S is app/test-harness/projects-fixture.ts.
 // Expected values: ticket row Done when (200 projects: two data requests, first cards within budget, no editor
 // code); Q-0450 (a) (exact match on every /api/ request); 11 Budgets "Projects page" (first cards 1000 ms) and
@@ -120,36 +120,6 @@ test.describe('EZD-117a Projects page', () => {
       '/api/realtime/token',
     ]);
     await expect(page.getByTestId('projects-more')).toHaveCount(1);
-  });
-
-  test('EZD-117a B2 the first cards show within 1,000 ms on a warm page', async ({
-    page,
-    signInAs,
-  }) => {
-    const m = await bigCompany(200);
-    await signInAs(m.email);
-    await page.goto('/');
-    await expect(page.getByTestId('project-card').first()).toBeVisible();
-    await page.addInitScript(() => {
-      const w = window as unknown as { __firstCardMs?: number };
-      const mo = new MutationObserver(() => {
-        if (
-          document.querySelector('[data-testid="project-card"]') &&
-          w.__firstCardMs === undefined
-        ) {
-          w.__firstCardMs = performance.now();
-          mo.disconnect();
-        }
-      });
-      mo.observe(document, { childList: true, subtree: true });
-    });
-    await page.goto('/');
-    await expect(page.getByTestId('project-card').first()).toBeVisible();
-    const ms = await page.evaluate(
-      () => (window as unknown as { __firstCardMs?: number }).__firstCardMs,
-    );
-    expect(ms).toBeDefined();
-    expect(ms as number).toBeLessThan(1000);
   });
 
   test('EZD-117a B3 the page loads no editor code and stays within 300,000 compressed bytes', async ({
