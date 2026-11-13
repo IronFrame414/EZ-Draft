@@ -22184,7 +22184,7 @@
   },
   {
    "id": "EZD-393",
-   "phase": 5,
+   "phase": 4,
    "title": "Fix: the EZD-356 T1 pan-row test finds a wait during the fixture pan under load",
    "depends_raw": "EZD-372",
    "spec_ref": "rule 17; EZD-356",
@@ -22198,7 +22198,7 @@
    ],
    "track": "tooling",
    "priority": 1,
-   "phase_file": "tickets/phases/phase-02.md",
+   "phase_file": "tickets/phases/phase-04.md",
    "depends_on": [
     "EZD-372"
    ],
