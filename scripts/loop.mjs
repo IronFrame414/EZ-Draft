@@ -177,7 +177,7 @@ function builderPrompt(t, plan, reads) {
     '', 'Steps:',
     '1. Read only what you need, then plan.',
     '2. Write tests from the acceptance criteria, then the code. Expected values come from the spec, never from running the code.',
-    '3. Run `node scripts/check.mjs --fast` until it passes, then the full `node scripts/check.mjs`.',
+    '3. Run `node scripts/check.mjs --fast` until it passes, then the full `node scripts/check.mjs` once. One passing full check is enough: do not rerun tests to prove stability or timing.',
     `4. Commit everything on this branch: \`feat(${t.id}): ${t.title.replace(/[`"]/g, "'").slice(0, 70)}\`. Give a one-line reason in the body for every existing test you changed.`,
     '5. End with a summary of at most 10 lines: what you built, tests added, assumptions recorded.',
     '', 'Unsettled question: follow CLAUDE.md rule 1 (record it in vault/build/assumptions.md and keep going).',
@@ -267,9 +267,10 @@ async function doTicket(t, s, kind = 'ticket') {
   recordUsage(t.id, 'builder', c.builder_model, r);
   if (r.limited) { await handleLimit(r, s); cleanupWorktree(t.id); s.current = null; saveState(s); return 'limit'; }
   let session = r.res?.session_id;
-  if (r.timedOut) { setAside(s, t, `builder timed out after ${c.builder_timeout_min} min`, r.text.slice(-2000), wt); return 'aside'; }
+  if (r.timedOut && !git(['log', '--oneline', 'develop..HEAD'], wt).out) { setAside(s, t, `builder timed out after ${c.builder_timeout_min} min with no commits`, r.text.slice(-2000), wt); return 'aside'; }
+  if (r.timedOut) log(`${t.id} builder timed out after ${c.builder_timeout_min} min but committed work; checking it`);
   const blocked = /^BLOCKED:.*$/m.exec(String(r.res?.result ?? ''));
-  if (!session) { setAside(s, t, 'builder crashed (no result)', r.text.slice(-2000), wt); return 'aside'; }
+  if (!session && !r.timedOut) { setAside(s, t, 'builder crashed (no result)', r.text.slice(-2000), wt); return 'aside'; }
 
   const commitAll = () => { if (git(['status', '--porcelain'], wt).out) { git(['add', '-A'], wt); git(['commit', '-q', '-m', `feat(${t.id}): uncommitted builder work`], wt); } };
   const fix = async (kindOf, detail, label) => {
