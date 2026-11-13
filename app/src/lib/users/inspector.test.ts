@@ -46,6 +46,7 @@ const row = (r: UserRole, granted: PermissionKey[], language: 'en' | 'es' = 'en'
   lastActiveAt: null,
   invitedAt: null,
   canCopyLink: false,
+  invite: null,
 });
 
 const counts = (d: InspectorDraft) =>

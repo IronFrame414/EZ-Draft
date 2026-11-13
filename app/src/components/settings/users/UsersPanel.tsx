@@ -1107,6 +1107,18 @@ export function UsersPanel() {
             </button>
           </>
         ) : null}
+        {row.invite !== null ? (
+          <>
+            {' · '}
+            {/* EZD-138 (board S15j pending row W1; Q-0216): the code, for the last sender and Owners only. */}
+            <span data-testid="user-invite-code" className={styles.inviteCodeInline}>
+              {t('office.users.invite.code_inline')}{' '}
+              <span className={styles.inviteCodeDigits}>
+                {`${row.invite.code.slice(0, 3)} ${row.invite.code.slice(3)}`}
+              </span>
+            </span>
+          </>
+        ) : null}
       </td>
     );
   };

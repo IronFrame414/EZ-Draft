@@ -18,7 +18,10 @@ import { completeSignIn } from './complete-sign-in';
 import { clearAppCookie, readAppCookie, setAppCookie } from './request-cookies';
 import { createSessionClient } from './supabase-server';
 import { clientIp, throttleKey, throttleSettle, throttleTake, type ThrottleKind } from './throttle';
+import { timingSafeEqual } from 'node:crypto';
 import { acceptInviteByToken } from '../users/accept-invite';
+import { inviteCode, inviteToken } from '../users/invite-token';
+import { inviteCodeTake } from './admin-auth';
 
 const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
 const CODE_PATTERN = /^\d{6}$/;
@@ -299,5 +302,59 @@ export async function acceptInvite(formData: FormData): Promise<{
     return { error: 'unavailable' };
   }
   if (result === 'refused') return { error: 'invite_invalid' };
+  redirect('/');
+}
+
+// EZD-138 (S15 board S15j; Q-0216; Q-0695 decisions 10 row 61; 09n "Invite code tries"; AC-EZD-138-2, -4):
+// "Have an invite code?" on /sign-in. The email and the 6-digit invite code accept the invite through the same
+// one step as the link's Accept, then the person lands on Projects signed in. Spaces in the code are ignored
+// (the dialog shows it as "482 913"). Order: parse; a throttle slot of kind code (the per-email wrong-code and
+// the per-IP limits); invite_code_take (adds one try to each live unlocked invite for the email); compare the
+// typed code with each invite's derived code; accept with that invite's link token. An unknown email, an email
+// with no invite, a wrong code and a refused accept all get one answer, 'invite_code_invalid'; a live invite
+// whose five tries are used answers 'invite_code_locked' (board S15j W10) until Resend. Nothing is logged but
+// a fixed code; the code, the email and the random value never appear in an error.
+export async function acceptInviteCode(formData: FormData): Promise<{
+  error:
+    | 'invite_code_invalid'
+    | 'invite_code_locked'
+    | 'code_throttled'
+    | 'ip_throttled'
+    | 'unavailable';
+}> {
+  const email = parseEmail(formData.get('email'));
+  const codeField = formData.get('code');
+  const code = typeof codeField === 'string' ? codeField.replace(/\s+/g, '') : '';
+  if (!email || !CODE_PATTERN.test(code)) return { error: 'invite_code_invalid' };
+
+  const slot = await takeSlot('code', email);
+  if (!slot) return { error: 'unavailable' };
+  if (!slot.allowed) {
+    return { error: slot.limitedBy === 'ip' ? 'ip_throttled' : 'code_throttled' };
+  }
+
+  let token: string | null = null;
+  let locked: boolean;
+  try {
+    const taken = await inviteCodeTake(email);
+    const typed = Buffer.from(code);
+    for (const invite of taken.invites) {
+      if (timingSafeEqual(Buffer.from(inviteCode(invite.secret)), typed)) {
+        token = inviteToken(invite.secret);
+        break;
+      }
+    }
+    // Locked: a live invite was already at five tries, or this try used the last one of every invite.
+    locked = taken.locked || (taken.invites.length > 0 && taken.invites.every((i) => i.tries >= 5));
+  } catch {
+    await settle(slot);
+    await reportSignIn('auth_invite_code_unavailable');
+    return { error: 'unavailable' };
+  }
+  if (token === null) return { error: locked ? 'invite_code_locked' : 'invite_code_invalid' };
+
+  if ((await acceptInviteByToken(token)) === 'refused') return { error: 'invite_code_invalid' };
+  await settle(slot);
+  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
   redirect('/');
 }

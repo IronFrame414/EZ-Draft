@@ -53,6 +53,13 @@ export const es = {
   'common.sign_in.password_submit': 'Iniciar sesión',
   'common.sign_in.send_instead': 'Mejor envíame un enlace de acceso por correo',
   'common.sign_in.forgot': '¿Olvidaste tu contraseña? Envíame un código por correo',
+  'common.sign_in.invite_code_open': '¿Tienes un código de invitación?',
+  'common.sign_in.invite_code_title': 'Únete con un código de invitación',
+  'common.sign_in.invite_code_intro':
+    'Usa el correo al que se envió la invitación y el código de 6 dígitos del correo de invitación.',
+  'common.sign_in.invite_code_label': 'Código de invitación',
+  'common.sign_in.invite_code_submit': 'Unirme',
+  'common.sign_in.invite_code_back': 'Volver a iniciar sesión',
   'common.terms.title': 'Términos del servicio',
   'common.terms.no_certification':
     'EZ Draft no certifica que ningún plano, cálculo o diseño cumpla con los códigos de construcción, eléctricos ni otros.',
@@ -92,6 +99,10 @@ export const es = {
   'error.email_throttled': 'Demasiados correos de acceso. Inténtalo de nuevo en una hora.',
   'error.ip_throttled':
     'Demasiados intentos de acceso desde esta red. Inténtalo de nuevo en 15 minutos.',
+  'error.invite_code_invalid':
+    'Ese correo y ese código no coinciden con una invitación abierta. Revisa ambos e inténtalo de nuevo.',
+  'error.invite_code_locked':
+    'Demasiados códigos incorrectos. Este código está bloqueado. Pide a quien te invitó que reenvíe la invitación.',
   'error.captcha_failed': 'La verificación de seguridad no se completó. Inténtalo de nuevo.',
   'error.captcha_unavailable':
     'La verificación de seguridad no se cargó. Revisa tu conexión y vuelve a cargar la página.',

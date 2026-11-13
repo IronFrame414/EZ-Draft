@@ -741,8 +741,14 @@ isOneToOne: false
               "schema_version": string,"status": string
             }[]
                            },
+"invite_code_take":
+{ Args: { "p_email": string }; Returns: Json
+                           },
 "invite_link_secret":
 { Args: { "p_membership_id": string }; Returns: Json
+                           },
+"invite_links_for_viewer":
+{ Args: { "p_membership_ids": (string)[] }; Returns: Json
                            },
 "invite_status":
 { Args: { "p_token_sha256": string }; Returns: Json

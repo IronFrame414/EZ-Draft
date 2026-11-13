@@ -779,6 +779,16 @@
   border-radius: var(--ez-radius-8);
 }
 
+/* EZD-138 (board S15j pending row): "Code 482 913" after Copy link. */
+.inviteCodeInline {
+  color: var(--ez-ink);
+}
+
+.inviteCodeDigits {
+  font-family: var(--ez-font-mono);
+  letter-spacing: 0.04em;
+}
+
 .inviteCode {
   font-family: var(--ez-font-mono);
   font-size: 22px;

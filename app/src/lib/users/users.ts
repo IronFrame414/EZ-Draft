@@ -29,7 +29,12 @@ export type UserRow = {
   lastActiveAt: string | null;
   invitedAt: string | null;
   canCopyLink: boolean;
+  // EZD-138 (Q-0216; Q-0695 decisions 10 row 61): the live invite's link and 6-digit code, for the last sender
+  // and active Owner-preset members only; null on every other row and for every other viewer.
+  invite: InviteShown | null;
 };
+
+export type InviteShown = { link: string; code: string };
 
 export type UserCounts = { active: number; invited: number; en: number; es: number };
 

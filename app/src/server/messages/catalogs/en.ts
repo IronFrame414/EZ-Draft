@@ -33,6 +33,14 @@ export const en = {
   'common.sign_in.password_submit': 'Sign in',
   'common.sign_in.send_instead': 'Email me a sign-in link instead',
   'common.sign_in.forgot': 'Forgot password? Email me a code',
+  // EZD-138 (board S15j W3-W8): the invite code on the sign-in page.
+  'common.sign_in.invite_code_open': 'Have an invite code?',
+  'common.sign_in.invite_code_title': 'Join with an invite code',
+  'common.sign_in.invite_code_intro':
+    'Use the email the invite was sent to and the 6-digit code from the invite email.',
+  'common.sign_in.invite_code_label': 'Invite code',
+  'common.sign_in.invite_code_submit': 'Join',
+  'common.sign_in.invite_code_back': 'Back to sign in',
   // EZD-105: the invite email and the /invite/<token> page (signed out, the device's language).
   'common.invite.email_subject': "You're invited to join {company} on EZ Draft",
   'common.invite.email_intro': '{company} invited you to EZ Draft. Open the link and press Accept to join.',
@@ -85,6 +93,11 @@ export const en = {
   'error.code_throttled': 'Too many wrong codes. Try again in 15 minutes.',
   'error.email_throttled': 'Too many sign-in emails. Try again in an hour.',
   'error.ip_throttled': 'Too many sign-in tries from this network. Try again in 15 minutes.',
+  // EZD-138 (board S15j W9, W10).
+  'error.invite_code_invalid':
+    "That email and code don't match an open invite. Check both and try again.",
+  'error.invite_code_locked':
+    'Too many wrong codes. This code is locked. Ask the person who invited you to resend the invite.',
   'error.captcha_failed': "The security check didn't go through. Try again.",
   'error.captcha_unavailable':
     "The security check didn't load. Check your connection and reload the page.",

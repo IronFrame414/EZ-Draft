@@ -331,7 +331,8 @@
     "EZD-107",
     "EZD-109",
     "EZD-421",
-    "EZD-105"
+    "EZD-105",
+    "EZD-129"
   ],
   "seeded_done": 324,
   "merged": [
@@ -383,21 +384,24 @@
       "commit": "90798728",
       "ts": "2026-11-13T13:23:37Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-129",
+      "title": "User project scope",
+      "commit": "195e3ff7",
+      "ts": "2026-11-13T14:03:34Z",
+      "kind": "ticket"
     }
   ],
-  "set_aside": {
-    "EZD-105b": {
-      "title": "Owner-set password",
-      "ts": "2026-11-13T09:53:26Z",
-      "reason": "review still failing after 2 fix rounds",
-      "detail": "[\n {\n  \"file\": \"supabase/migrations/20261113130000_create_owner_password_functions.sql\",\n  \"line\": 159,\n  \"problem\": \"AC-EZD-105b-4 is not met: record_member_password_set writes no event_log row (the private.write_event_log call is only a comment because event_log does not exist until EZD-109). server/users/owner-password.ts emits user.password_set after commit instead, which the plan forbids, and the plan's database tests for one row per success and rollback on a failed log write are absent.\",\n  \"fix\": \"Build EZD-109 first (already added to depends_on). Then in a new migration call private.write_event_log('user.password_set', 'membership', p_membership_id, jsonb_build_object('appUserId', v_user), p_ip) after private.end_user_sessions in record_member_password_set, remove the emit in app/src/server/users/owner-password.ts, and add the one-row and rolled-back-on-log-failure database tests (plan D3, D4).\"\n }\n]",
-      "branch": "t/EZD-105b",
-      "worktree": ".claude/worktrees/EZD-105b"
-    }
-  },
+  "set_aside": {},
   "current": null,
   "red_streak": 0,
   "push_pending": true,
   "trial_report_written": false,
-  "idle_logged": false
+  "idle_logged": false,
+  "retries": {
+    "EZD-105": 1,
+    "EZD-105b": 1,
+    "EZD-421": 1
+  }
 }

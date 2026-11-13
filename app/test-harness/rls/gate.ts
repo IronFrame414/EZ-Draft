@@ -73,6 +73,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'resend_invite', args: { p_membership_id: null, p_secret: null, p_token_sha256: null, p_ip: null } },
   { fn: 'cancel_invite', args: { p_membership_id: null, p_ip: null } },
   { fn: 'invite_link_secret', args: { p_membership_id: null } },
+  // EZD-138 (Q-0216; Q-0695 row 61): the pending rows' link and code, authenticated only. invite_code_take is
+  // service_role only (the invitee has no session yet).
+  { fn: 'invite_links_for_viewer', args: { p_membership_ids: [] } },
   // EZD-109 (vault/plans/EZD-109.md section 3): the default event sink's event_log writer, authenticated only.
   // EZD-109 also gave the seven member and role writes above their trailing p_ip.
   {

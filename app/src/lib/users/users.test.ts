@@ -151,6 +151,7 @@ const row = (
   lastActiveAt: null,
   invitedAt: null,
   canCopyLink: false,
+  invite: null,
 });
 
 describe('EZD-104 users row helpers', () => {

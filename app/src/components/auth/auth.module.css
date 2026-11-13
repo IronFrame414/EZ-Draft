@@ -156,6 +156,15 @@
   cursor: pointer;
 }
 
+/* EZD-138 (board S15j "Sign-in page · new link"): "Have an invite code?" under a rule at the foot of the card. */
+.inviteRow {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--ez-border);
+}
+
 /* EZD-1707 Step 3 (vault/plans/EZD-1707.md section 1): the terms card, 720 px so the statements read as paragraphs. */
 .termsCard {
   max-width: 720px;

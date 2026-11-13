@@ -7,6 +7,7 @@ import { isPermissionKey, ROLE_PRESETS, type PermissionKey } from '../../lib/per
 import { USER_PAGE_SIZE, type UserPage } from '../../lib/users/users';
 import type { Database } from '../db/database.types';
 import { reportError } from '../errors/report';
+import { loadInviteLinks } from './invite-links';
 
 export type UsersQuery = { q: string; page: number };
 
@@ -67,7 +68,13 @@ export async function listUsers(
   if (error) throw error;
   const parsed = listSchema.safeParse(data);
   if (!parsed.success) throw new Error('list_users_bad_result');
-  const { rows, roles, total, active, invited, en, es } = parsed.data;
+  const { roles, total, active, invited, en, es } = parsed.data;
+  // EZD-138: the pending rows' link and code, for the viewer who may see them (null otherwise).
+  const links = await loadInviteLinks(
+    client,
+    parsed.data.rows.filter((r) => r.status === 'invited').map((r) => r.membershipId),
+  );
+  const rows = parsed.data.rows.map((r) => ({ ...r, invite: links.get(r.membershipId) ?? null }));
   return {
     active,
     invited,
