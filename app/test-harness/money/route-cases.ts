@@ -303,6 +303,43 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: get('/api/settings/users'),
     expectStatus: 200,
   },
+  // EZD-107: the custom role routes. POST makes one role with a fresh name; PATCH and DELETE aim at a role id no
+  // company has, so the walk changes nothing else (404 role_not_found). No money field in any answer.
+  {
+    file: `${API}settings/roles/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/roles/route'),
+    request: get('/api/settings/roles'),
+    expectStatus: 200,
+  },
+  {
+    file: `${API}settings/roles/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/roles/route'),
+    request: async () =>
+      sendJson('POST', '/api/settings/roles', {
+        name: `Walk role ${randomUUID()}`,
+        grantedKeys: ['view_projects'],
+      })(),
+    expectStatus: 201,
+    note: 'EZD-107: a new custom role (no money)',
+  },
+  ...(['PATCH', 'DELETE'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/roles/[id]/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/roles/[id]/route'),
+    request: async () => {
+      const id = randomUUID();
+      const path = `/api/settings/roles/${id}`;
+      const made =
+        method === 'PATCH'
+          ? await sendJson('PATCH', path, { name: 'Walk', grantedKeys: [] })()
+          : { request: new Request(`${BASE}${path}`, { method: 'DELETE' }) };
+      return { ...made, params: { id } };
+    },
+    expectStatus: 404,
+    note: 'EZD-107: unknown role; 404 role_not_found (no money)',
+  })),
   // EZD-106: the member writes, aimed at a membership id no company has, so the walk changes no member; the
   // function answers 404 member_not_found (no money field in any answer).
   ...(['PATCH', 'DELETE'] as const).map((method): MoneyRouteCase => ({

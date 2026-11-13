@@ -349,8 +349,10 @@ test.describe('EZD-104 users table', () => {
     await soloSession.page.goto('/settings/users');
     await expect(soloSession.page.getByTestId('user-row')).toHaveCount(1);
     const soloMain = soloSession.page.locator('main[data-settings-page="users"]');
-    // EZD-106: the row's More (…) button is the fourth.
-    expect(await expectTouchTargets(soloSession.page, soloMain)).toBe(4);
+    // EZD-106: the row's More (…) button is the fourth. EZD-107: the Roles row adds the four preset cards
+    // and New role.
+    await expect(soloSession.page.getByTestId('role-new')).toBeVisible();
+    expect(await expectTouchTargets(soloSession.page, soloMain)).toBe(9);
   });
 
   test('B9 pager over 50 rows keeps the search', async ({ page, signInAs }) => {

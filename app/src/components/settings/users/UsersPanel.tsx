@@ -12,10 +12,21 @@
 // prompt on changing the selection (EZD-103b), the error and offline states, the selected invite's details,
 // deactivated rows and the row More (…) menu (Edit, Deactivate, Reactivate, Remove). Resend, Copy link and
 // Cancel invite have no action yet (EZD-105; Q-0226).
+// EZD-107 (S15 Roles row, Role card, New role, Save as new role; board S15k; AC-EZD-107-1, -2, -3): the Roles row
+// under the table (GET /api/settings/roles), the role panel in the inspector's place, the New role dialog, the
+// Role select's Presets / Custom roles groups and Save as new role under it. One unsaved-edits holder covers
+// whichever panel is open; after any role write the roles and the users reload.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
 import { PERMISSION_KEYS } from '../../../lib/permissions/catalog';
+import {
+  checkRoleName,
+  splitRoles,
+  takenBy,
+  type RoleDraft,
+  type RoleSummary,
+} from '../../../lib/roles/roles';
 import { initialsFor } from '../../../lib/users/initials';
 import {
   chooseRole,
@@ -50,7 +61,11 @@ import { StateButton } from '../../states/StateButton';
 import { useToast } from '../../states/ToastProvider';
 import { SettingsMain, useSettingsStatus, type SettingsStatusEntry } from '../SettingsShell';
 import { useLeaveCheck, useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
+import { NewRoleDialog, type NewRoleRequest } from './NewRoleDialog';
 import { PermissionSwitches } from './PermissionSwitches';
+import { RolePanel, type RoleNameError } from './RolePanel';
+import { RolesRow, type RolesState } from './RolesRow';
+import roleStyles from './Roles.module.css';
 import styles from './Users.module.css';
 
 export type InspectorEdit = { membershipId: string; draft: InspectorDraft };
@@ -103,6 +118,7 @@ type InspectorBodyProps = {
   saving: boolean;
   error: InspectorError | null;
   online: boolean;
+  onSaveAsNew: () => void;
 };
 
 function InviteDetails({ row }: { row: UserRow }) {
@@ -177,14 +193,36 @@ function InspectorBody(p: InspectorBodyProps) {
                 {t('office.users.no_role')}
               </option>
             ) : null}
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.id === draft.roleId && modified
-                  ? t('office.users.role_option_modified', { role: r.name })
-                  : r.name}
-              </option>
-            ))}
+            {[
+              { label: 'office.roles.group_presets' as const, list: splitRoles(roles).presets },
+              { label: 'office.roles.group_custom' as const, list: splitRoles(roles).custom },
+            ]
+              .filter((g) => g.list.length > 0)
+              .map((g) => (
+                <optgroup key={g.label} label={t(g.label)}>
+                  {g.list.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.id === draft.roleId && modified
+                        ? t('office.users.role_option_modified', { role: r.name })
+                        : r.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
           </select>
+          {/* S15 Save as new role: shown only while the person is "(modified)". */}
+          {modified ? (
+            <button
+              type="button"
+              data-testid="users-save-as-new-role"
+              disabled={locked}
+              className={`${roleStyles.saveAsNew} ${touch.target}`}
+              onClick={p.onSaveAsNew}
+            >
+              <Icon name="add" size={14} />
+              {t('office.roles.save_as_new')}
+            </button>
+          ) : null}
         </div>
         <div className={styles.field}>
           <span className={styles.label} id="users-language-label">
@@ -331,6 +369,16 @@ export function UsersPanel() {
   const [saving, setSaving] = useState(false);
   const [inspectorError, setInspectorError] = useState<InspectorError | null>(null);
   const [reload, setReload] = useState(0);
+  // EZD-107: the Roles row and the role panel.
+  const [rolesState, setRolesState] = useState<RolesState>({ kind: 'loading' });
+  const [rolesReload, setRolesReload] = useState(0);
+  const [openRoleId, setOpenRoleId] = useState<string | null>(null);
+  const [roleEdit, setRoleEdit] = useState<{ roleId: string; draft: RoleDraft } | null>(null);
+  const [roleSaving, setRoleSaving] = useState(false);
+  const [roleFailed, setRoleFailed] = useState(false);
+  const [roleNameError, setRoleNameError] = useState<RoleNameError | null>(null);
+  const [roleError, setRoleError] = useState<MessageKey | null>(null);
+  const [newRole, setNewRole] = useState<NewRoleRequest | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const online = useOnline();
   const leaveCheck = useLeaveCheck();
@@ -399,51 +447,174 @@ export function UsersPanel() {
       : saved;
   const dirty = saved !== null && current !== null && pendingEdits(saved, current) > 0;
 
-  const save = useCallback(async (): Promise<boolean> => {
-    if (selected === null || current === null || current.roleId === null) return false;
-    const id = selected.membershipId;
-    setSaving(true);
-    setInspectorError(null);
+  // `next` and `nextRole` let Save as new role save a draft that names a role made a moment ago.
+  const saveDraft = useCallback(
+    async (next: InspectorDraft | null, nextRole?: UserRole): Promise<boolean> => {
+      const current = next;
+      if (selected === null || current === null || current.roleId === null) return false;
+      const id = selected.membershipId;
+      setSaving(true);
+      setInspectorError(null);
+      try {
+        const res = await fetch(`/api/settings/users/${id}`, {
+          method: 'PATCH',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            roleId: current.roleId,
+            language: current.language,
+            grantedKeys: current.granted,
+          }),
+        });
+        if (res.status === 200) {
+          const role = nextRole ?? roles.find((r) => r.id === current.roleId) ?? selected.role;
+          const savedRow = (r: UserRow): UserRow =>
+            r.membershipId === id
+              ? { ...r, role, language: current.language, grantedKeys: current.granted }
+              : r;
+          setRows((list) => list.map(savedRow));
+          setHeldRow((held) => (held === null ? null : savedRow(held)));
+          setEdit(null);
+          setReload((n) => n + 1);
+          // The role holder counts follow (Delete is offered only at 0 holders).
+          setRolesReload((n) => n + 1);
+          return true;
+        }
+        const known = res.status === 409 ? await knownErrorOf(res) : null;
+        setInspectorError(
+          known !== null
+            ? { message: known, retry: false }
+            : { message: 'office.users.save_failed', retry: true },
+        );
+        return false;
+      } catch {
+        setInspectorError({ message: 'office.users.save_failed', retry: true });
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [selected, roles],
+  );
+  const save = useCallback(() => saveDraft(current), [saveDraft, current]);
+
+  // EZD-107: the roles list for the Roles row and the role panel (S15 Roles row; Q-0214 failed load).
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch('/api/settings/roles', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      signal: ctrl.signal,
+    })
+      .then(async (res) => {
+        if (res.status !== 200) throw new Error('roles_load_failed');
+        const data = (await res.json()) as { roles: RoleSummary[] };
+        setRolesState({ kind: 'ready', roles: data.roles });
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted) setRolesState({ kind: 'error' });
+      });
+    return () => ctrl.abort();
+  }, [rolesReload]);
+
+  const roleList = useMemo(
+    () => (rolesState.kind === 'ready' ? rolesState.roles : []),
+    [rolesState],
+  );
+  const openRole = roleList.find((r) => r.id === openRoleId) ?? null;
+  const roleSaved = useMemo<RoleDraft | null>(
+    () =>
+      openRole === null ? null : { name: openRole.name, granted: [...openRole.defaultPermissions] },
+    [openRole],
+  );
+  const roleDraft =
+    openRole !== null && roleEdit !== null && roleEdit.roleId === openRole.id
+      ? roleEdit.draft
+      : roleSaved;
+  const roleDirty =
+    openRole !== null &&
+    openRole.preset === null &&
+    roleSaved !== null &&
+    roleDraft !== null &&
+    (roleSaved.name.trim() !== roleDraft.name.trim() ||
+      roleSaved.granted.join() !== roleDraft.granted.join());
+
+  const resetRolePanel = () => {
+    setRoleEdit(null);
+    setRoleFailed(false);
+    setRoleNameError(null);
+    setRoleError(null);
+  };
+
+  const reloadAll = () => {
+    setRolesReload((n) => n + 1);
+    setReload((n) => n + 1);
+  };
+
+  const saveRole = useCallback(async (): Promise<boolean> => {
+    if (openRole === null || roleDraft === null || openRole.preset !== null) return false;
+    const problem = checkRoleName(roleDraft.name, roleList, openRole.id);
+    if (problem !== null) {
+      setRoleNameError(
+        problem === 'blank'
+          ? { kind: 'blank' }
+          : {
+              kind: 'taken',
+              name: takenBy(roleDraft.name, roleList, openRole.id) ?? roleDraft.name,
+            },
+      );
+      return false;
+    }
+    setRoleSaving(true);
+    setRoleFailed(false);
+    setRoleNameError(null);
+    setRoleError(null);
     try {
-      const res = await fetch(`/api/settings/users/${id}`, {
+      const res = await fetch(`/api/settings/roles/${openRole.id}`, {
         method: 'PATCH',
         cache: 'no-store',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          roleId: current.roleId,
-          language: current.language,
-          grantedKeys: current.granted,
-        }),
+        body: JSON.stringify({ name: roleDraft.name, grantedKeys: roleDraft.granted }),
       });
       if (res.status === 200) {
-        const role = roles.find((r) => r.id === current.roleId) ?? selected.role;
-        const savedRow = (r: UserRow): UserRow =>
-          r.membershipId === id
-            ? { ...r, role, language: current.language, grantedKeys: current.granted }
-            : r;
-        setRows((list) => list.map(savedRow));
-        setHeldRow((held) => (held === null ? null : savedRow(held)));
-        setEdit(null);
-        setReload((n) => n + 1);
+        const name = roleDraft.name.trim();
+        setRolesState((st) =>
+          st.kind === 'ready'
+            ? {
+                kind: 'ready',
+                roles: st.roles.map((r) =>
+                  r.id === openRole.id
+                    ? { ...r, name, defaultPermissions: [...roleDraft.granted] }
+                    : r,
+                ),
+              }
+            : st,
+        );
+        setRoleEdit(null);
+        reloadAll();
         return true;
       }
-      const known = res.status === 409 ? await knownErrorOf(res) : null;
-      setInspectorError(
-        known !== null
-          ? { message: known, retry: false }
-          : { message: 'office.users.save_failed', retry: true },
-      );
+      const data: unknown = await res.json().catch(() => null);
+      const code = (data as { error?: { code?: unknown } } | null)?.error?.code;
+      if (code === 'role_name_taken')
+        setRoleNameError({ kind: 'taken', name: roleDraft.name.trim() });
+      else if (code === 'role_name_required') setRoleNameError({ kind: 'blank' });
+      else if (code === 'role_not_found') setRoleError('error.role_not_found');
+      else setRoleFailed(true);
       return false;
     } catch {
-      setInspectorError({ message: 'office.users.save_failed', retry: true });
+      setRoleFailed(true);
       return false;
     } finally {
-      setSaving(false);
+      setRoleSaving(false);
     }
-  }, [selected, current, roles]);
+  }, [openRole, roleDraft, roleList]);
 
-  useUnsavedChanges(dirty, save);
+  const panelDirty = openRole !== null ? roleDirty : dirty;
+  const panelSave = openRole !== null ? saveRole : save;
+  useUnsavedChanges(panelDirty, panelSave);
   useEffect(() => {
     dirtyRef.current = dirty;
   });
@@ -468,8 +639,10 @@ export function UsersPanel() {
 
   // Changing the selection with unsaved edits asks Save, Discard or Cancel (S15 Validation; EZD-103b).
   const changeSelection = async (id: string | null): Promise<boolean> => {
-    if (id === selectedId) return true;
+    if (id === selectedId && openRoleId === null) return true;
     if (!(await leaveCheck())) return false;
+    setOpenRoleId(null);
+    resetRolePanel();
     setEdit(null);
     setInspectorError(null);
     setSelectedId(id);
@@ -510,6 +683,7 @@ export function UsersPanel() {
           setHeldRow(null);
         }
         setReload((n) => n + 1);
+        setRolesReload((n) => n + 1);
         return;
       }
       known = await knownErrorOf(res);
@@ -519,6 +693,100 @@ export function UsersPanel() {
     const message = known ?? 'office.users.action_failed';
     if (row.membershipId === selectedId) setInspectorError({ message, retry: false });
     else toast.show({ message });
+  };
+
+  // EZD-107: open a role card in the inspector's place (S15 Role card). Unsaved edits ask first.
+  const openRoleCard = async (role: RoleSummary) => {
+    if (role.id === openRoleId) return;
+    if (!(await leaveCheck())) return;
+    setEdit(null);
+    setInspectorError(null);
+    setSelectedId(null);
+    setHeldRow(null);
+    resetRolePanel();
+    setOpenRoleId(role.id);
+  };
+
+  const closeRole = async (ask: boolean) => {
+    if (ask && !(await leaveCheck())) return;
+    resetRolePanel();
+    setOpenRoleId(null);
+  };
+
+  const deleteRole = async (role: RoleSummary) => {
+    const choice = await ask({
+      title: 'office.roles.delete_title',
+      message: 'office.roles.delete_message',
+      params: { name: role.name },
+      confirmLabel: 'office.roles.delete_confirm',
+      tone: 'danger',
+    });
+    if (choice !== 'confirm') return;
+    setRoleError(null);
+    try {
+      const res = await fetch(`/api/settings/roles/${role.id}`, {
+        method: 'DELETE',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (res.status === 200) {
+        resetRolePanel();
+        setOpenRoleId(null);
+        setRolesState((st) =>
+          st.kind === 'ready'
+            ? { kind: 'ready', roles: st.roles.filter((r) => r.id !== role.id) }
+            : st,
+        );
+        reloadAll();
+        return;
+      }
+      setRoleError(res.status === 409 ? 'error.role_in_use' : 'office.roles.delete_failed');
+      if (res.status === 409) setRolesReload((n) => n + 1);
+    } catch {
+      setRoleError('office.roles.delete_failed');
+    }
+  };
+
+  // A role made in the New role dialog: listed at once; New role opens it, Save as new role assigns it to the
+  // selected person and runs their Save (S15 Save as new role).
+  const onRoleCreated = (role: RoleSummary) => {
+    const request = newRole;
+    setNewRole(null);
+    setRolesState((st) =>
+      st.kind === 'ready' ? { kind: 'ready', roles: [...st.roles, role] } : st,
+    );
+    if (request?.kind === 'from_user' && current !== null && selected !== null) {
+      const next: InspectorDraft = { ...current, roleId: role.id };
+      setEdit({ membershipId: selected.membershipId, draft: next });
+      void saveDraft(next, {
+        id: role.id,
+        name: role.name,
+        preset: null,
+        defaultPermissions: role.defaultPermissions,
+      }).then((ok) => {
+        // A successful Save reloads the roles itself, after the assignment, so the holder count includes it.
+        if (!ok) {
+          setReload((n) => n + 1);
+          setRolesReload((n) => n + 1);
+        }
+      });
+      return;
+    }
+    // The Role select's options come with the users list, so both reload.
+    reloadAll();
+    resetRolePanel();
+    setEdit(null);
+    setInspectorError(null);
+    setSelectedId(null);
+    setHeldRow(null);
+    setOpenRoleId(role.id);
+  };
+
+  // New role (Roles row, or "New role from <Role>") replaces the open panel once the role is made, so unsaved
+  // edits in either panel ask Save / Discard / Cancel first (S15 Validation; EZD-103b).
+  const openNewRole = async (startId: string | null) => {
+    if (!(await leaveCheck())) return;
+    setNewRole({ kind: 'new', startId });
   };
 
   const onTableKey = (list: UserRow[]) => (e: KeyboardEvent<HTMLTableElement>) => {
@@ -837,33 +1105,77 @@ export function UsersPanel() {
           </AsyncView>
         </div>
         <div data-testid="users-footer" className={styles.footer}>
+          <RolesRow
+            state={rolesState}
+            openId={openRoleId}
+            online={online}
+            onOpen={(r) => void openRoleCard(r)}
+            onNew={() => void openNewRole(null)}
+            onRetry={() => {
+              setRolesState({ kind: 'loading' });
+              setRolesReload((n) => n + 1);
+            }}
+          />
           <div data-testid="users-costs-note" role="note" className={styles.note}>
             <Icon name="info" size={18} />
             <span>{t('office.users.costs_note')}</span>
           </div>
         </div>
       </SettingsMain>
-      <UserInspector
-        row={selected}
-        onClose={() => void changeSelection(null)}
-        body={
-          selected !== null && saved !== null && current !== null
-            ? {
-                roles,
-                draft: current,
-                saved,
-                onDraft: (d) => {
-                  setInspectorError(null);
-                  setEdit({ membershipId: selected.membershipId, draft: d });
-                },
-                onSave: () => void save(),
-                saving,
-                error: inspectorError,
-                online,
-              }
-            : null
-        }
-      />
+      {openRole !== null && roleSaved !== null && roleDraft !== null ? (
+        <RolePanel
+          role={openRole}
+          saved={roleSaved}
+          draft={roleDraft}
+          onDraft={(d) => {
+            setRoleFailed(false);
+            setRoleNameError(null);
+            setRoleError(null);
+            setRoleEdit({ roleId: openRole.id, draft: d });
+          }}
+          onClose={() => void closeRole(true)}
+          onCancel={() => void closeRole(false)}
+          onSave={() => void saveRole()}
+          onDelete={() => void deleteRole(openRole)}
+          onNewFrom={() => void openNewRole(openRole.id)}
+          saving={roleSaving}
+          failed={roleFailed}
+          nameError={roleNameError}
+          error={roleError}
+          online={online}
+        />
+      ) : (
+        <UserInspector
+          row={selected}
+          onClose={() => void changeSelection(null)}
+          body={
+            selected !== null && saved !== null && current !== null
+              ? {
+                  roles,
+                  draft: current,
+                  saved,
+                  onDraft: (d) => {
+                    setInspectorError(null);
+                    setEdit({ membershipId: selected.membershipId, draft: d });
+                  },
+                  onSave: () => void save(),
+                  saving,
+                  error: inspectorError,
+                  online,
+                  onSaveAsNew: () => setNewRole({ kind: 'from_user', granted: current.granted }),
+                }
+              : null
+          }
+        />
+      )}
+      {newRole !== null && rolesState.kind === 'ready' ? (
+        <NewRoleDialog
+          request={newRole}
+          roles={rolesState.roles}
+          onClose={() => setNewRole(null)}
+          onCreated={onRoleCreated}
+        />
+      ) : null}
     </>
   );
 }

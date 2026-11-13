@@ -35,6 +35,11 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'deactivate_member', args: { p_membership_id: null } },
   { fn: 'reactivate_member', args: { p_membership_id: null } },
   { fn: 'remove_member', args: { p_membership_id: null } },
+  // EZD-107: the custom role reads and writes, authenticated only.
+  { fn: 'list_roles', args: {} },
+  { fn: 'create_role', args: { p_name: null, p_granted: null } },
+  { fn: 'update_role', args: { p_role_id: null, p_name: null, p_granted: null } },
+  { fn: 'delete_role', args: { p_role_id: null } },
   // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
   { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
   { fn: 'current_user_has_password', args: {} },

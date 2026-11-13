@@ -624,6 +624,9 @@ isOneToOne: false
               "project_id": string,"tenant_id": string
             }[]
                            },
+"create_role":
+{ Args: { "p_granted": (string)[],"p_name": string }; Returns: Json
+                           },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -645,6 +648,9 @@ isOneToOne: false
                            },
 "delete_my_sync_conflict":
 { Args: { "p_id": string }; Returns: boolean
+                           },
+"delete_role":
+{ Args: { "p_role_id": string }; Returns: Json
                            },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
@@ -749,6 +755,9 @@ isOneToOne: false
 "list_projects":
 { Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
+"list_roles":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "list_users":
 { Args: { "p_page": number,"p_search": string }; Returns: Json
                            },
@@ -841,6 +850,9 @@ isOneToOne: false
 { Args: { "p_ipad_input_mode": string,"p_language": string }; Returns: {
               "language_changed": boolean,"saved_ipad_input_mode": string,"saved_language": string
             }[]
+                           },
+"update_role":
+{ Args: { "p_granted": (string)[],"p_name": string,"p_role_id": string }; Returns: Json
                            },
 "update_tenant_identity":
 { Args: { "p_contact": Json,"p_license_no": string,"p_logo_path": string,"p_name": string,"p_set_logo": boolean }; Returns: {

@@ -1,0 +1,246 @@
+/* EZD-107 (board S15k): the Roles row, the role panel's extra parts and the New role dialog. Colours come
+   from tokens only; the dialog repeats the Customers dialog values (ConfirmDialog.module.css). */
+
+.roles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rolesHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.rolesTitle {
+  font-weight: 600;
+  color: var(--ez-slate-700);
+}
+
+.rolesLimit {
+  font-size: 12px;
+  color: var(--ez-slate-400);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cardOn {
+  border: 2px solid var(--ez-cobalt);
+  padding: 11px;
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cardSummary {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.newCard {
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 6px;
+  border-style: dashed;
+  color: var(--ez-cobalt);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.newCard:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.panelIcon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-canvas);
+  color: var(--ez-slate-500);
+}
+
+.rule {
+  margin: 0;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.rule svg {
+  flex: none;
+}
+
+.input {
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 9px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+.inputBad {
+  border-color: var(--ez-red);
+}
+
+.fieldError {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.cantDelete {
+  margin: 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.footRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.footSpacer {
+  flex: 1;
+}
+
+.saveAsNew {
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ez-cobalt);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Dialog: the Customers dialog values. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ez-overlay);
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 101;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-14);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-dialog);
+  color: var(--ez-ink);
+}
+
+.dialogBody {
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialogField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chipOn {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt);
+}
+
+.dialogFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--ez-border);
+}

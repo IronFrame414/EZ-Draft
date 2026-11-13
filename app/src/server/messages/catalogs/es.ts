@@ -93,6 +93,11 @@ export const es = {
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
   'error.member_not_found': 'Esta persona ya no está en esta empresa.',
+  'error.role_name_required': 'Ponle un nombre al rol.',
+  'error.role_name_taken': 'Ya existe un rol con este nombre.',
+  'error.role_not_found': 'Este rol ya no existe.',
+  'error.role_in_use': 'No se puede eliminar: hay personas con este rol. Cámbialas primero.',
+  'error.role_preset': 'Los roles predefinidos no se pueden cambiar. Para cambiar uno, crea un rol nuevo a partir de él.',
   'error.member_state':
     'Esta persona cambió desde que se cargó la página. Recarga e inténtalo de nuevo.',
   'error.last_settings_users_holder':
