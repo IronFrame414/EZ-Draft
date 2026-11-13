@@ -1,8 +1,9 @@
 // EZD-106 (vault/plans/EZD-106.md Part a; S15 Controls, More menu, Validation; Q-0695 decisions 10 rows 59, 60,
 // 62): server-only helpers for the Users page member writes. Each write is one definer function under the
-// caller's session (supabase/migrations/20261113120001_create_member_write_functions.sql); this file parses the
-// request, calls it and maps its refusals to HTTP answers. Events are emitted by the routes after the
-// function's transaction has committed.
+// caller's session (supabase/migrations/20261113140003_member_and_role_event_log.sql); this file parses the
+// request, calls it with the request IP and maps its refusals to HTTP answers. The function writes its
+// event_log row in its own transaction (EZD-109); the routes still emit the events after the commit, and the
+// event log sink skips them (`transaction` in EVENT_LOG).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
@@ -11,6 +12,7 @@ import {
   type PermissionKey,
 } from '../../lib/permissions/catalog';
 import type { Database } from '../db/database.types';
+import { requestIp } from '../events/event-log';
 
 export type SaveMemberInput = {
   roleId: string;
@@ -105,6 +107,8 @@ export async function saveMember(
     p_role_id: input.roleId,
     p_language: input.language,
     p_granted: input.grantedKeys,
+    // EZD-109: the request IP for the event_log row the function writes (null outside a request).
+    p_ip: (await requestIp()) as string,
   });
   if (error) {
     const refusal = memberRefusal(error);
@@ -126,7 +130,10 @@ export async function memberAction(
   fn: MemberAction,
   membershipId: string,
 ): Promise<{ ok: true; value: MemberActionResult } | { ok: false; refusal: MemberRefusal }> {
-  const { data, error } = await client.rpc(fn, { p_membership_id: membershipId });
+  const { data, error } = await client.rpc(fn, {
+    p_membership_id: membershipId,
+    p_ip: (await requestIp()) as string,
+  });
   if (error) {
     const refusal = memberRefusal(error);
     if (refusal) return { ok: false, refusal };

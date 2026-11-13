@@ -30,16 +30,35 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-106 (vault/plans/EZD-106.md Part a): the Users page member writes, authenticated only.
   {
     fn: 'save_member',
-    args: { p_membership_id: null, p_role_id: null, p_language: null, p_granted: null },
+    args: {
+      p_membership_id: null,
+      p_role_id: null,
+      p_language: null,
+      p_granted: null,
+      p_ip: null,
+    },
   },
-  { fn: 'deactivate_member', args: { p_membership_id: null } },
-  { fn: 'reactivate_member', args: { p_membership_id: null } },
-  { fn: 'remove_member', args: { p_membership_id: null } },
+  { fn: 'deactivate_member', args: { p_membership_id: null, p_ip: null } },
+  { fn: 'reactivate_member', args: { p_membership_id: null, p_ip: null } },
+  { fn: 'remove_member', args: { p_membership_id: null, p_ip: null } },
   // EZD-107: the custom role reads and writes, authenticated only.
   { fn: 'list_roles', args: {} },
-  { fn: 'create_role', args: { p_name: null, p_granted: null } },
-  { fn: 'update_role', args: { p_role_id: null, p_name: null, p_granted: null } },
-  { fn: 'delete_role', args: { p_role_id: null } },
+  { fn: 'create_role', args: { p_name: null, p_granted: null, p_ip: null } },
+  { fn: 'update_role', args: { p_role_id: null, p_name: null, p_granted: null, p_ip: null } },
+  { fn: 'delete_role', args: { p_role_id: null, p_ip: null } },
+  // EZD-109 (vault/plans/EZD-109.md section 3): the default event sink's event_log writer, authenticated only.
+  // EZD-109 also gave the seven member and role writes above their trailing p_ip.
+  {
+    fn: 'log_event',
+    args: {
+      p_tenant_id: null,
+      p_action: null,
+      p_object_type: null,
+      p_object_id: null,
+      p_details: null,
+      p_ip: null,
+    },
+  },
   // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
   { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
   { fn: 'current_user_has_password', args: {} },

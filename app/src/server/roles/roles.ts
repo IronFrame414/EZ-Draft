@@ -12,6 +12,7 @@ import {
   type PermissionKey,
 } from '../../lib/permissions/catalog';
 import type { Database } from '../db/database.types';
+import { requestIp } from '../events/event-log';
 
 export type RoleInput = { name: string; grantedKeys: PermissionKey[] };
 
@@ -112,6 +113,8 @@ export async function createRole(client: SupabaseClient<Database>, input: RoleIn
   const { data, error } = await client.rpc('create_role', {
     p_name: input.name,
     p_granted: input.grantedKeys,
+    // EZD-109: the request IP for the event_log row the function writes (null outside a request).
+    p_ip: (await requestIp()) as string,
   });
   return finish('create_role', data, error);
 }
@@ -121,11 +124,16 @@ export async function updateRole(client: SupabaseClient<Database>, id: string, i
     p_role_id: id,
     p_name: input.name,
     p_granted: input.grantedKeys,
+    // EZD-109: the request IP for the event_log row the function writes (null outside a request).
+    p_ip: (await requestIp()) as string,
   });
   return finish('update_role', data, error);
 }
 
 export async function deleteRole(client: SupabaseClient<Database>, id: string) {
-  const { data, error } = await client.rpc('delete_role', { p_role_id: id });
+  const { data, error } = await client.rpc('delete_role', {
+    p_role_id: id,
+    p_ip: (await requestIp()) as string,
+  });
   return finish('delete_role', data, error);
 }

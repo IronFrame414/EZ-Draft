@@ -327,7 +327,8 @@
     "EZD-400",
     "EZD-397",
     "EZD-135b",
-    "EZD-106"
+    "EZD-106",
+    "EZD-107"
   ],
   "seeded_done": 324,
   "merged": [
@@ -350,6 +351,13 @@
       "title": "User inspector",
       "commit": "7ba68fde",
       "ts": "2026-11-13T08:48:37Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-107",
+      "title": "Custom roles",
+      "commit": "895c1115",
+      "ts": "2026-11-13T11:05:12Z",
       "kind": "ticket"
     }
   ],
@@ -381,7 +389,7 @@
   },
   "current": null,
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": false,
   "idle_logged": false
 }

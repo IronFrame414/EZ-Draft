@@ -197,6 +197,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"event_log": {
+                  Row: {
+                    "action": string,"actor_app_user_id": string | null,"actor_name": string | null,"at": string,"details": NonNullable<Json>,"id": string,"ip": unknown,"object_id": string,"object_type": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_app_user_id"?: string | null,"actor_name"?: string | null,"at"?: string,"details"?: NonNullable<Json>,"id"?: string,"ip"?: unknown,"object_id": string,"object_type": string,"tenant_id": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_app_user_id"?: string | null,"actor_name"?: string | null,"at"?: string,"details"?: NonNullable<Json>,"id"?: string,"ip"?: unknown,"object_id"?: string,"object_type"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_log_actor_app_user_id_fkey"
+      columns: ["actor_app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_log_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"job": {
                   Row: {
                     "attempts": number,"created_at": string,"created_by": string | null,"error": string | null,"finished_at": string | null,"id": string,"kind": string,"lease_expires_at": string | null,"max_attempts": number,"payload": NonNullable<Json>,"progress": number,"project_id": string | null,"result": Json | null,"run_after": string,"run_id": string | null,"started_at": string | null,"state": Json | null,"status": string,"tenant_id": string,"updated_at": string
@@ -625,7 +651,7 @@ isOneToOne: false
             }[]
                            },
 "create_role":
-{ Args: { "p_granted": (string)[],"p_name": string }; Returns: Json
+{ Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string }; Returns: Json
                            },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -639,7 +665,7 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "deactivate_member":
-{ Args: { "p_membership_id": string }; Returns: Json
+{ Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
 "delete_my_ai_key":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -650,7 +676,7 @@ isOneToOne: false
 { Args: { "p_id": string }; Returns: boolean
                            },
 "delete_role":
-{ Args: { "p_role_id": string }; Returns: Json
+{ Args: { "p_ip"?: unknown,"p_role_id": string }; Returns: Json
                            },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
@@ -761,6 +787,9 @@ isOneToOne: false
 "list_users":
 { Args: { "p_page": number,"p_search": string }; Returns: Json
                            },
+"log_event":
+{ Args: { "p_action": string,"p_details": Json,"p_ip": unknown,"p_object_id": string,"p_object_type": string,"p_tenant_id": string }; Returns: undefined
+                           },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
@@ -770,7 +799,7 @@ isOneToOne: false
             }[]
                            },
 "reactivate_member":
-{ Args: { "p_membership_id": string }; Returns: Json
+{ Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
 "record_ai_usage":
 { Args: { "p_cost_usd": number,"p_model": string }; Returns: undefined
@@ -790,13 +819,13 @@ isOneToOne: false
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            },
 "remove_member":
-{ Args: { "p_membership_id": string }; Returns: Json
+{ Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
                            },
 "save_member":
-{ Args: { "p_granted": (string)[],"p_language": string,"p_membership_id": string,"p_role_id": string }; Returns: Json
+{ Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_language": string,"p_membership_id": string,"p_role_id": string }; Returns: Json
                            },
 "save_my_ai_key":
 { Args: { "p_app_user_id": string,"p_ciphertext": string,"p_last4": string,"p_secret_version": number,"p_tenant_id": string }; Returns: undefined
@@ -852,7 +881,7 @@ isOneToOne: false
             }[]
                            },
 "update_role":
-{ Args: { "p_granted": (string)[],"p_name": string,"p_role_id": string }; Returns: Json
+{ Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string,"p_role_id": string }; Returns: Json
                            },
 "update_tenant_identity":
 { Args: { "p_contact": Json,"p_license_no": string,"p_logo_path": string,"p_name": string,"p_set_logo": boolean }; Returns: {
