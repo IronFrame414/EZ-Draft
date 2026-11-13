@@ -9,11 +9,14 @@
 // EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
 // EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its outline with both
 // diagonals, a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
+// EZD-226 Build (AC-EZD-226-1): a tile shower draws through fixtures/tile-shower-drawing.ts, with the fixtures.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
 import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
+import { tileShowerItems } from '../fixtures/tile-shower-drawing';
+import type { TileShowerObject } from '../fixtures/tile-shower';
 import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
 import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
@@ -323,6 +326,10 @@ export function buildDrawingList(
 
   const fixtureItems: DrawingItem[] = [];
   for (const o of onFloor) {
+    if (o.type === 'tile_shower') {
+      fixtureItems.push(...tileShowerItems(o as TileShowerObject));
+      continue;
+    }
     if (o.type !== 'fixture' && o.type !== 'utility_point') continue;
     const base = { layer: o.data.status, objectId: o.id };
     const line = (from: Point, to: Point): DrawingItem => ({

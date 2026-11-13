@@ -2,8 +2,11 @@
 // EZD-234): what the Fixtures panel has chosen and the one change a click places. A fixture takes the panel's width,
 // depth and facing; a utility point links to the appliance whose outline holds the click, if any. Both take the
 // status new objects take today (EZD-214 brings the view's status). Pure.
+// EZD-226 Build (AC-EZD-226-1, -2; vault/build/assumptions.md EZD-226): a custom tile shower is a third choice; it
+// places a `tile_shower` centred on the click.
 import {
   CURRENT_SCHEMA_VERSION,
+  DEFAULT_PAN_SLOPE_IN_PER_FT,
   parseStoredObject,
   type FixtureKind,
   type ModelObject,
@@ -16,13 +19,50 @@ import {
   FIXTURE_DEFAULT_SIZES,
   fixtureAt,
   newFixtureData,
+  newTileShowerData,
   newUtilityPointData,
   type FixtureFacing,
 } from './fixture-geometry';
 
 export type FixtureChoice =
   | { type: 'fixture'; kind: FixtureKind; width: number; depth: number; facing: FixtureFacing }
-  | { type: 'utility'; kind: UtilityKind; volts: 120 | 240; amps: number };
+  | { type: 'utility'; kind: UtilityKind; volts: 120 | 240; amps: number }
+  | {
+      type: 'tile_shower';
+      width: number;
+      depth: number;
+      facing: FixtureFacing;
+      curb: { height: number; width: number } | null;
+      nicheCount: number;
+      niche: { width: number; height: number; bottomHeight: number };
+      bench: { width: number; depth: number; height: number } | null;
+      glass: { type: 'fixed' | 'door'; length: number; swing: 'in' | 'out' } | null;
+      drain: 'center' | 'linear';
+      panSlope: number;
+    };
+
+// Starting sizes when a bench or glass is turned on in the panel (vault/build/assumptions.md EZD-226).
+export const SHOWER_BENCH_START = { width: 24, depth: 15, height: 18 } as const;
+export const SHOWER_GLASS_LENGTH_START = 30;
+
+// A tile shower starts 60" x 36" (09q Tile shower row 1) with a 4" x 4" curb, no niches (12" x 24", 48" up when
+// added), no bench, no glass, a center drain and the P-045 default pan slope, facing down
+// (vault/build/assumptions.md EZD-226).
+export function tileShowerChoice(): FixtureChoice {
+  return {
+    type: 'tile_shower',
+    width: 60,
+    depth: 36,
+    facing: 'down',
+    curb: { height: 4, width: 4 },
+    nicheCount: 0,
+    niche: { width: 12, height: 24, bottomHeight: 48 },
+    bench: null,
+    glass: null,
+    drain: 'center',
+    panSlope: DEFAULT_PAN_SLOPE_IN_PER_FT,
+  };
+}
 
 // The status new objects take until the Existing / Proposed switch (EZD-214) exists, as the wall tool does.
 export const NEW_OBJECT_STATUS: ObjectStatus = 'existing';
@@ -47,27 +87,48 @@ export function placeFixture(
   ctx: { level: string; objects: readonly ModelObject[]; newId: () => string },
 ): Change | null {
   const id = ctx.newId();
-  const type = choice.type === 'fixture' ? 'fixture' : 'utility_point';
-  const data =
+  const type =
     choice.type === 'fixture'
-      ? newFixtureData({
-          kind: choice.kind,
+      ? 'fixture'
+      : choice.type === 'tile_shower'
+        ? 'tile_shower'
+        : 'utility_point';
+  const data =
+    choice.type === 'tile_shower'
+      ? newTileShowerData({
           center: at,
           facing: choice.facing,
           width: choice.width,
           depth: choice.depth,
+          curb: choice.curb,
+          nicheCount: choice.nicheCount,
+          niche: choice.niche,
+          bench: choice.bench,
+          glass: choice.glass,
+          drain: choice.drain,
+          panSlope: choice.panSlope,
           status: NEW_OBJECT_STATUS,
           level: ctx.level,
         })
-      : newUtilityPointData({
-          kind: choice.kind,
-          point: at,
-          status: NEW_OBJECT_STATUS,
-          level: ctx.level,
-          volts: choice.volts,
-          amps: choice.amps,
-          servesObjectId: fixtureAt(ctx.objects, at, ctx.level)?.id ?? null,
-        });
+      : choice.type === 'fixture'
+        ? newFixtureData({
+            kind: choice.kind,
+            center: at,
+            facing: choice.facing,
+            width: choice.width,
+            depth: choice.depth,
+            status: NEW_OBJECT_STATUS,
+            level: ctx.level,
+          })
+        : newUtilityPointData({
+            kind: choice.kind,
+            point: at,
+            status: NEW_OBJECT_STATUS,
+            level: ctx.level,
+            volts: choice.volts,
+            amps: choice.amps,
+            servesObjectId: fixtureAt(ctx.objects, at, ctx.level)?.id ?? null,
+          });
   const parsed = parseStoredObject({ id, type, schema_version: CURRENT_SCHEMA_VERSION, data });
   if (!parsed.ok) return null;
   return {

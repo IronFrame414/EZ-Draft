@@ -333,7 +333,8 @@
     "EZD-421",
     "EZD-105",
     "EZD-129",
-    "EZD-138"
+    "EZD-138",
+    "EZD-234"
   ],
   "seeded_done": 324,
   "merged": [
@@ -399,12 +400,19 @@
       "commit": "911b08ee",
       "ts": "2026-11-13T14:51:43Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-234",
+      "title": "Fixtures tool and utility points",
+      "commit": "383f7a39",
+      "ts": "2026-11-13T17:34:54Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
   "current": null,
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": false,
   "idle_logged": false,
   "retries": {

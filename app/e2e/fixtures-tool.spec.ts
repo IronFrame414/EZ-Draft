@@ -104,7 +104,7 @@ test.describe('EZD-234 Fixtures tool', () => {
     );
     const panel = id(page, 'fixtures-panel');
     await expect(panel).toBeVisible();
-    await expect(panel.getByRole('button')).toHaveCount(18);
+    await expect(panel.getByRole('button')).toHaveCount(19); // EZD-226: plus Tile shower
     await expect(panel).not.toContainText(/saved/i);
 
     await panel.getByRole('button', { name: 'Range' }).click();

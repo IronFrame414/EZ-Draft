@@ -8,6 +8,7 @@ import { wallFaceLines, type WallObject } from '../walls/wall';
 import type { OpeningObject } from '../openings/opening';
 import { utilityMark } from '../drawing/build';
 import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
+import type { TileShowerObject } from '../fixtures/tile-shower';
 
 export type PickShape =
   | { kind: 'quad'; points: readonly [Point, Point, Point, Point]; area: number }
@@ -177,6 +178,13 @@ export function shapeTouchesRect(shape: PickShape, rect: Rect): boolean {
 // the diamond it draws.
 export function fixturePickShape(o: FixtureObject): PickShape {
   const points = fixtureOutline(o.data);
+  return { kind: 'quad', points, area: shoelace(points) };
+}
+
+// EZD-226 Build: a tile shower picks by its footprint.
+export function tileShowerPickShape(o: TileShowerObject): PickShape {
+  const [a, b, c, d] = o.data.geometry.footprint as [Point, Point, Point, Point];
+  const points: [Point, Point, Point, Point] = [{ ...a }, { ...b }, { ...c }, { ...d }];
   return { kind: 'quad', points, area: shoelace(points) };
 }
 

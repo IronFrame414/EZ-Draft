@@ -2,6 +2,7 @@
 // the walls and openings a click or a box can select on the open floor, on the EZD-206 spatial index (one query per
 // pick, never a scan), kept current per changed object and per opening hosted on a changed wall.
 // EZD-234 Build (S03 Fixtures, Select): fixtures and utility points pick too, each by its own shape.
+// EZD-226 Build: tile showers pick by their footprint.
 import {
   createSpatialIndex,
   fixturePickShape,
@@ -11,6 +12,7 @@ import {
   shapeDistance,
   shapeInRect,
   shapeTouchesRect,
+  tileShowerPickShape,
   utilityPointPickShape,
   wallPickShape,
   type FixtureObject,
@@ -20,6 +22,7 @@ import {
   type Point,
   type Rect,
   type SpatialIndex,
+  type TileShowerObject,
   type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
@@ -73,7 +76,7 @@ export function createPickIndex(): PickIndex {
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
   let openings = new Map<string, OpeningObject>();
-  let loose = new Map<string, FixtureObject | UtilityPointObject>();
+  let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
 
@@ -93,7 +96,12 @@ export function createPickIndex(): PickIndex {
     walls.delete(key);
     loose.delete(key);
     dropOpening(key);
-    if (object !== null && (object.type === 'fixture' || object.type === 'utility_point')) {
+    if (
+      object !== null &&
+      (object.type === 'fixture' ||
+        object.type === 'utility_point' ||
+        object.type === 'tile_shower')
+    ) {
       loose.set(key, object);
     } else if (object !== null && object.type === 'wall') {
       walls.set(key, object);
@@ -120,7 +128,12 @@ export function createPickIndex(): PickIndex {
     }
     const free = loose.get(key);
     if (free !== undefined) {
-      const shape = free.type === 'fixture' ? fixturePickShape(free) : utilityPointPickShape(free);
+      const shape =
+        free.type === 'fixture'
+          ? fixturePickShape(free)
+          : free.type === 'tile_shower'
+            ? tileShowerPickShape(free)
+            : utilityPointPickShape(free);
       return { id: free.id, shape, hosted: false };
     }
     const opening = openings.get(key);

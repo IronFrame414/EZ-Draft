@@ -18,6 +18,7 @@ import {
   type ModelObject,
   type NumberHighs,
   type OpeningObject,
+  type TileShowerObject,
   type RoomObject,
   type RoomReconcile,
   type UtilityPointObject,
@@ -89,14 +90,17 @@ export function openingsOn(objects: Objects, level: string): OpeningObject[] {
   return out;
 }
 
-export type LooseObject = FixtureObject | UtilityPointObject;
+export type LooseObject = FixtureObject | UtilityPointObject | TileShowerObject;
 
-// EZD-234: the fixtures and utility points of a level.
+const LOOSE_TYPES: ReadonlySet<string> = new Set(['fixture', 'utility_point', 'tile_shower']);
+const isLooseObject = (o: ModelObject): o is LooseObject => LOOSE_TYPES.has(o.type);
+
+// EZD-234: the fixtures and utility points of a level. EZD-226: and its tile showers.
 export function looseOn(objects: Objects, level: string): LooseObject[] {
   const lvl = level.toLowerCase();
   const out: LooseObject[] = [];
   for (const [id, v] of objects) {
-    if (v.type !== 'fixture' && v.type !== 'utility_point') continue;
+    if (!LOOSE_TYPES.has(v.type)) continue;
     if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
     const r = parseStoredObject({
       id,
@@ -104,8 +108,7 @@ export function looseOn(objects: Objects, level: string): LooseObject[] {
       schema_version: v.schemaVersion,
       data: v.data,
     });
-    if (r.ok && (r.object.type === 'fixture' || r.object.type === 'utility_point'))
-      out.push(r.object);
+    if (r.ok && isLooseObject(r.object)) out.push(r.object);
   }
   return out;
 }
@@ -187,9 +190,7 @@ export function moveEditChanges(
   highs: NumberHighs,
 ): Change[] {
   if (changed.length === 0) return [];
-  const loose = changed
-    .filter((o): o is LooseObject => o.type === 'fixture' || o.type === 'utility_point')
-    .map(looseChange);
+  const loose = changed.filter(isLooseObject).map(looseChange);
   return [...wallAndOpeningMoves(objects, level, changed, newId, highs), ...loose];
 }
 

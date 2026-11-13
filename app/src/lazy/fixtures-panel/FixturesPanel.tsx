@@ -4,6 +4,10 @@
 // appliance shows which utilities must move"; AC-EZD-234-1, -2; mockup S03Plan left card): the Fixtures panel over
 // the canvas's left edge while the tool is on, and the utilities-to-move card after a move. Boards wait for Josh
 // (Q-0705), so both follow the inspector's card style.
+// EZD-226 Build (S03 Fixtures "custom tile showers with curb, niche, bench, glass, pan slope and drain type"; AC-EZD-226-1,
+// -2; vault/build/assumptions.md EZD-226): a Custom tile showers section with its size, front, curb, niches (count and
+// size), bench, glass (fixed panel or door with swing), drain and pan slope. Curb, niches, bench and glass are
+// optional.
 import { useState } from 'react';
 import {
   FIXTURE_KINDS,
@@ -18,7 +22,14 @@ import type { MessageKey } from '../../server/messages/catalog';
 import touch from '../../styles/touch.module.css';
 import type { UtilitiesMoved } from '../../editor/tools/drawing-controller';
 import { FIXTURE_FACINGS, type FixtureFacing } from '../../editor/tools/fixture-geometry';
-import { fixtureChoice, utilityChoice, type FixtureChoice } from '../../editor/tools/fixture-tool';
+import {
+  fixtureChoice,
+  SHOWER_BENCH_START,
+  SHOWER_GLASS_LENGTH_START,
+  tileShowerChoice,
+  utilityChoice,
+  type FixtureChoice,
+} from '../../editor/tools/fixture-tool';
 import styles from './FixturesPanel.module.css';
 
 export type FixturesPanelProps = {
@@ -39,11 +50,11 @@ function LengthBox({
   testId,
 }: {
   label: string;
-  value: number;
+  value: number | null;
   onValue: (inches: number | null) => void;
   testId: string;
 }) {
-  const [text, setText] = useState(() => formatLength(value, 16));
+  const [text, setText] = useState(() => (value === null ? '' : formatLength(value, 16)));
   return (
     <label className={styles.field}>
       <span className={styles.label}>{label}</span>
@@ -110,7 +121,23 @@ export function FixturesPanel({ choice, onChoose }: FixturesPanelProps) {
           })}
         </div>
       </div>
-      {choice.type === 'fixture' ? (
+      <div className={styles.section}>
+        <h3 className={styles.title}>{t('office.fixtures.section_showers')}</h3>
+        <div className={styles.kinds}>
+          <button
+            type="button"
+            className={`${styles.kind} ${touch.hitArea}`}
+            aria-pressed={choice.type === 'tile_shower'}
+            data-testid="fixture-kind-tile_shower"
+            onClick={() => onChoose(tileShowerChoice())}
+          >
+            {t('office.fixtures.tile_shower')}
+          </button>
+        </div>
+      </div>
+      {choice.type === 'tile_shower' ? (
+        <TileShowerFields choice={choice} onChoose={onChoose} />
+      ) : choice.type === 'fixture' ? (
         <div className={styles.section}>
           <div className={styles.row}>
             <LengthBox
@@ -183,6 +210,228 @@ export function FixturesPanel({ choice, onChoose }: FixturesPanelProps) {
       ) : null}
       <p className={styles.hint}>{t('office.fixtures.hint')}</p>
     </section>
+  );
+}
+
+type TileShowerChoice = Extract<FixtureChoice, { type: 'tile_shower' }>;
+
+// A size typed as 0, a negative or text reads as 0, which placing refuses (AC-EZD-226-2). An empty curb height is a
+// curbless shower.
+function TileShowerFields({
+  choice,
+  onChoose,
+}: {
+  choice: TileShowerChoice;
+  onChoose: (choice: FixtureChoice) => void;
+}) {
+  const t = useT();
+  const [curbWidth, setCurbWidth] = useState(choice.curb?.width ?? 4);
+  return (
+    <div className={styles.section} data-testid="tile-shower-fields">
+      <div className={styles.row}>
+        <LengthBox
+          label={t('office.fixtures.width')}
+          value={choice.width}
+          testId="shower-width"
+          onValue={(w) => onChoose({ ...choice, width: w ?? 0 })}
+        />
+        <LengthBox
+          label={t('office.fixtures.depth')}
+          value={choice.depth}
+          testId="shower-depth"
+          onValue={(d) => onChoose({ ...choice, depth: d ?? 0 })}
+        />
+      </div>
+      <label className={styles.field}>
+        <span className={styles.label}>{t('office.fixtures.facing')}</span>
+        <select
+          className={styles.input}
+          data-testid="shower-facing"
+          value={choice.facing}
+          onChange={(e) => onChoose({ ...choice, facing: e.target.value as FixtureFacing })}
+        >
+          {FIXTURE_FACINGS.map((f) => (
+            <option key={f} value={f}>
+              {t(facingKey(f))}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className={styles.row}>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('office.fixtures.curb_height')}</span>
+          <input
+            className={styles.input}
+            data-testid="shower-curb-height"
+            defaultValue={choice.curb === null ? '' : formatLength(choice.curb.height, 16)}
+            onChange={(e) => {
+              const text = e.target.value.trim();
+              if (text === '') return onChoose({ ...choice, curb: null });
+              const r = parseLength(text, 'positive');
+              onChoose({ ...choice, curb: { height: r.ok ? r.inches : 0, width: curbWidth } });
+            }}
+          />
+        </label>
+        <LengthBox
+          label={t('office.fixtures.curb_width')}
+          value={curbWidth}
+          testId="shower-curb-width"
+          onValue={(w) => {
+            setCurbWidth(w ?? 0);
+            if (choice.curb !== null)
+              onChoose({ ...choice, curb: { ...choice.curb, width: w ?? 0 } });
+          }}
+        />
+      </div>
+      <p className={styles.hint}>{t('office.fixtures.curb_hint')}</p>
+      <div className={styles.row}>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('office.fixtures.niches')}</span>
+          <select
+            className={styles.input}
+            data-testid="shower-niches"
+            value={choice.nicheCount}
+            onChange={(e) => onChoose({ ...choice, nicheCount: Number(e.target.value) })}
+          >
+            {[0, 1, 2].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('office.fixtures.drain')}</span>
+          <select
+            className={styles.input}
+            data-testid="shower-drain"
+            value={choice.drain}
+            onChange={(e) =>
+              onChoose({ ...choice, drain: e.target.value as TileShowerChoice['drain'] })
+            }
+          >
+            <option value="center">{t('office.fixtures.drain.center')}</option>
+            <option value="linear">{t('office.fixtures.drain.linear')}</option>
+          </select>
+        </label>
+      </div>
+      {choice.nicheCount > 0 ? (
+        <div className={styles.row}>
+          <LengthBox
+            label={t('office.fixtures.niche_width')}
+            value={choice.niche.width}
+            testId="shower-niche-width"
+            onValue={(v) => onChoose({ ...choice, niche: { ...choice.niche, width: v ?? 0 } })}
+          />
+          <LengthBox
+            label={t('office.fixtures.niche_height')}
+            value={choice.niche.height}
+            testId="shower-niche-height"
+            onValue={(v) => onChoose({ ...choice, niche: { ...choice.niche, height: v ?? 0 } })}
+          />
+          <LengthBox
+            label={t('office.fixtures.niche_bottom')}
+            value={choice.niche.bottomHeight}
+            testId="shower-niche-bottom"
+            onValue={(v) =>
+              onChoose({ ...choice, niche: { ...choice.niche, bottomHeight: v ?? -1 } })
+            }
+          />
+        </div>
+      ) : null}
+      <label className={styles.field}>
+        <span className={styles.label}>{t('office.fixtures.bench')}</span>
+        <select
+          className={styles.input}
+          data-testid="shower-bench"
+          value={choice.bench === null ? 'none' : 'bench'}
+          onChange={(e) =>
+            onChoose({
+              ...choice,
+              bench: e.target.value === 'none' ? null : { ...SHOWER_BENCH_START },
+            })
+          }
+        >
+          <option value="none">{t('office.fixtures.none')}</option>
+          <option value="bench">{t('office.fixtures.bench')}</option>
+        </select>
+      </label>
+      {choice.bench !== null ? (
+        <div className={styles.row}>
+          {(['width', 'depth', 'height'] as const).map((k) => (
+            <LengthBox
+              key={k}
+              label={t(`office.fixtures.${k}` as MessageKey)}
+              value={choice.bench![k]}
+              testId={`shower-bench-${k}`}
+              onValue={(v) => onChoose({ ...choice, bench: { ...choice.bench!, [k]: v ?? 0 } })}
+            />
+          ))}
+        </div>
+      ) : null}
+      <div className={styles.row}>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('office.fixtures.glass')}</span>
+          <select
+            className={styles.input}
+            data-testid="shower-glass"
+            value={choice.glass === null ? 'none' : choice.glass.type}
+            onChange={(e) => {
+              const v = e.target.value;
+              onChoose({
+                ...choice,
+                glass:
+                  v === 'none'
+                    ? null
+                    : {
+                        type: v as 'fixed' | 'door',
+                        length: choice.glass?.length ?? SHOWER_GLASS_LENGTH_START,
+                        swing: choice.glass?.swing ?? 'out',
+                      },
+              });
+            }}
+          >
+            <option value="none">{t('office.fixtures.none')}</option>
+            <option value="fixed">{t('office.fixtures.glass.fixed')}</option>
+            <option value="door">{t('office.fixtures.glass.door')}</option>
+          </select>
+        </label>
+        {choice.glass !== null ? (
+          <LengthBox
+            key={`g-${choice.glass.type}`}
+            label={t('office.fixtures.glass_length')}
+            value={choice.glass.length}
+            testId="shower-glass-length"
+            onValue={(v) => onChoose({ ...choice, glass: { ...choice.glass!, length: v ?? 0 } })}
+          />
+        ) : null}
+        {choice.glass?.type === 'door' ? (
+          <label className={styles.field}>
+            <span className={styles.label}>{t('office.fixtures.swing')}</span>
+            <select
+              className={styles.input}
+              data-testid="shower-glass-swing"
+              value={choice.glass.swing}
+              onChange={(e) =>
+                onChoose({
+                  ...choice,
+                  glass: { ...choice.glass!, swing: e.target.value as 'in' | 'out' },
+                })
+              }
+            >
+              <option value="out">{t('office.fixtures.swing.out')}</option>
+              <option value="in">{t('office.fixtures.swing.in')}</option>
+            </select>
+          </label>
+        ) : null}
+      </div>
+      <LengthBox
+        label={t('office.fixtures.pan_slope')}
+        value={choice.panSlope}
+        testId="shower-pan-slope"
+        onValue={(s) => onChoose({ ...choice, panSlope: s ?? 0 })}
+      />
+    </div>
   );
 }
 

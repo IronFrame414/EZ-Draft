@@ -5,6 +5,7 @@ import {
   openingHostUpdates,
   fixturePickShape,
   openingPickShape,
+  tileShowerPickShape,
   utilityPointPickShape,
   pointsEqual,
   slideOpening,
@@ -215,6 +216,7 @@ export function previewShapes(
     if (o.type === 'wall') shape = wallPickShape(o);
     else if (o.type === 'fixture') shape = fixturePickShape(o);
     else if (o.type === 'utility_point') shape = utilityPointPickShape(o);
+    else if (o.type === 'tile_shower') shape = tileShowerPickShape(o);
     else if (o.type === 'opening') {
       const placed =
         openingHostUpdates({ level, walls: afterWalls, previousWalls, openings: [o] })[0] ?? o;

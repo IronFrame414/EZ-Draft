@@ -13,6 +13,7 @@ import {
   type ModelObject,
   type ObjectStatus,
   type Point,
+  type TileShowerData,
   type UtilityKind,
   type UtilityPointData,
   type UtilityPointObject,
@@ -70,6 +71,69 @@ export function newFixtureData(input: {
     status: input.status,
     level: input.level,
     attributes: { kind: input.kind, width: input.width, depth: input.depth },
+  };
+}
+
+// EZD-226 Build (Q-0704; AC-EZD-226-1, -2; vault/build/assumptions.md EZD-226): a new tile shower centred on the
+// click. Its front (side 0, footprint[0] to footprint[1]) faces `facing`, as a fixture's front does, so the frame's
+// y runs from the front to the back. The curb and the glass piece are along the front; niches, all one size, go the
+// first on the back wall (side 2) and the second on the right wall (side 1); a linear drain runs the full length of
+// the back wall when the shower is at least as wide as deep, otherwise of the right wall; a center drain sits at the
+// middle.
+const NICHE_SIDES = [2, 1] as const;
+
+export function newTileShowerData(input: {
+  center: Point;
+  facing: FixtureFacing;
+  width: number;
+  depth: number;
+  curb: { height: number; width: number } | null;
+  nicheCount: number;
+  niche: { width: number; height: number; bottomHeight: number };
+  bench: { width: number; depth: number; height: number } | null;
+  glass: { type: 'fixed' | 'door'; length: number; swing: 'in' | 'out' } | null;
+  drain: 'center' | 'linear';
+  panSlope: number;
+  status: ObjectStatus;
+  level: string;
+}): TileShowerData {
+  const a = facingAxis(input.facing);
+  const n = { x: -a.y, y: a.x };
+  const c = input.center;
+  const hw = input.width / 2;
+  const hd = input.depth / 2;
+  const at = (u: number, v: number): Point => ({
+    x: c.x + a.x * u + n.x * v,
+    y: c.y + a.y * u + n.y * v,
+  });
+  const longBack = input.width >= input.depth;
+  return {
+    geometry: { footprint: [at(-hw, -hd), at(hw, -hd), at(hw, hd), at(-hw, hd)] },
+    status: input.status,
+    level: input.level,
+    attributes: {
+      curb: input.curb === null ? null : { height: input.curb.height, width: input.curb.width },
+      niches: NICHE_SIDES.slice(0, Math.max(0, Math.min(2, input.nicheCount))).map((side) => ({
+        width: input.niche.width,
+        height: input.niche.height,
+        bottomHeight: input.niche.bottomHeight,
+        side,
+      })),
+      bench: input.bench === null ? null : { ...input.bench },
+      glass:
+        input.glass === null
+          ? []
+          : input.glass.type === 'door'
+            ? [{ type: 'door', length: input.glass.length, side: 0, swing: input.glass.swing }]
+            : [{ type: 'fixed', length: input.glass.length, side: 0 }],
+      panSlope: input.panSlope,
+      drain:
+        input.drain === 'center'
+          ? { type: 'center', at: { x: hw, y: hd } }
+          : longBack
+            ? { type: 'linear', side: 2, offset: 0, length: input.width }
+            : { type: 'linear', side: 1, offset: 0, length: input.depth },
+    },
   };
 }
 

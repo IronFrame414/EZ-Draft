@@ -4,7 +4,10 @@
 // slides along its wall. Reads and returns only changed wall and opening objects; never mutates its input.
 // EZD-234 Build (S03 Move, Fixtures; 09e:7): selected fixtures and utility points move by the delta; a fixture's
 // utility points stay put unless they are selected too.
+// EZD-226 Build (AC-EZD-226-3): a selected tile shower moves its footprint; its drain, niches and glass are in its
+// own frame, so they move with it.
 import type { FixtureObject, UtilityPointObject } from '../fixtures/fixtures';
+import { moveTileShower, type TileShowerObject } from '../fixtures/tile-shower';
 import type { OpeningObject } from '../openings/opening';
 import type { ModelObject, Point } from '../schema';
 import { COMPARISON_TOLERANCE_IN, pointsEqual } from '../tolerance';
@@ -26,12 +29,15 @@ const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
 const isOpening = (o: ModelObject): o is OpeningObject => o.type === 'opening';
 
-const isLoose = (o: ModelObject): o is FixtureObject | UtilityPointObject =>
-  o.type === 'fixture' || o.type === 'utility_point';
+type Loose = FixtureObject | UtilityPointObject | TileShowerObject;
+
+const isLoose = (o: ModelObject): o is Loose =>
+  o.type === 'fixture' || o.type === 'utility_point' || o.type === 'tile_shower';
 
 const shift = (p: Point, d: Point): Point => ({ x: p.x + d.x, y: p.y + d.y });
 
-function moveLoose(o: FixtureObject | UtilityPointObject, d: Point): ModelObject {
+function moveLoose(o: Loose, d: Point): ModelObject {
+  if (o.type === 'tile_shower') return moveTileShower(o, d);
   if (o.type === 'fixture')
     return {
       ...o,
@@ -110,8 +116,6 @@ export function moveSelection(
     });
   }
   // (7) Walls first, then openings, then fixtures and utility points, each in model order.
-  const loose = objects.filter((o) => isLoose(o) && looseIds.has(lower(o.id))) as (
-    FixtureObject | UtilityPointObject
-  )[];
+  const loose = objects.filter((o) => isLoose(o) && looseIds.has(lower(o.id))) as Loose[];
   return { ok: true, changed: [...walls, ...openings, ...loose.map((o) => moveLoose(o, delta))] };
 }

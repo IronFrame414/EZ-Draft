@@ -43,7 +43,13 @@ const wallsIn = (models: readonly ModelObject[]): WallObject[] =>
   models.filter((o): o is WallObject => o.type === 'wall');
 
 const COPY_TYPES: ReadonlySet<string> = new Set(['wall', 'opening']);
-const DELETE_TYPES: ReadonlySet<string> = new Set(['wall', 'opening', 'fixture', 'utility_point']);
+const DELETE_TYPES: ReadonlySet<string> = new Set([
+  'wall',
+  'opening',
+  'fixture',
+  'utility_point',
+  'tile_shower', // EZD-226
+]);
 
 export function copyItems(objects: Objects, level: string, ids: readonly string[]): ClipItem[] {
   return itemsOf(objects, level, ids, COPY_TYPES);
