@@ -6,6 +6,7 @@
 // EZD-212b (vault/plans/EZD-212b.md D9): the dashed Move preview path.
 // EZD-212c (vault/plans/EZD-212c.md D8): resize handles, wall chip leaders and ticks, chips and the size chip.
 // EZD-223 (S03 Sketch): the page's sketch strokes and the stroke being drawn, as one path.
+// EZD-231 (04 Tool rail Measure): the measure is the band; its distance chip sits 16 px above the band's middle.
 import {
   doorSymbol,
   formatChipDistance,
@@ -401,6 +402,7 @@ export function createToolOverlay(
     preview?: OverlayElement;
     selection?: SelectionElements;
     sketch?: OverlayElement;
+    measure?: ChipElements;
   },
   toScreen: (p: Point) => Point,
 ): { draw(frame: DrawingFrame | null): void } {
@@ -415,6 +417,16 @@ export function createToolOverlay(
           els.sketch.setAttribute('d', d);
           els.sketch.removeAttribute('display');
         }
+      }
+      if (els.measure !== undefined) {
+        const m = frame?.measure;
+        let place: ChipPlace | null = null;
+        if (m && frame.from !== null && frame.to !== null) {
+          const a = toScreen(frame.from);
+          const b = toScreen(frame.to);
+          place = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 16, text: m };
+        }
+        showChip(els.measure, place);
       }
       if (els.preview !== undefined) {
         const d = previewPath(frame?.preview ?? [], toScreen);

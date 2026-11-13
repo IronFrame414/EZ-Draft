@@ -19,6 +19,10 @@
 // EZD-223 (S03 Sketch; S15d iPad input mode; Q-0392; AC-EZD-223-1 to -4): the Sketch tool (S) draws freehand strokes
 // that clean up on lift (`reduceSketch`); the strokes are kept on this page's markup layer and sent in every frame.
 // Under Pencil only (`ipadDrawing`) a touch never draws. No snapping: a sketch is freehand.
+// EZD-231 (04 Tool rail Measure; S06 Measure "Allowed in view only"; Q-0697; AC-EZD-231-1 to -3): the Measure tool
+// (Shift+L) measures between two snapped points (`reduceMeasure`) and never changes the model. It is the one tool a
+// viewer without Edit model can turn on: `enabled` still means "can edit", and only the receiver, the pointer,
+// `selectTool('measure' | null)` and the Shift+L and Esc keys let Measure through.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -124,6 +128,13 @@ import {
 import { fixturesModule } from './fixtures-module';
 import { sketchModule } from './sketch-module';
 import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
+import {
+  initialMeasureState,
+  measureText,
+  reduceMeasure,
+  type MeasureInput,
+  type MeasureState,
+} from './measure-tool';
 
 export type DrawingFrame = {
   rect: boolean;
@@ -137,6 +148,8 @@ export type DrawingFrame = {
   preview?: readonly PickShape[];
   selection?: SelectionFrame | null;
   sketch?: SketchFrame;
+  // EZD-231: the distance between `from` and `to` while measuring.
+  measure?: string;
 };
 
 // EZD-223: the page's sketch strokes and the stroke being drawn, in model inches.
@@ -253,7 +266,8 @@ type ToolState =
   | { id: 'door' | 'window'; state: OpeningToolState }
   | { id: 'move'; state: MoveToolState }
   | { id: 'fixtures'; state: null }
-  | { id: 'sketch'; state: SketchState };
+  | { id: 'sketch'; state: SketchState }
+  | { id: 'measure'; state: MeasureState };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -374,8 +388,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const receiver: PlanPointerReceiver = (event) => onPointer(event);
 
   function syncReceiver(): void {
-    if (disposed || !enabled) return;
-    const want = ui.tool !== null || ui.pick !== null;
+    if (disposed) return;
+    const want = enabled ? ui.tool !== null || ui.pick !== null : ui.tool === 'measure';
     if (want === receiverSet) return;
     receiverSet = want;
     handle.setPointerReceiver(want ? receiver : null);
@@ -450,7 +464,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'room-rect' ||
       tool.id === 'move' ||
       tool.id === 'fixtures' ||
-      tool.id === 'sketch'
+      tool.id === 'sketch' ||
+      tool.id === 'measure'
     )
       return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
@@ -674,6 +689,17 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
     if (tool.id === 'sketch') return null;
+    if (tool.id === 'measure') {
+      const { from, to } = tool.state;
+      return {
+        ...EMPTY_FRAME,
+        from,
+        to,
+        marker: lastSnap === null ? null : snapMarker(lastSnap, NO_CONTEXT),
+        opening: null,
+        measure: from !== null && to !== null ? measureText(from, to) : undefined,
+      };
+    }
     if (tool.id === 'fixtures')
       return {
         ...EMPTY_FRAME,
@@ -827,7 +853,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function onPointer(event: PlanPointerEvent): void {
-    if (disposed || !enabled || level === null) return;
+    if (disposed || level === null) return;
+    if (tool !== null && tool.id === 'measure') {
+      onMeasurePointer(event);
+      return;
+    }
+    if (!enabled) return;
     if (ui.pick !== null) {
       onPick(event);
       return;
@@ -876,13 +907,45 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     emitFrame();
   }
 
+  // EZD-231: a snapped point; a touch measures on the lift (a tap), mouse and pen on the press.
+  function onMeasurePointer(event: PlanPointerEvent): void {
+    lastSnap = snap(index, {
+      cursor: event.model,
+      pixelsPerInch: handle.getPixelsPerInch(),
+      anchor: null,
+      referenceDirection: null,
+      settings: snapSettings(),
+    });
+    const at = lastSnap.point;
+    if (event.kind === 'move') measureInput({ type: 'move', at });
+    else if (event.kind === (event.pointerType === 'touch' ? 'up' : 'down'))
+      measureInput({ type: 'press', at });
+  }
+
+  function measureInput(i: MeasureInput): void {
+    if (tool === null || tool.id !== 'measure') return;
+    const step = reduceMeasure(tool.state, i);
+    if (step.exit) {
+      selectTool(null);
+      return;
+    }
+    tool = { id: 'measure', state: step.state };
+    emitFrame();
+  }
+
   // EZD-223: one pointer step of the stroke; a lift adds the cleaned (or held raw) shape to the page's strokes.
   function onSketchPointer(event: PlanPointerEvent, state: SketchState): void {
     const kind = event.kind;
     if (kind === 'click' || kind === 'dblclick') return;
     const step = reduceSketch(
       state,
-      { kind, model: event.model, screen: event.screen, pointerType: event.pointerType, time: clock() },
+      {
+        kind,
+        model: event.model,
+        screen: event.screen,
+        pointerType: event.pointerType,
+        time: clock(),
+      },
       ipadDrawing(),
     );
     if (step.state === state && step.done === null) return;
@@ -1114,7 +1177,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function selectTool(id: DrawingToolId | null): void {
-    if (disposed || !enabled) return;
+    if (disposed || !(enabled || id === null || id === 'measure')) return;
     cancelEntry();
     const hadDrag = drag !== null;
     drag = null;
@@ -1140,7 +1203,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                 ? { id, state: null }
                 : id === 'sketch'
                   ? { id, state: initialSketchState() }
-                  : { id, state: initialOpeningToolState(id) };
+                  : id === 'measure'
+                    ? { id, state: initialMeasureState() }
+                    : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     touchPoint = null;
@@ -1223,8 +1288,17 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function keyDown(e: ToolKeyEvent): boolean {
-    if (disposed || !enabled) return false;
-    if (e.defaultPrevented || isTypingTarget(e.target)) return false;
+    if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
+    // EZD-231: Shift+L and, while measuring, Esc work without Edit model; plain L stays free.
+    if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'l') {
+      selectTool('measure');
+      return true;
+    }
+    if (tool !== null && tool.id === 'measure' && e.key === 'Escape') {
+      measureInput({ type: 'escape' });
+      return true;
+    }
+    if (!enabled) return false;
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
       return true;
@@ -1267,7 +1341,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         isOpeningTool(tool) ||
         tool.id === 'move' ||
         tool.id === 'fixtures' ||
-        tool.id === 'sketch'
+        tool.id === 'sketch' ||
+        tool.id === 'measure'
       )
         return false;
       input({ type: 'enter' });

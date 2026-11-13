@@ -384,8 +384,8 @@ test.describe('EZD-207b plan canvas', () => {
     expect(await page.evaluate(() => '__ezdraftEditor' in window)).toBe(false);
     await expect(stack(page)).toBeVisible();
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
     );

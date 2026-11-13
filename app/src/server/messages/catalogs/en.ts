@@ -834,6 +834,7 @@ export const en = {
   // utilities-to-move list.
   'office.tool.fixtures': 'Fixtures',
   'office.tool.sketch': 'Sketch',
+  'office.tool.measure': 'Measure',
   'office.fixtures.title': 'Fixtures',
   'office.fixtures.section_fixtures': 'Fixtures and appliances',
   'office.fixtures.section_utilities': 'Utility points',

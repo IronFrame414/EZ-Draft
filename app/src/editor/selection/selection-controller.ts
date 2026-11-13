@@ -6,6 +6,7 @@
 // EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
 // EZD-212c (vault/plans/EZD-212c.md step 6b, D14): Esc asks the drawing first while a handle or chip entry is open.
 // EZD-213b (vault/plans/EZD-213b.md step 7, D-Dblclick): a dblclick selects the smallest object and tells onDoubleClick.
+// EZD-231: Measure on every viewer's rail (`editorRail`).
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -15,6 +16,7 @@ import { HOVER_CAPTURE_PX, type BodyLookup, type HoverPicker } from '../plan/hov
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import { railMode, type DrawingController, type ToolKeyEvent } from '../tools/drawing-controller';
 import { DRAWING_RAIL_TOOLS } from '../tools/index';
+import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { createPickIndex } from './pick-index';
 
@@ -413,8 +415,9 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
   };
 }
 
-const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS];
-const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL];
+// EZD-231 (04 Tool rail; S06 Measure "Allowed in view only"): Measure ends the top group for every viewer.
+const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
+const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL];
 
 export function editorRail(o: {
   editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';

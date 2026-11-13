@@ -16,8 +16,9 @@ import {
   type TypedValues,
 } from '../typed-entry/typed-entry';
 
-export type DrawingToolId = 'wall' | 'room-rect' | 'door' | 'window' | 'move' | 'fixtures' | 'sketch';
-export type TypedDrawingToolId = Exclude<DrawingToolId, 'fixtures' | 'sketch'>;
+export type DrawingToolId =
+  'wall' | 'room-rect' | 'door' | 'window' | 'move' | 'fixtures' | 'sketch' | 'measure';
+export type TypedDrawingToolId = Exclude<DrawingToolId, 'fixtures' | 'sketch' | 'measure'>;
 
 export const WIDTH_FIELD: TypedLengthField = {
   id: 'width',
@@ -120,6 +121,15 @@ export const DRAWING_RAIL_TOOLS: readonly RailTool[] = [
   { kind: 'tool', id: 'fixtures', icon: 'wash', label: 'office.tool.fixtures', shortcut: 'F' },
   { kind: 'tool', id: 'sketch', icon: 'draw', label: 'office.tool.sketch', shortcut: 'S' },
 ];
+
+// EZD-231 (04 Tool rail Measure; S06 Measure "Allowed in view only"): on every viewer's rail, after the drawing tools.
+export const MEASURE_RAIL_TOOL: RailTool = {
+  kind: 'tool',
+  id: 'measure',
+  icon: 'straighten',
+  label: 'office.tool.measure',
+  shortcut: 'Shift+L',
+};
 
 // `at` is the snapped model point; `enter` and `escape` arrive only when the typed layer did not handle them.
 export type ToolInput =

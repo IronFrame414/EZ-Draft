@@ -22,6 +22,7 @@ import {
   type PickState,
 } from '../tools/index';
 import { DOOR, baseObjects, F1, uid, withWalls } from '../tools/test-utils/fixtures';
+import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import {
   SAME_SPOT_PX,
   SELECT_RAIL_TOOL,
@@ -368,7 +369,7 @@ describe('EZD-208a selection controller', () => {
       label: 'office.tool.select',
       shortcut: 'V',
     });
-    const all = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS];
+    const all = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
     const base = { canvasFailed: false, controllerEnabled: true };
     for (const canEdit of [true, false]) {
       const loading = editorRail({ ...base, editor: 'loading', canEdit });
@@ -388,6 +389,7 @@ describe('EZD-208a selection controller', () => {
       'window',
       'fixtures',
       'sketch',
+      'measure',
     ]);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });
@@ -395,10 +397,10 @@ describe('EZD-208a selection controller', () => {
     expect(off?.disabled).toBe(true);
 
     const view = editorRail({ ...base, editor: 'ready', canEdit: false });
-    expect(view?.tools).toEqual([SELECT_RAIL_TOOL]);
+    expect(view?.tools).toEqual([SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL]);
     expect(view?.disabled).toBe(false);
     const failed = editorRail({ ...base, editor: 'ready', canEdit: false, canvasFailed: true });
-    expect(failed?.tools).toEqual([SELECT_RAIL_TOOL]);
+    expect(failed?.tools).toEqual([SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL]);
     expect(failed?.disabled).toBe(true);
   });
 

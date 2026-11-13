@@ -337,7 +337,8 @@
     "EZD-234",
     "EZD-226",
     "EZD-227",
-    "EZD-131"
+    "EZD-131",
+    "EZD-223"
   ],
   "seeded_done": 324,
   "merged": [
@@ -430,6 +431,13 @@
       "title": "Libraries shell",
       "commit": "bfb644f9",
       "ts": "2026-11-13T20:07:26Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-223",
+      "title": "Sketch tool",
+      "commit": "b90055e0",
+      "ts": "2026-11-13T21:01:09Z",
       "kind": "ticket"
     }
   ],

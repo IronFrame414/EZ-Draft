@@ -15,6 +15,7 @@
 // EZD-234 Build: the Fixtures panel while the Fixtures tool is on, and the utilities-to-move card after a move, both
 // loaded through lazyModule on first use (11 rule 7), showing nothing until the code is there.
 // EZD-223 (S03 Sketch): the sketch strokes path; the Sketch tool shows no typed bar.
+// EZD-231 (04 Tool rail Measure): the measure distance chip; the Measure tool shows no typed bar.
 import {
   useCallback,
   useEffect,
@@ -148,6 +149,8 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
   const selRightChipRef = useRef<HTMLElement>(null);
   const sizeSlotRef = useRef<HTMLDivElement>(null);
   const sizeChipRef = useRef<HTMLSpanElement>(null);
+  const measureSlotRef = useRef<HTMLDivElement>(null);
+  const measureChipRef = useRef<HTMLSpanElement>(null);
   const [openAt, setOpenAt] = useState<{ field: number; seq: number } | null>(null);
   const boxEls = useRef(new Map<string, HTMLDivElement>());
   const boxesRef = useRef(ui.boxes);
@@ -191,6 +194,8 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
     const selRightChip = selRightChipRef.current;
     const sizeSlot = sizeSlotRef.current;
     const sizeChip = sizeChipRef.current;
+    const measureSlot = measureSlotRef.current;
+    const measureChip = measureChipRef.current;
     if (
       band === null ||
       marker === null ||
@@ -215,7 +220,9 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
       selLeftChip === null ||
       selRightChip === null ||
       sizeSlot === null ||
-      sizeChip === null
+      sizeChip === null ||
+      measureSlot === null ||
+      measureChip === null
     )
       return;
     const overlay = createToolOverlay(
@@ -237,6 +244,7 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
         },
         preview,
         sketch: sketchRef.current ?? undefined,
+        measure: { slot: measureSlot, button: measureChip },
         selection: {
           handles: [handle0, handle1],
           leaders,
@@ -299,7 +307,12 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
   return (
     <div className={styles.layer} data-testid="drawing-layer">
       <svg className={styles.overlay} data-testid="tool-overlay" aria-hidden="true">
-        <path ref={sketchRef} className={styles.sketch} data-testid="sketch-strokes" display="none" />
+        <path
+          ref={sketchRef}
+          className={styles.sketch}
+          data-testid="sketch-strokes"
+          display="none"
+        />
         <path
           ref={previewRef}
           className={styles.preview}
@@ -442,6 +455,13 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
             className={`${styles.chip} ${styles.chipText}`}
           />
         </div>
+        <div ref={measureSlotRef} className={styles.chipSlot} style={{ display: 'none' }}>
+          <span
+            ref={measureChipRef}
+            data-testid="measure-readout"
+            className={`${styles.chip} ${styles.chipText}`}
+          />
+        </div>
       </div>
       {ui.doorTarget !== null ? (
         <div
@@ -465,9 +485,14 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
       ) : null}
       {canEdit ? (
         <TypedEntryLayer
-          tool={ui.tool !== null && ui.tool !== 'fixtures' && ui.tool !== 'sketch'
+          tool={
+            ui.tool !== null &&
+            ui.tool !== 'fixtures' &&
+            ui.tool !== 'sketch' &&
+            ui.tool !== 'measure'
               ? DRAWING_TOOLS[ui.tool]
-              : entryTyped}
+              : entryTyped
+          }
           canEdit={ui.enabled}
           lastValues={lastValues}
           getCursor={handle.getCursor}
