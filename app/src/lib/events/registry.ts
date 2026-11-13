@@ -1,5 +1,6 @@
 import type { CustomerEventField } from '../customers/customers';
 import type { Language } from '../profile/profile';
+import type { PermissionKey } from '../permissions/catalog';
 
 export type EventKind = 'webhook' | 'internal' | 'log_only';
 
@@ -62,6 +63,11 @@ export const EVENTS = {
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
   'user.language_changed': { kind: 'log_only' },
+  // EZD-106 (S15 Events emitted; Q-0706 decisions 03 row 50): the Users page member writes.
+  'user_permission.updated': { kind: 'log_only' },
+  'user.deactivated': { kind: 'log_only' },
+  'user.reactivated': { kind: 'log_only' },
+  'user.removed': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -132,4 +138,15 @@ export interface EventPayloads {
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).
   'project.created': { projectId: string; source: 'standalone' };
   'user.language_changed': { appUserId: string; language: Language };
+  // EZD-106: one Save on the Users page inspector (S15: user id, changed permissions, role, actor).
+  'user_permission.updated': {
+    membershipId: string;
+    appUserId: string;
+    changedKeys: PermissionKey[];
+    roleId: string;
+    roleChanged: boolean;
+  };
+  'user.deactivated': { membershipId: string; appUserId: string };
+  'user.reactivated': { membershipId: string; appUserId: string };
+  'user.removed': { membershipId: string; appUserId: string };
 }

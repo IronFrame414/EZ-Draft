@@ -6,10 +6,26 @@
 // Q-0706; Q-0719 (a)): Settings > Users + permissions. One page of 50 rows from GET /api/settings/users,
 // searched on the server; the AsyncView renders the body only, so the search keeps focus while a page loads
 // (pattern: CustomersPanel, EZD-113). The table box scrolls inside the main card.
-import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+// EZD-106 (vault/plans/EZD-106.md Part b; S15 Controls, States, More menu; Q-0695 decisions 05 row 141; Q-0706;
+// Q-0724 (a); Q-0725 (a)): the inspector body (Role select with "(modified)", language toggle, grouped
+// switches with counts), its footer (unsaved line, Reset, Save and Ctrl/Cmd+S), the Save / Discard / Cancel
+// prompt on changing the selection (EZD-103b), the error and offline states, the selected invite's details,
+// deactivated rows and the row More (…) menu (Edit, Deactivate, Reactivate, Remove). Resend, Copy link and
+// Cancel invite have no action yet (EZD-105; Q-0226).
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../../../lib/messages';
+import { useOnline } from '../../../lib/network';
 import { PERMISSION_KEYS } from '../../../lib/permissions/catalog';
 import { initialsFor } from '../../../lib/users/initials';
+import {
+  chooseRole,
+  draftModified,
+  draftOf,
+  pendingEdits,
+  resetToRole,
+  toggleSwitch,
+  type InspectorDraft,
+} from '../../../lib/users/inspector';
 import {
   formatLastActive,
   formatUserDate,
@@ -19,15 +35,42 @@ import {
   USER_PAGE_SIZE,
   type UserCounts,
   type UserPage,
+  type UserRole,
   type UserRow,
 } from '../../../lib/users/users';
+import type { MessageKey } from '../../../server/messages/catalog';
 import touch from '../../../styles/touch.module.css';
 import { Icon } from '../../icon/Icon';
+import { Menu, MenuItem } from '../../menu/Menu';
 import { AsyncView } from '../../states/AsyncView';
+import { useConfirm } from '../../states/ConfirmProvider';
+import { InlineError } from '../../states/InlineError';
 import { Skeleton, SkeletonGroup } from '../../states/Skeleton';
 import { StateButton } from '../../states/StateButton';
+import { useToast } from '../../states/ToastProvider';
 import { SettingsMain, useSettingsStatus, type SettingsStatusEntry } from '../SettingsShell';
+import { useLeaveCheck, useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
+import { PermissionSwitches } from './PermissionSwitches';
 import styles from './Users.module.css';
+
+export type InspectorEdit = { membershipId: string; draft: InspectorDraft };
+export type InspectorError = { message: MessageKey; retry: boolean };
+type MemberAction = 'deactivate' | 'reactivate' | 'remove';
+
+// The refusals the server names (server/users/members.ts); anything else reads as the generic line.
+const KNOWN_ERRORS = new Set([
+  'error.last_settings_users_holder',
+  'error.active_elsewhere',
+  'error.member_state',
+  'error.member_not_found',
+  'error.not_authorized',
+]);
+
+async function knownErrorOf(res: Response): Promise<MessageKey | null> {
+  const body: unknown = await res.json().catch(() => null);
+  const key = (body as { error?: { message_key?: unknown } } | null)?.error?.message_key;
+  return typeof key === 'string' && KNOWN_ERRORS.has(key) ? (key as MessageKey) : null;
+}
 
 // The bold line of the name cell: the name, or the email when the name is missing or blank.
 const shownName = (row: UserRow): string =>
@@ -50,7 +93,184 @@ function UserAvatar({ row, large }: { row: UserRow; large?: boolean }) {
   );
 }
 
-export function UserInspector({ row, onClose }: { row: UserRow | null; onClose: () => void }) {
+type InspectorBodyProps = {
+  row: UserRow;
+  roles: readonly UserRole[];
+  draft: InspectorDraft;
+  saved: InspectorDraft;
+  onDraft: (d: InspectorDraft) => void;
+  onSave: () => void;
+  saving: boolean;
+  error: InspectorError | null;
+  online: boolean;
+};
+
+function InviteDetails({ row }: { row: UserRow }) {
+  const t = useT();
+  const sent = row.invitedAt === null ? null : formatUserDate(row.invitedAt, new Date());
+  return (
+    <div data-testid="users-invite-details" className={styles.inviteDetails}>
+      <span>{t('office.users.invite_details', { email: row.email })}</span>
+      {sent === null ? null : (
+        <span className={styles.inspectorSub}>
+          {t('office.users.invite_sent_on', { date: t(sent.key, sent.params) })}
+        </span>
+      )}
+      <span className={styles.inviteActions}>
+        <button
+          type="button"
+          data-testid="users-inspector-resend"
+          className={`${styles.link} ${touch.target}`}
+        >
+          {t('office.users.resend')}
+        </button>
+        {row.canCopyLink ? (
+          <button
+            type="button"
+            data-testid="users-inspector-copy-link"
+            className={`${styles.link} ${touch.target}`}
+          >
+            {t('office.users.copy_link')}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          data-testid="users-inspector-cancel-invite"
+          className={`${styles.link} ${touch.target}`}
+        >
+          {t('office.users.cancel_invite')}
+        </button>
+      </span>
+    </div>
+  );
+}
+
+function InspectorBody(p: InspectorBodyProps) {
+  const t = useT();
+  const { row, roles, draft, saved, onDraft } = p;
+  const role = roles.find((r) => r.id === draft.roleId) ?? null;
+  const modified = draftModified(draft, role);
+  const pending = pendingEdits(saved, draft);
+  const locked = !p.online || p.saving;
+  const isPreset = role !== null && role.preset !== null;
+  return (
+    <>
+      <div className={styles.inspectorScroll}>
+        {row.status === 'invited' ? <InviteDetails row={row} /> : null}
+        <div data-testid="users-role-field" className={styles.field}>
+          <label className={styles.label} htmlFor="users-role-select">
+            {t('office.users.role_preset')}
+          </label>
+          <select
+            id="users-role-select"
+            data-testid="users-role-select"
+            className={`${styles.select} ${touch.target}`}
+            value={draft.roleId ?? ''}
+            disabled={locked}
+            onChange={(e) => {
+              const next = roles.find((r) => r.id === e.target.value);
+              if (next) onDraft(chooseRole(draft, next));
+            }}
+          >
+            {draft.roleId === null ? (
+              <option value="" disabled>
+                {t('office.users.no_role')}
+              </option>
+            ) : null}
+            {roles.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.id === draft.roleId && modified
+                  ? t('office.users.role_option_modified', { role: r.name })
+                  : r.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label} id="users-language-label">
+            {t('office.users.language')}
+          </span>
+          <div
+            role="group"
+            aria-labelledby="users-language-label"
+            data-testid="users-language"
+            className={styles.segment}
+          >
+            {(['en', 'es'] as const).map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                data-testid={`users-language-${lang}`}
+                aria-pressed={draft.language === lang}
+                disabled={locked}
+                className={`${styles.segmentButton} ${touch.target}${draft.language === lang ? ` ${styles.segmentOn}` : ''}`}
+                onClick={() => onDraft({ ...draft, language: lang })}
+              >
+                {t(lang === 'en' ? 'office.users.english' : 'office.users.spanish')}
+              </button>
+            ))}
+          </div>
+          <p className={styles.help}>{t('office.users.language_help')}</p>
+        </div>
+        <PermissionSwitches
+          granted={draft.granted}
+          disabled={locked}
+          onToggle={(key) => onDraft(toggleSwitch(draft, key))}
+        />
+      </div>
+      <div data-testid="users-inspector-footer" className={styles.inspectorFoot}>
+        {!p.online ? (
+          <p data-testid="users-inspector-offline" role="status" className={styles.offline}>
+            {t('office.users.offline')}
+          </p>
+        ) : null}
+        {p.error !== null ? (
+          <div data-testid="users-inspector-error">
+            <InlineError message={p.error.message} onRetry={p.error.retry ? p.onSave : undefined} />
+          </div>
+        ) : null}
+        {pending > 0 ? (
+          <p data-testid="users-unsaved" className={styles.unsaved}>
+            <span className={styles.unsavedDot} aria-hidden="true" />
+            {role === null
+              ? t('office.users.unsaved', { count: pending })
+              : t(isPreset ? 'office.users.unsaved_preset' : 'office.users.unsaved_role', {
+                  count: pending,
+                  role: role.name,
+                })}
+          </p>
+        ) : null}
+        <div className={styles.footButtons}>
+          <StateButton
+            data-testid="users-reset"
+            disabled={locked || role === null}
+            onClick={() => onDraft(resetToRole(draft, role))}
+          >
+            {t(isPreset || role === null ? 'office.users.reset_preset' : 'office.users.reset_role')}
+          </StateButton>
+          <StateButton
+            data-testid="users-save"
+            variant="primary"
+            disabled={locked || pending === 0 || draft.roleId === null}
+            onClick={p.onSave}
+          >
+            {t('office.users.save')}
+          </StateButton>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function UserInspector({
+  row,
+  onClose,
+  body,
+}: {
+  row: UserRow | null;
+  onClose: () => void;
+  body?: Omit<InspectorBodyProps, 'row'> | null;
+}) {
   const t = useT();
   return (
     <aside
@@ -63,26 +283,33 @@ export function UserInspector({ row, onClose }: { row: UserRow | null; onClose: 
           {t('office.users.inspector_empty')}
         </p>
       ) : (
-        <div className={styles.inspectorHead}>
-          <UserAvatar row={row} large />
-          <div className={styles.inspectorText}>
-            <span data-testid="users-inspector-name" className={styles.inspectorName}>
-              {row.status === 'invited' ? t('office.users.invite_pending') : shownName(row)}
-            </span>
-            <span data-testid="users-inspector-sub" className={styles.inspectorSub}>
-              {row.status === 'invited' ? row.email : (row.role?.name ?? '')}
-            </span>
+        <>
+          <div data-testid="users-inspector-head" className={styles.inspectorHead}>
+            <UserAvatar row={row} large />
+            <div className={styles.inspectorText}>
+              <span data-testid="users-inspector-name" className={styles.inspectorName}>
+                {row.status === 'invited' ? t('office.users.invite_pending') : shownName(row)}
+              </span>
+              <span data-testid="users-inspector-sub" className={styles.inspectorSub}>
+                {row.status === 'invited'
+                  ? row.email
+                  : row.status === 'deactivated'
+                    ? `${row.role?.name ?? ''}${row.role ? ' · ' : ''}${t('office.users.deactivated')}`
+                    : (row.role?.name ?? '')}
+              </span>
+            </div>
+            <button
+              type="button"
+              data-testid="users-inspector-close"
+              aria-label={t('common.close')}
+              className={`${styles.close} ${touch.target}`}
+              onClick={onClose}
+            >
+              <Icon name="close" size={20} />
+            </button>
           </div>
-          <button
-            type="button"
-            data-testid="users-inspector-close"
-            aria-label={t('common.close')}
-            className={`${styles.close} ${touch.target}`}
-            onClick={onClose}
-          >
-            <Icon name="close" size={20} />
-          </button>
-        </div>
+          {body ? <InspectorBody row={row} {...body} /> : null}
+        </>
       )}
     </aside>
   );
@@ -94,8 +321,21 @@ export function UsersPanel() {
   const [page, setPage] = useState(1);
   const [counts, setCounts] = useState<UserCounts | null>(null);
   const [rows, setRows] = useState<UserRow[]>([]);
+  const [roles, setRoles] = useState<UserRole[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The selected member as last loaded. While the inspector has unsaved edits it stays selected even when a
+  // search or another page hides its row, so the edits wait for the Save / Discard / Cancel prompt (AC-5).
+  const [heldRow, setHeldRow] = useState<UserRow | null>(null);
+  const dirtyRef = useRef(false);
+  const [edit, setEdit] = useState<InspectorEdit | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [inspectorError, setInspectorError] = useState<InspectorError | null>(null);
+  const [reload, setReload] = useState(0);
   const tableRef = useRef<HTMLTableElement>(null);
+  const online = useOnline();
+  const leaveCheck = useLeaveCheck();
+  const ask = useConfirm();
+  const toast = useToast();
 
   const load = useCallback(
     async (signal: AbortSignal): Promise<UserPage> => {
@@ -107,10 +347,17 @@ export function UsersPanel() {
       });
       if (res.status !== 200) throw new Error('users_load_failed');
       const data = (await res.json()) as UserPage;
+      setRoles(data.roles);
       setCounts({ active: data.active, invited: data.invited, en: data.en, es: data.es });
       setRows(data.rows);
+      const keep = dirtyRef.current;
+      setHeldRow((held) =>
+        held === null
+          ? null
+          : (data.rows.find((r) => r.membershipId === held.membershipId) ?? (keep ? held : null)),
+      );
       setSelectedId((id) =>
-        id !== null && data.rows.some((r) => r.membershipId === id) ? id : null,
+        id !== null && (keep || data.rows.some((r) => r.membershipId === id)) ? id : null,
       );
       return data;
     },
@@ -141,11 +388,137 @@ export function UsersPanel() {
   useSettingsStatus(statusItems);
 
   const term = q.trim();
-  const selected = rows.find((r) => r.membershipId === selectedId) ?? null;
+  const selected =
+    rows.find((r) => r.membershipId === selectedId) ??
+    (heldRow !== null && heldRow.membershipId === selectedId ? heldRow : null);
+
+  const saved = useMemo(() => (selected === null ? null : draftOf(selected)), [selected]);
+  const current =
+    selected !== null && edit !== null && edit.membershipId === selected.membershipId
+      ? edit.draft
+      : saved;
+  const dirty = saved !== null && current !== null && pendingEdits(saved, current) > 0;
+
+  const save = useCallback(async (): Promise<boolean> => {
+    if (selected === null || current === null || current.roleId === null) return false;
+    const id = selected.membershipId;
+    setSaving(true);
+    setInspectorError(null);
+    try {
+      const res = await fetch(`/api/settings/users/${id}`, {
+        method: 'PATCH',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          roleId: current.roleId,
+          language: current.language,
+          grantedKeys: current.granted,
+        }),
+      });
+      if (res.status === 200) {
+        const role = roles.find((r) => r.id === current.roleId) ?? selected.role;
+        const savedRow = (r: UserRow): UserRow =>
+          r.membershipId === id
+            ? { ...r, role, language: current.language, grantedKeys: current.granted }
+            : r;
+        setRows((list) => list.map(savedRow));
+        setHeldRow((held) => (held === null ? null : savedRow(held)));
+        setEdit(null);
+        setReload((n) => n + 1);
+        return true;
+      }
+      const known = res.status === 409 ? await knownErrorOf(res) : null;
+      setInspectorError(
+        known !== null
+          ? { message: known, retry: false }
+          : { message: 'office.users.save_failed', retry: true },
+      );
+      return false;
+    } catch {
+      setInspectorError({ message: 'office.users.save_failed', retry: true });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }, [selected, current, roles]);
+
+  useUnsavedChanges(dirty, save);
+  useEffect(() => {
+    dirtyRef.current = dirty;
+  });
+  const restoreDraft = useCallback((v: InspectorEdit) => {
+    setEdit(v);
+    setSelectedId(v.membershipId);
+    setHeldRow(null);
+  }, []);
+  useSettingsDraft<InspectorEdit>('users', dirty ? edit : null, restoreDraft);
+
+  // Ctrl/Cmd+S saves the inspector (S15 Keyboard).
+  useEffect(() => {
+    if (selected === null) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 's') return;
+      e.preventDefault();
+      if (dirty && online && !saving) void save();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected, dirty, online, saving, save]);
+
+  // Changing the selection with unsaved edits asks Save, Discard or Cancel (S15 Validation; EZD-103b).
+  const changeSelection = async (id: string | null): Promise<boolean> => {
+    if (id === selectedId) return true;
+    if (!(await leaveCheck())) return false;
+    setEdit(null);
+    setInspectorError(null);
+    setSelectedId(id);
+    setHeldRow(id === null ? null : (rows.find((r) => r.membershipId === id) ?? null));
+    return true;
+  };
 
   const select = (id: string) => {
-    setSelectedId(id);
-    tableRef.current?.focus();
+    void changeSelection(id).then((moved) => {
+      if (moved) tableRef.current?.focus();
+    });
+  };
+
+  const act = async (row: UserRow, kind: MemberAction) => {
+    if (kind === 'remove') {
+      const choice = await ask({
+        title: 'office.users.remove_title',
+        message: 'office.users.remove_message',
+        params: { name: shownName(row) },
+        confirmLabel: 'office.users.remove_confirm',
+        tone: 'danger',
+      });
+      if (choice !== 'confirm') return;
+    }
+    const base = `/api/settings/users/${row.membershipId}`;
+    let known: MessageKey | null = null;
+    try {
+      const res = await fetch(kind === 'remove' ? base : `${base}/${kind}`, {
+        method: kind === 'remove' ? 'DELETE' : 'POST',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (res.status === 200) {
+        if (row.membershipId === selectedId) setInspectorError(null);
+        if (kind === 'remove' && row.membershipId === selectedId) {
+          setEdit(null);
+          setSelectedId(null);
+          setHeldRow(null);
+        }
+        setReload((n) => n + 1);
+        return;
+      }
+      known = await knownErrorOf(res);
+    } catch {
+      known = null;
+    }
+    const message = known ?? 'office.users.action_failed';
+    if (row.membershipId === selectedId) setInspectorError({ message, retry: false });
+    else toast.show({ message });
   };
 
   const onTableKey = (list: UserRow[]) => (e: KeyboardEvent<HTMLTableElement>) => {
@@ -162,7 +535,7 @@ export function UsersPanel() {
         : down
           ? Math.min(i + 1, list.length - 1)
           : Math.max(i - 1, 0);
-    setSelectedId(list[next].membershipId);
+    void changeSelection(list[next].membershipId);
   };
 
   const nameCell = (row: UserRow) => {
@@ -221,6 +594,13 @@ export function UsersPanel() {
         </td>
       );
     }
+    if (row.status === 'deactivated') {
+      return (
+        <td data-testid="user-deactivated" className={`${styles.td} ${styles.lastActive}`}>
+          {t('office.users.deactivated')}
+        </td>
+      );
+    }
     return (
       <td className={`${styles.td} ${styles.links}`}>
         <button
@@ -245,6 +625,53 @@ export function UsersPanel() {
       </td>
     );
   };
+
+  const moreMenu = (row: UserRow) => (
+    <Menu
+      label={t('office.users.more', { name: shownName(row) })}
+      trigger={<Icon name="more_horiz" size={20} />}
+      triggerClassName={`${styles.more} ${touch.target}`}
+      triggerTestId="user-more"
+      contentClassName={styles.menu}
+      contentTestId="user-more-menu"
+      anchorSelector="td"
+    >
+      <MenuItem
+        testId="user-menu-edit"
+        className={`${styles.menuItem} ${touch.target}`}
+        onSelect={() => select(row.membershipId)}
+      >
+        {t('office.users.menu.edit')}
+      </MenuItem>
+      {row.status === 'active' ? (
+        <MenuItem
+          testId="user-menu-deactivate"
+          className={`${styles.menuItem} ${touch.target}`}
+          onSelect={() => void act(row, 'deactivate')}
+        >
+          {t('office.users.menu.deactivate')}
+        </MenuItem>
+      ) : null}
+      {row.status === 'deactivated' ? (
+        <MenuItem
+          testId="user-menu-reactivate"
+          className={`${styles.menuItem} ${touch.target}`}
+          onSelect={() => void act(row, 'reactivate')}
+        >
+          {t('office.users.menu.reactivate')}
+        </MenuItem>
+      ) : null}
+      {row.status !== 'invited' ? (
+        <MenuItem
+          testId="user-menu-remove"
+          className={`${styles.menuItem} ${styles.menuDanger} ${touch.target}`}
+          onSelect={() => void act(row, 'remove')}
+        >
+          {t('office.users.menu.remove')}
+        </MenuItem>
+      ) : null}
+    </Menu>
+  );
 
   const invitePrompt = (
     <div data-testid="users-invite-prompt" className={styles.invite}>
@@ -286,6 +713,7 @@ export function UsersPanel() {
               <th className={styles.th}>{t('office.users.col_language')}</th>
               <th className={styles.th}>{t('office.users.col_permissions')}</th>
               <th className={styles.th}>{t('office.users.col_last_active')}</th>
+              <th className={`${styles.th} ${styles.moreCol}`} aria-hidden="true" />
             </tr>
           </thead>
           <tbody>
@@ -295,6 +723,7 @@ export function UsersPanel() {
                 styles.tr,
                 isSelected ? styles.tron : '',
                 row.status === 'invited' ? styles.invitedRow : '',
+                row.status === 'deactivated' ? styles.deactivatedRow : '',
               ]
                 .filter((c) => c !== '')
                 .join(' ');
@@ -326,13 +755,19 @@ export function UsersPanel() {
                     })}
                   </td>
                   {lastCell(row)}
+                  <td
+                    className={`${styles.td} ${styles.moreCol}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {moreMenu(row)}
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
         {data.total > USER_PAGE_SIZE ? (
-          <div className={styles.pager}>
+          <div data-testid="users-pager" className={styles.pager}>
             <span data-testid="users-range">
               {t('office.users.range', { from, to, total: data.total })}
             </span>
@@ -360,7 +795,7 @@ export function UsersPanel() {
   };
 
   const search = (
-    <label className={styles.search}>
+    <label data-testid="users-search-box" className={styles.search}>
       <Icon name="search" size={19} />
       <input
         data-testid="users-search"
@@ -388,6 +823,8 @@ export function UsersPanel() {
       >
         <div data-testid="users-body" className={styles.body}>
           <AsyncView
+            // A write bumps `reload`, so the page and its counts load again.
+            key={reload}
             load={load}
             skeleton={
               <SkeletonGroup count={5} className={styles.skeletons}>
@@ -406,7 +843,27 @@ export function UsersPanel() {
           </div>
         </div>
       </SettingsMain>
-      <UserInspector row={selected} onClose={() => setSelectedId(null)} />
+      <UserInspector
+        row={selected}
+        onClose={() => void changeSelection(null)}
+        body={
+          selected !== null && saved !== null && current !== null
+            ? {
+                roles,
+                draft: current,
+                saved,
+                onDraft: (d) => {
+                  setInspectorError(null);
+                  setEdit({ membershipId: selected.membershipId, draft: d });
+                },
+                onSave: () => void save(),
+                saving,
+                error: inspectorError,
+                online,
+              }
+            : null
+        }
+      />
     </>
   );
 }

@@ -8,9 +8,11 @@ import type { MessageKey } from '../../server/messages/catalog';
 
 export const USER_PAGE_SIZE = 50;
 
-export type UserStatus = 'active' | 'invited';
+// EZD-106: deactivated members are listed after the invited rows (09n Status bar row 1).
+export type UserStatus = 'active' | 'invited' | 'deactivated';
 
 export type UserRole = {
+  id: string;
   name: string;
   preset: RolePreset | null;
   defaultPermissions: PermissionKey[];
@@ -33,6 +35,8 @@ export type UserCounts = { active: number; invited: number; en: number; es: numb
 
 export type UserPage = UserCounts & {
   rows: UserRow[];
+  // EZD-106: the company's roles for the inspector's Role select (presets, then custom roles by name).
+  roles: UserRole[];
   total: number;
   page: number;
   pageSize: number;

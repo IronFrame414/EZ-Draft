@@ -303,6 +303,45 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: get('/api/settings/users'),
     expectStatus: 200,
   },
+  // EZD-106: the member writes, aimed at a membership id no company has, so the walk changes no member; the
+  // function answers 404 member_not_found (no money field in any answer).
+  ...(['PATCH', 'DELETE'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/users/[id]/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/users/[id]/route'),
+    request: async () => {
+      const id = randomUUID();
+      const path = `/api/settings/users/${id}`;
+      const made =
+        method === 'PATCH'
+          ? await sendJson('PATCH', path, {
+              roleId: randomUUID(),
+              language: 'en',
+              grantedKeys: [],
+            })()
+          : { request: new Request(`${BASE}${path}`, { method: 'DELETE' }) };
+      return { ...made, params: { id } };
+    },
+    expectStatus: 404,
+    note: 'EZD-106: unknown member; 404 member_not_found (no money)',
+  })),
+  ...(['deactivate', 'reactivate'] as const).map((kind): MoneyRouteCase => ({
+    file: `${API}settings/users/[id]/${kind}/route.ts`,
+    method: 'POST',
+    load: () =>
+      kind === 'deactivate'
+        ? import('../../src/app/api/settings/users/[id]/deactivate/route')
+        : import('../../src/app/api/settings/users/[id]/reactivate/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/${id}/${kind}`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-106: unknown member; 404 member_not_found (no money)',
+  })),
   {
     file: `${API}settings/company/route.ts`,
     method: 'PATCH',

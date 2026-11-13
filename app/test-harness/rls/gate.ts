@@ -27,6 +27,14 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'take_ai_assistant_slot', args: {} },
   { fn: 'release_ai_assistant_slot', args: { p_slot_id: null } },
   { fn: 'record_ai_usage', args: { p_model: null, p_cost_usd: null } },
+  // EZD-106 (vault/plans/EZD-106.md Part a): the Users page member writes, authenticated only.
+  {
+    fn: 'save_member',
+    args: { p_membership_id: null, p_role_id: null, p_language: null, p_granted: null },
+  },
+  { fn: 'deactivate_member', args: { p_membership_id: null } },
+  { fn: 'reactivate_member', args: { p_membership_id: null } },
+  { fn: 'remove_member', args: { p_membership_id: null } },
   // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
   { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
   { fn: 'current_user_has_password', args: {} },

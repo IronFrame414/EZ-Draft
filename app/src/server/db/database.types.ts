@@ -635,6 +635,9 @@ isOneToOne: false
 "current_user_has_password":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"deactivate_member":
+{ Args: { "p_membership_id": string }; Returns: Json
+                           },
 "delete_my_ai_key":
 { Args: Record<PropertyKey, never>; Returns: {
               "deleted": boolean,"last4": string
@@ -757,6 +760,9 @@ isOneToOne: false
               "link": string,"project_id": string,"project_state": string
             }[]
                            },
+"reactivate_member":
+{ Args: { "p_membership_id": string }; Returns: Json
+                           },
 "record_ai_usage":
 { Args: { "p_cost_usd": number,"p_model": string }; Returns: undefined
                            },
@@ -774,8 +780,14 @@ isOneToOne: false
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            },
+"remove_member":
+{ Args: { "p_membership_id": string }; Returns: Json
+                           },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_member":
+{ Args: { "p_granted": (string)[],"p_language": string,"p_membership_id": string,"p_role_id": string }; Returns: Json
                            },
 "save_my_ai_key":
 { Args: { "p_app_user_id": string,"p_ciphertext": string,"p_last4": string,"p_secret_version": number,"p_tenant_id": string }; Returns: undefined

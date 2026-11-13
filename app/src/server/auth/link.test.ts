@@ -430,10 +430,11 @@ describe('EZD-007b linking and access functions', () => {
         0,
       ],
       [
-        '(c) invited to deactivated ends it',
+        // EZD-106 (Q-0695 decisions 10 row 62): only a change to an active membership ends sessions.
+        '(c) invited to deactivated keeps it',
         'invited',
         (tx, id) => tx`update public.membership set status = 'deactivated' where id = ${id}::uuid`,
-        0,
+        1,
       ],
       [
         '(d) active to invited ends it',

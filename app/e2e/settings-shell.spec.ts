@@ -172,7 +172,7 @@ test.describe('EZD-103a settings shell', () => {
     const tenant = await createTenant();
     const a = await createMember({ tenantId: tenant, scope: 'all' });
     await setPermissions(tenant, a.membershipId, PERMISSION_KEYS);
-    await createMember({ tenantId: tenant, scope: 'all' });
+    const b = await createMember({ tenantId: tenant, scope: 'all' });
     await createMember({ tenantId: tenant, scope: 'all', status: 'invited' });
 
     await signInAs(a.email);
@@ -181,6 +181,8 @@ test.describe('EZD-103a settings shell', () => {
     await expect(page.locator('[data-settings-badge="defaults"]')).toHaveText('ft-in');
     await expect(page.locator('[data-settings-badge="catalog"]')).toHaveCount(0);
 
+    // EZD-106: the last active settings_users holder cannot lose it, so a second member holds it first.
+    await setPermissions(tenant, b.membershipId, ['settings_users']);
     await setPermissions(
       tenant,
       a.membershipId,

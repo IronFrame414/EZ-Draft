@@ -29,13 +29,14 @@ const keys = z
   .transform((list) => list.filter((k): k is PermissionKey => isPermissionKey(k)));
 const count = z.number().int().nonnegative();
 const roleSchema = z.object({
+  id: z.string(),
   name: z.string(),
   preset: z.enum(ROLE_PRESETS).nullable(),
   defaultPermissions: keys,
 });
 const rowSchema = z.object({
   membershipId: z.string(),
-  status: z.enum(['active', 'invited']),
+  status: z.enum(['active', 'invited', 'deactivated']),
   name: z.string().nullable(),
   email: z.string(),
   language: z.enum(['en', 'es']),
@@ -47,6 +48,7 @@ const rowSchema = z.object({
 });
 const listSchema = z.object({
   rows: z.array(rowSchema),
+  roles: z.array(roleSchema),
   total: count,
   active: count,
   invited: count,
@@ -65,13 +67,14 @@ export async function listUsers(
   if (error) throw error;
   const parsed = listSchema.safeParse(data);
   if (!parsed.success) throw new Error('list_users_bad_result');
-  const { rows, total, active, invited, en, es } = parsed.data;
+  const { rows, roles, total, active, invited, en, es } = parsed.data;
   return {
     active,
     invited,
     en,
     es,
     rows,
+    roles,
     total,
     page: query.page,
     pageSize: USER_PAGE_SIZE,

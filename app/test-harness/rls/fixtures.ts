@@ -243,15 +243,20 @@ export type CreatedRefs = { tenantIds: string[]; authUserIds: string[]; appUserI
 // helper's own afterAll so one describe never removes another's fixtures early.
 export async function cleanupCreated(refs: CreatedRefs): Promise<void> {
   const s = harnessSql();
-  if (refs.tenantIds.length) {
-    await s`delete from public.membership where tenant_id = any(${refs.tenantIds}::uuid[])`;
-    await s`delete from public.project where tenant_id = any(${refs.tenantIds}::uuid[])`;
-    await s`delete from public.tenant where id = any(${refs.tenantIds}::uuid[])`;
-  }
-  if (refs.appUserIds.length) {
-    await s`delete from public.membership where user_id = any(${refs.appUserIds}::uuid[])`;
-    await s`delete from public.app_user where id = any(${refs.appUserIds}::uuid[])`;
-  }
+  // One transaction: a company delete removes its memberships first, and EZD-106's deferred last-holder
+  // guard lets it pass only when the tenant row is gone by commit. Memberships of listed people in other
+  // companies go with their tenants or are no holders.
+  await s.begin(async (tx) => {
+    if (refs.tenantIds.length) {
+      await tx`delete from public.membership where tenant_id = any(${refs.tenantIds}::uuid[])`;
+      await tx`delete from public.project where tenant_id = any(${refs.tenantIds}::uuid[])`;
+      await tx`delete from public.tenant where id = any(${refs.tenantIds}::uuid[])`;
+    }
+    if (refs.appUserIds.length) {
+      await tx`delete from public.membership where user_id = any(${refs.appUserIds}::uuid[])`;
+      await tx`delete from public.app_user where id = any(${refs.appUserIds}::uuid[])`;
+    }
+  });
   for (const id of refs.authUserIds) await adminDb().auth.admin.deleteUser(id);
   for (const key of ['tenantIds', 'authUserIds', 'appUserIds'] as const) {
     const gone = new Set(refs[key]);

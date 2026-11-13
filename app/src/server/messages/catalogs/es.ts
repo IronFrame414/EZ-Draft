@@ -92,6 +92,13 @@ export const es = {
   'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
+  'error.member_not_found': 'Esta persona ya no está en esta empresa.',
+  'error.member_state':
+    'Esta persona cambió desde que se cargó la página. Recarga e inténtalo de nuevo.',
+  'error.last_settings_users_holder':
+    'Al menos una persona activa debe conservar el permiso de la página Usuarios y permisos.',
+  'error.active_elsewhere':
+    'Esta persona está activa en otra empresa, así que no se puede reactivar aquí.',
   'error.project_customer_unavailable':
     'Este cliente no está disponible. Elige otro cliente o deja Cliente vacío.',
   'error.password_too_short': 'Usa al menos 8 caracteres.',

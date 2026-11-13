@@ -131,6 +131,7 @@ const CREW: PermissionKey[] = ['view_projects', 'check_off_tasks', 'photo_notes'
 
 type Role = NonNullable<UserRow['role']>;
 const role = (name: string, preset: Role['preset'], defaultPermissions: PermissionKey[]): Role => ({
+  id: `role-${name}`,
   name,
   preset,
   defaultPermissions,

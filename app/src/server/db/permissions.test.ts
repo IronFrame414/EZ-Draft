@@ -235,8 +235,11 @@ describe('EZD-101 permission and role tables', () => {
     expect(after).toEqual(before);
 
     // A tenant delete cascades through the guard.
-    await sql`delete from public.membership where tenant_id = ${tenantId}::uuid`;
-    await sql`delete from public.tenant where id = ${tenantId}::uuid`;
+    // One transaction: EZD-106's last-holder guard passes a company delete when the tenant is gone at commit.
+    await sql.begin(async (tx) => {
+      await tx`delete from public.membership where tenant_id = ${tenantId}::uuid`;
+      await tx`delete from public.tenant where id = ${tenantId}::uuid`;
+    });
     const left = await sql`select 1 from public.role where tenant_id = ${tenantId}::uuid`;
     expect(left).toHaveLength(0);
   });
