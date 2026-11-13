@@ -10,7 +10,23 @@ const usd = (n) => `$${n.toFixed(2)}`;
 const mtok = (n) => `${(n / 1e6).toFixed(2)}M`;
 const pct = (a, b) => (b > 0 ? `${Math.round((a / b) * 100)}%` : '0%');
 
-export function summarize(rows) {
+// `claude -p --resume` reports the whole session's usage so far, so a resumed call's row repeats every earlier call in
+// that session. Turn each row into its own share by subtracting the previous row of the same session.
+export function deltas(rows) {
+  const last = {};
+  const keys = ['cost_usd', 'fable_usd', 'opus_usd', 'sonnet_usd', 'haiku_usd', 'input_tokens', 'output_tokens', 'cache_read_tokens', 'cache_write_tokens', 'fable_tokens'];
+  return rows.map((r) => {
+    const prev = r.session_id ? last[r.session_id] : null;
+    if (r.session_id) last[r.session_id] = r;
+    if (!prev) return r;
+    const d = { ...r };
+    for (const k of keys) d[k] = Math.max(0, (r[k] || 0) - (prev[k] || 0));
+    return d;
+  });
+}
+
+export function summarize(rawRows) {
+  const rows = deltas(rawRows);
   const tot = { cost: 0, fable: 0, opus: 0, fableTok: 0, tok: 0, secs: 0 };
   const byRole = {}; const byTicket = {};
   for (const r of rows) {
