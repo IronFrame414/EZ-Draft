@@ -53,7 +53,7 @@ describe('EZD-234 phase 10 schema step', () => {
   it('AC-4 one step: version 5 adds every phase 10 type; v5.json parses whole', () => {
     expect(CURRENT_SCHEMA_VERSION).toBe(5);
     for (const t of PHASE_10_TYPES) expect(OBJECT_TYPES).toContain(t);
-    expect(OBJECT_TYPES).toHaveLength(15);
+    expect(OBJECT_TYPES).toHaveLength(16); // EZD-233: plus group
     expect(new Set(V5.map((o) => o.type))).toEqual(new Set(OBJECT_TYPES));
     expect(parseModelDocument(structuredClone(v5)).ok).toBe(true);
   });

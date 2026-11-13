@@ -11,7 +11,10 @@
 // EZD-227 Build (AC-EZD-227-1, -3; Q-0704; 09q Blocking; vault/build/assumptions.md EZD-227): a Grab-bar blocking
 // section with its length and height to centre, both empty until typed (required, no default). A click on a wall
 // places it on the side clicked.
-import { useState } from 'react';
+// EZD-233 (R26 "Saved groups other than cabinets are placed from a Saved section in the Fixtures panel"; Q-0704 "EZD-233
+// adds that"; AC-EZD-233-2; vault/build/assumptions.md EZD-233): a Saved section lists the company's saved groups;
+// choosing one makes the next click place a copy of it.
+import { useEffect, useState } from 'react';
 import {
   FIXTURE_KINDS,
   UTILITY_KINDS,
@@ -34,12 +37,24 @@ import {
   utilityChoice,
   type FixtureChoice,
 } from '../../editor/tools/fixture-tool';
+import type { SavedGroupPayload } from '../../editor/edit/arrange-changes';
 import styles from './FixturesPanel.module.css';
+
+export type SavedGroupEntry = { id: string; name: string; data: SavedGroupPayload };
 
 export type FixturesPanelProps = {
   choice: FixtureChoice;
   onChoose: (choice: FixtureChoice) => void;
+  // Tests pass their own; the page reads /api/saved-groups.
+  loadSavedGroups?: () => Promise<SavedGroupEntry[]>;
 };
+
+export async function fetchSavedGroups(): Promise<SavedGroupEntry[]> {
+  const res = await fetch('/api/saved-groups', { cache: 'no-store' });
+  if (!res.ok) throw new Error(`saved_groups_${res.status}`);
+  const body = (await res.json()) as { groups: SavedGroupEntry[] };
+  return body.groups;
+}
 
 const kindKey = (kind: string) => `office.fixtures.kind.${kind}` as MessageKey;
 const utilityKey = (kind: UtilityKind) => `office.fixtures.utility.${kind}` as MessageKey;
@@ -76,7 +91,73 @@ function LengthBox({
   );
 }
 
-export function FixturesPanel({ choice, onChoose }: FixturesPanelProps) {
+type SavedState =
+  { kind: 'loading' } | { kind: 'failed' } | { kind: 'ready'; groups: SavedGroupEntry[] };
+
+function SavedSection({
+  choice,
+  onChoose,
+  load,
+}: {
+  choice: FixtureChoice;
+  onChoose: (choice: FixtureChoice) => void;
+  load: () => Promise<SavedGroupEntry[]>;
+}) {
+  const t = useT();
+  const [state, setState] = useState<SavedState>({ kind: 'loading' });
+  useEffect(() => {
+    let live = true;
+    load().then(
+      (groups) => {
+        if (live) setState({ kind: 'ready', groups });
+      },
+      () => {
+        if (live) setState({ kind: 'failed' });
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [load]);
+  return (
+    <div className={styles.section} data-testid="saved-groups-section">
+      <h3 className={styles.title}>{t('office.saved_groups.section')}</h3>
+      {state.kind === 'failed' ? (
+        <p className={styles.hint} data-testid="saved-groups-failed">
+          {t('office.saved_groups.load_failed')}
+        </p>
+      ) : state.kind === 'ready' && state.groups.length === 0 ? (
+        <p className={styles.hint} data-testid="saved-groups-empty">
+          {t('office.saved_groups.empty')}
+        </p>
+      ) : state.kind === 'ready' ? (
+        <div className={styles.kinds}>
+          {state.groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              className={`${styles.kind} ${touch.hitArea}`}
+              aria-pressed={choice.type === 'saved_group' && choice.id === g.id}
+              data-testid="saved-group"
+              data-group={g.id}
+              onClick={() =>
+                onChoose({ type: 'saved_group', id: g.id, name: g.name, payload: g.data })
+              }
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function FixturesPanel({
+  choice,
+  onChoose,
+  loadSavedGroups = fetchSavedGroups,
+}: FixturesPanelProps) {
   const t = useT();
   return (
     <section
@@ -209,7 +290,7 @@ export function FixturesPanel({ choice, onChoose }: FixturesPanelProps) {
             </select>
           </label>
         </div>
-      ) : choice.kind === 'electric' ? (
+      ) : choice.type === 'utility' && choice.kind === 'electric' ? (
         <div className={styles.section}>
           <div className={styles.row}>
             <label className={styles.field}>
@@ -246,6 +327,7 @@ export function FixturesPanel({ choice, onChoose }: FixturesPanelProps) {
           </div>
         </div>
       ) : null}
+      <SavedSection choice={choice} onChoose={onChoose} load={loadSavedGroups} />
       <p className={styles.hint}>{t('office.fixtures.hint')}</p>
     </section>
   );

@@ -987,6 +987,23 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     lastContext = NO_CONTEXT;
     const place = event.pointerType === 'touch' ? event.kind === 'up' : event.kind === 'down';
     const mod = fixturesModule.peek();
+    // EZD-233 (AC-EZD-233-2): a saved group places a copy centred on the snapped point, as one edit, and selects it.
+    if (place && mod !== undefined && ui.fixtureChoice?.type === 'saved_group') {
+      const { objects, numberHighs } = store.getState();
+      const r = mod.placeSavedGroup(
+        { objects, level, ids: [], newId, highs: numberHighs },
+        ui.fixtureChoice.payload,
+        result.point,
+      );
+      if (!r.ok) deps.onMessage(r.messageKey);
+      else if (r.changes.length > 0) {
+        utilitiesSeq += 1;
+        store.applyEdit(r.changes);
+        setUi({ utilities: null });
+      }
+      emitFrame();
+      return;
+    }
     if (place && mod !== undefined && ui.fixtureChoice !== null) {
       // EZD-227: blocking takes the raw point, so the side of the wall it was clicked on is kept.
       const isBlocking = ui.fixtureChoice.type === 'blocking';

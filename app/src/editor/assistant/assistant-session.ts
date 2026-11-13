@@ -6,7 +6,7 @@ import type { AssistantModel } from '../../lib/assistant/cost';
 import { ASSISTANT_MODELS, sessionTotalMicroUsd } from '../../lib/assistant/cost';
 import type { OutboxSync } from '../../lib/outbox/outbox-sync';
 import type { MessageKey } from '../../server/messages/catalog';
-import { postAssistantPrompt, readAiKeyState } from './assistant-client';
+import type { AssistantCallResult } from './assistant-client';
 import {
   ASSISTANT_SELECTED_MAX,
   canSendPrompt,
@@ -15,7 +15,32 @@ import {
   type AssistantEntry,
   type AssistantUi,
 } from './assistant-ui';
-import { createPhotoWorkerShrinker, preparePhoto, type PhotoShrinker } from './photo-prepare';
+import { lazyModule } from '../../lib/lazy/lazy-module';
+import type { createPhotoWorkerShrinker, PhotoPrepareResult, PhotoShrinker } from './photo-prepare';
+
+// EZD-233 (11 Budgets editor route): the photo check and shrink load when a photo is first attached; a failed
+// download reads as an unreadable photo, and the next attach tries again.
+const photoPrepareModule = lazyModule(() => import('../../lazy/photo-prepare'));
+// EZD-233: the two server calls load on first use; a failed download reads as a failed call.
+const assistantClientModule = lazyModule(() => import('../../lazy/assistant-client'));
+const readAiKeyState: typeof import('./assistant-client').readAiKeyState = (o) =>
+  assistantClientModule.load().then(
+    (m) => m.readAiKeyState(o),
+    () => 'failed' as const,
+  );
+const postAssistantPrompt: typeof import('./assistant-client').postAssistantPrompt = (...args) =>
+  assistantClientModule.load().then(
+    (m) => m.postAssistantPrompt(...args),
+    (): AssistantCallResult => ({
+      kind: 'failure',
+      failure: {
+        kind: 'failed',
+        messageKey: 'office.assistant.send_failed',
+        profileLink: false,
+        costMicroUsd: null,
+      },
+    }),
+  );
 
 // S1
 export type AssistantSessionDeps = {
@@ -82,7 +107,9 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
   let workerShrinker: ReturnType<typeof createPhotoWorkerShrinker> | null = null;
   const shrinkPhoto: PhotoShrinker = (file, kind) => {
     if (deps.shrinkPhoto) return deps.shrinkPhoto(file, kind);
-    workerShrinker ??= createPhotoWorkerShrinker();
+    const mod = photoPrepareModule.peek();
+    if (mod === undefined) return Promise.resolve({ ok: false });
+    workerShrinker ??= mod.createPhotoWorkerShrinker();
     return workerShrinker.shrink(file, kind);
   };
 
@@ -117,7 +144,10 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     photoGen += 1;
     const gen = photoGen;
     set({ photoPreparing: true, photoProblem: null });
-    const result = await preparePhoto(file, shrinkPhoto);
+    const result: PhotoPrepareResult = await photoPrepareModule.load().then(
+      (m) => m.preparePhoto(file, shrinkPhoto),
+      (): PhotoPrepareResult => ({ ok: false, problem: 'unreadable' }),
+    );
     if (disposed || gen !== photoGen) return;
     if (!result.ok) {
       set({ photoPreparing: false, photoProblem: result.problem });

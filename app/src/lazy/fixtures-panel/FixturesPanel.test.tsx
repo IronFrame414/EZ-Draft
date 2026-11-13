@@ -24,7 +24,7 @@ const panel = (choice: FixtureChoice) =>
   html(<FixturesPanel choice={choice} onChoose={() => {}} />);
 
 describe('EZD-234 Fixtures panel', () => {
-  it('lists the 14 fixture kinds and 4 utility kinds, the chosen one pressed, and no Saved section', () => {
+  it('lists the 14 fixture kinds and 4 utility kinds, the chosen one pressed, and the Saved section EZD-233 adds', () => {
     const s = panel(fixtureChoice('toilet'));
     const names = [
       'Toilet',
@@ -48,7 +48,8 @@ describe('EZD-234 Fixtures panel', () => {
     ];
     for (const n of names) expect(s, n).toContain(`>${n}</button>`);
     expect(s.match(/<button/g)).toHaveLength(20); // EZD-227: plus Grab-bar blocking. EZD-226: plus the Tile shower button
-    expect(s).not.toMatch(/saved/i);
+    // EZD-233 (Q-0704 "EZD-233 adds that"; R26): the Saved section, still loading in static markup.
+    expect(s).toContain('data-testid="saved-groups-section"');
     expect(s).toContain('aria-pressed="true" data-testid="fixture-kind-toilet"');
     expect(s.match(/aria-pressed="true"/g)).toHaveLength(1);
   });

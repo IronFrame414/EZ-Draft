@@ -10,6 +10,9 @@
 // goes to `onSpaceTap`.
 // EZD-223 (S03 Sketch, Pencil only): a touch that lands while a pen or mouse stroke is delivered (a palm on the
 // screen) is not delivered, so the stroke keeps its own move and up.
+// EZD-233 (S03 "Right-click / long-press: Context menu"; "right-drag: Pan"): a right press released within
+// CONTEXT_MENU_PX of where it went down, with no pan between, goes to `onContextMenu`; so does one touch held still
+// for LONG_PRESS_MS, which cancels its delivered press first, so the touch neither clicks nor drags.
 import type { Point } from '@ezdraft/geometry';
 import { panBy, regionToModel, wheelZoomFactor, zoomAt, type PlanView } from './view';
 
@@ -39,7 +42,12 @@ export type PlanInputOptions = {
   getZoom100(): number;
   onCursor?(screen: Point | null): void;
   onSpaceTap?(): void;
+  // True when a menu opened; a long press then cancels its delivered press.
+  onContextMenu?(screen: Point, client: Point): boolean;
 };
+
+export const CONTEXT_MENU_PX = 10;
+export const LONG_PRESS_MS = 500;
 export type PlanInput = { getCursor(): Point | null; dispose(): void };
 
 type Pointerish = {
@@ -80,6 +88,19 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
   const touches = new Map<number, Point>();
   let delivered: { id: number; at: Point } | null = null;
   let lastDownDelivered = false;
+  // EZD-233: the right press that may open the menu, and the touch that may become a long press.
+  let rightPress: { id: number; at: Point; moved: boolean } | null = null;
+  let longPress: {
+    id: number;
+    at: Point;
+    last: Point;
+    timer: ReturnType<typeof setTimeout>;
+  } | null = null;
+  const stopLongPress = () => {
+    if (longPress === null) return;
+    clearTimeout(longPress.timer);
+    longPress = null;
+  };
 
   const toRegion = (e: Pointerish): Point => ({
     x: e.clientX - rect.left,
@@ -118,6 +139,24 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     if (isTouch(e)) {
       if (touches.size >= 2) return;
       touches.set(e.pointerId, p);
+      stopLongPress();
+      if (touches.size === 1 && o.onContextMenu !== undefined) {
+        const id = e.pointerId;
+        longPress = {
+          id,
+          at: p,
+          last: p,
+          timer: setTimeout(() => {
+            const at = longPress?.last ?? p;
+            longPress = null;
+            if (o.onContextMenu?.(at, { x: at.x + rect.left, y: at.y + rect.top }) !== true) return;
+            if (delivered !== null && delivered.id === id) {
+              deliver('cancel', delivered.at, e);
+              delivered = null;
+            }
+          }, LONG_PRESS_MS),
+        };
+      }
       const penHeld = delivered !== null && !touches.has(delivered.id);
       if (touches.size === 1 && !penHeld) {
         if (deliver('down', p, e)) {
@@ -131,6 +170,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
       return;
     }
     if (e.button === 2 || (e.button === 0 && spaceHeld)) {
+      rightPress = e.button === 2 ? { id: e.pointerId, at: p, moved: false } : null;
       spaceCandidate = false;
       o.onHover?.(null);
       pans.set(e.pointerId, p);
@@ -150,6 +190,10 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     if (isTouch(e)) {
       const last = touches.get(e.pointerId);
       if (last === undefined) return;
+      if (longPress !== null && longPress.id === e.pointerId) {
+        if (touches.size > 1 || distance(p, longPress.at) > CONTEXT_MENU_PX) stopLongPress();
+        else longPress.last = p;
+      }
       if (touches.size === 2) {
         const [a, b] = [...touches.values()];
         const beforeCentre = centroid(a, b);
@@ -176,6 +220,12 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
     }
     const last = pans.get(e.pointerId);
     if (last !== undefined) {
+      if (
+        rightPress !== null &&
+        rightPress.id === e.pointerId &&
+        distance(p, rightPress.at) > CONTEXT_MENU_PX
+      )
+        rightPress.moved = true;
       pans.set(e.pointerId, p);
       o.setView(panBy(o.getView(), p.x - last.x, p.y - last.y));
       return;
@@ -187,6 +237,16 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
 
   const end = (kind: 'up' | 'cancel') => (event: Event) => {
     const e = event as unknown as Pointerish;
+    if (longPress !== null && longPress.id === e.pointerId) stopLongPress();
+    if (rightPress !== null && rightPress.id === e.pointerId) {
+      const r = rightPress;
+      rightPress = null;
+      const at = toRegion(e);
+      if (kind === 'up' && !r.moved && distance(at, r.at) <= CONTEXT_MENU_PX) {
+        pans.delete(e.pointerId);
+        o.onContextMenu?.(at, { x: e.clientX, y: e.clientY });
+      }
+    }
     touches.delete(e.pointerId);
     pans.delete(e.pointerId);
     if (delivered !== null && delivered.id === e.pointerId) {
@@ -274,6 +334,7 @@ export function createPlanInput(o: PlanInputOptions): PlanInput {
   return {
     getCursor: () => cursor,
     dispose() {
+      stopLongPress();
       for (const [type, fn] of surfaceListeners) surface.removeEventListener(type, fn);
       surface.removeEventListener('wheel', onWheel);
       for (const [type, fn] of keyListeners) keys.removeEventListener(type, fn);

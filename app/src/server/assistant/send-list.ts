@@ -227,6 +227,7 @@ export const PROJECTORS: {
   access: notSent,
   soffit: notSent,
   chase: notSent,
+  group: notSent, // EZD-233: a group holds only member ids; nothing to send until a ticket decides
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

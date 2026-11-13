@@ -6,6 +6,7 @@
 // places a `tile_shower` centred on the click.
 // EZD-227 Build (AC-EZD-227-1, -3; Q-0704; 09q Blocking): grab-bar blocking is a fourth choice. Its length and height to
 // centre start empty (no default) and a click places it on the nearest wall, on the side clicked (placeBlocking).
+// EZD-233: a saved group is a fifth choice, placed by the drawing controller through `placeSavedGroup`.
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_PAN_SLOPE_IN_PER_FT,
@@ -16,6 +17,7 @@ import {
   type Point,
   type UtilityKind,
 } from '@ezdraft/geometry';
+import type { SavedGroupPayload } from '../edit/arrange-changes';
 import type { Change } from '../model/patches';
 import {
   FIXTURE_DEFAULT_SIZES,
@@ -43,7 +45,9 @@ export type FixtureChoice =
       drain: 'center' | 'linear';
       panSlope: number;
     }
-  | { type: 'blocking'; length: number | null; heightToCenter: number | null };
+  | { type: 'blocking'; length: number | null; heightToCenter: number | null }
+  // EZD-233 (R26; AC-EZD-233-2): a saved group from the panel's Saved section; a click places a copy of it.
+  | { type: 'saved_group'; id: string; name: string; payload: SavedGroupPayload };
 
 // Grab-bar blocking starts with its length and height to centre empty: both are required and have no default
 // (Q-0704 09-calculations; 09q Blocking row 3).
@@ -97,6 +101,7 @@ export function placeFixture(
   ctx: { level: string; objects: readonly ModelObject[]; newId: () => string; captureIn?: number },
 ): Change | null {
   if (choice.type === 'blocking') return placeBlockingChange(choice, at, ctx);
+  if (choice.type === 'saved_group') return null;
   const id = ctx.newId();
   const type =
     choice.type === 'fixture'

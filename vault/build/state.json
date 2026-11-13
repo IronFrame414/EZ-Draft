@@ -338,7 +338,8 @@
     "EZD-226",
     "EZD-227",
     "EZD-131",
-    "EZD-223"
+    "EZD-223",
+    "EZD-231"
   ],
   "seeded_done": 324,
   "merged": [
@@ -438,6 +439,13 @@
       "title": "Sketch tool",
       "commit": "b90055e0",
       "ts": "2026-11-13T21:01:09Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-231",
+      "title": "Measure tool (plan)",
+      "commit": "b725918f",
+      "ts": "2026-11-13T21:57:36Z",
       "kind": "ticket"
     }
   ],

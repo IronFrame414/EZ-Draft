@@ -338,6 +338,39 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
+  {
+    file: `${API}saved-groups/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/saved-groups/route'),
+    request: get('/api/saved-groups'),
+    expectStatus: 200,
+    note: 'EZD-233: the company saved groups with their objects; 200 { groups } (no money)',
+  },
+  {
+    file: `${API}saved-groups/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/saved-groups/route'),
+    request: sendJson('POST', '/api/saved-groups', {
+      name: 'Vanity set',
+      data: {
+        items: [
+          {
+            id: randomUUID(),
+            type: 'fixture',
+            schemaVersion: 5,
+            data: {
+              geometry: { center: { x: 10, y: 50 }, axis: { x: 1, y: 0 } },
+              status: 'new',
+              level: randomUUID(),
+              attributes: { kind: 'lavatory', width: 20, depth: 18 },
+            },
+          },
+        ],
+      },
+    }),
+    expectStatus: 201,
+  },
   {
     file: `${API}settings/system-status/route.ts`,
     method: 'GET',

@@ -3,6 +3,7 @@
 // of `model_object` rows or `model_version.model_json` parses through here.
 // EZD-234 Build (Q-0704 03-data-model rows 1-3; AC-EZD-234-3, -4): the phase 10 types, and `fileRefs` for every
 // type so the save check reads every source_file id a document holds.
+// EZD-233: the `group` type (two or more member ids on one level); a new type, so the version stays.
 import { z } from 'zod';
 import { blockingDataSchema, type BlockingData } from './blocking';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
@@ -19,6 +20,7 @@ import {
   type SoffitData,
 } from './existing-details';
 import { fixtureDataSchema, type FixtureData } from './fixture';
+import { groupDataSchema, type GroupData } from './group';
 import { pinDataSchema, type PinData } from './pin';
 import { tileShowerDataSchema, type TileShowerData } from './tile-shower';
 import { utilityPointDataSchema, type UtilityPointData } from './utility-point';
@@ -34,6 +36,7 @@ export * from './engineer-note';
 export * from './existing-details';
 export * from './fixture';
 export * from './floor';
+export * from './group';
 export * from './pin';
 export * from './tile-shower';
 export * from './utility-point';
@@ -58,6 +61,7 @@ export const OBJECT_TYPES = [
   'access',
   'soffit',
   'chase',
+  'group',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -79,6 +83,7 @@ type DataByType = {
   access: AccessData;
   soffit: SoffitData;
   chase: ChaseData;
+  group: GroupData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -113,6 +118,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   access: accessDataSchema,
   soffit: soffitDataSchema,
   chase: chaseDataSchema,
+  group: groupDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -143,6 +149,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   access: none,
   soffit: none,
   chase: none,
+  group: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

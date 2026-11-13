@@ -10,3 +10,5 @@ export {
 } from '../../editor/tools/fixture-tool';
 export { FixturesPanel, UtilitiesToMove } from './FixturesPanel';
 export type { FixturesPanelProps, UtilitiesToMoveProps } from './FixturesPanel';
+// EZD-233 (R26; AC-EZD-233-2): placing a saved group from the Saved section.
+export { placeSavedGroup } from '../../editor/edit/arrange-changes';

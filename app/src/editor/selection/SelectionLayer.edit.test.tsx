@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MessagesProvider } from '../../lib/messages';
 import { catalogFor } from '../../server/messages/catalog';
 import type { EditController, EditUi } from '../edit/edit-controller';
-import { EditBar, SelectionLayer } from './SelectionLayer';
+import { EditBar } from './EditBar';
+import { SelectionLayer } from './SelectionLayer';
 import type { SelectionController } from './selection-controller';
 
 const hooks = vi.hoisted(() => ({
