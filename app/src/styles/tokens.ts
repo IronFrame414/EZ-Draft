@@ -82,4 +82,6 @@ export const TOKENS: readonly {
   { name: '--ez-amber-alert-border', value: 'oklch(0.87 0.07 75)', group: 'color' },
   { name: '--ez-shadow-picker', value: '0 12px 32px rgba(10,15,30,.16)', group: 'shadow' },
   { name: '--ez-radius-4', value: '4px', group: 'radius' },
+  // S03c photo error box; EZD-5603b
+  { name: '--ez-red-alert-border', value: 'oklch(0.85 0.06 28)', group: 'color' },
 ];

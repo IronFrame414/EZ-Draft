@@ -26,6 +26,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-5603a step 1: arrow_upward, expand_less (check and key were already listed).
 const EXPECTED_ICONS = [
   'add',
+  'add_photo_alternate',
   'ads_click',
   'arrow_back',
   'arrow_forward',

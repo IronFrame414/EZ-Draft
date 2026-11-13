@@ -34,12 +34,15 @@ export async function POST(
       return fail(
         400,
         body.code,
-        body.code === 'photo_not_supported' ? 'error.invalid_input' : `error.${body.code}`,
+        body.code === 'photo_unreadable'
+          ? 'error.assistant_photo_unreadable'
+          : `error.${body.code}`,
       );
     }
 
     const answer = await runAssistantPrompt(createSessionClient(), p.ctx, id, body.input, {
       signal: request.signal,
+      photo: body.photo,
     });
     return Response.json(answer.body, { status: answer.status, headers });
   } catch (e) {

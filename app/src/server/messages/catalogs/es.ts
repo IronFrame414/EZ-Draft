@@ -136,6 +136,8 @@ export const es = {
     'Este dibujo es demasiado grande para enviarlo al asistente. No cambió nada en el dibujo.',
   'error.assistant_invalid_reply':
     'No se pudo leer la respuesta del asistente. No cambió nada en el dibujo. Vuelve a enviar.',
+  'error.assistant_photo_unreadable':
+    'EZ Draft no pudo leer esa foto, así que no se envió nada. Adjunta otra.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

@@ -17,9 +17,12 @@ import type { AssistantSession } from './assistant-session';
 import {
   ASSISTANT_PROMPT_MAX_CHARS,
   canSendPrompt,
+  photoControlDisabled,
+  photoRemoveDisabled,
   type AssistantEntry,
   type AssistantUi,
 } from './assistant-ui';
+import { PhotoButton, PhotoNote, PhotoProblemBox, PhotoThumb } from './AssistantPhoto';
 import { ModelPicker } from './ModelPicker';
 import styles from './AssistantPanel.module.css';
 
@@ -65,6 +68,8 @@ export function AssistantPanel({ session }: { session: AssistantSession }) {
         onSend={() => void session.send()}
         onOpenProfile={session.openProfile}
         onRetryKey={() => void session.refreshKey()}
+        onAttachPhoto={(file) => void session.attachPhoto(file)}
+        onRemovePhoto={session.removePhoto}
       />
       {ui.profileOpen ? <ProfileLoader onClose={session.closeProfile} /> : null}
     </>
@@ -79,6 +84,9 @@ export type AssistantPanelViewProps = {
   onSend(): void;
   onOpenProfile(): void;
   onRetryKey(): void;
+  // EZD-5603b V4
+  onAttachPhoto(file: File): void;
+  onRemovePhoto(): void;
 };
 
 function Entry({ entry, onOpenProfile }: { entry: AssistantEntry; onOpenProfile(): void }) {
@@ -90,6 +98,15 @@ function Entry({ entry, onOpenProfile }: { entry: AssistantEntry; onOpenProfile(
   );
   return (
     <div className={styles.entry}>
+      {entry.photoUrl !== undefined ? (
+        // eslint-disable-next-line @next/next/no-img-element -- a blob: URL of the sent photo, made in the browser
+        <img
+          className={styles.bubblePhoto}
+          src={entry.photoUrl}
+          alt={t('office.assistant.photo_alt')}
+          data-testid="assistant-bubble-photo"
+        />
+      ) : null}
       <div className={styles.bubble} data-testid="assistant-user-bubble">
         {entry.prompt}
       </div>
@@ -142,6 +159,8 @@ export function AssistantPanelView({
   onSend,
   onOpenProfile,
   onRetryKey,
+  onAttachPhoto,
+  onRemovePhoto,
 }: AssistantPanelViewProps) {
   const t = useT();
   const conversationRef = useRef<HTMLDivElement>(null);
@@ -218,20 +237,30 @@ export function AssistantPanelView({
         {conversation}
       </div>
       <div className={noKey ? `${styles.promptArea} ${styles.promptOff}` : styles.promptArea}>
-        <label className={styles.promptLabel}>
-          <span className={styles.srOnly}>{t('office.assistant.prompt_label')}</span>
-          <textarea
-            className={styles.textarea}
-            rows={3}
-            maxLength={ASSISTANT_PROMPT_MAX_CHARS}
-            placeholder={t('office.assistant.placeholder')}
-            value={ui.draft}
-            disabled={noKey}
-            data-testid="assistant-prompt"
-            onChange={(e) => onDraft(e.target.value)}
+        {ui.photoProblem !== null ? <PhotoProblemBox problem={ui.photoProblem} /> : null}
+        <div className={styles.composer}>
+          <PhotoThumb
+            photo={ui.photo}
+            preparing={ui.photoPreparing}
+            removeDisabled={photoRemoveDisabled(ui)}
+            onRemove={onRemovePhoto}
           />
-        </label>
+          <label className={styles.promptLabel}>
+            <span className={styles.srOnly}>{t('office.assistant.prompt_label')}</span>
+            <textarea
+              className={styles.textarea}
+              rows={3}
+              maxLength={ASSISTANT_PROMPT_MAX_CHARS}
+              placeholder={t('office.assistant.placeholder')}
+              value={ui.draft}
+              disabled={noKey}
+              data-testid="assistant-prompt"
+              onChange={(e) => onDraft(e.target.value)}
+            />
+          </label>
+        </div>
         <div className={styles.promptRow}>
+          <PhotoButton disabled={photoControlDisabled(ui)} onPick={onAttachPhoto} />
           <ModelPicker model={ui.model} disabled={noKey} onChange={onModel} />
           <span className={styles.spacer} />
           <button
@@ -245,6 +274,7 @@ export function AssistantPanelView({
             <Icon name="arrow_upward" size={18} />
           </button>
         </div>
+        {ui.keyState === 'present' ? <PhotoNote /> : null}
       </div>
     </div>
   );

@@ -125,6 +125,8 @@ export const en = {
     'This drawing is too large to send to the assistant. Nothing on the drawing changed.',
   'error.assistant_invalid_reply':
     "The assistant's answer couldn't be read. Nothing on the drawing changed. Send again.",
+  'error.assistant_photo_unreadable':
+    "EZ Draft couldn't read that photo, so nothing was sent. Attach another one.",
   'field.device.editor_on_phone':
     'Editing is done on an iPad or a computer. Open this project there.',
   'office.header.wordmark_ez': 'ez',
@@ -506,6 +508,18 @@ export const en = {
   'office.assistant.waiting': 'Waiting for the answer…',
   'office.assistant.send_failed': "Couldn't send your prompt. It's still in the box. Send again.",
   'office.assistant.key_load_failed': "Couldn't check your Anthropic key.",
+  'office.assistant.photo': 'Photo',
+  'office.assistant.photo_attach': 'Attach a photo',
+  'office.assistant.photo_remove': 'Remove photo',
+  'office.assistant.photo_note':
+    'A photo goes to Anthropic only with the prompt you attach it to. Client name, address and prices are never sent.',
+  'office.assistant.photo_wrong_type':
+    "EZ Draft can't use that file. Attach a JPG, PNG, HEIC or WebP photo.",
+  'office.assistant.photo_too_big': 'That photo is over 20 MB. Attach a smaller one.',
+  'office.assistant.photo_unreadable': "EZ Draft couldn't read that photo. Attach another one.",
+  'office.assistant.photo_preparing': 'Preparing the photo…',
+  'office.assistant.photo_alt': 'Attached photo',
+  'office.assistant.photo_size': '{size} MB',
   'office.selection.bar': 'Edit',
   'office.selection.select_more': 'Select more',
   'office.selection.select_all': 'Select all',

@@ -46,15 +46,17 @@ function successFrom(body: unknown): AssistantSuccess | null {
   };
 }
 
-// C2: POST /api/projects/{id}/assistant with one FormData entry `request`.
+// C2: POST /api/projects/{id}/assistant with one FormData entry `request`, then (EZD-5603b C1) the optional
+// shrunk photo as `photo`.
 export async function postAssistantPrompt(
   projectId: string,
   input: AssistantInput,
-  o: { signal: AbortSignal; fetchImpl?: typeof fetch },
+  o: { signal: AbortSignal; fetchImpl?: typeof fetch; photo?: Blob | null },
 ): Promise<AssistantCallResult> {
   const fetchImpl = o.fetchImpl ?? globalThis.fetch;
   const form = new FormData();
   form.append('request', JSON.stringify(input));
+  if (o.photo) form.append('photo', new File([o.photo], 'photo.jpg', { type: 'image/jpeg' }));
   let response: Response;
   try {
     response = await fetchImpl(`/api/projects/${projectId}/assistant`, {
