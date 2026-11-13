@@ -54,7 +54,6 @@ import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
-import { AssistantPanel } from './assistant/AssistantPanel';
 import { createAssistantSession, type AssistantSession } from './assistant/assistant-session';
 import { assistantShown } from './assistant/assistant-ui';
 import {
@@ -485,7 +484,7 @@ export function ProjectEditor({
           canvas={canvas}
           inspector={
             openAssistant !== null ? (
-              <AssistantPanel session={openAssistant} />
+              <LazyAssistantPanel session={openAssistant} />
             ) : (
               (inspector ?? undefined)
             )
@@ -516,6 +515,28 @@ export function ProjectEditor({
 }
 
 const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+
+// EZD-227 Build (11 Budgets; vault/build/assumptions.md EZD-227): the assistant panel loads when first opened, as the
+// conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
+const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
+
+function LazyAssistantPanel(props: { session: AssistantSession }) {
+  const [mod, setMod] = useState(() => assistantPanelModule.peek());
+  useEffect(() => {
+    if (mod) return;
+    let live = true;
+    assistantPanelModule.load().then(
+      (m) => {
+        if (live) setMod(m);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [mod]);
+  return mod ? <mod.AssistantPanel {...props} /> : null;
+}
 
 // Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.
 function LazyConflictPanel(props: ConflictPanelProps) {

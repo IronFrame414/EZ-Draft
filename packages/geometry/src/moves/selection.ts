@@ -6,6 +6,9 @@
 // utility points stay put unless they are selected too.
 // EZD-226 Build (AC-EZD-226-3): a selected tile shower moves its footprint; its drain, niches and glass are in its
 // own frame, so they move with it.
+// EZD-227 Build (AC-EZD-227-1): blocking moves as an opening does: with its selected wall by the delta, alone along
+// its wall, or by the delta when it is on no wall.
+import { placeBlockingOnWall, type BlockingObject } from '../fixtures/blocking';
 import type { FixtureObject, UtilityPointObject } from '../fixtures/fixtures';
 import { moveTileShower, type TileShowerObject } from '../fixtures/tile-shower';
 import type { OpeningObject } from '../openings/opening';
@@ -28,6 +31,8 @@ const lower = (id: string) => id.toLowerCase();
 const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
 const isOpening = (o: ModelObject): o is OpeningObject => o.type === 'opening';
+
+const isBlocking = (o: ModelObject): o is BlockingObject => o.type === 'blocking';
 
 type Loose = FixtureObject | UtilityPointObject | TileShowerObject;
 
@@ -70,13 +75,16 @@ export function moveSelection(
   const wallIds: string[] = [];
   const openingIds = new Set<string>();
   const looseIds = new Set<string>();
+  const blockingIds = new Set<string>();
   for (const id of ids) {
     const o = objects.find(
-      (x) => (isWall(x) || isOpening(x) || isLoose(x)) && lower(x.id) === lower(id),
+      (x) =>
+        (isWall(x) || isOpening(x) || isLoose(x) || isBlocking(x)) && lower(x.id) === lower(id),
     );
     if (o === undefined) return { ok: false, reason: 'not_found', id };
     if (isWall(o)) wallIds.push(o.id);
     else if (isLoose(o)) looseIds.add(lower(o.id));
+    else if (isBlocking(o)) blockingIds.add(lower(o.id));
     else openingIds.add(lower(o.id));
   }
   // (3), (4) The delta.
@@ -115,7 +123,32 @@ export function moveSelection(
       data: { ...o.data, geometry: { ...o.data.geometry, center: { x: next.x, y: next.y } } },
     });
   }
-  // (7) Walls first, then openings, then fixtures and utility points, each in model order.
+  // (6b) The selected blocking, by the same rule.
+  const blockings: BlockingObject[] = [];
+  for (const o of objects) {
+    if (!isBlocking(o) || !blockingIds.has(lower(o.id))) continue;
+    const center = o.data.geometry.center;
+    const target = { x: center.x + delta.x, y: center.y + delta.y };
+    const hostId = o.data.geometry.hostWallId;
+    const hostAfter =
+      hostId === null
+        ? undefined
+        : after.find((x): x is WallObject => isWall(x) && lower(x.id) === lower(hostId));
+    let next: Point | null = target;
+    if (hostId !== null && !selectedWalls.has(lower(hostId)) && hostAfter !== undefined) {
+      const c = placeBlockingOnWall(o, hostAfter, after, target);
+      next = c === null || pointsEqual(c, center) ? null : c;
+    }
+    if (next === null) continue;
+    blockings.push({
+      ...o,
+      data: { ...o.data, geometry: { ...o.data.geometry, center: { x: next.x, y: next.y } } },
+    });
+  }
+  // (7) Walls first, then openings, then blocking, then fixtures and utility points, each in model order.
   const loose = objects.filter((o) => isLoose(o) && looseIds.has(lower(o.id))) as Loose[];
-  return { ok: true, changed: [...walls, ...openings, ...loose.map((o) => moveLoose(o, delta))] };
+  return {
+    ok: true,
+    changed: [...walls, ...openings, ...blockings, ...loose.map((o) => moveLoose(o, delta))],
+  };
 }

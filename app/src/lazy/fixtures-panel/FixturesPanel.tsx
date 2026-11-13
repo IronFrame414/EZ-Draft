@@ -8,6 +8,9 @@
 // -2; vault/build/assumptions.md EZD-226): a Custom tile showers section with its size, front, curb, niches (count and
 // size), bench, glass (fixed panel or door with swing), drain and pan slope. Curb, niches, bench and glass are
 // optional.
+// EZD-227 Build (AC-EZD-227-1, -3; Q-0704; 09q Blocking; vault/build/assumptions.md EZD-227): a Grab-bar blocking
+// section with its length and height to centre, both empty until typed (required, no default). A click on a wall
+// places it on the side clicked.
 import { useState } from 'react';
 import {
   FIXTURE_KINDS,
@@ -23,6 +26,7 @@ import touch from '../../styles/touch.module.css';
 import type { UtilitiesMoved } from '../../editor/tools/drawing-controller';
 import { FIXTURE_FACINGS, type FixtureFacing } from '../../editor/tools/fixture-geometry';
 import {
+  blockingChoice,
   fixtureChoice,
   SHOWER_BENCH_START,
   SHOWER_GLASS_LENGTH_START,
@@ -135,7 +139,41 @@ export function FixturesPanel({ choice, onChoose }: FixturesPanelProps) {
           </button>
         </div>
       </div>
-      {choice.type === 'tile_shower' ? (
+      <div className={styles.section}>
+        <h3 className={styles.title}>{t('office.fixtures.section_blocking')}</h3>
+        <div className={styles.kinds}>
+          <button
+            type="button"
+            className={`${styles.kind} ${touch.hitArea}`}
+            aria-pressed={choice.type === 'blocking'}
+            data-testid="fixture-kind-blocking"
+            onClick={() => onChoose(blockingChoice())}
+          >
+            {t('office.fixtures.blocking')}
+          </button>
+        </div>
+      </div>
+      {choice.type === 'blocking' ? (
+        <div className={styles.section}>
+          <div className={styles.row}>
+            <LengthBox
+              key="blocking-length"
+              label={t('office.fixtures.blocking_length')}
+              value={choice.length}
+              testId="blocking-length"
+              onValue={(v) => onChoose({ ...choice, length: v })}
+            />
+            <LengthBox
+              key="blocking-height"
+              label={t('office.fixtures.blocking_height')}
+              value={choice.heightToCenter}
+              testId="blocking-height"
+              onValue={(v) => onChoose({ ...choice, heightToCenter: v })}
+            />
+          </div>
+          <p className={styles.hint}>{t('office.fixtures.blocking_hint')}</p>
+        </div>
+      ) : choice.type === 'tile_shower' ? (
         <TileShowerFields choice={choice} onChoose={onChoose} />
       ) : choice.type === 'fixture' ? (
         <div className={styles.section}>

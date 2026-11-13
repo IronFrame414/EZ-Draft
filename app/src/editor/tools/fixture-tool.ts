@@ -4,6 +4,8 @@
 // status new objects take today (EZD-214 brings the view's status). Pure.
 // EZD-226 Build (AC-EZD-226-1, -2; vault/build/assumptions.md EZD-226): a custom tile shower is a third choice; it
 // places a `tile_shower` centred on the click.
+// EZD-227 Build (AC-EZD-227-1, -3; Q-0704; 09q Blocking): grab-bar blocking is a fourth choice. Its length and height to
+// centre start empty (no default) and a click places it on the nearest wall, on the side clicked (placeBlocking).
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_PAN_SLOPE_IN_PER_FT,
@@ -20,6 +22,7 @@ import {
   fixtureAt,
   newFixtureData,
   newTileShowerData,
+  placeBlocking,
   newUtilityPointData,
   type FixtureFacing,
 } from './fixture-geometry';
@@ -39,7 +42,14 @@ export type FixtureChoice =
       glass: { type: 'fixed' | 'door'; length: number; swing: 'in' | 'out' } | null;
       drain: 'center' | 'linear';
       panSlope: number;
-    };
+    }
+  | { type: 'blocking'; length: number | null; heightToCenter: number | null };
+
+// Grab-bar blocking starts with its length and height to centre empty: both are required and have no default
+// (Q-0704 09-calculations; 09q Blocking row 3).
+export function blockingChoice(): FixtureChoice {
+  return { type: 'blocking', length: null, heightToCenter: null };
+}
 
 // Starting sizes when a bench or glass is turned on in the panel (vault/build/assumptions.md EZD-226).
 export const SHOWER_BENCH_START = { width: 24, depth: 15, height: 18 } as const;
@@ -84,8 +94,9 @@ export const DEFAULT_FIXTURE_CHOICE: FixtureChoice = fixtureChoice('toilet');
 export function placeFixture(
   choice: FixtureChoice,
   at: Point,
-  ctx: { level: string; objects: readonly ModelObject[]; newId: () => string },
+  ctx: { level: string; objects: readonly ModelObject[]; newId: () => string; captureIn?: number },
 ): Change | null {
+  if (choice.type === 'blocking') return placeBlockingChange(choice, at, ctx);
   const id = ctx.newId();
   const type =
     choice.type === 'fixture'
@@ -135,6 +146,42 @@ export function placeFixture(
     id,
     value: {
       type,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: parsed.object.data as unknown as Record<string, unknown>,
+    },
+  };
+}
+
+// EZD-227: the blocking a click places on the nearest wall within the capture, or null when its length or height is
+// empty or not above 0, no wall is near, or it does not fit on the wall.
+function placeBlockingChange(
+  choice: Extract<FixtureChoice, { type: 'blocking' }>,
+  at: Point,
+  ctx: { level: string; objects: readonly ModelObject[]; newId: () => string; captureIn?: number },
+): Change | null {
+  if (choice.length === null || choice.heightToCenter === null) return null;
+  const data = placeBlocking({
+    at,
+    objects: ctx.objects,
+    level: ctx.level,
+    captureIn: ctx.captureIn ?? 0,
+    length: choice.length,
+    heightToCenter: choice.heightToCenter,
+    status: NEW_OBJECT_STATUS,
+  });
+  if (data === null) return null;
+  const id = ctx.newId();
+  const parsed = parseStoredObject({
+    id,
+    type: 'blocking',
+    schema_version: CURRENT_SCHEMA_VERSION,
+    data,
+  });
+  if (!parsed.ok) return null;
+  return {
+    id,
+    value: {
+      type: 'blocking',
       schemaVersion: CURRENT_SCHEMA_VERSION,
       data: parsed.object.data as unknown as Record<string, unknown>,
     },

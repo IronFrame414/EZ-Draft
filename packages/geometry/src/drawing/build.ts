@@ -9,6 +9,8 @@
 // EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
 // EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its outline with both
 // diagonals, a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
+// EZD-227 Build (AC-EZD-227-1; vault/build/assumptions.md EZD-227): blocking is its outline behind the face on its
+// side with both diagonals, 'beyond', in its status layer; on the `flagged` layer when it is on no wall.
 // EZD-226 Build (AC-EZD-226-1): a tile shower draws through fixtures/tile-shower-drawing.ts, with the fixtures.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { doorSymbolInFrame } from '../openings/door-symbol';
@@ -17,6 +19,8 @@ import { coordsEqual, pointsEqual } from '../tolerance';
 import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
 import { tileShowerItems } from '../fixtures/tile-shower-drawing';
 import type { TileShowerObject } from '../fixtures/tile-shower';
+import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
+import { wallFaceOffsets } from '../walls/wall';
 import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
 import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
@@ -81,17 +85,7 @@ function doorItems(
   ];
 }
 
-function faceOffsets(wall: WallObject): { oL: number; oR: number } {
-  const t = wall.data.attributes.thickness;
-  switch (wall.data.attributes.thicknessSide) {
-    case 'right':
-      return { oL: 0, oR: -t };
-    case 'left':
-      return { oL: t, oR: 0 };
-    case 'center':
-      return { oL: t / 2, oR: -t / 2 };
-  }
-}
+const faceOffsets = wallFaceOffsets;
 
 // [0, L] minus the merged gaps, dropping pieces whose ends are equal at 1/64".
 function pieces(f: Frame): [number, number][] {
@@ -328,6 +322,31 @@ export function buildDrawingList(
   for (const o of onFloor) {
     if (o.type === 'tile_shower') {
       fixtureItems.push(...tileShowerItems(o as TileShowerObject));
+      continue;
+    }
+    if (o.type === 'blocking') {
+      const b = o as BlockingObject;
+      const hostId = b.data.geometry.hostWallId;
+      const host =
+        hostId === null
+          ? null
+          : (walls.find((w) => w.id.toLowerCase() === hostId.toLowerCase()) ?? null);
+      const ring = blockingOutline(b, host);
+      if (ring === null) {
+        reasons.set(b.id, 'host_not_found');
+        continue;
+      }
+      const layer = hostId === null ? ('flagged' as const) : b.data.status;
+      const edge = (from: Point, to: Point): DrawingItem => ({
+        layer,
+        objectId: b.id,
+        kind: 'line',
+        role: 'beyond',
+        from,
+        to,
+      });
+      for (let i = 0; i < 4; i++) fixtureItems.push(edge(ring[i]!, ring[(i + 1) % 4]!));
+      fixtureItems.push(edge(ring[0], ring[2]), edge(ring[1], ring[3]));
       continue;
     }
     if (o.type !== 'fixture' && o.type !== 'utility_point') continue;

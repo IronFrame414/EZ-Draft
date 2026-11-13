@@ -334,7 +334,8 @@
     "EZD-105",
     "EZD-129",
     "EZD-138",
-    "EZD-234"
+    "EZD-234",
+    "EZD-226"
   ],
   "seeded_done": 324,
   "merged": [
@@ -406,6 +407,13 @@
       "title": "Fixtures tool and utility points",
       "commit": "383f7a39",
       "ts": "2026-11-13T17:34:54Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-226",
+      "title": "Custom tile shower objects",
+      "commit": "350c5caf",
+      "ts": "2026-11-13T18:18:17Z",
       "kind": "ticket"
     }
   ],

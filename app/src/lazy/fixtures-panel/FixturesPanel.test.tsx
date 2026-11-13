@@ -47,7 +47,7 @@ describe('EZD-234 Fixtures panel', () => {
       'Drain',
     ];
     for (const n of names) expect(s, n).toContain(`>${n}</button>`);
-    expect(s.match(/<button/g)).toHaveLength(19); // EZD-226: plus the Tile shower button
+    expect(s.match(/<button/g)).toHaveLength(20); // EZD-227: plus Grab-bar blocking. EZD-226: plus the Tile shower button
     expect(s).not.toMatch(/saved/i);
     expect(s).toContain('aria-pressed="true" data-testid="fixture-kind-toilet"');
     expect(s.match(/aria-pressed="true"/g)).toHaveLength(1);

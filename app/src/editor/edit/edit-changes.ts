@@ -4,7 +4,9 @@
 // EZD-234 Build (AC-EZD-234-3; Q-0704 "a dangling id reads as no appliance"): Delete also removes selected fixtures
 // and utility points; a deleted appliance's points stay as they are and read as unlinked. Copy stays walls and
 // openings.
+// EZD-227 Build (AC-EZD-227-1): Delete removes selected blocking too; deleting its wall leaves it flagged.
 import {
+  blockingHostUpdates,
   numberNewObjects,
   openingHostUpdates,
   parseStoredObject,
@@ -18,6 +20,8 @@ import {
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change, Objects } from '../model/patches';
 import {
+  blockingChange,
+  blockingsOn,
   openingChange,
   openingsOn,
   roomChanges,
@@ -49,6 +53,7 @@ const DELETE_TYPES: ReadonlySet<string> = new Set([
   'fixture',
   'utility_point',
   'tile_shower', // EZD-226
+  'blocking', // EZD-227
 ]);
 
 export function copyItems(objects: Objects, level: string, ids: readonly string[]): ClipItem[] {
@@ -123,10 +128,17 @@ export function deleteChanges(
     previousWalls: wallsIn(before),
     openings: openingsOn(objects, level).filter((o) => !gone.has(o.id.toLowerCase())),
   });
+  const blocks = blockingHostUpdates({
+    level,
+    walls: wallsIn(next),
+    previousWalls: wallsIn(before),
+    blockings: blockingsOn(objects, level).filter((o) => !gone.has(o.id.toLowerCase())),
+  });
   return [
     ...targets.map((id): Change => ({ id, value: null })),
     ...rooms,
     ...host.map(openingChange),
+    ...blocks.map(blockingChange),
   ];
 }
 

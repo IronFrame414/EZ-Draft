@@ -3,7 +3,16 @@
 // the appliance's new outline; the list only informs and blocks nothing"; 09q Utilities to move; AC-EZD-234-1, -3):
 // new fixture and utility point data, the utility point link and the utilities-to-move list. Pure; never mutates its
 // input. Loaded only with the lazy Fixtures module (11 rule 7).
+// EZD-227 Build (AC-EZD-227-1, -3; Q-0704; vault/build/assumptions.md EZD-227): placing grab-bar blocking on the
+// nearest wall, on the side clicked.
 import {
+  COMPARISON_TOLERANCE_IN,
+  placeBlockingOnWall,
+  wallLength,
+  type BlockingData,
+  type BlockingObject,
+  type WallLine,
+  type WallObject,
   fixtureOutline,
   pointInRing,
   pointsEqual,
@@ -246,4 +255,61 @@ export function utilitiesToMove(
     if (utilities.length > 0) out.push({ fixtureId: f.id, utilities });
   }
   return out;
+}
+
+function pointSegmentDistance(p: Point, line: WallLine): number {
+  const length = wallLength(line);
+  if (length === 0) return Math.hypot(p.x - line.start.x, p.y - line.start.y);
+  const dx = (line.end.x - line.start.x) / length;
+  const dy = (line.end.y - line.start.y) / length;
+  const along = Math.min(length, Math.max(0, (p.x - line.start.x) * dx + (p.y - line.start.y) * dy));
+  return Math.hypot(p.x - (line.start.x + dx * along), p.y - (line.start.y + dy * along));
+}
+
+// Left or right of the wall walking start to end (wall.ts:12); a point on the line counts as left.
+export function sideOfWall(wall: WallObject, p: Point): 'left' | 'right' {
+  const { start, end } = wall.data.geometry;
+  const cross = (end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x);
+  return cross < 0 ? 'right' : 'left';
+}
+
+const positive = (v: number) => Number.isFinite(v) && v > 0;
+
+// A new blocking on the nearest wall of `level` within `captureIn` of `at` (ties to the lower id), centred on the
+// wall's line under the click and kept between the wall's corners; its side is the side of the wall the click is on.
+// Null when the length or height is not above 0, no wall is near, or the blocking does not fit between corners.
+export function placeBlocking(input: {
+  at: Point;
+  objects: readonly ModelObject[];
+  level: string;
+  captureIn: number;
+  length: number;
+  heightToCenter: number;
+  status: ObjectStatus;
+}): BlockingData | null {
+  const { at, level, captureIn, length, heightToCenter } = input;
+  if (!positive(length) || !positive(heightToCenter)) return null;
+  if (!Number.isFinite(at.x) || !Number.isFinite(at.y) || !(captureIn >= 0)) return null;
+  const walls = input.objects.filter((o): o is WallObject => o.type === 'wall');
+  const near = walls
+    .filter(
+      (w) =>
+        lower(w.data.level) === lower(level) &&
+        wallLength(w.data.geometry) > COMPARISON_TOLERANCE_IN,
+    )
+    .map((w) => ({ w, dist: pointSegmentDistance(at, w.data.geometry) }))
+    .filter((x) => x.dist <= captureIn)
+    .sort((a, b) => a.dist - b.dist || (lower(a.w.id) < lower(b.w.id) ? -1 : 1));
+  for (const { w } of near) {
+    const data: BlockingData = {
+      geometry: { center: { x: at.x, y: at.y }, hostWallId: w.id, axis: null },
+      status: input.status,
+      level,
+      attributes: { length, heightToCenter, side: sideOfWall(w, at) },
+    };
+    const probe: BlockingObject = { id: w.id, type: 'blocking', data };
+    const center = placeBlockingOnWall(probe, w, walls, at);
+    if (center !== null) return { ...data, geometry: { ...data.geometry, center } };
+  }
+  return null;
 }

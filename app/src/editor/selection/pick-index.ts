@@ -3,7 +3,10 @@
 // pick, never a scan), kept current per changed object and per opening hosted on a changed wall.
 // EZD-234 Build (S03 Fixtures, Select): fixtures and utility points pick too, each by its own shape.
 // EZD-226 Build: tile showers pick by their footprint.
+// EZD-227 Build: blocking picks by its outline and, like an opening, is re-placed when its host wall changes.
 import {
+  blockingPickShape,
+  type BlockingObject,
   createSpatialIndex,
   fixturePickShape,
   openingPickShape,
@@ -75,7 +78,7 @@ export function createPickIndex(): PickIndex {
   // Keyed by lower-cased id.
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
-  let openings = new Map<string, OpeningObject>();
+  let openings = new Map<string, OpeningObject | BlockingObject>();
   let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
@@ -105,7 +108,7 @@ export function createPickIndex(): PickIndex {
       loose.set(key, object);
     } else if (object !== null && object.type === 'wall') {
       walls.set(key, object);
-    } else if (object !== null && object.type === 'opening') {
+    } else if (object !== null && (object.type === 'opening' || object.type === 'blocking')) {
       openings.set(key, object);
       const host = object.data.geometry.hostWallId?.toLowerCase() ?? null;
       hostOf.set(key, host);
@@ -140,7 +143,10 @@ export function createPickIndex(): PickIndex {
     if (opening === undefined) return null;
     const hostId = opening.data.geometry.hostWallId;
     const host = hostId === null ? null : (walls.get(hostId.toLowerCase()) ?? null);
-    const shape = openingPickShape(opening, host);
+    const shape =
+      opening.type === 'blocking'
+        ? blockingPickShape(opening, host)
+        : openingPickShape(opening, host);
     return shape === null ? null : { id: opening.id, shape, hosted: hostId !== null };
   };
 

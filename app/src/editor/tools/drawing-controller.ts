@@ -112,6 +112,7 @@ import {
   type SelectionEntry,
   type SelectionFrame,
   looseOn,
+  blockingsOn,
   type FixtureChoice,
   type LooseObject,
 } from './index';
@@ -270,6 +271,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let walls: WallObject[] = wallsIn(models);
   let openings: OpeningObject[] = level === null ? [] : openingsOn(objects, level);
   let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
+  // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
+  let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
   const enabled = viewer.canEdit && level !== null;
 
   let tool: ToolState | null = null;
@@ -389,6 +392,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     walls = wallsIn(models);
     openings = level === null ? [] : openingsOn(objects, level);
     loose = level === null ? [] : looseOn(objects, level);
+    blockings = level === null ? [] : blockingsOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(wallsIn(models));
@@ -414,7 +418,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings, ...loose];
+    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose];
     return moveCache;
   }
 
@@ -846,12 +850,16 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const place = event.pointerType === 'touch' ? event.kind === 'up' : event.kind === 'down';
     const mod = fixturesModule.peek();
     if (place && mod !== undefined && ui.fixtureChoice !== null) {
-      const change = mod.placeFixture(ui.fixtureChoice, result.point, {
+      // EZD-227: blocking takes the raw point, so the side of the wall it was clicked on is kept.
+      const isBlocking = ui.fixtureChoice.type === 'blocking';
+      const change = mod.placeFixture(ui.fixtureChoice, isBlocking ? event.model : result.point, {
         level,
-        objects: loose,
+        objects: isBlocking ? walls : loose,
         newId,
+        captureIn: captureIn(),
       });
-      if (change === null) deps.onMessage('office.fixtures.invalid');
+      if (change === null)
+        deps.onMessage(isBlocking ? 'office.fixtures.blocking_invalid' : 'office.fixtures.invalid');
       else {
         utilitiesSeq += 1;
         store.applyEdit([change]);
