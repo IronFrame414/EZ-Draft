@@ -288,6 +288,56 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-131: the Settings > Libraries routes. POST adds one abbreviation; PATCH edits it and DELETE removes it.
+  {
+    file: `${API}settings/libraries/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/libraries/route'),
+    request: get('/api/settings/libraries?kind=abbreviation'),
+    expectStatus: 200,
+    note: 'EZD-131: one tab of library items; 200 { items } (no money)',
+  },
+  {
+    file: `${API}settings/libraries/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/libraries/route'),
+    request: sendJson('POST', '/api/settings/libraries', {
+      kind: 'abbreviation',
+      name: 'GFCI',
+      meaning: 'Ground-fault circuit interrupter',
+    }),
+    expectStatus: 201,
+    after: (body, env) => env.created.set('libraryItemId', field(body, 'item', 'id')),
+  },
+  {
+    file: `${API}settings/libraries/[id]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/libraries/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'libraryItemId');
+      return {
+        ...(await sendJson('PATCH', `/api/settings/libraries/${id}`, {
+          name: 'GFCI',
+          meaning: 'Ground-fault circuit interrupter outlet',
+        })()),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+  },
+  {
+    file: `${API}settings/libraries/[id]/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/settings/libraries/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'libraryItemId');
+      return {
+        request: new Request(`${BASE}/api/settings/libraries/${id}`, { method: 'DELETE' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+  },
   {
     file: `${API}settings/system-status/route.ts`,
     method: 'GET',

@@ -293,6 +293,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"library_item": {
+                  Row: {
+                    "created_at": string,"data": NonNullable<Json>,"id": string,"kind": string,"name": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"data"?: NonNullable<Json>,"id"?: string,"kind": string,"name": string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"data"?: NonNullable<Json>,"id"?: string,"kind"?: string,"name"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "library_item_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"membership": {
                   Row: {
                     "created_at": string,"id": string,"invited_at": string | null,"last_active_at": string | null,"role_id": string | null,"scope": string,"status": string,"tenant_id": string,"updated_at": string,"user_id": string

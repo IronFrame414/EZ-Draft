@@ -1,6 +1,6 @@
 // EZD-133 section 3 harness row `money/page-cases.ts` (vault/plans/EZD-133.md; C4): one case per page file, in
 // listPages order. The path is the file less `app/src/app`, `(group)` segments and `/page.tsx`; `[section]`
-// becomes each Settings slug but `company`, `users` and `system-status` (which have their own pages), `[id]` the dev permissions project, and
+// becomes each Settings slug but those with their own pages (OWN_PAGES), `[id]` the dev permissions project, and
 // two dev pages take `?project=`. Test-only.
 import { SETTINGS_SECTIONS } from '../../src/lib/settings/sections';
 
@@ -16,6 +16,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',
   'app/src/app/(office)/settings/company/page.tsx',
+  'app/src/app/(office)/settings/libraries/page.tsx',
   'app/src/app/(office)/settings/system-status/page.tsx',
   'app/src/app/(office)/page.tsx',
   'app/src/app/(office)/settings/page.tsx',
@@ -61,11 +62,14 @@ function basePath(file: string): string {
   return '/' + segments.join('/');
 }
 
+// Settings slugs with their own page.tsx (EZD-131 adds libraries).
+const OWN_PAGES = new Set(['company', 'users', 'system-status', 'libraries']);
+
 function pathsFor(file: string, env: { projectId: string }): string[] {
   const base = basePath(file);
   if (base.includes('[section]')) {
     return SETTINGS_SECTIONS.filter(
-      (s) => s.slug !== 'company' && s.slug !== 'users' && s.slug !== 'system-status',
+      (s) => !OWN_PAGES.has(s.slug),
     ).map((s) => base.replace('[section]', s.slug));
   }
   if (base.includes('[id]')) return [base.replace('[id]', env.projectId)];

@@ -335,7 +335,8 @@
     "EZD-129",
     "EZD-138",
     "EZD-234",
-    "EZD-226"
+    "EZD-226",
+    "EZD-227"
   ],
   "seeded_done": 324,
   "merged": [
@@ -414,6 +415,13 @@
       "title": "Custom tile shower objects",
       "commit": "350c5caf",
       "ts": "2026-11-13T18:18:17Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-227",
+      "title": "Grab-bar blocking",
+      "commit": "e53e7bc7",
+      "ts": "2026-11-13T19:22:46Z",
       "kind": "ticket"
     }
   ],

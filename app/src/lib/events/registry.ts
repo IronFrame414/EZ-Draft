@@ -1,4 +1,5 @@
 import type { CustomerEventField } from '../customers/customers';
+import type { LibraryKind } from '../libraries/libraries';
 import type { Language } from '../profile/profile';
 import type { PermissionKey } from '../permissions/catalog';
 
@@ -78,6 +79,10 @@ export const EVENTS = {
   'role.deleted': { kind: 'log_only' },
   // EZD-129 (S15 Decision 13; Q-0202; Q-0695 decisions 03 row 33): a member's Project access changed.
   'user.scope_changed': { kind: 'log_only' },
+  // EZD-131 (S15h Events emitted): Settings > Libraries writes.
+  'library.item_created': { kind: 'log_only' },
+  'library.item_updated': { kind: 'log_only' },
+  'library.item_deleted': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -180,4 +185,8 @@ export interface EventPayloads {
     added: string[];
     removed: string[];
   };
+  // EZD-131: the library item and what changed.
+  'library.item_created': { itemId: string; kind: LibraryKind };
+  'library.item_updated': { itemId: string; kind: LibraryKind; fields: ('name' | 'data')[] };
+  'library.item_deleted': { itemId: string; kind: LibraryKind; name: string };
 }

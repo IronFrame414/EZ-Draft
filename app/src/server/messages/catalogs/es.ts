@@ -117,6 +117,13 @@ export const es = {
   'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
+  'error.library_name_required': 'Escribe un nombre.',
+  'error.library_name_too_long': 'Usa 120 caracteres o menos.',
+  'error.library_meaning_required': 'Escribe qué significa la abreviatura.',
+  'error.library_meaning_too_long': 'Usa 200 caracteres o menos.',
+  'error.library_abbreviation_taken': 'Esta abreviatura ya está en la biblioteca.',
+  'error.library_item_not_found': 'Este elemento de la biblioteca ya no existe.',
+  'error.library_item_read_only': 'Este elemento de la biblioteca no se puede cambiar aquí.',
   'error.member_not_found': 'Esta persona ya no está en esta empresa.',
   'error.project_unavailable':
     'Uno de estos proyectos ya no está disponible. Puede que esté archivado. Elige los proyectos de nuevo.',

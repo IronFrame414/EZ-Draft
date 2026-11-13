@@ -22,7 +22,8 @@ export type EventObjectType =
   | 'model_object'
   | 'app_user'
   | 'membership'
-  | 'role';
+  | 'role'
+  | 'library_item';
 
 export type EventLogObject = { type: EventObjectType; id: string };
 
@@ -139,6 +140,19 @@ export const EVENT_LOG: EventLogRules = {
   'role.deleted': TRANSACTION,
   // Written by save_member_scope and create_project (20261113160000, 20261113160001).
   'user.scope_changed': TRANSACTION,
+  // EZD-131: written after the library route's write commits.
+  'library.item_created': {
+    mode: 'sink',
+    object: (e) => ({ type: 'library_item', id: e.payload.itemId }),
+  },
+  'library.item_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'library_item', id: e.payload.itemId }),
+  },
+  'library.item_deleted': {
+    mode: 'sink',
+    object: (e) => ({ type: 'library_item', id: e.payload.itemId }),
+  },
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else
