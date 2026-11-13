@@ -5,15 +5,19 @@
 // Column 1 recaps step 1 with Edit, column 2 shows the Blank (template) source and the template picker (a lazy
 // module, app/src/lazy/template-picker/, loaded here with its own loading and Retry states), column 3 the
 // units and what Create will do.
+// EZD-129 (boards S01bForeman, S01bForemanStates; Q-0202): column 3 holds the optional Foreman picker, and
+// Create will lists "Add it to <name>'s listed projects" when the picked person's access is Listed.
 import { useEffect, useState, type ReactElement } from 'react';
 import type { TemplateDraft } from '../../lazy/template-picker';
 import { useT } from '../../lib/messages';
 import type { NewProjectDraft } from '../../lib/projects/new-project';
 import { initialsFor } from '../../lib/users/initials';
+import { foremanGetsListed, foremanName, type ForemanCandidate } from '../../lib/users/scope';
 import type { MessageKey } from '../../server/messages/catalog';
 import touch from '../../styles/touch.module.css';
 import { Icon } from '../icon/Icon';
 import { InlineError, Skeleton, SkeletonGroup } from '../states';
+import { ForemanPicker } from './ForemanPicker';
 import styles from './NewProject.module.css';
 import { templateModule } from './template-module';
 
@@ -24,6 +28,9 @@ export type NewProjectStep2Props = {
   error: MessageKey | null;
   onTemplateChange: (d: TemplateDraft) => void;
   onEdit: () => void;
+  // EZD-129: the Foreman picker; shown when onForemanChange is given.
+  foreman?: ForemanCandidate | null;
+  onForemanChange?: (f: ForemanCandidate | null) => void;
 };
 
 export function NewProjectStep2({
@@ -33,6 +40,8 @@ export function NewProjectStep2({
   error,
   onTemplateChange,
   onEdit,
+  foreman = null,
+  onForemanChange,
 }: NewProjectStep2Props): ReactElement {
   const t = useT();
   const [mod, setMod] = useState(() => templateModule.peek());
@@ -176,6 +185,9 @@ export function NewProjectStep2({
           </div>
           <span className={styles.hint}>{t('office.new_project.units_hint')}</span>
         </div>
+        {onForemanChange !== undefined ? (
+          <ForemanPicker value={foreman} onChange={onForemanChange} disabled={busy} />
+        ) : null}
         {error !== null ? (
           <p data-testid="new-project-error" role="alert" className={styles.error}>
             {t(error)}
@@ -188,6 +200,12 @@ export function NewProjectStep2({
             <Icon name="check" size={16} />
             {t('office.new_project.create_will_make', { name: draft.name })}
           </span>
+          {foremanGetsListed(foreman) && foreman !== null ? (
+            <span data-testid="new-project-create-will-foreman" className={styles.createWillRow}>
+              <Icon name="check" size={16} />
+              {t('office.new_project.create_will_foreman', { name: foremanName(foreman) })}
+            </span>
+          ) : null}
           <span className={styles.createWillRow}>
             <Icon name="check" size={16} />
             {templateKey !== null

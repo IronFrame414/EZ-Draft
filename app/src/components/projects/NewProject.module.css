@@ -526,3 +526,30 @@
   gap: 6px;
   color: var(--ez-slate-700);
 }
+
+/* EZD-129 (boards S01bForeman, S01bForemanStates): the Foreman field in the Project settings column. */
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--ez-slate-400);
+}
+
+.placeholder {
+  color: var(--ez-slate-500);
+}
+
+.menuHeading {
+  margin: 0;
+  padding: 8px 12px 4px;
+  font: 600 11px var(--ez-font-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ez-slate-400);
+}

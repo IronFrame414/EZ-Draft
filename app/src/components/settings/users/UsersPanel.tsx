@@ -16,6 +16,11 @@
 // under the table (GET /api/settings/roles), the role panel in the inspector's place, the New role dialog, the
 // Role select's Presets / Custom roles groups and Save as new role under it. One unsaved-edits holder covers
 // whichever panel is open; after any role write the roles and the users reload.
+// EZD-129 (S15 Decision 13; board S15AccessPassword; Q-0695 decisions 10 rows 63, 64; Q-0725 (a)): the
+// inspector's Project access section under Language. It loads GET /api/settings/users/[id]/scope for the
+// selected member; its edits join the footer count and Reset leaves them; Save sends the member PATCH (when
+// a switch, the role or the language changed) and then PUT /api/settings/users/[id]/scope (when access
+// changed). A failed access save keeps the access edits with the error and Retry.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
@@ -28,10 +33,12 @@ import {
   type RoleSummary,
 } from '../../../lib/roles/roles';
 import { initialsFor } from '../../../lib/users/initials';
+import { accessEdits, accessOf, savedProjectIds, type MemberScope } from '../../../lib/users/scope';
 import {
   chooseRole,
   draftModified,
   draftOf,
+  memberEdits,
   pendingEdits,
   resetToRole,
   toggleSwitch,
@@ -64,6 +71,7 @@ import { SettingsMain, useSettingsStatus, type SettingsStatusEntry } from '../Se
 import { useLeaveCheck, useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
 import { NewRoleDialog, type NewRoleRequest } from './NewRoleDialog';
 import { PermissionSwitches } from './PermissionSwitches';
+import { ProjectAccess } from './ProjectAccess';
 import { RolePanel, type RoleNameError } from './RolePanel';
 import { RolesRow, type RolesState } from './RolesRow';
 import roleStyles from './Roles.module.css';
@@ -79,6 +87,7 @@ const KNOWN_ERRORS = new Set([
   'error.active_elsewhere',
   'error.member_state',
   'error.member_not_found',
+  'error.project_unavailable',
   'error.not_authorized',
 ]);
 
@@ -122,6 +131,8 @@ type InspectorBodyProps = {
   onSaveAsNew: () => void;
   // EZD-105: the pending invite's Resend, Copy link and Cancel invite.
   invite?: InviteActions;
+  // EZD-129: the Project access load state; the section is shown when given.
+  access?: { status: 'loading' | 'error' | 'ready'; onRetry: () => void };
 };
 
 export type InviteActions = {
@@ -262,6 +273,27 @@ function InspectorBody(p: InspectorBodyProps) {
           </div>
           <p className={styles.help}>{t('office.users.language_help')}</p>
         </div>
+        {p.access === undefined ? null : p.access.status === 'ready' && draft.access ? (
+          <ProjectAccess
+            idPrefix="users-access"
+            value={draft.access}
+            disabled={locked}
+            onChange={(a) => onDraft({ ...draft, access: a })}
+          />
+        ) : (
+          <div data-testid="users-access" className={styles.field}>
+            <span className={styles.label}>{t('office.users.access.label')}</span>
+            {p.access.status === 'error' ? (
+              <div data-testid="users-access-error">
+                <InlineError message="office.users.access.load_failed" onRetry={p.access.onRetry} />
+              </div>
+            ) : (
+              <SkeletonGroup count={1}>
+                <Skeleton width="100%" height="40px" />
+              </SkeletonGroup>
+            )}
+          </div>
+        )}
         <PermissionSwitches
           granted={draft.granted}
           disabled={locked}
@@ -393,6 +425,13 @@ export function UsersPanel() {
   const [newRole, setNewRole] = useState<NewRoleRequest | null>(null);
   // EZD-105: the Invite user dialog.
   const [inviting, setInviting] = useState(false);
+  // EZD-129: the selected member's Project access as last loaded or saved.
+  const [scope, setScope] = useState<{
+    membershipId: string;
+    status: 'loading' | 'error' | 'ready';
+    value: MemberScope | null;
+  } | null>(null);
+  const [scopeReload, setScopeReload] = useState(0);
   const tableRef = useRef<HTMLTableElement>(null);
   const online = useOnline();
   const leaveCheck = useLeaveCheck();
@@ -454,12 +493,88 @@ export function UsersPanel() {
     rows.find((r) => r.membershipId === selectedId) ??
     (heldRow !== null && heldRow.membershipId === selectedId ? heldRow : null);
 
-  const saved = useMemo(() => (selected === null ? null : draftOf(selected)), [selected]);
-  const current =
-    selected !== null && edit !== null && edit.membershipId === selected.membershipId
-      ? edit.draft
-      : saved;
+  const selectedMembershipId = selected?.membershipId ?? null;
+  // EZD-129: load the selected member's Project access.
+  useEffect(() => {
+    if (selectedMembershipId === null) return;
+    const ctrl = new AbortController();
+    fetch(`/api/settings/users/${selectedMembershipId}/scope`, {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      signal: ctrl.signal,
+    })
+      .then(async (res) => {
+        if (res.status !== 200) throw new Error('scope_load_failed');
+        const value = (await res.json()) as MemberScope;
+        setScope({ membershipId: selectedMembershipId, status: 'ready', value });
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted)
+          setScope({ membershipId: selectedMembershipId, status: 'error', value: null });
+      });
+    return () => ctrl.abort();
+  }, [selectedMembershipId, scopeReload]);
+  const scopeOfSelected =
+    scope !== null && scope.membershipId === selectedMembershipId ? scope : null;
+  const savedScope = scopeOfSelected?.value ?? null;
+
+  const saved = useMemo(
+    () =>
+      selected === null
+        ? null
+        : { ...draftOf(selected), access: savedScope === null ? undefined : accessOf(savedScope) },
+    [selected, savedScope],
+  );
+  const current = useMemo(() => {
+    const editDraft =
+      selected !== null && edit !== null && edit.membershipId === selected.membershipId
+        ? edit.draft
+        : null;
+    if (editDraft === null) return saved;
+    return editDraft.access === undefined && saved !== null && saved.access !== undefined
+      ? { ...editDraft, access: saved.access }
+      : editDraft;
+  }, [selected, edit, saved]);
   const dirty = saved !== null && current !== null && pendingEdits(saved, current) > 0;
+
+  // The member PATCH (EZD-106). True when saved; otherwise the error is shown.
+  const saveMember = useCallback(
+    async (id: string, current: InspectorDraft, nextRole?: UserRole): Promise<boolean> => {
+      if (selected === null) return false;
+      const res = await fetch(`/api/settings/users/${id}`, {
+        method: 'PATCH',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          roleId: current.roleId,
+          language: current.language,
+          grantedKeys: current.granted,
+        }),
+      });
+      if (res.status === 200) {
+        const role = nextRole ?? roles.find((r) => r.id === current.roleId) ?? selected.role;
+        const savedRow = (r: UserRow): UserRow =>
+          r.membershipId === id
+            ? { ...r, role, language: current.language, grantedKeys: current.granted }
+            : r;
+        setRows((list) => list.map(savedRow));
+        setHeldRow((held) => (held === null ? null : savedRow(held)));
+        setReload((n) => n + 1);
+        // The role holder counts follow (Delete is offered only at 0 holders).
+        setRolesReload((n) => n + 1);
+        return true;
+      }
+      const known = res.status === 409 ? await knownErrorOf(res) : null;
+      setInspectorError(
+        known !== null
+          ? { message: known, retry: false }
+          : { message: 'office.users.save_failed', retry: true },
+      );
+      return false;
+    },
+    [selected, roles],
+  );
 
   // `next` and `nextRole` let Save as new role save a draft that names a role made a moment ago.
   const saveDraft = useCallback(
@@ -467,41 +582,43 @@ export function UsersPanel() {
       const current = next;
       if (selected === null || current === null || current.roleId === null) return false;
       const id = selected.membershipId;
+      const base = saved ?? current;
+      const memberChanged = memberEdits(base, current) > 0 || nextRole !== undefined;
+      const accessChanged =
+        base.access !== undefined &&
+        current.access !== undefined &&
+        accessEdits(base.access, current.access) > 0;
       setSaving(true);
       setInspectorError(null);
       try {
-        const res = await fetch(`/api/settings/users/${id}`, {
-          method: 'PATCH',
-          cache: 'no-store',
-          credentials: 'same-origin',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            roleId: current.roleId,
-            language: current.language,
-            grantedKeys: current.granted,
-          }),
-        });
-        if (res.status === 200) {
-          const role = nextRole ?? roles.find((r) => r.id === current.roleId) ?? selected.role;
-          const savedRow = (r: UserRow): UserRow =>
-            r.membershipId === id
-              ? { ...r, role, language: current.language, grantedKeys: current.granted }
-              : r;
-          setRows((list) => list.map(savedRow));
-          setHeldRow((held) => (held === null ? null : savedRow(held)));
-          setEdit(null);
-          setReload((n) => n + 1);
-          // The role holder counts follow (Delete is offered only at 0 holders).
-          setRolesReload((n) => n + 1);
-          return true;
+        if (memberChanged && !(await saveMember(id, current, nextRole))) return false;
+        if (accessChanged && current.access !== undefined) {
+          const res = await fetch(`/api/settings/users/${id}/scope`, {
+            method: 'PUT',
+            cache: 'no-store',
+            credentials: 'same-origin',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              scope: current.access.scope,
+              projectIds: savedProjectIds(current.access),
+            }),
+          });
+          if (res.status !== 200) {
+            const known = await knownErrorOf(res);
+            // The member part, if any, is saved; the access edits stay in the draft.
+            setEdit({ membershipId: id, draft: current });
+            setInspectorError(
+              known !== null
+                ? { message: known, retry: false }
+                : { message: 'office.users.save_failed', retry: true },
+            );
+            return false;
+          }
+          const value = (await res.json()) as MemberScope;
+          setScope({ membershipId: id, status: 'ready', value });
         }
-        const known = res.status === 409 ? await knownErrorOf(res) : null;
-        setInspectorError(
-          known !== null
-            ? { message: known, retry: false }
-            : { message: 'office.users.save_failed', retry: true },
-        );
-        return false;
+        setEdit(null);
+        return true;
       } catch {
         setInspectorError({ message: 'office.users.save_failed', retry: true });
         return false;
@@ -509,8 +626,9 @@ export function UsersPanel() {
         setSaving(false);
       }
     },
-    [selected, roles],
+    [selected, saved, saveMember],
   );
+
   const save = useCallback(() => saveDraft(current), [saveDraft, current]);
 
   // EZD-107: the roles list for the Roles row and the role panel (S15 Roles row; Q-0214 failed load).
@@ -1302,6 +1420,13 @@ export function UsersPanel() {
                   error: inspectorError,
                   online,
                   onSaveAsNew: () => setNewRole({ kind: 'from_user', granted: current.granted }),
+                  access: {
+                    status: scopeOfSelected?.status ?? 'loading',
+                    onRetry: () => {
+                      setScope(null);
+                      setScopeReload((n) => n + 1);
+                    },
+                  },
                   invite: {
                     onResend: (r) => void resendInvite(r),
                     onCopyLink: (r) => void copyInviteLink(r),

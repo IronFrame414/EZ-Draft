@@ -6,7 +6,11 @@
 // POST /api/settings/users/invites; a refusal shows its line under Email and nothing is written; a failed
 // request shows "Couldn't send the invite. Nothing was sent." with Try again. After Send the dialog shows the
 // invite link with Copy link, the code and the date the link stops working; when the email did not go out it
-// says so, and the link is still there to send by hand (R24 #15). The Listed projects picker is EZD-129's.
+// says so, and the link is still there to send by hand (R24 #15).
+// EZD-129 (S15 Decision 13; board S15AccessPassword; Q-0695 decisions 10 row 63): under Listed projects, the
+// same summary, Choose projects and picker as the inspector. After Send, the picked projects are saved with
+// PUT /api/settings/users/<new membership id>/scope. If that fails the invite stands on Listed projects with
+// none (allowed, least access) and the sent view says so with Try again.
 import { Dialog } from 'radix-ui';
 import { useRef, useState } from 'react';
 import { useT } from '../../../lib/messages';
@@ -23,6 +27,7 @@ import type { MessageKey } from '../../../server/messages/catalog';
 import touch from '../../../styles/touch.module.css';
 import { Icon } from '../../icon/Icon';
 import { StateButton } from '../../states/StateButton';
+import { ListedProjects } from './ProjectAccess';
 import { useToast } from '../../states/ToastProvider';
 import roleStyles from './Roles.module.css';
 import styles from './Users.module.css';
@@ -66,6 +71,9 @@ export function InviteDialog({
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   // null: follow the role's default (S15 D13).
   const [chosenScope, setChosenScope] = useState<InviteScope | null>(null);
+  // EZD-129: the Listed projects picked before Send, and the state of their save after it.
+  const [projectIds, setProjectIds] = useState<string[]>([]);
+  const [accessSave, setAccessSave] = useState<'idle' | 'saving' | 'failed'>('idle');
   const [refusal, setRefusal] = useState<MessageKey | null>(null);
   const [roleMissing, setRoleMissing] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -109,6 +117,9 @@ export function InviteDialog({
         const result = { ...body, email: email.trim().toLowerCase() };
         setSent(result);
         onSent(result);
+        if (scope === 'listed' && projectIds.length > 0) {
+          await saveProjects(result.membershipId);
+        }
         return;
       }
       const data: unknown = await res.json().catch(() => null);
@@ -123,6 +134,22 @@ export function InviteDialog({
       setFailed(true);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const saveProjects = async (membershipId: string) => {
+    setAccessSave('saving');
+    try {
+      const res = await fetch(`/api/settings/users/${membershipId}/scope`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        body: JSON.stringify({ scope: 'listed', projectIds }),
+      });
+      setAccessSave(res.status === 200 ? 'idle' : 'failed');
+    } catch {
+      setAccessSave('failed');
     }
   };
 
@@ -313,6 +340,14 @@ export function InviteDialog({
                   <p className={styles.help} data-testid="invite-access-default">
                     {t('office.users.invite.access_default')}
                   </p>
+                  {scope === 'listed' ? (
+                    <ListedProjects
+                      idPrefix="invite-access"
+                      value={{ scope: 'listed', projectIds }}
+                      disabled={busy}
+                      onChange={(d) => setProjectIds(d.projectIds)}
+                    />
+                  ) : null}
                 </div>
               </div>
               <div className={`${roleStyles.dialogFoot} ${styles.inviteFoot}`}>
@@ -354,6 +389,21 @@ export function InviteDialog({
                   <Icon name="mail" size={16} />
                   {t('office.users.invite.sent_to', { email: sent.email })}
                 </p>
+                {accessSave === 'failed' ? (
+                  <div data-testid="invite-access-failed" role="alert" className={styles.inviteNote}>
+                    <p className={`${roleStyles.fieldError} ${styles.inviteError}`}>
+                      <Icon name="error" size={16} />
+                      {t('office.users.access.invite_save_failed')}
+                    </p>
+                    <StateButton
+                      data-testid="invite-access-retry"
+                      onClick={() => void saveProjects(sent.membershipId)}
+                    >
+                      <Icon name="refresh" size={18} />
+                      {t('office.users.invite.try_again')}
+                    </StateButton>
+                  </div>
+                ) : null}
                 {sent.emailSent ? null : (
                   <p data-testid="invite-email-not-sent" role="alert" className={`${roleStyles.fieldError} ${styles.inviteError}`}>
                     <Icon name="error" size={16} />

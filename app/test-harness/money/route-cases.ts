@@ -379,6 +379,41 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 404,
     note: 'EZD-106: unknown member; 404 member_not_found (no money)',
   })),
+  // EZD-129: Project access. The [id] routes aim at a membership id no company has (404 member_not_found), so
+  // the walk changes no member; the picker's project choices and the wizard's Foreman candidates answer 200. No
+  // money field in any answer.
+  ...(['GET', 'PUT'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/users/[id]/scope/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/users/[id]/scope/route'),
+    request: async () => {
+      const id = randomUUID();
+      const path = `/api/settings/users/${id}/scope`;
+      const made =
+        method === 'PUT'
+          ? await sendJson('PUT', path, { scope: 'listed', projectIds: [] })()
+          : { request: new Request(`${BASE}${path}`) };
+      return { ...made, params: { id } };
+    },
+    expectStatus: 404,
+    note: 'EZD-129: unknown member; 404 member_not_found (no money)',
+  })),
+  {
+    file: `${API}settings/users/projects/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/users/projects/route'),
+    request: get('/api/settings/users/projects'),
+    expectStatus: 200,
+    note: 'EZD-129: project id, name and address only (no money)',
+  },
+  {
+    file: `${API}projects/foremen/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/foremen/route'),
+    request: get('/api/projects/foremen'),
+    expectStatus: 200,
+    note: 'EZD-129: member id, name, email and scope only (no money)',
+  },
   // EZD-105: the invite routes. POST sends an email that is not one (400 invalid_email, nothing written); the
   // [id] routes aim at a membership id no company has (404 member_not_found). No money field in any answer.
   {

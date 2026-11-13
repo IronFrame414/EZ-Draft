@@ -8,6 +8,7 @@ import {
   type PermissionGroup,
   type PermissionKey,
 } from '../permissions/catalog';
+import { accessEdits, type AccessDraft } from './scope';
 import type { UserRole, UserRow } from './users';
 
 export type InspectorDraft = {
@@ -15,6 +16,8 @@ export type InspectorDraft = {
   language: 'en' | 'es';
   // Kept in catalog order, so equal sets compare equal.
   granted: PermissionKey[];
+  // EZD-129: Project access, once GET /api/settings/users/[id]/scope has loaded it (S15 Decision 13).
+  access?: AccessDraft;
 };
 
 const inCatalogOrder = (keys: Iterable<PermissionKey>): PermissionKey[] => {
@@ -69,8 +72,18 @@ export function groupCounts(granted: readonly PermissionKey[]): GroupCount[] {
 }
 
 // The footer's n (Q-0725 (a)): each switch that differs from the saved state, plus 1 for a role change and 1
-// for a language change.
+// for a language change, plus the Project access edits (EZD-129, lib/users/scope.ts accessEdits) once both
+// sides carry it.
 export function pendingEdits(saved: InspectorDraft, draft: InspectorDraft): number {
+  const access =
+    saved.access !== undefined && draft.access !== undefined
+      ? accessEdits(saved.access, draft.access)
+      : 0;
+  return memberEdits(saved, draft) + access;
+}
+
+// The edits PATCH /api/settings/users/[id] saves: switches, role and language.
+export function memberEdits(saved: InspectorDraft, draft: InspectorDraft): number {
   const a = new Set(saved.granted);
   const b = new Set(draft.granted);
   let n = 0;

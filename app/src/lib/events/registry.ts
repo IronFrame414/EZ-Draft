@@ -76,6 +76,8 @@ export const EVENTS = {
   'role.created': { kind: 'log_only' },
   'role.updated': { kind: 'log_only' },
   'role.deleted': { kind: 'log_only' },
+  // EZD-129 (S15 Decision 13; Q-0202; Q-0695 decisions 03 row 33): a member's Project access changed.
+  'user.scope_changed': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -170,4 +172,12 @@ export interface EventPayloads {
   'role.created': { roleId: string; name: string };
   'role.updated': { roleId: string; fields: ('name' | 'default_permissions')[] };
   'role.deleted': { roleId: string; name: string };
+  'user.scope_changed': {
+    membershipId: string;
+    appUserId: string;
+    oldScope: 'all' | 'listed';
+    scope: 'all' | 'listed';
+    added: string[];
+    removed: string[];
+  };
 }

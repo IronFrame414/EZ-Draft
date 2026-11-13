@@ -330,7 +330,8 @@
     "EZD-106",
     "EZD-107",
     "EZD-109",
-    "EZD-421"
+    "EZD-421",
+    "EZD-105"
   ],
   "seeded_done": 324,
   "merged": [
@@ -374,6 +375,13 @@
       "title": "Fix: route bodies that call an RPC after the session read can answer 500 and alert for an ended session",
       "commit": "db8673b0",
       "ts": "2026-11-13T12:22:40Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-105",
+      "title": "Invite user",
+      "commit": "90798728",
+      "ts": "2026-11-13T13:23:37Z",
       "kind": "ticket"
     }
   ],

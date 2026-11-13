@@ -65,6 +65,7 @@ export async function POST(request: Request): Promise<Response> {
       if (result.code === 'customer_unavailable') {
         return fail(400, 'customer_unavailable', 'error.project_customer_unavailable');
       }
+      if (result.code === 'foreman_unavailable') return fail(400, 'foreman_unavailable');
       return fail(400, 'invalid_input');
     }
     const { projectId, tenantId } = result;

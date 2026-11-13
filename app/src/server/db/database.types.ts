@@ -688,12 +688,12 @@ isOneToOne: false
 { Args: { "p_email": string,"p_ip"?: unknown,"p_language": string,"p_name": string,"p_role_id": string,"p_scope": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
                            },
 "create_project":
-{ Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
+{ Args: { "p_address": string,"p_customer_id": string,"p_foreman_membership_id"?: string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
               "project_id": string,"tenant_id": string
             }[]
                            },
 "create_project_with_objects":
-{ Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_objects": Json,"p_scope_of_work": string,"p_type": string }; Returns: {
+{ Args: { "p_address": string,"p_customer_id": string,"p_foreman_membership_id"?: string,"p_name": string,"p_objects": Json,"p_scope_of_work": string,"p_type": string }; Returns: {
               "project_id": string,"tenant_id": string
             }[]
                            },
@@ -825,6 +825,9 @@ isOneToOne: false
 "list_customers":
 { Args: { "p_archived": boolean,"p_page": number,"p_search": string }; Returns: Json
                            },
+"list_foreman_candidates":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "list_my_sync_conflicts":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -837,6 +840,9 @@ isOneToOne: false
 "list_roles":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"list_scope_projects":
+{ Args: { "p_search"?: string }; Returns: Json
+                           },
 "list_users":
 { Args: { "p_page": number,"p_search": string }; Returns: Json
                            },
@@ -845,6 +851,9 @@ isOneToOne: false
                            },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"member_scope":
+{ Args: { "p_membership_id": string }; Returns: Json
                            },
 "open_notification":
 { Args: { "p_id": string }; Returns: {
@@ -882,6 +891,9 @@ isOneToOne: false
                            },
 "save_member":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_language": string,"p_membership_id": string,"p_role_id": string }; Returns: Json
+                           },
+"save_member_scope":
+{ Args: { "p_ip"?: unknown,"p_membership_id": string,"p_project_ids": (string)[],"p_scope": string }; Returns: Json
                            },
 "save_my_ai_key":
 { Args: { "p_app_user_id": string,"p_ciphertext": string,"p_last4": string,"p_secret_version": number,"p_tenant_id": string }; Returns: undefined

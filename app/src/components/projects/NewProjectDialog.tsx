@@ -10,6 +10,7 @@ import { Dialog } from 'radix-ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { TemplateDraft } from '../../lazy/template-picker';
 import type { Customer } from '../../lib/customers/customers';
+import type { ForemanCandidate } from '../../lib/users/scope';
 import { useT } from '../../lib/messages';
 import { useOnline } from '../../lib/network';
 import {
@@ -58,6 +59,8 @@ export function NewProjectDialog({ onClose, onCreated }: NewProjectDialogProps):
   const backRef = useRef<HTMLButtonElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
+  // EZD-129 (Q-0202; AC-EZD-129-3): the Foreman picked on step 2, sent as foremanId only when picked.
+  const [foreman, setForeman] = useState<ForemanCandidate | null>(null);
   const ready = canCreateProject(draft);
   const read = template !== null ? templateModule.peek()?.readTemplate(template) : undefined;
 
@@ -98,7 +101,11 @@ export function NewProjectDialog({ onClose, onCreated }: NewProjectDialogProps):
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ ...toCreateBody(draft), template: read.template }),
+        body: JSON.stringify({
+          ...toCreateBody(draft),
+          template: read.template,
+          ...(foreman !== null ? { foremanId: foreman.membershipId } : {}),
+        }),
       });
       if (res.status === 201) {
         const body = (await res.json()) as { project: { id: string } };
@@ -113,7 +120,9 @@ export function NewProjectDialog({ onClose, onCreated }: NewProjectDialogProps):
         setError(
           code === 'customer_unavailable'
             ? 'error.project_customer_unavailable'
-            : 'office.new_project.create_failed',
+            : code === 'foreman_unavailable'
+              ? 'error.foreman_unavailable'
+              : 'office.new_project.create_failed',
         );
       } else {
         setError('office.new_project.create_failed');
@@ -273,6 +282,8 @@ export function NewProjectDialog({ onClose, onCreated }: NewProjectDialogProps):
               error={error}
               onTemplateChange={setTemplate}
               onEdit={() => goToStep(1)}
+              foreman={foreman}
+              onForemanChange={setForeman}
             />
           )}
           <div className={styles.footer}>

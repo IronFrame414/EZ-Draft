@@ -41,6 +41,15 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'deactivate_member', args: { p_membership_id: null, p_ip: null } },
   { fn: 'reactivate_member', args: { p_membership_id: null, p_ip: null } },
   { fn: 'remove_member', args: { p_membership_id: null, p_ip: null } },
+  // EZD-129 (S15 Decision 13; Q-0202): a member's Project access read and save, the project choices for its
+  // picker, and the wizard's Foreman candidates, authenticated only.
+  { fn: 'member_scope', args: { p_membership_id: null } },
+  {
+    fn: 'save_member_scope',
+    args: { p_membership_id: null, p_scope: null, p_project_ids: null, p_ip: null },
+  },
+  { fn: 'list_scope_projects', args: { p_search: '' } },
+  { fn: 'list_foreman_candidates', args: {} },
   // EZD-107: the custom role reads and writes, authenticated only.
   { fn: 'list_roles', args: {} },
   { fn: 'create_role', args: { p_name: null, p_granted: null, p_ip: null } },

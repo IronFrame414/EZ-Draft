@@ -107,6 +107,9 @@ export const es = {
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
   'error.member_not_found': 'Esta persona ya no está en esta empresa.',
+  'error.project_unavailable':
+    'Uno de estos proyectos ya no está disponible. Puede que esté archivado. Elige los proyectos de nuevo.',
+  'error.foreman_unavailable': 'Esta persona ya no es un miembro activo. Elige otro capataz.',
   'error.role_name_required': 'Ponle un nombre al rol.',
   'error.role_name_taken': 'Ya existe un rol con este nombre.',
   'error.role_not_found': 'Este rol ya no existe.',

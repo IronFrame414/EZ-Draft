@@ -137,6 +137,8 @@ export const EVENT_LOG: EventLogRules = {
   'role.created': TRANSACTION,
   'role.updated': TRANSACTION,
   'role.deleted': TRANSACTION,
+  // Written by save_member_scope and create_project (20261113160000, 20261113160001).
+  'user.scope_changed': TRANSACTION,
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else

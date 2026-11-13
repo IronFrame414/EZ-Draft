@@ -100,6 +100,10 @@ export const en = {
   'error.customer_email_taken': 'A customer with this email already exists.',
   'error.customer_not_found': 'This customer no longer exists.',
   'error.member_not_found': 'This person is no longer in this company.',
+  // EZD-129: Project access and the wizard's Foreman (vault/build/assumptions.md EZD-129 wording).
+  'error.project_unavailable':
+    "One of these projects isn't available anymore. It may be archived. Choose projects again.",
+  'error.foreman_unavailable': "This person isn't an active member anymore. Pick another foreman.",
   'error.role_name_required': 'Give the role a name.',
   'error.role_name_taken': 'A role with this name already exists.',
   'error.role_not_found': 'This role no longer exists.',
@@ -441,6 +445,26 @@ export const en = {
   'office.users.invite.access': 'Project access',
   'office.users.invite.access_all': 'All projects',
   'office.users.invite.access_listed': 'Listed projects',
+  // EZD-129: Project access in the inspector and the Invite dialog (board S15AccessPassword; approved wording
+  // 2026-11-11). Unmocked states: vault/build/assumptions.md EZD-129.
+  'office.users.access.label': 'Project access',
+  'office.users.access.all': 'All projects',
+  'office.users.access.listed': 'Listed projects',
+  'office.users.access.all_help': 'Sees every project.',
+  'office.users.access.search': 'Search projects',
+  'office.users.access.count': '{count} listed',
+  'office.users.access.choose': 'Choose projects',
+  'office.users.access.summary': {
+    one: '{count} project listed',
+    other: '{count} projects listed',
+  },
+  'office.users.access.none': 'This person sees no projects',
+  'office.users.access.load_failed': "Couldn't load projects.",
+  'office.users.access.empty': 'No projects yet.',
+  'office.users.access.no_match': 'No projects match "{query}".',
+  'office.users.access.more': 'Showing the first 50. Search to find more.',
+  'office.users.access.invite_save_failed':
+    "The invite was sent, but its listed projects weren't saved. It's on Listed projects with none.",
   'office.users.invite.access_default':
     'Foreman, Crew and custom roles start on Listed projects. Owner and Designer start on All projects.',
   'office.users.invite.footer': 'The link and code work for 7 days.',
@@ -647,6 +671,17 @@ export const en = {
   'office.new_project.create_will_make': 'Make "{name}" as Draft',
   'office.new_project.create_will_open': 'Open the Plan editor with the {template}',
   'office.new_project.create_will_open_empty': 'Open an empty Plan editor',
+  // EZD-129: the Foreman picker (boards S01bForeman, S01bForemanStates; approved wording 2026-11-11).
+  'office.new_project.create_will_foreman': "Add it to {name}'s listed projects",
+  'office.new_project.foreman': 'Foreman',
+  'office.new_project.foreman_optional': 'Optional',
+  'office.new_project.foreman_placeholder': 'No foreman yet',
+  'office.new_project.foreman_heading': 'Active members',
+  'office.new_project.foreman_none': 'No foreman',
+  'office.new_project.foreman_listed': "Create adds this project to {name}'s listed projects.",
+  'office.new_project.foreman_empty': 'No active members yet',
+  'office.new_project.foreman_empty_hint': 'Invite people in Settings · Users to pick a foreman.',
+  'office.new_project.foreman_load_failed': "Couldn't load members.",
   'office.account.menu_aria': 'Account menu',
   'office.account.my_profile': 'My profile',
   'office.account.company_settings': 'Company settings',
