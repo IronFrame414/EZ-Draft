@@ -470,7 +470,9 @@ function recordDevelopStep(given) {
       for (const l of diff.stdout.split('\n').filter(Boolean)) console.log(`change ${l}`);
     }
   }
-  console.log(`RECORD CHECK: to record develop, run node scripts/unit-steps.mjs record-develop ${D}`);
+  // Nothing to record (record = develop): say so plainly, so no reader takes the hint for a red check (Josh 2026-11-12, chat: "proposed changes approved").
+  if (old === D) console.log(`RECORD OK: develop ${D7} is already recorded; nothing to do`);
+  else console.log(`RECORD CHECK: to record develop, run node scripts/unit-steps.mjs record-develop ${D}`);
   return 0;
 }
 if (step === 'record-develop') process.exit(recordDevelopStep(ticket));
