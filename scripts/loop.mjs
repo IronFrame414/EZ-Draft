@@ -70,7 +70,7 @@ function loadState() {
 function saveState(s) { writeFileSync(P.state, JSON.stringify(s, null, 2) + '\n'); writeSetAside(s); }
 function writeSetAside(s) {
   const rows = Object.entries(s.set_aside);
-  const out = ['# Set-aside tickets', '', 'Tickets the build loop could not finish. Each keeps its branch and worktree for review.',
+  const out = ['# Set-aside tickets', '', 'Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.',
     'To retry one, delete its entry from vault/build/state.json `set_aside` (the loop picks it up again).', ''];
   if (!rows.length) out.push('None.');
   for (const [id, r] of rows) {
@@ -91,7 +91,8 @@ function pickNext(s) {
   const list = tickets().filter((t) => !done.has(t.id) && !aside.has(t.id)
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
-  list.sort((a, b) => (a.phase - b.phase) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
+  const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
+  list.sort((a, b) => (retried(a) - retried(b)) || (a.phase - b.phase) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
   return list[0] || null;
 }
 function readingList(id) {
@@ -200,8 +201,9 @@ function reviewerPrompt(t, security, plan) {
     security ? `This change touches security-sensitive paths (${security}). Check RLS, permissions and tenant isolation carefully.` : '',
     '', 'Ticket record:', JSON.stringify(t, null, 1),
     '', 'Your last line must be exactly one JSON object and nothing after it:',
-    '{"verdict":"pass" or "fail","findings":[{"file":"path","line":0,"problem":"what is wrong","fix":"what to do"}],"notes":"one line"}',
+    '{"verdict":"pass" or "fail","findings":[{"file":"path","line":0,"problem":"what is wrong","fix":"what to do"}],"blocked_by":[],"notes":"one line"}',
     'verdict is "fail" only when findings is non-empty.',
+    'blocked_by: when a finding can only be fixed after another ticket is built (it creates a table, function or feature this ticket needs), list that ticket id (e.g. "EZD-109"); otherwise leave it empty.',
   ].filter(Boolean).join('\n');
 }
 function parseVerdict(text) {
@@ -220,8 +222,42 @@ async function handleLimit(r, s) {
   s.sleep_until = new Date(Date.now() + c.limit_sleep_minutes * 60000).toISOString();
   saveState(s);
 }
-function setAside(s, t, reason, detail, wt) {
-  s.set_aside[t.id] = { title: t.title, ts: now(), reason, detail: detail || '', branch: `t/${t.id}`, worktree: path.relative(ROOT, wt) };
+// Ticket ids named in text or a list, that exist in tickets.json.
+function ticketIds(v) {
+  const known = new Set(tickets().map((t) => t.id));
+  const ids = Array.isArray(v) ? v.map(String) : String(v || '').match(/EZD-[0-9]+[a-z]?/g) || [];
+  return [...new Set(ids)].filter((id) => known.has(id));
+}
+// Adds ticket ids to a ticket's depends_on in tickets.json and commits it. Returns the ids added.
+function addDeps(id, ids) {
+  const f = path.join(ROOT, 'vault/tickets/tickets.json');
+  const raw = readFileSync(f, 'utf8');
+  const j = JSON.parse(raw);
+  const list = Array.isArray(j) ? j : j.tickets;
+  const t = list.find((x) => x.id === id);
+  if (!t) return [];
+  const added = ids.filter((d) => d !== id && !(t.depends_on || []).includes(d));
+  if (!added.length) return [];
+  t.depends_on = [...(t.depends_on || []), ...added];
+  const indent = (raw.match(/^[\[{]\n( +)/) || [])[1]?.length || 2;
+  writeFileSync(f, JSON.stringify(j, null, indent) + '\n');
+  git(['commit', '-q', '-m', `chore(tickets): ${id} depends on ${added.join(', ')} (build loop: named as needed first)`, '--', 'vault/tickets/tickets.json']);
+  return added;
+}
+// First failure: back in line (at the end), with any ticket named as needed first added to depends_on.
+// Second failure: set aside for Josh (Josh 2026-11-13).
+function setAside(s, t, reason, detail, wt, needs = []) {
+  if (!(s.retries?.[t.id]) && !String(t.id).startsWith('EZD-REPAIR')) {
+    s.retries = { ...(s.retries || {}), [t.id]: 1 };
+    s.retry_log = { ...(s.retry_log || {}), [t.id]: { ts: now(), reason } };
+    const added = addDeps(t.id, needs);
+    s.current = null;
+    cleanupWorktree(t.id);
+    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}`);
+    saveState(s);
+    return;
+  }
+  s.set_aside[t.id] = { title: t.title, ts: now(), reason: s.retry_log?.[t.id] ? `${reason} (first try: ${s.retry_log[t.id].reason})` : reason, detail: detail || '', branch: `t/${t.id}`, worktree: path.relative(ROOT, wt) };
   s.current = null;
   log(`SET ASIDE ${t.id}: ${reason}`);
   saveState(s);
@@ -250,7 +286,7 @@ async function review(t, wt, s, round) {
   const v = parseVerdict(r.res?.result ?? '');
   if (!v) return { verdict: 'error', detail: `reviewer gave no verdict: ${String(r.res?.result ?? r.text).slice(-1500)}` };
   if (v.verdict === 'fail' && !(v.findings || []).length) v.verdict = 'pass';
-  return { verdict: v.verdict, findings: v.findings || [], notes: v.notes || '', detail: JSON.stringify(v.findings || [], null, 1), model };
+  return { verdict: v.verdict, findings: v.findings || [], blockedBy: ticketIds(v.blocked_by), notes: v.notes || '', detail: JSON.stringify(v.findings || [], null, 1), model };
 }
 
 async function doTicket(t, s, kind = 'ticket') {
@@ -283,7 +319,7 @@ async function doTicket(t, s, kind = 'ticket') {
   // check, with fix rounds
   commitAll();
   if (!git(['log', '--oneline', 'develop..HEAD'], wt).out) {
-    setAside(s, t, blocked ? blocked[0] : 'builder made no commits', String(r.res?.result ?? '').slice(-2000), wt); return 'aside';
+    setAside(s, t, blocked ? blocked[0] : 'builder made no commits', String(r.res?.result ?? '').slice(-2000), wt, blocked ? ticketIds(blocked[0]) : []); return 'aside';
   }
   let ck = check(wt);
   for (let i = 0; !ck.pass && i < c.fix_rounds; i++) {
@@ -297,6 +333,7 @@ async function doTicket(t, s, kind = 'ticket') {
 
   // review, with fix rounds
   let rv = await review(t, wt, s, 1);
+  if (rv.verdict === 'fail' && rv.blockedBy?.length) { setAside(s, t, `review: needs ${rv.blockedBy.join(', ')} first`, rv.detail, wt, rv.blockedBy); return 'aside'; }
   for (let i = 0; i < c.review_rounds && (rv.verdict === 'fail'); i++) {
     log(`${t.id} review fail (${rv.findings.length} findings); builder fixing`);
     const f = await fix('review', rv.detail, `fix review ${i + 1}`);
@@ -307,7 +344,7 @@ async function doTicket(t, s, kind = 'ticket') {
     rv = await review(t, wt, s, i + 2);
   }
   if (rv.limited) { await handleLimit(rv.r, s); cleanupWorktree(t.id); s.current = null; saveState(s); return 'limit'; }
-  if (rv.verdict !== 'pass') { setAside(s, t, rv.verdict === 'fail' ? `review still failing after ${c.review_rounds} fix rounds` : 'reviewer error', rv.detail, wt); return 'aside'; }
+  if (rv.verdict !== 'pass') { setAside(s, t, rv.verdict === 'fail' ? `review still failing after ${c.review_rounds} fix rounds` : 'reviewer error', rv.detail, wt, rv.blockedBy || []); return 'aside'; }
 
   // develop moved while we worked? bring it in and re-check
   if (!git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) {
