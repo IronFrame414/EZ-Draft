@@ -20,6 +20,12 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
   },
   { file: 'src/app/terms/page.tsx', path: '/terms', signedIn: false, placement: 'page' },
   {
+    file: 'src/app/invite/[token]/page.tsx',
+    path: '/invite/not-a-token',
+    signedIn: false,
+    placement: 'page',
+  },
+  {
     file: 'src/app/(office)/dev/entry/office/page.tsx',
     path: '/dev/entry/office',
     signedIn: false,

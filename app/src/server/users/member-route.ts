@@ -44,14 +44,17 @@ export async function runMemberWrite(
   write: (
     client: SupabaseClient<Database>,
     membershipId: string,
+    permitted: Permitted,
   ) => Promise<MemberWriteOutcome | Response>,
+  // EZD-105: the create route answers 201.
+  okStatus = 200,
 ): Promise<Response> {
   try {
     const p = await permit();
     if (p instanceof Response) return p;
     const { id } = await ctx.params;
     if (!isMembershipId(id)) return memberFail(404, 'member_not_found');
-    const out = await write(createSessionClient(), id);
+    const out = await write(createSessionClient(), id, p);
     if (out instanceof Response) return out;
     if (!out.ok) return memberFail(out.refusal.status, out.refusal.code);
     for (const e of out.events) {
@@ -72,7 +75,7 @@ export async function runMemberWrite(
         }
       }
     }
-    return Response.json(out.body, { status: 200, headers });
+    return Response.json(out.body, { status: okStatus, headers });
   } catch (e) {
     const ended = await endedSessionResponse(e);
     if (ended) return ended;

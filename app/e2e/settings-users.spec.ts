@@ -350,9 +350,9 @@ test.describe('EZD-104 users table', () => {
     await expect(soloSession.page.getByTestId('user-row')).toHaveCount(1);
     const soloMain = soloSession.page.locator('main[data-settings-page="users"]');
     // EZD-106: the row's More (…) button is the fourth. EZD-107: the Roles row adds the four preset cards
-    // and New role.
+    // and New role. EZD-105: the Invite user button after the search.
     await expect(soloSession.page.getByTestId('role-new')).toBeVisible();
-    expect(await expectTouchTargets(soloSession.page, soloMain)).toBe(9);
+    expect(await expectTouchTargets(soloSession.page, soloMain)).toBe(10);
   });
 
   test('B9 pager over 50 rows keeps the search', async ({ page, signInAs }) => {

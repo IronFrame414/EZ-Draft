@@ -686,3 +686,108 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+/* EZD-105: the Invite user dialog (boards S15j, S15j states). */
+
+.inviteContent {
+  width: min(600px, calc(100vw - 32px));
+}
+
+.inviteHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--ez-border);
+  color: var(--ez-cobalt);
+}
+
+.inviteHead h2 {
+  color: var(--ez-ink);
+  flex: 1;
+}
+
+.inviteClose {
+  border: 0;
+  background: none;
+  color: var(--ez-slate-500);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inviteTag {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.inviteRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.inviteFoot {
+  align-items: center;
+}
+
+.inviteNote {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inviteError {
+  flex: 1;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.inviteSentTo {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-green-tint);
+  color: var(--ez-ink);
+  font-size: 13px;
+}
+
+.inviteLinkRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.inviteLink {
+  flex: 1;
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+.inviteCodeBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--ez-border);
+  border-radius: var(--ez-radius-8);
+}
+
+.inviteCode {
+  font-family: var(--ez-font-mono);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: var(--ez-ink);
+}
+
+.inviteActionsHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

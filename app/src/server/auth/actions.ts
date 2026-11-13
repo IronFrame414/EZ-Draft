@@ -18,6 +18,7 @@ import { completeSignIn } from './complete-sign-in';
 import { clearAppCookie, readAppCookie, setAppCookie } from './request-cookies';
 import { createSessionClient } from './supabase-server';
 import { clientIp, throttleKey, throttleSettle, throttleTake, type ThrottleKind } from './throttle';
+import { acceptInviteByToken } from '../users/accept-invite';
 
 const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
 const CODE_PATTERN = /^\d{6}$/;
@@ -279,4 +280,24 @@ export async function setSignInLanguage(formData: FormData): Promise<void> {
 // EZD-007f Step 3 (vault/plans/EZD-007f.md F2): "Use a different email" deletes the email cookie.
 export async function clearSignInEmail(): Promise<void> {
   await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
+}
+
+// EZD-105 (Q-0695 decisions 10 row 61; AC-EZD-105-4, -7): Accept on the /invite/<token> page. Only this POST
+// accepts; the page's GET never does, so an email scanner cannot. The token is 43 base64url characters and
+// is never logged. 'invite_invalid' for an unknown, expired, used or cancelled link or an email active in
+// another company; 'unavailable' when the accept or the session failed (nothing is shown that says which).
+export async function acceptInvite(formData: FormData): Promise<{
+  error: 'invite_invalid' | 'unavailable';
+}> {
+  const field = formData.get('token');
+  const token = typeof field === 'string' ? field : '';
+  let result: 'accepted' | 'refused';
+  try {
+    result = await acceptInviteByToken(token);
+  } catch {
+    await reportSignIn('invite_accept_failed');
+    return { error: 'unavailable' };
+  }
+  if (result === 'refused') return { error: 'invite_invalid' };
+  redirect('/');
 }

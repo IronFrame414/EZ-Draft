@@ -223,6 +223,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"invite": {
+                  Row: {
+                    "accepted_at": string | null,"cancelled_at": string | null,"code_tries": number,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"membership_id": string,"secret": string,"sent_by": string | null,"tenant_id": string,"token_sha256": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"cancelled_at"?: string | null,"code_tries"?: number,"created_at"?: string,"created_by"?: string | null,"expires_at": string,"id"?: string,"membership_id": string,"secret": string,"sent_by"?: string | null,"tenant_id": string,"token_sha256": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"cancelled_at"?: string | null,"code_tries"?: number,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"membership_id"?: string,"secret"?: string,"sent_by"?: string | null,"tenant_id"?: string,"token_sha256"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invite_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invite_membership_id_tenant_id_fkey"
+      columns: ["membership_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "membership"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "invite_sent_by_fkey"
+      columns: ["sent_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invite_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"job": {
                   Row: {
                     "attempts": number,"created_at": string,"created_by": string | null,"error": string | null,"finished_at": string | null,"id": string,"kind": string,"lease_expires_at": string | null,"max_attempts": number,"payload": NonNullable<Json>,"progress": number,"project_id": string | null,"result": Json | null,"run_after": string,"run_id": string | null,"started_at": string | null,"state": Json | null,"status": string,"tenant_id": string,"updated_at": string
@@ -631,7 +669,13 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "count_projects":
+            "accept_invite":
+{ Args: { "p_ip"?: unknown,"p_token_sha256": string }; Returns: Json
+                           },
+"cancel_invite":
+{ Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
+                           },
+"count_projects":
 { Args: { "p_search"?: string }; Returns: Json
                            },
 "create_benchmark_project":
@@ -639,6 +683,9 @@ isOneToOne: false
                            },
 "create_checkpoint":
 { Args: { "p_project": string }; Returns: string
+                           },
+"create_invite":
+{ Args: { "p_email": string,"p_ip"?: unknown,"p_language": string,"p_name": string,"p_role_id": string,"p_scope": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
                            },
 "create_project":
 { Args: { "p_address": string,"p_customer_id": string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
@@ -693,6 +740,12 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "schema_version": string,"status": string
             }[]
+                           },
+"invite_link_secret":
+{ Args: { "p_membership_id": string }; Returns: Json
+                           },
+"invite_status":
+{ Args: { "p_token_sha256": string }; Returns: Json
                            },
 "job_claim":
 { Args: { "p_lease_seconds": number,"p_only_tenant"?: string,"p_run_id": string }; Returns: {
@@ -820,6 +873,9 @@ isOneToOne: false
                            },
 "remove_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
+                           },
+"resend_invite":
+{ Args: { "p_ip"?: unknown,"p_membership_id": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean

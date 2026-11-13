@@ -379,6 +379,47 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 404,
     note: 'EZD-106: unknown member; 404 member_not_found (no money)',
   })),
+  // EZD-105: the invite routes. POST sends an email that is not one (400 invalid_email, nothing written); the
+  // [id] routes aim at a membership id no company has (404 member_not_found). No money field in any answer.
+  {
+    file: `${API}settings/users/invites/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/users/invites/route'),
+    request: sendJson('POST', '/api/settings/users/invites', {
+      email: 'not-an-email',
+      roleId: randomUUID(),
+    }),
+    expectStatus: 400,
+    note: 'EZD-105: invalid email; 400 invalid_email (no money)',
+  },
+  ...(['GET', 'DELETE'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/users/invites/[id]/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/users/invites/[id]/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/invites/${id}`, { method }),
+        params: { id },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-105: unknown invite; 404 member_not_found (no money)',
+  })),
+  {
+    file: `${API}settings/users/invites/[id]/resend/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/users/invites/[id]/resend/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/invites/${id}/resend`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-105: unknown invite; 404 member_not_found (no money)',
+  },
   {
     file: `${API}settings/company/route.ts`,
     method: 'PATCH',

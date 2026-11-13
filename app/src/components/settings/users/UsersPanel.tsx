@@ -59,6 +59,7 @@ import { InlineError } from '../../states/InlineError';
 import { Skeleton, SkeletonGroup } from '../../states/Skeleton';
 import { StateButton } from '../../states/StateButton';
 import { useToast } from '../../states/ToastProvider';
+import { copyText, InviteDialog } from './InviteDialog';
 import { SettingsMain, useSettingsStatus, type SettingsStatusEntry } from '../SettingsShell';
 import { useLeaveCheck, useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
 import { NewRoleDialog, type NewRoleRequest } from './NewRoleDialog';
@@ -119,9 +120,17 @@ type InspectorBodyProps = {
   error: InspectorError | null;
   online: boolean;
   onSaveAsNew: () => void;
+  // EZD-105: the pending invite's Resend, Copy link and Cancel invite.
+  invite?: InviteActions;
 };
 
-function InviteDetails({ row }: { row: UserRow }) {
+export type InviteActions = {
+  onResend: (row: UserRow) => void;
+  onCopyLink: (row: UserRow) => void;
+  onCancel: (row: UserRow) => void;
+};
+
+function InviteDetails({ row, actions }: { row: UserRow; actions?: InviteActions }) {
   const t = useT();
   const sent = row.invitedAt === null ? null : formatUserDate(row.invitedAt, new Date());
   return (
@@ -137,6 +146,7 @@ function InviteDetails({ row }: { row: UserRow }) {
           type="button"
           data-testid="users-inspector-resend"
           className={`${styles.link} ${touch.target}`}
+          onClick={() => actions?.onResend(row)}
         >
           {t('office.users.resend')}
         </button>
@@ -145,6 +155,7 @@ function InviteDetails({ row }: { row: UserRow }) {
             type="button"
             data-testid="users-inspector-copy-link"
             className={`${styles.link} ${touch.target}`}
+            onClick={() => actions?.onCopyLink(row)}
           >
             {t('office.users.copy_link')}
           </button>
@@ -153,6 +164,7 @@ function InviteDetails({ row }: { row: UserRow }) {
           type="button"
           data-testid="users-inspector-cancel-invite"
           className={`${styles.link} ${touch.target}`}
+          onClick={() => actions?.onCancel(row)}
         >
           {t('office.users.cancel_invite')}
         </button>
@@ -172,7 +184,7 @@ function InspectorBody(p: InspectorBodyProps) {
   return (
     <>
       <div className={styles.inspectorScroll}>
-        {row.status === 'invited' ? <InviteDetails row={row} /> : null}
+        {row.status === 'invited' ? <InviteDetails row={row} actions={p.invite} /> : null}
         <div data-testid="users-role-field" className={styles.field}>
           <label className={styles.label} htmlFor="users-role-select">
             {t('office.users.role_preset')}
@@ -379,6 +391,8 @@ export function UsersPanel() {
   const [roleNameError, setRoleNameError] = useState<RoleNameError | null>(null);
   const [roleError, setRoleError] = useState<MessageKey | null>(null);
   const [newRole, setNewRole] = useState<NewRoleRequest | null>(null);
+  // EZD-105: the Invite user dialog.
+  const [inviting, setInviting] = useState(false);
   const tableRef = useRef<HTMLTableElement>(null);
   const online = useOnline();
   const leaveCheck = useLeaveCheck();
@@ -695,6 +709,83 @@ export function UsersPanel() {
     else toast.show({ message });
   };
 
+  // EZD-105 (S15 Row: Resend, Copy link, More menu Cancel invite; Q-0706): the pending invite actions. Resend makes
+  // a new link and code and the caller the sender; Copy link reads the link again (last sender and Owners only);
+  // Cancel invite asks first, then deletes the pending row.
+  const inviteFailed = (row: UserRow, message: MessageKey) => {
+    if (row.membershipId === selectedId) setInspectorError({ message, retry: false });
+    else toast.show({ message });
+  };
+
+  const resendInvite = async (row: UserRow) => {
+    try {
+      const res = await fetch(`/api/settings/users/invites/${row.membershipId}/resend`, {
+        method: 'POST',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (res.status === 200) {
+        toast.show({ message: 'office.users.invite.resent', params: { email: row.email } });
+        setReload((n) => n + 1);
+        return;
+      }
+      inviteFailed(row, (await knownErrorOf(res)) ?? 'office.users.invite.resend_failed');
+    } catch {
+      inviteFailed(row, 'office.users.invite.resend_failed');
+    }
+  };
+
+  const copyInviteLink = async (row: UserRow) => {
+    try {
+      const res = await fetch(`/api/settings/users/invites/${row.membershipId}`, {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (res.status === 200) {
+        const { link } = (await res.json()) as { link: string };
+        if (await copyText(link)) {
+          toast.show({ message: 'office.users.invite.link_copied' });
+          return;
+        }
+      }
+    } catch {
+      /* shown below */
+    }
+    toast.show({ message: 'office.users.invite.copy_failed' });
+  };
+
+  const cancelInvite = async (row: UserRow) => {
+    const choice = await ask({
+      title: 'office.users.invite.cancel_title',
+      message: 'office.users.invite.cancel_message',
+      params: { email: row.email },
+      confirmLabel: 'office.users.invite.cancel_confirm',
+      tone: 'danger',
+    });
+    if (choice !== 'confirm') return;
+    try {
+      const res = await fetch(`/api/settings/users/invites/${row.membershipId}`, {
+        method: 'DELETE',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (res.status === 200) {
+        if (row.membershipId === selectedId) {
+          setEdit(null);
+          setSelectedId(null);
+          setHeldRow(null);
+          setInspectorError(null);
+        }
+        toast.show({ message: 'office.users.invite.cancelled' });
+        setReload((n) => n + 1);
+        return;
+      }
+      inviteFailed(row, (await knownErrorOf(res)) ?? 'office.users.action_failed');
+    } catch {
+      inviteFailed(row, 'office.users.action_failed');
+    }
+  };
+
   // EZD-107: open a role card in the inspector's place (S15 Role card). Unsaved edits ask first.
   const openRoleCard = async (role: RoleSummary) => {
     if (role.id === openRoleId) return;
@@ -875,6 +966,10 @@ export function UsersPanel() {
           type="button"
           data-testid="user-resend"
           className={`${styles.link} ${touch.target}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            void resendInvite(row);
+          }}
         >
           {t('office.users.resend')}
         </button>
@@ -885,6 +980,10 @@ export function UsersPanel() {
               type="button"
               data-testid="user-copy-link"
               className={`${styles.link} ${touch.target}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                void copyInviteLink(row);
+              }}
             >
               {t('office.users.copy_link')}
             </button>
@@ -929,6 +1028,33 @@ export function UsersPanel() {
           {t('office.users.menu.reactivate')}
         </MenuItem>
       ) : null}
+      {row.status === 'invited' ? (
+        <MenuItem
+          testId="user-menu-resend"
+          className={`${styles.menuItem} ${touch.target}`}
+          onSelect={() => void resendInvite(row)}
+        >
+          {t('office.users.menu.resend')}
+        </MenuItem>
+      ) : null}
+      {row.status === 'invited' && row.canCopyLink ? (
+        <MenuItem
+          testId="user-menu-copy-link"
+          className={`${styles.menuItem} ${touch.target}`}
+          onSelect={() => void copyInviteLink(row)}
+        >
+          {t('office.users.menu.copy_link')}
+        </MenuItem>
+      ) : null}
+      {row.status === 'invited' ? (
+        <MenuItem
+          testId="user-menu-cancel-invite"
+          className={`${styles.menuItem} ${styles.menuDanger} ${touch.target}`}
+          onSelect={() => void cancelInvite(row)}
+        >
+          {t('office.users.cancel_invite')}
+        </MenuItem>
+      ) : null}
       {row.status !== 'invited' ? (
         <MenuItem
           testId="user-menu-remove"
@@ -943,7 +1069,7 @@ export function UsersPanel() {
 
   const invitePrompt = (
     <div data-testid="users-invite-prompt" className={styles.invite}>
-      <StateButton data-testid="users-invite-team" compact>
+      <StateButton data-testid="users-invite-team" compact onClick={() => setInviting(true)}>
         {t('office.users.invite_team')}
       </StateButton>
     </div>
@@ -1087,7 +1213,20 @@ export function UsersPanel() {
         title="office.settings.section.users"
         subtitle="office.users.subtitle"
         flush
-        actions={search}
+        actions={
+          <span className={styles.inviteActionsHead}>
+            {search}
+            <StateButton
+              data-testid="users-invite"
+              variant="primary"
+              disabled={!online}
+              onClick={() => setInviting(true)}
+            >
+              <Icon name="add" size={18} />
+              {t('office.users.invite.button')}
+            </StateButton>
+          </span>
+        }
       >
         <div data-testid="users-body" className={styles.body}>
           <AsyncView
@@ -1163,11 +1302,23 @@ export function UsersPanel() {
                   error: inspectorError,
                   online,
                   onSaveAsNew: () => setNewRole({ kind: 'from_user', granted: current.granted }),
+                  invite: {
+                    onResend: (r) => void resendInvite(r),
+                    onCopyLink: (r) => void copyInviteLink(r),
+                    onCancel: (r) => void cancelInvite(r),
+                  },
                 }
               : null
           }
         />
       )}
+      {inviting ? (
+        <InviteDialog
+          roles={roles}
+          onClose={() => setInviting(false)}
+          onSent={() => setReload((n) => n + 1)}
+        />
+      ) : null}
       {newRole !== null && rolesState.kind === 'ready' ? (
         <NewRoleDialog
           request={newRole}

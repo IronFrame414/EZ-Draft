@@ -46,6 +46,24 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'create_role', args: { p_name: null, p_granted: null, p_ip: null } },
   { fn: 'update_role', args: { p_role_id: null, p_name: null, p_granted: null, p_ip: null } },
   { fn: 'delete_role', args: { p_role_id: null, p_ip: null } },
+  // EZD-105 (S15 Invite user; Q-0695 rows 61-63): the invite writes and the link read, authenticated only.
+  // accept_invite and invite_status are service_role only (the invitee has no session yet).
+  {
+    fn: 'create_invite',
+    args: {
+      p_email: null,
+      p_name: null,
+      p_role_id: null,
+      p_language: null,
+      p_scope: null,
+      p_secret: null,
+      p_token_sha256: null,
+      p_ip: null,
+    },
+  },
+  { fn: 'resend_invite', args: { p_membership_id: null, p_secret: null, p_token_sha256: null, p_ip: null } },
+  { fn: 'cancel_invite', args: { p_membership_id: null, p_ip: null } },
+  { fn: 'invite_link_secret', args: { p_membership_id: null } },
   // EZD-109 (vault/plans/EZD-109.md section 3): the default event sink's event_log writer, authenticated only.
   // EZD-109 also gave the seven member and role writes above their trailing p_ip.
   {

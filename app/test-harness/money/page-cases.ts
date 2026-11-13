@@ -42,6 +42,7 @@ const PAGE_FILES = [
   'app/src/app/dev/sw-offline/shell/page.tsx',
   'app/src/app/dev/tokens/page.tsx',
   'app/src/app/dev/typed-bar/page.tsx',
+  'app/src/app/invite/[token]/page.tsx',
   'app/src/app/sign-in/page.tsx',
   'app/src/app/terms/page.tsx',
 ] as const;
@@ -68,6 +69,8 @@ function pathsFor(file: string, env: { projectId: string }): string[] {
     ).map((s) => base.replace('[section]', s.slug));
   }
   if (base.includes('[id]')) return [base.replace('[id]', env.projectId)];
+  // EZD-105: a token of the wrong shape, so the page shows its refusal and reads nothing.
+  if (base.includes('[token]')) return [base.replace('[token]', 'not-a-token')];
   if (WITH_PROJECT_QUERY.has(file)) return [`${base}?project=${env.projectId}`];
   return [base];
 }

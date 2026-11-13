@@ -68,6 +68,10 @@ export const EVENTS = {
   'user.deactivated': { kind: 'log_only' },
   'user.reactivated': { kind: 'log_only' },
   'user.removed': { kind: 'log_only' },
+  // EZD-105 (S15 Events emitted; Q-0695 decisions 03 row 33): the invite writes.
+  'user.invited': { kind: 'log_only' },
+  'user.invite_resent': { kind: 'log_only' },
+  'user.invite_cancelled': { kind: 'log_only' },
   // EZD-107 (S15 Events emitted; Q-0695 decisions 03 row 33): custom role writes.
   'role.created': { kind: 'log_only' },
   'role.updated': { kind: 'log_only' },
@@ -153,6 +157,15 @@ export interface EventPayloads {
   'user.deactivated': { membershipId: string; appUserId: string };
   'user.reactivated': { membershipId: string; appUserId: string };
   'user.removed': { membershipId: string; appUserId: string };
+  // EZD-105: the invited membership (S15 Events emitted).
+  'user.invited': {
+    membershipId: string;
+    appUserId: string;
+    roleId: string;
+    scope: 'all' | 'listed';
+  };
+  'user.invite_resent': { membershipId: string; appUserId: string };
+  'user.invite_cancelled': { membershipId: string; appUserId: string };
   // EZD-107: the role and what changed (S15 Events emitted; event_log object role).
   'role.created': { roleId: string; name: string };
   'role.updated': { roleId: string; fields: ('name' | 'default_permissions')[] };

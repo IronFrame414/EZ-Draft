@@ -105,7 +105,7 @@ export const EVENT_LOG: EventLogRules = {
   },
   'catalog_item.created': SINK,
   'detail.placed': SINK,
-  // Written by link_app_user in the acceptance transaction.
+  // Written by link_app_user and accept_invite in the acceptance transaction.
   'user.joined': TRANSACTION,
   'tenant.updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
   'customer.created': {
@@ -130,6 +130,10 @@ export const EVENT_LOG: EventLogRules = {
   'user.deactivated': TRANSACTION,
   'user.reactivated': TRANSACTION,
   'user.removed': TRANSACTION,
+  // Written by the invite definer functions (20261113150001_create_invite_functions.sql).
+  'user.invited': TRANSACTION,
+  'user.invite_resent': TRANSACTION,
+  'user.invite_cancelled': TRANSACTION,
   'role.created': TRANSACTION,
   'role.updated': TRANSACTION,
   'role.deleted': TRANSACTION,
