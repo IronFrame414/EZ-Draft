@@ -1,8 +1,9 @@
 // EZD-302 (phase-03 EZD-302: "write import_session items; runs as a background job and emits import.ready when
 // detection finishes"; 07 import.completed row "Detection finishing is import.ready"): the import job. The payload
 // names the source files the import started from (EZD-301 import.started); each Polycam floor plan DXF among them
-// is read from Storage, detected, and written as one import_session with its items. Other kinds wait for their own
-// tickets (GLB EZD-303, PDF EZD-304/305, DXF layer map EZD-306) and are skipped. Runs with the secret key, so every
+// is read from Storage, detected, and written as one import_session with its items. A GLB is a reference underlay
+// only (08), read on demand by app/src/lib/imports/polycam-glb (EZD-303), so this job skips it. Other kinds wait
+// for their own tickets (PDF EZD-304/305, DXF layer map EZD-306) and are skipped. Runs with the secret key, so every
 // query is filtered by the job's tenant and project. Safe to run twice: a source file that already has a session
 // for this job keeps it, and import.ready is emitted only by the run that wrote a session. An unreadable file
 // gives a failed session with a stable code (S02 States Error).
