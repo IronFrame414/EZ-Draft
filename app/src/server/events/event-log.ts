@@ -121,6 +121,10 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
+  'import.started': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
   'user.language_changed': {
     mode: 'sink',
     object: (e) => ({ type: 'app_user', id: e.payload.appUserId }),

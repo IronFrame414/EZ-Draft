@@ -147,6 +147,8 @@ test.describe('EZD-129 user project scope', () => {
     await signInAs(owner.email);
     await page.goto('/');
     await tid(page, 'projects-new').click();
+    // EZD-301 (Q-0410): the owner has Edit model, so New project is a menu.
+    await tid(page, 'projects-new-standalone').click();
     await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
     await tid(page, 'new-project-address').fill('12 Oak Ave');
     await tid(page, 'new-project-next').click();

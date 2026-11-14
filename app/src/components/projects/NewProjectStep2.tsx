@@ -7,7 +7,13 @@
 // units and what Create will do.
 // EZD-129 (boards S01bForeman, S01bForemanStates; Q-0202): column 3 holds the optional Foreman picker, and
 // Create will lists "Add it to <name>'s listed projects" when the picked person's access is Listed.
+// EZD-301 (board S01b column 2; S01 Start from a file flow; Q-0189; Q-0398): entered through Start from a file, the
+// built file sources (Polycam scan, PDF, DXF, Supplier kitchen PDF) replace Blank and the Upload step replaces the
+// template block, and Create will lists the upload; Standalone keeps Blank only (vault/build/assumptions.md).
 import { useEffect, useState, type ReactElement } from 'react';
+import { FILE_SOURCES, type FileSource, type UploadList } from '../../lib/imports/upload-files';
+import type { IconName } from '../icon/icon-names.generated';
+import { UploadStep } from '../imports/UploadStep';
 import type { TemplateDraft } from '../../lazy/template-picker';
 import { useT } from '../../lib/messages';
 import type { NewProjectDraft } from '../../lib/projects/new-project';
@@ -31,6 +37,23 @@ export type NewProjectStep2Props = {
   // EZD-129: the Foreman picker; shown when onForemanChange is given.
   foreman?: ForemanCandidate | null;
   onForemanChange?: (f: ForemanCandidate | null) => void;
+  // EZD-301: the input source and, for a file source, the Upload step's list and its status line.
+  source?: InputSource;
+  onSourceChange?: (s: InputSource) => void;
+  uploads?: UploadList;
+  onUploadsChange?: (l: UploadList) => void;
+  uploadStatus?: string | null;
+  uploadError?: string | null;
+  locked?: boolean;
+};
+
+export type InputSource = 'blank' | FileSource;
+
+const SOURCE_ICONS: Record<FileSource, IconName> = {
+  polycam: 'photo_camera',
+  pdf: 'description',
+  dxf: 'layers',
+  supplier_pdf: 'kitchen',
 };
 
 export function NewProjectStep2({
@@ -42,6 +65,13 @@ export function NewProjectStep2({
   onEdit,
   foreman = null,
   onForemanChange,
+  source = 'blank',
+  onSourceChange,
+  uploads,
+  onUploadsChange,
+  uploadStatus = null,
+  uploadError = null,
+  locked = false,
 }: NewProjectStep2Props): ReactElement {
   const t = useT();
   const [mod, setMod] = useState(() => templateModule.peek());
@@ -81,7 +111,7 @@ export function NewProjectStep2({
             type="button"
             data-testid="new-project-recap-edit"
             className={`${styles.link} ${touch.hitArea}`}
-            disabled={busy}
+            disabled={busy || locked}
             onClick={onEdit}
           >
             {t('office.new_project.recap_edit')}
@@ -136,43 +166,88 @@ export function NewProjectStep2({
         <div className={styles.secRow}>
           <span className={styles.sec}>{t('office.new_project.source_title')}</span>
         </div>
-        <div className={styles.sourceGrid}>
-          <div data-testid="new-project-source-blank" className={styles.source}>
-            <span className={styles.sourceTop}>
-              <span className={styles.sourceIcon}>
-                <Icon name="dashboard" size={20} />
+        <div
+          className={
+            onSourceChange === undefined
+              ? styles.sourceGrid
+              : `${styles.sourceGrid} ${styles.sourceGridFiles}`
+          }
+          role="radiogroup"
+          aria-label={t('office.new_project.source_title')}
+        >
+          {onSourceChange !== undefined
+            ? FILE_SOURCES.map((s) => (
+                <SourceCard
+                  key={s}
+                  testId={`new-project-source-${s}`}
+                  icon={SOURCE_ICONS[s]}
+                  name={t(`office.new_project.source_${s}`)}
+                  sub={t(`office.new_project.source_${s}_sub`)}
+                  on={source === s}
+                  disabled={busy || locked}
+                  onPick={() => onSourceChange(s)}
+                />
+              ))
+            : null}
+          {onSourceChange === undefined ? (
+            <div data-testid="new-project-source-blank" className={styles.source}>
+              <span className={styles.sourceTop}>
+                <span className={styles.sourceIcon}>
+                  <Icon name="dashboard" size={20} />
+                </span>
+                <span className={styles.sourceRadio}>
+                  <Icon name="radio_button_checked" size={20} />
+                </span>
               </span>
-              <span className={styles.sourceRadio}>
-                <Icon name="radio_button_checked" size={20} />
-              </span>
-            </span>
-            <span className={styles.sourceName}>{t('office.new_project.source_blank')}</span>
-            <span className={styles.sourceSub}>{t('office.new_project.source_blank_sub')}</span>
-          </div>
+              <span className={styles.sourceName}>{t('office.new_project.source_blank')}</span>
+              <span className={styles.sourceSub}>{t('office.new_project.source_blank_sub')}</span>
+            </div>
+          ) : null}
         </div>
-        <div data-testid="new-project-template-block" data-state={state} className={styles.block}>
-          <div className={styles.blockHead}>
-            <span className={styles.blockTitle}>{t('office.new_project.template_title')}</span>
-            <span className={styles.blockSub}>{t('office.new_project.template_sub')}</span>
+        {source !== 'blank' && uploads !== undefined && onUploadsChange !== undefined ? (
+          <div data-testid="new-project-upload-block" className={styles.block}>
+            <div className={styles.blockHead}>
+              <span className={styles.blockTitle}>{t('office.upload.files_title')}</span>
+              <span className={styles.blockSub}>{t('office.new_project.source_pick')}</span>
+            </div>
+            <UploadStep list={uploads} onChange={onUploadsChange} disabled={busy} />
+            {uploadStatus !== null ? (
+              <p data-testid="new-project-upload-status" role="status" className={styles.hint}>
+                {uploadStatus}
+              </p>
+            ) : null}
+            {uploadError !== null ? (
+              <p data-testid="new-project-upload-error" role="alert" className={styles.error}>
+                {uploadError}
+              </p>
+            ) : null}
           </div>
-          {mod ? (
-            template !== null ? (
-              <mod.TemplatePicker value={template} onChange={onTemplateChange} />
-            ) : null
-          ) : failed ? (
-            <InlineError
-              message="office.new_project.template_load_failed"
-              onRetry={() => {
-                setFailed(false);
-                setAttempt((a) => a + 1);
-              }}
-            />
-          ) : (
-            <SkeletonGroup count={1}>
-              <Skeleton width="100%" height="160px" />
-            </SkeletonGroup>
-          )}
-        </div>
+        ) : null}
+        {source === 'blank' ? (
+          <div data-testid="new-project-template-block" data-state={state} className={styles.block}>
+            <div className={styles.blockHead}>
+              <span className={styles.blockTitle}>{t('office.new_project.template_title')}</span>
+              <span className={styles.blockSub}>{t('office.new_project.template_sub')}</span>
+            </div>
+            {mod ? (
+              template !== null ? (
+                <mod.TemplatePicker value={template} onChange={onTemplateChange} />
+              ) : null
+            ) : failed ? (
+              <InlineError
+                message="office.new_project.template_load_failed"
+                onRetry={() => {
+                  setFailed(false);
+                  setAttempt((a) => a + 1);
+                }}
+              />
+            ) : (
+              <SkeletonGroup count={1}>
+                <Skeleton width="100%" height="160px" />
+              </SkeletonGroup>
+            )}
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.col3}>
@@ -206,16 +281,73 @@ export function NewProjectStep2({
               {t('office.new_project.create_will_foreman', { name: foremanName(foreman) })}
             </span>
           ) : null}
-          <span className={styles.createWillRow}>
-            <Icon name="check" size={16} />
-            {templateKey !== null
-              ? t('office.new_project.create_will_open', {
-                  template: t(`office.new_project.template_${templateKey}`),
-                })
-              : t('office.new_project.create_will_open_empty')}
-          </span>
+          {source !== 'blank' ? (
+            <>
+              <span data-testid="new-project-create-will-upload" className={styles.createWillRow}>
+                <Icon name="check" size={16} />
+                {t('office.new_project.create_will_upload', { count: uploads?.items.length ?? 0 })}
+              </span>
+              <span className={styles.createWillRow}>
+                <Icon name="check" size={16} />
+                {t('office.new_project.create_will_open_project')}
+              </span>
+            </>
+          ) : (
+            <span className={styles.createWillRow}>
+              <Icon name="check" size={16} />
+              {templateKey !== null
+                ? t('office.new_project.create_will_open', {
+                    template: t(`office.new_project.template_${templateKey}`),
+                  })
+                : t('office.new_project.create_will_open_empty')}
+            </span>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+function SourceCard({
+  testId,
+  icon,
+  name,
+  sub,
+  on,
+  disabled,
+  onPick,
+}: {
+  testId: string;
+  icon: IconName;
+  name: string;
+  sub: string;
+  on: boolean;
+  disabled: boolean;
+  onPick: () => void;
+}): ReactElement {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={on}
+      data-testid={testId}
+      data-on={on ? 'true' : 'false'}
+      className={on ? styles.source : `${styles.source} ${styles.sourceOff}`}
+      disabled={disabled}
+      onClick={onPick}
+    >
+      <span className={styles.sourceTop}>
+        <span className={on ? styles.sourceIcon : `${styles.sourceIcon} ${styles.sourceIconOff}`}>
+          <Icon name={icon} size={20} />
+        </span>
+        {on ? (
+          <span className={styles.sourceRadio}>
+            <Icon name="radio_button_checked" size={20} />
+          </span>
+        ) : null}
+      </span>
+      <span className={styles.sourceName}>{name}</span>
+      <span className={styles.sourceSub}>{sub}</span>
+    </button>
   );
 }

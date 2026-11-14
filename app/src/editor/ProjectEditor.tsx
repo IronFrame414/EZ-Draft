@@ -52,6 +52,7 @@ import { InlineError } from '../components/states/InlineError';
 import { NoAccess } from '../components/states/NoAccess';
 import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
+import { StateButton } from '../components/states/StateButton';
 import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-view';
 import { useCoarsePointer } from '../lib/device/useDeviceLayout';
@@ -156,6 +157,8 @@ export function ProjectEditor({
   conflictsOpen,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
+  // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
+  const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
@@ -371,6 +374,17 @@ export function ProjectEditor({
           activeView="plan"
           views={PLAN_VIEWS}
           onViewChange={noop}
+          reviewPill={
+            menuCanEdit ? (
+              <StateButton
+                data-testid="editor-upload-files"
+                compact
+                onClick={() => setUploading(true)}
+              >
+                {t('office.upload.editor_button')}
+              </StateButton>
+            ) : undefined
+          }
         />
         {conflictCount > 0 ? (
           <ConflictBanner
@@ -526,7 +540,14 @@ export function ProjectEditor({
     <DeviceLayout
       full={
         <EditorFrame
-          header={header}
+          header={
+            <>
+              {header}
+              {uploading ? (
+                <LazyUploadFiles projectId={projectId} onClose={() => setUploading(false)} />
+              ) : null}
+            </>
+          }
           rail={rail}
           canvas={canvas}
           inspector={
@@ -593,6 +614,11 @@ function LazyEditBar(props: EditBarProps) {
 
 // EZD-233: the menus load when one first opens and then stay, so the Save as group dialog outlives its menu.
 const editMenuModule = lazyModule(() => import('../lazy/edit-menu'));
+
+function LazyUploadFiles(props: { projectId: string; onClose: () => void }) {
+  const mod = useLazy(editMenuModule);
+  return mod ? <mod.UploadFilesDialog {...props} /> : null;
+}
 
 function LazyEditMenus(props: EditMenusProps) {
   const mod = useLazy(editMenuModule, props.request !== null);

@@ -63,6 +63,8 @@ export const EVENTS = {
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
+  // EZD-301 (S01 Events emitted): the Upload step's files are stored and the import begins.
+  'import.started': { kind: 'log_only' },
   'user.language_changed': { kind: 'log_only' },
   // EZD-106 (S15 Events emitted; Q-0706 decisions 03 row 50): the Users page member writes.
   'user_permission.updated': { kind: 'log_only' },
@@ -151,7 +153,9 @@ export interface EventPayloads {
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).
-  'project.created': { projectId: string; source: 'standalone' };
+  // EZD-301: `file` when the project starts from a file (S01 Events emitted).
+  'project.created': { projectId: string; source: 'standalone' | 'file' };
+  'import.started': { projectId: string; sourceFileIds: string[] };
   'user.language_changed': { appUserId: string; language: Language };
   // EZD-106: one Save on the Users page inspector (S15: user id, changed permissions, role, actor).
   'user_permission.updated': {

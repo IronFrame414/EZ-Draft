@@ -121,7 +121,9 @@ describe('EZD-133 money fields only with their permission', () => {
     try {
       for (const u of [noCost, noSell]) {
         if (!u) continue;
-        const sources = [u.env.created.get('storagePath')].filter((p): p is string => !!p);
+        const sources = ['storagePath', 'uploadStepPath']
+          .map((k) => u.env.created.get(k))
+          .filter((p): p is string => !!p);
         const media = ['checkedLogoPath', 'logoPath', 'thumbPath']
           .map((k) => u.env.created.get(k))
           .filter((p): p is string => !!p);

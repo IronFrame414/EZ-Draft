@@ -18,6 +18,8 @@ export type NewProjectBody = {
   customerId: string | null;
   scopeOfWork: string;
   template?: TemplateBody | null;
+  // EZD-301: present only for a project started from a file.
+  source?: 'file';
 };
 
 export type NewProjectDraft = {

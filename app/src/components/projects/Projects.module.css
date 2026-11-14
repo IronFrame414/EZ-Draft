@@ -448,3 +448,51 @@
   cursor: pointer;
   position: relative;
 }
+
+/* EZD-301 (board S01 New project menu): the menu items carry a second line. */
+.newMenu {
+  min-width: 300px;
+}
+
+.newItem {
+  align-items: flex-start;
+}
+
+.newItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.newItemSub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ez-slate-500);
+}
+
+.newDivider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--ez-divider);
+}
+
+/* EZD-301 (S01 "Drag a file onto the page"): the page takes dropped files; a hint shows while dragging. */
+.dropArea {
+  display: contents;
+}
+
+.dropHint {
+  position: fixed;
+  inset: 12px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px dashed var(--ez-cobalt);
+  border-radius: var(--ez-radius-14);
+  background: var(--ez-cobalt-tint);
+  font: 600 16px var(--ez-font-sans);
+  color: var(--ez-cobalt-text);
+  pointer-events: none;
+}

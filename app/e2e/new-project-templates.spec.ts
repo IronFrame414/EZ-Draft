@@ -45,6 +45,11 @@ async function foreman(): Promise<{ tenant: string; email: string }> {
 async function step1(page: Page, type = 'Kitchen') {
   await page.goto('/');
   await tid(page, 'projects-new').click();
+  // EZD-301 (Q-0410): with Edit model, New project is a menu; Standalone opens the wizard.
+  await expect(tid(page, 'projects-new-menu').or(tid(page, 'new-project-dialog'))).toBeVisible();
+  if (await tid(page, 'projects-new-menu').isVisible()) {
+    await tid(page, 'projects-new-standalone').click();
+  }
   await expect(tid(page, 'new-project-dialog')).toBeVisible();
   await tid(page, 'new-project-type').selectOption({ label: type });
   await tid(page, 'new-project-address').fill('12 Oak Ave');

@@ -553,3 +553,27 @@
   text-transform: uppercase;
   color: var(--ez-slate-400);
 }
+
+/* EZD-301 (board S01b column 2): an input source card that is not picked. */
+.source {
+  cursor: pointer;
+}
+
+.source:disabled {
+  cursor: default;
+}
+
+.sourceOff {
+  border-color: var(--ez-border);
+  box-shadow: none;
+}
+
+.sourceIconOff {
+  background: var(--ez-surface-sunken);
+  color: var(--ez-slate-500);
+}
+
+/* EZD-301: the four file sources in one row. */
+.sourceGridFiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}

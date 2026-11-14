@@ -173,6 +173,8 @@ export type NewProjectValues = {
   template: TemplateBody | null;
   // EZD-129 (Q-0202; AC-EZD-129-3): the wizard's Foreman, a membership id; absent when none is picked.
   foremanId?: string;
+  // EZD-301 (S01 Events emitted): `file` when the project starts from a file; absent for Standalone.
+  source?: 'file';
 };
 
 const size = z.number().refine(isTemplateSize);
@@ -188,6 +190,7 @@ const newProjectSchema = z.strictObject({
     .nullable()
     .optional(),
   foremanId: z.uuid().nullable().optional(),
+  source: z.enum(['standalone', 'file']).optional(),
 });
 
 export function parseNewProject(body: unknown): NewProjectValues | null {
@@ -205,6 +208,7 @@ export function parseNewProject(body: unknown): NewProjectValues | null {
     scopeOfWork: scope === '' ? null : scope,
     template: parsed.data.template ?? null,
     ...(parsed.data.foremanId ? { foremanId: parsed.data.foremanId } : {}),
+    ...(parsed.data.source === 'file' ? { source: 'file' as const } : {}),
   };
 }
 

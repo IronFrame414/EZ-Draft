@@ -3,3 +3,5 @@
 // first opens.
 export { EditMenus, postSavedGroup } from './EditMenu';
 export type { EditMenuRequest, EditMenusProps, SaveResult } from './EditMenu';
+// EZD-301: the Upload files dialog for an existing project rides in this module so the editor gains no chunk entry.
+export { UploadFilesDialog } from './UploadFilesDialog';

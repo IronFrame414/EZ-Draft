@@ -237,6 +237,61 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-301: the Upload step's routes. Start a PDF original, put its bytes, complete it, then start the import
+  // with it. No money field in any answer (source_file view columns and ids only).
+  {
+    file: `${API}projects/[id]/source-files/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/source-files/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/source-files`, {
+        kind: 'pdf',
+        originalName: 'plan.pdf',
+        contentType: 'application/pdf',
+        size: 100,
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    after: (body, env) => {
+      env.created.set('uploadStepFileId', field(body, 'sourceFile', 'id'));
+      env.created.set('uploadStepPath', field(body, 'sourceFile', 'storagePath'));
+    },
+    note: 'EZD-301: source_file view and signed upload (no money)',
+  },
+  {
+    file: `${API}source-files/[id]/complete/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/source-files/[id]/complete/route'),
+    request: async (env) => {
+      const id = made(env, 'uploadStepFileId');
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(made(env, 'uploadStepPath'), new Uint8Array(100).fill(0x61), {
+          contentType: 'application/pdf',
+        });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      return {
+        request: new Request(`${BASE}/api/source-files/${id}/complete`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-301: source_file view (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/imports`, {
+        sourceFileIds: [made(env, 'uploadStepFileId')],
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 202,
+    note: 'EZD-301: project id and source file ids (no money)',
+  },
   {
     file: `${API}dev/permissions/projects/[id]/route.ts`,
     method: 'PATCH',

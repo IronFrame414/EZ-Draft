@@ -14,6 +14,7 @@ import {
   type Session,
 } from '../../../test-harness/rls/fixtures';
 import { SOURCE_CONTENT_TYPES, SOURCE_MAX_BYTES } from '../../lib/storage/source-file-kinds';
+import { kindOptions } from '../../lib/imports/upload-files';
 import { uploadFile, UploadError } from '../../lib/storage/upload';
 import {
   completeSourceFileUpload,
@@ -200,7 +201,8 @@ describe('EZD-296 sources bucket limits', () => {
     for (const type of L) {
       const { sourceFile, upload } = await startSourceFileUpload(db(s), {
         projectId: p,
-        kind: 'pdf',
+        // EZD-301 (Q-0517): a kind that takes this type.
+        kind: kindOptions(type as (typeof SOURCE_CONTENT_TYPES)[number])[0],
         originalName: 'f',
         contentType: type,
         size: 16,

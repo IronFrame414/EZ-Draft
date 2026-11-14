@@ -13,6 +13,7 @@ import {
   type SourceFileKind,
 } from '../../lib/storage/source-file-kinds';
 import type { SignedUpload } from '../../lib/storage/upload';
+import { kindTakes } from '../../lib/imports/upload-files';
 import { can, loadPermissionContext } from '../permissions';
 import { createSignedUpload, statObject, StorageError, type DbClient } from './objects';
 
@@ -62,26 +63,30 @@ type ViewRow = {
 const CONTENT_TYPE_RE = /^[a-z0-9]+\/[a-z0-9.+-]+$/;
 const codePoints = (s: string) => Array.from(s).length;
 
-const startSchema = z.object({
-  projectId: z.uuid(),
-  kind: z.enum(SOURCE_FILE_KINDS),
-  originalName: z.string().refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255),
-  contentType: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .max(127)
-    .regex(CONTENT_TYPE_RE)
-    .refine((v) => (SOURCE_CONTENT_TYPES as readonly string[]).includes(v)),
-  size: z.number().int().min(1).max(SOURCE_MAX_BYTES),
-  uploadedBy: z.uuid(),
-  supplierName: z
-    .string()
-    .refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255)
-    .nullable()
-    .optional(),
-  supplierContactEmail: z.email().max(320).nullable().optional(),
-});
+const startSchema = z
+  .object({
+    projectId: z.uuid(),
+    kind: z.enum(SOURCE_FILE_KINDS),
+    originalName: z.string().refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255),
+    contentType: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(127)
+      .regex(CONTENT_TYPE_RE)
+      .refine((v) => (SOURCE_CONTENT_TYPES as readonly string[]).includes(v)),
+    size: z.number().int().min(1).max(SOURCE_MAX_BYTES),
+    uploadedBy: z.uuid(),
+    supplierName: z
+      .string()
+      .refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255)
+      .nullable()
+      .optional(),
+    supplierContactEmail: z.email().max(320).nullable().optional(),
+  })
+  // EZD-301 (Q-0517): each kind takes only its own content types (order reports PDF only, field measure files
+  // the photo types, Q-0513).
+  .refine((v) => kindTakes(v.kind, v.contentType));
 
 export function sourceFilePath(tenantId: string, projectId: string, sourceFileId: string): string {
   return `${tenantId}/${projectId}/${sourceFileId}`;

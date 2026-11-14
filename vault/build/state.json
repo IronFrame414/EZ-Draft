@@ -339,7 +339,8 @@
     "EZD-227",
     "EZD-131",
     "EZD-223",
-    "EZD-231"
+    "EZD-231",
+    "EZD-233"
   ],
   "seeded_done": 324,
   "merged": [
@@ -446,6 +447,13 @@
       "title": "Measure tool (plan)",
       "commit": "b725918f",
       "ts": "2026-11-13T21:57:36Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-233",
+      "title": "Context menu, mirror, align, groups",
+      "commit": "1fb41f49",
+      "ts": "2026-11-13T23:11:23Z",
       "kind": "ticket"
     }
   ],
