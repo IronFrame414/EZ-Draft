@@ -27,6 +27,8 @@ const DEFAULTS = {
   builder_timeout_min: 90, reviewer_timeout_min: 30, fix_rounds: 2, review_rounds: 2,
   trial_size: 20, lane: '0', idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
+  // Tickets built first when eligible, even after a failure (a retried ticket otherwise waits at the back of the queue).
+  priority: [],
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -83,6 +85,8 @@ function writeSetAside(s) {
 
 // ---------- tickets ----------
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
+// Phase 56 (AI assistant) is built right after phase 5 and before phase 6 (vault/tickets/PHASES.md, Q-0630).
+const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
 function pickNext(s) {
   const c = cfg();
   const statuses = seedStatuses();
@@ -92,7 +96,8 @@ function pickNext(s) {
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
   const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
-  list.sort((a, b) => (retried(a) - retried(b)) || (a.phase - b.phase) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
+  const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
+  list.sort((a, b) => (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
   return list[0] || null;
 }
 function readingList(id) {

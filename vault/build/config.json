@@ -4,5 +4,9 @@
   "reviewer_model": "claude-fable-5-2",
   "reviewer_fallback": "claude-opus-5-5",
   "trial_size": 20,
-  "lane": "0"
+  "lane": "0",
+  "priority": [
+    "EZD-116",
+    "EZD-105b"
+  ]
 }

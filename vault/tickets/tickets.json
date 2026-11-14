@@ -21096,7 +21096,6 @@
     "Drawing tools (EZD-210)",
     "Rooms (EZD-205a)"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5602",
@@ -21149,7 +21148,6 @@
     "Messages and language (t())",
     "Browser tests (EZD-016a)"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5604a",
@@ -21204,7 +21202,6 @@
     "Plan canvas (EZD-207a)",
     "Messages and language (t())"
    ],
-   "track": "tooling",
    "phase_file": "tickets/phases/phase-56.md",
    "depends_on": [
     "EZD-5604a",
