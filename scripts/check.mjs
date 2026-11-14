@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Build v3 gate (2026-11-13). Usage: node scripts/check.mjs [dir] [--fast]
-// Runs the app checks only: install, database up, typecheck, lint, unit and database tests, build, e2e.
+// Runs: install, database up, typecheck, lint, unit and database tests, build, live scripts tests, e2e.
 // --fast skips build and e2e (for the builder's inner loop; the loop always runs the full check).
 // Full output: <dir>/check.log. On failure the failing step's last lines go to <dir>/check-failures.log.
 // Exit 0 = CHECK PASS.
 import { spawn, spawnSync } from 'node:child_process';
-import { createWriteStream, existsSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
@@ -19,6 +19,29 @@ const env = { ...process.env, EZD_LANE: lane, CI: process.env.CI ?? '' };
 if (lane !== '0') env.SUPABASE_WORKDIR = path.join(dir, '.lanes', `lane${lane}`); else delete env.SUPABASE_WORKDIR;
 const pkg = ['-r', '--if-present', '--filter', '!./spikes/**', 'run'];
 
+// Tests of the scripts that are still live (Josh 2026-11-14): release and backup (they run against production), the
+// conventions and migration checks, the local database and e2e harness, fixtures, perf, and the small service checks.
+// Not run: the retired build machinery (launcher, process, ledger, hooks, budget, tooling, tools, ci, spec, records) and
+// these files:
+//   db/__tests__/lane.test.mjs        starts the retired scripts/gate.mjs as a child process
+//   perf/__tests__/pan.test.mjs       timing-sensitive on CI (EZD-398, retired 2026-11-14)
+//   perf/__tests__/profiles.test.mjs  timing-sensitive on CI (EZD-399, retired 2026-11-14)
+const LIVE_SCRIPT_DIRS = ['release', 'backup', 'conventions', 'db', 'e2e', 'test-harness', 'fixtures', 'email', 'errors',
+  'auth', 'ai', 'hosting', 'perf'];
+const SKIP_SCRIPT_TESTS = new Set(['db/__tests__/lane.test.mjs', 'perf/__tests__/pan.test.mjs', 'perf/__tests__/profiles.test.mjs']);
+function liveScriptTests() {
+  const out = [];
+  const walk = (rel) => {
+    for (const e of readdirSync(path.join(dir, 'scripts', rel), { withFileTypes: true })) {
+      const r = `${rel}/${e.name}`;
+      if (e.isDirectory() && e.name !== 'node_modules') walk(r);
+      else if (e.isFile() && e.name.endsWith('.test.mjs') && !SKIP_SCRIPT_TESTS.has(r)) out.push(`scripts/${r}`);
+    }
+  };
+  for (const d of LIVE_SCRIPT_DIRS) if (existsSync(path.join(dir, 'scripts', d))) walk(d);
+  return out.sort();
+}
+
 const steps = [
   ['install', 'pnpm', ['install', '--frozen-lockfile']],
   ['database', 'pnpm', ['run', 'db:up']],
@@ -27,6 +50,8 @@ const steps = [
   ['test', 'pnpm', [...pkg, 'test']],
   ...(fast ? [] : [
     ['build', 'pnpm', ['run', 'build']],
+    ['scripts tests', process.execPath, ['--import', './app/test-harness/net-guard/preload.mjs', '--test',
+      '--test-concurrency=4', '--test-timeout=300000', ...liveScriptTests()]],
     // Database tests rotate the API gate secret; db:up stores it again so the e2e server and the stack agree.
     ['database again', 'pnpm', ['run', 'db:up']],
     ['e2e', 'pnpm', [...pkg, 'test:e2e']],
@@ -46,7 +71,9 @@ function run(name, cmd, argv) {
         const line = raw.replace(/\x1b\[[0-9;]*m/g, '');
         if (!line.trim() || /^\s*✓/.test(line)) continue;
         tail.push(line); if (tail.length > 400) tail.shift();
-        if (/(FAIL|✗|×|Error|AssertionError|expected|Expected|Received|failed)/.test(line) && keyLines.length < 120) keyLines.push(line);
+        // node:test TAP: a passing `ok N - ...` line or a `# Subtest:` header can name a failure case; skip both.
+        if (/^\s*(ok \d|# Subtest:)/.test(line)) continue;
+        if (/(FAIL|✗|×|✖|not ok|Error|AssertionError|expected|Expected|Received|failed|location:|error:)/.test(line) && keyLines.length < 120) keyLines.push(line);
       }
     };
     p.stdout.on('data', onData);

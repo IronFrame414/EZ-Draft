@@ -107,12 +107,10 @@ describe('EZD-023a release safety: migration check', () => {
       pkg.scripts.lint,
       'node scripts/conventions/check.mjs && node scripts/release/check-migrations.mjs && pnpm -r --if-present --filter "!./spikes/**" run lint',
     );
-    const gate = read('scripts', 'gate.mjs');
-    const required = gate.match(/const required = \[([^\]]*)\]/);
-    assert.ok(required, 'gate.mjs declares required');
-    assert.ok(/'lint'/.test(required[1]), 'required includes lint');
+    const gate = read('scripts', 'check.mjs');
+    assert.ok(gate.includes("['lint', 'pnpm', ['run', 'lint']]"), 'check.mjs runs the lint step');
     const ci = read('.github', 'workflows', 'ci.yml');
-    assert.ok(ci.includes('run: node scripts/gate.mjs .'), 'ci.yml runs the gate');
+    assert.ok(ci.includes('run: node scripts/check.mjs .'), 'ci.yml runs the gate');
   });
 
   test('EZD-023a T4 Drops and renames refused', async () => {

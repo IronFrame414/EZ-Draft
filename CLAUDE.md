@@ -8,7 +8,7 @@ Build process (v3, 2026-11-13): one Opus builder per ticket, one fresh Fable rev
 Next.js + React + TypeScript (app in `app/`), geometry in `packages/geometry`, Three.js via React Three Fiber, Supabase (Postgres with RLS, Auth, Storage), Vercel. pnpm workspace. Full versions and layout: `docs/architecture.md`, read by section with `node vault/tools/outline.mjs docs/architecture.md --section '<heading>'` (`--headings` lists them).
 
 ## Commands
-- Gate: `node scripts/check.mjs` (database up, typecheck, lint, unit and database tests, build, e2e). A ticket is done only when it passes.
+- Gate: `node scripts/check.mjs` (database up, typecheck, lint, unit and database tests, build, live `scripts/` tests, e2e). A ticket is done only when it passes.
 - Local database: `pnpm db:up`.
 - Single app test: `pnpm --filter app exec vitest run <file>`; e2e: `pnpm --filter app exec playwright test <spec>`.
 
