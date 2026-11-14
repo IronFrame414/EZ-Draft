@@ -28,6 +28,8 @@ Two things need you. Only question 1 holds any work.
 - (a) Build it in phase 13 (recommended)
 - (b) Leave the laser out of v1. Typed numbers only, everywhere.
 
+**Josh's answer (2026-11-14): (b), "no laser in v1".** Recorded as Q-0759. EZD-315 is retired; the phone keypad and Measure tab drop their laser parts.
+
 ---
 
 ## 2. Screens with no drawing: OK to build them from the written spec?
@@ -43,3 +45,5 @@ Five pieces in these phases have a written description in the spec but no drawin
 
 - (a) Build from the spec in the style of the nearest approved screen (recommended)
 - (b) Make drawings first for the ones you list. Those tickets would wait for the drawings.
+
+**Josh's answer (2026-11-14): (a), "yes build based on the info already available".** Recorded as Q-0760.

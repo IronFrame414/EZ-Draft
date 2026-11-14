@@ -14,7 +14,7 @@ Updated from Q-0220 and Q-0236 (Josh 2026-10-20; D5 (a), Josh 2026-11-01). In v1
 - Client approval inside the EZ Binder client portal and e-sign through EZ Binder.
 - Additions and site plans (v2).
 - Importing change order cost and schedule from EZ Binder.
-- Native app and direct Bluetooth laser pairing (v2; v1 uses keyboard mode).
+- Laser measuring of any kind: native app, direct Bluetooth pairing and keyboard-mode input (v2; Q-0759 removed keyboard mode from v1).
 - SMS notifications (v2).
 - Tile cut list (v2).
 - Point-in-time recovery backups (v2).

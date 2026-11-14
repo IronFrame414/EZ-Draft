@@ -6787,7 +6787,8 @@
    "spec_phase": 3,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/05-screens.md#Q-0203"
+    "spec/decisions/05-screens.md#Q-0203",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
@@ -6847,7 +6848,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
@@ -7096,7 +7098,8 @@
    "acs_source": "done-when",
    "spec_phase": 3,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
@@ -7615,7 +7618,8 @@
    "spec_phase": 4,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
@@ -13458,8 +13462,7 @@
    ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
-    "EZD-1405",
-    "EZD-315"
+    "EZD-1405"
    ],
    "build_position": 380,
    "acs": [
@@ -13469,7 +13472,8 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0759"
    ]
   },
   {
@@ -13765,7 +13769,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/09-calculations-and-rules.md#Q-0568",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0759"
    ]
   },
   {
@@ -13800,7 +13805,8 @@
     "spec/decisions/05-screens.md#Q-0204",
     "spec/decisions/03-data-model.md#Q-0511",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0287",
-    "spec/decisions/03-data-model.md#Q-0540"
+    "spec/decisions/03-data-model.md#Q-0540",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
@@ -13865,7 +13871,8 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0178",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
-    "spec/decisions/05-screens.md#Q-0204"
+    "spec/decisions/05-screens.md#Q-0204",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
