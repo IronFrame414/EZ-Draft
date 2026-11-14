@@ -1,11 +1,12 @@
 // EZD-301 (S01 Continue to review; Events emitted import.started): an import starts only from files of this
 // project whose upload completed. Reads go through the caller's client, so RLS hides another company's project and
 // files (a hidden project is project_not_found, a hidden or other project's file is source_file_not_found).
+// EZD-302: scanIds are the Polycam floor plan DXFs among the files, the ones the import job detects.
 import type { DbClient } from '../storage';
 import { readSourceFileRefs } from '../storage/source-files';
 
 export type StartImportResult =
-  | { ok: true; tenantId: string }
+  | { ok: true; tenantId: string; scanIds?: string[] }
   | { ok: false; code: 'project_not_found' | 'source_file_not_found' | 'upload_missing' };
 
 export async function checkImportFiles(
@@ -21,12 +22,14 @@ export async function checkImportFiles(
   if (project.error) throw project.error;
   if (!project.data) return { ok: false, code: 'project_not_found' };
   const refs = await readSourceFileRefs(client, sourceFileIds);
+  const scanIds: string[] = [];
   for (const id of sourceFileIds) {
     const ref = refs.get(id.toLowerCase());
     if (ref === undefined || ref.projectId !== projectId) {
       return { ok: false, code: 'source_file_not_found' };
     }
     if (!ref.uploaded) return { ok: false, code: 'upload_missing' };
+    if (ref.kind === 'polycam_dxf') scanIds.push(id);
   }
-  return { ok: true, tenantId: project.data.tenant_id };
+  return { ok: true, tenantId: project.data.tenant_id, scanIds };
 }

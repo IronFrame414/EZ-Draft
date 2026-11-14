@@ -340,7 +340,8 @@
     "EZD-131",
     "EZD-223",
     "EZD-231",
-    "EZD-233"
+    "EZD-233",
+    "EZD-301"
   ],
   "seeded_done": 324,
   "merged": [
@@ -454,6 +455,13 @@
       "title": "Context menu, mirror, align, groups",
       "commit": "1fb41f49",
       "ts": "2026-11-13T23:11:23Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-301",
+      "title": "Upload step",
+      "commit": "49b6428d",
+      "ts": "2026-11-14T00:02:46Z",
       "kind": "ticket"
     }
   ],

@@ -223,6 +223,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"import_session": {
+                  Row: {
+                    "created_at": string,"error": string | null,"id": string,"items": NonNullable<Json>,"job_id": string | null,"mode": string,"project_id": string,"source_file_id": string,"source_kind": string,"status": string,"summary": NonNullable<Json>,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"error"?: string | null,"id"?: string,"items"?: NonNullable<Json>,"job_id"?: string | null,"mode"?: string,"project_id": string,"source_file_id": string,"source_kind": string,"status"?: string,"summary"?: NonNullable<Json>,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"error"?: string | null,"id"?: string,"items"?: NonNullable<Json>,"job_id"?: string | null,"mode"?: string,"project_id"?: string,"source_file_id"?: string,"source_kind"?: string,"status"?: string,"summary"?: NonNullable<Json>,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "import_session_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_session_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "import_session_source_file_id_fkey"
+      columns: ["source_file_id"]
+isOneToOne: false
+      referencedRelation: "source_file"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_session_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"invite": {
                   Row: {
                     "accepted_at": string | null,"cancelled_at": string | null,"code_tries": number,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"membership_id": string,"secret": string,"sent_by": string | null,"tenant_id": string,"token_sha256": string,"updated_at": string

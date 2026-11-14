@@ -145,6 +145,7 @@ describe('EZD-301 upload step on the local stack', () => {
     expect(await checkImportFiles(db(sA), pA, [dxfRow.id, glbRow.id])).toEqual({
       ok: true,
       tenantId: tA,
+      scanIds: [dxfRow.id],
     });
     expect(await checkImportFiles(db(sA), pA, [dxfRow.id, pending.id])).toEqual({
       ok: false,

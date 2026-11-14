@@ -74,7 +74,9 @@ export const EVENT_LOG: EventLogRules = {
   // Q-0735 (a): an autosave writes no row.
   'model.saved': { mode: 'none' },
   'import.completed': SINK,
-  'import.ready': SINK,
+  // EZD-302: emitted by the import job, which has no member session to write the log row with (log_event is for
+  // signed-in members); the import.started row already records who started the import.
+  'import.ready': { mode: 'none' },
   'reference.version_uploaded': SINK,
   'render.completed': SINK,
   'render.failed': SINK,

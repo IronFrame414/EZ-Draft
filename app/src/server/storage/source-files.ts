@@ -241,3 +241,32 @@ export async function readSourceFileRefs(
   }
   return files;
 }
+
+// EZD-302: the import job's read of its project's files. It runs with the secret key, so the tenant and project
+// filters stand in for RLS; a file of another tenant or project is absent.
+export type JobSourceFile = { id: string; kind: string; storagePath: string; uploaded: boolean };
+
+export async function readJobSourceFiles(
+  client: DbClient,
+  scope: { tenantId: string; projectId: string },
+  ids: readonly string[],
+): Promise<JobSourceFile[]> {
+  const out: JobSourceFile[] = [];
+  for (let i = 0; i < ids.length; i += READ_CHUNK) {
+    const { data, error } = await client
+      .from('source_file')
+      .select('id, kind, storage_path, uploaded_at')
+      .eq('tenant_id', scope.tenantId)
+      .eq('project_id', scope.projectId)
+      .in('id', ids.slice(i, i + READ_CHUNK));
+    if (error) throw error;
+    for (const row of data)
+      out.push({
+        id: row.id,
+        kind: row.kind,
+        storagePath: row.storage_path,
+        uploaded: row.uploaded_at !== null,
+      });
+  }
+  return out;
+}

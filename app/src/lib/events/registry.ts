@@ -119,7 +119,12 @@ export interface EventPayloads {
   // EZD-120a Build step 5: the ids of the objects one save wrote.
   'model.saved': { objectIds: string[] };
   'import.completed': Record<string, unknown>;
-  'import.ready': Record<string, unknown>;
+  // EZD-302: the import sessions one detection run wrote and what they hold (07 import.ready; S02 summary).
+  'import.ready': {
+    projectId: string;
+    importSessionIds: string[];
+    counts: { walls: number; openings: number; rooms: number };
+  };
   'reference.version_uploaded': Record<string, unknown>;
   'render.completed': Record<string, unknown>;
   'render.failed': Record<string, unknown>;

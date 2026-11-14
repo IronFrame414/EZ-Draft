@@ -3,21 +3,23 @@
 // Import review is EZD-307's (vault/build/assumptions.md EZD-301). Order: 401, 403 without Edit model, 404 for a
 // malformed project id, 403 outside the caller's scope, 400 for an unreadable body, 404 for a project RLS hides,
 // 400 for a file that is not this project's or not uploaded; any other failure is 500 after reportRouteFailure.
+// EZD-302: when Polycam floor plan DXFs are among the files, an import job is queued for them after
+// import.started (phase-03 EZD-302 "runs as a background job").
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { checkImportFiles } from '../../../../../server/imports/start-import';
+import { enqueueJob } from '../../../../../server/jobs/enqueue';
+// One import takes at most this many files (the wizard's list; no spec limit, see assumptions).
+import { IMPORT_MAX_FILES } from '../../../../../server/jobs/handlers/import';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store' };
 const ROUTE = '/api/projects/[id]/imports';
-
-// One import takes at most this many files (the wizard's list; no spec limit, see assumptions).
-export const IMPORT_MAX_FILES = 20;
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -55,6 +57,14 @@ export async function POST(
       { projectId: id, sourceFileIds },
       { tenantId: checked.tenantId, projectId: id, actorId: p.session.appUserId },
     );
+    const scanIds = checked.scanIds ?? [];
+    if (scanIds.length > 0) {
+      await enqueueJob(createSessionClient(), {
+        kind: 'import',
+        projectId: id,
+        payload: { sourceFileIds: scanIds },
+      });
+    }
     return Response.json({ projectId: id, sourceFileIds }, { status: 202, headers });
   } catch (e) {
     const ended = await endedSessionResponse(e);
