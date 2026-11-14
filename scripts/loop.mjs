@@ -464,9 +464,9 @@ async function main() {
         const p = await limitCleared();
         if (p.ok) { log('usage available again; resuming'); delete s.sleep_until; delete s.next_probe; saveState(s); continue; }
         s.next_probe = new Date(Date.now() + c.limit_probe_minutes * 60000).toISOString();
-        // A limit that is still on pushes the fallback wait out, so the loop keeps probing instead of retrying a ticket.
-        // Any other probe failure leaves the fallback wait as it is.
-        if (p.limited && Date.parse(s.sleep_until) < Date.parse(s.next_probe)) s.sleep_until = s.next_probe;
+        // A limit that is still on pushes the fallback wait a full limit_sleep_minutes ahead, well past the next probe,
+        // so the loop keeps probing instead of retrying a ticket. Any other probe failure leaves the fallback wait as it is.
+        if (p.limited) s.sleep_until = new Date(Date.now() + c.limit_sleep_minutes * 60000).toISOString();
         saveState(s);
       }
       await sleep(Math.min(60000, Date.parse(s.sleep_until) - Date.now()));
