@@ -29,6 +29,9 @@ const DEFAULTS = {
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
   // Tickets built first when eligible, even after a failure (a retried ticket otherwise waits at the back of the queue).
   priority: [],
+  // Josh 2026-11-14: a ticket in this phase rank or higher starts only when every ticket in every lower phase rank is
+  // complete (done, a skipped track or a skipped status). A set-aside ticket is not complete and holds the gate.
+  gate_from_phase: 13,
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -87,9 +90,16 @@ function writeSetAside(s) {
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
 // Phase 56 (AI assistant) is built right after phase 5 and before phase 6 (vault/tickets/PHASES.md, Q-0630).
 const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
-function pickNext(s) {
-  const c = cfg();
-  const statuses = seedStatuses();
+// Lower-rank tickets that keep a ticket of rank r from starting under the phase gate (empty when r is below the gate).
+function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
+  const r = phaseRank(t.phase);
+  if (!(r >= c.gate_from_phase)) return [];
+  const done = new Set(s.done);
+  return tickets().filter((x) => phaseRank(x.phase) < r && !done.has(x.id)
+    && !c.skip_tracks.includes(x.track) && !c.skip_statuses.includes(statuses[x.id]));
+}
+// candidates(): eligible apart from the phase gate. pickNext: the first candidate the gate lets through.
+function candidates(s, c, statuses) {
   const done = new Set(s.done);
   const aside = new Set(Object.keys(s.set_aside));
   const list = tickets().filter((t) => !done.has(t.id) && !aside.has(t.id)
@@ -98,7 +108,23 @@ function pickNext(s) {
   const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
   const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
   list.sort((a, b) => (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
-  return list[0] || null;
+  return list;
+}
+function pickNext(s) {
+  const c = cfg();
+  const statuses = seedStatuses();
+  return candidates(s, c, statuses).find((t) => !gateBlockers(t, s, c, statuses).length) || null;
+}
+// When nothing is eligible only because of the phase gate: one line naming the lower-phase tickets it waits on.
+function gateNote(s) {
+  const c = cfg();
+  const statuses = seedStatuses();
+  const held = candidates(s, c, statuses);
+  if (!held.length) return '';
+  const waits = gateBlockers(held[0], s, c, statuses);
+  const aside = new Set(Object.keys(s.set_aside));
+  const ids = waits.map((x) => `${x.id}${aside.has(x.id) ? ' (set aside)' : ''}`);
+  return `phase gate (gate_from_phase ${c.gate_from_phase}): ${held.length} ticket(s) from phase ${held[0].phase} up wait on ${waits.length} lower-phase ticket(s): ${ids.slice(0, 25).join(', ')}${ids.length > 25 ? `, +${ids.length - 25} more` : ''}`;
 }
 function readingList(id) {
   const r = spawnSync('node', ['vault/tools/next_ticket.mjs', '--reads', id, 'builder'], { cwd: ROOT, encoding: 'utf8' });
@@ -450,7 +476,7 @@ async function main() {
     push(s);
     if (s.red_streak >= c.red_streak_guard) { await guardDevelop(s); commitBuildFiles('develop guard'); push(s); continue; }
     const t = pickNext(s);
-    if (!t) { note(`no eligible ticket; checking again every ${c.idle_minutes} min`); await sleep(c.idle_minutes * 60000); continue; }
+    if (!t) { note(gateNote(s) || `no eligible ticket; checking again every ${c.idle_minutes} min`); await sleep(c.idle_minutes * 60000); continue; }
     lastNote = '';
     const res = await doTicket(t, s);
     const s2 = loadState();
@@ -472,7 +498,7 @@ if (process.argv.includes('--plan')) {
   const s = readJson(P.state, null) || { done: seedDone(), set_aside: {} };
   for (let i = 0; i < n; i++) {
     const t = pickNext(s);
-    if (!t) { console.log('(no more eligible tickets)'); break; }
+    if (!t) { console.log(gateNote(s) || '(no more eligible tickets)'); break; }
     console.log(`${String(i + 1).padStart(2)}. ${t.id} · phase ${t.phase} · ${t.title.slice(0, 90)}`);
     s.done.push(t.id);
   }

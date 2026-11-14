@@ -8,5 +8,6 @@
   "priority": [
     "EZD-116",
     "EZD-105b"
-  ]
+  ],
+  "gate_from_phase": 13
 }
