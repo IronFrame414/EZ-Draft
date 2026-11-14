@@ -1,0 +1,13 @@
+{
+  "builder_model": "claude-opus-5-5",
+  "builder_effort": "medium",
+  "reviewer_model": "claude-fable-5-2",
+  "reviewer_fallback": "claude-opus-5-5",
+  "trial_size": 20,
+  "lane": "0",
+  "priority": [
+    "EZD-116",
+    "EZD-105b"
+  ],
+  "gate_from_phase": 13
+}

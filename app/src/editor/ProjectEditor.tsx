@@ -25,7 +25,13 @@
 // EZD-212c (vault/plans/EZD-212c.md D21): the drawing layer's tablet Cancel turns the tool off.
 // EZD-5603a Build step 12 (vault/plans/EZD-5603a.md Decided "Editor wiring", "Rail button"): for an editor, one
 // Assistant session per page load; its rail toggle opens the Assistant panel in the inspector place.
+// EZD-234 Build (11 Budgets editor download size): the conflict list panel loads through lazyModule when first opened.
+// EZD-223 (S03 Sketch; Q-0392): the drawing controller reads the viewer's iPad drawing setting from the load.
+// EZD-233 (S03 Context menu; Inspector More; vault/build/assumptions.md EZD-233): for an editor, a right-click or long
+// press on the plan with no drawing tool on opens the context menu (an object under it that is not selected is
+// selected first, with its group); the inspector footer's More opens the More menu. Both load lazily.
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -46,6 +52,7 @@ import { InlineError } from '../components/states/InlineError';
 import { NoAccess } from '../components/states/NoAccess';
 import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
+import { StateButton } from '../components/states/StateButton';
 import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-view';
 import { useCoarsePointer } from '../lib/device/useDeviceLayout';
@@ -53,7 +60,6 @@ import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
-import { AssistantPanel } from './assistant/AssistantPanel';
 import { createAssistantSession, type AssistantSession } from './assistant/assistant-session';
 import { assistantShown } from './assistant/assistant-ui';
 import {
@@ -63,6 +69,9 @@ import {
   type OpenResult,
 } from './editor-session';
 import { createEditController, type EditController } from './edit/edit-controller';
+import { InspectorMore, InspectorStack } from './edit/InspectorMore';
+import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
+import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import { InspectorPanel } from './inspector/InspectorPanel';
 import type { Change } from './model/patches';
@@ -79,9 +88,11 @@ import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import { ConflictBanner } from './conflicts/ConflictBanner';
-import { ConflictPanel } from './conflicts/ConflictPanel';
+import type { ConflictPanelProps } from '../lazy/conflict-panel';
+import { lazyModule, type LazyModule } from '../lib/lazy/lazy-module';
 import { useConflictInputs } from './conflicts/use-conflicts';
-import { EditBar, SelectionLayer } from './selection/SelectionLayer';
+import { SelectionLayer } from './selection/SelectionLayer';
+import type { EditBarProps } from '../lazy/edit-bar';
 import {
   createSelectionController,
   editorRail,
@@ -146,11 +157,14 @@ export function ProjectEditor({
   conflictsOpen,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
+  // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
+  const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const [canvasAttempt, setCanvasAttempt] = useState(0);
   const [listOpen, setListOpen] = useState(conflictsOpen === true);
+  const [menu, setMenu] = useState<EditMenuRequest | null>(null);
   const openDepsRef = useRef(openDeps);
   const onSessionRef = useRef(onSession);
   const messageRef = useRef<(key: MessageKey) => void>(noop);
@@ -190,6 +204,7 @@ export function ProjectEditor({
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
           snapSettings: () => deviceSnapSettings.get(),
+          ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
         });
         const selection = createSelectionController({
           handle: plan.handle,
@@ -300,6 +315,23 @@ export function ProjectEditor({
     };
   }, [plan, devHooks]);
 
+  const menuCanEdit = session?.model.viewer.canEdit ?? false;
+  useEffect(() => {
+    if (plan === null || selection === null || drawing === null || session === null) return;
+    if (!menuCanEdit) return;
+    return plan.handle.onContextMenu((screen, client) => {
+      if (drawing.getUi().tool !== null) return false;
+      const hit = selection.pickAt(plan.handle.screenToModel(screen))[0];
+      if (hit !== undefined) {
+        const lower = hit.toLowerCase();
+        if (!selection.getUi().ids.some((id) => id.toLowerCase() === lower))
+          selection.select(expandGroups(session.store.getState().objects, [hit]));
+      }
+      setMenu({ kind: 'canvas', at: client });
+      return true;
+    });
+  }, [plan, selection, drawing, session, menuCanEdit]);
+
   useEffect(() => {
     if (selection === null || plan === null || !devHooks) return;
     const hook: SelectionTestHook = {
@@ -319,6 +351,8 @@ export function ProjectEditor({
     () => [clientName, workingCopy, sync ? <SaveStateText sync={sync} /> : null],
     [clientName, workingCopy, sync],
   );
+
+  const closeMenu = useCallback(() => setMenu(null), []);
 
   const retry = () => {
     setState({ kind: 'loading' });
@@ -340,6 +374,17 @@ export function ProjectEditor({
           activeView="plan"
           views={PLAN_VIEWS}
           onViewChange={noop}
+          reviewPill={
+            menuCanEdit ? (
+              <StateButton
+                data-testid="editor-upload-files"
+                compact
+                onClick={() => setUploading(true)}
+              >
+                {t('office.upload.editor_button')}
+              </StateButton>
+            ) : undefined
+          }
         />
         {conflictCount > 0 ? (
           <ConflictBanner
@@ -379,7 +424,7 @@ export function ProjectEditor({
     body = (
       <>
         {showPlan && coarse && selection !== null ? (
-          <EditBar selection={selection} edit={edit} />
+          <LazyEditBar selection={selection} edit={edit} />
         ) : null}
         {sync !== null ? (
           <>
@@ -427,7 +472,7 @@ export function ProjectEditor({
     );
   const panel =
     session !== null && listOpen ? (
-      <ConflictPanel
+      <LazyConflictPanel
         session={session}
         projectId={projectId}
         inputs={conflicts.inputs}
@@ -450,6 +495,16 @@ export function ProjectEditor({
       ) : null}
       {selection !== null ? <SelectionLayer selection={selection} edit={edit} /> : null}
       {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}
+      {session !== null && edit !== null && selection !== null && canEdit ? (
+        <LazyEditMenus
+          request={menu}
+          edit={edit}
+          selection={selection}
+          store={session.store}
+          onClose={closeMenu}
+          onMessage={(key) => messageRef.current(key)}
+        />
+      ) : null}
       {stateArea}
       {panel}
     </>
@@ -462,12 +517,19 @@ export function ProjectEditor({
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
   const inspector =
     showPlan && session !== null && selection !== null ? (
-      <InspectorPanel
-        store={session.store}
-        selection={selection}
-        canEdit={canEdit}
-        drawing={drawing}
-      />
+      <InspectorStack>
+        <InspectorPanel
+          store={session.store}
+          selection={selection}
+          canEdit={canEdit}
+          drawing={drawing}
+        />
+        <InspectorMore
+          selection={selection}
+          canEdit={canEdit}
+          onOpen={(at) => setMenu({ kind: 'more', at })}
+        />
+      </InspectorStack>
     ) : null;
   const openAssistant = shown !== null && assistantOpen ? shown : null;
   const backdrop = showPlan ? (
@@ -478,12 +540,19 @@ export function ProjectEditor({
     <DeviceLayout
       full={
         <EditorFrame
-          header={header}
+          header={
+            <>
+              {header}
+              {uploading ? (
+                <LazyUploadFiles projectId={projectId} onClose={() => setUploading(false)} />
+              ) : null}
+            </>
+          }
           rail={rail}
           canvas={canvas}
           inspector={
             openAssistant !== null ? (
-              <AssistantPanel session={openAssistant} />
+              <LazyAssistantPanel session={openAssistant} />
             ) : (
               (inspector ?? undefined)
             )
@@ -511,4 +580,62 @@ export function ProjectEditor({
       phone={<EditorPhoneNotice />}
     />
   );
+}
+
+const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+
+// EZD-233: one hook for the lazy parts below. The module loads while `wanted`; nothing shows for the moment it
+// downloads, and a failed download is tried again the next time it is wanted.
+function useLazy<T>(module: LazyModule<T>, wanted = true): T | undefined {
+  const [mod, setMod] = useState(() => module.peek());
+  useEffect(() => {
+    if (mod || !wanted) return;
+    let live = true;
+    module.load().then(
+      (m) => {
+        if (live) setMod(m);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [module, mod, wanted]);
+  return mod;
+}
+
+// EZD-233 (11 Budgets): the tablet edit bar loads on touch screens only.
+const editBarModule = lazyModule(() => import('../lazy/edit-bar'));
+
+function LazyEditBar(props: EditBarProps) {
+  const mod = useLazy(editBarModule);
+  return mod ? <mod.EditBar {...props} /> : null;
+}
+
+// EZD-233: the menus load when one first opens and then stay, so the Save as group dialog outlives its menu.
+const editMenuModule = lazyModule(() => import('../lazy/edit-menu'));
+
+function LazyUploadFiles(props: { projectId: string; onClose: () => void }) {
+  const mod = useLazy(editMenuModule);
+  return mod ? <mod.UploadFilesDialog {...props} /> : null;
+}
+
+function LazyEditMenus(props: EditMenusProps) {
+  const mod = useLazy(editMenuModule, props.request !== null);
+  return mod ? <mod.EditMenus {...props} /> : null;
+}
+
+// EZD-227 Build (11 Budgets; vault/build/assumptions.md EZD-227): the assistant panel loads when first opened, as the
+// conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
+const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
+
+function LazyAssistantPanel(props: { session: AssistantSession }) {
+  const mod = useLazy(assistantPanelModule);
+  return mod ? <mod.AssistantPanel {...props} /> : null;
+}
+
+// Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.
+function LazyConflictPanel(props: ConflictPanelProps) {
+  const mod = useLazy(conflictPanelModule);
+  return mod ? <mod.ConflictPanel {...props} /> : null;
 }

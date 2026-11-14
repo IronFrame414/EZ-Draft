@@ -171,6 +171,10 @@ export type NewProjectValues = {
   customerId: string | null;
   scopeOfWork: string | null;
   template: TemplateBody | null;
+  // EZD-129 (Q-0202; AC-EZD-129-3): the wizard's Foreman, a membership id; absent when none is picked.
+  foremanId?: string;
+  // EZD-301 (S01 Events emitted): `file` when the project starts from a file; absent for Standalone.
+  source?: 'file';
 };
 
 const size = z.number().refine(isTemplateSize);
@@ -185,6 +189,8 @@ const newProjectSchema = z.strictObject({
     .strictObject({ key: z.enum(TEMPLATE_KEYS), width: size, length: size, ceilingHeight: size })
     .nullable()
     .optional(),
+  foremanId: z.uuid().nullable().optional(),
+  source: z.enum(['standalone', 'file']).optional(),
 });
 
 export function parseNewProject(body: unknown): NewProjectValues | null {
@@ -201,12 +207,17 @@ export function parseNewProject(body: unknown): NewProjectValues | null {
     customerId: parsed.data.customerId,
     scopeOfWork: scope === '' ? null : scope,
     template: parsed.data.template ?? null,
+    ...(parsed.data.foremanId ? { foremanId: parsed.data.foremanId } : {}),
+    ...(parsed.data.source === 'file' ? { source: 'file' as const } : {}),
   };
 }
 
 export type CreateProjectResult =
   | { ok: true; projectId: string; tenantId: string }
-  | { ok: false; code: 'permission_denied' | 'invalid_input' | 'customer_unavailable' };
+  | {
+      ok: false;
+      code: 'permission_denied' | 'invalid_input' | 'customer_unavailable' | 'foreman_unavailable';
+    };
 
 type CreateProjectArgs = Database['public']['Functions']['create_project']['Args'];
 type CreateProjectWithObjectsArgs =
@@ -223,6 +234,8 @@ export async function createProject(
     p_type: v.type,
     p_customer_id: v.customerId,
     p_scope_of_work: v.scopeOfWork,
+    // EZD-129: sent only when a Foreman is picked, so a call without one is unchanged.
+    ...(v.foremanId !== undefined ? { p_foreman_membership_id: v.foremanId } : {}),
   };
   const { data, error } =
     v.template === null
@@ -234,8 +247,11 @@ export async function createProject(
   if (error) {
     if (error.code === '42501') return { ok: false, code: 'permission_denied' };
     if (error.code === '22023') {
-      return error.message.includes('customer_unavailable')
-        ? { ok: false, code: 'customer_unavailable' }
+      if (error.message.includes('customer_unavailable')) {
+        return { ok: false, code: 'customer_unavailable' };
+      }
+      return error.message.includes('foreman_unavailable')
+        ? { ok: false, code: 'foreman_unavailable' }
         : { ok: false, code: 'invalid_input' };
     }
     throw error;

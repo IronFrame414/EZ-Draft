@@ -201,6 +201,14 @@ describe('EZD-020 import boundaries lint', () => {
     assert.deepEqual(found, []);
   });
 
+  // EZD-5603b T22: heic-to is a lazy-only library, statically only in lazy places (a Web Worker file); the rule
+  // checks `import`/`export ... from` and `require`, never `import()` (eslint-rules/import-boundaries.mjs:109-128).
+  test('EZD-5603b T22 heic-to is refused in the editor and allowed in a Web Worker', async () => {
+    const code = "import { heicTo } from 'heic-to/next';\nexport default heicTo;\n";
+    reported(await lint(code, 'app/src/editor/assistant/x.ts'), 'heavyPackage', 'editor');
+    allowed(await lint(code, 'app/src/workers/x.worker.ts'), 'worker');
+  });
+
   test('EZD-020 L8 lists match the conventions file', async () => {
     const b = await import(pathToFileURL(path.join(root, 'eslint-rules', 'boundaries.mjs')).href);
     const md = readFileSync(path.join(root, 'docs', 'architecture.md'), 'utf8');

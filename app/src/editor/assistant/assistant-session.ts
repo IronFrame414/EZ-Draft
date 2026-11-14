@@ -6,14 +6,41 @@ import type { AssistantModel } from '../../lib/assistant/cost';
 import { ASSISTANT_MODELS, sessionTotalMicroUsd } from '../../lib/assistant/cost';
 import type { OutboxSync } from '../../lib/outbox/outbox-sync';
 import type { MessageKey } from '../../server/messages/catalog';
-import { postAssistantPrompt, readAiKeyState } from './assistant-client';
+import type { AssistantCallResult } from './assistant-client';
 import {
   ASSISTANT_SELECTED_MAX,
   canSendPrompt,
   historyFrom,
+  photoControlDisabled,
   type AssistantEntry,
   type AssistantUi,
 } from './assistant-ui';
+import { lazyModule } from '../../lib/lazy/lazy-module';
+import type { createPhotoWorkerShrinker, PhotoPrepareResult, PhotoShrinker } from './photo-prepare';
+
+// EZD-233 (11 Budgets editor route): the photo check and shrink load when a photo is first attached; a failed
+// download reads as an unreadable photo, and the next attach tries again.
+const photoPrepareModule = lazyModule(() => import('../../lazy/photo-prepare'));
+// EZD-233: the two server calls load on first use; a failed download reads as a failed call.
+const assistantClientModule = lazyModule(() => import('../../lazy/assistant-client'));
+const readAiKeyState: typeof import('./assistant-client').readAiKeyState = (o) =>
+  assistantClientModule.load().then(
+    (m) => m.readAiKeyState(o),
+    () => 'failed' as const,
+  );
+const postAssistantPrompt: typeof import('./assistant-client').postAssistantPrompt = (...args) =>
+  assistantClientModule.load().then(
+    (m) => m.postAssistantPrompt(...args),
+    (): AssistantCallResult => ({
+      kind: 'failure',
+      failure: {
+        kind: 'failed',
+        messageKey: 'office.assistant.send_failed',
+        profileLink: false,
+        costMicroUsd: null,
+      },
+    }),
+  );
 
 // S1
 export type AssistantSessionDeps = {
@@ -23,6 +50,9 @@ export type AssistantSessionDeps = {
   getSelectedIds: () => readonly string[];
   fetchImpl?: typeof fetch;
   now?: () => number;
+  // EZD-5603b S1
+  shrinkPhoto?: PhotoShrinker;
+  objectUrls?: { create(blob: Blob): string; revoke(url: string): void };
 };
 
 // S2
@@ -37,6 +67,9 @@ export type AssistantSession = {
   refreshKey(): Promise<void>;
   openProfile(): void;
   closeProfile(): void;
+  // EZD-5603b S2
+  attachPhoto(file: File): Promise<void>;
+  removePhoto(): void;
   dispose(): void;
 };
 
@@ -54,6 +87,9 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     model: 'sonnet',
     phase: 'idle',
     profileOpen: false,
+    photo: null,
+    photoProblem: null,
+    photoPreparing: false,
   };
   const listeners = new Set<() => void>();
   const counted: number[] = [];
@@ -61,6 +97,21 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
   let keyEpoch = 0;
   let nextId = 1;
   let inFlight: AbortController | null = null;
+  // EZD-5603b Decided "Session photo": one counter for every photo change; the JPEGs by object URL.
+  let photoGen = 0;
+  const blobs = new Map<string, Blob>();
+  const objectUrls = deps.objectUrls ?? {
+    create: (blob: Blob) => URL.createObjectURL(blob),
+    revoke: (url: string) => URL.revokeObjectURL(url),
+  };
+  let workerShrinker: ReturnType<typeof createPhotoWorkerShrinker> | null = null;
+  const shrinkPhoto: PhotoShrinker = (file, kind) => {
+    if (deps.shrinkPhoto) return deps.shrinkPhoto(file, kind);
+    const mod = photoPrepareModule.peek();
+    if (mod === undefined) return Promise.resolve({ ok: false });
+    workerShrinker ??= mod.createPhotoWorkerShrinker();
+    return workerShrinker.shrink(file, kind);
+  };
 
   const set = (patch: Partial<AssistantUi>) => {
     ui = { ...ui, ...patch };
@@ -81,6 +132,42 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     set({ keyState: state });
   };
 
+  // A photo URL no entry shows is revoked; one an entry shows lives until dispose.
+  const release = (url: string) => {
+    if (ui.entries.some((e) => e.photoUrl === url)) return;
+    objectUrls.revoke(url);
+    blobs.delete(url);
+  };
+
+  const attachPhoto = async (file: File) => {
+    if (disposed || photoControlDisabled(ui)) return;
+    photoGen += 1;
+    const gen = photoGen;
+    set({ photoPreparing: true, photoProblem: null });
+    const result: PhotoPrepareResult = await photoPrepareModule.load().then(
+      (m) => m.preparePhoto(file, shrinkPhoto),
+      (): PhotoPrepareResult => ({ ok: false, problem: 'unreadable' }),
+    );
+    if (disposed || gen !== photoGen) return;
+    if (!result.ok) {
+      set({ photoPreparing: false, photoProblem: result.problem });
+      return;
+    }
+    const url = objectUrls.create(result.photo.jpeg);
+    blobs.set(url, result.photo.jpeg);
+    const replaced = ui.photo;
+    set({ photoPreparing: false, photo: { url, name: file.name, bytes: file.size } });
+    if (replaced !== null) release(replaced.url);
+  };
+
+  const removePhoto = () => {
+    if (disposed || ui.phase !== 'idle') return;
+    photoGen += 1;
+    const removed = ui.photo;
+    set({ photoPreparing: false, photoProblem: null, photo: null });
+    if (removed !== null) release(removed.url);
+  };
+
   const setOpen = (open: boolean) => {
     if (disposed) return;
     if (ui.open !== open) set({ open });
@@ -91,7 +178,8 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     if (disposed || !canSendPrompt(ui)) return;
     const prompt = ui.draft;
     const model = ui.model;
-    set({ phase: 'draining' });
+    const sent = ui.photo;
+    set({ phase: 'draining', photoProblem: null });
     const t0 = now();
     let drained = false;
     try {
@@ -122,7 +210,11 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
       return;
     }
     const history = historyFrom(ui.entries);
-    set({ entries: [...ui.entries, { kind: 'waiting', id, prompt }], phase: 'waiting' });
+    const photoUrl = sent === null ? {} : { photoUrl: sent.url };
+    set({
+      entries: [...ui.entries, { kind: 'waiting', id, prompt, ...photoUrl }],
+      phase: 'waiting',
+    });
     const controller = new AbortController();
     inFlight = controller;
     const result = await postAssistantPrompt(
@@ -134,7 +226,11 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
         floorId,
         selectedIds: deps.getSelectedIds().slice(0, ASSISTANT_SELECTED_MAX),
       },
-      { signal: controller.signal, fetchImpl },
+      {
+        signal: controller.signal,
+        fetchImpl,
+        photo: sent === null ? null : (blobs.get(sent.url) ?? null),
+      },
     );
     if (inFlight === controller) inFlight = null;
     if (disposed || result.kind === 'aborted') return;
@@ -146,6 +242,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
         kind: 'reply',
         id,
         prompt,
+        ...photoUrl,
         message,
         model: replyModel,
         costMicroUsd,
@@ -155,6 +252,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
         entries: others(entry),
         phase: 'idle',
         draft: ui.draft === prompt ? '' : ui.draft,
+        ...(ui.photo === sent ? { photo: null } : {}),
       });
       return;
     }
@@ -168,6 +266,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
       kind: 'failed',
       id,
       prompt,
+      ...photoUrl,
       messageKey: failure.messageKey,
       profileLink: failure.profileLink,
       costMicroUsd: failure.costMicroUsd,
@@ -197,6 +296,8 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     },
     send,
     refreshKey,
+    attachPhoto,
+    removePhoto,
     openProfile() {
       if (disposed) return;
       set({ profileOpen: true });
@@ -212,6 +313,10 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
       inFlight?.abort();
       inFlight = null;
       listeners.clear();
+      for (const url of blobs.keys()) objectUrls.revoke(url);
+      blobs.clear();
+      workerShrinker?.dispose();
+      workerShrinker = null;
     },
   };
 }

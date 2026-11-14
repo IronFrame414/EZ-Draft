@@ -24,6 +24,7 @@ import {
   requireApiPermission,
   requirePermission,
 } from '../../../../../server/permissions';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -148,6 +149,8 @@ export async function POST(
       { status: 200, headers },
     );
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

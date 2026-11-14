@@ -11,6 +11,18 @@
 // EZD-212b (vault/plans/EZD-212b.md D7): the Move tool branch and every object drag.
 // EZD-212c (vault/plans/EZD-212c.md D9-D14): the selection frame, handle presses and drags, typed handle and chip
 // entries.
+// EZD-234 Build (S03 Fixtures, Validation; 09e:7; Q-0704 05-screens; AC-EZD-234-1, -2, -5): the Fixtures tool (F)
+// places the panel's choice at each click; fixtures and utility points move with Move and Select drags; after a move,
+// the moved appliances' linked utility points that stayed are listed in `ui.utilities` until the next edit or Close.
+// Placing and the list run in `fixturesModule`, loaded when the tool is turned on or a fixture first moves; a click
+// before it is there places nothing.
+// EZD-223 (S03 Sketch; S15d iPad input mode; Q-0392; AC-EZD-223-1 to -4): the Sketch tool (S) draws freehand strokes
+// that clean up on lift (`reduceSketch`); the strokes are kept on this page's markup layer and sent in every frame.
+// Under Pencil only (`ipadDrawing`) a touch never draws. No snapping: a sketch is freehand.
+// EZD-231 (04 Tool rail Measure; S06 Measure "Allowed in view only"; Q-0697; AC-EZD-231-1 to -3): the Measure tool
+// (Shift+L) measures between two snapped points (`reduceMeasure`) and never changes the model. It is the one tool a
+// viewer without Edit model can turn on: `enabled` still means "can edit", and only the receiver, the pointer,
+// `selectTool('measure' | null)` and the Shift+L and Esc keys let Measure through.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -39,7 +51,10 @@ import {
   type SnapSettings,
   type WallObject,
   type WallSnapIndex,
+  type UtilityToMove,
+  type SketchShape,
 } from '@ezdraft/geometry';
+import type { IpadDrawing } from '../../lib/profile/profile';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
@@ -105,7 +120,21 @@ import {
   type ResizeOutcome,
   type SelectionEntry,
   type SelectionFrame,
+  looseOn,
+  blockingsOn,
+  type FixtureChoice,
+  type LooseObject,
 } from './index';
+import { fixturesModule } from './fixtures-module';
+import { sketchModule } from './sketch-module';
+import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
+import {
+  initialMeasureState,
+  measureText,
+  reduceMeasure,
+  type MeasureInput,
+  type MeasureState,
+} from './measure-tool';
 
 export type DrawingFrame = {
   rect: boolean;
@@ -118,6 +147,15 @@ export type DrawingFrame = {
   opening: OpeningFrame | null;
   preview?: readonly PickShape[];
   selection?: SelectionFrame | null;
+  sketch?: SketchFrame;
+  // EZD-231: the distance between `from` and `to` while measuring.
+  measure?: string;
+};
+
+// EZD-223: the page's sketch strokes and the stroke being drawn, in model inches.
+export type SketchFrame = {
+  shapes: readonly SketchShape[];
+  live: readonly Point[] | null;
 };
 
 export type OpeningFrame = {
@@ -143,6 +181,13 @@ export type DrawingUi = {
   readonly doorTarget: 'arc' | 'dot' | null;
   readonly openingWidth: number | null;
   readonly entry: SelectionEntry | null;
+  readonly fixtureChoice: FixtureChoice | null;
+  readonly utilities: readonly UtilitiesMoved[] | null;
+};
+
+export type UtilitiesMoved = {
+  readonly fixtureId: string;
+  readonly utilities: readonly UtilityToMove[];
 };
 
 export type ToolKeyEvent = {
@@ -175,6 +220,9 @@ export type DrawingDeps = {
   newId?: () => string;
   now?: () => string;
   snapSettings?: () => Readonly<SnapSettings>;
+  // EZD-223: the user's iPad drawing setting (null in the database reads as finger), and a millisecond clock.
+  ipadDrawing?: () => IpadDrawing;
+  clock?: () => number;
 };
 
 export type DrawingController = {
@@ -195,6 +243,8 @@ export type DrawingController = {
   dragPointer(event: PlanPointerEvent): void;
   startChipEntry(side: ChipSide): void;
   cancelEntry(): void;
+  setFixtureChoice(choice: FixtureChoice): void;
+  dismissUtilities(): void;
   dispose(): void;
 };
 
@@ -214,7 +264,10 @@ type ToolState =
   | { id: 'wall'; state: WallChainState }
   | { id: 'room-rect'; state: RoomRectState }
   | { id: 'door' | 'window'; state: OpeningToolState }
-  | { id: 'move'; state: MoveToolState };
+  | { id: 'move'; state: MoveToolState }
+  | { id: 'fixtures'; state: null }
+  | { id: 'sketch'; state: SketchState }
+  | { id: 'measure'; state: MeasureState };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -242,6 +295,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const newId = deps.newId ?? newObjectId;
   const now = deps.now ?? (() => new Date().toISOString());
   const snapSettings = deps.snapSettings ?? (() => DEFAULT_SNAP_SETTINGS);
+  const ipadDrawing = deps.ipadDrawing ?? (() => 'finger' as const);
+  const clock = deps.clock ?? (() => performance.now());
 
   let objects: Objects = store.getState().objects;
   let level: string | null = openFloorId(objects);
@@ -249,6 +304,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let index: WallSnapIndex = createWallSnapIndex(wallsIn(models));
   let walls: WallObject[] = wallsIn(models);
   let openings: OpeningObject[] = level === null ? [] : openingsOn(objects, level);
+  let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
+  // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
+  let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
   const enabled = viewer.canEdit && level !== null;
 
   let tool: ToolState | null = null;
@@ -275,6 +333,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let movePress: { screen: Point; dragged: boolean } | null = null;
   let drag: MoveDrag | null = null;
   let moveCache: ModelObject[] | null = null;
+  // EZD-234: a list computed after a later move, placement or Close is dropped.
+  let utilitiesSeq = 0;
+  // EZD-223: the sketch strokes drawn on this page.
+  let sketches: SketchShape[] = [];
 
   const uiListeners = new Set<() => void>();
   const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
@@ -294,6 +356,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     doorTarget: null,
     openingWidth: null,
     entry: null,
+    fixtureChoice: null,
+    utilities: null,
   };
 
   const setUi = (patch: Partial<DrawingUi>) => {
@@ -310,6 +374,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       next.doorTarget !== ui.doorTarget ||
       next.openingWidth !== ui.openingWidth ||
       next.entry !== ui.entry ||
+      next.fixtureChoice !== ui.fixtureChoice ||
+      next.utilities !== ui.utilities ||
       !sameBoxes(next.boxes, ui.boxes);
     if (!changed) return;
     if (sameBoxes(next.boxes, ui.boxes)) next = { ...next, boxes: ui.boxes };
@@ -322,8 +388,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const receiver: PlanPointerReceiver = (event) => onPointer(event);
 
   function syncReceiver(): void {
-    if (disposed || !enabled) return;
-    const want = ui.tool !== null || ui.pick !== null;
+    if (disposed) return;
+    const want = enabled ? ui.tool !== null || ui.pick !== null : ui.tool === 'measure';
     if (want === receiverSet) return;
     receiverSet = want;
     handle.setPointerReceiver(want ? receiver : null);
@@ -361,6 +427,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     models = level === null ? [] : toModelObjects(objects, level);
     walls = wallsIn(models);
     openings = level === null ? [] : openingsOn(objects, level);
+    loose = level === null ? [] : looseOn(objects, level);
+    blockings = level === null ? [] : blockingsOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(wallsIn(models));
@@ -386,12 +454,20 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings];
+    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose];
     return moveCache;
   }
 
   function snapContext(): SnapContext {
-    if (tool === null || tool.id === 'room-rect' || tool.id === 'move') return NO_CONTEXT;
+    if (
+      tool === null ||
+      tool.id === 'room-rect' ||
+      tool.id === 'move' ||
+      tool.id === 'fixtures' ||
+      tool.id === 'sketch' ||
+      tool.id === 'measure'
+    )
+      return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
     return wallSnapContext(tool.state);
   }
@@ -595,7 +671,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     };
   }
 
+  // EZD-223: every frame carries the sketch strokes once there are any.
   function buildFrame(): DrawingFrame | null {
+    const base = toolFrame();
+    const live = tool !== null && tool.id === 'sketch' ? (tool.state.stroke?.points ?? null) : null;
+    if (sketches.length === 0 && live === null) return base;
+    return { ...(base ?? { ...EMPTY_FRAME, opening: null }), sketch: { shapes: sketches, live } };
+  }
+
+  function toolFrame(): DrawingFrame | null {
     if (tool === null) {
       if (drag !== null) return moveFrame(drag.base, drag.ids);
       if (claim !== null && claim.handle !== null && claim.moved && !claim.done)
@@ -604,6 +688,24 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
+    if (tool.id === 'sketch') return null;
+    if (tool.id === 'measure') {
+      const { from, to } = tool.state;
+      return {
+        ...EMPTY_FRAME,
+        from,
+        to,
+        marker: lastSnap === null ? null : snapMarker(lastSnap, NO_CONTEXT),
+        opening: null,
+        measure: from !== null && to !== null ? measureText(from, to) : undefined,
+      };
+    }
+    if (tool.id === 'fixtures')
+      return {
+        ...EMPTY_FRAME,
+        marker: lastSnap === null ? null : snapMarker(lastSnap, NO_CONTEXT),
+        opening: null,
+      };
     const marker = lastSnap === null ? null : snapMarker(lastSnap, lastContext);
     const wall = marker?.wallId ? index.getWall(marker.wallId) : undefined;
     const g = wall?.data.geometry;
@@ -751,7 +853,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function onPointer(event: PlanPointerEvent): void {
-    if (disposed || !enabled || level === null) return;
+    if (disposed || level === null) return;
+    if (tool !== null && tool.id === 'measure') {
+      onMeasurePointer(event);
+      return;
+    }
+    if (!enabled) return;
     if (ui.pick !== null) {
       onPick(event);
       return;
@@ -759,6 +866,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (tool === null) return;
     if (tool.id === 'move') {
       onMovePointer(event, tool.state);
+      return;
+    }
+    if (tool.id === 'fixtures') {
+      onFixturePointer(event);
+      return;
+    }
+    if (tool.id === 'sketch') {
+      onSketchPointer(event, tool.state);
       return;
     }
     if (isOpeningTool(tool)) {
@@ -792,6 +907,145 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     emitFrame();
   }
 
+  // EZD-231: a snapped point; a touch measures on the lift (a tap), mouse and pen on the press.
+  function onMeasurePointer(event: PlanPointerEvent): void {
+    lastSnap = snap(index, {
+      cursor: event.model,
+      pixelsPerInch: handle.getPixelsPerInch(),
+      anchor: null,
+      referenceDirection: null,
+      settings: snapSettings(),
+    });
+    const at = lastSnap.point;
+    if (event.kind === 'move') measureInput({ type: 'move', at });
+    else if (event.kind === (event.pointerType === 'touch' ? 'up' : 'down'))
+      measureInput({ type: 'press', at });
+  }
+
+  function measureInput(i: MeasureInput): void {
+    if (tool === null || tool.id !== 'measure') return;
+    const step = reduceMeasure(tool.state, i);
+    if (step.exit) {
+      selectTool(null);
+      return;
+    }
+    tool = { id: 'measure', state: step.state };
+    emitFrame();
+  }
+
+  // EZD-223: one pointer step of the stroke; a lift adds the cleaned (or held raw) shape to the page's strokes.
+  function onSketchPointer(event: PlanPointerEvent, state: SketchState): void {
+    const kind = event.kind;
+    if (kind === 'click' || kind === 'dblclick') return;
+    const step = reduceSketch(
+      state,
+      {
+        kind,
+        model: event.model,
+        screen: event.screen,
+        pointerType: event.pointerType,
+        time: clock(),
+      },
+      ipadDrawing(),
+    );
+    if (step.state === state && step.done === null) return;
+    tool = { id: 'sketch', state: step.state };
+    const done = step.done;
+    if (done !== null) {
+      // A held stroke stays raw; otherwise it is cleaned once the clean-up code is there.
+      const mod = sketchModule.peek();
+      if (done.held) sketches = [...sketches, { kind: 'raw', points: [...done.points] }];
+      else if (mod !== undefined) sketches = [...sketches, mod.cleanStroke(done.points)];
+      else
+        sketchModule.load().then(
+          (m) => {
+            if (disposed) return;
+            sketches = [...sketches, m.cleanStroke(done.points)];
+            emitFrame();
+          },
+          () => {
+            if (disposed) return;
+            sketches = [...sketches, { kind: 'raw', points: [...done.points] }];
+            emitFrame();
+          },
+        );
+    }
+    emitFrame();
+  }
+
+  // EZD-234: a mouse press, or a touch lift, places the panel's choice at the snapped point.
+  function onFixturePointer(event: PlanPointerEvent): void {
+    if (level === null) return;
+    const result = snap(index, {
+      cursor: event.model,
+      pixelsPerInch: handle.getPixelsPerInch(),
+      anchor: null,
+      referenceDirection: null,
+      settings: snapSettings(),
+    });
+    lastSnap = result;
+    lastContext = NO_CONTEXT;
+    const place = event.pointerType === 'touch' ? event.kind === 'up' : event.kind === 'down';
+    const mod = fixturesModule.peek();
+    // EZD-233 (AC-EZD-233-2): a saved group places a copy centred on the snapped point, as one edit, and selects it.
+    if (place && mod !== undefined && ui.fixtureChoice?.type === 'saved_group') {
+      const { objects, numberHighs } = store.getState();
+      const r = mod.placeSavedGroup(
+        { objects, level, ids: [], newId, highs: numberHighs },
+        ui.fixtureChoice.payload,
+        result.point,
+      );
+      if (!r.ok) deps.onMessage(r.messageKey);
+      else if (r.changes.length > 0) {
+        utilitiesSeq += 1;
+        store.applyEdit(r.changes);
+        setUi({ utilities: null });
+      }
+      emitFrame();
+      return;
+    }
+    if (place && mod !== undefined && ui.fixtureChoice !== null) {
+      // EZD-227: blocking takes the raw point, so the side of the wall it was clicked on is kept.
+      const isBlocking = ui.fixtureChoice.type === 'blocking';
+      const change = mod.placeFixture(ui.fixtureChoice, isBlocking ? event.model : result.point, {
+        level,
+        objects: isBlocking ? walls : loose,
+        newId,
+        captureIn: captureIn(),
+      });
+      if (change === null)
+        deps.onMessage(isBlocking ? 'office.fixtures.blocking_invalid' : 'office.fixtures.invalid');
+      else {
+        utilitiesSeq += 1;
+        store.applyEdit([change]);
+        setUi({ utilities: null });
+      }
+    }
+    emitFrame();
+  }
+
+  function setFixtureChoice(choice: FixtureChoice): void {
+    if (disposed) return;
+    setUi({ fixtureChoice: choice });
+  }
+
+  function dismissUtilities(): void {
+    if (disposed) return;
+    utilitiesSeq += 1;
+    setUi({ utilities: null });
+  }
+
+  // The panel's starting choice comes with the module.
+  function loadFixtures(): void {
+    fixturesModule.load().then(
+      (m) => {
+        if (!disposed && ui.fixtureChoice === null)
+          setUi({ fixtureChoice: m.DEFAULT_FIXTURE_CHOICE });
+      },
+      () => {},
+    );
+  }
+
   // D7 (d): snap under Move or a drag; sets the marker's snap and context.
   function moveSnap(cursor: Point, anchor: Point | null, excludeIds: readonly string[]): Point {
     const result = snap(index, {
@@ -817,6 +1071,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return;
     }
     if (outcome.changed.length === 0) return;
+    const before = moveModels();
+    const swapped = new Map(outcome.changed.map((o) => [lower(o.id), o]));
+    const after = before.map((o) => swapped.get(lower(o.id)) ?? o);
+    const fixtureMoved = outcome.changed.some((o) => o.type === 'fixture');
     store.applyEdit(
       moveEditChanges(
         store.getState().objects,
@@ -826,6 +1084,18 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         store.getState().numberHighs,
       ),
     );
+    setUi({ utilities: null });
+    if (fixtureMoved) {
+      const seq = ++utilitiesSeq;
+      fixturesModule.load().then(
+        (m) => {
+          if (disposed || seq !== utilitiesSeq) return;
+          const moved = m.utilitiesToMove(before, after);
+          setUi({ utilities: moved.length > 0 ? moved : null });
+        },
+        () => {},
+      );
+    }
   }
 
   function finishDrag(d: MoveDrag, at: Point): void {
@@ -924,7 +1194,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function selectTool(id: DrawingToolId | null): void {
-    if (disposed || !enabled) return;
+    if (disposed || !(enabled || id === null || id === 'measure')) return;
     cancelEntry();
     const hadDrag = drag !== null;
     drag = null;
@@ -946,7 +1216,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
             ? { id, state: initialRoomRectState() }
             : id === 'move'
               ? { id, state: initialMoveToolState() }
-              : { id, state: initialOpeningToolState(id) };
+              : id === 'fixtures'
+                ? { id, state: null }
+                : id === 'sketch'
+                  ? { id, state: initialSketchState() }
+                  : id === 'measure'
+                    ? { id, state: initialMeasureState() }
+                    : { id, state: initialOpeningToolState(id) };
+    if (id === 'fixtures') loadFixtures();
+    if (id === 'sketch') sketchModule.preload();
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -1027,8 +1305,17 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function keyDown(e: ToolKeyEvent): boolean {
-    if (disposed || !enabled) return false;
-    if (e.defaultPrevented || isTypingTarget(e.target)) return false;
+    if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
+    // EZD-231: Shift+L and, while measuring, Esc work without Edit model; plain L stays free.
+    if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'l') {
+      selectTool('measure');
+      return true;
+    }
+    if (tool !== null && tool.id === 'measure' && e.key === 'Escape') {
+      measureInput({ type: 'escape' });
+      return true;
+    }
+    if (!enabled) return false;
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
       return true;
@@ -1046,6 +1333,18 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         moveInput({ type: 'escape' });
         return true;
       }
+      if (tool !== null && tool.id === 'fixtures') {
+        selectTool(null);
+        return true;
+      }
+      // EZD-223: Esc drops the stroke being drawn, else ends the tool.
+      if (tool !== null && tool.id === 'sketch') {
+        if (tool.state.stroke !== null) {
+          tool = { id: 'sketch', state: initialSketchState() };
+          emitFrame();
+        } else selectTool(null);
+        return true;
+      }
       if (tool !== null) {
         input({ type: 'escape' });
         emitFrame();
@@ -1054,7 +1353,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return false;
     }
     if (e.key === 'Enter') {
-      if (tool === null || isOpeningTool(tool) || tool.id === 'move') return false;
+      if (
+        tool === null ||
+        isOpeningTool(tool) ||
+        tool.id === 'move' ||
+        tool.id === 'fixtures' ||
+        tool.id === 'sketch' ||
+        tool.id === 'measure'
+      )
+        return false;
       input({ type: 'enter' });
       emitFrame();
       return true;
@@ -1079,6 +1386,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (key === 'm') {
       selectTool('move');
+      return true;
+    }
+    if (key === 'f') {
+      selectTool('fixtures');
+      return true;
+    }
+    if (key === 's') {
+      selectTool('sketch');
       return true;
     }
     return false;
@@ -1281,6 +1596,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     dragPointer,
     startChipEntry,
     cancelEntry,
+    setFixtureChoice,
+    dismissUtilities,
     dispose() {
       if (disposed) return;
       disposed = true;

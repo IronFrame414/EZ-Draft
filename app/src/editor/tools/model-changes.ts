@@ -4,7 +4,11 @@
 // EZD-204b Build step 7 (vault/plans/EZD-204b.md Decided "wallEditChanges"; AC-EZD-204-12): every wall edit appends
 // the opening host updates of its level, in the same edit (one undo step).
 // EZD-212b (vault/plans/EZD-212b.md D6).
+// EZD-234 Build (S03 Move, Fixtures; 09e:7): moved fixtures and utility points are written in the same edit.
+// EZD-227 Build (AC-EZD-227-1; S03:152): every wall edit also appends the blocking host updates of its level, and a
+// moved blocking is written with its re-hosting, in the same edit.
 import {
+  blockingHostUpdates,
   CURRENT_SCHEMA_VERSION,
   numberNewObjects,
   objectNumber,
@@ -13,11 +17,15 @@ import {
   raiseNumberHighs,
   reconcileRooms,
   withObjectNumber,
+  type BlockingObject,
+  type FixtureObject,
   type ModelObject,
   type NumberHighs,
   type OpeningObject,
+  type TileShowerObject,
   type RoomObject,
   type RoomReconcile,
+  type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
@@ -86,6 +94,65 @@ export function openingsOn(objects: Objects, level: string): OpeningObject[] {
   return out;
 }
 
+// EZD-227: the blocking of a level.
+export function blockingsOn(objects: Objects, level: string): BlockingObject[] {
+  const lvl = level.toLowerCase();
+  const out: BlockingObject[] = [];
+  for (const [id, v] of objects) {
+    if (v.type !== 'blocking') continue;
+    if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
+    if (r.ok && r.object.type === 'blocking') out.push(r.object);
+  }
+  return out;
+}
+
+export const blockingChange = (o: BlockingObject): Change => ({
+  id: o.id,
+  value: {
+    type: 'blocking',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
+export type LooseObject = FixtureObject | UtilityPointObject | TileShowerObject;
+
+const LOOSE_TYPES: ReadonlySet<string> = new Set(['fixture', 'utility_point', 'tile_shower']);
+const isLooseObject = (o: ModelObject): o is LooseObject => LOOSE_TYPES.has(o.type);
+
+// EZD-234: the fixtures and utility points of a level. EZD-226: and its tile showers.
+export function looseOn(objects: Objects, level: string): LooseObject[] {
+  const lvl = level.toLowerCase();
+  const out: LooseObject[] = [];
+  for (const [id, v] of objects) {
+    if (!LOOSE_TYPES.has(v.type)) continue;
+    if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
+    if (r.ok && isLooseObject(r.object)) out.push(r.object);
+  }
+  return out;
+}
+
+export const looseChange = (o: LooseObject): Change => ({
+  id: o.id,
+  value: {
+    type: o.type,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
 export const openingChange = (o: OpeningObject): Change => ({
   id: o.id,
   value: {
@@ -134,17 +201,30 @@ export function wallEditChanges(
     else next.push(w);
   }
   const rec = reconcileRooms(next, level, newId);
+  const nextWalls = next.filter((o): o is WallObject => o.type === 'wall');
   const hosts = openingHostUpdates({
     level,
-    walls: next.filter((o): o is WallObject => o.type === 'wall'),
+    walls: nextWalls,
     previousWalls,
     openings: openingsOn(objects, level),
   });
-  return [...numbered.map(wallChange), ...roomChanges(rec), ...hosts.map(openingChange)];
+  const blocks = blockingHostUpdates({
+    level,
+    walls: nextWalls,
+    previousWalls,
+    blockings: blockingsOn(objects, level),
+  });
+  return [
+    ...numbered.map(wallChange),
+    ...roomChanges(rec),
+    ...hosts.map(openingChange),
+    ...blocks.map(blockingChange),
+  ];
 }
 
 // EZD-212b D6: one Move as one edit (one undo step). Walls go through `wallEditChanges`; moved openings are written
-// with their re-hosting, and a door moved off every wall is flagged.
+// with their re-hosting, and a door moved off every wall is flagged. EZD-234: moved fixtures and utility points
+// follow.
 export function moveEditChanges(
   objects: Objects,
   level: string,
@@ -153,14 +233,64 @@ export function moveEditChanges(
   highs: NumberHighs,
 ): Change[] {
   if (changed.length === 0) return [];
+  const loose = changed.filter(isLooseObject).map(looseChange);
+  const blocks = changed.filter((o): o is BlockingObject => o.type === 'blocking');
+  const base = wallAndOpeningMoves(objects, level, changed, newId, highs, blocks);
+  return [...base, ...blockingMoves(objects, level, blocks, base), ...loose];
+}
+
+// EZD-227: each moved blocking, re-hosted against the walls after the move, unless the wall edit already wrote it.
+function blockingMoves(
+  objects: Objects,
+  level: string,
+  blocks: readonly BlockingObject[],
+  base: readonly Change[],
+): Change[] {
+  if (blocks.length === 0) return [];
+  const inBase = new Set(base.map((c) => c.id.toLowerCase()));
+  const walls = new Map<string, WallObject>();
+  for (const w of toModelObjects(objects, level))
+    if (w.type === 'wall') walls.set(w.id.toLowerCase(), w);
+  const previousWalls = [...walls.values()];
+  for (const c of base) {
+    if (c.value === null || c.value.type !== 'wall') continue;
+    const r = parseStoredObject({
+      id: c.id,
+      type: 'wall',
+      schema_version: c.value.schemaVersion,
+      data: c.value.data,
+    });
+    if (r.ok && r.object.type === 'wall') walls.set(c.id.toLowerCase(), r.object);
+  }
+  const hosted = blockingHostUpdates({
+    level,
+    walls: [...walls.values()],
+    previousWalls,
+    blockings: blocks,
+  });
+  const hostOf = new Map(hosted.map((h) => [h.id.toLowerCase(), h]));
+  return blocks
+    .filter((b) => !inBase.has(b.id.toLowerCase()))
+    .map((b) => blockingChange(hostOf.get(b.id.toLowerCase()) ?? b));
+}
+
+function wallAndOpeningMoves(
+  objects: Objects,
+  level: string,
+  changed: readonly ModelObject[],
+  newId: () => string,
+  highs: NumberHighs,
+  blocks: readonly BlockingObject[] = [],
+): Change[] {
   const walls = changed.filter((o): o is WallObject => o.type === 'wall');
   const openings = changed.filter((o): o is OpeningObject => o.type === 'opening');
+  if (walls.length === 0 && openings.length === 0) return [];
   const next = new Map<string, ObjectValue>(objects);
   const keyOf = new Map<string, string>();
   for (const id of next.keys()) keyOf.set(id.toLowerCase(), id);
-  for (const o of openings) {
+  for (const o of [...openings, ...blocks]) {
     next.set(keyOf.get(o.id.toLowerCase()) ?? o.id, {
-      type: 'opening',
+      type: o.type,
       schemaVersion: CURRENT_SCHEMA_VERSION,
       data: o.data as unknown as Record<string, unknown>,
     });

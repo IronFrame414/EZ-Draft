@@ -6,6 +6,9 @@
 // EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
 // EZD-212c (vault/plans/EZD-212c.md step 6b, D14): Esc asks the drawing first while a handle or chip entry is open.
 // EZD-213b (vault/plans/EZD-213b.md step 7, D-Dblclick): a dblclick selects the smallest object and tells onDoubleClick.
+// EZD-231: Measure on every viewer's rail (`editorRail`).
+// EZD-233 (S03 Context menu "Group"): a click, Shift-click, drag hand-over or box that takes a grouped object takes
+// its whole group.
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -15,7 +18,9 @@ import { HOVER_CAPTURE_PX, type BodyLookup, type HoverPicker } from '../plan/hov
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import { railMode, type DrawingController, type ToolKeyEvent } from '../tools/drawing-controller';
 import { DRAWING_RAIL_TOOLS } from '../tools/index';
+import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
+import { expandGroups } from './groups';
 import { createPickIndex } from './pick-index';
 
 export const SELECT_RAIL_TOOL: RailTool = {
@@ -132,6 +137,10 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (box !== null) setBox(null);
   };
 
+  // EZD-233: the ids with every member of their groups that the index holds.
+  const grouped = (ids: readonly string[]): string[] =>
+    expandGroups(store.getState().objects, ids).filter((id) => index.has(id));
+
   const click = (p: Press, shiftKey: boolean) => {
     const c = p.candidates;
     if (shiftKey || ui.selectMore) {
@@ -139,7 +148,12 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (c.length === 0) return;
       const first = c[0]!.toLowerCase();
       const selected = ui.ids.some((id) => id.toLowerCase() === first);
-      setUi(selected ? ui.ids.filter((id) => id.toLowerCase() !== first) : [...ui.ids, c[0]!]);
+      const group = new Set(grouped([c[0]!]).map((id) => id.toLowerCase()));
+      setUi(
+        selected
+          ? ui.ids.filter((id) => !group.has(id.toLowerCase()))
+          : grouped([...ui.ids, c[0]!]),
+      );
       return;
     }
     if (c.length === 0) {
@@ -151,7 +165,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       cycle !== null && distance(p.screen, cycle.at) <= SAME_SPOT_PX ? (cycle.i + 1) % c.length : 0;
     // Cycle first: setUi re-runs the hover picker, which reads it (R10, R12).
     cycle = { at: p.screen, i };
-    setUi([c[i]!]);
+    setUi(grouped([c[i]!]));
   };
 
   // D8: the drag moves the selection when a candidate is in it, else the first candidate alone.
@@ -161,7 +175,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     const inSelection = c.some((id) => ui.ids.some((s) => s.toLowerCase() === id.toLowerCase()));
     if (!inSelection) {
       cycle = null;
-      setUi([c[0]!]);
+      setUi(grouped([c[0]!]));
     }
     p.dragging = true;
     drawing.startDrag(ui.ids, p.model);
@@ -224,7 +238,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
           maxY: Math.max(p.model.y, e.model.y),
         };
         cycle = null;
-        setUi(index.inRect(rect, boxMode(p.screen, e.screen)));
+        setUi(grouped(index.inRect(rect, boxMode(p.screen, e.screen))));
       }
       if (box !== null) setBox(null);
       return;
@@ -413,8 +427,9 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
   };
 }
 
-const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS];
-const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL];
+// EZD-231 (04 Tool rail; S06 Measure "Allowed in view only"): Measure ends the top group for every viewer.
+const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
+const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL];
 
 export function editorRail(o: {
   editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';

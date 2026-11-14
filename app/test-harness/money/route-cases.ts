@@ -237,6 +237,75 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-301: the Upload step's routes. Start a PDF original, put its bytes, complete it, then start the import
+  // with it. No money field in any answer (source_file view columns and ids only).
+  {
+    file: `${API}projects/[id]/source-files/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/source-files/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/source-files`, {
+        kind: 'pdf',
+        originalName: 'plan.pdf',
+        contentType: 'application/pdf',
+        size: 100,
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    after: (body, env) => {
+      env.created.set('uploadStepFileId', field(body, 'sourceFile', 'id'));
+      env.created.set('uploadStepPath', field(body, 'sourceFile', 'storagePath'));
+    },
+    note: 'EZD-301: source_file view and signed upload (no money)',
+  },
+  {
+    file: `${API}source-files/[id]/complete/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/source-files/[id]/complete/route'),
+    request: async (env) => {
+      const id = made(env, 'uploadStepFileId');
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(made(env, 'uploadStepPath'), new Uint8Array(100).fill(0x61), {
+          contentType: 'application/pdf',
+        });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      return {
+        request: new Request(`${BASE}/api/source-files/${id}/complete`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-301: source_file view (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/imports`, {
+        sourceFileIds: [made(env, 'uploadStepFileId')],
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 202,
+    note: 'EZD-301: project id and source file ids (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/[jobId]/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/imports/${jobId}`),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-307: the made job is not an import, so not found; a review holds detected items and file names (no money)',
+  },
   {
     file: `${API}dev/permissions/projects/[id]/route.ts`,
     method: 'PATCH',
@@ -288,6 +357,89 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-131: the Settings > Libraries routes. POST adds one abbreviation; PATCH edits it and DELETE removes it.
+  {
+    file: `${API}settings/libraries/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/libraries/route'),
+    request: get('/api/settings/libraries?kind=abbreviation'),
+    expectStatus: 200,
+    note: 'EZD-131: one tab of library items; 200 { items } (no money)',
+  },
+  {
+    file: `${API}settings/libraries/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/libraries/route'),
+    request: sendJson('POST', '/api/settings/libraries', {
+      kind: 'abbreviation',
+      name: 'GFCI',
+      meaning: 'Ground-fault circuit interrupter',
+    }),
+    expectStatus: 201,
+    after: (body, env) => env.created.set('libraryItemId', field(body, 'item', 'id')),
+  },
+  {
+    file: `${API}settings/libraries/[id]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/libraries/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'libraryItemId');
+      return {
+        ...(await sendJson('PATCH', `/api/settings/libraries/${id}`, {
+          name: 'GFCI',
+          meaning: 'Ground-fault circuit interrupter outlet',
+        })()),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+  },
+  {
+    file: `${API}settings/libraries/[id]/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/settings/libraries/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'libraryItemId');
+      return {
+        request: new Request(`${BASE}/api/settings/libraries/${id}`, { method: 'DELETE' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+  },
+  // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
+  {
+    file: `${API}saved-groups/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/saved-groups/route'),
+    request: get('/api/saved-groups'),
+    expectStatus: 200,
+    note: 'EZD-233: the company saved groups with their objects; 200 { groups } (no money)',
+  },
+  {
+    file: `${API}saved-groups/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/saved-groups/route'),
+    request: sendJson('POST', '/api/saved-groups', {
+      name: 'Vanity set',
+      data: {
+        items: [
+          {
+            id: randomUUID(),
+            type: 'fixture',
+            schemaVersion: 5,
+            data: {
+              geometry: { center: { x: 10, y: 50 }, axis: { x: 1, y: 0 } },
+              status: 'new',
+              level: randomUUID(),
+              attributes: { kind: 'lavatory', width: 20, depth: 18 },
+            },
+          },
+        ],
+      },
+    }),
+    expectStatus: 201,
+  },
   {
     file: `${API}settings/system-status/route.ts`,
     method: 'GET',
@@ -302,6 +454,158 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     load: () => import('../../src/app/api/settings/users/route'),
     request: get('/api/settings/users'),
     expectStatus: 200,
+  },
+  // EZD-107: the custom role routes. POST makes one role with a fresh name; PATCH and DELETE aim at a role id no
+  // company has, so the walk changes nothing else (404 role_not_found). No money field in any answer.
+  {
+    file: `${API}settings/roles/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/roles/route'),
+    request: get('/api/settings/roles'),
+    expectStatus: 200,
+  },
+  {
+    file: `${API}settings/roles/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/roles/route'),
+    request: async () =>
+      sendJson('POST', '/api/settings/roles', {
+        name: `Walk role ${randomUUID()}`,
+        grantedKeys: ['view_projects'],
+      })(),
+    expectStatus: 201,
+    note: 'EZD-107: a new custom role (no money)',
+  },
+  ...(['PATCH', 'DELETE'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/roles/[id]/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/roles/[id]/route'),
+    request: async () => {
+      const id = randomUUID();
+      const path = `/api/settings/roles/${id}`;
+      const made =
+        method === 'PATCH'
+          ? await sendJson('PATCH', path, { name: 'Walk', grantedKeys: [] })()
+          : { request: new Request(`${BASE}${path}`, { method: 'DELETE' }) };
+      return { ...made, params: { id } };
+    },
+    expectStatus: 404,
+    note: 'EZD-107: unknown role; 404 role_not_found (no money)',
+  })),
+  // EZD-106: the member writes, aimed at a membership id no company has, so the walk changes no member; the
+  // function answers 404 member_not_found (no money field in any answer).
+  ...(['PATCH', 'DELETE'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/users/[id]/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/users/[id]/route'),
+    request: async () => {
+      const id = randomUUID();
+      const path = `/api/settings/users/${id}`;
+      const made =
+        method === 'PATCH'
+          ? await sendJson('PATCH', path, {
+              roleId: randomUUID(),
+              language: 'en',
+              grantedKeys: [],
+            })()
+          : { request: new Request(`${BASE}${path}`, { method: 'DELETE' }) };
+      return { ...made, params: { id } };
+    },
+    expectStatus: 404,
+    note: 'EZD-106: unknown member; 404 member_not_found (no money)',
+  })),
+  ...(['deactivate', 'reactivate'] as const).map((kind): MoneyRouteCase => ({
+    file: `${API}settings/users/[id]/${kind}/route.ts`,
+    method: 'POST',
+    load: () =>
+      kind === 'deactivate'
+        ? import('../../src/app/api/settings/users/[id]/deactivate/route')
+        : import('../../src/app/api/settings/users/[id]/reactivate/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/${id}/${kind}`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-106: unknown member; 404 member_not_found (no money)',
+  })),
+  // EZD-129: Project access. The [id] routes aim at a membership id no company has (404 member_not_found), so
+  // the walk changes no member; the picker's project choices and the wizard's Foreman candidates answer 200. No
+  // money field in any answer.
+  ...(['GET', 'PUT'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/users/[id]/scope/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/users/[id]/scope/route'),
+    request: async () => {
+      const id = randomUUID();
+      const path = `/api/settings/users/${id}/scope`;
+      const made =
+        method === 'PUT'
+          ? await sendJson('PUT', path, { scope: 'listed', projectIds: [] })()
+          : { request: new Request(`${BASE}${path}`) };
+      return { ...made, params: { id } };
+    },
+    expectStatus: 404,
+    note: 'EZD-129: unknown member; 404 member_not_found (no money)',
+  })),
+  {
+    file: `${API}settings/users/projects/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/users/projects/route'),
+    request: get('/api/settings/users/projects'),
+    expectStatus: 200,
+    note: 'EZD-129: project id, name and address only (no money)',
+  },
+  {
+    file: `${API}projects/foremen/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/foremen/route'),
+    request: get('/api/projects/foremen'),
+    expectStatus: 200,
+    note: 'EZD-129: member id, name, email and scope only (no money)',
+  },
+  // EZD-105: the invite routes. POST sends an email that is not one (400 invalid_email, nothing written); the
+  // [id] routes aim at a membership id no company has (404 member_not_found). No money field in any answer.
+  {
+    file: `${API}settings/users/invites/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/users/invites/route'),
+    request: sendJson('POST', '/api/settings/users/invites', {
+      email: 'not-an-email',
+      roleId: randomUUID(),
+    }),
+    expectStatus: 400,
+    note: 'EZD-105: invalid email; 400 invalid_email (no money)',
+  },
+  ...(['GET', 'DELETE'] as const).map((method): MoneyRouteCase => ({
+    file: `${API}settings/users/invites/[id]/route.ts`,
+    method,
+    load: () => import('../../src/app/api/settings/users/invites/[id]/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/invites/${id}`, { method }),
+        params: { id },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-105: unknown invite; 404 member_not_found (no money)',
+  })),
+  {
+    file: `${API}settings/users/invites/[id]/resend/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/users/invites/[id]/resend/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/invites/${id}/resend`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-105: unknown invite; 404 member_not_found (no money)',
   },
   {
     file: `${API}settings/company/route.ts`,

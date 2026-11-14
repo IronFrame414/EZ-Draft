@@ -13,12 +13,14 @@ import v1 from './samples/v1.json';
 import v2 from './samples/v2.json';
 import v3 from './samples/v3.json';
 import v4 from './samples/v4.json';
+import v5 from './samples/v5.json';
 
 const STORED_SAMPLES: Record<number, { objects: StoredObject[] }> = {
   1: v1 as unknown as { objects: StoredObject[] },
   2: v2 as unknown as { objects: StoredObject[] },
   3: v3 as unknown as { objects: StoredObject[] },
   4: v4 as unknown as { objects: StoredObject[] },
+  5: v5 as unknown as { objects: StoredObject[] },
 };
 
 const keys = (r: Record<number, unknown>) => Object.keys(r).map(Number);
@@ -35,7 +37,7 @@ describe('EZD-202 schema migration', () => {
       }
       expect(sample).toEqual(before);
     }
-    expect(CURRENT_SCHEMA_VERSION).toBe(4);
+    expect(CURRENT_SCHEMA_VERSION).toBe(5);
     expect(
       migrationChainProblems(CURRENT_SCHEMA_VERSION, keys(MIGRATIONS), keys(STORED_SAMPLES)),
     ).toEqual([]);

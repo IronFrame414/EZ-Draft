@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type DragEvent,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -40,7 +41,9 @@ import { NoAccess } from '../states/NoAccess';
 import { OfflineBanner } from '../states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../states/Skeleton';
 import { StateButton } from '../states/StateButton';
+import buttonStyles from '../states/StateButton.module.css';
 import { NewProjectDialog } from './NewProjectDialog';
+import { importReviewPath } from '../../lib/imports/upload-client';
 import { ProjectCard } from './ProjectCard';
 import { ProjectsHeader, type ProjectsAccount } from './ProjectsHeader';
 import styles from './Projects.module.css';
@@ -52,26 +55,85 @@ export type ProjectsBoardProps = {
   onSort(sort: ProjectSort): void;
   onMore(): void;
   canCreate?: boolean;
-  onNewProject?: () => void;
+  // EZD-301: with Edit model too, New project is a menu with Start from a file; 'blank' is Standalone.
+  canImport?: boolean;
+  onNewProject?: (start: NewProjectStart) => void;
   onRetry?: () => void;
   onClearFilters?: () => void;
 };
 
+export type NewProjectStart = 'blank' | 'file';
+
 // New project: disabled offline (Q-0414); until EZD-118 passes onNewProject the click does nothing.
-function NewProjectButton({ testId, onNewProject }: { testId: string; onNewProject?: () => void }) {
+// EZD-301 (Q-0410; Q-0398; board S01 menu): online, for a user who may import (Create projects and Edit model),
+// New project opens a menu of the built entry points, Standalone and Start from a file (From an EZ Binder job
+// waits for its ticket). With one entry point it opens the wizard directly, as before.
+function NewProjectButton({
+  testId,
+  canImport = false,
+  onNewProject,
+}: {
+  testId: string;
+  canImport?: boolean;
+  onNewProject?: (start: NewProjectStart) => void;
+}) {
   const t = useT();
   const online = useOnline();
-  return (
-    <StateButton
-      variant="primary"
-      className={styles.newButton}
-      data-testid={testId}
-      disabled={!online}
-      onClick={onNewProject}
-    >
+  if (!online || !canImport) {
+    return (
+      <StateButton
+        variant="primary"
+        className={styles.newButton}
+        data-testid={testId}
+        disabled={!online}
+        onClick={() => onNewProject?.('blank')}
+      >
+        <Icon name="add" size={18} />
+        {t('office.projects.new')}
+      </StateButton>
+    );
+  }
+  const label = (
+    <>
       <Icon name="add" size={18} />
       {t('office.projects.new')}
-    </StateButton>
+      <Icon name="expand_more" size={18} />
+    </>
+  );
+  const itemClass = `${styles.menuItem} ${styles.newItem} ${touch.target}`;
+  return (
+    <Menu
+      label={t('office.projects.new')}
+      trigger={label}
+      triggerClassName={`${buttonStyles.button} ${buttonStyles.primary} ${touch.target} ${styles.newButton}`}
+      triggerTestId={testId}
+      contentClassName={`${styles.menu} ${styles.newMenu}`}
+      contentTestId={`${testId}-menu`}
+    >
+      <MenuItem
+        testId={`${testId}-standalone`}
+        className={itemClass}
+        onSelect={() => onNewProject?.('blank')}
+      >
+        <Icon name="edit" size={20} />
+        <span className={styles.newItemText}>
+          <span>{t('office.projects.new_standalone')}</span>
+          <span className={styles.newItemSub}>{t('office.projects.new_standalone_sub')}</span>
+        </span>
+      </MenuItem>
+      <div role="separator" className={styles.newDivider} />
+      <MenuItem
+        testId={`${testId}-file`}
+        className={itemClass}
+        onSelect={() => onNewProject?.('file')}
+      >
+        <Icon name="upload" size={20} />
+        <span className={styles.newItemText}>
+          <span>{t('office.projects.new_from_file')}</span>
+          <span className={styles.newItemSub}>{t('office.projects.new_from_file_sub')}</span>
+        </span>
+      </MenuItem>
+    </Menu>
   );
 }
 
@@ -140,6 +202,7 @@ export function ProjectsBoard({
   onSort,
   onMore,
   canCreate = false,
+  canImport = false,
   onNewProject,
   onRetry,
   onClearFilters,
@@ -199,7 +262,13 @@ export function ProjectsBoard({
             </MenuItem>
           ))}
         </Menu>
-        {canCreate ? <NewProjectButton testId="projects-new" onNewProject={onNewProject} /> : null}
+        {canCreate ? (
+          <NewProjectButton
+            testId="projects-new"
+            canImport={canImport}
+            onNewProject={onNewProject}
+          />
+        ) : null}
         {actions}
       </div>
       {state.status === 'error' || state.countsStatus === 'error' ? (
@@ -231,7 +300,11 @@ export function ProjectsBoard({
         <div className={styles.empty} data-testid="projects-empty">
           {t('office.projects.empty')}
           {canCreate ? (
-            <NewProjectButton testId="projects-empty-new" onNewProject={onNewProject} />
+            <NewProjectButton
+              testId="projects-empty-new"
+              canImport={canImport}
+              onNewProject={onNewProject}
+            />
           ) : null}
         </div>
       ) : null}
@@ -267,11 +340,14 @@ export function ProjectsBoard({
 export function ProjectsView({
   account,
   canCreate,
+  canImport = false,
 }: {
   account: ProjectsAccount;
   canCreate: boolean;
+  canImport?: boolean;
 }): ReactElement {
   const router = useRouter();
+  const t = useT();
   const [store] = useState(() => createProjectListStore(projectHttpApi));
   useEffect(() => {
     store.start();
@@ -279,7 +355,12 @@ export function ProjectsView({
   }, [store]);
   const state = useSyncExternalStore(store.subscribe, store.get, store.get);
   const [text, setText] = useState('');
-  const [creating, setCreating] = useState(false);
+  // EZD-301: the dialog's start, and the files dropped on the page (S01 "Drag a file onto the page").
+  const [creating, setCreating] = useState<{ start: NewProjectStart; files: File[] } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const online = useOnline();
+  const canDrop = canImport && online && creating === null;
+  const hasFiles = (e: DragEvent<HTMLDivElement>) => e.dataTransfer.types.includes('Files');
   return (
     <>
       <ProjectsHeader
@@ -296,23 +377,56 @@ export function ProjectsView({
           },
         }}
       />
-      <ProjectsBoard
-        state={state}
-        onTab={store.setTab}
-        onSort={store.setSort}
-        onMore={store.loadMore}
-        canCreate={canCreate}
-        onNewProject={() => setCreating(true)}
-        onRetry={() => store.retry()}
-        onClearFilters={() => {
-          setText('');
-          store.clearFilters();
+      <div
+        className={styles.dropArea}
+        data-testid="projects-drop-area"
+        onDragOver={(e) => {
+          if (!canDrop || !hasFiles(e)) return;
+          e.preventDefault();
+          setDragging(true);
         }}
-      />
-      {creating ? (
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+          setDragging(false);
+        }}
+        onDrop={(e) => {
+          if (!canDrop || !hasFiles(e)) return;
+          e.preventDefault();
+          setDragging(false);
+          const files = Array.from(e.dataTransfer.files);
+          if (files.length > 0) setCreating({ start: 'file', files });
+        }}
+      >
+        {dragging && canDrop ? (
+          <div className={styles.dropHint} data-testid="projects-drop-hint">
+            <Icon name="upload" size={24} />
+            {t('office.projects.drop_hint')}
+          </div>
+        ) : null}
+        <ProjectsBoard
+          state={state}
+          onTab={store.setTab}
+          onSort={store.setSort}
+          onMore={store.loadMore}
+          canCreate={canCreate}
+          canImport={canImport}
+          onNewProject={(start) => setCreating({ start, files: [] })}
+          onRetry={() => store.retry()}
+          onClearFilters={() => {
+            setText('');
+            store.clearFilters();
+          }}
+        />
+      </div>
+      {creating !== null ? (
         <NewProjectDialog
-          onClose={() => setCreating(false)}
-          onCreated={(id) => router.push('/projects/' + id)}
+          start={creating.start}
+          files={creating.files}
+          canImport={canImport}
+          onClose={() => setCreating(null)}
+          onCreated={(id, jobId) =>
+            router.push(jobId ? importReviewPath(id, jobId) : '/projects/' + id)
+          }
         />
       ) : null}
     </>

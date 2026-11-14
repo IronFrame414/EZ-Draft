@@ -18,6 +18,7 @@ import { reportError } from '../errors/report';
 import { loadModel } from '../model/model';
 import type { PermissionContext } from '../permissions/context';
 import { AiKeyConfigError } from './key-crypto';
+import { stripPhoto } from './photo';
 import { buildSentDrawing, drawingTooLarge } from './send-list';
 import { loadUserAiKeyForCall, type UserAiKeyLoad } from './user-key';
 
@@ -67,9 +68,10 @@ const inputSchema = z.strictObject({
   selectedIds: z.array(z.uuid()).max(ASSISTANT_SELECTED_MAX),
 });
 
+// EZD-5603b X2: `photo` is the stripped JPEG (Decided "Body order").
 type BodyResult =
-  | { ok: true; input: AssistantInput }
-  | { ok: false; code: 'invalid_input' | 'photo_not_supported' };
+  | { ok: true; input: AssistantInput; photo: Uint8Array | null }
+  | { ok: false; code: 'invalid_input' | 'photo_unreadable' };
 
 const INVALID: BodyResult = { ok: false, code: 'invalid_input' };
 
@@ -124,7 +126,6 @@ export async function readAssistantBody(request: Request): Promise<BodyResult> {
   if (form.getAll('request').length > 1 || form.getAll('photo').length > 1) return INVALID;
   const raw = form.get('request');
   if (typeof raw !== 'string') return INVALID;
-  if (form.has('photo')) return { ok: false, code: 'photo_not_supported' };
 
   let json: unknown;
   try {
@@ -135,8 +136,18 @@ export async function readAssistantBody(request: Request): Promise<BodyResult> {
   const parsed = inputSchema.safeParse(json);
   if (!parsed.success || !alternates(parsed.data.history)) return INVALID;
   const input = parsed.data;
+
+  let photo: Uint8Array | null = null;
+  const part = form.get('photo');
+  if (part !== null) {
+    if (!(part instanceof File)) return INVALID;
+    const stripped = await stripPhoto(new Uint8Array(await part.arrayBuffer()));
+    if (!stripped.ok) return { ok: false, code: 'photo_unreadable' };
+    photo = stripped.jpeg;
+  }
   return {
     ok: true,
+    photo,
     input: {
       prompt: input.prompt,
       history: input.history.slice(-ASSISTANT_HISTORY_MAX_TURNS),
@@ -190,7 +201,13 @@ export type AssistantErrorBody = {
   costMicroUsd?: number;
 };
 
-export type AssistantDeps = { env?: Env; budgetMs?: number; signal?: AbortSignal };
+export type AssistantDeps = {
+  env?: Env;
+  budgetMs?: number;
+  signal?: AbortSignal;
+  // EZD-5603b X3: the stripped photo sent with this prompt only.
+  photo?: Uint8Array | null;
+};
 
 type Answer = { status: number; body: AssistantSuccess | AssistantErrorBody };
 
@@ -247,7 +264,7 @@ export async function runAssistantPrompt(
   const key = load.key;
 
   const taken = await client.rpc('take_ai_assistant_slot');
-  if (taken.error) throw new Error('take_ai_assistant_slot_failed');
+  if (taken.error) throw new Error('take_ai_assistant_slot_failed', { cause: taken.error });
   const slot = (taken.data as SlotRow[] | null)?.[0];
   if (slot?.refused === 'in_flight') return fail(429, 'assistant_busy');
   if (slot?.refused === 'rate_limited') return fail(429, 'assistant_rate_limited');
@@ -278,10 +295,19 @@ export async function runAssistantPrompt(
         })),
         {
           role: 'user' as const,
-          content: [
-            { type: 'text' as const, text: 'Drawing:\n' + json },
-            { type: 'text' as const, text: input.prompt },
-          ],
+          content: deps.photo
+            ? [
+                { type: 'text' as const, text: 'Drawing:\n' + json },
+                {
+                  type: 'image' as const,
+                  image: { mediaType: 'image/jpeg' as const, data: deps.photo },
+                },
+                { type: 'text' as const, text: input.prompt },
+              ]
+            : [
+                { type: 'text' as const, text: 'Drawing:\n' + json },
+                { type: 'text' as const, text: input.prompt },
+              ],
         },
       ],
     };

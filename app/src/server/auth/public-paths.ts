@@ -7,6 +7,8 @@ export const PUBLIC_PATHS: readonly string[] = [
   '/api',
   '/dev',
   '/terms',
+  // EZD-105: the invite link page (GET shows Accept; only its POST accepts).
+  '/invite',
 ];
 
 export function isPublicPath(pathname: string): boolean {

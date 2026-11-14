@@ -105,7 +105,7 @@ describe('EZD-204a stored v3 opening upgrade', () => {
     );
     expect(load).not.toBeNull();
     const door = load?.objects.find((o) => o.id === doorId);
-    expect(door?.schemaVersion).toBe(4);
+    expect(door?.schemaVersion).toBe(5);
     expect(door?.data).toEqual({
       ...snapshot.data,
       geometry: { ...(snapshot.data.geometry as Rec), axis: null },

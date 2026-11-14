@@ -4,8 +4,12 @@ import type { Point } from '../schema';
 import type { Rect } from '../snap/spatial-index';
 import { coordsEqual, pointsEqual } from '../tolerance';
 import { pointInRing } from '../rooms/area';
-import { wallFaceLines, type WallObject } from '../walls/wall';
+import { wallFaceLines, wallFaceOffsets, type WallObject } from '../walls/wall';
 import type { OpeningObject } from '../openings/opening';
+import { utilityMark } from '../drawing/build';
+import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
+import type { TileShowerObject } from '../fixtures/tile-shower';
+import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
 
 export type PickShape =
   | { kind: 'quad'; points: readonly [Point, Point, Point, Point]; area: number }
@@ -29,17 +33,7 @@ export function wallPickShape(wall: WallObject): PickShape | null {
   return { kind: 'quad', points, area: shoelace(points) };
 }
 
-function faceOffsets(host: WallObject): { oL: number; oR: number } {
-  const t = host.data.attributes.thickness;
-  switch (host.data.attributes.thicknessSide) {
-    case 'right':
-      return { oL: 0, oR: -t };
-    case 'left':
-      return { oL: t, oR: 0 };
-    case 'center':
-      return { oL: t / 2, oR: -t / 2 };
-  }
-}
+const faceOffsets = wallFaceOffsets;
 
 export function openingPickShape(o: OpeningObject, host: WallObject | null): PickShape | null {
   const { center, hostWallId, axis } = o.data.geometry;
@@ -169,4 +163,30 @@ export function shapeTouchesRect(shape: PickShape, rect: Rect): boolean {
   if (shape.kind === 'quad' && corners.some((c) => shapeDistance(shape, c) === 0)) return true;
   const rectEdges: [Point, Point][] = corners.map((c, i) => [c, corners[(i + 1) % 4]!]);
   return edges(shape).some(([a, b]) => rectEdges.some(([c, d]) => segmentsMeet(a, b, c, d)));
+}
+
+// EZD-234 Build (S03 Select "smallest object under the cursor"): a fixture picks by its outline, a utility point by
+// the diamond it draws.
+export function fixturePickShape(o: FixtureObject): PickShape {
+  const points = fixtureOutline(o.data);
+  return { kind: 'quad', points, area: shoelace(points) };
+}
+
+// EZD-226 Build: a tile shower picks by its footprint.
+export function tileShowerPickShape(o: TileShowerObject): PickShape {
+  const [a, b, c, d] = o.data.geometry.footprint as [Point, Point, Point, Point];
+  const points: [Point, Point, Point, Point] = [{ ...a }, { ...b }, { ...c }, { ...d }];
+  return { kind: 'quad', points, area: shoelace(points) };
+}
+
+// EZD-227 Build: blocking picks by its plan outline; null when its host is missing.
+export function blockingPickShape(o: BlockingObject, host: WallObject | null): PickShape | null {
+  const ring = blockingOutline(o, host);
+  if (ring === null) return null;
+  return { kind: 'quad', points: ring, area: shoelace(ring) };
+}
+
+export function utilityPointPickShape(o: UtilityPointObject): PickShape {
+  const points = utilityMark(o.data.geometry.point);
+  return { kind: 'quad', points, area: shoelace(points) };
 }

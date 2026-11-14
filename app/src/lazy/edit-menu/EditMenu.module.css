@@ -1,0 +1,130 @@
+/* EZD-233 (S03 Context menu; mockup S03Plan card style): the context menu, the inspector More menu and the Save as
+   group dialog, in the inspector's card style. */
+
+.menu,
+.dialog {
+  position: fixed;
+  z-index: 40;
+  min-width: 196px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-divider);
+  border-radius: var(--ez-radius-10);
+  box-shadow: var(--ez-shadow-popover);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--ez-ink);
+  background: none;
+  border: none;
+  border-radius: var(--ez-radius-7);
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled),
+.item:focus-visible {
+  background: var(--ez-hover);
+  outline: none;
+}
+
+.item:disabled {
+  color: var(--ez-slate-500);
+  cursor: default;
+}
+
+.sub {
+  padding-left: 22px;
+}
+
+.separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--ez-divider);
+}
+
+.dialog {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.input {
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid var(--ez-divider);
+  border-radius: var(--ez-radius-8);
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-red-text);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.button,
+.primary {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: var(--ez-radius-7);
+  cursor: pointer;
+}
+
+.button {
+  color: var(--ez-ink);
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-divider);
+}
+
+.primary {
+  color: var(--ez-surface);
+  background: var(--ez-cobalt);
+  border: 1px solid var(--ez-cobalt);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

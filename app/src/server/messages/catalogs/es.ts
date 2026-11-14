@@ -18,8 +18,23 @@ export const es = {
     'No se puede conectar con la base de datos. Inténtalo de nuevo en un minuto.',
   'error.not_signed_in': 'Se cerró tu sesión. Vuelve a iniciar sesión para continuar.',
   'error.not_authorized': 'No tienes permiso para hacer eso.',
+  'error.import_not_found': 'Esa importación no está disponible.',
   'error.job_not_found': 'Esa tarea ya no existe.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
+  'common.invite.email_subject': 'Te invitaron a unirte a {company} en EZ Draft',
+  'common.invite.email_intro':
+    '{company} te invitó a EZ Draft. Abre el enlace y presiona Aceptar para unirte.',
+  'common.invite.email_code': 'Tu código de invitación: {code}',
+  'common.invite.email_expiry': 'El enlace y el código funcionan durante 7 días.',
+  'common.invite.email_link': 'Aceptar la invitación',
+  'common.invite.title': 'Únete a {company} en EZ Draft',
+  'common.invite.intro': 'Presiona Aceptar para unirte e iniciar sesión.',
+  'common.invite.accept': 'Aceptar',
+  'common.invite.invalid_title': 'Este enlace de invitación ya no funciona',
+  'common.invite.invalid':
+    'Puede que haya vencido, que ya se haya usado o que se haya cancelado. Pide a quien te invitó que vuelva a enviar la invitación.',
+  'common.invite.failed': 'No se pudo aceptar la invitación. Inténtalo de nuevo.',
+  'common.invite.to_sign_in': 'Ir a iniciar sesión',
   'common.sign_in.title': 'Inicia sesión en EZ Draft',
   'common.sign_in.email_label': 'Correo electrónico',
   'common.sign_in.send': 'Envíame un enlace de acceso por correo',
@@ -39,6 +54,13 @@ export const es = {
   'common.sign_in.password_submit': 'Iniciar sesión',
   'common.sign_in.send_instead': 'Mejor envíame un enlace de acceso por correo',
   'common.sign_in.forgot': '¿Olvidaste tu contraseña? Envíame un código por correo',
+  'common.sign_in.invite_code_open': '¿Tienes un código de invitación?',
+  'common.sign_in.invite_code_title': 'Únete con un código de invitación',
+  'common.sign_in.invite_code_intro':
+    'Usa el correo al que se envió la invitación y el código de 6 dígitos del correo de invitación.',
+  'common.sign_in.invite_code_label': 'Código de invitación',
+  'common.sign_in.invite_code_submit': 'Unirme',
+  'common.sign_in.invite_code_back': 'Volver a iniciar sesión',
   'common.terms.title': 'Términos del servicio',
   'common.terms.no_certification':
     'EZ Draft no certifica que ningún plano, cálculo o diseño cumpla con los códigos de construcción, eléctricos ni otros.',
@@ -78,6 +100,10 @@ export const es = {
   'error.email_throttled': 'Demasiados correos de acceso. Inténtalo de nuevo en una hora.',
   'error.ip_throttled':
     'Demasiados intentos de acceso desde esta red. Inténtalo de nuevo en 15 minutos.',
+  'error.invite_code_invalid':
+    'Ese correo y ese código no coinciden con una invitación abierta. Revisa ambos e inténtalo de nuevo.',
+  'error.invite_code_locked':
+    'Demasiados códigos incorrectos. Este código está bloqueado. Pide a quien te invitó que reenvíe la invitación.',
   'error.captcha_failed': 'La verificación de seguridad no se completó. Inténtalo de nuevo.',
   'error.captcha_unavailable':
     'La verificación de seguridad no se cargó. Revisa tu conexión y vuelve a cargar la página.',
@@ -92,6 +118,28 @@ export const es = {
   'error.customer_email_required': 'Escribe el correo electrónico del cliente.',
   'error.customer_email_taken': 'Ya existe un cliente con este correo electrónico.',
   'error.customer_not_found': 'Este cliente ya no existe.',
+  'error.library_name_required': 'Escribe un nombre.',
+  'error.library_name_too_long': 'Usa 120 caracteres o menos.',
+  'error.library_meaning_required': 'Escribe qué significa la abreviatura.',
+  'error.library_meaning_too_long': 'Usa 200 caracteres o menos.',
+  'error.library_abbreviation_taken': 'Esta abreviatura ya está en la biblioteca.',
+  'error.library_item_not_found': 'Este elemento de la biblioteca ya no existe.',
+  'error.library_item_read_only': 'Este elemento de la biblioteca no se puede cambiar aquí.',
+  'error.member_not_found': 'Esta persona ya no está en esta empresa.',
+  'error.project_unavailable':
+    'Uno de estos proyectos ya no está disponible. Puede que esté archivado. Elige los proyectos de nuevo.',
+  'error.foreman_unavailable': 'Esta persona ya no es un miembro activo. Elige otro capataz.',
+  'error.role_name_required': 'Ponle un nombre al rol.',
+  'error.role_name_taken': 'Ya existe un rol con este nombre.',
+  'error.role_not_found': 'Este rol ya no existe.',
+  'error.role_in_use': 'No se puede eliminar: hay personas con este rol. Cámbialas primero.',
+  'error.role_preset': 'Los roles predefinidos no se pueden cambiar. Para cambiar uno, crea un rol nuevo a partir de él.',
+  'error.member_state':
+    'Esta persona cambió desde que se cargó la página. Recarga e inténtalo de nuevo.',
+  'error.last_settings_users_holder':
+    'Al menos una persona activa debe conservar el permiso de la página Usuarios y permisos.',
+  'error.active_elsewhere':
+    'Esta persona está activa en otra empresa, así que no se puede reactivar aquí.',
   'error.project_customer_unavailable':
     'Este cliente no está disponible. Elige otro cliente o deja Cliente vacío.',
   'error.password_too_short': 'Usa al menos 8 caracteres.',
@@ -136,6 +184,8 @@ export const es = {
     'Este dibujo es demasiado grande para enviarlo al asistente. No cambió nada en el dibujo.',
   'error.assistant_invalid_reply':
     'No se pudo leer la respuesta del asistente. No cambió nada en el dibujo. Vuelve a enviar.',
+  'error.assistant_photo_unreadable':
+    'EZ Draft no pudo leer esa foto, así que no se envió nada. Adjunta otra.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
 } as const satisfies Record<SpanishKey, Message>;

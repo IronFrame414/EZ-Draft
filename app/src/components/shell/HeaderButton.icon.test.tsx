@@ -26,6 +26,7 @@ const count = (html: string, needle: string) => html.split(needle).length - 1;
 // EZD-5603a step 1: arrow_upward, expand_less (check and key were already listed).
 const EXPECTED_ICONS = [
   'add',
+  'add_photo_alternate',
   'ads_click',
   'arrow_back',
   'arrow_forward',
@@ -40,6 +41,8 @@ const EXPECTED_ICONS = [
   'chat_bubble',
   'check',
   'check_circle',
+  'chevron_left',
+  'chevron_right',
   'close',
   'cloud_off',
   'compare_arrows',
@@ -53,6 +56,8 @@ const EXPECTED_ICONS = [
   'domain',
   'door_front',
   'download',
+  // EZD-223: the Sketch rail button.
+  'draw',
   'edit',
   'error',
   'event',
@@ -106,6 +111,7 @@ const EXPECTED_ICONS = [
   'view_column_2',
   'view_quilt',
   'visibility',
+  'wash',
   'window',
 ];
 

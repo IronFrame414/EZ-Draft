@@ -15,6 +15,7 @@ import {
   requirePermission,
   type Permitted,
 } from '../../../../server/permissions';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     p = await requireApiPermission(DEV_JOB_PERMISSION);
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }
@@ -66,6 +69,8 @@ export async function POST(request: Request): Promise<Response> {
   } catch (e) {
     if (e instanceof JobError && e.code === 'invalid_payload') return invalidInput();
     if ((e as { code?: unknown }).code === '42501') return notFound();
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return dbUnavailable();
   }

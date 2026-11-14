@@ -1,7 +1,7 @@
 // EZD-5602 T9, T10 (vault/plans/EZD-5602.md section 1 step 11, Decided "D-Reply", "D-Body", "D-Stubs", section 4;
 // AC-EZD-5602-2, -8, -11, -14). parseAssistantReply takes one JSON object { message, changes } (at most 100
 // changes, no roughOpeningMode anywhere inside them), optionally in one code fence; readAssistantBody takes one
-// multipart `request` part under 4,000,000 bytes, refuses a photo part for now, and keeps the last 20 turns.
+// multipart `request` part under 4,000,000 bytes, re-encodes an optional photo part, and keeps the last 20 turns.
 import { describe, expect, it } from 'vitest';
 import { parseAssistantReply, readAssistantBody } from './assistant';
 
@@ -85,7 +85,11 @@ describe('EZD-5602 assistant reply and body', () => {
 
   it('T10 readAssistantBody: one multipart request part, the limits of D-Body, the last 20 turns kept', async () => {
     const ok = await readAssistantBody(withRequest(DEFAULT));
-    expect(ok).toEqual({ ok: true, input: { ...DEFAULT, floorId: FLOOR.toLowerCase() } });
+    expect(ok).toEqual({
+      ok: true,
+      input: { ...DEFAULT, floorId: FLOOR.toLowerCase() },
+      photo: null,
+    });
 
     const invalid = { ok: false, code: 'invalid_input' };
 
@@ -121,12 +125,12 @@ describe('EZD-5602 assistant reply and body', () => {
     photo.append('request', JSON.stringify(DEFAULT));
     photo.append(
       'photo',
-      new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], { type: 'image/png' }),
+      new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], { type: 'image/png' }),
       'p.png',
     );
     expect(await readAssistantBody(formRequest(photo))).toEqual({
       ok: false,
-      code: 'photo_not_supported',
+      code: 'photo_unreadable',
     });
 
     // request text `{`; an extra key; model haiku
@@ -139,6 +143,7 @@ describe('EZD-5602 assistant reply and body', () => {
     expect(await readAssistantBody(withRequest({ ...DEFAULT, prompt: long }))).toEqual({
       ok: true,
       input: { ...DEFAULT, prompt: long, floorId: FLOOR.toLowerCase() },
+      photo: null,
     });
     expect(await readAssistantBody(withRequest({ ...DEFAULT, prompt: long + 'p' }))).toEqual(
       invalid,
@@ -167,6 +172,7 @@ describe('EZD-5602 assistant reply and body', () => {
     expect(await readAssistantBody(withRequest({ ...DEFAULT, history: turns(22) }))).toEqual({
       ok: true,
       input: { ...DEFAULT, history: turns(22).slice(2), floorId: FLOOR.toLowerCase() },
+      photo: null,
     });
     expect(turns(22).slice(2)[0].text).toBe('t3');
 

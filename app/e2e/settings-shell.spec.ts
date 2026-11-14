@@ -142,8 +142,11 @@ test.describe('EZD-103a settings shell', () => {
 
   test('B5 unbuilt pages open inside the shell with only their title', async ({ page }) => {
     await signInAsOwner(page);
-    // EZD-112 built the company page and EZD-104 built the users page, so neither is an unbuilt, title-only page.
-    for (const [id, slug, label] of SECTIONS.filter(([id]) => id !== 'company' && id !== 'users')) {
+    // EZD-112 built the company page, EZD-104 the users page, EZD-135b the system status page and EZD-131 the
+    // libraries page, so none of them is an unbuilt, title-only page.
+    for (const [id, slug, label] of SECTIONS.filter(
+      ([id]) => !['company', 'users', 'system_status', 'libraries'].includes(id),
+    )) {
       const res = await page.goto(`/settings/${slug}`);
       expect(res?.status(), slug).toBe(200);
       await expect(page.locator('[data-settings-region="nav"]')).toBeVisible();
@@ -169,7 +172,7 @@ test.describe('EZD-103a settings shell', () => {
     const tenant = await createTenant();
     const a = await createMember({ tenantId: tenant, scope: 'all' });
     await setPermissions(tenant, a.membershipId, PERMISSION_KEYS);
-    await createMember({ tenantId: tenant, scope: 'all' });
+    const b = await createMember({ tenantId: tenant, scope: 'all' });
     await createMember({ tenantId: tenant, scope: 'all', status: 'invited' });
 
     await signInAs(a.email);
@@ -178,6 +181,8 @@ test.describe('EZD-103a settings shell', () => {
     await expect(page.locator('[data-settings-badge="defaults"]')).toHaveText('ft-in');
     await expect(page.locator('[data-settings-badge="catalog"]')).toHaveCount(0);
 
+    // EZD-106: the last active settings_users holder cannot lose it, so a second member holds it first.
+    await setPermissions(tenant, b.membershipId, ['settings_users']);
     await setPermissions(
       tenant,
       a.membershipId,

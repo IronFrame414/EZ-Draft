@@ -1,0 +1,212 @@
+/* EZD-131 (S15h; mockup S15hLibraries): the Libraries tabs, list and inspector. Colors from tokens only;
+   spacing and font sizes in px, values from the Customers panel and the mockup. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.tab {
+  padding: 8px 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ez-ink);
+}
+
+.tabOn {
+  color: var(--ez-ink);
+  font-weight: 600;
+  border-bottom-color: var(--ez-cobalt);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 240px;
+  height: 34px;
+  box-sizing: border-box;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  padding: 0 10px;
+  color: var(--ez-slate-500);
+}
+
+.searchInput {
+  border: 0;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  background: transparent;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.body {
+  min-width: 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  border-color: var(--ez-border-hover);
+}
+
+.rowOn {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+}
+
+.rowName {
+  font-family: var(--ez-font-mono);
+  font-weight: 600;
+}
+
+.rowMeaning {
+  color: var(--ez-slate-700);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 0;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.inspector {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  padding: 16px;
+  background: var(--ez-surface);
+}
+
+.inspectorEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inspectorHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inspectorTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ez-ink);
+  overflow-wrap: anywhere;
+}
+
+.inspectorKind {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.input {
+  box-sizing: border-box;
+  height: 38px;
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

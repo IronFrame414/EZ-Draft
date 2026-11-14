@@ -19,6 +19,7 @@ import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { requireApiPermission } from '../../../../../server/permissions';
 import type { CustomerEventField } from '../../../../../lib/customers/customers';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,8 @@ export async function PATCH(
 
     return Response.json({ customer: toCustomer(data) }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

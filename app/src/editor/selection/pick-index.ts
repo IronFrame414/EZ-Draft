@@ -1,21 +1,32 @@
 // EZD-208a Build step 7 (vault/plans/EZD-208a.md section 3 A8-A9; section 1 R1, R17; Q-0630 rows 7, 8; 11 rule 4):
 // the walls and openings a click or a box can select on the open floor, on the EZD-206 spatial index (one query per
 // pick, never a scan), kept current per changed object and per opening hosted on a changed wall.
+// EZD-234 Build (S03 Fixtures, Select): fixtures and utility points pick too, each by its own shape.
+// EZD-226 Build: tile showers pick by their footprint.
+// EZD-227 Build: blocking picks by its outline and, like an opening, is re-placed when its host wall changes.
 import {
+  blockingPickShape,
+  type BlockingObject,
   createSpatialIndex,
+  fixturePickShape,
   openingPickShape,
   parseStoredObject,
   shapeBounds,
   shapeDistance,
   shapeInRect,
   shapeTouchesRect,
+  tileShowerPickShape,
+  utilityPointPickShape,
   wallPickShape,
+  type FixtureObject,
   type ModelObject,
   type OpeningObject,
   type PickShape,
   type Point,
   type Rect,
   type SpatialIndex,
+  type TileShowerObject,
+  type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
 import type { Objects } from '../model/patches';
@@ -67,7 +78,8 @@ export function createPickIndex(): PickIndex {
   // Keyed by lower-cased id.
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
-  let openings = new Map<string, OpeningObject>();
+  let openings = new Map<string, OpeningObject | BlockingObject>();
+  let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
 
@@ -85,10 +97,18 @@ export function createPickIndex(): PickIndex {
   // Records the parsed object under its lower-cased key (walls and openings only); anything else is dropped.
   const record = (key: string, object: ModelObject | null) => {
     walls.delete(key);
+    loose.delete(key);
     dropOpening(key);
-    if (object !== null && object.type === 'wall') {
+    if (
+      object !== null &&
+      (object.type === 'fixture' ||
+        object.type === 'utility_point' ||
+        object.type === 'tile_shower')
+    ) {
+      loose.set(key, object);
+    } else if (object !== null && object.type === 'wall') {
       walls.set(key, object);
-    } else if (object !== null && object.type === 'opening') {
+    } else if (object !== null && (object.type === 'opening' || object.type === 'blocking')) {
       openings.set(key, object);
       const host = object.data.geometry.hostWallId?.toLowerCase() ?? null;
       hostOf.set(key, host);
@@ -109,11 +129,24 @@ export function createPickIndex(): PickIndex {
       const shape = wallPickShape(wall);
       return shape === null ? null : { id: wall.id, shape, hosted: false };
     }
+    const free = loose.get(key);
+    if (free !== undefined) {
+      const shape =
+        free.type === 'fixture'
+          ? fixturePickShape(free)
+          : free.type === 'tile_shower'
+            ? tileShowerPickShape(free)
+            : utilityPointPickShape(free);
+      return { id: free.id, shape, hosted: false };
+    }
     const opening = openings.get(key);
     if (opening === undefined) return null;
     const hostId = opening.data.geometry.hostWallId;
     const host = hostId === null ? null : (walls.get(hostId.toLowerCase()) ?? null);
-    const shape = openingPickShape(opening, host);
+    const shape =
+      opening.type === 'blocking'
+        ? blockingPickShape(opening, host)
+        : openingPickShape(opening, host);
     return shape === null ? null : { id: opening.id, shape, hosted: hostId !== null };
   };
 
@@ -155,12 +188,14 @@ export function createPickIndex(): PickIndex {
         entries = new Map();
         walls = new Map();
         openings = new Map();
+        loose = new Map();
         hostOf = new Map();
         byHost = new Map();
         for (const id of objects.keys())
           record(id.toLowerCase(), parseOnFloor(id, objects, floorId));
         let count = 0;
-        for (const key of [...walls.keys(), ...openings.keys()]) if (place(key)) count += 1;
+        for (const key of [...walls.keys(), ...openings.keys(), ...loose.keys()])
+          if (place(key)) count += 1;
         return count;
       }
       const affected = new Set<string>();

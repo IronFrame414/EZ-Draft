@@ -14,6 +14,7 @@ import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { requireApiPermission } from '../../../../../server/permissions';
 import { signedDownloadUrl, uploadObject } from '../../../../../server/storage';
 import { LOGO_CONTENT_TYPES, LOGO_MAX_BYTES } from '../../../../../lib/company/company';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,8 @@ export async function POST(request: Request): Promise<Response> {
     const url = await signedDownloadUrl(client, { bucket: 'media', path });
     return Response.json({ logo: { path, url, kind } }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

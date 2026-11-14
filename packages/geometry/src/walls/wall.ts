@@ -79,6 +79,20 @@ const copyLine = (line: WallLine): WallLine => ({
   end: { x: line.end.x, y: line.end.y },
 });
 
+// EZD-227 Build: the left and right face offsets from the wall's line, along its left normal; shared by the drawing,
+// the pick shapes and blocking.
+export function wallFaceOffsets(wall: { data: WallData }): { oL: number; oR: number } {
+  const t = wall.data.attributes.thickness;
+  switch (wall.data.attributes.thicknessSide) {
+    case 'right':
+      return { oL: 0, oR: -t };
+    case 'left':
+      return { oL: t, oR: 0 };
+    case 'center':
+      return { oL: t / 2, oR: -t / 2 };
+  }
+}
+
 export function wallFaceLines(data: WallData): { left: WallLine; right: WallLine } {
   const { start, end } = data.geometry;
   const line: WallLine = { start, end };

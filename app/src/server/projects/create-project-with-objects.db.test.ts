@@ -149,7 +149,7 @@ describe('EZD-221a create_project_with_objects', () => {
       expect(r.error?.code).toBe('42501');
       expect(await counts()).toEqual(before);
     }
-    const sig = 'public.create_project_with_objects(text, text, text, uuid, text, jsonb)';
+    const sig = 'public.create_project_with_objects(text, text, text, uuid, text, jsonb, uuid)';
     const expected: [string, boolean][] = [
       ['anon', false],
       ['authenticated', true],

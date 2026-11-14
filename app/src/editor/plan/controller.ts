@@ -99,6 +99,8 @@ export type PlanCanvasHandle = {
   setZoomPercent(percent: number): void;
   onCursorChange(listener: (model: Point | null) => void): () => void;
   onSpaceTap(listener: () => void): () => void;
+  // EZD-233: a right-click or long press on the canvas, at its region point.
+  onContextMenu(listener: (screen: Point, client: Point) => boolean): () => void;
 };
 
 export type PlanController = {
@@ -160,6 +162,7 @@ export function createPlanController(
   const listeners: Array<{ fn: (view: PlanView) => void }> = [];
   const cursorListeners: Array<{ fn: (model: Point | null) => void }> = [];
   const spaceTapListeners: Array<{ fn: () => void }> = [];
+  const contextMenuListeners: Array<{ fn: (screen: Point, client: Point) => boolean }> = [];
   let cursorScreen: Point | null = null;
   let list: DrawingList | null = null;
   let disposed = false;
@@ -338,6 +341,14 @@ export function createPlanController(
         if (i >= 0) listeners.splice(i, 1);
       };
     },
+    onContextMenu(fn) {
+      const entry = { fn };
+      contextMenuListeners.push(entry);
+      return () => {
+        const i = contextMenuListeners.indexOf(entry);
+        if (i >= 0) contextMenuListeners.splice(i, 1);
+      };
+    },
     onSpaceTap(fn) {
       const entry = { fn };
       spaceTapListeners.push(entry);
@@ -500,6 +511,11 @@ export function createPlanController(
         },
         onSpaceTap() {
           for (const l of [...spaceTapListeners]) l.fn();
+        },
+        onContextMenu(screen, client) {
+          let opened = false;
+          for (const l of [...contextMenuListeners]) opened = l.fn(screen, client) || opened;
+          return opened;
         },
       });
     },

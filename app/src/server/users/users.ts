@@ -7,6 +7,7 @@ import { isPermissionKey, ROLE_PRESETS, type PermissionKey } from '../../lib/per
 import { USER_PAGE_SIZE, type UserPage } from '../../lib/users/users';
 import type { Database } from '../db/database.types';
 import { reportError } from '../errors/report';
+import { loadInviteLinks } from './invite-links';
 
 export type UsersQuery = { q: string; page: number };
 
@@ -29,13 +30,14 @@ const keys = z
   .transform((list) => list.filter((k): k is PermissionKey => isPermissionKey(k)));
 const count = z.number().int().nonnegative();
 const roleSchema = z.object({
+  id: z.string(),
   name: z.string(),
   preset: z.enum(ROLE_PRESETS).nullable(),
   defaultPermissions: keys,
 });
 const rowSchema = z.object({
   membershipId: z.string(),
-  status: z.enum(['active', 'invited']),
+  status: z.enum(['active', 'invited', 'deactivated']),
   name: z.string().nullable(),
   email: z.string(),
   language: z.enum(['en', 'es']),
@@ -47,6 +49,7 @@ const rowSchema = z.object({
 });
 const listSchema = z.object({
   rows: z.array(rowSchema),
+  roles: z.array(roleSchema),
   total: count,
   active: count,
   invited: count,
@@ -65,13 +68,20 @@ export async function listUsers(
   if (error) throw error;
   const parsed = listSchema.safeParse(data);
   if (!parsed.success) throw new Error('list_users_bad_result');
-  const { rows, total, active, invited, en, es } = parsed.data;
+  const { roles, total, active, invited, en, es } = parsed.data;
+  // EZD-138: the pending rows' link and code, for the viewer who may see them (null otherwise).
+  const links = await loadInviteLinks(
+    client,
+    parsed.data.rows.filter((r) => r.status === 'invited').map((r) => r.membershipId),
+  );
+  const rows = parsed.data.rows.map((r) => ({ ...r, invite: links.get(r.membershipId) ?? null }));
   return {
     active,
     invited,
     en,
     es,
     rows,
+    roles,
     total,
     page: query.page,
     pageSize: USER_PAGE_SIZE,

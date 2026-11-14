@@ -8,9 +8,6 @@
   "permissions": {
     "allow": [
       "Bash(pnpm *)",
-      "Bash(node scripts/gate.mjs*)",
-      "Bash(node vault/tools/next_ticket.mjs*)",
-      "Bash(node vault/tools/gen_acs.mjs*)",
       "Bash(npx playwright *)",
       "Bash(git status*)",
       "Bash(git diff*)",
@@ -36,7 +33,10 @@
       "Bash(pnpm supabase stop*)",
       "Bash(pnpm supabase db reset*)",
       "Bash(pnpm supabase gen types*)",
-      "Bash(pnpm supabase migration new *)"
+      "Bash(pnpm supabase migration new *)",
+      "Bash(node scripts/check.mjs*)",
+      "Bash(node vault/tools/next_ticket.mjs --reads*)",
+      "Bash(node vault/tools/outline.mjs*)"
     ],
     "ask": [
       "Bash(gh pr merge*)"
@@ -78,7 +78,10 @@
       "Bash(security find-internet-password *-g*)"
     ]
   },
-  "statusLine": { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR:-.}/scripts/statusline.mjs\"" },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"${CLAUDE_PROJECT_DIR:-.}/scripts/statusline.mjs\""
+  },
   "worktree": {
     "baseRef": "head"
   },
@@ -87,63 +90,20 @@
     "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "3",
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2",
     "CLAUDE_CODE_TOTAL_TOKENS_REMINDER": "off",
-    "CLAUDE_CODE_GOAL_CHECKIN_MINUTES": "0",
-    "GUARD_WHOLE_READ_CHARS": "20000",
-    "GUARD_WHOLE_READ_EXEMPT": ""
+    "CLAUDE_CODE_GOAL_CHECKIN_MINUTES": "0"
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.mjs"] }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-paths.mjs"] }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.mjs"] }
-        ]
-      },
-      {
-        "matcher": "Read|Bash|Grep|Glob",
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-reads.mjs"] }
-        ]
-      },
-      {
-        "matcher": "Agent|Task",
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-agents.mjs"] }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-ledger-check.mjs"] }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-failure.mjs"] }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/session-end.mjs"], "timeout": 30 }
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/lock-tests.mjs"
+            ]
+          }
         ]
       }
     ]

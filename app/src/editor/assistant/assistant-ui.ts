@@ -4,6 +4,7 @@
 import type { RailTool } from '../../components/shell/rail-types';
 import type { EditorView } from '../../components/shell/editor-views';
 import type { AssistantModel } from '../../lib/assistant/cost';
+import type { PhotoProblem } from '../../lib/assistant/photo-rules';
 import type { MessageKey } from '../../server/messages/catalog';
 
 // U1: equal to the server's constants in server/assistant/assistant.ts (T4).
@@ -22,12 +23,17 @@ export const ASSISTANT_RAIL_TOOL: RailTool = {
 // U2
 export type AssistantKeyState = 'loading' | 'failed' | 'none' | 'present';
 
+// EZD-5603b U1: the attached photo as the panel shows it; the JPEG itself stays in the session.
+export type AssistantPhotoUi = { url: string; name: string; bytes: number };
+
+// EZD-5603b U3: photoUrl is the photo sent with the prompt (absent = no photo).
 export type AssistantEntry =
-  | { kind: 'waiting'; id: number; prompt: string }
+  | { kind: 'waiting'; id: number; prompt: string; photoUrl?: string }
   | {
       kind: 'reply';
       id: number;
       prompt: string;
+      photoUrl?: string;
       message: string;
       model: AssistantModel;
       costMicroUsd: number;
@@ -37,6 +43,7 @@ export type AssistantEntry =
       kind: 'failed';
       id: number;
       prompt: string;
+      photoUrl?: string;
       messageKey: MessageKey;
       profileLink: boolean;
       costMicroUsd: number | null;
@@ -51,6 +58,10 @@ export type AssistantUi = {
   model: AssistantModel;
   phase: 'idle' | 'draining' | 'waiting';
   profileOpen: boolean;
+  // EZD-5603b U2
+  photo: AssistantPhotoUi | null;
+  photoProblem: PhotoProblem | null;
+  photoPreparing: boolean;
 };
 
 export type AssistantTurn = { role: 'user' | 'assistant'; text: string };
@@ -71,6 +82,7 @@ export const ASSISTANT_SHOWN_KEYS: ReadonlySet<MessageKey> = new Set<MessageKey>
   'error.assistant_unavailable',
   'error.assistant_drawing_too_large',
   'error.assistant_invalid_reply',
+  'error.assistant_photo_unreadable',
   'error.ai_key_unavailable',
   'error.not_signed_in',
   'error.not_authorized',
@@ -140,7 +152,17 @@ export function canSendPrompt(ui: AssistantUi): boolean {
   return (
     ui.keyState === 'present' &&
     ui.phase === 'idle' &&
+    !ui.photoPreparing &&
     ui.draft.trim().length > 0 &&
     ui.draft.length <= ASSISTANT_PROMPT_MAX_CHARS
   );
+}
+
+// EZD-5603b U4 (Decided "Disabled")
+export function photoControlDisabled(ui: AssistantUi): boolean {
+  return ui.keyState !== 'present' || ui.phase !== 'idle' || ui.photoPreparing;
+}
+
+export function photoRemoveDisabled(ui: AssistantUi): boolean {
+  return ui.phase !== 'idle';
 }

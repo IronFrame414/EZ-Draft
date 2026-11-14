@@ -2,7 +2,11 @@
 // "Paste point", "Duplicate", "Clipboard", "Selection after", "Tool active", "Permission", "Keys", "EditUi"; S03
 // Controls; Q-0630 rows 19-21, 36; Q-0640 row 117; Q-0647 (a)): Delete, Copy, Paste, Duplicate, Undo and Redo on
 // the open floor, outside React. Every command is one `applyEdit` (one undo step); the clipboard is in memory only.
+// EZD-233 (S03 Context menu; vault/build/assumptions.md EZD-233): `run` applies one context menu command (Mirror,
+// Align, Group, Ungroup, Set status) built by the lazy context menu module, as one edit, and selects what it says.
 import type { Point } from '@ezdraft/geometry';
+import type { MessageKey } from '../../server/messages/catalog';
+import type { ArrangeContext, ArrangeResult } from './arrange-changes';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
@@ -39,6 +43,8 @@ export type EditController = {
   copy(): void;
   paste(where: 'cursor' | 'center'): void;
   duplicate(where: 'cursor' | 'center'): void;
+  // EZD-233: null when done (or nothing to do), else the refusal to show.
+  run(build: (ctx: ArrangeContext) => ArrangeResult): MessageKey | null;
   dispose(): void;
 };
 
@@ -196,6 +202,25 @@ export function createEditController(deps: EditDeps): EditController {
     });
   }
 
+  function runBuild(build: (ctx: ArrangeContext) => ArrangeResult): MessageKey | null {
+    let refused: MessageKey | null = null;
+    run(() => {
+      endTool();
+      const { objects, numberHighs } = store.getState();
+      const level = openFloorId(objects);
+      if (level === null) return;
+      const r = build({ objects, level, ids: selection.getUi().ids, newId, highs: numberHighs });
+      if (!r.ok) {
+        refused = r.messageKey;
+        return;
+      }
+      if (r.changes.length === 0) return;
+      store.applyEdit(r.changes);
+      if (r.ids !== undefined) selection.select(r.ids);
+    });
+    return refused;
+  }
+
   function keyDown(e: ToolKeyEvent): boolean {
     if (disposed || !canEdit || e.defaultPrevented || isTypingTarget(e.target)) return false;
     if ((e.ctrlKey || e.metaKey) && !e.altKey) {
@@ -236,6 +261,7 @@ export function createEditController(deps: EditDeps): EditController {
     copy,
     paste,
     duplicate,
+    run: runBuild,
     dispose() {
       if (disposed) return;
       disposed = true;

@@ -71,7 +71,7 @@ describe('EZD-236 benchmark generator', () => {
     expect(a[0]!.id).toBe('b0000000-0000-4000-8000-000000000001');
     expect(a[2999]!.id).toBe('b0000000-0000-4000-8000-000000000bb8');
     for (const o of a) expect(o.schema_version).toBe(CURRENT_SCHEMA_VERSION);
-    expect(CURRENT_SCHEMA_VERSION).toBe(4);
+    expect(CURRENT_SCHEMA_VERSION).toBe(5);
     for (const n of [0, 3001, 1.5])
       expect(() => benchmarkObjectId(n)).toThrow(
         expect.objectContaining({ name: 'RangeError', message: 'benchmark_id_range' }),

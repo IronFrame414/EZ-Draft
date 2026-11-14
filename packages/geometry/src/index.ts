@@ -6,6 +6,7 @@
 export * from './benchmark/benchmark';
 export * from './derived';
 export * from './drawing';
+export * from './fixtures';
 export * from './length';
 export * from './moves';
 export * from './numbers';
@@ -13,6 +14,7 @@ export * from './openings';
 export * from './rooms';
 export * from './schema';
 export * from './selection';
+export * from './sketch';
 export * from './snap/index';
 export * from './tolerance';
 export * from './walls';

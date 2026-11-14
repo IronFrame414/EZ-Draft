@@ -8,6 +8,7 @@ import { createSessionClient } from '../../../../../server/auth/supabase-server'
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { openNotification } from '../../../../../server/notifications/notifications';
 import { can, requireApiPermission } from '../../../../../server/permissions';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,8 @@ export async function POST(
       return fail(403, 'permission_denied', 'error.not_authorized');
     return Response.json({ link: opened.link }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

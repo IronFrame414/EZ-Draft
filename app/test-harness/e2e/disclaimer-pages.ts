@@ -20,6 +20,12 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
   },
   { file: 'src/app/terms/page.tsx', path: '/terms', signedIn: false, placement: 'page' },
   {
+    file: 'src/app/invite/[token]/page.tsx',
+    path: '/invite/not-a-token',
+    signedIn: false,
+    placement: 'page',
+  },
+  {
     file: 'src/app/(office)/dev/entry/office/page.tsx',
     path: '/dev/entry/office',
     signedIn: false,
@@ -40,6 +46,13 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
   {
     file: 'src/app/(editor)/projects/[id]/page.tsx',
     path: '/projects/00000000-0000-4000-8000-000000000000',
+    signedIn: true,
+    placement: 'bar',
+  },
+  // EZD-307: Import review; an import that does not exist still shows the status bar with the line.
+  {
+    file: 'src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000/import/00000000-0000-4000-8000-000000000000',
     signedIn: true,
     placement: 'bar',
   },
@@ -70,6 +83,18 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
   {
     file: 'src/app/(office)/settings/users/page.tsx',
     path: '/settings/users',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
+    file: 'src/app/(office)/settings/libraries/page.tsx',
+    path: '/settings/libraries',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
+    file: 'src/app/(office)/settings/system-status/page.tsx',
+    path: '/settings/system-status',
     signedIn: true,
     placement: 'bar',
   },

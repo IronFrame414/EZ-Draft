@@ -45,6 +45,11 @@ async function foreman(): Promise<{ tenant: string; email: string }> {
 async function step1(page: Page, type = 'Kitchen') {
   await page.goto('/');
   await tid(page, 'projects-new').click();
+  // EZD-301 (Q-0410): with Edit model, New project is a menu; Standalone opens the wizard.
+  await expect(tid(page, 'projects-new-menu').or(tid(page, 'new-project-dialog'))).toBeVisible();
+  if (await tid(page, 'projects-new-menu').isVisible()) {
+    await tid(page, 'projects-new-standalone').click();
+  }
   await expect(tid(page, 'new-project-dialog')).toBeVisible();
   await tid(page, 'new-project-type').selectOption({ label: type });
   await tid(page, 'new-project-address').fill('12 Oak Ave');
@@ -331,8 +336,8 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
     );
@@ -358,8 +363,8 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
     );
@@ -413,7 +418,7 @@ test.describe('EZD-221b New project wizard: template step', () => {
   });
 
   test(
-    `EZD-221b B9 touch targets: the step 2 dialog's thirteen controls are at least 44 px on iPad (AC-EZD-221-2)`,
+    `EZD-221b B9 touch targets: the step 2 dialog's fourteen controls (thirteen plus EZD-129's Foreman picker) are at least 44 px on iPad (AC-EZD-221-2)`,
     { tag: ['@ipad'] },
     async ({ page, signInAs }) => {
       const { email } = await creator();
@@ -421,7 +426,8 @@ test.describe('EZD-221b New project wizard: template step', () => {
       await step1(page);
       await step2(page);
       await tile(page, 'l_kitchen').click();
-      expect(await expectTouchTargets(page, tid(page, 'new-project-dialog'))).toBe(13);
+      await expect(tid(page, 'new-project-foreman')).toBeVisible();
+      expect(await expectTouchTargets(page, tid(page, 'new-project-dialog'))).toBe(14);
     },
   );
 });

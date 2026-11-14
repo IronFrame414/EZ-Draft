@@ -134,6 +134,9 @@ describe('EZD-5603a assistant-ui', () => {
       model: 'sonnet',
       phase: 'idle',
       profileOpen: false,
+      photo: null,
+      photoProblem: null,
+      photoPreparing: false,
       ...p,
     });
     expect(canSendPrompt(ui({ draft: '' }))).toBe(false);

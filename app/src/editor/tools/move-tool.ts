@@ -1,9 +1,17 @@
 // Move tool reducer, drag session, outcomes and preview (EZD-212b; vault/plans/EZD-212b.md D2-D5b; S03 Move; Q-0630
 // rows 11, 35; Q-0570; Q-0633 G12). Pure: no React, no DOM.
+// EZD-227 Build (AC-EZD-227-1): a lone blocking drags along its wall as a lone opening does (slideBlocking).
 import {
+  blockingHostUpdates,
+  blockingPickShape,
+  slideBlocking,
+  type BlockingObject,
   moveSelection,
   openingHostUpdates,
+  fixturePickShape,
   openingPickShape,
+  tileShowerPickShape,
+  utilityPointPickShape,
   pointsEqual,
   slideOpening,
   typedMoveDelta,
@@ -60,6 +68,8 @@ export type MoveDrag = {
   base: Point;
   original: OpeningObject | null;
   slide: OpeningObject | null;
+  blockOriginal?: BlockingObject | null;
+  blockSlide?: BlockingObject | null;
 };
 
 export type MoveOutcome = { ok: true; changed: ModelObject[] } | { ok: false; message: MessageKey };
@@ -137,11 +147,15 @@ export function startMoveDrag(
   base: Point,
 ): MoveDrag {
   let lone: OpeningObject | null = null;
+  let block: BlockingObject | null = null;
   if (ids.length === 1) {
     const id = lower(ids[0]!);
     const o = objects.find((x) => lower(x.id) === id);
     if (o !== undefined && o.type === 'opening') lone = o;
+    if (o !== undefined && o.type === 'blocking') block = o;
   }
+  if (block !== null)
+    return { ids, base, original: null, slide: null, blockOriginal: block, blockSlide: block };
   return { ids, base, original: lone, slide: lone };
 }
 
@@ -150,6 +164,17 @@ export function dragTo(
   i: { objects: readonly ModelObject[]; level: string; at: Point; captureIn: number },
 ): MoveDrag {
   const { slide, original } = drag;
+  const bo = drag.blockOriginal ?? null;
+  if (bo !== null) {
+    const delta = minus(i.at, drag.base);
+    const blockSlide = slideBlocking({
+      blocking: drag.blockSlide ?? bo,
+      objects: i.objects,
+      target: { x: bo.data.geometry.center.x + delta.x, y: bo.data.geometry.center.y + delta.y },
+      captureIn: i.captureIn,
+    });
+    return { ...drag, blockSlide };
+  }
   if (slide === null || original === null) return drag;
   const delta = minus(i.at, drag.base);
   const c = slideOpening({
@@ -187,6 +212,17 @@ export function dragOutcome(
   i: { objects: readonly ModelObject[]; at: Point },
 ): MoveOutcome {
   const { slide, original } = drag;
+  const bo = drag.blockOriginal ?? null;
+  const bs = drag.blockSlide ?? null;
+  if (bo !== null && bs !== null) {
+    const a = bs.data.geometry;
+    const b = bo.data.geometry;
+    const same =
+      pointsEqual(a.center, b.center) &&
+      (a.hostWallId === null ? null : lower(a.hostWallId)) ===
+        (b.hostWallId === null ? null : lower(b.hostWallId));
+    return { ok: true, changed: same ? [] : [bs] };
+  }
   if (slide !== null && original !== null) {
     const a = slide.data.geometry;
     const b = original.data.geometry;
@@ -211,7 +247,17 @@ export function previewShapes(
   for (const o of changed) {
     let shape: PickShape | null = null;
     if (o.type === 'wall') shape = wallPickShape(o);
-    else if (o.type === 'opening') {
+    else if (o.type === 'fixture') shape = fixturePickShape(o);
+    else if (o.type === 'utility_point') shape = utilityPointPickShape(o);
+    else if (o.type === 'tile_shower') shape = tileShowerPickShape(o);
+    else if (o.type === 'blocking') {
+      const placed =
+        blockingHostUpdates({ level, walls: afterWalls, previousWalls, blockings: [o] })[0] ?? o;
+      const hostId = placed.data.geometry.hostWallId;
+      const host =
+        hostId === null ? null : (afterWalls.find((w) => lower(w.id) === lower(hostId)) ?? null);
+      shape = blockingPickShape(placed, host);
+    } else if (o.type === 'opening') {
       const placed =
         openingHostUpdates({ level, walls: afterWalls, previousWalls, openings: [o] })[0] ?? o;
       const hostId = placed.data.geometry.hostWallId;

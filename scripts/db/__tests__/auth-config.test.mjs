@@ -265,6 +265,8 @@ test('EZD-007c T17 (c) docs name the gate secret and session helpers; auth files
   for (const f of files) {
     const text = readFileSync(f, 'utf8');
     assert.ok(!text.includes('console.'), `${f} has no console.`);
+    // admin-auth.ts is the one documented exception (docs/architecture.md, SUPABASE_SECRET_KEY row; EZD-105 invitee).
+    if (path.basename(f) === 'admin-auth.ts') continue;
     assert.ok(!text.includes('SUPABASE_SECRET_KEY'), `${f} does not read SUPABASE_SECRET_KEY`);
   }
 
@@ -391,6 +393,8 @@ test('EZD-007d T17 part d docs, config, registry and redaction', () => {
   for (const f of [...files, proxyFile]) {
     const text = readFileSync(f, 'utf8');
     assert.ok(!text.includes('console.'), `${f} has no console.`);
+    // admin-auth.ts is the one documented exception (docs/architecture.md, SUPABASE_SECRET_KEY row; EZD-105 invitee).
+    if (path.basename(f) === 'admin-auth.ts') continue;
     assert.ok(!text.includes('SUPABASE_SECRET_KEY'), `${f} does not read SUPABASE_SECRET_KEY`);
   }
 

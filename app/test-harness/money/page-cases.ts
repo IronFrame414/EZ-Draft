@@ -1,6 +1,6 @@
 // EZD-133 section 3 harness row `money/page-cases.ts` (vault/plans/EZD-133.md; C4): one case per page file, in
 // listPages order. The path is the file less `app/src/app`, `(group)` segments and `/page.tsx`; `[section]`
-// becomes each Settings slug but `company` and `users` (which have their own pages), `[id]` the dev permissions project, and
+// becomes each Settings slug but those with their own pages (OWN_PAGES), `[id]` the dev permissions project, and
 // two dev pages take `?project=`. Test-only.
 import { SETTINGS_SECTIONS } from '../../src/lib/settings/sections';
 
@@ -10,12 +10,15 @@ const PAGE_FILES = [
   'app/src/app/(client)/dev/entry/client/page.tsx',
   'app/src/app/(editor)/dev/entry/editor/page.tsx',
   'app/src/app/(editor)/dev/saves/[id]/page.tsx',
+  'app/src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
   'app/src/app/(editor)/projects/[id]/page.tsx',
   'app/src/app/(field)/dev/entry/field/page.tsx',
   'app/src/app/(office)/dev/entry/office/page.tsx',
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',
   'app/src/app/(office)/settings/company/page.tsx',
+  'app/src/app/(office)/settings/libraries/page.tsx',
+  'app/src/app/(office)/settings/system-status/page.tsx',
   'app/src/app/(office)/page.tsx',
   'app/src/app/(office)/settings/page.tsx',
   'app/src/app/(office)/settings/users/page.tsx',
@@ -41,6 +44,7 @@ const PAGE_FILES = [
   'app/src/app/dev/sw-offline/shell/page.tsx',
   'app/src/app/dev/tokens/page.tsx',
   'app/src/app/dev/typed-bar/page.tsx',
+  'app/src/app/invite/[token]/page.tsx',
   'app/src/app/sign-in/page.tsx',
   'app/src/app/terms/page.tsx',
 ] as const;
@@ -59,14 +63,25 @@ function basePath(file: string): string {
   return '/' + segments.join('/');
 }
 
+// Settings slugs with their own page.tsx (EZD-131 adds libraries).
+const OWN_PAGES = new Set(['company', 'users', 'system-status', 'libraries']);
+
 function pathsFor(file: string, env: { projectId: string }): string[] {
   const base = basePath(file);
   if (base.includes('[section]')) {
-    return SETTINGS_SECTIONS.filter((s) => s.slug !== 'company' && s.slug !== 'users').map((s) =>
-      base.replace('[section]', s.slug),
-    );
+    return SETTINGS_SECTIONS.filter(
+      (s) => !OWN_PAGES.has(s.slug),
+    ).map((s) => base.replace('[section]', s.slug));
   }
-  if (base.includes('[id]')) return [base.replace('[id]', env.projectId)];
+  // EZD-307: an import id of the right shape that does not exist; the page reads nothing.
+  if (base.includes('[id]'))
+    return [
+      base
+        .replace('[id]', env.projectId)
+        .replace('[jobId]', '00000000-0000-4000-8000-000000000000'),
+    ];
+  // EZD-105: a token of the wrong shape, so the page shows its refusal and reads nothing.
+  if (base.includes('[token]')) return [base.replace('[token]', 'not-a-token')];
   if (WITH_PROJECT_QUERY.has(file)) return [`${base}?project=${env.projectId}`];
   return [base];
 }

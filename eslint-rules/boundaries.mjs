@@ -45,6 +45,7 @@ export const HEAVY_PACKAGES = [
   { match: ['three-gpu-pathtracer'], category: 'heavy', allowed: [...LAZY_PLACES] },
   { match: ['pdfjs-dist'], category: 'heavy', allowed: [...LAZY_PLACES, 'app/src/server/jobs/'] },
   { match: ['dxf-parser'], category: 'heavy', allowed: [...LAZY_PLACES, 'app/src/server/jobs/'] },
+  { match: ['heic-to'], category: 'heavy', allowed: [...LAZY_PLACES] },
   // The DXF writer, provisional until EZD-029.
   {
     match: ['@tarikjabiri/dxf'],

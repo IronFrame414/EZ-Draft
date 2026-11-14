@@ -5,6 +5,7 @@
 // EZD-118 Build step 6 (vault/plans/EZD-118.md Decided "POST order"; Q-0413): New project. Order: 401, 403 (no
 // Create projects), 400 for an unreadable or invalid body, then `create_project` through the session client;
 // `project.created` is emitted after the write and a failed emit does not fail the create.
+// EZD-301: a project started from a file sends `source: 'file'`, which project.created carries.
 import { createSessionClient } from '../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../server/errors/route-failure';
 import { emit } from '../../../server/events';
@@ -16,6 +17,7 @@ import {
   parseProjectSearch,
 } from '../../../server/projects/projects';
 import { requireApiPermission } from '../../../server/permissions';
+import { endedSessionResponse } from '../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +39,8 @@ export async function GET(request: Request): Promise<Response> {
     const page = await listProjects(createSessionClient(), query, search);
     return Response.json(page, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }
@@ -62,13 +66,14 @@ export async function POST(request: Request): Promise<Response> {
       if (result.code === 'customer_unavailable') {
         return fail(400, 'customer_unavailable', 'error.project_customer_unavailable');
       }
+      if (result.code === 'foreman_unavailable') return fail(400, 'foreman_unavailable');
       return fail(400, 'invalid_input');
     }
     const { projectId, tenantId } = result;
     try {
       await emit(
         'project.created',
-        { projectId, source: 'standalone' },
+        { projectId, source: values.source ?? 'standalone' },
         { tenantId, projectId, actorId: p.session.appUserId },
       );
     } catch {
@@ -76,6 +81,8 @@ export async function POST(request: Request): Promise<Response> {
     }
     return Response.json({ project: { id: projectId } }, { status: 201, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

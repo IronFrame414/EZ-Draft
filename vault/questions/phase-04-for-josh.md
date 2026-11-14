@@ -1,4 +1,4 @@
-# Phase 4 · for Josh (questions unit, rerun 2026-11-10, sixth pass)
+# Phase 4 · for Josh (questions unit, rerun 2026-11-10, eighth pass)
 
 Nothing waits on you for phase 4. Agents settled everything else (section 2).
 
@@ -21,6 +21,7 @@ Confirm or override each.
 - **Q-0621 · EZD-359.** The pan long-task gate counts a task only when its CPU time × the profile's throttle rate is over 50 ms (or unknown); tasks the Mac's other lanes merely stretched are listed in `details.waits`. Budget 0, the 50 ms line and the 4× iPad throttle stay. Cost: a block that burns no CPU (sync request, alert) would be listed, not counted; none is on the pan path today. Source: phase-auditor; Q-0073 (a); Q-0619; spec 11. Confirm or override.
 - **Q-0629 · EZD-294.** The server numbers every new wall and opening that arrives without a number or with one the project already used (insert trigger plus one index); the save answer carries the stored number back to the device. Closes the Keep mine, two-people-editing and old-app-deploy duplicates. Cost: the 3,000-object benchmark save does 3,000 index lookups (67 ms measured) and benchmark objects become numbered. Source: phase-auditor; 03b rules 6, 9; Q-0511; Q-0531; Q-0568; Q-0625 (a); rule 18. Confirm or override.
 - **Q-0691 · EZD-367.** A member without Edit model keeps Select on their rail (no Wall or Room rectangle); "no tool rail" in AC-EZD-367-1 reads "no drawing tools", so the stale EZD-221b B6 test line is edited, not the app. Source: orchestrator; Q-0630 row 9 (05-screens.md:60). Confirm or override.
+- **Q-0694 · EZD-376.** The "text could not be drawn" message is a red banner over the plan in the same spot and style as "Changes not saved", with no Retry button (the text atlas is made once; the wording says to reload). Source: orchestrator; Q-0506 (no new boards for editor error banners); S03 States. Confirm or override.
 - Earlier phase 4 spec-gap answers (Q-0570 and its neighbours) stand; confirm or override on the phase 4 spec-gap file.
 
 ## 3. Proposed wording
@@ -35,7 +36,8 @@ Confirm or override each.
   - Create will, Empty selected: "Open an empty Plan editor"
   - Empty plan hint (Edit model only): "Draw walls with Wall (W) or Room rectangle (R)." (your Q-0591 (a))
 
-- **EZD-359:** none (no user-visible text).
+- **EZD-376:** Banner when the plan cannot draw room names and measurements: "Couldn't show the room names and measurements on the plan. Reload the page to try again."
+- **EZD-359, EZD-372, EZD-373, EZD-374, EZD-375:** none (no user-visible text).
 
 ## 4. Plan changes you should know
 
@@ -46,3 +48,9 @@ Confirm or override each.
 - Third pass (2026-11-06): no open questions. EZD-357 (gap box at exactly 12 inches) and EZD-358 (EZD-207c E3 test waits for first draw) are defect fixes with no new wording; both set ready.
 - Fourth pass (2026-11-07): Q-0629 settled by phase-auditor (section 2). EZD-294 re-planned (17 build files, above the split guide; noted in its section 9) and set ready. EZD-299 and EZD-299b unchanged.
 - Fifth pass (2026-11-09): no open questions. EZD-363 (disabled tool button hover rule, defect from the phase 4 full gate; no new wording) passes the plan lint and is set ready. EZD-221b stays blocked (needs a session with network for the icon fetch; see the handoff).
+- Seventh pass (2026-11-10): Q-0694 settled by the orchestrator (section 2). EZD-373, EZD-374, EZD-375 and EZD-376 pass the plan lint and are set ready. EZD-372 stays blocked (build blocked on lane-gate flakes; see the handoff), so its status is not changed here.
+- Eighth pass (2026-11-10): no open questions. EZD-379 (EZD-207b B2 hover test flakes under another lane's gate) and EZD-380 (EZD-133 W1 smoke test ECONNRESET under another lane's gate) pass the plan lint, no new wording; both set ready. EZD-372 stays blocked.
+- Ninth pass (2026-11-11): Q-0737 (EZD-388, how the pan.test iPad long-task row counts under load) was a build-system test question, settled by the orchestrator at option (a) (not listed in section 2). EZD-388 passes the plan lint, contract and connections checks, no new wording; set ready.
+- Tenth pass (2026-11-11): Q-0742 (EZD-390, CI log for the route-test race) and Q-0743 (EZD-392, what the N5 throttle test measures) were build-system test questions, settled by the orchestrator (not listed in section 2): the log was already on disk, and N5 measures main-thread CPU time from a Chrome trace. EZD-390, EZD-391 and EZD-392 (develop CI intermittents) pass the plan lint, contract and connections checks, no new wording; set ready.
+- Eleventh pass (2026-11-12): no open phase 4 questions (Q-0744 is a phase 5 question on EZD-212b; Q-0740/Q-0741 and the Q-0709 to Q-0728 rows belong to phase 8). EZD-393 (EZD-356 T1 pan-row test finds a wait under load) passes the plan lint, contract and connections checks, no new wording; set ready. EZD-390 and EZD-391 stay blocked.
+- Twelfth pass (2026-11-12): no open phase 4 questions. EZD-400 (six rail tests count 6 tools where an editor's rail now has the Assistant button as a 7th; test-only fix, no new wording) passes the plan lint, contract and connections checks; set ready.

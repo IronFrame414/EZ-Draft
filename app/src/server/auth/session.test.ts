@@ -321,6 +321,7 @@ describe('EZD-007c session client and API gate secret', () => {
       .sort();
     expect(valueUse).toEqual([
       'app/src/lib/realtime/adapter.ts',
+      'app/src/server/auth/admin-auth.ts',
       'app/src/server/auth/supabase-server.ts',
       'app/src/server/db/client.ts',
       'app/src/server/jobs/db.ts',

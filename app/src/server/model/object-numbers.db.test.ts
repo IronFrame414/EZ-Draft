@@ -78,7 +78,7 @@ const roomData = (level: string): Rec => ({
   geometry: { boundary: [at(0), at(144), { x: 144, y: 120 }, { x: 0, y: 120 }] },
   status: 'existing',
   level,
-  attributes: { name: 'Room 1' },
+  attributes: { name: 'Room 1', floorLevel: 0, photos: [] },
   closureOverride: null,
 });
 

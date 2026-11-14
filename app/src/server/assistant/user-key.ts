@@ -64,7 +64,10 @@ type RpcError = { code?: string } | null;
 const isPrivilege = (error: RpcError) => error?.code === PRIVILEGE;
 
 // Any other database error: a fixed message naming the function, never the database text.
-const rpcFailure = (fn: string) => new Error(`${fn}_failed`);
+// EZD-421: `cause` keeps the database error for the ended-session rule (server/auth/ended-session.ts).
+const rpcFailure = (fn: string, cause?: unknown) => new Error(`${fn}_failed`, { cause });
+// readMyKey's 'denied' is a 42501; kept as the cause so an ended session is told apart (EZD-421).
+const DENIED = { code: '42501' } as const;
 
 async function report(code: string, location: string): Promise<void> {
   await reportError(new Error(code), { source: 'function', location });
@@ -82,7 +85,7 @@ type KeyRow = {
 async function readMyKey(client: SupabaseClient<Database>): Promise<KeyRow | 'denied'> {
   const { data, error } = await client.rpc('get_my_ai_key');
   if (isPrivilege(error)) return 'denied';
-  if (error) throw rpcFailure('get_my_ai_key');
+  if (error) throw rpcFailure('get_my_ai_key', error);
   const row = (data as KeyRow[] | null)?.[0];
   if (!row) throw rpcFailure('get_my_ai_key');
   return row;
@@ -90,7 +93,7 @@ async function readMyKey(client: SupabaseClient<Database>): Promise<KeyRow | 'de
 
 export async function getMyAiKeyState(client: SupabaseClient<Database>): Promise<AiKeyState> {
   const row = await readMyKey(client);
-  if (row === 'denied') throw rpcFailure('get_my_ai_key');
+  if (row === 'denied') throw rpcFailure('get_my_ai_key', DENIED);
   return row.last4 === null ? null : { last4: row.last4 };
 }
 
@@ -121,7 +124,7 @@ export async function addUserAiKey(
 
   const slot = await client.rpc('take_ai_key_attempt');
   if (isPrivilege(slot.error)) return { status: 403, code: 'not_authorized' };
-  if (slot.error) throw rpcFailure('take_ai_key_attempt');
+  if (slot.error) throw rpcFailure('take_ai_key_attempt', slot.error);
   if (slot.data !== true) return { status: 429, code: 'ai_key_throttled' };
 
   const check = deps.check ?? checkAnthropicKey;
@@ -151,7 +154,7 @@ export async function addUserAiKey(
     p_last4: last4,
   });
   if (isPrivilege(saved.error)) return { status: 403, code: 'not_authorized' };
-  if (saved.error) throw rpcFailure('save_my_ai_key');
+  if (saved.error) throw rpcFailure('save_my_ai_key', saved.error);
 
   await (deps.sendEmail ?? sendAiKeyEmail)('added', session.email, last4, env);
   return { status: 200, last4 };
@@ -164,7 +167,7 @@ export async function removeUserAiKey(
 ): Promise<RemoveKeyResult> {
   const { data, error } = await client.rpc('delete_my_ai_key');
   if (isPrivilege(error)) return { status: 403, code: 'not_authorized' };
-  if (error) throw rpcFailure('delete_my_ai_key');
+  if (error) throw rpcFailure('delete_my_ai_key', error);
   const row = (data as { deleted: boolean; last4: string | null }[] | null)?.[0];
   if (row?.deleted && row.last4 !== null) {
     await (deps.sendEmail ?? sendAiKeyEmail)(
@@ -182,7 +185,7 @@ export async function loadUserAiKeyForCall(
   deps: UserKeyDeps = {},
 ): Promise<UserAiKeyLoad> {
   const row = await readMyKey(client);
-  if (row === 'denied') throw rpcFailure('get_my_ai_key');
+  if (row === 'denied') throw rpcFailure('get_my_ai_key', DENIED);
   if (
     row.tenant_id === null ||
     row.app_user_id === null ||
@@ -214,7 +217,7 @@ export async function loadUserAiKeyForCall(
         p_ciphertext: ciphertext,
         p_secret_version: secretVersion,
       });
-      if (error) throw rpcFailure('rewrap_my_ai_key');
+      if (error) throw rpcFailure('rewrap_my_ai_key', error);
     } catch {
       await report('ai_key_rewrap_failed', LOAD_LOCATION);
     }

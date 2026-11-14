@@ -6,6 +6,7 @@
 import type { NumberHighs, ObjectIssue } from '@ezdraft/geometry';
 import type { OutboxEntry } from './outbox';
 import type { PlanScale } from '../plan/plan-scale';
+import type { IpadDrawing } from '../profile/profile';
 
 export type ObjectValue = { type: string; schemaVersion: number; data: Record<string, unknown> };
 
@@ -13,7 +14,14 @@ export type LoadedObject = ObjectValue & { id: string; updatedSeq: number };
 
 export type ModelLoad = {
   project: { id: string; name: string; clientName: string | null; planScale: PlanScale };
-  viewer: { appUserId: string; tenantId: string; membershipId: string; canEdit: boolean };
+  // EZD-223: `ipadDrawing` is the viewer's own iPad drawing setting (S15d, Q-0392); missing reads as finger.
+  viewer: {
+    appUserId: string;
+    tenantId: string;
+    membershipId: string;
+    canEdit: boolean;
+    ipadDrawing?: IpadDrawing;
+  };
   lockEpoch: number;
   objects: LoadedObject[];
   invalid: ObjectIssue[];
