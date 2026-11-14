@@ -10,6 +10,7 @@ const PAGE_FILES = [
   'app/src/app/(client)/dev/entry/client/page.tsx',
   'app/src/app/(editor)/dev/entry/editor/page.tsx',
   'app/src/app/(editor)/dev/saves/[id]/page.tsx',
+  'app/src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
   'app/src/app/(editor)/projects/[id]/page.tsx',
   'app/src/app/(field)/dev/entry/field/page.tsx',
   'app/src/app/(office)/dev/entry/office/page.tsx',
@@ -72,7 +73,13 @@ function pathsFor(file: string, env: { projectId: string }): string[] {
       (s) => !OWN_PAGES.has(s.slug),
     ).map((s) => base.replace('[section]', s.slug));
   }
-  if (base.includes('[id]')) return [base.replace('[id]', env.projectId)];
+  // EZD-307: an import id of the right shape that does not exist; the page reads nothing.
+  if (base.includes('[id]'))
+    return [
+      base
+        .replace('[id]', env.projectId)
+        .replace('[jobId]', '00000000-0000-4000-8000-000000000000'),
+    ];
   // EZD-105: a token of the wrong shape, so the page shows its refusal and reads nothing.
   if (base.includes('[token]')) return [base.replace('[token]', 'not-a-token')];
   if (WITH_PROJECT_QUERY.has(file)) return [`${base}?project=${env.projectId}`];

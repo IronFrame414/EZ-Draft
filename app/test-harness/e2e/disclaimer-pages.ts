@@ -49,6 +49,13 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     signedIn: true,
     placement: 'bar',
   },
+  // EZD-307: Import review; an import that does not exist still shows the status bar with the line.
+  {
+    file: 'src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000/import/00000000-0000-4000-8000-000000000000',
+    signedIn: true,
+    placement: 'bar',
+  },
   {
     file: 'src/app/(field)/dev/entry/field/page.tsx',
     path: '/dev/entry/field',

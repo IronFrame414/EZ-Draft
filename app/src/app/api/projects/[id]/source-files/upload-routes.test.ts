@@ -211,7 +211,7 @@ describe('EZD-301 upload step routes', () => {
     const ok = await callImport(P, body);
     expect(ok.status).toBe(202);
     expect(ok.headers.get('Cache-Control')).toBe('no-store');
-    expect(await ok.json()).toEqual({ projectId: P, sourceFileIds: [F1, F2] });
+    expect(await ok.json()).toEqual({ projectId: P, sourceFileIds: [F1, F2], jobId: null });
     expect(checkImportFiles).toHaveBeenLastCalledWith({}, P, [F1, F2]);
     expect(emit).toHaveBeenCalledTimes(1);
     expect(emit).toHaveBeenCalledWith(

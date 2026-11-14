@@ -270,3 +270,31 @@ export async function readJobSourceFiles(
   }
   return out;
 }
+
+// EZD-307: Import review's read of its import's files, through the caller's client so RLS decides what is visible
+// (a file of another company or an unlisted project is absent). Keyed by lower-case id.
+export type ReviewSourceFile = { name: string; kind: string; storagePath: string; uploaded: boolean };
+
+export async function readReviewSourceFiles(
+  client: DbClient,
+  projectId: string,
+  ids: readonly string[],
+): Promise<Map<string, ReviewSourceFile>> {
+  const out = new Map<string, ReviewSourceFile>();
+  for (let i = 0; i < ids.length; i += READ_CHUNK) {
+    const { data, error } = await client
+      .from('source_file')
+      .select('id, kind, original_name, storage_path, uploaded_at')
+      .eq('project_id', projectId)
+      .in('id', ids.slice(i, i + READ_CHUNK));
+    if (error) throw error;
+    for (const row of data)
+      out.set(row.id.toLowerCase(), {
+        name: row.original_name,
+        kind: row.kind,
+        storagePath: row.storage_path,
+        uploaded: row.uploaded_at !== null,
+      });
+  }
+  return out;
+}

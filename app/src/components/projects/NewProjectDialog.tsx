@@ -53,7 +53,8 @@ import { templateModule } from './template-module';
 
 export type NewProjectDialogProps = {
   onClose: () => void;
-  onCreated: (projectId: string) => void;
+  // EZD-307: jobId is the import's detection job when one was queued, so Continue to review opens Import review.
+  onCreated: (projectId: string, jobId?: string | null) => void;
   // EZD-301: 'file' presets a file source (Start from a file); `files` are files dropped on Projects.
   start?: 'blank' | 'file';
   files?: readonly File[];
@@ -153,12 +154,16 @@ export function NewProjectDialog({
   const sendFiles = async (projectId: string) => {
     setUploadError(null);
     try {
+      const started: { jobId: string | null } = { jobId: null };
       await uploadAndStartImport(projectId, uploads.items, {
         done: done.current,
         onFile: (index, total) =>
           setUploadStatus(t('office.upload.uploading', { index: index + 1, total })),
+        onStarted: (id) => {
+          started.jobId = id;
+        },
       });
-      onCreated(projectId);
+      onCreated(projectId, started.jobId);
       return;
     } catch (e) {
       const name = e instanceof ImportUploadError ? (e.fileName ?? '') : '';

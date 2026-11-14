@@ -118,8 +118,13 @@ test.describe('EZD-301 Upload step', () => {
     );
 
     await tid(page, 'new-project-create').click();
-    await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/, { timeout: 60_000 });
-    const projectId = page.url().split('/').at(-1) as string;
+    // EZD-307: a Polycam DXF queues detection, so Continue to review opens Import review for it. The DXF here is
+    // random bytes, so detection fails and the review names the file (S02 States Error).
+    await page.waitForURL(/\/projects\/[0-9a-f-]{36}\/import\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+    const projectId = page.url().split('/').at(-3) as string;
+    await expect(tid(page, 'import-review-message')).toHaveText("Couldn't read scan.dxf.", {
+      timeout: 60_000,
+    });
 
     const rows = await sourceFiles(projectId);
     for (const r of rows) paths.push(r.storage_path);
@@ -143,6 +148,7 @@ test.describe('EZD-301 Upload step', () => {
     expect(events[1].details).toEqual({ projectId, sourceFileIds: rows.map((r) => r.id) });
 
     // S02 Entry: a new file to the existing project, from the editor header.
+    await page.goto(`/projects/${projectId}`);
     const pdf = new Uint8Array(randomBytes(90_001));
     await tid(page, 'editor-upload-files').click();
     await expect(tid(page, 'upload-files-dialog')).toBeVisible();

@@ -4,9 +4,14 @@
 // an existing project. The editor header's Upload files button (Edit model) loads it with the edit menus' lazy
 // module (one chunk entry, so the editor stays within its download budget); Continue to review sends the originals unchanged and starts the import, then shows a toast. Import review
 // itself is EZD-307.
+import { useRouter } from 'next/navigation';
 import { Dialog } from 'radix-ui';
 import { useRef, useState, type ReactElement } from 'react';
-import { ImportUploadError, uploadAndStartImport } from '../../lib/imports/upload-client';
+import {
+  ImportUploadError,
+  importReviewPath,
+  uploadAndStartImport,
+} from '../../lib/imports/upload-client';
 import { emptyUploadList, type UploadList } from '../../lib/imports/upload-files';
 import { useT } from '../../lib/messages';
 import { useOnline } from '../../lib/network';
@@ -26,6 +31,7 @@ export function UploadFilesDialog({
   const t = useT();
   const online = useOnline();
   const toast = useToast();
+  const router = useRouter();
   const [list, setList] = useState<UploadList>(() => emptyUploadList('pdf'));
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -36,13 +42,19 @@ export function UploadFilesDialog({
     setBusy(true);
     setError(null);
     try {
+      const started: { jobId: string | null } = { jobId: null };
       await uploadAndStartImport(projectId, list.items, {
         done: done.current,
         onFile: (index, total) =>
           setStatus(t('office.upload.uploading', { index: index + 1, total })),
+        onStarted: (id) => {
+          started.jobId = id;
+        },
       });
       toast.show({ message: 'office.upload.done' });
       onClose();
+      // EZD-307 (S02 Entry points): a scan uploaded to an existing project opens Import review.
+      if (started.jobId) router.push(importReviewPath(projectId, started.jobId));
       return;
     } catch (e) {
       const name = e instanceof ImportUploadError ? (e.fileName ?? '') : '';

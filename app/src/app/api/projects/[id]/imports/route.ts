@@ -5,6 +5,9 @@
 // 400 for a file that is not this project's or not uploaded; any other failure is 500 after reportRouteFailure.
 // EZD-302: when Polycam floor plan DXFs are among the files, an import job is queued for them after
 // import.started (phase-03 EZD-302 "runs as a background job").
+// EZD-307: the job payload also names the Polycam meshes (meshFileIds, only when there are any) so Import review can
+// offer Show 3D mesh, and the answer carries jobId (null when nothing was queued) so Continue to review opens
+// /projects/[id]/import/[jobId] (S02 Entry points).
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -58,14 +61,17 @@ export async function POST(
       { tenantId: checked.tenantId, projectId: id, actorId: p.session.appUserId },
     );
     const scanIds = checked.scanIds ?? [];
+    const meshIds = checked.meshIds ?? [];
+    let jobId: string | null = null;
     if (scanIds.length > 0) {
-      await enqueueJob(createSessionClient(), {
+      const job = await enqueueJob(createSessionClient(), {
         kind: 'import',
         projectId: id,
-        payload: { sourceFileIds: scanIds },
+        payload: meshIds.length > 0 ? { sourceFileIds: scanIds, meshFileIds: meshIds } : { sourceFileIds: scanIds },
       });
+      jobId = job.id;
     }
-    return Response.json({ projectId: id, sourceFileIds }, { status: 202, headers });
+    return Response.json({ projectId: id, sourceFileIds, jobId }, { status: 202, headers });
   } catch (e) {
     const ended = await endedSessionResponse(e);
     if (ended) return ended;

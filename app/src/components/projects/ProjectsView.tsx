@@ -43,6 +43,7 @@ import { Skeleton, SkeletonGroup } from '../states/Skeleton';
 import { StateButton } from '../states/StateButton';
 import buttonStyles from '../states/StateButton.module.css';
 import { NewProjectDialog } from './NewProjectDialog';
+import { importReviewPath } from '../../lib/imports/upload-client';
 import { ProjectCard } from './ProjectCard';
 import { ProjectsHeader, type ProjectsAccount } from './ProjectsHeader';
 import styles from './Projects.module.css';
@@ -423,7 +424,9 @@ export function ProjectsView({
           files={creating.files}
           canImport={canImport}
           onClose={() => setCreating(null)}
-          onCreated={(id) => router.push('/projects/' + id)}
+          onCreated={(id, jobId) =>
+            router.push(jobId ? importReviewPath(id, jobId) : '/projects/' + id)
+          }
         />
       ) : null}
     </>

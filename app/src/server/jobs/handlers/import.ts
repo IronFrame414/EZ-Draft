@@ -17,7 +17,8 @@ import { createJobsDbClient } from '../db';
 import { JobError } from '../errors';
 import type { JobHandler } from '../registry';
 
-export type ImportPayload = { sourceFileIds: string[] };
+// EZD-307: meshFileIds (Polycam GLBs of the same import) are not read here; Import review reads them from the payload.
+export type ImportPayload = { sourceFileIds: string[]; meshFileIds?: string[] };
 export type ImportResult = { importSessionIds: string[] };
 
 export const IMPORT_MAX_FILES = 20;
@@ -34,7 +35,10 @@ export function detectionCounts(d: Detection): ImportCounts {
 
 export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
   kind: 'import',
-  payload: z.object({ sourceFileIds: z.array(z.uuid()).min(1).max(IMPORT_MAX_FILES) }),
+  payload: z.object({
+    sourceFileIds: z.array(z.uuid()).min(1).max(IMPORT_MAX_FILES),
+    meshFileIds: z.array(z.uuid()).max(IMPORT_MAX_FILES).optional(),
+  }),
   result: z.object({ importSessionIds: z.array(z.uuid()) }),
   async run(ctx) {
     const projectId = ctx.job.project_id;

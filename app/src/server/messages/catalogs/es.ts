@@ -18,6 +18,7 @@ export const es = {
     'No se puede conectar con la base de datos. Inténtalo de nuevo en un minuto.',
   'error.not_signed_in': 'Se cerró tu sesión. Vuelve a iniciar sesión para continuar.',
   'error.not_authorized': 'No tienes permiso para hacer eso.',
+  'error.import_not_found': 'Esa importación no está disponible.',
   'error.job_not_found': 'Esa tarea ya no existe.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
   'common.invite.email_subject': 'Te invitaron a unirte a {company} en EZ Draft',

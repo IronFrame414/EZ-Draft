@@ -342,7 +342,8 @@
     "EZD-231",
     "EZD-233",
     "EZD-301",
-    "EZD-302"
+    "EZD-302",
+    "EZD-303"
   ],
   "seeded_done": 324,
   "merged": [
@@ -470,6 +471,13 @@
       "title": "Polycam DXF detection",
       "commit": "d96a107f",
       "ts": "2026-11-14T00:44:28Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-303",
+      "title": "Polycam GLB mesh",
+      "commit": "1b7500c8",
+      "ts": "2026-11-14T01:10:49Z",
       "kind": "ticket"
     }
   ],

@@ -26,7 +26,13 @@ export type UploadRunOptions = {
   onFile?: (index: number, total: number) => void;
   fetchImpl?: typeof fetch;
   retryDelaysMs?: readonly number[];
+  // EZD-307: called once the import has started, with the queued detection job (null when none was queued).
+  onStarted?: (jobId: string | null) => void;
 };
+
+/** EZD-307 (S02 Entry points): Import review of one import. */
+export const importReviewPath = (projectId: string, jobId: string): string =>
+  `/projects/${projectId}/import/${jobId}`;
 
 const json = (body: unknown): RequestInit => ({
   method: 'POST',
@@ -87,5 +93,9 @@ export async function uploadAndStartImport(
     throw new ImportUploadError('import_failed', null);
   }
   if (res.status !== 202) throw new ImportUploadError('import_failed', null);
+  if (opts.onStarted) {
+    const body = (await res.json().catch(() => null)) as { jobId?: unknown } | null;
+    opts.onStarted(typeof body?.jobId === 'string' ? body.jobId : null);
+  }
   return sourceFileIds;
 }
