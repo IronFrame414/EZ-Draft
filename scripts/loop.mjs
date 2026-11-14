@@ -25,7 +25,7 @@ const DEFAULTS = {
   builder_model: 'claude-opus-5-5', builder_effort: 'medium',
   reviewer_model: 'claude-fable-5-2', reviewer_fallback: 'claude-opus-5-5', reviewer_effort: 'medium',
   builder_timeout_min: 90, reviewer_timeout_min: 30, fix_rounds: 2, review_rounds: 2,
-  trial_size: 20, lane: '0', idle_minutes: 30, limit_sleep_minutes: 30, red_streak_guard: 3,
+  trial_size: 20, lane: '0', idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
@@ -216,11 +216,21 @@ function parseVerdict(text) {
 }
 
 // ---------- ticket flow ----------
+// On a usage limit the loop waits, but sends a one-line probe every limit_probe_minutes and resumes as soon as one
+// gets through (a reset or an account switch, Josh 2026-11-14). limit_sleep_minutes is the fallback wait when a probe
+// fails for some other reason. Probes are not written to usage.jsonl: they are tiny and would count as a ticket.
 async function handleLimit(r, s) {
   const c = cfg();
-  log(`usage limit hit (${r.text.split('\n').find((l) => /limit|reset/i.test(l))?.slice(0, 160) ?? ''}); sleeping ${c.limit_sleep_minutes} min`);
+  log(`usage limit hit (${r.text.split('\n').find((l) => /limit|reset/i.test(l))?.slice(0, 160) ?? ''}); probing every ${c.limit_probe_minutes} min`);
   s.sleep_until = new Date(Date.now() + c.limit_sleep_minutes * 60000).toISOString();
+  s.next_probe = new Date(Date.now() + c.limit_probe_minutes * 60000).toISOString();
   saveState(s);
+}
+async function limitCleared() {
+  const c = cfg();
+  const r = await runClaude({ cwd: ROOT, prompt: 'Reply with the single word OK.', model: c.builder_model, effort: 'low',
+    name: 'limit-probe', timeoutMin: 3, readOnly: true });
+  return { ok: !r.limited && r.code === 0 && !!r.res && !r.res.is_error, limited: r.limited };
 }
 // Ticket ids named in text or a list, that exist in tickets.json.
 function ticketIds(v) {
@@ -418,7 +428,19 @@ async function main() {
     const s = loadState();
     if (existsSync(P.stop)) { note('STOP file present; waiting'); await sleep(60000); continue; }
     if (existsSync(P.attention)) { note('ATTENTION.md present; waiting'); await sleep(10 * 60000); continue; }
-    if (s.sleep_until && Date.parse(s.sleep_until) > Date.now()) { await sleep(Math.min(60000, Date.parse(s.sleep_until) - Date.now())); continue; }
+    if (s.sleep_until && Date.parse(s.sleep_until) > Date.now()) {
+      if (Date.parse(s.next_probe || 0) <= Date.now()) {
+        const p = await limitCleared();
+        if (p.ok) { log('usage available again; resuming'); delete s.sleep_until; delete s.next_probe; saveState(s); continue; }
+        s.next_probe = new Date(Date.now() + c.limit_probe_minutes * 60000).toISOString();
+        // A limit that is still on pushes the fallback wait out, so the loop keeps probing instead of retrying a ticket.
+        // Any other probe failure leaves the fallback wait as it is.
+        if (p.limited && Date.parse(s.sleep_until) < Date.parse(s.next_probe)) s.sleep_until = s.next_probe;
+        saveState(s);
+      }
+      await sleep(Math.min(60000, Date.parse(s.sleep_until) - Date.now()));
+      continue;
+    }
     if (s.current) { log(`recovering: ${s.current} was interrupted; starting it fresh`); cleanupWorktree(s.current); s.current = null; saveState(s); }
     push(s);
     if (s.red_streak >= c.red_streak_guard) { await guardDevelop(s); commitBuildFiles('develop guard'); push(s); continue; }
