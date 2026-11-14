@@ -443,10 +443,9 @@ async function guardDevelop(s) {
   const t = { id: `EZD-REPAIR-${Date.now().toString(36)}`, title: 'Repair: develop fails the check', acs: [], prompt:
     `develop fails the full check (node scripts/check.mjs). Read CLAUDE.md, find the cause, fix it without weakening any test, run the full check until it passes, and commit with message "fix(develop): <what>".\n\n${ck.detail.slice(-8000)}` };
   const res = await doTicket(t, s, 'repair');
-  if (res !== 'merged') {
-    writeFileSync(P.attention, `# Build loop stopped (${now()})\n\ndevelop fails scripts/check.mjs and one repair build did not fix it. See vault/build/set-aside.md (${t.id}) and vault/build/loop.log.\nDelete this file to let the loop continue.\n`);
-    log('ATTENTION: develop is red and the repair failed; loop holds until vault/build/ATTENTION.md is deleted');
-  }
+  // Josh 2026-11-14: a red check never stops the loop. A failed repair is set aside (set-aside.md) and the loop goes on;
+  // the next red streak runs another repair.
+  if (res !== 'merged') log(`develop is red and repair ${t.id} failed; set aside, building continues`);
 }
 
 // ---------- main ----------
