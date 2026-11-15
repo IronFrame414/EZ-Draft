@@ -345,7 +345,8 @@
     "EZD-302",
     "EZD-303",
     "EZD-307",
-    "EZD-105b"
+    "EZD-105b",
+    "EZD-398"
   ],
   "seeded_done": 324,
   "merged": [
@@ -494,6 +495,13 @@
       "title": "Owner-set password",
       "commit": "dce82190",
       "ts": "2026-11-15T01:37:23Z",
+      "kind": "ticket"
+    },
+    {
+      "id": "EZD-398",
+      "title": "Fix: the long-tasks-during-pan:ipad perf check finds one long task on CI after EZD-372",
+      "commit": "abf41f07",
+      "ts": "2026-11-15T02:04:21Z",
       "kind": "ticket"
     }
   ],

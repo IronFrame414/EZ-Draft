@@ -164,7 +164,9 @@ const DEFAULT_INPUT = (): AssistantInput => ({
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-/i;
 const noStore = (r: Response) => expect(r.headers.get('cache-control') ?? '').toContain('no-store');
 
-const ADD_DOOR_CHANGES = [{ op: 'add', type: 'door', ref: 'n1', hostWall: 'w2' }];
+const ADD_DOOR_CHANGES = [
+  { op: 'add', type: 'door', ref: 'n1', hostWall: 'w2', center: { x: 100, y: 0 } },
+];
 
 // D-Map: the route answer per error recording.
 const ERROR_CASES: Array<[StubName, number, string, string?]> = [
@@ -400,6 +402,17 @@ describe('EZD-5602 assistant route', () => {
       { model: 'claude-opus-5-5', cost: '0.040000' },
     ]);
     expect(await jobCount()).toBe(jobsBefore);
+  }, 120000);
+
+  // EZD-5604a P3 (vault/plans/EZD-5604a.md section 4; AC-EZD-5604-6): the reply has no tools to call.
+  it('EZD-5604a P3 no tools in the request', async () => {
+    stubWith('add_door');
+    const r = await post(project, DEFAULT_INPUT());
+    expect(r.res.status).toBe(200);
+    const sent = expectOneUserKeyRequest('add_door');
+    const body = JSON.parse(sent.bodyText ?? 'null') as Record<string, unknown>;
+    expect('tools' in body).toBe(false);
+    expect('tool_choice' in body).toBe(false);
   }, 120000);
 
   it('T16 no key: 400 assistant_no_key; a key that does not decrypt: 400 assistant_key_refused, row kept, reported', async () => {

@@ -26,8 +26,8 @@ const recording = (purpose: string, text: string): Recording => ({
 });
 
 // EZD-5602 Build step 9 (vault/plans/EZD-5602.md "D-Stubs"; Q-0637 stub row; Q-0638 provider errors; R-055 error
-// body): the assistant's recordings, one POST /v1/messages exchange each. The `changes` arrays are placeholders
-// for the envelope only; EZD-5604 owns the change format and rewrites them.
+// body): the assistant's recordings, one POST /v1/messages exchange each. EZD-5604a D-Recordings: the `add_door`,
+// `move_wall` and `delete_window` changes are in the reply change format (app/src/lib/assistant/changes.ts).
 export const ASSISTANT_STUB_NAMES = [
   'add_door',
   'move_wall',
@@ -116,13 +116,13 @@ const TEXT_ONLY = '{"message":"The kitchen is 80 square feet.","changes":[]}';
 export const ASSISTANT_RECORDINGS: Readonly<Record<AssistantStubName, Recording>> = {
   add_door: assistantReply(
     'add_door',
-    `{"message":"Added a 3' door on w2.","changes":[{"op":"add","type":"door","ref":"n1","hostWall":"w2"}]}`,
+    `{"message":"Added a 3' door on w2.","changes":[{"op":"add","type":"door","ref":"n1","hostWall":"w2","center":{"x":100,"y":0}}]}`,
     3000,
     1400,
   ),
   move_wall: assistantReply(
     'move_wall',
-    '{"message":"Moved w1 12 inches north.","changes":[{"op":"update","type":"wall","ref":"w1"}]}',
+    '{"message":"Moved w1 12 inches north.","changes":[{"op":"update","type":"wall","ref":"w1","start":{"x":120,"y":108},"end":{"x":0,"y":108}}]}',
     2500,
     1000,
   ),
