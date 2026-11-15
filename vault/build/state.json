@@ -344,7 +344,8 @@
     "EZD-301",
     "EZD-302",
     "EZD-303",
-    "EZD-307"
+    "EZD-307",
+    "EZD-105b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -487,6 +488,13 @@
       "commit": "16199861",
       "ts": "2026-11-14T02:59:05Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-105b",
+      "title": "Owner-set password",
+      "commit": "dce82190",
+      "ts": "2026-11-15T01:37:23Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {
@@ -501,7 +509,7 @@
   },
   "current": null,
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -515,7 +523,5 @@
       "ts": "2026-11-13T15:54:00Z",
       "reason": "check red after a review fix"
     }
-  },
-  "sleep_until": "2026-11-14T21:31:26.734Z",
-  "next_probe": "2026-11-14T21:06:26.734Z"
+  }
 }
