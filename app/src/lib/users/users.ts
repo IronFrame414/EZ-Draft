@@ -29,6 +29,9 @@ export type UserRow = {
   lastActiveAt: string | null;
   invitedAt: string | null;
   canCopyLink: boolean;
+  // EZD-105b (Q-0096 P4, P10): the viewer holds the Owner preset and may set this member's password
+  // (private.owner_password_refusal, the same rule the route checks).
+  canSetPassword: boolean;
   // EZD-138 (Q-0216; Q-0695 decisions 10 row 61): the live invite's link and 6-digit code, for the last sender
   // and active Owner-preset members only; null on every other row and for every other viewer.
   invite: InviteShown | null;

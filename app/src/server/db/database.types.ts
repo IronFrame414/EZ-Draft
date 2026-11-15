@@ -924,6 +924,9 @@ isOneToOne: false
               "link": string,"project_id": string,"project_state": string
             }[]
                            },
+"owner_password_target":
+{ Args: { "p_membership_id": string }; Returns: Json
+                           },
 "reactivate_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
@@ -934,6 +937,9 @@ isOneToOne: false
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {
               "alert_id": string,"capped": boolean,"email_claim": string,"is_new": boolean
             }[]
+                           },
+"record_member_password_set":
+{ Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
 "record_sync_conflicts":
 { Args: { "p_changes": Json,"p_payload": Json,"p_project": string }; Returns: Json

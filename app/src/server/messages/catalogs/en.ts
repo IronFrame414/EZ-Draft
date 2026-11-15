@@ -122,6 +122,9 @@ export const en = {
   'error.library_item_not_found': 'This library item no longer exists.',
   'error.library_item_read_only': "This library item can't be changed here.",
   'error.member_not_found': 'This person is no longer in this company.',
+  // EZD-105b: an Owner-set password refused for this member (self, not active, no account, an admin, or in
+  // another company).
+  'error.password_target_refused': "You can't set a password for this person.",
   // EZD-129: Project access and the wizard's Foreman (vault/build/assumptions.md EZD-129 wording).
   'error.project_unavailable':
     "One of these projects isn't available anymore. It may be archived. Choose projects again.",
@@ -567,6 +570,26 @@ export const en = {
   'office.users.invite.cancel_message': 'The link and code stop working. You can invite them again later.',
   'office.users.invite.cancel_confirm': 'Cancel invite',
   'office.users.invite.cancelled': 'Invite cancelled',
+  // EZD-105b (Q-0096 P3, P5, P10; Q-0733 (a)): the Owner-set password.
+  'office.users.set_password': 'Set password',
+  'office.users.password_section': 'Password',
+  'office.users.set_password_title': 'Set a password for {name}',
+  'office.users.set_password_body':
+    'EZ Draft makes a new 16-character password for {name}. They are signed out on every device and get an email that their password was set.',
+  'office.users.set_password_pending': 'Setting password…',
+  'office.users.set_password_shown_title': 'New password for {name}',
+  'office.users.set_password_shown_help': "Copy it now and give it to {name}. You won't see it again.",
+  'office.users.set_password_copy': 'Copy',
+  'office.users.set_password_done': 'Done',
+  'office.users.set_password_copied': 'Password copied',
+  'office.users.set_password_copy_failed': "Couldn't copy. Select the password and copy it.",
+  'office.users.set_password_email_failed':
+    "We couldn't email {name}. Tell them their password was changed.",
+  'office.users.set_password_failed': "Couldn't set the password. Try again.",
+  'office.users.set_password_offline': "You're offline. Connect to set a password.",
+  'office.users.password_email_subject': 'A new password was set for your EZ Draft account',
+  'office.users.password_email_body':
+    "{actor} set a new password for your EZ Draft account ({email}) and signed you out on every device. Ask {actor} for the new password. If you weren't expecting this, contact your company right away.",
   'office.roles.heading': 'Roles',
   'office.roles.no_limit': 'No user limit',
   'office.roles.summary.owner': 'Everything, incl. users and settings',

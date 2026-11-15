@@ -21,6 +21,10 @@
 // selected member; its edits join the footer count and Reset leaves them; Save sends the member PATCH (when
 // a switch, the role or the language changed) and then PUT /api/settings/users/[id]/scope (when access
 // changed). A failed access save keeps the access edits with the error and Retry.
+// EZD-105b (Q-0096 P4, P10; Q-0733 (a)): "Set password" in the row More menu (after Edit) and an inspector
+// Password section (after Project access, before the switches), both only on rows whose canSetPassword is true
+// (the viewer holds the Owner preset and the member may be set). Both open SetPasswordDialog; neither changes
+// the selection, so no unsaved-edits prompt.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
@@ -74,6 +78,7 @@ import { PermissionSwitches } from './PermissionSwitches';
 import { ProjectAccess } from './ProjectAccess';
 import { RolePanel, type RoleNameError } from './RolePanel';
 import { RolesRow, type RolesState } from './RolesRow';
+import { SetPasswordDialog } from './SetPasswordDialog';
 import roleStyles from './Roles.module.css';
 import styles from './Users.module.css';
 
@@ -133,6 +138,8 @@ type InspectorBodyProps = {
   invite?: InviteActions;
   // EZD-129: the Project access load state; the section is shown when given.
   access?: { status: 'loading' | 'error' | 'ready'; onRetry: () => void };
+  // EZD-105b: opens the Set password dialog; the section is shown when given and row.canSetPassword.
+  onSetPassword?: (row: UserRow) => void;
 };
 
 export type InviteActions = {
@@ -294,6 +301,14 @@ function InspectorBody(p: InspectorBodyProps) {
             )}
           </div>
         )}
+        {p.onSetPassword && row.canSetPassword ? (
+          <div data-testid="users-password" className={`${styles.field} ${styles.passwordSection}`}>
+            <span className={styles.label}>{t('office.users.password_section')}</span>
+            <StateButton data-testid="user-set-password" onClick={() => p.onSetPassword?.(row)}>
+              {t('office.users.set_password')}
+            </StateButton>
+          </div>
+        ) : null}
         <PermissionSwitches
           granted={draft.granted}
           disabled={locked}
@@ -425,6 +440,8 @@ export function UsersPanel() {
   const [newRole, setNewRole] = useState<NewRoleRequest | null>(null);
   // EZD-105: the Invite user dialog.
   const [inviting, setInviting] = useState(false);
+  // EZD-105b: the member whose password the Set password dialog sets.
+  const [passwordFor, setPasswordFor] = useState<UserRow | null>(null);
   // EZD-129: the selected member's Project access as last loaded or saved.
   const [scope, setScope] = useState<{
     membershipId: string;
@@ -1140,6 +1157,15 @@ export function UsersPanel() {
       >
         {t('office.users.menu.edit')}
       </MenuItem>
+      {row.canSetPassword ? (
+        <MenuItem
+          testId="user-menu-set-password"
+          className={`${styles.menuItem} ${touch.target}`}
+          onSelect={() => setPasswordFor(row)}
+        >
+          {t('office.users.set_password')}
+        </MenuItem>
+      ) : null}
       {row.status === 'active' ? (
         <MenuItem
           testId="user-menu-deactivate"
@@ -1439,6 +1465,7 @@ export function UsersPanel() {
                       setScopeReload((n) => n + 1);
                     },
                   },
+                  onSetPassword: (r) => setPasswordFor(r),
                   invite: {
                     onResend: (r) => void resendInvite(r),
                     onCopyLink: (r) => void copyInviteLink(r),
@@ -1455,6 +1482,9 @@ export function UsersPanel() {
           onClose={() => setInviting(false)}
           onSent={() => setReload((n) => n + 1)}
         />
+      ) : null}
+      {passwordFor !== null ? (
+        <SetPasswordDialog row={passwordFor} onClose={() => setPasswordFor(null)} />
       ) : null}
       {newRole !== null && rolesState.kind === 'ready' ? (
         <NewRoleDialog

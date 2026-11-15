@@ -46,6 +46,7 @@ const rowSchema = z.object({
   lastActiveAt: z.string().nullable(),
   invitedAt: z.string().nullable(),
   canCopyLink: z.boolean(),
+  canSetPassword: z.boolean(),
 });
 const listSchema = z.object({
   rows: z.array(rowSchema),

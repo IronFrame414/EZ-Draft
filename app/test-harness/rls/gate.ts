@@ -41,6 +41,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'deactivate_member', args: { p_membership_id: null, p_ip: null } },
   { fn: 'reactivate_member', args: { p_membership_id: null, p_ip: null } },
   { fn: 'remove_member', args: { p_membership_id: null, p_ip: null } },
+  // EZD-105b: the Owner-set password check and record, authenticated only.
+  { fn: 'owner_password_target', args: { p_membership_id: null } },
+  { fn: 'record_member_password_set', args: { p_membership_id: null, p_ip: null } },
   // EZD-129 (S15 Decision 13; Q-0202): a member's Project access read and save, the project choices for its
   // picker, and the wizard's Foreman candidates, authenticated only.
   { fn: 'member_scope', args: { p_membership_id: null } },

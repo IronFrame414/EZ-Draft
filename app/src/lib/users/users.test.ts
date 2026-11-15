@@ -151,6 +151,7 @@ const row = (
   lastActiveAt: null,
   invitedAt: null,
   canCopyLink: false,
+  canSetPassword: false,
   invite: null,
 });
 

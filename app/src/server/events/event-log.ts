@@ -146,6 +146,8 @@ export const EVENT_LOG: EventLogRules = {
   'role.deleted': TRANSACTION,
   // Written by save_member_scope and create_project (20261113160000, 20261113160001).
   'user.scope_changed': TRANSACTION,
+  // EZD-105b: written by record_member_password_set when it ends the member's sessions.
+  'user.password_set': TRANSACTION,
   // EZD-131: written after the library route's write commits.
   'library.item_created': {
     mode: 'sink',

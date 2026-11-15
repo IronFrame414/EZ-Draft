@@ -126,6 +126,7 @@ export const es = {
   'error.library_item_not_found': 'Este elemento de la biblioteca ya no existe.',
   'error.library_item_read_only': 'Este elemento de la biblioteca no se puede cambiar aquí.',
   'error.member_not_found': 'Esta persona ya no está en esta empresa.',
+  'error.password_target_refused': 'No puedes poner una contraseña para esta persona.',
   'error.project_unavailable':
     'Uno de estos proyectos ya no está disponible. Puede que esté archivado. Elige los proyectos de nuevo.',
   'error.foreman_unavailable': 'Esta persona ya no es un miembro activo. Elige otro capataz.',

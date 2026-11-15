@@ -30,6 +30,11 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
     },
     { fn: 'private.can_see_project(uuid)', reason: ONE_OFF },
     { fn: 'private.listed_project_ids()', reason: POLICY_HELPER },
+    {
+      fn: 'private.owner_password_refusal(uuid)',
+      reason:
+        'Called by list_users (security invoker) as the viewing member for canSetPassword; the same rule as owner_password_target (EZD-105b; Q-0096 P4).',
+    },
     { fn: 'private.realtime_can_receive(text)', reason: REALTIME_POLICY },
     { fn: 'private.realtime_can_track(text)', reason: REALTIME_POLICY },
     {

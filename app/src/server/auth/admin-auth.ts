@@ -1,6 +1,6 @@
 // EZD-105 (Q-0695 decisions 10 row 61; architecture "Auth and session (EZD-007)", Allowed Supabase client
 // files): the one narrow server-only file that uses the secret key for the invitee, who has no session yet.
-// It holds four calls and nothing else:
+// It holds five calls and nothing else:
 // - inviteStatusByHash: invite_status, so the /invite page can show Accept or the refusal on GET (nothing changes);
 // - acceptInviteByHash: accept_invite, the one database step that accepts the invite (service_role only);
 // - inviteCodeTake (EZD-138): invite_code_take, the live unlocked invites for an email typed with an invite code,
@@ -9,7 +9,10 @@
 //   the caller verifies on its own session client to make the session. Observed on the pinned stack: the
 //   before-user-created hook runs for generateLink, so for an email with no auth user yet it succeeds only once
 //   the membership is active (accept_invite runs first), and then it creates the auth user and answers
-//   verification type `signup`.
+//   verification type `signup`;
+// - setMemberPassword (EZD-105b, Q-0096 P3; Q-0695 decisions 10 row 65): Auth admin updateUserById for the
+//   Owner-set password, called only after public.owner_password_target has allowed it. The password is never
+//   logged or put in an error.
 // The action link and its hashed token are never logged or returned to a browser. Both values are read per
 // call; a missing key throws a fixed code, never the value.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
@@ -92,4 +95,16 @@ export async function inviteCodeTake(email: string): Promise<InviteCodeTake> {
   const parsed = takeSchema.safeParse(data);
   if (!parsed.success) throw new Error('invite_code_take_bad_result');
   return parsed.data;
+}
+
+// EZD-105b: sets a member's new password in Auth. Any Auth error or throw is one fixed code.
+export async function setMemberPassword(authUserId: string, password: string): Promise<void> {
+  let failed: boolean;
+  try {
+    const { error } = await adminClient().auth.admin.updateUserById(authUserId, { password });
+    failed = error !== null;
+  } catch {
+    failed = true;
+  }
+  if (failed) throw new Error('admin_password_failed');
 }

@@ -81,6 +81,9 @@ export const EVENTS = {
   'role.deleted': { kind: 'log_only' },
   // EZD-129 (S15 Decision 13; Q-0202; Q-0695 decisions 03 row 33): a member's Project access changed.
   'user.scope_changed': { kind: 'log_only' },
+  // EZD-105b (Q-0096 P7; Q-0695 decisions 03 row 33): an Owner set a member's password. Written only as the
+  // event_log row inside record_member_password_set; never emitted.
+  'user.password_set': { kind: 'log_only' },
   // EZD-131 (S15h Events emitted): Settings > Libraries writes.
   'library.item_created': { kind: 'log_only' },
   'library.item_updated': { kind: 'log_only' },
@@ -182,6 +185,7 @@ export interface EventPayloads {
   };
   'user.invite_resent': { membershipId: string; appUserId: string };
   'user.invite_cancelled': { membershipId: string; appUserId: string };
+  'user.password_set': { membershipId: string; appUserId: string };
   // EZD-107: the role and what changed (S15 Events emitted; event_log object role).
   'role.created': { roleId: string; name: string };
   'role.updated': { roleId: string; fields: ('name' | 'default_permissions')[] };

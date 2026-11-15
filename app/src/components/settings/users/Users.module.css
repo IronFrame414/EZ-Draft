@@ -801,3 +801,27 @@
   align-items: center;
   gap: 12px;
 }
+
+/* EZD-105b: the Owner-set password (inspector section and dialog). */
+.passwordSection {
+  padding: 14px 0 0;
+  border-top: 1px solid var(--ez-border);
+}
+
+.dialogText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ez-slate-500);
+}
+
+.passwordValue {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: 500 16px var(--ez-font-mono);
+  letter-spacing: 0.04em;
+  user-select: all;
+  color: var(--ez-ink);
+}

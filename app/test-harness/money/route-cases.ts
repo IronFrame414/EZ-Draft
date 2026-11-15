@@ -531,6 +531,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 404,
     note: 'EZD-106: unknown member; 404 member_not_found (no money)',
   })),
+  // EZD-105b: the Owner-set password, aimed at a membership id no company has, so no password changes.
+  {
+    file: `${API}settings/users/[id]/password/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/users/[id]/password/route'),
+    request: async () => {
+      const id = randomUUID();
+      return {
+        request: new Request(`${BASE}/api/settings/users/${id}/password`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 403,
+    note: 'EZD-105b: the harness member has no Owner preset; 403 permission_denied (no money)',
+  },
   // EZD-129: Project access. The [id] routes aim at a membership id no company has (404 member_not_found), so
   // the walk changes no member; the picker's project choices and the wizard's Foreman candidates answer 200. No
   // money field in any answer.
