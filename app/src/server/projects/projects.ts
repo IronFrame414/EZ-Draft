@@ -226,6 +226,9 @@ type CreateProjectWithObjectsArgs =
 export async function createProject(
   client: SupabaseClient<Database>,
   v: NewProjectValues,
+  // EZD-116 (S15d Decision 4; Q-0697 03): the per-project copy of the company defaults, worked out by the
+  // route from the registry; stored as project.settings.defaults.
+  defaults?: Record<string, number>,
 ): Promise<CreateProjectResult> {
   // The generated Args type marks every argument non-null; the function takes a null customer and scope.
   const args = {
@@ -236,6 +239,7 @@ export async function createProject(
     p_scope_of_work: v.scopeOfWork,
     // EZD-129: sent only when a Foreman is picked, so a call without one is unchanged.
     ...(v.foremanId !== undefined ? { p_foreman_membership_id: v.foremanId } : {}),
+    ...(defaults !== undefined ? { p_defaults: defaults } : {}),
   };
   const { data, error } =
     v.template === null

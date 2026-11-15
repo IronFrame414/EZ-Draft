@@ -71,6 +71,7 @@ import {
   type OpenDeps,
   type OpenResult,
 } from './editor-session';
+import { hubResync } from './project-defaults';
 import { createEditController, type EditController } from './edit/edit-controller';
 import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
@@ -183,7 +184,11 @@ export function ProjectEditor({
   useEffect(() => {
     let live = true;
     let dispose: (() => void) | null = null;
-    void openEditorSession(projectId, openDepsRef.current).then((result) => {
+    // EZD-116 (AC-EZD-116-8): the session re-reads the defaults on the project channel resync.
+    void openEditorSession(projectId, {
+      resync: hubResync,
+      ...openDepsRef.current,
+    }).then((result) => {
       if (!live) {
         if (result.kind === 'ready') result.session.dispose();
         return;

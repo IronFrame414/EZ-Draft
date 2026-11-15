@@ -60,6 +60,8 @@ export const EVENTS = {
   'detail.placed': { kind: 'log_only' },
   'user.joined': { kind: 'log_only' },
   'tenant.updated': { kind: 'log_only' },
+  // EZD-116 (S15d Events emitted): Settings > Defaults saved; the keys whose stored value changed.
+  'tenant.defaults_updated': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
@@ -158,6 +160,7 @@ export interface EventPayloads {
   'detail.placed': Record<string, unknown>;
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };
   'tenant.updated': { fields: TenantField[] };
+  'tenant.defaults_updated': { keys: string[] };
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).

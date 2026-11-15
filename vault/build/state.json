@@ -347,7 +347,8 @@
     "EZD-307",
     "EZD-105b",
     "EZD-398",
-    "EZD-5604a"
+    "EZD-5604a",
+    "EZD-5604b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -511,18 +512,16 @@
       "commit": "d700fa3b",
       "ts": "2026-11-15T02:42:29Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-5604b",
+      "title": "Assistant preview on the canvas and in the panel",
+      "commit": "c5bb4c64",
+      "ts": "2026-11-15T06:21:41Z",
+      "kind": "ticket"
     }
   ],
-  "set_aside": {
-    "EZD-116": {
-      "title": "Defaults framework",
-      "ts": "2026-11-14T21:01:14Z",
-      "reason": "review still failing after 2 fix rounds (first try: check red after a review fix)",
-      "detail": "[\n {\n  \"file\": \"app/src/editor/defaults-store.ts\",\n  \"line\": 68,\n  \"problem\": \"AC-EZD-116-8 not met: the editor does not re-read the defaults on the project channel resync. createDefaultsStore and rereadOnResync are defined and unit-tested but nothing in the editor session or ProjectEditor imports them, and ProjectEditor never joins the project channel (confirmed by grep; stated in vault/build/assumptions.md and docs/architecture.md). A company Defaults change never reaches an open editor without a full reload.\",\n  \"fix\": \"Create the defaults store in the editor session from model.defaults, join the project channel in ProjectEditor and call rereadOnResync(handle, store), keeping the editor route within its 500,000-byte budget (for example load the Realtime hub lazily after first paint or trim other editor code; do not raise the budget without a decision). Add a test that a resync triggers GET /api/projects/<id>/defaults and updates the session's values.\"\n }\n]",
-      "branch": "t/EZD-116",
-      "worktree": ".claude/worktrees/EZD-116"
-    }
-  },
+  "set_aside": {},
   "current": null,
   "red_streak": 0,
   "push_pending": false,
@@ -540,6 +539,6 @@
       "reason": "check red after a review fix"
     }
   },
-  "sleep_until": "2026-11-15T03:37:04.033Z",
-  "next_probe": "2026-11-15T03:12:04.033Z"
+  "sleep_until": "2026-11-15T16:05:54.422Z",
+  "next_probe": "2026-11-15T15:40:54.422Z"
 }

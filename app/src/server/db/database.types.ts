@@ -746,12 +746,12 @@ isOneToOne: false
 { Args: { "p_email": string,"p_ip"?: unknown,"p_language": string,"p_name": string,"p_role_id": string,"p_scope": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
                            },
 "create_project":
-{ Args: { "p_address": string,"p_customer_id": string,"p_foreman_membership_id"?: string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
+{ Args: { "p_address": string,"p_customer_id": string,"p_defaults"?: Json,"p_foreman_membership_id"?: string,"p_name": string,"p_scope_of_work": string,"p_type": string }; Returns: {
               "project_id": string,"tenant_id": string
             }[]
                            },
 "create_project_with_objects":
-{ Args: { "p_address": string,"p_customer_id": string,"p_foreman_membership_id"?: string,"p_name": string,"p_objects": Json,"p_scope_of_work": string,"p_type": string }; Returns: {
+{ Args: { "p_address": string,"p_customer_id": string,"p_defaults"?: Json,"p_foreman_membership_id"?: string,"p_name": string,"p_objects": Json,"p_scope_of_work": string,"p_type": string }; Returns: {
               "project_id": string,"tenant_id": string
             }[]
                            },
@@ -1020,6 +1020,11 @@ isOneToOne: false
                            },
 "update_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string,"p_role_id": string }; Returns: Json
+                           },
+"update_tenant_defaults":
+{ Args: { "p_remove": (string)[],"p_set": Json }; Returns: {
+              "changed": (string)[],"tenant_defaults": Json,"tenant_id": string
+            }[]
                            },
 "update_tenant_identity":
 { Args: { "p_contact": Json,"p_license_no": string,"p_logo_path": string,"p_name": string,"p_set_logo": boolean }; Returns: {

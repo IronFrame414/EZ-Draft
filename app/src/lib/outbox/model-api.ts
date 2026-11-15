@@ -7,6 +7,7 @@ import type { NumberHighs, ObjectIssue } from '@ezdraft/geometry';
 import type { OutboxEntry } from './outbox';
 import type { PlanScale } from '../plan/plan-scale';
 import type { IpadDrawing } from '../profile/profile';
+import type { EffectiveDefaults } from '../defaults/values';
 
 export type ObjectValue = { type: string; schemaVersion: number; data: Record<string, unknown> };
 
@@ -26,6 +27,8 @@ export type ModelLoad = {
   objects: LoadedObject[];
   invalid: ObjectIssue[];
   numberHighs: NumberHighs;
+  // EZD-116 (Q-0697 03): the effective defaults: the project's copy over the company values over the registry.
+  defaults?: EffectiveDefaults;
 };
 
 export type ModelLoadResult =

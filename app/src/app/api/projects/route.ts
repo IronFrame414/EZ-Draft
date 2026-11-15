@@ -17,6 +17,8 @@ import {
   parseProjectSearch,
 } from '../../../server/projects/projects';
 import { requireApiPermission } from '../../../server/permissions';
+import { loadTenantDefaults } from '../../../server/defaults/defaults';
+import { projectDefaultsCopy } from '../../../lib/defaults/values';
 import { endedSessionResponse } from '../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
@@ -58,7 +60,11 @@ export async function POST(request: Request): Promise<Response> {
     }
     const values = parseNewProject(raw);
     if (values === null) return fail(400, 'invalid_input');
-    const result = await createProject(createSessionClient(), values);
+    const client = createSessionClient();
+    // EZD-116 (S15d Decision 4; Q-0697 03; 09o Copy at creation): the new project keeps its own copy of the
+    // per-project company defaults.
+    const copy = projectDefaultsCopy(await loadTenantDefaults(client));
+    const result = await createProject(client, values, copy);
     if (!result.ok) {
       if (result.code === 'permission_denied') {
         return fail(403, 'permission_denied', 'error.not_authorized');

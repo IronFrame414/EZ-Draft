@@ -768,6 +768,18 @@ EZD-112 (vault/plans/EZD-112.md Steps 1-19); S15a; Q-0228; Q-0232; Q-0302; Q-035
 - **Event.** `tenant.updated` (`log_only`, payload `{ fields: TenantField[] }`) is emitted by the save route when `changed` is not empty; a failed emit does not fail the save.
 - **Shell additions.** `SettingsMain` takes `subtitle` and `flush`; a page adds status bar items after the Company item with `useSettingsStatus(items)` (`SettingsStatusEntry`).
 
+### Defaults (EZD-116)
+
+EZD-116; S15d; Q-0697 (03 "Defaults data", 05, 10); Q-0706; Q-0558; Q-0664.
+
+- **Registry.** `app/src/lib/defaults/registry.ts` (`DEFAULTS_REGISTRY`, `DEFAULT_GROUPS`, `DEFAULT_COLUMNS`, `STORABLE_KEYS`, `PER_PROJECT_KEYS`, `defaultRow`) is the one list of company defaults (key, group, label, type, unit, default, per-project flag); `values.ts` holds the shared rules (`effectiveValue`, `effectiveDefaults(stored, projectCopy?)`, `checkValue`, `crossCheck`, `projectDefaultsCopy`, `parseFormValue`). A later ticket adds its value as a registry row and the same key to the migration's lists (`registry-sql.test.ts` keeps them equal).
+- **Storage.** `tenant.defaults` holds only the keys someone set; the effective value is the stored value, else the registry default, else Not set (`null`). Lengths are inches.
+- **Write path.** `public.update_tenant_defaults(p_set jsonb, p_remove text[])` (`security definer`, `authenticated` only, in `GATED_RPC_CALLS`) is the second write to `tenant` (beside `update_tenant_identity`): checks `settings_defaults` (`42501`), refuses keys outside the registry and wrong JSON types (`22023`), writes `defaults - p_remove || p_set` under the row lock and returns `changed` (sorted keys).
+- **Routes.** `GET /api/settings/defaults` (any active member) → `{ stored, effective }`; `PATCH /api/settings/defaults` (`requireApiPermission('settings_defaults')`) body `{ changes: { key: value | null } }` checks types, ranges and the rules between rows (400 `invalid_input` with `fields`), emits `tenant.defaults_updated` (`log_only`, `{ keys }`) when something changed. `GET /api/projects/[id]/defaults` (View projects, project scope) → `{ defaults }`, the project's copy over the company values.
+- **Project copy.** `POST /api/projects` passes `projectDefaultsCopy(tenant.defaults)` as `p_defaults` to `create_project` / `create_project_with_objects` (trailing `default null` argument), stored as `project.settings.defaults`; keys Not set at creation and pattern adjustment are not copied and read the company value live.
+- **Editor.** `ModelLoad.defaults` carries the effective defaults; `EditorSession.defaults` (`app/src/editor/project-defaults.ts`) re-reads them on every project channel resync (`OpenDeps.resync`; the editor passes `hubResync`, which joins the channel the first time the editor comes back online or to a visible tab, to keep the Realtime library out of the editor download budget).
+- **Not set.** `SetInDefaults` (`app/src/components/settings/defaults/SetInDefaults.tsx`) is what a feature shows for a Not set value: a link to `/settings/defaults` for holders of `settings_defaults`, a line to ask otherwise.
+
 ### Customers (EZD-113)
 
 EZD-113 (vault/plans/EZD-113.md Steps 1-18); S15a Customers; 03d customer; Q-0227; Q-0228; Q-0232.

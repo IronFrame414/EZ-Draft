@@ -17,6 +17,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',
   'app/src/app/(office)/settings/company/page.tsx',
+  'app/src/app/(office)/settings/defaults/page.tsx',
   'app/src/app/(office)/settings/libraries/page.tsx',
   'app/src/app/(office)/settings/system-status/page.tsx',
   'app/src/app/(office)/page.tsx',
@@ -64,7 +65,7 @@ function basePath(file: string): string {
 }
 
 // Settings slugs with their own page.tsx (EZD-131 adds libraries).
-const OWN_PAGES = new Set(['company', 'users', 'system-status', 'libraries']);
+const OWN_PAGES = new Set(['company', 'defaults', 'users', 'system-status', 'libraries']);
 
 function pathsFor(file: string, env: { projectId: string }): string[] {
   const base = basePath(file);

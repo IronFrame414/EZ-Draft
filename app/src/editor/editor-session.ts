@@ -12,6 +12,7 @@ import type { Actor, OutboxEntry, OutboxStorage, SavedObject } from '../lib/outb
 import { createIdbOutboxStorage } from '../lib/outbox/outbox-idb';
 import { createOutboxSync, type OutboxSync } from '../lib/outbox/outbox-sync';
 import { createModelStore, type ModelStore } from './model/model-store';
+import { createProjectDefaults, type ProjectDefaults, type ResyncSource } from './project-defaults';
 
 export type OpenDeps = {
   fetchImpl?: typeof fetch;
@@ -23,6 +24,8 @@ export type OpenDeps = {
   }) => OutboxSync;
   // EZD-299b Build step 8 (Decided D-Session).
   createConflicts?: (o: ConflictListOptions) => ConflictList;
+  // EZD-116 (AC-EZD-116-8): the project channel resync that re-reads the defaults; none means no re-read.
+  resync?: ResyncSource;
 };
 
 export type EditorSession = {
@@ -30,6 +33,8 @@ export type EditorSession = {
   store: ModelStore;
   sync: OutboxSync | null;
   conflicts: ConflictList;
+  // EZD-116 (Q-0697 03): the effective defaults, from the load and re-read on each resync.
+  defaults: ProjectDefaults;
   // EZD-299 C4: the device outbox of this actor, every project.
   queued(): Promise<OutboxEntry[]>;
   dispose(): void;
@@ -93,6 +98,12 @@ export async function openEditorSession(projectId: string, deps?: OpenDeps): Pro
     void report(error);
   }
   void conflicts.refresh();
+  const defaults = createProjectDefaults({
+    projectId,
+    initial: model.defaults ?? {},
+    resync: deps?.resync,
+    fetchImpl: deps?.fetchImpl ?? fetch,
+  });
 
   if (sync && entries.length > 0) void sync.flush();
 
@@ -103,8 +114,10 @@ export async function openEditorSession(projectId: string, deps?: OpenDeps): Pro
       store,
       sync,
       conflicts,
+      defaults,
       queued: () => storage.list(),
       dispose() {
+        defaults.dispose();
         conflicts.dispose();
         sync?.dispose();
         storage.close();

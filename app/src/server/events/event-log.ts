@@ -111,6 +111,7 @@ export const EVENT_LOG: EventLogRules = {
   // Written by link_app_user and accept_invite in the acceptance transaction.
   'user.joined': TRANSACTION,
   'tenant.updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
+  'tenant.defaults_updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
   'customer.created': {
     mode: 'sink',
     object: (e) => ({ type: 'customer', id: e.payload.customerId }),
