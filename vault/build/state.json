@@ -346,7 +346,8 @@
     "EZD-303",
     "EZD-307",
     "EZD-105b",
-    "EZD-398"
+    "EZD-398",
+    "EZD-5604a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -503,6 +504,13 @@
       "commit": "abf41f07",
       "ts": "2026-11-15T02:04:21Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-5604a",
+      "title": "Assistant change format, apply and check",
+      "commit": "d700fa3b",
+      "ts": "2026-11-15T02:42:29Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {
@@ -517,7 +525,7 @@
   },
   "current": null,
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -531,5 +539,7 @@
       "ts": "2026-11-13T15:54:00Z",
       "reason": "check red after a review fix"
     }
-  }
+  },
+  "sleep_until": "2026-11-15T03:37:04.033Z",
+  "next_probe": "2026-11-15T03:12:04.033Z"
 }

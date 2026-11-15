@@ -1,9 +1,19 @@
 'use client';
 // EZD-5603a Build step 10 (vault/plans/EZD-5603a.md section 3 V1, V2; Decided "Panel states", "Entries", "Cost
 // line", "Open My profile", "Touch", "Focus", "CSS"; S03c boards S03cAIAssistant, NoKey, KeyError; Q-0637 (plain
-// text); Q-0638 gaps 12, 13; AC-EZD-5603-9): the Assistant panel in the inspector place. A reply is plain text: a
+// text); Q-0638 gaps 12, 13; AC-EZD-5603-9): the Assistant panel in the inspector place.
+// EZD-5604b (vault/plans/EZD-5604b.md section 3 V3, V4; Decided "D-Panel"; AC-EZD-5604-1, -4, -5, -7): under a
+// reply, the refused line, the stale line with its one button, or the preview's buttons; while a preview is open
+// the prompt area is disabled. A reply is plain text: a
 // React text child, no markdown, no links, no injected HTML. My profile opens over the editor as AvatarMenu does.
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { InlineError } from '../../components/states/InlineError';
 import { Skeleton, SkeletonGroup } from '../../components/states/Skeleton';
@@ -24,6 +34,9 @@ import {
 } from './assistant-ui';
 import { PhotoButton, PhotoNote, PhotoProblemBox, PhotoThumb } from './AssistantPhoto';
 import { ModelPicker } from './ModelPicker';
+import { PreviewActions } from './PreviewActions';
+import { EMPTY_PREVIEW_STATE, type PreviewState, type PreviewStore } from './preview-store';
+import actionStyles from './PreviewActions.module.css';
 import styles from './AssistantPanel.module.css';
 
 const profileModule = lazyModule(() => import('../../lazy/my-profile'));
@@ -55,13 +68,46 @@ function ProfileLoader({ onClose }: { onClose: () => void }) {
   return <MyProfileDialog onClose={onClose} />;
 }
 
-// V1
-export function AssistantPanel({ session }: { session: AssistantSession }) {
+const noSubscribe = () => () => {};
+const emptyPreview = () => EMPTY_PREVIEW_STATE;
+
+// D-Panel: the stale line's action clears the preview and puts its prompt back in the box; nothing is sent.
+export function putPromptBack(
+  session: Pick<AssistantSession, 'setDraft'>,
+  preview: Pick<PreviewStore, 'getState' | 'reject'>,
+): void {
+  const prompt = preview.getState().prompt;
+  preview.reject();
+  session.setDraft(prompt);
+}
+
+// V1; EZD-5604b V4
+export function AssistantPanel({
+  session,
+  preview = null,
+}: {
+  session: AssistantSession;
+  preview?: PreviewStore | null;
+}) {
   const ui = useSyncExternalStore(session.subscribe, session.getUi, session.getUi);
+  const previewState = useSyncExternalStore(
+    preview ? preview.subscribe : noSubscribe,
+    preview ? preview.getState : emptyPreview,
+    preview ? preview.getState : emptyPreview,
+  );
   return (
     <>
       <AssistantPanelView
         ui={ui}
+        preview={
+          preview === null
+            ? undefined
+            : {
+                state: previewState,
+                onReject: () => preview.reject(),
+                onStaleAction: () => putPromptBack(session, preview),
+              }
+        }
         onClose={() => session.setOpen(false)}
         onDraft={session.setDraft}
         onModel={session.setModel}
@@ -87,9 +133,79 @@ export type AssistantPanelViewProps = {
   // EZD-5603b V4
   onAttachPhoto(file: File): void;
   onRemovePhoto(): void;
+  // EZD-5604b V3
+  preview?: PanelPreview;
 };
 
-function Entry({ entry, onOpenProfile }: { entry: AssistantEntry; onOpenProfile(): void }) {
+export type PanelPreview = {
+  state: PreviewState;
+  onReject(): void;
+  onStaleAction(): void;
+  actions?: { onAccept?: () => void; onAdjust?: () => void };
+};
+
+function ErrorBox({ testId, children }: { testId: string; children: ReactNode }) {
+  return (
+    <div role="alert" className={styles.alert} data-testid={testId}>
+      <span className={styles.alertIcon}>
+        <Icon name="error" size={20} />
+      </span>
+      <span className={styles.alertBody}>{children}</span>
+    </div>
+  );
+}
+
+function ReplyPreview({
+  entryId,
+  refused,
+  preview,
+}: {
+  entryId: number;
+  refused: boolean;
+  preview?: PanelPreview;
+}) {
+  const t = useT();
+  if (refused) {
+    return (
+      <ErrorBox testId="assistant-refused">
+        <span>{t('office.assistant.reply_refused')}</span>
+      </ErrorBox>
+    );
+  }
+  if (
+    preview === undefined ||
+    preview.state.preview === null ||
+    preview.state.entryId !== entryId
+  ) {
+    return null;
+  }
+  if (preview.state.stale) {
+    return (
+      <ErrorBox testId="assistant-preview-stale">
+        <span>{t('office.assistant.preview_stale')}</span>
+        <button
+          type="button"
+          className={`${actionStyles.button} ${touch.target}`}
+          data-testid="assistant-stale-action"
+          onClick={preview.onStaleAction}
+        >
+          {t('office.assistant.preview_stale_action')}
+        </button>
+      </ErrorBox>
+    );
+  }
+  return <PreviewActions onReject={preview.onReject} {...preview.actions} />;
+}
+
+function Entry({
+  entry,
+  onOpenProfile,
+  preview,
+}: {
+  entry: AssistantEntry;
+  onOpenProfile(): void;
+  preview?: PanelPreview;
+}) {
   const t = useT();
   const costLine = (cost: number, session: number) => (
     <div className={styles.cost} data-testid="assistant-cost">
@@ -120,6 +236,7 @@ function Entry({ entry, onOpenProfile }: { entry: AssistantEntry; onOpenProfile(
           <p className={styles.replyText} data-testid="assistant-reply-text">
             {entry.message}
           </p>
+          <ReplyPreview entryId={entry.id} refused={entry.refused === true} preview={preview} />
           {costLine(entry.costMicroUsd, entry.sessionMicroUsd)}
         </div>
       ) : null}
@@ -161,10 +278,13 @@ export function AssistantPanelView({
   onRetryKey,
   onAttachPhoto,
   onRemovePhoto,
+  preview,
 }: AssistantPanelViewProps) {
   const t = useT();
   const conversationRef = useRef<HTMLDivElement>(null);
   const noKey = ui.keyState === 'none';
+  // D-Panel: while a preview is open (stale or not) no prompt can be written or sent (AC-EZD-5604-5).
+  const locked = preview !== undefined && preview.state.preview !== null;
 
   // New entries scroll the conversation to the end.
   useLayoutEffect(() => {
@@ -203,7 +323,7 @@ export function AssistantPanelView({
     );
   } else {
     conversation = ui.entries.map((e) => (
-      <Entry key={e.id} entry={e} onOpenProfile={onOpenProfile} />
+      <Entry key={e.id} entry={e} onOpenProfile={onOpenProfile} preview={preview} />
     ));
   }
 
@@ -253,22 +373,22 @@ export function AssistantPanelView({
               maxLength={ASSISTANT_PROMPT_MAX_CHARS}
               placeholder={t('office.assistant.placeholder')}
               value={ui.draft}
-              disabled={noKey}
+              disabled={noKey || locked}
               data-testid="assistant-prompt"
               onChange={(e) => onDraft(e.target.value)}
             />
           </label>
         </div>
         <div className={styles.promptRow}>
-          <PhotoButton disabled={photoControlDisabled(ui)} onPick={onAttachPhoto} />
-          <ModelPicker model={ui.model} disabled={noKey} onChange={onModel} />
+          <PhotoButton disabled={photoControlDisabled(ui) || locked} onPick={onAttachPhoto} />
+          <ModelPicker model={ui.model} disabled={noKey || locked} onChange={onModel} />
           <span className={styles.spacer} />
           <button
             type="button"
             className={`${styles.send} ${touch.target}`}
             aria-label={t('office.assistant.send')}
             data-testid="assistant-send"
-            disabled={noKey || !canSendPrompt(ui)}
+            disabled={noKey || locked || !canSendPrompt(ui)}
             onClick={onSend}
           >
             <Icon name="arrow_upward" size={18} />

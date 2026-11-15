@@ -38,6 +38,8 @@ export type AssistantEntry =
       model: AssistantModel;
       costMicroUsd: number;
       sessionMicroUsd: number;
+      // EZD-5604b S2: the reply's changes do not fit the drawing (P5604a D-Refusal); nothing is previewed.
+      refused?: true;
     }
   | {
       kind: 'failed';
@@ -71,29 +73,6 @@ export type AssistantFailure =
   | { kind: 'no_key' }
   | { kind: 'failed'; messageKey: MessageKey; profileLink: boolean; costMicroUsd: number | null };
 
-// U4: the only server message keys the panel shows (t() throws on a key it does not hold).
-export const ASSISTANT_SHOWN_KEYS: ReadonlySet<MessageKey> = new Set<MessageKey>([
-  'error.assistant_key_refused',
-  'error.assistant_out_of_credit',
-  'error.assistant_busy',
-  'error.assistant_rate_limited',
-  'error.assistant_provider_rate_limited',
-  'error.assistant_request_refused',
-  'error.assistant_unavailable',
-  'error.assistant_drawing_too_large',
-  'error.assistant_invalid_reply',
-  'error.assistant_photo_unreadable',
-  'error.ai_key_unavailable',
-  'error.not_signed_in',
-  'error.not_authorized',
-  'error.project_not_found',
-  'error.invalid_input',
-  'error.db_unavailable',
-]);
-
-const SEND_FAILED: MessageKey = 'office.assistant.send_failed';
-const PROFILE_CODES = new Set(['assistant_key_refused', 'assistant_out_of_credit']);
-
 // U5
 export function assistantShown(o: { canEdit: boolean; view: EditorView }): boolean {
   return o.canEdit && o.view === 'plan';
@@ -118,33 +97,6 @@ export function historyFrom(entries: readonly AssistantEntry[]): AssistantTurn[]
     turns.push({ role: 'user', text: cutTurn(e.prompt) }, { role: 'assistant', text: reply });
   }
   return turns.slice(-ASSISTANT_HISTORY_MAX_TURNS);
-}
-
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null && !Array.isArray(v);
-
-// U8: a route error body to what the panel shows. Anything it cannot read is "Couldn't send your prompt".
-export function failureFrom(status: number, body: unknown): AssistantFailure {
-  void status;
-  const error = isRecord(body) ? body.error : undefined;
-  const code = isRecord(error) ? error.code : undefined;
-  const key = isRecord(error) ? error.message_key : undefined;
-  const rawCost = isRecord(body) ? body.costMicroUsd : undefined;
-  const costMicroUsd =
-    typeof rawCost === 'number' && Number.isSafeInteger(rawCost) && rawCost > 0 ? rawCost : null;
-  if (typeof code !== 'string' || typeof key !== 'string') {
-    return { kind: 'failed', messageKey: SEND_FAILED, profileLink: false, costMicroUsd };
-  }
-  if (code === 'assistant_no_key') return { kind: 'no_key' };
-  if (!(ASSISTANT_SHOWN_KEYS as ReadonlySet<string>).has(key)) {
-    return { kind: 'failed', messageKey: SEND_FAILED, profileLink: false, costMicroUsd };
-  }
-  return {
-    kind: 'failed',
-    messageKey: key as MessageKey,
-    profileLink: PROFILE_CODES.has(code),
-    costMicroUsd,
-  };
 }
 
 // U9

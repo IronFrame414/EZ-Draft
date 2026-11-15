@@ -2,6 +2,10 @@
 // order", "Answers", "Model"; Q-0474; Q-0638 gaps 5, 9, 12, 13; Q-0640 row 56-7; Q-0641 row 56-7; Q-0653 (a);
 // L-048): one Assistant session per editor page load. It holds the conversation, the draft, the model pick and the
 // session total, so closing the panel or opening My profile loses nothing. No React.
+// EZD-5604b (vault/plans/EZD-5604b.md section 3 S1; Decided "D-Send", "D-Close"; AC-EZD-5604-3, -5, -7): a reply
+// with changes opens the one preview; no prompt is sent while one is open; closing the panel acts as Reject. The
+// preview store loads with the Assistant client and is made with the first reply that has changes (EZD-120c B11
+// editor budget; vault/build/assumptions.md EZD-5604b); `getPreview` returns it, and listeners hear when it is made.
 import type { AssistantModel } from '../../lib/assistant/cost';
 import { ASSISTANT_MODELS, sessionTotalMicroUsd } from '../../lib/assistant/cost';
 import type { OutboxSync } from '../../lib/outbox/outbox-sync';
@@ -16,6 +20,8 @@ import {
   type AssistantUi,
 } from './assistant-ui';
 import { lazyModule } from '../../lib/lazy/lazy-module';
+import type { ModelStore } from '../model/model-store';
+import type { PreviewStore } from './preview-store';
 import type { createPhotoWorkerShrinker, PhotoPrepareResult, PhotoShrinker } from './photo-prepare';
 
 // EZD-233 (11 Budgets editor route): the photo check and shrink load when a photo is first attached; a failed
@@ -53,6 +59,15 @@ export type AssistantSessionDeps = {
   // EZD-5603b S1
   shrinkPhoto?: PhotoShrinker;
   objectUrls?: { create(blob: Blob): string; revoke(url: string): void };
+  // EZD-5604b S1
+  preview?: AssistantPreviewLink;
+};
+
+// EZD-5604b S1: the open model store (its objects and highs the reply is applied to; the preview watches it) and the
+// new-object id maker.
+export type AssistantPreviewLink = {
+  model: ModelStore;
+  newId(): string;
 };
 
 // S2
@@ -70,6 +85,8 @@ export type AssistantSession = {
   // EZD-5603b S2
   attachPhoto(file: File): Promise<void>;
   removePhoto(): void;
+  // EZD-5604b: the one preview store, null until the first reply with changes.
+  getPreview(): PreviewStore | null;
   dispose(): void;
 };
 
@@ -105,6 +122,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     revoke: (url: string) => URL.revokeObjectURL(url),
   };
   let workerShrinker: ReturnType<typeof createPhotoWorkerShrinker> | null = null;
+  let preview: PreviewStore | null = null;
   const shrinkPhoto: PhotoShrinker = (file, kind) => {
     if (deps.shrinkPhoto) return deps.shrinkPhoto(file, kind);
     const mod = photoPrepareModule.peek();
@@ -170,12 +188,15 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
 
   const setOpen = (open: boolean) => {
     if (disposed) return;
+    // D-Close: × and the rail button that close the panel act as Reject.
+    if (!open) preview?.reject();
     if (ui.open !== open) set({ open });
     if (open) void refreshKey();
   };
 
   const send = async () => {
-    if (disposed || !canSendPrompt(ui)) return;
+    if (disposed || !canSendPrompt(ui) || (preview !== null && preview.getState().preview !== null))
+      return;
     const prompt = ui.draft;
     const model = ui.model;
     const sent = ui.photo;
@@ -196,6 +217,8 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     }
     const id = nextId++;
     const floorId = deps.getFloorId();
+    // D-Send: the drawing the prompt goes with, taken before the wait, so an edit meanwhile stales the preview.
+    const before = deps.preview?.model.getState().objects ?? null;
     if (floorId === null) {
       const entry: AssistantEntry = {
         kind: 'failed',
@@ -237,7 +260,25 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     const others = (replacement: AssistantEntry | null) =>
       ui.entries.flatMap((e) => (e.id !== id ? [e] : replacement === null ? [] : [replacement]));
     if (result.kind === 'reply') {
-      const { message, model: replyModel, costMicroUsd } = result.success;
+      const { message, model: replyModel, costMicroUsd, changes, refs } = result.success;
+      const link = deps.preview;
+      const client = assistantClientModule.peek();
+      const applied =
+        link !== undefined && before !== null && changes.length > 0 && client !== undefined
+          ? client.applyAssistantReply({
+              objects: before,
+              floorId,
+              changes,
+              refs,
+              highs: link.model.getState().numberHighs,
+              newId: link.newId,
+            })
+          : null;
+      const shown = applied !== null && applied.ok && applied.changes.length > 0 ? applied : null;
+      // Made before the entry is stored, so the listeners that hear the entry also find the store.
+      if (shown !== null && link !== undefined && client !== undefined) {
+        preview ??= client.createPreviewStore({ store: link.model });
+      }
       const entry: AssistantEntry = {
         kind: 'reply',
         id,
@@ -247,6 +288,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
         model: replyModel,
         costMicroUsd,
         sessionMicroUsd: count(costMicroUsd),
+        ...(applied !== null && !applied.ok ? { refused: true as const } : {}),
       };
       set({
         entries: others(entry),
@@ -254,6 +296,8 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
         draft: ui.draft === prompt ? '' : ui.draft,
         ...(ui.photo === sent ? { photo: null } : {}),
       });
+      if (shown !== null && before !== null)
+        preview?.open({ preview: shown, prompt, entryId: id, before });
       return;
     }
     const failure = result.failure;
@@ -298,6 +342,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     refreshKey,
     attachPhoto,
     removePhoto,
+    getPreview: () => preview,
     openProfile() {
       if (disposed) return;
       set({ profileOpen: true });
@@ -317,6 +362,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
       blobs.clear();
       workerShrinker?.dispose();
       workerShrinker = null;
+      preview?.dispose();
     },
   };
 }

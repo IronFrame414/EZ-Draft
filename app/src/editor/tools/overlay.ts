@@ -82,8 +82,8 @@ export type SelectionElements = {
   size: ChipElements;
 };
 
-const n = (v: number): string => String(Math.round(v * 10) / 10);
-const xy = (p: Point): string => `${n(p.x)} ${n(p.y)}`;
+export const n = (v: number): string => String(Math.round(v * 10) / 10);
+export const xy = (p: Point): string => `${n(p.x)} ${n(p.y)}`;
 const add = (p: Point, u: Point, k: number): Point => ({ x: p.x + u.x * k, y: p.y + u.y * k });
 
 function unit(v: Point): Point {

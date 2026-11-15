@@ -60,7 +60,10 @@ import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
-import { createAssistantSession, type AssistantSession } from './assistant/assistant-session';
+import type { AssistantSession } from './assistant/assistant-session';
+import { createAssistantLoader, type AssistantLoader } from './assistant/assistant-loader';
+import type { PreviewStore } from './assistant/preview-store';
+import { newObjectId } from './tools/model-changes';
 import { assistantShown } from './assistant/assistant-ui';
 import {
   openEditorSession,
@@ -142,7 +145,7 @@ type CanvasState =
       selection: SelectionController;
       edit: EditController;
       scale: ScaleSetting;
-      assistant: AssistantSession | null;
+      assistant: AssistantLoader | null;
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
@@ -226,12 +229,18 @@ export function ProjectEditor({
         const assistant =
           sync === null
             ? null
-            : createAssistantSession({
-                projectId,
-                sync,
-                getFloorId: () => openFloorId(result.session.store.getState().objects),
-                getSelectedIds: () => selection.getUi().ids,
-              });
+            : createAssistantLoader(
+                {
+                  projectId,
+                  sync,
+                  getFloorId: () => openFloorId(result.session.store.getState().objects),
+                  getSelectedIds: () => selection.getUi().ids,
+                  // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
+                  preview: { model: result.session.store, newId: newObjectId },
+                },
+                // EZD-5604b: the session loads with the panel's lazy module on the first press.
+                () => assistantPanelModule.load(),
+              );
         dispose = () => {
           assistant?.dispose();
           drawing.attachSelection(null);
@@ -273,8 +282,21 @@ export function ProjectEditor({
   const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
   const assistant = state.kind === 'ready' ? state.assistant : null;
+  // EZD-5604b: the session's preview store, made with the first reply that has changes.
+  const readPreview = () => assistant?.getPreview() ?? null;
+  const readSession = () => assistant?.getSession() ?? null;
+  const assistantSession = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readSession,
+    readSession,
+  );
+  const preview = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readPreview,
+    readPreview,
+  );
   // Only `open` is read here, so typing in the panel does not render the whole editor again (11 Performance).
-  const readAssistantOpen = () => assistant?.getUi().open ?? false;
+  const readAssistantOpen = () => assistant?.isOpen() ?? false;
   const assistantOpen = useSyncExternalStore(
     assistant ? assistant.subscribe : noSubscribe,
     readAssistantOpen,
@@ -485,6 +507,7 @@ export function ProjectEditor({
     <>
       <PlanInputSurface controller={plan} />
       <ZoomStack handle={plan.handle} />
+      {preview !== null ? <LazyPreviewLayer store={preview} handle={plan.handle} /> : null}
       {drawing !== null ? (
         <DrawingLayer
           controller={drawing}
@@ -531,7 +554,7 @@ export function ProjectEditor({
         />
       </InspectorStack>
     ) : null;
-  const openAssistant = shown !== null && assistantOpen ? shown : null;
+  const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
   ) : undefined;
@@ -552,7 +575,7 @@ export function ProjectEditor({
           canvas={canvas}
           inspector={
             openAssistant !== null ? (
-              <LazyAssistantPanel session={openAssistant} />
+              <LazyAssistantPanel session={openAssistant} preview={preview} />
             ) : (
               (inspector ?? undefined)
             )
@@ -604,6 +627,18 @@ function useLazy<T>(module: LazyModule<T>, wanted = true): T | undefined {
   return mod;
 }
 
+// EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while
+// a preview is open.
+function LazyPreviewLayer(props: { store: PreviewStore; handle: PlanCanvasHandle }) {
+  const open = useSyncExternalStore(
+    props.store.subscribe,
+    () => props.store.getState().preview !== null,
+    () => props.store.getState().preview !== null,
+  );
+  const mod = useLazy(assistantPanelModule, open);
+  return mod ? <mod.PreviewLayer {...props} /> : null;
+}
+
 // EZD-233 (11 Budgets): the tablet edit bar loads on touch screens only.
 const editBarModule = lazyModule(() => import('../lazy/edit-bar'));
 
@@ -629,7 +664,7 @@ function LazyEditMenus(props: EditMenusProps) {
 // conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
 const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
 
-function LazyAssistantPanel(props: { session: AssistantSession }) {
+function LazyAssistantPanel(props: { session: AssistantSession; preview: PreviewStore | null }) {
   const mod = useLazy(assistantPanelModule);
   return mod ? <mod.AssistantPanel {...props} /> : null;
 }

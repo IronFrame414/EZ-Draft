@@ -84,4 +84,9 @@ export const TOKENS: readonly {
   { name: '--ez-radius-4', value: '4px', group: 'radius' },
   // S03c photo error box; EZD-5603b
   { name: '--ez-red-alert-border', value: 'oklch(0.85 0.06 28)', group: 'color' },
+  // S03c preview; EZD-5604b
+  { name: '--ez-preview-add-tint', value: 'oklch(0.95 0.03 262)', group: 'color' },
+  { name: '--ez-preview-remove', value: 'oklch(0.55 0.19 28)', group: 'color' },
+  { name: '--ez-preview-remove-tint', value: 'oklch(0.97 0.02 28)', group: 'color' },
+  { name: '--ez-radius-3', value: '3px', group: 'radius' },
 ];

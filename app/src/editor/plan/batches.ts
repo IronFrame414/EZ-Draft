@@ -93,7 +93,12 @@ export function planDrawingList(
   );
 }
 
-function arcPoints(center: Point, radius: number, startAngle: number, endAngle: number): Point[] {
+export function arcPoints(
+  center: Point,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+): Point[] {
   let sweep = endAngle - startAngle;
   if (sweep <= 0) sweep += 360;
   const n = Math.max(1, Math.ceil(sweep / ARC_SEGMENT_DEG));

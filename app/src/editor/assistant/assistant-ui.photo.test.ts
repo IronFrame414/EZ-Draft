@@ -4,13 +4,8 @@
 import { describe, expect, it } from 'vitest';
 import { en } from '../../server/messages/catalogs/en';
 import { es } from '../../server/messages/catalogs/es';
-import {
-  ASSISTANT_SHOWN_KEYS,
-  failureFrom,
-  photoControlDisabled,
-  photoRemoveDisabled,
-  type AssistantUi,
-} from './assistant-ui';
+import { ASSISTANT_SHOWN_KEYS, failureFrom } from './assistant-failure';
+import { photoControlDisabled, photoRemoveDisabled, type AssistantUi } from './assistant-ui';
 
 const ui = (p: Partial<AssistantUi>): AssistantUi => ({
   open: true,

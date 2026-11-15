@@ -2,7 +2,8 @@
 // lines"; P5602 section 3 route row; P5601 section 3): the panel's two server calls. Neither throws.
 import { ASSISTANT_MODELS, type AssistantModel } from '../../lib/assistant/cost';
 import type { AssistantInput, AssistantSuccess } from '../../server/assistant/assistant';
-import { failureFrom, type AssistantFailure } from './assistant-ui';
+import { failureFrom } from './assistant-failure';
+import type { AssistantFailure } from './assistant-ui';
 
 // C1
 export type AssistantCallResult =

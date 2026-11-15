@@ -44,7 +44,8 @@ export const en = {
   'common.sign_in.invite_code_back': 'Back to sign in',
   // EZD-105: the invite email and the /invite/<token> page (signed out, the device's language).
   'common.invite.email_subject': "You're invited to join {company} on EZ Draft",
-  'common.invite.email_intro': '{company} invited you to EZ Draft. Open the link and press Accept to join.',
+  'common.invite.email_intro':
+    '{company} invited you to EZ Draft. Open the link and press Accept to join.',
   'common.invite.email_code': 'Your invite code: {code}',
   'common.invite.email_expiry': 'The link and code work for 7 days.',
   'common.invite.email_link': 'Accept the invite',
@@ -546,7 +547,8 @@ export const en = {
   'office.users.invite.sent_to': 'Invite sent to {email}',
   'office.users.invite.link_label': 'Invite link',
   'office.users.invite.code_label': 'Invite code',
-  'office.users.invite.code_help': 'They can type this on the sign-in page under “Have an invite code?”',
+  'office.users.invite.code_help':
+    'They can type this on the sign-in page under “Have an invite code?”',
   'office.users.invite.expiry': 'The link and code work for 7 days, until {date}',
   'office.users.invite.done': 'Done',
   'office.users.invite.failed': "Couldn't send the invite. Nothing was sent.",
@@ -567,7 +569,8 @@ export const en = {
   'office.users.invite.copy_failed': "Couldn't copy the link. Try again.",
   'office.users.invite.code_inline': 'Code',
   'office.users.invite.cancel_title': 'Cancel the invite to {email}?',
-  'office.users.invite.cancel_message': 'The link and code stop working. You can invite them again later.',
+  'office.users.invite.cancel_message':
+    'The link and code stop working. You can invite them again later.',
   'office.users.invite.cancel_confirm': 'Cancel invite',
   'office.users.invite.cancelled': 'Invite cancelled',
   // EZD-105b (Q-0096 P3, P5, P10; Q-0733 (a)): the Owner-set password.
@@ -578,7 +581,8 @@ export const en = {
     'EZ Draft makes a new 16-character password for {name}. They are signed out on every device and get an email that their password was set.',
   'office.users.set_password_pending': 'Setting password…',
   'office.users.set_password_shown_title': 'New password for {name}',
-  'office.users.set_password_shown_help': "Copy it now and give it to {name}. You won't see it again.",
+  'office.users.set_password_shown_help':
+    "Copy it now and give it to {name}. You won't see it again.",
   'office.users.set_password_copy': 'Copy',
   'office.users.set_password_done': 'Done',
   'office.users.set_password_copied': 'Password copied',
@@ -632,10 +636,11 @@ export const en = {
   'office.roles.save_as_new': 'Save as new role',
   'office.roles.save_as_new_title': 'Save as new role',
   'office.roles.delete_title': 'Delete {name}?',
-  'office.roles.delete_message': 'This role is removed. Nobody holds it, so no one\'s switches change.',
+  'office.roles.delete_message':
+    "This role is removed. Nobody holds it, so no one's switches change.",
   'office.roles.delete_confirm': 'Delete',
   'office.roles.delete_failed': "Couldn't delete the role. Try again.",
-  'office.roles.assign_failed': 'The role was made, but this person wasn\'t saved. Try Save again.',
+  'office.roles.assign_failed': "The role was made, but this person wasn't saved. Try Save again.",
   'office.customers.save_failed': "Couldn't save the customer. Try again.",
   'office.system_status.subtitle':
     'Failed background work, backups and how fast the plan editor runs. Only people with the System status switch see this page.',
@@ -992,7 +997,8 @@ export const en = {
   'office.fixtures.blocking': 'Grab-bar blocking',
   'office.fixtures.blocking_length': 'Length',
   'office.fixtures.blocking_height': 'Height to centre',
-  'office.fixtures.blocking_hint': 'Height is from the finished floor. Click a wall on the side the grab bar goes.',
+  'office.fixtures.blocking_hint':
+    'Height is from the finished floor. Click a wall on the side the grab bar goes.',
   'office.fixtures.blocking_invalid': 'Enter a length and height above 0, then click on a wall.',
   'office.fixtures.curb_height': 'Curb height',
   'office.fixtures.curb_width': 'Curb width',
@@ -1054,6 +1060,19 @@ export const en = {
   'office.assistant.photo_preparing': 'Preparing the photo…',
   'office.assistant.photo_alt': 'Attached photo',
   'office.assistant.photo_size': '{size} MB',
+  // EZD-5604b (vault/plans/EZD-5604b.md section 6): the preview legend, buttons, chip and its two error lines.
+  'office.assistant.preview_legend_title': 'Preview',
+  'office.assistant.preview_legend_added': 'blue is added',
+  'office.assistant.preview_legend_removed': 'red dashed is removed',
+  'office.assistant.accept': 'Accept',
+  'office.assistant.adjust': 'Adjust',
+  'office.assistant.reject': 'Reject',
+  'office.assistant.preview_chip': '{name} · {size}',
+  'office.assistant.reply_refused':
+    "The assistant's change doesn't fit the drawing. Nothing on the drawing changed. Try wording the prompt another way.",
+  'office.assistant.preview_stale':
+    "The drawing changed after this preview was made, so it can't be accepted.",
+  'office.assistant.preview_stale_action': 'Put the prompt back',
   'office.selection.bar': 'Edit',
   'office.selection.select_more': 'Select more',
   'office.selection.select_all': 'Select all',

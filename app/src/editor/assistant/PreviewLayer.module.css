@@ -1,0 +1,121 @@
+/* EZD-5604b (vault/plans/EZD-5604b.md section 5; board S03c lines 117-142): the preview over the canvas region.
+   Blue is added (the span quad tinted, 2 px cobalt; the leaf 3 px; the arc 1.5 px, dash 4 3); red dashed is
+   removed and an update's old shape (2 px, dash 6 4); the chip 36 px below the object; the legend at the bottom
+   centre, 20 px up. Nothing takes a pointer. */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.addFill {
+  fill: var(--ez-preview-add-tint);
+  stroke: none;
+}
+
+.removeFill {
+  fill: var(--ez-preview-remove-tint);
+  stroke: none;
+}
+
+.remove {
+  fill: none;
+  stroke: var(--ez-preview-remove);
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+}
+
+.add {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.addLeaf {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 3px;
+}
+
+.addArc {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
+}
+
+.chips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font: 400 13px var(--ez-font-mono);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.legend {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  font-size: 13px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-floating);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.legendTitle {
+  font-weight: 600;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  box-sizing: content-box;
+  width: 18px;
+  height: 10px;
+  border-radius: var(--ez-radius-3);
+}
+
+.swatchAdd {
+  background: var(--ez-preview-add-tint);
+  border: 2px solid var(--ez-cobalt);
+}
+
+.swatchRemove {
+  border: 2px dashed var(--ez-preview-remove);
+}
