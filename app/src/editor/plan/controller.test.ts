@@ -6,6 +6,7 @@ import type { ObjectValue } from '../../lib/outbox/model-api';
 import { createModelStore } from '../model/model-store';
 import { createPlanController } from './controller';
 import type { InputSurface } from './input';
+import type { ThumbnailCrop } from '../../lib/thumbnail/thumbnail';
 
 const F1 = '00000000-0000-4000-8000-000000000002';
 const W1 = '00000000-0000-4000-8000-000000000011';
@@ -34,6 +35,24 @@ const makeStore = () =>
     ]),
   });
 
+// EZD-224b: Node has no ImageData, so IMG is a cast; CROP is T-U4 (a)'s expected crop.
+const IMG = {
+  data: new Uint8ClampedArray(16),
+  width: 2,
+  height: 2,
+  colorSpace: 'srgb',
+} as unknown as ImageData;
+const CROP: ThumbnailCrop = {
+  sx: 672,
+  sy: 184,
+  sw: 1760,
+  sh: 1720,
+  dx: (440 - (1760 * 256) / 1720) / 2,
+  dy: 0,
+  dw: (1760 * 256) / 1720,
+  dh: 256,
+};
+
 function makeFakeRoot() {
   return {
     start: vi.fn(async () => {}),
@@ -41,6 +60,7 @@ function makeFakeRoot() {
     setCamera: vi.fn(),
     invalidate: vi.fn(),
     stats: vi.fn(() => ({ frames: 0, drawCalls: 0 })),
+    captureFrame: vi.fn(async () => ({ image: IMG, crop: CROP })),
     unmount: vi.fn(),
   };
 }
@@ -811,5 +831,59 @@ describe('EZD-235 controller derived values', () => {
     controller.dispose();
     store.applyEdit(moveChanges(store.getState().objects, EAST_WALL, { x: 6, y: 0 }));
     expect(d.stats()).toEqual(before);
+  });
+});
+
+// EZD-224b T-U6, T-U7 (vault/plans/EZD-224b.md section 4; Decided "Capture rule"; AC-EZD-224-3, -5; Q-0667).
+describe('EZD-224b controller capture', () => {
+  test('EZD-224b T-U6 an empty model captures nothing and redraws nothing', async () => {
+    const fake = makeFakeRoot();
+    const store = createModelStore({
+      objects: new Map<string, ObjectValue>([[F1, floor('Floor 1')]]),
+    });
+    const controller = createPlanController(
+      { store },
+      { createRoot: () => fake, keys: new EventTarget() },
+    );
+    controller.setCanvasRect({ left: 0, top: 0, width: 1600, height: 1000 });
+    controller.setRegionRect({ left: 16, top: 92, width: 1568, height: 862 });
+    expect(await controller.attachCanvas({} as HTMLCanvasElement)).toBe('ready');
+    const invalidates = fake.invalidate.mock.calls.length;
+    expect(await controller.captureThumbnail()).toBeNull();
+    expect(fake.captureFrame).toHaveBeenCalledTimes(0);
+    expect(fake.invalidate.mock.calls.length).toBe(invalidates);
+  });
+
+  test('EZD-224b T-U7 a capture reads the region as drawn and changes nothing', async () => {
+    const { controller, fake } = setup();
+    expect(await controller.attachCanvas({} as HTMLCanvasElement)).toBe('ready');
+    const view = controller.handle.getView();
+    const uploads = controller.stats().bufferUploads;
+    const cameras = fake.setCamera.mock.calls.length;
+    const invalidates = fake.invalidate.mock.calls.length;
+
+    expect(await controller.captureThumbnail()).toEqual({ image: IMG, crop: CROP });
+    expect(fake.captureFrame).toHaveBeenCalledTimes(1);
+    expect(fake.captureFrame).toHaveBeenCalledWith({ x: 16, y: 92, width: 1568, height: 862 });
+    expect(controller.handle.getView()).toEqual(view);
+    expect(controller.stats().bufferUploads).toBe(uploads);
+    expect(fake.setCamera.mock.calls.length).toBe(cameras);
+    expect(fake.invalidate.mock.calls.length).toBe(invalidates);
+
+    // not attached yet
+    const other = setup();
+    expect(await other.controller.captureThumbnail()).toBeNull();
+    expect(other.fake.captureFrame).toHaveBeenCalledTimes(0);
+
+    // after detach
+    controller.detachCanvas();
+    expect(await controller.captureThumbnail()).toBeNull();
+    expect(fake.captureFrame).toHaveBeenCalledTimes(1);
+
+    // a rejection passes through unchanged
+    const failing = setup();
+    failing.fake.captureFrame.mockRejectedValueOnce(new Error('plan.capture_timeout'));
+    expect(await failing.controller.attachCanvas({} as HTMLCanvasElement)).toBe('ready');
+    await expect(failing.controller.captureThumbnail()).rejects.toThrow('plan.capture_timeout');
   });
 });

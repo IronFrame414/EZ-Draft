@@ -141,6 +141,9 @@ function fakeRoot() {
     setCamera: vi.fn(),
     invalidate: vi.fn(),
     stats: vi.fn(() => ({ frames: 0, drawCalls: 0 })),
+    captureFrame: vi.fn(async () => {
+      throw new Error('not used');
+    }),
     unmount: vi.fn(),
   };
 }
@@ -348,22 +351,27 @@ describe('EZD-214 Show on a hidden object', () => {
     controller.setCanvasRect({ left: 0, top: 0, width: 1600, height: 1000 });
     controller.setRegionRect({ left: 0, top: 0, width: 1600, height: 1000 });
     expect(controller.handle.showObject(uid(2))).toBe(true);
-    expect(phase.get()).toEqual({ view: 'existing', eyes: { existing: true, demo: true, new: true } });
+    expect(phase.get()).toEqual({
+      view: 'existing',
+      eyes: { existing: true, demo: true, new: true },
+    });
     controller.dispose();
   });
 });
 
 describe('EZD-214 fixtures take the view status', () => {
   it('AC-1: a fixture, utility point or tile shower placed in Proposed is New, in Existing is Existing', async () => {
-    const { fixtureChoice, placeFixture, tileShowerChoice, utilityChoice } = await import(
-      '../tools/fixture-tool'
-    );
+    const { fixtureChoice, placeFixture, tileShowerChoice, utilityChoice } =
+      await import('../tools/fixture-tool');
     const ctx = { level: uid(900), objects: [], newId: idSeq(500) };
     for (const choice of [fixtureChoice('toilet'), utilityChoice('water'), tileShowerChoice()]) {
       const statusOf = (s?: ObjectStatus) =>
-        (placeFixture(choice, pt(10, 10), { ...ctx, ...(s ? { status: s } : {}) })?.value?.data as {
-          status: string;
-        }).status;
+        (
+          placeFixture(choice, pt(10, 10), { ...ctx, ...(s ? { status: s } : {}) })?.value
+            ?.data as {
+            status: string;
+          }
+        ).status;
       expect(statusOf('new'), choice.type).toBe('new');
       expect(statusOf('existing'), choice.type).toBe('existing');
       expect(statusOf(), choice.type).toBe('existing');

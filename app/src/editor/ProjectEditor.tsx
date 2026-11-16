@@ -35,6 +35,8 @@
 // selected first, with its group); the inspector footer's More opens the More menu. Both load lazily.
 // EZD-6001 (vault/plans/EZD-6001.md D-Store, D-Wire, D-Mount; Q-0509; Q-0666): one floor view per session, given to
 // every controller and panel that reads the open floor; the Floor control is first in the status bar.
+// EZD-224b Build step 10 (vault/plans/EZD-224b.md Decided "Dev hook"; Q-0681 (a)): `__ezdraftEditor.checkpoint()`
+// drains the outbox, then makes a checkpoint with the plan's thumbnail through a lazily loaded module.
 import {
   useCallback,
   useEffect,
@@ -101,6 +103,7 @@ import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
+import type { CheckpointOutcome } from './thumbnail/checkpoint';
 import { ConflictBanner } from './conflicts/ConflictBanner';
 import type { ConflictPanelProps } from '../lazy/conflict-panel';
 import { lazyModule, type LazyModule } from '../lib/lazy/lazy-module';
@@ -145,6 +148,7 @@ export type ProjectEditorProps = {
 export type EditorTestHook = {
   objects(): Array<{ id: string } & ObjectValue>;
   edit(changes: Change[]): string[];
+  checkpoint(): Promise<CheckpointOutcome>;
 };
 
 type PlanTestHook = {
@@ -396,18 +400,23 @@ export function ProjectEditor({
   }, [listOpen, session]);
 
   useEffect(() => {
-    if (session === null || sync === null || !devHooks) return;
+    if (session === null || sync === null || plan === null || !devHooks) return;
     const store = session.store;
     const hook: EditorTestHook = {
       objects: () => [...store.getState().objects].map(([id, value]) => ({ id, ...value })),
       edit: (changes) => store.applyEdit(changes),
+      checkpoint: async () => {
+        await sync.flush();
+        const { makeCheckpoint } = await import('./thumbnail/checkpoint');
+        return makeCheckpoint({ projectId, capture: () => plan.captureThumbnail() });
+      },
     };
     const w = window as unknown as { __ezdraftEditor?: EditorTestHook };
     w.__ezdraftEditor = hook;
     return () => {
       delete w.__ezdraftEditor;
     };
-  }, [session, sync, devHooks]);
+  }, [session, sync, plan, devHooks, projectId]);
 
   useEffect(() => {
     if (plan === null || phase === null || !devHooks) return;

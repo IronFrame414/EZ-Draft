@@ -35,6 +35,9 @@ const fakeRoot = () => ({
   setCamera: vi.fn(),
   invalidate: vi.fn(),
   stats: vi.fn(() => ({ frames: 0, drawCalls: 0 })),
+  captureFrame: vi.fn(async () => {
+    throw new Error('not used');
+  }),
   unmount: vi.fn(),
 });
 

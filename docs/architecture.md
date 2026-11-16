@@ -315,6 +315,8 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `fake-indexeddb` | `6.2.7` | app | Unit tests: IndexedDB in Vitest; dev dependency, never imported by app code | EZD-120b |
 | `sharp` | `0.35.5` | app | Q-0637: re-encodes the assistant photo on the server, dropping EXIF, GPS and XMP | EZD-5603b |
 | `heic-to` | `1.6.7` | app | Q-0637: decodes HEIC photos in the browser (LGPL-3.0; unmodified, Web Worker chunk only, licence at `/licenses/heic-to.txt`, Q-0660) | EZD-5603b |
+| `@jsquash/webp` | `1.5.0` | app | Stack: 2D + 3D (thumbnails, 11 "Where each output is produced"): the WebP encoder (libwebp in WebAssembly) run in the thumbnail worker; Apache-2.0 (R-059) | EZD-224b |
+| `wasm-feature-detect` | `1.9.0` | app | Not in a `package.json`: the one dependency of `@jsquash/webp`, held at 1.9.0 by the `pnpm-workspace.yaml` `overrides:` entry because 1.10.0's `import.source` data-URL probe stops the Turbopack build; Apache-2.0 | EZD-224b |
 
 ## Adding a dependency
 
@@ -363,7 +365,9 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/editor/workers/     the Web Worker pool: createWorkerPool, one job per worker (EZD-235b)
   src/editor/conflicts/   the conflict banner and list (EZD-299)
   src/editor/inspector/   the inspector's pure edit and view rules (EZD-213a); InspectorPanel.tsx and inspector-input.ts: the panel and its commits (EZD-213b); ResolveGap.tsx: the Resolve the gap section (EZD-213c)
+  src/editor/thumbnail/   the checkpoint client: makeCheckpoint, saveCheckpointThumbnail; encode-client.ts starts the one-shot thumbnail worker (EZD-224b)
   src/lib/conflicts/      sync conflict types and labels, the list store and its calls (EZD-299a, EZD-299b); conflict-view.ts: the list's rows, groups and pages (EZD-299)
+  src/lib/thumbnail/      plan thumbnail sizes, quality steps, crop and worker messages, no React (EZD-224b)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026c)
@@ -729,7 +733,7 @@ EZD-120c (vault/plans/EZD-120c.md Build steps 1-10, section 3); 03a; S03 Permiss
 - **Open.** `openEditorSession(projectId, deps?)` (`app/src/editor/editor-session.ts`) answers `OpenResult`: from `fetchModel`, 403 `no-access`, 404 `not-found`, anything else `failed`; `ready` holds an `EditorSession` `{ model, store, sync, dispose() }`. Ready: the storage for the viewer's ids, the device outbox laid over the load (`loadWorkingCopy`; a list that throws counts as empty), `createModelStore`, `replaceMirror` with the loaded objects; an editor (`canEdit`) gets `createOutboxSync`, each commit is enqueued with the load's `lockEpoch`, and a non-empty outbox is flushed at once; view-only gets no sync and saves nothing. A device storage failure is reported with `captureBrowserError(error, 'editor.device_copy')`. `dispose()` disposes the sync and closes the storage; the editor calls it on unmount, and on a session that arrives after unmount.
 - **Screen.** Every state: `DeviceLayout` (phone: `EditorPhoneNotice`) with `EditorFrame` (no rail, panels or status items yet) and `StatusBar`. Header: `HeaderCard` with the wordmark until ready, then `EditorHeader` (project name; subtitle client, "Working copy" and, for an editor, `SaveStateText`; no view tabs). Canvas: `editor-state` (`data-editor-state` `loading`, `failed`, `no-access`, `not-found`, `ready`) shows a skeleton, `InlineError` `office.editor.load_failed` with Retry, `NoAccess`, `editor-not-found` (`error.page_not_found`), or, ready for an editor, `OfflineBanner` (`office.editor.offline`) and `SaveFailedBanner` (`save-failed-banner`, status `error`, Retry = `sync.retry()`).
 - **Save word** (`app/src/editor/save-state.ts`, `SaveStatus.tsx`). `saveWord(state, now, timeZone?)` gives the `office.editor.*` key: idle and saved without a time `saved`, pending and saving `saving`, offline `saved_on_device`, error `not_saved`, saved under a minute `saved_just_now`, under an hour `saved_min_ago` (`minutes`), else `saved_at` (`formatClock`, `en-US` h:mm AM/PM). `SaveStateText` (`save-state`, `data-save-status`) re-renders once when the word next changes (`nextSaveWordChangeMs`, one `setTimeout`), never on a tick.
-- **Test hook.** Ready, `canEdit` and `devHooks`: `window.__ezdraftEditor` (`EditorTestHook`: `objects()` lists the store's objects as `{ id, ...value }`, `edit(changes)` is `store.applyEdit`), removed on unmount. Never in production, never for view-only.
+- **Test hook.** Ready, `canEdit` and `devHooks`: `window.__ezdraftEditor` (`EditorTestHook`: `objects()` lists the store's objects as `{ id, ...value }`, `edit(changes)` is `store.applyEdit`, `checkpoint()` drains the outbox, then calls `makeCheckpoint` with the plan's capture (EZD-224b)), removed on unmount. Never in production, never for view-only.
 - Strings are `office.editor.*` keys, `en` only.
 
 ### Conflict list screens (EZD-299)
@@ -874,11 +878,12 @@ EZD-117b (vault/plans/EZD-117b.md Build steps 1-13; Q-0401; Q-0402; Q-0448): bot
 
 ### Plan thumbnail (EZD-224)
 
-EZD-224 (vault/plans/EZD-224.md Build steps 1-14); S01 Card thumbnail; Q-0664; Q-0403.
+EZD-224 (vault/plans/EZD-224.md Build steps 1-14); S01 Card thumbnail; Q-0664; Q-0403. EZD-224b (vault/plans/EZD-224b.md Build steps 1-11).
 
 - **Functions** (definer, `authenticated` only, in `GATED_RPC_CALLS`): `start_checkpoint_thumbnail(p_project, p_version)` returns the path; `set_checkpoint_thumbnail(p_project, p_version)` locks the project's `edit_lock` row, re-checks, requires one `image/webp` object of 1 to 40,959 bytes owned by the caller, and sets `model_version.preview_path` and `project.thumbnail_path`. Both use `private.checkpoint_thumbnail_refusal`: the caller's own newest checkpoint with no preview, Edit model, project in scope.
 - **Routes** (`Cache-Control: no-store`): `POST /api/projects/[id]/versions/[versionId]/thumbnail` (200 `{ upload }`) and `…/thumbnail/complete` (200 `{ thumbnail: { versionId } }`, 409 `thumbnail_invalid`), both Edit model; `GET /api/projects/[id]/thumbnail` (View projects) answers 302 to a 900 s signed link or 404 `thumbnail_not_found`.
 - **Card**: `ProjectSummary.hasThumbnail` comes from `list_projects`; the card shows a lazy 220 x 128 `img` (`project-card-thumb-img`) from `projectThumbnailSrc(id)`, else the empty slot. Capture and encode are EZD-224b.
+- **Capture and encode (EZD-224b).** `makeCheckpoint({ projectId, capture })` (`app/src/editor/thumbnail/checkpoint.ts`) posts the checkpoint, then `PlanController.captureThumbnail()` reads the plan canvas as drawn: one more frame of the same view, read in three's `scene.onAfterRender` in the task that drew it (`app/src/editor/plan/frame-capture.ts`, 2,000 ms limit), shrunk whole into 440 × 256 with `--ez-canvas` bands. Nothing drawn gives no image. A one-shot module worker (`app/src/workers/thumbnail.worker.ts`, `@jsquash/webp`) encodes WebP at quality 80, 70, 60, 50, then 40 and keeps the first under 40,960 bytes; then the start route, `uploadFile`, and the complete route. Failures are reported as `editor.thumbnail` and never throw; the checkpoint stays.
 
 ### New project wizard (EZD-118)
 

@@ -5,6 +5,8 @@ packages:
   - spikes/*
 saveExact: true
 workspaceConcurrency: 1
+overrides:
+  wasm-feature-detect: 1.9.0
 allowBuilds:
   unrs-resolver: false
   esbuild: false

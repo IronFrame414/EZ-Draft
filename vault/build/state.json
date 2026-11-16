@@ -353,7 +353,8 @@
     "EZD-5605",
     "EZD-214",
     "EZD-218",
-    "EZD-6001"
+    "EZD-6001",
+    "EZD-237"
   ],
   "seeded_done": 324,
   "merged": [
@@ -559,10 +560,17 @@
       "commit": "7a426a32",
       "ts": "2026-11-16T12:43:18Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-237",
+      "title": "Benchmark page",
+      "commit": "e6050af4",
+      "ts": "2026-11-16T17:31:40Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},
-  "current": null,
   "red_streak": 0,
   "push_pending": false,
   "trial_report_written": true,
@@ -572,7 +580,8 @@
     "EZD-105b": 1,
     "EZD-421": 1,
     "EZD-116": 1,
-    "EZD-216": 1
+    "EZD-216": 1,
+    "EZD-215": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -582,6 +591,18 @@
     "EZD-216": {
       "ts": "2026-11-16T15:45:37Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-215": {
+      "ts": "2026-11-16T17:47:03Z",
+      "reason": "builder crashed (no result)"
+    }
+  },
+  "running": {
+    "EZD-224b": {
+      "lane": 0,
+      "title": "Plan thumbnail: checkpoint capture and encode",
+      "started": "2026-11-16T17:31:45Z",
+      "develop": "e6050af4"
     }
   }
 }

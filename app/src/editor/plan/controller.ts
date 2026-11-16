@@ -14,9 +14,12 @@
 // EZD-214 (S03 Decisions; 09m Phase switch; 11 rules 2 and 4): the phase view's filter decides what is drawn and
 // hovered; a View or eye change rebuilds the drawing list once and resyncs the hover index in full.
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Gone; Q-0509): the canvas draws the chosen floor; a switch redraws as a View change does.
+// EZD-224b Build step 7 (vault/plans/EZD-224b.md Decided "Capture rule"; Q-0667): `captureThumbnail` reads the
+// region as drawn through the root, with no fit, camera or redraw; nothing drawn gives null.
 import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
+import type { CaptureSource, ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
 import { createModelDerived, type ModelDerived } from '../derived/model-derived';
 import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
@@ -74,6 +77,7 @@ export type RenderRoot = {
   setCamera(frame: CameraFrame): void;
   invalidate(): void;
   stats(): { frames: number; drawCalls: number };
+  captureFrame(source: CaptureSource): Promise<ThumbnailCapture>;
   unmount(): void;
 };
 export type CreateRenderRoot = (canvas: HTMLCanvasElement, scene: PlanScene) => RenderRoot;
@@ -121,6 +125,7 @@ export type PlanController = {
   setRegionRect(rect: ClientRect): void;
   stats(): PlanStats;
   derivedStats(): DerivedStats;
+  captureThumbnail(): Promise<ThumbnailCapture | null>;
   atlasFailed(): boolean;
   subscribeAtlasFailed(listener: () => void): () => void;
   dispose(): void;
@@ -634,6 +639,15 @@ export function createPlanController(
         highlightUploads,
         selectionUploads,
       };
+    },
+    async captureThumbnail() {
+      if (root === null || !ready) return null;
+      // Loaded on first use so the thumbnail rules stay out of the editor's first download (500,000 byte budget).
+      const { thumbnailSource } = await import('../../lib/thumbnail/thumbnail');
+      if (root === null || !ready) return null;
+      const source = thumbnailSource(canvasRect, regionRect);
+      if (source === null || scene.objectCount() === 0) return null;
+      return root.captureFrame(source);
     },
     dispose() {
       disposed = true;
