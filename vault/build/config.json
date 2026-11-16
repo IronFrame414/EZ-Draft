@@ -9,7 +9,7 @@
     "EZD-116",
     "EZD-105b"
   ],
-  "gate_from_phase": 13,
+  "gate_from_phase": 999,
   "shared_files": [
     "app/src/server/messages/catalogs/en.ts",
     "app/src/server/messages/catalogs/es.ts"
