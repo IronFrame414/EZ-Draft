@@ -105,3 +105,8 @@ test('a file in the shared list may be held by two lanes; every other file still
   assert.deepEqual(r.start.map((t) => t.id), ['A', 'B']);
   assert.deepEqual(r.waiting.map((w) => w.id), ['C']);
 });
+
+test('two not-yet-named new files in one folder do not clash; two new migrations still do', () => {
+  assert.deepEqual(overlaps(['app/src/server/db/<new>'], { B: { files: ['app/src/server/db/<new>'] } }, 'A'), []);
+  assert.equal(overlaps(['supabase/migrations/<new>.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A').length, 1);
+});

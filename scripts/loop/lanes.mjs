@@ -49,6 +49,9 @@ export function overlaps(mine, claims, self, shared = SHARED_OK) {
   const out = [];
   const seen = new Set();
   for (const f of impliedFiles(mine, shared)) {
+    // A placeholder for a file not named yet (`folder/<new>`) is a new file: two of them in one folder are different
+    // files. A new migration still holds the migrations folder (key()).
+    if (f.includes('<new>') && !f.startsWith(MIGRATIONS)) continue;
     const k = key(f);
     if (held.has(k) && !seen.has(k)) { seen.add(k); out.push({ file: k === MIGRATIONS ? MIGRATIONS : f, holder: held.get(k) }); }
   }

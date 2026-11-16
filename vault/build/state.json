@@ -355,7 +355,8 @@
     "EZD-218",
     "EZD-6001",
     "EZD-237",
-    "EZD-224b"
+    "EZD-224b",
+    "EZD-308"
   ],
   "seeded_done": 324,
   "merged": [
@@ -577,6 +578,14 @@
       "ts": "2026-11-16T18:37:42Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-308",
+      "title": "Review modes",
+      "commit": "cf78bf97",
+      "ts": "2026-11-16T19:12:55Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -606,12 +615,5 @@
       "reason": "builder crashed (no result)"
     }
   },
-  "running": {
-    "EZD-308": {
-      "lane": 1,
-      "title": "Review modes",
-      "started": "2026-11-16T17:47:05Z",
-      "develop": "e6050af4"
-    }
-  }
+  "running": {}
 }
