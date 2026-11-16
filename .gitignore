@@ -48,3 +48,9 @@ vault/questions/QUESTIONS-archive.md
 .pnpm-store/
 check.log
 check-failures.log
+
+# Build loop runtime files (lanes, 2026-11-16)
+vault/build/claims.json
+vault/build/.claims.lock/
+vault/build/footprints.json
+vault/build/*.tmp-*

@@ -5,7 +5,8 @@
 // Full output: <dir>/check.log. On failure the failing step's last lines go to <dir>/check-failures.log.
 // Exit 0 = CHECK PASS.
 import { spawn, spawnSync } from 'node:child_process';
-import { createWriteStream, existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
@@ -27,7 +28,7 @@ const pkg = ['-r', '--if-present', '--filter', '!./spikes/**', 'run'];
 //   perf/__tests__/pan.test.mjs       timing-sensitive on CI (EZD-398, retired 2026-11-14)
 //   perf/__tests__/profiles.test.mjs  timing-sensitive on CI (EZD-399, retired 2026-11-14)
 const LIVE_SCRIPT_DIRS = ['release', 'backup', 'conventions', 'db', 'e2e', 'test-harness', 'fixtures', 'email', 'errors',
-  'auth', 'ai', 'hosting', 'perf'];
+  'auth', 'ai', 'hosting', 'perf', 'loop'];
 const SKIP_SCRIPT_TESTS = new Set(['db/__tests__/lane.test.mjs', 'perf/__tests__/pan.test.mjs', 'perf/__tests__/profiles.test.mjs']);
 function liveScriptTests() {
   const out = [];
@@ -83,9 +84,35 @@ function run(name, cmd, argv) {
   });
 }
 
+// Build lanes (2026-11-16): several checks run at once on this Mac, one per lane. The build, the scripts tests and e2e
+// hold timing tests (perf, page load) that fail falsely when two Next builds or two browsers compete for the machine,
+// so that stretch runs one check at a time across all lanes. The earlier steps run in parallel. EZD_HEAVY_LOCK=0 skips it.
+const HEAVY = new Set(['build', 'scripts tests', 'database again', 'e2e']);
+const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
+let heavyHeld = false;
+const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+async function takeHeavy() {
+  if (heavyHeld || process.env.EZD_HEAVY_LOCK === '0') return;
+  let said = false;
+  for (;;) {
+    try { mkdirSync(heavyLock); writeFileSync(path.join(heavyLock, 'pid'), `${process.pid} lane ${lane} ${dir}\n`); heavyHeld = true; return; } catch (e) {
+      if (e.code !== 'EEXIST') throw e;
+      let pid = 0;
+      try { pid = Number(readFileSync(path.join(heavyLock, 'pid'), 'utf8').split(' ')[0]); } catch {}
+      if (pid && !alive(pid)) { rmSync(heavyLock, { recursive: true, force: true }); continue; }
+      if (!said) { console.log('wait another lane is running its build and e2e; waiting for it'); said = true; }
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+}
+function dropHeavy() { if (heavyHeld) { rmSync(heavyLock, { recursive: true, force: true }); heavyHeld = false; } }
+process.on('exit', dropHeavy);
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { dropHeavy(); process.exit(1); });
+
 if (!existsSync(path.join(dir, 'package.json'))) { console.log(`CHECK FAIL: no package.json in ${dir}`); process.exit(1); }
 const t0 = Date.now();
 for (const [name, cmd, argv] of steps) {
+  if (HEAVY.has(name)) await takeHeavy();
   const r = await run(name, cmd, argv);
   if (name === 'database' && r.code === 0) {
     // Next.js bakes NEXT_PUBLIC_* into the build, so the build and the e2e server need this lane's stack values.

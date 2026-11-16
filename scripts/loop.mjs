@@ -2,12 +2,17 @@
 // Build v3 loop (2026-11-13, Josh): one Opus builder per ticket, one fresh reviewer (Fable), scripts/check.mjs as the
 // gate, squash merge to develop, push. Runs unattended as the launchd agent com.ezdraft.build (scripts/launchd/build.mjs).
 // A ticket that does not finish for any reason is set aside (vault/build/set-aside.md) and the loop moves on.
-// Pause: touch vault/build/STOP (the current ticket finishes first). State: vault/build/state.json.
+// Pause: touch vault/build/STOP (running tickets finish first). State: vault/build/state.json.
+// Lanes (Josh 2026-11-16): up to config `lanes` tickets build at once, each with its own database lane. No two running
+// tickets may edit the same file: each ticket first predicts the files it will change (its footprint, cached in
+// vault/build/footprints.json), starts only when no running ticket holds any of them, claims files it finds it needs
+// later with scripts/loop/claim.mjs, and is checked for unclaimed changes before it merges (scripts/loop/lanes.mjs).
 import { spawn, spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
+import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -20,12 +25,14 @@ const P = {
   stop: path.join(B, 'STOP'),
   attention: path.join(B, 'ATTENTION.md'),
   report: path.join(B, 'trial-report.md'),
+  footprints: path.join(B, 'footprints.json'),
 };
 const DEFAULTS = {
   builder_model: 'claude-opus-5-5', builder_effort: 'medium',
   reviewer_model: 'claude-fable-5-2', reviewer_fallback: 'claude-opus-5-5', reviewer_effort: 'medium',
   builder_timeout_min: 90, reviewer_timeout_min: 30, fix_rounds: 2, review_rounds: 2,
-  trial_size: 20, lane: '0', idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
+  trial_size: 20, lanes: [0, 1, 2], footprint_effort: 'low', footprint_timeout_min: 15, footprint_lookahead: 6,
+  merge_rounds: 3, holder_wait_min: 240, idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
   // Tickets built first when eligible, even after a failure (a retried ticket otherwise waits at the back of the queue).
   priority: [],
@@ -63,16 +70,49 @@ function seedStatuses() {
   }
   return st;
 }
+// One state object in memory for every lane; saveState writes it. A change Josh makes to the file by hand (deleting a
+// set_aside entry or a retry) is taken in at the next scheduling pass (adoptHandEdits).
+let STATE = null;
+let savedMtime = 0;
 function loadState() {
+  if (STATE) return STATE;
   const s = readJson(P.state, null);
-  if (s) return s;
-  const fresh = { started: now(), done: seedDone(), seeded_done: 0, merged: [], set_aside: {}, current: null,
-    red_streak: 0, push_pending: false, trial_report_written: false, idle_logged: false };
-  fresh.seeded_done = fresh.done.length;
-  saveState(fresh);
-  return fresh;
+  if (s) { STATE = s; } else {
+    STATE = { started: now(), done: seedDone(), seeded_done: 0, merged: [], set_aside: {}, running: {},
+      red_streak: 0, push_pending: false, trial_report_written: false, idle_logged: false };
+    STATE.seeded_done = STATE.done.length;
+  }
+  STATE.running ||= {};
+  saveState(STATE);
+  return STATE;
 }
-function saveState(s) { writeFileSync(P.state, JSON.stringify(s, null, 2) + '\n'); writeSetAside(s); }
+function saveState(s) {
+  const tmp = `${P.state}.tmp-${process.pid}`;
+  writeFileSync(tmp, JSON.stringify(s, null, 2) + '\n');
+  renameSync(tmp, P.state);
+  try { savedMtime = statSync(P.state).mtimeMs; } catch {}
+  writeSetAside(s);
+}
+function adoptHandEdits(s) {
+  let m = 0;
+  try { m = statSync(P.state).mtimeMs; } catch { return; }
+  if (m === savedMtime) return;
+  const disk = readJson(P.state, null);
+  if (!disk) return;
+  s.set_aside = disk.set_aside || {};
+  s.retries = disk.retries || {};
+  log('state.json was edited by hand; took in its set_aside and retries');
+  saveState(s);
+}
+// Footprints: { "<ticket>": { files: [...], notes, ts } }. Kept apart from state so `--plan --footprints` can add to it.
+const readFootprints = () => readJson(P.footprints, {});
+function saveFootprint(id, fp) {
+  const all = readFootprints();
+  if (fp) all[id] = fp; else delete all[id];
+  const tmp = `${P.footprints}.tmp-${process.pid}`;
+  writeFileSync(tmp, JSON.stringify(all, null, 2) + '\n');
+  renameSync(tmp, P.footprints);
+}
 function writeSetAside(s) {
   const rows = Object.entries(s.set_aside);
   const out = ['# Set-aside tickets', '', 'Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.',
@@ -102,7 +142,10 @@ function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
 function candidates(s, c, statuses) {
   const done = new Set(s.done);
   const aside = new Set(Object.keys(s.set_aside));
-  const list = tickets().filter((t) => !done.has(t.id) && !aside.has(t.id)
+  const running = s.running || {};
+  // A ticket that stopped because a file it needs was held waits until that holder is no longer building.
+  const holding = (t) => (s.hold?.[t.id]?.holders || []).some((h) => running[h]);
+  const list = tickets().filter((t) => !done.has(t.id) && !aside.has(t.id) && !running[t.id] && !holding(t)
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
   const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
@@ -110,11 +153,13 @@ function candidates(s, c, statuses) {
   list.sort((a, b) => (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
   return list;
 }
-function pickNext(s) {
+// Every candidate the phase gate lets through, in build order. A running ticket counts as not done for the gate.
+function eligible(s) {
   const c = cfg();
   const statuses = seedStatuses();
-  return candidates(s, c, statuses).find((t) => !gateBlockers(t, s, c, statuses).length) || null;
+  return candidates(s, c, statuses).filter((t) => !gateBlockers(t, s, c, statuses).length);
 }
+function pickNext(s) { return eligible(s)[0] || null; }
 // When nothing is eligible only because of the phase gate: one line naming the lower-phase tickets it waits on.
 function gateNote(s) {
   const c = cfg();
@@ -132,8 +177,14 @@ function readingList(id) {
 }
 
 // ---------- claude ----------
-function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readOnly }) {
-  const c = cfg();
+// The environment of a lane: its database lane and, for claim.mjs, the ticket and the main checkout.
+function laneEnv(lane, cwd, ticket) {
+  const env = { ...process.env, EZD_LANE: String(lane ?? 0), EZD_BUILD_ROOT: ROOT };
+  if (ticket) env.EZD_TICKET = ticket; else delete env.EZD_TICKET;
+  if (String(lane ?? 0) !== '0') env.SUPABASE_WORKDIR = path.join(cwd, '.lanes', `lane${lane}`); else delete env.SUPABASE_WORKDIR;
+  return env;
+}
+function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readOnly, lane = 0, ticket }) {
   const args = ['-p', prompt, '--output-format', 'json', '--model', model, '--effort', effort, '--name', name];
   if (resume) args.push('--resume', resume);
   if (readOnly) {
@@ -146,9 +197,7 @@ function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readO
   }
   return new Promise((resolve) => {
     const started = Date.now();
-    const env = { ...process.env, EZD_LANE: c.lane };
-    if (c.lane !== '0') env.SUPABASE_WORKDIR = path.join(cwd, '.lanes', `lane${c.lane}`);
-    const p = spawn('claude', args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const p = spawn('claude', args, { cwd, env: laneEnv(lane, cwd, ticket), stdio: ['ignore', 'pipe', 'pipe'] });
     let out = ''; let err = '';
     p.stdout.on('data', (d) => { out += d; });
     p.stderr.on('data', (d) => { err += d; });
@@ -189,15 +238,52 @@ function recordUsage(ticket, role, requested, r) {
   appendFileSync(P.usage, JSON.stringify(row) + '\n');
   return row;
 }
-function check(cwd) {
-  const r = spawnSync('node', [path.join(ROOT, 'scripts/check.mjs'), cwd], { cwd, encoding: 'utf8', env: { ...process.env, EZD_LANE: cfg().lane }, timeout: 60 * 60000 });
-  const pass = r.status === 0 && /CHECK PASS/.test(r.stdout || '');
-  let detail = (r.stdout || '').trim();
-  if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(0, 9000); } catch {} }
-  return { pass, detail };
+// The full gate on the ticket's lane. Asynchronous, so the other lanes keep going while it runs.
+function check(cwd, lane = 0) {
+  return new Promise((resolve) => {
+    const p = spawn('node', [path.join(ROOT, 'scripts/check.mjs'), cwd], { cwd, env: laneEnv(lane, cwd), stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = '';
+    p.stdout.on('data', (d) => { out += d; });
+    p.stderr.on('data', (d) => { out += d; });
+    const timer = setTimeout(() => p.kill('SIGTERM'), 90 * 60000);
+    const done = (code) => {
+      clearTimeout(timer);
+      const pass = code === 0 && /CHECK PASS/.test(out);
+      let detail = out.trim();
+      if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(0, 9000); } catch {} }
+      resolve({ pass, detail });
+    };
+    p.on('close', done);
+    p.on('error', (e) => { out += String(e); done(1); });
+  });
 }
 
 // ---------- prompts ----------
+// The parallel-build rules a builder gets (Josh 2026-11-16: lanes never edit the same file).
+function lanesNote(t) {
+  const claims = readClaims(ROOT);
+  const mine = claims[t.id]?.files || [];
+  const others = Object.entries(claims).filter(([id]) => id !== t.id);
+  return [
+    '', 'Parallel builds: other tickets are being built at the same time in other folders, each on its own database lane (EZD_LANE is set for you; the scripts pick it up).',
+    `Files reserved for you: ${mine.length ? mine.join(', ') : '(none predicted)'}.`,
+    others.length ? `Files other tickets hold now (never edit these): ${others.map(([id, c]) => `${id}: ${(c.files || []).join(', ') || '(none)'}`).join('; ')}.` : 'No other ticket holds files right now, but one may start while you work.',
+    'Before you edit or create ANY file that is not in your reserved list, run `node scripts/loop/claim.mjs <file> [<file> ...]` (paths from the repo root). Exit 0 means it is yours. If it prints NOT CLAIMED, do not edit that file: find a way that stays inside your files, or commit what works and end with the BLOCKED line it prints.',
+    `Shared files (${[...sharedSet(ROOT)].join(', ')}): any lane may edit these. Keep your change to them small and additive (add your own lines; never reorder, reformat or rewrite what is there), so a parallel change merges cleanly.`,
+  ].join('\n');
+}
+function footprintPrompt(t, plan, reads) {
+  return [
+    `Predict the files ticket ${t.id} (${t.title}) will create or change. You are planning only: read, do not edit.`,
+    'Other tickets will be built at the same time, and no two may edit the same file, so the list must be complete: every source file, test file, migration, generated file (database types), registry, inventory or count test, message file, fixture and doc it will touch. Leaving a file out stalls the build later; a file listed but not changed only costs a little parallelism.',
+    'Read CLAUDE.md, the ticket record below, the spec files and decisions it names' + (plan ? `, and vault/plans/${t.id}.md` : '') + ', then look in the code (grep, read) to find the real paths. Look especially for the shared files a change like this must update: route and event registries, RLS and grant harness lists, settings sections, message keys, the e2e inventories.',
+    reads ? `Reading list:\n${reads}` : '',
+    '', 'Ticket record:', JSON.stringify(t, null, 1),
+    '', 'For a new migration write `supabase/migrations/<new>.sql`. For a new file you cannot name yet, give the folder it goes in followed by `/<new>`.',
+    'Your last line must be exactly one JSON object and nothing after it:',
+    '{"files":["app/src/...","supabase/migrations/<new>.sql"],"notes":"one line"}',
+  ].filter(Boolean).join('\n');
+}
 function builderPrompt(t, plan, reads) {
   return [
     `You are the builder for ticket ${t.id}: ${t.title}`,
@@ -215,9 +301,11 @@ function builderPrompt(t, plan, reads) {
     '', 'Unsettled question: follow CLAUDE.md rule 1 (record it in vault/build/assumptions.md and keep going).',
     'If the existing code already satisfies the ticket, add tests that prove the acceptance criteria and commit them.',
     'If you truly cannot finish, commit what works and make the last line of your answer start with "BLOCKED:" and the reason.',
+    lanesNote(t),
   ].join('\n');
 }
 function fixPrompt(kind, detail) {
+  if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent, commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
   return kind === 'check'
     ? `The full check (node scripts/check.mjs) failed after your work. The failing lines are below; the full output is in check.log in this folder. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(0, 9000)}`
     : `An independent reviewer found blocking problems. Fix each one, rerun the full check (node scripts/check.mjs) until it passes, and commit. If you believe a finding is wrong, say why in one line instead of changing code.\n\n${detail}`;
@@ -292,15 +380,32 @@ function setAside(s, t, reason, detail, wt, needs = []) {
     s.retries = { ...(s.retries || {}), [t.id]: 1 };
     s.retry_log = { ...(s.retry_log || {}), [t.id]: { ts: now(), reason } };
     const added = addDeps(t.id, needs);
-    s.current = null;
+    endRun(s, t.id);
+    saveFootprint(t.id, null);
     cleanupWorktree(t.id);
     log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}`);
     saveState(s);
     return;
   }
   s.set_aside[t.id] = { title: t.title, ts: now(), reason: s.retry_log?.[t.id] ? `${reason} (first try: ${s.retry_log[t.id].reason})` : reason, detail: detail || '', branch: `t/${t.id}`, worktree: path.relative(ROOT, wt) };
-  s.current = null;
+  endRun(s, t.id);
+  saveFootprint(t.id, null);
   log(`SET ASIDE ${t.id}: ${reason}`);
+  saveState(s);
+}
+// A ticket stops building: it leaves `running` and gives up its claim.
+function endRun(s, id) {
+  delete s.running?.[id];
+  try { withClaims(ROOT, (c) => { delete c[id]; }); } catch (e) { log(`could not release the claim of ${id}: ${e.message}`); }
+}
+// The builder stopped because a file it needs is held by another running ticket. That is a wait, not a failure: the
+// ticket goes back in line without spending its retry and starts again once every holder has finished.
+function waitForHolders(s, t, holders, why) {
+  s.hold = { ...(s.hold || {}), [t.id]: { holders, ts: now(), why } };
+  endRun(s, t.id);
+  saveFootprint(t.id, null);
+  cleanupWorktree(t.id);
+  log(`WAITING ${t.id}: ${why}; starts again after ${holders.join(', ')}`);
   saveState(s);
 }
 function cleanupWorktree(id) {
@@ -309,18 +414,18 @@ function cleanupWorktree(id) {
   git(['worktree', 'prune']);
   git(['branch', '-D', `t/${id}`]);
 }
-async function review(t, wt, s, round) {
+async function review(t, wt, s, round, lane) {
   const c = cfg();
   const files = git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
   const sec = files.filter((f) => SECURITY_PATHS.test(f)).slice(0, 8).join(', ');
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
   let model = c.reviewer_model;
-  let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true });
+  let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
   recordUsage(t.id, 'reviewer', model, r);
   if ((r.limited || r.code !== 0 || !r.res) && model !== c.reviewer_fallback) {
     log(`reviewer ${model} unavailable for ${t.id} (${r.limited ? 'limit' : 'error'}); using ${c.reviewer_fallback}`);
     model = c.reviewer_fallback;
-    r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round} fallback`, timeoutMin: c.reviewer_timeout_min, readOnly: true });
+    r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round} fallback`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
     recordUsage(t.id, 'reviewer', model, r);
   }
   if (r.limited) return { limited: true, r };
@@ -330,20 +435,46 @@ async function review(t, wt, s, round) {
   return { verdict: v.verdict, findings: v.findings || [], blockedBy: ticketIds(v.blocked_by), notes: v.notes || '', detail: JSON.stringify(v.findings || [], null, 1), model };
 }
 
-async function doTicket(t, s, kind = 'ticket') {
+// Predicts a ticket's footprint with one read-only call in the main checkout (on develop). Cached until the ticket
+// merges, is requeued or is set aside. Returns { fp } or { limited } or { error }.
+async function predictFootprint(t) {
+  const c = cfg();
+  const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
+  const r = await runClaude({ cwd: ROOT, prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
+    effort: c.footprint_effort, name: `${t.id} footprint`, timeoutMin: c.footprint_timeout_min, readOnly: true });
+  recordUsage(t.id, 'footprint', c.builder_model, r);
+  if (r.limited) return { limited: true, r };
+  const fp = parseFootprint(r.res?.result ?? '');
+  if (!fp) return { error: `no footprint: ${String(r.res?.result ?? r.text).slice(-300)}` };
+  const saved = { ...fp, ts: now() };
+  saveFootprint(t.id, saved);
+  log(`FOOTPRINT ${t.id}: ${fp.files.length} files${fp.notes ? ` (${fp.notes.slice(0, 120)})` : ''}`);
+  return { fp: saved };
+}
+
+async function doTicket(t, s, lane, kind = 'ticket') {
   const c = cfg();
   const wt = path.join(ROOT, '.claude/worktrees', t.id);
   cleanupWorktree(t.id);
   const add = git(['worktree', 'add', '-B', `t/${t.id}`, wt, 'develop']);
   if (!add.ok) { setAside(s, t, 'could not create worktree', add.err, wt); return 'aside'; }
-  s.current = t.id; saveState(s);
-  log(`START ${t.id} · ${t.title}`);
+  log(`START ${t.id} · lane ${lane} · ${t.title}`);
+  const stopForLimit = async (r) => { await handleLimit(r, s); endRun(s, t.id); cleanupWorktree(t.id); saveState(s); return 'limit'; };
+  // A BLOCKED line that names a file held by another running ticket means "wait", not "failed".
+  const heldBy = (text) => {
+    const m = /^BLOCKED:.*\(file held\).*$/m.exec(String(text || ''));
+    if (!m) return null;
+    const ids = ticketIds(m[0]).filter((id) => id !== t.id);
+    return ids.length ? ids : null;
+  };
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
-  const prompt = t.prompt || builderPrompt(t, plan, readingList(t.id));
-  let r = await runClaude({ cwd: wt, prompt, model: c.builder_model, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min });
+  const prompt = t.prompt ? `${t.prompt}\n${lanesNote(t)}` : builderPrompt(t, plan, readingList(t.id));
+  let r = await runClaude({ cwd: wt, prompt, model: c.builder_model, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
   recordUsage(t.id, 'builder', c.builder_model, r);
-  if (r.limited) { await handleLimit(r, s); cleanupWorktree(t.id); s.current = null; saveState(s); return 'limit'; }
+  if (r.limited) return stopForLimit(r);
   let session = r.res?.session_id;
+  const held = heldBy(r.res?.result);
+  if (held && held.some((h) => s.running[h])) { waitForHolders(s, t, held, `needs a file held by ${held.join(', ')}`); return 'wait'; }
   if (r.timedOut && !git(['log', '--oneline', 'develop..HEAD'], wt).out) { setAside(s, t, `builder timed out after ${c.builder_timeout_min} min with no commits`, r.text.slice(-2000), wt); return 'aside'; }
   if (r.timedOut) log(`${t.id} builder timed out after ${c.builder_timeout_min} min but committed work; checking it`);
   const blocked = /^BLOCKED:.*$/m.exec(String(r.res?.result ?? ''));
@@ -351,7 +482,7 @@ async function doTicket(t, s, kind = 'ticket') {
 
   const commitAll = () => { if (git(['status', '--porcelain'], wt).out) { git(['add', '-A'], wt); git(['commit', '-q', '-m', `feat(${t.id}): uncommitted builder work`], wt); } };
   const fix = async (kindOf, detail, label) => {
-    const f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min });
+    const f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
     recordUsage(t.id, `builder-fix-${kindOf}`, c.builder_model, f);
     if (f.res?.session_id) session = f.res.session_id;
     return f;
@@ -362,36 +493,70 @@ async function doTicket(t, s, kind = 'ticket') {
   if (!git(['log', '--oneline', 'develop..HEAD'], wt).out) {
     setAside(s, t, blocked ? blocked[0] : 'builder made no commits', String(r.res?.result ?? '').slice(-2000), wt, blocked ? ticketIds(blocked[0]) : []); return 'aside';
   }
-  let ck = check(wt);
+  let ck = await check(wt, lane);
   for (let i = 0; !ck.pass && i < c.fix_rounds; i++) {
     log(`${t.id} check red (round ${i + 1}); builder fixing`);
     const f = await fix('check', ck.detail, `fix check ${i + 1}`);
-    if (f.limited) { await handleLimit(f, s); cleanupWorktree(t.id); s.current = null; saveState(s); return 'limit'; }
+    if (f.limited) return stopForLimit(f);
     commitAll();
-    ck = check(wt);
+    ck = await check(wt, lane);
   }
   if (!ck.pass) { setAside(s, t, `check still red after ${c.fix_rounds} fix rounds`, ck.detail.slice(-3000), wt); s.red_streak++; saveState(s); return 'red'; }
 
   // review, with fix rounds
-  let rv = await review(t, wt, s, 1);
+  let rv = await review(t, wt, s, 1, lane);
   if (rv.verdict === 'fail' && rv.blockedBy?.length) { setAside(s, t, `review: needs ${rv.blockedBy.join(', ')} first`, rv.detail, wt, rv.blockedBy); return 'aside'; }
   for (let i = 0; i < c.review_rounds && (rv.verdict === 'fail'); i++) {
     log(`${t.id} review fail (${rv.findings.length} findings); builder fixing`);
     const f = await fix('review', rv.detail, `fix review ${i + 1}`);
-    if (f.limited) { await handleLimit(f, s); cleanupWorktree(t.id); s.current = null; saveState(s); return 'limit'; }
+    if (f.limited) return stopForLimit(f);
     commitAll();
-    ck = check(wt);
+    ck = await check(wt, lane);
     if (!ck.pass) { setAside(s, t, 'check red after a review fix', ck.detail.slice(-3000), wt); return 'aside'; }
-    rv = await review(t, wt, s, i + 2);
+    rv = await review(t, wt, s, i + 2, lane);
   }
-  if (rv.limited) { await handleLimit(rv.r, s); cleanupWorktree(t.id); s.current = null; saveState(s); return 'limit'; }
+  if (rv.limited) return stopForLimit(rv.r);
   if (rv.verdict !== 'pass') { setAside(s, t, rv.verdict === 'fail' ? `review still failing after ${c.review_rounds} fix rounds` : 'reviewer error', rv.detail, wt, rv.blockedBy || []); return 'aside'; }
 
-  // develop moved while we worked? bring it in and re-check
-  if (!git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) {
+  // Oversight before the merge: every file the branch changed must be in its claim. A file it changed without a claim
+  // is claimed now if free; if another running ticket holds it, this ticket waits for that one to merge first, then
+  // takes in develop and re-checks below, so the two changes never land unchecked together.
+  const changed = git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
+  let d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT));
+  if (d.unclaimed.length) {
+    log(`DRIFT ${t.id}: changed ${d.unclaimed.length} file(s) outside its claim: ${d.unclaimed.slice(0, 8).join(', ')}`);
+    const free = d.unclaimed.filter((f) => !d.clashes.some((x) => x.file === f || (x.file.endsWith('/') && f.startsWith(x.file))));
+    if (free.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...free], sharedSet(ROOT)); });
+  }
+  const waitStart = Date.now();
+  while (d.clashes.length) {
+    const holders = [...new Set(d.clashes.map((x) => x.holder))];
+    if (Date.now() - waitStart > c.holder_wait_min * 60000) { setAside(s, t, `changed files held by ${holders.join(', ')} for over ${c.holder_wait_min} min`, JSON.stringify(d.clashes), wt); return 'aside'; }
+    if (Date.now() - waitStart < 1000) log(`${t.id} changed files ${d.clashes.map((x) => x.file).join(', ')} held by ${holders.join(', ')}; waits for them to finish before merging`);
+    await sleep(60000);
+    d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT));
+    if (!d.clashes.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...d.unclaimed], sharedSet(ROOT)); });
+  }
+
+  // Merge: develop must be an ancestor of the branch at the moment of the squash. Bringing develop in and re-checking
+  // takes time, during which another lane may merge; then the round repeats. The squash itself is synchronous, so no
+  // other lane can merge between the ancestor test and the commit.
+  for (let round = 0; ; round++) {
+    if (git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) break;
+    if (round >= c.merge_rounds) { setAside(s, t, `develop kept moving: ${c.merge_rounds} merge rounds`, '', wt); return 'aside'; }
     const m = git(['merge', '-q', '--no-edit', 'develop'], wt);
-    if (!m.ok) { git(['merge', '--abort'], wt); setAside(s, t, 'merge clash with develop', m.err || m.out, wt); return 'aside'; }
-    ck = check(wt);
+    if (!m.ok) {
+      const conflicted = git(['diff', '--name-only', '--diff-filter=U'], wt).out;
+      if (!conflicted) { git(['merge', '--abort'], wt); setAside(s, t, 'merge with develop failed', m.err || m.out, wt); return 'aside'; }
+      log(`${t.id} merge conflict with develop in ${conflicted.split('\n').join(', ')}; builder resolving`);
+      const f = await fix('merge', `${conflicted}\n\n${m.out}\n${m.err}`, `resolve merge ${round + 1}`);
+      if (f.limited) { git(['merge', '--abort'], wt); return stopForLimit(f); }
+      if (git(['diff', '--name-only', '--diff-filter=U'], wt).out || existsSync(path.join(wt, '.git')) && git(['rev-parse', '-q', '--verify', 'MERGE_HEAD'], wt).ok) {
+        git(['merge', '--abort'], wt); setAside(s, t, 'merge clash with develop not resolved', conflicted, wt); return 'aside';
+      }
+    }
+    commitAll();
+    ck = await check(wt, lane);
     if (!ck.pass) { setAside(s, t, 'check red after merging newer develop', ck.detail.slice(-3000), wt); return 'aside'; }
   }
 
@@ -404,11 +569,14 @@ async function doTicket(t, s, kind = 'ticket') {
   if (!cm.ok) { git(['reset', '--merge']); setAside(s, t, 'commit on develop failed', cm.err || cm.out, wt); return 'aside'; }
   const sha = git(['rev-parse', '--short', 'HEAD']).out;
   s.done.push(t.id);
-  s.merged.push({ id: t.id, title: t.title, commit: sha, ts: now(), kind });
-  s.current = null; s.red_streak = 0; s.push_pending = true;
+  s.merged.push({ id: t.id, title: t.title, commit: sha, ts: now(), kind, lane });
+  s.red_streak = 0; s.push_pending = true;
+  if (s.hold) delete s.hold[t.id];
+  endRun(s, t.id);
+  saveFootprint(t.id, null);
   saveState(s);
   cleanupWorktree(t.id);
-  log(`MERGED ${t.id} as ${sha}`);
+  log(`MERGED ${t.id} as ${sha} (lane ${lane})`);
   return 'merged';
 }
 
@@ -429,35 +597,103 @@ function writeTrialReport(s) {
   s.trial_report_written = true; saveState(s);
   log(`trial report written: ${path.relative(ROOT, P.report)}`);
 }
+// Runs only when no lane is building (main drains the lanes first), so the repair has develop to itself.
 async function guardDevelop(s) {
+  const lane = laneList()[0];
   log(`${s.red_streak} tickets in a row set aside on a red check; checking develop itself`);
   const id = 'DEVELOP-CHECK';
   cleanupWorktree(id);
   const wt = path.join(ROOT, '.claude/worktrees', id);
   git(['worktree', 'add', '-B', `t/${id}`, wt, 'develop']);
-  const ck = check(wt);
+  const ck = await check(wt, lane);
   cleanupWorktree(id);
   s.red_streak = 0; saveState(s);
   if (ck.pass) { log('develop is green; the red tickets were their own problem'); return; }
   log('develop is red; running one repair build');
   const t = { id: `EZD-REPAIR-${Date.now().toString(36)}`, title: 'Repair: develop fails the check', acs: [], prompt:
     `develop fails the full check (node scripts/check.mjs). Read CLAUDE.md, find the cause, fix it without weakening any test, run the full check until it passes, and commit with message "fix(develop): <what>".\n\n${ck.detail.slice(-8000)}` };
-  const res = await doTicket(t, s, 'repair');
+  beginRun(s, t, lane, []);
+  const res = await doTicket(t, s, lane, 'repair');
+  endRun(s, t.id); saveState(s);
   // Josh 2026-11-14: a red check never stops the loop. A failed repair is set aside (set-aside.md) and the loop goes on;
   // the next red streak runs another repair.
   if (res !== 'merged') log(`develop is red and repair ${t.id} failed; set aside, building continues`);
 }
 
+// ---------- lanes ----------
+// config `lanes`: the database lanes to build on (0-3), or a count n meaning lanes 0..n-1. One ticket per lane.
+function laneList(c = cfg()) {
+  const v = c.lanes ?? [0];
+  const list = Array.isArray(v) ? v.map(Number) : Array.from({ length: Math.max(1, Math.min(4, Number(v) || 1)) }, (_, i) => i);
+  return [...new Set(list.filter((n) => Number.isInteger(n) && n >= 0 && n <= 3))].sort();
+}
+// Takes the ticket's claim under the claims lock, checking again that no builder claimed one of its files since the
+// schedule was worked out. Returns false (and starts nothing) when one did.
+function beginRun(s, t, lane, files) {
+  const shared = sharedSet(ROOT);
+  const ok = withClaims(ROOT, (cl) => {
+    if (overlaps(files, cl, t.id, shared).length) return false;
+    cl[t.id] = { lane, files: impliedFiles(files, shared) };
+    return true;
+  });
+  if (!ok) return false;
+  s.running[t.id] = { lane, title: t.title, started: now(), develop: git(['rev-parse', '--short', 'develop']).out };
+  saveState(s);
+  return true;
+}
+function afterTicket(t, res) {
+  const s = loadState();
+  const mergedTickets = s.merged.filter((m) => m.kind === 'ticket').length;
+  if (res === 'merged' && mergedTickets % 5 === 0) {
+    const rows = readFileSync(P.usage, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
+    log(`usage after ${mergedTickets} merges:\n${summarize(rows).text}`);
+  }
+  const handled = mergedTickets + Object.keys(s.set_aside).length;
+  if (!s.trial_report_written && handled >= cfg().trial_size) writeTrialReport(s);
+  commitBuildFiles(`${t.id} ${res}`);
+  push(s);
+}
+
+// Footprints for the first few eligible tickets, one call at a time. Returns 'limit' when a call hit the usage limit.
+async function ensureFootprints(s, list) {
+  const c = cfg();
+  const fps = readFootprints();
+  for (const t of list.slice(0, c.footprint_lookahead)) {
+    if (fps[t.id]) continue;
+    if (s.sleep_until || existsSync(P.stop)) return 'stopped';
+    const r = await predictFootprint(t);
+    if (r.limited) { await handleLimit(r.r, s); return 'limit'; }
+    if (r.error) {
+      // The ticket cannot be scheduled safely beside others without a footprint; it waits until it can run alone.
+      log(`FOOTPRINT ${t.id} failed (${r.error.slice(0, 160)}); it will build only when no other lane is running`);
+      saveFootprint(t.id, { files: [], alone: true, ts: now() });
+    }
+    return 'one'; // one call per pass, so a lane that frees up meanwhile is filled promptly
+  }
+  return 'ok';
+}
+
 // ---------- main ----------
 async function main() {
-  log(`loop start (pid ${process.pid})`);
+  const s = loadState();
+  log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  // Recovery: anything still marked running was interrupted by a restart.
+  if (s.current) { s.running[s.current] = { lane: 0 }; delete s.current; }
+  for (const id of Object.keys(s.running)) { log(`recovering: ${id} was interrupted; starting it fresh`); cleanupWorktree(id); }
+  s.running = {};
+  withClaims(ROOT, (cl) => { for (const k of Object.keys(cl)) delete cl[k]; });
+  saveState(s);
+
+  const active = new Map(); // ticket id -> promise
   let lastNote = '';
   const note = (m) => { if (m !== lastNote) { log(m); lastNote = m; } };
+  const idle = (ms) => Promise.race([sleep(ms), ...active.values()]);
   for (;;) {
     const c = cfg();
-    const s = loadState();
-    if (existsSync(P.stop)) { note('STOP file present; waiting'); await sleep(60000); continue; }
-    if (existsSync(P.attention)) { note('ATTENTION.md present; waiting'); await sleep(10 * 60000); continue; }
+    adoptHandEdits(s);
+    const lanes = laneList(c);
+    if (existsSync(P.stop)) { note(`STOP file present; ${active.size ? `${active.size} running ticket(s) finish first` : 'waiting'}`); await idle(60000); continue; }
+    if (existsSync(P.attention)) { note('ATTENTION.md present; waiting'); await idle(10 * 60000); continue; }
     if (s.sleep_until && Date.parse(s.sleep_until) > Date.now()) {
       if (Date.parse(s.next_probe || 0) <= Date.now()) {
         const p = await limitCleared();
@@ -468,39 +704,89 @@ async function main() {
         if (p.limited) s.sleep_until = new Date(Date.now() + c.limit_sleep_minutes * 60000).toISOString();
         saveState(s);
       }
-      await sleep(Math.min(60000, Date.parse(s.sleep_until) - Date.now()));
+      await idle(Math.max(1000, Math.min(60000, Date.parse(s.sleep_until) - Date.now())));
       continue;
     }
-    if (s.current) { log(`recovering: ${s.current} was interrupted; starting it fresh`); cleanupWorktree(s.current); s.current = null; saveState(s); }
-    push(s);
-    if (s.red_streak >= c.red_streak_guard) { await guardDevelop(s); commitBuildFiles('develop guard'); push(s); continue; }
-    const t = pickNext(s);
-    if (!t) { note(gateNote(s) || `no eligible ticket; checking again every ${c.idle_minutes} min`); await sleep(c.idle_minutes * 60000); continue; }
-    lastNote = '';
-    const res = await doTicket(t, s);
-    const s2 = loadState();
-    const mergedTickets = s2.merged.filter((m) => m.kind === 'ticket').length;
-    if (res === 'merged' && mergedTickets % 5 === 0) {
-      const rows = readFileSync(P.usage, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
-      log(`usage after ${mergedTickets} merges:\n${summarize(rows).text}`);
+    if (s.sleep_until) { delete s.sleep_until; delete s.next_probe; saveState(s); }
+    if (!active.size) push(s);
+    if (s.red_streak >= c.red_streak_guard) {
+      if (active.size) { note(`red streak of ${s.red_streak}: no new starts until the ${active.size} running ticket(s) finish`); await idle(60000); continue; }
+      await guardDevelop(s); commitBuildFiles('develop guard'); push(s); continue;
     }
-    const handled = mergedTickets + Object.keys(s2.set_aside).length;
-    if (!s2.trial_report_written && handled >= c.trial_size) writeTrialReport(s2);
-    commitBuildFiles(`${t.id} ${res}`);
-    push(loadState());
+    const used = new Set(Object.values(s.running).map((r) => r.lane));
+    const free = lanes.filter((l) => !used.has(l));
+    // A ticket whose footprint could not be predicted runs only alone.
+    const alone = Object.keys(s.running).some((id) => readFootprints()[id]?.alone);
+    if (alone) { await idle(60000); continue; }
+    const list = eligible(s);
+    if (!free.length) {
+      // Every lane is busy: predict the next footprints now, so a lane that frees up starts without waiting for one.
+      if (list.length && (await ensureFootprints(s, list)) === 'one') continue;
+      await idle(60000); continue;
+    }
+    if (!list.length) {
+      if (!active.size) note(gateNote(s) || `no eligible ticket; checking again every ${c.idle_minutes} min`);
+      await idle(active.size ? 60000 : c.idle_minutes * 60000); continue;
+    }
+    const fpState = await ensureFootprints(s, list);
+    if (fpState === 'limit' || fpState === 'stopped') continue;
+    const fps = readFootprints();
+    const cands = list.filter((t) => fps[t.id] && !(fps[t.id].alone && active.size));
+    const { start, waiting } = schedule({ candidates: cands, footprints: fps, claims: readClaims(ROOT), free: free.length, shared: sharedSet(ROOT) });
+    for (const t of start) {
+      if (fps[t.id].alone && (active.size || start.length > 1)) continue;
+      const lane = free[0];
+      if (!beginRun(s, t, lane, fps[t.id].files)) continue;
+      free.shift();
+      lastNote = '';
+      const p = doTicket(t, s, lane)
+        .catch((e) => { log(`${t.id} crashed: ${e?.stack || e}`); try { setAside(s, t, 'loop error', String(e?.stack || e), path.join(ROOT, '.claude/worktrees', t.id)); } catch {} return 'aside'; })
+        .then((res) => { endRun(s, t.id); saveState(s); active.delete(t.id); try { afterTicket(t, res); } catch (e) { log(`after ${t.id}: ${e?.message || e}`); } });
+      active.set(t.id, p);
+      if (fps[t.id].alone) break;
+    }
+    if (!start.length && waiting.length) note(`lanes free: ${free.length}; next tickets wait on held files: ${waiting.slice(0, 3).map((w) => `${w.id} ${w.reason}`).join('; ')}`);
+    // Footprints still missing for the lookahead: go round again at once to predict the next one.
+    if (fpState === 'one') continue;
+    await idle(60000);
+  }
+}
+
+// Dry run: which tickets would build together on `--lanes N` lanes, using footprints already predicted.
+// `--footprints K` first predicts missing footprints for the next K tickets (claude calls, recorded in usage.jsonl).
+async function dryRun() {
+  const argv = process.argv;
+  const num = (flag, fb) => (argv.includes(flag) ? Number(argv[argv.indexOf(flag) + 1]) || fb : fb);
+  const n = num('--plan', 20);
+  const lanes = num('--lanes', laneList().length);
+  const predict = num('--footprints', 0);
+  const s = readJson(P.state, null) || { done: seedDone(), set_aside: {} };
+  s.running = {};
+  s.done = [...s.done];
+  if (predict) {
+    for (const t of eligible(s).slice(0, predict)) {
+      if (readFootprints()[t.id]) continue;
+      const r = await predictFootprint(t);
+      if (r.limited || r.error) { console.log(`footprint ${t.id}: ${r.limited ? 'usage limit' : r.error}`); break; }
+    }
+  }
+  const fps = readFootprints();
+  let shown = 0;
+  for (let wave = 1; shown < n; wave++) {
+    const list = eligible(s);
+    if (!list.length) { console.log(gateNote(s) || '(no more eligible tickets)'); break; }
+    const withFp = list.filter((t) => fps[t.id]);
+    const { start, waiting } = schedule({ candidates: withFp, footprints: fps, claims: {}, free: lanes, shared: sharedSet(ROOT) });
+    const run = start.length ? start : [list[0]];
+    console.log(`wave ${wave}:`);
+    for (const t of run) { console.log(`  ${t.id} · phase ${t.phase} · ${t.title.slice(0, 70)}${fps[t.id] ? ` · ${fps[t.id].files.length} files` : ' · no footprint yet (would be predicted first)'}`); shown++; }
+    for (const w of waiting.slice(0, 3)) console.log(`    waits: ${w.id} ${w.reason}`);
+    for (const t of run) s.done.push(t.id);
   }
 }
 
 if (process.argv.includes('--plan')) {
-  // Dry run: the order the loop would take the next N tickets in, assuming each merges. Writes nothing.
-  const n = Number(process.argv[process.argv.indexOf('--plan') + 1]) || 20;
-  const s = readJson(P.state, null) || { done: seedDone(), set_aside: {} };
-  for (let i = 0; i < n; i++) {
-    const t = pickNext(s);
-    if (!t) { console.log(gateNote(s) || '(no more eligible tickets)'); break; }
-    console.log(`${String(i + 1).padStart(2)}. ${t.id} · phase ${t.phase} · ${t.title.slice(0, 90)}`);
-    s.done.push(t.id);
-  }
+  dryRun().catch((e) => { console.error(e); process.exit(1); });
 } else {
   main().catch((e) => { log(`loop crashed: ${e?.stack || e}`); process.exit(1); });
 }
