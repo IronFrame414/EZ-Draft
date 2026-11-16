@@ -18,6 +18,7 @@ import { Icon } from '../../icon/Icon';
 import { AsyncView } from '../../states/AsyncView';
 import { Skeleton, SkeletonGroup } from '../../states/Skeleton';
 import { StateButton } from '../../states/StateButton';
+import { BenchmarkCard } from './BenchmarkCard';
 import { BackupsBody, DrillBody, JobFailuresBody, WebhookFailuresBody } from './StatusCards';
 import styles from './SystemStatus.module.css';
 
@@ -107,7 +108,9 @@ function Card({
   );
 }
 
-export function SystemStatusPanel() {
+// EZD-237 (S15i): `benchmark` adds the Benchmark card under Job failures; Run benchmark needs `canRun`
+// (Edit model). The page's Refresh reloads its history too.
+export function SystemStatusPanel({ benchmark }: { benchmark?: { canRun: boolean } } = {}) {
   const t = useT();
   const { tick } = useContext(RefreshContext);
   const [jobsPage, setJobsPage] = useState(1);
@@ -201,6 +204,11 @@ export function SystemStatusPanel() {
           {(d) => <JobFailuresBody data={d} onPage={setJobsPage} />}
         </AsyncView>
       </Card>
+      {benchmark === undefined ? null : (
+        <div className={styles.benchmark}>
+          <BenchmarkCard canRun={benchmark.canRun} tick={tick} />
+        </div>
+      )}
     </div>
   );
 }

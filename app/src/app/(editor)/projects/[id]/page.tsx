@@ -23,6 +23,8 @@ export default async function EditorPage({
   const { id } = await params;
   const query = searchParams === undefined ? undefined : await searchParams;
   const open = query?.conflicts === 'open' ? { conflictsOpen: true } : {};
+  // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run` plays the benchmark (the Benchmark card's frame).
+  const bench = query?.benchmark === 'run' ? { benchmark: true } : {};
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
@@ -30,6 +32,7 @@ export default async function EditorPage({
           projectId={id}
           devHooks={process.env.VERCEL_ENV !== 'production'}
           {...open}
+          {...bench}
         />
       </StateHost>
     </MessagesProvider>

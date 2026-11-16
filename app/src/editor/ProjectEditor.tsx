@@ -83,6 +83,7 @@ import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
+import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
 import type { Change } from './model/patches';
@@ -137,6 +138,8 @@ export type ProjectEditorProps = {
   openDeps?: OpenDeps;
   onSession?: (session: EditorSession | null) => void;
   conflictsOpen?: boolean;
+  // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run`, opened in the Benchmark card's frame.
+  benchmark?: boolean;
 };
 
 export type EditorTestHook = {
@@ -185,6 +188,7 @@ export function ProjectEditor({
   openDeps,
   onSession,
   conflictsOpen,
+  benchmark,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
@@ -608,6 +612,14 @@ export function ProjectEditor({
       {session !== null ? (
         <EmptyPlanHint store={session.store} canEdit={canEdit} floors={floors ?? undefined} />
       ) : null}
+      {benchmark === true && session !== null && drawing !== null ? (
+        <LazyBenchmarkRunner
+          plan={plan}
+          drawing={drawing}
+          store={session.store}
+          canEdit={canEdit}
+        />
+      ) : null}
       {session !== null && edit !== null && selection !== null && canEdit ? (
         <LazyEditMenus
           request={menu}
@@ -810,6 +822,14 @@ const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'))
 function LazyAssistantPanel(props: { session: AssistantSession; preview: PreviewStore | null }) {
   const mod = useLazy(assistantPanelModule);
   return mod ? <mod.AssistantPanel {...props} /> : null;
+}
+
+// EZD-237: the benchmark runner loads only with `?benchmark=run` (the Benchmark card's frame).
+const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'));
+
+function LazyBenchmarkRunner(props: BenchmarkRunnerProps) {
+  const mod = useLazy(benchmarkRunnerModule);
+  return mod ? <mod.BenchmarkRunner {...props} /> : null;
 }
 
 // Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.

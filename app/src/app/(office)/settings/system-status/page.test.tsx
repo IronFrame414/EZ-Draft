@@ -80,11 +80,36 @@ describe('EZD-135b system status page', () => {
       const end = html.indexOf('</section>', start);
       expect(count(html.slice(start, end), 'data-skeleton-group=""')).toBe(1);
     }
-    expect(count(html, 'data-skeleton=""')).toBe(12);
+    // EZD-237: the Benchmark card adds a fifth 3-line skeleton (its history loading).
+    expect(count(html, 'data-skeleton=""')).toBe(15);
   });
 
   it('U5 (c) context load failed returns null', async () => {
     ctx.mockResolvedValue('failed');
     expect(await Page()).toBeNull();
+  });
+});
+
+// EZD-237 (vault/plans/EZD-237.md D-Who; Q-0664 "Run benchmark needs System status and Edit model"; S15i: the
+// Benchmark card under Job failures, last in the iPad order): the card shows with System status; its Run button
+// only with Edit model too.
+describe('EZD-237 system status page: Benchmark card', () => {
+  it('EZD-237 the card with Run for System status and Edit model', async () => {
+    ctx.mockResolvedValue(ctxWith(['settings_system_status', 'edit_model']));
+    const html = await render();
+    expect(html).toContain('data-testid="benchmark-card"');
+    expect(html).toContain('data-testid="benchmark-run"');
+    expect(html.indexOf('data-testid="benchmark-card"')).toBeGreaterThan(
+      html.indexOf('data-testid="system-status-jobs"'),
+    );
+  });
+
+  it('EZD-237 the card without Run when Edit model is off; none without System status', async () => {
+    ctx.mockResolvedValue(ctxWith(['settings_system_status']));
+    const html = await render();
+    expect(html).toContain('data-testid="benchmark-card"');
+    expect(html).not.toContain('data-testid="benchmark-run"');
+    ctx.mockResolvedValue(ctxWith(['edit_model']));
+    expect(await render()).not.toContain('benchmark-card');
   });
 });

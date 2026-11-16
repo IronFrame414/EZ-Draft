@@ -38,6 +38,7 @@ export const CAP_LOCK_READ_ONLY: readonly ReadOnlyCounter[] = [
     fn: 'public.count_projects(text)',
     reason: 'Projects tab counts with search; stable (EZD-117b M3).',
   },
+  { fn: 'public.list_benchmark_runs(integer)', reason: 'Benchmark history total; stable (EZD-237).' },
 ];
 
 const WORD_START = /[A-Za-z_]/;

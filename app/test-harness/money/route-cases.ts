@@ -973,6 +973,38 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 201,
     note: 'EZD-236: makes the benchmark project; 201 { project: { id } } (no money)',
   },
+  // EZD-237 section 4 T24 (vault/plans/EZD-237.md): the benchmark run routes.
+  {
+    file: `${API}benchmark/runs/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/benchmark/runs/route'),
+    request: get('/api/benchmark/runs'),
+    expectStatus: 200,
+    note: 'EZD-237: benchmark runs (no money)',
+  },
+  {
+    file: `${API}benchmark/runs/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/benchmark/runs/route'),
+    request: sendJson('POST', '/api/benchmark/runs', {
+      device: {
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0) Chrome/131.0.0.0 Safari/537.36',
+        screen: { width: 1600, height: 1000 },
+        devicePixelRatio: 1,
+        hardwareConcurrency: 8,
+        maxTouchPoints: 0,
+      },
+      appVersion: 'dev-1730000000',
+      results: {
+        pan: { frames: 180, meanMs: 6, p95Ms: 12, maxMs: 40, over100: 0 },
+        zoom: { frames: 180, meanMs: 6, p95Ms: 12, maxMs: 40, over100: 0 },
+        drag: { frames: 180, meanMs: 6, p95Ms: 12, maxMs: 40, over100: 0 },
+        memory: null,
+      },
+    }),
+    expectStatus: 201,
+    note: 'EZD-237: benchmark runs (no money)',
+  },
   // EZD-299a section 4 T18 (vault/plans/EZD-299a.md): the sync conflict routes.
   {
     file: `${API}sync-conflicts/route.ts`,

@@ -1,0 +1,10 @@
+/* EZD-237 (vault/plans/EZD-237.md Decided D-Cover): while the benchmark plays, a clear cover over the canvas
+   region takes the pointer so input cannot disturb the run. No new color. */
+
+.cover {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  cursor: progress;
+}

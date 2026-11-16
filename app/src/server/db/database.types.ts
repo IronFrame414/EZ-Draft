@@ -111,6 +111,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"benchmark_run": {
+                  Row: {
+                    "app_version": string,"created_by": string | null,"device": NonNullable<Json>,"id": string,"results": NonNullable<Json>,"run_at": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_version": string,"created_by"?: string | null,"device": NonNullable<Json>,"id"?: string,"results": NonNullable<Json>,"run_at"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_version"?: string,"created_by"?: string | null,"device"?: NonNullable<Json>,"id"?: string,"results"?: NonNullable<Json>,"run_at"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "benchmark_run_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "benchmark_run_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customer": {
                   Row: {
                     "address": string | null,"archived_at": string | null,"created_at": string,"email": string,"id": string,"name": string,"phone": string | null,"tenant_id": string,"updated_at": string
@@ -886,6 +912,9 @@ isOneToOne: false
               "accepted_membership_id": string,"accepted_tenant_id": string,"app_user_id": string,"has_access": boolean
             }[]
                            },
+"list_benchmark_runs":
+{ Args: { "p_page": number }; Returns: Json
+                           },
 "list_customers":
 { Args: { "p_archived": boolean,"p_page": number,"p_search": string }; Returns: Json
                            },
@@ -932,6 +961,9 @@ isOneToOne: false
                            },
 "record_ai_usage":
 { Args: { "p_cost_usd": number,"p_model": string }; Returns: undefined
+                           },
+"record_benchmark_run":
+{ Args: { "p_app_version": string,"p_device": Json,"p_results": Json }; Returns: string
                            },
 "record_error_alert":
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {

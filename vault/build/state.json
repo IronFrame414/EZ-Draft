@@ -352,7 +352,8 @@
     "EZD-116",
     "EZD-5605",
     "EZD-214",
-    "EZD-218"
+    "EZD-218",
+    "EZD-6001"
   ],
   "seeded_done": 324,
   "merged": [
@@ -551,6 +552,13 @@
       "commit": "b41827e3",
       "ts": "2026-11-16T10:30:34Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-6001",
+      "title": "Floor switcher and floor tools",
+      "commit": "7a426a32",
+      "ts": "2026-11-16T12:43:18Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
@@ -563,14 +571,17 @@
     "EZD-105": 1,
     "EZD-105b": 1,
     "EZD-421": 1,
-    "EZD-116": 1
+    "EZD-116": 1,
+    "EZD-216": 1
   },
   "retry_log": {
     "EZD-116": {
       "ts": "2026-11-13T15:54:00Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-216": {
+      "ts": "2026-11-16T15:45:37Z",
+      "reason": "check red after a review fix"
     }
-  },
-  "sleep_until": "2026-11-16T11:05:20.068Z",
-  "next_probe": "2026-11-16T10:40:20.068Z"
+  }
 }

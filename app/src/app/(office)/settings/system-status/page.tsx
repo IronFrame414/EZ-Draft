@@ -1,5 +1,7 @@
 // EZD-135b Build step 6 (vault/plans/EZD-135b.md Decided "Who may open the page"; AC-EZD-135-1; Q-0225): Settings > System status.
 // This static folder takes precedence over [section].
+// EZD-237 (vault/plans/EZD-237.md D-Who; Q-0664): the Benchmark card for everyone with System status; its Run
+// button only with Edit model too.
 import { connection } from 'next/server';
 import { SettingsMain } from '../../../../components/settings/SettingsShell';
 import {
@@ -33,7 +35,7 @@ export default async function Page() {
         subtitle="office.system_status.subtitle"
         actions={<SystemStatusRefresh />}
       >
-        <SystemStatusPanel />
+        <SystemStatusPanel benchmark={{ canRun: can(ctx, 'edit_model') }} />
       </SettingsMain>
     </SystemStatusProvider>
   );
