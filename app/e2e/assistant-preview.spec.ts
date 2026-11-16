@@ -152,8 +152,9 @@ test.describe('EZD-5604b assistant preview', () => {
     expect(stroke).toBe(await probe(page, 'color: var(--ez-cobalt)'));
     await expect(id(page, 'preview-chip')).toHaveCount(1);
     await expect(id(page, 'preview-chip')).toHaveText('Door 1 · 3\' 0"');
-    await expect(id(page, 'assistant-accept')).toBeDisabled();
-    await expect(id(page, 'assistant-adjust')).toBeDisabled();
+    // EZD-5605 passes the Accept and Adjust handlers.
+    await expect(id(page, 'assistant-accept')).toBeEnabled();
+    await expect(id(page, 'assistant-adjust')).toBeEnabled();
     await expect(id(page, 'assistant-reject')).toBeEnabled();
     await expect(id(page, 'assistant-prompt')).toBeDisabled();
     let objs = await objects(page);

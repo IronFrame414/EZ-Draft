@@ -106,6 +106,8 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'model_object', id: e.payload.roomId }),
   },
+  // EZD-5605 (S03c "Accepted changes are marked as AI in the event log"): written under the saving member.
+  'model.ai_change_accepted': SINK,
   'catalog_item.created': SINK,
   'detail.placed': SINK,
   // Written by link_app_user and accept_invite in the acceptance transaction.

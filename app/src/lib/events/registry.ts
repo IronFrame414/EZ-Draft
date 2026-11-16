@@ -55,6 +55,9 @@ export const EVENTS = {
   'version.reverted': { kind: 'internal' },
   'cleanup.deleted': { kind: 'internal' },
   'room.closure_overridden': { kind: 'internal' },
+  // EZD-5605 (Q-0638 gap 11; S03c "Accepted changes are marked as AI in the event log"): an Assistant change the
+  // user accepted, saved through the objects route; ids and count only, never prompt or reply text.
+  'model.ai_change_accepted': { kind: 'internal' },
   // Canonical names: screen events that write the event log only (07 Hooks)
   'catalog_item.created': { kind: 'log_only' },
   'detail.placed': { kind: 'log_only' },
@@ -156,6 +159,7 @@ export interface EventPayloads {
   'version.reverted': Record<string, unknown>;
   'cleanup.deleted': Record<string, unknown>;
   'room.closure_overridden': { roomId: string; gapIn: number; userId: string };
+  'model.ai_change_accepted': { objectIds: string[]; count: number };
   'catalog_item.created': Record<string, unknown>;
   'detail.placed': Record<string, unknown>;
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };

@@ -146,6 +146,7 @@ function fakeSync(kept = false) {
   const sync: OutboxSync = {
     ...store,
     keepMine: vi.fn(async () => ({ kept })),
+    sendNow: vi.fn(async () => ({ kind: 'unsaved' as const })),
     enqueue: vi.fn(async () => {}),
     flush: vi.fn(async () => {}),
     retry: vi.fn(),

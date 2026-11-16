@@ -1213,6 +1213,11 @@ export const en = {
   'office.assistant.preview_stale':
     "The drawing changed after this preview was made, so it can't be accepted.",
   'office.assistant.preview_stale_action': 'Put the prompt back',
+  // EZD-5605 (S03c approved wording "Adjust hint", "After the buttons"; section 6 proposed toast).
+  'office.assistant.adjust_hint': 'Adjust: edit the preview by hand, then Accept.',
+  'office.assistant.undo_hint': 'Accepted changes can be undone.',
+  'office.assistant.accept_too_many':
+    "This change touches more than 100 objects, so it wasn't saved. Undo some adjustments, then Accept again.",
   'office.selection.bar': 'Edit',
   'office.selection.select_more': 'Select more',
   'office.selection.select_all': 'Select all',

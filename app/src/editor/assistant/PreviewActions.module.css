@@ -41,3 +41,10 @@
   opacity: 0.55;
   cursor: default;
 }
+
+/* EZD-5605 D-Hint (board S03c line 157): the hint after the buttons. */
+.hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ez-slate-500);
+}

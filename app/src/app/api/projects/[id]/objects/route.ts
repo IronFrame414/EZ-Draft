@@ -10,6 +10,8 @@
 // EZD-299a Build step 9 (vault/plans/EZD-299a.md Decided D-Order, D-Resolves; Q-0626): after the body is parsed, a
 // save from an older app build is 409 `app_outdated` with the server's build in `x-ezdraft-app-build`; a save
 // naming `resolves` answers which recorded refused changes it removed.
+// EZD-5605 (vault/plans/EZD-5605.md D-Marker): a save with `assistant: true` also emits `model.ai_change_accepted`
+// after `model.saved`.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { errorType } from '../../../../../server/errors/fingerprint';
@@ -32,6 +34,7 @@ const headers = { 'Cache-Control': 'no-store' };
 const ROUTE = '/api/projects/[id]/objects';
 const EMIT_FAILED = 'model_saved_event_failed';
 const CLOSURE_EMIT_FAILED = 'room_closure_overridden_event_failed';
+const AI_EMIT_FAILED = 'model_ai_change_accepted_event_failed';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -118,6 +121,28 @@ export async function POST(
         });
       } catch {
         /* reportError never throws; guarded as route-failure.ts does */
+      }
+    }
+
+    // EZD-5605 (Q-0638 gap 11; AC-EZD-5605-2): a saved Assistant change is marked as AI in the event log, with the
+    // request's ids (removes included) and no prompt or reply text; a failed emit does not fail the save.
+    if (req.assistant === true) {
+      try {
+        await emit(
+          'model.ai_change_accepted',
+          { objectIds: req.changes.map((c) => c.id), count: req.changes.length },
+          { tenantId: result.tenantId, projectId: id, actorId: p.session.appUserId },
+        );
+      } catch (e) {
+        try {
+          await reportError(new Error(AI_EMIT_FAILED), {
+            source: 'function',
+            location: ROUTE,
+            tags: { 'ezd.cause': errorType(e) },
+          });
+        } catch {
+          /* reportError never throws; guarded as route-failure.ts does */
+        }
       }
     }
 

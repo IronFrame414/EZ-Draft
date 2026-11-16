@@ -348,7 +348,8 @@
     "EZD-105b",
     "EZD-398",
     "EZD-5604a",
-    "EZD-5604b"
+    "EZD-5604b",
+    "EZD-116"
   ],
   "seeded_done": 324,
   "merged": [
@@ -519,6 +520,13 @@
       "commit": "c5bb4c64",
       "ts": "2026-11-15T06:21:41Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-116",
+      "title": "Defaults framework",
+      "commit": "3017592e",
+      "ts": "2026-11-15T19:16:44Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
@@ -539,6 +547,6 @@
       "reason": "check red after a review fix"
     }
   },
-  "sleep_until": "2026-11-15T16:05:54.422Z",
-  "next_probe": "2026-11-15T15:40:54.422Z"
+  "sleep_until": "2026-11-15T20:11:39.133Z",
+  "next_probe": "2026-11-15T19:46:39.133Z"
 }

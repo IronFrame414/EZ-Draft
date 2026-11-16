@@ -22,6 +22,7 @@ import {
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import type { ModelStore } from '../model/model-store';
 import type { PreviewStore } from './preview-store';
+import { createAssistantControls, type AssistantControls } from './controls';
 import type { createPhotoWorkerShrinker, PhotoPrepareResult, PhotoShrinker } from './photo-prepare';
 
 // EZD-233 (11 Budgets editor route): the photo check and shrink load when a photo is first attached; a failed
@@ -51,7 +52,8 @@ const postAssistantPrompt: typeof import('./assistant-client').postAssistantProm
 // S1
 export type AssistantSessionDeps = {
   projectId: string;
-  sync: Pick<OutboxSync, 'flush' | 'getState'>;
+  // EZD-5605: `sendNow` for Accept; without it no Adjust or Accept is made.
+  sync: Pick<OutboxSync, 'flush' | 'getState'> & Partial<Pick<OutboxSync, 'sendNow'>>;
   getFloorId: () => string | null;
   getSelectedIds: () => readonly string[];
   fetchImpl?: typeof fetch;
@@ -68,6 +70,11 @@ export type AssistantSessionDeps = {
 export type AssistantPreviewLink = {
   model: ModelStore;
   newId(): string;
+  // EZD-5605 D-Wire: what Adjust and Accept need; they are made with the preview store.
+  adjust?: Omit<
+    Parameters<typeof createAssistantControls>[0],
+    'projectId' | 'model' | 'previews' | 'sync'
+  >;
 };
 
 // S2
@@ -87,6 +94,8 @@ export type AssistantSession = {
   removePhoto(): void;
   // EZD-5604b: the one preview store, null until the first reply with changes.
   getPreview(): PreviewStore | null;
+  // EZD-5605: Adjust and Accept for that store, null until it is made.
+  getControls(): AssistantControls | null;
   dispose(): void;
 };
 
@@ -123,6 +132,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
   };
   let workerShrinker: ReturnType<typeof createPhotoWorkerShrinker> | null = null;
   let preview: PreviewStore | null = null;
+  let controls: AssistantControls | null = null;
   const shrinkPhoto: PhotoShrinker = (file, kind) => {
     if (deps.shrinkPhoto) return deps.shrinkPhoto(file, kind);
     const mod = photoPrepareModule.peek();
@@ -277,7 +287,23 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
       const shown = applied !== null && applied.ok && applied.changes.length > 0 ? applied : null;
       // Made before the entry is stored, so the listeners that hear the entry also find the store.
       if (shown !== null && link !== undefined && client !== undefined) {
-        preview ??= client.createPreviewStore({ store: link.model });
+        if (preview === null) {
+          preview = client.createPreviewStore({ store: link.model });
+          const sendNow = deps.sync.sendNow;
+          if (link.adjust !== undefined && sendNow !== undefined) {
+            controls = createAssistantControls({
+              ...link.adjust,
+              sync: { sendNow },
+              projectId: deps.projectId,
+              model: link.model,
+              previews: preview,
+            });
+            // The editor greys its rail while adjusting: Adjust starting or ending is told to the listeners.
+            controls.adjust.subscribe(() => {
+              for (const listener of [...listeners]) listener();
+            });
+          }
+        }
       }
       const entry: AssistantEntry = {
         kind: 'reply',
@@ -343,6 +369,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     attachPhoto,
     removePhoto,
     getPreview: () => preview,
+    getControls: () => controls,
     openProfile() {
       if (disposed) return;
       set({ profileOpen: true });
@@ -362,6 +389,8 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
       blobs.clear();
       workerShrinker?.dispose();
       workerShrinker = null;
+      controls?.accept.dispose();
+      controls?.adjust.dispose();
       preview?.dispose();
     },
   };

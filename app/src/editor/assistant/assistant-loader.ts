@@ -4,12 +4,14 @@
 // `getPreview`. A failed download changes nothing; the next press tries again. No React.
 import type { AssistantSession, AssistantSessionDeps } from './assistant-session';
 import type { PreviewStore } from './preview-store';
+import type { AssistantControls } from './controls';
 
 export type AssistantLoader = {
   subscribe(listener: () => void): () => void;
   isOpen(): boolean;
   getSession(): AssistantSession | null;
   getPreview(): PreviewStore | null;
+  getControls(): AssistantControls | null;
   toggle(): void;
   dispose(): void;
 };
@@ -40,6 +42,7 @@ export function createAssistantLoader(
     isOpen: () => session?.getUi().open ?? false,
     getSession: () => session,
     getPreview: () => session?.getPreview() ?? null,
+    getControls: () => session?.getControls() ?? null,
     toggle() {
       if (disposed) return;
       if (session !== null) {

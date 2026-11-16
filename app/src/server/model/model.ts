@@ -47,7 +47,13 @@ export type ObjectChange =
 
 // EZD-299a Build step 7 (vault/plans/EZD-299a.md Decided D-Resolves): `resolves` names the caller's recorded
 // refused changes this save settles; the save then answers which of them it removed.
-export type SaveRequest = { lockEpoch: number; changes: ObjectChange[]; resolves?: string[] };
+// EZD-5605 (Q-0638 gap 11): `assistant: true` marks a save of an accepted Assistant change; only the literal true.
+export type SaveRequest = {
+  lockEpoch: number;
+  changes: ObjectChange[];
+  resolves?: string[];
+  assistant?: true;
+};
 
 export type SaveResult =
   | {
@@ -92,6 +98,7 @@ const requestSchema = z.strictObject({
   lockEpoch: z.number().int().min(0),
   changes: z.array(changeSchema).min(1),
   resolves: z.array(z.uuid()).min(1).optional(),
+  assistant: z.literal(true).optional(),
 });
 
 export function parseSaveRequest(body: unknown): SaveRequest | null {

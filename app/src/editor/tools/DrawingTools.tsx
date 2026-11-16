@@ -78,7 +78,7 @@ function LazyUtilitiesToMove(props: UtilitiesToMoveProps) {
 export type DrawingRailProps = {
   drawing: DrawingController | null;
   selection: SelectionController | null;
-  rail: { tools: readonly RailTool[]; disabled: boolean };
+  rail: { tools: readonly RailTool[]; disabled: boolean; only?: string };
   assistant?: { open: boolean; onToggle: () => void } | null;
 };
 
@@ -100,6 +100,7 @@ export function DrawingRail({ drawing, selection, rail, assistant }: DrawingRail
         else drawing?.selectTool(id as DrawingToolId);
       }}
       disabled={rail.disabled}
+      only={rail.only}
     />
   );
 }

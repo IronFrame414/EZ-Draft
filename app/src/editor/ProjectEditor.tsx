@@ -63,6 +63,7 @@ import type { MessageKey } from '../server/messages/catalog';
 import type { AssistantSession } from './assistant/assistant-session';
 import { createAssistantLoader, type AssistantLoader } from './assistant/assistant-loader';
 import type { PreviewStore } from './assistant/preview-store';
+import { createRoutedStore } from './model/routed-store';
 import { newObjectId } from './tools/model-changes';
 import { assistantShown } from './assistant/assistant-ui';
 import {
@@ -150,6 +151,7 @@ type CanvasState =
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
+
 const noop = () => {};
 const noSubscribe = () => noop;
 
@@ -200,15 +202,20 @@ export function ProjectEditor({
           canEdit: result.session.model.viewer.canEdit,
           save: (s) => savePlanScale(projectId, s),
         });
+        // EZD-5605 D-Who gets which store: the canvas and the editing controllers use the routed store, which is
+        // the model store except while an Assistant preview is adjusted.
+        const routed = createRoutedStore(result.session.store);
+        // The Assistant loader is made after the controllers, which read Adjust through it.
+        let assistant: AssistantLoader | null = null;
         const plan = createPlanController(
-          { store: result.session.store, scale: scale.get() },
+          { store: routed, scale: scale.get() },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
         const slots = shareReceiver(plan.handle.setPointerReceiver);
         const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
         const drawing = createDrawingController({
           handle: { ...plan.handle, setPointerReceiver: slots.drawing },
-          store: result.session.store,
+          store: routed,
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
           snapSettings: () => deviceSnapSettings.get(),
@@ -216,14 +223,14 @@ export function ProjectEditor({
         });
         const selection = createSelectionController({
           handle: plan.handle,
-          store: result.session.store,
+          store: routed,
           drawing,
           setReceiver: slots.selection,
           claim: drawing.claimSelectPointer,
         });
         drawing.attachSelection(selection);
         const edit = createEditController({
-          store: result.session.store,
+          store: routed,
           selection,
           drawing,
           handle: plan.handle,
@@ -231,7 +238,7 @@ export function ProjectEditor({
         });
         // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
         const sync = result.session.sync;
-        const assistant =
+        assistant =
           sync === null
             ? null
             : createAssistantLoader(
@@ -241,7 +248,17 @@ export function ProjectEditor({
                   getFloorId: () => openFloorId(result.session.store.getState().objects),
                   getSelectedIds: () => selection.getUi().ids,
                   // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
-                  preview: { model: result.session.store, newId: newObjectId },
+                  preview: {
+                    model: result.session.store,
+                    newId: newObjectId,
+                    adjust: {
+                      routed,
+                      selection,
+                      drawing,
+                      lockEpoch: result.session.model.lockEpoch,
+                      onMessage: (key) => messageRef.current(key),
+                    },
+                  },
                 },
                 // EZD-5604b: the session loads with the panel's lazy module on the first press.
                 () => assistantPanelModule.load(),
@@ -308,6 +325,15 @@ export function ProjectEditor({
     readAssistantOpen,
   );
   const sync = session?.sync ?? null;
+
+  // EZD-5605 D-Wire: Adjust is made by the Assistant session, which tells its listeners when Adjust starts or ends.
+  const readAdjusting = () => assistant?.getControls()?.adjust.getUi().adjusting ?? false;
+  const adjusting = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readAdjusting,
+    readAdjusting,
+  );
+
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
   // D-Editor: each time the list opens (and at start with `conflictsOpen`), the list is read again.
@@ -348,6 +374,8 @@ export function ProjectEditor({
     if (!menuCanEdit) return;
     return plan.handle.onContextMenu((screen, client) => {
       if (drawing.getUi().tool !== null) return false;
+      // EZD-5605 (vault/build/assumptions.md): no edit menu while an Assistant preview is adjusted.
+      if (adjusting) return true;
       const hit = selection.pickAt(plan.handle.screenToModel(screen))[0];
       if (hit !== undefined) {
         const lower = hit.toLowerCase();
@@ -357,7 +385,7 @@ export function ProjectEditor({
       setMenu({ kind: 'canvas', at: client });
       return true;
     });
-  }, [plan, selection, drawing, session, menuCanEdit]);
+  }, [plan, selection, drawing, session, menuCanEdit, adjusting]);
 
   useEffect(() => {
     if (selection === null || plan === null || !devHooks) return;
@@ -451,7 +479,7 @@ export function ProjectEditor({
     body = (
       <>
         {showPlan && coarse && selection !== null ? (
-          <LazyEditBar selection={selection} edit={edit} />
+          <LazyEditBar selection={selection} edit={edit} clipboardOff={adjusting} />
         ) : null}
         {sync !== null ? (
           <>
@@ -493,7 +521,8 @@ export function ProjectEditor({
       <DrawingRail
         drawing={drawing}
         selection={selection}
-        rail={spec}
+        // EZD-5605 D-Tools off (Q-0641 row 56-4): during Adjust every rail tool but Select is off, Assistant too.
+        rail={adjusting ? { ...spec, only: 'select' } : spec}
         assistant={shown !== null ? { open: assistantOpen, onToggle: shown.toggle } : null}
       />
     );

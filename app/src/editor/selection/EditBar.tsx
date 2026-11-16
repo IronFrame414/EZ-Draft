@@ -2,6 +2,7 @@
 // EZD-208b Build step 5 (vault/plans/EZD-208b.md section 3 C1-C3; DB2, DB4, DB8-DB10; S03dStates, S03dTablet; Q-0633
 // G9, G13): the tablet edit bar (Select more, Select all). EZD-217 Build step 7 (vault/plans/EZD-217.md section 3 B1,
 // B2; Decided "Bar", "Bar actions"): editors get Undo, Redo, Delete, Duplicate, Copy and Paste on the bar.
+// EZD-5605 (D-Tools off; AC-EZD-5605-8): Duplicate, Copy and Paste are greyed while an Assistant preview is adjusted.
 // EZD-233 (11 Budgets editor route): moved out of SelectionLayer.tsx so the editor loads it lazily, on touch screens only.
 import { useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
@@ -12,7 +13,12 @@ import type { EditController, EditUi } from '../edit/edit-controller';
 import type { SelectionController } from './selection-controller';
 import styles from './SelectionLayer.module.css';
 
-export type EditBarProps = { selection: SelectionController; edit?: EditController | null };
+// EZD-5605: `clipboardOff` while an Assistant preview is adjusted.
+export type EditBarProps = {
+  selection: SelectionController;
+  edit?: EditController | null;
+  clipboardOff?: boolean;
+};
 
 const NO_UI: EditUi = Object.freeze({
   canEdit: false,
@@ -24,7 +30,11 @@ const NO_UI: EditUi = Object.freeze({
 const noUi = () => NO_UI;
 const noSub = () => () => {};
 
-export function EditBar({ selection, edit = null }: EditBarProps): ReactElement {
+export function EditBar({
+  selection,
+  edit = null,
+  clipboardOff = false,
+}: EditBarProps): ReactElement {
   const t = useT();
   const selectMore = useSyncExternalStore(
     selection.subscribe,
@@ -75,7 +85,7 @@ export function EditBar({ selection, edit = null }: EditBarProps): ReactElement 
               'duplicate',
               'content_copy',
               'office.selection.duplicate',
-              ui.hasSelection,
+              ui.hasSelection && !clipboardOff,
               () => edit.duplicate('center'),
             )}
             {separator}
@@ -103,11 +113,19 @@ export function EditBar({ selection, edit = null }: EditBarProps): ReactElement 
         {ui.canEdit && edit !== null ? (
           <>
             {separator}
-            {command('copy', 'content_paste_go', 'office.selection.copy', ui.hasSelection, () =>
-              edit.copy(),
+            {command(
+              'copy',
+              'content_paste_go',
+              'office.selection.copy',
+              ui.hasSelection && !clipboardOff,
+              () => edit.copy(),
             )}
-            {command('paste', 'content_paste', 'office.selection.paste', ui.hasClip, () =>
-              edit.paste('center'),
+            {command(
+              'paste',
+              'content_paste',
+              'office.selection.paste',
+              ui.hasClip && !clipboardOff,
+              () => edit.paste('center'),
             )}
           </>
         ) : null}

@@ -34,7 +34,7 @@ import {
 } from './assistant-ui';
 import { PhotoButton, PhotoNote, PhotoProblemBox, PhotoThumb } from './AssistantPhoto';
 import { ModelPicker } from './ModelPicker';
-import { PreviewActions } from './PreviewActions';
+import { PreviewActions, PreviewHint } from './PreviewActions';
 import { EMPTY_PREVIEW_STATE, type PreviewState, type PreviewStore } from './preview-store';
 import actionStyles from './PreviewActions.module.css';
 import styles from './AssistantPanel.module.css';
@@ -90,6 +90,20 @@ export function AssistantPanel({
   preview?: PreviewStore | null;
 }) {
   const ui = useSyncExternalStore(session.subscribe, session.getUi, session.getUi);
+  // EZD-5605: Adjust and Accept for the preview, made by the session with it.
+  const controls = session.getControls();
+  const readAdjusting = () => controls?.adjust.getUi().adjusting ?? false;
+  const adjusting = useSyncExternalStore(
+    controls ? controls.adjust.subscribe : noSubscribe,
+    readAdjusting,
+    readAdjusting,
+  );
+  const readBusy = () => controls?.accept.getUi().busy ?? false;
+  const busy = useSyncExternalStore(
+    controls ? controls.accept.subscribe : noSubscribe,
+    readBusy,
+    readBusy,
+  );
   const previewState = useSyncExternalStore(
     preview ? preview.subscribe : noSubscribe,
     preview ? preview.getState : emptyPreview,
@@ -106,6 +120,15 @@ export function AssistantPanel({
                 state: previewState,
                 onReject: () => preview.reject(),
                 onStaleAction: () => putPromptBack(session, preview),
+                actions:
+                  controls === null
+                    ? undefined
+                    : {
+                        onAccept: () => void controls.accept.accept(),
+                        onAdjust: () => void controls.adjust.start(),
+                        adjusting,
+                        busy,
+                      },
               }
         }
         onClose={() => session.setOpen(false)}
@@ -141,7 +164,7 @@ export type PanelPreview = {
   state: PreviewState;
   onReject(): void;
   onStaleAction(): void;
-  actions?: { onAccept?: () => void; onAdjust?: () => void };
+  actions?: { onAccept?: () => void; onAdjust?: () => void; adjusting?: boolean; busy?: boolean };
 };
 
 function ErrorBox({ testId, children }: { testId: string; children: ReactNode }) {
@@ -194,7 +217,12 @@ function ReplyPreview({
       </ErrorBox>
     );
   }
-  return <PreviewActions onReject={preview.onReject} {...preview.actions} />;
+  return (
+    <>
+      <PreviewActions onReject={preview.onReject} {...preview.actions} />
+      <PreviewHint />
+    </>
+  );
 }
 
 function Entry({

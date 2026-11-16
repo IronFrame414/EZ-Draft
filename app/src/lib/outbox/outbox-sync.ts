@@ -5,6 +5,10 @@
 // the browser's tabs.
 // EZD-294 Build step 10 (vault/plans/EZD-294.md section 3 createOutboxSync row; Q-0629 (b)): each saved answer is
 // handed to `onSaved` before it is written to the device storage.
+// EZD-5605 (vault/plans/EZD-5605.md D-SendNow; Q-0638 gap 10; AC-EZD-5605-5, -7): `sendNow` saves an accepted
+// Assistant change all or nothing: it drains the outbox first, then sends the change as one batch of at most
+// MAX_CHANGES_PER_SAVE marked `assistant: true`, and waits for the answer. A refusal or failure drops it from the
+// device again, moves nothing to the conflict list and leaves the drains as they were.
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Change } from '../../editor/model/patches';
 import { APP_BUILD_HEADER, appBuild } from '../app-version';
@@ -46,12 +50,42 @@ export type SyncState = {
   conflictRev: number;
 };
 
+// EZD-5605 D-SendNow: `unsaved` means nothing was sent (offline, blocked, outbox not drained, no lock, storage);
+// `cancelled` means `stillValid` turned false before the send.
+export type SendNowOutcome = SaveOutcome | { kind: 'unsaved' } | { kind: 'cancelled' };
+
+export type SendNowOptions = { assistant: true; stillValid: () => boolean };
+
+// EZD-5605: what send-now.ts needs from inside the sync.
+export type SendNowContext = {
+  storage: OutboxStorage;
+  // The drain's loop and conflict record, as one lock run does.
+  drainNow(): Promise<void>;
+  // Disposed, blocked by a refusal or storage failure, or offline.
+  stopped(): boolean;
+  store: StoreApi<SyncState>;
+  storageFailed(error: unknown): Promise<void>;
+  send(batch: Batch, resolves: string[], extra?: { assistant: true }): Promise<SaveOutcome>;
+  onSaved?: (projectId: string, saved: SavedObject[]) => void;
+  unstored: PendingWrite[];
+  // Stops the debounce timer and waits for a drain under way.
+  settle(): Promise<void>;
+  // Runs `fn` under the tab lock as the one drain, then drains.
+  exclusive<T>(fn: () => Promise<T>): Promise<{ ran: true; value: T } | { ran: false }>;
+};
+
 export type OutboxSync = StoreApi<SyncState> & {
   enqueue(projectId: string, lockEpoch: number, changes: Change[]): Promise<void>;
   flush(): Promise<void>;
   retry(): void;
   // EZD-299b Decided D-KeepMine (sync): the row's change goes back in the outbox at this base.
   keepMine(row: DeviceConflict, baseSeq: number): Promise<{ kept: boolean }>;
+  sendNow(
+    projectId: string,
+    lockEpoch: number,
+    changes: Change[],
+    o: SendNowOptions,
+  ): Promise<SendNowOutcome>;
   dispose(): void;
 };
 
@@ -60,6 +94,7 @@ const RETRY_DELAYS_MS = [2000, 4000, 8000, 16000, 30000];
 // Decided "Drain": a lock held by another tab is tried again after this wait.
 const LOCK_BUSY_RETRY_MS = 2000;
 const DEFAULT_DEBOUNCE_MS = 2000;
+export const UNSAVED: { readonly kind: 'unsaved' } = { kind: 'unsaved' };
 
 // Decided "webTabLock": the Web Locks API with ifAvailable; without it (an old browser) the drain just runs.
 export function webTabLock(): TabLock {
@@ -88,7 +123,7 @@ function toRequestChange(e: OutboxEntry) {
       };
 }
 
-type PendingWrite =
+export type PendingWrite =
   | { projectId: string; lockEpoch: number; changes: Change[]; now: number }
   | { projectId: string; sent: OutboxEntry[]; saved: SavedObject[] };
 
@@ -184,7 +219,11 @@ export function createOutboxSync(o: {
 
   const bumpConflicts = () => set({ conflictRev: store.getState().conflictRev + 1 });
 
-  const send = async (batch: Batch, resolves: string[]): Promise<SaveOutcome> => {
+  const send = async (
+    batch: Batch,
+    resolves: string[],
+    extra?: { assistant: true },
+  ): Promise<SaveOutcome> => {
     try {
       const res = await fetchImpl(`/api/projects/${encodeURIComponent(batch.projectId)}/objects`, {
         method: 'POST',
@@ -195,11 +234,12 @@ export function createOutboxSync(o: {
           [APP_BUILD_HEADER]: String(appBuild()),
         },
         // EZD-299b Decided D-Resolves: `resolves` only when a sent change settles a listed conflict.
-        body: JSON.stringify(
-          resolves.length > 0
-            ? { lockEpoch: batch.lockEpoch, changes: batch.send.map(toRequestChange), resolves }
-            : { lockEpoch: batch.lockEpoch, changes: batch.send.map(toRequestChange) },
-        ),
+        body: JSON.stringify({
+          lockEpoch: batch.lockEpoch,
+          changes: batch.send.map(toRequestChange),
+          ...(resolves.length > 0 && { resolves }),
+          ...extra,
+        }),
       });
       let body: unknown = null;
       try {
@@ -473,6 +513,41 @@ export function createOutboxSync(o: {
     void drain();
   };
 
+  const ctx: SendNowContext = {
+    storage,
+    async drainNow() {
+      try {
+        await loop();
+      } finally {
+        await recordPending();
+      }
+    },
+    stopped: () => disposed || blocked() || !isOnline(),
+    store,
+    storageFailed,
+    send,
+    onSaved: o.onSaved,
+    unstored,
+    async settle() {
+      clearTimer();
+      await running;
+    },
+    async exclusive(fn) {
+      const run = lock.tryRun(lockName, fn);
+      running = run.then(
+        () => {},
+        () => {},
+      );
+      try {
+        return await run;
+      } finally {
+        running = null;
+        // Anything enqueued meanwhile is saved now; with an empty outbox the drain only reads it.
+        void drain();
+      }
+    },
+  };
+
   const unsubscribe = online.subscribe(() => {
     if (disposed) return;
     if (!isOnline()) {
@@ -561,6 +636,14 @@ export function createOutboxSync(o: {
         () => {},
         () => {},
       );
+      return p;
+    },
+    // EZD-5605 D-SendNow: chained on the writes; the rest loads on first use (11 Budgets), a failed load is unsaved.
+    sendNow(...args) {
+      const p = writes
+        .then(async () => (await import('./send-now')).sendNow(ctx, ...args))
+        .catch(() => UNSAVED);
+      writes = p.then(() => {});
       return p;
     },
     dispose() {
