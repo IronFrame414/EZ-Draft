@@ -90,6 +90,7 @@ const review = (over: Partial<ImportReviewData> = {}): ImportReviewData => ({
   failedFile: null,
   items: ITEMS,
   meshUrl: 'https://storage.example.test/mesh.glb',
+  cutoff: 80,
   ...over,
 });
 
@@ -105,8 +106,9 @@ describe('EZD-307 Import review screen', () => {
     expect(textOf(one(html, 'import-review-summary').inner)).toBe(
       '7 found · 6 high confidence · 1 to check',
     );
+    // Nothing is accepted until Accept N (EZD-308); the e2e spec clicks it and sees 3 · 1 · 1 · 1.
     expect(textOf(one(html, 'import-review-accepted').inner)).toBe(
-      'Accepted3 walls · 1 windows · 1 doors1 rooms · 0 fixtures + cabinets',
+      'Accepted0 walls · 0 windows · 0 doors0 rooms · 0 fixtures + cabinets',
     );
   });
 
@@ -184,5 +186,60 @@ describe('EZD-307 Import review screen', () => {
     expect(textOf(one(html, 'import-review-message').inner)).toBe(
       'Nothing detected. Trace over the underlay in the Plan editor',
     );
+  });
+});
+
+// EZD-308 (AC-EZD-308-1; S02 Controls Mode, Accept N "Label shows count"; board S02 "One by one", "Accept + fix",
+// "By room", "Accept 36"). Same items: with the cutoff 80 six are high confidence (the 95 walls and the 90 door,
+// window and room); with a company cutoff of 91 only the three 95 walls are. Clicks are in app/e2e.
+describe('EZD-308 review modes', () => {
+  it('shows the three modes with Accept + fix chosen, as on board S02', () => {
+    const html = render(<ReadyBody review={review()} />);
+    const modes = elements(html, 'import-review-mode');
+    expect(modes.map((m) => textOf(m.inner))).toEqual(['One by one', 'Accept + fix', 'By room']);
+    expect(modes.map((m) => attr(m.attrs, 'aria-pressed'))).toEqual(['false', 'true', 'false']);
+  });
+
+  it('AC-EZD-308-1: Accept N counts only the items at or above the company cutoff', () => {
+    const at80 = one(render(<ReadyBody review={review()} />), 'import-review-accept-n');
+    expect(textOf(at80.inner)).toBe('Accept 6');
+    const at91 = one(render(<ReadyBody review={review({ cutoff: 91 })} />), 'import-review-accept-n');
+    expect(textOf(at91.inner)).toBe('Accept 3');
+    // With 91 the door, window and room (90) go to To check with the east wall (70).
+    const html = render(<ReadyBody review={review({ cutoff: 91 })} />);
+    expect(elements(html, 'import-review-row').map((r) => attr(r.attrs, 'data-id'))).toEqual([
+      'd1',
+      'n1',
+      'r1',
+      'w2',
+    ]);
+  });
+
+  it('One by one lists every item in order with Previous, Next, Accept and Reject', () => {
+    const html = render(<ReadyBody review={review()} initialMode="one_by_one" />);
+    expect(elements(html, 'import-review-row').map((r) => attr(r.attrs, 'data-id'))).toEqual([
+      'w1',
+      'w2',
+      'w3',
+      'w4',
+      'd1',
+      'n1',
+      'r1',
+    ]);
+    expect(textOf(one(html, 'import-review-position').inner)).toBe('1 of 7');
+    expect(one(html, 'import-review-previous').attrs).toContain('disabled');
+    expect(one(html, 'import-review-next').attrs).not.toContain('disabled');
+    expect(textOf(one(html, 'import-review-accept').inner)).toBe('Accept');
+    expect(textOf(one(html, 'import-review-reject').inner)).toBe('Reject');
+    expect(textOf(one(html, 'import-review-inspector').inner)).toContain('South wall');
+  });
+
+  it('By room groups the items under their room with Accept room', () => {
+    const html = render(<ReadyBody review={review()} initialMode="by_room" />);
+    const room = one(html, 'import-review-room');
+    expect(attr(room.attrs, 'data-room')).toBe('r1');
+    expect(textOf(room.inner)).toContain('Room 1');
+    expect(textOf(one(html, 'import-review-accept-room').inner)).toBe('Accept room');
+    expect(elements(html, 'import-review-row')).toHaveLength(7);
   });
 });

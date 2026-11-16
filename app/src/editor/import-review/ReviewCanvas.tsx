@@ -10,7 +10,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } 
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import { lazyModule } from '../../lib/lazy/lazy-module';
-import { isHighConfidence, itemExtents, type ReviewItem } from '../../lib/imports/review';
+import {
+  isHighConfidence,
+  itemExtents,
+  type Decisions,
+  type ReviewItem,
+} from '../../lib/imports/review';
 import touch from '../../styles/touch.module.css';
 import zoomStyles from '../plan/ZoomStack.module.css';
 import { loadMesh } from './mesh-source';
@@ -26,9 +31,20 @@ const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 export type ItemState = 'accepted' | 'to_check' | 'selected';
 
-export function itemState(item: ReviewItem, selectedId: string | null): ItemState {
+/**
+ * How an item is drawn (S02 Data shown; EZD-308 decisions): selected blue; accepted green; a high-confidence item
+ * not yet accepted green too, as on board S02, where the high-confidence items are green before Accept N; an
+ * unresolved item below the cutoff amber dashed. A rejected item is not drawn (it does not become model data).
+ */
+export function itemState(
+  item: ReviewItem,
+  selectedId: string | null,
+  cutoff: number,
+  decisions: Decisions,
+): ItemState {
   if (item.id === selectedId) return 'selected';
-  return isHighConfidence(item) ? 'accepted' : 'to_check';
+  if (decisions[item.id] === 'accepted') return 'accepted';
+  return isHighConfidence(item, cutoff) ? 'accepted' : 'to_check';
 }
 
 type View = { zoom: number; panX: number; panY: number };
@@ -36,6 +52,10 @@ type View = { zoom: number; panX: number; panY: number };
 export type ReviewCanvasProps = {
   items: readonly ReviewItem[];
   selectedId: string | null;
+  /** The high-confidence cutoff (%) of this review (company Defaults). */
+  cutoff: number;
+  /** Accept and reject decisions made in this review. */
+  decisions: Decisions;
   meshUrl: string | null;
   /** Reads a fresh mesh link (the one in `meshUrl` expires after 900 s). */
   freshMeshUrl: () => Promise<string | null>;
@@ -43,13 +63,19 @@ export type ReviewCanvasProps = {
 };
 
 export function ReviewCanvas({
-  items,
+  items: allItems,
   selectedId,
+  cutoff,
+  decisions,
   meshUrl,
   freshMeshUrl,
   onZoom,
 }: ReviewCanvasProps): ReactElement {
   const t = useT();
+  const items = useMemo(
+    () => allItems.filter((i) => decisions[i.id] !== 'rejected'),
+    [allItems, decisions],
+  );
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [view, setView] = useState<View>({ zoom: 1, panX: 0, panY: 0 });
@@ -92,7 +118,7 @@ export function ReviewCanvas({
     };
   }, []);
 
-  const ext = useMemo(() => itemExtents(items), [items]);
+  const ext = useMemo(() => itemExtents(allItems), [allItems]);
   const fitScale = useMemo(() => {
     if (!ext || size.w === 0 || size.h === 0) return 1;
     const dx = Math.max(ext.maxX - ext.minX, 1);
@@ -145,7 +171,7 @@ export function ReviewCanvas({
     drag.current = null;
   };
 
-  const walls = new Map(items.filter((i) => i.type === 'wall').map((w) => [w.id, w] as const));
+  const walls = new Map(allItems.filter((i) => i.type === 'wall').map((w) => [w.id, w] as const));
 
   return (
     <div className={styles.canvasArea}>
@@ -163,13 +189,14 @@ export function ReviewCanvas({
           <g transform={transform}>
             {items.map((item) => {
               if (item.type !== 'room') return null;
-              const state = itemState(item, selectedId);
+              const state = itemState(item, selectedId, cutoff, decisions);
               return (
                 <polygon
                   key={item.id}
                   data-testid="review-item"
                   data-id={item.id}
                   data-state={state}
+                  data-decision={decisions[item.id] ?? 'none'}
                   points={item.boundary.map((p) => `${p.x},${p.y}`).join(' ')}
                   className={`${styles.underlay} ${state === 'accepted' ? '' : styles[state]}`}
                   vectorEffect="non-scaling-stroke"
@@ -178,7 +205,7 @@ export function ReviewCanvas({
             })}
             {items.map((item) => {
               if (item.type === 'room') return null;
-              const state = itemState(item, selectedId);
+              const state = itemState(item, selectedId, cutoff, decisions);
               let a = { x: 0, y: 0 };
               let b = { x: 0, y: 0 };
               if (item.type === 'wall') {
@@ -205,6 +232,7 @@ export function ReviewCanvas({
                   data-testid="review-item"
                   data-id={item.id}
                   data-state={state}
+                  data-decision={decisions[item.id] ?? 'none'}
                   x1={a.x}
                   y1={a.y}
                   x2={b.x}

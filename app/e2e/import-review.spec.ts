@@ -5,8 +5,11 @@
 // .json `semantic`, `roomPolygon`; room-12x10-unjoined.dxf.expected.json: only the east wall changes, 118 in with
 // one joined end), confidences by EZD-302's recorded scoring (east wall 95 - 25 = 70; other walls 95; door with leaf
 // 90; window of three lines 90; closed room 90) and the cutoff 80 (vault/build/assumptions.md EZD-302, EZD-307):
-// 7 found, 6 high confidence, 1 to check; Accepted 3 walls, 1 window, 1 door, 1 room. Labels and the status bar
-// follow board S02.
+// 7 found, 6 high confidence, 1 to check; Accepted 0 of each until Accept N (EZD-308 counts decisions). Labels and
+// the status bar follow board S02.
+// EZD-308 (AC-EZD-308-1 "Accept N accepts only items above the cutoff"): the company's Defaults cutoff is then set
+// to 91, so only the three 95 walls are high confidence: Accept 3 accepts exactly them; the 90 door, window and
+// room and the 70 east wall stay To check.
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import type { Page } from '@playwright/test';
@@ -94,11 +97,10 @@ test.describe('EZD-307 Import review', () => {
       '7 found · 6 high confidence · 1 to check',
     );
     const accepted = tid(page, 'import-review-accepted');
-    await expect(accepted.locator('[data-count=walls]')).toHaveText('3');
-    await expect(accepted.locator('[data-count=windows]')).toHaveText('1');
-    await expect(accepted.locator('[data-count=doors]')).toHaveText('1');
-    await expect(accepted.locator('[data-count=rooms]')).toHaveText('1');
-    await expect(accepted.locator('[data-count=fixtures]')).toHaveText('0');
+    for (const kind of ['walls', 'windows', 'doors', 'rooms', 'fixtures']) {
+      await expect(accepted.locator(`[data-count=${kind}]`)).toHaveText('0');
+    }
+    await expect(tid(page, 'import-review-accept-n')).toHaveText('Accept 6');
     await expect(tid(page, 'import-review-row')).toHaveCount(1);
     await expect(tid(page, 'import-review-row')).toHaveText('East wall70%');
     await expect(tid(page, 'import-review-inspector')).toContainText(
@@ -140,5 +142,61 @@ test.describe('EZD-307 Import review', () => {
     await toggle.click();
     await expect(mesh).toHaveAttribute('data-mesh', 'shown');
     await expect(mesh).toBeVisible();
+
+    // EZD-308 AC-EZD-308-1: with the company cutoff at 91, Accept N accepts only the three 95 walls.
+    await harnessSql()`update public.tenant set defaults = defaults || '{"high_confidence_cutoff": 91}'::jsonb
+      where id = ${tenant}::uuid`;
+    await page.reload();
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 });
+    await expect(tid(page, 'import-review-summary')).toHaveText(
+      '7 found · 3 high confidence · 4 to check',
+    );
+    const acceptN = tid(page, 'import-review-accept-n');
+    await expect(acceptN).toHaveText('Accept 3');
+    await acceptN.click();
+    await expect(accepted.locator('[data-count=walls]')).toHaveText('3');
+    for (const kind of ['windows', 'doors', 'rooms', 'fixtures']) {
+      await expect(accepted.locator(`[data-count=${kind}]`)).toHaveText('0');
+    }
+    await expect(acceptN).toHaveText('Accept 0');
+    await expect(acceptN).toBeDisabled();
+    await expect(page.locator('[data-testid=review-item][data-decision=accepted]')).toHaveCount(3);
+    // The accepted three are walls (lines), and the door, window, room and east wall are still To check.
+    await expect(page.locator('line[data-testid=review-item][data-decision=accepted]')).toHaveCount(3);
+    await expect(tid(page, 'import-review-row')).toHaveCount(4);
+    for (const label of ['Door D1', 'Window W1', 'Room 1', 'East wall']) {
+      await expect(tid(page, 'import-review-row').filter({ hasText: label })).toHaveCount(1);
+    }
+    await expect(tid(page, 'import-review-summary')).toHaveText(
+      '7 found · 3 high confidence · 4 to check',
+    );
+
+    // One by one: every item in detection order, starting at the first unresolved one (the east wall, the only
+    // unresolved wall); Reject removes the item and moves to the next; Previous goes back.
+    await page.locator('[data-testid=import-review-mode][data-mode=one_by_one]').click();
+    await expect(tid(page, 'import-review-row')).toHaveCount(7);
+    const position = tid(page, 'import-review-position');
+    await expect(tid(page, 'import-review-inspector')).toContainText('East wall');
+    const start = Number(((await position.textContent()) ?? '').split(' ')[0]);
+    expect(start).toBeGreaterThanOrEqual(1);
+    expect(start).toBeLessThan(7);
+    await expect(position).toHaveText(`${start} of 7`);
+    await tid(page, 'import-review-reject').click();
+    await expect(position).toHaveText(`${start + 1} of 7`);
+    await tid(page, 'import-review-previous').click();
+    await expect(position).toHaveText(`${start} of 7`);
+    await expect(tid(page, 'import-review-inspector')).toContainText('Rejected');
+    await tid(page, 'import-review-next').click();
+    await expect(position).toHaveText(`${start + 1} of 7`);
+    await expect(tid(page, 'review-item')).toHaveCount(6);
+    await expect(tid(page, 'import-review-summary')).toHaveText(
+      '7 found · 3 high confidence · 3 to check',
+    );
+
+    // By room: the room's items under Room 1; nothing high confidence is left for Accept room.
+    await page.locator('[data-testid=import-review-mode][data-mode=by_room]').click();
+    await expect(tid(page, 'import-review-room')).toHaveCount(1);
+    await expect(tid(page, 'import-review-room')).toContainText('Room 1');
+    await expect(tid(page, 'import-review-accept-room')).toBeDisabled();
   });
 });

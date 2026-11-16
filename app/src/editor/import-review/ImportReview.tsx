@@ -5,8 +5,11 @@
 // Review / Finish steps, Cancel import and Finish import; the detected items list (320 px); the canvas; the
 // selected item inspector (336 px); the status bar (source, scan accuracy, input mode, zoom).
 // The import is read from GET /api/projects/[id]/imports/[jobId] and read again every POLL_MS while detection
-// runs, so the review opens by itself when detection finishes (AC-EZD-307-1). Review actions are later tickets:
-// the mode switch, Accept N, Fix selected and Delete (EZD-308, EZD-309) are not shown until they are built
+// runs, so the review opens by itself when detection finishes (AC-EZD-307-1). EZD-308 adds the review modes (S02
+// Controls Mode): One by one (every item in order, Accept / Reject this item, Previous / Next), Accept + fix (the
+// To check list and Accept N), By room (items grouped by detected room, Accept room); Accept N accepts only items
+// at or above the company's high-confidence cutoff (AC-EZD-308-1; S02 Decisions). Decisions and the mode live in
+// this page; EZD-309 saves them per item. Fix selected and Delete (EZD-309) are not shown until they are built
 // (Q-0500 rule); Cancel import and Finish import show and stay disabled until EZD-313 builds them, Finish being
 // disabled anyway while any item is unresolved (S02 Controls). The fuller Loading, Error and Empty states are
 // EZD-314's; this screen shows a one-line message for each.
@@ -19,15 +22,28 @@ import headerStyles from '../../components/shell/EditorHeader.module.css';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import {
+  acceptHighConfidence,
+  decide,
+  DEFAULT_REVIEW_MODE,
+  firstUnresolved,
+  isHighConfidence,
   itemLabel,
   itemTypeWord,
+  pendingHighConfidence,
+  REVIEW_MODES,
   reviewSummary,
+  roomGroups,
   scanReads,
   sourceLine,
+  stepItem,
   toCheckItems,
+  type Decision,
+  type Decisions,
   type ReviewFile,
   type ReviewItem,
+  type ReviewMode,
 } from '../../lib/imports/review';
+import type { MessageKey } from '../../server/messages/catalog';
 import { ReviewCanvas } from './ReviewCanvas';
 import { readMeshUrl } from './mesh-source';
 import styles from './ImportReview.module.css';
@@ -43,6 +59,8 @@ export type ImportReviewData = {
   failedFile: string | null;
   items: ReviewItem[];
   meshUrl: string | null;
+  /** The company's high-confidence cutoff (%), from Defaults (server/imports/review.ts). */
+  cutoff: number;
 };
 
 type Load =
@@ -172,12 +190,86 @@ export function ImportReview({
   );
 }
 
-export function ReadyBody({ review }: { review: ImportReviewData }): ReactElement {
+const MODE_LABEL: Record<ReviewMode, MessageKey> = {
+  one_by_one: 'office.review.mode_one_by_one',
+  accept_fix: 'office.review.mode_accept_fix',
+  by_room: 'office.review.mode_by_room',
+};
+
+type RowDot = 'selected' | 'accepted' | 'rejected' | 'to_check';
+
+function rowDot(item: ReviewItem, selectedId: string | null, decisions: Decisions): RowDot {
+  if (item.id === selectedId) return 'selected';
+  return decisions[item.id] ?? 'to_check';
+}
+
+function ItemRow({
+  item,
+  items,
+  dot,
+  selected,
+  decision,
+  onSelect,
+}: {
+  item: ReviewItem;
+  items: readonly ReviewItem[];
+  dot: RowDot;
+  selected: boolean;
+  decision: Decision | undefined;
+  onSelect: (id: string) => void;
+}): ReactElement {
+  const dotClass =
+    dot === 'selected'
+      ? styles.dotSelected
+      : dot === 'accepted'
+        ? styles.dotAccepted
+        : dot === 'rejected'
+          ? styles.dotRejected
+          : styles.dotToCheck;
+  return (
+    <li>
+      <button
+        type="button"
+        className={selected ? `${styles.row} ${styles.rowSelected}` : styles.row}
+        aria-pressed={selected}
+        data-testid="import-review-row"
+        data-id={item.id}
+        data-decision={decision ?? 'none'}
+        onClick={() => onSelect(item.id)}
+      >
+        <span className={`${styles.dot} ${dotClass}`} />
+        <span className={decision === 'rejected' ? `${styles.rowLabel} ${styles.rowRejected}` : styles.rowLabel}>
+          {itemLabel(item, items)}
+        </span>
+        <span className={styles.rowPct}>{item.confidence}%</span>
+      </button>
+    </li>
+  );
+}
+
+export function ReadyBody({
+  review,
+  initialMode = DEFAULT_REVIEW_MODE,
+}: {
+  review: ImportReviewData;
+  initialMode?: ReviewMode;
+}): ReactElement {
   const t = useT();
-  const { items } = review;
-  const summary = useMemo(() => reviewSummary(items), [items]);
-  const toCheck = useMemo(() => toCheckItems(items), [items]);
-  const [selectedId, setSelectedId] = useState<string | null>(() => toCheck[0]?.id ?? null);
+  const { items, cutoff } = review;
+  const [mode, setMode] = useState<ReviewMode>(initialMode);
+  const [decisions, setDecisions] = useState<Decisions>({});
+  const summary = useMemo(() => reviewSummary(items, cutoff, decisions), [items, cutoff, decisions]);
+  const toCheck = useMemo(() => toCheckItems(items, cutoff, decisions), [items, cutoff, decisions]);
+  const pending = useMemo(
+    () => pendingHighConfidence(items, cutoff, decisions),
+    [items, cutoff, decisions],
+  );
+  const groups = useMemo(() => roomGroups(items), [items]);
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    initialMode === 'one_by_one'
+      ? firstUnresolved(items, {})
+      : (toCheckItems(items, cutoff)[0]?.id ?? null),
+  );
   const [zoom, setZoom] = useState(100);
   const onZoom = useCallback((percent: number) => setZoom(percent), []);
   const freshMeshUrl = useCallback(
@@ -185,6 +277,19 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
     [review.projectId, review.jobId],
   );
   const selected = items.find((i) => i.id === selectedId) ?? null;
+
+  const chooseMode = (next: ReviewMode) => {
+    if (next === 'one_by_one' && next !== mode) setSelectedId(firstUnresolved(items, decisions));
+    setMode(next);
+  };
+  const acceptAll = () => setDecisions((d) => acceptHighConfidence(items, cutoff, d));
+  const acceptGroup = (group: readonly ReviewItem[]) =>
+    setDecisions((d) => acceptHighConfidence(group, cutoff, d));
+  const decideSelected = (decision: Decision) => {
+    if (!selected) return;
+    setDecisions((d) => decide(d, selected.id, decision));
+    setSelectedId(stepItem(items, selected.id, 1));
+  };
 
   if (items.length === 0) {
     return (
@@ -198,6 +303,18 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
   }
 
   const a = summary.accepted;
+  const position = selected ? items.findIndex((i) => i.id === selected.id) + 1 : 0;
+  const row = (item: ReviewItem) => (
+    <ItemRow
+      key={item.id}
+      item={item}
+      items={items}
+      dot={rowDot(item, selectedId, decisions)}
+      selected={item.id === selectedId}
+      decision={decisions[item.id]}
+      onSelect={setSelectedId}
+    />
+  );
   return (
     <>
       <div className={styles.body}>
@@ -211,37 +328,75 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
                 toCheck: summary.toCheck,
               })}
             </p>
+            <div
+              className={styles.modes}
+              role="group"
+              aria-label={t('office.review.modes')}
+              data-testid="import-review-modes"
+              data-mode={mode}
+            >
+              {REVIEW_MODES.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  className={m === mode ? `${styles.mode} ${styles.modeOn}` : styles.mode}
+                  aria-pressed={m === mode}
+                  data-testid="import-review-mode"
+                  data-mode={m}
+                  onClick={() => chooseMode(m)}
+                >
+                  {t(MODE_LABEL[m])}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>{t('office.review.to_check')}</h2>
-            {toCheck.length === 0 ? (
-              <p className={styles.muted}>{t('office.review.to_check_empty')}</p>
-            ) : (
-              <ul className={styles.list}>
-                {toCheck.map((item) => {
-                  const on = item.id === selectedId;
-                  return (
-                    <li key={item.id}>
+          {mode === 'accept_fix' ? (
+            <div className={styles.section} data-testid="import-review-to-check">
+              <h2 className={styles.sectionTitle}>{t('office.review.to_check')}</h2>
+              {toCheck.length === 0 ? (
+                <p className={styles.muted}>{t('office.review.to_check_empty')}</p>
+              ) : (
+                <ul className={styles.list}>{toCheck.map(row)}</ul>
+              )}
+            </div>
+          ) : null}
+          {mode === 'one_by_one' ? (
+            <div className={styles.section} data-testid="import-review-all">
+              <h2 className={styles.sectionTitle}>{t('office.review.all_items')}</h2>
+              <ul className={styles.list}>{items.map(row)}</ul>
+            </div>
+          ) : null}
+          {mode === 'by_room'
+            ? groups.map((g) => {
+                const groupPending = g.items.filter(
+                  (i) => isHighConfidence(i, cutoff) && decisions[i.id] === undefined,
+                ).length;
+                return (
+                  <div
+                    key={g.room?.id ?? 'none'}
+                    className={styles.section}
+                    data-testid="import-review-room"
+                    data-room={g.room?.id ?? 'none'}
+                  >
+                    <div className={styles.groupHead}>
+                      <h2 className={styles.sectionTitle}>
+                        {g.room ? itemLabel(g.room, items) : t('office.review.no_room')}
+                      </h2>
                       <button
                         type="button"
-                        className={on ? `${styles.row} ${styles.rowSelected}` : styles.row}
-                        aria-pressed={on}
-                        data-testid="import-review-row"
-                        data-id={item.id}
-                        onClick={() => setSelectedId(item.id)}
+                        className={styles.groupAccept}
+                        data-testid="import-review-accept-room"
+                        disabled={groupPending === 0}
+                        onClick={() => acceptGroup(g.items)}
                       >
-                        <span
-                          className={`${styles.dot} ${on ? styles.dotSelected : styles.dotToCheck}`}
-                        />
-                        <span className={styles.rowLabel}>{itemLabel(item, items)}</span>
-                        <span className={styles.rowPct}>{item.confidence}%</span>
+                        {t('office.review.accept_room')}
                       </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+                    </div>
+                    <ul className={styles.list}>{g.items.map(row)}</ul>
+                  </div>
+                );
+              })
+            : null}
           <div className={styles.section} data-testid="import-review-accepted">
             <h2 className={styles.sectionTitle}>{t('office.review.accepted')}</h2>
             <p className={styles.counts}>
@@ -254,11 +409,25 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
               <b data-count="fixtures">{a.fixtures}</b> {t('office.review.fixtures')}
             </p>
           </div>
+          <div className={styles.leftFoot}>
+            <HeaderButton
+              variant="primary"
+              className={styles.acceptN}
+              data-testid="import-review-accept-n"
+              data-count={pending.length}
+              disabled={pending.length === 0}
+              onClick={acceptAll}
+            >
+              {t('office.review.accept_n', { count: pending.length })}
+            </HeaderButton>
+          </div>
         </aside>
         <main className={styles.canvasCard}>
           <ReviewCanvas
             items={items}
             selectedId={selectedId}
+            cutoff={cutoff}
+            decisions={decisions}
             meshUrl={review.meshUrl}
             freshMeshUrl={freshMeshUrl}
             onZoom={onZoom}
@@ -268,6 +437,7 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
           className={styles.inspector}
           aria-label={t('office.review.inspector')}
           data-testid="import-review-inspector"
+          data-decision={selected ? (decisions[selected.id] ?? 'none') : undefined}
         >
           {selected ? (
             <div className={styles.inspectorHead}>
@@ -278,6 +448,15 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
                   confidence: selected.confidence,
                 })}
               </p>
+              {decisions[selected.id] ? (
+                <p className={styles.decision} data-testid="import-review-decision">
+                  {t(
+                    decisions[selected.id] === 'accepted'
+                      ? 'office.review.decision_accepted'
+                      : 'office.review.decision_rejected',
+                  )}
+                </p>
+              ) : null}
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>
                 <span className={styles.scanValue} data-testid="import-review-scan">
@@ -290,6 +469,46 @@ export function ReadyBody({ review }: { review: ImportReviewData }): ReactElemen
               {t('office.review.no_selection')}
             </p>
           )}
+          {mode === 'one_by_one' ? (
+            <div className={styles.inspectorFoot} data-testid="import-review-step">
+              <div className={styles.stepper}>
+                <HeaderButton
+                  data-testid="import-review-previous"
+                  disabled={position <= 1}
+                  onClick={() => setSelectedId(stepItem(items, selectedId, -1))}
+                >
+                  {t('office.review.previous')}
+                </HeaderButton>
+                <span className={styles.muted} data-testid="import-review-position">
+                  {t('office.review.position', { index: position, total: items.length })}
+                </span>
+                <HeaderButton
+                  data-testid="import-review-next"
+                  disabled={position >= items.length}
+                  onClick={() => setSelectedId(stepItem(items, selectedId, 1))}
+                >
+                  {t('office.review.next')}
+                </HeaderButton>
+              </div>
+              <div className={styles.stepper}>
+                <HeaderButton
+                  data-testid="import-review-reject"
+                  disabled={!selected}
+                  onClick={() => decideSelected('rejected')}
+                >
+                  {t('office.review.reject_item')}
+                </HeaderButton>
+                <HeaderButton
+                  variant="primary"
+                  data-testid="import-review-accept"
+                  disabled={!selected}
+                  onClick={() => decideSelected('accepted')}
+                >
+                  {t('office.review.accept_item')}
+                </HeaderButton>
+              </div>
+            </div>
+          ) : null}
           <p className={styles.tolerance}>{t('office.review.tolerance')}</p>
         </aside>
       </div>

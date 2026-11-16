@@ -354,7 +354,8 @@
     "EZD-214",
     "EZD-218",
     "EZD-6001",
-    "EZD-237"
+    "EZD-237",
+    "EZD-224b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -568,11 +569,19 @@
       "ts": "2026-11-16T17:31:40Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-224b",
+      "title": "Plan thumbnail: checkpoint capture and encode",
+      "commit": "98c3ee92",
+      "ts": "2026-11-16T18:37:42Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -598,10 +607,10 @@
     }
   },
   "running": {
-    "EZD-224b": {
-      "lane": 0,
-      "title": "Plan thumbnail: checkpoint capture and encode",
-      "started": "2026-11-16T17:31:45Z",
+    "EZD-308": {
+      "lane": 1,
+      "title": "Review modes",
+      "started": "2026-11-16T17:47:05Z",
       "develop": "e6050af4"
     }
   }

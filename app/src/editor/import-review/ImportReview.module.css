@@ -223,6 +223,15 @@
   background: var(--ez-green);
 }
 
+.dotRejected {
+  background: var(--ez-slate-300);
+}
+
+.rowRejected {
+  color: var(--ez-slate-500);
+  text-decoration: line-through;
+}
+
 .counts {
   margin: 2px 8px;
   font-size: 13px;
@@ -384,4 +393,97 @@
   border-radius: var(--ez-radius-999);
   background: var(--ez-slate-300);
   opacity: 0.6;
+}
+
+/* EZD-308 review modes (S02 Controls Mode; board S02: segmented One by one / Accept + fix / By room under the
+   summary, Accept N primary in the left panel footer). */
+.modes {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.mode {
+  flex: 1;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mode:hover {
+  background: var(--ez-row-hover);
+}
+
+.modeOn,
+.modeOn:hover {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.groupHead .sectionTitle {
+  margin-bottom: 0;
+}
+
+.groupAccept {
+  margin: 0 8px 0 0;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-cobalt-link);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.groupAccept:disabled {
+  color: var(--ez-slate-500);
+  cursor: default;
+}
+
+.leftFoot {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.acceptN {
+  min-height: 48px;
+}
+
+.decision {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inspectorFoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }

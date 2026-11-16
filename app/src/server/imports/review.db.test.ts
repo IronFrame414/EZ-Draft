@@ -103,6 +103,7 @@ describe('EZD-307 import review read', () => {
   let a: Member;
   let sA: Session;
   let sB: Session;
+  let tB = '';
   let dxf: SourceFileView;
   let glb: SourceFileView;
 
@@ -165,7 +166,7 @@ describe('EZD-307 import review read', () => {
     [pA] = await createProjects(tA, 1);
     a = await createMember({ tenantId: tA, scope: 'all' });
     sA = await signIn(a.email);
-    const tB = await createTenant();
+    tB = await createTenant();
     const b = await createMember({ tenantId: tB, scope: 'all' });
     sB = await signIn(b.email);
     dxf = await send('polycam_dxf', 'image/vnd.dxf', 'family-room.dxf', DXF);
@@ -233,5 +234,22 @@ describe('EZD-307 import review read', () => {
     // Nor a mesh link to the GLB.
     const { error } = await db(sB).storage.from('sources').createSignedUrl(glb.storagePath, 60);
     expect(error).not.toBeNull();
+  });
+
+  // EZD-308 (S15d High-confidence cutoff, entered by the owner, Round 24; AC-EZD-308-1): the review carries the
+  // company's own cutoff from Defaults, 80 while it is Not set (vault/build/assumptions.md EZD-308), and another
+  // company's value never reaches it.
+  it('EZD-308: carries the company Defaults cutoff, 80 while Not set, never another company\'s', async () => {
+    const setCutoff = async (tenant: string, defaults: object) => {
+      const { error } = await adminDb().from('tenant').update({ defaults }).eq('id', tenant);
+      if (error) throw error;
+    };
+    const id = await job('done', { sourceFileIds: [dxf.id] });
+    await session(id, 'ready', ITEMS);
+    expect((await readImportReview(db(sA), pA, id))?.cutoff).toBe(80);
+    await setCutoff(tB, { high_confidence_cutoff: 50 });
+    expect((await readImportReview(db(sA), pA, id))?.cutoff).toBe(80);
+    await setCutoff(tA, { high_confidence_cutoff: 91 });
+    expect((await readImportReview(db(sA), pA, id))?.cutoff).toBe(91);
   });
 });

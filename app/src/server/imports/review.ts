@@ -5,8 +5,13 @@
 // failed when the job or a session failed (S02 States Error, with the file name), else ready. The mesh is a
 // short-lived signed link to the import's Polycam GLB (S02 Show 3D mesh "Only when a GLB was uploaded"); the
 // storage policy on sources is the check (EZD-132).
+// EZD-308 (S15d High-confidence cutoff "Import items below it go to To check"; Round 24): the view carries the
+// company's cutoff, the effective Defaults value of high_confidence_cutoff, or 80 while it is Not set
+// (vault/build/assumptions.md EZD-308). The key is company-wide, not a per-project copy.
 import { z } from 'zod';
-import type { ReviewFile, ReviewItem } from '../../lib/imports/review';
+import { effectiveValue } from '../../lib/defaults/values';
+import { reviewCutoff, type ReviewFile, type ReviewItem } from '../../lib/imports/review';
+import { loadTenantDefaults } from '../defaults/defaults';
 import { signedDownloadUrl, StorageError, type DbClient } from '../storage/objects';
 import { readReviewSourceFiles } from '../storage/source-files';
 
@@ -21,6 +26,8 @@ export type ImportReviewView = {
   failedFile: string | null;
   items: ReviewItem[];
   meshUrl: string | null;
+  /** The high-confidence cutoff (%) for this review: at or above it is high confidence. */
+  cutoff: number;
 };
 
 const pt = z.object({ x: z.number(), y: z.number() });
@@ -90,10 +97,12 @@ export async function readImportReview(
     .map((id) => files.get(id.toLowerCase()))
     .filter((f): f is NonNullable<typeof f> => f !== undefined);
 
+  const stored = await loadTenantDefaults(client);
   const base = {
     jobId: job.data.id,
     projectId,
     projectName: project.data.name,
+    cutoff: reviewCutoff(effectiveValue('high_confidence_cutoff', stored)),
     files: ordered.map((f) => ({ name: f.name, kind: f.kind })),
   };
   const firstScan = ordered.find((f) => f.kind === 'polycam_dxf')?.name ?? null;
