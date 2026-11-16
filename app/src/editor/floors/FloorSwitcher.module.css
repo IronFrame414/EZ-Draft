@@ -1,0 +1,62 @@
+/* EZD-6001 Build step 11 (vault/plans/EZD-6001.md D-Switcher, D-Rename; Q-0666): the Floor control. The trigger,
+   list card and rows come from PlanStatus.module.css (Scale and Snap); these rules add the floor name's ellipsis, the
+   floor actions under the list, the last-floor reason and the rename field. Spacing in px (L-013). */
+.trigger {
+  max-width: 180px;
+  min-width: 0;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item {
+  font-family: var(--ez-font-sans);
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.item[aria-disabled='true'] {
+  color: var(--ez-slate-400);
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .item[aria-disabled='true']:hover {
+    background: transparent;
+  }
+}
+
+.reason {
+  margin: 0;
+  padding: 2px 10px 6px;
+  font-size: 11px;
+  color: var(--ez-slate-400);
+}
+
+.input {
+  box-sizing: border-box;
+  width: 160px;
+  padding: 1px 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-5);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+}
+
+@media (any-pointer: coarse) {
+  .input {
+    min-height: var(--ez-touch-target);
+  }
+}

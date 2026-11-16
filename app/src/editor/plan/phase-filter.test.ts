@@ -51,7 +51,7 @@ function threeWalls(): Map<string, ObjectValue> {
 }
 
 const drawnIds = (objects: Objects, phase: ReturnType<typeof createPhaseSetting> | null) =>
-  new Set(planDrawingList(objects, {}, phase)!.items.map((i) => i.objectId?.toLowerCase()));
+  new Set(planDrawingList(objects, {}, phase, null)!.items.map((i) => i.objectId?.toLowerCase()));
 
 const setting = (view: 'existing' | 'proposed') =>
   createPhaseSetting({ view, canEdit: false, save: async () => true });
@@ -83,7 +83,7 @@ describe('EZD-214 drawing list filter', () => {
     const plain = withWalls(baseObjects(), 1, [pt(0, 0), pt(144, 0)], false);
     const door = withStatus(withOpening(plain, 9, 'door', 1, pt(72, 0)), uid(9), 'new');
     const wallItems = (objects: Objects) =>
-      planDrawingList(objects, {}, setting('existing'))!.items.filter(
+      planDrawingList(objects, {}, setting('existing'), null)!.items.filter(
         (i) => i.objectId?.toLowerCase() === uid(1),
       );
     expect(drawnIds(door, setting('existing')).has(uid(9))).toBe(false);
@@ -103,11 +103,11 @@ describe('EZD-214 hover and pick indexes', () => {
     const o = threeWalls();
     const phase = setting('existing');
     const hover = createHoverIndex();
-    hover.sync(o, openFloorId(o), [], phase);
+    hover.sync(o, openFloorId(o, null), [], phase);
     expect(pickWall(hover.index, pt(72, 60), 1)).toBeNull();
     expect(pickWall(hover.index, pt(72, 120), 1)).toBe(uid(3));
     phase.setView('proposed');
-    hover.sync(o, openFloorId(o), [], phase);
+    hover.sync(o, openFloorId(o, null), [], phase);
     expect(pickWall(hover.index, pt(72, 60), 1)?.toLowerCase()).toBe(uid(2));
     expect(pickWall(hover.index, pt(72, 120), 1)).toBeNull();
   });
@@ -116,7 +116,7 @@ describe('EZD-214 hover and pick indexes', () => {
     const o = threeWalls();
     const phase = setting('existing');
     const pick = createPickIndex();
-    pick.sync(o, openFloorId(o), [], phase);
+    pick.sync(o, openFloorId(o, null), [], phase);
     const all = pick.all().map((id) => id.toLowerCase());
     expect(all).toContain(uid(1));
     expect(all).toContain(uid(3));
@@ -128,7 +128,7 @@ describe('EZD-214 hover and pick indexes', () => {
         .map((id) => id.toLowerCase()),
     ).not.toContain(uid(2));
     phase.setView('proposed');
-    pick.sync(o, openFloorId(o), [], phase);
+    pick.sync(o, openFloorId(o, null), [], phase);
     expect(pick.has(uid(2))).toBe(true);
     expect(pick.has(uid(3))).toBe(false);
   });

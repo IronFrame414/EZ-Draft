@@ -137,12 +137,12 @@ describe('EZD-207a batches', () => {
       [W2, wall(F2)],
       [BOGUS, { type: 'bogus', schemaVersion: 1, data: {} }],
     ]);
-    expect(openFloorId(base)).toBe(F1);
+    expect(openFloorId(base, null)).toBe(F1);
     const expected = buildDrawingList(
       { objects: [parsed(F1, floor(1)), parsed(W1, wall(F1))] },
       { level: F1, dimensionTextPt: 10.5, roomHatch: null, roomLabelPt: 11.25 },
     );
-    const list = planDrawingList(base);
+    const list = planDrawingList(base, {}, null, null);
     expect(list).toEqual(expected);
     expect(list!.items.some((i) => i.objectId === W2)).toBe(false);
 
@@ -151,14 +151,14 @@ describe('EZD-207a batches', () => {
       [W2, wall(F2)],
       [BOGUS, { type: 'bogus', schemaVersion: 1, data: {} }],
     ]);
-    expect(openFloorId(noFloors)).toBeNull();
-    expect(planDrawingList(noFloors)).toBeNull();
+    expect(openFloorId(noFloors, null)).toBeNull();
+    expect(planDrawingList(noFloors, {}, null, null)).toBeNull();
 
     const tie = new Map<string, ObjectValue>([
       [F1, floor(1)],
       [F0, floor(1)],
     ]);
-    expect(openFloorId(tie)).toBe(F0);
+    expect(openFloorId(tie, null)).toBe(F0);
   });
 
   test('EZD-207a U7 one batch per layer and role in draw order, with the board colours and the drawing bounds', () => {
@@ -238,9 +238,9 @@ describe('EZD-235 planDrawingList options', () => {
       ...baseObjects(),
       [fixtureUid(10), roomValue([p(0, 0), p(144, 0), p(144, 120), p(0, 120)], 'Kitchen', null)],
     ]);
-    expect(label(planDrawingList(m, { roomAreaSqFt: () => 7 }), fixtureUid(10))).toBe(
+    expect(label(planDrawingList(m, { roomAreaSqFt: () => 7 }, null, null), fixtureUid(10))).toBe(
       'KITCHEN \u00b7 7 SF',
     );
-    expect(label(planDrawingList(m), fixtureUid(10))).toBe('KITCHEN \u00b7 120 SF');
+    expect(label(planDrawingList(m, {}, null, null), fixtureUid(10))).toBe('KITCHEN \u00b7 120 SF');
   });
 });

@@ -6,6 +6,7 @@
 // EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
 // EZD-212c (vault/plans/EZD-212c.md step 6b, D14): Esc asks the drawing first while a handle or chip entry is open.
 // EZD-213b (vault/plans/EZD-213b.md step 7, D-Dblclick): a dblclick selects the smallest object and tells onDoubleClick.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire): picks come from the chosen floor; a switch empties the selection.
 // EZD-231: Measure on every viewer's rail (`editorRail`).
 // EZD-233 (S03 Context menu "Group"): a click, Shift-click, drag hand-over or box that takes a grouped object takes
 // its whole group.
@@ -14,6 +15,8 @@
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
+import type { Objects } from '../model/patches';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
 import {
@@ -67,6 +70,8 @@ export type SelectionDeps = {
   claim?: (event: PlanPointerEvent) => boolean;
   // EZD-214 (Q-0671 (a)): what the phase view hides is not picked, and leaves the selection when it becomes hidden.
   phase?: PhaseFilter & { subscribe(listener: () => void): () => void };
+  // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor is picked from.
+  floors?: FloorChoice;
 };
 
 export type ReceiverSlots = {
@@ -337,8 +342,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     setUi(index.all());
   };
 
+  const floorOf = (o: Objects) => openFloorId(o, chosenFloor(deps.floors));
   const objects = store.getState().objects;
-  index.sync(objects, openFloorId(objects), [], phase);
+  index.sync(objects, floorOf(objects), [], phase);
   handle.setBodyLookup(bodyLookup);
   handle.setOutlineLookup?.(outlineLookup);
   handle.setHoverPicker(picker);
@@ -348,7 +354,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   // R15: keep the index current, drop ids that left the floor or the model, then redraw (R12).
   const unsubscribe = store.subscribe((state, prev) => {
     if (disposed || state.objects === prev.objects) return;
-    const floor = openFloorId(state.objects);
+    const floor = floorOf(state.objects);
     const floorChanged = floor !== index.floorId;
     index.sync(state.objects, floor, state.lastChangedIds, phase);
     const next = floorChanged ? [] : ui.ids.filter((id) => index.has(id));
@@ -363,9 +369,24 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       : phase.subscribe(() => {
           if (disposed) return;
           const now = store.getState().objects;
-          index.sync(now, openFloorId(now), [], phase);
+          index.sync(now, floorOf(now), [], phase);
           cycle = null;
           setUi(ui.ids.filter((id) => index.has(id)));
+        });
+  // EZD-6001 D-Wire: a switch to another floor empties the selection, as a floor change in the model does.
+  const unsubscribeFloors =
+    deps.floors === undefined
+      ? noop
+      : deps.floors.subscribe(() => {
+          if (disposed) return;
+          const now = store.getState().objects;
+          const floor = floorOf(now);
+          if (floor === index.floorId) return;
+          index.sync(now, floor, [], phase);
+          cycle = null;
+          const changed = ui.ids.length > 0;
+          setUi([]);
+          if (!changed) handle.setSelectedIds(ui.ids);
         });
 
   return {
@@ -424,6 +445,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       disposed = true;
       unsubscribe();
       unsubscribePhase();
+      unsubscribeFloors();
       press = null;
       box = null;
       handle.setSelectedIds([]);

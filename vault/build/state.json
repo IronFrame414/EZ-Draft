@@ -351,7 +351,8 @@
     "EZD-5604b",
     "EZD-116",
     "EZD-5605",
-    "EZD-214"
+    "EZD-214",
+    "EZD-218"
   ],
   "seeded_done": 324,
   "merged": [
@@ -543,6 +544,13 @@
       "commit": "e4cbeac9",
       "ts": "2026-11-16T06:00:22Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-218",
+      "title": "Left panel: Layers and Rooms",
+      "commit": "b41827e3",
+      "ts": "2026-11-16T10:30:34Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
@@ -563,6 +571,6 @@
       "reason": "check red after a review fix"
     }
   },
-  "sleep_until": "2026-11-16T06:33:39.106Z",
-  "next_probe": "2026-11-16T06:08:39.106Z"
+  "sleep_until": "2026-11-16T11:05:20.068Z",
+  "next_probe": "2026-11-16T10:40:20.068Z"
 }

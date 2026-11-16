@@ -18,6 +18,7 @@ import {
 import { ShapeUtils, Vector2 } from 'three';
 import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
+import { resolveOpenFloor } from '../floors/floors';
 import { tokenRgb, type Rgb } from './color';
 import type { Bounds } from './view';
 
@@ -60,29 +61,21 @@ function parsedObjects(objects: Objects): ModelObject[] {
   return out;
 }
 
-function lowestFloor(parsed: readonly ModelObject[]): string | null {
-  let best: { id: string; order: number } | null = null;
-  for (const o of parsed) {
-    if (o.type !== 'floor') continue;
-    const order = o.data.order;
-    if (best === null || order < best.order || (order === best.order && o.id < best.id)) {
-      best = { id: o.id, order };
-    }
-  }
-  return best === null ? null : best.id;
+// EZD-6001 (vault/plans/EZD-6001.md D-Open; Q-0509; Q-0690 (a)): the open floor is the floor the user chose this
+// session when it is still a floor, else the lowest floor (by order, then id); null when there is no floor.
+export function openFloorId(objects: Objects, chosen: string | null): string | null {
+  return resolveOpenFloor(objects, chosen);
 }
 
-export function openFloorId(objects: Objects): string | null {
-  return lowestFloor(parsedObjects(objects));
-}
-
+// EZD-6001: the drawing list of the open floor (`chosen` as in `openFloorId`).
 export function planDrawingList(
   objects: Objects,
-  options: DrawingListOptions = {},
-  phase: PhaseFilter | null = null,
+  options: DrawingListOptions,
+  phase: PhaseFilter | null,
+  chosen: string | null,
 ): DrawingList | null {
   const parsed = parsedObjects(objects);
-  const level = lowestFloor(parsed);
+  const level = resolveOpenFloor(objects, chosen);
   if (level === null) return null;
   const shown =
     phase === null

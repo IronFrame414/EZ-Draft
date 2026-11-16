@@ -4,6 +4,8 @@
 // boards S03dWallSelected, S03dDoorSelected, S03dWindowSelected, S03dStates; S03 Controls — inspector; 04 Left panel
 // and inspector; 05 Q-0630 rows 9, 33, 36; Q-0633 G7, G9, G11; Q-0635; Q-0640 row 5-4; Q-0645 (a)): the inspector
 // panel for walls, doors, windows and bulk selections. `InspectorContent` takes no store, so static markup renders it.
+import type { FloorChoice } from '../floors/floors';
+import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
   useCallback,
   useEffect,
@@ -82,6 +84,8 @@ export type InspectorPanelProps = {
   drawing: Pick<DrawingController, 'getUi' | 'subscribe' | 'startPick' | 'keep'> | null;
   // EZD-214: the phase view's status for rooms a wall edit makes; Existing when not given.
   newStatus?: () => ObjectStatus;
+  // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor.
+  floors?: FloorChoice;
 };
 
 export type InspectorContentProps = {
@@ -106,7 +110,9 @@ export function InspectorPanel({
   canEdit,
   drawing,
   newStatus,
+  floors,
 }: InspectorPanelProps): ReactElement {
+  const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
     store.subscribe,
     () => store.getState().objects,
@@ -118,7 +124,7 @@ export function InspectorPanel({
   const ids = useMemo(() => withoutRooms(objects, selected.ids), [objects, selected.ids]);
   const ui = useMemo(() => ({ ...selected, ids }), [selected, ids]);
   const coarse = useCoarsePointer();
-  const level = openFloorId(objects);
+  const level = openFloorId(objects, chosen);
   const view = useMemo<InspectorView>(
     () =>
       level === null || ui.ids.length === 0
@@ -167,12 +173,12 @@ export function InspectorPanel({
   const onCommit = useCallback(
     (edits: readonly InspectorEdit[]): MessageKey | null => {
       const r = commitInspectorEdits(
-        { store, ids: ui.ids, newId: newObjectId, roomStatus: newStatus?.() },
+        { store, ids: ui.ids, newId: newObjectId, roomStatus: newStatus?.(), chosenFloor: chosen },
         edits,
       );
       return r.ok ? null : r.messageKey;
     },
-    [store, ui.ids, newStatus],
+    [store, ui.ids, newStatus, chosen],
   );
   const onLayerMaterial = useCallback(
     (index: number, material: WallLayer['material']): MessageKey | null => {

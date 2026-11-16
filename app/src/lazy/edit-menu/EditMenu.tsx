@@ -5,6 +5,7 @@
 // waits for EZD-233"; Q-0664 Set status in the context menu; vault/build/assumptions.md EZD-233): the context menu, the
 // inspector More menu and the Save as group dialog. Align and Set status open their choices in place. Every command is
 // one edit (one undo step).
+import { chosenFloor, type FloorChoice } from '../../editor/floors/floors';
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from 'react';
 import { createPortal } from 'react-dom';
 import type { ObjectStatus, Point } from '@ezdraft/geometry';
@@ -39,6 +40,8 @@ export type EditMenusProps = {
   onMessage: (key: MessageKey) => void;
   // Tests pass their own; the page uses fetch.
   saveGroup?: (name: string, payload: SavedGroupPayload) => Promise<SaveResult>;
+  // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor.
+  floors?: FloorChoice;
 };
 
 export type SaveResult = { ok: true } | { ok: false; messageKey: MessageKey };
@@ -76,7 +79,7 @@ export function EditMenus(props: EditMenusProps): ReactElement | null {
   const [dialog, setDialog] = useState<SavedGroupPayload | null>(null);
   const openSave = () => {
     const objects = store.getState().objects;
-    const level = openFloorId(objects);
+    const level = openFloorId(objects, chosenFloor(props.floors));
     const payload =
       level === null ? null : savedGroupPayload({ objects, level, ids: selection.getUi().ids });
     onClose();

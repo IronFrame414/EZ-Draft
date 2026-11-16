@@ -33,6 +33,8 @@
 // EZD-233 (S03 Context menu; Inspector More; vault/build/assumptions.md EZD-233): for an editor, a right-click or long
 // press on the plan with no drawing tool on opens the context menu (an object under it that is not selected is
 // selected first, with its group); the inspector footer's More opens the More menu. Both load lazily.
+// EZD-6001 (vault/plans/EZD-6001.md D-Store, D-Wire, D-Mount; Q-0509; Q-0666): one floor view per session, given to
+// every controller and panel that reads the open floor; the Floor control is first in the status bar.
 import {
   useCallback,
   useEffect,
@@ -91,6 +93,8 @@ import {
   type PlanStats,
 } from './plan/controller';
 import { openFloorId } from './plan/batches';
+import { createFloorView, type FloorView } from './floors/floors';
+import { FloorSwitcher } from './floors/FloorSwitcher';
 import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
@@ -167,6 +171,7 @@ type CanvasState =
       layers: LayerSetting;
       derived: ModelDerived;
       assistant: AssistantLoader | null;
+      floors: FloorView;
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
@@ -234,8 +239,9 @@ export function ProjectEditor({
         let assistant: AssistantLoader | null = null;
         const layers = createLayerSetting(phase);
         const derived = createModelDerived(routed);
+        const floors = createFloorView();
         const plan = createPlanController(
-          { store: routed, scale: scale.get(), phase: layers, derived },
+          { store: routed, scale: scale.get(), phase: layers, derived, floors },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
         const slots = shareReceiver(plan.handle.setPointerReceiver);
@@ -248,6 +254,7 @@ export function ProjectEditor({
           snapSettings: () => deviceSnapSettings.get(),
           phase,
           ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
+          floors,
         });
         const selection = createSelectionController({
           handle: plan.handle,
@@ -256,6 +263,7 @@ export function ProjectEditor({
           setReceiver: slots.selection,
           claim: drawing.claimSelectPointer,
           phase: layers.selectable,
+          floors,
         });
         drawing.attachSelection(selection);
         const edit = createEditController({
@@ -265,6 +273,7 @@ export function ProjectEditor({
           handle: plan.handle,
           canEdit: result.session.model.viewer.canEdit,
           newStatus: () => phase.newObjectStatus(),
+          floors,
         });
         // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
         const sync = result.session.sync;
@@ -275,7 +284,8 @@ export function ProjectEditor({
                 {
                   projectId,
                   sync,
-                  getFloorId: () => openFloorId(result.session.store.getState().objects),
+                  getFloorId: () =>
+                    openFloorId(result.session.store.getState().objects, floors.getState().chosenId),
                   getSelectedIds: () => selection.getUi().ids,
                   getNewStatus: () => phase.newObjectStatus(),
                   // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
@@ -320,6 +330,7 @@ export function ProjectEditor({
           layers,
           derived,
           assistant,
+          floors,
         });
         return;
       }
@@ -342,6 +353,7 @@ export function ProjectEditor({
   const layers = state.kind === 'ready' ? state.layers : null;
   const derived = state.kind === 'ready' ? state.derived : null;
   const assistant = state.kind === 'ready' ? state.assistant : null;
+  const floors = state.kind === 'ready' ? state.floors : null;
   // EZD-5604b: the session's preview store, made with the first reply that has changes.
   const readPreview = () => assistant?.getPreview() ?? null;
   const readSession = () => assistant?.getSession() ?? null;
@@ -593,7 +605,9 @@ export function ProjectEditor({
         />
       ) : null}
       {selection !== null ? <SelectionLayer selection={selection} edit={edit} /> : null}
-      {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}
+      {session !== null ? (
+        <EmptyPlanHint store={session.store} canEdit={canEdit} floors={floors ?? undefined} />
+      ) : null}
       {session !== null && edit !== null && selection !== null && canEdit ? (
         <LazyEditMenus
           request={menu}
@@ -602,6 +616,7 @@ export function ProjectEditor({
           store={session.store}
           onClose={closeMenu}
           onMessage={(key) => messageRef.current(key)}
+          floors={floors ?? undefined}
         />
       ) : null}
       {stateArea}
@@ -623,6 +638,7 @@ export function ProjectEditor({
           canEdit={canEdit}
           drawing={drawing}
           newStatus={phase === null ? undefined : phase.newObjectStatus}
+          floors={floors ?? undefined}
         />
         <InspectorMore
           selection={selection}
@@ -640,6 +656,7 @@ export function ProjectEditor({
         showObject={plan.handle.showObject}
         canEdit={canEdit}
         roomArea={derived?.roomAreaSqFt}
+        floors={floors ?? undefined}
       />
     ) : null;
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
@@ -681,7 +698,12 @@ export function ProjectEditor({
             <StatusBar
               start={
                 showPlan && scale && phase ? (
-                  <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
+                  <>
+                    {session !== null && floors !== null ? (
+                      <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
+                    ) : null}
+                    <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
+                  </>
                 ) : undefined
               }
               end={showPlan ? <PlanStatusEnd handle={plan.handle} /> : undefined}

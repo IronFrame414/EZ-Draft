@@ -115,6 +115,8 @@ export type CommitDeps = {
   newId: () => string;
   // EZD-214: the phase view's status for rooms an edit makes; Existing when not given.
   roomStatus?: ObjectStatus;
+  // EZD-6001 D-Wire: the floor the user chose (null = the lowest floor).
+  chosenFloor?: string | null;
 };
 
 export function commitInspectorEdits(
@@ -123,7 +125,7 @@ export function commitInspectorEdits(
 ): { ok: true; changed: number } | { ok: false; messageKey: MessageKey } {
   const { store, ids, newId } = deps;
   const objects = store.getState().objects;
-  const level = openFloorId(objects);
+  const level = openFloorId(objects, deps.chosenFloor ?? null);
   if (level === null) return { ok: true, changed: 0 };
   const w = new Map(objects);
   const merged = new Map<string, Change>();

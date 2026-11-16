@@ -13,7 +13,7 @@ describe('EZD-218 room outline look', () => {
   it('the outline lookup draws the ring as segments only', () => {
     const objects = baseObjects();
     objects.set(uid(9), roomValue(RING, 'Kitchen', null));
-    const list = planDrawingList(objects);
+    const list = planDrawingList(objects, {}, null, null);
     const g = objectGeometry(list, new Set([uid(9)]), null, (id) => (id === uid(9) ? RING : null));
     expect(g.fill).toHaveLength(0);
     expect(g.body).toHaveLength(0);
@@ -25,7 +25,7 @@ describe('EZD-218 room outline look', () => {
   it('without the lookup a room draws nothing', () => {
     const objects = baseObjects();
     objects.set(uid(9), roomValue(RING, 'Kitchen', null));
-    const g = objectGeometry(planDrawingList(objects), new Set([uid(9)]), null);
+    const g = objectGeometry(planDrawingList(objects, {}, null, null), new Set([uid(9)]), null);
     expect(g.segments).toHaveLength(0);
   });
 });

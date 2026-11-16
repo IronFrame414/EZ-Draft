@@ -23,6 +23,8 @@
 // (Shift+L) measures between two snapped points (`reduceMeasure`) and never changes the model. It is the one tool a
 // viewer without Edit model can turn on: `enabled` still means "can edit", and only the receiver, the pointer,
 // `selectTool('measure' | null)` and the Shift+L and Esc keys let Measure through.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Draw-switch): new objects go on the chosen floor; a switch ends what is half
+// drawn as Escape does and keeps the tool.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -60,6 +62,7 @@ import type { IpadDrawing } from '../../lib/profile/profile';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
@@ -227,6 +230,8 @@ export type DrawingDeps = {
   clock?: () => number;
   // EZD-214: the phase view; hidden walls are not snapped to (Q-0671 (a)) and new objects take its status (AC-1).
   phase?: PhaseSource;
+  // EZD-6001 D-Wire: the floor the user chose; without it new objects go on the lowest floor.
+  floors?: FloorChoice;
 };
 
 export type DrawingController = {
@@ -302,8 +307,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const ipadDrawing = deps.ipadDrawing ?? (() => 'finger' as const);
   const clock = deps.clock ?? (() => performance.now());
 
+  const floorOf = (o: Objects) => openFloorId(o, chosenFloor(deps.floors));
   let objects: Objects = store.getState().objects;
-  let level: string | null = openFloorId(objects);
+  let level: string | null = floorOf(objects);
   let models: ModelObject[] = level === null ? [] : toModelObjects(objects, level);
   const phase = deps.phase ?? null;
   const newStatus = (): ObjectStatus => phase?.newObjectStatus() ?? 'existing';
@@ -436,11 +442,33 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           index = createWallSnapIndex(snapWalls(models));
         });
 
+  // EZD-6001 D-Wire: a switch to another floor reads that floor's objects and snaps to its walls.
+  const unsubscribeFloors =
+    deps.floors === undefined
+      ? () => {}
+      : deps.floors.subscribe(() => {
+          if (disposed) return;
+          const next = floorOf(objects);
+          if (next === level) return;
+          endForFloorSwitch();
+          level = next;
+          models = level === null ? [] : toModelObjects(objects, level);
+          walls = wallsIn(models);
+          openings = level === null ? [] : openingsOn(objects, level);
+          loose = level === null ? [] : looseOn(objects, level);
+          blockings = level === null ? [] : blockingsOn(objects, level);
+          moveCache = null;
+          index = createWallSnapIndex(snapWalls(models));
+          drawingIds = currentDrawingIds();
+          setUi({ boxes: computeBoxes() });
+          emitFrame();
+        });
+
   const unsubscribeStore = store.subscribe((state) => {
     if (disposed || state.objects === objects) return;
     const prevLevel = level;
     objects = state.objects;
-    level = openFloorId(objects);
+    level = floorOf(objects);
     models = level === null ? [] : toModelObjects(objects, level);
     walls = wallsIn(models);
     openings = level === null ? [] : openingsOn(objects, level);
@@ -1326,6 +1354,20 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     emitFrame();
   }
 
+  // EZD-6001 D-Draw-switch: a switch to another floor ends what is half drawn as Escape does; the tool stays on.
+  function endForFloorSwitch(): void {
+    if (ui.entry !== null || claim !== null) cancelEntry();
+    if (ui.pick !== null)
+      setUi({ pick: reducePick(ui.pick, { type: 'escape' }).state, gapMessage: null });
+    if (tool === null) return;
+    if (isOpeningTool(tool)) openingInput({ type: 'escape' });
+    else if (tool.id === 'move') moveInput({ type: 'escape' });
+    else if (tool.id === 'sketch' && tool.state.stroke !== null)
+      tool = { id: 'sketch', state: initialSketchState() };
+    else if (tool.id === 'wall' && tool.state.start !== null) input({ type: 'escape' });
+    else if (tool.id === 'room-rect' && tool.state.corner !== null) input({ type: 'escape' });
+  }
+
   function keyDown(e: ToolKeyEvent): boolean {
     if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
     // EZD-231: Shift+L and, while measuring, Esc work without Edit model; plain L stays free.
@@ -1626,6 +1668,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       handle.setPointerReceiver(null);
       unsubscribeStore();
       unsubscribePhase();
+      unsubscribeFloors();
       uiListeners.clear();
       frameListeners.clear();
     },

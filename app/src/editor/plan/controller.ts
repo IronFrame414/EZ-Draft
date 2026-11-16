@@ -13,11 +13,14 @@
 // EZD-235 Build step 8 (vault/plans/EZD-235.md Decided "D-Plan"; 11 rule 2): room areas through the model's derived values.
 // EZD-214 (S03 Decisions; 09m Phase switch; 11 rules 2 and 4): the phase view's filter decides what is drawn and
 // hovered; a View or eye change rebuilds the drawing list once and resyncs the hover index in full.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Gone; Q-0509): the canvas draws the chosen floor; a switch redraws as a View change does.
 import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import { createModelDerived, type ModelDerived } from '../derived/model-derived';
 import type { ModelStore } from '../model/model-store';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
+import type { Objects } from '../model/patches';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
 import { layoutText } from './glyph-atlas';
 import {
@@ -145,6 +148,8 @@ export function createPlanController(
       subscribe(listener: () => void): () => void;
       setEye?(status: ObjectStatus, on: boolean): void;
     };
+    // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor is drawn.
+    floors?: FloorChoice;
   },
   deps: {
     createRoot: CreateRenderRoot;
@@ -211,11 +216,13 @@ export function createPlanController(
   };
 
   const phase = o.phase ?? null;
+  const floorOf = (objects: Objects) => openFloorId(objects, chosenFloor(o.floors));
   const rebuild = (): number => {
     list = planDrawingList(
       o.store.getState().objects,
       { roomAreaSqFt: derived.roomAreaSqFt },
       phase,
+      chosenFloor(o.floors),
     );
     derived.prune();
     bounds = drawingBounds(list);
@@ -224,7 +231,8 @@ export function createPlanController(
     bufferUploads += uploaded;
     return uploaded > 0 || scene.objectCount() !== before ? 1 : 0;
   };
-  hover.sync(o.store.getState().objects, openFloorId(o.store.getState().objects), [], phase);
+  let shownFloor = floorOf(o.store.getState().objects);
+  hover.sync(o.store.getState().objects, shownFloor, [], phase);
   rebuild();
 
   const tolerance = () => HOVER_CAPTURE_PX / view.ppi;
@@ -317,7 +325,8 @@ export function createPlanController(
 
   const unsubscribe = o.store.subscribe((state, prev) => {
     if (state.objects === prev.objects) return;
-    hover.sync(state.objects, openFloorId(state.objects), state.lastChangedIds, phase);
+    shownFloor = floorOf(state.objects);
+    hover.sync(state.objects, shownFloor, state.lastChangedIds, phase);
     const rebuilt = rebuild() > 0;
     const selected = selectedIds.size > 0 ? selectionStep() : false;
     const texted = atlasSet ? textStep() : false;
@@ -329,18 +338,33 @@ export function createPlanController(
   });
 
   // A View or eye change: one rebuild, the hover index in full (its filter version changed), then one redraw.
+  const refreshAll = () => {
+    const objects = o.store.getState().objects;
+    shownFloor = floorOf(objects);
+    hover.sync(objects, shownFloor, [], phase);
+    const rebuilt = rebuild() > 0;
+    const selected = selectedIds.size > 0 ? selectionStep() : false;
+    const texted = atlasSet ? textStep() : false;
+    const hoverChanged = updateHover(true);
+    if (rebuilt || selected || texted || hoverChanged) redraw();
+  };
   const unsubscribePhase =
     phase === null
       ? () => {}
       : phase.subscribe(() => {
           if (disposed) return;
-          const objects = o.store.getState().objects;
-          hover.sync(objects, openFloorId(objects), [], phase);
-          const rebuilt = rebuild() > 0;
-          const selected = selectedIds.size > 0 ? selectionStep() : false;
-          const texted = atlasSet ? textStep() : false;
-          const hoverChanged = updateHover(true);
-          if (rebuilt || selected || texted || hoverChanged) redraw();
+          refreshAll();
+        });
+
+  // EZD-6001 D-Wire: a switch to another floor redraws as a View change does.
+  const unsubscribeFloors =
+    o.floors === undefined
+      ? () => {}
+      : o.floors.subscribe(() => {
+          if (disposed) return;
+          const next = floorOf(o.store.getState().objects);
+          if (next === shownFloor) return;
+          refreshAll();
         });
 
   const zoomBy = (factor: number) => {
@@ -615,6 +639,7 @@ export function createPlanController(
       disposed = true;
       unsubscribe();
       unsubscribePhase();
+      unsubscribeFloors();
       input?.dispose();
       input = null;
       detachCanvas();

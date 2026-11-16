@@ -180,7 +180,7 @@ test.describe('EZD-120c editor route', () => {
     // EZD-218: the plan editor has its left panel (S03 Layout).
     await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
-    await expect(page.locator('[data-status-item]')).toHaveCount(5);
+    await expect(page.locator('[data-status-item]')).toHaveCount(6);
     await expect(page.getByTestId('plan-empty-hint')).toHaveText(
       'Draw walls with Wall (W) or Room rectangle (R).',
     );

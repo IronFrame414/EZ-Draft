@@ -143,7 +143,7 @@ describe('EZD-5604b preview shapes', () => {
     expect(round(g.addFills)).toEqual([quad]);
     expect(round(g.addLines)).toEqual([[...quad, pt(54, 0)]]);
     const after = applyEditTo(before, makeEdit(before, p.changes), 'forward');
-    const items = planDrawingList(after)!.items.filter((i) => i.objectId === uid(50));
+    const items = planDrawingList(after, {}, null, null)!.items.filter((i) => i.objectId === uid(50));
     const leaves = items.flatMap((i) => (i.kind === 'line' ? [[i.from, i.to]] : []));
     const arcs = items.flatMap((i) =>
       i.kind === 'arc' ? [arcPoints(i.center, i.radius, i.startAngle, i.endAngle)] : [],

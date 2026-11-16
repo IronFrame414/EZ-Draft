@@ -99,9 +99,11 @@ function drawSide(objects: Objects, ids: readonly string[], side: Side) {
     if (o !== null) wanted.set(lower(o.id), o);
   }
   if (wanted.size === 0) return;
-  const list = planDrawingList(objects);
-  const items = new Map<string, NonNullable<typeof list>['items']>();
-  for (const item of list?.items ?? []) {
+  // EZD-6001: each object is drawn from the drawing list of its own floor.
+  const levels = new Set([...wanted.values()].map((o) => lower(o.data.level)));
+  const all = [...levels].flatMap((level) => planDrawingList(objects, {}, null, level)?.items ?? []);
+  const items = new Map<string, typeof all>();
+  for (const item of all) {
     const key = lower(item.objectId);
     if (!wanted.has(key)) continue;
     let group = items.get(key);

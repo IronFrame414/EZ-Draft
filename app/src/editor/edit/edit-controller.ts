@@ -4,10 +4,12 @@
 // the open floor, outside React. Every command is one `applyEdit` (one undo step); the clipboard is in memory only.
 // EZD-233 (S03 Context menu; vault/build/assumptions.md EZD-233): `run` applies one context menu command (Mirror,
 // Align, Group, Ungroup, Set status) built by the lazy context menu module, as one edit, and selects what it says.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire): "the open floor" is the floor the user chose.
 import type { Point, ObjectStatus } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ArrangeContext, ArrangeResult } from './arrange-changes';
 import type { ModelStore } from '../model/model-store';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
 import type { SelectionController } from '../selection/selection-controller';
@@ -33,6 +35,8 @@ export type EditDeps = {
   newId?: () => string;
   // EZD-214: the phase view's status for rooms an edit makes (05 Q-0664); Existing when not given.
   newStatus?: () => ObjectStatus;
+  // EZD-6001 D-Wire: the floor the user chose; without it edits act on the lowest floor.
+  floors?: FloorChoice;
 };
 
 export type EditController = {
@@ -141,7 +145,7 @@ export function createEditController(deps: EditDeps): EditController {
   const pasteItems = (items: readonly ClipItem[], at: Point | null) => {
     if (items.length === 0 || at === null) return;
     const { objects, numberHighs } = store.getState();
-    const level = openFloorId(objects);
+    const level = openFloorId(objects, chosenFloor(deps.floors));
     if (level === null) return;
     const r = pasteChanges(objects, level, items, at, newId, numberHighs, newStatus());
     if (r.changes.length === 0) return;
@@ -168,7 +172,7 @@ export function createEditController(deps: EditDeps): EditController {
   function deleteSelection(): void {
     run(() => {
       const objects = store.getState().objects;
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
       const changes = deleteChanges(objects, level, selection.getUi().ids, newId, newStatus());
       if (changes.length === 0) return;
@@ -180,7 +184,7 @@ export function createEditController(deps: EditDeps): EditController {
   function copy(): void {
     run(() => {
       const objects = store.getState().objects;
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
       const items = copyItems(objects, level, selection.getUi().ids);
       if (items.length > 0) clip = items;
@@ -199,7 +203,7 @@ export function createEditController(deps: EditDeps): EditController {
     run(() => {
       endTool();
       const objects = store.getState().objects;
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
       pasteItems(copyItems(objects, level, selection.getUi().ids), viewPoint('view'));
     });
@@ -210,7 +214,7 @@ export function createEditController(deps: EditDeps): EditController {
     run(() => {
       endTool();
       const { objects, numberHighs } = store.getState();
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
       const r = build({
         objects,

@@ -390,7 +390,7 @@ test.describe('EZD-219 status bar popovers', () => {
       const { ids, user } = await fixtureS();
       await signInAs(user.email);
       await openReady(page, ids.P1);
-      expect(await expectTouchTargets(page, statusBar(page))).toBe(5);
+      expect(await expectTouchTargets(page, statusBar(page))).toBe(6);
       await id(page, 'status-snap').click();
       expect(await expectTouchTargets(page, id(page, 'status-snap-popover'))).toBe(11);
       await page.keyboard.press('Escape');

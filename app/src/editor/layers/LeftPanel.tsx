@@ -4,6 +4,8 @@
 // kind exists; Q-0675 (a) lock look; 05 Q-0664 "Views and permissions"; AC-EZD-218-1 to -5): the plan editor's left
 // panel. Layers shows the Phase rows and the Rooms layer with its rooms; Rooms lists the rooms and edits the one
 // selected alone. Eyes and locks are the device session's (LayerSetting); room edits are one model edit each.
+import type { FloorChoice } from '../floors/floors';
+import { useChosenFloor } from '../floors/use-chosen-floor';
 import { CEILING_TYPES, ROOM_TYPES, type ObjectStatus, type RoomObject } from '@ezdraft/geometry';
 import {
   useMemo,
@@ -32,6 +34,8 @@ export type LeftPanelProps = {
   roomArea?: (room: RoomObject) => number;
   // The tab shown first; Layers unless a test asks for Rooms.
   initialTab?: Tab;
+  // EZD-6001 D-Wire: the floor the user chose; the Rooms tab lists its rooms. Without it the lowest floor.
+  floors?: FloorChoice;
 };
 
 export type Tab = 'layers' | 'rooms';
@@ -288,7 +292,9 @@ export function LeftPanel({
   canEdit,
   roomArea,
   initialTab = 'layers',
+  floors,
 }: LeftPanelProps): ReactElement {
+  const chosen = useChosenFloor(floors);
   const t = useT();
   const [tab, setTab] = useState<Tab>(initialTab);
   const objects = useSyncExternalStore(
@@ -300,8 +306,8 @@ export function LeftPanel({
   const eyes = useSyncExternalStore(layers.subscribe, layers.eyes, layers.eyes);
   const ui = useSyncExternalStore(selection.subscribe, selection.getUi, selection.getUi);
   const rows = useMemo(
-    () => roomRows(objects, openFloorId(objects), roomArea),
-    [objects, roomArea],
+    () => roomRows(objects, openFloorId(objects, chosen), roomArea),
+    [objects, roomArea, chosen],
   );
   const selectedId = ui.ids.length === 1 ? ui.ids[0]! : null;
 
