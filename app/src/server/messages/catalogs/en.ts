@@ -80,6 +80,15 @@ export const en = {
     "Someone else is editing this project now, so these changes weren't saved.",
   'error.save_conflict':
     "Someone else changed the same items first, so these changes weren't saved.",
+  // EZD-125 (S06 Edit lock; Q-0697 decisions 05): the lock route answers (wording for Josh to confirm).
+  'error.lock_released_other_device':
+    "You stopped editing this project on another device, so these changes weren't saved.",
+  'error.lock_held': 'Someone else is editing this project now.',
+  'error.not_lock_holder': "You aren't editing this project now.",
+  'error.own_lock': "You're already editing this project.",
+  'error.request_pending': 'You already asked to edit this project.',
+  'error.request_not_found': "That request isn't open any more.",
+  'error.request_not_pending': "That request isn't open any more.",
   'error.notification_not_found': 'That notification no longer exists.',
   'error.app_outdated': 'EZ Draft has been updated. Reload to keep saving your changes.',
   'error.sync_conflict_not_found': 'That change is no longer on the list.',

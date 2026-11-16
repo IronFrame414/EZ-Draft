@@ -159,17 +159,23 @@ isOneToOne: false
                   ]
                 },"edit_lock": {
                   Row: {
-                    "lock_epoch": number,"project_id": string,"tenant_id": string
+                    "device_id": string | null,"holder_app_user_id": string | null,"lock_epoch": number,"offline": boolean,"project_id": string,"since": string | null,"tenant_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "lock_epoch"?: number,"project_id": string,"tenant_id": string
+                    "device_id"?: string | null,"holder_app_user_id"?: string | null,"lock_epoch"?: number,"offline"?: boolean,"project_id": string,"since"?: string | null,"tenant_id": string
                   }
                   Update: {
-                    "lock_epoch"?: number,"project_id"?: string,"tenant_id"?: string
+                    "device_id"?: string | null,"holder_app_user_id"?: string | null,"lock_epoch"?: number,"offline"?: boolean,"project_id"?: string,"since"?: string | null,"tenant_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "edit_lock_holder_app_user_id_fkey"
+      columns: ["holder_app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "edit_lock_project_id_tenant_id_fkey"
       columns: ["project_id","tenant_id"]
 isOneToOne: false
@@ -177,6 +183,38 @@ isOneToOne: false
       referencedColumns: ["id","tenant_id"]
     },{
       foreignKeyName: "edit_lock_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"edit_request": {
+                  Row: {
+                    "deadline_at": string,"id": string,"project_id": string,"requested_at": string,"requester_app_user_id": string,"responded_at": string | null,"response": string | null,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "deadline_at": string,"id"?: string,"project_id": string,"requested_at"?: string,"requester_app_user_id": string,"responded_at"?: string | null,"response"?: string | null,"tenant_id": string
+                  }
+                  Update: {
+                    "deadline_at"?: string,"id"?: string,"project_id"?: string,"requested_at"?: string,"requester_app_user_id"?: string,"responded_at"?: string | null,"response"?: string | null,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "edit_request_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "edit_request_requester_app_user_id_fkey"
+      columns: ["requester_app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "edit_request_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
@@ -756,6 +794,12 @@ isOneToOne: false
             "accept_invite":
 { Args: { "p_ip"?: unknown,"p_token_sha256": string }; Returns: Json
                            },
+"acquire_edit_lock":
+{ Args: { "p_device_id": string,"p_ip"?: unknown,"p_project": string }; Returns: Json
+                           },
+"cancel_edit_request":
+{ Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
+                           },
 "cancel_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
@@ -959,6 +1003,9 @@ isOneToOne: false
 "reactivate_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
+"read_edit_lock":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "record_ai_usage":
 { Args: { "p_cost_usd": number,"p_model": string }; Returns: undefined
                            },
@@ -979,14 +1026,23 @@ isOneToOne: false
 "release_ai_assistant_slot":
 { Args: { "p_slot_id": string }; Returns: undefined
                            },
+"release_edit_lock":
+{ Args: { "p_ip"?: unknown,"p_lock_epoch"?: number,"p_project": string,"p_reason": string }; Returns: Json
+                           },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
                            },
 "remove_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
+"request_edit_lock":
+{ Args: { "p_ip"?: unknown,"p_minutes": number,"p_project": string }; Returns: Json
+                           },
 "resend_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
+                           },
+"respond_edit_request":
+{ Args: { "p_ip"?: unknown,"p_project": string,"p_request": string,"p_response": string }; Returns: Json
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
@@ -1031,6 +1087,9 @@ isOneToOne: false
                            },
 "start_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string
+                           },
+"sweep_edit_locks":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "system_backup_status":
 { Args: Record<PropertyKey, never>; Returns: {

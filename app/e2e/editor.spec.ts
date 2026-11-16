@@ -152,8 +152,10 @@ test.describe('EZD-120c editor route', () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${ids.P1}`);
     await expect(page.getByText('bravo')).toBeVisible();
     await page.waitForTimeout(500);
+    // EZD-125 (04:90; AC-EZD-125-4): the open also takes the edit lock.
     expect(urls.map((u) => new URL(u).pathname)).toEqual([
       `/api/projects/${ids.P1}/model`,
+      `/api/projects/${ids.P1}/lock`,
       '/api/sync-conflicts',
     ]);
   });

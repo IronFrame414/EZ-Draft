@@ -13,6 +13,24 @@ export interface ProjectChannelEvents {
     progress: number;
     attempts: number;
   };
+  // EZD-125 (Q-0697 03; S06 Events emitted): pushed by the edit_lock_broadcast and edit_request_broadcast
+  // triggers. Ids, statuses and timestamps only; the holder's name is read through GET /api/projects/[id]/lock.
+  'lock.acquired': { holderAppUserId: string; lockEpoch: number; since: string };
+  'lock.released': {
+    formerHolderAppUserId: string;
+    lockEpoch: number;
+    reason: 'stop_editing' | 'closed' | 'request_accepted';
+    at: string;
+  };
+  'lock.auto_released': { formerHolderAppUserId: string; lockEpoch: number; at: string };
+  'lock.requested': {
+    requestId: string;
+    requesterAppUserId: string;
+    requestedAt: string;
+    deadlineAt: string;
+  };
+  'lock.request_declined': { requestId: string; requesterAppUserId: string; respondedAt: string };
+  'lock.request_cancelled': { requestId: string; requesterAppUserId: string; respondedAt: string };
 }
 
 export interface UserChannelEvents {

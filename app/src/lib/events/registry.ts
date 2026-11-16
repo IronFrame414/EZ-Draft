@@ -65,6 +65,8 @@ export const EVENTS = {
   'tenant.updated': { kind: 'log_only' },
   // EZD-116 (S15d Events emitted): Settings > Defaults saved; the keys whose stored value changed.
   'tenant.defaults_updated': { kind: 'log_only' },
+  // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
+  'lock.request_cancelled': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
@@ -123,6 +125,7 @@ export interface EventPayloads {
   'lock.requested': Record<string, unknown>;
   'lock.auto_released': Record<string, unknown>;
   'lock.request_declined': Record<string, unknown>;
+  'lock.request_cancelled': Record<string, unknown>;
   'lock.conflict': Record<string, unknown>;
   // EZD-120a Build step 5: the ids of the objects one save wrote.
   'model.saved': { objectIds: string[] };

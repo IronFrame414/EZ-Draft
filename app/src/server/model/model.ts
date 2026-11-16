@@ -386,6 +386,13 @@ type ObjectRow = {
 
 type NumberRow = { object_id: string; type: string; number: unknown; kind: string | null };
 
+// The lock_epoch of a read_edit_lock answer, 0 when there is none.
+function lockEpochOf(data: unknown): number {
+  const v = (data as { lock_epoch?: unknown } | null)?.lock_epoch;
+  const n = Number(v ?? 0);
+  return Number.isSafeInteger(n) && n >= 0 ? n : 0;
+}
+
 export async function loadModel(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -426,7 +433,9 @@ export async function loadModel(
       .select('id, name, tenant_id, settings, phase_default, customer!project_customer_fk(name)')
       .eq('id', projectId)
       .maybeSingle(),
-    client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
+    // EZD-125 (Q-0697 03 "every lock read"): through read_edit_lock, so opening a project applies an expired
+    // request first; a project out of scope (P0002) reads as no lock and the project read answers null.
+    client.rpc('read_edit_lock', { p_project: projectId }),
     page(null),
     deletedPage(null),
     client.from('app_user').select('ipad_input_mode').eq('id', ctx.appUserId).maybeSingle(),
@@ -434,7 +443,7 @@ export async function loadModel(
     loadTenantDefaults(client),
   ]);
   if (project.error) throw project.error;
-  if (lock.error) throw lock.error;
+  if (lock.error && lock.error.code !== 'P0002') throw lock.error;
   if (me.error) throw me.error;
   if (project.data === null) return null;
 
@@ -497,7 +506,7 @@ export async function loadModel(
       canEdit: can(ctx, 'edit_model', { projectId }),
       ipadDrawing: ipadDrawingOf(me.data?.ipad_input_mode ?? null),
     },
-    lockEpoch: lock.data?.lock_epoch ?? 0,
+    lockEpoch: lockEpochOf(lock.data),
     objects,
     invalid,
     numberHighs,

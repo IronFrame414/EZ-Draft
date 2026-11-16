@@ -42,7 +42,11 @@ function fakes(rpcResult: () => Promise<unknown>) {
     }),
   };
   const client = vi.fn(() => fake as never);
-  const report = vi.fn(async () => ({ sentryEventId: null, alert: 'not_alerted' as const, alertId: null }));
+  const report = vi.fn(async () => ({
+    sentryEventId: null,
+    alert: 'not_alerted' as const,
+    alertId: null,
+  }));
   return { calls, fake, client, report };
 }
 
@@ -175,7 +179,11 @@ describe('EZD-109 event log sink', () => {
   it('U6 an object id that is not a uuid is reported and not sent', async () => {
     const { createEventLogSink } = await import('./event-log');
     const f = fakes(async () => ({ error: null }));
-    const sink = createEventLogSink({ client: f.client, requestIp: async () => null, report: f.report });
+    const sink = createEventLogSink({
+      client: f.client,
+      requestIp: async () => null,
+      report: f.report,
+    });
     await sink(event('customer.created', { customerId: 'not-a-uuid' }));
     expect(f.fake.rpc).toHaveBeenCalledTimes(0);
     expect(f.report).toHaveBeenCalledTimes(1);
@@ -189,9 +197,8 @@ describe('EZD-109 event log sink', () => {
   });
 
   it('U7 EVENT_LOG covers every event name @smoke', async () => {
-    const { EVENT_LOG, EVENT_ACTION_MAX, EVENT_ACTION_PATTERN, projectOrTenant } = await import(
-      './event-log'
-    );
+    const { EVENT_LOG, EVENT_ACTION_MAX, EVENT_ACTION_PATTERN, projectOrTenant } =
+      await import('./event-log');
     expect(Object.keys(EVENT_LOG)).toEqual(Object.keys(EVENTS));
     expect(EVENT_ACTION_MAX).toBe(64);
     for (const name of Object.keys(EVENT_LOG)) {
@@ -217,8 +224,14 @@ describe('EZD-109 event log sink', () => {
       expect(rule.mode, e.name).toBe('sink');
       return rule.object?.(e);
     };
-    expect(objectOf(event('tenant.updated', { fields: ['name'] }))).toEqual({ type: 'tenant', id: T });
-    expect(objectOf(event('customer.created', { customerId: C }))).toEqual({ type: 'customer', id: C });
+    expect(objectOf(event('tenant.updated', { fields: ['name'] }))).toEqual({
+      type: 'tenant',
+      id: T,
+    });
+    expect(objectOf(event('customer.created', { customerId: C }))).toEqual({
+      type: 'customer',
+      id: C,
+    });
     expect(objectOf(event('customer.updated', { customerId: C, fields: [] }))).toEqual({
       type: 'customer',
       id: C,
@@ -237,7 +250,18 @@ describe('EZD-109 event log sink', () => {
     });
     expect(projectOrTenant(event('lock.acquired', {}, P))).toEqual({ type: 'project', id: P });
     expect(projectOrTenant(event('lock.acquired', {}, null))).toEqual({ type: 'tenant', id: T });
-    expect(objectOf(event('lock.acquired', {}, P))).toEqual({ type: 'project', id: P });
+    expect(objectOf(event('lock.conflict', {}, P))).toEqual({ type: 'project', id: P });
+    // EZD-125 (Q-0697 decisions 10): the lock functions write these rows in the lock transaction.
+    for (const name of [
+      'lock.acquired',
+      'lock.released',
+      'lock.requested',
+      'lock.auto_released',
+      'lock.request_declined',
+      'lock.request_cancelled',
+    ] as const) {
+      expect(EVENT_LOG[name].mode, name).toBe('transaction');
+    }
   });
 
   it('U8 the event log sink is a default sink once', async () => {

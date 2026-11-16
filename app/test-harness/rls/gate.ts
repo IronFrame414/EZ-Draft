@@ -73,7 +73,10 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_ip: null,
     },
   },
-  { fn: 'resend_invite', args: { p_membership_id: null, p_secret: null, p_token_sha256: null, p_ip: null } },
+  {
+    fn: 'resend_invite',
+    args: { p_membership_id: null, p_secret: null, p_token_sha256: null, p_ip: null },
+  },
   { fn: 'cancel_invite', args: { p_membership_id: null, p_ip: null } },
   { fn: 'invite_link_secret', args: { p_membership_id: null } },
   // EZD-138 (Q-0216; Q-0695 row 61): the pending rows' link and code, authenticated only. invite_code_take is
@@ -205,6 +208,38 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_version: '00000000-0000-4000-8000-000000000000',
     },
   },
+  // EZD-125 (Q-0697): the edit lock functions, authenticated only (sweep_edit_locks is service_role only).
+  {
+    fn: 'acquire_edit_lock',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_device_id: null, p_ip: null },
+  },
+  {
+    fn: 'release_edit_lock',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_reason: 'stop_editing',
+      p_lock_epoch: null,
+      p_ip: null,
+    },
+  },
+  {
+    fn: 'request_edit_lock',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_minutes: 5, p_ip: null },
+  },
+  {
+    fn: 'cancel_edit_request',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_ip: null },
+  },
+  {
+    fn: 'respond_edit_request',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_request: '00000000-0000-4000-8000-000000000000',
+      p_response: 'keep',
+      p_ip: null,
+    },
+  },
+  { fn: 'read_edit_lock', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
   // EZD-219 step 1 (vault/plans/EZD-219.md): the plan scale setter, authenticated only.
   {
     fn: 'set_plan_scale',

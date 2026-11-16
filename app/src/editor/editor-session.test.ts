@@ -2,7 +2,7 @@
 // Decided "Open" (403 no-access, 404 not-found, else failed; a body that is not JSON reads as status 0 in
 // fetchModel), "Ready" (device copy over the load, mirror, sync only for canEdit, flush only with entries),
 // "Report, dispose" (P120b). Fakes: fetchImpl, storage and sync are vi.fn objects.
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
 import type { Change } from './model/patches';
 import type { ModelLoad } from '../lib/outbox/model-api';
@@ -86,7 +86,29 @@ function fakeSync(): OutboxSync {
   };
 }
 
-const respond = (model: ModelLoad) => vi.fn(async () => Response.json(model, { status: 200 }));
+// EZD-125: the session also asks for the edit lock at open (POST .../lock) and reads it (GET .../lock); the
+// stub answers both as a free lock taken at the load's epoch, so these rows keep the load's epoch.
+const lockStateOf = (model: ModelLoad) => ({
+  lockEpoch: model.lockEpoch,
+  holder: model.viewer.canEdit ? { appUserId: model.viewer.appUserId, name: 'Ana' } : null,
+  since: model.viewer.canEdit ? '2026-11-16T09:42:10.000Z' : null,
+  offline: false,
+  myRequest: null,
+  requests: [],
+  now: '2026-11-16T09:42:10.000Z',
+});
+const respond = (model: ModelLoad) =>
+  vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith('/lock') && init?.method === 'POST') {
+      return Response.json(
+        { lock: { lockEpoch: model.lockEpoch, since: '2026-11-16T09:42:10.000Z' } },
+        { status: 200 },
+      );
+    }
+    if (url.endsWith('/lock')) return Response.json({ lock: lockStateOf(model) }, { status: 200 });
+    return Response.json(model, { status: 200 });
+  });
 
 beforeEach(() => {
   vi.mocked(captureBrowserError).mockClear();
@@ -210,10 +232,12 @@ describe('EZD-120c editor session', () => {
       ],
     };
     let onSaved: ((projectId: string, saved: SavedObject[]) => void) | undefined;
-    const createSync = vi.fn((o: { onSaved?: (projectId: string, saved: SavedObject[]) => void }) => {
-      onSaved = o.onSaved;
-      return fakeSync();
-    });
+    const createSync = vi.fn(
+      (o: { onSaved?: (projectId: string, saved: SavedObject[]) => void }) => {
+        onSaved = o.onSaved;
+        return fakeSync();
+      },
+    );
     const result = await openEditorSession(PROJECT, {
       fetchImpl: respond(model),
       createStorage: () => fakeStorage(async () => []),
@@ -306,5 +330,325 @@ describe('EZD-299 editor session queued', () => {
     expect(listed).toEqual(entries);
     expect(listed.map((e) => e.projectId).sort()).toEqual([PROJECT, OTHER].sort());
     expect(storage.list).toHaveBeenCalled();
+  });
+});
+
+// EZD-125 (04:90; S03:16-17; Q-0681 (a); Q-0697 decisions 04; S06 Decision 12; 03b rules 7, 9; AC-EZD-125-4,
+// -8). Expected values: the acquire answers of the lock route (200 { lock }, 409 lock_held), the 09o lock_epoch
+// rows (a free project, 0, gives 1), and the Stop editing order drain, checkpoint, release.
+type Call = { url: string; method: string; body: unknown; keepalive: boolean };
+
+function lockServer(o: { model: ModelLoad; acquire: 'free' | 'held'; checkpoint?: 'ok' | 'fail' }) {
+  const calls: Call[] = [];
+  const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? 'GET';
+    calls.push({
+      url,
+      method,
+      body: typeof init?.body === 'string' ? JSON.parse(init.body) : null,
+      keepalive: init?.keepalive === true,
+    });
+    if (url.endsWith('/model')) return Response.json(o.model, { status: 200 });
+    if (url.endsWith('/lock') && method === 'POST') {
+      return o.acquire === 'free'
+        ? Response.json(
+            { lock: { lockEpoch: 1, since: '2026-11-16T09:42:10.000Z' } },
+            { status: 200 },
+          )
+        : Response.json(
+            {
+              error: { code: 'lock_held', message_key: 'error.lock_held' },
+              holder: { appUserId: OTHER, name: 'Ben' },
+              since: '2026-11-16T09:40:00.000Z',
+            },
+            { status: 409 },
+          );
+    }
+    if (url.endsWith('/lock'))
+      return Response.json({ lock: lockStateOf(o.model) }, { status: 200 });
+    if (url.endsWith('/checkpoints')) {
+      return o.checkpoint === 'fail'
+        ? Response.json(
+            { error: { code: 'db_unavailable', message_key: 'error.db_unavailable' } },
+            { status: 500 },
+          )
+        : Response.json({ version: { id: 'v-1' } }, { status: 201 });
+    }
+    if (url.endsWith('/lock/release')) {
+      return Response.json({ lock: { lockEpoch: 2 } }, { status: 200 });
+    }
+    return Response.json({}, { status: 500 });
+  });
+  return { fetchImpl, calls };
+}
+
+// The tab-close rows give the session a page to listen on as `globalThis.window` (none in Node); afterEach takes
+// it away again.
+afterEach(() => {
+  delete (globalThis as { window?: unknown }).window;
+});
+const pageTarget = () => {
+  const target = new EventTarget();
+  (globalThis as { window?: unknown }).window = target;
+  return {
+    hide: () => target.dispatchEvent(new Event('pagehide')),
+    // A user action on the page arms the tab-close release (it loads with the first one).
+    touch: async () => {
+      target.dispatchEvent(new Event('pointerdown'));
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    },
+  };
+};
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('EZD-125 editor session edit lock', () => {
+  it('AC-EZD-125-4 a free lock goes to a viewer with Edit model; the editor saves with the acquired epoch', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const sync = fakeSync();
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => []),
+      createSync: () => sync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    const acquire = server.calls.find((c) => c.url.endsWith('/lock') && c.method === 'POST');
+    expect(acquire?.body).toEqual({ deviceId: expect.stringMatching(/^[0-9a-f-]{36}$/) });
+    expect(result.session.lock.holding).toBe(true);
+    expect(result.session.model.viewer.canEdit).toBe(true);
+    expect(result.session.model.lockEpoch).toBe(1);
+    const change: Change = { id: FLOOR, value: floor('Floor B') };
+    result.session.store.applyEdit([change]);
+    expect(sync.enqueue).toHaveBeenCalledWith(PROJECT, 1, [change]);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-4 while another person holds the lock the project opens view only: no sync, nothing saved', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'held' });
+    const createSync = vi.fn(() => fakeSync());
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => [entry(PROJECT, 'Floor Q')]),
+      createSync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    expect(result.session.sync).toBeNull();
+    expect(createSync).not.toHaveBeenCalled();
+    expect(result.session.model.viewer.canEdit).toBe(false);
+    expect(result.session.lock.canEditModel).toBe(true);
+    expect(result.session.lock.holding).toBe(false);
+    result.session.store.applyEdit([{ id: FLOOR, value: floor('Floor B') }]);
+    expect(server.calls.filter((c) => c.url.endsWith('/objects'))).toHaveLength(0);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-4 a viewer without Edit model opens view only and never asks for the lock', async () => {
+    const server = lockServer({ model: modelOf(false), acquire: 'free' });
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => []),
+      createSync: () => fakeSync(),
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    expect(server.calls.some((c) => c.url.endsWith('/lock') && c.method === 'POST')).toBe(false);
+    expect(result.session.sync).toBeNull();
+    expect(result.session.lock.holding).toBe(false);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-8 Stop editing drains, makes a checkpoint and then releases', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const sync = fakeSync();
+    const order: string[] = [];
+    vi.mocked(sync.flush).mockImplementation(async () => {
+      order.push('drain');
+    });
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => []),
+      createSync: () => sync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    server.calls.length = 0;
+    const outcome = await (
+      await import('./lock/session-lock')
+    ).stopEditing(result.session, async () => null, { fetchImpl: server.fetchImpl });
+    expect(outcome).toEqual({ ok: true, lockEpoch: 2 });
+    const posts = server.calls
+      .filter((c) => c.method === 'POST')
+      .map((c) => c.url.split('/').pop());
+    expect(order).toEqual(['drain']);
+    expect(posts).toEqual(['checkpoints', 'release']);
+    expect(server.calls.find((c) => c.url.endsWith('/release'))?.body).toEqual({
+      reason: 'stop_editing',
+    });
+    expect(result.session.lock.holding).toBe(false);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-8 a failed checkpoint keeps the lock and returns the error; no release is sent', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free', checkpoint: 'fail' });
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => []),
+      createSync: () => fakeSync(),
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    const outcome = await (
+      await import('./lock/session-lock')
+    ).stopEditing(result.session, async () => null, { fetchImpl: server.fetchImpl });
+    expect(outcome).toEqual({ ok: false, step: 'checkpoint', code: 'db_unavailable' });
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    expect(result.session.lock.holding).toBe(true);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-8 Stop editing with edits still queued after the drain keeps the lock', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => [entry(PROJECT, 'Floor Q')]),
+      createSync: () => fakeSync(),
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    server.calls.length = 0;
+    const outcome = await (
+      await import('./lock/session-lock')
+    ).stopEditing(result.session, async () => null, { fetchImpl: server.fetchImpl });
+    expect(outcome).toEqual({ ok: false, step: 'drain', code: 'unsaved_changes' });
+    expect(server.calls.some((c) => c.url.endsWith('/checkpoints'))).toBe(false);
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    expect(result.session.lock.holding).toBe(true);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-8 a tab close is not released while the outbox has entries for the project', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const page = pageTarget();
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => [entry(PROJECT, 'Floor Q')]),
+      createSync: () => fakeSync(),
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    await page.touch();
+    page.hide();
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-8 after an edit no release is sent until its entry has drained; then one keepalive release carries the epoch', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const page = pageTarget();
+    const sync = fakeSync();
+    let queued: OutboxEntry[] = [entry(OTHER, 'Floor Z')];
+    vi.mocked(sync.enqueue).mockImplementation(async () => {
+      queued = [...queued, entry(PROJECT, 'Floor B')];
+    });
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => queued),
+      createSync: () => sync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    result.session.store.applyEdit([{ id: FLOOR, value: floor('Floor B') }]);
+    await page.touch();
+    sync.setState({ status: 'pending' });
+    await settle();
+    page.hide();
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    // The drain saves it: the entry leaves the outbox and the sync is saved.
+    queued = [entry(OTHER, 'Floor Z')];
+    sync.setState({ status: 'saved' });
+    await settle();
+    page.hide();
+    const releases = server.calls.filter((c) => c.url.endsWith('/release'));
+    expect(releases).toHaveLength(1);
+    expect(releases[0]).toMatchObject({
+      body: { reason: 'closed', lockEpoch: 1 },
+      keepalive: true,
+    });
+    // Sent once: the tab no longer holds the lock.
+    page.hide();
+    expect(server.calls.filter((c) => c.url.endsWith('/release'))).toHaveLength(1);
+    result.session.dispose();
+  });
+
+  it('AC-EZD-125-8 with no edit, a tab close after a user action releases at once', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const page = pageTarget();
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => []),
+      createSync: () => fakeSync(),
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    await page.touch();
+    page.hide();
+    expect(server.calls.filter((c) => c.url.endsWith('/release'))).toHaveLength(1);
+    result.session.dispose();
+  });
+});
+
+describe('EZD-125 tab-close count race', () => {
+  it('AC-EZD-125-8 a count that began before an edit was stored does not clear it', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const page = pageTarget();
+    const sync = fakeSync();
+    let finishPut: () => void = () => {};
+    let queued: OutboxEntry[] = [];
+    vi.mocked(sync.enqueue).mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPut = () => {
+            queued = [entry(PROJECT, 'B')];
+            resolve();
+          };
+        }),
+    );
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => queued),
+      createSync: () => sync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    await page.touch();
+    // An edit whose write has not reached storage; a sync state change from an earlier drain counts now.
+    result.session.store.applyEdit([{ id: FLOOR, value: floor('B') }]);
+    sync.setState({ status: 'saved' });
+    await settle();
+    page.hide();
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    // The write lands and the entry is queued: still no release.
+    finishPut();
+    sync.setState({ status: 'pending' });
+    await settle();
+    page.hide();
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    result.session.dispose();
+  });
+});
+
+describe('EZD-125 tab close after queued entries drain', () => {
+  it('AC-EZD-125-8 entries queued before the open block the release until they have drained', async () => {
+    const server = lockServer({ model: modelOf(true), acquire: 'free' });
+    const page = pageTarget();
+    const sync = fakeSync();
+    let queued = [entry(PROJECT, 'Floor Q')];
+    const result = await openEditorSession(PROJECT, {
+      fetchImpl: server.fetchImpl,
+      createStorage: () => fakeStorage(async () => queued),
+      createSync: () => sync,
+    });
+    if (result.kind !== 'ready') throw new Error(`expected ready, got ${result.kind}`);
+    await page.touch();
+    page.hide();
+    expect(server.calls.some((c) => c.url.endsWith('/release'))).toBe(false);
+    queued = [];
+    sync.setState({ status: 'saved' });
+    await settle();
+    page.hide();
+    expect(server.calls.filter((c) => c.url.endsWith('/release'))).toHaveLength(1);
+    result.session.dispose();
   });
 });

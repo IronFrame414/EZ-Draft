@@ -12,6 +12,12 @@
 // (net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS). On Chromium, captureTraffic first grants local-network-access to the
 // context, which gives the routed page the loopback reach an unrouted 127.0.0.1 page has. WebKit has no such check and
 // refuses the permission name, so it gets no grant.
+// EZD-125: Chromium adds Sec-Fetch-Site in its network layer, after interception, so a routed request lacks it and
+// the EZD-346 same-origin guard (src/server/auth/same-origin.ts) refused the copy route.fetch sends of the editor's
+// lock POST at open. The handler gives a routed subresource request the Sec-Fetch-Site the browser would send:
+// same-origin when the requesting frame's origin is the target's, same-site for the same host on another port,
+// cross-site otherwise; nothing for a navigation,
+// a request with no frame (a service worker's) or one that already carries it.
 import type { BrowserContext, Request, Route } from '@playwright/test';
 import { isLoopback } from '../net-guard/net-guard.mjs';
 
@@ -75,6 +81,33 @@ type Item = {
 function firstLine(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   return text.split('\n')[0] ?? '';
+}
+
+// The request's headers with the Sec-Fetch-Site the browser sends, or null (the request is a navigation, has the
+// header or has no frame).
+function fetchSiteHeader(req: Request, target: URL): Record<string, string> | null {
+  const headers = req.headers();
+  if (req.isNavigationRequest() || 'sec-fetch-site' in headers) return null;
+  let from: string;
+  try {
+    from = req.frame().url();
+  } catch {
+    return null;
+  }
+  let source: URL;
+  try {
+    source = new URL(from);
+  } catch {
+    return null;
+  }
+  // Every routed target is loopback, so same-site is the same scheme and host (another port).
+  const site =
+    source.origin === target.origin
+      ? 'same-origin'
+      : source.protocol === target.protocol && source.hostname === target.hostname
+        ? 'same-site'
+        : 'cross-site';
+  return { ...headers, 'sec-fetch-site': site };
 }
 
 function labelOf(entry: TrafficRequest): string {
@@ -157,7 +190,12 @@ export async function captureTraffic(
       let buf: Buffer;
       try {
         // No postData option: route.fetch sends the request's own post data (coreBundle.js 60866).
-        res = await route.fetch({ maxRedirects: entry.isNavigation ? 0 : 20, timeout: fetchLimit });
+        const headers = fetchSiteHeader(req, url);
+        res = await route.fetch({
+          maxRedirects: entry.isNavigation ? 0 : 20,
+          timeout: fetchLimit,
+          ...(headers ? { headers } : {}),
+        });
         buf = await res.body();
       } catch (error) {
         item.failure = firstLine(error);

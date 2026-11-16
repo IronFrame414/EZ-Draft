@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { reportError } from '../../../../server/errors/report';
 import { rewrapStaleAiKeys } from '../../../../server/jobs/ai-key-rewrap';
 import { runJobs } from '../../../../server/jobs/runner';
+import { sweepExpiredLocks } from '../../../../server/lock/sweep';
 
 const order = vi.hoisted(() => ({ calls: [] as string[] }));
 
@@ -20,6 +21,10 @@ vi.mock('../../../../server/jobs/ai-key-rewrap', () => ({
     order.calls.push('rewrap');
     return { rewrapped: 0, failed: 0 };
   }),
+}));
+// EZD-125: the edit lock pass, mocked so these rows never reach a database.
+vi.mock('../../../../server/lock/sweep', () => ({
+  sweepExpiredLocks: vi.fn(async () => 0),
 }));
 vi.mock('../../../../server/errors/report', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../../server/errors/report')>();
@@ -72,5 +77,39 @@ describe('EZD-5601 sweep rewrap', () => {
     const res = await call();
     expect(res.status).toBe(401);
     expect(rewrapStaleAiKeys).not.toHaveBeenCalled();
+  });
+});
+
+describe('EZD-125 sweep edit lock pass', () => {
+  beforeEach(() => {
+    vi.stubEnv('CRON_SECRET', SECRET);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.mocked(sweepExpiredLocks).mockClear();
+    vi.mocked(reportError).mockClear();
+  });
+
+  it('AC-EZD-125-7 every sweep runs one edit lock pass and answers { ran }', async () => {
+    const res = await call(`Bearer ${SECRET}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ran: 3 });
+    expect(sweepExpiredLocks).toHaveBeenCalledTimes(1);
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it('AC-EZD-125-7 a failing pass is reported as edit_lock_sweep_failed and the sweep still answers 200', async () => {
+    vi.mocked(sweepExpiredLocks).mockRejectedValueOnce(new Error('secret detail'));
+    const res = await call(`Bearer ${SECRET}`);
+    expect(res.status).toBe(200);
+    expect(reportError).toHaveBeenCalledTimes(1);
+    const [error, context] = vi.mocked(reportError).mock.calls[0];
+    expect((error as Error).message).toBe('edit_lock_sweep_failed');
+    expect(context).toEqual({ source: 'job', location: '/api/jobs/sweep' });
+  });
+
+  it('AC-EZD-125-7 without the Bearer secret the pass does not run', async () => {
+    expect((await call()).status).toBe(401);
+    expect(sweepExpiredLocks).not.toHaveBeenCalled();
   });
 });

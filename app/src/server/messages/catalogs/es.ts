@@ -84,6 +84,14 @@ export const es = {
     'Otra persona está editando este proyecto ahora, así que estos cambios no se guardaron.',
   'error.save_conflict':
     'Otra persona cambió los mismos elementos primero, así que estos cambios no se guardaron.',
+  'error.lock_released_other_device':
+    'Dejaste de editar este proyecto en otro dispositivo, así que estos cambios no se guardaron.',
+  'error.lock_held': 'Otra persona está editando este proyecto ahora.',
+  'error.not_lock_holder': 'No estás editando este proyecto ahora.',
+  'error.own_lock': 'Ya estás editando este proyecto.',
+  'error.request_pending': 'Ya pediste editar este proyecto.',
+  'error.request_not_found': 'Esa solicitud ya no está abierta.',
+  'error.request_not_pending': 'Esa solicitud ya no está abierta.',
   'error.notification_not_found': 'Esa notificación ya no existe.',
   'error.app_outdated': 'EZ Draft se actualizó. Recarga para seguir guardando tus cambios.',
   'error.sync_conflict_not_found': 'Ese cambio ya no está en la lista.',

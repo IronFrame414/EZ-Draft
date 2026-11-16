@@ -1062,4 +1062,90 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-299a: removes that row; 200 { removed: true } (no money)',
   },
+  // EZD-125 (Q-0697): the edit lock routes, last, so no earlier case's save at epoch 0 meets a held lock.
+  {
+    file: `${API}projects/[id]/lock/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/lock/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/lock`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-125: the lock read; 200 { lock } (holder id and name, no money)',
+  },
+  {
+    file: `${API}projects/[id]/lock/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/lock/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/lock`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ deviceId: 'money-case' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-125: Start editing; 200 { lock: { lockEpoch, since } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/lock/request/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/lock/request/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/lock/request`, {
+        method: 'POST',
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 409,
+    note: 'EZD-125: the holder asking to edit; 409 own_lock (no money)',
+  },
+  {
+    file: `${API}projects/[id]/lock/request/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/projects/[id]/lock/request/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/lock/request`, {
+        method: 'DELETE',
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 404,
+    note: 'EZD-125: Cancel with no pending request; 404 request_not_found (no money)',
+  },
+  {
+    file: `${API}projects/[id]/lock/respond/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/lock/respond/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/lock/respond`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({
+          requestId: '00000000-0000-4000-8000-000000000000',
+          response: 'keep',
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 409,
+    note: 'EZD-125: Keep for a request that is not pending; 409 request_not_pending (no money)',
+  },
+  {
+    file: `${API}projects/[id]/lock/release/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/lock/release/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/lock/release`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ reason: 'stop_editing' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-125: Stop editing; 200 { lock: { lockEpoch } } (no money)',
+  },
 ];

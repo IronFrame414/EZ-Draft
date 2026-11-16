@@ -64,12 +64,12 @@ export const EVENT_LOG: EventLogRules = {
   'customer.synced': SINK,
   'user.synced': SINK,
   'render_allowance.refilled': SINK,
-  // EZD-125 writes these in the lock transaction and makes them `transaction` (Q-0697).
-  'lock.acquired': SINK,
-  'lock.released': SINK,
-  'lock.requested': SINK,
-  'lock.auto_released': SINK,
-  'lock.request_declined': SINK,
+  // EZD-125 (Q-0697 decisions 10): written by the lock functions in the lock transaction.
+  'lock.acquired': TRANSACTION,
+  'lock.released': TRANSACTION,
+  'lock.requested': TRANSACTION,
+  'lock.auto_released': TRANSACTION,
+  'lock.request_declined': TRANSACTION,
   'lock.conflict': SINK,
   // Q-0735 (a): an autosave writes no row.
   'model.saved': { mode: 'none' },
@@ -114,6 +114,8 @@ export const EVENT_LOG: EventLogRules = {
   'user.joined': TRANSACTION,
   'tenant.updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
   'tenant.defaults_updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
+  // EZD-125 (Q-0697 decisions 10): written by cancel_edit_request in the lock transaction.
+  'lock.request_cancelled': TRANSACTION,
   'customer.created': {
     mode: 'sink',
     object: (e) => ({ type: 'customer', id: e.payload.customerId }),
