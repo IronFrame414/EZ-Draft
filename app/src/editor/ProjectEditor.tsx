@@ -78,7 +78,8 @@ import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
-import { InspectorPanel } from './inspector/InspectorPanel';
+import { InspectorEmpty } from './inspector/InspectorEmpty';
+import type { InspectorPanelProps } from '../lazy/inspector-panel';
 import type { Change } from './model/patches';
 import {
   createPlanController,
@@ -105,7 +106,14 @@ import {
   type SelectionController,
 } from './selection/selection-controller';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
-import { PlanScaleFailedBanner, PlanStatusEnd, PlanStatusStart } from './status/PlanStatus';
+import {
+  PhaseFailedBanner,
+  PlanScaleFailedBanner,
+  PlanStatusEnd,
+  PlanStatusStart,
+} from './status/PlanStatus';
+import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
+import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
 import { createDrawingController, type DrawingController } from './tools/drawing-controller';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
@@ -129,6 +137,8 @@ export type EditorTestHook = {
 type PlanTestHook = {
   handle: PlanCanvasHandle;
   stats(): PlanStats & { contexts: number };
+  // EZD-214: the phase view and the Phase eyes (EZD-218 drives setEye from Layers).
+  phase: PhaseSetting;
 };
 
 type SelectionTestHook = {
@@ -147,6 +157,7 @@ type CanvasState =
       selection: SelectionController;
       edit: EditController;
       scale: ScaleSetting;
+      phase: PhaseSetting;
       assistant: AssistantLoader | null;
     };
 
@@ -202,13 +213,19 @@ export function ProjectEditor({
           canEdit: result.session.model.viewer.canEdit,
           save: (s) => savePlanScale(projectId, s),
         });
+        // EZD-214 (03 Q-0664): the View starts from the project's phase_default; a view-only switch saves nothing.
+        const phase = createPhaseSetting({
+          view: phaseViewOf(result.session.model.project.phaseDefault),
+          canEdit: result.session.model.viewer.canEdit,
+          save: (v) => savePhaseView(projectId, v),
+        });
         // EZD-5605 D-Who gets which store: the canvas and the editing controllers use the routed store, which is
         // the model store except while an Assistant preview is adjusted.
         const routed = createRoutedStore(result.session.store);
         // The Assistant loader is made after the controllers, which read Adjust through it.
         let assistant: AssistantLoader | null = null;
         const plan = createPlanController(
-          { store: routed, scale: scale.get() },
+          { store: routed, scale: scale.get(), phase },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
         const slots = shareReceiver(plan.handle.setPointerReceiver);
@@ -219,6 +236,7 @@ export function ProjectEditor({
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
           snapSettings: () => deviceSnapSettings.get(),
+          phase,
           ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
         });
         const selection = createSelectionController({
@@ -227,6 +245,7 @@ export function ProjectEditor({
           drawing,
           setReceiver: slots.selection,
           claim: drawing.claimSelectPointer,
+          phase,
         });
         drawing.attachSelection(selection);
         const edit = createEditController({
@@ -235,6 +254,7 @@ export function ProjectEditor({
           drawing,
           handle: plan.handle,
           canEdit: result.session.model.viewer.canEdit,
+          newStatus: () => phase.newObjectStatus(),
         });
         // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
         const sync = result.session.sync;
@@ -247,6 +267,7 @@ export function ProjectEditor({
                   sync,
                   getFloorId: () => openFloorId(result.session.store.getState().objects),
                   getSelectedIds: () => selection.getUi().ids,
+                  getNewStatus: () => phase.newObjectStatus(),
                   // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
                   preview: {
                     model: result.session.store,
@@ -270,6 +291,7 @@ export function ProjectEditor({
           selection.dispose();
           unsubscribeScale();
           scale.dispose();
+          phase.dispose();
           drawing.dispose();
           plan.dispose();
           result.session.dispose();
@@ -284,6 +306,7 @@ export function ProjectEditor({
           selection,
           edit,
           scale,
+          phase,
           assistant,
         });
         return;
@@ -303,6 +326,7 @@ export function ProjectEditor({
   const edit = state.kind === 'ready' ? state.edit : null;
   const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
+  const phase = state.kind === 'ready' ? state.phase : null;
   const assistant = state.kind === 'ready' ? state.assistant : null;
   // EZD-5604b: the session's preview store, made with the first reply that has changes.
   const readPreview = () => assistant?.getPreview() ?? null;
@@ -356,17 +380,18 @@ export function ProjectEditor({
   }, [session, sync, devHooks]);
 
   useEffect(() => {
-    if (plan === null || !devHooks) return;
+    if (plan === null || phase === null || !devHooks) return;
     const hook: PlanTestHook = {
       handle: plan.handle,
       stats: () => ({ ...plan.stats(), contexts: webglContextsCreated() }),
+      phase,
     };
     const w = window as unknown as { __ezdraftPlan?: PlanTestHook };
     w.__ezdraftPlan = hook;
     return () => {
       delete w.__ezdraftPlan;
     };
-  }, [plan, devHooks]);
+  }, [plan, phase, devHooks]);
 
   const menuCanEdit = session?.model.viewer.canEdit ?? false;
   useEffect(() => {
@@ -489,6 +514,9 @@ export function ProjectEditor({
             {conflicts.outdatedCount > 0 || scale === null ? null : (
               <PlanScaleFailedBanner scale={scale} sync={sync} />
             )}
+            {conflicts.outdatedCount > 0 || phase === null ? null : (
+              <PhaseFailedBanner phase={phase} sync={sync} />
+            )}
           </>
         ) : null}
         {canvasFailed ? (
@@ -575,11 +603,12 @@ export function ProjectEditor({
   const inspector =
     showPlan && session !== null && selection !== null ? (
       <InspectorStack>
-        <InspectorPanel
+        <LazyInspectorPanel
           store={session.store}
           selection={selection}
           canEdit={canEdit}
           drawing={drawing}
+          newStatus={phase === null ? undefined : phase.newObjectStatus}
         />
         <InspectorMore
           selection={selection}
@@ -624,8 +653,8 @@ export function ProjectEditor({
           statusBar={
             <StatusBar
               start={
-                showPlan && scale ? (
-                  <PlanStatusStart scale={scale} snap={deviceSnapSettings} />
+                showPlan && scale && phase ? (
+                  <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
                 ) : undefined
               }
               end={showPlan ? <PlanStatusEnd handle={plan.handle} /> : undefined}
@@ -671,6 +700,37 @@ function LazyPreviewLayer(props: { store: PreviewStore; handle: PlanCanvasHandle
   );
   const mod = useLazy(assistantPanelModule, open);
   return mod ? <mod.PreviewLayer {...props} /> : null;
+}
+
+// EZD-214 (11 Budgets; EZD-120c B11): the inspector panel loads on the first press or key in the editor, or when
+// something is selected; until then the empty inspector is drawn from the entry.
+const inspectorModule = lazyModule(() => import('../lazy/inspector-panel'));
+
+function LazyInspectorPanel(props: InspectorPanelProps) {
+  const { selection } = props;
+  const selected = useSyncExternalStore(
+    selection.subscribe,
+    () => selection.getUi().ids.length > 0,
+    () => false,
+  );
+  // The first press or key fetches the module without a React commit (11 rule 4: a pan makes no commit).
+  useEffect(() => {
+    if (inspectorModule.peek() !== undefined) return;
+    const on = () => {
+      window.removeEventListener('pointerdown', on, true);
+      window.removeEventListener('keydown', on, true);
+      inspectorModule.load().catch(() => {});
+    };
+    window.addEventListener('pointerdown', on, true);
+    window.addEventListener('keydown', on, true);
+    return () => {
+      window.removeEventListener('pointerdown', on, true);
+      window.removeEventListener('keydown', on, true);
+    };
+  }, []);
+  const mod = useLazy(inspectorModule, selected) ?? inspectorModule.peek();
+  const coarse = useCoarsePointer();
+  return mod ? <mod.InspectorPanel {...props} /> : <InspectorEmpty coarse={coarse} />;
 }
 
 // EZD-233 (11 Budgets): the tablet edit bar loads on touch screens only.

@@ -395,6 +395,8 @@ test.describe('EZD-213b inspector', () => {
       );
       const inspector = id(page, 'inspector');
       await clickAt(page, SPOT.W1.x, SPOT.W1.y);
+      // EZD-214: the inspector panel loads lazily, so wait for the wall panel before counting.
+      await expect(inspector).toHaveAttribute('data-inspector-kind', 'wall');
       expect(await expectTouchTargets(page, inspector)).toBeGreaterThan(0);
       await id(page, 'inspector-edit-layers').click();
       expect(await expectTouchTargets(page, inspector)).toBeGreaterThan(0);
@@ -402,7 +404,12 @@ test.describe('EZD-213b inspector', () => {
       await id(page, 'inspector-impact-shutter').click();
       expect(await expectTouchTargets(page, inspector)).toBeGreaterThan(0);
       await clickAt(page, SPOT.D1.x, SPOT.D1.y);
-      expect(await expectTouchTargets(page, inspector)).toBeGreaterThan(0);
+      // EZD-214: the door panel with its Status row is taller than the Surface inspector, so each part is checked
+      // scrolled into view.
+      for (const part of ['inspector-swing-hand', 'inspector-status-section']) {
+        await id(page, part).scrollIntoViewIfNeeded();
+        expect(await expectTouchTargets(page, id(page, part)), part).toBeGreaterThan(0);
+      }
     },
   );
 });

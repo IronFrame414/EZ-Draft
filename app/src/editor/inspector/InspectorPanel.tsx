@@ -21,10 +21,12 @@ import {
   SHUTTER_TYPES,
   WALL_MATERIALS,
   type ImpactRating,
+  type ObjectStatus,
   type ShutterType,
   type WallLayer,
 } from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
+import { InspectorEmpty } from './InspectorEmpty';
 import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -76,6 +78,8 @@ export type InspectorPanelProps = {
   canEdit: boolean;
   // EZD-213c D-Panel: the gap state and its two actions.
   drawing: Pick<DrawingController, 'getUi' | 'subscribe' | 'startPick' | 'keep'> | null;
+  // EZD-214: the phase view's status for rooms a wall edit makes; Existing when not given.
+  newStatus?: () => ObjectStatus;
 };
 
 export type InspectorContentProps = {
@@ -99,6 +103,7 @@ export function InspectorPanel({
   selection,
   canEdit,
   drawing,
+  newStatus,
 }: InspectorPanelProps): ReactElement {
   const objects = useSyncExternalStore(
     store.subscribe,
@@ -153,10 +158,13 @@ export function InspectorPanel({
   // D-Commit.
   const onCommit = useCallback(
     (edits: readonly InspectorEdit[]): MessageKey | null => {
-      const r = commitInspectorEdits({ store, ids: ui.ids, newId: newObjectId }, edits);
+      const r = commitInspectorEdits(
+        { store, ids: ui.ids, newId: newObjectId, roomStatus: newStatus?.() },
+        edits,
+      );
       return r.ok ? null : r.messageKey;
     },
-    [store, ui.ids],
+    [store, ui.ids, newStatus],
   );
   const onLayerMaterial = useCallback(
     (index: number, material: WallLayer['material']): MessageKey | null => {
@@ -206,21 +214,7 @@ export function InspectorPanel({
 export function InspectorContent(props: InspectorContentProps): ReactElement {
   const { view } = props;
   const t = useT();
-  if (view.kind === 'empty') {
-    return (
-      <div className={styles.panel} data-testid="inspector" data-inspector-kind="empty">
-        <div className={styles.empty} data-testid="inspector-empty">
-          <span className={styles.emptyIcon}>
-            <Icon name="arrow_selector_tool" size={30} />
-          </span>
-          <span className={styles.emptyText}>{t('office.inspector.empty')}</span>
-          <span className={styles.hint} data-testid="inspector-empty-hint">
-            {t(props.coarse ? 'office.inspector.empty_hint_touch' : 'office.inspector.empty_hint')}
-          </span>
-        </div>
-      </div>
-    );
-  }
+  if (view.kind === 'empty') return <InspectorEmpty coarse={props.coarse} />;
   if (view.kind === 'wall') return <WallPanel {...props} view={view} />;
   if (view.kind === 'opening') return <OpeningPanel {...props} view={view} />;
   return <BulkPanel {...props} view={view} />;
@@ -426,7 +420,9 @@ function TextBox({
 
 const one = <T,>(value: T): Shared<T> => ({ mixed: false, value });
 
-function statusDot(status: WallView['fields']['status']): string {
+const STATUSES: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
+
+function statusDot(status: ObjectStatus): string {
   if (status === 'demo') return styles.dotDemo!;
   if (status === 'new') return styles.dotNew!;
   return styles.dotExisting!;
@@ -572,6 +568,75 @@ function ImpactSection({
   );
 }
 
+// EZD-214 (05 Q-0664 "Status on objects"; S03dWallSelected Status row; Q-0630 row 9): the Status select with the
+// board's dot for the current value; Mixed when the selection differs; plain text for a view-only user.
+function StatusSection({
+  status,
+  canEdit,
+  commit,
+  error,
+}: {
+  status: Shared<ObjectStatus>;
+  canEdit: boolean;
+  commit: (testId: string, edits: readonly InspectorEdit[]) => void;
+  error: ControlError;
+}) {
+  const t = useT();
+  const text = status.mixed
+    ? t('office.inspector.mixed')
+    : t(`office.inspector.status.${status.value}`);
+  if (!canEdit) {
+    return (
+      <div className={styles.section} data-testid="inspector-status-section">
+        <div className={styles.field}>
+          <span>{t('office.inspector.field.status')}</span>
+          <span className={styles.plain} data-testid="inspector-status">
+            {text}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.section} data-testid="inspector-status-section">
+      <label className={styles.field}>
+        <span>{t('office.inspector.field.status')}</span>
+        <span className={styles.statusSelect}>
+          {status.mixed ? null : (
+            <span
+              className={`${styles.dot} ${statusDot(status.value)}`}
+              data-testid="inspector-status-dot"
+              data-status={status.value}
+            />
+          )}
+          <select
+            className={styles.select}
+            data-testid="inspector-status"
+            value={status.mixed ? '' : status.value}
+            onChange={(e) => {
+              const v = e.target.value as ObjectStatus;
+              if (!STATUSES.includes(v)) return;
+              commit('inspector-status', [{ field: 'status', value: v }]);
+            }}
+          >
+            {status.mixed ? (
+              <option value="" disabled>
+                {t('office.inspector.mixed')}
+              </option>
+            ) : null}
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {t(`office.inspector.status.${s}`)}
+              </option>
+            ))}
+          </select>
+        </span>
+      </label>
+      <ControlErrorLine error={error} testId="inspector-status" />
+    </div>
+  );
+}
+
 // ---- Wall (board W) ----
 
 function WallPanel(props: InspectorContentProps & { view: WallView }) {
@@ -587,6 +652,7 @@ function WallPanel(props: InspectorContentProps & { view: WallView }) {
     view.rooms.length > 0 ? view.rooms.join(SEPARATOR) : t('office.inspector.no_room');
   const editing = props.layersEditing && canEdit;
   const status = t(`office.inspector.status.${f.status}`);
+  const statusShared = one(f.status);
 
   return (
     <div className={styles.panel} data-testid="inspector" data-inspector-kind="wall">
@@ -672,22 +738,7 @@ function WallPanel(props: InspectorContentProps & { view: WallView }) {
               </div>
             </div>
           </div>
-          <div className={styles.section}>
-            <div className={styles.field}>
-              <span>{t('office.inspector.field.status')}</span>
-              <span
-                className={styles.readOnly}
-                aria-label={t('office.inspector.status_read_only')}
-                data-testid="inspector-status"
-              >
-                <span className={`${styles.dot} ${statusDot(f.status)}`} />
-                {status}
-                <span className={styles.readOnlyLock}>
-                  <Icon name="lock" size={16} />
-                </span>
-              </span>
-            </div>
-          </div>
+          <StatusSection status={statusShared} canEdit commit={commit} error={error} />
           <div className={styles.section}>
             <label className={styles.check}>
               <input
@@ -973,6 +1024,7 @@ function OpeningPanel(props: InspectorContentProps & { view: OpeningView }) {
         commit={commit}
         error={error}
       />
+      <StatusSection status={one(f.status)} canEdit={canEdit} commit={commit} error={error} />
     </div>
   );
 }
@@ -1034,8 +1086,22 @@ function BulkPanel(props: InspectorContentProps & { view: BulkView }) {
       {view.openings !== null ? (
         <BulkOpenings openings={view.openings} canEdit={canEdit} onCommit={props.onCommit} />
       ) : null}
+      <BulkStatus status={view.status} canEdit={canEdit} onCommit={props.onCommit} />
     </div>
   );
+}
+
+function BulkStatus({
+  status,
+  canEdit,
+  onCommit,
+}: {
+  status: Shared<ObjectStatus>;
+  canEdit: boolean;
+  onCommit: InspectorContentProps['onCommit'];
+}) {
+  const { error, commit } = useControlCommit(onCommit);
+  return <StatusSection status={status} canEdit={canEdit} commit={commit} error={error} />;
 }
 
 function BulkWalls({

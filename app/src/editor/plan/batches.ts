@@ -3,6 +3,8 @@
 // and kind (segments also per role), in draw order and status colour. No DOM.
 // EZD-204b Build step 6 (vault/plans/EZD-204b.md Decided "Colour"; AC-EZD-204-4): the `flagged` layer in error red.
 // EZD-235 Build step 7 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): `planDrawingList` passes `options` on.
+// EZD-214 (S03 Decisions; 09m Phase switch; Q-0668 (a)): an object whose status the phase view hides is left out of
+// the drawing list; a hidden opening then cuts nothing, so its wall is drawn whole.
 import {
   buildDrawingList,
   type DrawingListOptions,
@@ -14,6 +16,7 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import { ShapeUtils, Vector2 } from 'three';
+import { shownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
 import { tokenRgb, type Rgb } from './color';
 import type { Bounds } from './view';
@@ -76,12 +79,17 @@ export function openFloorId(objects: Objects): string | null {
 export function planDrawingList(
   objects: Objects,
   options: DrawingListOptions = {},
+  phase: PhaseFilter | null = null,
 ): DrawingList | null {
   const parsed = parsedObjects(objects);
   const level = lowestFloor(parsed);
   if (level === null) return null;
+  const shown =
+    phase === null
+      ? parsed
+      : parsed.filter((o) => shownBy(phase, (o.data as { status?: unknown }).status));
   return buildDrawingList(
-    { objects: parsed },
+    { objects: shown },
     {
       level,
       dimensionTextPt: PLAN_DIMENSION_TEXT_PT,

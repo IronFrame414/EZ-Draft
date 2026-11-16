@@ -2,7 +2,7 @@
 // limits", "createWallData input", "Face offsets", "Thickness side", "Degenerate walls"; Q-0558; Q-0568; Q-0569 (b);
 // Q-0570; 09j): the default wall, its measures and finished faces. Model inches, +x east, +y north.
 import { MAX_WALL_LENGTH_IN } from '../length';
-import type { Point, WallData, WallLayer } from '../schema';
+import type { ObjectStatus, Point, WallData, WallLayer } from '../schema';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 
 export type WallObject = { id: string; type: 'wall'; data: WallData };
@@ -40,6 +40,8 @@ export function createWallData(input: {
   end: Point;
   level: string;
   thicknessSide?: ThicknessSide;
+  // EZD-214: the phase view's status for a new wall (S03 Status bar "View"); Existing when not given.
+  status?: ObjectStatus;
 }):
   | { ok: true; data: WallData }
   | { ok: false; reason: 'invalid_point' | 'zero_length' | 'too_long' } {
@@ -55,7 +57,7 @@ export function createWallData(input: {
         start: { x: input.start.x, y: input.start.y },
         end: { x: input.end.x, y: input.end.y },
       },
-      status: 'existing',
+      status: input.status ?? 'existing',
       level: input.level,
       attributes: {
         thickness: wallThickness(layers),

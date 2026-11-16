@@ -210,6 +210,11 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'set_plan_scale',
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_scale: 0.5 },
   },
+  // EZD-214: the phase view setter, authenticated only.
+  {
+    fn: 'set_phase_default',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_phase: 'existing' },
+  },
   // EZD-299a section 4 T17 (vault/plans/EZD-299a.md): the sync conflict functions, authenticated only.
   {
     fn: 'record_sync_conflicts',

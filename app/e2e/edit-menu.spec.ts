@@ -178,7 +178,7 @@ test.describe('EZD-233 context menu', () => {
           schemaVersion: CURRENT_SCHEMA_VERSION,
           data: {
             geometry: { center: { x: 60, y: 60 }, axis: { x: 1, y: 0 } },
-            status: 'new',
+            status: 'existing',
             level,
             attributes: { kind: 'lavatory', width: 20, depth: 18 },
           },
@@ -191,7 +191,7 @@ test.describe('EZD-233 context menu', () => {
           schemaVersion: CURRENT_SCHEMA_VERSION,
           data: {
             geometry: { point: { x: 60, y: 75 } },
-            status: 'new',
+            status: 'existing',
             level,
             attributes: { kind: 'water', volts: null, amps: null, servesObjectId: null },
           },

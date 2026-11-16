@@ -33,6 +33,8 @@ export type ArrangeContext = {
   ids: readonly string[];
   newId: () => string;
   highs: NumberHighs;
+  // EZD-214: the phase view's status for rooms an arrange command makes; Existing when not given.
+  status?: ObjectStatus;
 };
 
 // `ids`, when given, is the selection after the command.
@@ -172,7 +174,9 @@ export function mirrorChanges(ctx: ArrangeContext): ArrangeResult {
   const temp = new Map(ctx.objects);
   for (const o of openings) temp.set(o.id, openingChange(o).value!);
   const changes: Change[] =
-    walls.length > 0 ? wallEditChanges(temp, ctx.level, walls, ctx.newId, ctx.highs) : [];
+    walls.length > 0
+      ? wallEditChanges(temp, ctx.level, walls, ctx.newId, ctx.highs, ctx.status)
+      : [];
   const written = new Set(changes.map((c) => lower(c.id)));
   for (const o of openings) if (!written.has(lower(o.id))) changes.push(openingChange(o));
   for (const o of loose) changes.push(looseChange(o));
@@ -237,7 +241,14 @@ export function alignChanges(ctx: ArrangeContext, edge: AlignEdge): ArrangeResul
   if (changed.size === 0) return NOTHING;
   return {
     ok: true,
-    changes: moveEditChanges(ctx.objects, ctx.level, [...changed.values()], ctx.newId, ctx.highs),
+    changes: moveEditChanges(
+      ctx.objects,
+      ctx.level,
+      [...changed.values()],
+      ctx.newId,
+      ctx.highs,
+      ctx.status,
+    ),
   };
 }
 
@@ -405,7 +416,15 @@ export function placeSavedGroup(
   const wb = boxOf(wallAnchors);
   if (wb !== null) {
     const centre = { x: (wb.minX + wb.maxX) / 2, y: (wb.minY + wb.maxY) / 2 };
-    const r = pasteChanges(ctx.objects, ctx.level, clip, shift(centre), ctx.newId, ctx.highs);
+    const r = pasteChanges(
+      ctx.objects,
+      ctx.level,
+      clip,
+      shift(centre),
+      ctx.newId,
+      ctx.highs,
+      ctx.status,
+    );
     changes.push(...r.changes);
     ids.push(...r.ids);
   }

@@ -26,6 +26,7 @@ import {
   type OpeningObject,
   type Point,
   type WallObject,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { TypedValues } from '../typed-entry/typed-entry';
@@ -49,6 +50,8 @@ export type OpeningContext = {
   openings: readonly OpeningObject[];
   highs: NumberHighs;
   pixelsPerInch: number;
+  // EZD-214: the phase view's status for a placed opening; Existing when not given.
+  status?: ObjectStatus;
 };
 
 export type Owned = { id: string; mode: 'pointer' | 'typed' | 'touch'; at: Point | null };
@@ -172,7 +175,8 @@ function place(
   ctx: OpeningContext,
 ): OpeningStep {
   const id = ctx.newId();
-  const obj = numberNewObjects<OpeningObject>([{ id, type: 'opening', data }], ctx.highs)
+  const placed: OpeningData = { ...data, status: ctx.status ?? 'existing' };
+  const obj = numberNewObjects<OpeningObject>([{ id, type: 'opening', data: placed }], ctx.highs)
     .objects[0]!;
   return step(
     {

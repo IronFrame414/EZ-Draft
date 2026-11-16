@@ -9,6 +9,7 @@
 // EZD-294 Build step 6 (vault/plans/EZD-294.md Decided "loadModel numbers", "Saved number"; Q-0625 (a); Q-0629 (b)):
 // the load answers each key's highest number of live and deleted rows; a save answers each saved object's number.
 // EZD-219 Build step 5 (vault/plans/EZD-219.md section 3): the load answers the project's plan scale; `setPlanScale`.
+// EZD-214: the load answers the project's phase view (`phaseDefault`); `setPhaseDefault`.
 // EZD-234 Build (Q-0704 03-data-model row 3 "File references are checked on save"): one generic pass over every
 // source_file id the saved objects hold (`fileRefs`), read through the caller's client: each must name a row of this
 // project, of a kind the field allows, whose upload has completed; otherwise the object is refused `file_not_found`.
@@ -29,6 +30,7 @@ import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
 import { effectiveDefaults } from '../../lib/defaults/values';
 import { loadTenantDefaults, projectCopyOf } from '../defaults/defaults';
 import { planScaleFromSettings, type PlanScale } from '../../lib/plan/plan-scale';
+import { phaseViewOf, type PhaseView } from '../../lib/plan/phase-view';
 import type { Database, Json } from '../db/database.types';
 import { ipadDrawingOf } from '../../lib/profile/profile';
 import { can, type PermissionContext } from '../permissions';
@@ -352,6 +354,25 @@ export async function setPlanScale(
   return { ok: true };
 }
 
+// EZD-214 (03 Q-0664 "View default"): the project's phase view through set_phase_default (definer; 42501,
+// P0002, 22023).
+export async function setPhaseDefault(
+  client: SupabaseClient<Database>,
+  projectId: string,
+  phase: PhaseView,
+): Promise<
+  { ok: true } | { ok: false; code: 'permission_denied' | 'project_not_found' | 'invalid_input' }
+> {
+  const { error } = await client.rpc('set_phase_default', { p_project: projectId, p_phase: phase });
+  if (error) {
+    if (error.code === '42501') return { ok: false, code: 'permission_denied' };
+    if (error.code === 'P0002') return { ok: false, code: 'project_not_found' };
+    if (error.code === '22023') return { ok: false, code: 'invalid_input' };
+    throw error;
+  }
+  return { ok: true };
+}
+
 // supabase/config.toml max_rows: the most rows one select returns.
 const LOAD_PAGE = 1000;
 
@@ -402,7 +423,7 @@ export async function loadModel(
   const [project, lock, firstPage, firstDeleted, me, companyDefaults] = await Promise.all([
     client
       .from('project')
-      .select('id, name, tenant_id, settings, customer!project_customer_fk(name)')
+      .select('id, name, tenant_id, settings, phase_default, customer!project_customer_fk(name)')
       .eq('id', projectId)
       .maybeSingle(),
     client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
@@ -467,6 +488,7 @@ export async function loadModel(
       name: project.data.name,
       clientName: project.data.customer?.name ?? null,
       planScale: planScaleFromSettings(project.data.settings),
+      phaseDefault: phaseViewOf(project.data.phase_default),
     },
     viewer: {
       appUserId: ctx.appUserId,

@@ -37,6 +37,7 @@ import {
   COMPARISON_TOLERANCE_IN,
   type ModelObject,
   type NumberHighs,
+  type ObjectStatus,
   type OpeningObject,
   type Point,
   type WallLayer,
@@ -48,7 +49,7 @@ import { MAX_CHANGES_PER_SAVE } from '../../lib/outbox/outbox';
 import { deleteChanges } from '../edit/edit-changes';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import { applyEditTo, makeEdit, type Change, type Objects } from '../model/patches';
-import { openingChange, openingsOn, wallEditChanges } from '../tools/model-changes';
+import { openingChange, openingsOn, wallChange, wallEditChanges } from '../tools/model-changes';
 
 export type AssistantRefusal =
   | 'unknown_ref'
@@ -84,6 +85,8 @@ export type ApplyReplyInput = {
   refs: Readonly<Record<string, string>>;
   highs: NumberHighs;
   newId: () => string;
+  // EZD-214: the phase view's status for added walls, doors, windows and the rooms they make; Existing when not given.
+  status?: ObjectStatus;
 };
 
 // A refusal thrown inside one pass and caught at the top (D-Apply: the first refusal is the answer).
@@ -301,6 +304,35 @@ class Pass {
     return this.input.floorId;
   }
 
+  private get status(): ObjectStatus {
+    return this.input.status ?? 'existing';
+  }
+
+  // EZD-214 D-set_status: a sent wall, door or window on the floor; a bearing wall is not set to Demo (S03
+  // Inspector); no cascade and no room reconcile (S03 Decisions "Demo is set per object"; Q-0669 (a)).
+  private setStatus(c: Extract<AssistantChange, { op: 'set_status' }>) {
+    const refs = this.input.refs;
+    const id = Object.hasOwn(refs, c.ref) ? refs[c.ref] : undefined;
+    if (typeof id !== 'string') return refuse('unknown_ref');
+    const key = this.key(id);
+    if (key === null) return refuse('unknown_ref');
+    const v = this.scratch.get(key)!;
+    if (v.type !== 'wall' && v.type !== 'opening') return refuse('wrong_type');
+    const kind = v.type === 'wall' ? 'wall' : (v.data.attributes as { kind: Kind }).kind;
+    this.lookup(c.ref, kind, false);
+    this.used.add(c.ref);
+    if (v.type === 'wall') {
+      const w = this.current(key, isWall);
+      if (c.status === 'demo' && w.data.attributes.bearing) refuse('invalid_value');
+      if (w.data.status === c.status) return;
+      this.apply([wallChange({ ...w, data: { ...w.data, status: c.status } })]);
+      return;
+    }
+    const o = this.current(key, isOpening);
+    if (o.data.status === c.status) return;
+    this.apply([openingChange({ ...o, data: { ...o.data, status: c.status } })]);
+  }
+
   level(): ModelObject[] {
     return levelModelObjects(this.scratch, this.floor);
   }
@@ -357,7 +389,8 @@ class Pass {
       }
     } else if (this.temp.has(c.ref)) refuse('duplicate_ref');
 
-    if (c.op === 'add' && c.type === 'wall') this.wallAdd(c);
+    if (c.op === 'set_status') this.setStatus(c);
+    else if (c.op === 'add' && c.type === 'wall') this.wallAdd(c);
     else if (c.op === 'add') this.openingAdd(c);
     else if (c.op === 'update' && c.type === 'wall') this.wallUpdate(c);
     else if (c.op === 'update') this.openingUpdate(c);
@@ -381,6 +414,7 @@ class Pass {
       end: c.end,
       level: this.floor,
       ...(c.thicknessSide === undefined ? {} : { thicknessSide: c.thicknessSide }),
+      status: this.status,
     });
     if (!r.ok) refuse(mapReason(r.reason));
     const id = this.input.newId();
@@ -389,7 +423,7 @@ class Pass {
     this.used.add(c.ref);
     this.temp.set(c.ref, id);
     const { newId, highs } = this.input;
-    this.apply(wallEditChanges(this.scratch, this.floor, [wall], newId, highs));
+    this.apply(wallEditChanges(this.scratch, this.floor, [wall], newId, highs, this.status));
   }
 
   private openingAdd(c: Extract<AssistantChange, { op: 'add'; type: 'door' | 'window' }>) {
@@ -412,7 +446,10 @@ class Pass {
     if (!p.ok) return refuse(mapReason(p.reason));
     if (!pointsEqual(p.data.geometry.center, c.center)) refuse('opening_position');
     const id = this.input.newId();
-    const placed = openingAttributes({ id, type: 'opening', data: p.data }, c);
+    const placed = openingAttributes(
+      { id, type: 'opening', data: { ...p.data, status: this.status } },
+      c,
+    );
     const highs = raiseNumberHighs(this.input.highs, this.scratch.values());
     const numbered = numberNewObjects([placed], highs).objects[0]!;
     this.used.add(c.ref);

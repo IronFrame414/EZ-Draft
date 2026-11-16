@@ -927,6 +927,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-219: the plan scale; 200 { scale } (no money)',
   },
   {
+    file: `${API}projects/[id]/phase-default/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/phase-default/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/phase-default`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ phase: 'existing' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-214: the phase view; 200 { phase } (no money)',
+  },
+  {
     file: `${API}projects/[id]/defaults/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/projects/[id]/defaults/route'),

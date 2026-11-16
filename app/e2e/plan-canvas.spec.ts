@@ -208,6 +208,14 @@ test.describe('EZD-207a plan canvas', () => {
     expect(await at(shot1, 48, 16)).toBe('#f6f7f9');
     expect(await frame(page).evaluate((el) => getComputedStyle(el).backgroundImage)).toBe('none');
 
+    // EZD-214: the Existing view hides New walls (09m row 2); the New eye is turned on so all three colours show.
+    await page.evaluate(() =>
+      (
+        window as unknown as {
+          __ezdraftPlan: { phase: { setEye(s: 'new', on: boolean): void } };
+        }
+      ).__ezdraftPlan.phase.setEye('new', true),
+    );
     await addWallsAndView(
       page,
       [
@@ -424,7 +432,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveAttribute('data-rail-tool', 'assistant');
-    await expect(page.locator('[data-status-item]')).toHaveCount(4);
+    await expect(page.locator('[data-status-item]')).toHaveCount(5);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });
 

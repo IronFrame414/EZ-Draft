@@ -349,7 +349,8 @@
     "EZD-398",
     "EZD-5604a",
     "EZD-5604b",
-    "EZD-116"
+    "EZD-116",
+    "EZD-5605"
   ],
   "seeded_done": 324,
   "merged": [
@@ -527,6 +528,13 @@
       "commit": "3017592e",
       "ts": "2026-11-15T19:16:44Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-5605",
+      "title": "Assistant Accept, Adjust, Reject and events",
+      "commit": "3e5e556e",
+      "ts": "2026-11-16T00:57:40Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
@@ -547,6 +555,6 @@
       "reason": "check red after a review fix"
     }
   },
-  "sleep_until": "2026-11-15T20:11:39.133Z",
-  "next_probe": "2026-11-15T19:46:39.133Z"
+  "sleep_until": "2026-11-16T01:32:45.388Z",
+  "next_probe": "2026-11-16T01:07:45.388Z"
 }

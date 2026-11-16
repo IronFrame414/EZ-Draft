@@ -29,11 +29,19 @@ import {
   type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
+import { shownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
 
 export type PickIndex = {
   readonly floorId: string | null;
-  sync(objects: Objects, floorId: string | null, changedIds: readonly string[]): number;
+  // EZD-214 (Q-0671 (a)): an object the phase view hides is not in the index, so it is not clicked, boxed or taken
+  // by Select all; a new filter version resyncs in full.
+  sync(
+    objects: Objects,
+    floorId: string | null,
+    changedIds: readonly string[],
+    phase?: PhaseFilter | null,
+  ): number;
   pick(p: Point, toleranceIn: number): string[];
   inRect(rect: Rect, mode: 'inside' | 'touch'): string[];
   all(): string[];
@@ -59,7 +67,12 @@ function validRect(r: Rect): boolean {
 const d1 = (a: Entry, b: Entry) =>
   a.shape.area - b.shape.area || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
 
-function parseOnFloor(id: string, objects: Objects, floorId: string | null): ModelObject | null {
+function parseOnFloor(
+  id: string,
+  objects: Objects,
+  floorId: string | null,
+  phase: PhaseFilter | null,
+): ModelObject | null {
   const value = objects.get(id);
   if (value === undefined || floorId === null) return null;
   const r = parseStoredObject({
@@ -69,12 +82,14 @@ function parseOnFloor(id: string, objects: Objects, floorId: string | null): Mod
     data: value.data,
   });
   if (!r.ok || r.object.type === 'floor') return null;
+  if (!shownBy(phase, (r.object.data as { status?: unknown }).status)) return null;
   return r.object.data.level.toLowerCase() === floorId.toLowerCase() ? r.object : null;
 }
 
 export function createPickIndex(): PickIndex {
   let spatial: SpatialIndex = createSpatialIndex();
   let floor: string | null = null;
+  let version: number | null = null;
   // Keyed by lower-cased id.
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
@@ -181,10 +196,12 @@ export function createPickIndex(): PickIndex {
     get floorId() {
       return floor;
     },
-    sync(objects, floorId, changedIds) {
-      if (floorId !== floor) {
+    sync(objects, floorId, changedIds, phase = null) {
+      const v = phase === null ? null : phase.version();
+      if (floorId !== floor || v !== version) {
         spatial = createSpatialIndex();
         floor = floorId;
+        version = v;
         entries = new Map();
         walls = new Map();
         openings = new Map();
@@ -192,7 +209,7 @@ export function createPickIndex(): PickIndex {
         hostOf = new Map();
         byHost = new Map();
         for (const id of objects.keys())
-          record(id.toLowerCase(), parseOnFloor(id, objects, floorId));
+          record(id.toLowerCase(), parseOnFloor(id, objects, floorId, phase));
         let count = 0;
         for (const key of [...walls.keys(), ...openings.keys(), ...loose.keys()])
           if (place(key)) count += 1;
@@ -204,7 +221,8 @@ export function createPickIndex(): PickIndex {
         affected.add(key);
         for (const o of byHost.get(key) ?? []) affected.add(o);
       }
-      for (const id of changedIds) record(id.toLowerCase(), parseOnFloor(id, objects, floorId));
+      for (const id of changedIds)
+        record(id.toLowerCase(), parseOnFloor(id, objects, floorId, phase));
       for (const id of changedIds)
         for (const o of byHost.get(id.toLowerCase()) ?? []) affected.add(o);
       let count = 0;

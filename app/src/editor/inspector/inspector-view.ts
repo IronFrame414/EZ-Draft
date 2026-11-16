@@ -2,6 +2,8 @@
 // rooms", "Side labels (W9, W10)", "Hinge labels (W8)", "Door swing and hand types", "Offset (W5)", "Display text",
 // "Mixed", "Bulk fields", "Numbers", "Status", "Speed"; Q-0630 row 8; Q-0640 row 5-1; Q-0641 row 1; Q-0642 row 3;
 // Q-0645 (a); Q-0659 (a)): what the inspector shows for a selection. Pure; parses the level's objects once per call.
+// EZD-214 (05 Q-0664 "Status on objects"): doors and windows show their status; bulk edit shares Status over every
+// selected wall, door and window, Mixed when they differ.
 import {
   COMPARISON_TOLERANCE_IN,
   DETAIL_DISPLAY_DENOMINATOR,
@@ -18,6 +20,7 @@ import {
   type DoorSwing,
   type ImpactRating,
   type ModelObject,
+  type ObjectStatus,
   type OpeningObject,
   type Point,
   type RoomObject,
@@ -59,6 +62,7 @@ export type OpeningFields = {
   sillHeight: string | null;
   impactRating: ImpactRating;
   shutterType: ShutterType | null;
+  status: ObjectStatus;
 };
 
 export type DoorView = {
@@ -107,6 +111,7 @@ export type InspectorView =
       noun: 'walls' | 'doors' | 'windows' | 'objects';
       walls: BulkWallFields | null;
       openings: BulkOpeningFields | null;
+      status: Shared<ObjectStatus>;
     };
 
 const tol = COMPARISON_TOLERANCE_IN;
@@ -215,6 +220,7 @@ function openingFields(o: OpeningObject): OpeningFields {
     sillHeight: a.kind === 'window' ? detail(a.sillHeight) : null,
     impactRating: a.impactRating,
     shutterType: a.shutterType,
+    status: o.data.status,
   };
 }
 
@@ -433,5 +439,10 @@ export function inspectorView(
     noun,
     walls: selOpenings.length === 0 ? bulkWalls(selWalls) : null,
     openings: selWalls.length === 0 ? bulkOpenings(selOpenings) : null,
+    status: shared(
+      selected.map((o) => o.data.status),
+      same,
+      id,
+    ),
   };
 }

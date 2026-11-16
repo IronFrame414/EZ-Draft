@@ -179,7 +179,7 @@ test.describe('EZD-120c editor route', () => {
     ).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
-    await expect(page.locator('[data-status-item]')).toHaveCount(4);
+    await expect(page.locator('[data-status-item]')).toHaveCount(5);
     await expect(page.getByTestId('plan-empty-hint')).toHaveText(
       'Draw walls with Wall (W) or Room rectangle (R).',
     );

@@ -5,7 +5,7 @@
 // typed bar.
 // EZD-223 (S03 Sketch; S15d Reset to default map "S Sketch"; board S03Plan rail `draw` "Sketch"): the Sketch tool (S),
 // with no typed bar.
-import type { ModelObject, Point, WallObject } from '@ezdraft/geometry';
+import type { ModelObject, ObjectStatus, Point, WallObject } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { MessageKey } from '../../server/messages/catalog';
 import {
@@ -141,7 +141,13 @@ export type ToolInput =
   | { type: 'enter' }
   | { type: 'escape' };
 
-export type ToolContext = { level: string; newId: () => string; objects: readonly ModelObject[] };
+// EZD-214: `status` is the phase view's status for new walls (S03 Status bar "View"); Existing when not given.
+export type ToolContext = {
+  level: string;
+  newId: () => string;
+  objects: readonly ModelObject[];
+  status?: ObjectStatus;
+};
 
 // `walls` are the new or changed walls to pass to `wallEditChanges`.
 export type ToolStep<S> = {

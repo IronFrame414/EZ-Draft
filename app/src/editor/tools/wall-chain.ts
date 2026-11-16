@@ -60,6 +60,7 @@ function makeWall(a: Point, b: Point, ctx: ToolContext): Made {
     end: b,
     level: ctx.level,
     thicknessSide: openChainSide(a, b, ctx),
+    status: ctx.status,
   });
   if (!r.ok)
     return { ok: false, message: r.reason === 'too_long' ? 'office.tools.too_long' : null };

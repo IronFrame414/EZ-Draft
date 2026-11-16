@@ -202,12 +202,6 @@
   background: var(--ez-group-band);
 }
 
-.readOnlyLock {
-  margin-left: auto;
-  display: flex;
-  color: var(--ez-slate-300);
-}
-
 /* .dot */
 .dot {
   width: 10px;
@@ -226,6 +220,13 @@
 
 .dotNew {
   background: var(--ez-cobalt);
+}
+
+/* EZD-214: the Status select with the current value's dot before it. */
+.statusSelect {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* .ck, .ck input */

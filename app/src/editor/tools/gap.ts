@@ -18,6 +18,7 @@ import {
   type Point,
   type RoomObject,
   type WallObject,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { Change, Objects } from '../model/patches';
@@ -145,6 +146,7 @@ export function pickWall(
   gapWallIds: readonly string[],
   wallId: string,
   newId: () => string,
+  roomStatus: ObjectStatus = 'existing',
 ): GapEditResult {
   const model = toModelObjects(objects, level);
   const r = absorbGap(model, gapWallIds, wallId);
@@ -164,7 +166,17 @@ export function pickWall(
         now.data.attributes.thicknessSide !== before.data.attributes.thicknessSide,
     )
     .map(({ now }) => now);
-  return { ok: true, changes: wallEditChanges(objects, level, [...changed, ...others], newId, NO_NUMBERS) };
+  return {
+    ok: true,
+    changes: wallEditChanges(
+      objects,
+      level,
+      [...changed, ...others],
+      newId,
+      NO_NUMBERS,
+      roomStatus,
+    ),
+  };
 }
 
 export function keepGap(

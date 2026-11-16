@@ -6,6 +6,7 @@
 // with changes opens the one preview; no prompt is sent while one is open; closing the panel acts as Reject. The
 // preview store loads with the Assistant client and is made with the first reply that has changes (EZD-120c B11
 // editor budget; vault/build/assumptions.md EZD-5604b); `getPreview` returns it, and listeners hear when it is made.
+import type { ObjectStatus } from '@ezdraft/geometry';
 import type { AssistantModel } from '../../lib/assistant/cost';
 import { ASSISTANT_MODELS, sessionTotalMicroUsd } from '../../lib/assistant/cost';
 import type { OutboxSync } from '../../lib/outbox/outbox-sync';
@@ -63,6 +64,8 @@ export type AssistantSessionDeps = {
   objectUrls?: { create(blob: Blob): string; revoke(url: string): void };
   // EZD-5604b S1
   preview?: AssistantPreviewLink;
+  // EZD-214: the phase view's status for objects a reply adds.
+  getNewStatus?: () => ObjectStatus;
 };
 
 // EZD-5604b S1: the open model store (its objects and highs the reply is applied to; the preview watches it) and the
@@ -282,6 +285,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
               refs,
               highs: link.model.getState().numberHighs,
               newId: link.newId,
+              status: deps.getNewStatus?.() ?? 'existing',
             })
           : null;
       const shown = applied !== null && applied.ok && applied.changes.length > 0 ? applied : null;

@@ -4,7 +4,7 @@
 // the open floor, outside React. Every command is one `applyEdit` (one undo step); the clipboard is in memory only.
 // EZD-233 (S03 Context menu; vault/build/assumptions.md EZD-233): `run` applies one context menu command (Mirror,
 // Align, Group, Ungroup, Set status) built by the lazy context menu module, as one edit, and selects what it says.
-import type { Point } from '@ezdraft/geometry';
+import type { Point, ObjectStatus } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ArrangeContext, ArrangeResult } from './arrange-changes';
 import type { ModelStore } from '../model/model-store';
@@ -31,6 +31,8 @@ export type EditDeps = {
   handle: Pick<PlanCanvasHandle, 'getCursor' | 'screenToModel' | 'getViewCenter'>;
   canEdit: boolean;
   newId?: () => string;
+  // EZD-214: the phase view's status for rooms an edit makes (05 Q-0664); Existing when not given.
+  newStatus?: () => ObjectStatus;
 };
 
 export type EditController = {
@@ -66,6 +68,7 @@ const sameUi = (a: EditUi, b: EditUi) =>
 export function createEditController(deps: EditDeps): EditController {
   const { store, selection, drawing, handle, canEdit } = deps;
   const newId = deps.newId ?? newObjectId;
+  const newStatus = deps.newStatus ?? (() => 'existing' as const);
 
   let disposed = false;
   let clip: readonly ClipItem[] = [];
@@ -140,7 +143,7 @@ export function createEditController(deps: EditDeps): EditController {
     const { objects, numberHighs } = store.getState();
     const level = openFloorId(objects);
     if (level === null) return;
-    const r = pasteChanges(objects, level, items, at, newId, numberHighs);
+    const r = pasteChanges(objects, level, items, at, newId, numberHighs, newStatus());
     if (r.changes.length === 0) return;
     store.applyEdit(r.changes);
     selection.select(r.ids);
@@ -167,7 +170,7 @@ export function createEditController(deps: EditDeps): EditController {
       const objects = store.getState().objects;
       const level = openFloorId(objects);
       if (level === null) return;
-      const changes = deleteChanges(objects, level, selection.getUi().ids, newId);
+      const changes = deleteChanges(objects, level, selection.getUi().ids, newId, newStatus());
       if (changes.length === 0) return;
       store.applyEdit(changes);
       selection.clear();
@@ -209,7 +212,14 @@ export function createEditController(deps: EditDeps): EditController {
       const { objects, numberHighs } = store.getState();
       const level = openFloorId(objects);
       if (level === null) return;
-      const r = build({ objects, level, ids: selection.getUi().ids, newId, highs: numberHighs });
+      const r = build({
+        objects,
+        level,
+        ids: selection.getUi().ids,
+        newId,
+        highs: numberHighs,
+        status: newStatus(),
+      });
       if (!r.ok) {
         refused = r.messageKey;
         return;

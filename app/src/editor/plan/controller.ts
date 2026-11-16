@@ -11,7 +11,10 @@
 // EZD-211b Build step 6 (vault/plans/EZD-211b.md Decided "Space tap"): `onSpaceTap` listeners.
 // EZD-376 Build step 5 (vault/plans/EZD-376.md; Q-0692): a failed atlas also turns `atlasFailed()` on and tells its listeners once.
 // EZD-235 Build step 8 (vault/plans/EZD-235.md Decided "D-Plan"; 11 rule 2): room areas through the model's derived values.
-import type { DerivedStats, DrawingList, Point } from '@ezdraft/geometry';
+// EZD-214 (S03 Decisions; 09m Phase switch; 11 rules 2 and 4): the phase view's filter decides what is drawn and
+// hovered; a View or eye change rebuilds the drawing list once and resyncs the hover index in full.
+import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
+import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import { createModelDerived, type ModelDerived } from '../derived/model-derived';
 import type { ModelStore } from '../model/model-store';
@@ -135,6 +138,10 @@ export function createPlanController(
     store: Pick<ModelStore, 'getState' | 'subscribe'>;
     scale?: PlanScale;
     derived?: ModelDerived;
+    phase?: PhaseFilter & {
+      subscribe(listener: () => void): () => void;
+      setEye?(status: ObjectStatus, on: boolean): void;
+    };
   },
   deps: {
     createRoot: CreateRenderRoot;
@@ -197,8 +204,13 @@ export function createPlanController(
     return uploaded > 0;
   };
 
+  const phase = o.phase ?? null;
   const rebuild = (): number => {
-    list = planDrawingList(o.store.getState().objects, { roomAreaSqFt: derived.roomAreaSqFt });
+    list = planDrawingList(
+      o.store.getState().objects,
+      { roomAreaSqFt: derived.roomAreaSqFt },
+      phase,
+    );
     derived.prune();
     bounds = drawingBounds(list);
     const before = scene.objectCount();
@@ -206,7 +218,7 @@ export function createPlanController(
     bufferUploads += uploaded;
     return uploaded > 0 || scene.objectCount() !== before ? 1 : 0;
   };
-  hover.sync(o.store.getState().objects, openFloorId(o.store.getState().objects), []);
+  hover.sync(o.store.getState().objects, openFloorId(o.store.getState().objects), [], phase);
   rebuild();
 
   const tolerance = () => HOVER_CAPTURE_PX / view.ppi;
@@ -299,7 +311,7 @@ export function createPlanController(
 
   const unsubscribe = o.store.subscribe((state, prev) => {
     if (state.objects === prev.objects) return;
-    hover.sync(state.objects, openFloorId(state.objects), state.lastChangedIds);
+    hover.sync(state.objects, openFloorId(state.objects), state.lastChangedIds, phase);
     const rebuilt = rebuild() > 0;
     const selected = selectedIds.size > 0 ? selectionStep() : false;
     const texted = atlasSet ? textStep() : false;
@@ -309,6 +321,21 @@ export function createPlanController(
     const hoverChanged = updateHover(force);
     if (rebuilt || selected || texted || hoverChanged) redraw();
   });
+
+  // A View or eye change: one rebuild, the hover index in full (its filter version changed), then one redraw.
+  const unsubscribePhase =
+    phase === null
+      ? () => {}
+      : phase.subscribe(() => {
+          if (disposed) return;
+          const objects = o.store.getState().objects;
+          hover.sync(objects, openFloorId(objects), [], phase);
+          const rebuilt = rebuild() > 0;
+          const selected = selectedIds.size > 0 ? selectionStep() : false;
+          const texted = atlasSet ? textStep() : false;
+          const hoverChanged = updateHover(true);
+          if (rebuilt || selected || texted || hoverChanged) redraw();
+        });
 
   const zoomBy = (factor: number) => {
     const size = regionSize();
@@ -363,6 +390,16 @@ export function createPlanController(
     zoomIn: () => zoomBy(ZOOM_STEP_FACTOR),
     zoomOut: () => zoomBy(1 / ZOOM_STEP_FACTOR),
     showObject(id) {
+      // EZD-214: Show on an object the phase view hides turns its status's eye on first (an eye override).
+      const value = [...o.store.getState().objects].find(([k]) => k.toLowerCase() === id.toLowerCase());
+      const status = value?.[1].data.status;
+      if (
+        phase !== null &&
+        phase.setEye !== undefined &&
+        (status === 'existing' || status === 'demo' || status === 'new') &&
+        !phase.shown(status)
+      )
+        phase.setEye(status, true);
       if (list === null) return false;
       const want = id.toLowerCase();
       const objectBounds = drawingBounds({
@@ -563,6 +600,7 @@ export function createPlanController(
     dispose() {
       disposed = true;
       unsubscribe();
+      unsubscribePhase();
       input?.dispose();
       input = null;
       detachCanvas();

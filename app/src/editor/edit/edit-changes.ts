@@ -16,6 +16,7 @@ import {
   type OpeningObject,
   type Point,
   type WallObject,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change, Objects } from '../model/patches';
@@ -115,13 +116,15 @@ export function deleteChanges(
   level: string,
   ids: readonly string[],
   newId: () => string,
+  // EZD-214: rooms the delete makes take the phase view's status.
+  roomStatus: ObjectStatus = 'existing',
 ): Change[] {
   const targets = itemsOf(objects, level, ids, DELETE_TYPES).map((i) => i.id);
   if (targets.length === 0) return [];
   const gone = new Set(targets.map((id) => id.toLowerCase()));
   const before = toModelObjects(objects, level);
   const next = before.filter((o) => !(o.type === 'wall' && gone.has(o.id.toLowerCase())));
-  const rooms = roomChanges(reconcileRooms(next, level, newId));
+  const rooms = roomChanges(reconcileRooms(next, level, newId, roomStatus));
   const host = openingHostUpdates({
     level,
     walls: wallsIn(next),
@@ -168,6 +171,8 @@ export function pasteChanges(
   at: Point,
   newId: () => string,
   highs: NumberHighs,
+  // EZD-214: pasted objects keep their copied status (05 Q-0630 row 19); rooms the paste makes take the view's.
+  roomStatus: ObjectStatus = 'existing',
 ): { changes: Change[]; ids: string[] } {
   const none = { changes: [], ids: [] };
   if (clip.length === 0 || !Number.isFinite(at.x) || !Number.isFinite(at.y)) return none;
@@ -228,7 +233,7 @@ export function pasteChanges(
 
   let changes: Change[];
   if (walls.length > 0) {
-    changes = wallEditChanges(temp, level, walls, newId, highs);
+    changes = wallEditChanges(temp, level, walls, newId, highs, roomStatus);
   } else {
     const levelWalls = wallsIn(toModelObjects(objects, level));
     changes = openingHostUpdates({

@@ -193,7 +193,7 @@ describe('EZD-005a tenancy tables', () => {
       property_record_id: randomUUID(),
       submittal_profile_id: randomUUID(),
       code_edition: 'fbc8',
-      phase_default: 'x',
+      phase_default: 'proposed',
       scope_of_work: 'Remodel',
       settings: { b: 2 },
       thumbnail_path: null,

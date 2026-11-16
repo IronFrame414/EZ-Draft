@@ -91,9 +91,10 @@ describe('EZD-213b inspector input', () => {
       not_door: 'error.invalid_input',
       not_window: 'error.invalid_input',
       not_shutter: 'error.invalid_input',
+      bearing_demo: 'office.edit.bearing_demo',
     };
     const reasons = Object.keys(expected) as InspectorEditReason[];
-    expect(reasons).toHaveLength(18);
+    expect(reasons).toHaveLength(19);
     for (const reason of reasons) {
       expect(refusalMessage('wallHeight', reason), reason).toBe(expected[reason]);
     }

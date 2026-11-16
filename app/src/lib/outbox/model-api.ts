@@ -6,6 +6,7 @@
 import type { NumberHighs, ObjectIssue } from '@ezdraft/geometry';
 import type { OutboxEntry } from './outbox';
 import type { PlanScale } from '../plan/plan-scale';
+import type { PhaseView } from '../plan/phase-view';
 import type { IpadDrawing } from '../profile/profile';
 import type { EffectiveDefaults } from '../defaults/values';
 
@@ -14,7 +15,14 @@ export type ObjectValue = { type: string; schemaVersion: number; data: Record<st
 export type LoadedObject = ObjectValue & { id: string; updatedSeq: number };
 
 export type ModelLoad = {
-  project: { id: string; name: string; clientName: string | null; planScale: PlanScale };
+  // EZD-214: `phaseDefault` is the project's saved View (03 Q-0664); missing reads as Existing.
+  project: {
+    id: string;
+    name: string;
+    clientName: string | null;
+    planScale: PlanScale;
+    phaseDefault?: PhaseView;
+  };
   // EZD-223: `ipadDrawing` is the viewer's own iPad drawing setting (S15d, Q-0392); missing reads as finger.
   viewer: {
     appUserId: string;

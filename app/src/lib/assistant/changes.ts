@@ -2,10 +2,13 @@
 // Q-0640 row 7; Q-0642 row 4; AC-EZD-5604-1, -2, -6, -8): one change of an Assistant reply. An add, update or
 // remove of a wall, door or window, named by a short ref. Strict: no status, number, rough opening mode, id, top
 // cut, side or host on an update. Values are checked by the hand-drawing setters, not here. Browser and server.
+// EZD-214 (05 Q-0664 "AI commands"; Q-0638; Q-0474): set_status {ref, status} sets one wall, door or window's
+// status, previewed as an update; status stays refused on an update, and remove stays the Delete key.
 import {
   DOOR_HANDS,
   DOOR_SWINGS,
   IMPACT_RATINGS,
+  OBJECT_STATUSES,
   SHUTTER_TYPES,
   THICKNESS_SIDES,
   WALL_MATERIALS,
@@ -96,12 +99,19 @@ const remove = z.strictObject({
   ref,
 });
 
+const setStatus = z.strictObject({
+  op: z.literal('set_status'),
+  ref,
+  status: z.enum(OBJECT_STATUSES),
+});
+
 export const assistantChangeSchema = z.union([
   wallAdd,
   openingAdd,
   wallUpdate,
   openingUpdate,
   remove,
+  setStatus,
 ]);
 
 export type AssistantChange = z.infer<typeof assistantChangeSchema>;

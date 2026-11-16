@@ -53,7 +53,9 @@ import {
   type WallSnapIndex,
   type UtilityToMove,
   type SketchShape,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
+import { shownBy, type PhaseSource } from '../../lib/plan/phase-view';
 import type { IpadDrawing } from '../../lib/profile/profile';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
@@ -223,6 +225,8 @@ export type DrawingDeps = {
   // EZD-223: the user's iPad drawing setting (null in the database reads as finger), and a millisecond clock.
   ipadDrawing?: () => IpadDrawing;
   clock?: () => number;
+  // EZD-214: the phase view; hidden walls are not snapped to (Q-0671 (a)) and new objects take its status (AC-1).
+  phase?: PhaseSource;
 };
 
 export type DrawingController = {
@@ -301,7 +305,11 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let objects: Objects = store.getState().objects;
   let level: string | null = openFloorId(objects);
   let models: ModelObject[] = level === null ? [] : toModelObjects(objects, level);
-  let index: WallSnapIndex = createWallSnapIndex(wallsIn(models));
+  const phase = deps.phase ?? null;
+  const newStatus = (): ObjectStatus => phase?.newObjectStatus() ?? 'existing';
+  const snapWalls = (ms: readonly ModelObject[]) =>
+    wallsIn(ms).filter((w) => shownBy(phase, w.data.status));
+  let index: WallSnapIndex = createWallSnapIndex(snapWalls(models));
   let walls: WallObject[] = wallsIn(models);
   let openings: OpeningObject[] = level === null ? [] : openingsOn(objects, level);
   let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
@@ -419,6 +427,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     setUi({ boxes: computeBoxes() });
   }
 
+  // EZD-214: a View or eye change rebuilds the snap index from the shown walls.
+  const unsubscribePhase =
+    phase === null
+      ? () => {}
+      : phase.subscribe(() => {
+          if (disposed) return;
+          index = createWallSnapIndex(snapWalls(models));
+        });
+
   const unsubscribeStore = store.subscribe((state) => {
     if (disposed || state.objects === objects) return;
     const prevLevel = level;
@@ -431,13 +448,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     blockings = level === null ? [] : blockingsOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
-      index = createWallSnapIndex(wallsIn(models));
+      index = createWallSnapIndex(snapWalls(models));
     } else {
       for (const id of state.lastChangedIds) {
         const value = objects.get(id);
         const one = value === undefined ? [] : toModelObjects(new Map([[id, value]]), level);
         const first = one[0];
-        if (first !== undefined && first.type === 'wall') index.upsertWall(first);
+        if (first !== undefined && first.type === 'wall' && shownBy(phase, first.data.status))
+          index.upsertWall(first);
         else index.removeWall(id);
       }
     }
@@ -745,6 +763,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           step.walls,
           newId,
           store.getState().numberHighs,
+          newStatus(),
         ),
       );
       setUi({ lastLength: wallLength(last.data.geometry) });
@@ -763,7 +782,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function input(i: ToolInput): void {
     if (tool === null || level === null) return;
-    const ctx: ToolContext = { level, newId, objects: models };
+    const ctx: ToolContext = { level, newId, objects: models, status: newStatus() };
     if (tool.id === 'wall') {
       const step = reduceWallChain(tool.state, i, ctx);
       tool = { id: 'wall', state: step.state };
@@ -800,6 +819,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       openings,
       highs: store.getState().numberHighs,
       pixelsPerInch: handle.getPixelsPerInch(),
+      status: newStatus(),
     });
     tool = { id: tool.id, state: step.state };
     applyOpeningStep(step);
@@ -843,7 +863,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       event.pointerType === 'touch' ? handle.wallAt(event.screen) : handle.getHoveredWallId();
     if (wall === null) return;
     const ids = pick.gapWallIds;
-    const r = pickWall(store.getState().objects, level, ids, wall, newId);
+    const r = pickWall(store.getState().objects, level, ids, wall, newId, newStatus());
     if (r.ok) {
       store.applyEdit(r.changes);
       setUi({ pick: reducePick(ui.pick, { type: 'done' }).state });
@@ -1012,6 +1032,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         objects: isBlocking ? walls : loose,
         newId,
         captureIn: captureIn(),
+        status: newStatus(),
       });
       if (change === null)
         deps.onMessage(isBlocking ? 'office.fixtures.blocking_invalid' : 'office.fixtures.invalid');
@@ -1082,6 +1103,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         outcome.changed,
         newId,
         store.getState().numberHighs,
+        newStatus(),
       ),
     );
     setUi({ utilities: null });
@@ -1603,6 +1625,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       disposed = true;
       handle.setPointerReceiver(null);
       unsubscribeStore();
+      unsubscribePhase();
       uiListeners.clear();
       frameListeners.clear();
     },

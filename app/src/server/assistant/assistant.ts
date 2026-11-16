@@ -52,8 +52,9 @@ export const ASSISTANT_SYSTEM_PROMPT =
   "(move both ends by the same distance to move a wall; move one end along the wall's line to change its " +
   'length), thickness, height, bearing, layers (keep the number of layers); for a door or window center (along ' +
   'its own wall), width, height, roughOpening, sillHeight, swing, hand, impactRating, shutterType. Remove: ' +
-  '{"op":"remove","type":"window","ref":"o1"}. Name each ref in at most one change. Never write status, number ' +
-  'or any other field.';
+  '{"op":"remove","type":"window","ref":"o1"}. Set the status of a wall, door or window (existing, demo or ' +
+  'new): {"op":"set_status","ref":"w1","status":"demo"}. Name each ref in at most one change. Never write ' +
+  'status in an add or update, number or any other field.';
 
 type Env = Record<string, string | undefined>;
 

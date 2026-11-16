@@ -2,6 +2,9 @@
 // "Which objects a field takes", "Single-object fields", "Commit", "Wall fields -> changes", "Opening fields ->
 // changes"; 04 Q-0630 row 20; Q-0645 (a)): one inspector field committed over the whole selection as one Change[] for
 // one applyEdit (one undo step). Pure.
+// EZD-214 (05 Q-0664 "Status on objects"; S03 Decisions "Demo is set per object"; Q-0669 (a)): `status` sets each
+// selected wall, door or window's status, one change per object, no cascade and no room reconcile; a bearing wall
+// is not set to Demo (S03 Inspector; the EZD-233 Set status rule).
 import {
   COMPARISON_TOLERANCE_IN,
   parseStoredObject,
@@ -30,9 +33,14 @@ import {
   type WallEditResult,
   type WallLayer,
   type WallObject,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
 import type { Change, Objects } from '../model/patches';
-import { openingChange, wallEditChanges } from '../tools/model-changes';
+import {
+  openingChange,
+  wallChange as wallStatusChange,
+  wallEditChanges,
+} from '../tools/model-changes';
 
 export type InspectorEdit =
   | {
@@ -52,7 +60,8 @@ export type InspectorEdit =
   | { field: 'impactRating'; value: ImpactRating }
   | { field: 'shutterType'; value: ShutterType }
   | { field: 'swing'; value: DoorSwing }
-  | { field: 'hand'; value: DoorHand };
+  | { field: 'hand'; value: DoorHand }
+  | { field: 'status'; value: ObjectStatus };
 
 export type InspectorEditReason =
   | 'not_found'
@@ -72,7 +81,8 @@ export type InspectorEditReason =
   | 'join_lost'
   | 'not_on_wall'
   | 'past_corner'
-  | 'overlap';
+  | 'overlap'
+  | 'bearing_demo';
 
 export type InspectorEditResult =
   { ok: true; changes: Change[] } | { ok: false; reason: InspectorEditReason; id: string };
@@ -199,10 +209,13 @@ export function inspectorEditChanges(input: {
   edit: InspectorEdit;
   newId: () => string;
   highs: NumberHighs;
+  // EZD-214: the phase view's status for rooms a wall edit makes; Existing when not given.
+  roomStatus?: ObjectStatus;
 }): InspectorEditResult {
   const { objects, level, edit } = input;
   const ids = [...new Set(input.ids.map(lower))];
   if (ids.length === 0) return { ok: true, changes: [] };
+  if (edit.field === 'status') return statusEditChanges(objects, level, ids, edit.value);
   if (SINGLE_OBJECT_FIELDS.has(edit.field) && ids.length > 1)
     return { ok: false, reason: 'not_shared', id: ids[0]! };
   const wallField = WALL_FIELDS.has(edit.field);
@@ -245,11 +258,40 @@ export function inspectorEditChanges(input: {
     const walls = changed.filter((o): o is WallObject => o.type === 'wall');
     return {
       ok: true,
-      changes: wallEditChanges(objects, level, walls, input.newId, input.highs),
+      changes: wallEditChanges(objects, level, walls, input.newId, input.highs, input.roomStatus),
     };
   }
   return {
     ok: true,
     changes: changed.filter((o): o is OpeningObject => o.type === 'opening').map(openingChange),
   };
+}
+
+const STATUSES: ReadonlySet<unknown> = new Set(['existing', 'demo', 'new']);
+
+function statusEditChanges(
+  objects: Objects,
+  level: string,
+  ids: readonly string[],
+  status: ObjectStatus,
+): InspectorEditResult {
+  if (!STATUSES.has(status)) return { ok: false, reason: 'invalid_input', id: ids[0]! };
+  const stored = levelModelObjects(objects, level);
+  const changes: Change[] = [];
+  for (const id of ids) {
+    const obj = stored.find((o) => lower(o.id) === id);
+    if (obj === undefined) return { ok: false, reason: 'not_found', id };
+    if (obj.type === 'wall') {
+      if (status === 'demo' && obj.data.attributes.bearing)
+        return { ok: false, reason: 'bearing_demo', id };
+      if (obj.data.status !== status)
+        changes.push(wallStatusChange({ ...obj, data: { ...obj.data, status } }));
+    } else if (obj.type === 'opening') {
+      if (obj.data.status !== status)
+        changes.push(openingChange({ ...obj, data: { ...obj.data, status } }));
+    } else {
+      return { ok: false, reason: 'not_applicable', id };
+    }
+  }
+  return { ok: true, changes };
 }

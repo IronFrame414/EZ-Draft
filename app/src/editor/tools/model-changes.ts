@@ -27,6 +27,7 @@ import {
   type RoomReconcile,
   type UtilityPointObject,
   type WallObject,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change, Objects } from '../model/patches';
@@ -176,6 +177,8 @@ export function wallEditChanges(
   walls: readonly WallObject[],
   newId: () => string,
   highs: NumberHighs,
+  // EZD-214 (05 Q-0664): rooms this edit makes take the phase view's status; Existing when not given.
+  roomStatus: ObjectStatus = 'existing',
 ): Change[] {
   if (walls.length === 0) return [];
   // EZD-294 Decided "wallEditChanges numbers": a wall already in the model keeps its stored number; a new wall
@@ -200,7 +203,7 @@ export function wallEditChanges(
     if (i >= 0) next[i] = w;
     else next.push(w);
   }
-  const rec = reconcileRooms(next, level, newId);
+  const rec = reconcileRooms(next, level, newId, roomStatus);
   const nextWalls = next.filter((o): o is WallObject => o.type === 'wall');
   const hosts = openingHostUpdates({
     level,
@@ -231,11 +234,12 @@ export function moveEditChanges(
   changed: readonly ModelObject[],
   newId: () => string,
   highs: NumberHighs,
+  roomStatus: ObjectStatus = 'existing',
 ): Change[] {
   if (changed.length === 0) return [];
   const loose = changed.filter(isLooseObject).map(looseChange);
   const blocks = changed.filter((o): o is BlockingObject => o.type === 'blocking');
-  const base = wallAndOpeningMoves(objects, level, changed, newId, highs, blocks);
+  const base = wallAndOpeningMoves(objects, level, changed, newId, highs, blocks, roomStatus);
   return [...base, ...blockingMoves(objects, level, blocks, base), ...loose];
 }
 
@@ -281,6 +285,7 @@ function wallAndOpeningMoves(
   newId: () => string,
   highs: NumberHighs,
   blocks: readonly BlockingObject[] = [],
+  roomStatus: ObjectStatus = 'existing',
 ): Change[] {
   const walls = changed.filter((o): o is WallObject => o.type === 'wall');
   const openings = changed.filter((o): o is OpeningObject => o.type === 'opening');
@@ -296,7 +301,7 @@ function wallAndOpeningMoves(
     });
   }
   if (walls.length > 0) {
-    const base = wallEditChanges(next, level, walls, newId, highs);
+    const base = wallEditChanges(next, level, walls, newId, highs, roomStatus);
     const inBase = new Set(base.map((c) => c.id.toLowerCase()));
     return [...base, ...openings.filter((o) => !inBase.has(o.id.toLowerCase())).map(openingChange)];
   }

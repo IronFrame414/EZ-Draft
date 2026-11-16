@@ -1,7 +1,7 @@
 // EZD-234 Build (S03 Fixtures "click to place"; Q-0704 05-screens; AC-EZD-234-2, -3; vault/build/assumptions.md
 // EZD-234): what the Fixtures panel has chosen and the one change a click places. A fixture takes the panel's width,
 // depth and facing; a utility point links to the appliance whose outline holds the click, if any. Both take the
-// status new objects take today (EZD-214 brings the view's status). Pure.
+// status new objects take (EZD-214: the View's status through `ctx.status`). Pure.
 // EZD-226 Build (AC-EZD-226-1, -2; vault/build/assumptions.md EZD-226): a custom tile shower is a third choice; it
 // places a `tile_shower` centred on the click.
 // EZD-227 Build (AC-EZD-227-1, -3; Q-0704; 09q Blocking): grab-bar blocking is a fourth choice. Its length and height to
@@ -78,7 +78,7 @@ export function tileShowerChoice(): FixtureChoice {
   };
 }
 
-// The status new objects take until the Existing / Proposed switch (EZD-214) exists, as the wall tool does.
+// EZD-214: the status a placement takes when the caller gives none; the editor passes the View's status.
 export const NEW_OBJECT_STATUS: ObjectStatus = 'existing';
 
 // A fixture kind starts at its default size, facing down.
@@ -98,10 +98,17 @@ export const DEFAULT_FIXTURE_CHOICE: FixtureChoice = fixtureChoice('toilet');
 export function placeFixture(
   choice: FixtureChoice,
   at: Point,
-  ctx: { level: string; objects: readonly ModelObject[]; newId: () => string; captureIn?: number },
+  ctx: {
+    level: string;
+    objects: readonly ModelObject[];
+    newId: () => string;
+    captureIn?: number;
+    status?: ObjectStatus;
+  },
 ): Change | null {
   if (choice.type === 'blocking') return placeBlockingChange(choice, at, ctx);
   if (choice.type === 'saved_group') return null;
+  const status = ctx.status ?? NEW_OBJECT_STATUS;
   const id = ctx.newId();
   const type =
     choice.type === 'fixture'
@@ -123,7 +130,7 @@ export function placeFixture(
           glass: choice.glass,
           drain: choice.drain,
           panSlope: choice.panSlope,
-          status: NEW_OBJECT_STATUS,
+          status,
           level: ctx.level,
         })
       : choice.type === 'fixture'
@@ -133,13 +140,13 @@ export function placeFixture(
             facing: choice.facing,
             width: choice.width,
             depth: choice.depth,
-            status: NEW_OBJECT_STATUS,
+            status,
             level: ctx.level,
           })
         : newUtilityPointData({
             kind: choice.kind,
             point: at,
-            status: NEW_OBJECT_STATUS,
+            status,
             level: ctx.level,
             volts: choice.volts,
             amps: choice.amps,
@@ -162,7 +169,13 @@ export function placeFixture(
 function placeBlockingChange(
   choice: Extract<FixtureChoice, { type: 'blocking' }>,
   at: Point,
-  ctx: { level: string; objects: readonly ModelObject[]; newId: () => string; captureIn?: number },
+  ctx: {
+    level: string;
+    objects: readonly ModelObject[];
+    newId: () => string;
+    captureIn?: number;
+    status?: ObjectStatus;
+  },
 ): Change | null {
   if (choice.length === null || choice.heightToCenter === null) return null;
   const data = placeBlocking({
@@ -172,7 +185,7 @@ function placeBlockingChange(
     captureIn: ctx.captureIn ?? 0,
     length: choice.length,
     heightToCenter: choice.heightToCenter,
-    status: NEW_OBJECT_STATUS,
+    status: ctx.status ?? NEW_OBJECT_STATUS,
   });
   if (data === null) return null;
   const id = ctx.newId();

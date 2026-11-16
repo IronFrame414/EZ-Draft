@@ -134,6 +134,7 @@ describe('EZD-120b loadModel', () => {
       name: project.name,
       clientName: 'Ann Lee',
       planScale: 0.5,
+      phaseDefault: 'existing',
     });
     expect(load?.viewer).toEqual({
       appUserId: editor.appUserId,

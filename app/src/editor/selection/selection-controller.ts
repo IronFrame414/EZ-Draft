@@ -21,6 +21,7 @@ import { DRAWING_RAIL_TOOLS } from '../tools/index';
 import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { expandGroups } from './groups';
+import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { createPickIndex } from './pick-index';
 
 export const SELECT_RAIL_TOOL: RailTool = {
@@ -56,6 +57,8 @@ export type SelectionDeps = {
     | null;
   setReceiver: (r: PlanPointerReceiver | null) => void;
   claim?: (event: PlanPointerEvent) => boolean;
+  // EZD-214 (Q-0671 (a)): what the phase view hides is not picked, and leaves the selection when it becomes hidden.
+  phase?: PhaseFilter & { subscribe(listener: () => void): () => void };
 };
 
 export type ReceiverSlots = {
@@ -106,6 +109,7 @@ const noop = () => {};
 
 export function createSelectionController(deps: SelectionDeps): SelectionController {
   const { handle, store, drawing, setReceiver } = deps;
+  const phase = deps.phase ?? null;
   const index = createPickIndex();
   let ui: SelectionUi = { ids: [], selectMore: false };
   let cycle: { at: Point; i: number } | null = null;
@@ -318,7 +322,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   };
 
   const objects = store.getState().objects;
-  index.sync(objects, openFloorId(objects), []);
+  index.sync(objects, openFloorId(objects), [], phase);
   handle.setBodyLookup(bodyLookup);
   handle.setHoverPicker(picker);
   handle.setHoverMode('select');
@@ -329,13 +333,23 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (disposed || state.objects === prev.objects) return;
     const floor = openFloorId(state.objects);
     const floorChanged = floor !== index.floorId;
-    index.sync(state.objects, floor, state.lastChangedIds);
+    index.sync(state.objects, floor, state.lastChangedIds, phase);
     const next = floorChanged ? [] : ui.ids.filter((id) => index.has(id));
     cycle = null;
     const changed = !sameIds(next, ui.ids);
     setUi(next);
     if (!changed) handle.setSelectedIds(ui.ids);
   });
+  const unsubscribePhase =
+    phase === null
+      ? noop
+      : phase.subscribe(() => {
+          if (disposed) return;
+          const now = store.getState().objects;
+          index.sync(now, openFloorId(now), [], phase);
+          cycle = null;
+          setUi(ui.ids.filter((id) => index.has(id)));
+        });
 
   return {
     getUi: () => ui,
@@ -392,6 +406,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (disposed) return;
       disposed = true;
       unsubscribe();
+      unsubscribePhase();
       press = null;
       box = null;
       handle.setSelectedIds([]);

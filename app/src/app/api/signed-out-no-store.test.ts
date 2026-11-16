@@ -102,6 +102,20 @@ const calls: Call[] = [
       );
     },
   },
+  // EZD-214: the phase view route.
+  {
+    route: 'PUT /api/projects/<id>/phase-default',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/phase-default/route')).PUT(
+        new Request(`${ORIGIN}/api/projects/${id}/phase-default`, {
+          method: 'PUT',
+          body: JSON.stringify({ phase: 'existing' }),
+        }),
+        withParams(id),
+      );
+    },
+  },
   {
     route: 'POST /api/projects/<id>/objects',
     run: async () => {
