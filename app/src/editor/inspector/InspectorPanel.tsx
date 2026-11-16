@@ -47,6 +47,8 @@ import {
 } from './inspector-input';
 import {
   inspectorView,
+  roomNameOf,
+  withoutRooms,
   type BulkOpeningFields,
   type BulkWallFields,
   type DoorView,
@@ -110,7 +112,11 @@ export function InspectorPanel({
     () => store.getState().objects,
     () => store.getState().objects,
   );
-  const ui = useSyncExternalStore(selection.subscribe, selection.getUi, selection.getUi);
+  const selected = useSyncExternalStore(selection.subscribe, selection.getUi, selection.getUi);
+  // EZD-218 (P213a "Selection ids"; Q-0679 (b)): the inspector never sees a room id, so a room in the selection
+  // never makes an edit fail; a room selected alone shows its name and a line pointing to the Rooms tab.
+  const ids = useMemo(() => withoutRooms(objects, selected.ids), [objects, selected.ids]);
+  const ui = useMemo(() => ({ ...selected, ids }), [selected, ids]);
   const coarse = useCoarsePointer();
   const level = openFloorId(objects);
   const view = useMemo<InspectorView>(
@@ -121,6 +127,8 @@ export function InspectorPanel({
     [objects, level, ui.ids],
   );
   const idsKey = ui.ids.join(' ');
+  const roomAlone =
+    selected.ids.length === 1 && ids.length === 0 ? roomNameOf(objects, selected.ids[0]!) : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -195,6 +203,8 @@ export function InspectorPanel({
     }
   }, [focus, view]);
 
+  if (roomAlone !== null) return <RoomNote name={roomAlone} canEdit={canEdit} />;
+
   return (
     <InspectorContent
       key={idsKey}
@@ -218,6 +228,16 @@ export function InspectorContent(props: InspectorContentProps): ReactElement {
   if (view.kind === 'wall') return <WallPanel {...props} view={view} />;
   if (view.kind === 'opening') return <OpeningPanel {...props} view={view} />;
   return <BulkPanel {...props} view={view} />;
+}
+
+// EZD-218 (Q-0679 (b)): the room's name as the title, and one line pointing to the Rooms tab.
+function RoomNote({ name, canEdit }: { name: string; canEdit: boolean }) {
+  const t = useT();
+  return (
+    <div className={styles.panel} data-testid="inspector" data-inspector-kind="room">
+      <Header title={name} subtitle={t('office.inspector.room_in_rooms_tab')} canEdit={canEdit} />
+    </div>
+  );
 }
 
 // ---- Shared pieces ----

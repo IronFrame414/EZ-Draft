@@ -26,6 +26,7 @@ import {
   objectGeometry,
   pickWall,
   type BodyLookup,
+  type OutlineLookup,
   type HoverMode,
   type HoverPicker,
   type ObjectGeometry,
@@ -94,6 +95,8 @@ export type PlanCanvasHandle = {
   wallAt(screen: Point): string | null;
   setHoverPicker(picker: HoverPicker | null): void;
   setBodyLookup(lookup: BodyLookup | null): void;
+  // EZD-218 (Q-0676 (a)): a selected or hovered room draws its outline.
+  setOutlineLookup(lookup: OutlineLookup | null): void;
   setSelectedIds(ids: readonly string[]): void;
   getHoveredId(): string | null;
   getScale(): PlanScale;
@@ -185,6 +188,7 @@ export function createPlanController(
   let hoveredFromWall = false;
   let picker: HoverPicker | null = null;
   let bodyLookup: BodyLookup | null = null;
+  let outlineLookup: OutlineLookup | null = null;
   let selectedIds: ReadonlySet<string> = new Set();
   let selectionUploads = 0;
   const hover = createHoverIndex();
@@ -199,7 +203,9 @@ export function createPlanController(
 
   // The selection step: true when the selection drawing was created, replaced or removed, so a redraw is due.
   const selectionStep = (): boolean => {
-    const uploaded = scene.setSelection(objectGeometry(list, selectedIds, bodyLookup));
+    const uploaded = scene.setSelection(
+      objectGeometry(list, selectedIds, bodyLookup, outlineLookup),
+    );
     selectionUploads += uploaded;
     return uploaded > 0;
   };
@@ -242,7 +248,7 @@ export function createPlanController(
     if (id === null) {
       uploaded = scene.setHighlight(NO_HIGHLIGHT);
     } else {
-      const g = objectGeometry(list, new Set([id.toLowerCase()]), bodyLookup);
+      const g = objectGeometry(list, new Set([id.toLowerCase()]), bodyLookup, outlineLookup);
       uploaded = scene.setHighlight(joined(g), g.segments);
     }
     highlightUploads += uploaded;
@@ -391,7 +397,9 @@ export function createPlanController(
     zoomOut: () => zoomBy(1 / ZOOM_STEP_FACTOR),
     showObject(id) {
       // EZD-214: Show on an object the phase view hides turns its status's eye on first (an eye override).
-      const value = [...o.store.getState().objects].find(([k]) => k.toLowerCase() === id.toLowerCase());
+      const value = [...o.store.getState().objects].find(
+        ([k]) => k.toLowerCase() === id.toLowerCase(),
+      );
       const status = value?.[1].data.status;
       if (
         phase !== null &&
@@ -427,6 +435,12 @@ export function createPlanController(
     },
     setBodyLookup(next) {
       bodyLookup = next;
+      const selected = selectionStep();
+      const hoverChanged = updateHover(true);
+      if (selected || hoverChanged) redraw();
+    },
+    setOutlineLookup(next) {
+      outlineLookup = next;
       const selected = selectionStep();
       const hoverChanged = updateHover(true);
       if (selected || hoverChanged) redraw();

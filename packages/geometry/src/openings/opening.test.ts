@@ -15,7 +15,7 @@ import {
 import v1 from '../schema/samples/v1.json';
 import v3 from '../schema/samples/v3.json';
 import v4 from '../schema/samples/v4.json';
-import v5 from '../schema/samples/v5.json';
+import v6 from '../schema/samples/v6.json';
 import { deepFreeze, ID, LEVEL_1, roomWalls } from '../walls/test-utils/fixtures';
 import {
   autoRoughOpening,
@@ -34,8 +34,9 @@ type Doc = { objects: StoredObject[] };
 const V1 = (v1 as unknown as Doc).objects;
 const V3 = (v3 as unknown as Doc).objects;
 const V4 = (v4 as unknown as Doc).objects;
-// EZD-234: v5.json is v4.json one step on, followed by the phase 10 sample objects.
-const V5_FIRST_16 = (v5 as unknown as Doc).objects.slice(0, 16);
+// EZD-234: v5.json is v4.json one step on, followed by the phase 10 sample objects; EZD-218: v6.json is v5.json one
+// step on.
+const V5_FIRST_16 = (v6 as unknown as Doc).objects.slice(0, 16);
 
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
@@ -167,7 +168,7 @@ describe('EZD-204a opening data v4', () => {
       return {
         id: o.id,
         type: 'opening',
-        schema_version: 5,
+        schema_version: 6,
         data: {
           ...data,
           geometry: { ...data.geometry, axis: null },
@@ -196,12 +197,12 @@ describe('EZD-204a opening data v4', () => {
     expect(parseStoredObject(win).ok).toBe(true);
 
     const mNull = migrateStoredObject(nullData);
-    expect(mNull?.schema_version).toBe(5);
+    expect(mNull?.schema_version).toBe(6);
     expect(mNull?.data).toBeNull();
 
     expect(door).toEqual(v3Door);
     expect(win).toEqual(v3Window);
-    expect(CURRENT_SCHEMA_VERSION).toBe(5);
+    expect(CURRENT_SCHEMA_VERSION).toBe(6);
     expect(V3.map((o) => migrateStoredObject(o))).toEqual(V5_FIRST_16);
     expect(V1.map((o) => migrateStoredObject(o))).toEqual(V5_FIRST_16);
   });

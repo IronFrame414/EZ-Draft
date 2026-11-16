@@ -129,7 +129,14 @@ describe('EZD-235 model derived', () => {
         geometry: { boundary: [p(0, 0), p(144, 0), p(144, 120), p(0, 120)] },
         status: 'existing',
         level: F1,
-        attributes: { name: 'Lone', floorLevel: 0, photos: [] },
+        attributes: {
+          name: 'Lone',
+          floorLevel: 0,
+          photos: [],
+          roomType: null,
+          floorFinish: '',
+          ceilingType: null,
+        },
         closureOverride: null,
       },
     };

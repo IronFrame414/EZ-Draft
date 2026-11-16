@@ -350,7 +350,8 @@
     "EZD-5604a",
     "EZD-5604b",
     "EZD-116",
-    "EZD-5605"
+    "EZD-5605",
+    "EZD-214"
   ],
   "seeded_done": 324,
   "merged": [
@@ -535,6 +536,13 @@
       "commit": "3e5e556e",
       "ts": "2026-11-16T00:57:40Z",
       "kind": "ticket"
+    },
+    {
+      "id": "EZD-214",
+      "title": "Status and phase switch",
+      "commit": "e4cbeac9",
+      "ts": "2026-11-16T06:00:22Z",
+      "kind": "ticket"
     }
   ],
   "set_aside": {},
@@ -555,6 +563,6 @@
       "reason": "check red after a review fix"
     }
   },
-  "sleep_until": "2026-11-16T01:32:45.388Z",
-  "next_probe": "2026-11-16T01:07:45.388Z"
+  "sleep_until": "2026-11-16T06:33:39.106Z",
+  "next_probe": "2026-11-16T06:08:39.106Z"
 }

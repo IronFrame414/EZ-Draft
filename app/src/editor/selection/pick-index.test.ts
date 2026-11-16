@@ -96,15 +96,17 @@ describe('EZD-208a pick index', () => {
     expect(index.lastQueryExamined()).toBe(1);
   });
 
-  it('EZD-208a P3 rooms are empty space', () => {
+  // EZD-218 (Q-0630 row 8 "Rooms not selectable until EZD-218"; AC-EZD-218-5): a room inside its walls is picked
+  // when no other object is at the point, and Select all takes it (its area, 144 × 120, is the largest).
+  it('EZD-208a P3 rooms pick only where nothing else is (EZD-218)', () => {
     const boundary = [pt(0, 0), pt(144, 0), pt(144, 120), pt(0, 120)];
     const o = withWalls(baseObjects(), 1, boundary, true, 'right');
     o.set(uid(9), roomValue(boundary, 'Room 1', null));
     const index = createPickIndex();
     index.sync(o, F1, []);
-    expect(index.pick(pt(72, 60), TOL)).toEqual([]);
-    expect(index.all()).toEqual([uid(2), uid(4), uid(1), uid(3)]);
-    expect(index.has(uid(9))).toBe(false);
+    expect(index.pick(pt(72, 60), TOL)).toEqual([uid(9)]);
+    expect(index.all()).toEqual([uid(2), uid(4), uid(1), uid(3), uid(9)]);
+    expect(index.has(uid(9))).toBe(true);
   });
 
   it('EZD-208a P4 box modes', () => {

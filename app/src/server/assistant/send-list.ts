@@ -88,6 +88,10 @@ export const SEND_CLASSIFICATION: Readonly<Record<string, 'send' | 'never'>> = {
   'room.attributes.name': 'send',
   'room.attributes.floorLevel': 'never',
   'room.attributes.photos[]': 'never',
+  // EZD-218: not on the Q-0637 send list (vault/build/assumptions.md EZD-218).
+  'room.attributes.roomType': 'never',
+  'room.attributes.floorFinish': 'never',
+  'room.attributes.ceilingType': 'never',
   'room.closureOverride.who': 'never',
   'room.closureOverride.when': 'never',
   'room.closureOverride.gap.x': 'never',

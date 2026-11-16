@@ -236,7 +236,14 @@ const roomB = (name: string): ObjectValue => ({
     },
     status: 'existing',
     level: F1b,
-    attributes: { name, floorLevel: 0, photos: [] },
+    attributes: {
+      name,
+      floorLevel: 0,
+      photos: [],
+      roomType: null,
+      floorFinish: '',
+      ceilingType: null,
+    },
     closureOverride: null,
   },
 });

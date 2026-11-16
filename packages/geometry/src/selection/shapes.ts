@@ -1,5 +1,6 @@
 // EZD-208a Build step 1 (vault/plans/EZD-208a.md section 3 G1-G6; section 1 R2, R7): the pick shape of a wall or an
 // opening, its distance to a point, its bounds and the box tests. Model inches, +x east, +y north.
+// EZD-218 (AC-EZD-218-5; Q-0630 row 8): a room picks by its boundary ring.
 import type { Point } from '../schema';
 import type { Rect } from '../snap/spatial-index';
 import { coordsEqual, pointsEqual } from '../tolerance';
@@ -10,10 +11,12 @@ import { utilityMark } from '../drawing/build';
 import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
 import type { TileShowerObject } from '../fixtures/tile-shower';
 import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
+import type { RoomObject } from '../rooms/sync';
 
 export type PickShape =
   | { kind: 'quad'; points: readonly [Point, Point, Point, Point]; area: number }
-  | { kind: 'bar'; from: Point; to: Point; area: 0 };
+  | { kind: 'bar'; from: Point; to: Point; area: 0 }
+  | { kind: 'ring'; points: readonly Point[]; area: number };
 
 function shoelace(points: readonly Point[]): number {
   let twice = 0;
@@ -78,23 +81,18 @@ function segmentDistance(p: Point, a: Point, b: Point): number {
 }
 
 function vertices(shape: PickShape): readonly Point[] {
-  return shape.kind === 'quad' ? shape.points : [shape.from, shape.to];
+  return shape.kind === 'bar' ? [shape.from, shape.to] : shape.points;
 }
 
 function edges(shape: PickShape): [Point, Point][] {
   if (shape.kind === 'bar') return [[shape.from, shape.to]];
   const p = shape.points;
-  return [
-    [p[0], p[1]],
-    [p[1], p[2]],
-    [p[2], p[3]],
-    [p[3], p[0]],
-  ];
+  return p.map((a, i): [Point, Point] => [a, p[(i + 1) % p.length]!]);
 }
 
 export function shapeDistance(shape: PickShape, p: Point): number {
   if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return Infinity;
-  if (shape.kind === 'quad' && pointInRing(p, shape.points)) return 0;
+  if (shape.kind !== 'bar' && pointInRing(p, shape.points)) return 0;
   let best = Infinity;
   for (const [a, b] of edges(shape)) best = Math.min(best, segmentDistance(p, a, b));
   return best;
@@ -160,7 +158,7 @@ export function shapeTouchesRect(shape: PickShape, rect: Rect): boolean {
     { x: rect.maxX, y: rect.maxY },
     { x: rect.minX, y: rect.maxY },
   ];
-  if (shape.kind === 'quad' && corners.some((c) => shapeDistance(shape, c) === 0)) return true;
+  if (shape.kind !== 'bar' && corners.some((c) => shapeDistance(shape, c) === 0)) return true;
   const rectEdges: [Point, Point][] = corners.map((c, i) => [c, corners[(i + 1) % 4]!]);
   return edges(shape).some(([a, b]) => rectEdges.some(([c, d]) => segmentsMeet(a, b, c, d)));
 }
@@ -189,4 +187,13 @@ export function blockingPickShape(o: BlockingObject, host: WallObject | null): P
 export function utilityPointPickShape(o: UtilityPointObject): PickShape {
   const points = utilityMark(o.data.geometry.point);
   return { kind: 'quad', points, area: shoelace(points) };
+}
+
+// EZD-218: a room picks by its boundary; null for fewer than 3 points or no area.
+export function roomPickShape(room: RoomObject): PickShape | null {
+  const points = room.data.geometry.boundary.map((p) => ({ x: p.x, y: p.y }));
+  if (points.length < 3) return null;
+  const area = shoelace(points);
+  if (!(area > 0)) return null;
+  return { kind: 'ring', points, area };
 }

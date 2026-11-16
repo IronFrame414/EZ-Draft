@@ -374,7 +374,7 @@ export function previewPath(
   if (shapes.length === 0) return null;
   return shapes
     .map((s) =>
-      s.kind === 'quad'
+      s.kind !== 'bar'
         ? `M ${s.points.map((q) => xy(toScreen(q))).join(' L ')} Z`
         : `M ${xy(toScreen(s.from))} L ${xy(toScreen(s.to))}`,
     )

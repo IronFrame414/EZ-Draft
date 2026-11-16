@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import v4 from './samples/v4.json';
 import v5 from './samples/v5.json';
+import v6 from './samples/v6.json';
 import {
   CURRENT_SCHEMA_VERSION,
   fileRefs,
@@ -51,7 +52,7 @@ const PHASE_10_TYPES = [
 
 describe('EZD-234 phase 10 schema step', () => {
   it('AC-4 one step: version 5 adds every phase 10 type; v5.json parses whole', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(5);
+    expect(CURRENT_SCHEMA_VERSION).toBe(6);
     for (const t of PHASE_10_TYPES) expect(OBJECT_TYPES).toContain(t);
     expect(OBJECT_TYPES).toHaveLength(16); // EZD-233: plus group
     expect(new Set(V5.map((o) => o.type))).toEqual(new Set(OBJECT_TYPES));
@@ -61,7 +62,7 @@ describe('EZD-234 phase 10 schema step', () => {
   it('AC-4 a v4 document opens unchanged but for the room floor level and photos', () => {
     const before = structuredClone(objectsOf(v4));
     const migrated = objectsOf(v4).map((o) => migrateStoredObject(o));
-    expect(migrated).toEqual(V5.slice(0, 16));
+    expect(migrated).toEqual(objectsOf(v6).slice(0, 16));
     expect(objectsOf(v4)).toEqual(before);
     const room = migrated.find((o) => o?.type === 'room')!;
     expect((room.data as { attributes: Rec }).attributes).toMatchObject({

@@ -16,7 +16,7 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import { ShapeUtils, Vector2 } from 'three';
-import { shownBy, type PhaseFilter } from '../../lib/plan/phase-view';
+import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
 import { tokenRgb, type Rgb } from './color';
 import type { Bounds } from './view';
@@ -87,7 +87,7 @@ export function planDrawingList(
   const shown =
     phase === null
       ? parsed
-      : parsed.filter((o) => shownBy(phase, (o.data as { status?: unknown }).status));
+      : parsed.filter((o) => objectShownBy(phase, o.type, (o.data as { status?: unknown }).status));
   return buildDrawingList(
     { objects: shown },
     {

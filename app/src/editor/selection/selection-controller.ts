@@ -9,12 +9,19 @@
 // EZD-231: Measure on every viewer's rail (`editorRail`).
 // EZD-233 (S03 Context menu "Group"): a click, Shift-click, drag hand-over or box that takes a grouped object takes
 // its whole group.
+// EZD-218 (Q-0677 (a); AC-EZD-218-5): rooms are picked by a click, a box and Select all, but a press with no other
+// object under it still starts a box, even inside a room, and a room is never dragged. A room draws its outline.
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
-import { HOVER_CAPTURE_PX, type BodyLookup, type HoverPicker } from '../plan/hover';
+import {
+  HOVER_CAPTURE_PX,
+  type BodyLookup,
+  type HoverPicker,
+  type OutlineLookup,
+} from '../plan/hover';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import { railMode, type DrawingController, type ToolKeyEvent } from '../tools/drawing-controller';
 import { DRAWING_RAIL_TOOLS } from '../tools/index';
@@ -46,7 +53,8 @@ export type SelectionHandle = Pick<
   | 'setHoverPicker'
   | 'setBodyLookup'
   | 'setSelectedIds'
->;
+> &
+  Partial<Pick<PlanCanvasHandle, 'setOutlineLookup'>>;
 
 export type SelectionDeps = {
   handle: SelectionHandle;
@@ -86,6 +94,8 @@ type Press = {
   screen: Point;
   model: Point;
   candidates: string[];
+  // The candidates without rooms: these decide a drag hand-over or a box.
+  solid: string[];
   dragged: boolean;
   dragging: boolean;
 };
@@ -175,14 +185,17 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   // D8: the drag moves the selection when a candidate is in it, else the first candidate alone.
   const handOver = (p: Press) => {
     if (drawing === null || !drawing.getUi().enabled || drawing.startDrag === undefined) return;
-    const c = p.candidates;
+    const c = p.solid;
     const inSelection = c.some((id) => ui.ids.some((s) => s.toLowerCase() === id.toLowerCase()));
     if (!inSelection) {
       cycle = null;
       setUi(grouped([c[0]!]));
     }
     p.dragging = true;
-    drawing.startDrag(ui.ids, p.model);
+    drawing.startDrag(
+      ui.ids.filter((id) => !index.isRoom(id)),
+      p.model,
+    );
   };
 
   const boxMode = (from: Point, to: Point): SelectionBox['mode'] =>
@@ -193,10 +206,12 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (disposed) return;
     if (e.kind === 'down') {
       if (press !== null) dropPress();
+      const candidates = index.pick(e.model, tolerance());
       press = {
         screen: e.screen,
         model: e.model,
-        candidates: index.pick(e.model, tolerance()),
+        candidates,
+        solid: candidates.filter((id) => !index.isRoom(id)),
         dragged: false,
         dragging: false,
       };
@@ -218,9 +233,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (press === null) return;
       if (!press.dragged && distance(e.screen, press.screen) > SAME_SPOT_PX) {
         press.dragged = true;
-        if (press.candidates.length > 0) handOver(press);
+        if (press.solid.length > 0) handOver(press);
       }
-      if (press.dragged && press.candidates.length === 0) {
+      if (press.dragged && press.solid.length === 0) {
         setBox({ from: press.screen, to: e.screen, mode: boxMode(press.screen, e.screen) });
       }
       return;
@@ -234,7 +249,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
         click(p, e.shiftKey);
         return;
       }
-      if (p.candidates.length === 0) {
+      if (p.solid.length === 0) {
         const rect = {
           minX: Math.min(p.model.x, e.model.x),
           minY: Math.min(p.model.y, e.model.y),
@@ -273,6 +288,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   };
 
   const bodyLookup: BodyLookup = (id) => index.body(id);
+  const outlineLookup: OutlineLookup = (id) => index.outline(id);
 
   const clearSelection = () => {
     cycle = null;
@@ -324,6 +340,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   const objects = store.getState().objects;
   index.sync(objects, openFloorId(objects), [], phase);
   handle.setBodyLookup(bodyLookup);
+  handle.setOutlineLookup?.(outlineLookup);
   handle.setHoverPicker(picker);
   handle.setHoverMode('select');
   setReceiver(receiver);
@@ -412,6 +429,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       handle.setSelectedIds([]);
       handle.setHoverPicker(null);
       handle.setBodyLookup(null);
+      handle.setOutlineLookup?.(null);
       setReceiver(null);
       uiListeners.clear();
       boxListeners.clear();

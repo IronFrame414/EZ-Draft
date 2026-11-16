@@ -228,7 +228,8 @@ test.describe('EZD-210b drawing tools', () => {
       await expect(tool(page, which)).toHaveAttribute('aria-pressed', 'false');
       await expect(tool(page, which)).toBeEnabled();
     }
-    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    // EZD-218: the plan editor has its left panel (S03 Layout).
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
 
     await page.keyboard.press('w');
@@ -381,6 +382,10 @@ test.describe('EZD-210b drawing tools', () => {
     expect(rooms).toHaveLength(1);
     expect(label(rooms[0]!)).toBe('ROOM 1 · 80 SF');
 
+    // EZD-218: the left panel narrows the canvas, so the second chain is drawn after a pan that keeps it on screen.
+    await page.evaluate(() =>
+      (window as unknown as Window2).__ezdraftPlan.handle.setView({ x: 150, y: 144, ppi: 8 / 3 }),
+    );
     await clickAt(page, 201, 0);
     await clickAt(page, 321, 0);
     const end = await at(page, 321, 96);

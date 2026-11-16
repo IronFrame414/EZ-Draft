@@ -4,12 +4,17 @@
 // EZD-234 Build (S03 Fixtures, Select): fixtures and utility points pick too, each by its own shape.
 // EZD-226 Build: tile showers pick by their footprint.
 // EZD-227 Build: blocking picks by its outline and, like an opening, is re-placed when its host wall changes.
+// EZD-218 (AC-EZD-218-5; Q-0630 row 8; S03 Canvas "Repeated click"): rooms pick too, after every other object: a
+// click takes walls, openings and fixtures as before (under the cursor, else within the tolerance), then the rooms
+// that hold the point, smallest first, so a repeated click cycles outward to the room and a wall keeps its capture
+// from inside a room. Box select and Select all take rooms.
 import {
   blockingPickShape,
   type BlockingObject,
   createSpatialIndex,
   fixturePickShape,
   openingPickShape,
+  roomPickShape,
   parseStoredObject,
   shapeBounds,
   shapeDistance,
@@ -24,12 +29,13 @@ import {
   type PickShape,
   type Point,
   type Rect,
+  type RoomObject,
   type SpatialIndex,
   type TileShowerObject,
   type UtilityPointObject,
   type WallObject,
 } from '@ezdraft/geometry';
-import { shownBy, type PhaseFilter } from '../../lib/plan/phase-view';
+import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
 
 export type PickIndex = {
@@ -47,10 +53,13 @@ export type PickIndex = {
   all(): string[];
   has(id: string): boolean;
   body(id: string): readonly Point[] | null;
+  // EZD-218: whether the id is an indexed room, and its boundary ring.
+  isRoom(id: string): boolean;
+  outline(id: string): readonly Point[] | null;
   lastQueryExamined(): number;
 };
 
-type Entry = { id: string; key: string; shape: PickShape; hosted: boolean };
+type Entry = { id: string; key: string; shape: PickShape; hosted: boolean; room: boolean };
 
 function validRect(r: Rect): boolean {
   return (
@@ -82,7 +91,8 @@ function parseOnFloor(
     data: value.data,
   });
   if (!r.ok || r.object.type === 'floor') return null;
-  if (!shownBy(phase, (r.object.data as { status?: unknown }).status)) return null;
+  if (!objectShownBy(phase, r.object.type, (r.object.data as { status?: unknown }).status))
+    return null;
   return r.object.data.level.toLowerCase() === floorId.toLowerCase() ? r.object : null;
 }
 
@@ -95,6 +105,7 @@ export function createPickIndex(): PickIndex {
   let walls = new Map<string, WallObject>();
   let openings = new Map<string, OpeningObject | BlockingObject>();
   let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject>();
+  let rooms = new Map<string, RoomObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
 
@@ -113,8 +124,11 @@ export function createPickIndex(): PickIndex {
   const record = (key: string, object: ModelObject | null) => {
     walls.delete(key);
     loose.delete(key);
+    rooms.delete(key);
     dropOpening(key);
-    if (
+    if (object !== null && object.type === 'room') {
+      rooms.set(key, object);
+    } else if (
       object !== null &&
       (object.type === 'fixture' ||
         object.type === 'utility_point' ||
@@ -138,7 +152,14 @@ export function createPickIndex(): PickIndex {
     }
   };
 
-  const shapeOf = (key: string): { id: string; shape: PickShape; hosted: boolean } | null => {
+  const shapeOf = (
+    key: string,
+  ): { id: string; shape: PickShape; hosted: boolean; room?: boolean } | null => {
+    const room = rooms.get(key);
+    if (room !== undefined) {
+      const shape = roomPickShape(room);
+      return shape === null ? null : { id: room.id, shape, hosted: false, room: true };
+    }
     const wall = walls.get(key);
     if (wall !== undefined) {
       const shape = wallPickShape(wall);
@@ -177,7 +198,13 @@ export function createPickIndex(): PickIndex {
     }
     if (old !== undefined && old.id !== next.id) spatial.remove(old.id);
     spatial.upsert(next.id, shapeBounds(next.shape));
-    entries.set(key, { id: next.id, key, shape: next.shape, hosted: next.hosted });
+    entries.set(key, {
+      id: next.id,
+      key,
+      shape: next.shape,
+      hosted: next.hosted,
+      room: next.room === true,
+    });
     return true;
   };
 
@@ -206,12 +233,13 @@ export function createPickIndex(): PickIndex {
         walls = new Map();
         openings = new Map();
         loose = new Map();
+        rooms = new Map();
         hostOf = new Map();
         byHost = new Map();
         for (const id of objects.keys())
           record(id.toLowerCase(), parseOnFloor(id, objects, floorId, phase));
         let count = 0;
-        for (const key of [...walls.keys(), ...openings.keys(), ...loose.keys()])
+        for (const key of [...walls.keys(), ...openings.keys(), ...loose.keys(), ...rooms.keys()])
           if (place(key)) count += 1;
         return count;
       }
@@ -236,10 +264,11 @@ export function createPickIndex(): PickIndex {
       const found = entriesOf(
         spatial.query({ minX: p.x - t, minY: p.y - t, maxX: p.x + t, maxY: p.y + t }),
       );
-      const scored = found.map((e) => ({ e, d: shapeDistance(e.shape, p) }));
+      const scored = found.filter((e) => !e.room).map((e) => ({ e, d: shapeDistance(e.shape, p) }));
       const under = scored.filter((s) => s.d === 0);
       const hits = under.length > 0 ? under : scored.filter((s) => s.d <= t);
-      return sorted(hits.map((s) => s.e));
+      const holding = found.filter((e) => e.room && shapeDistance(e.shape, p) === 0);
+      return [...sorted(hits.map((s) => s.e)), ...sorted(holding)];
     },
     inRect(rect, mode) {
       if (!validRect(rect)) return [];
@@ -255,6 +284,14 @@ export function createPickIndex(): PickIndex {
     body(id) {
       const e = entries.get(id.toLowerCase());
       if (e === undefined || !e.hosted || e.shape.kind !== 'quad') return null;
+      return e.shape.points;
+    },
+    isRoom(id) {
+      return entries.get(id.toLowerCase())?.room === true;
+    },
+    outline(id) {
+      const e = entries.get(id.toLowerCase());
+      if (e === undefined || !e.room || e.shape.kind !== 'ring') return null;
       return e.shape.points;
     },
     lastQueryExamined() {

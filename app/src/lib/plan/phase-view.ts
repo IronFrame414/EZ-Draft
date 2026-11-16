@@ -34,9 +34,12 @@ export function newObjectStatus(view: PhaseView): ObjectStatus {
 
 // What the canvas, hover, pick and snap read: `version` changes with every display change, so an index made for
 // one version is rebuilt in full for the next; `shown` is the test for one stored object's status.
+// EZD-218 (00g "Layer"; AC-EZD-218-2): `shownObject`, when given, also tests the object's type, so a room is drawn
+// only when its Phase eye and the Rooms eye are both on.
 export type PhaseFilter = {
   version(): number;
   shown(status: unknown): boolean;
+  shownObject?(type: string, status: unknown): boolean;
 };
 
 // The editor's live phase: the filter, its change listeners, and the status a new object takes.
@@ -48,6 +51,16 @@ export type PhaseSource = PhaseFilter & {
 // Shown with no filter: every status.
 export function shownBy(filter: PhaseFilter | null | undefined, status: unknown): boolean {
   return filter === null || filter === undefined || filter.shown(status);
+}
+
+// EZD-218: the test for one stored object of a type; the status test alone when the filter has no type test.
+export function objectShownBy(
+  filter: PhaseFilter | null | undefined,
+  type: string,
+  status: unknown,
+): boolean {
+  if (filter === null || filter === undefined) return true;
+  return filter.shownObject !== undefined ? filter.shownObject(type, status) : filter.shown(status);
 }
 
 // The canvas test for one stored object: an object with a status is shown when its eye is on; an object without

@@ -164,7 +164,14 @@ describe('EZD-234 file references on save (database)', () => {
         },
         status: 'existing',
         level,
-        attributes: { name: 'Room 1', floorLevel: 0, photos },
+        attributes: {
+          name: 'Room 1',
+          floorLevel: 0,
+          photos,
+          roomType: null,
+          floorFinish: '',
+          ceilingType: null,
+        },
         closureOverride: null,
       });
     expect((await save([room([good])])).ok).toBe(true);

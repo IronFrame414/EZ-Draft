@@ -26,6 +26,9 @@
 // EZD-5603a Build step 12 (vault/plans/EZD-5603a.md Decided "Editor wiring", "Rail button"): for an editor, one
 // Assistant session per page load; its rail toggle opens the Assistant panel in the inspector place.
 // EZD-234 Build (11 Budgets editor download size): the conflict list panel loads through lazyModule when first opened.
+// EZD-218 (S03 Controls — left panel; AC-EZD-218-1 to -5): the left panel with Layers and Rooms for every viewer of
+// a ready plan. The layer store wraps the phase setting: the canvas draws what is shown, and selection picks what
+// is shown and not locked; the panel and the plan share one derived-values cache for room areas.
 // EZD-223 (S03 Sketch; Q-0392): the drawing controller reads the viewer's iPad drawing setting from the load.
 // EZD-233 (S03 Context menu; Inspector More; vault/build/assumptions.md EZD-233): for an editor, a right-click or long
 // press on the plan with no drawing tool on opens the context menu (an object under it that is not selected is
@@ -113,6 +116,9 @@ import {
   PlanStatusStart,
 } from './status/PlanStatus';
 import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
+import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
+import { LeftPanel } from './layers/LeftPanel';
+import { createModelDerived, type ModelDerived } from './derived/model-derived';
 import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
 import { createDrawingController, type DrawingController } from './tools/drawing-controller';
@@ -158,6 +164,8 @@ type CanvasState =
       edit: EditController;
       scale: ScaleSetting;
       phase: PhaseSetting;
+      layers: LayerSetting;
+      derived: ModelDerived;
       assistant: AssistantLoader | null;
     };
 
@@ -224,8 +232,10 @@ export function ProjectEditor({
         const routed = createRoutedStore(result.session.store);
         // The Assistant loader is made after the controllers, which read Adjust through it.
         let assistant: AssistantLoader | null = null;
+        const layers = createLayerSetting(phase);
+        const derived = createModelDerived(routed);
         const plan = createPlanController(
-          { store: routed, scale: scale.get(), phase },
+          { store: routed, scale: scale.get(), phase: layers, derived },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
         const slots = shareReceiver(plan.handle.setPointerReceiver);
@@ -245,7 +255,7 @@ export function ProjectEditor({
           drawing,
           setReceiver: slots.selection,
           claim: drawing.claimSelectPointer,
-          phase,
+          phase: layers.selectable,
         });
         drawing.attachSelection(selection);
         const edit = createEditController({
@@ -307,6 +317,8 @@ export function ProjectEditor({
           edit,
           scale,
           phase,
+          layers,
+          derived,
           assistant,
         });
         return;
@@ -327,6 +339,8 @@ export function ProjectEditor({
   const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
   const phase = state.kind === 'ready' ? state.phase : null;
+  const layers = state.kind === 'ready' ? state.layers : null;
+  const derived = state.kind === 'ready' ? state.derived : null;
   const assistant = state.kind === 'ready' ? state.assistant : null;
   // EZD-5604b: the session's preview store, made with the first reply that has changes.
   const readPreview = () => assistant?.getPreview() ?? null;
@@ -617,6 +631,17 @@ export function ProjectEditor({
         />
       </InspectorStack>
     ) : null;
+  const leftPanel =
+    showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
+      <LeftPanel
+        store={session.store}
+        layers={layers}
+        selection={selection}
+        showObject={plan.handle.showObject}
+        canEdit={canEdit}
+        roomArea={derived?.roomAreaSqFt}
+      />
+    ) : null;
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
@@ -635,6 +660,8 @@ export function ProjectEditor({
             </>
           }
           rail={rail}
+          leftPanel={leftPanel ?? undefined}
+          leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
           inspector={
             openAssistant !== null ? (

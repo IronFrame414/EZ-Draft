@@ -31,6 +31,9 @@ export type HoverPicker = (screen: Point) => string | null;
 
 export type BodyLookup = (id: string) => readonly Point[] | null;
 
+// EZD-218 (Q-0676 (a)): a room's boundary, drawn as lines with no fill when it is selected or hovered.
+export type OutlineLookup = (id: string) => readonly Point[] | null;
+
 export type ObjectGeometry = { fill: Float32Array; body: Float32Array; segments: Float32Array };
 
 const OBJECT_LAYERS: ReadonlySet<DrawingLayer> = new Set(['existing', 'demo', 'new', 'flagged']);
@@ -74,6 +77,7 @@ export function objectGeometry(
   list: DrawingList | null,
   ids: ReadonlySet<string>,
   bodyOf: BodyLookup | null,
+  outlineOf: OutlineLookup | null = null,
 ): ObjectGeometry {
   if (list === null || ids.size === 0) {
     return { fill: new Float32Array(0), body: new Float32Array(0), segments: new Float32Array(0) };
@@ -103,6 +107,17 @@ export function objectGeometry(
         [p2, p3],
         [p3, p0],
       ] as const) {
+        segments.push(a.x, a.y, 0, b.x, b.y, 0);
+      }
+    }
+  }
+  if (outlineOf !== null) {
+    for (const id of ids) {
+      const ring = outlineOf(id);
+      if (ring === null) continue;
+      for (let i = 0; i < ring.length; i++) {
+        const a = ring[i]!;
+        const b = ring[(i + 1) % ring.length]!;
         segments.push(a.x, a.y, 0, b.x, b.y, 0);
       }
     }

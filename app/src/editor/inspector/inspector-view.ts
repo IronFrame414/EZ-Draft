@@ -446,3 +446,21 @@ export function inspectorView(
     ),
   };
 }
+
+// EZD-218 (P213a "Selection ids"; Q-0679 (b)): the selection without room ids, which the inspector never sees.
+export function withoutRooms(objects: Objects, ids: readonly string[]): string[] {
+  const rooms = new Set<string>();
+  for (const [id, v] of objects) if (v.type === 'room') rooms.add(lower(id));
+  return ids.filter((id) => !rooms.has(lower(id)));
+}
+
+// EZD-218: the stored name of the room with this id, or null when the id is not a room.
+export function roomNameOf(objects: Objects, id: string): string | null {
+  const want = lower(id);
+  for (const [key, v] of objects) {
+    if (lower(key) !== want || v.type !== 'room') continue;
+    const name = (v.data as { attributes?: { name?: unknown } }).attributes?.name;
+    return typeof name === 'string' ? name : null;
+  }
+  return null;
+}

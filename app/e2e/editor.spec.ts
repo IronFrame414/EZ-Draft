@@ -158,7 +158,7 @@ test.describe('EZD-120c editor route', () => {
     ]);
   });
 
-  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and no left panel', async ({
+  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and the left panel (EZD-218)', async ({
     page,
     signInAs,
   }) => {
@@ -177,7 +177,8 @@ test.describe('EZD-120c editor route', () => {
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveAttribute('data-rail-tool', 'assistant');
-    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    // EZD-218: the plan editor has its left panel (S03 Layout).
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
     await expect(page.locator('[data-status-item]')).toHaveCount(5);
     await expect(page.getByTestId('plan-empty-hint')).toHaveText(

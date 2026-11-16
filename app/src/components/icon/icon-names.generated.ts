@@ -51,6 +51,7 @@ export const ICON_NAMES = [
   'library_add_check',
   'library_books',
   'lock',
+  'lock_open',
   'logout',
   'mail',
   'monitor_heart',
@@ -84,6 +85,7 @@ export const ICON_NAMES = [
   'view_column_2',
   'view_quilt',
   'visibility',
+  'visibility_off',
   'wash',
   'window',
 ] as const;
