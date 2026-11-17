@@ -6,6 +6,7 @@
 // EZD-233: the `group` type (two or more member ids on one level); a new type, so the version stays.
 // EZD-402: the cabinet types (run, box, filler, panel, corner treatment, open shelf, trim); new types, so the
 // version stays.
+// EZD-411: the `countertop_piece` type (outline and edges); a new type, so the version stays.
 import { z } from 'zod';
 import { blockingDataSchema, type BlockingData } from './blocking';
 import {
@@ -24,6 +25,7 @@ import {
   type CabinetShelfData,
   type CabinetTrimData,
 } from './cabinet';
+import { countertopPieceDataSchema, type CountertopPieceData } from './countertop';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
 import {
   accessDataSchema,
@@ -51,6 +53,7 @@ import { wallDataSchema, type WallData } from './wall';
 export * from './blocking';
 export * from './cabinet';
 export * from './common';
+export * from './countertop';
 export * from './engineer-note';
 export * from './existing-details';
 export * from './fixture';
@@ -88,6 +91,7 @@ export const OBJECT_TYPES = [
   'cabinet_corner',
   'cabinet_shelf',
   'cabinet_trim',
+  'countertop_piece',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -117,6 +121,7 @@ type DataByType = {
   cabinet_corner: CabinetCornerData;
   cabinet_shelf: CabinetShelfData;
   cabinet_trim: CabinetTrimData;
+  countertop_piece: CountertopPieceData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -159,6 +164,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   cabinet_corner: cabinetCornerDataSchema,
   cabinet_shelf: cabinetShelfDataSchema,
   cabinet_trim: cabinetTrimDataSchema,
+  countertop_piece: countertopPieceDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -197,6 +203,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   cabinet_corner: none,
   cabinet_shelf: none,
   cabinet_trim: none,
+  countertop_piece: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

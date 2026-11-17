@@ -1018,6 +1018,87 @@
           "finish": null
         }
       }
+    },
+    {
+      "id": "d7a3c1e5-2b4f-4a6d-8c9e-0f1a2b3c4d01",
+      "type": "countertop_piece",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "outline": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 141.5,
+              "y": 0
+            },
+            {
+              "x": 141.5,
+              "y": 25.5
+            },
+            {
+              "x": 25.5,
+              "y": 25.5
+            },
+            {
+              "x": 25.5,
+              "y": 88.5
+            },
+            {
+              "x": 0,
+              "y": 88.5
+            }
+          ]
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "label": "A",
+          "name": "Back wall",
+          "materialItemId": null,
+          "thickness": 1.1811,
+          "edges": [
+            {
+              "kind": "wall",
+              "overhang": 0,
+              "backsplashHeight": 4,
+              "profileId": null
+            },
+            {
+              "kind": "wall",
+              "overhang": 0,
+              "backsplashHeight": 4,
+              "profileId": null
+            },
+            {
+              "kind": "exposed",
+              "overhang": 1.5,
+              "backsplashHeight": null,
+              "profileId": null
+            },
+            {
+              "kind": "exposed",
+              "overhang": 1.5,
+              "backsplashHeight": null,
+              "profileId": null
+            },
+            {
+              "kind": "flush",
+              "overhang": 0,
+              "backsplashHeight": null,
+              "profileId": null
+            },
+            {
+              "kind": "wall",
+              "overhang": 0,
+              "backsplashHeight": null,
+              "profileId": null
+            }
+          ]
+        }
+      }
     }
   ]
 }

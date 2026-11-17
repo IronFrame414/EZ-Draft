@@ -240,6 +240,8 @@ export const PROJECTORS: {
   cabinet_corner: notSent,
   cabinet_shelf: notSent,
   cabinet_trim: notSent,
+  // EZD-411: countertop pieces are not sent until a ticket decides what of them the assistant reads.
+  countertop_piece: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));
