@@ -78,6 +78,17 @@ const calls: Call[] = [
       );
     },
   },
+  // EZD-126: the people route (names for the presence avatars).
+  {
+    route: 'GET /api/projects/<id>/people',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/people/route')).GET(
+        get(`/api/projects/${id}/people?ids=${randomUUID()}`),
+        withParams(id),
+      );
+    },
+  },
   {
     route: 'POST /api/projects/<id>/checkpoints',
     run: async () => {

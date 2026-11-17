@@ -64,6 +64,7 @@ const EXPECTED_ICONS = [
   'expand_less',
   'expand_more',
   'fit_screen',
+  'front_hand',
   'gavel',
   'group',
   'help',

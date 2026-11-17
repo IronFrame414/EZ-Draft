@@ -35,6 +35,9 @@
 // selected first, with its group); the inspector footer's More opens the More menu. Both load lazily.
 // EZD-6001 (vault/plans/EZD-6001.md D-Store, D-Wire, D-Mount; Q-0509; Q-0666): one floor view per session, given to
 // every controller and panel that reads the open floor; the Floor control is first in the status bar.
+// EZD-126 (S06 Controls; 11 rule 7; vault/build/assumptions.md EZD-126): the edit lock UI (banner, holder prompt,
+// toasts, Stop editing, View only, presence) loads as one lazy module on the first user input, then draws its
+// parts through `LockPart`; until it loads the save-failed banner shows as before.
 // EZD-224b Build step 10 (vault/plans/EZD-224b.md Decided "Dev hook"; Q-0681 (a)): `__ezdraftEditor.checkpoint()`
 // drains the outbox, then makes a checkpoint with the plan's thumbnail through a lazily loaded module.
 import {
@@ -48,7 +51,6 @@ import {
   type ReactNode,
 } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
-import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
 import { EditorFrame } from '../components/shell/EditorFrame';
 import { EditorHeader } from '../components/shell/EditorHeader';
 import type { EditorView } from '../components/shell/editor-views';
@@ -56,7 +58,6 @@ import { HeaderCard } from '../components/shell/HeaderCard';
 import { StatusBar } from '../components/shell/StatusBar';
 import { Wordmark } from '../components/shell/Wordmark';
 import { InlineError } from '../components/states/InlineError';
-import { NoAccess } from '../components/states/NoAccess';
 import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
 import { StateButton } from '../components/states/StateButton';
@@ -104,12 +105,13 @@ import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import type { CheckpointOutcome } from './thumbnail/checkpoint';
-import { ConflictBanner } from './conflicts/ConflictBanner';
 import type { ConflictPanelProps } from '../lazy/conflict-panel';
+import type { ConflictBannerProps } from './conflicts/ConflictBanner';
 import { lazyModule, type LazyModule } from '../lib/lazy/lazy-module';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { SelectionLayer } from './selection/SelectionLayer';
 import type { EditBarProps } from '../lazy/edit-bar';
+import type { LockPartName, LockUi } from '../lazy/lock-ui';
 import {
   createSelectionController,
   editorRail,
@@ -394,6 +396,48 @@ export function ProjectEditor({
 
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
+  const retry = () => {
+    setState({ kind: 'loading' });
+    setAttempt((n) => n + 1);
+  };
+
+  // EZD-126: the lock UI for this session, made once its module is there (at once when it already is). Start
+  // editing reopens through `retry`.
+  const [lock, setLock] = useState<{ m: typeof import('../lazy/lock-ui'); ui: LockUi } | null>(null);
+  useEffect(() => {
+    if (session === null || plan === null) return;
+    let ui: LockUi | undefined;
+    let live = true;
+    const start = () => {
+      off();
+      lockUiModule.load().then((m) => {
+        if (!live) return;
+        ui = m.createLockUi(session, plan.captureThumbnail, retry, t('office.lock.someone'));
+        setLock({ m, ui });
+      }, noop);
+    };
+    // The first edit loads it too (a pan right after an edit then makes no React commit, 11 rule 4).
+    const offEdit = session.store.subscribe(start);
+    const off = () => {
+      offEdit();
+      removeEventListener('pointermove', start, true);
+      removeEventListener('pointerdown', start, true);
+    };
+    if (lockUiModule.peek()) start();
+    else {
+      addEventListener('pointermove', start, true);
+      addEventListener('pointerdown', start, true);
+    }
+    return () => {
+      live = false;
+      off();
+      ui?.dispose();
+      setLock(null);
+    };
+    // `retry` only sets state, so the one from the render that made the session is enough.
+  }, [session, plan, t]);
+  const part = (name: LockPartName) => lock && <lock.m.LockPart ui={lock.ui} part={name} />;
+
   // D-Editor: each time the list opens (and at start with `conflictsOpen`), the list is read again.
   useEffect(() => {
     if (listOpen && session !== null) void session.conflicts.refresh();
@@ -473,10 +517,6 @@ export function ProjectEditor({
 
   const closeMenu = useCallback(() => setMenu(null), []);
 
-  const retry = () => {
-    setState({ kind: 'loading' });
-    setAttempt((n) => n + 1);
-  };
 
   const conflictCount = countForProject(conflicts.inputs, projectId);
   const header =
@@ -493,6 +533,8 @@ export function ProjectEditor({
           activeView="plan"
           views={PLAN_VIEWS}
           onViewChange={noop}
+          presence={part('presence')}
+          stopEditing={part('stop')}
           reviewPill={
             menuCanEdit ? (
               <StateButton
@@ -506,7 +548,8 @@ export function ProjectEditor({
           }
         />
         {conflictCount > 0 ? (
-          <ConflictBanner
+          <LazyNotice
+            name="ConflictBanner"
             count={conflictCount}
             projectName={session.model.project.name}
             othersSaved={conflicts.othersSaved}
@@ -528,7 +571,7 @@ export function ProjectEditor({
   } else if (state.kind === 'failed') {
     body = <InlineError message="office.editor.load_failed" onRetry={retry} />;
   } else if (state.kind === 'no-access') {
-    body = <NoAccess />;
+    body = <LazyNotice name="NoAccess" />;
   } else if (state.kind === 'not-found') {
     body = (
       <p className={styles.notice} data-testid="editor-not-found">
@@ -545,11 +588,12 @@ export function ProjectEditor({
         {showPlan && coarse && selection !== null ? (
           <LazyEditBar selection={selection} edit={edit} clipboardOff={adjusting} />
         ) : null}
+        {part('banner')}
         {sync !== null ? (
           <>
             <OfflineBanner message="office.editor.offline" />
             {/* D-Editor: outdated rows exist only while the problem is app_outdated; they say Reload. */}
-            {conflicts.outdatedCount > 0 ? null : <SaveFailedBanner sync={sync} />}
+            {conflicts.outdatedCount > 0 ? null : (part('save') ?? <SaveFailedBanner sync={sync} />)}
             {conflicts.outdatedCount > 0 || scale === null ? null : (
               <PlanScaleFailedBanner scale={scale} sync={sync} />
             )}
@@ -642,11 +686,13 @@ export function ProjectEditor({
       ) : null}
       {stateArea}
       {panel}
+      {part('canvas')}
     </>
   ) : (
     <>
       {stateArea}
       {panel}
+      {part('canvas')}
     </>
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
@@ -724,6 +770,7 @@ export function ProjectEditor({
                       <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
                     ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
+                    {part('status')}
                   </>
                 ) : undefined
               }
@@ -733,12 +780,16 @@ export function ProjectEditor({
           backdrop={backdrop}
         />
       }
-      phone={<EditorPhoneNotice />}
+      phone={<LazyNotice name="EditorPhoneNotice" />}
     />
   );
 }
 
 const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+
+// EZD-126 (11 rule 7): the lock UI loads on the first pointer move or press, or the first edit (not on
+// pointerover, which a browser fires when the page changes under a resting mouse).
+const lockUiModule = lazyModule(() => import('../lazy/lock-ui'));
 
 // EZD-233: one hook for the lazy parts below. The module loads while `wanted`; nothing shows for the moment it
 // downloads, and a failed download is tried again the next time it is wanted.
@@ -839,6 +890,19 @@ const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'
 function LazyBenchmarkRunner(props: BenchmarkRunnerProps) {
   const mod = useLazy(benchmarkRunnerModule);
   return mod ? <mod.BenchmarkRunner {...props} /> : null;
+}
+
+// EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop
+// editor with every change saved shows none of them.
+const noticesModule = lazyModule(() => import('../lazy/editor-notices'));
+
+function LazyNotice({
+  name,
+  ...props
+}: { name: 'NoAccess' | 'EditorPhoneNotice' | 'ConflictBanner' } & Partial<ConflictBannerProps>) {
+  const mod = useLazy(noticesModule);
+  const Notice = mod?.[name] as ((p: typeof props) => ReactNode) | undefined;
+  return Notice ? <Notice {...props} /> : null;
 }
 
 // Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.

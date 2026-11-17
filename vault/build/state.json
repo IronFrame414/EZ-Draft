@@ -356,7 +356,8 @@
     "EZD-6001",
     "EZD-237",
     "EZD-224b",
-    "EZD-308"
+    "EZD-308",
+    "EZD-125"
   ],
   "seeded_done": 324,
   "merged": [
@@ -586,6 +587,14 @@
       "ts": "2026-11-16T19:12:55Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-125",
+      "title": "Edit lock service",
+      "commit": "7b726bfe",
+      "ts": "2026-11-16T21:55:10Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},

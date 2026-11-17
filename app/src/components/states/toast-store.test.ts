@@ -109,3 +109,15 @@ describe('EZD-015b toast store', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+// EZD-126 U14 (board S06 toast: the green Available to edit toast).
+describe('EZD-126 toast tone', () => {
+  it('EZD-126 U14 a toast keeps its success tone; a plain toast is neutral', () => {
+    const store = createToastStore();
+    store.show({ message: 'common.retry', tone: 'success' });
+    store.show({ message: 'common.retry' });
+    const [first, second] = store.getSnapshot();
+    expect(first.tone).toBe('success');
+    expect(second.tone).toBe('neutral');
+  });
+});

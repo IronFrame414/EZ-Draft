@@ -291,3 +291,20 @@ describe('EZD-011b exports, memo and view constants', () => {
     expect(block(css, '.accent')).toContain('color: var(--ez-cobalt)');
   });
 });
+
+// EZD-126 U16 (S06 Layout: presence avatars left of the review pill; 04:26 and S21: Stop editing between the pill and
+// Share).
+describe('EZD-126 EditorHeader lock slots', () => {
+  it('EZD-126 U16 presence comes before the pill, Stop editing between the pill and Share', () => {
+    const html = withProvider(
+      <EditorHeader
+        {...HP}
+        presence={<i data-slot="presence" />}
+        stopEditing={<i data-slot="stop" />}
+      />,
+    );
+    const afterNav = html.slice(html.indexOf('</nav>'));
+    const slots = [...afterNav.matchAll(/data-slot="(\w+)"/g)].map((m) => m[1]);
+    expect(slots).toEqual(['presence', 'pill', 'stop', 'share', 'export', 'issue']);
+  });
+});

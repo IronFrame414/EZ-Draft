@@ -964,6 +964,20 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-120b: the project and its objects; 200 ModelLoad (no money)',
   },
   {
+    file: `${API}projects/[id]/people/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/people/route'),
+    request: async (env) => ({
+      request: new Request(
+        `${BASE}/api/projects/${env.projectId}/people?ids=${env.member.appUserId}`,
+        { method: 'GET' },
+      ),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-126: names and initials of people in the project; 200 { people } (no money)',
+  },
+  {
     file: `${API}benchmark/project/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/benchmark/project/route'),

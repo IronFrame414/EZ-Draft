@@ -75,6 +75,12 @@ export const TOKENS: readonly {
   // S03dStates box select right to left; EZD-208b
   { name: '--ez-box-touch-stroke', value: 'oklch(0.5 0.12 160)', group: 'color' },
   { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
+  // S06 edit-lock banner, toast; EZD-126
+  { name: '--ez-lock-border', value: 'oklch(0.88 0.08 75)', group: 'color' },
+  { name: '--ez-lock-text', value: 'oklch(0.42 0.12 65)', group: 'color' },
+  { name: '--ez-lock-button-border', value: 'oklch(0.8 0.1 70)', group: 'color' },
+  { name: '--ez-green-border', value: 'oklch(0.85 0.08 150)', group: 'color' },
+  { name: '--ez-green-button-border', value: 'oklch(0.82 0.08 150)', group: 'color' },
   // S15 .tron; EZD-104
   { name: '--ez-row-selected', value: '#f5f7ff', group: 'color' },
   // S03c alert box, model list; EZD-5603a

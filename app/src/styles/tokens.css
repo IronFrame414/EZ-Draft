@@ -76,6 +76,12 @@
   /* S03dStates box select right to left; EZD-208b */
   --ez-box-touch-stroke: oklch(0.5 0.12 160);
   --ez-box-touch-fill: oklch(0.72 0.12 160);
+  /* S06 edit-lock banner, toast; EZD-126 */
+  --ez-lock-border: oklch(0.88 0.08 75);
+  --ez-lock-text: oklch(0.42 0.12 65);
+  --ez-lock-button-border: oklch(0.8 0.1 70);
+  --ez-green-border: oklch(0.85 0.08 150);
+  --ez-green-button-border: oklch(0.82 0.08 150);
   /* S15 .tron; EZD-104 */
   --ez-row-selected: #f5f7ff;
   /* S03c alert box, model list; EZD-5603a */

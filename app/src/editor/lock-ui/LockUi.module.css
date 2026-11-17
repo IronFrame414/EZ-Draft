@@ -1,0 +1,105 @@
+/* EZD-126 (board S06 lines 54, 86-91, 256): the edit lock banner, View only, presence avatars and the holder
+   prompt's countdown. Colours by token only. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border-radius: var(--ez-radius-10);
+  border: 1px solid var(--ez-lock-border);
+  background: var(--ez-amber-tint);
+  color: var(--ez-lock-text);
+  font-size: 14px;
+}
+
+.bannerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.bannerStrong {
+  font-weight: 600;
+}
+
+.bannerHint {
+  font-size: 12px;
+  color: var(--ez-amber-text);
+}
+
+.banner .lockButton {
+  border-color: var(--ez-lock-button-border);
+  color: var(--ez-lock-text);
+}
+
+.viewOnly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ez-amber-text);
+}
+
+.avatars {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  box-sizing: content-box;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ez-surface);
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.avatar + .avatar {
+  margin-left: -8px;
+}
+
+.holder {
+  background: var(--ez-amber);
+  box-shadow: 0 0 0 1px var(--ez-amber);
+}
+
+.overflow {
+  background: var(--ez-slate-500);
+}
+
+.countdown {
+  margin: 10px 0 0;
+  font: 500 28px var(--ez-font-mono);
+  color: var(--ez-ink);
+}
+
+/* Board S06 lines 209-211: the lock toasts at the canvas's bottom right (the board's 76 px bottom clears its
+   electrical legend, which the editor does not have), the green Available toast. */
+.toasts[data-toast-viewport] {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+}
+
+[data-toast].success {
+  background: var(--ez-green-tint);
+  border-color: var(--ez-green-border);
+  color: var(--ez-green);
+}
+
+.success [data-toast-action] {
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--ez-green);
+  border-color: var(--ez-green-button-border);
+}
+
+.toastIcon {
+  display: inline-flex;
+  flex: none;
+}

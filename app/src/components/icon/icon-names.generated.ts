@@ -38,6 +38,7 @@ export const ICON_NAMES = [
   'expand_less',
   'expand_more',
   'fit_screen',
+  'front_hand',
   'gavel',
   'group',
   'help',
