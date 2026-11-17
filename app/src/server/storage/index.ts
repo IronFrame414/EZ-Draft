@@ -14,6 +14,7 @@ export {
 export {
   COST_FILE_KINDS,
   completeSourceFileUpload,
+  signPhotoLink,
   sourceFilePath,
   startSourceFileUpload,
   type SourceFileView,

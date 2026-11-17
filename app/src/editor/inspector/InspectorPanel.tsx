@@ -33,6 +33,7 @@ import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
+import type { Objects } from '../model/patches';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
 import type { DrawingController } from '../tools/drawing-controller';
@@ -61,7 +62,15 @@ import {
   type SideLabel,
 } from './inspector-view';
 import { ResolveGap, type ResolveGapProps } from './ResolveGap';
+import { PinPanel } from './PinPanel';
 import styles from './InspectorPanel.module.css';
+
+// EZD-220: whether the id names a pin.
+function isPin(objects: Objects, id: string): boolean {
+  const key = id.toLowerCase();
+  for (const [k, v] of objects) if (k.toLowerCase() === key) return v.type === 'pin';
+  return false;
+}
 
 // D-Text: sub-line and view-only layer parts are joined by this constant.
 const SEPARATOR = ' · ';
@@ -86,6 +95,8 @@ export type InspectorPanelProps = {
   newStatus?: () => ObjectStatus;
   // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor.
   floors?: FloorChoice;
+  // EZD-220: the project a pin photo is sent to; without it a pin's photo is shown but not attached.
+  projectId?: string;
 };
 
 export type InspectorContentProps = {
@@ -111,6 +122,7 @@ export function InspectorPanel({
   drawing,
   newStatus,
   floors,
+  projectId,
 }: InspectorPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
@@ -135,6 +147,7 @@ export function InspectorPanel({
   const idsKey = ui.ids.join(' ');
   const roomAlone =
     selected.ids.length === 1 && ids.length === 0 ? roomNameOf(objects, selected.ids[0]!) : null;
+  const pinAlone = ids.length === 1 && isPin(objects, ids[0]!) ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -210,6 +223,17 @@ export function InspectorPanel({
   }, [focus, view]);
 
   if (roomAlone !== null) return <RoomNote name={roomAlone} canEdit={canEdit} />;
+  // EZD-220: one pin alone shows the pin inspector.
+  if (pinAlone !== null)
+    return (
+      <PinPanel
+        key={pinAlone}
+        store={store}
+        pinId={pinAlone}
+        canEdit={canEdit}
+        {...(projectId === undefined ? {} : { projectId })}
+      />
+    );
 
   return (
     <InspectorContent

@@ -37,6 +37,15 @@ import {
 } from '@ezdraft/geometry';
 import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
+import { pinPickRing, type PinObject } from '../plan/pins';
+
+// EZD-220: a pin picks by the box around its head and stem.
+function pinPickShape(o: PinObject): PickShape {
+  const points = pinPickRing(o.data.geometry.point);
+  const w = points[1].x - points[0].x;
+  const h = points[2].y - points[1].y;
+  return { kind: 'quad', points, area: w * h };
+}
 
 export type PickIndex = {
   readonly floorId: string | null;
@@ -105,7 +114,7 @@ export function createPickIndex(): PickIndex {
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
   let openings = new Map<string, OpeningObject | BlockingObject>();
-  let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject>();
+  let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject | PinObject>();
   let rooms = new Map<string, RoomObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
@@ -133,7 +142,8 @@ export function createPickIndex(): PickIndex {
       object !== null &&
       (object.type === 'fixture' ||
         object.type === 'utility_point' ||
-        object.type === 'tile_shower')
+        object.type === 'tile_shower' ||
+        object.type === 'pin')
     ) {
       loose.set(key, object);
     } else if (object !== null && object.type === 'wall') {
@@ -173,7 +183,9 @@ export function createPickIndex(): PickIndex {
           ? fixturePickShape(free)
           : free.type === 'tile_shower'
             ? tileShowerPickShape(free)
-            : utilityPointPickShape(free);
+            : free.type === 'pin'
+              ? pinPickShape(free)
+              : utilityPointPickShape(free);
       return { id: free.id, shape, hosted: false };
     }
     const opening = openings.get(key);

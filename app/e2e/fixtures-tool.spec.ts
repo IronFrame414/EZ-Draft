@@ -104,7 +104,7 @@ test.describe('EZD-234 Fixtures tool', () => {
     );
     const panel = id(page, 'fixtures-panel');
     await expect(panel).toBeVisible();
-    await expect(panel.getByRole('button')).toHaveCount(20); // EZD-227: plus Grab-bar blocking. EZD-226: plus Tile shower
+    await expect(panel.getByRole('button')).toHaveCount(26); // EZD-220: plus the six pin kinds. EZD-227: plus Grab-bar blocking. EZD-226: plus Tile shower
     // EZD-233 (Q-0704 "EZD-233 adds that"): the Saved section, empty for a new company.
     await expect(id(page, 'saved-groups-empty')).toBeVisible();
 
@@ -121,7 +121,7 @@ test.describe('EZD-234 Fixtures tool', () => {
     await id(page, 'utility-volts').selectOption('240');
     await id(page, 'utility-amps').fill('50');
     await clickAt(page, 144, 3);
-    await panel.getByRole('button', { name: 'Gas' }).click();
+    await id(page, 'utility-kind-gas').click(); // EZD-220: a Gas pin button now shares the name 'Gas'
     await clickAt(page, 156, 3);
     await expect.poll(async () => (await ofType(page, 'utility_point')).length).toBe(2);
     for (const p of await ofType(page, 'utility_point'))

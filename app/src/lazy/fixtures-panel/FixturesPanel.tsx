@@ -14,10 +14,15 @@
 // EZD-233 (R26 "Saved groups other than cabinets are placed from a Saved section in the Fixtures panel"; Q-0704 "EZD-233
 // adds that"; AC-EZD-233-2; vault/build/assumptions.md EZD-233): a Saved section lists the company's saved groups;
 // choosing one makes the next click place a copy of it.
+// EZD-220 (03f:16; W3; AC-EZD-220-1; vault/build/assumptions.md EZD-220): a Pins section lists the six existing-condition
+// pin kinds; choosing one makes the next click place that pin. Pins show in the Existing view only (Q-0704), which its
+// hint says.
 import { useEffect, useState } from 'react';
 import {
   FIXTURE_KINDS,
+  PIN_KINDS,
   UTILITY_KINDS,
+  type PinKind,
   formatChipDistance,
   formatLength,
   parseLength,
@@ -31,6 +36,7 @@ import { FIXTURE_FACINGS, type FixtureFacing } from '../../editor/tools/fixture-
 import {
   blockingChoice,
   fixtureChoice,
+  pinChoice,
   SHOWER_BENCH_START,
   SHOWER_GLASS_LENGTH_START,
   tileShowerChoice,
@@ -58,6 +64,7 @@ export async function fetchSavedGroups(): Promise<SavedGroupEntry[]> {
 
 const kindKey = (kind: string) => `office.fixtures.kind.${kind}` as MessageKey;
 const utilityKey = (kind: UtilityKind) => `office.fixtures.utility.${kind}` as MessageKey;
+const pinKey = (kind: PinKind) => `office.pin.kind.${kind}` as MessageKey;
 const facingKey = (f: FixtureFacing) => `office.fixtures.facing.${f}` as MessageKey;
 
 // A length box that keeps what is typed and reports a parsed positive length, or null for anything else. It is keyed
@@ -205,6 +212,27 @@ export function FixturesPanel({
             );
           })}
         </div>
+      </div>
+      <div className={styles.section} data-testid="pins-section">
+        <h3 className={styles.title}>{t('office.fixtures.section_pins')}</h3>
+        <div className={styles.kinds}>
+          {PIN_KINDS.map((kind) => {
+            const on = choice.type === 'pin' && choice.kind === kind;
+            return (
+              <button
+                key={kind}
+                type="button"
+                className={`${styles.kind} ${touch.hitArea}`}
+                aria-pressed={on}
+                data-testid={`pin-kind-${kind}`}
+                onClick={() => onChoose(pinChoice(kind))}
+              >
+                {t(pinKey(kind))}
+              </button>
+            );
+          })}
+        </div>
+        <p className={styles.hint}>{t('office.fixtures.pins_hint')}</p>
       </div>
       <div className={styles.section}>
         <h3 className={styles.title}>{t('office.fixtures.section_showers')}</h3>

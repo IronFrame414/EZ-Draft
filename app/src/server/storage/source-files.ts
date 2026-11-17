@@ -15,7 +15,13 @@ import {
 import type { SignedUpload } from '../../lib/storage/upload';
 import { kindTakes } from '../../lib/imports/upload-files';
 import { can, loadPermissionContext } from '../permissions';
-import { createSignedUpload, statObject, StorageError, type DbClient } from './objects';
+import {
+  createSignedUpload,
+  signedDownloadUrl,
+  statObject,
+  StorageError,
+  type DbClient,
+} from './objects';
 
 // Supplier files and order reports are cost files (Q-0269 (b)); their starts need See company costs (EZD-322).
 export const COST_FILE_KINDS: readonly SourceFileKind[] = ['supplier_pdf', 'order_report'];
@@ -297,4 +303,22 @@ export async function readReviewSourceFiles(
       });
   }
   return out;
+}
+
+// EZD-220 (Q-0704 03-data-model row 3 "Downloads are signed from the row's own storage_path, never from a path in model
+// data"; 10-permissions Q-0704 "Reading pins, photos and notes needs only seeing the project"; AC-EZD-220-2, -6): a
+// short-lived link to one uploaded photo, read through the caller's client so RLS decides (another company's file or
+// an unlisted project is not found). Only kind `photo` is served here, so this read never opens a cost file.
+export async function signPhotoLink(client: DbClient, sourceFileId: string): Promise<string> {
+  if (!z.uuid().safeParse(sourceFileId).success) throw new StorageError('source_file_not_found');
+  const { data, error } = await client
+    .from('source_file')
+    .select('kind, storage_path, uploaded_at')
+    .eq('id', sourceFileId)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  if (!data || data.kind !== 'photo' || data.uploaded_at === null) {
+    throw new StorageError('source_file_not_found');
+  }
+  return signedDownloadUrl(client, { bucket: 'sources', path: data.storage_path });
 }

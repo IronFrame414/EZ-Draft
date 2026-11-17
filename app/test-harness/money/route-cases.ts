@@ -292,6 +292,39 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 202,
     note: 'EZD-301: project id and source file ids (no money)',
   },
+  // EZD-220: the thumbnail link of an uploaded pin photo (kind photo). The row and object are made here; the answer
+  // is the signed link only.
+  {
+    file: `${API}source-files/[id]/link/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/source-files/[id]/link/route'),
+    request: async (env) => {
+      const fileId = randomUUID();
+      const storagePath = `${env.tenantId}/${env.projectId}/${fileId}`;
+      const { error: rowError } = await adminDb().from('source_file').insert({
+        id: fileId,
+        tenant_id: env.tenantId,
+        project_id: env.projectId,
+        kind: 'photo',
+        storage_path: storagePath,
+        original_name: 'stain.png',
+        content_type: 'image/png',
+        size_bytes: PNG_100.length,
+        uploaded_at: new Date().toISOString(),
+      });
+      if (rowError) throw new Error(`source_file insert failed: ${rowError.message}`);
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(storagePath, PNG_100, { contentType: 'image/png' });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      return {
+        request: new Request(`${BASE}/api/source-files/${fileId}/link`),
+        params: { id: fileId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-220: a signed photo link (no money)',
+  },
   // EZD-306: the layers of an uploaded DXF drawing (kind dxf). The row and object are made here; the answer is
   // layer names only.
   {

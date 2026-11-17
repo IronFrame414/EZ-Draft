@@ -55,6 +55,7 @@ const DELETE_TYPES: ReadonlySet<string> = new Set([
   'utility_point',
   'tile_shower', // EZD-226
   'blocking', // EZD-227
+  'pin', // EZD-220: its source_file row is kept (03c:15)
 ]);
 
 export function copyItems(objects: Objects, level: string, ids: readonly string[]): ClipItem[] {

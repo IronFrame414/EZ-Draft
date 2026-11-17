@@ -7,6 +7,8 @@
 // EZD-227 Build (AC-EZD-227-1, -3; Q-0704; 09q Blocking): grab-bar blocking is a fourth choice. Its length and height to
 // centre start empty (no default) and a click places it on the nearest wall, on the side clicked (placeBlocking).
 // EZD-233: a saved group is a fifth choice, placed by the drawing controller through `placeSavedGroup`.
+// EZD-220 (03f:16; Q-0704 03-data-model "pin ... status always existing"; AC-EZD-220-1): an existing-condition pin is a
+// sixth choice. A click places a pin of the chosen kind with no photo; it is Existing whatever the View.
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_PAN_SLOPE_IN_PER_FT,
@@ -14,6 +16,7 @@ import {
   type FixtureKind,
   type ModelObject,
   type ObjectStatus,
+  type PinKind,
   type Point,
   type UtilityKind,
 } from '@ezdraft/geometry';
@@ -47,7 +50,8 @@ export type FixtureChoice =
     }
   | { type: 'blocking'; length: number | null; heightToCenter: number | null }
   // EZD-233 (R26; AC-EZD-233-2): a saved group from the panel's Saved section; a click places a copy of it.
-  | { type: 'saved_group'; id: string; name: string; payload: SavedGroupPayload };
+  | { type: 'saved_group'; id: string; name: string; payload: SavedGroupPayload }
+  | { type: 'pin'; kind: PinKind };
 
 // Grab-bar blocking starts with its length and height to centre empty: both are required and have no default
 // (Q-0704 09-calculations; 09q Blocking row 3).
@@ -87,6 +91,11 @@ export function fixtureChoice(kind: FixtureKind): FixtureChoice {
   return { type: 'fixture', kind, width: size.width, depth: size.depth, facing: 'down' };
 }
 
+// EZD-220: a pin of one kind.
+export function pinChoice(kind: PinKind): FixtureChoice {
+  return { type: 'pin', kind };
+}
+
 // A utility point starts at 120 V and 20 A when electric (vault/build/assumptions.md EZD-234).
 export function utilityChoice(kind: UtilityKind): FixtureChoice {
   return { type: 'utility', kind, volts: 120, amps: 20 };
@@ -108,6 +117,7 @@ export function placeFixture(
 ): Change | null {
   if (choice.type === 'blocking') return placeBlockingChange(choice, at, ctx);
   if (choice.type === 'saved_group') return null;
+  if (choice.type === 'pin') return placePin(choice.kind, at, ctx);
   const status = ctx.status ?? NEW_OBJECT_STATUS;
   const id = ctx.newId();
   const type =
@@ -200,6 +210,28 @@ function placeBlockingChange(
     id,
     value: {
       type: 'blocking',
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: parsed.object.data as unknown as Record<string, unknown>,
+    },
+  };
+}
+
+// EZD-220: a pin at the click, always Existing, with no photo yet (the photo is attached from its inspector once
+// the upload has finished, so the save check never sees an unfinished file).
+function placePin(kind: PinKind, at: Point, ctx: { level: string; newId: () => string }): Change | null {
+  const id = ctx.newId();
+  const data = {
+    geometry: { point: { x: at.x, y: at.y } },
+    status: 'existing',
+    level: ctx.level,
+    attributes: { kind, photoFileId: null },
+  };
+  const parsed = parseStoredObject({ id, type: 'pin', schema_version: CURRENT_SCHEMA_VERSION, data });
+  if (!parsed.ok) return null;
+  return {
+    id,
+    value: {
+      type: 'pin',
       schemaVersion: CURRENT_SCHEMA_VERSION,
       data: parsed.object.data as unknown as Record<string, unknown>,
     },

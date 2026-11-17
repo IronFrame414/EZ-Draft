@@ -795,6 +795,7 @@ export function ProjectEditor({
           drawing={drawing}
           newStatus={phase === null ? undefined : phase.newObjectStatus}
           floors={floors ?? undefined}
+          projectId={projectId}
         />
         <InspectorMore
           selection={selection}

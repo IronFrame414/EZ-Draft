@@ -10,7 +10,8 @@
 // Plumbing layer. A sink's derived supply and drain locations and every water or drain utility point are in it, as
 // well as in their Phase layer; its eye starts on and resets on reload.
 import { PLUMBING_LOCATION_TYPE, type ObjectStatus } from '@ezdraft/geometry';
-import type { PhaseEyes, PhaseFilter } from '../../lib/plan/phase-view';
+import type { PhaseEyes, PhaseFilter, PhaseView } from '../../lib/plan/phase-view';
+import { viewShowsType } from '../plan/phase-filter';
 
 export const LAYER_IDS = ['existing', 'demo', 'new', 'rooms', 'plumbing'] as const;
 
@@ -58,8 +59,9 @@ export function objectSelectable(
 
 type Listenable = { subscribe(listener: () => void): () => void };
 
+// EZD-220: `view`, when the phase gives it, applies the type rule of phase-filter.ts (pins in Existing only).
 export type LayerPhase = Listenable & {
-  get(): { eyes: PhaseEyes };
+  get(): { eyes: PhaseEyes; view?: PhaseView };
   version(): number;
   setEye(status: ObjectStatus, on: boolean): void;
 };
@@ -107,6 +109,7 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
     };
   };
   const shownObject = (type: string, status: unknown, kind?: unknown) =>
+    viewShowsType(phase.get().view, type) &&
     objectVisible(phase.get().eyes, state.roomsEye, type, status, kind, state.plumbingEye);
   const shown = (status: unknown) => shownObject('', status);
 
