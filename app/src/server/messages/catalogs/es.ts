@@ -197,4 +197,6 @@ export const es = {
     'EZ Draft no pudo leer esa foto, así que no se envió nada. Adjunta otra.',
   'field.device.editor_on_phone':
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
+  // EZD-111 (vault/plans/EZD-111.md section 6): agent-written Spanish, checked at the field check (Q-0030 (a)).
+  'error.send_no_client': 'Este proyecto no tiene un cliente con correo.',
 } as const satisfies Record<SpanishKey, Message>;

@@ -5,6 +5,14 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-111 (vault/plans/EZD-111.md Shared lists): the send functions (authenticated) and the client-link
+  // resolver (anon only).
+  {
+    fn: 'send_to_client',
+    args: { p_project: null, p_token_hash: null, p_note: null, p_expiry_days: null },
+  },
+  { fn: 'mark_sent_package_emailed', args: { p_sent_package: null } },
+  { fn: 'resolve_sent_package', args: { p_token_hash: null } },
   // EZD-5601 step 2 (vault/plans/EZD-5601.md): the user's own Anthropic key functions, authenticated only.
   { fn: 'get_my_ai_key', args: {} },
   {

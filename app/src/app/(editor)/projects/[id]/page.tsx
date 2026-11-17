@@ -1,12 +1,17 @@
 // EZD-120c Build step 7 (vault/plans/EZD-120c.md section 3 route; Decided "Page"; Q-0500; ARCH Entry points): the
 // editor for one project at /projects/[id]. It requires a session (signed out goes to /sign-in); the browser loads
 // the project through the model route, which checks the permission. The test hook is off in production.
+// EZD-111 (vault/plans/EZD-111.md D-Can send; Q-0700): Share shows only with Send to client for this project; a
+// failed permission load hides it and is reported (the send route decides again).
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
 import { StateHost } from '../../../../components/states/StateHost';
 import { ProjectEditor } from '../../../../editor/ProjectEditor';
 import { MessagesProvider } from '../../../../lib/messages';
 import { requireSession } from '../../../../server/auth/session';
+import { reportError } from '../../../../server/errors/report';
+import { can } from '../../../../server/permissions';
+import { settingsPermissionContext } from '../../../../server/settings/shell-data';
 import { catalogFor } from '../../../../server/messages/catalog';
 
 // EZD-299 Build step 10 (vault/plans/EZD-299.md Decided D-Page; C14): `?conflicts=open` opens the conflict list.
@@ -25,6 +30,17 @@ export default async function EditorPage({
   const open = query?.conflicts === 'open' ? { conflictsOpen: true } : {};
   // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run` plays the benchmark (the Benchmark card's frame).
   const bench = query?.benchmark === 'run' ? { benchmark: true } : {};
+  const ctx = await settingsPermissionContext();
+  if (ctx === 'failed') {
+    await reportError(new Error('editor_permissions_load_failed'), {
+      source: 'function',
+      location: 'editor.share_button',
+    });
+  }
+  const send =
+    ctx !== null && ctx !== 'failed' && can(ctx, 'send_to_client', { projectId: id })
+      ? { canSend: true }
+      : {};
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
@@ -33,6 +49,7 @@ export default async function EditorPage({
           devHooks={process.env.VERCEL_ENV !== 'production'}
           {...open}
           {...bench}
+          {...send}
         />
       </StateHost>
     </MessagesProvider>

@@ -955,6 +955,50 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 302,
     note: 'EZD-224: the card image; 302 to a signed link, empty body (no money)',
   },
+  // EZD-111: after the thumbnail cases, whose version must stay the newest.
+  {
+    file: `${API}projects/[id]/send-recipient/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/send-recipient/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/send-recipient`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-111: the project client; 200 { recipient } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/sends/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/sends/route'),
+    request: async (env) => {
+      const { data, error } = await adminDb()
+        .from('customer')
+        .insert({
+          tenant_id: env.tenantId,
+          name: 'Zed Co',
+          email: `zedco-${randomUUID().slice(0, 8)}@example.test`,
+        })
+        .select('id')
+        .single();
+      if (error || !data) throw new Error(`customer insert failed: ${error?.code}`);
+      const set = await adminDb()
+        .from('project')
+        .update({ customer_id: (data as { id: string }).id })
+        .eq('id', env.projectId);
+      if (set.error) throw new Error(`project update failed: ${set.error.code}`);
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/sends`, {
+          method: 'POST',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ note: null }),
+        }),
+        params: { id: env.projectId },
+      };
+    },
+    expectStatus: 201,
+    note: 'EZD-111: one send; 201 { send } (no money)',
+  },
   {
     file: `${API}projects/[id]/plan-scale/route.ts`,
     method: 'PUT',

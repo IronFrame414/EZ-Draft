@@ -43,6 +43,8 @@
 // EZD-225 (S03 States; S06:48, 78, 100; Q-0697 decisions 05): Edit model without the lock shows the drawing tools
 // paused with the note under the banner; a lock lost mid-session pauses the drawing controller and every edit path
 // reads `mayEdit`.
+// EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
+// the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
 import {
   useCallback,
   useEffect,
@@ -56,6 +58,7 @@ import {
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorFrame } from '../components/shell/EditorFrame';
 import { EditorHeader } from '../components/shell/EditorHeader';
+import { HeaderButton } from '../components/shell/HeaderButton';
 import type { EditorView } from '../components/shell/editor-views';
 import { HeaderCard } from '../components/shell/HeaderCard';
 import { StatusBar } from '../components/shell/StatusBar';
@@ -148,6 +151,8 @@ export type ProjectEditorProps = {
   conflictsOpen?: boolean;
   // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run`, opened in the Benchmark card's frame.
   benchmark?: boolean;
+  // EZD-111: the viewer holds Send to client for this project (the page decides; the route checks again).
+  canSend?: boolean;
 };
 
 export type EditorTestHook = {
@@ -198,8 +203,12 @@ export function ProjectEditor({
   onSession,
   conflictsOpen,
   benchmark,
+  canSend = false,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
+  // EZD-111: the Send dialog, and Project settings opened from its no-client message.
+  const [sendOpen, setSendOpen] = useState(false);
+  const [sendSettingsOpen, setSendSettingsOpen] = useState(false);
   // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
   const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
@@ -565,6 +574,13 @@ export function ProjectEditor({
           onViewChange={noop}
           presence={part('presence')}
           stopEditing={part('stop')}
+          share={
+            canSend ? (
+              <HeaderButton icon="share" data-testid="header-share" onClick={() => setSendOpen(true)}>
+                {t('office.header.share')}
+              </HeaderButton>
+            ) : undefined
+          }
           reviewPill={
             menuCanEdit ? (
               <StateButton
@@ -578,6 +594,17 @@ export function ProjectEditor({
           }
         />
         {part('switcher')}
+        {sendOpen || sendSettingsOpen ? (
+          <LazySend
+            projectId={projectId}
+            sync={sync}
+            sendOpen={sendOpen}
+            settings={sendSettingsOpen && lock ? lock.ui.switcher : null}
+            onCloseSend={() => setSendOpen(false)}
+            onOpenSettings={() => setSendSettingsOpen(true)}
+            onCloseSettings={() => setSendSettingsOpen(false)}
+          />
+        ) : null}
         {conflictCount > 0 ? (
           <LazyNotice
             name="ConflictBanner"
@@ -828,6 +855,46 @@ export function ProjectEditor({
 }
 
 const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+
+// EZD-111 (11 Budgets; EZD-120c B11): the Send dialog and the Project settings dialog it opens load when Share is
+// first pressed.
+const sendDialogModule = lazyModule(() => import('../lazy/send-dialog'));
+
+function LazySend(props: {
+  projectId: string;
+  sync: EditorSession['sync'];
+  sendOpen: boolean;
+  settings: LockUi['switcher'] | null;
+  onCloseSend: () => void;
+  onOpenSettings: () => void;
+  onCloseSettings: () => void;
+}) {
+  const mod = useLazy(sendDialogModule);
+  if (!mod) return null;
+  const { settings } = props;
+  return (
+    <>
+      {props.sendOpen ? (
+        <mod.SendDialog
+          projectId={props.projectId}
+          sync={props.sync}
+          onClose={props.onCloseSend}
+          onOpenProjectSettings={props.onOpenSettings}
+        />
+      ) : null}
+      {settings ? (
+        <mod.ProjectSettingsDialog
+          {...settings.settings()}
+          onClose={props.onCloseSettings}
+          onSaved={(s) => {
+            props.onCloseSettings();
+            settings.saved(s);
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
 
 // EZD-126 (11 rule 7): the lock UI loads on the first pointer move or press, or the first edit (not on
 // pointerover, which a browser fires when the page changes under a resting mouse).

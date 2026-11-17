@@ -1,0 +1,122 @@
+/* EZD-111 (vault/plans/EZD-111.md D-CSS; Q-0701 (a)): the Send dialog. Values copied from
+   app/src/components/settings/company/Customers.module.css (the customer dialog); tokens only for color. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ez-overlay);
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 101;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-14);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-dialog);
+  color: var(--ez-ink);
+}
+
+.body {
+  padding: 18px 20px 14px;
+}
+
+.dialogTitle {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.toLine {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 12px;
+}
+
+.toLabel {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.toValue {
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.input {
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 9px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+@media (any-pointer: coarse) {
+  .input {
+    min-height: var(--ez-touch-target);
+  }
+}
+
+.message {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--ez-ink);
+}
+
+.settingsButton {
+  margin: 12px 0 0;
+}
+
+.notice {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.error {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--ez-border);
+}
+
+.footerSpacer {
+  flex: 1;
+}
+
+.sendButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

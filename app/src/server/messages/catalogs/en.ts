@@ -1674,6 +1674,32 @@ export const en = {
   'office.tools.opening.overlap': 'That overlaps another door or window',
   'office.tools.opening.no_wall': 'Point at a wall first',
   'office.tools.opening.offsets_mismatch': "Those offsets and the width don't add up to the wall",
+  // EZD-111 (vault/plans/EZD-111.md section 6; Q-0701): the Send dialog and the client email.
+  'error.send_no_client': 'This project has no client with an email.',
+  'office.send.title': 'Send to client',
+  'office.send.to': 'To',
+  'office.send.note': 'Note (optional)',
+  'office.send.send': 'Send',
+  'office.send.sending': 'Sending…',
+  'office.send.copy_link': 'Copy link',
+  'office.send.copied': 'Link copied',
+  'office.send.copy_failed': "Couldn't copy the link. Try again.",
+  'office.send.sent_to': 'Sent to {name}.',
+  'office.send.email_failed': "The email didn't go. Copy the link and send it another way.",
+  'office.send.holder_notice':
+    '{name} is editing; this send includes their saved changes up to {time}',
+  'office.send.holder_notice_no_time': '{name} is editing; this send includes their saved changes',
+  'office.send.no_client':
+    "This project has no client with an email, so it can't be sent. Add one in Project settings.",
+  'office.send.project_settings': 'Project settings',
+  'office.send.recipient_failed': "Couldn't load the client. Try again.",
+  'office.send.failed': "Couldn't send. Try again.",
+  'office.send.unsaved':
+    "Your latest changes aren't saved yet, so nothing was sent. Try again once they save.",
+  'office.send.email_subject': '{company} sent you a design to review: {project}',
+  'office.send.email_greeting': 'Hello {client},',
+  'office.send.email_body': '{company} sent you the design for {project}. Open it with the link below.',
+  'office.send.email_link': 'Open the design',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

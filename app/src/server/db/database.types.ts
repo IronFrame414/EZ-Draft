@@ -673,6 +673,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"sent_package": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"email_sent_at": string | null,"expires_at": string,"id": string,"kind": string,"model_version_id": string,"note": string | null,"project_id": string,"recipients": NonNullable<Json>,"revoked_at": string | null,"tenant_id": string,"token_hash": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at": string,"id"?: string,"kind": string,"model_version_id": string,"note"?: string | null,"project_id": string,"recipients": NonNullable<Json>,"revoked_at"?: string | null,"tenant_id": string,"token_hash": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at"?: string,"id"?: string,"kind"?: string,"model_version_id"?: string,"note"?: string | null,"project_id"?: string,"recipients"?: NonNullable<Json>,"revoked_at"?: string | null,"tenant_id"?: string,"token_hash"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sent_package_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sent_package_model_version_id_fkey"
+      columns: ["model_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sent_package_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "sent_package_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"sign_in_throttle": {
                   Row: {
                     "at": string,"failed": boolean,"id": string,"key_hash": string,"kind": string
@@ -1024,6 +1062,9 @@ isOneToOne: false
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"mark_sent_package_emailed":
+{ Args: { "p_sent_package": string }; Returns: boolean
+                           },
 "member_scope":
 { Args: { "p_membership_id": string }; Returns: Json
                            },
@@ -1079,6 +1120,11 @@ isOneToOne: false
 "resend_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
                            },
+"resolve_sent_package":
+{ Args: { "p_token_hash": string }; Returns: {
+              "expires_at": string,"kind": string,"model_version_id": string,"project_id": string,"sent_package_id": string,"tenant_id": string
+            }[]
+                           },
 "respond_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string,"p_request": string,"p_response": string }; Returns: Json
                            },
@@ -1105,6 +1151,9 @@ isOneToOne: false
                            },
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
+                           },
+"send_to_client":
+{ Args: { "p_expiry_days": number,"p_note": string,"p_project": string,"p_token_hash": string }; Returns: Json
                            },
 "set_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string

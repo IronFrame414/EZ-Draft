@@ -13,6 +13,10 @@ vi.mock('../../../../server/auth/session', () => ({
   })),
 }));
 vi.mock('../../../../editor/ProjectEditor', () => ({ ProjectEditor: vi.fn(() => null) }));
+// EZD-111: the page reads the permission context for Share; no member here, so no Share.
+vi.mock('../../../../server/settings/shell-data', () => ({
+  settingsPermissionContext: vi.fn(async () => null),
+}));
 
 import { ProjectEditor } from '../../../../editor/ProjectEditor';
 import { requireSession } from '../../../../server/auth/session';
