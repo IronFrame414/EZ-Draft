@@ -8,6 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { effectiveValue } from '../../lib/defaults/values';
 import type { ClientSend, SendHolder, SendRecipient } from '../../lib/sends/sends';
 import { loadTenantDefaults } from '../defaults/defaults';
+import { requestIp } from '../events/event-log';
 import type { Database } from '../db/database.types';
 import { EmailInputError, sendEmail, toSubjectLine } from '../email/send';
 import type { SendEmailInput, SendEmailResult } from '../email/types';
@@ -54,6 +55,7 @@ export type ClientSendOutcome =
 type SendRow = {
   sent_package_id: string;
   model_version_id: string;
+  version_no: number;
   expires_at: string;
   project_name: string;
   recipient: SendRecipient;
@@ -68,6 +70,7 @@ export async function sendToClient(
   deps: {
     send?: (input: SendEmailInput) => Promise<SendEmailResult>;
     env?: Record<string, string | undefined>;
+    requestIp?: () => Promise<string | null>;
   } = {},
 ): Promise<ClientSendOutcome> {
   const env = deps.env ?? process.env;
@@ -83,6 +86,8 @@ export async function sendToClient(
     // The generated type has no null for a text argument; the function takes null for "no note".
     p_note: note as string,
     p_expiry_days: days,
+    // EZD-121: the event_log version.sent row's address; null outside a request (the argument types say inet).
+    p_ip: (await (deps.requestIp ?? requestIp)()) as string,
   });
   if (error) {
     if (error.code === '42501') return { ok: false, code: 'permission_denied' };
@@ -139,6 +144,7 @@ export async function sendToClient(
     send: {
       id: row.sent_package_id,
       modelVersionId: row.model_version_id,
+      versionNo: row.version_no,
       link,
       emailSent,
       recipient: row.recipient,

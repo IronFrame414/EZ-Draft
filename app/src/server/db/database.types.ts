@@ -1153,7 +1153,7 @@ isOneToOne: false
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
                            },
 "send_to_client":
-{ Args: { "p_expiry_days": number,"p_note": string,"p_project": string,"p_token_hash": string }; Returns: Json
+{ Args: { "p_expiry_days": number,"p_ip"?: unknown,"p_note": string,"p_project": string,"p_token_hash": string }; Returns: Json
                            },
 "set_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string

@@ -22,6 +22,8 @@ export type ModelLoad = {
     clientName: string | null;
     planScale: PlanScale;
     phaseDefault?: PhaseView;
+    // EZD-121 (Q-0700 05): the highest sent version number for the header; null or missing before any send.
+    versionNo?: number | null;
   };
   // EZD-223: `ipadDrawing` is the viewer's own iPad drawing setting (S15d, Q-0392); missing reads as finger.
   viewer: {

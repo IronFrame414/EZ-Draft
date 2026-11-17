@@ -30,6 +30,8 @@ export type SendDialogProps = {
   sync: OutboxSync | null;
   onClose: () => void;
   onOpenProjectSettings: () => void;
+  // EZD-121: the new version's number, so the header reads "Working copy · Version N sent".
+  onSent?: (versionNo: number) => void;
   fetchImpl?: typeof fetch;
 };
 
@@ -54,6 +56,7 @@ export function SendDialog({
   projectId,
   sync,
   onClose,
+  onSent,
   onOpenProjectSettings,
   fetchImpl,
 }: SendDialogProps): ReactElement {
@@ -105,7 +108,10 @@ export function SendDialog({
       }
     }
     const r = await postClientSend(projectId, note, fetchImpl ? { fetchImpl } : undefined);
-    if (r.ok) setState({ kind: 'sent', recipient, send: r.send });
+    if (r.ok) {
+      setState({ kind: 'sent', recipient, send: r.send });
+      onSent?.(r.send.versionNo);
+    }
     else if (r.status === 400 && r.code === 'no_client') setState({ kind: 'no-client' });
     else setState({ kind: 'send-failed', recipient, error: sendError(r.status, r.code) });
   };

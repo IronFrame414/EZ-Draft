@@ -87,6 +87,8 @@ import {
   type OpenResult,
 } from './editor-session';
 import { hubResync } from './project-defaults';
+import { newerVersionNo, versionLabel } from './version-label';
+import { hubVersionSent } from './version-sent';
 import { createEditController, type EditController } from './edit/edit-controller';
 import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
@@ -209,6 +211,13 @@ export function ProjectEditor({
   // EZD-111: the Send dialog, and Project settings opened from its no-client message.
   const [sendOpen, setSendOpen] = useState(false);
   const [sendSettingsOpen, setSendSettingsOpen] = useState(false);
+  // EZD-121 (Q-0700 05): the newest sent version number from a send or a version.sent broadcast; the load's
+  // number until one arrives.
+  const [sentNo, setSentNo] = useState<number | null>(null);
+  const onSent = useCallback((n: number) => {
+    if (Number.isInteger(n) && n >= 1) setSentNo((cur) => newerVersionNo(cur, n));
+  }, []);
+  useEffect(() => hubVersionSent(projectId, onSent), [projectId, onSent]);
   // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
   const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
@@ -546,11 +555,21 @@ export function ProjectEditor({
     };
   }, [selection, plan, devHooks]);
 
-  const workingCopy = t('office.editor.working_copy');
+  const versionNo = newerVersionNo(session?.model.project.versionNo ?? null, sentNo);
+  const label = versionLabel({
+    lastSent: versionNo === null ? null : { kind: 'version', no: versionNo },
+  });
+  const versionText = t(label.key, label.params);
   const clientName = session?.model.project.clientName ?? null;
   const subtitle = useMemo(
-    () => [clientName, workingCopy, sync ? <SaveStateText sync={sync} /> : null],
-    [clientName, workingCopy, sync],
+    () => [
+      clientName,
+      <span key="version" data-testid="editor-version">
+        {versionText}
+      </span>,
+      sync ? <SaveStateText sync={sync} /> : null,
+    ],
+    [clientName, versionText, sync],
   );
 
   const closeMenu = useCallback(() => setMenu(null), []);
@@ -601,6 +620,7 @@ export function ProjectEditor({
             sendOpen={sendOpen}
             settings={sendSettingsOpen && lock ? lock.ui.switcher : null}
             onCloseSend={() => setSendOpen(false)}
+            onSent={onSent}
             onOpenSettings={() => setSendSettingsOpen(true)}
             onCloseSettings={() => setSendSettingsOpen(false)}
           />
@@ -866,6 +886,7 @@ function LazySend(props: {
   sendOpen: boolean;
   settings: LockUi['switcher'] | null;
   onCloseSend: () => void;
+  onSent: (versionNo: number) => void;
   onOpenSettings: () => void;
   onCloseSettings: () => void;
 }) {
@@ -879,6 +900,7 @@ function LazySend(props: {
           projectId={props.projectId}
           sync={props.sync}
           onClose={props.onCloseSend}
+          onSent={props.onSent}
           onOpenProjectSettings={props.onOpenSettings}
         />
       ) : null}

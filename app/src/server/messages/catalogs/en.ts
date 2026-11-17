@@ -241,6 +241,11 @@ export const en = {
   'office.left_panel.ceiling_type.coffered': 'Coffered',
   'office.shell.inspector': 'Inspector',
   'office.editor.working_copy': 'Working copy',
+  // EZD-121 (Q-0700 05; board S03 / S20 "Working copy · Rev 0 issued"): the header's version text.
+  'office.editor.working_copy_version_sent': 'Working copy · Version {n} sent',
+  'office.editor.working_copy_rev_issued': 'Working copy · Rev {n} issued',
+  'office.editor.version': 'Version {n}',
+  'office.editor.rev': 'Rev {n}',
   'office.editor.saving': 'Saving…',
   'office.editor.saved': 'Saved',
   'office.editor.saved_just_now': 'Saved just now',
@@ -977,6 +982,8 @@ export const en = {
   'office.projects.sort.status': 'Status',
   'office.projects.sort.open_items': 'Open items',
   'office.projects.card.working_copy': 'Working copy',
+  // EZD-121 (S01 Data shown; Q-0700 05).
+  'office.projects.card.version': 'Version {n}',
   'office.projects.card.to_review': '{count} to review',
   'office.projects.card.nothing_to_review': 'Nothing to review',
   'office.projects.card.place': '{client} · {address}',

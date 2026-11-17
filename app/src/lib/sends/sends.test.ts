@@ -6,6 +6,7 @@ import { fetchSendRecipient, postClientSend, type ClientSend } from './sends';
 const SEND: ClientSend = {
   id: 's1',
   modelVersionId: 'v1',
+  versionNo: 1,
   link: 'http://localhost:3000/c/' + 'A'.repeat(43),
   emailSent: true,
   recipient: { name: 'Zed Co', email: 'zedco@example.test' },

@@ -6,6 +6,8 @@ export type SendHolder = { name: string; savedAt: string | null };
 export type ClientSend = {
   id: string;
   modelVersionId: string;
+  // EZD-121 (R24 #26): the sent version's number, Version N.
+  versionNo: number;
   link: string;
   emailSent: boolean;
   recipient: SendRecipient;

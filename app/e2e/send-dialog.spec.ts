@@ -152,6 +152,7 @@ test.describe('EZD-111 Send dialog', () => {
           send: {
             id: '00000000-0000-4000-8000-000000000001',
             modelVersionId: '00000000-0000-4000-8000-000000000002',
+            versionNo: 1,
             link,
             emailSent: false,
             recipient: { name: 'Zed Co', email: CLIENT_EMAIL },

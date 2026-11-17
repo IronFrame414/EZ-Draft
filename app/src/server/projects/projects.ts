@@ -119,6 +119,7 @@ const pageSchema = z.object({
       status: z.enum(PROJECT_STATUSES),
       openItems: z.number().int().nonnegative(),
       hasThumbnail: z.boolean(),
+      versionNo: z.number().int().positive().nullable(),
     }),
   ),
   next: cursorSchema.nullable(),

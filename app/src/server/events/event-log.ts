@@ -98,7 +98,8 @@ export const EVENT_LOG: EventLogRules = {
   'code_check.completed': SINK,
   'design_option.created': SINK,
   'design_option.updated': SINK,
-  'version.sent': SINK,
+  // EZD-121 (Q-0700 03): written by send_to_client in the send transaction.
+  'version.sent': TRANSACTION,
   'version.snapshot_named': SINK,
   'version.reverted': SINK,
   'cleanup.deleted': SINK,

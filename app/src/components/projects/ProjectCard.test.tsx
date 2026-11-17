@@ -96,4 +96,12 @@ describe('EZD-117a project card markup', () => {
     expect(elements(without, 'project-card-thumb-img')).toHaveLength(0);
     expect(one(without, 'project-card-thumb').inner).toBe('');
   });
+  // EZD-121 (AC-EZD-121-6; S01 Data shown; Q-0700 05).
+  it('EZD-121 the card reads "Version N" after a send and "Working copy" before', () => {
+    const version = (p: ProjectSummary) => textOf(one(render(p), 'project-card-version').inner);
+    expect(version({ ...P3, versionNo: 2 })).toBe('Version 2');
+    expect(version({ ...P3, versionNo: 150 })).toBe('Version 150');
+    expect(version({ ...P3, versionNo: null })).toBe('Working copy');
+    expect(version(P3)).toBe('Working copy');
+  });
 });

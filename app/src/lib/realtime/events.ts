@@ -31,6 +31,8 @@ export interface ProjectChannelEvents {
   };
   'lock.request_declined': { requestId: string; requesterAppUserId: string; respondedAt: string };
   'lock.request_cancelled': { requestId: string; requesterAppUserId: string; respondedAt: string };
+  // EZD-121 (S20 Events emitted): pushed by send_to_client after a send numbers its checkpoint.
+  'version.sent': { modelVersionId: string; versionNo: number; sentAt: string };
 }
 
 export interface UserChannelEvents {

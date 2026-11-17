@@ -427,7 +427,7 @@ export async function loadModel(
   };
 
   // EZD-223: the viewer's own iPad drawing setting rides with the load for the Sketch tool.
-  const [project, lock, firstPage, firstDeleted, me, companyDefaults] = await Promise.all([
+  const [project, lock, firstPage, firstDeleted, me, companyDefaults, lastSent] = await Promise.all([
     client
       .from('project')
       .select('id, name, tenant_id, settings, phase_default, customer!project_customer_fk(name)')
@@ -441,8 +441,18 @@ export async function loadModel(
     client.from('app_user').select('ipad_input_mode').eq('id', ctx.appUserId).maybeSingle(),
     // EZD-116 (Q-0697 03): the company defaults ride with the load.
     loadTenantDefaults(client),
+    // EZD-121 (Q-0700 05): the newest sent version's number, for the header label.
+    client
+      .from('model_version')
+      .select('version_no')
+      .eq('project_id', projectId)
+      .eq('is_sent', true)
+      .order('version_no', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
   if (project.error) throw project.error;
+  if (lastSent.error) throw lastSent.error;
   if (lock.error && lock.error.code !== 'P0002') throw lock.error;
   if (me.error) throw me.error;
   if (project.data === null) return null;
@@ -498,6 +508,8 @@ export async function loadModel(
       clientName: project.data.customer?.name ?? null,
       planScale: planScaleFromSettings(project.data.settings),
       phaseDefault: phaseViewOf(project.data.phase_default),
+      // Absent before any send (the header reads "Working copy").
+      ...(lastSent.data?.version_no == null ? {} : { versionNo: lastSent.data.version_no }),
     },
     viewer: {
       appUserId: ctx.appUserId,

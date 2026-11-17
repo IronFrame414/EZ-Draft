@@ -29,6 +29,8 @@ export type ProjectSummary = {
   status: ProjectStatus;
   openItems: number;
   hasThumbnail: boolean;
+  // EZD-121 (S01 Data shown; Q-0700 05): the highest sent version number; null (or absent) before any send.
+  versionNo?: number | null;
 };
 
 export function projectThumbnailSrc(projectId: string): string {
