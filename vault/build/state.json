@@ -371,7 +371,8 @@
     "EZD-309",
     "EZD-220",
     "EZD-310",
-    "EZD-311"
+    "EZD-311",
+    "EZD-313"
   ],
   "seeded_done": 324,
   "merged": [
@@ -721,6 +722,14 @@
       "ts": "2026-11-17T22:19:04Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-313",
+      "title": "Finish and cancel",
+      "commit": "5b06567b",
+      "ts": "2026-11-17T23:42:24Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -742,7 +751,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -808,11 +817,11 @@
     }
   },
   "running": {
-    "EZD-313": {
-      "lane": 1,
-      "title": "Finish and cancel",
-      "started": "2026-11-17T22:19:54Z",
-      "develop": "5b4dbb86"
+    "EZD-229": {
+      "lane": 0,
+      "title": "Existing-condition details",
+      "started": "2026-11-17T23:16:03Z",
+      "develop": "4f625607"
     }
   }
 }
