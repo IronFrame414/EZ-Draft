@@ -472,3 +472,126 @@ test.describe('EZD-309 Fix and delete', () => {
     ]);
   });
 });
+
+// EZD-310 (AC-EZD-310-1 "A typed value beyond tolerance lists every conflict it creates"; S02 Typed or laser
+// input, Conflict list "Click a line to zoom to it"). Expected values by hand from the fixture: the room's corners
+// run (0,0), (144,0), (144,120), (0,120) (room-12x10.dxf.expected.json roomPolygon), so the walk goes south, east,
+// north, west from the southwest corner; the east wall scans 118 in (room-12x10-unjoined.dxf.expected.json). Typed
+// 10' (120 in, 2 in over, beyond the 1/2" fallback tolerance): the walk ends 2" short of the southwest corner. The
+// door and window are on the south wall, before the east wall in the walk, so nothing else is listed.
+test.describe('EZD-310 Typed vs scan conflicts', () => {
+  let tenant = '';
+
+  test.afterAll(async () => {
+    try {
+      if (tenant) {
+        await harnessSql()`delete from public.job where tenant_id = ${tenant}::uuid`;
+        const rows = await harnessSql()<{ storage_path: string }[]>`
+          select storage_path from public.source_file where tenant_id = ${tenant}::uuid`;
+        if (rows.length > 0)
+          await adminDb()
+            .storage.from('sources')
+            .remove(rows.map((r) => r.storage_path));
+      }
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('EZD-310 a typed east wall lists the gap it creates, zooms to it and survives a reload (AC-1)', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(180_000);
+    tenant = await createTenant();
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, m.membershipId, [
+      'view_projects',
+      'create_projects',
+      'edit_model',
+    ]);
+    await signInAs(m.email);
+    await page.goto('/');
+
+    await tid(page, 'projects-new').click();
+    await tid(page, 'projects-new-file').click();
+    await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
+    await tid(page, 'new-project-address').fill('17 Typed Ln');
+    await tid(page, 'new-project-next').click();
+    await tid(page, 'upload-input').setInputFiles([DXF]);
+    await expect(tid(page, 'upload-file')).toHaveAttribute('data-kind', 'polycam_dxf');
+    await tid(page, 'new-project-create').click();
+    await page.waitForURL(/\/projects\/[0-9a-f-]{36}\/import\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+    const jobId = page.url().split('/').at(-1) as string;
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+      timeout: 90_000,
+    });
+
+    // The east wall is selected at first: no typed value, scan 9' 10", no conflict.
+    await expect(tid(page, 'import-review-row')).toHaveText('East wall70%');
+    const eastId = (await tid(page, 'import-review-row').getAttribute('data-id')) as string;
+    const typed = tid(page, 'import-review-typed');
+    await expect(typed).toHaveValue('');
+    await expect(tid(page, 'import-review-scan')).toHaveText(`9' 10"`);
+    await expect(tid(page, 'import-review-conflict')).toHaveCount(0);
+    await expect(tid(page, 'import-review-tolerance')).toHaveText(
+      'Tolerance 1/2" · shared with field measurements',
+    );
+
+    // A length outside the formats is refused with the formats message.
+    await typed.fill('12 6');
+    await typed.press('Enter');
+    await expect(tid(page, 'import-review-typed-refused')).toHaveText(
+      `Use 12'6", 12' 6 1/2", 150" or 12.5'`,
+    );
+
+    // Typed 10' (as a keyboard-mode laser would: text then Enter): typed wins and the list shows the gap only.
+    await typed.fill(`10'`);
+    await typed.press('Enter');
+    await expect(typed).toHaveValue(`10' 0"`);
+    await expect(tid(page, 'import-review-conflict-pill')).toHaveText('Conflict');
+    await expect(tid(page, 'import-review-conflicts')).toContainText('Typed wins. This creates');
+    await expect(tid(page, 'import-review-conflict')).toHaveText([
+      'Room no longer closes: 2" gap at the southwest corner',
+    ]);
+    await expect(tid(page, 'import-review-conflict')).toHaveAttribute('data-severity', 'error');
+    await expect(tid(page, 'review-gap')).toHaveText('2" gap');
+
+    // Click the line: the canvas zooms to the gap.
+    await expect(tid(page, 'import-review-zoom')).toHaveText('100%');
+    await tid(page, 'import-review-conflict').click();
+    await expect(tid(page, 'import-review-zoom')).toHaveText('400%');
+
+    // The typed value is saved with the wall's fix and comes back on reload with its conflict.
+    await expect
+      .poll(
+        async () =>
+          (
+            await harnessSql()<{ fix: { typed?: number } | null }[]>`
+              select fix from public.import_review_item
+              where job_id = ${jobId}::uuid and item_id = ${eastId}`
+          )[0]?.fix?.typed ?? null,
+        { timeout: 15_000 },
+      )
+      .toBe(120);
+    await page.reload();
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+      timeout: 30_000,
+    });
+    await page.locator('[data-testid=import-review-mode][data-mode=one_by_one]').click();
+    await page.locator(`[data-testid=import-review-row][data-id="${eastId}"]`).click();
+    await expect(typed).toHaveValue(`10' 0"`);
+    await expect(tid(page, 'import-review-conflict')).toHaveText([
+      'Room no longer closes: 2" gap at the southwest corner',
+    ]);
+
+    // Within the tolerance (9' 10 1/4", 1/4" over the scan) typed still wins but nothing is listed.
+    await typed.fill(`9' 10 1/4"`);
+    await typed.press('Enter');
+    await expect(typed).toHaveValue(`9' 10 1/4"`);
+    await expect(tid(page, 'import-review-conflict')).toHaveCount(0);
+    await expect(tid(page, 'import-review-conflict-pill')).toHaveCount(0);
+    await expect(tid(page, 'review-gap')).toHaveCount(0);
+  });
+});

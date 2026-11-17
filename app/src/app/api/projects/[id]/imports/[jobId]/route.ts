@@ -58,8 +58,20 @@ export async function GET(
 
 const pt = z.object({ x: z.number().finite(), y: z.number().finite() }).strict();
 const fixSchema = z.union([
-  z.object({ geometry: z.object({ start: pt, end: pt }).strict() }).strict(),
-  z.object({ center: pt, width: z.number().finite().positive() }).strict(),
+  // EZD-310: `typed` is the typed or laser value that set the fix.
+  z
+    .object({
+      geometry: z.object({ start: pt, end: pt }).strict(),
+      typed: z.number().finite().positive().max(2400).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      center: pt,
+      width: z.number().finite().positive(),
+      typed: z.number().finite().positive().max(2400).optional(),
+    })
+    .strict(),
   z.object({ boundary: z.array(pt).min(1).max(200) }).strict(),
 ]);
 const bodySchema = z

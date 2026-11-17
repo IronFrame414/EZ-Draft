@@ -23,6 +23,7 @@ import {
   type ReviewMode,
 } from '../../lib/imports/review';
 import { parseFix, type ItemFix, type ReviewChange } from '../../lib/imports/review-fix';
+import { reviewTolerance } from '../../lib/imports/review-conflicts';
 import type { Json } from '../db/database.types';
 import { loadTenantDefaults } from '../defaults/defaults';
 import { signedDownloadUrl, StorageError, type DbClient } from '../storage/objects';
@@ -41,6 +42,8 @@ export type ImportReviewView = {
   meshUrl: string | null;
   /** The high-confidence cutoff (%) for this review: at or above it is high confidence. */
   cutoff: number;
+  /** EZD-310: the typed-vs-scan tolerance (in), Defaults measurement_tolerance or 1/2" while Not set (Round 24 #30). */
+  tolerance: number;
   /** Saved decisions by item id (EZD-309). */
   decisions: Record<string, Decision>;
   /** Saved fixes by item id (EZD-309). */
@@ -122,6 +125,7 @@ export async function readImportReview(
     projectId,
     projectName: project.data.name,
     cutoff: reviewCutoff(effectiveValue('high_confidence_cutoff', stored)),
+    tolerance: reviewTolerance(effectiveValue('measurement_tolerance', stored)),
     files: ordered.map((f) => ({ name: f.name, kind: f.kind })),
     decisions: {},
     fixes: {},

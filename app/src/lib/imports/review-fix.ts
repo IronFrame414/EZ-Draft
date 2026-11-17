@@ -17,8 +17,9 @@ import {
 } from '@ezdraft/geometry';
 import type { Decision, Decisions, Pt, ReviewItem, ReviewOpening, ReviewWall } from './review';
 
-export type WallFix = { geometry: { start: Pt; end: Pt } };
-export type OpeningFix = { center: Pt; width: number };
+// EZD-310: `typed` is the typed or laser value (in) that set the fix (lib/imports/review-conflicts.ts).
+export type WallFix = { geometry: { start: Pt; end: Pt }; typed?: number };
+export type OpeningFix = { center: Pt; width: number; typed?: number };
 export type RoomFix = { boundary: Pt[] };
 export type ItemFix = WallFix | OpeningFix | RoomFix;
 export type Fixes = Readonly<Record<string, ItemFix>>;
@@ -35,11 +36,15 @@ export function parseFix(item: ReviewItem, raw: unknown): ItemFix | null {
   if (item.type === 'wall') {
     const g = r.geometry as Record<string, unknown> | undefined;
     if (!g || !isPt(g.start) || !isPt(g.end)) return null;
-    return { geometry: { start: copy(g.start), end: copy(g.end) } };
+    const wall: WallFix = { geometry: { start: copy(g.start), end: copy(g.end) } };
+    if (finite(r.typed) && r.typed > 0) wall.typed = r.typed;
+    return wall;
   }
   if (item.type === 'opening') {
     if (!isPt(r.center) || !finite(r.width) || r.width <= 0) return null;
-    return { center: copy(r.center), width: r.width };
+    const opening: OpeningFix = { center: copy(r.center), width: r.width };
+    if (finite(r.typed) && r.typed > 0) opening.typed = r.typed;
+    return opening;
   }
   if (
     !Array.isArray(r.boundary) ||

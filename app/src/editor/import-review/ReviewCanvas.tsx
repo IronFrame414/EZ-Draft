@@ -14,7 +14,11 @@
 // drag snaps with the Plan editor's rules and shows the length live, and is handed to onFix when released. Esc
 // cancels a drag in progress and leaves Fix mode. A selected item outside the view is brought to the centre.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
-import { formatLength, PLAN_DISPLAY_DENOMINATOR } from '@ezdraft/geometry';
+import {
+  DETAIL_DISPLAY_DENOMINATOR,
+  formatLength,
+  PLAN_DISPLAY_DENOMINATOR,
+} from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import { lazyModule } from '../../lib/lazy/lazy-module';
@@ -33,6 +37,7 @@ import {
   snapHandle,
   type ItemFix,
 } from '../../lib/imports/review-fix';
+import type { RoomGap } from '../../lib/imports/review-conflicts';
 import touch from '../../styles/touch.module.css';
 import zoomStyles from '../plan/ZoomStack.module.css';
 import { loadMesh } from './mesh-source';
@@ -44,6 +49,7 @@ const PAD_PX = 48;
 const ZOOM_STEP = 1.25;
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 20;
+const FOCUS_ZOOM = 4;
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 export type ItemState = 'accepted' | 'to_check' | 'selected';
@@ -87,6 +93,10 @@ export type ReviewCanvasProps = {
   /** Reads a fresh mesh link (the one in `meshUrl` expires after 900 s). */
   freshMeshUrl: () => Promise<string | null>;
   onZoom: (percent: number) => void;
+  /** EZD-310: rooms that no longer close, drawn as red gap markers with their size. */
+  gaps?: readonly RoomGap[];
+  /** EZD-310: a point to zoom to (a conflict line was clicked); a new `n` zooms again. */
+  focus?: { point: Pt; n: number } | null;
 };
 
 type Drag = { id: string; key: string; fix: ItemFix | null };
@@ -105,6 +115,8 @@ export function ReviewCanvas({
   meshUrl,
   freshMeshUrl,
   onZoom,
+  gaps = [],
+  focus = null,
 }: ReviewCanvasProps): ReactElement {
   const t = useT();
   const [dragState, setHandleDrag] = useState<Drag | null>(null);
@@ -208,6 +220,16 @@ export function ReviewCanvas({
         setView({ ...view, panX: -(mx - cx) * k, panY: (my - cy) * k });
       }
     }
+  }
+
+  // A clicked conflict line zooms to its point (S02 Conflict list "Click a line to zoom to it"): the point is centred
+  // and the view zoomed to at least 4x the fitted view.
+  const [seenFocus, setSeenFocus] = useState(focus?.n ?? 0);
+  if (focus && focus.n !== seenFocus) {
+    setSeenFocus(focus.n);
+    const zoom = Math.max(view.zoom, FOCUS_ZOOM);
+    const kz = fitScale * zoom;
+    setView({ zoom, panX: -(focus.point.x - cx) * kz, panY: (focus.point.y - cy) * kz });
   }
 
   // Zoom by `ratio` keeping the screen point (sx, sy) still; the centre when no point is given.
@@ -390,6 +412,19 @@ export function ReviewCanvas({
               );
             })}
           </g>
+          {gaps.map((g) => {
+            const p = toScreen(g.point);
+            return (
+              <g key={g.roomId} data-testid="review-gap" data-room={g.roomId}>
+                <rect x={p.x - 7} y={p.y - 7} width={14} height={14} rx={3} className={styles.gapMarker} />
+                <text x={p.x + 12} y={p.y - 12} className={styles.gapLabel}>
+                  {t('office.review.gap_marker', {
+                    gap: formatLength(g.inches, DETAIL_DISPLAY_DENOMINATOR),
+                  })}
+                </text>
+              </g>
+            );
+          })}
           {handles.map((h) => {
             const p = toScreen(h.point);
             return (

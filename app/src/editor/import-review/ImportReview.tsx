@@ -45,6 +45,7 @@ import {
   toCheckItems,
   type Decision,
   type Decisions,
+  type Pt,
   type ReviewFile,
   type ReviewItem,
   type ReviewMode,
@@ -70,6 +71,16 @@ import { createReviewSaver, patchSender, type ReviewSaver } from './review-saver
 import { ReviewCanvas } from './ReviewCanvas';
 import { readMeshUrl } from './mesh-source';
 import styles from './ImportReview.module.css';
+import {
+  isOverTolerance,
+  itemConflicts,
+  reviewTolerance,
+  roomGaps,
+  typedFix,
+  typedOf,
+  type Conflict,
+} from '../../lib/imports/review-conflicts';
+import { amount, ConflictList, TypedField } from './TypedConflicts';
 
 export const POLL_MS = 1500;
 
@@ -84,6 +95,8 @@ export type ImportReviewData = {
   meshUrl: string | null;
   /** The company's high-confidence cutoff (%), from Defaults (server/imports/review.ts). */
   cutoff: number;
+  /** EZD-310: the typed-vs-scan tolerance (in), from Defaults; 1/2" when missing. */
+  tolerance?: number;
   /** What the import has saved (EZD-309); missing in data from before it. */
   decisions?: Decisions;
   fixes?: Fixes;
@@ -388,6 +401,30 @@ export function ReadyBody({
   );
   const selected = items.find((i) => i.id === selectedId) ?? null;
 
+  // EZD-310: typed or laser values and the conflicts they create (lib/imports/review-conflicts.ts).
+  const tolerance = reviewTolerance(review.tolerance);
+  const conflicts = useMemo(
+    () => (selectedId ? itemConflicts(detected, fixes, selectedId, tolerance) : []),
+    [detected, fixes, selectedId, tolerance],
+  );
+  const gaps = useMemo(() => roomGaps(detected, fixes, tolerance), [detected, fixes, tolerance]);
+  const [focus, setFocus] = useState<{ point: Pt; n: number } | null>(null);
+  const zoomTo = (c: Conflict) => setFocus((f) => ({ point: c.point, n: (f?.n ?? 0) + 1 }));
+  const commitTyped = (inches: number | null) => {
+    if (!selected) return;
+    const id = selected.id;
+    if (inches === null) {
+      act((s) => {
+        const rest: Record<string, ItemFix> = { ...s.fixes };
+        delete rest[id];
+        return { ...s, fixes: rest };
+      });
+      return;
+    }
+    const fix = typedFix(selected, inches);
+    if (fix) act((s) => withFix(s, id, fix));
+  };
+
   const chooseMode = (next: ReviewMode) => {
     if (next === mode) return;
     if (next === 'one_by_one') setSelectedId(firstUnresolved(items, decisions));
@@ -590,6 +627,8 @@ export function ReadyBody({
             meshUrl={review.meshUrl}
             freshMeshUrl={freshMeshUrl}
             onZoom={onZoom}
+            gaps={gaps}
+            focus={focus}
           />
         </main>
         <aside
@@ -600,7 +639,18 @@ export function ReadyBody({
         >
           {selected ? (
             <div className={styles.inspectorHead}>
-              <h2 className={styles.itemName}>{itemLabel(selected, items)}</h2>
+              <div className={styles.headRow}>
+                <h2 className={styles.itemName}>{itemLabel(selected, items)}</h2>
+                {isOverTolerance(
+                  detected.find((i) => i.id === selected.id) ?? selected,
+                  fixes,
+                  tolerance,
+                ) ? (
+                  <span className={styles.conflictPill} data-testid="import-review-conflict-pill">
+                    {t('office.review.conflict')}
+                  </span>
+                ) : null}
+              </div>
               <p className={styles.muted}>
                 {t('office.review.item_meta', {
                   type: itemTypeWord(selected),
@@ -618,18 +668,30 @@ export function ReadyBody({
                   )}
                 </p>
               ) : null}
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>
-                <span className={styles.scanValue} data-testid="import-review-scan">
-                  {scanReads(detected.find((i) => i.id === selected.id) ?? selected)}
-                </span>
-              </div>
+              {selected.type === 'room' ? (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>
+                  <span className={styles.scanValue} data-testid="import-review-scan">
+                    {scanReads(detected.find((i) => i.id === selected.id) ?? selected)}
+                  </span>
+                </div>
+              ) : (
+                <TypedField
+                  key={selected.id}
+                  item={selected}
+                  typed={typedOf(fixes[selected.id])}
+                  scan={scanReads(detected.find((i) => i.id === selected.id) ?? selected)}
+                  disabled={decisions[selected.id] === 'rejected'}
+                  onCommit={commitTyped}
+                />
+              )}
             </div>
           ) : (
             <p className={`${styles.inspectorHead} ${styles.muted}`}>
               {t('office.review.no_selection')}
             </p>
           )}
+          {selected ? <ConflictList conflicts={conflicts} items={items} onZoom={zoomTo} /> : null}
           {mode === 'one_by_one' ? (
             <div className={styles.inspectorFoot} data-testid="import-review-step">
               <div className={styles.stepper}>
@@ -670,7 +732,9 @@ export function ReadyBody({
               </div>
             </div>
           ) : null}
-          <p className={styles.tolerance}>{t('office.review.tolerance')}</p>
+          <p className={styles.tolerance} data-testid="import-review-tolerance">
+            {t('office.review.tolerance_value', { tolerance: amount(tolerance) })}
+          </p>
         </aside>
       </div>
       <StatusBar
